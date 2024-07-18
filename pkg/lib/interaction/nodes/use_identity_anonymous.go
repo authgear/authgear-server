@@ -121,7 +121,7 @@ func (e *EdgeUseIdentityAnonymous) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	anonIdentity, err := ctx.AnonymousIdentities.GetByKeyID(request.KeyID)
-	if errors.Is(err, identity.ErrIdentityNotFound) {
+	if errors.Is(err, api.ErrIdentityNotFound) {
 		anonIdentity = nil
 	} else if err != nil {
 		return nil, err

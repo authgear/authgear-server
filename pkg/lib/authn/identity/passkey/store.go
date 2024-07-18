@@ -7,6 +7,7 @@ import (
 
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -47,7 +48,7 @@ func (s *Store) scan(scanner db.Scanner) (*identity.Passkey, error) {
 		&i.AttestationResponse,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, identity.ErrIdentityNotFound
+		return nil, api.ErrIdentityNotFound
 	} else if err != nil {
 		return nil, err
 	}

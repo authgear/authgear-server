@@ -2,9 +2,7 @@ package latte
 
 import (
 	"context"
-	"errors"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -30,10 +28,10 @@ func (n *NodeDoUpdateIdentity) GetEffects(ctx context.Context, deps *workflow.De
 	return []workflow.Effect{
 		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			if _, err := deps.Identities.CheckDuplicated(n.IdentityAfterUpdate); err != nil {
-				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
+				if identity.IsErrDuplicatedIdentity(err) {
 					s1 := n.IdentityBeforeUpdate.ToSpec()
 					s2 := n.IdentityAfterUpdate.ToSpec()
-					return identityFillDetails(api.ErrDuplicatedIdentity, &s2, &s1)
+					return identity.NewErrDuplicatedIdentity(&s2, &s1)
 				}
 				return err
 			}

@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -238,7 +239,7 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		if err != nil {
 			return nil, err
 		} else if len(l) != 1 {
-			return nil, identity.ErrIdentityNotFound
+			return nil, api.ErrIdentityNotFound
 		}
 		return l[0].ToInfo(), nil
 	case model.IdentityTypeOAuth:
@@ -260,7 +261,7 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		userID := spec.Anonymous.ExistingUserID
 		identityID := spec.Anonymous.ExistingIdentityID
 		if userID == "" {
-			return nil, identity.ErrIdentityNotFound
+			return nil, api.ErrIdentityNotFound
 		}
 		a, err := s.Anonymous.Get(userID, identityID)
 		// identity must be found with existing user and identity id
@@ -295,7 +296,7 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 	panic("identity: unknown identity type " + spec.Type)
 }
 
-// SearchBySpec does not return identity.ErrIdentityNotFound.
+// SearchBySpec does not return api.ErrIdentityNotFound.
 func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
 	exactMatch, err = s.getBySpec(spec)
 	// The simplest case is the exact match case.
@@ -303,12 +304,12 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 		return
 	}
 
-	// Any error other than identity.ErrIdentityNotFound
-	if !errors.Is(err, identity.ErrIdentityNotFound) {
+	// Any error other than api.ErrIdentityNotFound
+	if !errors.Is(err, api.ErrIdentityNotFound) {
 		return
 	}
 
-	// Do not consider identity.ErrIdentityNotFound as error.
+	// Do not consider api.ErrIdentityNotFound as error.
 	err = nil
 
 	claimsToSearch := make(map[string]interface{})
@@ -586,7 +587,19 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 }
 
 func (s *Service) Create(info *identity.Info) error {
-	// TODO(verification): make OAuth verified according to config.
+	incoming := info.ToSpec()
+	exactMatch, err := s.getBySpec(&incoming)
+	if errors.Is(err, api.ErrIdentityNotFound) {
+		// nolint: ineffassign
+		err = nil
+	} else if err != nil {
+		return err
+	} else {
+		existing := exactMatch.ToSpec()
+		err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
+		return err
+	}
+
 	switch info.Type {
 	case model.IdentityTypeLoginID:
 		i := info.LoginID
@@ -747,7 +760,10 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 				continue
 			}
 			dupeIdentity = i.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
 			return
 		}
 
@@ -762,7 +778,10 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 				continue
 			}
 			dupeIdentity = i.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
 			return
 		}
 	}
@@ -778,25 +797,31 @@ func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity 
 		var i *identity.LoginID
 		i, err = s.LoginID.GetByUniqueKey(info.LoginID.UniqueKey)
 		if err != nil {
-			if !errors.Is(err, identity.ErrIdentityNotFound) {
+			if !errors.Is(err, api.ErrIdentityNotFound) {
 				return
 			}
 			err = nil
 		} else if i.UserID != info.UserID {
 			dupeIdentity = i.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
 		}
 	case model.IdentityTypeOAuth:
 		var o *identity.OAuth
 		o, err = s.OAuth.GetByProviderSubject(info.OAuth.ProviderID, info.OAuth.ProviderSubjectID)
 		if err != nil {
-			if !errors.Is(err, identity.ErrIdentityNotFound) {
+			if !errors.Is(err, api.ErrIdentityNotFound) {
 				return
 			}
 			err = nil
 		} else if o.UserID != info.UserID {
 			dupeIdentity = o.ToInfo()
-			err = identity.ErrIdentityAlreadyExists
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
 		}
 	}
 

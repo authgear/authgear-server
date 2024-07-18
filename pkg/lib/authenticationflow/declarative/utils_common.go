@@ -2,7 +2,6 @@ package declarative
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -628,15 +627,9 @@ func newIdentityInfo(deps *authflow.Dependencies, newUserID string, spec *identi
 		return nil, err
 	}
 
-	duplicate, err := deps.Identities.CheckDuplicatedByUniqueKey(info)
-	if err != nil && !errors.Is(err, identity.ErrIdentityAlreadyExists) {
-		return nil, err
-	}
-
+	_, err = deps.Identities.CheckDuplicatedByUniqueKey(info)
 	if err != nil {
-		spec := info.ToSpec()
-		otherSpec := duplicate.ToSpec()
-		return nil, identityFillDetails(api.ErrDuplicatedIdentity, &spec, &otherSpec)
+		return nil, err
 	}
 
 	return info, nil

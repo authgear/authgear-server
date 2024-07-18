@@ -9,6 +9,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/lib/pq"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -55,7 +56,7 @@ func (s *Store) scan(scn db.Scanner) (*identity.LoginID, error) {
 		&claims,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, identity.ErrIdentityNotFound
+		return nil, api.ErrIdentityNotFound
 	} else if err != nil {
 		return nil, err
 	}
@@ -265,7 +266,7 @@ func (s *Store) Update(i *identity.LoginID) error {
 	}
 
 	if rowsAffected == 0 {
-		return identity.ErrIdentityNotFound
+		return api.ErrIdentityNotFound
 	} else if rowsAffected > 1 {
 		panic(fmt.Sprintf("identity_oauth: want 1 row updated, got %v", rowsAffected))
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -102,7 +103,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 						},
 					}, nil
 				default:
-					return nil, node.FillDetails(api.ErrDuplicatedIdentity)
+					return nil, node.FillDetails(identity.Deprecated_ErrDuplicatedIdentity)
 				}
 			}
 
@@ -153,7 +154,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 		case IntentAuthenticateKindPromote:
 			switch node.IdentityConflictConfig.Promotion {
 			case config.PromotionConflictBehaviorError:
-				return nil, node.FillDetails(api.ErrDuplicatedIdentity)
+				return nil, node.FillDetails(identity.Deprecated_ErrDuplicatedIdentity)
 			case config.PromotionConflictBehaviorLogin:
 				// Authenticate using duplicated identity
 				return []interaction.Edge{
@@ -167,7 +168,7 @@ func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node i
 			}
 		default:
 			// TODO(interaction): handle OAuth identity conflict
-			return nil, node.FillDetails(api.ErrDuplicatedIdentity)
+			return nil, node.FillDetails(identity.Deprecated_ErrDuplicatedIdentity)
 		}
 
 	case *nodes.NodeDoCreateIdentity:

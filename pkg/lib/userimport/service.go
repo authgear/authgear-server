@@ -3,10 +3,8 @@ package userimport
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/attrs"
@@ -244,13 +242,7 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detai
 }
 
 func (s *UserImportService) checkIdentityDuplicate(ctx context.Context, info *identity.Info) (err error) {
-	dupe, err := s.Identities.CheckDuplicated(info)
-	if errors.Is(err, identity.ErrIdentityAlreadyExists) {
-		err = api.NewInvariantViolated("DuplicatedIdentity", "identity already exists", map[string]interface{}{
-			"login_id": dupe.LoginID.LoginID,
-		})
-		return
-	}
+	_, err = s.Identities.CheckDuplicated(info)
 	if err != nil {
 		return
 	}

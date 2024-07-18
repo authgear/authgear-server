@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/accountmigration"
 	"github.com/authgear/authgear-server/pkg/lib/app2app"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -122,6 +123,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.EventService), new(*event.Service)),
 		wire.Bind(new(workflow.EventService), new(*event.Service)),
 		wire.Bind(new(authenticationflow.EventService), new(*event.Service)),
+		wire.Bind(new(accountmanagement.EventService), new(*event.Service)),
 		wire.Bind(new(user.EventService), new(*event.Service)),
 		wire.Bind(new(session.EventService), new(*event.Service)),
 		wire.Bind(new(messaging.EventService), new(*event.Service)),
@@ -260,6 +262,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.MFAService), new(*facade.MFAFacade)),
 		wire.Bind(new(userimport.IdentityService), new(*facade.IdentityFacade)),
 		wire.Bind(new(userimport.AuthenticatorService), new(*facade.AuthenticatorFacade)),
+		wire.Bind(new(accountmanagement.IdentityService), new(*facade.IdentityFacade)),
 	),
 
 	wire.NewSet(
@@ -298,6 +301,7 @@ var CommonDependencySet = wire.NewSet(
 		sso.DependencySet,
 		wire.Bind(new(interaction.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
 		wire.Bind(new(authenticationflow.OAuthProviderFactory), new(*sso.OAuthProviderFactory)),
+		wire.Bind(new(accountmanagement.OAuthProvider), new(*sso.OAuthProviderFactory)),
 	),
 
 	wire.NewSet(
@@ -420,6 +424,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(workflow.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(authenticationflow.RateLimiter), new(*ratelimit.Limiter)),
+		wire.Bind(new(accountmanagement.RateLimitMiddlewareRateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(authenticatorservice.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
@@ -499,6 +504,10 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		authenticationflow.DependencySet,
+	),
+
+	wire.NewSet(
+		accountmanagement.DependencySet,
 	),
 
 	wire.NewSet(

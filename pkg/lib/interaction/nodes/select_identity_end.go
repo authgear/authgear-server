@@ -1,10 +1,8 @@
 package nodes
 
 import (
-	"errors"
 	"fmt"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -116,8 +114,8 @@ func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
 		if n.OldIdentityInfo != nil && n.IdentityInfo != nil && n.IdentityInfo.Type == model.IdentityTypeOAuth {
 			_, err := ctx.Identities.CheckDuplicated(n.IdentityInfo)
 			if err != nil {
-				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
-					return n.FillDetails(api.ErrDuplicatedIdentity)
+				if identity.IsErrDuplicatedIdentity(err) {
+					return n.FillDetails(identity.Deprecated_ErrDuplicatedIdentity)
 				}
 				return err
 			}

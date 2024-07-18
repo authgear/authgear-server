@@ -6,7 +6,6 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -287,7 +286,7 @@ func (i *IntentAccountLinking) errorIfSomeConflictIsError() error {
 			s := c.Identity.ToSpec()
 			return &s
 		})
-		return identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
+		return identity.NewErrDuplicatedIdentityMany(spec, conflictSpecs)
 	}
 
 	return nil

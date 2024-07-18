@@ -103,7 +103,7 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 						s := c.Identity.ToSpec()
 						return &s
 					})
-					return nil, identityFillDetailsMany(api.ErrDuplicatedIdentity, spec, conflictSpecs)
+					return nil, identity.NewErrDuplicatedIdentityMany(spec, conflictSpecs)
 				}
 
 				info, err := newIdentityInfo(deps, n.UserID, spec)

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -316,7 +316,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 
 			loginIDProvider.EXPECT().ListByClaim("email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
 			oauthProvider.EXPECT().ListByClaim("email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(info.LoginID.UniqueKey).AnyTimes().Return(nil, identity.ErrIdentityNotFound)
+			loginIDProvider.EXPECT().GetByUniqueKey(info.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(info)
 			So(err, ShouldBeNil)
@@ -328,7 +328,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 
 			loginIDProvider.EXPECT().ListByClaim("email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
 			oauthProvider.EXPECT().ListByClaim("email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(info.OAuth.ProviderID, info.OAuth.ProviderSubjectID).AnyTimes().Return(nil, identity.ErrIdentityNotFound)
+			oauthProvider.EXPECT().GetByProviderSubject(info.OAuth.ProviderID, info.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(info)
 			So(err, ShouldBeNil)
@@ -356,7 +356,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(existing.LoginID, nil)
 
 			actual, err := p.CheckDuplicated(incoming)
-			So(errors.Is(err, identity.ErrIdentityAlreadyExists), ShouldBeTrue)
+			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
 
@@ -381,7 +381,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(existing.OAuth, nil)
 
 			actual, err := p.CheckDuplicated(incoming)
-			So(errors.Is(err, identity.ErrIdentityAlreadyExists), ShouldBeTrue)
+			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
 
@@ -391,7 +391,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 
 			loginIDProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
 			oauthProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(nil, identity.ErrIdentityNotFound)
+			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
 			So(err, ShouldBeNil)
@@ -404,10 +404,10 @@ func TestProviderCheckDuplicated(t *testing.T) {
 
 			loginIDProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
 			oauthProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(nil, identity.ErrIdentityNotFound)
+			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
-			So(errors.Is(err, identity.ErrIdentityAlreadyExists), ShouldBeTrue)
+			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
 
@@ -417,7 +417,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 
 			loginIDProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
 			oauthProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, identity.ErrIdentityNotFound)
+			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
 			So(err, ShouldBeNil)
@@ -430,10 +430,10 @@ func TestProviderCheckDuplicated(t *testing.T) {
 
 			loginIDProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
 			oauthProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, identity.ErrIdentityNotFound)
+			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
-			So(errors.Is(err, identity.ErrIdentityAlreadyExists), ShouldBeTrue)
+			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
 	})

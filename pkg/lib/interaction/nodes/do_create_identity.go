@@ -1,8 +1,6 @@
 package nodes
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -84,12 +82,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				)
 			}
 
-			if existing, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
-				if errors.Is(err, identity.ErrIdentityAlreadyExists) {
-					s1 := n.Identity.ToSpec()
-					s2 := existing.ToSpec()
-					return identityFillDetails(api.ErrDuplicatedIdentity, &s1, &s2)
-				}
+			if _, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
 				return err
 			}
 			if err := ctx.Identities.Create(n.Identity); err != nil {
