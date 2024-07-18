@@ -139,7 +139,8 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 		loginIDInputType = qLoginIDInputType
 	}
 
-	loginID := r.Form.Get("q_login_id")
+	qLoginID := r.Form.Get("q_login_id")
+	loginID := qLoginID
 
 	phoneLoginIDEnabled := false
 	emailLoginIDEnabled := false
@@ -159,6 +160,9 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 		requiresLoginIDInput = false
 	}
 
+	if qLoginID != "" && qLoginIDInputType.IsValid() {
+		requiresLoginIDInput = false
+	}
 	alternatives := deriveForgotPasswordAlternatives(
 		r,
 		loginIDInputType,
