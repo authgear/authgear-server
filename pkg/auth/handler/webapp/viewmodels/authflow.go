@@ -43,6 +43,12 @@ type AuthflowViewModel struct {
 	LoginIDContextualType string
 
 	PasskeyRequestOptionsJSON string
+
+	PhoneLoginIDBotProtectionRequired    bool
+	EmailLoginIDBotProtectionRequired    bool
+	UsernameLoginIDBotProtectionRequired bool
+	PasskeyBotProtectionRequired         bool
+	OauthBotProtectionRequired           bool
 }
 
 type AuthflowViewModeler struct {
@@ -63,6 +69,12 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 	passkeyEnabled := false
 	passkeyRequestOptionsJSON := ""
 
+	bpRequiredEmail := false
+	bpRequiredPhone := false
+	bpRequiredUsername := false
+	bpRequiredPasskey := false
+	bpRequiredOauth := false
+
 	for _, o := range options {
 		switch o.Identification {
 		case config.AuthenticationFlowIdentificationEmail:
@@ -73,11 +85,17 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 				firstNonPhoneLoginIDIdentification = config.AuthenticationFlowIdentificationEmail
 			}
 			hasEmail = true
+			if o.BotProtection.IsRequired() {
+				bpRequiredEmail = true
+			}
 		case config.AuthenticationFlowIdentificationPhone:
 			if firstLoginIDIdentification == "" {
 				firstLoginIDIdentification = config.AuthenticationFlowIdentificationPhone
 			}
 			hasPhone = true
+			if o.BotProtection.IsRequired() {
+				bpRequiredPhone = true
+			}
 		case config.AuthenticationFlowIdentificationUsername:
 			if firstLoginIDIdentification == "" {
 				firstLoginIDIdentification = config.AuthenticationFlowIdentificationUsername
@@ -86,6 +104,9 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 				firstNonPhoneLoginIDIdentification = config.AuthenticationFlowIdentificationUsername
 			}
 			hasUsername = true
+			if o.BotProtection.IsRequired() {
+				bpRequiredUsername = true
+			}
 		case config.AuthenticationFlowIdentificationPasskey:
 			passkeyEnabled = true
 			bytes, err := json.Marshal(o.RequestOptions)
@@ -93,6 +114,13 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 				panic(err)
 			}
 			passkeyRequestOptionsJSON = string(bytes)
+			if o.BotProtection.IsRequired() {
+				bpRequiredPasskey = true
+			}
+		case config.AuthenticationFlowIdentificationOAuth:
+			if o.BotProtection.IsRequired() {
+				bpRequiredOauth = true
+			}
 		}
 	}
 
@@ -228,6 +256,12 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 		NonPhoneLoginIDInputType: nonPhoneLoginIDInputType,
 		NonPhoneLoginIDType:      nonPhoneLoginIDType,
 		LoginIDContextualType:    loginIDContextualType,
+
+		PhoneLoginIDBotProtectionRequired:    bpRequiredPhone,
+		EmailLoginIDBotProtectionRequired:    bpRequiredEmail,
+		UsernameLoginIDBotProtectionRequired: bpRequiredUsername,
+		PasskeyBotProtectionRequired:         bpRequiredPasskey,
+		OauthBotProtectionRequired:           bpRequiredOauth,
 	}
 }
 

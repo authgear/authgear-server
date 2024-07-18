@@ -267,6 +267,10 @@ func ProvideGoogleTagManagerConfig() *config.GoogleTagManagerConfig {
 	return &config.GoogleTagManagerConfig{}
 }
 
+func ProvideBotProtectionConfig() *config.BotProtectionConfig {
+	return &config.BotProtectionConfig{}
+}
+
 func ProvideLocalizationConfig(defaultLang template.DefaultLanguageTag, supported template.SupportedLanguageTags) *config.LocalizationConfig {
 	defaultLangStr := string(defaultLang)
 	return &config.LocalizationConfig{
@@ -297,6 +301,7 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 	ProvideAuthenticationConfig,
 	ProvideGoogleTagManagerConfig,
 	ProvideLocalizationConfig,
+	ProvideBotProtectionConfig,
 
 	ProvideCookieManager,
 
