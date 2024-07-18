@@ -182,9 +182,10 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 }
 
 type AuthflowV2ForgotPasswordHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+	Controller        *handlerwebapp.AuthflowController
+	BaseViewModel     *viewmodels.BaseViewModeler
+	AuthflowViewModel *viewmodels.AuthflowViewModeler
+	Renderer          handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2ForgotPasswordHandler) GetData(
@@ -194,6 +195,10 @@ func (h *AuthflowV2ForgotPasswordHandler) GetData(
 	initialScreen *webapp.AuthflowScreenWithFlowResponse,
 	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
+
+	// Put authflowViewModel first to avoid other fields of authflowViewModel override below
+	authflowViewModel := h.AuthflowViewModel.NewWithAccountRecoveryAuthflow(initialScreen.StateTokenFlowResponse, r)
+	viewmodels.Embed(data, authflowViewModel)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
