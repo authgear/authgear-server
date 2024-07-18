@@ -70,6 +70,12 @@ const DarkThemeResourceSpecifier = {
   extension: null,
 };
 
+const EMPTY_IMAGE = {
+  // Ref: https://stackoverflow.com/a/9967193
+  base64EncodedData: "R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==",
+  extension: ".gif",
+};
+
 interface ConfigFormState {
   supportedLanguages: LanguageTag[];
   fallbackLanguage: LanguageTag;
@@ -278,6 +284,10 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       if (!imageResouece?.nullableValue) {
         return null;
       }
+      if (imageResouece.nullableValue === EMPTY_IMAGE.base64EncodedData) {
+        // Ref DEV-1539: hack to allow overriding theme icon as empty
+        return null;
+      }
       return imageResouece.nullableValue;
     };
 
@@ -405,7 +415,8 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
               }
             }
             if (image == null) {
-              return;
+              // Ref DEV-1539: hack to allow overriding theme icon as empty
+              image = EMPTY_IMAGE;
             }
             const specifier = {
               def,
