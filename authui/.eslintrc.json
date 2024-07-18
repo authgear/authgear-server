@@ -1,5 +1,8 @@
 {
-  "plugins": ["@oursky", "compat"],
+  "plugins": [
+    "@oursky",
+    "compat"
+  ],
   "parserOptions": {
     "sourceType": "module",
     "project": "./tsconfig.json"
@@ -13,14 +16,29 @@
   "env": {
     "browser": true
   },
-  "globals": { "Set": "readonly", "Map": "readonly" },
+  "globals": {
+    "Set": "readonly",
+    "Map": "readonly",
+    "Turnstile": "readonly",
+    "ReCaptchaV2": "readonly"
+  },
   "overrides": [
     {
-      "files": ["**/*.{ts,tsx,js,jsx}"]
+      "files": [
+        "**/*.{ts,tsx,js,jsx}"
+      ]
     }
   ],
   "rules": {
-    "no-console": ["error", { "allow": ["warn", "error"] }],
+    "no-console": [
+      "error",
+      {
+        "allow": [
+          "warn",
+          "error"
+        ]
+      }
+    ],
     "no-void": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "class-methods-use-this": "off"
