@@ -321,12 +321,7 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 		panic(fmt.Errorf("unexpected identification: %v", identification))
 	}
 }
-
-func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
-	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
-	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteLogin)
-	case config.AuthenticationFlowStepTypeAuthenticate:
+func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	switch data := s.BranchStateTokenFlowResponse.Action.Data.(type) {
 	case declarative.StepAuthenticateData:
 		options := data.Options
@@ -386,6 +381,14 @@ func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResp
 		}
 	default:
 		panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
+	}
+}
+func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteLogin)
+	case config.AuthenticationFlowStepTypeAuthenticate:
+		n.navigateLoginStepAuthenticate(s, r, webSessionID, result)
 	case config.AuthenticationFlowStepTypeCheckAccountStatus:
 		s.Advance(AuthflowV2RouteAccountStatus, result)
 	case config.AuthenticationFlowStepTypeTerminateOtherSessions:
