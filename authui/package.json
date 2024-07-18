@@ -39,6 +39,8 @@
     "@oursky/stylelint-oursky": "4.0.0",
     "@parcel/config-default": "2.10.2",
     "@parcel/resolver-glob": "2.10.2",
+    "@types/cloudflare-turnstile": "0.2.0",
+    "@types/grecaptcha": "3.0.9",
     "@types/luxon": "3.3.4",
     "@types/zxcvbn": "4.4.4",
     "eslint": "8.45.0",
