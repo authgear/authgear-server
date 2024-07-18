@@ -65,3 +65,18 @@ func HandleAccountRecoveryIdentificationBotProtection(identification config.Auth
 	}
 	return
 }
+
+func HandleAuthenticationBotProtection(authentication config.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+	bpRequired, err := webapp.IsAuthenticateStepBotProtectionRequired(authentication, flowResp)
+	if err != nil {
+		panic(err)
+	}
+	if bpRequired {
+		err = ValidateBotProtectionInput(formData)
+		if err != nil {
+			return err
+		}
+		InsertBotProtection(formData, input)
+	}
+	return
+}
