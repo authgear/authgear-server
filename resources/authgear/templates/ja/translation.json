@@ -872,6 +872,8 @@
   "v2-placeholder-password": "現在のパスワード",
   "v2-placeholder-new-password": "新しいパスワード",
   "v2-placeholder-confirm-password": "パスワードを再入力",
+  "v2-verify-bot-protection-header": "システムを確認しています...",
+  "v2-verify-bot-protection-label": "チャレンジを完了した後、すぐにリダイレクトされます。",
   "v2-button-label-continue": "続ける",
   "v2-button-label-login": "ログイン",
   "v2-button-label-send": "送信",

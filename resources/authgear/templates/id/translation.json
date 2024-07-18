@@ -872,6 +872,8 @@
   "v2-placeholder-password": "Kata Sandi Saat Ini",
   "v2-placeholder-new-password": "Kata Sandi Baru",
   "v2-placeholder-confirm-password": "Masukkan Ulang Kata Sandi",
+  "v2-verify-bot-protection-header": "Memeriksa sistem Anda...",
+  "v2-verify-bot-protection-label": "Anda akan dialihkan setelah Anda menyelesaikan tantangan ini",
   "v2-button-label-continue": "Lanjutkan",
   "v2-button-label-login": "Masuk",
   "v2-button-label-send": "Kirim",

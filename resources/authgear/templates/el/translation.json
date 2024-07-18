@@ -872,6 +872,8 @@
   "v2-placeholder-password": "Τρέχων Κωδικός Πρόσβασης",
   "v2-placeholder-new-password": "Νέος Κωδικός Πρόσβασης",
   "v2-placeholder-confirm-password": "Επαναλάβετε Κωδικό Πρόσβασης",
+  "v2-verify-bot-protection-header": "Έλεγχος του συστήματός σας...",
+  "v2-verify-bot-protection-label": "Θα ανακατευθυνθείτε σύντομα αφού ολοκληρώσετε την πρόκληση",
   "v2-button-label-continue": "Συνέχεια",
   "v2-button-label-login": "Σύνδεση",
   "v2-button-label-send": "Αποστολή",
