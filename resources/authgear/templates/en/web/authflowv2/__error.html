@@ -75,6 +75,8 @@
             {{ else }}
             <span>{{ template "error-phone-number-required" }}</span>
             {{ end }}
+          {{ else if (call $.SliceContains .details.missing "x_bot_protection_provider_response" ) }}
+            <span>{{ template "v2-error-bot-protection-required" }}</span>
           {{ else }}
             <span>
               {{ $.Error.message }}
@@ -232,6 +234,8 @@
         {{ end }}
     {{ else if eq .Error.reason "AuthenticationFlowDifferentUserID" }}
       <span>{{ template "v2-error-unexpected-user" }}</span>
+    {{ else if eq .Error.reason "BotProtectionVerificationFailed" }}
+      <span>{{ template "v2-error-bot-protection-verification-failed" }}</span>
     {{ else }}
       <span>{{ template "error-unknown" }}{{ call $.LogUnknownError .Error }}</span>
     {{ end }}
