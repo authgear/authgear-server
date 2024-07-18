@@ -21,6 +21,11 @@ func (p *legalParser) ParseInputPhoneNumber(phone string) (e164 string, err erro
 		err = ErrNotInE164Format
 		return
 	}
+	isPhonePossible := phonenumbers.IsPossibleNumber(num)
+	if !isPhonePossible {
+		err = ErrPhoneNumberInvalid
+		return
+	}
 	e164 = phonenumbers.Format(num, phonenumbers.E164)
 	return
 }
