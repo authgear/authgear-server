@@ -39,6 +39,8 @@ import { BodyScrollLockController } from "./authflowv2/bodyScrollLock";
 import { ClickToSwitchController } from "./clickToSwitch";
 import { InlinePreviewController } from "./inline-preview";
 import { PreviewableResourceController } from "./previewable-resource";
+import { CloudflareTurnstileController } from "./authflowv2/botprotection/cloudflareTurnstile";
+import { RecaptchaV2Controller } from "./authflowv2/botprotection/recaptchav2";
 
 axios.defaults.withCredentials = true;
 
@@ -104,5 +106,7 @@ Stimulus.register("body-scroll-lock", BodyScrollLockController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
 Stimulus.register("inline-preview", InlinePreviewController);
 Stimulus.register("previewable-resource", PreviewableResourceController);
+Stimulus.register("cloudflare-turnstile", CloudflareTurnstileController);
+Stimulus.register("recaptcha-v2", RecaptchaV2Controller);
 
 injectCSSAttrs(document.documentElement);
