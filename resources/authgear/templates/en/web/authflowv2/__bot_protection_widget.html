@@ -1,0 +1,8 @@
+{{ if (eq $.BotProtectionProviderType "cloudflare" ) }}
+    <div class="flex justify-center" data-cloudflare-turnstile-target="widget"></div>
+{{ else if (eq $.BotProtectionProviderType "recaptchav2" ) }}
+    <div class="flex justify-center" data-recaptcha-v2-target="widget"></div>
+{{ end }}
+<noscript>
+  {{ template "v2-bot-protection-noscript" }}
+</noscript>
