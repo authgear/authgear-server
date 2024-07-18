@@ -9,6 +9,10 @@ type BotProtectionData struct {
 	Provider *BotProtectionDataProvider `json:"provider,omitempty"`
 }
 
+func (d *BotProtectionData) IsRequired() bool {
+	return d != nil && d.Enabled != nil && *d.Enabled && d.Provider != nil && d.Provider.Type != ""
+}
+
 type BotProtectionDataProvider struct {
 	Type config.BotProtectionProviderType `json:"type,omitempty"`
 }
