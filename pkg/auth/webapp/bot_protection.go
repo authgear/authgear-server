@@ -18,3 +18,14 @@ func IsIdentifyStepBotProtectionRequired(identificationType config.Authenticatio
 
 	return false, fmt.Errorf("identification type: \"%v\" not found in flow response options: [%v]", identificationType, options)
 }
+
+func IsAccountRecoveryIdentifyStepBotProtectionRequired(identificationType config.AuthenticationFlowAccountRecoveryIdentification, f *authflow.FlowResponse) (bool, error) {
+	options := GetAccountRecoveryIdentificationOptions(f)
+	for _, option := range options {
+		if option.Identification == identificationType {
+			return option.BotProtection.IsRequired(), nil
+		}
+	}
+
+	return false, fmt.Errorf("identification type: \"%v\" not found in flow response options: [%v]", identificationType, options)
+}

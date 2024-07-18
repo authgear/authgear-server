@@ -48,3 +48,20 @@ func HandleIdentificationBotProtection(identification config.AuthenticationFlowI
 	}
 	return
 }
+
+// As IntentAccountRecoveryFlowStepIdentify has it's own IdentificationData type to narrow down Identification as {"email", "phone"},
+// we imitate the same logic in HandleIdentificationBotProtection here for account recovery
+func HandleAccountRecoveryIdentificationBotProtection(identification config.AuthenticationFlowAccountRecoveryIdentification, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+	bpRequired, err := webapp.IsAccountRecoveryIdentifyStepBotProtectionRequired(identification, flowResp)
+	if err != nil {
+		panic(err)
+	}
+	if bpRequired {
+		err = ValidateBotProtectionInput(formData)
+		if err != nil {
+			return err
+		}
+		InsertBotProtection(formData, input)
+	}
+	return
+}
