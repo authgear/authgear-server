@@ -178,6 +178,14 @@ var fontsgstaticcom = CSPHostSource{
 	Host: "fonts.gstatic.com",
 }
 
+var challengescloudflarecom = CSPHostSource{
+	Host: "challenges.cloudflare.com",
+}
+
+var wwwgooglecom = CSPHostSource{
+	Host: "www.google.com",
+}
+
 func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 	u, err := url.Parse(opts.PublicOrigin)
 	if err != nil {
@@ -210,6 +218,8 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 		scriptSrc,
 		wwwgoogletagmanagercom,
 		euassetsiposthogcom,
+		challengescloudflarecom,
+		wwwgooglecom,
 		CSPHostSource{
 			Scheme: "https",
 			Host:   "browser.sentry-cdn.com",
@@ -217,6 +227,13 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 	)
 	scriptSrc = append(scriptSrc, baseSrc...)
 	sort.Sort(scriptSrc)
+
+	frameSrc := CSPSources{
+		wwwgoogletagmanagercom,
+		challengescloudflarecom,
+		wwwgooglecom,
+		CSPSourceSelf,
+	}
 
 	fontSrc := CSPSources{
 		cdnjscloudflarecom,
@@ -301,10 +318,7 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 	return []string{
 		"default-src 'self'",
 		fmt.Sprintf("script-src %v", scriptSrc),
-		fmt.Sprintf("frame-src %v", CSPSources{
-			wwwgoogletagmanagercom,
-			CSPSourceSelf,
-		}),
+		fmt.Sprintf("frame-src %v", frameSrc),
 		fmt.Sprintf("font-src %v", fontSrc),
 		fmt.Sprintf("style-src %v", styleSrc),
 		fmt.Sprintf("img-src %v", imgSrc),
