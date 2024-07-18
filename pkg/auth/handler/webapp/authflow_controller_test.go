@@ -42,6 +42,9 @@ func (*NoopNavigator) NavigateChangePasswordSuccessPage(s *webapp.AuthflowScreen
 	return &webapp.Result{}
 }
 
+func (*NoopNavigator) NavigateVerifyBotProtection(result *webapp.Result) {
+}
+
 func NewNoopAuthflowNavigator() *NoopNavigator {
 	return &NoopNavigator{}
 }

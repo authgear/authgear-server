@@ -21,11 +21,12 @@ import (
 )
 
 const (
-	AuthflowV2RouteLogin         = "/login"
-	AuthflowV2RouteSignup        = "/signup"
-	AuthflowV2RoutePromote       = "/flows/promote_user"
-	AuthflowV2RouteReauth        = "/reauth"
-	AuthflowV2RouteSelectAccount = "/authflow/v2/select_account"
+	AuthflowV2RouteLogin               = "/login"
+	AuthflowV2RouteSignup              = "/signup"
+	AuthflowV2RoutePromote             = "/flows/promote_user"
+	AuthflowV2RouteReauth              = "/reauth"
+	AuthflowV2RouteSelectAccount       = "/authflow/v2/select_account"
+	AuthflowV2RouteVerifyBotProtection = "/authflow/v2/verify_bot_protection"
 	// AuthflowV2RouteSignupLogin is login because login page has passkey.
 	AuthflowV2RouteSignupLogin = AuthflowV2RouteLogin
 
@@ -73,6 +74,7 @@ const (
 type AuthflowV2NavigatorEndpointsProvider interface {
 	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
 	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
+	VerifyBotProtectionEndpointURL(uiImpl config.UIImplementation) *url.URL
 }
 
 type AuthflowV2NavigatorOAuthStateStore interface {
@@ -487,5 +489,10 @@ func (n *AuthflowV2Navigator) navigateAccountRecovery(s *webapp.AuthflowScreenWi
 
 func (n *AuthflowV2Navigator) NavigateSelectAccount(result *webapp.Result) {
 	url := n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+	result.RedirectURI = url.String()
+}
+
+func (n *AuthflowV2Navigator) NavigateVerifyBotProtection(result *webapp.Result) {
+	url := n.Endpoints.VerifyBotProtectionEndpointURL(n.UIConfig.Implementation)
 	result.RedirectURI = url.String()
 }
