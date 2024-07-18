@@ -873,6 +873,8 @@
   "v2-placeholder-password": "Kasalukuyang Password",
   "v2-placeholder-new-password": "Bagong Password",
   "v2-placeholder-confirm-password": "I-reenter ang Password",
+  "v2-verify-bot-protection-header": "Sinusuri ang iyong sistema...",
+  "v2-verify-bot-protection-label": "Mailalipat ka sa ibang pahina pagkatapos mong makumpleto ang hamon na ito",
   "v2-button-label-continue": "Magpatuloy",
   "v2-button-label-login": "Mag-log in",
   "v2-button-label-send": "Ipadala",

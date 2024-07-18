@@ -873,6 +873,8 @@
   "v2-placeholder-password": "Huidig wachtwoord",
   "v2-placeholder-new-password": "Nieuw wachtwoord",
   "v2-placeholder-confirm-password": "Voer wachtwoord opnieuw in",
+  "v2-verify-bot-protection-header": "Uw systeem controleren...",
+  "v2-verify-bot-protection-label": "U wordt binnenkort doorgestuurd nadat u de uitdaging heeft voltooid",
   "v2-button-label-continue": "Doorgaan",
   "v2-button-label-login": "Inloggen",
   "v2-button-label-send": "Verzenden",

@@ -873,6 +873,8 @@
   "v2-placeholder-password": "Kata Laluan Semasa",
   "v2-placeholder-new-password": "Kata Laluan Baru",
   "v2-placeholder-confirm-password": "Masukkan Semula Kata Laluan",
+  "v2-verify-bot-protection-header": "Menyemak sistem anda...",
+  "v2-verify-bot-protection-label": "Anda akan dialihkan tidak lama selepas anda melengkapkan cabaran",
   "v2-button-label-continue": "Teruskan",
   "v2-button-label-login": "Log masuk",
   "v2-button-label-send": "Hantar",

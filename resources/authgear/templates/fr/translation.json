@@ -873,6 +873,8 @@
   "v2-placeholder-password": "Mot de passe actuel",
   "v2-placeholder-new-password": "Nouveau mot de passe",
   "v2-placeholder-confirm-password": "Ressaisir le mot de passe",
+  "v2-verify-bot-protection-header": "Vérification de votre système...",
+  "v2-verify-bot-protection-label": "Vous serez redirigé peu après avoir terminé le défi",
   "v2-button-label-continue": "Continuer",
   "v2-button-label-login": "Se connecter",
   "v2-button-label-send": "Envoyer",

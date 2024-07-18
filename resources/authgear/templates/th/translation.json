@@ -873,6 +873,8 @@
   "v2-placeholder-password": "รหัสผ่านปัจจุบัน",
   "v2-placeholder-new-password": "รหัสผ่านใหม่",
   "v2-placeholder-confirm-password": "ป้อนรหัสผ่านอีกครั้ง",
+  "v2-verify-bot-protection-header": "กำลังตรวจสอบระบบของคุณ...",
+  "v2-verify-bot-protection-label": "คุณจะถูกเปลี่ยนเส้นทางหลังจากที่คุณผ่านการทดสอบแล้ว",
   "v2-button-label-continue": "ดำเนินการต่อ",
   "v2-button-label-login": "เข้าสู่ระบบ",
   "v2-button-label-send": "ส่ง",

@@ -873,6 +873,8 @@
   "v2-placeholder-password": "Contraseña actual",
   "v2-placeholder-new-password": "Nueva contraseña",
   "v2-placeholder-confirm-password": "Vuelve a ingresar la contraseña",
+  "v2-verify-bot-protection-header": "Verificando tu sistema...",
+  "v2-verify-bot-protection-label": "Serás redirigido poco después de que completes el desafío",
   "v2-button-label-continue": "Continuar",
   "v2-button-label-login": "Iniciar sesión",
   "v2-button-label-send": "Enviar",
