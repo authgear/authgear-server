@@ -327,7 +327,9 @@ func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResp
 	case config.AuthenticationFlowStepTypeIdentify:
 		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteLogin)
 	case config.AuthenticationFlowStepTypeAuthenticate:
-		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
+	switch data := s.BranchStateTokenFlowResponse.Action.Data.(type) {
+	case declarative.StepAuthenticateData:
+		options := data.Options
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {
@@ -372,6 +374,18 @@ func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResp
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 		}
+	// Below code is only reachable if the step requires captcha, since VerifyBotProtection screen did not use TakeBranchResultInput to feed input
+	case declarative.VerifyOOBOTPData:
+		switch data.OTPForm {
+		case otp.FormCode:
+			s.Advance(AuthflowV2RouteEnterOOBOTP, result)
+		case otp.FormLink:
+			s.Advance(AuthflowV2RouteOOBOTPLink, result)
+		default:
+			panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+		}
+	default:
+		panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
 	case config.AuthenticationFlowStepTypeCheckAccountStatus:
 		s.Advance(AuthflowV2RouteAccountStatus, result)
 	case config.AuthenticationFlowStepTypeTerminateOtherSessions:
