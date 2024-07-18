@@ -70,7 +70,10 @@ func (h *AuthflowV2VerifyBotProtectionHandler) ServeHTTP(w http.ResponseWriter, 
 
 		handlerwebapp.InsertBotProtection(r.Form, input)
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		// advance with previous screen inherit
+		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, &handlerwebapp.AdvanceOptions{
+			InheritTakenBranchState: true,
+		})
 		if err != nil {
 			return err
 		}
