@@ -114,3 +114,14 @@ func GetMostAppropriateIdentification(f *authflow.FlowResponse, loginID string, 
 
 	return iden
 }
+
+func GetAuthenticationOptions(f *authflow.FlowResponse) []declarative.AuthenticateOptionForOutput {
+	var options []declarative.AuthenticateOptionForOutput
+	switch data := f.Action.Data.(type) {
+	case declarative.StepAuthenticateData:
+		options = data.Options
+	default:
+		panic(fmt.Errorf("unexpected type of data: %T", f.Action.Data))
+	}
+	return options
+}
