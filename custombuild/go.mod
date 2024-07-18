@@ -81,7 +81,7 @@ require (
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5 // indirect
 	github.com/iawaknahc/jsonschema v0.0.0-20211026064614-d05c07b7760d // indirect
-	github.com/iawaknahc/originmatcher v0.0.0-20221013032908-274b9eda03bc // indirect
+	github.com/iawaknahc/originmatcher v0.0.0-20240717084358-ac10088d8800 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.1-0.20220621161143-b0104c826a24 // indirect
