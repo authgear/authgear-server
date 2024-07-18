@@ -32,10 +32,11 @@
     {{ template "web/authflowv2/__bot_protection_widget.html" . }}
     <!-- TODO: Handle button loading state in https://github.com/authgear/authgear-server/issues/3676 -->
     <button
-      class="primary-btn w-full"
+      class="primary-btn w-full hidden"
       type="submit"
       name="x_action"
       value=""
+      data-controller="bot-protection-on-success-click"
       data-authgear-event="authgear.button.verify_bot_protection"
       data-action-button
     >
