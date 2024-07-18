@@ -19,6 +19,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowV2AccountStatusHandler), "*"),
 	wire.Struct(new(AuthflowV2NotFoundHandler), "*"),
 	wire.Struct(new(AuthflowV2SelectAccountHandler), "*"),
+	wire.Struct(new(AuthflowV2VerifyBotProtectionHandler), "*"),
 	wire.Struct(new(AuthflowV2EnterRecoveryCodeHandler), "*"),
 	wire.Struct(new(AuthflowV2ChangePasswordHandler), "*"),
 	wire.Struct(new(AuthflowV2ChangePasswordSuccessHandler), "*"),
