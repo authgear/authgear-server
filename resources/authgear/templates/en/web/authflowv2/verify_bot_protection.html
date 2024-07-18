@@ -1,0 +1,47 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+{{ $error_message := "" }}
+{{ if .Error }}
+  {{ $error_message = (include "authflowv2/__error.html" .) }}
+{{ end }}
+
+<div 
+  class="flex flex-col gap-y-4 flex-1-0-auto"
+  data-controller="{{ template "web/authflowv2/__bot_protection_controller.html" . }}"
+  {{ template "web/authflowv2/__bot_protection_controller_attr.html" . }}
+>
+  <header class="screen-title-description">
+    <h1 class="screen-title">
+      {{ template "v2-verify-bot-protection-header" }}
+    </h1>
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Message" $error_message
+      )
+    }}
+    <p class="screen-description">
+      {{ template "v2-verify-bot-protection-label" }}
+    </p>
+  </header>
+  <form method="POST" novalidate class="flex flex-col gap-y-4 items-center">
+    {{ $.CSRFField }} 
+    
+    {{ template "web/authflowv2/__bot_protection_form_input.html" . }}
+    {{ template "web/authflowv2/__bot_protection_widget.html" . }}
+    <!-- TODO: Handle button loading state in https://github.com/authgear/authgear-server/issues/3676 -->
+    <button
+      class="primary-btn w-full"
+      type="submit"
+      name="x_action"
+      value=""
+      data-authgear-event="authgear.button.verify_bot_protection"
+      data-action-button
+    >
+      {{ template "v2-button-label-continue" }}
+    </button>
+  </form>
+</div>
+
+{{ end }}
