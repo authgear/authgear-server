@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -134,6 +135,11 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 			"response_mode":  oauthrelyingparty.ResponseModeFormPost,
 		}
 
+		err := handlerwebapp.HandleIdentificationBotProtection(config.AuthenticationFlowIdentificationOAuth, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
+		}
+
 		result, err := h.Controller.ReplaceScreen(r, s, authflow.FlowTypeSignupLogin, input)
 		if err != nil {
 			return err
@@ -154,6 +160,11 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 		input := map[string]interface{}{
 			"identification": identification,
 			"login_id":       loginID,
+		}
+
+		err = handlerwebapp.HandleIdentificationBotProtection(config.AuthenticationFlowIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
@@ -177,6 +188,11 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 		input := map[string]interface{}{
 			"identification":     "passkey",
 			"assertion_response": assertionResponseJSON,
+		}
+
+		err = handlerwebapp.HandleIdentificationBotProtection(config.AuthenticationFlowIdentificationPasskey, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
