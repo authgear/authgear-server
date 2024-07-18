@@ -525,14 +525,9 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
-	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
-	case config.AuthenticationFlowStepTypeIdentify:
-		// In identify, the user input actually takes the branch.
-		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index, channel)
-	case config.AuthenticationFlowStepTypeAuthenticate:
-		data := s.StateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData)
+func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
+	switch data := s.StateTokenFlowResponse.Action.Data.(type) {
+	case declarative.StepAuthenticateData:
 		option := data.Options[index]
 		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -597,6 +592,22 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 		}
+	case declarative.VerifyOOBOTPData:
+		channel = data.Channel
+		return s.takeBranchResultSimple(index, channel, false)
+	default:
+		panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
+	}
+}
+
+func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
+	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		// In identify, the user input actually takes the branch.
+		// The branch taken here is unimportant.
+		return s.takeBranchResultSimple(index, channel, false)
+	case config.AuthenticationFlowStepTypeAuthenticate:
+		return s.takeBranchLoginAuthenticate(index, channel, options)
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
