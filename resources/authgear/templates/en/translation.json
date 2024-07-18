@@ -873,6 +873,8 @@
   "v2-placeholder-password": "Current Password",
   "v2-placeholder-new-password": "New Password",
   "v2-placeholder-confirm-password": "Re-enter Password",
+  "v2-verify-bot-protection-header": "Checking your system...",
+  "v2-verify-bot-protection-label": "You will be redirected shortly after you completed the challenge",
   "v2-button-label-continue": "Continue",
   "v2-button-label-login": "Login",
   "v2-button-label-send": "Send",

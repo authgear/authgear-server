@@ -873,6 +873,8 @@
   "v2-placeholder-password": "目前密碼",
   "v2-placeholder-new-password": "新密碼",
   "v2-placeholder-confirm-password": "再次輸入新密碼",
+  "v2-verify-bot-protection-header": "正在驗證你的系統...",
+  "v2-verify-bot-protection-label": "在您完成驗證後，您將很快被重新導向",
   "v2-button-label-continue": "繼續",
   "v2-button-label-login": "登入",
   "v2-button-label-send": "傳送",
