@@ -120,6 +120,10 @@ func (p *Provider) validateProofJWT(header jws.Headers, payload jwt.Token) (jwk.
 		return nil, nil, ErrInvalidJwtPayload
 	}
 
+	if len(jti) > 43 {
+		return nil, nil, ErrInvalidJwtPayload
+	}
+
 	htm, ok := getPayloadAsString("htm")
 	if !ok {
 		return nil, nil, ErrInvalidJwtPayload

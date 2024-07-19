@@ -168,5 +168,19 @@ func TestDPoPProvider(t *testing.T) {
 			So(err, ShouldEqual, ErrUnsupportedAlg)
 		})
 
+		Convey("reject long jti", func() {
+			header := jws.NewHeaders()
+			header.Set("typ", "dpop+jwt")
+			_ = header.Set("jwk", jwkKey)
+			_ = header.Set("alg", "ES256")
+			payload := jwt.New()
+			_ = payload.Set("jti", "df352b68-9d3d-4006-a7fa-cf222a5f46b9-long-long-long-long-long")
+			_ = payload.Set("htm", "POST")
+			_ = payload.Set("iat", mockClock.NowUTC().Unix())
+
+			_, _, err := provider.validateProofJWT(header, payload)
+			So(err, ShouldEqual, ErrInvalidJwtPayload)
+		})
+
 	})
 }
