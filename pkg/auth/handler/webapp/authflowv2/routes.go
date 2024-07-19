@@ -407,6 +407,10 @@ func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResp
 }
 
 func (n *AuthflowV2Navigator) navigateReauth(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	if s.Screen.IsBotProtectionRequired {
+		s.Advance(AuthflowV2RouteVerifyBotProtection, result)
+		return
+	}
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteReauth)
