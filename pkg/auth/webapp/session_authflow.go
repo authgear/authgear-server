@@ -644,6 +644,10 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 				channel = option.Channels[0]
 			}
 
+			if option.BotProtection.IsRequired() {
+				return s.takeBranchResultSimple(index, channel, true)
+			}
+
 			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
 				return map[string]interface{}{
 					"authentication": option.Authentication,
