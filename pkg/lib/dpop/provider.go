@@ -28,9 +28,8 @@ func (c jwtClock) Now() time.Time {
 }
 
 type Provider struct {
-	Clock     clock.Clock
-	HTTPHost  httputil.HTTPHost
-	HTTPProto httputil.HTTPProto
+	Clock      clock.Clock
+	HTTPOrigin httputil.HTTPOrigin
 }
 
 const (
@@ -131,6 +130,9 @@ func (p *Provider) validateProofJWT(header jws.Headers, payload jwt.Token) (jwk.
 	if err != nil {
 		return nil, nil, ErrInvalidHTU
 	}
+	// fragment and query is not important
+	htuURI.RawFragment = ""
+	htuURI.RawQuery = ""
 
 	thumbprint, err := key.Thumbprint(crypto.SHA256)
 	if err != nil {
@@ -148,16 +150,17 @@ func (p *Provider) validateProofJWT(header jws.Headers, payload jwt.Token) (jwk.
 }
 
 func (p *Provider) CompareHTU(proof *DPoPProof, req *http.Request) error {
-	// req.URL does not have scheme and host, compare using HTTPProto and HTTPHost
-	if proof.HTU.Scheme != string(p.HTTPProto) {
+	// req.URL does not have scheme and host, compare using HTTPOrigin
+	requestURI, err := url.Parse(string(p.HTTPOrigin))
+	if err != nil {
+		panic(err)
+	}
+	requestURI.Path = req.URL.Path
+
+	if requestURI.String() != proof.HTU.String() {
 		return ErrUnmatchedURI
 	}
-	if proof.HTU.Host != string(p.HTTPHost) {
-		return ErrUnmatchedURI
-	}
-	if proof.HTU.Path != req.URL.Path {
-		return ErrUnmatchedURI
-	}
+
 	return nil
 }
 
