@@ -1,17 +1,21 @@
 package dpop
 
-import "github.com/authgear/authgear-server/pkg/api/apierrors"
+import "github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 
-var InvalidDPoPProof = apierrors.BadRequest.WithReason("InvalidDPoPProof")
+var InvalidDPoPProof = "invalid_dpop_proof"
 
-var ErrMalformedJwt = InvalidDPoPProof.New("malformed DPoP jwt")
-var ErrInvalidJwt = InvalidDPoPProof.New("invalid DPoP jwt")
-var ErrInvalidJwtType = InvalidDPoPProof.New("invalid DPoP jwt typ")
-var ErrInvalidJwtPayload = InvalidDPoPProof.New("invalid DPoP jwt payload")
-var ErrInvalidJwtSignature = InvalidDPoPProof.New("invalid DPoP jwt signature")
-var ErrInvalidJwtNoJwkProvided = InvalidDPoPProof.New("jwk not provided in DPoP jwt")
-var ErrInvalidJwk = InvalidDPoPProof.New("invalid DPoP jwk")
-var ErrProofExpired = InvalidDPoPProof.New("DPoP proof expired")
-var ErrInvalidHTU = InvalidDPoPProof.New("htu in the DPoP proof is not a valid URI")
-var ErrUnmatchedMethod = InvalidDPoPProof.New("htm in the DPoP proof does not match request method")
-var ErrUnmatchedURI = InvalidDPoPProof.New("htu in the DPoP proof does not match request uri")
+func newInvalidDPoPProofError(msg string) error {
+	return protocol.NewError(InvalidDPoPProof, msg)
+}
+
+var ErrMalformedJwt = newInvalidDPoPProofError("malformed DPoP jwt")
+var ErrInvalidJwt = newInvalidDPoPProofError("invalid DPoP jwt")
+var ErrInvalidJwtType = newInvalidDPoPProofError("invalid DPoP jwt typ")
+var ErrInvalidJwtPayload = newInvalidDPoPProofError("invalid DPoP jwt payload")
+var ErrInvalidJwtSignature = newInvalidDPoPProofError("invalid DPoP jwt signature")
+var ErrInvalidJwtNoJwkProvided = newInvalidDPoPProofError("jwk not provided in DPoP jwt")
+var ErrInvalidJwk = newInvalidDPoPProofError("invalid DPoP jwk")
+var ErrProofExpired = newInvalidDPoPProofError("DPoP proof expired")
+var ErrInvalidHTU = newInvalidDPoPProofError("htu in the DPoP proof is not a valid URI")
+var ErrUnmatchedMethod = newInvalidDPoPProofError("htm in the DPoP proof does not match request method")
+var ErrUnmatchedURI = newInvalidDPoPProofError("htu in the DPoP proof does not match request uri")

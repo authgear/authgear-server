@@ -2,9 +2,10 @@ package dpop
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 )
 
 type Middleware struct {
@@ -47,17 +48,18 @@ func (m *Middleware) Handle(next http.Handler) http.Handler {
 }
 
 func (m *Middleware) handleError(rw http.ResponseWriter, err error) {
-	if apierrors.IsAPIError(err) {
-		apierr := apierrors.AsAPIError(err)
+	var oauthErr *protocol.OAuthProtocolError
+	if errors.As(err, &oauthErr) {
 		rw.Header().Set("Content-Type", "application/json")
 		rw.Header().Set("Cache-Control", "no-store")
 		rw.Header().Set("Pragma", "no-cache")
-		errJson := map[string]string{
-			"error":             "invalid_token",
-			"error_description": apierr.Message,
-		}
+		errJson := oauthErr.Response
 		errJsonStr, _ := json.Marshal(errJson)
-		http.Error(rw, string(errJsonStr), apierr.Name.HTTPStatus())
+		statusCode := oauthErr.StatusCode
+		if statusCode == 0 {
+			statusCode = http.StatusBadRequest
+		}
+		http.Error(rw, string(errJsonStr), statusCode)
 		return
 	} else {
 		panic(err)

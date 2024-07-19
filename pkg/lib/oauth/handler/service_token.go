@@ -21,7 +21,7 @@ import (
 )
 
 var ErrInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
-var ErrInvalidDPoPKeyBinding = protocol.NewError("invalid_token", "Invalid DPoP key binding")
+var ErrInvalidDPoPKeyBinding = protocol.NewError(dpop.InvalidDPoPProof, "Invalid DPoP key binding")
 
 type IssueOfflineGrantOptions struct {
 	AuthenticationInfo authenticationinfo.T
