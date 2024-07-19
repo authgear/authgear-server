@@ -40,6 +40,11 @@ export const enum CSSVariable {
   PrimaryButtonBackgroundColorActive = "--primary-btn__bg-color--active",
   PrimaryButtonTextColor = "--primary-btn__text-color",
   PrimaryButtonBorderRadius = "--primary-btn__border-radius",
+  SecondaryButtonBackgroundColor = "--secondary-btn__bg-color",
+  SecondaryButtonBackgroundColorHover = "--secondary-btn__bg-color--hover",
+  SecondaryButtonBackgroundColorActive = "--secondary-btn__bg-color--active",
+  SecondaryButtonTextColor = "--secondary-btn__text-color",
+  SecondaryButtonBorderRadius = "--secondary-btn__border-radius",
   InputFiledBorderRadius = "--input__border-radius",
   LinkColor = "--body-text__link-color",
   WatermarkDisplay = "--watermark-display",
@@ -100,6 +105,7 @@ export interface CustomisableTheme {
   page: PageStyle;
   card: CardStyle;
   primaryButton: ButtonStyle;
+  secondaryButton: ButtonStyle;
   inputField: InputFieldStyle;
   link: LinkStyle;
 }
@@ -116,6 +122,16 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
     backgroundColorActive: "#1151b8",
     backgroundColorHover: "#1151b8",
     labelColor: "#ffffff",
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+  secondaryButton: {
+    backgroundColor: "#f0f1f1",
+    backgroundColorActive: "#e7e7e9",
+    backgroundColorHover: "#e7e7e9",
+    labelColor: "#131315",
     borderRadius: {
       type: "rounded",
       radius: "0.875em",
@@ -144,6 +160,16 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
     backgroundColorActive: "#235dba",
     backgroundColorHover: "#235dba",
     labelColor: "#1c1c1e",
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+  secondaryButton: {
+    backgroundColor: "#1c1c1e",
+    backgroundColorActive: "#505157",
+    backgroundColorHover: "#505157",
+    labelColor: "#e7e7e9",
     borderRadius: {
       type: "rounded",
       radius: "0.875em",
@@ -381,6 +407,29 @@ export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
         borderRadius: new BorderRadiusStyleProperty(
           CSSVariable.PrimaryButtonBorderRadius,
           value.primaryButton.borderRadius
+        ),
+      }),
+
+      secondaryButton: new StyleGroup({
+        backgroundColor: new ColorStyleProperty(
+          CSSVariable.SecondaryButtonBackgroundColor,
+          value.secondaryButton.backgroundColor
+        ),
+        backgroundColorActive: new ColorStyleProperty(
+          CSSVariable.SecondaryButtonBackgroundColorActive,
+          value.secondaryButton.backgroundColorActive
+        ),
+        backgroundColorHover: new ColorStyleProperty(
+          CSSVariable.SecondaryButtonBackgroundColorHover,
+          value.secondaryButton.backgroundColorHover
+        ),
+        labelColor: new ColorStyleProperty(
+          CSSVariable.SecondaryButtonTextColor,
+          value.secondaryButton.labelColor
+        ),
+        borderRadius: new BorderRadiusStyleProperty(
+          CSSVariable.SecondaryButtonBorderRadius,
+          value.secondaryButton.borderRadius
         ),
       }),
 

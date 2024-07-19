@@ -603,6 +603,8 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.primaryButton.borderRadius = borderRadiusStyle;
+            // NOTE: DEV-1541 Apply border radius to secondary button as well
+            draft.secondaryButton.borderRadius = borderRadiusStyle;
           });
         });
       },
