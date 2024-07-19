@@ -11,12 +11,10 @@
     {{ $oauth_error_message = (include "authflowv2/__error.html" .) }}
   {{ end }}
 
-  {{ $has_oauth := false }}
   {{ $has_login_id := false }}
   {{ $has_alternatives := false }}
   {{ range $.IdentityCandidates }}
     {{ if eq .type "oauth" }}
-      {{ $has_oauth = true }}
       {{ $has_alternatives = true }}
     {{ end }}
     {{ if eq .type "login_id" }}
