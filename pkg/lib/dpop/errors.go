@@ -2,6 +2,7 @@ package dpop
 
 import "github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 
+// From https://datatracker.ietf.org/doc/html/rfc9449#section-12.2
 var InvalidDPoPProof = "invalid_dpop_proof"
 
 func newInvalidDPoPProofError(msg string) error {
