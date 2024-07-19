@@ -84,11 +84,14 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			newSessionMiddleware(),
 			httproute.MiddlewareFunc(httputil.NoStore),
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
-			p.Middleware(newDPoPMiddleware),
 		)
 	}
 
 	oauthAPIChain := newOAuthAPIChain()
+	dpopOAuthAPIChain := httproute.Chain(
+		oauthAPIChain,
+		p.Middleware(newDPoPMiddleware),
+	)
 	oauthAuthzAPIChain := newOAuthAPIChain()
 	siweAPIChain := httproute.Chain(
 		rootChain,
@@ -248,6 +251,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
+	dpopOauthAPIRoute := httproute.Route{Middleware: dpopOAuthAPIChain}
 	oauthAuthzAPIRoute := httproute.Route{Middleware: oauthAuthzAPIChain}
 	siweAPIRoute := httproute.Route{Middleware: siweAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
@@ -431,8 +435,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(oauthhandler.ConfigureJWKSRoute(oauthStaticRoute), p.Handler(newOAuthJWKSHandler))
 
 	router.Add(oauthhandler.ConfigureAuthorizeRoute(oauthAuthzAPIRoute), p.Handler(newOAuthAuthorizeHandler))
-	router.Add(oauthhandler.ConfigureTokenRoute(oauthAPIRoute), p.Handler(newOAuthTokenHandler))
-	router.Add(oauthhandler.ConfigureRevokeRoute(oauthAPIRoute), p.Handler(newOAuthRevokeHandler))
+	router.Add(oauthhandler.ConfigureTokenRoute(dpopOauthAPIRoute), p.Handler(newOAuthTokenHandler))
+	router.Add(oauthhandler.ConfigureRevokeRoute(dpopOauthAPIRoute), p.Handler(newOAuthRevokeHandler))
 	router.Add(oauthhandler.ConfigureEndSessionRoute(oauthAPIRoute), p.Handler(newOAuthEndSessionHandler))
 
 	router.Add(oauthhandler.ConfigureChallengeRoute(apiRoute), p.Handler(newOAuthChallengeHandler))
