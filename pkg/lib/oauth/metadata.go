@@ -1,6 +1,9 @@
 package oauth
 
-import "github.com/authgear/authgear-server/pkg/util/pkce"
+import (
+	"github.com/authgear/authgear-server/pkg/lib/dpop"
+	"github.com/authgear/authgear-server/pkg/util/pkce"
+)
 
 type MetadataProvider struct {
 	Endpoints EndpointsProvider
@@ -18,4 +21,5 @@ func (p *MetadataProvider) PopulateMetadata(meta map[string]interface{}) {
 	// See https://openid.net/specs/openid-connect-discovery-1_0.html#:~:text=passed%20by%20reference.-,token_endpoint_auth_methods_supported,-OPTIONAL.%20JSON%20array
 	// See https://openid.net/specs/openid-connect-core-1_0.html#ClientAuthentication:~:text=The%20Client%20does%20not%20authenticate%20itself%20at%20the%20Token%20Endpoint
 	meta["token_endpoint_auth_methods_supported"] = []string{"none", "client_secret_post"}
+	meta["dpop_signing_alg_values_supported"] = dpop.SupportedAlgorithms
 }

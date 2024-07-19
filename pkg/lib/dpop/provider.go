@@ -73,6 +73,10 @@ func (p *Provider) validateProofJWT(header jws.Headers, payload jwt.Token) (jwk.
 		return nil, nil, ErrProofExpired
 	}
 
+	if !IsSupportedAlgorithms(header.Algorithm().String()) {
+		return nil, nil, ErrUnsupportedAlg
+	}
+
 	var key jwk.Key
 	if jwkIface, ok := header.Get("jwk"); ok {
 		var jwkBytes []byte
