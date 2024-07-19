@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
@@ -94,6 +95,20 @@ func (o *OfflineGrantSession) CreateNewAuthenticationInfoByThisSession() authent
 		AuthenticatedBySessionType: string(o.SessionType()),
 		AuthenticatedBySessionID:   o.SessionID(),
 	}
+}
+
+func (g *OfflineGrantSession) MatchDPoPJKT(proof *dpop.DPoPProof) bool {
+	if g.DPoPJKT == "" {
+		// Not binded, always ok
+		return true
+	}
+	if proof == nil {
+		return false
+	}
+	if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DPoPJKT)) == 1 {
+		return true
+	}
+	return false
 }
 
 var _ session.ResolvedSession = &OfflineGrantSession{}
@@ -243,6 +258,20 @@ func (g *OfflineGrant) MatchHash(refreshTokenHash string) bool {
 	}
 
 	return result
+}
+
+func (g *OfflineGrant) MatchDeviceSecretDPoPJKT(proof *dpop.DPoPProof) bool {
+	if g.DeviceSecretDPoPJKT == "" {
+		// Not binded, always ok
+		return true
+	}
+	if proof == nil {
+		return false
+	}
+	if subtle.ConstantTimeCompare([]byte(proof.JKT), []byte(g.DeviceSecretDPoPJKT)) == 1 {
+		return true
+	}
+	return false
 }
 
 func (g *OfflineGrant) HasClientID(clientID string) bool {

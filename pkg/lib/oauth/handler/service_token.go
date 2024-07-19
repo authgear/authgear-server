@@ -224,10 +224,8 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	if offlineGrantSession.DPoPJKT != "" {
-		if dpopProof == nil || dpopProof.JKT != offlineGrantSession.DPoPJKT {
-			return nil, nil, "", ErrInvalidDPoPKeyBinding
-		}
+	if !offlineGrantSession.MatchDPoPJKT(dpopProof) {
+		return nil, nil, "", ErrInvalidDPoPKeyBinding
 	}
 
 	authz, err = s.Authorizations.GetByID(offlineGrantSession.AuthorizationID)

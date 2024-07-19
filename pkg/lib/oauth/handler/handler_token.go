@@ -518,11 +518,9 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
-	if codeGrant.DPoPJKT != "" {
-		dpopProof := dpop.GetDPoPProof(ctx)
-		if dpopProof == nil || dpopProof.JKT != codeGrant.DPoPJKT {
-			return nil, ErrInvalidDPoPKeyBinding
-		}
+	dpopProof := dpop.GetDPoPProof(ctx)
+	if !codeGrant.MatchDPoPJKT(dpopProof) {
+		return nil, ErrInvalidDPoPKeyBinding
 	}
 
 	// Restore uiparam
@@ -712,10 +710,8 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context, offlin
 		err = protocol.NewError("invalid_grant", "the device_secret (actor_token) does not bind to the session")
 	}
 	dpopProof := dpop.GetDPoPProof(ctx)
-	if offlineGrant.DeviceSecretDPoPJKT != "" {
-		if dpopProof == nil || dpopProof.JKT != offlineGrant.DeviceSecretDPoPJKT {
-			err = ErrInvalidDPoPKeyBinding
-		}
+	if !offlineGrant.MatchDeviceSecretDPoPJKT(dpopProof) {
+		err = ErrInvalidDPoPKeyBinding
 	}
 	return err
 }
