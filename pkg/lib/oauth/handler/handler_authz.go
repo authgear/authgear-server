@@ -484,7 +484,7 @@ func (h *AuthorizationHandler) doHandle(
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
 
-	authenticationInfo := resolvedSession.GetAuthenticationInfo()
+	authenticationInfo := resolvedSession.GetAuthenticationInfoByThisSession()
 	autoGrantAuthz := client.IsFirstParty()
 
 	sessionType := resolvedSession.SessionType()
