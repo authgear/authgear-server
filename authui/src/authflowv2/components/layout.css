@@ -15,6 +15,9 @@
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
 
+    /* padding */
+    @apply tablet:px-16 desktop:px-60;
+
     /* In mobile layout, we never see the background color */
     /* Instead, the background-color should be the same as the widget's. */
     /* In non-mobile layout, we see the true background-color */
