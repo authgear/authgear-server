@@ -1,3 +1,7 @@
+/**
+ * This code duplicates with authui/src/getColorScheme.ts. However, colorscheme.ts cannot import other modules because it is commonjs script instead
+ * Please help keep code in `getColorScheme.ts` and `colorscheme.ts` sync if you are to make any changes
+ */
 (function () {
   const queryResult = window.matchMedia("(prefers-color-scheme: dark)");
 
