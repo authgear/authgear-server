@@ -1,3 +1,4 @@
+/* global Turnstile */
 import { Controller } from "@hotwired/stimulus";
 import { getColorScheme } from "../../getColorScheme";
 

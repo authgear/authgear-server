@@ -1,3 +1,4 @@
+/* global ReCaptchaV2 */
 import { Controller } from "@hotwired/stimulus";
 import { getColorScheme } from "../../getColorScheme";
 
