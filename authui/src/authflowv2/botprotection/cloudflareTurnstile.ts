@@ -30,7 +30,6 @@ export class CloudflareTurnstileController extends Controller {
 
   connect() {
     window.turnstile.ready(() => {
-      const _theme: Turnstile.Theme = "auto";
       const colorScheme = getColorScheme();
       window.turnstile.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,
