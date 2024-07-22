@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 
 <html
+{{ if and ($.DarkThemeEnabled) ($.DarkThemeForced) }}
+class="dark"
+{{ end }}
 lang="{{ $.ResolvedLanguageTag }}"
 data-controller="format-date-relative"
 data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"

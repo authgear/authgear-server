@@ -2,6 +2,9 @@
 <!DOCTYPE html>
 
 <html
+{{ if and ($.DarkThemeEnabled) ($.DarkThemeForced) }}
+	class="dark"
+{{ end }}
 	lang="{{ $.ResolvedLanguageTag }}"
 	dir="{{ $.HTMLDir }}"
 	data-controller="format-date-relative"
