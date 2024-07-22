@@ -31,7 +31,13 @@
       }}
     </div>
 
-    <form id="main-form" method="post" novalidate>
+    <form
+      id="main-form"
+      method="post"
+      novalidate
+      data-controller="turbo-form"
+      data-action="submit->turbo-form#submitForm"
+    >
       {{ $.CSRFField }}
 
       {{ $input_error_message := "" }}

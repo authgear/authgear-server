@@ -35,7 +35,12 @@
       }}
     </div>
 
-    <form method="post" novalidate>
+    <form
+      method="post"
+      novalidate
+      data-controller="turbo-form"
+      data-action="submit->turbo-form#submitForm"
+    >
       {{ $.CSRFField }}
 
       {{ $otp_error_message := "" }}

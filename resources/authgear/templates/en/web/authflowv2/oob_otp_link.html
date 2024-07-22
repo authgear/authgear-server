@@ -1,7 +1,14 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 {{- if eq $.StateQuery "matched" }}
-  <form id="next-form" class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
+  <form
+    id="next-form"
+    class="screen-icon-layout flex-1-0-auto"
+    method="post"
+    novalidate
+    data-controller="turbo-form"
+    data-action="submit->turbo-form#submitForm"
+  >
     <i class="screen-icon material-icons">check_circle</i>
     <header class="screen-title-description">
       <h1 class="screen-title">
@@ -73,14 +80,20 @@
   {{- if $.WebsocketURL }}
   <div class="hidden" data-controller="authflow-websocket authflow-polling" data-authflow-websocket-url-value="{{ $.WebsocketURL }}" data-authflow-polling-statetoken-value="{{ $.StateToken }}"></div>
   {{- end }}
-  <form method="post" novalidate>
+  <form
+    method="post"
+    novalidate
+    data-controller="turbo-form"
+    data-action="submit->turbo-form#submitForm"
+  >
     {{ $.CSRFField }}
     <button
       class="primary-btn w-full"
       type="submit"
       name="x_action"
       value="resend"
-      data-controller="countdown"
+      data-controller="countdown turbo-form"
+      data-action="submit->turbo-form#submitForm"
       data-countdown-target="button"
       data-countdown-cooldown-value="{{ $.ResendCooldown }}"
       data-countdown-label-value='{{ template "v2-login-link-otp-resend-button-label" }}'

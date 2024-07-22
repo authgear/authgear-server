@@ -32,7 +32,10 @@
       class="flex-1-0-auto flex flex-col pt-32 gap-4"
       method="post"
       action="{{ $.FormActionPath }}"
-      novalidate>
+      novalidate
+      data-controller="turbo-form"
+      data-action="submit->turbo-form#submitForm"
+    >
       {{ $.CSRFField }}
       <input type="hidden" name="x_oob_otp_code" value="{{ .Code }}">
       <h1 class="screen-title">{{ template "v2-verify-login-link-title" }}</h1>

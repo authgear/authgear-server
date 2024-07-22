@@ -1,6 +1,7 @@
 {{ template "authflowv2/__page_frame.html" . }}
 
 {{ define "page-content" }}
+  {{/* Form with disabled turbo drive, submit button has data-turbo="false" */}}
   <form class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
     {{ $.CSRFField }}
     <i class="material-icons screen-icon">phone_iphone</i>

@@ -9,7 +9,13 @@
 {{- range $.Branches }}
   {{- if eq $.ActionType "authenticate" }}
     {{- if eq .Authentication "recovery_code" }}
-      <form class="text-left text-sm" method="post" novalidate>
+      <form 
+        class="text-left text-sm"
+        method="post"
+        novalidate
+        data-controller="turbo-form"
+        data-action="submit->turbo-form#submitForm"
+      >
         {{ $.CSRFField }}
         <input type="hidden" name="x_index" value="{{ .Index }}">
         <input type="hidden" name="x_channel" value="{{ .Channel }}">
@@ -26,7 +32,12 @@
 {{- range $.Branches }}
   {{- if eq .Authentication "recovery_code" -}}
   {{ else }}
-  <form method="post" novalidate>
+  <form 
+    method="post"
+    novalidate
+    data-controller="turbo-form"
+    data-action="submit->turbo-form#submitForm"
+  >
   {{ $.CSRFField }}
   <input type="hidden" name="x_index" value="{{ .Index }}">
   <input type="hidden" name="x_channel" value="{{ .Channel }}">

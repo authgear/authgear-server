@@ -88,12 +88,14 @@
     {{ if $.InlinePreview }}
       {{ $formController = "" }}
     {{ end }}
+    {{/* Form with disabled turbo drive, submit button has data-turbo="false" */}}
     <form
       class="flex flex-col gap-4 mt-8"
       method="post"
       novalidate
       data-controller="{{ $formController }}"
-      data-retain-form-form-id-value="auth-form">
+      data-retain-form-form-id-value="auth-form"
+    >
       {{ $.CSRFField }}
       <input type="hidden" name="x_login_id_input_type" value="{{ $.LoginIDInputType }}"/>
 
@@ -214,6 +216,7 @@
             {{ end }}
 
             {{- if not $skip -}}
+              {{/* Form with disabled turbo drive, submit button has data-turbo="false" */}}
               <form class="block" method="post" data-turbo="false" novalidate>
                 {{ $.CSRFField }}
                 <input type="hidden" name="x_provider_alias" value="{{ .provider_alias }}">
@@ -259,7 +262,13 @@
               </div>
               </span>
             </button>
-            <form class="hidden" method="post" novalidate>
+            <form
+              class="hidden"
+              method="post"
+              novalidate
+              data-controller="turbo-form"
+              data-action="submit->turbo-form#submitForm"
+            >
               {{ $.CSRFField }}
               <input type="hidden" name="x_assertion_response" data-authflow-passkey-request-target="input">
               <button type="submit" class="hidden" name="x_action" value="passkey" data-authflow-passkey-request-target="submit"></button>
