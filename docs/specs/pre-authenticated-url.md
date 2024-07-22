@@ -83,6 +83,7 @@ When a mobile app wants to create Pre-Authenticated URL, it makes a request to t
 - `actor_token`: The device_secret obtained by the mobile app
 - `actor_token_type`: Must be `urn:x-oath:params:oauth:token-type:device-secret`
 - `requested_token_type`: Required. The value must be `urn:authgear:params:oauth:token-type:pre-authenticated-url-token`.
+- `scope`: Optional. Requested scopes of the new session. Only scopes exist in the current offline grant is allowed.
 
 Here is an example:
 
