@@ -155,11 +155,7 @@ Two new configs are added to clients.
 
 ### Binding Tokens To Device
 
-device_secret and x_device_browser_session_token should always be bound to a device.
-
-[OAuth 2.0 Demonstrating Proof of Possession](https://datatracker.ietf.org/doc/html/rfc9449) is implemented for such binding.
-
-The DPoP Proof MAY be provided when making requests to the /token endpoint. If DPoP Proof is provided, device_secret and x_device_browser_session_token returned in the response will be bound to the public key provided in the DPoP Proof.
+device_secret should always be bound to a device. See [OIDC Native SSO](./oidc-native-sso.md#security-considerations) for details.
 
 ## Changes In SDKs
 

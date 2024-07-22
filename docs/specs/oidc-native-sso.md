@@ -15,6 +15,8 @@
     + [Recipe: Two applications written by the same vendor](#recipe-two-applications-written-by-the-same-vendor)
     + [Recipe: A application opening webapps with custom webview](#recipe-a-application-opening-webapps-with-custom-webview)
   * [Caveats](#caveats)
+  * [Security Considerations](#security-considerations)
+    + [Binding Tokens To Device](#binding-tokens-to-device)
 
 # OIDC Native SSO
 
@@ -143,3 +145,13 @@ Future works
 - The iOS keychain will not be cleaned up even all apps in the app group were removed.
 - Developer is required to provide the `accountType` to initialize the store. Applications must belong to the given app group or the SDK might malfunction. Developer must also define a `<account-authenticator>` resource with the same `accountType`, and a `<service>` which uses the defined account authenticator in all apps that is sharing the authentication session. For details read [this document](https://developer.android.com/reference/android/accounts/AbstractAccountAuthenticator).
 - The first installed app will be the "authenticator" app in the android, which in fact owns the accounts. Once the app was removed, the accounts will be removed together with the app.
+
+## Security Considerations
+
+### Binding Tokens To Device
+
+device_secret should always be bound to a device.
+
+[OAuth 2.0 Demonstrating Proof of Possession](https://datatracker.ietf.org/doc/html/rfc9449) is implemented for such binding.
+
+The DPoP Proof MAY be provided when making requests to the /token endpoint. If DPoP Proof is provided, device_secret returned in the response will be bound to the public key provided in the DPoP Proof. Which the keypair used to sign such DPoP Proof is expected to be stored in a secure device storage such as iOS Keychain or Android Keystore.
