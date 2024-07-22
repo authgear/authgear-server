@@ -5,6 +5,8 @@
     const htmlElement = document.documentElement;
     const darkThemeEnabled =
       htmlElement.getAttribute("data-dark-theme-enabled") === "true";
+    const darkThemeForced =
+      htmlElement.getAttribute("data-dark-theme-forced") === "true";
 
     let explicitColorScheme = "";
     const metaElement = document.querySelector("meta[name=x-color-scheme]");
@@ -18,7 +20,9 @@
       ? "light"
       : explicitColorScheme !== ""
         ? explicitColorScheme
-        : implicitColorScheme;
+        : darkThemeForced
+          ? "dark"
+          : implicitColorScheme;
 
     if (colorScheme === "dark") {
       htmlElement.classList.add("dark");

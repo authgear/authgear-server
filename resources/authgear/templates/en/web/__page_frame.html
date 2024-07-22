@@ -5,7 +5,8 @@
 	lang="{{ $.ResolvedLanguageTag }}"
 	dir="{{ $.HTMLDir }}"
 	data-controller="format-date-relative"
-	data-dark-theme-enabled="{{ $.DarkThemeEnabled }}">
+	data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
+	data-dark-theme-forced="{{ $.DarkThemeForced }}">
 {{ template "__html_head.html" . }}
 
 {{ $lockedUntil := "" }}
