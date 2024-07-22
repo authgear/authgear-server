@@ -239,7 +239,8 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
         if (option != null) {
           let issueJwtAccessToken: boolean | undefined;
           switch (option.key) {
-            case "spa" || "native":
+            case "spa":
+            case "native":
               issueJwtAccessToken = true;
               break;
             default:
