@@ -58,7 +58,7 @@ func (i *IntentEnsureSession) ReactTo(ctx context.Context, deps *workflow.Depend
 		mode = EnsureSessionModeCreate
 	}
 
-	authnInfo := sessionToCreate.GetAuthenticationInfo()
+	authnInfo := sessionToCreate.GetAuthenticationInfoByThisSession()
 	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && i.CreateReason == session.CreateReasonLogin
 	authnInfoEntry := authenticationinfo.NewEntry(
 		authnInfo,

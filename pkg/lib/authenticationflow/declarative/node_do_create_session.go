@@ -35,7 +35,7 @@ func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, fl
 	s, token := deps.IDPSessions.MakeSession(attrs)
 	sessionCookie := deps.Cookies.ValueCookie(deps.SessionCookie.Def, token)
 
-	authnInfo := s.GetAuthenticationInfo()
+	authnInfo := s.GetAuthenticationInfoByThisSession()
 	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = n.SkipCreate && n.CreateReason == session.CreateReasonLogin
 	authnInfoEntry := authenticationinfo.NewEntry(authnInfo, authflow.GetOAuthSessionID(ctx))
 
