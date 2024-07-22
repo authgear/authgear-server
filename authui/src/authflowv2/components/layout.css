@@ -17,12 +17,24 @@
 
     /* In mobile layout, we never see the background color */
     /* Instead, the background-color should be the same as the widget's. */
-    background-color: var(--color-surface-primary);
+    /* In non-mobile layout, we see the true background-color */
+    @apply bg-[var(--color-surface-primary)] tablet:bg-[var(--layout\_\_bg-color)];
 
     background-image: var(--layout__bg-image);
     background-repeat: var(--layout__bg_repeat);
     background-position: var(--layout__bg_position);
     background-size: var(--layout__bg_size);
+  }
+
+  /* alignment-card */
+  :root[alignment-card="start"] .layout--default {
+    @apply tablet:items-start;
+  }
+  :root[alignment-card="center"] .layout--default {
+    @apply tablet:items-center;
+  }
+  :root[alignment-card="end"] .layout--default {
+    @apply tablet:items-end;
   }
 
   .layout--default .widget {
@@ -34,55 +46,19 @@
     @apply w-full;
     /* In mobile layout, the layout header takes 0 height. */
     @apply min-h-0 h-0;
+    /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
+    /* And the initial size is controlled by min-height and max-height. */
+    @apply tablet:flex-auto tablet:min-h-5 tablet:max-h-40;
   }
   .layout__footer--default {
     /* In any layout, the layout header takes full widget. */
     @apply w-full;
     /* In mobile layout, the layout footer takes the remaining height. */
     @apply flex-1;
-  }
-
-  @media (min-width: theme("screens.tablet")) {
-    .layout--default {
-      /* In non-mobile layout, we see the true background-color */
-      background-color: var(--layout__bg-color);
-
-      :root[alignment-card="start"] & {
-        @apply items-start;
-      }
-
-      :root[alignment-card="center"] & {
-        @apply items-center;
-      }
-
-      :root[alignment-card="end"] & {
-        @apply items-end;
-      }
-    }
-
     /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
     /* And the initial size is controlled by min-height and max-height. */
-    .layout__header--default {
-      @apply flex-auto;
-      @apply min-h-5 max-h-40;
-    }
     /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
     /* And the initial size is controlled by min-height. */
-    .layout__footer--default {
-      @apply flex-auto;
-      @apply min-h-5;
-    }
-  }
-
-  @media (min-width: theme("screens.desktop")) {
-    .layout--default {
-      :root[alignment-card="start"] & {
-        @apply pl-60;
-      }
-
-      :root[alignment-card="end"] & {
-        @apply pr-60;
-      }
-    }
+    @apply tablet:flex-auto tablet:min-h-5;
   }
 }
