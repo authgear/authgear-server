@@ -50,20 +50,15 @@ func (*IntentEnsureSession) CanReactTo(ctx context.Context, deps *workflow.Depen
 func (i *IntentEnsureSession) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	attrs := session.NewAttrs(i.UserID)
 	attrs.SetAMR(i.AMR)
-	sessionToCreate, token := deps.IDPSessions.MakeSession(attrs)
+	var sessionToCreate *idpsession.IDPSession = nil
+	newSession, token := deps.IDPSessions.MakeSession(attrs)
+	sessionToCreate = newSession
 	sessionCookie := deps.Cookies.ValueCookie(deps.SessionCookie.Def, token)
 
 	mode := i.Mode
 	if mode == EnsureSessionModeDefault {
 		mode = EnsureSessionModeCreate
 	}
-
-	authnInfo := sessionToCreate.CreateNewAuthenticationInfoByThisSession()
-	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && i.CreateReason == session.CreateReasonLogin
-	authnInfoEntry := authenticationinfo.NewEntry(
-		authnInfo,
-		workflow.GetOAuthSessionID(ctx),
-	)
 
 	sameSiteStrictCookie := deps.Cookies.ValueCookie(
 		deps.SessionCookie.SameSiteStrictDef,
@@ -88,6 +83,18 @@ func (i *IntentEnsureSession) ReactTo(ctx context.Context, deps *workflow.Depend
 		sessionToCreate = nil
 		sessionCookie = nil
 	}
+
+	var authnInfo authenticationinfo.T
+	if sessionToCreate == nil {
+		authnInfo = newSession.GetAuthenticationInfo()
+	} else {
+		authnInfo = sessionToCreate.CreateNewAuthenticationInfoByThisSession()
+	}
+	authnInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && i.CreateReason == session.CreateReasonLogin
+	authnInfoEntry := authenticationinfo.NewEntry(
+		authnInfo,
+		workflow.GetOAuthSessionID(ctx),
+	)
 
 	return workflow.NewNodeSimple(&NodeDoEnsureSession{
 		UserID:                  i.UserID,

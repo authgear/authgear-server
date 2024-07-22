@@ -26,9 +26,12 @@ func NewNodeDidReauthenticate(ctx context.Context, deps *authflow.Dependencies, 
 		return nil, err
 	}
 	attrs.SetAMR(amr)
-	s, _ := deps.IDPSessions.MakeSession(attrs)
+	authnInfo := authenticationinfo.T{
+		UserID:          n.UserID,
+		AuthenticatedAt: deps.Clock.NowUTC(),
+		AMR:             amr,
+	}
 
-	authnInfo := s.CreateNewAuthenticationInfoByThisSession()
 	authnInfoEntry := authenticationinfo.NewEntry(authnInfo, authflow.GetOAuthSessionID(ctx))
 
 	n.AuthenticationInfoEntry = authnInfoEntry
