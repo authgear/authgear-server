@@ -48,6 +48,7 @@ type BaseViewModel struct {
 	StaticAssetURL              func(id string) (url string)
 	GeneratedStaticAssetURL     func(id string) (url string)
 	DarkThemeEnabled            bool
+	DarkThemeForced             bool
 	WatermarkEnabled            bool
 	AllowedPhoneCountryCodeJSON string
 	PinnedPhoneCountryCodeJSON  string
@@ -246,6 +247,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			return
 		},
 		DarkThemeEnabled: !m.AuthUI.DarkThemeDisabled,
+		DarkThemeForced:  !m.AuthUI.DarkThemeDisabled && m.AuthUI.LightThemeDisabled,
 		WatermarkEnabled: m.AuthUIFeatureConfig.WhiteLabeling.Disabled ||
 			!m.AuthUI.WatermarkDisabled,
 		AllowedPhoneCountryCodeJSON: string(allowedPhoneCountryCodeJSON),
