@@ -41,18 +41,12 @@ This document specifies the implementation of [OIDC Native SSO](https://openid.n
 - The following fields become client-specific
   - `ClientID`
   - `AuthorizationID`
-  - `IdentityID`
+  - `CreatedAt`
   - `Scopes`
   - `TokenHash`
-- Add a new field `DeviceSSORefreshTokens`. It has the above client-specific fields.
-  - `ClientID`
-  - `AuthorizationID`
-  - `IdentityID`
-  - `Scopes`
-  - `TokenHash`
+- Add a new field `RefreshTokens`. It will store all of the above imformation per refresh token.
 - Add a new field `DeviceSecretHash`. It is the hex of SHA256 of `device_secret`.
-- If `DeviceSSORefreshTokens` is non-empty, then the offline grant is a Native SSO offline grant.
-- Otherwise, the offline grant is an ordinary offline grant.
+- All new offline grants will use the new `RefreshTokens` to store information about refresh tokens.
 
 ## Changes on Authorization Endpoint
 
@@ -80,8 +74,6 @@ This document specifies the implementation of [OIDC Native SSO](https://openid.n
 ### `grant_type=urn:authgear:params:oauth:grant-type:app2app`
 
 Native SSO has no direct impact on app2app.
-
-If the offline grant of App B has `scope=device_sso`, then the authorization code obtained by App B inherits `scope=device_sso`. That means if App B has enabled Native SSO, then App A will receive a device secret when App A exchanges the authorization code delivered by App B.
 
 ### `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`
 
