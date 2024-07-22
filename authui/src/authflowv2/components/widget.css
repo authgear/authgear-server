@@ -32,7 +32,7 @@
     background-repeat: var(--widget__bg_repeat);
     background-position: var(--widget__bg_position);
     background-size: var(--widget__bg_size);
-    @apply flex flex-col;
+    @apply flex flex-col overflow-hidden;
   }
 
   .widget-content {
