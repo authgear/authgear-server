@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -17,10 +16,6 @@ type SettingsActionGrantService struct {
 }
 
 type CreateSettingsActionGrantOptions struct {
-	Authorization        *oauth.Authorization
-	IDPSessionID         string
-	AuthenticationInfo   authenticationinfo.T
-	IDTokenHintSID       string
 	RedirectURI          string
 	AuthorizationRequest protocol.AuthorizationRequest
 }
@@ -30,11 +25,7 @@ func (s *SettingsActionGrantService) CreateSettingsActionGrant(opts *CreateSetti
 	codeHash := oauth.HashToken(code)
 
 	settingsActionGrant := &oauth.SettingsActionGrant{
-		AppID:              string(s.AppID),
-		AuthorizationID:    opts.Authorization.ID,
-		IDPSessionID:       opts.IDPSessionID,
-		AuthenticationInfo: opts.AuthenticationInfo,
-		IDTokenHintSID:     opts.IDTokenHintSID,
+		AppID: string(s.AppID),
 
 		CreatedAt: s.Clock.NowUTC(),
 		ExpireAt:  s.Clock.NowUTC().Add(SettingsActionGrantValidDuration),

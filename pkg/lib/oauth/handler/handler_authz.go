@@ -655,9 +655,10 @@ func (h *AuthorizationHandler) doHandleConsentRequest(
 
 	sessionID := ""
 	var sessionType session.Type = ""
-	if s := session.GetSession(h.Context); s != nil && s.GetAuthenticationInfo().UserID == authenticationInfo.UserID {
-		sessionID = s.SessionID()
-		sessionType = s.SessionType()
+
+	if authenticationInfo.AuthenticatedBySessionID != "" {
+		sessionID = authenticationInfo.AuthenticatedBySessionID
+		sessionType = session.Type(authenticationInfo.AuthenticatedBySessionType)
 	}
 
 	return h.finish(redirectURI, r, sessionType, sessionID, authenticationInfo, idTokenHintSID, []*http.Cookie{}, grantAuthz)
@@ -791,10 +792,6 @@ func (h *AuthorizationHandler) generateSettingsActionResponse(
 	resp protocol.AuthorizationResponse,
 ) error {
 	code, _, err := h.SettingsActionGrantService.CreateSettingsActionGrant(&CreateSettingsActionGrantOptions{
-		Authorization:        authz,
-		IDPSessionID:         idpSessionID,
-		AuthenticationInfo:   authenticationInfo,
-		IDTokenHintSID:       idTokenHintSID,
 		RedirectURI:          redirectURI,
 		AuthorizationRequest: r,
 	})

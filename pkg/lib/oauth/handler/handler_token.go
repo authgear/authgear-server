@@ -1494,11 +1494,19 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	var deviceSecretHash string
 	var sid string
 
+	var offlineGrantIDPSessionID string
+	switch session.Type(info.AuthenticatedBySessionType) {
+	case session.TypeIdentityProvider:
+		offlineGrantIDPSessionID = info.AuthenticatedBySessionID
+	default:
+		// no idp session id
+	}
+
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: info,
-		IDPSessionID:       code.SessionID,
+		IDPSessionID:       offlineGrantIDPSessionID,
 		DeviceInfo:         deviceInfo,
 		SSOEnabled:         code.AuthorizationRequest.SSOEnabled(),
 		App2AppDeviceKey:   app2appDevicePublicKey,
@@ -1508,12 +1516,15 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		var offlineGrant *oauth.OfflineGrant
 		var tokenHash string
 		var err error
-		switch code.SessionType {
+		switch session.Type(info.AuthenticatedBySessionType) {
 		case session.TypeOfflineGrant:
-			offlineGrant, tokenHash, err = h.TokenService.IssueRefreshTokenForOfflineGrant(code.SessionID, client, IssueOfflineGrantRefreshTokenOptions{
-				Scopes:          scopes,
-				AuthorizationID: authz.ID,
-			}, resp)
+			offlineGrant, tokenHash, err = h.TokenService.IssueRefreshTokenForOfflineGrant(
+				info.AuthenticatedBySessionID,
+				client,
+				IssueOfflineGrantRefreshTokenOptions{
+					Scopes:          scopes,
+					AuthorizationID: authz.ID,
+				}, resp)
 			if err != nil {
 				return nil, err
 			}

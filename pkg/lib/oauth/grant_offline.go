@@ -82,6 +82,16 @@ func (o *OfflineGrantSession) GetAccessInfo() *access.Info {
 func (o *OfflineGrantSession) SSOGroupIDPSessionID() string {
 	return o.OfflineGrant.SSOGroupIDPSessionID()
 }
+func (o *OfflineGrantSession) GetAuthenticationInfoByThisSession() authenticationinfo.T {
+	amr, _ := o.OfflineGrant.GetOIDCAMR()
+	return authenticationinfo.T{
+		UserID:                     o.OfflineGrant.GetUserID(),
+		AuthenticatedAt:            o.OfflineGrant.GetAuthenticatedAt(),
+		AMR:                        amr,
+		AuthenticatedBySessionType: string(o.SessionType()),
+		AuthenticatedBySessionID:   o.SessionID(),
+	}
+}
 
 var _ session.ResolvedSession = &OfflineGrantSession{}
 
