@@ -123,7 +123,7 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			// delete account triggered by sdk via settings action
 			// handle settings action result here
 
-			authInfoEntry := authenticationinfo.NewEntry(currentSession.GetAuthenticationInfoByThisSession(), webSession.OAuthSessionID)
+			authInfoEntry := authenticationinfo.NewEntry(currentSession.CreateNewAuthenticationInfoByThisSession(), webSession.OAuthSessionID)
 			err := h.AuthenticationInfoService.Save(authInfoEntry)
 			if err != nil {
 				return err

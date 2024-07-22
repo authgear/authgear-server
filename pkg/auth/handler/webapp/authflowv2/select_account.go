@@ -146,7 +146,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 		// Write authentication info cookie
 		if session != nil {
-			info := session.GetAuthenticationInfoByThisSession()
+			info := session.CreateNewAuthenticationInfoByThisSession()
 			entry := authenticationinfo.NewEntry(info, oauthSessionID)
 			err := h.AuthenticationInfoService.Save(entry)
 			if err != nil {

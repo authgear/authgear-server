@@ -29,7 +29,7 @@ type ResolvedSession interface {
 	Session()
 	GetCreatedAt() time.Time
 	GetAccessInfo() *access.Info
-	GetAuthenticationInfoByThisSession() authenticationinfo.T
+	CreateNewAuthenticationInfoByThisSession() authenticationinfo.T
 }
 
 type ListableSession interface {

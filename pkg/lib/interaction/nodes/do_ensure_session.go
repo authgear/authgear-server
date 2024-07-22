@@ -44,7 +44,7 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 	sessionToCreate, token := ctx.Sessions.MakeSession(attrs)
 	sessionCookie := ctx.CookieManager.ValueCookie(ctx.SessionCookie.Def, token)
 
-	authenticationInfo := sessionToCreate.GetAuthenticationInfoByThisSession()
+	authenticationInfo := sessionToCreate.CreateNewAuthenticationInfoByThisSession()
 	authenticationInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && e.CreateReason == session.CreateReasonLogin
 	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo, ctx.OAuthSessionID)
 

@@ -82,7 +82,7 @@ func (o *OfflineGrantSession) GetAccessInfo() *access.Info {
 func (o *OfflineGrantSession) SSOGroupIDPSessionID() string {
 	return o.OfflineGrant.SSOGroupIDPSessionID()
 }
-func (o *OfflineGrantSession) GetAuthenticationInfoByThisSession() authenticationinfo.T {
+func (o *OfflineGrantSession) CreateNewAuthenticationInfoByThisSession() authenticationinfo.T {
 	amr, _ := o.OfflineGrant.GetOIDCAMR()
 	return authenticationinfo.T{
 		UserID:                     o.OfflineGrant.GetUserID(),

@@ -83,7 +83,7 @@ func (s *IDPSession) GetAuthenticationInfo() authenticationinfo.T {
 	}
 }
 
-func (s *IDPSession) GetAuthenticationInfoByThisSession() authenticationinfo.T {
+func (s *IDPSession) CreateNewAuthenticationInfoByThisSession() authenticationinfo.T {
 	amr, _ := s.GetOIDCAMR()
 	return authenticationinfo.T{
 		UserID:                     s.GetUserID(),

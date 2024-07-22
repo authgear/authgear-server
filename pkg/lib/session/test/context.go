@@ -58,7 +58,7 @@ func (m MockSession) GetAuthenticationInfo() authenticationinfo.T {
 	}
 }
 
-func (m *MockSession) GetAuthenticationInfoByThisSession() authenticationinfo.T {
+func (m *MockSession) CreateNewAuthenticationInfoByThisSession() authenticationinfo.T {
 	amr, _ := m.GetOIDCAMR()
 	return authenticationinfo.T{
 		UserID:                     m.GetUserID(),
