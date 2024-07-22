@@ -35,6 +35,8 @@ export class RecaptchaV2Controller extends Controller {
             tokenInput.value = token;
           }
         },
+
+        // below are default values, added for clarity
         size: "normal",
       });
     });

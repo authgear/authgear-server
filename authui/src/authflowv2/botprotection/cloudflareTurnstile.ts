@@ -40,8 +40,10 @@ export class CloudflareTurnstileController extends Controller {
             tokenInput.value = token;
           }
         },
-        size: "normal",
         "response-field": false,
+
+        // below are default values, added for clarity
+        size: "normal",
       });
     });
   }
