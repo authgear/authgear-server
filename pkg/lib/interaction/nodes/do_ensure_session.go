@@ -41,7 +41,7 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 
 	attrs := session.NewAttrs(userID)
 	attrs.SetAMR(amr)
-	var sessionToCreate *idpsession.IDPSession = nil
+	var sessionToCreate *idpsession.IDPSession
 	newSession, token := ctx.Sessions.MakeSession(attrs)
 	sessionToCreate = newSession
 	sessionCookie := ctx.CookieManager.ValueCookie(ctx.SessionCookie.Def, token)

@@ -50,7 +50,7 @@ func (*IntentEnsureSession) CanReactTo(ctx context.Context, deps *workflow.Depen
 func (i *IntentEnsureSession) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
 	attrs := session.NewAttrs(i.UserID)
 	attrs.SetAMR(i.AMR)
-	var sessionToCreate *idpsession.IDPSession = nil
+	var sessionToCreate *idpsession.IDPSession
 	newSession, token := deps.IDPSessions.MakeSession(attrs)
 	sessionToCreate = newSession
 	sessionCookie := deps.Cookies.ValueCookie(deps.SessionCookie.Def, token)
