@@ -43,10 +43,6 @@ export class CloudflareTurnstileController extends Controller {
         size: "normal",
         "response-field": false,
       });
-      for (let i = 0; i < this.widgetTarget.children.length; i++) {
-        const widget = this.widgetTarget.children[i];
-        widget.classList.add("flex");
-      }
     });
   }
 }
