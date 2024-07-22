@@ -22,6 +22,7 @@ type OAuthProviderFactory struct {
 	Clock                        clock.Clock
 	StandardAttributesNormalizer StandardAttributesNormalizer
 	HTTPClient                   OAuthHTTPClient
+	SimpleStoreRedisFactory      *SimpleStoreRedisFactory
 }
 
 func (p *OAuthProviderFactory) GetProviderConfig(alias string) (oauthrelyingparty.ProviderConfig, error) {
@@ -49,6 +50,7 @@ func (p *OAuthProviderFactory) getProvider(alias string) (provider oauthrelyingp
 		ProviderConfig: providerConfig,
 		ClientSecret:   credentials.ClientSecret,
 		HTTPClient:     p.HTTPClient.Client,
+		SimpleStore:    p.SimpleStoreRedisFactory.GetStoreByProvider(providerConfig.Type(), alias),
 	}
 
 	provider = providerConfig.MustGetProvider()

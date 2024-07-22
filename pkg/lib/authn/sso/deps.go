@@ -53,4 +53,5 @@ func ProvideOAuthHTTPClient(env *config.EnvironmentConfig) OAuthHTTPClient {
 var DependencySet = wire.NewSet(
 	ProvideOAuthHTTPClient,
 	wire.Struct(new(OAuthProviderFactory), "*"),
+	wire.Struct(new(SimpleStoreRedisFactory), "*"),
 )

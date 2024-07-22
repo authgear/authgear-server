@@ -95,7 +95,7 @@ require (
 )
 
 require (
-	github.com/authgear/oauthrelyingparty v1.3.0
+	github.com/authgear/oauthrelyingparty v1.4.0
 	github.com/go-jose/go-jose/v3 v3.0.3
 )
 

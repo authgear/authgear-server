@@ -87,6 +87,8 @@ github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892 h1:OIPk6
 github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892/go.mod h1:SxJGRjo7+1SFr8pfMghiCM17WWFSswRwMvtv6t1aDO8=
 github.com/authgear/oauthrelyingparty v1.3.0 h1:OqHMh4OPXIldC94zXV4GYtTesqMcMveNVhLQiFPfPTs=
 github.com/authgear/oauthrelyingparty v1.3.0/go.mod h1:0UcO0p5eS9BPLulX6K7TvkXkuPeTn3QhAJ/UQg4fmiQ=
+github.com/authgear/oauthrelyingparty v1.4.0 h1:D3h4YbNmrNow4IE5aVYGOB2ogVsOTT7fIZtur+gyY8g=
+github.com/authgear/oauthrelyingparty v1.4.0/go.mod h1:0UcO0p5eS9BPLulX6K7TvkXkuPeTn3QhAJ/UQg4fmiQ=
 github.com/aws/aws-sdk-go v1.47.9 h1:rarTsos0mA16q+huicGx0e560aYRtOucV5z2Mw23JRY=
 github.com/aws/aws-sdk-go v1.47.9/go.mod h1:LF8svs817+Nz+DmiMQKTO3ubZ/6IaTpq3TjupRn3Eqk=
 github.com/beevik/etree v1.1.0/go.mod h1:r8Aw8JqVegEf0w2fDnATrX9VpkMcyFeM0FhwO62wh+A=
