@@ -34,7 +34,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("ok", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "dpop+jwt")
+			_ = header.Set("typ", "dpop+jwt")
 			_ = header.Set("alg", "ES256")
 			_ = header.Set("jwk", jwkKey)
 			payload := jwt.New()
@@ -55,7 +55,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("expired", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "dpop+jwt")
+			_ = header.Set("typ", "dpop+jwt")
 			_ = header.Set("alg", "ES256")
 			_ = header.Set("jwk", jwkKey)
 			payload := jwt.New()
@@ -70,7 +70,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("future jwt", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "dpop+jwt")
+			_ = header.Set("typ", "dpop+jwt")
 			_ = header.Set("alg", "ES256")
 			_ = header.Set("jwk", jwkKey)
 			payload := jwt.New()
@@ -85,7 +85,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("invalid jwk", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "dpop+jwt")
+			_ = header.Set("typ", "dpop+jwt")
 			_ = header.Set("alg", "ES256")
 			payload := jwt.New()
 			_ = payload.Set("jti", "df352b68-9d3d-4006-a7fa-cf222a5f46b9")
@@ -99,7 +99,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("invalid typ", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "invalid")
+			_ = header.Set("typ", "invalid")
 			_ = header.Set("alg", "ES256")
 			_ = header.Set("jwk", jwkKey)
 			payload := jwt.New()
@@ -114,7 +114,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("no jti", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "dpop+jwt")
+			_ = header.Set("typ", "dpop+jwt")
 			_ = header.Set("alg", "ES256")
 			_ = header.Set("jwk", jwkKey)
 			payload := jwt.New()
@@ -128,7 +128,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("no htm", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "dpop+jwt")
+			_ = header.Set("typ", "dpop+jwt")
 			_ = header.Set("alg", "ES256")
 			_ = header.Set("jwk", jwkKey)
 			payload := jwt.New()
@@ -142,7 +142,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("no htu", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "dpop+jwt")
+			_ = header.Set("typ", "dpop+jwt")
 			_ = header.Set("alg", "ES256")
 			_ = header.Set("jwk", jwkKey)
 			payload := jwt.New()
@@ -156,7 +156,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("unsupported alg", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "dpop+jwt")
+			_ = header.Set("typ", "dpop+jwt")
 			_ = header.Set("jwk", jwkKey)
 			_ = header.Set("alg", "UNKNOWN")
 			payload := jwt.New()
@@ -170,7 +170,7 @@ func TestDPoPProvider(t *testing.T) {
 
 		Convey("reject long jti", func() {
 			header := jws.NewHeaders()
-			header.Set("typ", "dpop+jwt")
+			_ = header.Set("typ", "dpop+jwt")
 			_ = header.Set("jwk", jwkKey)
 			_ = header.Set("alg", "ES256")
 			payload := jwt.New()
