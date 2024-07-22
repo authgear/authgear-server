@@ -1,5 +1,7 @@
 # Account Linking
 
+TODO(ldap): Specify how an LDAP identity take part in Account Linking.
+
 - [Introduction](#introduction)
 - [Configuration](#configuration)
   - [Defining how the linking occurs and the corresponding action](#defining-how-the-linking-occurs-and-the-corresponding-action)
