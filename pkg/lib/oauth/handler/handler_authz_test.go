@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	sessiontest "github.com/authgear/authgear-server/pkg/lib/session/test"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -294,7 +295,9 @@ func TestAuthorizationHandler(t *testing.T) {
 						AppID:           "app-id",
 						AuthorizationID: authorization.ID,
 						AuthenticationInfo: authenticationinfo.T{
-							UserID: "user-id",
+							UserID:                     "user-id",
+							AuthenticatedBySessionID:   "session-id",
+							AuthenticatedBySessionType: string(session.TypeIdentityProvider),
 						},
 						CreatedAt:            time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
 						ExpireAt:             time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
@@ -345,7 +348,9 @@ func TestAuthorizationHandler(t *testing.T) {
 						AppID:           "app-id",
 						AuthorizationID: "authz-id",
 						AuthenticationInfo: authenticationinfo.T{
-							UserID: "user-id",
+							UserID:                     "user-id",
+							AuthenticatedBySessionID:   "session-id",
+							AuthenticatedBySessionType: string(session.TypeIdentityProvider),
 						},
 						CreatedAt:            time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
 						ExpireAt:             time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
