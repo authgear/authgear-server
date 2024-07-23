@@ -587,17 +587,27 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 }
 
 func (s *Service) Create(info *identity.Info) error {
-	incoming := info.ToSpec()
-	exactMatch, err := s.getBySpec(&incoming)
-	if errors.Is(err, api.ErrIdentityNotFound) {
-		// nolint: ineffassign
-		err = nil
-	} else if err != nil {
-		return err
-	} else {
-		existing := exactMatch.ToSpec()
-		err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
-		return err
+	// DEV-1613: In https://github.com/authgear/authgear-server/pull/4462
+	// We add checking of duplicated identity in Create().
+	// The way we check duplicate is by turning a identity.Info into a identity.Spec
+	// and then call getBySpec.
+	// However, this is not compatible with anonymous identity spec.
+	// The anonymous identity spec have different behavior based on which fields are present.
+	// But calling ToSpec() will generate a anonymous identity spec with all fields set.
+	// A anonymous identity spec with all fields set being passed to getBySpec() will confuse getBySpec() to panic.
+	if info.Type != model.IdentityTypeAnonymous {
+		incoming := info.ToSpec()
+		exactMatch, err := s.getBySpec(&incoming)
+		if errors.Is(err, api.ErrIdentityNotFound) {
+			// nolint: ineffassign
+			err = nil
+		} else if err != nil {
+			return err
+		} else {
+			existing := exactMatch.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
+			return err
+		}
 	}
 
 	switch info.Type {
