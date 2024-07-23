@@ -128,7 +128,7 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
     },
   },
   secondaryButton: {
-    backgroundColor: "#f0f1f1",
+    backgroundColor: "#ffffff",
     backgroundColorActive: "#e7e7e9",
     backgroundColorHover: "#e7e7e9",
     labelColor: "#131315",
