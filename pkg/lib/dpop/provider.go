@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
+	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
 type jwtClock struct {
@@ -159,13 +160,13 @@ func (p *Provider) validateProofJWT(header jws.Headers, payload jwt.Token) (jwk.
 
 func (p *Provider) CompareHTU(proof *DPoPProof, req *http.Request) error {
 	// req.URL does not have scheme and host, compare using HTTPOrigin
-	requestURI, err := url.Parse(string(p.HTTPOrigin))
+	requestOrigin, err := url.Parse(string(p.HTTPOrigin))
 	if err != nil {
 		panic(err)
 	}
-	requestURI.Path = req.URL.Path
+	absoluteRequestURI := urlutil.ApplyOriginToURL(requestOrigin, req.URL)
 
-	if requestURI.String() != proof.HTU.String() {
+	if absoluteRequestURI.String() != proof.HTU.String() {
 		return ErrUnmatchedURI
 	}
 
