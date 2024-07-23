@@ -57,7 +57,7 @@ function constructFormState(
       access_token_lifetime_seconds: undefined,
       refresh_token_lifetime_seconds: undefined,
       post_logout_redirect_uris: undefined,
-      issue_jwt_access_token: undefined,
+      issue_jwt_access_token: true,
     },
   };
 }
@@ -237,8 +237,22 @@ const CreateOAuthClientContent: React.VFC<CreateOAuthClientContentProps> =
     const onApplicationChange = useCallback(
       (_e, option) => {
         if (option != null) {
+          let issueJwtAccessToken: boolean | undefined;
+          switch (option.key) {
+            case "spa":
+            case "native":
+              issueJwtAccessToken = true;
+              break;
+            default:
+              issueJwtAccessToken = undefined;
+              break;
+          }
           onClientConfigChange(
-            updateClientConfig(client, "x_application_type", option.key)
+            updateClientConfig(
+              updateClientConfig(client, "x_application_type", option.key),
+              "issue_jwt_access_token",
+              issueJwtAccessToken
+            )
           );
         }
       },
