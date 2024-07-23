@@ -5,8 +5,8 @@
     const htmlElement = document.documentElement;
     const darkThemeEnabled =
       htmlElement.getAttribute("data-dark-theme-enabled") === "true";
-    const darkThemeForced =
-      htmlElement.getAttribute("data-dark-theme-forced") === "true";
+    const lightThemeEnabled =
+      htmlElement.getAttribute("data-light-theme-enabled") === "true";
 
     let explicitColorScheme = "";
     const metaElement = document.querySelector("meta[name=x-color-scheme]");
@@ -22,13 +22,20 @@
 
     const implicitColorScheme = queryResult.matches ? "dark" : "light";
 
-    const colorScheme = !darkThemeEnabled
-      ? "light"
-      : explicitColorScheme !== ""
-        ? explicitColorScheme
-        : darkThemeForced
-          ? "dark"
-          : implicitColorScheme;
+    let colorScheme = "light";
+    // First of all, respect project configuration
+    if (lightThemeEnabled && !darkThemeEnabled) {
+      colorScheme = "light";
+    } else if (!lightThemeEnabled && darkThemeEnabled) {
+      colorScheme = "dark";
+    } else {
+      // !lightThemeEnabled && !darkThemeEnabled is treated as both enabled
+      if (explicitColorScheme !== "") {
+        colorScheme = explicitColorScheme;
+      } else {
+        colorScheme = implicitColorScheme;
+      }
+    }
 
     if (colorScheme === "dark") {
       htmlElement.classList.add("dark");

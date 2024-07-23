@@ -1,14 +1,14 @@
 {{ define "__wide_page_frame.html" }}
 <!DOCTYPE html>
 <html
-{{ if and ($.DarkThemeEnabled) ($.DarkThemeForced) }}
+{{ if and ($.DarkThemeEnabled) (not $.LightThemeEnabled) }}
 	class="dark"
 {{ end }}
 	lang="{{ $.ResolvedLanguageTag }}"
 	dir="{{ $.HTMLDir }}"
 	data-controller="format-date-relative"
 	data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
-	data-dark-theme-forced="{{ $.DarkThemeForced }}">
+	data-light-theme-enabled="{{ $.LightThemeEnabled }}">
 {{ template "__html_head.html" . }}
 
 <body class="page" data-controller="prevent-double-tap websocket modal simple-modal xhr-submit-form" data-action="dblclick->prevent-double-tap#action">
