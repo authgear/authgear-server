@@ -1,6 +1,11 @@
 /* global ReCaptchaV2 */
 import { Controller } from "@hotwired/stimulus";
 import { getColorScheme } from "../../getColorScheme";
+import {
+  dispatchBotProtectionEventExpired,
+  dispatchBotProtectionEventFailed,
+  dispatchBotProtectionEventVerified,
+} from "./botProtection";
 
 function parseTheme(theme: string): ReCaptchaV2.Theme | undefined {
   switch (theme) {
@@ -18,11 +23,10 @@ export class RecaptchaV2Controller extends Controller {
     siteKey: { type: String },
   };
 
-  static targets = ["widget", "tokenInput"];
+  static targets = ["widget"];
 
   declare siteKeyValue: string;
   declare widgetTarget: HTMLDivElement;
-  declare tokenInputTargets: HTMLInputElement[];
 
   connect() {
     window.grecaptcha.ready(() => {
@@ -31,9 +35,13 @@ export class RecaptchaV2Controller extends Controller {
         sitekey: this.siteKeyValue,
         theme: parseTheme(colorScheme),
         callback: (token: string) => {
-          for (const tokenInput of this.tokenInputTargets) {
-            tokenInput.value = token;
-          }
+          dispatchBotProtectionEventVerified(token);
+        },
+        "error-callback": () => {
+          dispatchBotProtectionEventFailed();
+        },
+        "expired-callback": () => {
+          dispatchBotProtectionEventExpired();
         },
 
         // below are default values, added for clarity
