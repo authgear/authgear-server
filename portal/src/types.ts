@@ -218,12 +218,18 @@ export interface AuthenticatorOOBEmailConfig {
   maximum?: number;
   email_otp_mode?: AuthenticatorEmailOTPMode;
   code_valid_period?: DurationString;
+  valid_periods?: AuthenticatorValidPeriods;
 }
 
 export interface AuthenticatorOOBSMSConfig {
   maximum?: number;
   phone_otp_mode?: AuthenticatorPhoneOTPMode;
   code_valid_period?: DurationString;
+  valid_periods?: AuthenticatorValidPeriods;
+}
+export interface AuthenticatorValidPeriods {
+  link?: DurationString;
+  code?: DurationString;
 }
 
 export interface AuthenticatorPasswordConfig {
