@@ -192,13 +192,13 @@ function constructConfigFromFormState(
     draft.ui.default_client_uri = currentState.defaultClientURI || undefined;
     if (currentState.themeOption === "lightOnly") {
       draft.ui.dark_theme_disabled = true;
-      draft.ui.light_theme_disabled = false;
+      draft.ui.light_theme_disabled = undefined;
     } else if (currentState.themeOption === "darkOnly") {
-      draft.ui.dark_theme_disabled = false;
+      draft.ui.dark_theme_disabled = undefined;
       draft.ui.light_theme_disabled = true;
     } else {
-      draft.ui.dark_theme_disabled = false;
-      draft.ui.light_theme_disabled = false;
+      draft.ui.dark_theme_disabled = undefined;
+      draft.ui.light_theme_disabled = undefined;
     }
   });
 }
