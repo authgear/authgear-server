@@ -59,7 +59,8 @@ func (m *Middleware) handleError(rw http.ResponseWriter, err error) {
 		if statusCode == 0 {
 			statusCode = http.StatusBadRequest
 		}
-		http.Error(rw, string(errJsonStr), statusCode)
+		rw.WriteHeader(statusCode)
+		rw.Write([]byte(errJsonStr))
 		return
 	} else {
 		panic(err)
