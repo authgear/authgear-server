@@ -50,10 +50,6 @@ describe("StyleCssVisitor", () => {
     --primary-btn__bg-color--hover: #1151b8;
     --primary-btn__text-color: #ffffff;
     --primary-btn__border-radius: 0.875em;
-    --secondary-btn__bg-color: #f0f1f1;
-    --secondary-btn__bg-color--active: #e7e7e9;
-    --secondary-btn__bg-color--hover: #e7e7e9;
-    --secondary-btn__text-color: #131315;
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
     --body-text__link-color: #176df3
@@ -84,10 +80,6 @@ describe("StyleCssVisitor", () => {
         },
       },
       secondaryButton: {
-        backgroundColor: "#f0f1f1",
-        backgroundColorActive: "#e7e7e9",
-        backgroundColorHover: "#e7e7e9",
-        labelColor: "#131315",
         borderRadius: {
           type: "rounded",
           radius: "0.875em",
@@ -142,10 +134,6 @@ describe("CssAstVisitor", () => {
         },
       },
       secondaryButton: {
-        backgroundColor: "#f0f1f1",
-        backgroundColorActive: "#e7e7e9",
-        backgroundColorHover: "#e7e7e9",
-        labelColor: "#131315",
         borderRadius: {
           type: "rounded",
           radius: "0.875em",
@@ -169,10 +157,6 @@ describe("CssAstVisitor", () => {
     --primary-btn__bg-color--hover: #235dba;
     --primary-btn__text-color: #1c1c1e;
     --primary-btn__border-radius: 0.875em;
-    --secondary-btn__bg-color: #f0f1f1;
-    --secondary-btn__bg-color--active: #e7e7e9;
-    --secondary-btn__bg-color--hover: #e7e7e9;
-    --secondary-btn__text-color: #131315;
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
     --body-text__link-color: #2f7bf4
