@@ -305,8 +305,17 @@ func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 		c.Maximum = newInt(99)
 	}
 	if c.Deprecated_CodeValidPeriod == "" {
-		c.Deprecated_CodeValidPeriod = "1h"
+		c.Deprecated_CodeValidPeriod = DurationString("20m")
 	}
+	if c.ValidPeriods.Link == "" {
+		c.ValidPeriods.Link = c.Deprecated_CodeValidPeriod
+	}
+	if c.ValidPeriods.Code == "" {
+		c.ValidPeriods.Code = DurationString("300s")
+	}
+	// See https://github.com/authgear/authgear-server/issues/4297
+	// Remove deprecated fields
+	c.Deprecated_CodeValidPeriod = ""
 }
 
 var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
@@ -359,6 +368,15 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 		c.Maximum = newInt(99)
 	}
 	if c.Deprecated_CodeValidPeriod == "" {
-		c.Deprecated_CodeValidPeriod = "1h"
+		c.Deprecated_CodeValidPeriod = DurationString("20m")
 	}
+	if c.ValidPeriods.Link == "" {
+		c.ValidPeriods.Link = c.Deprecated_CodeValidPeriod
+	}
+	if c.ValidPeriods.Code == "" {
+		c.ValidPeriods.Code = DurationString("300s")
+	}
+	// See https://github.com/authgear/authgear-server/issues/3524
+	// Remove deprecated fields
+	c.Deprecated_CodeValidPeriod = ""
 }
