@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -19,6 +21,7 @@ import (
 )
 
 var ErrInvalidRefreshToken = protocol.NewError("invalid_grant", "invalid refresh token")
+var ErrInvalidDPoPKeyBinding = protocol.NewError(dpop.InvalidDPoPProof, "Invalid DPoP key binding")
 
 type IssueOfflineGrantOptions struct {
 	AuthenticationInfo authenticationinfo.T
@@ -30,11 +33,13 @@ type IssueOfflineGrantOptions struct {
 	SSOEnabled         bool
 	App2AppDeviceKey   jwk.Key
 	IssueDeviceSecret  bool
+	DPoPJKT            string
 }
 
 type IssueOfflineGrantRefreshTokenOptions struct {
 	Scopes          []string
 	AuthorizationID string
+	DPoPJKT         string
 }
 
 type TokenService struct {
@@ -72,6 +77,7 @@ func (s *TokenService) IssueOfflineGrant(
 		CreatedAt:       now,
 		Scopes:          opts.Scopes,
 		AuthorizationID: opts.AuthorizationID,
+		DPoPJKT:         opts.DPoPJKT,
 	}
 
 	offlineGrant = &oauth.OfflineGrant{
@@ -101,6 +107,7 @@ func (s *TokenService) IssueOfflineGrant(
 	if opts.IssueDeviceSecret {
 		deviceSecretHash := s.IssueDeviceSecret(resp)
 		offlineGrant.DeviceSecretHash = deviceSecretHash
+		offlineGrant.DeviceSecretDPoPJKT = opts.DPoPJKT
 	}
 
 	if opts.App2AppDeviceKey != nil {
@@ -144,7 +151,7 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 	}
 
 	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(
-		offlineGrant, client.ClientID, opts.Scopes, opts.AuthorizationID,
+		offlineGrant, client.ClientID, opts.Scopes, opts.AuthorizationID, opts.DPoPJKT,
 	)
 	if err != nil {
 		return nil, "", err
@@ -181,8 +188,11 @@ func (s *TokenService) IssueAccessGrant(
 	return nil
 }
 
-func (s *TokenService) ParseRefreshToken(token string) (
+func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error) {
+
+	dpopProof := dpop.GetDPoPProof(ctx)
+
 	token, grantID, err := oauth.DecodeRefreshToken(token)
 	if err != nil {
 		return nil, nil, "", ErrInvalidRefreshToken
@@ -212,6 +222,10 @@ func (s *TokenService) ParseRefreshToken(token string) (
 	offlineGrantSession, ok := offlineGrant.ToSession(tokenHash)
 	if !ok {
 		return nil, nil, "", ErrInvalidRefreshToken
+	}
+
+	if !offlineGrantSession.MatchDPoPJKT(dpopProof) {
+		return nil, nil, "", ErrInvalidDPoPKeyBinding
 	}
 
 	authz, err = s.Authorizations.GetByID(offlineGrantSession.AuthorizationID)

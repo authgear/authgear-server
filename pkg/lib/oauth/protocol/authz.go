@@ -63,6 +63,9 @@ func (r AuthorizationRequest) MaxAge() (duration time.Duration, ok bool) {
 func (r AuthorizationRequest) CodeChallenge() string       { return r["code_challenge"] }
 func (r AuthorizationRequest) CodeChallengeMethod() string { return r["code_challenge_method"] }
 
+// DPoP
+func (r AuthorizationRequest) DPoPJKT() string { return r["dpop_jkt"] }
+
 // Proprietary
 func (r AuthorizationRequest) Platform() string          { return r["x_platform"] }
 func (r AuthorizationRequest) WeChatRedirectURI() string { return r["x_wechat_redirect_uri"] }

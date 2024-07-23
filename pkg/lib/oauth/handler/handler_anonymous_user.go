@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
@@ -94,7 +95,7 @@ func (h *AnonymousUserHandler) SignupAnonymousUser(
 	case WebSessionTypeCookie:
 		return h.signupAnonymousUserWithCookieSessionType(req)
 	case WebSessionTypeRefreshToken:
-		return h.signupAnonymousUserWithRefreshTokenSessionType(clientID, refreshToken)
+		return h.signupAnonymousUserWithRefreshTokenSessionType(req, clientID, refreshToken)
 	default:
 		panic("unknown web session type")
 	}
@@ -134,9 +135,11 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithCookieSessionType(
 }
 
 func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
+	req *http.Request,
 	clientID string,
 	refreshToken string,
 ) (*SignupAnonymousUserResult, error) {
+	ctx := req.Context()
 	client := h.OAuthClientResolver.ResolveClient(clientID)
 	if client == nil {
 		// "invalid_client"
@@ -152,7 +155,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 
 	if refreshToken != "" {
-		authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(refreshToken)
+		authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
 		if errors.Is(err, ErrInvalidRefreshToken) {
 			return nil, apierrors.NewInvalid("invalid refresh token")
 		} else if err != nil {
@@ -198,6 +201,8 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		return nil, err
 	}
 
+	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
+
 	resp := protocol.TokenResponse{}
 	// SSOEnabled is false for refresh tokens that are granted by anonymous login
 	opts := IssueOfflineGrantOptions{
@@ -206,6 +211,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 		AuthenticationInfo: info,
 		DeviceInfo:         nil,
 		SSOEnabled:         false,
+		DPoPJKT:            dpopJKT,
 	}
 	offlineGrant, tokenHash, err := h.TokenService.IssueOfflineGrant(client, opts, resp)
 	if err != nil {
@@ -282,7 +288,7 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 			err = ErrUnauthenticated
 			return
 		}
-		authz, _, _, e := h.TokenService.ParseRefreshToken(refreshToken)
+		authz, _, _, e := h.TokenService.ParseRefreshToken(req.Context(), refreshToken)
 		var oauthError *protocol.OAuthProtocolError
 		if errors.As(e, &oauthError) {
 			err = apierrors.NewForbidden(oauthError.Error())

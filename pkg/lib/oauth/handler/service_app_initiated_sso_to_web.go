@@ -81,8 +81,11 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 		return "", err
 	}
 
+	// DPoP is not important here, because the refresh token is not exposed
+	dpopJKT := ""
+
 	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(
-		offlineGrant, tokenModel.ClientID, tokenModel.Scopes, tokenModel.AuthorizationID,
+		offlineGrant, tokenModel.ClientID, tokenModel.Scopes, tokenModel.AuthorizationID, dpopJKT,
 	)
 	if err != nil {
 		return "", err

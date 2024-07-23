@@ -5,6 +5,7 @@
 package handler_test
 
 import (
+	context "context"
 	reflect "reflect"
 	time "time"
 
@@ -526,18 +527,18 @@ func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantAuthe
 }
 
 // UpdateOfflineGrantDeviceSecretHash mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantDeviceSecretHash(grantID, newDeviceSecretHash string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantDeviceSecretHash(grantID, newDeviceSecretHash, dpopJKT string, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOfflineGrantDeviceSecretHash", grantID, newDeviceSecretHash, expireAt)
+	ret := m.ctrl.Call(m, "UpdateOfflineGrantDeviceSecretHash", grantID, newDeviceSecretHash, dpopJKT, expireAt)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateOfflineGrantDeviceSecretHash indicates an expected call of UpdateOfflineGrantDeviceSecretHash.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantDeviceSecretHash(grantID, newDeviceSecretHash, expireAt interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantDeviceSecretHash(grantID, newDeviceSecretHash, dpopJKT, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantDeviceSecretHash", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantDeviceSecretHash), grantID, newDeviceSecretHash, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantDeviceSecretHash", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantDeviceSecretHash), grantID, newDeviceSecretHash, dpopJKT, expireAt)
 }
 
 // MockTokenHandlerAppSessionTokenStore is a mock of TokenHandlerAppSessionTokenStore interface.
@@ -699,9 +700,9 @@ func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueRefreshTokenForOfflineG
 }
 
 // ParseRefreshToken mocks base method.
-func (m *MockTokenHandlerTokenService) ParseRefreshToken(token string) (*oauth.Authorization, *oauth.OfflineGrant, string, error) {
+func (m *MockTokenHandlerTokenService) ParseRefreshToken(ctx context.Context, token string) (*oauth.Authorization, *oauth.OfflineGrant, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ParseRefreshToken", token)
+	ret := m.ctrl.Call(m, "ParseRefreshToken", ctx, token)
 	ret0, _ := ret[0].(*oauth.Authorization)
 	ret1, _ := ret[1].(*oauth.OfflineGrant)
 	ret2, _ := ret[2].(string)
@@ -710,9 +711,9 @@ func (m *MockTokenHandlerTokenService) ParseRefreshToken(token string) (*oauth.A
 }
 
 // ParseRefreshToken indicates an expected call of ParseRefreshToken.
-func (mr *MockTokenHandlerTokenServiceMockRecorder) ParseRefreshToken(token interface{}) *gomock.Call {
+func (mr *MockTokenHandlerTokenServiceMockRecorder) ParseRefreshToken(ctx, token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).ParseRefreshToken), token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).ParseRefreshToken), ctx, token)
 }
 
 // MockPreAuthenticatedURLTokenService is a mock of PreAuthenticatedURLTokenService interface.

@@ -41,5 +41,6 @@ type PreAuthenticatedURLTokenOfflineGrantService interface {
 		clientID string,
 		scopes []string,
 		authorizationID string,
+		dpopJKT string,
 	) (*CreateNewRefreshTokenResult, *OfflineGrant, error)
 }

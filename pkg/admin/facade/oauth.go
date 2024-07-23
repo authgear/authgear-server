@@ -90,6 +90,8 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Lis
 		AuthorizationID:    authz.ID,
 		AuthenticationInfo: authenticationInfo,
 		DeviceInfo:         deviceInfo,
+		// dpop not supported for offline grants created by this method
+		DPoPJKT: "",
 	}
 
 	resp := protocol.TokenResponse{}

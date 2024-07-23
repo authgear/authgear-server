@@ -24,6 +24,7 @@ import (
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
@@ -135,7 +136,11 @@ type TokenHandlerOfflineGrantStore interface {
 	AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantApp2AppDeviceKey(id string, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error)
-	UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecretHash string, expireAt time.Time) (*oauth.OfflineGrant, error)
+	UpdateOfflineGrantDeviceSecretHash(
+		grantID string,
+		newDeviceSecretHash string,
+		dpopJKT string,
+		expireAt time.Time) (*oauth.OfflineGrant, error)
 
 	ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error)
 	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
@@ -150,7 +155,7 @@ type TokenHandlerOfflineGrantService interface {
 }
 
 type TokenHandlerTokenService interface {
-	ParseRefreshToken(token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
+	ParseRefreshToken(ctx context.Context, token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueAccessGrant(
 		client *config.OAuthClientConfig,
 		scopes []string,
@@ -274,17 +279,17 @@ func (h *TokenHandler) doHandle(
 
 	switch r.GrantType() {
 	case AuthorizationCodeGrantType:
-		return h.handleAuthorizationCode(client, r)
+		return h.handleAuthorizationCode(req.Context(), client, r)
 	case RefreshTokenGrantType:
-		resp, err := h.handleRefreshToken(client, r)
+		resp, err := h.handleRefreshToken(req.Context(), client, r)
 		if err != nil {
 			return nil, err
 		}
 		return tokenResultOK{Response: resp}, nil
 	case TokenExchangeGrantType:
-		return h.handleTokenExchange(client, r)
+		return h.handleTokenExchange(req.Context(), client, r)
 	case AnonymousRequestGrantType:
-		return h.handleAnonymousRequest(client, r)
+		return h.handleAnonymousRequest(req.Context(), client, r)
 	case BiometricRequestGrantType:
 		return h.handleBiometricRequest(rw, req, client, r)
 	case App2AppRequestGrantType:
@@ -389,14 +394,22 @@ func (h *TokenHandler) app2appGetDeviceKeyJWKVerified(jwt string) (jwk.Key, erro
 }
 
 func (h *TokenHandler) rotateDeviceSecret(
+	ctx context.Context,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, error) {
+	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
+
 	deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
 	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
 	if err != nil {
 		return nil, err
 	}
-	offlineGrant, err = h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(offlineGrant.ID, deviceSecretHash, expiry)
+	offlineGrant, err = h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(
+		offlineGrant.ID,
+		deviceSecretHash,
+		dpopJKT,
+		expiry,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -404,6 +417,7 @@ func (h *TokenHandler) rotateDeviceSecret(
 }
 
 func (h *TokenHandler) rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
+	ctx context.Context,
 	deviceSecret string,
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
@@ -419,10 +433,11 @@ func (h *TokenHandler) rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
 		return offlineGrant, false, nil
 	}
 
-	return h.rotateDeviceSecretIfSufficientScope(authorizedScopes, offlineGrant, resp)
+	return h.rotateDeviceSecretIfSufficientScope(ctx, authorizedScopes, offlineGrant, resp)
 }
 
 func (h *TokenHandler) rotateDeviceSecretIfSufficientScope(
+	ctx context.Context,
 	authorizedScopes []string,
 	offlineGrant *oauth.OfflineGrant,
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, bool, error) {
@@ -431,7 +446,7 @@ func (h *TokenHandler) rotateDeviceSecretIfSufficientScope(
 		return offlineGrant, false, nil
 	}
 
-	newOfflineGrant, err := h.rotateDeviceSecret(offlineGrant, resp)
+	newOfflineGrant, err := h.rotateDeviceSecret(ctx, offlineGrant, resp)
 	if err != nil {
 		return nil, false, err
 	}
@@ -472,10 +487,11 @@ func (h *TokenHandler) app2appUpdateDeviceKeyIfNeeded(
 }
 
 func (h *TokenHandler) handleAuthorizationCode(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	resp, err := h.IssueTokensForAuthorizationCode(client, r)
+	resp, err := h.IssueTokensForAuthorizationCode(ctx, client, r)
 	if err != nil {
 		return nil, err
 	}
@@ -485,6 +501,7 @@ func (h *TokenHandler) handleAuthorizationCode(
 
 // nolint:gocognit
 func (h *TokenHandler) IssueTokensForAuthorizationCode(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
@@ -499,6 +516,11 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, errInvalidAuthzCode
 	} else if err != nil {
 		return nil, err
+	}
+
+	dpopProof := dpop.GetDPoPProof(ctx)
+	if !codeGrant.MatchDPoPJKT(dpopProof) {
+		return nil, ErrInvalidDPoPKeyBinding
 	}
 
 	// Restore uiparam
@@ -561,7 +583,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
-	resp, err := h.doIssueTokensForAuthorizationCode(client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
+	resp, err := h.doIssueTokensForAuthorizationCode(ctx, client, codeGrant, authz, deviceInfo, r.App2AppDeviceKeyJWT())
 	if err != nil {
 		return nil, err
 	}
@@ -575,6 +597,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 }
 
 func (h *TokenHandler) handleRefreshToken(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
@@ -583,7 +606,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, protocol.NewError("invalid_request", err.Error())
 	}
 
-	authz, offlineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(r.RefreshToken())
+	authz, offlineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, r.RefreshToken())
 	if err != nil {
 		return nil, err
 	}
@@ -595,7 +618,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, ErrInvalidRefreshToken
 	}
 
-	resp, err := h.issueTokensForRefreshToken(client, offlineGrantSession, authz)
+	resp, err := h.issueTokensForRefreshToken(ctx, client, offlineGrantSession, authz)
 	if err != nil {
 		return nil, err
 	}
@@ -618,12 +641,13 @@ func (h *TokenHandler) handleRefreshToken(
 }
 
 func (h *TokenHandler) handleTokenExchange(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
 	switch r.RequestedTokenType() {
 	case PreAuthenticatedURLTokenTokenType:
-		resp, err := h.handlePreAuthenticatedURLToken(client, r)
+		resp, err := h.handlePreAuthenticatedURLToken(ctx, client, r)
 		if err != nil {
 			return nil, err
 		}
@@ -667,7 +691,7 @@ func (h *TokenHandler) resolveIDTokenSession(idToken jwt.Token) (sidSession sess
 	return sidSession, true, nil
 }
 
-func (h *TokenHandler) verifyIDTokenDeviceSecretHash(offlineGrant *oauth.OfflineGrant, idToken jwt.Token, deviceSecret string) error {
+func (h *TokenHandler) verifyIDTokenDeviceSecretHash(ctx context.Context, offlineGrant *oauth.OfflineGrant, idToken jwt.Token, deviceSecret string) error {
 	// Always do all checks to ensure this method consumes constant time
 	var err error = nil
 	deviceSecretHash := oauth.HashToken(deviceSecret)
@@ -685,10 +709,15 @@ func (h *TokenHandler) verifyIDTokenDeviceSecretHash(offlineGrant *oauth.Offline
 	if subtle.ConstantTimeCompare([]byte(offlineGrant.DeviceSecretHash), []byte(deviceSecretHash)) != 1 {
 		err = protocol.NewError("invalid_grant", "the device_secret (actor_token) does not bind to the session")
 	}
+	dpopProof := dpop.GetDPoPProof(ctx)
+	if !offlineGrant.MatchDeviceSecretDPoPJKT(dpopProof) {
+		err = ErrInvalidDPoPKeyBinding
+	}
 	return err
 }
 
 func (h *TokenHandler) handlePreAuthenticatedURLToken(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
@@ -736,7 +765,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		return nil, protocol.NewError("insufficient_scope", "pre-authenticated url is not allowed for this session")
 	}
 
-	err = h.verifyIDTokenDeviceSecretHash(offlineGrant, idToken, deviceSecret)
+	err = h.verifyIDTokenDeviceSecretHash(ctx, offlineGrant, idToken, deviceSecret)
 	if err != nil {
 		return nil, err
 	}
@@ -778,6 +807,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	resp.ExpiresIn(result.ExpiresIn)
 
 	offlineGrant, err = h.rotateDeviceSecret(
+		ctx,
 		offlineGrant,
 		resp,
 	)
@@ -822,6 +852,7 @@ func (i *anonymousTokenInput) GetPromotionCode() string { return "" }
 var _ nodes.InputUseIdentityAnonymous = &anonymousTokenInput{}
 
 func (h *TokenHandler) handleAnonymousRequest(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
@@ -899,6 +930,8 @@ func (h *TokenHandler) handleAnonymousRequest(
 
 	issueDeviceToken := h.shouldIssueDeviceSecret(scopes)
 
+	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
+
 	// SSOEnabled is false for refresh tokens that are granted by anonymous login
 	opts := IssueOfflineGrantOptions{
 		Scopes:             scopes,
@@ -907,6 +940,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		DeviceInfo:         deviceInfo,
 		SSOEnabled:         false,
 		IssueDeviceSecret:  issueDeviceToken,
+		DPoPJKT:            dpopJKT,
 	}
 	offlineGrant, tokenHash, err := h.issueOfflineGrant(
 		client,
@@ -971,7 +1005,7 @@ func (h *TokenHandler) handleBiometricRequest(
 	case string(identitybiometric.RequestActionSetup):
 		return h.handleBiometricSetup(req, client, r)
 	case string(identitybiometric.RequestActionAuthenticate):
-		return h.handleBiometricAuthenticate(client, r)
+		return h.handleBiometricAuthenticate(req.Context(), client, r)
 	default:
 		return nil, protocol.NewError("invalid_request", fmt.Sprintf("invalid action: %v", actionIface))
 	}
@@ -1039,6 +1073,7 @@ func (h *TokenHandler) handleBiometricSetup(
 }
 
 func (h *TokenHandler) handleBiometricAuthenticate(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
@@ -1132,6 +1167,8 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		}
 	}
 
+	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
+
 	resp := protocol.TokenResponse{}
 
 	issueDeviceToken := h.shouldIssueDeviceSecret(scopes)
@@ -1144,6 +1181,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		IdentityID:         biometricIdentity.ID,
 		SSOEnabled:         false,
 		IssueDeviceSecret:  issueDeviceToken,
+		DPoPJKT:            dpopJKT,
 	}
 	offlineGrant, tokenHash, err := h.issueOfflineGrant(
 		client,
@@ -1221,7 +1259,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, protocol.NewErrorWithErrorResponse(errResp)
 	}
 
-	_, originalOfflineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(r.RefreshToken())
+	_, originalOfflineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(req.Context(), r.RefreshToken())
 	if err != nil {
 		return nil, err
 	}
@@ -1302,6 +1340,9 @@ func (h *TokenHandler) handleApp2AppRequest(
 		IDTokenHintSID:       "",
 		RedirectURI:          redirectURI.String(),
 		AuthorizationRequest: artificialAuthorizationRequest,
+		// App2app does not support DPoP
+		// because the app which uses the code may not share the same storage with the app which issues the code
+		DPoPJKT: "",
 	})
 	if err != nil {
 		return nil, err
@@ -1336,6 +1377,7 @@ func (h *TokenHandler) handleIDToken(
 	offlineGrantSession, ok := s.(*oauth.OfflineGrantSession)
 	if ok {
 		offlineGrant, _, err := h.rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
+			req.Context(),
 			r.DeviceSecret(),
 			offlineGrantSession.Scopes,
 			offlineGrantSession.OfflineGrant,
@@ -1402,6 +1444,7 @@ func (h *TokenHandler) issueOfflineGrant(
 
 // nolint: gocognit
 func (h *TokenHandler) doIssueTokensForAuthorizationCode(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	code *oauth.CodeGrant,
 	authz *oauth.Authorization,
@@ -1468,7 +1511,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				}
 
 				// Rotate device_secret
-				offlineGrant, _, err = h.rotateDeviceSecretIfSufficientScope(scopes, offlineGrant, resp)
+				offlineGrant, _, err = h.rotateDeviceSecretIfSufficientScope(ctx, scopes, offlineGrant, resp)
 				if err != nil {
 					return nil, err
 				}
@@ -1483,6 +1526,8 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			}
 		}
 	}
+
+	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
 
 	// As required by the spec, we must include access_token.
 	// If we issue refresh token, then access token is just the access token of the refresh token.
@@ -1511,6 +1556,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		SSOEnabled:         code.AuthorizationRequest.SSOEnabled(),
 		App2AppDeviceKey:   app2appDevicePublicKey,
 		IssueDeviceSecret:  issueDeviceToken,
+		DPoPJKT:            dpopJKT,
 	}
 	if issueRefreshToken {
 		var offlineGrant *oauth.OfflineGrant
@@ -1524,6 +1570,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 				IssueOfflineGrantRefreshTokenOptions{
 					Scopes:          scopes,
 					AuthorizationID: authz.ID,
+					DPoPJKT:         dpopJKT,
 				}, resp)
 			if err != nil {
 				return nil, err
@@ -1640,6 +1687,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 }
 
 func (h *TokenHandler) issueTokensForRefreshToken(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	offlineGrantSession *oauth.OfflineGrantSession,
 	authz *oauth.Authorization,
@@ -1655,6 +1703,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	resp := protocol.TokenResponse{}
 
 	offlineGrant, _, err := h.rotateDeviceSecretIfSufficientScope(
+		ctx,
 		offlineGrantSession.Scopes,
 		offlineGrantSession.OfflineGrant,
 		resp)
@@ -1687,8 +1736,8 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	return resp, nil
 }
 
-func (h *TokenHandler) IssueAppSessionToken(refreshToken string) (string, *oauth.AppSessionToken, error) {
-	authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(refreshToken)
+func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken string) (string, *oauth.AppSessionToken, error) {
+	authz, grant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, refreshToken)
 	if err != nil {
 		return "", nil, err
 	}

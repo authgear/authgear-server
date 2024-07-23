@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
@@ -228,5 +229,12 @@ func newImplementationSwitcherMiddleware(p *deps.RequestProvider) httproute.Midd
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(httproute.Middleware), new(*handlerwebapp.ImplementationSwitcherMiddleware)),
+	))
+}
+
+func newDPoPMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*dpop.Middleware)),
 	))
 }

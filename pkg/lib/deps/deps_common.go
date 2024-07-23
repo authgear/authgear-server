@@ -30,6 +30,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/botprotection"
+	"github.com/authgear/authgear-server/pkg/lib/dpop"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/event"
@@ -156,6 +157,10 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.IDPSessionService), new(*idpsession.Provider)),
 		wire.Bind(new(sessionlisting.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
+	),
+
+	wire.NewSet(
+		dpop.DependencySet,
 	),
 
 	wire.NewSet(

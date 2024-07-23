@@ -101,6 +101,7 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	clientID string,
 	scopes []string,
 	authorizationID string,
+	dpopJKT string,
 ) (*CreateNewRefreshTokenResult, *OfflineGrant, error) {
 	expiry, err := s.ComputeOfflineGrantExpiry(grant)
 	if err != nil {
@@ -115,6 +116,7 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 		clientID,
 		scopes,
 		authorizationID,
+		dpopJKT,
 	)
 	if err != nil {
 		return nil, nil, err

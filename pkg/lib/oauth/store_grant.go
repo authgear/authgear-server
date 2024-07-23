@@ -30,7 +30,11 @@ type OfflineGrantStore interface {
 	AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*OfflineGrant, error)
 	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*OfflineGrant, error)
 	UpdateOfflineGrantApp2AppDeviceKey(id string, newKey string, expireAt time.Time) (*OfflineGrant, error)
-	UpdateOfflineGrantDeviceSecretHash(grantID string, newDeviceSecretHash string, expireAt time.Time) (*OfflineGrant, error)
+	UpdateOfflineGrantDeviceSecretHash(
+		grantID string,
+		newDeviceSecretHash string,
+		dpopJKT string,
+		expireAt time.Time) (*OfflineGrant, error)
 	RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []string, expireAt time.Time) (*OfflineGrant, error)
 	AddOfflineGrantRefreshToken(
 		grantID string,
@@ -39,6 +43,7 @@ type OfflineGrantStore interface {
 		clientID string,
 		scopes []string,
 		authorizationID string,
+		dpopJKT string,
 	) (*OfflineGrant, error)
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)
