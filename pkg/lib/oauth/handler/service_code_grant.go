@@ -34,8 +34,6 @@ func (s *CodeGrantService) CreateCodeGrant(opts *CreateCodeGrantOptions) (code s
 	codeGrant := &oauth.CodeGrant{
 		AppID:              string(s.AppID),
 		AuthorizationID:    opts.Authorization.ID,
-		SessionType:        opts.SessionType,
-		SessionID:          opts.SessionID,
 		AuthenticationInfo: opts.AuthenticationInfo,
 		IDTokenHintSID:     opts.IDTokenHintSID,
 

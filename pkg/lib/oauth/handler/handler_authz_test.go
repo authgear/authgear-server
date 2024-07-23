@@ -294,10 +294,10 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: authorization.ID,
-						SessionType:     session.TypeIdentityProvider,
-						SessionID:       "session-id",
 						AuthenticationInfo: authenticationinfo.T{
-							UserID: "user-id",
+							UserID:                     "user-id",
+							AuthenticatedBySessionID:   "session-id",
+							AuthenticatedBySessionType: string(session.TypeIdentityProvider),
 						},
 						CreatedAt:            time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
 						ExpireAt:             time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),
@@ -347,10 +347,10 @@ func TestAuthorizationHandler(t *testing.T) {
 					So(codeGrantStore.grants[0], ShouldResemble, oauth.CodeGrant{
 						AppID:           "app-id",
 						AuthorizationID: "authz-id",
-						SessionType:     session.TypeIdentityProvider,
-						SessionID:       "session-id",
 						AuthenticationInfo: authenticationinfo.T{
-							UserID: "user-id",
+							UserID:                     "user-id",
+							AuthenticatedBySessionID:   "session-id",
+							AuthenticatedBySessionType: string(session.TypeIdentityProvider),
 						},
 						CreatedAt:            time.Date(2020, 2, 1, 0, 0, 0, 0, time.UTC),
 						ExpireAt:             time.Date(2020, 2, 1, 0, 5, 0, 0, time.UTC),

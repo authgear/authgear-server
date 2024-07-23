@@ -20,6 +20,11 @@ type T struct {
 	// ShouldFireAuthenticatedEventWhenIssueOfflineGrant indicates we should fire authenticated event during code exchange
 	// This value will be filled in during interaction / workflow / authentication flow
 	ShouldFireAuthenticatedEventWhenIssueOfflineGrant bool `json:"should_fire_authenticated_event_when_issue_offline_grant,omitempty"`
+
+	// AuthenticatedBySessionType and AuthenticatedBySessionID
+	// means this authentication is done by an existing session.
+	AuthenticatedBySessionType string
+	AuthenticatedBySessionID   string
 }
 
 type Entry struct {

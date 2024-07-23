@@ -41,12 +41,10 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 
 	attrs := session.NewAttrs(userID)
 	attrs.SetAMR(amr)
-	sessionToCreate, token := ctx.Sessions.MakeSession(attrs)
+	var sessionToCreate *idpsession.IDPSession
+	newSession, token := ctx.Sessions.MakeSession(attrs)
+	sessionToCreate = newSession
 	sessionCookie := ctx.CookieManager.ValueCookie(ctx.SessionCookie.Def, token)
-
-	authenticationInfo := sessionToCreate.GetAuthenticationInfo()
-	authenticationInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && e.CreateReason == session.CreateReasonLogin
-	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo, ctx.OAuthSessionID)
 
 	var updateSessionID string
 	var updateSessionAMR []string
@@ -73,6 +71,15 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 	)
 
 	now := ctx.Clock.NowUTC()
+
+	var authenticationInfo authenticationinfo.T
+	if sessionToCreate == nil {
+		authenticationInfo = newSession.GetAuthenticationInfo()
+	} else {
+		authenticationInfo = sessionToCreate.CreateNewAuthenticationInfoByThisSession()
+	}
+	authenticationInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && e.CreateReason == session.CreateReasonLogin
+	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo, ctx.OAuthSessionID)
 
 	return &NodeDoEnsureSession{
 		CreateReason:            e.CreateReason,

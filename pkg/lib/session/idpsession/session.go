@@ -83,6 +83,17 @@ func (s *IDPSession) GetAuthenticationInfo() authenticationinfo.T {
 	}
 }
 
+func (s *IDPSession) CreateNewAuthenticationInfoByThisSession() authenticationinfo.T {
+	amr, _ := s.GetOIDCAMR()
+	return authenticationinfo.T{
+		UserID:                     s.GetUserID(),
+		AuthenticatedAt:            s.GetAuthenticatedAt(),
+		AMR:                        amr,
+		AuthenticatedBySessionType: string(s.SessionType()),
+		AuthenticatedBySessionID:   s.SessionID(),
+	}
+}
+
 func (s *IDPSession) SSOGroupIDPSessionID() string {
 	return s.SessionID()
 }
