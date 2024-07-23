@@ -42,7 +42,7 @@ func (c *VerificationConfig) SetDefaults() {
 		c.Criteria = VerificationCriteriaAny
 	}
 	if c.Deprecated_CodeExpirySeconds == 0 {
-		c.Deprecated_CodeExpirySeconds = DurationSeconds(3600)
+		c.Deprecated_CodeExpirySeconds = DurationSeconds(300)
 	}
 	if c.CodeValidPeriod == "" {
 		c.CodeValidPeriod = DurationString(c.Deprecated_CodeExpirySeconds.Duration().String())
