@@ -246,7 +246,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			url, _ = m.StaticAssets.GeneratedStaticAssetURL(id)
 			return
 		},
-		DarkThemeEnabled: !m.AuthUI.DarkThemeDisabled,
+		DarkThemeEnabled: !m.AuthUI.DarkThemeDisabled || webapp.IsInlinePreviewPageRequest(r),
 		DarkThemeForced:  !m.AuthUI.DarkThemeDisabled && m.AuthUI.LightThemeDisabled,
 		WatermarkEnabled: m.AuthUIFeatureConfig.WhiteLabeling.Disabled ||
 			!m.AuthUI.WatermarkDisabled,
