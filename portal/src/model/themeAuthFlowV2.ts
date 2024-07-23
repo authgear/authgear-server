@@ -13,7 +13,7 @@ export enum Theme {
 }
 
 export const enum ThemeTargetSelector {
-  Light = ":root",
+  Light = ":root:not(.dark)",
   Dark = ":root.dark",
 }
 export function getThemeTargetSelector(theme: Theme): ThemeTargetSelector {
