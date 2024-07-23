@@ -1,6 +1,11 @@
 /* global Turnstile */
 import { Controller } from "@hotwired/stimulus";
 import { getColorScheme } from "../../getColorScheme";
+import {
+  dispatchBotProtectionEventExpired,
+  dispatchBotProtectionEventFailed,
+  dispatchBotProtectionEventVerified,
+} from "./botProtection";
 
 function parseTheme(theme: string): Turnstile.Theme {
   switch (theme) {
@@ -21,12 +26,11 @@ export class CloudflareTurnstileController extends Controller {
     lang: { type: String },
   };
 
-  static targets = ["widget", "tokenInput"];
+  static targets = ["widget"];
 
   declare siteKeyValue: string;
   declare langValue: string;
   declare widgetTarget: HTMLDivElement;
-  declare tokenInputTargets: HTMLInputElement[];
 
   connect() {
     window.turnstile.ready(() => {
@@ -36,9 +40,15 @@ export class CloudflareTurnstileController extends Controller {
         theme: parseTheme(colorScheme),
         language: this.langValue,
         callback: (token: string) => {
-          for (const tokenInput of this.tokenInputTargets) {
-            tokenInput.value = token;
-          }
+          dispatchBotProtectionEventVerified(token);
+        },
+        "error-callback": (err: string) => {
+          dispatchBotProtectionEventFailed(err);
+
+          return true; // return non-falsy value to tell cloudflare we handled error already
+        },
+        "expired-callback": (token: string) => {
+          dispatchBotProtectionEventExpired(token);
         },
         "response-field": false,
 
