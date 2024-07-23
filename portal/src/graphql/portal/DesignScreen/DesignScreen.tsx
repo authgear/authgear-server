@@ -7,8 +7,10 @@ import React, {
   useState,
 } from "react";
 import {
+  ChoiceGroup,
   DefaultEffects,
   Dropdown,
+  IChoiceGroupOption,
   IDropdownOption,
   IDropdownStyleProps,
   IDropdownStyles,
@@ -25,7 +27,11 @@ import { useParams } from "react-router-dom";
 import FormContainer from "../../../FormContainer";
 import ShowError from "../../../ShowError";
 import ShowLoading from "../../../ShowLoading";
-import { Alignment, AllAlignments } from "../../../model/themeAuthFlowV2";
+import {
+  Alignment,
+  AllAlignments,
+  Theme,
+} from "../../../model/themeAuthFlowV2";
 
 import ScreenTitle from "../../../ScreenTitle";
 import ManageLanguageWidget from "../ManageLanguageWidget";
@@ -86,6 +92,63 @@ const OrganisationConfiguration: React.VFC<OrganisationConfigurationProps> =
             fallbackLanguage={designForm.state.fallbackLanguage}
           />
         ) : null}
+      </ConfigurationGroup>
+    );
+  };
+
+interface ThemeConfigurationProps {
+  designForm: BranchDesignForm;
+}
+
+const ThemeConfiguration: React.VFC<ThemeConfigurationProps> =
+  function ThemeConfiguration(props) {
+    const { designForm } = props;
+    const { renderToString } = useContext(MFContext);
+    const onChange = useCallback(
+      (_event, options?: IChoiceGroupOption) => {
+        const value = options?.key;
+        if (value !== "lightOnly" && value !== "darkOnly" && value !== "auto") {
+          return;
+        }
+        designForm.setThemeOption(value);
+        if (value === "lightOnly") {
+          designForm.setSelectedTheme(Theme.Light);
+        } else if (value === "darkOnly") {
+          designForm.setSelectedTheme(Theme.Dark);
+        } else {
+          designForm.setSelectedTheme(
+            window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? Theme.Dark
+              : Theme.Light
+          );
+        }
+      },
+      [designForm]
+    );
+    const options: IChoiceGroupOption[] = useMemo(
+      () => [
+        {
+          key: "lightOnly",
+          text: renderToString("DesignScreen.configuration.theme.lightOnly"),
+        },
+        {
+          key: "darkOnly",
+          text: renderToString("DesignScreen.configuration.theme.darkOnly"),
+        },
+        {
+          key: "auto",
+          text: renderToString("DesignScreen.configuration.theme.auto"),
+        },
+      ],
+      [renderToString]
+    );
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.theme.label">
+        <ChoiceGroup
+          selectedKey={designForm.state.themeOption}
+          options={options}
+          onChange={onChange}
+        />
       </ConfigurationGroup>
     );
   };
@@ -468,6 +531,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
       <div>
         <OrganisationConfiguration designForm={designForm} />
         <Separator />
+        <ThemeConfiguration designForm={designForm} />
+        <Separator />
         <AppLogoConfiguration designForm={designForm} />
         <Separator />
         <FaviconConfiguration designForm={designForm} />
@@ -621,6 +686,19 @@ const DesignScreen: React.VFC = function DesignScreen() {
       console.error(error);
     });
   }, [form, reloadConfig]);
+
+  useEffect(() => {
+    const onChange = (ev: MediaQueryListEvent) => {
+      if (form.state.themeOption === "auto") {
+        form.setSelectedTheme(ev.matches ? Theme.Dark : Theme.Light);
+      }
+    };
+    const watcher = window.matchMedia("(prefers-color-scheme: dark)");
+    watcher.addEventListener("change", onChange);
+    return () => {
+      watcher.removeEventListener("change", onChange);
+    };
+  }, [form, form.state.themeOption]);
 
   const isLoading =
     form.isLoading || appConfigLoading || effectiveAppConfig == null;
