@@ -13,6 +13,12 @@
     if (metaElement instanceof HTMLMetaElement) {
       explicitColorScheme = metaElement.content;
     }
+    const queryParam = new URLSearchParams(window.location.search).get(
+      "x_color_scheme"
+    );
+    if (queryParam != null) {
+      explicitColorScheme = queryParam;
+    }
 
     const implicitColorScheme = queryResult.matches ? "dark" : "light";
 
