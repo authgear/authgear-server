@@ -273,9 +273,9 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 `)
 
 type AuthenticatorOOBSMSConfig struct {
-	Maximum         *int                      `json:"maximum,omitempty"`
-	PhoneOTPMode    AuthenticatorPhoneOTPMode `json:"phone_otp_mode,omitempty"`
-	CodeValidPeriod DurationString            `json:"code_valid_period,omitempty"`
+	Maximum                    *int                       `json:"maximum,omitempty"`
+	PhoneOTPMode               AuthenticatorPhoneOTPMode  `json:"phone_otp_mode,omitempty"`
+	Deprecated_CodeValidPeriod DurationString             `json:"code_valid_period,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
@@ -285,8 +285,8 @@ func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
-	if c.CodeValidPeriod == "" {
-		c.CodeValidPeriod = "1h"
+	if c.Deprecated_CodeValidPeriod == "" {
+		c.Deprecated_CodeValidPeriod = "1h"
 	}
 }
 
@@ -303,9 +303,9 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 `)
 
 type AuthenticatorOOBEmailConfig struct {
-	Maximum         *int                      `json:"maximum,omitempty"`
-	EmailOTPMode    AuthenticatorEmailOTPMode `json:"email_otp_mode,omitempty"`
-	CodeValidPeriod DurationString            `json:"code_valid_period,omitempty"`
+	Maximum                    *int                       `json:"maximum,omitempty"`
+	EmailOTPMode               AuthenticatorEmailOTPMode  `json:"email_otp_mode,omitempty"`
+	Deprecated_CodeValidPeriod DurationString             `json:"code_valid_period,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticatorEmailOTPMode", `
@@ -337,7 +337,7 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
-	if c.CodeValidPeriod == "" {
-		c.CodeValidPeriod = "1h"
+	if c.Deprecated_CodeValidPeriod == "" {
+		c.Deprecated_CodeValidPeriod = "1h"
 	}
 }
