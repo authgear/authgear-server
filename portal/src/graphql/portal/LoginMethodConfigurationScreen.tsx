@@ -891,14 +891,14 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
 
   const sixDigitOTPValidPeriodSecondsCandidates = [
     parseOptionalDuration(
-      config.authenticator?.oob_otp?.sms?.code_valid_period
+      config.authenticator?.oob_otp?.sms?.valid_periods?.code
     ),
     parseOptionalDuration(config.verification?.code_valid_period),
   ];
   if (config.authenticator?.oob_otp?.email?.email_otp_mode !== "login_link") {
     sixDigitOTPValidPeriodSecondsCandidates.push(
       parseOptionalDuration(
-        config.authenticator?.oob_otp?.email?.code_valid_period
+        config.authenticator?.oob_otp?.email?.valid_periods?.code
       )
     );
   }
@@ -1245,17 +1245,23 @@ function constructConfig(
         currentState.sixDigitOTPValidPeriodSeconds,
         "s"
       );
-      config.authenticator.oob_otp.sms.code_valid_period = duration;
+      config.authenticator.oob_otp.sms.valid_periods ??= {};
+      config.authenticator.oob_otp.sms.valid_periods.code = duration;
+      // config.authenticator.oob_otp.sms.code_valid_period = duration;
       config.verification.code_valid_period = duration;
       if (isEmailOTPLink) {
         // Currently portal doesn't support setting code_valid_period of login link
       } else {
-        config.authenticator.oob_otp.email.code_valid_period = duration;
+        config.authenticator.oob_otp.email.valid_periods ??= {};
+        config.authenticator.oob_otp.email.valid_periods.code = duration;
       }
     } else {
-      config.authenticator.oob_otp.sms.code_valid_period = undefined;
+      config.authenticator.oob_otp.sms.valid_periods ??= {};
+      config.authenticator.oob_otp.email.valid_periods ??= {};
+
+      config.authenticator.oob_otp.sms.valid_periods.code = undefined;
       config.verification.code_valid_period = undefined;
-      config.authenticator.oob_otp.email.code_valid_period = undefined;
+      config.authenticator.oob_otp.email.valid_periods.code = undefined;
     }
 
     if (currentState.smsOTPCooldownPeriodSeconds != null) {

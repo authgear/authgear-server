@@ -48,9 +48,9 @@ func (k kindOOBOTP) Purpose() Purpose {
 
 func (k kindOOBOTP) ValidPeriod() time.Duration {
 	return selectByChannel(k.channel,
-		k.config.Authenticator.OOB.Email.CodeValidPeriod,
-		k.config.Authenticator.OOB.SMS.CodeValidPeriod,
-		k.config.Authenticator.OOB.SMS.CodeValidPeriod,
+		k.config.Authenticator.OOB.Email.Deprecated_CodeValidPeriod,
+		k.config.Authenticator.OOB.SMS.Deprecated_CodeValidPeriod,
+		k.config.Authenticator.OOB.SMS.Deprecated_CodeValidPeriod,
 	).Duration()
 }
 
