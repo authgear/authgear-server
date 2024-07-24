@@ -1,8 +1,8 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-{{/* Form with disabled turbo drive, submit button has data-turbo="false" */}}
-<form class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
+{{/* Form with disabled turbo drive */}}
+<form class="screen-icon-layout flex-1-0-auto" method="post" novalidate data-turbo="false">
   {{ $.CSRFField }}
   <i class="screen-icon material-icons">account_circle</i>
   <header class="screen-title-description">
@@ -32,7 +32,6 @@
       type="submit"
       name="x_action"
       value="continue"
-      data-turbo="false"
       data-authgear-event="authgear.button.continue_with_current_account"
       >
       {{ template "v2-button-label-continue" }}
@@ -42,7 +41,6 @@
       type="submit"
       name="x_action"
       value="login"
-      data-turbo="false"
       data-authgear-event="authgear.button.use_another_account"
       >
       {{ template "v2-select-account-use-another-account" }}
