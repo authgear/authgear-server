@@ -57,7 +57,11 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Re
 	for _, f := range funcs {
 		s, err := f(r)
 		if err != nil {
-			return nil, err
+			if errors.Is(err, session.ErrInvalidSession) {
+				continue
+			} else {
+				return nil, err
+			}
 		}
 		if s != nil {
 			return s, nil
