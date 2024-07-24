@@ -11,6 +11,8 @@ import {
   CustomisableThemeStyleGroup,
   DEFAULT_DARK_THEME,
   DEFAULT_LIGHT_THEME,
+  EMPTY_THEME,
+  PartialCustomisableTheme,
   StyleCssVisitor,
   Theme,
   getThemeTargetSelector,
@@ -85,9 +87,9 @@ interface ResourcesFormState {
   appLogoBase64EncodedData: string | null;
   faviconBase64EncodedData: string | null;
   backgroundImageBase64EncodedData: string | null;
-  customisableLightTheme: CustomisableTheme;
-  customisableDarkTheme: CustomisableTheme;
-  customisableTheme: CustomisableTheme;
+  customisableLightTheme: PartialCustomisableTheme;
+  customisableDarkTheme: PartialCustomisableTheme;
+  customisableTheme: PartialCustomisableTheme;
 
   urls: {
     privacyPolicy: string;
@@ -308,7 +310,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       return imageResouece.nullableValue;
     };
 
-    const getTheme = (theme: Theme): CustomisableTheme => {
+    const getTheme = (theme: Theme): PartialCustomisableTheme => {
       const themeResource =
         resourceForm.state.resources[
           specifierId(
@@ -322,13 +324,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           )
         ];
       if (themeResource?.nullableValue == null) {
-        return selectByTheme(
-          {
-            [Theme.Light]: DEFAULT_LIGHT_THEME,
-            [Theme.Dark]: DEFAULT_DARK_THEME,
-          },
-          theme
-        );
+        return EMPTY_THEME;
       }
       const root = parseCSS(themeResource.nullableValue);
       const styleCSSVisitor = new StyleCssVisitor(
@@ -449,7 +445,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         });
       },
       updateCustomisableTheme: (
-        updater: (prev: CustomisableTheme) => CustomisableTheme
+        updater: (prev: PartialCustomisableTheme) => PartialCustomisableTheme
       ) => {
         const newState = updater(resourcesState.customisableTheme);
         resourceForm.setState((s) => {
