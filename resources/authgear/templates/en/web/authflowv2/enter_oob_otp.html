@@ -48,7 +48,14 @@
         {{ end }}
       {{ end }}
 
-      <form id="main-form" method="post" novalidate data-restore-form="false">
+      <form 
+        id="main-form" 
+        method="post"
+        novalidate
+        data-restore-form="false"
+        data-controller="turbo-form"
+        data-action="submit->turbo-form#submitForm"
+      >
         {{ $.CSRFField }}
       </form>
 

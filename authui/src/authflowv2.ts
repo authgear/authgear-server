@@ -8,7 +8,7 @@ import {
   RetainFormFormController,
   RetainFormInputController,
 } from "./form";
-import { XHRSubmitFormController } from "./authflowv2/form";
+import { TurboFormController } from "./authflowv2/turboForm";
 import { LoadingController } from "./authflowv2/loading";
 import { PreventDoubleTapController } from "./preventDoubleTap";
 import { LockoutController } from "./lockout";
@@ -57,7 +57,7 @@ start();
 
 const Stimulus = Application.start();
 
-Stimulus.register("xhr-submit-form", XHRSubmitFormController);
+Stimulus.register("turbo-form", TurboFormController);
 Stimulus.register("restore-form", RestoreFormController);
 Stimulus.register("retain-form-form", RetainFormFormController);
 Stimulus.register("retain-form-input", RetainFormInputController);

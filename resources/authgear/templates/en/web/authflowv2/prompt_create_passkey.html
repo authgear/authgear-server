@@ -32,7 +32,12 @@
         >
         {{ template "v2-button-label-continue" }}
       </button>
-      <form method="post" novalidate>
+      <form
+        method="post"
+        novalidate
+        data-controller="turbo-form"
+        data-action="submit->turbo-form#submitForm"
+      >
         {{ $.CSRFField }}
         <button
           class="label-btn w-full"
@@ -44,7 +49,13 @@
         </button>
       </form>
     </footer>
-    <form class="hidden" method="post" novalidate>
+    <form
+      class="hidden"
+      method="post"
+      novalidate
+      data-controller="turbo-form"
+      data-action="submit->turbo-form#submitForm"
+    >
       {{ $.CSRFField }}
       <input
         type="hidden"

@@ -25,7 +25,14 @@
     <code id="copy-button-source" class="hidden">{{ template "__recovery_code.html" . }}</code>
     <div class="mt-5 w-full grid gap-4 {{ if not .IsNativePlatform }}grid-cols-2{{ else }}grid-cols-1{{ end }}">
       {{ if not .IsNativePlatform }}
-      <form id="download-form" method="post" novalidate target="_blank">
+      {{/* Form with disabled turbo drive */}}
+      <form
+        id="download-form"
+        method="post"
+        novalidate
+        target="_blank"
+        data-turbo="false"
+      >
         {{ $.CSRFField }}
         <button
           form="download-form"
@@ -33,7 +40,6 @@
           type="submit"
           name="x_action"
           value="download"
-          data-turbo="false"
         >
           {{ template "download-button-label" }}
         </button>
@@ -51,7 +57,12 @@
     </div>
   </div>
 
-  <form method="post" novalidate>
+  <form
+    method="post"
+    novalidate
+    data-controller="turbo-form"
+    data-action="submit->turbo-form#submitForm"
+  >
     {{ $.CSRFField }}
     <button class="btn primary-btn w-full" type="submit" name="x_action" value="proceed">
     {{ template "v2-button-label-continue" }}

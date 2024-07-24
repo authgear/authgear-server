@@ -23,18 +23,11 @@ import { handleAxiosError } from "./alert-message";
 // to stop Turbo from submitting forms.
 //
 // See https://github.com/authgear/authgear-server/issues/2333
-export class XHRSubmitFormController extends Controller {
+export class TurboFormController extends Controller {
   forms: HTMLFormElement[] = [];
 
-  onSubmitCapture = (e: Event) => {
-    e.preventDefault();
-  };
-
-  onSubmit = (e: Event) => {
-    void this.submitForm(e);
-  };
-
   async submitForm(e: Event) {
+    e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;
 
     if (form.querySelector('[data-turbo="false"]')) {
@@ -71,7 +64,7 @@ export class XHRSubmitFormController extends Controller {
     }
     const loadingController: LoadingController | null =
       this.application.getControllerForElementAndIdentifier(
-        this.element,
+        document.body,
         "loading"
       ) as LoadingController | null;
     const { onError: onLoadingError, onFinally: onLoadingFinally } =
@@ -108,27 +101,6 @@ export class XHRSubmitFormController extends Controller {
       onLoadingError?.();
     } finally {
       onLoadingFinally?.();
-    }
-  }
-
-  connect() {
-    const elems = document.querySelectorAll("form");
-    for (let i = 0; i < elems.length; i++) {
-      if (elems[i].querySelector('[data-turbo="false"]')) {
-        continue;
-      }
-      this.forms.push(elems[i]);
-    }
-    for (const form of this.forms) {
-      form.addEventListener("submit", this.onSubmitCapture, true);
-      form.addEventListener("submit", this.onSubmit);
-    }
-  }
-
-  disconnect() {
-    for (const form of this.forms) {
-      form.removeEventListener("submit", this.onSubmitCapture, true);
-      form.removeEventListener("submit", this.onSubmit);
     }
   }
 }
