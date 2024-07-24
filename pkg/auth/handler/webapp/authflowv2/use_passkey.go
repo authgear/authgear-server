@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -26,6 +27,7 @@ func ConfigureAuthflowV2UsePasskeyRoute(route httproute.Route) httproute.Route {
 type AuthflowV2UsePasskeyViewModel struct {
 	AutoExecute               bool
 	PasskeyRequestOptionsJSON string
+	IsBotProtectionRequired   bool
 }
 
 func NewAuthflowV2UsePasskeyViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (*AuthflowV2UsePasskeyViewModel, error) {
@@ -39,9 +41,13 @@ func NewAuthflowV2UsePasskeyViewModel(s *webapp.Session, screen *webapp.Authflow
 		return nil, err
 	}
 
+	// Ignore error, bpRequire would be false
+	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(config.AuthenticationFlowAuthenticationPrimaryPasskey, screen.StateTokenFlowResponse)
+
 	return &AuthflowV2UsePasskeyViewModel{
 		AutoExecute:               true,
 		PasskeyRequestOptionsJSON: string(requestOptionsJSONBytes),
+		IsBotProtectionRequired:   bpRequired,
 	}, nil
 }
 
@@ -116,6 +122,11 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		input := map[string]interface{}{
 			"authentication":     option.Authentication,
 			"assertion_response": assertionResponseJSON,
+		}
+
+		err = handlerwebapp.HandleAuthenticationBotProtection(config.AuthenticationFlowAuthenticationPrimaryPasskey, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)

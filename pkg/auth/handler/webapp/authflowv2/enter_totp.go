@@ -33,6 +33,10 @@ func ConfigureAuthflowV2EnterTOTPRoute(route httproute.Route) httproute.Route {
 		WithPathPattern(AuthflowV2RouteEnterTOTP)
 }
 
+type AuthflowV2EnterTOTPViewModel struct {
+	IsBotProtectionRequired bool
+}
+
 type AuthflowV2EnterTOTPHandler struct {
 	Controller                             *handlerwebapp.AuthflowController
 	BaseViewModel                          *viewmodels.BaseViewModeler
@@ -40,8 +44,20 @@ type AuthflowV2EnterTOTPHandler struct {
 	Renderer                               handlerwebapp.Renderer
 }
 
+func NewAuthflowV2EnterTOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowV2EnterTOTPViewModel {
+	// Ignore error, bpRequire would be false
+	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(config.AuthenticationFlowAuthenticationSecondaryTOTP, screen.StateTokenFlowResponse)
+
+	return AuthflowV2EnterTOTPViewModel{
+		IsBotProtectionRequired: bpRequired,
+	}
+}
+
 func (h *AuthflowV2EnterTOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
+
+	screenViewModel := NewAuthflowV2EnterTOTPViewModel(s, screen)
+	viewmodels.Embed(data, screenViewModel)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -88,6 +104,11 @@ func (h *AuthflowV2EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"authentication":       config.AuthenticationFlowAuthenticationSecondaryTOTP,
 			"code":                 code,
 			"request_device_token": requestDeviceToken,
+		}
+
+		err = handlerwebapp.HandleAuthenticationBotProtection(config.AuthenticationFlowAuthenticationSecondaryTOTP, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
