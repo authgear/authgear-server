@@ -59,6 +59,9 @@ function teardown {( set -e
     kill -9 $(lsof -ti:4000) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:8080) > /dev/null 2>&1 || true
     docker compose down
+
+    cat ./logs/authgear.log
+    cat ./logs/e2e-proxy.log
 )}
 
 function tests {( set -e
