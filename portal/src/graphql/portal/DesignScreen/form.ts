@@ -112,6 +112,7 @@ export const enum TranslationKey {
 export type BranchDesignFormState = {
   selectedLanguage: LanguageTag;
   theme: Theme;
+  themeDefaultValue: CustomisableTheme;
 } & ConfigFormState &
   ResourcesFormState &
   FeatureConfig;
@@ -141,16 +142,16 @@ export interface BranchDesignForm {
     image: { base64EncodedData: string; extension: string } | null
   ) => void;
   setCardAlignment: (alignment: Alignment) => void;
-  setBackgroundColor: (color: CSSColor) => void;
+  setBackgroundColor: (color: CSSColor | undefined) => void;
   setBackgroundImage: (
     image: { base64EncodedData: string; extension: string } | null
   ) => void;
-  setPrimaryButtonBackgroundColor: (color: CSSColor) => void;
-  setPrimaryButtonLabelColor: (color: CSSColor) => void;
+  setPrimaryButtonBackgroundColor: (color: CSSColor | undefined) => void;
+  setPrimaryButtonLabelColor: (color: CSSColor | undefined) => void;
   setPrimaryButtonBorderRadiusStyle: (
     borderRadiusStyle: BorderRadiusStyle
   ) => void;
-  setLinkColor: (color: CSSColor) => void;
+  setLinkColor: (color: CSSColor | undefined) => void;
   setInputFieldBorderRadiusStyle: (
     borderRadiusStyle: BorderRadiusStyle
   ) => void;
@@ -490,6 +491,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
   const state: BranchDesignFormState = useMemo(
     () => ({
       theme: selectedTheme,
+      themeDefaultValue: selectByTheme(
+        {
+          light: DEFAULT_LIGHT_THEME,
+          dark: DEFAULT_DARK_THEME,
+        },
+        selectedTheme
+      ),
       selectedLanguage,
       ...configForm.state,
       ...resourcesState,
@@ -590,7 +598,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           });
         });
       },
-      setBackgroundColor: (backgroundColor: CSSColor) => {
+      setBackgroundColor: (backgroundColor: CSSColor | undefined) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.page.backgroundColor = backgroundColor;
@@ -600,13 +608,24 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setBackgroundImage: (image) => {
         resourceMutator.setImage(RESOURCE_APP_BACKGROUND_IMAGE, image);
       },
-      setPrimaryButtonBackgroundColor: (backgroundColor: CSSColor) => {
+      setPrimaryButtonBackgroundColor: (
+        backgroundColor: CSSColor | undefined
+      ) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
+            if (backgroundColor == null) {
+              draft.primaryButton.backgroundColor = undefined;
+              draft.primaryButton.backgroundColorActive = undefined;
+              draft.primaryButton.backgroundColorHover = undefined;
+              return;
+            }
             draft.primaryButton.backgroundColor = backgroundColor;
             const themeRules = themeRulesStandardCreator();
             const color = getColorFromString(backgroundColor);
             if (color == null) {
+              draft.primaryButton.backgroundColor = undefined;
+              draft.primaryButton.backgroundColorActive = undefined;
+              draft.primaryButton.backgroundColorHover = undefined;
               return;
             }
             ThemeGenerator.insureSlots(themeRules, false);
@@ -623,7 +642,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           });
         });
       },
-      setPrimaryButtonLabelColor: (color: CSSColor) => {
+      setPrimaryButtonLabelColor: (color: CSSColor | undefined) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.primaryButton.labelColor = color;
@@ -641,7 +660,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           });
         });
       },
-      setLinkColor: (color: CSSColor) => {
+      setLinkColor: (color: CSSColor | undefined) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.link.color = color;

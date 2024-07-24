@@ -264,6 +264,9 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
         <Configuration labelKey="DesignScreen.configuration.background.color.label">
           <ColorPicker
             color={designForm.state.customisableTheme.page.backgroundColor}
+            placeholderColor={
+              designForm.state.themeDefaultValue.page.backgroundColor
+            }
             onChange={designForm.setBackgroundColor}
           />
         </Configuration>
@@ -292,12 +295,18 @@ const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
             color={
               designForm.state.customisableTheme.primaryButton.backgroundColor
             }
+            placeholderColor={
+              designForm.state.themeDefaultValue.primaryButton.backgroundColor
+            }
             onChange={designForm.setPrimaryButtonBackgroundColor}
           />
         </Configuration>
         <Configuration labelKey="DesignScreen.configuration.button.primaryButtonLabel.label">
           <ColorPicker
             color={designForm.state.customisableTheme.primaryButton.labelColor}
+            placeholderColor={
+              designForm.state.themeDefaultValue.primaryButton.labelColor
+            }
             onChange={designForm.setPrimaryButtonLabelColor}
           />
         </Configuration>
@@ -345,6 +354,7 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
         <Configuration labelKey="DesignScreen.configuration.link.color.label">
           <ColorPicker
             color={designForm.state.customisableTheme.link.color}
+            placeholderColor={designForm.state.themeDefaultValue.link.color}
             onChange={designForm.setLinkColor}
           />
         </Configuration>
