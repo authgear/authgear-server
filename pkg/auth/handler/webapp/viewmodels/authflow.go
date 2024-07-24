@@ -48,7 +48,7 @@ type AuthflowViewModel struct {
 	EmailLoginIDBotProtectionRequired    bool
 	UsernameLoginIDBotProtectionRequired bool
 	PasskeyBotProtectionRequired         bool
-	OauthBotProtectionRequired           bool
+	OAuthBotProtectionRequired           bool
 }
 
 type AuthflowViewModeler struct {
@@ -73,7 +73,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 	bpRequiredPhone := false
 	bpRequiredUsername := false
 	bpRequiredPasskey := false
-	bpRequiredOauth := false
+	bpRequiredOAuth := false
 
 	for _, o := range options {
 		switch o.Identification {
@@ -119,7 +119,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 			}
 		case config.AuthenticationFlowIdentificationOAuth:
 			if o.BotProtection.IsRequired() {
-				bpRequiredOauth = true
+				bpRequiredOAuth = true
 			}
 		}
 	}
@@ -261,7 +261,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 		EmailLoginIDBotProtectionRequired:    bpRequiredEmail,
 		UsernameLoginIDBotProtectionRequired: bpRequiredUsername,
 		PasskeyBotProtectionRequired:         bpRequiredPasskey,
-		OauthBotProtectionRequired:           bpRequiredOauth,
+		OAuthBotProtectionRequired:           bpRequiredOAuth,
 	}
 }
 
