@@ -1,8 +1,13 @@
 {{ template "authflowv2/__page_frame.html" . }}
 
 {{ define "page-content" }}
-  {{/* Form with disabled turbo drive, submit button has data-turbo="false" */}}
-  <form class="screen-icon-layout flex-1-0-auto" method="post" novalidate>
+  {{/* Form with disabled turbo drive */}}
+  <form
+    class="screen-icon-layout flex-1-0-auto"
+    method="post"
+    novalidate
+    data-turbo="false"
+  >
     {{ $.CSRFField }}
     <i class="material-icons screen-icon">phone_iphone</i>
     <header class="screen-title-description">
@@ -24,7 +29,6 @@
         type="submit"
         name="x_action"
         value="confirm"
-        data-turbo="false"
         data-authgear-event="authgear.button.confirm_terminate_other_sessions"
       >
         {{ template "v2-button-label-continue" }}
@@ -34,7 +38,6 @@
         type="submit"
         name="x_action"
         value="cancel"
-        data-turbo="false"
         data-authgear-event="authgear.button.cancel_terminate_other_sessions"
       >
         {{ template "v2-confirm-terminate-other-sessions-cancel-button-label" }}
