@@ -149,11 +149,11 @@ export interface BranchDesignForm {
   setPrimaryButtonBackgroundColor: (color: CSSColor | undefined) => void;
   setPrimaryButtonLabelColor: (color: CSSColor | undefined) => void;
   setPrimaryButtonBorderRadiusStyle: (
-    borderRadiusStyle: BorderRadiusStyle
+    borderRadiusStyle: BorderRadiusStyle | undefined
   ) => void;
   setLinkColor: (color: CSSColor | undefined) => void;
   setInputFieldBorderRadiusStyle: (
-    borderRadiusStyle: BorderRadiusStyle
+    borderRadiusStyle: BorderRadiusStyle | undefined
   ) => void;
 
   setPrivacyPolicyLink: (url: string) => void;
@@ -650,7 +650,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         });
       },
       setPrimaryButtonBorderRadiusStyle: (
-        borderRadiusStyle: BorderRadiusStyle
+        borderRadiusStyle: BorderRadiusStyle | undefined
       ) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
@@ -668,7 +668,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         });
       },
       setInputFieldBorderRadiusStyle: (
-        borderRadiusStyle: BorderRadiusStyle
+        borderRadiusStyle: BorderRadiusStyle | undefined
       ) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {

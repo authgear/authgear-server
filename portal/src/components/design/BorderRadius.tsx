@@ -20,8 +20,8 @@ import {
 import styles from "./BorderRadius.module.css";
 
 interface BorderRadiusProps {
-  value: BorderRadiusStyle;
-  onChange: (value: BorderRadiusStyle) => void;
+  value: BorderRadiusStyle | undefined;
+  onChange: (value: BorderRadiusStyle | undefined) => void;
 }
 const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   props
@@ -34,25 +34,25 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   );
 
   const [radiusValue, setRadiusValue] = useState(() => {
-    if (value.type !== "rounded") {
+    if (value?.type !== "rounded") {
       return "0";
     }
     return value.radius;
   });
 
   useEffect(() => {
-    if (value.type !== "rounded") {
+    if (value?.type !== "rounded") {
       return;
     }
     setRadiusValue(value.radius);
-  }, [value, radiusValue]);
+  }, [value]);
 
   const onSelectOption = useCallback(
     (option: Option<BorderRadiusStyleType>) => {
       if (option.value === "rounded") {
         onChange({
           type: option.value,
-          radius: radiusValue,
+          radius: radiusValue !== "" ? radiusValue : "0",
         });
       } else {
         onChange({
@@ -63,14 +63,22 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
     [radiusValue, onChange]
   );
 
-  const onBorderRadiusChange = useCallback(
-    (_: any, value?: string) => {
-      if (value == null) {
+  const onBorderRadiusChange = useCallback((_: any, value?: string) => {
+    if (value == null) {
+      return;
+    }
+    setRadiusValue(value);
+  }, []);
+
+  const onBorderRadiusBlur = useCallback(
+    (ev: React.FocusEvent<HTMLInputElement>) => {
+      if (ev.target.value === "") {
+        onChange(undefined);
         return;
       }
       onChange({
         type: "rounded",
-        radius: value,
+        radius: ev.target.value,
       });
     },
     [onChange]
@@ -105,12 +113,12 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   return (
     <div>
       <ButtonToggleGroup
-        value={value.type}
+        value={value?.type}
         options={options}
         onSelectOption={onSelectOption}
         renderOption={renderOption}
       ></ButtonToggleGroup>
-      {value.type === "rounded" ? (
+      {value?.type === "rounded" ? (
         <TextField
           className={cn("mt-3")}
           label={renderToString(
@@ -118,6 +126,7 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
           )}
           value={radiusValue}
           onChange={onBorderRadiusChange}
+          onBlur={onBorderRadiusBlur}
         />
       ) : null}
     </div>
