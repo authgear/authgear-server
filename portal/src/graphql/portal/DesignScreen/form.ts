@@ -70,11 +70,14 @@ const DarkThemeResourceSpecifier = {
   extension: null,
 };
 
+type ThemeOption = "lightOnly" | "darkOnly" | "auto";
+
 interface ConfigFormState {
   supportedLanguages: LanguageTag[];
   fallbackLanguage: LanguageTag;
   showAuthgearLogo: boolean;
   defaultClientURI: string;
+  themeOption: ThemeOption;
 }
 
 interface ResourcesFormState {
@@ -125,6 +128,8 @@ export interface BranchDesignForm {
   errorRules: ErrorParseRule[];
 
   setSelectedLanguage: (lang: LanguageTag) => void;
+  setSelectedTheme: (theme: Theme) => void;
+  setThemeOption: (themeOption: ThemeOption) => void;
 
   setAppName: (appName: string) => void;
   setAppLogo: (
@@ -165,6 +170,12 @@ function constructConfigFormState(config: PortalAPIAppConfig): ConfigFormState {
     ],
     showAuthgearLogo: !(config.ui?.watermark_disabled ?? false),
     defaultClientURI: config.ui?.default_client_uri ?? "",
+    themeOption:
+      !config.ui?.dark_theme_disabled && config.ui?.light_theme_disabled
+        ? "darkOnly"
+        : config.ui?.dark_theme_disabled && !config.ui.light_theme_disabled
+        ? "lightOnly"
+        : "auto",
   };
 }
 
@@ -179,6 +190,16 @@ function constructConfigFromFormState(
     }
     draft.ui.watermark_disabled = !currentState.showAuthgearLogo;
     draft.ui.default_client_uri = currentState.defaultClientURI || undefined;
+    if (currentState.themeOption === "lightOnly") {
+      draft.ui.dark_theme_disabled = true;
+      draft.ui.light_theme_disabled = undefined;
+    } else if (currentState.themeOption === "darkOnly") {
+      draft.ui.dark_theme_disabled = undefined;
+      draft.ui.light_theme_disabled = true;
+    } else {
+      draft.ui.dark_theme_disabled = undefined;
+      draft.ui.light_theme_disabled = undefined;
+    }
   });
 }
 
@@ -202,7 +223,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     constructFormState: constructConfigFormState,
     constructConfig: constructConfigFromFormState,
   });
-  const [selectedTheme] = useState(Theme.Light);
+  const [selectedTheme, setSelectedTheme] = useState(
+    configForm.state.themeOption === "darkOnly" ||
+      (configForm.state.themeOption === "auto" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ? Theme.Dark
+      : Theme.Light
+  );
   const [selectedLanguage, setSelectedLanguage] = useState(
     configForm.state.fallbackLanguage
   );
@@ -540,6 +567,16 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       errorRules,
 
       setSelectedLanguage,
+
+      setSelectedTheme,
+
+      setThemeOption: (themeOption: ThemeOption) => {
+        configForm.setState((prev) => {
+          return produce(prev, (draft) => {
+            draft.themeOption = themeOption;
+          });
+        });
+      },
 
       setAppName: (appName: string) => {
         resourceMutator.setTranslationValue(TranslationKey.AppName, appName);

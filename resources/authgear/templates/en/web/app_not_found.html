@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 
 <html
+{{ if and ($.DarkThemeEnabled) (not $.LightThemeEnabled) }}
+class="dark"
+{{ end }}
 lang="{{ $.ResolvedLanguageTag }}"
 data-controller="format-date-relative"
-data-dark-theme-enabled="{{ $.DarkThemeEnabled }}">
+data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
+data-light-theme-enabled="{{ $.LightThemeEnabled }}">
 <head>
 <meta charset="UTF-8">
 <title>{{ template "app.name" }}</title>

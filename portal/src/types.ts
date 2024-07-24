@@ -419,6 +419,7 @@ export interface UIConfig {
   signup_login_flow_enabled?: boolean;
   phone_input?: PhoneInputConfig;
   dark_theme_disabled?: boolean;
+  light_theme_disabled?: boolean;
   watermark_disabled?: boolean;
   default_client_uri?: string;
   default_redirect_uri?: string;

@@ -48,6 +48,7 @@ type BaseViewModel struct {
 	StaticAssetURL              func(id string) (url string)
 	GeneratedStaticAssetURL     func(id string) (url string)
 	DarkThemeEnabled            bool
+	LightThemeEnabled           bool
 	WatermarkEnabled            bool
 	AllowedPhoneCountryCodeJSON string
 	PinnedPhoneCountryCodeJSON  string
@@ -245,7 +246,11 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			url, _ = m.StaticAssets.GeneratedStaticAssetURL(id)
 			return
 		},
-		DarkThemeEnabled: !m.AuthUI.DarkThemeDisabled,
+		// If it is previewing, then we always allow both themes.
+		// Imagine the case when the project is initially dark theme only,
+		// In the design page, the preview is switched to light, then light must be enabled.
+		DarkThemeEnabled:  !m.AuthUI.DarkThemeDisabled || webapp.IsInlinePreviewPageRequest(r),
+		LightThemeEnabled: !m.AuthUI.LightThemeDisabled || webapp.IsInlinePreviewPageRequest(r),
 		WatermarkEnabled: m.AuthUIFeatureConfig.WhiteLabeling.Disabled ||
 			!m.AuthUI.WatermarkDisabled,
 		AllowedPhoneCountryCodeJSON: string(allowedPhoneCountryCodeJSON),

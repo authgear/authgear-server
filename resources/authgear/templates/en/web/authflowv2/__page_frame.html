@@ -2,10 +2,14 @@
 <!DOCTYPE html>
 
 <html
+{{ if and ($.DarkThemeEnabled) (not $.LightThemeEnabled) }}
+  class="dark"
+{{ end }}
   lang="{{ $.ResolvedLanguageTag }}"
   dir="{{ $.HTMLDir }}"
   data-controller="format-date-relative inline-preview"
   data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
+  data-light-theme-enabled="{{ $.LightThemeEnabled }}"
   data-watermark-enabled={{ $.WatermarkEnabled }}
   data-inline-preview="{{ $.InlinePreview }}"
   data-inline-preview-previewable-resource-outlet=".translated-message,.brand-logo"
