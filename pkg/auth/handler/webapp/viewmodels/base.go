@@ -246,8 +246,11 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			url, _ = m.StaticAssets.GeneratedStaticAssetURL(id)
 			return
 		},
+		// If it is previewing, then we always allow both themes.
+		// Imagine the case when the project is initially dark theme only,
+		// In the design page, the preview is switched to light, then light must be enabled.
 		DarkThemeEnabled:  !m.AuthUI.DarkThemeDisabled || webapp.IsInlinePreviewPageRequest(r),
-		LightThemeEnabled: !m.AuthUI.LightThemeDisabled,
+		LightThemeEnabled: !m.AuthUI.LightThemeDisabled || webapp.IsInlinePreviewPageRequest(r),
 		WatermarkEnabled: m.AuthUIFeatureConfig.WhiteLabeling.Disabled ||
 			!m.AuthUI.WatermarkDisabled,
 		AllowedPhoneCountryCodeJSON: string(allowedPhoneCountryCodeJSON),
