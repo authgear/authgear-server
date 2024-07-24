@@ -33,7 +33,6 @@ func IsAccountRecoveryIdentifyStepBotProtectionRequired(identificationType confi
 func IsAuthenticateStepBotProtectionRequired(authenticationType config.AuthenticationFlowAuthentication, f *authflow.FlowResponse) (bool, error) {
 	options := GetAuthenticationOptions(f)
 	for _, option := range options {
-		fmt.Printf("option: %+v\n", option)
 		if option.Authentication == authenticationType {
 			return option.BotProtection.IsRequired(), nil
 		}
