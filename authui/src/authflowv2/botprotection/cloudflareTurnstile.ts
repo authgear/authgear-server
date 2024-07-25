@@ -54,6 +54,20 @@ export class CloudflareTurnstileController extends Controller {
 
         // below are default values, added for clarity
         size: "normal",
+        appearance: "always",
+        action: undefined, // no need differentiate widgets under same site key
+        cData: undefined, // no need customer data, already available server-side
+        "before-interactive-callback": undefined, // we do not track interactive callback
+        "after-interactive-callback": undefined, // we do not track interactive callback
+        "unsupported-callback": undefined, // we handled unsupported browser in error-callback by code 110500
+        tabindex: 0, // a11y
+        retry: "auto", // automatically retry to obtain a token on unsuccessful attempts
+        "retry-interval": 8000, // default
+        "refresh-expired": "auto", // automatically refresh expired token
+        "refresh-timeout": "auto", // automatically refreshes upon encountering an interactive timeout
+
+        // below fields are not available in @types/cloudflare-turnstile package yet, submitting a PR for it ref https://github.com/DefinitelyTyped/DefinitelyTyped/pull/70139
+        // execution: "render", // render is default, challenge runs automatically after calling the render() function.
       });
     });
   }
