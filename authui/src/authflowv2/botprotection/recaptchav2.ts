@@ -52,6 +52,9 @@ export class RecaptchaV2Controller extends Controller {
 
         // below are default values, added for clarity
         size: "normal",
+        tabindex: 0,
+        type: "image",
+        badge: "bottomright",
       });
       this.widgetID = widgetID;
     });
