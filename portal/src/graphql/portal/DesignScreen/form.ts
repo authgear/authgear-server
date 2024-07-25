@@ -471,6 +471,9 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
               );
               const styleGroup = new CustomisableThemeStyleGroup(newState);
               styleGroup.acceptCssAstVisitor(cssAstVisitor);
+              if (cssAstVisitor.getDeclarations().length <= 0) {
+                return "";
+              }
               return cssAstVisitor.getCSS().toResult().css;
             })();
 
