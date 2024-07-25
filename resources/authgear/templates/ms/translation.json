@@ -914,6 +914,8 @@
   "v2-error-unexpected-user": "Sepertinya anda log masuk dengan akaun yang berbeza. Sila cuba lagi.",
   "v2-error-bot-protection-required": "Sila sahkan captcha untuk meneruskan.<br />Jika anda tidak dapat melihat widget captcha, sila hubungi sokongan.",
   "v2-error-bot-protection-verification-failed": "Pengesahan captcha gagal.",
+  "v2-error-bot-protection-cloudflare": "Sesuatu yang tidak kena dengan Cloudflare Turnstile, sila hubungi sokongan.",
+  "v2-error-bot-protection-recaptcha-v2": "Sesuatu yang tidak kena dengan Google RecaptchaV2, sila hubungi sokongan.",
   "v2-create-password-page-title": "Cipta Kata Laluan",
   "v2-password-policy-strength": "Kekuatan kata laluan:",
   "v2-password-policy-minimum-length": "Sekurang-kurangnya {length, plural, one{# aksara} other{# aksara}}",

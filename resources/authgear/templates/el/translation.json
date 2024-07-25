@@ -914,6 +914,8 @@
   "v2-error-unexpected-user": "Φαίνεται ότι συνδεθήκατε με διαφορετικό λογαριασμό. Παρακαλώ δοκιμάστε ξανά.",
   "v2-error-bot-protection-required": "Παρακαλώ επαληθεύστε το captcha για να συνεχίσετε.<br />Εάν δεν μπορείτε να δείτε το πρόσθετο captcha, παρακαλώ επικοινωνήστε με την υποστήριξη.",
   "v2-error-bot-protection-verification-failed": "Η επαλήθευση captcha απέτυχε.",
+  "v2-error-bot-protection-cloudflare": "Κάτι πήγε στραβά με το Cloudflare Turnstile, παρακαλώ επικοινωνήστε με την υποστήριξη.",
+  "v2-error-bot-protection-recaptcha-v2": "Κάτι πήγε στραβά με το Google RecaptchaV2, παρακαλώ επικοινωνήστε με την υποστήριξη.",
   "v2-create-password-page-title": "Δημιουργία Κωδικού Πρόσβασης",
   "v2-password-policy-strength": "Ισχύς κωδικού πρόσβασης:",
   "v2-password-policy-minimum-length": "Τουλάχιστον {length, plural, one{# χαρακτήρας} other{# χαρακτήρες}}",
