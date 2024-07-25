@@ -1,5 +1,6 @@
 account_circle
 account_circle_off
+api
 block
 box
 build
@@ -23,6 +24,7 @@ email
 encrypted
 error
 event
+explicit
 face
 flag
 forward_to_inbox
