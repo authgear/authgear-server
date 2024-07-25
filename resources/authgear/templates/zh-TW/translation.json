@@ -909,7 +909,7 @@
   "v2-error-password-policy-reuse": "請勿重用以往{size, plural, other{# 個舊密碼}}，或於{day, plural, other{# 日}}以內曾用過的舊密碼",
   "v2-error-phone-number-format": "您所輸入的電話號碼格式不正確。",
   "v2-error-unexpected-user": "看來您使用了不同的帳號登入。請再試一次。",
-  "v2-error-bot-protection-required": "請驗證captcha以繼續。<br />如果您無法看到captcha小工具,請聯繫支援。",
+  "v2-error-bot-protection-required": "請驗證captcha以繼續。<br />如果您無法看到captcha小工具，請聯繫支援。",
   "v2-error-bot-protection-verification-failed": "Captcha驗證失敗。",
   "v2-create-password-page-title": "創建密碼",
   "v2-password-policy-strength": "密碼強度",
