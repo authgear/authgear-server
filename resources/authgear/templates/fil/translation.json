@@ -912,6 +912,8 @@
   "v2-error-unexpected-user": "Mukhang nag-log in ka sa ibang account. Pakisubukan muli.",
   "v2-error-bot-protection-required": "Mangyaring i-verify ang captcha para magpatuloy.<br />Kung hindi mo makita ang widget ng captcha, mangyaring makipag-ugnayan sa suporta.",
   "v2-error-bot-protection-verification-failed": "Nabigo ang pag-verify ng captcha.",
+  "v2-error-bot-protection-cloudflare": "May mali na nangyari sa Cloudflare Turnstile, mangyaring makipag-ugnayan sa suporta.",
+  "v2-error-bot-protection-recaptcha-v2": "May mali na nangyari sa Google RecaptchaV2, mangyaring makipag-ugnayan sa suporta.",
   "v2-create-password-page-title": "Gumawa ng Password",
   "v2-password-policy-strength": "Lakas ng password:",
   "v2-password-policy-minimum-length": "Hindi bababa sa {length, plural, one{# character} other{# mga character}}",

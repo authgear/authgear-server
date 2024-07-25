@@ -912,6 +912,8 @@
   "v2-error-unexpected-user": "다른 계정으로 로그인한 것 같습니다. 다시 시도해 주세요.",
   "v2-error-bot-protection-required": "계속하려면 캡차를 인증하세요.<br />캡차 위젯을 볼 수 없다면 고객지원팀에 문의하세요.",
   "v2-error-bot-protection-verification-failed": "캡차 인증에 실패했습니다.",
+  "v2-error-bot-protection-cloudflare": "Cloudflare Turnstile에 문제가 발생했습니다. 지원팀에 문의하세요.",
+  "v2-error-bot-protection-recaptcha-v2": "Google RecaptchaV2에 문제가 발생했습니다. 지원팀에 문의하세요.",
   "v2-create-password-page-title": "비밀번호 생성",
   "v2-password-policy-strength": "비밀번호 강도:",
   "v2-password-policy-minimum-length": "최소 {length, plural, one{# 자} other{# 자}}",

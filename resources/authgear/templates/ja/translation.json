@@ -912,6 +912,8 @@
   "v2-error-unexpected-user": "別のアカウントでログインしたようです。もう一度お試しください。",
   "v2-error-bot-protection-required": "続行するには、キャプチャを検証してください。<br />キャプチャウィジェットが表示されない場合は、サポートにお問い合わせください。",
   "v2-error-bot-protection-verification-failed": "キャプチャ検証に失敗しました。",
+  "v2-error-bot-protection-cloudflare": "Cloudflare Turnstileで何か問題が発生しました。サポートにお問い合わせください。",
+  "v2-error-bot-protection-recaptcha-v2": "Google RecaptchaV2で何か問題が発生しました。サポートにお問い合わせください。Passkeyはそのままです。",
   "v2-create-password-page-title": "パスワードの作成",
   "v2-password-policy-strength": "パスワードの強度:",
   "v2-password-policy-minimum-length": "最小 {length, plural, one{# 文字} other{# 文字}}",
