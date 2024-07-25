@@ -44,12 +44,15 @@ export const enum CSSVariable {
   InputFiledBorderRadius = "--input__border-radius",
   LinkColor = "--body-text__link-color",
   WatermarkDisplay = "--watermark-display",
+  AlignmentLogo = "--alignment-logo",
 }
 
 export type CSSColor = string;
 
 export const AllAlignments = ["start", "center", "end"] as const;
 export type Alignment = typeof AllAlignments[number];
+
+export type Hidden = "hidden";
 
 export const AllBorderRadiusStyleTypes = [
   "none",
@@ -98,6 +101,10 @@ export interface LinkStyle {
   color: CSSColor;
 }
 
+export interface LogoStyte {
+  alignment: Alignment | Hidden;
+}
+
 export const WatermarkEnabledDisplay = "inline-block";
 export const WatermarkDisabledDisplay = "hidden";
 
@@ -108,6 +115,7 @@ export interface CustomisableTheme {
   secondaryButton: SecondaryButtonStyle;
   inputField: InputFieldStyle;
   link: LinkStyle;
+  logo: LogoStyte;
 }
 
 export interface PartialCustomisableTheme {
@@ -117,6 +125,7 @@ export interface PartialCustomisableTheme {
   secondaryButton: Partial<SecondaryButtonStyle>;
   inputField: Partial<InputFieldStyle>;
   link: Partial<LinkStyle>;
+  logo: Partial<LogoStyte>;
 }
 
 export const EMPTY_THEME: PartialCustomisableTheme = {
@@ -126,6 +135,7 @@ export const EMPTY_THEME: PartialCustomisableTheme = {
   secondaryButton: {},
   inputField: {},
   link: {},
+  logo: {},
 };
 
 export const DEFAULT_BORDER_RADIUS = "0.875em";
@@ -162,6 +172,9 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
   link: {
     color: "#176df3",
   },
+  logo: {
+    alignment: "center",
+  },
 };
 
 export const DEFAULT_DARK_THEME: CustomisableTheme = {
@@ -195,6 +208,9 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
   },
   link: {
     color: "#2f7bf4",
+  },
+  logo: {
+    alignment: "center",
   },
 };
 
@@ -286,6 +302,49 @@ export class AlignItemsStyleProperty extends StyleProperty<
         return "end";
       case "center":
         return "center";
+      default:
+        return undefined;
+    }
+  }
+}
+
+export class AlignOrHideItemsStyleProperty extends StyleProperty<
+  Alignment | Hidden | undefined
+> {
+  protected setWithRawValue(rawValue: string): void {
+    switch (rawValue) {
+      case "start":
+        this.value = "start";
+        break;
+      case "end":
+        this.value = "end";
+        break;
+      case "center":
+        this.value = "center";
+        break;
+      case "hidden":
+        this.value = "hidden";
+        break;
+      default:
+        this.value = undefined;
+        break;
+    }
+  }
+
+  acceptCssAstVisitor(visitor: CssAstVisitor): void {
+    visitor.visitAlignOrHideItemsStyleProperty(this);
+  }
+
+  getCSSValue(): string | undefined {
+    switch (this.value) {
+      case "start":
+        return "start";
+      case "end":
+        return "end";
+      case "center":
+        return "center";
+      case "hidden":
+        return "hidden";
       default:
         return undefined;
     }
@@ -455,6 +514,13 @@ export class CustomisableThemeStyleGroup extends StyleGroup<PartialCustomisableT
       link: new StyleGroup({
         color: new ColorStyleProperty(CSSVariable.LinkColor, value.link.color),
       }),
+
+      logo: new StyleGroup({
+        alignment: new AlignOrHideItemsStyleProperty(
+          CSSVariable.AlignmentLogo,
+          value.logo.alignment
+        ),
+      }),
     });
   }
 }
@@ -521,6 +587,12 @@ export class CssAstVisitor {
   }
 
   visitAlignItemsStyleProperty(styleProperty: AlignItemsStyleProperty): void {
+    this.visitorStyleProperty(styleProperty);
+  }
+
+  visitAlignOrHideItemsStyleProperty(
+    styleProperty: AlignOrHideItemsStyleProperty
+  ): void {
     this.visitorStyleProperty(styleProperty);
   }
 
