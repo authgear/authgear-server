@@ -7,7 +7,7 @@ const cssVarsToAttrs = {
 export function injectCSSAttrs(el: HTMLElement) {
   const fn = () => {
     for (const [cssVar, attr] of Object.entries(cssVarsToAttrs)) {
-      const value = getComputedStyle(el).getPropertyValue(cssVar);
+      const value = getComputedStyle(el).getPropertyValue(cssVar).trim();
       el.setAttribute(attr, value);
     }
   };
