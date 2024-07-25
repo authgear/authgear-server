@@ -258,6 +258,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
   const backgroundImageSpecifiers = useMemo(() => {
     const specifiers: ResourceSpecifier[] = [];
     specifiers.push(...expandDef(RESOURCE_APP_BACKGROUND_IMAGE, ""));
+    specifiers.push(...expandDef(RESOURCE_APP_BACKGROUND_IMAGE_DARK, ""));
     return specifiers;
   }, []);
 
@@ -269,7 +270,10 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
 
   const getResourceFormByResourceDefinition = useCallback(
     (def: ResourceDefinition) => {
-      if (def === RESOURCE_APP_BACKGROUND_IMAGE) {
+      if (
+        def === RESOURCE_APP_BACKGROUND_IMAGE ||
+        def === RESOURCE_APP_BACKGROUND_IMAGE_DARK
+      ) {
         return backgroundImageResourceForm;
       }
       return resourceForm;
