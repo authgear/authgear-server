@@ -5,7 +5,7 @@ import "fmt"
 // ResolveRecaptchaV2 resolves language tag to RecaptchaV2-supported language tags
 // ref https://developers.google.com/recaptcha/docs/language
 func ResolveRecaptchaV2(lang string) string {
-	if !AvailableLanguagesMap[lang] {
+	if _, ok := AvailableLanguagesMap[lang]; !ok {
 		panic(fmt.Errorf("unsupported language: %s", lang))
 	}
 	switch lang {
