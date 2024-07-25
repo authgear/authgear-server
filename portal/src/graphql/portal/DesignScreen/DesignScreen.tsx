@@ -30,6 +30,8 @@ import ShowLoading from "../../../ShowLoading";
 import {
   Alignment,
   AllAlignments,
+  DEFAULT_DARK_THEME,
+  DEFAULT_LIGHT_THEME,
   Theme,
 } from "../../../model/themeAuthFlowV2";
 
@@ -162,10 +164,24 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
     return (
       <ConfigurationGroup labelKey="DesignScreen.configuration.logo.label">
         <ConfigurationDescription labelKey="DesignScreen.configuration.logo.description" />
-        <ImagePicker
-          base64EncodedData={designForm.state.appLogoBase64EncodedData}
-          onChange={designForm.setAppLogo}
-        />
+        {designForm.state.themeOption !== "darkOnly" ? (
+          <>
+            <ConfigurationDescription labelKey="DesignScreen.configuration.logo.light" />
+            <ImagePicker
+              base64EncodedData={designForm.state.appLogoBase64EncodedData}
+              onChange={designForm.lightThemeSetters.setAppLogo}
+            />
+          </>
+        ) : null}
+        {designForm.state.themeOption !== "lightOnly" ? (
+          <>
+            <ConfigurationDescription labelKey="DesignScreen.configuration.logo.dark" />
+            <ImagePicker
+              base64EncodedData={designForm.state.appLogoDarkBase64EncodedData}
+              onChange={designForm.darkThemeSetters.setAppLogo}
+            />
+          </>
+        ) : null}
         {designForm.state.selectedLanguage !==
         designForm.state.fallbackLanguage ? (
           <FallbackDescription
@@ -264,23 +280,56 @@ const BackgroundConfiguration: React.VFC<BackgroundConfigurationProps> =
     return (
       <ConfigurationGroup labelKey="DesignScreen.configuration.background.label">
         <ConfigurationDescription labelKey="DesignScreen.configuration.background.description" />
-        <Configuration labelKey="DesignScreen.configuration.background.color.label">
-          <ColorPicker
-            color={designForm.state.customisableTheme.page.backgroundColor}
-            placeholderColor={
-              designForm.state.themeDefaultValue.page.backgroundColor
-            }
-            onChange={designForm.setBackgroundColor}
-          />
-        </Configuration>
-        <Configuration labelKey="DesignScreen.configuration.background.image.label">
-          <ImagePicker
-            base64EncodedData={
-              designForm.state.backgroundImageBase64EncodedData
-            }
-            onChange={designForm.setBackgroundImage}
-          />
-        </Configuration>
+        {designForm.state.themeOption !== "darkOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.background.color.label.light">
+              <ColorPicker
+                color={
+                  designForm.state.customisableLightTheme.page.backgroundColor
+                }
+                placeholderColor={DEFAULT_LIGHT_THEME.page.backgroundColor}
+                onChange={designForm.lightThemeSetters.setBackgroundColor}
+              />
+            </Configuration>
+          </>
+        ) : null}
+        {designForm.state.themeOption !== "lightOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.background.color.label.dark">
+              <ColorPicker
+                color={
+                  designForm.state.customisableDarkTheme.page.backgroundColor
+                }
+                placeholderColor={DEFAULT_DARK_THEME.page.backgroundColor}
+                onChange={designForm.darkThemeSetters.setBackgroundColor}
+              />
+            </Configuration>
+          </>
+        ) : null}
+        {designForm.state.themeOption !== "darkOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.background.image.label.light">
+              <ImagePicker
+                base64EncodedData={
+                  designForm.state.backgroundImageBase64EncodedData
+                }
+                onChange={designForm.lightThemeSetters.setBackgroundImage}
+              />
+            </Configuration>
+          </>
+        ) : null}
+        {designForm.state.themeOption !== "lightOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.background.image.label.dark">
+              <ImagePicker
+                base64EncodedData={
+                  designForm.state.backgroundImageDarkBase64EncodedData
+                }
+                onChange={designForm.darkThemeSetters.setBackgroundImage}
+              />
+            </Configuration>
+          </>
+        ) : null}
       </ConfigurationGroup>
     );
   };
@@ -293,26 +342,75 @@ const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
     const { designForm } = props;
     return (
       <ConfigurationGroup labelKey="DesignScreen.configuration.button.label">
-        <Configuration labelKey="DesignScreen.configuration.button.primaryButton.label">
-          <ColorPicker
-            color={
-              designForm.state.customisableTheme.primaryButton.backgroundColor
-            }
-            placeholderColor={
-              designForm.state.themeDefaultValue.primaryButton.backgroundColor
-            }
-            onChange={designForm.setPrimaryButtonBackgroundColor}
-          />
-        </Configuration>
-        <Configuration labelKey="DesignScreen.configuration.button.primaryButtonLabel.label">
-          <ColorPicker
-            color={designForm.state.customisableTheme.primaryButton.labelColor}
-            placeholderColor={
-              designForm.state.themeDefaultValue.primaryButton.labelColor
-            }
-            onChange={designForm.setPrimaryButtonLabelColor}
-          />
-        </Configuration>
+        {designForm.state.themeOption !== "darkOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.button.primaryButton.label.light">
+              <ColorPicker
+                color={
+                  designForm.state.customisableLightTheme.primaryButton
+                    .backgroundColor
+                }
+                placeholderColor={
+                  DEFAULT_LIGHT_THEME.primaryButton.backgroundColor
+                }
+                onChange={
+                  designForm.lightThemeSetters.setPrimaryButtonBackgroundColor
+                }
+              />
+            </Configuration>
+          </>
+        ) : null}
+        {designForm.state.themeOption !== "lightOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.button.primaryButton.label.dark">
+              <ColorPicker
+                color={
+                  designForm.state.customisableDarkTheme.primaryButton
+                    .backgroundColor
+                }
+                placeholderColor={
+                  DEFAULT_DARK_THEME.primaryButton.backgroundColor
+                }
+                onChange={
+                  designForm.darkThemeSetters.setPrimaryButtonBackgroundColor
+                }
+              />
+            </Configuration>
+          </>
+        ) : null}
+
+        {designForm.state.themeOption !== "darkOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.button.primaryButtonLabel.label.light">
+              <ColorPicker
+                color={
+                  designForm.state.customisableLightTheme.primaryButton
+                    .labelColor
+                }
+                placeholderColor={DEFAULT_LIGHT_THEME.primaryButton.labelColor}
+                onChange={
+                  designForm.lightThemeSetters.setPrimaryButtonLabelColor
+                }
+              />
+            </Configuration>
+          </>
+        ) : null}
+        {designForm.state.themeOption !== "lightOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.button.primaryButtonLabel.label.dark">
+              <ColorPicker
+                color={
+                  designForm.state.customisableDarkTheme.primaryButton
+                    .labelColor
+                }
+                placeholderColor={DEFAULT_DARK_THEME.primaryButton.labelColor}
+                onChange={
+                  designForm.darkThemeSetters.setPrimaryButtonLabelColor
+                }
+              />
+            </Configuration>
+          </>
+        ) : null}
         <Configuration labelKey="DesignScreen.configuration.button.borderRadiusStyle.label">
           <BorderRadius
             value={
@@ -355,13 +453,28 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
 
     return (
       <ConfigurationGroup labelKey="DesignScreen.configuration.link.label">
-        <Configuration labelKey="DesignScreen.configuration.link.color.label">
-          <ColorPicker
-            color={designForm.state.customisableTheme.link.color}
-            placeholderColor={designForm.state.themeDefaultValue.link.color}
-            onChange={designForm.setLinkColor}
-          />
-        </Configuration>
+        {designForm.state.themeOption !== "darkOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.link.color.label.light">
+              <ColorPicker
+                color={designForm.state.customisableLightTheme.link.color}
+                placeholderColor={DEFAULT_LIGHT_THEME.link.color}
+                onChange={designForm.lightThemeSetters.setLinkColor}
+              />
+            </Configuration>
+          </>
+        ) : null}
+        {designForm.state.themeOption !== "lightOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.link.color.label.dark">
+              <ColorPicker
+                color={designForm.state.customisableDarkTheme.link.color}
+                placeholderColor={DEFAULT_DARK_THEME.link.color}
+                onChange={designForm.darkThemeSetters.setLinkColor}
+              />
+            </Configuration>
+          </>
+        ) : null}
         <Separator className={cn(styles.linkConfigurationSeparator)} />
         <TextField
           label={renderToString(
