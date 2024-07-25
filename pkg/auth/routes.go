@@ -107,6 +107,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newAllSessionMiddleware),
 		httproute.MiddlewareFunc(httputil.NoStore),
 	)
+	dpopApiChain := httproute.Chain(
+		apiChain,
+		p.Middleware(newDPoPMiddleware),
+	)
+
 	workflowChain := httproute.Chain(
 		apiChain,
 		p.Middleware(newWorkflowIntlMiddleware),
@@ -255,6 +260,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	oauthAuthzAPIRoute := httproute.Route{Middleware: oauthAuthzAPIChain}
 	siweAPIRoute := httproute.Route{Middleware: siweAPIChain}
 	apiRoute := httproute.Route{Middleware: apiChain}
+	dpopApiRoute := httproute.Route{Middleware: dpopApiChain}
 	workflowRoute := httproute.Route{Middleware: workflowChain}
 	authenticationFlowRoute := httproute.Route{Middleware: authenticationFlowChain}
 	apiAuthenticatedRoute := httproute.Route{Middleware: apiAuthenticatedChain}
@@ -440,7 +446,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(oauthhandler.ConfigureEndSessionRoute(oauthAPIRoute), p.Handler(newOAuthEndSessionHandler))
 
 	router.Add(oauthhandler.ConfigureChallengeRoute(apiRoute), p.Handler(newOAuthChallengeHandler))
-	router.Add(oauthhandler.ConfigureAppSessionTokenRoute(apiRoute), p.Handler(newOAuthAppSessionTokenHandler))
+	router.Add(oauthhandler.ConfigureAppSessionTokenRoute(dpopApiRoute), p.Handler(newOAuthAppSessionTokenHandler))
 	router.Add(oauthhandler.ConfigureProxyRedirectRoute(apiRoute), p.Handler(newOAuthProxyRedirectHandler))
 
 	router.Add(oauthhandler.ConfigureUserInfoRoute(oauthAPIScopedRoute), p.Handler(newOAuthUserInfoHandler))
