@@ -11,20 +11,36 @@ export function getColorScheme(): string {
   const htmlElement = document.documentElement;
   const darkThemeEnabled =
     htmlElement.getAttribute("data-dark-theme-enabled") === "true";
+  const lightThemeEnabled =
+    htmlElement.getAttribute("data-light-theme-enabled") === "true";
 
   let explicitColorScheme = "";
   const metaElement = document.querySelector("meta[name=x-color-scheme]");
   if (metaElement instanceof HTMLMetaElement) {
     explicitColorScheme = metaElement.content;
   }
+  const queryParam = new URLSearchParams(window.location.search).get(
+    "x_color_scheme"
+  );
+  if (queryParam != null) {
+    explicitColorScheme = queryParam;
+  }
 
   const implicitColorScheme = queryResult.matches ? "dark" : "light";
 
-  const colorScheme = !darkThemeEnabled
-    ? "light"
-    : explicitColorScheme !== ""
-      ? explicitColorScheme
-      : implicitColorScheme;
-
+  let colorScheme = "light";
+  // First of all, respect project configuration
+  if (lightThemeEnabled && !darkThemeEnabled) {
+    colorScheme = "light";
+  } else if (!lightThemeEnabled && darkThemeEnabled) {
+    colorScheme = "dark";
+  } else {
+    // !lightThemeEnabled && !darkThemeEnabled is treated as both enabled
+    if (explicitColorScheme !== "") {
+      colorScheme = explicitColorScheme;
+    } else {
+      colorScheme = implicitColorScheme;
+    }
+  }
   return colorScheme;
 }
