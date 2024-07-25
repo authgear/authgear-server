@@ -129,7 +129,7 @@ func (n *NodePromoteIdentityOAuth) checkConflictByAccountLinkings(
 	spec *identity.Spec) (conflicts []*AccountLinkingConflict, err error) {
 	switch spec.Type {
 	case model.IdentityTypeOAuth:
-		return linkByIncomingOAuthSpec(ctx, deps, flows, NewCreateOAuthIdentityRequest(n.Alias, spec).OAuth, n.JSONPointer)
+		return linkByIncomingOAuthSpec(ctx, deps, flows, n.UserID, NewCreateOAuthIdentityRequest(n.Alias, spec).OAuth, n.JSONPointer)
 	default:
 		panic("unexpected spec type")
 	}

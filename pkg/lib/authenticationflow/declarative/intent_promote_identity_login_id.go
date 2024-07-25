@@ -166,7 +166,7 @@ func (n *IntentPromoteIdentityLoginID) checkConflictByAccountLinkings(
 	spec *identity.Spec) (conflicts []*AccountLinkingConflict, err error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
-		return linkByIncomingLoginIDSpec(ctx, deps, flows, NewCreateLoginIDIdentityRequest(spec).LoginID, n.JSONPointer)
+		return linkByIncomingLoginIDSpec(ctx, deps, flows, n.UserID, NewCreateLoginIDIdentityRequest(spec).LoginID, n.JSONPointer)
 	default:
 		panic("unexpected spec type")
 	}

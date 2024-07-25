@@ -139,6 +139,7 @@ func linkByIncomingOAuthSpec(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
+	userID string,
 	request *CreateIdentityRequestOAuth,
 	identificationJSONPointer jsonpointer.T,
 ) (conflicts []*AccountLinkingConflict, err error) {
@@ -191,6 +192,12 @@ func linkByIncomingOAuthSpec(
 
 		for _, iden := range idenConflicts {
 			iden := iden
+
+			// Exclude identities that actually belong to this user.
+			if iden.UserID == userID {
+				continue
+			}
+
 			// Exclude duplicates
 			if _, exist := conflictedIdentityIDs[iden.ID]; exist {
 				continue
@@ -227,6 +234,7 @@ func linkByIncomingLoginIDSpec(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
+	userID string,
 	request *CreateIdentityRequestLoginID,
 	identificationJSONPointer jsonpointer.T,
 ) (conflicts []*AccountLinkingConflict, err error) {
@@ -271,6 +279,12 @@ func linkByIncomingLoginIDSpec(
 
 		for _, iden := range idenConflicts {
 			iden := iden
+
+			// Exclude identities that actually belong to this user.
+			if iden.UserID == userID {
+				continue
+			}
+
 			// Exclude duplicates
 			if _, exist := conflictedIdentityIDs[iden.ID]; exist {
 				continue
