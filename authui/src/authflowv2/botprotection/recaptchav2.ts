@@ -6,6 +6,7 @@ import {
   dispatchBotProtectionEventFailed,
   dispatchBotProtectionEventVerified,
 } from "./botProtection";
+import { setErrorMessage } from "../../setErrorMessage";
 
 function parseTheme(theme: string): ReCaptchaV2.Theme | undefined {
   switch (theme) {
@@ -17,6 +18,8 @@ function parseTheme(theme: string): ReCaptchaV2.Theme | undefined {
       return undefined;
   }
 }
+
+const RECAPTCHA_V2_ERROR_MSG_ID = "data-bot-protection-recaptcha-v2";
 
 export class RecaptchaV2Controller extends Controller {
   static values = {
@@ -43,6 +46,12 @@ export class RecaptchaV2Controller extends Controller {
           dispatchBotProtectionEventVerified(token);
         },
         "error-callback": () => {
+          // Tested, error-callback does not have error message/error code as params
+          // Will simply fire failed event, instead of graceful handling in cloudflare
+          console.error(
+            "Something went wrong with Google RecaptchaV2. Please check widget for error hint."
+          );
+          setErrorMessage(RECAPTCHA_V2_ERROR_MSG_ID);
           dispatchBotProtectionEventFailed();
         },
         "expired-callback": () => {
