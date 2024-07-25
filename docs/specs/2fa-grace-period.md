@@ -14,13 +14,13 @@ After the grace period, the user will be required to enroll in 2FA before they c
 
 ## Configuration
 
-By default, no grace period is provided. User must enroll in 2FA immediately after [2FA mode](./user-model.md#secondary-authenticator) is set to `required`.
+By default, no grace period is provided. User without 2FA must contact admin to login after [2FA mode](./user-model.md#secondary-authenticator) is set to `required`.
 
 For new users, the grace period starts from the time the user is created, whereas for existing users, the grace period starts from when the grace period is enabled.
 
 ### Global Grace Period
 
-After 2FA mode is set to `required`, a global grace period can be configured as follow:
+Global grace period can be enabled for forcing users to enroll in 2FA upon login.
 
 ```yaml
 authentication:
@@ -45,37 +45,30 @@ It is possible to extend the grace period of a user multiple times or cancel imm
 
 ### Customized Authentication Flow
 
-By default all signup / login flows respect the global 2FA mode configuration. However, you can also override it in the flow configuration:
+Customized authentication flow can use `allow_enrollment: true` to allow enrolling any of the following authenticators before proceeding.
 
 ```yaml
 authentication_flow:
   login_flows:
     - name: internal_user
-      secondary_authentication_mode: "required"
       steps:
-      # ....
-    - name: public_user
-      secondary_authentication_mode: "if_exists"
-      steps:
-      # ...
-
-  signup_flows:
-    - name: default
-      secondary_authentication_mode: "disabled"
-      steps:
-      # ...
-
-  signup_login_flows:
-    - name: default
-      secondary_authentication_mode: "required"
-      steps:
-      # ...
-
-  reauth_flows:
-    - name: default
-      secondary_authentication_mode: "required"
-      steps:
-      # ...
+        - type: identify
+          one_of:
+            - identification: phone
+            - identification: email
+        - type: authenticate
+          one_of:
+            - authentication: primary_password
+        - type: authenticate
+          # Requires user to satisfy one of the following authentication.
+          optional: false # or null
+          # If the end-user has no applicable authentication method,
+          # then enrollment will be required before proceeding.
+          # allow_enrollment by default is false, meaning user with no applicable method beforehand will be blocked from proceeding.
+          allow_enrollment: true
+          one_of:
+            - authentication: secondary_totp
+            - authentication: recovery_code
 ```
 
 When 2FA mode has been set to `required` and first 2FA step is met, user will be required to either use existing 2FA or create a new one.
