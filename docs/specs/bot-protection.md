@@ -331,7 +331,7 @@ For example, if the project targets to support both web and mobile platform, the
 
 ## Audit log
 
-When a verification failure is detected, the event [bot_protection.failed](./event.md#bot_protectionfailed) is logged.
+When a verification failure is detected, the event [bot_protection.verification.failed](./event.md#bot_protectionverificationfailed) is logged.
 
 ## Study on bot protection providers
 

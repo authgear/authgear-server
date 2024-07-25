@@ -36,7 +36,7 @@
       - [authentication.secondary.oob_otp_email.failed](#authenticationsecondaryoob_otp_emailfailed)
       - [authentication.secondary.oob_otp_sms.failed](#authenticationsecondaryoob_otp_smsfailed)
       - [authentication.secondary.recovery_code.failed](#authenticationsecondaryrecovery_codefailed)
-      - [captcha.failed](#captchafailed)
+      - [bot_protection.verification.failed](#bot_protectionverificationfailed)
       - [identity.email.added](#identityemailadded)
       - [identity.email.removed](#identityemailremoved)
       - [identity.email.updated](#identityemailupdated)
@@ -540,9 +540,9 @@ Occurs after the user failed to input the recovery code.
 }
 ```
 
-#### captcha.failed
+#### bot_protection.verification.failed
 
-Occurs after someone failed to pass the captcha challenge.
+Occurs after someone failed to pass the bot protection verification.
 
 ```json5
 {
