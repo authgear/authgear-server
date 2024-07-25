@@ -13,12 +13,14 @@ import (
 )
 
 type SimpleStoreRedisFactory struct {
-	AppID config.AppID
-	Redis *appredis.Handle
+	Context context.Context
+	AppID   config.AppID
+	Redis   *appredis.Handle
 }
 
 func (f *SimpleStoreRedisFactory) GetStoreByProvider(providerType string, providerAlias string) *SimpleStoreRedis {
 	return &SimpleStoreRedis{
+		context:       f.Context,
 		redis:         f.Redis,
 		appID:         string(f.AppID),
 		providerType:  providerType,
@@ -31,6 +33,7 @@ func storageKey(appID string, providerType string, providerAlias string, key str
 }
 
 type SimpleStoreRedis struct {
+	context       context.Context
 	redis         *appredis.Handle
 	appID         string
 	providerType  string
@@ -38,10 +41,9 @@ type SimpleStoreRedis struct {
 }
 
 func (s *SimpleStoreRedis) GetDel(key string) (data string, err error) {
-	ctx := context.Background()
 	storeKey := storageKey(s.appID, s.providerType, s.providerAlias, key)
-	err = s.redis.WithConn(func(conn *goredis.Conn) error {
-		data, err = conn.GetDel(ctx, storeKey).Result()
+	err = s.redis.WithConnContext(s.context, func(conn *goredis.Conn) error {
+		data, err = conn.GetDel(s.context, storeKey).Result()
 		if err != nil {
 			if errors.Is(err, goredis.Nil) {
 				return nil
@@ -54,10 +56,9 @@ func (s *SimpleStoreRedis) GetDel(key string) (data string, err error) {
 }
 
 func (s *SimpleStoreRedis) SetWithTTL(key string, value string, ttl time.Duration) error {
-	ctx := context.Background()
 	storeKey := storageKey(s.appID, s.providerType, s.providerAlias, key)
-	err := s.redis.WithConn(func(conn *goredis.Conn) error {
-		_, err := conn.SetEX(ctx, storeKey, []byte(value), ttl).Result()
+	err := s.redis.WithConnContext(s.context, func(conn *goredis.Conn) error {
+		_, err := conn.SetEX(s.context, storeKey, []byte(value), ttl).Result()
 		if err != nil {
 			return err
 		}
