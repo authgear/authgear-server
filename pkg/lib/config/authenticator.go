@@ -260,8 +260,7 @@ func (m *AuthenticatorPhoneOTPMode) IsSMSEnabled() bool {
 		*m == AuthenticatorPhoneOTPModeSMSOnly
 }
 
-
-var _ = Schema.Add("AuthenticatorValidPeriods", `
+var _ = Schema.Add("AuthenticatorOOBValidPeriods", `
 {
 	"type": "object",
 	"additionalProperties": false,
@@ -272,7 +271,7 @@ var _ = Schema.Add("AuthenticatorValidPeriods", `
 }
 `)
 
-type AuthenticatorValidPeriods struct {
+type AuthenticatorOOBValidPeriods struct {
 	Link DurationString `json:"link,omitempty"`
 	Code DurationString `json:"code,omitempty"`
 }
@@ -285,16 +284,16 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 		"maximum": { "type": "integer" },
 		"phone_otp_mode": { "$ref": "#/$defs/AuthenticatorPhoneOTPMode" },
 		"code_valid_period": { "$ref": "#/$defs/DurationString" },
-		"valid_periods": { "$ref": "#/$defs/AuthenticatorValidPeriods" }
+		"valid_periods": { "$ref": "#/$defs/AuthenticatorOOBValidPeriods" }
 	}
 }
 `)
 
 type AuthenticatorOOBSMSConfig struct {
-	Maximum                    *int                       `json:"maximum,omitempty"`
-	PhoneOTPMode               AuthenticatorPhoneOTPMode  `json:"phone_otp_mode,omitempty"`
-	Deprecated_CodeValidPeriod DurationString             `json:"code_valid_period,omitempty"`
-	ValidPeriods               *AuthenticatorValidPeriods `json:"valid_periods,omitempty"`
+	Maximum                    *int                          `json:"maximum,omitempty"`
+	PhoneOTPMode               AuthenticatorPhoneOTPMode     `json:"phone_otp_mode,omitempty"`
+	Deprecated_CodeValidPeriod DurationString                `json:"code_valid_period,omitempty"`
+	ValidPeriods               *AuthenticatorOOBValidPeriods `json:"valid_periods,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
@@ -326,16 +325,16 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 		"maximum": { "type": "integer" },
 		"email_otp_mode": { "$ref": "#/$defs/AuthenticatorEmailOTPMode" },
 		"code_valid_period": { "$ref": "#/$defs/DurationString" },
-		"valid_periods": { "$ref": "#/$defs/AuthenticatorValidPeriods" }
+		"valid_periods": { "$ref": "#/$defs/AuthenticatorOOBValidPeriods" }
 	}
 }
 `)
 
 type AuthenticatorOOBEmailConfig struct {
-	Maximum                    *int                       `json:"maximum,omitempty"`
-	EmailOTPMode               AuthenticatorEmailOTPMode  `json:"email_otp_mode,omitempty"`
-	Deprecated_CodeValidPeriod DurationString             `json:"code_valid_period,omitempty"`
-	ValidPeriods               *AuthenticatorValidPeriods `json:"valid_periods,omitempty"`
+	Maximum                    *int                          `json:"maximum,omitempty"`
+	EmailOTPMode               AuthenticatorEmailOTPMode     `json:"email_otp_mode,omitempty"`
+	Deprecated_CodeValidPeriod DurationString                `json:"code_valid_period,omitempty"`
+	ValidPeriods               *AuthenticatorOOBValidPeriods `json:"valid_periods,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticatorEmailOTPMode", `
