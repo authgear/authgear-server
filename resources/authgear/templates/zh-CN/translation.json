@@ -913,6 +913,8 @@
   "v2-error-unexpected-user": "似乎您登录的是其他账户。请重试。",
   "v2-error-bot-protection-required": "请验证验证码以继续。<br />如果您无法看到验证码小部件,请联系支持。",
   "v2-error-bot-protection-verification-failed": "验证码验证失败。",
+  "v2-error-bot-protection-cloudflare": "Cloudflare Turnstile 出现了一些问题,请联系支持。",
+  "v2-error-bot-protection-recaptcha-v2": "Google RecaptchaV2 出现了一些问题,请联系支持。Passkey 保持不变。",
   "v2-create-password-page-title": "创建密码",
   "v2-password-policy-strength": "密码强度:",
   "v2-password-policy-minimum-length": "至少 {length, plural, one{# 个字符} other{# 个字符}}",

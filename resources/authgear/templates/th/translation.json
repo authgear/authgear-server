@@ -913,6 +913,8 @@
   "v2-error-unexpected-user": "ดูเหมือนว่าคุณได้เข้าสู่ระบบด้วยบัญชีอื่น โปรดลองอีกครั้ง",
   "v2-error-bot-protection-required": "โปรดยืนยันแคปท์ชาเพื่อดำเนินการต่อ<br />หากคุณไม่สามารถมองเห็นวิดเจ็ตแคปท์ชา โปรดติดต่อฝ่ายสนับสนุน",
   "v2-error-bot-protection-verification-failed": "การยืนยันแคปท์ชาล้มเหลว",
+  "v2-error-bot-protection-cloudflare": "มีบางอย่างผิดพลาดกับ Cloudflare Turnstile โปรดติดต่อฝ่ายสนับสนุน",
+  "v2-error-bot-protection-recaptcha-v2": "มีบางอย่างผิดพลาดกับ Google RecaptchaV2 โปรดติดต่อฝ่ายสนับสนุน",
   "v2-create-password-page-title": "สร้างรหัสผ่าน",
   "v2-password-policy-strength": "ความแข็งแรงของรหัสผ่าน:",
   "v2-password-policy-minimum-length": "อย่างน้อย {length, plural, one{# ตัวอักษร} other{# ตัวอักษร}}",

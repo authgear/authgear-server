@@ -913,6 +913,8 @@
   "v2-error-unexpected-user": "Có vẻ như bạn đã đăng nhập bằng một tài khoản khác. Vui lòng thử lại.",
   "v2-error-bot-protection-required": "Vui lòng xác minh captcha để tiếp tục.<br />Nếu bạn không thể nhìn thấy widget captcha, vui lòng liên hệ với bộ phận hỗ trợ.",
   "v2-error-bot-protection-verification-failed": "Xác minh captcha thất bại.",
+  "v2-error-bot-protection-cloudflare": "Đã xảy ra sự cố với Cloudflare Turnstile, vui lòng liên hệ với bộ phận hỗ trợ.",
+  "v2-error-bot-protection-recaptcha-v2": "Đã xảy ra sự cố với Google RecaptchaV2, vui lòng liên hệ với bộ phận hỗ trợ.",
   "v2-create-password-page-title": "Tạo Mật Khẩu",
   "v2-password-policy-strength": "Độ mạnh của mật khẩu:",
   "v2-password-policy-minimum-length": "Ít nhất {length, plural, one{# ký tự} other{# ký tự}}",
