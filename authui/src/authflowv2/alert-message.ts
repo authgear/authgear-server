@@ -11,6 +11,10 @@ export function handleAxiosError(e: unknown) {
   console.error(err);
 }
 
+/**
+ * This code duplicates with authui/src/setErrorMessage-message.ts. However, alert-message.ts cannot import other modules because it is commonjs script instead
+ * Please help keep code in `setErrorMessage.ts` and `alert-message.ts` sync if you are to make any changes
+ */
 function setErrorMessage(id: string) {
   const e = new CustomEvent("alert-message:show-message", {
     detail: {
