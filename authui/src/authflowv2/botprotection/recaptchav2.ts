@@ -27,11 +27,16 @@ export class RecaptchaV2Controller extends Controller {
 
   declare siteKeyValue: string;
   declare widgetTarget: HTMLDivElement;
+  declare widgetID: number;
+
+  resetWidget = () => {
+    window.grecaptcha.reset(this.widgetID); // default to first widget created
+  };
 
   connect() {
     window.grecaptcha.ready(() => {
       const colorScheme = getColorScheme();
-      window.grecaptcha.render(this.widgetTarget, {
+      const widgetID = window.grecaptcha.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,
         theme: parseTheme(colorScheme),
         callback: (token: string) => {
@@ -41,12 +46,14 @@ export class RecaptchaV2Controller extends Controller {
           dispatchBotProtectionEventFailed();
         },
         "expired-callback": () => {
+          this.resetWidget();
           dispatchBotProtectionEventExpired();
         },
 
         // below are default values, added for clarity
         size: "normal",
       });
+      this.widgetID = widgetID;
     });
   }
 }
