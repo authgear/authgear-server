@@ -20,7 +20,7 @@ describe("StyleCssVisitor", () => {
     });
 
     const cssStyleSheet = `
-      :root:not(.dark) {
+      :root {
         -—primary-btn__bg-color: blue;
       }
 
@@ -29,7 +29,7 @@ describe("StyleCssVisitor", () => {
       }
     `;
 
-    const styleVisitor = new StyleCssVisitor(":root:not(.dark)", styleGroup);
+    const styleVisitor = new StyleCssVisitor(":root", styleGroup);
     const styles = styleVisitor.getStyle(parseCSS(cssStyleSheet));
 
     expect(styles).toEqual({
@@ -40,7 +40,7 @@ describe("StyleCssVisitor", () => {
   });
 
   it("should parse authui stylesheet", () => {
-    const authuiStyleSheet = `:root:not(.dark) {
+    const authuiStyleSheet = `:root {
     --layout__bg-color: #ffffff;
     --alignment-card: center;
     --layout-padding-left: 0;
@@ -149,7 +149,7 @@ describe("CssAstVisitor", () => {
         color: "#2f7bf4",
       },
     });
-    const expectedStyleSheet = `:root:not(.dark) {
+    const expectedStyleSheet = `:root {
     --layout__bg-color: #1c1c1e;
     --alignment-card: center;
     --primary-btn__bg-color: #176df3;

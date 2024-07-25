@@ -93,7 +93,6 @@ interface ResourcesFormState {
   backgroundImageDarkBase64EncodedData: string | null;
   customisableLightTheme: PartialCustomisableTheme;
   customisableDarkTheme: PartialCustomisableTheme;
-  customisableTheme: PartialCustomisableTheme;
 
   urls: {
     privacyPolicy: string;
@@ -116,7 +115,6 @@ export const enum TranslationKey {
 export type BranchDesignFormState = {
   selectedLanguage: LanguageTag;
   theme: Theme;
-  themeDefaultValue: CustomisableTheme;
 } & ConfigFormState &
   ResourcesFormState &
   FeatureConfig;
@@ -357,13 +355,6 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       backgroundImageDarkBase64EncodedData: getValueFromImageResource(
         RESOURCE_APP_BACKGROUND_IMAGE_DARK
       ),
-      customisableTheme: selectByTheme(
-        {
-          [Theme.Light]: lightTheme,
-          [Theme.Dark]: darkTheme,
-        },
-        selectedTheme
-      ),
       customisableLightTheme: lightTheme,
       customisableDarkTheme: darkTheme,
 
@@ -384,7 +375,6 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     getResourceFormByResourceDefinition,
     selectedLanguage,
     configForm.state.fallbackLanguage,
-    selectedTheme,
   ]);
 
   const resourceMutator = useMemo(() => {
@@ -461,7 +451,15 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         updater: (prev: PartialCustomisableTheme) => PartialCustomisableTheme,
         targetTheme: Theme
       ) => {
-        const newState = updater(resourcesState.customisableTheme);
+        const newState = updater(
+          selectByTheme(
+            {
+              [Theme.Light]: resourcesState.customisableLightTheme,
+              [Theme.Dark]: resourcesState.customisableDarkTheme,
+            },
+            targetTheme
+          )
+        );
         resourceForm.setState((s) => {
           return produce(s, (draft) => {
             const resourceSpecifier = selectByTheme(
@@ -506,13 +504,6 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
   const state: BranchDesignFormState = useMemo(
     () => ({
       theme: selectedTheme,
-      themeDefaultValue: selectByTheme(
-        {
-          light: DEFAULT_LIGHT_THEME,
-          dark: DEFAULT_DARK_THEME,
-        },
-        selectedTheme
-      ),
       selectedLanguage,
       ...configForm.state,
       ...resourcesState,
@@ -710,11 +701,6 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
             draft.card.alignment = alignment;
           });
         }, Theme.Light);
-        resourceMutator.updateCustomisableTheme((prev) => {
-          return produce(prev, (draft) => {
-            draft.card.alignment = alignment;
-          });
-        }, Theme.Dark);
       },
       setPrimaryButtonBorderRadiusStyle: (
         borderRadiusStyle: BorderRadiusStyle | undefined
@@ -726,13 +712,6 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
             draft.secondaryButton.borderRadius = borderRadiusStyle;
           });
         }, Theme.Light);
-        resourceMutator.updateCustomisableTheme((prev) => {
-          return produce(prev, (draft) => {
-            draft.primaryButton.borderRadius = borderRadiusStyle;
-            // NOTE: DEV-1541 Apply border radius to secondary button as well
-            draft.secondaryButton.borderRadius = borderRadiusStyle;
-          });
-        }, Theme.Dark);
       },
       setInputFieldBorderRadiusStyle: (
         borderRadiusStyle: BorderRadiusStyle | undefined
@@ -742,11 +721,6 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
             draft.inputField.borderRadius = borderRadiusStyle;
           });
         }, Theme.Light);
-        resourceMutator.updateCustomisableTheme((prev) => {
-          return produce(prev, (draft) => {
-            draft.inputField.borderRadius = borderRadiusStyle;
-          });
-        }, Theme.Dark);
       },
       setPrivacyPolicyLink: (link: string) => {
         resourceMutator.setTranslationValue(TranslationKey.PrivacyPolicy, link);
