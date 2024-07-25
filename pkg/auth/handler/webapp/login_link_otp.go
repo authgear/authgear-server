@@ -68,7 +68,7 @@ func (h *LoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, s
 		target := n.GetLoginLinkOTPTarget()
 
 		state, err := h.LoginLinkOTPCodeService.InspectState(
-			otp.KindOOBOTP(h.Config, channel),
+			otp.KindOOBOTPLink(h.Config, channel),
 			target,
 		)
 		if err != nil {
@@ -177,7 +177,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			return err
 		}
 
-		kind := otp.KindOOBOTP(h.Config, model.AuthenticatorOOBChannelEmail)
+		kind := otp.KindOOBOTPLink(h.Config, model.AuthenticatorOOBChannelEmail)
 		err = h.LoginLinkOTPCodeService.VerifyOTP(
 			kind, email, "", &otp.VerifyOptions{UseSubmittedCode: true, SkipConsume: true},
 		)
