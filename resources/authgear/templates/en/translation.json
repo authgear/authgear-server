@@ -912,6 +912,7 @@
   "v2-error-bot-protection-required": "Please verify captcha to proceed.<br />If you are unable to see the captcha widget, please contact support.",
   "v2-error-bot-protection-verification-failed": "Captcha verification failed.",
   "v2-error-bot-protection-cloudflare": "Something went wrong with Cloudflare Turnstile, please contact support.",
+  "v2-error-bot-protection-recaptcha-v2": "Something went wrong with Google RecaptchaV2, please contact support.",
   "v2-create-password-page-title": "Create Password",
   "v2-password-policy-strength": "Password strength:",
   "v2-password-policy-minimum-length": "At least {length, plural, one{# character} other{# characters}}",
