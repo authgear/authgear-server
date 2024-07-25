@@ -5,7 +5,7 @@ import "fmt"
 // ResolveCloudflareTurnstile resolves language tag to Cloudflare-Turnstile-supported language tags
 // ref https://developers.cloudflare.com/turnstile/reference/supported-languages/
 func ResolveCloudflareTurnstile(lang string) string {
-	if !AvailableLanguagesMap[lang] {
+	if _, ok := AvailableLanguagesMap[lang]; !ok {
 		panic(fmt.Errorf("unsupported language: %s", lang))
 	}
 	switch lang {

@@ -6,7 +6,7 @@ func init() {
 	BuiltinLanguages = append(ManuallyLocalizedLanguages, MachineLocalizedLanguages...)
 	sort.Strings(BuiltinLanguages)
 	for _, lang := range AvailableLanguages {
-		AvailableLanguagesMap[lang] = true
+		AvailableLanguagesMap[lang] = struct{}{}
 	}
 }
 
@@ -49,7 +49,7 @@ var MachineLocalizedLanguages = []string{
 }
 
 // AvailableLangagesMap is the set of available languages
-var AvailableLanguagesMap = map[string]bool{}
+var AvailableLanguagesMap = map[string]struct{}{}
 
 // AvailableLanguages are the languages we recognize.
 var AvailableLanguages = []string{
