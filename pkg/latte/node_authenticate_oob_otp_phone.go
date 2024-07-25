@@ -82,7 +82,7 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.Authenticator.OOBOTP.Phone
 	state, err := deps.OTPCodes.InspectState(
-		otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelSMS),
+		otp.KindOOBOTPCode(deps.Config, model.AuthenticatorOOBChannelSMS),
 		target,
 	)
 	if err != nil {

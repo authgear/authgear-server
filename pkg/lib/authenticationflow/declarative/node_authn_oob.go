@@ -191,7 +191,7 @@ func (n *NodeAuthenticationOOB) otpKind(deps *authflow.Dependencies) otp.Kind {
 	case otp.PurposeVerification:
 		return otp.KindVerification(deps.Config, n.Channel)
 	case otp.PurposeOOBOTP:
-		return otp.KindOOBOTP(deps.Config, n.Channel)
+		return otp.KindOOBOTPCode(deps.Config, n.Channel)
 	default:
 		panic(fmt.Errorf("unexpected otp purpose: %v", n.Purpose))
 	}

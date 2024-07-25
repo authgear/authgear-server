@@ -555,7 +555,7 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 				channel = model.AuthenticatorOOBChannelSMS
 			}
 		}
-		kind := otp.KindOOBOTP(s.Config, channel)
+		kind := otp.KindOOBOTPCode(s.Config, channel)
 
 		code := spec.OOBOTP.Code
 		a := info.OOBOTP
