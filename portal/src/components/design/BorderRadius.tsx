@@ -15,6 +15,7 @@ import {
   AllBorderRadiusStyleTypes,
   BorderRadiusStyle,
   BorderRadiusStyleType,
+  DEFAULT_BORDER_RADIUS,
 } from "../../model/themeAuthFlowV2";
 
 import styles from "./BorderRadius.module.css";
@@ -35,7 +36,7 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
 
   const [radiusValue, setRadiusValue] = useState(() => {
     if (value?.type !== "rounded") {
-      return "0";
+      return DEFAULT_BORDER_RADIUS;
     }
     return value.radius;
   });
@@ -52,7 +53,7 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
       if (option.value === "rounded") {
         onChange({
           type: option.value,
-          radius: radiusValue !== "" ? radiusValue : "0",
+          radius: radiusValue !== "" ? radiusValue : DEFAULT_BORDER_RADIUS,
         });
       } else {
         onChange({

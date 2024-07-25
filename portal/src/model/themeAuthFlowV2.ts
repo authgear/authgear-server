@@ -128,6 +128,8 @@ export const EMPTY_THEME: PartialCustomisableTheme = {
   link: {},
 };
 
+export const DEFAULT_BORDER_RADIUS = "0.875em";
+
 export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
   page: {
     backgroundColor: "#ffffff",
