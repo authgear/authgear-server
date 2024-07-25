@@ -242,7 +242,10 @@ const AlignmentConfiguration: React.VFC<AlignmentConfigurationProps> =
         <Configuration labelKey="DesignScreen.configuration.card.alignment.label">
           <ButtonToggleGroup
             className={cn("mt-2")}
-            value={designForm.state.customisableTheme.card.alignment}
+            value={
+              designForm.state.customisableTheme.card.alignment ??
+              designForm.state.themeDefaultValue.card.alignment
+            }
             options={AlignmentOptions}
             onSelectOption={onSelectOption}
             renderOption={renderOption}
@@ -313,7 +316,8 @@ const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
         <Configuration labelKey="DesignScreen.configuration.button.borderRadiusStyle.label">
           <BorderRadius
             value={
-              designForm.state.customisableTheme.primaryButton.borderRadius
+              designForm.state.customisableTheme.primaryButton.borderRadius ??
+              designForm.state.themeDefaultValue.primaryButton.borderRadius
             }
             onChange={designForm.setPrimaryButtonBorderRadiusStyle}
           />
@@ -406,7 +410,10 @@ const InputConfiguration: React.VFC<InputConfigurationProps> =
       <ConfigurationGroup labelKey="DesignScreen.configuration.input.label">
         <Configuration labelKey="DesignScreen.configuration.input.border.label">
           <BorderRadius
-            value={designForm.state.customisableTheme.inputField.borderRadius}
+            value={
+              designForm.state.customisableTheme.inputField.borderRadius ??
+              designForm.state.themeDefaultValue.inputField.borderRadius
+            }
             onChange={designForm.setInputFieldBorderRadiusStyle}
           />
         </Configuration>

@@ -47,7 +47,7 @@ interface ButtonToggleGroupProps<T> {
   className?: string;
   options: Option<T>[];
   onSelectOption: (option: Option<T>) => void;
-  value: T | undefined;
+  value: T;
   keyExtractor?: (option: Option<T>) => string;
   renderOption: (
     option: Option<T>,

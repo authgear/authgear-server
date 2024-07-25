@@ -21,8 +21,8 @@ import {
 import styles from "./BorderRadius.module.css";
 
 interface BorderRadiusProps {
-  value: BorderRadiusStyle | undefined;
-  onChange: (value: BorderRadiusStyle | undefined) => void;
+  value: BorderRadiusStyle;
+  onChange: (value: BorderRadiusStyle) => void;
 }
 const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   props
@@ -35,14 +35,14 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   );
 
   const [radiusValue, setRadiusValue] = useState(() => {
-    if (value?.type !== "rounded") {
+    if (value.type !== "rounded") {
       return DEFAULT_BORDER_RADIUS;
     }
     return value.radius;
   });
 
   useEffect(() => {
-    if (value?.type !== "rounded") {
+    if (value.type !== "rounded") {
       return;
     }
     setRadiusValue(value.radius);
@@ -74,9 +74,14 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   const onBorderRadiusBlur = useCallback(
     (ev: React.FocusEvent<HTMLInputElement>) => {
       if (ev.target.value === "") {
-        onChange(undefined);
+        setRadiusValue(DEFAULT_BORDER_RADIUS);
+        onChange({
+          type: "rounded",
+          radius: DEFAULT_BORDER_RADIUS,
+        });
         return;
       }
+      setRadiusValue(ev.target.value);
       onChange({
         type: "rounded",
         radius: ev.target.value,
@@ -114,12 +119,12 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
   return (
     <div>
       <ButtonToggleGroup
-        value={value?.type}
+        value={value.type}
         options={options}
         onSelectOption={onSelectOption}
         renderOption={renderOption}
       ></ButtonToggleGroup>
-      {value?.type === "rounded" ? (
+      {value.type === "rounded" ? (
         <TextField
           className={cn("mt-3")}
           label={renderToString(
