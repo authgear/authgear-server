@@ -911,6 +911,8 @@
   "v2-error-unexpected-user": "Wygląda na to, że zalogowałeś się na inne konto. Spróbuj ponownie.",
   "v2-error-bot-protection-required": "Zweryfikuj captcha, aby kontynuować.<br />Jeśli nie możesz zobaczyć widżetu captcha, skontaktuj się z pomocą techniczną.",
   "v2-error-bot-protection-verification-failed": "Weryfikacja captcha nie powiodła się.",
+  "v2-error-bot-protection-cloudflare": "Coś poszło nie tak z Cloudflare Turnstile, skontaktuj się z pomocą techniczną.",
+  "v2-error-bot-protection-recaptcha-v2": "Coś poszło nie tak z Google RecaptchaV2, skontaktuj się z pomocą techniczną.",
   "v2-create-password-page-title": "Utwórz hasło",
   "v2-password-policy-strength": "Siła hasła:",
   "v2-password-policy-minimum-length": "Co najmniej {length, plural, one{# znak} other{# znaki}}",

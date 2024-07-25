@@ -911,6 +911,8 @@
   "v2-error-unexpected-user": "Het lijkt erop dat u bent ingelogd met een ander account. Probeer het opnieuw.",
   "v2-error-bot-protection-required": "Verifieer de captcha om door te gaan.<br />Als u de captcha-widget niet kunt zien, neem dan contact op met de ondersteuning.",
   "v2-error-bot-protection-verification-failed": "Captcha-verificatie mislukt.",
+  "v2-error-bot-protection-cloudflare": "Er is iets misgegaan met Cloudflare Turnstile, neem a.u.b. contact op met de ondersteuning.",
+  "v2-error-bot-protection-recaptcha-v2": "Er is iets misgegaan met Google RecaptchaV2, neem a.u.b. contact op met de ondersteuning.",
   "v2-create-password-page-title": "Wachtwoord aanmaken",
   "v2-password-policy-strength": "Wachtwoordsterkte:",
   "v2-password-policy-minimum-length": "Minimaal {length, plural, one{# teken} other{# tekens}}",

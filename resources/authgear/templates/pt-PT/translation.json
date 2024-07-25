@@ -911,6 +911,8 @@
   "v2-error-unexpected-user": "Parece que iniciou sessão com uma conta diferente. Por favor, tente novamente.",
   "v2-error-bot-protection-required": "Por favor, verifique o captcha para prosseguir.<br />Se não conseguir ver o widget do captcha, por favor contacte o suporte.",
   "v2-error-bot-protection-verification-failed": "A verificação do captcha falhou.",
+  "v2-error-bot-protection-cloudflare": "Algo correu mal com o Cloudflare Turnstile, por favor contacte o suporte.",
+  "v2-error-bot-protection-recaptcha-v2": "Algo correu mal com o Google RecaptchaV2, por favor contacte o suporte.",
   "v2-create-password-page-title": "Criar Palavra-passe",
   "v2-password-policy-strength": "Força da palavra-passe:",
   "v2-password-policy-minimum-length": "Pelo menos {length, plural, one{# caráter} other{# caracteres}}",
