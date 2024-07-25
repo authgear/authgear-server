@@ -6,6 +6,8 @@ import {
   dispatchBotProtectionEventFailed,
   dispatchBotProtectionEventVerified,
 } from "./botProtection";
+import { parseCloudflareTurnstileErrorCode } from "./cloudflareTurnstileError";
+import { setErrorMessage } from "../../setErrorMessage";
 
 function parseTheme(theme: string): Turnstile.Theme {
   switch (theme) {
@@ -20,6 +22,7 @@ function parseTheme(theme: string): Turnstile.Theme {
   }
 }
 
+const CLOUDFLARE_TURNSTILE_ERROR_MSG_ID = "data-bot-protection-cloudflare";
 export class CloudflareTurnstileController extends Controller {
   static values = {
     siteKey: { type: String },
@@ -46,9 +49,23 @@ export class CloudflareTurnstileController extends Controller {
         callback: (token: string) => {
           dispatchBotProtectionEventVerified(token);
         },
-        "error-callback": (err: string) => {
-          dispatchBotProtectionEventFailed(err);
+        "error-callback": (errCode: string) => {
+          const {
+            error: parsedError,
+            shouldRetry,
+            shouldDisplayErrMsg,
+          } = parseCloudflareTurnstileErrorCode(errCode);
+          console.error(
+            `Cloudflare Turnstile failed with error code "${errCode}". Authgear parsed it as "${parsedError}".`
+          );
+          dispatchBotProtectionEventFailed(errCode);
 
+          if (shouldRetry) {
+            this.resetWidget();
+          }
+          if (shouldDisplayErrMsg) {
+            setErrorMessage(CLOUDFLARE_TURNSTILE_ERROR_MSG_ID);
+          }
           return true; // return non-falsy value to tell cloudflare we handled error already
         },
         "expired-callback": (token: string) => {
