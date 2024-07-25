@@ -16,12 +16,33 @@
   mask: url("../../../images/ic-alignment-right.svg");
 }
 
+.icLightMode {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../../images/ic-light-mode.svg");
+}
+
+.icDarkMode {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../../images/ic-dark-mode.svg");
+}
+
 .icAlignment {
   @apply inline-block;
   background-color: #1c1b1f;
 }
 
 .icAlignment.selected {
+  @apply bg-theme-primary;
+}
+
+.icTheme {
+  @apply inline-block;
+  background-color: #1c1b1f;
+}
+
+.icTheme.selected {
   @apply bg-theme-primary;
 }
 
@@ -34,4 +55,11 @@
 
 .upgradeNowButton {
   @apply px-1;
+}
+
+
+.previewDropdown {
+  :global(.ms-Dropdown-title) {
+    margin-top: 4px;
+  }
 }

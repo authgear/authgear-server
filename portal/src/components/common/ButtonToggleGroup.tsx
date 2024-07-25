@@ -13,11 +13,12 @@ interface ButtonToggleProps<T> {
     selected: boolean
   ) => React.ReactElement | null;
   onClick: (o: Option<T>) => void;
+  disabled?: boolean;
 }
 export function ButtonToggle<T>(
   props: ButtonToggleProps<T>
 ): React.ReactElement {
-  const { option, selected, renderOption, onClick } = props;
+  const { option, selected, renderOption, onClick, disabled } = props;
   const _onClick = (e: React.MouseEvent) => {
     e.preventDefault();
     onClick(option);
@@ -34,6 +35,7 @@ export function ButtonToggle<T>(
         selected && ["bg-neutral-light"]
       )}
       onClick={_onClick}
+      disabled={disabled}
     >
       {renderOption(option, selected)}
     </button>
@@ -53,6 +55,7 @@ interface ButtonToggleGroupProps<T> {
     option: Option<T>,
     selected: boolean
   ) => React.ReactElement | null;
+  disabled?: boolean;
 }
 function ButtonToggleGroup<T>(
   props: ButtonToggleGroupProps<T>
@@ -63,6 +66,7 @@ function ButtonToggleGroup<T>(
     value,
     keyExtractor = defaultKeyExtractor,
     renderOption,
+    disabled,
   } = props;
   return (
     <div
@@ -83,6 +87,7 @@ function ButtonToggleGroup<T>(
           selected={o.value === value}
           onClick={onSelectOption}
           renderOption={renderOption}
+          disabled={disabled}
         />
       ))}
     </div>

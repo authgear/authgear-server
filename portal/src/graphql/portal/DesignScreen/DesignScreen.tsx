@@ -698,9 +698,60 @@ const PreviewPageDropdownStyles: IStyleFunctionOrObject<
   },
   title: {
     border: "none",
-    textAlign: "right",
+    textAlign: "left",
   },
 };
+
+interface PreviewThemeToggleProps {
+  activeTheme: Theme;
+  setActiveTheme: (theme: Theme) => void;
+  disabled: boolean;
+}
+const PreviewThemeToggleOptions = [Theme.Light, Theme.Dark].map((value) => ({
+  value,
+}));
+const PreviewThemeToggle: React.VFC<PreviewThemeToggleProps> =
+  function PreviewThemeToggle(props) {
+    const { activeTheme, setActiveTheme, disabled } = props;
+    const renderOption = useCallback(
+      (option: Option<Theme>, selected: boolean) => {
+        return (
+          <span
+            className={cn(
+              styles.icTheme,
+              (() => {
+                switch (option.value) {
+                  case Theme.Light:
+                    return styles.icLightMode;
+                  case Theme.Dark:
+                    return styles.icDarkMode;
+                  default:
+                    return undefined;
+                }
+              })(),
+              selected && styles.selected
+            )}
+          ></span>
+        );
+      },
+      []
+    );
+    const onSelectOption = useCallback(
+      (option: Option<Theme>) => {
+        setActiveTheme(option.value);
+      },
+      [setActiveTheme]
+    );
+    return (
+      <ButtonToggleGroup
+        value={activeTheme}
+        options={PreviewThemeToggleOptions}
+        onSelectOption={onSelectOption}
+        renderOption={renderOption}
+        disabled={disabled}
+      ></ButtonToggleGroup>
+    );
+  };
 
 interface PreviewProps {
   className?: string;
@@ -772,7 +823,8 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
       <div
         className={cn(
           "flex",
-          "justify-end",
+          "justify-between",
+          "content-center",
           "px-6",
           "py-1",
           "border-x-0",
@@ -783,10 +835,16 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
         )}
       >
         <Dropdown
+          className={styles.previewDropdown}
           styles={PreviewPageDropdownStyles}
           selectedKey={selectedPreviewPage}
           options={previewPageOptions}
           onChange={onChangePreviewPageOption}
+        />
+        <PreviewThemeToggle
+          activeTheme={designForm.state.theme}
+          setActiveTheme={designForm.setSelectedTheme}
+          disabled={designForm.state.themeOption !== "auto"}
         />
       </div>
       <iframe
