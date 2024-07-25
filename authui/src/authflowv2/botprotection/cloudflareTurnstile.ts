@@ -32,6 +32,10 @@ export class CloudflareTurnstileController extends Controller {
   declare langValue: string;
   declare widgetTarget: HTMLDivElement;
 
+  resetWidget = () => {
+    window.turnstile.reset(this.widgetTarget);
+  };
+
   connect() {
     window.turnstile.ready(() => {
       const colorScheme = getColorScheme();
@@ -49,6 +53,10 @@ export class CloudflareTurnstileController extends Controller {
         },
         "expired-callback": (token: string) => {
           dispatchBotProtectionEventExpired(token);
+        },
+        "timeout-callback": () => {
+          // reset the widget to allow a visitor to solve the challenge again
+          this.resetWidget();
         },
         "response-field": false,
 
