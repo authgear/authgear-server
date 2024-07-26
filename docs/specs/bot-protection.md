@@ -210,16 +210,13 @@ The bot protection behavior in generated flows depend on
 
 Given `bot_protection.enabled=true`,
 
-- `bot_protection.authentication_flow.signup_or_login.mode`
-  - Branches `identification: email`, `identification: phone`, `identification: username` of step `type: identify` in flows `signup`, `login`, `signup_login`, `promote` has `bot_protection.mode` equal to `bot_protection.authentication_flow.signup_or_login.mode`.
-- `bot_protection.authentication_flow.account_recovery.mode`
-  - All branches of `type: identify` of flow `account_recovery` has `bot_protection.mode` equal to `bot_protection.authentication_flow.account_recovery.mode`.
-- `bot_protection.authenticator.password.mode`
-  - Branches `authentication: primary_password`, `authentication: secondary_password` in step `type: authenticate` in flows `login` has `bot_protection.mode` equal to `bot_protection.authenticator.password.mode`.
-- `bot_protection.authenticator.oob_otp_email.mode`
-  - Branches `authentication: primary_oob_otp_email`, `authentication: secondary_oob_otp_email` in steps `type: authenticate`, `type: create_authenticator` in flows `signup`, `login`, `promote` has `bot_protection.mode` equal to `bot_protection.authenticator.oob_otp_email.mode`.
-- `bot_protection.authenticator.oob_otp_sms.mode`
-  - Branches `authentication: primary_oob_otp_sms`, `authentication: secondary_oob_otp_sms` in steps `type: authenticate`, `type: create_authenticator` in flows `signup`, `login`, `promote` has `bot_protection.mode` equal to `bot_protection.authenticator.oob_otp_sms.mode`.
+|Configuration|Behavior|
+|---|---|
+|`bot_protection.authentication_flow.signup_or_login.mode`|Branches `identification: email`, `identification: phone`, `identification: username` of step `type: identify` in flows `signup`, `login`, `signup_login`, `promote` has `bot_protection.mode` equal to `bot_protection.authentication_flow.signup_or_login.mode`.|
+|`bot_protection.authentication_flow.account_recovery.mode`|All branches of `type: identify` of flow `account_recovery` has `bot_protection.mode` equal to `bot_protection.authentication_flow.account_recovery.mode`.|
+|`bot_protection.authenticator.password.mode`|Branches `authentication: primary_password`, `authentication: secondary_password` in step `type: authenticate` in flows `login` has `bot_protection.mode` equal to `bot_protection.authenticator.password.mode`.|
+|`bot_protection.authenticator.oob_otp_email.mode`|Branches `authentication: primary_oob_otp_email`, `authentication: secondary_oob_otp_email` in steps `type: authenticate`, `type: create_authenticator` in flows `signup`, `login`, `promote` has `bot_protection.mode` equal to `bot_protection.authenticator.oob_otp_email.mode`.|
+|`bot_protection.authenticator.oob_otp_sms.mode`|Branches `authentication: primary_oob_otp_sms`, `authentication: secondary_oob_otp_sms` in steps `type: authenticate`, `type: create_authenticator` in flows `signup`, `login`, `promote` has `bot_protection.mode` equal to `bot_protection.authenticator.oob_otp_sms.mode`.|
 
 ### Bot protection in Authentication Flow API
 
