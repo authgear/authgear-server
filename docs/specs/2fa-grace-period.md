@@ -20,28 +20,54 @@ For new users, the grace period starts from the time the user is created, wherea
 
 ### Global Grace Period
 
-Global grace period can be enabled for forcing users to enroll in 2FA upon login.
+Global grace period can be enabled for forcing users to enroll in 2FA upon login instead of blocking them.
 
 ```yaml
 authentication:
   secondary_authentication_mode: "required"
-  secondary_authentication_rollout:
-    global_grace_period_enabled_since: "2021-01-01T00:00:00Z"
-    global_grace_period_days: 30
+  secondary_authentication_grace_period:
+    enabled: true
+    end_at: "2021-01-01T00:00:00Z"
 ```
 
 ### Per-user Grace Period
 
-Regardless of the global grace period, a per-user grace period can be granted for 10 days by default, or a custom duration can be specified:
+Regardless of global grace period, specific users can be granted grace period through Admin Portal / GraphQL API.
 
-```yaml
-authentication:
-  secondary_authentication_mode: "required"
-  secondary_authentication_rollout:
-    per_user_grace_period_days: 10
+```gql
+type User {
+  id: ID!
+  # ...
+
+  mfaGracePeriodEndAt: DateTime
+}
+
+type GrantMFAGracePeriodInput {
+  userID: ID!
+  endAt: DateTime!
+}
+
+type GrantMFAGracePeriodPayload {
+  user: User!
+}
+
+type RemoveMFAGracePeriodInput {
+  userID: ID!
+}
+
+type RemoveMFAGracePeriodPayload {
+  user: User!
+}
+
+type Mutation {
+  grantMFAGracePeriod(
+    input: GrantMFAGracePeriodInput!
+  ): GrantMFAGracePeriodPayload!
+  removeMFAGracePeriod(
+    input: RemoveMFAGracePeriodInput!
+  ): RemoveMFAGracePeriodPayload!
+}
 ```
-
-It is possible to extend the grace period of a user multiple times or cancel immediately through Admin Portal / GraphQL API.
 
 ### Customized Authentication Flow
 
@@ -71,7 +97,11 @@ authentication_flow:
             - authentication: recovery_code
 ```
 
-#### Notes
+Following table explains the behavior of `enrollment_allowed` with `optional`:
 
-- Currently only secondary authenticators are supported for enrollment.
-- `enrollment_allowed` is ignored when `optional` is `true` to match default behaviour.
+| `optional` | `enrollment_allowed` | Behavior                                                         |
+| ---------- | -------------------- | ---------------------------------------------------------------- |
+| `true`     | `true`               | Skip the step if user has no applicable authenticator.           |
+| `true`     | `false`              | Skip the step if user has no applicable authenticator.           |
+| `false`    | `true`               | User must enroll at least one authenticator before proceeding.   |
+| `false`    | `false`              | User will not be able to proceed if no applicable authenticator. |
