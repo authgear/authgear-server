@@ -51,6 +51,7 @@ import { nullishCoalesce, or_ } from "../../../util/operators";
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_APP_LOGO,
+  RESOURCE_APP_LOGO_DARK,
   RESOURCE_FAVICON,
 ];
 
