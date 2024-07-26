@@ -57,7 +57,6 @@
   @apply px-1;
 }
 
-
 .previewDropdown {
   :global(.ms-Dropdown-title) {
     margin-top: 4px;
