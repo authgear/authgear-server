@@ -152,6 +152,9 @@ enum AppSecretKey {
   ADMIN_API_SECRETS
 
   """"""
+  BOT_PROTECTION_PROVIDER_SECRET
+
+  """"""
   OAUTH_CLIENT_SECRETS
 
   """"""
@@ -162,6 +165,33 @@ enum AppSecretKey {
 
   """"""
   WEBHOOK_SECRET
+}
+
+"""Bot protection provider secret"""
+type BotProtectionProviderSecret {
+  """"""
+  secretKey: String
+
+  """"""
+  type: String!
+}
+
+""""""
+input BotProtectionProviderSecretInput {
+  """"""
+  secretKey: String
+
+  """"""
+  type: String!
+}
+
+""""""
+input BotProtectionProviderSecretUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  data: BotProtectionProviderSecretInput
 }
 
 """"""
@@ -743,6 +773,9 @@ type SecretConfig {
   adminAPISecrets: [AdminAPISecret!]
 
   """"""
+  botProtectionProviderSecret: BotProtectionProviderSecret
+
+  """"""
   oauthClientSecrets: [oauthClientSecretItem!]
 
   """"""
@@ -759,6 +792,9 @@ type SecretConfig {
 input SecretConfigUpdateInstructionsInput {
   """"""
   adminAPIAuthKey: AdminAPIAuthKeyUpdateInstructionInput
+
+  """"""
+  botProtectionProviderSecret: BotProtectionProviderSecretUpdateInstructionsInput
 
   """"""
   oauthClientSecrets: OAuthClientSecretsUpdateInstructionsInput
