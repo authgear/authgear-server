@@ -43,6 +43,8 @@ func (p *Provider) Verify(token string) (err error) {
 		err = p.verifyTokenByCloudflare(token)
 	case config.BotProtectionProviderTypeRecaptchaV2:
 		err = p.verifyTokenByRecaptchaV2(token)
+	default:
+		panic(fmt.Errorf("unknown bot_protection provider"))
 	}
 
 	if errors.Is(err, ErrVerificationFailed) {
@@ -53,11 +55,7 @@ func (p *Provider) Verify(token string) (err error) {
 		err = errors.Join(err, dispatchErr)
 	}
 
-	if err != nil {
-		return err
-	}
-
-	return fmt.Errorf("unknown bot_protection provider")
+	return
 }
 
 func (p *Provider) verifyTokenByCloudflare(token string) error {
