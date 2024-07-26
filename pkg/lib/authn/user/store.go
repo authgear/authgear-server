@@ -24,6 +24,7 @@ type store interface {
 	Count() (uint64, error)
 	QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
+	UpdateMFAEnrollment(userID string, endAt *time.Time) error
 	UpdateAccountStatus(userID string, status AccountStatus) error
 	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(userID string, customAttrs map[string]interface{}) error
@@ -284,6 +285,20 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("last_login_at", sq.Expr("login_at")).
 		Set("login_at", loginAt).
+		Where("id = ?", userID)
+
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) UpdateMFAEnrollment(userID string, endAt *time.Time) error {
+	builder := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_user")).
+		Set("mfa_enrollment_end_at", endAt).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)
