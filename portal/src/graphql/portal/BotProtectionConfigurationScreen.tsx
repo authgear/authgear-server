@@ -14,7 +14,7 @@ import {
   AppSecretConfigFormModel,
   useAppSecretConfigForm,
 } from "../../hook/useAppSecretConfigForm";
-import { useLocation, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { AppSecretKey } from "./globalTypes.generated";
 import ShowError from "../../ShowError";
@@ -31,15 +31,22 @@ import { useSystemConfig } from "../../context/SystemConfigContext";
 import recaptchaV2LogoURL from "../../images/recaptchav2_logo.svg";
 import cloudflareLogoURL from "../../images/cloudflare_logo.svg";
 import WidgetDescription from "../../WidgetDescription";
+import FormTextField from "../../FormTextField";
+import PrimaryButton from "../../PrimaryButton";
+import { startReauthentication } from "./Authenticated";
+
+const MASKED_SECRET = "***************";
+
+const SECRET_KEY_FORM_FIELD_ID = "secret-key-form-field";
 
 interface LocationState {
-  isEdit: boolean;
+  isOAuthRedirect: boolean;
 }
 function isLocationState(raw: unknown): raw is LocationState {
   return (
     raw != null &&
     typeof raw === "object" &&
-    (raw as Partial<LocationState>).isEdit != null
+    (raw as Partial<LocationState>).isOAuthRedirect != null
   );
 }
 
@@ -47,7 +54,7 @@ interface FormState {
   enabled: boolean;
   providerType: BotProtectionProviderType;
   siteKey: string;
-  secretKey: string;
+  secretKey: string | null;
 }
 
 function constructFormState(
@@ -57,7 +64,7 @@ function constructFormState(
   const enabled = config.bot_protection?.enabled ?? false;
   const providerType = config.bot_protection?.provider?.type ?? "recaptchav2";
   const siteKey = config.bot_protection?.provider?.site_key ?? "";
-  const secretKey = secrets.botProtectionProviderSecret?.secret_key ?? "";
+  const secretKey = secrets.botProtectionProviderSecret?.secretKey ?? null;
 
   return {
     enabled,
@@ -85,10 +92,12 @@ function constructConfig(
       },
     };
 
-    secrets.botProtectionProviderSecret = {
-      secret_key: currentState.secretKey,
-      type: currentState.providerType,
-    };
+    if (currentState.secretKey != null) {
+      secrets.botProtectionProviderSecret = {
+        secretKey: currentState.secretKey,
+        type: currentState.providerType,
+      };
+    }
     clearEmptyObject(config);
   });
 }
@@ -98,11 +107,14 @@ function constructSecretUpdateInstruction(
   _secrets: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
+  if (currentState.secretKey == null) {
+    return undefined;
+  }
   return {
     botProtectionProviderSecret: {
       action: "set",
       data: {
-        secret_key: currentState.secretKey,
+        secretKey: currentState.secretKey,
         type: currentState.providerType,
       },
     },
@@ -171,6 +183,17 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
 
     const { renderToString } = useContext(Context);
 
+    const locationState = useLocationEffect((state: LocationState) => {
+      if (state.isOAuthRedirect) {
+        window.location.hash = "";
+        window.location.hash = "#" + SECRET_KEY_FORM_FIELD_ID;
+      }
+    });
+
+    const [revealed, setRevealed] = useState(
+      locationState?.isOAuthRedirect ?? false
+    );
+
     const onChangeEnabled = useCallback(
       (_event, checked?: boolean) => {
         if (checked != null) {
@@ -211,6 +234,57 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
         });
       },
       [setState]
+    );
+
+    const onChangeSiteKey = useCallback(
+      (_, value?: string) => {
+        if (value != null) {
+          setState((state) => {
+            return {
+              ...state,
+              siteKey: value,
+            };
+          });
+        }
+      },
+      [setState]
+    );
+
+    const onChangeSecretKey = useCallback(
+      (_, value?: string) => {
+        if (value != null) {
+          setState((state) => {
+            return {
+              ...state,
+              secretKey: value,
+            };
+          });
+        }
+      },
+      [setState]
+    );
+
+    const navigate = useNavigate();
+    const onClickReveal = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (state.secretKey != null) {
+          setRevealed(true);
+          return;
+        }
+
+        const locationState: LocationState = {
+          isOAuthRedirect: true,
+        };
+
+        startReauthentication(navigate, locationState).catch((e) => {
+          // Normally there should not be any error.
+          console.error(e);
+        });
+      },
+      [navigate, state.secretKey]
     );
 
     return (
@@ -263,6 +337,40 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
                   <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.description" />
                 </WidgetDescription>
               )}
+              <FormTextField
+                type="text"
+                label={renderToString(
+                  "BotProtectionConfigurationScreen.provider.siteKey.label"
+                )}
+                value={state.siteKey}
+                required={true}
+                onChange={onChangeSiteKey}
+                parentJSONPointer=""
+                fieldName="siteKey"
+              />
+              <div className={styles.secretKeyInputContainer}>
+                <FormTextField
+                  className={styles.secretKeyInput}
+                  id={SECRET_KEY_FORM_FIELD_ID}
+                  type="text"
+                  label={renderToString(
+                    "BotProtectionConfigurationScreen.provider.secretKey.label"
+                  )}
+                  value={revealed ? state.secretKey ?? "" : MASKED_SECRET}
+                  required={true}
+                  onChange={onChangeSecretKey}
+                  parentJSONPointer=""
+                  fieldName="secretKey"
+                  readOnly={!revealed}
+                />
+                {!revealed ? (
+                  <PrimaryButton
+                    className={styles.secretKeyRevealButton}
+                    onClick={onClickReveal}
+                    text={<FormattedMessage id="reveal" />}
+                  />
+                ) : null}
+              </div>
             </div>
           ) : null}
         </div>
@@ -305,15 +413,12 @@ const BotProtectionConfigurationScreen: React.VFC =
     const location = useLocation();
     const [shouldRefreshToken] = useState<boolean>(() => {
       const { state } = location;
-      if (isLocationState(state) && state.isEdit) {
+      if (isLocationState(state) && state.isOAuthRedirect) {
         return true;
       }
       return false;
     });
-    useLocationEffect<LocationState>(() => {
-      // Pop the location state if exist
-    });
-    const { token, loading, error, retry } = useAppSecretVisitToken(
+    const { token, error, retry } = useAppSecretVisitToken(
       appID,
       SECRETS,
       shouldRefreshToken
@@ -322,7 +427,7 @@ const BotProtectionConfigurationScreen: React.VFC =
       return <ShowError error={error} onRetry={retry} />;
     }
 
-    if (loading || token === undefined) {
+    if (token === undefined) {
       return <ShowLoading />;
     }
 

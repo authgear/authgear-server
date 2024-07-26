@@ -661,8 +661,8 @@ export interface OAuthClientSecret {
 }
 
 export interface BotProtectionProviderSecret {
-  secret_key: string; // Assume all provider have `secret_key` for now
-  type: BotProtectionProviderType;
+  secretKey?: string | null;
+  type: string;
 }
 
 export interface PortalAPISecretConfig {
@@ -701,7 +701,7 @@ export interface SMTPSecretUpdateInstruction {
 }
 
 export interface BotProtectionProviderSecretUpdateInstructionData {
-  secret_key: string;
+  secretKey: string | null;
   type: BotProtectionProviderType;
 }
 export interface BotProtectionProviderSecretUpdateInstruction {

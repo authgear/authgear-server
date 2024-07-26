@@ -1627,6 +1627,8 @@
   "BotProtectionConfigurationScreen.provider.cloudflare.label": "Cloudflare Turnstile",
   "BotProtectionConfigurationScreen.provider.recaptchaV2.description": "Register with Google and obtain the API keys needed. See Google's {ExternalLink, react, children{guide for reCAPTCHA} href{https://developers.google.com/recaptcha/docs/settings}}",
   "BotProtectionConfigurationScreen.provider.cloudflare.description": "Register with Cloudflare and obtain the API keys needed. See Cloudflare's {ExternalLink, react, children{guide for Turnstile} href{https://developers.cloudflare.com/turnstile/get-started/#get-a-sitekey-and-secret-key}}",
+  "BotProtectionConfigurationScreen.provider.siteKey.label": "Site Key",
+  "BotProtectionConfigurationScreen.provider.secretKey.label": "Secret Key",
 
   "IntegrationsConfigurationScreen.title": "Integrations",
   "IntegrationsConfigurationScreen.add-on": "Add-on",
