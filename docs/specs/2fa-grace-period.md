@@ -45,7 +45,7 @@ It is possible to extend the grace period of a user multiple times or cancel imm
 
 ### Customized Authentication Flow
 
-Customized authentication flow can use `allow_enrollment: true` to allow enrolling any of the following authenticators before proceeding.
+Customized authentication flow can use `enrollment_allowed: true` to allow enrolling any of the following authenticators before proceeding.
 
 ```yaml
 authentication_flow:
@@ -64,11 +64,14 @@ authentication_flow:
           optional: false # or null
           # If the end-user has no applicable authentication method,
           # then enrollment will be required before proceeding.
-          # allow_enrollment by default is false, meaning user with no applicable method beforehand will be blocked from proceeding.
-          allow_enrollment: true
+          # enrollment_allowed by default is false, meaning user with no applicable method beforehand will be blocked from proceeding.
+          enrollment_allowed: true
           one_of:
             - authentication: secondary_totp
             - authentication: recovery_code
 ```
 
-When 2FA mode has been set to `required` and first 2FA step is met, user will be required to either use existing 2FA or create a new one.
+#### Notes
+
+- Currently only secondary authenticators are supported for enrollment.
+- `enrollment_allowed` is ignored when `optional` is `true` to match default behaviour.
