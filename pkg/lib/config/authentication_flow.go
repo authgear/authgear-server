@@ -289,11 +289,31 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 				"required": ["one_of"],
 				"properties": {
 					"optional": { "type": "boolean" },
+          "enrollment_allowed": { "type": "boolean" },
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAuthenticate" }
 					}
-				}
+				},
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "optional": { "const": false }
+              }
+            },
+            "then": {
+              "properties": {
+                "enrollment_allowed": { "type": "boolean" }
+              }
+            },
+            "else": {
+              "properties": {
+                "enrollment_allowed": { "const": false }
+              }
+            }
+          }
+        ]
 			}
 		},
 		{
@@ -904,6 +924,7 @@ func (s *AuthenticationFlowSignupFlowStep) GetName() string { return s.Name }
 func (s *AuthenticationFlowSignupFlowStep) GetType() AuthenticationFlowStepType {
 	return AuthenticationFlowStepType(s.Type)
 }
+
 func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowSignupFlowStepTypeIdentify:
@@ -944,9 +965,11 @@ type AuthenticationFlowSignupFlowOneOf struct {
 	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowSignupFlowOneOf{}
-var _ AuthenticationFlowObjectAccountLinkingConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                   = &AuthenticationFlowSignupFlowOneOf{}
+	_ AuthenticationFlowObjectAccountLinkingConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider  = &AuthenticationFlowSignupFlowOneOf{}
+)
 
 func (f *AuthenticationFlowSignupFlowOneOf) IsFlowObject() {}
 
@@ -1024,6 +1047,10 @@ type AuthenticationFlowLoginFlowStep struct {
 	// Optional is relevant when Type is authenticate.
 	Optional *bool `json:"optional,omitempty"`
 
+	// EnrollmentAllowed is relevant when Type is authenticate and Optional is falsy.
+	// If set to true, user can enroll one of the authenticators to proceed.
+	EnrollmentAllowed *bool `json:"enrollment_allowed,omitempty"`
+
 	// OneOf is relevant when Type is identify or authenticate.
 	OneOf []*AuthenticationFlowLoginFlowOneOf `json:"one_of,omitempty"`
 
@@ -1078,8 +1105,10 @@ type AuthenticationFlowLoginFlowOneOf struct {
 	Steps []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowLoginFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowLoginFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                  = &AuthenticationFlowLoginFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowLoginFlowOneOf{}
+)
 
 func (f *AuthenticationFlowLoginFlowOneOf) IsFlowObject() {}
 
@@ -1163,8 +1192,10 @@ type AuthenticationFlowSignupLoginFlowOneOf struct {
 	LoginFlow      string                           `json:"login_flow,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowSignupLoginFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowSignupLoginFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                  = &AuthenticationFlowSignupLoginFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowSignupLoginFlowOneOf{}
+)
 
 func (s *AuthenticationFlowSignupLoginFlowOneOf) IsFlowObject() {}
 
@@ -1254,8 +1285,10 @@ type AuthenticationFlowReauthFlowOneOf struct {
 	Steps []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowReauthFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowReauthFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                  = &AuthenticationFlowReauthFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowReauthFlowOneOf{}
+)
 
 func (f *AuthenticationFlowReauthFlowOneOf) IsFlowObject() {}
 
@@ -1364,6 +1397,7 @@ func (s *AuthenticationFlowAccountRecoveryFlowStep) GetName() string { return s.
 func (s *AuthenticationFlowAccountRecoveryFlowStep) GetType() AuthenticationFlowStepType {
 	return AuthenticationFlowStepType(s.Type)
 }
+
 func (s *AuthenticationFlowAccountRecoveryFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowAccountRecoveryFlowTypeIdentify:
@@ -1394,8 +1428,10 @@ type AuthenticationFlowAccountRecoveryFlowOneOf struct {
 	Steps          []*AuthenticationFlowAccountRecoveryFlowStep             `json:"steps,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowAccountRecoveryFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowAccountRecoveryFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                  = &AuthenticationFlowAccountRecoveryFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowAccountRecoveryFlowOneOf{}
+)
 
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) IsFlowObject() {}
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetSteps() []AuthenticationFlowObject {
@@ -1406,11 +1442,13 @@ func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetSteps() []Authentication
 	}
 	return out
 }
+
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo {
 	return AuthenticationFlowObjectFlowBranchInfo{
 		Identification: AuthenticationFlowIdentification(f.Identification),
 	}
 }
+
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
 	return f.BotProtection
 }
@@ -1487,5 +1525,5 @@ func init() {
 %s
 		]
 	}`, accountRecoveryChannelsOneOf)
-	var _ = Schema.Add("AccountRecoveryChannel", schema)
+	_ = Schema.Add("AccountRecoveryChannel", schema)
 }

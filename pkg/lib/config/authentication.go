@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
@@ -28,6 +30,7 @@ var _ = Schema.Add("AuthenticationConfig", `
 			"uniqueItems": true
 		},
 		"secondary_authentication_mode": { "$ref": "#/$defs/SecondaryAuthenticationMode" },
+		"secondary_authentication_grace_period": { "$ref": "#/$defs/SecondaryAuthenticationRolloutConfig" },
 		"device_token": { "$ref": "#/$defs/DeviceTokenConfig" },
 		"recovery_code": { "$ref": "#/$defs/RecoveryCodeConfig" },
 		"rate_limits": { "$ref": "#/$defs/AuthenticationRateLimitsConfig" },
@@ -146,15 +149,16 @@ var _ = Schema.Add("SecondaryAuthenticatorType", `
 `)
 
 type AuthenticationConfig struct {
-	Identities                  []model.IdentityType            `json:"identities,omitempty"`
-	PrimaryAuthenticators       *[]model.AuthenticatorType      `json:"primary_authenticators,omitempty"`
-	SecondaryAuthenticators     *[]model.AuthenticatorType      `json:"secondary_authenticators,omitempty"`
-	SecondaryAuthenticationMode SecondaryAuthenticationMode     `json:"secondary_authentication_mode,omitempty"`
-	DeviceToken                 *DeviceTokenConfig              `json:"device_token,omitempty"`
-	RecoveryCode                *RecoveryCodeConfig             `json:"recovery_code,omitempty"`
-	PublicSignupDisabled        bool                            `json:"public_signup_disabled,omitempty"`
-	RateLimits                  *AuthenticationRateLimitsConfig `json:"rate_limits,omitempty"`
-	Lockout                     *AuthenticationLockoutConfig    `json:"lockout,omitempty"`
+	Identities                     []model.IdentityType                  `json:"identities,omitempty"`
+	PrimaryAuthenticators          *[]model.AuthenticatorType            `json:"primary_authenticators,omitempty"`
+	SecondaryAuthenticators        *[]model.AuthenticatorType            `json:"secondary_authenticators,omitempty"`
+	SecondaryAuthenticationMode    SecondaryAuthenticationMode           `json:"secondary_authentication_mode,omitempty"`
+	SecondaryAuthenticationRollout *SecondaryAuthenticationRolloutConfig `json:"secondary_authentication_grace_period,omitempty"`
+	DeviceToken                    *DeviceTokenConfig                    `json:"device_token,omitempty"`
+	RecoveryCode                   *RecoveryCodeConfig                   `json:"recovery_code,omitempty"`
+	PublicSignupDisabled           bool                                  `json:"public_signup_disabled,omitempty"`
+	RateLimits                     *AuthenticationRateLimitsConfig       `json:"rate_limits,omitempty"`
+	Lockout                        *AuthenticationLockoutConfig          `json:"lockout,omitempty"`
 }
 
 func (c *AuthenticationConfig) SetDefaults() {
@@ -197,6 +201,28 @@ const (
 
 func (m SecondaryAuthenticationMode) IsDisabled() bool {
 	return m == SecondaryAuthenticationModeDisabled
+}
+
+var _ = Schema.Add("SecondaryAuthenticationRolloutConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+    "enabled": { "type": "boolean" },
+		"end_at": { "type": "string", "format": "date-time" }
+	}
+}
+`)
+
+type SecondaryAuthenticationRolloutConfig struct {
+	Enabled bool       `json:"enabled,omitempty"`
+	EndAt   *time.Time `json:"end_at,omitempty"`
+}
+
+func (c *SecondaryAuthenticationRolloutConfig) SetDefaults() {
+	if c.EndAt == nil || c.EndAt.IsZero() {
+		c.EndAt = nil
+	}
 }
 
 var _ = Schema.Add("DeviceTokenConfig", `
