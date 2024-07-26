@@ -53,7 +53,7 @@ Step [8] redirects the browser to Web App #2, with a with a cookie representing 
 
 Same as the [Native SSO](https://openid.net/specs/openid-connect-native-sso-1_0.html#name-native-app-authorization-ex). With a new supported scope `https://authgear.com/scopes/pre-authenticated-url`.
 
-## Token Exchange Profile for App Initiated SSO to Web
+## Token Exchange Profile for Pre-Authenticated URL
 
 This section profiles the OAuth2 Token Exchange [RFC8693](https://datatracker.ietf.org/doc/html/rfc8693) spec and describes the processing rules used to exchange a previous authentication for a Pre-Authenticated URL Token, which can then be used to exchange for an access token stored in a browser cookie for the use of another Web App.
 
@@ -137,7 +137,7 @@ A web browser can open the authorization endpoint endpoint to exchange for a val
 - `scope`: Optional. Scope of the session of the browser session cookie. If not provided, it will be same as the scope of the session which generates this browser session cookie (i.e. The offline grant of the mobile app).
 - `prompt`: Required. The value must be `none`.
 - `response_type`: Required. Must be one of the following values:
-  - `app_initiated_sso_to_web token`: An access token will be set in the cookie, which shares the same session of the refresh_token of the native mobile app.
+  - `urn:authgear:params:oauth:response-type:pre-authenticated-url token`: An access token will be set in the cookie, which shares the same session of the refresh_token of the native mobile app.
 - `response_mode`: Required. Must be `cookie`.
 - `redirect_uri`: Required. The uri to redirect to on the operation completed. It must be whitelisted by the client specified in `client_id`. See the below [Client Metadata](#client-metadata) section for details.
 - `state`: Optional. If provided, will be provided to the redirect_uri as a `state` query parameter.
