@@ -877,12 +877,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 	}
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
+	simpleStoreRedisFactory := &sso.SimpleStoreRedisFactory{
+		Context: contextContext,
+		AppID:   appID,
+		Redis:   appredisHandle,
+	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
 		Credentials:                  oAuthSSOProviderCredentials,
 		Clock:                        clockClock,
 		StandardAttributesNormalizer: normalizer,
 		HTTPClient:                   oAuthHTTPClient,
+		SimpleStoreRedisFactory:      simpleStoreRedisFactory,
 	}
 	webappoauthStore := &webappoauth.Store{
 		Context: contextContext,
