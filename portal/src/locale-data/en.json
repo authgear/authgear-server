@@ -164,6 +164,7 @@
   "ScreenNav.user-profile": "User Profile",
   "ScreenNav.standard-attributes": "Standard Attributes",
   "ScreenNav.custom-attributes": "Custom Attributes",
+  "ScreenNav.bot-protection": "Bot Protection",
   "ScreenNav.hooks": "Hooks",
   "ScreenNav.billing": "Billing",
   "ScreenNav.advanced": "Advanced",
@@ -1617,6 +1618,8 @@
   "AnalyticsSignupMethodsWidget.chart.wechat.label": "WeChat",
   "AnalyticsSignupMethodsWidget.chart.anonymous.label": "Anonymous",
   "AnalyticsSignupMethodsWidget.no-data-available.label": "No Data Available",
+
+  "BotProtectionConfigurationScreen.title": "Bot Protection",
 
   "IntegrationsConfigurationScreen.title": "Integrations",
   "IntegrationsConfigurationScreen.add-on": "Add-on",

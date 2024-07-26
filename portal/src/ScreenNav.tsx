@@ -299,6 +299,11 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
           },
         ],
       },
+      {
+        type: "link" as const,
+        textKey: "ScreenNav.bot-protection",
+        url: `/project/${appID}/bot-protection`,
+      },
       ...(showIntegrations
         ? [
             {
