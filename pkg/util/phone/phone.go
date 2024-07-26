@@ -2,7 +2,6 @@ package phone
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -14,15 +13,6 @@ var ErrNotInE164Format = errors.New("not in E.164 format")
 
 // ErrPhoneNumberInvalid means phone number doesn't pass validation
 var ErrPhoneNumberInvalid = errors.New("invalid phone number")
-
-func combineCallingCodeWithNumber(nationalNumber string, callingCode string) string {
-	nationalNumber = strings.TrimSpace(nationalNumber)
-	callingCode = strings.TrimSpace(callingCode)
-	if !strings.HasPrefix(callingCode, "+") {
-		callingCode = fmt.Sprintf("+%s", callingCode)
-	}
-	return fmt.Sprintf("%s%s", callingCode, nationalNumber)
-}
 
 // Mask masks the give phone number.
 func Mask(phone string) string {

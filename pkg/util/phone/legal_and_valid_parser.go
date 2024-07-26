@@ -30,12 +30,6 @@ func (p *legalAndValidParser) ParseInputPhoneNumber(phone string) (e164 string, 
 	return
 }
 
-func (p *legalAndValidParser) ParseCountryCallingCodeAndNationalNumber(nationalNumber string, countryCallingCode string) (e164 string, err error) {
-	rawInput := combineCallingCodeWithNumber(nationalNumber, countryCallingCode)
-	e164, err = p.ParseInputPhoneNumber(rawInput)
-	return
-}
-
 func (p *legalAndValidParser) SplitE164(e164 string) (nationalNumber string, countryCallingCode string, err error) {
 	err = p.CheckE164(e164)
 	if err != nil {
