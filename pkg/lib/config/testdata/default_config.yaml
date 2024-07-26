@@ -292,6 +292,7 @@ authentication:
   secondary_authenticators:
     - totp
   secondary_authentication_mode: if_exists
+  secondary_authentication_grace_period: {}
   device_token:
     expire_in_days: 30
   recovery_code:
