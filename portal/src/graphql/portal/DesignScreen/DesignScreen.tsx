@@ -749,6 +749,7 @@ const PreviewThemeToggle: React.VFC<PreviewThemeToggleProps> =
         onSelectOption={onSelectOption}
         renderOption={renderOption}
         disabled={disabled}
+        withBorder={false}
       ></ButtonToggleGroup>
     );
   };

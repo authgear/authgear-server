@@ -56,6 +56,7 @@ interface ButtonToggleGroupProps<T> {
     selected: boolean
   ) => React.ReactElement | null;
   disabled?: boolean;
+  withBorder?: boolean;
 }
 function ButtonToggleGroup<T>(
   props: ButtonToggleGroupProps<T>
@@ -67,6 +68,7 @@ function ButtonToggleGroup<T>(
     keyExtractor = defaultKeyExtractor,
     renderOption,
     disabled,
+    withBorder = true,
   } = props;
   return (
     <div
@@ -74,9 +76,11 @@ function ButtonToggleGroup<T>(
         "inline-block",
         "rounded",
         "overflow-hidden",
-        "border",
-        "border-solid",
-        "border-grey-grey110",
+        {
+          ["border"]: withBorder,
+          ["border-solid"]: withBorder,
+          ["border-grey-grey110"]: withBorder,
+        },
         props.className
       )}
     >
