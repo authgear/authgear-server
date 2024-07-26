@@ -802,13 +802,13 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   const src = useMemo(() => {
     const url = new URL(effectiveAppConfig.http?.public_origin ?? "");
     url.pathname = selectedPreviewPage;
-    url.searchParams.append("x_color_scheme", designForm.state.theme);
+    url.searchParams.append("x_color_scheme", designForm.state.selectedTheme);
     url.searchParams.append("ui_locales", designForm.state.selectedLanguage);
     return url.toString();
   }, [
     effectiveAppConfig.http?.public_origin,
     designForm.state.selectedLanguage,
-    designForm.state.theme,
+    designForm.state.selectedTheme,
     selectedPreviewPage,
   ]);
 
@@ -843,7 +843,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
           onChange={onChangePreviewPageOption}
         />
         <PreviewThemeToggle
-          activeTheme={designForm.state.theme}
+          activeTheme={designForm.state.selectedTheme}
           setActiveTheme={designForm.setSelectedTheme}
           disabled={designForm.state.themeOption !== "auto"}
         />

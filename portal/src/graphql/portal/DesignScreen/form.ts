@@ -84,14 +84,18 @@ interface ConfigFormState {
 
 interface ResourcesFormState {
   appName: string;
-  appLogoBase64EncodedData: string | null;
-  appLogoDarkBase64EncodedData: string | null;
-  faviconBase64EncodedData: string | null;
-  backgroundImageBase64EncodedData: string | null;
-  backgroundImageDarkBase64EncodedData: string | null;
-  customisableLightTheme: PartialCustomisableTheme;
-  customisableDarkTheme: PartialCustomisableTheme;
 
+  // light
+  customisableLightTheme: PartialCustomisableTheme;
+  appLogoBase64EncodedData: string | null;
+  backgroundImageBase64EncodedData: string | null;
+
+  // dark
+  customisableDarkTheme: PartialCustomisableTheme;
+  appLogoDarkBase64EncodedData: string | null;
+  backgroundImageDarkBase64EncodedData: string | null;
+
+  faviconBase64EncodedData: string | null;
   urls: {
     privacyPolicy: string;
     termsOfService: string;
@@ -112,7 +116,7 @@ export const enum TranslationKey {
 
 export type BranchDesignFormState = {
   selectedLanguage: LanguageTag;
-  theme: Theme;
+  selectedTheme: Theme;
 } & ConfigFormState &
   ResourcesFormState &
   FeatureConfig;
@@ -505,7 +509,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
 
   const state: BranchDesignFormState = useMemo(
     () => ({
-      theme: selectedTheme,
+      selectedTheme,
       selectedLanguage,
       ...configForm.state,
       ...resourcesState,
