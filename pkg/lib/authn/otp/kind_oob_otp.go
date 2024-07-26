@@ -44,6 +44,11 @@ func KindOOBOTPCode(config *config.AppConfig, channel model.AuthenticatorOOBChan
 func KindOOBOTPLink(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind {
 	return kindOOBOTP{config: config, channel: channel, purpose: PurposeOOBOTP, form: FormLink}
 }
+
+func KindOOBOTPWithForm(config *config.AppConfig, channel model.AuthenticatorOOBChannel, form Form) Kind {
+	return kindOOBOTP{config: config, channel: channel, purpose: PurposeOOBOTP, form: form}
+}
+
 var _ KindFactory = KindOOBOTPCode
 var _ KindFactory = KindOOBOTPLink
 
