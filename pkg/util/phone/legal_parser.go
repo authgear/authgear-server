@@ -34,7 +34,6 @@ func (p *legalParser) ParseCountryCallingCodeAndNationalNumber(nationalNumber st
 	rawInput := combineCallingCodeWithNumber(nationalNumber, countryCallingCode)
 	e164, err = p.ParseInputPhoneNumber(rawInput)
 	return
-
 }
 
 func (p *legalParser) SplitE164(e164 string) (nationalNumber string, countryCallingCode string, err error) {
@@ -61,13 +60,4 @@ func (p *legalParser) CheckE164(phone string) error {
 		return ErrNotInE164Format
 	}
 	return nil
-}
-
-func (p *legalParser) IsNorthAmericaNumber(e164 string) (bool, error) {
-	_, callingCode, err := p.SplitE164(e164)
-	if err != nil {
-		return false, err
-	}
-
-	return callingCode == "1", nil
 }
