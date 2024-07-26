@@ -1,8 +1,11 @@
 package botprotection
 
 import (
+	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -14,15 +17,20 @@ func NewProviderLogger(lf *log.Factory) ProviderLogger {
 	return ProviderLogger{lf.New("botprotection")}
 }
 
+type EventService interface {
+	DispatchEventImmediately(payload event.NonBlockingPayload) error
+}
+
 type Provider struct {
 	RemoteIP          httputil.RemoteIP
 	Config            *config.BotProtectionConfig
 	Logger            ProviderLogger
 	CloudflareClient  *CloudflareClient
 	RecaptchaV2Client *RecaptchaV2Client
+	Events            EventService
 }
 
-func (p *Provider) Verify(token string) error {
+func (p *Provider) Verify(token string) (err error) {
 	if !p.Config.Enabled || p.Config.Provider == nil {
 		return fmt.Errorf("bot_protection provider not configured")
 	}
@@ -32,9 +40,21 @@ func (p *Provider) Verify(token string) error {
 
 	switch p.Config.Provider.Type {
 	case config.BotProtectionProviderTypeCloudflare:
-		return p.verifyTokenByCloudflare(token)
+		err = p.verifyTokenByCloudflare(token)
 	case config.BotProtectionProviderTypeRecaptchaV2:
-		return p.verifyTokenByRecaptchaV2(token)
+		err = p.verifyTokenByRecaptchaV2(token)
+	}
+
+	if errors.Is(err, ErrVerificationFailed) {
+		dispatchErr := p.Events.DispatchEventImmediately(&nonblocking.BotProtectionVerificationFailedEventPayload{
+			Token:        token,
+			ProviderType: string(p.Config.Provider.Type),
+		})
+		err = errors.Join(err, dispatchErr)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	return fmt.Errorf("unknown bot_protection provider")
