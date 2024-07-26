@@ -5,6 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -64,6 +65,7 @@ type VerifyOptions struct {
 	OOBChannel            *apimodel.AuthenticatorOOBChannel
 	UseSubmittedValue     bool
 	AuthenticationDetails *AuthenticationDetails
+	Form 						      otp.Form
 }
 
 func (v *VerifyOptions) toServiceOptions() *service.VerifyOptions {
@@ -73,6 +75,7 @@ func (v *VerifyOptions) toServiceOptions() *service.VerifyOptions {
 	return &service.VerifyOptions{
 		OOBChannel:        v.OOBChannel,
 		UseSubmittedValue: v.UseSubmittedValue,
+		Form:              v.Form,
 	}
 }
 

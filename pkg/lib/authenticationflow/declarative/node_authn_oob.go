@@ -85,6 +85,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 					authn.AuthenticationStageFromAuthenticationMethod(n.Authentication),
 					authn.AuthenticationType(n.Info.Type),
 				),
+				Form: n.Form,
 			},
 		)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
@@ -120,6 +121,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 					authn.AuthenticationStageFromAuthenticationMethod(n.Authentication),
 					authn.AuthenticationType(n.Info.Type),
 				),
+				Form: n.Form,
 			},
 		)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
