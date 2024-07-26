@@ -30,6 +30,7 @@ import { DefaultEffects, IButtonProps, Image, Label } from "@fluentui/react";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import recaptchaV2LogoURL from "../../images/recaptchav2_logo.svg";
 import cloudflareLogoURL from "../../images/cloudflare_logo.svg";
+import WidgetDescription from "../../WidgetDescription";
 
 interface LocationState {
   isEdit: boolean;
@@ -253,6 +254,15 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
                   <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.label" />
                 </ProviderCard>
               </div>
+              {state.providerType === "recaptchav2" ? (
+                <WidgetDescription>
+                  <FormattedMessage id="BotProtectionConfigurationScreen.provider.recaptchaV2.description" />
+                </WidgetDescription>
+              ) : (
+                <WidgetDescription>
+                  <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.description" />
+                </WidgetDescription>
+              )}
             </div>
           ) : null}
         </div>
