@@ -1,5 +1,5 @@
-import { FormattedMessage } from "@oursky/react-messageformat";
-import React, { useState } from "react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import React, { useCallback, useContext, useState } from "react";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import styles from "./BotProtectionConfigurationScreen.module.css";
@@ -22,6 +22,8 @@ import { useLocationEffect } from "../../hook/useLocationEffect";
 import { produce } from "immer";
 import { clearEmptyObject } from "../../util/misc";
 import FormContainer from "../../FormContainer";
+import ScreenDescription from "../../ScreenDescription";
+import Toggle from "../../Toggle";
 
 interface LocationState {
   isEdit: boolean;
@@ -105,14 +107,44 @@ export interface BotProtectionConfigurationContentProps {
 }
 
 const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationContentProps> =
-  function BotProtectionConfigurationContent() {
+  function BotProtectionConfigurationContent(props) {
+    const { form } = props;
+    const { state, setState } = form;
+
+    const { renderToString } = useContext(Context);
+
+    const onChangeEnabled = useCallback(
+      (_event, checked?: boolean) => {
+        if (checked != null) {
+          setState((state) => {
+            return {
+              ...state,
+              enabled: checked,
+            };
+          });
+        }
+      },
+      [setState]
+    );
+
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
           <FormattedMessage id="BotProtectionConfigurationScreen.title" />
         </ScreenTitle>
-        <div className={styles.widget}>
-          <p>dummy screen</p>
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="BotProtectionConfigurationScreen.description" />
+        </ScreenDescription>
+        <div className={styles.content}>
+          <Toggle
+            // TODO: figure out 4px gap between toggle and label
+            checked={state.enabled}
+            onChange={onChangeEnabled}
+            label={renderToString(
+              "BotProtectionConfigurationScreen.enable.label"
+            )}
+            inlineLabel={false}
+          />
         </div>
       </ScreenContent>
     );

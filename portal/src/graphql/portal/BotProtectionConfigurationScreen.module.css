@@ -3,3 +3,9 @@
 
   @apply tablet:col-span-full;
 }
+
+.content {
+  grid-column: 1 / span 12;
+
+  @apply tablet:col-span-full mt-6;
+}

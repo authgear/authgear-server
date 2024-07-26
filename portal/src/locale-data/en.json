@@ -1620,6 +1620,8 @@
   "AnalyticsSignupMethodsWidget.no-data-available.label": "No Data Available",
 
   "BotProtectionConfigurationScreen.title": "Bot Protection",
+  "BotProtectionConfigurationScreen.description": "Detect automation tool attacks and block with CAPTCHA challenges.",
+  "BotProtectionConfigurationScreen.enable.label": "Enable Bot Protection",
 
   "IntegrationsConfigurationScreen.title": "Integrations",
   "IntegrationsConfigurationScreen.add-on": "Add-on",
