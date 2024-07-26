@@ -19,8 +19,6 @@ var AllCountries []Country
 
 var AllAlpha2 []string
 
-var alpha2ToCountry map[string]Country
-
 var JSONSchemaString string
 
 func init() {
@@ -45,11 +43,6 @@ func init() {
 		AllAlpha2[i] = c.Alpha2
 	}
 
-	alpha2ToCountry = make(map[string]Country)
-	for _, c := range AllCountries {
-		alpha2ToCountry[c.Alpha2] = c
-	}
-
 	jsonSchema := map[string]interface{}{
 		"type": "string",
 		"enum": AllAlpha2,
@@ -60,9 +53,4 @@ func init() {
 		panic(err)
 	}
 	JSONSchemaString = string(b)
-}
-
-func GetCountryByAlpha2(alpha2 string) (c Country, ok bool) {
-	c, ok = alpha2ToCountry[alpha2]
-	return c, ok
 }
