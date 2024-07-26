@@ -21,6 +21,7 @@ type User struct {
 	Web3               *UserWeb3Info          `json:"x_web3,omitempty"`
 	Roles              []string               `json:"roles,omitempty"`
 	Groups             []string               `json:"groups,omitempty"`
+	MFAEnrollmentEndAt *time.Time             `json:"mfa_enrollment_end_at,omitempty"`
 }
 
 func (u *User) EndUserAccountID() string {
