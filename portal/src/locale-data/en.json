@@ -1622,6 +1622,9 @@
   "BotProtectionConfigurationScreen.title": "Bot Protection",
   "BotProtectionConfigurationScreen.description": "Detect automation tool attacks and block with CAPTCHA challenges.",
   "BotProtectionConfigurationScreen.enable.label": "Enable Bot Protection",
+  "BotProtectionConfigurationScreen.challengeProvider.title": "CAPTCHA Challenge Provider",
+  "BotProtectionConfigurationScreen.provider.recaptchaV2.label": "reCAPTCHA V2",
+  "BotProtectionConfigurationScreen.provider.cloudflare.label": "Cloudflare Turnstile",
 
   "IntegrationsConfigurationScreen.title": "Integrations",
   "IntegrationsConfigurationScreen.add-on": "Add-on",

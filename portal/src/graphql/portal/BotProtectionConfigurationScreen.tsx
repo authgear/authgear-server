@@ -1,5 +1,6 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import React, { useCallback, useContext, useState } from "react";
+import cn from "classnames";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import styles from "./BotProtectionConfigurationScreen.module.css";
@@ -24,6 +25,11 @@ import { clearEmptyObject } from "../../util/misc";
 import FormContainer from "../../FormContainer";
 import ScreenDescription from "../../ScreenDescription";
 import Toggle from "../../Toggle";
+import WidgetTitle from "../../WidgetTitle";
+import { DefaultEffects, IButtonProps, Image, Label } from "@fluentui/react";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import recaptchaV2LogoURL from "../../images/recaptchav2_logo.svg";
+import cloudflareLogoURL from "../../images/cloudflare_logo.svg";
 
 interface LocationState {
   isEdit: boolean;
@@ -102,6 +108,57 @@ function constructSecretUpdateInstruction(
   };
 }
 
+interface ProviderCardProps {
+  className?: string;
+  logoSrc?: any;
+  logoWidth?: number;
+  logoHeight?: number;
+  children?: React.ReactNode;
+  onClick?: IButtonProps["onClick"];
+  isSelected?: boolean;
+  disabled?: boolean;
+}
+
+function ProviderCard(props: ProviderCardProps) {
+  const {
+    className,
+    disabled,
+    isSelected,
+    children,
+    onClick,
+    logoSrc,
+    logoHeight = 48,
+    logoWidth = 48,
+  } = props;
+
+  const {
+    themes: {
+      main: {
+        palette: { themePrimary },
+        semanticColors: { disabledBackground: backgroundColor },
+      },
+    },
+  } = useSystemConfig();
+
+  return (
+    <div
+      style={{
+        boxShadow: disabled ? undefined : DefaultEffects.elevation4,
+        borderColor: isSelected ? themePrimary : "transparent",
+        backgroundColor: disabled ? backgroundColor : undefined,
+        cursor: disabled ? "not-allowed" : undefined,
+      }}
+      className={cn(className, styles.providerCard)}
+      onClick={disabled ? undefined : onClick}
+    >
+      {logoSrc != null ? (
+        <Image src={logoSrc} width={logoWidth} height={logoHeight} />
+      ) : null}
+      <Label>{children}</Label>
+    </div>
+  );
+}
+
 export interface BotProtectionConfigurationContentProps {
   form: AppSecretConfigFormModel<FormState>;
 }
@@ -127,6 +184,34 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
       [setState]
     );
 
+    const onClickProviderRecaptchaV2 = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((state) => {
+          return {
+            ...state,
+            providerType: "recaptchav2",
+          };
+        });
+      },
+      [setState]
+    );
+
+    const onClickProviderCloudflare = useCallback(
+      (e: React.MouseEvent<unknown>) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setState((state) => {
+          return {
+            ...state,
+            providerType: "cloudflare",
+          };
+        });
+      },
+      [setState]
+    );
+
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -145,6 +230,31 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
             )}
             inlineLabel={false}
           />
+          {state.enabled ? (
+            <div className={styles.enabledContent}>
+              <WidgetTitle>
+                <FormattedMessage id="BotProtectionConfigurationScreen.challengeProvider.title" />
+              </WidgetTitle>
+              <div className={styles.providerCardContainer}>
+                <ProviderCard
+                  className={styles.columnLeft}
+                  onClick={onClickProviderRecaptchaV2}
+                  isSelected={state.providerType === "recaptchav2"}
+                  logoSrc={recaptchaV2LogoURL}
+                >
+                  <FormattedMessage id="BotProtectionConfigurationScreen.provider.recaptchaV2.label" />
+                </ProviderCard>
+                <ProviderCard
+                  className={styles.columnRight}
+                  onClick={onClickProviderCloudflare}
+                  isSelected={state.providerType === "cloudflare"}
+                  logoSrc={cloudflareLogoURL}
+                >
+                  <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.label" />
+                </ProviderCard>
+              </div>
+            </div>
+          ) : null}
         </div>
       </ScreenContent>
     );
