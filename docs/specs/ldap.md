@@ -2,9 +2,12 @@
   * [Supported LDAP protocol](#supported-ldap-protocol)
   * [Authenticate Authgear as a LDAP client](#authenticate-authgear-as-a-ldap-client)
   * [Configuration of LDAP servers](#configuration-of-ldap-servers)
+  * [Validation on the configuration](#validation-on-the-configuration)
+  * [Testing on the configuration](#testing-on-the-configuration)
   * [The database schema of a LDAP identity](#the-database-schema-of-a-ldap-identity)
   * [Handling of a LDAP identity](#handling-of-a-ldap-identity)
   * [The UX of LDAP in Auth UI](#the-ux-of-ldap-in-auth-ui)
+  * [Errors](#errors)
 
 # LDAP
 
@@ -43,37 +46,28 @@ In `authgear.yaml`
 identity:
   ldap:
     servers:
-    - name: ldap1
+    - name: default
       url: "ldap://localhost:389"
-      base_distinguished_name: "dc=localhost"
-      relative_distinguished_name_attribute: "uid"
-    - name: ldap2
-      url: "ldap://mycompany.com:389"
-      base_distinguished_name: "dc=mycompany,dc=com"
-      relative_distinguished_name_attribute: "uid"
+      base_dn: "dc=localhost"
+      search_filter_template: |
+        {{- if (hasSuffix $.Username "@mycompany.com") }}
+          (&(objectCategory=person)(objectClass=user)(memberof=dc=mycompany,dc=com)(sAMAccountName={{ $.Username }}))
+        {{- else }}
+          (&(objectCategory=person)(objectClass=user)(memberof=dc=anothercompany,dc=com)(sAMAccountName={{ $.Username }}))
+        {{- end }}
+      user_id_attribute: "myUserID"
 ```
 
-- `identity.ldap.servers.name`: A name that only exists in `authgear.yaml` and `authgear.secrets.yaml` for associating a LDAP server. It serves no other purpose.
+- `identity.ldap.servers.name`: A unique name to identify this LDAP server. Once set, it cannot be changed. It is stored in the database as part of the unique key to identify a LDAP identity. See [The database schema of a LDAP identity](#the-database-schema-of-a-ldap-identity) for details.
 - `identity.ldap.servers.url`: The connection URL to the LDAP server. The scheme MUST be `ldap:` or `ldaps:`. The URL MUST contain `host`, and optionally a port. If the port is omitted, the default port of the scheme is assumed. The default port of `ldap:` is `389`, while the default port of `ldaps:` is `636`. The URL MUST NOT contain other elements, such as path, nor query.
+- `identity.ldap.servers.base_dn`: The base DN to construct a Search Request, as defined in [Section 4.5.1 in RFC4511](https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1).
+- `identity.ldap.servers.search_filter_template`: A Go template that renders to a filter to be used in the Search Request. This template can use the variable `$.Username` to render the username entered by the end-user. `$.Username` is pre-processed so that it is an escaped LDAP string. The strings function from [https://masterminds.github.io/sprig/](https://masterminds.github.io/sprig/) can be used in the template.
+- `identity.ldap.servers.user_id_attribute`: The attribute that is guaranteed to be unique and never change for a given user in the LDAP server. It is used to identify a user from the LDAP server. Warning: Changing this value will cause Authgear not able to look up any previous LDAP identities.
 
 > Why does `identity.ldap.servers.url` allow scheme, host, and port?
 > The LDAP URL, defined in [Section 2 in RFC 4516](https://datatracker.ietf.org/doc/html/rfc4516#section-2), is syntactically different from the URL defined in [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986).
 > In particular, a LDAP URL can contain multiple question mark characters.
 > To ease implementation, we do not support the LDAP URL, and require a RFC3986 URL (which is implemented by the standard library net/url package).
-
-- `identity.ldap.servers.base_distinguished_name`: The base distinguished name to construct a Search Request, as defined in [Section 4.5.1 in RFC4511](https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1).
-- `identity.ldap.servers.relative_distinguished_name_attribute`: The attribute name Authgear should use to construct the search request. For example, if the value is `uid`, and the end-user gives a username of `user1`, and the base distinguished name is `dc=example,dc=com`, then the relative distinguished name is `uid=user1`, and the distinguished name is `uid=user1,dc=example,dc=com`.
-
-> base_distinguished_name and relative_distinguished_name_attribute may not be sufficient if the developer needs to determine the DN in a more dynamic way.
-> In the future, we can support a new configuration, distinguished_name_template, which is a Go template that MUST return a DN.
-> It looks like
-> ```
->   {{- if (hasSuffix $.Username "@mycompany.com") }}
->     {{- (ldapDN (ldapAttribute "uid" $.Username) (ldapParse "dc=mycompany,dc=com") ) }}
->   {{- else }}
->     {{- (ldapDN (ldapAttribute "uid" $.Username) (ldapParse "dc=anothercompany,dc=com") ) }}
->   {{- end }}
-> ```
 
 > TODO: The current configuration is missing an important feature. The feature is allow the developer to specify what attributes they want to retrieve from the LDAP server, and
 > what attributes map to which standard attributes.
@@ -84,18 +78,63 @@ In `authgear.secrets.yaml`
 secrets:
 - data:
     items:
-    - name: ldap1
+    - name: default
       username: authgear
       password: secret1
-    - name: ldap2
-      username: authgear
-      password: secret2
   key: ldap
 ```
 
 - `items.name`: To associate a LDAP server in `authgear.yaml`.
 - `items.username`: Optional. The username Authgear uses to authenticate itself to the LDAP server. If it is not provided, then Authgear does not authenticates itself, and assumes the LDAP server allows anonymous requests.
 - `items.password`: Optional. The password Authgear uses to authenticate itself to the LDAP server. If `username` is provided, then `password` is required.
+
+## Validation on the configuration
+
+Here is the JSON schema for the LDAP server configuration.
+
+```
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["name", "url", "base_dn", "search_filter_template", "user_id_attribute"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "url": {
+      "type": "string",
+      "format": "ldap_url"
+    },
+    "base_dn": {
+      "type": "string",
+      "format": "ldap_dn"
+    },
+    "search_filter_template": {
+      "type": "string",
+      "format": "ldap_search_filter_template"
+    },
+    "user_id_attribute": {
+      "type": "string",
+      "format": "ldap_attribute_name"
+    }
+  }
+}
+```
+
+- `format: ldap_url`: It is a JSON schema format that implements the rules of `identity.ldap.servers.url`.
+- `format: ldap_dn`: It is a JSON schema format that validates the value to be a valid DN.
+- `format: ldap_search_filter_template`: It is a JSON schema format that validates the rendered string to be a valid Search Filter. It does the validation by running the template with `Username=user`, `Username=user@example.com`, and `Username=+85298765432`, and then parse the resulting Search Filter as a Search Filter.
+- `format: ldap_attribute_name`: It is a JSON schema format that validates the value to be a valid LDAP attribute name.
+
+## Testing on the configuration
+
+> TODO: Add a mutation in the Admin API to test LDAP connection.
+> It should take the whole server configuration, and optionally a end-user username.
+> It connects the LDAP server with the URL and the credentials.
+> If the optional end-user username is given, it performs a Search request, and validates the user exists and has user_id_attribute.
+> It returns detailed API errors so that the portal can display relevant information for the developer to debug the configuration.
+> Such detailed API errors ARE NOT returned in actual use. They are reported as internal errors.
 
 ## The database schema of a LDAP identity
 
@@ -104,25 +143,27 @@ CREATE TABLE _auth_identity_ldap
 (
     id                 text  PRIMARY KEY REFERENCES _auth_identity (id),
     app_id             text  NOT NULL,
-    server_url         text  NOT NULL,
-    distinguished_name text  NOT NULL,
+    server_name        text  NOT NULL,
+    user_id_attribute  text  NOT NULL,
+    user_id_value      text  NOT NULL,
     claims             jsonb NOT NULL,
     raw_entry_json     jsonb NOT NULL
 );
 
-CREATE UNIQUE INDEX _auth_identity_ldap_unique ON _auth_identity_ldap (app_id, server_url, distinguished_name);
+CREATE UNIQUE INDEX _auth_identity_ldap_unique ON _auth_identity_ldap (app_id, server_name, user_id_attribute, user_id_value);
 ```
 
 - `id`: The primary key of this table. This is the same as other `_auth_identity_*` tables.
 - `app_id`: The app ID of this table for multi-tenant. This is the same as other `_auth_identity_*` tables.
-- `server_url`: The URL to the LDAP server when this identity was created. The value is taken from the configuration at that moment. It does not change even if the URL in `authgear.yaml` changes.
-- `distinguished_name`: The distinguished name of this LDAP entry.
+- `server_name`: The `name` of the LDAP server.
+- `user_id_attribute`: The `user_id_attribute` of the LDAP server when this identity is created.
+- `user_id_value`: The value of the `user_id_attribute` of the user.
 - `claims`: The standard claims extracted from this LDAP entry.
 - `raw_entry_json`: The raw LDAP entry encoded in JSON. It looks like `{ "dn": "uid=johndoe,dc=example,dc=com", "attr1": ["value1"] }`.
 
 ## Handling of a LDAP identity
 
-- To look up a LDAP identity in Authgear, we use the tuple `(app_id, server_url, distinguished_name)`.
+- To look up a LDAP identity in Authgear, we use the tuple `(app_id, server_name, user_id_attribute, user_id_value)`.
 - Similar to OAuth identity, we update an LDAP identity when it is used in login.
 
 ## The UX of LDAP in Auth UI
@@ -131,3 +172,12 @@ In the MVP phase (that is, now), sign in with LDAP is like sign in with an OAuth
 Except that the enter-username-and-password page is hosted by Authgear as a integral part of Auth UI.
 
 In the future, we may consider an option to make LDAP "replaces" Login ID in the UX.
+
+## Errors
+
+This section documents the expected errors.
+
+|Description|Name|Reason|Info|
+|---|---|---|---|
+|When the LDAP server is service unavailable, `user_id_attribute` not found in a user, search filter turns out to be invalid, etc|InternalError|UnexpectedError||
+|When the end-user cannot authenticate to the LDAP server|Unauthorized|InvalidCredentials||
