@@ -1,5 +1,4 @@
 name: Signup with email otp
-focus: true
 steps:
   - action: "create"
     input: |
@@ -57,7 +56,6 @@ steps:
         }
 ---
 name: Signup with sms otp
-focus: true
 steps:
   - action: "create"
     input: |
