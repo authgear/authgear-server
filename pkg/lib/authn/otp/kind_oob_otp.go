@@ -49,8 +49,8 @@ func KindOOBOTPWithForm(config *config.AppConfig, channel model.AuthenticatorOOB
 	return kindOOBOTP{config: config, channel: channel, purpose: PurposeOOBOTP, form: form}
 }
 
-var _ KindFactory = KindOOBOTPCode
-var _ KindFactory = KindOOBOTPLink
+var _ DeprecatedKindFactory = KindOOBOTPCode
+var _ DeprecatedKindFactory = KindOOBOTPLink
 
 
 func (k kindOOBOTP) Purpose() Purpose {

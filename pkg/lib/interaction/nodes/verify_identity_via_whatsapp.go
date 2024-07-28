@@ -68,7 +68,7 @@ func (n *NodeVerifyIdentityViaWhatsapp) GetPhone() string {
 }
 
 // GetOTPKindFactory implements WhatsappOTPNode.
-func (n *NodeVerifyIdentityViaWhatsapp) GetOTPKindFactory() otp.KindFactory {
+func (n *NodeVerifyIdentityViaWhatsapp) GetOTPKindFactory() otp.DeprecatedKindFactory {
 	return otp.KindVerification
 }
 

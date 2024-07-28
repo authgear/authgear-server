@@ -29,7 +29,7 @@ func ConfigureWhatsappOTPRoute(route httproute.Route) httproute.Route {
 type WhatsappOTPNode interface {
 	GetWhatsappOTPLength() int
 	GetPhone() string
-	GetOTPKindFactory() otp.KindFactory
+	GetOTPKindFactory() otp.DeprecatedKindFactory
 }
 
 type WhatsappOTPAuthnNode interface {

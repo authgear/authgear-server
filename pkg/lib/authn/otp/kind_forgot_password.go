@@ -40,8 +40,8 @@ func KindForgotPasswordOTP(
 	return kindForgotPassword{config: config, channel: channel, form: FormCode}
 }
 
-var _ KindFactory = KindForgotPasswordLink
-var _ KindFactory = KindForgotPasswordOTP
+var _ DeprecatedKindFactory = KindForgotPasswordLink
+var _ DeprecatedKindFactory = KindForgotPasswordOTP
 
 func (k kindForgotPassword) Purpose() Purpose {
 	return PurposeForgotPassword

@@ -22,4 +22,4 @@ type Kind interface {
 	RevocationMaxFailedAttempts() int
 }
 
-type KindFactory func(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind
+type DeprecatedKindFactory func(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind

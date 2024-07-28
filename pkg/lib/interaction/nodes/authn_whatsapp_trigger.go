@@ -93,7 +93,7 @@ func (n *NodeAuthenticationWhatsappTrigger) GetPhone() string {
 }
 
 // GetOTPKindFactory implements WhatsappOTPNode.
-func (n *NodeAuthenticationWhatsappTrigger) GetOTPKindFactory() otp.KindFactory {
+func (n *NodeAuthenticationWhatsappTrigger) GetOTPKindFactory() otp.DeprecatedKindFactory {
 	return otp.KindOOBOTPCode
 }
 
