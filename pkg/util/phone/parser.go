@@ -71,21 +71,25 @@ func (n ParsedPhoneNumber) IsNorthAmericaNumber() bool {
 	return n.CountryCallingCodeWithoutPlusSign == "1"
 }
 
+func (n ParsedPhoneNumber) Require_IsPossibleNumber_IsValidNumber_UserInputInE164() error {
+	if n.RequireIsPossibleNumber() != nil {
+		return n.RequireIsPossibleNumber()
+	}
+	if n.RequireIsValidNumber() != nil {
+		return n.RequireIsValidNumber()
+	}
+	if n.RequireUserInputInE164() != nil {
+		return n.RequireUserInputInE164()
+	}
+	return nil
+}
+
 func Require_IsPossibleNumber_IsValidNumber_UserInputInE164(userInput string) error {
 	parsed, err := ParsePhoneNumberWithUserInput(userInput)
 	if err != nil {
 		return err
 	}
-	if parsed.RequireIsPossibleNumber() != nil {
-		return parsed.RequireIsPossibleNumber()
-	}
-	if parsed.RequireIsValidNumber() != nil {
-		return parsed.RequireIsValidNumber()
-	}
-	if parsed.RequireUserInputInE164() != nil {
-		return parsed.RequireUserInputInE164()
-	}
-	return nil
+	return parsed.Require_IsPossibleNumber_IsValidNumber_UserInputInE164()
 }
 
 func Parse_IsPossibleNumber_ReturnE164(userInput string) (e164 string, err error) {

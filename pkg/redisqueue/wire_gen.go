@@ -100,10 +100,12 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:    loginIDConfig,
-		Resources: manager,
+		UIConfig:      uiConfig,
+		LoginIDConfig: loginIDConfig,
+		Resources:     manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -738,10 +740,12 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		SQLExecutor: sqlExecutor,
 	}
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:    loginIDConfig,
-		Resources: manager,
+		UIConfig:      uiConfig,
+		LoginIDConfig: loginIDConfig,
+		Resources:     manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
