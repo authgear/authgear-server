@@ -304,13 +304,13 @@ func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 		c.Maximum = newInt(99)
 	}
 	if c.Deprecated_CodeValidPeriod == "" {
-		c.Deprecated_CodeValidPeriod = DurationString("20m")
-	}
-	if c.ValidPeriods.Link == "" {
-		c.ValidPeriods.Link = c.Deprecated_CodeValidPeriod
+		c.Deprecated_CodeValidPeriod = DurationString("300s")
 	}
 	if c.ValidPeriods.Code == "" {
-		c.ValidPeriods.Code = DurationString("300s")
+		c.ValidPeriods.Code = c.Deprecated_CodeValidPeriod
+	}
+	if c.ValidPeriods.Link == "" {
+		c.ValidPeriods.Link = DurationString("20m")
 	}
 	// See https://github.com/authgear/authgear-server/issues/4297
 	// Remove deprecated fields
@@ -366,14 +366,29 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
-	if c.Deprecated_CodeValidPeriod == "" {
-		c.Deprecated_CodeValidPeriod = DurationString("20m")
-	}
-	if c.ValidPeriods.Link == "" {
-		c.ValidPeriods.Link = c.Deprecated_CodeValidPeriod
-	}
-	if c.ValidPeriods.Code == "" {
-		c.ValidPeriods.Code = DurationString("300s")
+	switch c.EmailOTPMode {
+	case AuthenticatorEmailOTPModeCodeOnly:
+		if c.Deprecated_CodeValidPeriod == "" {
+			c.Deprecated_CodeValidPeriod = DurationString("300s")
+		}
+		if c.ValidPeriods.Link == "" {
+			c.ValidPeriods.Link = DurationString("20m")
+		}
+		if c.ValidPeriods.Code == "" {
+			c.ValidPeriods.Code = c.Deprecated_CodeValidPeriod
+		}
+	case AuthenticatorEmailOTPModeLoginLinkOnly:
+		if c.Deprecated_CodeValidPeriod == "" {
+			c.Deprecated_CodeValidPeriod = DurationString("20m")
+		}
+		if c.ValidPeriods.Link == "" {
+			c.ValidPeriods.Link = c.Deprecated_CodeValidPeriod
+		}
+		if c.ValidPeriods.Code == "" {
+			c.ValidPeriods.Code = DurationString("300s")
+		}
+	default:
+		panic("unknown email otp mode")
 	}
 	// See https://github.com/authgear/authgear-server/issues/3524
 	// Remove deprecated fields
