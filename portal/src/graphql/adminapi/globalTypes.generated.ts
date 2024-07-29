@@ -251,6 +251,7 @@ export type Authenticator = Entity & Node & {
   claims: Scalars['AuthenticatorClaims']['output'];
   /** The creation time of entity */
   createdAt: Scalars['DateTime']['output'];
+  expireAfter?: Maybe<Scalars['DateTime']['output']>;
   /** The ID of an object */
   id: Scalars['ID']['output'];
   isDefault: Scalars['Boolean']['output'];

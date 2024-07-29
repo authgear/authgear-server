@@ -459,6 +459,9 @@ type Authenticator implements Entity & Node {
   """The creation time of entity"""
   createdAt: DateTime!
 
+  """"""
+  expireAfter: DateTime
+
   """The ID of an object"""
   id: ID!
 

@@ -63,6 +63,7 @@ fragment UserQueryNode on User {
         claims
         createdAt
         updatedAt
+        expireAfter
       }
     }
   }
