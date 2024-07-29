@@ -7,7 +7,7 @@ import {
   dispatchBotProtectionEventVerified,
 } from "./botProtection";
 import { parseCloudflareTurnstileErrorCode } from "./cloudflareTurnstileError";
-import { setErrorMessage } from "../../setErrorMessage";
+import { setErrorMessage } from "../alert-message";
 
 function parseTheme(theme: string): Turnstile.Theme {
   switch (theme) {
