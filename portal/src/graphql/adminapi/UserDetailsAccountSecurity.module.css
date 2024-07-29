@@ -62,7 +62,10 @@
   grid-template:
     "plabel    preset    premove"
     "pdesc     preset    premove"
+    "pchange   preset    premove"
+    "pexpired  preset    premove"
     / auto min-content min-content;
+  grid-gap: 10px 0;
 }
 
 .passwordCellLabel {
@@ -72,6 +75,23 @@
 
 .passwordCellDesc {
   grid-area: pdesc;
+}
+
+.passwordCellChangeOnLogin {
+  grid-area: pchange;
+}
+
+.passwordCellExpired {
+  grid-area: pexpired;
+
+  @apply text-neutral-dark;
+  @apply text-xs;
+}
+
+.passwordCellExpiredPrefix {
+  @apply text-neutral-dark;
+  @apply text-xs;
+  @apply font-semibold;
 }
 
 .resetPasswordButton {

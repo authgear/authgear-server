@@ -381,6 +381,9 @@
   "UserDetails.account-security.secondary.empty": "No 2-Factor Authenticator yet.",
   "UserDetails.account-security.remove-confirm-dialog.title": "Remove Authenticator",
   "UserDetails.account-security.remove-confirm-dialog.message": "Are you sure you want to remove authenticator {displayName}",
+  "UserDetails.account-security.change-on-login.label": "Change on Login",
+  "UserDetails.account-security.change-on-login.description": "The user will be asked to change password at the next login",
+  "UserDetails.account-security.expired": "{Text, react, className{{prefixClassName}} children{Password Expired: }} The user hasn't updated their password in {lastUpdatedInDays} days and will be asked to change it at the next login.",
 
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",
