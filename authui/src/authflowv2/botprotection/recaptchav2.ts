@@ -30,9 +30,12 @@ export class RecaptchaV2Controller extends Controller {
 
   declare siteKeyValue: string;
   declare widgetTarget: HTMLDivElement;
-  declare widgetID: number;
+  declare widgetID: number | undefined;
 
   resetWidget = () => {
+    if (this.widgetID == null) {
+      return;
+    }
     window.grecaptcha.reset(this.widgetID); // default to first widget created
   };
 
