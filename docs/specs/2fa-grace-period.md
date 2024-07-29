@@ -42,12 +42,12 @@ type User {
   mfaGracePeriodEndAt: DateTime
 }
 
-type GrantMFAGracePeriodInput {
+type SetMFAGracePeriodInput {
   userID: ID!
   endAt: DateTime!
 }
 
-type GrantMFAGracePeriodPayload {
+type SetMFAGracePeriodPayload {
   user: User!
 }
 
@@ -60,9 +60,9 @@ type RemoveMFAGracePeriodPayload {
 }
 
 type Mutation {
-  grantMFAGracePeriod(
-    input: GrantMFAGracePeriodInput!
-  ): GrantMFAGracePeriodPayload!
+  setMFAGracePeriod(
+    input: SetMFAGracePeriodInput!
+  ): SetMFAGracePeriodPayload!
   removeMFAGracePeriod(
     input: RemoveMFAGracePeriodInput!
   ): RemoveMFAGracePeriodPayload!
