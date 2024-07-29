@@ -516,11 +516,19 @@ interface RedirectURLTextFieldProps {
   description: string;
   value: string;
   onChangeValue: (value: string) => void;
+  disabled?: boolean;
 }
 const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
   function RedirectURLTextField(props) {
-    const { fieldName, className, label, description, value, onChangeValue } =
-      props;
+    const {
+      fieldName,
+      className,
+      label,
+      description,
+      value,
+      onChangeValue,
+      disabled,
+    } = props;
     const id = useId();
     const onChange = useCallback(
       (_e: React.FormEvent<any>, value?: string) => {
@@ -539,6 +547,7 @@ const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
           description={description}
           value={value}
           onChange={onChange}
+          disabled={disabled}
         />
       </div>
     );
@@ -547,10 +556,11 @@ const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
 interface RedirectURLFormProps {
   className?: string;
   redirectURLForm: AppConfigFormModel<RedirectURLFormState>;
+  disabled: boolean;
 }
 const RedirectURLForm: React.VFC<RedirectURLFormProps> =
   function RedirectURLForm(props) {
-    const { className, redirectURLForm } = props;
+    const { className, redirectURLForm, disabled } = props;
     const { renderToString } = useContext(Context);
 
     const { canSave, onSubmit } = useFormContainerBaseContext();
@@ -582,6 +592,12 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
         <WidgetTitle>
           <FormattedMessage id="CustomDomainListScreen.redirectURLSection.title" />
         </WidgetTitle>
+        {disabled ? (
+          <FeatureDisabledMessageBar
+            className="mt-4"
+            messageID="CustomDomainListScreen.redirectURLSection.disabled.message"
+          />
+        ) : null}
         <RedirectURLTextField
           className={cn("mt-4")}
           fieldName="default_redirect_uri"
@@ -593,6 +609,7 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
           )}
           value={redirectURLForm.state.postLoginURL}
           onChangeValue={onChangePostLoginURL}
+          disabled={disabled}
         />
         <RedirectURLTextField
           className={cn("mt-4")}
@@ -605,11 +622,12 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
           )}
           value={redirectURLForm.state.postLogoutURL}
           onChangeValue={onChangePostLogoutURL}
+          disabled={disabled}
         />
         <PrimaryButton
           className={cn("mt-12")}
           type="submit"
-          disabled={!canSave}
+          disabled={!canSave || disabled}
           text={<FormattedMessage id="save" />}
         ></PrimaryButton>
       </form>
@@ -832,6 +850,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
           <RedirectURLForm
             className={cn(styles.widget)}
             redirectURLForm={redirectURLForm}
+            disabled={domains.length <= 0}
           />
 
           <DeleteDomainDialog

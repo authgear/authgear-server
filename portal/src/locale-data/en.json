@@ -858,6 +858,7 @@
   "CustomDomainListScreen.activate-domain-dialog.generic-error": "Failed to activate domain",
   "CustomDomainListScreen.verify-success-message": "Verified domain successfully",
   "CustomDomainListScreen.redirectURLSection.title": "Default Redirect URLs",
+  "CustomDomainListScreen.redirectURLSection.disabled.message": "Direct access to the login and logout page are available when custom domain is used",
   "CustomDomainListScreen.redirectURLSection.input.postLoginURL.label": "Post-login link",
   "CustomDomainListScreen.redirectURLSection.input.postLoginURL.description": "Users will be redirected after login if they visit the login page directly instead of through OAuth flow.",
   "CustomDomainListScreen.redirectURLSection.input.postLogoutURL.label": "Post-logout link",
