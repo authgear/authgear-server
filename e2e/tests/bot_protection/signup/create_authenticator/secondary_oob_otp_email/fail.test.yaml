@@ -1,0 +1,119 @@
+name: Signup with Bot Protection - Create Authenticator - Secondary OOB OTP Email - Bot Protection Verification Fail
+authgear.yaml:
+  override: |
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+    authentication_flow:
+      signup_flows:
+      - name: f1
+        steps:
+        - name: signup_identify
+          type: identify
+          one_of:
+          - identification: username
+            steps:
+            - name: authenticate_primary_username
+              type: create_authenticator
+              one_of:
+              - authentication: primary_password
+            - name: authenticate_secondary_email
+              type: create_authenticator
+              one_of:
+              - authentication: secondary_oob_otp_email
+                bot_protection:
+                  mode: always
+                  provider: 
+                    type: cloudflare
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "username"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "signup_bp_username"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "primary_password"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "signup_bp_primary_pwd"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "secondary_oob_otp_email",
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "otp_form": "link"
+                }
+              ],
+              "type": "create_authenticator_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_email",
+        "target": "signup_bp@example.com",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "fail"
+        }
+      }
+    output: 
+      error: |
+        {
+          "name": "Forbidden",
+          "reason": "BotProtectionVerificationFailed",
+          "message": "bot protection verification failed",
+          "code": 403
+        }
