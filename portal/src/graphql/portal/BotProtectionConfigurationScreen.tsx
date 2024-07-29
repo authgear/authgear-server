@@ -212,6 +212,9 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
       (e: React.MouseEvent<unknown>) => {
         e.preventDefault();
         e.stopPropagation();
+        if (state.providerType === "recaptchav2") {
+          return;
+        }
         setState((state) => {
           return {
             ...state,
@@ -219,13 +222,16 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
           };
         });
       },
-      [setState]
+      [setState, state.providerType]
     );
 
     const onClickProviderCloudflare = useCallback(
       (e: React.MouseEvent<unknown>) => {
         e.preventDefault();
         e.stopPropagation();
+        if (state.providerType === "cloudflare") {
+          return;
+        }
         setState((state) => {
           return {
             ...state,
@@ -233,7 +239,7 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
           };
         });
       },
-      [setState]
+      [setState, state.providerType]
     );
 
     const onChangeSiteKey = useCallback(
