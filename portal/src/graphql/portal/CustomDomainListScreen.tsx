@@ -669,6 +669,11 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
       ];
     }, []);
 
+    const hasNoCustomDomains = useMemo(() => {
+      const index = domains.findIndex((d) => d.isCustom === true);
+      return index < 0;
+    }, [domains]);
+
     interface DeleteDomainDialogData {
       domainID: string;
       domain: string;
@@ -850,7 +855,7 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
           <RedirectURLForm
             className={cn(styles.widget)}
             redirectURLForm={redirectURLForm}
-            disabled={domains.length <= 0}
+            disabled={hasNoCustomDomains}
           />
 
           <DeleteDomainDialog
