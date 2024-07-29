@@ -18,13 +18,30 @@ func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
 			So(string(bytes), ShouldEqualJSON, expected)
 		}
 
+		var dummyBotProtectionCfg = &config.BotProtectionConfig{
+			Enabled: true,
+			Provider: &config.BotProtectionProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
+
+		var dummyBotProtectionData = &config.AuthenticationFlowBotProtection{
+			Mode: config.AuthenticationFlowBotProtectionModeAlways,
+			Provider: &config.AuthenticationFlowBotProtectionProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
+
 		test((&InputSchemaSignupFlowStepCreateAuthenticator{
+			ShouldBypassBotProtection: false,
+			BotProtectionCfg:          dummyBotProtectionCfg,
 			OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
 				},
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+					BotProtection:  dummyBotProtectionData,
 				},
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
@@ -72,13 +89,29 @@ func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
                 "authentication": {
                     "const": "primary_oob_otp_email"
                 },
+                "bot_protection": {
+                    "properties": {
+                    "response": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "const": "cloudflare"
+                    }
+                    },
+                    "required": [
+                    "type",
+                    "response"
+                    ],
+                    "type": "object"
+                },
                 "target": {
                     "type": "string"
                 }
             },
             "required": [
                 "authentication",
-                "target"
+                "target",
+                "bot_protection"
             ]
         },
         {

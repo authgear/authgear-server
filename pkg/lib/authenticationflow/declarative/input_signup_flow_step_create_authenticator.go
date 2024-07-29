@@ -11,9 +11,11 @@ import (
 )
 
 type InputSchemaSignupFlowStepCreateAuthenticator struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
-	OneOf          []*config.AuthenticationFlowSignupFlowOneOf
+	JSONPointer               jsonpointer.T
+	FlowRootObject            config.AuthenticationFlowObject
+	OneOf                     []*config.AuthenticationFlowSignupFlowOneOf
+	ShouldBypassBotProtection bool
+	BotProtectionCfg          *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaSignupFlowStepCreateAuthenticator{}
@@ -61,6 +63,9 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validatio
 				b.Properties().Property("target", validation.SchemaBuilder{}.Type(validation.TypeString))
 			}
 			b.Required(required...)
+			if !i.ShouldBypassBotProtection && i.BotProtectionCfg != nil && IsConfigBotProtectionRequired(branch.BotProtection, i.BotProtectionCfg) {
+				b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
+			}
 			oneOf = append(oneOf, b)
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// Cannot create passkey in this step.
@@ -86,12 +91,15 @@ type InputSignupFlowStepCreateAuthenticator struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 	NewPassword    string                                  `json:"new_password,omitempty"`
 	Target         string                                  `json:"target,omitempty"`
+
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputSignupFlowStepCreateAuthenticator{}
 var _ inputTakeAuthenticationMethod = &InputSignupFlowStepCreateAuthenticator{}
 var _ inputTakeOOBOTPTarget = &InputSignupFlowStepCreateAuthenticator{}
 var _ inputTakeNewPassword = &InputSignupFlowStepCreateAuthenticator{}
+var _ inputTakeBotProtection = &InputSignupFlowStepCreateAuthenticator{}
 
 func (i *InputSignupFlowStepCreateAuthenticator) Input() {}
 
@@ -105,4 +113,22 @@ func (i *InputSignupFlowStepCreateAuthenticator) GetTarget() string {
 
 func (i *InputSignupFlowStepCreateAuthenticator) GetNewPassword() string {
 	return i.NewPassword
+}
+
+func (i *InputSignupFlowStepCreateAuthenticator) GetBotProtectionProvider() *InputTakeBotProtectionBody {
+	return i.BotProtection
+}
+
+func (i *InputSignupFlowStepCreateAuthenticator) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputSignupFlowStepCreateAuthenticator) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

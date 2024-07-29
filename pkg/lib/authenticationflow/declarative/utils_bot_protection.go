@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func isConfigBotProtectionRequired(authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) bool {
+func IsConfigBotProtectionRequired(authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) bool {
 	data := GetBotProtectionData(authflowCfg, appCfg)
 	return data != nil
 }
@@ -31,7 +31,7 @@ func isNodeBotProtectionRequired(ctx context.Context, deps *authflow.Dependencie
 		return false, authflow.ErrInvalidJSONPointer
 	}
 
-	return isConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), deps.Config.BotProtection), nil
+	return IsConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), deps.Config.BotProtection), nil
 }
 
 func IsBotProtectionRequired(ctx context.Context, flowRootObject config.AuthenticationFlowObject, oneOfJSONPointer jsonpointer.T) (bool, error) {
@@ -61,7 +61,7 @@ func isInputBotProtectionRequired(flowRootObject config.AuthenticationFlowObject
 		return false, nil
 	}
 
-	return isConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), nil), nil
+	return IsConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), nil), nil
 }
 
 func ShouldExistingResultBypassBotProtectionRequirement(ctx context.Context) bool {

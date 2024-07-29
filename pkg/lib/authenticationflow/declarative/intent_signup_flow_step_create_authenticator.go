@@ -135,10 +135,14 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 			return nil, err
 		}
 		step := i.step(current)
+
+		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		return &InputSchemaSignupFlowStepCreateAuthenticator{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    i.JSONPointer,
-			OneOf:          step.OneOf,
+			FlowRootObject:            flowRootObject,
+			JSONPointer:               i.JSONPointer,
+			OneOf:                     step.OneOf,
+			ShouldBypassBotProtection: shouldBypassBotProtection,
+			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
 	}
 
