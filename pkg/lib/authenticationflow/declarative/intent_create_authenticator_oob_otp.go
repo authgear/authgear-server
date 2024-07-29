@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -91,9 +92,16 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 			return nil, nil
 		}
 
+		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+		if err != nil {
+			return nil, err
+		}
+
 		return &InputSchemaTakeOOBOTPTarget{
-			FlowRootObject: flowRootObject,
-			JSONPointer:    n.JSONPointer,
+			FlowRootObject:          flowRootObject,
+			JSONPointer:             n.JSONPointer,
+			IsBotProtectionRequired: isBotProtectionRequired,
+			BotProtectionCfg:        deps.Config.BotProtection,
 		}, nil
 	case shouldVerifyInThisFlow && !claimVerifiedInThisFlow:
 		// Verify the claim
@@ -152,8 +160,14 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 
 		var inputTakeOOBOTPTarget inputTakeOOBOTPTarget
 		if authflow.AsInput(input, &inputTakeOOBOTPTarget) {
+			var bpSpecialErr error
+			bpSpecialErr, err := HandleBotProtection(ctx, deps, flows, n.JSONPointer, input)
+			if err != nil {
+				return nil, err
+			}
 			oobOTPTarget := inputTakeOOBOTPTarget.GetTarget()
-			return n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
+			node, err := n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
+			return node, errors.Join(bpSpecialErr, err)
 		}
 	case shouldVerifyInThisFlow && !claimVerifiedInThisFlow:
 		info := m.MilestoneDidSelectAuthenticator()

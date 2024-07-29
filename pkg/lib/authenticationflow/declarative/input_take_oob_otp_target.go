@@ -10,22 +10,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-var InputTakeOOBOTPTargetSchemaBuilder validation.SchemaBuilder
-
-func init() {
-	InputTakeOOBOTPTargetSchemaBuilder = validation.SchemaBuilder{}.
-		Type(validation.TypeObject).
-		Required("target")
-
-	InputTakeOOBOTPTargetSchemaBuilder.Properties().Property(
-		"target",
-		validation.SchemaBuilder{}.Type(validation.TypeString),
-	)
-}
-
 type InputSchemaTakeOOBOTPTarget struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
+	JSONPointer             jsonpointer.T
+	FlowRootObject          config.AuthenticationFlowObject
+	IsBotProtectionRequired bool
+	BotProtectionCfg        *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaTakeOOBOTPTarget{}
@@ -38,8 +27,20 @@ func (i *InputSchemaTakeOOBOTPTarget) GetFlowRootObject() config.AuthenticationF
 	return i.FlowRootObject
 }
 
-func (*InputSchemaTakeOOBOTPTarget) SchemaBuilder() validation.SchemaBuilder {
-	return InputTakeOOBOTPTargetSchemaBuilder
+func (i *InputSchemaTakeOOBOTPTarget) SchemaBuilder() validation.SchemaBuilder {
+	sb := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("target")
+
+	sb.Properties().Property(
+		"target",
+		validation.SchemaBuilder{}.Type(validation.TypeString),
+	)
+
+	if i.IsBotProtectionRequired && i.BotProtectionCfg != nil {
+		sb = AddBotProtectionToExistingSchemaBuilder(sb, i.BotProtectionCfg)
+	}
+	return sb
 }
 
 func (i *InputSchemaTakeOOBOTPTarget) MakeInput(rawMessage json.RawMessage) (authflow.Input, error) {
@@ -52,14 +53,34 @@ func (i *InputSchemaTakeOOBOTPTarget) MakeInput(rawMessage json.RawMessage) (aut
 }
 
 type InputTakeOOBOTPTarget struct {
-	Target string `json:"target"`
+	Target        string                      `json:"target"`
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputTakeOOBOTPTarget{}
 var _ inputTakeOOBOTPTarget = &InputTakeOOBOTPTarget{}
+var _ inputTakeBotProtection = &InputTakeOOBOTPTarget{}
 
 func (*InputTakeOOBOTPTarget) Input() {}
 
 func (i *InputTakeOOBOTPTarget) GetTarget() string {
 	return i.Target
+}
+
+func (i *InputTakeOOBOTPTarget) GetBotProtectionProvider() *InputTakeBotProtectionBody {
+	return i.BotProtection
+}
+
+func (i *InputTakeOOBOTPTarget) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputTakeOOBOTPTarget) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }
