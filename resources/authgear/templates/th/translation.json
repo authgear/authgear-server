@@ -37,6 +37,7 @@
   "error-uri-format": "URL ที่คุณป้อนไม่อยู่ในรูปแบบที่ถูกต้อง URL โดยทั่วไปจะเริ่มต้นด้วย https://, เช่น https://example.com/",
   "error-email-not-allowed": "ที่อยู่อีเมลที่คุณป้อนไม่ได้รับอนุญาต โปรดติดต่อฝ่ายสนับสนุนลูกค้าหากคุณคิดว่าที่อยู่อีเมลนั้นควรจะถูกต้อง",
   "error-username-not-allowed": "ชื่อผู้ใช้ที่คุณป้อนไม่ได้รับอนุญาต โปรดหลีกเลี่ยงการใช้ชื่อผู้ใช้ที่สงวนไว้ เช่น `admin`",
+  "error-phone-number-not-allowed": "หมายเลขโทรศัพท์มาจากภูมิภาคที่ไม่ได้รับการสนับสนุน",
   "error-invalid-web3-network": "โปรดลงทะเบียนด้วย {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} เครือข่าย",
   "error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {อีเมลนี้} phone {หมายเลขโทรศัพท์นี้} username {ชื่อผู้ใช้นี้} other {ข้อมูลตัวตนนี้} }} oauth {อีเมลนี้} other {ข้อมูลตัวตนนี้} } ไม่พบ โปรดตรวจสอบให้แน่ใจว่าถูกต้อง",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id { { LoginIDTypeIncoming, select, email {อีเมลนี้} phone {หมายเลขโทรศัพท์นี้} username {ชื่อผู้ใช้นี้} other {ข้อมูลตัวตนนี้} } } oauth {อีเมลนี้} other {ข้อมูลตัวตนนี้} } เชื่อมโยงกับบัญชีแล้ว",

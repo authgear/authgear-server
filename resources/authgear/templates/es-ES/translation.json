@@ -37,6 +37,7 @@
   "error-uri-format": "La URL que ingresaste no tiene el formato correcto. Las URL generalmente comienzan con https://, por ejemplo, https://ejemplo.com/",
   "error-email-not-allowed": "La dirección de correo electrónico que ingresaste no está permitida. Comunícate con el servicio de atención al cliente si crees que la dirección de correo electrónico debería ser válida.",
   "error-username-not-allowed": "El nombre de usuario que ingresaste no está permitido. Evita usar nombres de usuario reservados como `admin`.",
+  "error-phone-number-not-allowed": "El número de teléfono es de una región no admitida.",
   "error-invalid-web3-network": "Regístrate con la red {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}}.",
   "error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Este correo electrónico} phone {Este número de teléfono} username {Este nombre de usuario} other {Esta identidad} }} oauth {Este correo electrónico} other {Esta identidad} } no se puede encontrar. Asegúrate de que sea correcto.",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id { { LoginIDTypeIncoming, select, email {Este correo electrónico} phone {Este número de teléfono} username {Este nombre de usuario} other {Esta identidad} } } oauth {Este correo electrónico} other {Esta identidad} } está asociado con una cuenta.",

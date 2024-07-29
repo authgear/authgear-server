@@ -37,6 +37,7 @@
   "error-uri-format": "Η διεύθυνση URL που εισάγατε δεν είναι σε σωστή μορφή. Οι URL συνήθως ξεκινούν με https://, π.χ. https://example.com/",
   "error-email-not-allowed": "Η διεύθυνση email που εισάγατε δεν επιτρέπεται. Παρακαλούμε επικοινωνήστε με την υποστήριξη πελατών εάν πιστεύετε ότι η διεύθυνση email θα έπρεπε να είναι έγκυρη.",
   "error-username-not-allowed": "Το όνομα χρήστη που εισάγατε δεν επιτρέπεται. Παρακαλούμε αποφύγετε τη χρήση επιφυλασσόμενων ονομάτων χρηστών όπως `admin`.",
+  "error-phone-number-not-allowed": "Ο αριθμός τηλεφώνου προέρχεται από μη υποστηριζόμενη περιοχή.",
   "error-invalid-web3-network": "Παρακαλούμε εγγραφείτε με το δίκτυο {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}}.",
   "error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Αυτό το email} phone {Αυτός ο αριθμός τηλεφώνου} username {Αυτό το όνομα χρήστη} other {Αυτή η ταυτότητα} }} oauth {Αυτό το email} other {Αυτή η ταυτότητα} } δεν μπορεί να βρεθεί. Παρακαλούμε βεβαιωθείτε ότι είναι σωστό.",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id { { LoginIDTypeIncoming, select, email {Αυτό το email} phone {Αυτός ο αριθμός τηλεφώνου} username {Αυτό το όνομα χρήστη} other {Αυτή η ταυτότητα} } } oauth {Αυτό το email} other {Αυτή η ταυτότητα} } είναι συνδεδεμένο με έναν λογαριασμό.",

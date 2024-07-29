@@ -101,7 +101,7 @@
   "errors.validation.maxLength": "Expect string with length less than or equal to {expected, plural, one{1 character} other{# characters}}",
   "errors.validation.noPrimaryAuthenticator": "Can't save the config. At least one authenticator for type {login_id_type, select, email {email} username {username} phone {phone} other {}} is needed.",
   "errors.validation.noSecondaryAuthenticator": "Can't save the config. At least one secondary authenticator is needed.",
-  "errors.validation.blocked": "{reason, select, EmailDomainBlocklist{Email} EmailDomainAllowlist{Email} UsernameReserved{Username} UsernameExcludedKeywords{Username} other {}} is not allowed",
+  "errors.validation.blocked": "{reason, select, EmailDomainBlocklist{Email is not allowed} EmailDomainAllowlist{Email is not allowed} UsernameReserved{Username is not allowed} UsernameExcludedKeywords{Username is not allowed} PhoneNumberCountryCodeAllowlist{Phone number is from an unsupported region} other {}}",
   "errors.validation.passkey": "To use passkey, at least one Login ID must be activated",
   "errors.password-mismatch": "New password does not match with confirm password, please double check",
   "errors.password-policy.password-reused": "Password cannot be reused, please check password policies below",

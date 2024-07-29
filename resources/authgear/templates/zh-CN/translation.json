@@ -37,6 +37,7 @@
   "error-uri-format": "您输入的URL格式不正确。URL通常以https://开头,例如https://example.com/",
   "error-email-not-allowed": "您输入的电子邮件地址不被允许。如果您认为该电子邮件地址应该有效,请联系客户支持。",
   "error-username-not-allowed": "您输入的用户名不被允许。请避免使用保留的用户名,如`admin`。",
+  "error-phone-number-not-allowed": "电话号码来自不受支持的地区。",
   "error-invalid-web3-network": "请使用{chainID, select, _1{以太坊主网} _5{以太坊Goerli} _137{Polygon主网} _80001{Polygon Mumbai} other{}}网络注册。",
   "error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {此电子邮件} phone {此电话号码} username {此用户名} other {此身份} }} oauth {此电子邮件} other {此身份} }无法找到。请确保它是正确的。",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id { { LoginIDTypeIncoming, select, email {此电子邮箱} phone {此手机号码} username {此用户名} other {此身份} } } oauth {此电子邮箱} other {此身份} } 已关联到一个账户。",

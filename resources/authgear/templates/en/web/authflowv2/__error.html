@@ -109,6 +109,8 @@
             <span>{{ template "error-email-not-allowed" }}</span>
           {{ else if (or (eq .details.reason "UsernameReserved") (eq .details.reason "UsernameExcludedKeywords")) }}
             <span>{{ template "error-username-not-allowed" }}</span>
+          {{ else if (eq .details.reason "PhoneNumberCountryCodeAllowlist") }}
+            <span>{{ template "error-phone-number-not-allowed" }}</span>
           {{ else }}
             <span>{{ .details.reason }}</span>
           {{ end }}
