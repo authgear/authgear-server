@@ -6,7 +6,7 @@ import {
   dispatchBotProtectionEventFailed,
   dispatchBotProtectionEventVerified,
 } from "./botProtection";
-import { setErrorMessage } from "../../setErrorMessage";
+import { setErrorMessage } from "../alert-message";
 
 function parseTheme(theme: string): ReCaptchaV2.Theme | undefined {
   switch (theme) {
