@@ -839,7 +839,7 @@
   "oauth-client.application-type.third-party-app": "OIDC Client Application (Legacy)",
 
   "CustomDomainListScreen.title": "Custom Domains",
-  "CustomDomainListScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is written so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
+  "CustomDomainListScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is set so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
   "CustomDomainListScreen.add-domain.generic-error": "Failed to add domain",
   "CustomDomainListScreen.add-domain.duplicated-error": "Domain is already in use",
   "CustomDomainListScreen.add-domain.invalid-error": "Invalid domain",
@@ -858,6 +858,7 @@
   "CustomDomainListScreen.activate-domain-dialog.generic-error": "Failed to activate domain",
   "CustomDomainListScreen.verify-success-message": "Verified domain successfully",
   "CustomDomainListScreen.redirectURLSection.title": "Default Redirect URLs",
+  "CustomDomainListScreen.redirectURLSection.disabled.message": "Direct access to the login and logout page are available when custom domain is used",
   "CustomDomainListScreen.redirectURLSection.input.postLoginURL.label": "Post-login link",
   "CustomDomainListScreen.redirectURLSection.input.postLoginURL.description": "Users will be redirected after login if they visit the login page directly instead of through OAuth flow.",
   "CustomDomainListScreen.redirectURLSection.input.postLogoutURL.label": "Post-logout link",
