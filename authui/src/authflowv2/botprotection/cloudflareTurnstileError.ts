@@ -52,22 +52,12 @@ const CLOUDFLARE_TURNSTILE_ERROR_UNKNOWN: CloudflareTurnstileErrorCodeParseResul
     shouldDisplayErrMsg: true,
   };
 
-const CLOUDFLARE_TURNSTILE_ERROR_CODE_REGEX = /\d{6}/;
-
-export function isCloudflareTurnstileErrorCodeValid(errCode: string): boolean {
-  return CLOUDFLARE_TURNSTILE_ERROR_CODE_REGEX.test(errCode);
-}
-
 /**
  * @see https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/error-codes/
  */
 export function parseCloudflareTurnstileErrorCode(
   errCode: string
 ): CloudflareTurnstileErrorCodeParseResult {
-  if (!isCloudflareTurnstileErrorCodeValid(errCode)) {
-    throw new Error(`unrecognised cloudflare turnstile error code ${errCode}`);
-  }
-
   switch (errCode) {
     case "110100":
     case "110110": {
