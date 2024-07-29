@@ -4,7 +4,7 @@ import { handleAxiosError, showErrorMessage } from "./messageBar";
 import { base64DecToArr, base64EncArr } from "./base64";
 import { base64URLToBase64, trimNewline, base64ToBase64URL } from "./base64url";
 import { RetryEventTarget } from "./retry";
-import { setErrorMessage } from "./setErrorMessage";
+import { setErrorMessage } from "./authflowv2/alert-message";
 
 function passkeyIsAvailable(): boolean {
   return (
