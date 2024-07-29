@@ -1,4 +1,10 @@
 name: Login with email otp
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
 before:
   - type: user_import
     user_import: users.json
@@ -47,6 +53,19 @@ steps:
             "data": {
               "type": "verify_oob_otp_data"
             }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
           }
         }
 ---

@@ -18,11 +18,15 @@ authentication:
 authenticator:
   oob_otp:
     email:
-      code_valid_period: 3600s
+      valid_periods:
+        code: 300s
+        link: 1200s
       email_otp_mode: login_link
       maximum: 99
     sms:
-      code_valid_period: 3600s
+      valid_periods:
+        code: 300s
+        link: 1200s
       maximum: 99
       phone_otp_mode: whatsapp_sms
   password:
