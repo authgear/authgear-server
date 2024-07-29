@@ -13,6 +13,8 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 
 			parsed, err := ParsePhoneNumberWithUserInput(good)
 			So(err, ShouldBeNil)
+			So(parsed.E164, ShouldEqual, "+85223456789")
+			So(parsed.Alpha2, ShouldEqual, "HK")
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			So(parsed.IsValidNumber, ShouldBeTrue)
 			So(parsed.CountryCallingCodeWithoutPlusSign, ShouldEqual, "852")
@@ -24,10 +26,54 @@ func TestParsePhoneNumberWithUserInput(t *testing.T) {
 
 			parsed, err := ParsePhoneNumberWithUserInput(good)
 			So(err, ShouldBeNil)
+			So(parsed.E164, ShouldEqual, "+61401123456")
+			So(parsed.Alpha2, ShouldEqual, "AU")
 			So(parsed.IsPossibleNumber, ShouldBeTrue)
 			So(parsed.IsValidNumber, ShouldBeTrue)
 			So(parsed.CountryCallingCodeWithoutPlusSign, ShouldEqual, "61")
 			So(parsed.NationalNumberWithoutFormatting, ShouldEqual, "401123456")
+		})
+
+		Convey("Good United States Virgin Islands phone number", func() {
+			// http://www.wtng.info/wtng-1340-vi.html
+			// This website says 712 xxxx is valid.
+			good := "+13407121234"
+
+			parsed, err := ParsePhoneNumberWithUserInput(good)
+			So(err, ShouldBeNil)
+			So(parsed.E164, ShouldEqual, "+13407121234")
+			So(parsed.Alpha2, ShouldEqual, "VI")
+			So(parsed.IsPossibleNumber, ShouldBeTrue)
+			So(parsed.IsValidNumber, ShouldBeTrue)
+			So(parsed.CountryCallingCodeWithoutPlusSign, ShouldEqual, "1")
+			So(parsed.NationalNumberWithoutFormatting, ShouldEqual, "3407121234")
+		})
+
+		Convey("Good British Virgin Islands phone number", func() {
+			good := "+12841234567"
+
+			parsed, err := ParsePhoneNumberWithUserInput(good)
+			So(err, ShouldBeNil)
+			So(parsed.E164, ShouldEqual, "+12841234567")
+			So(parsed.Alpha2, ShouldEqual, "VG")
+			So(parsed.IsPossibleNumber, ShouldBeTrue)
+			// I cannot find a valid pattern on the Internet.
+			So(parsed.IsValidNumber, ShouldBeFalse)
+			So(parsed.CountryCallingCodeWithoutPlusSign, ShouldEqual, "1")
+			So(parsed.NationalNumberWithoutFormatting, ShouldEqual, "2841234567")
+		})
+
+		Convey("Good Isle of Man phone number", func() {
+			good := "+447624123456"
+
+			parsed, err := ParsePhoneNumberWithUserInput(good)
+			So(err, ShouldBeNil)
+			So(parsed.E164, ShouldEqual, "+447624123456")
+			So(parsed.Alpha2, ShouldEqual, "IM")
+			So(parsed.IsPossibleNumber, ShouldBeTrue)
+			So(parsed.IsValidNumber, ShouldBeTrue)
+			So(parsed.CountryCallingCodeWithoutPlusSign, ShouldEqual, "44")
+			So(parsed.NationalNumberWithoutFormatting, ShouldEqual, "7624123456")
 		})
 
 		Convey("Not in E164", func() {
