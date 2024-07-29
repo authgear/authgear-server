@@ -22,12 +22,14 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
 
   const colorboxRef = useRef<HTMLDivElement | null>(null);
 
-  const [inputValue, setInputValue] = useState(color);
+  const [inputValue, setInputValue] = useState<string>(color ?? "");
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const [isFocusingInput, setIsFocusingInput] = useState(false);
 
   useEffect(() => {
-    setInputValue(color);
+    if (color != null) {
+      setInputValue(color);
+    }
   }, [color]);
 
   const onInputChange = useCallback(
