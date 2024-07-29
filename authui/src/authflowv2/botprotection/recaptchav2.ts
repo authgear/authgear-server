@@ -32,8 +32,11 @@ export class RecaptchaV2Controller extends Controller {
   declare widgetTarget: HTMLDivElement;
   declare widgetID: number | undefined;
 
+  hasExistingWidget = () => {
+    return this.widgetTarget.innerHTML !== "" && this.widgetID != null;
+  };
   resetWidget = () => {
-    if (this.widgetID == null) {
+    if (!this.hasExistingWidget()) {
       return;
     }
     window.grecaptcha.reset(this.widgetID); // default to first widget created
@@ -41,12 +44,18 @@ export class RecaptchaV2Controller extends Controller {
 
   connect() {
     window.grecaptcha.ready(() => {
-      // Do not render widget if any existing children
-      if (this.widgetTarget.childElementCount !== 0) {
+      if (this.hasExistingWidget()) {
         return;
       }
       const colorScheme = getColorScheme();
-      const widgetID = window.grecaptcha.render(this.widgetTarget, {
+
+      // Note how we wrap an extra layer of div here, because on cleanup we can just remove this extra layer of div.
+      // container-container
+      //   container <-- can just remove this on cleanup
+      //     widget
+      const widgetContainer = document.createElement("div");
+      this.widgetTarget.appendChild(widgetContainer);
+      const widgetID = window.grecaptcha.render(widgetContainer, {
         sitekey: this.siteKeyValue,
         theme: parseTheme(colorScheme),
         callback: (token: string) => {
@@ -74,5 +83,10 @@ export class RecaptchaV2Controller extends Controller {
       });
       this.widgetID = widgetID;
     });
+  }
+
+  disconnect() {
+    this.widgetID = undefined;
+    this.widgetTarget.innerHTML = ""; // Remove widget container
   }
 }

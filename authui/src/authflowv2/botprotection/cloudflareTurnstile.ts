@@ -34,19 +34,33 @@ export class CloudflareTurnstileController extends Controller {
   declare siteKeyValue: string;
   declare langValue: string;
   declare widgetTarget: HTMLDivElement;
+  declare widgetContainer: HTMLDivElement | undefined;
 
+  hasExistingWidget = () => {
+    return this.widgetContainer != null;
+  };
   resetWidget = () => {
-    window.turnstile.reset(this.widgetTarget);
+    if (!this.hasExistingWidget()) {
+      return;
+    }
+    window.turnstile.reset(this.widgetContainer);
   };
 
   connect() {
     window.turnstile.ready(() => {
-      // Do not render widget if any existing children
-      if (this.widgetTarget.childElementCount !== 0) {
+      if (this.hasExistingWidget()) {
         return;
       }
       const colorScheme = getColorScheme();
-      window.turnstile.render(this.widgetTarget, {
+
+      // Note how we wrap an extra layer of div here, because on cleanup we can just remove this extra layer of div.
+      // container-container
+      //   container <-- can just remove this on cleanup
+      //     widget
+      const widgetContainer = document.createElement("div");
+      this.widgetContainer = widgetContainer;
+      this.widgetTarget.appendChild(widgetContainer);
+      window.turnstile.render(widgetContainer, {
         sitekey: this.siteKeyValue,
         theme: parseTheme(colorScheme),
         language: this.langValue,
@@ -99,5 +113,9 @@ export class CloudflareTurnstileController extends Controller {
         // execution: "render", // render is default, challenge runs automatically after calling the render() function.
       });
     });
+  }
+
+  disconnect() {
+    window.turnstile.remove(this.widgetContainer);
   }
 }
