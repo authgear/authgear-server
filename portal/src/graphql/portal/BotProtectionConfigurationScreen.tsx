@@ -356,7 +356,11 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
               />
               <div className={styles.secretKeyInputContainer}>
                 <FormTextField
-                  className={styles.secretKeyInput}
+                  className={
+                    revealed
+                      ? styles.secretKeyInputWithoutReveal
+                      : styles.secretKeyInputWithReveal
+                  }
                   id={SECRET_KEY_FORM_FIELD_ID}
                   type="text"
                   label={renderToString(

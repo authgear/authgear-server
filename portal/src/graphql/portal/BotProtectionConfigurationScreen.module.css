@@ -49,3 +49,21 @@
   cursor: pointer;
   column-gap: 16px;
 }
+
+.secretKeyInputContainer {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: auto 1fr;
+  column-gap: 0.5rem;
+}
+.secretKeyInputWithoutReveal {
+  grid-column: 1 / span 8;
+}
+.secretKeyInputWithReveal {
+  grid-column: 1 / span 7;
+}
+.secretKeyRevealButton {
+  grid-column: span 1 / span 1;
+  justify-self: center;
+  align-self: end;
+}

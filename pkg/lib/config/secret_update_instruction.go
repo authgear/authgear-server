@@ -23,10 +23,11 @@ const (
 )
 
 type SecretConfigUpdateInstruction struct {
-	OAuthSSOProviderCredentialsUpdateInstruction *OAuthSSOProviderCredentialsUpdateInstruction `json:"oauthSSOProviderClientSecrets,omitempty"`
-	SMTPServerCredentialsUpdateInstruction       *SMTPServerCredentialsUpdateInstruction       `json:"smtpSecret,omitempty"`
-	OAuthClientSecretsUpdateInstruction          *OAuthClientSecretsUpdateInstruction          `json:"oauthClientSecrets,omitempty"`
-	AdminAPIAuthKeyUpdateInstruction             *AdminAPIAuthKeyUpdateInstruction             `json:"adminAPIAuthKey,omitempty"`
+	OAuthSSOProviderCredentialsUpdateInstruction      *OAuthSSOProviderCredentialsUpdateInstruction      `json:"oauthSSOProviderClientSecrets,omitempty"`
+	SMTPServerCredentialsUpdateInstruction            *SMTPServerCredentialsUpdateInstruction            `json:"smtpSecret,omitempty"`
+	OAuthClientSecretsUpdateInstruction               *OAuthClientSecretsUpdateInstruction               `json:"oauthClientSecrets,omitempty"`
+	AdminAPIAuthKeyUpdateInstruction                  *AdminAPIAuthKeyUpdateInstruction                  `json:"adminAPIAuthKey,omitempty"`
+	BotProtectionProviderCredentialsUpdateInstruction *BotProtectionProviderCredentialsUpdateInstruction `json:"botProtectionProviderSecret,omitempty"`
 }
 
 func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
@@ -56,6 +57,13 @@ func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructi
 
 	if i.AdminAPIAuthKeyUpdateInstruction != nil {
 		newConfig, err = i.AdminAPIAuthKeyUpdateInstruction.ApplyTo(ctx, newConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if i.BotProtectionProviderCredentialsUpdateInstruction != nil {
+		newConfig, err = i.BotProtectionProviderCredentialsUpdateInstruction.ApplyTo(ctx, newConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -495,8 +503,62 @@ func (i *AdminAPIAuthKeyUpdateInstruction) delete(currentConfig *SecretConfig) (
 	return out, nil
 }
 
+type BotProtectionProviderCredentialsUpdateInstructionData struct {
+	Type      string `json:"type,omitempty"`
+	SecretKey string `json:"secretKey,omitempty"`
+}
+
+type BotProtectionProviderCredentialsUpdateInstruction struct {
+	Action SecretUpdateInstructionAction                          `json:"action,omitempty"`
+	Data   *BotProtectionProviderCredentialsUpdateInstructionData `json:"data,omitempty"`
+}
+
+func (i *BotProtectionProviderCredentialsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
+	switch i.Action {
+	case SecretUpdateInstructionActionSet:
+		return i.set(currentConfig)
+	default:
+		return nil, fmt.Errorf("config: unexpected action for BotProtectionProviderCredentialsUpdateInstruction: %s", i.Action)
+	}
+}
+
+func (i *BotProtectionProviderCredentialsUpdateInstruction) set(currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	for _, item := range currentConfig.Secrets {
+		out.Secrets = append(out.Secrets, item)
+	}
+
+	if i.Data == nil {
+		return nil, fmt.Errorf("missing data for BotProtectionProviderCredentialsUpdateInstruction")
+	}
+
+	credentials := &BotProtectionProviderCredentials{
+		Type:      BotProtectionProviderType(i.Data.Type),
+		SecretKey: i.Data.SecretKey,
+	}
+
+	var data []byte
+	data, err := json.Marshal(credentials)
+	if err != nil {
+		return nil, err
+	}
+	newSecretItem := SecretItem{
+		Key:     BotProtectionProviderCredentialsKey,
+		RawData: json.RawMessage(data),
+	}
+
+	idx, _, found := out.LookupDataWithIndex(BotProtectionProviderCredentialsKey)
+	if found {
+		out.Secrets[idx] = newSecretItem
+	} else {
+		out.Secrets = append(out.Secrets, newSecretItem)
+	}
+	return out, nil
+}
+
 var _ SecretConfigUpdateInstructionInterface = &SecretConfigUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &OAuthSSOProviderCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SMTPServerCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &OAuthClientSecretsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &AdminAPIAuthKeyUpdateInstruction{}
+var _ SecretConfigUpdateInstructionInterface = &BotProtectionProviderCredentialsUpdateInstruction{}
