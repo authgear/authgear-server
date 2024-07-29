@@ -15,7 +15,7 @@ import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
 import FormTextField from "../../FormTextField";
 
-import styles from "./ResetPasswordScreen.module.css";
+import styles from "./ChangePasswordScreen.module.css";
 import { validatePassword } from "../../error/password";
 
 interface FormState {
@@ -33,7 +33,7 @@ interface ResetPasswordContentProps {
   form: SimpleFormModel<FormState>;
 }
 
-const ResetPasswordContent: React.VFC<ResetPasswordContentProps> = function (
+const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
   props
 ) {
   const {
@@ -50,7 +50,7 @@ const ResetPasswordContent: React.VFC<ResetPasswordContentProps> = function (
         to: `~/users/${userID}/details`,
         label: <FormattedMessage id="UserDetailsScreen.title" />,
       },
-      { to: ".", label: <FormattedMessage id="ResetPasswordScreen.title" /> },
+      { to: ".", label: <FormattedMessage id="ChangePasswordScreen.title" /> },
     ];
   }, [userID]);
 
@@ -66,7 +66,7 @@ const ResetPasswordContent: React.VFC<ResetPasswordContentProps> = function (
       <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
       <PasswordField
         className={styles.widget}
-        label={renderToString("ResetPasswordScreen.new-password")}
+        label={renderToString("ChangePasswordScreen.new-password")}
         value={state.newPassword}
         onChange={onNewPasswordChange}
         passwordPolicy={appConfig?.authenticator?.password?.policy ?? {}}
@@ -75,7 +75,7 @@ const ResetPasswordContent: React.VFC<ResetPasswordContentProps> = function (
       />
       <FormTextField
         className={styles.widget}
-        label={renderToString("ResetPasswordScreen.confirm-password")}
+        label={renderToString("ChangePasswordScreen.confirm-password")}
         type="password"
         value={state.confirmPassword}
         onChange={onConfirmPasswordChange}
@@ -86,7 +86,7 @@ const ResetPasswordContent: React.VFC<ResetPasswordContentProps> = function (
   );
 };
 
-const ResetPasswordScreen: React.VFC = function ResetPasswordScreen() {
+const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
   const { appID } = useParams() as { appID: string };
   const navigate = useNavigate();
 
@@ -145,9 +145,9 @@ const ResetPasswordScreen: React.VFC = function ResetPasswordScreen() {
 
   return (
     <FormContainer form={form} canSave={canSave}>
-      <ResetPasswordContent form={form} appConfig={effectiveAppConfig} />
+      <ChangePasswordContent form={form} appConfig={effectiveAppConfig} />
     </FormContainer>
   );
 };
 
-export default ResetPasswordScreen;
+export default ChangePasswordScreen;

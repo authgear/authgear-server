@@ -38,8 +38,8 @@ const PhoneScreen = lazy(async () => import("./graphql/adminapi/PhoneScreen"));
 const UsernameScreen = lazy(
   async () => import("./graphql/adminapi/UsernameScreen")
 );
-const ResetPasswordScreen = lazy(
-  async () => import("./graphql/adminapi/ResetPasswordScreen")
+const ChangePasswordScreen = lazy(
+  async () => import("./graphql/adminapi/ChangePasswordScreen")
 );
 const EditPictureScreen = lazy(
   async () => import("./graphql/adminapi/EditPictureScreen")
@@ -384,10 +384,10 @@ const AppRoot: React.VFC = function AppRoot() {
                     }
                   />
                   <Route
-                    path="reset-password"
+                    path="change-password"
                     element={
                       <Suspense fallback={<ShowLoading />}>
-                        <ResetPasswordScreen />
+                        <ChangePasswordScreen />
                       </Suspense>
                     }
                   />
