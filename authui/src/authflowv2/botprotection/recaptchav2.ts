@@ -41,6 +41,10 @@ export class RecaptchaV2Controller extends Controller {
 
   connect() {
     window.grecaptcha.ready(() => {
+      // Do not render widget if any existing children
+      if (this.widgetTarget.childElementCount !== 0) {
+        return;
+      }
       const colorScheme = getColorScheme();
       const widgetID = window.grecaptcha.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,

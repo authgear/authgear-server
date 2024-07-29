@@ -41,6 +41,10 @@ export class CloudflareTurnstileController extends Controller {
 
   connect() {
     window.turnstile.ready(() => {
+      // Do not render widget if any existing children
+      if (this.widgetTarget.childElementCount !== 0) {
+        return;
+      }
       const colorScheme = getColorScheme();
       window.turnstile.render(this.widgetTarget, {
         sitekey: this.siteKeyValue,
