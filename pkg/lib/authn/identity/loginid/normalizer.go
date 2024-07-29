@@ -120,7 +120,7 @@ type PhoneNumberNormalizer struct {
 var _ internalinterface.LoginIDNormalizer = &PhoneNumberNormalizer{}
 
 func (n *PhoneNumberNormalizer) Normalize(loginID string) (string, error) {
-	e164, err := phone.LegalParser.ParseInputPhoneNumber(loginID)
+	e164, err := phone.Parse_IsPossibleNumber_ReturnE164(loginID)
 	if err != nil {
 		return "", err
 	}
