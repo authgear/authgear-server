@@ -128,6 +128,7 @@ interface ThemeSetters {
   setAppLogo: (
     image: { base64EncodedData: string; extension: string } | null
   ) => void;
+  setLogoHeight: (height: string | undefined) => void;
   setBackgroundColor: (color: CSSColor | undefined) => void;
   setBackgroundImage: (
     image: { base64EncodedData: string; extension: string } | null
@@ -564,6 +565,17 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     [resourceMutator]
   );
 
+  const _setLogoHeight = useCallback(
+    (height: string | undefined, targetTheme: Theme) => {
+      resourceMutator.updateCustomisableTheme((prev) => {
+        return produce(prev, (draft) => {
+          draft.logo.height = height;
+        });
+      }, targetTheme);
+    },
+    [resourceMutator]
+  );
+
   const _setBackgroundColor = useCallback(
     (backgroundColor: CSSColor | undefined, targetTheme: Theme) => {
       resourceMutator.updateCustomisableTheme((prev) => {
@@ -770,6 +782,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       },
       lightThemeSetters: {
         setAppLogo: (image) => _setAppLogo(image, Theme.Light),
+        setLogoHeight: (height) => _setLogoHeight(height, Theme.Light),
         setBackgroundColor: (color) => _setBackgroundColor(color, Theme.Light),
         setBackgroundImage: (image) => _setBackgroundImage(image, Theme.Light),
         setPrimaryButtonBackgroundColor: (color) =>
@@ -780,6 +793,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       },
       darkThemeSetters: {
         setAppLogo: (image) => _setAppLogo(image, Theme.Dark),
+        setLogoHeight: (height) => _setLogoHeight(height, Theme.Dark),
         setBackgroundColor: (color) => _setBackgroundColor(color, Theme.Dark),
         setBackgroundImage: (image) => _setBackgroundImage(image, Theme.Dark),
         setPrimaryButtonBackgroundColor: (color) =>
@@ -797,6 +811,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       errorRules,
       resourceMutator,
       _setAppLogo,
+      _setLogoHeight,
       _setBackgroundColor,
       _setBackgroundImage,
       _setPrimaryButtonBackgroundColor,

@@ -894,6 +894,8 @@
   "DesignScreen.configuration.logo.label": "Logo",
   "DesignScreen.configuration.logo.light": "Light mode",
   "DesignScreen.configuration.logo.dark": "Dark mode",
+  "DesignScreen.configuration.logo.height.label.light": "Logo height - light mode",
+  "DesignScreen.configuration.logo.height.label.dark": "Logo height - dark mode",
   "DesignScreen.configuration.favicon.label": "Favicon",
   "DesignScreen.configuration.favicon.description": "Add a favicon to browser tabs to identify your brand. The size must be a multiple of 32px square PNG, JPG or GIF",
   "DesignScreen.configuration.imagePicker.upload": "Upload",
