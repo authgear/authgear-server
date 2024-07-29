@@ -1017,15 +1017,14 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
         config.authenticator?.oob_otp?.email?.email_otp_mode ??
         DEFAULT_EMAIL_OTP_MODE,
       maximum: config.authenticator?.oob_otp?.email?.maximum,
-      code_valid_period:
-        config.authenticator?.oob_otp?.email?.code_valid_period,
+      valid_periods: config.authenticator?.oob_otp?.email?.valid_periods,
     },
     authenticatorOOBSMSConfig: {
       phone_otp_mode:
         config.authenticator?.oob_otp?.sms?.phone_otp_mode ??
         DEFAULT_PHONE_OTP_MODE,
       maximum: config.authenticator?.oob_otp?.sms?.maximum,
-      code_valid_period: config.authenticator?.oob_otp?.sms?.code_valid_period,
+      valid_periods: config.authenticator?.oob_otp?.sms?.valid_periods,
     },
     authenticatorPasswordConfig: {
       force_change: config.authenticator?.password?.force_change,
