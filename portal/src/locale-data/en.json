@@ -839,7 +839,7 @@
   "oauth-client.application-type.third-party-app": "OIDC Client Application (Legacy)",
 
   "CustomDomainListScreen.title": "Custom Domains",
-  "CustomDomainListScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is written so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
+  "CustomDomainListScreen.desc": "You can add a custom domain so that users will login via, for example, “identity.yourdomain.com”. In this case, a session cookie of domain “yourdomain.com” is set so that your websites can share the session cookies under “*.yourdomain.com” for better customers experiences.",
   "CustomDomainListScreen.add-domain.generic-error": "Failed to add domain",
   "CustomDomainListScreen.add-domain.duplicated-error": "Domain is already in use",
   "CustomDomainListScreen.add-domain.invalid-error": "Invalid domain",
