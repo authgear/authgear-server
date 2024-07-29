@@ -65,7 +65,7 @@ type VerifyOptions struct {
 	OOBChannel            *apimodel.AuthenticatorOOBChannel
 	UseSubmittedValue     bool
 	AuthenticationDetails *AuthenticationDetails
-	Form 						      otp.Form
+	Form                  otp.Form
 }
 
 func (v *VerifyOptions) toServiceOptions() *service.VerifyOptions {

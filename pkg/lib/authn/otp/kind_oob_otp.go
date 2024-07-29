@@ -34,7 +34,7 @@ type kindOOBOTP struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
 	purpose Purpose
-	form 	  Form
+	form    Form
 }
 
 func KindOOBOTPCode(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind {
@@ -51,7 +51,6 @@ func KindOOBOTPWithForm(config *config.AppConfig, channel model.AuthenticatorOOB
 
 var _ DeprecatedKindFactory = KindOOBOTPCode
 var _ DeprecatedKindFactory = KindOOBOTPLink
-
 
 func (k kindOOBOTP) Purpose() Purpose {
 	return k.purpose
@@ -72,7 +71,7 @@ func (k kindOOBOTP) ValidPeriod() time.Duration {
 			k.config.Authenticator.OOB.SMS.ValidPeriods.Link,
 		).Duration()
 	}
-	panic("unknown authenticator oob otp form");
+	panic("unknown authenticator oob otp form")
 }
 
 func (k kindOOBOTP) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {
