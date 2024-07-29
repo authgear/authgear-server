@@ -93,8 +93,10 @@ binary:
 
 .PHONY: check-tidy
 check-tidy:
-	$(MAKE) fmt
+	# For some unknown reason, `make generate` will somehow format the files again (but with a different rule).
+	# So `make fmt` has to be run after `make generate`.
 	$(MAKE) generate
+	$(MAKE) fmt
 	$(MAKE) html-email
 	$(MAKE) export-schemas
 	$(MAKE) generate-timezones
