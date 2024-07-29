@@ -45,6 +45,7 @@ export const enum CSSVariable {
   LinkColor = "--body-text__link-color",
   WatermarkDisplay = "--watermark-display",
   AlignmentLogo = "--alignment-logo",
+  LogoHeight = "--brand-logo__height",
 }
 
 export type CSSColor = string;
@@ -103,6 +104,7 @@ export interface LinkStyle {
 
 export interface LogoStyte {
   alignment: Alignment | Hidden;
+  height: string;
 }
 
 export const WatermarkEnabledDisplay = "inline-block";
@@ -174,6 +176,7 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
   },
   logo: {
     alignment: "center",
+    height: "2.5rem",
   },
 };
 
@@ -211,6 +214,7 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
   },
   logo: {
     alignment: "center",
+    height: "2.5rem",
   },
 };
 
@@ -416,6 +420,24 @@ export class SpaceStyleProperty extends StyleProperty<string | undefined> {
   }
 }
 
+export class HeightStyleProperty extends StyleProperty<string | undefined> {
+  protected setWithRawValue(rawValue: string): void {
+    if (rawValue) {
+      this.value = rawValue;
+    } else {
+      this.value = undefined;
+    }
+  }
+
+  acceptCssAstVisitor(visitor: CssAstVisitor): void {
+    visitor.visitHeightStyleProperty(this);
+  }
+
+  getCSSValue(): string | undefined {
+    return this.value;
+  }
+}
+
 type StyleProperties<T> = {
   [K in keyof T]: AbstractStyle<T[K] | null>;
 };
@@ -520,6 +542,10 @@ export class CustomisableThemeStyleGroup extends StyleGroup<PartialCustomisableT
           CSSVariable.AlignmentLogo,
           value.logo.alignment
         ),
+        height: new HeightStyleProperty(
+          CSSVariable.LogoHeight,
+          value.logo.height
+        ),
       }),
     });
   }
@@ -607,6 +633,10 @@ export class CssAstVisitor {
   }
 
   visitSpaceStyleProperty(styleProperty: SpaceStyleProperty): void {
+    this.visitorStyleProperty(styleProperty);
+  }
+
+  visitHeightStyleProperty(styleProperty: HeightStyleProperty): void {
     this.visitorStyleProperty(styleProperty);
   }
 
