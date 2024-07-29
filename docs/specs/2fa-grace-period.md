@@ -69,6 +69,12 @@ type Mutation {
 }
 ```
 
+It's stored in the user model as `mfa_grace_period_end_at`.
+
+```sql
+ALTER TABLE _authgear_user ADD COLUMN mfa_grace_period_end_at TIMESTAMP WITHOUT TIME ZONE;
+```
+
 ### Customized Authentication Flow
 
 Customized authentication flow can use `enrollment_allowed: true` to allow enrolling any of the following authenticators before proceeding.
