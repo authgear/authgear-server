@@ -32,6 +32,7 @@ export class RecaptchaV2Controller extends Controller {
   declare widgetTarget: HTMLDivElement;
   declare widgetContainer: HTMLDivElement | undefined;
   declare widgetID: number | undefined;
+  declare isReadyForRendering: boolean;
 
   hasExistingWidget = () => {
     return this.widgetContainer != null && this.widgetID != null;
@@ -43,55 +44,67 @@ export class RecaptchaV2Controller extends Controller {
     window.grecaptcha.reset(this.widgetID); // default to first widget created
   };
 
-  connect() {
-    window.grecaptcha.ready(() => {
-      if (this.hasExistingWidget()) {
-        return;
-      }
-      const colorScheme = getColorScheme();
+  renderWidget() {
+    if (!this.isReadyForRendering) {
+      throw new Error("recaptchav2 target is not ready for rendering");
+    }
 
-      // Note how we wrap an extra layer of div here, because on cleanup we can just remove this extra layer of div.
-      // container-container
-      //   container <-- can just remove this on cleanup
-      //     widget
-      const widgetContainer = document.createElement("div");
-      this.widgetContainer = widgetContainer;
-      this.widgetTarget.appendChild(widgetContainer);
-      const widgetID = window.grecaptcha.render(widgetContainer, {
-        sitekey: this.siteKeyValue,
-        theme: parseTheme(colorScheme),
-        callback: (token: string) => {
-          dispatchBotProtectionEventVerified(token);
-        },
-        "error-callback": () => {
-          // Tested, error-callback does not have error message/error code as params
-          // Will simply fire failed event, instead of graceful handling in cloudflare
-          console.error(
-            "Something went wrong with Google RecaptchaV2. Please check widget for error hint."
-          );
-          setErrorMessage(RECAPTCHA_V2_ERROR_MSG_ID);
-          dispatchBotProtectionEventFailed();
-        },
-        "expired-callback": () => {
-          this.resetWidget();
-          dispatchBotProtectionEventExpired();
-        },
+    if (this.hasExistingWidget()) {
+      return;
+    }
+    const colorScheme = getColorScheme();
 
-        // below are default values, added for clarity
-        size: "normal",
-        tabindex: 0,
-        type: "image",
-        badge: "bottomright",
-      });
-      this.widgetID = widgetID;
+    // Note how we wrap an extra layer of div here, because on cleanup we can just remove this extra layer of div.
+    // container-container
+    //   container <-- can just remove this on cleanup
+    //     widget
+    const widgetContainer = document.createElement("div");
+    this.widgetContainer = widgetContainer;
+    this.widgetTarget.appendChild(widgetContainer);
+    const widgetID = window.grecaptcha.render(widgetContainer, {
+      sitekey: this.siteKeyValue,
+      theme: parseTheme(colorScheme),
+      callback: (token: string) => {
+        dispatchBotProtectionEventVerified(token);
+      },
+      "error-callback": () => {
+        // Tested, error-callback does not have error message/error code as params
+        // Will simply fire failed event, instead of graceful handling in cloudflare
+        console.error(
+          "Something went wrong with Google RecaptchaV2. Please check widget for error hint."
+        );
+        setErrorMessage(RECAPTCHA_V2_ERROR_MSG_ID);
+        dispatchBotProtectionEventFailed();
+      },
+      "expired-callback": () => {
+        this.resetWidget();
+        dispatchBotProtectionEventExpired();
+      },
+
+      // below are default values, added for clarity
+      size: "normal",
+      tabindex: 0,
+      type: "image",
+      badge: "bottomright",
     });
+    this.widgetID = widgetID;
   }
 
-  disconnect() {
+  undoRenderWidget() {
     this.widgetID = undefined;
     if (this.widgetContainer != null) {
       this.widgetTarget.removeChild(this.widgetContainer);
     }
     this.widgetContainer = undefined;
+  }
+
+  connect() {
+    window.grecaptcha.ready(() => {
+      this.isReadyForRendering = true;
+    });
+  }
+
+  disconnect() {
+    this.undoRenderWidget();
   }
 }
