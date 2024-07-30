@@ -6,7 +6,8 @@ var _ = Schema.Add("BotProtectionConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"enabled": { "type": "boolean" },
-    "provider": { "$ref": "#/$defs/BotProtectionProvider" }
+    "provider": { "$ref": "#/$defs/BotProtectionProvider" },
+		"requirements": { "$ref": "#/$defs/BotProtectionRequirements" }
 	}
 }
 `)
@@ -38,14 +39,47 @@ var _ = Schema.Add("BotProtectionProvider", `
 }
 `)
 
+var _ = Schema.Add("BotProtectionRequirements", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"signup_or_login": { "$ref": "#/$defs/BotProtectionRequirementsObject" },
+		"account_recovery": { "$ref": "#/$defs/BotProtectionRequirementsObject" },
+		"password": { "$ref": "#/$defs/BotProtectionRequirementsObject" },
+		"oob_otp_email": { "$ref": "#/$defs/BotProtectionRequirementsObject" },
+		"oob_otp_sms": { "$ref": "#/$defs/BotProtectionRequirementsObject" }
+	}
+}
+`)
+
+var _ = Schema.Add("BotProtectionRequirementsObject", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"mode": { "$ref": "#/$defs/BotProtectionRiskMode" }
+	},
+	"required": ["mode"]
+}
+`)
+
+var _ = Schema.Add("BotProtectionRiskMode", `
+{
+	"type": "string",
+	"enum": ["never", "always"]
+}
+`)
+
 type BotProtectionConfig struct {
-	Enabled  bool                   `json:"enabled,omitempty"`
-	Provider *BotProtectionProvider `json:"provider,omitempty" nullable:"true"`
+	Enabled      bool                       `json:"enabled,omitempty"`
+	Provider     *BotProtectionProvider     `json:"provider,omitempty" nullable:"true"`
+	Requirements *BotProtectionRequirements `json:"requirements,omitempty" nullable:"true"`
 }
 
 type BotProtectionProvider struct {
 	Type    BotProtectionProviderType `json:"type,omitempty"`
-	SiteKey string                    `json:"site_key,omitempty"` // only for some cloudflare, recaptchav2
+	SiteKey string                    `json:"site_key,omitempty"` // only for cloudflare, recaptchav2
 }
 
 type BotProtectionProviderType string
@@ -53,4 +87,23 @@ type BotProtectionProviderType string
 const (
 	BotProtectionProviderTypeCloudflare  BotProtectionProviderType = "cloudflare"
 	BotProtectionProviderTypeRecaptchaV2 BotProtectionProviderType = "recaptchav2"
+)
+
+type BotProtectionRequirements struct {
+	SignupOrLogin   *BotProtectionRequirementsObject `json:"signup_or_login,omitempty"`
+	AccountRecovery *BotProtectionRequirementsObject `json:"account_recovery,omitempty"`
+	Password        *BotProtectionRequirementsObject `json:"password,omitempty"`
+	OOBOTPEmail     *BotProtectionRequirementsObject `json:"oob_otp_email,omitempty"`
+	OOBOTPSMS       *BotProtectionRequirementsObject `json:"oob_otp_sms,omitempty"`
+}
+
+type BotProtectionRequirementsObject struct {
+	Mode BotProtectionRiskMode `json:"mode,omitempty"`
+}
+
+type BotProtectionRiskMode string
+
+const (
+	BotProtectionRiskModeNever  BotProtectionRiskMode = "never"
+	BotProtectionRiskModeAlways BotProtectionRiskMode = "always"
 )

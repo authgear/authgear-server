@@ -64,3 +64,67 @@ name: enabled-false
 error: null
 value:
   enabled: false
+---
+part: BotProtectionConfig
+name: bot-protection-requirements-all-fields
+error: null
+value:
+  enabled: true
+  provider:
+    type: cloudflare
+    site_key: dummy
+  requirements:
+    signup_or_login:
+      mode: never
+    account_recovery:
+      mode: always
+    password:
+      mode: never
+    oob_otp_email:
+      mode: always
+    oob_otp_sms:
+      mode: always
+---
+part: BotProtectionConfig
+name: bot-protection-requirements-some-fields
+error: null
+value:
+  enabled: true
+  provider:
+    type: cloudflare
+    site_key: dummy
+  requirements:
+    signup_or_login:
+      mode: always
+    password:
+      mode: never
+    oob_otp_sms:
+      mode: always
+---
+part: BotProtectionConfig
+name: bot-protection-requirements-invalid-fields
+error: |-
+  invalid value:
+  /requirements/invalid_key: 
+value:
+  enabled: true
+  provider:
+    type: cloudflare
+    site_key: dummy
+  requirements:
+    invalid_key: invalid_value
+---
+part: BotProtectionConfig
+name: bot-protection-requirements-signup-or-login-invalid-mode
+error: |-
+  invalid value:
+  /requirements/signup_or_login/mode: enum
+    map[actual:invalid_mode expected:[never always]]
+value:
+  enabled: true
+  provider:
+    type: cloudflare
+    site_key: dummy
+  requirements:
+    signup_or_login:
+      mode: invalid_mode
