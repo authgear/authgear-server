@@ -2,6 +2,8 @@ import {
   CSSVariable,
   CssAstVisitor,
   CustomisableThemeStyleGroup,
+  DEFAULT_DARK_THEME,
+  DEFAULT_LIGHT_THEME,
   WatermarkDisabledDisplay,
   WatermarkEnabledDisplay,
   getThemeTargetSelector,
@@ -68,6 +70,10 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
   const cssAstVisitor = new CssAstVisitor(
     getThemeTargetSelector(state.selectedTheme)
   );
+  const defaultStyleGroup = new CustomisableThemeStyleGroup(
+    state.selectedTheme === "light" ? DEFAULT_LIGHT_THEME : DEFAULT_DARK_THEME
+  );
+  defaultStyleGroup.acceptCssAstVisitor(cssAstVisitor);
   const styleGroup = new CustomisableThemeStyleGroup(
     state.selectedTheme === "light"
       ? state.customisableLightTheme
