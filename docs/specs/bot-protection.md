@@ -145,12 +145,14 @@ Bot protection is supported in the following flow types:
 - `signup_login`
 - `reauth`
 - `account_recovery`
+- `verify`
 
 Bot protection is supported only in the following step types:
 
 - `identify` in `signup`, `promote`, `login`, `signup_login`, and `account_recovery`.
 - `authenticate` in `login` and `reauth`.
 - `create_authenticator` in `signup` and `promote`
+- `verify` in `signup` and `promote`
 
 To enable bot protection in a branch, add `bot_protection` to the branch.
 
@@ -210,15 +212,164 @@ The bot protection behavior in generated flows depend on
 
 Given `bot_protection.enabled=true`,
 
-|Configuration|Behavior|
-|---|---|
-|`bot_protection.authentication_flow.signup_or_login.mode`|Contribute to branches `identification: email`, `identification: phone`, `identification: username` of step `type: identify` in flows `signup`, `login`, `signup_login`, `promote`.|
-|`bot_protection.authentication_flow.account_recovery.mode`|Contribute to all branches of `type: identify` of flow `account_recovery` has `bot_protection.mode` equal to `bot_protection.authentication_flow.account_recovery.mode`.|
-|`bot_protection.authenticator.password.mode`|Contribute to branches `authentication: primary_password`, `authentication: secondary_password` in step `type: authenticate` in flows `login`.|
-|`bot_protection.authenticator.oob_otp_email.mode`|Contribute to branches `authentication: primary_oob_otp_email`, `authentication: secondary_oob_otp_email` in steps `type: authenticate`, `type: create_authenticator` in flows `signup`, `login`, `promote`.|
-|`verification.claims.email.required`|If `verification.claims.email.required` is true, contribute to branches `identification: email` in step `type: identify` in flows `signup`, `promote`.|
-|`bot_protection.authenticator.oob_otp_sms.mode`|Contribute to branches `authentication: primary_oob_otp_sms`, `authentication: secondary_oob_otp_sms` in steps `type: authenticate`, `type: create_authenticator` in flows `signup`, `login`, `promote`.|
-|`verification.claims.phone_number.required`|If `verification.claims.phone_number.required` is true, contribute to branches `identification: phone` in step `type: identify` in flows `signup`, `promote`.|
+<table>
+   <tr>
+      <th>Configuration</th>
+      <th>Behavior</th>
+   </tr>
+   <tr>
+      <td>
+        <code>bot_protection.authentication_flow.signup_or_login.mode</code>
+      </td>
+      <td>
+        Contribute to flows:
+          <ol>
+            <li>
+              <code>signup</code>
+              <ul>
+                <li><code>identify</code></li>
+                <ul>
+                  <li><code>email</code></li>
+                  <li><code>phone</code></li>
+                  <li><code>username</code></li>
+                </ul>
+              </ul>
+            </li>
+            <li>
+              <code>login</code>
+              <ul>
+                <li><code>identify</code></li>
+                <ul>
+                  <li><code>email</code></li>
+                  <li><code>phone</code></li>
+                  <li><code>username</code></li>
+                </ul>
+              </ul>
+            </li>
+            <li>
+              <code>signup_login</code>
+              <ul>
+                <li><code>identify</code></li>
+                <ul>
+                  <li><code>email</code></li>
+                  <li><code>phone</code></li>
+                  <li><code>username</code></li>
+                </ul>
+              </ul>
+            </li>
+            <li>
+              <code>promote</code>
+              <ul>
+                <li><code>identify</code></li>
+                <ul>
+                  <li><code>email</code></li>
+                  <li><code>phone</code></li>
+                  <li><code>username</code></li>
+                </ul>
+              </ul>
+            </li>
+          </ol>
+   </tr>
+   <tr>
+      <td><code>bot_protection.authentication_flow.account_recovery.mode</code></td>
+      <td>
+        Contribute to flows:
+          <ol>
+            <li>
+              <code>account_recovery</code>
+              <ul>
+                <li><code>identify (all branches) </code></li>
+              </ul>
+            </li>
+          </ol>
+      </td>
+   </tr>
+   <tr>
+      <td><code>bot_protection.authenticator.password.mode</code></td>
+      <td>
+        Contribute to flows:
+          <ol>
+            <li>
+              <code>login</code>
+              <ul>
+                <li><code>authenticate</code></li>
+                <ul>
+                  <li><code>primary_password</code></li>
+                  <li><code>secondary_password</code></li>
+                </ul>
+              </ul>
+            </li>
+          </ol>
+      </td>
+   </tr>
+   <tr>
+      <td><code>bot_protection.authenticator.oob_otp_email.mode</code></td>
+      <td>
+        Contribute to flows:
+          <ol>
+            <li>
+            <!-- Promote only have identify, verify/create_authenticator will reuse signup -->
+              <code>signup (promote) </code>
+              <ul>
+                <li><code>verify (email) </code></li>
+                <ul>
+                  <li>if <code>verification.claims.email.required=true</code></li>
+                </ul>
+                <li><code>create_authenticator</code></li>
+                <ul>
+                  <li><code>primary_oob_otp_email</code></li>
+                  <li><code>secondary_oob_otp_email</code></li>
+                </ul>
+              </ul>
+            </li>
+            <li>
+              <code>login</code>
+              <ul>
+                <li><code>authenticate</code></li>
+                <ul>
+                  <li><code>primary_oob_otp_email</code></li>
+                  <li><code>secondary_oob_otp_email</code></li>
+                </ul>
+              </ul>
+            </li>
+          </ol>
+      </td>
+   </tr>
+   <tr>
+      <td><code>bot_protection.authenticator.oob_otp_sms.mode</code></td>
+       <td>
+        Contribute to flows:
+          <ol>
+            <li>
+            <!-- Promote only have identify, verify/create_authenticator will reuse signup -->
+              <code>signup (promote)</code>
+              <ul>
+                <li><code>verify (sms) </code></li>
+                <ul>
+                  <li>if <code>verification.claims.phone_number.required=true</code></li>
+                </ul>
+                <li><code>create_authenticator</code></li>
+                <ul>
+                  <li><code>primary_oob_otp_sms</code></li>
+                  <li><code>secondary_oob_otp_sms</code></li>
+                </ul>
+              </ul>
+            </li>
+            <li>
+              <code>login</code>
+              <ul>
+                <li><code>authenticate</code></li>
+                <ul>
+                  <li><code>primary_oob_otp_sms</code></li>
+                  <li><code>secondary_oob_otp_sms</code></li>
+                </ul>
+              </ul>
+            </li>
+          </ol>
+      </td>
+   </tr>
+</table>
+
 
 Some branches have multiple contributions from various configuration. The most strict `mode` is used in this case.
 
