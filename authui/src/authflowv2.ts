@@ -43,6 +43,7 @@ import { CloudflareTurnstileController } from "./authflowv2/botprotection/cloudf
 import { RecaptchaV2Controller } from "./authflowv2/botprotection/recaptchav2";
 import { BotProtectionTokenInputController } from "./authflowv2/botprotection/botProtectionTokenInput";
 import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
+import { BotProtectionDialogController } from "./authflowv2/botprotection/botProtectionDialog";
 
 axios.defaults.withCredentials = true;
 
@@ -118,5 +119,6 @@ Stimulus.register(
 );
 Stimulus.register("cloudflare-turnstile", CloudflareTurnstileController);
 Stimulus.register("recaptcha-v2", RecaptchaV2Controller);
+Stimulus.register("bot-protection-dialog", BotProtectionDialogController);
 
 injectCSSAttrs(document.documentElement);
