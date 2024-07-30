@@ -75,7 +75,7 @@ Both `setMFAGracePeriod` and `removeMFAGracePeriod` mutations are indempotent, u
 
 |Description|Name|Reason|Info|
 |---|---|---|---|
-|Invalid Grace Period e.g. in the past|`Invalid`|`GracePeriodInvalid`|`endAt` must be in the future.|
+|Invalid Grace Period<br />i.e. in the past or too far in the future (> 90 days)|`Invalid`|`MFAGracePeriodInvalid`|-|
 
 ### Changes on database schema
 
