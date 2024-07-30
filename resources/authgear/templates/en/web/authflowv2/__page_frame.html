@@ -24,7 +24,7 @@
 
 <body
   {{/* "loading" is assumed to be defined in document.body["data-controller"] in TurboFormController */}}
-  data-controller="prevent-double-tap lockout restore-form loading authflow-passkey-error"
+  data-controller="prevent-double-tap lockout restore-form loading authflow-passkey-error bot-protection"
   data-restore-form-json-value="{{ $.FormJSON }}"
   data-action="dblclick->prevent-double-tap#action"
   data-inline-preview-previewable-resource-outlet=".translated-message,.brand-logo"
