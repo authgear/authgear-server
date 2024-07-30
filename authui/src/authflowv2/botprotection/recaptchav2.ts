@@ -30,10 +30,11 @@ export class RecaptchaV2Controller extends Controller {
 
   declare siteKeyValue: string;
   declare widgetTarget: HTMLDivElement;
+  declare widgetContainer: HTMLDivElement | undefined;
   declare widgetID: number | undefined;
 
   hasExistingWidget = () => {
-    return this.widgetTarget.innerHTML !== "" && this.widgetID != null;
+    return this.widgetContainer != null && this.widgetID != null;
   };
   resetWidget = () => {
     if (!this.hasExistingWidget()) {
@@ -54,6 +55,7 @@ export class RecaptchaV2Controller extends Controller {
       //   container <-- can just remove this on cleanup
       //     widget
       const widgetContainer = document.createElement("div");
+      this.widgetContainer = widgetContainer;
       this.widgetTarget.appendChild(widgetContainer);
       const widgetID = window.grecaptcha.render(widgetContainer, {
         sitekey: this.siteKeyValue,
@@ -87,6 +89,9 @@ export class RecaptchaV2Controller extends Controller {
 
   disconnect() {
     this.widgetID = undefined;
-    this.widgetTarget.innerHTML = ""; // Remove widget container
+    if (this.widgetContainer != null) {
+      this.widgetTarget.removeChild(this.widgetContainer);
+    }
+    this.widgetContainer = undefined;
   }
 }
