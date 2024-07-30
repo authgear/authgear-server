@@ -33,8 +33,14 @@
 
 {{ define "__brand-logo_link.html" }}
 
-{{ $light := call $.StaticAssetURL "app-logo" }}
-{{ $dark := call $.StaticAssetURL "app-logo-dark" }}
+{{ $light := false }}
+{{ $dark := false }}
+{{ if call $.HasAppSpecificAsset "app-logo" }}
+  {{ $light = call $.StaticAssetURL "app-logo" }}
+{{ end }}
+{{ if call $.HasAppSpecificAsset "app-logo-dark" }}
+  {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
+{{ end }}
 {{ if not $dark }}
 {{ $dark = $light }}
 {{ end }}
