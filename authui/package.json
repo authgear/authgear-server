@@ -7,12 +7,12 @@
   "scripts": {
     "typecheck": "tsc -b",
     "format": "npm run prettier:format && npm run eslint:format && npm run stylelint:format",
-    "prettier:format": "prettier --write --list-different ./src ./packages",
-    "eslint:format": "eslint --fix './src/**/*.{js,ts}'",
-    "stylelint:format": "stylelint --fix './src/**/*.{css,scss}'",
-    "prettier": "prettier --write --list-different ./src ./packages",
-    "eslint": "eslint './src/**/*.{js,ts}'",
-    "stylelint": "stylelint './src/**/*.{css,scss}'",
+    "prettier:format": "prettier --cache --write --list-different ./src ./packages",
+    "eslint:format": "eslint --cache --fix './src/**/*.{js,ts}'",
+    "stylelint:format": "stylelint --cache --fix './src/**/*.{css,scss}'",
+    "prettier": "prettier --cache --write --list-different ./src ./packages",
+    "eslint": "eslint --cache './src/**/*.{js,ts}'",
+    "stylelint": "stylelint --cache './src/**/*.{css,scss}'",
     "build": "parcel build --no-cache 'src/*.html' --dist-dir ../resources/authgear/generated",
     "watch": "parcel watch 'src/*.html' --dist-dir ../resources/authgear/generated --no-hmr",
     "test": "jest"

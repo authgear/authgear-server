@@ -8,7 +8,6 @@ fmt:
 	npm run eslint:format
 	npm run stylelint:format
 	npm run prettier:format
-	npm run gentype
 
 .PHONY: lint
 lint:

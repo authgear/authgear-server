@@ -65,7 +65,7 @@ jobs:
     - run: npm run stylelint
       working-directory: ./portal
       if: ${{ !cancelled() }}
-    - run: npm run fmt
+    - run: npm run prettier
       working-directory: ./portal
       if: ${{ !cancelled() }}
     - run: npm run test

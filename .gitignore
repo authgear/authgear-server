@@ -19,6 +19,8 @@ docker-compose.override.yaml
 
 # node
 node_modules/
+.eslintcache
+.stylelintcache
 
 # compiled static files
 resources/authgear/templates/en/web/**/__generated_asset.html

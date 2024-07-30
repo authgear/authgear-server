@@ -66,10 +66,16 @@ lint:
 	git diff --exit-code .make-lint-expect > /dev/null 2>&1
 	go run ./devtools/gotemplatelinter ./resources/authgear/templates/en/web/authflowv2
 
+	make -C authui lint
+	make -C portal lint
+
 .PHONY: fmt
 fmt:
 	# Ignore generated files, such as wire_gen.go and *_mock_test.go
 	find ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
+
+	make -C authui fmt
+	make -C portal fmt
 
 .PHONY: govulncheck
 govulncheck:
@@ -107,6 +113,9 @@ check-tidy:
 	# We wanted to run the following, but that requires SSH, which does not work for running CI for PRs.
 	# (cd custombuild && go mod tidy)
 	git status --porcelain | grep '.*'; test $$? -eq 1
+
+	make -C authui check-tidy
+	make -C portal check-tidy
 
 .PHONY: build-image
 build-image:
