@@ -13,6 +13,8 @@
 
   {{ $has_login_id := false }}
   {{ $has_alternatives := false }}
+  {{ $show_captcha_phone := false }}
+  {{ $show_captcha_text := false }} {{/* both email & username */}}
   {{ range $.IdentityCandidates }}
     {{ if eq .type "oauth" }}
       {{ $has_alternatives = true }}
@@ -21,6 +23,17 @@
       {{ $has_login_id = true }}
       {{ if not (eq .login_id_key $.LoginIDKey) }}
         {{ $has_alternatives = true }}
+      {{ end }}
+      {{ if eq .login_id_key $.LoginIDKey }}
+        {{if eq .login_id_type "phone" }}{{ if $.PhoneLoginIDBotProtectionRequired }}
+          {{ $show_captcha_phone = true  }}
+        {{ end }}{{ end }}
+        {{if eq .login_id_type "username" }}{{ if $.UsernameLoginIDBotProtectionRequired }}
+          {{ $show_captcha_text = true  }}
+        {{ end }}{{ end }}
+        {{if eq .login_id_type "email" }}{{ if $.EmailLoginIDBotProtectionRequired }}
+          {{ $show_captcha_text = true  }}
+        {{ end }}{{ end }}
       {{ end }}
     {{ end }}
   {{ end }}
@@ -83,7 +96,7 @@
     data-controller="{{ $formController }}"
     data-retain-form-form-id-value="auth-form"
     data-controller="turbo-form"
-    data-action="submit->turbo-form#submitForm"
+    data-action="{{ if (or $show_captcha_phone $show_captcha_text) }}submit->bot-protection#verifyFormSubmit {{ end }}submit->turbo-form#submitForm"
   >
     {{ $.CSRFField }}
     <input type="hidden" name="q_login_id_key" value="{{ $.LoginIDKey }}">
@@ -110,6 +123,9 @@
               `
             )
           }}
+          {{ if $show_captcha_phone }}
+            {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
+          {{ end }}
         {{ else }}
           <input
             data-text-field-target="input"
@@ -125,6 +141,9 @@
             data-retain-form-form-target="input"
             data-retain-form-form-name-param="text"
           >
+          {{ if $show_captcha_text }}
+            {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
+          {{ end }}
         {{ end }}
         {{ if $display_input_error }}
           <p class="input__error-message" data-text-field-target="errorMessage">
