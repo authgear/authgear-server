@@ -394,9 +394,13 @@
   "Add2FAScreen.error.duplicated-email": "2FA email already exist",
 
   "ChangePasswordScreen.title": "Change Password",
-  "ChangePasswordScreen.new-password": "New Password",
-  "ChangePasswordScreen.confirm-password": "Confirm Password",
+  "ChangePasswordScreen.email": "Email",
+  "ChangePasswordScreen.new-password": "Password",
+  "ChangePasswordScreen.force-change-on-login": "Ask user to change password on login",
+  "ChangePasswordScreen.send-password": "Send the password to user's email",
   "ChangePasswordScreen.error.fetch-password-policy": "Failed to fetch password policy",
+  "ChangePasswordScreen.error.email-identity-not-found": "No email identity found",
+  "ChangePasswordScreen.change": "Change",
 
   "UserDetails.connected-identities.header": "Identities",
   "UserDetails.connected-identities.title": "Identities",

@@ -1,5 +1,6 @@
 import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import cn from "classnames";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { useResetPasswordMutation } from "./mutations/resetPasswordMutation";
@@ -8,24 +9,34 @@ import PasswordField from "../../PasswordField";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import { useAppAndSecretConfigQuery } from "../portal/query/appAndSecretConfigQuery";
-import { useTextField } from "../../hook/useInput";
+import { useCheckbox, useTextField } from "../../hook/useInput";
 import { PortalAPIAppConfig } from "../../types";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
-import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
-import FormTextField from "../../FormTextField";
 
 import styles from "./ChangePasswordScreen.module.css";
 import { validatePassword } from "../../error/password";
+import { Checkbox } from "@fluentui/react";
+import TextField from "../../TextField";
+import { useUserQuery } from "./query/userQuery";
+import {
+  FormContainerBase,
+  useFormContainerBaseContext,
+} from "../../FormContainerBase";
+import PrimaryButton from "../../PrimaryButton";
+import ErrorDialog from "../../error/ErrorDialog";
+import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 
 interface FormState {
   newPassword: string;
-  confirmPassword: string;
+  sendPassword: boolean;
+  forceChangeOnLogin: boolean;
 }
 
 const defaultState: FormState = {
   newPassword: "",
-  confirmPassword: "",
+  sendPassword: false,
+  forceChangeOnLogin: false,
 };
 
 interface ResetPasswordContentProps {
@@ -43,6 +54,11 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
   const { renderToString } = useContext(Context);
   const { userID } = useParams() as { userID: string };
 
+  const { user } = useUserQuery(userID);
+
+  const { canSave, isUpdating, onSubmit } =
+    useFormContainerBaseContext<SimpleFormModel<FormState, string | null>>();
+
   const navBreadcrumbItems = useMemo(() => {
     return [
       { to: "~/users", label: <FormattedMessage id="UsersScreen.title" /> },
@@ -57,31 +73,57 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
   const { onChange: onNewPasswordChange } = useTextField((value) => {
     setState((prev) => ({ ...prev, newPassword: value }));
   });
-  const { onChange: onConfirmPasswordChange } = useTextField((value) => {
-    setState((prev) => ({ ...prev, confirmPassword: value }));
+  const { onChange: onChangeSendPassword } = useCheckbox((value) => {
+    setState((prev) => ({ ...prev, sendPassword: value }));
+  });
+  const { onChange: onChangeForceChangeOnLogin } = useCheckbox((value) => {
+    setState((prev) => ({ ...prev, forceChangeOnLogin: value }));
   });
 
   return (
     <ScreenContent>
       <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-      <PasswordField
-        className={styles.widget}
-        label={renderToString("ChangePasswordScreen.new-password")}
-        value={state.newPassword}
-        onChange={onNewPasswordChange}
-        passwordPolicy={appConfig?.authenticator?.password?.policy ?? {}}
-        parentJSONPointer=""
-        fieldName="password"
-      />
-      <FormTextField
-        className={styles.widget}
-        label={renderToString("ChangePasswordScreen.confirm-password")}
-        type="password"
-        value={state.confirmPassword}
-        onChange={onConfirmPasswordChange}
-        parentJSONPointer=""
-        fieldName="confirm_password"
-      />
+      <form
+        className={cn(styles.widget, styles.form)}
+        onSubmit={onSubmit}
+        noValidate={true}
+      >
+        <TextField
+          label={renderToString("ChangePasswordScreen.email")}
+          type="email"
+          value={user?.standardAttributes?.email ?? ""}
+          disabled={true}
+        />
+        <div>
+          <PasswordField
+            label={renderToString("ChangePasswordScreen.new-password")}
+            value={state.newPassword}
+            onChange={onNewPasswordChange}
+            passwordPolicy={appConfig?.authenticator?.password?.policy ?? {}}
+            parentJSONPointer=""
+            fieldName="password"
+          />
+          <Checkbox
+            className={styles.checkbox}
+            label={renderToString("ChangePasswordScreen.send-password")}
+            checked={state.sendPassword}
+            onChange={onChangeSendPassword}
+          />
+          <Checkbox
+            className={styles.checkbox}
+            label={renderToString("ChangePasswordScreen.force-change-on-login")}
+            checked={state.forceChangeOnLogin}
+            onChange={onChangeForceChangeOnLogin}
+          />
+        </div>
+        <div>
+          <PrimaryButton
+            disabled={!canSave || isUpdating}
+            type="submit"
+            text={<FormattedMessage id="ChangePasswordScreen.change" />}
+          />
+        </div>
+      </form>
     </ScreenContent>
   );
 };
@@ -98,22 +140,32 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
   );
 
   const { userID } = useParams() as { userID: string };
-  const { resetPassword } = useResetPasswordMutation(userID);
+  const { resetPassword, error: resetPasswordError } =
+    useResetPasswordMutation(userID);
+
+  const resetPasswordErrorRules: ErrorParseRule[] = useMemo(() => {
+    return [
+      makeReasonErrorParseRule(
+        "EmailIdentityNotFound",
+        "ChangePasswordScreen.error.email-identity-not-found"
+      ),
+    ];
+  }, []);
 
   const validate = useCallback(
     (state: FormState) => {
-      return validatePassword(
-        state.newPassword,
-        passwordPolicy,
-        state.confirmPassword
-      );
+      return validatePassword(state.newPassword, passwordPolicy);
     },
     [passwordPolicy]
   );
 
   const submit = useCallback(
     async (state: FormState) => {
-      await resetPassword(state.newPassword);
+      await resetPassword(
+        state.newPassword,
+        state.sendPassword,
+        state.forceChangeOnLogin
+      );
     },
     [resetPassword]
   );
@@ -126,8 +178,7 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
     validate,
   });
 
-  const canSave =
-    form.state.newPassword.length > 0 && form.state.confirmPassword.length > 0;
+  const canSave = form.state.newPassword.length > 0;
 
   useEffect(() => {
     if (form.isSubmitted) {
@@ -144,10 +195,17 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
   }
 
   return (
-    <FormContainer form={form} canSave={canSave}>
+    <FormContainerBase form={form} canSave={canSave}>
       <ChangePasswordContent form={form} appConfig={effectiveAppConfig} />
-    </FormContainer>
+      <ErrorDialog error={resetPasswordError} rules={resetPasswordErrorRules} />
+    </FormContainerBase>
   );
+};
+
+export const ChangePasswordVeriticalFormLayout: React.VFC<
+  React.PropsWithChildren<Record<never, never>>
+> = function ChangePasswordVeriticalFormLayout({ children }) {
+  return <div className={styles.verticalForm}>{children}</div>;
 };
 
 export default ChangePasswordScreen;

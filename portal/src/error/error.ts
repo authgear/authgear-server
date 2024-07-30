@@ -84,6 +84,11 @@ export interface APIGroupDuplicateKeyError {
   reason: "GroupDuplicateKey";
 }
 
+export interface APIEmailIdentityNotFoundError {
+  errorName: string;
+  reason: "EmailIdentityNotFound";
+}
+
 export type APIError = { message?: string } & (
   | NetworkError
   | RequestEntityTooLargeError
@@ -121,6 +126,7 @@ export type APIError = { message?: string } & (
   | APIResourceUpdateConflictError
   | APIRoleDuplicateKeyError
   | APIGroupDuplicateKeyError
+  | APIEmailIdentityNotFoundError
 );
 
 export function isAPIError(value: unknown): value is APIError {

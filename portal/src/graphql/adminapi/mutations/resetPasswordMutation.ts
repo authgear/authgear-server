@@ -6,7 +6,11 @@ import {
 } from "./resetPasswordMutation.generated";
 
 export function useResetPasswordMutation(userID: string): {
-  resetPassword: (password: string) => Promise<string | null>;
+  resetPassword: (
+    password: string,
+    sendPassword: boolean,
+    forceChangeOnLogin: boolean
+  ) => Promise<string | null>;
   loading: boolean;
   error: unknown;
 } {
@@ -14,11 +18,17 @@ export function useResetPasswordMutation(userID: string): {
     useMutation<ResetPasswordMutationMutation>(ResetPasswordMutationDocument);
 
   const resetPassword = useCallback(
-    async (password: string) => {
+    async (
+      password: string,
+      sendPassword: boolean,
+      forceChangeOnLogin: boolean
+    ) => {
       const result = await mutationFunction({
         variables: {
           userID,
           password,
+          sendPassword,
+          forceChangeOnLogin,
         },
       });
 
