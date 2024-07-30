@@ -1,0 +1,17 @@
+id: test
+http:
+  public_origin: http://test
+authenticator:
+  oob_otp:
+    email:
+      email_otp_mode: code
+      maximum: 99
+      valid_periods:
+        code: 321s
+    sms:
+      maximum: 99
+      phone_otp_mode: whatsapp_sms
+      valid_periods:
+        code: 321s
+verification:
+  code_valid_period: 321s
