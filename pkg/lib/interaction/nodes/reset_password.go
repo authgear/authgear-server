@@ -2,6 +2,7 @@ package nodes
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
@@ -29,6 +30,8 @@ func (n *NodeResetPasswordBegin) DeriveEdges(graph *interaction.Graph) ([]intera
 type InputResetPassword interface {
 	GetResetPasswordUserID() string
 	GetNewPassword() string
+	SendPassword() bool
+	ChangeOnLogin() bool
 }
 
 type InputResetPasswordByCode interface {
@@ -84,8 +87,15 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 
 				userID := resetInput.GetResetPasswordUserID()
 				newPassword := resetInput.GetNewPassword()
+				sendPassword := resetInput.SendPassword()
 
-				err := ctx.ResetPassword.SetPassword(userID, newPassword)
+				var expireAfter *time.Time = nil
+				now := ctx.Clock.NowUTC()
+				if resetInput.ChangeOnLogin() {
+					expireAfter = &now
+				}
+
+				err := ctx.ResetPassword.SetPassword(userID, newPassword, sendPassword, expireAfter)
 				if err != nil {
 					return err
 				}

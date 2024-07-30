@@ -162,7 +162,7 @@ type ForgotPasswordService interface {
 
 type ResetPasswordService interface {
 	ResetPassword(code string, newPassword string) error
-	SetPassword(userID string, newPassword string) error
+	SetPassword(userID string, newPassword string, sendPassword bool, expireAfter *time.Time) error
 }
 
 type PasskeyService interface {

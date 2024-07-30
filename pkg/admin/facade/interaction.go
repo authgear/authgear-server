@@ -124,8 +124,10 @@ func (i *addPasswordInput) GetAuthenticationStage() authn.AuthenticationStage {
 
 type resetPasswordInput struct {
 	adminAPIOp
-	userID   string
-	password string
+	userID        string
+	password      string
+	sendPassword  bool
+	changeOnLogin bool
 }
 
 var _ nodes.InputResetPassword = &resetPasswordInput{}
@@ -135,6 +137,14 @@ func (i *resetPasswordInput) GetResetPasswordUserID() string {
 }
 func (i *resetPasswordInput) GetNewPassword() string {
 	return i.password
+}
+
+func (i *resetPasswordInput) SendPassword() bool {
+	return i.sendPassword
+}
+
+func (i *resetPasswordInput) ChangeOnLogin() bool {
+	return i.changeOnLogin
 }
 
 type createUserInput struct {

@@ -466,7 +466,7 @@ func (s *Service) resetPassword(target string, otpState *otp.State, newPassword 
 
 // SetPassword ensures the user identified by userID has the specified password.
 // It perform necessary mutation to make this happens.
-func (s *Service) SetPassword(userID string, newPassword string) (err error) {
+func (s *Service) SetPassword(userID string, newPassword string, sendPassword bool, expireAfter *time.Time) (err error) {
 	ais, err := s.getPrimaryPasswordList(userID)
 	if err != nil {
 		return
