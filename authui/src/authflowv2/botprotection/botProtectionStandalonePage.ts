@@ -6,13 +6,13 @@ import { Controller } from "@hotwired/stimulus";
  *  - click target button
  *
  * Expected usage:
- * - Add `data-controller="bot-protection-on-success-click"` to a `<button>` element
+ * - Add `data-controller="bot-protection-standalone-page"` to a `<button>` element
  */
-export class BotProtectionOnSuccessClickController extends Controller {
+export class BotProtectionStandalonePageController extends Controller {
   getButtonElement = (): HTMLButtonElement => {
     if (!(this.element instanceof HTMLButtonElement)) {
       throw new Error(
-        "bot-protection-input must be used on `<button>` elements"
+        "bot-protection-standalone-page must be used on `<button>` elements"
       );
     }
     return this.element;
