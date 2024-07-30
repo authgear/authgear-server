@@ -2,6 +2,7 @@ package config_test
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -10,36 +11,36 @@ import (
 )
 
 func TestAuthenticatorCodeValidPeriodDeprecation(t *testing.T) {
-  Convey("authenticator_code_valid_period_deprecation", t, func() {
-    entries, err := os.ReadDir("testdata/authenticator_code_valid_period_deprecation/input")
-    if err != nil {
-      panic(err)
-    }
-    for _, entry := range entries {
-      withoutYAML := entry.Name()[:len(entry.Name())-5]
-      withoutInput := withoutYAML[:len(withoutYAML)-6]
-      Convey(withoutInput, func() {
-        inputFilePath := "testdata/authenticator_code_valid_period_deprecation/input/" + entry.Name()
-        input, err := os.ReadFile(inputFilePath)
-        if err != nil {
-          panic(err)
-        }
+	Convey("authenticator_code_valid_period_deprecation", t, func() {
+		// filter out files that are input files with Glob function
+		filteredEntries, err := filepath.Glob("testdata/authenticator_code_valid_period_deprecation/*.input.yaml")
+		if err != nil {
+			panic(err)
+		}
 
-        cfg, err := config.Parse(input)
-        So(err, ShouldBeNil)
+		for _, entry := range filteredEntries {
+			withoutYAML := entry[:len(entry)-5]
+			withoutInput := withoutYAML[:len(withoutYAML)-6]
+			Convey(withoutInput, func() {
+				input, err := os.ReadFile(entry)
+				if err != nil {
+					panic(err)
+				}
 
-        outputEntry := withoutInput + ".output.yaml"
-        outputFilePath := "testdata/authenticator_code_valid_period_deprecation/output/" + outputEntry
-        data, err := os.ReadFile(outputFilePath)
-        if err != nil {
-          panic(err)
-        }
+				cfg, err := config.Parse(input)
+				So(err, ShouldBeNil)
 
-        expected, err := config.Parse(data)
-        So(err, ShouldBeNil)
+				outputFilePath := withoutInput + ".output.yaml"
+				data, err := os.ReadFile(outputFilePath)
+				if err != nil {
+					panic(err)
+				}
 
-        So(cfg, ShouldResemble, expected)
-      })
-    }
-  })
+				expected, err := config.Parse(data)
+				So(err, ShouldBeNil)
+
+				So(cfg, ShouldResemble, expected)
+			})
+		}
+	})
 }
