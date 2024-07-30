@@ -8,7 +8,7 @@
     + [authgear.secrets.yaml](#authgearsecretsyaml)
   * [Authentication Flow](#authentication-flow)
     + [Bot protection in Authentication Flow configuration](#bot-protection-in-authentication-flow-configuration)
-    + [Behavior of generated flows](#behavior-of-generated-flows)
+    + [Behavior of built-in flows](#behavior-of-built-in-flows)
     + [Bot protection in Authentication Flow API](#bot-protection-in-authentication-flow-api)
     + [Advanced use case: Require challenged-base bot protection at a specific branch only](#advanced-use-case-require-challenged-base-bot-protection-at-a-specific-branch-only)
     + [Advanced use case: Use different challenge-based providers in different branches](#advanced-use-case-use-different-challenge-based-providers-in-different-branches)
@@ -80,11 +80,11 @@ bot_protection:
 - `bot_protection.risk_assessment.provider.type`: Required. The type of the risk assessment provider. Valid values are `recaptchav3`.
 - `bot_protection.risk_assessment.provider.risk_level.high_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is high. Otherwise, it is medium or low.
 - `bot_protection.risk_assessment.provider.risk_level.medium_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is medium. Otherwise, it is low.
-- `bot_protection.authentication_flow.signup_or_login.mode`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of generated flows](#behavior-of-generated-flows).
-- `bot_protection.authentication_flow.account_recovery.mode`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of generated flows](#behavior-of-generated-flows).
-- `bot_protection.authenticator.password`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of generated flows](#behavior-of-generated-flows).
-- `bot_protection.authenticator.oob_otp_email`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of generated flows](#behavior-of-generated-flows).
-- `bot_protection.authenticator.oob_otp_sms`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of generated flows](#behavior-of-generated-flows).
+- `bot_protection.authentication_flow.signup_or_login.mode`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
+- `bot_protection.authentication_flow.account_recovery.mode`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
+- `bot_protection.authenticator.password`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
+- `bot_protection.authenticator.oob_otp_email`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
+- `bot_protection.authenticator.oob_otp_sms`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
 
 Type specific fields:
 
@@ -197,14 +197,14 @@ authentication_flow:
       - authentication: primary_oob_otp_email
 ```
 
-### Behavior of generated flows
+### Behavior of built-in flows
 
 Given `bot_protection.risk_assessment.enabled=true`,
 
 1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `bot_protection.risk_assessment.enabled=true`.
 2. The configured provider is used as `bot_protection.risk_assessment.provider.type`
 
-The bot protection behavior in generated flows depend on
+The bot protection behavior in built-in flows depend on
 
 - `bot_protection.enabled`
 - `bot_protection.authentication_flow`
