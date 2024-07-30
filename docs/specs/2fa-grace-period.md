@@ -1,10 +1,12 @@
 # 2FA Grace Period
 
 - [Abstract](#abstract)
-- [Configuration](#configuration)
-  - [Global Grace Period](#global-grace-period)
-  - [Per-user Grace Period](#per-user-grace-period)
-  - [Customized Authentication Flow](#customized-authentication-flow)
+- [Configuration and the global grace period](#configuration-and-the-global-grace-period)
+- [Per-user Grace Period](#per-user-grace-period)
+  - [Changes on the Admin GraphQL API](#changes-on-the-admin-graphql-api)
+    - [Error Response](#error-response)
+  - [Changes on database schema](#changes-on-database-schema)
+- [Changes on the configuration of authentication flow](#changes-on-the-configuration-of-authentication-flow)
 
 ## Abstract
 
@@ -12,13 +14,7 @@ In order to enforce 2FA, we will provide a grace period for users to enroll in 2
 
 After the grace period, the user will be required to enroll in 2FA before they can sign in.
 
-## Configuration
-
-By default, no grace period is provided. User without 2FA must contact admin to login after [2FA mode](./user-model.md#secondary-authenticator) is set to `required`.
-
-For new users, the grace period starts from the time the user is created, whereas for existing users, the grace period starts from when the grace period is enabled.
-
-### Global Grace Period
+## Configuration and the global grace period
 
 Global grace period can be enabled for forcing users to enroll in 2FA upon login instead of blocking them.
 
@@ -30,9 +26,13 @@ authentication:
     end_at: "2021-01-01T00:00:00Z"
 ```
 
-### Per-user Grace Period
+By default, no grace period is provided. User without 2FA must contact admin to login after [2FA mode](./user-model.md#secondary-authenticator) is set to `required`.
+
+## Per-user Grace Period
 
 Regardless of global grace period, specific users can be granted grace period through Admin Portal / GraphQL API.
+
+### Changes on the Admin GraphQL API
 
 ```gql
 type User {
@@ -69,15 +69,25 @@ type Mutation {
 }
 ```
 
-It's stored in the user model as `mfa_grace_period_end_at`.
+Both `setMFAGracePeriod` and `removeMFAGracePeriod` mutations are indempotent, users can have grace period granted/revoked multiple times even with same value.
+
+#### Error Response
+
+|Description|Name|Reason|Info|
+|---|---|---|---|
+|Invalid Grace Period e.g. in the past|`Invalid`|`GracePeriodInvalid`|`endAt` must be in the future.|
+
+### Changes on database schema
+
+Per-user grace period granted through Admin API is stored in the user model as `mfa_grace_period_end_at`.
 
 ```sql
 ALTER TABLE _authgear_user ADD COLUMN mfa_grace_period_end_at TIMESTAMP WITHOUT TIME ZONE;
 ```
 
-### Customized Authentication Flow
+## Changes on the configuration of authentication flow
 
-Customized authentication flow can use `enrollment_allowed: true` to allow enrolling any of the following authenticators before proceeding.
+`enrollment_allowed: true` is added to `authenticate` step to allow enrolling any of the authenticators before proceeding.
 
 ```yaml
 authentication_flow:
@@ -103,7 +113,7 @@ authentication_flow:
             - authentication: recovery_code
 ```
 
-Following table explains the behavior of `enrollment_allowed` with `optional`:
+Following table describes the behavior of `enrollment_allowed` with `optional`:
 
 | `optional` | `enrollment_allowed` | Behavior                                                         |
 | ---------- | -------------------- | ---------------------------------------------------------------- |

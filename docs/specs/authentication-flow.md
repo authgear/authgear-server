@@ -277,6 +277,28 @@ login_flows:
   # If the condition does not hold, this step is no-op.
   - type: change_password
     target_step: step1
+
+# Sign in with an email address, a password. Enforce 2FA but allow the end-user to enroll to proceed.
+# More explanation on enrollment_allowed is in [2FA Grace Period](./2fa-grace-period.md).
+- name: email_password_optional_2fa
+  steps:
+  - type: identify
+    one_of:
+    - identification: email
+  - type: authenticate
+    one_of:
+    - authentication: primary_password
+  - type: authenticate
+    # Requires user to satisfy one of the following authentication.
+    optional: false
+    # enrollment_allowed by default is false, meaning user with no applicable method beforehand will be blocked from proceeding.
+    enrollment_allowed: true
+    one_of:
+    - authentication: secondary_totp
+    # If recovery_code is present, the end-user can use recovery_code.
+    - authentication: recovery_code
+    # If device_token is present, the end-user can use device token.
+    - authentication: device_token
 ```
 
 ### type: signup_login
