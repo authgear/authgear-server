@@ -48,7 +48,7 @@ export class CloudflareTurnstileController extends Controller {
     window.turnstile.reset(this.widgetID);
   };
 
-  renderWidget() {
+  renderWidget = () => {
     if (!this.isReadyForRendering) {
       throw new Error("turnstile target is not ready for rendering");
     }
@@ -117,7 +117,7 @@ export class CloudflareTurnstileController extends Controller {
       // execution: "render", // render is default, challenge runs automatically after calling the render() function.
     });
     this.widgetID = widgetID ?? undefined;
-  }
+  };
 
   undoRenderWidget() {
     if (this.widgetID != null) {
@@ -135,9 +135,17 @@ export class CloudflareTurnstileController extends Controller {
     window.turnstile.ready(() => {
       this.isReadyForRendering = true;
     });
+    document.addEventListener(
+      "bot-protection-widget:render",
+      this.renderWidget
+    );
   }
 
   disconnect() {
+    document.removeEventListener(
+      "bot-protection-widget:render",
+      this.renderWidget
+    );
     this.undoRenderWidget();
   }
 }
