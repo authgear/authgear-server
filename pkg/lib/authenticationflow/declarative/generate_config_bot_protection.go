@@ -7,7 +7,7 @@ func getBotProtectionProviderConfig(cfg *config.AppConfig) (botProtection *confi
 		return nil, false
 	}
 	return &config.AuthenticationFlowBotProtection{
-		Mode: config.AuthenticationFlowBotProtectionModeAlways, // default always in generated flow
+		Mode: config.BotProtectionRiskModeAlways, // default always in generated flow
 		Provider: &config.AuthenticationFlowBotProtectionProvider{
 			Type: cfg.BotProtection.Provider.Type,
 		},
