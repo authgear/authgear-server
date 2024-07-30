@@ -35,15 +35,16 @@ export class CloudflareTurnstileController extends Controller {
   declare langValue: string;
   declare widgetTarget: HTMLDivElement;
   declare widgetContainer: HTMLDivElement | undefined;
+  declare widgetID: string | undefined;
 
   hasExistingWidget = () => {
-    return this.widgetContainer != null;
+    return this.widgetContainer != null && this.widgetID != null;
   };
   resetWidget = () => {
     if (!this.hasExistingWidget()) {
       return;
     }
-    window.turnstile.reset(this.widgetContainer);
+    window.turnstile.reset(this.widgetID);
   };
 
   connect() {
@@ -60,7 +61,7 @@ export class CloudflareTurnstileController extends Controller {
       const widgetContainer = document.createElement("div");
       this.widgetContainer = widgetContainer;
       this.widgetTarget.appendChild(widgetContainer);
-      window.turnstile.render(widgetContainer, {
+      const widgetID = window.turnstile.render(widgetContainer, {
         sitekey: this.siteKeyValue,
         theme: parseTheme(colorScheme),
         language: this.langValue,
@@ -112,10 +113,19 @@ export class CloudflareTurnstileController extends Controller {
         // below fields are not available in @types/cloudflare-turnstile package yet, submitting a PR for it ref https://github.com/DefinitelyTyped/DefinitelyTyped/pull/70139
         // execution: "render", // render is default, challenge runs automatically after calling the render() function.
       });
+      this.widgetID = widgetID ?? undefined;
     });
   }
 
   disconnect() {
-    window.turnstile.remove(this.widgetContainer);
+    if (this.widgetID != null) {
+      window.turnstile.remove(this.widgetID);
+    }
+    this.widgetID = undefined;
+
+    if (this.widgetContainer != null) {
+      this.widgetTarget.removeChild(this.widgetContainer);
+    }
+    this.widgetContainer = undefined;
   }
 }
