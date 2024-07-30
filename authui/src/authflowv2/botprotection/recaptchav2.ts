@@ -44,7 +44,7 @@ export class RecaptchaV2Controller extends Controller {
     window.grecaptcha.reset(this.widgetID); // default to first widget created
   };
 
-  renderWidget() {
+  renderWidget = () => {
     if (!this.isReadyForRendering) {
       throw new Error("recaptchav2 target is not ready for rendering");
     }
@@ -88,7 +88,7 @@ export class RecaptchaV2Controller extends Controller {
       badge: "bottomright",
     });
     this.widgetID = widgetID;
-  }
+  };
 
   undoRenderWidget() {
     this.widgetID = undefined;
@@ -102,9 +102,17 @@ export class RecaptchaV2Controller extends Controller {
     window.grecaptcha.ready(() => {
       this.isReadyForRendering = true;
     });
+    document.addEventListener(
+      "bot-protection-widget:render",
+      this.renderWidget
+    );
   }
 
   disconnect() {
+    document.removeEventListener(
+      "bot-protection-widget:render",
+      this.renderWidget
+    );
     this.undoRenderWidget();
   }
 }
