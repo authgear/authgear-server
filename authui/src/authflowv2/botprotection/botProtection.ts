@@ -1,3 +1,6 @@
+import { Controller } from "@hotwired/stimulus";
+import { dispatchBotProtectionDialogOpen } from "./botProtectionDialog";
+
 /**
  * Dispatch a custom event to set captcha verified with success token
  *
@@ -41,4 +44,74 @@ export function dispatchBotProtectionEventExpired(token?: string) {
       },
     })
   );
+}
+
+/**
+ * Controller for bot protection verification
+ *  - `verifyFormSubmit` by intercepting form submission
+ *  - re-submit the intercepted form
+ *
+ * Expected usage:
+ * - Add `data-controller="bot-protection"` to a top-level element like body
+ * - Add `data-action="submit->bot-protection#verifyFormSubmit"` to any `<form>` in body
+ */
+export class BotProtectionController extends Controller {
+  declare isVerified: boolean;
+  declare formSubmitTarget: HTMLElement | null;
+  verifyFormSubmit(e: Event) {
+    if (!(e instanceof SubmitEvent)) {
+      throw new Error("verifyFormSubmit must be triggered on submit events");
+    }
+
+    if (this.isVerified) {
+      return;
+    }
+
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    this.formSubmitTarget = e.submitter;
+    dispatchBotProtectionDialogOpen();
+  }
+
+  onVerifySuccess = () => {
+    this.isVerified = true;
+    this.formSubmitTarget?.click();
+  };
+
+  onVerifyFailed = () => {
+    this.isVerified = false;
+  };
+
+  onVerifyExpired = () => {
+    this.isVerified = false;
+  };
+
+  connect() {
+    document.addEventListener(
+      "bot-protection:verify-success",
+      this.onVerifySuccess
+    );
+    document.addEventListener(
+      "bot-protection:verify-failed",
+      this.onVerifyFailed
+    );
+    document.addEventListener(
+      "bot-protection:verify-expired",
+      this.onVerifyExpired
+    );
+  }
+  disconnect() {
+    document.removeEventListener(
+      "bot-protection:verify-success",
+      this.onVerifySuccess
+    );
+    document.removeEventListener(
+      "bot-protection:verify-failed",
+      this.onVerifyFailed
+    );
+    document.removeEventListener(
+      "bot-protection:verify-expired",
+      this.onVerifyExpired
+    );
+  }
 }
