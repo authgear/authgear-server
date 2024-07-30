@@ -1,16 +1,17 @@
-# Authentication Flow Selection
+- [Authentication Flow Selection](#authentication-flow-selection)
+  * [Introduction](#introduction)
+  * [Concepts](#concepts)
+    + [Flow Group](#flow-group)
+    + [Flow Allowlist](#flow-allowlist)
+  * [Flow Selection in Different UIs](#flow-selection-in-different-uis)
+    + [Auth UI](#auth-ui)
+    + [Custom UI](#custom-ui)
+  * [Configuration](#configuration)
+  * [Usage](#usage)
+    + [Auth UI](#auth-ui-1)
+    + [Custom UI / Authflow API](#custom-ui--authflow-api)
 
-- [Introduction](#introduction)
-- [Concepts](#concepts)
-  - [Flow Group](#flow-group)
-  - [Flow Allowlist](#flow-allowlist)
-- [Flow Selection in Different UIs](#flow-selection-in-different-uis)
-  - [Default UI](#default-ui)
-  - [Custom UI](#custom-ui)
-- [Configuration](#configuration)
-- [Usage](#usage)
-  - [Default UI](#default-ui-1)
-  - [Custom UI / Authflow API](#custom-ui--authflow-api)
+# Authentication Flow Selection
 
 ## Introduction
 
@@ -22,27 +23,27 @@ This spec documents the behaviour of Authentication Flow Selection in different 
 
 ### Flow Group
 
-By default configuration, flows with name `default` are used. Flow groups can be defined in the configuration to group multiple flow types together and thus allow initiating customized flows.
+Flow groups can be defined in the configuration to group multiple flow types together and thus allow initiating customized flows.
 
 For example, a project can have multiple login flow and signup flows. After defining the flow groups and allowlist, the client app can specify which flow group to use using `x_authentication_flow_group` in the [authentication request](/docs/specs/oidc.md#x_authentication_flow_group).
 
 ### Flow Allowlist
 
-Flow group only instructs default UI to use a specific group of flows. To allow them to be used in custom UI, the flow group must be defined in the allowlist configuration.
+Flow group only instructs Auth UI to use a specific group of flows. To allow them to be used in custom UI, the flow group must be defined in the allowlist configuration.
 
 ## Flow Selection in Different UIs
 
 There are two types of UIs:
-- **Default UI**: The default UI provided by Authgear.
+- **Auth UI**: The UI provided by Authgear.
 - **Custom UI**: A custom UI that uses Authgear's Authflow API to initiate a flow.
 
 They have different behaviours when selecting authentication flows.
 
-### Default UI
+### Auth UI
 
-Default UI uses flow group for deriving allowed flows.
+Auth UI uses flow group for deriving allowed flows.
 
-Following table explains how authentication flow is selected in the default UI:
+Following table explains how authentication flow is selected in Auth UI:
 
 | Flow allowlist | Authorization Request | Behaviour |
 | --- | --- | --- |
@@ -52,7 +53,7 @@ Following table explains how authentication flow is selected in the default UI:
 | Not defined | `x_authentication_flow_group` is **NOT** present | Default flow group is used. |
 
 ### Custom UI
-Unlike Default UI, Custom UI creates flows using Authflow API. `x_authentication_flow_allowlist` is not used to restrict the flows created by Custom UI.
+Unlike Auth UI, Custom UI creates flows using Authflow API. `x_authentication_flow_allowlist` is not used to restrict the flows created by Custom UI.
 
 Instead, it computes the effective flow allowlist using union of group and individual flows in the allowlist to decide which flows can be created.
 
@@ -126,7 +127,7 @@ oauth:
 
 ## Usage
 
-### Default UI
+### Auth UI
 
 To authorize using a flow group, include `x_authentication_flow_group` and `x_page` in the [authentication request](/docs/specs/oidc.md#x_authentication_flow_group)
 

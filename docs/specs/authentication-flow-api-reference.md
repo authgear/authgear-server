@@ -71,7 +71,7 @@
 
 # Authentication Flow API
 
-Authentication Flow API is a HTTP API to create and run an authentication flow. It is the same API that powers that the default UI of Authgear. With Authentication Flow API, you can build your own UI while preserving the capability of running complicated authentication flow as the default UI does.
+Authentication Flow API is a HTTP API to create and run an authentication flow. It is the same API that powers that Auth UI of Authgear. With Authentication Flow API, you can build your own UI while preserving the capability of running complicated authentication flow as Auth UI does.
 
 # State and Branching
 
@@ -172,7 +172,7 @@ Content-Type: application/json
 }
 ```
 
-Create an authentication flow by specifying the `type` and the `name`. Use the name `default` to refer to the generated flow according to your project configuration. This is the same flow that the default UI runs.
+Create an authentication flow by specifying the `type` and the `name`. Use the name `default` to use Builtin flows. Auth UI runs Builtin flows by default.
 
 ## Pass an input to a state of an authentication flow
 
@@ -637,7 +637,7 @@ Or you WILL see a response like the following if the otp is a link.
 if `otp_form` is `link`, `can_check` initially is `false` and `websocket_url` will be present in `data`.
 You can connect to a websocket with this URL to listen for the event of the link being approved.
 
-The link will be sent to the end-user at `masked_claim_value`. Clicking the link will open an approval page in the default UI.
+The link will be sent to the end-user at `masked_claim_value`. Clicking the link will open an approval page in Auth UI.
 When the user has approved the link, a websocket message of a JSON object `{"type": "refresh"}` is sent.
 Upon receiving the message, you can [retrieve a state again](#retrieve-a-state-again).
 The retrieved state should have `can_check=true`.
