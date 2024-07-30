@@ -211,7 +211,7 @@ Use this event to add custom fields to the JWT access token.
 - [authentication.secondary.oob_otp_email.failed](#authenticationsecondaryoob-otp-emailfailed)
 - [authentication.secondary.oob_otp_sms.failed](#authenticationsecondaryoob-otp-smsfailed)
 - [authentication.secondary.recovery_code.failed](#authenticationsecondaryrecovery-codefailed)
-- [captcha.failed](#captchafailed)
+- [bot_protection.verification.failed](#bot-protectionverificationfailed)
 - [identity.email.added](#identityemailadded)
 - [identity.email.removed](#identityemailremoved)
 - [identity.email.updated](#identityemailupdated)
