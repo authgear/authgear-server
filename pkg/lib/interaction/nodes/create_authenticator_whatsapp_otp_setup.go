@@ -88,7 +88,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.C
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	result, err := NewSendWhatsappCode(ctx, otp.KindOOBOTP, phone, false).Do()
+	result, err := NewSendWhatsappCode(ctx, otp.KindOOBOTPCode, phone, false).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -119,8 +119,8 @@ func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetPhone() string {
 }
 
 // GetOTPKindFactory implements WhatsappOTPNode.
-func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetOTPKindFactory() otp.KindFactory {
-	return otp.KindOOBOTP
+func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetOTPKindFactory() otp.DeprecatedKindFactory {
+	return otp.KindOOBOTPCode
 }
 
 // GetCreateAuthenticatorStage implements CreateAuthenticatorPhoneOTPNode

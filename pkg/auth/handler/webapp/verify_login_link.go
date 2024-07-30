@@ -111,7 +111,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 
 		if GetLoginLinkStateFromQuery(r) == LoginLinkOTPPageQueryStateInitial {
 			code := r.URL.Query().Get("code")
-			kind := otp.KindOOBOTP(h.Config, model.AuthenticatorOOBChannelEmail)
+			kind := otp.KindOOBOTPLink(h.Config, model.AuthenticatorOOBChannelEmail)
 
 			target, err := h.LoginLinkOTPCodeService.LookupCode(kind.Purpose(), code)
 			if apierrors.IsKind(err, otp.InvalidOTPCode) {
@@ -143,7 +143,7 @@ func (h *VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		}
 
 		code := r.Form.Get("x_oob_otp_code")
-		kind := otp.KindOOBOTP(h.Config, model.AuthenticatorOOBChannelEmail)
+		kind := otp.KindOOBOTPLink(h.Config, model.AuthenticatorOOBChannelEmail)
 
 		target, err := h.LoginLinkOTPCodeService.LookupCode(kind.Purpose(), code)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {

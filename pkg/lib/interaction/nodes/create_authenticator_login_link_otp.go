@@ -31,7 +31,7 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTP) Instantiate(ctx *interaction.Conte
 
 	email := e.Authenticator.OOBOTP.Email
 	err := ctx.OTPCodeService.VerifyOTP(
-		otp.KindOOBOTP(ctx.Config, model.AuthenticatorOOBChannelEmail),
+		otp.KindOOBOTPLink(ctx.Config, model.AuthenticatorOOBChannelEmail),
 		email,
 		"",
 		&otp.VerifyOptions{

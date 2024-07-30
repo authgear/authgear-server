@@ -34,24 +34,44 @@ type kindOOBOTP struct {
 	config  *config.AppConfig
 	channel model.AuthenticatorOOBChannel
 	purpose Purpose
+	form    Form
 }
 
-func KindOOBOTP(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind {
-	return kindOOBOTP{config: config, channel: channel, purpose: PurposeOOBOTP}
+func KindOOBOTPCode(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind {
+	return kindOOBOTP{config: config, channel: channel, purpose: PurposeOOBOTP, form: FormCode}
 }
 
-var _ KindFactory = KindOOBOTP
+func KindOOBOTPLink(config *config.AppConfig, channel model.AuthenticatorOOBChannel) Kind {
+	return kindOOBOTP{config: config, channel: channel, purpose: PurposeOOBOTP, form: FormLink}
+}
+
+func KindOOBOTPWithForm(config *config.AppConfig, channel model.AuthenticatorOOBChannel, form Form) Kind {
+	return kindOOBOTP{config: config, channel: channel, purpose: PurposeOOBOTP, form: form}
+}
+
+var _ DeprecatedKindFactory = KindOOBOTPCode
+var _ DeprecatedKindFactory = KindOOBOTPLink
 
 func (k kindOOBOTP) Purpose() Purpose {
 	return k.purpose
 }
 
 func (k kindOOBOTP) ValidPeriod() time.Duration {
-	return selectByChannel(k.channel,
-		k.config.Authenticator.OOB.Email.CodeValidPeriod,
-		k.config.Authenticator.OOB.SMS.CodeValidPeriod,
-		k.config.Authenticator.OOB.SMS.CodeValidPeriod,
-	).Duration()
+	switch k.form {
+	case FormCode:
+		return selectByChannel(k.channel,
+			k.config.Authenticator.OOB.Email.ValidPeriods.Code,
+			k.config.Authenticator.OOB.SMS.ValidPeriods.Code,
+			k.config.Authenticator.OOB.SMS.ValidPeriods.Code,
+		).Duration()
+	case FormLink:
+		return selectByChannel(k.channel,
+			k.config.Authenticator.OOB.Email.ValidPeriods.Link,
+			k.config.Authenticator.OOB.SMS.ValidPeriods.Link,
+			k.config.Authenticator.OOB.SMS.ValidPeriods.Link,
+		).Duration()
+	}
+	panic("unknown authenticator oob otp form")
 }
 
 func (k kindOOBOTP) RateLimitTriggerPerIP(ip string) ratelimit.BucketSpec {

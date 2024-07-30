@@ -555,7 +555,14 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 				channel = model.AuthenticatorOOBChannelSMS
 			}
 		}
-		kind := otp.KindOOBOTP(s.Config, channel)
+
+		var kind otp.Kind
+
+		if options.Form != "" {
+			kind = otp.KindOOBOTPWithForm(s.Config, channel, options.Form)
+		} else {
+			panic("authenticator: form is required for OOBOTP")
+		}
 
 		code := spec.OOBOTP.Code
 		a := info.OOBOTP

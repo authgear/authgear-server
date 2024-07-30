@@ -11,7 +11,7 @@ type InputWhatsappOTPResendCode interface {
 
 type EdgeWhatsappOTPResendCode struct {
 	Target         string
-	OTPKindFactory otp.KindFactory
+	OTPKindFactory otp.DeprecatedKindFactory
 }
 
 func (e *EdgeWhatsappOTPResendCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {

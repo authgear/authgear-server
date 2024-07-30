@@ -487,11 +487,15 @@ authenticator:
     sms:
       maximum: 99
       phone_otp_mode: "whatsapp_sms"
-      code_valid_period: 1h
+      valid_periods:
+        code: 300s
+        link: 20m
     email:
       maximum: 99
       email_otp_mode: "code"
-      code_valid_period: 1h
+      valid_periods:
+        code: 300s
+        link: 20m
 user_profile:
   custom_attributes: {}
   standard_attributes:
@@ -612,7 +616,7 @@ verification:
       enabled: true
       required: true
   criteria: any
-  code_valid_period: 1h0m0s
+  code_valid_period: 5m0s
   rate_limits:
     email:
       trigger_per_ip: {}

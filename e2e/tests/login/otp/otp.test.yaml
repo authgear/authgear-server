@@ -1,0 +1,147 @@
+name: Login with email otp
+authgear.yaml:
+  override: |
+    authenticator:
+      oob_otp:
+        email:
+          email_otp_mode: code
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "login@example.com"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_email",
+        "index": 1,
+        "channel": "email"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "authentication": "primary_oob_otp_email",
+            "data": {
+              "type": "verify_oob_otp_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+---
+name: Login with phone otp
+authgear.yaml:
+  override: |
+    authentication_flow:
+      login_flows:
+      - name: phone_otp
+        steps:
+        - name: login_identify
+          type: identify
+          one_of:
+          - identification: phone
+            steps:
+            - name: authenticate_primary_phone
+              type: authenticate
+              one_of:
+              - authentication: primary_oob_otp_sms
+                target_step: login_identify
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85295000003"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_sms",
+        "channel": "sms",
+        "index": 1
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

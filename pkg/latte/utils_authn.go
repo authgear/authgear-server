@@ -73,7 +73,7 @@ func (p *SendOOBCode) Do() error {
 	}
 	defer msg.Close()
 
-	kind := otp.KindOOBOTP(p.Deps.Config, channel)
+	kind := otp.KindOOBOTPCode(p.Deps.Config, channel)
 	code, err := p.Deps.OTPCodes.GenerateOTP(
 		kind,
 		target,

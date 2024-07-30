@@ -260,6 +260,22 @@ func (m *AuthenticatorPhoneOTPMode) IsSMSEnabled() bool {
 		*m == AuthenticatorPhoneOTPModeSMSOnly
 }
 
+var _ = Schema.Add("AuthenticatorOOBValidPeriods", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"link": { "$ref": "#/$defs/DurationString" },
+		"code": { "$ref": "#/$defs/DurationString" }
+	}
+}
+`)
+
+type AuthenticatorOOBValidPeriods struct {
+	Link DurationString `json:"link,omitempty"`
+	Code DurationString `json:"code,omitempty"`
+}
+
 var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 {
 	"type": "object",
@@ -267,15 +283,17 @@ var _ = Schema.Add("AuthenticatorOOBSMSConfig", `
 	"properties": {
 		"maximum": { "type": "integer" },
 		"phone_otp_mode": { "$ref": "#/$defs/AuthenticatorPhoneOTPMode" },
-		"code_valid_period": { "$ref": "#/$defs/DurationString" }
+		"code_valid_period": { "$ref": "#/$defs/DurationString" },
+		"valid_periods": { "$ref": "#/$defs/AuthenticatorOOBValidPeriods" }
 	}
 }
 `)
 
 type AuthenticatorOOBSMSConfig struct {
-	Maximum         *int                      `json:"maximum,omitempty"`
-	PhoneOTPMode    AuthenticatorPhoneOTPMode `json:"phone_otp_mode,omitempty"`
-	CodeValidPeriod DurationString            `json:"code_valid_period,omitempty"`
+	Maximum                    *int                          `json:"maximum,omitempty"`
+	PhoneOTPMode               AuthenticatorPhoneOTPMode     `json:"phone_otp_mode,omitempty"`
+	Deprecated_CodeValidPeriod DurationString                `json:"code_valid_period,omitempty"`
+	ValidPeriods               *AuthenticatorOOBValidPeriods `json:"valid_periods,omitempty"`
 }
 
 func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
@@ -285,9 +303,18 @@ func (c *AuthenticatorOOBSMSConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
-	if c.CodeValidPeriod == "" {
-		c.CodeValidPeriod = "1h"
+	if c.Deprecated_CodeValidPeriod == "" {
+		c.Deprecated_CodeValidPeriod = DurationString("300s")
 	}
+	if c.ValidPeriods.Code == "" {
+		c.ValidPeriods.Code = c.Deprecated_CodeValidPeriod
+	}
+	if c.ValidPeriods.Link == "" {
+		c.ValidPeriods.Link = DurationString("20m")
+	}
+	// See https://github.com/authgear/authgear-server/issues/4297
+	// Remove deprecated fields
+	c.Deprecated_CodeValidPeriod = ""
 }
 
 var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
@@ -297,15 +324,17 @@ var _ = Schema.Add("AuthenticatorOOBEmailConfig", `
 	"properties": {
 		"maximum": { "type": "integer" },
 		"email_otp_mode": { "$ref": "#/$defs/AuthenticatorEmailOTPMode" },
-		"code_valid_period": { "$ref": "#/$defs/DurationString" }
+		"code_valid_period": { "$ref": "#/$defs/DurationString" },
+		"valid_periods": { "$ref": "#/$defs/AuthenticatorOOBValidPeriods" }
 	}
 }
 `)
 
 type AuthenticatorOOBEmailConfig struct {
-	Maximum         *int                      `json:"maximum,omitempty"`
-	EmailOTPMode    AuthenticatorEmailOTPMode `json:"email_otp_mode,omitempty"`
-	CodeValidPeriod DurationString            `json:"code_valid_period,omitempty"`
+	Maximum                    *int                          `json:"maximum,omitempty"`
+	EmailOTPMode               AuthenticatorEmailOTPMode     `json:"email_otp_mode,omitempty"`
+	Deprecated_CodeValidPeriod DurationString                `json:"code_valid_period,omitempty"`
+	ValidPeriods               *AuthenticatorOOBValidPeriods `json:"valid_periods,omitempty"`
 }
 
 var _ = Schema.Add("AuthenticatorEmailOTPMode", `
@@ -337,7 +366,31 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(99)
 	}
-	if c.CodeValidPeriod == "" {
-		c.CodeValidPeriod = "1h"
+	switch c.EmailOTPMode {
+	case AuthenticatorEmailOTPModeCodeOnly:
+		if c.Deprecated_CodeValidPeriod == "" {
+			c.Deprecated_CodeValidPeriod = DurationString("300s")
+		}
+		if c.ValidPeriods.Link == "" {
+			c.ValidPeriods.Link = DurationString("20m")
+		}
+		if c.ValidPeriods.Code == "" {
+			c.ValidPeriods.Code = c.Deprecated_CodeValidPeriod
+		}
+	case AuthenticatorEmailOTPModeLoginLinkOnly:
+		if c.Deprecated_CodeValidPeriod == "" {
+			c.Deprecated_CodeValidPeriod = DurationString("20m")
+		}
+		if c.ValidPeriods.Link == "" {
+			c.ValidPeriods.Link = c.Deprecated_CodeValidPeriod
+		}
+		if c.ValidPeriods.Code == "" {
+			c.ValidPeriods.Code = DurationString("300s")
+		}
+	default:
+		panic("unknown email otp mode")
 	}
+	// See https://github.com/authgear/authgear-server/issues/3524
+	// Remove deprecated fields
+	c.Deprecated_CodeValidPeriod = ""
 }

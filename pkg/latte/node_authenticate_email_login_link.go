@@ -59,7 +59,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 	case workflow.AsInput(input, &inputCheckLoginLinkVerified):
 		info := n.Authenticator
 		err := deps.OTPCodes.VerifyOTP(
-			otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelEmail),
+			otp.KindOOBOTPLink(deps.Config, model.AuthenticatorOOBChannelEmail),
 			info.OOBOTP.Email,
 			"",
 			&otp.VerifyOptions{
@@ -84,7 +84,7 @@ func (n *NodeAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *work
 func (n *NodeAuthenticateEmailLoginLink) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.Authenticator.OOBOTP.Email
 	state, err := deps.OTPCodes.InspectState(
-		otp.KindOOBOTP(deps.Config, model.AuthenticatorOOBChannelEmail),
+		otp.KindOOBOTPLink(deps.Config, model.AuthenticatorOOBChannelEmail),
 		target,
 	)
 	if err != nil {

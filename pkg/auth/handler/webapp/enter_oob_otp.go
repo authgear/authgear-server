@@ -87,7 +87,7 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 			viewModel.OOBOTPTarget = phone.Mask(target)
 		}
 
-		state, err := h.OTPCodeService.InspectState(otp.KindOOBOTP(h.Config, channel), target)
+		state, err := h.OTPCodeService.InspectState(otp.KindOOBOTPCode(h.Config, channel), target)
 		if err != nil {
 			return nil, err
 		}

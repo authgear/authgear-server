@@ -89,7 +89,7 @@ func (p *SendOOBCode) Do() (*SendOOBCodeResult, error) {
 	defer msg.Close()
 
 	code, err := p.Context.OTPCodeService.GenerateOTP(
-		otp.KindOOBOTP(p.Context.Config, channel),
+		otp.KindOOBOTPWithForm(p.Context.Config, channel, p.OTPForm),
 		p.AuthenticatorInfo.OOBOTP.ToTarget(),
 		p.OTPForm,
 		&otp.GenerateOptions{WebSessionID: p.Context.WebSessionID},

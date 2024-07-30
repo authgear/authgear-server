@@ -85,6 +85,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 					authn.AuthenticationStageFromAuthenticationMethod(n.Authentication),
 					authn.AuthenticationType(n.Info.Type),
 				),
+				Form: n.Form,
 			},
 		)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
@@ -120,6 +121,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 					authn.AuthenticationStageFromAuthenticationMethod(n.Authentication),
 					authn.AuthenticationType(n.Info.Type),
 				),
+				Form: n.Form,
 			},
 		)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
@@ -191,7 +193,7 @@ func (n *NodeAuthenticationOOB) otpKind(deps *authflow.Dependencies) otp.Kind {
 	case otp.PurposeVerification:
 		return otp.KindVerification(deps.Config, n.Channel)
 	case otp.PurposeOOBOTP:
-		return otp.KindOOBOTP(deps.Config, n.Channel)
+		return otp.KindOOBOTPWithForm(deps.Config, n.Channel, n.Form)
 	default:
 		panic(fmt.Errorf("unexpected otp purpose: %v", n.Purpose))
 	}

@@ -271,7 +271,7 @@ var _ = registerMutationField(
 			var kind otp.Kind
 			switch purpose {
 			case OTPPurposeLogin:
-				kind = otp.KindOOBOTP(gqlCtx.Config, channel)
+				kind = otp.KindOOBOTPCode(gqlCtx.Config, channel)
 			case OTPPurposeVerification:
 				kind = otp.KindVerification(gqlCtx.Config, channel)
 			default:
