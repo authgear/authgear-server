@@ -42,7 +42,7 @@ import { PreviewableResourceController } from "./previewable-resource";
 import { CloudflareTurnstileController } from "./authflowv2/botprotection/cloudflareTurnstile";
 import { RecaptchaV2Controller } from "./authflowv2/botprotection/recaptchav2";
 import { BotProtectionTokenInputController } from "./authflowv2/botprotection/botProtectionTokenInput";
-import { BotProtectionOnSuccessClickController } from "./authflowv2/botprotection/botProtectionOnSuccessClick";
+import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
 
 axios.defaults.withCredentials = true;
 
@@ -113,8 +113,8 @@ Stimulus.register(
   BotProtectionTokenInputController
 );
 Stimulus.register(
-  "bot-protection-on-success-click",
-  BotProtectionOnSuccessClickController
+  "bot-protection-standalone-button",
+  BotProtectionStandalonePageController
 );
 Stimulus.register("cloudflare-turnstile", CloudflareTurnstileController);
 Stimulus.register("recaptcha-v2", RecaptchaV2Controller);
