@@ -75,7 +75,7 @@ export class BotProtectionController extends Controller {
 
   onVerifySuccess = () => {
     this.isVerified = true;
-    this.formSubmitTarget?.click();
+    setTimeout(() => this.formSubmitTarget?.click(), 0);
   };
 
   onVerifyFailed = () => {
