@@ -216,7 +216,9 @@ Given `bot_protection.enabled=true`,
 |`bot_protection.authentication_flow.account_recovery.mode`|All branches of `type: identify` of flow `account_recovery` has `bot_protection.mode` equal to `bot_protection.authentication_flow.account_recovery.mode`.|
 |`bot_protection.authenticator.password.mode`|Branches `authentication: primary_password`, `authentication: secondary_password` in step `type: authenticate` in flows `login` has `bot_protection.mode` equal to `bot_protection.authenticator.password.mode`.|
 |`bot_protection.authenticator.oob_otp_email.mode`|Branches `authentication: primary_oob_otp_email`, `authentication: secondary_oob_otp_email` in steps `type: authenticate`, `type: create_authenticator` in flows `signup`, `login`, `promote` has `bot_protection.mode` equal to `bot_protection.authenticator.oob_otp_email.mode`.|
+|`verification.claims.email.required`|If `verification.claims.email.required` is true, then branches `identification: email` in step `type: identify` in flows `signup`, `promote` has `bot_protection.mode` equal to `bot_protection.authenticator.oob_otp_email.mode`.|
 |`bot_protection.authenticator.oob_otp_sms.mode`|Branches `authentication: primary_oob_otp_sms`, `authentication: secondary_oob_otp_sms` in steps `type: authenticate`, `type: create_authenticator` in flows `signup`, `login`, `promote` has `bot_protection.mode` equal to `bot_protection.authenticator.oob_otp_sms.mode`.|
+|`verification.claims.phone_number.required`|If `verification.claims.phone_number.required` is true, then branches `identification: phone` in step `type: identify` in flows `signup`, `promote` has `bot_protection.mode` equal to `bot_protection.authenticator.oob_otp_sms.mode`.|
 
 ### Bot protection in Authentication Flow API
 
