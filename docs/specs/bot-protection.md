@@ -57,12 +57,11 @@ bot_protection:
       risk_level:
         high_if_gte: 0.7
         medium_if_gte: 0.5
-  authentication_flow:
+  builtin_flow_requirement:
     signup_or_login:
       mode: "always" # "never" | "always" | "risk_level_medium" | "risk_level_high"
     account_recovery:
       mode: "always" # "never" | "always" | "risk_level_medium" | "risk_level_high"
-  authenticator:
     password:
       mode: "always" # "never" | "always" | "risk_level_medium" | "risk_level_high"
     oob_otp_email:
@@ -80,11 +79,11 @@ bot_protection:
 - `bot_protection.risk_assessment.provider.type`: Required. The type of the risk assessment provider. Valid values are `recaptchav3`.
 - `bot_protection.risk_assessment.provider.risk_level.high_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is high. Otherwise, it is medium or low.
 - `bot_protection.risk_assessment.provider.risk_level.medium_if_gte`: Required. A floating number. If the provider-specific score is greater than or equal to this number, then the risk level is medium. Otherwise, it is low.
-- `bot_protection.authentication_flow.signup_or_login.mode`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
-- `bot_protection.authentication_flow.account_recovery.mode`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
-- `bot_protection.authenticator.password`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
-- `bot_protection.authenticator.oob_otp_email`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
-- `bot_protection.authenticator.oob_otp_sms`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
+- `bot_protection.builtin_flow_requirement.signup_or_login.mode`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
+- `bot_protection.builtin_flow_requirement.account_recovery.mode`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
+- `bot_protection.builtin_flow_requirement.password`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
+- `bot_protection.builtin_flow_requirement.oob_otp_email`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
+- `bot_protection.builtin_flow_requirement.oob_otp_sms`: Optional. [Risk level mode](#risk-level-mode). Default `never`. See [Behavior of built-in flows](#behavior-of-built-in-flows).
 
 Type specific fields:
 
@@ -207,8 +206,7 @@ Given `bot_protection.risk_assessment.enabled=true`,
 The bot protection behavior in built-in flows depend on
 
 - `bot_protection.enabled`
-- `bot_protection.authentication_flow`
-- `bot_protection.authenticator`
+- `bot_protection.builtin_flow_requirement`
 
 Given `bot_protection.enabled=true`,
 
@@ -219,7 +217,7 @@ Given `bot_protection.enabled=true`,
    </tr>
    <tr>
       <td>
-        <code>bot_protection.authentication_flow.signup_or_login.mode</code>
+        <code>bot_protection.builtin_flow_requirement.signup_or_login.mode</code>
       </td>
       <td>
         Contribute to flows:
@@ -271,7 +269,7 @@ Given `bot_protection.enabled=true`,
           </ol>
    </tr>
    <tr>
-      <td><code>bot_protection.authentication_flow.account_recovery.mode</code></td>
+      <td><code>bot_protection.builtin_flow_requirement.account_recovery.mode</code></td>
       <td>
         Contribute to flows:
           <ol>
@@ -285,7 +283,7 @@ Given `bot_protection.enabled=true`,
       </td>
    </tr>
    <tr>
-      <td><code>bot_protection.authenticator.password.mode</code></td>
+      <td><code>bot_protection.builtin_flow_requirement.password.mode</code></td>
       <td>
         Contribute to flows:
           <ol>
@@ -303,7 +301,7 @@ Given `bot_protection.enabled=true`,
       </td>
    </tr>
    <tr>
-      <td><code>bot_protection.authenticator.oob_otp_email.mode</code></td>
+      <td><code>bot_protection.builtin_flow_requirement.oob_otp_email.mode</code></td>
       <td>
         Contribute to flows:
           <ol>
@@ -336,7 +334,7 @@ Given `bot_protection.enabled=true`,
       </td>
    </tr>
    <tr>
-      <td><code>bot_protection.authenticator.oob_otp_sms.mode</code></td>
+      <td><code>bot_protection.builtin_flow_requirement.oob_otp_sms.mode</code></td>
        <td>
         Contribute to flows:
           <ol>
