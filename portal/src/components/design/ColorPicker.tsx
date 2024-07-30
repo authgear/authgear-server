@@ -11,22 +11,25 @@ import styles from "./ColorPicker.module.css";
 
 interface ColorPickerProps {
   className?: string;
-  color: CSSColor;
-  onChange: (CSSColor: string) => void;
+  color: CSSColor | undefined;
+  placeholderColor: CSSColor;
+  onChange: (CSSColor: string | undefined) => void;
 }
 export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
   props
 ) {
-  const { color, onChange } = props;
+  const { color, placeholderColor, onChange } = props;
 
   const colorboxRef = useRef<HTMLDivElement | null>(null);
 
-  const [inputValue, setInputValue] = useState(color);
+  const [inputValue, setInputValue] = useState<string>(color ?? "");
   const [isColorPickerVisible, setIsColorPickerVisible] = useState(false);
   const [isFocusingInput, setIsFocusingInput] = useState(false);
 
   useEffect(() => {
-    setInputValue(color);
+    if (color != null) {
+      setInputValue(color);
+    }
   }, [color]);
 
   const onInputChange = useCallback(
@@ -34,6 +37,7 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
       setInputValue(e.currentTarget.value);
       const colorObject = getColorFromString(e.currentTarget.value);
       if (colorObject == null) {
+        onChange(undefined);
         return;
       }
       onChange(colorObject.str);
@@ -65,7 +69,8 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
     [onChange]
   );
 
-  const colorObject = getColorFromString(color);
+  const colorObject = getColorFromString(color ?? "");
+  const placeholderColorObject = getColorFromString(placeholderColor);
   return (
     <div className={cn(styles.colorPicker, isFocusingInput && styles.active)}>
       <div
@@ -80,7 +85,9 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
           "border-solid",
           "border-neutral-tertiaryAlt"
         )}
-        style={{ backgroundColor: colorObject?.str }}
+        style={{
+          backgroundColor: colorObject?.str ?? placeholderColorObject?.str,
+        }}
         onClick={showColorPicker}
       ></div>
       <input
@@ -93,6 +100,7 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
         )}
         type="text"
         value={inputValue}
+        placeholder={placeholderColor}
         onChange={onInputChange}
         onBlur={onBlurInput}
         onFocus={onFocusInput}

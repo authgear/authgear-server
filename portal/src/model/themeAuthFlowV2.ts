@@ -13,7 +13,7 @@ export enum Theme {
 }
 
 export const enum ThemeTargetSelector {
-  Light = ":root:not(.dark)",
+  Light = ":root",
   Dark = ":root.dark",
 }
 export function getThemeTargetSelector(theme: Theme): ThemeTargetSelector {
@@ -109,6 +109,26 @@ export interface CustomisableTheme {
   inputField: InputFieldStyle;
   link: LinkStyle;
 }
+
+export interface PartialCustomisableTheme {
+  page: Partial<PageStyle>;
+  card: Partial<CardStyle>;
+  primaryButton: Partial<ButtonStyle>;
+  secondaryButton: Partial<SecondaryButtonStyle>;
+  inputField: Partial<InputFieldStyle>;
+  link: Partial<LinkStyle>;
+}
+
+export const EMPTY_THEME: PartialCustomisableTheme = {
+  page: {},
+  card: {},
+  primaryButton: {},
+  secondaryButton: {},
+  inputField: {},
+  link: {},
+};
+
+export const DEFAULT_BORDER_RADIUS = "0.875em";
 
 export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
   page: {
@@ -213,13 +233,15 @@ abstract class StyleProperty<T> extends AbstractStyle<T> {
     this.value = value;
   }
 
-  abstract getCSSValue(): string;
+  abstract getCSSValue(): string | undefined;
 }
 
-export class ColorStyleProperty extends StyleProperty<string> {
+export class ColorStyleProperty extends StyleProperty<string | undefined> {
   protected setWithRawValue(rawValue: string): void {
     if (rawValue) {
       this.value = rawValue;
+    } else {
+      this.value = undefined;
     }
   }
 
@@ -227,12 +249,14 @@ export class ColorStyleProperty extends StyleProperty<string> {
     visitor.visitColorStyleProperty(this);
   }
 
-  getCSSValue(): string {
+  getCSSValue(): string | undefined {
     return this.value;
   }
 }
 
-export class AlignItemsStyleProperty extends StyleProperty<Alignment> {
+export class AlignItemsStyleProperty extends StyleProperty<
+  Alignment | undefined
+> {
   protected setWithRawValue(rawValue: string): void {
     switch (rawValue) {
       case "start":
@@ -241,8 +265,11 @@ export class AlignItemsStyleProperty extends StyleProperty<Alignment> {
       case "end":
         this.value = "end";
         break;
-      default:
+      case "center":
         this.value = "center";
+        break;
+      default:
+        this.value = undefined;
         break;
     }
   }
@@ -251,7 +278,7 @@ export class AlignItemsStyleProperty extends StyleProperty<Alignment> {
     visitor.visitAlignItemsStyleProperty(this);
   }
 
-  getCSSValue(): string {
+  getCSSValue(): string | undefined {
     switch (this.value) {
       case "start":
         return "start";
@@ -260,12 +287,14 @@ export class AlignItemsStyleProperty extends StyleProperty<Alignment> {
       case "center":
         return "center";
       default:
-        return "";
+        return undefined;
     }
   }
 }
 
-export class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> {
+export class BorderRadiusStyleProperty extends StyleProperty<
+  BorderRadiusStyle | undefined
+> {
   static FULL_ROUNDED_CSS_VALUE = "9999px";
 
   protected setWithRawValue(rawValue: string): void {
@@ -280,6 +309,9 @@ export class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> 
           type: "none",
         };
         break;
+      case "":
+        this.value = undefined;
+        break;
       default:
         this.value = {
           type: "rounded",
@@ -293,30 +325,34 @@ export class BorderRadiusStyleProperty extends StyleProperty<BorderRadiusStyle> 
     visitor.visitBorderRadiusStyleProperty(this);
   }
 
-  getCSSValue(): string {
-    switch (this.value.type) {
+  getCSSValue(): string | undefined {
+    switch (this.value?.type) {
       case "rounded":
-        return this.value.radius;
+        return this.value.radius !== "" ? this.value.radius : undefined;
       case "rounded-full":
         return BorderRadiusStyleProperty.FULL_ROUNDED_CSS_VALUE;
       case "none":
         return "initial";
       default:
-        return "";
+        return undefined;
     }
   }
 }
 
-export class SpaceStyleProperty extends StyleProperty<string> {
+export class SpaceStyleProperty extends StyleProperty<string | undefined> {
   protected setWithRawValue(rawValue: string): void {
-    this.value = rawValue;
+    if (rawValue) {
+      this.value = rawValue;
+    } else {
+      this.value = undefined;
+    }
   }
 
   acceptCssAstVisitor(visitor: CssAstVisitor): void {
     visitor.visitSpaceStyleProperty(this);
   }
 
-  getCSSValue(): string {
+  getCSSValue(): string | undefined {
     return this.value;
   }
 }
@@ -363,8 +399,9 @@ export class StyleGroup<T extends object> extends AbstractStyle<T> {
   }
 }
 
-export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
-  constructor(value: CustomisableTheme = DEFAULT_LIGHT_THEME) {
+export class CustomisableThemeStyleGroup extends StyleGroup<PartialCustomisableTheme> {
+  // eslint-disable-next-line complexity
+  constructor(value: PartialCustomisableTheme = EMPTY_THEME) {
     super({
       page: new StyleGroup({
         backgroundColor: new ColorStyleProperty(
@@ -378,7 +415,6 @@ export class CustomisableThemeStyleGroup extends StyleGroup<CustomisableTheme> {
           value.card.alignment
         ),
       }),
-
       primaryButton: new StyleGroup({
         backgroundColor: new ColorStyleProperty(
           CSSVariable.PrimaryButtonBackgroundColor,
@@ -503,10 +539,14 @@ export class CssAstVisitor {
   }
 
   visitorStyleProperty<T>(styleProperty: StyleProperty<T>): void {
+    const value = styleProperty.getCSSValue();
+    if (value == null || value === "") {
+      return;
+    }
     this.rule.append(
       new Declaration({
         prop: styleProperty.propertyName,
-        value: styleProperty.getCSSValue(),
+        value: value,
       })
     );
   }

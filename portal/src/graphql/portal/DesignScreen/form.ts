@@ -7,10 +7,9 @@ import {
   BorderRadiusStyle,
   CSSColor,
   CssAstVisitor,
-  CustomisableTheme,
   CustomisableThemeStyleGroup,
-  DEFAULT_DARK_THEME,
-  DEFAULT_LIGHT_THEME,
+  EMPTY_THEME,
+  PartialCustomisableTheme,
   StyleCssVisitor,
   Theme,
   getThemeTargetSelector,
@@ -18,7 +17,9 @@ import {
 } from "../../../model/themeAuthFlowV2";
 import {
   RESOURCE_APP_BACKGROUND_IMAGE,
+  RESOURCE_APP_BACKGROUND_IMAGE_DARK,
   RESOURCE_APP_LOGO,
+  RESOURCE_APP_LOGO_DARK,
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_DARK_THEME_CSS,
   RESOURCE_AUTHGEAR_AUTHFLOW_V2_LIGHT_THEME_CSS,
   RESOURCE_FAVICON,
@@ -50,6 +51,7 @@ import { nullishCoalesce, or_ } from "../../../util/operators";
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
   RESOURCE_APP_LOGO,
+  RESOURCE_APP_LOGO_DARK,
   RESOURCE_FAVICON,
 ];
 
@@ -82,13 +84,18 @@ interface ConfigFormState {
 
 interface ResourcesFormState {
   appName: string;
-  appLogoBase64EncodedData: string | null;
-  faviconBase64EncodedData: string | null;
-  backgroundImageBase64EncodedData: string | null;
-  customisableLightTheme: CustomisableTheme;
-  customisableDarkTheme: CustomisableTheme;
-  customisableTheme: CustomisableTheme;
 
+  // light
+  customisableLightTheme: PartialCustomisableTheme;
+  appLogoBase64EncodedData: string | null;
+  backgroundImageBase64EncodedData: string | null;
+
+  // dark
+  customisableDarkTheme: PartialCustomisableTheme;
+  appLogoDarkBase64EncodedData: string | null;
+  backgroundImageDarkBase64EncodedData: string | null;
+
+  faviconBase64EncodedData: string | null;
   urls: {
     privacyPolicy: string;
     termsOfService: string;
@@ -109,10 +116,23 @@ export const enum TranslationKey {
 
 export type BranchDesignFormState = {
   selectedLanguage: LanguageTag;
-  theme: Theme;
+  selectedTheme: Theme;
 } & ConfigFormState &
   ResourcesFormState &
   FeatureConfig;
+
+interface ThemeSetters {
+  setAppLogo: (
+    image: { base64EncodedData: string; extension: string } | null
+  ) => void;
+  setBackgroundColor: (color: CSSColor | undefined) => void;
+  setBackgroundImage: (
+    image: { base64EncodedData: string; extension: string } | null
+  ) => void;
+  setPrimaryButtonBackgroundColor: (color: CSSColor | undefined) => void;
+  setPrimaryButtonLabelColor: (color: CSSColor | undefined) => void;
+  setLinkColor: (color: CSSColor | undefined) => void;
+}
 
 export interface BranchDesignForm {
   isLoading: boolean;
@@ -130,34 +150,23 @@ export interface BranchDesignForm {
   setSelectedLanguage: (lang: LanguageTag) => void;
   setSelectedTheme: (theme: Theme) => void;
   setThemeOption: (themeOption: ThemeOption) => void;
-
   setAppName: (appName: string) => void;
-  setAppLogo: (
-    image: { base64EncodedData: string; extension: string } | null
-  ) => void;
+  lightThemeSetters: ThemeSetters;
+  darkThemeSetters: ThemeSetters;
   setFavicon: (
     image: { base64EncodedData: string; extension: string } | null
   ) => void;
   setCardAlignment: (alignment: Alignment) => void;
-  setBackgroundColor: (color: CSSColor) => void;
-  setBackgroundImage: (
-    image: { base64EncodedData: string; extension: string } | null
-  ) => void;
-  setPrimaryButtonBackgroundColor: (color: CSSColor) => void;
-  setPrimaryButtonLabelColor: (color: CSSColor) => void;
   setPrimaryButtonBorderRadiusStyle: (
-    borderRadiusStyle: BorderRadiusStyle
+    borderRadiusStyle: BorderRadiusStyle | undefined
   ) => void;
-  setLinkColor: (color: CSSColor) => void;
   setInputFieldBorderRadiusStyle: (
-    borderRadiusStyle: BorderRadiusStyle
+    borderRadiusStyle: BorderRadiusStyle | undefined
   ) => void;
-
   setPrivacyPolicyLink: (url: string) => void;
   setTermsOfServiceLink: (url: string) => void;
   setCustomerSupportLink: (url: string) => void;
   setDefaultClientURI: (url: string) => void;
-
   setDisplayAuthgearLogo: (disabled: boolean) => void;
 }
 
@@ -254,6 +263,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
   const backgroundImageSpecifiers = useMemo(() => {
     const specifiers: ResourceSpecifier[] = [];
     specifiers.push(...expandDef(RESOURCE_APP_BACKGROUND_IMAGE, ""));
+    specifiers.push(...expandDef(RESOURCE_APP_BACKGROUND_IMAGE_DARK, ""));
     return specifiers;
   }, []);
 
@@ -265,7 +275,10 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
 
   const getResourceFormByResourceDefinition = useCallback(
     (def: ResourceDefinition) => {
-      if (def === RESOURCE_APP_BACKGROUND_IMAGE) {
+      if (
+        def === RESOURCE_APP_BACKGROUND_IMAGE ||
+        def === RESOURCE_APP_BACKGROUND_IMAGE_DARK
+      ) {
         return backgroundImageResourceForm;
       }
       return resourceForm;
@@ -308,7 +321,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       return imageResouece.nullableValue;
     };
 
-    const getTheme = (theme: Theme): CustomisableTheme => {
+    const getTheme = (theme: Theme): PartialCustomisableTheme => {
       const themeResource =
         resourceForm.state.resources[
           specifierId(
@@ -322,13 +335,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           )
         ];
       if (themeResource?.nullableValue == null) {
-        return selectByTheme(
-          {
-            [Theme.Light]: DEFAULT_LIGHT_THEME,
-            [Theme.Dark]: DEFAULT_DARK_THEME,
-          },
-          theme
-        );
+        return EMPTY_THEME;
       }
       const root = parseCSS(themeResource.nullableValue);
       const styleCSSVisitor = new StyleCssVisitor(
@@ -344,16 +351,15 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     return {
       appName: getValueFromTranslationJSON(TranslationKey.AppName),
       appLogoBase64EncodedData: getValueFromImageResource(RESOURCE_APP_LOGO),
+      appLogoDarkBase64EncodedData: getValueFromImageResource(
+        RESOURCE_APP_LOGO_DARK
+      ),
       faviconBase64EncodedData: getValueFromImageResource(RESOURCE_FAVICON),
       backgroundImageBase64EncodedData: getValueFromImageResource(
         RESOURCE_APP_BACKGROUND_IMAGE
       ),
-      customisableTheme: selectByTheme(
-        {
-          [Theme.Light]: lightTheme,
-          [Theme.Dark]: darkTheme,
-        },
-        selectedTheme
+      backgroundImageDarkBase64EncodedData: getValueFromImageResource(
+        RESOURCE_APP_BACKGROUND_IMAGE_DARK
       ),
       customisableLightTheme: lightTheme,
       customisableDarkTheme: darkTheme,
@@ -375,7 +381,6 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     getResourceFormByResourceDefinition,
     selectedLanguage,
     configForm.state.fallbackLanguage,
-    selectedTheme,
   ]);
 
   const resourceMutator = useMemo(() => {
@@ -449,9 +454,18 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         });
       },
       updateCustomisableTheme: (
-        updater: (prev: CustomisableTheme) => CustomisableTheme
+        updater: (prev: PartialCustomisableTheme) => PartialCustomisableTheme,
+        targetTheme: Theme
       ) => {
-        const newState = updater(resourcesState.customisableTheme);
+        const newState = updater(
+          selectByTheme(
+            {
+              [Theme.Light]: resourcesState.customisableLightTheme,
+              [Theme.Dark]: resourcesState.customisableDarkTheme,
+            },
+            targetTheme
+          )
+        );
         resourceForm.setState((s) => {
           return produce(s, (draft) => {
             const resourceSpecifier = selectByTheme(
@@ -459,7 +473,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
                 [Theme.Light]: LightThemeResourceSpecifier,
                 [Theme.Dark]: DarkThemeResourceSpecifier,
               },
-              selectedTheme
+              targetTheme
             );
             const themeResource = draft.resources[
               specifierId(resourceSpecifier)
@@ -470,10 +484,13 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
 
             themeResource.nullableValue = (() => {
               const cssAstVisitor = new CssAstVisitor(
-                getThemeTargetSelector(selectedTheme)
+                getThemeTargetSelector(targetTheme)
               );
               const styleGroup = new CustomisableThemeStyleGroup(newState);
               styleGroup.acceptCssAstVisitor(cssAstVisitor);
+              if (cssAstVisitor.getDeclarations().length <= 0) {
+                return "";
+              }
               return cssAstVisitor.getCSS().toResult().css;
             })();
 
@@ -487,13 +504,12 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     resourceForm,
     getResourceFormByResourceDefinition,
     selectedLanguage,
-    selectedTheme,
     configForm.state.fallbackLanguage,
   ]);
 
   const state: BranchDesignFormState = useMemo(
     () => ({
-      theme: selectedTheme,
+      selectedTheme,
       selectedLanguage,
       ...configForm.state,
       ...resourcesState,
@@ -519,6 +535,107 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       ),
     ],
     [resourceForm.state.resources, backgroundImageResourceForm.state.resources]
+  );
+
+  const _setAppLogo = useCallback(
+    (image, targetTheme: Theme) => {
+      resourceMutator.setImage(
+        selectByTheme(
+          {
+            light: RESOURCE_APP_LOGO,
+            dark: RESOURCE_APP_LOGO_DARK,
+          },
+          targetTheme
+        ),
+        image
+      );
+    },
+    [resourceMutator]
+  );
+
+  const _setBackgroundColor = useCallback(
+    (backgroundColor: CSSColor | undefined, targetTheme: Theme) => {
+      resourceMutator.updateCustomisableTheme((prev) => {
+        return produce(prev, (draft) => {
+          draft.page.backgroundColor = backgroundColor;
+        });
+      }, targetTheme);
+    },
+    [resourceMutator]
+  );
+
+  const _setBackgroundImage = useCallback(
+    (image, targetTheme: Theme) => {
+      resourceMutator.setImage(
+        selectByTheme(
+          {
+            light: RESOURCE_APP_BACKGROUND_IMAGE,
+            dark: RESOURCE_APP_BACKGROUND_IMAGE_DARK,
+          },
+          targetTheme
+        ),
+        image
+      );
+    },
+    [resourceMutator]
+  );
+
+  const _setPrimaryButtonBackgroundColor = useCallback(
+    (backgroundColor: CSSColor | undefined, targetTheme: Theme) => {
+      resourceMutator.updateCustomisableTheme((prev) => {
+        return produce(prev, (draft) => {
+          if (backgroundColor == null) {
+            draft.primaryButton.backgroundColor = undefined;
+            draft.primaryButton.backgroundColorActive = undefined;
+            draft.primaryButton.backgroundColorHover = undefined;
+            return;
+          }
+          draft.primaryButton.backgroundColor = backgroundColor;
+          const themeRules = themeRulesStandardCreator();
+          const color = getColorFromString(backgroundColor);
+          if (color == null) {
+            draft.primaryButton.backgroundColor = undefined;
+            draft.primaryButton.backgroundColorActive = undefined;
+            draft.primaryButton.backgroundColorHover = undefined;
+            return;
+          }
+          ThemeGenerator.insureSlots(themeRules, false);
+          ThemeGenerator.setSlot(
+            themeRules[BaseSlots[BaseSlots.primaryColor]],
+            color,
+            false,
+            true,
+            true
+          );
+          const json = ThemeGenerator.getThemeAsJson(themeRules);
+          draft.primaryButton.backgroundColorActive = json.themeDark;
+          draft.primaryButton.backgroundColorHover = json.themeDark;
+        });
+      }, targetTheme);
+    },
+    [resourceMutator]
+  );
+
+  const _setPrimaryButtonLabelColor = useCallback(
+    (color: CSSColor | undefined, targetTheme: Theme) => {
+      resourceMutator.updateCustomisableTheme((prev) => {
+        return produce(prev, (draft) => {
+          draft.primaryButton.labelColor = color;
+        });
+      }, targetTheme);
+    },
+    [resourceMutator]
+  );
+
+  const _setLinkColor = useCallback(
+    (color: CSSColor | undefined, targetTheme: Theme) => {
+      resourceMutator.updateCustomisableTheme((prev) => {
+        return produce(prev, (draft) => {
+          draft.link.color = color;
+        });
+      }, targetTheme);
+    },
+    [resourceMutator]
   );
 
   const designForm = useMemo(
@@ -581,9 +698,6 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       setAppName: (appName: string) => {
         resourceMutator.setTranslationValue(TranslationKey.AppName, appName);
       },
-      setAppLogo: (image) => {
-        resourceMutator.setImage(RESOURCE_APP_LOGO, image);
-      },
       setFavicon: (image) => {
         resourceMutator.setImage(RESOURCE_FAVICON, image);
       },
@@ -592,50 +706,10 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           return produce(prev, (draft) => {
             draft.card.alignment = alignment;
           });
-        });
-      },
-      setBackgroundColor: (backgroundColor: CSSColor) => {
-        resourceMutator.updateCustomisableTheme((prev) => {
-          return produce(prev, (draft) => {
-            draft.page.backgroundColor = backgroundColor;
-          });
-        });
-      },
-      setBackgroundImage: (image) => {
-        resourceMutator.setImage(RESOURCE_APP_BACKGROUND_IMAGE, image);
-      },
-      setPrimaryButtonBackgroundColor: (backgroundColor: CSSColor) => {
-        resourceMutator.updateCustomisableTheme((prev) => {
-          return produce(prev, (draft) => {
-            draft.primaryButton.backgroundColor = backgroundColor;
-            const themeRules = themeRulesStandardCreator();
-            const color = getColorFromString(backgroundColor);
-            if (color == null) {
-              return;
-            }
-            ThemeGenerator.insureSlots(themeRules, false);
-            ThemeGenerator.setSlot(
-              themeRules[BaseSlots[BaseSlots.primaryColor]],
-              color,
-              false,
-              true,
-              true
-            );
-            const json = ThemeGenerator.getThemeAsJson(themeRules);
-            draft.primaryButton.backgroundColorActive = json.themeDark;
-            draft.primaryButton.backgroundColorHover = json.themeDark;
-          });
-        });
-      },
-      setPrimaryButtonLabelColor: (color: CSSColor) => {
-        resourceMutator.updateCustomisableTheme((prev) => {
-          return produce(prev, (draft) => {
-            draft.primaryButton.labelColor = color;
-          });
-        });
+        }, Theme.Light);
       },
       setPrimaryButtonBorderRadiusStyle: (
-        borderRadiusStyle: BorderRadiusStyle
+        borderRadiusStyle: BorderRadiusStyle | undefined
       ) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
@@ -643,25 +717,17 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
             // NOTE: DEV-1541 Apply border radius to secondary button as well
             draft.secondaryButton.borderRadius = borderRadiusStyle;
           });
-        });
-      },
-      setLinkColor: (color: CSSColor) => {
-        resourceMutator.updateCustomisableTheme((prev) => {
-          return produce(prev, (draft) => {
-            draft.link.color = color;
-          });
-        });
+        }, Theme.Light);
       },
       setInputFieldBorderRadiusStyle: (
-        borderRadiusStyle: BorderRadiusStyle
+        borderRadiusStyle: BorderRadiusStyle | undefined
       ) => {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.inputField.borderRadius = borderRadiusStyle;
           });
-        });
+        }, Theme.Light);
       },
-
       setPrivacyPolicyLink: (link: string) => {
         resourceMutator.setTranslationValue(TranslationKey.PrivacyPolicy, link);
       },
@@ -691,14 +757,40 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           });
         });
       },
+      lightThemeSetters: {
+        setAppLogo: (image) => _setAppLogo(image, Theme.Light),
+        setBackgroundColor: (color) => _setBackgroundColor(color, Theme.Light),
+        setBackgroundImage: (image) => _setBackgroundImage(image, Theme.Light),
+        setPrimaryButtonBackgroundColor: (color) =>
+          _setPrimaryButtonBackgroundColor(color, Theme.Light),
+        setPrimaryButtonLabelColor: (color) =>
+          _setPrimaryButtonLabelColor(color, Theme.Light),
+        setLinkColor: (color) => _setLinkColor(color, Theme.Light),
+      },
+      darkThemeSetters: {
+        setAppLogo: (image) => _setAppLogo(image, Theme.Dark),
+        setBackgroundColor: (color) => _setBackgroundColor(color, Theme.Dark),
+        setBackgroundImage: (image) => _setBackgroundImage(image, Theme.Dark),
+        setPrimaryButtonBackgroundColor: (color) =>
+          _setPrimaryButtonBackgroundColor(color, Theme.Dark),
+        setPrimaryButtonLabelColor: (color) =>
+          _setPrimaryButtonLabelColor(color, Theme.Dark),
+        setLinkColor: (color) => _setLinkColor(color, Theme.Dark),
+      },
     }),
     [
-      state,
       configForm,
       resourceForm,
       backgroundImageResourceForm,
-      resourceMutator,
+      state,
       errorRules,
+      resourceMutator,
+      _setAppLogo,
+      _setBackgroundColor,
+      _setBackgroundImage,
+      _setPrimaryButtonBackgroundColor,
+      _setPrimaryButtonLabelColor,
+      _setLinkColor,
     ]
   );
 

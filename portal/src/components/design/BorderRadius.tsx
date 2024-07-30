@@ -15,6 +15,7 @@ import {
   AllBorderRadiusStyleTypes,
   BorderRadiusStyle,
   BorderRadiusStyleType,
+  DEFAULT_BORDER_RADIUS,
 } from "../../model/themeAuthFlowV2";
 
 import styles from "./BorderRadius.module.css";
@@ -35,7 +36,7 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
 
   const [radiusValue, setRadiusValue] = useState(() => {
     if (value.type !== "rounded") {
-      return "0";
+      return DEFAULT_BORDER_RADIUS;
     }
     return value.radius;
   });
@@ -45,14 +46,14 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
       return;
     }
     setRadiusValue(value.radius);
-  }, [value, radiusValue]);
+  }, [value]);
 
   const onSelectOption = useCallback(
     (option: Option<BorderRadiusStyleType>) => {
       if (option.value === "rounded") {
         onChange({
           type: option.value,
-          radius: radiusValue,
+          radius: radiusValue !== "" ? radiusValue : DEFAULT_BORDER_RADIUS,
         });
       } else {
         onChange({
@@ -63,14 +64,27 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
     [radiusValue, onChange]
   );
 
-  const onBorderRadiusChange = useCallback(
-    (_: any, value?: string) => {
-      if (value == null) {
+  const onBorderRadiusChange = useCallback((_: any, value?: string) => {
+    if (value == null) {
+      return;
+    }
+    setRadiusValue(value);
+  }, []);
+
+  const onBorderRadiusBlur = useCallback(
+    (ev: React.FocusEvent<HTMLInputElement>) => {
+      if (ev.target.value === "") {
+        setRadiusValue(DEFAULT_BORDER_RADIUS);
+        onChange({
+          type: "rounded",
+          radius: DEFAULT_BORDER_RADIUS,
+        });
         return;
       }
+      setRadiusValue(ev.target.value);
       onChange({
         type: "rounded",
-        radius: value,
+        radius: ev.target.value,
       });
     },
     [onChange]
@@ -118,6 +132,7 @@ const BorderRadius: React.VFC<BorderRadiusProps> = function BorderRadius(
           )}
           value={radiusValue}
           onChange={onBorderRadiusChange}
+          onBlur={onBorderRadiusBlur}
         />
       ) : null}
     </div>

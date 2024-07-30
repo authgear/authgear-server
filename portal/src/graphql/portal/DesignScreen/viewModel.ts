@@ -2,6 +2,8 @@ import {
   CSSVariable,
   CssAstVisitor,
   CustomisableThemeStyleGroup,
+  DEFAULT_DARK_THEME,
+  DEFAULT_LIGHT_THEME,
   WatermarkDisabledDisplay,
   WatermarkEnabledDisplay,
   getThemeTargetSelector,
@@ -65,8 +67,36 @@ export interface PreviewCustomisationMessage {
 export function mapDesignFormStateToPreviewCustomisationMessage(
   state: BranchDesignFormState
 ): PreviewCustomisationMessage {
-  const cssAstVisitor = new CssAstVisitor(getThemeTargetSelector(state.theme));
-  const styleGroup = new CustomisableThemeStyleGroup(state.customisableTheme);
+  const cssAstVisitor = new CssAstVisitor(
+    getThemeTargetSelector(state.selectedTheme)
+  );
+  const defaultStyleGroup = new CustomisableThemeStyleGroup(
+    state.selectedTheme === "light" ? DEFAULT_LIGHT_THEME : DEFAULT_DARK_THEME
+  );
+  defaultStyleGroup.acceptCssAstVisitor(cssAstVisitor);
+  const styleGroup = new CustomisableThemeStyleGroup(
+    state.selectedTheme === "light"
+      ? state.customisableLightTheme
+      : {
+          ...state.customisableDarkTheme,
+          // fill common values that are only set in light theme
+          card: {
+            alignment: state.customisableLightTheme.card.alignment,
+          },
+          primaryButton: {
+            ...state.customisableDarkTheme.primaryButton,
+            borderRadius:
+              state.customisableLightTheme.primaryButton.borderRadius,
+          },
+          secondaryButton: {
+            borderRadius:
+              state.customisableLightTheme.secondaryButton.borderRadius,
+          },
+          inputField: {
+            borderRadius: state.customisableLightTheme.inputField.borderRadius,
+          },
+        }
+  );
   styleGroup.acceptCssAstVisitor(cssAstVisitor);
   const declarations = cssAstVisitor.getDeclarations();
   const cssVars: Record<string, string> = {};
@@ -74,13 +104,23 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
     cssVars[declaration.prop] = declaration.value;
   }
 
-  // Special handle for previewing background image
-  if (state.backgroundImageBase64EncodedData) {
-    cssVars[
-      CSSVariable.LayoutBackgroundImage
-    ] = `url("data:;base64,${state.backgroundImageBase64EncodedData}")`;
+  // Handle background image for both themes.
+  if (state.selectedTheme === "light") {
+    if (state.backgroundImageBase64EncodedData) {
+      cssVars[
+        CSSVariable.LayoutBackgroundImage
+      ] = `url("data:;base64,${state.backgroundImageBase64EncodedData}")`;
+    } else {
+      cssVars[CSSVariable.LayoutBackgroundImage] = "initial";
+    }
   } else {
-    cssVars[CSSVariable.LayoutBackgroundImage] = "initial";
+    if (state.backgroundImageDarkBase64EncodedData) {
+      cssVars[
+        CSSVariable.LayoutBackgroundImage
+      ] = `url("data:;base64,${state.backgroundImageDarkBase64EncodedData}")`;
+    } else {
+      cssVars[CSSVariable.LayoutBackgroundImage] = "initial";
+    }
   }
 
   cssVars[CSSVariable.WatermarkDisplay] = state.showAuthgearLogo
@@ -88,8 +128,12 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
     : WatermarkDisabledDisplay;
 
   const images: Record<string, string | null> = {};
+
   images["brand-logo-light"] = state.appLogoBase64EncodedData
     ? `data:;base64,${state.appLogoBase64EncodedData}`
+    : null;
+  images["brand-logo-dark"] = state.appLogoDarkBase64EncodedData
+    ? `data:;base64,${state.appLogoDarkBase64EncodedData}`
     : null;
 
   const translations = {
