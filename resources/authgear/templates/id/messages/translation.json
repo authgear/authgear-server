@@ -159,5 +159,25 @@
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} adalah kode verifikasi Anda di {{ template \"app.name\" }}.",
     "Disclaimer": "Jangan bagikan dengan siapa pun."
+  },
+  "ChangePassword": {
+    "Title": "Kata Sandi Anda Telah Diubah: Berikut Kata Sandi Baru Anda",
+    "Body": "Kata sandi Anda untuk {{ template \"app.name\" }} telah diubah oleh administrator.",
+    "Label": "Kata sandi baru Anda:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Untuk alasan keamanan, kami sarankan Anda log in dan perbarui kata sandi Anda dengan sesuatu yang lebih mudah diingat.",
+    "TipsHeader": "Tips Keamanan:",
+    "Tip1": "• Jangan pernah membagikan kata sandi Anda dengan siapa pun.",
+    "Tip2": "• Gunakan kata sandi yang unik untuk setiap akun online Anda."
+  },
+  "ChangePasswordTXT": {
+    "Title": "Kata Sandi Anda Telah Diubah: Berikut Kata Sandi Baru Anda",
+    "Body": "Kata sandi Anda untuk {{ template \"app.name\" }} telah diubah oleh administrator.",
+    "Label": "Kata sandi baru Anda:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Untuk alasan keamanan, kami sarankan Anda log in dan perbarui kata sandi Anda dengan sesuatu yang lebih mudah diingat.",
+    "TipsHeader": "Tips Keamanan:",
+    "Tip1": "- Jangan pernah membagikan kata sandi Anda dengan siapa pun.",
+    "Tip2": "- Gunakan kata sandi yang unik untuk setiap akun online Anda."
   }
 }

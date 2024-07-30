@@ -159,5 +159,25 @@
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} 是你的 {{ template \"app.name\" }} 驗證碼。",
     "Disclaimer": "切勿分享給任何人。"
+  },
+  "ChangePassword": {
+    "Title": "您的密碼已被更改：這是您的新密碼",
+    "Body": "您在 {{ template \"app.name\" }} 的密碼已被管理員更改。",
+    "Label": "您的新密碼：",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "出於安全原因，我們建議您登錄並將密碼更新為更易記憶的密碼。",
+    "TipsHeader": "安全提示：",
+    "Tip1": "• 切勿與任何人共享您的密碼。",
+    "Tip2": "• 為每個在線帳戶使用唯一的密碼。"
+  },
+  "ChangePasswordTXT": {
+    "Title": "您的密碼已被更改：這是您的新密碼",
+    "Body": "您在 {{ template \"app.name\" }} 的密碼已被管理員更改。",
+    "Label": "您的新密碼：",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "出於安全原因，我們建議您登錄並將密碼更新為更易記憶的密碼。",
+    "TipsHeader": "安全提示：",
+    "Tip1": "- 切勿與任何人共享您的密碼。",
+    "Tip2": "- 為每個在線帳戶使用唯一的密碼。"
   }
 }

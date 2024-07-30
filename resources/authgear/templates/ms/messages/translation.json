@@ -159,5 +159,25 @@
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} ialah kod pengesahan anda untuk {{ template \"app.name\" }}.",
     "Disclaimer": "Jangan kongsi dengan sesiapa."
+  },
+  "ChangePassword": {
+    "Title": "Kata Laluan Anda Telah Ditukar: Ini Kata Laluan Baru Anda",
+    "Body": "Kata laluan anda untuk {{ template \"app.name\" }} telah ditukar oleh pentadbir.",
+    "Label": "Kata laluan baru anda:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Untuk sebab-sebab keselamatan, kami mengesyorkan agar anda log masuk dan mengemaskini kata laluan anda kepada sesuatu yang lebih mudah diingati.",
+    "TipsHeader": "Tip Keselamatan:",
+    "Tip1": "• Jangan sekali-kali kongsikan kata laluan anda dengan sesiapa.",
+    "Tip2": "• Gunakan kata laluan yang unik untuk setiap akaun dalam talian anda."
+  },
+  "ChangePasswordTXT": {
+    "Title": "Kata Laluan Anda Telah Ditukar: Ini Kata Laluan Baru Anda",
+    "Body": "Kata laluan anda untuk {{ template \"app.name\" }} telah ditukar oleh pentadbir.",
+    "Label": "Kata laluan baru anda:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Untuk sebab-sebab keselamatan, kami mengesyorkan agar anda log masuk dan mengemaskini kata laluan anda kepada sesuatu yang lebih mudah diingati.",
+    "TipsHeader": "Tip Keselamatan:",
+    "Tip1": "- Jangan sekali-kali kongsikan kata laluan anda dengan sesiapa.",
+    "Tip2": "- Gunakan kata laluan yang unik untuk setiap akaun dalam talian anda."
   }
 }

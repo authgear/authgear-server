@@ -159,5 +159,25 @@
   "VerificationSMSTXT": {
     "Code": "Ang {{ .Code }} ay ang iyong {{ template \"app.name\" }} verification code.",
     "Disclaimer": "Huwag ibahagi ito sa sinuman."
+  },
+  "ChangePassword": {
+    "Title": "Nabago na ang Iyong Password: Ito ang Iyong Bagong Password",
+    "Body": "Nabago ng isang administrator ang iyong password para sa {{ template \"app.name\" }}.",
+    "Label": "Ang iyong bagong password:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Para sa karagdagang seguridad, inirerekomenda naming mag-log in ka at palitan ang iyong password sa isang mas madaling matandaan.",
+    "TipsHeader": "Mga Tip sa Seguridad:",
+    "Tip1": "• Huwag kailanman ibahagi ang iyong password sa kahit sino.",
+    "Tip2": "• Gumamit ng natatanging password para sa bawat isa sa iyong mga online account."
+  },
+  "ChangePasswordTXT": {
+    "Title": "Nabago na ang Iyong Password: Ito ang Iyong Bagong Password",
+    "Body": "Nabago ng isang administrator ang iyong password para sa {{ template \"app.name\" }}.",
+    "Label": "Ang iyong bagong password:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Para sa karagdagang seguridad, inirerekomenda naming mag-log in ka at palitan ang iyong password sa isang mas madaling matandaan.",
+    "TipsHeader": "Mga Tip sa Seguridad:",
+    "Tip1": "- Huwag kailanman ibahagi ang iyong password sa kahit sino.",
+    "Tip2": "- Gumamit ng natatanging password para sa bawat isa sa iyong mga online account."
   }
 }

@@ -3,19 +3,24 @@ package forgotpassword
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
+	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type Logger struct{ *log.Logger }
@@ -30,6 +35,7 @@ type messageContext struct {
 
 type IdentityService interface {
 	ListByClaim(name string, value string) ([]*identity.Info, error)
+	ListByUser(userID string) ([]*identity.Info, error)
 }
 
 type AuthenticatorService interface {
@@ -54,6 +60,14 @@ type OTPSender interface {
 	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
+type TranslationService interface {
+	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
+}
+
+type SenderService interface {
+	PrepareEmail(email string, msgType nonblocking.MessageType) (*messaging.EmailMessage, error)
+}
+
 type Service struct {
 	Logger        Logger
 	Config        *config.AppConfig
@@ -63,6 +77,8 @@ type Service struct {
 	Authenticators AuthenticatorService
 	OTPCodes       OTPCodeService
 	OTPSender      OTPSender
+	Sender         SenderService
+	Translation    TranslationService
 }
 
 type CodeKind string
@@ -451,7 +467,7 @@ func (s *Service) ResetPasswordWithTarget(target string, code string, newPasswor
 }
 
 func (s *Service) resetPassword(target string, otpState *otp.State, newPassword string, channel CodeChannel) error {
-	err := s.SetPassword(otpState.UserID, newPassword)
+	err := s.SetPassword(otpState.UserID, newPassword, false, nil)
 	if err != nil {
 		return err
 	}
@@ -459,6 +475,64 @@ func (s *Service) resetPassword(target string, otpState *otp.State, newPassword 
 	err = s.OTPCodes.ConsumeCode(otp.PurposeForgotPassword, target)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (s *Service) getEmailList(userID string) ([]string, error) {
+	infos, err := s.Identities.ListByUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var emails []string
+	for _, info := range infos {
+		standardClaims := info.IdentityAwareStandardClaims()
+		email := standardClaims[model.ClaimEmail]
+		if email != "" {
+			emails = append(emails, email)
+		}
+	}
+
+	return emails, nil
+}
+
+func (s *Service) sendPassword(userID string, password string) error {
+	emails, err := s.getEmailList(userID)
+	if err != nil {
+		return err
+	}
+
+	if len(emails) == 0 {
+		return ErrEmailIdentityNotFound
+	}
+
+	for _, email := range emails {
+		msg, err := s.Sender.PrepareEmail(email, nonblocking.MessageTypeChangePassword)
+		if err != nil {
+			return err
+		}
+
+		ctx := make(map[string]any)
+		template.Embed(ctx, map[string]interface{}{
+			"Password": password,
+		})
+
+		data, err := s.Translation.EmailMessageData(messageChangePassword, ctx)
+		if err != nil {
+			return err
+		}
+
+		msg.Sender = data.Sender
+		msg.ReplyTo = data.ReplyTo
+		msg.Subject = data.Subject
+		msg.TextBody = data.TextBody
+		msg.HTMLBody = data.HTMLBody
+
+		if err := msg.Send(); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -481,6 +555,7 @@ func (s *Service) SetPassword(userID string, newPassword string, sendPassword bo
 		changed, ai, err = s.Authenticators.WithSpec(ais[0], &authenticator.Spec{
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: newPassword,
+				ExpireAfter:   expireAfter,
 			},
 		})
 		if err != nil {
@@ -490,6 +565,13 @@ func (s *Service) SetPassword(userID string, newPassword string, sendPassword bo
 			err = s.Authenticators.Update(ai)
 			if err != nil {
 				return
+			}
+
+			if sendPassword {
+				err = s.sendPassword(userID, newPassword)
+				if err != nil {
+					return
+				}
 			}
 		}
 	} else {
@@ -518,6 +600,7 @@ func (s *Service) SetPassword(userID string, newPassword string, sendPassword bo
 			IsDefault: isDefault,
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: newPassword,
+				ExpireAfter:   expireAfter,
 			},
 		})
 		if err != nil {
@@ -527,6 +610,13 @@ func (s *Service) SetPassword(userID string, newPassword string, sendPassword bo
 		err = s.Authenticators.Create(newInfo, true)
 		if err != nil {
 			return
+		}
+
+		if sendPassword {
+			err = s.sendPassword(userID, newPassword)
+			if err != nil {
+				return
+			}
 		}
 	}
 

@@ -84,9 +84,10 @@ func (p *Provider) New(id string, userID string, passwordSpec *authenticator.Pas
 	}
 }
 
-// WithPassword return new authenticator pointer if password is changed
+// WithSpec return new authenticator pointer if password is changed
 // Otherwise original authenticator will be returned
-func (p *Provider) WithPassword(a *authenticator.Password, password string) (*authenticator.Password, error) {
+func (p *Provider) WithSpec(a *authenticator.Password, spec *authenticator.PasswordSpec) (*authenticator.Password, error) {
+	password := spec.PlainPassword
 	err := p.PasswordChecker.ValidateNewPassword(a.UserID, password)
 	if err != nil {
 		return nil, err
@@ -99,6 +100,7 @@ func (p *Provider) WithPassword(a *authenticator.Password, password string) (*au
 	}
 
 	newAuthen := p.populatePasswordHash(a, password)
+	newAuthen.ExpireAfter = spec.ExpireAfter
 	return newAuthen, nil
 }
 
@@ -159,9 +161,17 @@ func (p *Provider) Authenticate(a *authenticator.Password, password string) (ver
 func (p *Provider) UpdatePassword(a *authenticator.Password) error {
 	now := p.Clock.NowUTC()
 	a.UpdatedAt = now
-	a.ExpireAfter = nil
 
-	err := p.Store.UpdatePasswordHash(a)
+	prev, err := p.Store.Get(a.UserID, a.ID)
+	if err != nil {
+		return err
+	}
+
+	if prev.ExpireAfter == a.ExpireAfter {
+		a.ExpireAfter = nil
+	}
+
+	err = p.Store.UpdatePasswordHash(a)
 	if err != nil {
 		return err
 	}

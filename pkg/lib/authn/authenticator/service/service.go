@@ -19,9 +19,9 @@ type PasswordAuthenticatorProvider interface {
 	GetMany(ids []string) ([]*authenticator.Password, error)
 	List(userID string) ([]*authenticator.Password, error)
 	New(id string, userID string, passwordSpec *authenticator.PasswordSpec, isDefault bool, kind string) (*authenticator.Password, error)
-	// WithPassword returns new authenticator pointer if password is changed
+	// WithSpec returns new authenticator pointer if password is changed
 	// Otherwise original authenticator will be returned
-	WithPassword(a *authenticator.Password, password string) (*authenticator.Password, error)
+	WithSpec(a *authenticator.Password, spec *authenticator.PasswordSpec) (*authenticator.Password, error)
 	Create(*authenticator.Password) error
 	UpdatePassword(*authenticator.Password) error
 	Delete(*authenticator.Password) error
@@ -370,8 +370,7 @@ func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bo
 	switch ai.Type {
 	case model.AuthenticatorTypePassword:
 		a := ai.Password
-		plainPassword := spec.Password.PlainPassword
-		newAuth, err := s.Password.WithPassword(a, plainPassword)
+		newAuth, err := s.Password.WithSpec(a, spec.Password)
 		if err != nil {
 			return false, nil, err
 		}

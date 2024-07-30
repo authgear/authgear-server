@@ -159,5 +159,25 @@
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} est votre code de vérification {{ template \"app.name\" }}.",
     "Disclaimer": "Ne le partagez avec personne."
+  },
+  "ChangePassword": {
+    "Title": "Votre mot de passe a été modifié : voici votre nouveau mot de passe",
+    "Body": "Votre mot de passe pour {{ template \"app.name\" }} a été modifié par un administrateur.",
+    "Label": "Votre nouveau mot de passe :",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Pour des raisons de sécurité, nous vous recommandons de vous connecter et de mettre à jour votre mot de passe avec quelque chose de plus mémorable.",
+    "TipsHeader": "Conseils de sécurité :",
+    "Tip1": "• Ne partagez jamais votre mot de passe avec qui que ce soit.",
+    "Tip2": "• Utilisez un mot de passe unique pour chacun de vos comptes en ligne."
+  },
+  "ChangePasswordTXT": {
+    "Title": "Votre mot de passe a été modifié : voici votre nouveau mot de passe",
+    "Body": "Votre mot de passe pour {{ template \"app.name\" }} a été modifié par un administrateur.",
+    "Label": "Votre nouveau mot de passe :",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Pour des raisons de sécurité, nous vous recommandons de vous connecter et de mettre à jour votre mot de passe avec quelque chose de plus mémorable.",
+    "TipsHeader": "Conseils de sécurité :",
+    "Tip1": "- Ne partagez jamais votre mot de passe avec qui que ce soit.",
+    "Tip2": "- Utilisez un mot de passe unique pour chacun de vos comptes en ligne."
   }
 }

@@ -159,5 +159,25 @@
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} to twój kod weryfikacyjny na {{ template \"app.name\" }}.",
     "Disclaimer": "Nie udostępniaj go nikomu."
+  },
+  "ChangePassword": {
+    "Title": "Twoje hasło zostało zmienione: Oto Twoje nowe hasło",
+    "Body": "Twoje hasło dla {{ template \"app.name\" }} zostało zmienione przez administratora.",
+    "Label": "Twoje nowe hasło:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Ze względów bezpieczeństwa zalecamy zalogowanie się i zaktualizowanie hasła na bardziej zapamiętywalne.",
+    "TipsHeader": "Wskazówki bezpieczeństwa:",
+    "Tip1": "• Nigdy nie udostępniaj swojego hasła nikomu.",
+    "Tip2": "• Używaj unikalnego hasła dla każdego z Twoich kont online."
+  },
+  "ChangePasswordTXT": {
+    "Title": "Twoje hasło zostało zmienione: Oto Twoje nowe hasło",
+    "Body": "Twoje hasło dla {{ template \"app.name\" }} zostało zmienione przez administratora.",
+    "Label": "Twoje nowe hasło:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Ze względów bezpieczeństwa zalecamy zalogowanie się i zaktualizowanie hasła na bardziej zapamiętywalne.",
+    "TipsHeader": "Wskazówki bezpieczeństwa:",
+    "Tip1": "- Nigdy nie udostępniaj swojego hasła nikomu.",
+    "Tip2": "- Używaj unikalnego hasła dla każdego z Twoich kont online."
   }
 }

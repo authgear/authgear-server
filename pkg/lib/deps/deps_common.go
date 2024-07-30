@@ -418,6 +418,7 @@ var CommonDependencySet = wire.NewSet(
 		translation.DependencySet,
 		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
 		wire.Bind(new(featurepasskey.TranslationService), new(*translation.Service)),
+		wire.Bind(new(forgotpassword.TranslationService), new(*translation.Service)),
 	),
 
 	wire.NewSet(
@@ -478,6 +479,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		messaging.DependencySet,
 		wire.Bind(new(otp.Sender), new(*messaging.Sender)),
+		wire.Bind(new(forgotpassword.SenderService), new(*messaging.Sender)),
 	),
 
 	wire.NewSet(

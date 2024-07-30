@@ -15,6 +15,7 @@
   "email.authenticate-primary-login-link.subject": "Naglo-log in sa {AppName}",
   "email.authenticate-secondary-oob.subject": "Naglo-log in sa {AppName}",
   "email.authenticate-secondary-login-link.subject": "Naglo-log in sa {AppName}",
+  "email.change-password.subject": "{AppName} Palitan ang password",
   "error-unknown": "Nagkaroon ng hindi kilalang error. Kung patuloy ang problema, mangyaring humingi ng tulong sa aming <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Community Forum</a> o makipag-ugnayan sa amin sa <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "error-login-id-required": "Mangyaring ipasok ang iyong {variant, select, phone{numero ng telepono} email {email address} username {username} other {email address o username}}.",
   "error-password-required": "Mangyaring ipasok ang iyong password.",
