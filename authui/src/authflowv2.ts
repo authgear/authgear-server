@@ -41,7 +41,7 @@ import { InlinePreviewController } from "./inline-preview";
 import { PreviewableResourceController } from "./previewable-resource";
 import { CloudflareTurnstileController } from "./authflowv2/botprotection/cloudflareTurnstile";
 import { RecaptchaV2Controller } from "./authflowv2/botprotection/recaptchav2";
-import { BotProtectionInputController } from "./authflowv2/botprotection/botProtectionInput";
+import { BotProtectionTokenInputController } from "./authflowv2/botprotection/botProtectionTokenInput";
 import { BotProtectionOnSuccessClickController } from "./authflowv2/botprotection/botProtectionOnSuccessClick";
 
 axios.defaults.withCredentials = true;
@@ -108,7 +108,10 @@ Stimulus.register("body-scroll-lock", BodyScrollLockController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
 Stimulus.register("inline-preview", InlinePreviewController);
 Stimulus.register("previewable-resource", PreviewableResourceController);
-Stimulus.register("bot-protection-input", BotProtectionInputController);
+Stimulus.register(
+  "bot-protection-token-input",
+  BotProtectionTokenInputController
+);
 Stimulus.register(
   "bot-protection-on-success-click",
   BotProtectionOnSuccessClickController

@@ -6,13 +6,13 @@ import { Controller } from "@hotwired/stimulus";
  *  - update form inputs for submission
  *
  * Expected usage:
- * - Add `data-controller="bot-protection-input"` to an `<input>` element inside `<form>` that requires bot protection verification
+ * - Add `data-controller="bot-protection-token-input"` to an `<input>` element inside `<form>` that requires bot protection verification
  */
-export class BotProtectionInputController extends Controller {
+export class BotProtectionTokenInputController extends Controller {
   getInputElement = (): HTMLInputElement => {
     if (!(this.element instanceof HTMLInputElement)) {
       throw new Error(
-        "bot-protection-input must be used on `<input>` elements"
+        "bot-protection-token-input must be used on `<input>` elements"
       );
     }
     return this.element;
