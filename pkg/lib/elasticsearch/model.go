@@ -93,10 +93,11 @@ func RawToSource(raw *model.ElasticsearchUserRaw) *model.ElasticsearchUserSource
 	var phoneNumberCountryCode []string
 	var phoneNumberNationalNumber []string
 	for _, phoneNumber := range raw.PhoneNumber {
-		nationalNumber, callingCode, err := phone.LegalAndValidParser.SplitE164(phoneNumber)
+		// For indexing into elasticsearch, we do not need to phone number to be IsPossibleNumber or IsValidNumber.
+		parsed, err := phone.ParsePhoneNumberWithUserInput(phoneNumber)
 		if err == nil {
-			phoneNumberCountryCode = append(phoneNumberCountryCode, callingCode)
-			phoneNumberNationalNumber = append(phoneNumberNationalNumber, nationalNumber)
+			phoneNumberCountryCode = append(phoneNumberCountryCode, parsed.CountryCallingCodeWithoutPlusSign)
+			phoneNumberNationalNumber = append(phoneNumberNationalNumber, parsed.NationalNumberWithoutFormatting)
 		}
 	}
 

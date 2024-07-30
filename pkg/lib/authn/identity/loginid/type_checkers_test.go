@@ -20,7 +20,6 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 		ctx := &validation.Context{}
 		check.Validate(ctx, c.LoginID)
 		err := ctx.Error("invalid login ID")
-
 		if c.Err == "" {
 			So(err, ShouldBeNil)
 		} else {
@@ -209,6 +208,23 @@ func TestLoginIDTypeCheckers(t *testing.T) {
 				},
 				ReservedNames:    reversedNames,
 				ExcludedKeywords: excludedKeywords,
+			}
+
+			for _, c := range cases {
+				f(c, n)
+			}
+		})
+	})
+
+	Convey("PhoneChecker", t, func() {
+		Convey("country code allowlist", func() {
+			cases := []Case{
+				{"+85298765432", "invalid login ID:\n/login_id: blocked\n  map[reason:PhoneNumberCountryCodeAllowlist]"},
+				{"+12124567890", ""},
+			}
+
+			n := &PhoneChecker{
+				Alpha2AllowList: []string{"US"},
 			}
 
 			for _, c := range cases {

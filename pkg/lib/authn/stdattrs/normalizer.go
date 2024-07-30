@@ -53,12 +53,12 @@ func (n *Normalizer) normalizeEmail(t T) error {
 
 func (n *Normalizer) normalizePhoneNumber(t T) error {
 	if phoneNumber, ok := t[PhoneNumber].(string); ok && phoneNumber != "" {
-		phoneNumber, err := phone.LegalParser.ParseInputPhoneNumber(phoneNumber)
+		e164, err := phone.Parse_IsPossibleNumber_ReturnE164(phoneNumber)
 		if err != nil {
 			return err
 		}
 
-		t[PhoneNumber] = phoneNumber
+		t[PhoneNumber] = e164
 	} else {
 		delete(t, PhoneNumber)
 	}

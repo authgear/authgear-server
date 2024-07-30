@@ -117,6 +117,8 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     {{ else if (or (eq .details.reason "UsernameReserved") (eq .details.reason
     "UsernameExcludedKeywords")) }}
     <li>{{ template "error-username-not-allowed" }}</li>
+    {{ else if (eq .details.reason "PhoneNumberCountryCodeAllowlist") }}
+    <li>{{ template "error-phone-number-not-allowed" }}</li>
     {{ else }}
     <li>{{ .details.reason }}</li>
     {{ end }} {{ else if (eq .kind "type") }}

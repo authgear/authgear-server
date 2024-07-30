@@ -37,6 +37,7 @@
   "error-uri-format": "入力されたURLの形式が正しくありません。URLはhttps://から始まる必要があります(例: https://example.com/)。",
   "error-email-not-allowed": "入力されたメールアドレスは許可されていません。メールアドレスが有効と思われる場合は、カスタマーサポートにお問い合わせください。",
   "error-username-not-allowed": "入力されたユーザー名は許可されていません。`admin`などの予約済みユーザー名は使用しないでください。",
+  "error-phone-number-not-allowed": "電話番号はサポートされていない地域からのものです。",
   "error-invalid-web3-network": "{chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}}ネットワークで登録してください。",
   "error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {このメールアドレス} phone {この電話番号} username {このユーザー名} other {この認証情報} }} oauth {このメールアドレス} other {この認証情報} }が見つかりません。正しいことを確認してください。",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id { { LoginIDTypeIncoming, select, email {このメールアドレス} phone {この電話番号} username {このユーザー名} other {この認証情報} } } oauth {このメールアドレス} other {この認証情報} }は既に別のアカウントに関連付けられています。",

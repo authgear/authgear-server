@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/blocklist"
 	"github.com/authgear/authgear-server/pkg/util/matchlist"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -25,8 +26,9 @@ type TypeChecker interface {
 }
 
 type TypeCheckerFactory struct {
-	Config    *config.LoginIDConfig
-	Resources ResourceManager
+	UIConfig      *config.UIConfig
+	LoginIDConfig *config.LoginIDConfig
+	Resources     ResourceManager
 }
 
 func (f *TypeCheckerFactory) NewChecker(loginIDKeyType model.LoginIDKeyType, options CheckerOptions) TypeChecker {
@@ -36,7 +38,7 @@ func (f *TypeCheckerFactory) NewChecker(loginIDKeyType model.LoginIDKeyType, opt
 	case model.LoginIDKeyTypeUsername:
 		return f.makeUsernameChecker(options)
 	case model.LoginIDKeyTypePhone:
-		return &PhoneChecker{}
+		return f.makePhoneNumberChecker()
 	}
 
 	return &NullChecker{}
@@ -58,7 +60,7 @@ func (f *TypeCheckerFactory) loadMatchlist(desc resource.Descriptor) (*matchlist
 }
 
 func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChecker {
-	loginIDEmailConfig := f.Config.Types.Email
+	loginIDEmailConfig := f.LoginIDConfig.Types.Email
 
 	checker := &EmailChecker{
 		Config: loginIDEmailConfig,
@@ -97,7 +99,7 @@ func (f *TypeCheckerFactory) makeEmailChecker(options CheckerOptions) *EmailChec
 }
 
 func (f *TypeCheckerFactory) makeUsernameChecker(options CheckerOptions) *UsernameChecker {
-	loginIDUsernameConfig := f.Config.Types.Username
+	loginIDUsernameConfig := f.LoginIDConfig.Types.Username
 
 	checker := &UsernameChecker{
 		Config: loginIDUsernameConfig,
@@ -130,6 +132,17 @@ func (f *TypeCheckerFactory) makeUsernameChecker(options CheckerOptions) *Userna
 	}
 
 	return checker
+}
+
+func (f *TypeCheckerFactory) makePhoneNumberChecker() *PhoneChecker {
+	var allowlist []string
+	if f.UIConfig.PhoneInput != nil {
+		allowlist = f.UIConfig.PhoneInput.AllowList
+	}
+
+	return &PhoneChecker{
+		Alpha2AllowList: allowlist,
+	}
 }
 
 type EmailChecker struct {
@@ -278,14 +291,37 @@ func (c *UsernameChecker) Validate(ctx *validation.Context, loginID string) {
 	}
 }
 
-type PhoneChecker struct{}
+type PhoneChecker struct {
+	Alpha2AllowList []string
+}
 
 func (c *PhoneChecker) Validate(ctx *validation.Context, loginID string) {
 	ctx = ctx.Child("login_id")
 
-	err := validation.FormatPhone{}.CheckFormat(loginID)
+	parsed, err := phone.ParsePhoneNumberWithUserInput(loginID)
 	if err != nil {
 		ctx.EmitError("format", map[string]interface{}{"format": "phone"})
+		return
+	}
+
+	err = parsed.Require_IsPossibleNumber_IsValidNumber_UserInputInE164()
+	if err != nil {
+		ctx.EmitError("format", map[string]interface{}{"format": "phone"})
+		return
+	}
+
+	if len(c.Alpha2AllowList) > 0 {
+		isAllowed := false
+		for _, allow := range c.Alpha2AllowList {
+			if allow == parsed.Alpha2 {
+				isAllowed = true
+				break
+			}
+		}
+		if !isAllowed {
+			ctx.EmitError("blocked", map[string]interface{}{"reason": "PhoneNumberCountryCodeAllowlist"})
+			return
+		}
 	}
 }
 

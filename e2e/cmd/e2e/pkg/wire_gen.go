@@ -158,10 +158,12 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:    loginIDConfig,
-		Resources: manager,
+		UIConfig:      uiConfig,
+		LoginIDConfig: loginIDConfig,
+		Resources:     manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,
@@ -774,10 +776,12 @@ func newLoginIDSerivce(p *deps.AppProvider, c context.Context) *loginid.Provider
 	}
 	identityConfig := appConfig.Identity
 	loginIDConfig := identityConfig.LoginID
+	uiConfig := appConfig.UI
 	manager := appContext.Resources
 	typeCheckerFactory := &loginid.TypeCheckerFactory{
-		Config:    loginIDConfig,
-		Resources: manager,
+		UIConfig:      uiConfig,
+		LoginIDConfig: loginIDConfig,
+		Resources:     manager,
 	}
 	checker := &loginid.Checker{
 		Config:             loginIDConfig,

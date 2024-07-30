@@ -37,6 +37,7 @@
   "error-uri-format": "입력하신 URL이 올바른 형식이 아닙니다. URL은 일반적으로 https://로 시작합니다. 예: https://example.com/",
   "error-email-not-allowed": "입력하신 이메일 주소는 허용되지 않습니다. 이메일 주소가 유효해야 한다고 생각되면 고객 지원에 문의해 주세요.",
   "error-username-not-allowed": "입력하신 사용자 이름은 허용되지 않습니다. `admin`과 같은 예약된 사용자 이름은 사용하지 마세요.",
+  "error-phone-number-not-allowed": "전화번호가 지원되지 않는 지역에서 온 것입니다.",
   "error-invalid-web3-network": "{chainID, select, _1{이더리움 메인넷} _5{이더리움 고를리} _137{폴리곤 메인넷} _80001{폴리곤 뭄바이} other{}} 네트워크로 가입해 주세요.",
   "error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {이 이메일} phone {이 전화번호} username {이 사용자 이름} other {이 정보} }} oauth {이 이메일} other {이 정보} }를 찾을 수 없습니다. 정확한지 확인해 주세요.",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id { { LoginIDTypeIncoming, select, email {이 이메일} phone {이 전화번호} username {이 사용자 이름} other {이 정보} } } oauth {이 이메일} other {이 정보} }는 이미 다른 계정과 연결되어 있습니다.",

@@ -37,6 +37,7 @@
   "error-uri-format": "De URL die u heeft ingevoerd, heeft niet het juiste formaat. URL''s beginnen meestal met https://, bijvoorbeeld https://example.com/",
   "error-email-not-allowed": "Het e-mailadres dat u heeft ingevoerd, is niet toegestaan. Neem contact op met de klantenservice als u denkt dat het e-mailadres geldig zou moeten zijn.",
   "error-username-not-allowed": "De gebruikersnaam die u heeft ingevoerd, is niet toegestaan. Vermijd het gebruik van gereserveerde gebruikersnamen zoals `admin`.",
+  "error-phone-number-not-allowed": "Telefoonnummer is uit een niet-ondersteunde regio.",
   "error-invalid-web3-network": "Meld u aan met het {chainID, select, _1{Ethereum Mainnet} _5{Ethereum Goerli} _137{Polygon Mainnet} _80001{Polygon Mumbai} other{}} netwerk.",
   "error-account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {Dit e-mailadres} phone {Dit telefoonnummer} username {Deze gebruikersnaam} other {Deze identiteit} }} oauth {Dit e-mailadres} other {Deze identiteit} } kan niet worden gevonden. Controleer of het correct is.",
   "error-account-conflict": "{ IdentityTypeIncoming, select, login_id { { LoginIDTypeIncoming, select, email {Dit e-mailadres} phone {Dit telefoonnummer} username {Deze gebruikersnaam} other {Deze identiteit} } } oauth {Dit e-mailadres} other {Deze identiteit} } is gekoppeld aan een account.",

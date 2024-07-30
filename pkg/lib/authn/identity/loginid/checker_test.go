@@ -52,15 +52,17 @@ func TestLoginIDChecker(t *testing.T) {
 				newLoginIDKeyConfig("phone", model.LoginIDKeyTypePhone, 12),
 			}
 			typesConfig := newLoginIDTypesConfig()
-			cfg := &config.LoginIDConfig{
+			loginIDConfig := &config.LoginIDConfig{
 				Types: typesConfig,
 				Keys:  keysConfig,
 			}
+			uiConfig := &config.UIConfig{}
 			checker := &Checker{
-				Config: cfg,
+				Config: loginIDConfig,
 				TypeCheckerFactory: &TypeCheckerFactory{
-					Config:    cfg,
-					Resources: resource.NewManager(resource.DefaultRegistry, nil),
+					LoginIDConfig: loginIDConfig,
+					UIConfig:      uiConfig,
+					Resources:     resource.NewManager(resource.DefaultRegistry, nil),
 				},
 			}
 			options := CheckerOptions{
