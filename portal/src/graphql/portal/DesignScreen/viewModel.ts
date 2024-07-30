@@ -77,7 +77,25 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
   const styleGroup = new CustomisableThemeStyleGroup(
     state.selectedTheme === "light"
       ? state.customisableLightTheme
-      : state.customisableDarkTheme
+      : {
+          ...state.customisableDarkTheme,
+          // fill common values that are only set in light theme
+          card: {
+            alignment: state.customisableLightTheme.card.alignment,
+          },
+          primaryButton: {
+            ...state.customisableDarkTheme.primaryButton,
+            borderRadius:
+              state.customisableLightTheme.primaryButton.borderRadius,
+          },
+          secondaryButton: {
+            borderRadius:
+              state.customisableLightTheme.secondaryButton.borderRadius,
+          },
+          inputField: {
+            borderRadius: state.customisableLightTheme.inputField.borderRadius,
+          },
+        }
   );
   styleGroup.acceptCssAstVisitor(cssAstVisitor);
   const declarations = cssAstVisitor.getDeclarations();
