@@ -92,6 +92,7 @@ type AuthflowNavigator interface {
 	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
 	NavigateSelectAccount(result *webapp.Result)
 	NavigateResetPasswordSuccessPage() string
+	NavigateVerifyBotProtection(result *webapp.Result)
 }
 
 type AuthflowControllerLogger struct{ *log.Logger }

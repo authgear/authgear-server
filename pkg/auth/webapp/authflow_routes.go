@@ -67,6 +67,7 @@ const (
 type AuthflowNavigatorEndpointsProvider interface {
 	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
 	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
+	VerifyBotProtectionEndpointURL(uiImpl config.UIImplementation) *url.URL
 }
 
 type AuthflowNavigatorOAuthStateStore interface {
@@ -459,5 +460,10 @@ func (n *AuthflowNavigator) navigateAccountRecovery(s *AuthflowScreenWithFlowRes
 
 func (n *AuthflowNavigator) NavigateSelectAccount(result *Result) {
 	url := n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+	result.RedirectURI = url.String()
+}
+
+func (n *AuthflowNavigator) NavigateVerifyBotProtection(result *Result) {
+	url := n.Endpoints.VerifyBotProtectionEndpointURL(n.UIConfig.Implementation)
 	result.RedirectURI = url.String()
 }

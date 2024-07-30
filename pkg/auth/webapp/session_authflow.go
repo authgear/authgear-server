@@ -102,6 +102,8 @@ type AuthflowScreen struct {
 	TakenChannel model.AuthenticatorOOBChannel `json:"taken_channel,omitempty"`
 	// WechatCallbackData is only relevant for wechat login.
 	WechatCallbackData *AuthflowWechatCallbackData `json:"wechat_callback_data,omitempty"`
+	// IsBotProtectionRequired will be used to determine whether to navigate to bot protection verification screen.
+	IsBotProtectionRequired bool `json:"is_bot_protection_required,omitempty"`
 }
 
 func newAuthflowScreen(flowResponse *authflow.FlowResponse, previousXStep string, previousInput map[string]interface{}) *AuthflowScreen {
@@ -412,7 +414,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
 		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index, channel)
+		return s.takeBranchResultSimple(index, channel, false)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
 		option := data.Options[index]
@@ -421,7 +423,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			// Password branches can be taken by setting index.
-			return s.takeBranchResultSimple(index, channel)
+			return s.takeBranchResultSimple(index, channel, false)
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			// This branch requires input to take.
 			input := map[string]interface{}{
@@ -481,7 +483,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 			if channel == "" {
 				channel = option.Channels[0]
 			}
-			return s.takeBranchResultSimple(index, channel)
+			return s.takeBranchResultSimple(index, channel, false)
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 		}
@@ -523,14 +525,9 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(index int, chan
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
-	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
-	case config.AuthenticationFlowStepTypeIdentify:
-		// In identify, the user input actually takes the branch.
-		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index, channel)
-	case config.AuthenticationFlowStepTypeAuthenticate:
-		data := s.StateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData)
+func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
+	switch data := s.StateTokenFlowResponse.Action.Data.(type) {
+	case declarative.StepAuthenticateData:
 		option := data.Options[index]
 		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -543,7 +540,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// All these can take the branch simply by setting index.
-			return s.takeBranchResultSimple(index, channel)
+			return s.takeBranchResultSimple(index, channel, false)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -554,6 +551,9 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 			// This branch requires input to take.
 			if channel == "" {
 				channel = option.Channels[0]
+			}
+			if option.BotProtection.IsRequired() {
+				return s.takeBranchResultSimple(index, channel, true)
 			}
 
 			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
@@ -592,6 +592,22 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel mode
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 		}
+	case declarative.VerifyOOBOTPData:
+		channel = data.Channel
+		return s.takeBranchResultSimple(index, channel, false)
+	default:
+		panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
+	}
+}
+
+func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(index int, channel model.AuthenticatorOOBChannel, options *TakeBranchOptions) TakeBranchResult {
+	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		// In identify, the user input actually takes the branch.
+		// The branch taken here is unimportant.
+		return s.takeBranchResultSimple(index, channel, false)
+	case config.AuthenticationFlowStepTypeAuthenticate:
+		return s.takeBranchLoginAuthenticate(index, channel, options)
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
@@ -602,7 +618,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, id_token is used.
 		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index, channel)
+		return s.takeBranchResultSimple(index, channel, false)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData)
 		option := data.Options[index]
@@ -615,7 +631,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// All these can take the branch simply by setting index.
-			return s.takeBranchResultSimple(index, channel)
+			return s.takeBranchResultSimple(index, channel, false)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -626,6 +642,10 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(index int, channel mod
 			// This branch requires input to take.
 			if channel == "" {
 				channel = option.Channels[0]
+			}
+
+			if option.BotProtection.IsRequired() {
+				return s.takeBranchResultSimple(index, channel, true)
 			}
 
 			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
@@ -674,7 +694,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupLogin(index int, option
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
 		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index, "")
+		return s.takeBranchResultSimple(index, "", false)
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
@@ -685,19 +705,20 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchAccountRecovery(index int, op
 	case config.AuthenticationFlowStepTypeIdentify:
 		// In identify, the user input actually takes the branch.
 		// The branch taken here is unimportant.
-		return s.takeBranchResultSimple(index, "")
+		return s.takeBranchResultSimple(index, "", false)
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}
 }
 
-func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(index int, channel model.AuthenticatorOOBChannel) TakeBranchResultSimple {
+func (s *AuthflowScreenWithFlowResponse) takeBranchResultSimple(index int, channel model.AuthenticatorOOBChannel, botProtectionRequired bool) TakeBranchResultSimple {
 	xStep := s.Screen.StateToken.XStep
 	screen := NewAuthflowScreenWithFlowResponse(s.StateTokenFlowResponse, xStep, nil)
 	screen.Screen.BranchStateToken = s.Screen.StateToken
 	screen.BranchStateTokenFlowResponse = s.BranchStateTokenFlowResponse
 	screen.Screen.TakenBranchIndex = &index
 	screen.Screen.TakenChannel = channel
+	screen.Screen.IsBotProtectionRequired = botProtectionRequired
 	return TakeBranchResultSimple{
 		Screen: screen,
 	}

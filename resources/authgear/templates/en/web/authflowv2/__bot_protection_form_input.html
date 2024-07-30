@@ -1,6 +1,2 @@
 <input type="hidden" name="x_bot_protection_provider_type" value="{{$.BotProtectionProviderType}}">
-{{ if (eq $.BotProtectionProviderType "cloudflare" ) }}
-    <input type="hidden" name="x_bot_protection_provider_response" data-cloudflare-turnstile-target="tokenInput" />
-{{ else if (eq $.BotProtectionProviderType "recaptchav2" ) }}
-    <input type="hidden" name="x_bot_protection_provider_response" data-recaptcha-v2-target="tokenInput" />
-{{ end }}
+<input type="hidden" name="x_bot_protection_provider_response" data-controller="bot-protection-input" />
