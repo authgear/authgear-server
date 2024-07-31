@@ -35,6 +35,11 @@
 
 {{ $light := false }}
 {{ $dark := false }}
+{{ if $.InlinePreview }}
+{{/* so that the img tag exists for inline preview to inject preview image */}}
+{{ $light = "" }}
+{{ $dark = "" }}
+{{ end }}
 {{ if call $.HasAppSpecificAsset "app-logo" }}
   {{ $light = call $.StaticAssetURL "app-logo" }}
 {{ end }}
@@ -56,7 +61,7 @@
     "dark" $dark
 ) }}
 
-{{ if $noBrandLogo }}
+{{ if (and $noBrandLogo (not $.InlinePreview)) }}
 {{ else if $.ClientURI }}
 <a href="{{ $.ClientURI }}">
     {{ template "__brand-logo.html" $option }}

@@ -26,6 +26,10 @@
   .brand-logo {
     height: var(--brand-logo__height);
     max-width: var(--brand-logo__max-width);
+
+    &img[src=""] {
+      @apply hidden;
+    }
   }
   .brand-logo.dark {
     @apply hidden;
