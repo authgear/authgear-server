@@ -398,6 +398,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             </MessageBar>
           ) : (
             <UserDetailsAccountSecurity
+              userID={data.id}
               authenticationConfig={appConfig.authentication}
               authenticatorConfig={appConfig.authenticator}
               identities={identities}

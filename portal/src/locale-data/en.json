@@ -385,6 +385,9 @@
   "UserDetails.account-security.change-on-login.label": "Ask to change password on login",
   "UserDetails.account-security.change-on-login.description": "The user will be asked to change password at the next login",
   "UserDetails.account-security.expired": "{Text, react, className{{prefixClassName}} children{Password Expired: }} The password is expired for {expiredInDays} days. The user will be asked to update it on their next login. ",
+  "UserDetails.account-security.mark-as-expired-confirm-dialog.title": "Change on Login",
+  "UserDetails.account-security.mark-as-expired-confirm-dialog.message": "The user will be asked to change password at the next login.",
+  "UserDetails.account-security.mark-as-expired-confirm-dialog.message.revoke": "The user will NOT be asked to change password at the next login.",
 
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",
@@ -1344,6 +1347,7 @@
   "AuditLogActivityType.ADMIN_API_MUTATION_REMOVE_USER_FROM_ROLES_EXECUTED": "Admin API Mutation: Remove user from roles",
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_GROUP_EXECUTED": "Admin API Mutation: Update group",
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_ROLE_EXECUTED": "Admin API Mutation: Update role",
+  "AuditLogActivityType.ADMIN_API_MUTATION_MARK_PASSWORD_AS_EXPIRED_EXECUTED": "Admin API Mutation: Mark password as expired",
   "AuditLogActivityType.PROJECT_APP_UPDATED": "Project: Configuration updated",
   "AuditLogActivityType.PROJECT_APP_SECRET_VIEWED": "Project: Secret viewed",
   "AuditLogActivityType.PROJECT_BILLING_CHECKOUT_CREATED": "Project: Billing checkout crreated",

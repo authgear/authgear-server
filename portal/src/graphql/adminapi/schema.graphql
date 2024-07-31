@@ -190,6 +190,9 @@ enum AuditLogActivityType {
   ADMIN_API_MUTATION_GENERATE_OOB_OTP_CODE_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_MARK_PASSWORD_AS_EXPIRED_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_REMOVE_GROUP_FROM_ROLES_EXECUTED
 
   """"""
@@ -963,6 +966,21 @@ enum IdentityType {
 }
 
 """"""
+input MarkPasswordAsExpiredInput {
+  """Indicate whether the user's password is expired."""
+  isExpired: Boolean!
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type MarkPasswordAsExpiredPayload {
+  """"""
+  user: User!
+}
+
+""""""
 type Mutation {
   """Add the group to the roles."""
   addGroupToRoles(input: AddGroupToRolesInput!): AddGroupToRolesPayload!
@@ -1027,6 +1045,9 @@ type Mutation {
 
   """Generate OOB OTP code for user"""
   generateOOBOTPCode(input: GenerateOOBOTPCodeInput!): GenerateOOBOTPCodePayload!
+
+  """Force user to change password on next login"""
+  markPasswordAsExpired(input: MarkPasswordAsExpiredInput!): MarkPasswordAsExpiredPayload!
 
   """Remove the group from the roles."""
   removeGroupFromRoles(input: RemoveGroupFromRolesInput!): RemoveGroupFromRolesPayload!
