@@ -52,3 +52,9 @@ func (p *Provider) Create(i *identity.LDAP) error {
 	i.UpdatedAt = now
 	return p.Store.Create(i)
 }
+
+func (p *Provider) Update(i *identity.LDAP) error {
+	now := p.Clock.NowUTC()
+	i.UpdatedAt = now
+	return p.Store.Update(i)
+}
