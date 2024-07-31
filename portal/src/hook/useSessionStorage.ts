@@ -5,14 +5,6 @@ import {
   useEffect,
   useState,
 } from "react";
-import { useEventListener } from "./useEventListener";
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-  interface WindowEventMap {
-    "authgear-portal:session-storage": CustomEvent;
-  }
-}
 
 /**
  * Represents the options for customizing the behavior of serialization and deserialization.
@@ -125,11 +117,6 @@ export function useSessionStorage<T>(
 
         // Save state
         setStoredValue(newValue);
-
-        // We dispatch a custom event so every similar useSessionStorage hook is notified
-        window.dispatchEvent(
-          new StorageEvent("authgear-portal:session-storage", { key })
-        );
       } catch (error: unknown) {
         console.warn(`Error setting sessionStorage key “${key}”:`, error);
       }
@@ -146,34 +133,12 @@ export function useSessionStorage<T>(
 
     // Save state with default value
     setStoredValue(defaultValue);
-
-    // We dispatch a custom event so every similar useSessionStorage hook is notified
-    window.dispatchEvent(
-      new StorageEvent("authgear-portal:session-storage", { key })
-    );
   }, [initialValue, key]);
 
   useEffect(() => {
     setStoredValue(readValue());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
-
-  const handleStorageChange = useCallback(
-    (event: StorageEvent | CustomEvent) => {
-      if ((event as StorageEvent).key && (event as StorageEvent).key !== key) {
-        return;
-      }
-      setStoredValue(readValue());
-    },
-    [key, readValue]
-  );
-
-  // this only works for other documents, not the current one
-  useEventListener("storage", handleStorageChange);
-
-  // this is a custom event, triggered in writeValueToSessionStorage
-  // See: useSessionStorage()
-  useEventListener("authgear-portal:session-storage", handleStorageChange);
 
   return [storedValue, setValue, removeValue];
 }
