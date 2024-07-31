@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/ldap"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
@@ -327,6 +328,14 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock: clockClock,
 		SIWE:  siweService,
 	}
+	ldapStore := &ldap.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	ldapProvider := &ldap.Provider{
+		Store: ldapStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -338,6 +347,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
 		SIWE:                  siweProvider,
+		LDAP:                  ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,

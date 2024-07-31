@@ -24,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/ldap"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
@@ -343,6 +344,14 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 		SIWE:  siweService,
 	}
+	ldapStore := &ldap.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	ldapProvider := &ldap.Provider{
+		Store: ldapStore,
+		Clock: clockClock,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -354,6 +363,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
 		SIWE:                  siweProvider,
+		LDAP:                  ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,

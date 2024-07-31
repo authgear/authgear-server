@@ -118,6 +118,7 @@ type Service struct {
 	Biometric             BiometricIdentityProvider
 	Passkey               PasskeyIdentityProvider
 	SIWE                  SIWEIdentityProvider
+	LDAP                  LDAPIdentityProvider
 }
 
 func (s *Service) Get(id string) (*identity.Info, error) {
