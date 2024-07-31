@@ -97,3 +97,24 @@ func (s *Store) GetMany(ids []string) ([]*identity.LDAP, error) {
 
 	return is, nil
 }
+
+func (s *Store) List(userID string) ([]*identity.LDAP, error) {
+	builder := s.selectQuery().Where("p.user_id = ANY (?)", pq.Array(userID))
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var is []*identity.LDAP
+	for rows.Next() {
+		i, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		is = append(is, i)
+	}
+
+	return is, nil
+}
