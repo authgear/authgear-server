@@ -144,7 +144,8 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowStep", `
 			"then": {
 				"required": ["target_step"],
 				"properties": {
-					"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" }
+					"target_step": { "$ref": "#/$defs/AuthenticationFlowObjectName" },
+					"bot_protection": { "$ref": "#/$defs/AuthenticationFlowBotProtection" }
 				}
 			}
 		},
@@ -888,9 +889,15 @@ type AuthenticationFlowSignupFlowStep struct {
 	TargetStep string `json:"target_step,omitempty"`
 	// UserProfile is relevant when Type is fill_in_user_profile.
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
+
+	// BotProtection is not in AuthenticationFlowSignupFlowOneOf, which is against existing pattern.
+	// This is intentional because `step: verify` does not any OneOf
+	// i.e. This field is ONLY for `step: verify`
+	BotProtection *AuthenticationFlowBotProtection `json:"bot_protection,omitempty" nullable:"true"`
 }
 
 var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupFlowStep{}
+var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowSignupFlowStep{}
 
 func (s *AuthenticationFlowSignupFlowStep) IsFlowObject()   {}
 func (s *AuthenticationFlowSignupFlowStep) GetName() string { return s.Name }
@@ -911,6 +918,10 @@ func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject
 	default:
 		return nil
 	}
+}
+
+func (f *AuthenticationFlowSignupFlowStep) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
+	return f.BotProtection
 }
 
 type AuthenticationFlowSignupFlowOneOf struct {
