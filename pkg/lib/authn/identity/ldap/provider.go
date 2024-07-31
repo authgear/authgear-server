@@ -21,3 +21,7 @@ func (p *Provider) GetMany(ids []string) ([]*identity.LDAP, error) {
 func (p *Provider) List(userID string) ([]*identity.LDAP, error) {
 	return p.Store.List(userID)
 }
+
+func (p *Provider) GetByServerUserID(serverName string, userIDAttribute string, userIDAttributeValue string) (*identity.LDAP, error) {
+	return p.Store.GetByServerUserID(serverName, userIDAttribute, userIDAttributeValue)
+}

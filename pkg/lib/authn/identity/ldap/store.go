@@ -118,3 +118,18 @@ func (s *Store) List(userID string) ([]*identity.LDAP, error) {
 
 	return is, nil
 }
+
+func (s *Store) GetByServerUserID(serverName string, userIDAttribute string, userIDAttributeValue string) (*identity.LDAP, error) {
+	q := s.selectQuery().
+		Where(
+			"o.server_name = ? AND o.user_id_attribute = ? AND o.user_id_attribute_value = ?",
+			serverName,
+			userIDAttribute,
+			userIDAttributeValue,
+		)
+	rows, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+	return s.scan(rows)
+}
