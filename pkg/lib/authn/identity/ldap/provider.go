@@ -49,6 +49,13 @@ func (p *Provider) New(
 	}
 }
 
+func (p *Provider) WithUpdate(iden *identity.LDAP, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP {
+	newIden := *iden
+	newIden.Claims = claims
+	newIden.RawEntryJSON = rawEntryJSON
+	return &newIden
+}
+
 func (p *Provider) Create(i *identity.LDAP) error {
 	now := p.Clock.NowUTC()
 	i.CreatedAt = now
