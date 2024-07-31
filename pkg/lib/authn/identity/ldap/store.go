@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -73,4 +75,25 @@ func (s *Store) Get(userID string, id string) (*identity.LDAP, error) {
 		return nil, err
 	}
 	return s.scan(rows)
+}
+
+func (s *Store) GetMany(ids []string) ([]*identity.LDAP, error) {
+	builder := s.selectQuery().Where("p.id = ANY (?)", pq.Array(ids))
+
+	rows, err := s.SQLExecutor.QueryWith(builder)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var is []*identity.LDAP
+	for rows.Next() {
+		i, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		is = append(is, i)
+	}
+
+	return is, nil
 }
