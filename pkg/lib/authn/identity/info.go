@@ -21,6 +21,7 @@ type Info struct {
 	Biometric *Biometric `json:"biometric,omitempty"`
 	Passkey   *Passkey   `json:"passkey,omitempty"`
 	SIWE      *SIWE      `json:"siwe,omitempty"`
+	LDAP      *LDAP      `json:"ldap,omitempty"`
 }
 
 func (i *Info) ToSpec() Spec {
@@ -78,6 +79,11 @@ func (i *Info) ToSpec() Spec {
 				Signature: i.SIWE.Data.Signature,
 			},
 		}
+	case model.IdentityTypeLDAP:
+		return Spec{
+			Type: i.Type,
+			LDAP: i.LDAP.ToLDAPSpec(),
+		}
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}
@@ -117,6 +123,8 @@ func (i *Info) AMR() []string {
 		return nil
 	case model.IdentityTypeSIWE:
 		return nil
+	case model.IdentityTypeLDAP:
+		return []string{model.AMRPWD}
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}
@@ -159,6 +167,12 @@ func (i *Info) ToModel() model.Identity {
 		claims[IdentityClaimSIWEAddress] = i.SIWE.Address
 		claims[IdentityClaimSIWEChainID] = i.SIWE.ChainID
 
+	case model.IdentityTypeLDAP:
+		claims[IdentityClaimLDAPServerName] = i.LDAP.ServerName
+		claims[IdentityClaimLDAPUserIDAttributeName] = i.LDAP.UserIDAttribute
+		claims[IdentityClaimLDAPUserIDAttributeValue] = i.LDAP.UserIDAttributeValue
+		claims[IdentityClaimLDAPAttributes] = i.LDAP.RawEntryJSON
+
 	default:
 		panic("identity: unknown identity type: " + i.Type)
 	}
@@ -177,6 +191,7 @@ func (i *Info) ToModel() model.Identity {
 // If it is a biometric identity, the kid is returned.
 // If it is a passkey identity, the name is returned.
 // If it is a SIWE identity, EIP681 of the address and chainID is returned
+// If it is a LDAP identity, user id attribute value is returned
 func (i *Info) DisplayID() string {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
@@ -204,6 +219,8 @@ func (i *Info) DisplayID() string {
 			panic(fmt.Errorf("identity: failed to parse SIWE identity: %w", err))
 		}
 		return eip681.URL().String()
+	case model.IdentityTypeLDAP:
+		return i.LDAP.UserIDAttributeValue
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
@@ -230,6 +247,8 @@ func (i *Info) IdentityAwareStandardClaims() map[model.ClaimName]string {
 		break
 	case model.IdentityTypeSIWE:
 		break
+	case model.IdentityTypeLDAP:
+		claims = i.LDAP.IdentityAwareStandardClaims()
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
@@ -251,6 +270,8 @@ func (i *Info) AllStandardClaims() map[string]interface{} {
 		break
 	case model.IdentityTypeSIWE:
 		break
+	case model.IdentityTypeLDAP:
+		return i.LDAP.Claims
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
@@ -318,6 +339,9 @@ func (i *Info) CreateDisabled(c *config.IdentityConfig) bool {
 		// create_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false
+	case model.IdentityTypeLDAP:
+		// TODO(DEV-1671)
+		return true
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
 	}
@@ -347,6 +371,9 @@ func (i *Info) DeleteDisabled(c *config.IdentityConfig) bool {
 		// delete_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false
+	case model.IdentityTypeLDAP:
+		// TODO(DEV-1671)
+		return true
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
 	}
@@ -373,6 +400,9 @@ func (i *Info) UpdateDisabled(c *config.IdentityConfig) bool {
 		// update_disabled is only applicable to login_id and oauth.
 		// So we return false here.
 		return false
+	case model.IdentityTypeLDAP:
+		// TODO(DEV-1671)
+		return true
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
 	}
@@ -392,6 +422,9 @@ func (i *Info) UpdateUserID(newUserID string) *Info {
 	case model.IdentityTypeSIWE:
 		fallthrough
 	case model.IdentityTypeAnonymous:
+		fallthrough
+	case model.IdentityTypeLDAP:
+		// TODO(DEV-1672)
 		fallthrough
 	default:
 		panic(fmt.Errorf("identity: identity type %v does not support updating user ID", i.Type))

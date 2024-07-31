@@ -13,4 +13,5 @@ type Spec struct {
 	Biometric *BiometricSpec `json:"biometric,omitempty"`
 	Passkey   *PasskeySpec   `json:"passkey,omitempty"`
 	SIWE      *SIWESpec      `json:"siwe,omitempty"`
+	LDAP      *LDAPSpec      `json:"ldap,omitempty"`
 }
