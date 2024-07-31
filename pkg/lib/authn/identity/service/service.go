@@ -89,6 +89,24 @@ type SIWEIdentityProvider interface {
 	Delete(i *identity.SIWE) error
 }
 
+type LDAPIdentityProvider interface {
+	Get(userID, id string) (*identity.LDAP, error)
+	GetMany(ids []string) ([]*identity.LDAP, error)
+	List(userID string) ([]*identity.LDAP, error)
+	GetByServerUserID(serverName string, userIDAttribute string, userIDAttributeValue string) (*identity.LDAP, error)
+	New(
+		userID string,
+		serverName string,
+		userIDAttribute string,
+		userIDAttributeValue string,
+		claims map[string]interface{},
+		rawEntryJSON map[string]interface{},
+	) *identity.LDAP
+	Create(i *identity.LDAP) error
+	Update(i *identity.LDAP) error
+	Delete(i *identity.LDAP) error
+}
+
 type Service struct {
 	Authentication        *config.AuthenticationConfig
 	Identity              *config.IdentityConfig
