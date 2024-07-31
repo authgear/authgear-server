@@ -42,6 +42,7 @@ var ConfigDeps = wire.NewSet(
 		"OAuth",
 		"Biometric",
 		"OnConflict",
+		"LDAP",
 	),
 	wire.FieldsOf(new(*config.MessagingConfig),
 		"Whatsapp",
@@ -122,6 +123,7 @@ var secretDeps = wire.NewSet(
 	ProvideCaptchaCloudflareCredentials,
 	ProvideBotProtectionProvidersCredentials,
 	ProvideWhatsappOnPremisesCredentials,
+	ProvideLDAPServerUserCredentials,
 )
 
 func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredentials {
@@ -220,5 +222,10 @@ func ProvideBotProtectionProvidersCredentials(c *config.SecretConfig) *config.Bo
 
 func ProvideWhatsappOnPremisesCredentials(c *config.SecretConfig) *config.WhatsappOnPremisesCredentials {
 	s, _ := c.LookupData(config.WhatsappOnPremisesCredentialsKey).(*config.WhatsappOnPremisesCredentials)
+	return s
+}
+
+func ProvideLDAPServerUserCredentials(c *config.SecretConfig) *config.LDAPServerUserCredentials {
+	s, _ := c.LookupData(config.LDAPServerUserCredentialsKey).(*config.LDAPServerUserCredentials)
 	return s
 }
