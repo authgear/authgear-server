@@ -153,6 +153,19 @@ func TestMatchJSON(t *testing.T) {
 			schema:   `"[[number]]"`,
 			expected: []MatchViolation{},
 		},
+		{
+			name:    "Never field",
+			jsonStr: `{"id": 1, "title": "Test Article", "extra": "extra field"}`,
+			schema:  `{"id": "[[number]]", "title": "[[string]]", "[[...rest]]": "[[never]]"}`,
+			expected: []MatchViolation{
+				{
+					Path:     "/extra",
+					Message:  "type mismatch",
+					Expected: "[[never]]",
+					Actual:   "[[string]]",
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {

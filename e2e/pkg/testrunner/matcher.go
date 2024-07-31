@@ -56,6 +56,12 @@ func matchMap(path string, data, schema map[string]interface{}) (violations []Ma
 		}
 
 		dataValue, ok := data[key]
+		if schemaValue == "[[never]]" {
+			if ok {
+				violations = append(violations, typeMismatchViolation(path+"/"+key, "[[never]]", dataValue))
+			}
+			continue
+		}
 		if !ok {
 			violations = append(violations, missingFieldViolation(path+"/"+key, schemaValue))
 			continue
@@ -126,6 +132,8 @@ func matchScalar(path string, data interface{}, schema string) (violations []Mat
 		ok = data == nil
 	case "[[ignore]]":
 		ok = true
+	case "[[never]]":
+		ok = false
 	default:
 		// Normal string
 		ok = true
