@@ -40,10 +40,6 @@ func generateReauthFlowStepAuthenticate(cfg *config.AppConfig) *config.Authentic
 		oneOf := &config.AuthenticationFlowReauthFlowOneOf{
 			Authentication: authentication,
 		}
-		botProtection, ok := getBotProtectionProviderConfig(cfg)
-		if ok {
-			oneOf.BotProtection = botProtection
-		}
 		step.OneOf = append(step.OneOf, oneOf)
 	}
 
