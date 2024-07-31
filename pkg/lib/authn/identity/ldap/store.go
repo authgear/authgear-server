@@ -65,3 +65,12 @@ func (s *Store) scan(scn db.Scanner) (*identity.LDAP, error) {
 
 	return i, nil
 }
+
+func (s *Store) Get(userID string, id string) (*identity.LDAP, error) {
+	q := s.selectQuery().Where("p.user_id = ? AND p.id = ?", userID, id)
+	rows, err := s.SQLExecutor.QueryRowWith(q)
+	if err != nil {
+		return nil, err
+	}
+	return s.scan(rows)
+}
