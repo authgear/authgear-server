@@ -58,3 +58,7 @@ func (p *Provider) Update(i *identity.LDAP) error {
 	i.UpdatedAt = now
 	return p.Store.Update(i)
 }
+
+func (p *Provider) Delete(i *identity.LDAP) error {
+	return p.Store.Delete(i)
+}
