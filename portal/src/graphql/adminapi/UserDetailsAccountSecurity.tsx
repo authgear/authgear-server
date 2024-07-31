@@ -528,6 +528,14 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
       lastUpdatedInDays > forceChangeDaysSinceLastUpdate;
     const changeOnLogin = manualChangeOnLogin || passwordExpired;
 
+    const expiredInDays = useMemo(() => {
+      if (!forceChangeDaysSinceLastUpdate) {
+        return 0;
+      }
+
+      return lastUpdatedInDays - forceChangeDaysSinceLastUpdate;
+    }, [forceChangeDaysSinceLastUpdate, lastUpdatedInDays]);
+
     const onResetPasswordClicked = useCallback(() => {
       navigate("./reset-password");
     }, [navigate]);
@@ -562,9 +570,6 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
           label={renderToString(
             "UserDetails.account-security.change-on-login.label"
           )}
-          description={renderToString(
-            "UserDetails.account-security.change-on-login.description"
-          )}
           checked={changeOnLogin}
           // TODO(newman): Enable in change password feature
           disabled={true}
@@ -578,7 +583,7 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
               id="UserDetails.account-security.expired"
               values={{
                 prefixClassName: styles.passwordCellExpiredPrefix,
-                lastUpdatedInDays,
+                expiredInDays,
               }}
               components={{
                 Text,
@@ -727,7 +732,9 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       }
 
       const secondsPerDay = 24 * 60 * 60;
-      return durationString ? parseDuration(durationString) / secondsPerDay : 1;
+      return Math.round(
+        durationString ? parseDuration(durationString) / secondsPerDay : 1
+      );
     }, [authenticatorConfig]);
 
     const {
