@@ -119,6 +119,67 @@ func TestFormatHTTPOriginSpec(t *testing.T) {
 	})
 }
 
+func TestFormatLDAPURL(t *testing.T) {
+	Convey("FormatLDAPURL", t, func() {
+		f := FormatLDAPURL{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f("ldap://example.com"), ShouldBeNil)
+		So(f("ldaps://example.com"), ShouldBeNil)
+
+		So(f(""), ShouldBeError, "expect input URL with scheme ldap / ldaps")
+		So(f("http://example.com"), ShouldBeError, "expect input URL with scheme ldap / ldaps")
+		So(f("ldap://example.com/"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+		So(f("ldap://example.com?a"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+		So(f("ldap://example.com#a"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+	})
+}
+
+func TestFormatLDAPDN(t *testing.T) {
+	Convey("FormatLDAPDN", t, func() {
+		f := FormatLDAPDN{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f("dc=example,dc=com"), ShouldBeNil)
+		So(f("cn=admin,dc=example,dc=org"), ShouldBeNil)
+		So(f("ou="), ShouldBeError, "invalid DN")
+		So(f(""), ShouldBeError, "expect non-empty base DN")
+	})
+}
+
+func TestFormatLDAPSearchFilterTemplate(t *testing.T) {
+	Convey("FormatLDAPSearchFilterTemplate", t, func() {
+		f := FormatLDAPSearchFilterTemplate{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f("(uid=%s)"), ShouldBeNil)
+		So(f("((uid=%s)(cn=%s))"), ShouldBeError, "LDAP Result Code 201 \"Filter Compile Error\": ldap: finished compiling filter with extra at end: cn=%s))")
+		So(f("(uid=%s)(cn=%s"), ShouldBeError, "LDAP Result Code 201 \"Filter Compile Error\": ldap: finished compiling filter with extra at end: (cn=%s")
+		So(f(""), ShouldBeError, "LDAP Result Code 201 \"Filter Compile Error\": ldap: filter does not start with an '('")
+
+		test_template := `{{if eq .Username "test@test.com"}}(mail={{.Username}}){{else if eq .Username "+852"}}(telephoneNumber={{.Username}}){{else}}(uid={{.Username}}){{end}}`
+		So(f(test_template), ShouldBeNil)
+		wrong_template := `{{if eq .Username "test@test.com"}}(mail={{.Username}})`
+		So(f(wrong_template), ShouldBeError, "template: search_filter:1: unexpected EOF")
+		wrong_filter := `{{if eq .Username "test@test.com"}}(mail={{.Username}}{{end}}`
+		So(f(wrong_filter), ShouldBeError, "LDAP Result Code 201 \"Filter Compile Error\": ldap: unexpected end of filter")
+	})
+}
+
+func TestFormatLDAPOID(t *testing.T) {
+	Convey("FormatLDAPOID", t, func() {
+		f := FormatLDAPOID{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f("1.1"), ShouldBeNil)
+		So(f("1.1.1"), ShouldBeNil)
+		So(f(""), ShouldBeError, "expect non-empty OID")
+		So(f(".1.1"), ShouldBeError, "expect OID to start with number")
+		So(f("1.1."), ShouldBeError, "expect OID to end with number")
+		So(f("1.1.1.a.2"), ShouldBeError, "expect OID to contain only number and dot")
+	})
+}
+
 func TestFormatWeChatAccountID(t *testing.T) {
 	Convey("TestFormatWeChatAccountID", t, func() {
 		f := FormatWeChatAccountID{}.CheckFormat
