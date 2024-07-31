@@ -2,9 +2,12 @@ package ldap
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
+
+var _ service.LDAPIdentityProvider = &Provider{}
 
 type Provider struct {
 	Store *Store
