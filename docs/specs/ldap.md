@@ -55,14 +55,17 @@ identity:
         {{- else }}
           (&(objectCategory=person)(objectClass=user)(memberof=dc=anothercompany,dc=com)(sAMAccountName={{ $.Username }}))
         {{- end }}
-      user_id_attribute: "myUserID"
+      # According to https://datatracker.ietf.org/doc/html/rfc4512#section-2.5
+      # The unique way to identify an attribute in LDAP is oid.
+      # For those who are curious, "0.9.2342.19200300.100.1.1" is "uid", according to https://datatracker.ietf.org/doc/html/rfc4519#section-2.39
+      user_id_attribute_oid: "0.9.2342.19200300.100.1.1"
 ```
 
 - `identity.ldap.servers.name`: A unique name to identify this LDAP server. Once set, it cannot be changed. It is stored in the database as part of the unique key to identify a LDAP identity. See [The database schema of a LDAP identity](#the-database-schema-of-a-ldap-identity) for details.
 - `identity.ldap.servers.url`: The connection URL to the LDAP server. The scheme MUST be `ldap:` or `ldaps:`. The URL MUST contain `host`, and optionally a port. If the port is omitted, the default port of the scheme is assumed. The default port of `ldap:` is `389`, while the default port of `ldaps:` is `636`. The URL MUST NOT contain other elements, such as path, nor query.
 - `identity.ldap.servers.base_dn`: The base DN to construct a Search Request, as defined in [Section 4.5.1 in RFC4511](https://datatracker.ietf.org/doc/html/rfc4511#section-4.5.1).
 - `identity.ldap.servers.search_filter_template`: A Go template that renders to a filter to be used in the Search Request. This template can use the variable `$.Username` to render the username entered by the end-user. `$.Username` is pre-processed so that it is an escaped LDAP string. The strings function from [https://masterminds.github.io/sprig/](https://masterminds.github.io/sprig/) can be used in the template.
-- `identity.ldap.servers.user_id_attribute`: The attribute that is guaranteed to be unique and never change for a given user in the LDAP server. It is used to identify a user from the LDAP server. Warning: Changing this value will cause Authgear not able to look up any previous LDAP identities.
+- `identity.ldap.servers.user_id_attribute_oid`: The attribute that is guaranteed to be unique and never change for a given user in the LDAP server. It is used to identify a user from the LDAP server. Warning: Changing this value will cause Authgear not able to look up any previous LDAP identities.
 
 > Why does `identity.ldap.servers.url` allow scheme, host, and port?
 > The LDAP URL, defined in [Section 2 in RFC 4516](https://datatracker.ietf.org/doc/html/rfc4516#section-2), is syntactically different from the URL defined in [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986).
@@ -96,7 +99,7 @@ Here is the JSON schema for the LDAP server configuration.
 {
   "type": "object",
   "additionalProperties": false,
-  "required": ["name", "url", "base_dn", "search_filter_template", "user_id_attribute"],
+  "required": ["name", "url", "base_dn", "search_filter_template", "user_id_attribute_oid"],
   "properties": {
     "name": {
       "type": "string",
@@ -114,9 +117,9 @@ Here is the JSON schema for the LDAP server configuration.
       "type": "string",
       "format": "ldap_search_filter_template"
     },
-    "user_id_attribute": {
+    "user_id_attribute_oid": {
       "type": "string",
-      "format": "ldap_attribute_name"
+      "format": "ldap_oid"
     }
   }
 }
@@ -125,14 +128,14 @@ Here is the JSON schema for the LDAP server configuration.
 - `format: ldap_url`: It is a JSON schema format that implements the rules of `identity.ldap.servers.url`.
 - `format: ldap_dn`: It is a JSON schema format that validates the value to be a valid DN.
 - `format: ldap_search_filter_template`: It is a JSON schema format that validates the rendered string to be a valid Search Filter. It does the validation by running the template with `Username=user`, `Username=user@example.com`, and `Username=+85298765432`, and then parse the resulting Search Filter as a Search Filter.
-- `format: ldap_attribute_name`: It is a JSON schema format that validates the value to be a valid LDAP attribute name.
+- `format: ldap_oid`: It is a JSON schema format that validates the value to be a valid LDAP oid.
 
 ## Testing on the configuration
 
 > TODO: Add a mutation in the Admin API to test LDAP connection.
 > It should take the whole server configuration, and optionally a end-user username.
 > It connects the LDAP server with the URL and the credentials.
-> If the optional end-user username is given, it performs a Search request, and validates the user exists and has user_id_attribute.
+> If the optional end-user username is given, it performs a Search request, and validates the user exists and has user_id_attribute_oid.
 > It returns detailed API errors so that the portal can display relevant information for the developer to debug the configuration.
 > Such detailed API errors ARE NOT returned in actual use. They are reported as internal errors.
 
@@ -141,29 +144,29 @@ Here is the JSON schema for the LDAP server configuration.
 ```sql
 CREATE TABLE _auth_identity_ldap
 (
-    id                 text  PRIMARY KEY REFERENCES _auth_identity (id),
-    app_id             text  NOT NULL,
-    server_name        text  NOT NULL,
-    user_id_attribute  text  NOT NULL,
-    user_id_value      text  NOT NULL,
-    claims             jsonb NOT NULL,
-    raw_entry_json     jsonb NOT NULL
+    id                      text  PRIMARY KEY REFERENCES _auth_identity (id),
+    app_id                  text  NOT NULL,
+    server_name             text  NOT NULL,
+    user_id_attribute_oid   text  NOT NULL,
+    user_id_attribute_value text  NOT NULL,
+    claims                  jsonb NOT NULL,
+    raw_entry_json          jsonb NOT NULL
 );
 
-CREATE UNIQUE INDEX _auth_identity_ldap_unique ON _auth_identity_ldap (app_id, server_name, user_id_attribute, user_id_value);
+CREATE UNIQUE INDEX _auth_identity_ldap_unique ON _auth_identity_ldap (app_id, server_name, user_id_attribute_oid, user_id_attribute_value);
 ```
 
 - `id`: The primary key of this table. This is the same as other `_auth_identity_*` tables.
 - `app_id`: The app ID of this table for multi-tenant. This is the same as other `_auth_identity_*` tables.
 - `server_name`: The `name` of the LDAP server.
-- `user_id_attribute`: The `user_id_attribute` of the LDAP server when this identity is created.
-- `user_id_value`: The value of the `user_id_attribute` of the user.
+- `user_id_attribute_oid`: The `user_id_attribute_oid` of the LDAP server when this identity is created.
+- `user_id_attribute_value`: The value of the `user_id_attribute_oid` of the user.
 - `claims`: The standard claims extracted from this LDAP entry.
 - `raw_entry_json`: The raw LDAP entry encoded in JSON. It looks like `{ "dn": "uid=johndoe,dc=example,dc=com", "attr1": ["value1"] }`.
 
 ## Handling of a LDAP identity
 
-- To look up a LDAP identity in Authgear, we use the tuple `(app_id, server_name, user_id_attribute, user_id_value)`.
+- To look up a LDAP identity in Authgear, we use the tuple `(app_id, server_name, user_id_attribute_oid, user_id_attribute_value)`.
 - Similar to OAuth identity, we update an LDAP identity when it is used in login.
 
 ## The UX of LDAP in Auth UI
@@ -179,5 +182,5 @@ This section documents the expected errors.
 
 |Description|Name|Reason|Info|
 |---|---|---|---|
-|When the LDAP server is service unavailable, `user_id_attribute` not found in a user, search filter turns out to be invalid, etc|InternalError|UnexpectedError||
+|When the LDAP server is service unavailable, `user_id_attribute_oid` not found in a user, search filter turns out to be invalid, etc|InternalError|UnexpectedError||
 |When the end-user cannot authenticate to the LDAP server|Unauthorized|InvalidCredentials||
