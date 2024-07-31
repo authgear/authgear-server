@@ -40,14 +40,14 @@
 }
 
 .providerCard {
-  padding: 8px 16px;
+  padding: 0.5rem 1rem;
   display: flex;
   flex-direction: row;
   align-items: center;
-  border-width: 1px;
+  border-width: 0.06rem; /* 1px */
   border-style: solid;
   cursor: pointer;
-  column-gap: 16px;
+  column-gap: 1rem;
 }
 
 .providerCardLabel {
