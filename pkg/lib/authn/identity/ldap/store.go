@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 
@@ -185,6 +186,51 @@ func (s *Store) Create(i *identity.LDAP) (err error) {
 			claims,
 			rawEntryJSON,
 		)
+
+	_, err = s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) Update(i *identity.LDAP) error {
+	claims, err := json.Marshal(i.Claims)
+	if err != nil {
+		return err
+	}
+	rawEntryJSON, err := json.Marshal(i.RawEntryJSON)
+	if err != nil {
+		return err
+	}
+
+	q := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_identity_ldap")).
+		Set("claims", claims).
+		Set("rawEntryJSON", rawEntryJSON).
+		Where("id = ?", i.ID)
+
+	result, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return api.ErrIdentityNotFound
+	} else if rowsAffected > 1 {
+		panic(fmt.Sprintf("identity_ldap: want 1 row updated, got %v", rowsAffected))
+	}
+
+	q = s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_identity")).
+		Set("updated_at", i.UpdatedAt).
+		Where("id = ?", i.ID)
 
 	_, err = s.SQLExecutor.ExecWith(q)
 	if err != nil {
