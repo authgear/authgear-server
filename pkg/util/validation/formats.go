@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"bytes"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -9,8 +10,10 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"text/template"
 	"time"
 
+	"github.com/go-ldap/ldap/v3"
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	jsonschemaformat "github.com/iawaknahc/jsonschema/pkg/jsonschema/format"
 	"github.com/iawaknahc/originmatcher"
@@ -31,6 +34,10 @@ func init() {
 	jsonschemaformat.DefaultChecker["uri"] = FormatURI{}
 	jsonschemaformat.DefaultChecker["http_origin"] = FormatHTTPOrigin{}
 	jsonschemaformat.DefaultChecker["http_origin_spec"] = FormatHTTPOriginSpec{}
+	jsonschemaformat.DefaultChecker["ldap_url"] = FormatLDAPURL{}
+	jsonschemaformat.DefaultChecker["ldap_dn"] = FormatLDAPDN{}
+	jsonschemaformat.DefaultChecker["ldap_search_filter_template"] = FormatLDAPSearchFilterTemplate{}
+	jsonschemaformat.DefaultChecker["ldap_oid"] = FormatLDAPOID{}
 	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
 	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
 	jsonschemaformat.DefaultChecker["timezone"] = FormatTimezone{}
@@ -204,6 +211,135 @@ func (FormatHTTPOriginSpec) CheckFormat(value interface{}) error {
 	err := originmatcher.CheckValidSpecStrict(str)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+type FormatLDAPURL struct{}
+
+func (FormatLDAPURL) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	u, err := url.Parse(str)
+	if err != nil {
+		return err
+	}
+
+	if u.Scheme != "ldap" && u.Scheme != "ldaps" {
+		return errors.New("expect input URL with scheme ldap / ldaps")
+	}
+
+	if u.Host == "" {
+		return errors.New("expect input URL with non-empty host")
+	}
+
+	err = errors.New("expect input URL without user info, path, query and fragment")
+	if u.User != nil {
+		return err
+	}
+	if u.Path != "" || u.RawPath != "" {
+		return err
+	}
+	if u.RawQuery != "" {
+		return err
+	}
+	if u.Fragment != "" || u.RawFragment != "" {
+		return err
+	}
+
+	return nil
+
+}
+
+type FormatLDAPDN struct{}
+
+func (FormatLDAPDN) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	if str == "" {
+		return errors.New("expect non-empty base DN")
+	}
+
+	dn, err := ldap.ParseDN(str)
+	if err != nil {
+		return err
+	}
+	if len(dn.RDNs) == 0 {
+		return errors.New("invalid DN")
+	}
+
+	return nil
+
+}
+
+type FormatLDAPSearchFilterTemplate struct{}
+
+func (FormatLDAPSearchFilterTemplate) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	tmpl, err := template.New("search_filter").Parse(str)
+	if err != nil {
+		return err
+	}
+	var buf bytes.Buffer
+	// make a string array of phone, username, email
+	testcases := []string{"+85298765432", "username", "test@test.com"}
+	for _, testcase := range testcases {
+		err = tmpl.Execute(&buf, map[string]string{"Username": testcase})
+		if err == nil && buf.String() != "" {
+			break
+		}
+	}
+	if err != nil {
+		return err
+	}
+	// check if the filter is correct
+	result := buf.String()
+	_, err = ldap.CompileFilter(result)
+
+	return err
+}
+
+type FormatLDAPOID struct{}
+
+func (FormatLDAPOID) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	// numericoid = number 1*( DOT number )
+	if len(str) == 0 {
+		return errors.New("expect non-empty OID")
+	}
+
+	// check if only contains dot and number
+	matched, err := regexp.MatchString(`^[0-9.]+$`, str)
+	if err != nil {
+		return err
+	}
+	if !matched {
+		return errors.New("expect OID to contain only number and dot")
+	}
+
+	// OID starts with a number
+	if str[0] < '0' || str[0] > '9' {
+		return errors.New("expect OID to start with number")
+	}
+
+	// OID ends with a number
+	if str[len(str)-1] < '0' || str[len(str)-1] > '9' {
+		return errors.New("expect OID to end with number")
 	}
 
 	return nil
