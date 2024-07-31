@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
+	identityldap "github.com/authgear/authgear-server/pkg/lib/authn/identity/ldap"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	identitypasskey "github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
@@ -232,6 +233,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 
 		identitysiwe.DependencySet,
+
+		identityldap.DependencySet,
 
 		identityservice.DependencySet,
 		wire.Bind(new(identityservice.LoginIDIdentityProvider), new(*identityloginid.Provider)),
