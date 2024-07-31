@@ -102,13 +102,28 @@ func matchValue(path string, dataValue, schemaValue interface{}) (violations []M
 
 func matchArray(path string, data []interface{}, schemaValue interface{}) (violations []MatchViolation) {
 	schemaArray, ok := schemaValue.([]interface{})
-	if !ok || schemaArray[0] != "[[arrayof]]" || len(schemaArray) != 2 {
-		return matchValue(path, data, schemaValue)
+	if !ok {
+		return []MatchViolation{unknownSchemaTypeViolation(path, schemaValue)}
 	}
 
-	itemType := schemaArray[1]
 	for i, item := range data {
+		var itemType interface{}
+		if schemaArray[0] == "[[arrayof]]" {
+			itemType = schemaArray[1]
+		} else {
+			itemType = schemaArray[i]
+		}
+
 		violations = append(violations, matchValue(fmt.Sprintf("%s/%d", path, i), item, itemType)...)
+	}
+
+	if len(data) != len(schemaArray) && schemaArray[0] != "[[arrayof]]" {
+		for i := len(schemaArray); i < len(data); i++ {
+			violations = append(violations, matchValue(fmt.Sprintf("%s/%d", path, i), data[i], schemaArray[len(schemaArray)-1])...)
+		}
+		for i := len(data); i < len(schemaArray); i++ {
+			violations = append(violations, missingFieldViolation(fmt.Sprintf("%s/%d", path, i), schemaArray[i]))
+		}
 	}
 
 	return violations
@@ -173,23 +188,28 @@ func missingFieldViolation(path string, expected interface{}) MatchViolation {
 
 func typeMismatchViolation(path string, expected interface{}, actual interface{}) MatchViolation {
 	var guess = actual
-	switch reflect.TypeOf(actual).Kind() {
-	case reflect.Map:
-		guess = "[[object]]"
-	case reflect.Slice:
-		guess = "[[array]]"
-	case reflect.Float64:
-		guess = "[[number]]"
-	case reflect.String:
-		guess = "[[string]]"
-	case reflect.Bool:
-		guess = "[[boolean]]"
-	case reflect.Invalid:
-		if guess == nil {
-			guess = "[[null]]"
+
+	if actual == nil {
+		guess = "[[null]]"
+	} else {
+		switch reflect.TypeOf(actual).Kind() {
+		case reflect.Map:
+			guess = "[[object]]"
+		case reflect.Slice:
+			guess = "[[array]]"
+		case reflect.Float64:
+			guess = "[[number]]"
+		case reflect.String:
+			guess = "[[string]]"
+		case reflect.Bool:
+			guess = "[[boolean]]"
+		case reflect.Invalid:
+			if guess == nil {
+				guess = "[[null]]"
+			}
+		default:
+			guess = fmt.Sprintf("%T", actual)
 		}
-	default:
-		guess = fmt.Sprintf("%T", actual)
 	}
 
 	return MatchViolation{
