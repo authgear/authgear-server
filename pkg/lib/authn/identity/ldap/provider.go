@@ -13,3 +13,7 @@ type Provider struct {
 func (p *Provider) Get(userID string, id string) (*identity.LDAP, error) {
 	return p.Store.Get(userID, id)
 }
+
+func (p *Provider) GetMany(ids []string) ([]*identity.LDAP, error) {
+	return p.Store.GetMany(ids)
+}
