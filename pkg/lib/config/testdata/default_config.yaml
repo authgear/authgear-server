@@ -366,6 +366,7 @@ session:
   idle_timeout_seconds: 2592000
 oauth: {}
 identity:
+  ldap: {}
   login_id:
     types:
       email:
