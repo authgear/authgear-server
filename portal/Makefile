@@ -1,6 +1,5 @@
 .PHONY: check-tidy
 check-tidy:
-	make fmt
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
 .PHONY: fmt
@@ -12,7 +11,7 @@ fmt:
 
 .PHONY: lint
 lint:
+	npm run typecheck
 	npm run eslint
 	npm run stylelint
 	npm run prettier
-	npm run typecheck

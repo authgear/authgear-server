@@ -1,6 +1,5 @@
 .PHONY: check-tidy
 check-tidy:
-	make fmt
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
 .PHONY: fmt

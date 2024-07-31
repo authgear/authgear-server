@@ -38,6 +38,9 @@ jobs:
     - run: npm run prettier
       working-directory: ./authui
       if: ${{ !cancelled() }}
+    - run: make check-tidy
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
     - run: npm run build
       working-directory: ./authui
       if: ${{ !cancelled() }}
