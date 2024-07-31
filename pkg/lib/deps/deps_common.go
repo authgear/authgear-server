@@ -243,6 +243,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(identityservice.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(identityservice.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 		wire.Bind(new(identityservice.SIWEIdentityProvider), new(*identitysiwe.Provider)),
+		wire.Bind(new(identityservice.LDAPIdentityProvider), new(*identityldap.Provider)),
 
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
