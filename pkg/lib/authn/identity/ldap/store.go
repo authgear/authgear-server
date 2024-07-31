@@ -15,6 +15,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 )
 
+const (
+	tableNameAuthIdentityLDAP = "_auth_identity_ldap"
+)
+
 type Store struct {
 	SQLBuilder  *appdb.SQLBuilderApp
 	SQLExecutor *appdb.SQLExecutor
@@ -35,7 +39,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"l.raw_entry_json",
 		).
 		From(s.SQLBuilder.TableName("_auth_identity"), "p").
-		Join(s.SQLBuilder.TableName("_auth_identity_ldap"), "l", "p.id = l.id")
+		Join(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP), "l", "p.id = l.id")
 }
 
 func (s *Store) scan(scn db.Scanner) (*identity.LDAP, error) {
@@ -169,7 +173,7 @@ func (s *Store) Create(i *identity.LDAP) (err error) {
 	}
 
 	q := s.SQLBuilder.
-		Insert(s.SQLBuilder.TableName("_auth_identity_ldap")).
+		Insert(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP)).
 		Columns(
 			"id",
 			"server_name",
@@ -206,7 +210,7 @@ func (s *Store) Update(i *identity.LDAP) error {
 	}
 
 	q := s.SQLBuilder.
-		Update(s.SQLBuilder.TableName("_auth_identity_ldap")).
+		Update(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP)).
 		Set("claims", claims).
 		Set("rawEntryJSON", rawEntryJSON).
 		Where("id = ?", i.ID)
@@ -230,6 +234,28 @@ func (s *Store) Update(i *identity.LDAP) error {
 	q = s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_identity")).
 		Set("updated_at", i.UpdatedAt).
+		Where("id = ?", i.ID)
+
+	_, err = s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) Delete(i *identity.LDAP) error {
+	q := s.SQLBuilder.
+		Delete(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP)).
+		Where("id = ?", i.ID)
+
+	_, err := s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	q = s.SQLBuilder.
+		Delete(s.SQLBuilder.TableName("_auth_identity")).
 		Where("id = ?", i.ID)
 
 	_, err = s.SQLExecutor.ExecWith(q)
