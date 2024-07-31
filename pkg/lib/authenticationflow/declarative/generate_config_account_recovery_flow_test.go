@@ -151,38 +151,7 @@ steps:
 - type: verify_account_recovery_code
 - type: reset_password
 `)
-		// bot_protection, 1 branch
-		test(`
-identity:
-  login_id:
-    keys:
-      - type: phone
-bot_protection:
-  enabled: true
-  provider:
-    type: recaptchav2
-    site_key: some-site-key
-`,
-			`
-name: default
-steps:
-- type: identify
-  one_of:
-  - identification: phone
-    bot_protection:
-      mode: always
-      provider: 
-        type: recaptchav2
-    on_failure: ignore
-    steps:
-      - type: select_destination
-        allowed_channels:
-          - channel: sms
-            otp_form: code
-- type: verify_account_recovery_code
-- type: reset_password
-`)
-		// bot_protection, 2 branches
+		// bot_protection, 2 branches, account_recovery=always
 		test(
 			`
 identity:
@@ -195,6 +164,9 @@ bot_protection:
   provider:
     type: recaptchav2
     site_key: some-site-key
+  requirements:
+    account_recovery:
+      mode: always
 `,
 			`
 name: default
