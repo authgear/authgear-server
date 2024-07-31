@@ -167,7 +167,7 @@ function ProviderCard(props: ProviderCardProps) {
       {logoSrc != null ? (
         <Image src={logoSrc} width={logoWidth} height={logoHeight} />
       ) : null}
-      <Label>{children}</Label>
+      <Label className={styles.providerCardLabel}>{children}</Label>
     </div>
   );
 }

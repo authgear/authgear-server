@@ -50,6 +50,10 @@
   column-gap: 16px;
 }
 
+.providerCardLabel {
+  cursor: pointer;
+}
+
 .secretKeyInputContainer {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));
