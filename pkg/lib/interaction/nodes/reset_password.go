@@ -101,7 +101,7 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 					PlainPassword:  newPassword,
 					SendPassword:   sendPassword,
 					ExpireAfter:    expireAfter,
-					SetExpireAfter: resetInput.ChangeOnLogin(),
+					SetExpireAfter: true,
 				})
 				if err != nil {
 					return err

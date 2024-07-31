@@ -579,6 +579,7 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 		var changed bool
 		var ai *authenticator.Info
 		changed, ai, err = s.Authenticators.UpdatePassword(ais[0], &service.UpdatePasswordOptions{
+			SetPassword:    true,
 			PlainPassword:  options.PlainPassword,
 			SetExpireAfter: options.SetExpireAfter,
 			ExpireAfter:    options.ExpireAfter,

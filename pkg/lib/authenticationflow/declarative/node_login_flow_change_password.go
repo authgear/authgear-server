@@ -52,6 +52,7 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflo
 
 		oldInfo := n.Authenticator
 		changed, newInfo, err := deps.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
+			SetPassword:    true,
 			PlainPassword:  newPassword,
 			SetExpireAfter: true,
 		})

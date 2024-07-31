@@ -385,6 +385,7 @@ func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bo
 }
 
 type UpdatePasswordOptions struct {
+	SetPassword    bool
 	PlainPassword  string
 	SetExpireAfter bool
 	ExpireAfter    *time.Time
@@ -392,6 +393,7 @@ type UpdatePasswordOptions struct {
 
 func (options *UpdatePasswordOptions) toProviderOptions() *password.UpdatePasswordOptions {
 	return &password.UpdatePasswordOptions{
+		SetPassword:    options.SetPassword,
 		PlainPassword:  options.PlainPassword,
 		SetExpireAfter: options.SetExpireAfter,
 		ExpireAfter:    options.ExpireAfter,

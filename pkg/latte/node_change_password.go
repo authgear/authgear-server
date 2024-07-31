@@ -56,6 +56,7 @@ func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 		}
 
 		changed, newInfo, err := deps.Authenticators.UpdatePassword(info, &service.UpdatePasswordOptions{
+			SetPassword:    true,
 			PlainPassword:  inputChangePassword.GetNewPassword(),
 			SetExpireAfter: true,
 		})

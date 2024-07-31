@@ -990,9 +990,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Graph: interactionService,
 	}
 	facadeUserFacade := &facade2.UserFacade{
+		Clock:              clockClock,
 		UserSearchService:  elasticsearchService,
 		Users:              userFacade,
 		LoginIDConfig:      loginIDConfig,
+		Authenticators:     service4,
 		StandardAttributes: serviceNoEvent,
 		Interaction:        serviceInteractionService,
 	}
