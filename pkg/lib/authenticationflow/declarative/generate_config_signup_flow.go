@@ -42,13 +42,6 @@ func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		}
 	}
 
-	botProtection, ok := getBotProtectionProviderConfig(cfg)
-	if ok {
-		for _, oneOf := range step.OneOf {
-			oneOf.BotProtection = botProtection
-		}
-	}
-
 	return step
 }
 
@@ -76,6 +69,10 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 		}
 	}
 
+	for _, oneOf := range output {
+		oneOf.BotProtection = getBotProtectionRequirementsSignupOrLogin(cfg)
+	}
+
 	return output
 }
 
@@ -87,9 +84,9 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationEmail(cfg *config.AppCon
 	// Add verify step if necessary
 	if *cfg.Verification.Claims.Email.Enabled && *cfg.Verification.Claims.Email.Required {
 		oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
-
-			Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-			TargetStep: stepName,
+			BotProtection: getBotProtectionRequirementsOOBOTPEmail(cfg),
+			Type:          config.AuthenticationFlowSignupFlowStepTypeVerify,
+			TargetStep:    stepName,
 		})
 	}
 
@@ -113,8 +110,9 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationPhone(cfg *config.AppCon
 	// Add verify step if necessary
 	if *cfg.Verification.Claims.PhoneNumber.Enabled && *cfg.Verification.Claims.PhoneNumber.Required {
 		oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
-			Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
-			TargetStep: stepName,
+			BotProtection: getBotProtectionRequirementsOOBOTPSMS(cfg),
+			Type:          config.AuthenticationFlowSignupFlowStepTypeVerify,
+			TargetStep:    stepName,
 		})
 	}
 
@@ -195,6 +193,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
 					TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeSignup),
+					BotProtection:  getBotProtectionRequirementsOOBOTPEmail(cfg),
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}
@@ -205,6 +204,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
 					TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeSignup),
+					BotProtection:  getBotProtectionRequirementsOOBOTPSMS(cfg),
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}
@@ -244,10 +244,11 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 		Type: config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
 	}
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication) {
+	addOneOf := func(am config.AuthenticationFlowAuthentication, bp *config.AuthenticationFlowBotProtection) {
 		if _, ok := allowedMap[am]; ok {
 			oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 				Authentication: am,
+				BotProtection:  bp,
 			}
 			if recoveryCodeStep != nil {
 				oneOf.Steps = append(oneOf.Steps, recoveryCodeStep)
@@ -260,13 +261,13 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 	for _, authenticatorType := range *cfg.Authentication.SecondaryAuthenticators {
 		switch authenticatorType {
 		case model.AuthenticatorTypePassword:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, nil)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail(cfg))
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS(cfg))
 		case model.AuthenticatorTypeTOTP:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP)
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
 		}
 	}
 
