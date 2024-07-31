@@ -102,6 +102,7 @@ type LDAPIdentityProvider interface {
 		claims map[string]interface{},
 		rawEntryJSON map[string]interface{},
 	) *identity.LDAP
+	WithUpdate(iden *identity.LDAP, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP
 	Create(i *identity.LDAP) error
 	Update(i *identity.LDAP) error
 	Delete(i *identity.LDAP) error
