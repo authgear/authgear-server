@@ -45,3 +45,10 @@ func (p *Provider) New(
 		RawEntryJSON:         rawEntryJSON,
 	}
 }
+
+func (p *Provider) Create(i *identity.LDAP) error {
+	now := p.Clock.NowUTC()
+	i.CreatedAt = now
+	i.UpdatedAt = now
+	return p.Store.Create(i)
+}

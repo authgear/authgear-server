@@ -8,6 +8,7 @@ import (
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -132,4 +133,63 @@ func (s *Store) GetByServerUserID(serverName string, userIDAttribute string, use
 		return nil, err
 	}
 	return s.scan(rows)
+}
+
+func (s *Store) Create(i *identity.LDAP) (err error) {
+	builder := s.SQLBuilder.
+		Insert(s.SQLBuilder.TableName("_auth_identity")).
+		Columns(
+			"id",
+			"type",
+			"user_id",
+			"created_at",
+			"updated_at",
+		).
+		Values(
+			i.ID,
+			model.IdentityTypeLDAP,
+			i.UserID,
+			i.CreatedAt,
+			i.UpdatedAt,
+		)
+
+	_, err = s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	claims, err := json.Marshal(i.Claims)
+	if err != nil {
+		return err
+	}
+	rawEntryJSON, err := json.Marshal(i.RawEntryJSON)
+	if err != nil {
+		return err
+	}
+
+	q := s.SQLBuilder.
+		Insert(s.SQLBuilder.TableName("_auth_identity_ldap")).
+		Columns(
+			"id",
+			"server_name",
+			"user_id_attribute",
+			"user_id_attribute_value",
+			"claims",
+			"raw_entry_json",
+		).
+		Values(
+			i.ID,
+			i.ServerName,
+			i.UserIDAttribute,
+			i.UserIDAttributeValue,
+			claims,
+			rawEntryJSON,
+		)
+
+	_, err = s.SQLExecutor.ExecWith(q)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
