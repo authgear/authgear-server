@@ -240,6 +240,9 @@ bot_protection:
   provider:
     type: recaptchav2
     site_key: some-site-key
+  requirements:
+    signup_or_login:
+      mode: always
 `, `
 name: default
 steps:
@@ -254,7 +257,7 @@ steps:
     signup_flow: default
     login_flow: default
 `)
-		// bot_protection, all branches
+		// bot_protection, all loginID branches except oauth & passkey
 		test(`
 authentication:
   identities:
@@ -286,6 +289,9 @@ bot_protection:
   provider:
     type: recaptchav2
     site_key: some-site-key
+  requirements:
+    signup_or_login:
+      mode: always
 `, `
 name: default
 steps:
@@ -314,17 +320,9 @@ steps:
     signup_flow: default
     login_flow: default
   - identification: oauth
-    bot_protection:
-      mode: always
-      provider: 
-        type: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: passkey
-    bot_protection:
-      mode: always
-      provider: 
-        type: recaptchav2
     login_flow: default
 `)
 	})
