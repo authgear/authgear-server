@@ -1,7 +1,10 @@
 import { useCallback, useMemo, useState } from "react";
 import { parse as parseCSS } from "postcss";
 import { produce } from "immer";
-import { useResourceForm } from "../../../hook/useResourceForm";
+import {
+  useResourceForm,
+  ResourcesFormState as UseResourceFormState,
+} from "../../../hook/useResourceForm";
 import {
   Alignment,
   BorderRadiusStyle,
@@ -225,6 +228,33 @@ function resolveResource(
   return resources[specifierId(specifiers[specifiers.length - 1])] ?? null;
 }
 
+function getThemeFromResourceFormState(
+  state: UseResourceFormState,
+  theme: Theme
+): PartialCustomisableTheme {
+  const themeResource =
+    state.resources[
+      specifierId(
+        selectByTheme(
+          {
+            [Theme.Light]: LightThemeResourceSpecifier,
+            [Theme.Dark]: DarkThemeResourceSpecifier,
+          },
+          theme
+        )
+      )
+    ];
+  if (themeResource?.nullableValue == null) {
+    return EMPTY_THEME;
+  }
+  const root = parseCSS(themeResource.nullableValue);
+  const styleCSSVisitor = new StyleCssVisitor(
+    getThemeTargetSelector(theme),
+    new CustomisableThemeStyleGroup()
+  );
+  return styleCSSVisitor.getStyle(root);
+}
+
 export function useBrandDesignForm(appID: string): BranchDesignForm {
   const featureConfig = useAppFeatureConfigQuery(appID);
   const configForm = useAppConfigForm({
@@ -321,32 +351,14 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       return imageResouece.nullableValue;
     };
 
-    const getTheme = (theme: Theme): PartialCustomisableTheme => {
-      const themeResource =
-        resourceForm.state.resources[
-          specifierId(
-            selectByTheme(
-              {
-                [Theme.Light]: LightThemeResourceSpecifier,
-                [Theme.Dark]: DarkThemeResourceSpecifier,
-              },
-              theme
-            )
-          )
-        ];
-      if (themeResource?.nullableValue == null) {
-        return EMPTY_THEME;
-      }
-      const root = parseCSS(themeResource.nullableValue);
-      const styleCSSVisitor = new StyleCssVisitor(
-        getThemeTargetSelector(theme),
-        new CustomisableThemeStyleGroup()
-      );
-      return styleCSSVisitor.getStyle(root);
-    };
-
-    const lightTheme = getTheme(Theme.Light);
-    const darkTheme = getTheme(Theme.Dark);
+    const lightTheme = getThemeFromResourceFormState(
+      resourceForm.state,
+      Theme.Light
+    );
+    const darkTheme = getThemeFromResourceFormState(
+      resourceForm.state,
+      Theme.Dark
+    );
 
     return {
       appName: getValueFromTranslationJSON(TranslationKey.AppName),
@@ -377,10 +389,10 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       },
     };
   }, [
-    resourceForm,
-    getResourceFormByResourceDefinition,
+    resourceForm.state,
     selectedLanguage,
     configForm.state.fallbackLanguage,
+    getResourceFormByResourceDefinition,
   ]);
 
   const resourceMutator = useMemo(() => {
@@ -457,17 +469,11 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         updater: (prev: PartialCustomisableTheme) => PartialCustomisableTheme,
         targetTheme: Theme
       ) => {
-        const newState = updater(
-          selectByTheme(
-            {
-              [Theme.Light]: resourcesState.customisableLightTheme,
-              [Theme.Dark]: resourcesState.customisableDarkTheme,
-            },
-            targetTheme
-          )
-        );
         resourceForm.setState((s) => {
           return produce(s, (draft) => {
+            const newState = updater(
+              getThemeFromResourceFormState(s, targetTheme)
+            );
             const resourceSpecifier = selectByTheme(
               {
                 [Theme.Light]: LightThemeResourceSpecifier,
@@ -500,11 +506,10 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       },
     };
   }, [
-    resourcesState,
     resourceForm,
-    getResourceFormByResourceDefinition,
     selectedLanguage,
     configForm.state.fallbackLanguage,
+    getResourceFormByResourceDefinition,
   ]);
 
   const state: BranchDesignFormState = useMemo(
@@ -549,6 +554,12 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         ),
         image
       );
+      resourceMutator.updateCustomisableTheme((prev) => {
+        return produce(prev, (draft) => {
+          // Set to center if exist so that dark mode icon still show if user delete light mode icon
+          draft.logo.alignment = image == null ? "hidden" : "center";
+        });
+      }, targetTheme);
     },
     [resourceMutator]
   );

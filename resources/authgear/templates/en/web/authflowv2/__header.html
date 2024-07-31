@@ -1,70 +1,59 @@
-{{ define "__brand-logo.html" }}
-
-{{ if .darkThemeEnabled }}
-<img 
-  class="brand-logo light" 
-  src="{{ .light }}"
-  data-controller="previewable-resource"
-  data-previewable-resource-key-value="brand-logo-light"
-  data-previewable-resource-changable-attribute-value="src"
-  data-previewable-resource-original-value="{{ .light }}"
->
-<img 
-  class="brand-logo dark" 
-  src="{{ .dark }}"
-  data-controller="previewable-resource"
-  data-previewable-resource-key-value="brand-logo-dark"
-  data-previewable-resource-changable-attribute-value="src"
-  data-previewable-resource-original-value="{{ .dark }}"
->
-{{ else }}
-<img 
-  class="brand-logo" 
-  src="{{ .light }}"
-  data-controller="previewable-resource"
-  data-previewable-resource-key-value="brand-logo-light"
-  data-previewable-resource-changable-attribute-value="src"
-  data-previewable-resource-original-value="{{ .light }}"
->
-{{ end }}
-
-{{ end }}
-
-
-{{ define "__brand-logo_link.html" }}
-
-{{ $light := call $.StaticAssetURL "app-logo" }}
-{{ $dark := call $.StaticAssetURL "app-logo-dark" }}
-{{ if not $dark }}
-{{ $dark = $light }}
-{{ end }}
-{{ if not $light }}
-{{/* the dark logo will be used in the light mode if there is dark logo only */}}
-{{/* we assume both light and dark mode should have logo once it is set */}}
-{{ $light = $dark }}
-{{ end }}
-{{ $noBrandLogo := not $light }}
-{{ $option := (dict
-    "darkThemeEnabled" $.DarkThemeEnabled
-    "light" $light
-    "dark" $dark
-) }}
-
-{{ if $noBrandLogo }}
-{{ else if $.ClientURI }}
-<a href="{{ $.ClientURI }}">
-    {{ template "__brand-logo.html" $option }}
-</a>
-{{ else }}
-<span>
-    {{ template "__brand-logo.html" $option }}
-</span>
-{{ end }}
-
-{{ end }}
-
 {{ define "authflowv2/__header.html" }}
-<div class="brand-logo__container">
-    {{ template "__brand-logo_link.html" . }}
-</div>
+
+{{/* Always initialize src to an empty string */}}
+{{ $light := "" }}
+{{ $dark := "" }}
+
+{{ if $.LightThemeEnabled }}
+  {{ $light = call $.StaticAssetURL "app-logo" }}
+{{ end }}
+
+{{ if $.DarkThemeEnabled }}
+  {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
+{{ end }}
+
+{{ if $.ClientURI }}
+  <a class="brand-logo__container light {{ if not $light }}nosrc{{ end }} {{ if $.InlinePreview }}inlinepreview{{ end }}" href="{{ $.ClientURI }}">
+    <img
+      class="brand-logo light"
+      src="{{ $light }}"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-light"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .light }}"
+    >
+  </a>
+  <a class="brand-logo__container dark {{ if not $dark }}nosrc{{ end }} {{ if $.InlinePreview }}inlinepreview{{ end }}" href="{{ $.ClientURI }}">
+    <img
+      class="brand-logo dark"
+      src="{{ $dark }}"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-dark"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .dark }}"
+    >
+  </a>
+{{ else }}
+  <div class="brand-logo__container light {{ if not $light }}nosrc{{ end }} {{ if $.InlinePreview }}inlinepreview{{ end }}">
+    <img
+      class="brand-logo light"
+      src="{{ $light }}"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-light"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .light }}"
+    >
+  </div>
+  <div class="brand-logo__container dark {{ if not $dark }}nosrc{{ end }} {{ if $.InlinePreview }}inlinepreview{{ end }}">
+    <img
+      class="brand-logo dark"
+      src="{{ $dark }}"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-dark"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .dark }}"
+    >
+  </div>
+{{ end }}
+
 {{ end }}

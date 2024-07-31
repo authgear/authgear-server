@@ -5,7 +5,7 @@
   }
 
   .brand-logo__container {
-    @apply flex;
+    @apply hidden;
 
     :root[alignment-logo="start"] & {
       @apply justify-start;
@@ -23,17 +23,23 @@
       @apply hidden;
     }
   }
+
+  :root:not(.dark) .brand-logo__container.light:not(.nosrc) {
+    @apply flex;
+  }
+  :root.dark .brand-logo__container.dark:not(.nosrc) {
+    @apply flex;
+  }
+
+  :root:not(.dark) .brand-logo__container.light.inlinepreview {
+    @apply flex;
+  }
+  :root.dark .brand-logo__container.dark.inlinepreview {
+    @apply flex;
+  }
+
   .brand-logo {
     height: var(--brand-logo__height);
     max-width: var(--brand-logo__max-width);
-  }
-  .brand-logo.dark {
-    @apply hidden;
-  }
-  .dark .brand-logo.light {
-    @apply hidden;
-  }
-  .dark .brand-logo.dark {
-    display: initial;
   }
 }

@@ -52,7 +52,8 @@ describe("StyleCssVisitor", () => {
     --primary-btn__border-radius: 0.875em;
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
-    --body-text__link-color: #176df3
+    --body-text__link-color: #176df3;
+    --alignment-logo: hidden
 }`;
     const customisableThemeStyleGroup = new CustomisableThemeStyleGroup(
       DEFAULT_LIGHT_THEME
@@ -93,6 +94,9 @@ describe("StyleCssVisitor", () => {
       },
       link: {
         color: "#176df3",
+      },
+      logo: {
+        alignment: "hidden",
       },
     });
   });
@@ -148,6 +152,9 @@ describe("CssAstVisitor", () => {
       link: {
         color: "#2f7bf4",
       },
+      logo: {
+        alignment: "center",
+      },
     });
     const expectedStyleSheet = `:root {
     --layout__bg-color: #1c1c1e;
@@ -159,7 +166,8 @@ describe("CssAstVisitor", () => {
     --primary-btn__border-radius: 0.875em;
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
-    --body-text__link-color: #2f7bf4
+    --body-text__link-color: #2f7bf4;
+    --alignment-logo: center
 }`;
     const styleVisitor = new CssAstVisitor(ThemeTargetSelector.Light);
     customisableThemeStyleGroup.acceptCssAstVisitor(styleVisitor);
