@@ -51,6 +51,7 @@ const (
 	IdentityTypeBiometric IdentityType = "biometric"
 	IdentityTypePasskey   IdentityType = "passkey"
 	IdentityTypeSIWE      IdentityType = "siwe"
+	IdentityTypeLDAP      IdentityType = "ldap"
 )
 
 func (t IdentityType) PrimaryAuthenticatorTypes(loginIDKeyType LoginIDKeyType) []AuthenticatorType {
@@ -88,6 +89,8 @@ func (t IdentityType) PrimaryAuthenticatorTypes(loginIDKeyType LoginIDKeyType) [
 			AuthenticatorTypePasskey,
 		}
 	case IdentityTypeSIWE:
+		return nil
+	case IdentityTypeLDAP:
 		return nil
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", t))
