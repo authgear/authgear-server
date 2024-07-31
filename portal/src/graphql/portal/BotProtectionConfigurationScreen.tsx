@@ -1,5 +1,5 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import cn from "classnames";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
@@ -34,6 +34,7 @@ import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
 import { startReauthentication } from "./Authenticated";
+import { useLocalStorage } from "../../hook/useLocalStorage";
 
 const MASKED_SECRET = "***************";
 
@@ -180,6 +181,11 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
   function BotProtectionConfigurationContent(props) {
     const { form } = props;
     const { state, setState } = form;
+    const [storedFormState, setStoredFormState, removeStoredFormState] = useLocalStorage<FormState>(
+      "bot-protection-config-screen-form-state",
+      state
+    );
+
 
     const { renderToString } = useContext(Context);
 
@@ -187,6 +193,16 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
       if (state.isOAuthRedirect) {
         window.location.hash = "";
         window.location.hash = "#" + SECRET_KEY_FORM_FIELD_ID;
+
+        // Restore form state from local storage on reauth redirection
+        setState((state) => ({
+          ...storedFormState,
+          // Do not override secretKey edit states
+          secretKey: state.secretKey
+        }));
+
+        // Remove local storage form state after consuming
+        removeStoredFormState();
       }
     });
 
@@ -285,12 +301,18 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
           isOAuthRedirect: true,
         };
 
+        // Save form state to local storage, for later restoration on reauth redirect
+        setStoredFormState({ ...state, secretKey: null }); // do not store secretKey
+
         startReauthentication(navigate, locationState).catch((e) => {
           // Normally there should not be any error.
           console.error(e);
+
+          // Remove form state from local storage, since reauth failed, it will not be used
+          removeStoredFormState();
         });
       },
-      [navigate, state.secretKey]
+      [navigate, setStoredFormState, state]
     );
 
     return (
