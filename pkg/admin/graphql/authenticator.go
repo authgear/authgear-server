@@ -57,6 +57,20 @@ var nodeAuthenticator = node(
 			"id":        entityIDField(typeAuthenticator),
 			"createdAt": entityCreatedAtField(loadAuthenticator),
 			"updatedAt": entityUpdatedAtField(loadAuthenticator),
+			"expireAfter": &graphql.Field{
+				Type: graphql.DateTime,
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					info := loadAuthenticator(p.Context, p.Source)
+					return info.Map(func(value interface{}) (interface{}, error) {
+						p := value.(*authenticator.Info).Password
+						if p == nil {
+							return nil, nil
+						}
+
+						return p.ExpireAfter, nil
+					}).Value, nil
+				},
+			},
 			"type": &graphql.Field{
 				Type: graphql.NewNonNull(authenticatorType),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {

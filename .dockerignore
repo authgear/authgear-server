@@ -23,3 +23,8 @@ hack
 authgear
 tls-cert.pem
 tls-key.pem
+
+.editorconfig
+**/.vscode
+**/.eslintcache
+**/.stylelintcache

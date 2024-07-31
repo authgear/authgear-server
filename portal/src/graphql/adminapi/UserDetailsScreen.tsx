@@ -399,6 +399,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           ) : (
             <UserDetailsAccountSecurity
               authenticationConfig={appConfig.authentication}
+              authenticatorConfig={appConfig.authenticator}
               identities={identities}
               authenticators={authenticators}
             />

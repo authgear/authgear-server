@@ -108,6 +108,9 @@ check-tidy:
 	# (cd custombuild && go mod tidy)
 	git status --porcelain | grep '.*'; test $$? -eq 1
 
+	make -C authui check-tidy
+	make -C portal check-tidy
+
 .PHONY: build-image
 build-image:
 	# Add --pull so that we are using the latest base image.

@@ -8,6 +8,8 @@ import {
   IContextualMenuProps,
   Icon,
   List,
+  MessageBar,
+  MessageBarType,
   Text,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -30,11 +32,15 @@ import { useProvideError } from "../../hook/error";
 import styles from "./UserDetailsAccountSecurity.module.css";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { PortalAPIAppConfig, SecondaryAuthenticatorType } from "../../types";
+import Toggle from "../../Toggle";
+import { DateTime } from "luxon";
+import { parseDuration } from "../../util/duration";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
 interface UserDetailsAccountSecurityProps {
   authenticationConfig: PortalAPIAppConfig["authentication"];
+  authenticatorConfig: PortalAPIAppConfig["authenticator"];
   identities: Identity[];
   authenticators: Authenticator[];
 }
@@ -49,6 +55,8 @@ interface PasswordAuthenticatorData {
   id: string;
   kind: AuthenticatorKind;
   lastUpdated: string;
+  lastUpdatedInDays: number;
+  manualChangeOnLogin: boolean;
 }
 
 interface TOTPAuthenticatorData {
@@ -74,6 +82,7 @@ interface PasskeyIdentityCellProps extends PasskeyIdentityData {
 
 interface PasswordAuthenticatorCellProps extends PasswordAuthenticatorData {
   withTopSpacing: boolean;
+  forceChangeDaysSinceLastUpdate: number | null;
   showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
 }
 
@@ -158,11 +167,19 @@ function constructPasswordAuthenticatorData(
   locale: string
 ): PasswordAuthenticatorData {
   const lastUpdated = formatDatetime(locale, authenticator.updatedAt) ?? "";
+  const manualChangeOnLogin = authenticator.expireAfter
+    ? DateTime.fromISO(authenticator.expireAfter) <= DateTime.now()
+    : false;
+  const lastUpdatedInDays = Math.round(
+    DateTime.now().diff(DateTime.fromISO(authenticator.updatedAt), "days").days
+  );
 
   return {
     id: authenticator.id,
     kind: authenticator.kind,
     lastUpdated,
+    lastUpdatedInDays,
+    manualChangeOnLogin,
   };
 }
 
@@ -487,8 +504,16 @@ const PasskeyIdentityCell: React.VFC<PasskeyIdentityCellProps> =
 
 const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
   function PasswordAuthenticatorCell(props: PasswordAuthenticatorCellProps) {
-    const { id, kind, lastUpdated, showConfirmationDialog, withTopSpacing } =
-      props;
+    const {
+      id,
+      kind,
+      lastUpdated,
+      lastUpdatedInDays,
+      manualChangeOnLogin,
+      forceChangeDaysSinceLastUpdate,
+      showConfirmationDialog,
+      withTopSpacing,
+    } = props;
     const navigate = useNavigate();
     const { renderToString } = useContext(Context);
     const { themes } = useSystemConfig();
@@ -497,6 +522,19 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
       AuthenticatorType.Password,
       kind
     );
+
+    const passwordExpired =
+      forceChangeDaysSinceLastUpdate != null &&
+      lastUpdatedInDays > forceChangeDaysSinceLastUpdate;
+    const changeOnLogin = manualChangeOnLogin || passwordExpired;
+
+    const expiredInDays = useMemo(() => {
+      if (!forceChangeDaysSinceLastUpdate) {
+        return 0;
+      }
+
+      return lastUpdatedInDays - forceChangeDaysSinceLastUpdate;
+    }, [forceChangeDaysSinceLastUpdate, lastUpdatedInDays]);
 
     const onResetPasswordClicked = useCallback(() => {
       navigate("./reset-password");
@@ -527,6 +565,32 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
             values={{ datetime: lastUpdated }}
           />
         </Text>
+        <Toggle
+          className={styles.passwordCellChangeOnLogin}
+          label={renderToString(
+            "UserDetails.account-security.change-on-login.label"
+          )}
+          checked={changeOnLogin}
+          // TODO(newman): Enable in change password feature
+          disabled={true}
+        />
+        {passwordExpired ? (
+          <MessageBar
+            className={styles.passwordCellExpired}
+            messageBarType={MessageBarType.warning}
+          >
+            <FormattedMessage
+              id="UserDetails.account-security.expired"
+              values={{
+                prefixClassName: styles.passwordCellExpiredPrefix,
+                expiredInDays,
+              }}
+              components={{
+                Text,
+              }}
+            />
+          </MessageBar>
+        ) : null}
         {kind === "PRIMARY" ? (
           <PrimaryButton
             className={cn(styles.button, styles.resetPasswordButton)}
@@ -646,9 +710,32 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
 const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
   // eslint-disable-next-line complexity
   function UserDetailsAccountSecurity(props: UserDetailsAccountSecurityProps) {
-    const { authenticationConfig, identities, authenticators } = props;
+    const {
+      authenticationConfig,
+      authenticatorConfig,
+      identities,
+      authenticators,
+    } = props;
     const { locale, renderToString } = useContext(Context);
     const navigate = useNavigate();
+
+    const passwordForceChangeDaysSinceLastUpdate = useMemo(() => {
+      const expiryForceChangeConfig =
+        authenticatorConfig?.password?.expiry?.force_change;
+      if (expiryForceChangeConfig?.enabled !== true) {
+        return null;
+      }
+
+      const durationString = expiryForceChangeConfig.duration_since_last_update;
+      if (durationString == null) {
+        return null;
+      }
+
+      const secondsPerDay = 24 * 60 * 60;
+      return Math.round(
+        durationString ? parseDuration(durationString) / secondsPerDay : 1
+      );
+    }, [authenticatorConfig]);
 
     const {
       deleteAuthenticator,
@@ -722,11 +809,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
           <PasswordAuthenticatorCell
             {...item}
             withTopSpacing={index !== 0}
+            forceChangeDaysSinceLastUpdate={
+              passwordForceChangeDaysSinceLastUpdate
+            }
             showConfirmationDialog={showConfirmationDialog}
           />
         );
       },
-      [showConfirmationDialog]
+      [passwordForceChangeDaysSinceLastUpdate, showConfirmationDialog]
     );
 
     const onRenderOobOtpAuthenticatorDetailCell = useCallback(

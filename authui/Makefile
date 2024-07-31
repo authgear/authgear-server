@@ -7,11 +7,10 @@ fmt:
 	npm run eslint:format
 	npm run stylelint:format
 	npm run prettier:format
-	npm run gentype
 
 .PHONY: lint
 lint:
-	npm run typecheck
 	npm run eslint
 	npm run stylelint
 	npm run prettier
+	npm run typecheck

@@ -10,9 +10,12 @@
     "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build --no-cache --no-scope-hoist './src/*.html'",
     "clean": "rm -rf ./dist/ ./parcel-bundle-reports/ && mkdir ./dist/ && touch ./dist/.gitkeep",
     "typecheck": "tsc",
-    "fmt": "prettier --list-different --write './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
-    "eslint": "eslint './src/**/*.{js,ts,jsx,tsx}'",
-    "stylelint": "stylelint './src/**/*.{css,scss}'",
+    "prettier:format": "prettier --list-different --write --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
+    "eslint:format": "eslint --cache --fix './src/**/*.{js,ts,jsx,tsx}'",
+    "stylelint:format": "stylelint --cache --fix './src/**/*.{css,scss}'",
+    "prettier": "prettier --list-different --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
+    "eslint": "eslint --cache './src/**/*.{js,ts,jsx,tsx}'",
+    "stylelint": "stylelint --cache './src/**/*.{css,scss}'",
     "gentype": "graphql-codegen --config ./graphql.portal.codegen.yaml && graphql-codegen --config ./graphql.adminapi.codegen.yaml"
   },
   "alias": {
