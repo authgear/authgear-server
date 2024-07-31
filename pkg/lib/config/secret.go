@@ -286,6 +286,7 @@ const (
 	Deprecated_CaptchaCloudflareCredentialsKey SecretKey = "captcha.cloudflare"
 	BotProtectionProviderCredentialsKey        SecretKey = "bot_protection.provider"
 	WhatsappOnPremisesCredentialsKey           SecretKey = "whatsapp.on-premises"
+	LDAPServerUserCredentialsKey               SecretKey = "ldap"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -328,6 +329,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	Deprecated_CaptchaCloudflareCredentialsKey: {"Deprecated_CaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
 	BotProtectionProviderCredentialsKey:        {"BotProtectionProviderCredentials", func() SecretItemData { return &BotProtectionProviderCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
+	LDAPServerUserCredentialsKey:               {"LDAPServerUserCredential", func() SecretItemData { return &LDAPServerUserCredentials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
