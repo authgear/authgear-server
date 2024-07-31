@@ -161,24 +161,57 @@ interface AppLogoConfigurationProps {
 const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
   function AppLogoConfiguration(props) {
     const { designForm } = props;
+    const { renderToString } = useContext(MFContext);
+    const onLogoHeightChangeLight = useCallback(
+      (_: React.FormEvent, value?: string) => {
+        designForm.lightThemeSetters.setLogoHeight(value);
+      },
+      [designForm]
+    );
+    const onLogoHeightChangeDark = useCallback(
+      (_: React.FormEvent, value?: string) => {
+        designForm.darkThemeSetters.setLogoHeight(value);
+      },
+      [designForm]
+    );
     return (
       <ConfigurationGroup labelKey="DesignScreen.configuration.logo.label">
         <ConfigurationDescription labelKey="DesignScreen.configuration.logo.description" />
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
-            <ConfigurationDescription labelKey="DesignScreen.configuration.logo.light" />
-            <ImagePicker
-              base64EncodedData={designForm.state.appLogoBase64EncodedData}
-              onChange={designForm.lightThemeSetters.setAppLogo}
+            <Configuration labelKey="DesignScreen.configuration.logo.light">
+              <ImagePicker
+                base64EncodedData={designForm.state.appLogoBase64EncodedData}
+                onChange={designForm.lightThemeSetters.setAppLogo}
+              />
+            </Configuration>
+            <TextField
+              label={renderToString(
+                "DesignScreen.configuration.logo.height.label.light"
+              )}
+              placeholder={DEFAULT_LIGHT_THEME.logo.height}
+              value={designForm.state.customisableLightTheme.logo.height}
+              onChange={onLogoHeightChangeLight}
             />
           </>
         ) : null}
         {designForm.state.themeOption !== "lightOnly" ? (
           <>
-            <ConfigurationDescription labelKey="DesignScreen.configuration.logo.dark" />
-            <ImagePicker
-              base64EncodedData={designForm.state.appLogoDarkBase64EncodedData}
-              onChange={designForm.darkThemeSetters.setAppLogo}
+            <Configuration labelKey="DesignScreen.configuration.logo.dark">
+              <ImagePicker
+                base64EncodedData={
+                  designForm.state.appLogoDarkBase64EncodedData
+                }
+                onChange={designForm.darkThemeSetters.setAppLogo}
+              />
+            </Configuration>
+            <TextField
+              label={renderToString(
+                "DesignScreen.configuration.logo.height.label.dark"
+              )}
+              placeholder={DEFAULT_DARK_THEME.logo.height}
+              value={designForm.state.customisableDarkTheme.logo.height}
+              onChange={onLogoHeightChangeDark}
             />
           </>
         ) : null}

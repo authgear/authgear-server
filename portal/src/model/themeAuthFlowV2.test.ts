@@ -53,7 +53,8 @@ describe("StyleCssVisitor", () => {
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
     --body-text__link-color: #176df3;
-    --alignment-logo: hidden
+    --alignment-logo: hidden;
+    --brand-logo__height: 2.5rem
 }`;
     const customisableThemeStyleGroup = new CustomisableThemeStyleGroup(
       DEFAULT_LIGHT_THEME
@@ -97,6 +98,7 @@ describe("StyleCssVisitor", () => {
       },
       logo: {
         alignment: "hidden",
+        height: "2.5rem",
       },
     });
   });
@@ -167,7 +169,8 @@ describe("CssAstVisitor", () => {
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
     --body-text__link-color: #2f7bf4;
-    --alignment-logo: center
+    --alignment-logo: center;
+    --brand-logo__height: 2.5rem
 }`;
     const styleVisitor = new CssAstVisitor(ThemeTargetSelector.Light);
     customisableThemeStyleGroup.acceptCssAstVisitor(styleVisitor);
