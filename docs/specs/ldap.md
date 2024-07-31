@@ -67,6 +67,10 @@ identity:
 - `identity.ldap.servers.search_filter_template`: A Go template that renders to a filter to be used in the Search Request. This template can use the variable `$.Username` to render the username entered by the end-user. `$.Username` is pre-processed so that it is an escaped LDAP string. The strings function from [https://masterminds.github.io/sprig/](https://masterminds.github.io/sprig/) can be used in the template.
 - `identity.ldap.servers.user_id_attribute_oid`: The attribute that is guaranteed to be unique and never change for a given user in the LDAP server. It is used to identify a user from the LDAP server. Warning: Changing this value will cause Authgear not able to look up any previous LDAP identities.
 
+> What if I want to use a different base_dn depend on the username?
+> In this case, you need to specify a very generic base_dn like "dc=com", and then
+> you write your own search_filter_template to filter entries.
+
 > Why does `identity.ldap.servers.url` allow scheme, host, and port?
 > The LDAP URL, defined in [Section 2 in RFC 4516](https://datatracker.ietf.org/doc/html/rfc4516#section-2), is syntactically different from the URL defined in [RFC3986](https://datatracker.ietf.org/doc/html/rfc3986).
 > In particular, a LDAP URL can contain multiple question mark characters.
