@@ -34,7 +34,7 @@ import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
 import { startReauthentication } from "./Authenticated";
-import { useLocalStorage } from "../../hook/useLocalStorage";
+import { useSessionStorage } from "../../hook/useSessionStorage";
 
 const MASKED_SECRET = "***************";
 
@@ -396,7 +396,7 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
     const { form } = props;
     const { state, setState } = form;
     const [storedFormState, setStoredFormState, removeStoredFormState] =
-      useLocalStorage<FormState>(
+      useSessionStorage<FormState>(
         "bot-protection-config-screen-form-state",
         state
       );

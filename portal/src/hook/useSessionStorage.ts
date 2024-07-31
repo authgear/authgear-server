@@ -10,45 +10,45 @@ import { useEventListener } from "./useEventListener";
 declare global {
   // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
   interface WindowEventMap {
-    "authgear-portal:local-storage": CustomEvent;
+    "authgear-portal:session-storage": CustomEvent;
   }
 }
 
 /**
- * Options for customizing the behavior of serialization and deserialization.
- * @template T - The type of the state to be stored in local storage.
+ * Represents the options for customizing the behavior of serialization and deserialization.
+ * @template T - The type of the state to be stored in session storage.
  */
-interface UseLocalStorageOptions<T> {
+interface UseSessionStorageOptions<T> {
   /** A function to serialize the value before storing it. */
   serializer?: (value: T) => string;
   /** A function to deserialize the stored value. */
   deserializer?: (value: string) => T;
   /**
-   * If `true` (default), the hook will initialize reading the local storage. In SSR, you should set it to `false`, returning the initial value initially.
+   * If `true` (default), the hook will initialize reading the session storage. In SSR, you should set it to `false`, returning the initial value initially.
    * @default true
    */
   initializeWithValue?: boolean;
 }
 
 /**
- * Custom hook that uses the [`localStorage API`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) to persist state across page reloads.
- * @template T - The type of the state to be stored in local storage.
- * @param {string} key - The key under which the value will be stored in local storage.
+ * Custom hook that uses the [`sessionStorage API`](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage) to persist state across page reloads.
+ * @template T - The type of the state to be stored in session storage.
+ * @param {string} key - The key under which the value will be stored in session storage.
  * @param {T | (() => T)} initialValue - The initial value of the state or a function that returns the initial value.
- * @param {UseLocalStorageOptions<T>} [options] - Options for customizing the behavior of serialization and deserialization (optional).
+ * @param {?UseSessionStorageOptions<T>} [options] - Options for customizing the behavior of serialization and deserialization (optional).
  * @returns {[T, Dispatch<SetStateAction<T>>, () => void]} A tuple containing the stored value, a function to set the value and a function to remove the key from storage.
  * @public
- * @see [Referenced from usehooks-ts](https://github.com/juliencrn/usehooks-ts/blob/20667273744a22dd2cd2c48c38cd3c10f254ae47/packages/usehooks-ts/src/useLocalStorage/useLocalStorage.ts)
+ * @see [Referenced from usehooks-ts](https://github.com/juliencrn/usehooks-ts/blob/20667273744a22dd2cd2c48c38cd3c10f254ae47/packages/usehooks-ts/src/useSessionStorage/useSessionStorage.ts)
  * @example
  * ```tsx
- * const [count, setCount, removeCount] = useLocalStorage('count', 0);
+ * const [count, setCount, removeCount] = useSessionStorage('count', 0);
  * // Access the `count` value, the `setCount` function to update it and `removeCount` function to remove the key from storage.
  * ```
  */
-export function useLocalStorage<T>(
+export function useSessionStorage<T>(
   key: string,
   initialValue: T | (() => T),
-  options: UseLocalStorageOptions<T> = {}
+  options: UseSessionStorageOptions<T> = {}
 ): [T, Dispatch<SetStateAction<T>>, () => void] {
   const { initializeWithValue = true } = options;
 
@@ -89,17 +89,17 @@ export function useLocalStorage<T>(
     [options, initialValue]
   );
 
-  // Get from local storage then
+  // Get from session storage then
   // parse stored json or return initialValue
   const readValue = useCallback((): T => {
     const initialValueToUse =
       initialValue instanceof Function ? initialValue() : initialValue;
 
     try {
-      const raw = window.localStorage.getItem(key);
+      const raw = window.sessionStorage.getItem(key);
       return raw ? deserializer(raw) : initialValueToUse;
     } catch (error: unknown) {
-      console.warn(`Error reading localStorage key “${key}”:`, error);
+      console.warn(`Error reading sessionStorage key “${key}”:`, error);
       return initialValueToUse;
     }
   }, [initialValue, key, deserializer]);
@@ -113,23 +113,25 @@ export function useLocalStorage<T>(
   });
 
   // Return a wrapped version of useState's setter function that ...
-  // ... persists the new value to localStorage.
+  // ... persists the new value to sessionStorage.
   const setValue: Dispatch<SetStateAction<T>> = useCallback(
     (value: SetStateAction<T>) => {
       try {
         // Allow value to be a function so we have the same API as useState
         const newValue = value instanceof Function ? value(readValue()) : value;
 
-        // Save to local storage
-        window.localStorage.setItem(key, serializer(newValue));
+        // Save to session storage
+        window.sessionStorage.setItem(key, serializer(newValue));
 
         // Save state
         setStoredValue(newValue);
 
-        // We dispatch a custom event so every similar useLocalStorage hook is notified
-        window.dispatchEvent(new StorageEvent("local-storage", { key }));
+        // We dispatch a custom event so every similar useSessionStorage hook is notified
+        window.dispatchEvent(
+          new StorageEvent("authgear-portal:session-storage", { key })
+        );
       } catch (error: unknown) {
-        console.warn(`Error setting localStorage key “${key}”:`, error);
+        console.warn(`Error setting sessionStorage key “${key}”:`, error);
       }
     },
     [key, readValue, serializer]
@@ -139,14 +141,16 @@ export function useLocalStorage<T>(
     const defaultValue =
       initialValue instanceof Function ? initialValue() : initialValue;
 
-    // Remove the key from local storage
-    window.localStorage.removeItem(key);
+    // Remove the key from session storage
+    window.sessionStorage.removeItem(key);
 
     // Save state with default value
     setStoredValue(defaultValue);
 
-    // We dispatch a custom event so every similar useLocalStorage hook is notified
-    window.dispatchEvent(new StorageEvent("local-storage", { key }));
+    // We dispatch a custom event so every similar useSessionStorage hook is notified
+    window.dispatchEvent(
+      new StorageEvent("authgear-portal:session-storage", { key })
+    );
   }, [initialValue, key]);
 
   useEffect(() => {
@@ -167,9 +171,9 @@ export function useLocalStorage<T>(
   // this only works for other documents, not the current one
   useEventListener("storage", handleStorageChange);
 
-  // this is a custom event, triggered in writeValueToLocalStorage
-  // See: useLocalStorage()
-  useEventListener("authgear-portal:local-storage", handleStorageChange);
+  // this is a custom event, triggered in writeValueToSessionStorage
+  // See: useSessionStorage()
+  useEventListener("authgear-portal:session-storage", handleStorageChange);
 
   return [storedValue, setValue, removeValue];
 }
