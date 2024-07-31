@@ -13,9 +13,6 @@ EOF
 # This command outputs a sorted list of files in the build context.
 docker run --rm build-context | sort > /tmp/authgear-dockerignore
 
-# Filter out files listed in .git/info/exclude
-grep -v -f .git/info/exclude /tmp/authgear-dockerignore > /tmp/authgear-dockerignore
-
 # This command prints the lines that is unique to the second argument.
 # In other words, files that only exist in /tmp/authgear-dockerignore.
 # If the output is non-empty, we found some files that are not tracked by Git, but
