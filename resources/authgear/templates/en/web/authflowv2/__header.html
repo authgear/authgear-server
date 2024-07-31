@@ -1,81 +1,59 @@
-{{ define "__brand-logo.html" }}
+{{ define "authflowv2/__header.html" }}
 
-{{ if .darkThemeEnabled }}
-<img 
-  class="brand-logo light" 
-  src="{{ .light }}"
-  data-controller="previewable-resource"
-  data-previewable-resource-key-value="brand-logo-light"
-  data-previewable-resource-changable-attribute-value="src"
-  data-previewable-resource-original-value="{{ .light }}"
->
-<img 
-  class="brand-logo dark" 
-  src="{{ .dark }}"
-  data-controller="previewable-resource"
-  data-previewable-resource-key-value="brand-logo-dark"
-  data-previewable-resource-changable-attribute-value="src"
-  data-previewable-resource-original-value="{{ .dark }}"
->
-{{ else }}
-<img 
-  class="brand-logo" 
-  src="{{ .light }}"
-  data-controller="previewable-resource"
-  data-previewable-resource-key-value="brand-logo-light"
-  data-previewable-resource-changable-attribute-value="src"
-  data-previewable-resource-original-value="{{ .light }}"
->
-{{ end }}
+{{/* Always initialize src to an empty string */}}
+{{ $light := "" }}
+{{ $dark := "" }}
 
-{{ end }}
-
-
-{{ define "__brand-logo_link.html" }}
-
-{{ $light := false }}
-{{ $dark := false }}
-{{ if $.InlinePreview }}
-{{/* so that the img tag exists for inline preview to inject preview image */}}
-{{ $light = "" }}
-{{ $dark = "" }}
-{{ end }}
-{{ if call $.HasAppSpecificAsset "app-logo" }}
+{{ if $.LightThemeEnabled }}
   {{ $light = call $.StaticAssetURL "app-logo" }}
 {{ end }}
-{{ if call $.HasAppSpecificAsset "app-logo-dark" }}
+
+{{ if $.DarkThemeEnabled }}
   {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
 {{ end }}
-{{ if not $dark }}
-{{ $dark = $light }}
-{{ end }}
-{{ if not $light }}
-{{/* the dark logo will be used in the light mode if there is dark logo only */}}
-{{/* we assume both light and dark mode should have logo once it is set */}}
-{{ $light = $dark }}
-{{ end }}
-{{ $noBrandLogo := not $light }}
-{{ $option := (dict
-    "darkThemeEnabled" $.DarkThemeEnabled
-    "light" $light
-    "dark" $dark
-) }}
 
-{{ if (and $noBrandLogo (not $.InlinePreview)) }}
-{{ else if $.ClientURI }}
-<a href="{{ $.ClientURI }}">
-    {{ template "__brand-logo.html" $option }}
-</a>
+{{ if $.ClientURI }}
+  <a class="brand-logo__container light {{ if not $light }}nosrc{{ end }} {{ if $.InlinePreview }}inlinepreview{{ end }}" href="{{ $.ClientURI }}">
+    <img
+      class="brand-logo light"
+      src="{{ $light }}"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-light"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .light }}"
+    >
+  </a>
+  <a class="brand-logo__container dark {{ if not $dark }}nosrc{{ end }} {{ if $.InlinePreview }}inlinepreview{{ end }}" href="{{ $.ClientURI }}">
+    <img
+      class="brand-logo dark"
+      src="{{ $dark }}"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-dark"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .dark }}"
+    >
+  </a>
 {{ else }}
-<span>
-    {{ template "__brand-logo.html" $option }}
-</span>
+  <div class="brand-logo__container light {{ if not $light }}nosrc{{ end }} {{ if $.InlinePreview }}inlinepreview{{ end }}">
+    <img
+      class="brand-logo light"
+      src="{{ $light }}"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-light"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .light }}"
+    >
+  </div>
+  <div class="brand-logo__container dark {{ if not $dark }}nosrc{{ end }} {{ if $.InlinePreview }}inlinepreview{{ end }}">
+    <img
+      class="brand-logo dark"
+      src="{{ $dark }}"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-dark"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .dark }}"
+    >
+  </div>
 {{ end }}
 
-{{ end }}
-
-{{ define "authflowv2/__header.html" }}
-<div class="brand-logo__container">
-    {{ template "__brand-logo_link.html" . }}
-</div>
 {{ end }}
