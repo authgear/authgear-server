@@ -3,6 +3,7 @@ package ldap
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type Provider struct {
@@ -24,4 +25,23 @@ func (p *Provider) List(userID string) ([]*identity.LDAP, error) {
 
 func (p *Provider) GetByServerUserID(serverName string, userIDAttribute string, userIDAttributeValue string) (*identity.LDAP, error) {
 	return p.Store.GetByServerUserID(serverName, userIDAttribute, userIDAttributeValue)
+}
+
+func (p *Provider) New(
+	userID string,
+	serverName string,
+	userIDAttribute string,
+	userIDAttributeValue string,
+	claims map[string]interface{},
+	rawEntryJSON map[string]interface{},
+) *identity.LDAP {
+	return &identity.LDAP{
+		ID:                   uuid.New(),
+		UserID:               userID,
+		ServerName:           serverName,
+		UserIDAttribute:      userIDAttribute,
+		UserIDAttributeValue: userIDAttributeValue,
+		Claims:               claims,
+		RawEntryJSON:         rawEntryJSON,
+	}
 }
