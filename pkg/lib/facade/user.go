@@ -2,6 +2,8 @@ package facade
 
 import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -11,11 +13,21 @@ type UserProvider interface {
 	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
 	QueryPage(listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
+	AfterCreate(
+		user *user.User,
+		identities []*identity.Info,
+		authenticators []*authenticator.Info,
+		isAdminAPI bool,
+	) error
 }
 
 type UserFacade struct {
 	UserProvider
 	Coordinator *Coordinator
+}
+
+func (u UserFacade) CreateByAdmin(identitySpec *identity.Spec, password string) (*user.User, error) {
+	return u.Coordinator.UserCreatebyAdmin(identitySpec, password)
 }
 
 func (u UserFacade) Delete(userID string) error {

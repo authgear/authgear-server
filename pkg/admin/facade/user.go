@@ -1,21 +1,17 @@
 package facade
 
 import (
-	"errors"
-
 	"github.com/authgear/authgear-server/pkg/admin/model"
-	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
-	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type UserService interface {
+	CreateByAdmin(identitySpec *identity.Spec, password string) (*user.User, error)
 	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
 	QueryPage(listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
@@ -69,38 +65,25 @@ func (f *UserFacade) SearchPage(
 	})), nil
 }
 
-func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (string, error) {
-	graph, err := f.Interaction.Perform(
-		&interactionintents.IntentAuthenticate{
-			Kind:                     interactionintents.IntentAuthenticateKindSignup,
-			SuppressIDPSessionCookie: true,
+func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (userID string, err error) {
+	// NOTE: identityDef is assumed to be a login ID since portal only supports login ID
+	loginIDInput := identityDef.(*model.IdentityDefLoginID)
+	loginIDKeyType := apimodel.LoginIDKeyType(loginIDInput.Key)
+	identitySpec := &identity.Spec{
+		Type: identityDef.Type(),
+		LoginID: &identity.LoginIDSpec{
+			Key:   loginIDInput.Key,
+			Type:  loginIDKeyType,
+			Value: loginIDInput.Value,
 		},
-		&createUserInput{
-			identityDef: identityDef,
-			password:    password,
-		},
-	)
-	var errInputRequired *interaction.ErrInputRequired
-	if errors.As(err, &errInputRequired) {
-		switch graph.CurrentNode().(type) {
-		case *nodes.NodeCreateAuthenticatorBegin:
-			// TODO(interaction): better interpretation of input required error?
-			return "", api.NewInvariantViolated(
-				"PasswordRequired",
-				"password is required",
-				nil,
-			)
-		}
 	}
+
+	user, err := f.Users.CreateByAdmin(identitySpec, password)
 	if err != nil {
 		return "", err
 	}
 
-	userID, ok := graph.GetNewUserID()
-	if !ok {
-		return "", apierrors.NewInternalError("user is not created")
-	}
-	return userID, nil
+	return user.ID, nil
 }
 
 func (f *UserFacade) ResetPassword(id string, password string, sendPassword bool, changeOnLogin bool) (err error) {

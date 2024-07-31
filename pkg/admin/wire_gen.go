@@ -796,6 +796,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IdentityConfig:             identityConfig,
 		AccountDeletionConfig:      accountDeletionConfig,
 		AccountAnonymizationConfig: accountAnonymizationConfig,
+		AuthenticationConfig:       authenticationConfig,
 		Clock:                      clockClock,
 	}
 	userFacade := &facade.UserFacade{

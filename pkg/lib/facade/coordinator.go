@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type EventService interface {
@@ -90,9 +91,16 @@ type UserQueries interface {
 }
 
 type UserCommands interface {
+	Create(userID string) (*user.User, error)
 	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
 	Delete(userID string) error
 	Anonymize(userID string) error
+	AfterCreate(
+		user *user.User,
+		identities []*identity.Info,
+		authenticators []*authenticator.Info,
+		isAdminAPI bool,
+	) error
 }
 
 type RolesGroupsCommands interface {
@@ -148,6 +156,7 @@ type Coordinator struct {
 	IdentityConfig             *config.IdentityConfig
 	AccountDeletionConfig      *config.AccountDeletionConfig
 	AccountAnonymizationConfig *config.AccountAnonymizationConfig
+	AuthenticationConfig       *config.AuthenticationConfig
 	Clock                      clock.Clock
 }
 
@@ -414,6 +423,128 @@ func (c *Coordinator) AuthenticatorVerifyOneWithSpec(userID string, authenticato
 		err = c.addAuthenticationTypeToError(err, options.AuthenticationDetails.AuthenticationType)
 	}
 	return
+}
+
+func (c *Coordinator) UserCreatebyAdmin(identitySpec *identity.Spec, password string) (*user.User, error) {
+	// 1. Create user
+	userID := uuid.New()
+	user, err := c.UserCommands.Create(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Create identity
+	identityInfo, err := c.Identities.New(userID, identitySpec, identity.NewIdentityOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := c.Identities.CheckDuplicated(identityInfo); err != nil {
+		return nil, err
+	}
+
+	if err := c.Identities.Create(identityInfo); err != nil {
+		return nil, err
+	}
+
+	if err := c.StdAttrsService.PopulateIdentityAwareStandardAttributes(userID); err != nil {
+		return nil, err
+	}
+
+	// 3. Create primary authenticators
+	authenticatorInfos, err := c.createPrimaryAuthenticators(identityInfo, userID, password)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(authenticatorInfos) == 0 {
+		return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
+	}
+
+	if err := c.UserCommands.AfterCreate(
+		user,
+		[]*identity.Info{identityInfo},
+		authenticatorInfos,
+		true,
+	); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, userID string, password string) ([]*authenticator.Info, error) {
+	authenticatorTypes := *c.AuthenticationConfig.PrimaryAuthenticators
+	if len(authenticatorTypes) == 0 {
+		return nil, api.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
+	}
+
+	var authenticatorSpecs []*authenticator.Spec
+	for _, t := range authenticatorTypes {
+		switch t {
+		case model.AuthenticatorTypePassword:
+			if len(password) == 0 {
+				return nil, api.NewInvariantViolated(
+					"PasswordRequired",
+					"password is required",
+					nil,
+				)
+			}
+
+			authenticatorSpecs = append(authenticatorSpecs, &authenticator.Spec{
+				UserID:    userID,
+				IsDefault: true,
+				Kind:      model.AuthenticatorKindPrimary,
+				Type:      model.AuthenticatorTypePassword,
+				Password: &authenticator.PasswordSpec{
+					PlainPassword: password,
+				},
+			})
+
+		case model.AuthenticatorTypeOOBSMS:
+			if identityInfo.LoginID.LoginIDType == model.LoginIDKeyTypePhone {
+				authenticatorSpecs = append(authenticatorSpecs, &authenticator.Spec{
+					UserID:    userID,
+					IsDefault: true,
+					Kind:      model.AuthenticatorKindPrimary,
+					Type:      model.AuthenticatorTypeOOBSMS,
+					OOBOTP: &authenticator.OOBOTPSpec{
+						Phone: identityInfo.LoginID.LoginID,
+					},
+				})
+			}
+
+		case model.AuthenticatorTypeOOBEmail:
+			if identityInfo.LoginID.LoginIDType == model.LoginIDKeyTypeEmail {
+				authenticatorSpecs = append(authenticatorSpecs, &authenticator.Spec{
+					UserID:    userID,
+					IsDefault: true,
+					Kind:      model.AuthenticatorKindPrimary,
+					Type:      model.AuthenticatorTypeOOBSMS,
+					OOBOTP: &authenticator.OOBOTPSpec{
+						Email: identityInfo.LoginID.LoginID,
+					},
+				})
+			}
+		}
+	}
+
+	var authenticatorInfos []*authenticator.Info
+	for _, authenticatorSpec := range authenticatorSpecs {
+		authenticatorID := uuid.New()
+		authenticatorInfo, err := c.Authenticators.NewWithAuthenticatorID(authenticatorID, authenticatorSpec)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := c.Authenticators.Create(authenticatorInfo); err != nil {
+			return nil, err
+		}
+
+		authenticatorInfos = append(authenticatorInfos, authenticatorInfo)
+	}
+
+	return authenticatorInfos, nil
 }
 
 func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error {
