@@ -623,6 +623,7 @@ export interface PortalAPIAppConfig {
   account_deletion?: AccountDeletionConfig;
   account_anonymization?: AccountAnonymizationConfig;
   google_tag_manager?: GoogleTagManagerConfig;
+  bot_protection?: BotProtectionConfig;
 }
 
 export interface OAuthSSOProviderClientSecret {
@@ -659,12 +660,18 @@ export interface OAuthClientSecret {
   keys?: OAuthClientSecretKey[] | null;
 }
 
+export interface BotProtectionProviderSecret {
+  secretKey?: string | null;
+  type: string;
+}
+
 export interface PortalAPISecretConfig {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
   adminAPISecrets?: AdminAPISecret[] | null;
   smtpSecret?: SMTPSecret | null;
   oauthClientSecrets?: OAuthClientSecret[] | null;
+  botProtectionProviderSecret?: BotProtectionProviderSecret | null;
 }
 
 export interface OAuthSSOProviderClientSecretUpdateInstructionDataItem
@@ -691,6 +698,15 @@ export interface SMTPSecretUpdateInstructionData {
 export interface SMTPSecretUpdateInstruction {
   action: string;
   data?: SMTPSecretUpdateInstructionData | null;
+}
+
+export interface BotProtectionProviderSecretUpdateInstructionData {
+  secretKey: string | null;
+  type: BotProtectionProviderType;
+}
+export interface BotProtectionProviderSecretUpdateInstruction {
+  action: string;
+  data?: BotProtectionProviderSecretUpdateInstructionData | null;
 }
 
 export interface OAuthClientSecretsUpdateInstructionGenerateData {
@@ -721,6 +737,7 @@ export interface PortalAPISecretConfigUpdateInstruction {
   smtpSecret?: SMTPSecretUpdateInstruction | null;
   oauthClientSecrets?: OAuthClientSecretsUpdateInstruction | null;
   adminAPIAuthKey?: AdminApiAuthKeyUpdateInstruction | null;
+  botProtectionProviderSecret?: BotProtectionProviderSecretUpdateInstruction | null;
 }
 
 export interface PortalAPIApp {
@@ -883,6 +900,15 @@ export interface GoogleTagManagerConfig {
   container_id?: string;
 }
 
+export interface BotProtectionProviderConfig {
+  site_key?: string; // assume all provides have site_key for now
+  type?: BotProtectionProviderType;
+}
+export interface BotProtectionConfig {
+  enabled?: boolean;
+  provider?: BotProtectionProviderConfig;
+}
+
 export interface StandardAttributes {
   email?: string;
   email_verified?: boolean;
@@ -1001,5 +1027,12 @@ export interface TutorialStatusData {
     invite?: boolean;
   };
 }
+
+export const botProtectionProviderTypes = [
+  "cloudflare",
+  "recaptchav2",
+] as const;
+export type BotProtectionProviderType =
+  typeof botProtectionProviderTypes[number];
 
 export type UIImplementation = "interaction" | "authflow" | "authflowv2";

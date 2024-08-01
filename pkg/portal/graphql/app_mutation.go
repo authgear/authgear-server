@@ -149,6 +149,30 @@ var adminAPIAuthKeyUpdateInstructionInput = graphql.NewInputObject(graphql.Input
 	},
 })
 
+var botProtectionProviderSecretInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "BotProtectionProviderSecretInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"type": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"secretKey": &graphql.InputObjectFieldConfig{
+			Type: graphql.String,
+		},
+	},
+})
+
+var botProtectionProviderSecretUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "BotProtectionProviderSecretUpdateInstructionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"action": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"data": &graphql.InputObjectFieldConfig{
+			Type: botProtectionProviderSecretInput,
+		},
+	},
+})
+
 var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SecretConfigUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -163,6 +187,9 @@ var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputOb
 		},
 		"adminAPIAuthKey": &graphql.InputObjectFieldConfig{
 			Type: adminAPIAuthKeyUpdateInstructionInput,
+		},
+		"botProtectionProviderSecret": &graphql.InputObjectFieldConfig{
+			Type: botProtectionProviderSecretUpdateInstructionsInput,
 		},
 	},
 })

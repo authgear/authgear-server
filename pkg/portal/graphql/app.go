@@ -107,6 +107,19 @@ var smtpSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var botProtectionProviderSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "BotProtectionProviderSecret",
+	Description: "Bot protection provider secret",
+	Fields: graphql.Fields{
+		"secretKey": &graphql.Field{
+			Type: graphql.String,
+		},
+		"type": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
 type AppSecretKey string
 
 const (
@@ -115,6 +128,7 @@ const (
 	AppSecretKeyAdminAPISecrets               AppSecretKey = "adminAPISecrets"
 	AppSecretKeySmtpSecret                    AppSecretKey = "smtpSecret"
 	AppSecretKeyOauthClientSecrets            AppSecretKey = "oauthClientSecrets" // nolint:gosec
+	AppSecretKeyBotProtectionProviderSecret   AppSecretKey = "botProtectionProviderSecret"
 )
 
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
@@ -135,6 +149,9 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 		},
 		string(AppSecretKeyOauthClientSecrets): &graphql.Field{
 			Type: graphql.NewList(graphql.NewNonNull(oauthClientSecretItem)),
+		},
+		string(AppSecretKeyBotProtectionProviderSecret): &graphql.Field{
+			Type: botProtectionProviderSecret,
 		},
 	},
 })
@@ -157,6 +174,9 @@ var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
 		"OAUTH_CLIENT_SECRETS": &graphql.EnumValueConfig{
 			Value: AppSecretKeyOauthClientSecrets,
 		},
+		"BOT_PROTECTION_PROVIDER_SECRET": &graphql.EnumValueConfig{
+			Value: AppSecretKeyBotProtectionProviderSecret,
+		},
 	},
 })
 
@@ -166,6 +186,7 @@ var secretKeyToConfigKeyMap map[AppSecretKey]config.SecretKey = map[AppSecretKey
 	AppSecretKeyAdminAPISecrets:               config.AdminAPIAuthKeyKey,
 	AppSecretKeySmtpSecret:                    config.SMTPServerCredentialsKey,
 	AppSecretKeyOauthClientSecrets:            config.OAuthClientCredentialsKey,
+	AppSecretKeyBotProtectionProviderSecret:   config.BotProtectionProviderCredentialsKey,
 }
 
 const typeApp = "App"

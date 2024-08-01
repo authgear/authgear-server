@@ -43,6 +43,13 @@ func FixtureUpdateSecretConfigUpdateInstruction() *config.SecretConfigUpdateInst
 				Password: "password",
 			},
 		},
+		BotProtectionProviderCredentialsUpdateInstruction: &config.BotProtectionProviderCredentialsUpdateInstruction{
+			Action: "set",
+			Data: &config.BotProtectionProviderCredentialsUpdateInstructionData{
+				Type:      string(config.BotProtectionProviderTypeRecaptchaV2),
+				SecretKey: "secret-key",
+			},
+		},
 	}
 }
 

@@ -59,12 +59,18 @@ type OAuthClientSecret struct {
 	Keys     []OAuthClientSecretKey `json:"keys,omitempty"`
 }
 
+type BotProtectionProviderSecret struct {
+	Type      config.BotProtectionProviderType `json:"type,omitempty"`
+	SecretKey *string                          `json:"secretKey,omitempty"`
+}
+
 type SecretConfig struct {
 	OAuthSSOProviderClientSecrets []OAuthSSOProviderClientSecret `json:"oauthSSOProviderClientSecrets,omitempty"`
 	WebhookSecret                 *WebhookSecret                 `json:"webhookSecret,omitempty"`
 	AdminAPISecrets               []AdminAPISecret               `json:"adminAPISecrets,omitempty"`
 	SMTPSecret                    *SMTPSecret                    `json:"smtpSecret,omitempty"`
 	OAuthClientSecrets            []OAuthClientSecret            `json:"oauthClientSecrets,omitempty"`
+	BotProtectionProviderSecret   *BotProtectionProviderSecret   `json:"botProtectionProviderSecret,omitempty"`
 }
 
 //nolint:gocognit
@@ -198,6 +204,18 @@ func NewSecretConfig(secretConfig *config.SecretConfig, unmaskedSecrets []config
 				Keys:     keys,
 			})
 		}
+	}
+
+	if botProtectionProviderSecrets, ok := secretConfig.LookupData(config.BotProtectionProviderCredentialsKey).(*config.BotProtectionProviderCredentials); ok {
+		bpSecret := &BotProtectionProviderSecret{
+			Type: botProtectionProviderSecrets.Type,
+		}
+
+		if _, exist := unmaskedSecretsSet[config.BotProtectionProviderCredentialsKey]; exist {
+			bpSecret.SecretKey = &botProtectionProviderSecrets.SecretKey
+		}
+
+		out.BotProtectionProviderSecret = bpSecret
 	}
 
 	return out, nil

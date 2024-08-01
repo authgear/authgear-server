@@ -126,11 +126,29 @@ export type AppResourceUpdate = {
 
 export enum AppSecretKey {
   AdminApiSecrets = 'ADMIN_API_SECRETS',
+  BotProtectionProviderSecret = 'BOT_PROTECTION_PROVIDER_SECRET',
   OauthClientSecrets = 'OAUTH_CLIENT_SECRETS',
   OauthSsoProviderClientSecrets = 'OAUTH_SSO_PROVIDER_CLIENT_SECRETS',
   SmtpSecret = 'SMTP_SECRET',
   WebhookSecret = 'WEBHOOK_SECRET'
 }
+
+/** Bot protection provider secret */
+export type BotProtectionProviderSecret = {
+  __typename?: 'BotProtectionProviderSecret';
+  secretKey?: Maybe<Scalars['String']['output']>;
+  type: Scalars['String']['output'];
+};
+
+export type BotProtectionProviderSecretInput = {
+  secretKey?: InputMaybe<Scalars['String']['input']>;
+  type: Scalars['String']['input'];
+};
+
+export type BotProtectionProviderSecretUpdateInstructionsInput = {
+  action: Scalars['String']['input'];
+  data?: InputMaybe<BotProtectionProviderSecretInput>;
+};
 
 export type CancelFailedSubscriptionPayload = {
   __typename?: 'CancelFailedSubscriptionPayload';
@@ -656,6 +674,7 @@ export type SaveOnboardingSurveyInput = {
 export type SecretConfig = {
   __typename?: 'SecretConfig';
   adminAPISecrets?: Maybe<Array<AdminApiSecret>>;
+  botProtectionProviderSecret?: Maybe<BotProtectionProviderSecret>;
   oauthClientSecrets?: Maybe<Array<OauthClientSecretItem>>;
   oauthSSOProviderClientSecrets?: Maybe<Array<OAuthSsoProviderClientSecret>>;
   smtpSecret?: Maybe<SmtpSecret>;
@@ -664,6 +683,7 @@ export type SecretConfig = {
 
 export type SecretConfigUpdateInstructionsInput = {
   adminAPIAuthKey?: InputMaybe<AdminApiAuthKeyUpdateInstructionInput>;
+  botProtectionProviderSecret?: InputMaybe<BotProtectionProviderSecretUpdateInstructionsInput>;
   oauthClientSecrets?: InputMaybe<OAuthClientSecretsUpdateInstructionsInput>;
   oauthSSOProviderClientSecrets?: InputMaybe<OAuthSsoProviderClientSecretsUpdateInstructionsInput>;
   smtpSecret?: InputMaybe<SmtpSecretUpdateInstructionsInput>;

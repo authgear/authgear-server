@@ -1,0 +1,73 @@
+.widget {
+  grid-column: 1 / span 12;
+
+  @apply tablet:col-span-full;
+}
+
+.content {
+  grid-column: 1 / span 12;
+
+  @apply tablet:col-span-full mt-6;
+}
+
+.enabledContent {
+  /* To limit the width of the enabledContent */
+  max-width: 45rem;
+
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
+
+  @apply mt-12;
+}
+
+.columnLeft {
+  grid-column: 1 / span 4;
+}
+
+.columnRight {
+  grid-column: 5 / span 4;
+}
+
+.providerCardContainer {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: auto 1fr;
+
+  column-gap: 0.5rem;
+
+  width: 100%;
+}
+
+.providerCard {
+  padding: 0.5rem 1rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  border-width: 0.06rem; /* 1px */
+  border-style: solid;
+  cursor: pointer;
+  column-gap: 1rem;
+}
+
+.providerCardLabel {
+  cursor: pointer;
+}
+
+.secretKeyInputContainer {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-rows: auto 1fr;
+  column-gap: 0.5rem;
+}
+.secretKeyInputWithoutReveal {
+  grid-column: 1 / span 8;
+}
+.secretKeyInputWithReveal {
+  grid-column: 1 / span 7;
+}
+.secretKeyRevealButton {
+  grid-column: span 1 / span 1;
+  justify-self: center;
+  align-self: end;
+}
