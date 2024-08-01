@@ -2,6 +2,7 @@ import React, { useCallback, useContext, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
+  Checkbox,
   ChoiceGroup,
   IChoiceGroupOption,
   Label,
@@ -15,7 +16,7 @@ import ScreenContent from "../../ScreenContent";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
 import PasswordField from "../../PasswordField";
-import { useTextField } from "../../hook/useInput";
+import { useCheckbox, useTextField } from "../../hook/useInput";
 import {
   PrimaryAuthenticatorType,
   LoginIDKeyType,
@@ -40,6 +41,8 @@ interface FormState {
   email: string;
   phone: string;
   password: string;
+  sendPassword: boolean;
+  setPasswordExpired: boolean;
 }
 
 const loginIdTypeNameIds: Record<LoginIDKeyType, string> = {
@@ -56,6 +59,8 @@ function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
       email: "",
       phone: "",
       password: "",
+      sendPassword: false,
+      setPasswordExpired: false,
     };
   }
 
@@ -65,6 +70,8 @@ function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
     email: "",
     phone: "",
     password: "",
+    sendPassword: false,
+    setPasswordExpired: false,
   };
 }
 
@@ -190,6 +197,12 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   const { onChange: onPasswordChange } = useTextField((value) => {
     setState((prev) => ({ ...prev, password: value }));
   });
+  const { onChange: onChangeSendPassword } = useCheckbox((value) => {
+    setState((prev) => ({ ...prev, sendPassword: value }));
+  });
+  const { onChange: onChangeForceChangeOnLogin } = useCheckbox((value) => {
+    setState((prev) => ({ ...prev, setPasswordExpired: value }));
+  });
 
   const onSelectLoginIdType = useCallback(
     (_event, options?: IChoiceGroupOption) => {
@@ -306,16 +319,35 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
             onChange={onSelectLoginIdType}
             label={renderToString("AddUserScreen.user-info.label")}
           />
-          <PasswordField
-            className={styles.widget}
-            disabled={passwordFieldDisabled}
-            label={renderToString("AddUserScreen.password.label")}
-            value={password}
-            onChange={onPasswordChange}
-            passwordPolicy={passwordPolicy}
-            parentJSONPointer=""
-            fieldName="password"
-          />
+          <div className={styles.widget}>
+            <PasswordField
+              disabled={passwordFieldDisabled}
+              label={renderToString("AddUserScreen.password.label")}
+              value={password}
+              onChange={onPasswordChange}
+              passwordPolicy={passwordPolicy}
+              parentJSONPointer=""
+              fieldName="password"
+            />
+            {!passwordFieldDisabled && selectedLoginIDType === "email" ? (
+              <Checkbox
+                className={styles.checkbox}
+                label={renderToString("AddUserScreen.send-password")}
+                checked={state.sendPassword}
+                onChange={onChangeSendPassword}
+              />
+            ) : null}
+            {!passwordFieldDisabled ? (
+              <Checkbox
+                className={styles.checkbox}
+                label={renderToString(
+                  "AddUserScreen.force-change-on-login"
+                )}
+                checked={state.setPasswordExpired}
+                onChange={onChangeForceChangeOnLogin}
+              />
+            ) : null}
+          </div>
         </>
       )}
     </ScreenContent>
@@ -382,8 +414,14 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
       );
       const identityValue = state[loginIDType];
       const password = needPassword ? state.password : undefined;
+      const { sendPassword, setPasswordExpired } = state;
 
-      await createUser({ key: loginIDType, value: identityValue }, password);
+      await createUser({
+        identity: { key: loginIDType, value: identityValue },
+        password,
+        sendPassword,
+        setPasswordExpired,
+      });
     },
     [createUser, primaryAuthenticators]
   );

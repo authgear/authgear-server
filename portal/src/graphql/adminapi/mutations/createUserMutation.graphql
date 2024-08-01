@@ -1,9 +1,16 @@
 mutation createUserMutation(
   $identityDefinition: IdentityDefinitionLoginID!
   $password: String
+  $sendPassword: Boolean
+  $setPasswordExpired: Boolean
 ) {
   createUser(
-    input: { definition: { loginID: $identityDefinition }, password: $password }
+    input: {
+      definition: { loginID: $identityDefinition },
+      password: $password,
+      sendPassword: $sendPassword,
+      setPasswordExpired: $setPasswordExpired
+    }
   ) {
     user {
       id

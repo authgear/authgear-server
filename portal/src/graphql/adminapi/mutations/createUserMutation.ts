@@ -11,21 +11,35 @@ interface LoginIDIdentity {
 }
 
 export function useCreateUserMutation(): {
-  createUser: (
-    identity: LoginIDIdentity,
-    password?: string
-  ) => Promise<string | null>;
+  createUser: (input: {
+    identity: LoginIDIdentity;
+    password?: string;
+    sendPassword?: boolean;
+    setPasswordExpired?: boolean;
+  }) => Promise<string | null>;
   loading: boolean;
   error: unknown;
 } {
   const [mutationFunction, { error, loading }] =
     useMutation<CreateUserMutationMutation>(CreateUserMutationDocument);
   const createUser = useCallback(
-    async (identity: LoginIDIdentity, password?: string) => {
+    async ({
+      identity,
+      password,
+      sendPassword,
+      setPasswordExpired,
+    }: {
+      identity: LoginIDIdentity;
+      password?: string;
+      sendPassword?: boolean;
+      setPasswordExpired?: boolean;
+    }) => {
       const result = await mutationFunction({
         variables: {
           identityDefinition: identity,
           password,
+          sendPassword,
+          setPasswordExpired,
         },
       });
       const userID = result.data?.createUser.user.id ?? null;
