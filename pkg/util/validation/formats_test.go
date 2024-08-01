@@ -125,6 +125,7 @@ func TestFormatLDAPURL(t *testing.T) {
 
 		So(f(1), ShouldBeNil)
 		So(f("ldap://example.com"), ShouldBeNil)
+		So(f("ldap://localhost:389"), ShouldBeNil)
 		So(f("ldaps://example.com"), ShouldBeNil)
 
 		So(f(""), ShouldBeError, "expect input URL with scheme ldap / ldaps")
@@ -158,6 +159,10 @@ func TestFormatLDAPSearchFilterTemplate(t *testing.T) {
 		So(f(""), ShouldBeError, "LDAP Result Code 201 \"Filter Compile Error\": ldap: filter does not start with an '('")
 
 		test_template := `{{if eq .Username "test@test.com"}}(mail={{.Username}}){{else if eq .Username "+852"}}(telephoneNumber={{.Username}}){{else}}(uid={{.Username}}){{end}}`
+		So(f(test_template), ShouldBeNil)
+		test_template = `{{if eq .Username "test@test.com"}}
+                (mail={{.Username}})
+              {{end}}`
 		So(f(test_template), ShouldBeNil)
 		wrong_template := `{{if eq .Username "test@test.com"}}(mail={{.Username}})`
 		So(f(wrong_template), ShouldBeError, "template: search_filter:1: unexpected EOF")
