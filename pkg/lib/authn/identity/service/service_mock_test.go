@@ -994,6 +994,21 @@ func (mr *MockLDAPIdentityProviderMockRecorder) List(userID interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).List), userID)
 }
 
+// ListByClaim mocks base method.
+func (m *MockLDAPIdentityProvider) ListByClaim(name, value string) ([]*identity.LDAP, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByClaim", name, value)
+	ret0, _ := ret[0].([]*identity.LDAP)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByClaim indicates an expected call of ListByClaim.
+func (mr *MockLDAPIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).ListByClaim), name, value)
+}
+
 // New mocks base method.
 func (m *MockLDAPIdentityProvider) New(userID, serverName, userIDAttributeOID, userIDAttributeValue string, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
 	m.ctrl.T.Helper()
