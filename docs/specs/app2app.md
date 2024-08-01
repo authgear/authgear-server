@@ -58,11 +58,10 @@ An app can start the authentication flow by opening a link to another app, inste
 
   - A new grant_type `urn:authgear:params:oauth:grant-type:app2app` is supported. When using such grant_type, The following must be provided in the request:
     - `refresh_token`: a valid refresh token.
-    - `client_id`: current client id.
-    - `app2app_client_id`: the authenticating client id.
+    - `client_id`: the authenticating client id.
     - `jwt`: a jwt with a challenge token obtained from the `/oauth2/challenge` api, signed with the private key of the device key bound to the refresh token. If `x_app2app_insecure_device_key_binding_enabled` is `true`, a jwt with a new device key will be allowed if there were no device key bound in the current offline grant. In this case the new key will be bound to the offline grant after the request.
-    - `app2app_redirect_uri`: the redirect uri used to return the result used by the app. The server is reponsible to check the provided uri is in the whitelist of at least one of the configured client redirect uri.
-  - The server will verify the signature, and generates a new authorization code associated with the provided `app2app_client_id`. The client can then use this code to perform code exchange with `grant_type=authorization_code` and obtain a new set of refresh token and access tokens.
+    - `redirect_uri`: the redirect uri used to return the result to the authenticating app. The server checks if `redirect_uri` is listed in the `redirect_uris` of the client indicated by `client_id`.
+  - The server will verify the signature, and generates a new authorization code associated with `client_id`. The client can then use this code to perform code exchange with `grant_type=authorization_code` and obtain a new set of refresh token and access tokens.
 
 ### Android
 
@@ -134,10 +133,9 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
    - Verify the signature of the above app by using the `.well-known/assetlinks.json` file, from the domain of the `redirect_uri`. In this example it is `https://b.example.com/.well-known/assetlinks.json`.
    - Call the token endpoint with `grant_type=urn:authgear:params:oauth:grant-type:app2app`.
      - `refresh_token` should be the refresh token of the existing session of App A.
-     - `client_id` should be the client id of this app.
-     - `app2app_client_id` should be obtained from the intent uri, which is the authorizing app.
+     - `client_id` should be obtained from the intent uri, which is the authorizing app.
      - `jwt`: Refer to the Server-side section for details.
-     - `app2app_redirect_uri` should be the redirect uri provided. The server will validate if it is a valid redirect uri.
+     - `redirect_uri` should be the redirect uri provided. The server will validate if it is a valid redirect uri.
    - Create an intent with the redirect uri, with the following parameters appended to the uri:
      - `code`: The new authorization code.
      - In this example it should be `https://b.example.com/redirect?code=CODE`
@@ -230,10 +228,9 @@ Assume there are two apps, A and B. App A is holding a valid user session, and a
    - If App A is not authenticated, it can call `authenticate()` to obtain a valid session before performing the following steps.
    - Call the token endpoint with `grant_type=urn:authgear:params:oauth:grant-type:app2app`.
      - `refresh_token` should be the refresh token of the existing session of App A.
-     - `client_id` should be the client id of this app.
-     - `app2app_client_id` should be obtained from the intent uri, which is the authorizing app.
+     - `client_id` should be obtained from the intent uri, which is the authorizing app.
      - `jwt`: Refer to the Server-side section for details.
-     - `app2app_redirect_uri` should be the redirect uri provided. The server will validate if it is a valid redirect uri.
+     - `redirect_uri` should be the redirect uri provided. The server will validate if it is a valid redirect uri.
    - Open the redirect uri as a universal link, with the following parameters appended:
      - `code`: The new authorization code.
      - In this example the link opened should be `https://b.example.com/redirect?code=CODE`
@@ -342,8 +339,8 @@ The idea is to allow the user to approve app2app requests together with biometri
 
   - Implementation:
     - Use `options` to create a authentication prompt. The authentication process should be handled by the OS.
-    - After the user passed the authentication, use the biometric key to create a jwt with `action=authenticate_app2app`. Include the target app2app client id in payload using the field `app2app_client_id`.
-    - Call token endpoint with `grant_type=urn:authgear:params:oauth:grant-type:biometric-request` and the generated jwt. Obtain a new set of access and refresh tokens, with a authorization code for the client id passed as `app2app_client_id`.
+    - After the user passed the authentication, use the biometric key to create a jwt with `action=authenticate_app2app`. Include the target app2app client id in payload using the field `client_id`.
+    - Call token endpoint with `grant_type=urn:authgear:params:oauth:grant-type:biometric-request` and the generated jwt. Obtain a new set of access and refresh tokens, with a authorization code for the client id passed as `client_id`.
     - Return the authorization code using redirect uri in `request`.
 
 #### Android
