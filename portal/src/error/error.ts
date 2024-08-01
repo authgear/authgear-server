@@ -84,9 +84,9 @@ export interface APIGroupDuplicateKeyError {
   reason: "GroupDuplicateKey";
 }
 
-export interface APIEmailIdentityNotFoundError {
+export interface APISendPasswordNoTargetError {
   errorName: string;
-  reason: "EmailIdentityNotFound";
+  reason: "SendPasswordNoTarget";
 }
 
 export type APIError = { message?: string } & (
@@ -126,7 +126,7 @@ export type APIError = { message?: string } & (
   | APIResourceUpdateConflictError
   | APIRoleDuplicateKeyError
   | APIGroupDuplicateKeyError
-  | APIEmailIdentityNotFoundError
+  | APISendPasswordNoTargetError
 );
 
 export function isAPIError(value: unknown): value is APIError {

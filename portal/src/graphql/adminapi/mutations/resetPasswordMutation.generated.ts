@@ -7,7 +7,7 @@ export type ResetPasswordMutationMutationVariables = Types.Exact<{
   userID: Types.Scalars['ID']['input'];
   password: Types.Scalars['String']['input'];
   sendPassword?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
-  forceChangeOnLogin?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
+  setPasswordExpired?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
 }>;
 
 
@@ -15,9 +15,9 @@ export type ResetPasswordMutationMutation = { __typename?: 'Mutation', resetPass
 
 
 export const ResetPasswordMutationDocument = gql`
-    mutation resetPasswordMutation($userID: ID!, $password: String!, $sendPassword: Boolean, $forceChangeOnLogin: Boolean) {
+    mutation resetPasswordMutation($userID: ID!, $password: String!, $sendPassword: Boolean, $setPasswordExpired: Boolean) {
   resetPassword(
-    input: {userID: $userID, password: $password, sendPassword: $sendPassword, forceChangeOnLogin: $forceChangeOnLogin}
+    input: {userID: $userID, password: $password, sendPassword: $sendPassword, setPasswordExpired: $setPasswordExpired}
   ) {
     user {
       id
@@ -43,7 +43,7 @@ export type ResetPasswordMutationMutationFn = Apollo.MutationFunction<ResetPassw
  *      userID: // value for 'userID'
  *      password: // value for 'password'
  *      sendPassword: // value for 'sendPassword'
- *      forceChangeOnLogin: // value for 'forceChangeOnLogin'
+ *      setPasswordExpired: // value for 'setPasswordExpired'
  *   },
  * });
  */

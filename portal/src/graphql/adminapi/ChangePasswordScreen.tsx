@@ -30,13 +30,13 @@ import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 interface FormState {
   newPassword: string;
   sendPassword: boolean;
-  forceChangeOnLogin: boolean;
+  setPasswordExpired: boolean;
 }
 
 const defaultState: FormState = {
   newPassword: "",
   sendPassword: false,
-  forceChangeOnLogin: false,
+  setPasswordExpired: false,
 };
 
 interface ResetPasswordContentProps {
@@ -77,7 +77,7 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
     setState((prev) => ({ ...prev, sendPassword: value }));
   });
   const { onChange: onChangeForceChangeOnLogin } = useCheckbox((value) => {
-    setState((prev) => ({ ...prev, forceChangeOnLogin: value }));
+    setState((prev) => ({ ...prev, setPasswordExpired: value }));
   });
 
   return (
@@ -112,7 +112,7 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
           <Checkbox
             className={styles.checkbox}
             label={renderToString("ChangePasswordScreen.force-change-on-login")}
-            checked={state.forceChangeOnLogin}
+            checked={state.setPasswordExpired}
             onChange={onChangeForceChangeOnLogin}
           />
         </div>
@@ -146,8 +146,8 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
   const resetPasswordErrorRules: ErrorParseRule[] = useMemo(() => {
     return [
       makeReasonErrorParseRule(
-        "EmailIdentityNotFound",
-        "ChangePasswordScreen.error.email-identity-not-found"
+        "SendPasswordNoTarget",
+        "ChangePasswordScreen.error.send-password-no-target"
       ),
     ];
   }, []);
@@ -164,7 +164,7 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
       await resetPassword(
         state.newPassword,
         state.sendPassword,
-        state.forceChangeOnLogin
+        state.setPasswordExpired
       );
     },
     [resetPassword]

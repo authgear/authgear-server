@@ -505,7 +505,7 @@ func (s *Service) sendPassword(userID string, password string) error {
 	}
 
 	if len(emails) == 0 {
-		return ErrEmailIdentityNotFound
+		return ErrSendPasswordNoTarget
 	}
 
 	for _, email := range emails {

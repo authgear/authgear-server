@@ -399,7 +399,7 @@
   "ChangePasswordScreen.force-change-on-login": "Ask user to change password on login",
   "ChangePasswordScreen.send-password": "Send the password to user's email",
   "ChangePasswordScreen.error.fetch-password-policy": "Failed to fetch password policy",
-  "ChangePasswordScreen.error.email-identity-not-found": "No email identity found",
+  "ChangePasswordScreen.error.send-password-no-target": "No email identity found",
   "ChangePasswordScreen.change": "Change",
 
   "UserDetails.connected-identities.header": "Identities",

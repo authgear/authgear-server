@@ -9,7 +9,7 @@ export function useResetPasswordMutation(userID: string): {
   resetPassword: (
     password: string,
     sendPassword: boolean,
-    forceChangeOnLogin: boolean
+    setPasswordExpired: boolean
   ) => Promise<string | null>;
   loading: boolean;
   error: unknown;
@@ -21,14 +21,14 @@ export function useResetPasswordMutation(userID: string): {
     async (
       password: string,
       sendPassword: boolean,
-      forceChangeOnLogin: boolean
+      setPasswordExpired: boolean
     ) => {
       const result = await mutationFunction({
         variables: {
           userID,
           password,
           sendPassword,
-          forceChangeOnLogin,
+          setPasswordExpired,
         },
       });
 

@@ -1098,12 +1098,12 @@ export type RemoveUserFromRolesPayload = {
 };
 
 export type ResetPasswordInput = {
-  /** Indicate whether the user is required to change password on next login. */
-  forceChangeOnLogin?: InputMaybe<Scalars['Boolean']['input']>;
   /** New password. */
   password: Scalars['String']['input'];
   /** Indicate whether to send the new password to the user. */
   sendPassword?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Indicate whether the user is required to change password on next login. */
+  setPasswordExpired?: InputMaybe<Scalars['Boolean']['input']>;
   /** Target user ID. */
   userID: Scalars['ID']['input'];
 };

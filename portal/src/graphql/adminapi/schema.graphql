@@ -1238,16 +1238,16 @@ type RemoveUserFromRolesPayload {
 
 """"""
 input ResetPasswordInput {
-  """
-  Indicate whether the user is required to change password on next login.
-  """
-  forceChangeOnLogin: Boolean
-
   """New password."""
   password: String!
 
   """Indicate whether to send the new password to the user."""
   sendPassword: Boolean
+
+  """
+  Indicate whether the user is required to change password on next login.
+  """
+  setPasswordExpired: Boolean
 
   """Target user ID."""
   userID: ID!
