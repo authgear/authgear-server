@@ -215,6 +215,28 @@ func (c *SecretConfig) validateBotProtectionSecrets(ctx *validation.Context, bot
 	}
 }
 
+func (c *SecretConfig) validateLDAPServerUserSecrets(ctx *validation.Context, ldapServerConfig []LDAPServerConfig) {
+	c.validateRequire(ctx, LDAPServerUserCredentialsKey, "LDAP server user credentials")
+	_, data, _ := c.LookupDataWithIndex(LDAPServerUserCredentialsKey)
+	ldapServerUserCredentials, ok := data.(*LDAPServerUserCredentials)
+	if ok {
+		for _, server := range ldapServerConfig {
+			matched := false
+			for _, item := range ldapServerUserCredentials.Items {
+				if server.Name == item.Name {
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				ctx.EmitErrorMessage(fmt.Sprintf("LDAP server user credentials for '%s' is required", server.Name))
+			} else {
+				// keys are validated by the jsonschema
+			}
+		}
+	}
+}
+
 func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	ctx := &validation.Context{}
 
@@ -247,6 +269,10 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	if appConfig.BotProtection != nil && appConfig.BotProtection.Enabled && appConfig.BotProtection.Provider != nil {
 		c.validateRequire(ctx, BotProtectionProviderCredentialsKey, "bot protection key materials")
 		c.validateBotProtectionSecrets(ctx, appConfig.BotProtection.Provider)
+	}
+	if appConfig.Identity.LDAP != nil && len(appConfig.Identity.LDAP.Servers) > 0 {
+		c.validateRequire(ctx, LDAPServerUserCredentialsKey, "LDAP server user credentials")
+		c.validateLDAPServerUserSecrets(ctx, appConfig.Identity.LDAP.Servers)
 	}
 
 	return ctx.Error("invalid secrets")
@@ -329,7 +355,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	Deprecated_CaptchaCloudflareCredentialsKey: {"Deprecated_CaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
 	BotProtectionProviderCredentialsKey:        {"BotProtectionProviderCredentials", func() SecretItemData { return &BotProtectionProviderCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
-	LDAPServerUserCredentialsKey:               {"LDAPServerUserCredential", func() SecretItemData { return &LDAPServerUserCredentials{} }},
+	LDAPServerUserCredentialsKey:               {"LDAPServerUserCredentials", func() SecretItemData { return &LDAPServerUserCredentials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
