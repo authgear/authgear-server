@@ -125,6 +125,28 @@ func (s *Store) List(userID string) ([]*identity.LDAP, error) {
 	return is, nil
 }
 
+func (s *Store) ListByClaim(name string, value string) ([]*identity.LDAP, error) {
+	q := s.selectQuery().
+		Where("(l.claims ->> ?) = ?", name, value)
+
+	rows, err := s.SQLExecutor.QueryWith(q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var is []*identity.LDAP
+	for rows.Next() {
+		i, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		is = append(is, i)
+	}
+
+	return is, nil
+}
+
 func (s *Store) GetByServerUserID(serverName string, userIDAttributeOID string, userIDAttributeValue string) (*identity.LDAP, error) {
 	q := s.selectQuery().
 		Where(

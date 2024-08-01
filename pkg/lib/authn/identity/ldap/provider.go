@@ -30,6 +30,10 @@ func (p *Provider) GetByServerUserID(serverName string, userIDAttributeOID strin
 	return p.Store.GetByServerUserID(serverName, userIDAttributeOID, userIDAttributeValue)
 }
 
+func (p *Provider) ListByClaim(name string, value string) ([]*identity.LDAP, error) {
+	return p.Store.ListByClaim(name, value)
+}
+
 func (p *Provider) New(
 	userID string,
 	serverName string,
