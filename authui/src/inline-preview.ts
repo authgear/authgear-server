@@ -87,6 +87,11 @@ export class InlinePreviewController extends Controller {
     for (const [key, value] of Object.entries(customisationMessage.images)) {
       const outlet = keyToPreviewableResourceController[key];
       outlet?.setValue(value);
+      if (value == null || value === "") {
+        outlet?.element.parentElement?.classList.add("nosrc");
+      } else {
+        outlet?.element.parentElement?.classList.remove("nosrc");
+      }
     }
 
     injectCSSAttrs(document.documentElement);

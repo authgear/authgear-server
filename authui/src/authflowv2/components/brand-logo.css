@@ -31,13 +31,6 @@
     @apply flex;
   }
 
-  :root:not(.dark) .brand-logo__container.light.inlinepreview {
-    @apply flex;
-  }
-  :root.dark .brand-logo__container.dark.inlinepreview {
-    @apply flex;
-  }
-
   .brand-logo {
     height: var(--brand-logo__height);
     max-width: var(--brand-logo__max-width);
