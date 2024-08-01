@@ -34,7 +34,7 @@ When the connection URL starts with `ldaps://`, then Authgear will connect to th
 It is very common that before a LDAP client can run any [Search Operation](https://datatracker.ietf.org/doc/html/rfc4511#section-4.5),
 the LDAP client must perform [Bind Operation](https://datatracker.ietf.org/doc/html/rfc4511#section-4.2) first.
 
-Authgear supports Simple Bind with username and password.
+Authgear supports Simple Bind with DN and password, according to https://datatracker.ietf.org/doc/html/rfc4513#section-5.1.3
 
 ## Configuration of LDAP servers
 
@@ -86,14 +86,16 @@ secrets:
 - data:
     items:
     - name: default
-      username: authgear
+      # According to https://datatracker.ietf.org/doc/html/rfc4513#section-5.1.3,
+      # Simple Bind takes a DN and a password.
+      dn: cn=authgear,dc=example,dc=com
       password: secret1
   key: ldap
 ```
 
 - `items.name`: To associate a LDAP server in `authgear.yaml`.
-- `items.username`: Optional. The username Authgear uses to authenticate itself to the LDAP server. If it is not provided, then Authgear does not authenticates itself, and assumes the LDAP server allows anonymous requests.
-- `items.password`: Optional. The password Authgear uses to authenticate itself to the LDAP server. If `username` is provided, then `password` is required.
+- `items.dn`: Optional. The DN of the LDAP entry Authgear uses to authenticate itself to the LDAP server. If it is not provided, then Authgear does not authenticates itself, and assumes the LDAP server allows anonymous requests.
+- `items.password`: Optional. The password of the LDAP entry Authgear uses to authenticate itself to the LDAP server. If `dn` is provided, then `password` is required.
 
 ## Validation on the configuration
 
