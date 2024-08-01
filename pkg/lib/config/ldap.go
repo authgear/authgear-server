@@ -1,9 +1,5 @@
 package config
 
-import (
-	"net/url"
-)
-
 var _ = Schema.Add("LDAPConfig", `
 {
 	"type": "object",
@@ -40,58 +36,9 @@ var _ = Schema.Add("LDAPServerConfig", `
 `)
 
 type LDAPServerConfig struct {
-	Name                             string   `json:"name,omitempty"`
-	URL                              *url.URL `json:"url,omitempty"`
-	BaseDN                           string   `json:"base_dn,omitempty"`
-	SearchFilterTemplate             string   `json:"search_filter_template,omitempty"`
-	UserUniqueIdentifierAttributeOID string   `json:"user_id_attribute_oid,omitempty"`
-}
-
-var _ = SecretConfigSchema.Add("LDAPServerUserCredentials", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"items": { "type": "array", "items": { "$ref": "#/$defs/LDAPServerUserCredentialsItem" } }
-	}
-}
-`)
-
-type LDAPServerUserCredentials struct {
-	Items []LDAPServerUserCredentialsItem `json:"items,omitempty"`
-}
-
-var _ = SecretConfigSchema.Add("LDAPServerUserCredentialsItem", `
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"name": { "type": "string" },
-		"dn": { "type": "string", "format": "ldap_dn" },
-		"password": { "type": "string" }
-	},
-	"required": ["name"],
-	"dependentRequired": {
-		"dn": ["password"],
-		"password": ["dn"]
-	}
-}
-`)
-
-type LDAPServerUserCredentialsItem struct {
-	Name     string `json:"name,omitempty"`
-	DN       string `json:"dn,omitempty"`
-	Password string `json:"password,omitempty"`
-}
-
-func (c *LDAPServerUserCredentials) SensitiveStrings() []string {
-	var out []string
-	for _, item := range c.Items {
-		out = append(out, item.SensitiveStrings()...)
-	}
-	return out
-}
-
-func (c *LDAPServerUserCredentialsItem) SensitiveStrings() []string {
-	return []string{c.Password}
+	Name                             string `json:"name,omitempty"`
+	URL                              string `json:"url,omitempty"`
+	BaseDN                           string `json:"base_dn,omitempty"`
+	SearchFilterTemplate             string `json:"search_filter_template,omitempty"`
+	UserUniqueIdentifierAttributeOID string `json:"user_id_attribute_oid,omitempty"`
 }
