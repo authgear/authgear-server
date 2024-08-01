@@ -94,6 +94,7 @@ type LDAPIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.LDAP, error)
 	List(userID string) ([]*identity.LDAP, error)
 	GetByServerUserID(serverName string, userIDAttributeOID string, userIDAttributeValue string) (*identity.LDAP, error)
+	ListByClaim(name string, value string) ([]*identity.LDAP, error)
 	New(
 		userID string,
 		serverName string,
