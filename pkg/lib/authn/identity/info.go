@@ -226,6 +226,8 @@ func (i *Info) DisplayID() string {
 	}
 }
 
+// IdentityAwareStandardClaims means attributes that may related to other identities
+// Most likely will be used in account linking or duplication check
 func (i *Info) IdentityAwareStandardClaims() map[model.ClaimName]string {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
