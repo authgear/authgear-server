@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -36,6 +37,7 @@ func (e *EdgeAuthenticationOOB) Instantiate(ctx *interaction.Context, graph *int
 			Code: input.GetOOBOTP(),
 		},
 	}, &facade.VerifyOptions{
+		Form: otp.FormCode,
 		AuthenticationDetails: facade.NewAuthenticationDetails(
 			info.UserID,
 			e.Stage,

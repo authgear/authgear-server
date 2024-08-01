@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -34,6 +35,7 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 			Code: code,
 		},
 	}, &facade.VerifyOptions{
+		Form:       otp.FormCode,
 		OOBChannel: &channel,
 		AuthenticationDetails: facade.NewAuthenticationDetails(
 			graph.MustGetUserID(),

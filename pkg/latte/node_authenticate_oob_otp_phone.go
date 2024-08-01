@@ -63,6 +63,7 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 				Code: inputTakeOOBOTPCode.GetCode(),
 			},
 		}, &facade.VerifyOptions{
+			Form: otp.FormCode,
 			AuthenticationDetails: facade.NewAuthenticationDetails(
 				info.UserID,
 				authn.AuthenticationStagePrimary,
