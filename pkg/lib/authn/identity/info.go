@@ -169,7 +169,7 @@ func (i *Info) ToModel() model.Identity {
 
 	case model.IdentityTypeLDAP:
 		claims[IdentityClaimLDAPServerName] = i.LDAP.ServerName
-		claims[IdentityClaimLDAPUserIDAttributeName] = i.LDAP.UserIDAttribute
+		claims[IdentityClaimLDAPUserIDAttributeOID] = i.LDAP.UserIDAttributeOID
 		claims[IdentityClaimLDAPUserIDAttributeValue] = i.LDAP.UserIDAttributeValue
 		claims[IdentityClaimLDAPAttributes] = i.LDAP.RawEntryJSON
 
