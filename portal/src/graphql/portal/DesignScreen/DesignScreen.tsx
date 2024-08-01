@@ -875,11 +875,13 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
           options={previewPageOptions}
           onChange={onChangePreviewPageOption}
         />
-        <PreviewThemeToggle
-          activeTheme={designForm.state.selectedTheme}
-          setActiveTheme={designForm.setSelectedTheme}
-          disabled={designForm.state.themeOption !== "auto"}
-        />
+        {designForm.state.themeOption === "auto" ? (
+          <PreviewThemeToggle
+            activeTheme={designForm.state.selectedTheme}
+            setActiveTheme={designForm.setSelectedTheme}
+            disabled={false}
+          />
+        ) : null}
       </div>
       <iframe
         ref={authUIIframeRef}
