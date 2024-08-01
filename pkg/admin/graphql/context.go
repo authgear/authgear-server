@@ -59,7 +59,7 @@ type UserFacade interface {
 		filterOptions libuser.FilterOptions,
 		sortOption libuser.SortOption,
 		args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
-	Create(identityDef model.IdentityDef, password string) (string, error)
+	Create(identityDef model.IdentityDef, password string, sendPassword bool, setPasswordExpired bool) (string, error)
 	ResetPassword(id string, password string, sendPassword bool, changeOnLogin bool) error
 	SetPasswordExpired(id string, isExpired bool) error
 	SetDisabled(id string, isDisabled bool, reason *string) error
