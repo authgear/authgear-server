@@ -41,8 +41,17 @@ func (i *LDAP) ToLDAPSpec() *LDAPSpec {
 }
 
 // TODO(DEV-1668)
-// We need to convert ldap entry attribute to identity aware standard claims
-// Expected to return ClaimEmail or ClaimPhoneNumber or ClaimPreferredUsername
+// We need to find a suitable to extract claims from ldap entry's attributes
 func (i *LDAP) IdentityAwareStandardClaims() map[model.ClaimName]string {
-	return make(map[model.ClaimName]string)
+	claims := map[model.ClaimName]string{}
+	if email, ok := i.Claims[string(model.ClaimEmail)].(string); ok {
+		claims[model.ClaimEmail] = email
+	}
+	if phoneNumber, ok := i.Claims[string(model.ClaimPhoneNumber)].(string); ok {
+		claims[model.ClaimPhoneNumber] = phoneNumber
+	}
+	if username, ok := i.Claims[string(model.ClaimPreferredUsername)].(string); ok {
+		claims[model.ClaimPreferredUsername] = username
+	}
+	return claims
 }
