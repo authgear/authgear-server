@@ -10,5 +10,6 @@ const (
 	MessageTypeAuthenticateSecondaryOOB MessageType = "authenticate-secondary-oob"
 	MessageTypeForgotPassword           MessageType = "forgot-password"
 	MessageTypeChangePassword           MessageType = "change-password"
+	MessageTypeCreateUser               MessageType = "create-user"
 	MessageTypeWhatsappCode             MessageType = "whatsapp-code"
 )

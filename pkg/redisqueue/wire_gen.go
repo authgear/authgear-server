@@ -31,6 +31,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	"github.com/authgear/authgear-server/pkg/lib/feature/sendpassword"
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -39,7 +40,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
+	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
@@ -50,6 +53,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -542,6 +546,63 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clock,
+		AppID:  appID,
+		Redis:  appredisHandle,
+	}
+	messagingConfig := appConfig.Messaging
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	serviceLogger := whatsapp.NewServiceLogger(factory)
+	devMode := environmentConfig.DevMode
+	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	testModeWhatsappConfig := testModeConfig.Whatsapp
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappService := &whatsapp.Service{
+		Context:                           ctx,
+		Logger:                            serviceLogger,
+		DevMode:                           devMode,
+		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
+		TestModeWhatsappConfig:            testModeWhatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
+		OnPremisesClient:                  onPremisesClient,
+		TokenStore:                        tokenStore,
+	}
+	sender := &messaging.Sender{
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
+	}
+	sendpasswordService := &sendpassword.Service{
+		AppConfg:    appConfig,
+		Identities:  serviceService,
+		Sender:      sender,
+		Translation: translationService,
+	}
 	rawCommands := &user.RawCommands{
 		Store: store,
 		Clock: clock,
@@ -646,6 +707,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
+		SendPassword:               sendpasswordService,
 		UserCommands:               userCommands,
 		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,

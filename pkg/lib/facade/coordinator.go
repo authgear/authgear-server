@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/feature/sendpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -85,6 +86,10 @@ type MFAService interface {
 	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 }
 
+type SendPasswordService interface {
+	Send(userID string, password string, msgType sendpassword.MessageType) error
+}
+
 type UserQueries interface {
 	GetRaw(userID string) (*user.User, error)
 	Get(userID string, role accesscontrol.Role) (*model.User, error)
@@ -145,6 +150,7 @@ type Coordinator struct {
 	Authenticators             AuthenticatorService
 	Verification               VerificationService
 	MFA                        MFAService
+	SendPassword               SendPasswordService
 	UserCommands               UserCommands
 	UserQueries                UserQueries
 	RolesGroupsCommands        RolesGroupsCommands

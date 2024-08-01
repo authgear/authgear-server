@@ -43,6 +43,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
+	"github.com/authgear/authgear-server/pkg/lib/feature/sendpassword"
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -697,6 +698,63 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RateLimiter:   limiter,
 		Lockout:       mfaLockout,
 	}
+	messagingLogger := messaging.NewLogger(factory)
+	usageLogger := usage.NewLogger(factory)
+	usageLimiter := &usage.Limiter{
+		Logger: usageLogger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  appredisHandle,
+	}
+	messagingConfig := appConfig.Messaging
+	messagingRateLimitsConfig := messagingConfig.RateLimits
+	messagingFeatureConfig := featureConfig.Messaging
+	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
+	limits := messaging.Limits{
+		Logger:        messagingLogger,
+		RateLimiter:   limiter,
+		UsageLimiter:  usageLimiter,
+		RemoteIP:      remoteIP,
+		Config:        messagingRateLimitsConfig,
+		FeatureConfig: messagingFeatureConfig,
+		EnvConfig:     rateLimitsEnvironmentConfig,
+	}
+	serviceLogger := whatsapp.NewServiceLogger(factory)
+	devMode := environmentConfig.DevMode
+	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	testModeWhatsappConfig := testModeConfig.Whatsapp
+	whatsappConfig := messagingConfig.Whatsapp
+	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
+	tokenStore := &whatsapp.TokenStore{
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
+	}
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappService := &whatsapp.Service{
+		Context:                           contextContext,
+		Logger:                            serviceLogger,
+		DevMode:                           devMode,
+		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
+		TestModeWhatsappConfig:            testModeWhatsappConfig,
+		WhatsappConfig:                    whatsappConfig,
+		LocalizationConfig:                localizationConfig,
+		OnPremisesClient:                  onPremisesClient,
+		TokenStore:                        tokenStore,
+	}
+	sender := &messaging.Sender{
+		Limits:                 limits,
+		TaskQueue:              queue,
+		Events:                 eventService,
+		Whatsapp:               whatsappService,
+		MessagingFeatureConfig: messagingFeatureConfig,
+	}
+	sendpasswordService := &sendpassword.Service{
+		AppConfg:    appConfig,
+		Identities:  serviceService,
+		Sender:      sender,
+		Translation: translationService,
+	}
 	stdattrsService := &stdattrs.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
@@ -785,6 +843,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service4,
 		Verification:               verificationService,
 		MFA:                        mfaService,
+		SendPassword:               sendpasswordService,
 		UserCommands:               userCommands,
 		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
@@ -815,57 +874,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis:   appredisHandle,
 		AppID:   appID,
 		Clock:   clockClock,
-	}
-	messagingLogger := messaging.NewLogger(factory)
-	usageLogger := usage.NewLogger(factory)
-	usageLimiter := &usage.Limiter{
-		Logger: usageLogger,
-		Clock:  clockClock,
-		AppID:  appID,
-		Redis:  appredisHandle,
-	}
-	messagingConfig := appConfig.Messaging
-	messagingRateLimitsConfig := messagingConfig.RateLimits
-	messagingFeatureConfig := featureConfig.Messaging
-	rateLimitsEnvironmentConfig := &environmentConfig.RateLimits
-	limits := messaging.Limits{
-		Logger:        messagingLogger,
-		RateLimiter:   limiter,
-		UsageLimiter:  usageLimiter,
-		RemoteIP:      remoteIP,
-		Config:        messagingRateLimitsConfig,
-		FeatureConfig: messagingFeatureConfig,
-		EnvConfig:     rateLimitsEnvironmentConfig,
-	}
-	serviceLogger := whatsapp.NewServiceLogger(factory)
-	devMode := environmentConfig.DevMode
-	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
-	testModeWhatsappConfig := testModeConfig.Whatsapp
-	whatsappConfig := messagingConfig.Whatsapp
-	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
-	tokenStore := &whatsapp.TokenStore{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
-	whatsappService := &whatsapp.Service{
-		Context:                           contextContext,
-		Logger:                            serviceLogger,
-		DevMode:                           devMode,
-		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
-		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		WhatsappConfig:                    whatsappConfig,
-		LocalizationConfig:                localizationConfig,
-		OnPremisesClient:                  onPremisesClient,
-		TokenStore:                        tokenStore,
-	}
-	sender := &messaging.Sender{
-		Limits:                 limits,
-		TaskQueue:              queue,
-		Events:                 eventService,
-		Whatsapp:               whatsappService,
-		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	messageSender := &otp.MessageSender{
 		Translation:     translationService,
@@ -909,8 +917,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: authenticatorFacade,
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
-		Sender:         sender,
-		Translation:    translationService,
+		SendPassword:   sendpasswordService,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
