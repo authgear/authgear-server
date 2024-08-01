@@ -93,11 +93,11 @@ type LDAPIdentityProvider interface {
 	Get(userID, id string) (*identity.LDAP, error)
 	GetMany(ids []string) ([]*identity.LDAP, error)
 	List(userID string) ([]*identity.LDAP, error)
-	GetByServerUserID(serverName string, userIDAttribute string, userIDAttributeValue string) (*identity.LDAP, error)
+	GetByServerUserID(serverName string, userIDAttributeOID string, userIDAttributeValue string) (*identity.LDAP, error)
 	New(
 		userID string,
 		serverName string,
-		userIDAttribute string,
+		userIDAttributeOID string,
 		userIDAttributeValue string,
 		claims map[string]interface{},
 		rawEntryJSON map[string]interface{},

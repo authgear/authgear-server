@@ -950,18 +950,18 @@ func (mr *MockLDAPIdentityProviderMockRecorder) Get(userID, id interface{}) *gom
 }
 
 // GetByServerUserID mocks base method.
-func (m *MockLDAPIdentityProvider) GetByServerUserID(serverName, userIDAttribute, userIDAttributeValue string) (*identity.LDAP, error) {
+func (m *MockLDAPIdentityProvider) GetByServerUserID(serverName, userIDAttributeOID, userIDAttributeValue string) (*identity.LDAP, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByServerUserID", serverName, userIDAttribute, userIDAttributeValue)
+	ret := m.ctrl.Call(m, "GetByServerUserID", serverName, userIDAttributeOID, userIDAttributeValue)
 	ret0, _ := ret[0].(*identity.LDAP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByServerUserID indicates an expected call of GetByServerUserID.
-func (mr *MockLDAPIdentityProviderMockRecorder) GetByServerUserID(serverName, userIDAttribute, userIDAttributeValue interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) GetByServerUserID(serverName, userIDAttributeOID, userIDAttributeValue interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByServerUserID", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).GetByServerUserID), serverName, userIDAttribute, userIDAttributeValue)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByServerUserID", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).GetByServerUserID), serverName, userIDAttributeOID, userIDAttributeValue)
 }
 
 // GetMany mocks base method.
@@ -995,17 +995,17 @@ func (mr *MockLDAPIdentityProviderMockRecorder) List(userID interface{}) *gomock
 }
 
 // New mocks base method.
-func (m *MockLDAPIdentityProvider) New(userID, serverName, userIDAttribute, userIDAttributeValue string, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (m *MockLDAPIdentityProvider) New(userID, serverName, userIDAttributeOID, userIDAttributeValue string, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, serverName, userIDAttribute, userIDAttributeValue, claims, rawEntryJSON)
+	ret := m.ctrl.Call(m, "New", userID, serverName, userIDAttributeOID, userIDAttributeValue, claims, rawEntryJSON)
 	ret0, _ := ret[0].(*identity.LDAP)
 	return ret0
 }
 
 // New indicates an expected call of New.
-func (mr *MockLDAPIdentityProviderMockRecorder) New(userID, serverName, userIDAttribute, userIDAttributeValue, claims, rawEntryJSON interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) New(userID, serverName, userIDAttributeOID, userIDAttributeValue, claims, rawEntryJSON interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).New), userID, serverName, userIDAttribute, userIDAttributeValue, claims, rawEntryJSON)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).New), userID, serverName, userIDAttributeOID, userIDAttributeValue, claims, rawEntryJSON)
 }
 
 // Update mocks base method.
@@ -1020,4 +1020,18 @@ func (m *MockLDAPIdentityProvider) Update(i *identity.LDAP) error {
 func (mr *MockLDAPIdentityProviderMockRecorder) Update(i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Update), i)
+}
+
+// WithUpdate mocks base method.
+func (m *MockLDAPIdentityProvider) WithUpdate(iden *identity.LDAP, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithUpdate", iden, claims, rawEntryJSON)
+	ret0, _ := ret[0].(*identity.LDAP)
+	return ret0
+}
+
+// WithUpdate indicates an expected call of WithUpdate.
+func (mr *MockLDAPIdentityProviderMockRecorder) WithUpdate(iden, claims, rawEntryJSON interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithUpdate", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).WithUpdate), iden, claims, rawEntryJSON)
 }
