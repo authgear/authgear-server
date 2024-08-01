@@ -39,7 +39,8 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"l.raw_entry_json",
 		).
 		From(s.SQLBuilder.TableName("_auth_identity"), "p").
-		Join(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP), "l", "p.id = l.id")
+		Join(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP), "l", "p.id = l.id").
+		OrderBy("p.created_at ASC")
 }
 
 func (s *Store) scan(scn db.Scanner) (*identity.LDAP, error) {
