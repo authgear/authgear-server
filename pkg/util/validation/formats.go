@@ -268,10 +268,8 @@ func (FormatLDAPDN) CheckFormat(value interface{}) error {
 	}
 
 	dn, err := ldap.ParseDN(str)
-	if err != nil {
-		return err
-	}
-	if len(dn.RDNs) == 0 {
+
+	if err != nil || len(dn.RDNs) == 0 {
 		return errors.New("invalid DN")
 	}
 
@@ -287,7 +285,9 @@ func (FormatLDAPSearchFilterTemplate) CheckFormat(value interface{}) error {
 		return nil
 	}
 
-	tmpl, err := template.New("search_filter").Parse(str)
+	str = strings.TrimSpace(str)
+
+	tmpl, err := template.New("search_filter").Parse(strings.Trim(str, "\n"))
 	if err != nil {
 		return err
 	}
@@ -305,6 +305,8 @@ func (FormatLDAPSearchFilterTemplate) CheckFormat(value interface{}) error {
 	}
 	// check if the filter is correct
 	result := buf.String()
+	result = strings.TrimSpace(result)
+
 	_, err = ldap.CompileFilter(result)
 
 	return err
