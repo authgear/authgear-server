@@ -24,6 +24,40 @@ The implementation described in this spec is based on [this blog post](https://o
 
 An app can start the authentication flow by opening a link to another app, instead of using the authorization endpoint. The app which handles the link should validate the authentication request, then could return a valid authorization code which could be used to perform code exchange in oidc.
 
+## Overview diagram
+
+The following diagram is a high-level diagram illustrating how app2app works. It is not normative.
+
+```mermaid
+sequenceDiagram
+    title app2app
+    participant AppA as Authenticating App (AppA)
+    participant AppB as Authenticated App (AppB)
+    participant Platform as Platform (iOS or Android)
+    participant Authgear as Authgear
+    note right of AppB: Assume the user is authenticated in AppB
+    AppA ->> Platform: Open iOS Universal Link or Open Android App Link. https://appb/authorize?client_id=appa&redirect_uri=https://appa/callback
+    activate Platform
+    Platform ->> Platform: Find which installed app should handle the link
+    Platform ->> AppB: Open AppB with the link
+    deactivate Platform
+    activate AppB
+    AppB ->> AppB: Check if authenticated
+    AppB ->> AppB: Request user consent
+    AppB ->>+ Authgear: Request a authorization code. /token?client_id=appa&redirect_uri=https://appa/callback&refresh_token=REFRESH_TOKEN
+    Authgear ->>- AppB: Return a authorization code
+    AppB ->> Platform: Open iOS Universal Link or Open Android App Link. https://appa/callback?code=AUTHORIZATION_CODE
+    deactivate AppB
+    activate Platform
+    Platform ->> Platform: Find which installed app should handle the link
+    Platform ->> AppA: Open AppA with the link
+    deactivate Platform
+    activate AppA
+    AppA ->>+ Authgear: Exchange refresh_token and access_token with authorization_code
+    Authgear ->>- AppA: Return refresh_token and access_token
+    deactivate AppA
+```
+
 ## Implementation details
 
 ### Terminology
