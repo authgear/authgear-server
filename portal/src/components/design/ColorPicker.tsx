@@ -105,14 +105,14 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
         onBlur={onBlurInput}
         onFocus={onFocusInput}
       />
-      {isColorPickerVisible && colorObject != null ? (
+      {isColorPickerVisible ? (
         <Callout
           target={colorboxRef.current}
           gapSpace={10}
           onDismiss={hideColorPicker}
         >
           <FluentUIColorPicker
-            color={colorObject}
+            color={colorObject ?? placeholderColorObject ?? ""}
             onChange={onColorPickerChange}
             alphaType="none"
           />
