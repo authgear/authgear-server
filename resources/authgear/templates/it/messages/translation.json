@@ -179,5 +179,23 @@
     "TipsHeader": "Suggerimenti per la Sicurezza:",
     "Tip1": "- Non condividere mai la tua password con nessuno.",
     "Tip2": "- Utilizza una password unica per ciascuno dei tuoi account online."
+  },
+  "CreateUser": {
+    "Title": "Iniziamo con il tuo account {{ template \"app.name\" }}!",
+    "Body": "Siamo entusiasti di averti a bordo con {{ template \"app.name\" }}. Ecco tutto ciò di cui hai bisogno per configurare il tuo account e iniziare.",
+    "EmailLabel": "Il tuo account {{ template \"app.name\" }}:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "La tua password temporanea:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Accedi a {{ template \"app.name\" }} con la tua email e la password temporanea. Cambia la tua password dopo l''accesso."
+  },
+  "CreateUserTXT": {
+    "Title": "Iniziamo con il tuo account {{ template \"app.name\" }}!",
+    "Body": "Siamo entusiasti di averti a bordo con {{ template \"app.name\" }}. Ecco tutto ciò di cui hai bisogno per configurare il tuo account e iniziare.",
+    "EmailLabel": "Il tuo account {{ template \"app.name\" }}:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "La tua password temporanea:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Accedi a {{ template \"app.name\" }} con la tua email e la password temporanea. Cambia la tua password dopo l''accesso."
   }
 }

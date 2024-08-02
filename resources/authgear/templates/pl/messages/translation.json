@@ -179,5 +179,23 @@
     "TipsHeader": "Wskazówki bezpieczeństwa:",
     "Tip1": "- Nigdy nie udostępniaj swojego hasła nikomu.",
     "Tip2": "- Używaj unikalnego hasła dla każdego z Twoich kont online."
+  },
+  "CreateUser": {
+    "Title": "Zacznijmy korzystać z Twojego konta {{ template \"app.name\" }}!",
+    "Body": "Cieszymy się, że dołączyłeś do {{ template \"app.name\" }}. Oto wszystko, co musisz zrobić, aby skonfigurować swoje konto i rozpocząć korzystanie z niego.",
+    "EmailLabel": "Twoje konto {{ template \"app.name\" }}:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Twoje tymczasowe hasło:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Zaloguj się do {{ template \"app.name\" }} za pomocą swojego adresu e-mail i tymczasowego hasła. Po zalogowaniu zmień swoje hasło."
+  },
+  "CreateUserTXT": {
+    "Title": "Zacznijmy korzystać z Twojego konta {{ template \"app.name\" }}!",
+    "Body": "Cieszymy się, że dołączyłeś do {{ template \"app.name\" }}. Oto wszystko, co musisz zrobić, aby skonfigurować swoje konto i rozpocząć korzystanie z niego.",
+    "EmailLabel": "Twoje konto {{ template \"app.name\" }}:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Twoje tymczasowe hasło:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Zaloguj się do {{ template \"app.name\" }} za pomocą swojego adresu e-mail i tymczasowego hasła. Po zalogowaniu zmień swoje hasło."
   }
 }

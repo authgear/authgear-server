@@ -179,5 +179,23 @@
     "TipsHeader": "Tips Keamanan:",
     "Tip1": "- Jangan pernah membagikan kata sandi Anda dengan siapa pun.",
     "Tip2": "- Gunakan kata sandi yang unik untuk setiap akun online Anda."
+  },
+  "CreateUser": {
+    "Title": "Mari Memulai dengan Akun {{ template \"app.name\" }} Anda!",
+    "Body": "Kami senang Anda bergabung dengan {{ template \"app.name\" }}. Berikut semua yang Anda butuhkan untuk mengatur akun dan memulai.",
+    "EmailLabel": "Akun {{ template \"app.name\" }} Anda:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Kata sandi sementara Anda:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Login ke {{ template \"app.name\" }} dengan email dan kata sandi sementara Anda. Harap ubah kata sandi Anda setelah login."
+  },
+  "CreateUserTXT": {
+    "Title": "Mari Memulai dengan Akun {{ template \"app.name\" }} Anda!",
+    "Body": "Kami senang Anda bergabung dengan {{ template \"app.name\" }}. Berikut semua yang Anda butuhkan untuk mengatur akun dan memulai.",
+    "EmailLabel": "Akun {{ template \"app.name\" }} Anda:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Kata sandi sementara Anda:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Login ke {{ template \"app.name\" }} dengan email dan kata sandi sementara Anda. Harap ubah kata sandi Anda setelah login."
   }
 }

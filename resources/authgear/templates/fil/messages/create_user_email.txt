@@ -1,0 +1,13 @@
+Magsimula na Tayo sa Iyong {{ template "app.name" }} Account!
+
+Kami ay masyadong na-excite na makasama ka sa {{ template "app.name" }}. Narito ang lahat ng kailangan mo upang ma-set up ang iyong account at makapagsimula.
+
+Ang Iyong {{ template "app.name" }} Account:
+
+{{ .Email }}
+
+Ang iyong pansamantalang password:
+
+{{ .Password }}
+
+Mag-login sa {{ template "app.name" }} gamit ang iyong email at pansamantalang password. Pakibago ang iyong password pagkatapos mag-login.

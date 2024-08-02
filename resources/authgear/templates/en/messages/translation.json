@@ -179,5 +179,23 @@
     "TipsHeader": "Security Tips:",
     "Tip1": "- Never share your password with anyone.",
     "Tip2": "- Use a unique password for each of your online accounts."
+  },
+  "CreateUser": {
+    "Title": "Let's Get Started with Your {{ template \"app.name\" }} Account!",
+    "Body": "We're excited to have you on board with {{ template \"app.name\" }}. Here's all you need to set up your account and get started.",
+    "EmailLabel": "Your {{ template \"app.name\" }} Account:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Your temporary password:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Login to {{ template \"app.name\" }} with your email and temporary password. Please change your password after login."
+  },
+  "CreateUserTXT": {
+    "Title": "Let's Get Started with Your {{ template \"app.name\" }} Account!",
+    "Body": "We're excited to have you on board with {{ template \"app.name\" }}. Here's all you need to set up your account and get started.",
+    "EmailLabel": "Your {{ template \"app.name\" }} Account:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Your temporary password:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Login to {{ template \"app.name\" }} with your email and temporary password. Please change your password after login."
   }
 }

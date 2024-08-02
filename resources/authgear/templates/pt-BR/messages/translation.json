@@ -179,5 +179,23 @@
     "TipsHeader": "Dicas de Segurança:",
     "Tip1": "- Nunca compartilhe sua senha com ninguém.",
     "Tip2": "- Use uma senha única para cada uma de suas contas online."
+  },
+  "CreateUser": {
+    "Title": "Vamos começar com sua conta do {{ template \"app.name\" }}!",
+    "Body": "Estamos animados por tê-lo a bordo com o {{ template \"app.name\" }}. Aqui está tudo o que você precisa para configurar sua conta e começar.",
+    "EmailLabel": "Sua conta do {{ template \"app.name\" }}:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Sua senha temporária:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Faça login no {{ template \"app.name\" }} com seu e-mail e senha temporária. Por favor, mude sua senha após o login."
+  },
+  "CreateUserTXT": {
+    "Title": "Vamos começar com sua conta do {{ template \"app.name\" }}!",
+    "Body": "Estamos animados por tê-lo a bordo com o {{ template \"app.name\" }}. Aqui está tudo o que você precisa para configurar sua conta e começar.",
+    "EmailLabel": "Sua conta do {{ template \"app.name\" }}:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Sua senha temporária:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Faça login no {{ template \"app.name\" }} com seu e-mail e senha temporária. Por favor, mude sua senha após o login."
   }
 }

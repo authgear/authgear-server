@@ -15,6 +15,7 @@
   "email.authenticate-primary-login-link.subject": "การเข้าสู่ระบบที่ {AppName}",
   "email.authenticate-secondary-oob.subject": "การเข้าสู่ระบบที่ {AppName}",
   "email.authenticate-secondary-login-link.subject": "การเข้าสู่ระบบที่ {AppName}",
+  "email.create-user.subject": "เริ่มต้นกับ {AppName}",
   "email.change-password.subject": "{AppName} เปลี่ยนรหัสผ่าน",
   "error-unknown": "เกิดข้อผิดพลาดที่ไม่รู้จัก หากปัญหายังคงเกิดขึ้น โปรดขอความช่วยเหลือในชุมชนของเรา <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Community Forum</a> หรือติดต่อเราที่ <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "error-login-id-required": "โปรดป้อน {variant, select, phone{หมายเลขโทรศัพท์} email {ที่อยู่อีเมล} username {ชื่อผู้ใช้} other {ที่อยู่อีเมลหรือชื่อผู้ใช้}} ของคุณ",

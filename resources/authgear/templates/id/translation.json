@@ -15,6 +15,7 @@
   "email.authenticate-primary-login-link.subject": "Masuk ke {AppName}",
   "email.authenticate-secondary-oob.subject": "Masuk ke {AppName}",
   "email.authenticate-secondary-login-link.subject": "Masuk ke {AppName}",
+  "email.create-user.subject": "Mulai Dengan {AppName}",
   "email.change-password.subject": "{AppName} Ubah kata sandi",
   "error-unknown": "Terjadi kesalahan yang tidak diketahui. Jika masalah ini terus berlanjut, silakan cari bantuan di <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Forum Komunitas</a> kami atau hubungi kami di <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "error-login-id-required": "Silakan masukkan {variant, select, phone{nomor telepon} email {alamat email} username {nama pengguna} other {alamat email atau nama pengguna}} Anda.",

@@ -179,5 +179,23 @@
     "TipsHeader": "Mẹo bảo mật:",
     "Tip1": "- Không bao giờ chia sẻ mật khẩu của bạn với bất kỳ ai.",
     "Tip2": "- Sử dụng mật khẩu duy nhất cho mỗi tài khoản trực tuyến của bạn."
+  },
+  "CreateUser": {
+    "Title": "Hãy Bắt Đầu với Tài Khoản {{ template \"app.name\" }} của Bạn!",
+    "Body": "Chúng tôi rất vui mừng được đón bạn tham gia {{ template \"app.name\" }}. Đây là tất cả những gì bạn cần để thiết lập tài khoản và bắt đầu.",
+    "EmailLabel": "Tài khoản {{ template \"app.name\" }} của bạn:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Mật khẩu tạm thời của bạn:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Đăng nhập vào {{ template \"app.name\" }} với email và mật khẩu tạm thời của bạn. Vui lòng đổi mật khẩu sau khi đăng nhập."
+  },
+  "CreateUserTXT": {
+    "Title": "Hãy Bắt Đầu với Tài Khoản {{ template \"app.name\" }} của Bạn!",
+    "Body": "Chúng tôi rất vui mừng được đón bạn tham gia {{ template \"app.name\" }}. Đây là tất cả những gì bạn cần để thiết lập tài khoản và bắt đầu.",
+    "EmailLabel": "Tài khoản {{ template \"app.name\" }} của bạn:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Mật khẩu tạm thời của bạn:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Đăng nhập vào {{ template \"app.name\" }} với email và mật khẩu tạm thời của bạn. Vui lòng đổi mật khẩu sau khi đăng nhập."
   }
 }

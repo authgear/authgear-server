@@ -15,6 +15,7 @@
   "email.authenticate-primary-login-link.subject": "登入 {AppName}",
   "email.authenticate-secondary-oob.subject": "登入 {AppName}",
   "email.authenticate-secondary-login-link.subject": "登入 {AppName}",
+  "email.create-user.subject": "開始使用 {AppName}",
   "email.change-password.subject": "{AppName} 變更密碼",
   "error-unknown": "發生未知錯誤。如果問題持續，請向我們的<a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">社群討論區</a>求助，或電郵至<a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "error-login-id-required": "請輸入{variant, select, phone{電話號碼} email {電郵地址} username {用戶名稱} other {電郵地址或用戶名稱}}",

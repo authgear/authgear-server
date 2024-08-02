@@ -1,0 +1,13 @@
+Commençons avec votre compte {{ template "app.name" }} !
+
+Nous sommes ravis de vous accueillir sur {{ template "app.name" }}. Voici tout ce dont vous avez besoin pour configurer votre compte et commencer.
+
+Votre compte {{ template "app.name" }} :
+
+{{ .Email }}
+
+Votre mot de passe temporaire :
+
+{{ .Password }}
+
+Connectez-vous à {{ template "app.name" }} avec votre email et votre mot de passe temporaire. Veuillez changer votre mot de passe après vous être connecté.

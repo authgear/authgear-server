@@ -1,0 +1,13 @@
+Mari Memulakan dengan Akaun {{ template "app.name" }} Anda!
+
+Kami teruja untuk menyambut kehadiran anda di {{ template "app.name" }}. Berikut adalah semua yang anda perlukan untuk menyediakan akaun dan memulakan.
+
+Akaun {{ template "app.name" }} Anda:
+
+{{ .Email }}
+
+Kata laluan sementara anda:
+
+{{ .Password }}
+
+Log masuk ke {{ template "app.name" }} dengan e-mel dan kata laluan sementara anda. Sila tukar kata laluan anda selepas log masuk.

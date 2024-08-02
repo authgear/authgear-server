@@ -1,0 +1,13 @@
+让我们开始使用您的 {{ template "app.name" }} 账户吧!
+
+我们很高兴您加入 {{ template "app.name" }}。这里是您设置账户和开始使用所需的全部内容。
+
+您的 {{ template "app.name" }} 账户:
+
+{{ .Email }}
+
+您的临时密码:
+
+{{ .Password }}
+
+使用您的电子邮件和临时密码登录 {{ template "app.name" }}。登录后请更改您的密码。

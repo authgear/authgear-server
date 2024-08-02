@@ -21,6 +21,9 @@ type messageTemplateContext struct {
 var (
 	TemplateMessageChangePasswordTXT       = template.RegisterMessagePlainText("messages/change_password_email.txt")
 	TemplateMessageChangePasswordEmailHTML = template.RegisterMessageHTML("messages/change_password_email.html")
+
+	TemplateMessageCreateUserTXT       = template.RegisterMessagePlainText("messages/create_user_email.txt")
+	TemplateMessageCreateUserEmailHTML = template.RegisterMessageHTML("messages/create_user_email.html")
 )
 
 var (
@@ -29,10 +32,9 @@ var (
 		TXTEmailTemplate:  TemplateMessageChangePasswordTXT,
 		HTMLEmailTemplate: TemplateMessageChangePasswordEmailHTML,
 	}
-	// TODO: Add template for create user
 	messageCreateUser = &translation.MessageSpec{
 		Name:              "create-user",
-		TXTEmailTemplate:  TemplateMessageChangePasswordTXT,
-		HTMLEmailTemplate: TemplateMessageChangePasswordEmailHTML,
+		TXTEmailTemplate:  TemplateMessageCreateUserTXT,
+		HTMLEmailTemplate: TemplateMessageCreateUserEmailHTML,
 	}
 )

@@ -1,0 +1,13 @@
+¡Comencemos con tu cuenta de {{ template "app.name" }}!
+
+Estamos emocionados de tenerte a bordo con {{ template "app.name" }}. Aquí está todo lo que necesitas para configurar tu cuenta y comenzar.
+
+Tu cuenta de {{ template "app.name" }}:
+
+{{ .Email }}
+
+Tu contraseña temporal:
+
+{{ .Password }}
+
+Inicia sesión en {{ template "app.name" }} con tu correo electrónico y contraseña temporal. Por favor, cambia tu contraseña después de iniciar sesión.

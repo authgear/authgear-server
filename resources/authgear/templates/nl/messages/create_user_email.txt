@@ -1,0 +1,13 @@
+Laten we beginnen met uw {{ template "app.name" }} account!
+
+We zijn enthousiast dat u aan boord bent bij {{ template "app.name" }}. Hier is alles wat u nodig heeft om uw account in te stellen en aan de slag te gaan.
+
+Uw {{ template "app.name" }} account:
+
+{{ .Email }}
+
+Uw tijdelijke wachtwoord:
+
+{{ .Password }}
+
+Log in op {{ template "app.name" }} met uw e-mail en tijdelijk wachtwoord. Wijzig uw wachtwoord na het inloggen.

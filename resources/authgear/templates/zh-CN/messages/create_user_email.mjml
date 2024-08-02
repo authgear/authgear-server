@@ -1,0 +1,25 @@
+<mjml lang="zh-CN" dir="ltr">
+<mj-head>
+  <mj-attributes>
+    <mj-text align="center" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" />
+    <mj-button border-radius="2px" font-family="Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji" background-color="#1F67EF" />
+  </mj-attributes>
+</mj-head>
+<mj-body background-color="#f3f3f3">
+  <mj-section>
+    <mj-column background-color="#ffffff" border-radius="2px" padding="16px 8px">
+      <mj-text font-weight="bold" font-size="20px" align="left">让我们开始使用您的 {{ template "app.name" }} 账户吧!</mj-text>
+      <mj-divider border-width="1px" border-color="#c7c7c7" />
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="18px">我们很高兴您加入 {{ template "app.name" }}。这里是您设置账户和开始使用所需的全部内容。</mj-text>
+      <mj-spacer height="22px" />
+      <mj-text font-size="14px" color="#201F1E" align="center" line-height="18px" padding="0">您的 {{ template "app.name" }} 账户:</mj-text>
+      <mj-text font-size="20px" color="#201F1E" align="center" font-weight="600" line-height="28px" padding="0">{{ .Email }}</mj-text>
+      <mj-spacer height="22px" />
+      <mj-text font-size="14px" color="#201F1E" align="center" line-height="18px" padding="0">您的临时密码:</mj-text>
+      <mj-text font-size="20px" color="#201F1E" align="center" font-weight="600" line-height="28px" padding="0">{{ .Password }}</mj-text>
+      <mj-spacer height="22px" />
+      <mj-text font-size="14px" color="#201F1E" align="left" line-height="18px">使用您的电子邮件和临时密码登录 {{ template "app.name" }}。登录后请更改您的密码。</mj-text>
+    </mj-column>
+  </mj-section>
+</mj-body>
+</mjml>
