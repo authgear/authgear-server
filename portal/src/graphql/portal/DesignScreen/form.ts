@@ -748,6 +748,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         resourceMutator.updateCustomisableTheme((prev) => {
           return produce(prev, (draft) => {
             draft.inputField.borderRadius = borderRadiusStyle;
+            draft.phoneInputField.borderRadius = borderRadiusStyle;
           });
         }, Theme.Light);
       },
