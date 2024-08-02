@@ -46,6 +46,7 @@ export const enum CSSVariable {
   WatermarkDisplay = "--watermark-display",
   AlignmentLogo = "--alignment-logo",
   LogoHeight = "--brand-logo__height",
+  PhoneInputTriggerBorderRadius = "--phone-input__trigger-border-radius",
 }
 
 export type CSSColor = string;
@@ -98,6 +99,10 @@ export interface InputFieldStyle {
   borderRadius: BorderRadiusStyle;
 }
 
+export interface PhoneInputFieldStyle {
+  borderRadius: BorderRadiusStyle;
+}
+
 export interface LinkStyle {
   color: CSSColor;
 }
@@ -116,6 +121,7 @@ export interface CustomisableTheme {
   primaryButton: ButtonStyle;
   secondaryButton: SecondaryButtonStyle;
   inputField: InputFieldStyle;
+  phoneInputField: PhoneInputFieldStyle;
   link: LinkStyle;
   logo: LogoStyte;
 }
@@ -126,6 +132,7 @@ export interface PartialCustomisableTheme {
   primaryButton: Partial<ButtonStyle>;
   secondaryButton: Partial<SecondaryButtonStyle>;
   inputField: Partial<InputFieldStyle>;
+  phoneInputField: Partial<PhoneInputFieldStyle>;
   link: Partial<LinkStyle>;
   logo: Partial<LogoStyte>;
 }
@@ -136,6 +143,7 @@ export const EMPTY_THEME: PartialCustomisableTheme = {
   primaryButton: {},
   secondaryButton: {},
   inputField: {},
+  phoneInputField: {},
   link: {},
   logo: {},
 };
@@ -166,6 +174,12 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
     },
   },
   inputField: {
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+  phoneInputField: {
     borderRadius: {
       type: "rounded",
       radius: "0.875em",
@@ -204,6 +218,12 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
     },
   },
   inputField: {
+    borderRadius: {
+      type: "rounded",
+      radius: "0.875em",
+    },
+  },
+  phoneInputField: {
     borderRadius: {
       type: "rounded",
       radius: "0.875em",
@@ -529,6 +549,13 @@ export class CustomisableThemeStyleGroup extends StyleGroup<PartialCustomisableT
       inputField: new StyleGroup({
         borderRadius: new BorderRadiusStyleProperty(
           CSSVariable.InputFiledBorderRadius,
+          value.inputField.borderRadius
+        ),
+      }),
+
+      phoneInputField: new StyleGroup({
+        borderRadius: new BorderRadiusStyleProperty(
+          CSSVariable.PhoneInputTriggerBorderRadius,
           value.inputField.borderRadius
         ),
       }),

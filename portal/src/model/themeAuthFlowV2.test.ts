@@ -52,6 +52,7 @@ describe("StyleCssVisitor", () => {
     --primary-btn__border-radius: 0.875em;
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
+    --phone-input__trigger-border-radius: 0.875em;
     --body-text__link-color: #176df3;
     --alignment-logo: hidden;
     --brand-logo__height: 2.5rem
@@ -88,6 +89,12 @@ describe("StyleCssVisitor", () => {
         },
       },
       inputField: {
+        borderRadius: {
+          type: "rounded",
+          radius: "0.875em",
+        },
+      },
+      phoneInputField: {
         borderRadius: {
           type: "rounded",
           radius: "0.875em",
@@ -151,6 +158,12 @@ describe("CssAstVisitor", () => {
           radius: "0.875em",
         },
       },
+      phoneInputField: {
+        borderRadius: {
+          type: "rounded",
+          radius: "0.875em",
+        },
+      },
       link: {
         color: "#2f7bf4",
       },
@@ -168,6 +181,7 @@ describe("CssAstVisitor", () => {
     --primary-btn__border-radius: 0.875em;
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
+    --phone-input__trigger-border-radius: 0.875em;
     --body-text__link-color: #2f7bf4;
     --alignment-logo: center;
     --brand-logo__height: 2.5rem
