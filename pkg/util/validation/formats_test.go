@@ -130,6 +130,7 @@ func TestFormatLDAPURL(t *testing.T) {
 
 		So(f(""), ShouldBeError, "expect input URL with scheme ldap / ldaps")
 		So(f("http://example.com"), ShouldBeError, "expect input URL with scheme ldap / ldaps")
+		So(f("ldap://user:password@example.com"), ShouldBeError, "expect input URL without user info, path, query and fragment")
 		So(f("ldap://example.com/"), ShouldBeError, "expect input URL without user info, path, query and fragment")
 		So(f("ldap://example.com?a"), ShouldBeError, "expect input URL without user info, path, query and fragment")
 		So(f("ldap://example.com#a"), ShouldBeError, "expect input URL without user info, path, query and fragment")
@@ -144,6 +145,7 @@ func TestFormatLDAPDN(t *testing.T) {
 		So(f("dc=example,dc=com"), ShouldBeNil)
 		So(f("cn=admin,dc=example,dc=org"), ShouldBeNil)
 		So(f("ou="), ShouldBeError, "invalid DN")
+		So(f("asbbalskjedkbwk"), ShouldBeError, "invalid DN")
 		So(f(""), ShouldBeError, "expect non-empty base DN")
 	})
 }
