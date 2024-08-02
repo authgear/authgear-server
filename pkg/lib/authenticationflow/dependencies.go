@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -39,7 +38,6 @@ type IdentityService interface {
 	Get(id string) (*identity.Info, error)
 	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
-	ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
