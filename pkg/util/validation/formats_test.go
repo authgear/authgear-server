@@ -154,20 +154,25 @@ func TestFormatLDAPSearchFilterTemplate(t *testing.T) {
 
 		So(f(1), ShouldBeNil)
 		So(f("(uid=%s)"), ShouldBeNil)
-		So(f("((uid=%s)(cn=%s))"), ShouldBeError, "LDAP Result Code 201 \"Filter Compile Error\": ldap: finished compiling filter with extra at end: cn=%s))")
-		So(f("(uid=%s)(cn=%s"), ShouldBeError, "LDAP Result Code 201 \"Filter Compile Error\": ldap: finished compiling filter with extra at end: (cn=%s")
-		So(f(""), ShouldBeError, "LDAP Result Code 201 \"Filter Compile Error\": ldap: filter does not start with an '('")
+		So(f("((uid=%s)(cn=%s))"), ShouldBeError, "invalid search filter")
+		So(f("(uid=%s)(cn=%s"), ShouldBeError, "invalid search filter")
+		So(f(""), ShouldBeError, "invalid search filter")
 
-		test_template := `{{if eq .Username "test@test.com"}}(mail={{.Username}}){{else if eq .Username "+852"}}(telephoneNumber={{.Username}}){{else}}(uid={{.Username}}){{end}}`
+		test_template := `{{if eq $.Username "test@test.com"}}(mail={{$.Username}}){{else if eq $.Username "+852"}}(telephoneNumber={{$.Username}}){{else}}(uid={{$.Username}}){{end}}`
 		So(f(test_template), ShouldBeNil)
-		test_template = `{{if eq .Username "test@test.com"}}
-                (mail={{.Username}})
-              {{end}}`
+
+		test_template = `
+		{{if eq .Username "test@test.com"}}
+									(mail={{$.Username}})
+		{{end}}
+
+`
 		So(f(test_template), ShouldBeNil)
+
 		wrong_template := `{{if eq .Username "test@test.com"}}(mail={{.Username}})`
-		So(f(wrong_template), ShouldBeError, "template: search_filter:1: unexpected EOF")
+		So(f(wrong_template), ShouldBeError, "invalid template")
 		wrong_filter := `{{if eq .Username "test@test.com"}}(mail={{.Username}}{{end}}`
-		So(f(wrong_filter), ShouldBeError, "LDAP Result Code 201 \"Filter Compile Error\": ldap: unexpected end of filter")
+		So(f(wrong_filter), ShouldBeError, "invalid search filter")
 	})
 }
 
@@ -178,10 +183,11 @@ func TestFormatLDAPOID(t *testing.T) {
 		So(f(1), ShouldBeNil)
 		So(f("1.1"), ShouldBeNil)
 		So(f("1.1.1"), ShouldBeNil)
+		So(f("1"), ShouldBeNil)
 		So(f(""), ShouldBeError, "expect non-empty OID")
-		So(f(".1.1"), ShouldBeError, "expect OID to start with number")
-		So(f("1.1."), ShouldBeError, "expect OID to end with number")
-		So(f("1.1.1.a.2"), ShouldBeError, "expect OID to contain only number and dot")
+		So(f(".1.1"), ShouldBeError, "invalid OID")
+		So(f("1.1."), ShouldBeError, "invalid OID")
+		So(f("1.1.1.a.2"), ShouldBeError, "invalid OID")
 	})
 }
 
