@@ -14,7 +14,8 @@
 - [NameID](#3)
   - [Supported NameIDFormat](#3_1)
     - [Configure NameID when using urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified](#3_1_1)
-  - [Unsupported `NameIDFormat`](#3_2)
+  - [Configs](#3_2)
+  - [Unsupported `NameIDFormat`](#3_3)
 - [Attributes](#4)
   - [Customizing the attributes](#4_1)
   - [Use a hook to compute SAML attributes](#4_2)
@@ -283,7 +284,20 @@ saml:
 
 - `name_id_attribute_pointer`: The JSON pointer pointing to a user's standard attribute or custom attribute which will be used as the NameID. The login will fail if the attribute does not exist or it is empty. The default is `/sub`, which is the user id.
 
-### <a id="3_2"></a> Unsupported `NameIDFormat`
+### <a id="3_2"> Configs
+
+```yaml
+saml:
+  service_providers:
+    - id: ENTITY_ID
+      name_id_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+      name_id_attribute_pointer: /username
+```
+
+- `name_id_format`: Optional. The `NameIDFormat` used in SAML assertions. Default `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified`.
+- `name_id_attribute_pointer`: Optional. See the above [Configure NameID when using urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified](#3_1_1) section for details. Default `/sub`. Only effective if `name_id_format` is `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified`.
+
+### <a id="3_3"></a> Unsupported `NameIDFormat`
 
 The following `NameIDFormat`s are not supported at the moment, but they are commonly supported by different SAML IdPs so we would like to support it in the future:
 
