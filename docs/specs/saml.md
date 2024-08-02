@@ -690,3 +690,5 @@ saml:
       - Sign-out page URL: https://example.authgear.cloud/saml2/logout/ENTITY_ID
       - X.509 Certificate: Obtain the IdP signing cert from the secret `saml.idp.signing`.
       - Change password URL: The settings page. https://example.authgear.cloud/settings
+
+  - Single Logout is not supported by Google Workspace
