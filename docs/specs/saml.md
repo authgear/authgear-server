@@ -492,8 +492,7 @@ The following bindings are not supported at the moment, but we would like to sup
   - SAML SOAP Binding is a synchronous binding which can be used in the single logout profile to send `<LogoutRequest>` to other session participants.
   - Many other profiles can be supported if we support SOAP binding. See [SAMLConformance](https://groups.oasis-open.org/higherlogic/ws/public/download/35393/sstc-saml-conformance-errata-2.0-wd-04-diff.pdf) Section 2.
 
-- Others
-  - No plan to support at the moment.
+We have no plan to support other bindings not mentioned at the moment.
 
 ## <a id="6"></a> Signing
 
@@ -586,13 +585,13 @@ When `debug_mode_enabled` is `true`. Addtional non-blocking events will be creat
 - `saml.debug.sso.response_issued`
   - Triggered whenever a `<Response>` issued.
 - `saml.debug.slo.logout_request_received`
-- Triggered whenever a `<LogoutRequest>` received.
+  - Triggered whenever a `<LogoutRequest>` received.
 - `saml.debug.slo.logout_request_issued`
-- Triggered whenever a `<LogoutRequest>` issued.
+  - Triggered whenever a `<LogoutRequest>` issued.
 - `saml.debug.slo.logout_response_received`
-- Triggered whenever a `<LogoutResponse>` received.
+  - Triggered whenever a `<LogoutResponse>` received.
 - `saml.debug.slo.logout_response_issued`
-- Triggered whenever a `<LogoutResponse>` issued.
+  - Triggered whenever a `<LogoutResponse>` issued.
 
 All of them will be saved as audit logs.
 
