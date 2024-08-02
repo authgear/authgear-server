@@ -9,28 +9,25 @@
   {{ end }}
 
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
-    <div class="screen-logo-layout">
-      {{ template "authflowv2/__header.html" . }}
-      <div class="screen-title-description">
-        <h1 class="screen-title">
-          {{ template "v2-enter-totp-title" }}
-        </h1>
-        <h2 class="screen-description">
-          {{ if eq $.FlowType "reauth" }}
-            {{ template "v2-enter-totp-description-reauth" . }}
-          {{ else }}
-            {{ template "v2-enter-totp-description" . }}
-          {{ end }}
-        </h2>
-      
-        {{ template "authflowv2/__alert_message.html"
-          (dict
-            "Type" "error"
-            "Classname" "mt-4"
-            "Message" (ternary (include "authflowv2/__error.html" .) nil (not $display_otp_input_error))
-          )
-        }}
-      </div>
+    <div class="screen-title-description">
+      <h1 class="screen-title">
+        {{ template "v2-enter-totp-title" }}
+      </h1>
+      <h2 class="screen-description">
+        {{ if eq $.FlowType "reauth" }}
+          {{ template "v2-enter-totp-description-reauth" . }}
+        {{ else }}
+          {{ template "v2-enter-totp-description" . }}
+        {{ end }}
+      </h2>
+
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+          "Message" (ternary (include "authflowv2/__error.html" .) nil (not $display_otp_input_error))
+        )
+      }}
     </div>
     <div>
       {{ $otp_error_message := "" }}

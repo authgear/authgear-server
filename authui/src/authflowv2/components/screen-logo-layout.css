@@ -1,5 +1,5 @@
 @layer components {
   .screen-logo-layout {
-    @apply flex flex-col gap-8;
+    @apply flex flex-col;
   }
 }

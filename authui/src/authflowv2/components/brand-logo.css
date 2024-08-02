@@ -5,7 +5,7 @@
   }
 
   .brand-logo__container {
-    @apply hidden;
+    @apply flex;
 
     :root[alignment-logo="start"] & {
       @apply justify-start;
@@ -24,22 +24,19 @@
     }
   }
 
-  :root:not(.dark) .brand-logo__container.light:not(.nosrc) {
-    @apply flex;
-  }
-  :root.dark .brand-logo__container.dark:not(.nosrc) {
-    @apply flex;
-  }
-
-  :root:not(.dark) .brand-logo__container.light.inlinepreview {
-    @apply flex;
-  }
-  :root.dark .brand-logo__container.dark.inlinepreview {
-    @apply flex;
-  }
-
   .brand-logo {
+    @apply hidden;
+    @apply mb-8;
     height: var(--brand-logo__height);
     max-width: var(--brand-logo__max-width);
+  }
+
+  /* The light logo is visible only in light mode and src is non-empty. */
+  :root:not(.dark) .brand-logo.light:not([src=""]) {
+    display: initial;
+  }
+  /* The dark logo is visible only in dark mode and src is non-empty. */
+  :root.dark .brand-logo.dark:not([src=""]) {
+    display: initial;
   }
 }
