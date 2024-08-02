@@ -30,7 +30,6 @@
 - [Metadata](#7)
 - [Debug Logging](#8)
   - [Configs](#8_1)
-- [Configs](#8_1)
 - [Profiles not supported at the moment](#9)
 - [An example with all configurable options](#10)
 - [Service Provider Support](#11)
