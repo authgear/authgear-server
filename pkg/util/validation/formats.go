@@ -287,12 +287,13 @@ func (FormatLDAPSearchFilterTemplate) CheckFormat(value interface{}) error {
 
 	str = strings.TrimSpace(str)
 
-	tmpl, err := template.New("search_filter").Parse(strings.Trim(str, "\n"))
+	tmpl, err := template.New("search_filter").Parse(str)
+	tmplError := errors.New("invalid template")
 	if err != nil {
-		return err
+		return tmplError
 	}
 	var buf bytes.Buffer
-	// make a string array of phone, username, email
+	// check if the template can be execute with valid input (phone no., username, email)
 	testcases := []string{"+85298765432", "username", "test@test.com"}
 	for _, testcase := range testcases {
 		err = tmpl.Execute(&buf, map[string]string{"Username": testcase})
@@ -301,15 +302,18 @@ func (FormatLDAPSearchFilterTemplate) CheckFormat(value interface{}) error {
 		}
 	}
 	if err != nil {
-		return err
+		return tmplError
 	}
 	// check if the filter is correct
 	result := buf.String()
 	result = strings.TrimSpace(result)
 
 	_, err = ldap.CompileFilter(result)
+	if err != nil {
+		return errors.New("invalid search filter")
+	}
 
-	return err
+	return nil
 }
 
 type FormatLDAPOID struct{}
@@ -325,23 +329,12 @@ func (FormatLDAPOID) CheckFormat(value interface{}) error {
 		return errors.New("expect non-empty OID")
 	}
 
-	// check if only contains dot and number
-	matched, err := regexp.MatchString(`^[0-9.]+$`, str)
+	matched, err := regexp.MatchString(`^\d+(\.\d+)*$`, str)
 	if err != nil {
 		return err
 	}
 	if !matched {
-		return errors.New("expect OID to contain only number and dot")
-	}
-
-	// OID starts with a number
-	if str[0] < '0' || str[0] > '9' {
-		return errors.New("expect OID to start with number")
-	}
-
-	// OID ends with a number
-	if str[len(str)-1] < '0' || str[len(str)-1] > '9' {
-		return errors.New("expect OID to end with number")
+		return errors.New("invalid OID")
 	}
 
 	return nil
