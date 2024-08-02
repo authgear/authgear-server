@@ -1,6 +1,10 @@
 package config
 
-import "github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+import (
+	"fmt"
+
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+)
 
 var _ = Schema.Add("AccountLinkingConfig", `
 {
@@ -56,6 +60,9 @@ var _ = Schema.Add("AccountLinkingAction", `
 }
 `)
 
+// If you ever need to change this schema, please read https://linear.app/authgear/issue/DEV-1701/high-sql-cpu-utilization-when-running-list-by-claim-query
+// Our database index only supports email, phone_number, and preferred_username.
+// Other claims are NOT indexed, and they will result in very high CPU usage.
 var _ = Schema.Add("AccountLinkingJSONPointer", `
 {
 	"type": "object",
@@ -106,8 +113,18 @@ type AccountLinkingJSONPointer struct {
 	Pointer string `json:"pointer,omitempty"`
 }
 
-func (p *AccountLinkingJSONPointer) GetJSONPointer() jsonpointer.T {
-	return jsonpointer.MustParse(p.Pointer)
+func (p *AccountLinkingJSONPointer) MustGetOneLevelJSONPointerOrPanic() jsonpointer.T {
+	pointer := jsonpointer.MustParse(p.Pointer)
+	if len(pointer) != 1 {
+		// See https://linear.app/authgear/issue/DEV-1701/high-sql-cpu-utilization-when-running-list-by-claim-query
+		panic(fmt.Errorf("account linking json pointer must be /email, /phone_number or /preferred_username"))
+	}
+	return pointer
+}
+
+func (p *AccountLinkingJSONPointer) MustGetFirstLevelReferenceTokenOrPanic() string {
+	pointer := p.MustGetOneLevelJSONPointerOrPanic()
+	return pointer[0]
 }
 
 var DefaultAccountLinkingOAuthItem = &AccountLinkingOAuthItem{
