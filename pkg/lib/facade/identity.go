@@ -1,8 +1,6 @@
 package facade
 
 import (
-	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
-
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
@@ -24,10 +22,6 @@ func (i IdentityFacade) ListByUser(userID string) ([]*identity.Info, error) {
 
 func (i IdentityFacade) ListByClaim(name string, value string) ([]*identity.Info, error) {
 	return i.Coordinator.IdentityListByClaim(name, value)
-}
-
-func (i IdentityFacade) ListByClaimJSONPointer(pointer jsonpointer.T, value string) ([]*identity.Info, error) {
-	return i.Coordinator.IdentityListByClaimJSONPointer(pointer, value)
 }
 
 func (i IdentityFacade) New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {

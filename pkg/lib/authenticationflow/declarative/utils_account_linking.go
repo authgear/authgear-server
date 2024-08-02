@@ -168,7 +168,7 @@ func linkByIncomingOAuthSpec(
 	conflictedIdentityIDs := map[string]interface{}{}
 
 	for _, oauthConfig := range oauthConfigs {
-		value, traverseErr := oauthConfig.OAuthClaim.GetJSONPointer().Traverse(request.Spec.OAuth.StandardClaims)
+		value, traverseErr := oauthConfig.OAuthClaim.MustGetOneLevelJSONPointerOrPanic().Traverse(request.Spec.OAuth.StandardClaims)
 		if traverseErr != nil {
 			// If we failed to obtain value using the json pointer, just treat it as empty
 			value = ""
@@ -185,7 +185,7 @@ func linkByIncomingOAuthSpec(
 			continue
 		}
 
-		idenConflicts, err := deps.Identities.ListByClaimJSONPointer(oauthConfig.UserProfile.GetJSONPointer(), valueStr)
+		idenConflicts, err := deps.Identities.ListByClaim(oauthConfig.UserProfile.MustGetFirstLevelReferenceTokenOrPanic(), valueStr)
 		if err != nil {
 			return nil, err
 		}
@@ -269,8 +269,8 @@ func linkByIncomingLoginIDSpec(
 
 	for _, loginIDConfig := range loginIDConfigs {
 
-		idenConflicts, err := deps.Identities.ListByClaimJSONPointer(
-			loginIDConfig.UserProfile.GetJSONPointer(),
+		idenConflicts, err := deps.Identities.ListByClaim(
+			loginIDConfig.UserProfile.MustGetFirstLevelReferenceTokenOrPanic(),
 			normalizedValue,
 		)
 		if err != nil {
