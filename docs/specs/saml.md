@@ -171,7 +171,7 @@ saml:
 
 ### <a id="1_5"></a> Support Pre-Selecting User by SAML Subject in Authentication Flow
 
-A new identification method `saml_authn_request` will be added. It accepts the base64url encoded saml request as the input.
+A new identification method `saml_authn_request` will be added. It accepts the base64url encoded SAML request as the input.
 
 ```json
 {
@@ -306,7 +306,7 @@ The following `NameIDFormat`s are not supported at the moment, but they are comm
 
 ## <a id="4"></a> Attributes
 
-By default, all attributes of the user, including standard attributes and custom attributes, will be included in the saml assertion `<AttributeStatement>` element. The `Name` of the `<Attribute>` will be same as the name of the attribute. The user id will also be included as an `<Attribute>` with `Name="sub"`.
+By default, all attributes of the user, including standard attributes and custom attributes, will be included in the SAML assertion `<AttributeStatement>` element. The `Name` of the `<Attribute>` will be same as the name of the attribute. The user id will also be included as an `<Attribute>` with `Name="sub"`.
 
 For example, if the response of the `/oauth2/userinfo` endpoint of a user is:
 
@@ -324,7 +324,7 @@ For example, if the response of the `/oauth2/userinfo` endpoint of a user is:
 }
 ```
 
-Then the saml attributes of the user will be:
+Then the SAML attributes of the user will be:
 
 ```xml
 <saml:AttributeStatement>
@@ -377,7 +377,7 @@ For all supported attributes, please read [User profile](user-profile/design.md)
 
 ### <a id="4_1"></a> Customizing the attributes
 
-The saml attributes can be customized in the config. Here is an example:
+The SAML attributes can be customized in the config. Here is an example:
 
 ```yaml
 saml:
@@ -399,9 +399,9 @@ saml:
           - hook: authgeardeno:///deno/saml_mapping.ts
 ```
 
-The `attributes` object under items of `service_providers` is used to customize the saml attributes. It contains two objects.
+The `attributes` object under items of `service_providers` is used to customize the SAML attributes. It contains two objects.
 
-- `definitions`: Optional. This object defines all saml attributes that can be included in the `<AttributeStatement>`. When `null` or not provided, the default attributes mentioned above is used. When provided, it MUST be a list of objects containing the following fields:
+- `definitions`: Optional. This object defines all SAML attributes that can be included in the `<AttributeStatement>`. When `null` or not provided, the default attributes mentioned above is used. When provided, it MUST be a list of objects containing the following fields:
 
   - `name`: Required. MUST be a string. The name of the attribute. It will be used as the `Name` of the `<Attribute>` element.
   - `name_format`: Optional. Used as the `NameFormat` of the `<Attribute>` element. See [SAMLCore](https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf) Section 2.7.3.1 for details.
@@ -409,12 +409,12 @@ The `attributes` object under items of `service_providers` is used to customize 
 
 - `mappings`: Required if `definitions` is not empty, else optional. When provided, it MUST be a list of objects, in one of the following types:
 
-  1. A simple mapping object. It maps a value from a user profile attribute to a saml attribute. The object contains the following fields:
+  1. A simple mapping object. It maps a value from a user profile attribute to a SAML attribute. The object contains the following fields:
 
-  - `from_user_profile_attribute`: Required. A JSON pointer to a field of the user profile. A value will be read using the JSON pointer from the user profile. And write to the saml attribute with `Name` specified by `to_saml_attribute`.
-  - `to_saml_attribute`: Required. The `Name` of the saml attribute to write the value.
+  - `from_user_profile_attribute`: Required. A JSON pointer to a field of the user profile. A value will be read using the JSON pointer from the user profile. And write to the SAML attribute with `Name` specified by `to_saml_attribute`.
+  - `to_saml_attribute`: Required. The `Name` of the SAML attribute to write the value.
 
-  2. A hook. It runs a hook to computes the resulting saml attributes. See the below section [Use a hook to compute SAML attributes](#use-a-hook-to-compute-saml-attributes) for more details about the hook. The object contains the following fields:
+  2. A hook. It runs a hook to computes the resulting SAML attributes. See the below section [Use a hook to compute SAML attributes](#use-a-hook-to-compute-saml-attributes) for more details about the hook. The object contains the following fields:
 
   - `hook`: Required. The url of the hook to execute. It could be either a webhook url, or a deno hook. See [hook](./hook.md) for details.
 
@@ -428,7 +428,7 @@ The `attributes` object under items of `service_providers` is used to customize 
       to_saml_attribute: username
   ```
 
-  The value in the saml attribute with `Name` equal to `username` will be the phone number of the user.
+  The value in the SAML attribute with `Name` equal to `username` will be the phone number of the user.
 
 ### <a id="4_2"></a> Use a hook to compute SAML attributes
 
@@ -441,7 +441,7 @@ See the below sections for the payload the hook receives, and the expected respo
 The hook will receive an object, containing the following fields:
 
 - `user`: The user profile object. It will be same as the JSON object you got when calling the `oauth2/userinfo` endpoint.
-- `saml_attributes`: The resulting saml attributes from the previous mappings step. If the hook is the first step, it will be an empty object `{}`.
+- `saml_attributes`: The resulting SAML attributes from the previous mappings step. If the hook is the first step, it will be an empty object `{}`.
 
 Here is an example of the payload:
 
@@ -466,7 +466,7 @@ Here is an example of the payload:
 
 #### <a id="4_2_2"></a> Response
 
-The hook is expected to return a object, which the key is the `Name` of the saml attribute, and the value is the value of the saml attribute.
+The hook is expected to return a object, which the key is the `Name` of the SAML attribute, and the value is the value of the SAML attribute.
 
 Here is an typescript hook example:
 
