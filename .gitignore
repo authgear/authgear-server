@@ -41,3 +41,7 @@ pkg/lib/webparcel/parcel_gen.go
 
 # custom build of k6
 /k6/k6
+
+# Ignore generated credentials from google-github-actions/auth
+# See https://github.com/google-github-actions/auth?tab=readme-ov-file#prerequisites
+gha-creds-*.json
