@@ -39,6 +39,9 @@ func generateSignupFlowStepIdentify(cfg *config.AppConfig) *config.Authenticatio
 		case model.IdentityTypePasskey:
 			// Cannot create paskey in this step.
 			break
+		case model.IdentityTypeLDAP:
+			oneOf := generateSignupFlowStepIdentifyLDAP(cfg)
+			step.OneOf = append(step.OneOf, oneOf...)
 		}
 	}
 
@@ -170,6 +173,25 @@ func generateSignupFlowStepIdentifyOAuth(cfg *config.AppConfig) []*config.Authen
 		{
 			Identification: config.AuthenticationFlowIdentificationOAuth,
 		},
+	}
+}
+
+func generateSignupFlowStepIdentifyLDAP(cfg *config.AppConfig) []*config.AuthenticationFlowSignupFlowOneOf {
+	if len(cfg.Identity.LDAP.Servers) == 0 {
+		return nil
+	}
+
+	oneOf := &config.AuthenticationFlowSignupFlowOneOf{
+		Identification: config.AuthenticationFlowIdentificationLDAP,
+	}
+
+	// Add authenticate step secondary if necessary
+	if stepAuthenticateSecondary, ok := generateSignupFlowStepCreateAuthenticatorSecondary(cfg, oneOf.Identification); ok {
+		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+	}
+
+	return []*config.AuthenticationFlowSignupFlowOneOf{
+		oneOf,
 	}
 }
 

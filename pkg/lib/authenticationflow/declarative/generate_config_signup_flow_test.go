@@ -319,6 +319,79 @@ steps:
       - authentication: secondary_totp
   - identification: oauth
 `)
+
+		// ldap
+		test(`
+authentication:
+  identities:
+  - ldap
+identity:
+  ldap:
+    servers:
+    - name: ldap
+`, `
+name: default
+steps:
+- name: signup_identify
+  type: identify
+  one_of:
+  - identification: ldap
+`)
+		// ldap, otp
+		test(`
+authentication:
+  identities:
+  - ldap
+  secondary_authenticators:
+  - oob_otp_sms
+  secondary_authentication_mode: required
+  recovery_code:
+    disabled: true
+identity:
+  ldap:
+    servers:
+    - name: ldap
+`, `
+name: default
+steps:
+- name: signup_identify
+  type: identify
+  one_of:
+  - identification: ldap
+    steps:
+    - name: authenticate_secondary_ldap
+      type: create_authenticator
+      one_of:
+      - authentication: secondary_oob_otp_sms
+`)
+		// ldap, totp,recovery_code
+		test(`
+authentication:
+  identities:
+  - ldap
+  secondary_authenticators:
+  - totp
+  secondary_authentication_mode: required
+identity:
+  ldap:
+    servers:
+    - name: ldap
+`, `
+name: default
+steps:
+- name: signup_identify
+  type: identify
+  one_of:
+  - identification: ldap
+    steps:
+    - name: authenticate_secondary_ldap
+      type: create_authenticator
+      one_of:
+      - authentication: secondary_totp
+        steps:
+        - type: view_recovery_code
+`)
+
 		// bot_protection, 3 branches
 		test(`
 authentication:
