@@ -5,7 +5,7 @@ error: |-
   <root>: type
     map[actual:[integer number] expected:[string]]
   <root>: enum
-    map[actual:0 expected:[email phone username oauth passkey]]
+    map[actual:0 expected:[email phone username oauth passkey ldap]]
 value: 0
 
 ---
@@ -14,5 +14,5 @@ name: enum
 error: |-
   invalid value:
   <root>: enum
-    map[actual:a expected:[email phone username oauth passkey]]
+    map[actual:a expected:[email phone username oauth passkey ldap]]
 value: a
