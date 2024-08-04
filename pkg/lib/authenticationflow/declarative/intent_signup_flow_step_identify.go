@@ -161,6 +161,10 @@ func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 			// Do not support create passkey in signup because
 			// passkey is not considered as a persistent identifier.
 			break
+		case config.AuthenticationFlowIdentificationLDAP:
+			ldapOptions := NewIdentificationOptionLDAP(deps.Config.Identity.LDAP, b.BotProtection, deps.Config.BotProtection)
+			options = append(options, ldapOptions...)
+			break
 		}
 	}
 
