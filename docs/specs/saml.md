@@ -539,14 +539,16 @@ Two secrets are defined for SAML signing:
 ```yaml
 - data:
     certs:
-      - cert: dGVzdHRlc3R0ZXN0dGVzdHRlc3R...
+      - cert:
+          pem: "-----BEGIN CERTIFICATE-----\nMIIH/TCCBeWgAwIBAgIQaBYE3/..."
         key:
           alg: RS256
           created_at: 1671439710
           kid: key01
           d: xxxxxx
           use: sig
-      - cert: dGVzdHRlc3R0ZXN0dGVzdHRlc3R...
+      - cert:
+          pem: "-----BEGIN CERTIFICATE-----\nMIIH/TCCBeWgAwIBAgIQaBYE3/..."
         key:
           alg: RS256
           created_at: 1671439710
@@ -560,15 +562,16 @@ Two secrets are defined for SAML signing:
   - `key`: Must be `saml.idp.signing`.
   - `data`: Required. An object containing the following fields:
     - `certs`: Required. A list of objects which represents the signing keypairs and the X.509 certs used to sign the IdP requests, responses and assertions. The minimum number of items in the list is 1. The maximum number of items in the list is 0. The item inside the list MUST contains the following fields:
-      - `cert`: Requried. Base64 encoded PEM format X.509 cert with a public key. The cert will be included in the metadata. See [Metadata](#7) for details.
+      - `cert`: Requried. An object represents a X.509 cert. It MUST contains the following fields:
+        - `pem`: Required. The X.509 cert in pem format. See [Metadata](#7) for details.
       - `key`: Required. The private key used to sign, in jwk format.
 
 ```yaml
 - data:
     - entity_id: ENTITY_1
       certs:
-        - dGVzdHRlc3R0ZXN0dGVzdHRlc...
-        - dGVzdHRlc3R0ZXN0dGVzdHRlc3...
+        - pem: "-----BEGIN CERTIFICATE-----\nMIIH/TCCBeWgAwIBAgIQaBYE3/..."
+        - pem: "-----BEGIN CERTIFICATE-----\nMIIH/TCCBeWgAwIBAgIQaBYE3/..."
   key: saml.service_providers.signing
 ```
 
@@ -576,7 +579,8 @@ Two secrets are defined for SAML signing:
   - `key`: Must be `saml.service_providers.signing`.
   - `data`: Required. A list of objects which represents the certs of one service provider. The object inside the list MUST contains the following fields:
     - `entity_id`: Required. The entity ID of the service provider which owns the certs in `certs` below.
-    - `certs`: Requried. A list of base64 encoded PEM format X.509 cert. The minimum number of items in the list is 0. The maximum number of items in the list is 2. When there is at least one item in the list, all requests or responses from the service provider which specified by the above `entity_id` will be rejected if it is not signed with one of the cert in the list.
+    - `certs`: Requried. A list of objects representing X.509 certs. The minimum number of items in the list is 0. The maximum number of items in the list is 2. When there is at least one item in the list, all requests or responses from the service provider which specified by the above `entity_id` will be rejected if it is not signed with one of the cert in the list. The objects inside the list MUST contains the following fields:
+        - `pem`: Required. The X.509 cert in pem format.
 
 ## <a id="7"></a> Metadata
 
