@@ -102,7 +102,7 @@
       class="flex flex-col gap-4 mt-8"
       method="post"
       novalidate
-      {{ if (or (and $show_phone_input $show_captcha_phone) (and $show_text_input (or $show_captcha_email $show_captcha_username)))}}
+      {{ if (or $show_captcha_phone $show_captcha_email $show_captcha_username)}}
         data-action="submit->bot-protection#verifyFormSubmit"
       {{ end }}
       data-controller="{{ $formController }}"
