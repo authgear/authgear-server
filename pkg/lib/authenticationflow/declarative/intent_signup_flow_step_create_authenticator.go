@@ -115,7 +115,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 		}
 	}
 
-	internalOptions, err := i.getOptions(ctx, deps, flows)
+	internalOptions, err := i.getInternalOptions(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +242,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	internalOptions, err := i.getOptions(ctx, deps, flows)
+	internalOptions, err := i.getInternalOptions(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
@@ -335,7 +335,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorOfSameType(de
 	return existing, nil
 }
 
-func (i *IntentSignupFlowStepCreateAuthenticator) getOptions(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]CreateAuthenticatorOptionInternal, error) {
+func (i *IntentSignupFlowStepCreateAuthenticator) getInternalOptions(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]CreateAuthenticatorOptionInternal, error) {
 	current, err := i.currentFlowObject(deps)
 	if err != nil {
 		return nil, err
@@ -389,7 +389,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findSkippableOption(
 		return nil, -1, nil, err
 	}
 	// For each option, see if any existing identities can be reused
-	options, err := i.getOptions(ctx, deps, flows)
+	options, err := i.getInternalOptions(ctx, deps, flows)
 	if err != nil {
 		return nil, -1, nil, err
 	}
