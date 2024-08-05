@@ -742,6 +742,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		IdentityConfig:             identityConfig,
 		AccountDeletionConfig:      accountDeletionConfig,
 		AccountAnonymizationConfig: accountAnonymizationConfig,
+		AuthenticationConfig:       authenticationConfig,
 		Clock:                      clockClock,
 	}
 	userFacade := &facade.UserFacade{

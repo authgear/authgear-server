@@ -715,6 +715,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		IdentityConfig:             identityConfig,
 		AccountDeletionConfig:      accountDeletionConfig,
 		AccountAnonymizationConfig: accountAnonymizationConfig,
+		AuthenticationConfig:       authenticationConfig,
 		Clock:                      clockClock,
 	}
 	identityFacade := &facade.IdentityFacade{
