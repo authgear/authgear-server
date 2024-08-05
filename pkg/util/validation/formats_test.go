@@ -188,11 +188,15 @@ func TestFormatLDAPOID(t *testing.T) {
 		So(f(1), ShouldBeNil)
 		So(f("1.1"), ShouldBeNil)
 		So(f("1.1.1"), ShouldBeNil)
-		So(f("1"), ShouldBeNil)
+		So(f("0.1.3"), ShouldBeNil)
+		So(f("10.13.10"), ShouldBeNil)
+		So(f("0.9.2342.19200300.100.1.1"), ShouldBeNil)
 		So(f(""), ShouldBeError, "expect non-empty OID")
+		So(f("1"), ShouldBeError, "invalid OID")
 		So(f(".1.1"), ShouldBeError, "invalid OID")
 		So(f("1.1."), ShouldBeError, "invalid OID")
 		So(f("1.1.1.a.2"), ShouldBeError, "invalid OID")
+
 	})
 }
 
