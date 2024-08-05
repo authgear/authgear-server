@@ -215,7 +215,7 @@ func (c *SecretConfig) validateBotProtectionSecrets(ctx *validation.Context, bot
 	}
 }
 
-func (c *SecretConfig) validateLDAPServerUserSecrets(ctx *validation.Context, ldapServerConfig []LDAPServerConfig) {
+func (c *SecretConfig) validateLDAPServerUserSecrets(ctx *validation.Context, ldapServerConfig []*LDAPServerConfig) {
 	c.validateRequire(ctx, LDAPServerUserCredentialsKey, "LDAP server user credentials")
 	_, data, _ := c.LookupDataWithIndex(LDAPServerUserCredentialsKey)
 	ldapServerUserCredentials, ok := data.(*LDAPServerUserCredentials)

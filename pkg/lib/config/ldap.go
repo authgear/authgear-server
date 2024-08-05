@@ -17,7 +17,7 @@ var _ = Schema.Add("LDAPConfig", `
 `)
 
 type LDAPConfig struct {
-	Servers []LDAPServerConfig `json:"servers,omitempty"`
+	Servers []*LDAPServerConfig `json:"servers,omitempty"`
 }
 
 var _ = Schema.Add("LDAPServerConfig", `
