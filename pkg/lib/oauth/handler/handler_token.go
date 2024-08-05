@@ -89,7 +89,7 @@ var whitelistedGrantTypes = []string{
 type IDTokenIssuer interface {
 	Iss() string
 	IssueIDToken(opts oidc.IssueIDTokenOptions) (token string, err error)
-	VerifyIDTokenWithoutClient(idToken string) (token jwt.Token, err error)
+	VerifyIDToken(idToken string) (token jwt.Token, err error)
 }
 
 type AccessTokenIssuer interface {
@@ -735,11 +735,11 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	}
 
 	deviceSecret := r.ActorToken()
-	idToken, err := h.IDTokenIssuer.VerifyIDTokenWithoutClient(r.SubjectToken())
+	idToken, err := h.IDTokenIssuer.VerifyIDToken(r.SubjectToken())
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", "subject_token is not a valid id token")
 	}
-	if idToken.Issuer() != h.IDTokenIssuer.Iss() {
+	if r.Audience() != h.IDTokenIssuer.Iss() {
 		return nil, protocol.NewError("invalid_request", fmt.Sprintf("expected audience to be %v", h.IDTokenIssuer.Iss()))
 	}
 	session, ok, err := h.resolveIDTokenSession(idToken)

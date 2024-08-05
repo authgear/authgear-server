@@ -2,7 +2,6 @@ package oidc
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -194,7 +193,7 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 	return signed, nil
 }
 
-func (ti *IDTokenIssuer) VerifyIDTokenWithoutClient(idToken string) (token jwt.Token, err error) {
+func (ti *IDTokenIssuer) VerifyIDToken(idToken string) (token jwt.Token, err error) {
 	// Verify the signature.
 	jwkSet, err := ti.GetPublicKeySet()
 	if err != nil {
@@ -211,36 +210,14 @@ func (ti *IDTokenIssuer) VerifyIDTokenWithoutClient(idToken string) (token jwt.T
 		return
 	}
 
-	return
-}
-
-func (ti *IDTokenIssuer) VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (token jwt.Token, err error) {
-	token, err = ti.VerifyIDTokenWithoutClient(idTokenHint)
-	if err != nil {
-		return
-	}
-
-	// Validate the claims in the JWT.
-	// Here we do not use the library function jwt.Validate because
-	// we do not want to validate the exp of the token.
-
-	// We want to validate `aud` only.
-	foundAud := false
-	aud := client.ClientID
-	for _, v := range token.Audience() {
-		if v == aud {
-			foundAud = true
-			break
-		}
-	}
-	if !foundAud {
-		err = errors.New(`aud not satisfied`)
-		return
-	}
+	// We used to validate `aud`.
+	// However, some features like Native SSO will share a id token with multiple clients.
+	// So we removed the checking of `aud`.
 
 	// Normally we should also validate `iss`.
 	// But `iss` can change if public_origin was changed.
 	// We should still accept ID token referencing an old public_origin.
+	// See https://linear.app/authgear/issue/DEV-1712
 
 	return
 }
@@ -332,7 +309,7 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 }
 
 type IDTokenHintResolverIssuer interface {
-	VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (idToken jwt.Token, err error)
+	VerifyIDToken(idTokenHint string) (idToken jwt.Token, err error)
 }
 
 type IDTokenHintResolverSessionProvider interface {
@@ -351,7 +328,7 @@ func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfi
 		return
 	}
 
-	idToken, err = r.Issuer.VerifyIDTokenHint(client, idTokenHint)
+	idToken, err = r.Issuer.VerifyIDToken(idTokenHint)
 	if err != nil {
 		return
 	}

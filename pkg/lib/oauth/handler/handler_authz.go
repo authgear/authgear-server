@@ -512,7 +512,7 @@ func (h *AuthorizationHandler) doHandlePreAuthenticatedURL(
 	if !ok {
 		panic("cannot get id_token_hint, the request should be validated")
 	}
-	idToken, err := h.IDTokenIssuer.VerifyIDTokenWithoutClient(idTokenHint)
+	idToken, err := h.IDTokenIssuer.VerifyIDToken(idTokenHint)
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", "invalid id_token_hint")
 	}
