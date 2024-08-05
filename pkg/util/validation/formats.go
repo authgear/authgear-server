@@ -318,11 +318,15 @@ func (FormatLDAPOID) CheckFormat(value interface{}) error {
 	}
 
 	// numericoid = number 1*( DOT number )
+	// number  = DIGIT / ( LDIGIT 1*DIGIT )
+	// DIGIT   = %x30 / LDIGIT       ; "0"-"9"
+	// LDIGIT  = %x31-39             ; "1"-"9"
+	// https://datatracker.ietf.org/doc/html/rfc4512#section-1.4
 	if len(str) == 0 {
 		return errors.New("expect non-empty OID")
 	}
 
-	matched, err := regexp.MatchString(`^\d+(\.\d+)*$`, str)
+	matched, err := regexp.MatchString(`^(?:[0-9]|[1-9][0-9]+)(?:\.(?:[0-9]|[1-9][0-9]+))+$`, str)
 	if err != nil {
 		return err
 	}
