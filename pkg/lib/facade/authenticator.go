@@ -41,6 +41,10 @@ func (a AuthenticatorFacade) Update(authenticatorInfo *authenticator.Info) error
 	return a.Coordinator.AuthenticatorUpdate(authenticatorInfo)
 }
 
+func (a AuthenticatorFacade) UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error) {
+	return a.Coordinator.AuthenticatorUpdatePassword(authenticatorInfo, options)
+}
+
 func (a AuthenticatorFacade) Delete(authenticatorInfo *authenticator.Info) error {
 	return a.Coordinator.AuthenticatorDelete(authenticatorInfo)
 }

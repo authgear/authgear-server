@@ -56,6 +56,7 @@ type AuthenticatorService interface {
 	Update(authenticatorInfo *authenticator.Info) error
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
+	UpdatePassword(ainfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
 	VerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, verifyResult *service.VerifyResult, err error)
 	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
@@ -104,7 +105,7 @@ type ForgotPasswordService interface {
 type ResetPasswordService interface {
 	VerifyCode(code string) (state *otp.State, err error)
 	VerifyCodeWithTarget(target string, code string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) (state *otp.State, err error)
-	ResetPassword(code string, newPassword string) error
+	ResetPasswordByEndUser(code string, newPassword string) error
 	ResetPasswordWithTarget(target string, code string, newPassword string, channel forgotpassword.CodeChannel, kind forgotpassword.CodeKind) error
 }
 

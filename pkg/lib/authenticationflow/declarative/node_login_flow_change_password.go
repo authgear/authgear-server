@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 )
 
 func init() {
@@ -50,10 +51,9 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflo
 		newPassword := inputTakeNewPassword.GetNewPassword()
 
 		oldInfo := n.Authenticator
-		changed, newInfo, err := deps.Authenticators.WithSpec(oldInfo, &authenticator.Spec{
-			Password: &authenticator.PasswordSpec{
-				PlainPassword: newPassword,
-			},
+		changed, newInfo, err := deps.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
+			PlainPassword:  newPassword,
+			SetExpireAfter: true,
 		})
 		if err != nil {
 			return nil, err

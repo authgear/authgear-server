@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 )
@@ -95,7 +96,13 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 					expireAfter = &now
 				}
 
-				err := ctx.ResetPassword.SetPassword(userID, newPassword, sendPassword, expireAfter)
+				err := ctx.ResetPassword.ChangePasswordByAdmin(&forgotpassword.SetPasswordOptions{
+					UserID:         userID,
+					PlainPassword:  newPassword,
+					SendPassword:   sendPassword,
+					ExpireAfter:    expireAfter,
+					SetExpireAfter: resetInput.ChangeOnLogin(),
+				})
 				if err != nil {
 					return err
 				}
@@ -106,7 +113,7 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 				code := codeInput.GetCode()
 				newPassword := codeInput.GetNewPassword()
 
-				err := ctx.ResetPassword.ResetPassword(code, newPassword)
+				err := ctx.ResetPassword.ResetPasswordByEndUser(code, newPassword)
 				if err != nil {
 					return err
 				}

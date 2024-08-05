@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -19,11 +20,9 @@ type PasswordAuthenticatorProvider interface {
 	GetMany(ids []string) ([]*authenticator.Password, error)
 	List(userID string) ([]*authenticator.Password, error)
 	New(id string, userID string, passwordSpec *authenticator.PasswordSpec, isDefault bool, kind string) (*authenticator.Password, error)
-	// WithSpec returns new authenticator pointer if password is changed
-	// Otherwise original authenticator will be returned
-	WithSpec(a *authenticator.Password, spec *authenticator.PasswordSpec) (*authenticator.Password, error)
+	UpdatePassword(a *authenticator.Password, options *password.UpdatePasswordOptions) (bool, *authenticator.Password, error)
 	Create(*authenticator.Password) error
-	UpdatePassword(*authenticator.Password) error
+	Update(*authenticator.Password) error
 	Delete(*authenticator.Password) error
 	Authenticate(a *authenticator.Password, password string) (verifyResult *password.VerifyResult, err error)
 }
@@ -369,13 +368,7 @@ func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bo
 	changed := false
 	switch ai.Type {
 	case model.AuthenticatorTypePassword:
-		a := ai.Password
-		newAuth, err := s.Password.WithSpec(a, spec.Password)
-		if err != nil {
-			return false, nil, err
-		}
-		changed = (newAuth != a)
-		return changed, newAuth.ToInfo(), nil
+		panic("authenticator: password authenticator update must use UpdatePassword")
 	case model.AuthenticatorTypeOOBEmail:
 		fallthrough
 	case model.AuthenticatorTypeOOBSMS:
@@ -389,6 +382,33 @@ func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bo
 	}
 
 	panic("authenticator: update authenticator is not supported for type " + ai.Type)
+}
+
+type UpdatePasswordOptions struct {
+	PlainPassword  string
+	SetExpireAfter bool
+	ExpireAfter    *time.Time
+}
+
+func (options *UpdatePasswordOptions) toProviderOptions() *password.UpdatePasswordOptions {
+	return &password.UpdatePasswordOptions{
+		PlainPassword:  options.PlainPassword,
+		SetExpireAfter: options.SetExpireAfter,
+		ExpireAfter:    options.ExpireAfter,
+	}
+}
+
+func (s *Service) UpdatePassword(ai *authenticator.Info, options *UpdatePasswordOptions) (bool, *authenticator.Info, error) {
+	if ai.Type != model.AuthenticatorTypePassword {
+		panic("authenticator: update password is not supported for type " + ai.Type)
+	}
+
+	a := ai.Password
+	changed, newAuth, err := s.Password.UpdatePassword(a, options.toProviderOptions())
+	if err != nil {
+		return false, nil, err
+	}
+	return changed, newAuth.ToInfo(), nil
 }
 
 func (s *Service) Create(info *authenticator.Info) error {
@@ -442,7 +462,7 @@ func (s *Service) Update(info *authenticator.Info) error {
 	switch info.Type {
 	case model.AuthenticatorTypePassword:
 		a := info.Password
-		if err := s.Password.UpdatePassword(a); err != nil {
+		if err := s.Password.Update(a); err != nil {
 			return err
 		}
 		*info = *a.ToInfo()

@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -42,6 +43,7 @@ type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec) (*authenticator.Info, error)
 	WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bool, *authenticator.Info, error)
+	UpdatePassword(info *authenticator.Info, options *service.UpdatePasswordOptions) (bool, *authenticator.Info, error)
 	Update(info *authenticator.Info) error
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
 	Delete(info *authenticator.Info) error
@@ -435,11 +437,11 @@ func (s *Service) InspectState(target string, channel CodeChannel, kind CodeKind
 	return s.OTPCodes.InspectState(otpKind, target)
 }
 
-// ResetPassword consumes code and reset password to newPassword.
+// ResetPasswordByEndUser consumes code and reset password to newPassword.
 // If the code is valid, the password is reset to newPassword.
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
-func (s *Service) ResetPassword(code string, newPassword string) error {
+func (s *Service) ResetPasswordByEndUser(code string, newPassword string) error {
 	if !*s.Config.ForgotPassword.Enabled {
 		return ErrFeatureDisabled
 	}
@@ -467,7 +469,11 @@ func (s *Service) ResetPasswordWithTarget(target string, code string, newPasswor
 }
 
 func (s *Service) resetPassword(target string, otpState *otp.State, newPassword string, channel CodeChannel) error {
-	err := s.SetPassword(otpState.UserID, newPassword, false, nil)
+	err := s.setPassword(&SetPasswordOptions{
+		UserID:         otpState.UserID,
+		PlainPassword:  newPassword,
+		SetExpireAfter: true,
+	})
 	if err != nil {
 		return err
 	}
@@ -538,10 +544,18 @@ func (s *Service) sendPassword(userID string, password string) error {
 	return nil
 }
 
+type SetPasswordOptions struct {
+	UserID         string
+	PlainPassword  string
+	SetExpireAfter bool
+	ExpireAfter    *time.Time
+	SendPassword   bool
+}
+
 // SetPassword ensures the user identified by userID has the specified password.
 // It perform necessary mutation to make this happens.
-func (s *Service) SetPassword(userID string, newPassword string, sendPassword bool, expireAfter *time.Time) (err error) {
-	ais, err := s.getPrimaryPasswordList(userID)
+func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
+	ais, err := s.getPrimaryPasswordList(options.UserID)
 	if err != nil {
 		return
 	}
@@ -552,11 +566,10 @@ func (s *Service) SetPassword(userID string, newPassword string, sendPassword bo
 		// The user has 1 password. Reset it.
 		var changed bool
 		var ai *authenticator.Info
-		changed, ai, err = s.Authenticators.WithSpec(ais[0], &authenticator.Spec{
-			Password: &authenticator.PasswordSpec{
-				PlainPassword: newPassword,
-				ExpireAfter:   expireAfter,
-			},
+		changed, ai, err = s.Authenticators.UpdatePassword(ais[0], &service.UpdatePasswordOptions{
+			PlainPassword:  options.PlainPassword,
+			SetExpireAfter: options.SetExpireAfter,
+			ExpireAfter:    options.ExpireAfter,
 		})
 		if err != nil {
 			return
@@ -567,8 +580,8 @@ func (s *Service) SetPassword(userID string, newPassword string, sendPassword bo
 				return
 			}
 
-			if sendPassword {
-				err = s.sendPassword(userID, newPassword)
+			if options.SendPassword {
+				err = s.sendPassword(options.UserID, options.PlainPassword)
 				if err != nil {
 					return
 				}
@@ -596,11 +609,10 @@ func (s *Service) SetPassword(userID string, newPassword string, sendPassword bo
 		newInfo, err = s.Authenticators.New(&authenticator.Spec{
 			Type:      model.AuthenticatorTypePassword,
 			Kind:      authenticator.KindPrimary,
-			UserID:    userID,
+			UserID:    options.UserID,
 			IsDefault: isDefault,
 			Password: &authenticator.PasswordSpec{
-				PlainPassword: newPassword,
-				ExpireAfter:   expireAfter,
+				PlainPassword: options.PlainPassword,
 			},
 		})
 		if err != nil {
@@ -612,8 +624,8 @@ func (s *Service) SetPassword(userID string, newPassword string, sendPassword bo
 			return
 		}
 
-		if sendPassword {
-			err = s.sendPassword(userID, newPassword)
+		if options.SendPassword {
+			err = s.sendPassword(options.UserID, options.PlainPassword)
 			if err != nil {
 				return
 			}
@@ -621,4 +633,8 @@ func (s *Service) SetPassword(userID string, newPassword string, sendPassword bo
 	}
 
 	return
+}
+
+func (s *Service) ChangePasswordByAdmin(options *SetPasswordOptions) error {
+	return s.setPassword(options)
 }

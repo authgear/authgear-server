@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -54,10 +55,9 @@ func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 			return nil, api.ErrInvalidCredentials
 		}
 
-		changed, newInfo, err := deps.Authenticators.WithSpec(info, &authenticator.Spec{
-			Password: &authenticator.PasswordSpec{
-				PlainPassword: inputChangePassword.GetNewPassword(),
-			},
+		changed, newInfo, err := deps.Authenticators.UpdatePassword(info, &service.UpdatePasswordOptions{
+			PlainPassword:  inputChangePassword.GetNewPassword(),
+			SetExpireAfter: true,
 		})
 		if err != nil {
 			return nil, err
