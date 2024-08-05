@@ -992,6 +992,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	facadeUserFacade := &facade2.UserFacade{
 		UserSearchService:  elasticsearchService,
 		Users:              userFacade,
+		LoginIDConfig:      loginIDConfig,
 		StandardAttributes: serviceNoEvent,
 		Interaction:        serviceInteractionService,
 	}

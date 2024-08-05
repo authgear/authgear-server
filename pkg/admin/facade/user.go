@@ -2,9 +2,11 @@ package facade
 
 import (
 	"github.com/authgear/authgear-server/pkg/admin/model"
+	"github.com/authgear/authgear-server/pkg/api"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -36,6 +38,7 @@ type UserSearchService interface {
 type UserFacade struct {
 	UserSearchService  UserSearchService
 	Users              UserService
+	LoginIDConfig      *config.LoginIDConfig
 	StandardAttributes StandardAttributesService
 	Interaction        InteractionService
 }
@@ -68,12 +71,16 @@ func (f *UserFacade) SearchPage(
 func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (userID string, err error) {
 	// NOTE: identityDef is assumed to be a login ID since portal only supports login ID
 	loginIDInput := identityDef.(*model.IdentityDefLoginID)
-	loginIDKeyType := apimodel.LoginIDKeyType(loginIDInput.Key)
+	loginIDKeyCofig, ok := f.LoginIDConfig.GetKeyConfig(loginIDInput.Key)
+	if !ok {
+		return "", api.NewInvariantViolated("InvalidLoginIDKey", "invalid login ID key", nil)
+	}
+
 	identitySpec := &identity.Spec{
 		Type: identityDef.Type(),
 		LoginID: &identity.LoginIDSpec{
 			Key:   loginIDInput.Key,
-			Type:  loginIDKeyType,
+			Type:  loginIDKeyCofig.Type,
 			Value: loginIDInput.Value,
 		},
 	}

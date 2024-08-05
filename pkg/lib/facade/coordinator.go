@@ -457,10 +457,6 @@ func (c *Coordinator) UserCreatebyAdmin(identitySpec *identity.Spec, password st
 		return nil, err
 	}
 
-	if len(authenticatorInfos) == 0 {
-		return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
-	}
-
 	if err := c.UserCommands.AfterCreate(
 		user,
 		[]*identity.Info{identityInfo},
@@ -483,23 +479,17 @@ func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, u
 	for _, t := range authenticatorTypes {
 		switch t {
 		case model.AuthenticatorTypePassword:
-			if len(password) == 0 {
-				return nil, api.NewInvariantViolated(
-					"PasswordRequired",
-					"password is required",
-					nil,
-				)
+			if password != "" {
+				authenticatorSpecs = append(authenticatorSpecs, &authenticator.Spec{
+					UserID:    userID,
+					IsDefault: true,
+					Kind:      model.AuthenticatorKindPrimary,
+					Type:      model.AuthenticatorTypePassword,
+					Password: &authenticator.PasswordSpec{
+						PlainPassword: password,
+					},
+				})
 			}
-
-			authenticatorSpecs = append(authenticatorSpecs, &authenticator.Spec{
-				UserID:    userID,
-				IsDefault: true,
-				Kind:      model.AuthenticatorKindPrimary,
-				Type:      model.AuthenticatorTypePassword,
-				Password: &authenticator.PasswordSpec{
-					PlainPassword: password,
-				},
-			})
 
 		case model.AuthenticatorTypeOOBSMS:
 			if identityInfo.LoginID.LoginIDType == model.LoginIDKeyTypePhone {
@@ -542,6 +532,20 @@ func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, u
 		}
 
 		authenticatorInfos = append(authenticatorInfos, authenticatorInfo)
+	}
+
+	if len(authenticatorInfos) == 0 {
+		for _, t := range authenticatorTypes {
+			if t == model.AuthenticatorTypePassword {
+				return nil, api.NewInvariantViolated(
+					"PasswordRequired",
+					"password is required",
+					nil,
+				)
+			}
+		}
+
+		return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
 	}
 
 	return authenticatorInfos, nil
