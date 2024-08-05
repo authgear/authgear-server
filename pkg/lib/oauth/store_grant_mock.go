@@ -8,9 +8,10 @@ import (
 	reflect "reflect"
 	time "time"
 
+	gomock "github.com/golang/mock/gomock"
+
 	access "github.com/authgear/authgear-server/pkg/lib/session/access"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockCodeGrantStore is a mock of CodeGrantStore interface.
