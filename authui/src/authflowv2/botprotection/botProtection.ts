@@ -75,6 +75,8 @@ export class BotProtectionController extends Controller {
 
   onVerifySuccess = () => {
     this.isVerified = true;
+    // Wait for bot-protection-token-input to process "bot-protection:verify-success" event
+    // so that the form submission will have bot protection token injected.
     setTimeout(() => this.formSubmitTarget?.click(), 0);
   };
 
