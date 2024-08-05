@@ -20,8 +20,8 @@ var _ = SecretConfigSchema.Add("LDAPServerUserCredentialsItem", `
 	"additionalProperties": false,
 	"properties": {
 		"name": { "type": "string", "minLength": 1 },
-		"dn": { "type": "string", "format": "ldap_dn" },
-		"password": { "type": "string" }
+		"dn": { "type": "string", "format": "ldap_dn", "minLength": 1 },
+		"password": { "type": "string", "minLength": 1 }
 	},
 	"required": ["name"],
 	"dependentRequired": {
