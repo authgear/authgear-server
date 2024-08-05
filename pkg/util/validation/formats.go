@@ -285,32 +285,25 @@ func (FormatLDAPSearchFilterTemplate) CheckFormat(value interface{}) error {
 		return nil
 	}
 
-	str = strings.TrimSpace(str)
-
 	tmpl, err := template.New("search_filter").Parse(str)
 	tmplError := errors.New("invalid template")
 	if err != nil {
 		return tmplError
 	}
-	var buf bytes.Buffer
 	// check if the template can be execute with valid input (phone no., username, email)
 	testcases := []string{"+85298765432", "username", "test@test.com"}
 	for _, testcase := range testcases {
-		err = tmpl.Execute(&buf, map[string]string{"Username": testcase})
-		if err == nil && buf.String() != "" {
-			break
+		var buf bytes.Buffer
+		err := tmpl.Execute(&buf, map[string]string{"Username": testcase})
+		if err != nil {
+			return err
 		}
-	}
-	if err != nil {
-		return tmplError
-	}
-	// check if the filter is correct
-	result := buf.String()
-	result = strings.TrimSpace(result)
-
-	_, err = ldap.CompileFilter(result)
-	if err != nil {
-		return errors.New("invalid search filter")
+		filterString := buf.String()
+		filterString = strings.TrimSpace(filterString)
+		_, err = ldap.CompileFilter(filterString)
+		if err != nil {
+			return errors.New("invalid search filter")
+		}
 	}
 
 	return nil
