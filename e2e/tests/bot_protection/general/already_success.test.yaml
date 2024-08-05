@@ -15,6 +15,11 @@ authgear.yaml:
       provider:
         type: cloudflare
         site_key: dummy
+      requirements:
+        signup_or_login:
+          mode: always
+        password:
+          mode: always
     authentication_flow:
       login_flows:
       - name: f1
