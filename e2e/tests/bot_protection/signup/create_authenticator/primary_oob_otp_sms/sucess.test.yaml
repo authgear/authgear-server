@@ -103,3 +103,36 @@ steps:
             }
           }
         }
+  - action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "authentication": "primary_oob_otp_sms",
+            "data": {
+              "channel": "sms",
+              "code_length": 6,
+              "failed_attempt_rate_limit_exceeded": false,
+              "masked_claim_value": "+8529876****",
+              "otp_form": "code",
+              "type": "verify_oob_otp_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
