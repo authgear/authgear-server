@@ -9,8 +9,7 @@ var _ = Schema.Add("LDAPConfig", `
 			"type": "array",
 			"items": {
 				"$ref": "#/$defs/LDAPServerConfig"
-			},
-			"minItems": 1
+			}
 		}
 	}
 }
