@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/libvips
+    - uses: ./.github/actions/install-native-deps
     - uses: actions/setup-node@v4
       with:
         node-version-file: "./.tool-versions"
@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/libvips
+    - uses: ./.github/actions/install-native-deps
     - uses: actions/setup-go@v4
       with:
         go-version-file: "./go.mod"
@@ -147,7 +147,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/libvips
+    - uses: ./.github/actions/install-native-deps
 
     - uses: actions/setup-go@v4
       with:
@@ -209,7 +209,7 @@ jobs:
     needs: ["portal-test", "authgear-test"]
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/libvips
+    - uses: ./.github/actions/install-native-deps
     - uses: actions/setup-go@v4
       with:
         go-version-file: "./go.mod"
