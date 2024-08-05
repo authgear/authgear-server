@@ -510,7 +510,7 @@ func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, u
 					UserID:    userID,
 					IsDefault: true,
 					Kind:      model.AuthenticatorKindPrimary,
-					Type:      model.AuthenticatorTypeOOBSMS,
+					Type:      model.AuthenticatorTypeOOBEmail,
 					OOBOTP: &authenticator.OOBOTPSpec{
 						Email: identityInfo.LoginID.LoginID,
 					},
