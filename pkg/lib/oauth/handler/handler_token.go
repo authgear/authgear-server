@@ -739,7 +739,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	if err != nil {
 		return nil, protocol.NewError("invalid_request", "subject_token is not a valid id token")
 	}
-	if idToken.Issuer() != h.IDTokenIssuer.Iss() {
+	if r.Audience() != h.IDTokenIssuer.Iss() {
 		return nil, protocol.NewError("invalid_request", fmt.Sprintf("expected audience to be %v", h.IDTokenIssuer.Iss()))
 	}
 	session, ok, err := h.resolveIDTokenSession(idToken)
