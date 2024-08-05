@@ -160,21 +160,24 @@ func TestFormatLDAPSearchFilterTemplate(t *testing.T) {
 		So(f("(uid=%s)(cn=%s"), ShouldBeError, "invalid search filter")
 		So(f(""), ShouldBeError, "invalid search filter")
 
-		test_template := `{{if eq $.Username "test@test.com"}}(mail={{$.Username}}){{else if eq $.Username "+852"}}(telephoneNumber={{$.Username}}){{else}}(uid={{$.Username}}){{end}}`
-		So(f(test_template), ShouldBeNil)
+		correct_template := `{{if eq $.Username "test@test.com"}}(mail={{$.Username}}){{else if eq $.Username "+852"}}(telephoneNumber={{$.Username}}){{else}}(uid={{$.Username}}){{end}}`
+		So(f(correct_template), ShouldBeNil)
 
-		test_template = `
+		multiline_template := `
 		{{if eq .Username "test@test.com"}}
 									(mail={{$.Username}})
+		{{else }}
+			(uid={{$.Username}})
 		{{end}}
 
-`
-		So(f(test_template), ShouldBeNil)
+		`
+		So(f(multiline_template), ShouldBeNil)
 
-		wrong_template := `{{if eq .Username "test@test.com"}}(mail={{.Username}})`
-		So(f(wrong_template), ShouldBeError, "invalid template")
-		wrong_filter := `{{if eq .Username "test@test.com"}}(mail={{.Username}}{{end}}`
-		So(f(wrong_filter), ShouldBeError, "invalid search filter")
+		missing_end := `{{if eq .Username "test@test.com"}}(mail={{.Username}})`
+		So(f(missing_end), ShouldBeError, "invalid template")
+
+		missing_parenthesis := `{{if eq .Username "test@test.com"}}(mail={{.Username}}{{end}}`
+		So(f(missing_parenthesis), ShouldBeError, "invalid search filter")
 	})
 }
 
