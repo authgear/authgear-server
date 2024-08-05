@@ -13,7 +13,7 @@ import (
 type InputSchemaSignupFlowStepCreateAuthenticator struct {
 	JSONPointer               jsonpointer.T
 	FlowRootObject            config.AuthenticationFlowObject
-	OneOf                     []*config.AuthenticationFlowSignupFlowOneOf
+	Options                   []CreateAuthenticatorOption
 	ShouldBypassBotProtection bool
 	BotProtectionCfg          *config.BotProtectionConfig
 }
@@ -31,13 +31,12 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) GetFlowRootObject() confi
 func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validation.SchemaBuilder {
 	oneOf := []validation.SchemaBuilder{}
 
-	for _, branch := range i.OneOf {
-		branch := branch
+	for _, option := range i.Options {
+		option := option
 		b := validation.SchemaBuilder{}
 		required := []string{"authentication"}
-		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(branch.Authentication))
-
-		switch branch.Authentication {
+		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(option.Authentication))
+		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
@@ -57,13 +56,13 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validatio
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			if branch.TargetStep == "" {
+			if option.Target == nil {
 				// Then target is required
 				required = append(required, "target")
 				b.Properties().Property("target", validation.SchemaBuilder{}.Type(validation.TypeString))
 			}
 			b.Required(required...)
-			if !i.ShouldBypassBotProtection && i.BotProtectionCfg != nil && IsConfigBotProtectionRequired(branch.BotProtection, i.BotProtectionCfg) {
+			if !i.ShouldBypassBotProtection && i.BotProtectionCfg != nil && option.isBotProtectionRequired() {
 				b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
 			}
 			oneOf = append(oneOf, b)

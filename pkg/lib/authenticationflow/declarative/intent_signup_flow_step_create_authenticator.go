@@ -130,17 +130,17 @@ func (i *IntentSignupFlowStepCreateAuthenticator) CanReactTo(ctx context.Context
 		if err != nil {
 			return nil, err
 		}
-		current, err := authflow.FlowObject(flowRootObject, i.JSONPointer)
+
+		options, err := i.getOptions(ctx, deps, flows)
 		if err != nil {
 			return nil, err
 		}
-		step := i.step(current)
 
 		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 		return &InputSchemaSignupFlowStepCreateAuthenticator{
 			FlowRootObject:            flowRootObject,
 			JSONPointer:               i.JSONPointer,
-			OneOf:                     step.OneOf,
+			Options:                   options,
 			ShouldBypassBotProtection: shouldBypassBotProtection,
 			BotProtectionCfg:          deps.Config.BotProtection,
 		}, nil
@@ -346,6 +346,17 @@ func (i *IntentSignupFlowStepCreateAuthenticator) getInternalOptions(ctx context
 		return nil, err
 	}
 	return options, nil
+}
+
+func (i *IntentSignupFlowStepCreateAuthenticator) getOptions(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]CreateAuthenticatorOption, error) {
+	internalOptions, err := i.getInternalOptions(ctx, deps, flows)
+	if err != nil {
+		return nil, err
+	}
+
+	return slice.Map(internalOptions, func(o CreateAuthenticatorOptionInternal) CreateAuthenticatorOption {
+		return o.CreateAuthenticatorOption
+	}), nil
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) reactToExistingAuthenticator(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, option CreateAuthenticatorOptionInternal, authn *authenticator.Info, idx int) (*authflow.Node, error) {

@@ -25,9 +25,10 @@ func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
 			},
 		}
 
-		var dummyBotProtectionData = &config.AuthenticationFlowBotProtection{
-			Mode: config.AuthenticationFlowBotProtectionModeAlways,
-			Provider: &config.AuthenticationFlowBotProtectionProvider{
+		var varTrue = true
+		dummyBotProtection := &BotProtectionData{
+			Enabled: &varTrue,
+			Provider: &BotProtectionDataProvider{
 				Type: config.BotProtectionProviderTypeCloudflare,
 			},
 		}
@@ -35,17 +36,20 @@ func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
 		test((&InputSchemaSignupFlowStepCreateAuthenticator{
 			ShouldBypassBotProtection: false,
 			BotProtectionCfg:          dummyBotProtectionCfg,
-			OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
+			Options: []CreateAuthenticatorOption{
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
 				},
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
-					BotProtection:  dummyBotProtectionData,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
-					TargetStep:     "step",
+					Target: &CreateAuthenticatorTarget{
+						MaskedDisplayName:    "test",
+						VerificationRequired: true,
+					},
 				},
 				{
 					Authentication: config.AuthenticationFlowAuthenticationSecondaryPassword,
