@@ -138,6 +138,10 @@ func (s *Service) SendCode(loginID string, options *CodeOptions) error {
 	}
 
 	for _, info := range emailIdentities {
+		if !info.Type.SupportsPassword() {
+			continue
+		}
+
 		standardClaims := info.IdentityAwareStandardClaims()
 		email := standardClaims[model.ClaimEmail]
 		if err := s.sendEmail(email, info.UserID, options); err != nil {
@@ -146,6 +150,10 @@ func (s *Service) SendCode(loginID string, options *CodeOptions) error {
 	}
 
 	for _, info := range phoneIdentities {
+		if !info.Type.SupportsPassword() {
+			continue
+		}
+
 		standardClaims := info.IdentityAwareStandardClaims()
 		phone := standardClaims[model.ClaimPhoneNumber]
 		if err := s.sendToPhone(phone, info.UserID, options); err != nil {
@@ -494,6 +502,10 @@ func (s *Service) getEmailList(userID string) ([]string, error) {
 
 	var emails []string
 	for _, info := range infos {
+		if !info.Type.SupportsPassword() {
+			continue
+		}
+
 		standardClaims := info.IdentityAwareStandardClaims()
 		email := standardClaims[model.ClaimEmail]
 		if email != "" {
