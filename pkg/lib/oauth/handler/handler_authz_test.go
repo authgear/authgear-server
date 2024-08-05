@@ -477,7 +477,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				testVerifiedIDToken := jwt.New()
 				_ = testVerifiedIDToken.Set(string(model.ClaimSID), testSID)
 
-				idTokenIssuer.EXPECT().VerifyIDTokenWithoutClient(testIDToken).
+				idTokenIssuer.EXPECT().VerifyIDToken(testIDToken).
 					Times(1).
 					Return(testVerifiedIDToken, nil)
 

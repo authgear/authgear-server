@@ -89,7 +89,7 @@ func TestSID(t *testing.T) {
 		So(ok, ShouldBeFalse)
 	})
 
-	Convey("IssueIDToken and VerifyIDTokenHint", t, func() {
+	Convey("IssueIDToken and VerifyIDToken", t, func() {
 		ctrl := gomock.NewController(t)
 
 		now := time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC)
@@ -169,7 +169,7 @@ func TestSID(t *testing.T) {
 		})
 		So(err, ShouldBeNil)
 
-		token, err := issuer.VerifyIDTokenHint(client, idToken)
+		token, err := issuer.VerifyIDToken(idToken)
 		So(err, ShouldBeNil)
 
 		// Standard claims

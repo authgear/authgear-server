@@ -9,7 +9,6 @@ import (
 	reflect "reflect"
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
-	config "github.com/authgear/authgear-server/pkg/lib/config"
 	session "github.com/authgear/authgear-server/pkg/lib/session"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -204,19 +203,19 @@ func (m *MockIDTokenHintResolverIssuer) EXPECT() *MockIDTokenHintResolverIssuerM
 	return m.recorder
 }
 
-// VerifyIDTokenHint mocks base method.
-func (m *MockIDTokenHintResolverIssuer) VerifyIDTokenHint(client *config.OAuthClientConfig, idTokenHint string) (jwt.Token, error) {
+// VerifyIDToken mocks base method.
+func (m *MockIDTokenHintResolverIssuer) VerifyIDToken(idTokenHint string) (jwt.Token, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyIDTokenHint", client, idTokenHint)
+	ret := m.ctrl.Call(m, "VerifyIDToken", idTokenHint)
 	ret0, _ := ret[0].(jwt.Token)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// VerifyIDTokenHint indicates an expected call of VerifyIDTokenHint.
-func (mr *MockIDTokenHintResolverIssuerMockRecorder) VerifyIDTokenHint(client, idTokenHint interface{}) *gomock.Call {
+// VerifyIDToken indicates an expected call of VerifyIDToken.
+func (mr *MockIDTokenHintResolverIssuerMockRecorder) VerifyIDToken(idTokenHint interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyIDTokenHint", reflect.TypeOf((*MockIDTokenHintResolverIssuer)(nil).VerifyIDTokenHint), client, idTokenHint)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyIDToken", reflect.TypeOf((*MockIDTokenHintResolverIssuer)(nil).VerifyIDToken), idTokenHint)
 }
 
 // MockIDTokenHintResolverSessionProvider is a mock of IDTokenHintResolverSessionProvider interface.

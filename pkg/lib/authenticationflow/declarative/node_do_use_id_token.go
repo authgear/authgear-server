@@ -22,7 +22,7 @@ var _ authflow.Milestone = &NodeDoUseIDToken{}
 var _ MilestoneDoUseUser = &NodeDoUseIDToken{}
 
 func NewNodeDoUseIDToken(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, n *NodeDoUseIDToken) (*NodeDoUseIDToken, error) {
-	token, err := deps.IDTokens.VerifyIDTokenWithoutClient(n.IDToken)
+	token, err := deps.IDTokens.VerifyIDToken(n.IDToken)
 	if err != nil {
 		return nil, apierrors.NewInvalid("invalid ID token")
 	}

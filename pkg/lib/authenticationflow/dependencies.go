@@ -213,7 +213,7 @@ type PasskeyService interface {
 }
 
 type IDTokenService interface {
-	VerifyIDTokenWithoutClient(idToken string) (jwt.Token, error)
+	VerifyIDToken(idToken string) (jwt.Token, error)
 }
 
 type LoginIDService interface {

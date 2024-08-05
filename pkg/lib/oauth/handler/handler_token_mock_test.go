@@ -76,19 +76,19 @@ func (mr *MockIDTokenIssuerMockRecorder) IssueIDToken(opts interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).IssueIDToken), opts)
 }
 
-// VerifyIDTokenWithoutClient mocks base method.
-func (m *MockIDTokenIssuer) VerifyIDTokenWithoutClient(idToken string) (jwt.Token, error) {
+// VerifyIDToken mocks base method.
+func (m *MockIDTokenIssuer) VerifyIDToken(idToken string) (jwt.Token, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyIDTokenWithoutClient", idToken)
+	ret := m.ctrl.Call(m, "VerifyIDToken", idToken)
 	ret0, _ := ret[0].(jwt.Token)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// VerifyIDTokenWithoutClient indicates an expected call of VerifyIDTokenWithoutClient.
-func (mr *MockIDTokenIssuerMockRecorder) VerifyIDTokenWithoutClient(idToken interface{}) *gomock.Call {
+// VerifyIDToken indicates an expected call of VerifyIDToken.
+func (mr *MockIDTokenIssuerMockRecorder) VerifyIDToken(idToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyIDTokenWithoutClient", reflect.TypeOf((*MockIDTokenIssuer)(nil).VerifyIDTokenWithoutClient), idToken)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).VerifyIDToken), idToken)
 }
 
 // MockAccessTokenIssuer is a mock of AccessTokenIssuer interface.

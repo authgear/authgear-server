@@ -153,7 +153,7 @@ func TestTokenHandler(t *testing.T) {
 			_ = mockIdToken.Set("iss", origin)
 			_ = mockIdToken.Set("sid", sid)
 			_ = mockIdToken.Set("ds_hash", dsHash)
-			idTokenIssuer.EXPECT().VerifyIDTokenWithoutClient(testIdToken).
+			idTokenIssuer.EXPECT().VerifyIDToken(testIdToken).
 				Return(mockIdToken, nil).
 				Times(1)
 
