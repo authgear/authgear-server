@@ -536,7 +536,7 @@ steps:
 - type: terminate_other_sessions
 - type: prompt_create_passkey
 `)
-		// bot_protection, 1 branch
+		// bot_protection.requirements.signup_or_login=always
 		test(`
 authentication:
   identities:
@@ -552,6 +552,9 @@ bot_protection:
   provider:
     type: recaptchav2
     site_key: some-site-key
+  requirements:
+    signup_or_login: 
+      mode: always
 `, `
 name: default
 steps:
@@ -581,50 +584,109 @@ steps:
 - type: check_account_status
 - type: terminate_other_sessions
 `)
-		// bot_protection, 3 branches
+		// bot_protection, all always
 		test(`
 authentication:
   identities:
   - login_id
   primary_authenticators:
   - password
+  - oob_otp_email
+  - oob_otp_sms
+  secondary_authenticators:
+  - oob_otp_email
+  - oob_otp_sms
+  - password
+  secondary_authentication_mode: required
 identity:
   login_id:
     keys:
     - type: email
     - type: phone
-    - type: username
 bot_protection:
   enabled: true
   provider:
     type: recaptchav2
     site_key: some-site-key
+  requirements:
+    signup_or_login: 
+      mode: always
+    password:
+      mode: never
+    oob_otp_email:
+      mode: always
+    oob_otp_sms:
+      mode: always
 `, `
 name: default
 steps:
 - name: login_identify
   type: identify
   one_of:
-  - identification: email
-    bot_protection:
+  - bot_protection:
       mode: always
-      provider: 
+      provider:
         type: recaptchav2
+    identification: email
     steps:
     - name: authenticate_primary_email
+      type: authenticate
       one_of:
       - authentication: primary_password
+        bot_protection:
+          mode: never
+          provider:
+            type: recaptchav2
         steps:
         - name: authenticate_secondary_email
           one_of:
-          - authentication: secondary_totp
+          - authentication: secondary_oob_otp_email
+            bot_protection:
+              mode: always
+              provider:
+                type: recaptchav2
+          - authentication: secondary_oob_otp_sms
+            bot_protection:
+              mode: always
+              provider:
+                type: recaptchav2
+          - authentication: secondary_password
+            bot_protection:
+              mode: never
+              provider:
+                type: recaptchav2
           - authentication: recovery_code
           - authentication: device_token
-          optional: true
           type: authenticate
         - target_step: authenticate_primary_email
           type: change_password
-      type: authenticate
+      - authentication: primary_oob_otp_email
+        target_step: login_identify
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
+        steps:
+        - name: authenticate_secondary_email
+          type: authenticate
+          one_of:
+          - authentication: secondary_oob_otp_email
+            bot_protection:
+              mode: always
+              provider:
+                type: recaptchav2
+          - authentication: secondary_oob_otp_sms
+            bot_protection:
+              mode: always
+              provider:
+                type: recaptchav2
+          - authentication: secondary_password
+            bot_protection:
+              mode: never
+              provider:
+                type: recaptchav2
+          - authentication: recovery_code
+          - authentication: device_token
   - identification: phone
     bot_protection:
       mode: always
@@ -632,40 +694,63 @@ steps:
         type: recaptchav2
     steps:
     - name: authenticate_primary_phone
+      type: authenticate
       one_of:
       - authentication: primary_password
+        bot_protection:
+          mode: never
+          provider:
+            type: recaptchav2
         steps:
         - name: authenticate_secondary_phone
+          type: authenticate
           one_of:
-          - authentication: secondary_totp
+          - authentication: secondary_oob_otp_email
+            bot_protection:
+              mode: always
+              provider:
+                type: recaptchav2
+          - authentication: secondary_oob_otp_sms
+            bot_protection:
+              mode: always
+              provider:
+                type: recaptchav2
+          - authentication: secondary_password
+            bot_protection:
+              mode: never
+              provider:
+                type: recaptchav2
           - authentication: recovery_code
           - authentication: device_token
-          optional: true
-          type: authenticate
         - target_step: authenticate_primary_phone
           type: change_password
-      type: authenticate
-  - identification: username
-    bot_protection:
-      mode: always
-      provider: 
-        type: recaptchav2
-    steps:
-    - name: authenticate_primary_username
-      one_of:
-      - authentication: primary_password
+      - authentication: primary_oob_otp_sms
+        target_step: login_identify
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
         steps:
-        - name: authenticate_secondary_username
+        - name: authenticate_secondary_phone
+          type: authenticate
           one_of:
-          - authentication: secondary_totp
+          - authentication: secondary_oob_otp_email
+            bot_protection:
+              mode: always
+              provider:
+                type: recaptchav2
+          - authentication: secondary_oob_otp_sms
+            bot_protection:
+              mode: always
+              provider:
+                type: recaptchav2
+          - authentication: secondary_password
+            bot_protection:
+              mode: never
+              provider:
+                type: recaptchav2
           - authentication: recovery_code
           - authentication: device_token
-          optional: true
-          type: authenticate
-        - target_step: authenticate_primary_username
-          type: change_password
-      type: authenticate
-  type: identify
 - type: check_account_status
 - type: terminate_other_sessions
 `)

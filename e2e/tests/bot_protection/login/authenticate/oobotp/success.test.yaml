@@ -15,6 +15,9 @@ authgear.yaml:
       provider:
         type: cloudflare
         site_key: dummy
+      requirements:
+        oob_otp_email:
+          mode: always
     authentication_flow:
       login_flows:
       - name: f1

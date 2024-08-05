@@ -36,13 +36,6 @@ func generateSignupLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authenti
 		}
 	}
 
-	botProtection, ok := getBotProtectionProviderConfig(cfg)
-	if ok {
-		for _, oneOf := range step.OneOf {
-			oneOf.BotProtection = botProtection
-		}
-	}
-
 	return step
 }
 
@@ -74,6 +67,10 @@ func generateSignupLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config
 			username = true
 			output = append(output, newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationUsername))
 		}
+	}
+
+	for _, oneOf := range output {
+		oneOf.BotProtection = getBotProtectionRequirementsSignupOrLogin(cfg)
 	}
 
 	return output

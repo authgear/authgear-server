@@ -283,7 +283,7 @@ steps:
   - authentication: primary_passkey
   - authentication: secondary_totp
 `)
-		// bot_protection, 1 branch
+		// bot_protection should have no effect on reauth
 		test(`
 authentication:
   identities:
@@ -311,12 +311,8 @@ steps:
   type: authenticate
   one_of:
   - authentication: primary_password
-    bot_protection:
-      mode: always
-      provider: 
-        type: recaptchav2
 `)
-		// bot_protection, 3 branches
+		// bot_protection should have no effect on reauth
 		test(`
 authentication:
   identities:
@@ -347,20 +343,8 @@ steps:
   type: authenticate
   one_of:
   - authentication: primary_password
-    bot_protection:
-      mode: always
-      provider: 
-        type: recaptchav2
   - authentication: primary_oob_otp_email
-    bot_protection:
-      mode: always
-      provider: 
-        type: recaptchav2
   - authentication: primary_oob_otp_sms
-    bot_protection:
-      mode: always
-      provider: 
-        type: recaptchav2
 `)
 	})
 }

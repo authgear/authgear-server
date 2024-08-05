@@ -319,41 +319,6 @@ steps:
       - authentication: secondary_totp
   - identification: oauth
 `)
-		// bot_protection, 1 branch
-		test(`
-authentication:
-  identities:
-  - login_id
-  primary_authenticators:
-  - password
-identity:
-  login_id:
-    keys:
-    - type: email
-bot_protection:
-  enabled: true
-  provider:
-    type: recaptchav2
-    site_key: recaptchav2-site-key
-`, `
-name: default
-steps:
-- name: signup_identify
-  type: identify
-  one_of:
-  - identification: email
-    bot_protection:
-      mode: always
-      provider: 
-        type: recaptchav2
-    steps:
-    - target_step: signup_identify
-      type: verify
-    - name: authenticate_primary_email
-      type: create_authenticator
-      one_of:
-      - authentication: primary_password  
-`)
 		// bot_protection, 3 branches
 		test(`
 authentication:
@@ -361,6 +326,12 @@ authentication:
   - login_id
   primary_authenticators:
   - password
+  - oob_otp_email
+  - oob_otp_sms
+  secondary_authenticators:
+  - oob_otp_email
+  - oob_otp_sms
+  secondary_authentication_mode: required
 identity:
   login_id:
     keys:
@@ -372,46 +343,124 @@ bot_protection:
   provider:
     type: recaptchav2
     site_key: recaptchav2-site-key
+  requirements:
+    signup_or_login:
+      mode: always
+    oob_otp_email:
+      mode: always
+    oob_otp_sms:
+      mode: always
 `, `
 name: default
 steps:
 - name: signup_identify
-  type: identify
   one_of:
   - identification: email
     bot_protection:
       mode: always
-      provider: 
+      provider:
         type: recaptchav2
     steps:
     - target_step: signup_identify
       type: verify
+      bot_protection:
+        mode: always
+        provider:
+          type: recaptchav2
     - name: authenticate_primary_email
-      type: create_authenticator
       one_of:
       - authentication: primary_password
+      - authentication: primary_oob_otp_email
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
+        target_step: signup_identify
+      type: create_authenticator
+    - name: authenticate_secondary_email
+      one_of:
+      - authentication: secondary_oob_otp_email
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
+        steps:
+        - type: view_recovery_code
+      - authentication: secondary_oob_otp_sms
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
+        steps:
+        - type: view_recovery_code
+      type: create_authenticator
   - identification: phone
     bot_protection:
       mode: always
-      provider: 
+      provider:
         type: recaptchav2
     steps:
     - target_step: signup_identify
       type: verify
+      bot_protection:
+        mode: always
+        provider:
+          type: recaptchav2
     - name: authenticate_primary_phone
       type: create_authenticator
       one_of:
       - authentication: primary_password
+      - authentication: primary_oob_otp_sms
+        target_step: signup_identify
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
+    - name: authenticate_secondary_phone
+      one_of:
+      - authentication: secondary_oob_otp_email
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
+        steps:
+        - type: view_recovery_code
+      - authentication: secondary_oob_otp_sms
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
+        steps:
+        - type: view_recovery_code
+      type: create_authenticator
   - identification: username
     bot_protection:
       mode: always
-      provider: 
+      provider:
         type: recaptchav2
     steps:
     - name: authenticate_primary_username
-      type: create_authenticator
       one_of:
       - authentication: primary_password
+      type: create_authenticator
+    - name: authenticate_secondary_username
+      one_of:
+      - authentication: secondary_oob_otp_email
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
+        steps:
+        - type: view_recovery_code
+      - authentication: secondary_oob_otp_sms
+        bot_protection:
+          mode: always
+          provider:
+            type: recaptchav2
+        steps:
+        - type: view_recovery_code
+      type: create_authenticator
+  type: identify
 `)
 	})
 }

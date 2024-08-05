@@ -33,9 +33,9 @@ func GetBotProtectionData(authflowCfg *config.AuthenticationFlowBotProtection, a
 	}
 
 	switch authflowCfg.Mode {
-	case config.AuthenticationFlowBotProtectionModeNever:
+	case config.BotProtectionRiskModeNever:
 		break
-	case config.AuthenticationFlowBotProtectionModeAlways:
+	case config.BotProtectionRiskModeAlways:
 		return NewBotProtectionData(authflowCfg.Provider.Type)
 	}
 	return nil

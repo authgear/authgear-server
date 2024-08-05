@@ -6,7 +6,7 @@ var _ = Schema.Add("AuthenticationFlowBotProtection", `
 	"additionalProperties": false,
 	"required": ["mode"],
 	"properties": {
-		"mode": { "type": "string", "enum": ["never", "always"] },
+		"mode": { "$ref": "#/$defs/BotProtectionRiskMode" },
 		"provider": { "$ref": "#/$defs/AuthenticationFlowBotProtectionProvider" }
 	},
 	"allOf": [
@@ -42,13 +42,6 @@ type AuthenticationFlowBotProtectionProvider struct {
 	Type BotProtectionProviderType `json:"type,omitempty"`
 }
 type AuthenticationFlowBotProtection struct {
-	Mode     AuthenticationFlowBotProtectionMode      `json:"mode,omitempty"`
+	Mode     BotProtectionRiskMode                    `json:"mode,omitempty"`
 	Provider *AuthenticationFlowBotProtectionProvider `json:"provider,omitempty"`
 }
-
-type AuthenticationFlowBotProtectionMode string
-
-const (
-	AuthenticationFlowBotProtectionModeNever  AuthenticationFlowBotProtectionMode = "never"
-	AuthenticationFlowBotProtectionModeAlways AuthenticationFlowBotProtectionMode = "always"
-)

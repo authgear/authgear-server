@@ -6,6 +6,9 @@ authgear.yaml:
       provider:
         type: cloudflare
         site_key: dummy
+      requirements:
+        signup_or_login:
+          mode: always
 steps:
   - action: "create"
     input: |
