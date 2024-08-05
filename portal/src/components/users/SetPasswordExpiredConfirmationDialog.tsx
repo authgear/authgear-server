@@ -12,7 +12,7 @@ interface ConfirmationDialogStore {
   confirm: () => void;
 }
 
-interface MarkPasswordAsExpiredConfirmationDialogProps {
+interface SetPasswordExpiredConfirmationDialogProps {
   store: ConfirmationDialogStore;
   isExpired: boolean;
   onConfirm: () => void;
@@ -45,9 +45,9 @@ export function useConfirmationDialog(): ConfirmationDialogStore {
   }, [visible, loading, show, dismiss, confirm]);
 }
 
-export const MarkPasswordAsExpiredConfirmationDialog: React.VFC<MarkPasswordAsExpiredConfirmationDialogProps> =
-  function MarkPasswordAsExpiredConfirmationDialog(
-    props: MarkPasswordAsExpiredConfirmationDialogProps
+export const SetPasswordExpiredConfirmationDialog: React.VFC<SetPasswordExpiredConfirmationDialogProps> =
+  function SetPasswordExpiredConfirmationDialog(
+    props: SetPasswordExpiredConfirmationDialogProps
   ) {
     const { store, isExpired, onConfirm: onConfirmProp } = props;
 

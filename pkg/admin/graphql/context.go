@@ -61,7 +61,7 @@ type UserFacade interface {
 		args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	Create(identityDef model.IdentityDef, password string) (string, error)
 	ResetPassword(id string, password string, sendPassword bool, changeOnLogin bool) error
-	MarkPasswordAsExpired(id string, isExpired bool) error
+	SetPasswordExpired(id string, isExpired bool) error
 	SetDisabled(id string, isDisabled bool, reason *string) error
 	ScheduleDeletion(id string) error
 	UnscheduleDeletion(id string) error

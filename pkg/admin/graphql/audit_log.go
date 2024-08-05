@@ -269,8 +269,8 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"ADMIN_API_MUTATION_CREATE_ROLE_EXECUTED": &graphql.EnumValueConfig{
 			Value: "admin_api.mutation.create_role.executed",
 		},
-		"ADMIN_API_MUTATION_MARK_PASSWORD_AS_EXPIRED_EXECUTED": &graphql.EnumValueConfig{
-			Value: "admin_api.mutation.mark_password_as_expired.executed",
+		"ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED": &graphql.EnumValueConfig{
+			Value: "admin_api.mutation.set_password_expired.executed",
 		},
 		"PROJECT_APP_UPDATED": &graphql.EnumValueConfig{
 			Value: "project.app.updated",

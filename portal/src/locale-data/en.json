@@ -1347,7 +1347,7 @@
   "AuditLogActivityType.ADMIN_API_MUTATION_REMOVE_USER_FROM_ROLES_EXECUTED": "Admin API Mutation: Remove user from roles",
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_GROUP_EXECUTED": "Admin API Mutation: Update group",
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_ROLE_EXECUTED": "Admin API Mutation: Update role",
-  "AuditLogActivityType.ADMIN_API_MUTATION_MARK_PASSWORD_AS_EXPIRED_EXECUTED": "Admin API Mutation: Mark password as expired",
+  "AuditLogActivityType.ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED": "Admin API Mutation: Mark password as expired",
   "AuditLogActivityType.PROJECT_APP_UPDATED": "Project: Configuration updated",
   "AuditLogActivityType.PROJECT_APP_SECRET_VIEWED": "Project: Secret viewed",
   "AuditLogActivityType.PROJECT_BILLING_CHECKOUT_CREATED": "Project: Billing checkout crreated",

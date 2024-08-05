@@ -6,44 +6,44 @@ import (
 )
 
 const (
-	AdminAPIMutationMarkPasswordAsExpiredExecuted event.Type = "admin_api.mutation.mark_password_as_expired.executed" // nolint:gosec
+	AdminAPIMutationSetPasswordExpiredExecuted event.Type = "admin_api.mutation.set_password_expired.executed" // nolint:gosec
 )
 
-type AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload struct {
+type AdminAPIMutationSetPasswordExpiredExecutedEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`
 	IsExpired bool          `json:"is_expired"`
 }
 
-func (e *AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload) NonBlockingEventType() event.Type {
-	return AdminAPIMutationMarkPasswordAsExpiredExecuted
+func (e *AdminAPIMutationSetPasswordExpiredExecutedEventPayload) NonBlockingEventType() event.Type {
+	return AdminAPIMutationSetPasswordExpiredExecuted
 }
 
-func (e *AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload) UserID() string {
+func (e *AdminAPIMutationSetPasswordExpiredExecutedEventPayload) UserID() string {
 	return e.UserModel.ID
 }
 
-func (e *AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload) GetTriggeredBy() event.TriggeredByType {
+func (e *AdminAPIMutationSetPasswordExpiredExecutedEventPayload) GetTriggeredBy() event.TriggeredByType {
 	return event.TriggeredByTypeAdminAPI
 }
 
-func (e *AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload) FillContext(ctx *event.Context) {
+func (e *AdminAPIMutationSetPasswordExpiredExecutedEventPayload) FillContext(ctx *event.Context) {
 }
 
-func (e *AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload) ForHook() bool {
+func (e *AdminAPIMutationSetPasswordExpiredExecutedEventPayload) ForHook() bool {
 	return false
 }
 
-func (e *AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload) ForAudit() bool {
+func (e *AdminAPIMutationSetPasswordExpiredExecutedEventPayload) ForAudit() bool {
 	return true
 }
 
-func (e *AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload) RequireReindexUserIDs() []string {
+func (e *AdminAPIMutationSetPasswordExpiredExecutedEventPayload) RequireReindexUserIDs() []string {
 	return nil
 }
 
-func (e *AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload) DeletedUserIDs() []string {
+func (e *AdminAPIMutationSetPasswordExpiredExecutedEventPayload) DeletedUserIDs() []string {
 	return nil
 }
 
-var _ event.NonBlockingPayload = &AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload{}
+var _ event.NonBlockingPayload = &AdminAPIMutationSetPasswordExpiredExecutedEventPayload{}

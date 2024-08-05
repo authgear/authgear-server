@@ -116,7 +116,7 @@ func (f *UserFacade) ResetPassword(id string, password string, sendPassword bool
 	return nil
 }
 
-func (f *UserFacade) MarkPasswordAsExpired(id string, isExpired bool) error {
+func (f *UserFacade) SetPasswordExpired(id string, isExpired bool) error {
 	err := f.Users.CheckUserAnonymized(id)
 	if err != nil {
 		return err

@@ -164,8 +164,8 @@ var _ = registerMutationField(
 	},
 )
 
-var markPasswordAsExpiredInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "MarkPasswordAsExpiredInput",
+var setPasswordExpiredInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SetPasswordExpiredInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"userID": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.ID),
@@ -178,8 +178,8 @@ var markPasswordAsExpiredInput = graphql.NewInputObject(graphql.InputObjectConfi
 	},
 })
 
-var markPasswordAsExpiredPayload = graphql.NewObject(graphql.ObjectConfig{
-	Name: "MarkPasswordAsExpiredPayload",
+var setPasswordExpiredPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SetPasswordExpiredPayload",
 	Fields: graphql.Fields{
 		"user": &graphql.Field{
 			Type: graphql.NewNonNull(nodeUser),
@@ -188,13 +188,13 @@ var markPasswordAsExpiredPayload = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var _ = registerMutationField(
-	"markPasswordAsExpired",
+	"setPasswordExpired",
 	&graphql.Field{
 		Description: "Force user to change password on next login",
-		Type:        graphql.NewNonNull(markPasswordAsExpiredPayload),
+		Type:        graphql.NewNonNull(setPasswordExpiredPayload),
 		Args: graphql.FieldConfigArgument{
 			"input": &graphql.ArgumentConfig{
-				Type: graphql.NewNonNull(markPasswordAsExpiredInput),
+				Type: graphql.NewNonNull(setPasswordExpiredInput),
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -211,12 +211,12 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			err := gqlCtx.UserFacade.MarkPasswordAsExpired(userID, isExpired)
+			err := gqlCtx.UserFacade.SetPasswordExpired(userID, isExpired)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationMarkPasswordAsExpiredExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationSetPasswordExpiredExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,

@@ -145,7 +145,7 @@ export enum AuditLogActivityType {
   AdminApiMutationDeleteRoleExecuted = 'ADMIN_API_MUTATION_DELETE_ROLE_EXECUTED',
   AdminApiMutationDeleteUserExecuted = 'ADMIN_API_MUTATION_DELETE_USER_EXECUTED',
   AdminApiMutationGenerateOobOtpCodeExecuted = 'ADMIN_API_MUTATION_GENERATE_OOB_OTP_CODE_EXECUTED',
-  AdminApiMutationMarkPasswordAsExpiredExecuted = 'ADMIN_API_MUTATION_MARK_PASSWORD_AS_EXPIRED_EXECUTED',
+  AdminApiMutationMarkPasswordAsExpiredExecuted = 'ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED',
   AdminApiMutationRemoveGroupFromRolesExecuted = 'ADMIN_API_MUTATION_REMOVE_GROUP_FROM_ROLES_EXECUTED',
   AdminApiMutationRemoveGroupFromUsersExecuted = 'ADMIN_API_MUTATION_REMOVE_GROUP_FROM_USERS_EXECUTED',
   AdminApiMutationRemoveRoleFromGroupsExecuted = 'ADMIN_API_MUTATION_REMOVE_ROLE_FROM_GROUPS_EXECUTED',
@@ -646,18 +646,6 @@ export enum IdentityType {
   Siwe = 'SIWE'
 }
 
-export type MarkPasswordAsExpiredInput = {
-  /** Indicate whether the user's password is expired. */
-  isExpired: Scalars['Boolean']['input'];
-  /** Target user ID. */
-  userID: Scalars['ID']['input'];
-};
-
-export type MarkPasswordAsExpiredPayload = {
-  __typename?: 'MarkPasswordAsExpiredPayload';
-  user: User;
-};
-
 export type Mutation = {
   __typename?: 'Mutation';
   /** Add the group to the roles. */
@@ -700,8 +688,6 @@ export type Mutation = {
   deleteUser: DeleteUserPayload;
   /** Generate OOB OTP code for user */
   generateOOBOTPCode: GenerateOobotpCodePayload;
-  /** Force user to change password on next login */
-  markPasswordAsExpired: MarkPasswordAsExpiredPayload;
   /** Remove the group from the roles. */
   removeGroupFromRoles: RemoveGroupFromRolesPayload;
   /** Remove the group to the users. */
@@ -728,6 +714,8 @@ export type Mutation = {
   sendResetPasswordMessage?: Maybe<Scalars['Boolean']['output']>;
   /** Set disabled status of user */
   setDisabledStatus: SetDisabledStatusPayload;
+  /** Force user to change password on next login */
+  setPasswordExpired: SetPasswordExpiredPayload;
   /** Set verified status of a claim of user */
   setVerifiedStatus: SetVerifiedStatusPayload;
   /** Unschedule account anonymization */
@@ -845,11 +833,6 @@ export type MutationGenerateOobotpCodeArgs = {
 };
 
 
-export type MutationMarkPasswordAsExpiredArgs = {
-  input: MarkPasswordAsExpiredInput;
-};
-
-
 export type MutationRemoveGroupFromRolesArgs = {
   input: RemoveGroupFromRolesInput;
 };
@@ -912,6 +895,11 @@ export type MutationSendResetPasswordMessageArgs = {
 
 export type MutationSetDisabledStatusArgs = {
   input: SetDisabledStatusInput;
+};
+
+
+export type MutationSetPasswordExpiredArgs = {
+  input: SetPasswordExpiredInput;
 };
 
 
@@ -1292,6 +1280,18 @@ export type SetDisabledStatusInput = {
 
 export type SetDisabledStatusPayload = {
   __typename?: 'SetDisabledStatusPayload';
+  user: User;
+};
+
+export type SetPasswordExpiredInput = {
+  /** Indicate whether the user's password is expired. */
+  isExpired: Scalars['Boolean']['input'];
+  /** Target user ID. */
+  userID: Scalars['ID']['input'];
+};
+
+export type SetPasswordExpiredPayload = {
+  __typename?: 'SetPasswordExpiredPayload';
   user: User;
 };
 

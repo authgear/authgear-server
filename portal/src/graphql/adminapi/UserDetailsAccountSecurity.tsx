@@ -36,10 +36,10 @@ import Toggle from "../../Toggle";
 import { DateTime } from "luxon";
 import { parseDuration } from "../../util/duration";
 import {
-  MarkPasswordAsExpiredConfirmationDialog,
+  SetPasswordExpiredConfirmationDialog,
   useConfirmationDialog,
-} from "../../components/users/MarkAsExpiredConfirmationDialog";
-import { useMarkPasswordAsExpiredMutation } from "./mutations/markPasswordAsExpiredMutation";
+} from "../../components/users/SetPasswordExpiredConfirmationDialog";
+import { useSetPasswordExpiredMutation } from "./mutations/setPasswordExpiredMutation";
 import { useUserQuery } from "./query/userQuery";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
@@ -794,14 +794,14 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       setIsConfirmationDialogVisible(false);
     }, []);
 
-    const markPasswordAsExpiredConfirmDialog = useConfirmationDialog();
+    const setPasswordExpiredConfirmDialog = useConfirmationDialog();
 
-    const { markPasswordAsExpired, error: markPasswordAsExpiredError } =
-      useMarkPasswordAsExpiredMutation();
+    const { setPasswordExpired, error: setPasswordExpiredError } =
+      useSetPasswordExpiredMutation();
     const { refetch: refetchUser } = useUserQuery(userID, {
       skip: true,
     });
-    useProvideError(markPasswordAsExpiredError);
+    useProvideError(setPasswordExpiredError);
 
     const isExpired = useMemo(
       () =>
@@ -811,16 +811,16 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       [primaryAuthenticatorLists.password]
     );
 
-    const onConfirmMarkPasswordAsExpired = useCallback(async () => {
-      await markPasswordAsExpired(userID, !isExpired);
+    const onConfirmSetPasswordExpired = useCallback(async () => {
+      await setPasswordExpired(userID, !isExpired);
       await refetchUser();
-      markPasswordAsExpiredConfirmDialog.dismiss();
+      setPasswordExpiredConfirmDialog.dismiss();
     }, [
-      markPasswordAsExpired,
+      setPasswordExpired,
       userID,
       refetchUser,
       isExpired,
-      markPasswordAsExpiredConfirmDialog,
+      setPasswordExpiredConfirmDialog,
     ]);
 
     const onRenderPasskeyIdentityDetailCell = useCallback(
@@ -853,7 +853,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             }
             showRemoveConfirmationDialog={showConfirmationDialog}
             showMarkAsExpiredConfirmationDialog={
-              markPasswordAsExpiredConfirmDialog.show
+              setPasswordExpiredConfirmDialog.show
             }
           />
         );
@@ -861,7 +861,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       [
         passwordForceChangeDaysSinceLastUpdate,
         showConfirmationDialog,
-        markPasswordAsExpiredConfirmDialog.show,
+        setPasswordExpiredConfirmDialog.show,
       ]
     );
 
@@ -1142,10 +1142,10 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             ) : null}
           </div>
         ) : null}
-        <MarkPasswordAsExpiredConfirmationDialog
-          store={markPasswordAsExpiredConfirmDialog}
+        <SetPasswordExpiredConfirmationDialog
+          store={setPasswordExpiredConfirmDialog}
           isExpired={isExpired}
-          onConfirm={onConfirmMarkPasswordAsExpired}
+          onConfirm={onConfirmSetPasswordExpired}
         />
       </div>
     );
