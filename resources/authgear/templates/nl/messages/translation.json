@@ -159,5 +159,25 @@
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} is uw {{ template \"app.name\" }} verificatiecode.",
     "Disclaimer": "Deel het niet met iemand."
+  },
+  "ChangePassword": {
+    "Title": "Uw wachtwoord is gewijzigd: hier is uw nieuwe wachtwoord",
+    "Body": "Uw wachtwoord voor {{ template \"app.name\" }} is gewijzigd door een beheerder.",
+    "Label": "Uw nieuwe wachtwoord:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Om veiligheidsredenen raden wij u aan om in te loggen en uw wachtwoord bij te werken naar iets wat gemakkelijker te onthouden is.",
+    "TipsHeader": "Beveiligingstips:",
+    "Tip1": "• Deel uw wachtwoord nooit met iemand anders.",
+    "Tip2": "• Gebruik een uniek wachtwoord voor elk van uw online accounts."
+  },
+  "ChangePasswordTXT": {
+    "Title": "Uw wachtwoord is gewijzigd: hier is uw nieuwe wachtwoord",
+    "Body": "Uw wachtwoord voor {{ template \"app.name\" }} is gewijzigd door een beheerder.",
+    "Label": "Uw nieuwe wachtwoord:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Om veiligheidsredenen raden wij u aan om in te loggen en uw wachtwoord bij te werken naar iets wat gemakkelijker te onthouden is.",
+    "TipsHeader": "Beveiligingstips:",
+    "Tip1": "- Deel uw wachtwoord nooit met iemand anders.",
+    "Tip2": "- Gebruik een uniek wachtwoord voor elk van uw online accounts."
   }
 }

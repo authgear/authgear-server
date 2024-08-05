@@ -159,5 +159,25 @@
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} è il tuo codice di verifica di {{ template \"app.name\" }}.",
     "Disclaimer": "Non condividerlo con nessuno."
+  },
+  "ChangePassword": {
+    "Title": "La Tua Password È Stata Modificata: Ecco la Tua Nuova Password",
+    "Body": "La tua password per {{ template \"app.name\" }} è stata modificata da un amministratore.",
+    "Label": "La tua nuova password:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Per motivi di sicurezza, ti consigliamo di accedere e aggiornare la tua password con qualcosa di più memorabile.",
+    "TipsHeader": "Suggerimenti per la Sicurezza:",
+    "Tip1": "• Non condividere mai la tua password con nessuno.",
+    "Tip2": "• Utilizza una password unica per ciascuno dei tuoi account online."
+  },
+  "ChangePasswordTXT": {
+    "Title": "La Tua Password È Stata Modificata: Ecco la Tua Nuova Password",
+    "Body": "La tua password per {{ template \"app.name\" }} è stata modificata da un amministratore.",
+    "Label": "La tua nuova password:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Per motivi di sicurezza, ti consigliamo di accedere e aggiornare la tua password con qualcosa di più memorabile.",
+    "TipsHeader": "Suggerimenti per la Sicurezza:",
+    "Tip1": "- Non condividere mai la tua password con nessuno.",
+    "Tip2": "- Utilizza una password unica per ciascuno dei tuoi account online."
   }
 }

@@ -94,7 +94,7 @@
   @apply font-semibold;
 }
 
-.resetPasswordButton {
+.changePasswordButton {
   grid-area: preset;
   white-space: nowrap;
 }

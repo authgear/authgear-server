@@ -37,7 +37,7 @@ func (n *NodeDoResetPassword) GetEffects(ctx context.Context, deps *authflow.Dep
 				)
 			} else {
 				// MilestoneDoUseAccountRecoveryDestination might not exist if the flow is restored
-				return deps.ResetPassword.ResetPassword(n.Code, n.NewPassword)
+				return deps.ResetPassword.ResetPasswordByEndUser(n.Code, n.NewPassword)
 			}
 		}),
 	}, nil

@@ -103,7 +103,7 @@ func (f *UserFacade) Create(identityDef model.IdentityDef, password string) (str
 	return userID, nil
 }
 
-func (f *UserFacade) ResetPassword(id string, password string) (err error) {
+func (f *UserFacade) ResetPassword(id string, password string, sendPassword bool, changeOnLogin bool) (err error) {
 	err = f.Users.CheckUserAnonymized(id)
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func (f *UserFacade) ResetPassword(id string, password string) (err error) {
 
 	_, err = f.Interaction.Perform(
 		interactionintents.NewIntentResetPassword(),
-		&resetPasswordInput{userID: id, password: password},
+		&resetPasswordInput{userID: id, password: password, sendPassword: sendPassword, changeOnLogin: changeOnLogin},
 	)
 	if err != nil {
 		return err

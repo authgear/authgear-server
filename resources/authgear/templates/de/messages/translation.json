@@ -159,5 +159,25 @@
   "VerificationSMSTXT": {
     "Code": "{{ .Code }} ist Ihr {{ template \"app.name\" }} Verifizierungscode.",
     "Disclaimer": "Geben Sie es niemandem weiter."
+  },
+  "ChangePassword": {
+    "Title": "Ihr Passwort wurde geändert: Hier ist Ihr neues Passwort",
+    "Body": "Ihr Passwort für {{ template \"app.name\" }} wurde von einem Administrator geändert.",
+    "Label": "Ihr neues Passwort:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Aus Sicherheitsgründen empfehlen wir Ihnen, sich anzumelden und Ihr Passwort in etwas Merkbareres zu ändern.",
+    "TipsHeader": "Sicherheitstipps:",
+    "Tip1": "• Geben Sie Ihr Passwort niemals an andere weiter.",
+    "Tip2": "• Verwenden Sie für jedes Ihrer Online-Konten ein einzigartiges Passwort."
+  },
+  "ChangePasswordTXT": {
+    "Title": "Ihr Passwort wurde geändert: Hier ist Ihr neues Passwort",
+    "Body": "Ihr Passwort für {{ template \"app.name\" }} wurde von einem Administrator geändert.",
+    "Label": "Ihr neues Passwort:",
+    "Password": "{{ .Password }}",
+    "Disclaimer": "Aus Sicherheitsgründen empfehlen wir Ihnen, sich anzumelden und Ihr Passwort in etwas Merkbareres zu ändern.",
+    "TipsHeader": "Sicherheitstipps:",
+    "Tip1": "- Geben Sie Ihr Passwort niemals an andere weiter.",
+    "Tip2": "- Verwenden Sie für jedes Ihrer Online-Konten ein einzigartiges Passwort."
   }
 }

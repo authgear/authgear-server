@@ -15,6 +15,7 @@
   "email.authenticate-primary-login-link.subject": "Anmeldung bei {AppName}",
   "email.authenticate-secondary-oob.subject": "Anmeldung bei {AppName}",
   "email.authenticate-secondary-login-link.subject": "Anmeldung bei {AppName}",
+  "email.change-password.subject": "{AppName} Passwort ändern",
   "error-unknown": "Ein unbekannter Fehler ist aufgetreten. Wenn das Problem weiterhin besteht, suchen Sie bitte Hilfe in unserem <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Community-Forum</a> oder kontaktieren Sie uns unter <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "error-login-id-required": "Bitte geben Sie Ihre {variant, select, phone{Telefonnummer} email {E-Mail-Adresse} username {Benutzernamen} other {E-Mail-Adresse oder Benutzernamen}} ein.",
   "error-password-required": "Bitte geben Sie Ihr Passwort ein.",

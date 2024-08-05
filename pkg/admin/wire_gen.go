@@ -908,6 +908,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators: authenticatorFacade,
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
+		Sender:         sender,
+		Translation:    translationService,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{

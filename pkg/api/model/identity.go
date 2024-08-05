@@ -53,6 +53,13 @@ const (
 	IdentityTypeSIWE      IdentityType = "siwe"
 )
 
+// This indicates whether the identity type can be used for password-related usage e.g. reset password, change password by admin.
+// After account linking is introduced, different users may have different OAuth accounts with same email.
+// To avoid ambiguity, we only allow login ID to be used for password login.
+func (t IdentityType) SupportsPassword() bool {
+	return t == IdentityTypeLoginID
+}
+
 func (t IdentityType) PrimaryAuthenticatorTypes(loginIDKeyType LoginIDKeyType) []AuthenticatorType {
 	switch t {
 	case IdentityTypeLoginID:

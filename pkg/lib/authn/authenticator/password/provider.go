@@ -3,6 +3,7 @@ package password
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -84,22 +85,33 @@ func (p *Provider) New(id string, userID string, passwordSpec *authenticator.Pas
 	}
 }
 
-// WithPassword return new authenticator pointer if password is changed
+type UpdatePasswordOptions struct {
+	PlainPassword  string
+	SetExpireAfter bool
+	ExpireAfter    *time.Time
+}
+
+// UpdatePassword return new authenticator pointer if password or expireAfter is changed
 // Otherwise original authenticator will be returned
-func (p *Provider) WithPassword(a *authenticator.Password, password string) (*authenticator.Password, error) {
+func (p *Provider) UpdatePassword(a *authenticator.Password, options *UpdatePasswordOptions) (bool, *authenticator.Password, error) {
+	password := options.PlainPassword
 	err := p.PasswordChecker.ValidateNewPassword(a.UserID, password)
 	if err != nil {
-		return nil, err
+		return false, nil, err
 	}
 
-	// If password is not changed, skip the logic.
-	// Return original authenticator pointer
-	if pwd.Compare([]byte(password), a.PasswordHash) == nil {
-		return a, nil
+	newAuthen := a
+	if pwd.Compare([]byte(password), a.PasswordHash) != nil {
+		newAuthen = p.populatePasswordHash(a, password)
 	}
 
-	newAuthen := p.populatePasswordHash(a, password)
-	return newAuthen, nil
+	if options.SetExpireAfter {
+		newAuthen = p.populateExpireAfter(newAuthen, options.ExpireAfter)
+	}
+
+	changed := newAuthen != a
+
+	return changed, newAuthen, nil
 }
 
 func (p *Provider) Create(a *authenticator.Password) error {
@@ -156,10 +168,9 @@ func (p *Provider) Authenticate(a *authenticator.Password, password string) (ver
 	return
 }
 
-func (p *Provider) UpdatePassword(a *authenticator.Password) error {
+func (p *Provider) Update(a *authenticator.Password) error {
 	now := p.Clock.NowUTC()
 	a.UpdatedAt = now
-	a.ExpireAfter = nil
 
 	err := p.Store.UpdatePasswordHash(a)
 	if err != nil {
@@ -200,5 +211,11 @@ func (p *Provider) populatePasswordHash(a *authenticator.Password, password stri
 func (p *Provider) populatePasswordHashWithHash(a *authenticator.Password, hash []byte) *authenticator.Password {
 	newAuthn := *a
 	newAuthn.PasswordHash = hash
+	return &newAuthn
+}
+
+func (p *Provider) populateExpireAfter(a *authenticator.Password, expireAfter *time.Time) *authenticator.Password {
+	newAuthn := *a
+	newAuthn.ExpireAfter = expireAfter
 	return &newAuthn
 }

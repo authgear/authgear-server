@@ -2,7 +2,9 @@ package nodes
 
 import (
 	"net/http"
+	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
 )
@@ -29,6 +31,8 @@ func (n *NodeResetPasswordBegin) DeriveEdges(graph *interaction.Graph) ([]intera
 type InputResetPassword interface {
 	GetResetPasswordUserID() string
 	GetNewPassword() string
+	SendPassword() bool
+	ChangeOnLogin() bool
 }
 
 type InputResetPasswordByCode interface {
@@ -84,8 +88,21 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 
 				userID := resetInput.GetResetPasswordUserID()
 				newPassword := resetInput.GetNewPassword()
+				sendPassword := resetInput.SendPassword()
 
-				err := ctx.ResetPassword.SetPassword(userID, newPassword)
+				var expireAfter *time.Time = nil
+				now := ctx.Clock.NowUTC()
+				if resetInput.ChangeOnLogin() {
+					expireAfter = &now
+				}
+
+				err := ctx.ResetPassword.ChangePasswordByAdmin(&forgotpassword.SetPasswordOptions{
+					UserID:         userID,
+					PlainPassword:  newPassword,
+					SendPassword:   sendPassword,
+					ExpireAfter:    expireAfter,
+					SetExpireAfter: resetInput.ChangeOnLogin(),
+				})
 				if err != nil {
 					return err
 				}
@@ -96,7 +113,7 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 				code := codeInput.GetCode()
 				newPassword := codeInput.GetNewPassword()
 
-				err := ctx.ResetPassword.ResetPassword(code, newPassword)
+				err := ctx.ResetPassword.ResetPasswordByEndUser(code, newPassword)
 				if err != nil {
 					return err
 				}

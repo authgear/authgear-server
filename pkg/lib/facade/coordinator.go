@@ -50,6 +50,7 @@ type AuthenticatorService interface {
 	New(spec *authenticator.Spec) (*authenticator.Info, error)
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
 	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
+	UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
 	Create(authenticatorInfo *authenticator.Info) error
 	Update(authenticatorInfo *authenticator.Info) error
 	Delete(authenticatorInfo *authenticator.Info) error
@@ -343,6 +344,10 @@ func (c *Coordinator) AuthenticatorCreate(authenticatorInfo *authenticator.Info,
 
 func (c *Coordinator) AuthenticatorUpdate(authenticatorInfo *authenticator.Info) error {
 	return c.Authenticators.Update(authenticatorInfo)
+}
+
+func (c *Coordinator) AuthenticatorUpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error) {
+	return c.Authenticators.UpdatePassword(authenticatorInfo, options)
 }
 
 func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info) error {

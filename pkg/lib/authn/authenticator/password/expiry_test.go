@@ -63,6 +63,19 @@ func TestValidateCurrentPassword(t *testing.T) {
 		}
 		`)
 
+		test(pc, &authenticator.Password{
+			ID:        "3",
+			UserID:    "coffee",
+			UpdatedAt: now.Add(-time.Hour * 24 * 29),
+		}, "")
+	})
+
+	Convey("expire_after does not require expiry to be enabled", t, func() {
+		pc := &Expiry{
+			ForceChangeEnabled: false,
+			Clock:              clock.NewMockClockAtTime(now),
+		}
+
 		expireAfter := now.Add(time.Millisecond * -1)
 		test(pc, &authenticator.Password{
 			ID:          "3",
@@ -77,11 +90,5 @@ func TestValidateCurrentPassword(t *testing.T) {
 			"code": 400
 		}
 		`)
-
-		test(pc, &authenticator.Password{
-			ID:        "3",
-			UserID:    "coffee",
-			UpdatedAt: now.Add(-time.Hour * 24 * 29),
-		}, "")
 	})
 }

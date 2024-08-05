@@ -13,3 +13,5 @@ var SendCodeFailed = apierrors.Invalid.WithReason("ForgotPasswordFailed")
 
 var ErrFeatureDisabled = SendCodeFailed.NewWithCause("forgot password is disabled", apierrors.StringCause("FeatureDisabled"))
 var ErrUserNotFound = SendCodeFailed.NewWithCause("specified user not found", apierrors.StringCause("UserNotFound"))
+
+var ErrSendPasswordNoTarget = apierrors.Invalid.WithReason("SendPasswordNoTarget").New("no target to send the password")

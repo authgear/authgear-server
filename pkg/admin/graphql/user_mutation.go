@@ -95,6 +95,14 @@ var resetPasswordInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(graphql.String),
 			Description: "New password.",
 		},
+		"sendPassword": &graphql.InputObjectFieldConfig{
+			Type:        graphql.Boolean,
+			Description: "Indicate whether to send the new password to the user.",
+		},
+		"setPasswordExpired": &graphql.InputObjectFieldConfig{
+			Type:        graphql.Boolean,
+			Description: "Indicate whether the user is required to change password on next login.",
+		},
 	},
 })
 
@@ -128,10 +136,12 @@ var _ = registerMutationField(
 			userID := resolvedNodeID.ID
 
 			password, _ := input["password"].(string)
+			sendPassword, _ := input["sendPassword"].(bool)
+			setPasswordExpired, _ := input["setPasswordExpired"].(bool)
 
 			gqlCtx := GQLContext(p.Context)
 
-			err := gqlCtx.UserFacade.ResetPassword(userID, password)
+			err := gqlCtx.UserFacade.ResetPassword(userID, password, sendPassword, setPasswordExpired)
 			if err != nil {
 				return nil, err
 			}
