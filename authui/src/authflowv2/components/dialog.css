@@ -1,0 +1,157 @@
+@layer components {
+  :root {
+    --dialog-content__bg-color: var(--color-surface-primary);
+    --dialog-fade-animation-duration: 0.3s;
+    --dialog-slide-animation-duration: 0.3s;
+
+    --dialog-title__text-color: var(--color-neutral-700);
+    --dialog-description__text-color: var(--color-neutral-400);
+  }
+  :root.dark {
+    --dialog-title__text-color: var(--color-neutral-100);
+    --dialog-description__text-color: var(--color-neutral-200);
+  }
+  @keyframes fadeIn {
+    from {
+      display: flex;
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fadeOut {
+    0% {
+      display: flex;
+      opacity: 1;
+    }
+    99% {
+      opacity: 0.01;
+    }
+    100% {
+      opacity: 0;
+      display: none;
+    }
+  }
+
+  @keyframes slideIn {
+    0% {
+      transform: translateY(100%);
+    }
+    100% {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideOut {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(100%);
+    }
+  }
+  .dialog {
+    /* common styles */
+    @apply fixed inset-0;
+    @apply w-screen h-screen;
+    @apply hidden;
+    background-color: rgba(0, 0, 0, 0.5);
+    &.open {
+      @apply flex;
+      animation: fadeIn var(--dialog-fade-animation-duration) ease-in-out;
+    }
+    &.close {
+      animation: fadeOut var(--dialog-fade-animation-duration) ease-in-out;
+    }
+
+    /* mobile-specific styles */
+    @apply flex-col;
+    @apply justify-end;
+  }
+
+  .dialog-content {
+    /* common styles */
+    background-color: var(--dialog-content__bg-color);
+
+    /* mobile-specific styles */
+    @apply w-screen;
+    @apply p-4;
+    @apply rounded-t-2xl;
+    @apply h-min;
+  }
+
+  .dialog.open > .dialog-content {
+    animation: slideIn var(--dialog-slide-animation-duration) ease-in-out;
+  }
+
+  .dialog.close > .dialog-content {
+    animation: slideOut var(--dialog-slide-animation-duration) ease-in-out;
+  }
+
+  .dialog-title-description {
+    @apply flex flex-col gap-2;
+  }
+
+  .dialog-title {
+    font-family: inherit;
+    font-size: 1.5rem;
+    line-height: 2rem;
+    letter-spacing: 0;
+    font-weight: 700;
+    color: var(--dialog-title__text-color);
+
+    :root[alignment-content="start"] & {
+      @apply text-start;
+    }
+
+    :root[alignment-content="center"] & {
+      @apply text-center;
+    }
+
+    :root[alignment-content="end"] & {
+      @apply text-end;
+    }
+  }
+
+  .dialog-description {
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    letter-spacing: 0.03571428571em; /* 0.5 / 14 = 0.03571428571 */
+    font-weight: 500;
+
+    color: var(--dialog-description__text-color);
+
+    :root[alignment-content="start"] & {
+      @apply text-start;
+    }
+
+    :root[alignment-content="center"] & {
+      @apply text-center;
+    }
+
+    :root[alignment-content="end"] & {
+      @apply text-end;
+    }
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .dialog {
+      @apply flex-col;
+      @apply items-center;
+      @apply justify-center;
+    }
+
+    .dialog-content {
+      @apply rounded-2xl;
+      @apply w-98;
+      @apply p-5;
+    }
+
+    .dialog.open > .dialog-content {
+      animation: none;
+    }
+  }
+}
