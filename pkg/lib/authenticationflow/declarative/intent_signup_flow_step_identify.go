@@ -266,6 +266,11 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			case config.AuthenticationFlowIdentificationPasskey:
 				// Cannot create passkey in this step.
 				return nil, authflow.ErrIncompatibleInput
+			case config.AuthenticationFlowIdentificationLDAP:
+				return authflow.NewSubFlow(&IntentLDAP{
+					JSONPointer: authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:      i.UserID,
+				}), nil
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput
