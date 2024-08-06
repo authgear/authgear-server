@@ -217,10 +217,8 @@ This section documents the expected errors.
 |---|---|---|---|
 |In testLDAPConnection, if connection cannot be established with the LDAP server|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "FailedToConnect"`|
 |In testLDAPConnection, if search user credentials are invalid|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "FailedToBindSearchUser"`|
-|In testLDAPConnection, if base DN is invalid|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "InvalidBaseDN"`|
-|In testLDAPConnection, if search filter template is invalid|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "InvalidSearchFilterTemplate"`|
-|In testLDAPConnection, if `user_id_attribute_name` is invalid|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "InvalidUserIDAttributeName"`|
 |In testLDAPConnection, if endUserUsername is given, but the user is not found|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "TestingEndUserNotFound"`|
+|In testLDAPConnection, if endUserUsername is given, but the search request results in more than 1 entry|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "MoreThanOneEntryInSearchResult"`|
 |In testLDAPConnection, if endUserUsername is given, but `user_id_attribute_name` is not found|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "TestingEndUserMissingUserIDAttribute"`|
 |When the LDAP server is service unavailable, search filter turns out to be invalid, etc|InternalError|UnexpectedError||
 |When the end-user cannot authenticate to the LDAP server, or `user_id_attribute_name` not found|Unauthorized|InvalidCredentials||
