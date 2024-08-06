@@ -11,9 +11,11 @@ import (
 )
 
 type InputSchemaSignupFlowStepCreateAuthenticator struct {
-	JSONPointer    jsonpointer.T
-	FlowRootObject config.AuthenticationFlowObject
-	OneOf          []*config.AuthenticationFlowSignupFlowOneOf
+	JSONPointer               jsonpointer.T
+	FlowRootObject            config.AuthenticationFlowObject
+	Options                   []CreateAuthenticatorOption
+	ShouldBypassBotProtection bool
+	BotProtectionCfg          *config.BotProtectionConfig
 }
 
 var _ authflow.InputSchema = &InputSchemaSignupFlowStepCreateAuthenticator{}
@@ -29,13 +31,12 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) GetFlowRootObject() confi
 func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validation.SchemaBuilder {
 	oneOf := []validation.SchemaBuilder{}
 
-	for _, branch := range i.OneOf {
-		branch := branch
+	for _, option := range i.Options {
+		option := option
 		b := validation.SchemaBuilder{}
 		required := []string{"authentication"}
-		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(branch.Authentication))
-
-		switch branch.Authentication {
+		b.Properties().Property("authentication", validation.SchemaBuilder{}.Const(option.Authentication))
+		switch option.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
@@ -55,12 +56,15 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validatio
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			if branch.TargetStep == "" {
+			if option.Target == nil {
 				// Then target is required
 				required = append(required, "target")
 				b.Properties().Property("target", validation.SchemaBuilder{}.Type(validation.TypeString))
 			}
 			b.Required(required...)
+			if !i.ShouldBypassBotProtection && i.BotProtectionCfg != nil && option.isBotProtectionRequired() {
+				b = AddBotProtectionToExistingSchemaBuilder(b, i.BotProtectionCfg)
+			}
 			oneOf = append(oneOf, b)
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// Cannot create passkey in this step.
@@ -86,12 +90,15 @@ type InputSignupFlowStepCreateAuthenticator struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
 	NewPassword    string                                  `json:"new_password,omitempty"`
 	Target         string                                  `json:"target,omitempty"`
+
+	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 }
 
 var _ authflow.Input = &InputSignupFlowStepCreateAuthenticator{}
 var _ inputTakeAuthenticationMethod = &InputSignupFlowStepCreateAuthenticator{}
 var _ inputTakeOOBOTPTarget = &InputSignupFlowStepCreateAuthenticator{}
 var _ inputTakeNewPassword = &InputSignupFlowStepCreateAuthenticator{}
+var _ inputTakeBotProtection = &InputSignupFlowStepCreateAuthenticator{}
 
 func (i *InputSignupFlowStepCreateAuthenticator) Input() {}
 
@@ -105,4 +112,22 @@ func (i *InputSignupFlowStepCreateAuthenticator) GetTarget() string {
 
 func (i *InputSignupFlowStepCreateAuthenticator) GetNewPassword() string {
 	return i.NewPassword
+}
+
+func (i *InputSignupFlowStepCreateAuthenticator) GetBotProtectionProvider() *InputTakeBotProtectionBody {
+	return i.BotProtection
+}
+
+func (i *InputSignupFlowStepCreateAuthenticator) GetBotProtectionProviderType() config.BotProtectionProviderType {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Type
+}
+
+func (i *InputSignupFlowStepCreateAuthenticator) GetBotProtectionProviderResponse() string {
+	if i.BotProtection == nil {
+		return ""
+	}
+	return i.BotProtection.Response
 }

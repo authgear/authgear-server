@@ -1,0 +1,134 @@
+name: Signup with Bot Protection - Create Authenticator - Secondary OOB OTP SMS - Missing Bot Protection Required Field
+authgear.yaml:
+  override: |
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+    authentication_flow:
+      signup_flows:
+      - name: f1
+        steps:
+        - name: signup_identify
+          type: identify
+          one_of:
+          - identification: username
+            steps:
+            - name: authenticate_primary_username
+              type: create_authenticator
+              one_of:
+              - authentication: primary_password
+            - name: authenticate_secondary_sms
+              type: create_authenticator
+              one_of:
+              - authentication: secondary_oob_otp_sms
+                bot_protection:
+                  mode: always
+                  provider: 
+                    type: cloudflare
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "username"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "signup_bp_username"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "primary_password"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "signup_bp_primary_pwd"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "secondary_oob_otp_sms",
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "otp_form": "code"
+                }
+              ],
+              "type": "create_authenticator_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_oob_otp_sms",
+        "target": "+85292078677",
+        "bot_protection": {
+          "invalid_field": "invalid_value"
+        }
+      }
+    output: 
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid value",
+          "code": 400,
+          "info": {
+            "causes": [
+              "[[arrayof]]",
+              {
+                "details": {
+                  "actual": [
+                    "[[arrayof]]",
+                    "invalid_field"
+                  ],
+                  "missing": "[[array]]"
+                },
+                "kind": "required",
+                "location": "/bot_protection"
+              }
+            ]
+          }
+        }

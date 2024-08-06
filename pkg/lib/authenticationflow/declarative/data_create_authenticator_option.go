@@ -164,3 +164,14 @@ func NewCreateAuthenticationOptions(
 	}
 	return options, nil
 }
+
+func (o *CreateAuthenticatorOption) isBotProtectionRequired() bool {
+	if o.BotProtection == nil {
+		return false
+	}
+	if o.BotProtection.Enabled != nil && *o.BotProtection.Enabled && o.BotProtection.Provider != nil && o.BotProtection.Provider.Type != "" {
+		return true
+	}
+
+	return false
+}

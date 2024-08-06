@@ -18,17 +18,38 @@ func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
 			So(string(bytes), ShouldEqualJSON, expected)
 		}
 
+		var dummyBotProtectionCfg = &config.BotProtectionConfig{
+			Enabled: true,
+			Provider: &config.BotProtectionProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
+
+		var varTrue = true
+		dummyBotProtection := &BotProtectionData{
+			Enabled: &varTrue,
+			Provider: &BotProtectionDataProvider{
+				Type: config.BotProtectionProviderTypeCloudflare,
+			},
+		}
+
 		test((&InputSchemaSignupFlowStepCreateAuthenticator{
-			OneOf: []*config.AuthenticationFlowSignupFlowOneOf{
+			ShouldBypassBotProtection: false,
+			BotProtectionCfg:          dummyBotProtectionCfg,
+			Options: []CreateAuthenticatorOption{
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryPassword,
 				},
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail,
+					BotProtection:  dummyBotProtection,
 				},
 				{
 					Authentication: config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
-					TargetStep:     "step",
+					Target: &CreateAuthenticatorTarget{
+						MaskedDisplayName:    "test",
+						VerificationRequired: true,
+					},
 				},
 				{
 					Authentication: config.AuthenticationFlowAuthenticationSecondaryPassword,
@@ -72,13 +93,29 @@ func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
                 "authentication": {
                     "const": "primary_oob_otp_email"
                 },
+                "bot_protection": {
+                    "properties": {
+                    "response": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "const": "cloudflare"
+                    }
+                    },
+                    "required": [
+                    "type",
+                    "response"
+                    ],
+                    "type": "object"
+                },
                 "target": {
                     "type": "string"
                 }
             },
             "required": [
                 "authentication",
-                "target"
+                "target",
+                "bot_protection"
             ]
         },
         {
