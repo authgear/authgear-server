@@ -14,8 +14,9 @@ const (
 	CharListAlphabet     = CharListLowercase + CharListUppercase
 	CharListDigit        = "0123456789"
 	CharListAlphanumeric = CharListAlphabet + CharListDigit
-	// TODO: Define real list of special characters
-	CharListSymbol = "!@#$%^&*()-_=+,.?/:;{}[]`~"
+	// Referenced from "special" character class in Apple's Password Autofill rules.
+	// https://developer.apple.com/documentation/security/password_autofill/customizing_password_autofill_rules
+	CharListSymbol = "-~!@#$%^&*_+=`|(){}[:;\"'<>,.?]"
 )
 
 const (
