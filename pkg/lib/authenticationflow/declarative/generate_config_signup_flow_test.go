@@ -361,8 +361,6 @@ steps:
     steps:
     - target_step: signup_identify
       type: verify
-      bot_protection:
-        mode: always
     - name: authenticate_primary_email
       one_of:
       - authentication: primary_password
@@ -390,8 +388,6 @@ steps:
     steps:
     - target_step: signup_identify
       type: verify
-      bot_protection:
-        mode: always
     - name: authenticate_primary_phone
       type: create_authenticator
       one_of:
@@ -433,6 +429,80 @@ steps:
           mode: always
         steps:
         - type: view_recovery_code
+      type: create_authenticator
+  type: identify
+`)
+		// bot_protection, stricter risk mode overrides
+		// Note
+		// - identify > email      : mode=always
+		// - identify > phone      : mode=always
+		// - identify > username   : mode=never
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+  - oob_otp_email
+  - oob_otp_sms
+identity:
+  login_id:
+    keys:
+    - type: email
+    - type: phone
+    - type: username
+bot_protection:
+  enabled: true
+  provider:
+    type: recaptchav2
+    site_key: recaptchav2-site-key
+  requirements:
+    signup_or_login:
+      mode: never
+    oob_otp_email:
+      mode: always
+    oob_otp_sms:
+      mode: always
+`, `
+name: default
+steps:
+- name: signup_identify
+  one_of:
+  - identification: email
+    bot_protection:
+      mode: always
+    steps:
+    - target_step: signup_identify
+      type: verify
+    - name: authenticate_primary_email
+      one_of:
+      - authentication: primary_password
+      - authentication: primary_oob_otp_email
+        bot_protection:
+          mode: always
+        target_step: signup_identify
+      type: create_authenticator
+  - identification: phone
+    bot_protection:
+      mode: always
+    steps:
+    - target_step: signup_identify
+      type: verify
+    - name: authenticate_primary_phone
+      type: create_authenticator
+      one_of:
+      - authentication: primary_password
+      - authentication: primary_oob_otp_sms
+        target_step: signup_identify
+        bot_protection:
+          mode: always
+  - identification: username
+    bot_protection:
+      mode: never
+    steps:
+    - name: authenticate_primary_username
+      one_of:
+      - authentication: primary_password
       type: create_authenticator
   type: identify
 `)
