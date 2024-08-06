@@ -62,6 +62,7 @@ func ProvideGenerator(
 	generator.PwAlphabetRequired = cfg.Policy.AlphabetRequired
 	generator.PwDigitRequired = cfg.Policy.DigitRequired
 	generator.PwSymbolRequired = cfg.Policy.SymbolRequired
+	generator.PwExcludedKeywords = cfg.Policy.ExcludedKeywords
 
 	if !*featureCfg.Password.Policy.MinimumGuessableLevel.Disabled {
 		generator.PwMinGuessableLevel = cfg.Policy.MinimumGuessableLevel
