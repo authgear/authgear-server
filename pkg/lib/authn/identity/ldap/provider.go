@@ -26,8 +26,8 @@ func (p *Provider) List(userID string) ([]*identity.LDAP, error) {
 	return p.Store.List(userID)
 }
 
-func (p *Provider) GetByServerUserID(serverName string, userIDAttributeOID string, userIDAttributeValue string) (*identity.LDAP, error) {
-	return p.Store.GetByServerUserID(serverName, userIDAttributeOID, userIDAttributeValue)
+func (p *Provider) GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue string) (*identity.LDAP, error) {
+	return p.Store.GetByServerUserID(serverName, userIDAttributeName, userIDAttributeValue)
 }
 
 func (p *Provider) ListByClaim(name string, value string) ([]*identity.LDAP, error) {
@@ -37,7 +37,7 @@ func (p *Provider) ListByClaim(name string, value string) ([]*identity.LDAP, err
 func (p *Provider) New(
 	userID string,
 	serverName string,
-	userIDAttributeOID string,
+	userIDAttributeName string,
 	userIDAttributeValue string,
 	claims map[string]interface{},
 	rawEntryJSON map[string]interface{},
@@ -46,7 +46,7 @@ func (p *Provider) New(
 		ID:                   uuid.New(),
 		UserID:               userID,
 		ServerName:           serverName,
-		UserIDAttributeOID:   userIDAttributeOID,
+		UserIDAttributeName:  userIDAttributeName,
 		UserIDAttributeValue: userIDAttributeValue,
 		Claims:               claims,
 		RawEntryJSON:         rawEntryJSON,

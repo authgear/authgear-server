@@ -12,7 +12,7 @@ type LDAP struct {
 	UpdatedAt            time.Time              `json:"updated_at"`
 	UserID               string                 `json:"user_id"`
 	ServerName           string                 `json:"server_name"`
-	UserIDAttributeOID   string                 `json:"user_id_attribute_oid"`
+	UserIDAttributeName  string                 `json:"user_id_attribute_name"`
 	UserIDAttributeValue string                 `json:"user_id_attribute_value"`
 	Claims               map[string]interface{} `json:"claims,omitempty"`
 	RawEntryJSON         map[string]interface{} `json:"raw_entry_json,omitempty"`
@@ -33,7 +33,7 @@ func (i *LDAP) ToInfo() *Info {
 func (i *LDAP) ToLDAPSpec() *LDAPSpec {
 	return &LDAPSpec{
 		ServerName:           i.ServerName,
-		UserIDAttributeOID:   i.UserIDAttributeOID,
+		UserIDAttributeName:  i.UserIDAttributeName,
 		UserIDAttributeValue: i.UserIDAttributeValue,
 		Claims:               i.Claims,
 		RawEntryJSON:         i.RawEntryJSON,

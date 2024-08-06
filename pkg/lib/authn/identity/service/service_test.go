@@ -320,7 +320,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 				LDAP: &identity.LDAP{
 					UserID:               userID,
 					ServerName:           serverName,
-					UserIDAttributeOID:   "email",
+					UserIDAttributeName:  "email",
 					UserIDAttributeValue: email,
 					Claims: map[string]interface{}{
 						"email": email,
@@ -361,7 +361,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			oauthProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			ldapProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeOID, info.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ldapProvider.EXPECT().GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(info)
 			So(err, ShouldBeNil)
@@ -428,7 +428,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			oauthProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			ldapProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LDAP{info.LDAP}, nil)
-			ldapProvider.EXPECT().GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeOID, info.LDAP.UserIDAttributeValue).AnyTimes().Return(info.LDAP, nil)
+			ldapProvider.EXPECT().GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue).AnyTimes().Return(info.LDAP, nil)
 
 			actual, err := p.CheckDuplicated(info)
 			So(err, ShouldBeNil)
@@ -442,7 +442,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeOID, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(existing.LDAP, nil)
+			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(existing.LDAP, nil)
 
 			actual, err := p.CheckDuplicated(incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
@@ -568,7 +568,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
 			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeOID, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
 			So(err, ShouldBeNil)
@@ -582,7 +582,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
 			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeOID, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
@@ -596,7 +596,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
 			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeOID, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
 			So(err, ShouldBeNil)
@@ -610,7 +610,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
 			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
 			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeOID, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
 
 			actual, err := p.CheckDuplicated(incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)

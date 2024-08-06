@@ -93,12 +93,12 @@ type LDAPIdentityProvider interface {
 	Get(userID, id string) (*identity.LDAP, error)
 	GetMany(ids []string) ([]*identity.LDAP, error)
 	List(userID string) ([]*identity.LDAP, error)
-	GetByServerUserID(serverName string, userIDAttributeOID string, userIDAttributeValue string) (*identity.LDAP, error)
+	GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue string) (*identity.LDAP, error)
 	ListByClaim(name string, value string) ([]*identity.LDAP, error)
 	New(
 		userID string,
 		serverName string,
-		userIDAttributeOID string,
+		userIDAttributeName string,
 		userIDAttributeValue string,
 		claims map[string]interface{},
 		rawEntryJSON map[string]interface{},
@@ -327,9 +327,9 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		return e.ToInfo(), nil
 	case model.IdentityTypeLDAP:
 		serverName := spec.LDAP.ServerName
-		userIDAttributeOID := spec.LDAP.UserIDAttributeOID
+		userIDAttributeName := spec.LDAP.UserIDAttributeName
 		userIDAttributeValue := spec.LDAP.UserIDAttributeValue
-		l, err := s.LDAP.GetByServerUserID(serverName, userIDAttributeOID, userIDAttributeValue)
+		l, err := s.LDAP.GetByServerUserID(serverName, userIDAttributeName, userIDAttributeValue)
 		if err != nil {
 			return nil, err
 		}
@@ -635,11 +635,11 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		return e.ToInfo(), nil
 	case model.IdentityTypeLDAP:
 		serverName := spec.LDAP.ServerName
-		userIDAttributeOID := spec.LDAP.UserIDAttributeOID
+		userIDAttributeName := spec.LDAP.UserIDAttributeName
 		userIDAttributeValue := spec.LDAP.UserIDAttributeValue
 		claims := spec.LDAP.Claims
 		rawEntryJSON := spec.LDAP.RawEntryJSON
-		l := s.LDAP.New(userID, serverName, userIDAttributeOID, userIDAttributeValue, claims, rawEntryJSON)
+		l := s.LDAP.New(userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
 		return l.ToInfo(), nil
 	}
 
@@ -933,7 +933,7 @@ func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity 
 		}
 	case model.IdentityTypeLDAP:
 		var l *identity.LDAP
-		l, err = s.LDAP.GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeOID, info.LDAP.UserIDAttributeValue)
+		l, err = s.LDAP.GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue)
 		if err != nil {
 			if !errors.Is(err, api.ErrIdentityNotFound) {
 				return
