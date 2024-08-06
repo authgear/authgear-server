@@ -37,7 +37,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["ldap_url"] = FormatLDAPURL{}
 	jsonschemaformat.DefaultChecker["ldap_dn"] = FormatLDAPDN{}
 	jsonschemaformat.DefaultChecker["ldap_search_filter_template"] = FormatLDAPSearchFilterTemplate{}
-	jsonschemaformat.DefaultChecker["ldap_oid"] = FormatLDAPOID{}
+	jsonschemaformat.DefaultChecker["ldap_attribute"] = FormatLDAPAttribute{}
 	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
 	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
 	jsonschemaformat.DefaultChecker["timezone"] = FormatTimezone{}
@@ -309,29 +309,29 @@ func (FormatLDAPSearchFilterTemplate) CheckFormat(value interface{}) error {
 	return nil
 }
 
-type FormatLDAPOID struct{}
+type FormatLDAPAttribute struct{}
 
-func (FormatLDAPOID) CheckFormat(value interface{}) error {
+func (FormatLDAPAttribute) CheckFormat(value interface{}) error {
 	str, ok := value.(string)
 	if !ok {
 		return nil
 	}
 
-	// numericoid = number 1*( DOT number )
-	// number  = DIGIT / ( LDIGIT 1*DIGIT )
-	// DIGIT   = %x30 / LDIGIT       ; "0"-"9"
-	// LDIGIT  = %x31-39             ; "1"-"9"
-	// https://datatracker.ietf.org/doc/html/rfc4512#section-1.4
 	if len(str) == 0 {
-		return errors.New("expect non-empty OID")
+		return errors.New("expect non-empty attribute")
 	}
 
-	matched, err := regexp.MatchString(`^(?:[0-9]|[1-9][0-9]+)(?:\.(?:[0-9]|[1-9][0-9]+))+$`, str)
+	// An attribute description option is represented by the ABNF:
+	// options = *( SEMI option )
+	// option = 1*keychar
+	// keychar = ALPHA / DIGIT / HYPHEN
+	// According to https://datatracker.ietf.org/doc/html/rfc4512#section-2.5
+	matched, err := regexp.MatchString(`^[a-zA-Z\d-]+$`, str)
 	if err != nil {
 		return err
 	}
 	if !matched {
-		return errors.New("invalid OID")
+		return errors.New("invalid attribute")
 	}
 
 	return nil
