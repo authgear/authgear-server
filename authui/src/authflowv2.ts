@@ -23,7 +23,7 @@ import { PhoneInputController } from "./authflowv2/phoneInput";
 import { CustomSelectController } from "./authflowv2/customSelect";
 import { CountdownController } from "./countdown";
 import { TextFieldController } from "./authflowv2/text-field";
-import { DialogController } from "./authflowv2/dialog";
+import { OverlayController } from "./authflowv2/overlay";
 import { CopyButtonController } from "./copy";
 import { AuthflowWebsocketController } from "./authflow_websocket";
 import { AuthflowPollingController } from "./authflow_polling";
@@ -89,7 +89,7 @@ Stimulus.register("countdown", CountdownController);
 Stimulus.register("copy-button", CopyButtonController);
 
 Stimulus.register("text-field", TextFieldController);
-Stimulus.register("dialog", DialogController);
+Stimulus.register("overlay", OverlayController);
 Stimulus.register("loading", LoadingController);
 Stimulus.register("new-password-field", NewPasswordFieldController);
 
