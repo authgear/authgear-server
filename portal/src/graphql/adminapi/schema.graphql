@@ -1253,7 +1253,7 @@ type RemoveUserFromRolesPayload {
 """"""
 input ResetPasswordInput {
   """New password."""
-  password: String!
+  password: String
 
   """Indicate whether to send the new password to the user."""
   sendPassword: Boolean

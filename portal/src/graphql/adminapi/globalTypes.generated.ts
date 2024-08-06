@@ -1111,7 +1111,7 @@ export type RemoveUserFromRolesPayload = {
 
 export type ResetPasswordInput = {
   /** New password. */
-  password: Scalars['String']['input'];
+  password?: InputMaybe<Scalars['String']['input']>;
   /** Indicate whether to send the new password to the user. */
   sendPassword?: InputMaybe<Scalars['Boolean']['input']>;
   /** Indicate whether the user is required to change password on next login. */
