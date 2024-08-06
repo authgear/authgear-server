@@ -38,7 +38,7 @@ func init() {
 
 type IntentSignupFlowStepCreateAuthenticatorData struct {
 	TypedData
-	Options []CreateAuthenticatorOption `json:"options,omitempty"`
+	Options []CreateAuthenticatorOptionForOutput `json:"options,omitempty"`
 }
 
 func NewIntentSignupFlowStepCreateAuthenticatorData(d IntentSignupFlowStepCreateAuthenticatorData) IntentSignupFlowStepCreateAuthenticatorData {
@@ -247,8 +247,13 @@ func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context
 		return nil, err
 	}
 
+	optionsForOutput := []CreateAuthenticatorOptionForOutput{}
+	for _, o := range options {
+		optionsForOutput = append(optionsForOutput, o.ToOutput(ctx))
+	}
+
 	return NewIntentSignupFlowStepCreateAuthenticatorData(IntentSignupFlowStepCreateAuthenticatorData{
-		Options: options,
+		Options: optionsForOutput,
 	}), nil
 }
 
