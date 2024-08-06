@@ -149,7 +149,20 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 		return nil, api.ErrInvalidCredentials
 	}
 
-	return entry, nil
+	entryAttributes := []*ldap.EntryAttribute{}
+	for _, attr := range entry.Attributes {
+		_, isSensitiveAttribute := sensitiveAttributes[attr.Name]
+		if !isSensitiveAttribute {
+			entryAttributes = append(entryAttributes, attr)
+		}
+	}
+
+	sensitizedEntry := &ldap.Entry{
+		DN:         userDN,
+		Attributes: entryAttributes,
+	}
+
+	return sensitizedEntry, nil
 }
 
 func (c *Client) TestConnection(username string) error {
