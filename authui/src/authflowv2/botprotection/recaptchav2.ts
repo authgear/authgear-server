@@ -90,13 +90,13 @@ export class RecaptchaV2Controller extends Controller {
     this.widgetID = widgetID;
   };
 
-  undoRenderWidget() {
+  undoRenderWidget = () => {
     this.widgetID = undefined;
     if (this.widgetContainer != null) {
       this.widgetTarget.removeChild(this.widgetContainer);
     }
     this.widgetContainer = undefined;
-  }
+  };
 
   connect() {
     window.grecaptcha.ready(() => {
@@ -106,12 +106,20 @@ export class RecaptchaV2Controller extends Controller {
       "bot-protection-widget:render",
       this.renderWidget
     );
+    document.addEventListener(
+      "bot-protection-widget:undo-render",
+      this.undoRenderWidget
+    );
   }
 
   disconnect() {
     document.removeEventListener(
       "bot-protection-widget:render",
       this.renderWidget
+    );
+    document.removeEventListener(
+      "bot-protection-widget:undo-render",
+      this.undoRenderWidget
     );
     this.undoRenderWidget();
   }
