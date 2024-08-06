@@ -281,7 +281,11 @@ saml:
       name_id_attribute_pointer: /username
 ```
 
-- `name_id_attribute_pointer`: The JSON pointer pointing to a user's standard attribute or custom attribute which will be used as the NameID. The login will fail if the attribute does not exist or it is empty. The default is `/sub`, which is the user id.
+- `name_id_attribute_pointer`: The JSON pointer pointing to a user's standard attribute or custom attribute which will be used as the NameID. The login will fail if the attribute does not exist or it is empty. The default is `/sub`. Only the following values are accepted:
+  - `/sub`: The user id. This is the default.
+  - `/username`: The username.
+  - `/email`: The email.
+  - `/phone_number`: The phone number.
 
 ### <a id="3_2"> Configs
 
