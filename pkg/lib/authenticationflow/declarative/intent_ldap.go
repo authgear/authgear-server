@@ -49,10 +49,20 @@ func (*IntentLDAP) MilestoneFlowUseIdentity(flows authflow.Flows) (MilestoneDoUs
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDoUseIdentity](flows)
 }
 
-func (n *IntentLDAP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
-	return nil, nil
+func (i *IntentLDAP) CanReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.InputSchema, error) {
+	if len(flows.Nearest.Nodes) == 0 {
+		flowRootObject, err := findFlowRootObjectInFlow(deps, flows)
+		if err != nil {
+			return nil, err
+		}
+		return &InputSchemaTakeLDAP{
+			FlowRootObject: flowRootObject,
+			JSONPointer:    i.JSONPointer,
+		}, nil
+	}
+	return nil, authflow.ErrEOF
 }
 
-func (n *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	return nil, nil
 }
