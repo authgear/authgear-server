@@ -146,7 +146,7 @@ func (c *Client) TestConnection(username string) error {
 	err = c.bind(conn)
 	if err != nil {
 		if ldap.IsErrorWithCode(err, ldap.LDAPResultInvalidCredentials) {
-			return api.ErrLDAPInvalidBindUser
+			return api.ErrLDAPFailedToBindSearchUser
 		}
 		return err
 	}
@@ -154,7 +154,7 @@ func (c *Client) TestConnection(username string) error {
 	if username != "" {
 		searchFilter, err := ldaputil.ParseFilter(c.Config.SearchFilterTemplate, username)
 		if err != nil {
-			return api.ErrLDAPInvalidFilterTemplate
+			return err
 		}
 		sr, err := c.search(conn, searchFilter)
 		if err != nil {
@@ -164,7 +164,7 @@ func (c *Client) TestConnection(username string) error {
 			return api.ErrLDAPEndUserSearchNotFound
 		}
 		if len(sr.Entries) > 1 {
-			return api.ErrLDAPEndUserSearchMultiple
+			return api.ErrLDAPEndUserSearchMultipleResult
 		}
 
 		uniqueIdentifierValue := sr.Entries[0].GetAttributeValue(c.Config.UserIDAttributeName)
