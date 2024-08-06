@@ -144,14 +144,12 @@ Bot protection is supported in the following flow types:
 - `signup_login`
 - `reauth`
 - `account_recovery`
-- `verify`
 
 Bot protection is supported only in the following step types:
 
 - `identify` in `signup`, `promote`, `login`, `signup_login`, and `account_recovery`.
 - `authenticate` in `login` and `reauth`.
 - `create_authenticator` in `signup` and `promote`
-- `verify` in `signup` and `promote`
 
 To enable bot protection in a branch, add `bot_protection` to the branch.
 
@@ -306,13 +304,9 @@ Given `bot_protection.enabled=true`,
         Contribute to flows:
           <ol>
             <li>
-            <!-- Promote only have identify, verify/create_authenticator will reuse signup -->
+            <!-- Promote only have identify, create_authenticator will reuse signup -->
               <code>signup (promote) </code>
               <ul>
-                <li><code>verify (email) </code></li>
-                <ul>
-                  <li>if <code>verification.claims.email.required=true</code></li>
-                </ul>
                 <li><code>create_authenticator</code></li>
                 <ul>
                   <li><code>primary_oob_otp_email</code></li>
@@ -339,13 +333,9 @@ Given `bot_protection.enabled=true`,
         Contribute to flows:
           <ol>
             <li>
-            <!-- Promote only have identify, verify/create_authenticator will reuse signup -->
+            <!-- Promote only have identify, create_authenticator will reuse signup -->
               <code>signup (promote)</code>
               <ul>
-                <li><code>verify (sms) </code></li>
-                <ul>
-                  <li>if <code>verification.claims.phone_number.required=true</code></li>
-                </ul>
                 <li><code>create_authenticator</code></li>
                 <ul>
                   <li><code>primary_oob_otp_sms</code></li>
