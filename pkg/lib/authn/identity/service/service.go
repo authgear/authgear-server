@@ -89,6 +89,26 @@ type SIWEIdentityProvider interface {
 	Delete(i *identity.SIWE) error
 }
 
+type LDAPIdentityProvider interface {
+	Get(userID, id string) (*identity.LDAP, error)
+	GetMany(ids []string) ([]*identity.LDAP, error)
+	List(userID string) ([]*identity.LDAP, error)
+	GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue string) (*identity.LDAP, error)
+	ListByClaim(name string, value string) ([]*identity.LDAP, error)
+	New(
+		userID string,
+		serverName string,
+		userIDAttributeName string,
+		userIDAttributeValue string,
+		claims map[string]interface{},
+		rawEntryJSON map[string]interface{},
+	) *identity.LDAP
+	WithUpdate(iden *identity.LDAP, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP
+	Create(i *identity.LDAP) error
+	Update(i *identity.LDAP) error
+	Delete(i *identity.LDAP) error
+}
+
 type Service struct {
 	Authentication        *config.AuthenticationConfig
 	Identity              *config.IdentityConfig
@@ -100,6 +120,7 @@ type Service struct {
 	Biometric             BiometricIdentityProvider
 	Passkey               PasskeyIdentityProvider
 	SIWE                  SIWEIdentityProvider
+	LDAP                  LDAPIdentityProvider
 }
 
 func (s *Service) Get(id string) (*identity.Info, error) {
@@ -144,6 +165,12 @@ func (s *Service) Get(id string) (*identity.Info, error) {
 			return nil, err
 		}
 		return s.ToInfo(), nil
+	case model.IdentityTypeLDAP:
+		s, err := s.LDAP.Get(ref.UserID, id)
+		if err != nil {
+			return nil, err
+		}
+		return s.ToInfo(), nil
 	}
 
 	panic("identity: unknown identity type " + ref.Type)
@@ -155,7 +182,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		return nil, err
 	}
 
-	var loginIDs, oauthIDs, anonymousIDs, biometricIDs, passkeyIDs, siweIDs []string
+	var loginIDs, oauthIDs, anonymousIDs, biometricIDs, passkeyIDs, siweIDs, ldapIDs []string
 	for _, ref := range refs {
 		switch ref.Type {
 		case model.IdentityTypeLoginID:
@@ -170,6 +197,8 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 			passkeyIDs = append(passkeyIDs, ref.ID)
 		case model.IdentityTypeSIWE:
 			siweIDs = append(siweIDs, ref.ID)
+		case model.IdentityTypeLDAP:
+			ldapIDs = append(ldapIDs, ref.ID)
 		default:
 			panic("identity: unknown identity type " + ref.Type)
 		}
@@ -222,6 +251,14 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		return nil, err
 	}
 	for _, i := range e {
+		infos = append(infos, i.ToInfo())
+	}
+
+	ldapIdentities, err := s.LDAP.GetMany(ldapIDs)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range ldapIdentities {
 		infos = append(infos, i.ToInfo())
 	}
 
@@ -288,6 +325,15 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 			return nil, err
 		}
 		return e.ToInfo(), nil
+	case model.IdentityTypeLDAP:
+		serverName := spec.LDAP.ServerName
+		userIDAttributeName := spec.LDAP.UserIDAttributeName
+		userIDAttributeValue := spec.LDAP.UserIDAttributeValue
+		l, err := s.LDAP.GetByServerUserID(serverName, userIDAttributeName, userIDAttributeValue)
+		if err != nil {
+			return nil, err
+		}
+		return l.ToInfo(), nil
 	}
 
 	panic("identity: unknown identity type " + spec.Type)
@@ -323,6 +369,10 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 		if spec.OAuth.StandardClaims != nil {
 			claimsToSearch = spec.OAuth.StandardClaims
 		}
+	case model.IdentityTypeLDAP:
+		if spec.LDAP.Claims != nil {
+			claimsToSearch = spec.LDAP.Claims
+		}
 	default:
 		break
 	}
@@ -357,6 +407,15 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 				otherMatches = append(otherMatches, o.ToInfo())
 			}
 
+			var ldaps []*identity.LDAP
+			ldaps, err = s.LDAP.ListByClaim(name, str)
+			if err != nil {
+				return
+			}
+
+			for _, l := range ldaps {
+				otherMatches = append(otherMatches, l.ToInfo())
+			}
 		}
 	}
 
@@ -453,6 +512,17 @@ func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, 
 		}
 	}
 
+	// ldap
+	if ldapRefs, ok := refsByType[model.IdentityTypeLDAP]; ok && len(ldapRefs) > 0 {
+		ldapIdens, err := s.LDAP.GetMany(extractIDs(ldapRefs))
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range ldapIdens {
+			infos = append(infos, i.ToInfo())
+		}
+	}
+
 	infosByUserID := map[string][]*identity.Info{}
 	for _, info := range infos {
 		arr := infosByUserID[info.UserID]
@@ -508,6 +578,15 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 		infos = append(infos, i.ToInfo())
 	}
 
+	// ldaps
+	ldapIdentities, err := s.LDAP.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range ldapIdentities {
+		infos = append(infos, i.ToInfo())
+	}
+
 	return infos, nil
 }
 
@@ -554,6 +633,14 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 			return nil, err
 		}
 		return e.ToInfo(), nil
+	case model.IdentityTypeLDAP:
+		serverName := spec.LDAP.ServerName
+		userIDAttributeName := spec.LDAP.UserIDAttributeName
+		userIDAttributeValue := spec.LDAP.UserIDAttributeValue
+		claims := spec.LDAP.Claims
+		rawEntryJSON := spec.LDAP.RawEntryJSON
+		l := s.LDAP.New(userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
+		return l.ToInfo(), nil
 	}
 
 	panic("identity: unknown identity type " + spec.Type)
@@ -623,6 +710,12 @@ func (s *Service) Create(info *identity.Info) error {
 			return err
 		}
 		*info = *i.ToInfo()
+	case model.IdentityTypeLDAP:
+		i := info.LDAP
+		if err := s.LDAP.Create(i); err != nil {
+			return err
+		}
+		*info = *i.ToInfo()
 	default:
 		panic("identity: unknown identity type " + info.Type)
 	}
@@ -647,6 +740,9 @@ func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec, optio
 			rawProfile,
 			standardClaims,
 		)
+		return i.ToInfo(), nil
+	case model.IdentityTypeLDAP:
+		i := s.LDAP.WithUpdate(info.LDAP, spec.LDAP.Claims, spec.LDAP.RawEntryJSON)
 		return i.ToInfo(), nil
 	default:
 		panic("identity: cannot update identity type " + info.Type)
@@ -677,6 +773,12 @@ func (s *Service) Update(info *identity.Info) error {
 		panic("identity: update no support for identity type " + info.Type)
 	case model.IdentityTypeSIWE:
 		panic("identity: update no support for identity type " + info.Type)
+	case model.IdentityTypeLDAP:
+		i := info.LDAP
+		if err := s.LDAP.Update(i); err != nil {
+			return err
+		}
+		*info = *i.ToInfo()
 	default:
 		panic("identity: unknown identity type " + info.Type)
 	}
@@ -714,6 +816,11 @@ func (s *Service) Delete(info *identity.Info) error {
 	case model.IdentityTypeSIWE:
 		i := info.SIWE
 		if err := s.SIWE.Delete(i); err != nil {
+			return err
+		}
+	case model.IdentityTypeLDAP:
+		i := info.LDAP
+		if err := s.LDAP.Delete(i); err != nil {
 			return err
 		}
 	default:
@@ -767,6 +874,24 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
 			return
 		}
+
+		var ldapIdentities []*identity.LDAP
+		ldapIdentities, err = s.LDAP.ListByClaim(string(name), value)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, i := range ldapIdentities {
+			if i.UserID == info.UserID {
+				continue
+			}
+			dupeIdentity = i.ToInfo()
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
+			return
+		}
 	}
 
 	// 2. Check duplicate by considering type-specific unique key.
@@ -801,6 +926,21 @@ func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity 
 			err = nil
 		} else if o.UserID != info.UserID {
 			dupeIdentity = o.ToInfo()
+
+			incoming := info.ToSpec()
+			existing := dupeIdentity.ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
+		}
+	case model.IdentityTypeLDAP:
+		var l *identity.LDAP
+		l, err = s.LDAP.GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue)
+		if err != nil {
+			if !errors.Is(err, api.ErrIdentityNotFound) {
+				return
+			}
+			err = nil
+		} else if l.UserID != info.UserID {
+			dupeIdentity = l.ToInfo()
 
 			incoming := info.ToSpec()
 			existing := dupeIdentity.ToSpec()
@@ -843,6 +983,9 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 			out = append(out, s.listLoginIDCandidates(loginIDs)...)
 		case model.IdentityTypeSIWE:
 			out = append(out, s.listSIWECandidates(siwes)...)
+		case model.IdentityTypeLDAP:
+			// TODO(DEV-1660)
+			break
 		}
 
 	}

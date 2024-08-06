@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
+	identityldap "github.com/authgear/authgear-server/pkg/lib/authn/identity/ldap"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	identitypasskey "github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
@@ -233,6 +234,8 @@ var CommonDependencySet = wire.NewSet(
 
 		identitysiwe.DependencySet,
 
+		identityldap.DependencySet,
+
 		identityservice.DependencySet,
 		wire.Bind(new(identityservice.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		wire.Bind(new(identityservice.OAuthIdentityProvider), new(*identityoauth.Provider)),
@@ -240,6 +243,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(identityservice.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(identityservice.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 		wire.Bind(new(identityservice.SIWEIdentityProvider), new(*identitysiwe.Provider)),
+		wire.Bind(new(identityservice.LDAPIdentityProvider), new(*identityldap.Provider)),
 
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),

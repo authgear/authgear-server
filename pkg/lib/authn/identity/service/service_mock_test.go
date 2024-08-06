@@ -882,3 +882,171 @@ func (mr *MockSIWEIdentityProviderMockRecorder) New(userID, msg, signature inter
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).New), userID, msg, signature)
 }
+
+// MockLDAPIdentityProvider is a mock of LDAPIdentityProvider interface.
+type MockLDAPIdentityProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockLDAPIdentityProviderMockRecorder
+}
+
+// MockLDAPIdentityProviderMockRecorder is the mock recorder for MockLDAPIdentityProvider.
+type MockLDAPIdentityProviderMockRecorder struct {
+	mock *MockLDAPIdentityProvider
+}
+
+// NewMockLDAPIdentityProvider creates a new mock instance.
+func NewMockLDAPIdentityProvider(ctrl *gomock.Controller) *MockLDAPIdentityProvider {
+	mock := &MockLDAPIdentityProvider{ctrl: ctrl}
+	mock.recorder = &MockLDAPIdentityProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockLDAPIdentityProvider) EXPECT() *MockLDAPIdentityProviderMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockLDAPIdentityProvider) Create(i *identity.LDAP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", i)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockLDAPIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Create), i)
+}
+
+// Delete mocks base method.
+func (m *MockLDAPIdentityProvider) Delete(i *identity.LDAP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", i)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockLDAPIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Delete), i)
+}
+
+// Get mocks base method.
+func (m *MockLDAPIdentityProvider) Get(userID, id string) (*identity.LDAP, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret0, _ := ret[0].(*identity.LDAP)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockLDAPIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Get), userID, id)
+}
+
+// GetByServerUserID mocks base method.
+func (m *MockLDAPIdentityProvider) GetByServerUserID(serverName, userIDAttributeName, userIDAttributeValue string) (*identity.LDAP, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByServerUserID", serverName, userIDAttributeName, userIDAttributeValue)
+	ret0, _ := ret[0].(*identity.LDAP)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByServerUserID indicates an expected call of GetByServerUserID.
+func (mr *MockLDAPIdentityProviderMockRecorder) GetByServerUserID(serverName, userIDAttributeName, userIDAttributeValue interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByServerUserID", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).GetByServerUserID), serverName, userIDAttributeName, userIDAttributeValue)
+}
+
+// GetMany mocks base method.
+func (m *MockLDAPIdentityProvider) GetMany(ids []string) ([]*identity.LDAP, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret0, _ := ret[0].([]*identity.LDAP)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetMany indicates an expected call of GetMany.
+func (mr *MockLDAPIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).GetMany), ids)
+}
+
+// List mocks base method.
+func (m *MockLDAPIdentityProvider) List(userID string) ([]*identity.LDAP, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", userID)
+	ret0, _ := ret[0].([]*identity.LDAP)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockLDAPIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).List), userID)
+}
+
+// ListByClaim mocks base method.
+func (m *MockLDAPIdentityProvider) ListByClaim(name, value string) ([]*identity.LDAP, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByClaim", name, value)
+	ret0, _ := ret[0].([]*identity.LDAP)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByClaim indicates an expected call of ListByClaim.
+func (mr *MockLDAPIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).ListByClaim), name, value)
+}
+
+// New mocks base method.
+func (m *MockLDAPIdentityProvider) New(userID, serverName, userIDAttributeName, userIDAttributeValue string, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "New", userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
+	ret0, _ := ret[0].(*identity.LDAP)
+	return ret0
+}
+
+// New indicates an expected call of New.
+func (mr *MockLDAPIdentityProviderMockRecorder) New(userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).New), userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
+}
+
+// Update mocks base method.
+func (m *MockLDAPIdentityProvider) Update(i *identity.LDAP) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", i)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockLDAPIdentityProviderMockRecorder) Update(i interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Update), i)
+}
+
+// WithUpdate mocks base method.
+func (m *MockLDAPIdentityProvider) WithUpdate(iden *identity.LDAP, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "WithUpdate", iden, claims, rawEntryJSON)
+	ret0, _ := ret[0].(*identity.LDAP)
+	return ret0
+}
+
+// WithUpdate indicates an expected call of WithUpdate.
+func (mr *MockLDAPIdentityProviderMockRecorder) WithUpdate(iden, claims, rawEntryJSON interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithUpdate", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).WithUpdate), iden, claims, rawEntryJSON)
+}

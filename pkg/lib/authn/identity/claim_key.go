@@ -39,4 +39,13 @@ const (
 	IdentityClaimSIWEAddress string = "https://authgear.com/claims/siwe/address"
 	// IdentityClaimSIWEChainID is a claim with an interger value.
 	IdentityClaimSIWEChainID string = "https://authgear.com/claims/siwe/chain_id"
+
+	// IdentityClaimLDAPServerName is a claim with a string value.
+	IdentityClaimLDAPServerName string = "https://authgear.com/claims/ldap/server_name"
+	// IdentityClaimLDAPUserIDAttributeName is a claim with a string value.
+	IdentityClaimLDAPUserIDAttributeName string = "https://authgear.com/claims/ldap/user_id_attribute_name"
+	// IdentityClaimLDAPUserIDAttributeValue is a claim with a string value.
+	IdentityClaimLDAPUserIDAttributeValue string = "https://authgear.com/claims/ldap/user_id_attribute_value"
+	// IdentityClaimLDAPAttributes is a claim with a map value.
+	IdentityClaimLDAPAttributes string = "https://authgear.com/claims/ldap/attributes"
 )
