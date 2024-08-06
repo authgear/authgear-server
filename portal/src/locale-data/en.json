@@ -305,6 +305,8 @@
   "AddUserScreen.error.invalid-password": "Please check password policies below",
   "AddUserScreen.error.duplicated-identity": "Duplicated identity",
   "AddUserScreen.passkey-only.message": "User must be created using their own devices when passkey is the only way to login.",
+  "AddUserScreen.password-creation-type.manual": "Enter a password",
+  "AddUserScreen.password-creation-type.auto": "Automatically create a password and send to the user",
   "AddUserScreen.force-change-on-login": "Ask user to change password on login",
   "AddUserScreen.send-password": "Send the password to user's email",
 

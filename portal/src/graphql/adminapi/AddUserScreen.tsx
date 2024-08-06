@@ -35,12 +35,18 @@ import FormContainer from "../../FormContainer";
 import styles from "./AddUserScreen.module.css";
 import { validatePassword } from "../../error/password";
 
+enum PasswordCreationType {
+  ManualEntry = "manual_entry",
+  AutoGenerate = "auto_generate",
+}
+
 interface FormState {
   selectedLoginIDType: LoginIDKeyType | null;
   username: string;
   email: string;
   phone: string;
   password: string;
+  passwordCreationType: PasswordCreationType;
   sendPassword: boolean;
   setPasswordExpired: boolean;
 }
@@ -59,8 +65,9 @@ function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
       email: "",
       phone: "",
       password: "",
+      passwordCreationType: PasswordCreationType.ManualEntry,
       sendPassword: false,
-      setPasswordExpired: false,
+      setPasswordExpired: true,
     };
   }
 
@@ -70,8 +77,9 @@ function makeDefaultFormState(loginIDTypes: LoginIDKeyType[]): FormState {
     email: "",
     phone: "",
     password: "",
+    passwordCreationType: PasswordCreationType.ManualEntry,
     sendPassword: false,
-    setPasswordExpired: false,
+    setPasswordExpired: true,
   };
 }
 
@@ -179,10 +187,42 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
     ];
   }, []);
 
+  const passwordCreateionTypeOptions = useMemo(() => {
+    return [
+      {
+        key: PasswordCreationType.ManualEntry,
+        text: renderToString("AddUserScreen.password-creation-type.manual"),
+      },
+      {
+        key: PasswordCreationType.AutoGenerate,
+        text: renderToString("AddUserScreen.password-creation-type.auto"),
+      },
+    ];
+  }, [renderToString]);
+
+  const onChangePasswordCreationType = useCallback(
+    (_e, option: IChoiceGroupOption | undefined) => {
+      if (option != null) {
+        setState((prev) => ({
+          ...prev,
+          password:
+            option.key === PasswordCreationType.AutoGenerate
+              ? ""
+              : prev.password,
+          passwordCreationType: option.key as PasswordCreationType,
+          sendPassword:
+            prev.sendPassword ||
+            option.key === PasswordCreationType.AutoGenerate,
+        }));
+      }
+    },
+    [setState]
+  );
+
   const { username, email, phone, password, selectedLoginIDType } = state;
 
-  const passwordFieldDisabled = useMemo(() => {
-    return !isPasswordNeeded(primaryAuthenticators, selectedLoginIDType);
+  const passwordFieldNeeded = useMemo(() => {
+    return isPasswordNeeded(primaryAuthenticators, selectedLoginIDType);
   }, [primaryAuthenticators, selectedLoginIDType]);
 
   const { onChange: onUsernameChange } = useTextField((value) => {
@@ -319,25 +359,41 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
             onChange={onSelectLoginIdType}
             label={renderToString("AddUserScreen.user-info.label")}
           />
+          {passwordFieldNeeded && selectedLoginIDType === "email" ? (
+            <ChoiceGroup
+              className={styles.widget}
+              selectedKey={state.passwordCreationType}
+              options={passwordCreateionTypeOptions}
+              onChange={onChangePasswordCreationType}
+              label={renderToString("AddUserScreen.password-creation-type")}
+            />
+          ) : null}
           <div className={styles.widget}>
             <PasswordField
-              disabled={passwordFieldDisabled}
               label={renderToString("AddUserScreen.password.label")}
               value={password}
               onChange={onPasswordChange}
               passwordPolicy={passwordPolicy}
               parentJSONPointer=""
               fieldName="password"
+              disabled={
+                !passwordFieldNeeded ||
+                state.passwordCreationType === PasswordCreationType.AutoGenerate
+              }
             />
-            {!passwordFieldDisabled && selectedLoginIDType === "email" ? (
+            {passwordFieldNeeded && selectedLoginIDType === "email" ? (
               <Checkbox
                 className={styles.checkbox}
                 label={renderToString("AddUserScreen.send-password")}
                 checked={state.sendPassword}
                 onChange={onChangeSendPassword}
+                disabled={
+                  state.passwordCreationType ===
+                  PasswordCreationType.AutoGenerate
+                }
               />
             ) : null}
-            {!passwordFieldDisabled ? (
+            {passwordFieldNeeded ? (
               <Checkbox
                 className={styles.checkbox}
                 label={renderToString("AddUserScreen.force-change-on-login")}
@@ -411,7 +467,11 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
         state.selectedLoginIDType
       );
       const identityValue = state[loginIDType];
-      const password = needPassword ? state.password : undefined;
+      const password =
+        needPassword &&
+        state.passwordCreationType === PasswordCreationType.ManualEntry
+          ? state.password
+          : undefined;
       const { sendPassword, setPasswordExpired } = state;
 
       await createUser({
