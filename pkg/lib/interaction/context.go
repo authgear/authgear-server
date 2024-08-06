@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -247,6 +248,7 @@ type Context struct {
 	Passkey                         PasskeyService
 	Verification                    VerificationService
 	RateLimiter                     RateLimiter
+	PasswordGenerator               *password.Generator
 
 	Nonces NonceService
 

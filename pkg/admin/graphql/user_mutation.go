@@ -66,12 +66,13 @@ var _ = registerMutationField(
 			}
 
 			password, _ := input["password"].(string)
+			generatePassword := password == ""
 			sendPassword, _ := input["sendPassword"].(bool)
 			setPasswordExpired, _ := input["setPasswordExpired"].(bool)
 
 			gqlCtx := GQLContext(p.Context)
 
-			userID, err := gqlCtx.UserFacade.Create(identityDef, password, sendPassword, setPasswordExpired)
+			userID, err := gqlCtx.UserFacade.Create(identityDef, password, generatePassword, sendPassword, setPasswordExpired)
 			if err != nil {
 				return nil, err
 			}
@@ -102,7 +103,7 @@ var resetPasswordInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Description: "Target user ID.",
 		},
 		"password": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewNonNull(graphql.String),
+			Type:        graphql.String,
 			Description: "New password.",
 		},
 		"sendPassword": &graphql.InputObjectFieldConfig{
@@ -146,12 +147,13 @@ var _ = registerMutationField(
 			userID := resolvedNodeID.ID
 
 			password, _ := input["password"].(string)
+			generatePassword := password == ""
 			sendPassword, _ := input["sendPassword"].(bool)
 			setPasswordExpired, _ := input["setPasswordExpired"].(bool)
 
 			gqlCtx := GQLContext(p.Context)
 
-			err := gqlCtx.UserFacade.ResetPassword(userID, password, sendPassword, setPasswordExpired)
+			err := gqlCtx.UserFacade.ResetPassword(userID, password, generatePassword, sendPassword, setPasswordExpired)
 			if err != nil {
 				return nil, err
 			}

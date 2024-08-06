@@ -786,6 +786,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	accountAnonymizationConfig := appConfig.AccountAnonymization
+	generator := password.ProvideGenerator(authenticatorPasswordConfig, authenticatorFeatureConfig, passwordChecker)
 	coordinator := &facade.Coordinator{
 		Events:                     eventService,
 		Identities:                 serviceService,
@@ -806,6 +807,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		AccountAnonymizationConfig: accountAnonymizationConfig,
 		AuthenticationConfig:       authenticationConfig,
 		Clock:                      clockClock,
+		PasswordGenerator:          generator,
 	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,

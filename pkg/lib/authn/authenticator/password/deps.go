@@ -47,6 +47,28 @@ func ProvideExpiry(
 	}
 }
 
+func ProvideGenerator(
+	cfg *config.AuthenticatorPasswordConfig,
+	featureCfg *config.AuthenticatorFeatureConfig,
+	checker *Checker,
+) *Generator {
+	generator := &Generator{
+		Checker:    checker,
+		RandSource: &CryptoRandSource{},
+	}
+	generator.PwMinLength = *cfg.Policy.MinLength
+	generator.PwUppercaseRequired = cfg.Policy.UppercaseRequired
+	generator.PwLowercaseRequired = cfg.Policy.LowercaseRequired
+	generator.PwAlphabetRequired = cfg.Policy.AlphabetRequired
+	generator.PwDigitRequired = cfg.Policy.DigitRequired
+	generator.PwSymbolRequired = cfg.Policy.SymbolRequired
+
+	if !*featureCfg.Password.Policy.MinimumGuessableLevel.Disabled {
+		generator.PwMinGuessableLevel = cfg.Policy.MinimumGuessableLevel
+	}
+	return generator
+}
+
 var DependencySet = wire.NewSet(
 	NewLogger,
 	wire.Struct(new(Provider), "*"),
@@ -57,4 +79,5 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(HistoryStore), "*"),
 	wire.Bind(new(CheckerHistoryStore), new(*HistoryStore)),
 	ProvideExpiry,
+	ProvideGenerator,
 )

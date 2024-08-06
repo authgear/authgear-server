@@ -701,6 +701,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	accountAnonymizationConfig := appConfig.AccountAnonymization
+	generator := password.ProvideGenerator(authenticatorPasswordConfig, authenticatorFeatureConfig, passwordChecker)
 	coordinator := &facade.Coordinator{
 		Events:                     eventService,
 		Identities:                 serviceService,
@@ -721,6 +722,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		AccountAnonymizationConfig: accountAnonymizationConfig,
 		AuthenticationConfig:       authenticationConfig,
 		Clock:                      clock,
+		PasswordGenerator:          generator,
 	}
 	identityFacade := &facade.IdentityFacade{
 		Coordinator: coordinator,

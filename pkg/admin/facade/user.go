@@ -18,7 +18,7 @@ import (
 )
 
 type UserService interface {
-	CreateByAdmin(identitySpec *identity.Spec, password string, sendPassword bool, setPasswordExpired bool) (*user.User, error)
+	CreateByAdmin(identitySpec *identity.Spec, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (*user.User, error)
 	GetRaw(id string) (*user.User, error)
 	Count() (uint64, error)
 	QueryPage(listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
@@ -75,7 +75,7 @@ func (f *UserFacade) SearchPage(
 	})), nil
 }
 
-func (f *UserFacade) Create(identityDef model.IdentityDef, password string, sendPassword bool, setPasswordExpired bool) (userID string, err error) {
+func (f *UserFacade) Create(identityDef model.IdentityDef, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (userID string, err error) {
 	// NOTE: identityDef is assumed to be a login ID since portal only supports login ID
 	loginIDInput := identityDef.(*model.IdentityDefLoginID)
 	loginIDKeyCofig, ok := f.LoginIDConfig.GetKeyConfig(loginIDInput.Key)
@@ -95,6 +95,7 @@ func (f *UserFacade) Create(identityDef model.IdentityDef, password string, send
 	user, err := f.Users.CreateByAdmin(
 		identitySpec,
 		password,
+		generatePassword,
 		sendPassword,
 		setPasswordExpired,
 	)
@@ -105,7 +106,7 @@ func (f *UserFacade) Create(identityDef model.IdentityDef, password string, send
 	return user.ID, nil
 }
 
-func (f *UserFacade) ResetPassword(id string, password string, sendPassword bool, changeOnLogin bool) (err error) {
+func (f *UserFacade) ResetPassword(id string, password string, generatePassword bool, sendPassword bool, changeOnLogin bool) (err error) {
 	err = f.Users.CheckUserAnonymized(id)
 	if err != nil {
 		return err
@@ -113,7 +114,7 @@ func (f *UserFacade) ResetPassword(id string, password string, sendPassword bool
 
 	_, err = f.Interaction.Perform(
 		interactionintents.NewIntentResetPassword(),
-		&resetPasswordInput{userID: id, password: password, sendPassword: sendPassword, changeOnLogin: changeOnLogin},
+		&resetPasswordInput{userID: id, password: password, generatePassword: generatePassword, sendPassword: sendPassword, changeOnLogin: changeOnLogin},
 	)
 	if err != nil {
 		return err

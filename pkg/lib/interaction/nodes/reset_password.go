@@ -31,6 +31,7 @@ func (n *NodeResetPasswordBegin) DeriveEdges(graph *interaction.Graph) ([]intera
 type InputResetPassword interface {
 	GetResetPasswordUserID() string
 	GetNewPassword() string
+	GeneratePassword() bool
 	SendPassword() bool
 	ChangeOnLogin() bool
 }
@@ -88,6 +89,7 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 
 				userID := resetInput.GetResetPasswordUserID()
 				newPassword := resetInput.GetNewPassword()
+				generatePassword := resetInput.GeneratePassword()
 				sendPassword := resetInput.SendPassword()
 
 				var expireAfter *time.Time = nil
@@ -96,7 +98,15 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 					expireAfter = &now
 				}
 
-				err := ctx.ResetPassword.ChangePasswordByAdmin(&forgotpassword.SetPasswordOptions{
+				var err error
+				if generatePassword {
+					newPassword, err = ctx.PasswordGenerator.Generate()
+					if err != nil {
+						return err
+					}
+				}
+
+				err = ctx.ResetPassword.ChangePasswordByAdmin(&forgotpassword.SetPasswordOptions{
 					UserID:         userID,
 					PlainPassword:  newPassword,
 					SendPassword:   sendPassword,
