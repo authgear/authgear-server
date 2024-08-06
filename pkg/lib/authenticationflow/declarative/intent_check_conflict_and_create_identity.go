@@ -91,6 +91,9 @@ func (i *IntentCheckConflictAndCreateIdenity) checkConflictByAccountLinkings(
 		return linkByIncomingOAuthSpec(ctx, deps, flows, i.UserID, i.Request.OAuth, i.JSONPointer)
 	case model.IdentityTypeLoginID:
 		return linkByIncomingLoginIDSpec(ctx, deps, flows, i.UserID, i.Request.LoginID, i.JSONPointer)
+	case model.IdentityTypeLDAP:
+		// TODO(DEV-1672)
+		return nil, nil
 	default:
 		// Linking of other types are not supported at the moment
 		return nil, nil
@@ -104,6 +107,8 @@ func (i *IntentCheckConflictAndCreateIdenity) getIdenitySpec() *identity.Spec {
 		spec = i.Request.LoginID.Spec
 	case model.IdentityTypeOAuth:
 		spec = i.Request.OAuth.Spec
+	case model.IdentityTypeLDAP:
+		spec = i.Request.LDAP.Spec
 	default:
 		panic(fmt.Errorf("unexpected identity type %v", i.Request.Type))
 	}
