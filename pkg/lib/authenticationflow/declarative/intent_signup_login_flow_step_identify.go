@@ -66,6 +66,10 @@ func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.De
 			}
 			c := NewIdentificationOptionPasskey(requestOptions, b.BotProtection, deps.Config.BotProtection)
 			options = append(options, c)
+		case config.AuthenticationFlowIdentificationLDAP:
+			ldapOptions := NewIdentificationOptionLDAP(deps.Config.Identity.LDAP, b.BotProtection, deps.Config.BotProtection)
+			options = append(options, ldapOptions...)
+			break
 		}
 	}
 
@@ -139,6 +143,10 @@ func (i *IntentSignupLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *a
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					Identification: identification,
 					SyntheticInput: syntheticInput,
+				}), nil
+			case config.AuthenticationFlowIdentificationLDAP:
+				return authflow.NewSubFlow(&IntentLookupIdentityLDAP{
+					JSONPointer: authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 				}), nil
 			}
 		}
