@@ -6,7 +6,7 @@ import {
 } from "./setPasswordExpired.generated";
 
 export interface UseSetPasswordExpiredMutationReturnType {
-  setPasswordExpired: (userID: string, isExpired: boolean) => Promise<void>;
+  setPasswordExpired: (userID: string, expired: boolean) => Promise<void>;
   loading: boolean;
   error: unknown;
 }
@@ -16,11 +16,11 @@ export function useSetPasswordExpiredMutation(): UseSetPasswordExpiredMutationRe
     useMutation<SetPasswordExpiredMutation>(SetPasswordExpiredDocument);
 
   const setPasswordExpired = useCallback(
-    async (userID: string, isExpired: boolean) => {
+    async (userID: string, expired: boolean) => {
       await mutationFunction({
         variables: {
           userID,
-          isExpired,
+          expired,
         },
       });
     },

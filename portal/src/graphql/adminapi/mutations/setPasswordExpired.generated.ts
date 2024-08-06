@@ -6,7 +6,7 @@ import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type SetPasswordExpiredMutationVariables = Types.Exact<{
   userID: Types.Scalars['ID']['input'];
-  isExpired: Types.Scalars['Boolean']['input'];
+  expired: Types.Scalars['Boolean']['input'];
 }>;
 
 
@@ -14,8 +14,8 @@ export type SetPasswordExpiredMutation = { __typename?: 'Mutation', setPasswordE
 
 
 export const SetPasswordExpiredDocument = gql`
-    mutation setPasswordExpired($userID: ID!, $isExpired: Boolean!) {
-  setPasswordExpired(input: {userID: $userID, isExpired: $isExpired}) {
+    mutation setPasswordExpired($userID: ID!, $expired: Boolean!) {
+  setPasswordExpired(input: {userID: $userID, expired: $expired}) {
     user {
       id
       authenticators {
@@ -45,7 +45,7 @@ export type SetPasswordExpiredMutationFn = Apollo.MutationFunction<SetPasswordEx
  * const [setPasswordExpiredMutation, { data, loading, error }] = useSetPasswordExpiredMutation({
  *   variables: {
  *      userID: // value for 'userID'
- *      isExpired: // value for 'isExpired'
+ *      expired: // value for 'expired'
  *   },
  * });
  */

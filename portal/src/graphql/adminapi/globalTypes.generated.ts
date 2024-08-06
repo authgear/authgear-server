@@ -1285,7 +1285,7 @@ export type SetDisabledStatusPayload = {
 
 export type SetPasswordExpiredInput = {
   /** Indicate whether the user's password is expired. */
-  isExpired: Scalars['Boolean']['input'];
+  expired: Scalars['Boolean']['input'];
   /** Target user ID. */
   userID: Scalars['ID']['input'];
 };

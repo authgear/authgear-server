@@ -171,7 +171,7 @@ var setPasswordExpiredInput = graphql.NewInputObject(graphql.InputObjectConfig{
 			Type:        graphql.NewNonNull(graphql.ID),
 			Description: "Target user ID.",
 		},
-		"isExpired": &graphql.InputObjectFieldConfig{
+		"expired": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewNonNull(graphql.Boolean),
 			Description: "Indicate whether the user's password is expired.",
 		},
@@ -207,7 +207,7 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			isExpired, _ := input["isExpired"].(bool)
+			isExpired, _ := input["expired"].(bool)
 
 			gqlCtx := GQLContext(p.Context)
 
@@ -222,7 +222,7 @@ var _ = registerMutationField(
 						ID: userID,
 					},
 				},
-				IsExpired: isExpired,
+				Expired: isExpired,
 			})
 			if err != nil {
 				return nil, err

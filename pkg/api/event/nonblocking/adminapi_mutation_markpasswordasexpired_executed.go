@@ -12,7 +12,7 @@ const (
 type AdminAPIMutationSetPasswordExpiredExecutedEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`
-	IsExpired bool          `json:"is_expired"`
+	Expired   bool          `json:"expired"`
 }
 
 func (e *AdminAPIMutationSetPasswordExpiredExecutedEventPayload) NonBlockingEventType() event.Type {

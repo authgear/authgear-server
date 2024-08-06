@@ -1459,7 +1459,7 @@ type SetDisabledStatusPayload {
 """"""
 input SetPasswordExpiredInput {
   """Indicate whether the user's password is expired."""
-  isExpired: Boolean!
+  expired: Boolean!
 
   """Target user ID."""
   userID: ID!
