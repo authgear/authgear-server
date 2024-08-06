@@ -45,6 +45,7 @@ import { BotProtectionTokenInputController } from "./authflowv2/botprotection/bo
 import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
 import { BotProtectionController } from "./authflowv2/botprotection/botProtection";
 import { BotProtectionDialogController } from "./authflowv2/botprotection/botProtectionDialog";
+import { DialogController } from "./authflowv2/dialog";
 
 axios.defaults.withCredentials = true;
 
@@ -89,6 +90,7 @@ Stimulus.register("countdown", CountdownController);
 Stimulus.register("copy-button", CopyButtonController);
 
 Stimulus.register("text-field", TextFieldController);
+Stimulus.register("dialog", DialogController);
 Stimulus.register("overlay", OverlayController);
 Stimulus.register("loading", LoadingController);
 Stimulus.register("new-password-field", NewPasswordFieldController);
