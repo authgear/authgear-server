@@ -40,7 +40,6 @@ import {
   useConfirmationDialog,
 } from "../../components/users/SetPasswordExpiredConfirmationDialog";
 import { useSetPasswordExpiredMutation } from "./mutations/setPasswordExpiredMutation";
-import { useUserQuery } from "./query/userQuery";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
@@ -798,9 +797,6 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
 
     const { setPasswordExpired, error: setPasswordExpiredError } =
       useSetPasswordExpiredMutation();
-    const { refetch: refetchUser } = useUserQuery(userID, {
-      skip: true,
-    });
     useProvideError(setPasswordExpiredError);
 
     const isExpired = useMemo(
@@ -813,12 +809,10 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
 
     const onConfirmSetPasswordExpired = useCallback(async () => {
       await setPasswordExpired(userID, !isExpired);
-      await refetchUser();
       setPasswordExpiredConfirmDialog.dismiss();
     }, [
       setPasswordExpired,
       userID,
-      refetchUser,
       isExpired,
       setPasswordExpiredConfirmDialog,
     ]);

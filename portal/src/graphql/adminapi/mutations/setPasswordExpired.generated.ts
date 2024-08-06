@@ -1,6 +1,7 @@
 import * as Types from '../globalTypes.generated';
 
 import { gql } from '@apollo/client';
+import { AuthenticatorFragmentFragmentDoc } from '../query/userQuery.generated';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
 export type SetPasswordExpiredMutationVariables = Types.Exact<{
@@ -9,7 +10,7 @@ export type SetPasswordExpiredMutationVariables = Types.Exact<{
 }>;
 
 
-export type SetPasswordExpiredMutation = { __typename?: 'Mutation', setPasswordExpired: { __typename?: 'SetPasswordExpiredPayload', user: { __typename?: 'User', id: string } } };
+export type SetPasswordExpiredMutation = { __typename?: 'Mutation', setPasswordExpired: { __typename?: 'SetPasswordExpiredPayload', user: { __typename?: 'User', id: string, authenticators?: { __typename?: 'AuthenticatorConnection', edges?: Array<{ __typename?: 'AuthenticatorEdge', node?: { __typename?: 'Authenticator', id: string, type: Types.AuthenticatorType, kind: Types.AuthenticatorKind, isDefault: boolean, claims: any, createdAt: any, updatedAt: any, expireAfter?: any | null } | null } | null> | null } | null } } };
 
 
 export const SetPasswordExpiredDocument = gql`
@@ -17,10 +18,17 @@ export const SetPasswordExpiredDocument = gql`
   setPasswordExpired(input: {userID: $userID, isExpired: $isExpired}) {
     user {
       id
+      authenticators {
+        edges {
+          node {
+            ...AuthenticatorFragment
+          }
+        }
+      }
     }
   }
 }
-    `;
+    ${AuthenticatorFragmentFragmentDoc}`;
 export type SetPasswordExpiredMutationFn = Apollo.MutationFunction<SetPasswordExpiredMutation, SetPasswordExpiredMutationVariables>;
 
 /**

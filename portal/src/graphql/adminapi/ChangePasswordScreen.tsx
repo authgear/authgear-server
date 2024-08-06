@@ -143,8 +143,6 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
   const { resetPassword, error: resetPasswordError } =
     useResetPasswordMutation(userID);
 
-  const { refetch: refetchUser } = useUserQuery(userID, { skip: true });
-
   const resetPasswordErrorRules: ErrorParseRule[] = useMemo(() => {
     return [
       makeReasonErrorParseRule(
@@ -168,9 +166,8 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
         state.sendPassword,
         state.setPasswordExpired
       );
-      await refetchUser();
     },
-    [resetPassword, refetchUser]
+    [resetPassword]
   );
 
   const form = useSimpleForm({
