@@ -1,9 +1,9 @@
 @layer components {
   :root {
-    --dialog__bg-color: var(--color-surface-primary);
+    --overlay__bg-color: var(--color-surface-primary);
   }
 
-  .dialog {
+  .overlay {
     @apply absolute inset-0;
 
     @apply hidden;
@@ -14,7 +14,7 @@
     @apply px-6;
     @apply py-8;
 
-    background-color: var(--dialog__bg-color);
+    background-color: var(--overlay__bg-color);
 
     &.open {
       @apply flex;
@@ -22,7 +22,7 @@
   }
 
   @media (min-width: theme("screens.tablet")) {
-    .dialog {
+    .overlay {
       @apply px-6;
       @apply py-6;
     }

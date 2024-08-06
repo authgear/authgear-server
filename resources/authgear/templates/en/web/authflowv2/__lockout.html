@@ -3,8 +3,8 @@
   {{ if eq .Error.reason "AccountLockout" }}
 
   <div
-    class="dialog"
-    data-controller="dialog"
+    class="overlay"
+    data-controller="overlay"
     data-dialog-default-open-value="true"
     role="dialog"
     aria-labelledby="lockout-title"
@@ -27,7 +27,7 @@
     <footer>
       <button
         class="primary-btn w-full"
-        data-action="click->dialog#close"
+        data-action="click->overlay#close"
         data-controller="countdown"
         data-countdown-target="button"
         data-countdown-cooldown-until-value="{{ (rfc3339 $until) }}"

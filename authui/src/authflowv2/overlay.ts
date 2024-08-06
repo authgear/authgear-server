@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 
-export class DialogController extends Controller {
+export class OverlayController extends Controller {
   static values = { defaultOpen: Boolean };
 
   declare readonly defaultOpenValue: boolean;
