@@ -1,6 +1,8 @@
 package ldap
 
 import (
+	"sort"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -23,7 +25,12 @@ func (p *Provider) GetMany(ids []string) ([]*identity.LDAP, error) {
 }
 
 func (p *Provider) List(userID string) ([]*identity.LDAP, error) {
-	return p.Store.List(userID)
+	is, err := p.Store.List(userID)
+	if err != nil {
+		return nil, err
+	}
+	sortIdentities(is)
+	return is, nil
 }
 
 func (p *Provider) GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue string) (*identity.LDAP, error) {
@@ -31,7 +38,12 @@ func (p *Provider) GetByServerUserID(serverName string, userIDAttributeName stri
 }
 
 func (p *Provider) ListByClaim(name string, value string) ([]*identity.LDAP, error) {
-	return p.Store.ListByClaim(name, value)
+	is, err := p.Store.ListByClaim(name, value)
+	if err != nil {
+		return nil, err
+	}
+	sortIdentities(is)
+	return is, nil
 }
 
 func (p *Provider) New(
@@ -81,4 +93,10 @@ func (p *Provider) Update(i *identity.LDAP) error {
 
 func (p *Provider) Delete(i *identity.LDAP) error {
 	return p.Store.Delete(i)
+}
+
+func sortIdentities(is []*identity.LDAP) {
+	sort.Slice(is, func(i, j int) bool {
+		return is[i].CreatedAt.Before(is[j].CreatedAt)
+	})
 }
