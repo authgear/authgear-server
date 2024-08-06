@@ -33,7 +33,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"p.updated_at",
 
 			"l.server_name",
-			"l.user_id_attribute_oid",
+			"l.user_id_attribute_name",
 			"l.user_id_attribute_value",
 			"l.claims",
 			"l.raw_entry_json",
@@ -54,7 +54,7 @@ func (s *Store) scan(scn db.Scanner) (*identity.LDAP, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.ServerName,
-		&i.UserIDAttributeOID,
+		&i.UserIDAttributeName,
 		&i.UserIDAttributeValue,
 		&claims,
 		&rawEntryJSON,
@@ -148,12 +148,12 @@ func (s *Store) ListByClaim(name string, value string) ([]*identity.LDAP, error)
 	return is, nil
 }
 
-func (s *Store) GetByServerUserID(serverName string, userIDAttributeOID string, userIDAttributeValue string) (*identity.LDAP, error) {
+func (s *Store) GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue string) (*identity.LDAP, error) {
 	q := s.selectQuery().
 		Where(
-			"l.server_name = ? AND l.user_id_attribute_oid = ? AND l.user_id_attribute_value = ?",
+			"l.server_name = ? AND l.user_id_attribute_name = ? AND l.user_id_attribute_value = ?",
 			serverName,
-			userIDAttributeOID,
+			userIDAttributeName,
 			userIDAttributeValue,
 		)
 	rows, err := s.SQLExecutor.QueryRowWith(q)
@@ -200,7 +200,7 @@ func (s *Store) Create(i *identity.LDAP) (err error) {
 		Columns(
 			"id",
 			"server_name",
-			"user_id_attribute_oid",
+			"user_id_attribute_name",
 			"user_id_attribute_value",
 			"claims",
 			"raw_entry_json",
@@ -208,7 +208,7 @@ func (s *Store) Create(i *identity.LDAP) (err error) {
 		Values(
 			i.ID,
 			i.ServerName,
-			i.UserIDAttributeOID,
+			i.UserIDAttributeName,
 			i.UserIDAttributeValue,
 			claims,
 			rawEntryJSON,
