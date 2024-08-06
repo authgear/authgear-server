@@ -11,7 +11,7 @@ var _ = SecretConfigSchema.Add("LDAPServerUserCredentials", `
 `)
 
 type LDAPServerUserCredentials struct {
-	Items []LDAPServerUserCredentialsItem `json:"items,omitempty"`
+	Items []*LDAPServerUserCredentialsItem `json:"items,omitempty"`
 }
 
 var _ = SecretConfigSchema.Add("LDAPServerUserCredentialsItem", `
