@@ -242,15 +242,13 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
-	internalOptions, err := i.getInternalOptions(ctx, deps, flows)
+	options, err := i.getOptions(ctx, deps, flows)
 	if err != nil {
 		return nil, err
 	}
 
 	return NewIntentSignupFlowStepCreateAuthenticatorData(IntentSignupFlowStepCreateAuthenticatorData{
-		Options: slice.Map(internalOptions, func(o CreateAuthenticatorOptionInternal) CreateAuthenticatorOption {
-			return o.CreateAuthenticatorOption
-		}),
+		Options: options,
 	}), nil
 }
 
