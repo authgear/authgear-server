@@ -16,7 +16,7 @@ import ScreenContent from "../../ScreenContent";
 
 import styles from "./ChangePasswordScreen.module.css";
 import { validatePassword } from "../../error/password";
-import { Checkbox } from "@fluentui/react";
+import { Checkbox, ChoiceGroup, IChoiceGroupOption } from "@fluentui/react";
 import TextField from "../../TextField";
 import { useUserQuery } from "./query/userQuery";
 import {
@@ -27,16 +27,23 @@ import PrimaryButton from "../../PrimaryButton";
 import ErrorDialog from "../../error/ErrorDialog";
 import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 
+enum PasswordCreationType {
+  ManualEntry = "manual_entry",
+  AutoGenerate = "auto_generate",
+}
+
 interface FormState {
   newPassword: string;
+  passwordCreationType: PasswordCreationType;
   sendPassword: boolean;
   setPasswordExpired: boolean;
 }
 
 const defaultState: FormState = {
   newPassword: "",
+  passwordCreationType: PasswordCreationType.ManualEntry,
   sendPassword: false,
-  setPasswordExpired: false,
+  setPasswordExpired: true,
 };
 
 interface ResetPasswordContentProps {
@@ -70,6 +77,42 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
     ];
   }, [userID]);
 
+  const passwordCreateionTypeOptions = useMemo(() => {
+    return [
+      {
+        key: PasswordCreationType.ManualEntry,
+        text: renderToString(
+          "ChangePasswordScreen.password-creation-type.manual"
+        ),
+      },
+      {
+        key: PasswordCreationType.AutoGenerate,
+        text: renderToString(
+          "ChangePasswordScreen.password-creation-type.auto"
+        ),
+      },
+    ];
+  }, [renderToString]);
+
+  const onChangePasswordCreationType = useCallback(
+    (_e, option: IChoiceGroupOption | undefined) => {
+      if (option != null) {
+        setState((prev) => ({
+          ...prev,
+          newPassword:
+            option.key === PasswordCreationType.AutoGenerate
+              ? ""
+              : prev.newPassword,
+          passwordCreationType: option.key as PasswordCreationType,
+          sendPassword:
+            prev.sendPassword ||
+            option.key === PasswordCreationType.AutoGenerate,
+        }));
+      }
+    },
+    [setState]
+  );
+
   const { onChange: onNewPasswordChange } = useTextField((value) => {
     setState((prev) => ({ ...prev, newPassword: value }));
   });
@@ -88,12 +131,22 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
         onSubmit={onSubmit}
         noValidate={true}
       >
-        <TextField
-          label={renderToString("ChangePasswordScreen.email")}
-          type="email"
-          value={user?.standardAttributes?.email ?? ""}
-          disabled={true}
-        />
+        <div>
+          <TextField
+            label={renderToString("ChangePasswordScreen.email")}
+            type="email"
+            value={user?.standardAttributes?.email ?? ""}
+            disabled={true}
+          />
+          <ChoiceGroup
+            label={renderToString(
+              "ChangePasswordScreen.password-creation-type"
+            )}
+            selectedKey={state.passwordCreationType}
+            options={passwordCreateionTypeOptions}
+            onChange={onChangePasswordCreationType}
+          />
+        </div>
         <div>
           <PasswordField
             label={renderToString("ChangePasswordScreen.new-password")}
@@ -102,12 +155,18 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
             passwordPolicy={appConfig?.authenticator?.password?.policy ?? {}}
             parentJSONPointer=""
             fieldName="password"
+            disabled={
+              state.passwordCreationType === PasswordCreationType.AutoGenerate
+            }
           />
           <Checkbox
             className={styles.checkbox}
             label={renderToString("ChangePasswordScreen.send-password")}
             checked={state.sendPassword}
             onChange={onChangeSendPassword}
+            disabled={
+              state.passwordCreationType === PasswordCreationType.AutoGenerate
+            }
           />
           <Checkbox
             className={styles.checkbox}
@@ -154,6 +213,9 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
 
   const validate = useCallback(
     (state: FormState) => {
+      if (state.passwordCreationType === PasswordCreationType.AutoGenerate) {
+        return null;
+      }
       return validatePassword(state.newPassword, passwordPolicy);
     },
     [passwordPolicy]
@@ -161,8 +223,12 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
 
   const submit = useCallback(
     async (state: FormState) => {
+      const newPassword =
+        state.passwordCreationType === PasswordCreationType.AutoGenerate
+          ? ""
+          : state.newPassword;
       await resetPassword(
-        state.newPassword,
+        newPassword,
         state.sendPassword,
         state.setPasswordExpired
       );
@@ -178,7 +244,9 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
     validate,
   });
 
-  const canSave = form.state.newPassword.length > 0;
+  const canSave =
+    form.state.passwordCreationType === PasswordCreationType.AutoGenerate ||
+    form.state.newPassword.length > 0;
 
   useEffect(() => {
     if (form.isSubmitted) {

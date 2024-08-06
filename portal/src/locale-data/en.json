@@ -404,6 +404,8 @@
 
   "ChangePasswordScreen.title": "Change Password",
   "ChangePasswordScreen.email": "Email",
+  "ChangePasswordScreen.password-creation-type.manual": "Enter a password",
+  "ChangePasswordScreen.password-creation-type.auto": "Automatically create a password and send to the user",
   "ChangePasswordScreen.new-password": "Password",
   "ChangePasswordScreen.force-change-on-login": "Ask user to change password on login",
   "ChangePasswordScreen.send-password": "Send the password to user's email",
