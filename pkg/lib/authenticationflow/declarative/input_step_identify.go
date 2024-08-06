@@ -88,6 +88,29 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			required = append(required, "assertion_response")
 			b.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
 			setRequiredAndAppendOneOf()
+		case config.AuthenticationFlowIdentificationLDAP:
+			required = append(required, "server")
+			b.Properties().
+				Property(
+					"server",
+					validation.SchemaBuilder{}.Type(validation.TypeString).Const(option.Server),
+				)
+
+			required = append(required, "user_id_attribute_value")
+			b.Properties().
+				Property(
+					"user_id_attribute_value",
+					validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1),
+				)
+
+			required = append(required, "password")
+			b.Properties().
+				Property(
+					"password",
+					validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1),
+				)
+
+			setRequiredAndAppendOneOf()
 		default:
 			break
 		}
@@ -124,6 +147,10 @@ type InputStepIdentify struct {
 	ResponseMode string `json:"response_mode,omitempty"`
 
 	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
+
+	Server               string `json:"server"`
+	UserIDAttributeValue string `json:"user_id_attribute_value"`
+	Password             string `json:"password"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
@@ -132,6 +159,7 @@ var _ inputTakeIDToken = &InputStepIdentify{}
 var _ inputTakeLoginID = &InputStepIdentify{}
 var _ inputTakeOAuthAuthorizationRequest = &InputStepIdentify{}
 var _ inputTakeBotProtection = &InputStepIdentify{}
+var _ inputTakeLDAP = &InputStepIdentify{}
 
 func (*InputStepIdentify) Input() {}
 
@@ -175,4 +203,16 @@ func (i *InputStepIdentify) GetBotProtectionProviderResponse() string {
 		return ""
 	}
 	return i.BotProtection.Response
+}
+
+func (i *InputStepIdentify) GetServer() string {
+	return i.Server
+}
+
+func (i *InputStepIdentify) GetUserIDAttributeValue() string {
+	return i.UserIDAttributeValue
+}
+
+func (i *InputStepIdentify) GetPassword() string {
+	return i.Password
 }
