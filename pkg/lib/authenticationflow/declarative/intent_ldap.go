@@ -5,7 +5,9 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -64,5 +66,40 @@ func (i *IntentLDAP) CanReactTo(ctx context.Context, deps *authflow.Dependencies
 }
 
 func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
+	var inputTakeLDAP inputTakeLDAP
+	if authflow.AsInput(input, &inputTakeLDAP) {
+		// TODO()
+		// Authenticate with ldap server after (DEV-1720) is done
+		spec := &identity.Spec{
+			Type: model.IdentityTypeLDAP,
+			LDAP: &identity.LDAPSpec{},
+		}
+
+		// UserID is the id we assign to new user
+		// It is not the user id of an exsiting user
+		// Sign up
+		if i.UserID != "" {
+			return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
+				JSONPointer: i.JSONPointer,
+				UserID:      i.UserID,
+				Request:     NewCreateLDAPIdentityRequest(spec),
+			}), nil
+		}
+
+		// login
+		exactMatch, err := findExactOneIdentityInfo(deps, spec)
+		if err != nil {
+			return nil, err
+		}
+
+		newNode, err := NewNodeDoUseIdentity(ctx, flows, &NodeDoUseIdentity{
+			Identity: exactMatch,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return authflow.NewNodeSimple(newNode), nil
+	}
 	return nil, nil
 }
