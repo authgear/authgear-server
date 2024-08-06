@@ -37,7 +37,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["ldap_url"] = FormatLDAPURL{}
 	jsonschemaformat.DefaultChecker["ldap_dn"] = FormatLDAPDN{}
 	jsonschemaformat.DefaultChecker["ldap_search_filter_template"] = FormatLDAPSearchFilterTemplate{}
-	jsonschemaformat.DefaultChecker["ldap_attribute"] = FormatLDAPAttribute{}
+	jsonschemaformat.DefaultChecker["ldap_attribute_name"] = FormatLDAPAttribute{}
 	jsonschemaformat.DefaultChecker["wechat_account_id"] = FormatWeChatAccountID{}
 	jsonschemaformat.DefaultChecker["bcp47"] = FormatBCP47{}
 	jsonschemaformat.DefaultChecker["timezone"] = FormatTimezone{}
