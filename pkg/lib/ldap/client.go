@@ -11,6 +11,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/ldaputil"
 )
 
+const (
+	sizeLimit        = 2     // Set to 2 to check 0 or more than 1 entry returned
+	timeoutInSeconds = 10    // 10 seconds timeout, may want to make it configurable in the future
+	typesOnly        = false // FALSE to return both attribute descriptions and values, TRUE to return attribute description only.
+)
+
+// We do not need pass controls.
+var controls []ldap.Control = nil
+
 type Client struct {
 	Config       *config.LDAPServerConfig
 	SecretConfig *config.LDAPServerUserCredentialsItem
@@ -62,6 +71,24 @@ func (c *Client) bind(conn *ldap.Conn) error {
 	return nil
 }
 
+func (c *Client) search(conn *ldap.Conn, searchFilter string) (*ldap.SearchResult, error) {
+	searchRequest := ldap.NewSearchRequest(
+		c.Config.BaseDN,
+		ldap.ScopeWholeSubtree, ldap.DerefAlways, sizeLimit, timeoutInSeconds,
+		typesOnly,
+		searchFilter,
+		[]string{"*"}, // return all attributes
+		controls,
+	)
+
+	sr, err := conn.Search(searchRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return sr, nil
+}
+
 func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry, error) {
 	conn, err := c.connect()
 	if err != nil {
@@ -80,24 +107,7 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 		return nil, err
 	}
 
-	// func NewSearchRequest(
-	// 	 BaseDN string, Scope, DerefAliases,
-	//   SizeLimit, (Set to 2 to check 0 or more than 1 entry returned)
-	//   TimeLimit int, (10 seconds timeout)
-	// 	 TypesOnly bool, (FALSE to return both attribute descriptions and values, TRUE to return attribute description only.)
-	// 	 Filter string,
-	// 	 Attributes []string, (nil means all attributes)
-	// 	 Controls []Control,
-	// ) *SearchRequest
-	searchRequest := ldap.NewSearchRequest(
-		c.Config.BaseDN,
-		ldap.ScopeWholeSubtree, ldap.DerefAlways, 2, 10, false,
-		searchFilter,
-		[]string{},
-		nil,
-	)
-
-	sr, err := conn.Search(searchRequest)
+	sr, err := c.search(conn, searchFilter)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +127,7 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 		return nil, err
 	}
 
-	uniqueIdentifierValue := entry.GetAttributeValue(c.Config.UserUniqueIdentifierAttribute)
+	uniqueIdentifierValue := entry.GetAttributeValue(c.Config.UserIDAttributeName)
 	if uniqueIdentifierValue == "" {
 		return nil, api.ErrInvalidCredentials
 	}
@@ -146,14 +156,7 @@ func (c *Client) TestConnection(username string) error {
 		if err != nil {
 			return api.ErrLDAPInvalidFilterTemplate
 		}
-		SearchRequest := ldap.NewSearchRequest(
-			c.Config.BaseDN,
-			ldap.ScopeWholeSubtree, ldap.DerefAlways, 2, 10, false,
-			searchFilter,
-			[]string{},
-			nil,
-		)
-		sr, err := conn.Search(SearchRequest)
+		sr, err := c.search(conn, searchFilter)
 		if err != nil {
 			return err
 		}
@@ -164,7 +167,7 @@ func (c *Client) TestConnection(username string) error {
 			return api.ErrLDAPEndUserSearchMultiple
 		}
 
-		uniqueIdentifierValue := sr.Entries[0].GetAttributeValue(c.Config.UserUniqueIdentifierAttribute)
+		uniqueIdentifierValue := sr.Entries[0].GetAttributeValue(c.Config.UserIDAttributeName)
 		if uniqueIdentifierValue == "" {
 			return api.ErrLDAPMissingUniqueAttribute
 		}
