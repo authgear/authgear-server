@@ -119,7 +119,7 @@ export class CloudflareTurnstileController extends Controller {
     this.widgetID = widgetID ?? undefined;
   };
 
-  undoRenderWidget() {
+  undoRenderWidget = () => {
     if (this.widgetID != null) {
       window.turnstile.remove(this.widgetID);
     }
@@ -129,7 +129,7 @@ export class CloudflareTurnstileController extends Controller {
       this.widgetTarget.removeChild(this.widgetContainer);
     }
     this.widgetContainer = undefined;
-  }
+  };
 
   connect() {
     window.turnstile.ready(() => {
@@ -139,12 +139,20 @@ export class CloudflareTurnstileController extends Controller {
       "bot-protection-widget:render",
       this.renderWidget
     );
+    document.addEventListener(
+      "bot-protection-widget:undo-render",
+      this.undoRenderWidget
+    );
   }
 
   disconnect() {
     document.removeEventListener(
       "bot-protection-widget:render",
       this.renderWidget
+    );
+    document.removeEventListener(
+      "bot-protection-widget:undo-render",
+      this.undoRenderWidget
     );
     this.undoRenderWidget();
   }
