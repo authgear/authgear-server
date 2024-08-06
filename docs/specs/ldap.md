@@ -138,12 +138,34 @@ Here is the JSON schema for the LDAP server configuration.
 
 ## Testing on the configuration
 
-> TODO: Add a mutation in the Admin API to test LDAP connection.
-> It should take the whole server configuration, and optionally a end-user username.
-> It connects the LDAP server with the URL and the credentials.
-> If the optional end-user username is given, it performs a Search request, and validates the user exists and has user_id_attribute_oid.
-> It returns detailed API errors so that the portal can display relevant information for the developer to debug the configuration.
-> Such detailed API errors ARE NOT returned in actual use. They are reported as internal errors.
+A new mutation in the Admin API is added to allow the developer to test the LDAP connection.
+
+```graphql
+type Mutation {
+  # other root fields...
+
+  testLDAPConnection(input: TestLDAPConnectionInput!): TestLDAPConnectionPayload!
+}
+
+input TestLDAPConnectionInput {
+  url: String!
+  searchUserDN: String!
+  searchUserPassword: String!
+  baseDN: String!
+  searchFilterTemplate: String!
+  userIDAttributeOID: String!
+  # This is optional. If this is given, then a search request is performed,
+  # the user must exist and has the user_id_attribute_oid.
+  endUserUsername: String
+}
+
+type TestLDAPConnectionPayload {
+  # This is always true. If any error occurs, error is returned instead.
+  ok: Boolean!
+}
+```
+
+See [Errors](#errors) for what error is required to return in this mutation.
 
 ## The database schema of a LDAP identity
 
@@ -188,5 +210,12 @@ This section documents the expected errors.
 
 |Description|Name|Reason|Info|
 |---|---|---|---|
-|When the LDAP server is service unavailable, `user_id_attribute_oid` not found in a user, search filter turns out to be invalid, etc|InternalError|UnexpectedError||
-|When the end-user cannot authenticate to the LDAP server|Unauthorized|InvalidCredentials||
+|In testLDAPConnection, if connection cannot be established with the LDAP server|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "FailedToConnect"`|
+|In testLDAPConnection, if search user credentials are invalid|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "FailedToBindSearchUser"`|
+|In testLDAPConnection, if base DN is invalid|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "InvalidBaseDN"`|
+|In testLDAPConnection, if search filter template is invalid|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "InvalidSearchFilterTemplate"`|
+|In testLDAPConnection, if `user_id_attribute_oid` is invalid|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "InvalidUserIDAttributeOID"`|
+|In testLDAPConnection, if endUserUsername is given, but the user is not found|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "TestingEndUserNotFound"`|
+|In testLDAPConnection, if endUserUsername is given, but `user_id_attribute_oid` is not found|ServiceUnavailable|LDAPConnectionTestFailed|`"cause": "TestingEndUserMissingUserIDAttribute"`|
+|When the LDAP server is service unavailable, search filter turns out to be invalid, etc|InternalError|UnexpectedError||
+|When the end-user cannot authenticate to the LDAP server, or `user_id_attribute_oid` not found|Unauthorized|InvalidCredentials||
