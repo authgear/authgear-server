@@ -181,7 +181,7 @@ func TestFormatLDAPSearchFilterTemplate(t *testing.T) {
 	})
 }
 
-func TestFormatLDAPOID(t *testing.T) {
+func TestFormatLDAPAttribute(t *testing.T) {
 	Convey("FormatLDAPAttribute", t, func() {
 		f := FormatLDAPAttribute{}.CheckFormat
 

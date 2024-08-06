@@ -29,15 +29,15 @@ var _ = Schema.Add("LDAPServerConfig", `
 		"url": { "type": "string", "format": "ldap_url" },
 		"base_dn": { "type": "string", "format": "ldap_dn" },
 		"search_filter_template": { "type": "string", "format": "ldap_search_filter_template" },
-		"user_id_attribute_name": { "type": "string", "format": "ldap_attribute" }
+		"user_id_attribute_name": { "type": "string", "format": "ldap_attribute_name" }
 	}
 }
 `)
 
 type LDAPServerConfig struct {
-	Name                          string `json:"name,omitempty"`
-	URL                           string `json:"url,omitempty"`
-	BaseDN                        string `json:"base_dn,omitempty"`
-	SearchFilterTemplate          string `json:"search_filter_template,omitempty"`
-	UserUniqueIdentifierAttribute string `json:"user_id_attribute_name,omitempty"`
+	Name                 string `json:"name,omitempty"`
+	URL                  string `json:"url,omitempty"`
+	BaseDN               string `json:"base_dn,omitempty"`
+	SearchFilterTemplate string `json:"search_filter_template,omitempty"`
+	UserIDAttributeName  string `json:"user_id_attribute_name,omitempty"`
 }
