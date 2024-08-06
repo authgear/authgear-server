@@ -70,7 +70,7 @@
     "intl-tel-input": "18.5.3",
     "libphonenumber-js": "1.10.53",
     "luxon": "3.4.4",
-    "siwe": "2.3.2",
+    "siwe": "file:tarballs/siwe-2.3.2.tgz",
     "zxcvbn": "4.4.2"
   }
 }
