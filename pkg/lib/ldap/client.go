@@ -23,26 +23,28 @@ func NewClient(config config.LDAPServerConfig) *Client {
 }
 
 func (c *Client) Connect() error {
-	url, err := url.Parse(c.Config.URL)
+	u, err := url.Parse(c.Config.URL)
 	if err != nil {
 		return err
 	}
 
-	if url.Port() == "" {
-		if url.Scheme == "ldaps" {
-			c.Config.URL = c.Config.URL + ":636"
-		}
-		if url.Scheme == "ldap" {
-			c.Config.URL = c.Config.URL + ":389"
+	if u.Port() == "" {
+		switch u.Scheme {
+		case "ldap":
+			u.Host = u.Host + ":389"
+		case "ldaps":
+			u.Host = u.Host + ":636"
 		}
 	}
 
-	conn, err := ldap.DialURL(c.Config.URL)
+	ldapURLString := u.String()
+
+	conn, err := ldap.DialURL(ldapURLString)
 	if err != nil {
 		return err
 	}
 
-	if url.Scheme == "ldap" {
+	if u.Scheme == "ldap" {
 		_ = conn.StartTLS(nil)
 	}
 
