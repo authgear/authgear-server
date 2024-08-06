@@ -12,5 +12,6 @@ func TestParseFilter(t *testing.T) {
 		username := "hi)(email=*"
 		filter, _ := ParseFilter(filterTemplate, username)
 		So(filter, ShouldNotEqual, "(&(objectclass=persion)(uid=hi)(email=*))")
+		So(filter, ShouldEqual, "(&(objectclass=persion)(uid=hi\\29\\28email=\\2a))")
 	})
 }
