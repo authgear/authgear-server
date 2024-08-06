@@ -372,6 +372,8 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
             <PasswordField
               label={renderToString("AddUserScreen.password.label")}
               value={password}
+              canRevealPassword={true}
+              canGeneratePassword={true}
               onChange={onPasswordChange}
               passwordPolicy={passwordPolicy}
               parentJSONPointer=""
