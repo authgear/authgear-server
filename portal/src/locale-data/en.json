@@ -130,6 +130,7 @@
   "errors.groups.key.validation.format": "Invalid group key. Only English alphabets, digits, colons \":\", and underscores \"_\" are accepted, and the first character must be an alphabet.",
   "errors.roles.key.duplicated": "This key is already used, please use a different key",
   "errors.groups.key.duplicated": "This key is already used, please use a different key",
+  "errors.authenticator.not-found": "Authenticator not found",
 
   "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete{ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 

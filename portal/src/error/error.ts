@@ -89,6 +89,11 @@ export interface APISendPasswordNoTargetError {
   reason: "SendPasswordNoTarget";
 }
 
+export interface APIAuthenticatorNotFoundError {
+  errorName: string;
+  reason: "AuthenticatorNotFound";
+}
+
 export type APIError = { message?: string } & (
   | NetworkError
   | RequestEntityTooLargeError
@@ -127,6 +132,7 @@ export type APIError = { message?: string } & (
   | APIRoleDuplicateKeyError
   | APIGroupDuplicateKeyError
   | APISendPasswordNoTargetError
+  | APIAuthenticatorNotFoundError
 );
 
 export function isAPIError(value: unknown): value is APIError {

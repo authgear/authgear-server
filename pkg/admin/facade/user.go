@@ -134,7 +134,7 @@ func (f *UserFacade) SetPasswordExpired(id string, isExpired bool) error {
 	}
 
 	if len(ars) == 0 {
-		return api.ErrNoAuthenticator
+		return api.ErrAuthenticatorNotFound
 	}
 
 	for _, ai := range ars {
