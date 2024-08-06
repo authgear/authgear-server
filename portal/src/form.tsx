@@ -1,4 +1,5 @@
 import React, {
+  createContext,
   useCallback,
   useContext,
   useEffect,
@@ -24,7 +25,7 @@ export interface FormContext {
   unregisterField(field: FormField): void;
 }
 
-const context = React.createContext<FormContext | null>(null);
+const context = createContext<FormContext | null>(null);
 
 export interface FormProviderProps {
   loading: boolean;
