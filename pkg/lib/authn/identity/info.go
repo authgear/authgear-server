@@ -219,9 +219,7 @@ func (i *Info) IdentityAwareStandardClaims() map[model.ClaimName]string {
 			claims[claimName] = loginIDValue
 		}
 	case model.IdentityTypeOAuth:
-		if email, ok := i.OAuth.Claims[string(model.ClaimEmail)].(string); ok {
-			claims[model.ClaimEmail] = email
-		}
+		return i.OAuth.IdentityAwareStandardClaims()
 	case model.IdentityTypeAnonymous:
 		break
 	case model.IdentityTypeBiometric:

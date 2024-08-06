@@ -36,6 +36,20 @@ func (i *OAuth) ToInfo() *Info {
 	}
 }
 
+func (i *OAuth) IdentityAwareStandardClaims() map[model.ClaimName]string {
+	claims := map[model.ClaimName]string{}
+	if email, ok := i.Claims[string(model.ClaimEmail)].(string); ok {
+		claims[model.ClaimEmail] = email
+	}
+	if phoneNumber, ok := i.Claims[string(model.ClaimPhoneNumber)].(string); ok {
+		claims[model.ClaimPhoneNumber] = phoneNumber
+	}
+	if username, ok := i.Claims[string(model.ClaimPreferredUsername)].(string); ok {
+		claims[model.ClaimPreferredUsername] = username
+	}
+	return claims
+}
+
 func (i *OAuth) GetDisplayName() string {
 	if username, ok := i.Claims["preferred_username"].(string); ok && username != "" {
 		// We don't know if username is a phone number or email, just try to mask it
