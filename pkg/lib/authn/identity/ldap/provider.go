@@ -42,6 +42,12 @@ func (p *Provider) New(
 	claims map[string]interface{},
 	rawEntryJSON map[string]interface{},
 ) *identity.LDAP {
+	if claims == nil {
+		claims = make(map[string]interface{})
+	}
+	if rawEntryJSON == nil {
+		rawEntryJSON = make(map[string]interface{})
+	}
 	return &identity.LDAP{
 		ID:                   uuid.New(),
 		UserID:               userID,
