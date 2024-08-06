@@ -105,7 +105,7 @@ func (s *Store) GetMany(ids []string) ([]*identity.LDAP, error) {
 }
 
 func (s *Store) List(userID string) ([]*identity.LDAP, error) {
-	builder := s.selectQuery().Where("p.user_id = ANY (?)", pq.Array(userID))
+	builder := s.selectQuery().Where("p.user_id = ?", userID)
 
 	rows, err := s.SQLExecutor.QueryWith(builder)
 	if err != nil {
