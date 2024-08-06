@@ -38,6 +38,14 @@ export class DialogController extends Controller {
     );
   };
 
+  closeOnBackgroundClick = (e: Event) => {
+    if (e.target !== this.element) {
+      // Clicked descendants instead of background
+      return;
+    }
+    dispatchDialogClose(this.element.id);
+  };
+
   connect() {
     document.addEventListener(`dialog-${this.element.id}:open`, this.open);
     document.addEventListener(`dialog-${this.element.id}:close`, this.close);
