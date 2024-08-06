@@ -12,20 +12,21 @@ import (
 )
 
 type Client struct {
-	Config config.LDAPServerConfig
-	conn   *ldap.Conn
+	Config       *config.LDAPServerConfig
+	SecretConfig *config.LDAPServerUserCredentialsItem
 }
 
-func NewClient(config config.LDAPServerConfig) *Client {
+func NewClient(config *config.LDAPServerConfig, secret *config.LDAPServerUserCredentialsItem) *Client {
 	return &Client{
-		Config: config,
+		Config:       config,
+		SecretConfig: secret,
 	}
 }
 
-func (c *Client) Connect() error {
+func (c *Client) connect() (*ldap.Conn, error) {
 	u, err := url.Parse(c.Config.URL)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if u.Port() == "" {
@@ -41,30 +42,20 @@ func (c *Client) Connect() error {
 
 	conn, err := ldap.DialURL(ldapURLString)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if u.Scheme == "ldap" {
 		_ = conn.StartTLS(nil)
 	}
 
-	c.conn = conn
-	return nil
+	return conn, nil
 }
 
-func (c *Client) Close() error {
-	err := c.conn.Close()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *Client) Bind(username string, password string) error {
-	if c.conn == nil {
-		panic("ldap: connection is not established")
-	}
-	err := c.conn.Bind(username, password)
+func (c *Client) bind(conn *ldap.Conn) error {
+	username := c.SecretConfig.DN
+	password := c.SecretConfig.Password
+	err := conn.Bind(username, password)
 	if err != nil {
 		return err
 	}
@@ -72,6 +63,18 @@ func (c *Client) Bind(username string, password string) error {
 }
 
 func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry, error) {
+	conn, err := c.connect()
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Close()
+
+	err = c.bind(conn)
+	if err != nil {
+		return nil, err
+	}
+
 	searchFilter, err := ldaputil.ParseFilter(c.Config.SearchFilterTemplate, username)
 	if err != nil {
 		return nil, err
@@ -94,7 +97,7 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 		nil,
 	)
 
-	sr, err := c.conn.Search(searchRequest)
+	sr, err := conn.Search(searchRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -103,14 +106,20 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 		return nil, api.ErrInvalidCredentials
 	}
 
-	userDN := sr.Entries[0].DN
-	err = c.conn.Bind(userDN, password)
+	entry := sr.Entries[0]
+	userDN := entry.DN
+	err = conn.Bind(userDN, password)
 	if err != nil {
 		// Check if the error is due to invalid credentials
 		if ldap.IsErrorWithCode(err, ldap.LDAPResultInvalidCredentials) {
 			return nil, errors.Join(api.ErrInvalidCredentials, err)
 		}
 		return nil, err
+	}
+
+	uniqueIdentifierValue := entry.GetAttributeValue(c.Config.UserUniqueIdentifierAttribute)
+	if uniqueIdentifierValue == "" {
+		return nil, api.ErrInvalidCredentials
 	}
 
 	return sr.Entries[0], nil
