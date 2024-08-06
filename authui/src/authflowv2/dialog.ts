@@ -1,5 +1,7 @@
 import { Controller } from "@hotwired/stimulus";
 
+const CLOSE_ANIMATION_DURATION_MS = 280;
+
 /**
  * Dispatch a custom event to set target dialog open
  */
@@ -28,8 +30,12 @@ export class DialogController extends Controller {
   };
 
   close = () => {
-    this.element.classList.remove("open");
     this.element.classList.add("close");
+    // We want close animation to show before `display: none` is applied
+    setTimeout(
+      () => this.element.classList.remove("open"),
+      CLOSE_ANIMATION_DURATION_MS
+    );
   };
 
   connect() {
