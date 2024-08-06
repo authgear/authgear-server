@@ -98,13 +98,14 @@ func (p *Provider) UpdatePassword(a *authenticator.Password, options *UpdatePass
 	password := options.PlainPassword
 
 	newAuthen := a
-	if options.SetPassword && pwd.Compare([]byte(password), a.PasswordHash) != nil {
+	if options.SetPassword {
 		err := p.PasswordChecker.ValidateNewPassword(a.UserID, password)
 		if err != nil {
 			return false, nil, err
 		}
-
-		newAuthen = p.populatePasswordHash(a, password)
+		if pwd.Compare([]byte(password), a.PasswordHash) != nil {
+			newAuthen = p.populatePasswordHash(a, password)
+		}
 	}
 
 	if options.SetExpireAfter {
