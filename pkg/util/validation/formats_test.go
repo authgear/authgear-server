@@ -182,20 +182,22 @@ func TestFormatLDAPSearchFilterTemplate(t *testing.T) {
 }
 
 func TestFormatLDAPOID(t *testing.T) {
-	Convey("FormatLDAPOID", t, func() {
-		f := FormatLDAPOID{}.CheckFormat
+	Convey("FormatLDAPAttribute", t, func() {
+		f := FormatLDAPAttribute{}.CheckFormat
 
 		So(f(1), ShouldBeNil)
-		So(f("1.1"), ShouldBeNil)
-		So(f("1.1.1"), ShouldBeNil)
-		So(f("0.1.3"), ShouldBeNil)
-		So(f("10.13.10"), ShouldBeNil)
-		So(f("0.9.2342.19200300.100.1.1"), ShouldBeNil)
-		So(f(""), ShouldBeError, "expect non-empty OID")
-		So(f("1"), ShouldBeError, "invalid OID")
-		So(f(".1.1"), ShouldBeError, "invalid OID")
-		So(f("1.1."), ShouldBeError, "invalid OID")
-		So(f("1.1.1.a.2"), ShouldBeError, "invalid OID")
+		So(f("uid"), ShouldBeNil)
+		So(f("cn"), ShouldBeNil)
+		So(f("ou"), ShouldBeNil)
+		So(f("dc"), ShouldBeNil)
+		So(f("hyphen-"), ShouldBeNil)
+		So(f("123"), ShouldBeNil)
+		So(f("abcdEFG123-"), ShouldBeNil)
+		So(f(""), ShouldBeError, "expect non-empty attribute")
+		So(f("should have no space"), ShouldBeError, "invalid attribute")
+		So(f("abcd!@#$%^&*()"), ShouldBeError, "invalid attribute")
+		So(f("dc="), ShouldBeError, "invalid attribute")
+		So(f("dc=example,dc=com"), ShouldBeError, "invalid attribute")
 
 	})
 }

@@ -23,21 +23,21 @@ var _ = Schema.Add("LDAPServerConfig", `
 {
 	"type": "object",
 	"additionalProperties": false,
-	"required": ["name", "url", "base_dn", "search_filter_template", "user_id_attribute_oid"],
+	"required": ["name", "url", "base_dn", "search_filter_template", "user_id_attribute_name"],
 	"properties": {
 		"name": { "type": "string", "minLength": 1 },
 		"url": { "type": "string", "format": "ldap_url" },
 		"base_dn": { "type": "string", "format": "ldap_dn" },
 		"search_filter_template": { "type": "string", "format": "ldap_search_filter_template" },
-		"user_id_attribute_oid": { "type": "string", "format": "ldap_oid" }
+		"user_id_attribute_name": { "type": "string", "format": "ldap_attribute" }
 	}
 }
 `)
 
 type LDAPServerConfig struct {
-	Name                             string `json:"name,omitempty"`
-	URL                              string `json:"url,omitempty"`
-	BaseDN                           string `json:"base_dn,omitempty"`
-	SearchFilterTemplate             string `json:"search_filter_template,omitempty"`
-	UserUniqueIdentifierAttributeOID string `json:"user_id_attribute_oid,omitempty"`
+	Name                          string `json:"name,omitempty"`
+	URL                           string `json:"url,omitempty"`
+	BaseDN                        string `json:"base_dn,omitempty"`
+	SearchFilterTemplate          string `json:"search_filter_template,omitempty"`
+	UserUniqueIdentifierAttribute string `json:"user_id_attribute_name,omitempty"`
 }
