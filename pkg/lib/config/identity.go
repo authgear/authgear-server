@@ -12,6 +12,7 @@ var _ = Schema.Add("IdentityConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
+		"ldap": { "$ref": "#/$defs/LDAPConfig" },
 		"login_id": { "$ref": "#/$defs/LoginIDConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthSSOConfig" },
 		"biometric": { "$ref": "#/$defs/BiometricConfig" },
@@ -21,6 +22,7 @@ var _ = Schema.Add("IdentityConfig", `
 `)
 
 type IdentityConfig struct {
+	LDAP       *LDAPConfig             `json:"ldap,omitempty"`
 	LoginID    *LoginIDConfig          `json:"login_id,omitempty"`
 	OAuth      *OAuthSSOConfig         `json:"oauth,omitempty"`
 	Biometric  *BiometricConfig        `json:"biometric,omitempty"`

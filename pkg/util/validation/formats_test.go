@@ -119,6 +119,90 @@ func TestFormatHTTPOriginSpec(t *testing.T) {
 	})
 }
 
+func TestFormatLDAPURL(t *testing.T) {
+	Convey("FormatLDAPURL", t, func() {
+		f := FormatLDAPURL{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f("ldap://example.com"), ShouldBeNil)
+		So(f("ldap://localhost:389"), ShouldBeNil)
+		So(f("ldaps://example.com"), ShouldBeNil)
+
+		So(f(""), ShouldBeError, "expect input URL with scheme ldap / ldaps")
+		So(f("http://example.com"), ShouldBeError, "expect input URL with scheme ldap / ldaps")
+		So(f("ldap://user:password@example.com"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+		So(f("ldap://example.com/"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+		So(f("ldap://example.com?a"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+		So(f("ldap://example.com#a"), ShouldBeError, "expect input URL without user info, path, query and fragment")
+	})
+}
+
+func TestFormatLDAPDN(t *testing.T) {
+	Convey("FormatLDAPDN", t, func() {
+		f := FormatLDAPDN{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f("dc=example,dc=com"), ShouldBeNil)
+		So(f("cn=admin,dc=example,dc=org"), ShouldBeNil)
+		So(f("ou="), ShouldBeError, "invalid DN")
+		So(f("asbbalskjedkbwk"), ShouldBeError, "invalid DN")
+		So(f(""), ShouldBeError, "expect non-empty base DN")
+	})
+}
+
+func TestFormatLDAPSearchFilterTemplate(t *testing.T) {
+	Convey("FormatLDAPSearchFilterTemplate", t, func() {
+		f := FormatLDAPSearchFilterTemplate{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f("(uid=%s)"), ShouldBeNil)
+		So(f("((uid=%s)(cn=%s))"), ShouldBeError, "invalid search filter")
+		So(f("(uid=%s)(cn=%s"), ShouldBeError, "invalid search filter")
+		So(f(""), ShouldBeError, "invalid search filter")
+
+		correct_template := `{{if eq $.Username "test@test.com"}}(mail={{$.Username}}){{else if eq $.Username "+852"}}(telephoneNumber={{$.Username}}){{else}}(uid={{$.Username}}){{end}}`
+		So(f(correct_template), ShouldBeNil)
+
+		multiline_template := `
+		{{if eq .Username "test@test.com"}}
+									(mail={{$.Username}})
+		{{else }}
+			(uid={{$.Username}})
+		{{end}}
+
+		`
+		So(f(multiline_template), ShouldBeNil)
+
+		missing_end := `{{if eq .Username "test@test.com"}}(mail={{.Username}})`
+		So(f(missing_end), ShouldBeError, "invalid template")
+
+		missing_parenthesis := `{{if eq .Username "test@test.com"}}(mail={{.Username}}{{end}}`
+		So(f(missing_parenthesis), ShouldBeError, "invalid search filter")
+	})
+}
+
+func TestFormatLDAPAttribute(t *testing.T) {
+	Convey("FormatLDAPAttribute", t, func() {
+		f := FormatLDAPAttribute{}.CheckFormat
+
+		So(f(1), ShouldBeNil)
+		So(f("uid"), ShouldBeNil)
+		So(f("cn"), ShouldBeNil)
+		So(f("ou"), ShouldBeNil)
+		So(f("dc"), ShouldBeNil)
+		So(f("hyphen-"), ShouldBeNil)
+		So(f("abcdEFG123-"), ShouldBeNil)
+		So(f(""), ShouldBeError, "expect non-empty attribute")
+		So(f("-abc"), ShouldBeError, "invalid attribute")
+		So(f("123"), ShouldBeError, "invalid attribute")
+		So(f("should have no space"), ShouldBeError, "invalid attribute")
+		So(f("abcd!@#$%^&*()"), ShouldBeError, "invalid attribute")
+		So(f("dc="), ShouldBeError, "invalid attribute")
+		So(f("dc=example,dc=com"), ShouldBeError, "invalid attribute")
+
+	})
+}
+
 func TestFormatWeChatAccountID(t *testing.T) {
 	Convey("TestFormatWeChatAccountID", t, func() {
 		f := FormatWeChatAccountID{}.CheckFormat
