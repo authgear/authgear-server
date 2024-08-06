@@ -124,3 +124,52 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 
 	return sr.Entries[0], nil
 }
+
+func (c *Client) TestConnection(username string) error {
+	conn, err := c.connect()
+	if err != nil {
+		return api.ErrLDAPCannotConnect
+	}
+
+	defer conn.Close()
+
+	err = c.bind(conn)
+	if err != nil {
+		if ldap.IsErrorWithCode(err, ldap.LDAPResultInvalidCredentials) {
+			return api.ErrLDAPInvalidBindUser
+		}
+		return err
+	}
+
+	if username != "" {
+		searchFilter, err := ldaputil.ParseFilter(c.Config.SearchFilterTemplate, username)
+		if err != nil {
+			return api.ErrLDAPInvalidFilterTemplate
+		}
+		SearchRequest := ldap.NewSearchRequest(
+			c.Config.BaseDN,
+			ldap.ScopeWholeSubtree, ldap.DerefAlways, 2, 10, false,
+			searchFilter,
+			[]string{},
+			nil,
+		)
+		sr, err := conn.Search(SearchRequest)
+		if err != nil {
+			return err
+		}
+		if len(sr.Entries) == 0 {
+			return api.ErrLDAPEndUserSearchNotFound
+		}
+		if len(sr.Entries) > 1 {
+			return api.ErrLDAPEndUserSearchMultiple
+		}
+
+		uniqueIdentifierValue := sr.Entries[0].GetAttributeValue(c.Config.UserUniqueIdentifierAttribute)
+		if uniqueIdentifierValue == "" {
+			return api.ErrLDAPMissingUniqueAttribute
+		}
+	}
+
+	return nil
+
+}
