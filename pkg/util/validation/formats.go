@@ -326,7 +326,7 @@ func (FormatLDAPAttribute) CheckFormat(value interface{}) error {
 	// option = 1*keychar
 	// keychar = ALPHA / DIGIT / HYPHEN
 	// According to https://datatracker.ietf.org/doc/html/rfc4512#section-2.5
-	matched, err := regexp.MatchString(`^[a-zA-Z\d-]+$`, str)
+	matched, err := regexp.MatchString(`^[a-zA-Z][a-zA-Z\d-]*$`, str)
 	if err != nil {
 		return err
 	}
