@@ -77,6 +77,15 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 		return nil, err
 	}
 
+	// func NewSearchRequest(
+	// 	 BaseDN string, Scope, DerefAliases,
+	//   SizeLimit, (Set to 2 to check 0 or more than 1 entry returned)
+	//   TimeLimit int, (10 seconds timeout)
+	// 	 TypesOnly bool, (FALSE to return both attribute descriptions and values, TRUE to return attribute description only.)
+	// 	 Filter string,
+	// 	 Attributes []string, (nil means all attributes)
+	// 	 Controls []Control,
+	// ) *SearchRequest
 	searchRequest := ldap.NewSearchRequest(
 		c.Config.BaseDN,
 		ldap.ScopeWholeSubtree, ldap.DerefAlways, 2, 10, false,
