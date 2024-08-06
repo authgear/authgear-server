@@ -66,11 +66,11 @@
     "axios": "1.6.1",
     "cldr-localenames-full": "44.1.0",
     "cropperjs": "1.6.1",
-    "ethers": "5.5.1",
+    "ethers": "6.13.2",
     "intl-tel-input": "18.5.3",
     "libphonenumber-js": "1.10.53",
     "luxon": "3.4.4",
-    "siwe": "1.1.6",
+    "siwe": "2.3.2",
     "zxcvbn": "4.4.2"
   }
 }

@@ -4,11 +4,32 @@ import jazzicon from "@metamask/jazzicon";
 import axios from "axios";
 import { SiweMessage } from "siwe";
 import detectEthereumProvider from "@metamask/detect-provider";
-import { ethers } from "ethers";
+import { BrowserProvider, Eip1193Provider } from "ethers";
 import { localVisit } from "./turbo";
 
 enum WalletProvider {
   MetaMask = "metamask",
+}
+
+interface SIWENonce {
+  nonce: string;
+  expireAt: Date;
+}
+
+interface MetaMaskEthereumProvider {
+  isMetaMask?: boolean;
+  once(eventName: string | symbol, listener: (...args: any[]) => void): this;
+  on(eventName: string | symbol, listener: (...args: any[]) => void): this;
+  off(eventName: string | symbol, listener: (...args: any[]) => void): this;
+  addListener(
+    eventName: string | symbol,
+    listener: (...args: any[]) => void
+  ): this;
+  removeListener(
+    eventName: string | symbol,
+    listener: (...args: any[]) => void
+  ): this;
+  removeAllListeners(event?: string | symbol): this;
 }
 
 function deserializeNonceResponse(data: any): SIWENonce {
@@ -41,30 +62,22 @@ function truncateAddress(address: string): string {
   return address.slice(0, 6) + "..." + address.slice(address.length - 4);
 }
 
-interface MetamaskProvider extends ethers.providers.ExternalProvider {
-  isMetaMask: true;
-  on: (eventName: string, callback: () => void) => void;
-  off: (eventName: string, callback: () => void) => void;
+interface GetProviderResult {
+  browserProvider: BrowserProvider;
+  ethereum: MetaMaskEthereumProvider;
 }
 
-interface Web3Provider extends Omit<ethers.providers.Web3Provider, "provider"> {
-  provider: ethers.providers.ExternalProvider | MetamaskProvider;
-}
-
-function isProviderMetaMask(
-  provider?: ethers.providers.ExternalProvider | MetamaskProvider
-): provider is MetamaskProvider {
-  return provider?.isMetaMask === true;
-}
-
-async function getProvider(type: string): Promise<Web3Provider | null> {
-  const provider = (await detectEthereumProvider({
+async function getProvider(type: string): Promise<GetProviderResult | null> {
+  const ethereum = await detectEthereumProvider({
     mustBeMetaMask: type === WalletProvider.MetaMask,
-  })) as ethers.providers.ExternalProvider | null;
+  });
 
-  if (provider) {
-    // https://github.com/ethers-io/ethers.js/issues/866
-    return new ethers.providers.Web3Provider(provider, "any");
+  if (ethereum != null) {
+    return {
+      ethereum,
+      // @ts-expect-error
+      browserProvider: new BrowserProvider(ethereum as Eip1193Provider),
+    };
   }
 
   return null;
@@ -176,32 +189,21 @@ export class WalletConfirmationController extends Controller {
   declare submitTarget: HTMLButtonElement;
 
   declare providerValue: string;
-  declare _provider: Web3Provider | null;
-
-  set provider(p: Web3Provider | null) {
-    if (isProviderMetaMask(p?.provider)) {
-      p!.provider.on("accountsChanged", this.onAccountChanged);
-    } else if (isProviderMetaMask(this._provider?.provider) && p === null) {
-      this._provider?.provider.off?.("accountsChanged", this.onAccountChanged);
-    }
-
-    this._provider = p;
-  }
-
-  get provider() {
-    return this._provider;
-  }
+  declare _provider: BrowserProvider | null;
+  declare _ethereum: MetaMaskEthereumProvider | null;
 
   connect() {
     getProvider(this.providerValue)
-      .then((provider) => {
-        if (!provider) {
+      .then((result) => {
+        if (result == null) {
           const searchParams = new URLSearchParams();
           searchParams.set("q_provider", this.providerValue);
           localVisit("/errors/missing_web3_wallet", searchParams);
           return;
         }
-        this.provider = provider;
+        this._provider = result.browserProvider;
+        this._ethereum = result.ethereum;
+        this._ethereum.on("accountsChanged", this.onAccountChanged);
         this._getAccount();
       })
       .catch((err) => {
@@ -210,7 +212,9 @@ export class WalletConfirmationController extends Controller {
   }
 
   disconnect() {
-    this.provider = null;
+    this._ethereum?.off("accountsChanged", this.onAccountChanged);
+    this._ethereum = null;
+    this._provider = null;
   }
 
   onAccountChanged = () => {
@@ -218,15 +222,15 @@ export class WalletConfirmationController extends Controller {
   };
 
   async _getAccount() {
-    if (!this.provider) {
+    if (!this._provider) {
       return;
     }
     this.displayedTarget.textContent = "-";
 
-    await this.provider.send("eth_requestAccounts", []);
+    await this._provider.send("eth_requestAccounts", []);
 
     // Get account from the signer to ensure the requested account is the correct one
-    const signer = this.provider.getSigner();
+    const signer = await this._provider.getSigner();
     const account = await signer.getAddress();
 
     this.displayedTarget.textContent = truncateAddress(account);
@@ -235,7 +239,7 @@ export class WalletConfirmationController extends Controller {
   }
 
   async performSIWE() {
-    if (!this.provider) {
+    if (!this._provider) {
       return;
     }
 
@@ -249,10 +253,11 @@ export class WalletConfirmationController extends Controller {
 
       const nonce = deserializeNonceResponse(nonceResp.data.result);
 
-      const signer = this.provider.getSigner();
+      const signer = await this._provider.getSigner();
+      const network = await this._provider.getNetwork();
 
       const address = await signer.getAddress();
-      const chainId = await signer.getChainId();
+      const chainId = Number(network.chainId);
 
       const siweMessage = createSIWEMessage(
         address,
