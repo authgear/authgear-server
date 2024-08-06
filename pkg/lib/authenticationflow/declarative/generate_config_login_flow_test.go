@@ -443,6 +443,55 @@ steps:
 - type: terminate_other_sessions
 `)
 
+		// ldap, not 2fa
+		test(`
+authentication:
+  identities:
+  - ldap
+  secondary_authentication_mode: disabled
+identity:
+  ldap:
+    servers:
+    - name: ldap
+`, `
+name: default
+steps:
+- name: login_identify
+  type: identify
+  one_of:
+  - identification: ldap
+- type: check_account_status
+- type: terminate_other_sessions
+`)
+
+		// ldap, default 2fa options
+		test(`
+authentication:
+  identities:
+  - ldap
+identity:
+  ldap:
+    servers:
+    - name: ldap
+`, `
+name: default
+steps:
+- name: login_identify
+  type: identify
+  one_of:
+  - identification: ldap
+    steps:
+    - name: authenticate_secondary_ldap
+      type: authenticate
+      optional: true
+      one_of:
+      - authentication: secondary_totp
+      - authentication: recovery_code
+      - authentication: device_token
+- type: check_account_status
+- type: terminate_other_sessions
+`)
+
 		// passkey
 		test(`
 authentication:
