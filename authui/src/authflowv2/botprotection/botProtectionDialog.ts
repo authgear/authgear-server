@@ -1,18 +1,25 @@
 import { Controller } from "@hotwired/stimulus";
-import { dispatchBotProtectionWidgetEventRender } from "./botProtectionWidget";
+import {
+  dispatchBotProtectionWidgetEventRender,
+  dispatchBotProtectionWidgetEventUndoRender,
+} from "./botProtectionWidget";
+
+const DIALOG_ID = "bot-protection-dialog";
+const BOT_PROTECTION_DIALOG_OPEN_EVENT = `dialog-${DIALOG_ID}:open`;
+const BOT_PROTECTION_DIALOG_CLOSE_EVENT = `dialog-${DIALOG_ID}:close`;
 
 /**
  * Dispatch a custom event to set captcha dialog open
  */
 export function dispatchBotProtectionDialogOpen() {
-  document.dispatchEvent(new CustomEvent("bot-protection-dialog:open"));
+  document.dispatchEvent(new CustomEvent(BOT_PROTECTION_DIALOG_OPEN_EVENT));
 }
 
 /**
  * Dispatch a custom event to set captcha dialog close
  */
 export function dispatchBotProtectionDialogClose() {
-  document.dispatchEvent(new CustomEvent("bot-protection-dialog:close"));
+  document.dispatchEvent(new CustomEvent(BOT_PROTECTION_DIALOG_CLOSE_EVENT));
 }
 
 /**
@@ -20,27 +27,28 @@ export function dispatchBotProtectionDialogClose() {
  *
  * Expected usage:
  * - Add `data-controller="bot-protection-dialog"` to a dialog
+ * - Specify id="bot-protection-dialog" to that dialog
  */
 export class BotProtectionDialogController extends Controller {
-  open = (e: Event) => {
-    if (!(e instanceof CustomEvent)) {
-      throw new Error("Unexpected non-CustomEvent");
-    }
+  open = () => {
     dispatchBotProtectionWidgetEventRender();
-    this.element.classList.add("open");
   };
 
   close = () => {
-    this.element.classList.remove("open");
+    dispatchBotProtectionWidgetEventUndoRender();
   };
 
   connect() {
-    document.addEventListener("bot-protection-dialog:open", this.open);
-    document.addEventListener("bot-protection-dialog:close", this.close);
+    if (this.element.id !== DIALOG_ID) {
+      console.error(`bot-protection-dialog must have id="${DIALOG_ID}"`);
+      return;
+    }
+    document.addEventListener(BOT_PROTECTION_DIALOG_OPEN_EVENT, this.open);
+    document.addEventListener(BOT_PROTECTION_DIALOG_CLOSE_EVENT, this.close);
   }
 
   disconnect() {
-    document.removeEventListener("bot-protection-dialog:open", this.open);
-    document.removeEventListener("bot-protection-dialog:close", this.close);
+    document.removeEventListener(BOT_PROTECTION_DIALOG_OPEN_EVENT, this.open);
+    document.removeEventListener(BOT_PROTECTION_DIALOG_CLOSE_EVENT, this.close);
   }
 }
