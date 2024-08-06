@@ -24,10 +24,30 @@ var _ = SecretConfigSchema.Add("LDAPServerUserCredentialsItem", `
 		"password": { "type": "string", "minLength": 1 }
 	},
 	"required": ["name"],
-	"dependentRequired": {
-		"dn": ["password"],
-		"password": ["dn"]
-	}
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"dn": { "type": "string" }
+				},
+				"required": ["dn"]
+			},
+			"then": {
+				"required": ["password"]
+			}
+		},
+		{
+			"if": {
+				"properties": {
+					"password": { "type": "string" }
+				},
+				"required": ["password"]
+			},
+			"then": {
+				"required": ["dn"]
+			}
+		}
+	]
 }
 `)
 
