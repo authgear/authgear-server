@@ -26,8 +26,8 @@
       display: flex;
       opacity: 1;
     }
-    99% {
-      opacity: 0.01;
+    50% {
+      opacity: 0.5;
     }
     100% {
       opacity: 0;
