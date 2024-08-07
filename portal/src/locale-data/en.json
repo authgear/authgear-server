@@ -130,6 +130,7 @@
   "errors.groups.key.validation.format": "Invalid group key. Only English alphabets, digits, colons \":\", and underscores \"_\" are accepted, and the first character must be an alphabet.",
   "errors.roles.key.duplicated": "This key is already used, please use a different key",
   "errors.groups.key.duplicated": "This key is already used, please use a different key",
+  "errors.authenticator.not-found": "Authenticator not found",
 
   "warnings.free-plan": "To avoid spam content, free plans are limited to send 5 SMS and Whatsapp messsage by default. To be eligible for 100 free SMS/Whatsapp per mo, please complete{ExternalLink, react, href{https://go.authgear.com/portal-support} children{the application form}}.",
 
@@ -385,6 +386,9 @@
   "UserDetails.account-security.change-on-login.label": "Ask to change password on login",
   "UserDetails.account-security.change-on-login.description": "The user will be asked to change password at the next login",
   "UserDetails.account-security.expired": "{Text, react, className{{prefixClassName}} children{Password Expired: }} The password is expired for {expiredInDays} days. The user will be asked to update it on their next login. ",
+  "UserDetails.account-security.mark-as-expired-confirm-dialog.title": "Change on Login",
+  "UserDetails.account-security.mark-as-expired-confirm-dialog.message": "The user will be asked to change password at the next login.",
+  "UserDetails.account-security.mark-as-expired-confirm-dialog.message.revoke": "The user will NOT be asked to change password at the next login.",
 
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",
@@ -1344,6 +1348,7 @@
   "AuditLogActivityType.ADMIN_API_MUTATION_REMOVE_USER_FROM_ROLES_EXECUTED": "Admin API Mutation: Remove user from roles",
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_GROUP_EXECUTED": "Admin API Mutation: Update group",
   "AuditLogActivityType.ADMIN_API_MUTATION_UPDATE_ROLE_EXECUTED": "Admin API Mutation: Update role",
+  "AuditLogActivityType.ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED": "Admin API Mutation: Mark password as expired",
   "AuditLogActivityType.PROJECT_APP_UPDATED": "Project: Configuration updated",
   "AuditLogActivityType.PROJECT_APP_SECRET_VIEWED": "Project: Secret viewed",
   "AuditLogActivityType.PROJECT_BILLING_CHECKOUT_CREATED": "Project: Billing checkout crreated",

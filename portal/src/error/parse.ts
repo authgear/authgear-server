@@ -254,6 +254,12 @@ function parseError(error: APIError): ParsedAPIError[] {
       });
       break;
     }
+    case "AuthenticatorNotFound": {
+      errors.push({
+        messageID: "errors.authenticator.not-found",
+      });
+      break;
+    }
     default:
       errors.push({
         messageID: "errors.unknown",

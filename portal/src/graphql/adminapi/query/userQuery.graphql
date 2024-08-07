@@ -56,14 +56,7 @@ fragment UserQueryNode on User {
   authenticators {
     edges {
       node {
-        id
-        type
-        kind
-        isDefault
-        claims
-        createdAt
-        updatedAt
-        expireAfter
+        ...AuthenticatorFragment
       }
     }
   }
@@ -120,6 +113,17 @@ fragment UserQueryNode on User {
   lastLoginAt
   createdAt
   updatedAt
+}
+
+fragment AuthenticatorFragment on Authenticator {
+  id
+  type
+  kind
+  isDefault
+  claims
+  createdAt
+  updatedAt
+  expireAfter
 }
 
 query userQuery($userID: ID!) {

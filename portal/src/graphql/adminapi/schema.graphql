@@ -229,6 +229,9 @@ enum AuditLogActivityType {
   ADMIN_API_MUTATION_SET_DISABLED_STATUS_EXECUTED
 
   """"""
+  ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED
+
+  """"""
   ADMIN_API_MUTATION_SET_VERIFIED_STATUS_EXECUTED
 
   """"""
@@ -1067,6 +1070,9 @@ type Mutation {
   """Set disabled status of user"""
   setDisabledStatus(input: SetDisabledStatusInput!): SetDisabledStatusPayload!
 
+  """Force user to change password on next login"""
+  setPasswordExpired(input: SetPasswordExpiredInput!): SetPasswordExpiredPayload!
+
   """Set verified status of a claim of user"""
   setVerifiedStatus(input: SetVerifiedStatusInput!): SetVerifiedStatusPayload!
 
@@ -1446,6 +1452,21 @@ input SetDisabledStatusInput {
 
 """"""
 type SetDisabledStatusPayload {
+  """"""
+  user: User!
+}
+
+""""""
+input SetPasswordExpiredInput {
+  """Indicate whether the user's password is expired."""
+  expired: Boolean!
+
+  """Target user ID."""
+  userID: ID!
+}
+
+""""""
+type SetPasswordExpiredPayload {
   """"""
   user: User!
 }

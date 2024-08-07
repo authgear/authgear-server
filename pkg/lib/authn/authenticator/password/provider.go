@@ -86,6 +86,7 @@ func (p *Provider) New(id string, userID string, passwordSpec *authenticator.Pas
 }
 
 type UpdatePasswordOptions struct {
+	SetPassword    bool
 	PlainPassword  string
 	SetExpireAfter bool
 	ExpireAfter    *time.Time
@@ -95,14 +96,16 @@ type UpdatePasswordOptions struct {
 // Otherwise original authenticator will be returned
 func (p *Provider) UpdatePassword(a *authenticator.Password, options *UpdatePasswordOptions) (bool, *authenticator.Password, error) {
 	password := options.PlainPassword
-	err := p.PasswordChecker.ValidateNewPassword(a.UserID, password)
-	if err != nil {
-		return false, nil, err
-	}
 
 	newAuthen := a
-	if pwd.Compare([]byte(password), a.PasswordHash) != nil {
-		newAuthen = p.populatePasswordHash(a, password)
+	if options.SetPassword {
+		err := p.PasswordChecker.ValidateNewPassword(a.UserID, password)
+		if err != nil {
+			return false, nil, err
+		}
+		if pwd.Compare([]byte(password), a.PasswordHash) != nil {
+			newAuthen = p.populatePasswordHash(a, password)
+		}
 	}
 
 	if options.SetExpireAfter {

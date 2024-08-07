@@ -5,12 +5,15 @@ import (
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 )
 
 type AuthenticatorService interface {
 	New(spec *authenticator.Spec) (*authenticator.Info, error)
+	UpdatePassword(ai *authenticator.Info, options *service.UpdatePasswordOptions) (bool, *authenticator.Info, error)
 	Create(info *authenticator.Info) error
+	Update(info *authenticator.Info) error
 	Get(id string) (*authenticator.Info, error)
 	Count(userID string) (uint64, error)
 	ListRefsByUsers(userIDs []string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error)

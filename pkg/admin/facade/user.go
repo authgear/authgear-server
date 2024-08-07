@@ -1,14 +1,19 @@
 package facade
 
 import (
+	"time"
+
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -36,9 +41,11 @@ type UserSearchService interface {
 }
 
 type UserFacade struct {
+	Clock              clock.Clock
 	UserSearchService  UserSearchService
 	Users              UserService
 	LoginIDConfig      *config.LoginIDConfig
+	Authenticators     AuthenticatorService
 	StandardAttributes StandardAttributesService
 	Interaction        InteractionService
 }
@@ -106,6 +113,60 @@ func (f *UserFacade) ResetPassword(id string, password string, sendPassword bool
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (f *UserFacade) SetPasswordExpired(id string, isExpired bool) error {
+	err := f.Users.CheckUserAnonymized(id)
+	if err != nil {
+		return err
+	}
+
+	passwordType := apimodel.AuthenticatorTypePassword
+	primaryKind := authenticator.KindPrimary
+	ars, err := f.Authenticators.ListRefsByUsers(
+		[]string{id},
+		&passwordType,
+		&primaryKind,
+	)
+	if err != nil {
+		return err
+	}
+
+	if len(ars) == 0 {
+		return api.ErrAuthenticatorNotFound
+	}
+
+	for _, ai := range ars {
+		a, err := f.Authenticators.Get(ai.ID)
+		if err != nil {
+			return err
+		}
+
+		if a.Password == nil {
+			continue
+		}
+
+		var expireAfter *time.Time
+		if isExpired {
+			now := f.Clock.NowUTC()
+			expireAfter = &now
+		}
+
+		_, a, err = f.Authenticators.UpdatePassword(a, &service.UpdatePasswordOptions{
+			SetExpireAfter: true,
+			ExpireAfter:    expireAfter,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = f.Authenticators.Update(a)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

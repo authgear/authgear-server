@@ -35,10 +35,16 @@ import { PortalAPIAppConfig, SecondaryAuthenticatorType } from "../../types";
 import Toggle from "../../Toggle";
 import { DateTime } from "luxon";
 import { parseDuration } from "../../util/duration";
+import {
+  SetPasswordExpiredConfirmationDialog,
+  useConfirmationDialog,
+} from "../../components/users/SetPasswordExpiredConfirmationDialog";
+import { useSetPasswordExpiredMutation } from "./mutations/setPasswordExpiredMutation";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
 interface UserDetailsAccountSecurityProps {
+  userID: string;
   authenticationConfig: PortalAPIAppConfig["authentication"];
   authenticatorConfig: PortalAPIAppConfig["authenticator"];
   identities: Identity[];
@@ -83,7 +89,8 @@ interface PasskeyIdentityCellProps extends PasskeyIdentityData {
 interface PasswordAuthenticatorCellProps extends PasswordAuthenticatorData {
   withTopSpacing: boolean;
   forceChangeDaysSinceLastUpdate: number | null;
-  showConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
+  showRemoveConfirmationDialog: (options: RemoveConfirmationDialogData) => void;
+  showMarkAsExpiredConfirmationDialog: () => void;
 }
 
 interface TOTPAuthenticatorCellProps extends TOTPAuthenticatorData {
@@ -168,7 +175,7 @@ function constructPasswordAuthenticatorData(
 ): PasswordAuthenticatorData {
   const lastUpdated = formatDatetime(locale, authenticator.updatedAt) ?? "";
   const manualChangeOnLogin = authenticator.expireAfter
-    ? DateTime.fromISO(authenticator.expireAfter) <= DateTime.now()
+    ? DateTime.fromISO(authenticator.expireAfter) <= DateTime.utc()
     : false;
   const lastUpdatedInDays = Math.round(
     DateTime.now().diff(DateTime.fromISO(authenticator.updatedAt), "days").days
@@ -511,7 +518,8 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
       lastUpdatedInDays,
       manualChangeOnLogin,
       forceChangeDaysSinceLastUpdate,
-      showConfirmationDialog,
+      showRemoveConfirmationDialog,
+      showMarkAsExpiredConfirmationDialog,
       withTopSpacing,
     } = props;
     const navigate = useNavigate();
@@ -541,12 +549,12 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
     }, [navigate]);
 
     const onRemoveClicked = useCallback(() => {
-      showConfirmationDialog({
+      showRemoveConfirmationDialog({
         id,
         displayName: renderToString(labelId!),
         type: "authenticator",
       });
-    }, [labelId, id, renderToString, showConfirmationDialog]);
+    }, [labelId, id, renderToString, showRemoveConfirmationDialog]);
 
     return (
       <ListCellLayout
@@ -571,8 +579,8 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
             "UserDetails.account-security.change-on-login.label"
           )}
           checked={changeOnLogin}
-          // TODO(newman): Enable in change password feature
-          disabled={true}
+          disabled={passwordExpired}
+          onChange={showMarkAsExpiredConfirmationDialog}
         />
         {passwordExpired ? (
           <MessageBar
@@ -711,6 +719,7 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
   // eslint-disable-next-line complexity
   function UserDetailsAccountSecurity(props: UserDetailsAccountSecurityProps) {
     const {
+      userID,
       authenticationConfig,
       authenticatorConfig,
       identities,
@@ -784,6 +793,30 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       setIsConfirmationDialogVisible(false);
     }, []);
 
+    const setPasswordExpiredConfirmDialog = useConfirmationDialog();
+
+    const { setPasswordExpired, error: setPasswordExpiredError } =
+      useSetPasswordExpiredMutation();
+    useProvideError(setPasswordExpiredError);
+
+    const isExpired = useMemo(
+      () =>
+        primaryAuthenticatorLists.password.some(
+          (authenticator) => authenticator.manualChangeOnLogin
+        ),
+      [primaryAuthenticatorLists.password]
+    );
+
+    const onConfirmSetPasswordExpired = useCallback(async () => {
+      await setPasswordExpired(userID, !isExpired);
+      setPasswordExpiredConfirmDialog.dismiss();
+    }, [
+      setPasswordExpired,
+      userID,
+      isExpired,
+      setPasswordExpiredConfirmDialog,
+    ]);
+
     const onRenderPasskeyIdentityDetailCell = useCallback(
       (item?: PasskeyIdentityData, index?: number): React.ReactNode => {
         if (item == null) {
@@ -812,11 +845,18 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             forceChangeDaysSinceLastUpdate={
               passwordForceChangeDaysSinceLastUpdate
             }
-            showConfirmationDialog={showConfirmationDialog}
+            showRemoveConfirmationDialog={showConfirmationDialog}
+            showMarkAsExpiredConfirmationDialog={
+              setPasswordExpiredConfirmDialog.show
+            }
           />
         );
       },
-      [passwordForceChangeDaysSinceLastUpdate, showConfirmationDialog]
+      [
+        passwordForceChangeDaysSinceLastUpdate,
+        showConfirmationDialog,
+        setPasswordExpiredConfirmDialog.show,
+      ]
     );
 
     const onRenderOobOtpAuthenticatorDetailCell = useCallback(
@@ -1096,6 +1136,11 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
             ) : null}
           </div>
         ) : null}
+        <SetPasswordExpiredConfirmationDialog
+          store={setPasswordExpiredConfirmDialog}
+          isExpired={isExpired}
+          onConfirm={onConfirmSetPasswordExpired}
+        />
       </div>
     );
   };

@@ -158,6 +158,7 @@ export enum AuditLogActivityType {
   AdminApiMutationScheduleAccountDeletionExecuted = 'ADMIN_API_MUTATION_SCHEDULE_ACCOUNT_DELETION_EXECUTED',
   AdminApiMutationSendResetPasswordMessageExecuted = 'ADMIN_API_MUTATION_SEND_RESET_PASSWORD_MESSAGE_EXECUTED',
   AdminApiMutationSetDisabledStatusExecuted = 'ADMIN_API_MUTATION_SET_DISABLED_STATUS_EXECUTED',
+  AdminApiMutationSetPasswordExpiredExecuted = 'ADMIN_API_MUTATION_SET_PASSWORD_EXPIRED_EXECUTED',
   AdminApiMutationSetVerifiedStatusExecuted = 'ADMIN_API_MUTATION_SET_VERIFIED_STATUS_EXECUTED',
   AdminApiMutationUnscheduleAccountAnonymizationExecuted = 'ADMIN_API_MUTATION_UNSCHEDULE_ACCOUNT_ANONYMIZATION_EXECUTED',
   AdminApiMutationUnscheduleAccountDeletionExecuted = 'ADMIN_API_MUTATION_UNSCHEDULE_ACCOUNT_DELETION_EXECUTED',
@@ -713,6 +714,8 @@ export type Mutation = {
   sendResetPasswordMessage?: Maybe<Scalars['Boolean']['output']>;
   /** Set disabled status of user */
   setDisabledStatus: SetDisabledStatusPayload;
+  /** Force user to change password on next login */
+  setPasswordExpired: SetPasswordExpiredPayload;
   /** Set verified status of a claim of user */
   setVerifiedStatus: SetVerifiedStatusPayload;
   /** Unschedule account anonymization */
@@ -892,6 +895,11 @@ export type MutationSendResetPasswordMessageArgs = {
 
 export type MutationSetDisabledStatusArgs = {
   input: SetDisabledStatusInput;
+};
+
+
+export type MutationSetPasswordExpiredArgs = {
+  input: SetPasswordExpiredInput;
 };
 
 
@@ -1272,6 +1280,18 @@ export type SetDisabledStatusInput = {
 
 export type SetDisabledStatusPayload = {
   __typename?: 'SetDisabledStatusPayload';
+  user: User;
+};
+
+export type SetPasswordExpiredInput = {
+  /** Indicate whether the user's password is expired. */
+  expired: Scalars['Boolean']['input'];
+  /** Target user ID. */
+  userID: Scalars['ID']['input'];
+};
+
+export type SetPasswordExpiredPayload = {
+  __typename?: 'SetPasswordExpiredPayload';
   user: User;
 };
 

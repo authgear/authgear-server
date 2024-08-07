@@ -164,6 +164,77 @@ var _ = registerMutationField(
 	},
 )
 
+var setPasswordExpiredInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SetPasswordExpiredInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID.",
+		},
+		"expired": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.Boolean),
+			Description: "Indicate whether the user's password is expired.",
+		},
+	},
+})
+
+var setPasswordExpiredPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SetPasswordExpiredPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"setPasswordExpired",
+	&graphql.Field{
+		Description: "Force user to change password on next login",
+		Type:        graphql.NewNonNull(setPasswordExpiredPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(setPasswordExpiredInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			isExpired, _ := input["expired"].(bool)
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.SetPasswordExpired(userID, isExpired)
+			if err != nil {
+				return nil, err
+			}
+
+			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationSetPasswordExpiredExecutedEventPayload{
+				UserRef: apimodel.UserRef{
+					Meta: apimodel.Meta{
+						ID: userID,
+					},
+				},
+				Expired: isExpired,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)
+
 var sendResetPasswordMessageInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SendResetPasswordMessageInput",
 	Fields: graphql.InputObjectConfigFieldMap{
