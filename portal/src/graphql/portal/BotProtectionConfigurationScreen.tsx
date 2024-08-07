@@ -277,7 +277,8 @@ function ProviderCard(props: ProviderCardProps) {
   } = useSystemConfig();
 
   return (
-    <div
+    <button
+      type="button"
       style={{
         boxShadow: disabled ? undefined : DefaultEffects.elevation4,
         borderColor: isSelected ? themePrimary : "transparent",
@@ -286,12 +287,13 @@ function ProviderCard(props: ProviderCardProps) {
       }}
       className={cn(className, styles.providerCard)}
       onClick={disabled ? undefined : onClick}
+      tabIndex={0}
     >
       {logoSrc != null ? (
         <Image src={logoSrc} width={logoWidth} height={logoHeight} />
       ) : null}
       <Label className={styles.providerCardLabel}>{children}</Label>
-    </div>
+    </button>
   );
 }
 
