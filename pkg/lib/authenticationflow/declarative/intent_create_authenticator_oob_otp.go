@@ -92,7 +92,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 			return nil, nil
 		}
 
-		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+		isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
 		if err != nil {
 			return nil, err
 		}

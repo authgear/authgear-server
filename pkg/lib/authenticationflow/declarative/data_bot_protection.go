@@ -27,8 +27,7 @@ func GetBotProtectionData(authflowCfg *config.AuthenticationFlowBotProtection, a
 	if authflowCfg == nil {
 		return nil
 	}
-	// appCfg as optional parameter
-	if appCfg != nil && (!appCfg.Enabled || appCfg.Provider == nil) {
+	if appCfg == nil || !appCfg.Enabled || appCfg.Provider == nil || appCfg.Provider.Type == "" {
 		return nil
 	}
 
@@ -36,7 +35,7 @@ func GetBotProtectionData(authflowCfg *config.AuthenticationFlowBotProtection, a
 	case config.BotProtectionRiskModeNever:
 		break
 	case config.BotProtectionRiskModeAlways:
-		return NewBotProtectionData(authflowCfg.Provider.Type)
+		return NewBotProtectionData(appCfg.Provider.Type)
 	}
 	return nil
 }
