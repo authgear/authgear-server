@@ -55,10 +55,18 @@ func (c *Client) connect() (*ldap.Conn, error) {
 		return nil, err
 	}
 
-	serverName := u.Hostname()
-
 	if u.Scheme == "ldap" {
-		err = conn.StartTLS(&tls.Config{ServerName: serverName})
+		err = conn.StartTLS(&tls.Config{
+			// According to https://pkg.go.dev/crypto/tls#Client
+			// tls.Config must either InsecureSkipVerify=true, or set ServerName.
+			//
+			// According to https://pkg.go.dev/net/url#URL.Hostname
+			// Hostname() is without port.
+			//
+			// According to https://cs.opensource.google/go/go/+/refs/tags/go1.22.6:src/net/http/transport.go;l=1658
+			// tls.Config.ServerName expects host without port.
+			ServerName: u.Hostname(),
+		})
 		if err != nil {
 			// Reconnect to the server without TLS
 			conn, err = ldap.DialURL(ldapURLString)
