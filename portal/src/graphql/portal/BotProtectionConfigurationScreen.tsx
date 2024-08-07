@@ -5,7 +5,9 @@ import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import styles from "./BotProtectionConfigurationScreen.module.css";
 import {
+  BotProtectionConfig,
   BotProtectionProviderType,
+  BotProtectionRequirements,
   BotProtectionRiskMode,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
@@ -164,6 +166,38 @@ function constructFormState(
   };
 }
 
+function constructBotProtectionConfig(
+  currentState: FormState,
+): BotProtectionConfig {
+  const signupOrLoginRequirements: Partial<BotProtectionRequirements> = {
+    signup_or_login: currentState.requirements.flows.flowType === "allSignupLogin" ? {
+      mode: currentState.requirements.flows.flowConfigs.allSignupLogin.allSignupLoginMode
+    } : undefined,
+  }
+  const accountRecoveryRequirements: Partial<BotProtectionRequirements> = {
+    account_recovery: { mode: currentState.requirements.resetPassword.resetPasswordMode }
+  }
+  const specificAuthenticatorRequirements: Partial<BotProtectionRequirements> = currentState.requirements.flows.flowType === "specificAuthenticator" ? {
+    password: { mode: currentState.requirements.flows.flowConfigs.specificAuthenticator.passwordMode },
+    oob_otp_email: { mode: currentState.requirements.flows.flowConfigs.specificAuthenticator.passwordlessViaEmailMode },
+    oob_otp_sms: { mode: currentState.requirements.flows.flowConfigs.specificAuthenticator.passwordlessViaSMSMode },
+  } : {}
+  const requirements: BotProtectionRequirements = {
+    ...signupOrLoginRequirements,
+    ...accountRecoveryRequirements,
+    ...specificAuthenticatorRequirements,
+  }
+  return {
+    enabled: currentState.enabled,
+    provider: {
+      type: currentState.providerType,
+      site_key:
+        currentState.providerConfigs[currentState.providerType]?.siteKey,
+    },
+    requirements,
+  }
+}
+
 function constructConfig(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig,
@@ -174,14 +208,8 @@ function constructConfig(
   return produce([config, secrets], ([config, secrets]) => {
     config.bot_protection ??= {};
     config.bot_protection.provider ??= {};
-    config.bot_protection = {
-      enabled: currentState.enabled,
-      provider: {
-        type: currentState.providerType,
-        site_key:
-          currentState.providerConfigs[currentState.providerType]?.siteKey,
-      },
-    };
+    config.bot_protection.requirements ??= {};
+    config.bot_protection = constructBotProtectionConfig(currentState);
 
     const secretKey =
       currentState.providerConfigs[currentState.providerType]?.secretKey;
