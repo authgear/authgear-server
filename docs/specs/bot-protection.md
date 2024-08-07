@@ -307,6 +307,13 @@ Given `bot_protection.enabled=true`,
             <!-- Promote only have identify, create_authenticator will reuse signup -->
               <code>signup (promote) </code>
               <ul>
+                <li><code>identify</code></li>
+                <ul>
+                  <li><code>email</code></li>
+                  <ul>
+                    <li>if <code>verification.claims.email.required=true</code></li>
+                  </ul>
+                </ul>
                 <li><code>create_authenticator</code></li>
                 <ul>
                   <li><code>primary_oob_otp_email</code></li>
@@ -335,6 +342,15 @@ Given `bot_protection.enabled=true`,
             <li>
             <!-- Promote only have identify, create_authenticator will reuse signup -->
               <code>signup (promote)</code>
+              <ul>
+                <li><code>identify</code></li>
+                <ul>
+                  <li><code>phone</code></li>
+                  <ul>
+                    <li>if <code>verification.claims.phone_number.required=true</code></li>
+                  </ul>
+                </ul>
+              </ul>
               <ul>
                 <li><code>create_authenticator</code></li>
                 <ul>
