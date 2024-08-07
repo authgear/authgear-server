@@ -76,3 +76,19 @@
   justify-self: center;
   align-self: end;
 }
+
+.sectionHeader {
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.75rem;
+}
+
+.subtitle {
+  font-size: 1.13rem;
+  font-weight: 600;
+  line-height: 1.5rem;
+}
+
+.flowConfigLabel {
+  font-weight: 600;
+}

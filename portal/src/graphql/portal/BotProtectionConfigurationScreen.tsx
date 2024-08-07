@@ -1,5 +1,5 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
@@ -29,7 +29,20 @@ import FormContainer from "../../FormContainer";
 import ScreenDescription from "../../ScreenDescription";
 import Toggle from "../../Toggle";
 import WidgetTitle from "../../WidgetTitle";
-import { DefaultEffects, IButtonProps, Image, Label } from "@fluentui/react";
+import {
+  ChoiceGroup,
+  DefaultEffects,
+  DetailsList,
+  Dropdown,
+  IButtonProps,
+  IChoiceGroupOption,
+  IColumn,
+  IDropdownOption,
+  Image,
+  Label,
+  SelectionMode,
+  Text,
+} from "@fluentui/react";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import recaptchaV2LogoURL from "../../images/recaptchav2_logo.svg";
 import cloudflareLogoURL from "../../images/cloudflare_logo.svg";
@@ -38,6 +51,7 @@ import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
 import { startReauthentication } from "./Authenticated";
 import { useSessionStorage } from "../../hook/useSessionStorage";
+import HorizontalDivider from "../../HorizontalDivider";
 
 const MASKED_SECRET = "***************";
 
@@ -665,6 +679,261 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
       </section>
     )
   }
+
+interface RequirementConfigListItem {
+  label: string;
+  mode: BotProtectionRiskMode;
+  onChangeMode: (mode: BotProtectionRiskMode) => void;
+}
+
+interface BotProtectionConfigurationContentRequirementsSectionProps {
+  requirements: FormBotProtectionRequirements;
+  setRequirements: (
+    fn: (r: FormBotProtectionRequirements) => FormBotProtectionRequirements
+  ) => void;
+}
+const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtectionConfigurationContentRequirementsSectionProps> =
+  function BotProtectionConfigurationContentRequirementsSection(props) {
+    const { requirements, setRequirements } = props;
+    const { renderToString } = useContext(Context);
+
+    const flowOptions: IChoiceGroupOption[] = useMemo(
+      () => [
+        {
+          key: "allSignupLogin",
+          text: renderToString(
+            "BotProtectionConfigurationScreen.requirements.flows.allSignupLogin"
+          ),
+        },
+        {
+          key: "specificAuthenticator",
+          text: renderToString(
+            "BotProtectionConfigurationScreen.requirements.flows.specificAuthenticator"
+          ),
+        },
+      ],
+      [renderToString]
+    );
+    const onChangeFlowType = useCallback(
+      (_event, option?: IChoiceGroupOption) => {
+        const value = option?.key;
+        if (value !== "allSignupLogin" && value !== "specificAuthenticator") {
+          return;
+        }
+        setRequirements((requirements) => ({
+          ...requirements,
+          flows: {
+            ...requirements.flows,
+            flowType: value,
+          },
+        }));
+      },
+      [setRequirements]
+    );
+    const onRenderFlowConfigLabel = useCallback(
+      (
+        item?: RequirementConfigListItem,
+        _index?: number,
+        _column?: IColumn
+      ) => {
+        if (item == null) {
+          return null;
+        }
+        // FIXME: vertical center align text
+        return (
+          <div>
+            <Text block={true} className={styles.flowConfigLabel}>
+              {item.label}
+            </Text>
+          </div>
+        );
+      },
+      []
+    );
+    const makeDropdownOnChange = useCallback(() => {
+      return (
+        _e: React.FormEvent<unknown>,
+        option?: IDropdownOption<RequirementConfigListItem>,
+        _index?: number
+      ) => {
+        if (option == null) {
+          return;
+        }
+        option.data?.onChangeMode(option.key as BotProtectionRiskMode);
+      };
+    }, []);
+    const onRenderDropdown = useCallback(
+      (item?: RequirementConfigListItem, index?: number, _column?: IColumn) => {
+        if (item == null || index == null) {
+          return null;
+        }
+
+        const options: IDropdownOption<RequirementConfigListItem>[] = [
+          {
+            key: "never",
+            text: renderToString(
+              "BotProtectionConfigurationScreen.requirements.flows.config.riskMode.never"
+            ),
+            data: item,
+          },
+          {
+            key: "always",
+            text: renderToString(
+              "BotProtectionConfigurationScreen.requirements.flows.config.riskMode.always"
+            ),
+            data: item,
+          },
+        ];
+
+        return (
+          <Dropdown
+            options={options}
+            selectedKey={item.mode}
+            onChange={makeDropdownOnChange()}
+          />
+        );
+      },
+      [makeDropdownOnChange, renderToString]
+    );
+    const requirementConfigColumns: IColumn[] = useMemo(() => {
+      return [
+        {
+          key: "label",
+          minWidth: 200,
+          name: "",
+          onRender: onRenderFlowConfigLabel,
+        },
+        {
+          key: "mode",
+          minWidth: 200,
+          maxWidth: 200,
+          name: "",
+          onRender: onRenderDropdown,
+        },
+      ];
+    }, [onRenderDropdown, onRenderFlowConfigLabel]);
+
+    const setRequirementsFlowConfigs = useCallback(
+      (
+        fn: (
+          r: FormBotProtectionRequirementsFlowConfigs
+        ) => FormBotProtectionRequirementsFlowConfigs
+      ) => {
+        setRequirements((requirements) => ({
+          ...requirements,
+          flows: {
+            ...requirements.flows,
+            flowConfigs: fn(requirements.flows.flowConfigs),
+          },
+        }));
+      },
+      [setRequirements]
+    );
+    const flowConfigItems: RequirementConfigListItem[] = useMemo(() => {
+      switch (requirements.flows.flowType) {
+        case "allSignupLogin": {
+          return [
+            {
+              label: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.allSignupLogin.label"
+              ),
+              mode: requirements.flows.flowConfigs.allSignupLogin
+                .allSignupLoginMode,
+              onChangeMode: (mode: BotProtectionRiskMode) => {
+                setRequirementsFlowConfigs((flowConfigs) => ({
+                  ...flowConfigs,
+                  allSignupLogin: {
+                    allSignupLoginMode: mode,
+                  },
+                }));
+              },
+            },
+          ];
+        }
+        case "specificAuthenticator": {
+          return [
+            {
+              label: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.password.label"
+              ),
+              mode: requirements.flows.flowConfigs.specificAuthenticator
+                .passwordMode,
+              onChangeMode: (mode: BotProtectionRiskMode) => {
+                setRequirementsFlowConfigs((flowConfigs) => ({
+                  ...flowConfigs,
+                  specificAuthenticator: {
+                    ...flowConfigs.specificAuthenticator,
+                    passwordMode: mode,
+                  },
+                }));
+              },
+            },
+            {
+              label: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessSMS.label"
+              ),
+              mode: requirements.flows.flowConfigs.specificAuthenticator
+                .passwordlessViaSMSMode,
+              onChangeMode: (mode: BotProtectionRiskMode) => {
+                setRequirementsFlowConfigs((flowConfigs) => ({
+                  ...flowConfigs,
+                  specificAuthenticator: {
+                    ...flowConfigs.specificAuthenticator,
+                    passwordlessViaSMSMode: mode,
+                  },
+                }));
+              },
+            },
+            {
+              label: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessEmail.label"
+              ),
+              mode: requirements.flows.flowConfigs.specificAuthenticator
+                .passwordlessViaEmailMode,
+              onChangeMode: (mode: BotProtectionRiskMode) => {
+                setRequirementsFlowConfigs((flowConfigs) => ({
+                  ...flowConfigs,
+                  specificAuthenticator: {
+                    ...flowConfigs.specificAuthenticator,
+                    passwordlessViaEmailMode: mode,
+                  },
+                }));
+              },
+            },
+          ];
+        }
+        default:
+          return [];
+      }
+    }, [renderToString, requirements.flows, setRequirementsFlowConfigs]);
+
+    return (
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <WidgetTitle>
+            <FormattedMessage id="BotProtectionConfigurationScreen.requirements.title" />
+          </WidgetTitle>
+          <Text as="h3" block={true} className={styles.subtitle}>
+            <FormattedMessage id="BotProtectionConfigurationScreen.requirements.flows.subtitle" />
+          </Text>
+          <ChoiceGroup
+            selectedKey={requirements.flows.flowType}
+            options={flowOptions}
+            onChange={onChangeFlowType}
+          />
+        </div>
+        <div>
+          <HorizontalDivider />
+          <DetailsList
+            columns={requirementConfigColumns}
+            isHeaderVisible={false}
+            selectionMode={SelectionMode.none}
+            items={flowConfigItems}
+          />
+        </div>
+      </section>
+    );
+  };
 export interface BotProtectionConfigurationContentProps {
   form: AppSecretConfigFormModel<FormState>;
 }
@@ -689,6 +958,18 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
       [setState]
     );
 
+    const setRequirements = useCallback(
+      (
+        fn: (r: FormBotProtectionRequirements) => FormBotProtectionRequirements
+      ) => {
+        setState((state) => ({
+          ...state,
+          requirements: fn(state.requirements),
+        }));
+      },
+      [setState]
+    );
+
     return (
       <ScreenContent>
         <ScreenTitle className={styles.widget}>
@@ -709,8 +990,11 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
           />
           {state.enabled ? (
             <div className={styles.enabledContent}>
-              <BotProtectionConfigurationContentProviderSection
-                form={form}
+              <BotProtectionConfigurationContentProviderSection form={form} />
+              <HorizontalDivider className="my-6" />
+              <BotProtectionConfigurationContentRequirementsSection
+                requirements={state.requirements}
+                setRequirements={setRequirements}
               />
             </div>
           ) : null}
