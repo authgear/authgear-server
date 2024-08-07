@@ -1,6 +1,7 @@
 package saml
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -14,8 +15,13 @@ func ConfigureMetadataRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/saml2/metadata/:entity_id_b64")
 }
 
+type MetadataHandlerSAMLService interface {
+	IdPMetadata() *saml.Metadata
+}
+
 type MetadataHandler struct {
-	SAMLConfig *config.SAMLConfig
+	SAMLConfig  *config.SAMLConfig
+	SAMLService MetadataHandlerSAMLService
 }
 
 func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -25,12 +31,18 @@ func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		http.NotFound(rw, r)
 		return
 	}
-	entity, ok := h.SAMLConfig.ResolveProvider(entityID)
+	_, ok := h.SAMLConfig.ResolveProvider(entityID)
 	if !ok {
 		http.NotFound(rw, r)
 		return
 	}
 
-	rw.Write([]byte(entity.ID))
-
+	metadataBytes := h.SAMLService.IdPMetadata().ToXMLBytes()
+	fileName := fmt.Sprintf("%s-metadata.xml", entityIDb64)
+	rw.Header().Set("Content-Type", "application/samlmetadata+xml")
+	rw.Header().Set("content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
+	_, err = rw.Write(metadataBytes)
+	if err != nil {
+		panic(err)
+	}
 }
