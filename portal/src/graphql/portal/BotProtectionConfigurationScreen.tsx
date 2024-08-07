@@ -907,6 +907,30 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
       }
     }, [renderToString, requirements.flows, setRequirementsFlowConfigs]);
 
+    const resetPasswordConfigItems: RequirementConfigListItem[] =
+      useMemo(() => {
+        return [
+          {
+            label: renderToString(
+              "BotProtectionConfigurationScreen.requirements.resetPassword.config.resetPassword.label"
+            ),
+            mode: requirements.resetPassword.resetPasswordMode,
+            onChangeMode: (mode: BotProtectionRiskMode) => {
+              setRequirements((requirements) => ({
+                ...requirements,
+                resetPassword: {
+                  resetPasswordMode: mode,
+                },
+              }));
+            },
+          },
+        ];
+      }, [
+        renderToString,
+        requirements.resetPassword.resetPasswordMode,
+        setRequirements,
+      ]);
+
     return (
       <section className={styles.section}>
         <div className={styles.sectionHeader}>
@@ -930,6 +954,20 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
             selectionMode={SelectionMode.none}
             items={flowConfigItems}
           />
+        </div>
+        <div className="space-y-3">
+          <Text as="h3" block={true} className={styles.subtitle}>
+            <FormattedMessage id="BotProtectionConfigurationScreen.requirements.resetPassword.subtitle" />
+          </Text>
+          <div>
+            <HorizontalDivider />
+            <DetailsList
+              columns={requirementConfigColumns}
+              isHeaderVisible={false}
+              selectionMode={SelectionMode.none}
+              items={resetPasswordConfigItems}
+            />
+          </div>
         </div>
       </section>
     );

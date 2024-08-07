@@ -1650,6 +1650,8 @@
   "BotProtectionConfigurationScreen.requirements.flows.config.password.label": "Password",
   "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessSMS.label": "Passwordless via SMS",
   "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessEmail.label": "Passwordless via Email",
+  "BotProtectionConfigurationScreen.requirements.resetPassword.subtitle": "Reset Password",
+  "BotProtectionConfigurationScreen.requirements.resetPassword.config.resetPassword.label": "Reset Password",
 
   "IntegrationsConfigurationScreen.title": "Integrations",
   "IntegrationsConfigurationScreen.add-on": "Add-on",
