@@ -358,23 +358,17 @@ steps:
   - identification: email
     bot_protection:
       mode: always
-      provider:
-        type: recaptchav2
     steps:
     - target_step: signup_identify
       type: verify
       bot_protection:
         mode: always
-        provider:
-          type: recaptchav2
     - name: authenticate_primary_email
       one_of:
       - authentication: primary_password
       - authentication: primary_oob_otp_email
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
         target_step: signup_identify
       type: create_authenticator
     - name: authenticate_secondary_email
@@ -382,30 +376,22 @@ steps:
       - authentication: secondary_oob_otp_email
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
         steps:
         - type: view_recovery_code
       - authentication: secondary_oob_otp_sms
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
         steps:
         - type: view_recovery_code
       type: create_authenticator
   - identification: phone
     bot_protection:
       mode: always
-      provider:
-        type: recaptchav2
     steps:
     - target_step: signup_identify
       type: verify
       bot_protection:
         mode: always
-        provider:
-          type: recaptchav2
     - name: authenticate_primary_phone
       type: create_authenticator
       one_of:
@@ -414,30 +400,22 @@ steps:
         target_step: signup_identify
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
     - name: authenticate_secondary_phone
       one_of:
       - authentication: secondary_oob_otp_email
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
         steps:
         - type: view_recovery_code
       - authentication: secondary_oob_otp_sms
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
         steps:
         - type: view_recovery_code
       type: create_authenticator
   - identification: username
     bot_protection:
       mode: always
-      provider:
-        type: recaptchav2
     steps:
     - name: authenticate_primary_username
       one_of:
@@ -448,15 +426,11 @@ steps:
       - authentication: secondary_oob_otp_email
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
         steps:
         - type: view_recovery_code
       - authentication: secondary_oob_otp_sms
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
         steps:
         - type: view_recovery_code
       type: create_authenticator
