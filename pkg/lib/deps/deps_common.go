@@ -3,6 +3,7 @@ package deps
 import (
 	"github.com/google/wire"
 
+	handlersaml "github.com/authgear/authgear-server/pkg/auth/handler/saml"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
@@ -45,6 +46,7 @@ import (
 	featureweb3 "github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/saml"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -142,6 +144,12 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		audit.DependencySet,
+	),
+
+	wire.NewSet(
+		saml.DependencySet,
+
+		wire.Bind(new(handlersaml.MetadataHandlerSAMLService), new(*saml.Service)),
 	),
 
 	wire.NewSet(
