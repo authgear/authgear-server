@@ -160,7 +160,7 @@
     "Code": "{{ .Code }} adalah kode verifikasi Anda di {{ template \"app.name\" }}.",
     "Disclaimer": "Jangan bagikan dengan siapa pun."
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "Kata Sandi Anda Telah Diubah: Berikut Kata Sandi Baru Anda",
     "Body": "Kata sandi Anda untuk {{ template \"app.name\" }} telah diubah oleh administrator.",
     "Label": "Kata sandi baru Anda:",
@@ -170,7 +170,7 @@
     "Tip1": "• Jangan pernah membagikan kata sandi Anda dengan siapa pun.",
     "Tip2": "• Gunakan kata sandi yang unik untuk setiap akun online Anda."
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "Kata Sandi Anda Telah Diubah: Berikut Kata Sandi Baru Anda",
     "Body": "Kata sandi Anda untuk {{ template \"app.name\" }} telah diubah oleh administrator.",
     "Label": "Kata sandi baru Anda:",
@@ -180,7 +180,7 @@
     "Tip1": "- Jangan pernah membagikan kata sandi Anda dengan siapa pun.",
     "Tip2": "- Gunakan kata sandi yang unik untuk setiap akun online Anda."
   },
-  "CreateUser": {
+  "SendPasswordToNewUser": {
     "Title": "Mari Memulai dengan Akun {{ template \"app.name\" }} Anda!",
     "Body": "Kami senang Anda bergabung dengan {{ template \"app.name\" }}. Berikut semua yang Anda butuhkan untuk mengatur akun dan memulai.",
     "EmailLabel": "Akun {{ template \"app.name\" }} Anda:",
@@ -189,7 +189,7 @@
     "Password": "{{ .Password }}",
     "Instruction": "Login ke {{ template \"app.name\" }} dengan email dan kata sandi sementara Anda. Harap ubah kata sandi Anda setelah login."
   },
-  "CreateUserTXT": {
+  "SendPasswordToNewUserTXT": {
     "Title": "Mari Memulai dengan Akun {{ template \"app.name\" }} Anda!",
     "Body": "Kami senang Anda bergabung dengan {{ template \"app.name\" }}. Berikut semua yang Anda butuhkan untuk mengatur akun dan memulai.",
     "EmailLabel": "Akun {{ template \"app.name\" }} Anda:",

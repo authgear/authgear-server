@@ -160,7 +160,7 @@
     "Code": "{{ .Code }} 是你的 {{ template \"app.name\" }} 驗證碼。",
     "Disclaimer": "切勿分享給任何人。"
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "您的密碼已被更改：這是您的新密碼",
     "Body": "您在 {{ template \"app.name\" }} 的密碼已被管理員更改。",
     "Label": "您的新密碼：",
@@ -170,7 +170,7 @@
     "Tip1": "• 切勿與任何人共享您的密碼。",
     "Tip2": "• 為每個在線賬戶使用唯一的密碼。"
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "您的密碼已被更改：這是您的新密碼",
     "Body": "您在 {{ template \"app.name\" }} 的密碼已被管理員更改。",
     "Label": "您的新密碼：",
@@ -180,7 +180,7 @@
     "Tip1": "- 切勿與任何人共享您的密碼。",
     "Tip2": "- 為每個在線賬戶使用唯一的密碼。"
   },
-  "CreateUser": {
+  "SendPasswordToNewUser": {
     "Title": "讓我們開始設置您的 {{ template \"app.name\" }} 帳戶吧！",
     "Body": "我們很高興您加入 {{ template \"app.name\" }}。以下是設置您的帳戶並開始使用所需的全部內容。",
     "EmailLabel": "您的 {{ template \"app.name\" }} 帳戶：",
@@ -189,7 +189,7 @@
     "Password": "{{ .Password }}",
     "Instruction": "使用您的電子郵件和臨時密碼登錄 {{ template \"app.name\" }}。登錄後請更改您的密碼。"
   },
-  "CreateUserTXT": {
+  "SendPasswordToNewUserTXT": {
     "Title": "讓我們開始設置您的 {{ template \"app.name\" }} 帳戶吧！",
     "Body": "我們很高興您加入 {{ template \"app.name\" }}。以下是設置您的帳戶並開始使用所需的全部內容。",
     "EmailLabel": "您的 {{ template \"app.name\" }} 帳戶：",

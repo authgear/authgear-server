@@ -160,7 +160,7 @@
     "Code": "{{ .Code }} é seu código de verificação do {{ template \"app.name\" }}.",
     "Disclaimer": "Não compartilhe com ninguém."
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "Sua Senha Foi Alterada: Aqui está Sua Nova Senha",
     "Body": "Sua senha para {{ template \"app.name\" }} foi alterada por um administrador.",
     "Label": "Sua nova senha:",
@@ -170,7 +170,7 @@
     "Tip1": "• Nunca compartilhe sua senha com ninguém.",
     "Tip2": "• Use uma senha única para cada uma de suas contas online."
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "Sua Senha Foi Alterada: Aqui está Sua Nova Senha",
     "Body": "Sua senha para {{ template \"app.name\" }} foi alterada por um administrador.",
     "Label": "Sua nova senha:",
@@ -180,7 +180,7 @@
     "Tip1": "- Nunca compartilhe sua senha com ninguém.",
     "Tip2": "- Use uma senha única para cada uma de suas contas online."
   },
-  "CreateUser": {
+  "SendPasswordToNewUser": {
     "Title": "Vamos começar com sua conta do {{ template \"app.name\" }}!",
     "Body": "Estamos animados por tê-lo a bordo com o {{ template \"app.name\" }}. Aqui está tudo o que você precisa para configurar sua conta e começar.",
     "EmailLabel": "Sua conta do {{ template \"app.name\" }}:",
@@ -189,7 +189,7 @@
     "Password": "{{ .Password }}",
     "Instruction": "Faça login no {{ template \"app.name\" }} com seu e-mail e senha temporária. Por favor, mude sua senha após o login."
   },
-  "CreateUserTXT": {
+  "SendPasswordToNewUserTXT": {
     "Title": "Vamos começar com sua conta do {{ template \"app.name\" }}!",
     "Body": "Estamos animados por tê-lo a bordo com o {{ template \"app.name\" }}. Aqui está tudo o que você precisa para configurar sua conta e começar.",
     "EmailLabel": "Sua conta do {{ template \"app.name\" }}:",

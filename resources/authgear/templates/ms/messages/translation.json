@@ -160,7 +160,7 @@
     "Code": "{{ .Code }} ialah kod pengesahan anda untuk {{ template \"app.name\" }}.",
     "Disclaimer": "Jangan kongsi dengan sesiapa."
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "Kata Laluan Anda Telah Ditukar: Ini Kata Laluan Baru Anda",
     "Body": "Kata laluan anda untuk {{ template \"app.name\" }} telah ditukar oleh pentadbir.",
     "Label": "Kata laluan baru anda:",
@@ -170,7 +170,7 @@
     "Tip1": "• Jangan sekali-kali kongsikan kata laluan anda dengan sesiapa.",
     "Tip2": "• Gunakan kata laluan yang unik untuk setiap akaun dalam talian anda."
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "Kata Laluan Anda Telah Ditukar: Ini Kata Laluan Baru Anda",
     "Body": "Kata laluan anda untuk {{ template \"app.name\" }} telah ditukar oleh pentadbir.",
     "Label": "Kata laluan baru anda:",
@@ -180,7 +180,7 @@
     "Tip1": "- Jangan sekali-kali kongsikan kata laluan anda dengan sesiapa.",
     "Tip2": "- Gunakan kata laluan yang unik untuk setiap akaun dalam talian anda."
   },
-  "CreateUser": {
+  "SendPasswordToNewUser": {
     "Title": "Mari Memulakan dengan Akaun {{ template \"app.name\" }} Anda!",
     "Body": "Kami teruja untuk menyambut kehadiran anda di {{ template \"app.name\" }}. Berikut adalah semua yang anda perlukan untuk menyediakan akaun dan memulakan.",
     "EmailLabel": "Akaun {{ template \"app.name\" }} Anda:",
@@ -189,7 +189,7 @@
     "Password": "{{ .Password }}",
     "Instruction": "Log masuk ke {{ template \"app.name\" }} dengan e-mel dan kata laluan sementara anda. Sila tukar kata laluan anda selepas log masuk."
   },
-  "CreateUserTXT": {
+  "SendPasswordToNewUserTXT": {
     "Title": "Mari Memulakan dengan Akaun {{ template \"app.name\" }} Anda!",
     "Body": "Kami teruja untuk menyambut kehadiran anda di {{ template \"app.name\" }}. Berikut adalah semua yang anda perlukan untuk menyediakan akaun dan memulakan.",
     "EmailLabel": "Akaun {{ template \"app.name\" }} Anda:",

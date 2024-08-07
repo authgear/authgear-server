@@ -160,7 +160,7 @@
     "Code": "{{ .Code }} is your {{ template \"app.name\" }} verification code.",
     "Disclaimer": "Don't share it with anyone."
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "Your Password Has Been Changed: Here is Your New Password",
     "Body": "Your password for {{ template \"app.name\" }} has been changed by an administrator.",
     "Label": "Your new password:",
@@ -170,7 +170,7 @@
     "Tip1": "• Never share your password with anyone.",
     "Tip2": "• Use a unique password for each of your online accounts."
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "Your Password Has Been Changed: Here is Your New Password",
     "Body": "Your password for {{ template \"app.name\" }} has been changed by an administrator.",
     "Label": "Your new password:",
@@ -180,7 +180,7 @@
     "Tip1": "- Never share your password with anyone.",
     "Tip2": "- Use a unique password for each of your online accounts."
   },
-  "CreateUser": {
+  "SendPasswordToNewUser": {
     "Title": "Let's Get Started with Your {{ template \"app.name\" }} Account!",
     "Body": "We're excited to have you on board with {{ template \"app.name\" }}. Here's all you need to set up your account and get started.",
     "EmailLabel": "Your {{ template \"app.name\" }} Account:",
@@ -189,7 +189,7 @@
     "Password": "{{ .Password }}",
     "Instruction": "Login to {{ template \"app.name\" }} with your email and temporary password. Please change your password after login."
   },
-  "CreateUserTXT": {
+  "SendPasswordToNewUserTXT": {
     "Title": "Let's Get Started with Your {{ template \"app.name\" }} Account!",
     "Body": "We're excited to have you on board with {{ template \"app.name\" }}. Here's all you need to set up your account and get started.",
     "EmailLabel": "Your {{ template \"app.name\" }} Account:",
