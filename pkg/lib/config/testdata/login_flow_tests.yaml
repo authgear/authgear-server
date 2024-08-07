@@ -76,11 +76,8 @@ value:
   - type: foobar
 ---
 part: AuthenticationFlowLoginFlow
-name: bot-protection-mode-always-but-missing-provider
-error: |-
-  invalid value:
-  /steps/0/one_of/0/bot_protection: required
-    map[actual:[mode] expected:[provider] missing:[provider]]
+name: bot-protection-mode-always
+error: null
 value:
   name: id
   steps:
@@ -90,34 +87,6 @@ value:
     - identification: email
       bot_protection:
         mode: always
-      steps:
-      - type: authenticate
-        one_of:
-        - authentication: primary_oob_otp_email
-          target_step: my_step
-      - type: authenticate
-        optional: true
-        one_of:
-        - authentication: secondary_totp
----
-part: AuthenticationFlowLoginFlow
-name: bot-protection-provider-missing-type
-error: |-
-  invalid value:
-  /steps/0/one_of/0/bot_protection/provider: required
-    map[actual:[nickname] expected:[type] missing:[type]]
-  /steps/0/one_of/0/bot_protection/provider/nickname: 
-value:
-  name: id
-  steps:
-  - type: identify
-    name: my_step
-    one_of:
-    - identification: email
-      bot_protection:
-        mode: always
-        provider:
-          nickname: wrong-key
       steps:
       - type: authenticate
         one_of:
