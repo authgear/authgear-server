@@ -218,21 +218,22 @@ func (s AccountStatus) makeTransitionError(targetType AccountStatusType) error {
 }
 
 type User struct {
-	ID                  string
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
-	MostRecentLoginAt   *time.Time
-	LessRecentLoginAt   *time.Time
-	IsDisabled          bool
-	DisableReason       *string
-	IsDeactivated       bool
-	DeleteAt            *time.Time
-	IsAnonymized        bool
-	AnonymizeAt         *time.Time
-	StandardAttributes  map[string]interface{}
-	CustomAttributes    map[string]interface{}
-	LastIndexedAt       *time.Time
-	RequireReindexAfter *time.Time
+	ID                   string
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+	MostRecentLoginAt    *time.Time
+	LessRecentLoginAt    *time.Time
+	IsDisabled           bool
+	DisableReason        *string
+	IsDeactivated        bool
+	DeleteAt             *time.Time
+	IsAnonymized         bool
+	AnonymizeAt          *time.Time
+	StandardAttributes   map[string]interface{}
+	CustomAttributes     map[string]interface{}
+	LastIndexedAt        *time.Time
+	RequireReindexAfter  *time.Time
+	MFAGracePeriodtEndAt *time.Time
 }
 
 func (u *User) GetMeta() model.Meta {
@@ -295,20 +296,21 @@ func newUserModel(
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 		},
-		LastLoginAt:        user.MostRecentLoginAt,
-		IsAnonymous:        isAnonymous,
-		IsVerified:         isVerified,
-		IsDisabled:         user.IsDisabled,
-		DisableReason:      user.DisableReason,
-		IsDeactivated:      user.IsDeactivated,
-		DeleteAt:           user.DeleteAt,
-		IsAnonymized:       user.IsAnonymized,
-		AnonymizeAt:        user.AnonymizeAt,
-		CanReauthenticate:  canReauthenticate,
-		StandardAttributes: derivedStandardAttributes,
-		CustomAttributes:   customAttributes,
-		Web3:               web3Info,
-		Roles:              roles,
-		Groups:             groups,
+		LastLoginAt:          user.MostRecentLoginAt,
+		IsAnonymous:          isAnonymous,
+		IsVerified:           isVerified,
+		IsDisabled:           user.IsDisabled,
+		DisableReason:        user.DisableReason,
+		IsDeactivated:        user.IsDeactivated,
+		DeleteAt:             user.DeleteAt,
+		IsAnonymized:         user.IsAnonymized,
+		AnonymizeAt:          user.AnonymizeAt,
+		CanReauthenticate:    canReauthenticate,
+		StandardAttributes:   derivedStandardAttributes,
+		CustomAttributes:     customAttributes,
+		Web3:                 web3Info,
+		Roles:                roles,
+		Groups:               groups,
+		MFAGracePeriodtEndAt: user.MFAGracePeriodtEndAt,
 	}
 }
