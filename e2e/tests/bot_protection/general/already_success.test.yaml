@@ -30,8 +30,6 @@ authgear.yaml:
           - identification: email
             bot_protection:
               mode: always
-              provider:
-                type: cloudflare
             steps:
             - name: authenticate_primary_email
               type: authenticate
@@ -39,8 +37,6 @@ authgear.yaml:
               - authentication: primary_password
                 bot_protection:
                   mode: always
-                  provider:
-                    type: cloudflare
 before:
   - type: user_import
     user_import: users.json
