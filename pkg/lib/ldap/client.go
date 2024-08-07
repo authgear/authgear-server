@@ -58,7 +58,14 @@ func (c *Client) connect() (*ldap.Conn, error) {
 	serverName := u.Hostname()
 
 	if u.Scheme == "ldap" {
-		_ = conn.StartTLS(&tls.Config{ServerName: serverName})
+		err = conn.StartTLS(&tls.Config{ServerName: serverName})
+		if err != nil {
+			// Reconnect to the server without TLS
+			conn, err = ldap.DialURL(ldapURLString)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return conn, nil
