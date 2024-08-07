@@ -1,5 +1,6 @@
 account_circle
 account_circle_off
+animation
 api
 block
 box
@@ -114,6 +115,7 @@ visibility_off
 warning
 web
 weight
+widgets
 width
 window
 work
