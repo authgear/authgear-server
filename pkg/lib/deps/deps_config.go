@@ -19,6 +19,7 @@ var ConfigDeps = wire.NewSet(
 		"Authentication",
 		"Session",
 		"OAuth",
+		"SAML",
 		"Identity",
 		"Authenticator",
 		"UserProfile",
