@@ -13,7 +13,6 @@
   }
   @keyframes fadeIn {
     from {
-      display: flex;
       opacity: 0;
     }
     to {
@@ -23,7 +22,6 @@
 
   @keyframes fadeOut {
     0% {
-      display: flex;
       opacity: 1;
     }
     50% {
@@ -31,7 +29,6 @@
     }
     100% {
       opacity: 0;
-      display: none;
     }
   }
 
