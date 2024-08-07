@@ -1,6 +1,7 @@
 package ldap
 
 import (
+	"crypto/tls"
 	"errors"
 	"net/url"
 
@@ -55,7 +56,29 @@ func (c *Client) connect() (*ldap.Conn, error) {
 	}
 
 	if u.Scheme == "ldap" {
-		_ = conn.StartTLS(nil)
+		// nolint: gosec
+		// gosec says tls.Config.MinVersion is too low.
+		// But go1.22 actually uses TLS1.2 by default.
+		// So manually setting it is not recommended.
+		// See https://cs.opensource.google/go/go/+/362bf4fc6d3b456429e998582b15a2765e640741
+		err = conn.StartTLS(&tls.Config{
+			// According to https://pkg.go.dev/crypto/tls#Client
+			// tls.Config must either InsecureSkipVerify=true, or set ServerName.
+			//
+			// According to https://pkg.go.dev/net/url#URL.Hostname
+			// Hostname() is without port.
+			//
+			// According to https://cs.opensource.google/go/go/+/refs/tags/go1.22.6:src/net/http/transport.go;l=1658
+			// tls.Config.ServerName expects host without port.
+			ServerName: u.Hostname(),
+		})
+		if err != nil {
+			// Reconnect to the server without TLS
+			conn, err = ldap.DialURL(ldapURLString)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return conn, nil
