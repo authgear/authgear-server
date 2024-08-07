@@ -1,9 +1,0 @@
-name: "Install libvips"
-description: "Install libvips on Ubuntu"
-runs:
-  using: "composite"
-  steps:
-  - shell: bash
-    run: |
-      sudo apt-get update
-      sudo apt-get install -y libvips-dev

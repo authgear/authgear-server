@@ -15,7 +15,7 @@ on:
 jobs:
   authui-test:
     if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -47,10 +47,10 @@ jobs:
 
   portal-test:
     if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/libvips
+    - uses: ./.github/actions/install-native-deps
     - uses: actions/setup-node@v4
       with:
         node-version-file: "./.tool-versions"
@@ -86,7 +86,7 @@ jobs:
 
   portal-image:
     if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: portal-test
     env:
       TARGET: portal
@@ -111,10 +111,10 @@ jobs:
 
   authgear-test:
     if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/libvips
+    - uses: ./.github/actions/install-native-deps
     - uses: actions/setup-go@v4
       with:
         go-version-file: "./go.mod"
@@ -144,10 +144,10 @@ jobs:
 
   authgear-e2e:
     if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/libvips
+    - uses: ./.github/actions/install-native-deps
 
     - uses: actions/setup-go@v4
       with:
@@ -180,7 +180,7 @@ jobs:
 
   authgear-image:
     if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: ["authgear-test", "authui-test"]
     env:
       TARGET: authgear
@@ -205,11 +205,11 @@ jobs:
 
   release:
     if: ${{ github.repository != 'oursky/authgear-server' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     needs: ["portal-test", "authgear-test"]
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/libvips
+    - uses: ./.github/actions/install-native-deps
     - uses: actions/setup-go@v4
       with:
         go-version-file: "./go.mod"
