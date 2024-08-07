@@ -16,7 +16,7 @@
   "email.authenticate-secondary-oob.subject": "Accesso a {AppName}",
   "email.authenticate-secondary-login-link.subject": "Accesso a {AppName}",
   "email.send-password-to-new-user.subject": "Inizia con {AppName}",
-  "email.send-password-to-existing-user.subject": "{AppName} Cambia password",
+  "email.send-password-to-existing-user.subject": "[{AppName}] La tua password è stata modificata",
   "error-unknown": "Si è verificato un errore sconosciuto. Se il problema persiste, cerca assistenza nel nostro <a class=\"link\" target=\"_blank\" href=\"https://github.com/orgs/authgear/discussions/categories/get-help\">Forum della Comunità</a> o contattaci all''indirizzo <a class=\"link\" target=\"_blank\" href=\"mailto:help@authgear.com\">help@authgear.com</a>",
   "error-login-id-required": "Inserisci il tuo {variant, select, phone{numero di telefono} email {indirizzo email} username {nome utente} other {indirizzo email o nome utente}}.",
   "error-password-required": "Inserisci la tua password.",
