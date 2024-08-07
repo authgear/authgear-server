@@ -1,6 +1,7 @@
 package ldap
 
 import (
+	"crypto/tls"
 	"errors"
 	"net/url"
 
@@ -54,8 +55,10 @@ func (c *Client) connect() (*ldap.Conn, error) {
 		return nil, err
 	}
 
+	serverName := u.Hostname()
+
 	if u.Scheme == "ldap" {
-		_ = conn.StartTLS(nil)
+		_ = conn.StartTLS(&tls.Config{ServerName: serverName})
 	}
 
 	return conn, nil
