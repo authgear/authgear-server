@@ -3,23 +3,22 @@ import {
   dispatchBotProtectionWidgetEventRender,
   dispatchBotProtectionWidgetEventUndoRender,
 } from "./botProtectionWidget";
+import { dispatchDialogClose, dispatchDialogOpen } from "../dialog";
 
 const DIALOG_ID = "bot-protection-dialog";
-const BOT_PROTECTION_DIALOG_OPEN_EVENT = `dialog-${DIALOG_ID}:open`;
-const BOT_PROTECTION_DIALOG_CLOSE_EVENT = `dialog-${DIALOG_ID}:close`;
 
 /**
  * Dispatch a custom event to set captcha dialog open
  */
 export function dispatchBotProtectionDialogOpen() {
-  document.dispatchEvent(new CustomEvent(BOT_PROTECTION_DIALOG_OPEN_EVENT));
+  dispatchDialogOpen(DIALOG_ID);
 }
 
 /**
  * Dispatch a custom event to set captcha dialog close
  */
 export function dispatchBotProtectionDialogClose() {
-  document.dispatchEvent(new CustomEvent(BOT_PROTECTION_DIALOG_CLOSE_EVENT));
+  dispatchDialogClose(DIALOG_ID);
 }
 
 /**
@@ -43,12 +42,12 @@ export class BotProtectionDialogController extends Controller {
       console.error(`bot-protection-dialog must have id="${DIALOG_ID}"`);
       return;
     }
-    document.addEventListener(BOT_PROTECTION_DIALOG_OPEN_EVENT, this.open);
-    document.addEventListener(BOT_PROTECTION_DIALOG_CLOSE_EVENT, this.close);
+    document.addEventListener(`dialog-${DIALOG_ID}:open`, this.open);
+    document.addEventListener(`dialog-${DIALOG_ID}:close`, this.close);
   }
 
   disconnect() {
-    document.removeEventListener(BOT_PROTECTION_DIALOG_OPEN_EVENT, this.open);
-    document.removeEventListener(BOT_PROTECTION_DIALOG_CLOSE_EVENT, this.close);
+    document.removeEventListener(`dialog-${DIALOG_ID}:open`, this.open);
+    document.removeEventListener(`dialog-${DIALOG_ID}:close`, this.close);
   }
 }
