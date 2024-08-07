@@ -51,23 +51,23 @@ function isLocationState(raw: unknown): raw is LocationState {
   );
 }
 
-interface CloudflareConfigs {
+interface FormCloudflareConfigs {
   siteKey: string;
   secretKey: string | null;
 }
 
-interface Recaptchav2Configs {
+interface FormRecaptchav2Configs {
   siteKey: string;
   secretKey: string | null;
 }
 
-type BotProtectionProviderConfigs = CloudflareConfigs | Recaptchav2Configs;
+type FormBotProtectionProviderConfigs = FormCloudflareConfigs | FormRecaptchav2Configs;
 
 interface FormState {
   enabled: boolean;
   providerType: BotProtectionProviderType;
   providerConfigs: Partial<
-    Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+    Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   >;
 }
 
@@ -81,7 +81,7 @@ function constructFormState(
   const siteKey = config.bot_protection?.provider?.site_key ?? "";
   const secretKey = secrets.botProtectionProviderSecret?.secretKey ?? null;
   const providerConfigs: Partial<
-    Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+    Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   > = {
     [providerType]: {
       siteKey,
@@ -203,15 +203,15 @@ export interface BotProtectionConfigurationContentProviderConfigFormFieldsProps 
   revealed: boolean;
   onClickReveal: (e: React.MouseEvent<unknown>) => void;
   providerConfigs: Partial<
-    Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+    Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   >;
   setProviderConfigs: (
     fn: (
       c: Partial<
-        Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+        Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
       >
     ) => Partial<
-      Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+      Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
     >
   ) => void;
   providerType: BotProtectionProviderType;
@@ -538,10 +538,10 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
       (
         fn: (
           c: Partial<
-            Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+            Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
           >
         ) => Partial<
-          Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+          Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
         >
       ) => {
         setState((state) => ({
