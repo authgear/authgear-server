@@ -6,6 +6,7 @@ import ScreenTitle from "../../ScreenTitle";
 import styles from "./BotProtectionConfigurationScreen.module.css";
 import {
   BotProtectionProviderType,
+  BotProtectionRiskMode,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
@@ -63,12 +64,77 @@ interface FormRecaptchav2Configs {
 
 type FormBotProtectionProviderConfigs = FormCloudflareConfigs | FormRecaptchav2Configs;
 
+
+type FormBotProtectionRequirementsFlowsType = "allSignupLogin" | "specificAuthenticator"
+interface FormBotProtectionRequirementsFlowsAllSignupLoginFlowConfigs {
+  allSignupLoginMode: BotProtectionRiskMode;
+}
+
+interface FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs {
+  passwordMode: BotProtectionRiskMode;
+  passwordlessViaSMSMode: BotProtectionRiskMode;
+  passwordlessViaEmailMode: BotProtectionRiskMode;
+}
+interface FormBotProtectionRequirementsFlows {
+  flowType: FormBotProtectionRequirementsFlowsType;
+  flowConfigs: {
+    allSignupLogin: FormBotProtectionRequirementsFlowsAllSignupLoginFlowConfigs,
+    specificAuthenticator: FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs
+  }
+}
+
+interface FormBotProtectionRequirementsResetPassword {
+  resetPasswordMode: BotProtectionRiskMode;
+}
+
+interface FormBotProtectionRequirements {
+  flows: FormBotProtectionRequirementsFlows
+  resetPassword: FormBotProtectionRequirementsResetPassword
+}
+
 interface FormState {
   enabled: boolean;
   providerType: BotProtectionProviderType;
   providerConfigs: Partial<
     Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   >;
+  requirements: FormBotProtectionRequirements;
+}
+
+function constructFormRequirementsState(
+  config: PortalAPIAppConfig,
+): FormBotProtectionRequirements {
+  const requirements = config.bot_protection?.requirements
+  // If any specific authenticator is configured, construct as specificAuthenticator, even if signup_or_login IS configured
+  // otherwise, construct as allSignupLogin
+  const isSpecificAuthenticatorConfigured = (
+    requirements?.oob_otp_email != null ||
+    requirements?.oob_otp_sms != null ||
+    requirements?.password != null
+  );
+  const dominantFlowType: FormBotProtectionRequirementsFlowsType = isSpecificAuthenticatorConfigured ? "specificAuthenticator" : "allSignupLogin"
+  const flowConfigs = {
+    allSignupLogin: {
+      allSignupLoginMode: requirements?.signup_or_login?.mode ?? "never",
+    },
+    specificAuthenticator: {
+      passwordMode: requirements?.password?.mode ?? "never",
+      passwordlessViaSMSMode: requirements?.oob_otp_sms?.mode ?? "never",
+      passwordlessViaEmailMode: requirements?.oob_otp_email?.mode ?? "never",
+    }
+  }
+
+  const flows: FormBotProtectionRequirementsFlows = {
+    flowType: dominantFlowType,
+    flowConfigs,
+  };
+  const resetPassword: FormBotProtectionRequirementsResetPassword = {
+    resetPasswordMode: requirements?.account_recovery?.mode ?? "never",
+  }
+  return {
+    flows,
+    resetPassword,
+  }
 }
 
 function constructFormState(
@@ -88,11 +154,13 @@ function constructFormState(
       secretKey,
     },
   };
+  const requirements = constructFormRequirementsState(config);
 
   return {
     enabled,
     providerType,
     providerConfigs,
+    requirements,
   };
 }
 
