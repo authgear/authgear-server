@@ -483,12 +483,11 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
     );
   };
 
-export interface BotProtectionConfigurationContentProps {
+interface BotProtectionConfigurationContentProviderSectionProps {
   form: AppSecretConfigFormModel<FormState>;
 }
-
-const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationContentProps> =
-  function BotProtectionConfigurationContent(props) {
+const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionConfigurationContentProviderSectionProps> =
+  function BotProtectionConfigurationContentProviderSection(props) {
     const { form } = props;
     const { state, setState } = form;
     const [storedFormState, setStoredFormState, removeStoredFormState] =
@@ -496,22 +495,6 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
         "bot-protection-config-screen-form-state",
         state
       );
-
-    const { renderToString } = useContext(Context);
-
-    const onChangeEnabled = useCallback(
-      (_event, checked?: boolean) => {
-        if (checked != null) {
-          setState((state) => {
-            return {
-              ...state,
-              enabled: checked,
-            };
-          });
-        }
-      },
-      [setState]
-    );
 
     const onClickProviderRecaptchaV2 = useCallback(
       (e: React.MouseEvent<unknown>) => {
@@ -647,6 +630,62 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
       },
       [setState]
     );
+    return (
+      <>
+        <WidgetTitle>
+          <FormattedMessage id="BotProtectionConfigurationScreen.challengeProvider.title" />
+        </WidgetTitle>
+        <div className={styles.providerCardContainer}>
+          <ProviderCard
+            className={styles.columnLeft}
+            onClick={onClickProviderRecaptchaV2}
+            isSelected={state.providerType === "recaptchav2"}
+            logoSrc={recaptchaV2LogoURL}
+          >
+            <FormattedMessage id="BotProtectionConfigurationScreen.provider.recaptchaV2.label" />
+          </ProviderCard>
+          <ProviderCard
+            className={styles.columnRight}
+            onClick={onClickProviderCloudflare}
+            isSelected={state.providerType === "cloudflare"}
+            logoSrc={cloudflareLogoURL}
+          >
+            <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.label" />
+          </ProviderCard>
+        </div>
+        <BotProtectionConfigurationContentProviderConfigFormFields
+          revealed={revealed}
+          onClickReveal={onClickReveal}
+          setProviderConfigs={setBotProtectionProviderConfigs}
+          providerConfigs={state.providerConfigs}
+          providerType={state.providerType}
+        />
+      </>
+    )
+  }
+export interface BotProtectionConfigurationContentProps {
+  form: AppSecretConfigFormModel<FormState>;
+}
+
+const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationContentProps> =
+  function BotProtectionConfigurationContent(props) {
+    const { form } = props;
+    const { state, setState } = form;
+    const { renderToString } = useContext(Context);
+
+    const onChangeEnabled = useCallback(
+      (_event, checked?: boolean) => {
+        if (checked != null) {
+          setState((state) => {
+            return {
+              ...state,
+              enabled: checked,
+            };
+          });
+        }
+      },
+      [setState]
+    );
 
     return (
       <ScreenContent>
@@ -668,33 +707,8 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
           />
           {state.enabled ? (
             <div className={styles.enabledContent}>
-              <WidgetTitle>
-                <FormattedMessage id="BotProtectionConfigurationScreen.challengeProvider.title" />
-              </WidgetTitle>
-              <div className={styles.providerCardContainer}>
-                <ProviderCard
-                  className={styles.columnLeft}
-                  onClick={onClickProviderRecaptchaV2}
-                  isSelected={state.providerType === "recaptchav2"}
-                  logoSrc={recaptchaV2LogoURL}
-                >
-                  <FormattedMessage id="BotProtectionConfigurationScreen.provider.recaptchaV2.label" />
-                </ProviderCard>
-                <ProviderCard
-                  className={styles.columnRight}
-                  onClick={onClickProviderCloudflare}
-                  isSelected={state.providerType === "cloudflare"}
-                  logoSrc={cloudflareLogoURL}
-                >
-                  <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.label" />
-                </ProviderCard>
-              </div>
-              <BotProtectionConfigurationContentProviderConfigFormFields
-                revealed={revealed}
-                onClickReveal={onClickReveal}
-                setProviderConfigs={setBotProtectionProviderConfigs}
-                providerConfigs={state.providerConfigs}
-                providerType={state.providerType}
+              <BotProtectionConfigurationContentProviderSection
+                form={form}
               />
             </div>
           ) : null}
