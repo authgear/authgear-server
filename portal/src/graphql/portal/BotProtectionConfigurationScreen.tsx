@@ -78,10 +78,13 @@ interface FormRecaptchav2Configs {
   secretKey: string | null;
 }
 
-type FormBotProtectionProviderConfigs = FormCloudflareConfigs | FormRecaptchav2Configs;
+type FormBotProtectionProviderConfigs =
+  | FormCloudflareConfigs
+  | FormRecaptchav2Configs;
 
-
-type FormBotProtectionRequirementsFlowsType = "allSignupLogin" | "specificAuthenticator"
+type FormBotProtectionRequirementsFlowsType =
+  | "allSignupLogin"
+  | "specificAuthenticator";
 interface FormBotProtectionRequirementsFlowsAllSignupLoginFlowConfigs {
   allSignupLoginMode: BotProtectionRiskMode;
 }
@@ -91,12 +94,14 @@ interface FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs {
   passwordlessViaSMSMode: BotProtectionRiskMode;
   passwordlessViaEmailMode: BotProtectionRiskMode;
 }
+
+interface FormBotProtectionRequirementsFlowConfigs {
+  allSignupLogin: FormBotProtectionRequirementsFlowsAllSignupLoginFlowConfigs;
+  specificAuthenticator: FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs;
+}
 interface FormBotProtectionRequirementsFlows {
   flowType: FormBotProtectionRequirementsFlowsType;
-  flowConfigs: {
-    allSignupLogin: FormBotProtectionRequirementsFlowsAllSignupLoginFlowConfigs,
-    specificAuthenticator: FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs
-  }
+  flowConfigs: FormBotProtectionRequirementsFlowConfigs;
 }
 
 interface FormBotProtectionRequirementsResetPassword {
@@ -104,8 +109,8 @@ interface FormBotProtectionRequirementsResetPassword {
 }
 
 interface FormBotProtectionRequirements {
-  flows: FormBotProtectionRequirementsFlows
-  resetPassword: FormBotProtectionRequirementsResetPassword
+  flows: FormBotProtectionRequirementsFlows;
+  resetPassword: FormBotProtectionRequirementsResetPassword;
 }
 
 interface FormState {
@@ -118,17 +123,19 @@ interface FormState {
 }
 
 function constructFormRequirementsState(
-  config: PortalAPIAppConfig,
+  config: PortalAPIAppConfig
 ): FormBotProtectionRequirements {
-  const requirements = config.bot_protection?.requirements
+  const requirements = config.bot_protection?.requirements;
   // If any specific authenticator is configured, construct as specificAuthenticator, even if signup_or_login IS configured
   // otherwise, construct as allSignupLogin
-  const isSpecificAuthenticatorConfigured = (
+  const isSpecificAuthenticatorConfigured =
     requirements?.oob_otp_email != null ||
     requirements?.oob_otp_sms != null ||
-    requirements?.password != null
-  );
-  const dominantFlowType: FormBotProtectionRequirementsFlowsType = isSpecificAuthenticatorConfigured ? "specificAuthenticator" : "allSignupLogin"
+    requirements?.password != null;
+  const dominantFlowType: FormBotProtectionRequirementsFlowsType =
+    isSpecificAuthenticatorConfigured
+      ? "specificAuthenticator"
+      : "allSignupLogin";
   const flowConfigs = {
     allSignupLogin: {
       allSignupLoginMode: requirements?.signup_or_login?.mode ?? "never",
@@ -137,8 +144,8 @@ function constructFormRequirementsState(
       passwordMode: requirements?.password?.mode ?? "never",
       passwordlessViaSMSMode: requirements?.oob_otp_sms?.mode ?? "never",
       passwordlessViaEmailMode: requirements?.oob_otp_email?.mode ?? "never",
-    }
-  }
+    },
+  };
 
   const flows: FormBotProtectionRequirementsFlows = {
     flowType: dominantFlowType,
@@ -146,11 +153,11 @@ function constructFormRequirementsState(
   };
   const resetPassword: FormBotProtectionRequirementsResetPassword = {
     resetPasswordMode: requirements?.account_recovery?.mode ?? "never",
-  }
+  };
   return {
     flows,
     resetPassword,
-  }
+  };
 }
 
 function constructFormState(
@@ -181,26 +188,44 @@ function constructFormState(
 }
 
 function constructBotProtectionConfig(
-  currentState: FormState,
+  currentState: FormState
 ): BotProtectionConfig {
   const signupOrLoginRequirements: Partial<BotProtectionRequirements> = {
-    signup_or_login: currentState.requirements.flows.flowType === "allSignupLogin" ? {
-      mode: currentState.requirements.flows.flowConfigs.allSignupLogin.allSignupLoginMode
-    } : undefined,
-  }
+    signup_or_login:
+      currentState.requirements.flows.flowType === "allSignupLogin"
+        ? {
+            mode: currentState.requirements.flows.flowConfigs.allSignupLogin
+              .allSignupLoginMode,
+          }
+        : undefined,
+  };
   const accountRecoveryRequirements: Partial<BotProtectionRequirements> = {
-    account_recovery: { mode: currentState.requirements.resetPassword.resetPasswordMode }
-  }
-  const specificAuthenticatorRequirements: Partial<BotProtectionRequirements> = currentState.requirements.flows.flowType === "specificAuthenticator" ? {
-    password: { mode: currentState.requirements.flows.flowConfigs.specificAuthenticator.passwordMode },
-    oob_otp_email: { mode: currentState.requirements.flows.flowConfigs.specificAuthenticator.passwordlessViaEmailMode },
-    oob_otp_sms: { mode: currentState.requirements.flows.flowConfigs.specificAuthenticator.passwordlessViaSMSMode },
-  } : {}
+    account_recovery: {
+      mode: currentState.requirements.resetPassword.resetPasswordMode,
+    },
+  };
+  const specificAuthenticatorRequirements: Partial<BotProtectionRequirements> =
+    currentState.requirements.flows.flowType === "specificAuthenticator"
+      ? {
+          password: {
+            mode: currentState.requirements.flows.flowConfigs
+              .specificAuthenticator.passwordMode,
+          },
+          oob_otp_email: {
+            mode: currentState.requirements.flows.flowConfigs
+              .specificAuthenticator.passwordlessViaEmailMode,
+          },
+          oob_otp_sms: {
+            mode: currentState.requirements.flows.flowConfigs
+              .specificAuthenticator.passwordlessViaSMSMode,
+          },
+        }
+      : {};
   const requirements: BotProtectionRequirements = {
     ...signupOrLoginRequirements,
     ...accountRecoveryRequirements,
     ...specificAuthenticatorRequirements,
-  }
+  };
   return {
     enabled: currentState.enabled,
     provider: {
@@ -209,7 +234,7 @@ function constructBotProtectionConfig(
         currentState.providerConfigs[currentState.providerType]?.siteKey,
     },
     requirements,
-  }
+  };
 }
 
 function constructConfig(
@@ -677,8 +702,8 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
           providerType={state.providerType}
         />
       </section>
-    )
-  }
+    );
+  };
 
 interface RequirementConfigListItem {
   label: string;
