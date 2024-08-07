@@ -31,7 +31,6 @@ import Toggle from "../../Toggle";
 import WidgetTitle from "../../WidgetTitle";
 import {
   ChoiceGroup,
-  DefaultEffects,
   DetailsList,
   Dropdown,
   IButtonProps,
@@ -307,7 +306,6 @@ function ProviderCard(props: ProviderCardProps) {
     themes: {
       main: {
         palette: { themePrimary },
-        semanticColors: { disabledBackground: backgroundColor },
       },
     },
   } = useSystemConfig();
@@ -316,14 +314,12 @@ function ProviderCard(props: ProviderCardProps) {
     <button
       type="button"
       style={{
-        boxShadow: disabled ? undefined : DefaultEffects.elevation4,
         borderColor: isSelected ? themePrimary : "transparent",
-        backgroundColor: disabled ? backgroundColor : undefined,
-        cursor: disabled ? "not-allowed" : undefined,
       }}
       className={cn(className, styles.providerCard)}
       onClick={disabled ? undefined : onClick}
       tabIndex={0}
+      disabled={disabled}
     >
       {logoSrc != null ? (
         <Image src={logoSrc} width={logoWidth} height={logoHeight} />

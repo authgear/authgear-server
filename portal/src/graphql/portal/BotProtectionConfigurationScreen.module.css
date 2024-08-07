@@ -51,12 +51,26 @@
   align-items: center;
   border-width: 0.06rem; /* 1px */
   border-style: solid;
-  cursor: pointer;
   column-gap: 1rem;
+
+  /* ref https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.css */
+  /* .ms-depth-4 */
+  box-shadow: 0 1.6px 3.6px 0 rgba(0, 0, 0, 0.13),
+    0 0.3px 0.9px 0 rgba(0, 0, 0, 0.11);
 }
 
-.providerCardLabel {
+.providerCard:disabled {
+  box-shadow: none;
+  cursor: not-allowed;
+  background-color: #f3f2f1;
+}
+
+.providerCard > .providerCardLabel {
   cursor: pointer;
+}
+
+.providerCard:disabled > .providerCardLabel {
+  cursor: not-allowed;
 }
 
 .secretKeyInputContainer {
