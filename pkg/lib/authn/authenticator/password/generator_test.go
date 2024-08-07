@@ -1,19 +1,21 @@
 package password
 
 import (
-	"math/rand"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
+
+func newInt(v int) *int { return &v }
 
 type TestRandSource struct {
 }
 
 // Pseudo-random pick
-func (s *TestRandSource) Pick(list string) (int, error) {
-	index := rand.Intn(len(list))
-	return index, nil
+func (s *TestRandSource) RandomBytes(n int) ([]byte, error) {
+	return []byte("1234567890"), nil
 }
 
 func (s *TestRandSource) Shuffle(list string) (string, error) {
@@ -23,9 +25,11 @@ func (s *TestRandSource) Shuffle(list string) (string, error) {
 func TestBasicPasswordGeneration(t *testing.T) {
 	Convey("Given a password generator with default settings", t, func() {
 		generator := &Generator{
-			Checker:     &Checker{},
-			RandSource:  &TestRandSource{},
-			PwMinLength: 8,
+			Checker:    &Checker{},
+			RandSource: &TestRandSource{},
+			Policy: &config.PasswordPolicyConfig{
+				MinLength: newInt(8),
+			},
 		}
 
 		password, err := generator.Generate()
@@ -40,10 +44,12 @@ func TestBasicPasswordGeneration(t *testing.T) {
 func TestUppercaseRequirement(t *testing.T) {
 	Convey("Given a password generator requiring at least one uppercase letter", t, func() {
 		generator := &Generator{
-			Checker:             &Checker{},
-			RandSource:          &TestRandSource{},
-			PwMinLength:         8,
-			PwUppercaseRequired: true,
+			Checker:    &Checker{},
+			RandSource: &TestRandSource{},
+			Policy: &config.PasswordPolicyConfig{
+				MinLength:         newInt(8),
+				UppercaseRequired: true,
+			},
 		}
 
 		password, err := generator.Generate()
@@ -58,10 +64,12 @@ func TestUppercaseRequirement(t *testing.T) {
 func TestLowercaseRequirement(t *testing.T) {
 	Convey("Given a password generator requiring at least one lowercase letter", t, func() {
 		generator := &Generator{
-			Checker:             &Checker{},
-			RandSource:          &TestRandSource{},
-			PwMinLength:         8,
-			PwLowercaseRequired: true,
+			Checker:    &Checker{},
+			RandSource: &TestRandSource{},
+			Policy: &config.PasswordPolicyConfig{
+				MinLength:         newInt(8),
+				LowercaseRequired: true,
+			},
 		}
 
 		password, err := generator.Generate()
@@ -76,13 +84,15 @@ func TestLowercaseRequirement(t *testing.T) {
 func TestCombinedRequirements(t *testing.T) {
 	Convey("Given a password generator with multiple requirements", t, func() {
 		generator := &Generator{
-			Checker:             &Checker{},
-			RandSource:          &TestRandSource{},
-			PwMinLength:         12,
-			PwUppercaseRequired: true,
-			PwLowercaseRequired: true,
-			PwDigitRequired:     true,
-			PwSymbolRequired:    true,
+			Checker:    &Checker{},
+			RandSource: &TestRandSource{},
+			Policy: &config.PasswordPolicyConfig{
+				MinLength:         newInt(12),
+				UppercaseRequired: true,
+				LowercaseRequired: true,
+				DigitRequired:     true,
+				SymbolRequired:    true,
+			},
 		}
 
 		password, err := generator.Generate()
@@ -92,6 +102,7 @@ func TestCombinedRequirements(t *testing.T) {
 			So(checkPasswordLowercase(password), ShouldBeTrue)
 			So(checkPasswordDigit(password), ShouldBeTrue)
 			So(checkPasswordSymbol(password), ShouldBeTrue)
+			So(len(password), ShouldEqual, 12)
 			So(err, ShouldBeNil)
 		})
 	})
@@ -100,9 +111,11 @@ func TestCombinedRequirements(t *testing.T) {
 func TestMinLengthRequirement(t *testing.T) {
 	Convey("Given a password generator with a minimum length requirement", t, func() {
 		generator := &Generator{
-			Checker:     &Checker{},
-			RandSource:  &TestRandSource{},
-			PwMinLength: 40,
+			Checker:    &Checker{},
+			RandSource: &TestRandSource{},
+			Policy: &config.PasswordPolicyConfig{
+				MinLength: newInt(40),
+			},
 		}
 
 		password, err := generator.Generate()
@@ -117,10 +130,12 @@ func TestMinLengthRequirement(t *testing.T) {
 func TestMinGuessableLevelRequirement(t *testing.T) {
 	Convey("Given a password generator with a minimum guessable level requirement", t, func() {
 		generator := &Generator{
-			Checker:             &Checker{},
-			RandSource:          &TestRandSource{},
-			PwMinLength:         8,
-			PwMinGuessableLevel: 4,
+			Checker:    &Checker{},
+			RandSource: &CryptoRandSource{},
+			Policy: &config.PasswordPolicyConfig{
+				MinLength:             newInt(8),
+				MinimumGuessableLevel: 4,
+			},
 		}
 
 		password, err := generator.Generate()
@@ -136,15 +151,17 @@ func TestMinGuessableLevelRequirement(t *testing.T) {
 
 func TestExcludedKeywordsRequirement(t *testing.T) {
 	Convey("Given a password generator with excluded keywords", t, func() {
-		excluded := []string{"1", "2", "3", "4", "5", "6", "7", "8", "9"}
+		excluded := []string{"1", "2", "3"}
 		generator := &Generator{
 			Checker: &Checker{
 				PwExcludedKeywords: excluded,
 			},
-			RandSource:         &TestRandSource{},
-			PwMinLength:        8,
-			PwDigitRequired:    true,
-			PwExcludedKeywords: excluded,
+			RandSource: &CryptoRandSource{},
+			Policy: &config.PasswordPolicyConfig{
+				MinLength:        newInt(8),
+				DigitRequired:    true,
+				ExcludedKeywords: excluded,
+			},
 		}
 
 		password, err := generator.Generate()
