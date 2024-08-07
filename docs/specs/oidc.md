@@ -228,7 +228,7 @@ To mitigate replay attacks, provide a `nonce` in the authentication request. Aut
 
 It specifies either the login or signup page to be shown to the user.
 
-It can be used in conjunction with `x_authentication_flow_group` to override authentication flow in the default UI. For details, see [Authentication Flow Selection in Default UI](./authentication-flow-selection.md#default-ui).
+It can be used in conjunction with `x_authentication_flow_group` to override authentication flow in Auth UI. For details, see [Authentication Flow Selection in Auth UI](./authentication-flow-selection.md#auth-ui).
 
 Supported values: `login`, `signup`
 
@@ -240,7 +240,7 @@ Supported values: `change_password`, `delete_account`.
 
 ### x_authentication_flow_group
 
-Overrides the authentication flow group in the default UI. details, see [Authentication Flow Selection in Default UI](./authentication-flow-selection.md#default-ui).
+Overrides the authentication flow group in Auth UI. details, see [Authentication Flow Selection in Auth UI](./authentication-flow-selection.md#auth-ui).
 
 It can be used in conjunction with `x_page` to decide whether to execute login or signup flow.
 
