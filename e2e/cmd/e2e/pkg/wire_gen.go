@@ -31,8 +31,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/event"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
-	"github.com/authgear/authgear-server/pkg/lib/feature/sendpassword"
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -655,7 +655,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Whatsapp:               whatsappService,
 		MessagingFeatureConfig: messagingFeatureConfig,
 	}
-	sendpasswordService := &sendpassword.Service{
+	forgotpasswordSender := &forgotpassword.Sender{
 		AppConfg:    appConfig,
 		Identities:  serviceService,
 		Sender:      sender,
@@ -765,7 +765,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Authenticators:             service3,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		SendPassword:               sendpasswordService,
+		SendPassword:               forgotpasswordSender,
 		UserCommands:               userCommands,
 		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,

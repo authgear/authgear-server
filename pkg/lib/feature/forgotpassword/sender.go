@@ -1,18 +1,13 @@
-package sendpassword
+package forgotpassword
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
-
-type IdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
-}
 
 type TranslationService interface {
 	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
@@ -22,7 +17,7 @@ type SenderService interface {
 	PrepareEmail(email string, msgType nonblocking.MessageType) (*messaging.EmailMessage, error)
 }
 
-type Service struct {
+type Sender struct {
 	AppConfg    *config.AppConfig
 	Identities  IdentityService
 	Sender      SenderService
@@ -41,7 +36,7 @@ func (m *PreparedMessage) Close() {
 	}
 }
 
-func (s *Service) getEmailList(userID string) ([]string, error) {
+func (s *Sender) getEmailList(userID string) ([]string, error) {
 	infos, err := s.Identities.ListByUser(userID)
 	if err != nil {
 		return nil, err
@@ -63,19 +58,16 @@ func (s *Service) getEmailList(userID string) ([]string, error) {
 	return emails, nil
 }
 
-func (s *Service) prepareMessage(email string, typ MessageType) (*PreparedMessage, error) {
+func (s *Sender) prepareMessage(email string, msgType nonblocking.MessageType) (*PreparedMessage, error) {
 	var spec *translation.MessageSpec
-	var msgType nonblocking.MessageType
 
-	switch typ {
-	case MessageTypeChangePassword:
-		spec = messageChangePassword
-		msgType = nonblocking.MessageTypeChangePassword
-	case MessageTypeCreateUser:
-		spec = messageCreateUser
-		msgType = nonblocking.MessageTypeCreateUser
+	switch msgType {
+	case nonblocking.MessageTypeSendPasswordToExistingUser:
+		spec = messageSendPasswordToExistingUser
+	case nonblocking.MessageTypeSendPasswordToNewUser:
+		spec = messageSendPasswordToNewUser
 	default:
-		panic("sendpassword: unknown message type: " + msgType)
+		panic("forgotpassword: unknown message type: " + msgType)
 	}
 
 	msg, err := s.Sender.PrepareEmail(email, msgType)
@@ -90,7 +82,7 @@ func (s *Service) prepareMessage(email string, typ MessageType) (*PreparedMessag
 	}, nil
 }
 
-func (s *Service) Send(userID string, password string, msgType MessageType) error {
+func (s *Sender) Send(userID string, password string, msgType nonblocking.MessageType) error {
 	emails, err := s.getEmailList(userID)
 	if err != nil {
 		return err

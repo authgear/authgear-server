@@ -43,7 +43,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
-	"github.com/authgear/authgear-server/pkg/lib/feature/sendpassword"
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -749,7 +748,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Whatsapp:               whatsappService,
 		MessagingFeatureConfig: messagingFeatureConfig,
 	}
-	sendpasswordService := &sendpassword.Service{
+	forgotpasswordSender := &forgotpassword.Sender{
 		AppConfg:    appConfig,
 		Identities:  serviceService,
 		Sender:      sender,
@@ -843,7 +842,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Authenticators:             service4,
 		Verification:               verificationService,
 		MFA:                        mfaService,
-		SendPassword:               sendpasswordService,
+		SendPassword:               forgotpasswordSender,
 		UserCommands:               userCommands,
 		UserQueries:                userQueries,
 		RolesGroupsCommands:        commands,
@@ -909,15 +908,21 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	forgotpasswordLogger := forgotpassword.NewLogger(factory)
+	sender2 := forgotpassword.Sender{
+		AppConfg:    appConfig,
+		Identities:  serviceService,
+		Sender:      sender,
+		Translation: translationService,
+	}
 	forgotpasswordService := &forgotpassword.Service{
 		Logger:         forgotpasswordLogger,
 		Config:         appConfig,
 		FeatureConfig:  featureConfig,
-		Identities:     identityFacade,
+		Identities:     serviceService,
 		Authenticators: authenticatorFacade,
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
-		SendPassword:   sendpasswordService,
+		PasswordSender: sender2,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{

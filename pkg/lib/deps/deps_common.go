@@ -39,7 +39,6 @@ import (
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
-	"github.com/authgear/authgear-server/pkg/lib/feature/sendpassword"
 	featuresiwe "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -246,7 +245,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(featurestdattrs.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(featurepasskey.IdentityService), new(*identityservice.Service)),
-		wire.Bind(new(sendpassword.IdentityService), new(*identityservice.Service)),
+		wire.Bind(new(forgotpassword.IdentityService), new(*identityservice.Service)),
 
 		wire.Bind(new(oauthhandler.PromotionCodeStore), new(*identityanonymous.StoreRedis)),
 		wire.Bind(new(oauthhandler.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
@@ -260,7 +259,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(authenticationflow.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.AuthenticatorService), new(facade.AuthenticatorFacade)),
-		wire.Bind(new(forgotpassword.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(workflow.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(workflow.VerificationService), new(facade.WorkflowVerificationFacade)),
 		wire.Bind(new(workflow.MFAService), new(*facade.MFAFacade)),
@@ -320,12 +318,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.ForgotPasswordService), new(*forgotpassword.Service)),
 		wire.Bind(new(workflow.ResetPasswordService), new(*forgotpassword.Service)),
 		wire.Bind(new(authenticationflow.ResetPasswordService), new(*forgotpassword.Service)),
-	),
-
-	wire.NewSet(
-		sendpassword.DependencySet,
-		wire.Bind(new(forgotpassword.SendPasswordService), new(*sendpassword.Service)),
-		wire.Bind(new(facade.SendPasswordService), new(*sendpassword.Service)),
+		wire.Bind(new(facade.SendPasswordService), new(*forgotpassword.Sender)),
 	),
 
 	wire.NewSet(
@@ -426,7 +419,7 @@ var CommonDependencySet = wire.NewSet(
 		translation.DependencySet,
 		wire.Bind(new(otp.TranslationService), new(*translation.Service)),
 		wire.Bind(new(featurepasskey.TranslationService), new(*translation.Service)),
-		wire.Bind(new(sendpassword.TranslationService), new(*translation.Service)),
+		wire.Bind(new(forgotpassword.TranslationService), new(*translation.Service)),
 	),
 
 	wire.NewSet(
@@ -487,7 +480,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		messaging.DependencySet,
 		wire.Bind(new(otp.Sender), new(*messaging.Sender)),
-		wire.Bind(new(sendpassword.SenderService), new(*messaging.Sender)),
+		wire.Bind(new(forgotpassword.SenderService), new(*messaging.Sender)),
 	),
 
 	wire.NewSet(

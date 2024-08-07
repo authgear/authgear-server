@@ -8,6 +8,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -15,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
-	"github.com/authgear/authgear-server/pkg/lib/feature/sendpassword"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -59,10 +59,6 @@ type OTPSender interface {
 	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
-type SendPasswordService interface {
-	Send(userID string, password string, msgType sendpassword.MessageType) error
-}
-
 type Service struct {
 	Logger        Logger
 	Config        *config.AppConfig
@@ -72,7 +68,7 @@ type Service struct {
 	Authenticators AuthenticatorService
 	OTPCodes       OTPCodeService
 	OTPSender      OTPSender
-	SendPassword   SendPasswordService
+	PasswordSender Sender
 }
 
 type CodeKind string
@@ -524,7 +520,7 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 			}
 
 			if options.SendPassword {
-				err = s.SendPassword.Send(options.UserID, options.PlainPassword, sendpassword.MessageTypeChangePassword)
+				err = s.PasswordSender.Send(options.UserID, options.PlainPassword, nonblocking.MessageTypeSendPasswordToExistingUser)
 				if err != nil {
 					return
 				}
@@ -568,7 +564,7 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 		}
 
 		if options.SendPassword {
-			err = s.SendPassword.Send(options.UserID, options.PlainPassword, sendpassword.MessageTypeChangePassword)
+			err = s.PasswordSender.Send(options.UserID, options.PlainPassword, nonblocking.MessageTypeSendPasswordToNewUser)
 			if err != nil {
 				return
 			}

@@ -19,7 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/feature/sendpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -88,7 +87,7 @@ type MFAService interface {
 }
 
 type SendPasswordService interface {
-	Send(userID string, password string, msgType sendpassword.MessageType) error
+	Send(userID string, password string, msgType nonblocking.MessageType) error
 }
 
 type UserQueries interface {
@@ -470,7 +469,7 @@ func (c *Coordinator) UserCreatebyAdmin(
 	}
 
 	if sendPassword {
-		err = c.SendPassword.Send(userID, password, sendpassword.MessageTypeCreateUser)
+		err = c.SendPassword.Send(userID, password, nonblocking.MessageTypeSendPasswordToNewUser)
 		if err != nil {
 			return nil, err
 		}
