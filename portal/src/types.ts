@@ -904,9 +904,23 @@ export interface BotProtectionProviderConfig {
   site_key?: string; // assume all provides have site_key for now
   type?: BotProtectionProviderType;
 }
+
+export type BotProtectionRiskMode = "never" | "always";
+export interface BotProtectionRequirementsObject {
+  mode?: BotProtectionRiskMode;
+}
+export interface BotProtectionRequirements {
+  signup_or_login?: BotProtectionRequirementsObject;
+  account_recovery?: BotProtectionRequirementsObject;
+  password?: BotProtectionRequirementsObject;
+  oob_otp_email?: BotProtectionRequirementsObject;
+  oob_otp_sms?: BotProtectionRequirementsObject;
+}
+
 export interface BotProtectionConfig {
   enabled?: boolean;
   provider?: BotProtectionProviderConfig;
+  requirements?: BotProtectionRequirements;
 }
 
 export interface StandardAttributes {
