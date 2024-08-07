@@ -56,6 +56,11 @@ func (c *Client) connect() (*ldap.Conn, error) {
 	}
 
 	if u.Scheme == "ldap" {
+		// nolint: gosec
+		// gosec says tls.Config.MinVersion is too low.
+		// But go1.22 actually uses TLS1.2 by default.
+		// So manually setting it is not recommended.
+		// See https://cs.opensource.google/go/go/+/362bf4fc6d3b456429e998582b15a2765e640741
 		err = conn.StartTLS(&tls.Config{
 			// According to https://pkg.go.dev/crypto/tls#Client
 			// tls.Config must either InsecureSkipVerify=true, or set ServerName.
