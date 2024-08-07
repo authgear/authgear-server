@@ -46,6 +46,7 @@ import (
 	featureweb3 "github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/ldap"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -334,6 +335,11 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		botprotection.DependencySet,
 		wire.Bind(new(authenticationflow.BotProtectionService), new(*botprotection.Provider)),
+	),
+
+	wire.NewSet(
+		ldap.DependencySet,
+		wire.Bind(new(authenticationflow.LDAPClientFactory), new(*ldap.ClientFactory)),
 	),
 
 	wire.NewSet(
