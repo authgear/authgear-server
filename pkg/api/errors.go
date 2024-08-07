@@ -37,6 +37,7 @@ var ChangePasswordFailed = apierrors.Invalid.WithReason("ChangePasswordFailed")
 var ErrNoPassword = ChangePasswordFailed.NewWithCause("the user does not have a password", apierrors.StringCause("NoPassword"))
 var ErrPasswordReused = ChangePasswordFailed.NewWithCause("password reused", apierrors.StringCause("PasswordReused"))
 
+var ErrLDAPServerNotFound = apierrors.NotFound.WithReason("LDAPServerNotFound").New("ldap server not found")
 var LDAPConnectionTestFailed = apierrors.ServiceUnavailable.WithReason("LDAPConnectionTestFailed")
 var ErrLDAPCannotConnect = LDAPConnectionTestFailed.NewWithCause("failed to connect", apierrors.StringCause("FailedToConnect"))
 var ErrLDAPFailedToBindSearchUser = LDAPConnectionTestFailed.NewWithCause("failed to bind search user", apierrors.StringCause("FailedToBindSearchUser"))
