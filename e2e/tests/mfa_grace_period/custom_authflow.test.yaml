@@ -1,0 +1,100 @@
+name: MFA enrollment in custom authflow
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+      primary_authenticators:
+        - password
+      secondary_authentication_mode: required
+      secondary_authenticators:
+      - password
+    authentication_flow:
+      login_flows:
+        - name: default
+          steps:
+            - type: identify
+              one_of:
+                - identification: email
+                - identification: username
+            - type: authenticate
+              one_of:
+                - authentication: primary_password
+            - type: authenticate
+              optional: false
+              enrollment_allowed: true
+              one_of:
+                - authentication: secondary_password
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - name: Login with account without 2FA
+    action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_mfa_grace_period"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: Authenticate, expect prompt to enroll 2FA
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": "[[array]]",
+              "type": "create_authenticator_data"
+            }
+          }
+        }
+
+  - name: Enroll with secondary password
+    action: input
+    input: |
+      {
+        "authentication": "secondary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

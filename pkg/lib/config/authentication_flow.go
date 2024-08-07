@@ -1078,6 +1078,13 @@ func (s *AuthenticationFlowLoginFlowStep) IsOptional() bool {
 	return false
 }
 
+func (s *AuthenticationFlowLoginFlowStep) IsEnrollmentAllowed() bool {
+	if s.EnrollmentAllowed != nil && *s.EnrollmentAllowed {
+		return true
+	}
+	return false
+}
+
 type AuthenticationFlowLoginFlowOneOf struct {
 	// Identification is specific to identify.
 	Identification AuthenticationFlowIdentification `json:"identification,omitempty"`
