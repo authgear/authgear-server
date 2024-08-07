@@ -159,19 +159,13 @@ The configuration is as follows:
 bot_protection:
   mode: "always" # "never" | "always" | "risk_level_medium" | "risk_level_high"
   fail_open: true
-  provider:
-    type: cloudflare
   risk_assessment:
     enabled: true
-    provider:
-      type: recaptchav3
 ```
 
 - `bot_protection.mode`: When bot protection is required. See [Risk level `mode`](#risk-level-mode).
 - `bot_protection.fail_open`: If it is true, then if the challenge-based provider is service unavailable, access is granted. It is false by default.
-- `bot_protection.provider.type`: If `mode` is not `never`, then it is required. Specify the challenge-based provider to be used in this branch.
 - `bot_protection.risk_assessment.enabled`: Whether risk assessment is enabled.
-- `bot_protection.risk_assessment.provider.type`: It `enabled` is true, then it is required. Specify the risk assessment provider to be used in this branch.
 
 For example,
 
@@ -186,8 +180,6 @@ authentication_flow:
         # Identify with email requires bot protection.
         bot_protection:
           mode: "always"
-          provider:
-            type: cloudflare
     - type: authenticate
       one_of:
       - authentication: primary_password
@@ -199,7 +191,6 @@ authentication_flow:
 Given `bot_protection.risk_assessment.enabled=true`,
 
 1. All the branches of the first step (that is, the `identify` step, or the `authenticate` step in reauth flow) has `bot_protection.risk_assessment.enabled=true`.
-2. The configured provider is used as `bot_protection.risk_assessment.provider.type`
 
 The bot protection behavior in builtin flows depend on
 
@@ -403,8 +394,6 @@ authentication_flow:
       - authentication: primary_oob_otp_email
         bot_protection:
           mode: "always"
-          provider:
-            type: cloudflare
 ```
 
 ### Advanced use case: Use fail-open instead of fail-close
@@ -429,8 +418,6 @@ authentication_flow:
         bot_protection:
           mode: "always"
           fail_open: true
-          provider:
-            type: cloudflare
 ```
 
 ### Advanced use case: Allow internal staff to bypass bot protection
@@ -461,8 +448,6 @@ authentication_flow:
       - authentication: primary_password
         bot_protection:
           mode: "always"
-          provider:
-            type: cloudflare
 ```
 
 If the incoming request has an IP address of `10.0.0.1`, it is granted access automatically.
@@ -501,12 +486,8 @@ authentication_flow:
       - authentication: primary_password
         bot_protection:
           mode: "risk_level_high"
-          provider:
-            type: cloudflare
           risk_assessment:
             enabled: true
-            provider:
-              type: recaptchav3
 ```
 
 When authenticating with password, a risk assessment has to be done first.
