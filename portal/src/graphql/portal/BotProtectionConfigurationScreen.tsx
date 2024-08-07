@@ -245,9 +245,6 @@ function constructConfig(
   _effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
   return produce([config, secrets], ([config, secrets]) => {
-    config.bot_protection ??= {};
-    config.bot_protection.provider ??= {};
-    config.bot_protection.requirements ??= {};
     config.bot_protection = constructBotProtectionConfig(currentState);
 
     const secretKey =
