@@ -28,6 +28,15 @@ type SAMLConfig struct {
 	SAMLServiceProviders []*SAMLServiceProviderConfig `json:"service_providers,omitempty"`
 }
 
+func (c *SAMLConfig) ResolveProvider(entityID string) (*SAMLServiceProviderConfig, bool) {
+	for _, sp := range c.SAMLServiceProviders {
+		if sp.ID == entityID {
+			return sp, true
+		}
+	}
+	return nil, false
+}
+
 type SAMLServiceProviderConfig struct {
 	ID string `json:"id,omitempty"`
 }
