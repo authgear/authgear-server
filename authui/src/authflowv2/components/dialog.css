@@ -4,7 +4,28 @@
     --dialog-fade-animation-duration: 0.3s;
     --dialog-slide-animation-duration: 0.3s;
 
+    --dialog-title__font-family: var(--typography-title-large__font-family);
+    --dialog-title__font-size: var(--typography-title-large__font-size);
+    --dialog-title__line-height: var(--typography-title-large__line-height);
+    --dialog-title__letter-spacing: var(
+      --typography-title-large__letter-spacing
+    );
+    --dialog-title__font-weight: var(--typography-title-large__font-weight);
     --dialog-title__text-color: var(--color-neutral-700);
+
+    --dialog-description__font-family: var(
+      --typography-body-large__font-family
+    );
+    --dialog-description__font-size: var(--typography-body-large__font-size);
+    --dialog-description__line-height: var(
+      --typography-body-large__line-height
+    );
+    --dialog-description__letter-spacing: var(
+      --typography-body-large__letter-spacing
+    );
+    --dialog-description__font-weight: var(
+      --typography-body-large__font-weight
+    );
     --dialog-description__text-color: var(--color-neutral-400);
   }
   :root.dark {
@@ -92,11 +113,11 @@
   }
 
   .dialog-title {
-    font-family: inherit;
-    font-size: 1.5rem;
-    line-height: 2rem;
-    letter-spacing: 0;
-    font-weight: 700;
+    font-family: var(--dialog-title__font-family);
+    font-size: var(--dialog-title__font-size);
+    line-height: var(--dialog-title__line-height);
+    letter-spacing: var(--dialog-title__letter-spacing);
+    font-weight: var(--dialog-title__font-weight);
     color: var(--dialog-title__text-color);
 
     :root[alignment-content="start"] & {
@@ -113,12 +134,11 @@
   }
 
   .dialog-description {
-    font-family: inherit;
-    font-size: 1rem;
-    line-height: 1.5rem;
-    letter-spacing: 0.03571428571em; /* 0.5 / 14 = 0.03571428571 */
-    font-weight: 500;
-
+    font-family: var(--dialog-description__font-family);
+    font-size: var(--dialog-description__font-size);
+    line-height: var(--dialog-description__line-height);
+    letter-spacing: var(--dialog-description__letter-spacing);
+    font-weight: var(--dialog-description__font-weight);
     color: var(--dialog-description__text-color);
 
     :root[alignment-content="start"] & {
