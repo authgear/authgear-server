@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/api"
 	handlerapi "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
+	handlersaml "github.com/authgear/authgear-server/pkg/auth/handler/saml"
 	handlersiwe "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
@@ -143,6 +144,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handleroauth.OAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(handleroauth.ConsentUserService), new(*user.Queries)),
 	ProvideOAuthMetadataProviders,
+
+	handlersaml.DependencySet,
 
 	handlerapi.DependencySet,
 	wire.Bind(new(handlerapi.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
