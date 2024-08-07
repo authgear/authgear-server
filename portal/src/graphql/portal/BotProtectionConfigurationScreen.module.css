@@ -103,6 +103,10 @@
   line-height: 1.5rem;
 }
 
-.flowConfigLabel {
+.requirementConfigLabelContainer {
+  @apply h-full flex items-center;
+}
+
+.requirementConfigLabel {
   font-weight: 600;
 }

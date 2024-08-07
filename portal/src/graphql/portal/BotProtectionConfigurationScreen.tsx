@@ -748,7 +748,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
       },
       [setRequirements]
     );
-    const onRenderFlowConfigLabel = useCallback(
+    const onRenderRequirementConfigLabel = useCallback(
       (
         item?: RequirementConfigListItem,
         _index?: number,
@@ -757,10 +757,9 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
         if (item == null) {
           return null;
         }
-        // FIXME: vertical center align text
         return (
-          <div>
-            <Text block={true} className={styles.flowConfigLabel}>
+          <div className={styles.requirementConfigLabelContainer}>
+            <Text block={true} className={styles.requirementConfigLabel}>
               {item.label}
             </Text>
           </div>
@@ -819,7 +818,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           key: "label",
           minWidth: 200,
           name: "",
-          onRender: onRenderFlowConfigLabel,
+          onRender: onRenderRequirementConfigLabel,
         },
         {
           key: "mode",
@@ -829,7 +828,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           onRender: onRenderDropdown,
         },
       ];
-    }, [onRenderDropdown, onRenderFlowConfigLabel]);
+    }, [onRenderDropdown, onRenderRequirementConfigLabel]);
 
     const setRequirementsFlowConfigs = useCallback(
       (
