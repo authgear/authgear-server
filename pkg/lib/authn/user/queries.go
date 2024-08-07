@@ -150,7 +150,7 @@ func (p *Queries) GetMany(ids []string, role accesscontrol.Role) (users []*model
 			customAttrs := customAttrsByUserID[rawUser.ID]
 			web3Info, web3err := p.Web3.GetWeb3Info(identities)
 			if web3err != nil {
-				return nil, err
+				return nil, web3err
 			}
 			roles := rolesByUserID[rawUser.ID]
 			roleKeys := make([]string, len(roles))
