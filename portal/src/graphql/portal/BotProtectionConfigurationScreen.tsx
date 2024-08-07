@@ -631,7 +631,7 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
       [setState]
     );
     return (
-      <>
+      <section className={styles.section}>
         <WidgetTitle>
           <FormattedMessage id="BotProtectionConfigurationScreen.challengeProvider.title" />
         </WidgetTitle>
@@ -660,7 +660,7 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
           providerConfigs={state.providerConfigs}
           providerType={state.providerType}
         />
-      </>
+      </section>
     )
   }
 export interface BotProtectionConfigurationContentProps {

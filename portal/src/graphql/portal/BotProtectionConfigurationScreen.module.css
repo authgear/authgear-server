@@ -16,7 +16,6 @@
 
   display: flex;
   flex-direction: column;
-  row-gap: 1rem;
 
   @apply mt-12;
 }
@@ -27,6 +26,12 @@
 
 .columnRight {
   grid-column: 5 / span 4;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  row-gap: 1rem;
 }
 
 .providerCardContainer {
