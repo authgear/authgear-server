@@ -25,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/ldap"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -222,6 +223,10 @@ type LoginIDService interface {
 	CheckAndNormalize(spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error)
 }
 
+type LDAPClientFactory interface {
+	Authenticate(serverName string, username string, password string) (*ldap.Entry, error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -254,6 +259,7 @@ type Dependencies struct {
 	PasskeyCreationOptionsService   PasskeyCreationOptionsService
 	PasskeyService                  PasskeyService
 	LoginIDs                        LoginIDService
+	LDAPClientFactory               LDAPClientFactory
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService
