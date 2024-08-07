@@ -32,57 +32,24 @@
     --dialog-title__text-color: var(--color-neutral-100);
     --dialog-description__text-color: var(--color-neutral-200);
   }
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
-  }
 
-  @keyframes fadeOut {
-    0% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.5;
-    }
-    100% {
-      opacity: 0;
-    }
-  }
-
-  @keyframes slideIn {
-    0% {
-      transform: translateY(100%);
-    }
-    100% {
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideOut {
-    0% {
-      transform: translateY(0);
-    }
-    100% {
-      transform: translateY(100%);
-    }
-  }
   .dialog {
     /* common styles */
     @apply fixed inset-0;
     @apply w-screen h-screen;
-    @apply hidden;
+    @apply flex;
     background-color: rgba(0, 0, 0, 0.5);
+
+    /* animation */
+    visibility: hidden;
+    opacity: 0;
     &.open {
-      @apply flex;
-      animation: fadeIn var(--dialog-fade-animation-duration) ease-in-out;
+      visibility: visible;
+      opacity: 1;
     }
-    &.close {
-      animation: fadeOut var(--dialog-fade-animation-duration) ease-in-out;
-    }
+    transition:
+      visibility var(--dialog-fade-animation-duration) ease-in-out,
+      opacity var(--dialog-fade-animation-duration) ease-in-out;
 
     /* mobile-specific styles */
     @apply flex-col;
@@ -98,14 +65,16 @@
     @apply p-4;
     @apply rounded-t-2xl;
     @apply h-min;
+
+    /* animation */
+    transform: translateY(100%);
+
+    transition: transform var(--dialog-slide-animation-duration) ease-in-out;
   }
 
   .dialog.open > .dialog-content {
-    animation: slideIn var(--dialog-slide-animation-duration) ease-in-out;
-  }
-
-  .dialog.close > .dialog-content {
-    animation: slideOut var(--dialog-slide-animation-duration) ease-in-out;
+    /* animation */
+    transform: translateY(0%);
   }
 
   .dialog-title-description {
@@ -165,10 +134,12 @@
       @apply rounded-2xl;
       @apply w-98;
       @apply p-5;
+
+      transform: none; /* slide animation only wanted on mobile */
     }
 
     .dialog.open > .dialog-content {
-      animation: none;
+      transform: none; /* slide animation only wanted on mobile */
     }
   }
 }
