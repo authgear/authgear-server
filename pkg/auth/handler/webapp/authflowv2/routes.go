@@ -321,10 +321,33 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 		panic(fmt.Errorf("unexpected identification: %v", identification))
 	}
 }
+
 func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
-	switch data := s.BranchStateTokenFlowResponse.Action.Data.(type) {
+	switch s.StateTokenFlowResponse.Action.Data.(type) {
+	case declarative.IntentCreateAuthenticatorTOTPData:
+		s.Advance(AuthflowV2RouteSetupTOTP, result)
+	case declarative.IntentLoginFlowStepCreateAuthenticatorData:
+		authentication := getTakenBranchLoginCreateAuthenticatorAuthentication(s)
+		switch authentication {
+		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			s.Advance(AuthflowV2RouteCreatePassword, result)
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			s.Advance(AuthflowV2RouteSetupOOBOTP, result)
+		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			s.Advance(AuthflowV2RouteSetupTOTP, result)
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			s.Advance(AuthflowV2RouteSetupOOBOTP, result)
+		default:
+			panic(fmt.Errorf("unexpected authentication: %v", s.StateTokenFlowResponse.Action.Authentication))
+		}
 	case declarative.StepAuthenticateData:
-		options := data.Options
+		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {
@@ -335,19 +358,8 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
-			case declarative.VerifyOOBOTPData:
-				switch data.OTPForm {
-				case otp.FormCode:
-					s.Advance(AuthflowV2RouteEnterOOBOTP, result)
-				case otp.FormLink:
-					s.Advance(AuthflowV2RouteOOBOTPLink, result)
-				default:
-					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
-				}
-			default:
-				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
-			}
+			// Action data type should be VerifyOOBOTPData
+			panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowV2RouteEnterTOTP, result)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -371,6 +383,7 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 		}
 	// Below code is only reachable if the step requires captcha, since VerifyBotProtection screen did not use TakeBranchResultInput to feed input
 	case declarative.VerifyOOBOTPData:
+		var data = s.StateTokenFlowResponse.Action.Data.(declarative.VerifyOOBOTPData)
 		switch data.OTPForm {
 		case otp.FormCode:
 			s.Advance(AuthflowV2RouteEnterOOBOTP, result)
@@ -383,6 +396,7 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 		panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
 	}
 }
+
 func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	if s.Screen.IsBotProtectionRequired {
 		s.Advance(AuthflowV2RouteVerifyBotProtection, result)
