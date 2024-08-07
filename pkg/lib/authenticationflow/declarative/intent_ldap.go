@@ -5,9 +5,7 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -68,11 +66,18 @@ func (i *IntentLDAP) CanReactTo(ctx context.Context, deps *authflow.Dependencies
 func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLDAP inputTakeLDAP
 	if authflow.AsInput(input, &inputTakeLDAP) {
-		// TODO()
-		// Authenticate with ldap server after (DEV-1720) is done
-		spec := &identity.Spec{
-			Type: model.IdentityTypeLDAP,
-			LDAP: &identity.LDAPSpec{},
+		entry, err := deps.LDAPClientFactory.Authenticate(
+			inputTakeLDAP.GetServer(),
+			inputTakeLDAP.GetUserIDAttributeValue(),
+			inputTakeLDAP.GetPassword(),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		spec, err := createIdentitySpecFromLDAPEntry(deps, inputTakeLDAP.GetServer(), entry)
+		if err != nil {
+			return nil, err
 		}
 
 		// UserID is the id we assign to new user
