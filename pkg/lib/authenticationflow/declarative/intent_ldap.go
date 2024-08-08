@@ -87,8 +87,8 @@ func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, f
 			return nil, err
 		}
 
-		// UserID is the id we assign to new user
-		// It is not the user id of an exsiting user
+		// NewUserID is the id we assign to new user
+		// It is not the user id of an existing user
 		// Sign up
 		if i.NewUserID != "" {
 			return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
