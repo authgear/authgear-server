@@ -10,7 +10,7 @@
     "prettier:format": "prettier --cache --write --list-different ./src ./packages",
     "eslint:format": "eslint --cache --fix './src/**/*.{js,ts}'",
     "stylelint:format": "stylelint --cache --fix './src/**/*.{css,scss}'",
-    "prettier": "prettier --cache --write --list-different ./src ./packages",
+    "prettier": "prettier --cache --list-different ./src ./packages",
     "eslint": "eslint --cache './src/**/*.{js,ts}'",
     "stylelint": "stylelint --cache './src/**/*.{css,scss}'",
     "build": "parcel build --no-cache 'src/*.html' --dist-dir ../resources/authgear/generated",
