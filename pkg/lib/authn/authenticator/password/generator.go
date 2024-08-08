@@ -48,19 +48,33 @@ var allCharacterSets = []characterSet{
 	characterSetSymbol,
 }
 
-func (s characterSet) Append(w io.Writer) {
+func (s characterSet) Append(w io.Writer) error {
 	switch s {
 	case characterSetLowercase:
-		w.Write([]byte(CharListLowercase))
+		if _, err := w.Write([]byte(CharListLowercase)); err != nil {
+			return err
+		}
 	case characterSetUppercase:
-		w.Write([]byte(CharListUppercase))
+		if _, err := w.Write([]byte(CharListUppercase)); err != nil {
+			return err
+		}
 	case characterSetAlphabet:
-		w.Write([]byte(CharListAlphabet))
+		if _, err := w.Write([]byte(CharListAlphabet)); err != nil {
+			return err
+		}
 	case characterSetDigit:
-		w.Write([]byte(CharListDigit))
+		if _, err := w.Write([]byte(CharListDigit)); err != nil {
+			return err
+		}
 	case characterSetSymbol:
-		w.Write([]byte(CharListSymbol))
+		if _, err := w.Write([]byte(CharListSymbol)); err != nil {
+			return err
+		}
+	default:
+		panic("invalid character set")
 	}
+
+	return nil
 }
 
 type RandSource interface {
@@ -112,8 +126,11 @@ func (g *Generator) Generate() (string, error) {
 }
 
 func (g *Generator) generate() (string, error) {
-	var charList = g.prepareCharList()
-	var minLength = g.getMinLength()
+	minLength := getMinLength(g.Policy)
+	charList, err := prepareCharacterSet(g.Policy)
+	if err != nil {
+		return "", err
+	}
 
 	var password strings.Builder
 	password.Grow(minLength)
@@ -173,41 +190,48 @@ func (g *Generator) generate() (string, error) {
 	return shuffled, nil
 }
 
-func (g *Generator) prepareCharList() string {
+func prepareCharacterSet(policy *config.PasswordPolicyConfig) (string, error) {
 	set := map[characterSet]struct{}{}
 
 	// Default to be alphanumeric.
 	set[characterSetAlphabet] = struct{}{}
 	set[characterSetDigit] = struct{}{}
 
-	if g.Policy.LowercaseRequired {
-		set[characterSetLowercase] = struct{}{}
-	}
-	if g.Policy.UppercaseRequired {
-		set[characterSetUppercase] = struct{}{}
-	}
-	if g.Policy.AlphabetRequired && !g.Policy.LowercaseRequired && !g.Policy.UppercaseRequired {
+	if policy.AlphabetRequired {
 		set[characterSetAlphabet] = struct{}{}
 	}
-	if g.Policy.DigitRequired {
+	if policy.LowercaseRequired {
+		set[characterSetLowercase] = struct{}{}
+		delete(set, characterSetAlphabet)
+	}
+	if policy.UppercaseRequired {
+		set[characterSetUppercase] = struct{}{}
+		delete(set, characterSetAlphabet)
+	}
+	if policy.DigitRequired {
 		set[characterSetDigit] = struct{}{}
 	}
-	if g.Policy.SymbolRequired {
+	if policy.SymbolRequired {
 		set[characterSetSymbol] = struct{}{}
 	}
 
 	var buf strings.Builder
 	for _, cs := range allCharacterSets {
 		if _, ok := set[cs]; ok {
-			cs.Append(&buf)
+			if err := cs.Append(&buf); err != nil {
+				return "", err
+			}
 		}
 	}
 
-	return buf.String()
+	return buf.String(), nil
 }
 
-func (g *Generator) getMinLength() int {
-	var minLength = *g.Policy.MinLength
+func getMinLength(policy *config.PasswordPolicyConfig) int {
+	var minLength = 0
+	if policy.MinLength != nil {
+		minLength = *policy.MinLength
+	}
 
 	// Ensure min length is at least the default.
 	if minLength < DefaultMinLength {
@@ -215,7 +239,7 @@ func (g *Generator) getMinLength() int {
 	}
 
 	// Override min length if guessable level is enabled to ensure the password is strong enough.
-	if g.Policy.MinimumGuessableLevel > 0 && minLength < GuessableEnabledMinLength {
+	if policy.MinimumGuessableLevel > 0 && minLength < GuessableEnabledMinLength {
 		minLength = GuessableEnabledMinLength
 	}
 

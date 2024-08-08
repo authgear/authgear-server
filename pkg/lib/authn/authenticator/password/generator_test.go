@@ -172,3 +172,102 @@ func TestExcludedKeywordsRequirement(t *testing.T) {
 		})
 	})
 }
+
+func TestPrepareCharacterSet(t *testing.T) {
+	Convey("Given a password policy config", t, func() {
+		Convey("When no specific requirements are set", func() {
+			policy := &config.PasswordPolicyConfig{}
+			result, _ := prepareCharacterSet(policy)
+			So(result, ShouldContainSubstring, CharListLowercase)
+			So(result, ShouldContainSubstring, CharListDigit)
+		})
+
+		Convey("When lowercase is required", func() {
+			policy := &config.PasswordPolicyConfig{LowercaseRequired: true}
+			result, _ := prepareCharacterSet(policy)
+			So(result, ShouldContainSubstring, CharListLowercase)
+		})
+
+		Convey("When uppercase is required", func() {
+			policy := &config.PasswordPolicyConfig{UppercaseRequired: true}
+			result, _ := prepareCharacterSet(policy)
+			So(result, ShouldContainSubstring, CharListUppercase)
+		})
+
+		Convey("When alphabet is required but not lowercase or uppercase", func() {
+			policy := &config.PasswordPolicyConfig{AlphabetRequired: true}
+			result, _ := prepareCharacterSet(policy)
+			So(result, ShouldContainSubstring, CharListAlphabet)
+		})
+
+		Convey("When digits are required", func() {
+			policy := &config.PasswordPolicyConfig{DigitRequired: true}
+			result, _ := prepareCharacterSet(policy)
+			So(result, ShouldContainSubstring, CharListDigit)
+		})
+
+		Convey("When symbols are required", func() {
+			policy := &config.PasswordPolicyConfig{SymbolRequired: true}
+			result, _ := prepareCharacterSet(policy)
+			So(result, ShouldContainSubstring, CharListSymbol)
+		})
+
+		Convey("When all character sets are required", func() {
+			policy := &config.PasswordPolicyConfig{
+				LowercaseRequired: true,
+				UppercaseRequired: true,
+				AlphabetRequired:  true,
+				DigitRequired:     true,
+				SymbolRequired:    true,
+			}
+			result, _ := prepareCharacterSet(policy)
+			So(result, ShouldContainSubstring, CharListLowercase)
+			So(result, ShouldContainSubstring, CharListUppercase)
+			So(result, ShouldContainSubstring, CharListDigit)
+			So(result, ShouldContainSubstring, CharListSymbol)
+			So(result, shouldNotContainDuplicates)
+		})
+	})
+}
+
+func shouldNotContainDuplicates(actual interface{}, expected ...interface{}) string {
+	set := map[characterSet]struct{}{}
+	for _, c := range actual.(string) {
+		set[characterSet(c)] = struct{}{}
+	}
+	if len(set) != len(actual.(string)) {
+		return "contains duplicates"
+	}
+	return ""
+}
+
+func TestGetMinLength(t *testing.T) {
+	Convey("Test getMinLength function", t, func() {
+		Convey("When MinLength is greater than DefaultMinLength and GuessableEnabledMinLength", func() {
+			minLength := 15
+			policy := &config.PasswordPolicyConfig{
+				MinLength:             &minLength,
+				MinimumGuessableLevel: 0,
+			}
+			So(getMinLength(policy), ShouldEqual, minLength)
+		})
+
+		Convey("When MinLength is less than DefaultMinLength", func() {
+			minLength := 5
+			policy := &config.PasswordPolicyConfig{
+				MinLength:             &minLength,
+				MinimumGuessableLevel: 0,
+			}
+			So(getMinLength(policy), ShouldEqual, DefaultMinLength)
+		})
+
+		Convey("When MinLength is less than GuessableEnabledMinLength and MinimumGuessableLevel is greater than 0", func() {
+			minLength := 10
+			policy := &config.PasswordPolicyConfig{
+				MinLength:             &minLength,
+				MinimumGuessableLevel: 1,
+			}
+			So(getMinLength(policy), ShouldEqual, GuessableEnabledMinLength)
+		})
+	})
+}
