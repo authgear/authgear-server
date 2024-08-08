@@ -99,6 +99,7 @@ type UserQueries interface {
 type UserCommands interface {
 	Create(userID string) (*user.User, error)
 	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
+	UpdateMFAEnrollment(userID string, gracePeriodEndAt *time.Time) error
 	Delete(userID string) error
 	Anonymize(userID string) error
 	AfterCreate(
@@ -1198,6 +1199,42 @@ func (c *Coordinator) UserCheckAnonymized(userID string) error {
 
 	if u.IsAnonymized {
 		return ErrUserIsAnonymized
+	}
+
+	return nil
+}
+
+func (c *Coordinator) UserUpdateMFAEnrollment(userID string, endAt *time.Time) error {
+	if endAt != nil {
+		// Cannot set grace period in the past or more than 90 days in the future.
+		if endAt.Before(c.Clock.NowUTC()) {
+			return ErrMFAGracePeriodInvalid
+		}
+
+		maxEndAt := c.Clock.NowUTC().AddDate(0, 0, 90)
+		if endAt.After(maxEndAt) {
+			return ErrMFAGracePeriodInvalid
+		}
+	}
+
+	err := c.UserCommands.UpdateMFAEnrollment(userID, endAt)
+	if err != nil {
+		return err
+	}
+
+	e := &nonblocking.UserSetMFAGracePeriodEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+		AdminAPI: true,
+		EndAt:    endAt,
+	}
+
+	err = c.Events.DispatchEventOnCommit(e)
+	if err != nil {
+		return err
 	}
 
 	return nil

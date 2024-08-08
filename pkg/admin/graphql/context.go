@@ -69,6 +69,7 @@ type UserFacade interface {
 	ScheduleAnonymization(id string) error
 	UnscheduleAnonymization(id string) error
 	Anonymize(id string) error
+	SetMFAGracePeriod(id string, endAt *time.Time) error
 }
 
 type RolesGroupsFacade interface {

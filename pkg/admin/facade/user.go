@@ -31,6 +31,7 @@ type UserService interface {
 	ScheduleAnonymizationByAdmin(userID string) error
 	UnscheduleAnonymizationByAdmin(userID string) error
 	CheckUserAnonymized(userID string) error
+	UpdateMFAEnrollment(userID string, endAt *time.Time) error
 }
 
 type UserSearchService interface {
@@ -249,5 +250,19 @@ func (f *UserFacade) Anonymize(id string) (err error) {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (f *UserFacade) SetMFAGracePeriod(id string, endAt *time.Time) error {
+	err := f.Users.CheckUserAnonymized(id)
+	if err != nil {
+		return err
+	}
+
+	err = f.Users.UpdateMFAEnrollment(id, endAt)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
