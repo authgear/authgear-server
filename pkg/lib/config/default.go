@@ -25,7 +25,8 @@ func SetFieldDefaults(value interface{}) {
 				field := v.Field(j)
 				ft := t.Field(j)
 				isNullable := ft.Tag.Get("nullable") == "true"
-				if !isNullable {
+				// NOTE: builtin structs e.g. time.Time have non-exported fields that cannot be set
+				if !isNullable && field.CanSet() {
 					set(ft.Type, field)
 				}
 			}

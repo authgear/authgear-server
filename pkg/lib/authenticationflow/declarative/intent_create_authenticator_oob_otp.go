@@ -64,9 +64,21 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 		return nil, err
 	}
 
-	oneOf := n.oneOf(objectForOneOf)
-	verificationRequired := oneOf.IsVerificationRequired()
-	targetStepName := oneOf.TargetStep
+	var verificationRequired bool
+	var targetStepName string
+
+	switch objectForOneOf.(type) {
+	case *config.AuthenticationFlowSignupFlowOneOf:
+		oneOf := objectForOneOf.(*config.AuthenticationFlowSignupFlowOneOf)
+		verificationRequired = oneOf.IsVerificationRequired()
+		targetStepName = oneOf.TargetStep
+	case *config.AuthenticationFlowLoginFlowOneOf:
+		oneOf := objectForOneOf.(*config.AuthenticationFlowLoginFlowOneOf)
+		verificationRequired = true
+		targetStepName = oneOf.TargetStep
+	default:
+		panic(fmt.Errorf("unexpected flow object: %T", objectForOneOf))
+	}
 
 	m, _, authenticatorSelected := authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticator](flows)
 	claimVerifiedAlready := false
@@ -124,9 +136,21 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 		return nil, err
 	}
 
-	oneOf := n.oneOf(objectForOneOf)
-	verificationRequired := oneOf.IsVerificationRequired()
-	targetStepName := oneOf.TargetStep
+	var verificationRequired bool
+	var targetStepName string
+
+	switch objectForOneOf.(type) {
+	case *config.AuthenticationFlowSignupFlowOneOf:
+		oneOf := objectForOneOf.(*config.AuthenticationFlowSignupFlowOneOf)
+		verificationRequired = oneOf.IsVerificationRequired()
+		targetStepName = oneOf.TargetStep
+	case *config.AuthenticationFlowLoginFlowOneOf:
+		oneOf := objectForOneOf.(*config.AuthenticationFlowLoginFlowOneOf)
+		verificationRequired = true
+		targetStepName = oneOf.TargetStep
+	default:
+		panic(fmt.Errorf("unexpected flow object: %T", objectForOneOf))
+	}
 
 	m, _, authenticatorSelected := authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticator](flows)
 	claimVerifiedAlready := false
@@ -191,15 +215,6 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 	}
 
 	return nil, authflow.ErrIncompatibleInput
-}
-
-func (n *IntentCreateAuthenticatorOOBOTP) oneOf(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowOneOf {
-	oneOf, ok := o.(*config.AuthenticationFlowSignupFlowOneOf)
-	if !ok {
-		panic(fmt.Errorf("flow object is %T", o))
-	}
-
-	return oneOf
 }
 
 func (i *IntentCreateAuthenticatorOOBOTP) otpMessageType() otp.MessageType {

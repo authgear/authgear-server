@@ -45,5 +45,11 @@ func (n *NodeDoCreateAuthenticator) GetEffects(ctx context.Context, deps *authfl
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			return deps.Authenticators.Create(n.Authenticator, false)
 		}),
+		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
+			if n.Authenticator.Kind != authenticator.KindSecondary {
+				return nil
+			}
+			return deps.Users.UpdateMFAEnrollment(n.Authenticator.UserID, nil)
+		}),
 	}, nil
 }

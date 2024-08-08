@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
 type IntentLoginFlowStepAuthenticateTarget interface {
@@ -131,6 +132,8 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
+	createAuthenticatorMilestones := authflow.FindAllMilestones[MilestoneFlowCreateAuthenticator](flows.Root)
+
 	switch {
 	case deviceTokenEnabled && !deviceTokenInspected:
 		// Inspect the device token
@@ -142,8 +145,10 @@ func (i *IntentLoginFlowStepAuthenticate) CanReactTo(ctx context.Context, deps *
 				return nil, authflow.ErrEOF
 			}
 
-			// Otherwise this step is NON-optional but have no options
-			return nil, api.ErrNoAuthenticator
+			if len(createAuthenticatorMilestones) > 0 {
+				// Skip this step if the user has just created authenticator.
+				return nil, authflow.ErrEOF
+			}
 		}
 
 		shouldBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
@@ -207,6 +212,27 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 		var inputTakeAuthenticationMethod inputTakeAuthenticationMethod
 		if authflow.AsInput(input, &inputTakeAuthenticationMethod) {
 			authentication := inputTakeAuthenticationMethod.GetAuthenticationMethod()
+
+			if len(i.Options) == 0 {
+				shouldCreateAuthenticator, err := i.canCreateAuthenticator(step, deps)
+				if err != nil {
+					return nil, err
+				}
+
+				if shouldCreateAuthenticator {
+					nextStep := &IntentLoginFlowStepCreateAuthenticator{
+						FlowReference:          i.FlowReference,
+						StepName:               step.Name,
+						JSONPointer:            i.JSONPointer,
+						UserID:                 i.UserID,
+						IsUpdatingExistingUser: true,
+					}
+					return authflow.NewSubFlow(nextStep), nil
+				} else {
+					// Otherwise this step is NON-optional but have no options
+					return nil, api.ErrNoAuthenticator
+				}
+			}
 
 			idx, err := i.getIndex(step, authentication)
 			if err != nil {
@@ -341,6 +367,29 @@ func (i *IntentLoginFlowStepAuthenticate) deviceTokenIndex(step *config.Authenti
 		}
 	}
 	return -1
+}
+
+func (i *IntentLoginFlowStepAuthenticate) canCreateAuthenticator(step *config.AuthenticationFlowLoginFlowStep, deps *authflow.Dependencies) (bool, error) {
+	if step.IsEnrollmentAllowed() {
+		return true, nil
+	}
+
+	authenticationConfig := deps.Config.Authentication
+	if authenticationConfig.SecondaryAuthenticationRollout != nil &&
+		authenticationConfig.SecondaryAuthenticationRollout.Enabled &&
+		(authenticationConfig.SecondaryAuthenticationRollout.EndAt == nil || authenticationConfig.SecondaryAuthenticationRollout.EndAt.After(deps.Clock.NowUTC())) {
+		return true, nil
+	}
+
+	user, err := deps.Users.Get(i.UserID, accesscontrol.RoleGreatest)
+	if err != nil {
+		return false, err
+	}
+	if user.MFAGracePeriodtEndAt != nil && deps.Clock.NowUTC().Before(*user.MFAGracePeriodtEndAt) {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (i *IntentLoginFlowStepAuthenticate) currentFlowObject(deps *authflow.Dependencies) (config.AuthenticationFlowObject, error) {

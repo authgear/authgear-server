@@ -1144,3 +1144,29 @@ config:
           name: custom_login_1
         - type: login
           name: default
+---
+name: secondary-authentication-rollout-valid-config
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    secondary_authentication_grace_period:
+      enabled: true
+      end_at: "2024-07-25T05:54:32.221Z"
+
+---
+name: secondary-authentication-rollout-invalid-since
+error: |-
+  invalid configuration:
+  /authentication/secondary_authentication_grace_period/end_at: format
+    map[error:date-time must be in rfc3999 format format:date-time]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  authentication:
+    secondary_authentication_grace_period:
+      enabled: true
+      end_at: "not-rfc3339"

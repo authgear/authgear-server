@@ -325,50 +325,75 @@ func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResp
 	case config.AuthenticationFlowStepTypeIdentify:
 		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteLogin)
 	case config.AuthenticationFlowStepTypeAuthenticate:
-		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
-		index := *s.Screen.TakenBranchIndex
-		option := options[index]
-		switch option.Authentication {
-		case config.AuthenticationFlowAuthenticationPrimaryPassword:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryPassword:
-			s.Advance(AuthflowV2RouteEnterPassword, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-			switch data := s.StateTokenFlowResponse.Action.Data.(type) {
-			case declarative.VerifyOOBOTPData:
-				switch data.OTPForm {
-				case otp.FormCode:
+		switch s.StateTokenFlowResponse.Action.Data.(type) {
+		case declarative.VerifyOOBOTPData:
+			var data = s.StateTokenFlowResponse.Action.Data.(declarative.VerifyOOBOTPData)
+			switch data.OTPForm {
+			case otp.FormCode:
+				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
+			case otp.FormLink:
+				s.Advance(AuthflowV2RouteOOBOTPLink, result)
+			default:
+				panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+			}
+			s.Advance(AuthflowV2RouteEnterOOBOTP, result)
+		case declarative.IntentCreateAuthenticatorTOTPData:
+			s.Advance(AuthflowV2RouteSetupTOTP, result)
+		case declarative.IntentLoginFlowStepCreateAuthenticatorData:
+			authentication := getTakenBranchLoginCreateAuthenticatorAuthentication(s)
+			switch authentication {
+			case config.AuthenticationFlowAuthenticationPrimaryPassword:
+				fallthrough
+			case config.AuthenticationFlowAuthenticationSecondaryPassword:
+				s.Advance(AuthflowV2RouteCreatePassword, result)
+			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+				fallthrough
+			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+				s.Advance(AuthflowV2RouteSetupOOBOTP, result)
+			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+				s.Advance(AuthflowV2RouteSetupTOTP, result)
+			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+				fallthrough
+			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+				s.Advance(AuthflowV2RouteSetupOOBOTP, result)
+			default:
+				panic(fmt.Errorf("unexpected authentication: %v", s.StateTokenFlowResponse.Action.Authentication))
+			}
+		case declarative.StepAuthenticateData:
+			options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
+			index := *s.Screen.TakenBranchIndex
+			option := options[index]
+			switch option.Authentication {
+			case config.AuthenticationFlowAuthenticationPrimaryPassword:
+				fallthrough
+			case config.AuthenticationFlowAuthenticationSecondaryPassword:
+				s.Advance(AuthflowV2RouteEnterPassword, result)
+			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+				fallthrough
+			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+				// Action data type should be VerifyOOBOTPData
+				panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
+			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+				s.Advance(AuthflowV2RouteEnterTOTP, result)
+			case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+				fallthrough
+			case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+				channel := s.Screen.TakenChannel
+				switch channel {
+				case model.AuthenticatorOOBChannelSMS:
 					s.Advance(AuthflowV2RouteEnterOOBOTP, result)
-				case otp.FormLink:
-					s.Advance(AuthflowV2RouteOOBOTPLink, result)
+				case model.AuthenticatorOOBChannelWhatsapp:
+					s.Advance(AuthflowV2RouteEnterOOBOTP, result)
 				default:
-					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+					panic(fmt.Errorf("unexpected channel: %v", channel))
 				}
+			case config.AuthenticationFlowAuthenticationRecoveryCode:
+				s.Advance(AuthflowV2RouteEnterRecoveryCode, result)
+			case config.AuthenticationFlowAuthenticationPrimaryPasskey:
+				s.Advance(AuthflowV2RouteUsePasskey, result)
 			default:
-				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
+				panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 			}
-		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-			s.Advance(AuthflowV2RouteEnterTOTP, result)
-		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-			fallthrough
-		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-			channel := s.Screen.TakenChannel
-			switch channel {
-			case model.AuthenticatorOOBChannelSMS:
-				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
-			case model.AuthenticatorOOBChannelWhatsapp:
-				s.Advance(AuthflowV2RouteEnterOOBOTP, result)
-			default:
-				panic(fmt.Errorf("unexpected channel: %v", channel))
-			}
-		case config.AuthenticationFlowAuthenticationRecoveryCode:
-			s.Advance(AuthflowV2RouteEnterRecoveryCode, result)
-		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
-			s.Advance(AuthflowV2RouteUsePasskey, result)
-		default:
-			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 		}
 	case config.AuthenticationFlowStepTypeCheckAccountStatus:
 		s.Advance(AuthflowV2RouteAccountStatus, result)
