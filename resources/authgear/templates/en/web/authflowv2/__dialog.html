@@ -1,0 +1,18 @@
+{{ define "authflowv2/__dialog.html" }}
+<div
+  class="dialog-backdrop"
+  role="dialog"
+  id="{{ $.DialogID }}"
+  data-controller="dialog {{ $.DialogControllerStr }}"
+  aria-modal="true"
+  data-action="click->dialog#closeOnBackgroundClick"
+  {{ template "dialog-attr" $.Ctx }}
+>
+  <div class="dialog">
+    <button class="close-btn" data-action="click->dialog#closeOnCrossBtnClick"></button>
+    {{ $.DialogContent }}
+  </div>
+</div>
+{{ end }}
+
+
