@@ -696,6 +696,8 @@ export type Mutation = {
   removeGroupFromRoles: RemoveGroupFromRolesPayload;
   /** Remove the group to the users. */
   removeGroupFromUsers: RemoveGroupToUsersPayload;
+  /** Revoke user grace period for MFA enrollment */
+  removeMFAGracePeriod: RemoveMfaGracePeriodPayload;
   /** Remove the role from the groups. */
   removeRoleFromGroups: RemoveRoleFromGroupsPayload;
   /** Remove the role to the users. */
@@ -718,6 +720,8 @@ export type Mutation = {
   sendResetPasswordMessage?: Maybe<Scalars['Boolean']['output']>;
   /** Set disabled status of user */
   setDisabledStatus: SetDisabledStatusPayload;
+  /** Grant user grace period for MFA enrollment */
+  setMFAGracePeriod: SetMfaGracePeriodPayload;
   /** Force user to change password on next login */
   setPasswordExpired: SetPasswordExpiredPayload;
   /** Set verified status of a claim of user */
@@ -847,6 +851,11 @@ export type MutationRemoveGroupFromUsersArgs = {
 };
 
 
+export type MutationRemoveMfaGracePeriodArgs = {
+  input: RemoveMfaGracePeriodInput;
+};
+
+
 export type MutationRemoveRoleFromGroupsArgs = {
   input: RemoveRoleFromGroupsInput;
 };
@@ -899,6 +908,11 @@ export type MutationSendResetPasswordMessageArgs = {
 
 export type MutationSetDisabledStatusArgs = {
   input: SetDisabledStatusInput;
+};
+
+
+export type MutationSetMfaGracePeriodArgs = {
+  input: SetMfaGracePeriodInput;
 };
 
 
@@ -1287,6 +1301,18 @@ export type SetDisabledStatusPayload = {
   user: User;
 };
 
+export type SetMfaGracePeriodInput = {
+  /** Indicate when will user's MFA grace period end */
+  endAt: Scalars['DateTime']['input'];
+  /** Target user ID */
+  userID: Scalars['ID']['input'];
+};
+
+export type SetMfaGracePeriodPayload = {
+  __typename?: 'SetMFAGracePeriodPayload';
+  user: User;
+};
+
 export type SetPasswordExpiredInput = {
   /** Indicate whether the user's password is expired. */
   expired: Scalars['Boolean']['input'];
@@ -1444,6 +1470,8 @@ export type User = Entity & Node & {
   lastLoginAt?: Maybe<Scalars['DateTime']['output']>;
   /** The list of login ids */
   loginIDs: Array<Identity>;
+  /** Indicate when will user's MFA grace period will end */
+  mfaGracePeriodEndAt?: Maybe<Scalars['DateTime']['output']>;
   /** The list of oauth connections */
   oauthConnections: Array<Identity>;
   /** The list of passkeys */
@@ -1566,3 +1594,13 @@ export enum UserSortBy {
   CreatedAt = 'CREATED_AT',
   LastLoginAt = 'LAST_LOGIN_AT'
 }
+
+export type RemoveMfaGracePeriodInput = {
+  /** Target user ID */
+  userID: Scalars['ID']['input'];
+};
+
+export type RemoveMfaGracePeriodPayload = {
+  __typename?: 'removeMFAGracePeriodPayload';
+  user: User;
+};
