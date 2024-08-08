@@ -66,7 +66,7 @@ type inputTakePasskeyAssertionResponse interface {
 
 type inputTakeLDAP interface {
 	GetServer() string
-	GetUserIDAttributeValue() string
+	GetUsername() string
 	GetPassword() string
 }
 
