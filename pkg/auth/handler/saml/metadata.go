@@ -12,7 +12,7 @@ import (
 func ConfigureMetadataRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("GET").
-		WithPathPattern("/saml2/metadata/:entity_id_b64")
+		WithPathPattern("/saml2/metadata/:service_provider_id")
 }
 
 type MetadataHandlerSAMLService interface {
@@ -25,23 +25,18 @@ type MetadataHandler struct {
 }
 
 func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	entityIDb64 := httproute.GetParam(r, "entity_id_b64")
-	entityID, err := saml.DecodeEntityIDURLComponent(entityIDb64)
-	if err != nil {
-		http.NotFound(rw, r)
-		return
-	}
-	_, ok := h.SAMLConfig.ResolveProvider(entityID)
+	serviceProviderId := httproute.GetParam(r, "service_provider_id")
+	_, ok := h.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
 		http.NotFound(rw, r)
 		return
 	}
 
 	metadataBytes := h.SAMLService.IdPMetadata().ToXMLBytes()
-	fileName := fmt.Sprintf("%s-metadata.xml", entityIDb64)
+	fileName := fmt.Sprintf("%s-metadata.xml", serviceProviderId)
 	rw.Header().Set("Content-Type", "application/samlmetadata+xml")
 	rw.Header().Set("content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
-	_, err = rw.Write(metadataBytes)
+	_, err := rw.Write(metadataBytes)
 	if err != nil {
 		panic(err)
 	}
