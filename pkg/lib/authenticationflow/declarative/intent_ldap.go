@@ -16,7 +16,7 @@ func init() {
 
 type IntentLDAP struct {
 	JSONPointer jsonpointer.T `json:"json_pointer,omitempty"`
-	UserID      string        `json:"user_id,omitempty"`
+	NewUserID   string        `json:"new_user_id,omitempty"`
 }
 
 var _ authflow.Intent = &IntentLDAP{}
@@ -90,10 +90,10 @@ func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, f
 		// UserID is the id we assign to new user
 		// It is not the user id of an exsiting user
 		// Sign up
-		if i.UserID != "" {
+		if i.NewUserID != "" {
 			return authflow.NewSubFlow(&IntentCheckConflictAndCreateIdenity{
 				JSONPointer: i.JSONPointer,
-				UserID:      i.UserID,
+				UserID:      i.NewUserID,
 				Request:     NewCreateLDAPIdentityRequest(spec),
 			}), nil
 		}
