@@ -138,7 +138,7 @@
 
     --typography-title-large__font-family: inherit;
     --typography-title-large__font-size: 1.5rem;
-    --typography-title-large__line-height: 2em;
+    --typography-title-large__line-height: 1.1428571429em; /* 32 / 28 = 1.1428571429 */
     --typography-title-large__letter-spacing: 0;
     --typography-title-large__font-weight: 700;
 
