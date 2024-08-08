@@ -5,6 +5,7 @@ import {
 } from "./botProtectionWidget";
 import { dispatchDialogClose, dispatchDialogOpen } from "../dialog";
 
+// Assume globally only have ONE single dialog
 const DIALOG_ID = "bot-protection-dialog";
 
 /**
@@ -29,11 +30,25 @@ export function dispatchBotProtectionDialogClose() {
  * - Specify id="bot-protection-dialog" to that dialog
  */
 export class BotProtectionDialogController extends Controller {
-  open = () => {
+  onOpenEnd = (e: Event) => {
+    if (!(e instanceof CustomEvent)) {
+      return;
+    }
+    if (e.detail.id !== DIALOG_ID) {
+      // event targets other dialog
+      return;
+    }
     dispatchBotProtectionWidgetEventRender();
   };
 
-  close = () => {
+  onCloseEnd = (e: Event) => {
+    if (!(e instanceof CustomEvent)) {
+      return;
+    }
+    if (e.detail.id !== DIALOG_ID) {
+      // event targets other dialog
+      return;
+    }
     dispatchBotProtectionWidgetEventUndoRender();
   };
 
@@ -42,12 +57,12 @@ export class BotProtectionDialogController extends Controller {
       console.error(`bot-protection-dialog must have id="${DIALOG_ID}"`);
       return;
     }
-    document.addEventListener(`dialog-${DIALOG_ID}:open`, this.open);
-    document.addEventListener(`dialog-${DIALOG_ID}:close`, this.close);
+    document.addEventListener(`dialog:opened`, this.onOpenEnd);
+    document.addEventListener(`dialog:closed`, this.onCloseEnd);
   }
 
   disconnect() {
-    document.removeEventListener(`dialog-${DIALOG_ID}:open`, this.open);
-    document.removeEventListener(`dialog-${DIALOG_ID}:close`, this.close);
+    document.removeEventListener(`dialog:opened`, this.onOpenEnd);
+    document.removeEventListener(`dialog:closed`, this.onCloseEnd);
   }
 }

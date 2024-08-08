@@ -1,28 +1,28 @@
-<div
-  class="dialog"
-  role="dialog"
-  id="bot-protection-dialog"
-  aria-labelledby="bot-protection-title"
-  data-controller="dialog bot-protection-dialog {{ template "web/authflowv2/__bot_protection_controller.html" . }}"
+{{ template "authflowv2/__dialog.html" (dict 
+  "Ctx" .
+  "DialogID" "bot-protection-dialog"
+  "DialogControllerStr" (include "dialog-controller-str" .)
+  "DialogContent" (include "dialog-content" .) 
+) }}
+
+{{ define "dialog-controller-str" }}
+bot-protection-dialog {{ template "web/authflowv2/__bot_protection_controller.html" . }}
+{{ end }}
+
+{{ define "dialog-attr" }}
   {{ template "web/authflowv2/__bot_protection_controller_attr.html" . }}
-  aria-modal="true"
-  tabindex="-1"
-  data-action="click->dialog#closeOnBackgroundClick"
->
-  <div class="dialog-content">
-    <div class="mb-2 flex flex-row justify-end p-1 h-3.5">
-      <button class="close-btn" data-action="click->bot-protection-dialog#close click->dialog#close"></button>
-    </div>
-    <div class="flex flex-col gap-y-8 flex-1-0-auto">
-      <header class="dialog-title-description">
-        <h1 class="dialog-title" id="bot-protection-title">
-          {{ template "v2-verify-bot-protection-header" }}
-        </h1>
-        <h2 class="dialog-description">
-          {{ template "v2-verify-bot-protection-label" }}
-        </h2>
-      </header>
-      {{ template "web/authflowv2/__bot_protection_widget.html" . }}
-    </div>
+{{ end }}
+
+{{ define "dialog-content" }}
+  <div class="flex flex-col gap-y-8 flex-1-0-auto">
+    <header class="dialog-title-description">
+      <h1 class="dialog-title" id="bot-protection-title">
+        {{ template "v2-verify-bot-protection-header" }}
+      </h1>
+      <h2 class="dialog-description">
+        {{ template "v2-verify-bot-protection-label" }}
+      </h2>
+    </header>
+    {{ template "web/authflowv2/__bot_protection_widget.html" . }}
   </div>
-</div>
+{{ end }}
