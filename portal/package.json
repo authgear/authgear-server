@@ -51,7 +51,7 @@
     "parcel": "2.10.2",
     "parcel-resolver-authgear": "1.0.0",
     "parcel-resolver-ignore": "2.2.0",
-    "prettier": "2.7.1",
+    "prettier": "2.8.8",
     "stylelint": "14.11.0",
     "tailwindcss": "3.3.5",
     "ts-jest": "29.1.1",

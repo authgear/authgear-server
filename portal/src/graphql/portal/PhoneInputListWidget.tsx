@@ -48,7 +48,7 @@ interface ListItem {
   disabled: boolean;
 }
 
-type Country = typeof ALL_COUNTRIES[number];
+type Country = (typeof ALL_COUNTRIES)[number];
 type CountryMap = Record<string, Country>;
 
 const COUNTRY_MAP: CountryMap = ALL_COUNTRIES.reduce<CountryMap>(
