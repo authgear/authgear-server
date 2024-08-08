@@ -319,6 +319,7 @@ const (
 	LDAPServerUserCredentialsKey               SecretKey = "ldap"
 
 	SAMLIdpSigningMaterialsKey SecretKey = "saml.idp.signing"
+	SAMLSpSigningMaterialsKey  SecretKey = "saml.service_providers.signing"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -363,6 +364,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
 	LDAPServerUserCredentialsKey:               {"LDAPServerUserCredentials", func() SecretItemData { return &LDAPServerUserCredentials{} }},
 	SAMLIdpSigningMaterialsKey:                 {"SAMLIdpSigningMaterials", func() SecretItemData { return &SAMLIdpSigningMaterials{} }},
+	SAMLSpSigningMaterialsKey:                  {"SAMLSpSigningMaterials", func() SecretItemData { return &SAMLSpSigningMaterials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
