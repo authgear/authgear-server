@@ -37,11 +37,8 @@ func (s *Service) idpEntityID() string {
 
 func (s *Service) IdPMetadata() *Metadata {
 
-	descriptor := crewjamsaml.EntityDescriptor{
+	descriptor := EntityDescriptor{
 		EntityID: s.idpEntityID(),
-		// We need this because `omitempty` does not work with time.Time, so it always output '0001-01-01T00:00:00Z'
-		// So give it a value
-		ValidUntil: s.Clock.NowUTC().Add(MetadataValidDuration),
 		IDPSSODescriptors: []crewjamsaml.IDPSSODescriptor{
 			{
 				SSODescriptor: crewjamsaml.SSODescriptor{
