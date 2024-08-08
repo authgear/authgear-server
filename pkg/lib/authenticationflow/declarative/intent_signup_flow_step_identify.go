@@ -161,6 +161,10 @@ func NewIntentSignupFlowStepIdentify(ctx context.Context, deps *authflow.Depende
 			// Do not support create passkey in signup because
 			// passkey is not considered as a persistent identifier.
 			break
+		case config.AuthenticationFlowIdentificationLDAP:
+			ldapOptions := NewIdentificationOptionLDAP(deps.Config.Identity.LDAP, b.BotProtection, deps.Config.BotProtection)
+			options = append(options, ldapOptions...)
+			break
 		}
 	}
 
@@ -262,6 +266,11 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			case config.AuthenticationFlowIdentificationPasskey:
 				// Cannot create passkey in this step.
 				return nil, authflow.ErrIncompatibleInput
+			case config.AuthenticationFlowIdentificationLDAP:
+				return authflow.NewSubFlow(&IntentLDAP{
+					JSONPointer: authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					NewUserID:   i.UserID,
+				}), nil
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput

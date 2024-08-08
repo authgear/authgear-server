@@ -84,16 +84,6 @@ func (c *Client) connect() (*ldap.Conn, error) {
 	return conn, nil
 }
 
-func (c *Client) bind(conn *ldap.Conn) error {
-	username := c.SecretConfig.DN
-	password := c.SecretConfig.Password
-	err := conn.Bind(username, password)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 func (c *Client) search(conn *ldap.Conn, searchFilter string) (*ldap.SearchResult, error) {
 	searchRequest := ldap.NewSearchRequest(
 		c.Config.BaseDN,
@@ -112,7 +102,7 @@ func (c *Client) search(conn *ldap.Conn, searchFilter string) (*ldap.SearchResul
 	return sr, nil
 }
 
-func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry, error) {
+func (c *Client) AuthenticateUser(username string, password string) (*Entry, error) {
 	conn, err := c.connect()
 	if err != nil {
 		return nil, err
@@ -120,9 +110,13 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 
 	defer conn.Close()
 
-	err = c.bind(conn)
-	if err != nil {
-		return nil, err
+	// If user doesn't provide a search userver DN and password
+	// We will do an anonymous search
+	if c.SecretConfig.DN != "" && c.SecretConfig.Password != "" {
+		err = conn.Bind(c.SecretConfig.DN, c.SecretConfig.Password)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	searchFilter, err := ldaputil.ParseFilter(c.Config.SearchFilterTemplate, username)
@@ -155,7 +149,20 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 		return nil, api.ErrInvalidCredentials
 	}
 
-	return sr.Entries[0], nil
+	entryAttributes := []*ldap.EntryAttribute{}
+	for _, attr := range entry.Attributes {
+		_, isSensitiveAttribute := sensitiveAttributes[attr.Name]
+		if !isSensitiveAttribute {
+			entryAttributes = append(entryAttributes, attr)
+		}
+	}
+
+	sensitizedEntry := &ldap.Entry{
+		DN:         userDN,
+		Attributes: entryAttributes,
+	}
+
+	return &Entry{sensitizedEntry}, nil
 }
 
 func (c *Client) TestConnection(username string) error {
@@ -166,7 +173,13 @@ func (c *Client) TestConnection(username string) error {
 
 	defer conn.Close()
 
-	err = c.bind(conn)
+	if c.SecretConfig.DN != "" && c.SecretConfig.Password != "" {
+		err = conn.Bind(c.SecretConfig.DN, c.SecretConfig.Password)
+		if err != nil {
+			return err
+		}
+	}
+
 	if err != nil {
 		if ldap.IsErrorWithCode(err, ldap.LDAPResultInvalidCredentials) {
 			return api.ErrLDAPFailedToBindSearchUser

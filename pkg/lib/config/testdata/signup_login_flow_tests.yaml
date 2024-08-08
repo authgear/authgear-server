@@ -25,7 +25,7 @@ error: |-
     map[actual:[foobar] expected:[mode] missing:[mode]]
   /steps/1/one_of/0/bot_protection/foobar: 
   /steps/1/one_of/0/identification: enum
-    map[actual:foobar expected:[email phone username oauth passkey]]
+    map[actual:foobar expected:[email phone username oauth passkey ldap]]
 value:
   name: id
   steps:

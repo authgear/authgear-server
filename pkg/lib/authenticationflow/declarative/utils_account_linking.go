@@ -326,6 +326,7 @@ type CreateIdentityRequest struct {
 
 	LoginID *CreateIdentityRequestLoginID `json:"login_id,omitempty"`
 	OAuth   *CreateIdentityRequestOAuth   `json:"oauth,omitempty"`
+	LDAP    *CreateIdentityRequestLDAP    `json:"ldap,omitempty"`
 }
 
 type CreateIdentityRequestOAuth struct {
@@ -334,6 +335,10 @@ type CreateIdentityRequestOAuth struct {
 }
 
 type CreateIdentityRequestLoginID struct {
+	Spec *identity.Spec `json:"spec,omitempty"`
+}
+
+type CreateIdentityRequestLDAP struct {
 	Spec *identity.Spec `json:"spec,omitempty"`
 }
 
@@ -351,6 +356,15 @@ func NewCreateLoginIDIdentityRequest(spec *identity.Spec) *CreateIdentityRequest
 	return &CreateIdentityRequest{
 		Type: model.IdentityTypeLoginID,
 		LoginID: &CreateIdentityRequestLoginID{
+			Spec: spec,
+		},
+	}
+}
+
+func NewCreateLDAPIdentityRequest(spec *identity.Spec) *CreateIdentityRequest {
+	return &CreateIdentityRequest{
+		Type: model.IdentityTypeLDAP,
+		LDAP: &CreateIdentityRequestLDAP{
 			Spec: spec,
 		},
 	}

@@ -210,6 +210,9 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 		case config.AuthenticationFlowIdentificationPasskey:
 			// Passkey was not handled by candidates.
 			break
+		case config.AuthenticationFlowIdentificationLDAP:
+			// TODO(DEV-1657)
+			break
 		}
 	}
 
@@ -367,6 +370,10 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 		}
 		candidates = append(candidates, candidate)
 	}
+
+	// TODO(DEV-1657)
+	// case config.AuthenticationFlowIdentificationLDAP:
+	//   break
 
 	return AuthflowViewModel{
 		IdentityCandidates: candidates,
