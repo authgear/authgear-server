@@ -24,7 +24,7 @@ export interface RateLimitConfig {
 // LoginIDKeyConfig
 
 export const loginIDKeyTypes = ["email", "phone", "username"] as const;
-export type LoginIDKeyType = typeof loginIDKeyTypes[number];
+export type LoginIDKeyType = (typeof loginIDKeyTypes)[number];
 
 export interface LoginIDKeyConfig {
   type: LoginIDKeyType;
@@ -74,9 +74,9 @@ export const oauthSSOProviderTypes = [
   "adfs",
   "wechat",
 ] as const;
-export type OAuthSSOProviderType = typeof oauthSSOProviderTypes[number];
+export type OAuthSSOProviderType = (typeof oauthSSOProviderTypes)[number];
 export const oauthSSOWeChatAppType = ["mobile", "web"] as const;
-export type OAuthSSOWeChatAppType = typeof oauthSSOWeChatAppType[number];
+export type OAuthSSOWeChatAppType = (typeof oauthSSOWeChatAppType)[number];
 export interface OAuthClaimConfig {
   required?: boolean;
 }
@@ -112,7 +112,7 @@ export const oauthSSOProviderItemKeys = [
   "wechat.mobile",
   "wechat.web",
 ] as const;
-export type OAuthSSOProviderItemKey = typeof oauthSSOProviderItemKeys[number];
+export type OAuthSSOProviderItemKey = (typeof oauthSSOProviderItemKeys)[number];
 
 export const createOAuthSSOProviderItemKey = (
   type: OAuthSSOProviderType,
@@ -145,7 +145,7 @@ export interface OAuthSSOConfig {
 // IdentityConflictConfig
 export const promotionConflictBehaviours = ["error", "login"] as const;
 export type PromotionConflictBehaviour =
-  typeof promotionConflictBehaviours[number];
+  (typeof promotionConflictBehaviours)[number];
 export const isPromotionConflictBehaviour = (
   value: unknown
 ): value is PromotionConflictBehaviour => {
@@ -177,7 +177,7 @@ export interface IdentityConfig {
 
 export const passwordPolicyGuessableLevels = [0, 1, 2, 3, 4, 5] as const;
 export type PasswordPolicyGuessableLevel =
-  typeof passwordPolicyGuessableLevels[number];
+  (typeof passwordPolicyGuessableLevels)[number];
 export const isPasswordPolicyGuessableLevel = (
   value: unknown
 ): value is PasswordPolicyGuessableLevel => {
@@ -267,7 +267,8 @@ export const primaryAuthenticatorTypes = [
   "oob_otp_sms",
   "passkey",
 ] as const;
-export type PrimaryAuthenticatorType = typeof primaryAuthenticatorTypes[number];
+export type PrimaryAuthenticatorType =
+  (typeof primaryAuthenticatorTypes)[number];
 export function isPrimaryAuthenticatorType(
   type: any
 ): type is PrimaryAuthenticatorType {
@@ -281,7 +282,7 @@ export const secondaryAuthenticatorTypes = [
   "totp",
 ] as const;
 export type SecondaryAuthenticatorType =
-  typeof secondaryAuthenticatorTypes[number];
+  (typeof secondaryAuthenticatorTypes)[number];
 export function isSecondaryAuthenticatorType(
   type: any
 ): type is SecondaryAuthenticatorType {
@@ -296,7 +297,7 @@ export const identityTypes = [
   "passkey",
   "siwe",
 ] as const;
-export type IdentityType = typeof identityTypes[number];
+export type IdentityType = (typeof identityTypes)[number];
 
 export const secondaryAuthenticationModes = [
   "disabled",
@@ -304,7 +305,7 @@ export const secondaryAuthenticationModes = [
   "required",
 ] as const;
 export type SecondaryAuthenticationMode =
-  typeof secondaryAuthenticationModes[number];
+  (typeof secondaryAuthenticationModes)[number];
 
 export interface RecoveryCodeConfig {
   disabled?: boolean;
@@ -338,11 +339,11 @@ export interface VerificationClaimsConfig {
 }
 
 export const verificationCriteriaList = ["any", "all"] as const;
-export type VerificationCriteria = typeof verificationCriteriaList[number];
+export type VerificationCriteria = (typeof verificationCriteriaList)[number];
 
 export const authenticatorEmailOTPModeList = ["code", "login_link"] as const;
 export type AuthenticatorEmailOTPMode =
-  typeof authenticatorEmailOTPModeList[number];
+  (typeof authenticatorEmailOTPModeList)[number];
 
 export const authenticatorPhoneOTPModeList = [
   "sms",
@@ -350,7 +351,7 @@ export const authenticatorPhoneOTPModeList = [
   "whatsapp",
 ] as const;
 export type AuthenticatorPhoneOTPMode =
-  typeof authenticatorPhoneOTPModeList[number];
+  (typeof authenticatorPhoneOTPModeList)[number];
 
 export const authenticatorPhoneOTPSMSModeList = ["sms", "whatsapp_sms"];
 
@@ -476,7 +477,7 @@ export const applicationTypes = [
   "confidential",
   "third_party_app",
 ] as const;
-export type ApplicationType = typeof applicationTypes[number];
+export type ApplicationType = (typeof applicationTypes)[number];
 
 // OAuthConfig
 export interface OAuthClientConfig {
@@ -578,7 +579,7 @@ export const customAttributeTypes = [
   "url",
   "country_code",
 ] as const;
-export type CustomAttributeType = typeof customAttributeTypes[number];
+export type CustomAttributeType = (typeof customAttributeTypes)[number];
 export function isCustomAttributeType(v: unknown): v is CustomAttributeType {
   // @ts-expect-error
   return typeof v === "string" && customAttributeTypes.includes(v);
@@ -1033,6 +1034,6 @@ export const botProtectionProviderTypes = [
   "recaptchav2",
 ] as const;
 export type BotProtectionProviderType =
-  typeof botProtectionProviderTypes[number];
+  (typeof botProtectionProviderTypes)[number];
 
 export type UIImplementation = "interaction" | "authflow" | "authflowv2";

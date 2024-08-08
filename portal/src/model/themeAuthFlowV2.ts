@@ -52,7 +52,7 @@ export const enum CSSVariable {
 export type CSSColor = string;
 
 export const AllAlignments = ["start", "center", "end"] as const;
-export type Alignment = typeof AllAlignments[number];
+export type Alignment = (typeof AllAlignments)[number];
 
 export type Hidden = "hidden";
 
@@ -61,7 +61,7 @@ export const AllBorderRadiusStyleTypes = [
   "rounded",
   "rounded-full",
 ] as const;
-export type BorderRadiusStyleType = typeof AllBorderRadiusStyleTypes[number];
+export type BorderRadiusStyleType = (typeof AllBorderRadiusStyleTypes)[number];
 
 export type BorderRadiusStyle =
   | {
