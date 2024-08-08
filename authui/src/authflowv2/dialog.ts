@@ -21,9 +21,9 @@ export function dispatchDialogClose(dialogID: string) {
 /**
  * Dispatch a custom event to publish target dialog open event
  */
-function dispatchDialogOpenEnd(dialogID: string) {
+function dispatchDialogOpenStart(dialogID: string) {
   document.dispatchEvent(
-    new CustomEvent(`dialog:opened`, { detail: { id: dialogID } })
+    new CustomEvent(`dialog:open-start`, { detail: { id: dialogID } })
   );
 }
 
@@ -32,7 +32,7 @@ function dispatchDialogOpenEnd(dialogID: string) {
  */
 function dispatchDialogCloseEnd(dialogID: string) {
   document.dispatchEvent(
-    new CustomEvent(`dialog:closed`, { detail: { id: dialogID } })
+    new CustomEvent(`dialog:close-end`, { detail: { id: dialogID } })
   );
 }
 
@@ -88,11 +88,11 @@ export class DialogController extends Controller {
     return !this.isOpened;
   }
 
-  openEnd = (e: Event) => {
+  openStart = (e: Event) => {
     const isVisibilityEvent =
       (e as TransitionEvent).propertyName === "visibility";
     if (isVisibilityEvent && this.isOpened) {
-      dispatchDialogOpenEnd(this.element.id);
+      dispatchDialogOpenStart(this.element.id);
     }
   };
 
@@ -120,14 +120,14 @@ export class DialogController extends Controller {
   connect() {
     document.addEventListener(`dialog:open`, this.open);
     document.addEventListener(`dialog:close`, this.close);
-    this.element.addEventListener("transitionend", this.openEnd);
+    this.element.addEventListener("transitionstart", this.openStart);
     this.element.addEventListener("transitionend", this.closeEnd);
   }
 
   disconnect() {
     document.removeEventListener(`dialog:open`, this.open);
     document.removeEventListener(`dialog:close`, this.close);
-    this.element.removeEventListener("transitionend", this.openEnd);
+    this.element.removeEventListener("transitionstart", this.openStart);
     this.element.removeEventListener("transitionend", this.closeEnd);
   }
 }
