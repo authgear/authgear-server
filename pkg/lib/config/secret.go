@@ -275,6 +275,10 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 		c.validateLDAPServerUserSecrets(ctx, appConfig.Identity.LDAP.Servers)
 	}
 
+	if len(appConfig.SAML.SAMLServiceProviders) > 0 {
+		c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+	}
+
 	return ctx.Error("invalid secrets")
 }
 
@@ -314,7 +318,7 @@ const (
 	WhatsappOnPremisesCredentialsKey           SecretKey = "whatsapp.on-premises"
 	LDAPServerUserCredentialsKey               SecretKey = "ldap"
 
-	SAMLIdpSigningSecretsKey SecretKey = "saml.idp.signing"
+	SAMLIdpSigningMaterialsKey SecretKey = "saml.idp.signing"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -358,7 +362,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	BotProtectionProviderCredentialsKey:        {"BotProtectionProviderCredentials", func() SecretItemData { return &BotProtectionProviderCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
 	LDAPServerUserCredentialsKey:               {"LDAPServerUserCredentials", func() SecretItemData { return &LDAPServerUserCredentials{} }},
-	SAMLIdpSigningSecretsKey:                   {"SAMLIdpSigningSecrets", func() SecretItemData { return &SAMLIdpSigningSecrets{} }},
+	SAMLIdpSigningMaterialsKey:                 {"SAMLIdpSigningMaterials", func() SecretItemData { return &SAMLIdpSigningMaterials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
