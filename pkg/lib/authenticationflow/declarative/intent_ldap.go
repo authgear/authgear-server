@@ -82,7 +82,7 @@ func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, f
 			return nil, err
 		}
 
-		spec, err := createIdentitySpecFromLDAPEntry(deps, inputTakeLDAP.GetServerName(), entry)
+		spec, err := createIdentitySpecFromLDAPEntry(deps, ldapServerConfig, entry)
 		if err != nil {
 			return nil, err
 		}
