@@ -180,5 +180,16 @@
 }
 
 .authenticatorEmpty {
+  margin-right: 200px;
+  color: #888888;
+}
+
+.authenticatorGrantGracePeriod {
+  font-size: 14px;
+  line-height: 20px;
+}
+.updateMFAGracePeriodContainer {
+  font-size: 14px;
+  line-height: 20px;
   color: #888888;
 }

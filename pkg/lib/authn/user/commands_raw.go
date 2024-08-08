@@ -48,6 +48,10 @@ func (c *RawCommands) UpdateLoginTime(userID string, loginAt time.Time) error {
 	return c.Store.UpdateLoginTime(userID, loginAt)
 }
 
+func (c *RawCommands) UpdateMFAEnrollment(userID string, endAt *time.Time) error {
+	return c.Store.UpdateMFAEnrollment(userID, endAt)
+}
+
 func (c *RawCommands) UpdateAccountStatus(userID string, accountStatus AccountStatus) error {
 	return c.Store.UpdateAccountStatus(userID, accountStatus)
 }

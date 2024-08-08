@@ -1,6 +1,8 @@
 package facade
 
 import (
+	"time"
+
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -76,4 +78,8 @@ func (u UserFacade) UnscheduleAnonymizationByAdmin(userID string) error {
 
 func (u UserFacade) CheckUserAnonymized(userID string) error {
 	return u.Coordinator.UserCheckAnonymized(userID)
+}
+
+func (u UserFacade) UpdateMFAEnrollment(userID string, endAt *time.Time) error {
+	return u.Coordinator.UserUpdateMFAEnrollment(userID, endAt)
 }

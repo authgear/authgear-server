@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"time"
+
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
@@ -236,6 +238,118 @@ var _ = registerMutationField(
 				},
 				Expired: isExpired,
 			})
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)
+
+var setMFAGracePeriodInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SetMFAGracePeriodInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID",
+		},
+		"endAt": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.DateTime),
+			Description: "Indicate when will user's MFA grace period end",
+		},
+	},
+})
+
+var setMFAGracePeriodPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "SetMFAGracePeriodPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"setMFAGracePeriod",
+	&graphql.Field{
+		Description: "Grant user grace period for MFA enrollment",
+		Type:        graphql.NewNonNull(setMFAGracePeriodPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(setMFAGracePeriodInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			endAt := input["endAt"].(time.Time)
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.SetMFAGracePeriod(userID, &endAt)
+			if err != nil {
+				return nil, err
+			}
+
+			return graphqlutil.NewLazyValue(map[string]interface{}{
+				"user": gqlCtx.Users.Load(userID),
+			}).Value, nil
+		},
+	},
+)
+
+var removeMFAGracePeriodInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "removeMFAGracePeriodInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"userID": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewNonNull(graphql.ID),
+			Description: "Target user ID",
+		},
+	},
+})
+
+var removeMFAGracePeriodPayload = graphql.NewObject(graphql.ObjectConfig{
+	Name: "removeMFAGracePeriodPayload",
+	Fields: graphql.Fields{
+		"user": &graphql.Field{
+			Type: graphql.NewNonNull(nodeUser),
+		},
+	},
+})
+
+var _ = registerMutationField(
+	"removeMFAGracePeriod",
+	&graphql.Field{
+		Description: "Revoke user grace period for MFA enrollment",
+		Type:        graphql.NewNonNull(removeMFAGracePeriodPayload),
+		Args: graphql.FieldConfigArgument{
+			"input": &graphql.ArgumentConfig{
+				Type: graphql.NewNonNull(removeMFAGracePeriodInput),
+			},
+		},
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			input := p.Args["input"].(map[string]interface{})
+
+			userNodeID := input["userID"].(string)
+			resolvedNodeID := relay.FromGlobalID(userNodeID)
+			if resolvedNodeID == nil || resolvedNodeID.Type != typeUser {
+				return nil, apierrors.NewInvalid("invalid user ID")
+			}
+			userID := resolvedNodeID.ID
+
+			gqlCtx := GQLContext(p.Context)
+
+			err := gqlCtx.UserFacade.SetMFAGracePeriod(userID, nil)
 			if err != nil {
 				return nil, err
 			}
