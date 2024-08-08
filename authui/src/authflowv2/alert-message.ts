@@ -11,7 +11,7 @@ export function handleAxiosError(e: unknown) {
   console.error(err);
 }
 
-function setErrorMessage(id: string) {
+export function setErrorMessage(id: string) {
   const e = new CustomEvent("alert-message:show-message", {
     detail: {
       id,

@@ -23,7 +23,7 @@ import { PhoneInputController } from "./authflowv2/phoneInput";
 import { CustomSelectController } from "./authflowv2/customSelect";
 import { CountdownController } from "./countdown";
 import { TextFieldController } from "./authflowv2/text-field";
-import { DialogController } from "./authflowv2/dialog";
+import { OverlayController } from "./authflowv2/overlay";
 import { CopyButtonController } from "./copy";
 import { AuthflowWebsocketController } from "./authflow_websocket";
 import { AuthflowPollingController } from "./authflow_polling";
@@ -39,6 +39,13 @@ import { BodyScrollLockController } from "./authflowv2/bodyScrollLock";
 import { ClickToSwitchController } from "./clickToSwitch";
 import { InlinePreviewController } from "./inline-preview";
 import { PreviewableResourceController } from "./previewable-resource";
+import { CloudflareTurnstileController } from "./authflowv2/botprotection/cloudflareTurnstile";
+import { RecaptchaV2Controller } from "./authflowv2/botprotection/recaptchav2";
+import { BotProtectionTokenInputController } from "./authflowv2/botprotection/botProtectionTokenInput";
+import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
+import { BotProtectionController } from "./authflowv2/botprotection/botProtection";
+import { BotProtectionDialogController } from "./authflowv2/botprotection/botProtectionDialog";
+import { DialogController } from "./authflowv2/dialog";
 
 axios.defaults.withCredentials = true;
 
@@ -84,6 +91,7 @@ Stimulus.register("copy-button", CopyButtonController);
 
 Stimulus.register("text-field", TextFieldController);
 Stimulus.register("dialog", DialogController);
+Stimulus.register("overlay", OverlayController);
 Stimulus.register("loading", LoadingController);
 Stimulus.register("new-password-field", NewPasswordFieldController);
 
@@ -104,5 +112,17 @@ Stimulus.register("body-scroll-lock", BodyScrollLockController);
 Stimulus.register("click-to-switch", ClickToSwitchController);
 Stimulus.register("inline-preview", InlinePreviewController);
 Stimulus.register("previewable-resource", PreviewableResourceController);
+Stimulus.register(
+  "bot-protection-token-input",
+  BotProtectionTokenInputController
+);
+Stimulus.register(
+  "bot-protection-standalone-button",
+  BotProtectionStandalonePageController
+);
+Stimulus.register("cloudflare-turnstile", CloudflareTurnstileController);
+Stimulus.register("recaptcha-v2", RecaptchaV2Controller);
+Stimulus.register("bot-protection", BotProtectionController);
+Stimulus.register("bot-protection-dialog", BotProtectionDialogController);
 
 injectCSSAttrs(document.documentElement);

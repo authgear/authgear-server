@@ -5,6 +5,9 @@ import "sort"
 func init() {
 	BuiltinLanguages = append(ManuallyLocalizedLanguages, MachineLocalizedLanguages...)
 	sort.Strings(BuiltinLanguages)
+	for _, lang := range AvailableLanguages {
+		AvailableLanguagesMap[lang] = struct{}{}
+	}
 }
 
 // BuiltinBaseLanguage is the default language. It is english.
@@ -44,6 +47,9 @@ var MachineLocalizedLanguages = []string{
 	"vi",
 	"zh-CN",
 }
+
+// AvailableLangagesMap is the set of available languages
+var AvailableLanguagesMap = map[string]struct{}{}
 
 // AvailableLanguages are the languages we recognize.
 var AvailableLanguages = []string{

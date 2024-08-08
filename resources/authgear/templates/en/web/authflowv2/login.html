@@ -15,6 +15,9 @@
   {{ $has_alternatives := false }}
   {{ $show_use_text_login_id_option := false }}
   {{ $show_use_phone_login_id_option := false }}
+  {{ $show_captcha_phone := false }}
+  {{ $show_captcha_email := false }}
+  {{ $show_captcha_username := false }}
   {{ range $.IdentityCandidates }}
     {{ if eq .type "oauth" }}
       {{ $has_alternatives = true }}
@@ -48,6 +51,14 @@
     {{ $show_text_input = true }}
   {{ end }}{{ end }}{{ end }}
 
+  {{ if $show_phone_input }}{{ if $.PhoneLoginIDBotProtectionRequired }}
+    {{ $show_captcha_phone = true  }}
+  {{ end }}{{ end }}
+
+  {{ if $show_text_input }}{{ if (or $.UsernameLoginIDBotProtectionRequired $.EmailLoginIDBotProtectionRequired )}}
+    {{ $show_captcha_email = true  }}
+    {{ $show_captcha_username = true  }}
+  {{ end }}{{ end }}
   {{ $appName := (translate "app.name" nil) }}
   {{ $clientName := or $.ClientName "null" }}
 
@@ -91,6 +102,9 @@
       class="flex flex-col gap-4 mt-8"
       method="post"
       novalidate
+      {{ if (or $show_captcha_phone $show_captcha_email $show_captcha_username)}}
+        data-action="submit->bot-protection#verifyFormSubmit"
+      {{ end }}
       data-controller="{{ $formController }}"
       data-retain-form-form-id-value="auth-form"
       data-turbo="false"
@@ -101,6 +115,9 @@
       {{ if (or $show_phone_input $show_text_input)}}
         <div data-controller="text-field" class="flex flex-col gap-2">
           {{ if $show_phone_input }}
+            {{ if $show_captcha_phone }}
+              {{ template "web/authflowv2/__bot_protection_form_input.html" . }}
+            {{ end }}
             {{ template "authflowv2/__phone_input.html"
               (dict
                 "Placeholder" (include "v2-placeholder-phone" nil)
@@ -122,6 +139,9 @@
           {{ end }}
 
           {{ if $show_text_input }}
+            {{ if (or $show_captcha_email $show_captcha_username) }}
+              {{ template "web/authflowv2/__bot_protection_form_input.html" . }}
+            {{ end }}
             <input
               data-text-field-target="input"
               class="block input w-full {{ if $display_input_error }}input--error{{end}}"

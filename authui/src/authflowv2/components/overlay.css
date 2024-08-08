@@ -1,0 +1,30 @@
+@layer components {
+  :root {
+    --overlay__bg-color: var(--color-surface-primary);
+  }
+
+  .overlay {
+    @apply absolute inset-0;
+
+    @apply hidden;
+    @apply flex-col;
+    @apply items-center;
+    @apply justify-center;
+
+    @apply px-6;
+    @apply py-8;
+
+    background-color: var(--overlay__bg-color);
+
+    &.open {
+      @apply flex;
+    }
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .overlay {
+      @apply px-6;
+      @apply py-6;
+    }
+  }
+}

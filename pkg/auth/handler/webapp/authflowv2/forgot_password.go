@@ -139,7 +139,8 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 		loginIDInputType = qLoginIDInputType
 	}
 
-	loginID := r.Form.Get("q_login_id")
+	qLoginID := r.Form.Get("q_login_id")
+	loginID := qLoginID
 
 	phoneLoginIDEnabled := false
 	emailLoginIDEnabled := false
@@ -159,6 +160,9 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 		requiresLoginIDInput = false
 	}
 
+	if qLoginID != "" && qLoginIDInputType.IsValid() {
+		requiresLoginIDInput = false
+	}
 	alternatives := deriveForgotPasswordAlternatives(
 		r,
 		loginIDInputType,
@@ -178,9 +182,10 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 }
 
 type AuthflowV2ForgotPasswordHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+	Controller        *handlerwebapp.AuthflowController
+	BaseViewModel     *viewmodels.BaseViewModeler
+	AuthflowViewModel *viewmodels.AuthflowViewModeler
+	Renderer          handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2ForgotPasswordHandler) GetData(
@@ -190,6 +195,10 @@ func (h *AuthflowV2ForgotPasswordHandler) GetData(
 	initialScreen *webapp.AuthflowScreenWithFlowResponse,
 	selectDestinationScreen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
+
+	// Put authflowViewModel first to avoid other fields of authflowViewModel override below
+	authflowViewModel := h.AuthflowViewModel.NewWithAccountRecoveryAuthflow(initialScreen.StateTokenFlowResponse, r)
+	viewmodels.Embed(data, authflowViewModel)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
@@ -241,6 +250,13 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 
 		inputs := h.makeInputs(screen, identification, loginID, 0)
 
+		for _, input := range inputs {
+			err = handlerwebapp.HandleAccountRecoveryIdentificationBotProtection(config.AuthenticationFlowAccountRecoveryIdentification(identification), screen.StateTokenFlowResponse, r.Form, input)
+			if err != nil {
+				return err
+			}
+		}
+
 		result, err := h.Controller.AdvanceWithInputs(r, s, screen, inputs, nil)
 		if errors.Is(err, otp.ErrInvalidWhatsappUser) {
 			// The code failed to send because it is not a valid whatsapp user
@@ -260,19 +276,7 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return nil
 	})
 
-	identification := r.URL.Query().Get("q_login_id_input_type")
-	loginID := r.URL.Query().Get("q_login_id")
-
-	var input interface{} = nil
-
-	if identification != "" && loginID != "" {
-		input = map[string]interface{}{
-			"identification": identification,
-			"login_id":       loginID,
-		}
-	}
-
-	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowTypeAccountRecovery, &handlers, input)
+	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowTypeAccountRecovery, &handlers, nil)
 }
 
 func (h *AuthflowV2ForgotPasswordHandler) fallbackToSMS(

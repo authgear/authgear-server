@@ -1,5 +1,7 @@
 account_circle
 account_circle_off
+animation
+api
 block
 box
 build
@@ -16,6 +18,7 @@ create
 css
 description
 details
+distance
 done
 download
 dropdown
@@ -23,6 +26,7 @@ email
 encrypted
 error
 event
+explicit
 face
 flag
 forward_to_inbox
@@ -112,6 +116,7 @@ visibility_off
 warning
 web
 weight
+widgets
 width
 window
 work

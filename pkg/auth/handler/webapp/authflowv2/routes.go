@@ -21,11 +21,12 @@ import (
 )
 
 const (
-	AuthflowV2RouteLogin         = "/login"
-	AuthflowV2RouteSignup        = "/signup"
-	AuthflowV2RoutePromote       = "/flows/promote_user"
-	AuthflowV2RouteReauth        = "/reauth"
-	AuthflowV2RouteSelectAccount = "/authflow/v2/select_account"
+	AuthflowV2RouteLogin               = "/login"
+	AuthflowV2RouteSignup              = "/signup"
+	AuthflowV2RoutePromote             = "/flows/promote_user"
+	AuthflowV2RouteReauth              = "/reauth"
+	AuthflowV2RouteSelectAccount       = "/authflow/v2/select_account"
+	AuthflowV2RouteVerifyBotProtection = "/authflow/v2/verify_bot_protection"
 	// AuthflowV2RouteSignupLogin is login because login page has passkey.
 	AuthflowV2RouteSignupLogin = AuthflowV2RouteLogin
 
@@ -73,6 +74,7 @@ const (
 type AuthflowV2NavigatorEndpointsProvider interface {
 	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
 	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
+	VerifyBotProtectionEndpointURL(uiImpl config.UIImplementation) *url.URL
 }
 
 type AuthflowV2NavigatorOAuthStateStore interface {
@@ -319,13 +321,10 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 		panic(fmt.Errorf("unexpected identification: %v", identification))
 	}
 }
-
-func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
-	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
-	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteLogin)
-	case config.AuthenticationFlowStepTypeAuthenticate:
-		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
+func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	switch data := s.BranchStateTokenFlowResponse.Action.Data.(type) {
+	case declarative.StepAuthenticateData:
+		options := data.Options
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		switch option.Authentication {
@@ -370,6 +369,30 @@ func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResp
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 		}
+	// Below code is only reachable if the step requires captcha, since VerifyBotProtection screen did not use TakeBranchResultInput to feed input
+	case declarative.VerifyOOBOTPData:
+		switch data.OTPForm {
+		case otp.FormCode:
+			s.Advance(AuthflowV2RouteEnterOOBOTP, result)
+		case otp.FormLink:
+			s.Advance(AuthflowV2RouteOOBOTPLink, result)
+		default:
+			panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
+		}
+	default:
+		panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
+	}
+}
+func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	if s.Screen.IsBotProtectionRequired {
+		s.Advance(AuthflowV2RouteVerifyBotProtection, result)
+		return
+	}
+	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
+	case config.AuthenticationFlowStepTypeIdentify:
+		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteLogin)
+	case config.AuthenticationFlowStepTypeAuthenticate:
+		n.navigateLoginStepAuthenticate(s, r, webSessionID, result)
 	case config.AuthenticationFlowStepTypeCheckAccountStatus:
 		s.Advance(AuthflowV2RouteAccountStatus, result)
 	case config.AuthenticationFlowStepTypeTerminateOtherSessions:
@@ -384,6 +407,10 @@ func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResp
 }
 
 func (n *AuthflowV2Navigator) navigateReauth(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	if s.Screen.IsBotProtectionRequired {
+		s.Advance(AuthflowV2RouteVerifyBotProtection, result)
+		return
+	}
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
 		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteReauth)
@@ -487,5 +514,10 @@ func (n *AuthflowV2Navigator) navigateAccountRecovery(s *webapp.AuthflowScreenWi
 
 func (n *AuthflowV2Navigator) NavigateSelectAccount(result *webapp.Result) {
 	url := n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+	result.RedirectURI = url.String()
+}
+
+func (n *AuthflowV2Navigator) NavigateVerifyBotProtection(result *webapp.Result) {
+	url := n.Endpoints.VerifyBotProtectionEndpointURL(n.UIConfig.Implementation)
 	result.RedirectURI = url.String()
 }

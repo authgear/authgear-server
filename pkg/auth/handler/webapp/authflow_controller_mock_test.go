@@ -419,3 +419,15 @@ func (mr *MockAuthflowNavigatorMockRecorder) NavigateSelectAccount(result interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateSelectAccount", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateSelectAccount), result)
 }
+
+// NavigateVerifyBotProtection mocks base method.
+func (m *MockAuthflowNavigator) NavigateVerifyBotProtection(result *webapp.Result) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NavigateVerifyBotProtection", result)
+}
+
+// NavigateVerifyBotProtection indicates an expected call of NavigateVerifyBotProtection.
+func (mr *MockAuthflowNavigatorMockRecorder) NavigateVerifyBotProtection(result interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateVerifyBotProtection", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateVerifyBotProtection), result)
+}

@@ -88,6 +88,11 @@ type BaseViewModel struct {
 
 	ShouldFocusInput bool
 	LogUnknownError  func(err map[string]interface{}) string
+
+	BotProtectionEnabled          bool
+	BotProtectionProviderType     string
+	BotProtectionProviderSiteKey  string
+	ResolvedBotProtectionLanguage string
 }
 
 func (m *BaseViewModel) SetError(err error) {
@@ -154,6 +159,7 @@ type BaseViewModeler struct {
 	ForgotPassword                    *config.ForgotPasswordConfig
 	Authentication                    *config.AuthenticationConfig
 	GoogleTagManager                  *config.GoogleTagManagerConfig
+	BotProtection                     *config.BotProtectionConfig
 	ErrorCookie                       ErrorCookie
 	Translations                      TranslationService
 	Clock                             clock.Clock
@@ -224,6 +230,15 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		}
 	}
 
+	bpProviderType := m.BotProtection.GetProviderType()
+	var bpLang string
+	switch bpProviderType {
+	case config.BotProtectionProviderTypeCloudflare:
+		bpLang = intl.ResolveCloudflareTurnstile(resolvedLanguageTag)
+	case config.BotProtectionProviderTypeRecaptchaV2:
+		bpLang = intl.ResolveRecaptchaV2(resolvedLanguageTag)
+	}
+
 	model := BaseViewModel{
 		ColorScheme:  webapp.GetColorScheme(r.Context()),
 		RequestURI:   r.URL.RequestURI(),
@@ -273,16 +288,20 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			}
 			return webapp.MakeURL(u, path, outQuery).String()
 		},
-		ForgotPasswordEnabled:       *m.ForgotPassword.Enabled,
-		PublicSignupDisabled:        m.Authentication.PublicSignupDisabled,
-		PageLoadedAt:                int(now),
-		FlashMessageType:            m.FlashMessage.Pop(r, rw),
-		ResolvedLanguageTag:         resolvedLanguageTag,
-		ResolvedCLDRLocale:          locale,
-		HTMLDir:                     htmlDir,
-		GoogleTagManagerContainerID: m.GoogleTagManager.ContainerID,
-		HasThirdPartyClient:         hasThirdPartyApp,
-		AuthUISentryDSN:             string(m.AuthUISentryDSN),
+		ForgotPasswordEnabled:         *m.ForgotPassword.Enabled,
+		PublicSignupDisabled:          m.Authentication.PublicSignupDisabled,
+		PageLoadedAt:                  int(now),
+		FlashMessageType:              m.FlashMessage.Pop(r, rw),
+		ResolvedLanguageTag:           resolvedLanguageTag,
+		ResolvedCLDRLocale:            locale,
+		HTMLDir:                       htmlDir,
+		GoogleTagManagerContainerID:   m.GoogleTagManager.ContainerID,
+		BotProtectionEnabled:          m.BotProtection.IsEnabled(),
+		BotProtectionProviderType:     string(bpProviderType),
+		BotProtectionProviderSiteKey:  m.BotProtection.GetSiteKey(),
+		ResolvedBotProtectionLanguage: bpLang,
+		HasThirdPartyClient:           hasThirdPartyApp,
+		AuthUISentryDSN:               string(m.AuthUISentryDSN),
 		AuthUIWindowMessageAllowedOrigins: func() string {
 			requestProto := httputil.GetProto(r, bool(m.TrustProxy))
 			processedAllowedOrgins := slice.Map(m.AuthUIWindowMessageAllowedOrigins, func(origin string) string {

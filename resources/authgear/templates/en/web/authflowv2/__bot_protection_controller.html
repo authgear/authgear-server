@@ -1,0 +1,5 @@
+{{ if (eq $.BotProtectionProviderType "cloudflare" ) }}
+  cloudflare-turnstile
+{{ else if (eq $.BotProtectionProviderType "recaptchav2" ) }}
+  recaptcha-v2
+{{ end }}

@@ -1,0 +1,12 @@
+{{/* Note the fixed heights. This is to prevent the div having height=0 before widget render, which may cause UI glitching after render.
+    - h-[65px] = 65px = height of cloudflare turnstile widgets ref https://developers.cloudflare.com/turnstile/get-started/client-side-rendering/#widget-size
+    - h-19 = 76px = height of recaptchav2 widgets ref https://www.google.com/recaptcha/api2/demo
+*/}}
+{{ if (eq $.BotProtectionProviderType "cloudflare" ) }}
+    <div class="flex justify-center h-[65px]" data-cloudflare-turnstile-target="widget"></div>
+{{ else if (eq $.BotProtectionProviderType "recaptchav2" ) }}
+    <div class="flex justify-center h-19" data-recaptcha-v2-target="widget"></div>
+{{ end }}
+<noscript>
+  {{ template "v2-bot-protection-noscript" }}
+</noscript>

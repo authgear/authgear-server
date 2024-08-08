@@ -40,6 +40,7 @@ type AuthflowEnterPasswordViewModel struct {
 	PasswordManagerUsername string
 	ForgotPasswordInputType string
 	ForgotPasswordLoginID   string
+	IsBotProtectionRequired bool
 }
 
 type AuthflowV2EnterPasswordHandler struct {
@@ -75,11 +76,15 @@ func NewAuthflowEnterPasswordViewModel(s *webapp.Session, screen *webapp.Authflo
 		}
 	}
 
+	// Ignore error, bpRequire would be false
+	bpRequired, _ := webapp.IsAuthenticateStepBotProtectionRequired(option.Authentication, screen.StateTokenFlowResponse)
+
 	return AuthflowEnterPasswordViewModel{
 		AuthenticationStage:     string(authenticationStage),
 		PasswordManagerUsername: passwordManagerUsername,
 		ForgotPasswordInputType: forgotPasswordInputType,
 		ForgotPasswordLoginID:   forgotPasswordLoginID,
+		IsBotProtectionRequired: bpRequired,
 	}
 }
 
@@ -157,6 +162,11 @@ func (h *AuthflowV2EnterPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			"authentication":       option.Authentication,
 			"password":             plainPassword,
 			"request_device_token": requestDeviceToken,
+		}
+
+		err = handlerwebapp.HandleAuthenticationBotProtection(option.Authentication, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)

@@ -25,6 +25,19 @@ func GetIdentificationOptions(f *authflow.FlowResponse) []declarative.Identifica
 	return options
 }
 
+// As IntentAccountRecoveryFlowStepIdentify has it's own IdentificationData type to narrow down Identification as {"email", "phone"},
+// we imitate the same logic in GetIdentificationOptions here
+func GetAccountRecoveryIdentificationOptions(f *authflow.FlowResponse) []declarative.AccountRecoveryIdentificationOption {
+	var options []declarative.AccountRecoveryIdentificationOption
+	switch data := f.Action.Data.(type) {
+	case declarative.IntentAccountRecoveryFlowStepIdentifyData:
+		options = data.Options
+	default:
+		panic(fmt.Errorf("unexpected type of data: %T", f.Action.Data))
+	}
+	return options
+}
+
 func GetMostAppropriateIdentification(f *authflow.FlowResponse, loginID string, loginIDInputType string) config.AuthenticationFlowIdentification {
 	// If loginIDInputType already tell us the login id type, return the corresponding type
 	switch loginIDInputType {
@@ -100,4 +113,15 @@ func GetMostAppropriateIdentification(f *authflow.FlowResponse, loginID string, 
 	}
 
 	return iden
+}
+
+func GetAuthenticationOptions(f *authflow.FlowResponse) []declarative.AuthenticateOptionForOutput {
+	var options []declarative.AuthenticateOptionForOutput
+	switch data := f.Action.Data.(type) {
+	case declarative.StepAuthenticateData:
+		options = data.Options
+	default:
+		panic(fmt.Errorf("unexpected type of data: %T", f.Action.Data))
+	}
+	return options
 }

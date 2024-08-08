@@ -77,6 +77,22 @@ type BotProtectionConfig struct {
 	Requirements *BotProtectionRequirements `json:"requirements,omitempty" nullable:"true"`
 }
 
+func (c *BotProtectionConfig) IsEnabled() bool {
+	return c != nil && c.Enabled && c.Provider != nil && c.Provider.Type != "" && c.Provider.SiteKey != ""
+}
+func (c *BotProtectionConfig) GetProviderType() BotProtectionProviderType {
+	if !c.IsEnabled() {
+		return ""
+	}
+	return c.Provider.Type
+}
+func (c *BotProtectionConfig) GetSiteKey() string {
+	if !c.IsEnabled() {
+		return ""
+	}
+	return c.Provider.SiteKey
+}
+
 type BotProtectionProvider struct {
 	Type    BotProtectionProviderType `json:"type,omitempty"`
 	SiteKey string                    `json:"site_key,omitempty"` // only for cloudflare, recaptchav2

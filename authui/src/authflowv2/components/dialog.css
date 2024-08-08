@@ -1,30 +1,164 @@
 @layer components {
   :root {
-    --dialog__bg-color: var(--color-surface-primary);
+    --dialog-content__bg-color: var(--color-surface-primary);
+
+    /* if you change these, change `dialog.ts` too */
+    --dialog-fade-animation-duration: 0.3s;
+    --dialog-slide-animation-duration: 0.3s;
+
+    --dialog-title__font-family: var(--typography-title-large__font-family);
+    --dialog-title__font-size: var(--typography-title-large__font-size);
+    --dialog-title__line-height: var(--typography-title-large__line-height);
+    --dialog-title__letter-spacing: var(
+      --typography-title-large__letter-spacing
+    );
+    --dialog-title__font-weight: var(--typography-title-large__font-weight);
+    --dialog-title__text-color: var(--color-neutral-700);
+
+    --dialog-description__font-family: var(
+      --typography-body-large__font-family
+    );
+    --dialog-description__font-size: var(--typography-body-large__font-size);
+    --dialog-description__line-height: var(
+      --typography-body-large__line-height
+    );
+    --dialog-description__letter-spacing: var(
+      --typography-body-large__letter-spacing
+    );
+    --dialog-description__font-weight: var(
+      --typography-body-large__font-weight
+    );
+    --dialog-description__text-color: var(--color-neutral-400);
+  }
+  :root.dark {
+    --dialog-title__text-color: var(--color-neutral-100);
+    --dialog-description__text-color: var(--color-neutral-200);
+  }
+
+  .dialog-backdrop {
+    /* common styles */
+    @apply fixed inset-0;
+    @apply w-screen h-screen;
+    @apply flex;
+    background-color: rgba(0, 0, 0, 0.5);
+
+    /* if you change these, change `dialog.ts` too */
+    visibility: hidden;
+    opacity: 0;
+    &.open {
+      visibility: visible;
+      opacity: 1;
+    }
+    transition: visibility var(--dialog-fade-animation-duration) ease-in-out,
+      opacity var(--dialog-fade-animation-duration) ease-in-out;
+
+    /* mobile-specific styles */
+    @apply flex-col;
+    @apply justify-end;
   }
 
   .dialog {
-    @apply absolute inset-0;
+    /* common styles */
+    background-color: var(--dialog-content__bg-color);
 
-    @apply hidden;
-    @apply flex-col;
-    @apply items-center;
-    @apply justify-center;
+    /* mobile-specific styles */
+    @apply w-screen;
+    @apply px-4 pb-4 pt-12;
+    @apply relative;
+    @apply rounded-t-2xl;
+    @apply h-min;
 
-    @apply px-6;
-    @apply py-8;
+    transform: translateY(100%);
+    /* if you change these, change `dialog.ts` too */
+    transition: transform var(--dialog-slide-animation-duration) ease-in-out;
+  }
 
-    background-color: var(--dialog__bg-color);
+  .dialog-backdrop.open > .dialog {
+    transform: translateY(0%);
+  }
 
-    &.open {
-      @apply flex;
+  .dialog-title-description {
+    @apply flex flex-col gap-2;
+  }
+
+  .dialog-title {
+    font-family: var(--dialog-title__font-family);
+    font-size: var(--dialog-title__font-size);
+    line-height: var(--dialog-title__line-height);
+    letter-spacing: var(--dialog-title__letter-spacing);
+    font-weight: var(--dialog-title__font-weight);
+    color: var(--dialog-title__text-color);
+
+    :root[alignment-content="start"] & {
+      @apply text-start;
+    }
+
+    :root[alignment-content="center"] & {
+      @apply text-center;
+    }
+
+    :root[alignment-content="end"] & {
+      @apply text-end;
     }
   }
 
+  .dialog-description {
+    font-family: var(--dialog-description__font-family);
+    font-size: var(--dialog-description__font-size);
+    line-height: var(--dialog-description__line-height);
+    letter-spacing: var(--dialog-description__letter-spacing);
+    font-weight: var(--dialog-description__font-weight);
+    color: var(--dialog-description__text-color);
+
+    :root[alignment-content="start"] & {
+      @apply text-start;
+    }
+
+    :root[alignment-content="center"] & {
+      @apply text-center;
+    }
+
+    :root[alignment-content="end"] & {
+      @apply text-end;
+    }
+  }
+
+  .close-btn {
+    /* close button icon distance to top/right edge = 21px 
+     * close button icon size = 14px
+     * close button button size = 44px
+     * Actual distance = [(14 / 2) + 21] - (44 / 2) = 6px
+     */
+    @apply absolute top-1.5 ltr:right-1.5 rtl:left-1.5;
+  }
+
   @media (min-width: theme("screens.tablet")) {
+    .dialog-backdrop {
+      @apply flex-col;
+      @apply items-center;
+      @apply justify-center;
+    }
+
     .dialog {
-      @apply px-6;
-      @apply py-6;
+      @apply rounded-2xl;
+      @apply w-98;
+      @apply px-5 pb-5 pt-13;
+      @apply relative;
+
+      transform: none; /* slide animation only wanted on mobile */
+    }
+
+    .dialog-backdrop.open > .dialog {
+      transform: none; /* slide animation only wanted on mobile */
+    }
+
+    .close-btn {
+      /* close button icon distance to top/right edge = 25px 
+       * close button icon size = 14px
+       * close button button size = 44px
+       * Actual distance = [(14 / 2) + 25] - (44 / 2) = 10px
+       */
+      @apply absolute top-2.5 ltr:right-2.5 rtl:left-2.5;
     }
   }
 }
