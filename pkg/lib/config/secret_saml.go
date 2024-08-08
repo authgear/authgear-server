@@ -1,6 +1,6 @@
 package config
 
-var _ = SecretConfigSchema.Add("SAMLIdpSigningSecrets", `
+var _ = SecretConfigSchema.Add("SAMLIdpSigningMaterials", `
 {
 	"type": "object",
 	"properties": {
@@ -15,13 +15,13 @@ var _ = SecretConfigSchema.Add("SAMLIdpSigningSecrets", `
 }
 `)
 
-type SAMLIdpSigningSecrets struct {
+type SAMLIdpSigningMaterials struct {
 	Certs []*SAMLIdpSigningCert `json:"certs,omitempty"`
 }
 
-var _ SecretItemData = &SAMLIdpSigningSecrets{}
+var _ SecretItemData = &SAMLIdpSigningMaterials{}
 
-func (s *SAMLIdpSigningSecrets) SensitiveStrings() []string {
+func (s *SAMLIdpSigningMaterials) SensitiveStrings() []string {
 	return nil
 }
 
