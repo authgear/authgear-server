@@ -473,7 +473,8 @@ The presence of this means you can sign up with a username.
 
 ```json
 {
-  "identification": "ldap"
+  "identification": "ldap",
+  "server_name": "ldap-server-1",
 }
 ```
 
@@ -482,9 +483,9 @@ The corresponding input is
 ```json
 {
   "identification": "ldap",
-  "server": "server_name",
-  "user_id_attribute_value": "johndoe",
-  "password": "a-secret-password"
+  "server": "ldap-server-1",
+  "username": "johndoe",
+  "password": "password"
 }
 ```
 
