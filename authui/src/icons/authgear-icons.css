@@ -5,8 +5,7 @@
 @font-face {
   font-family: "authgear-icons";
   src: url("./authgear-icons.eot");
-  src:
-    url("./authgear-icons.eot") format("embedded-opentype"),
+  src: url("./authgear-icons.eot") format("embedded-opentype"),
     url("./authgear-icons.woff") format("woff"),
     url("./authgear-icons.ttf") format("truetype"),
     url("./authgear-icons.svg") format("svg");
