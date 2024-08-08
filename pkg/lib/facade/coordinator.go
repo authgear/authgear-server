@@ -489,16 +489,19 @@ func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, u
 		return nil, api.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
 	}
 
+	var passwordSpec *authenticator.Spec
 	var authenticatorSpecs []*authenticator.Spec
 	for _, t := range authenticatorTypes {
 		switch t {
 		case model.AuthenticatorTypePassword:
-			spec, err := c.createPasswordAuthenticatorSpec(userID, password, generatePassword, setPasswordExpired)
+			var err error
+			passwordSpec, err = c.createPasswordAuthenticatorSpec(userID, password, generatePassword, setPasswordExpired)
 			if err != nil {
 				return nil, err
 			}
-			authenticatorSpecs = append(authenticatorSpecs, spec)
-
+			if passwordSpec != nil {
+				authenticatorSpecs = append(authenticatorSpecs, passwordSpec)
+			}
 		case model.AuthenticatorTypeOOBSMS:
 			spec := c.createOOBSMSAuthenticatorSpec(identityInfo, userID)
 			authenticatorSpecs = append(authenticatorSpecs, spec)
@@ -527,8 +530,8 @@ func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, u
 		return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
 	}
 
-	if sendPassword {
-		err := c.SendPassword.Send(userID, password, nonblocking.MessageTypeSendPasswordToNewUser)
+	if passwordSpec != nil && sendPassword {
+		err := c.SendPassword.Send(userID, passwordSpec.Password.PlainPassword, nonblocking.MessageTypeSendPasswordToNewUser)
 		if err != nil {
 			return nil, err
 		}
