@@ -12,10 +12,15 @@ func init() {
 	}
 }
 
+// Here are some well-known attributes' names.
 const (
-	AttributeNameEmail    = "mail"
-	AttributeNameMobile   = "mobile"
+	// Email is from https://datatracker.ietf.org/doc/html/rfc4524#section-2.16
+	AttributeNameEmail = "mail"
+	// Mobile phone is from https://datatracker.ietf.org/doc/html/rfc4524#section-2.18
+	AttributeNameMobile = "mobile"
+	// Username is from https://datatracker.ietf.org/doc/html/rfc4519#section-2.39
 	AttributeNameUsername = "uid"
+	// Password is from From https://datatracker.ietf.org/doc/html/rfc4519#section-2.41
 	AttributeNamePassword = "userPassword"
 )
 
