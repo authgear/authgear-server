@@ -315,6 +315,7 @@ export interface RecoveryCodeConfig {
 
 export interface MFAGlobalGracePeriodConfig {
   enabled?: boolean;
+  endAt?: string;
 }
 
 export interface DeviceTokenConfig {
