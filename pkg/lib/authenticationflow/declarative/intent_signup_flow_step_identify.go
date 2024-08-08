@@ -269,7 +269,7 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 			case config.AuthenticationFlowIdentificationLDAP:
 				return authflow.NewSubFlow(&IntentLDAP{
 					JSONPointer: authflow.JSONPointerForOneOf(i.JSONPointer, idx),
-					UserID:      i.UserID,
+					NewUserID:   i.UserID,
 				}), nil
 			}
 		}
