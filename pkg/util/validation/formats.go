@@ -1,7 +1,9 @@
 package validation
 
 import (
+	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"net/mail"
@@ -51,6 +53,7 @@ func init() {
 	jsonschemaformat.DefaultChecker["x_base64_url"] = FormatBase64URL{}
 	jsonschemaformat.DefaultChecker["x_re2_regex"] = FormatRe2Regex{}
 	jsonschemaformat.DefaultChecker["x_role_group_key"] = rolesgroupsutil.FormatKey{}
+	jsonschemaformat.DefaultChecker["x_x509_cert_pem"] = FormatX509CertPem{}
 }
 
 // FormatPhone checks if input is a phone number in E.164 format.
@@ -538,6 +541,26 @@ func (FormatRe2Regex) CheckFormat(value interface{}) error {
 
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+type FormatX509CertPem struct{}
+
+func (FormatX509CertPem) CheckFormat(value interface{}) error {
+	str, ok := value.(string)
+	if !ok {
+		return nil
+	}
+
+	block, _ := pem.Decode([]byte(str))
+	if block == nil {
+		return fmt.Errorf("invalid pem")
+	}
+
+	_, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		return fmt.Errorf("invalid x509 cert")
 	}
 	return nil
 }
