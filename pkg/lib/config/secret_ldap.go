@@ -14,6 +14,15 @@ type LDAPServerUserCredentials struct {
 	Items []LDAPServerUserCredentialsItem `json:"items,omitempty"`
 }
 
+func (c *LDAPServerUserCredentials) GetItemByServerName(serverName string) (*LDAPServerUserCredentialsItem, bool) {
+	for _, s := range c.Items {
+		if s.Name == serverName {
+			return &s, true
+		}
+	}
+	return nil, false
+}
+
 var _ = SecretConfigSchema.Add("LDAPServerUserCredentialsItem", `
 {
 	"type": "object",

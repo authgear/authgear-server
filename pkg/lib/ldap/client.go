@@ -102,7 +102,7 @@ func (c *Client) search(conn *ldap.Conn, searchFilter string) (*ldap.SearchResul
 	return sr, nil
 }
 
-func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry, error) {
+func (c *Client) AuthenticateUser(username string, password string) (*Entry, error) {
 	conn, err := c.connect()
 	if err != nil {
 		return nil, err
@@ -162,7 +162,7 @@ func (c *Client) AuthenticateUser(username string, password string) (*ldap.Entry
 		Attributes: entryAttributes,
 	}
 
-	return sensitizedEntry, nil
+	return &Entry{sensitizedEntry}, nil
 }
 
 func (c *Client) TestConnection(username string) error {

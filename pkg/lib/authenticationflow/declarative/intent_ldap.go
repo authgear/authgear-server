@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
@@ -66,8 +67,14 @@ func (i *IntentLDAP) CanReactTo(ctx context.Context, deps *authflow.Dependencies
 func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputTakeLDAP inputTakeLDAP
 	if authflow.AsInput(input, &inputTakeLDAP) {
-		entry, err := deps.LDAPClientFactory.Authenticate(
-			inputTakeLDAP.GetServerName(),
+		ldapServerConfig, ok := deps.Config.Identity.LDAP.GetServerConfig(inputTakeLDAP.GetServerName())
+		if !ok {
+			panic(fmt.Errorf("Unable to find ldap server config with server name %s", inputTakeLDAP.GetServerName()))
+		}
+
+		ldapClient := deps.LDAPClientFactory.MakeClient(ldapServerConfig)
+
+		entry, err := ldapClient.AuthenticateUser(
 			inputTakeLDAP.GetUsername(),
 			inputTakeLDAP.GetPassword(),
 		)

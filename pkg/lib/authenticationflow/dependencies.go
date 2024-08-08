@@ -223,7 +223,7 @@ type LoginIDService interface {
 }
 
 type LDAPClientFactory interface {
-	Authenticate(serverName string, username string, password string) (*ldap.Entry, error)
+	MakeClient(serverConfig *config.LDAPServerConfig) *ldap.Client
 }
 
 type Dependencies struct {
