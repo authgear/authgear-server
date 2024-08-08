@@ -1,0 +1,88 @@
+name: Signup with Bot Protection - Identify With Verify - Email - Missing Bot Protection Input
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - oob_otp_email
+    identity:
+      login_id:
+        keys:
+        - type: email
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+      requirements:
+        signup_or_login:
+          mode: never
+        oob_otp_email:
+          mode: always
+    verification:
+      claims:
+        email:
+          enabled: true
+          required: true
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "email"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "signup_bp_verify@example.com",
+        "bot_protection": {
+          "invalid_field": "invalid_value"
+        }
+      }
+    output: 
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid value",
+          "code": 400,
+          "info": {
+            "causes": [
+              "[[arrayof]]",
+              {
+                "details": {
+                  "actual": [
+                    "[[arrayof]]",
+                    "invalid_field"
+                  ],
+                  "missing": "[[array]]"
+                },
+                "kind": "required",
+                "location": "/bot_protection"
+              }
+            ]
+          }
+        }

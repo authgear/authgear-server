@@ -11,6 +11,22 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
+type CreateAuthenticatorOptionForOutput struct {
+	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
+
+	BotProtection *BotProtectionData `json:"bot_protection,omitempty"`
+	// OTPForm is specific to OOBOTP.
+	OTPForm otp.Form `json:"otp_form,omitempty"`
+	// Channels is specific to OOBOTP.
+	Channels []model.AuthenticatorOOBChannel `json:"channels,omitempty"`
+
+	// PasswordPolicy is specific to primary_password and secondary_password.
+	PasswordPolicy *PasswordPolicy `json:"password_policy,omitempty"`
+
+	// Target is specific to primary_oob_otp_email, primary_oob_otp_sms, secondary_oob_otp_email, secondary_oob_otp_sms.
+	Target *CreateAuthenticatorTarget `json:"target,omitempty"`
+}
+
 type CreateAuthenticatorOption struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 
@@ -163,6 +179,21 @@ func NewCreateAuthenticationOptions(
 		}
 	}
 	return options, nil
+}
+
+func (o *CreateAuthenticatorOption) ToOutput(ctx context.Context) CreateAuthenticatorOptionForOutput {
+	shdBypassBotProtection := ShouldExistingResultBypassBotProtectionRequirement(ctx)
+	if shdBypassBotProtection {
+		o.BotProtection = nil
+	}
+	return CreateAuthenticatorOptionForOutput{
+		Authentication: o.Authentication,
+		BotProtection:  o.BotProtection,
+		OTPForm:        o.OTPForm,
+		Channels:       o.Channels,
+		PasswordPolicy: o.PasswordPolicy,
+		Target:         o.Target,
+	}
 }
 
 func (o *CreateAuthenticatorOption) isBotProtectionRequired() bool {

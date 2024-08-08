@@ -1,0 +1,138 @@
+name: Signup with Bot Protection - Identify With Verify - Phone - Bot Protection Verification Success
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - oob_otp_sms
+    identity:
+      login_id:
+        keys:
+        - type: phone
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+      requirements:
+        signup_or_login:
+          mode: never
+        oob_otp_sms:
+          mode: always
+    verification:
+      claims:
+        phone:
+          enabled: true
+          required: true
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "phone"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85298765432",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "pass"
+        }
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "verify",
+            "data": {
+              "channels": [
+                "[[arrayof]]",
+                "[[string]]"
+              ],
+              "masked_claim_value": "+8529876****",
+              "type": "select_oob_otp_channels_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "channel": "sms"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "verify",
+            "data": {
+              "channel": "sms",
+              "code_length": 6,
+              "masked_claim_value": "+8529876****",
+              "otp_form": "code",
+              "type": "verify_oob_otp_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "code": "111111"
+      }
+    # Note bot protection is no longer required, since bot protection verification success in previous steps
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "primary_oob_otp_sms",
+                  "otp_form": "code",
+                  "target": {
+                    "masked_display_name": "+8529876****",
+                    "verification_required": false
+                  }
+                }
+              ],
+              "type": "create_authenticator_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_oob_otp_sms"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

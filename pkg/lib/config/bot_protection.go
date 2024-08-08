@@ -101,9 +101,20 @@ type BotProtectionRequirementsObject struct {
 	Mode BotProtectionRiskMode `json:"mode,omitempty"`
 }
 
+// NOTE: If you add any new BotProtectionRiskMode, please make corresponding changes in GetStricterBotProtectionRiskMode too
 type BotProtectionRiskMode string
 
 const (
 	BotProtectionRiskModeNever  BotProtectionRiskMode = "never"
 	BotProtectionRiskModeAlways BotProtectionRiskMode = "always"
 )
+
+func GetStricterBotProtectionRiskMode(rmA BotProtectionRiskMode, rmB BotProtectionRiskMode) BotProtectionRiskMode {
+	if rmA == BotProtectionRiskModeAlways || rmB == BotProtectionRiskModeAlways {
+		return BotProtectionRiskModeAlways
+	}
+
+	// Add more risk modes here
+
+	return BotProtectionRiskModeNever
+}

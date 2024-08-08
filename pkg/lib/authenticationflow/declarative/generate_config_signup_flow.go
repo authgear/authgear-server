@@ -70,7 +70,12 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 	}
 
 	for _, oneOf := range output {
-		oneOf.BotProtection = getBotProtectionRequirementsSignupOrLogin(cfg)
+		bp := getBotProtectionRequirementsSignupOrLogin(cfg)
+		if oneOf.BotProtection == nil {
+			oneOf.BotProtection = bp
+		} else {
+			oneOf.BotProtection = config.GetStrictestAuthFlowBotProtection(bp, oneOf.BotProtection)
+		}
 	}
 
 	return output
@@ -84,10 +89,13 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationEmail(cfg *config.AppCon
 	// Add verify step if necessary
 	if *cfg.Verification.Claims.Email.Enabled && *cfg.Verification.Claims.Email.Required {
 		oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
-			BotProtection: getBotProtectionRequirementsOOBOTPEmail(cfg),
-			Type:          config.AuthenticationFlowSignupFlowStepTypeVerify,
-			TargetStep:    stepName,
+			Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
+			TargetStep: stepName,
 		})
+		// Add bot protection to identify step if
+		//   1. verification is required
+		//   2. bot protection is required
+		oneOf.BotProtection = getBotProtectionRequirementsOOBOTPEmail(cfg)
 	}
 
 	// Add authenticate step primary if necessary
@@ -110,10 +118,13 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationPhone(cfg *config.AppCon
 	// Add verify step if necessary
 	if *cfg.Verification.Claims.PhoneNumber.Enabled && *cfg.Verification.Claims.PhoneNumber.Required {
 		oneOf.Steps = append(oneOf.Steps, &config.AuthenticationFlowSignupFlowStep{
-			BotProtection: getBotProtectionRequirementsOOBOTPSMS(cfg),
-			Type:          config.AuthenticationFlowSignupFlowStepTypeVerify,
-			TargetStep:    stepName,
+			Type:       config.AuthenticationFlowSignupFlowStepTypeVerify,
+			TargetStep: stepName,
 		})
+		// Add bot protection to identify step if
+		//   1. verification is required
+		//   2. bot protection is required
+		oneOf.BotProtection = getBotProtectionRequirementsOOBOTPSMS(cfg)
 	}
 
 	// Add authenticate step primary if necessary

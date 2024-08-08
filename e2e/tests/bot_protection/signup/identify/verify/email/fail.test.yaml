@@ -1,0 +1,73 @@
+name: Signup with Bot Protection - Identify With Verify - Email - Bot Protection Verify Failed
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - oob_otp_email
+    identity:
+      login_id:
+        keys:
+        - type: email
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+      requirements:
+        signup_or_login:
+          mode: never
+        oob_otp_email:
+          mode: always
+    verification:
+      claims:
+        email:
+          enabled: true
+          required: true
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "email"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "signup_bp_verify@example.com",
+        "bot_protection": {
+          "type": "cloudflare",
+          "response": "fail"
+        }
+      }
+    output: 
+      error: |
+        {
+          "name": "Forbidden",
+          "reason": "BotProtectionVerificationFailed",
+          "message": "bot protection verification failed",
+          "code": 403
+        }

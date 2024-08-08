@@ -1,0 +1,96 @@
+name: Signup with Bot Protection - Identify Without Verify - Username
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - type: username
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+      requirements:
+        signup_or_login:
+          mode: never
+        oob_otp_email:
+          mode: always
+        oob_otp_sms:
+          mode: always
+    verification:
+      claims:
+        email:
+          enabled: true
+          required: true
+        phone:
+          enabled: true
+          required: true
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    # bot_protection not required
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "username"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "signup_bp_un"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "create_authenticator",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "authentication": "primary_password",
+                  "password_policy": {
+                    "history": {
+                      "enabled": false
+                    },
+                    "minimum_length": 8
+                  }
+                }
+              ],
+              "type": "create_authenticator_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "new_password": "password"
+      }      
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

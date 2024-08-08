@@ -1,0 +1,88 @@
+name: Signup with Bot Protection - Identify With Verify - Phone - Missing Bot Protection Input
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - oob_otp_sms
+    identity:
+      login_id:
+        keys:
+        - type: phone
+    bot_protection:
+      enabled: true
+      provider:
+        type: cloudflare
+        site_key: dummy
+      requirements:
+        signup_or_login:
+          mode: never
+        oob_otp_sms:
+          mode: always
+    verification:
+      claims:
+        phone:
+          enabled: true
+          required: true
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "bot_protection": {
+                    "enabled": true,
+                    "provider": {
+                      "type": "cloudflare"
+                    }
+                  },
+                  "identification": "phone"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "phone",
+        "login_id": "+85298765432",
+        "bot_protection": {
+          "invalid_field": "invalid_value"
+        }
+      }
+    output: 
+      error: |
+        {
+          "name": "Invalid",
+          "reason": "ValidationFailed",
+          "message": "invalid value",
+          "code": 400,
+          "info": {
+            "causes": [
+              "[[arrayof]]",
+              {
+                "details": {
+                  "actual": [
+                    "[[arrayof]]",
+                    "invalid_field"
+                  ],
+                  "missing": "[[array]]"
+                },
+                "kind": "required",
+                "location": "/bot_protection"
+              }
+            ]
+          }
+        }
