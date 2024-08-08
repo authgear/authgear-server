@@ -160,7 +160,7 @@
     "Code": "{{ .Code }}は{{ template \"app.name\" }}の確認コードです。",
     "Disclaimer": "誰にも教えないでください。"
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "パスワードが変更されました。新しいパスワードはこちらです",
     "Body": "{{ template \"app.name\" }} のパスワードが管理者によって変更されました。",
     "Label": "新しいパスワード:",
@@ -170,7 +170,7 @@
     "Tip1": "• パスワードを他人に教えないでください。",
     "Tip2": "• オンラインアカウントごとに異なるパスワードを使用してください。"
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "パスワードが変更されました。新しいパスワードはこちらです",
     "Body": "{{ template \"app.name\" }} のパスワードが管理者によって変更されました。",
     "Label": "新しいパスワード:",
@@ -179,5 +179,23 @@
     "TipsHeader": "セキュリティに関するヒント:",
     "Tip1": "- パスワードを他人に教えないでください。",
     "Tip2": "- オンラインアカウントごとに異なるパスワードを使用してください。"
+  },
+  "SendPasswordToNewUser": {
+    "Title": "{{ template \"app.name\" }} アカウントの設定を始めましょう!",
+    "Body": "{{ template \"app.name\" }}にご参加いただき、大変嬉しく思います。アカウントを設定し、スタートするために必要な情報をお知らせします。",
+    "EmailLabel": "あなたの{{ template \"app.name\" }}アカウント:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "一時的なパスワード:",
+    "Password": "{{ .Password }}",
+    "Instruction": "メールアドレスと一時的なパスワードで{{ template \"app.name\" }}にログインしてください。ログイン後、パスワードを変更してください。"
+  },
+  "SendPasswordToNewUserTXT": {
+    "Title": "{{ template \"app.name\" }} アカウントの設定を始めましょう!",
+    "Body": "{{ template \"app.name\" }}にご参加いただき、大変嬉しく思います。アカウントを設定し、スタートするために必要な情報をお知らせします。",
+    "EmailLabel": "あなたの{{ template \"app.name\" }}アカウント:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "一時的なパスワード:",
+    "Password": "{{ .Password }}",
+    "Instruction": "メールアドレスと一時的なパスワードで{{ template \"app.name\" }}にログインしてください。ログイン後、パスワードを変更してください。"
   }
 }

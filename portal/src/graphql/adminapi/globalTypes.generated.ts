@@ -440,6 +440,10 @@ export type CreateUserInput = {
   definition: IdentityDefinition;
   /** Password for the user if required. */
   password?: InputMaybe<Scalars['String']['input']>;
+  /** Indicate whether to send the new password to the user. */
+  sendPassword?: InputMaybe<Scalars['Boolean']['input']>;
+  /** Indicate whether the user is required to change password on next login. */
+  setPasswordExpired?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type CreateUserPayload = {

@@ -5,15 +5,29 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
+type messageTemplateContext struct {
+	AppName  string
+	Email    string
+	Password string
+}
+
 var (
-	TemplateMessageChangePasswordTXT       = template.RegisterMessagePlainText("messages/change_password_email.txt")
-	TemplateMessageChangePasswordEmailHTML = template.RegisterMessageHTML("messages/change_password_email.html")
+	TemplateMessageSendPasswordToExistingUserTXT       = template.RegisterMessagePlainText("messages/send_password_to_existing_user_email.txt")
+	TemplateMessageSendPasswordToExistingUserEmailHTML = template.RegisterMessageHTML("messages/send_password_to_existing_user_email.html")
+
+	TemplateMessageSendPasswordToNewUserTXT       = template.RegisterMessagePlainText("messages/send_password_to_new_user_email.txt")
+	TemplateMessageSendPasswordToNewUserEmailHTML = template.RegisterMessageHTML("messages/send_password_to_new_user_email.html")
 )
 
 var (
-	messageChangePassword = &translation.MessageSpec{
-		Name:              "change-password",
-		TXTEmailTemplate:  TemplateMessageChangePasswordTXT,
-		HTMLEmailTemplate: TemplateMessageChangePasswordEmailHTML,
+	messageSendPasswordToExistingUser = &translation.MessageSpec{
+		Name:              "send-password-to-existing-user",
+		TXTEmailTemplate:  TemplateMessageSendPasswordToExistingUserTXT,
+		HTMLEmailTemplate: TemplateMessageSendPasswordToExistingUserEmailHTML,
+	}
+	messageSendPasswordToNewUser = &translation.MessageSpec{
+		Name:              "send-password-to-new-user",
+		TXTEmailTemplate:  TemplateMessageSendPasswordToNewUserTXT,
+		HTMLEmailTemplate: TemplateMessageSendPasswordToNewUserEmailHTML,
 	}
 )

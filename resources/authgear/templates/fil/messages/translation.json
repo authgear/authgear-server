@@ -160,7 +160,7 @@
     "Code": "Ang {{ .Code }} ay ang iyong {{ template \"app.name\" }} verification code.",
     "Disclaimer": "Huwag ibahagi ito sa sinuman."
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "Nabago na ang Iyong Password: Ito ang Iyong Bagong Password",
     "Body": "Nabago ng isang administrator ang iyong password para sa {{ template \"app.name\" }}.",
     "Label": "Ang iyong bagong password:",
@@ -170,7 +170,7 @@
     "Tip1": "• Huwag kailanman ibahagi ang iyong password sa kahit sino.",
     "Tip2": "• Gumamit ng natatanging password para sa bawat isa sa iyong mga online account."
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "Nabago na ang Iyong Password: Ito ang Iyong Bagong Password",
     "Body": "Nabago ng isang administrator ang iyong password para sa {{ template \"app.name\" }}.",
     "Label": "Ang iyong bagong password:",
@@ -179,5 +179,23 @@
     "TipsHeader": "Mga Tip sa Seguridad:",
     "Tip1": "- Huwag kailanman ibahagi ang iyong password sa kahit sino.",
     "Tip2": "- Gumamit ng natatanging password para sa bawat isa sa iyong mga online account."
+  },
+  "SendPasswordToNewUser": {
+    "Title": "Magsimula na Tayo sa Iyong {{ template \"app.name\" }} Account!",
+    "Body": "Kami ay masyadong na-excite na makasama ka sa {{ template \"app.name\" }}. Narito ang lahat ng kailangan mo upang ma-set up ang iyong account at makapagsimula.",
+    "EmailLabel": "Ang Iyong {{ template \"app.name\" }} Account:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Ang iyong pansamantalang password:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Mag-login sa {{ template \"app.name\" }} gamit ang iyong email at pansamantalang password. Pakibago ang iyong password pagkatapos mag-login."
+  },
+  "SendPasswordToNewUserTXT": {
+    "Title": "Magsimula na Tayo sa Iyong {{ template \"app.name\" }} Account!",
+    "Body": "Kami ay masyadong na-excite na makasama ka sa {{ template \"app.name\" }}. Narito ang lahat ng kailangan mo upang ma-set up ang iyong account at makapagsimula.",
+    "EmailLabel": "Ang Iyong {{ template \"app.name\" }} Account:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Ang iyong pansamantalang password:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Mag-login sa {{ template \"app.name\" }} gamit ang iyong email at pansamantalang password. Pakibago ang iyong password pagkatapos mag-login."
   }
 }

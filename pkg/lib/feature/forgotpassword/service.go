@@ -16,12 +16,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
-	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type Logger struct{ *log.Logger }
@@ -62,14 +59,6 @@ type OTPSender interface {
 	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
-type TranslationService interface {
-	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
-}
-
-type SenderService interface {
-	PrepareEmail(email string, msgType nonblocking.MessageType) (*messaging.EmailMessage, error)
-}
-
 type Service struct {
 	Logger        Logger
 	Config        *config.AppConfig
@@ -79,8 +68,7 @@ type Service struct {
 	Authenticators AuthenticatorService
 	OTPCodes       OTPCodeService
 	OTPSender      OTPSender
-	Sender         SenderService
-	Translation    TranslationService
+	PasswordSender Sender
 }
 
 type CodeKind string
@@ -494,68 +482,6 @@ func (s *Service) resetPassword(target string, otpState *otp.State, newPassword 
 	return nil
 }
 
-func (s *Service) getEmailList(userID string) ([]string, error) {
-	infos, err := s.Identities.ListByUser(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	var emails []string
-	for _, info := range infos {
-		if !info.Type.SupportsPassword() {
-			continue
-		}
-
-		standardClaims := info.IdentityAwareStandardClaims()
-		email := standardClaims[model.ClaimEmail]
-		if email != "" {
-			emails = append(emails, email)
-		}
-	}
-
-	return emails, nil
-}
-
-func (s *Service) sendPassword(userID string, password string) error {
-	emails, err := s.getEmailList(userID)
-	if err != nil {
-		return err
-	}
-
-	if len(emails) == 0 {
-		return ErrSendPasswordNoTarget
-	}
-
-	for _, email := range emails {
-		msg, err := s.Sender.PrepareEmail(email, nonblocking.MessageTypeChangePassword)
-		if err != nil {
-			return err
-		}
-
-		ctx := make(map[string]any)
-		template.Embed(ctx, map[string]interface{}{
-			"Password": password,
-		})
-
-		data, err := s.Translation.EmailMessageData(messageChangePassword, ctx)
-		if err != nil {
-			return err
-		}
-
-		msg.Sender = data.Sender
-		msg.ReplyTo = data.ReplyTo
-		msg.Subject = data.Subject
-		msg.TextBody = data.TextBody
-		msg.HTMLBody = data.HTMLBody
-
-		if err := msg.Send(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 type SetPasswordOptions struct {
 	UserID         string
 	PlainPassword  string
@@ -594,7 +520,7 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 			}
 
 			if options.SendPassword {
-				err = s.sendPassword(options.UserID, options.PlainPassword)
+				err = s.PasswordSender.Send(options.UserID, options.PlainPassword, nonblocking.MessageTypeSendPasswordToExistingUser)
 				if err != nil {
 					return
 				}
@@ -638,7 +564,7 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 		}
 
 		if options.SendPassword {
-			err = s.sendPassword(options.UserID, options.PlainPassword)
+			err = s.PasswordSender.Send(options.UserID, options.PlainPassword, nonblocking.MessageTypeSendPasswordToNewUser)
 			if err != nil {
 				return
 			}

@@ -160,7 +160,7 @@
     "Code": "{{ .Code }} is uw {{ template \"app.name\" }} verificatiecode.",
     "Disclaimer": "Deel het niet met iemand."
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "Uw wachtwoord is gewijzigd: hier is uw nieuwe wachtwoord",
     "Body": "Uw wachtwoord voor {{ template \"app.name\" }} is gewijzigd door een beheerder.",
     "Label": "Uw nieuwe wachtwoord:",
@@ -170,7 +170,7 @@
     "Tip1": "• Deel uw wachtwoord nooit met iemand anders.",
     "Tip2": "• Gebruik een uniek wachtwoord voor elk van uw online accounts."
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "Uw wachtwoord is gewijzigd: hier is uw nieuwe wachtwoord",
     "Body": "Uw wachtwoord voor {{ template \"app.name\" }} is gewijzigd door een beheerder.",
     "Label": "Uw nieuwe wachtwoord:",
@@ -179,5 +179,23 @@
     "TipsHeader": "Beveiligingstips:",
     "Tip1": "- Deel uw wachtwoord nooit met iemand anders.",
     "Tip2": "- Gebruik een uniek wachtwoord voor elk van uw online accounts."
+  },
+  "SendPasswordToNewUser": {
+    "Title": "Laten we beginnen met uw {{ template \"app.name\" }} account!",
+    "Body": "We zijn enthousiast dat u aan boord bent bij {{ template \"app.name\" }}. Hier is alles wat u nodig heeft om uw account in te stellen en aan de slag te gaan.",
+    "EmailLabel": "Uw {{ template \"app.name\" }} account:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Uw tijdelijke wachtwoord:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Log in op {{ template \"app.name\" }} met uw e-mail en tijdelijk wachtwoord. Wijzig uw wachtwoord na het inloggen."
+  },
+  "SendPasswordToNewUserTXT": {
+    "Title": "Laten we beginnen met uw {{ template \"app.name\" }} account!",
+    "Body": "We zijn enthousiast dat u aan boord bent bij {{ template \"app.name\" }}. Hier is alles wat u nodig heeft om uw account in te stellen en aan de slag te gaan.",
+    "EmailLabel": "Uw {{ template \"app.name\" }} account:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Uw tijdelijke wachtwoord:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Log in op {{ template \"app.name\" }} met uw e-mail en tijdelijk wachtwoord. Wijzig uw wachtwoord na het inloggen."
   }
 }

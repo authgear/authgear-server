@@ -2,6 +2,7 @@ package facade
 
 import (
 	"errors"
+	"time"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
@@ -85,6 +86,10 @@ type MFAService interface {
 	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 }
 
+type SendPasswordService interface {
+	Send(userID string, password string, msgType nonblocking.MessageType) error
+}
+
 type UserQueries interface {
 	GetRaw(userID string) (*user.User, error)
 	Get(userID string, role accesscontrol.Role) (*model.User, error)
@@ -145,6 +150,7 @@ type Coordinator struct {
 	Authenticators             AuthenticatorService
 	Verification               VerificationService
 	MFA                        MFAService
+	SendPassword               SendPasswordService
 	UserCommands               UserCommands
 	UserQueries                UserQueries
 	RolesGroupsCommands        RolesGroupsCommands
@@ -425,7 +431,12 @@ func (c *Coordinator) AuthenticatorVerifyOneWithSpec(userID string, authenticato
 	return
 }
 
-func (c *Coordinator) UserCreatebyAdmin(identitySpec *identity.Spec, password string) (*user.User, error) {
+func (c *Coordinator) UserCreatebyAdmin(
+	identitySpec *identity.Spec,
+	password string,
+	sendPassword bool,
+	setPasswordExpired bool,
+) (*user.User, error) {
 	// 1. Create user
 	userID := uuid.New()
 	user, err := c.UserCommands.Create(userID)
@@ -452,9 +463,16 @@ func (c *Coordinator) UserCreatebyAdmin(identitySpec *identity.Spec, password st
 	}
 
 	// 3. Create primary authenticators
-	authenticatorInfos, err := c.createPrimaryAuthenticators(identityInfo, userID, password)
+	authenticatorInfos, err := c.createPrimaryAuthenticators(identityInfo, userID, password, setPasswordExpired)
 	if err != nil {
 		return nil, err
+	}
+
+	if sendPassword {
+		err = c.SendPassword.Send(userID, password, nonblocking.MessageTypeSendPasswordToNewUser)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := c.UserCommands.AfterCreate(
@@ -469,7 +487,7 @@ func (c *Coordinator) UserCreatebyAdmin(identitySpec *identity.Spec, password st
 	return user, nil
 }
 
-func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, userID string, password string) ([]*authenticator.Info, error) {
+func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, userID string, password string, setPasswordExpired bool) ([]*authenticator.Info, error) {
 	authenticatorTypes := *c.AuthenticationConfig.PrimaryAuthenticators
 	if len(authenticatorTypes) == 0 {
 		return nil, api.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
@@ -480,6 +498,12 @@ func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, u
 		switch t {
 		case model.AuthenticatorTypePassword:
 			if password != "" {
+				var expireAfter *time.Time
+				if setPasswordExpired {
+					expireAt := c.Clock.NowUTC()
+					expireAfter = &expireAt
+				}
+
 				authenticatorSpecs = append(authenticatorSpecs, &authenticator.Spec{
 					UserID:    userID,
 					IsDefault: true,
@@ -487,6 +511,7 @@ func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, u
 					Type:      model.AuthenticatorTypePassword,
 					Password: &authenticator.PasswordSpec{
 						PlainPassword: password,
+						ExpireAfter:   expireAfter,
 					},
 				})
 			}

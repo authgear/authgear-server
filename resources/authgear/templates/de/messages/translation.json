@@ -160,7 +160,7 @@
     "Code": "{{ .Code }} ist Ihr {{ template \"app.name\" }} Verifizierungscode.",
     "Disclaimer": "Geben Sie es niemandem weiter."
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "Ihr Passwort wurde geändert: Hier ist Ihr neues Passwort",
     "Body": "Ihr Passwort für {{ template \"app.name\" }} wurde von einem Administrator geändert.",
     "Label": "Ihr neues Passwort:",
@@ -170,7 +170,7 @@
     "Tip1": "• Geben Sie Ihr Passwort niemals an andere weiter.",
     "Tip2": "• Verwenden Sie für jedes Ihrer Online-Konten ein einzigartiges Passwort."
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "Ihr Passwort wurde geändert: Hier ist Ihr neues Passwort",
     "Body": "Ihr Passwort für {{ template \"app.name\" }} wurde von einem Administrator geändert.",
     "Label": "Ihr neues Passwort:",
@@ -179,5 +179,23 @@
     "TipsHeader": "Sicherheitstipps:",
     "Tip1": "- Geben Sie Ihr Passwort niemals an andere weiter.",
     "Tip2": "- Verwenden Sie für jedes Ihrer Online-Konten ein einzigartiges Passwort."
+  },
+  "SendPasswordToNewUser": {
+    "Title": "Lass uns mit deinem {{ template \"app.name\" }} Konto loslegen!",
+    "Body": "Wir freuen uns, dass du bei {{ template \"app.name\" }} dabei bist. Hier ist alles, was du brauchst, um dein Konto einzurichten und loszulegen.",
+    "EmailLabel": "Dein {{ template \"app.name\" }} Konto:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Dein temporäres Passwort:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Melde dich bei {{ template \"app.name\" }} mit deiner E-Mail-Adresse und deinem temporären Passwort an. Bitte ändere dein Passwort nach der Anmeldung."
+  },
+  "SendPasswordToNewUserTXT": {
+    "Title": "Lass uns mit deinem {{ template \"app.name\" }} Konto loslegen!",
+    "Body": "Wir freuen uns, dass du bei {{ template \"app.name\" }} dabei bist. Hier ist alles, was du brauchst, um dein Konto einzurichten und loszulegen.",
+    "EmailLabel": "Dein {{ template \"app.name\" }} Konto:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "Dein temporäres Passwort:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Melde dich bei {{ template \"app.name\" }} mit deiner E-Mail-Adresse und deinem temporären Passwort an. Bitte ändere dein Passwort nach der Anmeldung."
   }
 }

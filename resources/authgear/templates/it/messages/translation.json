@@ -160,7 +160,7 @@
     "Code": "{{ .Code }} è il tuo codice di verifica di {{ template \"app.name\" }}.",
     "Disclaimer": "Non condividerlo con nessuno."
   },
-  "ChangePassword": {
+  "SendPasswordToExistingUser": {
     "Title": "La Tua Password È Stata Modificata: Ecco la Tua Nuova Password",
     "Body": "La tua password per {{ template \"app.name\" }} è stata modificata da un amministratore.",
     "Label": "La tua nuova password:",
@@ -170,7 +170,7 @@
     "Tip1": "• Non condividere mai la tua password con nessuno.",
     "Tip2": "• Utilizza una password unica per ciascuno dei tuoi account online."
   },
-  "ChangePasswordTXT": {
+  "SendPasswordToExistingUserTXT": {
     "Title": "La Tua Password È Stata Modificata: Ecco la Tua Nuova Password",
     "Body": "La tua password per {{ template \"app.name\" }} è stata modificata da un amministratore.",
     "Label": "La tua nuova password:",
@@ -179,5 +179,23 @@
     "TipsHeader": "Suggerimenti per la Sicurezza:",
     "Tip1": "- Non condividere mai la tua password con nessuno.",
     "Tip2": "- Utilizza una password unica per ciascuno dei tuoi account online."
+  },
+  "SendPasswordToNewUser": {
+    "Title": "Iniziamo con il tuo account {{ template \"app.name\" }}!",
+    "Body": "Siamo entusiasti di averti a bordo con {{ template \"app.name\" }}. Ecco tutto ciò di cui hai bisogno per configurare il tuo account e iniziare.",
+    "EmailLabel": "Il tuo account {{ template \"app.name\" }}:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "La tua password temporanea:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Accedi a {{ template \"app.name\" }} con la tua email e la password temporanea. Cambia la tua password dopo l''accesso."
+  },
+  "SendPasswordToNewUserTXT": {
+    "Title": "Iniziamo con il tuo account {{ template \"app.name\" }}!",
+    "Body": "Siamo entusiasti di averti a bordo con {{ template \"app.name\" }}. Ecco tutto ciò di cui hai bisogno per configurare il tuo account e iniziare.",
+    "EmailLabel": "Il tuo account {{ template \"app.name\" }}:",
+    "Email": "{{ .Email }}",
+    "PasswordLabel": "La tua password temporanea:",
+    "Password": "{{ .Password }}",
+    "Instruction": "Accedi a {{ template \"app.name\" }} con la tua email e la password temporanea. Cambia la tua password dopo l''accesso."
   }
 }

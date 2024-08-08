@@ -6,6 +6,8 @@ const defaultOptions = {} as const;
 export type CreateUserMutationMutationVariables = Types.Exact<{
   identityDefinition: Types.IdentityDefinitionLoginId;
   password?: Types.InputMaybe<Types.Scalars['String']['input']>;
+  sendPassword?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
+  setPasswordExpired?: Types.InputMaybe<Types.Scalars['Boolean']['input']>;
 }>;
 
 
@@ -13,9 +15,9 @@ export type CreateUserMutationMutation = { __typename?: 'Mutation', createUser: 
 
 
 export const CreateUserMutationDocument = gql`
-    mutation createUserMutation($identityDefinition: IdentityDefinitionLoginID!, $password: String) {
+    mutation createUserMutation($identityDefinition: IdentityDefinitionLoginID!, $password: String, $sendPassword: Boolean, $setPasswordExpired: Boolean) {
   createUser(
-    input: {definition: {loginID: $identityDefinition}, password: $password}
+    input: {definition: {loginID: $identityDefinition}, password: $password, sendPassword: $sendPassword, setPasswordExpired: $setPasswordExpired}
   ) {
     user {
       id
@@ -40,6 +42,8 @@ export type CreateUserMutationMutationFn = Apollo.MutationFunction<CreateUserMut
  *   variables: {
  *      identityDefinition: // value for 'identityDefinition'
  *      password: // value for 'password'
+ *      sendPassword: // value for 'sendPassword'
+ *      setPasswordExpired: // value for 'setPasswordExpired'
  *   },
  * });
  */
