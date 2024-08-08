@@ -10,7 +10,7 @@
     "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build --no-cache --no-scope-hoist './src/*.html'",
     "clean": "rm -rf ./dist/ ./parcel-bundle-reports/ && mkdir ./dist/ && touch ./dist/.gitkeep",
     "typecheck": "tsc",
-    "prettier:format": "prettier --list-different --write './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
+    "prettier:format": "prettier --list-different --write --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint:format": "eslint --cache --fix './src/**/*.{js,ts,jsx,tsx}'",
     "stylelint:format": "stylelint --cache --fix './src/**/*.{css,scss}'",
     "prettier": "prettier --list-different --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
