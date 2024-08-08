@@ -62,7 +62,8 @@
 
     /* mobile-specific styles */
     @apply w-screen;
-    @apply p-4;
+    @apply px-4 pb-4 pt-12;
+    @apply relative;
     @apply rounded-t-2xl;
     @apply h-min;
 
@@ -123,6 +124,15 @@
     }
   }
 
+  .close-btn {
+    /* close button icon distance to top/right edge = 21px 
+     * close button icon size = 14px
+     * close button button size = 44px
+     * Actual distance = [(14 / 2) + 21] - (44 / 2) = 6px
+     */
+    @apply absolute top-1.5 ltr:right-1.5 rtl:left-1.5;
+  }
+
   @media (min-width: theme("screens.tablet")) {
     .dialog {
       @apply flex-col;
@@ -133,13 +143,23 @@
     .dialog-content {
       @apply rounded-2xl;
       @apply w-98;
-      @apply p-5;
+      @apply px-5 pb-5 pt-13;
+      @apply relative;
 
       transform: none; /* slide animation only wanted on mobile */
     }
 
     .dialog.open > .dialog-content {
       transform: none; /* slide animation only wanted on mobile */
+    }
+
+    .close-btn {
+      /* close button icon distance to top/right edge = 25px 
+       * close button icon size = 14px
+       * close button button size = 44px
+       * Actual distance = [(14 / 2) + 25] - (44 / 2) = 10px
+       */
+      @apply absolute top-2.5 ltr:right-2.5 rtl:left-2.5;
     }
   }
 }
