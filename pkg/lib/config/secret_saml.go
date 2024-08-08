@@ -29,7 +29,7 @@ var _ = SecretConfigSchema.Add("SAMLIdpSigningCert", `
 {
 	"type": "object",
 	"properties": {
-		"cert": { "$ref": "#/$defs/SAMLIdpSigningPemCert" },
+		"cert": { "$ref": "#/$defs/X509Cert" },
 		"key": { "$ref": "#/$defs/JWK" }
 	},
 	"required": ["cert", "key"]
@@ -37,20 +37,40 @@ var _ = SecretConfigSchema.Add("SAMLIdpSigningCert", `
 `)
 
 type SAMLIdpSigningCert struct {
-	Cert *SAMLIdpSigningPemCert `json:"cert,omitempty"`
-	Key  *JWK                   `json:"key,omitempty"`
+	Cert *X509Cert `json:"cert,omitempty"`
+	Key  *JWK      `json:"key,omitempty"`
 }
 
-var _ = SecretConfigSchema.Add("SAMLIdpSigningPemCert", `
+var _ = SecretConfigSchema.Add("SAMLSpSigningMaterials", `
 {
-	"type": "object",
-	"properties": {
-		"pem": { "$ref": "#/$defs/X509CertPem" }
-	},
-	"required": ["pem"]
+	"type": "array",
+	"items": { "$ref": "#/$defs/SAMLSpSigningCert" }
 }
 `)
 
-type SAMLIdpSigningPemCert struct {
-	Pem X509CertPem `json:"pem,omitempty"`
+type SAMLSpSigningMaterials []SAMLSpSigningCert
+
+var _ SecretItemData = &SAMLSpSigningMaterials{}
+
+func (s *SAMLSpSigningMaterials) SensitiveStrings() []string {
+	return nil
+}
+
+var _ = SecretConfigSchema.Add("SAMLSpSigningCert", `
+{
+	"type": "object",
+	"properties": {
+		"service_provider_id": { "type": "string" },
+		"certs": {
+			"type": "array",
+			"items": { "$ref": "#/$defs/X509Cert" }
+		}
+	},
+	"required": ["service_provider_id", "certs"]
+}
+`)
+
+type SAMLSpSigningCert struct {
+	ServiceProviderID string     `json:"service_provider_id,omitempty"`
+	Certs             []X509Cert `json:"certs,omitempty"`
 }
