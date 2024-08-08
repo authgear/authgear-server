@@ -786,6 +786,12 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	accountAnonymizationConfig := appConfig.AccountAnonymization
+	randSource := password.NewRandSource()
+	generator := &password.Generator{
+		Checker:        passwordChecker,
+		RandSource:     randSource,
+		PasswordConfig: authenticatorPasswordConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Events:                     eventService,
 		Identities:                 serviceService,
@@ -806,6 +812,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		AccountAnonymizationConfig: accountAnonymizationConfig,
 		AuthenticationConfig:       authenticationConfig,
 		Clock:                      clockClock,
+		PasswordGenerator:          generator,
 	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,

@@ -47,6 +47,10 @@ func ProvideExpiry(
 	}
 }
 
+func NewRandSource() RandSource {
+	return &CryptoRandSource{}
+}
+
 var DependencySet = wire.NewSet(
 	NewLogger,
 	wire.Struct(new(Provider), "*"),
@@ -57,4 +61,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(HistoryStore), "*"),
 	wire.Bind(new(CheckerHistoryStore), new(*HistoryStore)),
 	ProvideExpiry,
+	NewRandSource,
+	wire.Struct(new(Generator), "*"),
 )

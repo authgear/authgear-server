@@ -836,6 +836,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	accountAnonymizationConfig := appConfig.AccountAnonymization
+	randSource := password.NewRandSource()
+	generator := &password.Generator{
+		Checker:        passwordChecker,
+		RandSource:     randSource,
+		PasswordConfig: authenticatorPasswordConfig,
+	}
 	coordinator := &facade.Coordinator{
 		Events:                     eventService,
 		Identities:                 serviceService,
@@ -856,6 +862,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AccountAnonymizationConfig: accountAnonymizationConfig,
 		AuthenticationConfig:       authenticationConfig,
 		Clock:                      clockClock,
+		PasswordGenerator:          generator,
 	}
 	userFacade := &facade.UserFacade{
 		UserProvider: userProvider,
@@ -976,6 +983,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:                         passkeyService,
 		Verification:                    verificationService,
 		RateLimiter:                     limiter,
+		PasswordGenerator:               generator,
 		Nonces:                          nonceService,
 		Challenges:                      challengeProvider,
 		Users:                           userProvider,

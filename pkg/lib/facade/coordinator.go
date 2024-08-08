@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
@@ -164,6 +165,7 @@ type Coordinator struct {
 	AccountAnonymizationConfig *config.AccountAnonymizationConfig
 	AuthenticationConfig       *config.AuthenticationConfig
 	Clock                      clock.Clock
+	PasswordGenerator          *password.Generator
 }
 
 func (c *Coordinator) IdentityGet(id string) (*identity.Info, error) {
@@ -434,6 +436,7 @@ func (c *Coordinator) AuthenticatorVerifyOneWithSpec(userID string, authenticato
 func (c *Coordinator) UserCreatebyAdmin(
 	identitySpec *identity.Spec,
 	password string,
+	generatePassword bool,
 	sendPassword bool,
 	setPasswordExpired bool,
 ) (*user.User, error) {
@@ -463,16 +466,9 @@ func (c *Coordinator) UserCreatebyAdmin(
 	}
 
 	// 3. Create primary authenticators
-	authenticatorInfos, err := c.createPrimaryAuthenticators(identityInfo, userID, password, setPasswordExpired)
+	authenticatorInfos, err := c.createPrimaryAuthenticators(identityInfo, userID, password, generatePassword, sendPassword, setPasswordExpired)
 	if err != nil {
 		return nil, err
-	}
-
-	if sendPassword {
-		err = c.SendPassword.Send(userID, password, nonblocking.MessageTypeSendPasswordToNewUser)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	if err := c.UserCommands.AfterCreate(
@@ -487,63 +483,127 @@ func (c *Coordinator) UserCreatebyAdmin(
 	return user, nil
 }
 
-func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, userID string, password string, setPasswordExpired bool) ([]*authenticator.Info, error) {
+func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, userID string, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) ([]*authenticator.Info, error) {
 	authenticatorTypes := *c.AuthenticationConfig.PrimaryAuthenticators
 	if len(authenticatorTypes) == 0 {
 		return nil, api.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
 	}
 
+	var passwordSpec *authenticator.Spec
 	var authenticatorSpecs []*authenticator.Spec
 	for _, t := range authenticatorTypes {
 		switch t {
 		case model.AuthenticatorTypePassword:
-			if password != "" {
-				var expireAfter *time.Time
-				if setPasswordExpired {
-					expireAt := c.Clock.NowUTC()
-					expireAfter = &expireAt
-				}
-
-				authenticatorSpecs = append(authenticatorSpecs, &authenticator.Spec{
-					UserID:    userID,
-					IsDefault: true,
-					Kind:      model.AuthenticatorKindPrimary,
-					Type:      model.AuthenticatorTypePassword,
-					Password: &authenticator.PasswordSpec{
-						PlainPassword: password,
-						ExpireAfter:   expireAfter,
-					},
-				})
+			var err error
+			passwordSpec, err = c.createPasswordAuthenticatorSpec(userID, password, generatePassword, setPasswordExpired)
+			if err != nil {
+				return nil, err
 			}
-
+			if passwordSpec != nil {
+				authenticatorSpecs = append(authenticatorSpecs, passwordSpec)
+			}
 		case model.AuthenticatorTypeOOBSMS:
-			if identityInfo.LoginID.LoginIDType == model.LoginIDKeyTypePhone {
-				authenticatorSpecs = append(authenticatorSpecs, &authenticator.Spec{
-					UserID:    userID,
-					IsDefault: true,
-					Kind:      model.AuthenticatorKindPrimary,
-					Type:      model.AuthenticatorTypeOOBSMS,
-					OOBOTP: &authenticator.OOBOTPSpec{
-						Phone: identityInfo.LoginID.LoginID,
-					},
-				})
-			}
+			spec := c.createOOBSMSAuthenticatorSpec(identityInfo, userID)
+			authenticatorSpecs = append(authenticatorSpecs, spec)
 
 		case model.AuthenticatorTypeOOBEmail:
-			if identityInfo.LoginID.LoginIDType == model.LoginIDKeyTypeEmail {
-				authenticatorSpecs = append(authenticatorSpecs, &authenticator.Spec{
-					UserID:    userID,
-					IsDefault: true,
-					Kind:      model.AuthenticatorKindPrimary,
-					Type:      model.AuthenticatorTypeOOBEmail,
-					OOBOTP: &authenticator.OOBOTPSpec{
-						Email: identityInfo.LoginID.LoginID,
-					},
-				})
-			}
+			spec := c.createOOBEmailAuthenticatorSpec(identityInfo, userID)
+			authenticatorSpecs = append(authenticatorSpecs, spec)
 		}
 	}
 
+	authenticatorInfos, err := c.createAuthenticatorInfos(authenticatorSpecs)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(authenticatorInfos) == 0 {
+		for _, t := range authenticatorTypes {
+			if t == model.AuthenticatorTypePassword {
+				return nil, api.NewInvariantViolated(
+					"PasswordRequired",
+					"password is required",
+					nil,
+				)
+			}
+		}
+		return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
+	}
+
+	if passwordSpec != nil && sendPassword {
+		err := c.SendPassword.Send(userID, passwordSpec.Password.PlainPassword, nonblocking.MessageTypeSendPasswordToNewUser)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return authenticatorInfos, nil
+}
+
+func (c *Coordinator) createPasswordAuthenticatorSpec(userID string, password string, generatePassword bool, setPasswordExpired bool) (*authenticator.Spec, error) {
+	if password == "" && !generatePassword {
+		return nil, nil
+	}
+
+	var expireAfter *time.Time
+	if setPasswordExpired {
+		expireAt := c.Clock.NowUTC()
+		expireAfter = &expireAt
+	}
+
+	var err error
+	if generatePassword {
+		password, err = c.PasswordGenerator.Generate()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &authenticator.Spec{
+		UserID:    userID,
+		IsDefault: true,
+		Kind:      model.AuthenticatorKindPrimary,
+		Type:      model.AuthenticatorTypePassword,
+		Password: &authenticator.PasswordSpec{
+			PlainPassword: password,
+			ExpireAfter:   expireAfter,
+		},
+	}, nil
+}
+
+func (c *Coordinator) createOOBSMSAuthenticatorSpec(identityInfo *identity.Info, userID string) *authenticator.Spec {
+	if identityInfo.LoginID.LoginIDType != model.LoginIDKeyTypePhone {
+		return nil
+	}
+
+	return &authenticator.Spec{
+		UserID:    userID,
+		IsDefault: true,
+		Kind:      model.AuthenticatorKindPrimary,
+		Type:      model.AuthenticatorTypeOOBSMS,
+		OOBOTP: &authenticator.OOBOTPSpec{
+			Phone: identityInfo.LoginID.LoginID,
+		},
+	}
+}
+
+func (c *Coordinator) createOOBEmailAuthenticatorSpec(identityInfo *identity.Info, userID string) *authenticator.Spec {
+	if identityInfo.LoginID.LoginIDType != model.LoginIDKeyTypeEmail {
+		return nil
+	}
+
+	return &authenticator.Spec{
+		UserID:    userID,
+		IsDefault: true,
+		Kind:      model.AuthenticatorKindPrimary,
+		Type:      model.AuthenticatorTypeOOBEmail,
+		OOBOTP: &authenticator.OOBOTPSpec{
+			Email: identityInfo.LoginID.LoginID,
+		},
+	}
+}
+
+func (c *Coordinator) createAuthenticatorInfos(authenticatorSpecs []*authenticator.Spec) ([]*authenticator.Info, error) {
 	var authenticatorInfos []*authenticator.Info
 	for _, authenticatorSpec := range authenticatorSpecs {
 		authenticatorID := uuid.New()
@@ -558,21 +618,6 @@ func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, u
 
 		authenticatorInfos = append(authenticatorInfos, authenticatorInfo)
 	}
-
-	if len(authenticatorInfos) == 0 {
-		for _, t := range authenticatorTypes {
-			if t == model.AuthenticatorTypePassword {
-				return nil, api.NewInvariantViolated(
-					"PasswordRequired",
-					"password is required",
-					nil,
-				)
-			}
-		}
-
-		return nil, api.InvalidConfiguration.New("no primary authenticator can be created for identity")
-	}
-
 	return authenticatorInfos, nil
 }
 
