@@ -39,11 +39,8 @@ value:
         foobar: true
 ---
 part: AuthenticationFlowSignupLoginFlow
-name: bot_protection-mode-always-but-missing-provider
-error: |-
-  invalid value:
-  /steps/0/one_of/0/bot_protection: required
-    map[actual:[mode] expected:[provider] missing:[provider]]
+name: bot_protection-mode-always
+error: null
 value:
   name: id
   steps:
@@ -52,25 +49,5 @@ value:
     - identification: email
       bot_protection:
         mode: always
-      signup_flow: a
-      login_flow: b
----
-part: AuthenticationFlowSignupLoginFlow
-name: bot-protection-provider-missing-alias
-error: |-
-  invalid value:
-  /steps/0/one_of/0/bot_protection/provider: required
-    map[actual:[nickname] expected:[type] missing:[type]]
-  /steps/0/one_of/0/bot_protection/provider/nickname: 
-value:
-  name: id
-  steps:
-  - type: identify
-    one_of:
-    - identification: email
-      bot_protection:
-        mode: always
-        provider:
-          nickname: wrong-key
       signup_flow: a
       login_flow: b

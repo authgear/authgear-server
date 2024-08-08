@@ -24,8 +24,6 @@ authgear.yaml:
               - authentication: primary_password
                 bot_protection:
                   mode: always
-                  provider:
-                    type: cloudflare
 # Note bot protection is required above
 before:
   - type: user_import

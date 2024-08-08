@@ -60,7 +60,7 @@ func (n *IntentCreateIdentityLoginID) CanReactTo(ctx context.Context, deps *auth
 		return nil, err
 	}
 
-	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, flowRootObject, n.JSONPointer)
+	isBotProtectionRequired, err := IsBotProtectionRequired(ctx, deps, flows, n.JSONPointer)
 	if err != nil {
 		return nil, err
 	}

@@ -42,11 +42,8 @@ value:
         foobar: true
 ---
 part: AuthenticationFlowReauthFlow
-name: bot-protection-mode-always-but-missing-provider
-error: |-
-  invalid value:
-  /steps/0/one_of/0/bot_protection: required
-    map[actual:[mode] expected:[provider] missing:[provider]]
+name: bot-protection-mode-always
+error: null
 value:
   name: id
   steps:
@@ -55,28 +52,6 @@ value:
     - authentication: primary_password
       bot_protection:
         mode: always
-      steps:
-      - type: authenticate
-        one_of:
-        - authentication: secondary_totp
----
-part: AuthenticationFlowReauthFlow
-name: bot-protection-provider-missing-alias
-error: |-
-  invalid value:
-  /steps/0/one_of/0/bot_protection/provider: required
-    map[actual:[nickname] expected:[type] missing:[type]]
-  /steps/0/one_of/0/bot_protection/provider/nickname: 
-value:
-  name: id
-  steps:
-  - type: authenticate
-    one_of:
-    - authentication: primary_password
-      bot_protection:
-        mode: always
-        provider:
-          nickname: wrong-key
       steps:
       - type: authenticate
         one_of:

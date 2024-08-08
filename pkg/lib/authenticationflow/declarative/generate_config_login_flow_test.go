@@ -564,8 +564,6 @@ steps:
   - identification: email
     bot_protection:
       mode: always
-      provider: 
-        type: recaptchav2
     steps:
     - name: authenticate_primary_email
       type: authenticate
@@ -625,8 +623,6 @@ steps:
   one_of:
   - bot_protection:
       mode: always
-      provider:
-        type: recaptchav2
     identification: email
     steps:
     - name: authenticate_primary_email
@@ -635,26 +631,18 @@ steps:
       - authentication: primary_password
         bot_protection:
           mode: never
-          provider:
-            type: recaptchav2
         steps:
         - name: authenticate_secondary_email
           one_of:
           - authentication: secondary_oob_otp_email
             bot_protection:
               mode: always
-              provider:
-                type: recaptchav2
           - authentication: secondary_oob_otp_sms
             bot_protection:
               mode: always
-              provider:
-                type: recaptchav2
           - authentication: secondary_password
             bot_protection:
               mode: never
-              provider:
-                type: recaptchav2
           - authentication: recovery_code
           - authentication: device_token
           type: authenticate
@@ -664,8 +652,6 @@ steps:
         target_step: login_identify
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
         steps:
         - name: authenticate_secondary_email
           type: authenticate
@@ -673,25 +659,17 @@ steps:
           - authentication: secondary_oob_otp_email
             bot_protection:
               mode: always
-              provider:
-                type: recaptchav2
           - authentication: secondary_oob_otp_sms
             bot_protection:
               mode: always
-              provider:
-                type: recaptchav2
           - authentication: secondary_password
             bot_protection:
               mode: never
-              provider:
-                type: recaptchav2
           - authentication: recovery_code
           - authentication: device_token
   - identification: phone
     bot_protection:
       mode: always
-      provider: 
-        type: recaptchav2
     steps:
     - name: authenticate_primary_phone
       type: authenticate
@@ -699,8 +677,6 @@ steps:
       - authentication: primary_password
         bot_protection:
           mode: never
-          provider:
-            type: recaptchav2
         steps:
         - name: authenticate_secondary_phone
           type: authenticate
@@ -708,18 +684,12 @@ steps:
           - authentication: secondary_oob_otp_email
             bot_protection:
               mode: always
-              provider:
-                type: recaptchav2
           - authentication: secondary_oob_otp_sms
             bot_protection:
               mode: always
-              provider:
-                type: recaptchav2
           - authentication: secondary_password
             bot_protection:
               mode: never
-              provider:
-                type: recaptchav2
           - authentication: recovery_code
           - authentication: device_token
         - target_step: authenticate_primary_phone
@@ -728,8 +698,6 @@ steps:
         target_step: login_identify
         bot_protection:
           mode: always
-          provider:
-            type: recaptchav2
         steps:
         - name: authenticate_secondary_phone
           type: authenticate
@@ -737,18 +705,12 @@ steps:
           - authentication: secondary_oob_otp_email
             bot_protection:
               mode: always
-              provider:
-                type: recaptchav2
           - authentication: secondary_oob_otp_sms
             bot_protection:
               mode: always
-              provider:
-                type: recaptchav2
           - authentication: secondary_password
             bot_protection:
               mode: never
-              provider:
-                type: recaptchav2
           - authentication: recovery_code
           - authentication: device_token
 - type: check_account_status

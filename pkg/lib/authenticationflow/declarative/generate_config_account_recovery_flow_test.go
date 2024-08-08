@@ -176,8 +176,6 @@ steps:
   - identification: email
     bot_protection:
       mode: always
-      provider: 
-        type: recaptchav2
     on_failure: ignore
     steps:
       - type: select_destination
@@ -187,8 +185,6 @@ steps:
   - identification: phone
     bot_protection:
       mode: always
-      provider: 
-        type: recaptchav2
     on_failure: ignore
     steps:
       - type: select_destination

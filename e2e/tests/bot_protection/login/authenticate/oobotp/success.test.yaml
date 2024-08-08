@@ -33,8 +33,6 @@ authgear.yaml:
               - authentication: primary_oob_otp_email
                 bot_protection:
                   mode: always
-                  provider:
-                    type: cloudflare
                 target_step: login_identify
 before:
   - type: user_import

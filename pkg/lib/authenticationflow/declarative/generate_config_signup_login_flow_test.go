@@ -252,8 +252,6 @@ steps:
   - identification: email
     bot_protection:
       mode: always
-      provider: 
-        type: recaptchav2
     signup_flow: default
     login_flow: default
 `)
@@ -301,22 +299,16 @@ steps:
   - identification: email
     bot_protection:
       mode: always
-      provider: 
-        type: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: phone
     bot_protection:
       mode: always
-      provider: 
-        type: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: username
     bot_protection:
       mode: always
-      provider: 
-        type: recaptchav2
     signup_flow: default
     login_flow: default
   - identification: oauth

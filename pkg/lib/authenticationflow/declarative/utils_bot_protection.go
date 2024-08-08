@@ -34,34 +34,14 @@ func isNodeBotProtectionRequired(ctx context.Context, deps *authflow.Dependencie
 	return isConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), deps.Config.BotProtection), nil
 }
 
-func IsBotProtectionRequired(ctx context.Context, flowRootObject config.AuthenticationFlowObject, oneOfJSONPointer jsonpointer.T) (bool, error) {
-	required, err := isInputBotProtectionRequired(flowRootObject, oneOfJSONPointer)
+func IsBotProtectionRequired(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, oneOfJSONPointer jsonpointer.T) (bool, error) {
+	required, err := isNodeBotProtectionRequired(ctx, deps, flows, oneOfJSONPointer)
 	if err != nil {
 		return false, err
 	}
 	shouldExistingBypassRequired := ShouldExistingResultBypassBotProtectionRequirement(ctx)
 
 	return required && !shouldExistingBypassRequired, nil
-}
-
-func isInputBotProtectionRequired(flowRootObject config.AuthenticationFlowObject, oneOfJSONPointer jsonpointer.T) (bool, error) {
-	current, err := authflow.FlowObject(flowRootObject, oneOfJSONPointer)
-	if err != nil {
-		return false, err
-	}
-
-	currentBranch, ok := current.(config.AuthenticationFlowObjectBotProtectionConfigProvider)
-	if !ok {
-		return false, authflow.ErrInvalidJSONPointer
-	}
-
-	authflowCfg := currentBranch.GetBotProtectionConfig()
-
-	if authflowCfg == nil {
-		return false, nil
-	}
-
-	return isConfigBotProtectionRequired(currentBranch.GetBotProtectionConfig(), nil), nil
 }
 
 func ShouldExistingResultBypassBotProtectionRequirement(ctx context.Context) bool {
