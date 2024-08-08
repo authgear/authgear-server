@@ -49,8 +49,7 @@
       visibility: visible;
       opacity: 1;
     }
-    transition:
-      visibility var(--dialog-fade-animation-duration) ease-in-out,
+    transition: visibility var(--dialog-fade-animation-duration) ease-in-out,
       opacity var(--dialog-fade-animation-duration) ease-in-out;
 
     /* mobile-specific styles */
