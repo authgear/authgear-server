@@ -18,9 +18,10 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"id": { "type": "string" }
+		"id": { "type": "string" },
+		"entity_id": { "type": "string" }
 	},
-	"required": ["id"]
+	"required": ["id", "entity_id"]
 }
 `)
 
@@ -28,9 +29,9 @@ type SAMLConfig struct {
 	SAMLServiceProviders []*SAMLServiceProviderConfig `json:"service_providers,omitempty"`
 }
 
-func (c *SAMLConfig) ResolveProvider(entityID string) (*SAMLServiceProviderConfig, bool) {
+func (c *SAMLConfig) ResolveProvider(id string) (*SAMLServiceProviderConfig, bool) {
 	for _, sp := range c.SAMLServiceProviders {
-		if sp.ID == entityID {
+		if sp.ID == id {
 			return sp, true
 		}
 	}
@@ -38,5 +39,6 @@ func (c *SAMLConfig) ResolveProvider(entityID string) (*SAMLServiceProviderConfi
 }
 
 type SAMLServiceProviderConfig struct {
-	ID string `json:"id,omitempty"`
+	ID       string `json:"id,omitempty"`
+	EntityID string `json:"entity_id,omitempty"`
 }
