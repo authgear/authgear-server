@@ -358,6 +358,14 @@ var nodeUser = node(
 					return endUserAccountID, nil
 				},
 			},
+			"mfaGracePeriodEndAt": &graphql.Field{
+				Type:        graphql.DateTime,
+				Description: "Indicate when will user's MFA grace period will end",
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					source := p.Source.(*model.User)
+					return source.MFAGracePeriodtEndAt, nil
+				},
+			},
 		},
 	}),
 	&model.User{},
