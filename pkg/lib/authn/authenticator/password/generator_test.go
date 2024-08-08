@@ -27,8 +27,10 @@ func TestBasicPasswordGeneration(t *testing.T) {
 		generator := &Generator{
 			Checker:    &Checker{},
 			RandSource: &TestRandSource{},
-			Policy: &config.PasswordPolicyConfig{
-				MinLength: newInt(8),
+			PasswordConfig: &config.AuthenticatorPasswordConfig{
+				Policy: &config.PasswordPolicyConfig{
+					MinLength: newInt(8),
+				},
 			},
 		}
 
@@ -46,9 +48,11 @@ func TestUppercaseRequirement(t *testing.T) {
 		generator := &Generator{
 			Checker:    &Checker{},
 			RandSource: &TestRandSource{},
-			Policy: &config.PasswordPolicyConfig{
-				MinLength:         newInt(8),
-				UppercaseRequired: true,
+			PasswordConfig: &config.AuthenticatorPasswordConfig{
+				Policy: &config.PasswordPolicyConfig{
+					MinLength:         newInt(8),
+					UppercaseRequired: true,
+				},
 			},
 		}
 
@@ -66,9 +70,11 @@ func TestLowercaseRequirement(t *testing.T) {
 		generator := &Generator{
 			Checker:    &Checker{},
 			RandSource: &TestRandSource{},
-			Policy: &config.PasswordPolicyConfig{
-				MinLength:         newInt(8),
-				LowercaseRequired: true,
+			PasswordConfig: &config.AuthenticatorPasswordConfig{
+				Policy: &config.PasswordPolicyConfig{
+					MinLength:         newInt(8),
+					LowercaseRequired: true,
+				},
 			},
 		}
 
@@ -86,12 +92,14 @@ func TestCombinedRequirements(t *testing.T) {
 		generator := &Generator{
 			Checker:    &Checker{},
 			RandSource: &TestRandSource{},
-			Policy: &config.PasswordPolicyConfig{
-				MinLength:         newInt(12),
-				UppercaseRequired: true,
-				LowercaseRequired: true,
-				DigitRequired:     true,
-				SymbolRequired:    true,
+			PasswordConfig: &config.AuthenticatorPasswordConfig{
+				Policy: &config.PasswordPolicyConfig{
+					MinLength:         newInt(12),
+					UppercaseRequired: true,
+					LowercaseRequired: true,
+					DigitRequired:     true,
+					SymbolRequired:    true,
+				},
 			},
 		}
 
@@ -113,8 +121,10 @@ func TestMinLengthRequirement(t *testing.T) {
 		generator := &Generator{
 			Checker:    &Checker{},
 			RandSource: &TestRandSource{},
-			Policy: &config.PasswordPolicyConfig{
-				MinLength: newInt(40),
+			PasswordConfig: &config.AuthenticatorPasswordConfig{
+				Policy: &config.PasswordPolicyConfig{
+					MinLength: newInt(40),
+				},
 			},
 		}
 
@@ -132,9 +142,11 @@ func TestMinGuessableLevelRequirement(t *testing.T) {
 		generator := &Generator{
 			Checker:    &Checker{},
 			RandSource: &CryptoRandSource{},
-			Policy: &config.PasswordPolicyConfig{
-				MinLength:             newInt(8),
-				MinimumGuessableLevel: 4,
+			PasswordConfig: &config.AuthenticatorPasswordConfig{
+				Policy: &config.PasswordPolicyConfig{
+					MinLength:             newInt(8),
+					MinimumGuessableLevel: 4,
+				},
 			},
 		}
 
@@ -157,10 +169,12 @@ func TestExcludedKeywordsRequirement(t *testing.T) {
 				PwExcludedKeywords: excluded,
 			},
 			RandSource: &CryptoRandSource{},
-			Policy: &config.PasswordPolicyConfig{
-				MinLength:        newInt(8),
-				DigitRequired:    true,
-				ExcludedKeywords: excluded,
+			PasswordConfig: &config.AuthenticatorPasswordConfig{
+				Policy: &config.PasswordPolicyConfig{
+					MinLength:        newInt(8),
+					DigitRequired:    true,
+					ExcludedKeywords: excluded,
+				},
 			},
 		}
 
@@ -178,38 +192,49 @@ func TestPrepareCharacterSet(t *testing.T) {
 		Convey("When no specific requirements are set", func() {
 			policy := &config.PasswordPolicyConfig{}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldContainSubstring, CharListLowercase)
-			So(result, ShouldContainSubstring, CharListDigit)
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 		})
 
 		Convey("When lowercase is required", func() {
 			policy := &config.PasswordPolicyConfig{LowercaseRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldContainSubstring, CharListLowercase)
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyz")
 		})
 
 		Convey("When uppercase is required", func() {
 			policy := &config.PasswordPolicyConfig{UppercaseRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldContainSubstring, CharListUppercase)
+			So(result, ShouldEqual, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		})
 
-		Convey("When alphabet is required but not lowercase or uppercase", func() {
+		Convey("When alphabet is required", func() {
 			policy := &config.PasswordPolicyConfig{AlphabetRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldContainSubstring, CharListAlphabet)
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+		})
+
+		Convey("When alphabet and lowercase is required", func() {
+			policy := &config.PasswordPolicyConfig{AlphabetRequired: true, LowercaseRequired: true}
+			result, _ := prepareCharacterSet(policy)
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+		})
+
+		Convey("When alphabet and uppercase is required", func() {
+			policy := &config.PasswordPolicyConfig{AlphabetRequired: true, UppercaseRequired: true}
+			result, _ := prepareCharacterSet(policy)
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		})
 
 		Convey("When digits are required", func() {
 			policy := &config.PasswordPolicyConfig{DigitRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldContainSubstring, CharListDigit)
+			So(result, ShouldEqual, "0123456789")
 		})
 
 		Convey("When symbols are required", func() {
 			policy := &config.PasswordPolicyConfig{SymbolRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldContainSubstring, CharListSymbol)
+			So(result, ShouldEqual, "-~!@#$%^&*_+=`|(){}[:;\"'<>,.?]")
 		})
 
 		Convey("When all character sets are required", func() {
@@ -221,24 +246,9 @@ func TestPrepareCharacterSet(t *testing.T) {
 				SymbolRequired:    true,
 			}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldContainSubstring, CharListLowercase)
-			So(result, ShouldContainSubstring, CharListUppercase)
-			So(result, ShouldContainSubstring, CharListDigit)
-			So(result, ShouldContainSubstring, CharListSymbol)
-			So(result, shouldNotContainDuplicates)
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-~!@#$%^&*_+=`|(){}[:;\"'<>,.?]")
 		})
 	})
-}
-
-func shouldNotContainDuplicates(actual interface{}, expected ...interface{}) string {
-	set := map[characterSet]struct{}{}
-	for _, c := range actual.(string) {
-		set[characterSet(c)] = struct{}{}
-	}
-	if len(set) != len(actual.(string)) {
-		return "contains duplicates"
-	}
-	return ""
 }
 
 func TestGetMinLength(t *testing.T) {

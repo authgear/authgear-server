@@ -105,9 +105,9 @@ func (r *CryptoRandSource) Shuffle(list string) (string, error) {
 }
 
 type Generator struct {
-	Checker    *Checker
-	RandSource RandSource
-	Policy     *config.PasswordPolicyConfig
+	Checker        *Checker
+	RandSource     RandSource
+	PasswordConfig *config.AuthenticatorPasswordConfig
 }
 
 func (g *Generator) Generate() (string, error) {
@@ -126,8 +126,10 @@ func (g *Generator) Generate() (string, error) {
 }
 
 func (g *Generator) generate() (string, error) {
-	minLength := getMinLength(g.Policy)
-	charList, err := prepareCharacterSet(g.Policy)
+	policy := g.PasswordConfig.Policy
+
+	minLength := getMinLength(policy)
+	charList, err := prepareCharacterSet(policy)
 	if err != nil {
 		return "", err
 	}
@@ -136,35 +138,35 @@ func (g *Generator) generate() (string, error) {
 	password.Grow(minLength)
 
 	// Add required characters.
-	if g.Policy.LowercaseRequired {
+	if policy.LowercaseRequired {
 		c, err := g.pickRandByte(CharListLowercase)
 		if err != nil {
 			return "", err
 		}
 		password.WriteByte(c)
 	}
-	if g.Policy.UppercaseRequired {
+	if policy.UppercaseRequired {
 		c, err := g.pickRandByte(CharListUppercase)
 		if err != nil {
 			return "", err
 		}
 		password.WriteByte(c)
 	}
-	if g.Policy.AlphabetRequired && !g.Policy.LowercaseRequired && !g.Policy.UppercaseRequired {
+	if policy.AlphabetRequired && !policy.LowercaseRequired && !policy.UppercaseRequired {
 		c, err := g.pickRandByte(CharListAlphabet)
 		if err != nil {
 			return "", err
 		}
 		password.WriteByte(c)
 	}
-	if g.Policy.DigitRequired {
+	if policy.DigitRequired {
 		c, err := g.pickRandByte(CharListDigit)
 		if err != nil {
 			return "", err
 		}
 		password.WriteByte(c)
 	}
-	if g.Policy.SymbolRequired {
+	if policy.SymbolRequired {
 		c, err := g.pickRandByte(CharListSymbol)
 		if err != nil {
 			return "", err
@@ -193,26 +195,37 @@ func (g *Generator) generate() (string, error) {
 func prepareCharacterSet(policy *config.PasswordPolicyConfig) (string, error) {
 	set := map[characterSet]struct{}{}
 
-	// Default to be alphanumeric.
-	set[characterSetAlphabet] = struct{}{}
-	set[characterSetDigit] = struct{}{}
-
 	if policy.AlphabetRequired {
 		set[characterSetAlphabet] = struct{}{}
 	}
 	if policy.LowercaseRequired {
 		set[characterSetLowercase] = struct{}{}
-		delete(set, characterSetAlphabet)
 	}
 	if policy.UppercaseRequired {
 		set[characterSetUppercase] = struct{}{}
-		delete(set, characterSetAlphabet)
 	}
 	if policy.DigitRequired {
 		set[characterSetDigit] = struct{}{}
 	}
 	if policy.SymbolRequired {
 		set[characterSetSymbol] = struct{}{}
+	}
+
+	// Default to alphanumeric if no character set is required.
+	if len(set) == 0 {
+		set[characterSetAlphabet] = struct{}{}
+		set[characterSetDigit] = struct{}{}
+	}
+
+	// Remove overlapping character sets.
+	_, hasLowerCase := set[characterSetLowercase]
+	_, hasUpperCase := set[characterSetUppercase]
+	_, hasAlphabet := set[characterSetAlphabet]
+	if hasAlphabet && hasLowerCase {
+		delete(set, characterSetLowercase)
+	}
+	if hasAlphabet && hasUpperCase {
+		delete(set, characterSetUppercase)
 	}
 
 	var buf strings.Builder

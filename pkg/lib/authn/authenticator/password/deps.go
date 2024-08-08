@@ -62,6 +62,5 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(CheckerHistoryStore), new(*HistoryStore)),
 	ProvideExpiry,
 	NewRandSource,
-	wire.FieldsOf(new(*config.AuthenticatorPasswordConfig), "Policy"),
 	wire.Struct(new(Generator), "*"),
 )
