@@ -123,6 +123,7 @@ type UserService interface {
 	GetRaw(id string) (*user.User, error)
 	Create(userID string) (*user.User, error)
 	UpdateLoginTime(userID string, t time.Time) error
+	UpdateMFAEnrollment(userID string, t *time.Time) error
 	AfterCreate(
 		user *user.User,
 		identities []*identity.Info,

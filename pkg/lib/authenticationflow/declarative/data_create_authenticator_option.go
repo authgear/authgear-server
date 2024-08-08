@@ -2,6 +2,7 @@ package declarative
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -53,11 +54,49 @@ type CreateAuthenticatorTarget struct {
 	VerificationRequired bool   `json:"verification_required"`
 }
 
+type CreateAuthenticatorStepOption struct {
+	OneOf []CreateAuthenticatorStepOptionOneOf
+}
+
+type CreateAuthenticatorStepOptionOneOf struct {
+	TargetStep           string
+	Authentication       config.AuthenticationFlowAuthentication
+	BotProtection        *config.AuthenticationFlowBotProtection
+	VerificationRequired bool
+}
+
+func createAuthenticatorStepOption(step interface{}) *CreateAuthenticatorStepOption {
+	castedStep := &CreateAuthenticatorStepOption{}
+
+	switch step := step.(type) {
+	case *config.AuthenticationFlowSignupFlowStep:
+		for _, oneOf := range step.OneOf {
+			castedStep.OneOf = append(castedStep.OneOf, CreateAuthenticatorStepOptionOneOf{
+				TargetStep:           oneOf.TargetStep,
+				Authentication:       oneOf.Authentication,
+				BotProtection:        oneOf.BotProtection,
+				VerificationRequired: oneOf.IsVerificationRequired(),
+			})
+		}
+	case *config.AuthenticationFlowLoginFlowStep:
+		for _, oneOf := range step.OneOf {
+			castedStep.OneOf = append(castedStep.OneOf, CreateAuthenticatorStepOptionOneOf{
+				TargetStep:     oneOf.TargetStep,
+				Authentication: oneOf.Authentication,
+				BotProtection:  oneOf.BotProtection,
+			})
+		}
+	default:
+		panic(fmt.Sprintf("create_authenticator: unexpected step: %T", step))
+	}
+	return castedStep
+}
+
 func makeCreateAuthenticatorTarget(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	oneOf *config.AuthenticationFlowSignupFlowOneOf,
+	oneOf CreateAuthenticatorStepOptionOneOf,
 	userID string,
 ) (target *CreateAuthenticatorTarget, claimValue string, isSkipped bool, err error) {
 	targetStep := oneOf.TargetStep
@@ -83,7 +122,7 @@ func makeCreateAuthenticatorTarget(
 		}
 		target = &CreateAuthenticatorTarget{
 			MaskedDisplayName:    masked,
-			VerificationRequired: !verified && oneOf.IsVerificationRequired(),
+			VerificationRequired: !verified && oneOf.VerificationRequired,
 		}
 	}
 	return target, claimValue, isSkipped, nil
@@ -93,14 +132,15 @@ func NewCreateAuthenticationOptions(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	step *config.AuthenticationFlowSignupFlowStep,
+	step interface{},
 	userID string) ([]CreateAuthenticatorOptionInternal, error) {
+	stepOption := createAuthenticatorStepOption(step)
 	options := []CreateAuthenticatorOptionInternal{}
 	passwordPolicy := NewPasswordPolicy(
 		deps.FeatureConfig.Authenticator,
 		deps.Config.Authenticator.Password.Policy,
 	)
-	for _, b := range step.OneOf {
+	for _, b := range stepOption.OneOf {
 		switch b.Authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough

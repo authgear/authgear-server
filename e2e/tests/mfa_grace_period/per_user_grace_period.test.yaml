@@ -1,0 +1,180 @@
+name: Per-user 2FA grace period - Global grace period expired
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+      primary_authenticators:
+        - password
+      secondary_authentication_mode: required
+      secondary_authenticators:
+      - password
+      secondary_authentication_grace_period:
+          enabled: true
+          end_at: "1000-10-10T00:00:00Z"
+before:
+  - type: user_import
+    user_import: users.json
+  - type: custom_sql
+    custom_sql:
+      path: ./grant_user_grace_period.sql
+steps:
+  - name: Login with account without 2FA
+    action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_mfa_grace_period"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: Authenticate, expect prompt to enroll 2FA
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": "[[array]]",
+              "type": "create_authenticator_data"
+            }
+          }
+        }
+
+  - name: Enroll with secondary password
+    action: input
+    input: |
+      {
+        "authentication": "secondary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+---
+name: Per-user 2FA grace period - Global grace period disabled
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+      primary_authenticators:
+        - password
+      secondary_authentication_mode: required
+      secondary_authenticators:
+      - password
+      secondary_authentication_grace_period:
+          enabled: false
+before:
+  - type: user_import
+    user_import: users.json
+  - type: custom_sql
+    custom_sql:
+      path: ./grant_user_grace_period.sql
+steps:
+  - name: Login with account without 2FA
+    action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "state_token": "[[string]]",
+          "type": "login",
+          "name": "default",
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_mfa_grace_period"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate"
+          }
+        }
+
+  - name: Authenticate, expect prompt to enroll 2FA
+    action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "options": "[[array]]",
+              "type": "create_authenticator_data"
+            }
+          }
+        }
+
+  - name: Enroll with secondary password
+    action: input
+    input: |
+      {
+        "authentication": "secondary_password",
+        "new_password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
