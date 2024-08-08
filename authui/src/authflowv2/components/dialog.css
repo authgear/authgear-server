@@ -1,6 +1,8 @@
 @layer components {
   :root {
     --dialog-content__bg-color: var(--color-surface-primary);
+
+    /* if you change these, change `dialog.ts` too */
     --dialog-fade-animation-duration: 0.3s;
     --dialog-slide-animation-duration: 0.3s;
 
@@ -33,14 +35,14 @@
     --dialog-description__text-color: var(--color-neutral-200);
   }
 
-  .dialog {
+  .dialog-backdrop {
     /* common styles */
     @apply fixed inset-0;
     @apply w-screen h-screen;
     @apply flex;
     background-color: rgba(0, 0, 0, 0.5);
 
-    /* animation */
+    /* if you change these, change `dialog.ts` too */
     visibility: hidden;
     opacity: 0;
     &.open {
@@ -56,7 +58,7 @@
     @apply justify-end;
   }
 
-  .dialog-content {
+  .dialog {
     /* common styles */
     background-color: var(--dialog-content__bg-color);
 
@@ -67,14 +69,12 @@
     @apply rounded-t-2xl;
     @apply h-min;
 
-    /* animation */
     transform: translateY(100%);
-
+    /* if you change these, change `dialog.ts` too */
     transition: transform var(--dialog-slide-animation-duration) ease-in-out;
   }
 
-  .dialog.open > .dialog-content {
-    /* animation */
+  .dialog-backdrop.open > .dialog {
     transform: translateY(0%);
   }
 
@@ -134,13 +134,13 @@
   }
 
   @media (min-width: theme("screens.tablet")) {
-    .dialog {
+    .dialog-backdrop {
       @apply flex-col;
       @apply items-center;
       @apply justify-center;
     }
 
-    .dialog-content {
+    .dialog {
       @apply rounded-2xl;
       @apply w-98;
       @apply px-5 pb-5 pt-13;
@@ -149,7 +149,7 @@
       transform: none; /* slide animation only wanted on mobile */
     }
 
-    .dialog.open > .dialog-content {
+    .dialog-backdrop.open > .dialog {
       transform: none; /* slide animation only wanted on mobile */
     }
 
