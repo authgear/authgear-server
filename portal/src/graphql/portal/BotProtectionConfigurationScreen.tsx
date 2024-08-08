@@ -1,11 +1,14 @@
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import React, { useCallback, useContext, useState } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import cn from "classnames";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import styles from "./BotProtectionConfigurationScreen.module.css";
 import {
+  BotProtectionConfig,
   BotProtectionProviderType,
+  BotProtectionRequirements,
+  BotProtectionRiskMode,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
@@ -26,7 +29,19 @@ import FormContainer from "../../FormContainer";
 import ScreenDescription from "../../ScreenDescription";
 import Toggle from "../../Toggle";
 import WidgetTitle from "../../WidgetTitle";
-import { DefaultEffects, IButtonProps, Image, Label } from "@fluentui/react";
+import {
+  ChoiceGroup,
+  DetailsList,
+  Dropdown,
+  IButtonProps,
+  IChoiceGroupOption,
+  IColumn,
+  IDropdownOption,
+  Image,
+  Label,
+  SelectionMode,
+  Text,
+} from "@fluentui/react";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import recaptchaV2LogoURL from "../../images/recaptchav2_logo.svg";
 import cloudflareLogoURL from "../../images/cloudflare_logo.svg";
@@ -35,6 +50,7 @@ import FormTextField from "../../FormTextField";
 import PrimaryButton from "../../PrimaryButton";
 import { startReauthentication } from "./Authenticated";
 import { useSessionStorage } from "../../hook/useSessionStorage";
+import HorizontalDivider from "../../HorizontalDivider";
 
 const MASKED_SECRET = "***************";
 
@@ -51,24 +67,96 @@ function isLocationState(raw: unknown): raw is LocationState {
   );
 }
 
-interface CloudflareConfigs {
+interface FormCloudflareConfigs {
   siteKey: string;
   secretKey: string | null;
 }
 
-interface Recaptchav2Configs {
+interface FormRecaptchav2Configs {
   siteKey: string;
   secretKey: string | null;
 }
 
-type BotProtectionProviderConfigs = CloudflareConfigs | Recaptchav2Configs;
+type FormBotProtectionProviderConfigs =
+  | FormCloudflareConfigs
+  | FormRecaptchav2Configs;
+
+type FormBotProtectionRequirementsFlowsType =
+  | "allSignupLogin"
+  | "specificAuthenticator";
+interface FormBotProtectionRequirementsFlowsAllSignupLoginFlowConfigs {
+  allSignupLoginMode: BotProtectionRiskMode;
+}
+
+interface FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs {
+  passwordMode: BotProtectionRiskMode;
+  passwordlessViaSMSMode: BotProtectionRiskMode;
+  passwordlessViaEmailMode: BotProtectionRiskMode;
+}
+
+interface FormBotProtectionRequirementsFlowConfigs {
+  allSignupLogin: FormBotProtectionRequirementsFlowsAllSignupLoginFlowConfigs;
+  specificAuthenticator: FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs;
+}
+interface FormBotProtectionRequirementsFlows {
+  flowType: FormBotProtectionRequirementsFlowsType;
+  flowConfigs: FormBotProtectionRequirementsFlowConfigs;
+}
+
+interface FormBotProtectionRequirementsResetPassword {
+  resetPasswordMode: BotProtectionRiskMode;
+}
+
+interface FormBotProtectionRequirements {
+  flows: FormBotProtectionRequirementsFlows;
+  resetPassword: FormBotProtectionRequirementsResetPassword;
+}
 
 interface FormState {
   enabled: boolean;
   providerType: BotProtectionProviderType;
   providerConfigs: Partial<
-    Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+    Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   >;
+  requirements: FormBotProtectionRequirements;
+}
+
+function constructFormRequirementsState(
+  config: PortalAPIAppConfig
+): FormBotProtectionRequirements {
+  const requirements = config.bot_protection?.requirements;
+  // If any specific authenticator is configured, construct as specificAuthenticator, even if signup_or_login IS configured
+  // otherwise, construct as allSignupLogin
+  const isSpecificAuthenticatorConfigured =
+    requirements?.oob_otp_email != null ||
+    requirements?.oob_otp_sms != null ||
+    requirements?.password != null;
+  const dominantFlowType: FormBotProtectionRequirementsFlowsType =
+    isSpecificAuthenticatorConfigured
+      ? "specificAuthenticator"
+      : "allSignupLogin";
+  const flowConfigs = {
+    allSignupLogin: {
+      allSignupLoginMode: requirements?.signup_or_login?.mode ?? "never",
+    },
+    specificAuthenticator: {
+      passwordMode: requirements?.password?.mode ?? "never",
+      passwordlessViaSMSMode: requirements?.oob_otp_sms?.mode ?? "never",
+      passwordlessViaEmailMode: requirements?.oob_otp_email?.mode ?? "never",
+    },
+  };
+
+  const flows: FormBotProtectionRequirementsFlows = {
+    flowType: dominantFlowType,
+    flowConfigs,
+  };
+  const resetPassword: FormBotProtectionRequirementsResetPassword = {
+    resetPasswordMode: requirements?.account_recovery?.mode ?? "never",
+  };
+  return {
+    flows,
+    resetPassword,
+  };
 }
 
 function constructFormState(
@@ -81,18 +169,70 @@ function constructFormState(
   const siteKey = config.bot_protection?.provider?.site_key ?? "";
   const secretKey = secrets.botProtectionProviderSecret?.secretKey ?? null;
   const providerConfigs: Partial<
-    Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+    Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   > = {
     [providerType]: {
       siteKey,
       secretKey,
     },
   };
+  const requirements = constructFormRequirementsState(config);
 
   return {
     enabled,
     providerType,
     providerConfigs,
+    requirements,
+  };
+}
+
+function constructBotProtectionConfig(
+  currentState: FormState
+): BotProtectionConfig {
+  const signupOrLoginRequirements: Partial<BotProtectionRequirements> = {
+    signup_or_login:
+      currentState.requirements.flows.flowType === "allSignupLogin"
+        ? {
+            mode: currentState.requirements.flows.flowConfigs.allSignupLogin
+              .allSignupLoginMode,
+          }
+        : undefined,
+  };
+  const accountRecoveryRequirements: Partial<BotProtectionRequirements> = {
+    account_recovery: {
+      mode: currentState.requirements.resetPassword.resetPasswordMode,
+    },
+  };
+  const specificAuthenticatorRequirements: Partial<BotProtectionRequirements> =
+    currentState.requirements.flows.flowType === "specificAuthenticator"
+      ? {
+          password: {
+            mode: currentState.requirements.flows.flowConfigs
+              .specificAuthenticator.passwordMode,
+          },
+          oob_otp_email: {
+            mode: currentState.requirements.flows.flowConfigs
+              .specificAuthenticator.passwordlessViaEmailMode,
+          },
+          oob_otp_sms: {
+            mode: currentState.requirements.flows.flowConfigs
+              .specificAuthenticator.passwordlessViaSMSMode,
+          },
+        }
+      : {};
+  const requirements: BotProtectionRequirements = {
+    ...signupOrLoginRequirements,
+    ...accountRecoveryRequirements,
+    ...specificAuthenticatorRequirements,
+  };
+  return {
+    enabled: currentState.enabled,
+    provider: {
+      type: currentState.providerType,
+      site_key:
+        currentState.providerConfigs[currentState.providerType]?.siteKey,
+    },
+    requirements,
   };
 }
 
@@ -104,16 +244,7 @@ function constructConfig(
   _effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
   return produce([config, secrets], ([config, secrets]) => {
-    config.bot_protection ??= {};
-    config.bot_protection.provider ??= {};
-    config.bot_protection = {
-      enabled: currentState.enabled,
-      provider: {
-        type: currentState.providerType,
-        site_key:
-          currentState.providerConfigs[currentState.providerType]?.siteKey,
-      },
-    };
+    config.bot_protection = constructBotProtectionConfig(currentState);
 
     const secretKey =
       currentState.providerConfigs[currentState.providerType]?.secretKey;
@@ -175,27 +306,26 @@ function ProviderCard(props: ProviderCardProps) {
     themes: {
       main: {
         palette: { themePrimary },
-        semanticColors: { disabledBackground: backgroundColor },
       },
     },
   } = useSystemConfig();
 
   return (
-    <div
+    <button
+      type="button"
       style={{
-        boxShadow: disabled ? undefined : DefaultEffects.elevation4,
         borderColor: isSelected ? themePrimary : "transparent",
-        backgroundColor: disabled ? backgroundColor : undefined,
-        cursor: disabled ? "not-allowed" : undefined,
       }}
       className={cn(className, styles.providerCard)}
       onClick={disabled ? undefined : onClick}
+      tabIndex={0}
+      disabled={disabled}
     >
       {logoSrc != null ? (
         <Image src={logoSrc} width={logoWidth} height={logoHeight} />
       ) : null}
       <Label className={styles.providerCardLabel}>{children}</Label>
-    </div>
+    </button>
   );
 }
 
@@ -203,15 +333,15 @@ export interface BotProtectionConfigurationContentProviderConfigFormFieldsProps 
   revealed: boolean;
   onClickReveal: (e: React.MouseEvent<unknown>) => void;
   providerConfigs: Partial<
-    Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+    Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   >;
   setProviderConfigs: (
     fn: (
       c: Partial<
-        Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+        Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
       >
     ) => Partial<
-      Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+      Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
     >
   ) => void;
   providerType: BotProtectionProviderType;
@@ -387,12 +517,11 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
     );
   };
 
-export interface BotProtectionConfigurationContentProps {
+interface BotProtectionConfigurationContentProviderSectionProps {
   form: AppSecretConfigFormModel<FormState>;
 }
-
-const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationContentProps> =
-  function BotProtectionConfigurationContent(props) {
+const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionConfigurationContentProviderSectionProps> =
+  function BotProtectionConfigurationContentProviderSection(props) {
     const { form } = props;
     const { state, setState } = form;
     const [storedFormState, setStoredFormState, removeStoredFormState] =
@@ -400,22 +529,6 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
         "bot-protection-config-screen-form-state",
         state
       );
-
-    const { renderToString } = useContext(Context);
-
-    const onChangeEnabled = useCallback(
-      (_event, checked?: boolean) => {
-        if (checked != null) {
-          setState((state) => {
-            return {
-              ...state,
-              enabled: checked,
-            };
-          });
-        }
-      },
-      [setState]
-    );
 
     const onClickProviderRecaptchaV2 = useCallback(
       (e: React.MouseEvent<unknown>) => {
@@ -538,15 +651,375 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
       (
         fn: (
           c: Partial<
-            Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+            Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
           >
         ) => Partial<
-          Record<BotProtectionProviderType, BotProtectionProviderConfigs>
+          Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
         >
       ) => {
         setState((state) => ({
           ...state,
           providerConfigs: fn(state.providerConfigs),
+        }));
+      },
+      [setState]
+    );
+    return (
+      <section className={styles.section}>
+        <WidgetTitle>
+          <FormattedMessage id="BotProtectionConfigurationScreen.challengeProvider.title" />
+        </WidgetTitle>
+        <div className={styles.providerCardContainer}>
+          <ProviderCard
+            className={styles.columnLeft}
+            onClick={onClickProviderRecaptchaV2}
+            isSelected={state.providerType === "recaptchav2"}
+            logoSrc={recaptchaV2LogoURL}
+          >
+            <FormattedMessage id="BotProtectionConfigurationScreen.provider.recaptchaV2.label" />
+          </ProviderCard>
+          <ProviderCard
+            className={styles.columnRight}
+            onClick={onClickProviderCloudflare}
+            isSelected={state.providerType === "cloudflare"}
+            logoSrc={cloudflareLogoURL}
+          >
+            <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.label" />
+          </ProviderCard>
+        </div>
+        <BotProtectionConfigurationContentProviderConfigFormFields
+          revealed={revealed}
+          onClickReveal={onClickReveal}
+          setProviderConfigs={setBotProtectionProviderConfigs}
+          providerConfigs={state.providerConfigs}
+          providerType={state.providerType}
+        />
+      </section>
+    );
+  };
+
+interface RequirementConfigListItem {
+  label: string;
+  mode: BotProtectionRiskMode;
+  onChangeMode: (mode: BotProtectionRiskMode) => void;
+}
+
+interface BotProtectionConfigurationContentRequirementsSectionProps {
+  requirements: FormBotProtectionRequirements;
+  setRequirements: (
+    fn: (r: FormBotProtectionRequirements) => FormBotProtectionRequirements
+  ) => void;
+}
+const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtectionConfigurationContentRequirementsSectionProps> =
+  function BotProtectionConfigurationContentRequirementsSection(props) {
+    const { requirements, setRequirements } = props;
+    const { renderToString } = useContext(Context);
+
+    const flowOptions: IChoiceGroupOption[] = useMemo(
+      () => [
+        {
+          key: "allSignupLogin",
+          text: renderToString(
+            "BotProtectionConfigurationScreen.requirements.flows.allSignupLogin"
+          ),
+        },
+        {
+          key: "specificAuthenticator",
+          text: renderToString(
+            "BotProtectionConfigurationScreen.requirements.flows.specificAuthenticator"
+          ),
+        },
+      ],
+      [renderToString]
+    );
+    const onChangeFlowType = useCallback(
+      (_event, option?: IChoiceGroupOption) => {
+        const value = option?.key;
+        if (value !== "allSignupLogin" && value !== "specificAuthenticator") {
+          return;
+        }
+        setRequirements((requirements) => ({
+          ...requirements,
+          flows: {
+            ...requirements.flows,
+            flowType: value,
+          },
+        }));
+      },
+      [setRequirements]
+    );
+    const onRenderRequirementConfigLabel = useCallback(
+      (
+        item?: RequirementConfigListItem,
+        _index?: number,
+        _column?: IColumn
+      ) => {
+        if (item == null) {
+          return null;
+        }
+        return (
+          <div className={styles.requirementConfigLabelContainer}>
+            <Text block={true} className={styles.requirementConfigLabel}>
+              {item.label}
+            </Text>
+          </div>
+        );
+      },
+      []
+    );
+    const makeDropdownOnChange = useCallback(() => {
+      return (
+        _e: React.FormEvent<unknown>,
+        option?: IDropdownOption<RequirementConfigListItem>,
+        _index?: number
+      ) => {
+        if (option == null) {
+          return;
+        }
+        option.data?.onChangeMode(option.key as BotProtectionRiskMode);
+      };
+    }, []);
+    const onRenderDropdown = useCallback(
+      (item?: RequirementConfigListItem, index?: number, _column?: IColumn) => {
+        if (item == null || index == null) {
+          return null;
+        }
+
+        const options: IDropdownOption<RequirementConfigListItem>[] = [
+          {
+            key: "never",
+            text: renderToString(
+              "BotProtectionConfigurationScreen.requirements.flows.config.riskMode.never"
+            ),
+            data: item,
+          },
+          {
+            key: "always",
+            text: renderToString(
+              "BotProtectionConfigurationScreen.requirements.flows.config.riskMode.always"
+            ),
+            data: item,
+          },
+        ];
+
+        return (
+          <Dropdown
+            options={options}
+            selectedKey={item.mode}
+            onChange={makeDropdownOnChange()}
+          />
+        );
+      },
+      [makeDropdownOnChange, renderToString]
+    );
+    const requirementConfigColumns: IColumn[] = useMemo(() => {
+      return [
+        {
+          key: "label",
+          minWidth: 200,
+          name: "",
+          onRender: onRenderRequirementConfigLabel,
+        },
+        {
+          key: "mode",
+          minWidth: 200,
+          maxWidth: 200,
+          name: "",
+          onRender: onRenderDropdown,
+        },
+      ];
+    }, [onRenderDropdown, onRenderRequirementConfigLabel]);
+
+    const setRequirementsFlowConfigs = useCallback(
+      (
+        fn: (
+          r: FormBotProtectionRequirementsFlowConfigs
+        ) => FormBotProtectionRequirementsFlowConfigs
+      ) => {
+        setRequirements((requirements) => ({
+          ...requirements,
+          flows: {
+            ...requirements.flows,
+            flowConfigs: fn(requirements.flows.flowConfigs),
+          },
+        }));
+      },
+      [setRequirements]
+    );
+    const flowConfigItems: RequirementConfigListItem[] = useMemo(() => {
+      switch (requirements.flows.flowType) {
+        case "allSignupLogin": {
+          return [
+            {
+              label: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.allSignupLogin.label"
+              ),
+              mode: requirements.flows.flowConfigs.allSignupLogin
+                .allSignupLoginMode,
+              onChangeMode: (mode: BotProtectionRiskMode) => {
+                setRequirementsFlowConfigs((flowConfigs) => ({
+                  ...flowConfigs,
+                  allSignupLogin: {
+                    allSignupLoginMode: mode,
+                  },
+                }));
+              },
+            },
+          ];
+        }
+        case "specificAuthenticator": {
+          return [
+            {
+              label: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.password.label"
+              ),
+              mode: requirements.flows.flowConfigs.specificAuthenticator
+                .passwordMode,
+              onChangeMode: (mode: BotProtectionRiskMode) => {
+                setRequirementsFlowConfigs((flowConfigs) => ({
+                  ...flowConfigs,
+                  specificAuthenticator: {
+                    ...flowConfigs.specificAuthenticator,
+                    passwordMode: mode,
+                  },
+                }));
+              },
+            },
+            {
+              label: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessSMS.label"
+              ),
+              mode: requirements.flows.flowConfigs.specificAuthenticator
+                .passwordlessViaSMSMode,
+              onChangeMode: (mode: BotProtectionRiskMode) => {
+                setRequirementsFlowConfigs((flowConfigs) => ({
+                  ...flowConfigs,
+                  specificAuthenticator: {
+                    ...flowConfigs.specificAuthenticator,
+                    passwordlessViaSMSMode: mode,
+                  },
+                }));
+              },
+            },
+            {
+              label: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessEmail.label"
+              ),
+              mode: requirements.flows.flowConfigs.specificAuthenticator
+                .passwordlessViaEmailMode,
+              onChangeMode: (mode: BotProtectionRiskMode) => {
+                setRequirementsFlowConfigs((flowConfigs) => ({
+                  ...flowConfigs,
+                  specificAuthenticator: {
+                    ...flowConfigs.specificAuthenticator,
+                    passwordlessViaEmailMode: mode,
+                  },
+                }));
+              },
+            },
+          ];
+        }
+        default:
+          return [];
+      }
+    }, [renderToString, requirements.flows, setRequirementsFlowConfigs]);
+
+    const resetPasswordConfigItems: RequirementConfigListItem[] =
+      useMemo(() => {
+        return [
+          {
+            label: renderToString(
+              "BotProtectionConfigurationScreen.requirements.resetPassword.config.resetPassword.label"
+            ),
+            mode: requirements.resetPassword.resetPasswordMode,
+            onChangeMode: (mode: BotProtectionRiskMode) => {
+              setRequirements((requirements) => ({
+                ...requirements,
+                resetPassword: {
+                  resetPasswordMode: mode,
+                },
+              }));
+            },
+          },
+        ];
+      }, [
+        renderToString,
+        requirements.resetPassword.resetPasswordMode,
+        setRequirements,
+      ]);
+
+    return (
+      <section className={styles.section}>
+        <div className={styles.sectionHeader}>
+          <WidgetTitle>
+            <FormattedMessage id="BotProtectionConfigurationScreen.requirements.title" />
+          </WidgetTitle>
+          <Text as="h3" block={true} className={styles.subtitle}>
+            <FormattedMessage id="BotProtectionConfigurationScreen.requirements.flows.subtitle" />
+          </Text>
+          <ChoiceGroup
+            selectedKey={requirements.flows.flowType}
+            options={flowOptions}
+            onChange={onChangeFlowType}
+          />
+        </div>
+        <div>
+          <HorizontalDivider />
+          <DetailsList
+            columns={requirementConfigColumns}
+            isHeaderVisible={false}
+            selectionMode={SelectionMode.none}
+            items={flowConfigItems}
+          />
+        </div>
+        <div className="space-y-3">
+          <Text as="h3" block={true} className={styles.subtitle}>
+            <FormattedMessage id="BotProtectionConfigurationScreen.requirements.resetPassword.subtitle" />
+          </Text>
+          <div>
+            <HorizontalDivider />
+            <DetailsList
+              columns={requirementConfigColumns}
+              isHeaderVisible={false}
+              selectionMode={SelectionMode.none}
+              items={resetPasswordConfigItems}
+            />
+          </div>
+        </div>
+      </section>
+    );
+  };
+export interface BotProtectionConfigurationContentProps {
+  form: AppSecretConfigFormModel<FormState>;
+}
+
+const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationContentProps> =
+  function BotProtectionConfigurationContent(props) {
+    const { form } = props;
+    const { state, setState } = form;
+    const { renderToString } = useContext(Context);
+
+    const onChangeEnabled = useCallback(
+      (_event, checked?: boolean) => {
+        if (checked != null) {
+          setState((state) => {
+            return {
+              ...state,
+              enabled: checked,
+            };
+          });
+        }
+      },
+      [setState]
+    );
+
+    const setRequirements = useCallback(
+      (
+        fn: (r: FormBotProtectionRequirements) => FormBotProtectionRequirements
+      ) => {
+        setState((state) => ({
+          ...state,
+          requirements: fn(state.requirements),
         }));
       },
       [setState]
@@ -572,33 +1045,11 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
           />
           {state.enabled ? (
             <div className={styles.enabledContent}>
-              <WidgetTitle>
-                <FormattedMessage id="BotProtectionConfigurationScreen.challengeProvider.title" />
-              </WidgetTitle>
-              <div className={styles.providerCardContainer}>
-                <ProviderCard
-                  className={styles.columnLeft}
-                  onClick={onClickProviderRecaptchaV2}
-                  isSelected={state.providerType === "recaptchav2"}
-                  logoSrc={recaptchaV2LogoURL}
-                >
-                  <FormattedMessage id="BotProtectionConfigurationScreen.provider.recaptchaV2.label" />
-                </ProviderCard>
-                <ProviderCard
-                  className={styles.columnRight}
-                  onClick={onClickProviderCloudflare}
-                  isSelected={state.providerType === "cloudflare"}
-                  logoSrc={cloudflareLogoURL}
-                >
-                  <FormattedMessage id="BotProtectionConfigurationScreen.provider.cloudflare.label" />
-                </ProviderCard>
-              </div>
-              <BotProtectionConfigurationContentProviderConfigFormFields
-                revealed={revealed}
-                onClickReveal={onClickReveal}
-                setProviderConfigs={setBotProtectionProviderConfigs}
-                providerConfigs={state.providerConfigs}
-                providerType={state.providerType}
+              <BotProtectionConfigurationContentProviderSection form={form} />
+              <HorizontalDivider className="my-6" />
+              <BotProtectionConfigurationContentRequirementsSection
+                requirements={state.requirements}
+                setRequirements={setRequirements}
               />
             </div>
           ) : null}
