@@ -37,7 +37,7 @@ type IdentificationOption struct {
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
 
 	// Server is specific to LDAP
-	Server string `json:"server,omitempty"`
+	ServerName string `json:"server_name,omitempty"`
 }
 
 func NewIdentificationOptionIDToken(i config.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
@@ -83,7 +83,7 @@ func NewIdentificationOptionLDAP(ldapConfig *config.LDAPConfig, authflowCfg *con
 	for _, s := range ldapConfig.Servers {
 		output = append(output, IdentificationOption{
 			Identification: config.AuthenticationFlowIdentificationLDAP,
-			Server:         s.Name,
+			ServerName:     s.Name,
 			// TODO(DEV-1659)
 			// BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
 		})

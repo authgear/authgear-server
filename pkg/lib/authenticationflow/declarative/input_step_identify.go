@@ -89,11 +89,11 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 			b.Properties().Property("assertion_response", passkeyAssertionResponseSchemaBuilder)
 			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowIdentificationLDAP:
-			required = append(required, "server")
+			required = append(required, "server_name")
 			b.Properties().
 				Property(
-					"server",
-					validation.SchemaBuilder{}.Type(validation.TypeString).Const(option.Server),
+					"server_name",
+					validation.SchemaBuilder{}.Type(validation.TypeString).Const(option.ServerName),
 				)
 
 			required = append(required, "username")
@@ -148,9 +148,9 @@ type InputStepIdentify struct {
 
 	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 
-	Server   string `json:"server"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	ServerName string `json:"server_name"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
@@ -205,8 +205,8 @@ func (i *InputStepIdentify) GetBotProtectionProviderResponse() string {
 	return i.BotProtection.Response
 }
 
-func (i *InputStepIdentify) GetServer() string {
-	return i.Server
+func (i *InputStepIdentify) GetServerName() string {
+	return i.ServerName
 }
 
 func (i *InputStepIdentify) GetUsername() string {
