@@ -313,6 +313,8 @@ const (
 	BotProtectionProviderCredentialsKey        SecretKey = "bot_protection.provider"
 	WhatsappOnPremisesCredentialsKey           SecretKey = "whatsapp.on-premises"
 	LDAPServerUserCredentialsKey               SecretKey = "ldap"
+
+	SAMLIdpSigningSecretsKey SecretKey = "saml.idp.signing"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -356,6 +358,7 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	BotProtectionProviderCredentialsKey:        {"BotProtectionProviderCredentials", func() SecretItemData { return &BotProtectionProviderCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
 	LDAPServerUserCredentialsKey:               {"LDAPServerUserCredentials", func() SecretItemData { return &LDAPServerUserCredentials{} }},
+	SAMLIdpSigningSecretsKey:                   {"SAMLIdpSigningSecrets", func() SecretItemData { return &SAMLIdpSigningSecrets{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{
