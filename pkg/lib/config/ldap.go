@@ -19,6 +19,15 @@ type LDAPConfig struct {
 	Servers []*LDAPServerConfig `json:"servers,omitempty"`
 }
 
+func (c *LDAPConfig) GetServerConfig(serverName string) (*LDAPServerConfig, bool) {
+	for _, serverConfig := range c.Servers {
+		if serverConfig.Name == serverName {
+			return serverConfig, true
+		}
+	}
+	return nil, false
+}
+
 var _ = Schema.Add("LDAPServerConfig", `
 {
 	"type": "object",
