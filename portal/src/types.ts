@@ -313,6 +313,10 @@ export interface RecoveryCodeConfig {
   list_enabled?: boolean;
 }
 
+export interface MFAGlobalGracePeriodConfig {
+  enabled?: boolean;
+}
+
 export interface DeviceTokenConfig {
   disabled?: boolean;
 }
@@ -322,6 +326,7 @@ export interface AuthenticationConfig {
   primary_authenticators?: PrimaryAuthenticatorType[];
   secondary_authenticators?: SecondaryAuthenticatorType[];
   secondary_authentication_mode?: SecondaryAuthenticationMode;
+  secondary_authentication_grace_period?: MFAGlobalGracePeriodConfig;
   recovery_code?: RecoveryCodeConfig;
   device_token?: DeviceTokenConfig;
   rate_limits?: AuthenticationRateLimitsConfig;
