@@ -340,9 +340,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
             {!passwordFieldDisabled ? (
               <Checkbox
                 className={styles.checkbox}
-                label={renderToString(
-                  "AddUserScreen.force-change-on-login"
-                )}
+                label={renderToString("AddUserScreen.force-change-on-login")}
                 checked={state.setPasswordExpired}
                 onChange={onChangeForceChangeOnLogin}
               />
