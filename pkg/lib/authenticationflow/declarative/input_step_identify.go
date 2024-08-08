@@ -96,10 +96,10 @@ func (i *InputSchemaStepIdentify) SchemaBuilder() validation.SchemaBuilder {
 					validation.SchemaBuilder{}.Type(validation.TypeString).Const(option.Server),
 				)
 
-			required = append(required, "user_id_attribute_value")
+			required = append(required, "username")
 			b.Properties().
 				Property(
-					"user_id_attribute_value",
+					"username",
 					validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1),
 				)
 
@@ -148,9 +148,9 @@ type InputStepIdentify struct {
 
 	BotProtection *InputTakeBotProtectionBody `json:"bot_protection,omitempty"`
 
-	Server               string `json:"server"`
-	UserIDAttributeValue string `json:"user_id_attribute_value"`
-	Password             string `json:"password"`
+	Server   string `json:"server"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 var _ authflow.Input = &InputStepIdentify{}
@@ -209,8 +209,8 @@ func (i *InputStepIdentify) GetServer() string {
 	return i.Server
 }
 
-func (i *InputStepIdentify) GetUserIDAttributeValue() string {
-	return i.UserIDAttributeValue
+func (i *InputStepIdentify) GetUsername() string {
+	return i.Username
 }
 
 func (i *InputStepIdentify) GetPassword() string {

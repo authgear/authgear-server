@@ -68,7 +68,7 @@ func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, f
 	if authflow.AsInput(input, &inputTakeLDAP) {
 		entry, err := deps.LDAPClientFactory.Authenticate(
 			inputTakeLDAP.GetServer(),
-			inputTakeLDAP.GetUserIDAttributeValue(),
+			inputTakeLDAP.GetUsername(),
 			inputTakeLDAP.GetPassword(),
 		)
 		if err != nil {
