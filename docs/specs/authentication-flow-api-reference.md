@@ -410,7 +410,7 @@ The corresponding input is
 ```json
 {
   "identification": "ldap",
-  "server": "ldap-server-1",
+  "server_name": "ldap-server-1",
   "username": "johndoe",
   "password": "password"
 }

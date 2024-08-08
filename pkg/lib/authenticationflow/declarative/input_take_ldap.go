@@ -29,7 +29,7 @@ func (i *InputSchemaTakeLDAP) SchemaBuilder() validation.SchemaBuilder {
 	b := validation.SchemaBuilder{}.Type(validation.TypeObject)
 	b.Properties().
 		Property(
-			"server",
+			"server_name",
 			validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1),
 		).
 		Property(
@@ -40,7 +40,7 @@ func (i *InputSchemaTakeLDAP) SchemaBuilder() validation.SchemaBuilder {
 			"password",
 			validation.SchemaBuilder{}.Type(validation.TypeString).MinLength(1),
 		).
-		Required("server", "username", "password")
+		Required("server_name", "username", "password")
 	return b
 }
 
@@ -54,9 +54,9 @@ func (i *InputSchemaTakeLDAP) MakeInput(rawMessage json.RawMessage) (authflow.In
 }
 
 type InputTakeLDAP struct {
-	Server   string `json:"server"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	ServerName string `json:"server_name"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
 }
 
 var _ authflow.Input = &InputTakeLDAP{}
@@ -64,8 +64,8 @@ var _ inputTakeLDAP = &InputTakeLDAP{}
 
 func (*InputTakeLDAP) Input() {}
 
-func (i *InputTakeLDAP) GetServer() string {
-	return i.Server
+func (i *InputTakeLDAP) GetServerName() string {
+	return i.ServerName
 }
 
 func (i *InputTakeLDAP) GetUsername() string {
