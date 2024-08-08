@@ -30,7 +30,7 @@ export function dispatchBotProtectionDialogClose() {
  * - Specify id="bot-protection-dialog" to that dialog
  */
 export class BotProtectionDialogController extends Controller {
-  onOpenEnd = (e: Event) => {
+  onOpenStart = (e: Event) => {
     if (!(e instanceof CustomEvent)) {
       return;
     }
@@ -57,12 +57,12 @@ export class BotProtectionDialogController extends Controller {
       console.error(`bot-protection-dialog must have id="${DIALOG_ID}"`);
       return;
     }
-    document.addEventListener(`dialog:opened`, this.onOpenEnd);
-    document.addEventListener(`dialog:closed`, this.onCloseEnd);
+    document.addEventListener(`dialog:open-start`, this.onOpenStart);
+    document.addEventListener(`dialog:close-end`, this.onCloseEnd);
   }
 
   disconnect() {
-    document.removeEventListener(`dialog:opened`, this.onOpenEnd);
-    document.removeEventListener(`dialog:closed`, this.onCloseEnd);
+    document.removeEventListener(`dialog:open-start`, this.onOpenStart);
+    document.removeEventListener(`dialog:close-end`, this.onCloseEnd);
   }
 }
