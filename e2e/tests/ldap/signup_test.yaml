@@ -37,3 +37,43 @@ steps:
             "type": "finished"
           }
         }
+---
+name: Signup with LDAP - Invalid credentail - Wrong password
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "jdoe",
+        "password": "jdoepassword-wrong"
+      }
+    output:
+      error: |
+        {
+          "name": "Unauthorized",
+          "reason": "InvalidCredentials",
+          "code": 401
+        }
