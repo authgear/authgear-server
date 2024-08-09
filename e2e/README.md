@@ -159,6 +159,7 @@ Each step is an API call to the Authflow API. The following steps are available:
 - `action: create`: Creates a flow
 - `action: input`: Inputs data and proceeds to the next step
 - `action: oauth_redirect`: Redirects to an OAuth provider
+- `action: query`: Query from database
 
 #### OAuth redirect
 
@@ -184,6 +185,36 @@ The `oauth_redirect` action is used to redirect to an OAuth provider. The result
           "type": "finished"
         }
       }
+```
+
+#### Database Query
+
+The `query` action is used to query from database. The results can be accessed by `prev` in next step.
+
+```sql
+# get_my_user.sql
+SELECT id
+FROM _auth_user 
+WHERE app_id = '{{ .AppID }}'
+AND standard_attributes ->> 'preferred_username' = 'my_username';
+```
+
+```yaml
+- action: query
+  query: get_my_user.sql
+  query_output:
+    rows: |
+      [
+        {
+          "id": "[[string]]"
+        }
+      ]
+- action: input
+  input: |
+    {
+      "identification": "id_token",
+      "id_token": "{{ generateIDToken (index .prev.result.rows 0).id }}"
+    }
 ```
 
 #### Assert
@@ -219,7 +250,9 @@ The following matchers are available for assertions:
 - `[[number]]`: Matches any number
 - `[[boolean]]`: Matches any boolean
 - `[[null]]`: Matches null
+- `[[never]]`: Disallows the field, useful for blacklisting fields in maps
 - `["[[arrayof]]", "[[object]]"]`: Matches an array of objects, 2nd element can be any matcher or a specific value
+- `["[[string]]", "some_constant"]`: Matches a tuple. Extra or missing elements are reported as errors
 
 ### JSON schema
 

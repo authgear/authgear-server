@@ -1,0 +1,12 @@
+{
+  "identifier": "email",
+  "records": [
+    {
+      "email": "lowerUPPER@ca.se",
+      "password": {
+        "type": "bcrypt",
+        "password_hash": "$2y$10$/wLavnCmYGP/zzpw/mR1iOK5y5hGyrEFJtmaIbvFf9VA6l2O4NMKO"
+      }
+    }
+  ]
+}

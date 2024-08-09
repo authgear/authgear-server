@@ -1,0 +1,37 @@
+# https://linear.app/authgear/issue/DEV-1458/import-api-failed-to-handle-email-username-with-upper-cases
+
+name: If case_insensitive, import user with uppercase email should become lowercase 
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+    identity:
+      login_id:
+        keys:
+        - create_disabled: false
+          delete_disabled: false
+          key: email
+          max_length: 320
+          type: email
+          update_disabled: false
+        types:
+          email:
+            case_sensitive: false
+before:
+  - type: user_import
+    user_import: user.json
+# Note "lowerUPPER@ca.se" is imported as "lowerupper@ca.se"
+steps:
+  - action: query
+    query: get_user.sql
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]",
+            "standard_attributes": "{\"email\": \"lowerupper@ca.se\"}"
+          }
+        ]
