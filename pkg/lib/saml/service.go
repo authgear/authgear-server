@@ -14,9 +14,11 @@ import (
 const MetadataValidDuration = time.Hour * 24
 
 type Service struct {
-	Clock                 clock.Clock
-	AppID                 config.AppID
-	SAMLEnvironmentConfig config.SAMLEnvironmentConfig
+	Clock                   clock.Clock
+	AppID                   config.AppID
+	SAMLEnvironmentConfig   config.SAMLEnvironmentConfig
+	SAMLConfig              *config.SAMLConfig
+	SAMLIdpSigningMaterials *config.SAMLIdpSigningMaterials
 }
 
 func (s *Service) idpEntityID() string {
@@ -37,6 +39,21 @@ func (s *Service) idpEntityID() string {
 
 func (s *Service) IdPMetadata() *Metadata {
 
+	keyDescriptors := []crewjamsaml.KeyDescriptor{}
+	if cert, ok := s.SAMLIdpSigningMaterials.FindSigningCert(s.SAMLConfig.Signing.KeyID); ok {
+		keyDescriptors = append(keyDescriptors,
+			crewjamsaml.KeyDescriptor{
+				Use: "signing",
+				KeyInfo: crewjamsaml.KeyInfo{
+					X509Data: crewjamsaml.X509Data{
+						X509Certificates: []crewjamsaml.X509Certificate{
+							{Data: cert.Cert.Base64Data()},
+						},
+					},
+				},
+			})
+	}
+
 	descriptor := EntityDescriptor{
 		EntityID: s.idpEntityID(),
 		IDPSSODescriptors: []crewjamsaml.IDPSSODescriptor{
@@ -44,9 +61,7 @@ func (s *Service) IdPMetadata() *Metadata {
 				SSODescriptor: crewjamsaml.SSODescriptor{
 					RoleDescriptor: crewjamsaml.RoleDescriptor{
 						ProtocolSupportEnumeration: "urn:oasis:names:tc:SAML:2.0:protocol",
-						KeyDescriptors:             []crewjamsaml.KeyDescriptor{
-							// TODO
-						},
+						KeyDescriptors:             keyDescriptors,
 					},
 					NameIDFormats: []crewjamsaml.NameIDFormat{
 						// TODO
