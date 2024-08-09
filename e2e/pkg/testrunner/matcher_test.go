@@ -153,6 +153,52 @@ func TestMatchJSON(t *testing.T) {
 			schema:   `"[[number]]"`,
 			expected: []MatchViolation{},
 		},
+		{
+			name:    "Never field",
+			jsonStr: `{"id": 1, "title": "Test Article", "extra": "extra field"}`,
+			schema:  `{"id": "[[number]]", "title": "[[string]]", "[[...rest]]": "[[never]]"}`,
+			expected: []MatchViolation{
+				{
+					Path:     "/extra",
+					Message:  "type mismatch",
+					Expected: "[[never]]",
+					Actual:   "[[string]]",
+				},
+			},
+		},
+		{
+			name: "Tuple match",
+			jsonStr: `{
+		    "tuple": [1, "string", true, null]
+		  }`,
+			schema: `{
+		    "tuple": ["[[number]]", "[[string]]", "[[boolean]]", "[[null]]"]
+		  }`,
+			expected: []MatchViolation{},
+		},
+		{
+			name: "Tuple violation",
+			jsonStr: `{
+		    "tuple": [1, "string", true, 1, null]
+		  }`,
+			schema: `{
+		    "tuple": ["[[number]]", "[[string]]", "[[boolean]]", "[[null]]", "[[never]]"]
+		  }`,
+			expected: []MatchViolation{
+				{
+					Path:     "/tuple/3",
+					Message:  "type mismatch",
+					Expected: "[[null]]",
+					Actual:   "[[number]]",
+				},
+				{
+					Path:     "/tuple/4",
+					Message:  "type mismatch",
+					Expected: "[[never]]",
+					Actual:   "[[null]]",
+				},
+			},
+		},
 	}
 
 	for _, tc := range testCases {
