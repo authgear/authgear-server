@@ -51,6 +51,16 @@ func (e *End2EndCmd) ExecuteSQLInsertUpdateFile(sqlPath string) error {
 	return nil
 }
 
+func (e *End2EndCmd) QuerySQLSelectFile(sqlPath string) (jsonArrString string, err error) {
+	cmd := fmt.Sprintf(
+		"./dist/e2e query-sql-select --app-id %s --custom-sql \"%s\"",
+		e.AppID,
+		e.resolvePath(sqlPath),
+	)
+
+	return e.execCmd(cmd)
+}
+
 func (e *End2EndCmd) GetLinkOTPCodeByClaim(claim string, value string) (string, error) {
 	cmd := fmt.Sprintf(
 		"./dist/e2e link-otp-code %s %s --app-id %s",
