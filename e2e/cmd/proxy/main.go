@@ -60,16 +60,12 @@ func main() {
 	// Setup mock ldap server
 	ldapServer, err := mockldap.NewMockLDAPServer()
 	if err != nil {
-		log.Fatal(nil)
+		log.Fatal(err)
 	}
 	ldapAddress := "127.0.0.1:8083"
-	lnLDAP, err := net.Listen("tcp", ldapAddress)
+	err = ldapServer.Start(ldapAddress)
 	if err != nil {
-		log.Fatal(nil)
-	}
-	err = ldapServer.Start(lnLDAP)
-	if err != nil {
-		log.Fatal(nil)
+		log.Fatal(err)
 	}
 	defer ldapServer.Shutdown()
 	log.Printf("Mock LDAP Server listening on %s\n", ldapAddress)
