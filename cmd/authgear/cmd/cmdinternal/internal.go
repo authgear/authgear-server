@@ -195,5 +195,8 @@ func init() {
 	binder.BindString(cmdInternalElasticsearchReindex.PersistentFlags(), authgearcmd.ArgDatabaseSchema)
 	_ = cmdInternalElasticsearchReindex.Flags().Bool("all", false, "All apps")
 
+	cmdInternal.AddCommand(cmdInternalSaml)
+	cmdInternalSaml.AddCommand(cmdInternalSamlGenerateSigningKey)
+
 	authgearcmd.Root.AddCommand(cmdInternal)
 }
