@@ -37,7 +37,7 @@ VALUES
     NULL,
     NOW(),
     NOW()
-  ) ON CONFLICT DO NOTHING;
+  );
 INSERT INTO
   _auth_identity (
     "id",
@@ -55,7 +55,7 @@ VALUES
     'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
     NOW(),
     NOW()
-  ) ON CONFLICT DO NOTHING;
+  );
 INSERT INTO
   _auth_authenticator (
     "id",
@@ -87,7 +87,7 @@ VALUES
     NOW(),
     't',
     'secondary'
-  ) ON CONFLICT DO NOTHING;
+  );
 INSERT INTO
   _auth_authenticator_password ("id", "app_id", "password_hash", "expire_after")
 VALUES
@@ -96,7 +96,7 @@ VALUES
     '{{ .AppID }}',
     '$bcrypt-sha512$$2a$10$TsJ6RYa.EL46SbDLGQnwTeFYi.3gdBiPWtO.J05zo0zm1yuNO6/6K',
     NULL
-  ) ON CONFLICT DO NOTHING;
+  );
 INSERT INTO
   _auth_authenticator_totp ("id", "app_id", "secret", "display_name")
 VALUES
@@ -105,7 +105,7 @@ VALUES
     '{{ .AppID }}',
     '3I526Y3Y7GSXO34RTFEEFXCJM6Y4VZXR',
     'TOTP @ 2024-06-26T15:11:48Z'
-  ) ON CONFLICT DO NOTHING;
+  );
 INSERT INTO
   _auth_identity_login_id (
     "id",
@@ -127,7 +127,7 @@ VALUES
     'signup@example.com',
     'signup@example.com',
     'email'
-  ) ON CONFLICT DO NOTHING;
+  );
 INSERT INTO
   _auth_password_history (
     "id",
@@ -143,7 +143,7 @@ VALUES
     NOW(),
     'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
     '$bcrypt-sha512$$2a$10$TsJ6RYa.EL46SbDLGQnwTeFYi.3gdBiPWtO.J05zo0zm1yuNO6/6K'
-  ) ON CONFLICT DO NOTHING;
+  );
 INSERT INTO
   _auth_recovery_code (
     "id",
@@ -298,4 +298,4 @@ VALUES
     NOW(),
     'f',
     NOW()
-  ) ON CONFLICT DO NOTHING;
+  );
