@@ -1179,4 +1179,3 @@ config:
   saml:
     service_providers:
       - id: provider_1
-        entity_id: urn:sp.example.com
