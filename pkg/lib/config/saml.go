@@ -26,12 +26,12 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 `)
 
 type SAMLConfig struct {
-	Signing              *SAMLSigningConfig           `json:"signing,omitempty"`
-	SAMLServiceProviders []*SAMLServiceProviderConfig `json:"service_providers,omitempty"`
+	Signing          *SAMLSigningConfig           `json:"signing,omitempty"`
+	ServiceProviders []*SAMLServiceProviderConfig `json:"service_providers,omitempty"`
 }
 
 func (c *SAMLConfig) ResolveProvider(id string) (*SAMLServiceProviderConfig, bool) {
-	for _, sp := range c.SAMLServiceProviders {
+	for _, sp := range c.ServiceProviders {
 		if sp.ID == id {
 			return sp, true
 		}
