@@ -1,0 +1,117 @@
+name: Signup/Login With LDAP - Login
+before:
+  - type: custom_sql
+    custom_sql:
+      path: users.sql
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - ldap
+        - login_id
+    identity:
+      ldap:
+        servers:
+          - name: ldap-server-1
+            url: ldap://localhost:8389
+            base_dn: dc=example,dc=org
+            search_filter_template: "(uid={{`{{.Username}}`}})"
+            user_id_attribute_name: uid
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data" {
+              "options"  [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "jdoe",
+        "password": "jdoepassword"
+      }
+    output:
+      result: |
+        {
+          "type": "login",
+          "action": {
+            "type": "finished"
+          }
+        }
+---
+name: Signup/Login With LDAP - Signup
+before:
+  - type: custom_sql
+    custom_sql:
+      path: users.sql
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - ldap
+        - login_id
+    identity:
+      ldap:
+        servers:
+          - name: ldap-server-1
+            url: ldap://localhost:8389
+            base_dn: dc=example,dc=org
+            search_filter_template: "(uid={{`{{.Username}}`}})"
+            user_id_attribute_name: uid
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data" {
+              "options"  [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "bjane",
+        "password": "bjanepassword"
+      }
+    output:
+      result: |
+        {
+          "type": "signup",
+          "action": {
+            "type": "finished"
+          }
+        }
