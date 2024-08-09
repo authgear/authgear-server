@@ -1,0 +1,45 @@
+name: Login with LDAP
+before:
+  - type: custom_sql
+    custom_sql:
+      path: users.sql
+steps:
+  - action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "type": "login",
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "jdoe",
+        "password": "jdoepassword"
+      }
+    output:
+      result: |
+        {
+          "type": "login",
+          "action": {
+            "type": "finished"
+          }
+        }
