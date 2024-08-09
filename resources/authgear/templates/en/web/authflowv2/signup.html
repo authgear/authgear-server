@@ -241,6 +241,29 @@
             </form>
           {{ end }}
         {{ end }}
+        {{ if eq .type "ldap" }}
+        <form class="block" method="post" data-turbo="false" novalidate>
+          {{ $.CSRFField }}
+          <input type="hidden" name="x_servername" value="{{ .server_name }}">
+          <button
+            class="secondary-btn w-full"
+            type="submit"
+            name="x_action"
+            value="ldap"
+            data-authgear-event="authgear.button.ldap"
+          >
+            <div class="flex gap-2">
+              <span>
+                {{ if ($.Translations.HasKey (printf "v2-ldap-branding-%s" .server_name)) }}
+                  {{ include (printf "v2-ldap-branding-%s" .server_name) nil }}
+                {{ else }}
+                  {{ template "v2-ldap-branding" }}
+                {{ end }}
+              </span>
+            </div>
+          </button>
+        </form>
+      {{ end }}
       {{ end }}
 
       <!-- For signup login flow -->
