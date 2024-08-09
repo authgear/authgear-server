@@ -128,6 +128,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	// Validation 9: validate authentication flow
 	c.validateAuthenticationFlow(ctx)
+
+	// Validation 10: validate saml configs
+	c.validateSAML(ctx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -342,6 +345,18 @@ func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
 
 		// Ensure client's flow allowlist is valid
 		validateFlowAllowlist(ctx, client.AuthenticationFlowAllowlist.Flows, definedFlows, i)
+	}
+}
+
+func (c *AppConfig) validateSAML(ctx *validation.Context) {
+	if len(c.SAML.ServiceProviders) > 0 {
+		if c.SAML.Signing.KeyID == "" {
+			// Signing key must be configured if at least one service provider exist
+			ctx.Child("saml", "signing", "key_id").EmitError("minLength", map[string]interface{}{
+				"expected": 1,
+				"actual":   0,
+			})
+		}
 	}
 }
 

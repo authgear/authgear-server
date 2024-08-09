@@ -19,6 +19,15 @@ type SAMLIdpSigningMaterials struct {
 	Certs []*SAMLIdpSigningCert `json:"certs,omitempty"`
 }
 
+func (m *SAMLIdpSigningMaterials) FindSigningCert(keyID string) (*SAMLIdpSigningCert, bool) {
+	for _, cert := range m.Certs {
+		if cert.Key.KeyID() == keyID {
+			return cert, true
+		}
+	}
+	return nil, false
+}
+
 var _ SecretItemData = &SAMLIdpSigningMaterials{}
 
 func (s *SAMLIdpSigningMaterials) SensitiveStrings() []string {

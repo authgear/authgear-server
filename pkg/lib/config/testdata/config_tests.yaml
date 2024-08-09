@@ -1154,3 +1154,15 @@ config:
   saml:
     service_providers:
       - id: provider_1
+---
+name: saml-signing
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  saml:
+    signing:
+      key_id: asdfasdf
+      signature_method: RSAwithSHA256
+      digest_method: SHA256
