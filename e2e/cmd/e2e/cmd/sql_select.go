@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 
 	e2e "github.com/authgear/authgear-server/e2e/cmd/e2e/pkg"
@@ -9,14 +11,14 @@ import (
 func init() {
 	binder := GetBinder()
 
-	Root.AddCommand(cmdInternalE2EExecuteCustomSQL)
-	binder.BindString(cmdInternalE2EExecuteCustomSQL.PersistentFlags(), ArgAppID)
-	binder.BindString(cmdInternalE2EExecuteCustomSQL.PersistentFlags(), ArgCustomSQL)
+	Root.AddCommand(cmdInternalE2EQuerySQLSelect)
+	binder.BindString(cmdInternalE2EQuerySQLSelect.PersistentFlags(), ArgAppID)
+	binder.BindString(cmdInternalE2EQuerySQLSelect.PersistentFlags(), ArgCustomSQL)
 }
 
-var cmdInternalE2EExecuteCustomSQL = &cobra.Command{
-	Use:   "exec-sql",
-	Short: "Execute custom SQL for e2e tests",
+var cmdInternalE2EQuerySQLSelect = &cobra.Command{
+	Use:   "query-sql-select",
+	Short: "Execute SQL SELECT queries for e2e tests",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := GetBinder()
 
@@ -27,10 +29,12 @@ var cmdInternalE2EExecuteCustomSQL = &cobra.Command{
 			Context: cmd.Context(),
 		}
 
-		err := instance.ExecuteCustomSQL(appID, customSQL)
+		dbRows, err := instance.QuerySQLSelect(appID, customSQL)
 		if err != nil {
 			return err
 		}
+
+		fmt.Print(dbRows)
 
 		return nil
 	},
