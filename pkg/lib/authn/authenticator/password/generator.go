@@ -153,9 +153,6 @@ func (g *Generator) generateOnce() (string, error) {
 	g.Rand.Shuffle(len(passwordBytes), func(i int, j int) {
 		passwordBytes[i], passwordBytes[j] = passwordBytes[j], passwordBytes[i]
 	})
-	if err != nil {
-		return "", err
-	}
 
 	return string(passwordBytes), nil
 }
