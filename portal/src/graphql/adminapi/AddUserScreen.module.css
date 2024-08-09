@@ -1,5 +1,11 @@
-.identityOption {
-  padding: 2px 0 0 30px;
+.verticalForm {
+  grid-column: 1 / span 8;
+  @apply w-full max-w-[360px];
+  @apply grid gap-8;
+  grid-template-columns: 100%;
+  grid-auto-rows: min-content;
+
+  @apply mobile:max-w-none;
 }
 
 .identityOptionLabel {

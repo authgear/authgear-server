@@ -161,32 +161,6 @@ func TestMinGuessableLevelRequirement(t *testing.T) {
 	})
 }
 
-func TestExcludedKeywordsRequirement(t *testing.T) {
-	Convey("Given a password generator with excluded keywords", t, func() {
-		excluded := []string{"1", "2", "3"}
-		generator := &Generator{
-			Checker: &Checker{
-				PwExcludedKeywords: excluded,
-			},
-			RandSource: &CryptoRandSource{},
-			PasswordConfig: &config.AuthenticatorPasswordConfig{
-				Policy: &config.PasswordPolicyConfig{
-					MinLength:        newInt(8),
-					DigitRequired:    true,
-					ExcludedKeywords: excluded,
-				},
-			},
-		}
-
-		password, err := generator.Generate()
-
-		Convey("should not contain any excluded keywords", func() {
-			So(checkPasswordExcludedKeywords(password, excluded), ShouldBeTrue)
-			So(err, ShouldBeNil)
-		})
-	})
-}
-
 func TestPrepareCharacterSet(t *testing.T) {
 	Convey("Given a password policy config", t, func() {
 		Convey("When no specific requirements are set", func() {

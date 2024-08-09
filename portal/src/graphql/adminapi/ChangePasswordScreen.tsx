@@ -155,6 +155,8 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
             passwordPolicy={appConfig?.authenticator?.password?.policy ?? {}}
             parentJSONPointer=""
             fieldName="password"
+            canRevealPassword={true}
+            canGeneratePassword={true}
             disabled={
               state.passwordCreationType === PasswordCreationType.AutoGenerate
             }
