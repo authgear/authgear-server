@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig"
+	"github.com/google/uuid"
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -348,6 +349,9 @@ func makeTemplateFuncMap(cmd *End2EndCmd) texttemplate.FuncMap {
 			panic(err)
 		}
 		return idToken
+	}
+	templateFuncMap["generateUUID"] = func() string {
+		return uuid.Must(uuid.NewRandom()).String()
 	}
 
 	return templateFuncMap
