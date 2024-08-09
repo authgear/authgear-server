@@ -48,7 +48,7 @@ var cmdInternalSamlGenerateSigningKey = &cobra.Command{
 			return err
 		}
 
-		jwkKey.Set("kid", base64.RawURLEncoding.EncodeToString(thumbprint))
+		_ = jwkKey.Set("kid", base64.RawURLEncoding.EncodeToString(thumbprint))
 
 		now := time.Now().UTC()
 
