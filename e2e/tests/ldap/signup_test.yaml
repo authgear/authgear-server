@@ -117,3 +117,43 @@ steps:
           "reason": "InvalidCredentials",
           "code": 401
         }
+---
+name: Signup with LDAP - Duplicate ldap users found
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "duplicate",
+        "password": "duplicatepassword"
+      }
+    output:
+      error: |
+        {
+          "name": "Unauthorized",
+          "reason": "InvalidCredentials",
+          "code": 401
+        }
