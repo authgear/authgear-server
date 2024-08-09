@@ -37,8 +37,8 @@ import {
 
 const pageSize = 10;
 // We have performance problem on the users query
-// limit to 10 items for now
-const searchResultSize = 10;
+// limit to 50 items for now
+const searchResultSize = 50;
 
 function useRemoteData(options: {
   filters: UsersFilter;
