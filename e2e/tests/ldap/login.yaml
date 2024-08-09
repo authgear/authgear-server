@@ -116,3 +116,63 @@ steps:
             "code": 401
           }
         }
+---
+name: Login with LDAP - User not exists
+before:
+  - type: custom_sql
+    custom_sql:
+      path: users.sql
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - ldap
+    identity:
+      ldap:
+        servers:
+          - name: ldap-server-1
+            url: ldap://localhost:8389
+            base_dn: dc=example,dc=org
+            search_filter_template: "(uid={{`{{.Username}}`}})"
+            user_id_attribute_name: uid
+steps:
+  - action: create
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "type": "login",
+          "action": {
+            "type": "identify",
+            "data" {
+              "options"  [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "not-exist",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "error": {
+            "name": "Unauthorized",
+            "reason": "InvalidCredentials",
+            "code": 401
+          }
+        }
