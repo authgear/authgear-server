@@ -33,6 +33,7 @@ var _ = Schema.Add("AppConfig", `
 		"authentication": { "$ref": "#/$defs/AuthenticationConfig" },
 		"session": { "$ref": "#/$defs/SessionConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthConfig" },
+		"saml": { "$ref": "#/$defs/SAMLConfig" },
 		"identity": { "$ref": "#/$defs/IdentityConfig" },
 		"authenticator": { "$ref": "#/$defs/AuthenticatorConfig" },
 		"user_profile": { "$ref": "#/$defs/UserProfileConfig" },
@@ -68,6 +69,7 @@ type AppConfig struct {
 	Authentication       *AuthenticationConfig       `json:"authentication,omitempty"`
 	Session              *SessionConfig              `json:"session,omitempty"`
 	OAuth                *OAuthConfig                `json:"oauth,omitempty"`
+	SAML                 *SAMLConfig                 `json:"saml,omitempty"`
 	Identity             *IdentityConfig             `json:"identity,omitempty"`
 	Authenticator        *AuthenticatorConfig        `json:"authenticator,omitempty"`
 	UserProfile          *UserProfileConfig          `json:"user_profile,omitempty"`

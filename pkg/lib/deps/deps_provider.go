@@ -39,6 +39,7 @@ var envConfigDeps = wire.NewSet(
 		"NFTIndexerAPIEndpoint",
 		"DenoEndpoint",
 		"RateLimits",
+		"SAML",
 		"AppHostSuffixes",
 	),
 )
