@@ -365,6 +365,7 @@ session:
   idle_timeout_enabled: true
   idle_timeout_seconds: 2592000
 oauth: {}
+saml: {}
 identity:
   login_id:
     types:
