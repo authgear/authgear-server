@@ -1144,3 +1144,13 @@ config:
           name: custom_login_1
         - type: login
           name: default
+---
+name: saml-service-provider
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  saml:
+    service_providers:
+      - id: provider_1
