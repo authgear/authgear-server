@@ -1,7 +1,7 @@
 import { APIError } from "./error";
 import { makeLocalValidationError } from "./validation";
 import { PasswordPolicyConfig } from "../types";
-import { GuessableLevel, zxcvbnGuessableLevel } from '../util/zxcvbn';
+import { GuessableLevel, zxcvbnGuessableLevel } from "../util/zxcvbn";
 
 export interface APIPasswordPolicyViolatedError {
   errorName: string;
