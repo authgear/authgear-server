@@ -163,3 +163,59 @@ steps:
             "code": 401
           }
         }
+---
+name: Signup With LDAP - Duplicate ldap users found
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - ldap
+        - login_id
+    identity:
+      ldap:
+        servers:
+          - name: ldap-server-1
+            url: ldap://localhost:8389
+            base_dn: dc=example,dc=org
+            search_filter_template: "(uid={{`{{.Username}}`}})"
+            user_id_attribute_name: uid
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data" {
+              "options"  [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "duplicate",
+        "password": "duplicatepassword"
+      }
+    output:
+      result: |
+        {
+          "error": {
+            "name": "Unauthorized",
+            "reason": "InvalidCredentials",
+            "code": 401
+          }
+        }
