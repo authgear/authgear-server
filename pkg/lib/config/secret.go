@@ -237,6 +237,19 @@ func (c *SecretConfig) validateLDAPServerUserSecrets(ctx *validation.Context, ld
 	}
 }
 
+func (c *SecretConfig) validateSAMLSigningKey(ctx *validation.Context, keyID string) {
+	c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+	_, data, _ := c.LookupDataWithIndex(SAMLIdpSigningMaterialsKey)
+	signingMaterials, _ := data.(*SAMLIdpSigningMaterials)
+
+	for _, m := range signingMaterials.Certs {
+		if m.Key.Key.KeyID() == keyID {
+			return
+		}
+	}
+	ctx.EmitErrorMessage(fmt.Sprintf("saml idp signing key '%s' does not exist", keyID))
+}
+
 func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	ctx := &validation.Context{}
 
@@ -275,8 +288,11 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 		c.validateLDAPServerUserSecrets(ctx, appConfig.Identity.LDAP.Servers)
 	}
 
-	if len(appConfig.SAML.SAMLServiceProviders) > 0 {
+	if len(appConfig.SAML.ServiceProviders) > 0 {
 		c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+	}
+	if appConfig.SAML.Signing.KeyID != "" {
+		c.validateSAMLSigningKey(ctx, appConfig.SAML.Signing.KeyID)
 	}
 
 	return ctx.Error("invalid secrets")
