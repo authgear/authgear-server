@@ -1,0 +1,39 @@
+name: Signup with LDAP
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "jdoe",
+        "password": "jdoepassword"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
