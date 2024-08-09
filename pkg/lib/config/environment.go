@@ -85,6 +85,8 @@ type EnvironmentConfig struct {
 
 	RateLimits RateLimitsEnvironmentConfig `envconfig:"RATE_LIMITS"`
 
+	SAML SAMLEnvironmentConfig `envconfig:"SAML"`
+
 	// AppHostSuffixes originates from the portal config.
 	AppHostSuffixes AppHostSuffixes `envconfig:"APP_HOST_SUFFIXES"`
 
