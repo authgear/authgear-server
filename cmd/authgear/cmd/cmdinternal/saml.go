@@ -14,10 +14,11 @@ import (
 	"math/big"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/yaml"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 var cmdInternalSaml = &cobra.Command{
