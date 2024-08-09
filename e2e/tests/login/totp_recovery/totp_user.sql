@@ -1,3 +1,24 @@
+{{ $user_id := (uuidv4) }}
+{{ $identity_id := (uuidv4) }}
+{{ $authenticator_password_id := (uuidv4) }}
+{{ $authenticator_totp_id := (uuidv4) }}
+{{ $password_history_id := (uuidv4) }}
+{{ $recovery_code_id_1 := (uuidv4) }}
+{{ $recovery_code_id_2 := (uuidv4) }}
+{{ $recovery_code_id_3 := (uuidv4) }}
+{{ $recovery_code_id_4 := (uuidv4) }}
+{{ $recovery_code_id_5 := (uuidv4) }}
+{{ $recovery_code_id_6 := (uuidv4) }}
+{{ $recovery_code_id_7 := (uuidv4) }}
+{{ $recovery_code_id_8 := (uuidv4) }}
+{{ $recovery_code_id_9 := (uuidv4) }}
+{{ $recovery_code_id_10 := (uuidv4) }}
+{{ $recovery_code_id_11 := (uuidv4) }}
+{{ $recovery_code_id_12 := (uuidv4) }}
+{{ $recovery_code_id_13 := (uuidv4) }}
+{{ $recovery_code_id_14 := (uuidv4) }}
+{{ $recovery_code_id_15 := (uuidv4) }}
+{{ $recovery_code_id_16 := (uuidv4) }}
 INSERT INTO
   _auth_user (
     "id",
@@ -20,7 +41,7 @@ INSERT INTO
   )
 VALUES
   (
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     '{{ .AppID }}',
     NOW(),
     NOW(),
@@ -49,10 +70,10 @@ INSERT INTO
   )
 VALUES
   (
-    '0b082939-1c83-4c23-930f-8b3072beb1cb',
+    '{{ $identity_id }}',
     '{{ .AppID }}',
     'login_id',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     NOW(),
     NOW()
   );
@@ -69,20 +90,20 @@ INSERT INTO
   )
 VALUES
   (
-    '248cbeb9-1aa8-4346-84b3-ec1b6e6030c6',
+    '{{ $authenticator_password_id }}',
     '{{ .AppID }}',
     'password',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     NOW(),
     NOW(),
     't',
     'primary'
   ),
   (
-    '58495140-8f35-4759-b24b-e219783ffb0a',
+    '{{ $authenticator_totp_id }}',
     '{{ .AppID }}',
     'totp',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     NOW(),
     NOW(),
     't',
@@ -92,7 +113,7 @@ INSERT INTO
   _auth_authenticator_password ("id", "app_id", "password_hash", "expire_after")
 VALUES
   (
-    '248cbeb9-1aa8-4346-84b3-ec1b6e6030c6',
+    '{{ $authenticator_password_id }}',
     '{{ .AppID }}',
     '$bcrypt-sha512$$2a$10$TsJ6RYa.EL46SbDLGQnwTeFYi.3gdBiPWtO.J05zo0zm1yuNO6/6K',
     NULL
@@ -101,7 +122,7 @@ INSERT INTO
   _auth_authenticator_totp ("id", "app_id", "secret", "display_name")
 VALUES
   (
-    '58495140-8f35-4759-b24b-e219783ffb0a',
+    '{{ $authenticator_totp_id }}',
     '{{ .AppID }}',
     '3I526Y3Y7GSXO34RTFEEFXCJM6Y4VZXR',
     'TOTP @ 2024-06-26T15:11:48Z'
@@ -119,7 +140,7 @@ INSERT INTO
   )
 VALUES
   (
-    '0b082939-1c83-4c23-930f-8b3072beb1cb',
+    '{{ $identity_id }}',
     '{{ .AppID }}',
     'email',
     'signup@example.com',
@@ -138,10 +159,10 @@ INSERT INTO
   )
 VALUES
   (
-    'b5de2ef7-f733-4dde-80fd-8212061ebcd7',
+    '{{ $password_history_id }}',
     '{{ .AppID }}',
     NOW(),
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     '$bcrypt-sha512$$2a$10$TsJ6RYa.EL46SbDLGQnwTeFYi.3gdBiPWtO.J05zo0zm1yuNO6/6K'
   );
 INSERT INTO
@@ -156,144 +177,144 @@ INSERT INTO
   )
 VALUES
   (
-    '107f9680-7cc3-4a43-856c-d02ce13dd8f5',
+    '{{ $recovery_code_id_1 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'DZ9EDP179S',
     NOW(),
     'f',
     NOW()
   ),
   (
-    '2bec8b35-db73-42ef-88c4-e7a7b892513c',
+    '{{ $recovery_code_id_2 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'Q5C26V77PF',
     NOW(),
     'f',
     NOW()
   ),
   (
-    '3ab62f59-0396-4292-9022-82d37734ffb8',
+    '{{ $recovery_code_id_3 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'FMG6JAJEYR',
     NOW(),
     'f',
     NOW()
   ),
   (
-    '4387261b-c761-4c33-be12-b932683fb8c9',
+    '{{ $recovery_code_id_4 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'HJZQHR527J',
     NOW(),
     'f',
     NOW()
   ),
   (
-    '5b9d267f-ec51-4107-8d5f-63069681284f',
+    '{{ $recovery_code_id_5 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'BVK0KM646A',
     NOW(),
     'f',
     NOW()
   ),
   (
-    '5f9bf330-bca0-488b-b48b-02b23630583c',
+    '{{ $recovery_code_id_6 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     '64F4SDC0F8',
     NOW(),
     'f',
     NOW()
   ),
   (
-    '6fba64a0-56b6-4100-a210-14278784f930',
+    '{{ $recovery_code_id_7 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'NCCJSPC5Q5',
     NOW(),
     'f',
     NOW()
   ),
   (
-    '7a5b0c9e-df46-4bf5-97db-59313eff0c70',
+    '{{ $recovery_code_id_8 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'T5VBWZP3VH',
     NOW(),
     'f',
     NOW()
   ),
   (
-    '8676e790-7e34-4cd9-b548-58fb54386bcb',
+    '{{ $recovery_code_id_9 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     '3Y3CDKKHZ6',
     NOW(),
     'f',
     NOW()
   ),
   (
-    '9efa37a1-9d75-4400-8aea-400afd7c84f2',
+    '{{ $recovery_code_id_10 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'E2E5WT3XY8',
     NOW(),
     'f',
     NOW()
   ),
   (
-    'aeb1d7b9-93ae-4e75-9cf8-e823b9169934',
+    '{{ $recovery_code_id_11 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'P6MFB1M4SQ',
     NOW(),
     'f',
     NOW()
   ),
   (
-    'bc44c7ad-2ab1-44a6-807e-ce304a2de893',
+    '{{ $recovery_code_id_12 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     '2R15Y5TE4Q',
     NOW(),
     'f',
     NOW()
   ),
   (
-    'bd820c3a-33a0-4708-bcdf-5b4826417aee',
+    '{{ $recovery_code_id_13 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     '0CG2SA9JA0',
     NOW(),
     'f',
     NOW()
   ),
   (
-    'bdd4713b-d301-4b67-881e-7bccd0bf426a',
+    '{{ $recovery_code_id_14 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     '9HQCS8HTHT',
     NOW(),
     'f',
     NOW()
   ),
   (
-    'c89b834f-82f1-4da6-843f-93aaea7d1218',
+    '{{ $recovery_code_id_15 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'G25RG95RZ7',
     NOW(),
     'f',
     NOW()
   ),
   (
-    'd0949d1b-2f27-4196-ad4d-a9335d722887',
+    '{{ $recovery_code_id_16 }}',
     '{{ .AppID }}',
-    'cb3a2f82-cbed-471b-aa42-0bf8da2b74cb',
+    '{{ $user_id }}',
     'XGG202XTDZ',
     NOW(),
     'f',
