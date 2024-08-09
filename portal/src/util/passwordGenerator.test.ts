@@ -1,8 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import { determineMinLength, PasswordGenerator, prepareCharList, RandSource } from "./passwordGenerator";
-import * as zxcvbn from "zxcvbn";
-import { extractGuessableLevel } from "../PasswordField";
 import { PasswordPolicyConfig } from '../types';
+import { zxcvbnGuessableLevel } from './zxcvbn';
 
 describe("passwordGenerator", () => {
   const fixedRandSource: RandSource = {
@@ -85,8 +84,7 @@ describe("passwordGenerator", () => {
       minimum_guessable_level: 4,
     }).generate();
     expect(password).not.toBeNull();
-    const result = zxcvbn(password!, []);
-    const guessableLevel = extractGuessableLevel(result);
+    const guessableLevel = zxcvbnGuessableLevel(password!);
     expect(password!.length).toBeGreaterThanOrEqual(32);
     expect(guessableLevel).toBeGreaterThanOrEqual(4);
   });

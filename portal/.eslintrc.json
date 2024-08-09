@@ -47,6 +47,9 @@
         "name": "@fluentui/react",
         "importNames": ["TextField", "PrimaryButton", "DefaultButton", "MessageBarButton", "ActionButton", "CommandBarButton", "Link", "Toggle"],
         "message": "Please import the replacement from ./src instead."
+      }, {
+        "name": "zxcvbn",
+        "message": "Please import from ./src/util/zxcvbn instead."
       }]
     }]
   }
