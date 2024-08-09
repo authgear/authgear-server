@@ -51,6 +51,12 @@ export function checkPasswordPolicy(
     isPolicySatisfied.minimum_guessable_level =
       level >= passwordPolicy.minimum_guessable_level;
   }
+  if (passwordPolicy.excluded_keywords != null) {
+    const excludedKeywords = passwordPolicy.excluded_keywords;
+    isPolicySatisfied.excluded_keywords = !excludedKeywords.some((keyword) =>
+      password.includes(keyword)
+    );
+  }
 
   return isPolicySatisfied;
 }
