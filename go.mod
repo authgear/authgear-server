@@ -98,6 +98,8 @@ require (
 	github.com/authgear/oauthrelyingparty v1.4.0
 	github.com/go-jose/go-jose/v3 v3.0.3
 	github.com/go-ldap/ldap/v3 v3.4.5
+	github.com/lor00x/goldap v0.0.0-20180618054307-a546dffdd1a3
+	github.com/vjeantet/ldapserver v1.0.1
 )
 
 require (
