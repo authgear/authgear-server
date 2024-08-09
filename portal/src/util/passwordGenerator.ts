@@ -1,6 +1,3 @@
-// Client-side password generator mirrors server-side password generator in
-// authgear-server/pkg/lib/authn/authenticator/password/generator.go
-
 import { validatePassword } from "../error/password";
 import { PasswordPolicyConfig } from "../types";
 
@@ -9,44 +6,30 @@ const CharListLowercase = "abcdefghijklmnopqrstuvwxyz";
 const CharListUppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const CharListAlphabet = CharListLowercase + CharListUppercase;
 const CharListDigit = "0123456789";
-const CharListAlphanumeric = CharListAlphabet + CharListDigit;
 // Referenced from "special" character class in Apple's Password Autofill rules.
 // https://developer.apple.com/documentation/security/password_autofill/customizing_password_autofill_rules
 const CharListSymbol = "-~!@#$%^&*_+=`|(){}[:;\"'<>,.?]";
 
-const DefaultCharList = CharListAlphanumeric;
 const MaxTrials = 10;
 const DefaultMinLength = 8;
 const GuessableEnabledMinLength = 32;
 
 export interface RandSource {
-  pick(list: string): number;
+  randomBytes(n: number): Uint8Array;
   shuffle(list: string): string;
 }
 
 class CryptoRandSource implements RandSource {
-  // eslint-disable-next-line class-methods-use-this
-  private uint32(): number {
-    const array = new Uint32Array(1);
+  randomBytes(n: number): Uint8Array {
+    const array = new Uint8Array(n);
     window.crypto.getRandomValues(array);
-    return array[0];
-  }
-
-  // eslint-disable-next-line class-methods-use-this
-  pick(list: string): number {
-    const n = list.length;
-    const discard = Math.pow(2, 32) - (Math.pow(2, 32) % n);
-    let v = this.uint32();
-    while (v >= discard) {
-      v = this.uint32();
-    }
-    return v % n;
+    return array;
   }
 
   shuffle(list: string): string {
     const array = list.split("");
     for (let i = array.length - 1; i > 0; i--) {
-      const j = this.pick(array.slice(0, i + 1).join(""));
+      const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array.join("");
@@ -78,8 +61,8 @@ export class PasswordGenerator {
   private _generate(): string {
     const { passwordPolicy } = this;
 
-    const charList = this.prepareCharList();
-    const minLength = this._determineMinLength(passwordPolicy);
+    const minLength = determineMinLength(passwordPolicy);
+    const charList = prepareCharList(passwordPolicy);
 
     let password = this._addRequiredCharacters(passwordPolicy);
     password = this._fillRemainingCharacters(password, charList, minLength);
@@ -87,65 +70,85 @@ export class PasswordGenerator {
     return this.randSource.shuffle(password);
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private _determineMinLength(passwordPolicy: PasswordPolicyConfig): number {
-    if (
-      passwordPolicy.minimum_guessable_level !== undefined &&
-      passwordPolicy.minimum_guessable_level > 0
-    ) {
-      return GuessableEnabledMinLength;
-    }
-    return passwordPolicy.min_length !== undefined &&
-      passwordPolicy.min_length > DefaultMinLength
-      ? passwordPolicy.min_length
-      : DefaultMinLength;
-  }
-
-  // eslint-disable-next-line class-methods-use-this
   private _addRequiredCharacters(passwordPolicy: PasswordPolicyConfig): string {
     let password = "";
-    if (passwordPolicy.uppercase_required)
-      password += CharListUppercase[this.randSource.pick(CharListUppercase)];
-    if (passwordPolicy.lowercase_required)
-      password += CharListLowercase[this.randSource.pick(CharListLowercase)];
-    if (
-      passwordPolicy.alphabet_required &&
-      !passwordPolicy.uppercase_required &&
-      !passwordPolicy.lowercase_required
-    )
-      password += CharListAlphabet[this.randSource.pick(CharListAlphabet)];
-    if (passwordPolicy.digit_required)
-      password += CharListDigit[this.randSource.pick(CharListDigit)];
-    if (passwordPolicy.symbol_required)
-      password += CharListSymbol[this.randSource.pick(CharListSymbol)];
-    return password;
-  }
-
-  private _fillRemainingCharacters(
-    password: string,
-    charList: string,
-    minLength: number
-  ): string {
-    for (let i = password.length; i < minLength; i++) {
-      password += charList[this.randSource.pick(charList)];
+    if (passwordPolicy.lowercase_required) {
+      password += this.pickRandChar(CharListLowercase);
+    }
+    if (passwordPolicy.uppercase_required) {
+      password += this.pickRandChar(CharListUppercase);
+    }
+    if (passwordPolicy.alphabet_required && !passwordPolicy.lowercase_required && !passwordPolicy.uppercase_required) {
+      password += this.pickRandChar(CharListAlphabet);
+    }
+    if (passwordPolicy.digit_required) {
+      password += this.pickRandChar(CharListDigit);
+    }
+    if (passwordPolicy.symbol_required) {
+      password += this.pickRandChar(CharListSymbol);
     }
     return password;
   }
 
-  private prepareCharList(): string {
-    const { passwordPolicy } = this;
-
-    let charList = DefaultCharList;
-    if (passwordPolicy.lowercase_required) charList += CharListLowercase;
-    if (passwordPolicy.uppercase_required) charList += CharListUppercase;
-    if (passwordPolicy.alphabet_required) charList += CharListAlphabet;
-    if (passwordPolicy.digit_required) charList += CharListDigit;
-    if (passwordPolicy.symbol_required) charList += CharListSymbol;
-
-    passwordPolicy.excluded_keywords?.forEach((keyword) => {
-      charList = charList.replace(new RegExp(keyword, "g"), "");
-    });
-
-    return charList;
+  private _fillRemainingCharacters(password: string, charList: string, minLength: number): string {
+    for (let i = password.length; i < minLength; i++) {
+      password += this.pickRandChar(charList);
+    }
+    return password;
   }
+
+  private pickRandChar(charList: string): string {
+    const randomBytes = this.randSource.randomBytes(1);
+    const maxByte = 256;
+    const discard = maxByte - (maxByte % charList.length);
+    let byte = randomBytes[0];
+
+    while (byte >= discard) {
+      byte = this.randSource.randomBytes(1)[0];
+    }
+
+    return charList[byte % charList.length];
+  }
+}
+
+export function prepareCharList(passwordPolicy: PasswordPolicyConfig): string {
+  const set = new Set<string>();
+
+  if (passwordPolicy.alphabet_required) set.add(CharListAlphabet);
+  if (passwordPolicy.lowercase_required) set.add(CharListLowercase);
+  if (passwordPolicy.uppercase_required) set.add(CharListUppercase);
+  if (passwordPolicy.digit_required) set.add(CharListDigit);
+  if (passwordPolicy.symbol_required) set.add(CharListSymbol);
+
+  // Default to alphanumeric if no character set is required.
+  if (set.size === 0) {
+    set.add(CharListAlphabet);
+    set.add(CharListDigit);
+  }
+
+  // Remove overlapping character sets.
+  if (set.has(CharListAlphabet)) {
+    set.delete(CharListLowercase);
+    set.delete(CharListUppercase);
+  }
+
+  // Build the final character list.
+  let charList = '';
+  set.forEach(cs => charList += cs);
+
+  return charList;
+}
+
+export function determineMinLength(passwordPolicy: PasswordPolicyConfig): number {
+  let minLength = passwordPolicy.min_length ?? DefaultMinLength;
+
+  if (minLength < DefaultMinLength) {
+    minLength = DefaultMinLength;
+  }
+
+  if ((passwordPolicy.minimum_guessable_level ?? 0) > 0 && minLength < GuessableEnabledMinLength) {
+    minLength = GuessableEnabledMinLength;
+  }
+
+  return minLength;
 }
