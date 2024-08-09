@@ -39,9 +39,9 @@ func (e *End2EndCmd) ImportUsers(jsonPath string) error {
 	return nil
 }
 
-func (e *End2EndCmd) ExecuteCustomSQL(sqlPath string) error {
+func (e *End2EndCmd) ExecuteSQLInsertUpdateFile(sqlPath string) error {
 	cmd := fmt.Sprintf(
-		"./dist/e2e exec-sql --app-id %s --custom-sql \"%s\"",
+		"./dist/e2e exec-sql-insert-update --app-id %s --custom-sql \"%s\"",
 		e.AppID,
 		e.resolvePath(sqlPath),
 	)

@@ -107,7 +107,7 @@ func (tc *TestCase) executeBeforeAll(cmd *End2EndCmd) (err error) {
 				return fmt.Errorf("failed to import users: %w", err)
 			}
 		case BeforeHookTypeCustomSQL:
-			err = cmd.ExecuteCustomSQL(beforeHook.CustomSQL.Path)
+			err = cmd.ExecuteSQLInsertUpdateFile(beforeHook.CustomSQL.Path)
 			if err != nil {
 				return fmt.Errorf("failed to execute custom SQL: %w", err)
 			}

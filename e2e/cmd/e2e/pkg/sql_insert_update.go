@@ -8,7 +8,7 @@ import (
 	"text/template"
 )
 
-func (c *End2End) ExecuteCustomSQL(appID string, sqlPath string) error {
+func (c *End2End) ExecuteSQLInsertUpdate(appID string, sqlPath string) error {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		return err

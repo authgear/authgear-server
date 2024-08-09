@@ -9,14 +9,14 @@ import (
 func init() {
 	binder := GetBinder()
 
-	Root.AddCommand(cmdInternalE2EExecuteCustomSQL)
-	binder.BindString(cmdInternalE2EExecuteCustomSQL.PersistentFlags(), ArgAppID)
-	binder.BindString(cmdInternalE2EExecuteCustomSQL.PersistentFlags(), ArgCustomSQL)
+	Root.AddCommand(cmdInternalE2EExecuteSQLInsertUpdate)
+	binder.BindString(cmdInternalE2EExecuteSQLInsertUpdate.PersistentFlags(), ArgAppID)
+	binder.BindString(cmdInternalE2EExecuteSQLInsertUpdate.PersistentFlags(), ArgCustomSQL)
 }
 
-var cmdInternalE2EExecuteCustomSQL = &cobra.Command{
-	Use:   "exec-sql",
-	Short: "Execute custom SQL for e2e tests",
+var cmdInternalE2EExecuteSQLInsertUpdate = &cobra.Command{
+	Use:   "exec-sql-insert-update",
+	Short: "Execute custom SQL INSERT/UPDATE for e2e tests",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := GetBinder()
 
@@ -27,7 +27,7 @@ var cmdInternalE2EExecuteCustomSQL = &cobra.Command{
 			Context: cmd.Context(),
 		}
 
-		err := instance.ExecuteCustomSQL(appID, customSQL)
+		err := instance.ExecuteSQLInsertUpdate(appID, customSQL)
 		if err != nil {
 			return err
 		}
