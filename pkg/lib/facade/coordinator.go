@@ -503,12 +503,15 @@ func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, u
 				authenticatorSpecs = append(authenticatorSpecs, passwordSpec)
 			}
 		case model.AuthenticatorTypeOOBSMS:
-			spec := c.createOOBSMSAuthenticatorSpec(identityInfo, userID)
-			authenticatorSpecs = append(authenticatorSpecs, spec)
-
+			spec, ok := c.createOOBSMSAuthenticatorSpec(identityInfo, userID)
+			if ok {
+				authenticatorSpecs = append(authenticatorSpecs, spec)
+			}
 		case model.AuthenticatorTypeOOBEmail:
-			spec := c.createOOBEmailAuthenticatorSpec(identityInfo, userID)
-			authenticatorSpecs = append(authenticatorSpecs, spec)
+			spec, ok := c.createOOBEmailAuthenticatorSpec(identityInfo, userID)
+			if ok {
+				authenticatorSpecs = append(authenticatorSpecs, spec)
+			}
 		}
 	}
 
@@ -571,9 +574,9 @@ func (c *Coordinator) createPasswordAuthenticatorSpec(userID string, password st
 	}, nil
 }
 
-func (c *Coordinator) createOOBSMSAuthenticatorSpec(identityInfo *identity.Info, userID string) *authenticator.Spec {
+func (c *Coordinator) createOOBSMSAuthenticatorSpec(identityInfo *identity.Info, userID string) (*authenticator.Spec, bool) {
 	if identityInfo.LoginID.LoginIDType != model.LoginIDKeyTypePhone {
-		return nil
+		return nil, false
 	}
 
 	return &authenticator.Spec{
@@ -584,12 +587,12 @@ func (c *Coordinator) createOOBSMSAuthenticatorSpec(identityInfo *identity.Info,
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Phone: identityInfo.LoginID.LoginID,
 		},
-	}
+	}, true
 }
 
-func (c *Coordinator) createOOBEmailAuthenticatorSpec(identityInfo *identity.Info, userID string) *authenticator.Spec {
+func (c *Coordinator) createOOBEmailAuthenticatorSpec(identityInfo *identity.Info, userID string) (*authenticator.Spec, bool) {
 	if identityInfo.LoginID.LoginIDType != model.LoginIDKeyTypeEmail {
-		return nil
+		return nil, false
 	}
 
 	return &authenticator.Spec{
@@ -600,7 +603,7 @@ func (c *Coordinator) createOOBEmailAuthenticatorSpec(identityInfo *identity.Inf
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Email: identityInfo.LoginID.LoginID,
 		},
-	}
+	}, true
 }
 
 func (c *Coordinator) createAuthenticatorInfos(authenticatorSpecs []*authenticator.Spec) ([]*authenticator.Info, error) {
