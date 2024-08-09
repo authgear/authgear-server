@@ -124,9 +124,7 @@ func init() {
 }
 
 var standardAttributeKeys []string = []string{
-	"preferred_username",
-	"email",
-	"phone_number",
+	// Note we don't need IdentityAware stdAttr ["email", "phone", "preferred_username"] here, since they are already populated in StdAttrsService
 	"name",
 	"given_name",
 	"family_name",
