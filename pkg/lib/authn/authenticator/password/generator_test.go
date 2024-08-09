@@ -1,32 +1,22 @@
 package password
 
 import (
+	mrand "math/rand"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	utilrand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 func newInt(v int) *int { return &v }
 
-type TestRandSource struct {
-}
-
-// Pseudo-random pick
-func (s *TestRandSource) RandomBytes(n int) ([]byte, error) {
-	return []byte("1234567890"), nil
-}
-
-func (s *TestRandSource) Shuffle(list string) (string, error) {
-	return list, nil
-}
-
 func TestBasicPasswordGeneration(t *testing.T) {
 	Convey("Given a password generator with default settings", t, func() {
 		generator := &Generator{
-			Checker:    &Checker{},
-			RandSource: &TestRandSource{},
+			Checker: &Checker{},
+			Rand:    NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
 					MinLength: newInt(8),
@@ -46,8 +36,8 @@ func TestBasicPasswordGeneration(t *testing.T) {
 func TestUppercaseRequirement(t *testing.T) {
 	Convey("Given a password generator requiring at least one uppercase letter", t, func() {
 		generator := &Generator{
-			Checker:    &Checker{},
-			RandSource: &TestRandSource{},
+			Checker: &Checker{},
+			Rand:    NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
 					MinLength:         newInt(8),
@@ -68,8 +58,8 @@ func TestUppercaseRequirement(t *testing.T) {
 func TestLowercaseRequirement(t *testing.T) {
 	Convey("Given a password generator requiring at least one lowercase letter", t, func() {
 		generator := &Generator{
-			Checker:    &Checker{},
-			RandSource: &TestRandSource{},
+			Checker: &Checker{},
+			Rand:    NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
 					MinLength:         newInt(8),
@@ -90,8 +80,8 @@ func TestLowercaseRequirement(t *testing.T) {
 func TestCombinedRequirements(t *testing.T) {
 	Convey("Given a password generator with multiple requirements", t, func() {
 		generator := &Generator{
-			Checker:    &Checker{},
-			RandSource: &TestRandSource{},
+			Checker: &Checker{},
+			Rand:    NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
 					MinLength:         newInt(12),
@@ -119,8 +109,8 @@ func TestCombinedRequirements(t *testing.T) {
 func TestMinLengthRequirement(t *testing.T) {
 	Convey("Given a password generator with a minimum length requirement", t, func() {
 		generator := &Generator{
-			Checker:    &Checker{},
-			RandSource: &TestRandSource{},
+			Checker: &Checker{},
+			Rand:    NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
 					MinLength: newInt(40),
@@ -140,8 +130,8 @@ func TestMinLengthRequirement(t *testing.T) {
 func TestMinGuessableLevelRequirement(t *testing.T) {
 	Convey("Given a password generator with a minimum guessable level requirement", t, func() {
 		generator := &Generator{
-			Checker:    &Checker{},
-			RandSource: &CryptoRandSource{},
+			Checker: &Checker{},
+			Rand:    NewRandSource(),
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
 					MinLength:             newInt(8),
@@ -161,14 +151,30 @@ func TestMinGuessableLevelRequirement(t *testing.T) {
 	})
 }
 
+// TestRand returns 0 for the first call to Intnm and uses math/rand's default implementation for the rest.
+type TestRand struct {
+	*mrand.Rand
+	ranOnce bool
+}
+
+func (r *TestRand) IntN(n int) int {
+	if !r.ranOnce {
+		r.ranOnce = true
+		return 0
+	}
+	return r.Rand.Intn(n)
+}
+
 func TestExcludedKeywordsRequirement(t *testing.T) {
 	Convey("Given a password generator with excluded keywords", t, func() {
-		excluded := []string{"1", "2", "3"}
+		excluded := []string{"0"}
 		generator := &Generator{
 			Checker: &Checker{
 				PwExcludedKeywords: excluded,
 			},
-			RandSource: &CryptoRandSource{},
+			Rand: Rand{mrand.New(TestRand{
+				Rand: utilrand.SecureRand,
+			})},
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
 					MinLength:        newInt(8),
@@ -178,10 +184,11 @@ func TestExcludedKeywordsRequirement(t *testing.T) {
 			},
 		}
 
-		password, err := generator.Generate()
+		password, attempts, err := generator.generate()
 
 		Convey("should not contain any excluded keywords", func() {
 			So(checkPasswordExcludedKeywords(password, excluded), ShouldBeTrue)
+			So(attempts, ShouldBeGreaterThan, 0)
 			So(err, ShouldBeNil)
 		})
 	})

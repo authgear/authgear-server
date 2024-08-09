@@ -701,10 +701,10 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	accountAnonymizationConfig := appConfig.AccountAnonymization
-	randSource := password.NewRandSource()
+	passwordRand := password.NewRandSource()
 	generator := &password.Generator{
 		Checker:        passwordChecker,
-		RandSource:     randSource,
+		Rand:           passwordRand,
 		PasswordConfig: authenticatorPasswordConfig,
 	}
 	coordinator := &facade.Coordinator{
