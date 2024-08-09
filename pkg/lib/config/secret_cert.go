@@ -1,5 +1,11 @@
 package config
 
+import (
+	"encoding/base64"
+	"encoding/pem"
+	"fmt"
+)
+
 var _ = SecretConfigSchema.Add("X509Cert", `
 {
 	"type": "object",
@@ -12,6 +18,14 @@ var _ = SecretConfigSchema.Add("X509Cert", `
 
 type X509Cert struct {
 	Pem X509CertPem `json:"pem,omitempty"`
+}
+
+func (c *X509Cert) Base64Data() string {
+	block, _ := pem.Decode([]byte(c.Pem))
+	if block == nil {
+		panic(fmt.Errorf("invalid pem"))
+	}
+	return base64.StdEncoding.EncodeToString(block.Bytes)
 }
 
 var _ = SecretConfigSchema.Add("X509CertPem", `
