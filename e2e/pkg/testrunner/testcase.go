@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"strings"
@@ -65,8 +66,9 @@ func (tc *TestCase) Run(t *testing.T) {
 		return
 	}
 
-	ok := tc.executeBeforeAll(t, cmd)
-	if !ok {
+	err = tc.executeBeforeAll(cmd)
+	if err != nil {
+		t.Errorf("failed to execute before hooks: %v", err)
 		return
 	}
 
@@ -78,6 +80,7 @@ func (tc *TestCase) Run(t *testing.T) {
 
 	var stepResults []StepResult
 	var state string
+	var ok bool
 
 	for i, step := range tc.Steps {
 		if step.Name == "" {
@@ -95,28 +98,26 @@ func (tc *TestCase) Run(t *testing.T) {
 }
 
 // Execute before hooks to prepare fixtures
-func (tc *TestCase) executeBeforeAll(t *testing.T, cmd *End2EndCmd) (ok bool) {
+func (tc *TestCase) executeBeforeAll(cmd *End2EndCmd) (err error) {
 	for _, beforeHook := range tc.Before {
 		switch beforeHook.Type {
 		case BeforeHookTypeUserImport:
-			err := cmd.ImportUsers(beforeHook.UserImport)
+			err = cmd.ImportUsers(beforeHook.UserImport)
 			if err != nil {
-				t.Errorf("failed to import users: %v", err)
-				return false
+				return fmt.Errorf("failed to import users: %w", err)
 			}
 		case BeforeHookTypeCustomSQL:
-			err := cmd.ExecuteCustomSQL(beforeHook.CustomSQL.Path)
+			err = cmd.ExecuteCustomSQL(beforeHook.CustomSQL.Path)
 			if err != nil {
-				t.Errorf("failed to execute custom SQL: %v", err)
-				return false
+				return fmt.Errorf("failed to execute custom SQL: %w", err)
 			}
 		default:
-			t.Errorf("unknown before hook type: %s", beforeHook.Type)
-			return false
+			errStr := fmt.Sprintf("unknown before hook type: %s", beforeHook.Type)
+			return errors.New(errStr)
 		}
 	}
 
-	return true
+	return nil
 }
 
 func (tc *TestCase) executeStep(
