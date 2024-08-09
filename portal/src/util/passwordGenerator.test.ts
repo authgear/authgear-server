@@ -1,7 +1,9 @@
 import { describe, it, expect } from "@jest/globals";
 import {
+  cryptoRandSource,
   determineMinLength,
   generatePasswordWithSource,
+  internalGeneratePasswordWithSource,
   prepareCharList,
   RandSource,
 } from "./passwordGenerator";
@@ -9,19 +11,14 @@ import { PasswordPolicyConfig } from "../types";
 import { zxcvbnGuessableLevel } from "./zxcvbn";
 
 describe("passwordGenerator", () => {
-  const fixedRandSource: RandSource = {
-    randomBytes: (n: number) => new Uint8Array(n),
-    shuffle: (list: string) => list,
-  };
-
   it("should generate a password with default settings", () => {
-    const password = generatePasswordWithSource(fixedRandSource, {});
+    const password = generatePasswordWithSource(cryptoRandSource, {});
     expect(password).not.toBeNull();
     expect(password!.length).toBeGreaterThanOrEqual(8);
   });
 
   it("should include at least one uppercase letter when required", () => {
-    const password = generatePasswordWithSource(fixedRandSource, {
+    const password = generatePasswordWithSource(cryptoRandSource, {
       uppercase_required: true,
     });
     expect(password).not.toBeNull();
@@ -29,7 +26,7 @@ describe("passwordGenerator", () => {
   });
 
   it("should include at least one lowercase letter when required", () => {
-    const password = generatePasswordWithSource(fixedRandSource, {
+    const password = generatePasswordWithSource(cryptoRandSource, {
       lowercase_required: true,
     });
     expect(password).not.toBeNull();
@@ -37,7 +34,7 @@ describe("passwordGenerator", () => {
   });
 
   it("should include at least one digit when required", () => {
-    const password = generatePasswordWithSource(fixedRandSource, {
+    const password = generatePasswordWithSource(cryptoRandSource, {
       digit_required: true,
     });
     expect(password).not.toBeNull();
@@ -45,7 +42,7 @@ describe("passwordGenerator", () => {
   });
 
   it("should include at least one special character when required", () => {
-    const password = generatePasswordWithSource(fixedRandSource, {
+    const password = generatePasswordWithSource(cryptoRandSource, {
       symbol_required: true,
     });
     expect(password).not.toBeNull();
@@ -53,7 +50,7 @@ describe("passwordGenerator", () => {
   });
 
   it("should meet the minimum length requirement", () => {
-    const password = generatePasswordWithSource(fixedRandSource, {
+    const password = generatePasswordWithSource(cryptoRandSource, {
       min_length: 40,
     });
     expect(password).not.toBeNull();
@@ -61,7 +58,7 @@ describe("passwordGenerator", () => {
   });
 
   it("should meet all combined requirements", () => {
-    const password = generatePasswordWithSource(fixedRandSource, {
+    const password = generatePasswordWithSource(cryptoRandSource, {
       uppercase_required: true,
       lowercase_required: true,
       digit_required: true,
@@ -77,13 +74,41 @@ describe("passwordGenerator", () => {
   });
 
   it("should meet the minimum guessable level requirement", () => {
-    const password = generatePasswordWithSource(fixedRandSource, {
+    const password = generatePasswordWithSource(cryptoRandSource, {
       minimum_guessable_level: 4,
     });
     expect(password).not.toBeNull();
     const guessableLevel = zxcvbnGuessableLevel(password);
     expect(password!.length).toBeGreaterThanOrEqual(32);
     expect(guessableLevel).toBeGreaterThanOrEqual(4);
+  });
+
+  it("should meet the excluded keywords requirement", () => {
+    // Create a random source that always returns 0 for the first call.
+    // This checks if the password generator correctly retries when excluded keywords are found.
+    const createRandSource = (): RandSource => {
+      let ranOnce = false;
+      return {
+        intN: (n: number) => {
+          if (!ranOnce) {
+            ranOnce = true;
+            return 0;
+          }
+          return cryptoRandSource.intN(n);
+        },
+      };
+    };
+
+    const [password, attempts] = internalGeneratePasswordWithSource(
+      createRandSource(),
+      {
+        digit_required: true,
+        excluded_keywords: ["0"],
+      }
+    );
+    expect(password).not.toBeNull();
+    expect(password).not.toContain("0");
+    expect(attempts).toBeGreaterThan(0);
   });
 });
 
