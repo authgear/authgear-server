@@ -1,0 +1,94 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+  {{ $unknown_error_message := "" }}
+  {{ if $.HasUnknownError }}
+    {{ $unknown_error_message = (include "authflowv2/__error.html" .) }}
+  {{ end }}
+
+<div class="flex flex-col gap-y-8 flex-1-0-auto">
+  <header class="screen-title-description">
+    <h1 class="screen-title">
+      {{ if ($.Translations.HasKey (printf "v2-ldap-branching-%s" .server_name)) }}
+        {{ include (printf "v2-ldap-branding-%s" .server_name) nil }}
+      {{ else }}
+        {{ template "v2-ldap-branding" }}
+      {{ end }}
+    </h1>
+    {{ if ($.Translations.HasKey "v2-ldap-login-page-description") }}
+      <p class="screen-description">
+        {{ include "v2-ldap-login-page-description" nil }}
+      </p>
+    {{ end }}
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Classname" "mt-4"
+        "Message" $unknown_error_message
+      )
+    }}
+  </header>
+
+  <form
+    method="post"
+    novalidate
+    class="flex flex-col gap-y-4 items-center"
+    data-controller="turbo-form"
+    data-action="submit->turbo-form#submitForm"
+  >
+    {{ $.CSRFField }}
+    <!-- This field is for Chrome and Safari to correctly associate the username with the password -->
+    <!-- both `class="hidden"` and `display:none` do not work for iOS autofill -->
+    {{ if $.PasswordManagerUsername }}
+      <input style="position: absolute; width: 0; height: 0;" aria-hidden="true" type="text" autocomplete="username" name="" value="{{ $.PasswordManagerUsername }}">
+    {{ end }}
+    <div class="w-full flex flex-col gap-2" data-controller="text-field">
+      <input
+        class="input w-full {{ if $.LDAPUsernameInputError.HasError }} input--error {{end}}"
+        {{ if $.ShouldFocusInput }}autofocus{{ end }}
+        type="text"
+        autocomplete="username"
+        autocapitalize="none"
+        name="x_login_id"
+        value="{{ $.Username }}"
+
+        data-text-field-target="input"
+        placeholder="{{ template "v2-placeholder-login-id" (dict "variant" $.NonPhoneLoginIDType) }}"
+        required
+      >
+      {{ if $.LDAPUsernameInputError.HasErrorMessage }}
+      <p class="input__error-message" data-text-field-target="errorMessage">
+        {{ template "authflowv2/__error.html" $ }}
+      </p>
+      {{ end }}
+    </div>
+
+    {{ template "authflowv2/__password_field.html" (dict
+      "Ctx" $
+      "Name" "x_password"
+      "Type" "old-password"
+      "AutoFocus" $.ShouldFocusInput
+      "Classname" "w-full"
+      "HasError" $.PasswordInputError.HasError
+      "HasErrorMessage" $.PasswordInputError.HasErrorMessage
+    ) }}
+
+    <button
+      class="primary-btn w-full"
+      type="submit"
+      name="x_action"
+      value=""
+      data-authgear-event="authgear.button.enter_password"
+      data-action-button
+    >
+      {{ template "v2-button-label-continue" }}
+    </button>
+  </form>
+
+  {{ template "authflowv2/__toc_pp_footer.html" . }}
+
+
+</div>
+
+
+{{ end }}
