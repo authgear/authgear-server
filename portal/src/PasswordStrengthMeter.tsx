@@ -3,8 +3,8 @@ import { Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
 import styles from "./PasswordStrengthMeter.module.css";
-import { GuessableLevel } from './util/zxcvbn';
-import { GuessableLevelNames } from './PasswordField';
+import { GuessableLevel } from "./util/zxcvbn";
+import { GuessableLevelNames } from "./PasswordField";
 
 interface PasswordStrengthMeterProps {
   className?: string;
