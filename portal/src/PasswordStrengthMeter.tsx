@@ -2,9 +2,9 @@ import React, { useMemo } from "react";
 import { Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 
-import { GuessableLevel, GuessableLevelNames } from "./PasswordField";
-
 import styles from "./PasswordStrengthMeter.module.css";
+import { GuessableLevel } from './util/zxcvbn';
+import { GuessableLevelNames } from './PasswordField';
 
 interface PasswordStrengthMeterProps {
   className?: string;

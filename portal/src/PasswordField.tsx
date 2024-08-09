@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
 import cn from "classnames";
-import zxcvbn from "zxcvbn";
 import {
   IStyleFunctionOrObject,
   ITextFieldStyleProps,
@@ -17,8 +16,8 @@ import { checkPasswordPolicy } from "./error/password";
 import styles from "./PasswordField.module.css";
 import DefaultButton from "./DefaultButton";
 import { PasswordGenerator } from "./util/passwordGenerator";
+import { GuessableLevel, zxcvbnGuessableLevel } from './util/zxcvbn';
 
-export type GuessableLevel = 0 | 1 | 2 | 3 | 4 | 5;
 export type GuessableLevelNames = Record<GuessableLevel, string>;
 
 interface PasswordFieldProps extends FormTextFieldProps {
@@ -123,16 +122,6 @@ function makePasswordPolicyData(
   return policyData;
 }
 
-export function extractGuessableLevel(
-  result: zxcvbn.ZXCVBNResult | null
-): GuessableLevel {
-  if (result == null) {
-    return 0;
-  }
-  return Math.floor(
-    Math.min(5, Math.max(1, result.score + 1))
-  ) as GuessableLevel;
-}
 
 const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
   props: PasswordFieldProps
@@ -158,13 +147,12 @@ const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
     [guessableLevelNames, passwordPolicy]
   );
 
-  const result = useMemo(() => {
+  const guessableLevel = useMemo(() => {
     if (password != null && password !== "") {
-      return zxcvbn(password, passwordPolicy.excluded_keywords);
+      return zxcvbnGuessableLevel(password, passwordPolicy.excluded_keywords);
     }
-    return null;
+    return 0;
   }, [password, passwordPolicy]);
-  const guessableLevel = extractGuessableLevel(result);
 
   const isPasswordPolicySatisfied = useMemo(
     () => checkPasswordPolicy(passwordPolicy, password ?? "", guessableLevel),

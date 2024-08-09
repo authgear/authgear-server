@@ -1,8 +1,7 @@
 import { APIError } from "./error";
 import { makeLocalValidationError } from "./validation";
 import { PasswordPolicyConfig } from "../types";
-import * as zxcvbn from "zxcvbn";
-import { extractGuessableLevel, GuessableLevel } from "../PasswordField";
+import { GuessableLevel, zxcvbnGuessableLevel } from '../util/zxcvbn';
 
 export interface APIPasswordPolicyViolatedError {
   errorName: string;
@@ -83,7 +82,7 @@ export function validatePassword(
     ]);
   }
 
-  const guessableLevel = extractGuessableLevel(zxcvbn(password));
+  const guessableLevel = zxcvbnGuessableLevel(password);
   const passwordValid = isPasswordValid(policy, password, guessableLevel);
   if (!passwordValid) {
     return makeLocalValidationError([
