@@ -62,7 +62,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	ldapAddress := "127.0.0.1:8083"
+	ldapAddress := "127.0.0.1:8389"
 	err = ldapServer.Start(ldapAddress)
 	if err != nil {
 		log.Fatal(err)
