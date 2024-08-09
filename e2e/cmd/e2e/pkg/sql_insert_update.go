@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"text/template"
 )
 
 func (c *End2End) ExecuteSQLInsertUpdate(appID string, sqlPath string) error {
@@ -31,7 +30,7 @@ func (c *End2End) ExecuteSQLInsertUpdate(appID string, sqlPath string) error {
 		"AppID": appID,
 	}
 
-	tmpl, err := template.New("sql").Parse(string(sql))
+	tmpl, err := ParseSQLTemplate("sql-insert-update", string(sql))
 	if err != nil {
 		return fmt.Errorf("failed to parse SQL template: %w", err)
 	}
