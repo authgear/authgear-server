@@ -3,6 +3,7 @@ package auth
 import (
 	apihandler "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
+	samlhandler "github.com/authgear/authgear-server/pkg/auth/handler/saml"
 	siwehandler "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	webapphandler "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	webapphandlerauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
@@ -68,6 +69,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newCORSMiddleware),
 		p.Middleware(newPublicOriginMiddleware),
 		httputil.GzipMiddleware{},
+	)
+
+	samlStaticChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
 	)
 
 	oauthStaticChain := httproute.Chain(
@@ -257,6 +264,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	appStaticRoute := httproute.Route{Middleware: appStaticChain}
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
+	samlStaticRoute := httproute.Route{Middleware: samlStaticChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	dpopOauthAPIRoute := httproute.Route{Middleware: dpopOAuthAPIChain}
@@ -458,6 +466,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(oauthhandler.ConfigureUserInfoRoute(oauthAPIScopedRoute), p.Handler(newOAuthUserInfoHandler))
 
 	router.Add(oauthhandler.ConfigureConsentRoute(webappConsentPageRoute), p.Handler(newOAuthConsentHandler))
+
+	router.Add(samlhandler.ConfigureMetadataRoute(samlStaticRoute), p.Handler(newSAMLMetadataHandler))
 
 	router.Add(siwehandler.ConfigureNonceRoute(siweAPIRoute), p.Handler(newSIWENonceHandler))
 
