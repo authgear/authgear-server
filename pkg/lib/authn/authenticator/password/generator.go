@@ -1,12 +1,11 @@
 package password
 
 import (
-	"crypto/rand"
 	"io"
+	"math/rand"
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	utilrand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 // Character list for each category.
@@ -77,55 +76,38 @@ func (s characterSet) Append(w io.Writer) error {
 	return nil
 }
 
-type RandSource interface {
-	RandomBytes(n int) ([]byte, error)
-	Shuffle(list string) (string, error)
-}
-
-type CryptoRandSource struct{}
-
-func (r *CryptoRandSource) RandomBytes(n int) ([]byte, error) {
-	b := make([]byte, n)
-	_, err := rand.Read(b)
-	if err != nil {
-		return nil, err
-	}
-
-	return b, nil
-}
-
-func (r *CryptoRandSource) Shuffle(list string) (string, error) {
-	var charList = []byte(list)
-
-	utilrand.SecureRand.Shuffle(len(charList), func(i, j int) {
-		charList[i], charList[j] = charList[j], charList[i]
-	})
-
-	return string(charList), nil
+type Rand struct {
+	*rand.Rand
 }
 
 type Generator struct {
 	Checker        *Checker
-	RandSource     RandSource
+	Rand           Rand
 	PasswordConfig *config.AuthenticatorPasswordConfig
 }
 
 func (g *Generator) Generate() (string, error) {
+	password, _, err := g.generate()
+	return password, err
+}
+
+// generate generates a password that satisfies the checker
+func (g *Generator) generate() (string, int, error) {
 	for i := 0; i < MaxTrials; i++ {
-		password, err := g.generate()
+		password, err := g.generateOnce()
 		if err != nil {
-			return "", err
+			return "", -1, err
 		}
 
 		if err := g.checkPassword(password); err == nil {
-			return password, nil
+			return password, i, nil
 		}
 	}
 
-	return "", ErrPasswordGenerateFailed
+	return "", -1, ErrPasswordGenerateFailed
 }
 
-func (g *Generator) generate() (string, error) {
+func (g *Generator) generateOnce() (string, error) {
 	policy := g.PasswordConfig.Policy
 
 	minLength := getMinLength(policy)
@@ -134,62 +116,45 @@ func (g *Generator) generate() (string, error) {
 		return "", err
 	}
 
-	var password strings.Builder
-	password.Grow(minLength)
+	var passwordBuilder strings.Builder
+	passwordBuilder.Grow(minLength)
 
 	// Add required characters.
 	if policy.LowercaseRequired {
-		c, err := g.pickRandByte(CharListLowercase)
-		if err != nil {
-			return "", err
-		}
-		password.WriteByte(c)
+		c := g.pickRandByte(CharListLowercase)
+		passwordBuilder.WriteByte(c)
 	}
 	if policy.UppercaseRequired {
-		c, err := g.pickRandByte(CharListUppercase)
-		if err != nil {
-			return "", err
-		}
-		password.WriteByte(c)
+		c := g.pickRandByte(CharListUppercase)
+		passwordBuilder.WriteByte(c)
 	}
 	if policy.AlphabetRequired && !policy.LowercaseRequired && !policy.UppercaseRequired {
-		c, err := g.pickRandByte(CharListAlphabet)
-		if err != nil {
-			return "", err
-		}
-		password.WriteByte(c)
+		c := g.pickRandByte(CharListAlphabet)
+		passwordBuilder.WriteByte(c)
 	}
 	if policy.DigitRequired {
-		c, err := g.pickRandByte(CharListDigit)
-		if err != nil {
-			return "", err
-		}
-		password.WriteByte(c)
+		c := g.pickRandByte(CharListDigit)
+		passwordBuilder.WriteByte(c)
 	}
 	if policy.SymbolRequired {
-		c, err := g.pickRandByte(CharListSymbol)
-		if err != nil {
-			return "", err
-		}
-		password.WriteByte(c)
+		c := g.pickRandByte(CharListSymbol)
+		passwordBuilder.WriteByte(c)
 	}
 
 	// Fill the rest of the password with random characters.
-	for i := password.Len(); i < minLength; i++ {
-		c, err := g.pickRandByte(charList)
-		if err != nil {
-			return "", err
-		}
-		password.WriteByte(c)
+	for i := passwordBuilder.Len(); i < minLength; i++ {
+		c := g.pickRandByte(charList)
+		passwordBuilder.WriteByte(c)
 	}
+
+	passwordBytes := []byte(passwordBuilder.String())
 
 	// Shuffle the password since we have required characers at the beginning.
-	shuffled, err := g.RandSource.Shuffle(password.String())
-	if err != nil {
-		return "", err
-	}
+	g.Rand.Shuffle(len(passwordBytes), func(i int, j int) {
+		passwordBytes[i], passwordBytes[j] = passwordBytes[j], passwordBytes[i]
+	})
 
-	return shuffled, nil
+	return string(passwordBytes), nil
 }
 
 func prepareCharacterSet(policy *config.PasswordPolicyConfig) (string, error) {
@@ -261,19 +226,8 @@ func getMinLength(policy *config.PasswordPolicyConfig) int {
 
 // pickRandByte returns a random byte from the given character list.
 // It avoids modulo bias by rejecting bytes that are outside the valid range.
-func (g *Generator) pickRandByte(charList string) (byte, error) {
-	for {
-		randomByte, err := g.RandSource.RandomBytes(1)
-		if err != nil {
-			return 0, err
-		}
-		b := randomByte[0]
-
-		maxByte := 256
-		if int(b) < maxByte-maxByte%len(charList) {
-			return charList[int(b)%len(charList)], nil
-		}
-	}
+func (g *Generator) pickRandByte(charList string) byte {
+	return charList[g.Rand.Intn(len(charList))]
 }
 
 func (g *Generator) checkPassword(password string) error {

@@ -5,6 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	utilrand "github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 func ProvideChecker(
@@ -47,8 +48,8 @@ func ProvideExpiry(
 	}
 }
 
-func NewRandSource() RandSource {
-	return &CryptoRandSource{}
+func NewRandSource() Rand {
+	return Rand{utilrand.SecureRand}
 }
 
 var DependencySet = wire.NewSet(
