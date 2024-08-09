@@ -19,96 +19,93 @@ export interface RandSource {
   shuffle(list: string): string;
 }
 
-class CryptoRandSource implements RandSource {
-  randomBytes(n: number): Uint8Array {
+const cryptoRandSource: RandSource = {
+  randomBytes: (n: number): Uint8Array => {
     const array = new Uint8Array(n);
     window.crypto.getRandomValues(array);
     return array;
-  }
+  },
+  shuffle: (list: string): string => {
+    const array = list.split("");
+    for (let i = array.length - 1; i > 0; i--) {
+      const randomArray = new Uint8Array(1);
+      window.crypto.getRandomValues(randomArray);
+      const j = randomArray[0] % (i + 1);
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array.join("");
+  },
+};
 
-  shuffle(list: string): string {
+const mathRandSource: RandSource = {
+  randomBytes: (n: number): Uint8Array => {
+    const array = new Uint8Array(n);
+    for (let i = 0; i < n; i++) {
+      array[i] = Math.floor(Math.random() * 256);
+    }
+    return array;
+  },
+  shuffle: (list: string): string => {
     const array = list.split("");
     for (let i = array.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [array[i], array[j]] = [array[j], array[i]];
     }
     return array.join("");
+  },
+};
+
+export function generatePassword(policy: PasswordPolicyConfig): string | null {
+  try {
+    window.crypto.getRandomValues(new Uint8Array(1));
+    return generatePasswordWithSource(cryptoRandSource, policy);
+  } catch {
+    return generatePasswordWithSource(mathRandSource, policy);
   }
 }
 
-export class PasswordGenerator {
-  passwordPolicy: PasswordPolicyConfig;
-  randSource: RandSource;
+// eslint-disable-next-line complexity
+export function generatePasswordWithSource(
+  source: RandSource,
+  policy: PasswordPolicyConfig
+): string | null {
+  for (let i = 0; i < MaxTrials; i++) {
+    const minLength = determineMinLength(policy);
+    const charList = prepareCharList(policy);
 
-  constructor(
-    passwordPolicy: PasswordPolicyConfig,
-    randSource: RandSource = new CryptoRandSource()
-  ) {
-    this.randSource = randSource;
-    this.passwordPolicy = passwordPolicy;
-  }
-
-  generate(): string | null {
-    for (let i = 0; i < MaxTrials; i++) {
-      const password = this._generate();
-      if (validatePassword(password, this.passwordPolicy) === null) {
-        return password;
-      }
-    }
-    return null;
-  }
-
-  private _generate(): string {
-    const { passwordPolicy } = this;
-
-    const minLength = determineMinLength(passwordPolicy);
-    const charList = prepareCharList(passwordPolicy);
-
-    let password = this._addRequiredCharacters(passwordPolicy);
-    password = this._fillRemainingCharacters(password, charList, minLength);
-
-    return this.randSource.shuffle(password);
-  }
-
-  private _addRequiredCharacters(passwordPolicy: PasswordPolicyConfig): string {
     let password = "";
-    if (passwordPolicy.lowercase_required) {
-      password += this.pickRandChar(CharListLowercase);
-    }
-    if (passwordPolicy.uppercase_required) {
-      password += this.pickRandChar(CharListUppercase);
-    }
-    if (passwordPolicy.alphabet_required && !passwordPolicy.lowercase_required && !passwordPolicy.uppercase_required) {
-      password += this.pickRandChar(CharListAlphabet);
-    }
-    if (passwordPolicy.digit_required) {
-      password += this.pickRandChar(CharListDigit);
-    }
-    if (passwordPolicy.symbol_required) {
-      password += this.pickRandChar(CharListSymbol);
-    }
-    return password;
-  }
 
-  private _fillRemainingCharacters(password: string, charList: string, minLength: number): string {
+    if (policy.lowercase_required) {
+      password += pickRandChar(source, CharListLowercase);
+    }
+    if (policy.uppercase_required) {
+      password += pickRandChar(source, CharListUppercase);
+    }
+    if (
+      policy.alphabet_required &&
+      !policy.lowercase_required &&
+      !policy.uppercase_required
+    ) {
+      password += pickRandChar(source, CharListAlphabet);
+    }
+    if (policy.digit_required) {
+      password += pickRandChar(source, CharListDigit);
+    }
+    if (policy.symbol_required) {
+      password += pickRandChar(source, CharListSymbol);
+    }
+
     for (let i = password.length; i < minLength; i++) {
-      password += this.pickRandChar(charList);
-    }
-    return password;
-  }
-
-  private pickRandChar(charList: string): string {
-    const randomBytes = this.randSource.randomBytes(1);
-    const maxByte = 256;
-    const discard = maxByte - (maxByte % charList.length);
-    let byte = randomBytes[0];
-
-    while (byte >= discard) {
-      byte = this.randSource.randomBytes(1)[0];
+      password += pickRandChar(source, charList);
     }
 
-    return charList[byte % charList.length];
+    password = source.shuffle(password);
+
+    if (validatePassword(password, policy) === null) {
+      return password;
+    }
   }
+  return null;
 }
 
 export function prepareCharList(passwordPolicy: PasswordPolicyConfig): string {
@@ -133,22 +130,42 @@ export function prepareCharList(passwordPolicy: PasswordPolicyConfig): string {
   }
 
   // Build the final character list.
-  let charList = '';
-  set.forEach(cs => charList += cs);
+  let charList = "";
+  set.forEach((cs) => {
+    charList += cs;
+  });
 
   return charList;
 }
 
-export function determineMinLength(passwordPolicy: PasswordPolicyConfig): number {
+export function determineMinLength(
+  passwordPolicy: PasswordPolicyConfig
+): number {
   let minLength = passwordPolicy.min_length ?? DefaultMinLength;
 
   if (minLength < DefaultMinLength) {
     minLength = DefaultMinLength;
   }
 
-  if ((passwordPolicy.minimum_guessable_level ?? 0) > 0 && minLength < GuessableEnabledMinLength) {
+  if (
+    (passwordPolicy.minimum_guessable_level ?? 0) > 0 &&
+    minLength < GuessableEnabledMinLength
+  ) {
     minLength = GuessableEnabledMinLength;
   }
 
   return minLength;
+}
+
+function pickRandChar(source: RandSource, charList: string): string {
+  const randomBytes = source.randomBytes(1);
+  const maxByte = 256;
+  const discard = maxByte - (maxByte % charList.length);
+  let byte = randomBytes[0];
+
+  while (byte >= discard) {
+    byte = source.randomBytes(1)[0];
+  }
+
+  return charList[byte % charList.length];
 }

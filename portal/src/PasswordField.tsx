@@ -15,8 +15,8 @@ import { checkPasswordPolicy } from "./error/password";
 
 import styles from "./PasswordField.module.css";
 import DefaultButton from "./DefaultButton";
-import { PasswordGenerator } from "./util/passwordGenerator";
-import { GuessableLevel, zxcvbnGuessableLevel } from './util/zxcvbn';
+import { GuessableLevel, zxcvbnGuessableLevel } from "./util/zxcvbn";
+import { generatePassword } from "./util/passwordGenerator";
 
 export type GuessableLevelNames = Record<GuessableLevel, string>;
 
@@ -122,7 +122,6 @@ function makePasswordPolicyData(
   return policyData;
 }
 
-
 const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
   props: PasswordFieldProps
 ) {
@@ -159,10 +158,8 @@ const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
     [password, passwordPolicy, guessableLevel]
   );
 
-  const generatePassword = useCallback(() => {
-    const generator = new PasswordGenerator(passwordPolicy);
-
-    const newPassword = generator.generate();
+  const onClickGeneratePassword = useCallback(() => {
+    const newPassword = generatePassword(passwordPolicy);
     if (newPassword != null) {
       onChange?.({} as React.FormEvent<HTMLInputElement>, newPassword);
     }
@@ -189,11 +186,11 @@ const PasswordField: React.VFC<PasswordFieldProps> = function PasswordField(
       <DefaultButton
         className={styles.generatePasswordButton}
         disabled={rest.disabled}
-        onClick={generatePassword}
+        onClick={onClickGeneratePassword}
         text={<FormattedMessage id="PasswordField.generate-password" />}
       />
     );
-  }, [canGeneratePassword, generatePassword, rest.disabled]);
+  }, [canGeneratePassword, onClickGeneratePassword, rest.disabled]);
 
   return (
     <div className={className}>
