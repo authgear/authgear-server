@@ -136,6 +136,20 @@
               "redirect_uri"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "generate_totp_code"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "totp_secret"
+            ]
+          }
         }
       ],
       "properties": {
@@ -143,7 +157,8 @@
           "enum": [
             "create",
             "input",
-            "oauth_redirect"
+            "oauth_redirect",
+            "generate_totp_code"
           ],
           "type": "string"
         },
@@ -160,6 +175,9 @@
           "type": "string"
         },
         "to": {
+          "type": "string"
+        },
+        "totp_secret": {
           "type": "string"
         }
       },
