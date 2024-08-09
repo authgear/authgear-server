@@ -1051,6 +1051,7 @@
   "PasswordField.guessable-level.3": "Fair",
   "PasswordField.guessable-level.4": "Very unguessable",
   "PasswordField.guessable-level.5": "Extremely unguessable",
+  "PasswordField.generate-password": "Generate",
 
   "PortalAdminSettings.title": "Portal Admins",
   "PortalAdminsSettings.invite": "Invite",
