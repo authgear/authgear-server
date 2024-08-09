@@ -1,0 +1,14 @@
+authentication:
+  identities:
+    - ldap
+http:
+  public_origin: http://accounts.portal.localhost:3100
+id: accounts
+identity:
+  ldap:
+    servers:
+      - name: ldap-server-1
+        url: ldap://localhost:8389
+        base_dn: dc=authgear,dc=com
+        search_filter_template: "(uid={{.Username}})"
+        user_id_attribute_name: uid
