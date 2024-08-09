@@ -44,11 +44,24 @@ steps:
             }
           }
         }
+  - action: query
+    query: |
+      SELECT id
+      FROM _auth_user 
+      WHERE app_id = '{{ .AppID }}'
+      AND standard_attributes ->> 'preferred_username' = 'e2e_reauth_primary_password';
+    query_output:
+      rows: |
+        [
+          {
+            "id": "[[string]]"
+          }
+        ]
   - action: input
     input: |
       {
         "identification": "id_token",
-        "id_token": "{{ generateIDToken "ecaad8f0-74aa-4d6f-8d7f-f4edcb0c43c8" }}"
+        "id_token": "{{ generateIDToken (index .prev.result.rows 0).id }}"
       }
     output:
       result: |
