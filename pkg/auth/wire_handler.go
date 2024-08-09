@@ -1155,3 +1155,11 @@ func newWebAppAuthflowV2WechatHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2WechatHandler)),
 	))
 }
+
+func newWebAppAuthflowV2LDAPLoginHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2LDAPLoginHandler)),
+	))
+}
