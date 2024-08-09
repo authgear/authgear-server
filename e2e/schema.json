@@ -91,6 +91,15 @@
       },
       "type": "object"
     },
+    "QueryOutput": {
+      "additionalProperties": false,
+      "properties": {
+        "rows": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
     "Step": {
       "additionalProperties": false,
       "allOf": [
@@ -150,6 +159,20 @@
               "totp_secret"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "query"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "query"
+            ]
+          }
         }
       ],
       "properties": {
@@ -158,7 +181,8 @@
             "create",
             "input",
             "oauth_redirect",
-            "generate_totp_code"
+            "generate_totp_code",
+            "query"
           ],
           "type": "string"
         },
@@ -170,6 +194,12 @@
         },
         "output": {
           "$ref": "#/$defs/Output"
+        },
+        "query": {
+          "type": "string"
+        },
+        "query_output": {
+          "$ref": "#/$defs/QueryOutput"
         },
         "redirect_uri": {
           "type": "string"
