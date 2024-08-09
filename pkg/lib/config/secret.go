@@ -249,6 +249,10 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 		c.validateBotProtectionSecrets(ctx, appConfig.BotProtection.Provider)
 	}
 
+	if len(appConfig.SAML.SAMLServiceProviders) > 0 {
+		c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+	}
+
 	return ctx.Error("invalid secrets")
 }
 
@@ -286,6 +290,9 @@ const (
 	Deprecated_CaptchaCloudflareCredentialsKey SecretKey = "captcha.cloudflare"
 	BotProtectionProviderCredentialsKey        SecretKey = "bot_protection.provider"
 	WhatsappOnPremisesCredentialsKey           SecretKey = "whatsapp.on-premises"
+
+	SAMLIdpSigningMaterialsKey SecretKey = "saml.idp.signing"
+	SAMLSpSigningMaterialsKey  SecretKey = "saml.service_providers.signing"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -328,6 +335,8 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	Deprecated_CaptchaCloudflareCredentialsKey: {"Deprecated_CaptchaCloudflareCredentials", func() SecretItemData { return &Deprecated_CaptchaCloudflareCredentials{} }},
 	BotProtectionProviderCredentialsKey:        {"BotProtectionProviderCredentials", func() SecretItemData { return &BotProtectionProviderCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
+	SAMLIdpSigningMaterialsKey:                 {"SAMLIdpSigningMaterials", func() SecretItemData { return &SAMLIdpSigningMaterials{} }},
+	SAMLSpSigningMaterialsKey:                  {"SAMLSpSigningMaterials", func() SecretItemData { return &SAMLSpSigningMaterials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{

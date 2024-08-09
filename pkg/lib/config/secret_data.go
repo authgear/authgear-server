@@ -283,17 +283,6 @@ func (c *NexmoCredentials) SensitiveStrings() []string {
 	}
 }
 
-var _ = SecretConfigSchema.Add("JWK", `
-{
-	"type": "object",
-	"properties": {
-		"kid": { "type": "string" },
-		"kty": { "type": "string" }
-	},
-	"required": ["kid", "kty"]
-}
-`)
-
 var _ = SecretConfigSchema.Add("JWS", `
 {
 	"type": "object",
