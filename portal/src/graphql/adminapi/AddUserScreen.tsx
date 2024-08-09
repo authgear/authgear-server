@@ -5,6 +5,9 @@ import {
   Checkbox,
   ChoiceGroup,
   IChoiceGroupOption,
+  IChoiceGroupStyleProps,
+  IChoiceGroupStyles,
+  IStyleFunctionOrObject,
   Label,
   MessageBar,
   Text,
@@ -306,30 +309,22 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   const loginIdTypeOptions: IChoiceGroupOption[] = useMemo(() => {
     return loginIDTypes.map((loginIdType) => {
       const messageId = loginIdTypeNameIds[loginIdType];
-      const renderTextField =
-        selectedLoginIDType === loginIdType
-          ? textFieldRenderer[loginIdType]
-          : undefined;
       return {
         key: loginIdType,
         text: renderToString(messageId),
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRenderLabel: (option) => {
-          return option ? (
-            <div className={styles.identityOption}>
-              <Label className={styles.identityOptionLabel}>
-                {option.text}
-              </Label>
-              {renderTextField?.()}
-            </div>
-          ) : null;
-        },
       };
     });
-  }, [loginIDTypes, renderToString, textFieldRenderer, selectedLoginIDType]);
+  }, [loginIDTypes, renderToString]);
 
   // NOTE: cannot add user identity if none of three field is available
   const canAddUser = loginIdTypeOptions.length > 0;
+
+  const loginIDTypeOptionChoiceGroupStyle = useMemo<IStyleFunctionOrObject<IChoiceGroupStyleProps, IChoiceGroupStyles>>(() => {
+    return {
+      flexContainer: { display: "flex", gap: "16px" },
+      label: { fontSize: "14px" }
+    };
+  }, []);
 
   // TODO: improve empty state
   if (!canAddUser) {
@@ -343,6 +338,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   return (
     <ScreenContent>
       <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+      <div className={styles.verticalForm}>
       {isPasskeyOnly ? (
         <div className={styles.widget}>
           <MessageBar>
@@ -353,20 +349,29 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
         <>
           <ChoiceGroup
             className={styles.widget}
-            styles={{ label: { marginBottom: "15px", fontSize: "14px" } }}
-            selectedKey={selectedLoginIDType ?? undefined}
+            styles={loginIDTypeOptionChoiceGroupStyle}
+            selectedKey={selectedLoginIDType}
             options={loginIdTypeOptions}
             onChange={onSelectLoginIdType}
             label={renderToString("AddUserScreen.user-info.label")}
           />
-          {passwordFieldNeeded && selectedLoginIDType === "email" ? (
-            <ChoiceGroup
-              className={styles.widget}
-              selectedKey={state.passwordCreationType}
-              options={passwordCreateionTypeOptions}
-              onChange={onChangePasswordCreationType}
-              label={renderToString("AddUserScreen.password-creation-type")}
-            />
+
+          {selectedLoginIDType ? (
+              <div className={styles.identityOption}>
+              <Label className={styles.identityOptionLabel}>
+                <FormattedMessage id={loginIdTypeNameIds[selectedLoginIDType]} />
+              </Label>
+              {textFieldRenderer[selectedLoginIDType]()}
+              {passwordFieldNeeded && selectedLoginIDType === "email" ? (
+                <ChoiceGroup
+                  className={styles.widget}
+                  selectedKey={state.passwordCreationType}
+                  options={passwordCreateionTypeOptions}
+                  onChange={onChangePasswordCreationType}
+                  label={renderToString("AddUserScreen.password-creation-type")}
+                />
+              ) : null}
+            </div>
           ) : null}
           <div className={styles.widget}>
             <PasswordField
@@ -406,6 +411,7 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
           </div>
         </>
       )}
+      </div>
     </ScreenContent>
   );
 };
