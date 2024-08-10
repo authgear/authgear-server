@@ -49,13 +49,40 @@ func ValidateScopes(client *config.OAuthClientConfig, scopes []string) error {
 	return nil
 }
 
+const (
+	// The scope openid must be present.
+	// https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
+	ScopeOpenID = "openid"
+	// Scope "profile" is defined in
+	// https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
+	ScopeProfile = "profile"
+	// Scope "email" is defined in
+	// https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
+	ScopeEmail = "email"
+	// Scope "address" is defined in
+	// https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
+	ScopeAddress = "address"
+	// Scope "phone" is defined in
+	// https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
+	ScopePhone = "phone"
+)
+
 var AllowedScopes = []string{
-	"openid",
+	// OAuth 2.0 scopes
 	oauth.OfflineAccess,
+	oauth.DeviceSSOScope,
+
+	// OIDC scopes.
+	ScopeOpenID,
+	ScopeProfile,
+	ScopeEmail,
+	ScopeAddress,
+	ScopePhone,
+
+	// Authgear specific scopes.
 	oauth.FullAccessScope,
 	oauth.FullUserInfoScope,
 	oauth.PreAuthenticatedURLScope,
-	oauth.DeviceSSOScope,
 }
 
 func IsScopeAllowed(scope string) bool {
