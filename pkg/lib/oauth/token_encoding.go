@@ -42,7 +42,7 @@ type AccessTokenEncoding struct {
 	Events     EventService
 }
 
-func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig, grant *AccessGrant, userID string, token string) (string, error) {
+func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig, clientLike *ClientLike, grant *AccessGrant, userID string, token string) (string, error) {
 	if !client.IssueJWTAccessToken {
 		return token, nil
 	}

@@ -86,6 +86,8 @@ func TestAccessToken(t *testing.T) {
 			ClientID:            "client-id",
 			AccessTokenLifetime: 3600,
 		}
+		var noScopes []string
+		clientLike := ClientClientLike(client, noScopes)
 
 		accessGrant := &AccessGrant{
 			CreatedAt: now,
@@ -93,7 +95,7 @@ func TestAccessToken(t *testing.T) {
 			TokenHash: "token-hash",
 		}
 
-		accessToken, err := encoding.EncodeAccessToken(client, accessGrant, "user-id", "token")
+		accessToken, err := encoding.EncodeAccessToken(client, clientLike, accessGrant, "user-id", "token")
 		So(err, ShouldBeNil)
 
 		_, _, err = encoding.DecodeAccessToken(accessToken)
