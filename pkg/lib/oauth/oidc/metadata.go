@@ -38,7 +38,7 @@ func init() {
 			stdattrs.Zoneinfo,
 			stdattrs.Locale,
 			stdattrs.Address,
-			"updated_at",
+			stdattrs.UpdatedAt,
 		}...,
 	)
 }
