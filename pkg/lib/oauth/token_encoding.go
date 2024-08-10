@@ -22,8 +22,9 @@ import (
 
 //go:generate mockgen -source=token_encoding.go -destination=token_encoding_mock_test.go -package oauth
 
-type UserClaimsProvider interface {
-	PopulateNonPIIUserClaims(token jwt.Token, userID string) error
+type IDTokenIssuer interface {
+	Iss() string
+	PopulateUserClaimsInIDToken(token jwt.Token, userID string, clientLike *ClientLike) error
 }
 
 type BaseURLProvider interface {
@@ -35,11 +36,11 @@ type EventService interface {
 }
 
 type AccessTokenEncoding struct {
-	Secrets    *config.OAuthKeyMaterials
-	Clock      clock.Clock
-	UserClaims UserClaimsProvider
-	BaseURL    BaseURLProvider
-	Events     EventService
+	Secrets       *config.OAuthKeyMaterials
+	Clock         clock.Clock
+	IDTokenIssuer IDTokenIssuer
+	BaseURL       BaseURLProvider
+	Events        EventService
 }
 
 func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig, clientLike *ClientLike, grant *AccessGrant, userID string, token string) (string, error) {
@@ -49,11 +50,12 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 
 	claims := jwt.New()
 
-	err := e.UserClaims.PopulateNonPIIUserClaims(claims, userID)
+	err := e.IDTokenIssuer.PopulateUserClaimsInIDToken(claims, userID, clientLike)
 	if err != nil {
 		return "", err
 	}
 
+	_ = claims.Set(jwt.IssuerKey, e.IDTokenIssuer.Iss())
 	_ = claims.Set(jwt.AudienceKey, e.BaseURL.Origin().String())
 	_ = claims.Set(jwt.IssuedAtKey, grant.CreatedAt.Unix())
 	_ = claims.Set(jwt.ExpirationKey, grant.ExpireAt.Unix())
