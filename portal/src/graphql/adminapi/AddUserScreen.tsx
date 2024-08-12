@@ -5,6 +5,9 @@ import {
   Checkbox,
   ChoiceGroup,
   IChoiceGroupOption,
+  IChoiceGroupStyleProps,
+  IChoiceGroupStyles,
+  IStyleFunctionOrObject,
   Label,
   MessageBar,
   Text,
@@ -168,6 +171,7 @@ interface AddUserContentProps {
   isPasskeyOnly: boolean;
 }
 
+// eslint-disable-next-line complexity
 const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   props: AddUserContentProps
 ) {
@@ -306,30 +310,24 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   const loginIdTypeOptions: IChoiceGroupOption[] = useMemo(() => {
     return loginIDTypes.map((loginIdType) => {
       const messageId = loginIdTypeNameIds[loginIdType];
-      const renderTextField =
-        selectedLoginIDType === loginIdType
-          ? textFieldRenderer[loginIdType]
-          : undefined;
       return {
         key: loginIdType,
         text: renderToString(messageId),
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRenderLabel: (option) => {
-          return option ? (
-            <div className={styles.identityOption}>
-              <Label className={styles.identityOptionLabel}>
-                {option.text}
-              </Label>
-              {renderTextField?.()}
-            </div>
-          ) : null;
-        },
       };
     });
-  }, [loginIDTypes, renderToString, textFieldRenderer, selectedLoginIDType]);
+  }, [loginIDTypes, renderToString]);
 
   // NOTE: cannot add user identity if none of three field is available
   const canAddUser = loginIdTypeOptions.length > 0;
+
+  const loginIDTypeOptionChoiceGroupStyle = useMemo<
+    IStyleFunctionOrObject<IChoiceGroupStyleProps, IChoiceGroupStyles>
+  >(() => {
+    return {
+      flexContainer: { display: "flex", gap: "16px" },
+      label: { fontSize: "14px" },
+    };
+  }, []);
 
   // TODO: improve empty state
   if (!canAddUser) {
@@ -343,67 +341,84 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   return (
     <ScreenContent>
       <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-      {isPasskeyOnly ? (
-        <div className={styles.widget}>
-          <MessageBar>
-            <FormattedMessage id="AddUserScreen.passkey-only.message" />
-          </MessageBar>
-        </div>
-      ) : (
-        <>
-          <ChoiceGroup
-            className={styles.widget}
-            styles={{ label: { marginBottom: "15px", fontSize: "14px" } }}
-            selectedKey={selectedLoginIDType ?? undefined}
-            options={loginIdTypeOptions}
-            onChange={onSelectLoginIdType}
-            label={renderToString("AddUserScreen.user-info.label")}
-          />
-          {passwordFieldNeeded && selectedLoginIDType === "email" ? (
-            <ChoiceGroup
-              className={styles.widget}
-              selectedKey={state.passwordCreationType}
-              options={passwordCreateionTypeOptions}
-              onChange={onChangePasswordCreationType}
-              label={renderToString("AddUserScreen.password-creation-type")}
-            />
-          ) : null}
+      <div className={styles.verticalForm}>
+        {isPasskeyOnly ? (
           <div className={styles.widget}>
-            <PasswordField
-              label={renderToString("AddUserScreen.password.label")}
-              value={password}
-              onChange={onPasswordChange}
-              passwordPolicy={passwordPolicy}
-              parentJSONPointer=""
-              fieldName="password"
-              disabled={
-                !passwordFieldNeeded ||
-                state.passwordCreationType === PasswordCreationType.AutoGenerate
-              }
-            />
-            {passwordFieldNeeded && selectedLoginIDType === "email" ? (
-              <Checkbox
-                className={styles.checkbox}
-                label={renderToString("AddUserScreen.send-password")}
-                checked={state.sendPassword}
-                onChange={onChangeSendPassword}
+            <MessageBar>
+              <FormattedMessage id="AddUserScreen.passkey-only.message" />
+            </MessageBar>
+          </div>
+        ) : (
+          <>
+            {loginIdTypeOptions.length > 1 ? (
+              <ChoiceGroup
+                className={styles.widget}
+                styles={loginIDTypeOptionChoiceGroupStyle}
+                selectedKey={selectedLoginIDType}
+                options={loginIdTypeOptions}
+                onChange={onSelectLoginIdType}
+                label={renderToString("AddUserScreen.user-info.label")}
+              />
+            ) : null}
+
+            {selectedLoginIDType ? (
+              <div className={styles.identityOption}>
+                <Label className={styles.identityOptionLabel}>
+                  <FormattedMessage
+                    id={loginIdTypeNameIds[selectedLoginIDType]}
+                  />
+                </Label>
+                {textFieldRenderer[selectedLoginIDType]()}
+                {passwordFieldNeeded && selectedLoginIDType === "email" ? (
+                  <ChoiceGroup
+                    className={styles.widget}
+                    selectedKey={state.passwordCreationType}
+                    options={passwordCreateionTypeOptions}
+                    onChange={onChangePasswordCreationType}
+                  />
+                ) : null}
+              </div>
+            ) : null}
+            <div className={styles.widget}>
+              <PasswordField
+                label={renderToString("AddUserScreen.password.label")}
+                value={password}
+                canRevealPassword={true}
+                canGeneratePassword={true}
+                onChange={onPasswordChange}
+                passwordPolicy={passwordPolicy}
+                parentJSONPointer=""
+                fieldName="password"
                 disabled={
+                  !passwordFieldNeeded ||
                   state.passwordCreationType ===
-                  PasswordCreationType.AutoGenerate
+                    PasswordCreationType.AutoGenerate
                 }
               />
-            ) : null}
-            {passwordFieldNeeded ? (
-              <Checkbox
-                className={styles.checkbox}
-                label={renderToString("AddUserScreen.force-change-on-login")}
-                checked={state.setPasswordExpired}
-                onChange={onChangeForceChangeOnLogin}
-              />
-            ) : null}
-          </div>
-        </>
-      )}
+              {passwordFieldNeeded && selectedLoginIDType === "email" ? (
+                <Checkbox
+                  className={styles.checkbox}
+                  label={renderToString("AddUserScreen.send-password")}
+                  checked={state.sendPassword}
+                  onChange={onChangeSendPassword}
+                  disabled={
+                    state.passwordCreationType ===
+                    PasswordCreationType.AutoGenerate
+                  }
+                />
+              ) : null}
+              {passwordFieldNeeded ? (
+                <Checkbox
+                  className={styles.checkbox}
+                  label={renderToString("AddUserScreen.force-change-on-login")}
+                  checked={state.setPasswordExpired}
+                  onChange={onChangeForceChangeOnLogin}
+                />
+              ) : null}
+            </div>
+          </>
+        )}
+      </div>
     </ScreenContent>
   );
 };

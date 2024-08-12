@@ -49,6 +49,7 @@ const defaultState: FormState = {
 interface ResetPasswordContentProps {
   appConfig: PortalAPIAppConfig | null;
   form: SimpleFormModel<FormState>;
+  firstEmail: string | null;
 }
 
 const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
@@ -57,11 +58,10 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
   const {
     appConfig,
     form: { state, setState },
+    firstEmail,
   } = props;
   const { renderToString } = useContext(Context);
   const { userID } = useParams() as { userID: string };
-
-  const { user } = useUserQuery(userID);
 
   const { canSave, isUpdating, onSubmit } =
     useFormContainerBaseContext<SimpleFormModel<FormState, string | null>>();
@@ -131,22 +131,21 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
         onSubmit={onSubmit}
         noValidate={true}
       >
-        <div>
-          <TextField
-            label={renderToString("ChangePasswordScreen.email")}
-            type="email"
-            value={user?.standardAttributes?.email ?? ""}
-            disabled={true}
-          />
-          <ChoiceGroup
-            label={renderToString(
-              "ChangePasswordScreen.password-creation-type"
-            )}
-            selectedKey={state.passwordCreationType}
-            options={passwordCreateionTypeOptions}
-            onChange={onChangePasswordCreationType}
-          />
-        </div>
+        {firstEmail != null ? (
+          <div>
+            <TextField
+              label={renderToString("ChangePasswordScreen.email")}
+              type="email"
+              value={firstEmail}
+              disabled={true}
+            />
+            <ChoiceGroup
+              selectedKey={state.passwordCreationType}
+              options={passwordCreateionTypeOptions}
+              onChange={onChangePasswordCreationType}
+            />
+          </div>
+        ) : null}
         <div>
           <PasswordField
             label={renderToString("ChangePasswordScreen.new-password")}
@@ -155,6 +154,8 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
             passwordPolicy={appConfig?.authenticator?.password?.policy ?? {}}
             parentJSONPointer=""
             fieldName="password"
+            canRevealPassword={true}
+            canGeneratePassword={true}
             disabled={
               state.passwordCreationType === PasswordCreationType.AutoGenerate
             }
@@ -165,6 +166,7 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
             checked={state.sendPassword}
             onChange={onChangeSendPassword}
             disabled={
+              firstEmail == null ||
               state.passwordCreationType === PasswordCreationType.AutoGenerate
             }
           />
@@ -189,16 +191,47 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
 
 const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
   const { appID } = useParams() as { appID: string };
+  const { userID } = useParams() as { userID: string };
+
   const navigate = useNavigate();
 
-  const { effectiveAppConfig, loading, error, refetch } =
-    useAppAndSecretConfigQuery(appID);
+  const {
+    effectiveAppConfig,
+    loading: loadingConfig,
+    error: configError,
+    refetch: refetchConfig,
+  } = useAppAndSecretConfigQuery(appID);
+
+  const {
+    user,
+    loading: loadingUser,
+    error: userError,
+    refetch: refetchUser,
+  } = useUserQuery(userID);
+
+  const firstEmail: string | null = useMemo(() => {
+    const emailIdentities =
+      user?.identities?.edges
+        ?.filter((identityEdge) => {
+          const identity = identityEdge?.node;
+          return (
+            identity?.type === "LOGIN_ID" &&
+            identity.claims["https://authgear.com/claims/login_id/type"] ===
+              "email"
+          );
+        })
+        ?.map((identity) => identity?.node) ?? [];
+    if (emailIdentities.length > 0) {
+      return emailIdentities[0]?.claims.email ?? null;
+    }
+    return null;
+  }, [user]);
+
   const passwordPolicy = useMemo(
     () => effectiveAppConfig?.authenticator?.password?.policy ?? {},
     [effectiveAppConfig]
   );
 
-  const { userID } = useParams() as { userID: string };
   const { resetPassword, error: resetPasswordError } =
     useResetPasswordMutation(userID);
 
@@ -254,17 +287,25 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
     }
   }, [form.isSubmitted, navigate]);
 
-  if (loading) {
+  if (loadingUser || loadingConfig) {
     return <ShowLoading />;
   }
 
-  if (error != null) {
-    return <ShowError error={error} onRetry={refetch} />;
+  if (configError != null) {
+    return <ShowError error={configError} onRetry={refetchConfig} />;
+  }
+
+  if (userError != null) {
+    return <ShowError error={userError} onRetry={refetchUser} />;
   }
 
   return (
     <FormContainerBase form={form} canSave={canSave}>
-      <ChangePasswordContent form={form} appConfig={effectiveAppConfig} />
+      <ChangePasswordContent
+        form={form}
+        appConfig={effectiveAppConfig}
+        firstEmail={firstEmail}
+      />
       <ErrorDialog error={resetPasswordError} rules={resetPasswordErrorRules} />
     </FormContainerBase>
   );
