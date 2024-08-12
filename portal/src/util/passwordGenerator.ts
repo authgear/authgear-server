@@ -10,6 +10,14 @@ const CharListDigit = "0123456789";
 // https://developer.apple.com/documentation/security/password_autofill/customizing_password_autofill_rules
 const CharListSymbol = "-~!@#$%^&*_+=`|(){}[:;\"'<>,.?]";
 
+const AllCharLists = [
+  CharListLowercase,
+  CharListUppercase,
+  CharListAlphabet,
+  CharListDigit,
+  CharListSymbol,
+];
+
 const MaxTrials = 10;
 const DefaultMinLength = 8;
 const GuessableEnabledMinLength = 32;
@@ -128,6 +136,7 @@ function generatePasswordOnce(
   return null;
 }
 
+// eslint-disable-next-line complexity
 export function prepareCharList(passwordPolicy: PasswordPolicyConfig): string {
   const set = new Set<string>();
 
@@ -144,16 +153,23 @@ export function prepareCharList(passwordPolicy: PasswordPolicyConfig): string {
   }
 
   // Remove overlapping character sets.
-  if (set.has(CharListAlphabet)) {
+  const hasLowercase = set.has(CharListLowercase);
+  const hasUppercase = set.has(CharListUppercase);
+  const hasAlphabet = set.has(CharListAlphabet);
+  if (hasAlphabet && hasLowercase) {
     set.delete(CharListLowercase);
+  }
+  if (hasAlphabet && hasUppercase) {
     set.delete(CharListUppercase);
   }
 
   // Build the final character list.
   let charList = "";
-  set.forEach((cs) => {
-    charList += cs;
-  });
+  for (const cs of AllCharLists) {
+    if (set.has(cs)) {
+      charList += cs;
+    }
+  }
 
   return charList;
 }
