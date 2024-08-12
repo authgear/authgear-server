@@ -28,7 +28,7 @@ func ParseRows(rows *sql.Rows) (outputRows []interface{}, err error) {
 		scanArgs := make([]interface{}, nCol)
 		for i, v := range columnTypes {
 			switch v.DatabaseTypeName() {
-			case "VARCHAR", "TEXT", "UUID", "TIMESTAMP":
+			case "VARCHAR", "TEXT", "UUID":
 				scanArgs[i] = new(sql.NullString)
 				break
 			case "BOOL":
@@ -37,6 +37,8 @@ func ParseRows(rows *sql.Rows) (outputRows []interface{}, err error) {
 			case "INT4":
 				scanArgs[i] = new(sql.NullInt64)
 				break
+			case "TIMESTAMP":
+				scanArgs[i] = new(sql.NullTime)
 			default:
 				scanArgs[i] = new(sql.NullString)
 			}
@@ -74,6 +76,11 @@ func ParseRows(rows *sql.Rows) (outputRows []interface{}, err error) {
 
 			if z, ok := (scanArgs[i]).(*sql.NullInt32); ok {
 				row[v.Name()] = z.Int32
+				continue
+			}
+
+			if z, ok := (scanArgs[i]).(*sql.NullTime); ok {
+				row[v.Name()] = z.Time
 				continue
 			}
 
