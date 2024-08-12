@@ -445,6 +445,7 @@
   "UserDetails.connected-identities.siwe.nft-collections.block": "Block",
   "UserDetails.connected-identities.siwe.nft-collections.view-tokens": "View tokens",
   "UserDetails.connected-identities.anonymous.anonymous-user": "Anonymous User",
+  "UserDetails.connected-identities.ldap": "LDAP",
 
   "UserDetails.connected-identities.connected-on": "Connected on {datetime}",
   "UserDetails.connected-identities.added-on": "Added on {datetime}",
