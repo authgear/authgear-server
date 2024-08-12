@@ -6,21 +6,21 @@ import (
 	"fmt"
 )
 
-var _ = SecretConfigSchema.Add("X509Cert", `
+var _ = SecretConfigSchema.Add("X509Certtificate", `
 {
 	"type": "object",
 	"properties": {
-		"pem": { "$ref": "#/$defs/X509CertPem" }
+		"pem": { "$ref": "#/$defs/X509CertificatePem" }
 	},
 	"required": ["pem"]
 }
 `)
 
-type X509Cert struct {
-	Pem X509CertPem `json:"pem,omitempty"`
+type X509Certtificate struct {
+	Pem X509CertificatePem `json:"pem,omitempty"`
 }
 
-func (c *X509Cert) Base64Data() string {
+func (c *X509Certtificate) Base64Data() string {
 	block, _ := pem.Decode([]byte(c.Pem))
 	if block == nil {
 		panic(fmt.Errorf("invalid pem"))
@@ -28,11 +28,11 @@ func (c *X509Cert) Base64Data() string {
 	return base64.StdEncoding.EncodeToString(block.Bytes)
 }
 
-var _ = SecretConfigSchema.Add("X509CertPem", `
+var _ = SecretConfigSchema.Add("X509CertificatePem", `
 {
 	"type": "string",
 	"format": "x_x509_certificate_pem"
 }
 `)
 
-type X509CertPem string
+type X509CertificatePem string
