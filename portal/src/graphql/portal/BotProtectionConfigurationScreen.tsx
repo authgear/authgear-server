@@ -34,8 +34,11 @@ import {
   Dropdown,
   IButtonProps,
   IColumn,
+  IDetailsRowProps,
+  IDetailsRowStyles,
   IDropdownOption,
   Image,
+  IRenderFunction,
   Label,
   SelectionMode,
   Text,
@@ -895,6 +898,35 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
     );
   };
 
+function useDisabledDetailListOnRenderRow(): IRenderFunction<IDetailsRowProps> {
+  const overrideRowStyles: Partial<IDetailsRowStyles> = useMemo(() => {
+    return {
+      root: {
+        ":hover": {
+          background: "white",
+        },
+      },
+    };
+  }, []);
+  return useCallback(
+    (props, defaultRender) => {
+      if (props == null || defaultRender == null) {
+        return null;
+      }
+      if (!("item" in props)) {
+        return defaultRender(props);
+      }
+
+      const disabled = props.item.disabled;
+      return defaultRender({
+        ...props,
+        styles: disabled ? overrideRowStyles : {},
+      });
+    },
+    [overrideRowStyles]
+  );
+}
+
 interface RequirementConfigListItem {
   label: string;
   asHeaderLabel?: boolean;
@@ -1027,8 +1059,9 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
       },
       [setRequirements]
     );
+    const flowConfigDisabled =
+      requirements.flows.flowType !== "specificAuthenticator";
     const flowConfigItems: RequirementConfigListItem[] = useMemo(() => {
-      const disabled = requirements.flows.flowType !== "specificAuthenticator";
       return [
         {
           label: renderToString(
@@ -1036,7 +1069,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           ),
           mode: requirements.flows.flowConfigs.specificAuthenticator
             .passwordMode,
-          disabled,
+          disabled: flowConfigDisabled,
           onChangeMode: (mode: BotProtectionRiskMode) => {
             setRequirementsFlowConfigs((flowConfigs) => ({
               ...flowConfigs,
@@ -1051,7 +1084,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           label: renderToString(
             "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessSMS.label"
           ),
-          disabled,
+          disabled: flowConfigDisabled,
           mode: requirements.flows.flowConfigs.specificAuthenticator
             .passwordlessViaSMSMode,
           onChangeMode: (mode: BotProtectionRiskMode) => {
@@ -1070,7 +1103,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           ),
           mode: requirements.flows.flowConfigs.specificAuthenticator
             .passwordlessViaEmailMode,
-          disabled,
+          disabled: flowConfigDisabled,
           onChangeMode: (mode: BotProtectionRiskMode) => {
             setRequirementsFlowConfigs((flowConfigs) => ({
               ...flowConfigs,
@@ -1082,7 +1115,14 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           },
         },
       ];
-    }, [renderToString, requirements.flows, setRequirementsFlowConfigs]);
+    }, [
+      renderToString,
+      requirements.flows,
+      setRequirementsFlowConfigs,
+      flowConfigDisabled,
+    ]);
+
+    const flowConfigOnRenderRow = useDisabledDetailListOnRenderRow();
 
     const resetPasswordConfigItems: RequirementConfigListItem[] =
       useMemo(() => {
@@ -1128,6 +1168,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
             isHeaderVisible={false}
             selectionMode={SelectionMode.none}
             items={flowConfigItems}
+            onRenderRow={flowConfigOnRenderRow}
           />
         </div>
         <HorizontalDivider />
