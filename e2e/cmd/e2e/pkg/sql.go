@@ -55,32 +55,56 @@ func ParseRows(rows *sql.Rows) (outputRows []interface{}, err error) {
 		for i, v := range columnTypes {
 
 			if z, ok := (scanArgs[i]).(*sql.NullBool); ok {
-				row[v.Name()] = z.Bool
+				if z.Valid { // not null
+					row[v.Name()] = z.Bool
+				} else { // null
+					row[v.Name()] = nil
+				}
 				continue
 			}
 
 			if z, ok := (scanArgs[i]).(*sql.NullString); ok {
-				row[v.Name()] = z.String
+				if z.Valid { // not null
+					row[v.Name()] = z.String
+				} else { // null
+					row[v.Name()] = nil
+				}
 				continue
 			}
 
 			if z, ok := (scanArgs[i]).(*sql.NullInt64); ok {
-				row[v.Name()] = z.Int64
+				if z.Valid { // not null
+					row[v.Name()] = z.Int64
+				} else { // null
+					row[v.Name()] = nil
+				}
 				continue
 			}
 
 			if z, ok := (scanArgs[i]).(*sql.NullFloat64); ok {
-				row[v.Name()] = z.Float64
+				if z.Valid { // not null
+					row[v.Name()] = z.Float64
+				} else { // null
+					row[v.Name()] = nil
+				}
 				continue
 			}
 
 			if z, ok := (scanArgs[i]).(*sql.NullInt32); ok {
-				row[v.Name()] = z.Int32
+				if z.Valid { // not null
+					row[v.Name()] = z.Int32
+				} else { // null
+					row[v.Name()] = nil
+				}
 				continue
 			}
 
 			if z, ok := (scanArgs[i]).(*sql.NullTime); ok {
-				row[v.Name()] = z.Time
+				if z.Valid { // not null
+					row[v.Name()] = z.Time
+				} else { // null
+					row[v.Name()] = nil
+				}
 				continue
 			}
 
