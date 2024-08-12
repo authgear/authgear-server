@@ -243,6 +243,7 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 			candidates = append(candidates, candidate)
 		case config.AuthenticationFlowIdentificationPasskey:
 			// Passkey was not handled by candidates.
+			break
 		}
 	}
 
