@@ -112,8 +112,12 @@
   opacity: 0.4;
 }
 
-.requirementConfigLabel {
+.requirementHeaderLabel {
   font-weight: 600;
+}
+
+.requirementConfigLabel {
+  font-weight: 400;
 }
 
 .requirementDropdownContainer {

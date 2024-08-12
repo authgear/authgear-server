@@ -728,7 +728,7 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
     const { requirements, setRequirements } = props;
     const { renderToString } = useContext(Context);
 
-    const onRenderRequirementConfigLabel = useCallback(
+    const onRenderRequirementHeaderLabel = useCallback(
       (
         item?: RequirementFlowHeaderListItem,
         _index?: number,
@@ -739,7 +739,7 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
         }
         return (
           <div className={styles.requirementConfigLabelContainer}>
-            <Text block={true} className={styles.requirementConfigLabel}>
+            <Text block={true} className={styles.requirementHeaderLabel}>
               {item.label}
             </Text>
           </div>
@@ -831,7 +831,7 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
           key: "label",
           minWidth: 200,
           name: "",
-          onRender: onRenderRequirementConfigLabel,
+          onRender: onRenderRequirementHeaderLabel,
         },
         {
           key: "mode",
@@ -841,7 +841,7 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
           onRender: onRenderDropdown,
         },
       ];
-    }, [onRenderDropdown, onRenderRequirementConfigLabel]);
+    }, [onRenderDropdown, onRenderRequirementHeaderLabel]);
 
     const flowHeaderListItems: RequirementFlowHeaderListItem[] = useMemo(() => {
       return [
@@ -897,6 +897,7 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
 
 interface RequirementConfigListItem {
   label: string;
+  asHeaderLabel?: boolean;
   mode: BotProtectionRiskMode;
   onChangeMode: (mode: BotProtectionRiskMode) => void;
   disabled: boolean;
@@ -930,7 +931,14 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
                 : styles.requirementConfigLabelContainer
             }
           >
-            <Text block={true} className={styles.requirementConfigLabel}>
+            <Text
+              block={true}
+              className={
+                item.asHeaderLabel
+                  ? styles.requirementHeaderLabel
+                  : styles.requirementConfigLabel
+              }
+            >
               {item.label}
             </Text>
           </div>
@@ -1083,6 +1091,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
             label: renderToString(
               "BotProtectionConfigurationScreen.requirements.resetPassword.config.resetPassword.label"
             ),
+            asHeaderLabel: true,
             disabled: false,
             mode: requirements.resetPassword.resetPasswordMode,
             onChangeMode: (mode: BotProtectionRiskMode) => {
