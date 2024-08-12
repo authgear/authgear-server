@@ -220,7 +220,7 @@ func (tc *TestCase) executeStep(
 		}
 
 	case StepActionQuery:
-		jsonArrString, err := cmd.QuerySQLSelectFile(step.Query)
+		jsonArrString, err := cmd.QuerySQLSelectRaw(step.Query)
 		if err != nil {
 			t.Errorf("failed to execute SQL Select query: %v", err)
 			return

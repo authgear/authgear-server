@@ -51,7 +51,7 @@ func (e *End2EndCmd) ExecuteSQLInsertUpdateFile(sqlPath string) error {
 	return nil
 }
 
-func (e *End2EndCmd) QuerySQLSelectFile(rawSQL string) (jsonArrString string, err error) {
+func (e *End2EndCmd) QuerySQLSelectRaw(rawSQL string) (jsonArrString string, err error) {
 	cmd := fmt.Sprintf(
 		"./dist/e2e query-sql-select --app-id %s --raw-sql \"%s\"",
 		e.AppID,
