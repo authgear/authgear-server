@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-var _ = SecretConfigSchema.Add("X509Certtificate", `
+var _ = SecretConfigSchema.Add("X509Certificate", `
 {
 	"type": "object",
 	"properties": {
@@ -16,11 +16,11 @@ var _ = SecretConfigSchema.Add("X509Certtificate", `
 }
 `)
 
-type X509Certtificate struct {
+type X509Certificate struct {
 	Pem X509CertificatePem `json:"pem,omitempty"`
 }
 
-func (c *X509Certtificate) Base64Data() string {
+func (c *X509Certificate) Base64Data() string {
 	block, _ := pem.Decode([]byte(c.Pem))
 	if block == nil {
 		panic(fmt.Errorf("invalid pem"))
