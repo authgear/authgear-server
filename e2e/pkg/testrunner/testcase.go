@@ -225,7 +225,6 @@ func (tc *TestCase) executeStep(
 			t.Errorf("failed to execute SQL Select query: %v", err)
 			return
 		}
-		fmt.Printf("pkong#jsonArrString: %+v\n", jsonArrString)
 
 		rowsResult := map[string]interface{}{}
 		var rows []interface{}
@@ -239,7 +238,6 @@ func (tc *TestCase) executeStep(
 			Result: rowsResult,
 			Error:  nil,
 		}
-		fmt.Printf("pkong#result: %+v\n", result)
 
 		if step.QueryOutput != nil {
 			ok := validateQueryResult(t, step, rows)
