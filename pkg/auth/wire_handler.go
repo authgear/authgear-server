@@ -1171,3 +1171,10 @@ func newSAMLMetadataHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlersaml.MetadataHandler)),
 	))
 }
+
+func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlersaml.LoginHandler)),
+	))
+}
