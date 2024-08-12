@@ -139,9 +139,6 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
             disabled={true}
           />
           <ChoiceGroup
-            label={renderToString(
-              "ChangePasswordScreen.password-creation-type"
-            )}
             selectedKey={state.passwordCreationType}
             options={passwordCreateionTypeOptions}
             onChange={onChangePasswordCreationType}
