@@ -7,6 +7,7 @@ import {
   dispatchBotProtectionEventVerified,
 } from "./botProtection";
 import { setErrorMessage } from "../alert-message";
+import { dispatchBotProtectionWidgetEventReadyForRender } from "./botProtectionWidget";
 
 function parseTheme(theme: string): ReCaptchaV2.Theme | undefined {
   switch (theme) {
@@ -101,6 +102,8 @@ export class RecaptchaV2Controller extends Controller {
   connect() {
     window.grecaptcha.ready(() => {
       this.isReadyForRendering = true;
+      // Use setTimeout to prevent isReadyForRendering not changed to True yet
+      setTimeout(() => dispatchBotProtectionWidgetEventReadyForRender(), 0);
     });
     document.addEventListener(
       "bot-protection-widget:render",
