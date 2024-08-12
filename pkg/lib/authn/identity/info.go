@@ -243,7 +243,7 @@ func (i *Info) IdentityAwareStandardClaims() map[model.ClaimName]string {
 	case model.IdentityTypeSIWE:
 		break
 	case model.IdentityTypeLDAP:
-		claims = i.LDAP.IdentityAwareStandardClaims()
+		return i.LDAP.IdentityAwareStandardClaims()
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}
