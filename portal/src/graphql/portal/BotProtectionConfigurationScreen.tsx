@@ -30,11 +30,9 @@ import ScreenDescription from "../../ScreenDescription";
 import Toggle from "../../Toggle";
 import WidgetTitle from "../../WidgetTitle";
 import {
-  ChoiceGroup,
   DetailsList,
   Dropdown,
   IButtonProps,
-  IChoiceGroupOption,
   IColumn,
   IDropdownOption,
   Image,
@@ -725,39 +723,6 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
     const { requirements, setRequirements } = props;
     const { renderToString } = useContext(Context);
 
-    const flowOptions: IChoiceGroupOption[] = useMemo(
-      () => [
-        {
-          key: "allSignupLogin",
-          text: renderToString(
-            "BotProtectionConfigurationScreen.requirements.flows.allSignupLogin"
-          ),
-        },
-        {
-          key: "specificAuthenticator",
-          text: renderToString(
-            "BotProtectionConfigurationScreen.requirements.flows.specificAuthenticator"
-          ),
-        },
-      ],
-      [renderToString]
-    );
-    const onChangeFlowType = useCallback(
-      (_event, option?: IChoiceGroupOption) => {
-        const value = option?.key;
-        if (value !== "allSignupLogin" && value !== "specificAuthenticator") {
-          return;
-        }
-        setRequirements((requirements) => ({
-          ...requirements,
-          flows: {
-            ...requirements.flows,
-            flowType: value,
-          },
-        }));
-      },
-      [setRequirements]
-    );
     const onRenderRequirementConfigLabel = useCallback(
       (
         item?: RequirementConfigListItem,
@@ -857,27 +822,31 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
       },
       [setRequirements]
     );
+    const flowHeaderListItems: RequirementConfigListItem[] = useMemo(() => {
+      return [
+        {
+          label: renderToString(
+            "BotProtectionConfigurationScreen.requirements.flows.config.allSignupLogin.label"
+          ),
+          mode: requirements.flows.flowConfigs.allSignupLogin
+            .allSignupLoginMode,
+          onChangeMode: (mode: BotProtectionRiskMode) => {
+            setRequirementsFlowConfigs((flowConfigs) => ({
+              ...flowConfigs,
+              allSignupLogin: {
+                allSignupLoginMode: mode,
+              },
+            }));
+          },
+        },
+      ];
+    }, [
+      renderToString,
+      requirements.flows.flowConfigs.allSignupLogin.allSignupLoginMode,
+      setRequirementsFlowConfigs,
+    ]);
     const flowConfigItems: RequirementConfigListItem[] = useMemo(() => {
       switch (requirements.flows.flowType) {
-        case "allSignupLogin": {
-          return [
-            {
-              label: renderToString(
-                "BotProtectionConfigurationScreen.requirements.flows.config.allSignupLogin.label"
-              ),
-              mode: requirements.flows.flowConfigs.allSignupLogin
-                .allSignupLoginMode,
-              onChangeMode: (mode: BotProtectionRiskMode) => {
-                setRequirementsFlowConfigs((flowConfigs) => ({
-                  ...flowConfigs,
-                  allSignupLogin: {
-                    allSignupLoginMode: mode,
-                  },
-                }));
-              },
-            },
-          ];
-        }
         case "specificAuthenticator": {
           return [
             {
@@ -965,13 +934,15 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           <WidgetTitle>
             <FormattedMessage id="BotProtectionConfigurationScreen.requirements.title" />
           </WidgetTitle>
-          <ChoiceGroup
-            selectedKey={requirements.flows.flowType}
-            options={flowOptions}
-            onChange={onChangeFlowType}
-          />
         </div>
         <div>
+          <DetailsList
+            compact={true}
+            columns={requirementConfigColumns}
+            isHeaderVisible={false}
+            selectionMode={SelectionMode.none}
+            items={flowHeaderListItems}
+          />
           <DetailsList
             compact={true}
             columns={requirementConfigColumns}
