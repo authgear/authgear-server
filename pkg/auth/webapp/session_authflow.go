@@ -774,18 +774,12 @@ func (s *AuthflowScreenWithFlowResponse) Advance(p string, result *Result) {
 	result.RedirectURI = u.String()
 }
 
-func (s *AuthflowScreenWithFlowResponse) AdvanceWithQuery(route string, result *Result, query string) {
+func (s *AuthflowScreenWithFlowResponse) AdvanceWithQuery(route string, result *Result, query url.Values) {
 	q := url.Values{}
 	q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
 
-	if len(query) > 0 {
-		m, err := url.ParseQuery(query)
-		if err != nil {
-			panic(err)
-		}
-		for k, v := range m {
-			q[k] = v
-		}
+	for k, v := range query {
+		q[k] = v
 	}
 
 	u, _ := url.Parse(route)
