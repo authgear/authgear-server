@@ -39,9 +39,9 @@ func (e *End2EndCmd) ImportUsers(jsonPath string) error {
 	return nil
 }
 
-func (e *End2EndCmd) ExecuteCustomSQL(sqlPath string) error {
+func (e *End2EndCmd) ExecuteSQLInsertUpdateFile(sqlPath string) error {
 	cmd := fmt.Sprintf(
-		"./dist/e2e exec-sql --app-id %s --custom-sql \"%s\"",
+		"./dist/e2e exec-sql-insert-update --app-id %s --custom-sql \"%s\"",
 		e.AppID,
 		e.resolvePath(sqlPath),
 	)
@@ -49,6 +49,16 @@ func (e *End2EndCmd) ExecuteCustomSQL(sqlPath string) error {
 		return err
 	}
 	return nil
+}
+
+func (e *End2EndCmd) QuerySQLSelectRaw(rawSQL string) (jsonArrString string, err error) {
+	cmd := fmt.Sprintf(
+		"./dist/e2e query-sql-select --app-id %s --raw-sql \"%s\"",
+		e.AppID,
+		rawSQL,
+	)
+
+	return e.execCmd(cmd)
 }
 
 func (e *End2EndCmd) GetLinkOTPCodeByClaim(claim string, value string) (string, error) {

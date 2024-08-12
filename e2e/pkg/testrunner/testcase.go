@@ -107,7 +107,7 @@ func (tc *TestCase) executeBeforeAll(cmd *End2EndCmd) (err error) {
 				return fmt.Errorf("failed to import users: %w", err)
 			}
 		case BeforeHookTypeCustomSQL:
-			err = cmd.ExecuteCustomSQL(beforeHook.CustomSQL.Path)
+			err = cmd.ExecuteSQLInsertUpdateFile(beforeHook.CustomSQL.Path)
 			if err != nil {
 				return fmt.Errorf("failed to execute custom SQL: %w", err)
 			}
@@ -218,6 +218,35 @@ func (tc *TestCase) executeStep(
 			},
 			Error: nil,
 		}
+
+	case StepActionQuery:
+		jsonArrString, err := cmd.QuerySQLSelectRaw(step.Query)
+		if err != nil {
+			t.Errorf("failed to execute SQL Select query: %v", err)
+			return
+		}
+
+		rowsResult := map[string]interface{}{}
+		var rows []interface{}
+		err = json.Unmarshal([]byte(jsonArrString), &rows)
+		if err != nil {
+			t.Errorf("failed to unmarshal json rows: %v", err)
+			return
+		}
+		rowsResult["rows"] = rows
+		result = &StepResult{
+			Result: rowsResult,
+			Error:  nil,
+		}
+
+		if step.QueryOutput != nil {
+			ok := validateQueryResult(t, step, rows)
+			if !ok {
+				return nil, state, false
+			}
+		}
+
+		nextState = state
 
 	case StepActionInput:
 		fallthrough
@@ -385,6 +414,28 @@ func validateOutput(t *testing.T, step Step, flowResponse *authflowclient.FlowRe
 	}
 
 	return true
+}
+
+func validateQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) {
+	rowsJSON, _ := json.MarshalIndent(rows, "", "  ")
+	resultViolations, err := MatchOutputQueryResult(*step.QueryOutput, rows)
+	if err != nil {
+		t.Errorf("failed to match output in '%s': %v\n", step.Name, err)
+		t.Errorf("  result: %s\n", rowsJSON)
+		return false
+	}
+
+	if len(resultViolations) > 0 {
+		t.Errorf("result output mismatch in '%s':\n", step.Name)
+		for _, violation := range resultViolations {
+			t.Errorf("  | %s: %s. Expected %s, got %s", violation.Path, violation.Message, violation.Expected, violation.Actual)
+		}
+		t.Errorf("  result: %s\n", rowsJSON)
+		return false
+	}
+
+	return true
+
 }
 
 func generateAppID() string {

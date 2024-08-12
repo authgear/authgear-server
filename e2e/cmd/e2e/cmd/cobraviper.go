@@ -63,5 +63,10 @@ var ArgConfigOverride = &cobraviper.StringArgument{
 
 var ArgCustomSQL = &cobraviper.StringArgument{
 	ArgumentName: "custom-sql",
-	Usage:        "Custom SQL",
+	Usage:        "Filepath to custom sql",
+}
+
+var ArgRawSQL = &cobraviper.StringArgument{
+	ArgumentName: "raw-sql",
+	Usage:        "Custom raw SQL statements",
 }

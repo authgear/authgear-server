@@ -159,6 +159,7 @@ Each step is an API call to the Authflow API. The following steps are available:
 - `action: create`: Creates a flow
 - `action: input`: Inputs data and proceeds to the next step
 - `action: oauth_redirect`: Redirects to an OAuth provider
+- `action: query`: Query from database
 
 #### OAuth redirect
 
@@ -184,6 +185,32 @@ The `oauth_redirect` action is used to redirect to an OAuth provider. The result
           "type": "finished"
         }
       }
+```
+
+#### Database Query
+
+The `query` action is used to query from database. The results can be accessed by `prev` in next step.
+
+```yaml
+- action: query
+  query: |
+    SELECT id
+    FROM _auth_user 
+    WHERE app_id = '{{ .AppID }}'
+    AND standard_attributes ->> 'preferred_username' = 'my_username';
+  query_output:
+    rows: |
+      [
+        {
+          "id": "[[string]]"
+        }
+      ]
+- action: input
+  input: |
+    {
+      "identification": "id_token",
+      "id_token": "{{ generateIDToken (index .prev.result.rows 0).id }}"
+    }
 ```
 
 #### Assert
