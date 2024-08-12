@@ -107,6 +107,11 @@
   @apply h-full flex items-center;
 }
 
+.disabledRequirementConfigLabelContainer {
+  @apply h-full flex items-center;
+  opacity: 0.4;
+}
+
 .requirementConfigLabel {
   font-weight: 600;
 }

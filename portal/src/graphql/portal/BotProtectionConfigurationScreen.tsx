@@ -899,6 +899,7 @@ interface RequirementConfigListItem {
   label: string;
   mode: BotProtectionRiskMode;
   onChangeMode: (mode: BotProtectionRiskMode) => void;
+  disabled: boolean;
 }
 
 interface BotProtectionConfigurationContentRequirementsSectionProps {
@@ -922,7 +923,13 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           return null;
         }
         return (
-          <div className={styles.requirementConfigLabelContainer}>
+          <div
+            className={
+              item.disabled
+                ? styles.disabledRequirementConfigLabelContainer
+                : styles.requirementConfigLabelContainer
+            }
+          >
             <Text block={true} className={styles.requirementConfigLabel}>
               {item.label}
             </Text>
@@ -972,6 +979,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
             options={options}
             selectedKey={item.mode}
             onChange={makeDropdownOnChange()}
+            disabled={item.disabled}
           />
         );
       },
@@ -1012,62 +1020,60 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
       [setRequirements]
     );
     const flowConfigItems: RequirementConfigListItem[] = useMemo(() => {
-      switch (requirements.flows.flowType) {
-        case "specificAuthenticator": {
-          return [
-            {
-              label: renderToString(
-                "BotProtectionConfigurationScreen.requirements.flows.config.password.label"
-              ),
-              mode: requirements.flows.flowConfigs.specificAuthenticator
-                .passwordMode,
-              onChangeMode: (mode: BotProtectionRiskMode) => {
-                setRequirementsFlowConfigs((flowConfigs) => ({
-                  ...flowConfigs,
-                  specificAuthenticator: {
-                    ...flowConfigs.specificAuthenticator,
-                    passwordMode: mode,
-                  },
-                }));
+      const disabled = requirements.flows.flowType !== "specificAuthenticator";
+      return [
+        {
+          label: renderToString(
+            "BotProtectionConfigurationScreen.requirements.flows.config.password.label"
+          ),
+          mode: requirements.flows.flowConfigs.specificAuthenticator
+            .passwordMode,
+          disabled,
+          onChangeMode: (mode: BotProtectionRiskMode) => {
+            setRequirementsFlowConfigs((flowConfigs) => ({
+              ...flowConfigs,
+              specificAuthenticator: {
+                ...flowConfigs.specificAuthenticator,
+                passwordMode: mode,
               },
-            },
-            {
-              label: renderToString(
-                "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessSMS.label"
-              ),
-              mode: requirements.flows.flowConfigs.specificAuthenticator
-                .passwordlessViaSMSMode,
-              onChangeMode: (mode: BotProtectionRiskMode) => {
-                setRequirementsFlowConfigs((flowConfigs) => ({
-                  ...flowConfigs,
-                  specificAuthenticator: {
-                    ...flowConfigs.specificAuthenticator,
-                    passwordlessViaSMSMode: mode,
-                  },
-                }));
+            }));
+          },
+        },
+        {
+          label: renderToString(
+            "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessSMS.label"
+          ),
+          disabled,
+          mode: requirements.flows.flowConfigs.specificAuthenticator
+            .passwordlessViaSMSMode,
+          onChangeMode: (mode: BotProtectionRiskMode) => {
+            setRequirementsFlowConfigs((flowConfigs) => ({
+              ...flowConfigs,
+              specificAuthenticator: {
+                ...flowConfigs.specificAuthenticator,
+                passwordlessViaSMSMode: mode,
               },
-            },
-            {
-              label: renderToString(
-                "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessEmail.label"
-              ),
-              mode: requirements.flows.flowConfigs.specificAuthenticator
-                .passwordlessViaEmailMode,
-              onChangeMode: (mode: BotProtectionRiskMode) => {
-                setRequirementsFlowConfigs((flowConfigs) => ({
-                  ...flowConfigs,
-                  specificAuthenticator: {
-                    ...flowConfigs.specificAuthenticator,
-                    passwordlessViaEmailMode: mode,
-                  },
-                }));
+            }));
+          },
+        },
+        {
+          label: renderToString(
+            "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessEmail.label"
+          ),
+          mode: requirements.flows.flowConfigs.specificAuthenticator
+            .passwordlessViaEmailMode,
+          disabled,
+          onChangeMode: (mode: BotProtectionRiskMode) => {
+            setRequirementsFlowConfigs((flowConfigs) => ({
+              ...flowConfigs,
+              specificAuthenticator: {
+                ...flowConfigs.specificAuthenticator,
+                passwordlessViaEmailMode: mode,
               },
-            },
-          ];
-        }
-        default:
-          return [];
-      }
+            }));
+          },
+        },
+      ];
     }, [renderToString, requirements.flows, setRequirementsFlowConfigs]);
 
     const resetPasswordConfigItems: RequirementConfigListItem[] =
@@ -1077,6 +1083,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
             label: renderToString(
               "BotProtectionConfigurationScreen.requirements.resetPassword.config.resetPassword.label"
             ),
+            disabled: false,
             mode: requirements.resetPassword.resetPasswordMode,
             onChangeMode: (mode: BotProtectionRiskMode) => {
               setRequirements((requirements) => ({
