@@ -3,6 +3,7 @@ package authflowv2
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -37,6 +38,9 @@ func ConfigureAuthflowV2LDAPLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowLDAPLoginViewModel struct {
+	LDAPUsernameInputError *authflowv2viewmodels.InputError
+	PasswordInputError     *authflowv2viewmodels.InputError
+	HasUnknownError        bool
 }
 
 type AuthflowV2LDAPLoginHandler struct {
@@ -45,14 +49,64 @@ type AuthflowV2LDAPLoginHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
+// nolint: gocognit
+func NewAuthflowLDAPLoginViewModel(apiError *apierrors.APIError) AuthflowLDAPLoginViewModel {
+	viewModel := AuthflowLDAPLoginViewModel{
+		LDAPUsernameInputError: &authflowv2viewmodels.InputError{
+			HasError:        false,
+			HasErrorMessage: false,
+		},
+		PasswordInputError: &authflowv2viewmodels.InputError{
+			HasError:        false,
+			HasErrorMessage: false,
+		},
+	}
+	if apiError != nil {
+		switch apiError.Reason {
+		case "InvalidCredentials":
+			viewModel.LDAPUsernameInputError.HasError = true
+			viewModel.PasswordInputError.HasError = true
+			// Alert invalid credentials error
+			viewModel.HasUnknownError = true
+		case "ValidationFailed":
+			for _, causes := range apiError.Info["causes"].([]interface{}) {
+				if cause, ok := causes.(map[string]interface{}); ok {
+					if kind, ok := cause["kind"].(string); ok {
+						if kind == "required" {
+							if details, ok := cause["details"].(map[string]interface{}); ok {
+								if missing, ok := details["missing"].([]interface{}); ok {
+									if viewmodels.SliceContains(missing, "x_username") {
+										viewModel.LDAPUsernameInputError.HasError = true
+										viewModel.LDAPUsernameInputError.HasErrorMessage = true
+									} else if viewmodels.SliceContains(missing, "x_password") {
+										viewModel.PasswordInputError.HasError = true
+										viewModel.PasswordInputError.HasErrorMessage = true
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if !viewModel.LDAPUsernameInputError.HasError && !viewModel.PasswordInputError.HasError {
+			// If it is not an error shown in inputs, it is an unknown error
+			viewModel.HasUnknownError = true
+		}
+	}
+
+	return viewModel
+}
+
 func (h *AuthflowV2LDAPLoginHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	LDAPInputErrorViewModel := authflowv2viewmodels.NewLDAPInputErrorViewModel(baseViewModel.RawError)
-	viewmodels.Embed(data, LDAPInputErrorViewModel)
+	authflowLDAPLoginViewModel := NewAuthflowLDAPLoginViewModel(baseViewModel.RawError)
+	viewmodels.Embed(data, authflowLDAPLoginViewModel)
 
 	return data, nil
 }
