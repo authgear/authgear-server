@@ -220,7 +220,7 @@ func (c *SecretConfig) validateSAMLSigningKey(ctx *validation.Context, keyID str
 	_, data, _ := c.LookupDataWithIndex(SAMLIdpSigningMaterialsKey)
 	signingMaterials, _ := data.(*SAMLIdpSigningMaterials)
 
-	for _, m := range signingMaterials.Certs {
+	for _, m := range signingMaterials.Certificates {
 		if m.Key.Key.KeyID() == keyID {
 			return
 		}
