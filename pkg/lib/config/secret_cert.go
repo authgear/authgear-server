@@ -31,7 +31,7 @@ func (c *X509Cert) Base64Data() string {
 var _ = SecretConfigSchema.Add("X509CertPem", `
 {
 	"type": "string",
-	"format": "x_x509_cert_pem"
+	"format": "x_x509_certificate_pem"
 }
 `)
 
