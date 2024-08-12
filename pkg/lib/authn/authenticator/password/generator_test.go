@@ -153,16 +153,20 @@ func TestMinGuessableLevelRequirement(t *testing.T) {
 
 // TestRand returns 0 for the first call to Intnm and uses math/rand's default implementation for the rest.
 type TestRand struct {
-	*mrand.Rand
+	rand    *mrand.Rand
 	ranOnce bool
 }
 
-func (r *TestRand) IntN(n int) int {
+func (r *TestRand) Intn(n int) int {
 	if !r.ranOnce {
 		r.ranOnce = true
 		return 0
 	}
-	return r.Rand.Intn(n)
+	return r.rand.Intn(n)
+}
+
+func (r *TestRand) Shuffle(n int, swap func(i, j int)) {
+	r.rand.Shuffle(n, swap)
 }
 
 func TestExcludedKeywordsRequirement(t *testing.T) {
@@ -172,9 +176,9 @@ func TestExcludedKeywordsRequirement(t *testing.T) {
 			Checker: &Checker{
 				PwExcludedKeywords: excluded,
 			},
-			Rand: Rand{mrand.New(TestRand{
-				Rand: utilrand.SecureRand,
-			})},
+			Rand: &TestRand{
+				rand: utilrand.SecureRand,
+			},
 			PasswordConfig: &config.AuthenticatorPasswordConfig{
 				Policy: &config.PasswordPolicyConfig{
 					MinLength:        newInt(8),

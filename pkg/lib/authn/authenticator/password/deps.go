@@ -49,7 +49,7 @@ func ProvideExpiry(
 }
 
 func NewRandSource() Rand {
-	return Rand{utilrand.SecureRand}
+	return RandRand{utilrand.SecureRand}
 }
 
 var DependencySet = wire.NewSet(
