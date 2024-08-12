@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 )
 
-func (c *End2End) QuerySQLSelect(appID string, sqlPath string) (jsonArrString string, err error) {
+func (c *End2End) QuerySQLSelect(appID string, rawSQL string) (jsonArrString string, err error) {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		return "", err
@@ -15,16 +14,11 @@ func (c *End2End) QuerySQLSelect(appID string, sqlPath string) (jsonArrString st
 
 	db := openDB(cfg.GlobalDatabase.DatabaseURL, cfg.GlobalDatabase.DatabaseSchema)
 
-	sql, err := os.ReadFile(sqlPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read SQL file: %w", err)
-	}
-
 	vars := map[string]interface{}{
 		"AppID": appID,
 	}
 
-	tmpl, err := ParseSQLTemplate("sql-select", string(sql))
+	tmpl, err := ParseSQLTemplate("sql-select", rawSQL)
 	if err != nil {
 		return "", fmt.Errorf("failed to parse SQL template: %w", err)
 	}

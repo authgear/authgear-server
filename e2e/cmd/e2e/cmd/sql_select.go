@@ -13,7 +13,7 @@ func init() {
 
 	Root.AddCommand(cmdInternalE2EQuerySQLSelect)
 	binder.BindString(cmdInternalE2EQuerySQLSelect.PersistentFlags(), ArgAppID)
-	binder.BindString(cmdInternalE2EQuerySQLSelect.PersistentFlags(), ArgCustomSQL)
+	binder.BindString(cmdInternalE2EQuerySQLSelect.PersistentFlags(), ArgRawSQL)
 }
 
 var cmdInternalE2EQuerySQLSelect = &cobra.Command{
@@ -23,13 +23,13 @@ var cmdInternalE2EQuerySQLSelect = &cobra.Command{
 		binder := GetBinder()
 
 		appID := binder.GetString(cmd, ArgAppID)
-		customSQL := binder.GetString(cmd, ArgCustomSQL)
+		rawSQL := binder.GetString(cmd, ArgRawSQL)
 
 		instance := e2e.End2End{
 			Context: cmd.Context(),
 		}
 
-		dbRows, err := instance.QuerySQLSelect(appID, customSQL)
+		dbRows, err := instance.QuerySQLSelect(appID, rawSQL)
 		if err != nil {
 			return err
 		}

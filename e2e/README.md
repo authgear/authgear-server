@@ -191,17 +191,13 @@ The `oauth_redirect` action is used to redirect to an OAuth provider. The result
 
 The `query` action is used to query from database. The results can be accessed by `prev` in next step.
 
-```sql
-# get_my_user.sql
-SELECT id
-FROM _auth_user 
-WHERE app_id = '{{ .AppID }}'
-AND standard_attributes ->> 'preferred_username' = 'my_username';
-```
-
 ```yaml
 - action: query
-  query: get_my_user.sql
+  query: |
+    SELECT id
+    FROM _auth_user 
+    WHERE app_id = '{{ .AppID }}'
+    AND standard_attributes ->> 'preferred_username' = 'my_username';
   query_output:
     rows: |
       [
