@@ -215,6 +215,19 @@ func (c *SecretConfig) validateBotProtectionSecrets(ctx *validation.Context, bot
 	}
 }
 
+func (c *SecretConfig) validateSAMLSigningKey(ctx *validation.Context, keyID string) {
+	c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+	_, data, _ := c.LookupDataWithIndex(SAMLIdpSigningMaterialsKey)
+	signingMaterials, _ := data.(*SAMLIdpSigningMaterials)
+
+	for _, m := range signingMaterials.Certificates {
+		if m.Key.Key.KeyID() == keyID {
+			return
+		}
+	}
+	ctx.EmitErrorMessage(fmt.Sprintf("saml idp signing key '%s' does not exist", keyID))
+}
+
 func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	ctx := &validation.Context{}
 
@@ -249,8 +262,11 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 		c.validateBotProtectionSecrets(ctx, appConfig.BotProtection.Provider)
 	}
 
-	if len(appConfig.SAML.SAMLServiceProviders) > 0 {
+	if len(appConfig.SAML.ServiceProviders) > 0 {
 		c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+	}
+	if appConfig.SAML.Signing.KeyID != "" {
+		c.validateSAMLSigningKey(ctx, appConfig.SAML.Signing.KeyID)
 	}
 
 	return ctx.Error("invalid secrets")

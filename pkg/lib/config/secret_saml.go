@@ -4,19 +4,28 @@ var _ = SecretConfigSchema.Add("SAMLIdpSigningMaterials", `
 {
 	"type": "object",
 	"properties": {
-		"certs": {
+		"certificates": {
 			"type": "array",
-			"items": { "$ref": "#/$defs/SAMLIdpSigningCert" },
+			"items": { "$ref": "#/$defs/SAMLIdpSigningCertificate" },
 			"minItems": 1,
 			"maxItems": 2
 		}
 	},
-	"required": ["certs"]
+	"required": ["certificates"]
 }
 `)
 
 type SAMLIdpSigningMaterials struct {
-	Certs []*SAMLIdpSigningCert `json:"certs,omitempty"`
+	Certificates []*SAMLIdpSigningCertificate `json:"certificates,omitempty"`
+}
+
+func (m *SAMLIdpSigningMaterials) FindSigningCert(keyID string) (*SAMLIdpSigningCertificate, bool) {
+	for _, cert := range m.Certificates {
+		if cert.Key.KeyID() == keyID {
+			return cert, true
+		}
+	}
+	return nil, false
 }
 
 var _ SecretItemData = &SAMLIdpSigningMaterials{}
@@ -25,30 +34,30 @@ func (s *SAMLIdpSigningMaterials) SensitiveStrings() []string {
 	return nil
 }
 
-var _ = SecretConfigSchema.Add("SAMLIdpSigningCert", `
+var _ = SecretConfigSchema.Add("SAMLIdpSigningCertificate", `
 {
 	"type": "object",
 	"properties": {
-		"cert": { "$ref": "#/$defs/X509Cert" },
+		"certificate": { "$ref": "#/$defs/X509Certificate" },
 		"key": { "$ref": "#/$defs/JWK" }
 	},
-	"required": ["cert", "key"]
+	"required": ["certificate", "key"]
 }
 `)
 
-type SAMLIdpSigningCert struct {
-	Cert *X509Cert `json:"cert,omitempty"`
-	Key  *JWK      `json:"key,omitempty"`
+type SAMLIdpSigningCertificate struct {
+	Certificate *X509Certificate `json:"certificate,omitempty"`
+	Key         *JWK             `json:"key,omitempty"`
 }
 
 var _ = SecretConfigSchema.Add("SAMLSpSigningMaterials", `
 {
 	"type": "array",
-	"items": { "$ref": "#/$defs/SAMLSpSigningCert" }
+	"items": { "$ref": "#/$defs/SAMLSpSigningCertificate" }
 }
 `)
 
-type SAMLSpSigningMaterials []SAMLSpSigningCert
+type SAMLSpSigningMaterials []SAMLSpSigningCertificate
 
 var _ SecretItemData = &SAMLSpSigningMaterials{}
 
@@ -56,21 +65,21 @@ func (s *SAMLSpSigningMaterials) SensitiveStrings() []string {
 	return nil
 }
 
-var _ = SecretConfigSchema.Add("SAMLSpSigningCert", `
+var _ = SecretConfigSchema.Add("SAMLSpSigningCertificate", `
 {
 	"type": "object",
 	"properties": {
 		"service_provider_id": { "type": "string" },
-		"certs": {
+		"certificates": {
 			"type": "array",
-			"items": { "$ref": "#/$defs/X509Cert" }
+			"items": { "$ref": "#/$defs/X509Certificate" }
 		}
 	},
-	"required": ["service_provider_id", "certs"]
+	"required": ["service_provider_id", "certificates"]
 }
 `)
 
-type SAMLSpSigningCert struct {
-	ServiceProviderID string     `json:"service_provider_id,omitempty"`
-	Certs             []X509Cert `json:"certs,omitempty"`
+type SAMLSpSigningCertificate struct {
+	ServiceProviderID string            `json:"service_provider_id,omitempty"`
+	Certificates      []X509Certificate `json:"certificates,omitempty"`
 }
