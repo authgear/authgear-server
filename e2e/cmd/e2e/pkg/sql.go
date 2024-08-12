@@ -28,7 +28,7 @@ func ParseRows(rows *sql.Rows) (outputRows []interface{}, err error) {
 		scanArgs := make([]interface{}, nCol)
 		for i, v := range columnTypes {
 			switch v.DatabaseTypeName() {
-			case "VARCHAR", "TEXT", "UUID":
+			case "VARCHAR", "TEXT", "UUID", "JSONB":
 				scanArgs[i] = new(sql.NullString)
 				break
 			case "BOOL":
