@@ -42,7 +42,7 @@ import { PreviewableResourceController } from "./previewable-resource";
 import { CloudflareTurnstileController } from "./authflowv2/botprotection/cloudflareTurnstile";
 import { RecaptchaV2Controller } from "./authflowv2/botprotection/recaptchav2";
 import { BotProtectionTokenInputController } from "./authflowv2/botprotection/botProtectionTokenInput";
-import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
+import { BotProtectionStandalonePageSubmitBtnController } from "./authflowv2/botprotection/botProtectionStandalonePageSubmitBtn";
 import { BotProtectionController } from "./authflowv2/botprotection/botProtection";
 import { BotProtectionDialogController } from "./authflowv2/botprotection/botProtectionDialog";
 import { DialogController } from "./authflowv2/dialog";
@@ -117,8 +117,8 @@ Stimulus.register(
   BotProtectionTokenInputController
 );
 Stimulus.register(
-  "bot-protection-standalone-button",
-  BotProtectionStandalonePageController
+  "bot-protection-standalone-page-submit-btn",
+  BotProtectionStandalonePageSubmitBtnController
 );
 Stimulus.register("cloudflare-turnstile", CloudflareTurnstileController);
 Stimulus.register("recaptcha-v2", RecaptchaV2Controller);

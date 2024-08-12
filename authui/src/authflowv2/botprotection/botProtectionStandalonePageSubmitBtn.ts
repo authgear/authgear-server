@@ -6,9 +6,9 @@ import { Controller } from "@hotwired/stimulus";
  *  - click target button
  *
  * Expected usage:
- * - Add `data-controller="bot-protection-standalone-page"` to a `<button>` element
+ * - Add `data-controller="bot-protection-standalone-page-submit-btn"` to a `<button>` element
  */
-export class BotProtectionStandalonePageController extends Controller {
+export class BotProtectionStandalonePageSubmitBtnController extends Controller {
   getButtonElement = (): HTMLButtonElement => {
     if (!(this.element instanceof HTMLButtonElement)) {
       throw new Error(
