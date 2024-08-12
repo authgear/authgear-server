@@ -774,7 +774,7 @@ func (s *AuthflowScreenWithFlowResponse) Advance(p string, result *Result) {
 	result.RedirectURI = u.String()
 }
 
-func (s *AuthflowScreenWithFlowResponse) AdvanceWithQuery(p string, result *Result, query string) {
+func (s *AuthflowScreenWithFlowResponse) AdvanceWithQuery(route string, result *Result, query string) {
 	q := url.Values{}
 	q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
 
@@ -788,7 +788,7 @@ func (s *AuthflowScreenWithFlowResponse) AdvanceWithQuery(p string, result *Resu
 		}
 	}
 
-	u, _ := url.Parse(p)
+	u, _ := url.Parse(route)
 	u.RawQuery = q.Encode()
 
 	result.NavigationAction = "advance"
