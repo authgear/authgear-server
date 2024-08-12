@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
@@ -177,10 +178,11 @@ func (h *InternalAuthflowV2SignupLoginHandler) ServeHTTP(w http.ResponseWriter, 
 	})
 
 	handlers.PostAction("ldap", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		serverName := r.Form.Get("x_server_name")
-		serverName = "q_server_name=" + serverName
+		serverName := r.FormValue("x_server_name")
+		q := url.Values{}
+		q.Set("q_server_name", serverName)
 
-		result := h.Controller.AdvanceDirectly(AuthflowV2RouteLDAPLogin, screen, serverName)
+		result := h.Controller.AdvanceDirectly(AuthflowV2RouteLDAPLogin, screen, q)
 
 		result.WriteResponse(w, r)
 		return nil
