@@ -1,7 +1,6 @@
 package authflowv2
 
 import (
-	"fmt"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -89,7 +88,6 @@ func (h *AuthflowV2LDAPLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		result, err := h.Controller.ReplaceScreen(r, s, authflow.FlowTypeSignupLogin, input)
 
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
 			return err
 		}
 
