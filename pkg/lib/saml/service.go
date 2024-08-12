@@ -47,7 +47,7 @@ func (s *Service) IdPMetadata() *Metadata {
 				KeyInfo: crewjamsaml.KeyInfo{
 					X509Data: crewjamsaml.X509Data{
 						X509Certificates: []crewjamsaml.X509Certificate{
-							{Data: cert.Cert.Base64Data()},
+							{Data: cert.Certificate.Base64Data()},
 						},
 					},
 				},
