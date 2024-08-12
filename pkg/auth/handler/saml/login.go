@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -15,7 +14,6 @@ func ConfigureLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type LoginHandlerSAMLService interface {
-	IdPMetadata() *saml.Metadata
 }
 
 type LoginHandler struct {
