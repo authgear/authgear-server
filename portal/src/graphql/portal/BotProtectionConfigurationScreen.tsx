@@ -832,8 +832,8 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
         },
         {
           key: "mode",
-          minWidth: 200,
-          maxWidth: 200,
+          minWidth: 300,
+          maxWidth: 300,
           name: "",
           onRender: onRenderDropdown,
         },
