@@ -1,24 +1,38 @@
 package config
 
-var _ = SecretConfigSchema.Add("X509Cert", `
+import (
+	"encoding/base64"
+	"encoding/pem"
+	"fmt"
+)
+
+var _ = SecretConfigSchema.Add("X509Certificate", `
 {
 	"type": "object",
 	"properties": {
-		"pem": { "$ref": "#/$defs/X509CertPem" }
+		"pem": { "$ref": "#/$defs/X509CertificatePem" }
 	},
 	"required": ["pem"]
 }
 `)
 
-type X509Cert struct {
-	Pem X509CertPem `json:"pem,omitempty"`
+type X509Certificate struct {
+	Pem X509CertificatePem `json:"pem,omitempty"`
 }
 
-var _ = SecretConfigSchema.Add("X509CertPem", `
+func (c *X509Certificate) Base64Data() string {
+	block, _ := pem.Decode([]byte(c.Pem))
+	if block == nil {
+		panic(fmt.Errorf("invalid pem"))
+	}
+	return base64.StdEncoding.EncodeToString(block.Bytes)
+}
+
+var _ = SecretConfigSchema.Add("X509CertificatePem", `
 {
 	"type": "string",
-	"format": "x_x509_cert_pem"
+	"format": "x_x509_certificate_pem"
 }
 `)
 
-type X509CertPem string
+type X509CertificatePem string
