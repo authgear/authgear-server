@@ -1658,6 +1658,7 @@
   "BotProtectionConfigurationScreen.requirements.flows.config.passwordlessEmail.label": "Passwordless via Email",
   "BotProtectionConfigurationScreen.requirements.resetPassword.subtitle": "Reset Password",
   "BotProtectionConfigurationScreen.requirements.resetPassword.config.resetPassword.label": "Reset Password",
+  "BotProtectionConfigurationScreen.requirements.flows.type.dependsOnAuthenticator": "Depends on authenticator",
 
   "IntegrationsConfigurationScreen.title": "Integrations",
   "IntegrationsConfigurationScreen.add-on": "Add-on",

@@ -706,6 +706,195 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
     );
   };
 
+interface RequirementFlowHeaderListItem {
+  label: string;
+  mode: BotProtectionRiskMode;
+  flowType: FormBotProtectionRequirementsFlowsType;
+  onSelectDependsOnAuthenticator: () => void;
+  onSelectMode: (mode: BotProtectionRiskMode) => void;
+}
+
+interface BotProtectionConfigurationContentRequirementsSectionFlowHeaderProps {
+  requirements: FormBotProtectionRequirements;
+  setRequirements: (
+    fn: (r: FormBotProtectionRequirements) => FormBotProtectionRequirements
+  ) => void;
+}
+
+const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<BotProtectionConfigurationContentRequirementsSectionFlowHeaderProps> =
+  function BotProtectionConfigurationContentRequirementsSectionFlowHeader(
+    props
+  ) {
+    const { requirements, setRequirements } = props;
+    const { renderToString } = useContext(Context);
+
+    const onRenderRequirementConfigLabel = useCallback(
+      (
+        item?: RequirementFlowHeaderListItem,
+        _index?: number,
+        _column?: IColumn
+      ) => {
+        if (item == null) {
+          return null;
+        }
+        return (
+          <div className={styles.requirementConfigLabelContainer}>
+            <Text block={true} className={styles.requirementConfigLabel}>
+              {item.label}
+            </Text>
+          </div>
+        );
+      },
+      []
+    );
+    const DEPENDS_ON_AUTHENTICATOR_OPTION_KEY = "dependsOnSpecialAuthenticator";
+    const onDropdownChange = useCallback(
+      (
+        _e: React.FormEvent<unknown>,
+        option?: IDropdownOption<RequirementFlowHeaderListItem>,
+        _index?: number
+      ) => {
+        if (option == null) {
+          return;
+        }
+        switch (option.key) {
+          case DEPENDS_ON_AUTHENTICATOR_OPTION_KEY: {
+            option.data?.onSelectDependsOnAuthenticator();
+            break;
+          }
+          default: {
+            option.data?.onSelectMode(option.key as BotProtectionRiskMode);
+          }
+        }
+      },
+      []
+    );
+    const onRenderDropdown = useCallback(
+      (
+        item?: RequirementFlowHeaderListItem,
+        index?: number,
+        _column?: IColumn
+      ) => {
+        if (item == null || index == null) {
+          return null;
+        }
+
+        const riskModeOptions: IDropdownOption<RequirementFlowHeaderListItem>[] =
+          [
+            {
+              key: "never",
+              text: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.riskMode.never"
+              ),
+              data: item,
+            },
+            {
+              key: "always",
+              text: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.config.riskMode.always"
+              ),
+              data: item,
+            },
+          ];
+
+        const flowTypeOptions: IDropdownOption<RequirementFlowHeaderListItem>[] =
+          [
+            {
+              key: DEPENDS_ON_AUTHENTICATOR_OPTION_KEY,
+              text: renderToString(
+                "BotProtectionConfigurationScreen.requirements.flows.type.dependsOnAuthenticator"
+              ),
+              data: item,
+            },
+          ];
+
+        const options = [...riskModeOptions, ...flowTypeOptions];
+
+        const selectedKey =
+          item.flowType === "specificAuthenticator"
+            ? DEPENDS_ON_AUTHENTICATOR_OPTION_KEY
+            : item.mode;
+        return (
+          <Dropdown
+            className={styles.requirementDropdownContainer}
+            options={options}
+            selectedKey={selectedKey}
+            onChange={onDropdownChange}
+          />
+        );
+      },
+      [onDropdownChange, renderToString]
+    );
+    const requirementFlowHeaderColumns: IColumn[] = useMemo(() => {
+      return [
+        {
+          key: "label",
+          minWidth: 200,
+          name: "",
+          onRender: onRenderRequirementConfigLabel,
+        },
+        {
+          key: "mode",
+          minWidth: 300,
+          maxWidth: 300,
+          name: "",
+          onRender: onRenderDropdown,
+        },
+      ];
+    }, [onRenderDropdown, onRenderRequirementConfigLabel]);
+
+    const flowHeaderListItems: RequirementFlowHeaderListItem[] = useMemo(() => {
+      return [
+        {
+          label: renderToString(
+            "BotProtectionConfigurationScreen.requirements.flows.config.allSignupLogin.label"
+          ),
+          mode: requirements.flows.flowConfigs.allSignupLogin
+            .allSignupLoginMode,
+          flowType: requirements.flows.flowType,
+          onSelectDependsOnAuthenticator: () => {
+            setRequirements((requirements) => ({
+              ...requirements,
+              flows: {
+                ...requirements.flows,
+                flowType: "specificAuthenticator",
+              },
+            }));
+          },
+          onSelectMode: (mode: BotProtectionRiskMode) => {
+            setRequirements((requirements) => ({
+              ...requirements,
+              flows: {
+                flowType: "allSignupLogin",
+                flowConfigs: {
+                  ...requirements.flows.flowConfigs,
+                  allSignupLogin: {
+                    allSignupLoginMode: mode,
+                  },
+                },
+              },
+            }));
+          },
+        },
+      ];
+    }, [
+      renderToString,
+      requirements.flows.flowConfigs.allSignupLogin.allSignupLoginMode,
+      requirements.flows.flowType,
+      setRequirements,
+    ]);
+
+    return (
+      <DetailsList
+        compact={true}
+        columns={requirementFlowHeaderColumns}
+        isHeaderVisible={false}
+        selectionMode={SelectionMode.none}
+        items={flowHeaderListItems}
+      />
+    );
+  };
+
 interface RequirementConfigListItem {
   label: string;
   mode: BotProtectionRiskMode;
@@ -822,29 +1011,6 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
       },
       [setRequirements]
     );
-    const flowHeaderListItems: RequirementConfigListItem[] = useMemo(() => {
-      return [
-        {
-          label: renderToString(
-            "BotProtectionConfigurationScreen.requirements.flows.config.allSignupLogin.label"
-          ),
-          mode: requirements.flows.flowConfigs.allSignupLogin
-            .allSignupLoginMode,
-          onChangeMode: (mode: BotProtectionRiskMode) => {
-            setRequirementsFlowConfigs((flowConfigs) => ({
-              ...flowConfigs,
-              allSignupLogin: {
-                allSignupLoginMode: mode,
-              },
-            }));
-          },
-        },
-      ];
-    }, [
-      renderToString,
-      requirements.flows.flowConfigs.allSignupLogin.allSignupLoginMode,
-      setRequirementsFlowConfigs,
-    ]);
     const flowConfigItems: RequirementConfigListItem[] = useMemo(() => {
       switch (requirements.flows.flowType) {
         case "specificAuthenticator": {
@@ -936,12 +1102,9 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           </WidgetTitle>
         </div>
         <div>
-          <DetailsList
-            compact={true}
-            columns={requirementConfigColumns}
-            isHeaderVisible={false}
-            selectionMode={SelectionMode.none}
-            items={flowHeaderListItems}
+          <BotProtectionConfigurationContentRequirementsSectionFlowHeader
+            requirements={requirements}
+            setRequirements={setRequirements}
           />
           <DetailsList
             compact={true}
