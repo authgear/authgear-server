@@ -644,6 +644,7 @@ export type IdentityEdge = {
 export enum IdentityType {
   Anonymous = 'ANONYMOUS',
   Biometric = 'BIOMETRIC',
+  Ldap = 'LDAP',
   LoginId = 'LOGIN_ID',
   Oauth = 'OAUTH',
   Passkey = 'PASSKEY',

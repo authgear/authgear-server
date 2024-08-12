@@ -961,6 +961,9 @@ enum IdentityType {
   BIOMETRIC
 
   """"""
+  LDAP
+
+  """"""
   LOGIN_ID
 
   """"""
