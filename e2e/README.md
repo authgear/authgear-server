@@ -219,7 +219,9 @@ The following matchers are available for assertions:
 - `[[number]]`: Matches any number
 - `[[boolean]]`: Matches any boolean
 - `[[null]]`: Matches null
+- `[[never]]`: Disallows the field, useful for blacklisting fields in maps
 - `["[[arrayof]]", "[[object]]"]`: Matches an array of objects, 2nd element can be any matcher or a specific value
+- `["[[string]]", "some_constant"]`: Matches a tuple. Extra or missing elements are reported as errors
 
 ### JSON schema
 
