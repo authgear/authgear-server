@@ -63,6 +63,21 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
 
   const { user } = useUserQuery(userID);
 
+  const emailIdentities = useMemo(() => {
+    return (
+      user?.identities?.edges
+        ?.filter((identityEdge) => {
+          const identity = identityEdge?.node;
+          return (
+            identity?.type === "LOGIN_ID" &&
+            identity.claims["https://authgear.com/claims/login_id/type"] ===
+              "email"
+          );
+        })
+        ?.map((identity) => identity?.node) ?? []
+    );
+  }, [user]);
+
   const { canSave, isUpdating, onSubmit } =
     useFormContainerBaseContext<SimpleFormModel<FormState, string | null>>();
 
@@ -131,19 +146,21 @@ const ChangePasswordContent: React.VFC<ResetPasswordContentProps> = function (
         onSubmit={onSubmit}
         noValidate={true}
       >
-        <div>
-          <TextField
-            label={renderToString("ChangePasswordScreen.email")}
-            type="email"
-            value={user?.standardAttributes?.email ?? ""}
-            disabled={true}
-          />
-          <ChoiceGroup
-            selectedKey={state.passwordCreationType}
-            options={passwordCreateionTypeOptions}
-            onChange={onChangePasswordCreationType}
-          />
-        </div>
+        {emailIdentities.length > 0 ? (
+          <div>
+            <TextField
+              label={renderToString("ChangePasswordScreen.email")}
+              type="email"
+              value={emailIdentities[0]?.claims.email}
+              disabled={true}
+            />
+            <ChoiceGroup
+              selectedKey={state.passwordCreationType}
+              options={passwordCreateionTypeOptions}
+              onChange={onChangePasswordCreationType}
+            />
+          </div>
+        ) : null}
         <div>
           <PasswordField
             label={renderToString("ChangePasswordScreen.new-password")}
