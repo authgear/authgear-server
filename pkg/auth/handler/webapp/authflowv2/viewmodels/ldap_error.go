@@ -37,7 +37,7 @@ func NewLDAPInputErrorViewModel(apiError *apierrors.APIError) LDAPInputErrorView
 						if kind == "required" {
 							if details, ok := cause["details"].(map[string]interface{}); ok {
 								if missing, ok := details["missing"].([]interface{}); ok {
-									if viewmodels.SliceContains(missing, "x_login_id") {
+									if viewmodels.SliceContains(missing, "x_username") {
 										viewModel.LDAPUsernameInputError.HasError = true
 										viewModel.LDAPUsernameInputError.HasErrorMessage = true
 									} else if viewmodels.SliceContains(missing, "x_password") {

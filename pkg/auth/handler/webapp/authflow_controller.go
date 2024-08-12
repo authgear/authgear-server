@@ -675,12 +675,12 @@ func (c *AuthflowController) DelayScreen(r *http.Request,
 }
 
 func (c *AuthflowController) AdvanceDirectly(
-	p string,
-	screen0 *webapp.AuthflowScreenWithFlowResponse,
-	q string,
+	route string,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+	query string,
 ) *webapp.Result {
 	result := &webapp.Result{}
-	screen0.AdvanceWithQuery(p, result, q)
+	screen.AdvanceWithQuery(route, result, query)
 	return result
 }
 
