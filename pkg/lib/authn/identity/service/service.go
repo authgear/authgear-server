@@ -583,6 +583,24 @@ func (s *Service) Create(info *identity.Info) error {
 		}
 	}
 
+	// DEV-1664: For OAuth Identity, we additionally disallow
+	// a user to have more than one identity of the same provider.
+	if info.Type == model.IdentityTypeOAuth {
+		sameProvider, err := s.OAuth.GetByUserProvider(info.UserID, info.OAuth.ProviderID)
+		// Other errors
+		if errors.Is(err, api.ErrIdentityNotFound) {
+			// nolint: ineffassign
+			err = nil
+		} else if err != nil {
+			return err
+		} else {
+			incoming := info.ToSpec()
+			existing := sameProvider.ToInfo().ToSpec()
+			err = identity.NewErrDuplicatedIdentity(&incoming, &existing)
+			return err
+		}
+	}
+
 	switch info.Type {
 	case model.IdentityTypeLoginID:
 		i := info.LoginID
