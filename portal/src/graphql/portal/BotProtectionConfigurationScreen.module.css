@@ -79,13 +79,13 @@
   grid-template-rows: auto 1fr;
   column-gap: 0.5rem;
 }
-.secretKeyInputWithoutReveal {
+.secretKeyInputWithoutEdit {
   grid-column: 1 / span 8;
 }
-.secretKeyInputWithReveal {
+.secretKeyInputWithEdit {
   grid-column: 1 / span 7;
 }
-.secretKeyRevealButton {
+.secretKeyEditButton {
   grid-column: span 1 / span 1;
   justify-self: center;
   align-self: end;
