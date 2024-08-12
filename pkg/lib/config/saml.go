@@ -84,7 +84,7 @@ const (
 
 var _ = Schema.Add("SAMLSigningDigestMethod", `
 {
-	"enum": ["SHA256", "SHA1"] 
+	"enum": ["SHA256"] 
 }
 `)
 
@@ -92,5 +92,4 @@ type SAMLSigningDigestMethod string
 
 const (
 	SAMLSigningDigestMethodSHA256 SAMLSigningDigestMethod = "SHA256"
-	SAMLSigningDigestMethodSHA1   SAMLSigningDigestMethod = "SHA1"
 )
