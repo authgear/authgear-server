@@ -85,7 +85,7 @@ var cmdInternalSamlGenerateSigningKey = &cobra.Command{
 		}
 
 		signingSecret := config.SAMLIdpSigningCert{
-			Cert: &config.X509Cert{
+			Certificate: &config.X509Cert{
 				Pem: config.X509CertPem(pemBuffer.String()),
 			},
 			Key: &config.JWK{
