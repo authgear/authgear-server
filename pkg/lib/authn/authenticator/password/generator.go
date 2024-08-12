@@ -76,9 +76,16 @@ func (s characterSet) Append(w io.Writer) error {
 	return nil
 }
 
-type Rand struct {
+type Rand interface {
+	Intn(n int) int
+	Shuffle(n int, swap func(i, j int))
+}
+
+type RandRand struct {
 	*rand.Rand
 }
+
+var _ Rand = RandRand{}
 
 type Generator struct {
 	Checker        *Checker
