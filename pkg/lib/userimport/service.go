@@ -492,7 +492,7 @@ func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, detai
 }
 
 func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, detail *Detail, record Record, u *user.User) (err error) {
-	stdAttrsList := record.StandardAttributesList()
+	stdAttrsList := record.NonIdentityAwareStandardAttributesList()
 
 	stdAttrs, err := stdattrs.T(u.StandardAttributes).MergedWithList(stdAttrsList)
 	if err != nil {

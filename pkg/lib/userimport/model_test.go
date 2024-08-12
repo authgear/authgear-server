@@ -263,7 +263,7 @@ func TestRecord(t *testing.T) {
 		Convey("standard_attributes", func() {
 			r := Record{}
 
-			l := r.StandardAttributesList()
+			l := r.NonIdentityAwareStandardAttributesList()
 			So(l, ShouldBeEmpty)
 
 			recordString := `
@@ -328,8 +328,8 @@ func TestRecord(t *testing.T) {
 			err := json.Unmarshal([]byte(recordString), &r)
 			So(err, ShouldBeNil)
 
-			l = r.StandardAttributesList()
-			So(len(l), ShouldEqual, 16)
+			l = r.NonIdentityAwareStandardAttributesList()
+			So(len(l), ShouldEqual, 13)
 		})
 
 		Convey("custom_attributes", func() {
