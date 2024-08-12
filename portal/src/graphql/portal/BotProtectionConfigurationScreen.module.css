@@ -110,3 +110,8 @@
 .requirementConfigLabel {
   font-weight: 600;
 }
+
+.requirementDropdownContainer {
+  padding-top: 0.13rem; /* 2px */
+  padding-bottom: 0.13rem; /* 2px */
+}

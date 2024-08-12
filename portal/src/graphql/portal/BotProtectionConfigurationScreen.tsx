@@ -814,6 +814,7 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
 
         return (
           <Dropdown
+            className={styles.requirementDropdownContainer}
             options={options}
             selectedKey={item.mode}
             onChange={makeDropdownOnChange()}
@@ -971,21 +972,19 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           />
         </div>
         <div>
-          <HorizontalDivider />
           <DetailsList
+            compact={true}
             columns={requirementConfigColumns}
             isHeaderVisible={false}
             selectionMode={SelectionMode.none}
             items={flowConfigItems}
           />
         </div>
-        <div className="space-y-3">
-          <Text as="h3" block={true} className={styles.subtitle}>
-            <FormattedMessage id="BotProtectionConfigurationScreen.requirements.resetPassword.subtitle" />
-          </Text>
+        <HorizontalDivider />
+        <div>
           <div>
-            <HorizontalDivider />
             <DetailsList
+              compact={true}
               columns={requirementConfigColumns}
               isHeaderVisible={false}
               selectionMode={SelectionMode.none}
