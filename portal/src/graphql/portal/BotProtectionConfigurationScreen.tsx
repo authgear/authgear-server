@@ -70,11 +70,13 @@ function isLocationState(raw: unknown): raw is LocationState {
 interface FormCloudflareConfigs {
   siteKey: string;
   secretKey: string | null;
+  isSecretKeyEmpty: boolean;
 }
 
 interface FormRecaptchav2Configs {
   siteKey: string;
   secretKey: string | null;
+  isSecretKeyEmpty: boolean;
 }
 
 type FormBotProtectionProviderConfigs =
@@ -168,12 +170,14 @@ function constructFormState(
     config.bot_protection?.provider?.type ?? "recaptchav2";
   const siteKey = config.bot_protection?.provider?.site_key ?? "";
   const secretKey = secrets.botProtectionProviderSecret?.secretKey ?? null;
+  const isSecretKeyEmpty = secrets.botProtectionProviderSecret == null; // secret key is empty if provider absent in authgear.secrets.yaml
   const providerConfigs: Partial<
     Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   > = {
     [providerType]: {
       siteKey,
       secretKey,
+      isSecretKeyEmpty,
     },
   };
   const requirements = constructFormRequirementsState(config);
@@ -366,6 +370,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
               ...c,
               recaptchav2: {
                 secretKey: c["recaptchav2"]?.secretKey ?? null,
+                isSecretKeyEmpty: c["recaptchav2"]?.isSecretKeyEmpty ?? true,
                 siteKey: value,
               },
             };
@@ -383,6 +388,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
               ...c,
               recaptchav2: {
                 secretKey: value,
+                isSecretKeyEmpty: false,
                 siteKey: c["recaptchav2"]?.siteKey ?? "",
               },
             };
@@ -400,6 +406,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
               ...c,
               cloudflare: {
                 secretKey: c["cloudflare"]?.secretKey ?? null,
+                isSecretKeyEmpty: c["cloudflare"]?.isSecretKeyEmpty ?? true,
                 siteKey: value,
               },
             };
@@ -417,6 +424,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
               ...c,
               cloudflare: {
                 secretKey: value,
+                isSecretKeyEmpty: false,
                 siteKey: c["cloudflare"]?.siteKey ?? "",
               },
             };
@@ -599,7 +607,9 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
     });
 
     const [revealed, setRevealed] = useState(
-      locationState?.isOAuthRedirect ?? false
+      locationState?.isOAuthRedirect ??
+        state.providerConfigs[state.providerType]?.isSecretKeyEmpty ??
+        false
     );
 
     const navigate = useNavigate();
