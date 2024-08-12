@@ -46,6 +46,7 @@ import { BotProtectionStandalonePageSubmitBtnController } from "./authflowv2/bot
 import { BotProtectionController } from "./authflowv2/botprotection/botProtection";
 import { BotProtectionDialogController } from "./authflowv2/botprotection/botProtectionDialog";
 import { DialogController } from "./authflowv2/dialog";
+import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
 
 axios.defaults.withCredentials = true;
 
@@ -115,6 +116,10 @@ Stimulus.register("previewable-resource", PreviewableResourceController);
 Stimulus.register(
   "bot-protection-token-input",
   BotProtectionTokenInputController
+);
+Stimulus.register(
+  "bot-protection-standalone-page",
+  BotProtectionStandalonePageController
 );
 Stimulus.register(
   "bot-protection-standalone-page-submit-btn",
