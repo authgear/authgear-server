@@ -8,7 +8,7 @@
 
 <div 
   class="flex flex-col gap-y-4 flex-1-0-auto"
-  data-controller="{{ template "web/authflowv2/__bot_protection_controller.html" . }}"
+  data-controller="{{ template "web/authflowv2/__bot_protection_controller.html" . }} bot-protection-standalone-page"
   {{ template "web/authflowv2/__bot_protection_controller_attr.html" . }}
 >
   <header class="screen-title-description">
@@ -36,7 +36,7 @@
       type="submit"
       name="x_action"
       value=""
-      data-controller="bot-protection-standalone-page"
+      data-controller="bot-protection-standalone-page-submit-btn"
       data-authgear-event="authgear.button.verify_bot_protection"
       data-action-button
     >

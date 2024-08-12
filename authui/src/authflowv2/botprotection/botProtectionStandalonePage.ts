@@ -1,41 +1,35 @@
 import { Controller } from "@hotwired/stimulus";
+import {
+  dispatchBotProtectionWidgetEventRender,
+  dispatchBotProtectionWidgetEventUndoRender,
+} from "./botProtectionWidget";
 
 /**
- * Controller for button that should be clicked on bot protection verification success
- *  - listen to captcha widget provider events
- *  - click target button
+ * Controller for bot protection standalone page `verify_bot_protection.html`
+ *  - Manage widget rendering
  *
+ * @listens bot-protection-widget:ready-for-render
+ * @fires bot-protection-widget:render
+ * @fires bot-protection-widget:undo-render
  * Expected usage:
- * - Add `data-controller="bot-protection-standalone-page"` to a `<button>` element
+ * - Add `data-controller="bot-protection-standalone-page"` to a `<div>` element
  */
 export class BotProtectionStandalonePageController extends Controller {
-  getButtonElement = (): HTMLButtonElement => {
-    if (!(this.element instanceof HTMLButtonElement)) {
-      throw new Error(
-        "bot-protection-standalone-page must be used on `<button>` elements"
-      );
-    }
-    return this.element;
+  onBPWidgetReadyForRender = () => {
+    dispatchBotProtectionWidgetEventRender();
   };
-
-  onVerifySuccess = (e: Event) => {
-    if (!(e instanceof CustomEvent)) {
-      throw new Error("Unexpected non-CustomEvent");
-    }
-    this.getButtonElement().click();
-  };
-
   connect() {
     document.addEventListener(
-      "bot-protection:verify-success",
-      this.onVerifySuccess
+      "bot-protection-widget:ready-for-render",
+      this.onBPWidgetReadyForRender
     );
   }
 
   disconnect() {
     document.removeEventListener(
-      "bot-protection:verify-success",
-      this.onVerifySuccess
+      "bot-protection-widget:ready-for-render",
+      this.onBPWidgetReadyForRender
     );
+    dispatchBotProtectionWidgetEventUndoRender();
   }
 }

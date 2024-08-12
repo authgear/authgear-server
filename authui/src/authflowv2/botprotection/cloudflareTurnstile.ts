@@ -8,6 +8,7 @@ import {
 } from "./botProtection";
 import { parseCloudflareTurnstileErrorCode } from "./cloudflareTurnstileError";
 import { setErrorMessage } from "../alert-message";
+import { dispatchBotProtectionWidgetEventReadyForRender } from "./botProtectionWidget";
 
 function parseTheme(theme: string): Turnstile.Theme {
   switch (theme) {
@@ -134,6 +135,8 @@ export class CloudflareTurnstileController extends Controller {
   connect() {
     window.turnstile.ready(() => {
       this.isReadyForRendering = true;
+      // Use setTimeout to prevent isReadyForRendering not changed to True yet
+      setTimeout(() => dispatchBotProtectionWidgetEventReadyForRender(), 0);
     });
     document.addEventListener(
       "bot-protection-widget:render",

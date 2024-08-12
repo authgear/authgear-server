@@ -11,3 +11,12 @@ export function dispatchBotProtectionWidgetEventRender() {
 export function dispatchBotProtectionWidgetEventUndoRender() {
   document.dispatchEvent(new CustomEvent("bot-protection-widget:undo-render"));
 }
+
+/**
+ * Dispatch a custom event to publish `readyForRender` message
+ */
+export function dispatchBotProtectionWidgetEventReadyForRender() {
+  document.dispatchEvent(
+    new CustomEvent("bot-protection-widget:ready-for-render")
+  );
+}
