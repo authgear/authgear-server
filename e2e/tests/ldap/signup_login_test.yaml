@@ -1,0 +1,89 @@
+name: Signup/Login With LDAP - Login
+before:
+  - type: custom_sql
+    custom_sql:
+      path: users.sql
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "jdoe",
+        "password": "jdoepassword"
+      }
+    output:
+      result: |
+        {
+          "type": "login",
+          "action": {
+            "type": "finished"
+          }
+        }
+---
+name: Signup/Login With LDAP - Signup
+before:
+  - type: custom_sql
+    custom_sql:
+      path: users.sql
+steps:
+  - action: create
+    input: |
+      {
+        "type": "signup_login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "options": [
+                "[[arrayof]]",
+                {
+                  "identification": "ldap",
+                  "server_name": "ldap-server-1"
+                }
+              ]
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "ldap",
+        "server_name": "ldap-server-1",
+        "username": "bjane",
+        "password": "bjanepassword"
+      }
+    output:
+      result: |
+        {
+          "type": "signup",
+          "action": {
+            "type": "finished"
+          }
+        }
