@@ -4,23 +4,23 @@ var _ = SecretConfigSchema.Add("SAMLIdpSigningMaterials", `
 {
 	"type": "object",
 	"properties": {
-		"certs": {
+		"certificates": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/SAMLIdpSigningCert" },
 			"minItems": 1,
 			"maxItems": 2
 		}
 	},
-	"required": ["certs"]
+	"required": ["certificates"]
 }
 `)
 
 type SAMLIdpSigningMaterials struct {
-	Certs []*SAMLIdpSigningCert `json:"certs,omitempty"`
+	Certificates []*SAMLIdpSigningCert `json:"certificates,omitempty"`
 }
 
 func (m *SAMLIdpSigningMaterials) FindSigningCert(keyID string) (*SAMLIdpSigningCert, bool) {
-	for _, cert := range m.Certs {
+	for _, cert := range m.Certificates {
 		if cert.Key.KeyID() == keyID {
 			return cert, true
 		}
@@ -38,16 +38,16 @@ var _ = SecretConfigSchema.Add("SAMLIdpSigningCert", `
 {
 	"type": "object",
 	"properties": {
-		"cert": { "$ref": "#/$defs/X509Cert" },
+		"certificate": { "$ref": "#/$defs/X509Cert" },
 		"key": { "$ref": "#/$defs/JWK" }
 	},
-	"required": ["cert", "key"]
+	"required": ["certificate", "key"]
 }
 `)
 
 type SAMLIdpSigningCert struct {
-	Cert *X509Cert `json:"cert,omitempty"`
-	Key  *JWK      `json:"key,omitempty"`
+	Certificate *X509Cert `json:"certificate,omitempty"`
+	Key         *JWK      `json:"key,omitempty"`
 }
 
 var _ = SecretConfigSchema.Add("SAMLSpSigningMaterials", `
@@ -70,16 +70,16 @@ var _ = SecretConfigSchema.Add("SAMLSpSigningCert", `
 	"type": "object",
 	"properties": {
 		"service_provider_id": { "type": "string" },
-		"certs": {
+		"certificates": {
 			"type": "array",
 			"items": { "$ref": "#/$defs/X509Cert" }
 		}
 	},
-	"required": ["service_provider_id", "certs"]
+	"required": ["service_provider_id", "certificates"]
 }
 `)
 
 type SAMLSpSigningCert struct {
 	ServiceProviderID string     `json:"service_provider_id,omitempty"`
-	Certs             []X509Cert `json:"certs,omitempty"`
+	Certificates      []X509Cert `json:"certificates,omitempty"`
 }
