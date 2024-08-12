@@ -964,9 +964,6 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
           <WidgetTitle>
             <FormattedMessage id="BotProtectionConfigurationScreen.requirements.title" />
           </WidgetTitle>
-          <Text as="h3" block={true} className={styles.subtitle}>
-            <FormattedMessage id="BotProtectionConfigurationScreen.requirements.flows.subtitle" />
-          </Text>
           <ChoiceGroup
             selectedKey={requirements.flows.flowType}
             options={flowOptions}
