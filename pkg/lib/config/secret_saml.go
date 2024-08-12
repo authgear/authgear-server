@@ -38,7 +38,7 @@ var _ = SecretConfigSchema.Add("SAMLIdpSigningCertificate", `
 {
 	"type": "object",
 	"properties": {
-		"certificate": { "$ref": "#/$defs/X509Certtificate" },
+		"certificate": { "$ref": "#/$defs/X509Certificate" },
 		"key": { "$ref": "#/$defs/JWK" }
 	},
 	"required": ["certificate", "key"]
@@ -46,8 +46,8 @@ var _ = SecretConfigSchema.Add("SAMLIdpSigningCertificate", `
 `)
 
 type SAMLIdpSigningCertificate struct {
-	Certificate *X509Certtificate `json:"certificate,omitempty"`
-	Key         *JWK              `json:"key,omitempty"`
+	Certificate *X509Certificate `json:"certificate,omitempty"`
+	Key         *JWK             `json:"key,omitempty"`
 }
 
 var _ = SecretConfigSchema.Add("SAMLSpSigningMaterials", `
@@ -72,7 +72,7 @@ var _ = SecretConfigSchema.Add("SAMLSpSigningCertificate", `
 		"service_provider_id": { "type": "string" },
 		"certificates": {
 			"type": "array",
-			"items": { "$ref": "#/$defs/X509Certtificate" }
+			"items": { "$ref": "#/$defs/X509Certificate" }
 		}
 	},
 	"required": ["service_provider_id", "certificates"]
@@ -80,6 +80,6 @@ var _ = SecretConfigSchema.Add("SAMLSpSigningCertificate", `
 `)
 
 type SAMLSpSigningCertificate struct {
-	ServiceProviderID string             `json:"service_provider_id,omitempty"`
-	Certificates      []X509Certtificate `json:"certificates,omitempty"`
+	ServiceProviderID string            `json:"service_provider_id,omitempty"`
+	Certificates      []X509Certificate `json:"certificates,omitempty"`
 }
