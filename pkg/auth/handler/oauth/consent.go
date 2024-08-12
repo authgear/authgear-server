@@ -9,13 +9,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	oauthhandler "github.com/authgear/authgear-server/pkg/lib/oauth/handler"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -52,12 +50,12 @@ type ConsentUserService interface {
 }
 
 type ConsentViewModel struct {
-	ClientName               string
-	ClientPolicyURI          string
-	ClientTOSURI             string
-	IsRequestingFullUserInfo bool
-	IdentityDisplayName      string
-	UserProfile              webapp.UserProfile
+	ClientName          string
+	ClientPolicyURI     string
+	ClientTOSURI        string
+	Scopes              []string
+	IdentityDisplayName string
+	UserProfile         webapp.UserProfile
 }
 
 type ConsentHandler struct {
@@ -151,7 +149,7 @@ func (h *ConsentHandler) renderConsentPage(rw http.ResponseWriter, r *http.Reque
 	userProfile := webapp.GetUserProfile(user)
 
 	viewModel := ConsentViewModel{}
-	viewModel.IsRequestingFullUserInfo = slice.ContainsString(consentRequired.Scopes, oauth.FullUserInfoScope)
+	viewModel.Scopes = consentRequired.Scopes
 	viewModel.ClientName = consentRequired.Client.ClientName
 	viewModel.ClientPolicyURI = consentRequired.Client.PolicyURI
 	viewModel.ClientTOSURI = consentRequired.Client.TOSURI

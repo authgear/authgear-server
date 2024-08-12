@@ -13,17 +13,42 @@
     </span>
   </div>
 
-  {{ $isRequestingScope := $.IsRequestingFullUserInfo }}
-  {{ if $isRequestingScope }}
+  {{ if $.Scopes }}
     <div class="text-sm break-words primary-txt text-center">
       {{ template "consent-scopes-label" (dict "clientName" $.ClientName) }}
     </div>
-  {{ end }}
 
-  {{ if $.IsRequestingFullUserInfo }}
-    <div class="text-sm break-words primary-txt">
-      {{ template "consent-scopes-full-userinfo" }}
-    </div>
+    <ul class="list-disc list-inside">
+      {{ if (has "https://authgear.com/scopes/full-userinfo" $.Scopes) }}
+        <li class="text-sm break-words primary-txt">
+          {{ template "consent-scopes-full-userinfo" }}
+        </li>
+      {{ end }}
+
+      {{ if (has "profile" $.Scopes) }}
+        <li class="text-sm break-words primary-txt">
+          {{ template "consent-scopes-profile" }}
+        </li>
+      {{ end }}
+
+      {{ if (has "email" $.Scopes) }}
+        <li class="text-sm break-words primary-txt">
+          {{ template "consent-scopes-email" }}
+        </li>
+      {{ end }}
+
+      {{ if (has "phone" $.Scopes) }}
+        <li class="text-sm break-words primary-txt">
+          {{ template "consent-scopes-phone" }}
+        </li>
+      {{ end }}
+
+      {{ if (has "address" $.Scopes) }}
+        <li class="text-sm break-words primary-txt">
+          {{ template "consent-scopes-address" }}
+        </li>
+      {{ end }}
+    </ul>
   {{ end }}
 
   {{ if (and $.ClientPolicyURI $.ClientTOSURI) }}
