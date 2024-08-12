@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"database/sql"
+	"fmt"
 	"text/template"
 
 	"github.com/Masterminds/sprig"
@@ -108,7 +109,7 @@ func ParseRows(rows *sql.Rows) (outputRows []interface{}, err error) {
 				continue
 			}
 
-			row[v.Name()] = scanArgs[i]
+			panic(fmt.Errorf("unknown datatype: (colName=%v, value=%v)", v.Name(), scanArgs[i]))
 		}
 
 		outputRows = append(outputRows, row)
