@@ -993,6 +993,26 @@ export interface BotProtectionConfigurationContentProps {
   form: AppSecretConfigFormModel<FormState>;
 }
 
+const DEFAULT_BOT_PROTECTION_REQUIREMENTS_ON_ENABLE: FormBotProtectionRequirements =
+  {
+    flows: {
+      flowType: "specificAuthenticator",
+      flowConfigs: {
+        allSignupLogin: {
+          allSignupLoginMode: "never",
+        },
+        specificAuthenticator: {
+          passwordMode: "never",
+          passwordlessViaEmailMode: "never",
+          passwordlessViaSMSMode: "always",
+        },
+      },
+    },
+    resetPassword: {
+      resetPasswordMode: "always",
+    },
+  };
+
 const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationContentProps> =
   function BotProtectionConfigurationContent(props) {
     const { form } = props;
@@ -1005,6 +1025,7 @@ const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationCon
           setState((state) => {
             return {
               ...state,
+              requirements: DEFAULT_BOT_PROTECTION_REQUIREMENTS_ON_ENABLE,
               enabled: checked,
             };
           });
