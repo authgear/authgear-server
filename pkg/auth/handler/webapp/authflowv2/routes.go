@@ -324,8 +324,8 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 			result.RedirectURI = authorizationURL.String()
 		}
 	case config.AuthenticationFlowIdentificationLDAP:
-		// TODO(DEV-1657)
-		panic(fmt.Errorf("To be impelemented identification: %v", identification))
+		// Not expected to trigger this case
+		panic(fmt.Errorf("not expected to trigger: %v", identification))
 	default:
 		panic(fmt.Errorf("unexpected identification: %v", identification))
 	}
