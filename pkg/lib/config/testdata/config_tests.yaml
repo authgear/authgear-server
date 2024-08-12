@@ -1152,6 +1152,8 @@ config:
   http:
     public_origin: http://test
   saml:
+    signing:
+      key_id: asdfasdf
     service_providers:
       - id: provider_1
 ---
