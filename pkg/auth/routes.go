@@ -77,6 +77,15 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newPublicOriginMiddleware),
 	)
 
+	samlAPIChain := httproute.Chain(
+		rootChain,
+		p.Middleware(newCORSMiddleware),
+		p.Middleware(newPublicOriginMiddleware),
+		newSessionMiddleware(),
+		httproute.MiddlewareFunc(httputil.NoStore),
+		p.Middleware(newWebAppWeChatRedirectURIMiddleware),
+	)
+
 	oauthStaticChain := httproute.Chain(
 		rootChain,
 		p.Middleware(newCORSMiddleware),
@@ -265,6 +274,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	appStaticRoute := httproute.Route{Middleware: appStaticChain}
 	generatedStaticRoute := httproute.Route{Middleware: generatedStaticChain}
 	samlStaticRoute := httproute.Route{Middleware: samlStaticChain}
+	samlAPIRoute := httproute.Route{Middleware: samlAPIChain}
 	oauthStaticRoute := httproute.Route{Middleware: oauthStaticChain}
 	oauthAPIRoute := httproute.Route{Middleware: oauthAPIChain}
 	dpopOauthAPIRoute := httproute.Route{Middleware: dpopOAuthAPIChain}
@@ -467,6 +477,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(oauthhandler.ConfigureConsentRoute(webappConsentPageRoute), p.Handler(newOAuthConsentHandler))
 
 	router.Add(samlhandler.ConfigureMetadataRoute(samlStaticRoute), p.Handler(newSAMLMetadataHandler))
+	router.Add(samlhandler.ConfigureLoginRoute(samlAPIRoute), p.Handler(newSAMLLoginHandler))
 
 	router.Add(siwehandler.ConfigureNonceRoute(siweAPIRoute), p.Handler(newSIWENonceHandler))
 
