@@ -15,15 +15,20 @@ import {
  * - Add `data-controller="bot-protection-standalone-page"` to a `<div>` element
  */
 export class BotProtectionStandalonePageController extends Controller {
+  onBPWidgetReadyForRender = () => {
+    dispatchBotProtectionWidgetEventRender();
+  };
   connect() {
-    document.addEventListener("bot-protection-widget:ready-for-render", () =>
-      dispatchBotProtectionWidgetEventRender()
+    document.addEventListener(
+      "bot-protection-widget:ready-for-render",
+      this.onBPWidgetReadyForRender
     );
   }
 
   disconnect() {
-    document.removeEventListener("bot-protection-widget:ready-for-render", () =>
-      dispatchBotProtectionWidgetEventRender()
+    document.removeEventListener(
+      "bot-protection-widget:ready-for-render",
+      this.onBPWidgetReadyForRender
     );
     dispatchBotProtectionWidgetEventUndoRender();
   }
