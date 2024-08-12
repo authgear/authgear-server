@@ -30,5 +30,5 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO
-	rw.Write([]byte("ok"))
+	_, _ = rw.Write([]byte("ok"))
 }
