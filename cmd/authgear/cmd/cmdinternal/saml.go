@@ -28,7 +28,7 @@ var cmdInternalSaml = &cobra.Command{
 
 var cmdInternalSamlGenerateSigningKey = &cobra.Command{
 	Use:   "generate-signing-key { common-name }",
-	Short: "Generate a signing key with a x.509 cert",
+	Short: "Generate a signing key with a X.509 certificate",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if len(args) < 1 {
 			return fmt.Errorf("common-name is required")
