@@ -123,7 +123,7 @@ func init() {
 	RecordSchemaForIdentifierPreferredUsername = preferredUsername.ToSimpleSchema()
 }
 
-var standardAttributeKeys []string = []string{
+var nonIdentityAwareStandardAttributeKeys []string = []string{
 	// Note we don't need IdentityAware stdAttr ["email", "phone", "preferred_username"] here, since they are already populated in StdAttrsService
 	"name",
 	"given_name",
@@ -322,10 +322,10 @@ func (m Record) PhoneNumberVerified() (bool, bool) {
 	return mapGetNonNull[Record, bool](m, "phone_number_verified")
 }
 
-func (m Record) standardAttributes() (map[string]interface{}, bool) {
+func (m Record) nonIdentityAwareStandardAttributes() (map[string]interface{}, bool) {
 	attrs := make(map[string]interface{})
 	for key := range m {
-		for _, k := range standardAttributeKeys {
+		for _, k := range nonIdentityAwareStandardAttributeKeys {
 			if key == k {
 				attrs[key] = m[key]
 			}
@@ -337,8 +337,8 @@ func (m Record) standardAttributes() (map[string]interface{}, bool) {
 	return nil, false
 }
 
-func (m Record) StandardAttributesList() (attrsList attrs.List) {
-	stdAttrs, ok := m.standardAttributes()
+func (m Record) NonIdentityAwareStandardAttributesList() (attrsList attrs.List) {
+	stdAttrs, ok := m.nonIdentityAwareStandardAttributes()
 	if !ok {
 		return
 	}
