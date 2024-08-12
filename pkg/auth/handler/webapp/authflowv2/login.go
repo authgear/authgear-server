@@ -195,8 +195,8 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	})
 
 	handlers.PostAction("ldap", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		serverName := r.Form.Get("x_servername")
-		serverName = "q_servername=" + serverName
+		serverName := r.Form.Get("x_server_name")
+		serverName = "q_server_name=" + serverName
 
 		result := h.Controller.AdvanceDirectly(AuthflowV2RouteLDAPLogin, screen, serverName)
 

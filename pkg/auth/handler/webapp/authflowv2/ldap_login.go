@@ -24,10 +24,10 @@ var AuthflowLDAPLoginSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id": { "type": "string" },
+			"x_username": { "type": "string" },
 			"x_password": { "type": "string" }
 		},
-		"required": ["x_login_id", "x_password"]
+		"required": ["x_username", "x_password"]
 	}
 `)
 
@@ -75,8 +75,8 @@ func (h *AuthflowV2LDAPLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return err
 		}
 
-		serverName := r.URL.Query().Get("q_servername")
-		plainUsername := r.Form.Get("x_login_id")
+		serverName := r.URL.Query().Get("q_server_name")
+		plainUsername := r.Form.Get("x_username")
 		plainPassword := r.Form.Get("x_password")
 
 		input := map[string]interface{}{
