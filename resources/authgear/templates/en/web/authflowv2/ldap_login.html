@@ -53,7 +53,7 @@
         value="{{ $.Username }}"
 
         data-text-field-target="input"
-        placeholder="{{ template "v2-placeholder-login-id" (dict "variant" $.NonPhoneLoginIDType) }}"
+        placeholder="{{ template "v2-placeholder-login-id" (dict "variant" "username") }}"
         required
       >
       {{ if $.LDAPUsernameInputError.HasErrorMessage }}
