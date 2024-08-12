@@ -334,8 +334,8 @@ function ProviderCard(props: ProviderCardProps) {
 }
 
 export interface BotProtectionConfigurationContentProviderConfigFormFieldsProps {
-  revealed: boolean;
-  onClickReveal: (e: React.MouseEvent<unknown>) => void;
+  editing: boolean;
+  onClickEdit: (e: React.MouseEvent<unknown>) => void;
   providerConfigs: Partial<
     Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   >;
@@ -354,8 +354,8 @@ export interface BotProtectionConfigurationContentProviderConfigFormFieldsProps 
 const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotProtectionConfigurationContentProviderConfigFormFieldsProps> =
   function BotProtectionConfigurationContentProviderConfigFormFields(props) {
     const {
-      revealed,
-      onClickReveal,
+      editing,
+      onClickEdit,
       providerConfigs,
       setProviderConfigs,
       providerType,
@@ -434,11 +434,11 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
       [setProviderConfigs]
     );
 
-    const secretInputClassname = revealed
-      ? styles.secretKeyInputWithoutReveal
-      : styles.secretKeyInputWithReveal;
+    const secretInputClassname = editing
+      ? styles.secretKeyInputWithoutEdit
+      : styles.secretKeyInputWithEdit;
 
-    const secretInputValue = revealed
+    const secretInputValue = editing
       ? providerConfigs[providerType]?.secretKey ?? ""
       : MASKED_SECRET;
 
@@ -471,13 +471,13 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             onChange={onChangeRecaptchaV2SecretKey}
             parentJSONPointer=""
             fieldName="secretKey"
-            readOnly={!revealed}
+            readOnly={!editing}
           />
-          {!revealed ? (
+          {!editing ? (
             <PrimaryButton
-              className={styles.secretKeyRevealButton}
-              onClick={onClickReveal}
-              text={<FormattedMessage id="reveal" />}
+              className={styles.secretKeyEditButton}
+              onClick={onClickEdit}
+              text={<FormattedMessage id="edit" />}
             />
           ) : null}
         </div>
@@ -511,13 +511,13 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             onChange={onChangeCloudflareSecretKey}
             parentJSONPointer=""
             fieldName="secretKey"
-            readOnly={!revealed}
+            readOnly={!editing}
           />
-          {!revealed ? (
+          {!editing ? (
             <PrimaryButton
-              className={styles.secretKeyRevealButton}
-              onClick={onClickReveal}
-              text={<FormattedMessage id="reveal" />}
+              className={styles.secretKeyEditButton}
+              onClick={onClickEdit}
+              text={<FormattedMessage id="edit" />}
             />
           ) : null}
         </div>
@@ -606,20 +606,20 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
       }
     });
 
-    const [revealed, setRevealed] = useState(
+    const [editing, setediting] = useState(
       locationState?.isOAuthRedirect ??
         state.providerConfigs[state.providerType]?.isSecretKeyEmpty ??
         false
     );
 
     const navigate = useNavigate();
-    const onClickReveal = useCallback(
+    const onClickEdit = useCallback(
       (e: React.MouseEvent<unknown>) => {
         e.preventDefault();
         e.stopPropagation();
 
         if (state.providerConfigs[state.providerType]?.secretKey != null) {
-          setRevealed(true);
+          setediting(true);
           return;
         }
 
@@ -698,8 +698,8 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
           </ProviderCard>
         </div>
         <BotProtectionConfigurationContentProviderConfigFormFields
-          revealed={revealed}
-          onClickReveal={onClickReveal}
+          editing={editing}
+          onClickEdit={onClickEdit}
           setProviderConfigs={setBotProtectionProviderConfigs}
           providerConfigs={state.providerConfigs}
           providerType={state.providerType}
