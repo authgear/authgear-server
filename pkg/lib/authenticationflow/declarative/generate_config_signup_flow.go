@@ -68,13 +68,13 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 			output = append(output, oneOf)
 		}
 	}
-
-	for _, oneOf := range output {
-		bp := getBotProtectionRequirementsSignupOrLogin(cfg)
-		if oneOf.BotProtection == nil {
-			oneOf.BotProtection = bp
-		} else {
-			oneOf.BotProtection = config.GetStrictestAuthFlowBotProtection(bp, oneOf.BotProtection)
+	if bp := getBotProtectionRequirementsSignupOrLogin(cfg); bp != nil {
+		for _, oneOf := range output {
+			if oneOf.BotProtection == nil {
+				oneOf.BotProtection = bp
+			} else {
+				oneOf.BotProtection = config.GetStrictestAuthFlowBotProtection(bp, oneOf.BotProtection)
+			}
 		}
 	}
 
