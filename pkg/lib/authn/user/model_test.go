@@ -251,10 +251,11 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 			{
 				Type: model.IdentityTypeLDAP,
 				LDAP: &identity.LDAP{
+					UserIDAttributeName:  "uid",
 					UserIDAttributeValue: "example-user",
 				},
 			},
-		}, nil), ShouldEqual, "example-user")
+		}, nil), ShouldEqual, "uid=example-user")
 
 		So(computeEndUserAccountID(&User{}, nil, &model.UserWeb3Info{
 			Accounts: []model.NFTOwnership{
