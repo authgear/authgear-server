@@ -21,24 +21,8 @@ type User struct {
 	Web3               *UserWeb3Info          `json:"x_web3,omitempty"`
 	Roles              []string               `json:"roles,omitempty"`
 	Groups             []string               `json:"groups,omitempty"`
-}
 
-func (u *User) EndUserAccountID() string {
-	if s, ok := u.StandardAttributes[string(ClaimEmail)].(string); ok && s != "" {
-		return s
-	}
-	if s, ok := u.StandardAttributes[string(ClaimPreferredUsername)].(string); ok && s != "" {
-		return s
-	}
-	if s, ok := u.StandardAttributes[string(ClaimPhoneNumber)].(string); ok && s != "" {
-		return s
-	}
-	if u.Web3 != nil && len(u.Web3.Accounts) > 0 {
-		first := u.Web3.Accounts[0]
-		return first.EndUserAccountID()
-	}
-
-	return ""
+	EndUserAccountID string `json:"-"`
 }
 
 type UserRef struct {

@@ -144,7 +144,7 @@ func (n *IntentCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *au
 	if err != nil {
 		return nil, err
 	}
-	accountName := user.EndUserAccountID()
+	accountName := user.EndUserAccountID
 	opts := secretcode.URIOptions{
 		Issuer:      string(issuer),
 		AccountName: accountName,
