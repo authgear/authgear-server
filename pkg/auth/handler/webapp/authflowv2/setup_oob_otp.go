@@ -141,6 +141,11 @@ func (h *AuthflowV2SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			"channel":        channel,
 		}
 
+		err = handlerwebapp.HandleCreateAuthenticatorBotProtection(option.Authentication, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
+		}
+
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, &handlerwebapp.AdvanceOptions{
 			InheritTakenBranchState: true,
 		})
