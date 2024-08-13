@@ -125,3 +125,14 @@ func GetAuthenticationOptions(f *authflow.FlowResponse) []declarative.Authentica
 	}
 	return options
 }
+
+func GetCreateAuthenticatorOptions(f *authflow.FlowResponse) []declarative.CreateAuthenticatorOptionForOutput {
+	var options []declarative.CreateAuthenticatorOptionForOutput
+	switch data := f.Action.Data.(type) {
+	case declarative.IntentSignupFlowStepCreateAuthenticatorData:
+		options = data.Options
+	default:
+		panic(fmt.Errorf("unexpected type of data: %T", f.Action.Data))
+	}
+	return options
+}

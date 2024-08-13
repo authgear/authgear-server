@@ -37,8 +37,9 @@ func ConfigureAuthflowV2SetupOOBOTPRoute(route httproute.Route) httproute.Route 
 }
 
 type AuthflowSetupOOBOTPViewModel struct {
-	OOBAuthenticatorType model.AuthenticatorType
-	Channel              model.AuthenticatorOOBChannel
+	OOBAuthenticatorType    model.AuthenticatorType
+	Channel                 model.AuthenticatorOOBChannel
+	IsBotProtectionRequired bool
 }
 
 type AuthflowV2SetupOOBOTPHandler struct {
@@ -66,9 +67,13 @@ func NewAuthflowSetupOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 	}
 	channel := screen.Screen.TakenChannel
+
+	// Ignore error, bpRequired would be false
+	bpRequired, _ := webapp.IsCreateAuthenticatorStepBotProtectionRequired(option.Authentication, screen.StateTokenFlowResponse)
 	return AuthflowSetupOOBOTPViewModel{
-		OOBAuthenticatorType: oobAuthenticatorType,
-		Channel:              channel,
+		OOBAuthenticatorType:    oobAuthenticatorType,
+		Channel:                 channel,
+		IsBotProtectionRequired: bpRequired,
 	}
 }
 
