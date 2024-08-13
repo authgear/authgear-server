@@ -899,6 +899,7 @@
   "v2-oauth-branding-adfs": "Log masuk dengan Microsoft AD FS",
   "v2-oauth-branding-wechat": "Log masuk dengan WeChat",
   "v2-oauth-branding-iamsmart": "Teruskan dengan iAM Smart",
+  "v2-ldap-branding": "Log masuk dengan LDAP",
   "v2-error-invalid-email": "Sila masukkan '@' dalam alamat e-mel.",
   "v2-error-web-ui-invalid-session-return": "<p>Halaman ini tidak sah atau telah tamat tempoh.</p><p>Sila kembali dan cuba semula permintaan anda.</p>",
   "v2-error-no-public-signup": "<p>Pendaftaran ditutup.</p><p>Sila hubungi pentadbir sistem.</p>",

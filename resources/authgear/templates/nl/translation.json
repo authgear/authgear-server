@@ -899,6 +899,7 @@
   "v2-oauth-branding-adfs": "Inloggen met Microsoft AD FS",
   "v2-oauth-branding-wechat": "Inloggen met WeChat",
   "v2-oauth-branding-iamsmart": "Ga verder met iAM Smart",
+  "v2-ldap-branding": "Inloggen met LDAP",
   "v2-error-invalid-email": "Voeg '@' toe in het e-mailadres.",
   "v2-error-web-ui-invalid-session-return": "<p>Deze pagina is ongeldig of is verlopen.</p><p>Ga terug en probeer het opnieuw.</p>",
   "v2-error-no-public-signup": "<p>Aanmelden is uitgeschakeld.</p><p>Neem contact op met de systeembeheerder.</p>",

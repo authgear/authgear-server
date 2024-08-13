@@ -899,6 +899,7 @@
   "v2-oauth-branding-adfs": "Mag-sign in gamit ang Microsoft AD FS",
   "v2-oauth-branding-wechat": "Mag-log in gamit ang WeChat",
   "v2-oauth-branding-iamsmart": "Magpatuloy gamit ang iAM Smart",
+  "v2-ldap-branding": "Mag-login gamit ang LDAP",
   "v2-error-invalid-email": "Mangyaring isama ang '@' sa email address.",
   "v2-error-web-ui-invalid-session-return": "<p>Ang pahinang ito ay hindi balido o nag-expire na.</p><p>Mangyaring bumalik at subukang muli ang iyong kahilingan.</p>",
   "v2-error-no-public-signup": "<p>Ang pag-sign up ay hindi pinapayagan.</p><p>Mangyaring makipag-ugnayan sa system admin.</p>",
