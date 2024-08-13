@@ -293,26 +293,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAuthenticate" }
 					}
-				},
-				"allOf": [
-					{
-						"if": {
-							"properties": {
-								"optional": { "const": false }
-							}
-						},
-						"then": {
-							"properties": {
-								"enrollment_allowed": { "type": "boolean" }
-							}
-						},
-						"else": {
-							"properties": {
-								"enrollment_allowed": { "const": false }
-							}
-						}
-					}
-				]
+				}
 			}
 		},
 		{
