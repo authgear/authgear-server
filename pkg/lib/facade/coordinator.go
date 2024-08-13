@@ -1222,21 +1222,6 @@ func (c *Coordinator) UserUpdateMFAEnrollment(userID string, endAt *time.Time) e
 		return err
 	}
 
-	e := &nonblocking.UserSetMFAGracePeriodEventPayload{
-		UserRef: model.UserRef{
-			Meta: model.Meta{
-				ID: userID,
-			},
-		},
-		AdminAPI: true,
-		EndAt:    endAt,
-	}
-
-	err = c.Events.DispatchEventOnCommit(e)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
 
