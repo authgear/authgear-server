@@ -743,26 +743,26 @@ func (s *AuthflowScreenWithFlowResponse) Navigate(navigator Navigator, r *http.R
 	navigator.Navigate(s, r, webSessionID, result)
 }
 
-func (s *AuthflowScreenWithFlowResponse) Advance(p string, result *Result) {
-	q := url.Values{}
-	q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
-	u, _ := url.Parse(p)
-	u.RawQuery = q.Encode()
-
+// Advance is for advancing to another page to drive the authflow.
+func (s *AuthflowScreenWithFlowResponse) Advance(route string, result *Result) {
+	s.advanceOrRedirect(route, result)
 	result.NavigationAction = "advance"
-	result.RedirectURI = u.String()
 }
 
 // RedirectToFinish is a fix for https://linear.app/authgear/issue/DEV-1793/investigate-sign-in-directly-with-httpsaccountsportalauthgearcom-crash
 // We need Turbo to visit /finish with a full browser redirect,
 // so CSP and connect-src will not kick in.
 func (s *AuthflowScreenWithFlowResponse) RedirectToFinish(route string, result *Result) {
+	s.advanceOrRedirect(route, result)
+	result.NavigationAction = "redirect"
+}
+
+// advanceOrRedirect is for internal use. You use Advance or RedirectToFinish instead.
+func (s *AuthflowScreenWithFlowResponse) advanceOrRedirect(route string, result *Result) {
 	q := url.Values{}
 	q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
 	u, _ := url.Parse(route)
 	u.RawQuery = q.Encode()
-
-	result.NavigationAction = "redirect"
 	result.RedirectURI = u.String()
 }
 
