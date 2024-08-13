@@ -182,11 +182,13 @@ CREATE TABLE _auth_identity_ldap
     server_name             text  NOT NULL,
     user_id_attribute_name  text  NOT NULL,
     user_id_attribute_value bytea NOT NULL,
+    last_used_username      text  NOT NULL,
     claims                  jsonb NOT NULL,
     raw_entry_json          jsonb NOT NULL
 );
 
 CREATE UNIQUE INDEX _auth_identity_ldap_unique ON _auth_identity_ldap (app_id, server_name, user_id_attribute_name, user_id_attribute_value);
+CREATE INDEX _auth_identity_ldap_last_user_username ON _auth_identity_ldap (app_id, server_name, last_used_username);
 ```
 
 - `id`: The primary key of this table. This is the same as other `_auth_identity_*` tables.
