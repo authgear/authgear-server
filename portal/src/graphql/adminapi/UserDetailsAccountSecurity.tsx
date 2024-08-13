@@ -47,7 +47,7 @@ import {
 } from "../../components/users/SetMFAGracePeriodConfirmationDialog";
 import { useSetMFAGracePeriodMutation } from "./mutations/setMFAGracePeriodMutation";
 import { useRemoveMFAGracePeriodMutation } from "./mutations/removeMFAGracePeriodMutation";
-import { CancelMFAGracePeriodConfirmationDialog } from "../../components/users/CacelMFAGracePeriodConfirmationDialog";
+import { CancelMFAGracePeriodConfirmationDialog } from "../../components/users/CancelMFAGracePeriodConfirmationDialog";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
