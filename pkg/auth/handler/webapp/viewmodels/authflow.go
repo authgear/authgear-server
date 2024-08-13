@@ -431,7 +431,7 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 	for _, ldapServer := range m.Identity.LDAP.Servers {
 		candidate := map[string]interface{}{
 			"type":        string(model.IdentityTypeLDAP),
-			"ldap_server": ldapServer.Name,
+			"server_name": ldapServer.Name,
 		}
 		candidates = append(candidates, candidate)
 	}
