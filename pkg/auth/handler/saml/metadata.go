@@ -16,7 +16,7 @@ func ConfigureMetadataRoute(route httproute.Route) httproute.Route {
 }
 
 type MetadataHandlerSAMLService interface {
-	IdPMetadata() *saml.Metadata
+	IdpMetadata(serviceProviderId string) *saml.Metadata
 }
 
 type MetadataHandler struct {
@@ -26,13 +26,13 @@ type MetadataHandler struct {
 
 func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	serviceProviderId := httproute.GetParam(r, "service_provider_id")
-	_, ok := h.SAMLConfig.ResolveProvider(serviceProviderId)
+	sp, ok := h.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
 		http.NotFound(rw, r)
 		return
 	}
 
-	metadataBytes := h.SAMLService.IdPMetadata().ToXMLBytes()
+	metadataBytes := h.SAMLService.IdpMetadata(sp.ID).ToXMLBytes()
 	fileName := fmt.Sprintf("%s-metadata.xml", serviceProviderId)
 	rw.Header().Set("Content-Type", "application/samlmetadata+xml")
 	rw.Header().Set("content-disposition", fmt.Sprintf("attachment; filename=\"%s\"", fileName))
