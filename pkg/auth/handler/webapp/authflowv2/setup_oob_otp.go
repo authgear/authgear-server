@@ -47,12 +47,7 @@ type AuthflowV2SetupOOBOTPHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
-
-	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
-	viewmodels.Embed(data, baseViewModel)
-
+func NewAuthflowSetupOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowSetupOOBOTPViewModel {
 	index := *screen.Screen.TakenBranchIndex
 	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
 	option := screenData.Options[index]
@@ -71,10 +66,19 @@ func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Re
 		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 	}
 	channel := screen.Screen.TakenChannel
-	screenViewModel := AuthflowSetupOOBOTPViewModel{
+	return AuthflowSetupOOBOTPViewModel{
 		OOBAuthenticatorType: oobAuthenticatorType,
 		Channel:              channel,
 	}
+}
+
+func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	screenViewModel := NewAuthflowSetupOOBOTPViewModel(s, screen)
 	viewmodels.Embed(data, screenViewModel)
 
 	authentication := getTakenBranchSignupCreateAuthenticatorAuthentication(screen)
