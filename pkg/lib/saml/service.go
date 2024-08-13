@@ -2,6 +2,7 @@ package saml
 
 import (
 	"bytes"
+	"net/url"
 	"text/template"
 	"time"
 
@@ -13,12 +14,17 @@ import (
 
 const MetadataValidDuration = time.Hour * 24
 
+type SAMLEndpoints interface {
+	SAMLLoginURL(serviceProviderId string) *url.URL
+}
+
 type Service struct {
 	Clock                   clock.Clock
 	AppID                   config.AppID
 	SAMLEnvironmentConfig   config.SAMLEnvironmentConfig
 	SAMLConfig              *config.SAMLConfig
 	SAMLIdpSigningMaterials *config.SAMLIdpSigningMaterials
+	Endpoints               SAMLEndpoints
 }
 
 func (s *Service) idpEntityID() string {
@@ -37,7 +43,7 @@ func (s *Service) idpEntityID() string {
 	return idpEntityIDBytes.String()
 }
 
-func (s *Service) IdPMetadata() *Metadata {
+func (s *Service) IdpMetadata(serviceProviderId string) *Metadata {
 
 	keyDescriptors := []crewjamsaml.KeyDescriptor{}
 	if cert, ok := s.SAMLIdpSigningMaterials.FindSigningCert(s.SAMLConfig.Signing.KeyID); ok {
@@ -68,7 +74,14 @@ func (s *Service) IdPMetadata() *Metadata {
 					},
 				},
 				SingleSignOnServices: []crewjamsaml.Endpoint{
-					// TODO
+					{
+						Binding:  crewjamsaml.HTTPRedirectBinding,
+						Location: s.Endpoints.SAMLLoginURL(serviceProviderId).String(),
+					},
+					{
+						Binding:  crewjamsaml.HTTPPostBinding,
+						Location: s.Endpoints.SAMLLoginURL(serviceProviderId).String(),
+					},
 				},
 			},
 		},
