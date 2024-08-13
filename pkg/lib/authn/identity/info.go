@@ -191,7 +191,7 @@ func (i *Info) ToModel() model.Identity {
 // If it is a biometric identity, the kid is returned.
 // If it is a passkey identity, the name is returned.
 // If it is a SIWE identity, EIP681 of the address and chainID is returned
-// If it is a LDAP identity, user id attribute value is returned
+// If it is a LDAP identity, dn or user id attribute value is returned
 func (i *Info) DisplayID() string {
 	switch i.Type {
 	case model.IdentityTypeLoginID:
@@ -220,7 +220,7 @@ func (i *Info) DisplayID() string {
 		}
 		return eip681.URL().String()
 	case model.IdentityTypeLDAP:
-		return i.LDAP.UserIDAttributeValue
+		return i.LDAP.DisplayID()
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
 	}

@@ -18,6 +18,14 @@ type LDAP struct {
 	RawEntryJSON         map[string]interface{} `json:"raw_entry_json,omitempty"`
 }
 
+func (i *LDAP) DisplayID() string {
+	dn, ok := i.RawEntryJSON["dn"].(string)
+	if !ok {
+		return i.UserIDAttributeValue
+	}
+	return dn
+}
+
 func (i *LDAP) ToInfo() *Info {
 	return &Info{
 		ID:        i.ID,
