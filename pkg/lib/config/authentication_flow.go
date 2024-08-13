@@ -288,31 +288,31 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 				"required": ["one_of"],
 				"properties": {
 					"optional": { "type": "boolean" },
-          "enrollment_allowed": { "type": "boolean" },
+					"enrollment_allowed": { "type": "boolean" },
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAuthenticate" }
 					}
 				},
-        "allOf": [
-          {
-            "if": {
-              "properties": {
-                "optional": { "const": false }
-              }
-            },
-            "then": {
-              "properties": {
-                "enrollment_allowed": { "type": "boolean" }
-              }
-            },
-            "else": {
-              "properties": {
-                "enrollment_allowed": { "const": false }
-              }
-            }
-          }
-        ]
+				"allOf": [
+					{
+						"if": {
+							"properties": {
+								"optional": { "const": false }
+							}
+						},
+						"then": {
+							"properties": {
+								"enrollment_allowed": { "type": "boolean" }
+							}
+						},
+						"else": {
+							"properties": {
+								"enrollment_allowed": { "const": false }
+							}
+						}
+					}
+				]
 			}
 		},
 		{
