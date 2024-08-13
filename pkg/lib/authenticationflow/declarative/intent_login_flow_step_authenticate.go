@@ -375,9 +375,9 @@ func (i *IntentLoginFlowStepAuthenticate) canCreateAuthenticator(step *config.Au
 	}
 
 	authenticationConfig := deps.Config.Authentication
-	if authenticationConfig.SecondaryAuthenticationRollout != nil &&
-		authenticationConfig.SecondaryAuthenticationRollout.Enabled &&
-		(authenticationConfig.SecondaryAuthenticationRollout.EndAt == nil || authenticationConfig.SecondaryAuthenticationRollout.EndAt.After(deps.Clock.NowUTC())) {
+	if authenticationConfig.SecondaryAuthenticationGracePeriod != nil &&
+		authenticationConfig.SecondaryAuthenticationGracePeriod.Enabled &&
+		(authenticationConfig.SecondaryAuthenticationGracePeriod.EndAt == nil || authenticationConfig.SecondaryAuthenticationGracePeriod.EndAt.After(deps.Clock.NowUTC())) {
 		return true, nil
 	}
 
