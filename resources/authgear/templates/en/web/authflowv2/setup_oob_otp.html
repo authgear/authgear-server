@@ -8,6 +8,11 @@
     {{ end }}
   {{ end }}
 
+  {{ $show_captcha := false}}
+  {{ if $.IsBotProtectionRequired }}
+    {{ $show_captcha = true }}
+  {{ end }}
+
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <div class="space-y-4">
       <h1 class="screen-title">
@@ -39,10 +44,12 @@
       method="post"
       novalidate
       data-controller="turbo-form"
-      data-action="submit->turbo-form#submitForm"
+      data-action="{{ if $show_captcha }}submit->bot-protection#verifyFormSubmit {{end}}submit->turbo-form#submitForm"
     >
       {{ $.CSRFField }}
-
+      {{ if $show_captcha }}
+        {{ template "web/authflowv2/__bot_protection_form_input.html" . }}
+      {{ end }}
       {{ $otp_error_message := "" }}
       {{ if $.Error  }}
         {{ if $display_otp_input_error }}
