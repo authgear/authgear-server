@@ -57,10 +57,10 @@ func makeCreateAuthenticatorTarget(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	oneOf *config.AuthenticationFlowSignupFlowOneOf,
+	oneOf config.AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf,
 	userID string,
 ) (target *CreateAuthenticatorTarget, claimValue string, isSkipped bool, err error) {
-	targetStep := oneOf.TargetStep
+	targetStep := oneOf.GetTargetStepName()
 	if targetStep != "" {
 		claimValue, isSkipped, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStep)
 		if err != nil {
@@ -69,7 +69,7 @@ func makeCreateAuthenticatorTarget(
 		if claimValue == "" {
 			return nil, "", isSkipped, nil
 		}
-		claimName := getOOBAuthenticatorType(oneOf.Authentication).ToClaimName()
+		claimName := getOOBAuthenticatorType(oneOf.GetAuthentication()).ToClaimName()
 		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(deps, userID, claimName, claimValue)
 		if err != nil {
 			return nil, "", isSkipped, err
@@ -93,23 +93,24 @@ func NewCreateAuthenticationOptions(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	step *config.AuthenticationFlowSignupFlowStep,
+	step config.AuthenticationFlowObjectSignupFlowOrLoginFlowStep,
 	userID string) ([]CreateAuthenticatorOptionInternal, error) {
 	options := []CreateAuthenticatorOptionInternal{}
 	passwordPolicy := NewPasswordPolicy(
 		deps.FeatureConfig.Authenticator,
 		deps.Config.Authenticator.Password.Policy,
 	)
-	for _, b := range step.OneOf {
-		switch b.Authentication {
+	oneOf := step.GetSignupFlowOrLoginFlowOneOf()
+	for _, b := range oneOf {
+		switch b.GetAuthentication() {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
-					Authentication: b.Authentication,
+					Authentication: b.GetAuthentication(),
 					PasswordPolicy: passwordPolicy,
-					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
@@ -132,11 +133,11 @@ func NewCreateAuthenticationOptions(
 			options = append(options, CreateAuthenticatorOptionInternal{
 				UnmaskedTarget: unmaskedTarget,
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
-					Authentication: b.Authentication,
+					Authentication: b.GetAuthentication(),
 					OTPForm:        otpForm,
 					Channels:       channels,
 					Target:         target,
-					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -155,19 +156,19 @@ func NewCreateAuthenticationOptions(
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, deps.Config.Authenticator.OOB.Email)
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
-					Authentication: b.Authentication,
+					Authentication: b.GetAuthentication(),
 					OTPForm:        otpForm,
 					Channels:       channels,
 					Target:         target,
-					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 				UnmaskedTarget: unmaskedTarget,
 			})
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
-					Authentication: b.Authentication,
-					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
+					Authentication: b.GetAuthentication(),
+					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 			})
 		case config.AuthenticationFlowAuthenticationRecoveryCode:

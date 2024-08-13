@@ -890,19 +890,39 @@ type AuthenticationFlowSignupFlowStep struct {
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupFlowStep{}
+var (
+	_ AuthenticationFlowObjectFlowStep                  = &AuthenticationFlowSignupFlowStep{}
+	_ AuthenticationFlowObjectSignupFlowOrLoginFlowStep = &AuthenticationFlowSignupFlowStep{}
+)
 
 func (s *AuthenticationFlowSignupFlowStep) IsFlowObject()   {}
 func (s *AuthenticationFlowSignupFlowStep) GetName() string { return s.Name }
 func (s *AuthenticationFlowSignupFlowStep) GetType() AuthenticationFlowStepType {
 	return AuthenticationFlowStepType(s.Type)
 }
+
 func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowSignupFlowStepTypeIdentify:
 		fallthrough
 	case AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
+		for i, v := range s.OneOf {
+			v := v
+			out[i] = v
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func (s *AuthenticationFlowSignupFlowStep) GetSignupFlowOrLoginFlowOneOf() []AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf {
+	switch s.Type {
+	case AuthenticationFlowSignupFlowStepTypeIdentify:
+		fallthrough
+	case AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
+		out := make([]AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf, len(s.OneOf))
 		for i, v := range s.OneOf {
 			v := v
 			out[i] = v
@@ -933,9 +953,12 @@ type AuthenticationFlowSignupFlowOneOf struct {
 	Steps []*AuthenticationFlowSignupFlowStep `json:"steps,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowSignupFlowOneOf{}
-var _ AuthenticationFlowObjectAccountLinkingConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                   = &AuthenticationFlowSignupFlowOneOf{}
+	_ AuthenticationFlowObjectAccountLinkingConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider  = &AuthenticationFlowSignupFlowOneOf{}
+	_ AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf   = &AuthenticationFlowSignupFlowOneOf{}
+)
 
 func (f *AuthenticationFlowSignupFlowOneOf) IsFlowObject() {}
 
@@ -955,9 +978,17 @@ func (f *AuthenticationFlowSignupFlowOneOf) GetBranchInfo() AuthenticationFlowOb
 	}
 }
 
+func (f *AuthenticationFlowSignupFlowOneOf) GetAuthentication() AuthenticationFlowAuthentication {
+	return f.Authentication
+}
+
 func (f *AuthenticationFlowSignupFlowOneOf) IsVerificationRequired() bool {
 	// If it is unspecified (i.e. nil), then verification is required.
 	return f.VerificationRequired == nil || *f.VerificationRequired
+}
+
+func (f *AuthenticationFlowSignupFlowOneOf) GetTargetStepName() string {
+	return f.TargetStep
 }
 
 func (f *AuthenticationFlowSignupFlowOneOf) GetAccountLinkingConfig() *AuthenticationFlowAccountLinking {
@@ -1020,7 +1051,10 @@ type AuthenticationFlowLoginFlowStep struct {
 	TargetStep string `json:"target_step,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowLoginFlowStep{}
+var (
+	_ AuthenticationFlowObjectFlowStep                  = &AuthenticationFlowLoginFlowStep{}
+	_ AuthenticationFlowObjectSignupFlowOrLoginFlowStep = &AuthenticationFlowLoginFlowStep{}
+)
 
 func (s *AuthenticationFlowLoginFlowStep) IsFlowObject()   {}
 func (s *AuthenticationFlowLoginFlowStep) GetName() string { return s.Name }
@@ -1034,6 +1068,22 @@ func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject 
 		fallthrough
 	case AuthenticationFlowLoginFlowStepTypeAuthenticate:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
+		for i, v := range s.OneOf {
+			v := v
+			out[i] = v
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func (s *AuthenticationFlowLoginFlowStep) GetSignupFlowOrLoginFlowOneOf() []AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf {
+	switch s.Type {
+	case AuthenticationFlowLoginFlowStepTypeIdentify:
+		fallthrough
+	case AuthenticationFlowLoginFlowStepTypeAuthenticate:
+		out := make([]AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf, len(s.OneOf))
 		for i, v := range s.OneOf {
 			v := v
 			out[i] = v
@@ -1067,8 +1117,11 @@ type AuthenticationFlowLoginFlowOneOf struct {
 	Steps []*AuthenticationFlowLoginFlowStep `json:"steps,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowLoginFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowLoginFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                  = &AuthenticationFlowLoginFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowLoginFlowOneOf{}
+	_ AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf  = &AuthenticationFlowLoginFlowOneOf{}
+)
 
 func (f *AuthenticationFlowLoginFlowOneOf) IsFlowObject() {}
 
@@ -1090,6 +1143,18 @@ func (f *AuthenticationFlowLoginFlowOneOf) GetBranchInfo() AuthenticationFlowObj
 
 func (f *AuthenticationFlowLoginFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
 	return f.BotProtection
+}
+
+func (f *AuthenticationFlowLoginFlowOneOf) GetAuthentication() AuthenticationFlowAuthentication {
+	return f.Authentication
+}
+
+func (f *AuthenticationFlowLoginFlowOneOf) IsVerificationRequired() bool {
+	return true
+}
+
+func (f *AuthenticationFlowLoginFlowOneOf) GetTargetStepName() string {
+	return f.TargetStep
 }
 
 type AuthenticationFlowSignupLoginFlow struct {
@@ -1152,8 +1217,10 @@ type AuthenticationFlowSignupLoginFlowOneOf struct {
 	LoginFlow      string                           `json:"login_flow,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowSignupLoginFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowSignupLoginFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                  = &AuthenticationFlowSignupLoginFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowSignupLoginFlowOneOf{}
+)
 
 func (s *AuthenticationFlowSignupLoginFlowOneOf) IsFlowObject() {}
 
@@ -1243,8 +1310,10 @@ type AuthenticationFlowReauthFlowOneOf struct {
 	Steps []*AuthenticationFlowReauthFlowStep `json:"steps,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowReauthFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowReauthFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                  = &AuthenticationFlowReauthFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowReauthFlowOneOf{}
+)
 
 func (f *AuthenticationFlowReauthFlowOneOf) IsFlowObject() {}
 
@@ -1353,6 +1422,7 @@ func (s *AuthenticationFlowAccountRecoveryFlowStep) GetName() string { return s.
 func (s *AuthenticationFlowAccountRecoveryFlowStep) GetType() AuthenticationFlowStepType {
 	return AuthenticationFlowStepType(s.Type)
 }
+
 func (s *AuthenticationFlowAccountRecoveryFlowStep) GetOneOf() []AuthenticationFlowObject {
 	switch s.Type {
 	case AuthenticationFlowAccountRecoveryFlowTypeIdentify:
@@ -1383,8 +1453,10 @@ type AuthenticationFlowAccountRecoveryFlowOneOf struct {
 	Steps          []*AuthenticationFlowAccountRecoveryFlowStep             `json:"steps,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowBranch = &AuthenticationFlowAccountRecoveryFlowOneOf{}
-var _ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowAccountRecoveryFlowOneOf{}
+var (
+	_ AuthenticationFlowObjectFlowBranch                  = &AuthenticationFlowAccountRecoveryFlowOneOf{}
+	_ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowAccountRecoveryFlowOneOf{}
+)
 
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) IsFlowObject() {}
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetSteps() []AuthenticationFlowObject {
@@ -1395,11 +1467,13 @@ func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetSteps() []Authentication
 	}
 	return out
 }
+
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBranchInfo() AuthenticationFlowObjectFlowBranchInfo {
 	return AuthenticationFlowObjectFlowBranchInfo{
 		Identification: AuthenticationFlowIdentification(f.Identification),
 	}
 }
+
 func (f *AuthenticationFlowAccountRecoveryFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
 	return f.BotProtection
 }
@@ -1447,6 +1521,17 @@ type AuthenticationFlowObjectBotProtectionConfigProvider interface {
 	GetBotProtectionConfig() *AuthenticationFlowBotProtection
 }
 
+type AuthenticationFlowObjectSignupFlowOrLoginFlowStep interface {
+	GetSignupFlowOrLoginFlowOneOf() []AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf
+}
+
+type AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf interface {
+	AuthenticationFlowObjectBotProtectionConfigProvider
+	GetAuthentication() AuthenticationFlowAuthentication
+	IsVerificationRequired() bool
+	GetTargetStepName() string
+}
+
 func init() {
 	accountRecoveryChannelsOneOf := ""
 	addAccountRecoveryChannel := func(channel AccountRecoveryCodeChannel, otpForm AccountRecoveryCodeForm) {
@@ -1476,5 +1561,5 @@ func init() {
 %s
 		]
 	}`, accountRecoveryChannelsOneOf)
-	var _ = Schema.Add("AccountRecoveryChannel", schema)
+	_ = Schema.Add("AccountRecoveryChannel", schema)
 }

@@ -68,6 +68,7 @@ const secondaryAuthenticatorNameIds = {
 
 interface ConfigFormState {
   mfaMode: SecondaryAuthenticationMode;
+  mfaGlobalGracePeriodEnabled: boolean;
   deviceTokenEnabled: boolean;
   recoveryCodeEnabled: boolean;
   numRecoveryCode: number | undefined;
@@ -151,6 +152,9 @@ function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
     deviceTokenEnabled: !(
       config.authentication?.device_token?.disabled ?? false
     ),
+    mfaGlobalGracePeriodEnabled:
+      config.authentication?.secondary_authentication_grace_period?.enabled ??
+      false,
     recoveryCodeEnabled: !(
       config.authentication?.recovery_code?.disabled ?? false
     ),
@@ -204,6 +208,7 @@ function constructConfig(
   currentState: ConfigFormState,
   _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
+  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     function filterEnabled<T extends string>(
       s: AuthenticatorTypeFormState<T>[]
@@ -222,6 +227,15 @@ function constructConfig(
     );
 
     config.authentication.secondary_authentication_mode = currentState.mfaMode;
+
+    if (!currentState.mfaGlobalGracePeriodEnabled) {
+      config.authentication.secondary_authentication_grace_period = undefined;
+    } else {
+      config.authentication.secondary_authentication_grace_period = {
+        enabled: currentState.mfaGlobalGracePeriodEnabled,
+      };
+    }
+
     config.authentication.device_token.disabled =
       !currentState.deviceTokenEnabled;
 
@@ -308,6 +322,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
     const { state, setState } = props.form;
     const {
       mfaMode,
+      mfaGlobalGracePeriodEnabled,
       deviceTokenEnabled,
       recoveryCodeEnabled,
       recoveryCodeListEnabled,
@@ -339,6 +354,8 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
         setState((prev) => ({
           ...prev,
           mfaMode: option,
+          mfaGlobalGracePeriodEnabled:
+            option !== "required" ? false : mfaGlobalGracePeriodEnabled,
         }));
       },
       mfaMode,
@@ -382,6 +399,16 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
           };
         }),
       [secondary, featureDisabled, disabledText]
+    );
+
+    const onChangeMFAGlobalGracePeriodEnabled = useCallback(
+      (_e, checked?: boolean) => {
+        setState((prev) => ({
+          ...prev,
+          mfaGlobalGracePeriodEnabled: checked ?? false,
+        }));
+      },
+      [setState]
     );
 
     const onChangeDeviceTokenEnabled = useCallback(
@@ -467,6 +494,21 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
               selectedKey={mfaMode}
               onChange={onChangeMFAMode}
             />
+            {mfaMode === "required" ? (
+              <div>
+                <Toggle
+                  label={
+                    <FormattedMessage id="MFAConfigurationScreen.policy.enable-global-grace-period.title" />
+                  }
+                  inlineLabel={false}
+                  checked={mfaGlobalGracePeriodEnabled}
+                  onChange={onChangeMFAGlobalGracePeriodEnabled}
+                />
+                <WidgetDescription>
+                  <FormattedMessage id="MFAConfigurationScreen.policy.enable-global-grace-period.description" />
+                </WidgetDescription>
+              </div>
+            ) : null}
             <Toggle
               label={
                 <FormattedMessage id="MFAConfigurationScreen.policy.device-token.title" />

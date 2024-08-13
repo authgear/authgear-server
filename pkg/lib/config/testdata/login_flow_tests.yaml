@@ -96,3 +96,21 @@ value:
         optional: true
         one_of:
         - authentication: secondary_totp
+---
+part: AuthenticationFlowLoginFlowStep
+name: optional-true
+error: null
+value:
+  type: authenticate
+  optional: true
+  one_of:
+  - authentication: primary_password
+---
+part: AuthenticationFlowLoginFlowStep
+name: optional-false
+error: null
+value:
+  type: authenticate
+  optional: false
+  one_of:
+  - authentication: primary_password

@@ -113,6 +113,7 @@ fragment UserQueryNode on User {
   lastLoginAt
   createdAt
   updatedAt
+  mfaGracePeriodEndAt
 }
 
 fragment AuthenticatorFragment on Authenticator {

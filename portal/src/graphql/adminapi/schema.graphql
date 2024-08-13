@@ -1045,6 +1045,9 @@ type Mutation {
   """Remove the group to the users."""
   removeGroupFromUsers(input: RemoveGroupFromUsersInput!): RemoveGroupToUsersPayload!
 
+  """Revoke user grace period for MFA enrollment"""
+  removeMFAGracePeriod(input: removeMFAGracePeriodInput!): removeMFAGracePeriodPayload!
+
   """Remove the role from the groups."""
   removeRoleFromGroups(input: RemoveRoleFromGroupsInput!): RemoveRoleFromGroupsPayload!
 
@@ -1077,6 +1080,9 @@ type Mutation {
 
   """Set disabled status of user"""
   setDisabledStatus(input: SetDisabledStatusInput!): SetDisabledStatusPayload!
+
+  """Grant user grace period for MFA enrollment"""
+  setMFAGracePeriod(input: SetMFAGracePeriodInput!): SetMFAGracePeriodPayload!
 
   """Force user to change password on next login"""
   setPasswordExpired(input: SetPasswordExpiredInput!): SetPasswordExpiredPayload!
@@ -1465,6 +1471,21 @@ type SetDisabledStatusPayload {
 }
 
 """"""
+input SetMFAGracePeriodInput {
+  """Indicate when will user's MFA grace period end"""
+  endAt: DateTime!
+
+  """Target user ID"""
+  userID: ID!
+}
+
+""""""
+type SetMFAGracePeriodPayload {
+  """"""
+  user: User!
+}
+
+""""""
 input SetPasswordExpiredInput {
   """Indicate whether the user's password is expired."""
   expired: Boolean!
@@ -1690,6 +1711,9 @@ type User implements Entity & Node {
   """The list of login ids"""
   loginIDs: [Identity!]!
 
+  """Indicate when will user's MFA grace period will end"""
+  mfaGracePeriodEndAt: DateTime
+
   """The list of oauth connections"""
   oauthConnections: [Identity!]!
 
@@ -1778,3 +1802,15 @@ scalar UserStandardAttributes
 
 """The `Web3Claims` scalar type represents the scalar type of the user"""
 scalar Web3Claims
+
+""""""
+input removeMFAGracePeriodInput {
+  """Target user ID"""
+  userID: ID!
+}
+
+""""""
+type removeMFAGracePeriodPayload {
+  """"""
+  user: User!
+}

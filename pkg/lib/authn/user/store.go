@@ -24,6 +24,7 @@ type store interface {
 	Count() (uint64, error)
 	QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
+	UpdateMFAEnrollment(userID string, endAt *time.Time) error
 	UpdateAccountStatus(userID string, status AccountStatus) error
 	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
 	UpdateCustomAttributes(userID string, customAttrs map[string]interface{}) error
@@ -76,6 +77,7 @@ func (s *Store) Create(u *User) (err error) {
 			"standard_attributes",
 			"custom_attributes",
 			"require_reindex_after",
+			"mfa_grace_period_end_at",
 		).
 		Values(
 			u.ID,
@@ -92,6 +94,7 @@ func (s *Store) Create(u *User) (err error) {
 			stdAttrsBytes,
 			customAttrsBytes,
 			u.RequireReindexAfter,
+			u.MFAGracePeriodtEndAt,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(builder)
@@ -121,6 +124,7 @@ func (s *Store) selectQuery(alias string) db.SelectBuilder {
 				"require_reindex_after",
 				"standard_attributes",
 				"custom_attributes",
+				"mfa_grace_period_end_at",
 			).
 			From(s.SQLBuilder.TableName("_auth_user"))
 	}
@@ -144,6 +148,7 @@ func (s *Store) selectQuery(alias string) db.SelectBuilder {
 			fieldWithAlias("require_reindex_after"),
 			fieldWithAlias("standard_attributes"),
 			fieldWithAlias("custom_attributes"),
+			fieldWithAlias("mfa_grace_period_end_at"),
 		).
 		From(s.SQLBuilder.TableName("_auth_user"), alias)
 }
@@ -170,6 +175,7 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 		&u.RequireReindexAfter,
 		&stdAttrsBytes,
 		&customAttrsBytes,
+		&u.MFAGracePeriodtEndAt,
 	); err != nil {
 		return nil, err
 	}
@@ -284,6 +290,20 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("last_login_at", sq.Expr("login_at")).
 		Set("login_at", loginAt).
+		Where("id = ?", userID)
+
+	_, err := s.SQLExecutor.ExecWith(builder)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Store) UpdateMFAEnrollment(userID string, endAt *time.Time) error {
+	builder := s.SQLBuilder.
+		Update(s.SQLBuilder.TableName("_auth_user")).
+		Set("mfa_grace_period_end_at", endAt).
 		Where("id = ?", userID)
 
 	_, err := s.SQLExecutor.ExecWith(builder)

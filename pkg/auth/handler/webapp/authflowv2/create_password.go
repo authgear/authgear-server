@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"fmt"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -64,8 +65,17 @@ func (h *AuthflowV2CreatePasswordHandler) GetData(w http.ResponseWriter, r *http
 
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.BranchStateTokenFlowResponse
-	screenData := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
-	option := screenData.Options[index]
+	var option declarative.CreateAuthenticatorOptionForOutput
+	switch flowResponse.Action.Data.(type) {
+	case declarative.IntentSignupFlowStepCreateAuthenticatorData:
+		screenData := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
+		option = screenData.Options[index]
+	case declarative.IntentLoginFlowStepCreateAuthenticatorData:
+		screenData := flowResponse.Action.Data.(declarative.IntentLoginFlowStepCreateAuthenticatorData)
+		option = screenData.Options[index]
+	default:
+		panic(fmt.Sprintf("authflowv2: unexpected action data: %T", flowResponse.Action.Data))
+	}
 	authenticationStage := authn.AuthenticationStageFromAuthenticationMethod(option.Authentication)
 	isPrimary := authenticationStage == authn.AuthenticationStagePrimary
 
@@ -149,8 +159,18 @@ func (h *AuthflowV2CreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 
 		index := *screen.Screen.TakenBranchIndex
 		flowResponse := screen.BranchStateTokenFlowResponse
-		data := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
-		option := data.Options[index]
+
+		var option declarative.CreateAuthenticatorOptionForOutput
+		switch flowResponse.Action.Data.(type) {
+		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
+			screenData := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
+			option = screenData.Options[index]
+		case declarative.IntentLoginFlowStepCreateAuthenticatorData:
+			screenData := flowResponse.Action.Data.(declarative.IntentLoginFlowStepCreateAuthenticatorData)
+			option = screenData.Options[index]
+		default:
+			panic(fmt.Sprintf("authflowv2: unexpected action data: %T", flowResponse.Action.Data))
+		}
 
 		newPlainPassword := r.Form.Get("x_password")
 		confirmPassword := r.Form.Get("x_confirm_password")

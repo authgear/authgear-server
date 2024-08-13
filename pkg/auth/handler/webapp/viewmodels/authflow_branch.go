@@ -47,7 +47,9 @@ func NewAuthflowBranchViewModel(
 			deviceTokenEnabled = branchData.DeviceTokenEnabled
 			branches = newAuthflowBranchViewModelStepAuthenticate(screen, branchData)
 		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
-			branches = newAuthflowBranchViewModelStepCreateAuthenticator(screen, branchData)
+			branches = newAuthflowBranchViewModelStepSignupCreateAuthenticator(screen, branchData)
+		case declarative.IntentLoginFlowStepCreateAuthenticatorData:
+			branches = newAuthflowBranchViewModelStepLoginCreateAuthenticator(screen, branchData)
 		case declarative.SelectOOBOTPChannelsData:
 			branches = newAuthflowBranchViewModelVerify(screen, branchData)
 		}
@@ -148,7 +150,84 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 	return branches
 }
 
-func newAuthflowBranchViewModelStepCreateAuthenticator(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentSignupFlowStepCreateAuthenticatorData) []AuthflowBranch {
+func newAuthflowBranchViewModelStepSignupCreateAuthenticator(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentSignupFlowStepCreateAuthenticatorData) []AuthflowBranch {
+	takenBranchIndex := *screen.Screen.TakenBranchIndex
+	takenBranch := AuthflowBranch{
+		Authentication: branchData.Options[takenBranchIndex].Authentication,
+		Index:          takenBranchIndex,
+		Channel:        screen.Screen.TakenChannel,
+	}
+
+	branches := []AuthflowBranch{}
+
+	addIndexBranch := func(idx int, o declarative.CreateAuthenticatorOptionForOutput) {
+		branch := AuthflowBranch{
+			Authentication: o.Authentication,
+			Index:          idx,
+		}
+		if !isAuthflowBranchSame(branch, takenBranch) {
+			branches = append(branches, branch)
+		}
+	}
+
+	addChannelBranch := func(idx int, o declarative.CreateAuthenticatorOptionForOutput) {
+		for _, channel := range o.Channels {
+			branch := AuthflowBranch{
+				Authentication:   o.Authentication,
+				Index:            idx,
+				Channel:          channel,
+				MaskedClaimValue: "",
+				OTPForm:          o.OTPForm,
+			}
+			if !isAuthflowBranchSame(branch, takenBranch) {
+				branches = append(branches, branch)
+			}
+		}
+	}
+
+	addSkipBranch := func(idx int, o declarative.CreateAuthenticatorOptionForOutput) {
+		branch := AuthflowBranch{
+			Authentication:        o.Authentication,
+			Index:                 idx,
+			MaskedClaimValue:      o.Target.MaskedDisplayName,
+			OTPForm:               o.OTPForm,
+			VerificationSkippable: true,
+		}
+		if !isAuthflowBranchSame(branch, takenBranch) {
+			branches = append(branches, branch)
+		}
+	}
+
+	for idx, o := range branchData.Options {
+		switch o.Authentication {
+		case config.AuthenticationFlowAuthenticationPrimaryPassword:
+			addIndexBranch(idx, o)
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
+			if o.Target != nil && !o.Target.VerificationRequired {
+				addSkipBranch(idx, o)
+			} else {
+				addChannelBranch(idx, o)
+			}
+		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryPassword:
+			addIndexBranch(idx, o)
+		default:
+			// Ignore other authentications.
+			break
+		}
+	}
+
+	return branches
+}
+
+func newAuthflowBranchViewModelStepLoginCreateAuthenticator(screen *webapp.AuthflowScreenWithFlowResponse, branchData declarative.IntentLoginFlowStepCreateAuthenticatorData) []AuthflowBranch {
 	takenBranchIndex := *screen.Screen.TakenBranchIndex
 	takenBranch := AuthflowBranch{
 		Authentication: branchData.Options[takenBranchIndex].Authentication,

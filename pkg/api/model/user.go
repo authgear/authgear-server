@@ -6,21 +6,22 @@ import (
 
 type User struct {
 	Meta
-	LastLoginAt        *time.Time             `json:"last_login_at,omitempty"`
-	IsAnonymous        bool                   `json:"is_anonymous"`
-	IsVerified         bool                   `json:"is_verified"`
-	IsDisabled         bool                   `json:"is_disabled"`
-	DisableReason      *string                `json:"disable_reason,omitempty"`
-	IsDeactivated      bool                   `json:"is_deactivated"`
-	DeleteAt           *time.Time             `json:"delete_at,omitempty"`
-	IsAnonymized       bool                   `json:"is_anonymized"`
-	AnonymizeAt        *time.Time             `json:"anonymize_at,omitempty"`
-	CanReauthenticate  bool                   `json:"can_reauthenticate"`
-	StandardAttributes map[string]interface{} `json:"standard_attributes,omitempty"`
-	CustomAttributes   map[string]interface{} `json:"custom_attributes,omitempty"`
-	Web3               *UserWeb3Info          `json:"x_web3,omitempty"`
-	Roles              []string               `json:"roles,omitempty"`
-	Groups             []string               `json:"groups,omitempty"`
+	LastLoginAt          *time.Time             `json:"last_login_at,omitempty"`
+	IsAnonymous          bool                   `json:"is_anonymous"`
+	IsVerified           bool                   `json:"is_verified"`
+	IsDisabled           bool                   `json:"is_disabled"`
+	DisableReason        *string                `json:"disable_reason,omitempty"`
+	IsDeactivated        bool                   `json:"is_deactivated"`
+	DeleteAt             *time.Time             `json:"delete_at,omitempty"`
+	IsAnonymized         bool                   `json:"is_anonymized"`
+	AnonymizeAt          *time.Time             `json:"anonymize_at,omitempty"`
+	CanReauthenticate    bool                   `json:"can_reauthenticate"`
+	StandardAttributes   map[string]interface{} `json:"standard_attributes,omitempty"`
+	CustomAttributes     map[string]interface{} `json:"custom_attributes,omitempty"`
+	Web3                 *UserWeb3Info          `json:"x_web3,omitempty"`
+	Roles                []string               `json:"roles,omitempty"`
+	Groups               []string               `json:"groups,omitempty"`
+	MFAGracePeriodtEndAt *time.Time             `json:"mfa_grace_period_end_at,omitempty"`
 }
 
 func (u *User) EndUserAccountID() string {

@@ -17,3 +17,4 @@ func NewInvariantViolated(cause string, msg string, data map[string]interface{})
 }
 
 var ErrUserIsAnonymized = apierrors.Invalid.WithReason("UserIsAnonymized").New("user is anonymized")
+var ErrMFAGracePeriodInvalid = apierrors.Invalid.WithReason("MFAGracePeriodInvalid").New("MFA grace period is invalid")

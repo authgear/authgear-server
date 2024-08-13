@@ -1,0 +1,14 @@
+mutation removeMFAGracePeriodMutation(
+  $userID: ID!
+) {
+  removeMFAGracePeriod(
+    input: {
+      userID: $userID
+    }
+  ) {
+    user {
+      id
+      mfaGracePeriodEndAt
+    }
+  }
+}

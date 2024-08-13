@@ -5,17 +5,16 @@ import ButtonWithLoading from "../../ButtonWithLoading";
 import DefaultButton from "../../DefaultButton";
 import { ConfirmationDialogStore } from "../../hook/useConfirmationDialog";
 
-interface SetPasswordExpiredConfirmationDialogProps {
+interface CancelMFAGracePeriodConfirmationDialogProps {
   store: ConfirmationDialogStore;
-  isExpired: boolean;
   onConfirm: () => void;
 }
 
-export const SetPasswordExpiredConfirmationDialog: React.VFC<SetPasswordExpiredConfirmationDialogProps> =
-  function SetPasswordExpiredConfirmationDialog(
-    props: SetPasswordExpiredConfirmationDialogProps
+export const CancelMFAGracePeriodConfirmationDialog: React.VFC<CancelMFAGracePeriodConfirmationDialogProps> =
+  function CancelMFAGracePeriodConfirmationDialog(
+    props: CancelMFAGracePeriodConfirmationDialogProps
   ) {
-    const { store, isExpired, onConfirm: onConfirmProp } = props;
+    const { store, onConfirm: onConfirmProp } = props;
 
     const { renderToString } = useContext(Context);
 
@@ -29,25 +28,21 @@ export const SetPasswordExpiredConfirmationDialog: React.VFC<SetPasswordExpiredC
       }
     }, [store]);
 
-    const removeConfirmDialogContentProps = useMemo(() => {
+    const dialogContentProps = useMemo(() => {
       return {
         title: (
-          <FormattedMessage id="UserDetails.account-security.mark-as-expired-confirm-dialog.title" />
+          <FormattedMessage id="UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.title" />
         ),
-        subText: isExpired
-          ? renderToString(
-              "UserDetails.account-security.mark-as-expired-confirm-dialog.message.revoke"
-            )
-          : renderToString(
-              "UserDetails.account-security.mark-as-expired-confirm-dialog.message"
-            ),
+        subText: renderToString(
+          "UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.message"
+        ),
       };
-    }, [isExpired, renderToString]);
+    }, [renderToString]);
 
     return (
       <Dialog
         hidden={!store.visible}
-        dialogContentProps={removeConfirmDialogContentProps}
+        dialogContentProps={dialogContentProps}
         modalProps={{ isBlocking: store.loading }}
         onDismiss={onDismiss}
       >

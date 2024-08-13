@@ -35,11 +35,19 @@ import { PortalAPIAppConfig, SecondaryAuthenticatorType } from "../../types";
 import Toggle from "../../Toggle";
 import { DateTime } from "luxon";
 import { parseDuration } from "../../util/duration";
-import {
-  SetPasswordExpiredConfirmationDialog,
-  useConfirmationDialog,
-} from "../../components/users/SetPasswordExpiredConfirmationDialog";
+import { SetPasswordExpiredConfirmationDialog } from "../../components/users/SetPasswordExpiredConfirmationDialog";
+import { useConfirmationDialog } from "../../hook/useConfirmationDialog";
 import { useSetPasswordExpiredMutation } from "./mutations/setPasswordExpiredMutation";
+import LinkButton from "../../LinkButton";
+import { useUserQuery } from "./query/userQuery";
+import { parseDate } from "../../util/date";
+import {
+  MFAGracePeriodAction,
+  SetMFAGracePeriodConfirmationDialog,
+} from "../../components/users/SetMFAGracePeriodConfirmationDialog";
+import { useSetMFAGracePeriodMutation } from "./mutations/setMFAGracePeriodMutation";
+import { useRemoveMFAGracePeriodMutation } from "./mutations/removeMFAGracePeriodMutation";
+import { CancelMFAGracePeriodConfirmationDialog } from "../../components/users/CancelMFAGracePeriodConfirmationDialog";
 
 type OOBOTPVerificationMethod = "email" | "phone" | "unknown";
 
@@ -728,6 +736,8 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
     const { locale, renderToString } = useContext(Context);
     const navigate = useNavigate();
 
+    const { user } = useUserQuery(userID);
+
     const passwordForceChangeDaysSinceLastUpdate = useMemo(() => {
       const expiryForceChangeConfig =
         authenticatorConfig?.password?.expiry?.force_change;
@@ -781,6 +791,66 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       );
     }, [authenticationConfig, authenticators, locale]);
 
+    const secondaryAuthicatorIsRequired =
+      authenticationConfig?.secondary_authentication_mode === "required";
+
+    const isWithinPerUserMFAGracePeriod = useMemo(() => {
+      if (user?.mfaGracePeriodEndAt == null) {
+        return false;
+      }
+
+      return parseDate(user.mfaGracePeriodEndAt) >= new Date();
+    }, [user]);
+
+    const isWithinGlobalMFAGracePeriod = useMemo(() => {
+      if (
+        authenticationConfig?.secondary_authentication_grace_period?.enabled !==
+        true
+      ) {
+        return false;
+      }
+
+      const gracePeriodEndAtString =
+        authenticationConfig.secondary_authentication_grace_period.endAt;
+      if (gracePeriodEndAtString == null) {
+        return true;
+      }
+
+      const gracePeriod = parseDate(gracePeriodEndAtString);
+      return gracePeriod >= new Date();
+    }, [authenticationConfig]);
+
+    const isWithinMFAGracePeriod = useMemo(() => {
+      return isWithinPerUserMFAGracePeriod || isWithinGlobalMFAGracePeriod;
+    }, [isWithinPerUserMFAGracePeriod, isWithinGlobalMFAGracePeriod]);
+
+    const canExtendMFAGracePeriod = useMemo(() => {
+      if (isWithinGlobalMFAGracePeriod) {
+        return false;
+      }
+
+      if (user?.mfaGracePeriodEndAt == null) {
+        return false;
+      }
+
+      if (
+        authenticationConfig?.secondary_authentication_grace_period?.endAt !=
+        null
+      ) {
+        const gracePeriod = parseDate(
+          authenticationConfig.secondary_authentication_grace_period.endAt
+        );
+        const userGracePeriod = parseDate(user.mfaGracePeriodEndAt);
+        return userGracePeriod <= gracePeriod;
+      }
+
+      return true;
+    }, [
+      authenticationConfig?.secondary_authentication_grace_period?.endAt,
+      isWithinGlobalMFAGracePeriod,
+      user?.mfaGracePeriodEndAt,
+    ]);
+
     const showConfirmationDialog = useCallback(
       (options: RemoveConfirmationDialogData) => {
         setConfirmationDialogData(options);
@@ -816,6 +886,56 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       isExpired,
       setPasswordExpiredConfirmDialog,
     ]);
+
+    const setMFAGracePeriodConfirmationDialog = useConfirmationDialog();
+    const cancelMFAGracePeriodConfirmationDialog = useConfirmationDialog();
+
+    const { setMFAGracePeriod, error: setMFAGracePeriodError } =
+      useSetMFAGracePeriodMutation();
+    useProvideError(setMFAGracePeriodError);
+
+    const { removeMFAGracePeriod, error: removeMFAGracePeriodError } =
+      useRemoveMFAGracePeriodMutation();
+    useProvideError(removeMFAGracePeriodError);
+
+    const mfaGracePeriodAction = useMemo(() => {
+      if (!isWithinPerUserMFAGracePeriod) {
+        return MFAGracePeriodAction.Grant;
+      }
+
+      return MFAGracePeriodAction.Extend;
+    }, [isWithinPerUserMFAGracePeriod]);
+
+    const onConfirmSetMFAGracePeriod = useCallback(async () => {
+      switch (mfaGracePeriodAction) {
+        case MFAGracePeriodAction.Grant: {
+          const newGracePeriod = DateTime.now().plus({ days: 10 }).toJSDate();
+          await setMFAGracePeriod(userID, newGracePeriod);
+          break;
+        }
+        case MFAGracePeriodAction.Extend: {
+          const fromDate = DateTime.max(
+            DateTime.now(),
+            DateTime.fromISO(user?.mfaGracePeriodEndAt)
+          );
+          const newGracePeriod = fromDate.plus({ days: 10 }).toJSDate();
+          await setMFAGracePeriod(userID, newGracePeriod);
+          break;
+        }
+      }
+      setMFAGracePeriodConfirmationDialog.dismiss();
+    }, [
+      mfaGracePeriodAction,
+      setMFAGracePeriodConfirmationDialog,
+      setMFAGracePeriod,
+      userID,
+      user?.mfaGracePeriodEndAt,
+    ]);
+
+    const onConfirmRemoveMFAGracePeriod = useCallback(async () => {
+      await removeMFAGracePeriod(userID);
+      cancelMFAGracePeriodConfirmationDialog.dismiss();
+    }, [removeMFAGracePeriod, userID, cancelMFAGracePeriodConfirmationDialog]);
 
     const onRenderPasskeyIdentityDetailCell = useCallback(
       (item?: PasskeyIdentityData, index?: number): React.ReactNode => {
@@ -967,6 +1087,32 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
       authenticators,
     ]);
 
+    const onRenderExtendedMFAGracePeriod = useCallback(() => {
+      return (
+        <LinkButton
+          className={styles.authenticatorGrantGracePeriod}
+          onClick={setMFAGracePeriodConfirmationDialog.show}
+        >
+          <FormattedMessage
+            id={"UserDetails.account-security.secondary.extend-grace-period"}
+          />
+        </LinkButton>
+      );
+    }, [setMFAGracePeriodConfirmationDialog.show]);
+
+    const onRenderCancelMFAGracePeriod = useCallback(() => {
+      return (
+        <LinkButton
+          className={styles.authenticatorGrantGracePeriod}
+          onClick={cancelMFAGracePeriodConfirmationDialog.show}
+        >
+          <FormattedMessage
+            id={"UserDetails.account-security.secondary.cancel-grace-period"}
+          />
+        </LinkButton>
+      );
+    }, [cancelMFAGracePeriodConfirmationDialog.show]);
+
     return (
       <div className={styles.root}>
         <RemoveConfirmationDialog
@@ -1078,9 +1224,47 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
               />
             </div>
             {!secondaryAuthenticatorLists.hasVisibleList ? (
-              <Text as="h3" className={cn(styles.authenticatorEmpty)}>
-                <FormattedMessage id="UserDetails.account-security.secondary.empty" />
-              </Text>
+              <>
+                <Text as="h3" className={cn(styles.authenticatorEmpty)}>
+                  {!secondaryAuthicatorIsRequired ? (
+                    <FormattedMessage id="UserDetails.account-security.secondary.empty" />
+                  ) : isWithinMFAGracePeriod ? (
+                    <FormattedMessage
+                      id="UserDetails.account-security.secondary.empty-but-within-grace-period"
+                      values={{
+                        gracePeriodEndAt:
+                          formatDatetime(locale, user?.mfaGracePeriodEndAt) ??
+                          "",
+                      }}
+                    />
+                  ) : (
+                    <FormattedMessage id="UserDetails.account-security.secondary.empty-but-required" />
+                  )}
+                </Text>
+                {!isWithinMFAGracePeriod ? (
+                  <LinkButton
+                    className={styles.authenticatorGrantGracePeriod}
+                    onClick={setMFAGracePeriodConfirmationDialog.show}
+                  >
+                    <FormattedMessage
+                      id={
+                        "UserDetails.account-security.secondary.grant-grace-period"
+                      }
+                    />
+                  </LinkButton>
+                ) : null}
+                {canExtendMFAGracePeriod ? (
+                  <div className={styles.updateMFAGracePeriodContainer}>
+                    <FormattedMessage
+                      id="UserDetails.account-security.secondary.update-existing-grace-period"
+                      components={{
+                        Extend: onRenderExtendedMFAGracePeriod,
+                        Cancel: onRenderCancelMFAGracePeriod,
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </>
             ) : null}
             {secondaryAuthenticatorLists.totp.length > 0 ? (
               <div className={styles.authenticatorTypeSection}>
@@ -1140,6 +1324,15 @@ const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
           store={setPasswordExpiredConfirmDialog}
           isExpired={isExpired}
           onConfirm={onConfirmSetPasswordExpired}
+        />
+        <SetMFAGracePeriodConfirmationDialog
+          store={setMFAGracePeriodConfirmationDialog}
+          action={mfaGracePeriodAction}
+          onConfirm={onConfirmSetMFAGracePeriod}
+        />
+        <CancelMFAGracePeriodConfirmationDialog
+          store={cancelMFAGracePeriodConfirmationDialog}
+          onConfirm={onConfirmRemoveMFAGracePeriod}
         />
       </div>
     );

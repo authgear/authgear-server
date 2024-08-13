@@ -66,7 +66,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 
 	oneOf := n.oneOf(objectForOneOf)
 	verificationRequired := oneOf.IsVerificationRequired()
-	targetStepName := oneOf.TargetStep
+	targetStepName := oneOf.GetTargetStepName()
 
 	m, _, authenticatorSelected := authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticator](flows)
 	claimVerifiedAlready := false
@@ -126,7 +126,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 
 	oneOf := n.oneOf(objectForOneOf)
 	verificationRequired := oneOf.IsVerificationRequired()
-	targetStepName := oneOf.TargetStep
+	targetStepName := oneOf.GetTargetStepName()
 
 	m, _, authenticatorSelected := authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticator](flows)
 	claimVerifiedAlready := false
@@ -193,8 +193,8 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 	return nil, authflow.ErrIncompatibleInput
 }
 
-func (n *IntentCreateAuthenticatorOOBOTP) oneOf(o config.AuthenticationFlowObject) *config.AuthenticationFlowSignupFlowOneOf {
-	oneOf, ok := o.(*config.AuthenticationFlowSignupFlowOneOf)
+func (n *IntentCreateAuthenticatorOOBOTP) oneOf(o config.AuthenticationFlowObject) config.AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf {
+	oneOf, ok := o.(config.AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf)
 	if !ok {
 		panic(fmt.Errorf("flow object is %T", o))
 	}
