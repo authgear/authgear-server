@@ -48,6 +48,8 @@ func IdentitiesDisplayName(identities []*identity.Info) string {
 		return "passkey"
 	case model.IdentityTypeSIWE:
 		return "siwe"
+	case model.IdentityTypeLDAP:
+		return "ldap"
 	default:
 		return ""
 	}
