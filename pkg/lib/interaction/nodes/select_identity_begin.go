@@ -65,6 +65,8 @@ func (n *NodeSelectIdentityBegin) deriveEdges() []interaction.Edge {
 			break
 		case model.IdentityTypePasskey:
 			break
+		case model.IdentityTypeLDAP:
+			break
 		case model.IdentityTypeSIWE:
 			edges = append(edges, &EdgeUseIdentitySIWE{
 				IsAuthentication: n.IsAuthentication,
