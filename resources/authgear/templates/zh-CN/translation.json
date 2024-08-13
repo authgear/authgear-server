@@ -903,6 +903,7 @@
   "v2-oauth-branding-adfs": "使用 Microsoft AD FS 登录",
   "v2-oauth-branding-wechat": "使用微信登录",
   "v2-oauth-branding-iamsmart": "以智方便继续",
+  "v2-ldap-branding": "使用LDAP登录",
   "v2-error-invalid-email": "请在电子邮件地址中包含''@''。",
   "v2-error-web-ui-invalid-session-return": "<p>此页面无效或已过期。</p><p>请返回并重试您的请求。</p>",
   "v2-error-no-public-signup": "<p>注册已被禁用。</p><p>请联系系统管理员。</p>",

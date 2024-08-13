@@ -903,6 +903,7 @@
   "v2-oauth-branding-adfs": "เข้าสู่ระบบด้วย Microsoft AD FS",
   "v2-oauth-branding-wechat": "เข้าสู่ระบบด้วย WeChat",
   "v2-oauth-branding-iamsmart": "ดำเนินการต่อด้วย iAM Smart",
+  "v2-ldap-branding": "เข้าสู่ระบบด้วย LDAP",
   "v2-error-invalid-email": "โปรดใส่อีเมลที่มี '@'",
   "v2-error-web-ui-invalid-session-return": "<p>หน้านี้ไม่ถูกต้องหรือหมดอายุแล้ว</p><p>โปรดกลับไปและลองอีกครั้ง</p>",
   "v2-error-no-public-signup": "<p>การลงทะเบียนถูกปิดใช้งาน</p><p>โปรดติดต่อผู้ดูแลระบบ</p>",
