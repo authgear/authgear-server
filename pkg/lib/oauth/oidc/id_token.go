@@ -14,7 +14,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
-	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -24,23 +23,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 //go:generate mockgen -source=id_token.go -destination=id_token_mock_test.go -package oidc
-
-var UserinfoScopes = []string{
-	oauth.FullAccessScope,
-	oauth.FullUserInfoScope,
-}
-
-var IDTokenStandardAttributes = []string{
-	stdattrs.Email,
-	stdattrs.EmailVerified,
-	stdattrs.PhoneNumber,
-	stdattrs.PhoneNumberVerified,
-	stdattrs.PreferredUsername,
-}
 
 type UserProvider interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
@@ -145,19 +130,10 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 
 	info := opts.AuthenticationInfo
 
-	// For the first party client,
-	// We MUST NOT include any personal identifiable information (PII) here.
-	// The ID token may be included in the GET request in form of `id_token_hint`.
-	nonPIIUserClaimsOnly := true
-	if opts.ClientLike.PIIAllowedInIDToken {
-		for _, s := range UserinfoScopes {
-			if slice.ContainsString(opts.ClientLike.Scopes, s) {
-				nonPIIUserClaimsOnly = false
-			}
-		}
-	}
+	// Populate issuer.
+	_ = claims.Set(jwt.IssuerKey, ti.Iss())
 
-	err := ti.PopulateUserClaims(claims, info.UserID, nonPIIUserClaimsOnly)
+	err := ti.PopulateUserClaimsInIDToken(claims, info.UserID, opts.ClientLike)
 	if err != nil {
 		return "", err
 	}
@@ -222,11 +198,7 @@ func (ti *IDTokenIssuer) VerifyIDToken(idToken string) (token jwt.Token, err err
 	return
 }
 
-func (ti *IDTokenIssuer) PopulateNonPIIUserClaims(token jwt.Token, userID string) error {
-	return ti.PopulateUserClaims(token, userID, true)
-}
-
-func (ti *IDTokenIssuer) PopulateUserClaims(token jwt.Token, userID string, nonPIIUserClaimsOnly bool) error {
+func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(token jwt.Token, userID string, clientLike *oauth.ClientLike) error {
 	user, err := ti.Users.Get(userID, config.RoleBearer)
 	if err != nil {
 		return err
@@ -241,16 +213,23 @@ func (ti *IDTokenIssuer) PopulateUserClaims(token jwt.Token, userID string, nonP
 		roleKeys[i] = roles[i].Key
 	}
 
-	_ = token.Set(jwt.IssuerKey, ti.Iss())
 	_ = token.Set(jwt.SubjectKey, userID)
 	_ = token.Set(string(model.ClaimUserIsAnonymous), user.IsAnonymous)
 	_ = token.Set(string(model.ClaimUserIsVerified), user.IsVerified)
 	_ = token.Set(string(model.ClaimUserCanReauthenticate), user.CanReauthenticate)
 	_ = token.Set(string(model.ClaimAuthgearRoles), roleKeys)
 
-	if !nonPIIUserClaimsOnly {
+	if clientLike.PIIAllowedInIDToken {
 		for k, v := range user.StandardAttributes {
-			if slice.ContainsString(IDTokenStandardAttributes, k) {
+			isAllowed := false
+			for _, scope := range clientLike.Scopes {
+				if ScopeAllowsClaim(scope, k) {
+					isAllowed = true
+					break
+				}
+			}
+
+			if isAllowed {
 				_ = token.Set(k, v)
 			}
 		}
@@ -281,30 +260,31 @@ func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike
 	out[string(model.ClaimUserCanReauthenticate)] = user.CanReauthenticate
 	out[string(model.ClaimAuthgearRoles)] = roleKeys
 
-	nonPIIUserClaimsOnly := true
-	// When the client is first party
-	// always include userinfo for the userinfo endpoint
-	// We check the scopes only for third party client
 	if clientLike.IsFirstParty {
-		nonPIIUserClaimsOnly = false
+		// When the client is first party, we always include all standard attributes, all custom attributes.
+		for k, v := range user.StandardAttributes {
+			out[k] = v
+		}
+
+		out["custom_attributes"] = user.CustomAttributes
+		out["x_web3"] = user.Web3
 	} else {
-		for _, s := range UserinfoScopes {
-			if slice.ContainsString(clientLike.Scopes, s) {
-				nonPIIUserClaimsOnly = false
+		// When the client is third party, we include the standard claims according to scopes.
+		for k, v := range user.StandardAttributes {
+			isAllowed := false
+			for _, scope := range clientLike.Scopes {
+				if ScopeAllowsClaim(scope, k) {
+					isAllowed = true
+					break
+				}
+			}
+
+			if isAllowed {
+				out[k] = v
 			}
 		}
 	}
-	if nonPIIUserClaimsOnly {
-		return out, nil
-	}
 
-	// todo add role
-	// Populate userinfo claims
-	for k, v := range user.StandardAttributes {
-		out[k] = v
-	}
-	out["custom_attributes"] = user.CustomAttributes
-	out["x_web3"] = user.Web3
 	return out, nil
 }
 

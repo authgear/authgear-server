@@ -1080,19 +1080,19 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 	}
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
-		Secrets:    oAuthKeyMaterials,
-		Clock:      clockClock,
-		UserClaims: idTokenIssuer,
-		BaseURL:    endpointsEndpoints,
-		Events:     eventService,
+		Secrets:       oAuthKeyMaterials,
+		Clock:         clockClock,
+		IDTokenIssuer: idTokenIssuer,
+		BaseURL:       endpointsEndpoints,
+		Events:        eventService,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	oauthAccessTokenEncoding := oauth2.AccessTokenEncoding{
-		Secrets:    oAuthKeyMaterials,
-		Clock:      clockClock,
-		UserClaims: idTokenIssuer,
-		BaseURL:    endpointsEndpoints,
-		Events:     eventService,
+		Secrets:       oAuthKeyMaterials,
+		Clock:         clockClock,
+		IDTokenIssuer: idTokenIssuer,
+		BaseURL:       endpointsEndpoints,
+		Events:        eventService,
 	}
 	accessGrantService := oauth2.AccessGrantService{
 		AppID:             appID,

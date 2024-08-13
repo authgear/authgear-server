@@ -47,7 +47,8 @@ func (s *AccessGrantService) IssueAccessGrant(
 		return nil, err
 	}
 
-	at, err := s.AccessTokenIssuer.EncodeAccessToken(client, accessGrant, userID, token)
+	clientLike := ClientClientLike(client, scopes)
+	at, err := s.AccessTokenIssuer.EncodeAccessToken(client, clientLike, accessGrant, userID, token)
 	if err != nil {
 		return nil, err
 	}

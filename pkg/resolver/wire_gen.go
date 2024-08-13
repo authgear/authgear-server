@@ -638,11 +638,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	accessTokenEncoding := &oauth2.AccessTokenEncoding{
-		Secrets:    oAuthKeyMaterials,
-		Clock:      clock,
-		UserClaims: idTokenIssuer,
-		BaseURL:    endpointsEndpoints,
-		Events:     eventService,
+		Secrets:       oAuthKeyMaterials,
+		Clock:         clock,
+		IDTokenIssuer: idTokenIssuer,
+		BaseURL:       endpointsEndpoints,
+		Events:        eventService,
 	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,

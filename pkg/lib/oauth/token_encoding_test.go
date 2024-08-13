@@ -61,19 +61,13 @@ func TestAccessToken(t *testing.T) {
 			Set: jwkSet,
 		}
 
-		mockUserClaimsProvider := NewMockUserClaimsProvider(ctrl)
+		mockIDTokenIssuer := NewMockIDTokenIssuer(ctrl)
 		mockEventService := NewMockEventService(ctrl)
 
-		mockUserClaimsProvider.EXPECT().PopulateNonPIIUserClaims(gomock.Any(), "user-id").DoAndReturn(
-			func(token jwt.Token, userID string) error {
-				return nil
-			})
-		mockEventService.EXPECT().DispatchEventOnCommit(gomock.Any()).Return(nil)
-
 		encoding := &AccessTokenEncoding{
-			Secrets:    secrets,
-			Clock:      clock.NewMockClockAtTime(now),
-			UserClaims: mockUserClaimsProvider,
+			Secrets:       secrets,
+			Clock:         clock.NewMockClockAtTime(now),
+			IDTokenIssuer: mockIDTokenIssuer,
 			BaseURL: &endpoints.Endpoints{
 				HTTPHost:  "test1.authgear.com",
 				HTTPProto: "http",
@@ -86,6 +80,8 @@ func TestAccessToken(t *testing.T) {
 			ClientID:            "client-id",
 			AccessTokenLifetime: 3600,
 		}
+		var noScopes []string
+		clientLike := ClientClientLike(client, noScopes)
 
 		accessGrant := &AccessGrant{
 			CreatedAt: now,
@@ -93,7 +89,11 @@ func TestAccessToken(t *testing.T) {
 			TokenHash: "token-hash",
 		}
 
-		accessToken, err := encoding.EncodeAccessToken(client, accessGrant, "user-id", "token")
+		mockEventService.EXPECT().DispatchEventOnCommit(gomock.Any()).Return(nil)
+		mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
+		mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), "user-id", clientLike).Return(nil)
+
+		accessToken, err := encoding.EncodeAccessToken(client, clientLike, accessGrant, "user-id", "token")
 		So(err, ShouldBeNil)
 
 		_, _, err = encoding.DecodeAccessToken(accessToken)
@@ -109,6 +109,7 @@ func TestAccessToken(t *testing.T) {
 		clientID, _ := decodedToken.Get("client_id")
 		idKey, _ := decodedToken.Get(jwt.JwtIDKey)
 
+		So(decodedToken.Issuer(), ShouldEqual, "http://test1.authgear.com")
 		So(decodedToken.Audience(), ShouldResemble, []string{"http://test1.authgear.com"})
 		So(decodedToken.IssuedAt(), ShouldEqual, accessGrant.CreatedAt)
 		So(decodedToken.Expiration(), ShouldEqual, accessGrant.ExpireAt)

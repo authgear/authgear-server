@@ -93,7 +93,7 @@ type IDTokenIssuer interface {
 }
 
 type AccessTokenIssuer interface {
-	EncodeAccessToken(client *config.OAuthClientConfig, grant *oauth.AccessGrant, userID string, token string) (string, error)
+	EncodeAccessToken(client *config.OAuthClientConfig, clientLike *oauth.ClientLike, grant *oauth.AccessGrant, userID string, token string) (string, error)
 }
 
 type EventService interface {

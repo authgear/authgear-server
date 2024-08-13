@@ -13,41 +13,55 @@ import (
 	jwt "github.com/lestrrat-go/jwx/v2/jwt"
 )
 
-// MockUserClaimsProvider is a mock of UserClaimsProvider interface.
-type MockUserClaimsProvider struct {
+// MockIDTokenIssuer is a mock of IDTokenIssuer interface.
+type MockIDTokenIssuer struct {
 	ctrl     *gomock.Controller
-	recorder *MockUserClaimsProviderMockRecorder
+	recorder *MockIDTokenIssuerMockRecorder
 }
 
-// MockUserClaimsProviderMockRecorder is the mock recorder for MockUserClaimsProvider.
-type MockUserClaimsProviderMockRecorder struct {
-	mock *MockUserClaimsProvider
+// MockIDTokenIssuerMockRecorder is the mock recorder for MockIDTokenIssuer.
+type MockIDTokenIssuerMockRecorder struct {
+	mock *MockIDTokenIssuer
 }
 
-// NewMockUserClaimsProvider creates a new mock instance.
-func NewMockUserClaimsProvider(ctrl *gomock.Controller) *MockUserClaimsProvider {
-	mock := &MockUserClaimsProvider{ctrl: ctrl}
-	mock.recorder = &MockUserClaimsProviderMockRecorder{mock}
+// NewMockIDTokenIssuer creates a new mock instance.
+func NewMockIDTokenIssuer(ctrl *gomock.Controller) *MockIDTokenIssuer {
+	mock := &MockIDTokenIssuer{ctrl: ctrl}
+	mock.recorder = &MockIDTokenIssuerMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockUserClaimsProvider) EXPECT() *MockUserClaimsProviderMockRecorder {
+func (m *MockIDTokenIssuer) EXPECT() *MockIDTokenIssuerMockRecorder {
 	return m.recorder
 }
 
-// PopulateNonPIIUserClaims mocks base method.
-func (m *MockUserClaimsProvider) PopulateNonPIIUserClaims(token jwt.Token, userID string) error {
+// Iss mocks base method.
+func (m *MockIDTokenIssuer) Iss() string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PopulateNonPIIUserClaims", token, userID)
+	ret := m.ctrl.Call(m, "Iss")
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// Iss indicates an expected call of Iss.
+func (mr *MockIDTokenIssuerMockRecorder) Iss() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Iss", reflect.TypeOf((*MockIDTokenIssuer)(nil).Iss))
+}
+
+// PopulateUserClaimsInIDToken mocks base method.
+func (m *MockIDTokenIssuer) PopulateUserClaimsInIDToken(token jwt.Token, userID string, clientLike *ClientLike) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PopulateUserClaimsInIDToken", token, userID, clientLike)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// PopulateNonPIIUserClaims indicates an expected call of PopulateNonPIIUserClaims.
-func (mr *MockUserClaimsProviderMockRecorder) PopulateNonPIIUserClaims(token, userID interface{}) *gomock.Call {
+// PopulateUserClaimsInIDToken indicates an expected call of PopulateUserClaimsInIDToken.
+func (mr *MockIDTokenIssuerMockRecorder) PopulateUserClaimsInIDToken(token, userID, clientLike interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PopulateNonPIIUserClaims", reflect.TypeOf((*MockUserClaimsProvider)(nil).PopulateNonPIIUserClaims), token, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PopulateUserClaimsInIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).PopulateUserClaimsInIDToken), token, userID, clientLike)
 }
 
 // MockBaseURLProvider is a mock of BaseURLProvider interface.
