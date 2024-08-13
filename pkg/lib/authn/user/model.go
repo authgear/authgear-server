@@ -311,11 +311,11 @@ func newUserModel(
 		Roles:              roles,
 		Groups:             groups,
 
-		EndUserAccountID: computeEndUserAccountID(user, identities, web3Info),
+		EndUserAccountID: computeEndUserAccountID(derivedStandardAttributes, identities, web3Info),
 	}
 }
 
-func computeEndUserAccountID(user *User, identities []*identity.Info, web3Info *model.UserWeb3Info) string {
+func computeEndUserAccountID(derivedStandardAttributes map[string]interface{}, identities []*identity.Info, web3Info *model.UserWeb3Info) string {
 	var endUserAccountID string
 
 	var ldapDisplayID string
@@ -326,11 +326,11 @@ func computeEndUserAccountID(user *User, identities []*identity.Info, web3Info *
 		}
 	}
 
-	if s, ok := user.StandardAttributes[string(model.ClaimEmail)].(string); ok && s != "" {
+	if s, ok := derivedStandardAttributes[string(model.ClaimEmail)].(string); ok && s != "" {
 		endUserAccountID = s
-	} else if s, ok := user.StandardAttributes[string(model.ClaimPreferredUsername)].(string); ok && s != "" {
+	} else if s, ok := derivedStandardAttributes[string(model.ClaimPreferredUsername)].(string); ok && s != "" {
 		endUserAccountID = s
-	} else if s, ok := user.StandardAttributes[string(model.ClaimPhoneNumber)].(string); ok && s != "" {
+	} else if s, ok := derivedStandardAttributes[string(model.ClaimPhoneNumber)].(string); ok && s != "" {
 		endUserAccountID = s
 	} else if ldapDisplayID != "" {
 		endUserAccountID = ldapDisplayID
