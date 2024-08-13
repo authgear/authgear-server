@@ -208,6 +208,7 @@ function constructConfig(
   currentState: ConfigFormState,
   _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
+  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     function filterEnabled<T extends string>(
       s: AuthenticatorTypeFormState<T>[]
@@ -226,9 +227,15 @@ function constructConfig(
     );
 
     config.authentication.secondary_authentication_mode = currentState.mfaMode;
-    config.authentication.secondary_authentication_grace_period = {
-      enabled: currentState.mfaGlobalGracePeriodEnabled,
-    };
+
+    if (!currentState.mfaGlobalGracePeriodEnabled) {
+      config.authentication.secondary_authentication_grace_period = undefined;
+    } else {
+      config.authentication.secondary_authentication_grace_period = {
+        enabled: currentState.mfaGlobalGracePeriodEnabled,
+      };
+    }
+
     config.authentication.device_token.disabled =
       !currentState.deviceTokenEnabled;
 
