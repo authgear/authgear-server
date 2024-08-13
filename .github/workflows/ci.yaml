@@ -23,7 +23,15 @@ jobs:
         node-version-file: "./.tool-versions"
     - run: npm ci
       working-directory: ./authui
-    - run: npm audit
+    - name: npm audit
+      env:
+        AUDIT_LEVEL: ${{ vars.NPM_AUDIT_LEVEL }}
+      run: |
+        if [ -z "${AUDIT_LEVEL}" ]; then
+          npm audit
+        else
+          npm audit --audit-level="${AUDIT_LEVEL}"
+        fi
       working-directory: ./authui
       if: ${{ !cancelled() }}
     - run: npm run typecheck
@@ -56,7 +64,15 @@ jobs:
         node-version-file: "./.tool-versions"
     - run: npm ci
       working-directory: ./portal
-    - run: npm audit
+    - name: npm audit
+      env:
+        AUDIT_LEVEL: ${{ vars.NPM_AUDIT_LEVEL }}
+      run: |
+        if [ -z "${AUDIT_LEVEL}" ]; then
+          npm audit
+        else
+          npm audit --audit-level="${AUDIT_LEVEL}"
+        fi
       working-directory: ./portal
       if: ${{ !cancelled() }}
     - run: npm run typecheck
