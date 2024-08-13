@@ -68,7 +68,7 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 			output = append(output, oneOf)
 		}
 	}
-	if bp, exist := getBotProtectionRequirementsSignupOrLogin(cfg); exist {
+	if bp, ok := getBotProtectionRequirementsSignupOrLogin(cfg); ok {
 		for _, oneOf := range output {
 			if oneOf.BotProtection == nil {
 				oneOf.BotProtection = bp
@@ -95,7 +95,7 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationEmail(cfg *config.AppCon
 		// Add bot protection to identify step if
 		//   1. verification is required
 		//   2. bot protection is required
-		if bp, exist := getBotProtectionRequirementsOOBOTPEmail(cfg); exist {
+		if bp, ok := getBotProtectionRequirementsOOBOTPEmail(cfg); ok {
 			oneOf.BotProtection = bp
 		}
 	}
@@ -126,7 +126,7 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationPhone(cfg *config.AppCon
 		// Add bot protection to identify step if
 		//   1. verification is required
 		//   2. bot protection is required
-		if bp, exist := getBotProtectionRequirementsOOBOTPSMS(cfg); exist {
+		if bp, ok := getBotProtectionRequirementsOOBOTPSMS(cfg); ok {
 			oneOf.BotProtection = bp
 		}
 	}
@@ -209,7 +209,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 					Authentication: am,
 					TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeSignup),
 				}
-				if bp, exist := getBotProtectionRequirementsOOBOTPEmail(cfg); exist {
+				if bp, ok := getBotProtectionRequirementsOOBOTPEmail(cfg); ok {
 					oneOf.BotProtection = bp
 				}
 				step.OneOf = append(step.OneOf, oneOf)
@@ -222,7 +222,7 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 					Authentication: am,
 					TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeSignup),
 				}
-				if bp, exist := getBotProtectionRequirementsOOBOTPSMS(cfg); exist {
+				if bp, ok := getBotProtectionRequirementsOOBOTPSMS(cfg); ok {
 					oneOf.BotProtection = bp
 				}
 				step.OneOf = append(step.OneOf, oneOf)
@@ -270,7 +270,7 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 			}
 
 			if bpGetter != nil {
-				if bp, exist := bpGetter(cfg); exist {
+				if bp, ok := bpGetter(cfg); ok {
 					oneOf.BotProtection = bp
 				}
 			}

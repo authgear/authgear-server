@@ -5,7 +5,7 @@ import "github.com/authgear/authgear-server/pkg/lib/config"
 func isBotProtectionEnabled(cfg *config.AppConfig) bool {
 	return cfg.BotProtection != nil && cfg.BotProtection.Enabled && cfg.BotProtection.Provider != nil
 }
-func getBotProtectionRequirementsSignupOrLogin(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, exist bool) {
+func getBotProtectionRequirementsSignupOrLogin(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, ok bool) {
 	if !isBotProtectionEnabled(cfg) {
 		return nil, false
 	}
@@ -17,7 +17,7 @@ func getBotProtectionRequirementsSignupOrLogin(cfg *config.AppConfig) (botProtec
 	}, true
 }
 
-func getBotProtectionRequirementsAccountRecovery(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, exist bool) {
+func getBotProtectionRequirementsAccountRecovery(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, ok bool) {
 	if !isBotProtectionEnabled(cfg) {
 		return nil, false
 	}
@@ -28,7 +28,7 @@ func getBotProtectionRequirementsAccountRecovery(cfg *config.AppConfig) (botProt
 		Mode: cfg.BotProtection.Requirements.AccountRecovery.Mode,
 	}, true
 }
-func getBotProtectionRequirementsPassword(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, exist bool) {
+func getBotProtectionRequirementsPassword(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, ok bool) {
 	if !isBotProtectionEnabled(cfg) {
 		return nil, false
 	}
@@ -39,7 +39,7 @@ func getBotProtectionRequirementsPassword(cfg *config.AppConfig) (botProtection 
 		Mode: cfg.BotProtection.Requirements.Password.Mode,
 	}, true
 }
-func getBotProtectionRequirementsOOBOTPEmail(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, exist bool) {
+func getBotProtectionRequirementsOOBOTPEmail(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, ok bool) {
 	if !isBotProtectionEnabled(cfg) {
 		return nil, false
 	}
@@ -50,7 +50,7 @@ func getBotProtectionRequirementsOOBOTPEmail(cfg *config.AppConfig) (botProtecti
 		Mode: cfg.BotProtection.Requirements.OOBOTPEmail.Mode,
 	}, true
 }
-func getBotProtectionRequirementsOOBOTPSMS(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, exist bool) {
+func getBotProtectionRequirementsOOBOTPSMS(cfg *config.AppConfig) (botProtection *config.AuthenticationFlowBotProtection, ok bool) {
 	if !isBotProtectionEnabled(cfg) {
 		return nil, false
 	}

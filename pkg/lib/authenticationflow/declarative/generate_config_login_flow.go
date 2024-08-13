@@ -102,7 +102,7 @@ func generateLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config.Authe
 		}
 	}
 
-	if bp, exist := getBotProtectionRequirementsSignupOrLogin(cfg); exist {
+	if bp, ok := getBotProtectionRequirementsSignupOrLogin(cfg); ok {
 		for _, oneOf := range output {
 			oneOf.BotProtection = bp
 		}
@@ -205,7 +205,7 @@ func generateLoginFlowStepAuthenticatePrimaryPassword(
 		TargetStep: targetStep,
 	})
 
-	if bp, exist := getBotProtectionRequirementsPassword(cfg); exist {
+	if bp, ok := getBotProtectionRequirementsPassword(cfg); ok {
 		oneOf.BotProtection = bp
 	}
 	return oneOf
@@ -234,7 +234,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBEmail(
 	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, identification); ok {
 		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 	}
-	if bp, exist := getBotProtectionRequirementsOOBOTPEmail(cfg); exist {
+	if bp, ok := getBotProtectionRequirementsOOBOTPEmail(cfg); ok {
 		oneOf.BotProtection = bp
 	}
 	return oneOf
@@ -255,7 +255,7 @@ func generateLoginFlowStepAuthenticatePrimaryOOBSMS(
 		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
 	}
 
-	if bp, exist := getBotProtectionRequirementsOOBOTPSMS(cfg); exist {
+	if bp, ok := getBotProtectionRequirementsOOBOTPSMS(cfg); ok {
 		oneOf.BotProtection = bp
 	}
 	return oneOf
@@ -300,7 +300,7 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 				Authentication: am,
 			}
 			if bpGetter != nil {
-				if bp, exist := bpGetter(cfg); exist {
+				if bp, ok := bpGetter(cfg); ok {
 					oneOf.BotProtection = bp
 				}
 			}

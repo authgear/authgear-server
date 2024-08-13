@@ -47,7 +47,7 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 	}
 
 	// Note we do not call getBotProtectionRequirementsOOBOTPEmail or getBotProtectionRequirementsOOBOTPSMS here.
-	if bp, exist := getBotProtectionRequirementsAccountRecovery(cfg); exist {
+	if bp, ok := getBotProtectionRequirementsAccountRecovery(cfg); ok {
 		for _, oneOf := range oneOfs {
 			oneOf.BotProtection = bp
 		}
