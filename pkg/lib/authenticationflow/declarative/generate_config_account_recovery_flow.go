@@ -46,9 +46,11 @@ func GenerateAccountRecoveryFlowConfig(cfg *config.AppConfig) *config.Authentica
 		})
 	}
 
-	for _, oneOf := range oneOfs {
-		// Note we do not call getBotProtectionRequirementsOOBOTPEmail or getBotProtectionRequirementsOOBOTPSMS here.
-		oneOf.BotProtection = getBotProtectionRequirementsAccountRecovery(cfg)
+	// Note we do not call getBotProtectionRequirementsOOBOTPEmail or getBotProtectionRequirementsOOBOTPSMS here.
+	if bp, ok := getBotProtectionRequirementsAccountRecovery(cfg); ok {
+		for _, oneOf := range oneOfs {
+			oneOf.BotProtection = bp
+		}
 	}
 	return &config.AuthenticationFlowAccountRecoveryFlow{
 		Name: nameGeneratedFlow,

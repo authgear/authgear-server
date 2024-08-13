@@ -68,13 +68,13 @@ func generateSignupFlowStepIdentifyLoginID(cfg *config.AppConfig, stepName strin
 			output = append(output, oneOf)
 		}
 	}
-
-	for _, oneOf := range output {
-		bp := getBotProtectionRequirementsSignupOrLogin(cfg)
-		if oneOf.BotProtection == nil {
-			oneOf.BotProtection = bp
-		} else {
-			oneOf.BotProtection = config.GetStrictestAuthFlowBotProtection(bp, oneOf.BotProtection)
+	if bp, ok := getBotProtectionRequirementsSignupOrLogin(cfg); ok {
+		for _, oneOf := range output {
+			if oneOf.BotProtection == nil {
+				oneOf.BotProtection = bp
+			} else {
+				oneOf.BotProtection = config.GetStrictestAuthFlowBotProtection(bp, oneOf.BotProtection)
+			}
 		}
 	}
 
@@ -95,7 +95,9 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationEmail(cfg *config.AppCon
 		// Add bot protection to identify step if
 		//   1. verification is required
 		//   2. bot protection is required
-		oneOf.BotProtection = getBotProtectionRequirementsOOBOTPEmail(cfg)
+		if bp, ok := getBotProtectionRequirementsOOBOTPEmail(cfg); ok {
+			oneOf.BotProtection = bp
+		}
 	}
 
 	// Add authenticate step primary if necessary
@@ -124,7 +126,9 @@ func generateSignupFlowStepIdentifyLoginIDIdentificationPhone(cfg *config.AppCon
 		// Add bot protection to identify step if
 		//   1. verification is required
 		//   2. bot protection is required
-		oneOf.BotProtection = getBotProtectionRequirementsOOBOTPSMS(cfg)
+		if bp, ok := getBotProtectionRequirementsOOBOTPSMS(cfg); ok {
+			oneOf.BotProtection = bp
+		}
 	}
 
 	// Add authenticate step primary if necessary
@@ -204,7 +208,9 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
 					TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeSignup),
-					BotProtection:  getBotProtectionRequirementsOOBOTPEmail(cfg),
+				}
+				if bp, ok := getBotProtectionRequirementsOOBOTPEmail(cfg); ok {
+					oneOf.BotProtection = bp
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}
@@ -215,7 +221,9 @@ func generateSignupFlowStepCreateAuthenticatorPrimary(cfg *config.AppConfig, ide
 				oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 					Authentication: am,
 					TargetStep:     nameStepIdentify(config.AuthenticationFlowTypeSignup),
-					BotProtection:  getBotProtectionRequirementsOOBOTPSMS(cfg),
+				}
+				if bp, ok := getBotProtectionRequirementsOOBOTPSMS(cfg); ok {
+					oneOf.BotProtection = bp
 				}
 				step.OneOf = append(step.OneOf, oneOf)
 			}
@@ -255,12 +263,18 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 		Type: config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator,
 	}
 
-	addOneOf := func(am config.AuthenticationFlowAuthentication, bp *config.AuthenticationFlowBotProtection) {
+	addOneOf := func(am config.AuthenticationFlowAuthentication, bpGetter func(*config.AppConfig) (*config.AuthenticationFlowBotProtection, bool)) {
 		if _, ok := allowedMap[am]; ok {
 			oneOf := &config.AuthenticationFlowSignupFlowOneOf{
 				Authentication: am,
-				BotProtection:  bp,
 			}
+
+			if bpGetter != nil {
+				if bp, ok := bpGetter(cfg); ok {
+					oneOf.BotProtection = bp
+				}
+			}
+
 			if recoveryCodeStep != nil {
 				oneOf.Steps = append(oneOf.Steps, recoveryCodeStep)
 			}
@@ -274,9 +288,9 @@ func generateSignupFlowStepCreateAuthenticatorSecondary(cfg *config.AppConfig, i
 		case model.AuthenticatorTypePassword:
 			addOneOf(config.AuthenticationFlowAuthenticationSecondaryPassword, nil)
 		case model.AuthenticatorTypeOOBEmail:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail(cfg))
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail, getBotProtectionRequirementsOOBOTPEmail)
 		case model.AuthenticatorTypeOOBSMS:
-			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS(cfg))
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
 		case model.AuthenticatorTypeTOTP:
 			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
 		}
