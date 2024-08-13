@@ -774,6 +774,19 @@ func (s *AuthflowScreenWithFlowResponse) Advance(p string, result *Result) {
 	result.RedirectURI = u.String()
 }
 
+// RedirectToFinish is a fix for https://linear.app/authgear/issue/DEV-1793/investigate-sign-in-directly-with-httpsaccountsportalauthgearcom-crash
+// We need Turbo to visit /finish with a full browser redirect,
+// so CSP and connect-src will not kick in.
+func (s *AuthflowScreenWithFlowResponse) RedirectToFinish(route string, result *Result) {
+	q := url.Values{}
+	q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
+	u, _ := url.Parse(route)
+	u.RawQuery = q.Encode()
+
+	result.NavigationAction = "redirect"
+	result.RedirectURI = u.String()
+}
+
 func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandler(
 	inputFactory func(channel model.AuthenticatorOOBChannel) map[string]interface{},
 	channels []model.AuthenticatorOOBChannel,

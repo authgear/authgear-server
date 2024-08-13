@@ -105,7 +105,7 @@ func (n *AuthflowNavigator) Navigate(s *AuthflowScreenWithFlowResponse, r *http.
 	}
 
 	if s.StateTokenFlowResponse.Action.Type == authflow.FlowActionTypeFinished {
-		s.Advance(AuthflowRouteFinishFlow, result)
+		s.RedirectToFinish(AuthflowRouteFinishFlow, result)
 		return
 	}
 
