@@ -288,7 +288,6 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowStep", `
 				"required": ["one_of"],
 				"properties": {
 					"optional": { "type": "boolean" },
-					"enrollment_allowed": { "type": "boolean" },
 					"one_of": {
 						"type": "array",
 						"items": { "$ref": "#/$defs/AuthenticationFlowLoginFlowAuthenticate" }
@@ -1017,10 +1016,6 @@ type AuthenticationFlowLoginFlowStep struct {
 	// Optional is relevant when Type is authenticate.
 	Optional *bool `json:"optional,omitempty"`
 
-	// EnrollmentAllowed is relevant when Type is authenticate and Optional is falsy.
-	// If set to true, user can enroll one of the authenticators to proceed.
-	EnrollmentAllowed *bool `json:"enrollment_allowed,omitempty"`
-
 	// OneOf is relevant when Type is identify or authenticate.
 	OneOf []*AuthenticationFlowLoginFlowOneOf `json:"one_of,omitempty"`
 
@@ -1054,13 +1049,6 @@ func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject 
 
 func (s *AuthenticationFlowLoginFlowStep) IsOptional() bool {
 	if s.Optional != nil && *s.Optional {
-		return true
-	}
-	return false
-}
-
-func (s *AuthenticationFlowLoginFlowStep) IsEnrollmentAllowed() bool {
-	if s.EnrollmentAllowed != nil && *s.EnrollmentAllowed {
 		return true
 	}
 	return false

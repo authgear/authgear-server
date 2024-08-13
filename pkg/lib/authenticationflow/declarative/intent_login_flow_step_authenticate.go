@@ -370,10 +370,6 @@ func (i *IntentLoginFlowStepAuthenticate) deviceTokenIndex(step *config.Authenti
 }
 
 func (i *IntentLoginFlowStepAuthenticate) canCreateAuthenticator(step *config.AuthenticationFlowLoginFlowStep, deps *authflow.Dependencies) (bool, error) {
-	if step.IsEnrollmentAllowed() {
-		return true, nil
-	}
-
 	authenticationConfig := deps.Config.Authentication
 	if authenticationConfig.SecondaryAuthenticationGracePeriod != nil &&
 		authenticationConfig.SecondaryAuthenticationGracePeriod.Enabled &&

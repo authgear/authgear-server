@@ -114,23 +114,3 @@ value:
   optional: false
   one_of:
   - authentication: primary_password
----
-part: AuthenticationFlowLoginFlowStep
-name: optional-false-and-enrollment-allowed-true
-error: null
-value:
-  type: authenticate
-  optional: false
-  enrollment_allowed: true
-  one_of:
-  - authentication: primary_password
----
-part: AuthenticationFlowLoginFlowStep
-name: optional-false-and-enrollment-allowed-false
-error: null
-value:
-  type: authenticate
-  optional: false
-  enrollment_allowed: false
-  one_of:
-  - authentication: primary_password

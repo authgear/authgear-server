@@ -6,7 +6,6 @@
   - [Changes on the Admin GraphQL API](#changes-on-the-admin-graphql-api)
     - [Error Response](#error-response)
   - [Changes on database schema](#changes-on-database-schema)
-- [Changes on the configuration of authentication flow](#changes-on-the-configuration-of-authentication-flow)
 
 ## Abstract
 
@@ -84,40 +83,3 @@ Per-user grace period granted through Admin API is stored in the user model as `
 ```sql
 ALTER TABLE _authgear_user ADD COLUMN mfa_grace_period_end_at TIMESTAMP WITHOUT TIME ZONE;
 ```
-
-## Changes on the configuration of authentication flow
-
-`enrollment_allowed: true` is added to `authenticate` step to allow enrolling any of the authenticators before proceeding.
-
-```yaml
-authentication_flow:
-  login_flows:
-    - name: internal_user
-      steps:
-        - type: identify
-          one_of:
-            - identification: phone
-            - identification: email
-        - type: authenticate
-          one_of:
-            - authentication: primary_password
-        - type: authenticate
-          # Requires user to satisfy one of the following authentication.
-          optional: false # or null
-          # If the end-user has no applicable authentication method,
-          # then enrollment will be required before proceeding.
-          # enrollment_allowed by default is false, meaning user with no applicable method beforehand will be blocked from proceeding.
-          enrollment_allowed: true
-          one_of:
-            - authentication: secondary_totp
-            - authentication: recovery_code
-```
-
-Following table describes the behavior of `enrollment_allowed` with `optional`:
-
-| `optional` | `enrollment_allowed` | Behavior                                                         |
-| ---------- | -------------------- | ---------------------------------------------------------------- |
-| `true`     | `true`               | Skip the step if user has no applicable authenticator.           |
-| `true`     | `false`              | Skip the step if user has no applicable authenticator.           |
-| `false`    | `true`               | User must enroll at least one authenticator before proceeding.   |
-| `false`    | `false`              | User will not be able to proceed if no applicable authenticator. |
