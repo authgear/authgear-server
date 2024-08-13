@@ -1145,7 +1145,7 @@ config:
         - type: login
           name: default
 ---
-name: secondary-authentication-rollout-valid-config
+name: secondary-authentication-grace-period-valid
 error: null
 config:
   id: test
@@ -1157,7 +1157,7 @@ config:
       end_at: "2024-07-25T05:54:32.221Z"
 
 ---
-name: secondary-authentication-rollout-invalid-since
+name: secondary-authentication-grace-period-invalid-since
 error: |-
   invalid configuration:
   /authentication/secondary_authentication_grace_period/end_at: format
