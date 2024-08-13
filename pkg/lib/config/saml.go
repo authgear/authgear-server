@@ -19,7 +19,9 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"id": { "type": "string" }
+		"id": { "type": "string" },
+		"name_id_format": { "$ref": "#/$defs/SAMLNameIDFormat" },
+		"name_id_attribute_pointer": { "$ref": "#/$defs/SAMLNameIDAttributePointer" }
 	},
 	"required": ["id"]
 }
@@ -39,8 +41,52 @@ func (c *SAMLConfig) ResolveProvider(id string) (*SAMLServiceProviderConfig, boo
 	return nil, false
 }
 
+var _ = Schema.Add("SAMLNameIDFormat", `
+{
+	"type": "string",
+	"enum": [
+		"urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+		"urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+	]
+}
+`)
+
+type SAMLNameIDFormat string
+
+const (
+	NameIDFormatUnspecified  SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+	NameIDFormatEmailAddress SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+)
+
+var _ = Schema.Add("SAMLNameIDAttributePointer", `
+{
+	"type": "string",
+	"format": "json-pointer",
+	"enum": [
+		"/sub",
+		"/email",
+		"/phone_number",
+		"/preferred_username"
+	]
+}
+`)
+
+type SAMLNameIDAttributePointer string
+
 type SAMLServiceProviderConfig struct {
-	ID string `json:"id,omitempty"`
+	ID                     string                     `json:"id,omitempty"`
+	NameIDFormat           SAMLNameIDFormat           `json:"name_id_format,omitempty"`
+	NameIDAttributePointer SAMLNameIDAttributePointer `json:"name_id_attribute_pointer,omitempty"`
+}
+
+func (c *SAMLServiceProviderConfig) SetDefaults() {
+	if c.NameIDFormat == "" {
+		c.NameIDFormat = NameIDFormatUnspecified
+	}
+
+	if c.NameIDFormat == NameIDFormatUnspecified && c.NameIDAttributePointer == "" {
+		c.NameIDAttributePointer = "/sub"
+	}
 }
 
 var _ = Schema.Add("SAMLSigningConfig", `
