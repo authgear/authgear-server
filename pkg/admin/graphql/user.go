@@ -351,7 +351,7 @@ var nodeUser = node(
 				Description: "The end user account id constructed based on user's personal data. (e.g. email, phone...etc)",
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*model.User)
-					endUserAccountID := source.EndUserAccountID()
+					endUserAccountID := source.EndUserAccountID
 					if endUserAccountID == "" {
 						return nil, nil
 					}
