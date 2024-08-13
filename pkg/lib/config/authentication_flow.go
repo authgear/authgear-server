@@ -890,7 +890,10 @@ type AuthenticationFlowSignupFlowStep struct {
 	UserProfile []*AuthenticationFlowSignupFlowUserProfile `json:"user_profile,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowSignupFlowStep{}
+var (
+	_ AuthenticationFlowObjectFlowStep                  = &AuthenticationFlowSignupFlowStep{}
+	_ AuthenticationFlowObjectSignupFlowOrLoginFlowStep = &AuthenticationFlowSignupFlowStep{}
+)
 
 func (s *AuthenticationFlowSignupFlowStep) IsFlowObject()   {}
 func (s *AuthenticationFlowSignupFlowStep) GetName() string { return s.Name }
@@ -904,6 +907,22 @@ func (s *AuthenticationFlowSignupFlowStep) GetOneOf() []AuthenticationFlowObject
 		fallthrough
 	case AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
+		for i, v := range s.OneOf {
+			v := v
+			out[i] = v
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func (s *AuthenticationFlowSignupFlowStep) GetSignupFlowOrLoginFlowOneOf() []AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf {
+	switch s.Type {
+	case AuthenticationFlowSignupFlowStepTypeIdentify:
+		fallthrough
+	case AuthenticationFlowSignupFlowStepTypeCreateAuthenticator:
+		out := make([]AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf, len(s.OneOf))
 		for i, v := range s.OneOf {
 			v := v
 			out[i] = v
@@ -938,6 +957,7 @@ var (
 	_ AuthenticationFlowObjectFlowBranch                   = &AuthenticationFlowSignupFlowOneOf{}
 	_ AuthenticationFlowObjectAccountLinkingConfigProvider = &AuthenticationFlowSignupFlowOneOf{}
 	_ AuthenticationFlowObjectBotProtectionConfigProvider  = &AuthenticationFlowSignupFlowOneOf{}
+	_ AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf   = &AuthenticationFlowSignupFlowOneOf{}
 )
 
 func (f *AuthenticationFlowSignupFlowOneOf) IsFlowObject() {}
@@ -958,9 +978,17 @@ func (f *AuthenticationFlowSignupFlowOneOf) GetBranchInfo() AuthenticationFlowOb
 	}
 }
 
+func (f *AuthenticationFlowSignupFlowOneOf) GetAuthentication() AuthenticationFlowAuthentication {
+	return f.Authentication
+}
+
 func (f *AuthenticationFlowSignupFlowOneOf) IsVerificationRequired() bool {
 	// If it is unspecified (i.e. nil), then verification is required.
 	return f.VerificationRequired == nil || *f.VerificationRequired
+}
+
+func (f *AuthenticationFlowSignupFlowOneOf) GetTargetStepName() string {
+	return f.TargetStep
 }
 
 func (f *AuthenticationFlowSignupFlowOneOf) GetAccountLinkingConfig() *AuthenticationFlowAccountLinking {
@@ -1023,7 +1051,10 @@ type AuthenticationFlowLoginFlowStep struct {
 	TargetStep string `json:"target_step,omitempty"`
 }
 
-var _ AuthenticationFlowObjectFlowStep = &AuthenticationFlowLoginFlowStep{}
+var (
+	_ AuthenticationFlowObjectFlowStep                  = &AuthenticationFlowLoginFlowStep{}
+	_ AuthenticationFlowObjectSignupFlowOrLoginFlowStep = &AuthenticationFlowLoginFlowStep{}
+)
 
 func (s *AuthenticationFlowLoginFlowStep) IsFlowObject()   {}
 func (s *AuthenticationFlowLoginFlowStep) GetName() string { return s.Name }
@@ -1037,6 +1068,22 @@ func (s *AuthenticationFlowLoginFlowStep) GetOneOf() []AuthenticationFlowObject 
 		fallthrough
 	case AuthenticationFlowLoginFlowStepTypeAuthenticate:
 		out := make([]AuthenticationFlowObject, len(s.OneOf))
+		for i, v := range s.OneOf {
+			v := v
+			out[i] = v
+		}
+		return out
+	default:
+		return nil
+	}
+}
+
+func (s *AuthenticationFlowLoginFlowStep) GetSignupFlowOrLoginFlowOneOf() []AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf {
+	switch s.Type {
+	case AuthenticationFlowLoginFlowStepTypeIdentify:
+		fallthrough
+	case AuthenticationFlowLoginFlowStepTypeAuthenticate:
+		out := make([]AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf, len(s.OneOf))
 		for i, v := range s.OneOf {
 			v := v
 			out[i] = v
@@ -1073,6 +1120,7 @@ type AuthenticationFlowLoginFlowOneOf struct {
 var (
 	_ AuthenticationFlowObjectFlowBranch                  = &AuthenticationFlowLoginFlowOneOf{}
 	_ AuthenticationFlowObjectBotProtectionConfigProvider = &AuthenticationFlowLoginFlowOneOf{}
+	_ AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf  = &AuthenticationFlowLoginFlowOneOf{}
 )
 
 func (f *AuthenticationFlowLoginFlowOneOf) IsFlowObject() {}
@@ -1095,6 +1143,18 @@ func (f *AuthenticationFlowLoginFlowOneOf) GetBranchInfo() AuthenticationFlowObj
 
 func (f *AuthenticationFlowLoginFlowOneOf) GetBotProtectionConfig() *AuthenticationFlowBotProtection {
 	return f.BotProtection
+}
+
+func (f *AuthenticationFlowLoginFlowOneOf) GetAuthentication() AuthenticationFlowAuthentication {
+	return f.Authentication
+}
+
+func (f *AuthenticationFlowLoginFlowOneOf) IsVerificationRequired() bool {
+	return true
+}
+
+func (f *AuthenticationFlowLoginFlowOneOf) GetTargetStepName() string {
+	return f.TargetStep
 }
 
 type AuthenticationFlowSignupLoginFlow struct {
@@ -1459,6 +1519,17 @@ type AuthenticationFlowObjectAccountLinkingConfigProvider interface {
 
 type AuthenticationFlowObjectBotProtectionConfigProvider interface {
 	GetBotProtectionConfig() *AuthenticationFlowBotProtection
+}
+
+type AuthenticationFlowObjectSignupFlowOrLoginFlowStep interface {
+	GetSignupFlowOrLoginFlowOneOf() []AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf
+}
+
+type AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf interface {
+	AuthenticationFlowObjectBotProtectionConfigProvider
+	GetAuthentication() AuthenticationFlowAuthentication
+	IsVerificationRequired() bool
+	GetTargetStepName() string
 }
 
 func init() {

@@ -2,7 +2,6 @@ package declarative
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -54,52 +53,14 @@ type CreateAuthenticatorTarget struct {
 	VerificationRequired bool   `json:"verification_required"`
 }
 
-type CreateAuthenticatorStepOption struct {
-	OneOf []CreateAuthenticatorStepOptionOneOf
-}
-
-type CreateAuthenticatorStepOptionOneOf struct {
-	TargetStep           string
-	Authentication       config.AuthenticationFlowAuthentication
-	BotProtection        *config.AuthenticationFlowBotProtection
-	VerificationRequired bool
-}
-
-func createAuthenticatorStepOption(step interface{}) *CreateAuthenticatorStepOption {
-	castedStep := &CreateAuthenticatorStepOption{}
-
-	switch step := step.(type) {
-	case *config.AuthenticationFlowSignupFlowStep:
-		for _, oneOf := range step.OneOf {
-			castedStep.OneOf = append(castedStep.OneOf, CreateAuthenticatorStepOptionOneOf{
-				TargetStep:           oneOf.TargetStep,
-				Authentication:       oneOf.Authentication,
-				BotProtection:        oneOf.BotProtection,
-				VerificationRequired: oneOf.IsVerificationRequired(),
-			})
-		}
-	case *config.AuthenticationFlowLoginFlowStep:
-		for _, oneOf := range step.OneOf {
-			castedStep.OneOf = append(castedStep.OneOf, CreateAuthenticatorStepOptionOneOf{
-				TargetStep:     oneOf.TargetStep,
-				Authentication: oneOf.Authentication,
-				BotProtection:  oneOf.BotProtection,
-			})
-		}
-	default:
-		panic(fmt.Sprintf("create_authenticator: unexpected step: %T", step))
-	}
-	return castedStep
-}
-
 func makeCreateAuthenticatorTarget(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	oneOf CreateAuthenticatorStepOptionOneOf,
+	oneOf config.AuthenticationFlowObjectSignupFlowOrLoginFlowOneOf,
 	userID string,
 ) (target *CreateAuthenticatorTarget, claimValue string, isSkipped bool, err error) {
-	targetStep := oneOf.TargetStep
+	targetStep := oneOf.GetTargetStepName()
 	if targetStep != "" {
 		claimValue, isSkipped, err := getCreateAuthenticatorOOBOTPTargetFromTargetStep(ctx, deps, flows, targetStep)
 		if err != nil {
@@ -108,7 +69,7 @@ func makeCreateAuthenticatorTarget(
 		if claimValue == "" {
 			return nil, "", isSkipped, nil
 		}
-		claimName := getOOBAuthenticatorType(oneOf.Authentication).ToClaimName()
+		claimName := getOOBAuthenticatorType(oneOf.GetAuthentication()).ToClaimName()
 		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(deps, userID, claimName, claimValue)
 		if err != nil {
 			return nil, "", isSkipped, err
@@ -122,7 +83,7 @@ func makeCreateAuthenticatorTarget(
 		}
 		target = &CreateAuthenticatorTarget{
 			MaskedDisplayName:    masked,
-			VerificationRequired: !verified && oneOf.VerificationRequired,
+			VerificationRequired: !verified && oneOf.IsVerificationRequired(),
 		}
 	}
 	return target, claimValue, isSkipped, nil
@@ -132,24 +93,24 @@ func NewCreateAuthenticationOptions(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
-	step interface{},
+	step config.AuthenticationFlowObjectSignupFlowOrLoginFlowStep,
 	userID string) ([]CreateAuthenticatorOptionInternal, error) {
-	stepOption := createAuthenticatorStepOption(step)
 	options := []CreateAuthenticatorOptionInternal{}
 	passwordPolicy := NewPasswordPolicy(
 		deps.FeatureConfig.Authenticator,
 		deps.Config.Authenticator.Password.Policy,
 	)
-	for _, b := range stepOption.OneOf {
-		switch b.Authentication {
+	oneOf := step.GetSignupFlowOrLoginFlowOneOf()
+	for _, b := range oneOf {
+		switch b.GetAuthentication() {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
-					Authentication: b.Authentication,
+					Authentication: b.GetAuthentication(),
 					PasswordPolicy: passwordPolicy,
-					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
@@ -172,11 +133,11 @@ func NewCreateAuthenticationOptions(
 			options = append(options, CreateAuthenticatorOptionInternal{
 				UnmaskedTarget: unmaskedTarget,
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
-					Authentication: b.Authentication,
+					Authentication: b.GetAuthentication(),
 					OTPForm:        otpForm,
 					Channels:       channels,
 					Target:         target,
-					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 			})
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
@@ -195,19 +156,19 @@ func NewCreateAuthenticationOptions(
 			otpForm := getOTPForm(purpose, model.ClaimPhoneNumber, deps.Config.Authenticator.OOB.Email)
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
-					Authentication: b.Authentication,
+					Authentication: b.GetAuthentication(),
 					OTPForm:        otpForm,
 					Channels:       channels,
 					Target:         target,
-					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
+					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 				UnmaskedTarget: unmaskedTarget,
 			})
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			options = append(options, CreateAuthenticatorOptionInternal{
 				CreateAuthenticatorOption: CreateAuthenticatorOption{
-					Authentication: b.Authentication,
-					BotProtection:  GetBotProtectionData(b.BotProtection, deps.Config.BotProtection),
+					Authentication: b.GetAuthentication(),
+					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 			})
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
