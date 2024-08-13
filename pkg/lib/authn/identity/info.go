@@ -414,12 +414,11 @@ func (i *Info) UpdateUserID(newUserID string) *Info {
 		i.Biometric.UserID = newUserID
 	case model.IdentityTypePasskey:
 		i.Passkey.UserID = newUserID
-	case model.IdentityTypeSIWE:
-		fallthrough
-	case model.IdentityTypeAnonymous:
-		fallthrough
 	case model.IdentityTypeLDAP:
-		// TODO(DEV-1672)
+		i.LDAP.UserID = newUserID
+	case model.IdentityTypeSIWE:
+		i.SIWE.UserID = newUserID
+	case model.IdentityTypeAnonymous:
 		fallthrough
 	default:
 		panic(fmt.Errorf("identity: identity type %v does not support updating user ID", i.Type))
