@@ -899,6 +899,7 @@
   "v2-oauth-branding-adfs": "Sign in with Microsoft AD FS",
   "v2-oauth-branding-wechat": "Login with WeChat",
   "v2-oauth-branding-iamsmart": "Continue with iAM Smart",
+  "v2-ldap-branding": "Login with LDAP",
   "v2-error-invalid-email": "Please include '@' in the email address.",
   "v2-error-web-ui-invalid-session-return": "<p>This page is invalid or has expired.</p><p>Please return and retry your request.</p>",
   "v2-error-no-public-signup": "<p>Sign up is disabled.</p><p>Please contact system admin.</p>",

@@ -40,7 +40,7 @@
         {{ $details := .details }}
         {{ if (eq .kind "required") }}
           {{ $is_missing_login_id := false }}
-          {{ range (list "q_login_id" "x_login_id") }}
+          {{ range (list "q_login_id" "x_login_id" "x_username") }}
             {{ if (call $.SliceContains $details.missing .) }}
               {{ $is_missing_login_id = true}}
             {{ end }}

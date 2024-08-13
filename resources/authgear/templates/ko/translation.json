@@ -899,6 +899,7 @@
   "v2-oauth-branding-adfs": "Microsoft AD FS로 로그인",
   "v2-oauth-branding-wechat": "WeChat으로 로그인",
   "v2-oauth-branding-iamsmart": "iAM Smart로 계속하기",
+  "v2-ldap-branding": "LDAP로 로그인",
   "v2-error-invalid-email": "이메일 주소에 '@'를 포함해 주세요.",
   "v2-error-web-ui-invalid-session-return": "<p>이 페이지가 유효하지 않거나 만료되었습니다.</p><p>다시 시도해 주세요.</p>",
   "v2-error-no-public-signup": "<p>회원 가입이 비활성화되어 있습니다.</p><p>시스템 관리자에게 문의해 주세요.</p>",

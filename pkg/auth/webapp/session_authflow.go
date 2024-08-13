@@ -774,6 +774,21 @@ func (s *AuthflowScreenWithFlowResponse) Advance(p string, result *Result) {
 	result.RedirectURI = u.String()
 }
 
+func (s *AuthflowScreenWithFlowResponse) AdvanceWithQuery(route string, result *Result, query url.Values) {
+	q := url.Values{}
+	q.Set(AuthflowQueryKey, s.Screen.StateToken.XStep)
+
+	for k, v := range query {
+		q[k] = v
+	}
+
+	u, _ := url.Parse(route)
+	u.RawQuery = q.Encode()
+
+	result.NavigationAction = "advance"
+	result.RedirectURI = u.String()
+}
+
 func (s *AuthflowScreenWithFlowResponse) makeFallbackToSMSFromWhatsappRetryHandler(
 	inputFactory func(channel model.AuthenticatorOOBChannel) map[string]interface{},
 	channels []model.AuthenticatorOOBChannel,

@@ -899,6 +899,7 @@
   "v2-oauth-branding-adfs": "Microsoft AD FSでサインイン",
   "v2-oauth-branding-wechat": "WeChat でログイン",
   "v2-oauth-branding-iamsmart": "iAM Smartで続ける",
+  "v2-ldap-branding": "LDAPでログイン",
   "v2-error-invalid-email": "メールアドレスに「@」を含めてください。",
   "v2-error-web-ui-invalid-session-return": "<p>このページは無効か期限切れです。</p><p>戻って再試行してください。</p>",
   "v2-error-no-public-signup": "<p>新規登録は無効になっています。</p><p>システム管理者に連絡してください。</p>",

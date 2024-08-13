@@ -49,6 +49,8 @@ const (
 	AuthflowV2RouteEnterTOTP         = "/authflow/v2/enter_totp"
 	AuthflowV2RouteSetupTOTP         = "/authflow/v2/setup_totp"
 	AuthflowV2RouteSetupOOBOTP       = "/authflow/v2/setup_oob_otp"
+
+	AuthflowV2RouteLDAPLogin = "/authflow/v2/ldap_login"
 	// nolint: gosec
 	AuthflowV2RouteUsePasskey = "/authflow/v2/use_passkey"
 	// nolint: gosec
@@ -280,7 +282,12 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 	case config.AuthenticationFlowIdentificationPasskey:
 		// Redirect to the expected path with x_step set.
 		u := *r.URL
-		u.Path = expectedPath
+		// The current authflow state is 1 to 1 mapping with the path.
+		// Since Both LDAP_login & login page share the same state
+		// We workaround for this exceptional case.
+		if u.Path != AuthflowV2RouteLDAPLogin {
+			u.Path = expectedPath
+		}
 		q := u.Query()
 		q.Set(webapp.AuthflowQueryKey, s.Screen.StateToken.XStep)
 		u.RawQuery = q.Encode()
@@ -317,8 +324,8 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 			result.RedirectURI = authorizationURL.String()
 		}
 	case config.AuthenticationFlowIdentificationLDAP:
-		// TODO(DEV-1657)
-		panic(fmt.Errorf("To be impelemented identification: %v", identification))
+		// Not expected to trigger this case
+		panic(fmt.Errorf("not expected to trigger: %v", identification))
 	default:
 		panic(fmt.Errorf("unexpected identification: %v", identification))
 	}

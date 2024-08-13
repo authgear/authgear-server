@@ -899,6 +899,7 @@
   "v2-oauth-branding-adfs": "Συνδεθείτε με το Microsoft AD FS",
   "v2-oauth-branding-wechat": "Συνδεθείτε με το WeChat",
   "v2-oauth-branding-iamsmart": "Συνέχεια με iAM Smart",
+  "v2-ldap-branding": "Σύνδεση με LDAP",
   "v2-error-invalid-email": "Παρακαλούμε συμπεριλάβετε ''@'' στη διεύθυνση email.",
   "v2-error-web-ui-invalid-session-return": "<p>Αυτή η σελίδα δεν είναι έγκυρη ή έχει λήξει.</p><p>Παρακαλούμε επιστρέψτε και δοκιμάστε ξανά το αίτημά σας.</p>",
   "v2-error-no-public-signup": "<p>Η εγγραφή είναι απενεργοποιημένη.</p><p>Παρακαλούμε επικοινωνήστε με τον διαχειριστή του συστήματος.</p>",

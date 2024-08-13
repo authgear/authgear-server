@@ -899,6 +899,7 @@
   "v2-oauth-branding-adfs": "Iniciar sessão com Microsoft AD FS",
   "v2-oauth-branding-wechat": "Iniciar sessão com WeChat",
   "v2-oauth-branding-iamsmart": "Continuar com iAM Smart",
+  "v2-ldap-branding": "Iniciar sessão com LDAP",
   "v2-error-invalid-email": "Por favor, inclua '@' no endereço de email.",
   "v2-error-web-ui-invalid-session-return": "<p>Esta página é inválida ou expirou.</p><p>Por favor, volte e tente novamente o seu pedido.</p>",
   "v2-error-no-public-signup": "<p>O registo está desativado.</p><p>Por favor, contacte o administrador do sistema.</p>",
