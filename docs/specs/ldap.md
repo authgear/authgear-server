@@ -181,7 +181,7 @@ CREATE TABLE _auth_identity_ldap
     app_id                  text  NOT NULL,
     server_name             text  NOT NULL,
     user_id_attribute_name  text  NOT NULL,
-    user_id_attribute_value text  NOT NULL,
+    user_id_attribute_value bytea NOT NULL,
     claims                  jsonb NOT NULL,
     raw_entry_json          jsonb NOT NULL
 );
@@ -195,7 +195,16 @@ CREATE UNIQUE INDEX _auth_identity_ldap_unique ON _auth_identity_ldap (app_id, s
 - `user_id_attribute_name`: The `user_id_attribute_name` of the LDAP server when this identity is created.
 - `user_id_attribute_value`: The value of the `user_id_attribute_name` of the user.
 - `claims`: The standard claims extracted from this LDAP entry.
-- `raw_entry_json`: The raw LDAP entry encoded in JSON. It looks like `{ "dn": "uid=johndoe,dc=example,dc=com", "attr1": ["value1"] }`.
+- `raw_entry_json`: The raw LDAP entry encoded in JSON. The shape is as follows
+
+```
+{
+  "dn": "uid=johndoe,dc=example,dc=com",
+  "attr1": ["BASE64_STRING"]
+}
+```
+
+where BASE64_STRING is base64 with padding.
 
 ## Handling of a LDAP identity
 
