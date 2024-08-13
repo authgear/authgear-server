@@ -1,0 +1,26 @@
+.container {
+  @apply h-full;
+  @apply flex flex-col;
+  @apply overflow-auto;
+}
+
+.header {
+}
+
+.contentExpand {
+  @apply flex-1;
+}
+
+.footer {
+  @apply p-6;
+  @apply bg-white;
+}
+
+.footerSticky {
+  @apply border-0 border-t border-solid border-grey-500;
+  @apply sticky bottom-0;
+}
+
+.hidden {
+  @apply invisible;
+}
