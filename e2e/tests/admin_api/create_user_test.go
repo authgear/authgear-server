@@ -2,7 +2,6 @@ package adminapi
 
 import (
 	"bufio"
-	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -11,34 +10,22 @@ import (
 
 	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/e2e/pkg/testrunner"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func TestCreateUserWithPassword(t *testing.T) {
-	ctx := context.Background()
-
-	cmd := testrunner.End2EndCmd{
-		TestCase: testrunner.TestCase{
+	cmd, err := testrunner.NewEnd2EndCmd(testrunner.NewEnd2EndCmdOptions{
+		TestCase: &testrunner.TestCase{
 			Path: "admin_api/create_user_test.go",
 		},
 		Test: t,
-	}
-	appID, err := cmd.CreateConfigSource()
+	})
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 
-	cmd.AppID = appID
+	userEmail := fmt.Sprintf("%s@example.com", cmd.AppID)
 
-	userEmail := fmt.Sprintf("%s@example.com", appID)
-
-	client := e2eclient.NewClient(
-		ctx,
-		"localhost:4000",
-		"localhost:4002",
-		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", appID)),
-	)
-	_, err = client.GraphQLAPI(nil, nil, appID, e2eclient.GraphQLAPIRequest{
+	_, err = cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
 		Query: `
 			mutation createUserMutation(
 				$identityDefinition: IdentityDefinitionLoginID!
@@ -93,7 +80,7 @@ func TestCreateUserWithPassword(t *testing.T) {
 	}
 }
 
-func verifyPasswordCreated(cmd testrunner.End2EndCmd, userEmail string) (bool, error) {
+func verifyPasswordCreated(cmd *testrunner.End2EndCmd, userEmail string) (bool, error) {
 	rawResult, err := cmd.QuerySQLSelectRaw(fmt.Sprintf(`
 		SELECT expire_after
 		FROM _auth_authenticator

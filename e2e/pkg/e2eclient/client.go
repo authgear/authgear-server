@@ -243,7 +243,9 @@ type GraphQLAPIRequest struct {
 type GraphQLResponse struct {
 	Data   json.RawMessage `json:"data"`
 	Errors []struct {
-		Message string `json:"message"`
+		Extensions struct {
+			Reason string `json:"reason"`
+		} `json:"extensions"`
 	} `json:"errors"`
 }
 

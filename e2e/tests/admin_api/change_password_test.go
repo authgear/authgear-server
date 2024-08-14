@@ -1,7 +1,6 @@
 package adminapi
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"testing"
@@ -10,24 +9,18 @@ import (
 
 	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/e2e/pkg/testrunner"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func TestChangePassword(t *testing.T) {
-	ctx := context.Background()
-
-	cmd := testrunner.End2EndCmd{
-		TestCase: testrunner.TestCase{
+	cmd, err := testrunner.NewEnd2EndCmd(testrunner.NewEnd2EndCmdOptions{
+		TestCase: &testrunner.TestCase{
 			Path: "admin_api/change_password_test.go",
 		},
 		Test: t,
-	}
-	appID, err := cmd.CreateConfigSource()
+	})
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-
-	cmd.AppID = appID
 
 	username := "change_password_test"
 
@@ -41,14 +34,7 @@ func TestChangePassword(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	client := e2eclient.NewClient(
-		ctx,
-		"localhost:4000",
-		"localhost:4002",
-		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", appID)),
-	)
-
-	resp, err := client.GraphQLAPI(nil, nil, appID, e2eclient.GraphQLAPIRequest{
+	resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
 		Query: `
 			mutation resetPasswordMutation(
 				$userID: ID!,
@@ -104,20 +90,15 @@ func TestChangePassword(t *testing.T) {
 }
 
 func TestChangePasswordNoTarget(t *testing.T) {
-	ctx := context.Background()
-
-	cmd := testrunner.End2EndCmd{
-		TestCase: testrunner.TestCase{
+	cmd, err := testrunner.NewEnd2EndCmd(testrunner.NewEnd2EndCmdOptions{
+		TestCase: &testrunner.TestCase{
 			Path: "admin_api/change_password_test.go",
 		},
 		Test: t,
-	}
-	appID, err := cmd.CreateConfigSource()
+	})
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-
-	cmd.AppID = appID
 
 	username := "change_password_test_no_target"
 
@@ -131,14 +112,7 @@ func TestChangePasswordNoTarget(t *testing.T) {
 		t.Fatalf(err.Error())
 	}
 
-	client := e2eclient.NewClient(
-		ctx,
-		"localhost:4000",
-		"localhost:4002",
-		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", appID)),
-	)
-
-	resp, err := client.GraphQLAPI(nil, nil, appID, e2eclient.GraphQLAPIRequest{
+	resp, err := cmd.Client.GraphQLAPI(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
 		Query: `
 			mutation resetPasswordMutation(
 				$userID: ID!,
@@ -175,7 +149,7 @@ func TestChangePasswordNoTarget(t *testing.T) {
 	}
 
 	for _, err := range resp.Errors {
-		if err.Message == "no target to send the password" {
+		if err.Extensions.Reason == "SendPasswordNoTarget" {
 			return
 		}
 	}
@@ -183,7 +157,7 @@ func TestChangePasswordNoTarget(t *testing.T) {
 	t.Fatalf("expect error no target to send the password, got %v", resp.Errors)
 }
 
-func getPasswordHash(cmd testrunner.End2EndCmd, username string) (userID string, hash string, err error) {
+func getPasswordHash(cmd *testrunner.End2EndCmd, username string) (userID string, hash string, err error) {
 	rawResult, err := cmd.QuerySQLSelectRaw(fmt.Sprintf(`
 		SELECT expire_after, user_id, password_hash
 		FROM _auth_authenticator

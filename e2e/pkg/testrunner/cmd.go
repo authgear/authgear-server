@@ -2,16 +2,21 @@ package testrunner
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
 	"os/exec"
 	"path"
 	"testing"
+
+	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type End2EndCmd struct {
 	AppID    string
+	Client   *e2eclient.Client
 	TestCase TestCase
 	Test     *testing.T
 }
@@ -25,18 +30,36 @@ func generateAppID() string {
 	return hex.EncodeToString(id)
 }
 
-func (e *End2EndCmd) CreateConfigSource() (string, error) {
-	appID := generateAppID()
+type NewEnd2EndCmdOptions struct {
+	TestCase *TestCase
+	Test     *testing.T
+}
+
+func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
+	e := &End2EndCmd{
+		AppID:    generateAppID(),
+		TestCase: *options.TestCase,
+		Test:     options.Test,
+	}
+
 	cmd := fmt.Sprintf(
 		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\"",
-		appID,
+		e.AppID,
 		e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
 		e.TestCase.AuthgearYAMLSource.Override,
 	)
 	if _, err := e.execCmd(cmd); err != nil {
-		return appID, err
+		return nil, err
 	}
-	return appID, nil
+
+	e.Client = e2eclient.NewClient(
+		context.Background(),
+		"localhost:4000",
+		"localhost:4002",
+		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", e.AppID)),
+	)
+
+	return e, nil
 }
 
 func (e *End2EndCmd) ImportUsers(jsonPath string) error {

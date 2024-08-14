@@ -50,19 +50,14 @@ func (tc *TestCase) FullName() string {
 func (tc *TestCase) Run(t *testing.T) {
 	ctx := context.Background()
 
-	cmd := &End2EndCmd{
-		TestCase: *tc,
-		Test:     t,
-	}
-
 	// Create project per test case
-	appID, err := cmd.CreateConfigSource()
+	cmd, err := NewEnd2EndCmd(NewEnd2EndCmdOptions{
+		TestCase: tc,
+		Test:     t,
+	})
 	if err != nil {
-		t.Errorf("failed to create config source: %v", err)
-		return
+		t.Fatalf(err.Error())
 	}
-
-	cmd.AppID = appID
 
 	err = tc.executeBeforeAll(cmd)
 	if err != nil {
@@ -74,7 +69,7 @@ func (tc *TestCase) Run(t *testing.T) {
 		ctx,
 		"localhost:4000",
 		"localhost:4002",
-		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", appID)),
+		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", cmd.AppID)),
 	)
 
 	var stepResults []StepResult
