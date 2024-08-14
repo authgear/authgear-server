@@ -169,7 +169,7 @@ jobs:
         docker load -i ~/.cache/images/db.tar || true
         docker load -i ~/.cache/images/redis.tar || true
 
-    - run: make -C e2e run
+    - run: make -C e2e ci
       if: ${{ !cancelled() }}
       env:
         COMPOSE_INTERACTIVE_NO_CLI: 1
