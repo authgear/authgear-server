@@ -21,9 +21,14 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 	"properties": {
 		"id": { "type": "string" },
 		"nameid_format": { "$ref": "#/$defs/SAMLNameIDFormat" },
-		"nameid_attribute_pointer": { "$ref": "#/$defs/SAMLNameIDAttributePointer" }
+		"nameid_attribute_pointer": { "$ref": "#/$defs/SAMLNameIDAttributePointer" },
+		"acs_urls": {
+			"type": "array",
+			"items": { "type": "string", "format": "uri" },
+			"minItems": 1
+		}
 	},
-	"required": ["id"]
+	"required": ["id", "acs_urls"]
 }
 `)
 
@@ -77,6 +82,7 @@ type SAMLServiceProviderConfig struct {
 	ID                     string                     `json:"id,omitempty"`
 	NameIDFormat           SAMLNameIDFormat           `json:"nameid_format,omitempty"`
 	NameIDAttributePointer SAMLNameIDAttributePointer `json:"nameid_attribute_pointer,omitempty"`
+	AcsURLs                []string                   `json:"acs_urls,omitempty"`
 }
 
 func (c *SAMLServiceProviderConfig) SetDefaults() {
