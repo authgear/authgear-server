@@ -149,7 +149,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		saml.DependencySet,
 
-		wire.Bind(new(handlersaml.MetadataHandlerSAMLService), new(*saml.Service)),
+		wire.Bind(new(handlersaml.HandlerSAMLService), new(*saml.Service)),
 	),
 
 	wire.NewSet(
