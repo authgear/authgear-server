@@ -18,8 +18,9 @@ type AttemptTrackerRedis struct {
 	Clock clock.Clock
 }
 
-func (s *AttemptTrackerRedis) ResetFailedAttempts(purpose Purpose, target string) error {
+func (s *AttemptTrackerRedis) ResetFailedAttempts(kind Kind, target string) error {
 	ctx := context.Background()
+	purpose := kind.Purpose()
 
 	return s.Redis.WithConn(func(conn *goredis.Conn) error {
 		_, err := conn.Del(ctx, redisFailedAttemptsKey(s.AppID, purpose, target)).Result()
@@ -27,8 +28,9 @@ func (s *AttemptTrackerRedis) ResetFailedAttempts(purpose Purpose, target string
 	})
 }
 
-func (s *AttemptTrackerRedis) GetFailedAttempts(purpose Purpose, target string) (int, error) {
+func (s *AttemptTrackerRedis) GetFailedAttempts(kind Kind, target string) (int, error) {
 	ctx := context.Background()
+	purpose := kind.Purpose()
 
 	var failedAttempts int
 	err := s.Redis.WithConn(func(conn *goredis.Conn) (err error) {
@@ -45,12 +47,24 @@ func (s *AttemptTrackerRedis) GetFailedAttempts(purpose Purpose, target string) 
 	return failedAttempts, err
 }
 
-func (s *AttemptTrackerRedis) IncrementFailedAttempts(purpose Purpose, target string) (int, error) {
+func (s *AttemptTrackerRedis) IncrementFailedAttempts(kind Kind, target string) (int, error) {
 	ctx := context.Background()
+
+	purpose := kind.Purpose()
+	key := redisFailedAttemptsKey(s.AppID, purpose, target)
+	// Whenever we increment the number of failed attempts,
+	// we extend the expiration to be the valid period of the OTP.
+	// This ensures the number of failed attempts outlives the OTP.
+	expiration := kind.ValidPeriod()
 
 	var failedAttempts int64
 	err := s.Redis.WithConn(func(conn *goredis.Conn) (err error) {
-		failedAttempts, err = conn.Incr(ctx, redisFailedAttemptsKey(s.AppID, purpose, target)).Result()
+		failedAttempts, err = conn.Incr(ctx, key).Result()
+		if err != nil {
+			return err
+		}
+
+		_, err = conn.Expire(ctx, key, expiration).Result()
 		if err != nil {
 			return err
 		}

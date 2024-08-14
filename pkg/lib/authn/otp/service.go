@@ -44,9 +44,9 @@ type LookupStore interface {
 }
 
 type AttemptTracker interface {
-	ResetFailedAttempts(purpose Purpose, target string) error
-	GetFailedAttempts(purpose Purpose, target string) (int, error)
-	IncrementFailedAttempts(purpose Purpose, target string) (int, error)
+	ResetFailedAttempts(kind Kind, target string) error
+	GetFailedAttempts(kind Kind, target string) (int, error)
+	IncrementFailedAttempts(kind Kind, target string) (int, error)
 }
 
 type RateLimiter interface {
@@ -98,7 +98,7 @@ func (s *Service) consumeCode(purpose Purpose, code *Code) error {
 }
 
 func (s *Service) handleFailedAttemptsRevocation(kind Kind, target string) error {
-	failedAttempts, err := s.AttemptTracker.IncrementFailedAttempts(kind.Purpose(), target)
+	failedAttempts, err := s.AttemptTracker.IncrementFailedAttempts(kind, target)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (s *Service) handleFailedAttemptsRevocation(kind Kind, target string) error
 }
 
 func (s *Service) checkFailedAttemptsRevocation(kind Kind, target string) error {
-	failedAttempts, err := s.AttemptTracker.GetFailedAttempts(kind.Purpose(), target)
+	failedAttempts, err := s.AttemptTracker.GetFailedAttempts(kind, target)
 	if err != nil {
 		return err
 	}
@@ -174,7 +174,7 @@ func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *Generat
 		}
 	}
 
-	if err := s.AttemptTracker.ResetFailedAttempts(kind.Purpose(), target); err != nil {
+	if err := s.AttemptTracker.ResetFailedAttempts(kind, target); err != nil {
 		// non-critical error; log and continue
 		s.Logger.WithError(err).Warn("failed to reset failed attempts counter")
 	}
