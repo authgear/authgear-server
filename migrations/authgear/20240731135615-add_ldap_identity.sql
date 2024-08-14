@@ -5,7 +5,7 @@ CREATE TABLE _auth_identity_ldap
     app_id                    text  NOT NULL,
     server_name               text  NOT NULL,
     user_id_attribute_name    text  NOT NULL,
-    user_id_attribute_value   text  NOT NULL,
+    user_id_attribute_value   bytea NOT NULL,
     claims                    jsonb NOT NULL,
     raw_entry_json            jsonb NOT NULL
 );

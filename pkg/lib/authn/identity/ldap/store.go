@@ -147,7 +147,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*identity.LDAP, error)
 	return is, nil
 }
 
-func (s *Store) GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue string) (*identity.LDAP, error) {
+func (s *Store) GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error) {
 	q := s.selectQuery().
 		Where(
 			"l.server_name = ? AND l.user_id_attribute_name = ? AND l.user_id_attribute_value = ?",
