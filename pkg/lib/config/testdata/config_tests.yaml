@@ -1156,8 +1156,8 @@ config:
       key_id: asdfasdf
     service_providers:
       - id: provider_1
-        name_id_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
-        name_id_attribute_pointer: /preferred_username
+        nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+        nameid_attribute_pointer: /preferred_username
 ---
 name: saml-signing
 error: null

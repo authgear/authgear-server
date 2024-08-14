@@ -20,8 +20,8 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"id": { "type": "string" },
-		"name_id_format": { "$ref": "#/$defs/SAMLNameIDFormat" },
-		"name_id_attribute_pointer": { "$ref": "#/$defs/SAMLNameIDAttributePointer" }
+		"nameid_format": { "$ref": "#/$defs/SAMLNameIDFormat" },
+		"nameid_attribute_pointer": { "$ref": "#/$defs/SAMLNameIDAttributePointer" }
 	},
 	"required": ["id"]
 }
@@ -75,8 +75,8 @@ type SAMLNameIDAttributePointer string
 
 type SAMLServiceProviderConfig struct {
 	ID                     string                     `json:"id,omitempty"`
-	NameIDFormat           SAMLNameIDFormat           `json:"name_id_format,omitempty"`
-	NameIDAttributePointer SAMLNameIDAttributePointer `json:"name_id_attribute_pointer,omitempty"`
+	NameIDFormat           SAMLNameIDFormat           `json:"nameid_format,omitempty"`
+	NameIDAttributePointer SAMLNameIDAttributePointer `json:"nameid_attribute_pointer,omitempty"`
 }
 
 func (c *SAMLServiceProviderConfig) SetDefaults() {
