@@ -513,19 +513,18 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	queue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
 	elasticsearchService := elasticsearch.Service{
-		Clock:       clock,
-		Context:     ctx,
-		Database:    handle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       appID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   queue,
-		Producer:    userReindexProducer,
+		Clock:           clock,
+		Context:         ctx,
+		Database:        handle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       queue,
+		Producer:        userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -746,19 +745,18 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Coordinator: coordinator,
 	}
 	service4 := &elasticsearch.Service{
-		Clock:       clock,
-		Context:     ctx,
-		Database:    handle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       appID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   queue,
-		Producer:    userReindexProducer,
+		Clock:           clock,
+		Context:         ctx,
+		Database:        handle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       queue,
+		Producer:        userReindexProducer,
 	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
@@ -1167,19 +1165,18 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	queue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
-		Clock:       clockClock,
-		Context:     ctx,
-		Database:    handle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       appID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   queue,
-		Producer:    userReindexProducer,
+		Clock:           clockClock,
+		Context:         ctx,
+		Database:        handle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       queue,
+		Producer:        userReindexProducer,
 	}
 	return elasticsearchService
 }

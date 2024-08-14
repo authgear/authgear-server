@@ -13,8 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
+	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -45,19 +44,18 @@ type UserReindexCreateProducer interface {
 }
 
 type Service struct {
-	Clock       clock.Clock
-	Context     context.Context
-	Database    *appdb.Handle
-	Logger      *ElasticsearchServiceLogger
-	AppID       config.AppID
-	Client      *elasticsearch.Client
-	Users       UserQueries
-	UserStore   *user.Store
-	OAuth       *identityoauth.Store
-	LoginID     *identityloginid.Store
-	RolesGroups *rolesgroups.Store
-	TaskQueue   task.Queue
-	Producer    UserReindexCreateProducer
+	Clock           clock.Clock
+	Context         context.Context
+	Database        *appdb.Handle
+	Logger          *ElasticsearchServiceLogger
+	AppID           config.AppID
+	Client          *elasticsearch.Client
+	Users           UserQueries
+	UserStore       *user.Store
+	IdentityService *identityservice.Service
+	RolesGroups     *rolesgroups.Store
+	TaskQueue       task.Queue
+	Producer        UserReindexCreateProducer
 }
 
 type queryUserResponse struct {
@@ -115,15 +113,6 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, acti
 		return nil, "", err
 	}
 
-	oauthIdentities, err := s.OAuth.List(u.ID)
-	if err != nil {
-		return nil, "", err
-	}
-	loginIDIdentities, err := s.LoginID.List(u.ID)
-	if err != nil {
-		return nil, "", err
-	}
-
 	effectiveRoles, err := s.RolesGroups.ListEffectiveRolesByUserID(u.ID)
 	if err != nil {
 		return nil, "", err
@@ -146,16 +135,12 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, acti
 		Groups:             slice.Map(groups, func(g *rolesgroups.Group) *model.Group { return g.ToModel() }),
 	}
 
-	var arrClaims []map[model.ClaimName]string
-	for _, oauthI := range oauthIdentities {
-		arrClaims = append(arrClaims, oauthI.ToInfo().IdentityAwareStandardClaims())
-		raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
+	arrIdentityInfo, err := s.IdentityService.ListByUser(u.ID)
+	if err != nil {
+		return nil, "", err
 	}
-	for _, loginIDI := range loginIDIdentities {
-		arrClaims = append(arrClaims, loginIDI.ToInfo().IdentityAwareStandardClaims())
-	}
-
-	for _, claims := range arrClaims {
+	for _, identityInfo := range arrIdentityInfo {
+		claims := identityInfo.IdentityAwareStandardClaims()
 		if email, ok := claims[model.ClaimEmail]; ok {
 			raw.Email = append(raw.Email, email)
 		}
@@ -164,6 +149,24 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, acti
 		}
 		if preferredUsername, ok := claims[model.ClaimPreferredUsername]; ok {
 			raw.PreferredUsername = append(raw.PreferredUsername, preferredUsername)
+		}
+		switch identityInfo.Type {
+		case model.IdentityTypeOAuth:
+			raw.OAuthSubjectID = append(raw.OAuthSubjectID, identityInfo.OAuth.ProviderSubjectID)
+		case model.IdentityTypeLoginID:
+			// No additional fields
+		case model.IdentityTypeAnonymous:
+			// No additional fields
+		case model.IdentityTypeBiometric:
+			// No additional fields
+		case model.IdentityTypePasskey:
+			// No additional fields
+		case model.IdentityTypeSIWE:
+			// No additional fields
+		case model.IdentityTypeLDAP:
+			// No additional fields
+		default:
+			panic(fmt.Errorf("elasticsearch: unknown identity type %s", identityInfo.Type))
 		}
 	}
 
