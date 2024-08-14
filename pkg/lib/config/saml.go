@@ -95,6 +95,10 @@ func (c *SAMLServiceProviderConfig) SetDefaults() {
 	}
 }
 
+func (c *SAMLServiceProviderConfig) DefaultAcsURL() string {
+	return c.AcsURLs[0]
+}
+
 var _ = Schema.Add("SAMLSigningConfig", `
 {
 	"type": "object",
