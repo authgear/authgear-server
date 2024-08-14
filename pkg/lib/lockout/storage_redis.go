@@ -45,6 +45,7 @@ func (s StorageRedis) Clear(spec LockoutSpec, contributor string) (err error) {
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
 		return clearAttempts(context.Background(), conn,
 			redisRecordKey(s.AppID, spec),
+			spec.HistoryDuration,
 			contributor,
 		)
 	})
