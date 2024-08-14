@@ -49,6 +49,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -109,6 +110,10 @@ var CommonDependencySet = wire.NewSet(
 		oauthsession.DependencySet,
 		wire.Bind(new(oauthhandler.OAuthSessionService), new(*oauthsession.StoreRedis)),
 		wire.Bind(new(interaction.OAuthSessions), new(*oauthsession.StoreRedis)),
+	),
+
+	wire.NewSet(
+		samlsession.DependencySet,
 	),
 
 	wire.NewSet(
