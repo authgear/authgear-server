@@ -101,6 +101,29 @@ func (h *LoginHandler) handleRedirectBinding(serviceProviderId string, r *http.R
 }
 
 func (h *LoginHandler) handlePostBinding(serviceProviderId string, r *http.Request) (authnRequest *saml.AuthnRequest, relayState string, err error) {
-	// TODO
-	return nil, "", fmt.Errorf("not implemented")
+	now := h.Clock.NowUTC()
+	if err := r.ParseForm(); err != nil {
+		return nil, "", &protocol.SAMLProtocolError{
+			Response: saml.NewRequestDeniedErrorResponse(now, "failed to parse request body"),
+			Cause:    err,
+		}
+	}
+
+	requestBuffer, err := base64.StdEncoding.DecodeString(r.PostForm.Get("SAMLRequest"))
+	if err != nil {
+		return nil, "", &protocol.SAMLProtocolError{
+			Response: saml.NewRequestDeniedErrorResponse(now, "failed to decode SAMLRequest"),
+			Cause:    err,
+		}
+	}
+	relayState = r.PostForm.Get("RelayState")
+
+	authnRequest, err = h.SAMLService.ParseAuthnRequest(serviceProviderId, requestBuffer)
+	if err != nil {
+		return nil, "", &protocol.SAMLProtocolError{
+			Response: saml.NewRequestDeniedErrorResponse(now, "failed to validate SAMLRequest"),
+			Cause:    err,
+		}
+	}
+	return authnRequest, relayState, nil
 }
