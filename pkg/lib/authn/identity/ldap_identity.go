@@ -1,8 +1,9 @@
 package identity
 
 import (
-	"fmt"
 	"time"
+
+	"github.com/go-ldap/ldap/v3"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
@@ -22,7 +23,10 @@ type LDAP struct {
 func (i *LDAP) DisplayID() string {
 	dn, ok := i.RawEntryJSON["dn"].(string)
 	if !ok {
-		return fmt.Sprintf("%s=%s", i.UserIDAttributeName, i.UserIDAttributeValue)
+		return (&ldap.AttributeTypeAndValue{
+			Type:  i.UserIDAttributeName,
+			Value: i.UserIDAttributeValue,
+		}).String()
 	}
 	return dn
 }
