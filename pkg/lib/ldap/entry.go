@@ -34,7 +34,7 @@ func (e *Entry) ToJSON() map[string]interface{} {
 	dict := map[string]interface{}{}
 	dict["dn"] = e.DN
 	for _, attr := range e.Attributes {
-		dict[attr.Name] = attr.Values
+		dict[attr.Name] = attr.ByteValues
 	}
 	return dict
 }
