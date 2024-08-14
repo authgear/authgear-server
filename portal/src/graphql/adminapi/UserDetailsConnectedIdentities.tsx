@@ -84,7 +84,7 @@ interface UserDetailsConnectedIdentitiesProps {
 }
 
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
-type LoginIDIdentityType = typeof loginIdIdentityTypes[number];
+type LoginIDIdentityType = (typeof loginIdIdentityTypes)[number];
 type IdentityType =
   | "login_id"
   | "oauth"
