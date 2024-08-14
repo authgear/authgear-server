@@ -5,6 +5,6 @@ import (
 )
 
 func TestAuthflow(t *testing.T) {
-	runner := NewTestRunner(t, "../../tests")
+	runner := NewTestRunner(t, "../../tests/")
 	runner.Run()
 }

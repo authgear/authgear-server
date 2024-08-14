@@ -2,8 +2,6 @@ package testrunner
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -52,19 +50,19 @@ func (tc *TestCase) FullName() string {
 func (tc *TestCase) Run(t *testing.T) {
 	ctx := context.Background()
 
-	appID := generateAppID()
 	cmd := &End2EndCmd{
-		AppID:    appID,
 		TestCase: *tc,
 		Test:     t,
 	}
 
 	// Create project per test case
-	err := cmd.CreateConfigSource()
+	appID, err := cmd.CreateConfigSource()
 	if err != nil {
 		t.Errorf("failed to create config source: %v", err)
 		return
 	}
+
+	cmd.AppID = appID
 
 	err = tc.executeBeforeAll(cmd)
 	if err != nil {
@@ -75,6 +73,7 @@ func (tc *TestCase) Run(t *testing.T) {
 	client := authflowclient.NewClient(
 		ctx,
 		"localhost:4000",
+		"localhost:4002",
 		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", appID)),
 	)
 
@@ -140,7 +139,7 @@ func (tc *TestCase) executeStep(
 			return
 		}
 
-		flowResponse, flowErr = client.Create(flowReference, "")
+		flowResponse, flowErr = client.CreateFlow(flowReference, "")
 
 		if step.Output != nil {
 			ok := validateOutput(t, step, flowResponse, flowErr)
@@ -262,7 +261,7 @@ func (tc *TestCase) executeStep(
 			return nil, state, false
 		}
 
-		flowResponse, flowErr = client.Input(nil, nil, state, input)
+		flowResponse, flowErr = client.InputFlow(nil, nil, state, input)
 
 		if step.Output != nil {
 			ok := validateOutput(t, step, flowResponse, flowErr)
@@ -436,15 +435,6 @@ func validateQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) 
 
 	return true
 
-}
-
-func generateAppID() string {
-	id := make([]byte, 16)
-	_, err := rand.Read(id)
-	if err != nil {
-		panic(err)
-	}
-	return hex.EncodeToString(id)
 }
 
 func toMap(data interface{}) (map[string]interface{}, error) {

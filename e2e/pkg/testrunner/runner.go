@@ -46,14 +46,12 @@ func (tr *TestRunner) Run() {
 
 	for _, testCase := range testCases {
 		tc := testCase
+		if hasFocus && !tc.Focus {
+			continue
+		}
+
 		t.Run(tc.FullName(), func(t *testing.T) {
 			t.Parallel()
-
-			if hasFocus && !tc.Focus {
-				t.SkipNow()
-				return
-			}
-
 			tc.Run(t)
 		})
 	}
@@ -80,14 +78,15 @@ func (tr *TestRunner) loadFromPath(path string) ([]TestCase, error) {
 
 		for i, testcaseRaw := range documents {
 			var testCase TestCase
+			var relativePath = strings.TrimPrefix(path, tr.Path)
 
 			jsonData, err := yaml.YAMLToJSON(testcaseRaw)
 			if err != nil {
-				t.Errorf("failed to convert yaml to json at %s#%d%v", path, i+1, err)
+				t.Errorf("failed to convert yaml to json at %s#%d%v", relativePath, i+1, err)
 				continue
 			}
 
-			var invalidSchemaMessage = fmt.Sprintf("invalid schema at %s#%d", path, i+1)
+			var invalidSchemaMessage = fmt.Sprintf("invalid schema at %s#%d", relativePath, i+1)
 			err = TestCaseSchema.Validator().ValidateWithMessage(bytes.NewReader(jsonData), invalidSchemaMessage)
 			if err != nil {
 				t.Errorf(err.Error())
@@ -100,7 +99,7 @@ func (tr *TestRunner) loadFromPath(path string) ([]TestCase, error) {
 				continue
 			}
 
-			testCase.Path = path
+			testCase.Path = relativePath
 			testCases = append(testCases, testCase)
 		}
 

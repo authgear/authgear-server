@@ -19,34 +19,39 @@ import (
 )
 
 type Client struct {
-	Context             context.Context
-	HTTPClient          *http.Client
-	OAuthClient         *http.Client
-	BotProtectionClient *http.Client
-	LocalEndpoint       *url.URL
-	HTTPHost            httputil.HTTPHost
+	Context       context.Context
+	HTTPClient    *http.Client
+	OAuthClient   *http.Client
+	MainEndpoint  *url.URL
+	AdminEndpoint *url.URL
+	HTTPHost      httputil.HTTPHost
 }
 
-func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTTPHost) *Client {
+func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr string, httpHost httputil.HTTPHost) *Client {
 	// Always use http because we are going to call ourselves locally.
-	localEndpointString := fmt.Sprintf("http://%v", mainListenAddr)
-	localEndpointURL, err := url.Parse(localEndpointString)
+	mainEndpointString := fmt.Sprintf("http://%v", mainListenAddr)
+	mainEndpointURL, err := url.Parse(mainEndpointString)
+	if err != nil {
+		panic(err)
+	}
+
+	adminEndpointString := fmt.Sprintf("http://%v", adminListenAddr)
+	adminEndpointURL, err := url.Parse(adminEndpointString)
 	if err != nil {
 		panic(err)
 	}
 
 	// Only the port is important, the host is always the loopback address.
-	localEndpointURL.Host = fmt.Sprintf("127.0.0.1:%v", localEndpointURL.Port())
+	mainEndpointURL.Host = fmt.Sprintf("127.0.0.1:%v", mainEndpointURL.Port())
+	adminEndpointURL.Host = fmt.Sprintf("127.0.0.1:%v", adminEndpointURL.Port())
 
 	// Prepare HTTP clients.
 	var httpClient = &http.Client{}
 	var oauthClient = &http.Client{}
-	var botProtectionClient = &http.Client{}
 
 	// Use go test -timeout instead of setting timeout here.
 	httpClient.Timeout = 0
 	oauthClient.Timeout = 0
-	botProtectionClient.Timeout = 0
 
 	// Intercept HTTP requests to the OAuth server.
 	caCertPool, err := x509.SystemCertPool()
@@ -79,18 +84,18 @@ func NewClient(ctx context.Context, mainListenAddr string, httpHost httputil.HTT
 	}
 
 	return &Client{
-		Context:             ctx,
-		HTTPClient:          httpClient,
-		OAuthClient:         oauthClient,
-		BotProtectionClient: botProtectionClient,
-		LocalEndpoint:       localEndpointURL,
-		HTTPHost:            httpHost,
+		Context:       ctx,
+		HTTPClient:    httpClient,
+		OAuthClient:   oauthClient,
+		MainEndpoint:  mainEndpointURL,
+		AdminEndpoint: adminEndpointURL,
+		HTTPHost:      httpHost,
 	}
 }
 
-// Create creates a new authentication flow.
-func (c *Client) Create(flowReference FlowReference, urlQuery string) (*FlowResponse, error) {
-	endpoint := c.LocalEndpoint.JoinPath("/api/v1/authentication_flows")
+// CreateFlow creates a new authentication flow.
+func (c *Client) CreateFlow(flowReference FlowReference, urlQuery string) (*FlowResponse, error) {
+	endpoint := c.MainEndpoint.JoinPath("/api/v1/authentication_flows")
 	endpoint.RawQuery = urlQuery
 
 	req, err := c.makeRequest(nil, endpoint, flowReference)
@@ -98,12 +103,12 @@ func (c *Client) Create(flowReference FlowReference, urlQuery string) (*FlowResp
 		return nil, err
 	}
 
-	return c.doRequest(nil, req)
+	return c.doFlowRequest(nil, req)
 }
 
-// Get retrieves the flow state.
-func (c *Client) Get(stateToken string) (*FlowResponse, error) {
-	endpoint := c.LocalEndpoint.JoinPath("/api/v1/authentication_flows/states")
+// GetFlowState retrieves the flow state.
+func (c *Client) GetFlowState(stateToken string) (*FlowResponse, error) {
+	endpoint := c.MainEndpoint.JoinPath("/api/v1/authentication_flows/states")
 
 	body := map[string]interface{}{
 		"state_token": stateToken,
@@ -114,7 +119,7 @@ func (c *Client) Get(stateToken string) (*FlowResponse, error) {
 		return nil, err
 	}
 
-	return c.doRequest(nil, req)
+	return c.doFlowRequest(nil, req)
 }
 
 // GenerateTOTPCode generates a TOTP code for the given secret.
@@ -158,9 +163,9 @@ func (c *Client) OAuthRedirect(url string, redirectUntil string) (finalURL strin
 	}
 }
 
-// Input submits the input to the flow.
-func (c *Client) Input(w http.ResponseWriter, r *http.Request, stateToken string, input map[string]interface{}) (*FlowResponse, error) {
-	endpoint := c.LocalEndpoint.JoinPath("/api/v1/authentication_flows/states/input")
+// InputFlow submits the input to the flow.
+func (c *Client) InputFlow(w http.ResponseWriter, r *http.Request, stateToken string, input map[string]interface{}) (*FlowResponse, error) {
+	endpoint := c.MainEndpoint.JoinPath("/api/v1/authentication_flows/states/input")
 
 	body := map[string]interface{}{
 		"input": input,
@@ -174,7 +179,7 @@ func (c *Client) Input(w http.ResponseWriter, r *http.Request, stateToken string
 		return nil, err
 	}
 
-	return c.doRequest(w, req)
+	return c.doFlowRequest(w, req)
 }
 
 func (c *Client) makeRequest(maybeOriginalRequest *http.Request, endpoint *url.URL, body interface{}) (*http.Request, error) {
@@ -203,7 +208,7 @@ func (c *Client) makeRequest(maybeOriginalRequest *http.Request, endpoint *url.U
 	return req, nil
 }
 
-func (c *Client) doRequest(maybeResponseWriter http.ResponseWriter, r *http.Request) (*FlowResponse, error) {
+func (c *Client) doFlowRequest(maybeResponseWriter http.ResponseWriter, r *http.Request) (*FlowResponse, error) {
 	resp, err := c.HTTPClient.Do(r)
 	if err != nil {
 		return nil, err
@@ -228,4 +233,37 @@ func (c *Client) doRequest(maybeResponseWriter http.ResponseWriter, r *http.Requ
 	}
 
 	return httpResponse.Result, nil
+}
+
+type GraphQLAPIRequest struct {
+	Query     string                 `json:"query"`
+	Variables map[string]interface{} `json:"variables"`
+}
+
+type GraphQLResponse struct {
+	Data   json.RawMessage `json:"data"`
+	Errors []interface{}   `json:"errors"`
+}
+
+func (c *Client) GraphQLAPI(w http.ResponseWriter, r *http.Request, appID string, body GraphQLAPIRequest) (*GraphQLResponse, error) {
+	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/graphql")
+
+	req, err := c.makeRequest(r, endpoint, body)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var graphQLResponse GraphQLResponse
+	err = json.NewDecoder(resp.Body).Decode(&graphQLResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &graphQLResponse, nil
 }

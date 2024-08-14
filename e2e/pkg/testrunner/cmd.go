@@ -2,6 +2,8 @@ package testrunner
 
 import (
 	"bytes"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"os/exec"
 	"path"
@@ -14,17 +16,27 @@ type End2EndCmd struct {
 	Test     *testing.T
 }
 
-func (e *End2EndCmd) CreateConfigSource() error {
+func generateAppID() string {
+	id := make([]byte, 16)
+	_, err := rand.Read(id)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(id)
+}
+
+func (e *End2EndCmd) CreateConfigSource() (string, error) {
+	appID := generateAppID()
 	cmd := fmt.Sprintf(
 		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\"",
-		e.AppID,
+		appID,
 		e.resolvePath(e.TestCase.AuthgearYAMLSource.Extend),
 		e.TestCase.AuthgearYAMLSource.Override,
 	)
 	if _, err := e.execCmd(cmd); err != nil {
-		return err
+		return appID, err
 	}
-	return nil
+	return appID, nil
 }
 
 func (e *End2EndCmd) ImportUsers(jsonPath string) error {
@@ -81,7 +93,7 @@ func (e *End2EndCmd) GenerateIDToken(userID string) (string, error) {
 }
 
 func (e *End2EndCmd) resolvePath(p string) string {
-	return path.Join("./tests/authflow/", path.Dir(e.TestCase.Path), p)
+	return path.Join("./tests", path.Dir(e.TestCase.Path), p)
 }
 
 func (e *End2EndCmd) execCmd(cmd string) (string, error) {
@@ -91,7 +103,7 @@ func (e *End2EndCmd) execCmd(cmd string) (string, error) {
 	execCmd.Dir = "../../"
 	output, err := execCmd.Output()
 	if err != nil {
-		e.Test.Errorf(errb.String())
+		e.Test.Errorf("failed to execute command %s: %v\n%s", cmd, err, errb.String())
 		return "", err
 	}
 
