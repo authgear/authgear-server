@@ -321,7 +321,7 @@ func TestProviderCheckDuplicated(t *testing.T) {
 					UserID:               userID,
 					ServerName:           serverName,
 					UserIDAttributeName:  "email",
-					UserIDAttributeValue: email,
+					UserIDAttributeValue: []byte(email),
 					Claims: map[string]interface{}{
 						"email": email,
 					},

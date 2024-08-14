@@ -46,6 +46,10 @@ const (
 	IdentityClaimLDAPUserIDAttributeName string = "https://authgear.com/claims/ldap/user_id_attribute_name"
 	// IdentityClaimLDAPUserIDAttributeValue is a claim with a string value.
 	IdentityClaimLDAPUserIDAttributeValue string = "https://authgear.com/claims/ldap/user_id_attribute_value"
+	// IdentityClaimLDAPRawUserIDAttributeValue is a claim with a string value.
+	IdentityClaimLDAPRawUserIDAttributeValue string = "https://authgear.com/claims/ldap/raw_user_id_attribute_value"
 	// IdentityClaimLDAPAttributes is a claim with a map value.
 	IdentityClaimLDAPAttributes string = "https://authgear.com/claims/ldap/attributes"
+	// IdentityClaimLDAPRawAttributes is a claim with a map value.
+	IdentityClaimLDAPRawAttributes string = "https://authgear.com/claims/ldap/raw_attributes"
 )

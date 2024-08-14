@@ -16,12 +16,31 @@ func (r *AttributeRegistry) registerKnownAttribute(attr Attribute) Attribute {
 	return attr
 }
 
+func (r *AttributeRegistry) Get(attributeName string) (Attribute, bool) {
+	a, ok := r.attributes[attributeName]
+	if !ok {
+		return Attribute{}, false
+	}
+	return a, true
+}
+
 type AttributeType string
 
 const (
 	AttributeTypeString = "string"
 	AttributeTypeUUID   = "uuid"
 )
+
+func (t AttributeType) Decoder() AttributeDecoder {
+	switch t {
+	case AttributeTypeString:
+		return StringAttributeDecoder{}
+	case AttributeTypeUUID:
+		return UUIDAttributeDecoder{}
+	default:
+		panic(fmt.Errorf("ldap: Unknwon attribute type %s", t))
+	}
+}
 
 type Attribute struct {
 	Type AttributeType

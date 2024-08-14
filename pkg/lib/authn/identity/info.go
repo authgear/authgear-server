@@ -170,8 +170,10 @@ func (i *Info) ToModel() model.Identity {
 	case model.IdentityTypeLDAP:
 		claims[IdentityClaimLDAPServerName] = i.LDAP.ServerName
 		claims[IdentityClaimLDAPUserIDAttributeName] = i.LDAP.UserIDAttributeName
-		claims[IdentityClaimLDAPUserIDAttributeValue] = i.LDAP.UserIDAttributeValue
-		claims[IdentityClaimLDAPAttributes] = i.LDAP.RawEntryJSON
+		claims[IdentityClaimLDAPUserIDAttributeValue] = i.LDAP.UserIDAttributeValueDisplayValue()
+		claims[IdentityClaimLDAPRawUserIDAttributeValue] = i.LDAP.UserIDAttributeValue
+		claims[IdentityClaimLDAPAttributes] = i.LDAP.EntryJSON()
+		claims[IdentityClaimLDAPRawAttributes] = i.LDAP.RawEntryJSON
 
 	default:
 		panic("identity: unknown identity type: " + i.Type)
