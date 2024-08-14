@@ -1158,6 +1158,8 @@ config:
       - id: provider_1
         nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
         nameid_attribute_pointer: /preferred_username
+        acs_urls:
+          - http://localhost:3000/saml-test
 ---
 name: saml-signing
 error: null
