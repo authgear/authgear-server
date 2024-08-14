@@ -80,3 +80,18 @@ func HandleAuthenticationBotProtection(authentication config.AuthenticationFlowA
 	}
 	return
 }
+
+func HandleCreateAuthenticatorBotProtection(authentication config.AuthenticationFlowAuthentication, flowResp *authflow.FlowResponse, formData url.Values, input map[string]interface{}) (err error) {
+	bpRequired, err := webapp.IsCreateAuthenticatorStepBotProtectionRequired(authentication, flowResp)
+	if err != nil {
+		panic(err)
+	}
+	if bpRequired {
+		err = ValidateBotProtectionInput(formData)
+		if err != nil {
+			return err
+		}
+		InsertBotProtection(formData, input)
+	}
+	return
+}

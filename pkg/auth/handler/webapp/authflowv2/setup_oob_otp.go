@@ -37,8 +37,9 @@ func ConfigureAuthflowV2SetupOOBOTPRoute(route httproute.Route) httproute.Route 
 }
 
 type AuthflowSetupOOBOTPViewModel struct {
-	OOBAuthenticatorType model.AuthenticatorType
-	Channel              model.AuthenticatorOOBChannel
+	OOBAuthenticatorType    model.AuthenticatorType
+	Channel                 model.AuthenticatorOOBChannel
+	IsBotProtectionRequired bool
 }
 
 type AuthflowV2SetupOOBOTPHandler struct {
@@ -47,12 +48,7 @@ type AuthflowV2SetupOOBOTPHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
-	data := make(map[string]interface{})
-
-	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
-	viewmodels.Embed(data, baseViewModel)
-
+func NewAuthflowSetupOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) AuthflowSetupOOBOTPViewModel {
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.StateTokenFlowResponse
 
@@ -85,10 +81,23 @@ func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Re
 		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 	}
 	channel := screen.Screen.TakenChannel
-	screenViewModel := AuthflowSetupOOBOTPViewModel{
-		OOBAuthenticatorType: oobAuthenticatorType,
-		Channel:              channel,
+
+	// Ignore error, bpRequired would be false
+	bpRequired, _ := webapp.IsCreateAuthenticatorStepBotProtectionRequired(option.Authentication, screen.StateTokenFlowResponse)
+	return AuthflowSetupOOBOTPViewModel{
+		OOBAuthenticatorType:    oobAuthenticatorType,
+		Channel:                 channel,
+		IsBotProtectionRequired: bpRequired,
 	}
+}
+
+func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	screenViewModel := NewAuthflowSetupOOBOTPViewModel(s, screen)
 	viewmodels.Embed(data, screenViewModel)
 
 	branchFilter := func(branches []viewmodels.AuthflowBranch) []viewmodels.AuthflowBranch {
@@ -152,6 +161,11 @@ func (h *AuthflowV2SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			"authentication": authentication,
 			"target":         target,
 			"channel":        channel,
+		}
+
+		err = handlerwebapp.HandleCreateAuthenticatorBotProtection(option.Authentication, screen.StateTokenFlowResponse, r.Form, input)
+		if err != nil {
+			return err
 		}
 
 		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, &handlerwebapp.AdvanceOptions{
