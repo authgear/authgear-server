@@ -100,7 +100,11 @@ var clearAttemptsLuaScript = goredis.NewScript(constants + `
 redis.replicate_commands()
 
 local record_key = KEYS[1]
-local contributor = ARGV[1]
+local history_duration = tonumber(ARGV[1])
+local contributor = ARGV[2]
+
+local now = redis.call("TIME")
+local now_timestamp = tonumber(now[1])
 
 local global_total = 0
 local contributor_total = 0
@@ -124,9 +128,16 @@ pcall(read_existing_contributor_total)
 
 global_total = math.max(global_total - contributor_total, 0)
 
+local expire_at = now_timestamp + history_duration
 
 redis.call("HSET", record_key, GLOBAL_TOTAL_KEY, global_total)
 redis.call("HDEL", record_key, contributor)
+
+-- Redis 6.x does not support NX.
+local original_ttl = redis.call("TTL", record_key)
+if original_ttl < 0 then
+	redis.call("EXPIREAT", record_key, expire_at)
+end
 
 return 1
 `)
@@ -178,9 +189,11 @@ func makeAttempts(
 func clearAttempts(
 	ctx context.Context, conn *goredis.Conn,
 	key string,
+	historyDuration time.Duration,
 	contributor string) error {
 	_, err := clearAttemptsLuaScript.Run(ctx, conn,
 		[]string{key},
+		int(historyDuration.Seconds()),
 		contributor,
 	).Bool()
 	return err

@@ -160,7 +160,7 @@ func TestLockout(t *testing.T) {
 			entries: []testEntry{
 				{time: "0s", contributor: "127.0.0.1", attempts: 4, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},
 				{time: "0s", fn: func(ctx context.Context, conn *goredis.Conn) {
-					err := clearAttempts(ctx, conn, testKey, "127.0.0.1")
+					err := clearAttempts(ctx, conn, testKey, 300*time.Second, "127.0.0.1")
 					So(err, ShouldBeNil)
 				}},
 				// Clear attempts should not affect existing lock
@@ -181,7 +181,7 @@ func TestLockout(t *testing.T) {
 				{time: "0s", contributor: "127.0.0.1", attempts: 4, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 0 + 20)},
 				{time: "0s", contributor: "127.0.0.2", attempts: 5, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 0 + 40)},
 				{time: "0s", fn: func(ctx context.Context, conn *goredis.Conn) {
-					err := clearAttempts(ctx, conn, testKey, "127.0.0.1")
+					err := clearAttempts(ctx, conn, testKey, 300*time.Second, "127.0.0.1")
 					So(err, ShouldBeNil)
 				}},
 				// Clear attempts should not affect existing lock
@@ -193,6 +193,46 @@ func TestLockout(t *testing.T) {
 				{time: "40s", contributor: "127.0.0.2", attempts: 1, expectedIsSucess: true, expectedLockedUntil: makeUnixTime(epoch + 40 + 50)},
 			},
 		})
+	})
+}
+
+func TestLockoutClearAttempts(t *testing.T) {
+	s := miniredis.RunT(t)
+
+	Convey("clearAttempts should set ttl if the key originally has no ttl set", t, func() {
+		ctx := context.Background()
+		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
+		conn := cli.Conn(ctx)
+
+		err := clearAttempts(ctx, conn, testKey, 300*time.Second, "127.0.0.1")
+		So(err, ShouldBeNil)
+
+		ttl, err := conn.TTL(ctx, testKey).Result()
+		So(err, ShouldBeNil)
+		So(ttl, ShouldBeGreaterThan, 295*time.Second)
+		So(ttl, ShouldBeLessThanOrEqualTo, 300*time.Second)
+	})
+
+	Convey("clearAttempts should not set ttl if the key originally has ttl set", t, func() {
+		ctx := context.Background()
+		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
+		conn := cli.Conn(ctx)
+
+		_, err := conn.HSet(ctx, testKey, "127.0.0.1", "1").Result()
+		So(err, ShouldBeNil)
+		// The original ttl is 200s
+		_, err = conn.Expire(ctx, testKey, 200*time.Second).Result()
+		So(err, ShouldBeNil)
+
+		// The proposed ttl is 300s
+		err = clearAttempts(ctx, conn, testKey, 300*time.Second, "127.0.0.1")
+		So(err, ShouldBeNil)
+
+		// The actual ttl should still around 200s
+		ttl, err := conn.TTL(ctx, testKey).Result()
+		So(err, ShouldBeNil)
+		So(ttl, ShouldBeGreaterThan, 195*time.Second)
+		So(ttl, ShouldBeLessThanOrEqualTo, 200*time.Second)
 	})
 }
 
