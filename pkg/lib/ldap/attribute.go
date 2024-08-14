@@ -263,6 +263,12 @@ var AttributeUID = DefaultAttributeRegistry.registerKnownAttribute(Attribute{
 	Name: "uid",
 })
 
+// uid number is from https://learn.microsoft.com/en-us/windows/win32/adschema/a-uidnumber
+var AttributeUIDNumber = DefaultAttributeRegistry.registerKnownAttribute(Attribute{
+	Type: AttributeTypeString,
+	Name: "uidNumber",
+})
+
 // Unique Member is from https://datatracker.ietf.org/doc/html/rfc4524#section-2.40
 var AttributeUniqueMember = DefaultAttributeRegistry.registerKnownAttribute(Attribute{
 	Type: AttributeTypeString,
