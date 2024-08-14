@@ -242,7 +242,9 @@ type GraphQLAPIRequest struct {
 
 type GraphQLResponse struct {
 	Data   json.RawMessage `json:"data"`
-	Errors []interface{}   `json:"errors"`
+	Errors []struct {
+		Message string `json:"message"`
+	} `json:"errors"`
 }
 
 func (c *Client) GraphQLAPI(w http.ResponseWriter, r *http.Request, appID string, body GraphQLAPIRequest) (*GraphQLResponse, error) {

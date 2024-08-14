@@ -82,6 +82,7 @@ func (e *End2EndCmd) GetLinkOTPCodeByClaim(claim string, value string) (string, 
 	)
 	return e.execCmd(cmd)
 }
+
 func (e *End2EndCmd) GenerateIDToken(userID string) (string, error) {
 	cmd := fmt.Sprintf(
 		"./dist/e2e generate-id-token %s --app-id %s",
@@ -89,7 +90,6 @@ func (e *End2EndCmd) GenerateIDToken(userID string) (string, error) {
 		e.AppID,
 	)
 	return e.execCmd(cmd)
-
 }
 
 func (e *End2EndCmd) resolvePath(p string) string {
