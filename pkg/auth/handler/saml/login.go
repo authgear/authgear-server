@@ -17,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/panicutil"
 )
 
 func ConfigureLoginRoute(route httproute.Route) httproute.Route {
@@ -40,6 +41,7 @@ type LoginHandler struct {
 }
 
 func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+
 	now := h.Clock.NowUTC()
 	serviceProviderId := httproute.GetParam(r, "service_provider_id")
 	sp, ok := h.SAMLConfig.ResolveProvider(serviceProviderId)
@@ -49,6 +51,12 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	callbackURL := sp.DefaultAcsURL()
+
+	defer func() {
+		if err := recover(); err != nil {
+			h.handleUnknownError(rw, callbackURL, err)
+		}
+	}()
 
 	var err error
 	var relayState string
@@ -68,7 +76,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var protocolErr *protocol.SAMLProtocolError
 		if errors.As(err, &protocolErr) {
-			h.handleProtocolError(rw, protocolErr)
+			h.handleProtocolError(rw, callbackURL, protocolErr)
 			return
 		}
 		panic(err)
@@ -81,7 +89,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			RelayState: relayState,
 			Cause:      err,
 		}
-		h.handleProtocolError(rw, protocolErr)
+		h.handleProtocolError(rw, callbackURL, protocolErr)
 		return
 	}
 
@@ -158,8 +166,15 @@ func (h *LoginHandler) handlePostBinding(now time.Time, r *http.Request) (authnR
 	return authnRequest, relayState, nil
 }
 
-func (h *LoginHandler) handleProtocolError(rw http.ResponseWriter, err *protocol.SAMLProtocolError) {
+func (h *LoginHandler) handleProtocolError(rw http.ResponseWriter, callbackURL string, err *protocol.SAMLProtocolError) {
 	h.Logger.Warnln(err.Error())
-	// TODO(saml): Return the error to acs url
+	// TODO(saml): Return the error to callbackURL
+	panic(err)
+}
+
+func (h *LoginHandler) handleUnknownError(rw http.ResponseWriter, callbackURL string, err any) {
+	e := panicutil.MakeError(err)
+	h.Logger.WithError(e).Error("panic occurred")
+	// TODO(saml): Return a error response to callbackURL
 	panic(err)
 }
