@@ -899,33 +899,28 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
     );
   };
 
-function useDisabledDetailListOnRenderRow(): IRenderFunction<IDetailsRowProps> {
-  const overrideRowStyles: Partial<IDetailsRowStyles> = useMemo(() => {
-    return {
-      root: {
-        ":hover": {
-          background: "white",
-        },
-      },
-    };
-  }, []);
-  return useCallback(
-    (props, defaultRender) => {
-      if (props == null || defaultRender == null) {
-        return null;
-      }
-      if (!("item" in props)) {
-        return defaultRender(props);
-      }
-
-      const disabled = props.item.disabled;
-      return defaultRender({
-        ...props,
-        styles: disabled ? overrideRowStyles : {},
-      });
+const DISABLED_ROW_STYLES: Partial<IDetailsRowStyles> = {
+  root: {
+    ":hover": {
+      background: "white",
     },
-    [overrideRowStyles]
-  );
+  },
+};
+function useDisabledDetailListOnRenderRow(): IRenderFunction<IDetailsRowProps> {
+  return useCallback((props, defaultRender) => {
+    if (props == null || defaultRender == null) {
+      return null;
+    }
+    if (!("item" in props)) {
+      return defaultRender(props);
+    }
+
+    const disabled = props.item.disabled;
+    return defaultRender({
+      ...props,
+      styles: disabled ? DISABLED_ROW_STYLES : {},
+    });
+  }, []);
 }
 
 interface RequirementConfigListItem {
