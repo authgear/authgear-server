@@ -13,6 +13,7 @@ function setup {( set -e
     echo "[ ] Building e2e..."
     go build -o dist/e2e ./cmd/e2e
     go build -o dist/e2e-proxy ./cmd/proxy
+    go build -o dist/e2e-smtp ./cmd/smtp
     export PATH=$PATH:./dist
 
     echo "[ ] Starting authgear..."
@@ -47,6 +48,18 @@ function setup {( set -e
         exit 1
     fi
 
+    echo "[ ] Starting e2e-smtp..."
+    e2e-smtp > ./logs/e2e-smtp.log 2>&1 &
+    success=false
+    for i in $(seq 10); do \
+        if [ "$(curl -sL -w '%{http_code}' -o /dev/null http://localhost:2525)" = "200" ]; then
+            echo "    - started e2e-smtp."
+            success=true
+            break
+        fi
+        sleep 1
+    done
+
     echo "[ ] DB migration..."
     authgear database migrate up
     authgear audit database migrate up
@@ -58,6 +71,7 @@ function teardown {( set -e
     echo "[ ] Teardown..."
     kill -9 $(lsof -ti:4000) > /dev/null 2>&1 || true
     kill -9 $(lsof -ti:8080) > /dev/null 2>&1 || true
+    kill -9 $(lsof -ti:2525) > /dev/null 2>&1 || true
     docker compose down
 )}
 

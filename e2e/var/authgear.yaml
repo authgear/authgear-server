@@ -130,11 +130,6 @@ test_mode:
     rules:
     - fixed_code: "111111"
       regex: .*
-  email:
-    enabled: true
-    rules:
-    - suppressed: true
-      regex: .*
 ui:
   dark_theme_disabled: false
   forgot_password:
