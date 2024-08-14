@@ -10,7 +10,7 @@ import (
 
 func createIdentitySpecFromLDAPEntry(deps *authflow.Dependencies, serverConfig *config.LDAPServerConfig, entry *ldap.Entry) (*identity.Spec, error) {
 	userIDAttributeName := serverConfig.UserIDAttributeName
-	userIDAttributeValue := entry.GetAttributeValue(userIDAttributeName)
+	userIDAttributeValue := entry.GetRawAttributeValue(userIDAttributeName)
 
 	return &identity.Spec{
 		Type: model.IdentityTypeLDAP,

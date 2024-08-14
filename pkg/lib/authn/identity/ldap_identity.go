@@ -15,7 +15,7 @@ type LDAP struct {
 	UserID               string                 `json:"user_id"`
 	ServerName           string                 `json:"server_name"`
 	UserIDAttributeName  string                 `json:"user_id_attribute_name"`
-	UserIDAttributeValue string                 `json:"user_id_attribute_value"`
+	UserIDAttributeValue []byte                 `json:"user_id_attribute_value"`
 	Claims               map[string]interface{} `json:"claims,omitempty"`
 	RawEntryJSON         map[string]interface{} `json:"raw_entry_json,omitempty"`
 }
@@ -25,7 +25,7 @@ func (i *LDAP) DisplayID() string {
 	if !ok {
 		return (&ldap.AttributeTypeAndValue{
 			Type:  i.UserIDAttributeName,
-			Value: i.UserIDAttributeValue,
+			Value: string(i.UserIDAttributeValue),
 		}).String()
 	}
 	return dn
