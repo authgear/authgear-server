@@ -123,7 +123,11 @@ func (s *Service) ParseAuthnRequest(serviceProviderId string, input []byte) (*Au
 
 	// TODO(saml): Verify the signature
 
-	// TODO(saml): Verify the destination
+	if authnRequest.Destination != "" {
+		if authnRequest.Destination != s.Endpoints.SAMLLoginURL(sp.ID).String() {
+			return nil, fmt.Errorf("unexpected destination")
+		}
+	}
 
 	if !authnRequest.GetProtocolBinding().IsSupported() {
 		return nil, fmt.Errorf("unsupported binding")
