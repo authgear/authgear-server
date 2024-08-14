@@ -7,8 +7,9 @@ import (
 )
 
 type SAMLProtocolError struct {
-	Response *saml.Response
-	Cause    error
+	Response   *saml.Response
+	RelayState string
+	Cause      error
 }
 
 func (s *SAMLProtocolError) Error() string {

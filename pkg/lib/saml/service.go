@@ -101,13 +101,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
 	}, nil
 }
 
-func (s *Service) ParseAuthnRequest(serviceProviderId string, input []byte) (*AuthnRequest, error) {
-	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
-	if !ok {
-		return nil, ErrServiceProviderNotFound
-	}
-
-	now := s.Clock.NowUTC()
+func (s *Service) ParseAuthnRequest(input []byte) (*AuthnRequest, error) {
 	var req crewjamsaml.AuthnRequest
 	if err := xrv.Validate(bytes.NewReader(input)); err != nil {
 		return nil, err
@@ -121,24 +115,34 @@ func (s *Service) ParseAuthnRequest(serviceProviderId string, input []byte) (*Au
 		AuthnRequest: req,
 	}
 
+	return authnRequest, nil
+
+}
+
+func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *AuthnRequest) error {
+	now := s.Clock.NowUTC()
+	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
+	if !ok {
+		return ErrServiceProviderNotFound
+	}
 	// TODO(saml): Verify the signature
 
 	if authnRequest.Destination != "" {
 		if authnRequest.Destination != s.Endpoints.SAMLLoginURL(sp.ID).String() {
-			return nil, fmt.Errorf("unexpected destination")
+			return fmt.Errorf("unexpected destination")
 		}
 	}
 
 	if !authnRequest.GetProtocolBinding().IsSupported() {
-		return nil, fmt.Errorf("unsupported binding")
+		return fmt.Errorf("unsupported binding")
 	}
 
 	if authnRequest.IssueInstant.Add(MaxAuthnRequestValidDuration).Before(now) {
-		return nil, fmt.Errorf("request expired")
+		return fmt.Errorf("request expired")
 	}
 
 	if authnRequest.Version != SAMLVersion2 {
-		return nil, fmt.Errorf("Request Version must be 2.0")
+		return fmt.Errorf("Request Version must be 2.0")
 	}
 
 	if authnRequest.NameIDPolicy != nil && authnRequest.NameIDPolicy.Format != nil {
@@ -146,7 +150,7 @@ func (s *Service) ParseAuthnRequest(serviceProviderId string, input []byte) (*Au
 		if reqNameIDFormat != string(sp.NameIDFormat) &&
 			// unspecified is always allowed
 			reqNameIDFormat != string(config.NameIDFormatUnspecified) {
-			return nil, fmt.Errorf("unsupported Name Identifier Format")
+			return fmt.Errorf("unsupported Name Identifier Format")
 		}
 	}
 
@@ -158,9 +162,9 @@ func (s *Service) ParseAuthnRequest(serviceProviderId string, input []byte) (*Au
 			}
 		}
 		if allowed == false {
-			return nil, fmt.Errorf("AssertionConsumerServiceURL not allowed")
+			return fmt.Errorf("AssertionConsumerServiceURL not allowed")
 		}
 	}
 
-	return authnRequest, nil
+	return nil
 }
