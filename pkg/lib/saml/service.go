@@ -146,7 +146,17 @@ func (s *Service) ParseAuthnRequest(serviceProviderId string, input []byte) (*Au
 		}
 	}
 
-	// TODO(saml): Verify the acs url
+	if authnRequest.AssertionConsumerServiceURL != "" {
+		allowed := false
+		for _, allowedURL := range sp.AcsURLs {
+			if allowedURL == authnRequest.AssertionConsumerServiceURL {
+				allowed = true
+			}
+		}
+		if allowed == false {
+			return nil, fmt.Errorf("AssertionConsumerServiceURL not allowed")
+		}
+	}
 
 	return authnRequest, nil
 }
