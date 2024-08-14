@@ -125,6 +125,11 @@ oauth:
     - none
     x_max_concurrent_session: 1
 test_mode:
+  sms:
+    enabled: true
+    rules:
+    - regex: .*
+      suppressed: true
   oob_otp:
     enabled: true
     rules:
