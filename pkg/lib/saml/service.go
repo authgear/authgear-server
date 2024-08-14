@@ -2,17 +2,22 @@ package saml
 
 import (
 	"bytes"
+	"encoding/xml"
+	"fmt"
 	"net/url"
 	"text/template"
 	"time"
 
 	crewjamsaml "github.com/crewjam/saml"
+	xrv "github.com/mattermost/xml-roundtrip-validator"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
 const MetadataValidDuration = time.Hour * 24
+const MaxAuthnRequestValidDuration = duration.Short
 
 type SAMLEndpoints interface {
 	SAMLLoginURL(serviceProviderId string) *url.URL
@@ -94,4 +99,54 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
 	return &Metadata{
 		descriptor,
 	}, nil
+}
+
+func (s *Service) ParseAuthnRequest(serviceProviderId string, input []byte) (*AuthnRequest, error) {
+	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
+	if !ok {
+		return nil, ErrServiceProviderNotFound
+	}
+
+	now := s.Clock.NowUTC()
+	var req crewjamsaml.AuthnRequest
+	if err := xrv.Validate(bytes.NewReader(input)); err != nil {
+		return nil, err
+	}
+
+	if err := xml.Unmarshal(input, &req); err != nil {
+		return nil, err
+	}
+
+	authnRequest := &AuthnRequest{
+		AuthnRequest: req,
+	}
+
+	// TODO(saml): Verify the signature
+
+	// TODO(saml): Verify the destination
+
+	if !authnRequest.GetProtocolBinding().IsSupported() {
+		return nil, fmt.Errorf("unsupported binding")
+	}
+
+	if authnRequest.IssueInstant.Add(MaxAuthnRequestValidDuration).Before(now) {
+		return nil, fmt.Errorf("request expired")
+	}
+
+	if authnRequest.Version != SAMLVersion2 {
+		return nil, fmt.Errorf("Request Version must be 2.0")
+	}
+
+	if authnRequest.NameIDPolicy != nil && authnRequest.NameIDPolicy.Format != nil {
+		reqNameIDFormat := *authnRequest.NameIDPolicy.Format
+		if reqNameIDFormat != string(sp.NameIDFormat) &&
+			// unspecified is always allowed
+			reqNameIDFormat != string(config.NameIDFormatUnspecified) {
+			return nil, fmt.Errorf("unsupported Name Identifier Format")
+		}
+	}
+
+	// TODO(saml): Verify the acs url
+
+	return authnRequest, nil
 }
