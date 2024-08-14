@@ -26,13 +26,13 @@ func createIdentitySpecFromLDAPEntry(deps *authflow.Dependencies, serverConfig *
 
 func extractLDAPEntryClaims(entry *ldap.Entry) map[string]interface{} {
 	claims := map[string]interface{}{}
-	if v := entry.GetAttributeValue(ldap.AttributeNameEmail); v != "" {
+	if v := entry.GetAttributeValue(ldap.AttributeMail.Name); v != "" {
 		claims[string(model.ClaimEmail)] = v
 	}
-	if v := entry.GetAttributeValue(ldap.AttributeNameMobile); v != "" {
+	if v := entry.GetAttributeValue(ldap.AttributeMobile.Name); v != "" {
 		claims[string(model.ClaimPhoneNumber)] = v
 	}
-	if v := entry.GetAttributeValue(ldap.AttributeNameUsername); v != "" {
+	if v := entry.GetAttributeValue(ldap.AttributeUID.Name); v != "" {
 		claims[string(model.ClaimPreferredUsername)] = v
 	}
 	return claims
