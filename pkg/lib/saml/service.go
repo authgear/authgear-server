@@ -2,14 +2,12 @@ package saml
 
 import (
 	"bytes"
-	"encoding/xml"
 	"fmt"
 	"net/url"
 	"text/template"
 	"time"
 
 	crewjamsaml "github.com/crewjam/saml"
-	xrv "github.com/mattermost/xml-roundtrip-validator"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -101,24 +99,6 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
 	return &Metadata{
 		descriptor,
 	}, nil
-}
-
-func (s *Service) ParseAuthnRequest(input []byte) (*AuthnRequest, error) {
-	var req crewjamsaml.AuthnRequest
-	if err := xrv.Validate(bytes.NewReader(input)); err != nil {
-		return nil, err
-	}
-
-	if err := xml.Unmarshal(input, &req); err != nil {
-		return nil, err
-	}
-
-	authnRequest := &AuthnRequest{
-		AuthnRequest: req,
-	}
-
-	return authnRequest, nil
-
 }
 
 func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *AuthnRequest) error {
