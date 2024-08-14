@@ -43,7 +43,11 @@ func (s *Service) idpEntityID() string {
 	return idpEntityIDBytes.String()
 }
 
-func (s *Service) IdpMetadata(serviceProviderId string) *Metadata {
+func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
+	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
+	if !ok {
+		return nil, ErrServiceProviderNotFound
+	}
 
 	keyDescriptors := []crewjamsaml.KeyDescriptor{}
 	if cert, ok := s.SAMLIdpSigningMaterials.FindSigningCert(s.SAMLConfig.Signing.KeyID); ok {
@@ -70,17 +74,17 @@ func (s *Service) IdpMetadata(serviceProviderId string) *Metadata {
 						KeyDescriptors:             keyDescriptors,
 					},
 					NameIDFormats: []crewjamsaml.NameIDFormat{
-						// TODO
+						crewjamsaml.NameIDFormat(sp.NameIDFormat),
 					},
 				},
 				SingleSignOnServices: []crewjamsaml.Endpoint{
 					{
 						Binding:  crewjamsaml.HTTPRedirectBinding,
-						Location: s.Endpoints.SAMLLoginURL(serviceProviderId).String(),
+						Location: s.Endpoints.SAMLLoginURL(sp.ID).String(),
 					},
 					{
 						Binding:  crewjamsaml.HTTPPostBinding,
-						Location: s.Endpoints.SAMLLoginURL(serviceProviderId).String(),
+						Location: s.Endpoints.SAMLLoginURL(sp.ID).String(),
 					},
 				},
 			},
@@ -89,5 +93,5 @@ func (s *Service) IdpMetadata(serviceProviderId string) *Metadata {
 
 	return &Metadata{
 		descriptor,
-	}
+	}, nil
 }
