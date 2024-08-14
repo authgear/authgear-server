@@ -38,11 +38,13 @@ type LoginHandler struct {
 
 func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	serviceProviderId := httproute.GetParam(r, "service_provider_id")
-	_, ok := h.SAMLConfig.ResolveProvider(serviceProviderId)
+	sp, ok := h.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
 		http.NotFound(rw, r)
 		return
 	}
+
+	callbackURL := sp.DefaultAcsURL()
 
 	var err error
 	var relayState string
@@ -68,8 +70,12 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
+	if authnRequest.AssertionConsumerServiceURL != "" {
+		callbackURL = authnRequest.AssertionConsumerServiceURL
+	}
+
 	// TODO(saml): Redirect to auth ui
-	_, _ = rw.Write([]byte(authnRequest.ID + relayState))
+	_, _ = rw.Write([]byte("callback url:" + callbackURL + "\n" + authnRequest.ID + relayState))
 }
 
 func (h *LoginHandler) handleRedirectBinding(serviceProviderId string, r *http.Request) (authnRequest *saml.AuthnRequest, relayState string, err error) {
