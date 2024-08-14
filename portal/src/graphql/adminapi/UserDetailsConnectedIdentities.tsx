@@ -199,7 +199,7 @@ const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
 const biometricIcon: React.ReactNode = <Icon iconName="Fingerprint" />;
 const anonymousIcon: React.ReactNode = <Icon iconName="People" />;
 const siweIcon: React.ReactNode = <i className={cn("fab", "fa-ethereum")} />;
-const ldapIcon: React.ReactNode = <Icon iconName="Mail" />;
+const ldapIcon: React.ReactNode = <Icon iconName="Contact" />;
 
 const removeButtonTextId: Record<IdentityType, "remove" | "disconnect" | ""> = {
   oauth: "disconnect",
@@ -882,12 +882,7 @@ interface LDAPIdentityListCellProps {
 }
 
 const LDAPIdentityListCell: React.VFC<LDAPIdentityListCellProps> = (props) => {
-  const {
-    icon,
-    identityName,
-    verified,
-    connectedOn,
-  } = props;
+  const { icon, identityName, verified, connectedOn } = props;
 
   return (
     <ListCellLayout className={styles.cellContainer}>
