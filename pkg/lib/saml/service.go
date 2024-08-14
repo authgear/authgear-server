@@ -19,6 +19,8 @@ import (
 const MetadataValidDuration = time.Hour * 24
 const MaxAuthnRequestValidDuration = duration.Short
 
+//go:generate mockgen -source=service.go -destination=service_mock_test.go -package saml_test
+
 type SAMLEndpoints interface {
 	SAMLLoginURL(serviceProviderId string) *url.URL
 }
