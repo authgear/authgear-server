@@ -110,7 +110,7 @@ func (h *LoginHandler) handleRedirectBinding(now time.Time, r *http.Request) (au
 		}
 	}
 
-	authnRequest, err = h.SAMLService.ParseAuthnRequest(requestBuffer)
+	authnRequest, err = saml.ParseAuthnRequest(requestBuffer)
 	if err != nil {
 		return nil, relayState, &protocol.SAMLProtocolError{
 			Response:   saml.NewRequestDeniedErrorResponse(now, "failed to parse SAMLRequest"),
@@ -139,7 +139,7 @@ func (h *LoginHandler) handlePostBinding(now time.Time, r *http.Request) (authnR
 		}
 	}
 
-	authnRequest, err = h.SAMLService.ParseAuthnRequest(requestBuffer)
+	authnRequest, err = saml.ParseAuthnRequest(requestBuffer)
 	if err != nil {
 		return nil, relayState, &protocol.SAMLProtocolError{
 			Response:   saml.NewRequestDeniedErrorResponse(now, "failed to parse SAMLRequest"),
