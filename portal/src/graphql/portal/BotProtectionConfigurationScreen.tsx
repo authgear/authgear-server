@@ -57,6 +57,8 @@ const MASKED_SECRET = "***************";
 
 const SECRET_KEY_FORM_FIELD_ID = "secret-key-form-field";
 
+const DEPENDS_ON_AUTHENTICATOR_OPTION_KEY = "dependsOnSpecialAuthenticator";
+
 interface LocationState {
   isOAuthRedirect: boolean;
 }
@@ -750,7 +752,6 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
       },
       []
     );
-    const DEPENDS_ON_AUTHENTICATOR_OPTION_KEY = "dependsOnSpecialAuthenticator";
     const onDropdownChange = useCallback(
       (
         _e: React.FormEvent<unknown>,
