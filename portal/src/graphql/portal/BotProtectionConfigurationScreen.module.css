@@ -121,6 +121,5 @@
 }
 
 .requirementDropdownContainer {
-  padding-top: 0.13rem; /* 2px */
-  padding-bottom: 0.13rem; /* 2px */
+  @apply pt-0.5 pb-0.5;
 }
