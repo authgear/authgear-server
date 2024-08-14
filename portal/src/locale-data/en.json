@@ -297,7 +297,7 @@
   "UsersScreen.filters.groups.placeholder": "Groups",
   "UsersScreen.filters.roles.placeholder": "Roles",
 
-  "AddUserScreen.title": "Add User",
+  "AddUserScreen.title": "Create User",
   "AddUserScreen.user-info.label": "Select a method",
   "AddUserScreen.password.label": "Password",
   "AddUserScreen.add-user.label": "Add User",
