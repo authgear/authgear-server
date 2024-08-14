@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/binding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -31,10 +32,11 @@ func NewLoginHandlerLogger(lf *log.Factory) *LoginHandlerLogger {
 }
 
 type LoginHandler struct {
-	Logger      *LoginHandlerLogger
-	Clock       clock.Clock
-	SAMLConfig  *config.SAMLConfig
-	SAMLService HandlerSAMLService
+	Logger             *LoginHandlerLogger
+	Clock              clock.Clock
+	SAMLConfig         *config.SAMLConfig
+	SAMLService        HandlerSAMLService
+	SAMLSessionService SAMLSessionService
 }
 
 func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -85,6 +87,12 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	if authnRequest.AssertionConsumerServiceURL != "" {
 		callbackURL = authnRequest.AssertionConsumerServiceURL
+	}
+
+	samlSession := samlsession.NewSAMLSession(authnRequest, callbackURL)
+	err = h.SAMLSessionService.Save(samlSession)
+	if err != nil {
+		panic(err)
 	}
 
 	// TODO(saml): Redirect to auth ui

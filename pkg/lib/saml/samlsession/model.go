@@ -9,14 +9,17 @@ import (
 type SAMLSession struct {
 	ID              string `json:"id,omitempty"`
 	AuthnRequestXML string `json:"authn_request_xml,omitempty"`
+	// The url the response should send to
+	CallbackURL string `json:"callback_url,omitempty"`
 }
 
-func NewSAMLSession(authnRequest *saml.AuthnRequest) *SAMLSession {
+func NewSAMLSession(authnRequest *saml.AuthnRequest, callbackURL string) *SAMLSession {
 	id := rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
 
 	return &SAMLSession{
 		ID:              id,
 		AuthnRequestXML: string(authnRequest.ToXMLBytes()),
+		CallbackURL:     callbackURL,
 	}
 }
 
