@@ -571,19 +571,18 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	taskQueue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
-		Clock:       clockClock,
-		Context:     c,
-		Database:    handle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       appID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   taskQueue,
-		Producer:    userReindexProducer,
+		Clock:           clockClock,
+		Context:         c,
+		Database:        handle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       taskQueue,
+		Producer:        userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -804,19 +803,18 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Coordinator: coordinator,
 	}
 	service4 := &elasticsearch.Service{
-		Clock:       clockClock,
-		Context:     c,
-		Database:    handle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       appID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   taskQueue,
-		Producer:    userReindexProducer,
+		Clock:           clockClock,
+		Context:         c,
+		Database:        handle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       taskQueue,
+		Producer:        userReindexProducer,
 	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{

@@ -627,19 +627,18 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clock)
 	elasticsearchService := elasticsearch.Service{
-		Clock:       clock,
-		Context:     contextContext,
-		Database:    appdbHandle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       appID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   userStore,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   queue,
-		Producer:    userReindexProducer,
+		Clock:           clock,
+		Context:         contextContext,
+		Database:        appdbHandle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       userStore,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       queue,
+		Producer:        userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,

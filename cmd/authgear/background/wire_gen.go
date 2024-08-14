@@ -598,19 +598,18 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	noopTaskQueue := NewNoopTaskQueue()
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
-		Clock:       clockClock,
-		Context:     ctx,
-		Database:    handle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       configAppID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   noopTaskQueue,
-		Producer:    userReindexProducer,
+		Clock:           clockClock,
+		Context:         ctx,
+		Database:        handle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           configAppID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       noopTaskQueue,
+		Producer:        userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
