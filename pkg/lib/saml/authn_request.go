@@ -18,6 +18,22 @@ func (a *AuthnRequest) GetProtocolBinding() binding.SAMLBinding {
 	return binding.SAMLBinding(a.AuthnRequest.ProtocolBinding)
 }
 
+func (a *AuthnRequest) GetIsPassive() bool {
+	if a.IsPassive == nil {
+		// Default false, See 3.4.1 of https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf
+		return false
+	}
+	return *a.IsPassive
+}
+
+func (a *AuthnRequest) GetForceAuthn() bool {
+	if a.ForceAuthn == nil {
+		// Default false, See 3.4.1 of https://docs.oasis-open.org/security/saml/v2.0/saml-core-2.0-os.pdf
+		return false
+	}
+	return *a.ForceAuthn
+}
+
 func (a *AuthnRequest) ToXMLBytes() []byte {
 	buf, err := xml.Marshal(a)
 	if err != nil {

@@ -39,7 +39,7 @@ type LoginHandler struct {
 	SAMLConfig         *config.SAMLConfig
 	SAMLService        HandlerSAMLService
 	SAMLSessionService SAMLSessionService
-	SAMLUIURLBuilder   SAMLUIURLBuilder
+	SAMLUIService      SAMLUIService
 }
 
 func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -86,7 +86,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	err = h.SAMLService.ValidateAuthnRequest(sp.ID, authnRequest)
 	if err != nil {
 		protocolErr := &protocol.SAMLProtocolError{
-			Response:   saml.NewRequestDeniedErrorResponse(now, "failed to validate SAMLRequest"),
+			Response:   saml.NewRequestDeniedErrorResponse(now, fmt.Sprintf("invalid SAMLRequest: %v", err)),
 			RelayState: relayState,
 			Cause:      err,
 		}
@@ -98,13 +98,31 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		callbackURL = authnRequest.AssertionConsumerServiceURL
 	}
 
-	samlSession := samlsession.NewSAMLSession(authnRequest, callbackURL)
+	samlSessionEntry := &samlsession.SAMLSessionEntry{
+		ServiceProviderID: sp.ID,
+		AuthnRequestXML:   string(authnRequest.ToXMLBytes()),
+		CallbackURL:       callbackURL,
+	}
+	uiInfo, err := h.SAMLUIService.ResolveUIInfo(samlSessionEntry)
+	if err != nil {
+		protocolErr := &protocol.SAMLProtocolError{
+			Response:   saml.NewRequestDeniedErrorResponse(now, fmt.Sprintf("invalid SAMLRequest: %v", err)),
+			RelayState: relayState,
+			Cause:      err,
+		}
+		h.handleProtocolError(rw, callbackURL, protocolErr)
+		return
+	}
+
+	// TODO(saml): Handle prompt = none case
+
+	samlSession := samlsession.NewSAMLSession(samlSessionEntry, uiInfo)
 	err = h.SAMLSessionService.Save(samlSession)
 	if err != nil {
 		panic(err)
 	}
 
-	endpoint, err := h.SAMLUIURLBuilder.BuildAuthenticationURL(samlSession)
+	endpoint, err := h.SAMLUIService.BuildAuthenticationURL(samlSession)
 
 	resp := &httputil.ResultRedirect{
 		URL: endpoint.String(),
