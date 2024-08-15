@@ -55,7 +55,10 @@ func NewNodeDoCreateSession(ctx context.Context, deps *authflow.Dependencies, fl
 		authnInfo.AuthenticatedBySessionType = string(newSession.SessionType())
 	}
 
-	authnInfoEntry := authenticationinfo.NewEntry(authnInfo, authflow.GetOAuthSessionID(ctx))
+	authnInfoEntry := authenticationinfo.NewEntry(authnInfo,
+		authflow.GetOAuthSessionID(ctx),
+		authflow.GetSAMLSessionID(ctx),
+	)
 
 	n.Session = newSession
 	n.SessionCookie = sessionCookie

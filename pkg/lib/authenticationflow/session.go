@@ -13,6 +13,7 @@ type Session struct {
 	FlowID string `json:"flow_id"`
 
 	OAuthSessionID string `json:"oauth_session_id,omitempty"`
+	SAMLSessionID  string `json:"saml_session_id,omitempty"`
 
 	ClientID    string   `json:"client_id,omitempty"`
 	RedirectURI string   `json:"redirect_uri,omitempty"`
@@ -36,6 +37,7 @@ type SessionOutput struct {
 
 type SessionOptions struct {
 	OAuthSessionID string
+	SAMLSessionID  string
 
 	ClientID    string
 	RedirectURI string
@@ -55,6 +57,7 @@ func (s *SessionOptions) PartiallyMergeFrom(o *SessionOptions) *SessionOptions {
 	out := &SessionOptions{}
 	if s != nil {
 		out.OAuthSessionID = s.OAuthSessionID
+		out.SAMLSessionID = s.SAMLSessionID
 
 		out.ClientID = s.ClientID
 		out.RedirectURI = s.RedirectURI
@@ -91,6 +94,7 @@ func NewSession(opts *SessionOptions) *Session {
 		FlowID: newFlowID(),
 
 		OAuthSessionID: opts.OAuthSessionID,
+		SAMLSessionID:  opts.SAMLSessionID,
 
 		ClientID:    opts.ClientID,
 		RedirectURI: opts.RedirectURI,
@@ -117,6 +121,7 @@ func (s *Session) ToOutput() *SessionOutput {
 
 func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) (context.Context, error) {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
+	ctx = context.WithValue(ctx, contextKeySAMLSessionID, s.SAMLSessionID)
 
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
 		ClientID:  s.ClientID,

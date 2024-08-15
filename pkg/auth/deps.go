@@ -103,6 +103,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.AuthenticationFlowV1UIInfoResolver), new(*oidc.UIInfoResolver)),
 
 	wire.Bind(new(webapp.SessionMiddlewareSAMLSessionService), new(*samlsession.StoreRedis)),
+	wire.Bind(new(handlerwebapp.AuthflowControllerSAMLSessionService), new(*samlsession.StoreRedis)),
 	wire.Bind(new(webapp.SessionMiddlewareSAMLUIInfoResolver), new(*samlsession.UIService)),
 
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
