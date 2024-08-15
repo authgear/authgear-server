@@ -612,7 +612,6 @@ const DefaultClientURIConfiguration: React.VFC<DefaultClientURIConfigurationProp
             "DesignScreen.configuration.defaultClientURI.enable.description"
           )}
           inlineLabel={true}
-          disabled={designForm.state.whiteLabelingDisabled}
         />
         <FormTextField
           fieldName="default_client_uri"
