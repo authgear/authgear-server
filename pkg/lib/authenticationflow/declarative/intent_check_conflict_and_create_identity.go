@@ -92,8 +92,7 @@ func (i *IntentCheckConflictAndCreateIdenity) checkConflictByAccountLinkings(
 	case model.IdentityTypeLoginID:
 		return linkByIncomingLoginIDSpec(ctx, deps, flows, i.UserID, i.Request.LoginID, i.JSONPointer)
 	case model.IdentityTypeLDAP:
-		// TODO(DEV-1672)
-		return nil, nil
+		return linkByIncomingLDAPSpec(ctx, deps, flows, i.UserID, i.Request.LDAP, i.JSONPointer)
 	default:
 		// Linking of other types are not supported at the moment
 		return nil, nil

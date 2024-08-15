@@ -37,6 +37,20 @@ var _ = Schema.Add("AccountLinkingOAuthItem", `
 }
 `)
 
+var _ = Schema.Add("AccountLinkingLDAPItem", `
+{
+	"type": "object",
+	"required": ["server_name", "attribute_name", "user_profile", "action"],
+	"properties": {
+		"name": { "type": "string" },
+		"server_name": { "type": "string" },
+		"attribute_name": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
+		"user_profile": { "$ref": "#/$defs/AccountLinkingJSONPointer" },
+		"action": { "$ref": "#/$defs/AccountLinkingAction" }
+	}
+}
+`)
+
 var _ = Schema.Add("AccountLinkingLoginIDItem", `
 {
 	"type": "object",
@@ -93,6 +107,13 @@ type AccountLinkingLoginIDItem struct {
 	UserProfile *AccountLinkingJSONPointer `json:"user_profile,omitempty"`
 	Action      AccountLinkingAction       `json:"action,omitempty"`
 }
+type AccountLinkingLDAPItem struct {
+	Name          string                     `json:"name,omitempty"`
+	ServerName    string                     `json:"server_name,omitempty"`
+	AttributeName *AccountLinkingJSONPointer `json:"attribute_name,omitempty"`
+	UserProfile   *AccountLinkingJSONPointer `json:"user_profile,omitempty"`
+	Action        AccountLinkingAction       `json:"action,omitempty"`
+}
 
 type AccountLinkingOAuthItem struct {
 	Name        string                     `json:"name,omitempty"`
@@ -131,6 +152,24 @@ var DefaultAccountLinkingOAuthItem = &AccountLinkingOAuthItem{
 	OAuthClaim:  &AccountLinkingJSONPointer{Pointer: "/email"},
 	UserProfile: &AccountLinkingJSONPointer{Pointer: "/email"},
 	Action:      AccountLinkingActionError,
+}
+
+var DefaultAccountLinkingLDAPEmailItem = &AccountLinkingLDAPItem{
+	AttributeName: &AccountLinkingJSONPointer{Pointer: "/email"},
+	UserProfile:   &AccountLinkingJSONPointer{Pointer: "/email"},
+	Action:        AccountLinkingActionError,
+}
+
+var DefaultAccountLinkingLDAPPhoneItem = &AccountLinkingLDAPItem{
+	AttributeName: &AccountLinkingJSONPointer{Pointer: "/phone_number"},
+	UserProfile:   &AccountLinkingJSONPointer{Pointer: "/phone_number"},
+	Action:        AccountLinkingActionError,
+}
+
+var DefaultAccountLinkingLDAPUsernameItem = &AccountLinkingLDAPItem{
+	AttributeName: &AccountLinkingJSONPointer{Pointer: "/preferred_username"},
+	UserProfile:   &AccountLinkingJSONPointer{Pointer: "/preferred_username"},
+	Action:        AccountLinkingActionError,
 }
 
 var DefaultAccountLinkingLoginIDEmailItem = &AccountLinkingLoginIDItem{
