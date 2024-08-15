@@ -2,17 +2,24 @@ package saml
 
 import (
 	"bytes"
+	"encoding/xml"
+	"fmt"
 	"net/url"
 	"text/template"
 	"time"
 
 	crewjamsaml "github.com/crewjam/saml"
+	xrv "github.com/mattermost/xml-roundtrip-validator"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 )
 
 const MetadataValidDuration = time.Hour * 24
+const MaxAuthnRequestValidDuration = duration.Short
+
+//go:generate mockgen -source=service.go -destination=service_mock_test.go -package saml_test
 
 type SAMLEndpoints interface {
 	SAMLLoginURL(serviceProviderId string) *url.URL
@@ -94,4 +101,72 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
 	return &Metadata{
 		descriptor,
 	}, nil
+}
+
+func (s *Service) ParseAuthnRequest(input []byte) (*AuthnRequest, error) {
+	var req crewjamsaml.AuthnRequest
+	if err := xrv.Validate(bytes.NewReader(input)); err != nil {
+		return nil, err
+	}
+
+	if err := xml.Unmarshal(input, &req); err != nil {
+		return nil, err
+	}
+
+	authnRequest := &AuthnRequest{
+		AuthnRequest: req,
+	}
+
+	return authnRequest, nil
+
+}
+
+func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *AuthnRequest) error {
+	now := s.Clock.NowUTC()
+	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
+	if !ok {
+		return ErrServiceProviderNotFound
+	}
+	// TODO(saml): Verify the signature
+
+	if authnRequest.Destination != "" {
+		if authnRequest.Destination != s.Endpoints.SAMLLoginURL(sp.ID).String() {
+			return fmt.Errorf("unexpected destination")
+		}
+	}
+
+	if !authnRequest.GetProtocolBinding().IsSupported() {
+		return fmt.Errorf("unsupported binding")
+	}
+
+	if authnRequest.IssueInstant.Add(MaxAuthnRequestValidDuration).Before(now) {
+		return fmt.Errorf("request expired")
+	}
+
+	if authnRequest.Version != SAMLVersion2 {
+		return fmt.Errorf("Request Version must be 2.0")
+	}
+
+	if authnRequest.NameIDPolicy != nil && authnRequest.NameIDPolicy.Format != nil {
+		reqNameIDFormat := *authnRequest.NameIDPolicy.Format
+		if reqNameIDFormat != string(sp.NameIDFormat) &&
+			// unspecified is always allowed
+			reqNameIDFormat != string(config.NameIDFormatUnspecified) {
+			return fmt.Errorf("unsupported Name Identifier Format")
+		}
+	}
+
+	if authnRequest.AssertionConsumerServiceURL != "" {
+		allowed := false
+		for _, allowedURL := range sp.AcsURLs {
+			if allowedURL == authnRequest.AssertionConsumerServiceURL {
+				allowed = true
+			}
+		}
+		if allowed == false {
+			return fmt.Errorf("AssertionConsumerServiceURL not allowed")
+		}
+	}
+
+	return nil
 }
