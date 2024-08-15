@@ -10,6 +10,7 @@ import (
 	crewjamsaml "github.com/crewjam/saml"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -101,13 +102,14 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
 	}, nil
 }
 
-func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *AuthnRequest) error {
+// Validate the AuthnRequest
+// This method does not verify the signature
+func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *samlprotocol.AuthnRequest) error {
 	now := s.Clock.NowUTC()
 	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
 		return ErrServiceProviderNotFound
 	}
-	// TODO(saml): Verify the signature
 
 	if authnRequest.Destination != "" {
 		if authnRequest.Destination != s.Endpoints.SAMLLoginURL(sp.ID).String() {
@@ -123,7 +125,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *A
 		return fmt.Errorf("request expired")
 	}
 
-	if authnRequest.Version != SAMLVersion2 {
+	if authnRequest.Version != samlprotocol.SAMLVersion2 {
 		return fmt.Errorf("Request Version must be 2.0")
 	}
 

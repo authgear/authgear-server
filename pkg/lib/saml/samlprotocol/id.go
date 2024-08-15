@@ -1,4 +1,4 @@
-package saml
+package samlprotocol
 
 import (
 	"fmt"

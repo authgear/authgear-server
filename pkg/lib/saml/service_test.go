@@ -10,7 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 
 	crewjamsaml "github.com/crewjam/saml"
@@ -47,14 +47,14 @@ func TestSAMLService(t *testing.T) {
 	}
 
 	Convey("ValidateAuthnRequest", t, func() {
-		makeValidRequest := func() *saml.AuthnRequest {
+		makeValidRequest := func() *samlprotocol.AuthnRequest {
 			issueInstant, _ := time.Parse(time.RFC3339, "2006-01-02T15:00:05Z")
 			nameIDFormat := "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-			authnRequest := &saml.AuthnRequest{
+			authnRequest := &samlprotocol.AuthnRequest{
 				AuthnRequest: crewjamsaml.AuthnRequest{
 					ID:              "id_test",
 					Destination:     "http://idp.local/login",
-					ProtocolBinding: string(samlbinding.SAMLBindingPostRedirect),
+					ProtocolBinding: string(samlprotocol.SAMLBindingPostRedirect),
 					IssueInstant:    issueInstant,
 					Version:         "2.0",
 					NameIDPolicy: &crewjamsaml.NameIDPolicy{

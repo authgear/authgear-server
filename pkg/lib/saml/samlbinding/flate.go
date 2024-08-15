@@ -10,7 +10,7 @@ import (
 
 const flateUncompressLimit = 10 * 1024 * 1024 // 10MB
 
-func NewSaferFlateReader(r io.Reader) io.ReadCloser {
+func newSaferFlateReader(r io.Reader) io.ReadCloser {
 	return &saferFlateReader{r: flate.NewReader(r)}
 }
 
