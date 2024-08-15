@@ -3,7 +3,7 @@ ci:
 	@# Check if any `focus: true` is present in the test files
 	@# This is to prevent accidentally running only a subset of tests
 	@! grep -r -l -E 'focus\s*:\strue' tests || (echo "Remove 'focus: true' from test files above." && exit 1)
-	make run
+	$(MAKE) run
 
 .PHONY: run
 run:
