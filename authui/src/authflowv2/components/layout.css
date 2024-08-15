@@ -23,10 +23,15 @@
     /* In non-mobile layout, we see the true background-color */
     @apply bg-[var(--color-surface-primary)] tablet:bg-[var(--layout\_\_bg-color)];
 
-    background-image: var(--layout__bg-image);
-    background-repeat: var(--layout__bg_repeat);
-    background-position: var(--layout__bg_position);
-    background-size: var(--layout__bg_size);
+    /* In mobile layout, we should never see the background image as well */
+    /* It should only show background-color that same as widget's background-color */
+    /* background-image should only be seen in non-mobile layout */
+    @media (min-width: theme("screens.tablet")) {
+      background-image: var(--layout__bg-image);
+      background-repeat: var(--layout__bg_repeat);
+      background-position: var(--layout__bg_position);
+      background-size: var(--layout__bg_size);
+    }
   }
 
   /* alignment-card */
