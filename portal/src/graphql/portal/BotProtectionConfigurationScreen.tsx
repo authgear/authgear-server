@@ -386,6 +386,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             return {
               ...c,
               recaptchav2: {
+                ...c.recaptchav2,
                 secretKey: c["recaptchav2"]?.secretKey ?? null,
                 siteKey: value,
               },
@@ -403,6 +404,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             return {
               ...c,
               recaptchav2: {
+                ...c.recaptchav2,
                 secretKey: value,
                 siteKey: c["recaptchav2"]?.siteKey ?? "",
               },
@@ -420,6 +422,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             return {
               ...c,
               cloudflare: {
+                ...c.cloudflare,
                 secretKey: c["cloudflare"]?.secretKey ?? null,
                 siteKey: value,
               },
@@ -437,6 +440,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             return {
               ...c,
               cloudflare: {
+                ...c.cloudflare,
                 secretKey: value,
                 siteKey: c["cloudflare"]?.siteKey ?? "",
               },
