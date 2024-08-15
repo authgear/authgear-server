@@ -84,7 +84,7 @@ func NewIdentificationOptionLDAP(ldapConfig *config.LDAPConfig, authflowCfg *con
 		output = append(output, IdentificationOption{
 			Identification: config.AuthenticationFlowIdentificationLDAP,
 			ServerName:     s.Name,
-			// TODO(DEV-1659)
+			// TODO(DEV-1659): Support bot protection in LDAP
 			// BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
 		})
 	}

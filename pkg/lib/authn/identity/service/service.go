@@ -1001,7 +1001,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 		case model.IdentityTypeSIWE:
 			out = append(out, s.listSIWECandidates(siwes)...)
 		case model.IdentityTypeLDAP:
-			// TODO(DEV-1660)
+			// TODO(DEV-1671): Support LDAP in settings page
 			break
 		}
 
