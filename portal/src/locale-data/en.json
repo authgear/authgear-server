@@ -908,7 +908,7 @@
   "VerifyDomainScreen.error.verification-error": "Failed to verify domain",
 
   "ManageLanguageWidget.title": "Language",
-  "ManageLanguageWidget.language-label": "{LANG}{IS_FALLBACK, select, true{ - Default} other{}}",
+  "ManageLanguageWidget.language-label": "{LANG}{IS_FALLBACK, select, true{ - Primary} other{}}",
   "ManageLanguageWidget.manage-languages": "Manage Languages",
   "ManageLanguageWidget.option-removed": "{LANG} (Removed)",
   "ManageLanguageWidget.save-to-select-new-language": "Save changes to select newly added language",
