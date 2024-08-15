@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 )
@@ -38,10 +39,10 @@ type LoginHandler struct {
 	SAMLConfig         *config.SAMLConfig
 	SAMLService        HandlerSAMLService
 	SAMLSessionService SAMLSessionService
+	SAMLUIURLBuilder   SAMLUIURLBuilder
 }
 
 func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-
 	now := h.Clock.NowUTC()
 	serviceProviderId := httproute.GetParam(r, "service_provider_id")
 	sp, ok := h.SAMLConfig.ResolveProvider(serviceProviderId)
@@ -103,8 +104,12 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	// TODO(saml): Redirect to auth ui
-	_, _ = rw.Write([]byte("callback url:" + callbackURL + "\n" + authnRequest.ID + relayState))
+	endpoint, err := h.SAMLUIURLBuilder.BuildAuthenticationURL(samlSession)
+
+	resp := &httputil.ResultRedirect{
+		URL: endpoint.String(),
+	}
+	resp.WriteResponse(rw, r)
 }
 
 func (h *LoginHandler) handleRedirectBinding(now time.Time, r *http.Request) (authnRequest *saml.AuthnRequest, relayState string, err error) {

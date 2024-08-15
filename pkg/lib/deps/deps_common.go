@@ -115,6 +115,8 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		samlsession.DependencySet,
 		wire.Bind(new(handlersaml.SAMLSessionService), new(*samlsession.StoreRedis)),
+
+		wire.Bind(new(handlersaml.SAMLUIURLBuilder), new(*samlsession.UIURLBuilder)),
 	),
 
 	wire.NewSet(
@@ -584,6 +586,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(interaction.OAuthRedirectURIBuilder), new(*endpoints.Endpoints)),
 		wire.Bind(new(saml.SAMLEndpoints), new(*endpoints.Endpoints)),
+		wire.Bind(new(samlsession.UIURLBuilderAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
 	),
 
 	wire.NewSet(
