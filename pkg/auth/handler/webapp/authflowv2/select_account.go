@@ -113,6 +113,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 	if webSession != nil {
 		oauthSessionID = webSession.OAuthSessionID
+		// TODO(saml): Handle saml session
 		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
 		userIDHint = webSession.UserIDHint
 		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate

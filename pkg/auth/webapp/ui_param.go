@@ -39,7 +39,7 @@ var UILocalesCookieDef = &httputil.CookieDef{
 // }
 
 type UIParamMiddleware struct {
-	UIInfoResolver SessionMiddlewareUIInfoResolver
+	UIInfoResolver SessionMiddlewareOAuthUIInfoResolver
 	OAuthSessions  SessionMiddlewareOAuthSessionService
 	Cookies        CookieManager
 }
@@ -66,6 +66,8 @@ func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 					uiParam = uiInfo.ToUIParam()
 				}
 			}
+
+			// TODO(saml): Handle saml session
 		}
 
 		// Allow overriding ui_locales with query.
