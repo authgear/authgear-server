@@ -104,9 +104,7 @@ func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, f
 			return nil, err
 		}
 
-		newNode, err := NewNodeDoUseIdentity(ctx, flows, &NodeDoUseIdentity{
-			Identity: exactMatch,
-		})
+		newNode, err := NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec)
 		if err != nil {
 			return nil, err
 		}

@@ -234,7 +234,7 @@ func (s *Store) Update(i *identity.LDAP) error {
 	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP)).
 		Set("claims", claims).
-		Set("rawEntryJSON", rawEntryJSON).
+		Set("raw_entry_json", rawEntryJSON).
 		Where("id = ?", i.ID)
 
 	result, err := s.SQLExecutor.ExecWith(q)
