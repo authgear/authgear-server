@@ -18,6 +18,7 @@ type SAMLSessionService interface {
 	Delete(entryID string) error
 }
 
-type SAMLUIURLBuilder interface {
+type SAMLUIService interface {
+	ResolveUIInfo(entry *samlsession.SAMLSessionEntry) (*samlsession.SAMLUIInfo, error)
 	BuildAuthenticationURL(s *samlsession.SAMLSession) (*url.URL, error)
 }
