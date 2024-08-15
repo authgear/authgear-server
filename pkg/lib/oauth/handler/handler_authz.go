@@ -59,6 +59,9 @@ const SettingsActionGrantValidDuration = duration.Short
 
 type UIInfoResolver interface {
 	ResolveForAuthorizationEndpoint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (*oidc.UIInfo, *oidc.UIInfoByProduct, error)
+}
+
+type AuthenticationInfoResolver interface {
 	GetAuthenticationInfoID(req *http.Request) (string, bool)
 }
 
@@ -121,6 +124,7 @@ type AuthorizationHandler struct {
 
 	UIURLBuilder                    UIURLBuilder
 	UIInfoResolver                  UIInfoResolver
+	AuthenticationInfoResolver      AuthenticationInfoResolver
 	Authorizations                  AuthorizationService
 	ValidateScopes                  ScopesValidator
 	AppSessionTokenService          AppSessionTokenService
@@ -321,7 +325,7 @@ func (h *AuthorizationHandler) doHandleConsent(req *http.Request, withUserConsen
 }
 
 func (h *AuthorizationHandler) getAuthenticationInfoEntry(req *http.Request) (*authenticationinfo.Entry, error) {
-	id, ok := h.UIInfoResolver.GetAuthenticationInfoID(req)
+	id, ok := h.AuthenticationInfoResolver.GetAuthenticationInfoID(req)
 	if !ok {
 		return nil, protocol.NewError("login_required", "authentication required")
 	}
