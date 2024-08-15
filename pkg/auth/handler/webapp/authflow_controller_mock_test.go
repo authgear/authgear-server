@@ -16,6 +16,7 @@ import (
 	oauthsession "github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	oidc "github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	protocol "github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	samlsession "github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	httputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -270,6 +271,44 @@ func (m *MockAuthflowControllerOAuthSessionService) Get(entryID string) (*oauths
 func (mr *MockAuthflowControllerOAuthSessionServiceMockRecorder) Get(entryID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerOAuthSessionService)(nil).Get), entryID)
+}
+
+// MockAuthflowControllerSAMLSessionService is a mock of AuthflowControllerSAMLSessionService interface.
+type MockAuthflowControllerSAMLSessionService struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthflowControllerSAMLSessionServiceMockRecorder
+}
+
+// MockAuthflowControllerSAMLSessionServiceMockRecorder is the mock recorder for MockAuthflowControllerSAMLSessionService.
+type MockAuthflowControllerSAMLSessionServiceMockRecorder struct {
+	mock *MockAuthflowControllerSAMLSessionService
+}
+
+// NewMockAuthflowControllerSAMLSessionService creates a new mock instance.
+func NewMockAuthflowControllerSAMLSessionService(ctrl *gomock.Controller) *MockAuthflowControllerSAMLSessionService {
+	mock := &MockAuthflowControllerSAMLSessionService{ctrl: ctrl}
+	mock.recorder = &MockAuthflowControllerSAMLSessionServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthflowControllerSAMLSessionService) EXPECT() *MockAuthflowControllerSAMLSessionServiceMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method.
+func (m *MockAuthflowControllerSAMLSessionService) Get(entryID string) (*samlsession.SAMLSession, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", entryID)
+	ret0, _ := ret[0].(*samlsession.SAMLSession)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockAuthflowControllerSAMLSessionServiceMockRecorder) Get(entryID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerSAMLSessionService)(nil).Get), entryID)
 }
 
 // MockAuthflowControllerUIInfoResolver is a mock of AuthflowControllerUIInfoResolver interface.
