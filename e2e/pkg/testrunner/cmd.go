@@ -2,19 +2,46 @@ package testrunner
 
 import (
 	"bytes"
+	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"os/exec"
 	"path"
 	"testing"
+
+	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type End2EndCmd struct {
 	AppID    string
+	Client   *e2eclient.Client
 	TestCase TestCase
 	Test     *testing.T
 }
 
-func (e *End2EndCmd) CreateConfigSource() error {
+func generateAppID() string {
+	id := make([]byte, 16)
+	_, err := rand.Read(id)
+	if err != nil {
+		panic(err)
+	}
+	return hex.EncodeToString(id)
+}
+
+type NewEnd2EndCmdOptions struct {
+	TestCase *TestCase
+	Test     *testing.T
+}
+
+func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
+	e := &End2EndCmd{
+		AppID:    generateAppID(),
+		TestCase: *options.TestCase,
+		Test:     options.Test,
+	}
+
 	cmd := fmt.Sprintf(
 		"./dist/e2e create-configsource --app-id %s --config-source %s --config-override \"%s\"",
 		e.AppID,
@@ -22,9 +49,17 @@ func (e *End2EndCmd) CreateConfigSource() error {
 		e.TestCase.AuthgearYAMLSource.Override,
 	)
 	if _, err := e.execCmd(cmd); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+
+	e.Client = e2eclient.NewClient(
+		context.Background(),
+		"localhost:4000",
+		"localhost:4002",
+		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", e.AppID)),
+	)
+
+	return e, nil
 }
 
 func (e *End2EndCmd) ImportUsers(jsonPath string) error {
@@ -70,6 +105,7 @@ func (e *End2EndCmd) GetLinkOTPCodeByClaim(claim string, value string) (string, 
 	)
 	return e.execCmd(cmd)
 }
+
 func (e *End2EndCmd) GenerateIDToken(userID string) (string, error) {
 	cmd := fmt.Sprintf(
 		"./dist/e2e generate-id-token %s --app-id %s",
@@ -77,11 +113,10 @@ func (e *End2EndCmd) GenerateIDToken(userID string) (string, error) {
 		e.AppID,
 	)
 	return e.execCmd(cmd)
-
 }
 
 func (e *End2EndCmd) resolvePath(p string) string {
-	return path.Join("./tests/authflow/", path.Dir(e.TestCase.Path), p)
+	return path.Join("./tests", path.Dir(e.TestCase.Path), p)
 }
 
 func (e *End2EndCmd) execCmd(cmd string) (string, error) {
@@ -91,7 +126,7 @@ func (e *End2EndCmd) execCmd(cmd string) (string, error) {
 	execCmd.Dir = "../../"
 	output, err := execCmd.Output()
 	if err != nil {
-		e.Test.Errorf(errb.String())
+		e.Test.Errorf("failed to execute command %s: %v\n%s", cmd, err, errb.String())
 		return "", err
 	}
 

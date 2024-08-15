@@ -42,7 +42,8 @@ ensure-important-modules-up-to-date:
 
 .PHONY: generate
 generate:
-	go generate ./pkg/... ./cmd/... ./e2e/...
+	go generate ./pkg/... ./cmd/...
+	cd ./e2e && go generate ./...
 	$(MAKE) fmt
 
 .PHONY: test
