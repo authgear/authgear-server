@@ -10,7 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
-	"github.com/authgear/authgear-server/pkg/lib/saml/binding"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 
 	crewjamsaml "github.com/crewjam/saml"
@@ -54,7 +54,7 @@ func TestSAMLService(t *testing.T) {
 				AuthnRequest: crewjamsaml.AuthnRequest{
 					ID:              "id_test",
 					Destination:     "http://idp.local/login",
-					ProtocolBinding: string(binding.SAMLBindingPostRedirect),
+					ProtocolBinding: string(samlbinding.SAMLBindingPostRedirect),
 					IssueInstant:    issueInstant,
 					Version:         "2.0",
 					NameIDPolicy: &crewjamsaml.NameIDPolicy{

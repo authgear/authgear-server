@@ -1,4 +1,4 @@
-package binding
+package samlbinding
 
 import (
 	crewjamsaml "github.com/crewjam/saml"
