@@ -47,6 +47,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
@@ -73,7 +74,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
 
 	wire.Bind(new(webapp.SessionMiddlewareOAuthSessionService), new(*oauthsession.StoreRedis)),
-	wire.Bind(new(webapp.SessionMiddlewareUIInfoResolver), new(*oidc.UIInfoResolver)),
+	wire.Bind(new(webapp.SessionMiddlewareOAuthUIInfoResolver), new(*oidc.UIInfoResolver)),
 	wire.Bind(new(handlerwebapp.SettingsDeleteAccountSuccessUIInfoResolver), new(*oidc.UIInfoResolver)),
 	wire.Bind(new(webapp.UIInfoResolver), new(*oidc.UIInfoResolver)),
 	wire.Bind(new(webapp.GraphService), new(*interaction.Service)),
@@ -100,6 +101,9 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerapi.AuthenticationFlowV1CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(handlerapi.AuthenticationFlowV1OAuthSessionService), new(*oauthsession.StoreRedis)),
 	wire.Bind(new(handlerapi.AuthenticationFlowV1UIInfoResolver), new(*oidc.UIInfoResolver)),
+
+	wire.Bind(new(webapp.SessionMiddlewareSAMLSessionService), new(*samlsession.StoreRedis)),
+	wire.Bind(new(webapp.SessionMiddlewareSAMLUIInfoResolver), new(*samlsession.UIService)),
 
 	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),

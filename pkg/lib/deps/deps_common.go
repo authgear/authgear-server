@@ -116,7 +116,7 @@ var CommonDependencySet = wire.NewSet(
 		samlsession.DependencySet,
 		wire.Bind(new(handlersaml.SAMLSessionService), new(*samlsession.StoreRedis)),
 
-		wire.Bind(new(handlersaml.SAMLUIURLBuilder), new(*samlsession.UIURLBuilder)),
+		wire.Bind(new(handlersaml.SAMLUIService), new(*samlsession.UIService)),
 	),
 
 	wire.NewSet(
