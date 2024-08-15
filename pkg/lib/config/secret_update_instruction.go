@@ -517,6 +517,8 @@ func (i *BotProtectionProviderCredentialsUpdateInstruction) ApplyTo(ctx *SecretC
 	switch i.Action {
 	case SecretUpdateInstructionActionSet:
 		return i.set(currentConfig)
+	case SecretUpdateInstructionActionUnset:
+		return i.unset(currentConfig)
 	default:
 		return nil, fmt.Errorf("config: unexpected action for BotProtectionProviderCredentialsUpdateInstruction: %s", i.Action)
 	}
@@ -552,6 +554,17 @@ func (i *BotProtectionProviderCredentialsUpdateInstruction) set(currentConfig *S
 		out.Secrets[idx] = newSecretItem
 	} else {
 		out.Secrets = append(out.Secrets, newSecretItem)
+	}
+	return out, nil
+}
+
+func (i *BotProtectionProviderCredentialsUpdateInstruction) unset(currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	for _, item := range currentConfig.Secrets {
+		if item.Key == BotProtectionProviderCredentialsKey {
+			continue
+		}
+		out.Secrets = append(out.Secrets, item)
 	}
 	return out, nil
 }
