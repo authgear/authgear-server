@@ -102,6 +102,12 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(authenticationflow.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(oauthhandler.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
+
+		wire.Bind(new(oauthhandler.AuthenticationInfoResolver), new(*authenticationinfo.UIService)),
+		wire.Bind(new(workflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
+		wire.Bind(new(authenticationflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
+		wire.Bind(new(webapp.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
+		wire.Bind(new(handlerwebappauthflowv2.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
 	),
 
 	wire.NewSet(
@@ -385,10 +391,6 @@ var CommonDependencySet = wire.NewSet(
 		oidc.DependencySet,
 		wire.Value(oauthhandler.ScopesValidator(oidc.ValidateScopes)),
 		wire.Bind(new(oauthhandler.UIInfoResolver), new(*oidc.UIInfoResolver)),
-		wire.Bind(new(webapp.SelectAccountUIInfoResolver), new(*oidc.UIInfoResolver)),
-		wire.Bind(new(handlerwebappauthflowv2.SelectAccountUIInfoResolver), new(*oidc.UIInfoResolver)),
-		wire.Bind(new(workflow.ServiceUIInfoResolver), new(*oidc.UIInfoResolver)),
-		wire.Bind(new(authenticationflow.ServiceUIInfoResolver), new(*oidc.UIInfoResolver)),
 		wire.Bind(new(authenticationflow.IDTokenService), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.AccessTokenIssuer), new(*oauth.AccessTokenEncoding)),
@@ -575,6 +577,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.OAuthRedirectURIBuilder), new(*endpoints.Endpoints)),
 		wire.Bind(new(saml.SAMLEndpoints), new(*endpoints.Endpoints)),
 		wire.Bind(new(samlsession.UIServiceAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(authenticationinfo.UIServiceEndpointsProvider), new(*endpoints.Endpoints)),
 	),
 
 	wire.NewSet(
