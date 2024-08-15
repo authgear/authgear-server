@@ -79,7 +79,7 @@ func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *inter
 		authenticationInfo = sessionToCreate.CreateNewAuthenticationInfoByThisSession()
 	}
 	authenticationInfo.ShouldFireAuthenticatedEventWhenIssueOfflineGrant = mode == EnsureSessionModeNoop && e.CreateReason == session.CreateReasonLogin
-	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo, ctx.OAuthSessionID)
+	authenticationInfoEntry := authenticationinfo.NewEntry(authenticationInfo, ctx.OAuthSessionID, "")
 
 	return &NodeDoEnsureSession{
 		CreateReason:            e.CreateReason,

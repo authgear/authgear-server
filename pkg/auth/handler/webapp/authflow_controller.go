@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -79,6 +80,10 @@ type AuthflowControllerOAuthSessionService interface {
 	Get(entryID string) (*oauthsession.Entry, error)
 }
 
+type AuthflowControllerSAMLSessionService interface {
+	Get(entryID string) (*samlsession.SAMLSession, error)
+}
+
 type AuthflowControllerUIInfoResolver interface {
 	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
@@ -126,6 +131,7 @@ type AuthflowController struct {
 	Authflows AuthflowControllerAuthflowService
 
 	OAuthSessions  AuthflowControllerOAuthSessionService
+	SAMLSessions   AuthflowControllerSAMLSessionService
 	UIInfoResolver AuthflowControllerUIInfoResolver
 
 	UIConfig            *config.UIConfig
@@ -437,10 +443,17 @@ func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, 
 		return nil, err
 	}
 
-	var sessionOptionsFromOAuth *authflow.SessionOptions
+	var sessionOptionsFromOAuthOrSAML *authflow.SessionOptions
 	if s.OAuthSessionID != "" {
-		sessionOptionsFromOAuth, err = c.makeSessionOptionsFromOAuth(s.OAuthSessionID)
+		sessionOptionsFromOAuthOrSAML, err = c.makeSessionOptionsFromOAuth(s.OAuthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
+			// Ignore this error.
+		} else if err != nil {
+			return nil, err
+		}
+	} else if s.SAMLSessionID != "" {
+		sessionOptionsFromOAuthOrSAML, err = c.makeSessionOptionsFromSAML(s.SAMLSessionID)
+		if errors.Is(err, samlsession.ErrNotFound) {
 			// Ignore this error.
 		} else if err != nil {
 			return nil, err
@@ -450,7 +463,7 @@ func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, 
 	sessionOptionsFromQuery := c.makeSessionOptionsFromQuery(r)
 
 	// The query overrides the cookie.
-	sessionOptions := sessionOptionsFromOAuth.PartiallyMergeFrom(sessionOptionsFromQuery)
+	sessionOptions := sessionOptionsFromOAuthOrSAML.PartiallyMergeFrom(sessionOptionsFromQuery)
 
 	output, err := c.Authflows.CreateNewFlow(flow, sessionOptions)
 	if err != nil {
@@ -851,6 +864,23 @@ func (c *AuthflowController) makeSessionOptionsFromOAuth(oauthSessionID string) 
 		SuppressIDPSessionCookie: uiInfo.SuppressIDPSessionCookie,
 		UserIDHint:               uiInfo.UserIDHint,
 		LoginHint:                uiInfo.LoginHint,
+	}
+
+	return sessionOptions, nil
+}
+
+func (c *AuthflowController) makeSessionOptionsFromSAML(samlSessionID string) (*authflow.SessionOptions, error) {
+	entry, err := c.SAMLSessions.Get(samlSessionID)
+	if err != nil {
+		return nil, err
+	}
+	uiInfo := entry.UIInfo
+
+	sessionOptions := &authflow.SessionOptions{
+		SAMLSessionID: samlSessionID,
+
+		RedirectURI: uiInfo.RedirectURI,
+		Prompt:      uiInfo.Prompt,
 	}
 
 	return sessionOptions, nil
