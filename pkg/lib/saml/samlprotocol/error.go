@@ -2,12 +2,10 @@ package samlprotocol
 
 import (
 	"fmt"
-
-	"github.com/authgear/authgear-server/pkg/lib/saml"
 )
 
 type SAMLProtocolError struct {
-	Response   *saml.Response
+	Response   *Response
 	RelayState string
 	Cause      error
 }

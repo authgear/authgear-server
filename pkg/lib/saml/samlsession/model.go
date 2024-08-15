@@ -1,7 +1,7 @@
 package samlsession
 
 import (
-	"github.com/authgear/authgear-server/pkg/lib/saml"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
@@ -29,8 +29,8 @@ func NewSAMLSession(entry *SAMLSessionEntry, uiInfo *SAMLUIInfo) *SAMLSession {
 	}
 }
 
-func (s *SAMLSessionEntry) AuthnRequest() *saml.AuthnRequest {
-	r, err := saml.ParseAuthnRequest([]byte(s.AuthnRequestXML))
+func (s *SAMLSessionEntry) AuthnRequest() *samlprotocol.AuthnRequest {
+	r, err := samlprotocol.ParseAuthnRequest([]byte(s.AuthnRequestXML))
 	if err != nil {
 		// We should ensure only valid request stored in the session
 		// So it is a panic if we got something invalid here
