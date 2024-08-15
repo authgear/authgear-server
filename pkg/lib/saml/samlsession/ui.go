@@ -33,7 +33,7 @@ func (i *SAMLUIInfo) ToUIParam() uiparam.T {
 
 type UIServiceAuthUIEndpointsProvider interface {
 	OAuthEntrypointURL() *url.URL
-	SAMLLoginFinishURL(serviceProviderId string) *url.URL
+	SAMLLoginFinishURL() *url.URL
 }
 
 type UIService struct {
@@ -80,7 +80,7 @@ func (r *UIService) ResolveUIInfo(entry *SAMLSessionEntry) (*SAMLUIInfo, error) 
 
 	info := &SAMLUIInfo{
 		SAMLServiceProviderID: entry.ServiceProviderID,
-		RedirectURI:           r.Endpoints.SAMLLoginFinishURL(entry.ServiceProviderID).String(),
+		RedirectURI:           r.Endpoints.SAMLLoginFinishURL().String(),
 		Prompt:                prompt,
 	}
 
