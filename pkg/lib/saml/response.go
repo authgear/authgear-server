@@ -13,7 +13,7 @@ type Response struct {
 func newResponse(issueInstant time.Time, status Status) *Response {
 	return &Response{
 		crewjamsaml.Response{
-			ID:           GenerateID(),
+			ID:           GenerateResponseID(),
 			IssueInstant: issueInstant,
 			Version:      SAMLVersion2,
 			Status:       status.status,
