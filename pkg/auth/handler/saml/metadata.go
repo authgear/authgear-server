@@ -15,12 +15,8 @@ func ConfigureMetadataRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/saml2/metadata/:service_provider_id")
 }
 
-type MetadataHandlerSAMLService interface {
-	IdpMetadata(serviceProviderId string) (*saml.Metadata, error)
-}
-
 type MetadataHandler struct {
-	SAMLService MetadataHandlerSAMLService
+	SAMLService HandlerSAMLService
 }
 
 func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
