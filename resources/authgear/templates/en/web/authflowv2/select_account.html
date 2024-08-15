@@ -10,7 +10,7 @@
       {{ if $.ClientName }}
         {{ template "v2-select-account-title" (dict "AppOrClientName" $.ClientName) }}
       {{ else }}
-        {{ $appName := (include "app.name" nil) }}
+        {{ $appName := (translate "app.name" nil) }}
         {{ template "v2-select-account-title" (dict "AppOrClientName" $appName) }}
       {{ end }}
     </h1>

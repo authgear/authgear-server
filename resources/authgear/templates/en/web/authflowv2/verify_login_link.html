@@ -1,7 +1,7 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  {{ $appName := (include "app.name" nil) }}
+  {{ $appName := (translate "app.name" nil) }}
 
   {{ if eq .State "invalid_code" }}
     {{ template "authflowv2/__error_page_layout.html"

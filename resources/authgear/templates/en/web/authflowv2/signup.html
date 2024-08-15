@@ -37,7 +37,7 @@
       {{ end }}
     {{ end }}
   {{ end }}
-  {{ $appName := (include "app.name" nil) }}
+  {{ $appName := (translate "app.name" nil) }}
   {{ $clientName := or $.ClientName "null" }}
 
   <div class="flex-1-0-auto">
