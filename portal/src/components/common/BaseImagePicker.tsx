@@ -51,6 +51,12 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
                   base64EncodedData: dataURIToBase64EncodedData(result),
                   extension,
                 });
+                if (inputRef.current) {
+                  // Note
+                  // This is a workaround for onChange listener not triggered
+                  // when selecting the same file in Chrome
+                  inputRef.current.value = "";
+                }
               }
             });
             reader.readAsDataURL(file);
@@ -68,9 +74,6 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
     }, [base64EncodedData]);
 
     const clearImage = useCallback(() => {
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
       onChange(null);
     }, [onChange]);
 
