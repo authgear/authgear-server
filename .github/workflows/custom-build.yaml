@@ -62,11 +62,11 @@ jobs:
         echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
 
-    - uses: google-github-actions/auth@v2
+    - uses: oursky/google-github-actions-auth@v2
       with:
         project_id: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_PROJECT_ID_HK }}
         workload_identity_provider: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_WORKLOAD_IDENTITY_PROVIDER_HK }}
-    - uses: google-github-actions/setup-gcloud@v2
+    - uses: oursky/google-github-actions-setup-gcloud@v2
     - name: Configure docker
       env:
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
@@ -79,11 +79,11 @@ jobs:
         make -C custombuild tag-image IMAGE_NAME=authgear-server-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server"
         make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-server" || docker logout "$REPO"
 
-    - uses: google-github-actions/auth@v2
+    - uses: oursky/google-github-actions-auth@v2
       with:
         project_id: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_PROJECT_ID_US }}
         workload_identity_provider: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_WORKLOAD_IDENTITY_PROVIDER_US }}
-    - uses: google-github-actions/setup-gcloud@v2
+    - uses: oursky/google-github-actions-setup-gcloud@v2
     - name: Configure docker
       env:
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
@@ -121,11 +121,11 @@ jobs:
         echo "SSH_AUTH_SOCK=" >> "$GITHUB_ENV"
         echo "SSH_AGENT_PID=" >> "$GITHUB_ENV"
 
-    - uses: google-github-actions/auth@v2
+    - uses: oursky/google-github-actions-auth@v2
       with:
         project_id: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_PROJECT_ID_HK }}
         workload_identity_provider: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_WORKLOAD_IDENTITY_PROVIDER_HK }}
-    - uses: google-github-actions/setup-gcloud@v2
+    - uses: oursky/google-github-actions-setup-gcloud@v2
     - name: Configure docker
       env:
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_HK }}
@@ -138,11 +138,11 @@ jobs:
         make -C custombuild tag-image IMAGE_NAME=authgear-portal-custom REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal"
         make -C custombuild push-image REMOTE_IMAGE_NAME="$REPO_PREFIX/authgear-portal" || docker logout "$REPO"
 
-    - uses: google-github-actions/auth@v2
+    - uses: oursky/google-github-actions-auth@v2
       with:
         project_id: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_PROJECT_ID_US }}
         workload_identity_provider: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_GOOGLE_WORKLOAD_IDENTITY_PROVIDER_US }}
-    - uses: google-github-actions/setup-gcloud@v2
+    - uses: oursky/google-github-actions-setup-gcloud@v2
     - name: Configure docker
       env:
         REPO: ${{ secrets.AUTHGEAR_CUSTOM_BUILD_REPO_US }}
