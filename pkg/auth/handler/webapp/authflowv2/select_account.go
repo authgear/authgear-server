@@ -105,6 +105,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	webSession := webapp.GetSession(r.Context())
 
 	oauthSessionID := ""
+	samlSessionID := ""
 	loginPrompt := false
 	userIDHint := ""
 	canUseIntentReauthenticate := false
@@ -113,7 +114,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 	if webSession != nil {
 		oauthSessionID = webSession.OAuthSessionID
-		// TODO(saml): Handle saml session
+		samlSessionID = webSession.SAMLSessionID
 		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
 		userIDHint = webSession.UserIDHint
 		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
@@ -148,7 +149,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		// Write authentication info cookie
 		if session != nil {
 			info := session.CreateNewAuthenticationInfoByThisSession()
-			entry := authenticationinfo.NewEntry(info, oauthSessionID)
+			entry := authenticationinfo.NewEntry(info, oauthSessionID, samlSessionID)
 			err := h.AuthenticationInfoService.Save(entry)
 			if err != nil {
 				return err
@@ -241,7 +242,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			return nil
 		}
 
-		fromAuthzEndpoint := oauthSessionID != ""
+		fromAuthzEndpoint := oauthSessionID != "" || samlSessionID != ""
 		if !fromAuthzEndpoint || session == nil || loginPrompt {
 			gotoSignupOrLogin()
 			return nil
