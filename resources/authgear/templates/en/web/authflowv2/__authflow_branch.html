@@ -36,12 +36,15 @@
     method="post"
     novalidate
     data-controller="turbo-form"
-    data-action="submit->turbo-form#submitForm"
+    data-action="{{ if .BotProtectionRequired }}submit->bot-protection#verifyFormSubmit {{end}}submit->turbo-form#submitForm"
   >
   {{ $.CSRFField }}
   <input type="hidden" name="x_index" value="{{ .Index }}">
   <input type="hidden" name="x_channel" value="{{ .Channel }}">
   <input type="hidden" name="x_action" value="take_branch">
+  {{ if .BotProtectionRequired  }}
+    {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
+  {{ end }}
   <button class="secondary-btn w-full flex gap-x-2" type="submit">
     {{- if eq $.ActionType "create_authenticator" }}
       {{- if eq .Authentication "primary_password" }}
