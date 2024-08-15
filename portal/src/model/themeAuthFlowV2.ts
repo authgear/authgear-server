@@ -44,7 +44,6 @@ export const enum CSSVariable {
   InputFiledBorderRadius = "--input__border-radius",
   LinkColor = "--body-text__link-color",
   WatermarkDisplay = "--watermark-display",
-  AlignmentLogo = "--alignment-logo",
   LogoHeight = "--brand-logo__height",
   PhoneInputTriggerBorderRadius = "--phone-input__trigger-border-radius",
 }
@@ -108,7 +107,6 @@ export interface LinkStyle {
 }
 
 export interface LogoStyte {
-  alignment: Alignment | Hidden;
   height: string;
 }
 
@@ -189,7 +187,6 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
     color: "#176df3",
   },
   logo: {
-    alignment: "center",
     height: "2.5rem",
   },
 };
@@ -233,7 +230,6 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
     color: "#2f7bf4",
   },
   logo: {
-    alignment: "center",
     height: "2.5rem",
   },
 };
@@ -565,10 +561,6 @@ export class CustomisableThemeStyleGroup extends StyleGroup<PartialCustomisableT
       }),
 
       logo: new StyleGroup({
-        alignment: new AlignOrHideItemsStyleProperty(
-          CSSVariable.AlignmentLogo,
-          value.logo.alignment
-        ),
         height: new HeightStyleProperty(
           CSSVariable.LogoHeight,
           value.logo.height
