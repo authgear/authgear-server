@@ -280,6 +280,13 @@ function constructSecretUpdateInstruction(
   if (secretKey == null) {
     return undefined;
   }
+  if (secretKey === "") {
+    return {
+      botProtectionProviderSecret: {
+        action: "unset",
+      },
+    };
+  }
   return {
     botProtectionProviderSecret: {
       action: "set",
