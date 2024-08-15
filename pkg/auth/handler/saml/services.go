@@ -3,13 +3,12 @@ package saml
 import (
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 )
 
 type HandlerSAMLService interface {
-	IdpMetadata(serviceProviderId string) (*saml.Metadata, error)
+	IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata, error)
 	ValidateAuthnRequest(serviceProviderId string, authnRequest *samlprotocol.AuthnRequest) error
 }
 

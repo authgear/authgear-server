@@ -49,7 +49,7 @@ func (s *Service) idpEntityID() string {
 	return idpEntityIDBytes.String()
 }
 
-func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
+func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata, error) {
 	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
 		return nil, ErrServiceProviderNotFound
@@ -70,7 +70,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
 			})
 	}
 
-	descriptor := EntityDescriptor{
+	descriptor := samlprotocol.EntityDescriptor{
 		EntityID: s.idpEntityID(),
 		IDPSSODescriptors: []crewjamsaml.IDPSSODescriptor{
 			{
@@ -97,7 +97,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
 		},
 	}
 
-	return &Metadata{
+	return &samlprotocol.Metadata{
 		descriptor,
 	}, nil
 }
