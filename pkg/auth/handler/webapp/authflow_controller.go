@@ -938,10 +938,15 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 		return err
 	}
 	channel := r.Form.Get("x_channel")
-	takeBranchResult := screen.TakeBranch(&webapp.TakeBranchInput{
+	input := &webapp.TakeBranchInput{
 		Index:   index,
 		Channel: model.AuthenticatorOOBChannel(channel),
-	}, &webapp.TakeBranchOptions{
+	}
+	if hasBPInput := IsBotProtectionInputValid(r.Form); hasBPInput {
+		input.BotProtectionProviderType = r.Form.Get("x_bot_protection_provider_type")
+		input.BotProtectionProviderResponse = r.Form.Get("x_bot_protection_provider_response")
+	}
+	takeBranchResult := screen.TakeBranch(input, &webapp.TakeBranchOptions{
 		DisableFallbackToSMS: true,
 	})
 

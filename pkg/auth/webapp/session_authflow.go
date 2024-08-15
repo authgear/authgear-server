@@ -385,6 +385,14 @@ func (s *AuthflowScreenWithFlowResponse) InheritTakenBranchState(from *AuthflowS
 type TakeBranchInput struct {
 	Index   int
 	Channel model.AuthenticatorOOBChannel
+
+	// bot protection specific inputs
+	BotProtectionProviderType     string
+	BotProtectionProviderResponse string
+}
+
+func (i *TakeBranchInput) HasBotProtectionInput() bool {
+	return i != nil && i.BotProtectionProviderType != "" && i.BotProtectionProviderResponse != ""
 }
 
 func (s *AuthflowScreenWithFlowResponse) TakeBranch(input *TakeBranchInput, options *TakeBranchOptions) TakeBranchResult {
@@ -490,16 +498,26 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 			if channel == "" {
 				channel = option.Channels[0]
 			}
-			if option.BotProtection.IsRequired() {
+			// Below clause takes place only when index=0 branch is OOBOTP, and bot protection not in input
+			// otherwise, the bot protection is fed to auto-taken OOBOTP branch too
+			if option.BotProtection.IsRequired() && !input.HasBotProtectionInput() {
 				return s.takeBranchResultSimple(input, true)
 			}
 
 			inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
-				return map[string]interface{}{
+				out := map[string]interface{}{
 					"authentication": option.Authentication,
 					"index":          input.Index,
 					"channel":        c,
 				}
+				if input.HasBotProtectionInput() {
+					bp := map[string]interface{}{
+						"type":     input.BotProtectionProviderType,
+						"response": input.BotProtectionProviderResponse,
+					}
+					out["bot_protection"] = bp
+				}
+				return out
 			}
 			resultInput := inputFactory(channel)
 			onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(

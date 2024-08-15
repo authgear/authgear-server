@@ -24,6 +24,11 @@ func ValidateBotProtectionInput(formData url.Values) error {
 	return AuthflowBotProtectionSchema.Validator().ValidateValue(FormToJSON(formData))
 }
 
+func IsBotProtectionInputValid(formData url.Values) bool {
+	err := ValidateBotProtectionInput(formData)
+	return err == nil
+}
+
 func InsertBotProtection(formData url.Values, input map[string]interface{}) {
 	bpType := formData.Get("x_bot_protection_provider_type")
 	bpResp := formData.Get("x_bot_protection_provider_response")
