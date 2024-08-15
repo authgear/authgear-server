@@ -1,6 +1,6 @@
 // Copied from https://github.com/crewjam/saml/blob/8e9236867d176ad6338c870a84e2039aef8a5021/flate.go
 
-package binding
+package samlbinding
 
 import (
 	"compress/flate"

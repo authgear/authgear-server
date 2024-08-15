@@ -4,18 +4,17 @@ import (
 	"bytes"
 	"encoding/xml"
 
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	crewjamsaml "github.com/crewjam/saml"
 	xrv "github.com/mattermost/xml-roundtrip-validator"
-
-	"github.com/authgear/authgear-server/pkg/lib/saml/binding"
 )
 
 type AuthnRequest struct {
 	crewjamsaml.AuthnRequest
 }
 
-func (a *AuthnRequest) GetProtocolBinding() binding.SAMLBinding {
-	return binding.SAMLBinding(a.AuthnRequest.ProtocolBinding)
+func (a *AuthnRequest) GetProtocolBinding() samlbinding.SAMLBinding {
+	return samlbinding.SAMLBinding(a.AuthnRequest.ProtocolBinding)
 }
 
 func (a *AuthnRequest) GetIsPassive() bool {
