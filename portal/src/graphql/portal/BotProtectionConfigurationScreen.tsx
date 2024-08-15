@@ -73,13 +73,13 @@ function isLocationState(raw: unknown): raw is LocationState {
 interface FormCloudflareConfigs {
   siteKey: string;
   secretKey: string | null;
-  isSecretKeyEmpty: boolean;
+  wasConfiguredInServer?: boolean; // undefined if edited in UI
 }
 
 interface FormRecaptchav2Configs {
   siteKey: string;
   secretKey: string | null;
-  isSecretKeyEmpty: boolean;
+  wasConfiguredInServer?: boolean;
 }
 
 type FormBotProtectionProviderConfigs =
@@ -173,14 +173,16 @@ function constructFormState(
     config.bot_protection?.provider?.type ?? "recaptchav2";
   const siteKey = config.bot_protection?.provider?.site_key ?? "";
   const secretKey = secrets.botProtectionProviderSecret?.secretKey ?? null;
-  const isSecretKeyEmpty = secrets.botProtectionProviderSecret == null; // secret key is empty if provider absent in authgear.secrets.yaml
+  const wasConfiguredInServer =
+    secrets.botProtectionProviderSecret != null &&
+    secrets.botProtectionProviderSecret.type === providerType; // bot protection non-empty = was configured in authgear.secrets.yaml
   const providerConfigs: Partial<
     Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   > = {
     [providerType]: {
       siteKey,
       secretKey,
-      isSecretKeyEmpty,
+      wasConfiguredInServer,
     },
   };
   const requirements = constructFormRequirementsState(config);
@@ -385,7 +387,6 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
               ...c,
               recaptchav2: {
                 secretKey: c["recaptchav2"]?.secretKey ?? null,
-                isSecretKeyEmpty: c["recaptchav2"]?.isSecretKeyEmpty ?? true,
                 siteKey: value,
               },
             };
@@ -403,7 +404,6 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
               ...c,
               recaptchav2: {
                 secretKey: value,
-                isSecretKeyEmpty: false,
                 siteKey: c["recaptchav2"]?.siteKey ?? "",
               },
             };
@@ -421,7 +421,6 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
               ...c,
               cloudflare: {
                 secretKey: c["cloudflare"]?.secretKey ?? null,
-                isSecretKeyEmpty: c["cloudflare"]?.isSecretKeyEmpty ?? true,
                 siteKey: value,
               },
             };
@@ -439,7 +438,6 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
               ...c,
               cloudflare: {
                 secretKey: value,
-                isSecretKeyEmpty: false,
                 siteKey: c["cloudflare"]?.siteKey ?? "",
               },
             };
@@ -621,11 +619,16 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
       }
     });
 
-    const [editing, setediting] = useState(
-      locationState?.isOAuthRedirect ??
-        state.providerConfigs[state.providerType]?.isSecretKeyEmpty ??
-        false
-    );
+    const [reauthed, setReauthed] = useState(locationState?.isOAuthRedirect);
+
+    const editing = useMemo(() => {
+      const currentProviderConfig = state.providerConfigs[state.providerType];
+      const shouldMaskSecretKeyIfNotReauthed =
+        currentProviderConfig?.wasConfiguredInServer != null &&
+        currentProviderConfig.wasConfiguredInServer;
+
+      return reauthed ?? !shouldMaskSecretKeyIfNotReauthed;
+    }, [reauthed, state.providerConfigs, state.providerType]);
 
     const navigate = useNavigate();
     const onClickEdit = useCallback(
@@ -634,7 +637,8 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
         e.stopPropagation();
 
         if (state.providerConfigs[state.providerType]?.secretKey != null) {
-          setediting(true);
+          // secret key available in server response, already reauthed
+          setReauthed(true);
           return;
         }
 
