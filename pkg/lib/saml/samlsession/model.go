@@ -6,24 +6,30 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
-type SAMLSession struct {
-	ID              string `json:"id,omitempty"`
-	AuthnRequestXML string `json:"authn_request_xml,omitempty"`
+type SAMLSessionEntry struct {
+	ServiceProviderID string `json:"service_provider_id,omitempty"`
+	AuthnRequestXML   string `json:"authn_request_xml,omitempty"`
 	// The url the response should send to
 	CallbackURL string `json:"callback_url,omitempty"`
 }
 
-func NewSAMLSession(authnRequest *saml.AuthnRequest, callbackURL string) *SAMLSession {
+type SAMLSession struct {
+	ID     string            `json:"id,omitempty"`
+	Entry  *SAMLSessionEntry `json:"entry,omitempty"`
+	UIInfo *SAMLUIInfo       `json:"ui_info,omitempty"`
+}
+
+func NewSAMLSession(entry *SAMLSessionEntry, uiInfo *SAMLUIInfo) *SAMLSession {
 	id := rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
 
 	return &SAMLSession{
-		ID:              id,
-		AuthnRequestXML: string(authnRequest.ToXMLBytes()),
-		CallbackURL:     callbackURL,
+		ID:     id,
+		Entry:  entry,
+		UIInfo: uiInfo,
 	}
 }
 
-func (s *SAMLSession) AuthnRequest() *saml.AuthnRequest {
+func (s *SAMLSessionEntry) AuthnRequest() *saml.AuthnRequest {
 	r, err := saml.ParseAuthnRequest([]byte(s.AuthnRequestXML))
 	if err != nil {
 		// We should ensure only valid request stored in the session
