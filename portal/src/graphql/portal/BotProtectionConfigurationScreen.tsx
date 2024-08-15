@@ -871,7 +871,12 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
               flows: {
                 flowType: "allSignupLogin",
                 flowConfigs: {
-                  ...requirements.flows.flowConfigs,
+                  // Special authenticators modes should conform to allSignupLogin
+                  specificAuthenticator: {
+                    passwordMode: mode,
+                    passwordlessViaSMSMode: mode,
+                    passwordlessViaEmailMode: mode,
+                  },
                   allSignupLogin: {
                     allSignupLoginMode: mode,
                   },
