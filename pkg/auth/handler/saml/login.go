@@ -11,8 +11,8 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
-	"github.com/authgear/authgear-server/pkg/lib/saml/binding"
-	"github.com/authgear/authgear-server/pkg/lib/saml/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -75,7 +75,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		var protocolErr *protocol.SAMLProtocolError
+		var protocolErr *samlprotocol.SAMLProtocolError
 		if errors.As(err, &protocolErr) {
 			h.handleProtocolError(rw, callbackURL, protocolErr)
 			return
@@ -85,7 +85,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	err = h.SAMLService.ValidateAuthnRequest(sp.ID, authnRequest)
 	if err != nil {
-		protocolErr := &protocol.SAMLProtocolError{
+		protocolErr := &samlprotocol.SAMLProtocolError{
 			Response:   saml.NewRequestDeniedErrorResponse(now, fmt.Sprintf("invalid SAMLRequest: %v", err)),
 			RelayState: relayState,
 			Cause:      err,
@@ -105,7 +105,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 	uiInfo, err := h.SAMLUIService.ResolveUIInfo(samlSessionEntry)
 	if err != nil {
-		protocolErr := &protocol.SAMLProtocolError{
+		protocolErr := &samlprotocol.SAMLProtocolError{
 			Response:   saml.NewRequestDeniedErrorResponse(now, fmt.Sprintf("invalid SAMLRequest: %v", err)),
 			RelayState: relayState,
 			Cause:      err,
@@ -134,15 +134,15 @@ func (h *LoginHandler) handleRedirectBinding(now time.Time, r *http.Request) (au
 	relayState = r.URL.Query().Get("RelayState")
 	compressedRequest, err := base64.StdEncoding.DecodeString(r.URL.Query().Get("SAMLRequest"))
 	if err != nil {
-		return nil, relayState, &protocol.SAMLProtocolError{
+		return nil, relayState, &samlprotocol.SAMLProtocolError{
 			Response:   saml.NewRequestDeniedErrorResponse(now, "failed to decode SAMLRequest"),
 			RelayState: relayState,
 			Cause:      err,
 		}
 	}
-	requestBuffer, err := io.ReadAll(binding.NewSaferFlateReader(bytes.NewReader(compressedRequest)))
+	requestBuffer, err := io.ReadAll(samlbinding.NewSaferFlateReader(bytes.NewReader(compressedRequest)))
 	if err != nil {
-		return nil, relayState, &protocol.SAMLProtocolError{
+		return nil, relayState, &samlprotocol.SAMLProtocolError{
 			Response:   saml.NewRequestDeniedErrorResponse(now, "failed to decompress SAMLRequest"),
 			RelayState: relayState,
 			Cause:      err,
@@ -151,7 +151,7 @@ func (h *LoginHandler) handleRedirectBinding(now time.Time, r *http.Request) (au
 
 	authnRequest, err = saml.ParseAuthnRequest(requestBuffer)
 	if err != nil {
-		return nil, relayState, &protocol.SAMLProtocolError{
+		return nil, relayState, &samlprotocol.SAMLProtocolError{
 			Response:   saml.NewRequestDeniedErrorResponse(now, "failed to parse SAMLRequest"),
 			RelayState: relayState,
 			Cause:      err,
@@ -162,7 +162,7 @@ func (h *LoginHandler) handleRedirectBinding(now time.Time, r *http.Request) (au
 
 func (h *LoginHandler) handlePostBinding(now time.Time, r *http.Request) (authnRequest *saml.AuthnRequest, relayState string, err error) {
 	if err := r.ParseForm(); err != nil {
-		return nil, "", &protocol.SAMLProtocolError{
+		return nil, "", &samlprotocol.SAMLProtocolError{
 			Response: saml.NewRequestDeniedErrorResponse(now, "failed to parse request body"),
 			Cause:    err,
 		}
@@ -171,7 +171,7 @@ func (h *LoginHandler) handlePostBinding(now time.Time, r *http.Request) (authnR
 
 	requestBuffer, err := base64.StdEncoding.DecodeString(r.PostForm.Get("SAMLRequest"))
 	if err != nil {
-		return nil, relayState, &protocol.SAMLProtocolError{
+		return nil, relayState, &samlprotocol.SAMLProtocolError{
 			Response:   saml.NewRequestDeniedErrorResponse(now, "failed to decode SAMLRequest"),
 			RelayState: relayState,
 			Cause:      err,
@@ -180,7 +180,7 @@ func (h *LoginHandler) handlePostBinding(now time.Time, r *http.Request) (authnR
 
 	authnRequest, err = saml.ParseAuthnRequest(requestBuffer)
 	if err != nil {
-		return nil, relayState, &protocol.SAMLProtocolError{
+		return nil, relayState, &samlprotocol.SAMLProtocolError{
 			Response:   saml.NewRequestDeniedErrorResponse(now, "failed to parse SAMLRequest"),
 			RelayState: relayState,
 			Cause:      err,
@@ -189,7 +189,7 @@ func (h *LoginHandler) handlePostBinding(now time.Time, r *http.Request) (authnR
 	return authnRequest, relayState, nil
 }
 
-func (h *LoginHandler) handleProtocolError(rw http.ResponseWriter, callbackURL string, err *protocol.SAMLProtocolError) {
+func (h *LoginHandler) handleProtocolError(rw http.ResponseWriter, callbackURL string, err *samlprotocol.SAMLProtocolError) {
 	h.Logger.Warnln(err.Error())
 	// TODO(saml): Return the error to callbackURL
 	panic(err)
