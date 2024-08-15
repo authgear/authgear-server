@@ -196,6 +196,11 @@ function constructFormState(
 function constructBotProtectionConfig(
   currentState: FormState
 ): BotProtectionConfig {
+  const enabled = currentState.enabled;
+  // return empty config if not enabled
+  if (!enabled) {
+    return {};
+  }
   const signupOrLoginRequirements: Partial<BotProtectionRequirements> = {
     signup_or_login:
       currentState.requirements.flows.flowType === "allSignupLogin"
@@ -233,7 +238,7 @@ function constructBotProtectionConfig(
     ...specificAuthenticatorRequirements,
   };
   return {
-    enabled: currentState.enabled,
+    enabled,
     provider: {
       type: currentState.providerType,
       site_key:
