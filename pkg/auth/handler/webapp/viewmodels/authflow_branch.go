@@ -18,6 +18,7 @@ type AuthflowBranch struct {
 	MaskedClaimValue      string
 	OTPForm               otp.Form
 	VerificationSkippable bool
+	BotProtectionRequired bool
 }
 
 func isAuthflowBranchSame(a AuthflowBranch, b AuthflowBranch) bool {
@@ -114,6 +115,8 @@ func newAuthflowBranchViewModelStepAuthenticate(screen *webapp.AuthflowScreenWit
 				Channel:          channel,
 				MaskedClaimValue: o.MaskedDisplayName,
 				OTPForm:          o.OTPForm,
+				// only add bot protection for channel branch
+				BotProtectionRequired: o.BotProtection.IsRequired(),
 			}
 			if !isAuthflowBranchSame(branch, takenBranch) {
 				branches = append(branches, branch)

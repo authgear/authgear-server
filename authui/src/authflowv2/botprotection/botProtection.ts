@@ -1,5 +1,8 @@
 import { Controller } from "@hotwired/stimulus";
-import { dispatchBotProtectionDialogOpen } from "./botProtectionDialog";
+import {
+  dispatchBotProtectionDialogClose,
+  dispatchBotProtectionDialogOpen,
+} from "./botProtectionDialog";
 
 /**
  * Dispatch a custom event to set captcha verified with success token
@@ -77,7 +80,10 @@ export class BotProtectionController extends Controller {
     this.isVerified = true;
     // Wait for bot-protection-token-input to process "bot-protection:verify-success" event
     // so that the form submission will have bot protection token injected.
-    setTimeout(() => this.formSubmitTarget?.click(), 0);
+    setTimeout(() => {
+      this.formSubmitTarget?.click();
+      dispatchBotProtectionDialogClose();
+    }, 0);
   };
 
   onVerifyFailed = () => {
