@@ -96,7 +96,7 @@ func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, fl
 		return nil, err
 	}
 
-	newNode, err := NewNodeDoUseIdentityOAuth(ctx, deps, flows, exactMatch, spec)
+	newNode, err := NewNodeDoUseIdentityWithUpdate(ctx, deps, flows, exactMatch, spec)
 	if err != nil {
 		return nil, err
 	}
