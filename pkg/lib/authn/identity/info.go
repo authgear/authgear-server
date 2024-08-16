@@ -335,7 +335,7 @@ func (i *Info) CreateDisabled(c *config.IdentityConfig) bool {
 		// So we return false here.
 		return false
 	case model.IdentityTypeLDAP:
-		// TODO(DEV-1671)
+		// TODO(DEV-1671): Support LDAP in settings page
 		return true
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
@@ -367,7 +367,7 @@ func (i *Info) DeleteDisabled(c *config.IdentityConfig) bool {
 		// So we return false here.
 		return false
 	case model.IdentityTypeLDAP:
-		// TODO(DEV-1671)
+		// TODO(DEV-1671): Support LDAP in settings page
 		return true
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
@@ -396,7 +396,7 @@ func (i *Info) UpdateDisabled(c *config.IdentityConfig) bool {
 		// So we return false here.
 		return false
 	case model.IdentityTypeLDAP:
-		// TODO(DEV-1671)
+		// TODO(DEV-1671): Support LDAP in settings page
 		return true
 	default:
 		panic(fmt.Sprintf("identity: unexpected identity type: %s", i.Type))
