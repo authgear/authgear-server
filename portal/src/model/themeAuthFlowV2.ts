@@ -43,6 +43,7 @@ export const enum CSSVariable {
   SecondaryButtonBorderRadius = "--secondary-btn__border-radius",
   InputFiledBorderRadius = "--input__border-radius",
   LinkColor = "--body-text__link-color",
+  LinkTextDecoration = "--body-text__link-text-decoration",
   WatermarkDisplay = "--watermark-display",
   LogoHeight = "--brand-logo__height",
   PhoneInputTriggerBorderRadius = "--phone-input__trigger-border-radius",
@@ -74,6 +75,9 @@ export type BorderRadiusStyle =
       type: "rounded-full";
     };
 
+export const AllTextDecorations = ["none", "underline"] as const;
+export type TextDecorationType = (typeof AllTextDecorations)[number];
+
 export interface ButtonStyle {
   backgroundColor: CSSColor;
   backgroundColorActive: CSSColor;
@@ -104,6 +108,7 @@ export interface PhoneInputFieldStyle {
 
 export interface LinkStyle {
   color: CSSColor;
+  textDecoration: TextDecorationType;
 }
 
 export interface LogoStyte {
@@ -185,6 +190,7 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
   },
   link: {
     color: "#176df3",
+    textDecoration: "none",
   },
   logo: {
     height: "2.5rem",
@@ -228,6 +234,7 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
   },
   link: {
     color: "#2f7bf4",
+    textDecoration: "none",
   },
   logo: {
     height: "2.5rem",
@@ -454,6 +461,31 @@ export class HeightStyleProperty extends StyleProperty<string | undefined> {
   }
 }
 
+export class TextDecorationStyleProperty extends StyleProperty<
+  TextDecorationType | undefined
+> {
+  protected setWithRawValue(rawValue: string): void {
+    switch (rawValue) {
+      case "underline":
+        this.value = "underline";
+        break;
+      case "none":
+        this.value = "none";
+        break;
+      default:
+        this.value = undefined;
+    }
+  }
+
+  acceptCssAstVisitor(visitor: CssAstVisitor): void {
+    visitor.visitTextDecoarationStyleProperty(this);
+  }
+
+  getCSSValue(): string | undefined {
+    return this.value;
+  }
+}
+
 type StyleProperties<T> = {
   [K in keyof T]: AbstractStyle<T[K] | null>;
 };
@@ -558,6 +590,10 @@ export class CustomisableThemeStyleGroup extends StyleGroup<PartialCustomisableT
 
       link: new StyleGroup({
         color: new ColorStyleProperty(CSSVariable.LinkColor, value.link.color),
+        textDecoration: new TextDecorationStyleProperty(
+          CSSVariable.LinkTextDecoration,
+          value.link.textDecoration
+        ),
       }),
 
       logo: new StyleGroup({
@@ -656,6 +692,12 @@ export class CssAstVisitor {
   }
 
   visitHeightStyleProperty(styleProperty: HeightStyleProperty): void {
+    this.visitorStyleProperty(styleProperty);
+  }
+
+  visitTextDecoarationStyleProperty(
+    styleProperty: TextDecorationStyleProperty
+  ): void {
     this.visitorStyleProperty(styleProperty);
   }
 
