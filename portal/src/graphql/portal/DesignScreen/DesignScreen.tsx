@@ -834,6 +834,10 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
     []
   );
 
+  useEffect(() => {
+    setIsIframeLoading(true);
+  }, [designForm.state.selectedLanguage]);
+
   const src = useMemo(() => {
     const url = new URL(effectiveAppConfig.http?.public_origin ?? "");
     url.pathname = selectedPreviewPage;
