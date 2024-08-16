@@ -3,7 +3,6 @@ package samlbinding
 import (
 	"encoding/base64"
 	"net/http"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
@@ -20,7 +19,7 @@ var _ SAMLBindingParseResult = &SAMLBindingHTTPPostParseResult{}
 
 func (*SAMLBindingHTTPPostParseResult) SAMLBindingParseResult() {}
 
-func (*SAMLBindingHTTPPostParser) Parse(now time.Time, r *http.Request) (
+func (*SAMLBindingHTTPPostParser) Parse(r *http.Request) (
 	result *SAMLBindingHTTPPostParseResult,
 	err error,
 ) {
