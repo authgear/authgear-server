@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
@@ -39,27 +40,24 @@ func (*SAMLBindingHTTPRedirectParser) Parse(now time.Time, r *http.Request) (
 	samlRequest := r.URL.Query().Get("SAMLRequest")
 	compressedRequest, err := base64.StdEncoding.DecodeString(samlRequest)
 	if err != nil {
-		return result, &samlprotocol.SAMLProtocolError{
-			Response:   samlprotocol.NewRequestDeniedErrorResponse(now, "failed to decode SAMLRequest"),
-			RelayState: relayState,
-			Cause:      err,
+		return result, &samlerror.ParseRequestFailedError{
+			Reason: "base64 decode failed",
+			Cause:  err,
 		}
 	}
 	requestBuffer, err := io.ReadAll(newSaferFlateReader(bytes.NewReader(compressedRequest)))
 	if err != nil {
-		return result, &samlprotocol.SAMLProtocolError{
-			Response:   samlprotocol.NewRequestDeniedErrorResponse(now, "failed to decompress SAMLRequest"),
-			RelayState: relayState,
-			Cause:      err,
+		return result, &samlerror.ParseRequestFailedError{
+			Reason: "decompress failed",
+			Cause:  err,
 		}
 	}
 
 	request, err := samlprotocol.ParseAuthnRequest(requestBuffer)
 	if err != nil {
-		return result, &samlprotocol.SAMLProtocolError{
-			Response:   samlprotocol.NewRequestDeniedErrorResponse(now, "failed to parse SAMLRequest"),
-			RelayState: relayState,
-			Cause:      err,
+		return result, &samlerror.ParseRequestFailedError{
+			Reason: "malformed AuthnRequest",
+			Cause:  err,
 		}
 	}
 

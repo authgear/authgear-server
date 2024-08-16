@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/lib/saml"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -24,7 +24,7 @@ func (h *MetadataHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	metadata, err := h.SAMLService.IdpMetadata(serviceProviderId)
 	if err != nil {
-		if errors.Is(err, saml.ErrServiceProviderNotFound) {
+		if errors.Is(err, samlerror.ErrServiceProviderNotFound) {
 			http.NotFound(rw, r)
 			return
 		}

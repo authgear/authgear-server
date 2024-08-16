@@ -73,9 +73,15 @@ func (r *UIService) ResolveUIInfo(entry *SAMLSessionEntry) (*SAMLUIInfo, error) 
 	case authnRequest.GetIsPassive() == false && authnRequest.GetForceAuthn() == true:
 		prompt = []string{"login"}
 	case authnRequest.GetIsPassive() == true && authnRequest.GetForceAuthn() == false:
-		prompt = []string{"none"}
+		// prompt=none
+		// This case does not involves ui, so it is unexpected to reach here
+		fallthrough
 	default:
-		return nil, fmt.Errorf("unsupported: IsPassive=true and ForceAuthn=true")
+		// Other cases should be blocked in request validation stage.
+		// It is an unexpected error if it reaches here
+		return nil, fmt.Errorf("unexpected: IsPassive=%v and ForceAuthn=%v",
+			authnRequest.GetIsPassive(),
+			authnRequest.GetForceAuthn())
 	}
 
 	info := &SAMLUIInfo{
