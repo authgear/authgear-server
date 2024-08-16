@@ -146,6 +146,9 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	endpoint, err := h.SAMLUIService.BuildAuthenticationURL(samlSession)
+	if err != nil {
+		panic(err)
+	}
 
 	resp := &httputil.ResultRedirect{
 		URL: endpoint.String(),
