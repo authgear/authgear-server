@@ -829,14 +829,9 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
         return;
       }
       setSelectedPreviewPage(option.key as PreviewPage);
-      setIsIframeLoading(true);
     },
     []
   );
-
-  useEffect(() => {
-    setIsIframeLoading(true);
-  }, [designForm.state.selectedLanguage]);
 
   const src = useMemo(() => {
     const url = new URL(effectiveAppConfig.http?.public_origin ?? "");
@@ -848,6 +843,10 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
     designForm.state.selectedLanguage,
     selectedPreviewPage,
   ]);
+
+  useEffect(() => {
+    setIsIframeLoading(true);
+  }, [src]);
 
   const onLoadIframe = useCallback(() => {
     const message = mapDesignFormStateToPreviewCustomisationMessage(
