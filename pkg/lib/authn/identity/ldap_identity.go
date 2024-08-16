@@ -3,6 +3,7 @@ package identity
 import (
 	"encoding/base64"
 	"time"
+	"unicode"
 	"unicode/utf8"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -109,12 +110,33 @@ func RenderAttribute(attributeName string, attributeValue []byte) string {
 			return str
 		}
 	}
+
 	// If the attribute is unknown or decode failed, we return its in string
-	// format if it is a valid utf8 bytes
-	if utf8.Valid(attributeValue) {
-		return string(attributeValue)
+	// format if it looks like a printable string.
+	if printableString, ok := ToPrintable(attributeValue); ok {
+		return printableString
 	}
 
 	// Otherise, we encode the bytes in base64
 	return base64.StdEncoding.EncodeToString(attributeValue)
+}
+
+func ToPrintable(b []byte) (str string, ok bool) {
+	validUTF8 := utf8.Valid(b)
+	if !validUTF8 {
+		return
+	}
+
+	str = string(b)
+	for _, r := range str {
+		isGraphic := unicode.IsGraphic(r)
+		isSpace := unicode.IsSpace(r)
+		isPrintable := isGraphic || isSpace
+		if !isPrintable {
+			return
+		}
+	}
+
+	ok = true
+	return
 }
