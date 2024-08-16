@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -71,9 +72,17 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		var protocolErr *samlprotocol.SAMLProtocolError
-		if errors.As(err, &protocolErr) {
-			h.handleProtocolError(rw, callbackURL, protocolErr)
+		var parseRequestFailedErr *samlerror.ParseRequestFailedError
+		if errors.As(err, &parseRequestFailedErr) {
+			errResponse := &samlprotocol.SAMLErrorResponse{
+				Response: samlprotocol.NewRequestDeniedErrorResponse(
+					now,
+					"failed to parse SAMLRequest",
+					parseRequestFailedErr.GetDetailElements(),
+				),
+				Cause: err,
+			}
+			h.handleErrorResponse(rw, callbackURL, errResponse)
 			return
 		}
 		panic(err)
@@ -97,13 +106,21 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		protocolErr := &samlprotocol.SAMLProtocolError{
-			Response:   samlprotocol.NewRequestDeniedErrorResponse(now, fmt.Sprintf("invalid SAMLRequest: %v", err)),
-			RelayState: relayState,
-			Cause:      err,
+		var invalidRequestErr *samlerror.InvalidRequestError
+		if errors.As(err, &invalidRequestErr) {
+			errResponse := &samlprotocol.SAMLErrorResponse{
+				Response: samlprotocol.NewRequestDeniedErrorResponse(
+					now,
+					"invalid SAMLRequest",
+					invalidRequestErr.GetDetailElements(),
+				),
+				RelayState: relayState,
+				Cause:      err,
+			}
+			h.handleErrorResponse(rw, callbackURL, errResponse)
+			return
 		}
-		h.handleProtocolError(rw, callbackURL, protocolErr)
-		return
+		panic(err)
 	}
 
 	if authnRequest.AssertionConsumerServiceURL != "" {
@@ -117,13 +134,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 	uiInfo, err := h.SAMLUIService.ResolveUIInfo(samlSessionEntry)
 	if err != nil {
-		protocolErr := &samlprotocol.SAMLProtocolError{
-			Response:   samlprotocol.NewRequestDeniedErrorResponse(now, fmt.Sprintf("invalid SAMLRequest: %v", err)),
-			RelayState: relayState,
-			Cause:      err,
-		}
-		h.handleProtocolError(rw, callbackURL, protocolErr)
-		return
+		panic(err)
 	}
 
 	// TODO(saml): Handle prompt = none case
@@ -142,7 +153,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	resp.WriteResponse(rw, r)
 }
 
-func (h *LoginHandler) handleProtocolError(rw http.ResponseWriter, callbackURL string, err *samlprotocol.SAMLProtocolError) {
+func (h *LoginHandler) handleErrorResponse(rw http.ResponseWriter, callbackURL string, err *samlprotocol.SAMLErrorResponse) {
 	h.Logger.Warnln(err.Error())
 	// TODO(saml): Return the error to callbackURL
 	panic(err)
