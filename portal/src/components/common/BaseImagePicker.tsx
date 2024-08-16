@@ -52,9 +52,10 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
                   extension,
                 });
                 if (inputRef.current) {
-                  // Note
-                  // This is a workaround for onChange listener not triggered
-                  // when selecting the same file in Chrome
+                  // The way that we use <input type=file> is we read the full inut as bytes.
+                  // After reading, the value of the input is no longer relevant to us.
+                  // Also in Chrome, if the same file is selected again, onChange will NOT be called.
+                  // Therefore, every time we finish reading, we reset the value to empty.
                   inputRef.current.value = "";
                 }
               }
