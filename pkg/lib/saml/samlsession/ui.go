@@ -65,7 +65,7 @@ func (r *UIService) RemoveSAMLSessionID(w http.ResponseWriter, req *http.Request
 }
 
 func (r *UIService) ResolveUIInfo(entry *SAMLSessionEntry) (*SAMLUIInfo, error) {
-	prompt := []string{}
+	var prompt []string
 	authnRequest := entry.AuthnRequest()
 	switch {
 	case authnRequest.GetIsPassive() == false && authnRequest.GetForceAuthn() == false:
