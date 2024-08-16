@@ -37,24 +37,21 @@ func TestLDAPIdentity(t *testing.T) {
 		})
 
 		Convey("Test EntryJSON", func() {
-			Convey("It should only return known attribute", func() {
+			Convey("It should only return all attributes", func() {
 				ldap := &LDAP{
 					RawEntryJSON: map[string]interface{}{
 						"dn": "dn",
 						"objectGUID": []interface{}{
 							"j0qa0XMlMkW6rz1jahPVBg==",
 						},
-						"unknown-attr-0": []interface{}{
-							"MTIzNA==",
-						},
 						"employeeID": []interface{}{
 							"MTIzNA==",
 						},
-						"unknown-attr-1": []interface{}{
+						"unknown-attr-printable": []interface{}{
 							"MTIzNA==",
 						},
-						"unknown-attr-2": []interface{}{
-							"MTIzNA==",
+						"unknown-attr-non-printable": []interface{}{
+							"AQI=",
 						},
 					},
 				}
@@ -65,6 +62,12 @@ func TestLDAPIdentity(t *testing.T) {
 					},
 					"employeeID": []string{
 						"1234",
+					},
+					"unknown-attr-printable": []string{
+						"1234",
+					},
+					"unknown-attr-non-printable": []string{
+						"AQI=",
 					},
 				})
 			})
