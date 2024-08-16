@@ -91,8 +91,10 @@ export class InlinePreviewController extends Controller {
       outlet?.setValue(value);
     }
 
-    el.classList.remove("light", "dark", "auto");
-    el.setAttribute("class", customisationMessage.theme);
+    el.classList.remove("dark");
+    if (customisationMessage.theme === "dark") {
+      el.classList.add("dark");
+    }
 
     injectCSSAttrs(document.documentElement);
   };
