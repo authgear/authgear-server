@@ -37,3 +37,25 @@ func SetToSlice[A any, B comparable](slice []A, set Set[B], f func(a A) B) []A {
 	}
 	return out
 }
+
+func (s Set[T]) Keys() []T {
+	keys := []T{}
+	for k, _ := range s {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func (s Set[T]) Add(key T) {
+	if _, ok := s[key]; ok {
+		return
+	}
+	s[key] = struct{}{}
+}
+
+func (s Set[T]) Has(key T) bool {
+	if _, ok := s[key]; ok {
+		return true
+	}
+	return false
+}

@@ -3,6 +3,7 @@ package samlprotocol
 import (
 	"time"
 
+	"github.com/beevik/etree"
 	crewjamsaml "github.com/crewjam/saml"
 )
 
@@ -21,25 +22,31 @@ func newResponse(issueInstant time.Time, status Status) *Response {
 	}
 }
 
-func NewRequestDeniedErrorResponse(issueInstant time.Time, message string) *Response {
+func NewRequestDeniedErrorResponse(
+	issueInstant time.Time,
+	message string,
+	details []*etree.Element) *Response {
 	var messageEl *crewjamsaml.StatusMessage
 	if message != "" {
 		messageEl = &crewjamsaml.StatusMessage{
 			Value: message,
 		}
 	}
-	status := Status{
-		status: crewjamsaml.Status{
-			StatusCode: crewjamsaml.StatusCode{
-				Value: crewjamsaml.StatusRequester,
-				StatusCode: &crewjamsaml.StatusCode{
-					Value: crewjamsaml.StatusRequestDenied,
-				},
+	status := crewjamsaml.Status{
+		StatusCode: crewjamsaml.StatusCode{
+			Value: crewjamsaml.StatusRequester,
+			StatusCode: &crewjamsaml.StatusCode{
+				Value: crewjamsaml.StatusRequestDenied,
 			},
-			StatusMessage: messageEl,
 		},
+		StatusMessage: messageEl,
 	}
-	return newResponse(issueInstant, status)
+	if len(details) > 0 {
+		status.StatusDetail = &crewjamsaml.StatusDetail{
+			Children: details,
+		}
+	}
+	return newResponse(issueInstant, Status{status: status})
 }
 
 type Status struct {
