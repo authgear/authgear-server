@@ -253,7 +253,7 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 				Type: model.IdentityTypeLDAP,
 				LDAP: &identity.LDAP{
 					UserIDAttributeName:  "uid",
-					UserIDAttributeValue: "example-user",
+					UserIDAttributeValue: []byte("example-user"),
 				},
 			},
 		}, nil), ShouldEqual, "uid=example-user")

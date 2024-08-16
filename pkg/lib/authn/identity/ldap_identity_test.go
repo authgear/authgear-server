@@ -98,7 +98,7 @@ func TestLDAPIdentity(t *testing.T) {
 						},
 					},
 				}
-				So(ldap.DisplayID(), ShouldEqual, "example-user")
+				So(ldap.DisplayID(), ShouldEqual, "uid=example-user")
 			})
 		})
 	})

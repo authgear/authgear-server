@@ -12,11 +12,11 @@ func TestAttributeDecoder(t *testing.T) {
 		decoder := StringAttributeDecoder{}
 
 		str := "Hello World"
-		byteValues := [][]byte{[]byte(str)}
+		bytes := []byte(str)
 
-		values, err := decoder.DecodeToStringRepresentable(byteValues)
+		values, err := decoder.DecodeToStringRepresentable(bytes)
 		So(err, ShouldBeNil)
-		So(values, ShouldResemble, []string{str})
+		So(values, ShouldEqual, str)
 	})
 
 	Convey("UUIDDecoder", t, func() {
@@ -25,10 +25,9 @@ func TestAttributeDecoder(t *testing.T) {
 		UUID := uuid.Must(uuid.NewRandom())
 		uuidBytes, err := UUID.MarshalBinary()
 		So(err, ShouldBeNil)
-		byteValues := [][]byte{uuidBytes}
 
-		values, err := decoder.DecodeToStringRepresentable(byteValues)
+		values, err := decoder.DecodeToStringRepresentable(uuidBytes)
 		So(err, ShouldBeNil)
-		So(values, ShouldResemble, []string{UUID.String()})
+		So(values, ShouldEqual, UUID.String())
 	})
 }
