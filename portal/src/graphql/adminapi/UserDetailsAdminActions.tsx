@@ -6,23 +6,29 @@ import styles from "./UserDetailsAdminActions.module.css";
 import ListCellLayout from "../../ListCellLayout";
 import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
+import { UserQueryNodeFragment } from "./query/userQuery.generated";
 
 interface DisableUserCellProps {
   isDisabled: boolean;
+  onDisableData: () => void;
 }
 
 interface AnonymizeUserCellProps {
   isScheduledAnonymization: boolean;
+  onAnonymizeData: () => void;
+  onCancelAnonymizeData: () => void;
 }
 
 interface RemoveUserCellProps {
   isScheduledRemoval: boolean;
+  onRemoveData: () => void;
+  onCancelRemoveData: () => void;
 }
 
 const DisableUserCell: React.VFC<DisableUserCellProps> =
   function DisableUserCell(props) {
     const { themes } = useSystemConfig();
-    const { isDisabled } = props;
+    const { isDisabled, onDisableData } = props;
     return (
       <ListCellLayout
         className={cn(
@@ -45,6 +51,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             text={
               <FormattedMessage id="UserDetailsAdminActions.disable-user.action.enable" />
             }
+            onClick={onDisableData}
           />
         ) : (
           <DefaultButton
@@ -57,6 +64,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             text={
               <FormattedMessage id="UserDetailsAdminActions.disable-user.action.disable" />
             }
+            onClick={onDisableData}
           />
         )}
       </ListCellLayout>
@@ -66,7 +74,8 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
 const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
   function AnonymizeUserCell(props) {
     const { themes } = useSystemConfig();
-    const { isScheduledAnonymization } = props;
+    const { isScheduledAnonymization, onAnonymizeData, onCancelAnonymizeData } =
+      props;
     return (
       <ListCellLayout
         className={cn(
@@ -89,6 +98,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             text={
               <FormattedMessage id="UserDetailsAdminActions.anonymize-user.action.cancel" />
             }
+            onClick={onCancelAnonymizeData}
           />
         ) : (
           <DefaultButton
@@ -101,6 +111,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             text={
               <FormattedMessage id="UserDetailsAdminActions.anonymize-user.action.anonymize" />
             }
+            onClick={onAnonymizeData}
           />
         )}
       </ListCellLayout>
@@ -111,7 +122,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   props
 ) {
   const { themes } = useSystemConfig();
-  const { isScheduledRemoval } = props;
+  const { isScheduledRemoval, onRemoveData, onCancelRemoveData } = props;
   return (
     <ListCellLayout
       className={cn(styles.cell, styles.actionCell, styles["cell--not-first"])}
@@ -130,6 +141,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           text={
             <FormattedMessage id="UserDetailsAdminActions.remove-user.action.cancel" />
           }
+          onClick={onCancelRemoveData}
         />
       ) : (
         <DefaultButton
@@ -142,25 +154,52 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           text={
             <FormattedMessage id="UserDetailsAdminActions.remove-user.action.remove" />
           }
+          onClick={onRemoveData}
         />
       )}
     </ListCellLayout>
   );
 };
 
-const UserDetailsAdminActions: React.VFC = function UserDetailsAdminActions() {
-  return (
-    <div>
-      <Label className={styles.standardAttributesTitle}>
-        <Text variant="xLarge">
-          <FormattedMessage id="UserDetailsAdminActions.title" />
-        </Text>
-      </Label>
-      <DisableUserCell isDisabled={false} />
-      <AnonymizeUserCell isScheduledAnonymization={false} />
-      <RemoveUserCell isScheduledRemoval={false} />
-    </div>
-  );
-};
+interface UserDetailsAdminActionsProps {
+  data: UserQueryNodeFragment;
+  onRemoveData: () => void;
+  onAnonymizeData: () => void;
+  handleDataStatusChange: () => void;
+}
+
+const UserDetailsAdminActions: React.VFC<UserDetailsAdminActionsProps> =
+  function UserDetailsAdminActions(props) {
+    const { data, onRemoveData, onAnonymizeData, handleDataStatusChange } =
+      props;
+
+    return (
+      <div>
+        <Label className={styles.standardAttributesTitle}>
+          <Text variant="xLarge">
+            <FormattedMessage id="UserDetailsAdminActions.title" />
+          </Text>
+        </Label>
+        {data.isAnonymized || data.deleteAt != null ? null : (
+          <>
+            <DisableUserCell
+              isDisabled={data.isDisabled}
+              onDisableData={handleDataStatusChange}
+            />
+            <AnonymizeUserCell
+              isScheduledAnonymization={data.anonymizeAt != null}
+              onAnonymizeData={onAnonymizeData}
+              onCancelAnonymizeData={handleDataStatusChange}
+            />
+          </>
+        )}
+        <RemoveUserCell
+          isScheduledRemoval={data.deleteAt != null}
+          onRemoveData={onRemoveData}
+          onCancelRemoveData={handleDataStatusChange}
+        />
+      </div>
+    );
+  };
 
 export default UserDetailsAdminActions;

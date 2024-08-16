@@ -61,6 +61,9 @@ interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
   data: UserQueryNodeFragment;
   appConfig: PortalAPIAppConfig;
+  onRemoveData: () => void;
+  onAnonymizeData: () => void;
+  handleDataStatusChange: () => void;
 }
 
 const USER_PROFILE_KEY = "user-profile";
@@ -236,7 +239,14 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     GROUPS_KEY,
     DISABLE_DELELE_KEY,
   ]);
-  const { form, data, appConfig } = props;
+  const {
+    form,
+    data,
+    appConfig,
+    onRemoveData,
+    onAnonymizeData,
+    handleDataStatusChange,
+  } = props;
   const { state, setState } = form;
   const { renderToString } = React.useContext(Context);
 
@@ -365,7 +375,12 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             itemKey={DISABLE_DELELE_KEY}
             headerText={renderToString("UserDetails.disable-delete.header")}
           >
-            <UserDetailsAdminActions />
+            <UserDetailsAdminActions
+              data={data}
+              onAnonymizeData={onAnonymizeData}
+              handleDataStatusChange={handleDataStatusChange}
+              onRemoveData={onRemoveData}
+            />
           </PivotItem>
         </Pivot>
       </div>
@@ -473,7 +488,12 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           itemKey={DISABLE_DELELE_KEY}
           headerText={renderToString("UserDetails.disable-delete.header")}
         >
-          <UserDetailsAdminActions />
+          <UserDetailsAdminActions
+            data={data}
+            onAnonymizeData={onAnonymizeData}
+            handleDataStatusChange={handleDataStatusChange}
+            onRemoveData={onRemoveData}
+          />
         </PivotItem>
       </Pivot>
     </div>
@@ -795,7 +815,14 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
       >
         <ScreenContent className={styles.screenContent}>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-          <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
+          <UserDetails
+            form={form}
+            data={user}
+            appConfig={effectiveAppConfig}
+            onRemoveData={onClickDeleteUser}
+            onAnonymizeData={onClickAnonymizeUser}
+            handleDataStatusChange={onClickSetUserDisabled}
+          />
         </ScreenContent>
         <DeleteUserDialog
           isHidden={deleteUserDialogIsHidden}
