@@ -29,6 +29,8 @@ export const ColorPicker: React.VFC<ColorPickerProps> = function ColorPicker(
   useEffect(() => {
     if (color != null) {
       setInputValue(color);
+    } else {
+      setInputValue("");
     }
   }, [color]);
 
