@@ -8,6 +8,7 @@ import ScreenLayout from "./ScreenLayout";
 import ShowLoading from "./ShowLoading";
 import CookieLifetimeConfigurationScreen from "./graphql/portal/CookieLifetimeConfigurationScreen";
 import { useUnauthenticatedDialogContext } from "./components/auth/UnauthenticatedDialogContext";
+import EditConfigurationScreen from "./graphql/portal/EditConfigurationScreen";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -786,6 +787,18 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <InviteAdminScreen />
+                </Suspense>
+              }
+            />
+          </Route>
+
+          {/* This screen is not shown in nav bar, which is intentional to prevent normal users from accessing it */}
+          <Route path="edit-config">
+            <Route
+              index={true}
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <EditConfigurationScreen />
                 </Suspense>
               }
             />
