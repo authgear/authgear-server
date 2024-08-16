@@ -950,7 +950,7 @@ func (mr *MockLDAPIdentityProviderMockRecorder) Get(userID, id interface{}) *gom
 }
 
 // GetByServerUserID mocks base method.
-func (m *MockLDAPIdentityProvider) GetByServerUserID(serverName, userIDAttributeName, userIDAttributeValue string) (*identity.LDAP, error) {
+func (m *MockLDAPIdentityProvider) GetByServerUserID(serverName, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByServerUserID", serverName, userIDAttributeName, userIDAttributeValue)
 	ret0, _ := ret[0].(*identity.LDAP)
@@ -1010,7 +1010,7 @@ func (mr *MockLDAPIdentityProviderMockRecorder) ListByClaim(name, value interfac
 }
 
 // New mocks base method.
-func (m *MockLDAPIdentityProvider) New(userID, serverName, userIDAttributeName, userIDAttributeValue string, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (m *MockLDAPIdentityProvider) New(userID, serverName, userIDAttributeName string, userIDAttributeValue []byte, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
 	ret0, _ := ret[0].(*identity.LDAP)
