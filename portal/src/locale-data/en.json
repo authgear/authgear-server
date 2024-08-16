@@ -406,6 +406,22 @@
   "UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.title": "Cancel Grace Period",
   "UserDetails.account-security.cancel-mfa-grace-period-confirm-dialog.message": "The user will not be able to log in and set up 2FA.",
 
+  "UserDetails.disable-delete.header": "Disable/Delete",
+
+  "UserDetailsAdminActions.title": "Admin Actions",
+  "UserDetailsAdminActions.disable-user.title": "Disable User",
+  "UserDetailsAdminActions.disable-user.body": "Temporarily disables the user's account, preventing them from logging in or using the system.",
+  "UserDetailsAdminActions.disable-user.action.disable": "Disable user",
+  "UserDetailsAdminActions.disable-user.action.enable": "Enable user",
+  "UserDetailsAdminActions.anonymize-user.title": "Anonymize User",
+  "UserDetailsAdminActions.anonymize-user.body": "Delete all data of this user, only the user ID is retained.",
+  "UserDetailsAdminActions.anonymize-user.action.anonymize": "Anonymize user",
+  "UserDetailsAdminActions.anonymize-user.action.cancel": "Cancel anonymization",
+  "UserDetailsAdminActions.remove-user.title": "Remove User",
+  "UserDetailsAdminActions.remove-user.body": "Permanently deletes the user's account and all related data. This action is irreversible.",
+  "UserDetailsAdminActions.remove-user.action.remove": "Remove user",
+  "UserDetailsAdminActions.remove-user.action.cancel": "Cancel removal",
+
   "Add2FAScreen.title.phone": "Add 2FA Phone",
   "Add2FAScreen.title.email": "Add 2FA Email",
   "Add2FAScreen.title.password": "Add 2FA Password",
