@@ -118,3 +118,22 @@ func TestLDAPIdentity(t *testing.T) {
 		})
 	})
 }
+
+func TestToPrintable(t *testing.T) {
+	Convey("ToPrintable", t, func() {
+		f := func(b []byte) bool {
+			_, ok := ToPrintable(b)
+			return ok
+		}
+
+		So(f([]byte("")), ShouldBeTrue)
+		So(f([]byte("hello\nworld")), ShouldBeTrue)
+		So(f([]byte("hello world")), ShouldBeTrue)
+
+		// NULL is not printable.
+		So(f([]byte{0}), ShouldBeFalse)
+		So(f([]byte{1, 2}), ShouldBeFalse)
+		// 10 is \n.
+		So(f([]byte{10}), ShouldBeTrue)
+	})
+}
