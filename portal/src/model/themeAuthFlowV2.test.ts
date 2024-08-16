@@ -54,7 +54,6 @@ describe("StyleCssVisitor", () => {
     --input__border-radius: 0.875em;
     --phone-input__trigger-border-radius: 0.875em;
     --body-text__link-color: #176df3;
-    --alignment-logo: hidden;
     --brand-logo__height: 2.5rem
 }`;
     const customisableThemeStyleGroup = new CustomisableThemeStyleGroup(
@@ -104,7 +103,6 @@ describe("StyleCssVisitor", () => {
         color: "#176df3",
       },
       logo: {
-        alignment: "hidden",
         height: "2.5rem",
       },
     });
@@ -167,9 +165,7 @@ describe("CssAstVisitor", () => {
       link: {
         color: "#2f7bf4",
       },
-      logo: {
-        alignment: "center",
-      },
+      logo: {},
     });
     const expectedStyleSheet = `:root {
     --layout__bg-color: #1c1c1e;
@@ -183,7 +179,6 @@ describe("CssAstVisitor", () => {
     --input__border-radius: 0.875em;
     --phone-input__trigger-border-radius: 0.875em;
     --body-text__link-color: #2f7bf4;
-    --alignment-logo: center;
     --brand-logo__height: 2.5rem
 }`;
     const styleVisitor = new CssAstVisitor(ThemeTargetSelector.Light);

@@ -555,12 +555,6 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
         ),
         image
       );
-      resourceMutator.updateCustomisableTheme((prev) => {
-        return produce(prev, (draft) => {
-          // Set to center if exist so that dark mode icon still show if user delete light mode icon
-          draft.logo.alignment = image == null ? "hidden" : "center";
-        });
-      }, targetTheme);
     },
     [resourceMutator]
   );

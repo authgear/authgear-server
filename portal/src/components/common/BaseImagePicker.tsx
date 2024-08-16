@@ -51,6 +51,13 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
                   base64EncodedData: dataURIToBase64EncodedData(result),
                   extension,
                 });
+                if (inputRef.current) {
+                  // The way that we use <input type=file> is we read the full inut as bytes.
+                  // After reading, the value of the input is no longer relevant to us.
+                  // Also in Chrome, if the same file is selected again, onChange will NOT be called.
+                  // Therefore, every time we finish reading, we reset the value to empty.
+                  inputRef.current.value = "";
+                }
               }
             });
             reader.readAsDataURL(file);
@@ -68,9 +75,6 @@ const BaseImagePicker: React.VFC<BaseImagePickerProps> =
     }, [base64EncodedData]);
 
     const clearImage = useCallback(() => {
-      if (inputRef.current) {
-        inputRef.current.value = "";
-      }
       onChange(null);
     }, [onChange]);
 
