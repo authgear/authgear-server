@@ -947,6 +947,7 @@
   "DesignScreen.configuration.link.label": "Links",
   "DesignScreen.configuration.link.color.label.light": "Link color - light mode",
   "DesignScreen.configuration.link.color.label.dark": "Link color - dark mode",
+  "DesignScreen.configuration.link.textDecoration.label": "Link decoration",
   "DesignScreen.configuration.link.urls.privacyPolicy.label": "Privacy Policy",
   "DesignScreen.configuration.link.urls.privacyPolicy.placeholder": "https://example.com/privacy-policy",
   "DesignScreen.configuration.link.urls.termsOfService.label": "Terms of Service",

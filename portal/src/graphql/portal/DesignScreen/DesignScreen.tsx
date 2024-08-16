@@ -51,6 +51,7 @@ import ButtonToggleGroup, {
 import Configuration from "../../../components/design/Configuration";
 import { ColorPicker } from "../../../components/design/ColorPicker";
 import BorderRadius from "../../../components/design/BorderRadius";
+import TextDecoration from "../../../components/design/TextDecoration";
 import Separator from "../../../components/design/Separator";
 
 import { BranchDesignForm, useBrandDesignForm } from "./form";
@@ -508,6 +509,15 @@ const LinkConfiguration: React.VFC<LinkConfigurationProps> =
             </Configuration>
           </>
         ) : null}
+        <Configuration labelKey="DesignScreen.configuration.link.textDecoration.label">
+          <TextDecoration
+            value={
+              designForm.state.customisableLightTheme.link.textDecoration ??
+              DEFAULT_LIGHT_THEME.link.textDecoration
+            }
+            onChange={designForm.setLinkTextDecorationStyle}
+          />
+        </Configuration>
         <Separator className={cn(styles.linkConfigurationSeparator)} />
         <TextField
           label={renderToString(

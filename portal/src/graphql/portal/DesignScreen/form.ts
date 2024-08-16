@@ -14,6 +14,7 @@ import {
   EMPTY_THEME,
   PartialCustomisableTheme,
   StyleCssVisitor,
+  TextDecorationType,
   Theme,
   getThemeTargetSelector,
   selectByTheme,
@@ -166,6 +167,9 @@ export interface BranchDesignForm {
   ) => void;
   setInputFieldBorderRadiusStyle: (
     borderRadiusStyle: BorderRadiusStyle | undefined
+  ) => void;
+  setLinkTextDecorationStyle: (
+    textDecoration: TextDecorationType | undefined
   ) => void;
   setPrivacyPolicyLink: (url: string) => void;
   setTermsOfServiceLink: (url: string) => void;
@@ -743,6 +747,15 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           return produce(prev, (draft) => {
             draft.inputField.borderRadius = borderRadiusStyle;
             draft.phoneInputField.borderRadius = borderRadiusStyle;
+          });
+        }, Theme.Light);
+      },
+      setLinkTextDecorationStyle: (
+        textDecoration: TextDecorationType | undefined
+      ) => {
+        resourceMutator.updateCustomisableTheme((prev) => {
+          return produce(prev, (draft) => {
+            draft.link.textDecoration = textDecoration;
           });
         }, Theme.Light);
       },
