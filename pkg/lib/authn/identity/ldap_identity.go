@@ -26,27 +26,27 @@ func (i *LDAP) UserIDAttributeValueDisplayValue() string {
 	return RenderAttribute(i.UserIDAttributeName, i.UserIDAttributeValue)
 }
 
-// EntryJSON returns a map that with attributes known by us
+// EntryJSON returns a map that with attributes rendered.
 func (i *LDAP) EntryJSON() map[string]interface{} {
 	result := map[string]interface{}{}
-	if dn, ok := i.RawEntryJSON["dn"].(string); ok {
-		result["dn"] = dn
-	}
 	for name, values := range i.RawEntryJSON {
-		_, ok := ldap.DefaultAttributeRegistry.Get(name)
-		if !ok {
-			continue
-		}
-		var stringValues []string
-		for _, byteStr := range values.([]interface{}) {
-			bytes, err := base64.StdEncoding.DecodeString(byteStr.(string))
-			if err != nil {
-				continue
+		switch name {
+		case "dn":
+			if dn, ok := values.(string); ok {
+				result["dn"] = dn
 			}
-			str := RenderAttribute(name, bytes)
-			stringValues = append(stringValues, str)
+		default:
+			var stringValues []string
+			for _, byteStr := range values.([]interface{}) {
+				bytes, err := base64.StdEncoding.DecodeString(byteStr.(string))
+				if err != nil {
+					continue
+				}
+				str := RenderAttribute(name, bytes)
+				stringValues = append(stringValues, str)
+			}
+			result[name] = stringValues
 		}
-		result[name] = stringValues
 	}
 	return result
 }
