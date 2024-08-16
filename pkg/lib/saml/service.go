@@ -125,8 +125,8 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 
 	if !authnRequest.GetProtocolBinding().IsSupported() {
 		return &samlerror.InvalidRequestError{
-			Field:    "Destination",
-			Actual:   authnRequest.Destination,
+			Field:    "ProtocolBinding",
+			Actual:   authnRequest.ProtocolBinding,
 			Expected: slice.Map(samlprotocol.SupportedBindings, func(b samlprotocol.SAMLBinding) string { return string(b) }),
 		}
 	}
