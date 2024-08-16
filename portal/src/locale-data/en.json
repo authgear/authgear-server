@@ -408,6 +408,11 @@
 
   "UserDetails.disable-delete.header": "Disable/Delete",
 
+  "UserDetails.disabled.badge": "Disabled",
+  "UserDetails.scheduled-anonymization.badge": "Anonymization scheduled",
+  "UserDetails.anonymized.badge": "Anonymized",
+  "UserDetails.scheduled-removal.badge": "Removal scheduled",
+
   "UserDetailsAdminActions.title": "Admin Actions",
   "UserDetailsAdminActions.disable-user.title": "Disable User",
   "UserDetailsAdminActions.disable-user.body": "Temporarily disables the user's account, preventing them from logging in or using the system.",

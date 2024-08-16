@@ -31,6 +31,20 @@ interface UserDetailSummaryProps {
   profileImageEditable: boolean;
   createdAtISO: string | null;
   lastLoginAtISO: string | null;
+  badgeTextId: string | null;
+}
+
+interface WarnUserStatusBadgeProps {
+  badgeTextId: string;
+}
+
+function WarnUserStatusBadge(props: WarnUserStatusBadgeProps) {
+  const { badgeTextId } = props;
+  return (
+    <Text className={cn(styles.warnBadge, styles.inlineGridItem)}>
+      <FormattedMessage id={badgeTextId} />
+    </Text>
+  );
 }
 
 const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
@@ -46,13 +60,14 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
       createdAtISO,
       lastLoginAtISO,
       className,
+      badgeTextId,
     } = props;
     const { locale } = React.useContext(Context);
     const formatedSignedUp = React.useMemo(() => {
-      return formatDatetime(locale, createdAtISO);
+      return formatDatetime(locale, createdAtISO) ?? "";
     }, [locale, createdAtISO]);
     const formatedLastLogin = React.useMemo(() => {
-      return formatDatetime(locale, lastLoginAtISO);
+      return formatDatetime(locale, lastLoginAtISO) ?? "";
     }, [locale, lastLoginAtISO]);
 
     return (
@@ -94,16 +109,19 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
           <Text className={styles.formattedName} variant="medium">
             {formattedName ? formattedName : ""}
           </Text>
+          {badgeTextId ? (
+            <WarnUserStatusBadge badgeTextId={badgeTextId} />
+          ) : null}
           <Text variant="small">
             <FormattedMessage
               id="UserDetails.signed-up"
-              values={{ datetime: formatedSignedUp ?? "" }}
+              values={{ datetime: formatedSignedUp }}
             />
           </Text>
           <Text variant="small">
             <FormattedMessage
               id="UserDetails.last-login-at"
-              values={{ datetime: formatedLastLogin ?? "" }}
+              values={{ datetime: formatedLastLogin }}
             />
           </Text>
         </div>
