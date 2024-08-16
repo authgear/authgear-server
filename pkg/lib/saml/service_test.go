@@ -10,6 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 
@@ -76,21 +77,36 @@ func TestSAMLService(t *testing.T) {
 			authnRequest := makeValidRequest()
 			authnRequest.Destination = "http://idp.local/wrong"
 			err := svc.ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, "unexpected destination")
+
+			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+				Field:    "Destination",
+				Actual:   "http://idp.local/wrong",
+				Expected: []string{"http://idp.local/login"},
+			})
 		})
 
 		Convey("unsupported binding", func() {
 			authnRequest := makeValidRequest()
 			authnRequest.ProtocolBinding = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
 			err := svc.ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, "unsupported binding")
+			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+				Field:  "ProtocolBinding",
+				Actual: authnRequest.ProtocolBinding,
+				Expected: []string{
+					"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+					"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+				}})
 		})
 
 		Convey("unsupported version", func() {
 			authnRequest := makeValidRequest()
 			authnRequest.Version = "1.0"
 			err := svc.ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, "Request Version must be 2.0")
+			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+				Field:    "Version",
+				Actual:   authnRequest.Version,
+				Expected: []string{samlprotocol.SAMLVersion2},
+			})
 		})
 
 		Convey("expired request", func() {
@@ -98,7 +114,11 @@ func TestSAMLService(t *testing.T) {
 			issueInstant, _ := time.Parse(time.RFC3339, "2006-01-02T14:00:05Z")
 			authnRequest.IssueInstant = issueInstant
 			err := svc.ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, "request expired")
+			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+				Field:  "IssueInstant",
+				Actual: issueInstant.Format(time.RFC3339),
+				Reason: "request expired",
+			})
 		})
 
 		Convey("unsupported name id format", func() {
@@ -106,14 +126,25 @@ func TestSAMLService(t *testing.T) {
 			format := "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName"
 			authnRequest.NameIDPolicy.Format = &format
 			err := svc.ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, "unsupported Name Identifier Format")
+			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+				Field:  "NameIDPolicy/Format",
+				Actual: format,
+				Expected: []string{
+					"urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+					"urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+				},
+			})
 		})
 
 		Convey("acs url not allowed", func() {
 			authnRequest := makeValidRequest()
 			authnRequest.AssertionConsumerServiceURL = "http://localhost/wrong"
 			err := svc.ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, "AssertionConsumerServiceURL not allowed")
+			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+				Field:  "AssertionConsumerServiceURL",
+				Actual: "http://localhost/wrong",
+				Reason: "AssertionConsumerServiceURL not allowed",
+			})
 		})
 	})
 
