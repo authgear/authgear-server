@@ -55,6 +55,7 @@ import { IdentityType } from "./globalTypes.generated";
 import AnonymizeUserDialog from "./AnonymizeUserDialog";
 import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
 import UserDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/UserDetailsScreenRoleListContainer";
+import UserDetailsAdminActions from "./UserDetailsAdminActions";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
@@ -68,6 +69,7 @@ const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
 const SESSION_PIVOT_KEY = "session";
 const ROLES_KEY = "roles";
 const GROUPS_KEY = "groups";
+const DISABLE_DELELE_KEY = "disable-delete";
 
 interface FormState {
   userID: string;
@@ -232,6 +234,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     SESSION_PIVOT_KEY,
     ROLES_KEY,
     GROUPS_KEY,
+    DISABLE_DELELE_KEY,
   ]);
   const { form, data, appConfig } = props;
   const { state, setState } = form;
@@ -344,6 +347,27 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         <MessageBar messageBarType={MessageBarType.info}>
           <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
         </MessageBar>
+        <Pivot
+          styles={{
+            itemContainer: {
+              flex: "1 0 auto",
+              display: "flex",
+              flexDirection: "column",
+            },
+          }}
+          className={styles.pivot}
+          overflowBehavior="menu"
+          selectedKey={selectedKey}
+          onLinkClick={onLinkClick}
+        >
+          <PivotItem
+            className={"flex-1 pt-8"}
+            itemKey={DISABLE_DELELE_KEY}
+            headerText={renderToString("UserDetails.disable-delete.header")}
+          >
+            <UserDetailsAdminActions />
+          </PivotItem>
+        </Pivot>
       </div>
     );
   }
@@ -443,6 +467,13 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           headerText={renderToString("UserDetails.groups.header")}
         >
           <UserDetailsScreenGroupListContainer user={data} />
+        </PivotItem>
+        <PivotItem
+          className={"flex-1 pt-8"}
+          itemKey={DISABLE_DELELE_KEY}
+          headerText={renderToString("UserDetails.disable-delete.header")}
+        >
+          <UserDetailsAdminActions />
         </PivotItem>
       </Pivot>
     </div>

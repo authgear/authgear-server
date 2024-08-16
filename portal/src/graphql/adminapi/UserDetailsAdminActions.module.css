@@ -1,0 +1,63 @@
+.cell {
+  padding-left: 1px;
+  display: grid;
+  grid-gap: 3px 0;
+}
+
+.cell--not-first {
+  @apply mt-8;
+}
+
+.cellLabel {
+  font-size: 13px;
+}
+
+.cellDesc {
+  font-size: 13px;
+  color: #888888;
+}
+
+.actionCell {
+  grid-template:
+    "plabel    paction"
+    "pbody     paction"
+    / auto min-content min-content;
+  grid-gap: 4px 0;
+}
+
+.actionCellLabel {
+  grid-area: plabel;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+}
+
+.actionCellBody {
+  grid-area: pbody;
+  font-size: 14px;
+  line-height: 20px;
+  max-width: 500px;
+}
+
+.actionCellActionButton {
+  @apply px-4;
+  @apply py-1.5;
+  @apply whitespace-nowrap;
+  grid-area: paction;
+}
+
+.destructiveBorder {
+  border-color: #e23d3d;
+}
+
+.actionBorder {
+  border-color: #176df3;
+}
+
+.actionCellLast {
+  @apply mb-5;
+}
+
+.standardAttributesTitle {
+  @apply -mb-5;
+}
