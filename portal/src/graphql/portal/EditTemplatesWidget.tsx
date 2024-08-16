@@ -40,7 +40,7 @@ const TextFieldWidgetItem: React.VFC<TextFieldWidgetIteProps> =
 export interface EditTemplatesWidgetItem {
   key: string;
   title: React.ReactNode;
-  language: "html" | "plaintext" | "json" | "css";
+  language: "html" | "plaintext" | "json" | "css" | "yaml";
   editor: "code" | "textfield";
   value: string;
   onChange: (value: string | undefined, e: unknown) => void;
