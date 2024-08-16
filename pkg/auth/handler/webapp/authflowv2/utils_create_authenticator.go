@@ -6,12 +6,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func getTakenBranchSignupCreateAuthenticatorAuthentication(s *webapp.AuthflowScreenWithFlowResponse) config.AuthenticationFlowAuthentication {
+func getTakenBranchCreateAuthenticatorAuthentication(s *webapp.AuthflowScreenWithFlowResponse) config.AuthenticationFlowAuthentication {
 	// If the current step already tells the authentication, use it
 	authentication := s.StateTokenFlowResponse.Action.Authentication
 	if authentication == "" {
 		// Else, get it from the first option of the branch step
-		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
+		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.CreateAuthenticatorData).Options
 		index := *s.Screen.TakenBranchIndex
 		option := options[index]
 		authentication = option.Authentication

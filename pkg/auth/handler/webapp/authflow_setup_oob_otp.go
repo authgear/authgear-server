@@ -53,7 +53,7 @@ func (h *AuthflowSetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 	viewmodels.Embed(data, baseViewModel)
 
 	index := *screen.Screen.TakenBranchIndex
-	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
+	screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.CreateAuthenticatorData)
 	option := screenData.Options[index]
 
 	var oobAuthenticatorType model.AuthenticatorType
@@ -100,7 +100,7 @@ func (h *AuthflowSetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		}
 
 		index := *screen.Screen.TakenBranchIndex
-		screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
+		screenData := screen.StateTokenFlowResponse.Action.Data.(declarative.CreateAuthenticatorData)
 		option := screenData.Options[index]
 		authentication := option.Authentication
 		channel := screen.Screen.TakenChannel

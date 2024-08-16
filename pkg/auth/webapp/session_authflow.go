@@ -172,7 +172,7 @@ func newAuthflowScreenSignupPromote(flowResponse *authflow.FlowResponse, previou
 		screen.BranchStateToken = state
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		switch flowResponse.Action.Data.(type) {
-		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
+		case declarative.CreateAuthenticatorData:
 			// create_authenticator contains branches in this step
 			screen.BranchStateToken = state
 		}
@@ -429,7 +429,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(input *TakeBran
 		// The branch taken here is unimportant.
 		return s.takeBranchResultSimple(input, false)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
-		data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
+		data := s.StateTokenFlowResponse.Action.Data.(declarative.CreateAuthenticatorData)
 		return s.takeBranchCreateAuthenticator(input, options, data.Options[input.Index])
 	case config.AuthenticationFlowStepTypeVerify:
 		// If we ever reach here, this means we have to choose channels.
@@ -564,8 +564,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLogin(input *TakeBranchInput,
 		return s.takeBranchResultSimple(input, false)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		switch s.StateTokenFlowResponse.Action.Data.(type) {
-		case declarative.IntentLoginFlowStepCreateAuthenticatorData:
-			data := s.StateTokenFlowResponse.Action.Data.(declarative.IntentLoginFlowStepCreateAuthenticatorData)
+		case declarative.CreateAuthenticatorData:
+			data := s.StateTokenFlowResponse.Action.Data.(declarative.CreateAuthenticatorData)
 			return s.takeBranchCreateAuthenticator(input, options, data.Options[input.Index])
 		case declarative.IntentCreateAuthenticatorTOTPData:
 			return s.takeBranchResultSimple(input, false)

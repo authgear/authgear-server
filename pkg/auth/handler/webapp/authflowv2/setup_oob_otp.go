@@ -52,17 +52,8 @@ func NewAuthflowSetupOOBOTPViewModel(s *webapp.Session, screen *webapp.AuthflowS
 	index := *screen.Screen.TakenBranchIndex
 	flowResponse := screen.StateTokenFlowResponse
 
-	var option declarative.CreateAuthenticatorOptionForOutput
-	switch screen.StateTokenFlowResponse.Action.Data.(type) {
-	case declarative.IntentSignupFlowStepCreateAuthenticatorData:
-		screenData := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
-		option = screenData.Options[index]
-	case declarative.IntentLoginFlowStepCreateAuthenticatorData:
-		screenData := flowResponse.Action.Data.(declarative.IntentLoginFlowStepCreateAuthenticatorData)
-		option = screenData.Options[index]
-	default:
-		panic(fmt.Sprintf("authflowv2: unexpected action data: %T", flowResponse.Action.Data))
-	}
+	screenData := flowResponse.Action.Data.(declarative.CreateAuthenticatorData)
+	option := screenData.Options[index]
 
 	var oobAuthenticatorType model.AuthenticatorType
 	switch option.Authentication {
@@ -97,7 +88,7 @@ func (h *AuthflowV2SetupOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Re
 	screenViewModel := NewAuthflowSetupOOBOTPViewModel(s, screen)
 	viewmodels.Embed(data, screenViewModel)
 
-	authentication := getTakenBranchSignupCreateAuthenticatorAuthentication(screen)
+	authentication := getTakenBranchCreateAuthenticatorAuthentication(screen)
 
 	branchFilter := func(branches []viewmodels.AuthflowBranch) []viewmodels.AuthflowBranch {
 		filtered := []viewmodels.AuthflowBranch{}
@@ -136,17 +127,8 @@ func (h *AuthflowV2SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 
 		index := *screen.Screen.TakenBranchIndex
 		flowResponse := screen.StateTokenFlowResponse
-		var option declarative.CreateAuthenticatorOptionForOutput
-		switch screen.StateTokenFlowResponse.Action.Data.(type) {
-		case declarative.IntentSignupFlowStepCreateAuthenticatorData:
-			screenData := flowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData)
-			option = screenData.Options[index]
-		case declarative.IntentLoginFlowStepCreateAuthenticatorData:
-			screenData := flowResponse.Action.Data.(declarative.IntentLoginFlowStepCreateAuthenticatorData)
-			option = screenData.Options[index]
-		default:
-			panic(fmt.Sprintf("authflowv2: unexpected action data: %T", flowResponse.Action.Data))
-		}
+		screenData := flowResponse.Action.Data.(declarative.CreateAuthenticatorData)
+		option := screenData.Options[index]
 		authentication := option.Authentication
 		channel := screen.Screen.TakenChannel
 

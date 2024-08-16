@@ -174,7 +174,7 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 	case config.AuthenticationFlowStepTypeIdentify:
 		n.navigateStepIdentify(s, r, webSessionID, result, expectedPath)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
-		authentication := getTakenBranchSignupCreateAuthenticatorAuthentication(s)
+		authentication := getTakenBranchCreateAuthenticatorAuthentication(s)
 		switch authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough
@@ -194,7 +194,7 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 				default:
 					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
 				}
-			case declarative.IntentSignupFlowStepCreateAuthenticatorData:
+			case declarative.CreateAuthenticatorData:
 				// 2. We need to enter the target.
 				s.Advance(AuthflowV2RouteSetupOOBOTP, result)
 			default:
@@ -218,7 +218,7 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 				default:
 					panic(fmt.Errorf("unexpected channel: %v", channel))
 				}
-			case declarative.IntentSignupFlowStepCreateAuthenticatorData:
+			case declarative.CreateAuthenticatorData:
 				// 2. We need to enter the target.
 				s.Advance(AuthflowV2RouteSetupOOBOTP, result)
 			default:
@@ -326,8 +326,8 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 	switch s.StateTokenFlowResponse.Action.Data.(type) {
 	case declarative.IntentCreateAuthenticatorTOTPData:
 		s.Advance(AuthflowV2RouteSetupTOTP, result)
-	case declarative.IntentLoginFlowStepCreateAuthenticatorData:
-		authentication := getTakenBranchLoginCreateAuthenticatorAuthentication(s)
+	case declarative.CreateAuthenticatorData:
+		authentication := getTakenBranchCreateAuthenticatorAuthentication(s)
 		switch authentication {
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
 			fallthrough

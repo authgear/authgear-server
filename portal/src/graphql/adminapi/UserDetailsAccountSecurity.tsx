@@ -581,15 +581,17 @@ const PasswordAuthenticatorCell: React.VFC<PasswordAuthenticatorCellProps> =
             values={{ datetime: lastUpdated }}
           />
         </Text>
-        <Toggle
-          className={styles.passwordCellChangeOnLogin}
-          label={renderToString(
-            "UserDetails.account-security.change-on-login.label"
-          )}
-          checked={changeOnLogin}
-          disabled={passwordExpired}
-          onChange={showMarkAsExpiredConfirmationDialog}
-        />
+        {kind === "PRIMARY" ? (
+          <Toggle
+            className={styles.passwordCellChangeOnLogin}
+            label={renderToString(
+              "UserDetails.account-security.change-on-login.label"
+            )}
+            checked={changeOnLogin}
+            disabled={passwordExpired}
+            onChange={showMarkAsExpiredConfirmationDialog}
+          />
+        ) : null}
         {passwordExpired ? (
           <MessageBar
             className={styles.passwordCellExpired}
