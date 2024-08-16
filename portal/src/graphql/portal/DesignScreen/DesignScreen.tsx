@@ -797,6 +797,8 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
 
   const authUIIframeRef = useRef<HTMLIFrameElement | null>(null);
 
+  const [isIframeLoading, setIsIframeLoading] = useState(true);
+
   useEffect(() => {
     const message = mapDesignFormStateToPreviewCustomisationMessage(
       designForm.state
@@ -827,6 +829,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
         return;
       }
       setSelectedPreviewPage(option.key as PreviewPage);
+      setIsIframeLoading(true);
     },
     []
   );
@@ -839,7 +842,6 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   }, [
     effectiveAppConfig.http?.public_origin,
     designForm.state.selectedLanguage,
-    designForm.state.selectedTheme,
     selectedPreviewPage,
   ]);
 
@@ -847,6 +849,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
     const message = mapDesignFormStateToPreviewCustomisationMessage(
       designForm.state
     );
+    setIsIframeLoading(false);
     authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
   }, [designForm.state]);
 
@@ -881,6 +884,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
           />
         ) : null}
       </div>
+      {isIframeLoading ? <ShowLoading /> : null}
       <iframe
         ref={authUIIframeRef}
         className={cn("w-full", "min-h-0", "flex-1", "border-none")}
