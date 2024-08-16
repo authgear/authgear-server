@@ -38,7 +38,7 @@ func (t AttributeType) Decoder() AttributeDecoder {
 	case AttributeTypeUUID:
 		return UUIDAttributeDecoder{}
 	default:
-		panic(fmt.Errorf("ldap: Unknwon attribute type %s", t))
+		panic(fmt.Errorf("ldap: unknown attribute type %s", t))
 	}
 }
 

@@ -19,7 +19,7 @@ func TestLDAPIdentity(t *testing.T) {
 			})
 			Convey("It should return correct value if unknown attribute is a valid utf8 string", func() {
 				ldap := &LDAP{
-					UserIDAttributeName:  "unkown-attribute",
+					UserIDAttributeName:  "unknown-attribute",
 					UserIDAttributeValue: []byte("example-user"),
 				}
 				So(ldap.UserIDAttributeValueDisplayValue(), ShouldEqual, "example-user")
@@ -29,7 +29,7 @@ func TestLDAPIdentity(t *testing.T) {
 				uuidBytes, err := UUID.MarshalBinary()
 				So(err, ShouldBeNil)
 				ldap := &LDAP{
-					UserIDAttributeName:  "unkown-attribute",
+					UserIDAttributeName:  "unknown-attribute",
 					UserIDAttributeValue: uuidBytes,
 				}
 				So(ldap.UserIDAttributeValueDisplayValue(), ShouldEqual, "j0qa0XMlMkW6rz1jahPVBg==")
