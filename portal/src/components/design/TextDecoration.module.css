@@ -1,0 +1,20 @@
+.icTextDecoration {
+  @apply inline-block;
+  background-color: #1c1b1f;
+
+  &.selected {
+   @apply bg-theme-primary;
+  }
+}
+
+.icTextDecorationNone {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../images/ic-text-decoration-none.svg");
+}
+
+.icTextDecorationUnderline {
+  @apply h-6 w-6;
+  /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
+  mask: url("../../images/ic-text-decoration-underline.svg");
+}
