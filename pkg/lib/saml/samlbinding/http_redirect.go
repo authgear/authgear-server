@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
@@ -28,7 +27,7 @@ var _ SAMLBindingParseResult = &SAMLBindingHTTPRedirectParseResult{}
 
 func (*SAMLBindingHTTPRedirectParseResult) SAMLBindingParseResult() {}
 
-func (*SAMLBindingHTTPRedirectParser) Parse(now time.Time, r *http.Request) (
+func (*SAMLBindingHTTPRedirectParser) Parse(r *http.Request) (
 	result *SAMLBindingHTTPRedirectParseResult,
 	err error,
 ) {
