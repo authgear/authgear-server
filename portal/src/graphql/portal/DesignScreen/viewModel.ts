@@ -95,6 +95,10 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
           inputField: {
             borderRadius: state.customisableLightTheme.inputField.borderRadius,
           },
+          link: {
+            ...state.customisableDarkTheme.link,
+            textDecoration: state.customisableLightTheme.link.textDecoration,
+          },
         }
   );
   styleGroup.acceptCssAstVisitor(cssAstVisitor);

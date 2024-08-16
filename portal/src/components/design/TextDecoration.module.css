@@ -3,7 +3,7 @@
   background-color: #1c1b1f;
 
   &.selected {
-   @apply bg-theme-primary;
+    @apply bg-theme-primary;
   }
 }
 
