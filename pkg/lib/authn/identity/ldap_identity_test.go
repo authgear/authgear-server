@@ -100,6 +100,21 @@ func TestLDAPIdentity(t *testing.T) {
 				}
 				So(ldap.DisplayID(), ShouldEqual, "uid=example-user")
 			})
+			Convey("It should encode user id attribute correctly if dn not exists", func() {
+				ldap := &LDAP{
+					UserIDAttributeName:  "Some=Attribute",
+					UserIDAttributeValue: []byte("ExampleUser"),
+					RawEntryJSON: map[string]interface{}{
+						"objectGUID": []interface{}{
+							"j0qa0XMlMkW6rz1jahPVBg==",
+						},
+						"employeeID": []interface{}{
+							"MTIzNA==",
+						},
+					},
+				}
+				So(ldap.DisplayID(), ShouldEqual, "Some\\=Attribute=ExampleUser")
+			})
 		})
 	})
 }

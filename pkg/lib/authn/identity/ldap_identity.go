@@ -5,8 +5,6 @@ import (
 	"time"
 	"unicode/utf8"
 
-	goldap "github.com/go-ldap/ldap/v3"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
 )
@@ -55,8 +53,8 @@ func (i *LDAP) EntryJSON() map[string]interface{} {
 func (i *LDAP) DisplayID() string {
 	dn, ok := i.RawEntryJSON["dn"].(string)
 	if !ok {
-		return (&goldap.AttributeTypeAndValue{
-			Type:  i.UserIDAttributeName,
+		return (ldap.AttributeNameAndValue{
+			Name:  i.UserIDAttributeName,
 			Value: i.UserIDAttributeValueDisplayValue(),
 		}).String()
 	}
