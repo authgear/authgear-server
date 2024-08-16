@@ -67,7 +67,9 @@ const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
         {sections.map((section) => {
           return (
             <Fragment key={section.key}>
-              <Label className={styles.boldLabel}>{section.title}</Label>
+              {section.title != null ? (
+                <Label className={styles.boldLabel}>{section.title}</Label>
+              ) : null}
               {section.items.map((item) => {
                 return item.editor === "code" ? (
                   <Fragment key={item.key}>
