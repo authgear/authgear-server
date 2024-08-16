@@ -11,6 +11,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
 
+type CreateAuthenticatorData struct {
+	TypedData
+	Options []CreateAuthenticatorOptionForOutput `json:"options,omitempty"`
+}
+
+func NewCreateAuthenticatorData(d CreateAuthenticatorData) CreateAuthenticatorData {
+	d.Type = DataTypeCreateAuthenticatorData
+	return d
+}
+
+var _ authflow.Data = &CreateAuthenticatorData{}
+
+func (m CreateAuthenticatorData) Data() {}
+
 type CreateAuthenticatorOptionForOutput struct {
 	Authentication config.AuthenticationFlowAuthentication `json:"authentication"`
 

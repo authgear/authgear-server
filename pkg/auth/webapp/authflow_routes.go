@@ -153,7 +153,7 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 		authentication := s.StateTokenFlowResponse.Action.Authentication
 		if authentication == "" {
 			// Else, get it from the first option of the branch step
-			options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.IntentSignupFlowStepCreateAuthenticatorData).Options
+			options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.CreateAuthenticatorData).Options
 			index := *s.Screen.TakenBranchIndex
 			option := options[index]
 			authentication = option.Authentication
@@ -177,7 +177,7 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 				default:
 					panic(fmt.Errorf("unexpected otp form: %v", data.OTPForm))
 				}
-			case declarative.IntentSignupFlowStepCreateAuthenticatorData:
+			case declarative.CreateAuthenticatorData:
 				// 2. We need to enter the target.
 				s.Advance(AuthflowRouteSetupOOBOTP, result)
 			default:
@@ -201,7 +201,7 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 				default:
 					panic(fmt.Errorf("unexpected channel: %v", channel))
 				}
-			case declarative.IntentSignupFlowStepCreateAuthenticatorData:
+			case declarative.CreateAuthenticatorData:
 				// 2. We need to enter the target.
 				s.Advance(AuthflowRouteSetupOOBOTP, result)
 			default:

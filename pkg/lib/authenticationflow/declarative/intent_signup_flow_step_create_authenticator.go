@@ -36,20 +36,6 @@ func init() {
 //   IntentCreateAuthenticatorTOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
 //     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 
-type IntentSignupFlowStepCreateAuthenticatorData struct {
-	TypedData
-	Options []CreateAuthenticatorOptionForOutput `json:"options,omitempty"`
-}
-
-func NewIntentSignupFlowStepCreateAuthenticatorData(d IntentSignupFlowStepCreateAuthenticatorData) IntentSignupFlowStepCreateAuthenticatorData {
-	d.Type = DataTypeCreateAuthenticatorData
-	return d
-}
-
-var _ authflow.Data = &IntentSignupFlowStepCreateAuthenticatorData{}
-
-func (m IntentSignupFlowStepCreateAuthenticatorData) Data() {}
-
 type IntentSignupFlowStepCreateAuthenticator struct {
 	FlowReference          authflow.FlowReference `json:"flow_reference,omitempty"`
 	JSONPointer            jsonpointer.T          `json:"json_pointer,omitempty"`
@@ -252,7 +238,7 @@ func (i *IntentSignupFlowStepCreateAuthenticator) OutputData(ctx context.Context
 		optionsForOutput = append(optionsForOutput, o.ToOutput(ctx))
 	}
 
-	return NewIntentSignupFlowStepCreateAuthenticatorData(IntentSignupFlowStepCreateAuthenticatorData{
+	return NewCreateAuthenticatorData(CreateAuthenticatorData{
 		Options: optionsForOutput,
 	}), nil
 }
