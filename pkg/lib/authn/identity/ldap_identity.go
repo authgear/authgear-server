@@ -24,22 +24,7 @@ type LDAP struct {
 }
 
 func (i *LDAP) UserIDAttributeValueDisplayValue() string {
-	ldapAttribute, ok := ldap.DefaultAttributeRegistry.Get(i.UserIDAttributeName)
-	// We try to decode with known attribute first
-	if ok {
-		str, err := ldapAttribute.Type.Decoder().DecodeToStringRepresentable(i.UserIDAttributeValue)
-		if err == nil {
-			return str
-		}
-	}
-	// If the attribute is unknown, we return its in string
-	// format if it is a valid utf8 bytes
-	if utf8.Valid(i.UserIDAttributeValue) {
-		return string(i.UserIDAttributeValue)
-	}
-	// Otherise, we encode the bytes in base64
-	str := base64.StdEncoding.EncodeToString(i.UserIDAttributeValue)
-	return str
+	return RenderAttribute(i.UserIDAttributeName, i.UserIDAttributeValue)
 }
 
 // EntryJSON returns a map that with attributes known by us
@@ -49,7 +34,7 @@ func (i *LDAP) EntryJSON() map[string]interface{} {
 		result["dn"] = dn
 	}
 	for name, values := range i.RawEntryJSON {
-		ldapAttribute, ok := ldap.DefaultAttributeRegistry.Get(name)
+		_, ok := ldap.DefaultAttributeRegistry.Get(name)
 		if !ok {
 			continue
 		}
@@ -59,10 +44,7 @@ func (i *LDAP) EntryJSON() map[string]interface{} {
 			if err != nil {
 				continue
 			}
-			str, err := ldapAttribute.Type.Decoder().DecodeToStringRepresentable(bytes)
-			if err != nil {
-				continue
-			}
+			str := RenderAttribute(name, bytes)
 			stringValues = append(stringValues, str)
 		}
 		result[name] = stringValues
@@ -73,23 +55,9 @@ func (i *LDAP) EntryJSON() map[string]interface{} {
 func (i *LDAP) DisplayID() string {
 	dn, ok := i.RawEntryJSON["dn"].(string)
 	if !ok {
-		ldapAttribute, ok := ldap.DefaultAttributeRegistry.Get(i.UserIDAttributeName)
-		if !ok {
-			return (&goldap.AttributeTypeAndValue{
-				Type:  i.UserIDAttributeName,
-				Value: string(i.UserIDAttributeValue),
-			}).String()
-		}
-		str, err := ldapAttribute.Type.Decoder().DecodeToStringRepresentable(i.UserIDAttributeValue)
-		if err != nil {
-			return (&goldap.AttributeTypeAndValue{
-				Type:  i.UserIDAttributeName,
-				Value: string(i.UserIDAttributeValue),
-			}).String()
-		}
 		return (&goldap.AttributeTypeAndValue{
 			Type:  i.UserIDAttributeName,
-			Value: str,
+			Value: i.UserIDAttributeValueDisplayValue(),
 		}).String()
 	}
 	return dn
@@ -132,4 +100,23 @@ func (i *LDAP) IdentityAwareStandardClaims() map[model.ClaimName]string {
 		claims[model.ClaimPreferredUsername] = username
 	}
 	return claims
+}
+
+func RenderAttribute(attributeName string, attributeValue []byte) string {
+	attribute, ok := ldap.DefaultAttributeRegistry.Get(attributeName)
+	if ok {
+		// We try to decode with known attribute first
+		str, err := attribute.Type.Decoder().DecodeToStringRepresentable(attributeValue)
+		if err == nil {
+			return str
+		}
+	}
+	// If the attribute is unknown or decode failed, we return its in string
+	// format if it is a valid utf8 bytes
+	if utf8.Valid(attributeValue) {
+		return string(attributeValue)
+	}
+
+	// Otherise, we encode the bytes in base64
+	return base64.StdEncoding.EncodeToString(attributeValue)
 }
