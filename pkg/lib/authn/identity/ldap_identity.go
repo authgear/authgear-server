@@ -2,6 +2,7 @@ package identity
 
 import (
 	"encoding/base64"
+	"fmt"
 	"time"
 	"unicode"
 	"unicode/utf8"
@@ -40,7 +41,7 @@ func (i *LDAP) EntryJSON() map[string]interface{} {
 			for _, byteStr := range values.([]interface{}) {
 				bytes, err := base64.StdEncoding.DecodeString(byteStr.(string))
 				if err != nil {
-					continue
+					panic(fmt.Errorf("ldap: unexpected malformed base64 encoded string: %w", err))
 				}
 				str := RenderAttribute(name, bytes)
 				stringValues = append(stringValues, str)
