@@ -490,8 +490,8 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             value={secretInputValue}
             required={true}
             onChange={onChangeRecaptchaV2SecretKey}
-            parentJSONPointer=""
-            fieldName="secretKey"
+            parentJSONPointer={/secrets\/\d+\/data/}
+            fieldName="secret_key"
             readOnly={!editing}
           />
           {!editing ? (
@@ -530,8 +530,8 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             value={secretInputValue}
             required={true}
             onChange={onChangeCloudflareSecretKey}
-            parentJSONPointer=""
-            fieldName="secretKey"
+            parentJSONPointer={/secrets\/\d+\/data/}
+            fieldName="secret_key"
             readOnly={!editing}
           />
           {!editing ? (
