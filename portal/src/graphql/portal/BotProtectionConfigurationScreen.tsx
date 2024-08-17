@@ -277,17 +277,21 @@ function constructSecretUpdateInstruction(
   _secrets: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
+  const enabled = currentState.enabled;
   const secretKey =
     currentState.providerConfigs[currentState.providerType]?.secretKey;
+
+  const UNSET_INSTRUCTION: PortalAPISecretConfigUpdateInstruction = {
+    botProtectionProviderSecret: {
+      action: "unset",
+    },
+  };
+
+  if (!enabled) {
+    return UNSET_INSTRUCTION;
+  }
   if (secretKey == null) {
     return undefined;
-  }
-  if (secretKey === "") {
-    return {
-      botProtectionProviderSecret: {
-        action: "unset",
-      },
-    };
   }
   return {
     botProtectionProviderSecret: {
