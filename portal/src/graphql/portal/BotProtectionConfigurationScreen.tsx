@@ -472,8 +472,8 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
           value={providerConfigs[providerType]?.siteKey ?? ""}
           required={true}
           onChange={onChangeRecaptchaV2SiteKey}
-          parentJSONPointer=""
-          fieldName="siteKey"
+          parentJSONPointer="/bot_protection/provider"
+          fieldName="site_key"
         />
         <div className={styles.secretKeyInputContainer}>
           <FormTextField
@@ -512,8 +512,8 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
           value={providerConfigs[providerType]?.siteKey ?? ""}
           required={true}
           onChange={onChangeCloudflareSiteKey}
-          parentJSONPointer=""
-          fieldName="siteKey"
+          parentJSONPointer="/bot_protection/provider"
+          fieldName="site_key"
         />
         <div className={styles.secretKeyInputContainer}>
           <FormTextField
