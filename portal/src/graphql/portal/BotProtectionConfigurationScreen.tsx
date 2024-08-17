@@ -59,6 +59,29 @@ const SECRET_KEY_FORM_FIELD_ID = "secret-key-form-field";
 
 const DEPENDS_ON_AUTHENTICATOR_OPTION_KEY = "dependsOnSpecialAuthenticator";
 
+const DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR: FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs =
+  {
+    passwordMode: "never",
+    passwordlessViaEmailMode: "never",
+    passwordlessViaSMSMode: "always",
+  };
+const DEFAULT_BOT_PROTECTION_REQUIREMENTS_ON_ENABLE: FormBotProtectionRequirements =
+  {
+    flows: {
+      flowType: "specificAuthenticator",
+      flowConfigs: {
+        allSignupLogin: {
+          allSignupLoginMode: "never",
+        },
+        specificAuthenticator:
+          DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR,
+      },
+    },
+    resetPassword: {
+      resetPasswordMode: "always",
+    },
+  };
+
 interface LocationState {
   isOAuthRedirect: boolean;
 }
@@ -882,6 +905,11 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
               ...requirements,
               flows: {
                 ...requirements.flows,
+                flowConfigs: {
+                  ...requirements.flows.flowConfigs,
+                  specificAuthenticator:
+                    DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR,
+                },
                 flowType: "specificAuthenticator",
               },
             }));
@@ -1211,26 +1239,6 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
 export interface BotProtectionConfigurationContentProps {
   form: AppSecretConfigFormModel<FormState>;
 }
-
-const DEFAULT_BOT_PROTECTION_REQUIREMENTS_ON_ENABLE: FormBotProtectionRequirements =
-  {
-    flows: {
-      flowType: "specificAuthenticator",
-      flowConfigs: {
-        allSignupLogin: {
-          allSignupLoginMode: "never",
-        },
-        specificAuthenticator: {
-          passwordMode: "never",
-          passwordlessViaEmailMode: "never",
-          passwordlessViaSMSMode: "always",
-        },
-      },
-    },
-    resetPassword: {
-      resetPasswordMode: "always",
-    },
-  };
 
 const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationContentProps> =
   function BotProtectionConfigurationContent(props) {
