@@ -290,14 +290,11 @@ function constructSecretUpdateInstruction(
   if (!enabled) {
     return UNSET_INSTRUCTION;
   }
-  if (secretKey == null) {
-    return undefined;
-  }
   return {
     botProtectionProviderSecret: {
       action: "set",
       data: {
-        secretKey: secretKey,
+        secretKey: secretKey ?? null,
         type: currentState.providerType,
       },
     },
