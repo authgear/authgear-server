@@ -6,7 +6,7 @@ var _ = SecretConfigSchema.Add("BotProtectionProviderCredentials", `
 	"additionalProperties": false,
 	"properties": {
 		"type": { "type": "string", "enum": ["cloudflare", "recaptchav2"] },
-		"secret_key": { "type": "string" }
+		"secret_key": { "type": "string", "minLength": 1 }
 	},
 	"allOf": [
 		{

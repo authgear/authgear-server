@@ -128,3 +128,15 @@ value:
   requirements:
     signup_or_login:
       mode: invalid_mode
+---
+part: BotProtectionConfig
+name: bot-protection-site-key-cannot-be-empty-string
+error: |-
+  invalid value:
+  /provider/site_key: minLength
+    map[actual:0 expected:1]
+value:
+  enabled: true
+  provider:
+    type: cloudflare
+    site_key: ""
