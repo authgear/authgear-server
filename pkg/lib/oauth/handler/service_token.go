@@ -128,7 +128,7 @@ func (s *TokenService) IssueOfflineGrant(
 		return nil, "", err
 	}
 
-	err = s.AccessEvents.InitStream(offlineGrant.ID, &offlineGrant.AccessInfo.InitialAccess)
+	err = s.AccessEvents.InitStream(offlineGrant.ID, expiry, &offlineGrant.AccessInfo.InitialAccess)
 	if err != nil {
 		return nil, "", err
 	}

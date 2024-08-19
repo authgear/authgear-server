@@ -16,18 +16,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-type mockAccessEventProvider struct{}
-
-func (*mockAccessEventProvider) InitStream(sessionID string, event *access.Event) error {
-	return nil
-}
-
 func TestProvider(t *testing.T) {
 	Convey("Provider", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
 		store := NewMockStore(ctrl)
+		accessEvents := NewMockAccessEventProvider(ctrl)
 
 		clock := clock.NewMockClockAt("2020-01-01T00:00:00Z")
 		initialTime := clock.Time
@@ -39,7 +34,7 @@ func TestProvider(t *testing.T) {
 		disabled := false
 		provider := &Provider{
 			Store:        store,
-			AccessEvents: &mockAccessEventProvider{},
+			AccessEvents: accessEvents,
 			TrustProxy:   true,
 			Config: &config.SessionConfig{
 				IdleTimeoutEnabled: &disabled,
@@ -51,6 +46,7 @@ func TestProvider(t *testing.T) {
 		Convey("creating session", func() {
 			Convey("should be successful", func() {
 				store.EXPECT().Create(gomock.Any(), initialTime).Return(nil)
+				accessEvents.EXPECT().InitStream(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 
 				s, token := provider.MakeSession(&session.Attrs{
 					UserID: "user-id",

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -19,13 +20,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+//go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package idpsession
+
 const (
 	tokenAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	tokenLength   = 32
 )
 
 type AccessEventProvider interface {
-	InitStream(sessionID string, event *access.Event) error
+	InitStream(sessionID string, expiry time.Time, event *access.Event) error
 }
 
 type Rand *rand.Rand
@@ -99,7 +102,7 @@ func (p *Provider) Create(session *IDPSession) error {
 		return fmt.Errorf("failed to create session: %w", err)
 	}
 
-	err = p.AccessEvents.InitStream(session.ID, &session.AccessInfo.InitialAccess)
+	err = p.AccessEvents.InitStream(session.ID, expiry, &session.AccessInfo.InitialAccess)
 	if err != nil {
 		return fmt.Errorf("failed to access session: %w", err)
 	}

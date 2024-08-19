@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	goredis "github.com/go-redis/redis/v8"
 
@@ -20,7 +21,7 @@ type EventStoreRedis struct {
 	AppID config.AppID
 }
 
-func (s *EventStoreRedis) AppendEvent(sessionID string, event *Event) error {
+func (s *EventStoreRedis) AppendEvent(sessionID string, expiry time.Time, event *Event) error {
 	data, err := json.Marshal(event)
 	if err != nil {
 		return err
@@ -45,6 +46,12 @@ func (s *EventStoreRedis) AppendEvent(sessionID string, event *Event) error {
 		if err != nil {
 			return err
 		}
+
+		_, err = conn.ExpireAt(ctx, streamKey, expiry).Result()
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
