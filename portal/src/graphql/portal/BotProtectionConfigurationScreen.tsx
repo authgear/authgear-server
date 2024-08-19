@@ -262,12 +262,18 @@ function constructBotProtectionConfig(
     ...accountRecoveryRequirements,
     ...specificAuthenticatorRequirements,
   };
+
+  let site_key =
+    currentState.providerConfigs[currentState.providerType]?.siteKey;
+  if (site_key === "") {
+    site_key = undefined;
+  }
+
   return {
     enabled,
     provider: {
       type: currentState.providerType,
-      site_key:
-        currentState.providerConfigs[currentState.providerType]?.siteKey,
+      site_key,
     },
     requirements,
   };
