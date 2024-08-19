@@ -1,0 +1,62 @@
+name: Account linking - Incoming Login ID - conflicts LDAP error
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - login_id
+        - ldap
+    identity:
+      login_id:
+        keys:
+        - type: email
+        - type: username
+    account_linking:
+      login_id:
+        - key: email
+          action: error
+          user_profile:
+            pointer: "/email"
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              one_of:
+              - identification: ldap
+              - identification: email
+before:
+  - type: custom_sql
+    custom_sql:
+      path: ldap_user.sql
+
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "email",
+        "login_id": "mock@example.com"
+      }
+    output:
+      error: |
+        {
+          "reason": "InvariantViolated",
+          "info": {
+            "cause": {
+              "kind": "DuplicatedIdentity"
+            }
+          }
+        }

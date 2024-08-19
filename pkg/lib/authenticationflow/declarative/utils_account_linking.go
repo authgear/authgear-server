@@ -1,6 +1,7 @@
 package declarative
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 
@@ -67,6 +68,22 @@ func resolveAccountLinkingConfigsLoginID(
 			panic(fmt.Errorf("unexpected login ID type: %v", request.Spec.LoginID.Type))
 		}
 	}
+
+	return matches, nil
+}
+
+func resolveAccountLinkingConfigsLDAP(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	request *CreateIdentityRequestLDAP,
+) ([]*config.AccountLinkingLDAPItem, error) {
+
+	matches := []*config.AccountLinkingLDAPItem{}
+
+	matches = append(matches, config.DefaultAccountLinkingLDAPEmailItem)
+	matches = append(matches, config.DefaultAccountLinkingLDAPPhoneItem)
+	matches = append(matches, config.DefaultAccountLinkingLDAPUsernameItem)
 
 	return matches, nil
 }
@@ -311,6 +328,95 @@ func linkByIncomingLoginIDSpec(
 			continue
 		}
 		if conflict.Identity.LoginID.LoginID == normalizedValue {
+			// The identity is identical, throw error directly.
+			spec := request.Spec
+			otherSpec := conflict.Identity.ToSpec()
+			return nil, identity.NewErrDuplicatedIdentity(spec, &otherSpec)
+		}
+	}
+
+	return conflicts, nil
+}
+
+func linkByIncomingLDAPSpec(
+	ctx context.Context,
+	deps *authflow.Dependencies,
+	flows authflow.Flows,
+	userID string,
+	request *CreateIdentityRequestLDAP,
+	identificationJSONPointer jsonpointer.T,
+) (conflicts []*AccountLinkingConflict, err error) {
+
+	ldapConfigs, err := resolveAccountLinkingConfigsLDAP(ctx, deps, flows, request)
+	if err != nil {
+		return nil, err
+	}
+
+	// For deduplication
+	conflictedIdentityIDs := map[string]interface{}{}
+
+	for _, ldapConfig := range ldapConfigs {
+		value, traverseErr := ldapConfig.AttributeName.MustGetOneLevelJSONPointerOrPanic().Traverse(request.Spec.LDAP.Claims)
+		if traverseErr != nil {
+			// If we failed to obtain value using the json pointer, just treat it as empty
+			value = ""
+		}
+
+		valueStr, ok := value.(string)
+		if !ok {
+			// If value is not string, treat it as empty
+			valueStr = ""
+		}
+
+		// If value is empty or doesn't exist, no conflicts should occur
+		if valueStr == "" {
+			continue
+		}
+
+		idenConflicts, err := deps.Identities.ListByClaim(ldapConfig.UserProfile.MustGetFirstLevelReferenceTokenOrPanic(), valueStr)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, iden := range idenConflicts {
+			iden := iden
+
+			// Exclude identities that actually belong to this user.
+			if iden.UserID == userID {
+				continue
+			}
+
+			// Exclude duplicates
+			if _, exist := conflictedIdentityIDs[iden.ID]; exist {
+				continue
+			}
+			conflictedIdentityIDs[iden.ID] = iden.ID
+
+			conflict := &AccountLinkingConflict{
+				Identity:  iden,
+				Action:    ldapConfig.Action,
+				LoginFlow: "",
+			}
+			conflicts = append(conflicts, conflict)
+		}
+	}
+
+	// check for identical identities
+	for _, conflict := range conflicts {
+		conflict := conflict
+		if conflict.Identity.Type != model.IdentityTypeLDAP {
+			// Not the same type, so must be not identical
+			continue
+		}
+		if conflict.Identity.LDAP.ServerName != request.Spec.LDAP.ServerName {
+			// Not of the same server name.
+			continue
+		}
+		if conflict.Identity.LDAP.UserIDAttributeName != request.Spec.LDAP.UserIDAttributeName {
+			// Not of the same user ID attribute name.
+			continue
+		}
+		if bytes.Equal(conflict.Identity.LDAP.UserIDAttributeValue, request.Spec.LDAP.UserIDAttributeValue) {
 			// The identity is identical, throw error directly.
 			spec := request.Spec
 			otherSpec := conflict.Identity.ToSpec()

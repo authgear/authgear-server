@@ -55,6 +55,15 @@ var userData = `
     givenName: Duplicated
     sn: User
     mail: duser@example.com
+
+- credential:
+    password: mockpassword
+  dn: cn=mock,ou=people,ou=HK,dc=authgear,dc=com
+  uid: mock
+  attributes:
+    givenName: John
+    sn: Doe
+    mail: mock@example.com
 `
 
 type LDAPRouteHandler struct {

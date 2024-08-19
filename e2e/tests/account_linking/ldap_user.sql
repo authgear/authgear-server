@@ -31,7 +31,7 @@ VALUES
     NOW(),
     'f',
     NULL,
-    '{"email": "jdoe@example.com"}',
+    '{"email": "mock@example.com"}',
     '{}',
     'f',
     NULL,
@@ -77,7 +77,7 @@ VALUES
     '{{ .AppID }}',
     'ldap-server-1',
     'uid',
-    'jdoe',
-    '{"email": "jdoe@example.com"}',
-    '{"dn": "cn=jdoe,ou=people,ou=HK,dc=authgear,dc=com"}'
+    'mock',
+    '{"email": "mock@example.com"}',
+    '{"dn": "cn=mock,ou=people,ou=HK,dc=authgear,dc=com"}'
   );
