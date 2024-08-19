@@ -49,6 +49,18 @@ func NewRequestDeniedErrorResponse(
 	return newResponse(issueInstant, Status{status: status})
 }
 
+func NewInternalServerErrorResponse(issueInstant time.Time) *Response {
+	status := crewjamsaml.Status{
+		StatusCode: crewjamsaml.StatusCode{
+			Value: crewjamsaml.StatusResponder,
+		},
+		StatusMessage: &crewjamsaml.StatusMessage{
+			Value: "unexpected error",
+		},
+	}
+	return newResponse(issueInstant, Status{status: status})
+}
+
 type Status struct {
 	status crewjamsaml.Status
 }
