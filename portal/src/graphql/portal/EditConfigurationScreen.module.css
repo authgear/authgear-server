@@ -1,3 +1,7 @@
 .widget {
   @apply col-span-8 tablet:col-span-full;
 }
+
+.codeEditor {
+  height: 70vh; /* 680 / 960 ref https://www.figma.com/design/msiE4O5imHONAG5EjhZeiZ/Authgear-UI?node-id=10346-12112&t=ubpO59nWLEfmakyL-0 */
+}

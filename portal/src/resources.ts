@@ -259,6 +259,13 @@ export const RESOURCE_USERNAME_EXCLUDED_KEYWORDS_TXT: ResourceDefinition = {
   optional: true,
 };
 
+export const RESOURCE_AUTHGEAR_YAML: ResourceDefinition = {
+  resourcePath: resourcePath`authgear.yaml`,
+  type: "text",
+  extensions: [],
+  optional: false,
+};
+
 export const TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_LINK_SUBJECT =
   "email.forgot-password.subject";
 export const TRANSLATION_JSON_KEY_EMAIL_FORGOT_PASSWORD_CODE_SUBJECT =
