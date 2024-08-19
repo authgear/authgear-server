@@ -697,19 +697,19 @@ func (mr *MockPasskeyIdentityProviderMockRecorder) Get(userID, id interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).Get), userID, id)
 }
 
-// GetByAssertionResponse mocks base method.
-func (m *MockPasskeyIdentityProvider) GetByAssertionResponse(assertionResponse []byte) (*identity.Passkey, error) {
+// GetBySpec mocks base method.
+func (m *MockPasskeyIdentityProvider) GetBySpec(spec *identity.PasskeySpec) (*identity.Passkey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByAssertionResponse", assertionResponse)
+	ret := m.ctrl.Call(m, "GetBySpec", spec)
 	ret0, _ := ret[0].(*identity.Passkey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetByAssertionResponse indicates an expected call of GetByAssertionResponse.
-func (mr *MockPasskeyIdentityProviderMockRecorder) GetByAssertionResponse(assertionResponse interface{}) *gomock.Call {
+// GetBySpec indicates an expected call of GetBySpec.
+func (mr *MockPasskeyIdentityProviderMockRecorder) GetBySpec(spec interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByAssertionResponse", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).GetByAssertionResponse), assertionResponse)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySpec", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).GetBySpec), spec)
 }
 
 // GetMany mocks base method.

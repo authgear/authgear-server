@@ -72,7 +72,7 @@ type BiometricIdentityProvider interface {
 type PasskeyIdentityProvider interface {
 	Get(userID, id string) (*identity.Passkey, error)
 	GetMany(ids []string) ([]*identity.Passkey, error)
-	GetByAssertionResponse(assertionResponse []byte) (*identity.Passkey, error)
+	GetBySpec(spec *identity.PasskeySpec) (*identity.Passkey, error)
 	List(userID string) ([]*identity.Passkey, error)
 	New(userID string, attestationResponse []byte) (*identity.Passkey, error)
 	Create(i *identity.Passkey) error
@@ -274,8 +274,7 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		}
 		return b.ToInfo(), nil
 	case model.IdentityTypePasskey:
-		assertionResponse := spec.Passkey.AssertionResponse
-		p, err := s.Passkey.GetByAssertionResponse(assertionResponse)
+		p, err := s.Passkey.GetBySpec(spec.Passkey)
 		if err != nil {
 			return nil, err
 		}

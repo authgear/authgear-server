@@ -1,6 +1,7 @@
 package passkey
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -35,12 +36,23 @@ func (p *Provider) Get(userID, id string) (*identity.Passkey, error) {
 	return p.Store.Get(userID, id)
 }
 
-func (p *Provider) GetByAssertionResponse(assertionResponse []byte) (*identity.Passkey, error) {
-	credentialID, err := p.Passkey.GetCredentialIDFromAssertionResponse(assertionResponse)
-	if err != nil {
-		return nil, err
+func (p *Provider) GetBySpec(spec *identity.PasskeySpec) (*identity.Passkey, error) {
+	switch {
+	case spec.AttestationResponse != nil:
+		_, credentialID, _, err := p.Passkey.PeekAttestationResponse(spec.AttestationResponse)
+		if err != nil {
+			return nil, err
+		}
+		return p.Store.GetByCredentialID(credentialID)
+	case spec.AssertionResponse != nil:
+		credentialID, err := p.Passkey.GetCredentialIDFromAssertionResponse(spec.AssertionResponse)
+		if err != nil {
+			return nil, err
+		}
+		return p.Store.GetByCredentialID(credentialID)
+	default:
+		panic(fmt.Errorf("passkey: expect either attestation response or assert response in passkey spec"))
 	}
-	return p.Store.GetByCredentialID(credentialID)
 }
 
 func (p *Provider) GetMany(ids []string) ([]*identity.Passkey, error) {
