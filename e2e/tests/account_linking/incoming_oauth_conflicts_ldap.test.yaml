@@ -1,0 +1,93 @@
+name: Account linking - Incoming OAuth - conflicts LDAP error
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+        - ldap
+        - oauth
+    identity:
+      oauth:
+        providers:
+          - alias: google
+            client_id: "google"
+            type: google
+    account_linking:
+      oauth:
+        - alias: google
+          action: error
+          oauth_claim:
+            pointer: "/email"
+          user_profile:
+            pointer: "/email"
+    authentication_flow:
+      signup_flows:
+        - name: f1
+          steps:
+            - type: identify
+              one_of:
+              - identification: ldap
+              - identification: oauth
+before:
+  - type: user_import
+    user_import: ldap_user.json
+  - type: custom_sql
+    custom_sql:
+      path: ldap_user.sql
+
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "signup",
+        "name": "f1"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify"
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "oauth",
+        "alias": "google",
+        "redirect_uri": "http://mock"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+              "oauth_authorization_url": "[[string]]"
+            }
+          }
+        }
+
+  - action: oauth_redirect
+    to: "{{ .prev.result.action.data.oauth_authorization_url }}"
+    redirect_uri: http://mock
+    output:
+      result: |
+        {
+          "query": "[[string]]"
+        }
+
+  - action: input
+    input: |
+      {
+        "query": "{{ .prev.result.query }}"
+      }
+    output:
+      error: |
+        {
+          "reason": "InvariantViolated",
+          "info": {
+            "cause": {
+              "kind": "DuplicatedIdentity"
+            }
+          }
+        }
