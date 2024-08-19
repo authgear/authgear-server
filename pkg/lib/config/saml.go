@@ -109,8 +109,7 @@ var _ = Schema.Add("SAMLSigningConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"key_id": { "type": "string" },
-		"signature_method": { "$ref": "#/$defs/SAMLSigningSignatureMethod" },
-		"digest_method": { "$ref": "#/$defs/SAMLSigningDigestMethod" }
+		"signature_method": { "$ref": "#/$defs/SAMLSigningSignatureMethod" }
 	}
 }
 `)
@@ -118,15 +117,11 @@ var _ = Schema.Add("SAMLSigningConfig", `
 type SAMLSigningConfig struct {
 	KeyID           string                     `json:"key_id,omitempty"`
 	SignatureMethod SAMLSigningSignatureMethod `json:"signature_method,omitempty"`
-	DigestMethod    SAMLSigningDigestMethod    `json:"digest_method,omitempty"`
 }
 
 func (c *SAMLSigningConfig) SetDefaults() {
 	if c.SignatureMethod == "" {
 		c.SignatureMethod = SAMLSigningSignatureMethodRSASHA256
-	}
-	if c.DigestMethod == "" {
-		c.DigestMethod = SAMLSigningDigestMethodSHA256
 	}
 }
 

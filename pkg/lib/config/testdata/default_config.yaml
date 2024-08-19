@@ -369,7 +369,6 @@ oauth: {}
 saml:
   signing:
     signature_method: RSAwithSHA256
-    digest_method: SHA256
 
 identity:
   ldap: {}

@@ -1196,4 +1196,3 @@ config:
     signing:
       key_id: asdfasdf
       signature_method: RSAwithSHA256
-      digest_method: SHA256
