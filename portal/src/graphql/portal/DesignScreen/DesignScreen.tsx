@@ -807,6 +807,8 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
 
   const authUIIframeRef = useRef<HTMLIFrameElement | null>(null);
 
+  const [isIframeLoading, setIsIframeLoading] = useState(true);
+
   useEffect(() => {
     const message = mapDesignFormStateToPreviewCustomisationMessage(
       designForm.state
@@ -844,20 +846,23 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   const src = useMemo(() => {
     const url = new URL(effectiveAppConfig.http?.public_origin ?? "");
     url.pathname = selectedPreviewPage;
-    url.searchParams.append("x_color_scheme", designForm.state.selectedTheme);
     url.searchParams.append("ui_locales", designForm.state.selectedLanguage);
     return url.toString();
   }, [
     effectiveAppConfig.http?.public_origin,
     designForm.state.selectedLanguage,
-    designForm.state.selectedTheme,
     selectedPreviewPage,
   ]);
+
+  useEffect(() => {
+    setIsIframeLoading(true);
+  }, [src]);
 
   const onLoadIframe = useCallback(() => {
     const message = mapDesignFormStateToPreviewCustomisationMessage(
       designForm.state
     );
+    setIsIframeLoading(false);
     authUIIframeRef.current?.contentWindow?.postMessage(message, "*");
   }, [designForm.state]);
 
@@ -892,6 +897,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
           />
         ) : null}
       </div>
+      {isIframeLoading ? <ShowLoading /> : null}
       <iframe
         ref={authUIIframeRef}
         className={cn("w-full", "min-h-0", "flex-1", "border-none")}

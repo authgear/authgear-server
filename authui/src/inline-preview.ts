@@ -3,6 +3,7 @@ import { PreviewableResourceController } from "./previewable-resource";
 import { injectCSSAttrs } from "./cssattrs";
 
 interface PreviewCustomisationMessage {
+  theme: string;
   cssVars: Record<string, string>;
   images: Record<string, string | null>;
   translations: Record<string, string>;
@@ -15,6 +16,7 @@ function parsePreviewCustomisationMessage(
     return null;
   }
   return {
+    theme: message.theme ?? "",
     cssVars: message.cssVars ?? {},
     images: message.images ?? {},
     translations: message.translations ?? {},
@@ -87,6 +89,11 @@ export class InlinePreviewController extends Controller {
     for (const [key, value] of Object.entries(customisationMessage.images)) {
       const outlet = keyToPreviewableResourceController[key];
       outlet?.setValue(value);
+    }
+
+    el.classList.remove("dark");
+    if (customisationMessage.theme === "dark") {
+      el.classList.add("dark");
     }
 
     injectCSSAttrs(document.documentElement);

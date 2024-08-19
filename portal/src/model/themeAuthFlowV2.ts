@@ -208,7 +208,7 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
     backgroundColor: "#176df3",
     backgroundColorActive: "#235dba",
     backgroundColorHover: "#235dba",
-    labelColor: "#1c1c1e",
+    labelColor: "#f0f1f1",
     borderRadius: {
       type: "rounded",
       radius: "0.875em",

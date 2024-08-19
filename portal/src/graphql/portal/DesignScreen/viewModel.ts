@@ -59,6 +59,7 @@ export function getSupportedPreviewPagesFromConfig(
 
 export interface PreviewCustomisationMessage {
   type: "PreviewCustomisationMessage";
+  theme: string;
   cssVars: Record<string, string>;
   images: Record<string, string | null>;
   translations: Record<string, string>;
@@ -127,6 +128,8 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
     }
   }
 
+  const theme = state.selectedTheme;
+
   cssVars[CSSVariable.WatermarkDisplay] = state.showAuthgearLogo
     ? WatermarkEnabledDisplay
     : WatermarkDisabledDisplay;
@@ -146,6 +149,7 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
 
   return {
     type: "PreviewCustomisationMessage",
+    theme,
     cssVars,
     images,
     translations,
