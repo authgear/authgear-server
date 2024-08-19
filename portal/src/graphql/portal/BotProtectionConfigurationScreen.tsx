@@ -31,7 +31,6 @@ import Toggle from "../../Toggle";
 import WidgetTitle from "../../WidgetTitle";
 import {
   DetailsList,
-  Dropdown,
   IButtonProps,
   IColumn,
   IDetailsRowProps,
@@ -48,6 +47,7 @@ import recaptchaV2LogoURL from "../../images/recaptchav2_logo.svg";
 import cloudflareLogoURL from "../../images/cloudflare_logo.svg";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
+import FormDropdown from "../../FormDropdown";
 import PrimaryButton from "../../PrimaryButton";
 import { startReauthentication } from "./Authenticated";
 import { useSessionStorage } from "../../hook/useSessionStorage";
@@ -886,11 +886,13 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
             ? DEPENDS_ON_AUTHENTICATOR_OPTION_KEY
             : item.mode;
         return (
-          <Dropdown
+          <FormDropdown
             className={styles.requirementDropdownContainer}
             options={options}
             selectedKey={selectedKey}
             onChange={onDropdownChange}
+            parentJSONPointer=""
+            fieldName=""
           />
         );
       },
@@ -1005,7 +1007,7 @@ interface RequirementConfigListItem {
   asHeaderLabel?: boolean;
   mode: BotProtectionRiskMode;
   onChangeMode: (mode: BotProtectionRiskMode) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 interface BotProtectionConfigurationContentRequirementsSectionProps {
@@ -1087,12 +1089,14 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
         ];
 
         return (
-          <Dropdown
+          <FormDropdown
             className={styles.requirementDropdownContainer}
             options={options}
             selectedKey={item.mode}
             onChange={makeDropdownOnChange()}
             disabled={item.disabled}
+            parentJSONPointer=""
+            fieldName=""
           />
         );
       },
@@ -1132,8 +1136,10 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
       },
       [setRequirements]
     );
-    const flowConfigDisabled =
-      requirements.flows.flowType !== "specificAuthenticator";
+    let flowConfigDisabled: boolean | undefined;
+    if (requirements.flows.flowType !== "specificAuthenticator") {
+      flowConfigDisabled = true;
+    }
     const flowConfigItems: RequirementConfigListItem[] = useMemo(() => {
       return [
         {
@@ -1205,7 +1211,6 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
               "BotProtectionConfigurationScreen.requirements.resetPassword.config.resetPassword.label"
             ),
             asHeaderLabel: true,
-            disabled: false,
             mode: requirements.resetPassword.resetPasswordMode,
             onChangeMode: (mode: BotProtectionRiskMode) => {
               setRequirements((requirements) => ({
