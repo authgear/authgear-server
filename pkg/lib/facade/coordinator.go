@@ -1385,3 +1385,24 @@ func (c *Coordinator) MFAReplaceRecoveryCodes(userID string, codes []string) ([]
 func (c *Coordinator) MFAListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error) {
 	return c.MFA.ListRecoveryCodes(userID)
 }
+
+func (c *Coordinator) GetUsersByStandardAttribute(attributeName string, attributeValue string) ([]string, error) {
+	claims, err := c.Identities.ListByClaim(attributeName, attributeValue)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var userIDsKeyMap = make(map[string]struct{})
+	var uniqueUserIDs = make([]string, 0)
+
+	for _, v := range claims {
+		userIDsKeyMap[v.LoginID.UserID] = struct{}{}
+	}
+
+	for k, _ := range userIDsKeyMap {
+		uniqueUserIDs = append(uniqueUserIDs, k)
+	}
+
+	return uniqueUserIDs, nil
+}

@@ -1147,6 +1147,11 @@ type Query {
   """Audit logs"""
   auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
 
+  """
+  Get users by standardAttribute, attributeName must be email, phone_number or preferred_username.
+  """
+  getUsersByStandardAttribute(attributeName: String!, attributeValue: String!): [User!]!
+
   """All groups"""
   groups(after: String, before: String, excludedIDs: [ID!], first: Int, last: Int, searchKeyword: String): GroupConnection
 

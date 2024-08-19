@@ -32,6 +32,7 @@ type UserService interface {
 	UnscheduleAnonymizationByAdmin(userID string) error
 	CheckUserAnonymized(userID string) error
 	UpdateMFAEnrollment(userID string, endAt *time.Time) error
+	GetUsersByStandardAttribute(attributeName string, attributeValue string) ([]string, error)
 }
 
 type UserSearchService interface {
@@ -265,4 +266,13 @@ func (f *UserFacade) SetMFAGracePeriod(id string, endAt *time.Time) error {
 	}
 
 	return nil
+}
+
+func (f *UserFacade) GetUsersByStandardAttribute(attributeKey string, attributeValue string) ([]string, error) {
+	values, err := f.Users.GetUsersByStandardAttribute(attributeKey, attributeValue)
+	if err != nil {
+		return make([]string, 0), err
+	}
+
+	return values, nil
 }

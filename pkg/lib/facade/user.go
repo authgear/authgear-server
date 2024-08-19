@@ -83,3 +83,7 @@ func (u UserFacade) CheckUserAnonymized(userID string) error {
 func (u UserFacade) UpdateMFAEnrollment(userID string, endAt *time.Time) error {
 	return u.Coordinator.UserUpdateMFAEnrollment(userID, endAt)
 }
+
+func (u UserFacade) GetUsersByStandardAttribute(attributeKey string, attributeValue string) ([]string, error) {
+	return u.Coordinator.GetUsersByStandardAttribute(attributeKey, attributeValue)
+}

@@ -12,6 +12,7 @@ import (
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 var userSortBy = graphql.NewEnum(graphql.EnumConfig{
@@ -311,6 +312,34 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}
 
 				return graphqlutil.NewConnectionFromResult(lazyItems, result)
+			},
+		},
+		"getUsersByStandardAttribute": &graphql.Field{
+			Description: "Get users by standardAttribute, attributeName must be email, phone_number or preferred_username.",
+			Type:        graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nodeUser))),
+			Args: graphql.FieldConfigArgument{
+				"attributeName": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+				"attributeValue": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				gqlCtx := GQLContext(p.Context)
+
+				attributeName, _ := p.Args["attributeName"].(string)
+				attributeValue, _ := p.Args["attributeValue"].(string)
+
+				userIDs, err := gqlCtx.UserFacade.GetUsersByStandardAttribute(attributeName, attributeValue)
+				if err != nil {
+					return nil, err
+				}
+
+				return slice.Map(userIDs, func(userID string) interface{} {
+					lazyItem, _ := graphqlutil.NewLazyValue(gqlCtx.Users.Load(userID)).Value()
+					return lazyItem
+				}), err
 			},
 		},
 	},
