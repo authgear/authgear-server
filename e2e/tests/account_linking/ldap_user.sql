@@ -79,5 +79,5 @@ VALUES
     'uid',
     'mock',
     '{"email": "mock@example.com"}',
-    '{"dn": "cn=mock,ou=people,ou=HK,dc=authgear,dc=com", "uid": "mock", "mail": "mock@example.com"}'
+    '{"dn": "cn=mock,ou=people,ou=HK,dc=authgear,dc=com"}'
   );

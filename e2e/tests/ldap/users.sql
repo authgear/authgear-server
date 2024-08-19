@@ -79,5 +79,5 @@ VALUES
     'uid',
     'jdoe',
     '{"email": "jdoe@example.com"}',
-    '{"dn": "cn=jdoe,ou=people,ou=HK,dc=authgear,dc=com", "uid": "jdoe", "mail": "jdoe@example.com"}'
+    '{"dn": "cn=jdoe,ou=people,ou=HK,dc=authgear,dc=com"}'
   );

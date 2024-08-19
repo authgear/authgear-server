@@ -28,8 +28,6 @@ authgear.yaml:
               - identification: ldap
               - identification: oauth
 before:
-  - type: user_import
-    user_import: ldap_user.json
   - type: custom_sql
     custom_sql:
       path: ldap_user.sql
