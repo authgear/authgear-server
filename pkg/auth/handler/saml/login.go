@@ -49,10 +49,11 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	callbackURL := sp.DefaultAcsURL()
+	var relayState string
 
 	defer func() {
 		if err := recover(); err != nil {
-			h.handleUnknownError(rw, callbackURL, err)
+			h.handleUnknownError(rw, r, callbackURL, relayState, err)
 		}
 	}()
 
@@ -82,13 +83,12 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 						parseRequestFailedErr.GetDetailElements(),
 					),
 				})
-			h.handleErrorResponse(rw, callbackURL, errResponse)
+			h.handleErrorResponse(rw, r, errResponse)
 			return
 		}
 		panic(err)
 	}
 
-	var relayState string
 	var authnRequest *samlprotocol.AuthnRequest
 	switch parseResult := parseResult.(type) {
 	case *samlbinding.SAMLBindingHTTPRedirectParseResult:
@@ -118,7 +118,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 					),
 					RelayState: relayState,
 				})
-			h.handleErrorResponse(rw, callbackURL, errResponse)
+			h.handleErrorResponse(rw, r, errResponse)
 			return
 		}
 		panic(err)
@@ -158,15 +158,30 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	resp.WriteResponse(rw, r)
 }
 
-func (h *LoginHandler) handleErrorResponse(rw http.ResponseWriter, callbackURL string, err *samlprotocolhttp.SAMLErrorResult) {
-	h.Logger.Warnln(err.Error())
-	// TODO(saml): Return the error to callbackURL
-	panic(err)
+func (h *LoginHandler) handleErrorResponse(
+	rw http.ResponseWriter, r *http.Request,
+	result *samlprotocolhttp.SAMLErrorResult,
+) {
+	h.Logger.WithError(result).Warnln("saml login failed with expected error")
+
+	result.WriteResponse(rw, r)
 }
 
-func (h *LoginHandler) handleUnknownError(rw http.ResponseWriter, callbackURL string, err any) {
+func (h *LoginHandler) handleUnknownError(
+	rw http.ResponseWriter, r *http.Request,
+	callbackURL string,
+	relayState string,
+	err any,
+) {
+	now := h.Logger.Time.UTC()
 	e := panicutil.MakeError(err)
 	h.Logger.WithError(e).Error("panic occurred")
-	// TODO(saml): Return a error response to callbackURL
-	panic(err)
+
+	result := samlprotocolhttp.NewSAMLErrorResult(e,
+		samlprotocolhttp.SAMLResult{
+			CallbackURL: callbackURL,
+			Response:    samlprotocol.NewInternalServerErrorResponse(now),
+			RelayState:  relayState,
+		})
+	result.WriteResponse(rw, r)
 }
