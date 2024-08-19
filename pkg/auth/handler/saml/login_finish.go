@@ -77,7 +77,7 @@ func (h *LoginFinishHandler) handleLoginResult(
 			result = samlprotocolhttp.NewSAMLErrorResult(e,
 				samlprotocolhttp.SAMLResult{
 					CallbackURL: callbackURL,
-					Response:    samlprotocol.NewInternalServerErrorResponse(now),
+					Response:    samlprotocol.NewInternalServerErrorResponse(now, h.SAMLService.IdpEntityID()),
 					RelayState:  relayState,
 				},
 			)
@@ -88,6 +88,7 @@ func (h *LoginFinishHandler) handleLoginResult(
 	authenticatedUserID := authInfo.T.UserID
 
 	resp, err := h.SAMLService.IssueSuccessResponse(
+		callbackURL,
 		samlSession.Entry.ServiceProviderID,
 		authenticatedUserID,
 		authnRequest,

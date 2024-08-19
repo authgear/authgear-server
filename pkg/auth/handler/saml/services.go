@@ -10,9 +10,11 @@ import (
 )
 
 type HandlerSAMLService interface {
+	IdpEntityID() string
 	IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata, error)
 	ValidateAuthnRequest(serviceProviderId string, authnRequest *samlprotocol.AuthnRequest) error
 	IssueSuccessResponse(
+		callbackURL string,
 		serviceProviderId string,
 		authenticatedUserId string,
 		inResponseToAuthnRequest *samlprotocol.AuthnRequest,

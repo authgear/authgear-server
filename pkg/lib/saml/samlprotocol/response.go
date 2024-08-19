@@ -11,19 +11,24 @@ type Response struct {
 	crewjamsaml.Response
 }
 
-func newResponse(issueInstant time.Time, status Status) *Response {
+func newResponse(issueInstant time.Time, status Status, issuer string) *Response {
 	return &Response{
 		crewjamsaml.Response{
 			ID:           GenerateResponseID(),
 			IssueInstant: issueInstant,
 			Version:      SAMLVersion2,
 			Status:       status.status,
+			Issuer: &crewjamsaml.Issuer{
+				Format: SAMLIssertFormatEntity,
+				Value:  issuer,
+			},
 		},
 	}
 }
 
 func NewRequestDeniedErrorResponse(
 	issueInstant time.Time,
+	issuer string,
 	message string,
 	details []*etree.Element) *Response {
 	var messageEl *crewjamsaml.StatusMessage
@@ -46,10 +51,10 @@ func NewRequestDeniedErrorResponse(
 			Children: details,
 		}
 	}
-	return newResponse(issueInstant, Status{status: status})
+	return newResponse(issueInstant, Status{status: status}, issuer)
 }
 
-func NewInternalServerErrorResponse(issueInstant time.Time) *Response {
+func NewInternalServerErrorResponse(issueInstant time.Time, issuer string) *Response {
 	status := crewjamsaml.Status{
 		StatusCode: crewjamsaml.StatusCode{
 			Value: crewjamsaml.StatusResponder,
@@ -58,19 +63,23 @@ func NewInternalServerErrorResponse(issueInstant time.Time) *Response {
 			Value: "unexpected error",
 		},
 	}
-	return newResponse(issueInstant, Status{status: status})
+	return newResponse(issueInstant, Status{status: status}, issuer)
 }
 
 type Status struct {
 	status crewjamsaml.Status
 }
 
-func NewSuccessResponse(issueInstant time.Time) *Response {
+func NewSuccessResponse(
+	issueInstant time.Time,
+	issuer string,
+	inResponseTo string) *Response {
 	status := crewjamsaml.Status{
 		StatusCode: crewjamsaml.StatusCode{
 			Value: crewjamsaml.StatusSuccess,
 		},
 	}
-	response := newResponse(issueInstant, Status{status: status})
+	response := newResponse(issueInstant, Status{status: status}, issuer)
+	response.InResponseTo = inResponseTo
 	return response
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	crewjamsaml "github.com/crewjam/saml"
 	xrv "github.com/mattermost/xml-roundtrip-validator"
 )
@@ -30,6 +31,13 @@ func (a *AuthnRequest) GetForceAuthn() bool {
 		return false
 	}
 	return *a.ForceAuthn
+}
+
+func (a *AuthnRequest) GetNameIDFormat() (config.SAMLNameIDFormat, bool) {
+	if a.NameIDPolicy != nil && a.NameIDPolicy.Format != nil {
+		return config.SAMLNameIDFormat(*a.NameIDPolicy.Format), true
+	}
+	return "", false
 }
 
 func (a *AuthnRequest) ToXMLBytes() []byte {
