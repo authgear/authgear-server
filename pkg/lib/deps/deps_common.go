@@ -203,6 +203,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		stdattrs.DependencySet,
 		wire.Bind(new(sso.StandardAttributesNormalizer), new(*stdattrs.Normalizer)),
+		wire.Bind(new(identityldap.StandardAttributesNormalizer), new(*stdattrs.Normalizer)),
 	),
 
 	wire.NewSet(
@@ -219,6 +220,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(stdattrs.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(authenticatoroob.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(authenticationflow.LoginIDService), new(*identityloginid.Provider)),
+		wire.Bind(new(authenticationflow.LDAPService), new(*identityldap.Provider)),
 
 		identityoauth.DependencySet,
 

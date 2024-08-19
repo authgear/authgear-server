@@ -33,7 +33,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/sso"
-	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -45,7 +45,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
-	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
+	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -348,9 +348,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	normalizer := &stdattrs.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
 	ldapProvider := &ldap.Provider{
-		Store: ldapStore,
-		Clock: clockClock,
+		Store:                        ldapStore,
+		Clock:                        clockClock,
+		StandardAttributesNormalizer: normalizer,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -502,12 +506,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		ClaimStore:        storePQ,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
-	pictureTransformer := &stdattrs.PictureTransformer{
+	pictureTransformer := &stdattrs2.PictureTransformer{
 		HTTPProto:     httpProto,
 		HTTPHost:      httpHost,
 		ImagesCDNHost: imagesCDNHost,
 	}
-	serviceNoEvent := &stdattrs.ServiceNoEvent{
+	serviceNoEvent := &stdattrs2.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
@@ -762,7 +766,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Sender:      sender,
 		Translation: translationService,
 	}
-	stdattrsService := &stdattrs.Service{
+	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
@@ -897,9 +901,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UIConfig:        uiConfig,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
-	normalizer := &stdattrs2.Normalizer{
-		LoginIDNormalizerFactory: normalizerFactory,
-	}
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	simpleStoreRedisFactory := &sso.SimpleStoreRedisFactory{
 		Context: contextContext,

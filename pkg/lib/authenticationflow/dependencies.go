@@ -223,6 +223,10 @@ type LoginIDService interface {
 	CheckAndNormalize(spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error)
 }
 
+type LDAPService interface {
+	CreateNormalizedIdentitySpecFromLDAPEntry(serverConfig *config.LDAPServerConfig, entry *ldap.Entry) (*identity.Spec, error)
+}
+
 type LDAPClientFactory interface {
 	MakeClient(serverConfig *config.LDAPServerConfig) *ldap.Client
 }
@@ -259,6 +263,7 @@ type Dependencies struct {
 	PasskeyCreationOptionsService   PasskeyCreationOptionsService
 	PasskeyService                  PasskeyService
 	LoginIDs                        LoginIDService
+	LDAP                            LDAPService
 	LDAPClientFactory               LDAPClientFactory
 
 	IDPSessions          IDPSessionService
