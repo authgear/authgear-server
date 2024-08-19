@@ -52,6 +52,7 @@ import PrimaryButton from "../../PrimaryButton";
 import { startReauthentication } from "./Authenticated";
 import { useSessionStorage } from "../../hook/useSessionStorage";
 import HorizontalDivider from "../../HorizontalDivider";
+import { useFormLoading } from "../../form";
 
 const MASKED_SECRET = "***************";
 
@@ -393,6 +394,8 @@ function ProviderCard(props: ProviderCardProps) {
     },
   } = useSystemConfig();
 
+  const formLoading = useFormLoading();
+
   return (
     <button
       type="button"
@@ -402,7 +405,7 @@ function ProviderCard(props: ProviderCardProps) {
       className={cn(className, styles.providerCard)}
       onClick={disabled ? undefined : onClick}
       tabIndex={0}
-      disabled={disabled}
+      disabled={formLoading || disabled}
     >
       {logoSrc != null ? (
         <Image src={logoSrc} width={logoWidth} height={logoHeight} />
