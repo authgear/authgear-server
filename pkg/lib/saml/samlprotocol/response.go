@@ -52,3 +52,13 @@ func NewRequestDeniedErrorResponse(
 type Status struct {
 	status crewjamsaml.Status
 }
+
+func NewSuccessResponse(issueInstant time.Time) *Response {
+	status := crewjamsaml.Status{
+		StatusCode: crewjamsaml.StatusCode{
+			Value: crewjamsaml.StatusSuccess,
+		},
+	}
+	response := newResponse(issueInstant, Status{status: status})
+	return response
+}

@@ -1,27 +1,8 @@
 package samlprotocol
 
 import (
-	"fmt"
-
 	"github.com/beevik/etree"
 )
-
-// This error represents an error that can be sent through SAML bindings
-type SAMLErrorResponse struct {
-	Response   *Response
-	RelayState string
-	Cause      error
-}
-
-func (s *SAMLErrorResponse) Error() string {
-	return fmt.Sprintf("saml error response: %v", s.Cause)
-}
-
-func (s *SAMLErrorResponse) Unwrap() error {
-	return s.Cause
-}
-
-var _ error = &SAMLErrorResponse{}
 
 type SAMLErrorCode string
 

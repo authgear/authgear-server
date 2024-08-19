@@ -8,12 +8,12 @@ type SAMLBinding string
 
 const (
 	SAMLBindingHTTPRedirect SAMLBinding = crewjamsaml.HTTPRedirectBinding
-	SAMLBindingPostRedirect SAMLBinding = crewjamsaml.HTTPPostBinding
+	SAMLBindingHTTPPost     SAMLBinding = crewjamsaml.HTTPPostBinding
 )
 
 var SupportedBindings []SAMLBinding = []SAMLBinding{
 	SAMLBindingHTTPRedirect,
-	SAMLBindingPostRedirect,
+	SAMLBindingHTTPPost,
 }
 
 func (b SAMLBinding) IsSupported() bool {

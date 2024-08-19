@@ -196,3 +196,18 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 
 	return nil
 }
+
+func (s *Service) IssueSuccessResponse(
+	serviceProviderId string,
+	authenticatedUserId string,
+	inResponseToAuthnRequest *samlprotocol.AuthnRequest,
+) (*samlprotocol.Response, error) {
+	_, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
+	if !ok {
+		return nil, samlerror.ErrServiceProviderNotFound
+	}
+	now := s.Clock.NowUTC()
+	// TODO(saml): Write required fields of the response
+	response := samlprotocol.NewSuccessResponse(now)
+	return response, nil
+}
