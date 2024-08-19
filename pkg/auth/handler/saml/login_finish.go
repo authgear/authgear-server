@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -27,6 +28,7 @@ func NewLoginFinishHandlerLogger(lf *log.Factory) *LoginFinishHandlerLogger {
 
 type LoginFinishHandler struct {
 	Logger                     *LoginFinishHandlerLogger
+	Clock                      clock.Clock
 	SAMLService                HandlerSAMLService
 	SAMLSessionService         SAMLSessionService
 	AuthenticationInfoResolver SAMLAuthenticationInfoResolver
@@ -65,12 +67,20 @@ func (h *LoginFinishHandler) handleLoginResult(
 	authInfo *authenticationinfo.Entry,
 	samlSession *samlsession.SAMLSession,
 ) (result httputil.Result) {
+	now := h.Clock.NowUTC()
+	callbackURL := samlSession.Entry.CallbackURL
+	relayState := samlSession.Entry.RelayState
 	defer func() {
 		if e := recover(); e != nil {
 			e := panicutil.MakeError(e)
 			h.Logger.WithError(e).Error("panic")
-			// TODO(saml): Return a error
-			panic(e)
+			result = samlprotocolhttp.NewSAMLErrorResult(e,
+				samlprotocolhttp.SAMLResult{
+					CallbackURL: callbackURL,
+					Response:    samlprotocol.NewInternalServerErrorResponse(now),
+					RelayState:  relayState,
+				},
+			)
 		}
 	}()
 
@@ -87,10 +97,10 @@ func (h *LoginFinishHandler) handleLoginResult(
 	}
 
 	return &samlprotocolhttp.SAMLResult{
-		CallbackURL: samlSession.Entry.CallbackURL,
+		CallbackURL: callbackURL,
 		// TODO(saml): Respect the binding protocol set in request
 		Binding:    samlprotocol.SAMLBindingHTTPPost,
 		Response:   resp,
-		RelayState: samlSession.Entry.RelayState,
+		RelayState: relayState,
 	}
 }
