@@ -289,7 +289,7 @@ function constructBotProtectionConfig(
   };
 
   let site_key: string | undefined =
-    currentState.providerConfigs[currentState.providerType]?.siteKey;
+    currentState.providerConfigs[currentState.providerType].siteKey;
   if (site_key === "") {
     site_key = undefined;
   }
@@ -315,13 +315,11 @@ function constructConfig(
     config.bot_protection = constructBotProtectionConfig(currentState);
 
     const secretKey =
-      currentState.providerConfigs[currentState.providerType]?.editingSecretKey;
-    if (secretKey != null) {
-      secrets.botProtectionProviderSecret = {
-        secretKey: secretKey,
-        type: currentState.providerType,
-      };
-    }
+      currentState.providerConfigs[currentState.providerType].editingSecretKey;
+    secrets.botProtectionProviderSecret = {
+      secretKey: secretKey,
+      type: currentState.providerType,
+    };
     clearEmptyObject(config);
   });
 }
@@ -339,11 +337,6 @@ function constructSecretUpdateInstruction(
       action: "unset",
     },
   };
-
-  // This is unreachable.
-  if (c == null) {
-    return undefined;
-  }
 
   // If it is disabled, we remove the secret key.
   if (!enabled) {
@@ -518,7 +511,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
       : styles.secretKeyInputWithEdit;
 
     const secretInputValue = editing
-      ? providerConfigs[providerType]?.editingSecretKey ?? ""
+      ? providerConfigs[providerType].editingSecretKey
       : MASKED_SECRET;
 
     return providerType === "recaptchav2" ? (
@@ -531,7 +524,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
           label={renderToString(
             "BotProtectionConfigurationScreen.provider.recaptchav2.siteKey.label"
           )}
-          value={providerConfigs[providerType]?.siteKey ?? ""}
+          value={providerConfigs[providerType].siteKey}
           required={true}
           onChange={onChangeRecaptchaV2SiteKey}
           parentJSONPointer="/bot_protection/provider"
@@ -571,7 +564,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
           label={renderToString(
             "BotProtectionConfigurationScreen.provider.cloudflare.siteKey.label"
           )}
-          value={providerConfigs[providerType]?.siteKey ?? ""}
+          value={providerConfigs[providerType].siteKey}
           required={true}
           onChange={onChangeCloudflareSiteKey}
           parentJSONPointer="/bot_protection/provider"
@@ -666,12 +659,8 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
             )) {
               if (storedFormState.providerType === providerType) {
                 const newlyFetchedProviderConfig =
-                  state.providerConfigs[
-                    providerType as BotProtectionProviderType
-                  ];
-                storedFormState.providerConfigs[
-                  providerType as BotProtectionProviderType
-                ] = {
+                  state.providerConfigs[providerType];
+                storedFormState.providerConfigs[providerType] = {
                   ...providerConfig,
                   originalSecretKey:
                     newlyFetchedProviderConfig.originalSecretKey,
@@ -692,7 +681,7 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
     const editing = useMemo(() => {
       const currentProviderConfig = state.providerConfigs[state.providerType];
       const shouldMaskSecretKeyIfNotReauthed =
-        currentProviderConfig?.originalSecretKey == null;
+        currentProviderConfig.originalSecretKey == null;
 
       return reauthed ?? !shouldMaskSecretKeyIfNotReauthed;
     }, [reauthed, state.providerConfigs, state.providerType]);
@@ -704,7 +693,7 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
         e.stopPropagation();
 
         if (
-          state.providerConfigs[state.providerType]?.originalSecretKey != null
+          state.providerConfigs[state.providerType].originalSecretKey != null
         ) {
           // secret key available in server response, already reauthed
           setReauthed(true);
