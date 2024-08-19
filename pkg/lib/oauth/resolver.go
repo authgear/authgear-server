@@ -243,6 +243,7 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 	if err != nil {
 		return nil, err
 	}
+	offlineGrant.ExpireAtForResolvedSession = expiry
 
 	return offlineGrant, nil
 }

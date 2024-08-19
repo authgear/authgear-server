@@ -24,6 +24,11 @@ type IDPSession struct {
 	AccessInfo access.Info `json:"access_info"`
 
 	TokenHash string `json:"token_hash"`
+
+	// ExpireAtForResolvedSession is a transient field that tells when the session will exire at, computed now.
+	// Note that ExpireAtForResolvedSession will keep changing if idle timeout is enabled.
+	// This is NOT supposed to be stored, hence it is json-ignored.
+	ExpireAtForResolvedSession time.Time `json:"-"`
 }
 
 var _ session.ResolvedSession = &IDPSession{}
@@ -36,6 +41,7 @@ func (s *IDPSession) SessionID() string         { return s.ID }
 func (s *IDPSession) SessionType() session.Type { return session.TypeIdentityProvider }
 
 func (s *IDPSession) GetCreatedAt() time.Time                       { return s.CreatedAt }
+func (s *IDPSession) GetExpireAt() time.Time                        { return s.ExpireAtForResolvedSession }
 func (s *IDPSession) GetAuthenticatedAt() time.Time                 { return s.AuthenticatedAt }
 func (s *IDPSession) GetClientID() string                           { return "" }
 func (s *IDPSession) GetAccessInfo() *access.Info                   { return &s.AccessInfo }

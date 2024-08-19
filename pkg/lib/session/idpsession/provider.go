@@ -167,6 +167,8 @@ func (p *Provider) AccessWithToken(token string, accessEvent access.Event) (*IDP
 	s.AccessInfo.LastAccess = accessEvent
 
 	expiry := computeSessionStorageExpiry(s, p.Config)
+	s.ExpireAtForResolvedSession = expiry
+
 	err = p.Store.Update(s, expiry)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
@@ -195,6 +197,8 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 	s.AccessInfo.LastAccess = accessEvent
 
 	expiry := computeSessionStorageExpiry(s, p.Config)
+	s.ExpireAtForResolvedSession = expiry
+
 	err = p.Store.Update(s, expiry)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
