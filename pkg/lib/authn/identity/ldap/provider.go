@@ -3,17 +3,26 @@ package ldap
 import (
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/ldap"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 var _ service.LDAPIdentityProvider = &Provider{}
 
+type StandardAttributesNormalizer interface {
+	Normalize(stdattrs.T) error
+}
+
 type Provider struct {
-	Store *Store
-	Clock clock.Clock
+	Store                        *Store
+	Clock                        clock.Clock
+	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
 func (p *Provider) Get(userID string, id string) (*identity.LDAP, error) {
@@ -99,4 +108,36 @@ func sortIdentities(is []*identity.LDAP) {
 	sort.Slice(is, func(i, j int) bool {
 		return is[i].CreatedAt.Before(is[j].CreatedAt)
 	})
+}
+
+func (p *Provider) CreateNormalizedIdentitySpecFromLDAPEntry(serverConfig *config.LDAPServerConfig, entry *ldap.Entry) (*identity.Spec, error) {
+	userIDAttributeName := serverConfig.UserIDAttributeName
+	userIDAttributeValue := entry.GetRawAttributeValue(userIDAttributeName)
+
+	claims := map[string]interface{}{}
+	if v := entry.GetAttributeValue(ldap.AttributeMail.Name); v != "" {
+		claims[string(model.ClaimEmail)] = v
+	}
+	if v := entry.GetAttributeValue(ldap.AttributeMobile.Name); v != "" {
+		claims[string(model.ClaimPhoneNumber)] = v
+	}
+	if v := entry.GetAttributeValue(ldap.AttributeUID.Name); v != "" {
+		claims[string(model.ClaimPreferredUsername)] = v
+	}
+
+	err := p.StandardAttributesNormalizer.Normalize(claims)
+	if err != nil {
+		claims = map[string]interface{}{}
+	}
+
+	return &identity.Spec{
+		Type: model.IdentityTypeLDAP,
+		LDAP: &identity.LDAPSpec{
+			ServerName:           serverConfig.Name,
+			UserIDAttributeName:  userIDAttributeName,
+			UserIDAttributeValue: userIDAttributeValue,
+			Claims:               claims,
+			RawEntryJSON:         entry.ToJSON(),
+		},
+	}, nil
 }

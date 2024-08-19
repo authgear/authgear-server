@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
@@ -31,7 +32,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
-	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
+	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -355,9 +356,13 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	normalizer := &stdattrs.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
 	ldapProvider := &ldap.Provider{
-		Store: ldapStore,
-		Clock: clock,
+		Store:                        ldapStore,
+		Clock:                        clock,
+		StandardAttributesNormalizer: normalizer,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -509,12 +514,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		ClaimStore:        storePQ,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
-	pictureTransformer := &stdattrs.PictureTransformer{
+	pictureTransformer := &stdattrs2.PictureTransformer{
 		HTTPProto:     httpProto,
 		HTTPHost:      httpHost,
 		ImagesCDNHost: imagesCDNHost,
 	}
-	serviceNoEvent := &stdattrs.ServiceNoEvent{
+	serviceNoEvent := &stdattrs2.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
@@ -885,9 +890,13 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
+	normalizer := &stdattrs.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
 	ldapProvider := &ldap.Provider{
-		Store: ldapStore,
-		Clock: clockClock,
+		Store:                        ldapStore,
+		Clock:                        clockClock,
+		StandardAttributesNormalizer: normalizer,
 	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
@@ -1049,12 +1058,12 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Lockout:        serviceLockout,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
-	pictureTransformer := &stdattrs.PictureTransformer{
+	pictureTransformer := &stdattrs2.PictureTransformer{
 		HTTPProto:     httpProto,
 		HTTPHost:      httpHost,
 		ImagesCDNHost: imagesCDNHost,
 	}
-	serviceNoEvent := &stdattrs.ServiceNoEvent{
+	serviceNoEvent := &stdattrs2.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
