@@ -35,7 +35,7 @@ type Service struct {
 	Endpoints               SAMLEndpoints
 }
 
-func (s *Service) idpEntityID() string {
+func (s *Service) IdpEntityID() string {
 	idpEntityIdTemplate, err := template.New("").Parse(s.SAMLEnvironmentConfig.IdPEntityIDTemplate)
 	if err != nil {
 		panic(err)
@@ -73,7 +73,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 	}
 
 	descriptor := samlprotocol.EntityDescriptor{
-		EntityID: s.idpEntityID(),
+		EntityID: s.IdpEntityID(),
 		IDPSSODescriptors: []crewjamsaml.IDPSSODescriptor{
 			{
 				SSODescriptor: crewjamsaml.SSODescriptor{
@@ -149,7 +149,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 
 	// unspecified is always allowed
 	allowedNameFormats := setutil.Set[string]{
-		string(config.NameIDFormatUnspecified): {},
+		string(config.SAMLNameIDFormatUnspecified): {},
 	}
 	allowedNameFormats.Add(string(sp.NameIDFormat))
 
@@ -198,16 +198,113 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 }
 
 func (s *Service) IssueSuccessResponse(
+	callbackURL string,
 	serviceProviderId string,
 	authenticatedUserId string,
 	inResponseToAuthnRequest *samlprotocol.AuthnRequest,
 ) (*samlprotocol.Response, error) {
-	_, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
+	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
 		return nil, samlerror.ErrServiceProviderNotFound
 	}
 	now := s.Clock.NowUTC()
+	issuerID := s.IdpEntityID()
 	// TODO(saml): Write required fields of the response
-	response := samlprotocol.NewSuccessResponse(now)
+	response := samlprotocol.NewSuccessResponse(now, issuerID, inResponseToAuthnRequest.ID)
+
+	// TODO(saml): Use configured destination if configured
+	destination := callbackURL
+	response.Destination = destination
+
+	// TODO(saml): Use configured recipient if configured
+	recipient := callbackURL
+
+	// TODO(saml): Use configured audience if configured
+	audience := callbackURL
+
+	nameIDFormat := sp.NameIDFormat
+	if nameIDFormatInRequest, ok := inResponseToAuthnRequest.GetNameIDFormat(); ok {
+		nameIDFormat = nameIDFormatInRequest
+	}
+
+	// allow for some clock skew
+	notBefore := now.Add(-1 * duration.ClockSkew)
+	// TODO(saml): Allow configurating the valid period
+	notOnOrAfter := now.Add(duration.UserInteraction)
+	if notBefore.Before(inResponseToAuthnRequest.IssueInstant) {
+		notBefore = inResponseToAuthnRequest.IssueInstant
+		notOnOrAfter = notBefore.Add(duration.UserInteraction)
+	}
+
+	assertion := &crewjamsaml.Assertion{
+		ID:           samlprotocol.GenerateAssertionID(),
+		IssueInstant: now,
+		Version:      samlprotocol.SAMLVersion2,
+		Issuer: crewjamsaml.Issuer{
+			Format: samlprotocol.SAMLIssertFormatEntity,
+			Value:  issuerID,
+		},
+		Subject: &crewjamsaml.Subject{
+			NameID: &crewjamsaml.NameID{
+				Format: string(nameIDFormat),
+				// TODO(saml): Support different nameid
+				Value: authenticatedUserId,
+			},
+			SubjectConfirmations: []crewjamsaml.SubjectConfirmation{
+				{
+					Method: "urn:oasis:names:tc:SAML:2.0:cm:bearer",
+					SubjectConfirmationData: &crewjamsaml.SubjectConfirmationData{
+						InResponseTo: inResponseToAuthnRequest.ID,
+						// TODO(saml): Allow configurating the valid period
+						NotOnOrAfter: notOnOrAfter,
+						Recipient:    recipient,
+					},
+				},
+			},
+		},
+		Conditions: &crewjamsaml.Conditions{
+			NotBefore:    notBefore,
+			NotOnOrAfter: notOnOrAfter,
+			AudienceRestrictions: []crewjamsaml.AudienceRestriction{
+				{
+					Audience: crewjamsaml.Audience{Value: audience},
+				},
+			},
+		},
+		AuthnStatements: []crewjamsaml.AuthnStatement{
+			{
+				AuthnInstant: notBefore,
+				// TODO(saml): Put the idp session id here
+				SessionIndex: "",
+				AuthnContext: crewjamsaml.AuthnContext{
+					AuthnContextClassRef: &crewjamsaml.AuthnContextClassRef{
+						// TODO(saml): Return a correct context by used authenticators
+						Value: "urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified",
+					},
+				},
+			},
+		},
+		AttributeStatements: []crewjamsaml.AttributeStatement{
+			{
+				// TODO(saml): Return more attributes
+				Attributes: []crewjamsaml.Attribute{
+					{
+						FriendlyName: "User ID",
+						Name:         "sub",
+						NameFormat:   samlprotocol.SAMLAttrnameFormatBasic,
+						Values: []crewjamsaml.AttributeValue{{
+							Type:  samlprotocol.SAMLAttrTypeString,
+							Value: authenticatedUserId,
+						}},
+					},
+				},
+			},
+		},
+	}
+
+	response.Assertion = assertion
+
+	// TODO(saml): Sign the response
+
 	return response, nil
 }

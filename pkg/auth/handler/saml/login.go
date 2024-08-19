@@ -49,6 +49,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	callbackURL := sp.DefaultAcsURL()
+	issuer := h.SAMLService.IdpEntityID()
 	var relayState string
 
 	defer func() {
@@ -79,6 +80,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 					CallbackURL: callbackURL,
 					Response: samlprotocol.NewRequestDeniedErrorResponse(
 						now,
+						issuer,
 						"failed to parse SAMLRequest",
 						parseRequestFailedErr.GetDetailElements(),
 					),
@@ -113,6 +115,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 					CallbackURL: callbackURL,
 					Response: samlprotocol.NewRequestDeniedErrorResponse(
 						now,
+						issuer,
 						"invalid SAMLRequest",
 						invalidRequestErr.GetDetailElements(),
 					),
@@ -180,7 +183,7 @@ func (h *LoginHandler) handleUnknownError(
 	result := samlprotocolhttp.NewSAMLErrorResult(e,
 		samlprotocolhttp.SAMLResult{
 			CallbackURL: callbackURL,
-			Response:    samlprotocol.NewInternalServerErrorResponse(now),
+			Response:    samlprotocol.NewInternalServerErrorResponse(now, h.SAMLService.IdpEntityID()),
 			RelayState:  relayState,
 		})
 	result.WriteResponse(rw, r)

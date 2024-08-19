@@ -59,8 +59,8 @@ var _ = Schema.Add("SAMLNameIDFormat", `
 type SAMLNameIDFormat string
 
 const (
-	NameIDFormatUnspecified  SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
-	NameIDFormatEmailAddress SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+	SAMLNameIDFormatUnspecified  SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+	SAMLNameIDFormatEmailAddress SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 )
 
 var _ = Schema.Add("SAMLNameIDAttributePointer", `
@@ -87,10 +87,10 @@ type SAMLServiceProviderConfig struct {
 
 func (c *SAMLServiceProviderConfig) SetDefaults() {
 	if c.NameIDFormat == "" {
-		c.NameIDFormat = NameIDFormatUnspecified
+		c.NameIDFormat = SAMLNameIDFormatUnspecified
 	}
 
-	if c.NameIDFormat == NameIDFormatUnspecified && c.NameIDAttributePointer == "" {
+	if c.NameIDFormat == SAMLNameIDFormatUnspecified && c.NameIDAttributePointer == "" {
 		c.NameIDAttributePointer = "/sub"
 	}
 }
