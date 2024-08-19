@@ -1178,3 +1178,10 @@ func newSAMLLoginHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlersaml.LoginHandler)),
 	))
 }
+
+func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlersaml.LoginFinishHandler)),
+	))
+}
