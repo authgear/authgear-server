@@ -43,3 +43,5 @@ var ErrLDAPFailedToBindSearchUser = LDAPConnectionTestFailed.NewWithCause("faile
 var ErrLDAPEndUserSearchNotFound = LDAPConnectionTestFailed.NewWithCause("end user not found", apierrors.StringCause("TestingEndUserNotFound"))
 var ErrLDAPEndUserSearchMultipleResult = LDAPConnectionTestFailed.NewWithCause("multiple end users found", apierrors.StringCause("MoreThanOneEntryInSearchResult"))
 var ErrLDAPMissingUniqueAttribute = LDAPConnectionTestFailed.NewWithCause("missing ID attribute", apierrors.StringCause("TestingEndUserMissingUserIDAttribute"))
+
+var ErrGetUsersInvalidArgument = apierrors.Invalid.WithReason("GetUsersInvalidArgument")

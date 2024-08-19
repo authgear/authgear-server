@@ -18,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -45,6 +46,7 @@ type IdentityService interface {
 	Delete(is *identity.Info) error
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 	CheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error)
+	Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
 }
 
 type AuthenticatorService interface {
@@ -1387,7 +1389,24 @@ func (c *Coordinator) MFAListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, 
 }
 
 func (c *Coordinator) GetUsersByStandardAttribute(attributeName string, attributeValue string) ([]string, error) {
-	claims, err := c.Identities.ListByClaim(attributeName, attributeValue)
+	var loginIDKeyType model.LoginIDKeyType
+	switch attributeName {
+	case stdattrs.Email:
+		loginIDKeyType = model.LoginIDKeyTypeEmail
+	case stdattrs.PhoneNumber:
+		loginIDKeyType = model.LoginIDKeyTypePhone
+	case stdattrs.PreferredUsername:
+		loginIDKeyType = model.LoginIDKeyTypeUsername
+	default:
+		return nil, api.ErrGetUsersInvalidArgument.New("attributeName must be email, phone_number or preferred_username")
+	}
+
+	normalized, _, err := c.Identities.Normalize(loginIDKeyType, attributeValue)
+	if err != nil {
+		return nil, api.ErrGetUsersInvalidArgument.New("invalid attributeValue")
+	}
+
+	claims, err := c.Identities.ListByClaim(attributeName, normalized)
 
 	if err != nil {
 		return nil, err
