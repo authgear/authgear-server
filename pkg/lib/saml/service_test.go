@@ -55,7 +55,7 @@ func TestSAMLService(t *testing.T) {
 				AuthnRequest: crewjamsaml.AuthnRequest{
 					ID:              "id_test",
 					Destination:     "http://idp.local/login",
-					ProtocolBinding: string(samlprotocol.SAMLBindingPostRedirect),
+					ProtocolBinding: string(samlprotocol.SAMLBindingHTTPPost),
 					IssueInstant:    issueInstant,
 					Version:         "2.0",
 					NameIDPolicy: &crewjamsaml.NameIDPolicy{
