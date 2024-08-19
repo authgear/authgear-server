@@ -31,7 +31,6 @@ import Toggle from "../../Toggle";
 import WidgetTitle from "../../WidgetTitle";
 import {
   DetailsList,
-  Dropdown,
   IButtonProps,
   IColumn,
   IDetailsRowProps,
@@ -48,16 +47,41 @@ import recaptchaV2LogoURL from "../../images/recaptchav2_logo.svg";
 import cloudflareLogoURL from "../../images/cloudflare_logo.svg";
 import WidgetDescription from "../../WidgetDescription";
 import FormTextField from "../../FormTextField";
+import FormDropdown from "../../FormDropdown";
 import PrimaryButton from "../../PrimaryButton";
 import { startReauthentication } from "./Authenticated";
 import { useSessionStorage } from "../../hook/useSessionStorage";
 import HorizontalDivider from "../../HorizontalDivider";
+import { useFormLoading } from "../../form";
 
 const MASKED_SECRET = "***************";
 
 const SECRET_KEY_FORM_FIELD_ID = "secret-key-form-field";
 
 const DEPENDS_ON_AUTHENTICATOR_OPTION_KEY = "dependsOnSpecialAuthenticator";
+
+const DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR: FormBotProtectionRequirementsFlowsSpecificAuthenticatorFlowConfigs =
+  {
+    passwordMode: "never",
+    passwordlessViaEmailMode: "never",
+    passwordlessViaSMSMode: "always",
+  };
+const DEFAULT_BOT_PROTECTION_REQUIREMENTS_ON_ENABLE: FormBotProtectionRequirements =
+  {
+    flows: {
+      flowType: "specificAuthenticator",
+      flowConfigs: {
+        allSignupLogin: {
+          allSignupLoginMode: "never",
+        },
+        specificAuthenticator:
+          DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR,
+      },
+    },
+    resetPassword: {
+      resetPasswordMode: "always",
+    },
+  };
 
 interface LocationState {
   isOAuthRedirect: boolean;
@@ -72,14 +96,22 @@ function isLocationState(raw: unknown): raw is LocationState {
 
 interface FormCloudflareConfigs {
   siteKey: string;
-  secretKey: string | null;
-  isSecretKeyEmpty: boolean;
+  // If this is null, this means the secret is configured on the server, but it is masked.
+  // If this is an empty string, this means the secret is not configured on the server.
+  // If this is an non-empty string, this means the secret is configured on the server, and it is now unmasked.
+  // This field is never modified by the form.
+  originalSecretKey: string | null;
+  editingSecretKey: string;
 }
 
 interface FormRecaptchav2Configs {
   siteKey: string;
-  secretKey: string | null;
-  isSecretKeyEmpty: boolean;
+  // If this is null, this means the secret is configured on the server, but it is masked.
+  // If this is an empty string, this means the secret is not configured on the server.
+  // If this is an non-empty string, this means the secret is configured on the server, and it is now unmasked.
+  // This field is never modified by the form.
+  originalSecretKey: string | null;
+  editingSecretKey: string;
 }
 
 type FormBotProtectionProviderConfigs =
@@ -120,8 +152,9 @@ interface FormBotProtectionRequirements {
 interface FormState {
   enabled: boolean;
   providerType: BotProtectionProviderType;
-  providerConfigs: Partial<
-    Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
+  providerConfigs: Record<
+    BotProtectionProviderType,
+    FormBotProtectionProviderConfigs
   >;
   requirements: FormBotProtectionRequirements;
 }
@@ -171,18 +204,36 @@ function constructFormState(
   const enabled = config.bot_protection?.enabled ?? false;
   const providerType: BotProtectionProviderType =
     config.bot_protection?.provider?.type ?? "recaptchav2";
-  const siteKey = config.bot_protection?.provider?.site_key ?? "";
-  const secretKey = secrets.botProtectionProviderSecret?.secretKey ?? null;
-  const isSecretKeyEmpty = secrets.botProtectionProviderSecret == null; // secret key is empty if provider absent in authgear.secrets.yaml
-  const providerConfigs: Partial<
-    Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
+
+  // Construct the initial state.
+  const providerConfigs: Record<
+    BotProtectionProviderType,
+    FormBotProtectionProviderConfigs
   > = {
-    [providerType]: {
-      siteKey,
-      secretKey,
-      isSecretKeyEmpty,
+    cloudflare: {
+      // siteKey is initially an empty string.
+      siteKey: "",
+      originalSecretKey: "",
+      editingSecretKey: "",
+    },
+    recaptchav2: {
+      siteKey: "",
+      originalSecretKey: "",
+      editingSecretKey: "",
     },
   };
+
+  if (enabled) {
+    providerConfigs[providerType].siteKey =
+      config.bot_protection?.provider?.site_key ?? "";
+    providerConfigs[providerType].originalSecretKey =
+      secrets.botProtectionProviderSecret?.secretKey ?? null;
+    if (providerConfigs[providerType].originalSecretKey != null) {
+      providerConfigs[providerType].editingSecretKey =
+        providerConfigs[providerType].originalSecretKey ?? "";
+    }
+  }
+
   const requirements = constructFormRequirementsState(config);
 
   return {
@@ -196,6 +247,11 @@ function constructFormState(
 function constructBotProtectionConfig(
   currentState: FormState
 ): BotProtectionConfig {
+  const enabled = currentState.enabled;
+  // return empty config if not enabled
+  if (!enabled) {
+    return {};
+  }
   const signupOrLoginRequirements: Partial<BotProtectionRequirements> = {
     signup_or_login:
       currentState.requirements.flows.flowType === "allSignupLogin"
@@ -232,12 +288,18 @@ function constructBotProtectionConfig(
     ...accountRecoveryRequirements,
     ...specificAuthenticatorRequirements,
   };
+
+  let site_key: string | undefined =
+    currentState.providerConfigs[currentState.providerType].siteKey;
+  if (site_key === "") {
+    site_key = undefined;
+  }
+
   return {
-    enabled: currentState.enabled,
+    enabled,
     provider: {
       type: currentState.providerType,
-      site_key:
-        currentState.providerConfigs[currentState.providerType]?.siteKey,
+      site_key,
     },
     requirements,
   };
@@ -254,13 +316,11 @@ function constructConfig(
     config.bot_protection = constructBotProtectionConfig(currentState);
 
     const secretKey =
-      currentState.providerConfigs[currentState.providerType]?.secretKey;
-    if (secretKey != null) {
-      secrets.botProtectionProviderSecret = {
-        secretKey: secretKey,
-        type: currentState.providerType,
-      };
-    }
+      currentState.providerConfigs[currentState.providerType].editingSecretKey;
+    secrets.botProtectionProviderSecret = {
+      secretKey: secretKey,
+      type: currentState.providerType,
+    };
     clearEmptyObject(config);
   });
 }
@@ -270,16 +330,33 @@ function constructSecretUpdateInstruction(
   _secrets: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
-  const secretKey =
-    currentState.providerConfigs[currentState.providerType]?.secretKey;
-  if (secretKey == null) {
+  const enabled = currentState.enabled;
+  const c = currentState.providerConfigs[currentState.providerType];
+
+  const UNSET_INSTRUCTION: PortalAPISecretConfigUpdateInstruction = {
+    botProtectionProviderSecret: {
+      action: "unset",
+    },
+  };
+
+  // If it is disabled, we remove the secret key.
+  if (!enabled) {
+    return UNSET_INSTRUCTION;
+  }
+
+  // if it is masked, then we never touch it.
+  if (c.originalSecretKey == null) {
     return undefined;
   }
+
+  // Otherwise, it is enabled, and not masked, we set it to whatever value the end-user has set.
+  // Specifically, if it is an empty string, we omit it to show "required" error.
+  const secretKey = c.editingSecretKey === "" ? null : c.editingSecretKey;
   return {
     botProtectionProviderSecret: {
       action: "set",
       data: {
-        secretKey: secretKey,
+        secretKey,
         type: currentState.providerType,
       },
     },
@@ -317,6 +394,8 @@ function ProviderCard(props: ProviderCardProps) {
     },
   } = useSystemConfig();
 
+  const formLoading = useFormLoading();
+
   return (
     <button
       type="button"
@@ -326,7 +405,7 @@ function ProviderCard(props: ProviderCardProps) {
       className={cn(className, styles.providerCard)}
       onClick={disabled ? undefined : onClick}
       tabIndex={0}
-      disabled={disabled}
+      disabled={formLoading || disabled}
     >
       {logoSrc != null ? (
         <Image src={logoSrc} width={logoWidth} height={logoHeight} />
@@ -339,17 +418,14 @@ function ProviderCard(props: ProviderCardProps) {
 export interface BotProtectionConfigurationContentProviderConfigFormFieldsProps {
   editing: boolean;
   onClickEdit: (e: React.MouseEvent<unknown>) => void;
-  providerConfigs: Partial<
-    Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
+  providerConfigs: Record<
+    BotProtectionProviderType,
+    FormBotProtectionProviderConfigs
   >;
   setProviderConfigs: (
     fn: (
-      c: Partial<
-        Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
-      >
-    ) => Partial<
-      Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
-    >
+      c: Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
+    ) => Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
   ) => void;
   providerType: BotProtectionProviderType;
 }
@@ -372,8 +448,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             return {
               ...c,
               recaptchav2: {
-                secretKey: c["recaptchav2"]?.secretKey ?? null,
-                isSecretKeyEmpty: c["recaptchav2"]?.isSecretKeyEmpty ?? true,
+                ...c.recaptchav2,
                 siteKey: value,
               },
             };
@@ -390,9 +465,8 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             return {
               ...c,
               recaptchav2: {
-                secretKey: value,
-                isSecretKeyEmpty: false,
-                siteKey: c["recaptchav2"]?.siteKey ?? "",
+                ...c.recaptchav2,
+                editingSecretKey: value,
               },
             };
           });
@@ -408,8 +482,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             return {
               ...c,
               cloudflare: {
-                secretKey: c["cloudflare"]?.secretKey ?? null,
-                isSecretKeyEmpty: c["cloudflare"]?.isSecretKeyEmpty ?? true,
+                ...c.cloudflare,
                 siteKey: value,
               },
             };
@@ -426,9 +499,8 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             return {
               ...c,
               cloudflare: {
-                secretKey: value,
-                isSecretKeyEmpty: false,
-                siteKey: c["cloudflare"]?.siteKey ?? "",
+                ...c.cloudflare,
+                editingSecretKey: value,
               },
             };
           });
@@ -442,7 +514,7 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
       : styles.secretKeyInputWithEdit;
 
     const secretInputValue = editing
-      ? providerConfigs[providerType]?.secretKey ?? ""
+      ? providerConfigs[providerType].editingSecretKey
       : MASKED_SECRET;
 
     return providerType === "recaptchav2" ? (
@@ -455,11 +527,11 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
           label={renderToString(
             "BotProtectionConfigurationScreen.provider.recaptchav2.siteKey.label"
           )}
-          value={providerConfigs[providerType]?.siteKey ?? ""}
+          value={providerConfigs[providerType].siteKey}
           required={true}
           onChange={onChangeRecaptchaV2SiteKey}
-          parentJSONPointer=""
-          fieldName="siteKey"
+          parentJSONPointer="/bot_protection/provider"
+          fieldName="site_key"
         />
         <div className={styles.secretKeyInputContainer}>
           <FormTextField
@@ -472,8 +544,8 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             value={secretInputValue}
             required={true}
             onChange={onChangeRecaptchaV2SecretKey}
-            parentJSONPointer=""
-            fieldName="secretKey"
+            parentJSONPointer={/secrets\/\d+\/data/}
+            fieldName="secret_key"
             readOnly={!editing}
           />
           {!editing ? (
@@ -495,11 +567,11 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
           label={renderToString(
             "BotProtectionConfigurationScreen.provider.cloudflare.siteKey.label"
           )}
-          value={providerConfigs[providerType]?.siteKey ?? ""}
+          value={providerConfigs[providerType].siteKey}
           required={true}
           onChange={onChangeCloudflareSiteKey}
-          parentJSONPointer=""
-          fieldName="siteKey"
+          parentJSONPointer="/bot_protection/provider"
+          fieldName="site_key"
         />
         <div className={styles.secretKeyInputContainer}>
           <FormTextField
@@ -512,8 +584,8 @@ const BotProtectionConfigurationContentProviderConfigFormFields: React.VFC<BotPr
             value={secretInputValue}
             required={true}
             onChange={onChangeCloudflareSecretKey}
-            parentJSONPointer=""
-            fieldName="secretKey"
+            parentJSONPointer={/secrets\/\d+\/data/}
+            fieldName="secret_key"
             readOnly={!editing}
           />
           {!editing ? (
@@ -581,27 +653,25 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
         window.location.hash = "#" + SECRET_KEY_FORM_FIELD_ID;
 
         // Restore form state from local storage on reauth redirection
+        // Specifically, we need to keep the secret from state,
+        // and take the rest from storedFormState.
         setState((state) => {
-          const providerConfigs = storedFormState.providerConfigs;
-          const providerConfigsWithUnmodifiedSecretKey = Object.fromEntries(
-            Object.entries(providerConfigs).map(
-              ([providerType, providerConfig]) => {
-                const _providerType = providerType as BotProtectionProviderType; // workaround ts unable to parse BotProtectionProviderType
-                return [
-                  _providerType,
-                  {
-                    ...providerConfig,
-                    secretKey:
-                      state.providerConfigs[_providerType]?.secretKey ?? null,
-                  },
-                ];
+          return produce(storedFormState, (storedFormState) => {
+            for (const [providerType, providerConfig] of Object.entries(
+              storedFormState.providerConfigs
+            )) {
+              if (storedFormState.providerType === providerType) {
+                const newlyFetchedProviderConfig =
+                  state.providerConfigs[providerType];
+                storedFormState.providerConfigs[providerType] = {
+                  ...providerConfig,
+                  originalSecretKey:
+                    newlyFetchedProviderConfig.originalSecretKey,
+                  editingSecretKey: newlyFetchedProviderConfig.editingSecretKey,
+                };
               }
-            )
-          );
-          return {
-            ...storedFormState,
-            providerConfigs: providerConfigsWithUnmodifiedSecretKey,
-          };
+            }
+          });
         });
 
         // Remove local storage form state after consuming
@@ -609,11 +679,15 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
       }
     });
 
-    const [editing, setediting] = useState(
-      locationState?.isOAuthRedirect ??
-        state.providerConfigs[state.providerType]?.isSecretKeyEmpty ??
-        false
-    );
+    const [reauthed, setReauthed] = useState(locationState?.isOAuthRedirect);
+
+    const editing = useMemo(() => {
+      const currentProviderConfig = state.providerConfigs[state.providerType];
+      const shouldMaskSecretKeyIfNotReauthed =
+        currentProviderConfig.originalSecretKey == null;
+
+      return reauthed ?? !shouldMaskSecretKeyIfNotReauthed;
+    }, [reauthed, state.providerConfigs, state.providerType]);
 
     const navigate = useNavigate();
     const onClickEdit = useCallback(
@@ -621,8 +695,11 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
         e.preventDefault();
         e.stopPropagation();
 
-        if (state.providerConfigs[state.providerType]?.secretKey != null) {
-          setediting(true);
+        if (
+          state.providerConfigs[state.providerType].originalSecretKey != null
+        ) {
+          // secret key available in server response, already reauthed
+          setReauthed(true);
           return;
         }
 
@@ -633,21 +710,7 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
         // Save form state to local storage, for later restoration on reauth redirect
         setStoredFormState({
           ...state,
-          providerConfigs: Object.fromEntries(
-            Object.entries(state.providerConfigs).map(
-              ([providerType, providerConfig]) => {
-                const _providerType = providerType as BotProtectionProviderType; // workaround ts unable to parse BotProtectionProviderType
-                return [
-                  _providerType,
-                  {
-                    ...providerConfig,
-                    secretKey: null,
-                  },
-                ];
-              }
-            )
-          ),
-        }); // do not store secretKey
+        });
 
         startReauthentication(navigate, locationState).catch((e) => {
           // Normally there should not be any error.
@@ -663,12 +726,8 @@ const BotProtectionConfigurationContentProviderSection: React.VFC<BotProtectionC
     const setBotProtectionProviderConfigs = useCallback(
       (
         fn: (
-          c: Partial<
-            Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
-          >
-        ) => Partial<
-          Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
-        >
+          c: Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
+        ) => Record<BotProtectionProviderType, FormBotProtectionProviderConfigs>
       ) => {
         setState((state) => ({
           ...state,
@@ -819,11 +878,13 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
             ? DEPENDS_ON_AUTHENTICATOR_OPTION_KEY
             : item.mode;
         return (
-          <Dropdown
+          <FormDropdown
             className={styles.requirementDropdownContainer}
             options={options}
             selectedKey={selectedKey}
             onChange={onDropdownChange}
+            parentJSONPointer=""
+            fieldName=""
           />
         );
       },
@@ -861,6 +922,11 @@ const BotProtectionConfigurationContentRequirementsSectionFlowHeader: React.VFC<
               ...requirements,
               flows: {
                 ...requirements.flows,
+                flowConfigs: {
+                  ...requirements.flows.flowConfigs,
+                  specificAuthenticator:
+                    DEFAULT_BOT_PROTECTION_REQUIREMENTS_SPECIFIC_AUTHENTICATOR,
+                },
                 flowType: "specificAuthenticator",
               },
             }));
@@ -933,7 +999,7 @@ interface RequirementConfigListItem {
   asHeaderLabel?: boolean;
   mode: BotProtectionRiskMode;
   onChangeMode: (mode: BotProtectionRiskMode) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }
 
 interface BotProtectionConfigurationContentRequirementsSectionProps {
@@ -1015,12 +1081,14 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
         ];
 
         return (
-          <Dropdown
+          <FormDropdown
             className={styles.requirementDropdownContainer}
             options={options}
             selectedKey={item.mode}
             onChange={makeDropdownOnChange()}
             disabled={item.disabled}
+            parentJSONPointer=""
+            fieldName=""
           />
         );
       },
@@ -1060,8 +1128,10 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
       },
       [setRequirements]
     );
-    const flowConfigDisabled =
-      requirements.flows.flowType !== "specificAuthenticator";
+    let flowConfigDisabled: boolean | undefined;
+    if (requirements.flows.flowType !== "specificAuthenticator") {
+      flowConfigDisabled = true;
+    }
     const flowConfigItems: RequirementConfigListItem[] = useMemo(() => {
       return [
         {
@@ -1133,7 +1203,6 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
               "BotProtectionConfigurationScreen.requirements.resetPassword.config.resetPassword.label"
             ),
             asHeaderLabel: true,
-            disabled: false,
             mode: requirements.resetPassword.resetPasswordMode,
             onChangeMode: (mode: BotProtectionRiskMode) => {
               setRequirements((requirements) => ({
@@ -1190,26 +1259,6 @@ const BotProtectionConfigurationContentRequirementsSection: React.VFC<BotProtect
 export interface BotProtectionConfigurationContentProps {
   form: AppSecretConfigFormModel<FormState>;
 }
-
-const DEFAULT_BOT_PROTECTION_REQUIREMENTS_ON_ENABLE: FormBotProtectionRequirements =
-  {
-    flows: {
-      flowType: "specificAuthenticator",
-      flowConfigs: {
-        allSignupLogin: {
-          allSignupLoginMode: "never",
-        },
-        specificAuthenticator: {
-          passwordMode: "never",
-          passwordlessViaEmailMode: "never",
-          passwordlessViaSMSMode: "always",
-        },
-      },
-    },
-    resetPassword: {
-      resetPasswordMode: "always",
-    },
-  };
 
 const BotProtectionConfigurationContent: React.VFC<BotProtectionConfigurationContentProps> =
   function BotProtectionConfigurationContent(props) {

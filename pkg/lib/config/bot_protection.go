@@ -19,7 +19,7 @@ var _ = Schema.Add("BotProtectionProvider", `
 	"required": ["type"],
 	"properties": {
 		"type": { "type": "string", "enum": ["cloudflare", "recaptchav2"] },
-		"site_key": { "type": "string" }
+		"site_key": { "type": "string", "minLength": 1 }
 	},
 	"allOf": [
 		{

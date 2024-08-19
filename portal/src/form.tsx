@@ -187,3 +187,11 @@ export function useFormConflictErrors(): readonly APIResourceUpdateConflictError
 
   return ctx.conflictErrors;
 }
+
+export function useFormLoading(): boolean {
+  const ctx = useContext(context);
+  if (!ctx) {
+    throw new Error("Attempted to use useFormLoading outside FormProvider");
+  }
+  return ctx.loading;
+}
