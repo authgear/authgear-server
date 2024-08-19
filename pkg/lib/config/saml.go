@@ -1,5 +1,9 @@
 package config
 
+import (
+	dsig "github.com/russellhaering/goxmldsig"
+)
+
 var _ = Schema.Add("SAMLConfig", `
 {
 	"type": "object",
@@ -133,6 +137,15 @@ var _ = Schema.Add("SAMLSigningSignatureMethod", `
 `)
 
 type SAMLSigningSignatureMethod string
+
+func (m SAMLSigningSignatureMethod) ToDsigSignatureMethod() string {
+	switch m {
+	case SAMLSigningSignatureMethodRSASHA256:
+		return dsig.RSASHA256SignatureMethod
+	default:
+		panic("unknown signature method")
+	}
+}
 
 const (
 	SAMLSigningSignatureMethodRSASHA256 SAMLSigningSignatureMethod = "RSAwithSHA256"
