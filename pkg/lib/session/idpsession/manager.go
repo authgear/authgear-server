@@ -79,3 +79,7 @@ func (m *Manager) TerminateAllExcept(userID string, currentSession session.Resol
 
 	return deletedSessions, nil
 }
+
+func (m *Manager) CleanUpForDeletingUserID(userID string) error {
+	return m.Store.CleanUpForDeletingUserID(userID)
+}

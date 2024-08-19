@@ -94,3 +94,7 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 
 	return deletedSessions, nil
 }
+
+func (m *SessionManager) CleanUpForDeletingUserID(userID string) error {
+	return m.Store.CleanUpForDeletingUserID(userID)
+}

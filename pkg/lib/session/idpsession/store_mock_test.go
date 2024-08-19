@@ -34,6 +34,20 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 	return m.recorder
 }
 
+// CleanUpForDeletingUserID mocks base method.
+func (m *MockStore) CleanUpForDeletingUserID(userID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CleanUpForDeletingUserID", userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CleanUpForDeletingUserID indicates an expected call of CleanUpForDeletingUserID.
+func (mr *MockStoreMockRecorder) CleanUpForDeletingUserID(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanUpForDeletingUserID", reflect.TypeOf((*MockStore)(nil).CleanUpForDeletingUserID), userID)
+}
+
 // Create mocks base method.
 func (m *MockStore) Create(s *IDPSession, expireAt time.Time) error {
 	m.ctrl.T.Helper()

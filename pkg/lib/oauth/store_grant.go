@@ -48,6 +48,8 @@ type OfflineGrantStore interface {
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)
 	ListClientOfflineGrants(clientID string, userID string) ([]*OfflineGrant, error)
+
+	CleanUpForDeletingUserID(userID string) error
 }
 
 type IDPSessionProvider interface {

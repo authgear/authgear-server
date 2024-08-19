@@ -19,4 +19,6 @@ type Store interface {
 	Delete(*IDPSession) error
 	// List lists the sessions belonging to the user, in ascending creation time order
 	List(userID string) ([]*IDPSession, error)
+	// CleanUpForDeletingUserID cleans up for a deleting user ID.
+	CleanUpForDeletingUserID(userID string) error
 }

@@ -169,6 +169,19 @@ func (s *StoreRedis) Delete(session *IDPSession) (err error) {
 	return
 }
 
+func (s *StoreRedis) CleanUpForDeletingUserID(userID string) (err error) {
+	ctx := context.Background()
+	listKey := sessionListKey(s.AppID, userID)
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		_, err := conn.Del(ctx, listKey).Result()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return
+}
+
 //nolint:gocognit
 func (s *StoreRedis) List(userID string) (sessions []*IDPSession, err error) {
 	ctx := context.Background()
