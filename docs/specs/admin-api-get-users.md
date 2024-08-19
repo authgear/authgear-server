@@ -1,11 +1,10 @@
-# Get Users in Admin API
-
 - [Get Users in Admin API](#get-users-in-admin-api)
-  - [Introduction](#introduction)
-  - [Use Cases](#use-cases)
-  - [Design](#design)
-    - [Get User queries](#get-user-queries)
-      - [Error Response](#error-response)
+  * [Introduction](#introduction)
+  * [Use Cases](#use-cases)
+  * [Design](#design)
+  * [Error Response](#error-response)⏎
+
+# Get Users in Admin API
 
 ## Introduction
 
@@ -21,11 +20,10 @@ Auth0 reference:
 
 ## Design
 
-### Get User queries
-
 Get user queries can search users for different auth method. Parameters are all case-sensitive.
 - When there are accounts linking `create_new_user`, then an email can be shared by multiple users, thus return an array of `User` for `getUsersByStandardAttribute`.
 - `attributeName` must be `email`, `phone_number` or `preferred_username`.
+
 ```graphql
 type Query {
   # attributeName must be `email`, `phone_number` or `preferred_username`.
@@ -35,17 +33,18 @@ type Query {
 }
 ```
 
-#### Error Response
+- If user is not found, just return null or an empty array (for `getUsersByStandardAttribute`).
+- In `getUsersByStandardAttribute`, the `attributeValue` is normalized according to configuration before use. Therefore, it could be invalid.
+
+## Error Response
 
 |Description|Name|Reason|Info|
 |---|---|---|---|
-|Invalid argument provided.|`Invalid`|`GetUsersInvalidArgument`|Will return detail on any invalid input|
+|Invalid argument provided.|`Invalid`|`GetUsersInvalidArgument`|-|
 
-Possible `GetUsersInvalidArgumentType` error message:
-- `INVALID_ATTRIBUTE_NAME`: attributeName must be email, phone_number or preferred_name
-- `INVALID_LOGIN_ID_KEY`: Invalid Login ID key
-- `INVALID_OAUTH_PROVIDER_ALIAS`: Invalid OAuth provider alias
-
-If user is not found, just return null or empty array(for `getUsersByStandardAttribute`). No error in this case.
-
-If it is `attributeName`: "email" `attributeValue`: "nonsense", then just return empty array.
+|Possible error message of `GetUsersInvalidArgument`|When|
+|---|---|
+|`attributeName must be email, phone_number or preferred_name`|When `attributeName` is not `email`, `phone_number` or `preferred_name`.|
+|`invalid attributeValue`|When `attributeValue` cannot be normalized according to its type.|
+|`invalid Login ID key`|When `loginIDKey` is not a configured login ID key in the project.|
+|`invalid OAuth provider alias`|When `oauthProviderAlias` is not an alias of a configured OAuth provider in the project.|
