@@ -55,12 +55,13 @@ export interface EditTemplatesWidgetSection {
 
 export interface EditTemplatesWidgetProps {
   className?: string;
+  codeEditorClassname?: string;
   sections: EditTemplatesWidgetSection[];
 }
 
 const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
   function EditTemplatesWidget(props: EditTemplatesWidgetProps) {
-    const { className, sections } = props;
+    const { className, codeEditorClassname, sections } = props;
 
     return (
       <div className={cn(styles.form, className)}>
@@ -77,7 +78,7 @@ const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
                       {item.title}
                     </Text>
                     <CodeEditor
-                      className={styles.codeEditor}
+                      className={cn(styles.codeEditor, codeEditorClassname)}
                       language={item.language}
                       value={item.value}
                       onChange={item.onChange}
