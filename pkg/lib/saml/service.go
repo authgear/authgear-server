@@ -2,11 +2,15 @@ package saml
 
 import (
 	"bytes"
+	"crypto/rsa"
+	"crypto/tls"
 	"net/url"
 	"text/template"
 	"time"
 
 	crewjamsaml "github.com/crewjam/saml"
+
+	dsig "github.com/russellhaering/goxmldsig"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
@@ -304,7 +308,65 @@ func (s *Service) IssueSuccessResponse(
 
 	response.Assertion = assertion
 
-	// TODO(saml): Sign the response
+	// Sign the assertion
+	// Reference: https://github.com/crewjam/saml/blob/193e551d9a8420216fae88c2b8f4b46696b7bb63/identity_provider.go#L833
+	signingContext, err := s.idpSigningContext()
+	if err != nil {
+		return nil, err
+	}
+
+	assertionEl := response.Assertion.Element()
+
+	signedAssertionEl, err := signingContext.SignEnveloped(assertionEl)
+	if err != nil {
+		return nil, err
+	}
+
+	assertionSigEl := signedAssertionEl.ChildElements()[len(signedAssertionEl.ChildElements())-1]
+	response.Assertion.Signature = assertionSigEl
+
+	// Sign the response
+	responseEl := response.Element()
+	signedResponseEl, err := signingContext.SignEnveloped(responseEl)
+	if err != nil {
+		return nil, err
+	}
+
+	responseSigEl := signedResponseEl.ChildElements()[len(signedResponseEl.ChildElements())-1]
+	response.Signature = responseSigEl
 
 	return response, nil
+}
+
+func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
+	// Create a cert chain based off of the IDP cert and its intermediates.
+	activeCert, ok := s.SAMLIdpSigningMaterials.FindSigningCert(s.SAMLConfig.Signing.KeyID)
+	if !ok {
+		panic("unexpected: cannot find the corresponding idp key by id")
+	}
+
+	var signingContext *dsig.SigningContext
+	var rsaPrivateKey rsa.PrivateKey
+	err := activeCert.Key.Raw(&rsaPrivateKey)
+	if err != nil {
+		panic(err)
+	}
+
+	keyPair := tls.Certificate{
+		Certificate: [][]byte{activeCert.Certificate.Data()},
+		PrivateKey:  &rsaPrivateKey,
+		Leaf:        activeCert.Certificate.X509Certificate(),
+	}
+	keyStore := dsig.TLSCertKeyStore(keyPair)
+
+	signingContext = dsig.NewDefaultSigningContext(keyStore)
+
+	signatureMethod := s.SAMLConfig.Signing.SignatureMethod.ToDsigSignatureMethod()
+
+	signingContext.Canonicalizer = dsig.MakeC14N10ExclusiveCanonicalizerWithPrefixList("")
+	if err := signingContext.SetSignatureMethod(signatureMethod); err != nil {
+		return nil, err
+	}
+
+	return signingContext, nil
 }

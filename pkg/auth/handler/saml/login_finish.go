@@ -77,8 +77,10 @@ func (h *LoginFinishHandler) handleLoginResult(
 			result = samlprotocolhttp.NewSAMLErrorResult(e,
 				samlprotocolhttp.SAMLResult{
 					CallbackURL: callbackURL,
-					Response:    samlprotocol.NewInternalServerErrorResponse(now, h.SAMLService.IdpEntityID()),
-					RelayState:  relayState,
+					// TODO(saml): Respect the binding protocol set in request
+					Binding:    samlprotocol.SAMLBindingHTTPPost,
+					Response:   samlprotocol.NewInternalServerErrorResponse(now, h.SAMLService.IdpEntityID()),
+					RelayState: relayState,
 				},
 			)
 		}
