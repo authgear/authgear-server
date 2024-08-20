@@ -28,6 +28,22 @@ type CreateNewRefreshTokenResult struct {
 	TokenHash string
 }
 
+func (s *OfflineGrantService) GetOfflineGrant(id string) (*OfflineGrant, error) {
+	// TODO: Unify IsValid into GetOfflineGrant.
+	g, err := s.OfflineGrants.GetOfflineGrantWithoutExpireAt(id)
+	if err != nil {
+		return nil, err
+	}
+
+	expiry, err := s.ComputeOfflineGrantExpiry(g)
+	if err != nil {
+		return nil, err
+	}
+
+	g.ExpireAtForResolvedSession = expiry
+	return g, nil
+}
+
 func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, error) {
 	offlineSessionExpired, expiry, err := s.CheckSessionExpired(session)
 	if err != nil {
