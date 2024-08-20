@@ -205,7 +205,8 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 	switch {
 	case deviceTokenEnabled && !deviceTokenInspected:
 		return authflow.NewSubFlow(&IntentInspectDeviceToken{
-			UserID: i.UserID,
+			UserID:         i.UserID,
+			Authentication: config.AuthenticationFlowAuthenticationDeviceToken,
 		}), nil
 
 	case !authenticationMethodSelected:
