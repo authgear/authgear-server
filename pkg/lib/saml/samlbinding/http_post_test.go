@@ -7,15 +7,13 @@ import (
 	"net/url"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
-
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSAMLBindingHTTPPost(t *testing.T) {
 
 	Convey("SAMLBindingHTTPPostParser", t, func() {
-		parser := &samlbinding.SAMLBindingHTTPPostParser{}
 		Convey("success", func() {
 			req := &http.Request{}
 			req.URL = &url.URL{}
@@ -44,7 +42,7 @@ func TestSAMLBindingHTTPPost(t *testing.T) {
 			req.Method = "POST"
 			req.Header = header
 			req.Body = io.NopCloser(bytes.NewReader([]byte(bodyStr)))
-			result, err := parser.Parse(req)
+			result, err := samlbinding.SAMLBindingHTTPPostParse(req)
 			So(err, ShouldBeNil)
 
 			So(result.RelayState, ShouldEqual, relayState)
