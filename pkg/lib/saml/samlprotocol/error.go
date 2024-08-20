@@ -10,6 +10,7 @@ const (
 	SAMLErrorCodeServiceProviderNotFound SAMLErrorCode = "service_provider_not_found"
 	SAMLErrorCodeInvalidRequest          SAMLErrorCode = "invalid_request"
 	SAMLErrorCodeParseRequestFailed      SAMLErrorCode = "parse_request_failed"
+	SAMLErrorCodeMissingNameID           SAMLErrorCode = "missing_nameid"
 )
 
 // This error can be thrown in any code related to SAML, mainly in saml.Service

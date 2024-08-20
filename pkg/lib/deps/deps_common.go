@@ -412,6 +412,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.AccessTokenIssuer), new(*oauth.AccessTokenEncoding)),
 		wire.Bind(new(oauth.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.UIURLBuilder), new(*oidc.UIURLBuilder)),
+		wire.Bind(new(saml.SAMLUserInfoProvider), new(*oidc.IDTokenIssuer)),
 
 		oidchandler.DependencySet,
 	),

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/rsa"
 	"crypto/tls"
+	"fmt"
 	"net/url"
 	"text/template"
 	"time"
@@ -13,6 +14,7 @@ import (
 	dsig "github.com/russellhaering/goxmldsig"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -30,6 +32,10 @@ type SAMLEndpoints interface {
 	SAMLLoginURL(serviceProviderId string) *url.URL
 }
 
+type SAMLUserInfoProvider interface {
+	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
+}
+
 type Service struct {
 	Clock                   clock.Clock
 	AppID                   config.AppID
@@ -37,6 +43,7 @@ type Service struct {
 	SAMLConfig              *config.SAMLConfig
 	SAMLIdpSigningMaterials *config.SAMLIdpSigningMaterials
 	Endpoints               SAMLEndpoints
+	UserInfoProvider        SAMLUserInfoProvider
 }
 
 func (s *Service) IdpEntityID() string {
@@ -211,6 +218,13 @@ func (s *Service) IssueSuccessResponse(
 	if !ok {
 		return nil, samlerror.ErrServiceProviderNotFound
 	}
+
+	clientLike := spToClientLike(sp)
+	userInfo, err := s.UserInfoProvider.GetUserInfo(authenticatedUserId, clientLike)
+	if err != nil {
+		return nil, err
+	}
+
 	now := s.Clock.NowUTC()
 	issuerID := s.IdpEntityID()
 	// TODO(saml): Write required fields of the response
@@ -256,6 +270,11 @@ func (s *Service) IssueSuccessResponse(
 		},
 	}
 
+	nameID, err := s.getUserNameID(nameIDFormat, sp, userInfo)
+	if err != nil {
+		return nil, err
+	}
+
 	assertion := &crewjamsaml.Assertion{
 		ID:           samlprotocol.GenerateAssertionID(),
 		IssueInstant: now,
@@ -267,8 +286,7 @@ func (s *Service) IssueSuccessResponse(
 		Subject: &crewjamsaml.Subject{
 			NameID: &crewjamsaml.NameID{
 				Format: string(nameIDFormat),
-				// TODO(saml): Support different nameid
-				Value: authenticatedUserId,
+				Value:  nameID,
 			},
 			SubjectConfirmations: []crewjamsaml.SubjectConfirmation{
 				{
@@ -344,6 +362,62 @@ func (s *Service) IssueSuccessResponse(
 	response.Signature = responseSigEl
 
 	return response, nil
+}
+
+func (s *Service) getUserNameID(
+	format config.SAMLNameIDFormat,
+	sp *config.SAMLServiceProviderConfig,
+	userInfo map[string]interface{},
+) (string, error) {
+	switch format {
+	case config.SAMLNameIDFormatEmailAddress:
+		{
+			email, ok := userInfo["email"].(string)
+			if !ok {
+				return "", &samlerror.MissingNameIDError{
+					ExpectedNameIDFormat: string(config.SAMLNameIDFormatEmailAddress),
+				}
+			}
+			return email, nil
+		}
+	case config.SAMLNameIDFormatUnspecified:
+		{
+			jsonPointer := sp.NameIDAttributePointer.MustGetJSONPointer()
+			nameID, err := jsonPointer.Traverse(userInfo)
+			if err != nil {
+				return "", &samlerror.MissingNameIDError{
+					ExpectedNameIDFormat:   string(config.SAMLNameIDFormatUnspecified),
+					NameIDAttributePointer: jsonPointer.String(),
+				}
+			}
+			switch nameID := nameID.(type) {
+			case string:
+				return nameID, nil
+			case float64:
+				return fmt.Sprintf("%v", nameID), nil
+			case bool:
+				return fmt.Sprintf("%v", nameID), nil
+			default:
+				return "", &samlerror.MissingNameIDError{
+					ExpectedNameIDFormat:   string(config.SAMLNameIDFormatUnspecified),
+					NameIDAttributePointer: jsonPointer.String(),
+				}
+			}
+		}
+	default:
+		panic(fmt.Errorf("unknown nameid format %s", format))
+
+	}
+}
+
+func spToClientLike(sp *config.SAMLServiceProviderConfig) *oauth.ClientLike {
+	// Note(tung): Note sure if there could be third party SAML apps in the future,
+	// now it is always first party app.
+	return &oauth.ClientLike{
+		IsFirstParty:        true,
+		PIIAllowedInIDToken: false,
+		Scopes:              []string{},
+	}
 }
 
 func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
