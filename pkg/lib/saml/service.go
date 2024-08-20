@@ -2,18 +2,19 @@ package saml
 
 import (
 	"bytes"
-	"encoding/xml"
-	"fmt"
 	"net/url"
 	"text/template"
 	"time"
 
 	crewjamsaml "github.com/crewjam/saml"
-	xrv "github.com/mattermost/xml-roundtrip-validator"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const MetadataValidDuration = time.Hour * 24
@@ -50,10 +51,10 @@ func (s *Service) idpEntityID() string {
 	return idpEntityIDBytes.String()
 }
 
-func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
+func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata, error) {
 	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
-		return nil, ErrServiceProviderNotFound
+		return nil, samlerror.ErrServiceProviderNotFound
 	}
 
 	keyDescriptors := []crewjamsaml.KeyDescriptor{}
@@ -71,7 +72,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
 			})
 	}
 
-	descriptor := EntityDescriptor{
+	descriptor := samlprotocol.EntityDescriptor{
 		EntityID: s.idpEntityID(),
 		IDPSSODescriptors: []crewjamsaml.IDPSSODescriptor{
 			{
@@ -98,61 +99,68 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*Metadata, error) {
 		},
 	}
 
-	return &Metadata{
-		descriptor,
+	return &samlprotocol.Metadata{
+		EntityDescriptor: descriptor,
 	}, nil
 }
 
-func (s *Service) ParseAuthnRequest(input []byte) (*AuthnRequest, error) {
-	var req crewjamsaml.AuthnRequest
-	if err := xrv.Validate(bytes.NewReader(input)); err != nil {
-		return nil, err
-	}
-
-	if err := xml.Unmarshal(input, &req); err != nil {
-		return nil, err
-	}
-
-	authnRequest := &AuthnRequest{
-		AuthnRequest: req,
-	}
-
-	return authnRequest, nil
-
-}
-
-func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *AuthnRequest) error {
+// Validate the AuthnRequest
+// This method does not verify the signature
+func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *samlprotocol.AuthnRequest) error {
 	now := s.Clock.NowUTC()
 	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
-		return ErrServiceProviderNotFound
+		return samlerror.ErrServiceProviderNotFound
 	}
-	// TODO(saml): Verify the signature
 
 	if authnRequest.Destination != "" {
 		if authnRequest.Destination != s.Endpoints.SAMLLoginURL(sp.ID).String() {
-			return fmt.Errorf("unexpected destination")
+			return &samlerror.InvalidRequestError{
+				Field:    "Destination",
+				Actual:   authnRequest.Destination,
+				Expected: []string{s.Endpoints.SAMLLoginURL(sp.ID).String()},
+			}
 		}
 	}
 
 	if !authnRequest.GetProtocolBinding().IsSupported() {
-		return fmt.Errorf("unsupported binding")
+		return &samlerror.InvalidRequestError{
+			Field:    "ProtocolBinding",
+			Actual:   authnRequest.ProtocolBinding,
+			Expected: slice.Map(samlprotocol.SupportedBindings, func(b samlprotocol.SAMLBinding) string { return string(b) }),
+		}
 	}
 
 	if authnRequest.IssueInstant.Add(MaxAuthnRequestValidDuration).Before(now) {
-		return fmt.Errorf("request expired")
+		return &samlerror.InvalidRequestError{
+			Field:  "IssueInstant",
+			Actual: authnRequest.IssueInstant.Format(time.RFC3339),
+			Reason: "request expired",
+		}
 	}
 
-	if authnRequest.Version != SAMLVersion2 {
-		return fmt.Errorf("Request Version must be 2.0")
+	if authnRequest.Version != samlprotocol.SAMLVersion2 {
+		return &samlerror.InvalidRequestError{
+			Field:    "Version",
+			Actual:   authnRequest.Version,
+			Expected: []string{samlprotocol.SAMLVersion2},
+		}
 	}
+
+	// unspecified is always allowed
+	allowedNameFormats := setutil.Set[string]{
+		string(config.NameIDFormatUnspecified): {},
+	}
+	allowedNameFormats.Add(string(sp.NameIDFormat))
 
 	if authnRequest.NameIDPolicy != nil && authnRequest.NameIDPolicy.Format != nil {
 		reqNameIDFormat := *authnRequest.NameIDPolicy.Format
-		if reqNameIDFormat != string(sp.NameIDFormat) &&
-			// unspecified is always allowed
-			reqNameIDFormat != string(config.NameIDFormatUnspecified) {
-			return fmt.Errorf("unsupported Name Identifier Format")
+		if _, ok := allowedNameFormats[reqNameIDFormat]; !ok {
+			return &samlerror.InvalidRequestError{
+				Field:    "NameIDPolicy/Format",
+				Actual:   reqNameIDFormat,
+				Expected: allowedNameFormats.Keys(),
+			}
 		}
 	}
 
@@ -164,7 +172,25 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *A
 			}
 		}
 		if allowed == false {
-			return fmt.Errorf("AssertionConsumerServiceURL not allowed")
+			return &samlerror.InvalidRequestError{
+				Field:  "AssertionConsumerServiceURL",
+				Actual: authnRequest.AssertionConsumerServiceURL,
+				Reason: "AssertionConsumerServiceURL not allowed",
+			}
+		}
+	}
+
+	// Block unsupported combinations of IsPassive and ForceAuthn
+	switch {
+	case authnRequest.GetIsPassive() == false && authnRequest.GetForceAuthn() == false:
+		// allow as prompt=select_account
+	case authnRequest.GetIsPassive() == false && authnRequest.GetForceAuthn() == true:
+		// allow as prompt=login
+	case authnRequest.GetIsPassive() == true && authnRequest.GetForceAuthn() == false:
+		// allow as prompt=none
+	case authnRequest.GetIsPassive() == true && authnRequest.GetForceAuthn() == true:
+		return &samlerror.InvalidRequestError{
+			Reason: "IsPassive=true with ForceAuthn=true is not allowed",
 		}
 	}
 

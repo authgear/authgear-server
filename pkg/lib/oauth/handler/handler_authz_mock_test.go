@@ -42,21 +42,6 @@ func (m *MockUIInfoResolver) EXPECT() *MockUIInfoResolverMockRecorder {
 	return m.recorder
 }
 
-// GetAuthenticationInfoID mocks base method.
-func (m *MockUIInfoResolver) GetAuthenticationInfoID(req *http.Request) (string, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAuthenticationInfoID", req)
-	ret0, _ := ret[0].(string)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetAuthenticationInfoID indicates an expected call of GetAuthenticationInfoID.
-func (mr *MockUIInfoResolverMockRecorder) GetAuthenticationInfoID(req interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthenticationInfoID", reflect.TypeOf((*MockUIInfoResolver)(nil).GetAuthenticationInfoID), req)
-}
-
 // ResolveForAuthorizationEndpoint mocks base method.
 func (m *MockUIInfoResolver) ResolveForAuthorizationEndpoint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (*oidc.UIInfo, *oidc.UIInfoByProduct, error) {
 	m.ctrl.T.Helper()
@@ -71,6 +56,44 @@ func (m *MockUIInfoResolver) ResolveForAuthorizationEndpoint(client *config.OAut
 func (mr *MockUIInfoResolverMockRecorder) ResolveForAuthorizationEndpoint(client, req interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveForAuthorizationEndpoint", reflect.TypeOf((*MockUIInfoResolver)(nil).ResolveForAuthorizationEndpoint), client, req)
+}
+
+// MockAuthenticationInfoResolver is a mock of AuthenticationInfoResolver interface.
+type MockAuthenticationInfoResolver struct {
+	ctrl     *gomock.Controller
+	recorder *MockAuthenticationInfoResolverMockRecorder
+}
+
+// MockAuthenticationInfoResolverMockRecorder is the mock recorder for MockAuthenticationInfoResolver.
+type MockAuthenticationInfoResolverMockRecorder struct {
+	mock *MockAuthenticationInfoResolver
+}
+
+// NewMockAuthenticationInfoResolver creates a new mock instance.
+func NewMockAuthenticationInfoResolver(ctrl *gomock.Controller) *MockAuthenticationInfoResolver {
+	mock := &MockAuthenticationInfoResolver{ctrl: ctrl}
+	mock.recorder = &MockAuthenticationInfoResolverMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAuthenticationInfoResolver) EXPECT() *MockAuthenticationInfoResolverMockRecorder {
+	return m.recorder
+}
+
+// GetAuthenticationInfoID mocks base method.
+func (m *MockAuthenticationInfoResolver) GetAuthenticationInfoID(req *http.Request) (string, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAuthenticationInfoID", req)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetAuthenticationInfoID indicates an expected call of GetAuthenticationInfoID.
+func (mr *MockAuthenticationInfoResolverMockRecorder) GetAuthenticationInfoID(req interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAuthenticationInfoID", reflect.TypeOf((*MockAuthenticationInfoResolver)(nil).GetAuthenticationInfoID), req)
 }
 
 // MockUIURLBuilder is a mock of UIURLBuilder interface.

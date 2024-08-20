@@ -9,7 +9,6 @@ import (
 
 	"github.com/lestrrat-go/jwx/v2/jwt"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
@@ -97,36 +96,6 @@ type UIInfoResolver struct {
 	Clock               clock.Clock
 	Cookies             UIInfoResolverCookieManager
 	ClientResolver      UIInfoClientResolver
-}
-
-func (r *UIInfoResolver) SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string {
-	consentURL := r.EndpointsProvider.ConsentEndpointURL()
-
-	u, err := url.Parse(redirectURI)
-	if err != nil {
-		panic(err)
-	}
-
-	// When redirectURI is consentURL, it will have client_id, redirect_uri, state in it,
-	// so we have to compare them WITHOUT query nor fragment.
-	// When we are not redirecting to consentURL, we do not set code.
-	equalWithoutQueryNorFragment := u.Scheme == consentURL.Scheme && u.Host == consentURL.Host && u.Path == consentURL.Path
-	if !equalWithoutQueryNorFragment {
-		return redirectURI
-	}
-
-	q := u.Query()
-	q.Set("code", e.ID)
-	u.RawQuery = q.Encode()
-	return u.String()
-}
-
-func (r *UIInfoResolver) GetAuthenticationInfoID(req *http.Request) (string, bool) {
-	code := req.FormValue("code")
-	if code != "" {
-		return code, true
-	}
-	return "", false
 }
 
 func (r *UIInfoResolver) GetOAuthSessionID(req *http.Request, urlQuery string) (string, bool) {
