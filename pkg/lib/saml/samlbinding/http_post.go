@@ -15,7 +15,7 @@ type SAMLBindingHTTPPostParseResult struct {
 
 var _ SAMLBindingParseResult = &SAMLBindingHTTPPostParseResult{}
 
-func (*SAMLBindingHTTPPostParseResult) SAMLBindingParseResult() {}
+func (*SAMLBindingHTTPPostParseResult) samlBindingParseResult() {}
 
 func SAMLBindingHTTPPostParse(r *http.Request) (
 	result *SAMLBindingHTTPPostParseResult,
