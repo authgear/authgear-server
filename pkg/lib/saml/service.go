@@ -240,6 +240,22 @@ func (s *Service) IssueSuccessResponse(
 		notOnOrAfter = notBefore.Add(duration.UserInteraction)
 	}
 
+	conditions := inResponseToAuthnRequest.Conditions
+	if conditions == nil {
+		conditions = &crewjamsaml.Conditions{}
+	}
+	if conditions.NotBefore.IsZero() {
+		conditions.NotBefore = notBefore
+	}
+	if conditions.NotOnOrAfter.IsZero() {
+		conditions.NotOnOrAfter = notOnOrAfter
+	}
+	conditions.AudienceRestrictions = []crewjamsaml.AudienceRestriction{
+		{
+			Audience: crewjamsaml.Audience{Value: audience},
+		},
+	}
+
 	assertion := &crewjamsaml.Assertion{
 		ID:           samlprotocol.GenerateAssertionID(),
 		IssueInstant: now,
@@ -266,15 +282,7 @@ func (s *Service) IssueSuccessResponse(
 				},
 			},
 		},
-		Conditions: &crewjamsaml.Conditions{
-			NotBefore:    notBefore,
-			NotOnOrAfter: notOnOrAfter,
-			AudienceRestrictions: []crewjamsaml.AudienceRestriction{
-				{
-					Audience: crewjamsaml.Audience{Value: audience},
-				},
-			},
-		},
+		Conditions: conditions,
 		AuthnStatements: []crewjamsaml.AuthnStatement{
 			{
 				AuthnInstant: notBefore,
