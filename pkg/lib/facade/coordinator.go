@@ -1406,7 +1406,7 @@ func (c *Coordinator) GetUsersByStandardAttribute(attributeName string, attribut
 		return nil, api.ErrGetUsersInvalidArgument.New("invalid attributeValue")
 	}
 
-	claims, err := c.Identities.ListByClaim(attributeName, normalized)
+	identities, err := c.Identities.ListByClaim(attributeName, normalized)
 
 	if err != nil {
 		return nil, err
@@ -1415,11 +1415,11 @@ func (c *Coordinator) GetUsersByStandardAttribute(attributeName string, attribut
 	var userIDsKeyMap = make(map[string]struct{})
 	var uniqueUserIDs = make([]string, 0)
 
-	for _, v := range claims {
-		userIDsKeyMap[v.LoginID.UserID] = struct{}{}
+	for _, iden := range identities {
+		userIDsKeyMap[iden.UserID] = struct{}{}
 	}
 
-	for k, _ := range userIDsKeyMap {
+	for k := range userIDsKeyMap {
 		uniqueUserIDs = append(uniqueUserIDs, k)
 	}
 
