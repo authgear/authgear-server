@@ -1,6 +1,8 @@
 package samlsession
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/rand"
@@ -23,7 +25,7 @@ func NewSAMLSession(entry *SAMLSessionEntry, uiInfo *SAMLUIInfo) *SAMLSession {
 	id := rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
 
 	return &SAMLSession{
-		ID:     id,
+		ID:     fmt.Sprintf("samlsession_%s", id),
 		Entry:  entry,
 		UIInfo: uiInfo,
 	}
