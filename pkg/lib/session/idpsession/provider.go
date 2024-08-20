@@ -116,11 +116,8 @@ func (p *Provider) GetByToken(token string) (*IDPSession, error) {
 		return nil, ErrSessionNotFound
 	}
 
-	s, err := p.Store.Get(id)
+	s, err := p.Get(id)
 	if err != nil {
-		if !errors.Is(err, ErrSessionNotFound) {
-			err = fmt.Errorf("failed to get session: %w", err)
-		}
 		return nil, err
 	}
 
