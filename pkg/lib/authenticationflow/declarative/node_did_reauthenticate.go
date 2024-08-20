@@ -31,8 +31,10 @@ func NewNodeDidReauthenticate(ctx context.Context, deps *authflow.Dependencies, 
 		AuthenticatedAt: deps.Clock.NowUTC(),
 		AMR:             amr,
 	}
-
-	authnInfoEntry := authenticationinfo.NewEntry(authnInfo, authflow.GetOAuthSessionID(ctx))
+	authnInfoEntry := authenticationinfo.NewEntry(authnInfo,
+		authflow.GetOAuthSessionID(ctx),
+		authflow.GetSAMLSessionID(ctx),
+	)
 
 	n.AuthenticationInfoEntry = authnInfoEntry
 

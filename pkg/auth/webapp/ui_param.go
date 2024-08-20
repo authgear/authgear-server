@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -39,9 +40,10 @@ var UILocalesCookieDef = &httputil.CookieDef{
 // }
 
 type UIParamMiddleware struct {
-	UIInfoResolver SessionMiddlewareUIInfoResolver
-	OAuthSessions  SessionMiddlewareOAuthSessionService
-	Cookies        CookieManager
+	OAuthUIInfoResolver SessionMiddlewareOAuthUIInfoResolver
+	OAuthSessions       SessionMiddlewareOAuthSessionService
+	SAMLSessions        SessionMiddlewareSAMLSessionService
+	Cookies             CookieManager
 }
 
 func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
@@ -52,18 +54,16 @@ func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 		webSession := GetSession(r.Context())
 		if webSession != nil {
 			if webSession.OAuthSessionID != "" {
-				entry, err := m.OAuthSessions.Get(webSession.OAuthSessionID)
-				if err != nil && !errors.Is(err, oauthsession.ErrNotFound) {
-					panic(err)
+				p, ok := m.getUIParamFromOAuthSession(webSession.OAuthSessionID)
+				if ok {
+					uiParam = p
 				}
+			}
 
-				if entry != nil {
-					uiInfo, err := m.UIInfoResolver.ResolveForUI(entry.T.AuthorizationRequest)
-					if err != nil {
-						panic(err)
-					}
-
-					uiParam = uiInfo.ToUIParam()
+			if webSession.SAMLSessionID != "" {
+				p, ok := m.getUIParamFromSAMLSession(webSession.SAMLSessionID)
+				if ok {
+					uiParam = p
 				}
 			}
 		}
@@ -92,4 +92,38 @@ func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (m *UIParamMiddleware) getUIParamFromOAuthSession(oauthSessionID string) (
+	uiParam uiparam.T, ok bool) {
+	entry, err := m.OAuthSessions.Get(oauthSessionID)
+	if err != nil && !errors.Is(err, oauthsession.ErrNotFound) {
+		panic(err)
+	}
+
+	if entry != nil {
+		uiInfo, err := m.OAuthUIInfoResolver.ResolveForUI(entry.T.AuthorizationRequest)
+		if err != nil {
+			panic(err)
+		}
+
+		return uiInfo.ToUIParam(), true
+	}
+
+	return uiParam, false
+}
+
+func (m *UIParamMiddleware) getUIParamFromSAMLSession(samlSessionID string) (
+	uiParam uiparam.T, ok bool) {
+	entry, err := m.SAMLSessions.Get(samlSessionID)
+	if err != nil && !errors.Is(err, samlsession.ErrNotFound) {
+		panic(err)
+	}
+
+	if entry != nil {
+		uiParam = entry.UIInfo.ToUIParam()
+		return uiParam, true
+	}
+
+	return uiParam, false
 }
