@@ -61,7 +61,9 @@ export default class PhoneTextField extends React.Component<PhoneTextFieldProps>
       formatOnDisplay: false,
     };
     if (this.props.initialCountry != null) {
-      options.initialCountry = this.props.initialCountry;
+      // seems IntlTelInputInitOptions.initialCountry must be lowercase
+      // https://github.com/jackocnr/intl-tel-input/blob/c53a32b4f39996d50cde4ffa0df37726e8435ec2/src/spec/tests/options/initialCountry.js#L15
+      options.initialCountry = this.props.initialCountry.toLowerCase();
     }
     if (this.props.allowlist != null) {
       options.onlyCountries = [...this.props.allowlist];
