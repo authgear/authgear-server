@@ -139,7 +139,11 @@ func TestProvider(t *testing.T) {
 				Config: cfg,
 				Clock:  clock,
 			}
-			return !provider.CheckSessionExpired(session)
+			expireAtForResolvedSession_before := session.ExpireAtForResolvedSession
+			actual := !provider.CheckSessionExpired(session)
+			expireAtForResolvedSession_after := session.ExpireAtForResolvedSession
+			So(expireAtForResolvedSession_before.Equal(expireAtForResolvedSession_after), ShouldBeTrue)
+			return actual
 		}
 
 		Convey("check session lifetime", func() {

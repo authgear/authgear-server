@@ -206,21 +206,13 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 
 func (p *Provider) CheckSessionExpired(session *IDPSession) (expired bool) {
 	now := p.Clock.NowUTC()
-	sessionExpiry := session.CreatedAt.Add(p.Config.Lifetime.Duration())
-	if now.After(sessionExpiry) {
+	cloned := *session
+	setSessionExpireAtForResolvedSession(&cloned, p.Config)
+	if now.After(cloned.ExpireAtForResolvedSession) {
 		expired = true
-		return
 	}
 
-	if *p.Config.IdleTimeoutEnabled {
-		sessionIdleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(p.Config.IdleTimeout.Duration())
-		if now.After(sessionIdleExpiry) {
-			expired = true
-			return
-		}
-	}
-
-	return false
+	return
 }
 
 func (p *Provider) generateToken(s *IDPSession) string {
