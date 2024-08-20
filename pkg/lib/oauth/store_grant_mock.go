@@ -229,17 +229,17 @@ func (mr *MockOfflineGrantStoreMockRecorder) CleanUpForDeletingUserID(userID int
 }
 
 // CreateOfflineGrant mocks base method.
-func (m *MockOfflineGrantStore) CreateOfflineGrant(offlineGrant *OfflineGrant, expireAt time.Time) error {
+func (m *MockOfflineGrantStore) CreateOfflineGrant(offlineGrant *OfflineGrant) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateOfflineGrant", offlineGrant, expireAt)
+	ret := m.ctrl.Call(m, "CreateOfflineGrant", offlineGrant)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateOfflineGrant indicates an expected call of CreateOfflineGrant.
-func (mr *MockOfflineGrantStoreMockRecorder) CreateOfflineGrant(offlineGrant, expireAt interface{}) *gomock.Call {
+func (mr *MockOfflineGrantStoreMockRecorder) CreateOfflineGrant(offlineGrant interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOfflineGrant", reflect.TypeOf((*MockOfflineGrantStore)(nil).CreateOfflineGrant), offlineGrant, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOfflineGrant", reflect.TypeOf((*MockOfflineGrantStore)(nil).CreateOfflineGrant), offlineGrant)
 }
 
 // DeleteOfflineGrant mocks base method.

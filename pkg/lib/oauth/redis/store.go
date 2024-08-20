@@ -262,9 +262,9 @@ func (s *Store) GetOfflineGrantWithoutExpireAt(id string) (*oauth.OfflineGrant, 
 	return g, nil
 }
 
-func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time) error {
+func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 	ctx := context.Background()
-	expiry, err := expireAt.MarshalText()
+	expiry, err := grant.ExpireAtForResolvedSession.MarshalText()
 	if err != nil {
 		return err
 	}
@@ -275,7 +275,7 @@ func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time
 			return fmt.Errorf("failed to update session list: %w", err)
 		}
 
-		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, expireAt, true)
+		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, grant.ExpireAtForResolvedSession, true)
 		if err != nil {
 			return err
 		}

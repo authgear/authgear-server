@@ -586,21 +586,6 @@ func (m *MockTokenHandlerOfflineGrantService) EXPECT() *MockTokenHandlerOfflineG
 	return m.recorder
 }
 
-// ComputeOfflineGrantExpiry mocks base method.
-func (m *MockTokenHandlerOfflineGrantService) ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (time.Time, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ComputeOfflineGrantExpiry", session)
-	ret0, _ := ret[0].(time.Time)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ComputeOfflineGrantExpiry indicates an expected call of ComputeOfflineGrantExpiry.
-func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) ComputeOfflineGrantExpiry(session interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ComputeOfflineGrantExpiry", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).ComputeOfflineGrantExpiry), session)
-}
-
 // GetOfflineGrant mocks base method.
 func (m *MockTokenHandlerOfflineGrantService) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
