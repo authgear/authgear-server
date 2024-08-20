@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 	dsig "github.com/russellhaering/goxmldsig"
 )
 
@@ -81,6 +82,11 @@ var _ = Schema.Add("SAMLNameIDAttributePointer", `
 `)
 
 type SAMLNameIDAttributePointer string
+
+func (p SAMLNameIDAttributePointer) MustGetJSONPointer() jsonpointer.T {
+	pointer := jsonpointer.MustParse(string(p))
+	return pointer
+}
 
 type SAMLServiceProviderConfig struct {
 	ID                     string                     `json:"id,omitempty"`

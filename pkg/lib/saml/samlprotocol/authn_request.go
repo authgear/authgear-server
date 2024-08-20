@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/xml"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	crewjamsaml "github.com/crewjam/saml"
 	xrv "github.com/mattermost/xml-roundtrip-validator"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type AuthnRequest struct {

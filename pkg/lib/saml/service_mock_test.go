@@ -8,6 +8,7 @@ import (
 	url "net/url"
 	reflect "reflect"
 
+	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -46,4 +47,42 @@ func (m *MockSAMLEndpoints) SAMLLoginURL(serviceProviderId string) *url.URL {
 func (mr *MockSAMLEndpointsMockRecorder) SAMLLoginURL(serviceProviderId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SAMLLoginURL", reflect.TypeOf((*MockSAMLEndpoints)(nil).SAMLLoginURL), serviceProviderId)
+}
+
+// MockSAMLUserInfoProvider is a mock of SAMLUserInfoProvider interface.
+type MockSAMLUserInfoProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockSAMLUserInfoProviderMockRecorder
+}
+
+// MockSAMLUserInfoProviderMockRecorder is the mock recorder for MockSAMLUserInfoProvider.
+type MockSAMLUserInfoProviderMockRecorder struct {
+	mock *MockSAMLUserInfoProvider
+}
+
+// NewMockSAMLUserInfoProvider creates a new mock instance.
+func NewMockSAMLUserInfoProvider(ctrl *gomock.Controller) *MockSAMLUserInfoProvider {
+	mock := &MockSAMLUserInfoProvider{ctrl: ctrl}
+	mock.recorder = &MockSAMLUserInfoProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSAMLUserInfoProvider) EXPECT() *MockSAMLUserInfoProviderMockRecorder {
+	return m.recorder
+}
+
+// GetUserInfo mocks base method.
+func (m *MockSAMLUserInfoProvider) GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserInfo", userID, clientLike)
+	ret0, _ := ret[0].(map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserInfo indicates an expected call of GetUserInfo.
+func (mr *MockSAMLUserInfoProviderMockRecorder) GetUserInfo(userID, clientLike interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserInfo", reflect.TypeOf((*MockSAMLUserInfoProvider)(nil).GetUserInfo), userID, clientLike)
 }

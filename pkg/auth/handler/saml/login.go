@@ -78,6 +78,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			errResponse := samlprotocolhttp.NewSAMLErrorResult(err,
 				samlprotocolhttp.SAMLResult{
 					CallbackURL: callbackURL,
+					Binding:     samlprotocol.SAMLBindingHTTPPost,
 					Response: samlprotocol.NewRequestDeniedErrorResponse(
 						now,
 						issuer,
@@ -113,6 +114,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			errResponse := samlprotocolhttp.NewSAMLErrorResult(err,
 				samlprotocolhttp.SAMLResult{
 					CallbackURL: callbackURL,
+					Binding:     samlprotocol.SAMLBindingHTTPPost,
 					Response: samlprotocol.NewRequestDeniedErrorResponse(
 						now,
 						issuer,
@@ -183,7 +185,8 @@ func (h *LoginHandler) handleUnknownError(
 	result := samlprotocolhttp.NewSAMLErrorResult(e,
 		samlprotocolhttp.SAMLResult{
 			CallbackURL: callbackURL,
-			Response:    samlprotocol.NewInternalServerErrorResponse(now, h.SAMLService.IdpEntityID()),
+			Binding:     samlprotocol.SAMLBindingHTTPPost,
+			Response:    samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
 			RelayState:  relayState,
 		})
 	result.WriteResponse(rw, r)
