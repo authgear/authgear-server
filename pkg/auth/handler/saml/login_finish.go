@@ -1,20 +1,12 @@
 package saml
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/panicutil"
 )
 
 func ConfigureLoginFinishRoute(route httproute.Route) httproute.Route {
@@ -32,11 +24,11 @@ func NewLoginFinishHandlerLogger(lf *log.Factory) *LoginFinishHandlerLogger {
 type LoginFinishHandler struct {
 	Logger                     *LoginFinishHandlerLogger
 	Clock                      clock.Clock
-	Database                   *appdb.Handle
-	SAMLService                HandlerSAMLService
 	SAMLSessionService         SAMLSessionService
 	AuthenticationInfoResolver SAMLAuthenticationInfoResolver
 	AuthenticationInfoService  SAMLAuthenticationInfoService
+
+	LoginResultHandler LoginResultHandler
 }
 
 func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -63,76 +55,12 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 		panic(err)
 	}
 
-	result := h.handleLoginResult(authInfo, samlSession)
+	result := h.LoginResultHandler.handleLoginResult(authInfo, samlSession)
+	switch result := result.(type) {
+	case *samlprotocolhttp.SAMLErrorResult:
+		if result.IsUnexpected {
+			h.Logger.WithError(result.Cause).Error("unexpected error")
+		}
+	}
 	result.WriteResponse(rw, r)
-}
-
-func (h *LoginFinishHandler) handleLoginResult(
-	authInfo *authenticationinfo.Entry,
-	samlSession *samlsession.SAMLSession,
-) (result httputil.Result) {
-	now := h.Clock.NowUTC()
-	callbackURL := samlSession.Entry.CallbackURL
-	relayState := samlSession.Entry.RelayState
-	defer func() {
-		if e := recover(); e != nil {
-			e := panicutil.MakeError(e)
-			h.Logger.WithError(e).Error("panic")
-			result = samlprotocolhttp.NewSAMLErrorResult(e,
-				samlprotocolhttp.SAMLResult{
-					CallbackURL: callbackURL,
-					// TODO(saml): Respect the binding protocol set in request
-					Binding:    samlprotocol.SAMLBindingHTTPPost,
-					Response:   samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
-					RelayState: relayState,
-				},
-			)
-		}
-	}()
-
-	var response *samlprotocol.Response
-	err := h.Database.WithTx(func() error {
-		authnRequest := samlSession.Entry.AuthnRequest()
-		authenticatedUserID := authInfo.T.UserID
-
-		resp, err := h.SAMLService.IssueSuccessResponse(
-			callbackURL,
-			samlSession.Entry.ServiceProviderID,
-			authenticatedUserID,
-			authnRequest,
-		)
-		if err != nil {
-			return err
-		}
-		response = resp
-		return nil
-	})
-	if err != nil {
-		var missingNameIDErr *samlerror.MissingNameIDError
-		if errors.As(err, &missingNameIDErr) {
-			errResponse := samlprotocolhttp.NewSAMLErrorResult(err,
-				samlprotocolhttp.SAMLResult{
-					CallbackURL: callbackURL,
-					// TODO(saml): Respect the binding protocol set in request
-					Binding: samlprotocol.SAMLBindingHTTPPost,
-					Response: samlprotocol.NewServerErrorResponse(
-						now,
-						h.SAMLService.IdpEntityID(),
-						"missing nameid",
-						missingNameIDErr.GetDetailElements(),
-					),
-					RelayState: relayState,
-				})
-			return errResponse
-		}
-		panic(err)
-	}
-
-	return &samlprotocolhttp.SAMLResult{
-		CallbackURL: callbackURL,
-		// TODO(saml): Respect the binding protocol set in request
-		Binding:    samlprotocol.SAMLBindingHTTPPost,
-		Response:   response,
-		RelayState: relayState,
-	}
 }
