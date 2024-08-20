@@ -151,7 +151,6 @@ type TokenHandlerAppSessionTokenStore interface {
 
 type TokenHandlerOfflineGrantService interface {
 	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
-	ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (expiry time.Time, err error)
 }
 
 type TokenHandlerTokenService interface {
@@ -400,15 +399,11 @@ func (h *TokenHandler) rotateDeviceSecret(
 	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
 
 	deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
-	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-	if err != nil {
-		return nil, err
-	}
-	offlineGrant, err = h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(
+	offlineGrant, err := h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(
 		offlineGrant.ID,
 		deviceSecretHash,
 		dpopJKT,
-		expiry,
+		offlineGrant.ExpireAtForResolvedSession,
 	)
 	if err != nil {
 		return nil, err
@@ -472,11 +467,7 @@ func (h *TokenHandler) app2appUpdateDeviceKeyIfNeeded(
 			if offlineGrant.App2AppDeviceKeyJWKJSON != "" {
 				return nil, protocol.NewError("invalid_grant", "app2app device key cannot be changed")
 			}
-			expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-			if err != nil {
-				return nil, err
-			}
-			newGrant, err := h.OfflineGrants.UpdateOfflineGrantApp2AppDeviceKey(offlineGrant.ID, string(newKeyJson), expiry)
+			newGrant, err := h.OfflineGrants.UpdateOfflineGrantApp2AppDeviceKey(offlineGrant.ID, string(newKeyJson), offlineGrant.ExpireAtForResolvedSession)
 			if err != nil {
 				return nil, err
 			}
@@ -627,12 +618,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
 	}
 
-	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = h.OfflineGrants.AccessOfflineGrantAndUpdateDeviceInfo(offlineGrant.ID, accessEvent, deviceInfo, expiry)
+	_, err = h.OfflineGrants.AccessOfflineGrantAndUpdateDeviceInfo(offlineGrant.ID, accessEvent, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}
@@ -1500,11 +1486,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			if err == nil {
 				// Update auth_time
 				if info.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
-					expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-					if err != nil {
-						return nil, err
-					}
-					_, err = h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, expiry)
+					_, err = h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, offlineGrant.ExpireAtForResolvedSession)
 					if err != nil {
 						return nil, err
 					}

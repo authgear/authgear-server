@@ -224,18 +224,10 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 		}
 	}
 
-	expiry, err := re.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-	if errors.Is(err, ErrGrantNotFound) {
-		return nil, session.ErrInvalidSession
-	} else if err != nil {
-		return nil, err
-	}
-
-	offlineGrant, err = re.OfflineGrants.AccessWithID(offlineGrant.ID, accessEvent, expiry)
+	offlineGrant, err := re.OfflineGrants.AccessWithID(offlineGrant.ID, accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}
-	offlineGrant.ExpireAtForResolvedSession = expiry
 
 	return offlineGrant, nil
 }

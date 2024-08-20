@@ -122,6 +122,7 @@ func (s *TokenService) IssueOfflineGrant(
 	if err != nil {
 		return nil, "", err
 	}
+	offlineGrant.ExpireAtForResolvedSession = expiry
 
 	err = s.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
 	if err != nil {

@@ -81,6 +81,8 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 			continue
 		}
 		if len(tokenHashes) > 0 {
+			// ComputeOfflineGrantExpiry is needed because Store.ListOfflineGrants
+			// does not populate ExpireAtForResolvedSession.
 			expiry, err := m.Service.ComputeOfflineGrantExpiry(ss)
 			if err != nil {
 				return nil, err
