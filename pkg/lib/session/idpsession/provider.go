@@ -85,8 +85,8 @@ func (p *Provider) Reauthenticate(id string, amr []string) (err error) {
 	s.AuthenticatedAt = now
 	s.Attrs.SetAMR(amr)
 
-	expiry := computeSessionStorageExpiry(s, p.Config)
-	err = p.Store.Update(s, expiry)
+	setSessionExpireAtForResolvedSession(s, p.Config)
+	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
 		return err
@@ -96,13 +96,13 @@ func (p *Provider) Reauthenticate(id string, amr []string) (err error) {
 }
 
 func (p *Provider) Create(session *IDPSession) error {
-	expiry := computeSessionStorageExpiry(session, p.Config)
-	err := p.Store.Create(session, expiry)
+	setSessionExpireAtForResolvedSession(session, p.Config)
+	err := p.Store.Create(session, session.ExpireAtForResolvedSession)
 	if err != nil {
 		return fmt.Errorf("failed to create session: %w", err)
 	}
 
-	err = p.AccessEvents.InitStream(session.ID, expiry, &session.AccessInfo.InitialAccess)
+	err = p.AccessEvents.InitStream(session.ID, session.ExpireAtForResolvedSession, &session.AccessInfo.InitialAccess)
 	if err != nil {
 		return fmt.Errorf("failed to access session: %w", err)
 	}
@@ -168,11 +168,9 @@ func (p *Provider) AccessWithToken(token string, accessEvent access.Event) (*IDP
 	}()
 
 	s.AccessInfo.LastAccess = accessEvent
+	setSessionExpireAtForResolvedSession(s, p.Config)
 
-	expiry := computeSessionStorageExpiry(s, p.Config)
-	s.ExpireAtForResolvedSession = expiry
-
-	err = p.Store.Update(s, expiry)
+	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
 		return nil, err
@@ -198,11 +196,9 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 	}
 
 	s.AccessInfo.LastAccess = accessEvent
+	setSessionExpireAtForResolvedSession(s, p.Config)
 
-	expiry := computeSessionStorageExpiry(s, p.Config)
-	s.ExpireAtForResolvedSession = expiry
-
-	err = p.Store.Update(s, expiry)
+	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
 		return nil, err
