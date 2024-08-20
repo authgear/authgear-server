@@ -252,11 +252,11 @@ func (s *Service) IssueSuccessResponse(
 
 	// allow for some clock skew
 	notBefore := now.Add(-1 * duration.ClockSkew)
-	// TODO(saml): Allow configurating the valid period
-	notOnOrAfter := now.Add(duration.UserInteraction)
+	assertionValidDuration := sp.AssertionValidDuration.Duration()
+	notOnOrAfter := now.Add(assertionValidDuration)
 	if notBefore.Before(inResponseToAuthnRequest.IssueInstant) {
 		notBefore = inResponseToAuthnRequest.IssueInstant
-		notOnOrAfter = notBefore.Add(duration.UserInteraction)
+		notOnOrAfter = notBefore.Add(assertionValidDuration)
 	}
 
 	conditions := inResponseToAuthnRequest.Conditions
@@ -298,7 +298,6 @@ func (s *Service) IssueSuccessResponse(
 					Method: "urn:oasis:names:tc:SAML:2.0:cm:bearer",
 					SubjectConfirmationData: &crewjamsaml.SubjectConfirmationData{
 						InResponseTo: inResponseToAuthnRequest.ID,
-						// TODO(saml): Allow configurating the valid period
 						NotOnOrAfter: notOnOrAfter,
 						Recipient:    recipient,
 					},

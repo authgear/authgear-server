@@ -34,7 +34,8 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		},
 		"destination": { "type": "string", "format": "uri" },
 		"recipient": { "type": "string", "format": "uri" },
-		"audience": { "type": "string", "format": "uri" }
+		"audience": { "type": "string", "format": "uri" },
+		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" }
 	},
 	"required": ["id", "acs_urls"]
 }
@@ -99,6 +100,7 @@ type SAMLServiceProviderConfig struct {
 	Destination            string                     `json:"destination,omitempty"`
 	Recipient              string                     `json:"recipient,omitempty"`
 	Audience               string                     `json:"audience,omitempty"`
+	AssertionValidDuration DurationString             `json:"assertion_valid_duration,omitempty"`
 }
 
 func (c *SAMLServiceProviderConfig) SetDefaults() {
@@ -108,6 +110,10 @@ func (c *SAMLServiceProviderConfig) SetDefaults() {
 
 	if c.NameIDFormat == SAMLNameIDFormatUnspecified && c.NameIDAttributePointer == "" {
 		c.NameIDAttributePointer = "/sub"
+	}
+
+	if c.AssertionValidDuration == "" {
+		c.AssertionValidDuration = DurationString("20m")
 	}
 }
 

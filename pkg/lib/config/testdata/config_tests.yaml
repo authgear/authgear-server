@@ -1188,6 +1188,7 @@ config:
         destination: http://localhost:3000/destination
         recipient: http://localhost:3000/recipient
         audience: http://localhost:3000/audience
+        assertion_valid_duration: 1h
 ---
 name: saml-signing
 error: null
