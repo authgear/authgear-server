@@ -47,6 +47,9 @@ func generateLoginFlowStepIdentify(cfg *config.AppConfig) *config.Authentication
 		case model.IdentityTypePasskey:
 			oneOf := generateLoginFlowStepIdentifyPasskey(cfg)
 			step.OneOf = append(step.OneOf, oneOf...)
+		case model.IdentityTypeLDAP:
+			oneOf := generateLoginFlowStepIdentifyLDAP(cfg)
+			step.OneOf = append(step.OneOf, oneOf...)
 		}
 	}
 
@@ -127,6 +130,24 @@ func generateLoginFlowStepIdentifyPasskey(cfg *config.AppConfig) []*config.Authe
 		{
 			Identification: config.AuthenticationFlowIdentificationPasskey,
 		},
+	}
+}
+
+func generateLoginFlowStepIdentifyLDAP(cfg *config.AppConfig) []*config.AuthenticationFlowLoginFlowOneOf {
+	if len(cfg.Identity.LDAP.Servers) == 0 {
+		return nil
+	}
+	oneOf := &config.AuthenticationFlowLoginFlowOneOf{
+		Identification: config.AuthenticationFlowIdentificationLDAP,
+	}
+
+	// Add authenticate step secondary if necessary
+	if stepAuthenticateSecondary, ok := generateLoginFlowStepAuthenticateSecondary(cfg, oneOf.Identification); ok {
+		oneOf.Steps = append(oneOf.Steps, stepAuthenticateSecondary)
+	}
+
+	return []*config.AuthenticationFlowLoginFlowOneOf{
+		oneOf,
 	}
 }
 

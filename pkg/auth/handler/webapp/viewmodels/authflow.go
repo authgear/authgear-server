@@ -235,6 +235,12 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 				"provider_app_type": string(o.WechatAppType),
 			}
 			candidates = append(candidates, candidate)
+		case config.AuthenticationFlowIdentificationLDAP:
+			candidate := map[string]interface{}{
+				"type":        string(model.IdentityTypeLDAP),
+				"server_name": o.ServerName,
+			}
+			candidates = append(candidates, candidate)
 		case config.AuthenticationFlowIdentificationPasskey:
 			// Passkey was not handled by candidates.
 			break
@@ -418,6 +424,14 @@ func (m *AuthflowViewModeler) NewWithConfig() AuthflowViewModel {
 			"provider_type":     oauthProvider.AsProviderConfig().Type(),
 			"provider_alias":    oauthProvider.Alias(),
 			"provider_app_type": wechat.ProviderConfig(oauthProvider).AppType(),
+		}
+		candidates = append(candidates, candidate)
+	}
+
+	for _, ldapServer := range m.Identity.LDAP.Servers {
+		candidate := map[string]interface{}{
+			"type":        string(model.IdentityTypeLDAP),
+			"server_name": ldapServer.Name,
 		}
 		candidates = append(candidates, candidate)
 	}

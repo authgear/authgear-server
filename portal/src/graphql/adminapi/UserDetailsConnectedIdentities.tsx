@@ -56,11 +56,20 @@ interface IdentityClaim extends Record<string, unknown> {
   "https://authgear.com/claims/oauth/provider_type"?: OAuthSSOProviderType;
   "https://authgear.com/claims/oauth/subject_id"?: string;
   "https://authgear.com/claims/login_id/type"?: LoginIDIdentityType;
+  "https://authgear.com/claims/ldap/user_id_attribute_name"?: string;
+  "https://authgear.com/claims/ldap/user_id_attribute_value"?: string;
 }
 
 interface Identity {
   id: string;
-  type: "ANONYMOUS" | "LOGIN_ID" | "OAUTH" | "BIOMETRIC" | "PASSKEY" | "SIWE";
+  type:
+    | "ANONYMOUS"
+    | "LOGIN_ID"
+    | "OAUTH"
+    | "BIOMETRIC"
+    | "PASSKEY"
+    | "SIWE"
+    | "LDAP";
   claims: IdentityClaim;
   createdAt: string;
   updatedAt: string;
@@ -76,14 +85,21 @@ interface UserDetailsConnectedIdentitiesProps {
 
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
 type LoginIDIdentityType = (typeof loginIdIdentityTypes)[number];
-type IdentityType = "login_id" | "oauth" | "biometric" | "anonymous" | "siwe";
+type IdentityType =
+  | "login_id"
+  | "oauth"
+  | "biometric"
+  | "anonymous"
+  | "siwe"
+  | "ldap";
 
 type IdentityListItem =
   | OAuthIdentityListItem
   | LoginIDIdentityListItem
   | BiometricIdentityListItem
   | AnonymousIdentityListItem
-  | SIWEIdentityListItem;
+  | SIWEIdentityListItem
+  | LDAPIdentityListItem;
 interface OAuthIdentityListItem {
   id: string;
   type: "oauth";
@@ -130,6 +146,15 @@ interface SIWEIdentityListItem {
   nfts: NFT[] | undefined;
 }
 
+interface LDAPIdentityListItem {
+  id: string;
+  type: "ldap";
+  verified: undefined;
+  connectedOn: string;
+  userIDAttributeName?: string;
+  userIDAttributeValue?: string;
+}
+
 export interface IdentityLists {
   oauth: OAuthIdentityListItem[];
   email: LoginIDIdentityListItem[];
@@ -138,6 +163,7 @@ export interface IdentityLists {
   biometric: BiometricIdentityListItem[];
   anonymous: AnonymousIdentityListItem[];
   siwe: SIWEIdentityListItem[];
+  ldap: LDAPIdentityListItem[];
 }
 
 interface VerifyButtonProps {
@@ -173,6 +199,7 @@ const loginIdIconMap: Record<LoginIDIdentityType, React.ReactNode> = {
 const biometricIcon: React.ReactNode = <Icon iconName="Fingerprint" />;
 const anonymousIcon: React.ReactNode = <Icon iconName="People" />;
 const siweIcon: React.ReactNode = <i className={cn("fab", "fa-ethereum")} />;
+const ldapIcon: React.ReactNode = <Icon iconName="Contact" />;
 
 const removeButtonTextId: Record<IdentityType, "remove" | "disconnect" | ""> = {
   oauth: "disconnect",
@@ -180,8 +207,10 @@ const removeButtonTextId: Record<IdentityType, "remove" | "disconnect" | ""> = {
   biometric: "remove",
   anonymous: "",
   siwe: "",
+  ldap: "",
 };
 
+// eslint-disable-next-line complexity
 function getIdentityName(
   item: IdentityListItem,
   renderToString: (id: string) => string
@@ -207,6 +236,11 @@ function getIdentityName(
       );
     case "siwe":
       return createEIP681URL({ chainId: item.chainId, address: item.address });
+    case "ldap":
+      if (item.userIDAttributeName && item.userIDAttributeValue) {
+        return `${item.userIDAttributeName}=${item.userIDAttributeValue}`;
+      }
+      return "";
     default:
       return "";
   }
@@ -838,7 +872,35 @@ const SIWEIdentityListCell: React.VFC<SIWEIdentityListCellProps> = (props) => {
   );
 };
 
+interface LDAPIdentityListCellProps {
+  icon: React.ReactNode;
+  identityID: string;
+  identityType: IdentityType;
+  identityName: string;
+  verified?: boolean;
+  connectedOn: string;
+}
+
+const LDAPIdentityListCell: React.VFC<LDAPIdentityListCellProps> = (props) => {
+  const { icon, identityName, verified, connectedOn } = props;
+
+  return (
+    <ListCellLayout className={styles.cellContainer}>
+      <BaseIdentityListCellTitle as="Text" icon={icon}>
+        {identityName}
+      </BaseIdentityListCellTitle>
+      <BaseIdentityListCellDescription verified={verified}>
+        <FormattedMessage
+          id="UserDetails.connected-identities.added-on"
+          values={{ datetime: connectedOn }}
+        />
+      </BaseIdentityListCellDescription>
+    </ListCellLayout>
+  );
+};
+
 const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesProps> =
+  // eslint-disable-next-line complexity
   function UserDetailsConnectedIdentities(
     props: UserDetailsConnectedIdentitiesProps
   ) {
@@ -894,6 +956,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
       const biometricIdentityList: BiometricIdentityListItem[] = [];
       const anonymousIdentityList: AnonymousIdentityListItem[] = [];
       const siweIdentityList: SIWEIdentityListItem[] = [];
+      const ldapIdentityList: LDAPIdentityListItem[] = [];
 
       for (const identity of identities) {
         const createdAtStr = formatDatetime(locale, identity.createdAt) ?? "";
@@ -1024,6 +1087,22 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             nfts: nfts,
           });
         }
+        if (identity.type === "LDAP") {
+          ldapIdentityList.push({
+            id: identity.id,
+            type: "ldap",
+            verified: undefined,
+            connectedOn: createdAtStr,
+            userIDAttributeName:
+              identity.claims[
+                "https://authgear.com/claims/ldap/user_id_attribute_name"
+              ] ?? "",
+            userIDAttributeValue:
+              identity.claims[
+                "https://authgear.com/claims/ldap/user_id_attribute_value"
+              ] ?? "",
+          });
+        }
       }
       return {
         oauth: oauthIdentityList,
@@ -1033,6 +1112,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         biometric: biometricIdentityList,
         anonymous: anonymousIdentityList,
         siwe: siweIdentityList,
+        ldap: ldapIdentityList,
       };
     }, [identities, locale, verifiedClaims, web3Claims.accounts]);
 
@@ -1167,6 +1247,17 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 nfts={item.nfts}
                 setVerifiedStatus={setVerifiedStatus}
                 onRemoveClicked={onRemoveClicked}
+              />
+            );
+          case "ldap":
+            return (
+              <LDAPIdentityListCell
+                icon={ldapIcon}
+                identityID={identityID}
+                identityType={identityType}
+                identityName={identityName}
+                verified={verified}
+                connectedOn={connectedOn}
               />
             );
           default:
@@ -1339,6 +1430,18 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
               </Text>
               <List
                 items={identityLists.siwe}
+                onRenderCell={onRenderIdentityCell}
+                onShouldVirtualize={onShouldVirtualize}
+              />
+            </div>
+          ) : null}
+          {identityLists.ldap.length > 0 ? (
+            <div>
+              <Text as="h3" className={styles.subHeader}>
+                <FormattedMessage id="UserDetails.connected-identities.ldap" />
+              </Text>
+              <List
+                items={identityLists.ldap}
                 onRenderCell={onRenderIdentityCell}
                 onShouldVirtualize={onShouldVirtualize}
               />

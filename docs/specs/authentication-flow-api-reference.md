@@ -20,6 +20,7 @@
     + [identification: phone](#identification-phone)
     + [identification: username](#identification-username)
     + [identification: oauth](#identification-oauth)
+    + [identification: ldap](#identification-ldap)
     + [type: signup; action.type: identify; data.type: account_linking_identification_data](#type-signup-actiontype-identify-datatype-account_linking_identification_data)
   * [type: signup; action.type: verify](#type-signup-actiontype-verify)
   * [type: signup; action.type: create_authenticator](#type-signup-actiontype-create_authenticator)
@@ -463,6 +464,28 @@ Here are some examples:
 ```json
 {
   "query": "state=mystate&error=some_error&error_description=this+is+url+encoded+spaces+become+plus+sign"
+}
+```
+
+### identification: ldap
+
+The presence of this means you can sign up with a username.
+
+```json
+{
+  "identification": "ldap",
+  "server_name": "ldap-server-1",
+}
+```
+
+The corresponding input is
+
+```json
+{
+  "identification": "ldap",
+  "server_name": "ldap-server-1",
+  "username": "johndoe",
+  "password": "password"
 }
 ```
 

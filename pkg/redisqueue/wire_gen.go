@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/totp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/ldap"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
@@ -23,6 +24,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/siwe"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
@@ -33,7 +35,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
-	"github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
+	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
@@ -246,6 +248,18 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Clock: clock,
 		SIWE:  siweService,
 	}
+	ldapStore := &ldap.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	normalizer := &stdattrs.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	ldapProvider := &ldap.Provider{
+		Store:                        ldapStore,
+		Clock:                        clock,
+		StandardAttributesNormalizer: normalizer,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -257,6 +271,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
 		SIWE:                  siweProvider,
+		LDAP:                  ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -395,12 +410,12 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		ClaimStore:        storePQ,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
-	pictureTransformer := &stdattrs.PictureTransformer{
+	pictureTransformer := &stdattrs2.PictureTransformer{
 		HTTPProto:     httpProto,
 		HTTPHost:      httpHost,
 		ImagesCDNHost: imagesCDNHost,
 	}
-	serviceNoEvent := &stdattrs.ServiceNoEvent{
+	serviceNoEvent := &stdattrs2.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
@@ -503,19 +518,18 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	queue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
 	elasticsearchService := elasticsearch.Service{
-		Clock:       clock,
-		Context:     ctx,
-		Database:    handle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       appID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   queue,
-		Producer:    userReindexProducer,
+		Clock:           clock,
+		Context:         ctx,
+		Database:        handle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       queue,
+		Producer:        userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
 		Logger:   elasticsearchLogger,
@@ -618,7 +632,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
-	stdattrsService := &stdattrs.Service{
+	stdattrsService := &stdattrs2.Service{
 		UserProfileConfig: userProfileConfig,
 		ServiceNoEvent:    serviceNoEvent,
 		Identities:        serviceService,
@@ -736,19 +750,18 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Coordinator: coordinator,
 	}
 	service4 := &elasticsearch.Service{
-		Clock:       clock,
-		Context:     ctx,
-		Database:    handle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       appID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   queue,
-		Producer:    userReindexProducer,
+		Clock:           clock,
+		Context:         ctx,
+		Database:        handle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       queue,
+		Producer:        userReindexProducer,
 	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
@@ -954,6 +967,18 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		Clock: clockClock,
 		SIWE:  siweService,
 	}
+	ldapStore := &ldap.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	normalizer := &stdattrs.Normalizer{
+		LoginIDNormalizerFactory: normalizerFactory,
+	}
+	ldapProvider := &ldap.Provider{
+		Store:                        ldapStore,
+		Clock:                        clockClock,
+		StandardAttributesNormalizer: normalizer,
+	}
 	serviceService := &service.Service{
 		Authentication:        authenticationConfig,
 		Identity:              identityConfig,
@@ -965,6 +990,7 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		Biometric:             biometricProvider,
 		Passkey:               passkeyProvider,
 		SIWE:                  siweProvider,
+		LDAP:                  ldapProvider,
 	}
 	store3 := &service2.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1103,12 +1129,12 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		ClaimStore:        storePQ,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
-	pictureTransformer := &stdattrs.PictureTransformer{
+	pictureTransformer := &stdattrs2.PictureTransformer{
 		HTTPProto:     httpProto,
 		HTTPHost:      httpHost,
 		ImagesCDNHost: imagesCDNHost,
 	}
-	serviceNoEvent := &stdattrs.ServiceNoEvent{
+	serviceNoEvent := &stdattrs2.ServiceNoEvent{
 		UserProfileConfig: userProfileConfig,
 		Identities:        serviceService,
 		UserQueries:       rawQueries,
@@ -1148,19 +1174,18 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	queue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
-		Clock:       clockClock,
-		Context:     ctx,
-		Database:    handle,
-		Logger:      elasticsearchServiceLogger,
-		AppID:       appID,
-		Client:      client,
-		Users:       userQueries,
-		UserStore:   store,
-		OAuth:       oauthStore,
-		LoginID:     loginidStore,
-		RolesGroups: rolesgroupsStore,
-		TaskQueue:   queue,
-		Producer:    userReindexProducer,
+		Clock:           clockClock,
+		Context:         ctx,
+		Database:        handle,
+		Logger:          elasticsearchServiceLogger,
+		AppID:           appID,
+		Client:          client,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+		TaskQueue:       queue,
+		Producer:        userReindexProducer,
 	}
 	return elasticsearchService
 }

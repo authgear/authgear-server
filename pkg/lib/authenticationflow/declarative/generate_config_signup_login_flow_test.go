@@ -176,6 +176,26 @@ steps:
     login_flow: default
 `)
 
+		// ldap
+		test(`
+authentication:
+  identities:
+  - ldap
+identity:
+  ldap:
+    servers:
+    - name: ldap
+`, `
+name: default
+steps:
+- name: signup_login_identify
+  type: identify
+  one_of:
+  - identification: ldap
+    signup_flow: default
+    login_flow: default
+`)
+
 		// all
 		test(`
 authentication:
@@ -183,6 +203,7 @@ authentication:
   - login_id
   - oauth
   - passkey
+  - ldap
   primary_authenticators:
   - password
   - passkey
@@ -203,6 +224,9 @@ identity:
     providers:
     - alias: google
       type: google
+  ldap:
+    servers:
+    - name: ldap
 `, `
 name: default
 steps:
@@ -222,6 +246,9 @@ steps:
     signup_flow: default
     login_flow: default
   - identification: passkey
+    login_flow: default
+  - identification: ldap
+    signup_flow: default
     login_flow: default
 `)
 		// bot_protection, 1 branch

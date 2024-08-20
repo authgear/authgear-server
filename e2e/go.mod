@@ -18,14 +18,17 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lestrrat-go/jwx/v2 v2.0.21
 	github.com/lib/pq v1.10.9
+	github.com/lor00x/goldap v0.0.0-20240304151906-8d785c64d1c8
 	github.com/otiai10/copy v1.14.0
 	github.com/phires/go-guerrilla v1.6.6
 	github.com/spf13/cobra v1.8.0
+	github.com/vjeantet/ldapserver v1.0.1
 	go.uber.org/automaxprocs v1.5.3
 	sigs.k8s.io/yaml v1.4.0
 )
 
 require (
+	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
@@ -47,6 +50,8 @@ require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
 	github.com/getsentry/sentry-go v0.25.0 // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
+	github.com/go-ldap/ldap/v3 v3.4.5 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-redsync/redsync/v4 v4.11.0 // indirect
 	github.com/go-webauthn/webauthn v0.8.6 // indirect

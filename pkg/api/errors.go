@@ -36,3 +36,10 @@ var ErrAuthenticatorNotFound = apierrors.NotFound.WithReason("AuthenticatorNotFo
 var ChangePasswordFailed = apierrors.Invalid.WithReason("ChangePasswordFailed")
 var ErrNoPassword = ChangePasswordFailed.NewWithCause("the user does not have a password", apierrors.StringCause("NoPassword"))
 var ErrPasswordReused = ChangePasswordFailed.NewWithCause("password reused", apierrors.StringCause("PasswordReused"))
+
+var LDAPConnectionTestFailed = apierrors.ServiceUnavailable.WithReason("LDAPConnectionTestFailed")
+var ErrLDAPCannotConnect = LDAPConnectionTestFailed.NewWithCause("failed to connect", apierrors.StringCause("FailedToConnect"))
+var ErrLDAPFailedToBindSearchUser = LDAPConnectionTestFailed.NewWithCause("failed to bind search user", apierrors.StringCause("FailedToBindSearchUser"))
+var ErrLDAPEndUserSearchNotFound = LDAPConnectionTestFailed.NewWithCause("end user not found", apierrors.StringCause("TestingEndUserNotFound"))
+var ErrLDAPEndUserSearchMultipleResult = LDAPConnectionTestFailed.NewWithCause("multiple end users found", apierrors.StringCause("MoreThanOneEntryInSearchResult"))
+var ErrLDAPMissingUniqueAttribute = LDAPConnectionTestFailed.NewWithCause("missing ID attribute", apierrors.StringCause("TestingEndUserMissingUserIDAttribute"))

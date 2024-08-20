@@ -58,6 +58,9 @@ func (n *NodeCreateIdentityBegin) deriveEdges() []interaction.Edge {
 		case model.IdentityTypePasskey:
 			break
 
+		case model.IdentityTypeLDAP:
+			break
+
 		case model.IdentityTypeSIWE:
 			edges = append(edges, &EdgeUseIdentitySIWE{})
 

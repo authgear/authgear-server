@@ -16,6 +16,7 @@ import (
 	"github.com/google/martian/mitm"
 
 	"github.com/authgear/authgear-server/e2e/cmd/proxy/mockbotprotection"
+	"github.com/authgear/authgear-server/e2e/cmd/proxy/mockldap"
 	"github.com/authgear/authgear-server/e2e/cmd/proxy/mockoidc"
 	"github.com/authgear/authgear-server/e2e/cmd/proxy/modifier"
 	"github.com/authgear/authgear-server/pkg/util/debug"
@@ -55,6 +56,19 @@ func main() {
 	}
 	botProtectonManager.Start(lnBotProtecton)
 	log.Println("Mock BotProtection manager listening on", botProtectonManager.Server.Addr)
+
+	// Setup mock ldap server
+	ldapServer, err := mockldap.NewMockLDAPServer()
+	if err != nil {
+		log.Fatal(err)
+	}
+	ldapAddress := "127.0.0.1:8389"
+	err = ldapServer.Start(ldapAddress)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer ldapServer.Shutdown()
+	log.Printf("Mock LDAP Server listening on %s\n", ldapAddress)
 
 	// Setup proxy to override OIDC endpoints
 	proxy := martian.NewProxy()

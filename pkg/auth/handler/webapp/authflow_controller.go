@@ -674,6 +674,16 @@ func (c *AuthflowController) DelayScreen(r *http.Request,
 	return screen, nil
 }
 
+func (c *AuthflowController) AdvanceDirectly(
+	route string,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+	query url.Values,
+) *webapp.Result {
+	result := &webapp.Result{}
+	screen.AdvanceWithQuery(route, result, query)
+	return result
+}
+
 // AdvanceWithInput is same as AdvanceWithInputs but only allow one input.
 func (c *AuthflowController) AdvanceWithInput(
 	r *http.Request,

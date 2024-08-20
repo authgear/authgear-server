@@ -130,6 +130,9 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 				"index":        index,
 				"redirect_uri": h.Endpoints.SSOCallbackURL(providerAlias).String(),
 			}
+		case config.AuthenticationFlowIdentificationLDAP:
+			// TODO(DEV-1672): Support Account Linking for LDAP
+			panic(fmt.Errorf("To be implemented identifcation option %v", option.Identifcation))
 		default:
 			panic(fmt.Errorf("unsupported identifcation option %v", option.Identifcation))
 		}

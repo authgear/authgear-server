@@ -35,6 +35,9 @@ type IdentificationOption struct {
 
 	// WebAuthnRequestOptions is specific to Passkey.
 	RequestOptions *model.WebAuthnRequestOptions `json:"request_options,omitempty"`
+
+	// Server is specific to LDAP
+	ServerName string `json:"server_name,omitempty"`
 }
 
 func NewIdentificationOptionIDToken(i config.AuthenticationFlowIdentification, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) IdentificationOption {
@@ -73,6 +76,19 @@ func NewIdentificationOptionPasskey(requestOptions *model.WebAuthnRequestOptions
 		BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
 		RequestOptions: requestOptions,
 	}
+}
+
+func NewIdentificationOptionLDAP(ldapConfig *config.LDAPConfig, authflowCfg *config.AuthenticationFlowBotProtection, appCfg *config.BotProtectionConfig) []IdentificationOption {
+	output := []IdentificationOption{}
+	for _, s := range ldapConfig.Servers {
+		output = append(output, IdentificationOption{
+			Identification: config.AuthenticationFlowIdentificationLDAP,
+			ServerName:     s.Name,
+			// TODO(DEV-1659): Support bot protection in LDAP
+			// BotProtection:  GetBotProtectionData(authflowCfg, appCfg),
+		})
+	}
+	return output
 }
 
 func (i *IdentificationOption) isBotProtectionRequired() bool {

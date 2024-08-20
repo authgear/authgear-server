@@ -312,5 +312,34 @@ func newUserModel(
 		Roles:                roles,
 		Groups:               groups,
 		MFAGracePeriodtEndAt: user.MFAGracePeriodtEndAt,
+
+		EndUserAccountID: computeEndUserAccountID(derivedStandardAttributes, identities, web3Info),
 	}
+}
+
+func computeEndUserAccountID(derivedStandardAttributes map[string]interface{}, identities []*identity.Info, web3Info *model.UserWeb3Info) string {
+	var endUserAccountID string
+
+	var ldapDisplayID string
+	for _, iden := range identities {
+		if iden.Type == model.IdentityTypeLDAP {
+			ldapDisplayID = iden.DisplayID()
+			break
+		}
+	}
+
+	if s, ok := derivedStandardAttributes[string(model.ClaimEmail)].(string); ok && s != "" {
+		endUserAccountID = s
+	} else if s, ok := derivedStandardAttributes[string(model.ClaimPreferredUsername)].(string); ok && s != "" {
+		endUserAccountID = s
+	} else if s, ok := derivedStandardAttributes[string(model.ClaimPhoneNumber)].(string); ok && s != "" {
+		endUserAccountID = s
+	} else if ldapDisplayID != "" {
+		endUserAccountID = ldapDisplayID
+	} else if web3Info != nil && len(web3Info.Accounts) > 0 {
+		first := web3Info.Accounts[0]
+		endUserAccountID = first.EndUserAccountID()
+	}
+
+	return endUserAccountID
 }

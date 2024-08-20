@@ -5,6 +5,9 @@ import (
 	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
 func TestAccountStatus(t *testing.T) {
@@ -120,5 +123,153 @@ func TestAccountStatus(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(scheduleDeletion.Type(), ShouldEqual, AccountStatusTypeScheduledDeletionDisabled)
 		})
+	})
+}
+
+func TestComputeUserEndUserActionID(t *testing.T) {
+
+	// Convey("EndUserAccountID", t, func() {
+	// So((&User{}).EndUserAccountID(), ShouldEqual, "")
+	// So((&User{
+	// StandardAttributes: map[string]interface{}{
+	// "email": "user@example.com",
+	// },
+	// }).EndUserAccountID(), ShouldEqual, "user@example.com")
+	// So((&User{
+	// StandardAttributes: map[string]interface{}{
+	// "preferred_username": "user",
+	// },
+	// }).EndUserAccountID(), ShouldEqual, "user")
+	// So((&User{
+	// StandardAttributes: map[string]interface{}{
+	// "phone_number": "+85298765432",
+	// },
+	// }).EndUserAccountID(), ShouldEqual, "+85298765432")
+	// So((&User{
+	// StandardAttributes: map[string]interface{}{
+	// "preferred_username": "user",
+	// "phone_number":       "+85298765432",
+	// },
+	// }).EndUserAccountID(), ShouldEqual, "user")
+	// So((&User{
+	// StandardAttributes: map[string]interface{}{
+	// "email":              "user@example.com",
+	// "preferred_username": "user",
+	// "phone_number":       "+85298765432",
+	// },
+	// }).EndUserAccountID(), ShouldEqual, "user@example.com")
+	// })
+	Convey("ComputeUserEndUserActionID", t, func() {
+		So(computeEndUserAccountID(map[string]interface{}{}, nil, nil), ShouldEqual, "")
+
+		So(computeEndUserAccountID(
+			map[string]interface{}{
+				"email": "user@example.com",
+			},
+			nil, nil), ShouldEqual, "user@example.com")
+
+		So(computeEndUserAccountID(
+			map[string]interface{}{
+				"preferred_username": "user",
+			},
+			nil, nil), ShouldEqual, "user")
+
+		So(computeEndUserAccountID(
+			map[string]interface{}{
+				"phone_number": "+85298765432",
+			},
+			nil, nil), ShouldEqual, "+85298765432")
+
+		So(computeEndUserAccountID(
+			map[string]interface{}{
+				"preferred_username": "user",
+				"phone_number":       "+85298765432",
+			},
+			nil, nil), ShouldEqual, "user")
+
+		So(computeEndUserAccountID(
+			map[string]interface{}{
+				"email":              "user@example.com",
+				"preferred_username": "user",
+				"phone_number":       "+85298765432",
+			},
+			nil, nil), ShouldEqual, "user@example.com")
+
+		So(computeEndUserAccountID(
+			map[string]interface{}{
+				"email":              "user@example.com",
+				"preferred_username": "user",
+				"phone_number":       "+85298765432",
+			},
+			[]*identity.Info{
+				{
+					Type: model.IdentityTypeLDAP,
+					LDAP: &identity.LDAP{
+						RawEntryJSON: map[string]interface{}{
+							"dn": "cn=user,dc=example,dc=org",
+						},
+					},
+				},
+			},
+			&model.UserWeb3Info{
+				Accounts: []model.NFTOwnership{
+					{
+						AccountIdentifier: model.AccountIdentifier{
+							Address: "0x0",
+						},
+						NetworkIdentifier: model.NetworkIdentifier{
+							Blockchain: "ethereum",
+							Network:    "10",
+						},
+					},
+				},
+			}), ShouldEqual, "user@example.com")
+
+		So(computeEndUserAccountID(map[string]interface{}{}, []*identity.Info{
+			{
+				Type: model.IdentityTypeLDAP,
+				LDAP: &identity.LDAP{
+					RawEntryJSON: map[string]interface{}{
+						"dn": "cn=user,dc=example,dc=org",
+					},
+				},
+			},
+		}, &model.UserWeb3Info{
+			Accounts: []model.NFTOwnership{
+				{
+					AccountIdentifier: model.AccountIdentifier{
+						Address: "0x0",
+					},
+					NetworkIdentifier: model.NetworkIdentifier{
+						Blockchain: "ethereum",
+						Network:    "10",
+					},
+				},
+			},
+		}), ShouldEqual, "cn=user,dc=example,dc=org")
+
+		So(computeEndUserAccountID(map[string]interface{}{}, []*identity.Info{
+			{
+				Type: model.IdentityTypeLDAP,
+				LDAP: &identity.LDAP{
+					UserIDAttributeName:  "uid",
+					UserIDAttributeValue: []byte("example-user"),
+				},
+			},
+		}, nil), ShouldEqual, "uid=example-user")
+
+		So(computeEndUserAccountID(map[string]interface{}{}, nil, &model.UserWeb3Info{
+			Accounts: []model.NFTOwnership{
+				{
+					AccountIdentifier: model.AccountIdentifier{
+						Address: "0x0",
+					},
+					NetworkIdentifier: model.NetworkIdentifier{
+						Blockchain: "ethereum",
+						Network:    "10",
+					},
+				},
+			},
+		}), ShouldEqual, "ethereum:0x0@10")
 	})
 }

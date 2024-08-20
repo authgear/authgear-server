@@ -64,6 +64,12 @@ type inputTakePasskeyAssertionResponse interface {
 	GetAssertionResponse() *protocol.CredentialAssertionResponse
 }
 
+type inputTakeLDAP interface {
+	GetServerName() string
+	GetUsername() string
+	GetPassword() string
+}
+
 type inputTakeOOBOTPChannel interface {
 	GetChannel() model.AuthenticatorOOBChannel
 }

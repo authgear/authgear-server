@@ -903,6 +903,7 @@
   "v2-oauth-branding-adfs": "Mit Microsoft AD FS anmelden",
   "v2-oauth-branding-wechat": "Mit WeChat anmelden",
   "v2-oauth-branding-iamsmart": "Weiter mit iAM Smart",
+  "v2-ldap-branding": "Mit LDAP anmelden",
   "v2-error-invalid-email": "Bitte fügen Sie '@' in die E-Mail-Adresse ein.",
   "v2-error-web-ui-invalid-session-return": "<p>Diese Seite ist ungültig oder abgelaufen.</p><p>Bitte kehren Sie zurück und versuchen Sie Ihre Anfrage erneut.</p>",
   "v2-error-no-public-signup": "<p>Die Registrierung ist deaktiviert.</p><p>Bitte wenden Sie sich an den Systemadministrator.</p>",

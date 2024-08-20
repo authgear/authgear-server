@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	identityanonymous "github.com/authgear/authgear-server/pkg/lib/authn/identity/anonymous"
 	identitybiometric "github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
+	identityldap "github.com/authgear/authgear-server/pkg/lib/authn/identity/ldap"
 	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	identitypasskey "github.com/authgear/authgear-server/pkg/lib/authn/identity/passkey"
@@ -45,6 +46,7 @@ import (
 	featureweb3 "github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/ldap"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -201,6 +203,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		stdattrs.DependencySet,
 		wire.Bind(new(sso.StandardAttributesNormalizer), new(*stdattrs.Normalizer)),
+		wire.Bind(new(identityldap.StandardAttributesNormalizer), new(*stdattrs.Normalizer)),
 	),
 
 	wire.NewSet(
@@ -217,6 +220,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(stdattrs.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(authenticatoroob.LoginIDNormalizerFactory), new(*identityloginid.NormalizerFactory)),
 		wire.Bind(new(authenticationflow.LoginIDService), new(*identityloginid.Provider)),
+		wire.Bind(new(authenticationflow.LDAPService), new(*identityldap.Provider)),
 
 		identityoauth.DependencySet,
 
@@ -233,6 +237,8 @@ var CommonDependencySet = wire.NewSet(
 
 		identitysiwe.DependencySet,
 
+		identityldap.DependencySet,
+
 		identityservice.DependencySet,
 		wire.Bind(new(identityservice.LoginIDIdentityProvider), new(*identityloginid.Provider)),
 		wire.Bind(new(identityservice.OAuthIdentityProvider), new(*identityoauth.Provider)),
@@ -240,6 +246,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(identityservice.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 		wire.Bind(new(identityservice.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 		wire.Bind(new(identityservice.SIWEIdentityProvider), new(*identitysiwe.Provider)),
+		wire.Bind(new(identityservice.LDAPIdentityProvider), new(*identityldap.Provider)),
 
 		wire.Bind(new(facade.IdentityService), new(*identityservice.Service)),
 		wire.Bind(new(user.IdentityService), new(*identityservice.Service)),
@@ -330,6 +337,11 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		botprotection.DependencySet,
 		wire.Bind(new(authenticationflow.BotProtectionService), new(*botprotection.Provider)),
+	),
+
+	wire.NewSet(
+		ldap.DependencySet,
+		wire.Bind(new(authenticationflow.LDAPClientFactory), new(*ldap.ClientFactory)),
 	),
 
 	wire.NewSet(

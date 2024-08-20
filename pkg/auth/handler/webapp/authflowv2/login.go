@@ -194,6 +194,17 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
+	handlers.PostAction("ldap", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		serverName := r.FormValue("x_server_name")
+		q := url.Values{}
+		q.Set("q_server_name", serverName)
+
+		result := h.Controller.AdvanceDirectly(AuthflowV2RouteLDAPLogin, screen, q)
+
+		result.WriteResponse(w, r)
+		return nil
+	})
+
 	handlers.PostAction("passkey", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		assertionResponseStr := r.Form.Get("x_assertion_response")
 

@@ -903,6 +903,7 @@
   "v2-oauth-branding-adfs": "Se connecter avec Microsoft AD FS",
   "v2-oauth-branding-wechat": "Se connecter avec WeChat",
   "v2-oauth-branding-iamsmart": "Continuer avec iAM Smart",
+  "v2-ldap-branding": "Connectez-vous avec LDAP",
   "v2-error-invalid-email": "Veuillez inclure '@' dans l''adresse email.",
   "v2-error-web-ui-invalid-session-return": "<p>Cette page est invalide ou a expiré.</p><p>Veuillez revenir et réessayer votre demande.</p>",
   "v2-error-no-public-signup": "<p>L''inscription est désactivée.</p><p>Veuillez contacter l''administrateur système.</p>",
