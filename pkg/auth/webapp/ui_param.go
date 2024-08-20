@@ -40,10 +40,10 @@ var UILocalesCookieDef = &httputil.CookieDef{
 // }
 
 type UIParamMiddleware struct {
-	UIInfoResolver SessionMiddlewareOAuthUIInfoResolver
-	OAuthSessions  SessionMiddlewareOAuthSessionService
-	SAMLSessions   SessionMiddlewareSAMLSessionService
-	Cookies        CookieManager
+	OAuthUIInfoResolver SessionMiddlewareOAuthUIInfoResolver
+	OAuthSessions       SessionMiddlewareOAuthSessionService
+	SAMLSessions        SessionMiddlewareSAMLSessionService
+	Cookies             CookieManager
 }
 
 func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
@@ -102,7 +102,7 @@ func (m *UIParamMiddleware) getUIParamFromOAuthSession(oauthSessionID string) (
 	}
 
 	if entry != nil {
-		uiInfo, err := m.UIInfoResolver.ResolveForUI(entry.T.AuthorizationRequest)
+		uiInfo, err := m.OAuthUIInfoResolver.ResolveForUI(entry.T.AuthorizationRequest)
 		if err != nil {
 			panic(err)
 		}
