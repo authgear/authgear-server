@@ -13,10 +13,13 @@ import (
 
 	dsig "github.com/russellhaering/goxmldsig"
 
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
@@ -211,13 +214,18 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 func (s *Service) IssueSuccessResponse(
 	callbackURL string,
 	serviceProviderId string,
-	authenticatedUserId string,
+	authInfo authenticationinfo.T,
 	inResponseToAuthnRequest *samlprotocol.AuthnRequest,
 ) (*samlprotocol.Response, error) {
 	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
 		return nil, samlerror.ErrServiceProviderNotFound
 	}
+	authenticatedUserId := authInfo.UserID
+	sid := oidc.EncodeSIDByRawValues(
+		session.Type(authInfo.AuthenticatedBySessionType),
+		authInfo.AuthenticatedBySessionID,
+	)
 
 	clientLike := spToClientLike(sp)
 	userInfo, err := s.UserInfoProvider.GetUserInfo(authenticatedUserId, clientLike)
@@ -308,8 +316,7 @@ func (s *Service) IssueSuccessResponse(
 		AuthnStatements: []crewjamsaml.AuthnStatement{
 			{
 				AuthnInstant: notBefore,
-				// TODO(saml): Put the idp session id here
-				SessionIndex: "",
+				SessionIndex: sid,
 				AuthnContext: crewjamsaml.AuthnContext{
 					AuthnContextClassRef: &crewjamsaml.AuthnContextClassRef{
 						// TODO(saml): Return a correct context by used authenticators

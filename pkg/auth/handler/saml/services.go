@@ -16,7 +16,7 @@ type HandlerSAMLService interface {
 	IssueSuccessResponse(
 		callbackURL string,
 		serviceProviderId string,
-		authenticatedUserId string,
+		authInfo authenticationinfo.T,
 		inResponseToAuthnRequest *samlprotocol.AuthnRequest,
 	) (*samlprotocol.Response, error)
 }
