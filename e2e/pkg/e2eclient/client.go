@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -249,6 +250,7 @@ type GraphQLResponse struct {
 	} `json:"errors"`
 }
 
+// In e2e test, recommend to use `GraphQLAPIRaw` below to check the response in JSON string format over a GraphQLResponse Object
 func (c *Client) GraphQLAPI(w http.ResponseWriter, r *http.Request, appID string, body GraphQLAPIRequest) (*GraphQLResponse, error) {
 	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/graphql")
 
@@ -270,4 +272,26 @@ func (c *Client) GraphQLAPI(w http.ResponseWriter, r *http.Request, appID string
 	}
 
 	return &graphQLResponse, nil
+}
+
+func (c *Client) GraphQLAPIRaw(w http.ResponseWriter, r *http.Request, appID string, body GraphQLAPIRequest) (string, error) {
+	endpoint := c.AdminEndpoint.JoinPath("/_api/admin/graphql")
+
+	req, err := c.makeRequest(r, endpoint, body)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	b, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
 }

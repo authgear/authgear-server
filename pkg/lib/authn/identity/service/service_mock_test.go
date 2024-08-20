@@ -7,6 +7,7 @@ package service
 import (
 	reflect "reflect"
 
+	model "github.com/authgear/authgear-server/pkg/api/model"
 	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	loginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	oauthrelyingparty "github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -167,6 +168,22 @@ func (m *MockLoginIDIdentityProvider) New(userID string, loginID identity.LoginI
 func (mr *MockLoginIDIdentityProviderMockRecorder) New(userID, loginID, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).New), userID, loginID, options)
+}
+
+// Normalize mocks base method.
+func (m *MockLoginIDIdentityProvider) Normalize(typ model.LoginIDKeyType, value string) (string, string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Normalize", typ, value)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(string)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// Normalize indicates an expected call of Normalize.
+func (mr *MockLoginIDIdentityProviderMockRecorder) Normalize(typ, value interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Normalize", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Normalize), typ, value)
 }
 
 // Update mocks base method.

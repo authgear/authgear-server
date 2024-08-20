@@ -27,6 +27,7 @@ type LoginIDIdentityProvider interface {
 	Create(i *identity.LoginID) error
 	Update(i *identity.LoginID) error
 	Delete(i *identity.LoginID) error
+	Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
 }
 
 type OAuthIdentityProvider interface {
@@ -1075,4 +1076,8 @@ func (s *Service) listSIWECandidates(siwes []*identity.SIWE) []identity.Candidat
 
 	}
 	return out
+}
+
+func (s *Service) Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
+	return s.LoginID.Normalize(typ, value)
 }
