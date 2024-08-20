@@ -55,7 +55,7 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 		panic(err)
 	}
 
-	result := h.LoginResultHandler.handleLoginResult(authInfo, samlSession)
+	result := h.LoginResultHandler.handleLoginResult(&authInfo.T, samlSession.Entry)
 	switch result := result.(type) {
 	case *samlprotocolhttp.SAMLErrorResult:
 		if result.IsUnexpected {

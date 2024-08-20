@@ -54,6 +54,21 @@ func NewRequestDeniedErrorResponse(
 	return newResponse(issueInstant, Status{status: status}, issuer)
 }
 
+func NewNoPassiveErrorResponse(
+	issueInstant time.Time,
+	issuer string,
+) *Response {
+	status := crewjamsaml.Status{
+		StatusCode: crewjamsaml.StatusCode{
+			Value: crewjamsaml.StatusRequester,
+			StatusCode: &crewjamsaml.StatusCode{
+				Value: crewjamsaml.StatusNoPassive,
+			},
+		},
+	}
+	return newResponse(issueInstant, Status{status: status}, issuer)
+}
+
 func NewServerErrorResponse(
 	issueInstant time.Time,
 	issuer string,
