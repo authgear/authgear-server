@@ -27,7 +27,6 @@ func (h *LoginResultHandler) handleLoginResult(
 	now := h.Clock.NowUTC()
 	callbackURL := samlSessionEntry.CallbackURL
 	relayState := samlSessionEntry.RelayState
-	authenticatedUserID := authInfo.UserID
 	defer func() {
 		if e := recover(); e != nil {
 			e := panicutil.MakeError(e)
@@ -51,7 +50,7 @@ func (h *LoginResultHandler) handleLoginResult(
 		resp, err := h.SAMLService.IssueSuccessResponse(
 			callbackURL,
 			samlSessionEntry.ServiceProviderID,
-			authenticatedUserID,
+			*authInfo,
 			authnRequest,
 		)
 		if err != nil {

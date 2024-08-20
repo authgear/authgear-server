@@ -23,6 +23,8 @@ type T struct {
 
 	// AuthenticatedBySessionType and AuthenticatedBySessionID
 	// means this authentication is done by an existing session.
+	// If a new idp session is created during the authentication process,
+	// the idp session id will also be stored in AuthenticatedBySessionID.
 	AuthenticatedBySessionType string
 	AuthenticatedBySessionID   string
 }
