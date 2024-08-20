@@ -76,7 +76,7 @@ type TesterUserInfoProvider interface {
 }
 
 type TesterOfflineGrantStore interface {
-	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
+	GetOfflineGrantWithoutExpireAt(id string) (*oauth.OfflineGrant, error)
 }
 
 type TesterHandler struct {
@@ -210,7 +210,7 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 		return err
 	}
 
-	offlineGrant, err := h.OfflineGrants.GetOfflineGrant(s.OfflineGrantID)
+	offlineGrant, err := h.OfflineGrants.GetOfflineGrantWithoutExpireAt(s.OfflineGrantID)
 	if err != nil {
 		return err
 	}

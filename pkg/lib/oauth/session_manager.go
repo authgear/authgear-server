@@ -19,7 +19,7 @@ func (m *SessionManager) ClearCookie() []*http.Cookie {
 }
 
 func (m *SessionManager) Get(id string) (session.ListableSession, error) {
-	grant, err := m.Store.GetOfflineGrant(id)
+	grant, err := m.Store.GetOfflineGrantWithoutExpireAt(id)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrSessionNotFound
 	} else if err != nil {

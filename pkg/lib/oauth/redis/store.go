@@ -241,7 +241,7 @@ func (s *Store) DeleteAccessGrant(grant *oauth.AccessGrant) error {
 	})
 }
 
-func (s *Store) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
+func (s *Store) GetOfflineGrantWithoutExpireAt(id string) (*oauth.OfflineGrant, error) {
 	var g *oauth.OfflineGrant
 	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
 		data, err := s.loadData(conn, offlineGrantKey(string(s.AppID), id))
@@ -300,7 +300,7 @@ func (s *Store) AccessWithID(grantID string, accessEvent access.Event, expireAt 
 		_, _ = mutex.UnlockContext(s.Context)
 	}()
 
-	grant, err := s.GetOfflineGrant(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -326,7 +326,7 @@ func (s *Store) AccessOfflineGrantAndUpdateDeviceInfo(grantID string, accessEven
 		_, _ = mutex.UnlockContext(s.Context)
 	}()
 
-	grant, err := s.GetOfflineGrant(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -353,7 +353,7 @@ func (s *Store) UpdateOfflineGrantAuthenticatedAt(grantID string, authenticatedA
 		_, _ = mutex.UnlockContext(s.Context)
 	}()
 
-	grant, err := s.GetOfflineGrant(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -379,7 +379,7 @@ func (s *Store) UpdateOfflineGrantApp2AppDeviceKey(grantID string, newKey string
 		_, _ = mutex.UnlockContext(s.Context)
 	}()
 
-	grant, err := s.GetOfflineGrant(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +409,7 @@ func (s *Store) UpdateOfflineGrantDeviceSecretHash(
 		_, _ = mutex.UnlockContext(s.Context)
 	}()
 
-	grant, err := s.GetOfflineGrant(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -444,7 +444,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 		_, _ = mutex.UnlockContext(s.Context)
 	}()
 
-	grant, err := s.GetOfflineGrant(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -484,7 +484,7 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []st
 		tokenHashesSet[hash] = hash
 	}
 
-	grant, err := s.GetOfflineGrant(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
 	if err != nil {
 		return nil, err
 	}

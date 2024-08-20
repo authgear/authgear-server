@@ -256,19 +256,19 @@ func (mr *MockOfflineGrantStoreMockRecorder) DeleteOfflineGrant(arg0 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOfflineGrant", reflect.TypeOf((*MockOfflineGrantStore)(nil).DeleteOfflineGrant), arg0)
 }
 
-// GetOfflineGrant mocks base method.
-func (m *MockOfflineGrantStore) GetOfflineGrant(id string) (*OfflineGrant, error) {
+// GetOfflineGrantWithoutExpireAt mocks base method.
+func (m *MockOfflineGrantStore) GetOfflineGrantWithoutExpireAt(id string) (*OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOfflineGrant", id)
+	ret := m.ctrl.Call(m, "GetOfflineGrantWithoutExpireAt", id)
 	ret0, _ := ret[0].(*OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetOfflineGrant indicates an expected call of GetOfflineGrant.
-func (mr *MockOfflineGrantStoreMockRecorder) GetOfflineGrant(id interface{}) *gomock.Call {
+// GetOfflineGrantWithoutExpireAt indicates an expected call of GetOfflineGrantWithoutExpireAt.
+func (mr *MockOfflineGrantStoreMockRecorder) GetOfflineGrantWithoutExpireAt(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockOfflineGrantStore)(nil).GetOfflineGrant), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrantWithoutExpireAt", reflect.TypeOf((*MockOfflineGrantStore)(nil).GetOfflineGrantWithoutExpireAt), id)
 }
 
 // ListClientOfflineGrants mocks base method.

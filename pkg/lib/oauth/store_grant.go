@@ -22,7 +22,7 @@ type SettingsActionGrantStore interface {
 }
 
 type OfflineGrantStore interface {
-	GetOfflineGrant(id string) (*OfflineGrant, error)
+	GetOfflineGrantWithoutExpireAt(id string) (*OfflineGrant, error)
 	CreateOfflineGrant(offlineGrant *OfflineGrant, expireAt time.Time) error
 	DeleteOfflineGrant(*OfflineGrant) error
 

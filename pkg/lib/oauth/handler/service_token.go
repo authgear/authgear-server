@@ -145,7 +145,7 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 	opts IssueOfflineGrantRefreshTokenOptions,
 	resp protocol.TokenResponse,
 ) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error) {
-	offlineGrant, err = s.OfflineGrants.GetOfflineGrant(offlineGrantID)
+	offlineGrant, err = s.OfflineGrants.GetOfflineGrantWithoutExpireAt(offlineGrantID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -198,7 +198,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	offlineGrant, err = s.OfflineGrants.GetOfflineGrant(grantID)
+	offlineGrant, err = s.OfflineGrants.GetOfflineGrantWithoutExpireAt(grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {

@@ -28,7 +28,7 @@ func (h *RevokeHandler) Handle(r protocol.RevokeRequest) error {
 }
 
 func (h *RevokeHandler) revokeOfflineGrant(token, grantID string) error {
-	offlineGrant, err := h.OfflineGrants.GetOfflineGrant(grantID)
+	offlineGrant, err := h.OfflineGrants.GetOfflineGrantWithoutExpireAt(grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil
 	} else if err != nil {

@@ -76,7 +76,7 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 		return "", oauth.ErrUnmatchedSession
 	}
 
-	offlineGrant, err := s.OfflineGrants.GetOfflineGrant(tokenModel.OfflineGrantID)
+	offlineGrant, err := s.OfflineGrants.GetOfflineGrantWithoutExpireAt(tokenModel.OfflineGrantID)
 	if err != nil {
 		return "", err
 	}

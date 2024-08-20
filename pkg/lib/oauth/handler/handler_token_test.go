@@ -145,7 +145,7 @@ func TestTokenHandler(t *testing.T) {
 					Scopes:   testScopes,
 				}},
 			}
-			offlineGrants.EXPECT().GetOfflineGrant(testOfflineGrantID).
+			offlineGrants.EXPECT().GetOfflineGrantWithoutExpireAt(testOfflineGrantID).
 				AnyTimes().
 				Return(testOfflineGrant, nil)
 			sid := oidc.EncodeSID(testOfflineGrant)

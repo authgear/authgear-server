@@ -61,7 +61,7 @@ func (s *AppSessionTokenService) Exchange(appSessionToken string) (string, error
 	}
 	refreshTokenHash := sToken.RefreshTokenHash
 
-	offlineGrant, err := s.OfflineGrants.GetOfflineGrant(sToken.OfflineGrantID)
+	offlineGrant, err := s.OfflineGrants.GetOfflineGrantWithoutExpireAt(sToken.OfflineGrantID)
 	if err != nil {
 		return "", err
 	}

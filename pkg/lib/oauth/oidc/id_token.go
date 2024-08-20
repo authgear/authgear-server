@@ -334,7 +334,7 @@ func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfi
 			sidSession = sess
 		}
 	case session.TypeOfflineGrant:
-		if sess, err := r.OfflineGrants.GetOfflineGrant(sessionID); err == nil {
+		if sess, err := r.OfflineGrants.GetOfflineGrantWithoutExpireAt(sessionID); err == nil {
 			sidSession = sess
 		}
 	default:
