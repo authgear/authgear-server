@@ -23,7 +23,7 @@ type SAMLBindingHTTPRedirectParseResult struct {
 
 var _ SAMLBindingParseResult = &SAMLBindingHTTPRedirectParseResult{}
 
-func (*SAMLBindingHTTPRedirectParseResult) SAMLBindingParseResult() {}
+func (*SAMLBindingHTTPRedirectParseResult) samlBindingParseResult() {}
 
 func SAMLBindingHTTPRedirectParse(r *http.Request) (
 	result *SAMLBindingHTTPRedirectParseResult,
