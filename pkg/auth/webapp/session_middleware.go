@@ -72,7 +72,7 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 				httputil.UpdateCookie(w, c)
 			}
 
-			// Remove oauth session ID so that we do not create again.
+			// Remove saml session ID so that we do not create again.
 			m.SAMLUIInfoResolver.RemoveSAMLSessionID(w, r)
 
 			r = r.WithContext(WithSession(r.Context(), session))
@@ -142,7 +142,7 @@ func (m *SessionMiddleware) createSessionFromOAuthSession(oauthSessionID string)
 }
 
 func (m *SessionMiddleware) createSessionFromSAMLSession(samlSessionID string) (*Result, *Session) {
-	// When oauth session is not found, we fall back gracefully
+	// When saml session is not found, we fall back gracefully
 	// with a zero value of SessionOptions
 	sessionOptions := SessionOptions{}
 
