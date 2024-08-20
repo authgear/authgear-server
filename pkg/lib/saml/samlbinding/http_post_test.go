@@ -8,8 +8,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	. "github.com/smartystreets/goconvey/convey"
+
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 )
 
 func TestSAMLBindingHTTPPost(t *testing.T) {
