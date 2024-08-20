@@ -296,10 +296,14 @@ type IDTokenHintResolverSessionProvider interface {
 	Get(id string) (*idpsession.IDPSession, error)
 }
 
+type IDTokenHintResolverOfflineGrantService interface {
+	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
+}
+
 type IDTokenHintResolver struct {
-	Issuer        IDTokenHintResolverIssuer
-	Sessions      IDTokenHintResolverSessionProvider
-	OfflineGrants oauth.OfflineGrantStore
+	Issuer              IDTokenHintResolverIssuer
+	Sessions            IDTokenHintResolverSessionProvider
+	OfflineGrantService IDTokenHintResolverOfflineGrantService
 }
 
 func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.ListableSession, err error) {
@@ -334,7 +338,7 @@ func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfi
 			sidSession = sess
 		}
 	case session.TypeOfflineGrant:
-		if sess, err := r.OfflineGrants.GetOfflineGrantWithoutExpireAt(sessionID); err == nil {
+		if sess, err := r.OfflineGrantService.GetOfflineGrant(sessionID); err == nil {
 			sidSession = sess
 		}
 	default:

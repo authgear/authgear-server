@@ -130,7 +130,6 @@ type TokenHandlerSettingsActionGrantStore interface {
 }
 
 type TokenHandlerOfflineGrantStore interface {
-	GetOfflineGrantWithoutExpireAt(id string) (*oauth.OfflineGrant, error)
 	DeleteOfflineGrant(*oauth.OfflineGrant) error
 
 	AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
@@ -151,6 +150,7 @@ type TokenHandlerAppSessionTokenStore interface {
 }
 
 type TokenHandlerOfflineGrantService interface {
+	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
 	ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (expiry time.Time, err error)
 }
 
@@ -681,7 +681,7 @@ func (h *TokenHandler) resolveIDTokenSession(idToken jwt.Token) (sidSession sess
 			sidSession = sess
 		}
 	case session.TypeOfflineGrant:
-		if sess, err := h.OfflineGrants.GetOfflineGrantWithoutExpireAt(sessionID); err == nil {
+		if sess, err := h.OfflineGrantService.GetOfflineGrant(sessionID); err == nil {
 			sidSession = sess
 		}
 	default:
@@ -1496,7 +1496,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	// Update auth_time, app2app device key and device_secret of the offline grant if possible.
 	if sid := code.IDTokenHintSID; sid != "" {
 		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
-			offlineGrant, err := h.OfflineGrants.GetOfflineGrantWithoutExpireAt(sessionID)
+			offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(sessionID)
 			if err == nil {
 				// Update auth_time
 				if info.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
@@ -1618,7 +1618,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			switch typ {
 			case session.TypeOfflineGrant:
 				accessTokenSessionKind = oauth.GrantSessionKindOffline
-				offlineGrant, err := h.OfflineGrants.GetOfflineGrantWithoutExpireAt(sessionID)
+				offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(sessionID)
 				if err != nil {
 					return nil, err
 				}

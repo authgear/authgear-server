@@ -19,6 +19,7 @@ func (m *SessionManager) ClearCookie() []*http.Cookie {
 }
 
 func (m *SessionManager) Get(id string) (session.ListableSession, error) {
+	// It is intentionally not to use Service.GetOfflineGrant here.
 	grant, err := m.Store.GetOfflineGrantWithoutExpireAt(id)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrSessionNotFound

@@ -13,10 +13,14 @@ type SessionManager interface {
 	RevokeWithoutEvent(session session.SessionBase) error
 }
 
+type RevokeHandlerOfflineGrantService interface {
+	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
+}
+
 type RevokeHandler struct {
-	SessionManager SessionManager
-	OfflineGrants  oauth.OfflineGrantStore
-	AccessGrants   oauth.AccessGrantStore
+	SessionManager      SessionManager
+	OfflineGrantService RevokeHandlerOfflineGrantService
+	AccessGrants        oauth.AccessGrantStore
 }
 
 func (h *RevokeHandler) Handle(r protocol.RevokeRequest) error {
@@ -28,7 +32,7 @@ func (h *RevokeHandler) Handle(r protocol.RevokeRequest) error {
 }
 
 func (h *RevokeHandler) revokeOfflineGrant(token, grantID string) error {
-	offlineGrant, err := h.OfflineGrants.GetOfflineGrantWithoutExpireAt(grantID)
+	offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil
 	} else if err != nil {

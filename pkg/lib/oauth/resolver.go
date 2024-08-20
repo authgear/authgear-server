@@ -113,7 +113,7 @@ func (re *Resolver) resolveAccessToken(token string) (session.ResolvedSession, e
 		authSession = s
 
 	case GrantSessionKindOffline:
-		g, err := re.OfflineGrants.GetOfflineGrantWithoutExpireAt(grant.SessionID)
+		g, err := re.OfflineGrantService.GetOfflineGrant(grant.SessionID)
 		if errors.Is(err, ErrGrantNotFound) {
 			return nil, session.ErrInvalidSession
 		} else if err != nil {
@@ -171,7 +171,7 @@ func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSe
 		return nil, err
 	}
 
-	offlineGrant, err := re.OfflineGrants.GetOfflineGrantWithoutExpireAt(aSession.OfflineGrantID)
+	offlineGrant, err := re.OfflineGrantService.GetOfflineGrant(aSession.OfflineGrantID)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
 	} else if err != nil {

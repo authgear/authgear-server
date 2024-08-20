@@ -451,21 +451,6 @@ func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) DeleteOfflineGrant(arg0
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).DeleteOfflineGrant), arg0)
 }
 
-// GetOfflineGrantWithoutExpireAt mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) GetOfflineGrantWithoutExpireAt(id string) (*oauth.OfflineGrant, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOfflineGrantWithoutExpireAt", id)
-	ret0, _ := ret[0].(*oauth.OfflineGrant)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetOfflineGrantWithoutExpireAt indicates an expected call of GetOfflineGrantWithoutExpireAt.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) GetOfflineGrantWithoutExpireAt(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrantWithoutExpireAt", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).GetOfflineGrantWithoutExpireAt), id)
-}
-
 // ListClientOfflineGrants mocks base method.
 func (m *MockTokenHandlerOfflineGrantStore) ListClientOfflineGrants(clientID, userID string) ([]*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
@@ -614,6 +599,21 @@ func (m *MockTokenHandlerOfflineGrantService) ComputeOfflineGrantExpiry(session 
 func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) ComputeOfflineGrantExpiry(session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ComputeOfflineGrantExpiry", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).ComputeOfflineGrantExpiry), session)
+}
+
+// GetOfflineGrant mocks base method.
+func (m *MockTokenHandlerOfflineGrantService) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOfflineGrant", id)
+	ret0, _ := ret[0].(*oauth.OfflineGrant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOfflineGrant indicates an expected call of GetOfflineGrant.
+func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) GetOfflineGrant(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).GetOfflineGrant), id)
 }
 
 // MockTokenHandlerTokenService is a mock of TokenHandlerTokenService interface.

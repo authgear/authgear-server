@@ -75,8 +75,8 @@ type TesterUserInfoProvider interface {
 	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
 }
 
-type TesterOfflineGrantStore interface {
-	GetOfflineGrantWithoutExpireAt(id string) (*oauth.OfflineGrant, error)
+type TesterOfflineGrantService interface {
+	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
 }
 
 type TesterHandler struct {
@@ -92,7 +92,7 @@ type TesterHandler struct {
 	Renderer                Renderer
 	BaseViewModel           *viewmodels.BaseViewModeler
 	UserInfoProvider        TesterUserInfoProvider
-	OfflineGrants           TesterOfflineGrantStore
+	OfflineGrants           TesterOfflineGrantService
 }
 
 var TesterScopes = []string{
@@ -210,7 +210,7 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 		return err
 	}
 
-	offlineGrant, err := h.OfflineGrants.GetOfflineGrantWithoutExpireAt(s.OfflineGrantID)
+	offlineGrant, err := h.OfflineGrants.GetOfflineGrant(s.OfflineGrantID)
 	if err != nil {
 		return err
 	}
