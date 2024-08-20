@@ -126,6 +126,7 @@ type OAuthService interface {
 type SessionManager interface {
 	Delete(session session.ListableSession) error
 	List(userID string) ([]session.ListableSession, error)
+	CleanUpForDeletingUserID(userID string) error
 }
 
 type StdAttrsService interface {
@@ -671,7 +672,7 @@ func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error 
 	}
 
 	// Sessions:
-	if err = c.terminateAllSessions(userID); err != nil {
+	if err = c.terminateAllSessionsAndCleanUp(userID); err != nil {
 		return err
 	}
 
@@ -821,6 +822,31 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 				return err
 			}
 		}
+	}
+
+	return nil
+}
+
+func (c *Coordinator) terminateAllSessionsAndCleanUp(userID string) error {
+	err := c.terminateAllSessions(userID)
+	if err != nil {
+		return err
+	}
+
+	// According to https://redis.io/docs/latest/commands/hdel/
+	// When the last field of a Redis hash is deleted, the hash is deleted.
+	// So in most case, we do not actually need this.
+	// However, List() does not actually return every key that the Redis hash has,
+	// so having CleanUpForDeletingUserID ensures we delete the hash.
+
+	err = c.IDPSessions.CleanUpForDeletingUserID(userID)
+	if err != nil {
+		return err
+	}
+
+	err = c.OAuthSessions.CleanUpForDeletingUserID(userID)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -1062,7 +1088,7 @@ func (c *Coordinator) UserAnonymize(userID string, IsScheduledAnonymization bool
 	}
 
 	// Sessions:
-	if err = c.terminateAllSessions(userID); err != nil {
+	if err = c.terminateAllSessionsAndCleanUp(userID); err != nil {
 		return err
 	}
 

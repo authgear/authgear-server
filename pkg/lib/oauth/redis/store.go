@@ -727,3 +727,17 @@ func (s *Store) ConsumePreAuthenticatedURLToken(tokenHash string) (*oauth.PreAut
 
 	return t, nil
 }
+
+func (s *Store) CleanUpForDeletingUserID(userID string) (err error) {
+	ctx := context.Background()
+	listKey := offlineGrantListKey(string(s.AppID), userID)
+
+	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+		_, err := conn.Del(ctx, listKey).Result()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	return
+}
