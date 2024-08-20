@@ -61,12 +61,10 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		// HTTP-Redirect binding
-		parser := &samlbinding.SAMLBindingHTTPRedirectParser{}
-		parseResult, err = parser.Parse(r)
+		parseResult, err = samlbinding.SAMLBindingHTTPRedirectParse(r)
 	case "POST":
 		// HTTP-POST binding
-		parser := &samlbinding.SAMLBindingHTTPPostParser{}
-		parseResult, err = parser.Parse(r)
+		parseResult, err = samlbinding.SAMLBindingHTTPPostParse(r)
 	default:
 		panic(fmt.Errorf("unexpected method %s", r.Method))
 	}

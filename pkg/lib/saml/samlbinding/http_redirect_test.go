@@ -5,15 +5,13 @@ import (
 	"net/url"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
-
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestSAMLBindingHTTPRedirect(t *testing.T) {
 
 	Convey("SAMLBindingHTTPRedirectParser", t, func() {
-		parser := &samlbinding.SAMLBindingHTTPRedirectParser{}
 		Convey("success", func() {
 			req := &http.Request{}
 			req.URL = &url.URL{}
@@ -37,7 +35,7 @@ func TestSAMLBindingHTTPRedirect(t *testing.T) {
 			q.Add("RelayState", relayState)
 			q.Add("SAMLRequest", samlRequest)
 			req.URL.RawQuery = q.Encode()
-			result, err := parser.Parse(req)
+			result, err := samlbinding.SAMLBindingHTTPRedirectParse(req)
 			So(err, ShouldBeNil)
 
 			So(result.RelayState, ShouldEqual, relayState)
