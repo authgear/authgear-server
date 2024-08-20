@@ -1,6 +1,9 @@
 package samlbinding_test
 
 import (
+	"bytes"
+	"compress/flate"
+	"encoding/base64"
 	"net/http"
 	"net/url"
 	"testing"
@@ -17,7 +20,7 @@ func TestSAMLBindingHTTPRedirect(t *testing.T) {
 			req.URL = &url.URL{}
 			q := url.Values{}
 			relayState := "testrelaystate"
-			/*
+			samlRequestXML := `
 				<samlp:AuthnRequest
 					xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
 					xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
@@ -30,10 +33,17 @@ func TestSAMLBindingHTTPRedirect(t *testing.T) {
 					Version="2.0"
 					><saml:Issuer>IAMShowcase</saml:Issuer></samlp:AuthnRequest
 				>
-			*/
-			samlRequest := "fZFRT8IwFIXfTfwPZO+wrmxjaxjJlBhJIBI2ffCtlDu2pGtnb6f8fEdRoz7w1t57vttzbufIW9mxvLe12sFbD2hvb0ajUysVMtfLvN4opjk2yBRvAZkVrMg3a0YnhHVGWy209P5S1yGOCMY2WjnqQRsBzkDmVVwiuOpqmXk8IjEJo2lIDlUIlKYkHo68CpK0CvdRMJtVcRokdHohEHtYKbRc2cyjhIZjkoyDuCQJoxGL0lcnWw4RG8XPz2debW3HfF9qwWWt0bIpIcQ/J6BD8dgoH7vAYfm353utsG/BFGDeGwHPu/XPGDjxtpMwEbr1uUDHbb8WdNeoQ6OO1xezv4iQPZbldrx9Kko34wUMOruDxhUW87NF5hKbxSrfFLX+EBxh7v9uXG7/f3fxCQ=="
+			`
+			compressedRequestBuffer := &bytes.Buffer{}
+			writer, err := flate.NewWriter(compressedRequestBuffer, 9)
+			So(err, ShouldBeNil)
+			_, err = writer.Write([]byte(samlRequestXML))
+			So(err, ShouldBeNil)
+			err = writer.Close()
+			So(err, ShouldBeNil)
+			base64EncodedRequest := base64.StdEncoding.EncodeToString(compressedRequestBuffer.Bytes())
 			q.Add("RelayState", relayState)
-			q.Add("SAMLRequest", samlRequest)
+			q.Add("SAMLRequest", base64EncodedRequest)
 			req.URL.RawQuery = q.Encode()
 			result, err := samlbinding.SAMLBindingHTTPRedirectParse(req)
 			So(err, ShouldBeNil)
