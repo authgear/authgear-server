@@ -12,6 +12,7 @@ import {
   PersonaSize,
   Text,
   MessageBar,
+  IListProps,
 } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { Link, useParams } from "react-router-dom";
@@ -34,6 +35,10 @@ import useDelayedValue from "../../hook/useDelayedValue";
 import TextCell from "../../components/roles-and-groups/list/common/TextCell";
 import ActionButtonCell from "../../components/roles-and-groups/list/common/ActionButtonCell";
 import BaseCell from "../../components/roles-and-groups/list/common/BaseCell";
+
+function onShouldVirtualize(_: IListProps): boolean {
+  return false;
+}
 
 interface UsersListProps {
   className?: string;
@@ -460,6 +465,8 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
             layoutMode={DetailsListLayoutMode.justified}
             columns={columns}
             items={items}
+            // UserList always render fixed number of items, which is not infinite scroll, so no need virtualization
+            onShouldVirtualize={onShouldVirtualize}
           />
         </div>
         {!isSearch ? (
