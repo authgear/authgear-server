@@ -25,7 +25,8 @@ type IntentCreateAuthenticatorOOBOTP struct {
 
 var _ authflow.Intent = &IntentCreateAuthenticatorOOBOTP{}
 var _ authflow.Milestone = &IntentCreateAuthenticatorOOBOTP{}
-var _ MilestoneAuthenticationMethod = &IntentCreateAuthenticatorOOBOTP{}
+var _ MilestoneFlowSelectAuthenticationMethod = &IntentCreateAuthenticatorOOBOTP{}
+var _ MilestoneDidSelectAuthenticationMethod = &IntentCreateAuthenticatorOOBOTP{}
 var _ MilestoneFlowCreateAuthenticator = &IntentCreateAuthenticatorOOBOTP{}
 
 func (*IntentCreateAuthenticatorOOBOTP) Kind() string {
@@ -36,9 +37,14 @@ func (*IntentCreateAuthenticatorOOBOTP) Milestone() {}
 func (*IntentCreateAuthenticatorOOBOTP) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 }
-func (n *IntentCreateAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
-	return n.Authentication
+func (i *IntentCreateAuthenticatorOOBOTP) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
+	return i, flows, true
 }
+
+func (i *IntentCreateAuthenticatorOOBOTP) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
+	return i.Authentication
+}
+
 func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true

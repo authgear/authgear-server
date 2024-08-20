@@ -46,7 +46,8 @@ type IntentCreateAuthenticatorTOTP struct {
 
 var _ authflow.Intent = &IntentCreateAuthenticatorTOTP{}
 var _ authflow.Milestone = &IntentCreateAuthenticatorTOTP{}
-var _ MilestoneAuthenticationMethod = &IntentCreateAuthenticatorTOTP{}
+var _ MilestoneFlowSelectAuthenticationMethod = &IntentCreateAuthenticatorTOTP{}
+var _ MilestoneDidSelectAuthenticationMethod = &IntentCreateAuthenticatorTOTP{}
 var _ MilestoneFlowCreateAuthenticator = &IntentCreateAuthenticatorTOTP{}
 var _ authflow.InputReactor = &IntentCreateAuthenticatorTOTP{}
 var _ authflow.DataOutputer = &IntentCreateAuthenticatorTOTP{}
@@ -90,7 +91,10 @@ func (*IntentCreateAuthenticatorTOTP) Milestone() {}
 func (*IntentCreateAuthenticatorTOTP) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 }
-func (n *IntentCreateAuthenticatorTOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentCreateAuthenticatorTOTP) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
+	return n, flows, true
+}
+func (n *IntentCreateAuthenticatorTOTP) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 

@@ -25,7 +25,8 @@ type IntentUseAuthenticatorPassword struct {
 
 var _ authflow.Intent = &IntentUseAuthenticatorPassword{}
 var _ authflow.Milestone = &IntentUseAuthenticatorPassword{}
-var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorPassword{}
+var _ MilestoneFlowSelectAuthenticationMethod = &IntentUseAuthenticatorPassword{}
+var _ MilestoneDidSelectAuthenticationMethod = &IntentUseAuthenticatorPassword{}
 var _ MilestoneFlowAuthenticate = &IntentUseAuthenticatorPassword{}
 var _ authflow.InputReactor = &IntentUseAuthenticatorPassword{}
 
@@ -34,7 +35,10 @@ func (*IntentUseAuthenticatorPassword) Kind() string {
 }
 
 func (*IntentUseAuthenticatorPassword) Milestone() {}
-func (n *IntentUseAuthenticatorPassword) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentUseAuthenticatorPassword) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
+	return n, flows, true
+}
+func (n *IntentUseAuthenticatorPassword) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 

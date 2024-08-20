@@ -20,7 +20,8 @@ type NodeSkipCreationByExistingAuthenticator struct {
 
 var _ authflow.NodeSimple = &NodeSkipCreationByExistingAuthenticator{}
 var _ authflow.Milestone = &NodeSkipCreationByExistingAuthenticator{}
-var _ MilestoneAuthenticationMethod = &NodeSkipCreationByExistingAuthenticator{}
+var _ MilestoneFlowSelectAuthenticationMethod = &NodeSkipCreationByExistingAuthenticator{}
+var _ MilestoneDidSelectAuthenticationMethod = &NodeSkipCreationByExistingAuthenticator{}
 var _ MilestoneDoCreateAuthenticator = &NodeSkipCreationByExistingAuthenticator{}
 var _ MilestoneFlowCreateAuthenticator = &NodeSkipCreationByExistingAuthenticator{}
 
@@ -32,7 +33,10 @@ func (n *NodeSkipCreationByExistingAuthenticator) Milestone() {}
 func (n *NodeSkipCreationByExistingAuthenticator) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
 	return n, flows, true
 }
-func (n *NodeSkipCreationByExistingAuthenticator) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *NodeSkipCreationByExistingAuthenticator) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
+	return n, flows, true
+}
+func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 func (n *NodeSkipCreationByExistingAuthenticator) MilestoneDoCreateAuthenticator() *authenticator.Info {

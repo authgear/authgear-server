@@ -7,7 +7,6 @@ import (
 
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func init() {
@@ -15,13 +14,12 @@ func init() {
 }
 
 type IntentInspectDeviceToken struct {
-	UserID         string                                  `json:"user_id,omitempty"`
-	Authentication config.AuthenticationFlowAuthentication `json:"authentication,omitempty"`
+	UserID string `json:"user_id,omitempty"`
 }
 
 var _ authflow.Intent = &IntentInspectDeviceToken{}
 var _ authflow.Milestone = &IntentInspectDeviceToken{}
-var _ MilestoneAuthenticationMethod = &IntentInspectDeviceToken{}
+var _ MilestoneFlowSelectAuthenticationMethod = &IntentInspectDeviceToken{}
 var _ MilestoneFlowAuthenticate = &IntentInspectDeviceToken{}
 var _ MilestoneDeviceTokenInspected = &IntentInspectDeviceToken{}
 
@@ -30,8 +28,8 @@ func (*IntentInspectDeviceToken) Kind() string {
 }
 
 func (*IntentInspectDeviceToken) Milestone() {}
-func (i *IntentInspectDeviceToken) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
-	return i.Authentication
+func (i *IntentInspectDeviceToken) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
+	return authflow.FindMilestoneInCurrentFlow[MilestoneDidSelectAuthenticationMethod](flows)
 }
 func (i *IntentInspectDeviceToken) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDidAuthenticate](flows)

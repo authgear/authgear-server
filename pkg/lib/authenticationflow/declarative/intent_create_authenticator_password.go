@@ -26,7 +26,8 @@ var _ authflow.Intent = &IntentCreateAuthenticatorPassword{}
 var _ authflow.InputReactor = &IntentCreateAuthenticatorPassword{}
 var _ authflow.Milestone = &IntentCreateAuthenticatorPassword{}
 var _ MilestoneFlowCreateAuthenticator = &IntentCreateAuthenticatorPassword{}
-var _ MilestoneAuthenticationMethod = &IntentCreateAuthenticatorPassword{}
+var _ MilestoneFlowSelectAuthenticationMethod = &IntentCreateAuthenticatorPassword{}
+var _ MilestoneDidSelectAuthenticationMethod = &IntentCreateAuthenticatorPassword{}
 
 func (*IntentCreateAuthenticatorPassword) Kind() string {
 	return "IntentCreateAuthenticatorPassword"
@@ -36,7 +37,10 @@ func (*IntentCreateAuthenticatorPassword) Milestone() {}
 func (*IntentCreateAuthenticatorPassword) MilestoneFlowCreateAuthenticator(flows authflow.Flows) (MilestoneDoCreateAuthenticator, authflow.Flows, bool) {
 	return authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateAuthenticator](flows)
 }
-func (n *IntentCreateAuthenticatorPassword) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentCreateAuthenticatorPassword) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
+	return n, flows, true
+}
+func (n *IntentCreateAuthenticatorPassword) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 

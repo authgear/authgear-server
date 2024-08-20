@@ -21,7 +21,8 @@ type IntentUseRecoveryCode struct {
 
 var _ authflow.Intent = &IntentUseRecoveryCode{}
 var _ authflow.Milestone = &IntentUseRecoveryCode{}
-var _ MilestoneAuthenticationMethod = &IntentUseRecoveryCode{}
+var _ MilestoneFlowSelectAuthenticationMethod = &IntentUseRecoveryCode{}
+var _ MilestoneDidSelectAuthenticationMethod = &IntentUseRecoveryCode{}
 var _ MilestoneFlowAuthenticate = &IntentUseRecoveryCode{}
 var _ authflow.InputReactor = &IntentUseRecoveryCode{}
 
@@ -30,7 +31,10 @@ func (*IntentUseRecoveryCode) Kind() string {
 }
 
 func (*IntentUseRecoveryCode) Milestone() {}
-func (n *IntentUseRecoveryCode) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (n *IntentUseRecoveryCode) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
+	return n, flows, true
+}
+func (n *IntentUseRecoveryCode) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return n.Authentication
 }
 

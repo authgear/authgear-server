@@ -24,16 +24,16 @@ func init() {
 
 // IntentSignupFlowStepCreateAuthenticator
 //
-//   IntentCreateAuthenticatorPassword (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//   IntentCreateAuthenticatorPassword (MilestoneFlowCreateAuthenticator, MilestoneFlowSelectAuthenticationMethod, MilestoneFlowDidSelectAuthenticationMethod)
 //     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 //
-//   IntentCreateAuthenticatorOOBOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//   IntentCreateAuthenticatorOOBOTP (MilestoneFlowCreateAuthenticator, MilestoneFlowSelectAuthenticationMethod, MilestoneFlowDidSelectAuthenticationMethod)
 //     IntentVerifyClaim (MilestoneVerifyClaim)
 //       NodeVerifyClaim
 //     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 //     NodeDidSelectAuthenticator (MilestoneDidSelectAuthenticator)
 //
-//   IntentCreateAuthenticatorTOTP (MilestoneFlowCreateAuthenticator, MilestoneAuthenticationMethod)
+//   IntentCreateAuthenticatorTOTP (MilestoneFlowCreateAuthenticator, MilestoneFlowSelectAuthenticationMethod, MilestoneFlowDidSelectAuthenticationMethod)
 //     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 
 type IntentSignupFlowStepCreateAuthenticator struct {
@@ -271,14 +271,14 @@ func (i *IntentSignupFlowStepCreateAuthenticator) checkAuthenticationMethod(deps
 }
 
 func (*IntentSignupFlowStepCreateAuthenticator) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {
-	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneAuthenticationMethod](flows)
+	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowSelectAuthenticationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("authentication method not yet selected"))
 	}
 
-	am := m.MilestoneAuthenticationMethod()
+	mDidSelect, _, _ := m.MilestoneFlowSelectAuthenticationMethod(flows)
 
-	return am
+	return mDidSelect.MilestoneDidSelectAuthenticationMethod()
 }
 
 func (i *IntentSignupFlowStepCreateAuthenticator) jsonPointer(step *config.AuthenticationFlowSignupFlowStep, am config.AuthenticationFlowAuthentication) jsonpointer.T {
