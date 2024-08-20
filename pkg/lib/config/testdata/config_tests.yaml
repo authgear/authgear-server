@@ -1195,4 +1195,4 @@ config:
   saml:
     signing:
       key_id: asdfasdf
-      signature_method: RSAwithSHA256
+      signature_algorithm: RSAwithSHA256

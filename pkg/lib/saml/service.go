@@ -443,7 +443,7 @@ func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
 
 	signingContext = dsig.NewDefaultSigningContext(keyStore)
 
-	signatureMethod := s.SAMLConfig.Signing.SignatureMethod.ToDsigSignatureMethod()
+	signatureMethod := s.SAMLConfig.Signing.SignatureAlgorithm.ToDsigSignatureMethod()
 
 	signingContext.Canonicalizer = dsig.MakeC14N10ExclusiveCanonicalizerWithPrefixList("")
 	if err := signingContext.SetSignatureMethod(signatureMethod); err != nil {

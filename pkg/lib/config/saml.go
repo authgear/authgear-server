@@ -115,31 +115,31 @@ var _ = Schema.Add("SAMLSigningConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"key_id": { "type": "string" },
-		"signature_method": { "$ref": "#/$defs/SAMLSigningSignatureMethod" }
+		"signature_algorithm": { "$ref": "#/$defs/SAMLSigningSignatureAlgorithm" }
 	}
 }
 `)
 
 type SAMLSigningConfig struct {
-	KeyID           string                     `json:"key_id,omitempty"`
-	SignatureMethod SAMLSigningSignatureMethod `json:"signature_method,omitempty"`
+	KeyID              string                        `json:"key_id,omitempty"`
+	SignatureAlgorithm SAMLSigningSignatureAlgorithm `json:"signature_algorithm,omitempty"`
 }
 
 func (c *SAMLSigningConfig) SetDefaults() {
-	if c.SignatureMethod == "" {
-		c.SignatureMethod = SAMLSigningSignatureMethodRSASHA256
+	if c.SignatureAlgorithm == "" {
+		c.SignatureAlgorithm = SAMLSigningSignatureMethodRSASHA256
 	}
 }
 
-var _ = Schema.Add("SAMLSigningSignatureMethod", `
+var _ = Schema.Add("SAMLSigningSignatureAlgorithm", `
 {
 	"enum": ["RSAwithSHA256"] 
 }
 `)
 
-type SAMLSigningSignatureMethod string
+type SAMLSigningSignatureAlgorithm string
 
-func (m SAMLSigningSignatureMethod) ToDsigSignatureMethod() string {
+func (m SAMLSigningSignatureAlgorithm) ToDsigSignatureMethod() string {
 	switch m {
 	case SAMLSigningSignatureMethodRSASHA256:
 		return dsig.RSASHA256SignatureMethod
@@ -149,7 +149,7 @@ func (m SAMLSigningSignatureMethod) ToDsigSignatureMethod() string {
 }
 
 const (
-	SAMLSigningSignatureMethodRSASHA256 SAMLSigningSignatureMethod = "RSAwithSHA256"
+	SAMLSigningSignatureMethodRSASHA256 SAMLSigningSignatureAlgorithm = "RSAwithSHA256"
 )
 
 var _ = Schema.Add("SAMLSigningDigestMethod", `
