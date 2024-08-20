@@ -60,6 +60,8 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 	case *samlprotocolhttp.SAMLErrorResult:
 		if result.IsUnexpected {
 			h.Logger.WithError(result.Cause).Error("unexpected error")
+		} else {
+			h.Logger.WithError(result.Cause).Warnln("saml login failed with expected error")
 		}
 	}
 	result.WriteResponse(rw, r)
