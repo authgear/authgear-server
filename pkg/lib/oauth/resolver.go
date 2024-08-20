@@ -209,14 +209,6 @@ func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSe
 }
 
 func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent access.Event) (*OfflineGrant, error) {
-	isValid, _, err := re.OfflineGrantService.IsValid(offlineGrant)
-	if err != nil {
-		return nil, err
-	}
-	if !isValid {
-		return nil, session.ErrInvalidSession
-	}
-
 	// When accessing the offline grant, also access its idp session
 	// Access the idp session first, since the idp session expiry will be updated
 	// sso enabled offline grant expiry depends on its idp session

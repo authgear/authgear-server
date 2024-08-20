@@ -205,15 +205,6 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", err
 	}
 
-	isValid, _, err := s.OfflineGrantService.IsValid(offlineGrant)
-	if err != nil {
-		return nil, nil, "", err
-	}
-
-	if !isValid {
-		return nil, nil, "", ErrInvalidRefreshToken
-	}
-
 	tokenHash = oauth.HashToken(token)
 	if !offlineGrant.MatchHash(tokenHash) {
 		return nil, nil, "", ErrInvalidRefreshToken
