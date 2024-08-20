@@ -282,9 +282,6 @@ var _ = registerMutationField(
 			for _, f := range updates {
 				f := f.(map[string]interface{})
 				path := f["path"].(string)
-				if path == configsource.AuthgearYAML {
-					return nil, errors.New("direct update on authgear.yaml is disallowed")
-				}
 				if path == configsource.AuthgearSecretYAML {
 					return nil, errors.New("direct update on authgear.secrets.yaml is disallowed")
 				}

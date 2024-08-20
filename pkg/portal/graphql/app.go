@@ -214,9 +214,7 @@ var nodeApp = node(
 					if argPaths, ok := p.Args["paths"]; ok {
 						for _, path := range argPaths.([]interface{}) {
 							path := path.(string)
-							if path == configsource.AuthgearYAML {
-								return nil, errors.New("direct access on authgear.yaml is disallowed")
-							}
+							// Note we do not block direct access to authgear.yaml
 							if path == configsource.AuthgearSecretYAML {
 								return nil, errors.New("direct access on authgear.secrets.yaml is disallowed")
 							}

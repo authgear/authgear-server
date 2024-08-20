@@ -40,7 +40,7 @@ const TextFieldWidgetItem: React.VFC<TextFieldWidgetIteProps> =
 export interface EditTemplatesWidgetItem {
   key: string;
   title: React.ReactNode;
-  language: "html" | "plaintext" | "json" | "css";
+  language: "html" | "plaintext" | "json" | "css" | "yaml";
   editor: "code" | "textfield";
   value: string;
   onChange: (value: string | undefined, e: unknown) => void;
@@ -55,19 +55,22 @@ export interface EditTemplatesWidgetSection {
 
 export interface EditTemplatesWidgetProps {
   className?: string;
+  codeEditorClassname?: string;
   sections: EditTemplatesWidgetSection[];
 }
 
 const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
   function EditTemplatesWidget(props: EditTemplatesWidgetProps) {
-    const { className, sections } = props;
+    const { className, codeEditorClassname, sections } = props;
 
     return (
       <div className={cn(styles.form, className)}>
         {sections.map((section) => {
           return (
             <Fragment key={section.key}>
-              <Label className={styles.boldLabel}>{section.title}</Label>
+              {section.title != null ? (
+                <Label className={styles.boldLabel}>{section.title}</Label>
+              ) : null}
               {section.items.map((item) => {
                 return item.editor === "code" ? (
                   <Fragment key={item.key}>
@@ -75,7 +78,7 @@ const EditTemplatesWidget: React.VFC<EditTemplatesWidgetProps> =
                       {item.title}
                     </Text>
                     <CodeEditor
-                      className={styles.codeEditor}
+                      className={cn(styles.codeEditor, codeEditorClassname)}
                       language={item.language}
                       value={item.value}
                       onChange={item.onChange}
