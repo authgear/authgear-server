@@ -227,18 +227,23 @@ func (s *Service) IssueSuccessResponse(
 
 	now := s.Clock.NowUTC()
 	issuerID := s.IdpEntityID()
-	// TODO(saml): Write required fields of the response
 	response := samlprotocol.NewSuccessResponse(now, issuerID, inResponseToAuthnRequest.ID)
 
-	// TODO(saml): Use configured destination if configured
 	destination := callbackURL
+	if sp.Destination != "" {
+		destination = sp.Destination
+	}
 	response.Destination = destination
 
-	// TODO(saml): Use configured recipient if configured
 	recipient := callbackURL
+	if sp.Recipient != "" {
+		recipient = sp.Recipient
+	}
 
-	// TODO(saml): Use configured audience if configured
 	audience := callbackURL
+	if sp.Audience != "" {
+		audience = sp.Audience
+	}
 
 	nameIDFormat := sp.NameIDFormat
 	if nameIDFormatInRequest, ok := inResponseToAuthnRequest.GetNameIDFormat(); ok {

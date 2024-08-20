@@ -1184,7 +1184,10 @@ config:
         nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
         nameid_attribute_pointer: /preferred_username
         acs_urls:
-          - http://localhost:3000/saml-test
+          - http://localhost:3000/acs
+        destination: http://localhost:3000/destination
+        recipient: http://localhost:3000/recipient
+        audience: http://localhost:3000/audience
 ---
 name: saml-signing
 error: null
