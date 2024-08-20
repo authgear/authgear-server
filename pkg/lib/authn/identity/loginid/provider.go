@@ -85,6 +85,38 @@ func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
 	return is, nil
 }
 
+func (p *Provider) GetByKeyAndValue(key string, value string) (*identity.LoginID, error) {
+	// Normalize expects loginID is in correct type so we have to validate it first.
+	invalid := p.Checker.ValidateOne(identity.LoginIDSpec{
+		Key:   key,
+		Type:  model.LoginIDKeyType(key),
+		Value: value,
+	}, CheckerOptions{
+		// Admin can create email login id which bypass domains blocklist allowlist
+		// it should not affect getting identity
+		// skip the checking when getting identity
+		EmailByPassBlocklistAllowlist: true,
+	})
+
+	if invalid != nil {
+		return nil, invalid
+	}
+
+	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyType(key))
+	normalizedloginID, err := normalizer.Normalize(value)
+	if err != nil {
+		return nil, err
+	}
+
+	i, err := p.Store.GetByLoginID(key, normalizedloginID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return i, nil
+}
+
 func (p *Provider) GetMany(ids []string) ([]*identity.LoginID, error) {
 	return p.Store.GetMany(ids)
 }

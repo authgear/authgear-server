@@ -342,5 +342,30 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}), err
 			},
 		},
+		"getUsersByLoginID": &graphql.Field{
+			Description: "Get user by Login iD.",
+			Type:        nodeUser,
+			Args: graphql.FieldConfigArgument{
+				"loginIDKey": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+				"loginIDValue": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				gqlCtx := GQLContext(p.Context)
+
+				loginIDKey, _ := p.Args["loginIDKey"].(string)
+				loginIDValue, _ := p.Args["loginIDValue"].(string)
+
+				userID, err := gqlCtx.UserFacade.GetUsersByLoginID(loginIDKey, loginIDValue)
+				if err != nil {
+					return nil, err
+				}
+
+				return graphqlutil.NewLazyValue(gqlCtx.Users.Load(userID)).Value()
+			},
+		},
 	},
 })

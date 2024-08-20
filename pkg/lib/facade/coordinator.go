@@ -47,6 +47,7 @@ type IdentityService interface {
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 	CheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error)
 	Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
+	GetByKeyAndValue(loginIDKey string, loginIDValue string) (*identity.LoginID, error)
 }
 
 type AuthenticatorService interface {
@@ -1424,4 +1425,17 @@ func (c *Coordinator) GetUsersByStandardAttribute(attributeName string, attribut
 	}
 
 	return uniqueUserIDs, nil
+}
+
+func (c *Coordinator) GetUsersByLoginID(loginIDKey string, loginIDValue string) (string, error) {
+	loginID, err := c.Identities.GetByKeyAndValue(loginIDKey, loginIDValue)
+
+	if errors.Is(err, api.ErrIdentityNotFound) {
+		// User identity not found is not an error in this function.
+		return "", nil
+	} else if err != nil {
+		return "", err
+	}
+
+	return loginID.UserID, nil
 }

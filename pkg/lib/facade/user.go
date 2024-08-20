@@ -87,3 +87,7 @@ func (u UserFacade) UpdateMFAEnrollment(userID string, endAt *time.Time) error {
 func (u UserFacade) GetUsersByStandardAttribute(attributeKey string, attributeValue string) ([]string, error) {
 	return u.Coordinator.GetUsersByStandardAttribute(attributeKey, attributeValue)
 }
+
+func (u UserFacade) GetUsersByLoginID(loginIDKey string, loginIDValue string) (string, error) {
+	return u.Coordinator.GetUsersByLoginID(loginIDKey, loginIDValue)
+}

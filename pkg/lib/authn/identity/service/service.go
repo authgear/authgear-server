@@ -20,6 +20,7 @@ type LoginIDIdentityProvider interface {
 	GetMany(ids []string) ([]*identity.LoginID, error)
 	List(userID string) ([]*identity.LoginID, error)
 	GetByValue(loginIDValue string) ([]*identity.LoginID, error)
+	GetByKeyAndValue(loginIDKey string, loginIDValue string) (*identity.LoginID, error)
 	GetByUniqueKey(uniqueKey string) (*identity.LoginID, error)
 	ListByClaim(name string, value string) ([]*identity.LoginID, error)
 	New(userID string, loginID identity.LoginIDSpec, options loginid.CheckerOptions) (*identity.LoginID, error)
@@ -1080,4 +1081,8 @@ func (s *Service) listSIWECandidates(siwes []*identity.SIWE) []identity.Candidat
 
 func (s *Service) Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
 	return s.LoginID.Normalize(typ, value)
+}
+
+func (s *Service) GetByKeyAndValue(loginIDKey string, loginIDValue string) (*identity.LoginID, error) {
+	return s.LoginID.GetByKeyAndValue(loginIDKey, loginIDValue)
 }
