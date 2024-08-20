@@ -13,8 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
-type SAMLBindingHTTPRedirectParser struct{}
-
 type SAMLBindingHTTPRedirectParseResult struct {
 	AuthnRequest *samlprotocol.AuthnRequest
 	RelayState   string
@@ -27,7 +25,7 @@ var _ SAMLBindingParseResult = &SAMLBindingHTTPRedirectParseResult{}
 
 func (*SAMLBindingHTTPRedirectParseResult) SAMLBindingParseResult() {}
 
-func (*SAMLBindingHTTPRedirectParser) Parse(r *http.Request) (
+func SAMLBindingHTTPRedirectParse(r *http.Request) (
 	result *SAMLBindingHTTPRedirectParseResult,
 	err error,
 ) {
