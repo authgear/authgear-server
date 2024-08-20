@@ -25,7 +25,7 @@
     + [Create a Authentication Flow](#create-a-authentication-flow)
     + [Execute the Authentication Flow](#execute-the-authentication-flow)
     + [Get the Authentication Flow](#get-the-authentication-flow)
-  * [Mobile apps using the Default UI](#mobile-apps-using-the-default-ui)
+  * [Mobile apps using Auth UI](#mobile-apps-using-auth-ui)
     + [Ordinary Authentication Flow](#ordinary-authentication-flow)
     + [Authentication Flow involving OAuth](#authentication-flow-involving-oauth)
     + [Authentication Flow involving passkey](#authentication-flow-involving-passkey)
@@ -47,20 +47,6 @@
       - [Zitadel](#zitadel)
       - [Supertokens](#supertokens)
     + [JSON schema](#json-schema)
-    + [Action Data](#action-data)
-      - [identification_data](#identification_data)
-      - [authentication_data](#authentication_data)
-      - [oauth_data](#oauth_data)
-      - [create_authenticator_data](#create_authenticator_data)
-      - [view_recovery_code_data](#view_recovery_code_data)
-      - [select_oob_otp_channels_data](#select_oob_otp_channels_data)
-      - [verify_oob_otp_data](#verify_oob_otp_data)
-      - [create_passkey_data](#create_passkey_data)
-      - [create_totp_data](#create_totp_data)
-      - [new_password_data](#new_password_data)
-      - [account_recovery_identification_data](#account_recovery_identification_data)
-      - [account_recovery_select_destination_data](#account_recovery_select_destination_data)
-      - [account_recovery_verify_code_data](#account_recovery_verify_code_data)
 
 # Authentication Flow
 
@@ -77,7 +63,8 @@ How Authentication Flow is implemented is intentionally left unspecified in this
 - Support Reauth Flow.
 - Support more than 1 Signup Flow, Login Flow, or Reauth Flow.
 - Support SignupLogin Flow, a flow which switches to a Signup Flow, or a Login Flow, depending on the claimed Identity.
-- The Default UI is driven by generated Authentication Flows, according to the configuration of the app.
+- Builtin flows are derived from the configuration of the project.
+- Auth UI supports running Builtin flows or Custom flows.
 - The developer can use the HTTP API on both the Web platform, and the mobile platforms (iOS and Android).
 
 ## Non-goals
@@ -116,7 +103,7 @@ If the User identifies themselves with the OAuth Identity `johndoe@gmail.com`, t
 
 ### Design Principles
 
-- We want to keep the existing configuration. The Default UI is driven by on-the-fly generated Authentication Flows.
+- We want to keep the existing configuration. Builtin flows are derived from the existing configuration.
 - We want to be able to fulfill the authentication flows in existing consumer apps
 
 ### Design of the configuration
@@ -647,7 +634,7 @@ Example of a successful response.
 
 - `result.state_token`: The token that refers to a particular state of an Authentication Flow. You must keep this for the next request. This token changes every time you give an input to the flow. As a result, you can back-track by associating the token with your application navigation backstack very easily.
 - `result.type`: The type of the flow. Valid values are `signup`, `login`, `signup_login`, `reauth`, and `account_recovery`.
-- `result.name`: The name of the flow. Use the special value `default` to refer to the flow generated according to configuration.
+- `result.name`: The name of the flow. Use the special value `default` to refer to the Builtin flows.
 - `result.action.type`: The action to be taken. Valid values are `identify`, `authenticate`, `verify`, `user_profile`, `recovery_code`, `change_password`, and `prompt_create_passkey`, and `finished`.
 - `result.action.identification`: The taken branch in this action. It is only present when `result.action.type=identify`. Valid values are `email`, `phone`, and `username`.
 - `result.action.authentication`: The taken branch in this action. It is only present when `result.action.type=authenticate`. Valid values are `primary_password`, `primary_oob_otp_email`, `primary_oob_otp_sms`, `secondary_password`, `secondary_totp`, `secondary_oob_otp_email`, `secondary_oob_otp_sms`, `recovery_code`.
@@ -719,7 +706,7 @@ Content-Type: application/json
 }
 ```
 
-## Mobile apps using the Default UI
+## Mobile apps using Auth UI
 
 ### Ordinary Authentication Flow
 
@@ -750,7 +737,7 @@ Not documented at the moment.
 ## Mobile apps using native UI
 
 > This use case is not intended to be supported at the moment.
-> Instead, we want to put resources on making using the Default UI or using Custom UI solve majority of the use cases.
+> Instead, we want to put resources on making using Auth UI or using Custom UI solve majority of the use cases.
 
 When the mobile apps want to use native UI, they can consume the HTTP API directly.
 This implies a user agent is **NOT** involved in this use case.
