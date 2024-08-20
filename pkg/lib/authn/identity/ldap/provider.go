@@ -110,7 +110,7 @@ func sortIdentities(is []*identity.LDAP) {
 	})
 }
 
-func (p *Provider) CreateNormalizedIdentitySpecFromLDAPEntry(serverConfig *config.LDAPServerConfig, entry *ldap.Entry) (*identity.Spec, error) {
+func (p *Provider) MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, entry *ldap.Entry) (*identity.Spec, error) {
 	userIDAttributeName := serverConfig.UserIDAttributeName
 	userIDAttributeValue := entry.GetRawAttributeValue(userIDAttributeName)
 
