@@ -65,7 +65,7 @@ func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
 		normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(config.Type)
 		normalizedloginID, err := normalizer.Normalize(value)
 		if err != nil {
-			return nil, err
+			return nil, errors.Join(ErrNormalize, err)
 		}
 
 		i, err := p.Store.GetByLoginID(config.Key, normalizedloginID)
@@ -99,13 +99,13 @@ func (p *Provider) GetByKeyAndValue(key string, value string) (*identity.LoginID
 	})
 
 	if invalid != nil {
-		return nil, invalid
+		return nil, errors.Join(ErrValidate, invalid)
 	}
 
 	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyType(key))
 	normalizedloginID, err := normalizer.Normalize(value)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(ErrNormalize, err)
 	}
 
 	i, err := p.Store.GetByLoginID(key, normalizedloginID)
@@ -166,12 +166,12 @@ func (p *Provider) ValidateOne(loginID identity.LoginIDSpec, options CheckerOpti
 func (p *Provider) New(userID string, spec identity.LoginIDSpec, options CheckerOptions) (*identity.LoginID, error) {
 	err := p.ValidateOne(spec, options)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(ErrValidate, err)
 	}
 
 	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(ErrNormalize, err)
 	}
 
 	claims := make(map[string]interface{})
@@ -202,12 +202,12 @@ func (p *Provider) WithValue(iden *identity.LoginID, value string, options Check
 
 	err := p.ValidateOne(spec, options)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(ErrValidate, err)
 	}
 
 	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
 	if err != nil {
-		return nil, err
+		return nil, errors.Join(ErrNormalize, err)
 	}
 
 	claims := make(map[string]interface{})
