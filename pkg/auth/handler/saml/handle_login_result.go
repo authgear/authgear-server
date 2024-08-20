@@ -21,13 +21,13 @@ type LoginResultHandler struct {
 }
 
 func (h *LoginResultHandler) handleLoginResult(
-	authInfo *authenticationinfo.Entry,
-	samlSession *samlsession.SAMLSession,
+	authInfo *authenticationinfo.T,
+	samlSessionEntry *samlsession.SAMLSessionEntry,
 ) (result httputil.Result) {
 	now := h.Clock.NowUTC()
-	callbackURL := samlSession.Entry.CallbackURL
-	relayState := samlSession.Entry.RelayState
-	authenticatedUserID := authInfo.T.UserID
+	callbackURL := samlSessionEntry.CallbackURL
+	relayState := samlSessionEntry.RelayState
+	authenticatedUserID := authInfo.UserID
 	defer func() {
 		if e := recover(); e != nil {
 			e := panicutil.MakeError(e)
@@ -46,11 +46,11 @@ func (h *LoginResultHandler) handleLoginResult(
 
 	var response *samlprotocol.Response
 	err := h.Database.WithTx(func() error {
-		authnRequest := samlSession.Entry.AuthnRequest()
+		authnRequest := samlSessionEntry.AuthnRequest()
 
 		resp, err := h.SAMLService.IssueSuccessResponse(
 			callbackURL,
-			samlSession.Entry.ServiceProviderID,
+			samlSessionEntry.ServiceProviderID,
 			authenticatedUserID,
 			authnRequest,
 		)
