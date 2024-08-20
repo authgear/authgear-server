@@ -85,7 +85,9 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 						"failed to parse SAMLRequest",
 						parseRequestFailedErr.GetDetailElements(),
 					),
-				})
+				},
+				false,
+			)
 			h.handleErrorResponse(rw, r, errResponse)
 			return
 		}
@@ -122,7 +124,9 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 						invalidRequestErr.GetDetailElements(),
 					),
 					RelayState: relayState,
-				})
+				},
+				false,
+			)
 			h.handleErrorResponse(rw, r, errResponse)
 			return
 		}
@@ -188,6 +192,8 @@ func (h *LoginHandler) handleUnknownError(
 			Binding:     samlprotocol.SAMLBindingHTTPPost,
 			Response:    samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
 			RelayState:  relayState,
-		})
+		},
+		true,
+	)
 	result.WriteResponse(rw, r)
 }

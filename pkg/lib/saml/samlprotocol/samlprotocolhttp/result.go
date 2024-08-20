@@ -36,7 +36,8 @@ func (s *SAMLResult) IsInternalError() bool {
 
 type SAMLErrorResult struct {
 	SAMLResult
-	Cause error
+	Cause        error
+	IsUnexpected bool
 }
 
 var _ error = &SAMLErrorResult{}
@@ -51,9 +52,14 @@ func (s *SAMLErrorResult) Unwrap() error {
 
 var _ httputil.Result = &SAMLErrorResult{}
 
-func NewSAMLErrorResult(cause error, result SAMLResult) *SAMLErrorResult {
+func (s *SAMLErrorResult) IsInternalError() bool {
+	return s.IsUnexpected
+}
+
+func NewSAMLErrorResult(cause error, result SAMLResult, isUnexpected bool) *SAMLErrorResult {
 	return &SAMLErrorResult{
-		SAMLResult: result,
-		Cause:      cause,
+		SAMLResult:   result,
+		Cause:        cause,
+		IsUnexpected: isUnexpected,
 	}
 }
