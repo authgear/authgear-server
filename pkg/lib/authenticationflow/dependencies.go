@@ -224,7 +224,7 @@ type LoginIDService interface {
 }
 
 type LDAPService interface {
-	CreateNormalizedIdentitySpecFromLDAPEntry(serverConfig *config.LDAPServerConfig, entry *ldap.Entry) (*identity.Spec, error)
+	MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, entry *ldap.Entry) (*identity.Spec, error)
 }
 
 type LDAPClientFactory interface {
