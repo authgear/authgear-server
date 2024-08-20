@@ -516,6 +516,7 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []st
 }
 
 func (s *Store) updateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time) error {
+	grant.ExpireAtForResolvedSession = expireAt
 	ctx := context.Background()
 	expiry, err := expireAt.MarshalText()
 	if err != nil {
