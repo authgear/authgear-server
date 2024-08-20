@@ -127,7 +127,7 @@ func (p *Provider) MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, entr
 
 	err := p.StandardAttributesNormalizer.Normalize(claims)
 	if err != nil {
-		claims = map[string]interface{}{}
+		return nil, err
 	}
 
 	return &identity.Spec{
