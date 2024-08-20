@@ -133,7 +133,7 @@ func (c *SAMLSigningConfig) SetDefaults() {
 
 var _ = Schema.Add("SAMLSigningSignatureAlgorithm", `
 {
-	"enum": ["RSAwithSHA256"] 
+	"enum": ["http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"] 
 }
 `)
 
@@ -149,7 +149,7 @@ func (m SAMLSigningSignatureAlgorithm) ToDsigSignatureMethod() string {
 }
 
 const (
-	SAMLSigningSignatureMethodRSASHA256 SAMLSigningSignatureAlgorithm = "RSAwithSHA256"
+	SAMLSigningSignatureMethodRSASHA256 SAMLSigningSignatureAlgorithm = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
 )
 
 var _ = Schema.Add("SAMLSigningDigestMethod", `
