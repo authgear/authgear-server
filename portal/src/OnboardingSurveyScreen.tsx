@@ -485,6 +485,9 @@ function Step2(_props: StepProps) {
 }
 
 function Step3Team(_props: StepProps) {
+  const { viewer } = useViewerQuery();
+  const { geoIPCountryCode } = viewer ?? {};
+
   const prefix = "step3team";
   const companyNameFromLocalStorage = getFromLocalStorage("company_name");
   const [companyName, setCompanyName] = useState(
@@ -603,6 +606,7 @@ function Step3Team(_props: StepProps) {
               "OnboardingSurveyScreen.step3-team.phone.label"
             )}
             inputValue={companyPhone.rawInputValue}
+            initialCountry={geoIPCountryCode ?? undefined}
             onChange={(v) => setCompanyPhone(v)}
           />
         </FormProvider>
