@@ -22,6 +22,7 @@ import {
   specifierId,
 } from "../../util/resource";
 import { RESOURCE_AUTHGEAR_YAML } from "../../resources";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 
 interface FormModel {
   isLoading: boolean;
@@ -47,36 +48,17 @@ const EditConfigurationScreen: React.VFC = function EditConfigurationScreen() {
   const { appID } = useParams() as { appID: string };
   const specifiers = [AUTHGEAR_YAML_RESOURCE_SPECIFIER];
   const resourceForm = useResourceForm(appID, specifiers);
-
-  const state = useMemo<FormState>(() => {
-    return {
-      resources: resourceForm.state.resources,
-    };
-  }, [resourceForm.state.resources]);
+  const { refetch } = useAppAndSecretConfigQuery(appID);
 
   const form: FormModel = useMemo(
     () => ({
-      isLoading: resourceForm.isLoading,
-      isUpdating: resourceForm.isUpdating,
-      isDirty: resourceForm.isDirty,
-      loadError: resourceForm.loadError,
-      updateError: resourceForm.updateError,
-      state,
-      setState: (fn) => {
-        const newState = fn(state);
-        resourceForm.setState(() => ({ resources: newState.resources }));
-      },
-      reload: () => {
-        resourceForm.reload();
-      },
-      reset: () => {
-        resourceForm.reset();
-      },
-      save: async (ignoreConflict: boolean = false) => {
-        await resourceForm.save(ignoreConflict);
+      ...resourceForm,
+      save: async (...args: Parameters<(typeof resourceForm)["save"]>) => {
+        await resourceForm.save(...args);
+        await refetch();
       },
     }),
-    [resourceForm, state]
+    [refetch, resourceForm]
   );
 
   const rawAuthgearYAML = useMemo(() => {
