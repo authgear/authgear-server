@@ -60,6 +60,7 @@ func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 			LastAccess:    accessEvent,
 		},
 	}
+	setSessionExpireAtForResolvedSession(session, p.Config)
 	token := p.generateToken(session)
 
 	return session, token
@@ -144,6 +145,7 @@ func (p *Provider) Get(id string) (*IDPSession, error) {
 		}
 		return nil, err
 	}
+	setSessionExpireAtForResolvedSession(session, p.Config)
 
 	return session, nil
 }

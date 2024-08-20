@@ -64,9 +64,10 @@ func TestProvider(t *testing.T) {
 						InitialAccess: accessEvent,
 						LastAccess:    accessEvent,
 					},
-					CreatedAt:       initialTime,
-					AuthenticatedAt: initialTime,
-					TokenHash:       s.TokenHash,
+					CreatedAt:                  initialTime,
+					AuthenticatedAt:            initialTime,
+					TokenHash:                  s.TokenHash,
+					ExpireAtForResolvedSession: initialTime,
 				})
 			})
 		})
