@@ -182,7 +182,7 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
           <>
             <Configuration labelKey="DesignScreen.configuration.logo.light">
               <ImagePicker
-                base64EncodedData={designForm.state.appLogoBase64EncodedData}
+                base64EncodedData={designForm.state.appLogo.base64EncodedData}
                 onChange={designForm.lightThemeSetters.setAppLogo}
               />
             </Configuration>
@@ -201,7 +201,7 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
             <Configuration labelKey="DesignScreen.configuration.logo.dark">
               <ImagePicker
                 base64EncodedData={
-                  designForm.state.appLogoDarkBase64EncodedData
+                  designForm.state.appLogoDark.base64EncodedData
                 }
                 onChange={designForm.darkThemeSetters.setAppLogo}
               />

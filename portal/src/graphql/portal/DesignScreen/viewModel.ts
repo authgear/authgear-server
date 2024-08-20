@@ -9,7 +9,7 @@ import {
   getThemeTargetSelector,
 } from "../../../model/themeAuthFlowV2";
 import { PortalAPIAppConfig } from "../../../types";
-import { BranchDesignFormState, TranslationKey } from "./form";
+import { AppLogoResource, BranchDesignFormState, TranslationKey } from "./form";
 
 export enum PreviewPage {
   Login = "preview/login",
@@ -136,12 +136,8 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
 
   const images: Record<string, string | null> = {};
 
-  images["brand-logo-light"] = state.appLogoBase64EncodedData
-    ? `data:;base64,${state.appLogoBase64EncodedData}`
-    : null;
-  images["brand-logo-dark"] = state.appLogoDarkBase64EncodedData
-    ? `data:;base64,${state.appLogoDarkBase64EncodedData}`
-    : null;
+  images["brand-logo-light"] = getLogoDataSrc(state.appLogo);
+  images["brand-logo-dark"] = getLogoDataSrc(state.appLogoDark);
 
   const translations = {
     [TranslationKey.AppName]: state.appName,
@@ -154,4 +150,13 @@ export function mapDesignFormStateToPreviewCustomisationMessage(
     images,
     translations,
   };
+}
+
+function getLogoDataSrc(logoResouce: AppLogoResource): string | null {
+  const data =
+    logoResouce.base64EncodedData ?? logoResouce.fallbackBase64EncodedData;
+  if (!data) {
+    return null;
+  }
+  return `data:;base64,${data}`;
 }
