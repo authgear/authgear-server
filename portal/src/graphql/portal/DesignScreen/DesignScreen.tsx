@@ -44,6 +44,7 @@ import Toggle from "../../../Toggle";
 import ConfigurationGroup from "../../../components/design/ConfigurationGroup";
 import FallbackDescription from "../../../components/design/FallbackDescription";
 import ConfigurationDescription from "../../../components/design/ConfigurationDescription";
+import AppLogoPicker from "../../../components/design/AppLogoPicker";
 import { ImagePicker } from "../../../components/design/ImagePicker";
 import ButtonToggleGroup, {
   Option,
@@ -181,8 +182,8 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
         {designForm.state.themeOption !== "darkOnly" ? (
           <>
             <Configuration labelKey="DesignScreen.configuration.logo.light">
-              <ImagePicker
-                base64EncodedData={designForm.state.appLogo.base64EncodedData}
+              <AppLogoPicker
+                logo={designForm.state.appLogo}
                 onChange={designForm.lightThemeSetters.setAppLogo}
               />
             </Configuration>
@@ -199,10 +200,8 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
         {designForm.state.themeOption !== "lightOnly" ? (
           <>
             <Configuration labelKey="DesignScreen.configuration.logo.dark">
-              <ImagePicker
-                base64EncodedData={
-                  designForm.state.appLogoDark.base64EncodedData
-                }
+              <AppLogoPicker
+                logo={designForm.state.appLogoDark}
                 onChange={designForm.darkThemeSetters.setAppLogo}
               />
             </Configuration>
