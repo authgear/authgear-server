@@ -1,9 +1,14 @@
 package cmdinternal
 
 import (
+	"context"
+	"log"
+	"os"
+
 	"github.com/spf13/cobra"
 
 	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
+	cmdredis "github.com/authgear/authgear-server/cmd/authgear/redis"
 )
 
 func init() {
@@ -30,8 +35,18 @@ var cmdInternalRedisListNonExpiringKeys = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		binder := authgearcmd.GetBinder()
 
-		var err error
-		_, err = binder.GetRequiredString(cmd, authgearcmd.ArgRedisURL)
+		redisURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgRedisURL)
+		if err != nil {
+			return err
+		}
+
+		redisClient, err := cmdredis.NewClient(redisURL)
+		if err != nil {
+			return err
+		}
+
+		ctx := context.Background()
+		err = cmdredis.ListNonExpiringKeys(ctx, redisClient, os.Stdout, log.Default())
 		if err != nil {
 			return err
 		}
