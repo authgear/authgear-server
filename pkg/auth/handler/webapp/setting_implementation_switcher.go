@@ -8,56 +8,56 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type SettingImplementationSwitcherMiddleware struct {
+type SettingsImplementationSwitcherMiddleware struct {
 	UIConfig *config.UIConfig
 }
 
-type settingImplementationSwitcherContextKeyType struct{}
+type settingsImplementationSwitcherContextKeyType struct{}
 
-var settingImplementationSwitcherContextKey = settingImplementationSwitcherContextKeyType{}
+var settingsImplementationSwitcherContextKey = settingsImplementationSwitcherContextKeyType{}
 
-type settingImplementationSwitcherContext struct {
-	SettingUIImplementation config.SettingUIImplementation
+type settingsImplementationSwitcherContext struct {
+	SettingsUIImplementation config.SettingsUIImplementation
 }
 
-func WithSettingUIImplementation(ctx context.Context, impl config.SettingUIImplementation) context.Context {
-	v, ok := ctx.Value(settingImplementationSwitcherContextKey).(*settingImplementationSwitcherContext)
+func WithSettingsUIImplementation(ctx context.Context, impl config.SettingsUIImplementation) context.Context {
+	v, ok := ctx.Value(settingsImplementationSwitcherContextKey).(*settingsImplementationSwitcherContext)
 	if ok {
-		v.SettingUIImplementation = impl
+		v.SettingsUIImplementation = impl
 		return ctx
 	}
 
-	return context.WithValue(ctx, settingImplementationSwitcherContextKey, &settingImplementationSwitcherContext{
-		SettingUIImplementation: impl,
+	return context.WithValue(ctx, settingsImplementationSwitcherContextKey, &settingsImplementationSwitcherContext{
+		SettingsUIImplementation: impl,
 	})
 }
 
-func GetSettingUIImplementation(ctx context.Context) config.SettingUIImplementation {
-	v, ok := ctx.Value(settingImplementationSwitcherContextKey).(*settingImplementationSwitcherContext)
+func GetSettingsUIImplementation(ctx context.Context) config.SettingsUIImplementation {
+	v, ok := ctx.Value(settingsImplementationSwitcherContextKey).(*settingsImplementationSwitcherContext)
 	if !ok {
-		return config.SettingUIImplementationDefault
+		return config.SettingsUIImplementationDefault
 	}
-	return v.SettingUIImplementation
+	return v.SettingsUIImplementation
 }
 
-func (m *SettingImplementationSwitcherMiddleware) Handle(next http.Handler) http.Handler {
+func (m *SettingsImplementationSwitcherMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(WithSettingUIImplementation(r.Context(), m.UIConfig.SettingImplementation))
+		r = r.WithContext(WithSettingsUIImplementation(r.Context(), m.UIConfig.SettingsImplementation))
 		next.ServeHTTP(w, r)
 	})
 }
 
-type SettingImplementationSwitcherHandler struct {
+type SettingsImplementationSwitcherHandler struct {
 	SettingV1 http.Handler
 	SettingV2 http.Handler
 }
 
-func (h *SettingImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	impl := GetSettingUIImplementation(r.Context()).WithDefault()
+func (h *SettingsImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	impl := GetSettingsUIImplementation(r.Context()).WithDefault()
 	switch impl {
-	case config.SettingUIImplementationV1:
+	case config.SettingsUIImplementationV1:
 		h.SettingV1.ServeHTTP(w, r)
-	case config.SettingUIImplementationV2:
+	case config.SettingsUIImplementationV2:
 		h.SettingV2.ServeHTTP(w, r)
 	default:
 		panic(fmt.Errorf("unknown setting ui implementation %s", impl))
