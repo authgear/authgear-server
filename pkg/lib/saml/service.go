@@ -9,6 +9,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/beevik/etree"
 	crewjamsaml "github.com/crewjam/saml"
 
 	dsig "github.com/russellhaering/goxmldsig"
@@ -345,32 +346,10 @@ func (s *Service) IssueSuccessResponse(
 
 	response.Assertion = assertion
 
-	// Sign the assertion
-	// Reference: https://github.com/crewjam/saml/blob/193e551d9a8420216fae88c2b8f4b46696b7bb63/identity_provider.go#L833
-	signingContext, err := s.idpSigningContext()
+	err = s.signResponse(response)
 	if err != nil {
 		return nil, err
 	}
-
-	assertionEl := response.Assertion.Element()
-
-	signedAssertionEl, err := signingContext.SignEnveloped(assertionEl)
-	if err != nil {
-		return nil, err
-	}
-
-	assertionSigEl := signedAssertionEl.ChildElements()[len(signedAssertionEl.ChildElements())-1]
-	response.Assertion.Signature = assertionSigEl
-
-	// Sign the response
-	responseEl := response.Element()
-	signedResponseEl, err := signingContext.SignEnveloped(responseEl)
-	if err != nil {
-		return nil, err
-	}
-
-	responseSigEl := signedResponseEl.ChildElements()[len(signedResponseEl.ChildElements())-1]
-	response.Signature = responseSigEl
 
 	return response, nil
 }
@@ -421,14 +400,37 @@ func (s *Service) getUserNameID(
 	}
 }
 
-func spToClientLike(sp *config.SAMLServiceProviderConfig) *oauth.ClientLike {
-	// Note(tung): Note sure if there could be third party SAML apps in the future,
-	// now it is always first party app.
-	return &oauth.ClientLike{
-		IsFirstParty:        true,
-		PIIAllowedInIDToken: false,
-		Scopes:              []string{},
+func (s *Service) signResponse(response *samlprotocol.Response) error {
+	// Sign the assertion
+	assertionEl := response.Assertion.Element()
+
+	assertionSigEl, err := s.constructSignature(assertionEl)
+	if err != nil {
+		return err
 	}
+	response.Assertion.Signature = assertionSigEl
+
+	// Sign the response
+	responseEl := response.Element()
+	responseSigEl, err := s.constructSignature(responseEl)
+	if err != nil {
+		return err
+	}
+	response.Signature = responseSigEl
+
+	return nil
+}
+
+func (s *Service) constructSignature(el *etree.Element) (*etree.Element, error) {
+	signingContext, err := s.idpSigningContext()
+	if err != nil {
+		return nil, err
+	}
+	signature, err := signingContext.ConstructSignature(el, true)
+	if err != nil {
+		return nil, err
+	}
+	return signature, nil
 }
 
 func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
@@ -462,4 +464,14 @@ func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
 	}
 
 	return signingContext, nil
+}
+
+func spToClientLike(sp *config.SAMLServiceProviderConfig) *oauth.ClientLike {
+	// Note(tung): Note sure if there could be third party SAML apps in the future,
+	// now it is always first party app.
+	return &oauth.ClientLike{
+		IsFirstParty:        true,
+		PIIAllowedInIDToken: false,
+		Scopes:              []string{},
+	}
 }
