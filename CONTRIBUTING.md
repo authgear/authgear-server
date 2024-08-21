@@ -287,9 +287,11 @@ brew install mkcert
 # Install the root CA into Keychain Access.
 mkcert -install
 # Generate the TLS certificate
-make cert
+make mkcert
 # Uncomment the TLS config in nginx.confg to enable TLS, restart nginx to apply the change.
 ```
+
+Update `public_origin` in `var/authgear.yaml` to your local https domain.
 
 ### Create release tag for a deployment
 
