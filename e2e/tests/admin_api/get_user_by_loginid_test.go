@@ -214,7 +214,7 @@ func TestGetUserByLoginIDInvalidLoginIDValue(t *testing.T) {
 				},
 				"errors": [
 					{
-						"message": "invalid Login ID key",
+						"message": "invalid Login ID value",
 						"locations": [
 							{
 								"line": 3,

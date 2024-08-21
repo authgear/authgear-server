@@ -1435,8 +1435,6 @@ func (c *Coordinator) GetUserByLoginID(loginIDKey string, loginIDValue string) (
 		return "", api.ErrUserNotFound
 	} else if errors.Is(err, loginid.ErrNormalize) {
 		return "", api.ErrGetUsersInvalidArgument.New("invalid Login ID value")
-	} else if errors.Is(err, loginid.ErrValidate) {
-		return "", api.ErrGetUsersInvalidArgument.New("invalid Login ID key")
 	} else if err != nil {
 		return "", err
 	}

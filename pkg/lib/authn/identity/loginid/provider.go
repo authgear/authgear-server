@@ -86,23 +86,13 @@ func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
 }
 
 func (p *Provider) GetByKeyAndValue(key string, value string) (*identity.LoginID, error) {
-	// Normalize expects loginID is in correct type so we have to validate it first.
-	invalid := p.Checker.ValidateOne(identity.LoginIDSpec{
-		Key:   key,
-		Type:  model.LoginIDKeyType(key),
-		Value: value,
-	}, CheckerOptions{
-		// Admin can create email login id which bypass domains blocklist allowlist
-		// it should not affect getting identity
-		// skip the checking when getting identity
-		EmailByPassBlocklistAllowlist: true,
-	})
+	cfg, ok := p.Config.GetKeyConfig(key)
 
-	if invalid != nil {
-		return nil, errors.Join(ErrValidate, invalid)
+	if !ok {
+		return nil, api.ErrGetUsersInvalidArgument.New("invalid Login ID key")
 	}
 
-	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(model.LoginIDKeyType(key))
+	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(cfg.Type)
 	normalizedloginID, err := normalizer.Normalize(value)
 	if err != nil {
 		return nil, errors.Join(ErrNormalize, err)
@@ -166,7 +156,7 @@ func (p *Provider) ValidateOne(loginID identity.LoginIDSpec, options CheckerOpti
 func (p *Provider) New(userID string, spec identity.LoginIDSpec, options CheckerOptions) (*identity.LoginID, error) {
 	err := p.ValidateOne(spec, options)
 	if err != nil {
-		return nil, errors.Join(ErrValidate, err)
+		return nil, err
 	}
 
 	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
@@ -202,7 +192,7 @@ func (p *Provider) WithValue(iden *identity.LoginID, value string, options Check
 
 	err := p.ValidateOne(spec, options)
 	if err != nil {
-		return nil, errors.Join(ErrValidate, err)
+		return nil, err
 	}
 
 	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
