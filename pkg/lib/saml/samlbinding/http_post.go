@@ -68,6 +68,9 @@ const postForm = `
 		<form method="POST" action="{{.CallbackURL}}" id="f">
 			<input type="hidden" name="SAMLResponse" value="{{.SAMLResponse}}" />
 			<input type="hidden" name="RelayState" value="{{.RelayState}}" />
+			<noscript>
+				<button type="submit">Continue</button>
+			</noscript>
 		</form>
 	</body>
 </html>
