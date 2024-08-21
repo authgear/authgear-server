@@ -27,19 +27,25 @@ func (h *LoginResultHandler) handleLoginResult(
 	now := h.Clock.NowUTC()
 	callbackURL := samlSessionEntry.CallbackURL
 	relayState := samlSessionEntry.RelayState
+
+	unexpectedErrorResult := func(err error) httputil.Result {
+		return samlprotocolhttp.NewSAMLErrorResult(err,
+			samlprotocolhttp.SAMLResult{
+				CallbackURL: callbackURL,
+				// TODO(saml): Respect the binding protocol set in request
+				Binding:    samlprotocol.SAMLBindingHTTPPost,
+				Response:   samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
+				RelayState: relayState,
+			},
+			true,
+		)
+	}
+
 	defer func() {
 		if e := recover(); e != nil {
+			// Transform any panic into a saml result
 			e := panicutil.MakeError(e)
-			result = samlprotocolhttp.NewSAMLErrorResult(e,
-				samlprotocolhttp.SAMLResult{
-					CallbackURL: callbackURL,
-					// TODO(saml): Respect the binding protocol set in request
-					Binding:    samlprotocol.SAMLBindingHTTPPost,
-					Response:   samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
-					RelayState: relayState,
-				},
-				true,
-			)
+			result = unexpectedErrorResult(e)
 		}
 	}()
 
@@ -79,7 +85,8 @@ func (h *LoginResultHandler) handleLoginResult(
 			)
 			return errResponse
 		}
-		panic(err)
+
+		return unexpectedErrorResult(err)
 	}
 
 	return &samlprotocolhttp.SAMLResult{
