@@ -99,24 +99,29 @@ func (p *Provider) New(id string, userID string, oobAuthenticatorType model.Auth
 	return a, nil
 }
 
-// WithSpec return new authenticator pointer if target is changed
+type UpdateTargetOption struct {
+	Email string
+	Phone string
+}
+
+// UpdateTarget return new authenticator pointer if target is changed
 // Otherwise original authenticator will be returned
-func (p *Provider) WithSpec(a *authenticator.OOBOTP, spec *authenticator.OOBOTPSpec) (*authenticator.OOBOTP, error) {
+func (p *Provider) UpdateTarget(a *authenticator.OOBOTP, option UpdateTargetOption) (bool, *authenticator.OOBOTP, error) {
 	switch a.OOBAuthenticatorType {
 	case model.AuthenticatorTypeOOBEmail:
-		if spec.Email == a.ToTarget() {
-			return a, nil
+		if a.ToTarget() == option.Email {
+			return false, a, nil
 		}
 		newAuth := *a
-		newAuth.Email = spec.Email
-		return &newAuth, nil
+		newAuth.Email = option.Email
+		return true, &newAuth, nil
 	case model.AuthenticatorTypeOOBSMS:
-		if spec.Phone == a.ToTarget() {
-			return a, nil
+		if a.ToTarget() == option.Phone {
+			return false, a, nil
 		}
 		newAuth := *a
-		newAuth.Phone = spec.Phone
-		return &newAuth, nil
+		newAuth.Phone = option.Phone
+		return true, &newAuth, nil
 	default:
 		panic("oob: incompatible authenticator type:" + a.OOBAuthenticatorType)
 	}

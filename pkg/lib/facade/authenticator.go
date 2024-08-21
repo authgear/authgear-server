@@ -29,10 +29,6 @@ func (a AuthenticatorFacade) NewWithAuthenticatorID(authenticatorID string, spec
 	return a.Coordinator.AuthenticatorNewWithAuthenticatorID(authenticatorID, spec)
 }
 
-func (a AuthenticatorFacade) WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error) {
-	return a.Coordinator.AuthenticatorWithSpec(authenticatorInfo, spec)
-}
-
 func (a AuthenticatorFacade) Create(authenticatorInfo *authenticator.Info, markVerified bool) error {
 	return a.Coordinator.AuthenticatorCreate(authenticatorInfo, markVerified)
 }

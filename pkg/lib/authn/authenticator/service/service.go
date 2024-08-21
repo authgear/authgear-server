@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -59,7 +60,7 @@ type OOBOTPAuthenticatorProvider interface {
 	GetMany(ids []string) ([]*authenticator.OOBOTP, error)
 	List(userID string) ([]*authenticator.OOBOTP, error)
 	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) (*authenticator.OOBOTP, error)
-	WithSpec(a *authenticator.OOBOTP, spec *authenticator.OOBOTPSpec) (*authenticator.OOBOTP, error)
+	UpdateTarget(a *authenticator.OOBOTP, option oob.UpdateTargetOption) (bool, *authenticator.OOBOTP, error)
 	Create(*authenticator.OOBOTP) error
 	Update(*authenticator.OOBOTP) error
 	Delete(*authenticator.OOBOTP) error
@@ -364,21 +365,26 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 	panic("authenticator: unknown authenticator type " + spec.Type)
 }
 
-func (s *Service) WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bool, *authenticator.Info, error) {
-	changed := false
+type UpdateOOBOTPTargetOption struct {
+	Phone string
+	Email string
+}
+
+func (o UpdateOOBOTPTargetOption) toProviderOptions() oob.UpdateTargetOption {
+	return oob.UpdateTargetOption{
+		Phone: o.Phone,
+		Email: o.Email,
+	}
+}
+
+func (s *Service) UpdateOOBOTPTarget(ai *authenticator.Info, option UpdateOOBOTPTargetOption) (bool, *authenticator.Info, error) {
 	switch ai.Type {
-	case model.AuthenticatorTypePassword:
-		panic("authenticator: password authenticator update must use UpdatePassword")
 	case model.AuthenticatorTypeOOBEmail:
 		fallthrough
 	case model.AuthenticatorTypeOOBSMS:
 		a := ai.OOBOTP
-		newAuth, err := s.OOBOTP.WithSpec(a, spec.OOBOTP)
-		if err != nil {
-			return false, nil, err
-		}
-		changed = (newAuth != a)
-		return changed, newAuth.ToInfo(), nil
+		changed, newAuth, err := s.OOBOTP.UpdateTarget(a, option.toProviderOptions())
+		return changed, newAuth.ToInfo(), err
 	}
 
 	panic("authenticator: update authenticator is not supported for type " + ai.Type)
@@ -686,24 +692,10 @@ func (s *Service) UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) 
 
 	for _, a := range authenticators {
 		if a.IsDependentOf(oldInfo) {
-			spec := &authenticator.Spec{
-				Type:      a.Type,
-				UserID:    a.UserID,
-				IsDefault: a.IsDefault,
-				Kind:      a.Kind,
-			}
-			switch a.Type {
-			case model.AuthenticatorTypeOOBEmail:
-				spec.OOBOTP = &authenticator.OOBOTPSpec{
-					Email: newInfo.LoginID.LoginID,
-				}
-			case model.AuthenticatorTypeOOBSMS:
-				spec.OOBOTP = &authenticator.OOBOTPSpec{
-					Phone: newInfo.LoginID.LoginID,
-				}
-			}
-
-			changed, newAuth, err := s.WithSpec(a, spec)
+			changed, newAuth, err := s.UpdateOOBOTPTarget(a, UpdateOOBOTPTargetOption{
+				Email: newInfo.LoginID.LoginID,
+				Phone: newInfo.LoginID.LoginID,
+			})
 			if err != nil {
 				return err
 			}
