@@ -1432,8 +1432,7 @@ func (c *Coordinator) GetUserByLoginID(loginIDKey string, loginIDValue string) (
 	info, err := c.Identities.AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey, loginIDValue)
 
 	if errors.Is(err, api.ErrIdentityNotFound) {
-		// User identity not found is not an error in this function.
-		return "", nil
+		return "", api.ErrUserNotFound
 	} else if errors.Is(err, loginid.ErrNormalize) {
 		return "", api.ErrGetUsersInvalidArgument.New("invalid Login ID value")
 	} else if errors.Is(err, loginid.ErrValidate) {

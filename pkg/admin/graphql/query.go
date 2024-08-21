@@ -1,11 +1,13 @@
 package graphql
 
 import (
+	"errors"
 	"time"
 
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -360,11 +362,14 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				loginIDValue, _ := p.Args["loginIDValue"].(string)
 
 				userID, err := gqlCtx.UserFacade.GetUserByLoginID(loginIDKey, loginIDValue)
-				if err != nil {
+				if errors.Is(err, api.ErrUserNotFound) {
+					// For user not found error, just return nil instead of return error
+					return nil, nil
+				} else if err != nil {
 					return nil, err
 				}
 
-				return graphqlutil.NewLazyValue(gqlCtx.Users.Load(userID)).Value()
+				return gqlCtx.Users.Load(userID).Value()
 			},
 		},
 	},
