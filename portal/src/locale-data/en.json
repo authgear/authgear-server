@@ -951,6 +951,7 @@
   "DesignScreen.configuration.favicon.label": "Favicon",
   "DesignScreen.configuration.favicon.description": "Add a favicon to browser tabs to identify your brand. The size must be a multiple of 32px square PNG, JPG or GIF",
   "DesignScreen.configuration.imagePicker.upload": "Upload",
+  "DesignScreen.configuration.appLogoPicker.override": "Override",
   "DesignScreen.configuration.card.label": "Card",
   "DesignScreen.configuration.card.alignment.label": "Alignment",
   "DesignScreen.configuration.background.label": "Background",
