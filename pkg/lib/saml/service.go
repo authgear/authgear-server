@@ -161,6 +161,26 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 		}
 	}
 
+	allowedAudiences := setutil.Set[string]{}
+
+	// acs urls are always allowed
+	for _, acsURL := range sp.AcsURLs {
+		allowedAudiences.Add(acsURL)
+	}
+	if sp.Audience != "" {
+		allowedAudiences.Add(sp.Audience)
+	}
+
+	for _, aud := range authnRequest.CollectAudiences() {
+		if !allowedAudiences.Has(aud) {
+			return &samlerror.InvalidRequestError{
+				Field:    "Conditions/AudienceRestrictions",
+				Actual:   aud,
+				Expected: allowedAudiences.Keys(),
+			}
+		}
+	}
+
 	// unspecified is always allowed
 	allowedNameFormats := setutil.Set[string]{
 		string(config.SAMLNameIDFormatUnspecified): {},
@@ -250,11 +270,6 @@ func (s *Service) IssueSuccessResponse(
 		recipient = sp.Recipient
 	}
 
-	audience := callbackURL
-	if sp.Audience != "" {
-		audience = sp.Audience
-	}
-
 	nameIDFormat := sp.NameIDFormat
 	if nameIDFormatInRequest, ok := inResponseToAuthnRequest.GetNameIDFormat(); ok {
 		nameIDFormat = nameIDFormatInRequest
@@ -269,20 +284,42 @@ func (s *Service) IssueSuccessResponse(
 		notOnOrAfter = notBefore.Add(assertionValidDuration)
 	}
 
-	conditions := inResponseToAuthnRequest.Conditions
-	if conditions == nil {
-		conditions = &crewjamsaml.Conditions{}
-	}
+	conditions := &samlprotocol.Conditions{}
 	if conditions.NotBefore.IsZero() {
 		conditions.NotBefore = notBefore
 	}
 	if conditions.NotOnOrAfter.IsZero() {
 		conditions.NotOnOrAfter = notOnOrAfter
 	}
-	conditions.AudienceRestrictions = []crewjamsaml.AudienceRestriction{
-		{
-			Audience: crewjamsaml.Audience{Value: audience},
-		},
+
+	audiences := setutil.Set[string]{}
+	// Callback url is always included
+	audiences.Add(callbackURL)
+
+	// Include audience set in config
+	if sp.Audience != "" {
+		audiences.Add(sp.Audience)
+	}
+
+	// Include audiences requested
+	for _, aud := range inResponseToAuthnRequest.CollectAudiences() {
+		audiences.Add(aud)
+	}
+
+	audienceRestriction := samlprotocol.AudienceRestriction{
+		Audience: []samlprotocol.Audience{},
+	}
+
+	for _, aud := range audiences.Keys() {
+		audienceRestriction.Audience = append(audienceRestriction.Audience,
+			samlprotocol.Audience{
+				Value: aud,
+			},
+		)
+	}
+
+	conditions.AudienceRestrictions = []samlprotocol.AudienceRestriction{
+		audienceRestriction,
 	}
 
 	nameID, err := s.getUserNameID(nameIDFormat, sp, userInfo)
@@ -290,23 +327,23 @@ func (s *Service) IssueSuccessResponse(
 		return nil, err
 	}
 
-	assertion := &crewjamsaml.Assertion{
+	assertion := &samlprotocol.Assertion{
 		ID:           samlprotocol.GenerateAssertionID(),
 		IssueInstant: now,
 		Version:      samlprotocol.SAMLVersion2,
-		Issuer: crewjamsaml.Issuer{
+		Issuer: samlprotocol.Issuer{
 			Format: samlprotocol.SAMLIssertFormatEntity,
 			Value:  issuerID,
 		},
-		Subject: &crewjamsaml.Subject{
-			NameID: &crewjamsaml.NameID{
+		Subject: &samlprotocol.Subject{
+			NameID: &samlprotocol.NameID{
 				Format: string(nameIDFormat),
 				Value:  nameID,
 			},
-			SubjectConfirmations: []crewjamsaml.SubjectConfirmation{
+			SubjectConfirmations: []samlprotocol.SubjectConfirmation{
 				{
 					Method: "urn:oasis:names:tc:SAML:2.0:cm:bearer",
-					SubjectConfirmationData: &crewjamsaml.SubjectConfirmationData{
+					SubjectConfirmationData: &samlprotocol.SubjectConfirmationData{
 						InResponseTo: inResponseToAuthnRequest.ID,
 						NotOnOrAfter: notOnOrAfter,
 						Recipient:    recipient,
@@ -315,27 +352,27 @@ func (s *Service) IssueSuccessResponse(
 			},
 		},
 		Conditions: conditions,
-		AuthnStatements: []crewjamsaml.AuthnStatement{
+		AuthnStatements: []samlprotocol.AuthnStatement{
 			{
 				AuthnInstant: notBefore,
 				SessionIndex: sid,
-				AuthnContext: crewjamsaml.AuthnContext{
-					AuthnContextClassRef: &crewjamsaml.AuthnContextClassRef{
+				AuthnContext: samlprotocol.AuthnContext{
+					AuthnContextClassRef: &samlprotocol.AuthnContextClassRef{
 						// TODO(saml): Return a correct context by used authenticators
 						Value: "urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified",
 					},
 				},
 			},
 		},
-		AttributeStatements: []crewjamsaml.AttributeStatement{
+		AttributeStatements: []samlprotocol.AttributeStatement{
 			{
 				// TODO(saml): Return more attributes
-				Attributes: []crewjamsaml.Attribute{
+				Attributes: []samlprotocol.Attribute{
 					{
 						FriendlyName: "User ID",
 						Name:         "sub",
 						NameFormat:   samlprotocol.SAMLAttrnameFormatBasic,
-						Values: []crewjamsaml.AttributeValue{{
+						Values: []samlprotocol.AttributeValue{{
 							Type:  samlprotocol.SAMLAttrTypeString,
 							Value: authenticatedUserId,
 						}},
