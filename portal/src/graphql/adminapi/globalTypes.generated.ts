@@ -985,7 +985,7 @@ export type Query = {
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
   /** Get user by Login iD. */
-  getUsersByLoginID?: Maybe<User>;
+  getUserByLoginID?: Maybe<User>;
   /** Get users by standardAttribute, attributeName must be email, phone_number or preferred_username. */
   getUsersByStandardAttribute: Array<User>;
   /** All groups */
@@ -1014,7 +1014,7 @@ export type QueryAuditLogsArgs = {
 };
 
 
-export type QueryGetUsersByLoginIdArgs = {
+export type QueryGetUserByLoginIdArgs = {
   loginIDKey: Scalars['String']['input'];
   loginIDValue: Scalars['String']['input'];
 };

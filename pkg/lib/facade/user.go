@@ -88,6 +88,6 @@ func (u UserFacade) GetUsersByStandardAttribute(attributeKey string, attributeVa
 	return u.Coordinator.GetUsersByStandardAttribute(attributeKey, attributeValue)
 }
 
-func (u UserFacade) GetUsersByLoginID(loginIDKey string, loginIDValue string) (string, error) {
-	return u.Coordinator.GetUsersByLoginID(loginIDKey, loginIDValue)
+func (u UserFacade) GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error) {
+	return u.Coordinator.GetUserByLoginID(loginIDKey, loginIDValue)
 }

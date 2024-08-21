@@ -342,8 +342,8 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				}), err
 			},
 		},
-		"getUsersByLoginID": &graphql.Field{
-			Description: "Get user by Login iD.",
+		"getUserByLoginID": &graphql.Field{
+			Description: "Get user by Login ID.",
 			Type:        nodeUser,
 			Args: graphql.FieldConfigArgument{
 				"loginIDKey": &graphql.ArgumentConfig{
@@ -359,7 +359,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				loginIDKey, _ := p.Args["loginIDKey"].(string)
 				loginIDValue, _ := p.Args["loginIDValue"].(string)
 
-				userID, err := gqlCtx.UserFacade.GetUsersByLoginID(loginIDKey, loginIDValue)
+				userID, err := gqlCtx.UserFacade.GetUserByLoginID(loginIDKey, loginIDValue)
 				if err != nil {
 					return nil, err
 				}

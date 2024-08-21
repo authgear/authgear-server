@@ -26,7 +26,7 @@ func TestGetUserByLoginIDByEmail(t *testing.T) {
 		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
-					getUsersByLoginID(loginIDKey:"email", loginIDValue: "e2e_admin_api_get_users@example.com") {
+					getUserByLoginID(loginIDKey:"email", loginIDValue: "e2e_admin_api_get_users@example.com") {
 							createdAt
 							standardAttributes
 							lastLoginAt
@@ -39,7 +39,7 @@ func TestGetUserByLoginIDByEmail(t *testing.T) {
 		So(rawResp, ShouldEqualJSON, `
 			{
 				"data": {
-					"getUsersByLoginID": {
+					"getUserByLoginID": {
 						"createdAt": "2024-08-27T07:51:42.040683Z",
 						"lastLoginAt": null,
 						"standardAttributes": {
@@ -70,7 +70,7 @@ func TestGetUserByLoginIDByPhone(t *testing.T) {
 		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
-					getUsersByLoginID(loginIDKey:"phone", loginIDValue: "+85261236544") {
+					getUserByLoginID(loginIDKey:"phone", loginIDValue: "+85261236544") {
 							createdAt
 							standardAttributes
 							lastLoginAt
@@ -83,7 +83,7 @@ func TestGetUserByLoginIDByPhone(t *testing.T) {
 		So(rawResp, ShouldEqualJSON, `
 			{
 				"data": {
-					"getUsersByLoginID": {
+					"getUserByLoginID": {
 						"createdAt": "2024-08-27T07:51:42.040683Z",
 						"lastLoginAt": null,
 						"standardAttributes": {
@@ -115,7 +115,7 @@ func TestGetUserByLoginIDByUsername(t *testing.T) {
 		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
-					getUsersByLoginID(loginIDKey:"username", loginIDValue: "e2e_admin_api_get_users_username") {
+					getUserByLoginID(loginIDKey:"username", loginIDValue: "e2e_admin_api_get_users_username") {
 							createdAt
 							standardAttributes
 							lastLoginAt
@@ -128,7 +128,7 @@ func TestGetUserByLoginIDByUsername(t *testing.T) {
 		So(rawResp, ShouldEqualJSON, `
 			{
 				"data": {
-					"getUsersByLoginID": {
+					"getUserByLoginID": {
 						"createdAt": "2024-08-27T07:51:42.040683Z",
 						"lastLoginAt": null,
 						"standardAttributes": {
@@ -159,7 +159,7 @@ func TestGetUserByLoginIDNotFound(t *testing.T) {
 		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
-					getUsersByLoginID(loginIDKey:"email", loginIDValue: "e2e_admin_api_get_users_not_found@example.com") {
+					getUserByLoginID(loginIDKey:"email", loginIDValue: "e2e_admin_api_get_users_not_found@example.com") {
 							createdAt
 							standardAttributes
 							lastLoginAt
@@ -172,7 +172,7 @@ func TestGetUserByLoginIDNotFound(t *testing.T) {
 		So(rawResp, ShouldEqualJSON, `
 			{
 				"data": {
-					"getUsersByLoginID": null
+					"getUserByLoginID": null
 				}
 			}
 		`)
@@ -196,7 +196,7 @@ func TestGetUserByLoginIDInvalidLoginIDValue(t *testing.T) {
 		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
-					getUsersByLoginID(loginIDKey:"email", loginIDValue: "bad_email_address") {
+					getUserByLoginID(loginIDKey:"email", loginIDValue: "bad_email_address") {
 							id
 							createdAt
 							standardAttributes
@@ -210,7 +210,7 @@ func TestGetUserByLoginIDInvalidLoginIDValue(t *testing.T) {
 		So(rawResp, ShouldEqualJSON, `
 			{
 				"data": {
-					"getUsersByLoginID": null
+					"getUserByLoginID": null
 				},
 				"errors": [
 					{
@@ -222,7 +222,7 @@ func TestGetUserByLoginIDInvalidLoginIDValue(t *testing.T) {
 							}
 						],
 						"path": [
-							"getUsersByLoginID"
+							"getUserByLoginID"
 						],
 						"extensions": {
 							"errorName": "Invalid",
@@ -252,7 +252,7 @@ func TestGetUserByLoginIDInvalidLoginIDKey(t *testing.T) {
 		rawResp, err := cmd.Client.GraphQLAPIRaw(nil, nil, cmd.AppID, e2eclient.GraphQLAPIRequest{
 			Query: `
 				query {
-					getUsersByLoginID(loginIDKey:"email_invalid", loginIDValue: "e2e_admin_api_get_users_not_found@example.com") {
+					getUserByLoginID(loginIDKey:"email_invalid", loginIDValue: "e2e_admin_api_get_users_not_found@example.com") {
 							id
 							createdAt
 							standardAttributes
@@ -266,7 +266,7 @@ func TestGetUserByLoginIDInvalidLoginIDKey(t *testing.T) {
 		So(rawResp, ShouldEqualJSON, `
 			{
 				"data": {
-					"getUsersByLoginID": null
+					"getUserByLoginID": null
 				},
 				"errors": [
 					{
@@ -278,7 +278,7 @@ func TestGetUserByLoginIDInvalidLoginIDKey(t *testing.T) {
 							}
 						],
 						"path": [
-							"getUsersByLoginID"
+							"getUserByLoginID"
 						],
 						"extensions": {
 							"errorName": "Invalid",

@@ -1147,8 +1147,8 @@ type Query {
   """Audit logs"""
   auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
 
-  """Get user by Login iD."""
-  getUsersByLoginID(loginIDKey: String!, loginIDValue: String!): User
+  """Get user by Login ID."""
+  getUserByLoginID(loginIDKey: String!, loginIDValue: String!): User
 
   """
   Get users by standardAttribute, attributeName must be email, phone_number or preferred_username.
