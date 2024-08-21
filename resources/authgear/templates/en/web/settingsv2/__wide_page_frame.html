@@ -1,0 +1,37 @@
+{{ define "settingsv2/__wide_page_frame.html" }}
+
+<!DOCTYPE html>
+<html
+{{ if and ($.DarkThemeEnabled) (not $.LightThemeEnabled) }}
+	class="dark"
+{{ end }}
+	lang="{{ $.ResolvedLanguageTag }}"
+	dir="{{ $.HTMLDir }}"
+	data-controller="format-date-relative"
+	data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
+	data-light-theme-enabled="{{ $.LightThemeEnabled }}">
+{{ template "settingsv2/__html_head.html" . }}
+
+<body class="page" data-controller="prevent-double-tap websocket modal simple-modal xhr-submit-form" data-action="dblclick->prevent-double-tap#action">
+
+<!-- Google Tag Manager (noscript) -->
+{{ if $.GoogleTagManagerContainerID }}
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $.GoogleTagManagerContainerID }}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+{{ end }}
+<!-- End Google Tag Manager (noscript) -->
+
+{{ template "web/settingsv2/layout.html" . }}
+</body>
+</html>
+{{ end }}
+
+{{ define "wide_widget" }}
+  <div class="wide-widget">
+    <div class="wide-widget-content">
+      {{ template "page-content" . }}
+      {{ template "settingsv2/__lockout.html" . }}
+    </div>
+  </div>
+{{ end }}
+
