@@ -56,10 +56,18 @@ func (s *SAMLErrorResult) IsInternalError() bool {
 	return s.IsUnexpected
 }
 
-func NewSAMLErrorResult(cause error, result SAMLResult, isUnexpected bool) *SAMLErrorResult {
+func NewExpectedSAMLErrorResult(cause error, result SAMLResult) *SAMLErrorResult {
 	return &SAMLErrorResult{
 		SAMLResult:   result,
 		Cause:        cause,
-		IsUnexpected: isUnexpected,
+		IsUnexpected: false,
+	}
+}
+
+func NewUnexpectedSAMLErrorResult(cause error, result SAMLResult) *SAMLErrorResult {
+	return &SAMLErrorResult{
+		SAMLResult:   result,
+		Cause:        cause,
+		IsUnexpected: true,
 	}
 }

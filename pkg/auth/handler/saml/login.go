@@ -79,7 +79,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var parseRequestFailedErr *samlerror.ParseRequestFailedError
 		if errors.As(err, &parseRequestFailedErr) {
-			errResponse := samlprotocolhttp.NewSAMLErrorResult(err,
+			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocolhttp.SAMLResult{
 					CallbackURL: callbackURL,
 					Binding:     samlprotocol.SAMLBindingHTTPPost,
@@ -90,7 +90,6 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 						parseRequestFailedErr.GetDetailElements(),
 					),
 				},
-				false,
 			)
 			h.writeResult(rw, r, errResponse)
 			return
@@ -117,7 +116,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var invalidRequestErr *samlerror.InvalidRequestError
 		if errors.As(err, &invalidRequestErr) {
-			errResponse := samlprotocolhttp.NewSAMLErrorResult(err,
+			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocolhttp.SAMLResult{
 					CallbackURL: callbackURL,
 					Binding:     samlprotocol.SAMLBindingHTTPPost,
@@ -129,7 +128,6 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 					),
 					RelayState: relayState,
 				},
-				false,
 			)
 			h.writeResult(rw, r, errResponse)
 			return
@@ -162,7 +160,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 		if resolvedSession == nil {
 			// No session, return NoPassive error.
-			errResponse := samlprotocolhttp.NewSAMLErrorResult(err,
+			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocolhttp.SAMLResult{
 					CallbackURL: callbackURL,
 					Binding:     samlprotocol.SAMLBindingHTTPPost,
@@ -172,7 +170,6 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 					),
 					RelayState: relayState,
 				},
-				false,
 			)
 			h.writeResult(rw, r, errResponse)
 			return
@@ -219,14 +216,13 @@ func (h *LoginHandler) handleUnknownError(
 	now := h.Logger.Time.UTC()
 	e := panicutil.MakeError(err)
 
-	result := samlprotocolhttp.NewSAMLErrorResult(e,
+	result := samlprotocolhttp.NewUnexpectedSAMLErrorResult(e,
 		samlprotocolhttp.SAMLResult{
 			CallbackURL: callbackURL,
 			Binding:     samlprotocol.SAMLBindingHTTPPost,
 			Response:    samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
 			RelayState:  relayState,
 		},
-		true,
 	)
 	h.writeResult(rw, r, result)
 }
