@@ -8,6 +8,7 @@ import {
   CommandButton,
   MessageBar,
   MessageBarType,
+  IStyle,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -74,6 +75,11 @@ const ROLES_KEY = "roles";
 const GROUPS_KEY = "groups";
 const DISABLE_DELELE_KEY = "disable-delete";
 
+const pivotItemContainerStyle: IStyle = {
+  flex: "1 0 auto",
+  display: "flex",
+  flexDirection: "column",
+};
 interface FormState {
   userID: string;
   standardAttributes: StandardAttributesState;
@@ -376,13 +382,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
         </MessageBar>
         <Pivot
-          styles={{
-            itemContainer: {
-              flex: "1 0 auto",
-              display: "flex",
-              flexDirection: "column",
-            },
-          }}
+          styles={{ itemContainer: pivotItemContainerStyle }}
           className={styles.pivot}
           overflowBehavior="menu"
           selectedKey={selectedKey}

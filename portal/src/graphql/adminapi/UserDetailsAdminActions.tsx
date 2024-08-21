@@ -1,12 +1,22 @@
-import { Label, Text } from "@fluentui/react";
+import { IStyle, Label, Text } from "@fluentui/react";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import React from "react";
 import cn from "classnames";
 import styles from "./UserDetailsAdminActions.module.css";
 import ListCellLayout from "../../ListCellLayout";
-import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
+import AdminActionButton from "./AdminActionButton";
+
+const labelTextStyle: IStyle = {
+  lineHeight: "20px",
+  fontWeight: 600,
+};
+
+const bodyTextStyle: IStyle = {
+  lineHeight: "20px",
+  maxWidth: "500px",
+};
 
 interface DisableUserCellProps {
   isDisabled: boolean;
@@ -31,22 +41,28 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
     const { isDisabled, onDisableData } = props;
     return (
       <ListCellLayout
-        className={cn(
-          styles.cell,
-          styles.actionCell,
-          styles["cell--not-first"]
-        )}
+        className={cn(styles.actionCell, styles["cell--not-first"])}
       >
-        <Text className={cn(styles.cellLabel, styles.actionCellLabel)}>
+        <Text
+          className={cn(styles.actionCellLabel)}
+          styles={{
+            root: labelTextStyle,
+          }}
+        >
           <FormattedMessage id="UserDetailsAdminActions.disable-user.title" />
         </Text>
-        <Text className={cn(styles.actionCellBody, styles.actionCellLast)}>
+        <Text
+          className={cn(styles.actionCellBody)}
+          styles={{
+            root: bodyTextStyle,
+          }}
+        >
           <FormattedMessage id="UserDetailsAdminActions.disable-user.body" />
         </Text>
         {isDisabled ? (
-          <DefaultButton
+          <AdminActionButton
             theme={themes.actionButton}
-            className={cn(styles.actionCellActionButton, styles.actionBorder)}
+            className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Play" }}
             text={
               <FormattedMessage id="UserDetailsAdminActions.disable-user.action.enable" />
@@ -54,12 +70,9 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             onClick={onDisableData}
           />
         ) : (
-          <DefaultButton
+          <AdminActionButton
             theme={themes.destructive}
-            className={cn(
-              styles.actionCellActionButton,
-              styles.destructiveBorder
-            )}
+            className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Blocked" }}
             text={
               <FormattedMessage id="UserDetailsAdminActions.disable-user.action.disable" />
@@ -67,6 +80,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             onClick={onDisableData}
           />
         )}
+        <div className={cn(styles.actionCellSpacer)} />
       </ListCellLayout>
     );
   };
@@ -78,22 +92,28 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
       props;
     return (
       <ListCellLayout
-        className={cn(
-          styles.cell,
-          styles.actionCell,
-          styles["cell--not-first"]
-        )}
+        className={cn(styles.actionCell, styles["cell--not-first"])}
       >
-        <Text className={cn(styles.cellLabel, styles.actionCellLabel)}>
+        <Text
+          className={cn(styles.actionCellLabel)}
+          styles={{
+            root: labelTextStyle,
+          }}
+        >
           <FormattedMessage id="UserDetailsAdminActions.anonymize-user.title" />
         </Text>
-        <Text className={cn(styles.actionCellBody, styles.actionCellLast)}>
+        <Text
+          className={cn(styles.actionCellBody)}
+          styles={{
+            root: bodyTextStyle,
+          }}
+        >
           <FormattedMessage id="UserDetailsAdminActions.anonymize-user.body" />
         </Text>
         {isScheduledAnonymization ? (
-          <DefaultButton
+          <AdminActionButton
             theme={themes.actionButton}
-            className={cn(styles.actionCellActionButton, styles.actionBorder)}
+            className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Undo" }}
             text={
               <FormattedMessage id="UserDetailsAdminActions.anonymize-user.action.cancel" />
@@ -101,12 +121,9 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             onClick={onCancelAnonymizeData}
           />
         ) : (
-          <DefaultButton
+          <AdminActionButton
             theme={themes.destructive}
-            className={cn(
-              styles.actionCellActionButton,
-              styles.destructiveBorder
-            )}
+            className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Archive" }}
             text={
               <FormattedMessage id="UserDetailsAdminActions.anonymize-user.action.anonymize" />
@@ -114,6 +131,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             onClick={onAnonymizeData}
           />
         )}
+        <div className={cn(styles.actionCellSpacer)} />
       </ListCellLayout>
     );
   };
@@ -125,18 +143,32 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
   const { isScheduledRemoval, onRemoveData, onCancelRemoveData } = props;
   return (
     <ListCellLayout
-      className={cn(styles.cell, styles.actionCell, styles["cell--not-first"])}
+      className={cn(
+        styles.actionCell,
+        styles["cell--not-first"],
+        styles["cell--last"]
+      )}
     >
-      <Text className={cn(styles.cellLabel, styles.actionCellLabel)}>
+      <Text
+        className={cn(styles.actionCellLabel)}
+        styles={{
+          root: labelTextStyle,
+        }}
+      >
         <FormattedMessage id="UserDetailsAdminActions.remove-user.title" />
       </Text>
-      <Text className={cn(styles.actionCellBody, styles.actionCellLast)}>
+      <Text
+        className={cn(styles.actionCellBody)}
+        styles={{
+          root: bodyTextStyle,
+        }}
+      >
         <FormattedMessage id="UserDetailsAdminActions.remove-user.body" />
       </Text>
       {isScheduledRemoval ? (
-        <DefaultButton
+        <AdminActionButton
           theme={themes.actionButton}
-          className={cn(styles.actionCellActionButton, styles.actionBorder)}
+          className={cn(styles.actionCellActionButton)}
           iconProps={{ iconName: "Undo" }}
           text={
             <FormattedMessage id="UserDetailsAdminActions.remove-user.action.cancel" />
@@ -144,12 +176,9 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           onClick={onCancelRemoveData}
         />
       ) : (
-        <DefaultButton
+        <AdminActionButton
           theme={themes.destructive}
-          className={cn(
-            styles.actionCellActionButton,
-            styles.destructiveBorder
-          )}
+          className={cn(styles.actionCellActionButton)}
           iconProps={{ iconName: "Delete" }}
           text={
             <FormattedMessage id="UserDetailsAdminActions.remove-user.action.remove" />
@@ -157,6 +186,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           onClick={onRemoveData}
         />
       )}
+      <div className={cn(styles.actionCellSpacer)} />
     </ListCellLayout>
   );
 };
@@ -175,29 +205,31 @@ const UserDetailsAdminActions: React.VFC<UserDetailsAdminActionsProps> =
 
     return (
       <div>
-        <Label className={styles.standardAttributesTitle}>
+        <Label>
           <Text variant="xLarge">
             <FormattedMessage id="UserDetailsAdminActions.title" />
           </Text>
         </Label>
-        {data.isAnonymized || data.deleteAt != null ? null : (
-          <>
-            <DisableUserCell
-              isDisabled={data.isDisabled}
-              onDisableData={handleDataStatusChange}
-            />
-            <AnonymizeUserCell
-              isScheduledAnonymization={data.anonymizeAt != null}
-              onAnonymizeData={onAnonymizeData}
-              onCancelAnonymizeData={handleDataStatusChange}
-            />
-          </>
-        )}
-        <RemoveUserCell
-          isScheduledRemoval={data.deleteAt != null}
-          onRemoveData={onRemoveData}
-          onCancelRemoveData={handleDataStatusChange}
-        />
+        <div className="-mt-3">
+          {data.isAnonymized || data.deleteAt != null ? null : (
+            <>
+              <DisableUserCell
+                isDisabled={data.isDisabled}
+                onDisableData={handleDataStatusChange}
+              />
+              <AnonymizeUserCell
+                isScheduledAnonymization={data.anonymizeAt != null}
+                onAnonymizeData={onAnonymizeData}
+                onCancelAnonymizeData={handleDataStatusChange}
+              />
+            </>
+          )}
+          <RemoveUserCell
+            isScheduledRemoval={data.deleteAt != null}
+            onRemoveData={onRemoveData}
+            onCancelRemoveData={handleDataStatusChange}
+          />
+        </div>
       </div>
     );
   };

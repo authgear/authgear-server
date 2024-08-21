@@ -1,7 +1,7 @@
 import React from "react";
 import cn from "classnames";
 import { Link } from "react-router-dom";
-import { Persona, PersonaSize, Text, FontIcon } from "@fluentui/react";
+import { Persona, PersonaSize, Text, FontIcon, IStyle } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import { formatDatetime } from "../../util/formatDatetime";
@@ -9,6 +9,13 @@ import { formatDatetime } from "../../util/formatDatetime";
 import styles from "./UserDetailSummary.module.css";
 import { explorerAddress, parseEIP681 } from "../../util/eip681";
 import ExternalLink from "../../ExternalLink";
+
+const warnBadgeStyle: IStyle = {
+  padding: 4,
+  borderRadius: 4,
+  color: "#ffffff",
+  backgroundColor: "#e23d3d",
+};
 
 function shouldRenderExplorerURL(addressURL: string): boolean {
   try {
@@ -41,7 +48,12 @@ interface WarnUserStatusBadgeProps {
 function WarnUserStatusBadge(props: WarnUserStatusBadgeProps) {
   const { badgeTextId } = props;
   return (
-    <Text className={cn(styles.warnBadge, styles.inlineGridItem)}>
+    <Text
+      className={cn(styles.inlineGridItem)}
+      styles={{
+        root: warnBadgeStyle,
+      }}
+    >
       <FormattedMessage id={badgeTextId} />
     </Text>
   );

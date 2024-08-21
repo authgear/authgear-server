@@ -68,13 +68,6 @@
   font-style: italic;
 }
 
-.warnBadge {
-  @apply p-1;
-  @apply rounded;
-  @apply text-white;
-  background-color: #e23d3d;
-}
-
 .inlineGridItem {
   display: inline-block;
   align-self: start;
