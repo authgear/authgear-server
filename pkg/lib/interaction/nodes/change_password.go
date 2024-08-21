@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -122,10 +123,10 @@ func (e *EdgeChangePassword) Instantiate(ctx *interaction.Context, graph *intera
 		}
 	}
 
-	changed, newInfo, err := ctx.Authenticators.WithSpec(oldInfo, &authenticator.Spec{
-		Password: &authenticator.PasswordSpec{
-			PlainPassword: newPassword,
-		},
+	changed, newInfo, err := ctx.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
+		SetPassword:    true,
+		PlainPassword:  newPassword,
+		SetExpireAfter: true,
 	})
 	if err != nil {
 		return
