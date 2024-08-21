@@ -237,6 +237,8 @@ func (s *Service) IssueSuccessResponse(
 	issuerID := s.IdpEntityID()
 	response := samlprotocol.NewSuccessResponse(now, issuerID, inResponseToAuthnRequest.ID)
 
+	// Referencing other SAML Idp implementations,
+	// use ACS url as default value of destination, recipient and audience
 	destination := callbackURL
 	if sp.Destination != "" {
 		destination = sp.Destination
