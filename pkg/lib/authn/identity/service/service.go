@@ -1083,6 +1083,10 @@ func (s *Service) Normalize(typ model.LoginIDKeyType, value string) (normalized 
 	return s.LoginID.Normalize(typ, value)
 }
 
-func (s *Service) AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey string, loginIDValue string) (*identity.LoginID, error) {
-	return s.LoginID.GetByKeyAndValue(loginIDKey, loginIDValue)
+func (s *Service) AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey string, loginIDValue string) (*identity.Info, error) {
+	loginID, err := s.LoginID.GetByKeyAndValue(loginIDKey, loginIDValue)
+	if err != nil {
+		return nil, err
+	}
+	return loginID.ToInfo(), nil
 }

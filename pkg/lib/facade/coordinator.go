@@ -48,7 +48,7 @@ type IdentityService interface {
 	CheckDuplicated(info *identity.Info) (*identity.Info, error)
 	CheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error)
 	Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
-	AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey string, loginIDValue string) (*identity.LoginID, error)
+	AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey string, loginIDValue string) (*identity.Info, error)
 }
 
 type AuthenticatorService interface {
@@ -1429,7 +1429,7 @@ func (c *Coordinator) GetUsersByStandardAttribute(attributeName string, attribut
 }
 
 func (c *Coordinator) GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error) {
-	loginID, err := c.Identities.AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey, loginIDValue)
+	info, err := c.Identities.AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey, loginIDValue)
 
 	if errors.Is(err, api.ErrIdentityNotFound) {
 		// User identity not found is not an error in this function.
@@ -1442,5 +1442,5 @@ func (c *Coordinator) GetUserByLoginID(loginIDKey string, loginIDValue string) (
 		return "", err
 	}
 
-	return loginID.UserID, nil
+	return info.UserID, nil
 }
