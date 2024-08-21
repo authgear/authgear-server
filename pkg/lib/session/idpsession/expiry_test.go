@@ -26,21 +26,21 @@ func TestComputeSessionExpiry(t *testing.T) {
 		}
 
 		Convey("idle timeout is disabled", func() {
-			expiry := computeSessionStorageExpiry(session, &config.SessionConfig{
+			setSessionExpireAtForResolvedSession(session, &config.SessionConfig{
 				Lifetime:           120,
 				IdleTimeoutEnabled: &disabled,
 				IdleTimeout:        30,
 			})
-			So(expiry, ShouldResemble, time.Date(2020, 1, 1, 0, 2, 0, 0, time.UTC))
+			So(session.ExpireAtForResolvedSession, ShouldResemble, time.Date(2020, 1, 1, 0, 2, 0, 0, time.UTC))
 		})
 
 		Convey("idle timeout is enabled", func() {
-			expiry := computeSessionStorageExpiry(session, &config.SessionConfig{
+			setSessionExpireAtForResolvedSession(session, &config.SessionConfig{
 				Lifetime:           120,
 				IdleTimeoutEnabled: &enabled,
 				IdleTimeout:        30,
 			})
-			So(expiry, ShouldResemble, time.Date(2020, 1, 1, 0, 0, 55, 0, time.UTC))
+			So(session.ExpireAtForResolvedSession, ShouldResemble, time.Date(2020, 1, 1, 0, 0, 55, 0, time.UTC))
 		})
 	})
 }

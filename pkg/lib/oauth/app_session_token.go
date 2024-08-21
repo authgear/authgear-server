@@ -20,7 +20,7 @@ type AppSessionToken struct {
 }
 
 type AppSessionTokenServiceOfflineGrantService interface {
-	IsValid(session *OfflineGrant) (valid bool, expiry time.Time, err error)
+	GetOfflineGrant(id string) (*OfflineGrant, error)
 }
 
 type AppSessionTokenServiceCookieManager interface {
@@ -35,7 +35,6 @@ type AppSessionTokenInput struct {
 type AppSessionTokenService struct {
 	AppSessions         AppSessionStore
 	AppSessionTokens    AppSessionTokenStore
-	OfflineGrants       OfflineGrantStore
 	OfflineGrantService AppSessionTokenServiceOfflineGrantService
 	Cookies             AppSessionTokenServiceCookieManager
 	Clock               clock.Clock
@@ -61,18 +60,9 @@ func (s *AppSessionTokenService) Exchange(appSessionToken string) (string, error
 	}
 	refreshTokenHash := sToken.RefreshTokenHash
 
-	offlineGrant, err := s.OfflineGrants.GetOfflineGrant(sToken.OfflineGrantID)
+	offlineGrant, err := s.OfflineGrantService.GetOfflineGrant(sToken.OfflineGrantID)
 	if err != nil {
 		return "", err
-	}
-
-	isValid, expiry, err := s.OfflineGrantService.IsValid(offlineGrant)
-	if err != nil {
-		return "", err
-	}
-
-	if !isValid {
-		return "", ErrGrantNotFound
 	}
 
 	err = s.AppSessionTokens.DeleteAppSessionToken(sToken)
@@ -86,7 +76,7 @@ func (s *AppSessionTokenService) Exchange(appSessionToken string) (string, error
 		AppID:            offlineGrant.AppID,
 		OfflineGrantID:   offlineGrant.ID,
 		CreatedAt:        s.Clock.NowUTC(),
-		ExpireAt:         expiry,
+		ExpireAt:         offlineGrant.ExpireAtForResolvedSession,
 		TokenHash:        HashToken(token),
 		RefreshTokenHash: refreshTokenHash,
 	}

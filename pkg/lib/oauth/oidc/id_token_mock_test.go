@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
+	oauth "github.com/authgear/authgear-server/pkg/lib/oauth"
 	session "github.com/authgear/authgear-server/pkg/lib/session"
 	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	accesscontrol "github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -254,4 +255,42 @@ func (m *MockIDTokenHintResolverSessionProvider) Get(id string) (*idpsession.IDP
 func (mr *MockIDTokenHintResolverSessionProviderMockRecorder) Get(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIDTokenHintResolverSessionProvider)(nil).Get), id)
+}
+
+// MockIDTokenHintResolverOfflineGrantService is a mock of IDTokenHintResolverOfflineGrantService interface.
+type MockIDTokenHintResolverOfflineGrantService struct {
+	ctrl     *gomock.Controller
+	recorder *MockIDTokenHintResolverOfflineGrantServiceMockRecorder
+}
+
+// MockIDTokenHintResolverOfflineGrantServiceMockRecorder is the mock recorder for MockIDTokenHintResolverOfflineGrantService.
+type MockIDTokenHintResolverOfflineGrantServiceMockRecorder struct {
+	mock *MockIDTokenHintResolverOfflineGrantService
+}
+
+// NewMockIDTokenHintResolverOfflineGrantService creates a new mock instance.
+func NewMockIDTokenHintResolverOfflineGrantService(ctrl *gomock.Controller) *MockIDTokenHintResolverOfflineGrantService {
+	mock := &MockIDTokenHintResolverOfflineGrantService{ctrl: ctrl}
+	mock.recorder = &MockIDTokenHintResolverOfflineGrantServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockIDTokenHintResolverOfflineGrantService) EXPECT() *MockIDTokenHintResolverOfflineGrantServiceMockRecorder {
+	return m.recorder
+}
+
+// GetOfflineGrant mocks base method.
+func (m *MockIDTokenHintResolverOfflineGrantService) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOfflineGrant", id)
+	ret0, _ := ret[0].(*oauth.OfflineGrant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOfflineGrant indicates an expected call of GetOfflineGrant.
+func (mr *MockIDTokenHintResolverOfflineGrantServiceMockRecorder) GetOfflineGrant(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockIDTokenHintResolverOfflineGrantService)(nil).GetOfflineGrant), id)
 }

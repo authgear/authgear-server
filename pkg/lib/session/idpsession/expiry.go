@@ -1,17 +1,15 @@
 package idpsession
 
 import (
-	"time"
-
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-func computeSessionStorageExpiry(session *IDPSession, cfg *config.SessionConfig) (expiry time.Time) {
-	expiry = session.CreatedAt.Add(cfg.Lifetime.Duration())
+func setSessionExpireAtForResolvedSession(session *IDPSession, cfg *config.SessionConfig) {
+	session.ExpireAtForResolvedSession = session.CreatedAt.Add(cfg.Lifetime.Duration())
 	if *cfg.IdleTimeoutEnabled {
 		sessionIdleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(cfg.IdleTimeout.Duration())
-		if sessionIdleExpiry.Before(expiry) {
-			expiry = sessionIdleExpiry
+		if sessionIdleExpiry.Before(session.ExpireAtForResolvedSession) {
+			session.ExpireAtForResolvedSession = sessionIdleExpiry
 		}
 	}
 	return

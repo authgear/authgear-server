@@ -28,6 +28,7 @@ type ResolvedSession interface {
 	SessionBase
 	Session()
 	GetCreatedAt() time.Time
+	GetExpireAt() time.Time
 	GetAccessInfo() *access.Info
 	CreateNewAuthenticationInfoByThisSession() authenticationinfo.T
 }

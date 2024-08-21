@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -19,13 +20,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+//go:generate mockgen -source=provider.go -destination=provider_mock_test.go -package idpsession
+
 const (
 	tokenAlphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	tokenLength   = 32
 )
 
 type AccessEventProvider interface {
-	InitStream(sessionID string, event *access.Event) error
+	InitStream(sessionID string, expiry time.Time, event *access.Event) error
 }
 
 type Rand *rand.Rand
@@ -57,6 +60,7 @@ func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 			LastAccess:    accessEvent,
 		},
 	}
+	setSessionExpireAtForResolvedSession(session, p.Config)
 	token := p.generateToken(session)
 
 	return session, token
@@ -82,8 +86,8 @@ func (p *Provider) Reauthenticate(id string, amr []string) (err error) {
 	s.AuthenticatedAt = now
 	s.Attrs.SetAMR(amr)
 
-	expiry := computeSessionStorageExpiry(s, p.Config)
-	err = p.Store.Update(s, expiry)
+	setSessionExpireAtForResolvedSession(s, p.Config)
+	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
 		return err
@@ -93,13 +97,13 @@ func (p *Provider) Reauthenticate(id string, amr []string) (err error) {
 }
 
 func (p *Provider) Create(session *IDPSession) error {
-	expiry := computeSessionStorageExpiry(session, p.Config)
-	err := p.Store.Create(session, expiry)
+	setSessionExpireAtForResolvedSession(session, p.Config)
+	err := p.Store.Create(session, session.ExpireAtForResolvedSession)
 	if err != nil {
 		return fmt.Errorf("failed to create session: %w", err)
 	}
 
-	err = p.AccessEvents.InitStream(session.ID, &session.AccessInfo.InitialAccess)
+	err = p.AccessEvents.InitStream(session.ID, session.ExpireAtForResolvedSession, &session.AccessInfo.InitialAccess)
 	if err != nil {
 		return fmt.Errorf("failed to access session: %w", err)
 	}
@@ -113,11 +117,8 @@ func (p *Provider) GetByToken(token string) (*IDPSession, error) {
 		return nil, ErrSessionNotFound
 	}
 
-	s, err := p.Store.Get(id)
+	s, err := p.Get(id)
 	if err != nil {
-		if !errors.Is(err, ErrSessionNotFound) {
-			err = fmt.Errorf("failed to get session: %w", err)
-		}
 		return nil, err
 	}
 
@@ -144,6 +145,7 @@ func (p *Provider) Get(id string) (*IDPSession, error) {
 		}
 		return nil, err
 	}
+	setSessionExpireAtForResolvedSession(session, p.Config)
 
 	return session, nil
 }
@@ -165,9 +167,9 @@ func (p *Provider) AccessWithToken(token string, accessEvent access.Event) (*IDP
 	}()
 
 	s.AccessInfo.LastAccess = accessEvent
+	setSessionExpireAtForResolvedSession(s, p.Config)
 
-	expiry := computeSessionStorageExpiry(s, p.Config)
-	err = p.Store.Update(s, expiry)
+	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
 		return nil, err
@@ -193,9 +195,9 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 	}
 
 	s.AccessInfo.LastAccess = accessEvent
+	setSessionExpireAtForResolvedSession(s, p.Config)
 
-	expiry := computeSessionStorageExpiry(s, p.Config)
-	err = p.Store.Update(s, expiry)
+	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
 		return nil, err
@@ -206,21 +208,13 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 
 func (p *Provider) CheckSessionExpired(session *IDPSession) (expired bool) {
 	now := p.Clock.NowUTC()
-	sessionExpiry := session.CreatedAt.Add(p.Config.Lifetime.Duration())
-	if now.After(sessionExpiry) {
+	cloned := *session
+	setSessionExpireAtForResolvedSession(&cloned, p.Config)
+	if now.After(cloned.ExpireAtForResolvedSession) {
 		expired = true
-		return
 	}
 
-	if *p.Config.IdleTimeoutEnabled {
-		sessionIdleExpiry := session.AccessInfo.LastAccess.Timestamp.Add(p.Config.IdleTimeout.Duration())
-		if now.After(sessionIdleExpiry) {
-			expired = true
-			return
-		}
-	}
-
-	return false
+	return
 }
 
 func (p *Provider) generateToken(s *IDPSession) string {

@@ -122,13 +122,14 @@ func (s *TokenService) IssueOfflineGrant(
 	if err != nil {
 		return nil, "", err
 	}
+	offlineGrant.ExpireAtForResolvedSession = expiry
 
-	err = s.OfflineGrants.CreateOfflineGrant(offlineGrant, expiry)
+	err = s.OfflineGrants.CreateOfflineGrant(offlineGrant)
 	if err != nil {
 		return nil, "", err
 	}
 
-	err = s.AccessEvents.InitStream(offlineGrant.ID, &offlineGrant.AccessInfo.InitialAccess)
+	err = s.AccessEvents.InitStream(offlineGrant.ID, expiry, &offlineGrant.AccessInfo.InitialAccess)
 	if err != nil {
 		return nil, "", err
 	}
@@ -145,7 +146,7 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 	opts IssueOfflineGrantRefreshTokenOptions,
 	resp protocol.TokenResponse,
 ) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error) {
-	offlineGrant, err = s.OfflineGrants.GetOfflineGrant(offlineGrantID)
+	offlineGrant, err = s.OfflineGrantService.GetOfflineGrant(offlineGrantID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -198,20 +199,11 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	offlineGrant, err = s.OfflineGrants.GetOfflineGrant(grantID)
+	offlineGrant, err = s.OfflineGrantService.GetOfflineGrant(grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
 		return nil, nil, "", err
-	}
-
-	isValid, _, err := s.OfflineGrantService.IsValid(offlineGrant)
-	if err != nil {
-		return nil, nil, "", err
-	}
-
-	if !isValid {
-		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
 	tokenHash = oauth.HashToken(token)

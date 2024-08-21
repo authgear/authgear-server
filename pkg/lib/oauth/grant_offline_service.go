@@ -28,36 +28,40 @@ type CreateNewRefreshTokenResult struct {
 	TokenHash string
 }
 
-func (s *OfflineGrantService) IsValid(session *OfflineGrant) (bool, time.Time, error) {
-	offlineSessionExpired, expiry, err := s.CheckSessionExpired(session)
+func (s *OfflineGrantService) GetOfflineGrant(id string) (*OfflineGrant, error) {
+	g, err := s.OfflineGrants.GetOfflineGrantWithoutExpireAt(id)
 	if err != nil {
-		return false, time.Time{}, err
+		return nil, err
 	}
-	if offlineSessionExpired {
-		return false, expiry, nil
+
+	expiry, err := s.ComputeOfflineGrantExpiry(g)
+	if err != nil {
+		return nil, err
 	}
+	g.ExpireAtForResolvedSession = expiry
 
 	now := s.Clock.NowUTC()
-	if session.SSOEnabled {
-		if session.IDPSessionID == "" {
-			return false, now, nil
-		}
+	if now.After(g.ExpireAtForResolvedSession) {
+		return nil, ErrGrantNotFound
+	}
 
-		idp, err := s.IDPSessions.Get(session.IDPSessionID)
+	// Check IDP session is valid.
+	if g.SSOEnabled && g.IDPSessionID != "" {
+		idp, err := s.IDPSessions.Get(g.IDPSessionID)
 		if err != nil {
 			if errors.Is(err, idpsession.ErrSessionNotFound) {
-				return false, now, nil
+				return nil, ErrGrantNotFound
 			}
-			return false, time.Time{}, err
+			return nil, err
 		}
 
 		idpSessionExpired := s.IDPSessions.CheckSessionExpired(idp)
 		if idpSessionExpired {
-			return false, now, nil
+			return nil, ErrGrantNotFound
 		}
 	}
 
-	return true, expiry, nil
+	return g, nil
 }
 
 func (s *OfflineGrantService) ComputeOfflineGrantExpiry(session *OfflineGrant) (expiry time.Time, err error) {

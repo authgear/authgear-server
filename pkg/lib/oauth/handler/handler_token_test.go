@@ -100,13 +100,12 @@ func TestTokenHandler(t *testing.T) {
 						Scopes:    []string{"openid"},
 						TokenHash: refreshTokenHash,
 					}},
+					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
 				}
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
 				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any()).Return("id-token", nil)
 				tokenService.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-				expireAt := time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC)
-				offlineGrantService.EXPECT().ComputeOfflineGrantExpiry(offlineGrant).Return(expireAt, nil)
-				offlineGrants.EXPECT().AccessOfflineGrantAndUpdateDeviceInfo("offline-grant-id", access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA"), gomock.Any(), expireAt).Return(offlineGrant, nil)
+				offlineGrants.EXPECT().AccessOfflineGrantAndUpdateDeviceInfo("offline-grant-id", access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA"), gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
 				res := handle(req, r)
 				So(res.Result().StatusCode, ShouldEqual, 200)
 			})
@@ -145,7 +144,7 @@ func TestTokenHandler(t *testing.T) {
 					Scopes:   testScopes,
 				}},
 			}
-			offlineGrants.EXPECT().GetOfflineGrant(testOfflineGrantID).
+			offlineGrantService.EXPECT().GetOfflineGrant(testOfflineGrantID).
 				AnyTimes().
 				Return(testOfflineGrant, nil)
 			sid := oidc.EncodeSID(testOfflineGrant)
@@ -183,10 +182,6 @@ func TestTokenHandler(t *testing.T) {
 				IssuePreAuthenticatedURLToken(gomock.AssignableToTypeOf((*handler.IssuePreAuthenticatedURLTokenOptions)(nil))).
 				Times(1).
 				Return(issuePreAuthenticatedURLTokenResult, nil)
-
-			offlineGrantService.EXPECT().ComputeOfflineGrantExpiry(gomock.Any()).
-				AnyTimes().
-				Return(time.Now(), nil)
 
 			offlineGrants.EXPECT().UpdateOfflineGrantDeviceSecretHash(testOfflineGrantID, gomock.Any(), gomock.Any(), gomock.Any()).
 				AnyTimes().

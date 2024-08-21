@@ -130,7 +130,6 @@ type TokenHandlerSettingsActionGrantStore interface {
 }
 
 type TokenHandlerOfflineGrantStore interface {
-	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
 	DeleteOfflineGrant(*oauth.OfflineGrant) error
 
 	AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
@@ -151,7 +150,7 @@ type TokenHandlerAppSessionTokenStore interface {
 }
 
 type TokenHandlerOfflineGrantService interface {
-	ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (expiry time.Time, err error)
+	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
 }
 
 type TokenHandlerTokenService interface {
@@ -400,15 +399,11 @@ func (h *TokenHandler) rotateDeviceSecret(
 	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
 
 	deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
-	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-	if err != nil {
-		return nil, err
-	}
-	offlineGrant, err = h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(
+	offlineGrant, err := h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(
 		offlineGrant.ID,
 		deviceSecretHash,
 		dpopJKT,
-		expiry,
+		offlineGrant.ExpireAtForResolvedSession,
 	)
 	if err != nil {
 		return nil, err
@@ -472,11 +467,7 @@ func (h *TokenHandler) app2appUpdateDeviceKeyIfNeeded(
 			if offlineGrant.App2AppDeviceKeyJWKJSON != "" {
 				return nil, protocol.NewError("invalid_grant", "app2app device key cannot be changed")
 			}
-			expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-			if err != nil {
-				return nil, err
-			}
-			newGrant, err := h.OfflineGrants.UpdateOfflineGrantApp2AppDeviceKey(offlineGrant.ID, string(newKeyJson), expiry)
+			newGrant, err := h.OfflineGrants.UpdateOfflineGrantApp2AppDeviceKey(offlineGrant.ID, string(newKeyJson), offlineGrant.ExpireAtForResolvedSession)
 			if err != nil {
 				return nil, err
 			}
@@ -627,12 +618,7 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
 	}
 
-	expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = h.OfflineGrants.AccessOfflineGrantAndUpdateDeviceInfo(offlineGrant.ID, accessEvent, deviceInfo, expiry)
+	_, err = h.OfflineGrants.AccessOfflineGrantAndUpdateDeviceInfo(offlineGrant.ID, accessEvent, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}
@@ -681,7 +667,7 @@ func (h *TokenHandler) resolveIDTokenSession(idToken jwt.Token) (sidSession sess
 			sidSession = sess
 		}
 	case session.TypeOfflineGrant:
-		if sess, err := h.OfflineGrants.GetOfflineGrant(sessionID); err == nil {
+		if sess, err := h.OfflineGrantService.GetOfflineGrant(sessionID); err == nil {
 			sidSession = sess
 		}
 	default:
@@ -1496,15 +1482,11 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	// Update auth_time, app2app device key and device_secret of the offline grant if possible.
 	if sid := code.IDTokenHintSID; sid != "" {
 		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
-			offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
+			offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(sessionID)
 			if err == nil {
 				// Update auth_time
 				if info.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
-					expiry, err := h.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-					if err != nil {
-						return nil, err
-					}
-					_, err = h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, expiry)
+					_, err = h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, offlineGrant.ExpireAtForResolvedSession)
 					if err != nil {
 						return nil, err
 					}
@@ -1618,7 +1600,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			switch typ {
 			case session.TypeOfflineGrant:
 				accessTokenSessionKind = oauth.GrantSessionKindOffline
-				offlineGrant, err := h.OfflineGrants.GetOfflineGrant(sessionID)
+				offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(sessionID)
 				if err != nil {
 					return nil, err
 				}

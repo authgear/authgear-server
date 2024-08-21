@@ -451,21 +451,6 @@ func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) DeleteOfflineGrant(arg0
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).DeleteOfflineGrant), arg0)
 }
 
-// GetOfflineGrant mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOfflineGrant", id)
-	ret0, _ := ret[0].(*oauth.OfflineGrant)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetOfflineGrant indicates an expected call of GetOfflineGrant.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) GetOfflineGrant(id interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).GetOfflineGrant), id)
-}
-
 // ListClientOfflineGrants mocks base method.
 func (m *MockTokenHandlerOfflineGrantStore) ListClientOfflineGrants(clientID, userID string) ([]*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
@@ -601,19 +586,19 @@ func (m *MockTokenHandlerOfflineGrantService) EXPECT() *MockTokenHandlerOfflineG
 	return m.recorder
 }
 
-// ComputeOfflineGrantExpiry mocks base method.
-func (m *MockTokenHandlerOfflineGrantService) ComputeOfflineGrantExpiry(session *oauth.OfflineGrant) (time.Time, error) {
+// GetOfflineGrant mocks base method.
+func (m *MockTokenHandlerOfflineGrantService) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ComputeOfflineGrantExpiry", session)
-	ret0, _ := ret[0].(time.Time)
+	ret := m.ctrl.Call(m, "GetOfflineGrant", id)
+	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// ComputeOfflineGrantExpiry indicates an expected call of ComputeOfflineGrantExpiry.
-func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) ComputeOfflineGrantExpiry(session interface{}) *gomock.Call {
+// GetOfflineGrant indicates an expected call of GetOfflineGrant.
+func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) GetOfflineGrant(id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ComputeOfflineGrantExpiry", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).ComputeOfflineGrantExpiry), session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).GetOfflineGrant), id)
 }
 
 // MockTokenHandlerTokenService is a mock of TokenHandlerTokenService interface.

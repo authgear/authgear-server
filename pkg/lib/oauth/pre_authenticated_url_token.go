@@ -36,6 +36,7 @@ type PreAuthenticatedURLTokenAccessGrantService interface {
 }
 
 type PreAuthenticatedURLTokenOfflineGrantService interface {
+	GetOfflineGrant(id string) (*OfflineGrant, error)
 	CreateNewRefreshToken(
 		grant *OfflineGrant,
 		clientID string,

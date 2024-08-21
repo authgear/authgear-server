@@ -113,7 +113,7 @@ func (re *Resolver) resolveAccessToken(token string) (session.ResolvedSession, e
 		authSession = s
 
 	case GrantSessionKindOffline:
-		g, err := re.OfflineGrants.GetOfflineGrant(grant.SessionID)
+		g, err := re.OfflineGrantService.GetOfflineGrant(grant.SessionID)
 		if errors.Is(err, ErrGrantNotFound) {
 			return nil, session.ErrInvalidSession
 		} else if err != nil {
@@ -171,7 +171,7 @@ func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSe
 		return nil, err
 	}
 
-	offlineGrant, err := re.OfflineGrants.GetOfflineGrant(aSession.OfflineGrantID)
+	offlineGrant, err := re.OfflineGrantService.GetOfflineGrant(aSession.OfflineGrantID)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
 	} else if err != nil {
@@ -209,14 +209,6 @@ func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSe
 }
 
 func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent access.Event) (*OfflineGrant, error) {
-	isValid, _, err := re.OfflineGrantService.IsValid(offlineGrant)
-	if err != nil {
-		return nil, err
-	}
-	if !isValid {
-		return nil, session.ErrInvalidSession
-	}
-
 	// When accessing the offline grant, also access its idp session
 	// Access the idp session first, since the idp session expiry will be updated
 	// sso enabled offline grant expiry depends on its idp session
@@ -232,14 +224,7 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 		}
 	}
 
-	expiry, err := re.OfflineGrantService.ComputeOfflineGrantExpiry(offlineGrant)
-	if errors.Is(err, ErrGrantNotFound) {
-		return nil, session.ErrInvalidSession
-	} else if err != nil {
-		return nil, err
-	}
-
-	offlineGrant, err = re.OfflineGrants.AccessWithID(offlineGrant.ID, accessEvent, expiry)
+	offlineGrant, err := re.OfflineGrants.AccessWithID(offlineGrant.ID, accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}

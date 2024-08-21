@@ -19,7 +19,8 @@ func (m *SessionManager) ClearCookie() []*http.Cookie {
 }
 
 func (m *SessionManager) Get(id string) (session.ListableSession, error) {
-	grant, err := m.Store.GetOfflineGrant(id)
+	// It is intentionally not to use Service.GetOfflineGrant here.
+	grant, err := m.Store.GetOfflineGrantWithoutExpireAt(id)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrSessionNotFound
 	} else if err != nil {
@@ -80,6 +81,8 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 			continue
 		}
 		if len(tokenHashes) > 0 {
+			// ComputeOfflineGrantExpiry is needed because Store.ListOfflineGrants
+			// does not populate ExpireAtForResolvedSession.
 			expiry, err := m.Service.ComputeOfflineGrantExpiry(ss)
 			if err != nil {
 				return nil, err

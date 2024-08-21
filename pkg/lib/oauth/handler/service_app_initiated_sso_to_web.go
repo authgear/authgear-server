@@ -10,7 +10,6 @@ type PreAuthenticatedURLTokenServiceImpl struct {
 	Clock clock.Clock
 
 	PreAuthenticatedURLTokens oauth.PreAuthenticatedURLTokenStore
-	OfflineGrants             oauth.OfflineGrantStore
 	AccessGrantService        oauth.PreAuthenticatedURLTokenAccessGrantService
 	OfflineGrantService       oauth.PreAuthenticatedURLTokenOfflineGrantService
 }
@@ -76,7 +75,7 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 		return "", oauth.ErrUnmatchedSession
 	}
 
-	offlineGrant, err := s.OfflineGrants.GetOfflineGrant(tokenModel.OfflineGrantID)
+	offlineGrant, err := s.OfflineGrantService.GetOfflineGrant(tokenModel.OfflineGrantID)
 	if err != nil {
 		return "", err
 	}

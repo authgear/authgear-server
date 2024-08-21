@@ -90,7 +90,7 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Resolve
 		}
 
 		event := s.GetAccessInfo().LastAccess
-		err = m.AccessEvents.RecordAccess(s.SessionID(), &event)
+		err = m.AccessEvents.RecordAccess(s.SessionID(), s.GetExpireAt(), &event)
 		if err != nil {
 			return
 		}

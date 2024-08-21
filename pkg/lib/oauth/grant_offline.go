@@ -53,6 +53,11 @@ type OfflineGrant struct {
 	Deprecated_AuthorizationID string   `json:"authz_id"`
 	Deprecated_Scopes          []string `json:"scopes"`
 	Deprecated_TokenHash       string   `json:"token_hash"`
+
+	// ExpireAtForResolvedSession is a transient field that tells when the session will exire at, computed now.
+	// Note that ExpireAtForResolvedSession will keep changing if idle timeout is enabled.
+	// This is NOT supposed to be stored, hence it is json-ignored.
+	ExpireAtForResolvedSession time.Time `json:"-"`
 }
 
 var _ session.ListableSession = &OfflineGrant{}
@@ -76,6 +81,9 @@ func (o *OfflineGrantSession) SessionType() session.Type {
 }
 func (o *OfflineGrantSession) GetCreatedAt() time.Time {
 	return o.CreatedAt
+}
+func (o *OfflineGrantSession) GetExpireAt() time.Time {
+	return o.OfflineGrant.ExpireAtForResolvedSession
 }
 func (o *OfflineGrantSession) GetAuthenticationInfo() authenticationinfo.T {
 	return o.OfflineGrant.GetAuthenticationInfo()

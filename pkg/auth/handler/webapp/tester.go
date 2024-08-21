@@ -75,7 +75,7 @@ type TesterUserInfoProvider interface {
 	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
 }
 
-type TesterOfflineGrantStore interface {
+type TesterOfflineGrantService interface {
 	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
 }
 
@@ -92,7 +92,7 @@ type TesterHandler struct {
 	Renderer                Renderer
 	BaseViewModel           *viewmodels.BaseViewModeler
 	UserInfoProvider        TesterUserInfoProvider
-	OfflineGrants           TesterOfflineGrantStore
+	OfflineGrants           TesterOfflineGrantService
 }
 
 var TesterScopes = []string{
