@@ -34,6 +34,7 @@ type UserService interface {
 	UpdateMFAEnrollment(userID string, endAt *time.Time) error
 	GetUsersByStandardAttribute(attributeName string, attributeValue string) ([]string, error)
 	GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error)
+	GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error)
 }
 
 type UserSearchService interface {
@@ -280,6 +281,15 @@ func (f *UserFacade) GetUsersByStandardAttribute(attributeKey string, attributeV
 
 func (f *UserFacade) GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error) {
 	value, err := f.Users.GetUserByLoginID(loginIDKey, loginIDValue)
+	if err != nil {
+		return "", err
+	}
+
+	return value, nil
+}
+
+func (f *UserFacade) GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error) {
+	value, err := f.Users.GetUserByOAuth(oauthProviderAlias, oauthProviderUserID)
 	if err != nil {
 		return "", err
 	}
