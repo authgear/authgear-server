@@ -1,0 +1,76 @@
+{{ define "settingsv2/__html_head.html" }}
+<head>
+<meta charset="UTF-8">
+<title>{{ template "app.name" }}</title>
+<link rel="shortcut icon" href="{{ call $.StaticAssetURL "favicon" }}">
+<meta name="x-authgear-page-loaded-at" content="{{ .PageLoadedAt }}">
+<meta name="x-phone-input-only-countries" content="{{ $.AllowedPhoneCountryCodeJSON }}">
+<meta name="x-phone-input-preferred-countries" content="{{ $.PinnedPhoneCountryCodeJSON }}">
+<meta name="x-geoip-country-code" content="{{ $.GeoIPCountryCode }}">
+<meta name="x-cldr-locale" content="{{ $.ResolvedCLDRLocale }}">
+<meta name="x-color-scheme" content="{{ $.ColorScheme }}">
+<meta name="x-sentry-dsn" content="{{ $.AuthUISentryDSN }}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Tell Turbo not to use stale page for application visit -->
+<!-- See https://turbo.hotwired.dev/handbook/building#opting-out-of-caching -->
+<!-- This issue is particularly noticeable in the following situation -->
+<!-- 1. Go to picture screen, see the profile picture screen -->
+<!-- 2. Remove the picture screen, be redirected to profile screen -->
+<!-- 3. Go back to picture screen, see the stale profile picture screen with the removed picture for a very short period -->
+<!-- Stale page is still available for navigating back -->
+<meta name="turbo-cache-control" content="no-preview">
+
+<!-- Our CSS have to override the tailwind.css in __generated_asset.html -->
+{{ template "settingsv2/__generated_asset.html" . }}
+
+{{ $appBackgroundImage := call $.StaticAssetURL "app-background-image" }}
+{{ $appBackgroundImageDark := call $.StaticAssetURL "app-background-image-dark" }}
+<style>
+:root {
+{{ if $appBackgroundImage }}
+  --layout__bg-image: url("{{ $appBackgroundImage }}");
+{{ else }}
+  --layout__bg-image: ;
+{{ end }}
+}
+{{ if $appBackgroundImageDark }}
+:root.dark {
+  --layout__bg-image: url("{{ $appBackgroundImageDark }}");
+}
+{{ end }}
+</style>
+{{ if call $.HasAppSpecificAsset "authgear-authflowv2-light-theme.css" }}
+<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-light-theme.css" }}">
+{{ end }}
+{{ if call $.HasAppSpecificAsset "authgear-authflowv2-dark-theme.css" }}
+{{ if $.DarkThemeEnabled }}
+<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-dark-theme.css" }}">
+{{ end }}
+{{ end }}
+{{/* This element reverts the visibility in widget.css */}}
+<noscript>
+  <style>
+    :root:not([alignment-content]) .widget {
+      visibility: visible;
+    }
+  </style>
+</noscript>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preload" href='{{ call $.GeneratedStaticAssetURL "material-symbols-outlined-subset.woff2" }}' as="font" crossorigin="anonymous">
+<link rel="preload" href='{{ call $.GeneratedStaticAssetURL "Twemoji.Mozilla-subset.woff2" }}' as="font" crossorigin="anonymous">
+<link rel="preload" href='{{ call $.GeneratedStaticAssetURL "twemoji-color-subset.woff2" }}' as="font" crossorigin="anonymous">
+
+
+<!-- Google Tag Manager -->
+{{ if $.GoogleTagManagerContainerID }}
+<script nonce="{{ $.CSPNonce }}">(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','{{ $.GoogleTagManagerContainerID }}');</script>
+{{ end }}
+<!-- End Google Tag Manager -->
+
+</head>
+{{ end }}

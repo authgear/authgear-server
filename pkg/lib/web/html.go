@@ -59,6 +59,13 @@ var TemplateWebAuthflowV2ErrorPageLayoutHTML = template.RegisterHTML("web/authfl
 var TemplateWebAuthflowV2DeviceTokenCheckboxHTML = template.RegisterHTML("web/authflowv2/__device_token_checkbox.html")
 var TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML = template.RegisterHTML("web/authflowv2/__toc_pp_footer.html")
 var TemplateWebAuthflowV2WatermarkHTML = template.RegisterHTML("web/authflowv2/__watermark.html")
+
+var TemplateWebSettingsV2LayoutHTML = template.RegisterHTML("web/settingsv2/layout.html")
+
+var TemplateWebSettingsV2WidePageFrameHTML = template.RegisterHTML("web/settingsv2/__wide_page_frame.html")
+var TemplateWebSettingsV2HTMLHeadHTML = template.RegisterHTML("web/settingsv2/__html_head.html")
+var TemplateWebSettingsV2GeneratedAssetHTML = template.RegisterHTML("web/settingsv2/__generated_asset.html")
+var TemplateWebSettingsV2LockoutHTML = template.RegisterHTML("web/settingsv2/__lockout.html")
 var TemplateWebAuthflowV2CSRFErrorPageLayoutHTML = template.RegisterHTML("web/authflowv2/__csrf_error_page_layout.html")
 
 var ComponentsHTML = []*template.HTML{
@@ -115,5 +122,11 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2DeviceTokenCheckboxHTML,
 	TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML,
 	TemplateWebAuthflowV2WatermarkHTML,
+
+	TemplateWebSettingsV2LayoutHTML,
+	TemplateWebSettingsV2WidePageFrameHTML,
+	TemplateWebSettingsV2HTMLHeadHTML,
+	TemplateWebSettingsV2GeneratedAssetHTML,
+	TemplateWebSettingsV2LockoutHTML,
 	TemplateWebAuthflowV2CSRFErrorPageLayoutHTML,
 }

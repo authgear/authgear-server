@@ -1,0 +1,43 @@
+{{- define "settingsv2/__lockout.html" -}}
+{{ if $.Error }}
+  {{ if eq .Error.reason "AccountLockout" }}
+
+  <div
+    class="overlay"
+    data-controller="overlay"
+    data-dialog-default-open-value="true"
+    role="dialog"
+    aria-labelledby="lockout-title"
+    aria-modal="true"
+    tabindex="-1"
+  >
+    <div class="screen-icon-layout flex-1-0-auto">
+      <i class="material-icons screen-icon">account_circle_off</i>
+      <header class="screen-title-description">
+        <h1 class="screen-title" id="lockout-title">
+          {{ template "v2-lockout-title" }}
+        </h1>
+        <h2 class="screen-description">
+          {{ template "v2-lockout-subtitle" }}
+        </h2>
+      </header>
+      <div></div>
+
+    {{ $until := (ensureTime .Error.info.until) }}
+    <footer>
+      <button
+        class="primary-btn w-full"
+        data-action="click->overlay#close"
+        data-controller="countdown"
+        data-countdown-target="button"
+        data-countdown-cooldown-until-value="{{ (rfc3339 $until) }}"
+        data-countdown-label-value="{{ template "v2-lockout-retry-button-label" . }}"
+        data-countdown-label-unit-value="{{ template "v2-lockout-retry-button-label--unit" . }}"
+      ></button>
+    </footer>
+    </div>
+  </div>
+
+  {{ end }}
+{{ end }}
+{{ end }}
