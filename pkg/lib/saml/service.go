@@ -3,7 +3,6 @@ package saml
 import (
 	"bytes"
 	"crypto/rsa"
-	"crypto/tls"
 	"fmt"
 	"net/url"
 	"text/template"
@@ -447,12 +446,10 @@ func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
 		panic(err)
 	}
 
-	keyPair := tls.Certificate{
-		Certificate: [][]byte{activeCert.Certificate.Data()},
-		PrivateKey:  &rsaPrivateKey,
-		Leaf:        activeCert.Certificate.X509Certificate(),
+	keyStore := &x509KeyStore{
+		privateKey: &rsaPrivateKey,
+		cert:       activeCert.Certificate.Data(),
 	}
-	keyStore := dsig.TLSCertKeyStore(keyPair)
 
 	signingContext = dsig.NewDefaultSigningContext(keyStore)
 
@@ -474,4 +471,15 @@ func spToClientLike(sp *config.SAMLServiceProviderConfig) *oauth.ClientLike {
 		PIIAllowedInIDToken: false,
 		Scopes:              []string{},
 	}
+}
+
+type x509KeyStore struct {
+	privateKey *rsa.PrivateKey
+	cert       []byte
+}
+
+var _ dsig.X509KeyStore = &x509KeyStore{}
+
+func (x *x509KeyStore) GetKeyPair() (privateKey *rsa.PrivateKey, cert []byte, err error) {
+	return x.privateKey, x.cert, nil
 }
