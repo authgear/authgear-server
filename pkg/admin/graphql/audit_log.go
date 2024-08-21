@@ -53,6 +53,9 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"USER_ANONYMIZED": &graphql.EnumValueConfig{
 			Value: "user.anonymized",
 		},
+		"BOT_PROTECTION_VERIFICATION_FAILED": &graphql.EnumValueConfig{
+			Value: "bot_protection.verification.failed",
+		},
 		"AUTHENTICATION_IDENTITY_LOGIN_ID_FAILED": &graphql.EnumValueConfig{
 			Value: "authentication.identity.login_id.failed",
 		},
