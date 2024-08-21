@@ -21,7 +21,7 @@ var _ = Schema.Add("UIConfig", `
 			"type": "string",
 			"enum": ["interaction", "authflow", "authflowv2"]
 		},
-		"setting_implementation": {
+		"settings_implementation": {
 			"type": "string",
 			"enum": ["v1", "v2"]
 		},
@@ -49,7 +49,7 @@ type UIConfig struct {
 	// Implementation is a temporary flag to switch between authflow and interaction.
 	Implementation UIImplementation `json:"implementation,omitempty"`
 	// SettingImplementation is a temporary flag to switch between setting ui v1 and v2.
-	SettingImplementation SettingUIImplementation `json:"setting_implementation,omitempty"`
+	SettingsImplementation SettingsUIImplementation `json:"settings_implementation,omitempty"`
 	// ForgotPassword is the config for the default auth ui
 	ForgotPassword *UIForgotPasswordConfig `json:"forgot_password,omitempty"`
 	// AuthenticationFlow configures ui behaviour of authentication flow under default auth ui
@@ -106,24 +106,24 @@ func (i UIImplementation) WithDefault() UIImplementation {
 	}
 }
 
-type SettingUIImplementation string
+type SettingsUIImplementation string
 
 const (
-	SettingUIImplementationDefault SettingUIImplementation = ""
-	SettingUIImplementationV1      SettingUIImplementation = "v1"
-	SettingUIImplementationV2      SettingUIImplementation = "v2"
+	SettingsUIImplementationDefault SettingsUIImplementation = ""
+	SettingsUIImplementationV1      SettingsUIImplementation = "v1"
+	SettingsUIImplementationV2      SettingsUIImplementation = "v2"
 )
 
-func (i SettingUIImplementation) WithDefault() SettingUIImplementation {
+func (i SettingsUIImplementation) WithDefault() SettingsUIImplementation {
 	switch i {
-	case SettingUIImplementationV2:
+	case SettingsUIImplementationV2:
 		return i
-	case SettingUIImplementationV1:
+	case SettingsUIImplementationV1:
 		return i
-	case SettingUIImplementationDefault:
+	case SettingsUIImplementationDefault:
 		fallthrough
 	default:
-		return SettingUIImplementationV1
+		return SettingsUIImplementationV1
 	}
 }
 
