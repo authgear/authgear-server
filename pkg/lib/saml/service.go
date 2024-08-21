@@ -454,7 +454,7 @@ func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
 
 	signingContext = dsig.NewDefaultSigningContext(keyStore)
 
-	signatureMethod := s.SAMLConfig.Signing.SignatureAlgorithm.ToDsigSignatureMethod()
+	signatureMethod := string(s.SAMLConfig.Signing.SignatureMethod)
 
 	signingContext.Canonicalizer = dsig.MakeC14N10ExclusiveCanonicalizerWithPrefixList("")
 	if err := signingContext.SetSignatureMethod(signatureMethod); err != nil {
