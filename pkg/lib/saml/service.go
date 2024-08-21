@@ -284,14 +284,19 @@ func (s *Service) IssueSuccessResponse(
 		notOnOrAfter = notBefore.Add(assertionValidDuration)
 	}
 
-	conditions := &samlprotocol.Conditions{}
-	if conditions.NotBefore.IsZero() {
-		conditions.NotBefore = notBefore
+	conditions := &samlprotocol.Conditions{
+		NotBefore:    notBefore,
+		NotOnOrAfter: notOnOrAfter,
 	}
-	if conditions.NotOnOrAfter.IsZero() {
-		conditions.NotOnOrAfter = notOnOrAfter
+	if inResponseToAuthnRequest.Conditions != nil {
+		// Only allow conditions which are stricter than what we set by default
+		if !inResponseToAuthnRequest.Conditions.NotBefore.IsZero() && inResponseToAuthnRequest.Conditions.NotBefore.After(notBefore) {
+			conditions.NotBefore = inResponseToAuthnRequest.Conditions.NotBefore
+		}
+		if !inResponseToAuthnRequest.Conditions.NotOnOrAfter.IsZero() && inResponseToAuthnRequest.Conditions.NotOnOrAfter.Before(notOnOrAfter) {
+			conditions.NotOnOrAfter = inResponseToAuthnRequest.Conditions.NotOnOrAfter
+		}
 	}
-
 	audiences := setutil.Set[string]{}
 	// Callback url is always included
 	audiences.Add(callbackURL)
