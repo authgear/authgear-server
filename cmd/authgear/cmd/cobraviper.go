@@ -31,6 +31,12 @@ var ArgElasticsearchURL = &cobraviper.StringArgument{
 	Usage:        "Elasticsearch URL",
 }
 
+var ArgRedisURL = &cobraviper.StringArgument{
+	ArgumentName: "redis-url",
+	EnvName:      "REDIS_URL",
+	Usage:        "Redis URL",
+}
+
 var ArgAppID = &cobraviper.StringArgument{
 	ArgumentName: "app-id",
 	EnvName:      "APP_ID",
