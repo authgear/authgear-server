@@ -1,0 +1,26 @@
+@layer components {
+  :root {
+    --settings-label__font-family: var(
+      --typography-headline-small__font-family
+    );
+    --settings-label__font-size: var(--typography-headline-small__font-size);
+    --screen-label__line-height: var(--typography-label-medium__line-height);
+    --screen-label__letter-spacing: var(
+      --typography-headline-small__letter-spacing
+    );
+    --screen-label__font-weight: var(--typography-headline-small_font-weight);
+    --screen-label__text-color: var(--color-neutral-700);
+  }
+  :root.dark {
+    --screen-label__text-color: var(--color-neutral-100);
+  }
+
+  .settings-label {
+    font-family: var(--settings-label__font-family);
+    font-size: var(--settings-label__font-size);
+    line-height: var(--screen-label__line-height);
+    letter-spacing: var(--screen-label__letter-spacing);
+    font-weight: var(--screen-label__font-weight);
+    color: var(--screen-label__text-color);
+  }
+}

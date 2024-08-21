@@ -58,6 +58,30 @@
     --body-text__font-weight--link-md: var(
       --typography-label-medium__font-weight
     );
+
+    /* lg */
+    --body-text__font-family--lg: var(--typography-body-large__font-family);
+    --body-text__font-size--lg: var(--typography-body-large__font-size);
+    --body-text__line-height--lg: var(--typography-body-large__line-height);
+    --body-text__letter-spacing--lg: var(
+      --typography-body-large__letter-spacing
+    );
+    --body-text__font-weight--lg: var(--typography-body-large__font-weight);
+
+    /* lg link */
+    --body-text__font-family--link-lg: var(
+      --typography-label-large__font-family
+    );
+    --body-text__font-size--link-lg: var(--typography-label-large__font-size);
+    --body-text__line-height--link-lg: var(
+      --typography-label-large__line-height
+    );
+    --body-text__letter-spacing--link-lg: var(
+      --typography-label-large__letter-spacing
+    );
+    --body-text__font-weight--link-lg: var(
+      --typography-label-large__font-weight
+    );
   }
 
   :root.dark {
@@ -96,31 +120,52 @@
     font-weight: var(--body-text__font-weight--link-md);
   }
 
+  .body-text--lg {
+    font-family: var(--body-text__font-family--lg);
+    font-size: var(--body-text__font-size--lg);
+    line-height: var(--body-text__line-height--lg);
+    letter-spacing: var(--body-text__letter-spacing--lg);
+    font-weight: var(--body-text__font-weight--lg);
+  }
+
+  .body-text--lg a {
+    font-family: var(--body-text__font-family--link-lg);
+    font-size: var(--body-text__font-size--link-lg);
+    line-height: var(--body-text__line-height--link-lg);
+    letter-spacing: var(--body-text__letter-spacing--link-lg);
+    font-weight: var(--body-text__font-weight--link-lg);
+  }
+
   .body-text--sm,
-  .body-text--md {
+  .body-text--md,
+  .body-text--lg {
     color: var(--body-text__text-color);
   }
 
   .body-text--sm a,
-  .body-text--md a {
+  .body-text--md a,
+  .body-text--lg a {
     text-decoration: var(--body-text__link-text-decoration);
     color: var(--body-text__link-color);
   }
 
   .body-text--sm a:hover,
-  .body-text--md a:hover {
+  .body-text--md a:hover,
+  .body-text--lg a:hover {
     text-decoration: var(--body-text__link-text-decoration--hover);
     color: var(--body-text__link-color--hover);
   }
 
   .body-text--sm a:active,
-  .body-text--md a:active {
+  .body-text--md a:active,
+  .body-text--lg a:active {
     text-decoration: var(--body-text__link-text-decoration--active);
     color: var(--body-text__link-color--active);
   }
 
   .body-text--sm,
-  .body-text--md {
+  .body-text--md,
+  .body-text--lg {
     :root[alignment-content="start"] & {
       @apply text-start;
     }
