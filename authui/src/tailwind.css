@@ -458,6 +458,10 @@
     color: var(--color-password-strength-meter-5);
   }
 
+  .v2-avatar-placeholder {
+    background-image: url("./img/v2_avatar_placeholder.svg");
+  }
+
   .sso-btn-icon.google-icon {
     background-image: url("./img/icon-google.svg");
   }

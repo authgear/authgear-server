@@ -1,9 +1,31 @@
-{{ template "__wide_page_frame.html" . }}
+{{ template "settingsv2/__wide_page_frame.html" . }}
 
 {{ define "page-content" }}
 
-<div class="pane flex flex-col">
-  Test
+<div class="flex flex-col gap-8">
+  <div class="flex flex-col gap-4 items-center">
+    <img
+    class="rounded-full bg-center bg-cover bg-no-repeat w-30 h-30"
+    {{ if (and (call $.IsReadable "/picture") $.Picture) }}
+      src="{{ $.Picture }}"
+    {{ else }}
+      src="{{ call $.GeneratedStaticAssetURL "v2_avatar_placeholder.svg" }}"
+    {{ end }}
+    >
+    <div>
+      <div class="settings-label">
+        {{ $any_name_readable := (or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname")) }}
+        {{ if (and $any_name_readable $.FormattedName) }}<span class="truncate">{{ $.FormattedName }}</span>{{ end }}
+        {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="truncate">{{ $.EndUserAccountID }}</span>{{ end }}
+      </div>
+      <p class="body-text--lg">
+        {{ $editProfileHref := call $.MakeURL "/settings/v2/profile"}}
+        {{ template "v2-settings-edit-profile" (dict "href" $editProfileHref )}}
+      </p>
+
+    </div>
+  </div>
 </div>
+
 
 {{ end }}

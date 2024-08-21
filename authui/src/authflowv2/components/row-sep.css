@@ -1,0 +1,14 @@
+@layer components {
+  :root {
+    --divider__bg-color: var(--color-neutral-100);
+  }
+
+  :root.dark {
+    --divider__bg-color: var(--color-neutral-400);
+  }
+
+  .row-sep:not(:last-child) {
+    @apply border-b border-solid;
+    border-color: var(--divider__bg-color);
+  }
+}
