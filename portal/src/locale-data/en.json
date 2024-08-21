@@ -1325,6 +1325,7 @@
   "AuditLogActivityType.USER_ANONYMIZED": "User anonymized",
   "AuditLogActivityType.USER_ANONYMIZATION_SCHEDULED": "Account anonymization scheduled",
   "AuditLogActivityType.USER_ANONYMIZATION_UNSCHEDULED": "Account deletion unscheduled",
+  "AuditLogActivityType.BOT_PROTECTION_VERIFICATION_FAILED": "Bot protection verification failed",
   "AuditLogActivityType.EMAIL_SENT": "Email sent",
   "AuditLogActivityType.SMS_SENT": "SMS sent",
   "AuditLogActivityType.WHATSAPP_SENT": "Whatsapp sent",
