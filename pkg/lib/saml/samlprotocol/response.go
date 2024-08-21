@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/beevik/etree"
-	crewjamsaml "github.com/crewjam/saml"
 )
 
 func newResponse(issueInstant time.Time, status Status, issuer string) *Response {
@@ -33,9 +32,9 @@ func NewRequestDeniedErrorResponse(
 	}
 	status := Status{
 		StatusCode: StatusCode{
-			Value: crewjamsaml.StatusRequester,
+			Value: StatusRequester,
 			StatusCode: &StatusCode{
-				Value: crewjamsaml.StatusRequestDenied,
+				Value: StatusRequestDenied,
 			},
 		},
 		StatusMessage: messageEl,
@@ -54,9 +53,9 @@ func NewNoPassiveErrorResponse(
 ) *Response {
 	status := Status{
 		StatusCode: StatusCode{
-			Value: crewjamsaml.StatusRequester,
+			Value: StatusRequester,
 			StatusCode: &StatusCode{
-				Value: crewjamsaml.StatusNoPassive,
+				Value: StatusNoPassive,
 			},
 		},
 	}
@@ -76,7 +75,7 @@ func NewServerErrorResponse(
 	}
 	status := Status{
 		StatusCode: StatusCode{
-			Value: crewjamsaml.StatusResponder,
+			Value: StatusResponder,
 		},
 		StatusMessage: messageEl,
 	}
@@ -98,7 +97,7 @@ func NewSuccessResponse(
 	inResponseTo string) *Response {
 	status := Status{
 		StatusCode: StatusCode{
-			Value: crewjamsaml.StatusSuccess,
+			Value: StatusSuccess,
 		},
 	}
 	response := newResponse(issueInstant, status, issuer)
