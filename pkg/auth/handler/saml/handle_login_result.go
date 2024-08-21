@@ -29,7 +29,7 @@ func (h *LoginResultHandler) handleLoginResult(
 	relayState := samlSessionEntry.RelayState
 
 	unexpectedErrorResult := func(err error) httputil.Result {
-		return samlprotocolhttp.NewSAMLErrorResult(err,
+		return samlprotocolhttp.NewUnexpectedSAMLErrorResult(err,
 			samlprotocolhttp.SAMLResult{
 				CallbackURL: callbackURL,
 				// TODO(saml): Respect the binding protocol set in request
@@ -37,7 +37,6 @@ func (h *LoginResultHandler) handleLoginResult(
 				Response:   samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
 				RelayState: relayState,
 			},
-			true,
 		)
 	}
 
@@ -68,7 +67,7 @@ func (h *LoginResultHandler) handleLoginResult(
 	if err != nil {
 		var missingNameIDErr *samlerror.MissingNameIDError
 		if errors.As(err, &missingNameIDErr) {
-			errResponse := samlprotocolhttp.NewSAMLErrorResult(err,
+			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocolhttp.SAMLResult{
 					CallbackURL: callbackURL,
 					// TODO(saml): Respect the binding protocol set in request
@@ -81,7 +80,6 @@ func (h *LoginResultHandler) handleLoginResult(
 					),
 					RelayState: relayState,
 				},
-				false,
 			)
 			return errResponse
 		}
