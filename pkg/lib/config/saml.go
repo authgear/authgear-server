@@ -2,7 +2,6 @@ package config
 
 import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
-	dsig "github.com/russellhaering/goxmldsig"
 )
 
 var _ = Schema.Add("SAMLConfig", `
@@ -127,41 +126,32 @@ var _ = Schema.Add("SAMLSigningConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"key_id": { "type": "string" },
-		"signature_algorithm": { "$ref": "#/$defs/SAMLSigningSignatureAlgorithm" }
+		"signature_method": { "$ref": "#/$defs/SAMLSigningSignatureMethod" }
 	}
 }
 `)
 
 type SAMLSigningConfig struct {
-	KeyID              string                        `json:"key_id,omitempty"`
-	SignatureAlgorithm SAMLSigningSignatureAlgorithm `json:"signature_algorithm,omitempty"`
+	KeyID           string                     `json:"key_id,omitempty"`
+	SignatureMethod SAMLSigningSignatureMethod `json:"signature_method,omitempty"`
 }
 
 func (c *SAMLSigningConfig) SetDefaults() {
-	if c.SignatureAlgorithm == "" {
-		c.SignatureAlgorithm = SAMLSigningSignatureMethodRSASHA256
+	if c.SignatureMethod == "" {
+		c.SignatureMethod = SAMLSigningSignatureMethodRSASHA256
 	}
 }
 
-var _ = Schema.Add("SAMLSigningSignatureAlgorithm", `
+var _ = Schema.Add("SAMLSigningSignatureMethod", `
 {
 	"enum": ["http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"] 
 }
 `)
 
-type SAMLSigningSignatureAlgorithm string
-
-func (m SAMLSigningSignatureAlgorithm) ToDsigSignatureMethod() string {
-	switch m {
-	case SAMLSigningSignatureMethodRSASHA256:
-		return dsig.RSASHA256SignatureMethod
-	default:
-		panic("unknown signature method")
-	}
-}
+type SAMLSigningSignatureMethod string
 
 const (
-	SAMLSigningSignatureMethodRSASHA256 SAMLSigningSignatureAlgorithm = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
+	SAMLSigningSignatureMethodRSASHA256 SAMLSigningSignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
 )
 
 var _ = Schema.Add("SAMLSigningDigestMethod", `
