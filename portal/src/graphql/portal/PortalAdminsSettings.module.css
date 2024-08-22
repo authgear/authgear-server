@@ -1,3 +1,7 @@
+.header {
+  @apply flex items-center justify-between;
+}
+
 .widget {
   grid-column: 1 / span 12;
 

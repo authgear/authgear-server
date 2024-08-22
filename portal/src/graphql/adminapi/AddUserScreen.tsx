@@ -514,7 +514,9 @@ const AddUserScreen: React.VFC = function AddUserScreen() {
   const saveButtonProps = useMemo(
     () => ({
       labelId: "AddUserScreen.add-user.label",
-      iconName: "Add",
+      iconProps: {
+        iconName: "Add",
+      },
     }),
     []
   );

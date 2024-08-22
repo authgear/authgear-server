@@ -43,6 +43,8 @@ import {
 import TextField from "../../TextField";
 
 import styles from "./UserProfileForm.module.css";
+import PrimaryButton from "../../PrimaryButton";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 export interface StandardAttributesAddressState {
   street_address: string;
@@ -1086,7 +1088,8 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
       onChangeCustomAttributes,
       customAttributesConfig,
     } = props;
-    const { locale: appLocale } = useContext(Context);
+    const { locale: appLocale, renderToString } = useContext(Context);
+    const { canSave, onSave } = useFormContainerBaseContext();
 
     const updatedAt = standardAttributes.updated_at;
     const updatedAtFormatted: string | undefined | null = useMemo(() => {
@@ -1121,6 +1124,13 @@ const UserProfileForm: React.VFC<UserProfileFormProps> =
             />
           </Text>
         ) : null}
+        <div>
+          <PrimaryButton
+            text={renderToString("save")}
+            disabled={!canSave}
+            onClick={onSave}
+          />
+        </div>
       </div>
     );
   };

@@ -665,7 +665,7 @@ const MFAConfigurationScreen: React.VFC = function MFAConfigurationScreen() {
   }
 
   return (
-    <FormContainer form={form}>
+    <FormContainer form={form} stickyFooterComponent={true}>
       <MFAConfigurationContent
         form={form}
         isLoginIDEmailEnabled={isLoginIDEmailEnabled}
