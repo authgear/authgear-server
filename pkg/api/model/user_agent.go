@@ -56,3 +56,31 @@ func ParseUserAgent(ua string) (mUA UserAgent) {
 
 	return mUA
 }
+
+// The name is borrowed from https://github.com/browserslist/browserslist
+type RecognizedMobileDevice string
+
+const (
+	RecognizedMobileDeviceIOS           = "iOS"
+	RecognizedMobileDeviceChromeAndroid = "ChromeAndroid"
+	RecognizedMobileDeviceChrome        = "Chrome"
+	RecognizedMobileDeviceSamsung       = "Samsung"
+)
+
+func GetRecognizedMobileDevice(ua string) (string, bool) {
+	client := uaParser.Parse(ua)
+	if client.Os.Family == "iOS" {
+		return RecognizedMobileDeviceIOS, true
+	}
+	if client.Os.Family == "Android" && client.Device.Brand == "Samsung" {
+		return RecognizedMobileDeviceSamsung, true
+	}
+	if client.Os.Family == "Android" {
+		return RecognizedMobileDeviceChromeAndroid, true
+	}
+	if client.UserAgent.Family == "Chrome" {
+		return RecognizedMobileDeviceChrome, true
+	}
+
+	return "", false
+}
