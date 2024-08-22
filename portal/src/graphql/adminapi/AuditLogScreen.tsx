@@ -470,6 +470,18 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setSearchUserID("");
   }, []);
 
+  const searchBoxPlaceholder = useMemo(() => {
+    switch (selectedKey) {
+      case AuditLogActivityType.EmailSent:
+        return renderToString("AuditLogScreen.search-by-user-id-or-email");
+      case AuditLogActivityType.SmsSent:
+      case AuditLogActivityType.WhatsappSent:
+        return renderToString("AuditLogScreen.search-by-user-id-or-phone");
+      default:
+        return renderToString("AuditLogScreen.search-by-user-id");
+    }
+  }, [renderToString, selectedKey]);
+
   const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
     const allDateRangeLabel = renderToString("AuditLogScreen.date-range.all");
     const customDateRangeLabel = renderToString(
@@ -518,7 +530,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         onRender: () => {
           return (
             <SearchBox
-              placeholder={renderToString("AuditLogScreen.search-by-user-id")}
+              placeholder={searchBoxPlaceholder}
               className={styles.searchBox}
               value={searchUserID}
               onChange={onChangeSearchUserID}
@@ -556,6 +568,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     activityTypeOptions,
     selectedKey,
     onChangeSelectedKey,
+    searchBoxPlaceholder,
     searchUserID,
     onChangeSearchUserID,
     onClearSearchUserID,
