@@ -4,6 +4,7 @@ account_circle_off
 android
 animation
 api
+arrow_forward_ios
 block
 box
 build
@@ -24,6 +25,7 @@ distance
 done
 download
 dropdown
+edit
 email
 encrypted
 error
@@ -53,6 +55,7 @@ link
 list
 lock
 login
+lowercase
 mail
 margin
 mediation
@@ -84,6 +87,7 @@ restore
 rule
 scale
 score
+script
 search
 security
 select
@@ -93,6 +97,7 @@ sentiment_neutral
 sentiment_satisfied
 sentiment_very_dissatisfied
 sentiment_very_satisfied
+serif
 settings
 shadow
 shortcut
@@ -114,6 +119,7 @@ transform
 translate
 try
 update
+uppercase
 visibility
 visibility_off
 warning

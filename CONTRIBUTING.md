@@ -330,6 +330,7 @@ Various files in this project have versioned dependencies.
   - Download the latest version from https://github.com/google/material-design-icons/tree/master/variablefont
   - Also need to update `.ttf`, `.codepoint` and `.gitcommit`
   - Run `make generate-material-icons` again after update
+  - Then run `make authui` for updating the UI
 - [Twemoji SVG](authui/src/authflowv2/icons/twemoji-color.woff2), [Twemoji Mozilla](authui/src/authflowv2/icons/Twemoji.Mozilla.woff2)
   - Download the latest versions from https://github.com/13rac1/twemoji-color-font and https://github.com/mozilla/twemoji-colr
   - Also need to update `.ttf` and `.gitcommit`
@@ -371,5 +372,5 @@ python -m venv venv
 2024-07-12 16:34:45,069 - INFO - ja | Found 0 missing keys in ../../resources/authgear/templates/ja/messages/translation.json.
 2024-07-12 16:34:45,071 - INFO - ja | Updated ../../resources/authgear/templates/ja/messages/translation.json with latest keys.
 2024-07-12 16:34:45,071 - INFO - ja | Finished translation for ja (Japanese)
-... 
+...
 ```
