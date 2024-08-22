@@ -4,16 +4,13 @@ import (
 	"bytes"
 	"encoding/xml"
 
-	crewjamsaml "github.com/crewjam/saml"
 	xrv "github.com/mattermost/xml-roundtrip-validator"
+
+	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
-type AuthnRequest struct {
-	crewjamsaml.AuthnRequest
-}
-
 func (a *AuthnRequest) GetProtocolBinding() SAMLBinding {
-	return SAMLBinding(a.AuthnRequest.ProtocolBinding)
+	return SAMLBinding(a.ProtocolBinding)
 }
 
 func (a *AuthnRequest) GetIsPassive() bool {
@@ -32,6 +29,28 @@ func (a *AuthnRequest) GetForceAuthn() bool {
 	return *a.ForceAuthn
 }
 
+func (a *AuthnRequest) GetNameIDFormat() (config.SAMLNameIDFormat, bool) {
+	if a.NameIDPolicy != nil && a.NameIDPolicy.Format != nil {
+		return config.SAMLNameIDFormat(*a.NameIDPolicy.Format), true
+	}
+	return "", false
+}
+
+func (a *AuthnRequest) CollectAudiences() (audiences []string) {
+	audiences = []string{}
+	if a.Conditions == nil {
+		return
+	}
+	if len(a.Conditions.AudienceRestrictions) > 0 {
+		for _, r := range a.Conditions.AudienceRestrictions {
+			for _, aud := range r.Audience {
+				audiences = append(audiences, aud.Value)
+			}
+		}
+	}
+	return
+}
+
 func (a *AuthnRequest) ToXMLBytes() []byte {
 	buf, err := xml.Marshal(a)
 	if err != nil {
@@ -41,7 +60,7 @@ func (a *AuthnRequest) ToXMLBytes() []byte {
 }
 
 func ParseAuthnRequest(input []byte) (*AuthnRequest, error) {
-	var req crewjamsaml.AuthnRequest
+	var req AuthnRequest
 	if err := xrv.Validate(bytes.NewReader(input)); err != nil {
 		return nil, err
 	}
@@ -50,9 +69,5 @@ func ParseAuthnRequest(input []byte) (*AuthnRequest, error) {
 		return nil, err
 	}
 
-	authnRequest := &AuthnRequest{
-		AuthnRequest: req,
-	}
-
-	return authnRequest, nil
+	return &req, nil
 }

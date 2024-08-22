@@ -1,5 +1,9 @@
 package config
 
+import (
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
+)
+
 var _ = Schema.Add("SAMLConfig", `
 {
 	"type": "object",
@@ -26,7 +30,11 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 			"type": "array",
 			"items": { "type": "string", "format": "uri" },
 			"minItems": 1
-		}
+		},
+		"destination": { "type": "string", "format": "uri" },
+		"recipient": { "type": "string", "format": "uri" },
+		"audience": { "type": "string", "format": "uri" },
+		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" }
 	},
 	"required": ["id", "acs_urls"]
 }
@@ -59,8 +67,8 @@ var _ = Schema.Add("SAMLNameIDFormat", `
 type SAMLNameIDFormat string
 
 const (
-	NameIDFormatUnspecified  SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
-	NameIDFormatEmailAddress SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+	SAMLNameIDFormatUnspecified  SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+	SAMLNameIDFormatEmailAddress SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 )
 
 var _ = Schema.Add("SAMLNameIDAttributePointer", `
@@ -78,20 +86,33 @@ var _ = Schema.Add("SAMLNameIDAttributePointer", `
 
 type SAMLNameIDAttributePointer string
 
+func (p SAMLNameIDAttributePointer) MustGetJSONPointer() jsonpointer.T {
+	pointer := jsonpointer.MustParse(string(p))
+	return pointer
+}
+
 type SAMLServiceProviderConfig struct {
 	ID                     string                     `json:"id,omitempty"`
 	NameIDFormat           SAMLNameIDFormat           `json:"nameid_format,omitempty"`
 	NameIDAttributePointer SAMLNameIDAttributePointer `json:"nameid_attribute_pointer,omitempty"`
 	AcsURLs                []string                   `json:"acs_urls,omitempty"`
+	Destination            string                     `json:"destination,omitempty"`
+	Recipient              string                     `json:"recipient,omitempty"`
+	Audience               string                     `json:"audience,omitempty"`
+	AssertionValidDuration DurationString             `json:"assertion_valid_duration,omitempty"`
 }
 
 func (c *SAMLServiceProviderConfig) SetDefaults() {
 	if c.NameIDFormat == "" {
-		c.NameIDFormat = NameIDFormatUnspecified
+		c.NameIDFormat = SAMLNameIDFormatUnspecified
 	}
 
-	if c.NameIDFormat == NameIDFormatUnspecified && c.NameIDAttributePointer == "" {
+	if c.NameIDFormat == SAMLNameIDFormatUnspecified && c.NameIDAttributePointer == "" {
 		c.NameIDAttributePointer = "/sub"
+	}
+
+	if c.AssertionValidDuration == "" {
+		c.AssertionValidDuration = DurationString("20m")
 	}
 }
 
@@ -105,8 +126,7 @@ var _ = Schema.Add("SAMLSigningConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"key_id": { "type": "string" },
-		"signature_method": { "$ref": "#/$defs/SAMLSigningSignatureMethod" },
-		"digest_method": { "$ref": "#/$defs/SAMLSigningDigestMethod" }
+		"signature_method": { "$ref": "#/$defs/SAMLSigningSignatureMethod" }
 	}
 }
 `)
@@ -114,28 +134,24 @@ var _ = Schema.Add("SAMLSigningConfig", `
 type SAMLSigningConfig struct {
 	KeyID           string                     `json:"key_id,omitempty"`
 	SignatureMethod SAMLSigningSignatureMethod `json:"signature_method,omitempty"`
-	DigestMethod    SAMLSigningDigestMethod    `json:"digest_method,omitempty"`
 }
 
 func (c *SAMLSigningConfig) SetDefaults() {
 	if c.SignatureMethod == "" {
 		c.SignatureMethod = SAMLSigningSignatureMethodRSASHA256
 	}
-	if c.DigestMethod == "" {
-		c.DigestMethod = SAMLSigningDigestMethodSHA256
-	}
 }
 
 var _ = Schema.Add("SAMLSigningSignatureMethod", `
 {
-	"enum": ["RSAwithSHA256"] 
+	"enum": ["http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"] 
 }
 `)
 
 type SAMLSigningSignatureMethod string
 
 const (
-	SAMLSigningSignatureMethodRSASHA256 SAMLSigningSignatureMethod = "RSAwithSHA256"
+	SAMLSigningSignatureMethodRSASHA256 SAMLSigningSignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
 )
 
 var _ = Schema.Add("SAMLSigningDigestMethod", `

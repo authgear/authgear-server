@@ -22,3 +22,7 @@ func generateID(prefix string) string {
 func GenerateResponseID() string {
 	return generateID("samlresponse")
 }
+
+func GenerateAssertionID() string {
+	return generateID("samlassertion")
+}

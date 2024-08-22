@@ -13,8 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-
-	crewjamsaml "github.com/crewjam/saml"
 )
 
 func TestSAMLService(t *testing.T) {
@@ -36,7 +34,7 @@ func TestSAMLService(t *testing.T) {
 			ServiceProviders: []*config.SAMLServiceProviderConfig{
 				{
 					ID:           spID,
-					NameIDFormat: config.NameIDFormatEmailAddress,
+					NameIDFormat: config.SAMLNameIDFormatEmailAddress,
 					AcsURLs: []string{
 						"http://localhost/saml-test",
 					},
@@ -52,17 +50,15 @@ func TestSAMLService(t *testing.T) {
 			issueInstant, _ := time.Parse(time.RFC3339, "2006-01-02T15:00:05Z")
 			nameIDFormat := "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 			authnRequest := &samlprotocol.AuthnRequest{
-				AuthnRequest: crewjamsaml.AuthnRequest{
-					ID:              "id_test",
-					Destination:     "http://idp.local/login",
-					ProtocolBinding: string(samlprotocol.SAMLBindingPostRedirect),
-					IssueInstant:    issueInstant,
-					Version:         "2.0",
-					NameIDPolicy: &crewjamsaml.NameIDPolicy{
-						Format: &nameIDFormat,
-					},
-					AssertionConsumerServiceURL: "http://localhost/saml-test",
+				ID:              "id_test",
+				Destination:     "http://idp.local/login",
+				ProtocolBinding: string(samlprotocol.SAMLBindingHTTPPost),
+				IssueInstant:    issueInstant,
+				Version:         "2.0",
+				NameIDPolicy: &samlprotocol.NameIDPolicy{
+					Format: &nameIDFormat,
 				},
+				AssertionConsumerServiceURL: "http://localhost/saml-test",
 			}
 			return authnRequest
 		}

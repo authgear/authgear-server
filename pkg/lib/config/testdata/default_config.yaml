@@ -368,8 +368,7 @@ session:
 oauth: {}
 saml:
   signing:
-    signature_method: RSAwithSHA256
-    digest_method: SHA256
+    signature_method: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
 
 identity:
   ldap: {}

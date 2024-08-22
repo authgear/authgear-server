@@ -13,6 +13,7 @@ type SAMLSessionEntry struct {
 	AuthnRequestXML   string `json:"authn_request_xml,omitempty"`
 	// The url the response should send to
 	CallbackURL string `json:"callback_url,omitempty"`
+	RelayState  string `json:"relay_state,omitempty"`
 }
 
 type SAMLSession struct {
