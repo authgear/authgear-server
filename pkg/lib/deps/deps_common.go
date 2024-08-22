@@ -3,6 +3,7 @@ package deps
 import (
 	"github.com/google/wire"
 
+	handlersaml "github.com/authgear/authgear-server/pkg/auth/handler/saml"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
@@ -47,6 +48,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
+	"github.com/authgear/authgear-server/pkg/lib/saml"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -101,12 +104,27 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(authenticationflow.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(oauthhandler.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
+		wire.Bind(new(handlersaml.SAMLAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
+
+		wire.Bind(new(oauthhandler.AuthenticationInfoResolver), new(*authenticationinfo.UIService)),
+		wire.Bind(new(handlersaml.SAMLAuthenticationInfoResolver), new(*authenticationinfo.UIService)),
+		wire.Bind(new(workflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
+		wire.Bind(new(authenticationflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
+		wire.Bind(new(webapp.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
+		wire.Bind(new(handlerwebappauthflowv2.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
 	),
 
 	wire.NewSet(
 		oauthsession.DependencySet,
 		wire.Bind(new(oauthhandler.OAuthSessionService), new(*oauthsession.StoreRedis)),
 		wire.Bind(new(interaction.OAuthSessions), new(*oauthsession.StoreRedis)),
+	),
+
+	wire.NewSet(
+		samlsession.DependencySet,
+		wire.Bind(new(handlersaml.SAMLSessionService), new(*samlsession.StoreRedis)),
+
+		wire.Bind(new(handlersaml.SAMLUIService), new(*samlsession.UIService)),
 	),
 
 	wire.NewSet(
@@ -144,6 +162,12 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		audit.DependencySet,
+	),
+
+	wire.NewSet(
+		saml.DependencySet,
+
+		wire.Bind(new(handlersaml.HandlerSAMLService), new(*saml.Service)),
 	),
 
 	wire.NewSet(
@@ -383,15 +407,12 @@ var CommonDependencySet = wire.NewSet(
 		oidc.DependencySet,
 		wire.Value(oauthhandler.ScopesValidator(oidc.ValidateScopes)),
 		wire.Bind(new(oauthhandler.UIInfoResolver), new(*oidc.UIInfoResolver)),
-		wire.Bind(new(webapp.SelectAccountUIInfoResolver), new(*oidc.UIInfoResolver)),
-		wire.Bind(new(handlerwebappauthflowv2.SelectAccountUIInfoResolver), new(*oidc.UIInfoResolver)),
-		wire.Bind(new(workflow.ServiceUIInfoResolver), new(*oidc.UIInfoResolver)),
-		wire.Bind(new(authenticationflow.ServiceUIInfoResolver), new(*oidc.UIInfoResolver)),
 		wire.Bind(new(authenticationflow.IDTokenService), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.AccessTokenIssuer), new(*oauth.AccessTokenEncoding)),
 		wire.Bind(new(oauth.IDTokenIssuer), new(*oidc.IDTokenIssuer)),
 		wire.Bind(new(oauthhandler.UIURLBuilder), new(*oidc.UIURLBuilder)),
+		wire.Bind(new(saml.SAMLUserInfoProvider), new(*oidc.IDTokenIssuer)),
 
 		oidchandler.DependencySet,
 	),
@@ -571,6 +592,9 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(interaction.OAuthRedirectURIBuilder), new(*endpoints.Endpoints)),
+		wire.Bind(new(saml.SAMLEndpoints), new(*endpoints.Endpoints)),
+		wire.Bind(new(samlsession.UIServiceAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(authenticationinfo.UIServiceEndpointsProvider), new(*endpoints.Endpoints)),
 	),
 
 	wire.NewSet(

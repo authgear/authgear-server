@@ -94,6 +94,7 @@ func (i *IntentEnsureSession) ReactTo(ctx context.Context, deps *workflow.Depend
 	authnInfoEntry := authenticationinfo.NewEntry(
 		authnInfo,
 		workflow.GetOAuthSessionID(ctx),
+		"",
 	)
 
 	return workflow.NewNodeSimple(&NodeDoEnsureSession{

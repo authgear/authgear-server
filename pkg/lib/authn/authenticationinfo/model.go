@@ -23,6 +23,8 @@ type T struct {
 
 	// AuthenticatedBySessionType and AuthenticatedBySessionID
 	// means this authentication is done by an existing session.
+	// If a new idp session is created during the authentication process,
+	// the idp session id will also be stored in AuthenticatedBySessionID.
 	AuthenticatedBySessionType string
 	AuthenticatedBySessionID   string
 }
@@ -31,13 +33,15 @@ type Entry struct {
 	ID             string `json:"id,omitempty"`
 	T              T      `json:"t,omitempty"`
 	OAuthSessionID string `json:"oauth_session_id,omitempty"`
+	SAMLSessionID  string `json:"saml_session_id,omitempty"`
 }
 
-func NewEntry(t T, oauthSessionID string) *Entry {
+func NewEntry(t T, oauthSessionID string, samlSessionID string) *Entry {
 	id := rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
 	return &Entry{
 		ID:             id,
 		T:              t,
 		OAuthSessionID: oauthSessionID,
+		SAMLSessionID:  samlSessionID,
 	}
 }

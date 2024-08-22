@@ -33,6 +33,7 @@ var _ = Schema.Add("AppConfig", `
 		"authentication": { "$ref": "#/$defs/AuthenticationConfig" },
 		"session": { "$ref": "#/$defs/SessionConfig" },
 		"oauth": { "$ref": "#/$defs/OAuthConfig" },
+		"saml": { "$ref": "#/$defs/SAMLConfig" },
 		"identity": { "$ref": "#/$defs/IdentityConfig" },
 		"authenticator": { "$ref": "#/$defs/AuthenticatorConfig" },
 		"user_profile": { "$ref": "#/$defs/UserProfileConfig" },
@@ -68,6 +69,7 @@ type AppConfig struct {
 	Authentication       *AuthenticationConfig       `json:"authentication,omitempty"`
 	Session              *SessionConfig              `json:"session,omitempty"`
 	OAuth                *OAuthConfig                `json:"oauth,omitempty"`
+	SAML                 *SAMLConfig                 `json:"saml,omitempty"`
 	Identity             *IdentityConfig             `json:"identity,omitempty"`
 	Authenticator        *AuthenticatorConfig        `json:"authenticator,omitempty"`
 	UserProfile          *UserProfileConfig          `json:"user_profile,omitempty"`
@@ -126,6 +128,9 @@ func (c *AppConfig) Validate(ctx *validation.Context) {
 
 	// Validation 9: validate authentication flow
 	c.validateAuthenticationFlow(ctx)
+
+	// Validation 10: validate saml configs
+	c.validateSAML(ctx)
 }
 
 func (c *AppConfig) validateTokenLifetime(ctx *validation.Context) {
@@ -340,6 +345,18 @@ func (c *AppConfig) validateAuthenticationFlow(ctx *validation.Context) {
 
 		// Ensure client's flow allowlist is valid
 		validateFlowAllowlist(ctx, client.AuthenticationFlowAllowlist.Flows, definedFlows, i)
+	}
+}
+
+func (c *AppConfig) validateSAML(ctx *validation.Context) {
+	if len(c.SAML.ServiceProviders) > 0 {
+		if c.SAML.Signing.KeyID == "" {
+			// Signing key must be configured if at least one service provider exist
+			ctx.Child("saml", "signing", "key_id").EmitError("minLength", map[string]interface{}{
+				"expected": 1,
+				"actual":   0,
+			})
+		}
 	}
 }
 

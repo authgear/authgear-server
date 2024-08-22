@@ -57,7 +57,11 @@ type SessionLike interface {
 }
 
 func EncodeSID(s SessionLike) string {
-	raw := fmt.Sprintf("%s:%s", s.SessionType(), s.SessionID())
+	return EncodeSIDByRawValues(s.SessionType(), s.SessionID())
+}
+
+func EncodeSIDByRawValues(sessionType session.Type, sessionID string) string {
+	raw := fmt.Sprintf("%s:%s", sessionType, sessionID)
 	return base64.RawURLEncoding.EncodeToString([]byte(raw))
 }
 

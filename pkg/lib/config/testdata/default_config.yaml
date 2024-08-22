@@ -366,6 +366,10 @@ session:
   idle_timeout_enabled: true
   idle_timeout_seconds: 2592000
 oauth: {}
+saml:
+  signing:
+    signature_method: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+
 identity:
   ldap: {}
   login_id:

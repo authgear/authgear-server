@@ -237,6 +237,19 @@ func (c *SecretConfig) validateLDAPServerUserSecrets(ctx *validation.Context, ld
 	}
 }
 
+func (c *SecretConfig) validateSAMLSigningKey(ctx *validation.Context, keyID string) {
+	c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+	_, data, _ := c.LookupDataWithIndex(SAMLIdpSigningMaterialsKey)
+	signingMaterials, _ := data.(*SAMLIdpSigningMaterials)
+
+	for _, m := range signingMaterials.Certificates {
+		if m.Key.Key.KeyID() == keyID {
+			return
+		}
+	}
+	ctx.EmitErrorMessage(fmt.Sprintf("saml idp signing key '%s' does not exist", keyID))
+}
+
 func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	ctx := &validation.Context{}
 
@@ -273,6 +286,13 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	if appConfig.Identity.LDAP != nil && len(appConfig.Identity.LDAP.Servers) > 0 {
 		c.validateRequire(ctx, LDAPServerUserCredentialsKey, "LDAP server user credentials")
 		c.validateLDAPServerUserSecrets(ctx, appConfig.Identity.LDAP.Servers)
+	}
+
+	if len(appConfig.SAML.ServiceProviders) > 0 {
+		c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+	}
+	if appConfig.SAML.Signing.KeyID != "" {
+		c.validateSAMLSigningKey(ctx, appConfig.SAML.Signing.KeyID)
 	}
 
 	return ctx.Error("invalid secrets")
@@ -313,6 +333,9 @@ const (
 	BotProtectionProviderCredentialsKey        SecretKey = "bot_protection.provider"
 	WhatsappOnPremisesCredentialsKey           SecretKey = "whatsapp.on-premises"
 	LDAPServerUserCredentialsKey               SecretKey = "ldap"
+
+	SAMLIdpSigningMaterialsKey SecretKey = "saml.idp.signing"
+	SAMLSpSigningMaterialsKey  SecretKey = "saml.service_providers.signing"
 )
 
 func (key SecretKey) IsUpdatable() bool {
@@ -356,6 +379,8 @@ var secretItemKeys = map[SecretKey]secretKeyDef{
 	BotProtectionProviderCredentialsKey:        {"BotProtectionProviderCredentials", func() SecretItemData { return &BotProtectionProviderCredentials{} }},
 	WhatsappOnPremisesCredentialsKey:           {"WhatsappOnPremisesCredentials", func() SecretItemData { return &WhatsappOnPremisesCredentials{} }},
 	LDAPServerUserCredentialsKey:               {"LDAPServerUserCredentials", func() SecretItemData { return &LDAPServerUserCredentials{} }},
+	SAMLIdpSigningMaterialsKey:                 {"SAMLIdpSigningMaterials", func() SecretItemData { return &SAMLIdpSigningMaterials{} }},
+	SAMLSpSigningMaterialsKey:                  {"SAMLSpSigningMaterials", func() SecretItemData { return &SAMLSpSigningMaterials{} }},
 }
 
 var _ = SecretConfigSchema.AddJSON("SecretKey", map[string]interface{}{

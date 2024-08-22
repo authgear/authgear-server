@@ -1155,7 +1155,6 @@ config:
     secondary_authentication_grace_period:
       enabled: true
       end_at: "2024-07-25T05:54:32.221Z"
-
 ---
 name: secondary-authentication-grace-period-invalid-since
 error: |-
@@ -1170,3 +1169,34 @@ config:
     secondary_authentication_grace_period:
       enabled: true
       end_at: "not-rfc3339"
+---
+name: saml-service-provider
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  saml:
+    signing:
+      key_id: asdfasdf
+    service_providers:
+      - id: provider_1
+        nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+        nameid_attribute_pointer: /preferred_username
+        acs_urls:
+          - http://localhost:3000/acs
+        destination: http://localhost:3000/destination
+        recipient: http://localhost:3000/recipient
+        audience: http://localhost:3000/audience
+        assertion_valid_duration: 1h
+---
+name: saml-signing
+error: null
+config:
+  id: test
+  http:
+    public_origin: http://test
+  saml:
+    signing:
+      key_id: asdfasdf
+      signature_method: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256

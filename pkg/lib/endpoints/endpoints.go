@@ -154,3 +154,10 @@ func (e *Endpoints) WeChatAuthorizeURL(alias string) *url.URL {
 }
 
 func (e *Endpoints) TesterURL() *url.URL { return e.urlOf("tester") }
+
+func (e *Endpoints) SAMLLoginURL(serviceProviderId string) *url.URL {
+	return e.urlOf(fmt.Sprintf("saml2/login/%s", serviceProviderId))
+}
+func (e *Endpoints) SAMLLoginFinishURL() *url.URL {
+	return e.urlOf(fmt.Sprintf("saml2/login_finish"))
+}
