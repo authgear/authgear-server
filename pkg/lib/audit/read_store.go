@@ -11,14 +11,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type QueryPageOptions struct {
-	RangeFrom     *time.Time
-	RangeTo       *time.Time
-	ActivityTypes []string
-	UserIDs       []string
-	SortDirection model.SortDirection
+	RangeFrom      *time.Time
+	RangeTo        *time.Time
+	ActivityTypes  []string
+	UserIDs        []string
+	EmailAddresses []string
+	PhoneNumbers   []string
+	SortDirection  model.SortDirection
 }
 
 func (o QueryPageOptions) Apply(q db.SelectBuilder) db.SelectBuilder {
@@ -34,8 +37,38 @@ func (o QueryPageOptions) Apply(q db.SelectBuilder) db.SelectBuilder {
 		q = q.Where("activity_type = ANY (?)", pq.Array(o.ActivityTypes))
 	}
 
-	if len(o.UserIDs) > 0 {
+	q = o.applyQueryStringFilter(q)
+	return q
+}
+
+func (o QueryPageOptions) applyQueryStringFilter(q db.SelectBuilder) db.SelectBuilder {
+	hasUserIDs := len(o.UserIDs) > 0
+	hasEmail := len(o.EmailAddresses) > 0
+	hasPhone := len(o.PhoneNumbers) > 0
+
+	mergedEmailsAndPhones := o.EmailAddresses
+	mergedEmailsAndPhones = append(mergedEmailsAndPhones, o.PhoneNumbers...)
+	mergedEmailsAndPhones = slice.Deduplicate[string](mergedEmailsAndPhones)
+
+	switch {
+	case hasUserIDs && hasEmail && hasPhone:
+		q = q.Where("(user_id = ANY (?) OR data->'payload'->>'recipient' = ANY (?))", pq.Array(o.UserIDs), pq.Array(mergedEmailsAndPhones))
+	case hasUserIDs && hasEmail && !hasPhone:
+		q = q.Where("(user_id = ANY (?) OR data->'payload'->>'recipient' = ANY (?))", pq.Array(o.UserIDs), pq.Array(o.EmailAddresses))
+	case hasUserIDs && !hasEmail && hasPhone:
+		q = q.Where("(user_id = ANY (?) OR data->'payload'->>'recipient' = ANY (?))", pq.Array(o.UserIDs), pq.Array(o.PhoneNumbers))
+	case hasUserIDs && !hasEmail && !hasPhone:
 		q = q.Where("user_id = ANY (?)", pq.Array(o.UserIDs))
+	case !hasUserIDs && hasEmail && hasPhone:
+		q = q.Where("data->'payload'->>'recipient' = ANY (?)", pq.Array(mergedEmailsAndPhones))
+	case !hasUserIDs && hasEmail && !hasPhone:
+		q = q.Where("data->'payload'->>'recipient' = ANY (?)", pq.Array(o.EmailAddresses))
+	case !hasUserIDs && !hasEmail && hasPhone:
+		q = q.Where("data->'payload'->>'recipient' = ANY (?)", pq.Array(o.PhoneNumbers))
+	case !hasUserIDs && !hasEmail && !hasPhone:
+		fallthrough
+	default:
+		// do nothing
 	}
 
 	return q
