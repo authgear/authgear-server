@@ -41,7 +41,7 @@ func (c *End2End) CreateApp(appID string, baseConfigSourceDir string, override s
 	err = CreatePortalDefaultDomain(
 		cfg.GlobalDatabase.DatabaseURL,
 		cfg.GlobalDatabase.DatabaseSchema,
-		".portal.localhost",
+		".authgeare2e.localhost",
 	)
 	if err != nil {
 		return err
@@ -104,7 +104,7 @@ func (c *End2End) createTempConfigSource(appID string, baseConfigSource string, 
 	}
 
 	cfg.ID = config.AppID(appID)
-	cfg.HTTP.PublicOrigin = fmt.Sprintf("http://%s.portal.localhost:4000", appID)
+	cfg.HTTP.PublicOrigin = fmt.Sprintf("http://%s.authgeare2e.localhost:4000", appID)
 
 	newAuthgearYAML, err := exportConfig(cfg)
 	if err != nil {

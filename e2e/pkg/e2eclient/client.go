@@ -42,10 +42,6 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 		panic(err)
 	}
 
-	// Only the port is important, the host is always the loopback address.
-	mainEndpointURL.Host = fmt.Sprintf("127.0.0.1:%v", mainEndpointURL.Port())
-	adminEndpointURL.Host = fmt.Sprintf("127.0.0.1:%v", adminEndpointURL.Port())
-
 	// Prepare HTTP clients.
 	var httpClient = &http.Client{}
 	var oauthClient = &http.Client{}

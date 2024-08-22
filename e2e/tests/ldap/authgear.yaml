@@ -2,7 +2,7 @@ authentication:
   identities:
     - ldap
 http:
-  public_origin: http://accounts.portal.localhost:3100
+  public_origin: http://app.authgeare2e.localhost:4000
 id: accounts
 identity:
   ldap:

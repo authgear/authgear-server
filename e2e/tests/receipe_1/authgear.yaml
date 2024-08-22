@@ -85,7 +85,7 @@ forgot_password:
     code: 300s
     link: 1200s
 http:
-  public_origin: http://tomato.portal.localhost:4000
+  public_origin: http://app.authgeare2e.localhost:4000
 id: tomato
 identity:
   biometric:
