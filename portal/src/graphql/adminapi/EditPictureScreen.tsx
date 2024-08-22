@@ -8,17 +8,11 @@ import React, {
   ChangeEvent,
 } from "react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
-import {
-  Dialog,
-  DialogFooter,
-  ICommandBarItemProps,
-  ProgressIndicator,
-} from "@fluentui/react";
+import { Dialog, DialogFooter, Spinner, SpinnerSize } from "@fluentui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios, { AxiosProgressEvent } from "axios";
 import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
-import CommandBarContainer from "../../CommandBarContainer";
 import { FormProvider } from "../../form";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
 import NavBreadcrumb from "../../NavBreadcrumb";
@@ -39,6 +33,7 @@ import { APIError } from "../../error/error";
 import { ErrorParseRule, makeLocalErrorParseRule } from "../../error/parse";
 
 import styles from "./EditPictureScreen.module.css";
+import DefaultLayout from "../../DefaultLayout";
 
 interface FormState {
   picture?: string;
@@ -321,64 +316,73 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
   }, []);
   const loading = uploadState.loading || isUpdating;
 
-  const items: ICommandBarItemProps[] = useMemo(() => {
-    const showUpload = state.selected == null || reactCropperjsError != null;
-    const showRemove = state.selected == null;
-    const showSave = state.selected != null && reactCropperjsError == null;
-    const items = [];
-    if (showUpload) {
-      items.push({
-        key: "upload",
-        text: renderToString("EditPictureScreen.upload-new-picture.label"),
-        iconProps: { iconName: "Upload" },
-        onClick: () => {
-          fileInputRef.current?.click();
-        },
-      });
-    }
-    if (showRemove) {
-      items.push({
-        key: "remove",
-        text: renderToString("EditPictureScreen.remove-picture.label"),
-        iconProps: { iconName: "Delete" },
-        disabled: !pictureIsSet,
-        theme: pictureIsSet ? themes.destructive : themes.main,
-        onClick: () => {
-          setIsRemoveDialogVisible(true);
-        },
-      });
-    }
-    if (showSave) {
-      items.push({
-        key: "save",
-        text: renderToString("save"),
-        iconProps: { iconName: "Save" },
-        disabled: loading,
-        onClick: () => {
-          upload().catch(() => {});
-        },
-      });
-    }
-    return items;
-  }, [
-    renderToString,
-    pictureIsSet,
-    themes.destructive,
-    themes.main,
-    state.selected,
-    upload,
-    reactCropperjsError,
-    loading,
-  ]);
+  const showUpload = useMemo(
+    () => state.selected == null || reactCropperjsError != null,
+    [state, reactCropperjsError]
+  );
+  const showRemove = useMemo(
+    () => state.selected == null && pictureIsSet,
+    [state, pictureIsSet]
+  );
+  const showSave = useMemo(
+    () => state.selected != null && reactCropperjsError == null,
+    [state, reactCropperjsError]
+  );
+
   return (
     <FormProvider
       loading={loading}
       error={updateError || uploadState.error || reactCropperjsError}
       rules={RULES}
     >
-      <CommandBarContainer
-        primaryItems={items}
+      <DefaultLayout
+        position="end"
         messageBar={<FormErrorMessageBar />}
+        footer={
+          <>
+            {showUpload ? (
+              <PrimaryButton
+                text={renderToString(
+                  "EditPictureScreen.upload-new-picture.label"
+                )}
+                iconProps={{ iconName: "Upload" }}
+                onClick={() => {
+                  fileInputRef.current?.click();
+                }}
+              />
+            ) : null}
+            {showRemove ? (
+              <DefaultButton
+                text={renderToString("EditPictureScreen.remove-picture.label")}
+                iconProps={{ iconName: "Delete" }}
+                disabled={!pictureIsSet}
+                theme={themes.destructive}
+                useThemePrimaryForBorderColor={true}
+                onClick={() => {
+                  setIsRemoveDialogVisible(true);
+                }}
+              />
+            ) : null}
+            {showSave ? (
+              <PrimaryButton
+                text={
+                  <div className={styles.saveButton}>
+                    {loading ? (
+                      <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
+                    ) : null}
+                    <span>
+                      <FormattedMessage id="save" />
+                    </span>
+                  </div>
+                }
+                disabled={loading}
+                onClick={() => {
+                  upload().catch(() => {});
+                }}
+              />
+            ) : null}
+          </>
+        }
       >
         <form>
           <ScreenContent>
@@ -395,11 +399,6 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
               onLoad={onReactCropperjsLoad}
               onClickSelectImage={onClickSelectImage}
             />
-            <ProgressIndicator
-              className={styles.widget}
-              percentComplete={uploadState.percentComplete}
-              progressHidden={!uploadState.loading}
-            />
           </ScreenContent>
           <input
             ref={fileInputRef}
@@ -409,7 +408,7 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
             onChange={onChangeFile}
           />
         </form>
-      </CommandBarContainer>
+      </DefaultLayout>
       <NavigationBlockerDialog blockNavigation={isDirty} />
       <RemoveDialog
         hidden={!isRemoveDialogVisible}

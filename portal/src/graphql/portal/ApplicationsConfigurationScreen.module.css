@@ -1,7 +1,12 @@
 .widget {
-  grid-column: 1 / span 8;
-
+  grid-column: 1 / span 12;
   @apply tablet:col-span-full;
+}
+
+.screenTitle {
+  grid-column: 1 / span 12;
+  @apply tablet:col-span-full;
+  @apply flex items-center justify-between;
 }
 
 .desktopView {

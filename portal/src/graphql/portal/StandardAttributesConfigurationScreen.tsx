@@ -171,7 +171,7 @@ const StandardAttributesConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form}>
+      <FormContainer form={form} stickyFooterComponent={true}>
         <StandardAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );

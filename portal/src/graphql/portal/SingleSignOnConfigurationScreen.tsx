@@ -407,6 +407,43 @@ const SingleSignOnConfigurationContent: React.VFC<SingleSignOnConfigurationConte
     );
   };
 
+const SingleSignOnConfigurationHeaderContent: React.VFC<{
+  children?: React.ReactNode;
+}> = function SingleSignOnConfigurationHeaderContent(props) {
+  const { children } = props;
+  const { appID } = useParams() as { appID: string };
+  const featureConfig = useAppFeatureConfigQuery(appID);
+  const oauthClientsMaximum = useMemo(
+    () =>
+      featureConfig.effectiveFeatureConfig?.identity?.oauth
+        ?.maximum_providers ?? 99,
+    [featureConfig.effectiveFeatureConfig?.identity?.oauth?.maximum_providers]
+  );
+  return (
+    <>
+      <div className={styles.headerContent}>
+        <ScreenTitle>
+          <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
+        </ScreenTitle>
+        <ScreenDescription>
+          <Text className={styles.description} block={true}>
+            <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
+          </Text>
+          {oauthClientsMaximum < 99 ? (
+            <FeatureDisabledMessageBar
+              messageID="FeatureConfig.sso.maximum"
+              messageValues={{
+                maximum: oauthClientsMaximum,
+              }}
+            />
+          ) : null}
+        </ScreenDescription>
+      </div>
+      {children}
+    </>
+  );
+};
+
 const SingleSignOnConfigurationScreen1: React.VFC<{
   appID: string;
   secretVisitToken: string | null;
@@ -418,7 +455,6 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
     constructConfig,
     constructSecretUpdateInstruction,
   });
-
   const featureConfig = useAppFeatureConfigQuery(appID);
 
   const form: AppSecretConfigFormModel<FormState> = config;
@@ -428,35 +464,6 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
       featureConfig.effectiveFeatureConfig?.identity?.oauth
         ?.maximum_providers ?? 99,
     [featureConfig.effectiveFeatureConfig?.identity?.oauth?.maximum_providers]
-  );
-
-  const renderHeaderContent = useCallback(
-    (defaultHeader: React.ReactNode) => {
-      return (
-        <>
-          <div className={styles.headerContent}>
-            <ScreenTitle>
-              <FormattedMessage id="SingleSignOnConfigurationScreen.title" />
-            </ScreenTitle>
-            <ScreenDescription>
-              <Text className={styles.description} block={true}>
-                <FormattedMessage id="SingleSignOnConfigurationScreen.description" />
-              </Text>
-              {oauthClientsMaximum < 99 ? (
-                <FeatureDisabledMessageBar
-                  messageID="FeatureConfig.sso.maximum"
-                  messageValues={{
-                    maximum: oauthClientsMaximum,
-                  }}
-                />
-              ) : null}
-            </ScreenDescription>
-          </div>
-          {defaultHeader}
-        </>
-      );
-    },
-    [oauthClientsMaximum]
   );
 
   if (form.isLoading || featureConfig.loading) {
@@ -476,7 +483,10 @@ const SingleSignOnConfigurationScreen1: React.VFC<{
   }
 
   return (
-    <FormContainer form={form} renderHeaderContent={renderHeaderContent}>
+    <FormContainer
+      form={form}
+      HeaderComponent={SingleSignOnConfigurationHeaderContent}
+    >
       <SingleSignOnConfigurationContent
         form={form}
         oauthSSOFeatureConfig={

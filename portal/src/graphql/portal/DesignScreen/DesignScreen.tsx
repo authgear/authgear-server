@@ -64,6 +64,8 @@ import {
   getSupportedPreviewPagesFromConfig,
   mapDesignFormStateToPreviewCustomisationMessage,
 } from "./viewModel";
+import PrimaryButton from "../../../PrimaryButton";
+import { useFormContainerBaseContext } from "../../../FormContainerBase";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;
@@ -914,6 +916,84 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   );
 };
 
+interface DesignScreenContentProps {
+  appID: string;
+  effectiveAppConfig: PortalAPIAppConfig;
+  form: BranchDesignForm;
+}
+const DesignScreenContent: React.VFC<DesignScreenContentProps> =
+  function DesignScreenContent(props) {
+    const { appID, effectiveAppConfig, form } = props;
+    const { canSave, onSave } = useFormContainerBaseContext();
+    const { renderToString } = useContext(MFContext);
+    return (
+      <>
+        <div
+          className={cn(
+            "pt-6",
+            "px-6",
+            "flex",
+            "items-center",
+            "justify-between"
+          )}
+        >
+          <ScreenTitle>
+            <FormattedMessage id="DesignScreen.title" />
+          </ScreenTitle>
+          <div className={styles.titleActions}>
+            <ManageLanguageWidget
+              existingLanguages={form.state.supportedLanguages}
+              supportedLanguages={form.state.supportedLanguages}
+              selectedLanguage={form.state.selectedLanguage}
+              fallbackLanguage={form.state.fallbackLanguage}
+              onChangeSelectedLanguage={form.setSelectedLanguage}
+            />
+            <PrimaryButton
+              text={renderToString("save")}
+              disabled={!canSave}
+              onClick={onSave}
+            />
+          </div>
+        </div>
+        <div
+          className={cn(
+            "min-h-0",
+            "flex-1",
+            "flex",
+            "flex-row-reverse",
+            "tablet:flex-col",
+            "tablet:overflow-auto"
+          )}
+        >
+          <div className={cn("p-6", "pt-4", "desktop:overflow-auto")}>
+            <div className={cn("desktop:w-80")}>
+              <ConfigurationPanel appID={appID} designForm={form} />
+            </div>
+          </div>
+          <div className={cn("desktop:flex-1", "h-full", "p-6", "pt-4")}>
+            <div
+              className={cn(
+                "rounded-xl",
+                "h-full",
+                "tablet:h-178.5",
+                "overflow-hidden"
+              )}
+              style={{
+                boxShadow: DefaultEffects.elevation4,
+              }}
+            >
+              <Preview
+                className={cn("h-full")}
+                effectiveAppConfig={effectiveAppConfig}
+                designForm={form}
+              />
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
 const DesignScreen: React.VFC = function DesignScreen() {
   const { appID } = useParams() as { appID: string };
   const {
@@ -961,63 +1041,14 @@ const DesignScreen: React.VFC = function DesignScreen() {
       form={form}
       canSave={true}
       errorRules={form.errorRules}
+      stickyFooterComponent={true}
+      hideFooterComponent={true}
     >
-      <div
-        className={cn(
-          "pt-6",
-          "px-6",
-          "flex",
-          "items-center",
-          "justify-between"
-        )}
-      >
-        <ScreenTitle>
-          <FormattedMessage id="DesignScreen.title" />
-        </ScreenTitle>
-
-        <ManageLanguageWidget
-          existingLanguages={form.state.supportedLanguages}
-          supportedLanguages={form.state.supportedLanguages}
-          selectedLanguage={form.state.selectedLanguage}
-          fallbackLanguage={form.state.fallbackLanguage}
-          onChangeSelectedLanguage={form.setSelectedLanguage}
-        />
-      </div>
-      <div
-        className={cn(
-          "min-h-0",
-          "flex-1",
-          "flex",
-          "flex-row-reverse",
-          "tablet:flex-col",
-          "tablet:overflow-auto"
-        )}
-      >
-        <div className={cn("p-6", "pt-4", "desktop:overflow-auto")}>
-          <div className={cn("desktop:w-80")}>
-            <ConfigurationPanel appID={appID} designForm={form} />
-          </div>
-        </div>
-        <div className={cn("desktop:flex-1", "h-full", "p-6", "pt-4")}>
-          <div
-            className={cn(
-              "rounded-xl",
-              "h-full",
-              "tablet:h-178.5",
-              "overflow-hidden"
-            )}
-            style={{
-              boxShadow: DefaultEffects.elevation4,
-            }}
-          >
-            <Preview
-              className={cn("h-full")}
-              effectiveAppConfig={effectiveAppConfig}
-              designForm={form}
-            />
-          </div>
-        </div>
-      </div>
+      <DesignScreenContent
+        appID={appID}
+        effectiveAppConfig={effectiveAppConfig}
+        form={form}
+      />
     </FormContainer>
   );
 };
