@@ -15,6 +15,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+
+	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
 )
 
 type CSRFMiddlewareLogger struct{ *log.Logger }
@@ -24,11 +27,14 @@ func NewCSRFMiddlewareLogger(lf *log.Factory) CSRFMiddlewareLogger {
 }
 
 type CSRFMiddleware struct {
-	Secret     *config.CSRFKeyMaterials
-	CookieDef  CSRFCookieDef
-	TrustProxy config.TrustProxy
-	Cookies    CookieManager
-	Logger     CSRFMiddlewareLogger
+	Secret        *config.CSRFKeyMaterials
+	CookieDef     webapp.CSRFCookieDef
+	TrustProxy    config.TrustProxy
+	Cookies       CookieManager
+	Logger        CSRFMiddlewareLogger
+	BaseViewModel *viewmodels.BaseViewModeler
+	Renderer      Renderer
+	UIConfig      *config.UIConfig
 }
 
 func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
@@ -36,7 +42,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 		secure := httputil.GetProto(r, bool(m.TrustProxy)) == "https"
 		options := []csrf.Option{
 			csrf.MaxAge(m.maxAge()),
-			csrf.FieldName(CSRFFieldName),
+			csrf.FieldName(webapp.CSRFFieldName),
 			csrf.CookieName(m.CookieDef.Name),
 			csrf.Path("/"),
 			csrf.Secure(secure),
@@ -73,16 +79,16 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 
 func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Request) {
 	// Check debug cookies and inject info for reporting
-	omitCookie, err := m.Cookies.GetCookie(r, CSRFDebugCookieSameSiteOmitDef)
+	omitCookie, err := m.Cookies.GetCookie(r, webapp.CSRFDebugCookieSameSiteOmitDef)
 	hasOmitCookie := (err == nil && omitCookie.Value == "exists")
 
-	noneCookie, err := m.Cookies.GetCookie(r, CSRFDebugCookieSameSiteNoneDef)
+	noneCookie, err := m.Cookies.GetCookie(r, webapp.CSRFDebugCookieSameSiteNoneDef)
 	hasNoneCookie := (err == nil && noneCookie.Value == "exists")
 
-	laxCookie, err := m.Cookies.GetCookie(r, CSRFDebugCookieSameSiteLaxDef)
+	laxCookie, err := m.Cookies.GetCookie(r, webapp.CSRFDebugCookieSameSiteLaxDef)
 	hasLaxCookie := (err == nil && laxCookie.Value == "exists")
 
-	strictCookie, err := m.Cookies.GetCookie(r, CSRFDebugCookieSameSiteStrictDef)
+	strictCookie, err := m.Cookies.GetCookie(r, webapp.CSRFDebugCookieSameSiteStrictDef)
 	hasStrictCookie := (err == nil && strictCookie.Value == "exists")
 
 	csrfCookie, _ := r.Cookie(m.CookieDef.Name)
@@ -140,10 +146,26 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		"csrfFailureReason":       csrfFailureReason,
 	}).Errorf("CSRF Forbidden: %v", csrfFailureReason)
 
-	// TODO: beautify error page ui
-	http.Error(w, fmt.Sprintf("%v - %v",
-		http.StatusText(http.StatusForbidden), csrfFailureReason),
-		http.StatusForbidden)
+	uiImpl := m.UIConfig.Implementation.WithDefault()
+
+	data := make(map[string]interface{})
+	baseViewModel := m.BaseViewModel.ViewModelForAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	switch uiImpl {
+	case config.UIImplementationAuthflowV2:
+		m.Renderer.RenderHTML(w, r, TemplateCSRFErrorHTML, data)
+	case config.UIImplementationAuthflow:
+		fallthrough
+	case config.UIImplementationDefault:
+		fallthrough
+	case config.UIImplementationInteraction:
+		fallthrough
+	default:
+		http.Error(w, fmt.Sprintf("%v - %v handler/auth/webapp",
+			http.StatusText(http.StatusForbidden), csrfFailureReason),
+			http.StatusForbidden)
+	}
 }
 
 func (m *CSRFMiddleware) getSecretKey() ([]byte, error) {

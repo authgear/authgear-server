@@ -24,6 +24,10 @@ var DependencySet = wire.NewSet(
 	NewPanicMiddlewareLogger,
 	wire.Struct(new(PanicMiddleware), "*"),
 
+	NewCSRFMiddlewareLogger,
+	wire.Struct(new(CSRFMiddleware), "*"),
+	wire.Struct(new(CSRFErrorInstructionHandler), "*"),
+
 	wire.Struct(new(AppStaticAssetsHandler), "*"),
 
 	wire.Struct(new(RootHandler), "*"),
