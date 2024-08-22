@@ -690,13 +690,18 @@ func (s *Service) UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) 
 
 	for _, a := range authenticators {
 		if a.IsDependentOf(oldInfo) {
-			newAuth, changed := s.UpdateOOBOTPTarget(a, UpdateOOBOTPTargetOption{
-				NewTarget: newInfo.LoginID.LoginID,
-			})
-			if changed {
-				err = s.Update(newAuth)
-				if err != nil {
-					return err
+			switch a.Type {
+			case model.AuthenticatorTypeOOBEmail:
+				fallthrough
+			case model.AuthenticatorTypeOOBSMS:
+				newAuth, changed := s.UpdateOOBOTPTarget(a, UpdateOOBOTPTargetOption{
+					NewTarget: newInfo.LoginID.LoginID,
+				})
+				if changed {
+					err = s.Update(newAuth)
+					if err != nil {
+						return err
+					}
 				}
 			}
 		}
