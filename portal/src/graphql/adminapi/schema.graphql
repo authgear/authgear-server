@@ -286,6 +286,9 @@ enum AuditLogActivityType {
   AUTHENTICATION_SECONDARY_TOTP_FAILED
 
   """"""
+  BOT_PROTECTION_VERIFICATION_FAILED
+
+  """"""
   EMAIL_SENT
 
   """"""

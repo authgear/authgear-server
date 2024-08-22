@@ -177,6 +177,7 @@ export enum AuditLogActivityType {
   AuthenticationSecondaryPasswordFailed = 'AUTHENTICATION_SECONDARY_PASSWORD_FAILED',
   AuthenticationSecondaryRecoveryCodeFailed = 'AUTHENTICATION_SECONDARY_RECOVERY_CODE_FAILED',
   AuthenticationSecondaryTotpFailed = 'AUTHENTICATION_SECONDARY_TOTP_FAILED',
+  BotProtectionVerificationFailed = 'BOT_PROTECTION_VERIFICATION_FAILED',
   EmailSent = 'EMAIL_SENT',
   IdentityBiometricDisabled = 'IDENTITY_BIOMETRIC_DISABLED',
   IdentityBiometricEnabled = 'IDENTITY_BIOMETRIC_ENABLED',
