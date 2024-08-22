@@ -54,9 +54,9 @@ func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
 
 	e.Client = e2eclient.NewClient(
 		context.Background(),
-		"localhost:4000",
-		"localhost:4002",
-		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", e.AppID)),
+		"127.0.0.1:4000",
+		"127.0.0.1:4002",
+		httputil.HTTPHost(fmt.Sprintf("%s.authgeare2e.localhost:4000", e.AppID)),
 	)
 
 	return e, nil

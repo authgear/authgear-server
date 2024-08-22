@@ -113,9 +113,14 @@ type MilestoneIdentificationMethod interface {
 	MilestoneIdentificationMethod() config.AuthenticationFlowIdentification
 }
 
-type MilestoneAuthenticationMethod interface {
+type MilestoneFlowSelectAuthenticationMethod interface {
 	authflow.Milestone
-	MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication
+	MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (selected MilestoneDidSelectAuthenticationMethod, newFlows authflow.Flows, ok bool)
+}
+
+type MilestoneDidSelectAuthenticationMethod interface {
+	authflow.Milestone
+	MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication
 }
 
 type MilestoneFlowAuthenticate interface {

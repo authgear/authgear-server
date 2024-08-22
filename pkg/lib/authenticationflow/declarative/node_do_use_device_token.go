@@ -13,7 +13,7 @@ type NodeDoUseDeviceToken struct{}
 
 var _ authflow.NodeSimple = &NodeDoUseDeviceToken{}
 var _ authflow.Milestone = &NodeDoUseDeviceToken{}
-var _ MilestoneAuthenticationMethod = &NodeDoUseDeviceToken{}
+var _ MilestoneDidSelectAuthenticationMethod = &NodeDoUseDeviceToken{}
 var _ MilestoneDidAuthenticate = &NodeDoUseDeviceToken{}
 
 func (*NodeDoUseDeviceToken) Kind() string {
@@ -21,7 +21,7 @@ func (*NodeDoUseDeviceToken) Kind() string {
 }
 
 func (*NodeDoUseDeviceToken) Milestone() {}
-func (*NodeDoUseDeviceToken) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
+func (*NodeDoUseDeviceToken) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
 	return config.AuthenticationFlowAuthenticationDeviceToken
 }
 func (*NodeDoUseDeviceToken) MilestoneDidAuthenticate() (amr []string) { return }

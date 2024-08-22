@@ -1,0 +1,149 @@
+name: Login - Device Token - Additional Password
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+      secondary_authenticators:
+      - password
+      secondary_authentication_mode: required
+    identity:
+      login_id:
+        keys:
+        - type: username
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+                "type": "identification_data",
+                "options": "[[array]]"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login_device_token"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": false,
+              "options": [
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": true,
+              "options": [
+                {
+                  "authentication": "secondary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_password",
+        "password": "password",
+        "request_device_token": true
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+  # Login again
+  - action: "create"
+    input: | 
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login_device_token"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": false,
+              "options": [
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }

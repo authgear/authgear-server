@@ -1,7 +1,6 @@
 package testrunner
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,7 +13,6 @@ import (
 	"github.com/Masterminds/sprig"
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
@@ -48,8 +46,6 @@ func (tc *TestCase) FullName() string {
 }
 
 func (tc *TestCase) Run(t *testing.T) {
-	ctx := context.Background()
-
 	// Create project per test case
 	cmd, err := NewEnd2EndCmd(NewEnd2EndCmdOptions{
 		TestCase: tc,
@@ -65,13 +61,6 @@ func (tc *TestCase) Run(t *testing.T) {
 		return
 	}
 
-	client := authflowclient.NewClient(
-		ctx,
-		"localhost:4000",
-		"localhost:4002",
-		httputil.HTTPHost(fmt.Sprintf("%s.portal.localhost:4000", cmd.AppID)),
-	)
-
 	var stepResults []StepResult
 	var state string
 	var ok bool
@@ -82,7 +71,7 @@ func (tc *TestCase) Run(t *testing.T) {
 		}
 
 		var result *StepResult
-		result, state, ok = tc.executeStep(t, cmd, client, stepResults, state, step)
+		result, state, ok = tc.executeStep(t, cmd, cmd.Client, stepResults, state, step)
 		if !ok {
 			return
 		}

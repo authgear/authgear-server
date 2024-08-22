@@ -25,6 +25,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/vjeantet/ldapserver v1.0.1
 	go.uber.org/automaxprocs v1.5.3
+	gopkg.in/h2non/gock.v1 v1.1.2
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -66,6 +67,7 @@ require (
 	github.com/gorilla/csrf v1.7.2 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/graphql-go/graphql v0.8.1 // indirect
+	github.com/h2non/parth v0.0.0-20190131123155-b4df798d6542 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect

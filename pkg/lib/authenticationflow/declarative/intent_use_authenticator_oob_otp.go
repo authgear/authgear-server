@@ -28,7 +28,8 @@ type IntentUseAuthenticatorOOBOTP struct {
 
 var _ authflow.Intent = &IntentUseAuthenticatorOOBOTP{}
 var _ authflow.Milestone = &IntentUseAuthenticatorOOBOTP{}
-var _ MilestoneAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
+var _ MilestoneFlowSelectAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
+var _ MilestoneDidSelectAuthenticationMethod = &IntentUseAuthenticatorOOBOTP{}
 var _ MilestoneFlowAuthenticate = &IntentUseAuthenticatorOOBOTP{}
 
 func (*IntentUseAuthenticatorOOBOTP) Kind() string {
@@ -36,8 +37,11 @@ func (*IntentUseAuthenticatorOOBOTP) Kind() string {
 }
 
 func (*IntentUseAuthenticatorOOBOTP) Milestone() {}
-func (n *IntentUseAuthenticatorOOBOTP) MilestoneAuthenticationMethod() config.AuthenticationFlowAuthentication {
-	return n.Authentication
+func (i *IntentUseAuthenticatorOOBOTP) MilestoneFlowSelectAuthenticationMethod(flows authflow.Flows) (MilestoneDidSelectAuthenticationMethod, authflow.Flows, bool) {
+	return i, flows, true
+}
+func (i *IntentUseAuthenticatorOOBOTP) MilestoneDidSelectAuthenticationMethod() config.AuthenticationFlowAuthentication {
+	return i.Authentication
 }
 
 func (*IntentUseAuthenticatorOOBOTP) MilestoneFlowAuthenticate(flows authflow.Flows) (MilestoneDidAuthenticate, authflow.Flows, bool) {
