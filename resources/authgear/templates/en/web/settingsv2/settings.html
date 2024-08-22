@@ -25,6 +25,130 @@
 
     </div>
   </div>
+
+  {{/* Identity */}}
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1">
+      <div class="settings-title text-start">
+        {{ template "v2-settings-my-account" . }}
+      </div>
+      <div class="settings-description text-start">
+        {{ template "v2-settings-my-account-description" . }}
+      </div>
+    </div>
+
+    <div>
+    {{ range .IdentityCandidates }}
+    {{ $is_unset := (not .identity_id) }}
+    {{ if eq .type "login_id" }}
+    {{ if eq .login_id_type "email" }}
+      <a
+        class="settings-btn w-full row-sep"
+        {{ if .identity_id }}
+          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
+        {{ else }}
+          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
+        {{ end }}
+      >
+        <div class="grid grid-cols-3 gap-y-2 w-full">
+          <div class="flex gap-2">
+            <i class="settings-btn__icon material-icons">
+              mail
+            </i>
+            {{ template "v2-settings-email" . }}
+          </div>
+          <div class="flex flex-col text-start settings-description">
+            {{ .display_id }}
+          </div>
+          <div class="flex justify-end">
+          <i class="settings-btn__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
+          </div>
+        </div>
+      </a>
+      {{ end }}
+
+      {{ if eq .login_id_type "phone" }}
+      <a
+        class="settings-btn w-full row-sep"
+        {{ if .identity_id }}
+          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
+        {{ else }}
+          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
+        {{ end }}
+      >
+        <div class="grid grid-cols-3 gap-y-2 w-full">
+          <div class="flex gap-2">
+            <i class="settings-btn__icon material-icons">
+              phone_iphone
+            </i>
+            {{ template "v2-settings-phone" . }}
+          </div>
+          <div class="flex flex-col text-start settings-description">
+            {{ .display_id }}
+          </div>
+          <div class="flex justify-end">
+          <i class="settings-btn__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
+          </div>
+        </div>
+      </a>
+      {{ end }}
+
+      {{ if eq .login_id_type "username" }}
+      <a
+        class="settings-btn w-full row-sep"
+        {{ if .identity_id }}
+          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
+        {{ else }}
+          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
+        {{ end }}
+      >
+        <div class="grid grid-cols-3 gap-y-2 w-full">
+          <div class="flex gap-2">
+            <i class="settings-btn__icon material-icons">
+              account_circle
+            </i>
+            {{ template "v2-settings-username" . }}
+          </div>
+          <div class="flex flex-col text-start settings-description">
+            {{ .display_id }}
+          </div>
+          <div class="flex justify-end">
+          <i class="settings-btn__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
+          </div>
+        </div>
+      </a>
+      {{ end }}
+    {{ end }}
+    {{ end}}
+
+    <a
+      class="settings-btn w-full row-sep"
+      href="{{ call $.MakeURL "/settings/v2/identity" }}"
+    >
+      <div class="grid grid-cols-2 gap-y-2 w-full">
+        <div class="flex gap-2">
+          <i class="settings-btn__icon material-icons">
+            link
+          </i>
+          {{ template "v2-settings-social-accounts" . }}
+        </div>
+        <div class="flex justify-end">
+        <i class="settings-btn__alternative_icon material-icons">
+          arrow_forward_ios
+        </i>
+        </div>
+      </div>
+    </a>
+  </div>
+
+
+  </div>
 </div>
 
 
