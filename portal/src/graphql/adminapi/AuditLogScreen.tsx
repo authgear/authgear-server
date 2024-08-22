@@ -374,6 +374,29 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       : null;
   }, [debouncedSearchQuery]);
 
+  const queryEmailAddresses = useMemo(() => {
+    switch (selectedKey) {
+      // Only search email addresses if `all` or `email_sent` filter active
+      case ALL:
+      case AuditLogActivityType.EmailSent:
+        return debouncedSearchQuery ? [debouncedSearchQuery] : null;
+      default:
+        return null;
+    }
+  }, [debouncedSearchQuery, selectedKey]);
+
+  const queryPhoneNumbers = useMemo(() => {
+    switch (selectedKey) {
+      // Only search phone numbers if `all` or `phone_sent` or `whatsapp_sent` filter active
+      case ALL:
+      case AuditLogActivityType.SmsSent:
+      case AuditLogActivityType.WhatsappSent:
+        return debouncedSearchQuery ? [debouncedSearchQuery] : null;
+      default:
+        return null;
+    }
+  }, [debouncedSearchQuery, selectedKey]);
+
   const {
     data: currentData,
     previousData,
@@ -388,6 +411,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         cursor,
         activityTypes,
         userIDs: userNodeIDs,
+        emailAddresses: queryEmailAddresses,
+        phoneNumbers: queryPhoneNumbers,
         rangeFrom: queryRangeFrom,
         rangeTo: queryRangeTo,
         sortDirection,
