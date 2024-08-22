@@ -24,7 +24,9 @@ func ConfigureSettingsV2Route(route httproute.Route) httproute.Route {
 type SettingsV2Handler struct {
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
+	AuthenticationViewModel  *viewmodels.AuthenticationViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
+	Identities               handlerwebapp.SettingsIdentityService
 	Renderer                 handlerwebapp.Renderer
 }
 
@@ -43,6 +45,14 @@ func (h *SettingsV2Handler) GetData(r *http.Request, rw http.ResponseWriter) (ma
 		return nil, err
 	}
 	viewmodels.Embed(data, *profileViewModelPtr)
+
+	// Identity - Part 1
+	candidates, err := h.Identities.ListCandidates(*userID)
+	if err != nil {
+		return nil, err
+	}
+	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates, r.Form)
+	viewmodels.Embed(data, authenticationViewModel)
 
 	return data, nil
 }
