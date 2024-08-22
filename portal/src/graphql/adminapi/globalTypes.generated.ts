@@ -987,6 +987,8 @@ export type Query = {
   auditLogs?: Maybe<AuditLogConnection>;
   /** Get user by Login ID. */
   getUserByLoginID?: Maybe<User>;
+  /** Get user by OAuth Alias and user ID. */
+  getUserByOAuth?: Maybe<User>;
   /** Get users by standardAttribute, attributeName must be email, phone_number or preferred_username. */
   getUsersByStandardAttribute: Array<User>;
   /** All groups */
@@ -1018,6 +1020,12 @@ export type QueryAuditLogsArgs = {
 export type QueryGetUserByLoginIdArgs = {
   loginIDKey: Scalars['String']['input'];
   loginIDValue: Scalars['String']['input'];
+};
+
+
+export type QueryGetUserByOAuthArgs = {
+  oauthProviderAlias: Scalars['String']['input'];
+  oauthProviderUserID: Scalars['String']['input'];
 };
 
 

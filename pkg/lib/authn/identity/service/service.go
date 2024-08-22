@@ -1090,3 +1090,17 @@ func (s *Service) AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey string, logi
 	}
 	return loginID.ToInfo(), nil
 }
+
+func (s *Service) AdminAPIGetByOAuthAliasAndSubject(alias string, subjectID string) (*identity.Info, error) {
+	cfg, ok := s.Identity.OAuth.GetProviderConfig(alias)
+	if !ok {
+		return nil, api.ErrGetUsersInvalidArgument.New("invalid OAuth provider alias")
+	}
+
+	oauth, err := s.OAuth.GetByProviderSubject(cfg.ProviderID(), subjectID)
+	if err != nil {
+		return nil, err
+	}
+
+	return oauth.ToInfo(), nil
+}

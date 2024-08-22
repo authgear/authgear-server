@@ -1153,6 +1153,9 @@ type Query {
   """Get user by Login ID."""
   getUserByLoginID(loginIDKey: String!, loginIDValue: String!): User
 
+  """Get user by OAuth Alias and user ID."""
+  getUserByOAuth(oauthProviderAlias: String!, oauthProviderUserID: String!): User
+
   """
   Get users by standardAttribute, attributeName must be email, phone_number or preferred_username.
   """

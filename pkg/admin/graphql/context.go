@@ -72,6 +72,7 @@ type UserFacade interface {
 	SetMFAGracePeriod(id string, endAt *time.Time) error
 	GetUsersByStandardAttribute(attributeKey string, attributeValue string) ([]string, error)
 	GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error)
+	GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error)
 }
 
 type RolesGroupsFacade interface {

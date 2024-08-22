@@ -372,5 +372,33 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				return gqlCtx.Users.Load(userID).Value()
 			},
 		},
+		"getUserByOAuth": &graphql.Field{
+			Description: "Get user by OAuth Alias and user ID.",
+			Type:        nodeUser,
+			Args: graphql.FieldConfigArgument{
+				"oauthProviderAlias": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+				"oauthProviderUserID": &graphql.ArgumentConfig{
+					Type: graphql.NewNonNull(graphql.String),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				gqlCtx := GQLContext(p.Context)
+
+				oauthProviderAlias, _ := p.Args["oauthProviderAlias"].(string)
+				oauthProviderUserID, _ := p.Args["oauthProviderUserID"].(string)
+
+				userID, err := gqlCtx.UserFacade.GetUserByOAuth(oauthProviderAlias, oauthProviderUserID)
+				if errors.Is(err, api.ErrUserNotFound) {
+					// For user not found error, just return nil instead of return error
+					return nil, nil
+				} else if err != nil {
+					return nil, err
+				}
+
+				return gqlCtx.Users.Load(userID).Value()
+			},
+		},
 	},
 })

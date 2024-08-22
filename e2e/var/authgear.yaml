@@ -68,6 +68,18 @@ identity:
         block_reserved_usernames: true
         case_sensitive: false
         exclude_keywords_enabled: false
+  oauth:
+    providers:
+    - alias: azureadv2
+      claims:
+        email:
+          assume_verified: true
+          required: true
+      client_id: azuread-client
+      create_disabled: false
+      delete_disabled: false
+      tenant: e2e-azuread-tenant
+      type: azureadv2
 localization:
   fallback_language: en
   supported_languages:

@@ -91,3 +91,7 @@ func (u UserFacade) GetUsersByStandardAttribute(attributeKey string, attributeVa
 func (u UserFacade) GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error) {
 	return u.Coordinator.GetUserByLoginID(loginIDKey, loginIDValue)
 }
+
+func (u UserFacade) GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error) {
+	return u.Coordinator.GetUserByOAuth(oauthProviderAlias, oauthProviderUserID)
+}
