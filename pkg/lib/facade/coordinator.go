@@ -2,6 +2,7 @@ package facade
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -39,6 +40,7 @@ type IdentityService interface {
 	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
+	ListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	Create(is *identity.Info) error
@@ -189,6 +191,10 @@ func (c *Coordinator) IdentityListByClaim(name string, value string) ([]*identit
 	return c.Identities.ListByClaim(name, value)
 }
 
+func (c *Coordinator) IdentityListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
+	return c.Identities.ListRefsByUsers(userIDs, identityType)
+}
+
 func (c *Coordinator) IdentityNew(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	return c.Identities.New(userID, spec, options)
 }
@@ -211,6 +217,112 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(is.UserID)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (c *Coordinator) IdentityCreateByAdmin(userID string, spec *identity.Spec, password string) (*identity.Info, error) {
+	iden, err := c.Identities.New(userID, spec, identity.NewIdentityOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := c.Identities.CheckDuplicated(iden); err != nil {
+		return nil, err
+	}
+
+	if err := c.Identities.Create(iden); err != nil {
+		return nil, err
+	}
+
+	if err := c.createPrimaryAuthenticatorsForAdminAPICreateIdentity(iden, password); err != nil {
+		return nil, err
+	}
+
+	// Dispatch event
+	isAdminAPI := true
+	var e event.Payload
+	switch iden.Type {
+	case model.IdentityTypeLoginID:
+		loginIDType := iden.LoginID.LoginIDType
+		if payload, ok := nonblocking.NewIdentityLoginIDAddedEventPayload(
+			model.UserRef{
+				Meta: model.Meta{
+					ID: iden.UserID,
+				},
+			},
+			iden.ToModel(),
+			string(loginIDType),
+			isAdminAPI,
+		); ok {
+			e = payload
+		}
+	default:
+		panic(fmt.Errorf("unexpected identity type: %v", iden.Type))
+	}
+
+	if e != nil {
+		err = c.Events.DispatchEventOnCommit(e)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return iden, nil
+}
+
+// nolint: gocognit
+func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateIdentity(iden *identity.Info, password string) (err error) {
+	authenticatorTypes := *c.AuthenticationConfig.PrimaryAuthenticators
+	var authenticatorSpecs []*authenticator.Spec
+	for _, t := range authenticatorTypes {
+		switch t {
+		case model.AuthenticatorTypePassword:
+			if password != "" {
+				var passwords []*authenticator.Info
+				passwords, err = c.Authenticators.List(
+					iden.UserID,
+					authenticator.KeepKind(authenticator.KindPrimary),
+					authenticator.KeepType(model.AuthenticatorTypePassword),
+				)
+				if err != nil {
+					return
+				}
+				// We only create the password if the user does not have one already.
+				if len(passwords) == 0 {
+					var passwordSpec *authenticator.Spec
+					generatePassword := false
+					setPasswordExpired := false
+					passwordSpec, err = c.createPasswordAuthenticatorSpec(iden.UserID, password, generatePassword, setPasswordExpired)
+					if err != nil {
+						return
+					}
+					if passwordSpec != nil {
+						authenticatorSpecs = append(authenticatorSpecs, passwordSpec)
+					}
+				}
+			}
+		case model.AuthenticatorTypeOOBSMS:
+			if iden.Type == model.IdentityTypeLoginID && iden.LoginID.LoginIDType == model.LoginIDKeyTypePhone {
+				spec, ok := c.createOOBSMSAuthenticatorSpec(iden, iden.UserID)
+				if ok {
+					authenticatorSpecs = append(authenticatorSpecs, spec)
+				}
+			}
+		case model.AuthenticatorTypeOOBEmail:
+			if iden.Type == model.IdentityTypeLoginID && iden.LoginID.LoginIDType == model.LoginIDKeyTypeEmail {
+				spec, ok := c.createOOBEmailAuthenticatorSpec(iden, iden.UserID)
+				if ok {
+					authenticatorSpecs = append(authenticatorSpecs, spec)
+				}
+			}
+		}
+	}
+
+	_, err = c.createAuthenticatorInfos(authenticatorSpecs)
+	if err != nil {
+		return
 	}
 
 	return nil
@@ -467,7 +579,7 @@ func (c *Coordinator) UserCreatebyAdmin(
 	}
 
 	// 3. Create primary authenticators
-	authenticatorInfos, err := c.createPrimaryAuthenticators(identityInfo, userID, password, generatePassword, sendPassword, setPasswordExpired)
+	authenticatorInfos, err := c.createPrimaryAuthenticatorsForAdminAPICreateUser(identityInfo, userID, password, generatePassword, sendPassword, setPasswordExpired)
 	if err != nil {
 		return nil, err
 	}
@@ -484,7 +596,7 @@ func (c *Coordinator) UserCreatebyAdmin(
 	return user, nil
 }
 
-func (c *Coordinator) createPrimaryAuthenticators(identityInfo *identity.Info, userID string, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) ([]*authenticator.Info, error) {
+func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(identityInfo *identity.Info, userID string, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) ([]*authenticator.Info, error) {
 	authenticatorTypes := *c.AuthenticationConfig.PrimaryAuthenticators
 	if len(authenticatorTypes) == 0 {
 		return nil, api.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
