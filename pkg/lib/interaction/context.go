@@ -53,7 +53,6 @@ type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec) (*authenticator.Info, error)
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
-	WithSpec(authenticatorInfo *authenticator.Info, spec *authenticator.Spec) (changed bool, info *authenticator.Info, err error)
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
 	Update(authenticatorInfo *authenticator.Info) error
 	UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)

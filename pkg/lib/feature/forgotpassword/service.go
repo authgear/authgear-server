@@ -39,7 +39,6 @@ type IdentityService interface {
 type AuthenticatorService interface {
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	New(spec *authenticator.Spec) (*authenticator.Info, error)
-	WithSpec(ai *authenticator.Info, spec *authenticator.Spec) (bool, *authenticator.Info, error)
 	UpdatePassword(info *authenticator.Info, options *service.UpdatePasswordOptions) (bool, *authenticator.Info, error)
 	Update(info *authenticator.Info) error
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
