@@ -12,7 +12,9 @@ func GetOAuthSessionID(ctx context.Context) string {
 	return ctx.Value(contextKeyOAuthSessionID).(string)
 }
 
-var contextKeySAMLSessionID = contextKeyTypeOAuthSessionID{}
+type contextKeyTypeSAMLSessionID struct{}
+
+var contextKeySAMLSessionID = contextKeyTypeSAMLSessionID{}
 
 func GetSAMLSessionID(ctx context.Context) string {
 	return ctx.Value(contextKeySAMLSessionID).(string)
