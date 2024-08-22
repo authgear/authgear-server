@@ -121,7 +121,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const queryActivityType = searchParams.get("activity_type");
   const queryLastUpdatedAt = searchParams.get("last_updated_at");
   const queryActivityKind = searchParams.get("kind") ?? "";
-  const queryUserID = searchParams.get("user_id") ?? "";
+  const queryString = searchParams.get("q") ?? "";
 
   const initialOffset = useMemo(() => {
     if (queryPage != null) {
@@ -149,7 +149,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
     return AuditLogKind.User;
   });
-  const [searchUserID, setSearchUserID] = useState<string>(queryUserID);
+  const [searchQuery, setSearchQuery] = useState<string>(queryString);
 
   const {
     committedValue: rangeFrom,
@@ -237,7 +237,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return ALL;
   }, [availableActivityTypes, stateSelectedKey]);
 
-  const [debounedSearchUserID] = useDebounced(searchUserID, 300);
+  const [debounedSearchQuery] = useDebounced(searchQuery, 300);
 
   const { renderToString } = useContext(Context);
 
@@ -270,7 +270,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     const newQueryActivityType = selectedKey;
     const newQueryLastUpdatedAt = lastUpdatedAt.getTime().toString();
     const newActivityKind = activityKind;
-    const newUserID = debounedSearchUserID;
+    const newQueryString = debounedSearchQuery;
 
     params["from"] = newQueryFrom;
     params["to"] = newQueryTo;
@@ -279,7 +279,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     params["activity_type"] = newQueryActivityType;
     params["last_updated_at"] = newQueryLastUpdatedAt;
     params["kind"] = newActivityKind;
-    params["user_id"] = newUserID;
+    params["q"] = newQueryString;
 
     let callSet = false;
     if (newQueryFrom !== queryFrom) {
@@ -303,7 +303,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (newActivityKind !== queryActivityKind) {
       callSet = true;
     }
-    if (newUserID !== queryUserID) {
+    if (newQueryString !== queryString) {
       callSet = true;
     }
 
@@ -326,8 +326,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setSearchParams,
     activityKind,
     queryActivityKind,
-    debounedSearchUserID,
-    queryUserID,
+    debounedSearchQuery,
+    queryString,
   ]);
 
   const activityTypeOptions = useMemo(() => {
@@ -369,10 +369,10 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, []);
 
   const userNodeIDs = useMemo(() => {
-    return debounedSearchUserID
-      ? [toTypedID(NodeType.User, debounedSearchUserID)]
+    return debounedSearchQuery
+      ? [toTypedID(NodeType.User, debounedSearchQuery)]
       : null;
-  }, [debounedSearchUserID]);
+  }, [debounedSearchQuery]);
 
   const {
     data: currentData,
@@ -456,18 +456,18 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     [setLastUpdatedAt, setOffset]
   );
 
-  const onChangeSearchUserID = useCallback(
+  const onChangeSearchQuery = useCallback(
     (e?: React.ChangeEvent<HTMLInputElement>) => {
       if (e === undefined) {
         return;
       }
-      setSearchUserID(e.currentTarget.value);
+      setSearchQuery(e.currentTarget.value);
     },
     []
   );
 
-  const onClearSearchUserID = useCallback(() => {
-    setSearchUserID("");
+  const onClearSearchQuery = useCallback(() => {
+    setSearchQuery("");
   }, []);
 
   const searchBoxPlaceholder = useMemo(() => {
@@ -532,9 +532,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
             <SearchBox
               placeholder={searchBoxPlaceholder}
               className={styles.searchBox}
-              value={searchUserID}
-              onChange={onChangeSearchUserID}
-              onClear={onClearSearchUserID}
+              value={searchQuery}
+              onChange={onChangeSearchQuery}
+              onClear={onClearSearchQuery}
             />
           );
         },
@@ -550,7 +550,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           setRangeFromImmediately(null);
           setRangeToImmediately(null);
           setSelectedKey(ALL);
-          setSearchUserID("");
+          setSearchQuery("");
         },
         buttonStyles: {
           root: {
@@ -569,9 +569,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     selectedKey,
     onChangeSelectedKey,
     searchBoxPlaceholder,
-    searchUserID,
-    onChangeSearchUserID,
-    onClearSearchUserID,
+    searchQuery,
+    onChangeSearchQuery,
+    onClearSearchQuery,
     setRangeFromImmediately,
     setRangeToImmediately,
   ]);
