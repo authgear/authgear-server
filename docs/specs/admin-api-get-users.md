@@ -47,4 +47,5 @@ type Query {
 |`attributeName must be email, phone_number or preferred_name`|When `attributeName` is not `email`, `phone_number` or `preferred_name`.|
 |`invalid attributeValue`|When `attributeValue` cannot be normalized according to its type.|
 |`invalid Login ID key`|When `loginIDKey` is not a configured login ID key in the project.|
+|`invalid Login ID value`|When `loginIDValue` is invalid value corresponding to the specified Login ID Key.|
 |`invalid OAuth provider alias`|When `oauthProviderAlias` is not an alias of a configured OAuth provider in the project.|

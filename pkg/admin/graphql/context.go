@@ -71,6 +71,7 @@ type UserFacade interface {
 	Anonymize(id string) error
 	SetMFAGracePeriod(id string, endAt *time.Time) error
 	GetUsersByStandardAttribute(attributeKey string, attributeValue string) ([]string, error)
+	GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error)
 }
 
 type RolesGroupsFacade interface {

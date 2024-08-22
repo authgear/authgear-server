@@ -984,6 +984,8 @@ export type Query = {
   __typename?: 'Query';
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
+  /** Get user by Login ID. */
+  getUserByLoginID?: Maybe<User>;
   /** Get users by standardAttribute, attributeName must be email, phone_number or preferred_username. */
   getUsersByStandardAttribute: Array<User>;
   /** All groups */
@@ -1009,6 +1011,12 @@ export type QueryAuditLogsArgs = {
   rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
   sortDirection?: InputMaybe<SortDirection>;
   userIDs?: InputMaybe<Array<Scalars['ID']['input']>>;
+};
+
+
+export type QueryGetUserByLoginIdArgs = {
+  loginIDKey: Scalars['String']['input'];
+  loginIDValue: Scalars['String']['input'];
 };
 
 

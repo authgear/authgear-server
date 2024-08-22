@@ -80,6 +80,21 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) Get(userID, id interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Get), userID, id)
 }
 
+// GetByKeyAndValue mocks base method.
+func (m *MockLoginIDIdentityProvider) GetByKeyAndValue(loginIDKey, loginIDValue string) (*identity.LoginID, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetByKeyAndValue", loginIDKey, loginIDValue)
+	ret0, _ := ret[0].(*identity.LoginID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetByKeyAndValue indicates an expected call of GetByKeyAndValue.
+func (mr *MockLoginIDIdentityProviderMockRecorder) GetByKeyAndValue(loginIDKey, loginIDValue interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByKeyAndValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByKeyAndValue), loginIDKey, loginIDValue)
+}
+
 // GetByUniqueKey mocks base method.
 func (m *MockLoginIDIdentityProvider) GetByUniqueKey(uniqueKey string) (*identity.LoginID, error) {
 	m.ctrl.T.Helper()

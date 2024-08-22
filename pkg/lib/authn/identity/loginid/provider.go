@@ -85,6 +85,28 @@ func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
 	return is, nil
 }
 
+func (p *Provider) GetByKeyAndValue(key string, value string) (*identity.LoginID, error) {
+	cfg, ok := p.Config.GetKeyConfig(key)
+
+	if !ok {
+		return nil, api.ErrGetUsersInvalidArgument.New("invalid Login ID key")
+	}
+
+	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(cfg.Type)
+	normalizedloginID, err := normalizer.Normalize(value)
+	if err != nil {
+		return nil, api.ErrGetUsersInvalidArgument.New("invalid Login ID value")
+	}
+
+	i, err := p.Store.GetByLoginID(key, normalizedloginID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return i, nil
+}
+
 func (p *Provider) GetMany(ids []string) ([]*identity.LoginID, error) {
 	return p.Store.GetMany(ids)
 }
