@@ -105,6 +105,17 @@ func (c *End2End) createTempConfigSource(appID string, baseConfigSource string, 
 
 	cfg.ID = config.AppID(appID)
 	cfg.HTTP.PublicOrigin = fmt.Sprintf("http://%s.authgeare2e.localhost:4000", appID)
+	// Ask Authgear to write cookie in domain "127.0.0.1"
+	// http.Client does not make a correct net.URL for http.CookieJar.
+	// Given
+	//   r := http.NewRequest("GET", "127.0.0.1:4000", nil)
+	//   r.Host = "app.authgeare2e.localhost:4000"
+	//
+	// When the cookie jar is used, the net.URL got passed to it is
+	//   u.Host == "127.0.0.1:4000"
+	// While I think it should be r.Host
+	cookieDomain := "127.0.0.1"
+	cfg.HTTP.CookieDomain = &cookieDomain
 
 	newAuthgearYAML, err := exportConfig(cfg)
 	if err != nil {
