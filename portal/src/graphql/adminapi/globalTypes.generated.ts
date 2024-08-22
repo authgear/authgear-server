@@ -984,7 +984,7 @@ export type Query = {
   __typename?: 'Query';
   /** Audit logs */
   auditLogs?: Maybe<AuditLogConnection>;
-  /** Get user by Login iD. */
+  /** Get user by Login ID. */
   getUserByLoginID?: Maybe<User>;
   /** Get users by standardAttribute, attributeName must be email, phone_number or preferred_username. */
   getUsersByStandardAttribute: Array<User>;
