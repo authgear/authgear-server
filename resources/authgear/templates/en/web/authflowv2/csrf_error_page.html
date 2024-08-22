@@ -1,0 +1,19 @@
+{{ template "__csrf_error_page_layout.html" . }}
+
+{{ define "page-content" }}
+<div class="mt-6 tablet:mt-16">
+  {{ template "authflowv2/__header.html" . }}
+  <div class="text-center">
+    <h1 class="mb-5 screen-title text-2xl">
+      {{ template "v2-csrf-error-header" }}
+    </h1>
+
+    <p class="body-text--md max-w-85 mx-auto">
+      {{ template "v2-csrf-error-message" }}
+      <a href="/csrf/error/instruction"> {{ template "v2-csrf-error-see-instructions" }}</a>
+    </p> 
+  </div>
+</div>
+{{ end }}
+
+
