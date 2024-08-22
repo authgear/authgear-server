@@ -6,17 +6,7 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import {
-  Icon,
-  Text,
-  useTheme,
-  Image,
-  ImageFit,
-  Dialog,
-  IDialogContentProps,
-  DialogFooter,
-  ICommandBarItemProps,
-} from "@fluentui/react";
+import { Icon, Text, useTheme, Image, ImageFit } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ScreenContent from "../../ScreenContent";
@@ -33,10 +23,7 @@ import Widget from "../../Widget";
 import ExternalLink from "../../ExternalLink";
 import flutterIconURL from "../../images/framework_flutter.svg";
 import xamarinIconURL from "../../images/framework_xamarin.svg";
-import ButtonWithLoading from "../../ButtonWithLoading";
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import PrimaryButton from "../../PrimaryButton";
-import DefaultButton from "../../DefaultButton";
 import { useAppFeatureConfigQuery } from "./query/appFeatureConfigQuery";
 import { AppSecretKey } from "./globalTypes.generated";
 import { startReauthentication } from "./Authenticated";
@@ -473,64 +460,15 @@ const EditOAuthClientScreen1: React.VFC<{
   clientID: string;
   secretToken: string | null;
 }> = function EditOAuthClientScreen1({ appID, clientID, secretToken }) {
-  const { renderToString } = useContext(Context);
   const form = useOAuthClientForm(appID, secretToken);
-  const { setState, save, isUpdating } = form;
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 
-  const navigate = useNavigate();
-  const [isRemoveDialogVisible, setIsRemoveDialogVisible] = useState(false);
-  const { themes } = useSystemConfig();
   const [searchParams] = useSearchParams();
   const isQuickScreenVisible = useMemo(() => {
     const quickstart = searchParams.get("quickstart");
     return quickstart === "true";
   }, [searchParams]);
-
-  const dialogContentProps: IDialogContentProps = useMemo(() => {
-    return {
-      title: renderToString("EditOAuthClientScreen.delete-client-dialog.title"),
-      subText: renderToString(
-        "EditOAuthClientScreen.delete-client-dialog.description"
-      ),
-    };
-  }, [renderToString]);
-
-  const showDialogAndSetRemoveClientByID = useCallback(() => {
-    setState((state) => ({ ...state, removeClientByID: clientID }));
-    setIsRemoveDialogVisible(true);
-  }, [setIsRemoveDialogVisible, setState, clientID]);
-
-  const dismissDialogAndResetRemoveClientByID = useCallback(() => {
-    setIsRemoveDialogVisible(false);
-    // It is important to reset the removeClientByID
-    // Otherwise the next save will remove the oauth client
-    setState((state) => ({ ...state, removeClientByID: undefined }));
-  }, [setIsRemoveDialogVisible, setState]);
-
-  const onConfirmRemove = useCallback(() => {
-    save().then(
-      () => {
-        navigate("./../..", { replace: true });
-      },
-      () => {
-        dismissDialogAndResetRemoveClientByID();
-      }
-    );
-  }, [save, navigate, dismissDialogAndResetRemoveClientByID]);
-  const primaryItems: ICommandBarItemProps[] = useMemo(
-    () => [
-      {
-        key: "remove",
-        text: renderToString("EditOAuthClientScreen.delete-client.label"),
-        iconProps: { iconName: "Delete" },
-        theme: themes.destructive,
-        onClick: showDialogAndSetRemoveClientByID,
-      },
-    ],
-    [renderToString, showDialogAndSetRemoveClientByID, themes.destructive]
-  );
 
   const customUIEnabled = useMemo(() => {
     if (featureConfig.loading) {
@@ -563,34 +501,13 @@ const EditOAuthClientScreen1: React.VFC<{
   }
 
   return (
-    <FormContainer form={form} primaryItems={primaryItems}>
+    <FormContainer form={form} stickyFooterComponent={true}>
       <EditOAuthClientContent
         form={form}
         clientID={clientID}
         customUIEnabled={customUIEnabled}
         app2appEnabled={app2appEnabled}
       />
-      <Dialog
-        hidden={!isRemoveDialogVisible}
-        dialogContentProps={dialogContentProps}
-        modalProps={{ isBlocking: isUpdating }}
-        onDismiss={dismissDialogAndResetRemoveClientByID}
-      >
-        <DialogFooter>
-          <ButtonWithLoading
-            theme={themes.actionButton}
-            loading={isUpdating}
-            onClick={onConfirmRemove}
-            disabled={!isRemoveDialogVisible}
-            labelId="confirm"
-          />
-          <DefaultButton
-            onClick={dismissDialogAndResetRemoveClientByID}
-            disabled={isUpdating || !isRemoveDialogVisible}
-            text={<FormattedMessage id="cancel" />}
-          />
-        </DialogFooter>
-      </Dialog>
     </FormContainer>
   );
 };

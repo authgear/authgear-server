@@ -99,7 +99,9 @@ const InviteAdminScreen: React.VFC = function InviteAdminScreen() {
   const saveButtonProps = useMemo(
     () => ({
       labelId: "InviteAdminScreen.add-user.label",
-      iconName: "Add",
+      iconProps: {
+        iconName: "Add",
+      },
     }),
     []
   );

@@ -780,6 +780,10 @@
   "ApplicationsConfigurationScreen.client-list.name": "Name",
   "ApplicationsConfigurationScreen.client-list.client-id": "Client ID",
   "ApplicationsConfigurationScreen.client-list.application-type": "Type",
+  "ApplicationsConfigurationScreen.client-list.action": "Action",
+  "ApplicationsConfigurationScreen.delete-client.label": "Delete",
+  "ApplicationsConfigurationScreen.delete-client-dialog.title": "Delete Application",
+  "ApplicationsConfigurationScreen.delete-client-dialog.description": "Are you sure you want to delete the application?",
 
   "App2AppConfigurationScreen.title": "App2App",
   "App2AppConfigurationScreen.description": "Authenticate the user through another app which is installed in the same device without sharing cookies and login sessions.",
@@ -819,10 +823,6 @@
   "EditOAuthClientScreen.quick-start.framework.flutter": "Flutter",
   "EditOAuthClientScreen.quick-start.framework.xamarin": "Xamarin",
   "EditOAuthClientScreen.quick-start.framework.oidc": "Setup OIDC Client",
-
-  "EditOAuthClientScreen.delete-client.label": "Remove",
-  "EditOAuthClientScreen.delete-client-dialog.title": "Delete Application",
-  "EditOAuthClientScreen.delete-client-dialog.description": "Are you sure you want to delete the application?",
 
   "EditOAuthClientForm.basic-info.title": "Basic Info",
   "EditOAuthClientForm.name.label": "Name",

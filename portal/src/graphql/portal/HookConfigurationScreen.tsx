@@ -1138,7 +1138,11 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
     }, [state.diff, state.non_blocking_handlers]);
 
     return (
-      <FormContainer form={form} hideCommandBar={codeEditorState != null}>
+      <FormContainer
+        form={form}
+        hideFooterComponent={codeEditorState != null}
+        stickyFooterComponent={true}
+      >
         <ScreenContent>
           {codeEditorState != null ? (
             <div className={cn(styles.codeEditorContainer)}>

@@ -17,7 +17,6 @@ import {
 import Link from "../../Link";
 import ShowLoading from "../../ShowLoading";
 import ShowError from "../../ShowError";
-import FormContainer from "../../FormContainer";
 import ScreenContent from "../../ScreenContent";
 import ScreenTitle from "../../ScreenTitle";
 import { PortalAPIAppConfig } from "../../types";
@@ -226,11 +225,7 @@ const IntegrationsConfigurationScreen: React.VFC =
       return <ShowError error={form.loadError} onRetry={form.reload} />;
     }
 
-    return (
-      <FormContainer form={form}>
-        <IntegrationsConfigurationContent form={form} />
-      </FormContainer>
-    );
+    return <IntegrationsConfigurationContent form={form} />;
   };
 
 export default IntegrationsConfigurationScreen;
