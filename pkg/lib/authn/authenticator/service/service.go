@@ -60,7 +60,7 @@ type OOBOTPAuthenticatorProvider interface {
 	GetMany(ids []string) ([]*authenticator.OOBOTP, error)
 	List(userID string) ([]*authenticator.OOBOTP, error)
 	New(id string, userID string, oobAuthenticatorType model.AuthenticatorType, target string, isDefault bool, kind string) (*authenticator.OOBOTP, error)
-	UpdateTarget(a *authenticator.OOBOTP, option oob.UpdateTargetOption) (bool, *authenticator.OOBOTP, error)
+	UpdateTarget(a *authenticator.OOBOTP, option oob.UpdateTargetOption) (*authenticator.OOBOTP, bool)
 	Create(*authenticator.OOBOTP) error
 	Update(*authenticator.OOBOTP) error
 	Delete(*authenticator.OOBOTP) error
@@ -377,14 +377,14 @@ func (o UpdateOOBOTPTargetOption) toProviderOptions() oob.UpdateTargetOption {
 	}
 }
 
-func (s *Service) UpdateOOBOTPTarget(ai *authenticator.Info, option UpdateOOBOTPTargetOption) (bool, *authenticator.Info, error) {
+func (s *Service) UpdateOOBOTPTarget(ai *authenticator.Info, option UpdateOOBOTPTargetOption) (*authenticator.Info, bool) {
 	switch ai.Type {
 	case model.AuthenticatorTypeOOBEmail:
 		fallthrough
 	case model.AuthenticatorTypeOOBSMS:
 		a := ai.OOBOTP
-		changed, newAuth, err := s.OOBOTP.UpdateTarget(a, option.toProviderOptions())
-		return changed, newAuth.ToInfo(), err
+		newAuth, changed := s.OOBOTP.UpdateTarget(a, option.toProviderOptions())
+		return newAuth.ToInfo(), changed
 	}
 
 	panic("authenticator: update authenticator is not supported for type " + ai.Type)
@@ -692,13 +692,10 @@ func (s *Service) UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) 
 
 	for _, a := range authenticators {
 		if a.IsDependentOf(oldInfo) {
-			changed, newAuth, err := s.UpdateOOBOTPTarget(a, UpdateOOBOTPTargetOption{
+			newAuth, changed := s.UpdateOOBOTPTarget(a, UpdateOOBOTPTargetOption{
 				Email: newInfo.LoginID.LoginID,
 				Phone: newInfo.LoginID.LoginID,
 			})
-			if err != nil {
-				return err
-			}
 			if changed {
 				err = s.Update(newAuth)
 				if err != nil {

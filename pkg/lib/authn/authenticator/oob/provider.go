@@ -106,22 +106,22 @@ type UpdateTargetOption struct {
 
 // UpdateTarget return new authenticator pointer if target is changed
 // Otherwise original authenticator will be returned
-func (p *Provider) UpdateTarget(a *authenticator.OOBOTP, option UpdateTargetOption) (bool, *authenticator.OOBOTP, error) {
+func (p *Provider) UpdateTarget(a *authenticator.OOBOTP, option UpdateTargetOption) (*authenticator.OOBOTP, bool) {
 	switch a.OOBAuthenticatorType {
 	case model.AuthenticatorTypeOOBEmail:
 		if a.ToTarget() == option.Email {
-			return false, a, nil
+			return a, false
 		}
 		newAuth := *a
 		newAuth.Email = option.Email
-		return true, &newAuth, nil
+		return &newAuth, true
 	case model.AuthenticatorTypeOOBSMS:
 		if a.ToTarget() == option.Phone {
-			return false, a, nil
+			return a, false
 		}
 		newAuth := *a
 		newAuth.Phone = option.Phone
-		return true, &newAuth, nil
+		return &newAuth, true
 	default:
 		panic("oob: incompatible authenticator type:" + a.OOBAuthenticatorType)
 	}
