@@ -100,8 +100,7 @@ func (p *Provider) New(id string, userID string, oobAuthenticatorType model.Auth
 }
 
 type UpdateTargetOption struct {
-	Email string
-	Phone string
+	NewTarget string
 }
 
 // UpdateTarget return new authenticator pointer if target is changed
@@ -109,18 +108,18 @@ type UpdateTargetOption struct {
 func (p *Provider) UpdateTarget(a *authenticator.OOBOTP, option UpdateTargetOption) (*authenticator.OOBOTP, bool) {
 	switch a.OOBAuthenticatorType {
 	case model.AuthenticatorTypeOOBEmail:
-		if a.ToTarget() == option.Email {
+		if a.ToTarget() == option.NewTarget {
 			return a, false
 		}
 		newAuth := *a
-		newAuth.Email = option.Email
+		newAuth.Email = option.NewTarget
 		return &newAuth, true
 	case model.AuthenticatorTypeOOBSMS:
-		if a.ToTarget() == option.Phone {
+		if a.ToTarget() == option.NewTarget {
 			return a, false
 		}
 		newAuth := *a
-		newAuth.Phone = option.Phone
+		newAuth.Phone = option.NewTarget
 		return &newAuth, true
 	default:
 		panic("oob: incompatible authenticator type:" + a.OOBAuthenticatorType)

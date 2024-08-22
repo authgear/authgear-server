@@ -366,14 +366,12 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 }
 
 type UpdateOOBOTPTargetOption struct {
-	Phone string
-	Email string
+	NewTarget string
 }
 
 func (o UpdateOOBOTPTargetOption) toProviderOptions() oob.UpdateTargetOption {
 	return oob.UpdateTargetOption{
-		Phone: o.Phone,
-		Email: o.Email,
+		NewTarget: o.NewTarget,
 	}
 }
 
@@ -693,8 +691,7 @@ func (s *Service) UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) 
 	for _, a := range authenticators {
 		if a.IsDependentOf(oldInfo) {
 			newAuth, changed := s.UpdateOOBOTPTarget(a, UpdateOOBOTPTargetOption{
-				Email: newInfo.LoginID.LoginID,
-				Phone: newInfo.LoginID.LoginID,
+				NewTarget: newInfo.LoginID.LoginID,
 			})
 			if changed {
 				err = s.Update(newAuth)
