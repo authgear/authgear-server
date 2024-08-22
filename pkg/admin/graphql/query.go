@@ -249,6 +249,12 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				"userIDs": &graphql.ArgumentConfig{
 					Type: graphql.NewList(graphql.NewNonNull(graphql.ID)),
 				},
+				"emailAddresses": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+				},
+				"phoneNumbers": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+				},
 				"sortDirection": &graphql.ArgumentConfig{
 					Type: sortDirection,
 				},
