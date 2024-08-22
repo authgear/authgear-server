@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"strconv"
@@ -42,8 +43,13 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 		panic(err)
 	}
 
-	// Prepare HTTP clients.
-	var httpClient = &http.Client{}
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		panic(err)
+	}
+	var httpClient = &http.Client{
+		Jar: jar,
+	}
 	var oauthClient = &http.Client{}
 
 	// Use go test -timeout instead of setting timeout here.
