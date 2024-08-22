@@ -1,0 +1,36 @@
+.cell--not-first {
+  @apply mt-6;
+}
+
+.cell--last {
+  @apply border-b-0;
+}
+
+.actionCell {
+  padding-left: 1px;
+  display: grid;
+  grid-template:
+    "plabel    paction"
+    "pbody     paction"
+    "pspacer   pspacer"
+    / auto min-content min-content;
+  grid-gap: 4px 0;
+}
+
+.actionCellSpacer {
+  grid-area: pspacer;
+  @apply h-4;
+}
+
+.actionCellLabel {
+  grid-area: plabel;
+}
+
+.actionCellBody {
+  grid-area: pbody;
+}
+
+.actionCellActionButton {
+  @apply place-self-center;
+  grid-area: paction;
+}

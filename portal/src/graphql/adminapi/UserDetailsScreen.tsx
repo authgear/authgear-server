@@ -8,6 +8,7 @@ import {
   CommandButton,
   MessageBar,
   MessageBarType,
+  IStyle,
 } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -55,11 +56,15 @@ import { IdentityType } from "./globalTypes.generated";
 import AnonymizeUserDialog from "./AnonymizeUserDialog";
 import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
 import UserDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/UserDetailsScreenRoleListContainer";
+import UserDetailsAdminActions from "./UserDetailsAdminActions";
 
 interface UserDetailsProps {
   form: SimpleFormModel<FormState>;
   data: UserQueryNodeFragment;
   appConfig: PortalAPIAppConfig;
+  onRemoveData: () => void;
+  onAnonymizeData: () => void;
+  handleDataStatusChange: () => void;
 }
 
 const USER_PROFILE_KEY = "user-profile";
@@ -68,7 +73,13 @@ const CONNECTED_IDENTITIES_PIVOT_KEY = "connected-identities";
 const SESSION_PIVOT_KEY = "session";
 const ROLES_KEY = "roles";
 const GROUPS_KEY = "groups";
+const DISABLE_DELELE_KEY = "disable-delete";
 
+const pivotItemContainerStyle: IStyle = {
+  flex: "1 0 auto",
+  display: "flex",
+  flexDirection: "column",
+};
 interface FormState {
   userID: string;
   standardAttributes: StandardAttributesState;
@@ -232,8 +243,16 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     SESSION_PIVOT_KEY,
     ROLES_KEY,
     GROUPS_KEY,
+    DISABLE_DELELE_KEY,
   ]);
-  const { form, data, appConfig } = props;
+  const {
+    form,
+    data,
+    appConfig,
+    onRemoveData,
+    onAnonymizeData,
+    handleDataStatusChange,
+  } = props;
   const { state, setState } = form;
   const { renderToString } = React.useContext(Context);
 
@@ -327,6 +346,23 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     [identities]
   );
 
+  const dataStatusBadgeTextId = React.useMemo(() => {
+    let badgeTextId = null;
+    if (data.isDisabled) {
+      badgeTextId = "UserDetails.disabled.badge";
+    }
+    if (data.anonymizeAt) {
+      badgeTextId = "UserDetails.scheduled-anonymization.badge";
+    }
+    if (data.isAnonymized) {
+      badgeTextId = "UserDetails.anonymized.badge";
+    }
+    if (data.deleteAt) {
+      badgeTextId = "UserDetails.scheduled-removal.badge";
+    }
+    return badgeTextId;
+  }, [data.isDisabled, data.anonymizeAt, data.isAnonymized, data.deleteAt]);
+
   if (data.isAnonymized) {
     return (
       <div className={styles.widget}>
@@ -340,10 +376,31 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           endUserAccountIdentifier={data.endUserAccountID ?? undefined}
           createdAtISO={data.createdAt ?? null}
           lastLoginAtISO={data.lastLoginAt ?? null}
+          badgeTextId={dataStatusBadgeTextId}
         />
         <MessageBar messageBarType={MessageBarType.info}>
           <FormattedMessage id="UserDetailsScreen.user-anonymized.message" />
         </MessageBar>
+        <Pivot
+          styles={{ itemContainer: pivotItemContainerStyle }}
+          className={styles.pivot}
+          overflowBehavior="menu"
+          selectedKey={selectedKey}
+          onLinkClick={onLinkClick}
+        >
+          <PivotItem
+            className={"flex-1 pt-8"}
+            itemKey={DISABLE_DELELE_KEY}
+            headerText={renderToString("UserDetails.disable-delete.header")}
+          >
+            <UserDetailsAdminActions
+              data={data}
+              onAnonymizeData={onAnonymizeData}
+              handleDataStatusChange={handleDataStatusChange}
+              onRemoveData={onRemoveData}
+            />
+          </PivotItem>
+        </Pivot>
       </div>
     );
   }
@@ -360,6 +417,7 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
         endUserAccountIdentifier={data.endUserAccountID ?? undefined}
         createdAtISO={data.createdAt ?? null}
         lastLoginAtISO={data.lastLoginAt ?? null}
+        badgeTextId={dataStatusBadgeTextId}
       />
       <Pivot
         styles={{
@@ -443,6 +501,18 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           headerText={renderToString("UserDetails.groups.header")}
         >
           <UserDetailsScreenGroupListContainer user={data} />
+        </PivotItem>
+        <PivotItem
+          className={"flex-1 pt-8"}
+          itemKey={DISABLE_DELELE_KEY}
+          headerText={renderToString("UserDetails.disable-delete.header")}
+        >
+          <UserDetailsAdminActions
+            data={data}
+            onAnonymizeData={onAnonymizeData}
+            handleDataStatusChange={handleDataStatusChange}
+            onRemoveData={onRemoveData}
+          />
         </PivotItem>
       </Pivot>
     </div>
@@ -764,7 +834,14 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
       >
         <ScreenContent className={styles.screenContent}>
           <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
-          <UserDetails form={form} data={user} appConfig={effectiveAppConfig} />
+          <UserDetails
+            form={form}
+            data={user}
+            appConfig={effectiveAppConfig}
+            onRemoveData={onClickDeleteUser}
+            onAnonymizeData={onClickAnonymizeUser}
+            handleDataStatusChange={onClickSetUserDisabled}
+          />
         </ScreenContent>
         <DeleteUserDialog
           isHidden={deleteUserDialogIsHidden}

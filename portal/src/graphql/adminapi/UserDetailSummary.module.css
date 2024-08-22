@@ -67,3 +67,9 @@
 .anonymizedUserLabel {
   font-style: italic;
 }
+
+.inlineGridItem {
+  display: inline-block;
+  align-self: start;
+  justify-self: start;
+}
