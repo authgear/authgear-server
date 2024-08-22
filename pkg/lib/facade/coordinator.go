@@ -17,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -1433,8 +1432,6 @@ func (c *Coordinator) GetUserByLoginID(loginIDKey string, loginIDValue string) (
 
 	if errors.Is(err, api.ErrIdentityNotFound) {
 		return "", api.ErrUserNotFound
-	} else if errors.Is(err, loginid.ErrNormalize) {
-		return "", api.ErrGetUsersInvalidArgument.New("invalid Login ID value")
 	} else if err != nil {
 		return "", err
 	}

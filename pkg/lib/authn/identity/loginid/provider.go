@@ -65,7 +65,7 @@ func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
 		normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(config.Type)
 		normalizedloginID, err := normalizer.Normalize(value)
 		if err != nil {
-			return nil, errors.Join(ErrNormalize, err)
+			return nil, err
 		}
 
 		i, err := p.Store.GetByLoginID(config.Key, normalizedloginID)
@@ -95,7 +95,7 @@ func (p *Provider) GetByKeyAndValue(key string, value string) (*identity.LoginID
 	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(cfg.Type)
 	normalizedloginID, err := normalizer.Normalize(value)
 	if err != nil {
-		return nil, errors.Join(ErrNormalize, err)
+		return nil, api.ErrGetUsersInvalidArgument.New("invalid Login ID value")
 	}
 
 	i, err := p.Store.GetByLoginID(key, normalizedloginID)
@@ -161,7 +161,7 @@ func (p *Provider) New(userID string, spec identity.LoginIDSpec, options Checker
 
 	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
 	if err != nil {
-		return nil, errors.Join(ErrNormalize, err)
+		return nil, err
 	}
 
 	claims := make(map[string]interface{})
@@ -197,7 +197,7 @@ func (p *Provider) WithValue(iden *identity.LoginID, value string, options Check
 
 	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
 	if err != nil {
-		return nil, errors.Join(ErrNormalize, err)
+		return nil, err
 	}
 
 	claims := make(map[string]interface{})
