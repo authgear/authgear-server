@@ -237,7 +237,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return ALL;
   }, [availableActivityTypes, stateSelectedKey]);
 
-  const [debounedSearchQuery] = useDebounced(searchQuery, 300);
+  const [debouncedSearchQuery] = useDebounced(searchQuery, 300);
 
   const { renderToString } = useContext(Context);
 
@@ -270,7 +270,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     const newQueryActivityType = selectedKey;
     const newQueryLastUpdatedAt = lastUpdatedAt.getTime().toString();
     const newActivityKind = activityKind;
-    const newQueryString = debounedSearchQuery;
+    const newQueryString = debouncedSearchQuery;
 
     params["from"] = newQueryFrom;
     params["to"] = newQueryTo;
@@ -326,7 +326,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setSearchParams,
     activityKind,
     queryActivityKind,
-    debounedSearchQuery,
+    debouncedSearchQuery,
     queryString,
   ]);
 
@@ -369,10 +369,10 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, []);
 
   const userNodeIDs = useMemo(() => {
-    return debounedSearchQuery
-      ? [toTypedID(NodeType.User, debounedSearchQuery)]
+    return debouncedSearchQuery
+      ? [toTypedID(NodeType.User, debouncedSearchQuery)]
       : null;
-  }, [debounedSearchQuery]);
+  }, [debouncedSearchQuery]);
 
   const {
     data: currentData,
