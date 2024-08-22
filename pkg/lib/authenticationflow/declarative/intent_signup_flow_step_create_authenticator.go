@@ -271,12 +271,15 @@ func (i *IntentSignupFlowStepCreateAuthenticator) checkAuthenticationMethod(deps
 }
 
 func (*IntentSignupFlowStepCreateAuthenticator) authenticationMethod(flows authflow.Flows) config.AuthenticationFlowAuthentication {
-	m, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowSelectAuthenticationMethod](flows)
+	m, mFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneFlowSelectAuthenticationMethod](flows)
 	if !ok {
 		panic(fmt.Errorf("authentication method not yet selected"))
 	}
 
-	mDidSelect, _, _ := m.MilestoneFlowSelectAuthenticationMethod(flows)
+	mDidSelect, _, ok := m.MilestoneFlowSelectAuthenticationMethod(mFlows)
+	if !ok {
+		panic(fmt.Errorf("authentication method not yet selected"))
+	}
 
 	return mDidSelect.MilestoneDidSelectAuthenticationMethod()
 }

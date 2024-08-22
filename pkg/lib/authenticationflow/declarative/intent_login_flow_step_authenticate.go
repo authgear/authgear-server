@@ -423,7 +423,10 @@ func (*IntentLoginFlowStepAuthenticate) authenticationMethod(flows authflow.Flow
 		panic(fmt.Errorf("authentication method not yet selected"))
 	}
 
-	mDidSelect, _, _ := m.MilestoneFlowSelectAuthenticationMethod(mFlows)
+	mDidSelect, _, ok := m.MilestoneFlowSelectAuthenticationMethod(mFlows)
+	if !ok {
+		panic(fmt.Errorf("authentication method not yet selected"))
+	}
 
 	return mDidSelect.MilestoneDidSelectAuthenticationMethod()
 }
