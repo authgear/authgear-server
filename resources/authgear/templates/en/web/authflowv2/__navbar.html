@@ -1,0 +1,17 @@
+{{ define "authflowv2/__navbar.html" }}
+<nav class="navbar">
+  <h1 class="navbar__title">{{ $.Title }}</h1>
+
+  <a
+    class="navbar__item inline-flex items-center justify-center"
+    title="{{ .BackTitle }}"
+    href="{{ .BackHref }}"
+    data-turbo-action="replace"
+  >
+    <i class="navbar__item_icon material-icons">
+      arrow_back_ios
+    </i>
+    <span class="inline-block ml-3">{{ .BackTitle }}</span>
+  </a>
+</nav>
+{{ end }}
