@@ -1200,3 +1200,10 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*handlersaml.LoginFinishHandler)),
 	))
 }
+
+func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsProfileHandler)),
+	))
+}

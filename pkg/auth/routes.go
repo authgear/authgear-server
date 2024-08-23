@@ -443,7 +443,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		SettingV2: p.Handler(newWebAppSettingsV2Handler),
 	})
 
-	router.Add(webapphandler.ConfigureSettingsProfileRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsProfileHandler))
+	router.Add(webapphandler.ConfigureSettingsProfileRoute(webappSettingsRoute), &webapphandler.SettingsImplementationSwitcherHandler{
+		SettingV1: p.Handler(newWebAppSettingsProfileHandler),
+		SettingV2: p.Handler(newWebAppAuthflowV2SettingsProfile),
+	})
 	router.Add(webapphandler.ConfigureSettingsProfileEditRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsProfileEditHandler))
 	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsIdentityHandler))
 	router.Add(webapphandler.ConfigureSettingsBiometricRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsBiometricHandler))
