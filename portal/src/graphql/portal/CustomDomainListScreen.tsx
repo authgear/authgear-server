@@ -20,7 +20,6 @@ import {
   MessageBar,
   MessageBarType,
   SelectionMode,
-  Separator,
   Text,
   VerticalDivider,
 } from "@fluentui/react";
@@ -57,16 +56,9 @@ import ErrorRenderer from "../../ErrorRenderer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
 import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import WidgetTitle from "../../WidgetTitle";
-import { useId } from "../../hook/useId";
-import {
-  FormContainerBase,
-  useFormContainerBaseContext,
-} from "../../FormContainerBase";
+import { FormContainerBase } from "../../FormContainerBase";
 import { nullishCoalesce, or_ } from "../../util/operators";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
-import PrimaryButton from "../../PrimaryButton";
-import FormTextField from "../../FormTextField";
 
 function getOriginFromDomain(domain: string): string {
   // assume domain has no scheme
@@ -114,32 +106,6 @@ function constructConfig(
     config.http.public_origin = currentState.publicOrigin;
     config.http.cookie_domain = currentState.cookieDomain;
     clearEmptyObject(config);
-  });
-}
-
-interface RedirectURLFormState {
-  postLoginURL: string;
-  postLogoutURL: string;
-}
-
-function constructRedirectURLFormState(
-  config: PortalAPIAppConfig
-): RedirectURLFormState {
-  return {
-    postLoginURL: config.ui?.default_redirect_uri ?? "",
-    postLogoutURL: config.ui?.default_post_logout_redirect_uri ?? "",
-  };
-}
-function constructConfigFromRedirectURLFormState(
-  config: PortalAPIAppConfig,
-  _initialState: RedirectURLFormState,
-  currentState: RedirectURLFormState
-): PortalAPIAppConfig {
-  return produce(config, (draft) => {
-    draft.ui ??= {};
-    draft.ui.default_redirect_uri = currentState.postLoginURL || undefined;
-    draft.ui.default_post_logout_redirect_uri =
-      currentState.postLogoutURL || undefined;
   });
 }
 
@@ -509,135 +475,9 @@ const UpdatePublicOriginDialog: React.VFC<UpdatePublicOriginDialogProps> =
     );
   };
 
-interface RedirectURLTextFieldProps {
-  className?: string;
-  fieldName: string;
-  label: string;
-  description: string;
-  value: string;
-  onChangeValue: (value: string) => void;
-  disabled?: boolean;
-}
-const RedirectURLTextField: React.VFC<RedirectURLTextFieldProps> =
-  function RedirectURLTextField(props) {
-    const {
-      fieldName,
-      className,
-      label,
-      description,
-      value,
-      onChangeValue,
-      disabled,
-    } = props;
-    const id = useId();
-    const onChange = useCallback(
-      (_e: React.FormEvent<any>, value?: string) => {
-        onChangeValue(value ?? "");
-      },
-      [onChangeValue]
-    );
-    return (
-      <div className={className}>
-        <FormTextField
-          id={id}
-          fieldName={fieldName}
-          parentJSONPointer="/ui"
-          className={cn("mt-2.5")}
-          label={label}
-          description={description}
-          value={value}
-          onChange={onChange}
-          disabled={disabled}
-        />
-      </div>
-    );
-  };
-
-interface RedirectURLFormProps {
-  className?: string;
-  redirectURLForm: AppConfigFormModel<RedirectURLFormState>;
-  disabled: boolean;
-}
-const RedirectURLForm: React.VFC<RedirectURLFormProps> =
-  function RedirectURLForm(props) {
-    const { className, redirectURLForm, disabled } = props;
-    const { renderToString } = useContext(Context);
-
-    const { canSave, onSubmit } = useFormContainerBaseContext();
-
-    const onChangePostLoginURL = useCallback(
-      (url: string) => {
-        redirectURLForm.setState((prev) =>
-          produce(prev, (draft) => {
-            draft.postLoginURL = url;
-          })
-        );
-      },
-      [redirectURLForm]
-    );
-
-    const onChangePostLogoutURL = useCallback(
-      (url: string) => {
-        redirectURLForm.setState((prev) =>
-          produce(prev, (draft) => {
-            draft.postLogoutURL = url;
-          })
-        );
-      },
-      [redirectURLForm]
-    );
-
-    return (
-      <form className={className} onSubmit={onSubmit}>
-        <WidgetTitle>
-          <FormattedMessage id="CustomDomainListScreen.redirectURLSection.title" />
-        </WidgetTitle>
-        {disabled ? (
-          <FeatureDisabledMessageBar
-            className="mt-4"
-            messageID="CustomDomainListScreen.redirectURLSection.disabled.message"
-          />
-        ) : null}
-        <RedirectURLTextField
-          className={cn("mt-4")}
-          fieldName="default_redirect_uri"
-          label={renderToString(
-            "CustomDomainListScreen.redirectURLSection.input.postLoginURL.label"
-          )}
-          description={renderToString(
-            "CustomDomainListScreen.redirectURLSection.input.postLoginURL.description"
-          )}
-          value={redirectURLForm.state.postLoginURL}
-          onChangeValue={onChangePostLoginURL}
-          disabled={disabled}
-        />
-        <RedirectURLTextField
-          className={cn("mt-4")}
-          fieldName="default_post_logout_redirect_uri"
-          label={renderToString(
-            "CustomDomainListScreen.redirectURLSection.input.postLogoutURL.label"
-          )}
-          description={renderToString(
-            "CustomDomainListScreen.redirectURLSection.input.postLogoutURL.description"
-          )}
-          value={redirectURLForm.state.postLogoutURL}
-          onChangeValue={onChangePostLogoutURL}
-          disabled={disabled}
-        />
-        <PrimaryButton
-          className={cn("mt-12")}
-          type="submit"
-          disabled={!canSave || disabled}
-          text={<FormattedMessage id="save" />}
-        ></PrimaryButton>
-      </form>
-    );
-  };
-
 interface CustomDomainListContentProps {
   domains: Domain[];
   appConfigForm: AppConfigFormModel<FormState>;
-  redirectURLForm: AppConfigFormModel<RedirectURLFormState>;
   featureConfig?: CustomDomainFeatureConfig;
 }
 
@@ -655,7 +495,6 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
         updateError,
       },
       featureConfig,
-      redirectURLForm,
     } = props;
 
     const { renderToString } = useContext(Context);
@@ -668,11 +507,6 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
         },
       ];
     }, []);
-
-    const hasNoCustomDomains = useMemo(() => {
-      const index = domains.findIndex((d) => d.isCustom === true);
-      return index < 0;
-    }, [domains]);
 
     interface DeleteDomainDialogData {
       domainID: string;
@@ -851,13 +685,6 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
               onRenderDetailsHeader={renderDomainListHeader}
             />
           </div>
-          <Separator className={cn(styles.widget)} />
-          <RedirectURLForm
-            className={cn(styles.widget)}
-            redirectURLForm={redirectURLForm}
-            disabled={hasNoCustomDomains}
-          />
-
           <DeleteDomainDialog
             domain={deleteDomainDialogData.domain}
             domainID={deleteDomainDialogData.domainID}
@@ -891,11 +718,6 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
   } = useDomainsQuery(appID);
 
   const form = useAppConfigForm({ appID, constructFormState, constructConfig });
-  const redirectURLForm = useAppConfigForm({
-    appID,
-    constructFormState: constructRedirectURLFormState,
-    constructConfig: constructConfigFromRedirectURLFormState,
-  });
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 
@@ -908,26 +730,19 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
     navigate(".", { replace: true });
   }, [navigate]);
 
-  const isloading = or_(
-    fetchingDomains,
-    form.isLoading,
-    featureConfig.loading,
-    redirectURLForm.isLoading
-  );
+  const isloading = or_(fetchingDomains, form.isLoading, featureConfig.loading);
 
   const error = nullishCoalesce(
     fetchDomainsError,
     featureConfig.error,
-    form.loadError,
-    redirectURLForm.loadError
+    form.loadError
   );
 
   const retry = useCallback(() => {
     refetchDomains().catch((e) => console.error(e));
     featureConfig.refetch().catch((e) => console.error(e));
     form.reload();
-    redirectURLForm.reload();
-  }, [featureConfig, refetchDomains, form, redirectURLForm]);
+  }, [featureConfig, refetchDomains, form]);
 
   if (isloading) {
     return <ShowLoading />;
@@ -939,7 +754,7 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
 
   return (
     <>
-      <FormContainerBase form={redirectURLForm}>
+      <FormContainerBase form={form}>
         {isVerifySuccessMessageVisible ? (
           <MessageBar
             messageBarType={MessageBarType.success}
@@ -952,7 +767,6 @@ const CustomDomainListScreen: React.VFC = function CustomDomainListScreen() {
         <CustomDomainListContent
           domains={domains ?? []}
           appConfigForm={form}
-          redirectURLForm={redirectURLForm}
           featureConfig={featureConfig.effectiveFeatureConfig?.custom_domain}
         />
       </FormContainerBase>
