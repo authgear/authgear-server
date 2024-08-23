@@ -19,7 +19,7 @@ func accessEventsToOfflineGrant(key string) string {
 	return strings.ReplaceAll(key, ":access-events:", ":offline-grant:")
 }
 
-func CleanUpNonExpiringKeys(ctx context.Context, redisClient *goredis.Client, dryRun bool, stdout io.Writer, logger *log.Logger) (err error) {
+func CleanUpNonExpiringKeysAccessEvents(ctx context.Context, redisClient *goredis.Client, dryRun bool, stdout io.Writer, logger *log.Logger) (err error) {
 	conn := redisClient.Conn(ctx)
 	defer conn.Close()
 

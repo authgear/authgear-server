@@ -12,7 +12,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func testCleanUpNonExpiringKeysSetupFixture(ctx context.Context, redisClient *goredis.Client) {
+func testCleanUpNonExpiringKeysAccessEventsSetupFixture(ctx context.Context, redisClient *goredis.Client) {
 	var err error
 
 	_, err = redisClient.Set(ctx, "app:accounts:access-events:idpsession-a", "", 0).Result()
@@ -34,20 +34,20 @@ func testCleanUpNonExpiringKeysSetupFixture(ctx context.Context, redisClient *go
 	So(err, ShouldBeNil)
 }
 
-func TestCleanUpNonExpiringKeysDryRunTrue(t *testing.T) {
+func TestCleanUpNonExpiringKeysAccessEventsDryRunTrue(t *testing.T) {
 	memoryRedis := miniredis.RunT(t)
 
-	Convey("CleanUpNonExpiringKeys dry-run=true", t, func() {
+	Convey("CleanUpNonExpiringKeysAccessEvents dry-run=true", t, func() {
 		ctx := context.Background()
 		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
 
-		testCleanUpNonExpiringKeysSetupFixture(ctx, redisClient)
+		testCleanUpNonExpiringKeysAccessEventsSetupFixture(ctx, redisClient)
 
 		dryRun := true
 		stdout := &bytes.Buffer{}
 		stderr := &bytes.Buffer{}
 		logger := log.New(stderr, "", 0)
-		err := CleanUpNonExpiringKeys(ctx, redisClient, dryRun, stdout, logger)
+		err := CleanUpNonExpiringKeysAccessEvents(ctx, redisClient, dryRun, stdout, logger)
 		So(err, ShouldBeNil)
 		So(stderr.String(), ShouldEqual, `SCAN with cursor 0: 4
 done SCAN: 4
@@ -60,20 +60,20 @@ app:accounts:access-events:offline-grant-b
 	})
 }
 
-func TestCleanUpNonExpiringKeysDryRunFalse(t *testing.T) {
+func TestCleanUpNonExpiringKeysAccessEventsDryRunFalse(t *testing.T) {
 	memoryRedis := miniredis.RunT(t)
 
-	Convey("CleanUpNonExpiringKeys dry-run=false", t, func() {
+	Convey("CleanUpNonExpiringKeysAccessEvents dry-run=false", t, func() {
 		ctx := context.Background()
 		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
 
-		testCleanUpNonExpiringKeysSetupFixture(ctx, redisClient)
+		testCleanUpNonExpiringKeysAccessEventsSetupFixture(ctx, redisClient)
 
 		dryRun := false
 		stdout := &bytes.Buffer{}
 		stderr := &bytes.Buffer{}
 		logger := log.New(stderr, "", 0)
-		err := CleanUpNonExpiringKeys(ctx, redisClient, dryRun, stdout, logger)
+		err := CleanUpNonExpiringKeysAccessEvents(ctx, redisClient, dryRun, stdout, logger)
 		So(err, ShouldBeNil)
 		So(stderr.String(), ShouldEqual, `SCAN with cursor 0: 4
 done SCAN: 4
