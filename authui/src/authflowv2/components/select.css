@@ -75,8 +75,8 @@
     --select__empty-font-weight: var(--typography-body-large-font-weight);
 
     @media (min-width: theme("screens.tablet")) {
-      --select__options-height: 18em;
-      --select__dropdown-width: 21.5625em;
+      --select__options-height: 18rem;
+      --select__dropdown-width: 21.5625rem;
     }
   }
 

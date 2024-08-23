@@ -63,7 +63,7 @@
 
   .phone-input__country-flag {
     @apply inline-block align-middle ltr:mr-1 rtl:ml-1;
-    height: 1em;
-    width: 1em;
+    height: 1rem;
+    width: 1rem;
   }
 }
