@@ -1,6 +1,8 @@
 package facade
 
 import (
+	apimodel "github.com/authgear/authgear-server/pkg/api/model"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 )
 
@@ -24,6 +26,10 @@ func (i IdentityFacade) ListByClaim(name string, value string) ([]*identity.Info
 	return i.Coordinator.IdentityListByClaim(name, value)
 }
 
+func (i IdentityFacade) ListRefsByUsers(userIDs []string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error) {
+	return i.Coordinator.IdentityListRefsByUsers(userIDs, identityType)
+}
+
 func (i IdentityFacade) New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	return i.Coordinator.IdentityNew(userID, spec, options)
 }
@@ -34,6 +40,10 @@ func (i IdentityFacade) UpdateWithSpec(is *identity.Info, spec *identity.Spec, o
 
 func (i IdentityFacade) Create(is *identity.Info) error {
 	return i.Coordinator.IdentityCreate(is)
+}
+
+func (i IdentityFacade) CreateByAdmin(userID string, spec *identity.Spec, password string) (*identity.Info, error) {
+	return i.Coordinator.IdentityCreateByAdmin(userID, spec, password)
 }
 
 func (i IdentityFacade) Update(oldInfo *identity.Info, newInfo *identity.Info) error {

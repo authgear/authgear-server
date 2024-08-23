@@ -70,15 +70,6 @@ func (i *removeIdentityInput) GetIdentityID() string {
 	return i.identityInfo.ID
 }
 
-type addIdentityInput struct {
-	adminAPIOp
-	identityDef model.IdentityDef
-}
-
-func (i *addIdentityInput) Input() interface{} {
-	return i.identityDef
-}
-
 type updateIdentityInput struct {
 	adminAPIOp
 	identityDef model.IdentityDef

@@ -1038,9 +1038,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AuditDatabase:         readHandle,
 		AuditLogFeatureConfig: auditLogFeatureConfig,
 	}
-	facadeIdentityFacade := &facade2.IdentityFacade{
-		Identities:  serviceService,
-		Interaction: serviceInteractionService,
+	facadeIdentityFacade := &facade.IdentityFacade{
+		Coordinator: coordinator,
+	}
+	identityFacade2 := &facade2.IdentityFacade{
+		LoginIDConfig: loginIDConfig,
+		Identities:    facadeIdentityFacade,
+		Interaction:   serviceInteractionService,
 	}
 	facadeAuthenticatorFacade := &facade2.AuthenticatorFacade{
 		Authenticators: service4,
@@ -1152,7 +1156,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserFacade:            facadeUserFacade,
 		RolesGroupsFacade:     rolesGroupsFacade,
 		AuditLogFacade:        auditLogFacade,
-		IdentityFacade:        facadeIdentityFacade,
+		IdentityFacade:        identityFacade2,
 		AuthenticatorFacade:   facadeAuthenticatorFacade,
 		VerificationFacade:    verificationFacade,
 		SessionFacade:         sessionFacade,

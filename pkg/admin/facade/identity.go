@@ -1,26 +1,26 @@
 package facade
 
 import (
-	"errors"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	"github.com/authgear/authgear-server/pkg/api"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
-	"github.com/authgear/authgear-server/pkg/lib/interaction/nodes"
 )
 
 type IdentityService interface {
 	Get(id string) (*identity.Info, error)
 	ListRefsByUsers(userIDs []string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error)
+	CreateByAdmin(userID string, spec *identity.Spec, password string) (*identity.Info, error)
 }
 
 type IdentityFacade struct {
-	Identities  IdentityService
-	Interaction InteractionService
+	LoginIDConfig *config.LoginIDConfig
+	Identities    IdentityService
+	Interaction   InteractionService
 }
 
 func (f *IdentityFacade) Get(id string) (*identity.Info, error) {
@@ -55,32 +55,32 @@ func (f *IdentityFacade) Remove(identityInfo *identity.Info) error {
 }
 
 func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error) {
-	var input interface{} = &addIdentityInput{identityDef: identityDef}
-	if password != "" {
-		input = &addPasswordInput{inner: input, password: password}
+	// NOTE: identityDef is assumed to be a login ID since portal only supports login ID
+	loginIDInput := identityDef.(*model.IdentityDefLoginID)
+	loginIDKeyCofig, ok := f.LoginIDConfig.GetKeyConfig(loginIDInput.Key)
+	if !ok {
+		return nil, api.NewInvariantViolated("InvalidLoginIDKey", "invalid login ID key", nil)
 	}
 
-	graph, err := f.Interaction.Perform(
-		interactionintents.NewIntentAddIdentity(userID),
-		input,
-	)
-	var errInputRequired *interaction.ErrInputRequired
-	if errors.As(err, &errInputRequired) {
-		switch graph.CurrentNode().(type) {
-		case *nodes.NodeCreateAuthenticatorBegin:
-			// TODO(interaction): better interpretation of input required error?
-			return nil, api.NewInvariantViolated(
-				"PasswordRequired",
-				"password is required",
-				nil,
-			)
-		}
+	identitySpec := &identity.Spec{
+		Type: identityDef.Type(),
+		LoginID: &identity.LoginIDSpec{
+			Key:   loginIDInput.Key,
+			Type:  loginIDKeyCofig.Type,
+			Value: loginIDInput.Value,
+		},
 	}
+
+	iden, err := f.Identities.CreateByAdmin(
+		userID,
+		identitySpec,
+		password,
+	)
 	if err != nil {
 		return nil, err
 	}
 
-	return graph.GetUserNewIdentities()[0].ToRef(), nil
+	return iden.ToRef(), nil
 }
 
 func (f *IdentityFacade) Update(identityID string, userID string, identityDef model.IdentityDef) (*apimodel.IdentityRef, error) {
