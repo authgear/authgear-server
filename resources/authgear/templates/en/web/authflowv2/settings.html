@@ -13,7 +13,7 @@
     {{ end }}
     >
     <div>
-      <div class="settings-label">
+      <div class="settings-title">
         {{ $any_name_readable := (or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname")) }}
         {{ if (and $any_name_readable $.FormattedName) }}<span class="truncate">{{ $.FormattedName }}</span>{{ end }}
         {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="truncate">{{ $.EndUserAccountID }}</span>{{ end }}
