@@ -76,7 +76,7 @@
 
     @media (min-width: theme("screens.tablet")) {
       --select__options-height: 18rem;
-      --select__dropdown-width: 21.5625rem;
+      --select__dropdown-width: 22rem;
     }
   }
 
