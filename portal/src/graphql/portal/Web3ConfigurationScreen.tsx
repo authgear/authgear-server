@@ -494,6 +494,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
           <ScreenDescription className={styles.widget}>
             <FormattedMessage id="Web3ConfigurationScreen.description" />
           </ScreenDescription>
+          <Widget className={styles.widget} />
           <Widget className={styles.widget}>
             <div>
               <div>

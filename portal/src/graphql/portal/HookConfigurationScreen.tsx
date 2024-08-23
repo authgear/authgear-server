@@ -63,6 +63,7 @@ import DefaultButton from "../../DefaultButton";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
+import HorizontalDivider from "../../HorizontalDivider";
 
 const CODE_EDITOR_OPTIONS = {
   minimap: {
@@ -1269,7 +1270,9 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   />
                 ) : null}
               </Widget>
-
+              <Widget className={styles.widget}>
+                <HorizontalDivider />
+              </Widget>
               <Widget className={styles.widget}>
                 <WidgetTitle>
                   <FormattedMessage id="HookConfigurationScreen.non-blocking-events" />
@@ -1345,7 +1348,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
                   />
                 ) : null}
               </Widget>
-
+              <HorizontalDivider className={styles.separator} />
               <Widget className={styles.widget}>
                 <WidgetTitle>
                   <FormattedMessage id="HookConfigurationScreen.hook-settings" />

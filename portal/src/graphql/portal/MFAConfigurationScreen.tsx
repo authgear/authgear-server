@@ -48,6 +48,7 @@ import PasswordSettings, {
   setUIForgotPasswordConfig,
 } from "./PasswordSettings";
 import { formatDuration, parseDuration } from "../../util/duration";
+import HorizontalDivider from "../../HorizontalDivider";
 
 interface AuthenticatorTypeFormState<T> {
   isChecked: boolean;
@@ -518,6 +519,7 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
               onChange={onChangeDeviceTokenEnabled}
             />
           </Widget>
+          <HorizontalDivider className={styles.separator} />
           <Widget className={styles.widget}>
             <WidgetTitle>
               <FormattedMessage id="MFAConfigurationScreen.authenticator.title" />
@@ -542,25 +544,29 @@ const MFAConfigurationContent: React.VFC<MFAConfigurationContentProps> =
             <UnreasonableWarning primary={primary} secondary={secondary} />
           </Widget>
           {showPasswordSettings ? (
-            <PasswordSettings
-              className={styles.widget}
-              forgotPasswordLinkValidPeriodSeconds={
-                forgotPasswordLinkValidPeriodSeconds
-              }
-              forgotPasswordCodeValidPeriodSeconds={
-                forgotPasswordCodeValidPeriodSeconds
-              }
-              resetPasswordWithEmailBy={resetPasswordWithEmailBy}
-              resetPasswordWithPhoneBy={resetPasswordWithPhoneBy}
-              authenticatorPasswordConfig={authenticatorPasswordConfig}
-              passwordPolicyFeatureConfig={
-                featureConfig?.authenticator?.password?.policy
-              }
-              isLoginIDPhoneEnabled={isLoginIDPhoneEnabled}
-              isLoginIDEmailEnabled={isLoginIDEmailEnabled}
-              setState={setState}
-            />
+            <>
+              <HorizontalDivider className={styles.separator} />
+              <PasswordSettings
+                className={styles.widget}
+                forgotPasswordLinkValidPeriodSeconds={
+                  forgotPasswordLinkValidPeriodSeconds
+                }
+                forgotPasswordCodeValidPeriodSeconds={
+                  forgotPasswordCodeValidPeriodSeconds
+                }
+                resetPasswordWithEmailBy={resetPasswordWithEmailBy}
+                resetPasswordWithPhoneBy={resetPasswordWithPhoneBy}
+                authenticatorPasswordConfig={authenticatorPasswordConfig}
+                passwordPolicyFeatureConfig={
+                  featureConfig?.authenticator?.password?.policy
+                }
+                isLoginIDPhoneEnabled={isLoginIDPhoneEnabled}
+                isLoginIDEmailEnabled={isLoginIDEmailEnabled}
+                setState={setState}
+              />
+            </>
           ) : null}
+          <HorizontalDivider className={styles.separator} />
           <Widget className={styles.widget}>
             <WidgetTitle>
               <FormattedMessage id="MFAConfigurationScreen.recovery-code.title" />

@@ -9,6 +9,12 @@
   @apply gap-y-3;
 }
 
+.separator {
+  grid-column: 1 / span 8;
+  @apply my-2;
+  @apply tablet:col-span-full;
+}
+
 .oauthLink {
   @apply text-sm;
 }
