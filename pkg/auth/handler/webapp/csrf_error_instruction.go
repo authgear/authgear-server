@@ -12,7 +12,7 @@ import (
 func ConfigureCSRFErrorInstructionRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET").
-		WithPathPattern("/csrf/error/instruction")
+		WithPathPattern("/errors/cookie_instruction")
 }
 
 type CSRFErrorInstructionHandler struct {

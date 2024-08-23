@@ -10,7 +10,7 @@
 
     <p class="body-text--md max-w-85 mx-auto">
       {{ template "v2-csrf-error-message" }}
-      <a href="/csrf/error/instruction"> {{ template "v2-csrf-error-see-instructions" }}</a>
+      <a href="{{ call $.MakeURL "/errors/cookie_instruction" }}"> {{ template "v2-csrf-error-see-instructions" }}</a>
     </p> 
   </div>
 </div>
