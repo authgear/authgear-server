@@ -85,3 +85,82 @@ app:accounts:access-events:offline-grant-b
 `)
 	})
 }
+
+func testCleanUpNonExpiringKeysSessionHashesSetupFixture(ctx context.Context, redisClient *goredis.Client) {
+	var err error
+
+	hset := func(hashKey string, fieldKey string) {
+		_, err = redisClient.HSet(ctx, hashKey, fieldKey, "not-important").Result()
+		So(err, ShouldBeNil)
+	}
+
+	set := func(key string) {
+		_, err = redisClient.Set(ctx, key, "not-important", 0).Result()
+		So(err, ShouldBeNil)
+	}
+
+	hset("app:accounts:session-list:user-a", "app:accounts:session:user-a-idpsession")
+	hset("app:accounts:offline-grant-list:user-a", "app:accounts:offline-grant:user-a-offlinegrant")
+
+	hset("app:accounts:session-list:user-b", "app:accounts:session:user-b-idpsession")
+	hset("app:accounts:offline-grant-list:user-b", "app:accounts:offline-grant:user-b-offlinegrant")
+
+	set("app:accounts:session:user-a-idpsession")
+	set("app:accounts:offline-grant:user-b-offlinegrant")
+}
+
+func TestCleanUpNonExpiringKeysSessionHashesDryRunTrue(t *testing.T) {
+	memoryRedis := miniredis.RunT(t)
+
+	Convey("CleanUpNonExpiringKeysSessionHashes dry-run=true", t, func() {
+		ctx := context.Background()
+		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
+
+		testCleanUpNonExpiringKeysSessionHashesSetupFixture(ctx, redisClient)
+
+		dryRun := true
+		stdout := &bytes.Buffer{}
+		stderr := &bytes.Buffer{}
+		logger := log.New(stderr, "", 0)
+		err := CleanUpNonExpiringKeysSessionHashes(ctx, redisClient, dryRun, stdout, logger)
+		So(err, ShouldBeNil)
+		So(stderr.String(), ShouldEqual, `SCAN app:*:session-list:* with cursor 0: 2
+done SCAN app:*:session-list:*: 2
+SCAN app:*:offline-grant-list:* with cursor 0: 2
+done SCAN app:*:offline-grant-list:*: 2
+would delete app:accounts:offline-grant-list:user-a
+would delete app:accounts:session-list:user-b
+`)
+		So(stdout.String(), ShouldEqual, `app:accounts:offline-grant-list:user-a
+app:accounts:session-list:user-b
+`)
+	})
+}
+
+func TestCleanUpNonExpiringKeysSessionHashesDryRunFalse(t *testing.T) {
+	memoryRedis := miniredis.RunT(t)
+
+	Convey("CleanUpNonExpiringKeysSessionHashes dry-run=false", t, func() {
+		ctx := context.Background()
+		redisClient := goredis.NewClient(&goredis.Options{Addr: memoryRedis.Addr()})
+
+		testCleanUpNonExpiringKeysSessionHashesSetupFixture(ctx, redisClient)
+
+		dryRun := false
+		stdout := &bytes.Buffer{}
+		stderr := &bytes.Buffer{}
+		logger := log.New(stderr, "", 0)
+		err := CleanUpNonExpiringKeysSessionHashes(ctx, redisClient, dryRun, stdout, logger)
+		So(err, ShouldBeNil)
+		So(stderr.String(), ShouldEqual, `SCAN app:*:session-list:* with cursor 0: 2
+done SCAN app:*:session-list:*: 2
+SCAN app:*:offline-grant-list:* with cursor 0: 2
+done SCAN app:*:offline-grant-list:*: 2
+deleted app:accounts:offline-grant-list:user-a
+deleted app:accounts:session-list:user-b
+`)
+		So(stdout.String(), ShouldEqual, `app:accounts:offline-grant-list:user-a
+app:accounts:session-list:user-b
+`)
+	})
+}
