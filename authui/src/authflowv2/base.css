@@ -124,6 +124,12 @@
 
   /* Typography */
   :root {
+    --typography-headline-small__font-family: inherit;
+    --typography-headline-small__font-size: 1.5rem;
+    --typography-headline-small__line-height: 2rem;
+    --typography-headline-small__letter-spacing: 0;
+    --typography-headline-small__font-weight: 700;
+
     --typography-headline-medium__font-family: inherit;
     --typography-headline-medium__font-size: 1.75rem;
     --typography-headline-medium__line-height: 2.125rem;

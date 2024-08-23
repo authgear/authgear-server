@@ -6,13 +6,13 @@
     --dialog-fade-animation-duration: 0.3s;
     --dialog-slide-animation-duration: 0.3s;
 
-    --dialog-title__font-family: var(--typography-title-large__font-family);
-    --dialog-title__font-size: var(--typography-title-large__font-size);
-    --dialog-title__line-height: var(--typography-title-large__line-height);
+    --dialog-title__font-family: var(--typography-headline-small__font-family);
+    --dialog-title__font-size: var(--typography-headline-small__font-size);
+    --dialog-title__line-height: var(--typography-headline-small__line-height);
     --dialog-title__letter-spacing: var(
-      --typography-title-large__letter-spacing
+      --typography-headline-small__letter-spacing
     );
-    --dialog-title__font-weight: var(--typography-title-large__font-weight);
+    --dialog-title__font-weight: var(--typography-headline-small__font-weight);
     --dialog-title__text-color: var(--color-neutral-700);
 
     --dialog-description__font-family: var(
@@ -124,7 +124,7 @@
   }
 
   .close-btn {
-    /* close button icon distance to top/right edge = 21px 
+    /* close button icon distance to top/right edge = 21px
      * close button icon size = 14px
      * close button button size = 44px
      * Actual distance = [(14 / 2) + 21] - (44 / 2) = 6px
@@ -153,7 +153,7 @@
     }
 
     .close-btn {
-      /* close button icon distance to top/right edge = 25px 
+      /* close button icon distance to top/right edge = 25px
        * close button icon size = 14px
        * close button button size = 44px
        * Actual distance = [(14 / 2) + 25] - (44 / 2) = 10px
