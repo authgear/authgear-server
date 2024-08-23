@@ -1,0 +1,34 @@
+{{ define "__csrf_error_page_layout.html" }}
+<!DOCTYPE html>
+
+<html
+{{ if and ($.DarkThemeEnabled) (not $.LightThemeEnabled) }}
+  class="dark"
+{{ end }}
+  lang="{{ $.ResolvedLanguageTag }}"
+  dir="{{ $.HTMLDir }}"
+  data-controller="format-date-relative"
+  data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
+  data-light-theme-enabled="{{ $.LightThemeEnabled }}"
+>
+
+{{ template "authflowv2/__html_head.html" . }}
+
+<body class="layout--default">
+<!-- Google Tag Manager (noscript) -->
+{{ if $.GoogleTagManagerContainerID }}
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $.GoogleTagManagerContainerID }}"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+{{ end }}
+<!-- End Google Tag Manager (noscript) -->
+
+<div class="max-w-360 mx-auto">
+  <div class="grid grid-cols-6 tablet:grid-cols-12 desktop:grid-cols-12 gap-x-4 auto-rows-auto mx-4 tablet:mx-4 desktop:mx-6 mb-8">
+    <div class="primary-txt col-start-1 col-span-6 tablet:col-start-4 tablet:col-span-6 desktop:col-start-4 desktop:col-span-6 twc-container-vertical">
+      {{ template "page-content" . }}
+    </div>
+  </div>
+</div>
+</body>
+</html>
+{{ end }}

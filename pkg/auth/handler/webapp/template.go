@@ -14,3 +14,13 @@ var TemplateV2WebFatalErrorHTML = template.RegisterHTML(
 	"web/authflowv2/fatal_error.html",
 	Components...,
 )
+
+var TemplateCSRFErrorHTML = template.RegisterHTML(
+	"web/authflowv2/csrf_error_page.html",
+	Components...,
+)
+
+var TemplateCSRFErrorInstructionHTML = template.RegisterHTML(
+	"web/authflowv2/csrf_error_instruction.html",
+	Components...,
+)

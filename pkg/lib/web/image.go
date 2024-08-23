@@ -510,3 +510,145 @@ func (a LocaleAwareImageDescriptor) GetSizeLimit() int {
 	}
 	return a.SizeLimit
 }
+
+var staticImageRegex = regexp.MustCompile(`^static/(.+)\.(png|jpe|jpeg|jpg|gif)$`)
+
+type StaticImageDescriptor struct {
+	Name string
+}
+
+var _ resource.Descriptor = StaticImageDescriptor{}
+
+func (a StaticImageDescriptor) MatchResource(path string) (*resource.Match, bool) {
+	matches := staticImageRegex.FindStringSubmatch(path)
+	if len(matches) != 3 {
+		return nil, false
+	}
+	name := matches[1]
+
+	if name != a.Name {
+		return nil, false
+	}
+	return &resource.Match{}, true
+}
+
+func (a StaticImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
+	if fs.GetFsLevel() != resource.FsLevelBuiltin {
+		return []resource.Location{}, nil
+	}
+
+	staticDir, err := fs.Open(AppAssetsURLDirname)
+	if os.IsNotExist(err) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	defer staticDir.Close()
+
+	var locations []resource.Location
+
+	for mediaType := range preferredExtensions {
+		exts, _ := mime.ExtensionsByType(mediaType)
+		for _, ext := range exts {
+			p := stdlibpath.Join(AppAssetsURLDirname, a.Name+ext)
+			location := resource.Location{
+				Fs:   fs,
+				Path: p,
+			}
+			_, err := resource.ReadLocation(location)
+			if os.IsNotExist(err) {
+				continue
+			} else if err != nil {
+				return nil, err
+			}
+			locations = append(locations, location)
+		}
+	}
+
+	return locations, nil
+}
+
+func (a StaticImageDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+	switch view := rawView.(type) {
+	case resource.AppFileView:
+		return nil, nil
+	case resource.EffectiveFileView:
+		return a.viewEffectiveFile(resources, view)
+	case resource.EffectiveResourceView:
+		return a.viewEffectiveResource(resources, view)
+	case resource.ValidateResourceView:
+		return a.viewValidateResource(resources, view)
+	default:
+		return nil, fmt.Errorf("unsupported view: %T", rawView)
+	}
+}
+
+func (a StaticImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+	path := view.EffectiveFilePath()
+	asset, err := a.viewByPath(resources, path)
+	if err != nil {
+		return nil, err
+	}
+	return asset.Data, nil
+}
+
+func (a StaticImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+	for _, resrc := range resources {
+		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelBuiltin {
+			mimeType := http.DetectContentType(resrc.Data)
+			ext, ok := preferredExtensions[mimeType]
+			if !ok {
+				return nil, fmt.Errorf("invalid image format: %s", mimeType)
+			}
+			path := stdlibpath.Join(AppAssetsURLDirname, a.Name+ext)
+			return &StaticAsset{
+				Path: path,
+				Data: resrc.Data,
+			}, nil
+		}
+	}
+	return nil, resource.ErrResourceNotFound
+}
+
+func (a StaticImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
+	return nil, nil
+}
+
+func (a StaticImageDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+	return nil, fmt.Errorf("Static image resource cannot be updated. Use locale aware image or non locale aware image resource instead.")
+}
+
+func (a StaticImageDescriptor) viewByPath(resources []resource.ResourceFile, path string) (*StaticAsset, error) {
+	matches := staticImageRegex.FindStringSubmatch(path)
+	if len(matches) < 3 {
+		return nil, resource.ErrResourceNotFound
+	}
+	requestedExtension := matches[2]
+
+	var found bool
+	var bytes []byte
+	for _, resrc := range resources {
+		m := staticImageRegex.FindStringSubmatch(resrc.Location.Path)
+		extension := m[2]
+		if extension == requestedExtension {
+			found = true
+			bytes = resrc.Data
+		}
+	}
+
+	if !found {
+		return nil, resource.ErrResourceNotFound
+	}
+
+	mimeType := http.DetectContentType(bytes)
+	ext, ok := preferredExtensions[mimeType]
+	if !ok {
+		return nil, fmt.Errorf("invalid image format: %s", mimeType)
+	}
+
+	p := stdlibpath.Join(AppAssetsURLDirname, a.Name+ext)
+	return &StaticAsset{
+		Path: p,
+		Data: bytes,
+	}, nil
+}

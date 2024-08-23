@@ -1,0 +1,7 @@
+.csrf-instruction-icons {
+  @apply h-6 w-6 bg-no-repeat bg-center bg-contain inline-block align-middle;
+}
+
+.csrf-instruction-icons.icon-settings {
+  background-image: url("./icons/raw/icon-settings.png");
+}
