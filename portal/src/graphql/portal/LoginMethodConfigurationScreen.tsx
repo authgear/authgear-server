@@ -3322,6 +3322,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
             loginMethod={loginMethod}
             passkeyChecked={passkeyChecked}
           />
+          <HorizontalDivider className={styles.separator} />
           <LoginMethodChooser
             showFreePlanWarning={showFreePlanWarning}
             loginMethod={loginMethod}
@@ -3341,6 +3342,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
           {/* Pivot is intentionally uncontrolled */}
           {/* It is because it is troublesome to keep track of the selected key */}
           {/* And making it controlled does not bring any benefits */}
+          <HorizontalDivider className={styles.separator} />
           <Pivot
             className={styles.widget}
             styles={PIVOT_STYLES}

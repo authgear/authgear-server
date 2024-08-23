@@ -4,6 +4,12 @@
   @apply tablet:col-span-full;
 }
 
+.separator {
+  grid-column: 1 / span 8;
+  @apply tablet:col-span-full;
+  @apply my-2;
+}
+
 .codeEditorContainer {
   grid-column: 1 / span 10;
   @apply tablet:col-span-full;
