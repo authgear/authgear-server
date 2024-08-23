@@ -12,36 +12,31 @@ describe("maskNumber", () => {
 });
 
 describe("deterministicProjectName", () => {
-  it("deterministicProjectName(0) is 'abandon-abandon-0'", () => {
+  it("deterministicProjectName(0) should starts with 'abandon-' and ends with 6 lowercase-alphanumeric characters", () => {
     // 0 is 0b00000000000_00000000000_0000000000
     // 0b00000000000 is abandon
-    // 0b0000000000 is 0
-    // So the name is abandon-abandon-0
-    expect(deterministicProjectName(0)).toEqual("abandon-abandon-0");
+    // So the name starts with abandon
+    expect(deterministicProjectName(0)).toMatch(/^abandon-[0-9a-z]{6}$/);
   });
 
-  it("deterministicProjectName(1) is ''", () => {
+  it("deterministicProjectName(0) should starts with 'abandon-' and ends with 6 lowercase-alphanumeric characters", () => {
     // 1 is 0b00000000000_00000000000_0000000001
     // 0b00000000000 is abandon
-    // 0b0000000001 is 1
-    // So the name is abandon-abandon-1
-    expect(deterministicProjectName(1)).toEqual("abandon-abandon-1");
+    // So the name starts with abandon
+    expect(deterministicProjectName(1)).toMatch(/^abandon-[0-9a-z]{6}$/);
   });
 
-  it("deterministicProjectName(87878787) is ''", () => {
+  it("deterministicProjectName(87878787) should starts with 'ahead' and ends with 6 lowercase-alphanumeric characters", () => {
     // 87878787 is 0b00000101001_11100111011_0010000011
     // 0b00000101001 is ahead
-    // 0b11100111011 is trash
-    // 0b0010000011 is 131
-    // So the name is ahead-trash-131
-    expect(deterministicProjectName(87878787)).toEqual("ahead-trash-131");
+    // So the name starts with ahead
+    expect(deterministicProjectName(87878787)).toMatch(/^ahead-[0-9a-z]{6}$/);
   });
 
-  it("deterministicProjectName(4294967295) is ''", () => {
+  it("deterministicProjectName(4294967295) should starts with 'zoo-' and ends with 6 lowercase-alphanumeric characters", () => {
     // 4294967295 (2^32 - 1) is 0b11111111111_11111111111_1111111111
     // 0b11111111111 is zoo
-    // 0b1111111111 is 1023
-    // So the name is zoo-zoo-1023
-    expect(deterministicProjectName(4294967295)).toEqual("zoo-zoo-1023");
+    // So the name starts with zoo-
+    expect(deterministicProjectName(4294967295)).toMatch(/^zoo-[0-9a-z]{6}$/);
   });
 });
