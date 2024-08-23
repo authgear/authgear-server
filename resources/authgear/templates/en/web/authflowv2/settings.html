@@ -39,9 +39,8 @@
 
     <div>
     {{ range .IdentityCandidates }}
-    {{ $is_unset := (not .identity_id) }}
-    {{ if eq .type "login_id" }}
-    {{ if eq .login_id_type "email" }}
+      {{ if eq .type "login_id" }}
+      {{ if eq .login_id_type "email" }}
       <a
         class="settings-item w-full row-sep"
         {{ if .identity_id }}
@@ -124,7 +123,7 @@
         </div>
       </a>
       {{ end }}
-    {{ end }}
+      {{ end }}
     {{ end}}
 
     <a
