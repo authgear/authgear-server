@@ -409,6 +409,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       <Widget
         className={className}
         extended={isEnabled || extended}
+        showElevation={true}
         showToggleButton={true}
         toggleButtonDisabled={isEnabled}
         onToggleButtonClick={onToggleButtonClick}

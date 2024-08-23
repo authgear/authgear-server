@@ -41,6 +41,7 @@ import { useIsLoading, useLoading } from "../../hook/loading";
 import { useProvideError } from "../../hook/error";
 import { AppSecretKey } from "./globalTypes.generated";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
+import HorizontalDivider from "../../HorizontalDivider";
 
 interface AdminAPIConfigurationScreenContentProps {
   appID: string;
@@ -319,6 +320,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                 <Feedback />
               </div>
             </Widget>
+            <HorizontalDivider className={styles.separator} />
             <Widget className={styles.widget}>
               <WidgetTitle>
                 <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.title" />
@@ -336,6 +338,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
                 <FormattedMessage id="AdminAPIConfigurationScreen.graphiql.warning" />
               </MessageBar>
             </Widget>
+            <HorizontalDivider className={styles.separator} />
             <Widget className={styles.widget}>
               <WidgetTitle>
                 <FormattedMessage id="AdminAPIConfigurationScreen.keys.title" />
