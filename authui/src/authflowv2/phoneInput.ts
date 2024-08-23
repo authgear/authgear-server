@@ -193,6 +193,9 @@ export class PhoneInputController extends Controller {
 
     if (rawValue.startsWith("+")) {
       combinedValue = rawValue;
+    } else if (rawValue === "") {
+      // If input is empty, the combined value should be empty too
+      combinedValue = "";
     } else if (countryValue != null) {
       combinedValue = `+${getCountryCallingCode(
         countryValue as CountryCode

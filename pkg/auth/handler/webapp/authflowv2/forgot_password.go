@@ -72,11 +72,14 @@ type AuthFlowV2ForgotPasswordAlternative struct {
 type AuthFlowV2ForgotPasswordViewModel struct {
 	LoginIDInputType     ForgotPasswordLoginIDInputType
 	LoginID              string
-	PhoneLoginIDEnabled  bool
-	EmailLoginIDEnabled  bool
 	LoginIDDisabled      bool
 	RequiresLoginIDInput bool
 	Alternatives         []*AuthFlowV2ForgotPasswordAlternative
+
+	// These overrides AuthflowViewModel
+	PhoneLoginIDEnabled   bool
+	EmailLoginIDEnabled   bool
+	LoginIDContextualType string // "email", "phone"
 }
 
 func forgotPasswordGetInitialLoginIDInputType(data declarative.IntentAccountRecoveryFlowStepIdentifyData) ForgotPasswordLoginIDInputType {
@@ -178,6 +181,8 @@ func NewAuthFlowV2ForgotPasswordViewModel(
 		LoginIDDisabled:      loginIDDisabled,
 		RequiresLoginIDInput: requiresLoginIDInput,
 		Alternatives:         alternatives,
+
+		LoginIDContextualType: string(loginIDInputType),
 	}
 }
 
