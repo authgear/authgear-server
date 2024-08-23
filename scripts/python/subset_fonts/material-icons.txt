@@ -1,5 +1,7 @@
+360
 account_circle
 account_circle_off
+android
 animation
 api
 block
@@ -40,6 +42,7 @@ iframe
 image
 info
 input
+ios
 key
 key_vertical
 keyboard
