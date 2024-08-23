@@ -432,7 +432,9 @@ export interface UIConfig {
   dark_theme_disabled?: boolean;
   light_theme_disabled?: boolean;
   watermark_disabled?: boolean;
+  direct_access_disabled?: boolean;
   default_client_uri?: string;
+  default_branding_page_uri?: string;
   default_redirect_uri?: string;
   default_post_logout_redirect_uri?: string;
   forgot_password?: UIForgotPasswordConfig;

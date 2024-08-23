@@ -12,8 +12,10 @@ var _ = Schema.Add("UIConfig", `
 		"dark_theme_disabled": { "type": "boolean" },
 		"light_theme_disabled": { "type": "boolean" },
 		"watermark_disabled": { "type": "boolean" },
+		"direct_access_disabled": { "type": "boolean" },
 		"default_client_uri": { "type": "string", "format": "uri" },
 		"default_redirect_uri": { "type": "string", "format": "uri" },
+		"default_branding_page_uri": { "type": "string", "format": "uri" },
 		"default_post_logout_redirect_uri": { "type": "string", "format": "uri" },
 		"authentication_disabled": { "type": "boolean" },
 		"settings_disabled": { "type": "boolean" },
@@ -37,8 +39,11 @@ type UIConfig struct {
 	DarkThemeDisabled      bool              `json:"dark_theme_disabled,omitempty"`
 	LightThemeDisabled     bool              `json:"light_theme_disabled,omitempty"`
 	WatermarkDisabled      bool              `json:"watermark_disabled,omitempty"`
+	DirectAccessDisabled   bool              `json:"direct_access_disabled,omitempty"`
 	// client_uri to use when client_id is absent.
 	DefaultClientURI string `json:"default_client_uri,omitempty"`
+	// branding_page_uri to use when client_id is absent.
+	DefaultBrandingPageURI string `json:"default_branding_page_uri,omitempty"`
 	// redirect_uri to use when client_id is absent.
 	DefaultRedirectURI string `json:"default_redirect_uri,omitempty"`
 	// post_logout_redirect_uri to use when client_id is absent.
