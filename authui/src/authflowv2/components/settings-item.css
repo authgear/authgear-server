@@ -24,7 +24,7 @@
     --settings-item__ring-width--active: var(--settings-item__ring-width);
     --settings-item__ring-color--active: var(--settings-item__ring-color);
 
-    --settings-icon__font-size: 1.5rem; /* 24 / 16 = 1.5 */
+    --settings-icon__font-size: 1.125rem; /* 18 / 16 = 1.125 */
 
     --settings-item__bg-color-alternative: var(--color-neutral-200);
   }
@@ -68,11 +68,6 @@
     }
   }
 }
-
-.settings-item__icon {
-  font-size: var(--settings-icon__font-size);
-}
-
 .settings-item__alternative_icon {
   font-size: var(--settings-icon__font-size);
   color: var(--settings-item__bg-color-alternative);

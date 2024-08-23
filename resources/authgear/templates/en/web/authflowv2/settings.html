@@ -49,23 +49,24 @@
           href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
         {{ end }}
       >
-        <div class="grid grid-cols-3 gap-y-2 w-full">
-          <div class="flex gap-2">
+        <div class="flex w-full">
+          <div class="flex gap-2 w-44 items-center">
             <i class="alternative-icon material-icons">
               mail
             </i>
             {{ template "v2-settings-email" . }}
           </div>
-          <div class="flex flex-col text-start settings-description">
-            <!-- Render items of array $.Emails -->
+          <div class="flex-1 flex-col text-start settings-description">
             {{ range $i, $email := $.Emails }}
+            <div>
               {{ $email }}
+            </div>
             {{ end }}
           </div>
-          <div class="flex justify-end">
-          <i class="settings-item__alternative_icon material-icons">
-            arrow_forward_ios
-          </i>
+          <div class="flex items-center">
+            <i class="settings-item__alternative_icon material-icons">
+              arrow_forward_ios
+            </i>
           </div>
         </div>
       </a>
@@ -80,22 +81,24 @@
           href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
         {{ end }}
       >
-        <div class="grid grid-cols-3 gap-y-2 w-full">
-          <div class="flex gap-2">
-            <i class="settings-item__icon material-icons">
+        <div class="flex w-full">
+          <div class="flex gap-2 w-44 items-center">
+            <i class="alternative-icon material-icons">
               phone_iphone
             </i>
             {{ template "v2-settings-phone" . }}
           </div>
-          <div class="flex flex-col text-start settings-description">
+          <div class="flex-1 flex-col text-start settings-description">
             {{ range $i, $phone := $.PhoneNumbers }}
+            <div>
               {{ $phone }}
+            </div>
             {{ end }}
           </div>
-          <div class="flex justify-end">
-          <i class="settings-item__alternative_icon material-icons">
-            arrow_forward_ios
-          </i>
+          <div class="flex items-center">
+            <i class="settings-item__alternative_icon material-icons">
+              arrow_forward_ios
+            </i>
           </div>
         </div>
       </a>
@@ -110,22 +113,24 @@
           href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
         {{ end }}
       >
-        <div class="grid grid-cols-3 gap-y-2 w-full">
-          <div class="flex gap-2">
-            <i class="settings-item__icon material-icons">
+        <div class="flex w-full">
+          <div class="flex gap-2 w-44 items-center">
+            <i class="alternative-icon material-icons">
               account_circle
             </i>
             {{ template "v2-settings-username" . }}
           </div>
-          <div class="flex flex-col text-start settings-description">
+          <div class="flex-1 flex-col text-start settings-description">
             {{ range $i, $username := $.PreferredUsernames }}
+            <div>
               {{ $username }}
+            </div>
             {{ end }}
           </div>
-          <div class="flex justify-end">
-          <i class="settings-item__alternative_icon material-icons">
-            arrow_forward_ios
-          </i>
+          <div class="flex items-center">
+            <i class="settings-item__alternative_icon material-icons">
+              arrow_forward_ios
+            </i>
           </div>
         </div>
       </a>
@@ -137,17 +142,17 @@
       class="settings-item w-full row-sep"
       href="{{ call $.MakeURL "/settings/v2/identity" }}"
     >
-      <div class="grid grid-cols-2 gap-y-2 w-full">
-        <div class="flex gap-2">
-          <i class="settings-item__icon material-icons">
+      <div class="flex w-full justify-between">
+        <div class="flex gap-2 items-center">
+          <i class="alternative-icon material-icons">
             link
           </i>
           {{ template "v2-settings-social-accounts" . }}
         </div>
-        <div class="flex justify-end">
-        <i class="settings-item__alternative_icon material-icons">
-          arrow_forward_ios
-        </i>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </div>
     </a>
