@@ -236,6 +236,10 @@ func (c *Coordinator) IdentityCreateByAdmin(userID string, spec *identity.Spec, 
 		return nil, err
 	}
 
+	if err := c.StdAttrsService.PopulateIdentityAwareStandardAttributes(userID); err != nil {
+		return nil, err
+	}
+
 	if err := c.createPrimaryAuthenticatorsForAdminAPICreateIdentity(iden, password); err != nil {
 		return nil, err
 	}
