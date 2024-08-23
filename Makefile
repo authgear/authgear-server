@@ -49,7 +49,7 @@ generate:
 .PHONY: test
 test:
 	$(MAKE) -C ./k6 go-test
-	go test ./pkg/... -timeout 1m30s
+	go test ./cmd/... ./pkg/... -timeout 1m30s
 
 .PHONY: lint
 lint:
