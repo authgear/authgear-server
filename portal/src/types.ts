@@ -433,6 +433,7 @@ export interface UIConfig {
   light_theme_disabled?: boolean;
   watermark_disabled?: boolean;
   default_client_uri?: string;
+  default_brand_page_redirect_uri?: string;
   default_redirect_uri?: string;
   default_post_logout_redirect_uri?: string;
   forgot_password?: UIForgotPasswordConfig;

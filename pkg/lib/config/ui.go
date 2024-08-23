@@ -14,6 +14,7 @@ var _ = Schema.Add("UIConfig", `
 		"watermark_disabled": { "type": "boolean" },
 		"default_client_uri": { "type": "string", "format": "uri" },
 		"default_redirect_uri": { "type": "string", "format": "uri" },
+		"default_brand_page_redirect_uri": { "type": "string", "format": "uri" },
 		"default_post_logout_redirect_uri": { "type": "string", "format": "uri" },
 		"authentication_disabled": { "type": "boolean" },
 		"settings_disabled": { "type": "boolean" },
@@ -35,6 +36,8 @@ type UIConfig struct {
 	WatermarkDisabled      bool              `json:"watermark_disabled,omitempty"`
 	// client_uri to use when client_id is absent.
 	DefaultClientURI string `json:"default_client_uri,omitempty"`
+	// brand_page_redirect_uri to use when client_id is absent.
+	DefaultBrandPageRedirectURI string `json:"default_brand_page_redirect_uri,omitempty"`
 	// redirect_uri to use when client_id is absent.
 	DefaultRedirectURI string `json:"default_redirect_uri,omitempty"`
 	// post_logout_redirect_uri to use when client_id is absent.
