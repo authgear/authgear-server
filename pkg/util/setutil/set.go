@@ -1,12 +1,17 @@
 package setutil
 
-type Set[T comparable] map[T]struct{}
+import (
+	"cmp"
+	"sort"
+)
+
+type Set[T cmp.Ordered] map[T]struct{}
 
 func Identity[T any](t T) T {
 	return t
 }
 
-func NewSetFromSlice[A any, B comparable](slice []A, f func(a A) B) Set[B] {
+func NewSetFromSlice[A any, B cmp.Ordered](slice []A, f func(a A) B) Set[B] {
 	out := make(Set[B])
 	for _, a := range slice {
 		b := f(a)
@@ -26,7 +31,7 @@ func (s Set[T]) Subtract(that Set[T]) Set[T] {
 	return out
 }
 
-func SetToSlice[A any, B comparable](slice []A, set Set[B], f func(a A) B) []A {
+func SetToSlice[A any, B cmp.Ordered](slice []A, set Set[B], f func(a A) B) []A {
 	var out []A
 	for _, a := range slice {
 		b := f(a)
@@ -43,6 +48,7 @@ func (s Set[T]) Keys() []T {
 	for k, _ := range s {
 		keys = append(keys, k)
 	}
+	sort.Slice(keys, cmp.Less)
 	return keys
 }
 

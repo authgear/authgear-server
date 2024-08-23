@@ -78,6 +78,7 @@ func TestSAMLService(t *testing.T) {
 				Field:    "Destination",
 				Actual:   "http://idp.local/wrong",
 				Expected: []string{"http://idp.local/login"},
+				Reason:   "unexpected Destination",
 			})
 		})
 
@@ -91,7 +92,9 @@ func TestSAMLService(t *testing.T) {
 				Expected: []string{
 					"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
 					"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
-				}})
+				},
+				Reason: "unsupported ProtocolBinding",
+			})
 		})
 
 		Convey("unsupported version", func() {
@@ -102,6 +105,7 @@ func TestSAMLService(t *testing.T) {
 				Field:    "Version",
 				Actual:   authnRequest.Version,
 				Expected: []string{samlprotocol.SAMLVersion2},
+				Reason:   "unsupported Version",
 			})
 		})
 
@@ -129,6 +133,7 @@ func TestSAMLService(t *testing.T) {
 					"urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
 					"urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
 				},
+				Reason: "unsupported NameIDPolicy Format",
 			})
 		})
 

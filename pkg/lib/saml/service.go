@@ -133,6 +133,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 				Field:    "Destination",
 				Actual:   authnRequest.Destination,
 				Expected: []string{s.Endpoints.SAMLLoginURL(sp.ID).String()},
+				Reason:   "unexpected Destination",
 			}
 		}
 	}
@@ -142,6 +143,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 			Field:    "ProtocolBinding",
 			Actual:   authnRequest.ProtocolBinding,
 			Expected: slice.Map(samlprotocol.SupportedBindings, func(b samlprotocol.SAMLBinding) string { return string(b) }),
+			Reason:   "unsupported ProtocolBinding",
 		}
 	}
 
@@ -158,6 +160,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 			Field:    "Version",
 			Actual:   authnRequest.Version,
 			Expected: []string{samlprotocol.SAMLVersion2},
+			Reason:   "unsupported Version",
 		}
 	}
 
@@ -177,6 +180,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 				Field:    "Conditions/AudienceRestrictions",
 				Actual:   aud,
 				Expected: allowedAudiences.Keys(),
+				Reason:   "Audience not allowed",
 			}
 		}
 	}
@@ -194,6 +198,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 				Field:    "NameIDPolicy/Format",
 				Actual:   reqNameIDFormat,
 				Expected: allowedNameFormats.Keys(),
+				Reason:   "unsupported NameIDPolicy Format",
 			}
 		}
 	}

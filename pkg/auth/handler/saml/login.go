@@ -123,7 +123,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 					Response: samlprotocol.NewRequestDeniedErrorResponse(
 						now,
 						issuer,
-						"invalid SAMLRequest",
+						fmt.Sprintf("invalid SAMLRequest: %s", invalidRequestErr.Reason),
 						invalidRequestErr.GetDetailElements(),
 					),
 					RelayState: relayState,
