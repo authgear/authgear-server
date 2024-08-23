@@ -1,0 +1,62 @@
+@layer components {
+  :root {
+    --settings_widget__bg-color: var(--color-surface-primary);
+    --settings_widget__width: 100%;
+    --settings_widget__max-width: 605px;
+    --settings_widget__border-radius: 0;
+    --settings_widget__box-shadow: none;
+    --settings_widget__border: none;
+    --settings_widget__bg_position: center;
+    --settings_widget__bg_repeat: no-repeat;
+    --settings_widget__bg_size: cover;
+
+    @media (min-width: theme("screens.tablet")) {
+      --settings_widget__border-radius: var(--border-radius-large);
+      --settings_widget__box-shadow: none;
+      --settings_widget__border: none;
+    }
+  }
+
+  :root.dark {
+    --settings_widget__bg-color: var(--color-surface-primary);
+    --settings_widget__bg-image: ;
+  }
+
+  .settings-widget {
+    width: var(--settings_widget__width);
+    border-radius: var(--settings_widget__border-radius);
+    border: var(--settings_widget__border);
+    box-shadow: var(--settings_widget__box-shadow);
+    background-color: var(--settings_widget__bg-color);
+    background-image: var(--settings_widget__bg-image);
+    background-repeat: var(--settings_widget__bg_repeat);
+    background-position: var(--settings_widget__bg_position);
+    background-size: var(--settings_widget__bg_size);
+    @apply flex flex-col overflow-hidden;
+  }
+
+  .settings-widget-content {
+    @apply relative;
+    @apply h-full w-full;
+    @apply px-8 py-8;
+    @apply flex flex-col;
+    @apply self-center;
+    max-width: var(--settings_widget__max-width);
+  }
+
+  /* In __html_head.html, there is a <noscript> element to revert this visibility. */
+  :root:not([alignment-content]) .settings-settings_widget {
+    /* This rule is to prevent ui shifting before the attribute added */
+    @apply invisible;
+  }
+
+  @media (min-width: theme("screens.tablet")) {
+    .settings-widget {
+      max-width: var(--settings_widget__max-width);
+    }
+
+    .settings-widget-content {
+      @apply self-stretch;
+    }
+  }
+}

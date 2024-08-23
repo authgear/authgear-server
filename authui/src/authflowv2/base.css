@@ -140,7 +140,7 @@
     --typography-headline-small__font-size: 1.25rem;
     --typography-headline-small__line-height: 1.6em; /* 32px */
     --typography-headline-small__letter-spacing: 0;
-    --typography-headline-small_font-weight: 700;
+    --typography-headline-small__font-weight: 700;
 
     --typography-title-medium__font-family: inherit;
     --typography-title-medium__font-size: 1rem;

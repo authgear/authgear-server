@@ -8,7 +8,7 @@
     --screen-title__letter-spacing: var(
       --typography-headline-small__letter-spacing
     );
-    --screen-title__font-weight: var(--typography-headline-small_font-weight);
+    --screen-title__font-weight: var(--typography-headline-small__font-weight);
     --screen-title__text-color: var(--color-neutral-700);
   }
   :root.dark {

@@ -43,7 +43,7 @@
     {{ if eq .type "login_id" }}
     {{ if eq .login_id_type "email" }}
       <a
-        class="settings-btn w-full row-sep"
+        class="settings-item w-full row-sep"
         {{ if .identity_id }}
           href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
         {{ else }}
@@ -61,7 +61,7 @@
             {{ .display_id }}
           </div>
           <div class="flex justify-end">
-          <i class="settings-btn__alternative_icon material-icons">
+          <i class="settings-item__alternative_icon material-icons">
             arrow_forward_ios
           </i>
           </div>
@@ -71,7 +71,7 @@
 
       {{ if eq .login_id_type "phone" }}
       <a
-        class="settings-btn w-full row-sep"
+        class="settings-item w-full row-sep"
         {{ if .identity_id }}
           href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
         {{ else }}
@@ -80,7 +80,7 @@
       >
         <div class="grid grid-cols-3 gap-y-2 w-full">
           <div class="flex gap-2">
-            <i class="settings-btn__icon material-icons">
+            <i class="settings-item__icon material-icons">
               phone_iphone
             </i>
             {{ template "v2-settings-phone" . }}
@@ -89,7 +89,7 @@
             {{ .display_id }}
           </div>
           <div class="flex justify-end">
-          <i class="settings-btn__alternative_icon material-icons">
+          <i class="settings-item__alternative_icon material-icons">
             arrow_forward_ios
           </i>
           </div>
@@ -99,7 +99,7 @@
 
       {{ if eq .login_id_type "username" }}
       <a
-        class="settings-btn w-full row-sep"
+        class="settings-item w-full row-sep"
         {{ if .identity_id }}
           href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
         {{ else }}
@@ -108,7 +108,7 @@
       >
         <div class="grid grid-cols-3 gap-y-2 w-full">
           <div class="flex gap-2">
-            <i class="settings-btn__icon material-icons">
+            <i class="settings-item__icon material-icons">
               account_circle
             </i>
             {{ template "v2-settings-username" . }}
@@ -117,7 +117,7 @@
             {{ .display_id }}
           </div>
           <div class="flex justify-end">
-          <i class="settings-btn__alternative_icon material-icons">
+          <i class="settings-item__alternative_icon material-icons">
             arrow_forward_ios
           </i>
           </div>
@@ -128,18 +128,18 @@
     {{ end}}
 
     <a
-      class="settings-btn w-full row-sep"
+      class="settings-item w-full row-sep"
       href="{{ call $.MakeURL "/settings/v2/identity" }}"
     >
       <div class="grid grid-cols-2 gap-y-2 w-full">
         <div class="flex gap-2">
-          <i class="settings-btn__icon material-icons">
+          <i class="settings-item__icon material-icons">
             link
           </i>
           {{ template "v2-settings-social-accounts" . }}
         </div>
         <div class="flex justify-end">
-        <i class="settings-btn__alternative_icon material-icons">
+        <i class="settings-item__alternative_icon material-icons">
           arrow_forward_ios
         </i>
         </div>
