@@ -57,7 +57,10 @@
             {{ template "v2-settings-email" . }}
           </div>
           <div class="flex flex-col text-start settings-description">
-            {{ .display_id }}
+            <!-- Render items of array $.Emails -->
+            {{ range $i, $email := $.Emails }}
+              {{ $email }}
+            {{ end }}
           </div>
           <div class="flex justify-end">
           <i class="settings-item__alternative_icon material-icons">
@@ -85,7 +88,9 @@
             {{ template "v2-settings-phone" . }}
           </div>
           <div class="flex flex-col text-start settings-description">
-            {{ .display_id }}
+            {{ range $i, $phone := $.PhoneNumbers }}
+              {{ $phone }}
+            {{ end }}
           </div>
           <div class="flex justify-end">
           <i class="settings-item__alternative_icon material-icons">
@@ -113,7 +118,9 @@
             {{ template "v2-settings-username" . }}
           </div>
           <div class="flex flex-col text-start settings-description">
-            {{ .display_id }}
+            {{ range $i, $username := $.PreferredUsernames }}
+              {{ $username }}
+            {{ end }}
           </div>
           <div class="flex justify-end">
           <i class="settings-item__alternative_icon material-icons">
