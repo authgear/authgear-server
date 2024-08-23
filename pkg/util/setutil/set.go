@@ -2,7 +2,7 @@ package setutil
 
 import (
 	"cmp"
-	"sort"
+	"slices"
 )
 
 type Set[T cmp.Ordered] map[T]struct{}
@@ -48,7 +48,7 @@ func (s Set[T]) Keys() []T {
 	for k, _ := range s {
 		keys = append(keys, k)
 	}
-	sort.Slice(keys, cmp.Less)
+	slices.SortFunc(keys, cmp.Compare[T])
 	return keys
 }
 
