@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --checkbox__size: 1.125em;
+    --checkbox__size: 1.125rem;
     --checkbox__border-radius: 0.25em;
     --checkbox__ring-width: 1.5px;
     --checkbox__ring-color: var(--color-neutral-200);

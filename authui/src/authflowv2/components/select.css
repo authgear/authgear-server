@@ -55,7 +55,7 @@
       var(--select__search-input-font-size) * 1.5
     );
 
-    --select__options-height: 100%;
+    --select__options-max-height: 100%;
     --select__options-py: 1em;
     --select__options-px: calc(var(--select__font-size) * 1);
     --select__options-space-y: 0.5em;
@@ -75,8 +75,8 @@
     --select__empty-font-weight: var(--typography-body-large-font-weight);
 
     @media (min-width: theme("screens.tablet")) {
-      --select__options-height: 18em;
-      --select__dropdown-width: 21.5625em;
+      --select__options-max-height: 18rem;
+      --select__dropdown-width: 22rem;
     }
   }
 
@@ -223,7 +223,7 @@
     @apply flex-col;
 
     padding: var(--select__options-py) var(--select__options-px);
-    max-height: var(--select__options-height);
+    max-height: var(--select__options-max-height);
     overflow-y: auto;
 
     @apply space-y-[var(--select\_\_options\_\_space-y)];

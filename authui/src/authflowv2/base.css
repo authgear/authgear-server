@@ -124,52 +124,58 @@
 
   /* Typography */
   :root {
+    --typography-headline-small__font-family: inherit;
+    --typography-headline-small__font-size: 1.5rem;
+    --typography-headline-small__line-height: 2rem;
+    --typography-headline-small__letter-spacing: 0;
+    --typography-headline-small__font-weight: 700;
+
     --typography-headline-medium__font-family: inherit;
     --typography-headline-medium__font-size: 1.75rem;
-    --typography-headline-medium__line-height: 1.21428571429em; /* 34 / 28 = 1.21428571429 */
+    --typography-headline-medium__line-height: 2.125rem;
     --typography-headline-medium__letter-spacing: 0;
     --typography-headline-medium__font-weight: 700;
 
     --typography-title-medium__font-family: inherit;
     --typography-title-medium__font-size: 1rem;
-    --typography-title-medium__line-height: 1.5em;
-    --typography-title-medium__letter-spacing: 0.009375em;
+    --typography-title-medium__line-height: 1.5rem;
+    --typography-title-medium__letter-spacing: 0.009375rem;
     --typography-title-medium__font-weight: 500;
 
     --typography-title-large__font-family: inherit;
     --typography-title-large__font-size: 1.5rem;
-    --typography-title-large__line-height: 1.1428571429em; /* 32 / 28 = 1.1428571429 */
+    --typography-title-large__line-height: 1.75rem;
     --typography-title-large__letter-spacing: 0;
     --typography-title-large__font-weight: 700;
 
     --typography-label-large__font-family: inherit;
     --typography-label-large__font-size: 1rem;
-    --typography-label-large__line-height: 1.5em;
-    --typography-label-large__letter-spacing: 0.00625em;
+    --typography-label-large__line-height: 1.5rem;
+    --typography-label-large__letter-spacing: 0.00625rem;
     --typography-label-large__font-weight: 600;
 
     --typography-label-medium__font-family: inherit;
     --typography-label-medium__font-size: 0.875rem;
-    --typography-label-medium__line-height: 1.42857142857em; /* 20 / 14 = 1.42857142857 */
-    --typography-label-medium__letter-spacing: 0.03571428571em; /* 0.5 / 14 = 0.03571428571 */
+    --typography-label-medium__line-height: 1.25rem;
+    --typography-label-medium__letter-spacing: 0.03125rem;
     --typography-label-medium__font-weight: 600;
 
     --typography-body-small__font-family: inherit;
     --typography-body-small__font-size: 0.75rem;
-    --typography-body-small__line-height: 1.33333333333em; /* 16 / 12 = 1.33333333333 */
-    --typography-body-small__letter-spacing: 0.03333333333em; /* 0.4 / 12 = 0.03333333333 */
+    --typography-body-small__line-height: 1rem;
+    --typography-body-small__letter-spacing: 0.025rem;
     --typography-body-small__font-weight: 500;
 
     --typography-body-medium__font-family: inherit;
     --typography-body-medium__font-size: 0.875rem;
-    --typography-body-medium__line-height: 1.42857142857em; /* 20 / 14 = 1.42857142857 */
-    --typography-body-medium__letter-spacing: 0.01785714285em; /* 0.25 / 14 = 0.01785714285 */
+    --typography-body-medium__line-height: 1.25rem;
+    --typography-body-medium__letter-spacing: 0.015625rem;
     --typography-body-medium__font-weight: 500;
 
     --typography-body-large__font-family: inherit;
     --typography-body-large__font-size: 1rem;
-    --typography-body-large__line-height: 1.5em;
-    --typography-body-large__letter-spacing: 0.03125em;
+    --typography-body-large__line-height: 1.5rem;
+    --typography-body-large__letter-spacing: 0.03125rem;
     --typography-body-large__font-weight: 500;
   }
 

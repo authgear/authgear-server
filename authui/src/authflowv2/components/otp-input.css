@@ -11,8 +11,8 @@
     --otp-input__digit-ring-width--focus: 1.5px;
     --otp-input__digit-ring-width--error: 1.5px;
     --otp-input__digit-border-radius: var(--border-radius-rounded-large);
-    --otp-input__digit-width: 2.5em;
-    --otp-input__digit-height: 2.75em;
+    --otp-input__digit-width: 2.5rem;
+    --otp-input__digit-height: 2.75rem;
 
     /* Not actually using css-masks features, ignoring stylelint false positive */
     /* stylelint-disable-next-line plugin/no-unsupported-browser-features */
