@@ -236,6 +236,11 @@ func (c *Coordinator) IdentityCreateByAdmin(userID string, spec *identity.Spec, 
 		return nil, err
 	}
 
+	// Remove any anonymous identity this user has.
+	if err := c.removeAnonymousIdentitiesOfUser(userID); err != nil {
+		return nil, err
+	}
+
 	if err := c.StdAttrsService.PopulateIdentityAwareStandardAttributes(userID); err != nil {
 		return nil, err
 	}
@@ -274,6 +279,26 @@ func (c *Coordinator) IdentityCreateByAdmin(userID string, spec *identity.Spec, 
 	}
 
 	return iden, nil
+}
+
+func (c *Coordinator) removeAnonymousIdentitiesOfUser(userID string) (err error) {
+	idens, err := c.Identities.ListByUser(userID)
+	if err != nil {
+		return
+	}
+
+	anonymousIdentities := identity.ApplyFilters(
+		idens,
+		identity.KeepType(model.IdentityTypeAnonymous),
+	)
+	for _, iden := range anonymousIdentities {
+		err = c.Identities.Delete(iden)
+		if err != nil {
+			return
+		}
+	}
+
+	return
 }
 
 // nolint: gocognit
