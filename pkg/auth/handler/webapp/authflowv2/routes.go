@@ -73,6 +73,8 @@ const (
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
 
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
+
+	AuthflowV2RouteSettingsProfile = "/settings/v2/profile"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {
