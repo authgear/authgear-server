@@ -45,6 +45,7 @@ mutation createIdentityMutation(
 		}
 	) {
 		user {
+			standardAttributes
 			identities {
 				edges {
 					node {
@@ -75,7 +76,7 @@ mutation createIdentityMutation(
 			},
 		})
 		So(err, ShouldBeNil)
-		So(rawResponse, ShouldEqualJSON, `
+		So(createIdentity_removeUpdatedAtInStandardAttributes(rawResponse), ShouldEqualJSON, `
 {
     "data": {
         "createIdentity": {
@@ -108,6 +109,10 @@ mutation createIdentityMutation(
                             }
                         }
                     ]
+                },
+                "standardAttributes": {
+                    "email": "user@example.com",
+                    "email_verified": false
                 }
             }
         }
@@ -150,6 +155,7 @@ mutation createIdentityMutation(
 		}
 	) {
 		user {
+			standardAttributes
 			identities {
 				edges {
 					node {
@@ -180,7 +186,7 @@ mutation createIdentityMutation(
 			},
 		})
 		So(err, ShouldBeNil)
-		So(rawResponse, ShouldEqualJSON, `
+		So(createIdentity_removeUpdatedAtInStandardAttributes(rawResponse), ShouldEqualJSON, `
 {
     "data": {
         "createIdentity": {
@@ -203,16 +209,20 @@ mutation createIdentityMutation(
                         {
                             "node": {
                                 "claims": {
-                                    "phone_number": "+85298765432",
                                     "https://authgear.com/claims/login_id/key": "phone",
                                     "https://authgear.com/claims/login_id/original_value": "+85298765432",
                                     "https://authgear.com/claims/login_id/type": "phone",
-                                    "https://authgear.com/claims/login_id/value": "+85298765432"
+                                    "https://authgear.com/claims/login_id/value": "+85298765432",
+                                    "phone_number": "+85298765432"
                                 },
                                 "type": "LOGIN_ID"
                             }
                         }
                     ]
+                },
+                "standardAttributes": {
+                    "phone_number": "+85298765432",
+                    "phone_number_verified": false
                 }
             }
         }
@@ -263,6 +273,7 @@ mutation createIdentityMutation(
 		}
 	) {
 		user {
+			standardAttributes
 			identities {
 				edges {
 					node {
@@ -294,7 +305,7 @@ mutation createIdentityMutation(
 			},
 		})
 		So(err, ShouldBeNil)
-		So(rawResponse, ShouldEqualJSON, `
+		So(createIdentity_removeUpdatedAtInStandardAttributes(rawResponse), ShouldEqualJSON, `
 {
     "data": {
         "createIdentity": {
@@ -325,6 +336,10 @@ mutation createIdentityMutation(
                             }
                         }
                     ]
+                },
+                "standardAttributes": {
+                    "email": "user@example.com",
+                    "email_verified": false
                 }
             }
         }
@@ -356,4 +371,23 @@ func createIdentity_getUserID(cmd *testrunner.End2EndCmd) (userID string, err er
 
 	row := rows[0].(map[string]interface{})
 	return row["id"].(string), nil
+}
+
+func createIdentity_removeUpdatedAtInStandardAttributes(rawJSON string) (out string) {
+	var o map[string]interface{}
+	err := json.Unmarshal([]byte(rawJSON), &o)
+	if err != nil {
+		panic(err)
+	}
+
+	stdAttrs := o["data"].(map[string]interface{})["createIdentity"].(map[string]interface{})["user"].(map[string]interface{})["standardAttributes"].(map[string]interface{})
+	delete(stdAttrs, "updated_at")
+
+	b, err := json.Marshal(o)
+	if err != nil {
+		panic(err)
+	}
+
+	out = string(b)
+	return
 }
