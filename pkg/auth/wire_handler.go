@@ -15,7 +15,6 @@ import (
 	handlersiwe "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
-	handlerwebappsettingsv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/settingsv2"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/web"
@@ -423,7 +422,7 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 func newWebAppSettingsV2Handler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebappsettingsv2.SettingsV2Handler)),
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.SettingsV2Handler)),
 	))
 }
 

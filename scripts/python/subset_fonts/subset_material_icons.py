@@ -23,14 +23,12 @@ if __name__ == '__main__':
     icon_names = codepoints_dict.keys()
 
   # Find icon names in authflowv2 templates and css files
-  html_directory_path_authflowv2 = '../../resources/authgear/templates/en/web/authflowv2/**/*.html'
-  html_directory_path_settingsv2 = '../../resources/authgear/templates/en/web/settingsv2/**/*.html'
+  html_directory_path = '../../resources/authgear/templates/en/web/authflowv2/**/*.html'
   css_directory_path = '../../authui/src/authflowv2/**/*.css'
   icon_name_list_path = './subset_fonts/material-icons.txt'
 
   filtered_icon_names = \
-    filter_icon_names_from_path(icon_names, html_directory_path_authflowv2) | \
-    filter_icon_names_from_path(icon_names, html_directory_path_settingsv2) | \
+    filter_icon_names_from_path(icon_names, html_directory_path) | \
     filter_icon_names_from_path(icon_names, css_directory_path)
 
   filtered_codepoints = [codepoints_dict[name] for name in filtered_icon_names if name in codepoints_dict]
