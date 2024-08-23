@@ -63,7 +63,7 @@ const DeleteUserDialog: React.VFC<DeleteUserDialogProps> = React.memo(
         return;
       }
       scheduleAccountDeletion(userID)
-        .then(() => onDismiss(true))
+        .then(() => onDismiss(false))
         .catch(() => onDismiss(false));
       onDismiss(false);
     }, [loading, isHidden, scheduleAccountDeletion, userID, onDismiss]);
