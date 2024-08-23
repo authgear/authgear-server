@@ -130,8 +130,8 @@ func TestSAMLService(t *testing.T) {
 				Field:  "NameIDPolicy/Format",
 				Actual: format,
 				Expected: []string{
-					"urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
 					"urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+					"urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
 				},
 				Reason: "unsupported NameIDPolicy Format",
 			})
