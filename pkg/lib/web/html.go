@@ -33,6 +33,7 @@ var TemplateWebAuthflowV2LayoutHTML = template.RegisterHTML("web/authflowv2/layo
 var TemplateWebAuthflowV2HTMLHeadHTML = template.RegisterHTML("web/authflowv2/__html_head.html")
 var TemplateWebAuthflowV2LoadBotProtectionHTML = template.RegisterHTML("web/authflowv2/__load_bot_protection.html")
 var TemplateWebAuthflowV2GeneratedAssetHTML = template.RegisterHTML("web/authflowv2/__generated_asset.html")
+var TemplateWebAuthflowV2BasePageFrameHTML = template.RegisterHTML("web/authflowv2/__base_page_frame.html")
 var TemplateWebAuthflowV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__page_frame.html")
 var TemplateWebAuthflowV2DialogHTML = template.RegisterHTML("web/authflowv2/__dialog.html")
 var TemplateWebAuthflowV2BotProtectionWidgetHTML = template.RegisterHTML("web/authflowv2/__bot_protection_widget.html")
@@ -88,6 +89,7 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2HTMLHeadHTML,
 	TemplateWebAuthflowV2LoadBotProtectionHTML,
 	TemplateWebAuthflowV2GeneratedAssetHTML,
+	TemplateWebAuthflowV2BasePageFrameHTML,
 	TemplateWebAuthflowV2PageFrameHTML,
 	TemplateWebAuthflowV2DialogHTML,
 	TemplateWebAuthflowV2BotProtectionWidgetHTML,

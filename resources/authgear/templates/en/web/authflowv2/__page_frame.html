@@ -1,48 +1,9 @@
 {{ define "authflowv2/__page_frame.html" }}
-<!DOCTYPE html>
-
-<html
-{{ if and ($.DarkThemeEnabled) (not $.LightThemeEnabled) }}
-  class="dark"
-{{ end }}
-  lang="{{ $.ResolvedLanguageTag }}"
-  dir="{{ $.HTMLDir }}"
-  data-controller="format-date-relative inline-preview"
-  data-dark-theme-enabled="{{ $.DarkThemeEnabled }}"
-  data-light-theme-enabled="{{ $.LightThemeEnabled }}"
-  data-watermark-enabled={{ $.WatermarkEnabled }}
-  data-inline-preview="{{ $.InlinePreview }}"
-  data-inline-preview-previewable-resource-outlet=".translated-message,.brand-logo"
-  data-inline-preview-is-inline-preview-value="{{ $.InlinePreview }}"
-  >
-{{ template "authflowv2/__html_head.html" . }}
-
-{{ $lockedUntil := "" }}
-{{ if and (.Error) (eq .Error.reason "AccountLockout") }}
-  {{ $lockedUntil = (rfc3339 (ensureTime .Error.info.until)) }}
+{{ template "authflowv2/__base_page_frame.html" . }}
 {{ end }}
 
-<body
-  {{/* "loading" is assumed to be defined in document.body["data-controller"] in TurboFormController */}}
-  data-controller="prevent-double-tap lockout restore-form loading authflow-passkey-error bot-protection"
-  data-restore-form-json-value="{{ $.FormJSON }}"
-  data-action="dblclick->prevent-double-tap#action"
-  data-inline-preview-previewable-resource-outlet=".translated-message,.brand-logo"
-  data-inline-preview-is-inline-preview-value="{{ $.InlinePreview }}"
-  data-lockout-format-date-relative-outlet="[data-controller='format-date-relative']"
-  data-lockout-lock-until-value="{{ $lockedUntil }}"
-  data-lockout-action-button-selector-value="[data-action-button]">
-
-<!-- Google Tag Manager (noscript) -->
-{{ if $.GoogleTagManagerContainerID }}
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $.GoogleTagManagerContainerID }}"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-{{ end }}
-<!-- End Google Tag Manager (noscript) -->
-
+{{ define "page-frame-content" }}
 {{ template "web/authflowv2/layout.html" . }}
-</body>
-</html>
 {{ end }}
 
 {{ define "widget" }}
