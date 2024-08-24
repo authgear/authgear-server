@@ -1096,11 +1096,11 @@
   "v2-csrf-error-instruction-default-step1": "Go to Settings",
   "v2-csrf-error-instruction-default-step2": "Go to Privacy and security",
   "v2-csrf-error-instruction-default-step3": "Allow cookies or On-device site data",
-  "v2-settings-edit-profile": "<a href=\"{href}\">Edit Profile</a>",
-  "v2-settings-my-account": "My Account",
-  "v2-settings-my-account-description": "This is the method to sign in to your account",
-  "v2-settings-email": "Email",
-  "v2-settings-phone": "Phone",
-  "v2-settings-username": "Username",
-  "v2-settings-social-accounts": "Social Account"
+  "v2.page.settings.default.links.edit-profile": "<a href=\"{href}\">Edit Profile</a>",
+  "v2.page.settings.default.title-my-account": "My Account",
+  "v2.page.settings.default.description-my-account": "This is the method to sign in to your account",
+  "v2.page.settings.default.button-label-email": "Email",
+  "v2.page.settings.default.button-label-phone": "Phone",
+  "v2.page.settings.default.button-label-username": "Username",
+  "v2.page.settings.default.button-label-social-accounts": "Social Account"
 }

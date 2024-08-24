@@ -20,7 +20,7 @@
       </div>
       <p class="body-text--lg">
         {{ $editProfileHref := call $.MakeURL "/settings/v2/profile"}}
-        {{ template "v2-settings-edit-profile" (dict "href" $editProfileHref )}}
+        {{ template "v2.page.settings.default.links.edit-profile" (dict "href" $editProfileHref )}}
       </p>
 
     </div>
@@ -30,10 +30,10 @@
   <div class="flex flex-col gap-2">
     <div class="flex flex-col gap-1">
       <div class="settings-title text-start">
-        {{ template "v2-settings-my-account" . }}
+        {{ template "v2.page.settings.default.title-my-account" . }}
       </div>
       <div class="settings-description text-start">
-        {{ template "v2-settings-my-account-description" . }}
+        {{ template "v2.page.settings.default.description-my-account" . }}
       </div>
     </div>
 
@@ -54,7 +54,7 @@
             <i class="alternative-icon material-icons">
               mail
             </i>
-            {{ template "v2-settings-email" . }}
+            {{ template "v2.page.settings.default.button-label-email" . }}
           </div>
           <div class="flex-1 flex-col text-start settings-description">
             {{ range $i, $email := $.Emails }}
@@ -86,7 +86,7 @@
             <i class="alternative-icon material-icons">
               phone_iphone
             </i>
-            {{ template "v2-settings-phone" . }}
+            {{ template "v2.page.settings.default.button-label-phone" . }}
           </div>
           <div class="flex-1 flex-col text-start settings-description">
             {{ range $i, $phone := $.PhoneNumbers }}
@@ -118,7 +118,7 @@
             <i class="alternative-icon material-icons">
               account_circle
             </i>
-            {{ template "v2-settings-username" . }}
+            {{ template "v2.page.settings.default.button-label-username" . }}
           </div>
           <div class="flex-1 flex-col text-start settings-description">
             {{ range $i, $username := $.PreferredUsernames }}
@@ -147,7 +147,7 @@
           <i class="alternative-icon material-icons">
             link
           </i>
-          {{ template "v2-settings-social-accounts" . }}
+          {{ template "v2.page.settings.default.button-label-social-accounts" . }}
         </div>
         <div class="flex items-center">
           <i class="settings-item__alternative_icon material-icons">
