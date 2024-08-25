@@ -39,6 +39,7 @@ type IdentityService interface {
 	Get(id string) (*identity.Info, error)
 	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
 	ListByUser(userID string) ([]*identity.Info, error)
+	ListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error)
 	ListByClaim(name string, value string) ([]*identity.Info, error)
 	ListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
@@ -185,6 +186,10 @@ func (c *Coordinator) IdentitySearchBySpec(spec *identity.Spec) (exactMatch *ide
 
 func (c *Coordinator) IdentityListByUser(userID string) ([]*identity.Info, error) {
 	return c.Identities.ListByUser(userID)
+}
+
+func (c *Coordinator) IdentityListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error) {
+	return c.Identities.ListIdentitiesThatHaveStandardAttributes(userID)
 }
 
 func (c *Coordinator) IdentityListByClaim(name string, value string) ([]*identity.Info, error) {

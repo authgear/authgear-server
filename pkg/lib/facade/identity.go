@@ -22,6 +22,10 @@ func (i IdentityFacade) ListByUser(userID string) ([]*identity.Info, error) {
 	return i.Coordinator.IdentityListByUser(userID)
 }
 
+func (i IdentityFacade) ListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error) {
+	return i.Coordinator.IdentityListIdentitiesThatHaveStandardAttributes(userID)
+}
+
 func (i IdentityFacade) ListByClaim(name string, value string) ([]*identity.Info, error) {
 	return i.Coordinator.IdentityListByClaim(name, value)
 }

@@ -550,6 +550,76 @@ func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
 
 }
 
+func (s *Service) ListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error) {
+	userIDs := []string{userID}
+
+	extractIDs := func(idRefs []*model.IdentityRef) []string {
+		ids := []string{}
+		for _, idRef := range idRefs {
+			ids = append(ids, idRef.ID)
+		}
+		return ids
+	}
+
+	infos := []*identity.Info{}
+
+	{
+		typeLoginID := model.IdentityTypeLoginID
+		loginIDRefs, err := s.Store.ListRefsByUsers(userIDs, &typeLoginID)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(loginIDRefs) > 0 {
+			loginIDs, err := s.LoginID.GetMany(extractIDs(loginIDRefs))
+			if err != nil {
+				return nil, err
+			}
+			for _, i := range loginIDs {
+				infos = append(infos, i.ToInfo())
+			}
+		}
+	}
+
+	{
+		typeOAuth := model.IdentityTypeOAuth
+		oauthRefs, err := s.Store.ListRefsByUsers(userIDs, &typeOAuth)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(oauthRefs) > 0 {
+			oauths, err := s.OAuth.GetMany(extractIDs(oauthRefs))
+			if err != nil {
+				return nil, err
+			}
+			for _, i := range oauths {
+				infos = append(infos, i.ToInfo())
+			}
+		}
+	}
+
+	{
+		typeLDAP := model.IdentityTypeLDAP
+		ldapRefs, err := s.Store.ListRefsByUsers(userIDs, &typeLDAP)
+		if err != nil {
+			return nil, err
+		}
+
+		if len(ldapRefs) > 0 {
+			ldaps, err := s.LDAP.GetMany(extractIDs(ldapRefs))
+			if err != nil {
+				return nil, err
+			}
+			for _, i := range ldaps {
+				infos = append(infos, i.ToInfo())
+			}
+		}
+	}
+
+	return infos, nil
+}
+
 func (s *Service) Count(userID string) (uint64, error) {
 	return s.Store.Count(userID)
 }
