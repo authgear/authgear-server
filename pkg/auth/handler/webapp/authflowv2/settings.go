@@ -18,7 +18,7 @@ var TemplateWebSettingsV2HTML = template.RegisterHTML(
 func ConfigureSettingsV2Route(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET", "POST").
-		WithPathPattern("/settings")
+		WithPathPattern(SettingsV2RouteSettings)
 }
 
 type SettingsV2Handler struct {
