@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/jwtutil"
@@ -35,12 +36,17 @@ type EventService interface {
 	DispatchEventOnCommit(payload event.Payload) error
 }
 
+type AccessTokenEncodingIdentityService interface {
+	ListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error)
+}
+
 type AccessTokenEncoding struct {
 	Secrets       *config.OAuthKeyMaterials
 	Clock         clock.Clock
 	IDTokenIssuer IDTokenIssuer
 	BaseURL       BaseURLProvider
 	Events        EventService
+	Identities    AccessTokenEncodingIdentityService
 }
 
 func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig, clientLike *ClientLike, grant *AccessGrant, userID string, token string) (string, error) {
@@ -70,12 +76,23 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		return "", err
 	}
 
+	identities, err := e.Identities.ListIdentitiesThatHaveStandardAttributes(userID)
+	if err != nil {
+		return "", err
+	}
+
+	var identityModels []model.Identity
+	for _, i := range identities {
+		identityModels = append(identityModels, i.ToModel())
+	}
+
 	eventPayload := &blocking.OIDCJWTPreCreateBlockingEventPayload{
 		UserRef: model.UserRef{
 			Meta: model.Meta{
 				ID: userID,
 			},
 		},
+		Identities: identityModels,
 		JWT: blocking.OIDCJWT{
 			Payload: forMutation,
 		},

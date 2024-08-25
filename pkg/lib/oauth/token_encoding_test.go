@@ -63,6 +63,7 @@ func TestAccessToken(t *testing.T) {
 
 		mockIDTokenIssuer := NewMockIDTokenIssuer(ctrl)
 		mockEventService := NewMockEventService(ctrl)
+		mockIdentityService := NewMockAccessTokenEncodingIdentityService(ctrl)
 
 		encoding := &AccessTokenEncoding{
 			Secrets:       secrets,
@@ -72,7 +73,8 @@ func TestAccessToken(t *testing.T) {
 				HTTPHost:  "test1.authgear.com",
 				HTTPProto: "http",
 			},
-			Events: mockEventService,
+			Events:     mockEventService,
+			Identities: mockIdentityService,
 		}
 
 		client := &config.OAuthClientConfig{
@@ -92,6 +94,7 @@ func TestAccessToken(t *testing.T) {
 		mockEventService.EXPECT().DispatchEventOnCommit(gomock.Any()).Return(nil)
 		mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
 		mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), "user-id", clientLike).Return(nil)
+		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes("user-id").Return(nil, nil)
 
 		accessToken, err := encoding.EncodeAccessToken(client, clientLike, accessGrant, "user-id", "token")
 		So(err, ShouldBeNil)
