@@ -181,6 +181,7 @@ Use this event to add custom fields to the JWT access token.
 {
   "payload": {
     "user": { /* ... */ },
+    "identities": [ ],
     "jwt": {
       "payload": {
         "iss": "issuer",
@@ -191,6 +192,8 @@ Use this event to add custom fields to the JWT access token.
   }
 }
 ```
+
+- `identities`: This contain all Login ID identities, OAuth identities, or LDAP identities that the user has.
 
 ### Non-blocking Events
 
