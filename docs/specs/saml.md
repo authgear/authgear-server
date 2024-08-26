@@ -280,12 +280,12 @@ saml:
   service_providers:
     - id: EXAMPLE_ID
       nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
-      nameid_attribute_pointer: /username
+      nameid_attribute_pointer: /preferred_username
 ```
 
 - `nameid_attribute_pointer`: The JSON pointer pointing to a user's standard attribute or custom attribute which will be used as the NameID. The login will fail if the attribute does not exist or it is empty. The default is `/sub`. Only the following values are accepted:
   - `/sub`: The user id. This is the default.
-  - `/username`: The username.
+  - `/preferred_username`: The username.
   - `/email`: The email.
   - `/phone_number`: The phone number.
 
@@ -296,7 +296,7 @@ saml:
   service_providers:
     - id: EXAMPLE_ID
       nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
-      nameid_attribute_pointer: /username
+      nameid_attribute_pointer: /preferred_username
 ```
 
 - `nameid_format`: Optional. The `NameIDFormat` used in SAML assertions. Default `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified`.
@@ -399,7 +399,7 @@ saml:
         mappings:
           - from_user_profile_attribute: /email
             to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
-          - from_user_profile_attribute: /username
+          - from_user_profile_attribute: /preferred_username
             to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
           - hook: authgeardeno:///deno/saml_mapping.ts
 ```
@@ -665,7 +665,7 @@ saml:
       slo_enabled: true
       logout_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
       nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
-      nameid_attribute_pointer: /username
+      nameid_attribute_pointer: /preferred_username
       attributes:
         definitions:
           - name: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
@@ -677,7 +677,7 @@ saml:
         mappings:
           - from_user_profile_attribute: /email
             to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
-          - from_user_profile_attribute: /username
+          - from_user_profile_attribute: /preferred_username
             to_saml_attribute: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn
           - hook: authgeardeno:///deno/saml_mapping.ts
 ```
