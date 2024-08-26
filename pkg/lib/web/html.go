@@ -67,6 +67,7 @@ var TemplateWebAuthflowV2DeviceTokenCheckboxHTML = template.RegisterHTML("web/au
 var TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML = template.RegisterHTML("web/authflowv2/__toc_pp_footer.html")
 var TemplateWebAuthflowV2WatermarkHTML = template.RegisterHTML("web/authflowv2/__watermark.html")
 var TemplateWebAuthflowV2CSRFErrorPageLayoutHTML = template.RegisterHTML("web/authflowv2/__csrf_error_page_layout.html")
+var TemplateWebAuthflowV2LogoBannerHTML = template.RegisterHTML("web/authflowv2/__logo_banner.html")
 
 var TemplateWebSettingsV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__settings_page_frame.html")
 
@@ -124,6 +125,7 @@ var BaseComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML,
 	TemplateWebAuthflowV2WatermarkHTML,
 	TemplateWebAuthflowV2CSRFErrorPageLayoutHTML,
+	TemplateWebAuthflowV2LogoBannerHTML,
 }
 
 var ComponentsHTML []*template.HTML

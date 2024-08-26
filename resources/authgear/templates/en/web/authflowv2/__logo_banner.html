@@ -1,0 +1,54 @@
+{{ define "authflowv2/__logo_banner.html" }}
+
+{{/* Always initialize src to an empty string */}}
+{{ $light := "" }}
+{{ $dark := "" }}
+
+{{ if $.LightThemeEnabled }}
+  {{ $light = call $.StaticAssetURL "app-logo" }}
+{{ end }}
+
+{{ if $.DarkThemeEnabled }}
+  {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
+{{ end }}
+
+<div>
+{{ if $.ClientURI }}
+  <a class="banner-logo__container light" href="{{ $.ClientURI }}">
+    <img
+      src="{{ $light }}"
+      class="banner-logo light"
+    >
+  </a>
+  <a class="banner-logo__container dark" href="{{ $.ClientURI }}">
+    <img
+      src="{{ $dark }}"
+      class="banner-logo dark"
+    >
+  </a>
+{{ else }}
+  <div class="banner-logo__container light">
+    <img
+      src="{{ $light }}"
+      class="banner-logo light"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-light"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .light }}"
+    >
+  </div>
+  <div class="banner-logo__container dark">
+    <img
+      class="banner-logo dark"
+      src="{{ $dark }}"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-dark"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .dark }}"
+    >
+  </div>
+{{ end }}
+</div>
+
+
+{{ end }}
