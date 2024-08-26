@@ -52,19 +52,19 @@ func (o QueryPageOptions) applyQueryStringFilter(q db.SelectBuilder) db.SelectBu
 
 	switch {
 	case hasUserIDs && hasEmail && hasPhone:
-		q = q.Where("(user_id = ANY (?) OR data->'payload'->>'recipient' = ANY (?))", pq.Array(o.UserIDs), pq.Array(mergedEmailsAndPhones))
+		q = q.Where("(user_id = ANY (?) OR data#>>'{payload,recipient}' = ANY (?))", pq.Array(o.UserIDs), pq.Array(mergedEmailsAndPhones))
 	case hasUserIDs && hasEmail && !hasPhone:
-		q = q.Where("(user_id = ANY (?) OR data->'payload'->>'recipient' = ANY (?))", pq.Array(o.UserIDs), pq.Array(o.EmailAddresses))
+		q = q.Where("(user_id = ANY (?) OR data#>>'{payload,recipient}' = ANY (?))", pq.Array(o.UserIDs), pq.Array(o.EmailAddresses))
 	case hasUserIDs && !hasEmail && hasPhone:
-		q = q.Where("(user_id = ANY (?) OR data->'payload'->>'recipient' = ANY (?))", pq.Array(o.UserIDs), pq.Array(o.PhoneNumbers))
+		q = q.Where("(user_id = ANY (?) OR data#>>'{payload,recipient}' = ANY (?))", pq.Array(o.UserIDs), pq.Array(o.PhoneNumbers))
 	case hasUserIDs && !hasEmail && !hasPhone:
 		q = q.Where("user_id = ANY (?)", pq.Array(o.UserIDs))
 	case !hasUserIDs && hasEmail && hasPhone:
-		q = q.Where("data->'payload'->>'recipient' = ANY (?)", pq.Array(mergedEmailsAndPhones))
+		q = q.Where("data#>>'{payload,recipient}' = ANY (?)", pq.Array(mergedEmailsAndPhones))
 	case !hasUserIDs && hasEmail && !hasPhone:
-		q = q.Where("data->'payload'->>'recipient' = ANY (?)", pq.Array(o.EmailAddresses))
+		q = q.Where("data#>>'{payload,recipient}' = ANY (?)", pq.Array(o.EmailAddresses))
 	case !hasUserIDs && !hasEmail && hasPhone:
-		q = q.Where("data->'payload'->>'recipient' = ANY (?)", pq.Array(o.PhoneNumbers))
+		q = q.Where("data#>>'{payload,recipient}' = ANY (?)", pq.Array(o.PhoneNumbers))
 	case !hasUserIDs && !hasEmail && !hasPhone:
 		fallthrough
 	default:
