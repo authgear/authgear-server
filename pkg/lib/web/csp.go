@@ -216,10 +216,7 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 	}
 	scriptSrc = append(
 		scriptSrc,
-		wwwgoogletagmanagercom,
 		euassetsiposthogcom,
-		challengescloudflarecom,
-		wwwgooglecom,
 		CSPHostSource{
 			Scheme: "https",
 			Host:   "browser.sentry-cdn.com",
