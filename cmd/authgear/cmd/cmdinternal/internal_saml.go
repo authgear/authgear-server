@@ -21,6 +21,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
+func init() {
+	cmdInternal.AddCommand(cmdInternalSaml)
+	cmdInternalSaml.AddCommand(cmdInternalSamlGenerateSigningKey)
+}
+
 var cmdInternalSaml = &cobra.Command{
 	Use:   "saml",
 	Short: "SAML commands",
