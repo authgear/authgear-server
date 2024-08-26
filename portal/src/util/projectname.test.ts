@@ -1,47 +1,69 @@
 import { describe, it, expect } from "@jest/globals";
-import { maskNumber, deterministicProjectName } from "./projectname";
+import {
+  deterministicProjectName,
+  extractBits,
+  projectNameWithCompanyName,
+} from "./projectname";
 
-describe("maskNumber", () => {
-  it("should mask the number starting from 0 bit and get 11 bits after it", () => {
-    expect(maskNumber(12345678, 0, 11)).toEqual(334);
+describe("extractBits", () => {
+  it("should handle bytes that look like signed bits", () => {
+    expect(
+      extractBits(
+        new Uint8Array([
+          0b10000000, 0b10000001, 0b10000010, 0b10000011, 0b10000100,
+          0b10000101,
+        ])
+      )
+    ).toEqual([0b10000000100, 0b0000110000010100000111000010010]);
   });
 
-  it("should mask the number starting from 20 bit and get 5 bits after it", () => {
-    expect(maskNumber(12345678, 20, 5)).toEqual(11);
+  it("should handle bytes", () => {
+    expect(
+      extractBits(
+        new Uint8Array([
+          0b00000000, 0b00000001, 0b00000010, 0b00000011, 0b00000100,
+          0b00000101,
+        ])
+      )
+    ).toEqual([0b00000000000, 0b0000100000010000000110000010000]);
   });
 });
 
 describe("deterministicProjectName", () => {
-  it("deterministicProjectName(0) is 'abandon-abandon-0'", () => {
-    // 0 is 0b00000000000_00000000000_0000000000
-    // 0b00000000000 is abandon
-    // 0b0000000000 is 0
-    // So the name is abandon-abandon-0
-    expect(deterministicProjectName(0)).toEqual("abandon-abandon-0");
+  it("deterministicProjectName([0, 0, 0, 0, 0, 0]) is 'abandon-000000'", () => {
+    // [0, 0, 0, 0, 0, 0] is 0b00000000000_0000000000000000000000000000000_000000
+    // 0b00000000000 is 'abandon'
+    // 0000000000000000000000000000000 is '000000'
+    // last 6 bits 000000 is not used
+    // So the name is 'abandon-000000'
+    const fortyEightBits = new Uint8Array([0, 0, 0, 0, 0, 0]);
+    expect(deterministicProjectName(fortyEightBits)).toEqual("abandon-000000");
   });
 
-  it("deterministicProjectName(1) is ''", () => {
-    // 1 is 0b00000000000_00000000000_0000000001
-    // 0b00000000000 is abandon
-    // 0b0000000001 is 1
-    // So the name is abandon-abandon-1
-    expect(deterministicProjectName(1)).toEqual("abandon-abandon-1");
+  it("deterministicProjectName([0, 0, 0, 0, 1, 0]) is 'abandon-000004'", () => {
+    // [0, 0, 0, 0, 1, 0] is 0b00000000000_0000000000000000000000000000100_000000
+    // 0b00000000000 is 'abandon'
+    // 0000000000000000000000000000100 is '000004'
+    // last 6 bits 000000 is not used
+    // So the name is 'abandon-000000'
+    const fortyEightBits = new Uint8Array([0, 0, 0, 0, 1, 0]);
+    expect(deterministicProjectName(fortyEightBits)).toEqual("abandon-000004");
   });
 
-  it("deterministicProjectName(87878787) is ''", () => {
-    // 87878787 is 0b00000101001_11100111011_0010000011
-    // 0b00000101001 is ahead
-    // 0b11100111011 is trash
-    // 0b0010000011 is 131
-    // So the name is ahead-trash-131
-    expect(deterministicProjectName(87878787)).toEqual("ahead-trash-131");
+  it("deterministicProjectName([87, 87, 87, 87, 87, 87]) is 'firm-pwldul' ", () => {
+    // [87, 87, 87, 87, 87, 87] is 0b01010111010_1011101010111010101110101011101_010111
+    // 0b0b01010111010 is 'firm'
+    // 1011101010111010101110101011101 is 'pwldul'
+    // last 6 bits 010111 is not used
+    // So the name is 'firm-000000'
+    const fortyEightBits = new Uint8Array([87, 87, 87, 87, 87, 87]);
+    expect(deterministicProjectName(fortyEightBits)).toEqual("firm-pwldul");
   });
+});
 
-  it("deterministicProjectName(4294967295) is ''", () => {
-    // 4294967295 (2^32 - 1) is 0b11111111111_11111111111_1111111111
-    // 0b11111111111 is zoo
-    // 0b1111111111 is 1023
-    // So the name is zoo-zoo-1023
-    expect(deterministicProjectName(4294967295)).toEqual("zoo-zoo-1023");
+describe("projectNameWithCompanyName", () => {
+  it("projectNameWithCompanyName('authgear') starts with 'authgear-` and ends with 6 lowercase-alphanumeric characters", () => {
+    const authgearProjectName = projectNameWithCompanyName("authgear");
+    expect(authgearProjectName).toMatch(/^authgear-[a-z0-9]{6}$/);
   });
 });

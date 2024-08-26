@@ -15,8 +15,7 @@ import { ErrorParseRule, makeReasonErrorParseRule } from "../../error/parse";
 import { useSimpleForm } from "../../hook/useSimpleForm";
 import {
   randomProjectName,
-  getRandom32BitsNumber,
-  maskNumber,
+  projectNameWithCompanyName,
 } from "../../util/projectname";
 import PrimaryButton from "../../PrimaryButton";
 
@@ -75,14 +74,6 @@ function processCompanyName(companyName: string): string {
     .toLowerCase();
 }
 
-function addRandomNumberSuffix(intermediateProjectName: string): string {
-  return (
-    intermediateProjectName +
-    "-" +
-    maskNumber(getRandom32BitsNumber(), 0, 10).toString()
-  );
-}
-
 function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
   const { numberOfApps } = props;
   const navigate = useNavigate();
@@ -104,7 +95,7 @@ function CreateProjectScreenContent(props: CreateProjectScreenContentProps) {
     if (typedState) {
       const intermediateName = processCompanyName(typedState.company_name);
       if (intermediateName !== "")
-        defaultState.appID = addRandomNumberSuffix(intermediateName);
+        defaultState.appID = projectNameWithCompanyName(intermediateName);
     }
     return defaultState;
   }, [state]);
