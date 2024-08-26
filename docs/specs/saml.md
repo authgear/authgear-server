@@ -279,11 +279,11 @@ saml:
 saml:
   service_providers:
     - id: ENTITY_ID
-      name_id_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
-      name_id_attribute_pointer: /username
+      nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+      nameid_attribute_pointer: /username
 ```
 
-- `name_id_attribute_pointer`: The JSON pointer pointing to a user's standard attribute or custom attribute which will be used as the NameID. The login will fail if the attribute does not exist or it is empty. The default is `/sub`. Only the following values are accepted:
+- `nameid_attribute_pointer`: The JSON pointer pointing to a user's standard attribute or custom attribute which will be used as the NameID. The login will fail if the attribute does not exist or it is empty. The default is `/sub`. Only the following values are accepted:
   - `/sub`: The user id. This is the default.
   - `/username`: The username.
   - `/email`: The email.
@@ -295,12 +295,12 @@ saml:
 saml:
   service_providers:
     - id: ENTITY_ID
-      name_id_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
-      name_id_attribute_pointer: /username
+      nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+      nameid_attribute_pointer: /username
 ```
 
-- `name_id_format`: Optional. The `NameIDFormat` used in SAML assertions. Default `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified`.
-- `name_id_attribute_pointer`: Optional. See the above [Configure NameID when using urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified](#3_1_1) section for details. Default `/sub`. Only effective if `name_id_format` is `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified`.
+- `nameid_format`: Optional. The `NameIDFormat` used in SAML assertions. Default `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified`.
+- `nameid_attribute_pointer`: Optional. See the above [Configure NameID when using urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified](#3_1_1) section for details. Default `/sub`. Only effective if `nameid_format` is `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified`.
 
 ### <a id="3_3"></a> Unsupported `NameIDFormat`
 
@@ -664,8 +664,8 @@ saml:
       logout_callback_url: https://app1.example.com/logout
       slo_enabled: true
       logout_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
-      name_id_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
-      name_id_attribute_pointer: /username
+      nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+      nameid_attribute_pointer: /username
       attributes:
         definitions:
           - name: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
@@ -695,7 +695,7 @@ saml:
             destination: https://www.google.com/a/example.com/acs
             acs_urls:
               - https://www.google.com/a/example.com/acs
-            name_id_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+            nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
       ```
     - Setup SSO profile by filling in the following information: [(Reference)](https://support.google.com/a/answer/12032922?hl=en&ref_topic=7579248&sjid=6814148323019762018-AP#org_profile)
       - Sign-in page URL: https://example.authgear.cloud/saml2/login/ENTITY_ID
