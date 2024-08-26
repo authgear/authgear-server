@@ -102,6 +102,7 @@ saml:
       recipient: https://example.com/acs
       acs_urls:
         - https://example.com/acs
+      assertion_valid_duration: 1h
 ```
 
 - `saml.service_providers`: Required. A list of objects containing the configurations of a Service Provider. The objects in the list contains the following fields:
@@ -110,6 +111,7 @@ saml:
   - `destination`: Optional. `Destination` of the `<Response>` generated at the end of Browser SSO flow. If not set, the `Destination` will be the Assertion Consumer Service URL.
   - `recipient`: Optional. `Recipient` of the `<Subject>` generated at the end of Browser SSO flow. If not set, the `Recipient` will be the Assertion Consumer Service URL.
   - `acs_urls`: Required. A list of strings. The minimum number of items is 1. The list of allowed `AssertionConsumerServiceURL`s to be used in an `<AuthnRequest>` issued by a SP. If `AssertionConsumerServiceURL` is not set in `<AuthnRequest>`, or it is an IdP-initiated flow, the first item in the list will be picked as the `AssertionConsumerServiceURL`.
+  - `assertion_valid_duration`: Optional. A duration string represents the valid duration of the issued SAML Assertions. Default `20m`, which is 20 minutes.
 
 ### <a id="1_4"></a> Supported Parameters in `<AuthnRequest>`
 
@@ -661,6 +663,7 @@ saml:
       recipient: https://example.com/acs
       acs_urls: 
         - https://example.com/acs
+      assertion_valid_duration: 1h
       logout_callback_url: https://app1.example.com/logout
       slo_enabled: true
       logout_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
