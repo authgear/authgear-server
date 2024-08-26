@@ -837,7 +837,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *Ta
 			options.DisableFallbackToSMS,
 		)
 		return TakeBranchResultInput{
-			Input: input,
+			Input: resultInput,
 			NewAuthflowScreenFull: func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse {
 				isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 					return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
