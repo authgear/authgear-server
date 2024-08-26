@@ -362,7 +362,7 @@ func (TakeBranchResultSimple) takeBranchResult() {}
 type TakeBranchResultInputRetryHandler func(err error) (nextInput interface{})
 
 type TakeBranchResultInput struct {
-	Input                 interface{}
+	Input                 map[string]interface{}
 	NewAuthflowScreenFull func(flowResponse *authflow.FlowResponse, retriedForError error) *AuthflowScreenWithFlowResponse
 	OnRetry               *TakeBranchResultInputRetryHandler
 }
