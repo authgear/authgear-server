@@ -122,7 +122,7 @@ saml:
 
   - `<Format>`: If provided, `NameID` will be returned in the specified format. See [NameID](#3) section for supported formats.
   - `<AllowCreate>`: If `true`, user can signup a new user during the SSO flow. Else, only login to an existing user is allowed. The default is `true`. Note that according to the SAML specification, the default value should be `false`, but we decided to change the default to `true` to match the behavior of the OIDC flow.
-  - `SPNameQualifier`: Not supported. Will be ignored if provided.
+  - `SPNameQualifier`: Not supported. If provided, it MUST be the entity ID of the service provider, or it will be an error.
 
 - `<saml:Conditions>`
 
@@ -130,7 +130,7 @@ saml:
 
 - `<RequestedAuthnContext>`
 
-  - Not supported. Will be ignored if provided.
+  - Not supported. If provided, only `<AuthnContextClassRef>` with value `urn:oasis:names:tc:SAML:2.0:ac:classes:unspecified` is accepted. Others will be an error.
 
 - `<Scoping>`
 
@@ -153,7 +153,7 @@ saml:
 
 - `<AssertionConsumerServiceIndex>`
 
-  - Not supported. Will be ignored if provided.
+  - Not supported. Use `<AssertionConsumerServiceURL>` to specify the Assertion Consumer Service URL. Will be an error if provided.
 
 - `<AssertionConsumerServiceURL>`
 
