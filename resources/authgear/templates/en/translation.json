@@ -1110,5 +1110,6 @@
   "v2.page.settings.default.button-label-mfa": "2-Factor Authentication",
   "v2.page.settings.default.button-label-biometric-login": "Biometric Login",
   "v2.page.settings.default.button-label-signed-in-devices": "Signed-in Devices",
-  "v2.page.settings.default.button-label-advanced-settings": "Advanced Settings"
+  "v2.page.settings.default.button-label-advanced-settings": "Advanced Settings",
+  "v2.page.settings.default.button-label-back-to-app": "Back to my app"
 }

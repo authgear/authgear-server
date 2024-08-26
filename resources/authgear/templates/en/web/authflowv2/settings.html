@@ -297,6 +297,22 @@
     </div>
   </div>
 
+  {{ if and $.ClientURI (not $.IsNativePlatform) }}
+  <div class="flex justify-center">
+    <a
+      class="secondary-btn w-86"
+      href="{{ $.ClientURI }}"
+    >
+      <div class="flex gap-2 items-center">
+        <i class="alternative-icon material-icons">
+          home
+        </i>
+        {{ template "v2.page.settings.default.button-label-back-to-app" . }}
+      </div>
+    </a>
+  </div>
+  {{ end}}
+
 
 
 

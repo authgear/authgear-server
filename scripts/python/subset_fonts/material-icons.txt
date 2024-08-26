@@ -40,6 +40,7 @@ function
 functions
 height
 hide
+home
 html
 https
 iframe
@@ -103,6 +104,7 @@ serif
 settings
 settings_alert
 shadow
+share
 shortcut
 smartphone
 sms
