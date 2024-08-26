@@ -187,6 +187,12 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
                 onChange={designForm.lightThemeSetters.setAppLogo}
               />
             </Configuration>
+            {designForm.state.selectedLanguage !==
+            designForm.state.fallbackLanguage ? (
+              <FallbackDescription
+                fallbackLanguage={designForm.state.fallbackLanguage}
+              />
+            ) : null}
             <TextField
               label={renderToString(
                 "DesignScreen.configuration.logo.height.label.light"
@@ -205,6 +211,12 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
                 onChange={designForm.darkThemeSetters.setAppLogo}
               />
             </Configuration>
+            {designForm.state.selectedLanguage !==
+            designForm.state.fallbackLanguage ? (
+              <FallbackDescription
+                fallbackLanguage={designForm.state.fallbackLanguage}
+              />
+            ) : null}
             <TextField
               label={renderToString(
                 "DesignScreen.configuration.logo.height.label.dark"
@@ -214,12 +226,6 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
               onChange={onLogoHeightChangeDark}
             />
           </>
-        ) : null}
-        {designForm.state.selectedLanguage !==
-        designForm.state.fallbackLanguage ? (
-          <FallbackDescription
-            fallbackLanguage={designForm.state.fallbackLanguage}
-          />
         ) : null}
       </ConfigurationGroup>
     );
