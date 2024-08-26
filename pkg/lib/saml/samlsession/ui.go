@@ -66,10 +66,13 @@ func (r *UIService) RemoveSAMLSessionID(w http.ResponseWriter, req *http.Request
 
 func (r *UIService) ResolveUIInfo(entry *SAMLSessionEntry) (*SAMLUIInfo, error) {
 	var prompt []string
-	authnRequest := entry.AuthnRequest()
+	authnRequest, authnRequestExist := entry.AuthnRequest()
 	switch {
+	case !authnRequestExist:
+		// This is an Idp-Initiated flow, allow user to select_account or login
+		prompt = []string{}
 	case authnRequest.GetIsPassive() == false && authnRequest.GetForceAuthn() == false:
-		prompt = []string{"select_account"}
+		prompt = []string{}
 	case authnRequest.GetIsPassive() == false && authnRequest.GetForceAuthn() == true:
 		prompt = []string{"login"}
 	case authnRequest.GetIsPassive() == true && authnRequest.GetForceAuthn() == false:

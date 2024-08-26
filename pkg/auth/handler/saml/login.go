@@ -1,6 +1,7 @@
 package saml
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -77,6 +78,17 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
+		if errors.Is(err, samlbinding.ErrNoRequest) {
+			// This is a IdP-initated flow
+			result := h.handleIdpInitiated(
+				r.Context(),
+				sp,
+				callbackURL,
+			)
+			h.writeResult(rw, r, result)
+			return
+		}
+
 		var parseRequestFailedErr *samlerror.ParseRequestFailedError
 		if errors.As(err, &parseRequestFailedErr) {
 			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
@@ -139,71 +151,14 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		callbackURL = authnRequest.AssertionConsumerServiceURL
 	}
 
-	samlSessionEntry := &samlsession.SAMLSessionEntry{
-		ServiceProviderID: sp.ID,
-		AuthnRequestXML:   string(authnRequest.ToXMLBytes()),
-		CallbackURL:       callbackURL,
-		RelayState:        relayState,
-	}
-
-	if authnRequest.GetIsPassive() == true {
-		// If IsPassive=true, no ui should be displayed.
-		// Authenticate by existing session or error.
-		var resolvedSession session.ResolvedSession
-		if s := session.GetSession(r.Context()); s != nil {
-			resolvedSession = s
-		}
-		// Ignore any session that is not allow to be used here
-		if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.PreAuthenticatedURLScope}) {
-			resolvedSession = nil
-		}
-
-		if resolvedSession == nil {
-			// No session, return NoPassive error.
-			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
-				samlprotocolhttp.SAMLResult{
-					CallbackURL: callbackURL,
-					Binding:     samlprotocol.SAMLBindingHTTPPost,
-					Response: samlprotocol.NewNoPassiveErrorResponse(
-						now,
-						issuer,
-					),
-					RelayState: relayState,
-				},
-			)
-			h.writeResult(rw, r, errResponse)
-			return
-		} else {
-			// Else, authenticate with the existing session.
-			authInfo := resolvedSession.CreateNewAuthenticationInfoByThisSession()
-			// TODO(saml): If <Subject> is provided in the request,
-			// ensure the user of current session matches the subject.
-			result := h.LoginResultHandler.handleLoginResult(&authInfo, samlSessionEntry)
-			h.writeResult(rw, r, result)
-			return
-		}
-
-	}
-
-	uiInfo, err := h.SAMLUIService.ResolveUIInfo(samlSessionEntry)
-	if err != nil {
-		panic(err)
-	}
-
-	samlSession := samlsession.NewSAMLSession(samlSessionEntry, uiInfo)
-	err = h.SAMLSessionService.Save(samlSession)
-	if err != nil {
-		panic(err)
-	}
-
-	endpoint, err := h.SAMLUIService.BuildAuthenticationURL(samlSession)
-	if err != nil {
-		panic(err)
-	}
-
-	result := &httputil.ResultRedirect{
-		URL: endpoint.String(),
-	}
+	result := h.startSSOFlow(
+		r.Context(),
+		sp,
+		string(authnRequest.ToXMLBytes()),
+		callbackURL,
+		relayState,
+		authnRequest.GetIsPassive(),
+	)
 	h.writeResult(rw, r, result)
 }
 
@@ -240,4 +195,98 @@ func (h *LoginHandler) writeResult(
 		}
 	}
 	result.WriteResponse(rw, r)
+}
+
+func (h *LoginHandler) handleIdpInitiated(
+	ctx context.Context,
+	sp *config.SAMLServiceProviderConfig,
+	callbackURL string,
+) httputil.Result {
+	return h.startSSOFlow(
+		ctx,
+		sp,
+		"",
+		callbackURL,
+		"",
+		false,
+	)
+}
+
+func (h *LoginHandler) startSSOFlow(
+	ctx context.Context,
+	sp *config.SAMLServiceProviderConfig,
+	authnRequestXML string,
+	callbackURL string,
+	relayState string,
+	isPassive bool,
+) httputil.Result {
+	now := h.Clock.NowUTC()
+	issuer := h.SAMLService.IdpEntityID()
+
+	samlSessionEntry := &samlsession.SAMLSessionEntry{
+		ServiceProviderID: sp.ID,
+		AuthnRequestXML:   authnRequestXML,
+		CallbackURL:       callbackURL,
+		RelayState:        relayState,
+	}
+
+	if isPassive == true {
+		// If IsPassive=true, no ui should be displayed.
+		// Authenticate by existing session or error.
+		var resolvedSession session.ResolvedSession
+		if s := session.GetSession(ctx); s != nil {
+			resolvedSession = s
+		}
+		// Ignore any session that is not allow to be used here
+		if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.PreAuthenticatedURLScope}) {
+			resolvedSession = nil
+		}
+
+		if resolvedSession == nil {
+			// No session, return NoPassive error.
+			err := fmt.Errorf("no session but IsPassive=true")
+			result := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
+				samlprotocolhttp.SAMLResult{
+					CallbackURL: callbackURL,
+					Binding:     samlprotocol.SAMLBindingHTTPPost,
+					Response: samlprotocol.NewNoPassiveErrorResponse(
+						now,
+						issuer,
+					),
+					RelayState: relayState,
+				},
+			)
+			return result
+		} else {
+			// Else, authenticate with the existing session.
+			authInfo := resolvedSession.CreateNewAuthenticationInfoByThisSession()
+			// TODO(saml): If <Subject> is provided in the request,
+			// ensure the user of current session matches the subject.
+			result := h.LoginResultHandler.handleLoginResult(&authInfo, samlSessionEntry)
+			return result
+		}
+
+	}
+
+	uiInfo, err := h.SAMLUIService.ResolveUIInfo(samlSessionEntry)
+	if err != nil {
+		panic(err)
+	}
+
+	samlSession := samlsession.NewSAMLSession(samlSessionEntry, uiInfo)
+	err = h.SAMLSessionService.Save(samlSession)
+	if err != nil {
+		panic(err)
+	}
+
+	endpoint, err := h.SAMLUIService.BuildAuthenticationURL(samlSession)
+	if err != nil {
+		panic(err)
+	}
+
+	result := &httputil.ResultRedirect{
+		URL: endpoint.String(),
+	}
+
+	return result
 }

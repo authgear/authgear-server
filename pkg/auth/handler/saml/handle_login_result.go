@@ -50,7 +50,7 @@ func (h *LoginResultHandler) handleLoginResult(
 
 	var response *samlprotocol.Response
 	err := h.Database.WithTx(func() error {
-		authnRequest := samlSessionEntry.AuthnRequest()
+		authnRequest, _ := samlSessionEntry.AuthnRequest()
 
 		resp, err := h.SAMLService.IssueSuccessResponse(
 			callbackURL,
