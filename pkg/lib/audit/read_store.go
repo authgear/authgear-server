@@ -46,9 +46,9 @@ func (o QueryPageOptions) applyQueryStringFilter(q db.SelectBuilder) db.SelectBu
 	hasEmail := len(o.EmailAddresses) > 0
 	hasPhone := len(o.PhoneNumbers) > 0
 
-	mergedEmailsAndPhones := o.EmailAddresses
+	mergedEmailsAndPhones := append([]string(nil), o.EmailAddresses...)
 	mergedEmailsAndPhones = append(mergedEmailsAndPhones, o.PhoneNumbers...)
-	mergedEmailsAndPhones = slice.Deduplicate[string](mergedEmailsAndPhones)
+	mergedEmailsAndPhones = slice.Deduplicate(mergedEmailsAndPhones)
 
 	switch {
 	case hasUserIDs && hasEmail && hasPhone:
