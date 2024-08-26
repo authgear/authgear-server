@@ -3,6 +3,7 @@ import {
   cleanRawInputValue,
   trimCountryCallingCode,
   makePartialValue,
+  validatePhoneNumber,
 } from "./phone";
 
 it("cleanRawInputValue", () => {
@@ -23,4 +24,21 @@ it("makePartialValue", () => {
   expect(makePartialValue("+", "852")).toEqual("+852");
   expect(makePartialValue("+852", "852")).toEqual("+852");
   expect(makePartialValue("123", "852")).toEqual("+852123");
+});
+
+it("validatePhoneNumber", () => {
+  // invalid
+  expect(validatePhoneNumber("")).toEqual(null); // need digits
+  expect(validatePhoneNumber("+")).toEqual(null); // need digits
+  expect(validatePhoneNumber("+  ")).toEqual(null); // need digits
+  expect(validatePhoneNumber("+852 9 9 9  99 999")).toEqual(null); // no space in middle
+
+  // valid
+  expect(validatePhoneNumber("+-")).toEqual("+-"); // edge case, expected
+  expect(validatePhoneNumber("+852")).toEqual("+852"); // valid
+  expect(validatePhoneNumber("   +81     ")).toEqual("+81"); // trimmed
+  expect(validatePhoneNumber("\t\r\n+85299999999\t\r\n")).toEqual(
+    "+85299999999"
+  ); // trimmed
+  expect(validatePhoneNumber("+852-9999-9999")).toEqual("+852-9999-9999"); // dashes in middle allowed
 });

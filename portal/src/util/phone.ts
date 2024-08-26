@@ -39,3 +39,11 @@ export function makePartialValue(
   const trimmed = trimCountryCallingCode(rawInputValue, countryCallingCode);
   return `+${countryCallingCode}${trimmed}`;
 }
+
+export function validatePhoneNumber(inp: string): string | null {
+  const lookLike = /^\s*\+[-0-9]+\s*$/.test(inp);
+  if (lookLike) {
+    return inp.trim();
+  }
+  return null;
+}
