@@ -33,6 +33,9 @@ const AppLogoPicker: React.VFC<AppLogoPickerProps> = function AppLogoPicker(
   const imagePreviewData =
     logo.base64EncodedData ?? logo.fallbackBase64EncodedData;
 
+  const isShowingFallbackImage =
+    logo.base64EncodedData == null && logo.fallbackBase64EncodedData != null;
+
   return (
     <BaseImagePicker
       className={cn("flex", "items-center", "gap-x-6")}
@@ -65,6 +68,14 @@ const AppLogoPicker: React.VFC<AppLogoPickerProps> = function AppLogoPicker(
                 className={cn("h-full", "w-full")}
                 imageFit={ImageFit.centerCover}
                 maximizeFrame={true}
+                styles={{
+                  image: isShowingFallbackImage
+                    ? {
+                        opacity: 0.3,
+                        filter: "grayscale(1)",
+                      }
+                    : null,
+                }}
               />
             )}
           </div>
