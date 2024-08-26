@@ -121,7 +121,7 @@ saml:
 - `<NameIDPolicy>`
 
   - `<Format>`: If provided, `NameID` will be returned in the specified format. See [NameID](#3) section for supported formats.
-  - `<AllowCreate>`: Not supported at the moment. The behavior is always `false`, which does not allow creating a new NameID when Subject exist.
+  - `<AllowCreate>`: If `true`, user can signup a new user during the SSO flow. Else, only login to an existing user is allowed. The default is `true`. Note that according to the SAML specification, the default value should be `false`, but we decided to change the default to `true` to match the behavior of the OIDC flow.
   - `SPNameQualifier`: Not supported. Will be ignored if provided.
 
 - `<saml:Conditions>`
