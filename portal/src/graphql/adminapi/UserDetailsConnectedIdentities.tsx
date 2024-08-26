@@ -56,6 +56,7 @@ interface IdentityClaim extends Record<string, unknown> {
   "https://authgear.com/claims/oauth/provider_type"?: OAuthSSOProviderType;
   "https://authgear.com/claims/oauth/subject_id"?: string;
   "https://authgear.com/claims/login_id/type"?: LoginIDIdentityType;
+  "https://authgear.com/claims/ldap/last_login_username"?: string;
   "https://authgear.com/claims/ldap/user_id_attribute_name"?: string;
   "https://authgear.com/claims/ldap/user_id_attribute_value"?: string;
 }
@@ -151,6 +152,7 @@ interface LDAPIdentityListItem {
   type: "ldap";
   verified: undefined;
   connectedOn: string;
+  lastLoginUserName?: string;
   userIDAttributeName?: string;
   userIDAttributeValue?: string;
 }
@@ -237,10 +239,7 @@ function getIdentityName(
     case "siwe":
       return createEIP681URL({ chainId: item.chainId, address: item.address });
     case "ldap":
-      if (item.userIDAttributeName && item.userIDAttributeValue) {
-        return `${item.userIDAttributeName}=${item.userIDAttributeValue}`;
-      }
-      return "";
+      return item.lastLoginUserName ?? "";
     default:
       return "";
   }
@@ -877,18 +876,32 @@ interface LDAPIdentityListCellProps {
   identityID: string;
   identityType: IdentityType;
   identityName: string;
+  userIDAttributeName?: string;
+  userIDAttributeValue?: string;
   verified?: boolean;
   connectedOn: string;
 }
 
 const LDAPIdentityListCell: React.VFC<LDAPIdentityListCellProps> = (props) => {
-  const { icon, identityName, verified, connectedOn } = props;
+  const {
+    icon,
+    identityName,
+    userIDAttributeName,
+    userIDAttributeValue,
+    verified,
+    connectedOn,
+  } = props;
 
   return (
-    <ListCellLayout className={styles.cellContainer}>
+    <ListCellLayout className={cn(styles.cellContainer, styles.ldap)}>
       <BaseIdentityListCellTitle as="Text" icon={icon}>
         {identityName}
       </BaseIdentityListCellTitle>
+      <Text className={styles.cellLDAPInfo} variant="medium">
+        {userIDAttributeName && userIDAttributeValue
+          ? `${userIDAttributeName}=${userIDAttributeValue}`
+          : "-"}
+      </Text>
       <BaseIdentityListCellDescription verified={verified}>
         <FormattedMessage
           id="UserDetails.connected-identities.added-on"
@@ -1093,6 +1106,10 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             type: "ldap",
             verified: undefined,
             connectedOn: createdAtStr,
+            lastLoginUserName:
+              identity.claims[
+                "https://authgear.com/claims/ldap/last_login_username"
+              ] ?? "",
             userIDAttributeName:
               identity.claims[
                 "https://authgear.com/claims/ldap/user_id_attribute_name"
@@ -1256,6 +1273,8 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
                 identityID={identityID}
                 identityType={identityType}
                 identityName={identityName}
+                userIDAttributeName={item.userIDAttributeName}
+                userIDAttributeValue={item.userIDAttributeValue}
                 verified={verified}
                 connectedOn={connectedOn}
               />
