@@ -1,0 +1,21 @@
+.widget {
+  grid-column: 1 / span 8;
+
+  @apply tablet:col-span-full;
+}
+
+.selector {
+  @apply py-6;
+}
+
+.optionsChild {
+  @apply ml-6 mt-1;
+}
+
+.options--last {
+  @apply mb-1;
+}
+
+.disabledText {
+  @apply text-[#A19F9D];
+}
