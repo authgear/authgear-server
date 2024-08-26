@@ -402,7 +402,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
   }, [debouncedSearchQuery, selectedKey]);
 
-  const userNodeIDs = useMemo(() => {
+  const queryUserIDs = useMemo(() => {
     if (queryEmailAddresses != null || queryPhoneNumbers != null) {
       return null;
     }
@@ -425,7 +425,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         pageSize,
         cursor,
         activityTypes,
-        userIDs: userNodeIDs,
+        userIDs: queryUserIDs,
         emailAddresses: queryEmailAddresses,
         phoneNumbers: queryPhoneNumbers,
         rangeFrom: queryRangeFrom,
