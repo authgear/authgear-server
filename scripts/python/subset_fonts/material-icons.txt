@@ -21,6 +21,7 @@ create
 css
 description
 details
+devices
 distance
 done
 download
@@ -32,6 +33,7 @@ error
 event
 explicit
 face
+fingerprint
 flag
 forward_to_inbox
 function
@@ -99,6 +101,7 @@ sentiment_very_dissatisfied
 sentiment_very_satisfied
 serif
 settings
+settings_alert
 shadow
 shortcut
 smartphone
@@ -120,6 +123,7 @@ translate
 try
 update
 uppercase
+verified_user
 visibility
 visibility_off
 warning

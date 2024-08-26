@@ -25,6 +25,7 @@ type SettingsV2Handler struct {
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
 	AuthenticationViewModel  *viewmodels.AuthenticationViewModeler
+	SettingsViewModel        *viewmodels.SettingsViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Identities               handlerwebapp.SettingsIdentityService
 	Renderer                 handlerwebapp.Renderer
@@ -38,6 +39,13 @@ func (h *SettingsV2Handler) GetData(r *http.Request, rw http.ResponseWriter) (ma
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
+
+	// SettingsViewModel
+	viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *viewModelPtr)
 
 	// SettingsProfileViewModel
 	profileViewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
