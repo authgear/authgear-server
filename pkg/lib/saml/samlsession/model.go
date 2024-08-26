@@ -32,12 +32,15 @@ func NewSAMLSession(entry *SAMLSessionEntry, uiInfo *SAMLUIInfo) *SAMLSession {
 	}
 }
 
-func (s *SAMLSessionEntry) AuthnRequest() *samlprotocol.AuthnRequest {
+func (s *SAMLSessionEntry) AuthnRequest() (*samlprotocol.AuthnRequest, bool) {
+	if s.AuthnRequestXML == "" {
+		return nil, false
+	}
 	r, err := samlprotocol.ParseAuthnRequest([]byte(s.AuthnRequestXML))
 	if err != nil {
 		// We should ensure only valid request stored in the session
 		// So it is a panic if we got something invalid here
 		panic(err)
 	}
-	return r
+	return r, true
 }

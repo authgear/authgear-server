@@ -260,7 +260,11 @@ func (s *Service) IssueSuccessResponse(
 
 	now := s.Clock.NowUTC()
 	issuerID := s.IdpEntityID()
-	response := samlprotocol.NewSuccessResponse(now, issuerID, inResponseToAuthnRequest.ID)
+	inResponseTo := ""
+	if inResponseToAuthnRequest != nil {
+		inResponseTo = inResponseToAuthnRequest.ID
+	}
+	response := samlprotocol.NewSuccessResponse(now, issuerID, inResponseTo)
 
 	// Referencing other SAML Idp implementations,
 	// use ACS url as default value of destination, recipient and audience
@@ -276,15 +280,17 @@ func (s *Service) IssueSuccessResponse(
 	}
 
 	nameIDFormat := sp.NameIDFormat
-	if nameIDFormatInRequest, ok := inResponseToAuthnRequest.GetNameIDFormat(); ok {
-		nameIDFormat = nameIDFormatInRequest
+	if inResponseToAuthnRequest != nil {
+		if nameIDFormatInRequest, ok := inResponseToAuthnRequest.GetNameIDFormat(); ok {
+			nameIDFormat = nameIDFormatInRequest
+		}
 	}
 
 	// allow for some clock skew
 	notBefore := now.Add(-1 * duration.ClockSkew)
 	assertionValidDuration := sp.AssertionValidDuration.Duration()
 	notOnOrAfter := now.Add(assertionValidDuration)
-	if notBefore.Before(inResponseToAuthnRequest.IssueInstant) {
+	if inResponseToAuthnRequest != nil && notBefore.Before(inResponseToAuthnRequest.IssueInstant) {
 		notBefore = inResponseToAuthnRequest.IssueInstant
 		notOnOrAfter = notBefore.Add(assertionValidDuration)
 	}
@@ -293,7 +299,7 @@ func (s *Service) IssueSuccessResponse(
 		NotBefore:    notBefore,
 		NotOnOrAfter: notOnOrAfter,
 	}
-	if inResponseToAuthnRequest.Conditions != nil {
+	if inResponseToAuthnRequest != nil && inResponseToAuthnRequest.Conditions != nil {
 		// Only allow conditions which are stricter than what we set by default
 		if !inResponseToAuthnRequest.Conditions.NotBefore.IsZero() && inResponseToAuthnRequest.Conditions.NotBefore.After(notBefore) {
 			conditions.NotBefore = inResponseToAuthnRequest.Conditions.NotBefore
@@ -312,8 +318,10 @@ func (s *Service) IssueSuccessResponse(
 	}
 
 	// Include audiences requested
-	for _, aud := range inResponseToAuthnRequest.CollectAudiences() {
-		audiences.Add(aud)
+	if inResponseToAuthnRequest != nil {
+		for _, aud := range inResponseToAuthnRequest.CollectAudiences() {
+			audiences.Add(aud)
+		}
 	}
 
 	audienceRestriction := samlprotocol.AudienceRestriction{
@@ -354,7 +362,7 @@ func (s *Service) IssueSuccessResponse(
 				{
 					Method: "urn:oasis:names:tc:SAML:2.0:cm:bearer",
 					SubjectConfirmationData: &samlprotocol.SubjectConfirmationData{
-						InResponseTo: inResponseToAuthnRequest.ID,
+						InResponseTo: inResponseTo,
 						NotOnOrAfter: notOnOrAfter,
 						Recipient:    recipient,
 					},

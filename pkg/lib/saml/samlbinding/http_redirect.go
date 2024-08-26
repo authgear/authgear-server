@@ -35,6 +35,9 @@ func SAMLBindingHTTPRedirectParse(r *http.Request) (
 	signature := r.URL.Query().Get("Signature")
 	sigAlg := r.URL.Query().Get("SigAlg")
 	samlRequest := r.URL.Query().Get("SAMLRequest")
+	if samlRequest == "" {
+		return nil, ErrNoRequest
+	}
 	compressedRequest, err := base64.StdEncoding.DecodeString(samlRequest)
 	if err != nil {
 		return result, &samlerror.ParseRequestFailedError{
