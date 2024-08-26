@@ -36,6 +36,7 @@ var TemplateWebTranslationMessageHTML = template.RegisterHTML("web/__translation
 
 // TODO: This file could be overridable per app, depends on the project plan in future
 var TemplateWebAuthflowV2LayoutHTML = template.RegisterHTML("web/authflowv2/layout.html")
+var TemplateWebAuthflowV2SettingsLayoutHTML = template.RegisterHTML("web/authflowv2/settings_layout.html")
 
 var TemplateWebAuthflowV2HTMLHeadHTML = template.RegisterHTML("web/authflowv2/__html_head.html")
 var TemplateWebAuthflowV2LoadBotProtectionHTML = template.RegisterHTML("web/authflowv2/__load_bot_protection.html")
@@ -96,6 +97,7 @@ var BaseComponentsHTML = []*template.HTML{
 	TemplateWebTranslationMessageHTML,
 
 	TemplateWebAuthflowV2LayoutHTML,
+	TemplateWebAuthflowV2SettingsLayoutHTML,
 	TemplateWebAuthflowV2HTMLHeadHTML,
 	TemplateWebAuthflowV2LoadBotProtectionHTML,
 	TemplateWebAuthflowV2GeneratedAssetHTML,

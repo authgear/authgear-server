@@ -1,0 +1,80 @@
+@layer components {
+  :root {
+    /* ! We share same background color & image with layout.css at the moment ! */
+    /* --settings-layout__bg-color: var(--color-surface-primary); */
+    --settings-layout__bg_position: center;
+    --settings-layout__bg_repeat: no-repeat;
+    --settings-layout__bg_size: cover;
+  }
+
+  /* ! We share same background color & image with layout.css at the moment ! */
+  /* :root.dark {
+    --settings-layout__bg-color: var(--color-surface-primary);
+    --settings-layout__bg-image: ;
+  } */
+
+  .settings-layout--default {
+    @apply flex flex-col flex-1-0-auto;
+    @apply items-center justify-start;
+
+    /* padding */
+    @apply tablet:px-16 desktop:px-60;
+
+    /* ! We share same background color with layout.css at the moment ! */
+    /* In mobile layout, we never see the background color */
+    /* Instead, the background-color should be the same as the widget's. */
+    /* In non-mobile layout, we see the true background-color */
+    @apply bg-[var(--color-surface-primary)] tablet:bg-[var(--layout\_\_bg-color)];
+
+    /* ! We share same background image with layout.css at the moment ! */
+    /* In mobile layout, we should never see the background image as well */
+    /* It should only show background-color that same as widget's background-color */
+    /* background-image should only be seen in non-mobile layout */
+    @media (min-width: theme("screens.tablet")) {
+      background-image: var(--layout__bg-image);
+      background-repeat: var(--settings-layout__bg_repeat);
+      background-position: var(--settings-layout__bg_position);
+      background-size: var(--settings-layout__bg_size);
+    }
+  }
+
+  /* alignment-card */
+  :root[alignment-card="start"] .settings-layout--default {
+    @apply tablet:items-start;
+  }
+  :root[alignment-card="center"] .settings-layout--default {
+    @apply tablet:items-center;
+  }
+  :root[alignment-card="end"] .settings-layout--default {
+    @apply tablet:items-end;
+  }
+
+  .settings-layout--default .widget {
+    /* In any layout, the widget should NOT grow, and take its initial size. */
+    @apply flex-initial;
+  }
+  .settings-layout--default .wide-widget {
+    /* In any layout, the wide widget should NOT grow, and take its initial size. */
+    @apply flex-initial;
+  }
+  .settings-layout__header--default {
+    /* In any layout, the layout header takes full widget. */
+    @apply w-full;
+    /* In mobile layout, the layout header takes 0 height. */
+    @apply min-h-0 h-0;
+    /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
+    /* And the initial size is controlled by min-height and max-height. */
+    @apply tablet:flex-auto tablet:min-h-8 tablet:max-h-8;
+  }
+  .settings-layout__footer--default {
+    /* In any layout, the layout header takes full widget. */
+    @apply w-full;
+    /* In mobile layout, the layout footer takes the remaining height. */
+    @apply flex-1;
+    /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
+    /* And the initial size is controlled by min-height and max-height. */
+    /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
+    /* And the initial size is controlled by min-height. */
+    @apply tablet:flex-auto tablet:min-h-8;
+  }
+}
