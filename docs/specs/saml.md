@@ -538,7 +538,7 @@ saml:
 - `saml.signing`: Required. Configurations of signing behvaiors. MUST be an object with the following fields:
   - `key_id`: Required. A string which points to a signing key secret inside the `saml.idp.signing` secret. See the below [Secrets] section for details.
   - `signature_method`: Optional. An enum which specifies the signing algorithm used to generate the signature. The only supported value is `RSAwithSHA256`. If not provided, it defaults to `RSAwithSHA256`. For details, see [xmldsig](https://www.w3.org/TR/xmldsig-core1/#sec-SignatureAlg).
-  - `digest_method`: Optional. An enum which specifies the digest method used. The supported values are `SHA1` and `SHA256`. If not provided, it defaults to `SHA256`. For details, see [xmldsig](https://www.w3.org/TR/xmldsig-core1/#sec-MessageDigests).
+  - `digest_method`: Optional. An enum which specifies the digest method used. The only supported value is `SHA256`. If not provided, it defaults to `SHA256`. For details, see [xmldsig](https://www.w3.org/TR/xmldsig-core1/#sec-MessageDigests).
 
 ### <a id="6_2"></a> Secrets
 
