@@ -14,9 +14,10 @@ type OIDCJWT struct {
 }
 
 type OIDCJWTPreCreateBlockingEventPayload struct {
-	UserRef   model.UserRef `json:"-" resolve:"user"`
-	UserModel model.User    `json:"user"`
-	JWT       OIDCJWT       `json:"jwt"`
+	UserRef    model.UserRef    `json:"-" resolve:"user"`
+	UserModel  model.User       `json:"user"`
+	Identities []model.Identity `json:"identities"`
+	JWT        OIDCJWT          `json:"jwt"`
 }
 
 func (e *OIDCJWTPreCreateBlockingEventPayload) BlockingEventType() event.Type {

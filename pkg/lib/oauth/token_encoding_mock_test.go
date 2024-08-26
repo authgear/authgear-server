@@ -9,6 +9,7 @@ import (
 	reflect "reflect"
 
 	event "github.com/authgear/authgear-server/pkg/api/event"
+	identity "github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	gomock "github.com/golang/mock/gomock"
 	jwt "github.com/lestrrat-go/jwx/v2/jwt"
 )
@@ -136,4 +137,42 @@ func (m *MockEventService) DispatchEventOnCommit(payload event.Payload) error {
 func (mr *MockEventServiceMockRecorder) DispatchEventOnCommit(payload interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventOnCommit", reflect.TypeOf((*MockEventService)(nil).DispatchEventOnCommit), payload)
+}
+
+// MockAccessTokenEncodingIdentityService is a mock of AccessTokenEncodingIdentityService interface.
+type MockAccessTokenEncodingIdentityService struct {
+	ctrl     *gomock.Controller
+	recorder *MockAccessTokenEncodingIdentityServiceMockRecorder
+}
+
+// MockAccessTokenEncodingIdentityServiceMockRecorder is the mock recorder for MockAccessTokenEncodingIdentityService.
+type MockAccessTokenEncodingIdentityServiceMockRecorder struct {
+	mock *MockAccessTokenEncodingIdentityService
+}
+
+// NewMockAccessTokenEncodingIdentityService creates a new mock instance.
+func NewMockAccessTokenEncodingIdentityService(ctrl *gomock.Controller) *MockAccessTokenEncodingIdentityService {
+	mock := &MockAccessTokenEncodingIdentityService{ctrl: ctrl}
+	mock.recorder = &MockAccessTokenEncodingIdentityServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockAccessTokenEncodingIdentityService) EXPECT() *MockAccessTokenEncodingIdentityServiceMockRecorder {
+	return m.recorder
+}
+
+// ListIdentitiesThatHaveStandardAttributes mocks base method.
+func (m *MockAccessTokenEncodingIdentityService) ListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListIdentitiesThatHaveStandardAttributes", userID)
+	ret0, _ := ret[0].([]*identity.Info)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListIdentitiesThatHaveStandardAttributes indicates an expected call of ListIdentitiesThatHaveStandardAttributes.
+func (mr *MockAccessTokenEncodingIdentityServiceMockRecorder) ListIdentitiesThatHaveStandardAttributes(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIdentitiesThatHaveStandardAttributes", reflect.TypeOf((*MockAccessTokenEncodingIdentityService)(nil).ListIdentitiesThatHaveStandardAttributes), userID)
 }

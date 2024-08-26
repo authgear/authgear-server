@@ -1098,6 +1098,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenIssuer: idTokenIssuer,
 		BaseURL:       endpointsEndpoints,
 		Events:        eventService,
+		Identities:    facadeIdentityFacade,
 	}
 	tokenGenerator := _wireTokenGeneratorValue
 	oauthAccessTokenEncoding := oauth2.AccessTokenEncoding{
@@ -1106,6 +1107,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IDTokenIssuer: idTokenIssuer,
 		BaseURL:       endpointsEndpoints,
 		Events:        eventService,
+		Identities:    facadeIdentityFacade,
 	}
 	accessGrantService := oauth2.AccessGrantService{
 		AppID:             appID,
