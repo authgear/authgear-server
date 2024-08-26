@@ -111,6 +111,7 @@ func doMain() (violations LintViolations, err error) {
 		Rules: []Rule{
 			IndentationRule{},
 			FinalNewlineRule{},
+			TranslationKeyRule{},
 		},
 		Path: path,
 	}
