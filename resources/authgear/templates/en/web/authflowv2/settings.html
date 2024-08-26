@@ -19,7 +19,7 @@
         {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="truncate">{{ $.EndUserAccountID }}</span>{{ end }}
       </div>
       <p class="body-text--lg">
-        {{ $editProfileHref := call $.MakeURL "/settings/v2/profile"}}
+        {{ $editProfileHref := call $.MakeURL "/settings/profile"}}
         {{ template "v2.page.settings.default.links.edit-profile" (dict "href" $editProfileHref )}}
       </p>
 
@@ -44,9 +44,9 @@
       <a
         class="settings-item w-full row-sep"
         {{ if .identity_id }}
-          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
+          href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
         {{ else }}
-          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
+          href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
         {{ end }}
       >
         <div class="flex w-full">
@@ -76,9 +76,9 @@
       <a
         class="settings-item w-full row-sep"
         {{ if .identity_id }}
-          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
+          href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
         {{ else }}
-          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
+          href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
         {{ end }}
       >
         <div class="flex w-full">
@@ -108,9 +108,9 @@
       <a
         class="settings-item w-full row-sep"
         {{ if .identity_id }}
-          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
+          href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
         {{ else }}
-          href="{{ call $.MakeURL "/settings/v2/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
+          href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
         {{ end }}
       >
         <div class="flex w-full">
@@ -140,7 +140,7 @@
 
     <a
       class="settings-item w-full row-sep"
-      href="{{ call $.MakeURL "/settings/v2/identity" }}"
+      href="{{ call $.MakeURL "/settings/identity" }}"
     >
       <div class="flex w-full justify-between">
         <div class="flex gap-2 items-center">
@@ -175,7 +175,7 @@
       {{ if and (eq .Type "password") (eq .Kind "primary") }}
       <a
         class="settings-item w-full row-sep"
-        href="{{ call $.MakeURL "/settings/v2/change_password" }}"
+        href="{{ call $.MakeURL "/settings/change_password" }}"
       >
         <div class="flex w-full justify-between">
           <div class="flex gap-2 items-center">
@@ -197,7 +197,7 @@
       {{ if $.ShowPrimaryPasskey }}
       <a
         class="settings-item w-full row-sep"
-        href="{{ call $.MakeURL "/settings/v2/passkey" }}"
+        href="{{ call $.MakeURL "/settings/passkey" }}"
       >
         <div class="flex w-full justify-between">
           <div class="flex gap-2 items-center">
@@ -218,7 +218,7 @@
       {{ if $.ShowMFA }}
       <a
         class="settings-item w-full row-sep"
-        href="{{ call $.MakeURL "/settings/v2/mfa" }}"
+        href="{{ call $.MakeURL "/settings/mfa" }}"
       >
         <div class="flex w-full justify-between">
           <div class="flex gap-2 items-center">
@@ -239,7 +239,7 @@
       {{ if $.ShowBiometric }}
       <a
         class="settings-item w-full row-sep"
-        href="{{ call $.MakeURL "/settings/v2/biometric" }}"
+        href="{{ call $.MakeURL "/settings/biometric" }}"
       >
         <div class="flex w-full justify-between">
           <div class="flex gap-2 items-center">
@@ -259,7 +259,7 @@
 
       <a
         class="settings-item w-full row-sep"
-        href="{{ call $.MakeURL "/settings/v2/sessions" }}"
+        href="{{ call $.MakeURL "/settings/sessions" }}"
       >
         <div class="flex w-full justify-between">
           <div class="flex gap-2 items-center">
@@ -278,7 +278,7 @@
 
       <a
         class="settings-item w-full row-sep"
-        href="{{ call $.MakeURL "/settings/v2/advanced_settings" }}"
+        href="{{ call $.MakeURL "/settings/advanced_settings" }}"
       >
         <div class="flex w-full justify-between">
           <div class="flex gap-2 items-center">
