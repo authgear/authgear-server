@@ -164,6 +164,9 @@ const BotProtectionConfigurationScreen = lazy(
 const SubscriptionRedirect = lazy(
   async () => import("./graphql/portal/SubscriptionRedirect")
 );
+const EndpointDirectAccessScreen = lazy(
+  async () => import("./graphql/portal/EndpointDirectAccessScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -743,6 +746,14 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <SMTPConfigurationScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="endpoint-direct-access"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <EndpointDirectAccessScreen />
                 </Suspense>
               }
             />
