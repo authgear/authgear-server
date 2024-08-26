@@ -57,10 +57,9 @@ sequenceDiagram
 ```
 
 - The login endpoint `https://example.authgear.cloud/saml2/login/ENTITY_ID` is from the metadata.
-- The Assertion Consumer Service (ACS) URL `https://example.com/acs` is from `<AuthnRequest>`.
-- `Audience` of the SAML assertions will be set to the `Issuer` of the `<AuthnRequest>`.
-- `Destination` of the `<Response>` will be set to the `AssertionConsumerServiceURL` of the `<AuthnRequest>`.
-- In step [4], Authgear creates an IdP Session with the User Agent using cookies. `SessionIndex` in the `<Response>` of step [5] is the ID of the IdP Session.
+- The Assertion Consumer Service (ACS) URL `https://example.com/acs` is from `<AuthnRequest>` if provided, else it is the first item in `acs_urls` of the SP's configuration.
+- `Destination`, `Audience` and `Recipient` of the `<Response>` and SAML assertions will be set to the  Assertion Consumer Service URL by default, but these fields can be customized in the configuration of each SP.
+- In step [4], Authgear creates an IdP Session with the User Agent using cookies. `SessionIndex` in the `<Response>` of step [5] is composed by the ID of the IdP Session.
 - In step [5], the SP should memorize the authentication state. For example, by creating a session using cookies.
 
 ### <a id="1_2"></a> IdP Initiated
@@ -100,14 +99,16 @@ saml:
     - id: ENTITY_ID
       audience: https://example.com
       destination: https://example.com/acs
+      recipient: https://example.com/acs
       acs_urls:
         - https://example.com/acs
 ```
 
 - `saml.service_providers`: Required. A list of objects containing the configurations of a Service Provider. The objects in the list contains the following fields:
   - `id`: Required. A string which is the entity ID of the service provider.
-  - `audience`: Optional in SP Initiated flow. Required when using the IdP Initiated flow. `Audience` of the `<Response>` generated at the end of Browser SSO flow. In SP Initiated flow, if this config is set, the value configured will be used instead of `Issuer` of the `<AuthnRequest>`.
-  - `destination`: Optional in SP Initiated flow. Required when using the IdP Initiated flow. `Destination` of the `<Response>` generated at the end of Browser SSO flow. In SP Initiated flow, if this config is set, the value configured will be used instead of `AssertionConsumerServiceURL` of the `<AuthnRequest>`.
+  - `audience`: Optional. `Audience` condition of the `<Assertion>` generated at the end of Browser SSO flow. If not set, the `Audience` will be the Assertion Consumer Service URL.
+  - `destination`: Optional. `Destination` of the `<Response>` generated at the end of Browser SSO flow. If not set, the `Destination` will be the Assertion Consumer Service URL.
+  - `recipient`: Optional. `Recipient` of the `<Subject>` generated at the end of Browser SSO flow. If not set, the `Recipient` will be the Assertion Consumer Service URL.
   - `acs_urls`: Required. A list of strings. The minimum number of items is 1. The list of allowed `AssertionConsumerServiceURL`s to be used in an `<AuthnRequest>` issued by a SP. If `AssertionConsumerServiceURL` is not set in `<AuthnRequest>`, or it is an IdP-initiated flow, the first item in the list will be picked as the `AssertionConsumerServiceURL`.
 
 ### <a id="1_4"></a> Supported Parameters in `<AuthnRequest>`
@@ -657,6 +658,7 @@ saml:
     - id: ENTITY_ID
       audience: https://example.com
       destination: https://example.com/acs
+      recipient: https://example.com/acs
       acs_urls: 
         - https://example.com/acs
       logout_callback_url: https://app1.example.com/logout
