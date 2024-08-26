@@ -46,7 +46,7 @@ sequenceDiagram
     participant sp as SP (Web App) <br/> https://example.com
     participant ag as IdP (Authgear) <br/> https://example.authgear.cloud
     ua->>+sp: [1] Request for protected resources https://example.com/flights
-    sp->>-ua: [2] Redirect to https://example.authgear.cloud/saml2/login/ENTITY_ID with <AuthnRequest>
+    sp->>-ua: [2] Redirect to https://example.authgear.cloud/saml2/login/EXAMPLE_ID with <AuthnRequest>
     ua->>+ag: [3] Send <AuthnRequest> to https://example.authgear.cloud/saml2/login
     Note right of ag: Alice enters user credentials
     ag->>-ua: [4] Redirect to https://example.com/acs with <Response>
@@ -56,7 +56,7 @@ sequenceDiagram
 
 ```
 
-- The login endpoint `https://example.authgear.cloud/saml2/login/ENTITY_ID` is from the metadata.
+- The login endpoint `https://example.authgear.cloud/saml2/login/EXAMPLE_ID` is from the metadata.
 - The Assertion Consumer Service (ACS) URL `https://example.com/acs` is from `<AuthnRequest>` if provided, else it is the first item in `acs_urls` of the SP's configuration.
 - `Destination`, `Audience` and `Recipient` of the `<Response>` and SAML assertions will be set to the  Assertion Consumer Service URL by default, but these fields can be customized in the configuration of each SP.
 - In step [4], Authgear creates an IdP Session with the User Agent using cookies. `SessionIndex` in the `<Response>` of step [5] is composed by the ID of the IdP Session.
@@ -72,8 +72,8 @@ sequenceDiagram
     participant sp as SP (Web App) <br/> https://example.com
     participant ag as IdP (Authgear) <br/> https://example.authgear.cloud
     ua->>+sp: [1] Visit https://example.com/
-    sp->>-ua: [2] Redirect to https://example.authgear.cloud/saml2/login/ENTITY_ID
-    ua->>+ag: [3] GET https://example.authgear.cloud/saml2/login/ENTITY_ID
+    sp->>-ua: [2] Redirect to https://example.authgear.cloud/saml2/login/EXAMPLE_ID
+    ua->>+ag: [3] GET https://example.authgear.cloud/saml2/login/EXAMPLE_ID
     Note right of ag: Alice enters user credentials
     ag->>-ua: [4] Redirect to https://example.com/acs with <Response>
     ua->>+sp: [5] Send <Response> to https://example.com/acs
@@ -82,7 +82,7 @@ sequenceDiagram
 
 ```
 
-- The login endpoint `https://example.authgear.cloud/saml2/login/ENTITY_ID` is from the metadata. Different applications will use a different endpoint.
+- The login endpoint `https://example.authgear.cloud/saml2/login/EXAMPLE_ID` is from the metadata. Different applications will use a different endpoint.
 - Same as SP Initiated Web Browser SSO, Idp Session is created in step [4]. `SessionIndex` in the `<Response>` of step [5] is the ID of the IdP Session.
 - Same as SP Initiated Web Browser SSO, SP should memorize the authentication state in step [5] .
 - The Assertion Consumer Service (ACS) URL `https://example.com/acs` MUST be configured in the application config. Config name `acs_urls`.
@@ -96,7 +96,7 @@ Here is an example of configurations about Web Browser SSO:
 ```yaml
 saml:
   service_providers:
-    - id: ENTITY_ID
+    - id: EXAMPLE_ID
       audience: https://example.com
       destination: https://example.com/acs
       recipient: https://example.com/acs
@@ -105,7 +105,7 @@ saml:
 ```
 
 - `saml.service_providers`: Required. A list of objects containing the configurations of a Service Provider. The objects in the list contains the following fields:
-  - `id`: Required. A string which is the entity ID of the service provider.
+  - `id`: Required. ID of the service provider. Authgear uses this ID to reference the service provider. Note that this is not the entity ID of the service provider.
   - `audience`: Optional. `Audience` condition of the `<Assertion>` generated at the end of Browser SSO flow. If not set, the `Audience` will be the Assertion Consumer Service URL.
   - `destination`: Optional. `Destination` of the `<Response>` generated at the end of Browser SSO flow. If not set, the `Destination` will be the Assertion Consumer Service URL.
   - `recipient`: Optional. `Recipient` of the `<Subject>` generated at the end of Browser SSO flow. If not set, the `Recipient` will be the Assertion Consumer Service URL.
@@ -186,7 +186,7 @@ A new identification method `saml_authn_request` will be added. It accepts the b
 
 ### <a id="1_6"></a> The Login Endpoint
 
-- The URL is https://example.authgear.cloud/saml2/login/ENTITY_ID. Where `ENTITY_ID` is the `id` of the service provider as specified in the config `saml.service_providers[index].id`. As a result, each service provider will have a independent login endpoint.
+- The URL is https://example.authgear.cloud/saml2/login/EXAMPLE_ID. Where `EXAMPLE_ID` is the `id` of the service provider as specified in the config `saml.service_providers[index].id`. As a result, each service provider will have a independent login endpoint.
 - The metadata for each service provider will includes the above login endpoint.
 - When the endpoint receives a GET or POST request with a `<AuthnRequest>` provided, the [SP Initiated SSO flow](#1_1) will be triggered.
 - When the endpoint receives a GET request without a `<AuthnRequest>` provided, the [IdP Initiated SSO flow](#1_2) will be triggered.
@@ -208,8 +208,8 @@ sequenceDiagram
     participant ag as IdP (Authgear) <br/> https://example.authgear.cloud
     participant sp2 as SP2 (Other Session Participant) <br/> https://app2.example.com
     ua->>+sp1: [1] Request logout
-    sp1->>-ua: [2] Redirect to https://example.authgear.cloud/saml2/logout/ENTITY_ID with <LogoutRequest>
-    ua->>+ag: [3] Send <LogoutRequest> to https://example.authgear.cloud/saml2/logout/ENTITY_ID
+    sp1->>-ua: [2] Redirect to https://example.authgear.cloud/saml2/logout/EXAMPLE_ID with <LogoutRequest>
+    ua->>+ag: [3] Send <LogoutRequest> to https://example.authgear.cloud/saml2/logout/EXAMPLE_ID
     ag->>+sp2: [4] Send <LogoutRequest> to https://app2.example.com/logout
     sp2->>-ag: [5] Respond with <LogoutResponse>
     ag->>ua: [6] Redirect to https://app1.example.com/logout with <LogoutResponse>
@@ -217,7 +217,7 @@ sequenceDiagram
 
 ```
 
-- The logout endpoint `https://example.authgear.cloud/saml2/logout/ENTITY_ID` is from the metadata.
+- The logout endpoint `https://example.authgear.cloud/saml2/logout/EXAMPLE_ID` is from the metadata.
 - The logout callback URL `https://app1.example.com/logout` MUST be configured in the application config. Config name `logout_callback_url`.
 - Step [4] and [5] will be repeated for all other `service_providers` configured with `slo_enabled: true`, if the current logging out application has `slo_enabled: true` configured.
 - If any errors occurs during step [4] and [5], the errors will be ignored. The loop will continue until logout callback URLs of all SPs who participated in the session is called.
@@ -229,7 +229,7 @@ sequenceDiagram
 ```yaml
 saml:
   service_providers:
-    - id: ENTITY_ID
+    - id: EXAMPLE_ID
       logout_callback_url: https://app1.example.com/logout
       slo_enabled: true
       logout_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
@@ -258,7 +258,7 @@ saml:
 
 ### <a id="2_3"></a> The Logout Endpoint
 
-- The URL is https://example.authgear.cloud/saml2/logout/ENTITY_ID. Where `ENTITY_ID` is the `id` of the service provider as specified in the config `saml.service_providers[index].id`. As a result, each service provider will have a independent logout endpoint.
+- The URL is https://example.authgear.cloud/saml2/logout/EXAMPLE_ID. Where `EXAMPLE_ID` is the `id` of the service provider as specified in the config `saml.service_providers[index].id`. As a result, each service provider will have a independent logout endpoint.
 - The metadata for each service provider will includes the above login endpoint.
 - When the endpoint receives a GET or POST request with a `<LogoutRequest>` provided, the [Single Logout flow](#2) will be triggered. A `<LogoutResponse>` will be returned. The binding used to return the response will be same as the binding used to receive the `<LogoutRequest>`.
 - When the endpoint receives a GET request without a `<LogoutRequest>` provided, and if a valid IdPSession exist, redirect the user to the `/logout` endpoint.
@@ -278,7 +278,7 @@ saml:
 ```yaml
 saml:
   service_providers:
-    - id: ENTITY_ID
+    - id: EXAMPLE_ID
       nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
       nameid_attribute_pointer: /username
 ```
@@ -294,7 +294,7 @@ saml:
 ```yaml
 saml:
   service_providers:
-    - id: ENTITY_ID
+    - id: EXAMPLE_ID
       nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
       nameid_attribute_pointer: /username
 ```
@@ -387,7 +387,7 @@ The SAML attributes can be customized in the config. Here is an example:
 ```yaml
 saml:
   service_providers:
-    - id: ENTITY_ID
+    - id: EXAMPLE_ID
       attributes:
         definitions:
           - name: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
@@ -574,7 +574,7 @@ Two secrets are defined for SAML signing:
 
 ```yaml
 - data:
-    - entity_id: ENTITY_1
+    - service_provider_id: EXAMPLE_ID
       certs:
         - pem: "-----BEGIN CERTIFICATE-----\nMIIH/TCCBeWgAwIBAgIQaBYE3/..."
         - pem: "-----BEGIN CERTIFICATE-----\nMIIH/TCCBeWgAwIBAgIQaBYE3/..."
@@ -584,8 +584,8 @@ Two secrets are defined for SAML signing:
 - The above secret is for storing the certificates for validating requests, responses generated by service providers.
   - `key`: Must be `saml.service_providers.signing`.
   - `data`: Required. A list of objects which represents the certs of one service provider. The object inside the list MUST contains the following fields:
-    - `entity_id`: Required. The entity ID of the service provider which owns the certs in `certs` below.
-    - `certs`: Requried. A list of objects representing X.509 certs. The minimum number of items in the list is 0. The maximum number of items in the list is 2. When there is at least one item in the list, all requests or responses from the service provider which specified by the above `entity_id` will be rejected if it is not signed with one of the cert in the list. The objects inside the list MUST contains the following fields:
+    - `service_provider_id`: Required. The ID of the service provider which owns the certs in `certs` below.
+    - `certs`: Requried. A list of objects representing X.509 certs. The minimum number of items in the list is 0. The maximum number of items in the list is 2. When there is at least one item in the list, all requests or responses from the service provider which specified by the above `service_provider_id` will be rejected if it is not signed with one of the cert in the list. The objects inside the list MUST contains the following fields:
         - `pem`: Required. The X.509 cert in pem format.
 
 ## <a id="7"></a> Metadata
@@ -655,7 +655,7 @@ saml:
     signature_method: RSAwithSHA256
     digest_method: SHA256
   service_providers:
-    - id: ENTITY_ID
+    - id: EXAMPLE_ID
       audience: https://example.com
       destination: https://example.com/acs
       recipient: https://example.com/acs
@@ -690,7 +690,7 @@ saml:
       ```yaml
       saml:
         service_providers:
-          - id: ENTITY_ID
+          - id: EXAMPLE_ID
             audience: https://www.google.com/a/example.com/acs
             destination: https://www.google.com/a/example.com/acs
             acs_urls:
@@ -698,8 +698,8 @@ saml:
             nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
       ```
     - Setup SSO profile by filling in the following information: [(Reference)](https://support.google.com/a/answer/12032922?hl=en&ref_topic=7579248&sjid=6814148323019762018-AP#org_profile)
-      - Sign-in page URL: https://example.authgear.cloud/saml2/login/ENTITY_ID
-      - Sign-out page URL: https://example.authgear.cloud/saml2/logout/ENTITY_ID
+      - Sign-in page URL: https://example.authgear.cloud/saml2/login/EXAMPLE_ID
+      - Sign-out page URL: https://example.authgear.cloud/saml2/logout/EXAMPLE_ID
       - X.509 Certificate: Obtain the IdP signing cert from the secret `saml.idp.signing`.
       - Change password URL: The settings page. https://example.authgear.cloud/settings
 
