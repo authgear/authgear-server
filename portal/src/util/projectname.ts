@@ -55,6 +55,17 @@ export function extractBits(fortyEightBits: Uint8Array): [number, number] {
   return [bit_0_10, bit_11_41];
 }
 
+export function deterministicAlphanumericString(bits: number): string {
+  const string = bits.toString(36);
+
+  if (string.length > 6) {
+    throw new Error("number of bits must be less than 31");
+  }
+
+  const zeroPaddedString = string.padStart(6, "0");
+  return zeroPaddedString;
+}
+
 /**
  * This function take 48 bits
  * The  1st - 11th bits bit_0_10 are used to determine the word
@@ -72,10 +83,9 @@ export function deterministicProjectName(fortyEightBits: Uint8Array): string {
   const [bit_0_10, bit_11_41] = extractBits(fortyEightBits);
   const firstRandomString = determineWord(bit_0_10);
 
-  const alphaNumericString = bit_11_41.toString(36);
-  const zeroPaddedAlphaNumericString = alphaNumericString.padStart(6, "0");
+  const alphaNumericString = deterministicAlphanumericString(bit_11_41);
 
-  return `${firstRandomString}-${zeroPaddedAlphaNumericString}`;
+  return `${firstRandomString}-${alphaNumericString}`;
 }
 
 export function randomProjectName(): string {
