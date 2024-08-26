@@ -11,16 +11,6 @@ export function getRandom48Bits(): Uint8Array {
   return randomBuffer;
 }
 
-export function getRandom32BitsNumber(): number {
-  const randomBuffer = new Uint32Array(1);
-  window.crypto.getRandomValues(randomBuffer);
-  return randomBuffer[0];
-}
-
-export function maskNumber(num: number, startAt: number, bits: number): number {
-  return (num >> startAt) & ((1 << bits) - 1);
-}
-
 /**
  * This function take 48 bits, and split into 2 numbers, bit_0_10 and bit_11_41, dropping the last 6 bits
  *
@@ -90,4 +80,11 @@ export function deterministicProjectName(fortyEightBits: Uint8Array): string {
 
 export function randomProjectName(): string {
   return deterministicProjectName(getRandom48Bits());
+}
+
+export function projectNameWithCompanyName(companyName: string): string {
+  const randomBits = getRandom48Bits();
+  const [_, thirtyOneBits] = extractBits(randomBits);
+  const alphaNumericString = deterministicAlphanumericString(thirtyOneBits);
+  return `${companyName}-${alphaNumericString}`;
 }
