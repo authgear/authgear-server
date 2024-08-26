@@ -499,6 +499,8 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
 
     const { renderToString } = useContext(Context);
 
+    const { appID } = useParams() as { appID: string };
+
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
         {
@@ -685,6 +687,17 @@ const CustomDomainListContent: React.VFC<CustomDomainListContentProps> =
               onRenderDetailsHeader={renderDomainListHeader}
             />
           </div>
+          <MessageBar
+            className={cn(styles.widget)}
+            styles={{ root: { marginTop: 12 } }}
+          >
+            <FormattedMessage
+              id="CustomDomainListScreen.rediect-endpoint-direct-access.message"
+              values={{
+                href: `/project/${appID}/advanced/endpoint-direct-access`,
+              }}
+            />
+          </MessageBar>
           <DeleteDomainDialog
             domain={deleteDomainDialogData.domain}
             domainID={deleteDomainDialogData.domainID}
