@@ -5,12 +5,16 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	stringsutil "github.com/authgear/authgear-server/pkg/util/strings"
 )
 
 // ErrorQueryKey is "q_error" so that it is not persisent across pages.
 const ErrorQueryKey = "q_error"
+
+const BotProtectionTokenKey = "x_bot_protection_provider_response"
 
 type ErrorState struct {
 	Form  url.Values
@@ -49,10 +53,23 @@ func (c *ErrorCookie) ResetRecoverableError() *http.Cookie {
 	return cookie
 }
 
+func (c *ErrorCookie) redactBotProtectionToken(reqForm url.Values) url.Values {
+	bpToken := reqForm.Get(BotProtectionTokenKey)
+
+	if bpToken != "" {
+		bpTokenFirst10Char := stringsutil.GetFirstN(bpToken, 10)
+		newBPToken := strings.Join([]string{bpTokenFirst10Char, "**********"}, "")
+		reqForm.Set(BotProtectionTokenKey, newBPToken)
+	}
+
+	return reqForm
+}
+
 // SetRecoverableError stores the error in cookie and retains the form.
 func (c *ErrorCookie) SetRecoverableError(r *http.Request, value *apierrors.APIError) (*http.Cookie, error) {
+	form := c.redactBotProtectionToken(r.Form)
 	data, err := json.Marshal(&ErrorState{
-		Form:  r.Form,
+		Form:  form,
 		Error: value,
 	})
 	if err != nil {
