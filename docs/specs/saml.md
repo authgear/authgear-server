@@ -530,12 +530,12 @@ We have no plan to support other bindings not mentioned at the moment.
 saml:
   signing:
     key_id: key01
-    signature_method: RSAwithSHA256
+    signature_method: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
 ```
 
 - `saml.signing`: Required. Configurations of signing behvaiors. MUST be an object with the following fields:
   - `key_id`: Required. A string which points to a signing key secret inside the `saml.idp.signing` secret. See the below [Secrets] section for details.
-  - `signature_method`: Optional. An enum which specifies the signing algorithm used to generate the signature. The only supported value is `RSAwithSHA256`. If not provided, it defaults to `RSAwithSHA256`. For details, see [xmldsig](https://www.w3.org/TR/xmldsig-core1/#sec-SignatureAlg).
+  - `signature_method`: Optional. An enum which specifies the signing algorithm used to generate the signature. The only supported value is `http://www.w3.org/2001/04/xmldsig-more#rsa-sha256`. If not provided, it defaults to `http://www.w3.org/2001/04/xmldsig-more#rsa-sha256`. For details, see [xmldsig](https://www.w3.org/TR/xmldsig-core1/#sec-SignatureAlg).
 
 ### <a id="6_2"></a> Secrets
 
@@ -651,7 +651,7 @@ saml:
   debug_mode_enabled: true
   signing:
     key_id: key01
-    signature_method: RSAwithSHA256
+    signature_method: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
   service_providers:
     - id: EXAMPLE_ID
       audience: https://example.com
