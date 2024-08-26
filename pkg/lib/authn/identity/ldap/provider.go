@@ -58,6 +58,7 @@ func (p *Provider) ListByClaim(name string, value string) ([]*identity.LDAP, err
 func (p *Provider) New(
 	userID string,
 	serverName string,
+	loginUserName string,
 	userIDAttributeName string,
 	userIDAttributeValue []byte,
 	claims map[string]interface{},
@@ -77,13 +78,15 @@ func (p *Provider) New(
 		UserIDAttributeValue: userIDAttributeValue,
 		Claims:               claims,
 		RawEntryJSON:         rawEntryJSON,
+		LastLoginUserName:    loginUserName,
 	}
 }
 
-func (p *Provider) WithUpdate(iden *identity.LDAP, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (p *Provider) WithUpdate(iden *identity.LDAP, loginUserName string, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP {
 	newIden := *iden
 	newIden.Claims = claims
 	newIden.RawEntryJSON = rawEntryJSON
+	newIden.LastLoginUserName = loginUserName
 	return &newIden
 }
 
@@ -110,7 +113,7 @@ func sortIdentities(is []*identity.LDAP) {
 	})
 }
 
-func (p *Provider) MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, entry *ldap.Entry) (*identity.Spec, error) {
+func (p *Provider) MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, loginUserName string, entry *ldap.Entry) (*identity.Spec, error) {
 	userIDAttributeName := serverConfig.UserIDAttributeName
 	userIDAttributeValue := entry.GetRawAttributeValue(userIDAttributeName)
 
@@ -138,6 +141,7 @@ func (p *Provider) MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, entr
 			UserIDAttributeValue: userIDAttributeValue,
 			Claims:               claims,
 			RawEntryJSON:         entry.ToJSON(),
+			LastLoginUserName:    loginUserName,
 		},
 	}, nil
 }

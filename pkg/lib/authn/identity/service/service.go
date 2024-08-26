@@ -100,12 +100,13 @@ type LDAPIdentityProvider interface {
 	New(
 		userID string,
 		serverName string,
+		loginUserName string,
 		userIDAttributeName string,
 		userIDAttributeValue []byte,
 		claims map[string]interface{},
 		rawEntryJSON map[string]interface{},
 	) *identity.LDAP
-	WithUpdate(iden *identity.LDAP, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP
+	WithUpdate(iden *identity.LDAP, loginUserName string, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP
 	Create(i *identity.LDAP) error
 	Update(i *identity.LDAP) error
 	Delete(i *identity.LDAP) error
@@ -636,11 +637,12 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		return e.ToInfo(), nil
 	case model.IdentityTypeLDAP:
 		serverName := spec.LDAP.ServerName
+		loginUserName := spec.LDAP.LastLoginUserName
 		userIDAttributeName := spec.LDAP.UserIDAttributeName
 		userIDAttributeValue := spec.LDAP.UserIDAttributeValue
 		claims := spec.LDAP.Claims
 		rawEntryJSON := spec.LDAP.RawEntryJSON
-		l := s.LDAP.New(userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
+		l := s.LDAP.New(userID, serverName, loginUserName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
 		return l.ToInfo(), nil
 	}
 
@@ -761,7 +763,7 @@ func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec, optio
 		)
 		return i.ToInfo(), nil
 	case model.IdentityTypeLDAP:
-		i := s.LDAP.WithUpdate(info.LDAP, spec.LDAP.Claims, spec.LDAP.RawEntryJSON)
+		i := s.LDAP.WithUpdate(info.LDAP, spec.LDAP.LastLoginUserName, spec.LDAP.Claims, spec.LDAP.RawEntryJSON)
 		return i.ToInfo(), nil
 	default:
 		panic("identity: cannot update identity type " + info.Type)

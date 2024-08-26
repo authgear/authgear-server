@@ -37,6 +37,7 @@ func (s *Store) selectQuery() db.SelectBuilder {
 			"l.user_id_attribute_value",
 			"l.claims",
 			"l.raw_entry_json",
+			"l.last_login_username",
 		).
 		From(s.SQLBuilder.TableName("_auth_identity"), "p").
 		Join(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP), "l", "p.id = l.id")
@@ -57,6 +58,7 @@ func (s *Store) scan(scn db.Scanner) (*identity.LDAP, error) {
 		&i.UserIDAttributeValue,
 		&claims,
 		&rawEntryJSON,
+		&i.LastLoginUserName,
 	)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, api.ErrIdentityNotFound
@@ -203,6 +205,7 @@ func (s *Store) Create(i *identity.LDAP) (err error) {
 			"user_id_attribute_value",
 			"claims",
 			"raw_entry_json",
+			"last_login_username",
 		).
 		Values(
 			i.ID,
@@ -211,6 +214,7 @@ func (s *Store) Create(i *identity.LDAP) (err error) {
 			i.UserIDAttributeValue,
 			claims,
 			rawEntryJSON,
+			i.LastLoginUserName,
 		)
 
 	_, err = s.SQLExecutor.ExecWith(q)
@@ -235,6 +239,7 @@ func (s *Store) Update(i *identity.LDAP) error {
 		Update(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP)).
 		Set("claims", claims).
 		Set("raw_entry_json", rawEntryJSON).
+		Set("last_login_username", i.LastLoginUserName).
 		Where("id = ?", i.ID)
 
 	result, err := s.SQLExecutor.ExecWith(q)
