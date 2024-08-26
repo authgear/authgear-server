@@ -46,6 +46,8 @@ import CommandBarButton from "../../CommandBarButton";
 import { useDebounced } from "../../hook/useDebounced";
 import { toTypedID } from "../../util/graphql";
 import { NodeType } from "./node";
+import { validateEmail } from "../../util/email";
+import { validatePhoneNumber } from "../../util/phone";
 
 const pageSize = 100;
 
@@ -368,34 +370,47 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setOffset(offset);
   }, []);
 
-  const userNodeIDs = useMemo(() => {
-    return debouncedSearchQuery
-      ? [toTypedID(NodeType.User, debouncedSearchQuery)]
-      : null;
-  }, [debouncedSearchQuery]);
-
   const queryEmailAddresses = useMemo(() => {
+    const email = validateEmail(debouncedSearchQuery);
+    if (email == null) {
+      return null;
+    }
+
     switch (selectedKey) {
       // Only search email addresses if `all` or `email_sent` filter active
       case ALL:
       case AuditLogActivityType.EmailSent:
-        return debouncedSearchQuery ? [debouncedSearchQuery] : null;
+        return email ? [email] : null;
       default:
         return null;
     }
   }, [debouncedSearchQuery, selectedKey]);
 
   const queryPhoneNumbers = useMemo(() => {
+    const phoneNumber = validatePhoneNumber(debouncedSearchQuery);
+    if (phoneNumber == null) {
+      return null;
+    }
     switch (selectedKey) {
       // Only search phone numbers if `all` or `phone_sent` or `whatsapp_sent` filter active
       case ALL:
       case AuditLogActivityType.SmsSent:
       case AuditLogActivityType.WhatsappSent:
-        return debouncedSearchQuery ? [debouncedSearchQuery] : null;
+        return phoneNumber ? [phoneNumber] : null;
       default:
         return null;
     }
   }, [debouncedSearchQuery, selectedKey]);
+
+  const userNodeIDs = useMemo(() => {
+    if (queryEmailAddresses != null || queryPhoneNumbers != null) {
+      return null;
+    }
+    // only search by userIDs if query notLikeEmail & notLikePhoneNumber
+    return debouncedSearchQuery
+      ? [toTypedID(NodeType.User, debouncedSearchQuery)]
+      : null;
+  }, [debouncedSearchQuery, queryEmailAddresses, queryPhoneNumbers]);
 
   const {
     data: currentData,
