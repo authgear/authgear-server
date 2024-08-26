@@ -235,7 +235,7 @@ saml:
       logout_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
 ```
 
-- `logout_callback_url`: Required. The URL where the `<LogoutRequest>` should be sent to.
+- `logout_callback_url`: Required if `slo_enabled` is `true`. The URL where the `<LogoutRequest>` should be sent to.
 - `slo_enabled`: Optional. Whether the application participate in Single Logout. Default `false`.
 - `logout_binding`: The binding used to send a `<LogoutRequest>` to the `logout_callback_url`. See the below Bindings section for supported bindings. Default `urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect`.
 
