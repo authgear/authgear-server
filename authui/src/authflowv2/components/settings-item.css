@@ -13,6 +13,7 @@
     --settings-item__ring-width: 1.5px;
     --settings-item__ring-color: var(--color-neutral-100);
     --settings-item__py: var(--settings-item__font-size);
+    --settings-item__px: calc(var(--settings-item__font-size) / 2);
 
     --settings-item__bg-color--hover: var(--color-neutral-100);
     --settings-item__text-color--hover: var(--settings-item__text-color);
@@ -48,7 +49,7 @@
     line-height: var(--settings-item__line-height);
     letter-spacing: var(--settings-item__letter-spacing);
     font-weight: var(--settings-item__font-weight);
-    padding: var(--settings-item__py) 0;
+    padding: var(--settings-item__py) var(--settings-item__px);
     color: var(--settings-item__text-color);
 
     &:hover {
