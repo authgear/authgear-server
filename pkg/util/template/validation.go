@@ -216,7 +216,14 @@ func traverseTreeVisit(
 				}
 			}
 		}
-	case *parse.TemplateNode, *parse.TextNode:
+	case *parse.TemplateNode:
+		if n.Pipe != nil {
+			if cont = traverseTreeVisit(n.Pipe, depth+1, fn); !cont {
+				break
+			}
+		}
+
+	case *parse.TextNode:
 		break
 	default:
 		panic("unknown node type")
