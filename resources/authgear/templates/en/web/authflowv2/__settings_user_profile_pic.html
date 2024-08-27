@@ -1,0 +1,22 @@
+{{ define "authflowv2/__settings_user_profile_pic" }}
+
+<div class="flex justify-center">
+  <div class="settings-user-profile-pic__image-container">
+    <img class="h-full w-full rounded-full"
+      {{ if $.Picture }}
+        src="{{ $.Picture }}"
+      {{ else }}
+        src="{{ call $.GeneratedStaticAssetURL "v2_avatar_placeholder.svg" }}"
+      {{ end }}
+    >
+    {{ if $.Editable }}
+    <a class="settings-user-profile-pic__edit-button" href="{{ $.EditURL }}">
+      <i class="material-icons text-base">
+        border_color
+      </i>
+    </a>
+    {{ end }}
+  </div>
+</div>
+
+{{ end }}

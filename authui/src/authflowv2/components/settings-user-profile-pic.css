@@ -1,0 +1,14 @@
+@layer component {
+  .settings-user-profile-pic__image-container {
+    @apply relative;
+    @apply h-22 w-22 tablet:h-50 tablet:w-50;
+  }
+
+  .settings-user-profile-pic__edit-button {
+    @apply inline-flex items-center justify-center;
+    @apply w-9 h-9;
+    @apply absolute bottom-0 -right-2 tablet:right-3.5;
+    @apply rounded-full bg-white;
+    box-shadow: 0 4px 10px 0 #0000001a;
+  }
+}
