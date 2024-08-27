@@ -100,13 +100,13 @@ type LDAPIdentityProvider interface {
 	New(
 		userID string,
 		serverName string,
-		loginUserName string,
+		loginUserName *string,
 		userIDAttributeName string,
 		userIDAttributeValue []byte,
 		claims map[string]interface{},
 		rawEntryJSON map[string]interface{},
 	) *identity.LDAP
-	WithUpdate(iden *identity.LDAP, loginUserName string, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP
+	WithUpdate(iden *identity.LDAP, loginUserName *string, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP
 	Create(i *identity.LDAP) error
 	Update(i *identity.LDAP) error
 	Delete(i *identity.LDAP) error

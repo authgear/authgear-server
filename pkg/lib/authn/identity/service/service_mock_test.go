@@ -1042,7 +1042,7 @@ func (mr *MockLDAPIdentityProviderMockRecorder) ListByClaim(name, value interfac
 }
 
 // New mocks base method.
-func (m *MockLDAPIdentityProvider) New(userID, serverName, loginUserName, userIDAttributeName string, userIDAttributeValue []byte, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (m *MockLDAPIdentityProvider) New(userID, serverName string, loginUserName *string, userIDAttributeName string, userIDAttributeValue []byte, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "New", userID, serverName, loginUserName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
 	ret0, _ := ret[0].(*identity.LDAP)
@@ -1070,7 +1070,7 @@ func (mr *MockLDAPIdentityProviderMockRecorder) Update(i interface{}) *gomock.Ca
 }
 
 // WithUpdate mocks base method.
-func (m *MockLDAPIdentityProvider) WithUpdate(iden *identity.LDAP, loginUserName string, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (m *MockLDAPIdentityProvider) WithUpdate(iden *identity.LDAP, loginUserName *string, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "WithUpdate", iden, loginUserName, claims, rawEntryJSON)
 	ret0, _ := ret[0].(*identity.LDAP)

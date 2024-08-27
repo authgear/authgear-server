@@ -58,7 +58,7 @@ func (p *Provider) ListByClaim(name string, value string) ([]*identity.LDAP, err
 func (p *Provider) New(
 	userID string,
 	serverName string,
-	loginUserName string,
+	loginUserName *string,
 	userIDAttributeName string,
 	userIDAttributeValue []byte,
 	claims map[string]interface{},
@@ -82,7 +82,7 @@ func (p *Provider) New(
 	}
 }
 
-func (p *Provider) WithUpdate(iden *identity.LDAP, loginUserName string, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (p *Provider) WithUpdate(iden *identity.LDAP, loginUserName *string, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP {
 	newIden := *iden
 	newIden.Claims = claims
 	newIden.RawEntryJSON = rawEntryJSON
@@ -141,7 +141,7 @@ func (p *Provider) MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, logi
 			UserIDAttributeValue: userIDAttributeValue,
 			Claims:               claims,
 			RawEntryJSON:         entry.ToJSON(),
-			LastLoginUserName:    loginUserName,
+			LastLoginUserName:    &loginUserName,
 		},
 	}, nil
 }
