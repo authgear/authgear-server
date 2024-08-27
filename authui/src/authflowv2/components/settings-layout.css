@@ -1,18 +1,4 @@
 @layer components {
-  :root {
-    /* ! We share same background color & image with layout.css at the moment ! */
-    /* --settings-layout__bg-color: var(--color-surface-primary); */
-    --settings-layout__bg_position: center;
-    --settings-layout__bg_repeat: no-repeat;
-    --settings-layout__bg_size: cover;
-  }
-
-  /* ! We share same background color & image with layout.css at the moment ! */
-  /* :root.dark {
-    --settings-layout__bg-color: var(--color-surface-primary);
-    --settings-layout__bg-image: ;
-  } */
-
   .settings-layout--default {
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-start;
@@ -32,9 +18,9 @@
     /* background-image should only be seen in non-mobile layout */
     @media (min-width: theme("screens.tablet")) {
       background-image: var(--layout__bg-image);
-      background-repeat: var(--settings-layout__bg_repeat);
-      background-position: var(--settings-layout__bg_position);
-      background-size: var(--settings-layout__bg_size);
+      background-repeat: var(--layout__bg_repeat);
+      background-position: var(--layout__bg_position);
+      background-size: var(--layout__bg_size);
     }
   }
 
@@ -53,10 +39,7 @@
     /* In any layout, the widget should NOT grow, and take its initial size. */
     @apply flex-initial;
   }
-  .settings-layout--default .wide-widget {
-    /* In any layout, the wide widget should NOT grow, and take its initial size. */
-    @apply flex-initial;
-  }
+
   .settings-layout__header--default {
     /* In any layout, the layout header takes full widget. */
     @apply w-full;
