@@ -1129,6 +1129,7 @@
   "v2.page.settings-profile.default.item-value-not-provided": "Not provided",
   "v2.page.settings-profile.default.name-title": "Name",
   "v2.page.settings-profile.default.navbar-title": "Profile",
+  "v2.page.settings-profile.default.zoneinfo-title": "Timezone",
   "v2.page.setup-oob-otp.default.title": "2-Step Verification",
   "v2.page.setup-oob-otp.email.subtitle": "You can receive verification codes at this email.",
   "v2.page.setup-oob-otp.sms.subtitle": "You can receive verification codes at this number.",
