@@ -7,8 +7,8 @@ import (
 func init() {
 	ComponentsHTML = append(ComponentsHTML, BaseComponentsHTML...)
 	ComponentsHTML = append(ComponentsHTML, TemplateWebAuthflowV2PageFrameHTML)
-	SettingsComponentsHTML = append(ComponentsHTML, BaseComponentsHTML...)
-	SettingsComponentsHTML = append(ComponentsHTML, TemplateWebSettingsV2PageFrameHTML)
+	SettingsComponentsHTML = append(SettingsComponentsHTML, BaseComponentsHTML...)
+	SettingsComponentsHTML = append(SettingsComponentsHTML, TemplateWebSettingsV2PageFrameHTML)
 }
 
 var TemplateWebHTMLHeadHTML = template.RegisterHTML("web/__html_head.html")
