@@ -86,17 +86,22 @@ interface ConfigFormState {
   themeOption: ThemeOption;
 }
 
+export interface AppLogoResource {
+  base64EncodedData: string | null;
+  fallbackBase64EncodedData: string | null;
+}
+
 interface ResourcesFormState {
   appName: string;
 
   // light
   customisableLightTheme: PartialCustomisableTheme;
-  appLogoBase64EncodedData: string | null;
+  appLogo: AppLogoResource;
   backgroundImageBase64EncodedData: string | null;
 
   // dark
   customisableDarkTheme: PartialCustomisableTheme;
-  appLogoDarkBase64EncodedData: string | null;
+  appLogoDark: AppLogoResource;
   backgroundImageDarkBase64EncodedData: string | null;
 
   faviconBase64EncodedData: string | null;
@@ -345,10 +350,11 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     };
 
     const getValueFromImageResource = (
-      def: ResourceDefinition
+      def: ResourceDefinition,
+      language: string
     ): string | null => {
       const form = getResourceFormByResourceDefinition(def);
-      const specifiers = expandDef(def, selectedLanguage);
+      const specifiers = expandDef(def, language);
       const imageResouece = resolveResource(form.state.resources, specifiers);
       if (!imageResouece?.nullableValue) {
         return null;
@@ -367,16 +373,37 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
 
     return {
       appName: getValueFromTranslationJSON(TranslationKey.AppName),
-      appLogoBase64EncodedData: getValueFromImageResource(RESOURCE_APP_LOGO),
-      appLogoDarkBase64EncodedData: getValueFromImageResource(
-        RESOURCE_APP_LOGO_DARK
+      appLogo: {
+        base64EncodedData: getValueFromImageResource(
+          RESOURCE_APP_LOGO,
+          selectedLanguage
+        ),
+        fallbackBase64EncodedData: getValueFromImageResource(
+          RESOURCE_APP_LOGO,
+          configForm.state.fallbackLanguage
+        ),
+      },
+      appLogoDark: {
+        base64EncodedData: getValueFromImageResource(
+          RESOURCE_APP_LOGO_DARK,
+          selectedLanguage
+        ),
+        fallbackBase64EncodedData: getValueFromImageResource(
+          RESOURCE_APP_LOGO_DARK,
+          configForm.state.fallbackLanguage
+        ),
+      },
+      faviconBase64EncodedData: getValueFromImageResource(
+        RESOURCE_FAVICON,
+        selectedLanguage
       ),
-      faviconBase64EncodedData: getValueFromImageResource(RESOURCE_FAVICON),
       backgroundImageBase64EncodedData: getValueFromImageResource(
-        RESOURCE_APP_BACKGROUND_IMAGE
+        RESOURCE_APP_BACKGROUND_IMAGE,
+        selectedLanguage
       ),
       backgroundImageDarkBase64EncodedData: getValueFromImageResource(
-        RESOURCE_APP_BACKGROUND_IMAGE_DARK
+        RESOURCE_APP_BACKGROUND_IMAGE_DARK,
+        selectedLanguage
       ),
       customisableLightTheme: lightTheme,
       customisableDarkTheme: darkTheme,
