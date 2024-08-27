@@ -15,12 +15,9 @@ func (r TranslationKeyRule) Check(content string, path string) LintViolations {
 }
 
 func (r TranslationKeyRule) check(content string, path string) LintViolations {
-	var violations LintViolations
 	t := r.makeTemplate(content)
 
-	r.validateHTMLTemplate(t)
-
-	// TODO: add violations
+	violations := r.validateHTMLTemplate(t, path)
 	return violations
 }
 
@@ -32,9 +29,10 @@ func (r TranslationKeyRule) makeTemplate(content string) *htmltemplate.Template 
 	return parsed
 }
 
-func (r TranslationKeyRule) validateHTMLTemplate(template *htmltemplate.Template) error {
+func (r TranslationKeyRule) validateHTMLTemplate(template *htmltemplate.Template, path string) LintViolations {
 	tpls := template.Templates()
 
+	var violations LintViolations
 	sort.Slice(tpls, func(i, j int) bool {
 		return tpls[i].Name() < tpls[j].Name()
 	})
@@ -43,14 +41,17 @@ func (r TranslationKeyRule) validateHTMLTemplate(template *htmltemplate.Template
 		if tpl.Tree == nil {
 			continue
 		}
-		if err := validateTree(tpl.Tree); err != nil {
-			return err
+		if tplViolations := validateTree(tpl.Tree, path); len(tplViolations) != 0 {
+			violations = append(violations, tplViolations...)
 		}
 	}
-	return nil
+	return violations
 }
 
-func validateTree(tree *parse.Tree) (err error) {
+func validateTree(tree *parse.Tree, path string) LintViolations {
+	var violations LintViolations
+	var err error
+
 	validateFn := func(n parse.Node, depth int) (cont bool) {
 		switch n := n.(type) {
 		case *parse.CommandNode:
@@ -66,7 +67,16 @@ func validateTree(tree *parse.Tree) (err error) {
 					case "include":
 						// TODO: handle include fn
 					case "translate":
-						// TODO: handle translate fn
+						err = CheckCommandTranslate(n)
+						if err != nil {
+							line, col, _ := TreeErrorContext(tree, n)
+							violations = append(violations, LintViolation{
+								Line:    line,
+								Column:  col,
+								Path:    path,
+								Message: err.Error(),
+							})
+						}
 					}
 				}
 			}
@@ -74,9 +84,10 @@ func validateTree(tree *parse.Tree) (err error) {
 			// TODO: handle template node
 		}
 
-		return err == nil
+		// always continue to traverse
+		return true
 	}
 
 	TraverseTree(tree, validateFn)
-	return
+	return violations
 }
