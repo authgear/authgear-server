@@ -64,6 +64,22 @@
           )
       }}
     {{ end }}
+
+    {{ if (call $.IsReadable "/zoneinfo") }}
+      {{ $content := "" }}
+      {{ if $.Zoneinfo }}
+        {{ $content = $.ZoneinfoTimezone.DisplayLabel }}
+      {{ end }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.zoneinfo-title" nil)
+              "Content" $content
+            )
+            .
+          )
+      }}
+    {{ end }}
   </div>
 </div>
 
