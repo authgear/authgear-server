@@ -18,7 +18,7 @@ const AllCharLists = [
   CharListSymbol,
 ];
 
-const MaxTrials = 10;
+const MaxTrials = 25;
 const DefaultMinLength = 8;
 const GuessableEnabledMinLength = 32;
 
