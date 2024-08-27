@@ -80,6 +80,22 @@
           )
       }}
     {{ end }}
+
+    {{ if (call $.IsReadable "/locale") }}
+      {{ $content := "" }}
+      {{ if $.Locale }}
+        {{ $content = (include "__settings_profile_locale_item" .) }}
+      {{ end }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.language-title" nil)
+              "Content" $content
+            )
+            .
+          )
+      }}
+    {{ end }}
   </div>
 </div>
 
@@ -109,5 +125,12 @@
   data-format-input-date-date-value="{{ . }}"
 >
   {{ . }}
+</span>
+{{ end }}
+
+{{ define "__settings_profile_locale_item" }}
+{{ $label := (print "language-" $.Locale) }}
+<span>
+  {{ $.Locale }} - {{ translate $label nil}}
 </span>
 {{ end }}
