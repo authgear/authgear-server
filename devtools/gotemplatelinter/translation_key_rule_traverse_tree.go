@@ -2,6 +2,8 @@
 package main
 
 import (
+	"strconv"
+	"strings"
 	"text/template/parse"
 )
 
@@ -67,6 +69,22 @@ func traverseTreeVisit(n parse.Node, depth int, fn func(n parse.Node, depth int)
 				break
 			}
 		}
+	}
+
+	return
+}
+
+func TreeErrorContext(tree *parse.Tree, n parse.Node) (line int, col int, ctx string) {
+	location, ctx := tree.ErrorContext(n)
+	locationInfo := strings.Split(location, ":") // location is of %s:%d:%d
+
+	line, err := strconv.Atoi(locationInfo[1])
+	if err != nil {
+		line = 0
+	}
+	col, err = strconv.Atoi(locationInfo[2])
+	if err != nil {
+		col = 0
 	}
 
 	return
