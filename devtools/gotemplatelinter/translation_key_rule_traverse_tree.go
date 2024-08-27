@@ -47,7 +47,13 @@ func traverseTreeVisit(n parse.Node, depth int, fn func(n parse.Node, depth int)
 		}
 	case *parse.ActionNode:
 		cont = traverseTreeVisit(n.Pipe, depth, fn)
-	case *parse.TemplateNode, *parse.TextNode:
+	case *parse.TemplateNode:
+		if n.Pipe != nil {
+			if cont = traverseTreeVisit(n.Pipe, depth+1, fn); !cont {
+				break
+			}
+		}
+	case *parse.TextNode:
 		break
 	case *parse.IfNode:
 		cont = traverseTreeVisitBranch(&n.BranchNode, depth, fn)
