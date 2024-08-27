@@ -98,5 +98,13 @@ func TestTemplateValidation(t *testing.T) {
 			err = v.ValidateHTMLTemplate(template(`{{ range . }}{{ end }}`))
 			So(err, ShouldBeNil)
 		})
+
+		Convey("should traverse into template nodes pipe", func() {
+			var err error
+			v := NewValidator(AllowTemplateNode(true))
+
+			err = v.ValidateHTMLTemplate((template(`{{ template "name" js (js (js (js (js "\\")))) }}`)))
+			So(err, ShouldBeError, "email:1:31: template nested too deep")
+		})
 	})
 }
