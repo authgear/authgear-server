@@ -20,7 +20,9 @@
       </div>
       <p class="body-text--lg">
         {{ $editProfileHref := call $.MakeURL "/settings/profile"}}
-        {{ template "v2.page.settings.default.links.edit-profile" (dict "href" $editProfileHref )}}
+        <a href="{{ $editProfileHref }}" >
+          {{ template "v2.page.settings.default.links.edit-profile" . }}
+        </a>
       </p>
 
     </div>
