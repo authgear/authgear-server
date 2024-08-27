@@ -4,6 +4,7 @@ import (
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
@@ -14,6 +15,7 @@ import (
 )
 
 var _ service.LDAPIdentityProvider = &Provider{}
+var _ authenticationflow.LDAPService = &Provider{}
 
 type StandardAttributesNormalizer interface {
 	Normalize(stdattrs.T) error
