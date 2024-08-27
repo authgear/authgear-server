@@ -47,12 +47,29 @@
           )
       }}
     {{ end }}
+
+
+    {{ if (call $.IsReadable "/birthdate") }}
+      {{ $content := "" }}
+      {{ if $.Birthdate }}
+        {{ $content = include "__settings_profile_date_item" $.Birthdate }}
+      {{ end }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.birthdate-title" nil)
+              "Content" $content
+            )
+            .
+          )
+      }}
+    {{ end }}
   </div>
 </div>
 
 {{ end }}
 
-{{ define "__settings_profile_item"}}
+{{ define "__settings_profile_item" }}
 
 <div class="settings-item">
   <div class="w-44 text-start">{{ $.Title }}</div>
@@ -68,4 +85,13 @@
   </i>
 </div>
 
+{{ end }}
+
+{{ define "__settings_profile_date_item" }}
+<span
+  data-controller="format-input-date"
+  data-format-input-date-date-value="{{ . }}"
+>
+  {{ . }}
+</span>
 {{ end }}
