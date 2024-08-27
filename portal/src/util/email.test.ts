@@ -1,18 +1,18 @@
-import { validateEmail } from "./email";
+import { parseEmail } from "./email";
 
 /* global it, expect */
-it("validateEmail", () => {
+it("parseEmail", () => {
   // invalid
-  expect(validateEmail("")).toEqual(null); // need @
-  expect(validateEmail("@")).toEqual(null); // need chars before & after @
-  expect(validateEmail("a@")).toEqual(null); // need chars after @
-  expect(validateEmail("@b")).toEqual(null); // need chars before @
-  expect(validateEmail("a @ b")).toEqual(null); // no space in middle
+  expect(parseEmail("")).toEqual(null); // need @
+  expect(parseEmail("@")).toEqual(null); // need chars before & after @
+  expect(parseEmail("a@")).toEqual(null); // need chars after @
+  expect(parseEmail("@b")).toEqual(null); // need chars before @
+  expect(parseEmail("a @ b")).toEqual(null); // no space in middle
 
   // valid
-  expect(validateEmail("a@b")).toEqual("a@b"); // valid
-  expect(validateEmail("   a@b     ")).toEqual("a@b"); // trimmed
-  expect(validateEmail("\t\r\n+authgear@authgear.com\t\r\n")).toEqual(
+  expect(parseEmail("a@b")).toEqual("a@b"); // valid
+  expect(parseEmail("   a@b     ")).toEqual("a@b"); // trimmed
+  expect(parseEmail("\t\r\n+authgear@authgear.com\t\r\n")).toEqual(
     "+authgear@authgear.com"
   ); // trimmed
 });

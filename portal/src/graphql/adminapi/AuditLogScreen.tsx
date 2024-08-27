@@ -46,7 +46,7 @@ import CommandBarButton from "../../CommandBarButton";
 import { useDebounced } from "../../hook/useDebounced";
 import { toTypedID } from "../../util/graphql";
 import { NodeType } from "./node";
-import { validateEmail } from "../../util/email";
+import { parseEmail } from "../../util/email";
 import { default as parsePhoneNumber } from "libphonenumber-js";
 
 const pageSize = 100;
@@ -371,7 +371,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, []);
 
   const queryEmailAddresses = useMemo(() => {
-    const email = validateEmail(debouncedSearchQuery);
+    const email = parseEmail(debouncedSearchQuery);
     if (email == null) {
       return null;
     }
