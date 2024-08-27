@@ -3,9 +3,8 @@ import {
   cleanRawInputValue,
   trimCountryCallingCode,
   makePartialValue,
+  parsePhoneNumber,
 } from "./phone";
-
-import { default as parsePhoneNumber } from "libphonenumber-js";
 
 it("cleanRawInputValue", () => {
   expect(cleanRawInputValue("1234 1234")).toEqual("12341234");
@@ -27,29 +26,17 @@ it("makePartialValue", () => {
   expect(makePartialValue("123", "852")).toEqual("+852123");
 });
 
-it("libphonenumber-js parsePhoneNumber", () => {
+it("wrapper on libphonenumber-js parsePhoneNumber", () => {
   // invalid
-  expect(parsePhoneNumber("")).toEqual(undefined); // need digits
-  expect(parsePhoneNumber("+")).toEqual(undefined); // need digits
-  expect(parsePhoneNumber("+  ")).toEqual(undefined); // need digits
-  expect(parsePhoneNumber("+-")).toEqual(undefined); // need digits
-  expect(parsePhoneNumber("+852")).toEqual(undefined); // need number
-  // valid
-  expect(parsePhoneNumber("+852 9 9 9  99 999")).toHaveProperty(
-    "number",
-    "+85299999999"
-  ); // allow space in middle
+  expect(parsePhoneNumber("")).toEqual(null); // need digits
+  expect(parsePhoneNumber("+")).toEqual(null); // need digits
+  expect(parsePhoneNumber("+  ")).toEqual(null); // need digits
+  expect(parsePhoneNumber("+-")).toEqual(null); // need digits
+  expect(parsePhoneNumber("+852")).toEqual(null); // need number
 
-  expect(parsePhoneNumber("   +85299999999     ")).toHaveProperty(
-    "number",
-    "+85299999999"
-  ); // trimmed
-  expect(parsePhoneNumber("\t\r\n+85299999999\t\r\n")).toHaveProperty(
-    "number",
-    "+85299999999"
-  ); // trimmed
-  expect(parsePhoneNumber("+852-9999-9999")).toHaveProperty(
-    "number",
-    "+85299999999"
-  ); // allow dashes in middle
+  // valid
+  expect(parsePhoneNumber("+852 9 9 9  99 999")).toEqual("+85299999999"); // allow space in middle
+  expect(parsePhoneNumber("   +85299999999     ")).toEqual("+85299999999"); // trimmed
+  expect(parsePhoneNumber("\t\r\n+85299999999\t\r\n")).toEqual("+85299999999"); // trimmed
+  expect(parsePhoneNumber("+852-9999-9999")).toEqual("+85299999999"); // allow dashes in middle
 });

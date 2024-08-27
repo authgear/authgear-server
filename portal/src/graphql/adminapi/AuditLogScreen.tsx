@@ -47,7 +47,7 @@ import { useDebounced } from "../../hook/useDebounced";
 import { toTypedID } from "../../util/graphql";
 import { NodeType } from "./node";
 import { parseEmail } from "../../util/email";
-import { default as parsePhoneNumber } from "libphonenumber-js";
+import { parsePhoneNumber } from "../../util/phone";
 
 const pageSize = 100;
 
@@ -396,7 +396,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       case ALL:
       case AuditLogActivityType.SmsSent:
       case AuditLogActivityType.WhatsappSent:
-        return [phoneNumber.number as string];
+        return [phoneNumber];
       default:
         return null;
     }
