@@ -26,9 +26,24 @@
     {{ $anyReadableName := or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname") }}
     {{ if $anyReadableName }}
       {{ template "__settings_profile_item"
-          (dict
-             "Title" (translate "v2.page.settings-profile.default.name-title" nil)
-             "Content" $.FormattedNames
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.name-title" nil)
+              "Content" $.FormattedNames
+            )
+            .
+          )
+      }}
+    {{ end }}
+
+    {{ if (call $.IsReadable "/gender") }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.gender-title" nil)
+              "Content" $.Gender
+            )
+            .
           )
       }}
     {{ end }}
@@ -41,7 +56,13 @@
 
 <div class="settings-item">
   <div class="w-44 text-start">{{ $.Title }}</div>
-  <div class="flex-1 text-start settings-description">{{ $.Content }}</div>
+  <div class="flex-1 text-start settings-description">
+    {{ if $.Content }}
+      {{ $.Content }}
+    {{ else }}
+      {{ translate "v2.page.settings-profile.default.item-value-not-provided" nil}}
+    {{ end }}
+  </div>
   <i class="settings-item__alternative_icon material-icons">
     arrow_forward_ios
   </i>
