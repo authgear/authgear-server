@@ -18,12 +18,20 @@
     <img
       src="{{ $light }}"
       class="banner-logo light"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-light"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .light }}"
     >
   </a>
   <a class="banner-logo__container dark" href="{{ $.ClientURI }}">
     <img
       src="{{ $dark }}"
       class="banner-logo dark"
+      data-controller="previewable-resource"
+      data-previewable-resource-key-value="brand-logo-dark"
+      data-previewable-resource-changable-attribute-value="src"
+      data-previewable-resource-original-value="{{ .dark }}"
     >
   </a>
 {{ else }}
