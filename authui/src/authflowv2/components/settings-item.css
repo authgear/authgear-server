@@ -40,17 +40,31 @@
   }
 
   .settings-item {
-    @apply text-center;
-    @apply flex justify-center items-center;
+    @apply grid;
+    @apply items-center text-start;
 
     background-color: var(--settings-item__bg-color);
-    font-family: var(--settings-item__font-family);
-    font-size: var(--settings-item__font-size);
-    line-height: var(--settings-item__line-height);
-    letter-spacing: var(--settings-item__letter-spacing);
-    font-weight: var(--settings-item__font-weight);
     padding: var(--settings-item__py) var(--settings-item__px);
     color: var(--settings-item__text-color);
+
+    &.with-content {
+      /* When Mobile View */
+      grid-template-areas:
+        "icon title arrow"
+        ". content arrow";
+      grid-template-columns: 2rem auto 1.125rem;
+
+      /* When Not Mobile View */
+      @media (min-width: 640px) {
+        grid-template-areas: "icon title content arrow";
+        grid-template-columns: 2rem 9rem auto 1.125rem;
+      }
+    }
+
+    &.without-content {
+      grid-template-areas: "icon title arrow";
+      grid-template-columns: 2rem auto 1.125rem;
+    }
 
     &:hover {
       background-color: var(--settings-item__bg-color--hover);
@@ -68,7 +82,29 @@
         ring-[color:var(--secondary-item\_\_ring-color--active)];
     }
   }
+
+  .settings-item > .alternative-icon {
+    grid-area: icon;
+  }
+  .settings-item > .settings-item__label {
+    grid-area: title;
+  }
+  .settings-item > .settings-description {
+    grid-area: content;
+  }
+  .settings-item > .settings-item__alternative_icon {
+    grid-area: arrow;
+  }
 }
+
+.settings-item__label {
+  font-family: var(--settings-item__font-family);
+  font-size: var(--settings-item__font-size);
+  line-height: var(--settings-item__line-height);
+  letter-spacing: var(--settings-item__letter-spacing);
+  font-weight: var(--settings-item__font-weight);
+}
+
 .settings-item__alternative_icon {
   font-size: var(--settings-icon__font-size);
   color: var(--settings-item__bg-color-alternative);

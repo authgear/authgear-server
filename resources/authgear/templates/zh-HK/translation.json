@@ -1111,5 +1111,6 @@
   "v2.page.settings.default.button-label-biometric-login": "生物驗證登入",
   "v2.page.settings.default.button-label-signed-in-devices": "已登入的裝置",
   "v2.page.settings.default.button-label-advanced-settings": "進階設定",
-  "v2.page.settings.default.button-label-back-to-app": "返回我的App"
+  "v2.page.settings.default.button-label-back-to-app": "返回我的App",
+  "v2.page.settings.default.button-label-and-more": "還有更多"
 }
