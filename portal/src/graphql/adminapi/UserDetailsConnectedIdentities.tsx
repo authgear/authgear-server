@@ -56,7 +56,7 @@ interface IdentityClaim extends Record<string, unknown> {
   "https://authgear.com/claims/oauth/provider_type"?: OAuthSSOProviderType;
   "https://authgear.com/claims/oauth/subject_id"?: string;
   "https://authgear.com/claims/login_id/type"?: LoginIDIdentityType;
-  "https://authgear.com/claims/ldap/last_login_username"?: string;
+  "https://authgear.com/claims/ldap/last_login_username"?: string | null;
   "https://authgear.com/claims/ldap/user_id_attribute_name"?: string;
   "https://authgear.com/claims/ldap/user_id_attribute_value"?: string;
 }
@@ -152,7 +152,7 @@ interface LDAPIdentityListItem {
   type: "ldap";
   verified: undefined;
   connectedOn: string;
-  lastLoginUserName?: string;
+  lastLoginUserName?: string | null;
   userIDAttributeName?: string;
   userIDAttributeValue?: string;
 }
@@ -895,7 +895,7 @@ const LDAPIdentityListCell: React.VFC<LDAPIdentityListCellProps> = (props) => {
   return (
     <ListCellLayout className={cn(styles.cellContainer, styles.ldap)}>
       <BaseIdentityListCellTitle as="Text" icon={icon}>
-        {identityName}
+        {identityName ? identityName : "-"}
       </BaseIdentityListCellTitle>
       <Text className={styles.cellLDAPInfo} variant="medium">
         {userIDAttributeName && userIDAttributeValue
@@ -1109,7 +1109,7 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
             lastLoginUserName:
               identity.claims[
                 "https://authgear.com/claims/ldap/last_login_username"
-              ] ?? "",
+              ],
             userIDAttributeName:
               identity.claims[
                 "https://authgear.com/claims/ldap/user_id_attribute_name"
