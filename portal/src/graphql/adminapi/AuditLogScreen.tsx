@@ -47,7 +47,7 @@ import { useDebounced } from "../../hook/useDebounced";
 import { toTypedID } from "../../util/graphql";
 import { NodeType } from "./node";
 import { validateEmail } from "../../util/email";
-import { validatePhoneNumber } from "../../util/phone";
+import { default as parsePhoneNumber } from "libphonenumber-js";
 
 const pageSize = 100;
 
@@ -387,7 +387,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, [debouncedSearchQuery, selectedKey]);
 
   const queryPhoneNumbers = useMemo(() => {
-    const phoneNumber = validatePhoneNumber(debouncedSearchQuery);
+    const phoneNumber = parsePhoneNumber(debouncedSearchQuery);
     if (phoneNumber == null) {
       return null;
     }
@@ -396,7 +396,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
       case ALL:
       case AuditLogActivityType.SmsSent:
       case AuditLogActivityType.WhatsappSent:
-        return phoneNumber ? [phoneNumber] : null;
+        return [phoneNumber.number as string];
       default:
         return null;
     }

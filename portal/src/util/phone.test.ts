@@ -3,8 +3,9 @@ import {
   cleanRawInputValue,
   trimCountryCallingCode,
   makePartialValue,
-  validatePhoneNumber,
 } from "./phone";
+
+import { default as parsePhoneNumber } from "libphonenumber-js";
 
 it("cleanRawInputValue", () => {
   expect(cleanRawInputValue("1234 1234")).toEqual("12341234");
@@ -26,19 +27,29 @@ it("makePartialValue", () => {
   expect(makePartialValue("123", "852")).toEqual("+852123");
 });
 
-it("validatePhoneNumber", () => {
+it("libphonenumber-js parsePhoneNumber", () => {
   // invalid
-  expect(validatePhoneNumber("")).toEqual(null); // need digits
-  expect(validatePhoneNumber("+")).toEqual(null); // need digits
-  expect(validatePhoneNumber("+  ")).toEqual(null); // need digits
-  expect(validatePhoneNumber("+852 9 9 9  99 999")).toEqual(null); // no space in middle
-
+  expect(parsePhoneNumber("")).toEqual(undefined); // need digits
+  expect(parsePhoneNumber("+")).toEqual(undefined); // need digits
+  expect(parsePhoneNumber("+  ")).toEqual(undefined); // need digits
+  expect(parsePhoneNumber("+-")).toEqual(undefined); // need digits
+  expect(parsePhoneNumber("+852")).toEqual(undefined); // need number
   // valid
-  expect(validatePhoneNumber("+-")).toEqual("+-"); // edge case, expected
-  expect(validatePhoneNumber("+852")).toEqual("+852"); // valid
-  expect(validatePhoneNumber("   +81     ")).toEqual("+81"); // trimmed
-  expect(validatePhoneNumber("\t\r\n+85299999999\t\r\n")).toEqual(
+  expect(parsePhoneNumber("+852 9 9 9  99 999")).toHaveProperty(
+    "number",
+    "+85299999999"
+  ); // allow space in middle
+
+  expect(parsePhoneNumber("   +85299999999     ")).toHaveProperty(
+    "number",
     "+85299999999"
   ); // trimmed
-  expect(validatePhoneNumber("+852-9999-9999")).toEqual("+852-9999-9999"); // dashes in middle allowed
+  expect(parsePhoneNumber("\t\r\n+85299999999\t\r\n")).toHaveProperty(
+    "number",
+    "+85299999999"
+  ); // trimmed
+  expect(parsePhoneNumber("+852-9999-9999")).toHaveProperty(
+    "number",
+    "+85299999999"
+  ); // allow dashes in middle
 });
