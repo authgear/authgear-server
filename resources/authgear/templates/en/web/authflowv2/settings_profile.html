@@ -30,6 +30,8 @@
             (dict
               "Title" (translate "v2.page.settings-profile.default.name-title" nil)
               "Content" $.FormattedNames
+              "Editable" (or (call $.IsEditable "/name") (call $.IsEditable "/given_name") (call $.IsEditable "/family_name") (call $.IsEditable "/middle_name") (call $.IsEditable "/nickname"))
+              "EditURL" (call $.MakeURL "/settings/profile/name/edit")
             )
             .
           )
@@ -42,6 +44,8 @@
             (dict
               "Title" (translate "v2.page.settings-profile.default.gender-title" nil)
               "Content" $.Gender
+              "Editable" (call $.IsEditable "/gender")
+              "EditURL" (call $.MakeURL "/settings/profile/gender/edit")
             )
             .
           )
@@ -59,6 +63,8 @@
             (dict
               "Title" (translate "v2.page.settings-profile.default.birthdate-title" nil)
               "Content" $content
+              "Editable" (call $.IsEditable "/birthdate")
+              "EditURL" (call $.MakeURL "/settings/profile/birthdate/edit")
             )
             .
           )
@@ -76,6 +82,8 @@
             (dict
               "Title" (translate "v2.page.settings-profile.default.address-title" nil)
               "Content" $content
+              "Editable" (call $.IsEditable "/address")
+              "EditURL" (call $.MakeURL "/settings/profile/address/edit")
             )
             .
           )
@@ -92,6 +100,8 @@
             (dict
               "Title" (translate "v2.page.settings-profile.default.zoneinfo-title" nil)
               "Content" $content
+              "Editable" (call $.IsEditable "/zoneinfo")
+              "EditURL" (call $.MakeURL "/settings/profile/zoneinfo/edit")
             )
             .
           )
@@ -108,6 +118,8 @@
             (dict
               "Title" (translate "v2.page.settings-profile.default.language-title" nil)
               "Content" $content
+              "Editable" (call $.IsEditable "/locale")
+              "EditURL" (call $.MakeURL "/settings/profile/locale/edit")
             )
             .
           )
@@ -119,8 +131,12 @@
 {{ end }}
 
 {{ define "__settings_profile_item" }}
-
-<div class="settings-item">
+<a
+  class="settings-item"
+  {{ if $.Editable }}
+  href="{{ $.EditURL }}"
+  {{ end }}
+>
   <div class="w-44 text-start">{{ $.Title }}</div>
   <div class="flex-1 text-start settings-description">
     {{ if $.Content }}
@@ -132,7 +148,7 @@
   <i class="settings-item__alternative_icon material-icons">
     arrow_forward_ios
   </i>
-</div>
+</a>
 
 {{ end }}
 
