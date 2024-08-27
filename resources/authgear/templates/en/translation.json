@@ -1124,6 +1124,8 @@
   "v2.page.settings.default.link-label-edit-profile": "Edit Profile",
   "v2.page.settings.default.title-my-account": "My Account",
   "v2.page.settings.default.title-security": "Security",
+  "v2.page.settings-profile.default.gender-title": "Gender",
+  "v2.page.settings-profile.default.item-value-not-provided": "Not provided",
   "v2.page.settings-profile.default.name-title": "Name",
   "v2.page.settings-profile.default.navbar-title": "Profile",
   "v2.page.setup-oob-otp.default.title": "2-Step Verification",
