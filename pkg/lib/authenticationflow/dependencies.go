@@ -223,7 +223,7 @@ type LoginIDService interface {
 }
 
 type LDAPService interface {
-	MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, entry *ldap.Entry) (*identity.Spec, error)
+	MakeSpecFromEntry(serverConfig *config.LDAPServerConfig, loginUsername string, entry *ldap.Entry) (*identity.Spec, error)
 }
 
 type LDAPClientFactory interface {

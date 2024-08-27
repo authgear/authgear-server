@@ -29,23 +29,33 @@
 }
 
 .cellContainer {
-  /* Desktop */
-  /* grid-template:
+  grid-template-areas:
     "       icon           name          .           button-group"
-    "       .              desc          .           button-group"
-    /       min-content    auto         1fr          330px; */
+    "       .              desc          .           button-group";
+  grid-template-columns: min-content auto 1fr 330px;
 
-  /* Tablet */
-  /* grid-template:
-    "        icon           name           name        "
-    "        .              desc           desc        "
-    "        button-group   button-group   button-group"
-    /        min-content    auto           auto; */
+  @media screen(tablet) {
+    grid-template-areas:
+      "        icon           name           name        "
+      "        .              desc           desc        "
+      "        button-group   button-group   button-group";
+    grid-template-columns: min-content auto auto;
+  }
 
-  @apply grid-cols-[min-content_auto_1fr_330px]
-          grid-areas-[icon_name_._button-group,._desc_._button-group]
-          tablet:grid-cols-[min-content_auto_auto]
-          tablet:grid-areas-[icon_name_name,._desc_desc,button-group_button-group_button-group];
+  &.ldap {
+    grid-template-areas:
+      "       icon           name          .              button-group"
+      "       .              info          info           button-group"
+      "       .              desc          .              button-group";
+
+    @media screen(tablet) {
+      grid-template-areas:
+        "        icon           name           name        "
+        "        .              info           info        "
+        "        .              desc           desc        "
+        "        button-group   button-group   button-group";
+    }
+  }
 
   display: grid;
   column-gap: 8px;
@@ -83,6 +93,10 @@
 .cellDescSeparator {
   color: #888888;
   margin: 0 8px;
+}
+
+.cellLDAPInfo {
+  grid-area: info;
 }
 
 .cellDesc {

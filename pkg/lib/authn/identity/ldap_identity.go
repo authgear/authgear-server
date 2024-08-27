@@ -21,6 +21,7 @@ type LDAP struct {
 	UserIDAttributeValue []byte                 `json:"user_id_attribute_value"`
 	Claims               map[string]interface{} `json:"claims,omitempty"`
 	RawEntryJSON         map[string]interface{} `json:"raw_entry_json,omitempty"`
+	LastLoginUserName    *string                `json:"last_login_username"`
 }
 
 func (i *LDAP) UserIDAttributeValueDisplayValue() string {
@@ -82,6 +83,7 @@ func (i *LDAP) ToLDAPSpec() *LDAPSpec {
 		UserIDAttributeValue: i.UserIDAttributeValue,
 		Claims:               i.Claims,
 		RawEntryJSON:         i.RawEntryJSON,
+		LastLoginUserName:    i.LastLoginUserName,
 	}
 }
 

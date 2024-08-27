@@ -75,7 +75,7 @@ func (i *IntentLookupIdentityLDAP) ReactTo(ctx context.Context, deps *authflow.D
 				return nil, err
 			}
 
-			spec, err := deps.LDAP.MakeSpecFromEntry(ldapServerConfig, entry)
+			spec, err := deps.LDAP.MakeSpecFromEntry(ldapServerConfig, inputTakeLDAP.GetUsername(), entry)
 			if err != nil {
 				return nil, err
 			}

@@ -1042,17 +1042,17 @@ func (mr *MockLDAPIdentityProviderMockRecorder) ListByClaim(name, value interfac
 }
 
 // New mocks base method.
-func (m *MockLDAPIdentityProvider) New(userID, serverName, userIDAttributeName string, userIDAttributeValue []byte, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (m *MockLDAPIdentityProvider) New(userID, serverName string, loginUserName *string, userIDAttributeName string, userIDAttributeValue []byte, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
+	ret := m.ctrl.Call(m, "New", userID, serverName, loginUserName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
 	ret0, _ := ret[0].(*identity.LDAP)
 	return ret0
 }
 
 // New indicates an expected call of New.
-func (mr *MockLDAPIdentityProviderMockRecorder) New(userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) New(userID, serverName, loginUserName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).New), userID, serverName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).New), userID, serverName, loginUserName, userIDAttributeName, userIDAttributeValue, claims, rawEntryJSON)
 }
 
 // Update mocks base method.
@@ -1070,15 +1070,15 @@ func (mr *MockLDAPIdentityProviderMockRecorder) Update(i interface{}) *gomock.Ca
 }
 
 // WithUpdate mocks base method.
-func (m *MockLDAPIdentityProvider) WithUpdate(iden *identity.LDAP, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
+func (m *MockLDAPIdentityProvider) WithUpdate(iden *identity.LDAP, loginUserName *string, claims, rawEntryJSON map[string]interface{}) *identity.LDAP {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithUpdate", iden, claims, rawEntryJSON)
+	ret := m.ctrl.Call(m, "WithUpdate", iden, loginUserName, claims, rawEntryJSON)
 	ret0, _ := ret[0].(*identity.LDAP)
 	return ret0
 }
 
 // WithUpdate indicates an expected call of WithUpdate.
-func (mr *MockLDAPIdentityProviderMockRecorder) WithUpdate(iden, claims, rawEntryJSON interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) WithUpdate(iden, loginUserName, claims, rawEntryJSON interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithUpdate", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).WithUpdate), iden, claims, rawEntryJSON)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithUpdate", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).WithUpdate), iden, loginUserName, claims, rawEntryJSON)
 }
