@@ -155,7 +155,7 @@ const CustomAttributesConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form}>
+      <FormContainer form={form} showDiscardButton={true}>
         <CustomAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );

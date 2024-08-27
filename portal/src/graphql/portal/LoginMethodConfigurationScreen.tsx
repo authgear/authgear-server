@@ -3595,7 +3595,12 @@ const LoginMethodConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} errorRules={ERROR_RULES}>
+      <FormContainer
+        form={form}
+        errorRules={ERROR_RULES}
+        stickyFooterComponent={true}
+        showDiscardButton={true}
+      >
         <LoginMethodConfigurationContent appID={appID} form={form} />
       </FormContainer>
     );
