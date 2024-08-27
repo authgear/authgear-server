@@ -30,10 +30,23 @@ const packageJSON = JSON.parse(
   await readFile("./package.json", { encoding: "utf8" })
 );
 
+const dependenciesToIgnore = [
+  // Ignore cldr-json as they are not really a module.
+  /^cldr-/,
+  // Ignore @fortawesome/fontawesome-free as it is a CSS only module.
+  /^@fortawesome\/fontawesome-/,
+];
+
 const deps = [];
 for (const key of Object.keys(packageJSON["dependencies"])) {
-  // Ignore cldr-json as they are not really a module.
-  if (!key.startsWith("cldr-")) {
+  let skip = false;
+  for (const pattern of dependenciesToIgnore) {
+    if (pattern.test(key)) {
+      skip = true;
+      break;
+    }
+  }
+  if (!skip) {
     deps.push(key);
   }
 }
