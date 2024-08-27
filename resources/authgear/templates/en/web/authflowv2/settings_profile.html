@@ -65,6 +65,23 @@
       }}
     {{ end }}
 
+    {{ if (call $.IsReadable "/address") }}
+      {{ $content := "" }}
+      {{ $anyAddressComponents := (or $.AddressStreetAddress $.AddressLocality $.AddressRegion $.AddressPostalCode $.AddressCountry) }}
+      {{ if $anyAddressComponents }}
+        {{ $content = include "__settings_profile_address_item" . }}
+      {{ end }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.address-title" nil)
+              "Content" $content
+            )
+            .
+          )
+      }}
+    {{ end }}
+
     {{ if (call $.IsReadable "/zoneinfo") }}
       {{ $content := "" }}
       {{ if $.Zoneinfo }}
@@ -133,4 +150,15 @@
 <span>
   {{ $.Locale }} - {{ translate $label nil}}
 </span>
+{{ end }}
+
+
+{{ define "__settings_profile_address_item" }}
+<p>
+{{- if $.AddressStreetAddress }}<span class="whitespace-pre-wrap">{{ $.AddressStreetAddress }}</span><br>{{ end }}
+{{- if $.AddressLocality }}{{ $.AddressLocality }}<br>{{ end }}
+{{- if $.AddressRegion }}{{ $.AddressRegion }}<br>{{ end }}
+{{- if $.AddressPostalCode }}{{ $.AddressPostalCode }}<br>{{ end }}
+{{- if $.AddressCountry }}{{ translate (printf "territory-%s" $.AddressCountry) nil }}<br>{{ end }}
+</p>
 {{ end }}
