@@ -74,6 +74,7 @@ var TemplateWebAuthflowV2SettingsItemWithContentHTML = template.RegisterHTML("we
 
 var TemplateWebSettingsV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__settings_page_frame.html")
 var TemplateWebAuthflowV2NavBar = template.RegisterHTML("web/authflowv2/__navbar.html")
+var TemplateWebAuthflowV2UserProfilePic = template.RegisterHTML("web/authflowv2/__settings_user_profile_pic.html")
 
 var BaseComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -134,6 +135,7 @@ var BaseComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2SettingsHeaderHTML,
 	TemplateWebAuthflowV2SettingsItemWithContentHTML,
 	TemplateWebAuthflowV2NavBar,
+	TemplateWebAuthflowV2UserProfilePic,
 }
 
 var ComponentsHTML []*template.HTML
