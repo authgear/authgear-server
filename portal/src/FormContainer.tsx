@@ -11,6 +11,7 @@ import {
   FormContainerBaseProps,
   useFormContainerBaseContext,
 } from "./FormContainerBase";
+import ActionButton from "./ActionButton";
 
 export interface SaveButtonProps {
   labelId: string;
@@ -29,6 +30,7 @@ export interface FormContainerProps extends FormContainerBaseProps {
   stickyFooterComponent?: boolean;
   fallbackErrorMessageID?: string;
   messageBar?: React.ReactNode;
+  showDiscardButton?: boolean;
   hideFooterComponent?: boolean;
   HeaderComponent?: React.VFC<FormContainerHeaderComponentProps>;
 }
@@ -40,16 +42,20 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
     saveButtonProps = { labelId: "save" },
     messageBar,
     hideFooterComponent,
+    showDiscardButton = false,
     stickyFooterComponent = false,
     HeaderComponent,
   } = props;
 
-  const { canSave, isUpdating, onReset, onSave, onSubmit } =
+  const { canSave, isUpdating, canReset, onReset, onSave, onSubmit } =
     useFormContainerBaseContext();
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
   const [isResetDialogVisible, setIsResetDialogVisible] = useState(false);
+  const onDisplayResetDialog = useCallback(() => {
+    setIsResetDialogVisible(true);
+  }, []);
   const onDismissResetDialog = useCallback(() => {
     setIsResetDialogVisible(false);
   }, []);
@@ -74,12 +80,23 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
         HeaderComponent={HeaderComponent}
         footer={
           hideFooterComponent ? null : (
-            <PrimaryButton
-              text={renderToString(saveButtonProps.labelId)}
-              iconProps={saveButtonProps.iconProps}
-              disabled={!canSave}
-              onClick={onSave}
-            />
+            <>
+              <PrimaryButton
+                text={renderToString(saveButtonProps.labelId)}
+                iconProps={saveButtonProps.iconProps}
+                disabled={!canSave}
+                onClick={onSave}
+              />
+              {showDiscardButton ? (
+                <ActionButton
+                  text={renderToString("discard-changes")}
+                  iconProps={{ iconName: "Refresh" }}
+                  disabled={!canReset}
+                  theme={!canReset ? themes.main : themes.destructive}
+                  onClick={onDisplayResetDialog}
+                />
+              ) : null}
+            </>
           )
         }
         messageBar={<FormErrorMessageBar>{messageBar}</FormErrorMessageBar>}
