@@ -418,6 +418,7 @@ const LanguagesConfigurationScreen: React.VFC =
           form={appConfigForm}
           canSave={true}
           stickyFooterComponent={true}
+          showDiscardButton={true}
         >
           <ScreenContent>
             <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>

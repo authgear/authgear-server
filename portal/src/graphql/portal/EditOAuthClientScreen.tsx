@@ -501,7 +501,11 @@ const EditOAuthClientScreen1: React.VFC<{
   }
 
   return (
-    <FormContainer form={form} stickyFooterComponent={true}>
+    <FormContainer
+      form={form}
+      stickyFooterComponent={true}
+      showDiscardButton={true}
+    >
       <EditOAuthClientContent
         form={form}
         clientID={clientID}

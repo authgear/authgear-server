@@ -1143,6 +1143,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
         form={form}
         hideFooterComponent={codeEditorState != null}
         stickyFooterComponent={true}
+        showDiscardButton={true}
       >
         <ScreenContent>
           {codeEditorState != null ? (

@@ -12,6 +12,8 @@
 }
 
 .footer {
+  @apply flex items-center;
+  @apply space-x-4;
   @apply p-6;
   @apply bg-white;
 }
