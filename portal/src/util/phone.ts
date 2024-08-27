@@ -1,3 +1,5 @@
+import { default as _parsePhoneNumber } from "libphonenumber-js";
+
 export function cleanRawInputValue(rawInputValue: string): string {
   const digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
   let out = "";
@@ -38,4 +40,12 @@ export function makePartialValue(
 ): string {
   const trimmed = trimCountryCallingCode(rawInputValue, countryCallingCode);
   return `+${countryCallingCode}${trimmed}`;
+}
+
+export function parsePhoneNumber(rawInputValue: string): string | null {
+  const parsed = _parsePhoneNumber(rawInputValue);
+  if (parsed == null) {
+    return null;
+  }
+  return parsed.number;
 }

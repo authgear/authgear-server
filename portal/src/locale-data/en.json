@@ -1287,6 +1287,8 @@
   "AuditLogScreen.acitity-kind.admin": "Admin API & Portal",
   "AuditLogScreen.clear-all-filters": "Clear all filters",
   "AuditLogScreen.search-by-user-id": "Search User ID",
+  "AuditLogScreen.search-by-user-id-or-email": "Search User ID or Email Address",
+  "AuditLogScreen.search-by-user-id-or-phone": "Search User ID or Phone Number",
 
   "AuditLogList.column.activity-type": "Activity Type",
   "AuditLogList.column.created-at": "Timestamp",

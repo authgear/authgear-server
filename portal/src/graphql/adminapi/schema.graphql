@@ -1148,7 +1148,7 @@ type PageInfo {
 """"""
 type Query {
   """Audit logs"""
-  auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, first: Int, last: Int, rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
+  auditLogs(activityTypes: [AuditLogActivityType!], after: String, before: String, emailAddresses: [String!], first: Int, last: Int, phoneNumbers: [String!], rangeFrom: DateTime, rangeTo: DateTime, sortDirection: SortDirection, userIDs: [ID!]): AuditLogConnection
 
   """Get user by Login ID."""
   getUserByLoginID(loginIDKey: String!, loginIDValue: String!): User

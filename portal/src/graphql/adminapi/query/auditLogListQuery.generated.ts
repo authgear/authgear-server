@@ -12,6 +12,8 @@ export type AuditLogListQueryQueryVariables = Types.Exact<{
   cursor?: Types.InputMaybe<Types.Scalars['String']['input']>;
   activityTypes?: Types.InputMaybe<Array<Types.AuditLogActivityType> | Types.AuditLogActivityType>;
   userIDs?: Types.InputMaybe<Array<Types.Scalars['ID']['input']> | Types.Scalars['ID']['input']>;
+  emailAddresses?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
+  phoneNumbers?: Types.InputMaybe<Array<Types.Scalars['String']['input']> | Types.Scalars['String']['input']>;
   rangeFrom?: Types.InputMaybe<Types.Scalars['DateTime']['input']>;
   rangeTo?: Types.InputMaybe<Types.Scalars['DateTime']['input']>;
   sortDirection?: Types.InputMaybe<Types.SortDirection>;
@@ -42,12 +44,14 @@ export const AuditLogListFragmentDoc = gql`
 }
     ${AuditLogEdgesNodeFragmentDoc}`;
 export const AuditLogListQueryDocument = gql`
-    query AuditLogListQuery($pageSize: Int!, $cursor: String, $activityTypes: [AuditLogActivityType!], $userIDs: [ID!], $rangeFrom: DateTime, $rangeTo: DateTime, $sortDirection: SortDirection) {
+    query AuditLogListQuery($pageSize: Int!, $cursor: String, $activityTypes: [AuditLogActivityType!], $userIDs: [ID!], $emailAddresses: [String!], $phoneNumbers: [String!], $rangeFrom: DateTime, $rangeTo: DateTime, $sortDirection: SortDirection) {
   auditLogs(
     first: $pageSize
     after: $cursor
     activityTypes: $activityTypes
     userIDs: $userIDs
+    emailAddresses: $emailAddresses
+    phoneNumbers: $phoneNumbers
     rangeFrom: $rangeFrom
     rangeTo: $rangeTo
     sortDirection: $sortDirection
@@ -73,6 +77,8 @@ export const AuditLogListQueryDocument = gql`
  *      cursor: // value for 'cursor'
  *      activityTypes: // value for 'activityTypes'
  *      userIDs: // value for 'userIDs'
+ *      emailAddresses: // value for 'emailAddresses'
+ *      phoneNumbers: // value for 'phoneNumbers'
  *      rangeFrom: // value for 'rangeFrom'
  *      rangeTo: // value for 'rangeTo'
  *      sortDirection: // value for 'sortDirection'

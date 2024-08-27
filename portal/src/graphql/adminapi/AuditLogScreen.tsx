@@ -46,6 +46,8 @@ import CommandBarButton from "../../CommandBarButton";
 import { useDebounced } from "../../hook/useDebounced";
 import { toTypedID } from "../../util/graphql";
 import { NodeType } from "./node";
+import { parseEmail } from "../../util/email";
+import { parsePhoneNumber } from "../../util/phone";
 
 const pageSize = 100;
 
@@ -121,7 +123,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const queryActivityType = searchParams.get("activity_type");
   const queryLastUpdatedAt = searchParams.get("last_updated_at");
   const queryActivityKind = searchParams.get("kind") ?? "";
-  const queryUserID = searchParams.get("user_id") ?? "";
+  const queryString = searchParams.get("q") ?? "";
 
   const initialOffset = useMemo(() => {
     if (queryPage != null) {
@@ -149,7 +151,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
     return AuditLogKind.User;
   });
-  const [searchUserID, setSearchUserID] = useState<string>(queryUserID);
+  const [searchQuery, setSearchQuery] = useState<string>(queryString);
 
   const {
     committedValue: rangeFrom,
@@ -237,7 +239,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return ALL;
   }, [availableActivityTypes, stateSelectedKey]);
 
-  const [debounedSearchUserID] = useDebounced(searchUserID, 300);
+  const [debouncedSearchQuery] = useDebounced(searchQuery, 300);
 
   const { renderToString } = useContext(Context);
 
@@ -270,7 +272,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     const newQueryActivityType = selectedKey;
     const newQueryLastUpdatedAt = lastUpdatedAt.getTime().toString();
     const newActivityKind = activityKind;
-    const newUserID = debounedSearchUserID;
+    const newQueryString = debouncedSearchQuery;
 
     params["from"] = newQueryFrom;
     params["to"] = newQueryTo;
@@ -279,7 +281,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     params["activity_type"] = newQueryActivityType;
     params["last_updated_at"] = newQueryLastUpdatedAt;
     params["kind"] = newActivityKind;
-    params["user_id"] = newUserID;
+    params["q"] = newQueryString;
 
     let callSet = false;
     if (newQueryFrom !== queryFrom) {
@@ -303,7 +305,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     if (newActivityKind !== queryActivityKind) {
       callSet = true;
     }
-    if (newUserID !== queryUserID) {
+    if (newQueryString !== queryString) {
       callSet = true;
     }
 
@@ -326,8 +328,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setSearchParams,
     activityKind,
     queryActivityKind,
-    debounedSearchUserID,
-    queryUserID,
+    debouncedSearchQuery,
+    queryString,
   ]);
 
   const activityTypeOptions = useMemo(() => {
@@ -368,11 +370,47 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     setOffset(offset);
   }, []);
 
-  const userNodeIDs = useMemo(() => {
-    return debounedSearchUserID
-      ? [toTypedID(NodeType.User, debounedSearchUserID)]
+  const queryEmailAddresses = useMemo(() => {
+    const email = parseEmail(debouncedSearchQuery);
+    if (email == null) {
+      return null;
+    }
+
+    switch (selectedKey) {
+      // Only search email addresses if `all` or `email_sent` filter active
+      case ALL:
+      case AuditLogActivityType.EmailSent:
+        return email ? [email] : null;
+      default:
+        return null;
+    }
+  }, [debouncedSearchQuery, selectedKey]);
+
+  const queryPhoneNumbers = useMemo(() => {
+    const phoneNumber = parsePhoneNumber(debouncedSearchQuery);
+    if (phoneNumber == null) {
+      return null;
+    }
+    switch (selectedKey) {
+      // Only search phone numbers if `all` or `phone_sent` or `whatsapp_sent` filter active
+      case ALL:
+      case AuditLogActivityType.SmsSent:
+      case AuditLogActivityType.WhatsappSent:
+        return [phoneNumber];
+      default:
+        return null;
+    }
+  }, [debouncedSearchQuery, selectedKey]);
+
+  const queryUserIDs = useMemo(() => {
+    if (queryEmailAddresses != null || queryPhoneNumbers != null) {
+      return null;
+    }
+    // only search by userIDs if query notLikeEmail & notLikePhoneNumber
+    return debouncedSearchQuery
+      ? [toTypedID(NodeType.User, debouncedSearchQuery)]
       : null;
-  }, [debounedSearchUserID]);
+  }, [debouncedSearchQuery, queryEmailAddresses, queryPhoneNumbers]);
 
   const {
     data: currentData,
@@ -387,7 +425,9 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         pageSize,
         cursor,
         activityTypes,
-        userIDs: userNodeIDs,
+        userIDs: queryUserIDs,
+        emailAddresses: queryEmailAddresses,
+        phoneNumbers: queryPhoneNumbers,
         rangeFrom: queryRangeFrom,
         rangeTo: queryRangeTo,
         sortDirection,
@@ -456,19 +496,31 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     [setLastUpdatedAt, setOffset]
   );
 
-  const onChangeSearchUserID = useCallback(
+  const onChangeSearchQuery = useCallback(
     (e?: React.ChangeEvent<HTMLInputElement>) => {
       if (e === undefined) {
         return;
       }
-      setSearchUserID(e.currentTarget.value);
+      setSearchQuery(e.currentTarget.value);
     },
     []
   );
 
-  const onClearSearchUserID = useCallback(() => {
-    setSearchUserID("");
+  const onClearSearchQuery = useCallback(() => {
+    setSearchQuery("");
   }, []);
+
+  const searchBoxPlaceholder = useMemo(() => {
+    switch (selectedKey) {
+      case AuditLogActivityType.EmailSent:
+        return renderToString("AuditLogScreen.search-by-user-id-or-email");
+      case AuditLogActivityType.SmsSent:
+      case AuditLogActivityType.WhatsappSent:
+        return renderToString("AuditLogScreen.search-by-user-id-or-phone");
+      default:
+        return renderToString("AuditLogScreen.search-by-user-id");
+    }
+  }, [renderToString, selectedKey]);
 
   const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
     const allDateRangeLabel = renderToString("AuditLogScreen.date-range.all");
@@ -518,11 +570,11 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
         onRender: () => {
           return (
             <SearchBox
-              placeholder={renderToString("AuditLogScreen.search-by-user-id")}
+              placeholder={searchBoxPlaceholder}
               className={styles.searchBox}
-              value={searchUserID}
-              onChange={onChangeSearchUserID}
-              onClear={onClearSearchUserID}
+              value={searchQuery}
+              onChange={onChangeSearchQuery}
+              onClear={onClearSearchQuery}
             />
           );
         },
@@ -538,7 +590,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           setRangeFromImmediately(null);
           setRangeToImmediately(null);
           setSelectedKey(ALL);
-          setSearchUserID("");
+          setSearchQuery("");
         },
         buttonStyles: {
           root: {
@@ -556,9 +608,10 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     activityTypeOptions,
     selectedKey,
     onChangeSelectedKey,
-    searchUserID,
-    onChangeSearchUserID,
-    onClearSearchUserID,
+    searchBoxPlaceholder,
+    searchQuery,
+    onChangeSearchQuery,
+    onClearSearchQuery,
     setRangeFromImmediately,
     setRangeToImmediately,
   ]);

@@ -22,6 +22,8 @@ query AuditLogListQuery(
   $cursor: String
   $activityTypes: [AuditLogActivityType!]
   $userIDs: [ID!]
+  $emailAddresses: [String!]
+  $phoneNumbers: [String!]
   $rangeFrom: DateTime
   $rangeTo: DateTime
   $sortDirection: SortDirection
@@ -31,6 +33,8 @@ query AuditLogListQuery(
     after: $cursor
     activityTypes: $activityTypes
     userIDs: $userIDs
+    emailAddresses: $emailAddresses
+    phoneNumbers: $phoneNumbers
     rangeFrom: $rangeFrom
     rangeTo: $rangeTo
     sortDirection: $sortDirection

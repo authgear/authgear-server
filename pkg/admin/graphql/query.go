@@ -249,6 +249,12 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				"userIDs": &graphql.ArgumentConfig{
 					Type: graphql.NewList(graphql.NewNonNull(graphql.ID)),
 				},
+				"emailAddresses": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+				},
+				"phoneNumbers": &graphql.ArgumentConfig{
+					Type: graphql.NewList(graphql.NewNonNull(graphql.String)),
+				},
 				"sortDirection": &graphql.ArgumentConfig{
 					Type: sortDirection,
 				},
@@ -292,12 +298,32 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					}
 				}
 
+				var emailAddresses []string
+				if arr, ok := p.Args["emailAddresses"].([]interface{}); ok {
+					for _, v := range arr {
+						if s, ok := v.(string); ok {
+							emailAddresses = append(emailAddresses, s)
+						}
+					}
+				}
+
+				var phoneNumbers []string
+				if arr, ok := p.Args["phoneNumbers"].([]interface{}); ok {
+					for _, v := range arr {
+						if s, ok := v.(string); ok {
+							phoneNumbers = append(phoneNumbers, s)
+						}
+					}
+				}
+
 				queryOptions := audit.QueryPageOptions{
-					RangeFrom:     rangeFrom,
-					RangeTo:       rangeTo,
-					ActivityTypes: activityTypes,
-					SortDirection: sortDirection,
-					UserIDs:       userIDs,
+					RangeFrom:      rangeFrom,
+					RangeTo:        rangeTo,
+					ActivityTypes:  activityTypes,
+					SortDirection:  sortDirection,
+					UserIDs:        userIDs,
+					EmailAddresses: emailAddresses,
+					PhoneNumbers:   phoneNumbers,
 				}
 
 				refs, result, err := gqlCtx.AuditLogFacade.QueryPage(queryOptions, pageArgs)

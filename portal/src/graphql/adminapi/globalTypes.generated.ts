@@ -1008,8 +1008,10 @@ export type QueryAuditLogsArgs = {
   activityTypes?: InputMaybe<Array<AuditLogActivityType>>;
   after?: InputMaybe<Scalars['String']['input']>;
   before?: InputMaybe<Scalars['String']['input']>;
+  emailAddresses?: InputMaybe<Array<Scalars['String']['input']>>;
   first?: InputMaybe<Scalars['Int']['input']>;
   last?: InputMaybe<Scalars['Int']['input']>;
+  phoneNumbers?: InputMaybe<Array<Scalars['String']['input']>>;
   rangeFrom?: InputMaybe<Scalars['DateTime']['input']>;
   rangeTo?: InputMaybe<Scalars['DateTime']['input']>;
   sortDirection?: InputMaybe<SortDirection>;
