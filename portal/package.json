@@ -16,7 +16,8 @@
     "prettier": "prettier --list-different --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint": "eslint --cache './src/**/*.{js,ts,jsx,tsx}'",
     "stylelint": "stylelint --cache './src/**/*.{css,scss}'",
-    "gentype": "graphql-codegen --config ./graphql.portal.codegen.yaml && graphql-codegen --config ./graphql.adminapi.codegen.yaml"
+    "gentype": "graphql-codegen --config ./graphql.portal.codegen.yaml && graphql-codegen --config ./graphql.adminapi.codegen.yaml",
+    "generateCodesplit": "node ./scripts/generateCodesplit.mjs"
   },
   "alias": {
     "process": false,
