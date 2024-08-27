@@ -178,6 +178,7 @@ func traverseTreeVisitBranch(n *parse.BranchNode, depth int, fn func(n parse.Nod
 	return
 }
 
+//nolint:gocognit
 func traverseTreeVisit(
 	n parse.Node,
 	depth int,
