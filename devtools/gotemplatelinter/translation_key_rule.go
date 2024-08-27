@@ -55,6 +55,12 @@ func validateTree(tree *parse.Tree) (err error) {
 		switch n := n.(type) {
 		case *parse.CommandNode:
 			for _, arg := range n.Args {
+				if variable, ok := arg.(*parse.VariableNode); ok && variable.String() == "$.Translations.RenderText" {
+					// TODO: handle $.Translations.RenderText
+				}
+				if field, ok := arg.(*parse.FieldNode); ok && field.String() == ".Translations.RenderText" {
+					// TODO: handle .Translations.RenderText
+				}
 				if ident, ok := arg.(*parse.IdentifierNode); ok {
 					switch ident.String() {
 					case "include":
