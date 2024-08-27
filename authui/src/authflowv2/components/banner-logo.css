@@ -42,8 +42,7 @@
   }
 
   /* The banner is visible only in light mode and not mobile with .banner-logo.light src is non-empty*/
-  :root:not(.dark)
-    .banner-logo__container.light:has(.banner-logo.light:not([src=""])) {
+  :root:not(.dark) .banner-logo__container.light:has(.banner-logo.light:not([src=""])) {
     @apply hidden tablet:flex;
   }
 

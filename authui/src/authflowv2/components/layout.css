@@ -49,10 +49,7 @@
     /* In any layout, the widget should NOT grow, and take its initial size. */
     @apply flex-initial;
   }
-  .layout--default .wide-widget {
-    /* In any layout, the wide widget should NOT grow, and take its initial size. */
-    @apply flex-initial;
-  }
+
   .layout__header--default {
     /* In any layout, the layout header takes full widget. */
     @apply w-full;
