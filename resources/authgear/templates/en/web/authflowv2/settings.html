@@ -5,19 +5,19 @@
 <div class="flex flex-col gap-8">
   <div class="flex flex-col gap-4 items-center">
     <img
-    class="rounded-full bg-center bg-cover bg-no-repeat w-30 h-30"
+    class="rounded-full w-30 h-30"
     {{ if (and (call $.IsReadable "/picture") $.Picture) }}
       src="{{ $.Picture }}"
     {{ else }}
       src="{{ call $.GeneratedStaticAssetURL "v2_avatar_placeholder.svg" }}"
     {{ end }}
     >
-    <div>
-      <div class="settings-title">
+    <div class="flex flex-col gap-1">
+      <h1 class="settings-title">
         {{ $any_name_readable := (or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname")) }}
         {{ if (and $any_name_readable $.FormattedName) }}<span class="truncate">{{ $.FormattedName }}</span>{{ end }}
         {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="truncate">{{ $.EndUserAccountID }}</span>{{ end }}
-      </div>
+      </h1>
       <p class="body-text--lg">
         {{ $editProfileHref := call $.MakeURL "/settings/profile"}}
         <a href="{{ $editProfileHref }}" >
@@ -31,9 +31,9 @@
   {{/* Identity */}}
   <div class="flex flex-col gap-2">
     <div class="flex flex-col gap-1">
-      <div class="settings-title text-start">
+      <h2 class="settings-title text-start">
         {{ template "v2.page.settings.default.title-my-account" . }}
-      </div>
+      </h2>
       <div class="settings-description text-start">
         {{ template "v2.page.settings.default.description-my-account" . }}
       </div>
@@ -44,96 +44,90 @@
       {{ if eq .type "login_id" }}
       {{ if eq .login_id_type "email" }}
       <a
-        class="settings-item w-full row-sep"
+        class="settings-item row-sep"
         {{ if .identity_id }}
           href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
         {{ else }}
           href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
         {{ end }}
       >
-        <div class="flex w-full">
-          <div class="flex gap-2 w-44 items-center">
-            <i class="alternative-icon material-icons">
-              mail
-            </i>
-            {{ template "v2.page.settings.default.button-label-email" . }}
-          </div>
-          <div class="flex-1 flex-col text-start settings-description">
-            {{ range $i, $email := $.Emails }}
-            <div>
-              {{ $email }}
-            </div>
-            {{ end }}
-          </div>
-          <div class="flex items-center">
-            <i class="settings-item__alternative_icon material-icons">
-              arrow_forward_ios
-            </i>
-          </div>
+        <div class="flex gap-2 w-44 items-center">
+          <i class="alternative-icon material-icons">
+            mail
+          </i>
+          {{ template "v2.page.settings.default.button-label-email" . }}
+        </div>
+        <ul class="flex-1 text-start settings-description">
+          {{ range $i, $email := $.Emails }}
+          <li>
+            {{ $email }}
+          </li>
+          {{ end }}
+        </ul>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </a>
       {{ end }}
 
       {{ if eq .login_id_type "phone" }}
       <a
-        class="settings-item w-full row-sep"
+        class="settings-item row-sep"
         {{ if .identity_id }}
           href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
         {{ else }}
           href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
         {{ end }}
       >
-        <div class="flex w-full">
-          <div class="flex gap-2 w-44 items-center">
-            <i class="alternative-icon material-icons">
-              phone_iphone
-            </i>
-            {{ template "v2.page.settings.default.button-label-phone" . }}
-          </div>
-          <div class="flex-1 flex-col text-start settings-description">
-            {{ range $i, $phone := $.PhoneNumbers }}
-            <div>
-              {{ $phone }}
-            </div>
-            {{ end }}
-          </div>
-          <div class="flex items-center">
-            <i class="settings-item__alternative_icon material-icons">
-              arrow_forward_ios
-            </i>
-          </div>
+        <div class="flex gap-2 w-44 items-center">
+          <i class="alternative-icon material-icons">
+            phone_iphone
+          </i>
+          {{ template "v2.page.settings.default.button-label-phone" . }}
+        </div>
+        <ul class="flex-1 text-start settings-description">
+          {{ range $i, $phone := $.PhoneNumbers }}
+          <li>
+            {{ $phone }}
+          </li>
+          {{ end }}
+        </ul>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </a>
       {{ end }}
 
       {{ if eq .login_id_type "username" }}
       <a
-        class="settings-item w-full row-sep"
+        class="settings-item row-sep"
         {{ if .identity_id }}
           href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}"
         {{ else }}
           href="{{ call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}"
         {{ end }}
       >
-        <div class="flex w-full">
-          <div class="flex gap-2 w-44 items-center">
-            <i class="alternative-icon material-icons">
-              account_circle
-            </i>
-            {{ template "v2.page.settings.default.button-label-username" . }}
-          </div>
-          <div class="flex-1 flex-col text-start settings-description">
-            {{ range $i, $username := $.PreferredUsernames }}
-            <div>
-              {{ $username }}
-            </div>
-            {{ end }}
-          </div>
-          <div class="flex items-center">
-            <i class="settings-item__alternative_icon material-icons">
-              arrow_forward_ios
-            </i>
-          </div>
+        <div class="flex gap-2 w-44 items-center">
+          <i class="alternative-icon material-icons">
+            account_circle
+          </i>
+          {{ template "v2.page.settings.default.button-label-username" . }}
+        </div>
+        <ul class="flex-1 text-start settings-description">
+          {{ range $i, $username := $.PreferredUsernames }}
+          <li>
+            {{ $username }}
+          </li>
+          {{ end }}
+        </ul>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </a>
       {{ end }}
@@ -141,21 +135,19 @@
     {{ end}}
 
     <a
-      class="settings-item w-full row-sep"
+      class="settings-item justify-between row-sep"
       href="{{ call $.MakeURL "/settings/identity" }}"
     >
-      <div class="flex w-full justify-between">
-        <div class="flex gap-2 items-center">
-          <i class="alternative-icon material-icons">
-            link
-          </i>
-          {{ template "v2.page.settings.default.button-label-social-accounts" . }}
-        </div>
-        <div class="flex items-center">
-          <i class="settings-item__alternative_icon material-icons">
-            arrow_forward_ios
-          </i>
-        </div>
+      <div class="flex gap-2 items-center">
+        <i class="alternative-icon material-icons">
+          link
+        </i>
+        {{ template "v2.page.settings.default.button-label-social-accounts" . }}
+      </div>
+      <div class="flex items-center">
+        <i class="settings-item__alternative_icon material-icons">
+          arrow_forward_ios
+        </i>
       </div>
     </a>
   </div>
@@ -164,9 +156,9 @@
   {{/* Security */}}
   <div class="flex flex-col gap-2">
     <div class="flex flex-col gap-1">
-      <div class="settings-title text-start">
+      <h2 class="settings-title text-start">
         {{ template "v2.page.settings.default.title-security" . }}
-      </div>
+      </h2>
       <div class="settings-description text-start">
         {{ template "v2.page.settings.default.description-security" . }}
       </div>
@@ -176,21 +168,19 @@
       {{ range $.Authenticators }}
       {{ if and (eq .Type "password") (eq .Kind "primary") }}
       <a
-        class="settings-item w-full row-sep"
+        class="settings-item justify-between row-sep"
         href="{{ call $.MakeURL "/settings/change_password" }}"
       >
-        <div class="flex w-full justify-between">
-          <div class="flex gap-2 items-center">
-            <i class="alternative-icon material-icons">
-              key
-            </i>
-            {{ template "v2.page.settings.default.button-label-password" . }}
-          </div>
-          <div class="flex items-center">
-            <i class="settings-item__alternative_icon material-icons">
-              arrow_forward_ios
-            </i>
-          </div>
+        <div class="flex gap-2 items-center">
+          <i class="alternative-icon material-icons">
+            key
+          </i>
+          {{ template "v2.page.settings.default.button-label-password" . }}
+        </div>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </a>
       {{ end }}
@@ -198,102 +188,92 @@
 
       {{ if $.ShowPrimaryPasskey }}
       <a
-        class="settings-item w-full row-sep"
+        class="settings-item justify-between row-sep"
         href="{{ call $.MakeURL "/settings/passkey" }}"
       >
-        <div class="flex w-full justify-between">
-          <div class="flex gap-2 items-center">
-            <i class="alternative-icon material-icons">
-              passkey
-            </i>
-            {{ template "v2.page.settings.default.button-label-passkey" . }}
-          </div>
-          <div class="flex items-center">
-            <i class="settings-item__alternative_icon material-icons">
-              arrow_forward_ios
-            </i>
-          </div>
+        <div class="flex gap-2 items-center">
+          <i class="alternative-icon material-icons">
+            passkey
+          </i>
+          {{ template "v2.page.settings.default.button-label-passkey" . }}
+        </div>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </a>
       {{ end }}
 
       {{ if $.ShowMFA }}
       <a
-        class="settings-item w-full row-sep"
+        class="settings-item justify-between row-sep"
         href="{{ call $.MakeURL "/settings/mfa" }}"
       >
-        <div class="flex w-full justify-between">
-          <div class="flex gap-2 items-center">
-            <i class="alternative-icon material-icons">
-              encrypted
-            </i>
-            {{ template "v2.page.settings.default.button-label-mfa" . }}
-          </div>
-          <div class="flex items-center">
-            <i class="settings-item__alternative_icon material-icons">
-              arrow_forward_ios
-            </i>
-          </div>
+        <div class="flex gap-2 items-center">
+          <i class="alternative-icon material-icons">
+            encrypted
+          </i>
+          {{ template "v2.page.settings.default.button-label-mfa" . }}
+        </div>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </a>
       {{ end }}
 
       {{ if $.ShowBiometric }}
       <a
-        class="settings-item w-full row-sep"
+        class="settings-item justify-between row-sep"
         href="{{ call $.MakeURL "/settings/biometric" }}"
       >
-        <div class="flex w-full justify-between">
-          <div class="flex gap-2 items-center">
-            <i class="alternative-icon material-icons">
-              fingerprint
-            </i>
-            {{ template "v2.page.settings.default.button-label-biometric-login" . }}
-          </div>
-          <div class="flex items-center">
-            <i class="settings-item__alternative_icon material-icons">
-              arrow_forward_ios
-            </i>
-          </div>
+        <div class="flex gap-2 items-center">
+          <i class="alternative-icon material-icons">
+            fingerprint
+          </i>
+          {{ template "v2.page.settings.default.button-label-biometric-login" . }}
+        </div>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </a>
       {{ end }}
 
       <a
-        class="settings-item w-full row-sep"
+        class="settings-item justify-between row-sep"
         href="{{ call $.MakeURL "/settings/sessions" }}"
       >
-        <div class="flex w-full justify-between">
-          <div class="flex gap-2 items-center">
-            <i class="alternative-icon material-icons">
-              verified_user
-            </i>
-            {{ template "v2.page.settings.default.button-label-signed-in-devices" . }}
-          </div>
-          <div class="flex items-center">
-            <i class="settings-item__alternative_icon material-icons">
-              arrow_forward_ios
-            </i>
-          </div>
+        <div class="flex gap-2 items-center">
+          <i class="alternative-icon material-icons">
+            verified_user
+          </i>
+          {{ template "v2.page.settings.default.button-label-signed-in-devices" . }}
+        </div>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </a>
 
       <a
-        class="settings-item w-full row-sep"
+        class="settings-item justify-between row-sep"
         href="{{ call $.MakeURL "/settings/advanced_settings" }}"
       >
-        <div class="flex w-full justify-between">
-          <div class="flex gap-2 items-center">
-            <i class="alternative-icon material-icons">
-              settings_alert
-            </i>
-            {{ template "v2.page.settings.default.button-label-advanced-settings" . }}
-          </div>
-          <div class="flex items-center">
-            <i class="settings-item__alternative_icon material-icons">
-              arrow_forward_ios
-            </i>
-          </div>
+        <div class="flex gap-2 items-center">
+          <i class="alternative-icon material-icons">
+            settings_alert
+          </i>
+          {{ template "v2.page.settings.default.button-label-advanced-settings" . }}
+        </div>
+        <div class="flex items-center">
+          <i class="settings-item__alternative_icon material-icons">
+            arrow_forward_ios
+          </i>
         </div>
       </a>
     </div>
@@ -314,11 +294,5 @@
     </a>
   </div>
   {{ end}}
-
-
-
-
 </div>
-
-
 {{ end }}
