@@ -1150,6 +1150,7 @@
   "v2.page.settings.default.link-label-edit-profile": "Edit Profile",
   "v2.page.settings.default.title-my-account": "My Account",
   "v2.page.settings.default.title-security": "Security",
+  "v2.page.settings-profile-edit-zoneinfo.default.navbar-title": "Timezone",
   "v2.page.setup-oob-otp.default.title": "2-Step Verification",
   "v2.page.setup-oob-otp.email.subtitle": "You can receive verification codes at this email.",
   "v2.page.setup-oob-otp.sms.subtitle": "You can receive verification codes at this number.",
