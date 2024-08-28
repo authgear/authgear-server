@@ -440,6 +440,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppSettingsProfileEditHandlerv2(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.SettingsProfileEditHandler)),
+	))
+}
+
 func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
