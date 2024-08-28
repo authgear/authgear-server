@@ -28,6 +28,8 @@
     --settings-icon__font-size: 1.125rem; /* 18 / 16 = 1.125 */
 
     --settings-item__bg-color-alternative: var(--color-neutral-200);
+
+    --settings-divider__bg-color: var(--color-neutral-100);
   }
 
   :root.dark {
@@ -37,6 +39,8 @@
     --settings-item__bg-color--active: var(--color-neutral-500);
 
     --settings-item__bg-color-alternative: var(--color-neutral-200);
+
+    --settings-divider__bg-color: var(--color-neutral-400);
   }
 
   .settings-item {
@@ -46,6 +50,7 @@
     background-color: var(--settings-item__bg-color);
     padding: var(--settings-item__py) var(--settings-item__px);
     color: var(--settings-item__text-color);
+    border-color: var(--settings-divider__bg-color);
 
     &.with-content {
       /* When Mobile View */

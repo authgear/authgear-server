@@ -39,7 +39,7 @@
       </div>
     </div>
 
-    <div>
+    <div class="divide-y">
     {{ range .IdentityCandidates }}
 
     {{ if eq .type "login_id" }}
@@ -101,7 +101,7 @@
       </div>
     </div>
 
-    <div>
+    <div class="divide-y">
       {{ range $.Authenticators }}
         {{ if and (eq .Type "password") (eq .Kind "primary") }}
           {{ $url = call $.MakeURL "/settings/change_password" }}
