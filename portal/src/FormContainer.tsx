@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import { Dialog, DialogFooter } from "@fluentui/react";
+import { Dialog, DialogFooter, Spinner, SpinnerSize } from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { useSystemConfig } from "./context/SystemConfigContext";
 import { FormErrorMessageBar } from "./FormErrorMessageBar";
@@ -12,6 +12,7 @@ import {
   useFormContainerBaseContext,
 } from "./FormContainerBase";
 import ActionButton from "./ActionButton";
+import styles from "./FormContainer.module.css";
 
 export interface SaveButtonProps {
   labelId: string;
@@ -82,7 +83,16 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
           hideFooterComponent ? null : (
             <>
               <PrimaryButton
-                text={renderToString(saveButtonProps.labelId)}
+                text={
+                  <div className={styles.saveButton}>
+                    {isUpdating ? (
+                      <Spinner size={SpinnerSize.xSmall} ariaLive="assertive" />
+                    ) : null}
+                    <span>
+                      <FormattedMessage id={saveButtonProps.labelId} />
+                    </span>
+                  </div>
+                }
                 iconProps={saveButtonProps.iconProps}
                 disabled={!canSave}
                 onClick={onSave}
