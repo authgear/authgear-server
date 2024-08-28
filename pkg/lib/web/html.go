@@ -49,7 +49,7 @@ var TemplateWebAuthflowV2BotProtectionFormInputHTML = template.RegisterHTML("web
 var TemplateWebAuthflowV2BotProtectionControllerHTML = template.RegisterHTML("web/authflowv2/__bot_protection_controller.html")
 var TemplateWebAuthflowV2BotProtectionControllerAttrHTML = template.RegisterHTML("web/authflowv2/__bot_protection_controller_attr.html")
 var TemplateWebAuthflowV2BotProtectionDialogHTML = template.RegisterHTML("web/authflowv2/__bot_protection_dialog.html")
-var TemplateWebAuthflowV2BaseHeaderHTML = template.RegisterHTML("web/authflowv2/__base_header.html")
+var TemplateWebAuthflowV2BrandLogoHTML = template.RegisterHTML("web/authflowv2/__brand_logo.html")
 var TemplateWebAuthflowV2HeaderHTML = template.RegisterHTML("web/authflowv2/__header.html")
 var TemplateWebAuthflowV2DividerHTML = template.RegisterHTML("web/authflowv2/__divider.html")
 var TemplateWebAuthflowV2AlertMessageHTML = template.RegisterHTML("web/authflowv2/__alert_message.html")
@@ -129,7 +129,7 @@ var BaseComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML,
 	TemplateWebAuthflowV2WatermarkHTML,
 	TemplateWebAuthflowV2CSRFErrorPageLayoutHTML,
-	TemplateWebAuthflowV2BaseHeaderHTML,
+	TemplateWebAuthflowV2BrandLogoHTML,
 	TemplateWebAuthflowV2SettingsHeaderHTML,
 	TemplateWebAuthflowV2SettingsItemWithContentHTML,
 }

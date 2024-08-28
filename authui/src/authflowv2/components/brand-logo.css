@@ -1,6 +1,7 @@
 @layer components {
   :root {
     --brand-logo__height: 2.5rem;
+    --brand-logo__height--settings: 3.75rem;
     --brand-logo__max-width: 350px;
   }
 
@@ -26,9 +27,16 @@
 
   .brand-logo {
     @apply hidden;
+    max-width: var(--brand-logo__max-width);
+  }
+
+  .brand-logo--default {
     @apply mb-8;
     height: var(--brand-logo__height);
-    max-width: var(--brand-logo__max-width);
+  }
+
+  .brand-logo--settings {
+    height: var(--brand-logo__height--settings);
   }
 
   /* The light logo is visible only in light mode and src is non-empty. */

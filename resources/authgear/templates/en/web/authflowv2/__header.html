@@ -1,10 +1,9 @@
 {{ define "authflowv2/__header.html" }}
 
-{{ template "authflowv2/__base_header.html"
+{{ template "authflowv2/__brand_logo.html"
   (merge
     (dict
-      "ContainerClass" "brand-logo__container"
-      "LogoClass" "brand-logo"
+      "LogoClass" "brand-logo--default"
     )
     .
   )

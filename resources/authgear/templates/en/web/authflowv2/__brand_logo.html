@@ -1,12 +1,11 @@
 <!-- Example usage:
-{{ template "authflowv2/__base_header.html"
+{{ template "authflowv2/__brand_logo.html"
   (dict
-    "ContainerClass" "brand-logo__container"
     "LogoClass" "brand-logo"
   )
 }}
 -->
-{{ define "authflowv2/__base_header.html" }}
+{{ define "authflowv2/__brand_logo.html" }}
 
 {{/* Always initialize src to an empty string */}}
 {{ $light := "" }}
@@ -21,9 +20,9 @@
 {{ end }}
 
 {{ if $.ClientURI }}
-<a class="{{ $.ContainerClass }} light" href="{{ $.ClientURI }}">
+<a class="brand-logo__container light" href="{{ $.ClientURI }}">
     <img
-      class="{{ $.LogoClass }} light"
+      class="brand-logo {{ $.LogoClass }} light"
       src="{{ $light }}"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-light"
@@ -31,9 +30,9 @@
       data-previewable-resource-original-value="{{ .light }}"
     >
   </a>
-  <a class="{{ $.ContainerClass }} dark" href="{{ $.ClientURI }}">
+  <a class="brand-logo__container dark" href="{{ $.ClientURI }}">
     <img
-      class="{{ $.LogoClass }} dark"
+      class="brand-logo {{ $.LogoClass }} dark"
       src="{{ $dark }}"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-dark"
@@ -42,9 +41,9 @@
     >
   </a>
 {{ else }}
-  <div class="{{ $.ContainerClass }} light">
+  <div class="brand-logo__container light">
     <img
-      class="{{ $.LogoClass }} light"
+      class="brand-logo {{ $.LogoClass }} light"
       src="{{ $light }}"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-light"
@@ -52,9 +51,9 @@
       data-previewable-resource-original-value="{{ .light }}"
     >
   </div>
-  <div class="{{ $.ContainerClass }} dark">
+  <div class="brand-logo__container dark">
     <img
-      class="{{ $.LogoClass }} dark"
+      class="brand-logo {{ $.LogoClass }} dark"
       src="{{ $dark }}"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-dark"
