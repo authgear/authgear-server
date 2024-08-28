@@ -80,7 +80,8 @@ func validateTree(tree *parse.Tree, path string) LintViolations {
 				if ident, ok := arg.(*parse.IdentifierNode); ok {
 					switch ident.String() {
 					case "include":
-						// TODO: handle include fn
+						err = CheckCommandInclude(n)
+						handleNodeErrFn(n, err)
 					case "translate":
 						err = CheckCommandTranslate(n)
 						handleNodeErrFn(n, err)
