@@ -29,7 +29,7 @@
 
     --settings-item__bg-color-alternative: var(--color-neutral-200);
 
-    --settings-divider__bg-color: var(--color-neutral-100);
+    --settings-item__border-color: var(--color-neutral-100);
   }
 
   :root.dark {
@@ -40,7 +40,7 @@
 
     --settings-item__bg-color-alternative: var(--color-neutral-200);
 
-    --settings-divider__bg-color: var(--color-neutral-400);
+    --settings-item__border-color: var(--color-neutral-400);
   }
 
   .settings-item {
@@ -50,7 +50,9 @@
     background-color: var(--settings-item__bg-color);
     padding: var(--settings-item__py) var(--settings-item__px);
     color: var(--settings-item__text-color);
-    border-color: var(--settings-divider__bg-color);
+    border-color: var(--settings-item__border-color);
+    border-bottom-width: 1px;
+    border-style: solid;
 
     &.with-content {
       /* When Mobile View */
