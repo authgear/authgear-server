@@ -41,9 +41,9 @@ export class LocaleInputController extends Controller {
   private async initLocaleValue() {
     this.isReady = true;
 
-    this.setSubmittable();
-
     this.setLocaleSelectValue(this.value);
+
+    this.setSubmittable();
   }
 
   setSubmittable() {

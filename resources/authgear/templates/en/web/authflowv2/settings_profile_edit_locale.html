@@ -1,0 +1,39 @@
+{{ template "authflowv2/__html_head.html" . }}
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-content" }}
+
+{{ template "authflowv2/__navbar.html"
+(dict
+  "BackHref" (call $.MakeURL "/settings/profile")
+  "Title" (translate "v2.page.settings-profile-edit-name.default.navbar-title" nil)
+)
+}}
+<form
+class="pt-8"
+data-controller="turbo-form"
+data-action="submit->turbo-form#submitForm"
+method="post">
+  {{ $.CSRFField }}
+  <div class="flex flex-col gap-4" data-controller="locale-input">
+    {{ template "authflowv2/__locale_input.html"   
+      (dict
+        "Languages" .Languages
+        "Locale" .Locale
+        "Translations" .Translations
+      ) 
+    }}
+    <button
+      class="primary-btn"
+      type="submit"
+      name="x_action"
+      value="save"
+      disabled
+      data-locale-input-target="disable"
+    >
+    {{ template "save-button-label" }}
+    </button>
+  </div>
+</form>
+
+{{ end }}
