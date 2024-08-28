@@ -52,6 +52,19 @@ func validateTree(tree *parse.Tree, path string) LintViolations {
 	var violations LintViolations
 	var err error
 
+	handleNodeErrFn := func(n parse.Node, _err error) {
+		if _err == nil {
+			return
+		}
+		line, col, _ := TreeErrorContext(tree, n)
+		violations = append(violations, LintViolation{
+			Line:    line,
+			Column:  col,
+			Path:    path,
+			Message: _err.Error(),
+		})
+	}
+
 	validateFn := func(n parse.Node, depth int) (cont bool) {
 		switch n := n.(type) {
 		case *parse.CommandNode:
@@ -68,15 +81,7 @@ func validateTree(tree *parse.Tree, path string) LintViolations {
 						// TODO: handle include fn
 					case "translate":
 						err = CheckCommandTranslate(n)
-						if err != nil {
-							line, col, _ := TreeErrorContext(tree, n)
-							violations = append(violations, LintViolation{
-								Line:    line,
-								Column:  col,
-								Path:    path,
-								Message: err.Error(),
-							})
-						}
+						handleNodeErrFn(n, err)
 					}
 				}
 			}
