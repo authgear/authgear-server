@@ -18,7 +18,7 @@ const AllCharLists = [
   CharListSymbol,
 ];
 
-const MaxTrials = 25;
+export const MaxTrials = 10;
 const DefaultMinLength = 8;
 const GuessableEnabledMinLength = 32;
 
@@ -58,25 +58,31 @@ export const mathRandSource: RandSource = {
 export function generatePassword(policy: PasswordPolicyConfig): string | null {
   try {
     window.crypto.getRandomValues(new Uint8Array(1));
-    return generatePasswordWithSource(cryptoRandSource, policy);
+    return generatePasswordWithSource(cryptoRandSource, policy, MaxTrials);
   } catch {
-    return generatePasswordWithSource(mathRandSource, policy);
+    return generatePasswordWithSource(mathRandSource, policy, MaxTrials);
   }
 }
 
 export function generatePasswordWithSource(
   source: RandSource,
-  policy: PasswordPolicyConfig
+  policy: PasswordPolicyConfig,
+  maxTrials: number
 ): string | null {
-  const [password, _] = internalGeneratePasswordWithSource(source, policy);
+  const [password, _] = internalGeneratePasswordWithSource(
+    source,
+    policy,
+    maxTrials
+  );
   return password;
 }
 
 export function internalGeneratePasswordWithSource(
   source: RandSource,
-  policy: PasswordPolicyConfig
+  policy: PasswordPolicyConfig,
+  maxTrials: number
 ): [string | null, number] {
-  for (let i = 0; i < MaxTrials; i++) {
+  for (let i = 0; i < maxTrials; i++) {
     const password = generatePasswordOnce(source, policy);
     if (password !== null) {
       return [password, i];
