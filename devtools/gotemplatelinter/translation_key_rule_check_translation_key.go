@@ -4,7 +4,17 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"text/template/parse"
 )
+
+func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
+	switch translationKeyNode.Type() {
+	case parse.NodeString:
+		return CheckTranslationKey(translationKeyNode.(*parse.StringNode).Text)
+	default:
+		return fmt.Errorf("expected: *parse.StringNode, got: %T", translationKeyNode)
+	}
+}
 
 const TranslationKeyPattern = `(v2)\.(page|component)\.([-a-z]+)\.(default)\.([-a-z]+)`
 
