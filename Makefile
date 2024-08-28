@@ -51,6 +51,10 @@ test:
 	$(MAKE) -C ./k6 go-test
 	go test ./cmd/... ./pkg/... -timeout 1m30s
 
+.PHONY: lint-translation-keys
+lint-translation-keys:
+	go run ./devtools/gotemplatelinter --path ./resources/authgear/templates/en/web/authflowv2 --ignore-rules indentation --ignore-rules finalNewline
+
 .PHONY: lint
 lint:
 	golangci-lint run ./cmd/... ./pkg/... --timeout 7m
