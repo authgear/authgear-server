@@ -6,6 +6,8 @@ import (
 
 type FinalNewlineRule struct{}
 
+var _ Rule = FinalNewlineRule{}
+
 func (r FinalNewlineRule) Check(content string, path string) LintViolations {
 	var violations LintViolations
 	lines := strings.Split(content, "\n")
@@ -20,4 +22,8 @@ func (r FinalNewlineRule) Check(content string, path string) LintViolations {
 		})
 	}
 	return violations
+}
+
+func (r FinalNewlineRule) Key() string {
+	return "finalNewline"
 }

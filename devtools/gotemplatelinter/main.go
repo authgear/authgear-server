@@ -10,6 +10,7 @@ import (
 
 type Rule interface {
 	Check(content string, path string) LintViolations
+	Key() string
 }
 
 type LintViolation struct {

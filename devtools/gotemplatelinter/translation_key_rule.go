@@ -10,8 +10,14 @@ import (
 
 type TranslationKeyRule struct{}
 
+var _ Rule = TranslationKeyRule{}
+
 func (r TranslationKeyRule) Check(content string, path string) LintViolations {
 	return r.check(content, path)
+}
+
+func (r TranslationKeyRule) Key() string {
+	return "translationKey"
 }
 
 func (r TranslationKeyRule) check(content string, path string) LintViolations {
