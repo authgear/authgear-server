@@ -1,0 +1,53 @@
+@layer components {
+  :root {
+    --settings-logo__height: 3.75rem;
+    --settings-logo__max-width: 350px;
+    --settings-header__bg-color: var(--color-surface-primary);
+  }
+
+  :root.dark {
+    --settings-header__bg-color: var(--color-surface-primary);
+  }
+
+  .settings-header {
+    @apply flex;
+    @apply items-center;
+    @apply w-full;
+    @apply h-25;
+    @apply py-5;
+    @apply hidden;
+    background-color: var(--settings-header__bg-color);
+
+    :root[alignment-logo="start"] & {
+      @apply justify-start;
+    }
+
+    :root[alignment-logo="center"] & {
+      @apply justify-center;
+    }
+
+    :root[alignment-logo="end"] & {
+      @apply justify-end;
+    }
+
+    :root[alignment-logo="hidden"] & {
+      @apply hidden;
+    }
+  }
+
+  .settings-logo {
+    display: initial;
+    height: var(--settings-logo__height);
+    max-width: var(--settings-logo__max-width);
+  }
+
+  /* The banner is visible only in light mode and not mobile with .settings-logo.light src is non-empty*/
+  :root:not(.dark) .settings-header.light:has(.settings-logo.light:not([src=""])) {
+    @apply hidden tablet:flex;
+  }
+
+  /* The banner is visible only in dark mode and not mobile with .settings-logo.dark src is non-empty */
+  :root.dark .settings-header.dark:has(.settings-logo.dark:not([src=""])) {
+    @apply hidden tablet:flex;
+  }
+}

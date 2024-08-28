@@ -1,4 +1,12 @@
-{{ define "authflowv2/__logo_banner.html" }}
+<!-- Example usage:
+{{ template "authflowv2/__base_header.html"
+  (dict
+    "ContainerAttr" "brand-logo__container"
+    "LogoAttr" "brand-logo"
+  )
+}}
+-->
+{{ define "authflowv2/__base_header.html" }}
 
 {{/* Always initialize src to an empty string */}}
 {{ $light := "" }}
@@ -12,22 +20,21 @@
   {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
 {{ end }}
 
-<div>
 {{ if $.ClientURI }}
-  <a class="banner-logo__container light" href="{{ $.ClientURI }}">
+<a class="{{ $.ContainerAttr }} light" href="{{ $.ClientURI }}">
     <img
+      class="{{ $.LogoAttr }} light"
       src="{{ $light }}"
-      class="banner-logo light"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-light"
       data-previewable-resource-changable-attribute-value="src"
       data-previewable-resource-original-value="{{ .light }}"
     >
   </a>
-  <a class="banner-logo__container dark" href="{{ $.ClientURI }}">
+  <a class="{{ $.ContainerAttr }} dark" href="{{ $.ClientURI }}">
     <img
+      class="{{ $.LogoAttr }} dark"
       src="{{ $dark }}"
-      class="banner-logo dark"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-dark"
       data-previewable-resource-changable-attribute-value="src"
@@ -35,19 +42,19 @@
     >
   </a>
 {{ else }}
-  <div class="banner-logo__container light">
+  <div class="{{ $.ContainerAttr }} light">
     <img
+      class="{{ $.LogoAttr }} light"
       src="{{ $light }}"
-      class="banner-logo light"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-light"
       data-previewable-resource-changable-attribute-value="src"
       data-previewable-resource-original-value="{{ .light }}"
     >
   </div>
-  <div class="banner-logo__container dark">
+  <div class="{{ $.ContainerAttr }} dark">
     <img
-      class="banner-logo dark"
+      class="{{ $.LogoAttr }} dark"
       src="{{ $dark }}"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-dark"
@@ -56,7 +63,5 @@
     >
   </div>
 {{ end }}
-</div>
-
 
 {{ end }}

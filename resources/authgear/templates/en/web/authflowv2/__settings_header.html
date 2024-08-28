@@ -1,0 +1,13 @@
+{{ define "authflowv2/__logo_banner.html" }}
+
+{{ template "authflowv2/__base_header.html"
+  (merge
+    (dict
+      "ContainerAttr" "settings-header"
+      "LogoAttr" "settings-logo"
+    )
+    .
+  )
+}}
+
+{{ end }}
