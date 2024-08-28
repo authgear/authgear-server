@@ -11,8 +11,14 @@ func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
 	switch translationKeyNode.Type() {
 	case parse.NodeString:
 		return CheckTranslationKey(translationKeyNode.(*parse.StringNode).Text)
+	case parse.NodeVariable:
+		// FIXME: support variable, like $label, $label_key, $variant_label_key
+		fallthrough
+	case parse.NodePipe:
+		// FIXME: support pipe, like (printf "territory-%s" $.AddressCountry)
+		fallthrough
 	default:
-		return fmt.Errorf("expected: *parse.StringNode, got: %T", translationKeyNode)
+		return fmt.Errorf("expected: *parse.StringNode, got: %T \n\t\t concerning node: %v", translationKeyNode, translationKeyNode)
 	}
 }
 
