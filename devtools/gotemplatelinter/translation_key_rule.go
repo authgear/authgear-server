@@ -70,10 +70,12 @@ func validateTree(tree *parse.Tree, path string) LintViolations {
 		case *parse.CommandNode:
 			for _, arg := range n.Args {
 				if variable, ok := arg.(*parse.VariableNode); ok && variable.String() == "$.Translations.RenderText" {
-					// TODO: handle $.Translations.RenderText
+					err = CheckCommandTranslationsRenderText(n)
+					handleNodeErrFn(n, err)
 				}
 				if field, ok := arg.(*parse.FieldNode); ok && field.String() == ".Translations.RenderText" {
-					// TODO: handle .Translations.RenderText
+					err = CheckCommandTranslationsRenderText(n)
+					handleNodeErrFn(n, err)
 				}
 				if ident, ok := arg.(*parse.IdentifierNode); ok {
 					switch ident.String() {
