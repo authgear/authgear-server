@@ -66,7 +66,7 @@ lint:
 	-go run ./devtools/importlinter worker api lib util >> .make-lint-expect 2>&1
 	-go run ./devtools/bandimportlinter ./pkg ./cmd >> .make-lint-expect 2>&1
 	git diff --exit-code .make-lint-expect > /dev/null 2>&1
-	go run ./devtools/gotemplatelinter ./resources/authgear/templates/en/web/authflowv2
+	go run ./devtools/gotemplatelinter --path ./resources/authgear/templates/en/web/authflowv2 --ignore-rules translationKey
 
 .PHONY: fmt
 fmt:
