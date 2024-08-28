@@ -5,10 +5,10 @@ import (
 )
 
 type Timezone struct {
-	Name            string
-	Ref             time.Time
-	Offset          int
-	FormattedOffset string
-	Location        *time.Location
-	DisplayLabel    string
+	Name            string         `json:"name"`
+	Ref             time.Time      `json:"ref"`
+	Offset          int            `json:"offset"`
+	FormattedOffset string         `json:"formattedOffset"`
+	Location        *time.Location `json:"location"`
+	DisplayLabel    string         `json:"displayLabel"`
 }
