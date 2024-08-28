@@ -105,7 +105,6 @@ serif
 settings
 settings_alert
 shadow
-share
 shortcut
 smartphone
 sms
