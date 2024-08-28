@@ -1,0 +1,118 @@
+
+{{ define "authflowv2/__locale_input.html" }}
+
+<!-- NOTE: Use class="hidden" here for noscript,
+this will be reverted during connect() in localeInput.ts -->
+<div
+data-controller="custom-select body-scroll-lock locale-input"
+data-locale-input-target="localeSelect"
+data-action="custom-select:initialized->locale-input#handleLocaleSelectInitialized custom-select:open->body-scroll-lock#lock custom-select:close->body-scroll-lock#unlock"
+class="w-full hidden"
+data-locale-input-languages-json="{{ toJson $.Languages }}"
+data-custom-select-options-value="[
+{{if not $.Locale}}{&quot;searchLabel&quot;:&quot;{{/* TODO: WHAT GOES HERE???? */}}&quot;,&quot;label&quot;:&quot;<span class='locale-input__error-label'>Not provided</span>&quot;,&quot;value&quot;:&quot;&quot;},{{end}}
+{{ range $index, $element := $.Languages }}{{if $index}},{{end}}{&quot;searchLabel&quot;:&quot;{{/* TODO: WHAT GOES HERE???? */}}&quot;,&quot;label&quot;:&quot;{{ title ($.Translations.RenderText (print "language-" $element) nil) }}&quot;,&quot;value&quot;:&quot;{{ $element }}&quot;}{{ end }}
+]"
+>
+    <!-- NOTE(tung): Use type="text" here,
+        because browser will not restore value of input with type="hidden" on back -->
+    <input
+        type="text"
+        class="hidden"
+        data-locale-input-target="localeSelectInput"
+        data-custom-select-target="input"
+        data-action="input->locale-input#handleLocaleInput"
+    />
+
+    <!-- Select Button -->
+    <button
+        type="button"
+        class="w-full text-left locale-input__trigger"
+        aria-haspopup="listbox"
+        aria-expanded="false"
+        data-custom-select-target="trigger"
+        data-action="click->custom-select#toggle"
+    ></button>
+
+    <!-- Dropdown Menu -->
+    <div
+        class="select__dropdown hidden"
+        role="listbox"
+        data-custom-select-target="dropdown"
+    >
+        <ul
+        class="select__options"
+        data-custom-select-target="options"
+        >
+        </ul>
+
+        <template data-custom-select-target="searchTemplate">
+        <div class="select__search-container">
+            <div class="select__search">
+            <input
+                class="select__search-input"
+                placeholder="{{ template "v2-search-label" }}"
+                data-controller="dismiss-keyboard-on-scroll"
+                data-custom-select-target="search"
+                data-action="input->custom-select#search"
+            >
+            <div class="select__search-icon">
+                <i class="material-icons">search</i>
+            </div>
+            <button
+                class="select__clear-icon"
+                type="button"
+                tabindex="-1"
+                data-custom-select-target="clearSearch"
+                data-action="click->custom-select#clearSearch"
+            >
+                <i class="material-icons material-icons--filled">cancel</i>
+            </button>
+            </div>
+            <button
+            class="select__close-icon"
+            type="button"
+            tabindex="-1"
+            data-action="click->custom-select#close"
+            >
+            <i class="material-icons">close</i>
+            </button>
+        </div>
+        </template>
+
+        <template data-custom-select-target="itemTemplate">
+        <li
+            class="select__option"
+            role="option"
+            data-action="
+            click->custom-select#handleSelect
+            keydown->custom-select#handleKeyDown
+            "
+            tabindex="-1"
+        >
+            <span data-label="content" class="select__option-content"></span>
+        </li>
+        </template>
+
+        <template data-custom-select-target="emptyTemplate">
+        <li class="select__empty">
+            {{ template "v2-no-results-found" }}
+        </li>
+        </template>
+    </div>
+
+    <!-- NOTE(tung): Use type="text" here,
+    because browser will not restore value of input with type="hidden" on back.
+    Late apply class="hidden" during connect() in localeInput.ts for noscript -->
+    <input
+    type="text"
+    class="input w-full"
+    name="/locale"
+    value="{{ .Locale }}"
+    data-locale-input-target="input"
+    placeholder="{{ $.PlaceholderWithExample }}"
+    {{ if $.InputAttrs }}{{ htmlattr $.InputAttrs }}{{ end }}
+    />
+</div>
+
+{{ end }}
