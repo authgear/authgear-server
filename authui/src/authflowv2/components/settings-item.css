@@ -25,9 +25,9 @@
     --settings-item__ring-width--active: var(--settings-item__ring-width);
     --settings-item__ring-color--active: var(--settings-item__ring-color);
 
-    --settings-item__icon-font-size: 1.125rem;
+    --settings-item__forward-arrow-font-size: 1.125rem;
 
-    --settings-item__bg-color-alternative: var(--color-neutral-200);
+    --settings-item__forward-arrow-color: var(--color-neutral-200);
 
     --settings-item__border-color: var(--color-neutral-100);
   }
@@ -38,7 +38,7 @@
     --settings-item__bg-color--hover: var(--color-neutral-500);
     --settings-item__bg-color--active: var(--color-neutral-500);
 
-    --settings-item__bg-color-alternative: var(--color-neutral-200);
+    --settings-item__forward-arrow-color: var(--color-neutral-200);
 
     --settings-item__border-color: var(--color-neutral-400);
   }
@@ -90,13 +90,13 @@
     }
   }
 
-  .settings-item > .alternative-icon {
+  .settings-item > .settings-item_icon {
     grid-area: icon;
   }
   .settings-item > .settings-item__label {
     grid-area: title;
   }
-  .settings-item > .settings-description {
+  .settings-item > .settings-item__description {
     grid-area: content;
   }
   .settings-item > .settings-item__forward_arrow {
@@ -113,6 +113,6 @@
 }
 
 .settings-item__forward_arrow {
-  font-size: var(--settings-item__icon-font-size);
-  color: var(--settings-item__bg-color-alternative);
+  font-size: var(--settings-item__forward-arrow-font-size);
+  color: var(--settings-item__forward-arrow-color);
 }

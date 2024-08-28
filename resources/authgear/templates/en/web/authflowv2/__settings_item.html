@@ -19,7 +19,7 @@
     "
   href="{{ $.Href}}"
 >
-  <i class="alternative-icon material-icons">
+  <i class="settings-item_icon alternative-icon material-icons">
     {{ $.MaterialIconName }}
   </i>
   <p class="settings-item__label">
@@ -29,11 +29,11 @@
   {{/* If there is content */}}
   {{ if $.Children }}
     {{ $length := len $.Children }}
-    <p class="settings-description block tablet:hidden">
+    <p class="settings-item__description settings-description block tablet:hidden">
       {{ index $.Children  0}}
       {{ if gt $length 1 }}<span> {{ template "v2.page.settings.default.button-label-and-more" .}} </span>{{ end }}
     </p>
-    <ul class="settings-description hidden tablet:block">
+    <ul class="settings-item__description settings-description hidden tablet:block">
       {{ range $i, $child := $.Children }}
       <li>
         {{ $child }}
