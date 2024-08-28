@@ -12,7 +12,7 @@ import (
 
 var TemplateWebSettingsV2HTML = template.RegisterHTML(
 	"web/authflowv2/settings.html",
-	handlerwebapp.SettingsCompenents...,
+	handlerwebapp.SettingsComponents...,
 )
 
 func ConfigureSettingsV2Route(route httproute.Route) httproute.Route {
