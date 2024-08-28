@@ -784,8 +784,10 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	accountAnonymizationConfig := appConfig.AccountAnonymization
+	maxTrials := _wireMaxTrialsValue
 	passwordRand := password.NewRandSource()
 	generator := &password.Generator{
+		MaxTrials:      maxTrials,
 		Checker:        passwordChecker,
 		Rand:           passwordRand,
 		PasswordConfig: authenticatorPasswordConfig,
@@ -867,6 +869,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 var (
 	_wireSystemClockValue = clock.NewSystemClock()
 	_wireRandValue        = idpsession.Rand(rand.SecureRand)
+	_wireMaxTrialsValue   = password.DefaultMaxTrials
 )
 
 func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {

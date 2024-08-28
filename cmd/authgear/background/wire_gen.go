@@ -800,8 +800,10 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	accountAnonymizationConfig := appConfig.AccountAnonymization
+	maxTrials := _wireMaxTrialsValue
 	passwordRand := password.NewRandSource()
 	generator := &password.Generator{
+		MaxTrials:      maxTrials,
 		Checker:        passwordChecker,
 		Rand:           passwordRand,
 		PasswordConfig: authenticatorPasswordConfig,
@@ -840,5 +842,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 }
 
 var (
-	_wireRandValue = idpsession.Rand(rand.SecureRand)
+	_wireRandValue      = idpsession.Rand(rand.SecureRand)
+	_wireMaxTrialsValue = password.DefaultMaxTrials
 )

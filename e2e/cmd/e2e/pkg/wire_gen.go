@@ -773,8 +773,10 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	accountAnonymizationConfig := appConfig.AccountAnonymization
+	maxTrials := _wireMaxTrialsValue
 	passwordRand := password.NewRandSource()
 	generator := &password.Generator{
+		MaxTrials:      maxTrials,
 		Checker:        passwordChecker,
 		Rand:           passwordRand,
 		PasswordConfig: authenticatorPasswordConfig,
@@ -840,7 +842,8 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 }
 
 var (
-	_wireRandValue = idpsession.Rand(rand.SecureRand)
+	_wireRandValue      = idpsession.Rand(rand.SecureRand)
+	_wireMaxTrialsValue = password.DefaultMaxTrials
 )
 
 func newLoginIDSerivce(p *deps.AppProvider, c context.Context) *loginid.Provider {
