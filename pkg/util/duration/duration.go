@@ -19,6 +19,8 @@ const (
 	AnalyticRedisKeyExpiration = 180 * 24 * time.Hour
 	// Short is a duration for short living things.
 	Short = 5 * time.Minute
+	// WebError is a duration for storing web error.
+	WebError = 1 * time.Minute
 	// PerMinute is 1 minute.
 	PerMinute = 1 * time.Minute
 	// PerHour is 1 hour.

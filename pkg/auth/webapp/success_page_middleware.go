@@ -15,10 +15,10 @@ type SuccessPageMiddlewareEndpointsProvider interface {
 }
 
 type SuccessPageMiddleware struct {
-	Endpoints   SuccessPageMiddlewareEndpointsProvider
-	UIConfig    *config.UIConfig
-	Cookies     CookieManager
-	ErrorCookie *ErrorCookie
+	Endpoints    SuccessPageMiddlewareEndpointsProvider
+	UIConfig     *config.UIConfig
+	Cookies      CookieManager
+	ErrorService *ErrorService
 }
 
 func (m *SuccessPageMiddleware) Pop(r *http.Request, rw http.ResponseWriter) string {
@@ -47,7 +47,7 @@ func (m *SuccessPageMiddleware) Handle(next http.Handler) http.Handler {
 				// Show invalid session error when the path cookie doesn't match
 				// the current path
 				apierror := apierrors.AsAPIError(ErrInvalidSession)
-				errorCookie, err := m.ErrorCookie.SetRecoverableError(r, apierror)
+				errorCookie, err := m.ErrorService.SetRecoverableError(r, apierror)
 				if err != nil {
 					panic(err)
 				}

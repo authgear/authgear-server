@@ -55,7 +55,7 @@ type Service2 struct {
 	SessionCookie        SessionCookieDef
 	SignedUpCookie       SignedUpCookieDef
 	MFADeviceTokenCookie mfa.CookieDef
-	ErrorCookie          *ErrorCookie
+	ErrorService         *ErrorService
 	Cookies              CookieManager
 	OAuthConfig          *config.OAuthConfig
 	UIConfig             *config.UIConfig
@@ -449,7 +449,7 @@ func (s *Service2) afterPost(
 		if !apierrors.IsAPIError(interactionErr) {
 			s.Logger.WithError(interactionErr).Error("interaction error")
 		}
-		errCookie, err := s.ErrorCookie.SetRecoverableError(s.Request, apierrors.AsAPIError(interactionErr))
+		errCookie, err := s.ErrorService.SetRecoverableError(s.Request, apierrors.AsAPIError(interactionErr))
 		if err != nil {
 			return err
 		}

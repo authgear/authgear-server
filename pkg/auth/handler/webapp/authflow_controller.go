@@ -119,7 +119,7 @@ type AuthflowOAuthCallbackResponse struct {
 type AuthflowController struct {
 	Logger                  AuthflowControllerLogger
 	TesterEndpointsProvider tester.EndpointsProvider
-	ErrorCookie             *webapp.ErrorCookie
+	ErrorService            *webapp.ErrorService
 	TrustProxy              config.TrustProxy
 	Clock                   clock.Clock
 
@@ -1030,7 +1030,7 @@ func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Requ
 	apierror := apierrors.AsAPIError(err)
 
 	recoverable := func() *webapp.Result {
-		cookie, err := c.ErrorCookie.SetRecoverableError(r, apierror)
+		cookie, err := c.ErrorService.SetRecoverableError(r, apierror)
 		if err != nil {
 			panic(err)
 		}
@@ -1049,7 +1049,7 @@ func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Requ
 			RedirectURI:      u.String(),
 			NavigationAction: "replace",
 		}
-		err := c.ErrorCookie.SetNonRecoverableError(result, apierror)
+		err := c.ErrorService.SetNonRecoverableError(result, apierror)
 		if err != nil {
 			panic(err)
 		}

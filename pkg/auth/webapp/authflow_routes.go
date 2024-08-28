@@ -78,7 +78,6 @@ type AuthflowNavigator struct {
 	Endpoints       AuthflowNavigatorEndpointsProvider
 	OAuthStateStore AuthflowNavigatorOAuthStateStore
 	UIConfig        *config.UIConfig
-	ErrorCookie     *ErrorCookie
 }
 
 func (n *AuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {

@@ -173,7 +173,7 @@ var DependencySet = wire.NewSet(
 
 	viewmodelswebapp.DependencySet,
 	wire.Bind(new(viewmodelswebapp.StaticAssetResolver), new(*web.StaticAssetResolver)),
-	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*webapp.ErrorCookie)),
+	wire.Bind(new(viewmodelswebapp.ErrorService), new(*webapp.ErrorService)),
 	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
 	wire.Bind(new(viewmodelswebapp.FlashMessage), new(*httputil.FlashMessage)),
 	wire.Bind(new(viewmodelswebapp.SettingsIdentityService), new(*identityservice.Service)),
@@ -213,7 +213,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountUserService), new(*user.Queries)),
 	wire.Bind(new(handlerwebapp.MeterService), new(*meter.Service)),
-	wire.Bind(new(handlerwebapp.ErrorCookie), new(*webapp.ErrorCookie)),
+	wire.Bind(new(handlerwebapp.ErrorService), new(*webapp.ErrorService)),
 	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
 	wire.Bind(new(handlerwebapp.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
@@ -294,6 +294,16 @@ func ProvideCookieManager(r *http.Request, trustProxy config.TrustProxy) *httput
 	return m
 }
 
+type NoopErrorService struct{}
+
+func (*NoopErrorService) PopError(w http.ResponseWriter, r *http.Request) (*webapp.ErrorState, bool) {
+	return nil, false
+}
+
+func ProvideNoopErrorService() *NoopErrorService {
+	return &NoopErrorService{}
+}
+
 var RequestMiddlewareDependencySet = wire.NewSet(
 	template.DependencySet,
 	web.DependencySet,
@@ -325,9 +335,6 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 	wire.Struct(new(viewmodelswebapp.BaseViewModeler), "*"),
 	wire.Struct(new(deps.RequestMiddleware), "*"),
 
-	webapp.NewErrorCookieDef,
-	wire.Struct(new(webapp.ErrorCookie), "*"),
-
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(web.ResourceManager), new(*resource.Manager)),
 
@@ -337,7 +344,8 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 
 	wire.Bind(new(viewmodelswebapp.TranslationService), new(*translation.Service)),
 
-	wire.Bind(new(viewmodelswebapp.ErrorCookie), new(*webapp.ErrorCookie)),
+	ProvideNoopErrorService,
+	wire.Bind(new(viewmodelswebapp.ErrorService), new(*NoopErrorService)),
 
 	wire.Bind(new(webapp.CookieManager), new(*httputil.CookieManager)),
 	wire.Bind(new(viewmodelswebapp.FlashMessage), new(*httputil.FlashMessage)),

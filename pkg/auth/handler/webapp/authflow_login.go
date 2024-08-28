@@ -61,7 +61,7 @@ type AuthflowLoginHandler struct {
 	Renderer          Renderer
 	MeterService      MeterService
 	TutorialCookie    TutorialCookie
-	ErrorCookie       ErrorCookie
+	ErrorService      ErrorService
 	Endpoints         AuthflowLoginEndpointsProvider
 }
 
@@ -117,7 +117,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		_, hasErr := h.ErrorCookie.GetError(r)
+		hasErr := h.ErrorService.HasError(r)
 		// If x_oauth_provider_alias is provided via authz endpoint
 		// redirect the user to the oauth provider
 		// If there is error in the ErrorCookie, the user will stay in the login
