@@ -178,6 +178,7 @@ func traverseTreeVisitBranch(n *parse.BranchNode, depth int, fn func(n parse.Nod
 	return
 }
 
+//nolint:gocognit
 func traverseTreeVisit(
 	n parse.Node,
 	depth int,
@@ -216,7 +217,14 @@ func traverseTreeVisit(
 				}
 			}
 		}
-	case *parse.TemplateNode, *parse.TextNode:
+	case *parse.TemplateNode:
+		if n.Pipe != nil {
+			if cont = traverseTreeVisit(n.Pipe, depth+1, fn); !cont {
+				break
+			}
+		}
+
+	case *parse.TextNode:
 		break
 	default:
 		panic("unknown node type")
