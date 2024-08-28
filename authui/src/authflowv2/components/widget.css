@@ -10,6 +10,8 @@
     --widget__bg_repeat: no-repeat;
     --widget__bg_size: cover;
 
+    --settings_widget__max-width: 605px;
+
     @media (min-width: theme("screens.tablet")) {
       --widget__border-radius: var(--border-radius-large);
       --widget__box-shadow: none;
@@ -35,6 +37,19 @@
     @apply flex flex-col overflow-hidden;
   }
 
+  .settings-widget {
+    width: var(--widget__width);
+    border-radius: var(--widget__border-radius);
+    border: var(--widget__border);
+    box-shadow: var(--widget__box-shadow);
+    background-color: var(--widget__bg-color);
+    background-image: var(--widget__bg-image);
+    background-repeat: var(--widget__bg_repeat);
+    background-position: var(--widget__bg_position);
+    background-size: var(--widget__bg_size);
+    @apply flex flex-col overflow-hidden;
+  }
+
   .widget-content {
     @apply relative;
     @apply h-full w-full;
@@ -42,6 +57,15 @@
     @apply flex flex-col;
     @apply self-center;
     max-width: var(--widget__max-width);
+  }
+
+  .settings-widget-content {
+    @apply relative;
+    @apply h-full w-full;
+    @apply px-6 py-6;
+    @apply flex flex-col;
+    @apply self-center;
+    max-width: var(--settings_widget__max-width);
   }
 
   /* In __html_head.html, there is a <noscript> element to revert this visibility. */
@@ -55,8 +79,17 @@
       max-width: var(--widget__max-width);
     }
 
+    .settings-widget {
+      max-width: var(--settings_widget__max-width);
+    }
+
     .widget-content {
       @apply self-stretch;
+    }
+
+    .settings-widget-content {
+      @apply self-stretch;
+      @apply px-8 py-8;
     }
   }
 }
