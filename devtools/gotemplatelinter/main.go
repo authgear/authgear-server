@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type Rule interface {
@@ -99,22 +101,47 @@ func (l *Linter) LintFile(path string, info os.FileInfo) (violations LintViolati
 	return
 }
 
+func constructRules(rulesToIgnore []string) []Rule {
+	indentationRule := IndentationRule{}
+	finalNewlineRule := FinalNewlineRule{}
+	translationKeyRule := TranslationKeyRule{}
+	rules := []Rule{
+		indentationRule,
+		finalNewlineRule,
+		translationKeyRule,
+	}
+	ignoreRuleFn := func(rule Rule) {
+		rules = slice.Filter[Rule](rules, func(r Rule) bool {
+			return r != rule
+		})
+	}
+	for _, ruleToIgnore := range rulesToIgnore {
+		switch ruleToIgnore {
+		case indentationRule.Key():
+			ignoreRuleFn(indentationRule)
+		case finalNewlineRule.Key():
+			ignoreRuleFn(finalNewlineRule)
+		case translationKeyRule.Key():
+			ignoreRuleFn(translationKeyRule)
+		}
+	}
+
+	return rules
+}
+
 func doMain() (violations LintViolations, err error) {
 	if len(os.Args) < 2 {
-		err = fmt.Errorf("usage: gotemplatelinter <path/to/htmls>")
+		err = fmt.Errorf("usage: gotemplatelinter --path <path/to/htmls> --ignore-rules rule1ToIgnore --ignore-rules rule2ToIgnore")
 		return
 	}
-	path := os.Args[1]
+	flags := ParseFlags()
+	rules := constructRules(flags.RulesToIgnore)
 	linter := Linter{
 		IgnorePatterns: []string{
 			"__generated_asset.html",
 		},
-		Rules: []Rule{
-			IndentationRule{},
-			FinalNewlineRule{},
-			TranslationKeyRule{},
-		},
-		Path: path,
+		Rules: rules,
+		Path:  flags.Path,
 	}
 	violations, err = linter.Lint()
 	if err != nil {
