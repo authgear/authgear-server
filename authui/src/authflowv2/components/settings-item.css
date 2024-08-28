@@ -62,7 +62,7 @@
       grid-template-columns: 2rem auto 1.125rem;
 
       /* When Not Mobile View */
-      @media (min-width: 640px) {
+      @media (min-width: theme("screens.tablet")) {
         grid-template-areas: "icon title content arrow";
         grid-template-columns: 2rem 9rem auto 1.125rem;
       }

@@ -8,11 +8,15 @@
   }
 
   .settings-header {
-    @apply flex flex-col;
+    @apply hidden;
     @apply items-center;
     @apply w-full;
     @apply h-25;
     @apply py-5;
     background-color: var(--settings-header__bg-color);
+    @media (min-width: theme("screens.tablet")) {
+      display: flex;
+      flex-direction: column;
+    }
   }
 }
