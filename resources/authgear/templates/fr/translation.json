@@ -1095,5 +1095,22 @@
   "v2-csrf-error-instruction-samsung-step6": "Dans \"<b>Cookies</b>\" &rarr; \"<b>Autoriser tous les cookies</b>\"",
   "v2-csrf-error-instruction-default-step1": "Allez dans les Paramètres",
   "v2-csrf-error-instruction-default-step2": "Allez dans Confidentialité et sécurité",
-  "v2-csrf-error-instruction-default-step3": "Autoriser les cookies ou les données de site sur l''appareil"
+  "v2-csrf-error-instruction-default-step3": "Autoriser les cookies ou les données de site sur l''appareil",
+  "v2.page.settings.default.link-label-edit-profile": "Modifier le profil",
+  "v2.page.settings.default.title-my-account": "Mon compte",
+  "v2.page.settings.default.description-my-account": "C'est la méthode pour vous connecter à votre compte",
+  "v2.page.settings.default.button-label-email": "Email",
+  "v2.page.settings.default.button-label-phone": "Téléphone",
+  "v2.page.settings.default.button-label-username": "Nom d'utilisateur",
+  "v2.page.settings.default.button-label-social-accounts": "Compte social",
+  "v2.page.settings.default.title-security": "Sécurité",
+  "v2.page.settings.default.description-security": "Ceux-ci peuvent être utilisés pour s'assurer que c'est vraiment vous qui vous connectez",
+  "v2.page.settings.default.button-label-password": "Mot de passe",
+  "v2.page.settings.default.button-label-passkey": "Passkey",
+  "v2.page.settings.default.button-label-mfa": "Authentification à 2 facteurs",
+  "v2.page.settings.default.button-label-biometric-login": "Connexion biométrique",
+  "v2.page.settings.default.button-label-signed-in-devices": "Appareils connectés",
+  "v2.page.settings.default.button-label-advanced-settings": "Paramètres avancés",
+  "v2.page.settings.default.button-label-back-to-app": "Retour à mon application",
+  "v2.page.settings.default.button-label-and-more": "et plus"
 }

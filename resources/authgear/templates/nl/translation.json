@@ -1095,5 +1095,22 @@
   "v2-csrf-error-instruction-samsung-step6": "In \"<b>Cookies</b>\" &rarr; \"<b>Alle cookies toestaan</b>\"",
   "v2-csrf-error-instruction-default-step1": "Ga naar Instellingen",
   "v2-csrf-error-instruction-default-step2": "Ga naar Privacy en beveiliging",
-  "v2-csrf-error-instruction-default-step3": "Sta cookies of On-device site gegevens toe"
+  "v2-csrf-error-instruction-default-step3": "Sta cookies of On-device site gegevens toe",
+  "v2.page.settings.default.link-label-edit-profile": "Profiel bewerken",
+  "v2.page.settings.default.title-my-account": "Mijn account",
+  "v2.page.settings.default.description-my-account": "Dit is de methode om in te loggen op uw account",
+  "v2.page.settings.default.button-label-email": "E-mail",
+  "v2.page.settings.default.button-label-phone": "Telefoon",
+  "v2.page.settings.default.button-label-username": "Gebruikersnaam",
+  "v2.page.settings.default.button-label-social-accounts": "Sociaal account",
+  "v2.page.settings.default.title-security": "Beveiliging",
+  "v2.page.settings.default.description-security": "Deze kunnen worden gebruikt om ervoor te zorgen dat het echt u bent die inlogt",
+  "v2.page.settings.default.button-label-password": "Wachtwoord",
+  "v2.page.settings.default.button-label-passkey": "Passkey",
+  "v2.page.settings.default.button-label-mfa": "2-Factor Authenticatie",
+  "v2.page.settings.default.button-label-biometric-login": "Biometrische Login",
+  "v2.page.settings.default.button-label-signed-in-devices": "Aangemelde Apparaten",
+  "v2.page.settings.default.button-label-advanced-settings": "Geavanceerde Instellingen",
+  "v2.page.settings.default.button-label-back-to-app": "Terug naar mijn app",
+  "v2.page.settings.default.button-label-and-more": "en meer"
 }

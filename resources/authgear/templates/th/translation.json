@@ -1095,5 +1095,22 @@
   "v2-csrf-error-instruction-samsung-step6": "ใน \"<b>คุกกี้</b>\" &rarr; \"<b>อนุญาตคุกกี้ทั้งหมด</b>\"",
   "v2-csrf-error-instruction-default-step1": "ไปที่การตั้งค่า",
   "v2-csrf-error-instruction-default-step2": "ไปที่ความเป็นส่วนตัวและความปลอดภัย",
-  "v2-csrf-error-instruction-default-step3": "อนุญาตคุกกี้หรือข้อมูลไซต์บนอุปกรณ์"
+  "v2-csrf-error-instruction-default-step3": "อนุญาตคุกกี้หรือข้อมูลไซต์บนอุปกรณ์",
+  "v2.page.settings.default.link-label-edit-profile": "แก้ไขโปรไฟล์",
+  "v2.page.settings.default.title-my-account": "บัญชีของฉัน",
+  "v2.page.settings.default.description-my-account": "นี่คือวิธีการเข้าสู่ระบบบัญชีของคุณ",
+  "v2.page.settings.default.button-label-email": "อีเมล",
+  "v2.page.settings.default.button-label-phone": "โทรศัพท์",
+  "v2.page.settings.default.button-label-username": "ชื่อผู้ใช้",
+  "v2.page.settings.default.button-label-social-accounts": "บัญชีสังคมออนไลน์",
+  "v2.page.settings.default.title-security": "ความปลอดภัย",
+  "v2.page.settings.default.description-security": "สิ่งเหล่านี้สามารถใช้เพื่อให้แน่ใจว่าเป็นคุณจริงๆ ที่เข้าสู่ระบบ",
+  "v2.page.settings.default.button-label-password": "รหัสผ่าน",
+  "v2.page.settings.default.button-label-passkey": "Passkey",
+  "v2.page.settings.default.button-label-mfa": "การรับรองความถูกต้องสองปัจจัย",
+  "v2.page.settings.default.button-label-biometric-login": "การเข้าสู่ระบบด้วยข้อมูลชีวภาพ",
+  "v2.page.settings.default.button-label-signed-in-devices": "อุปกรณ์ที่เข้าสู่ระบบ",
+  "v2.page.settings.default.button-label-advanced-settings": "การตั้งค่าขั้นสูง",
+  "v2.page.settings.default.button-label-back-to-app": "กลับไปที่แอปพลิเคชันของฉัน",
+  "v2.page.settings.default.button-label-and-more": "และอื่นๆ อีก"
 }

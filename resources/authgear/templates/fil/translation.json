@@ -1095,5 +1095,22 @@
   "v2-csrf-error-instruction-samsung-step6": "Sa \"<b>Cookies</b>\" &rarr; \"<b>Payagan ang lahat ng cookies</b>\"",
   "v2-csrf-error-instruction-default-step1": "Pumunta sa Mga Setting",
   "v2-csrf-error-instruction-default-step2": "Pumunta sa Privacy at seguridad",
-  "v2-csrf-error-instruction-default-step3": "Payagan ang mga cookies o On-device site data"
+  "v2-csrf-error-instruction-default-step3": "Payagan ang mga cookies o On-device site data",
+  "v2.page.settings.default.link-label-edit-profile": "I-edit ang Profile",
+  "v2.page.settings.default.title-my-account": "Aking Account",
+  "v2.page.settings.default.description-my-account": "Ito ang paraan para mag-sign in sa iyong account",
+  "v2.page.settings.default.button-label-email": "Email",
+  "v2.page.settings.default.button-label-phone": "Telepono",
+  "v2.page.settings.default.button-label-username": "Username",
+  "v2.page.settings.default.button-label-social-accounts": "Social Account",
+  "v2.page.settings.default.title-security": "Seguridad",
+  "v2.page.settings.default.description-security": "Ang mga ito ay magagamit para matiyak na ikaw talaga ang nag-sign in",
+  "v2.page.settings.default.button-label-password": "Password",
+  "v2.page.settings.default.button-label-passkey": "Passkey",
+  "v2.page.settings.default.button-label-mfa": "2-Factor Awtentikasyon",
+  "v2.page.settings.default.button-label-biometric-login": "Pag-log in gamit ang Biometrics",
+  "v2.page.settings.default.button-label-signed-in-devices": "Mga Naka-sign in na Device",
+  "v2.page.settings.default.button-label-advanced-settings": "Mga Advanced na Setting",
+  "v2.page.settings.default.button-label-back-to-app": "Bumalik sa aking app",
+  "v2.page.settings.default.button-label-and-more": "at marami pang iba"
 }
