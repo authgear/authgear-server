@@ -1112,5 +1112,7 @@
   "v2.page.settings.default.button-label-signed-in-devices": "已登入的裝置",
   "v2.page.settings.default.button-label-advanced-settings": "進階設定",
   "v2.page.settings.default.button-label-back-to-app": "返回我的App",
-  "v2.page.settings.default.button-label-and-more": "還有更多"
+  "v2.page.settings.default.button-label-and-more": "還有更多",
+  "v2.page.settings-profile-edit.default.title-gender": "性別",
+  "v2.component.navbar.default.item-back-button-label": "返回"
 }

@@ -15,9 +15,15 @@ import (
 
 func init() {
 	settingsProfileEditVariantToTemplate = make(map[string]*template.HTML)
+	settingsProfileEditVariantToTemplate["gender"] = TemplateWebSettingsV2GenderEditHTML
 }
 
 var settingsProfileEditVariantToTemplate map[string]*template.HTML
+
+var TemplateWebSettingsV2GenderEditHTML = template.RegisterHTML(
+	"web/authflowv2/settings_gender_edit.html",
+	handlerwebapp.SettingsCompenents...,
+)
 
 type SettingsProfileEditHandler struct {
 	ControllerFactory        handlerwebapp.ControllerFactory
