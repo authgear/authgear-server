@@ -89,7 +89,8 @@ func validateTree(tree *parse.Tree, path string) LintViolations {
 				}
 			}
 		case *parse.TemplateNode:
-			// TODO: handle template node
+			err = CheckTemplate(n)
+			handleNodeErrFn(n, err)
 		}
 
 		// always continue to traverse
