@@ -71,7 +71,7 @@
     @apply tablet:flex-auto tablet:min-h-5;
   }
 
-  .settings-layout__header--default {
+  .layout__settings-header--default {
     /* In any layout, the layout header takes full widget. */
     @apply w-full;
     /* In mobile layout, the layout header takes 0 height. */
@@ -80,7 +80,7 @@
     /* And the initial size is controlled by min-height and max-height. */
     @apply tablet:flex-auto tablet:min-h-8 tablet:max-h-8;
   }
-  .settings-layout__footer--default {
+  .layout__settings-footer--default {
     /* In any layout, the layout header takes full widget. */
     @apply w-full;
     /* In mobile layout, the layout footer takes the remaining height. */

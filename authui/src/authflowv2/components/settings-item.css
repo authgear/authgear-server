@@ -25,7 +25,7 @@
     --settings-item__ring-width--active: var(--settings-item__ring-width);
     --settings-item__ring-color--active: var(--settings-item__ring-color);
 
-    --settings-item-icon__font-size: 1.125rem; /* 18 / 16 = 1.125 */
+    --settings-item__icon-font-size: 1.125rem;
 
     --settings-item__bg-color-alternative: var(--color-neutral-200);
 
@@ -113,6 +113,6 @@
 }
 
 .settings-item__forward_arrow {
-  font-size: var(--settings-item-icon__font-size);
+  font-size: var(--settings-item__icon-font-size);
   color: var(--settings-item__bg-color-alternative);
 }

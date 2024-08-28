@@ -1,8 +1,8 @@
 <!-- Example usage:
 {{ template "authflowv2/__base_header.html"
   (dict
-    "ContainerAttr" "brand-logo__container"
-    "LogoAttr" "brand-logo"
+    "ContainerClass" "brand-logo__container"
+    "LogoClass" "brand-logo"
   )
 }}
 -->
@@ -21,9 +21,9 @@
 {{ end }}
 
 {{ if $.ClientURI }}
-<a class="{{ $.ContainerAttr }} light" href="{{ $.ClientURI }}">
+<a class="{{ $.ContainerClass }} light" href="{{ $.ClientURI }}">
     <img
-      class="{{ $.LogoAttr }} light"
+      class="{{ $.LogoClass }} light"
       src="{{ $light }}"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-light"
@@ -31,9 +31,9 @@
       data-previewable-resource-original-value="{{ .light }}"
     >
   </a>
-  <a class="{{ $.ContainerAttr }} dark" href="{{ $.ClientURI }}">
+  <a class="{{ $.ContainerClass }} dark" href="{{ $.ClientURI }}">
     <img
-      class="{{ $.LogoAttr }} dark"
+      class="{{ $.LogoClass }} dark"
       src="{{ $dark }}"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-dark"
@@ -42,9 +42,9 @@
     >
   </a>
 {{ else }}
-  <div class="{{ $.ContainerAttr }} light">
+  <div class="{{ $.ContainerClass }} light">
     <img
-      class="{{ $.LogoAttr }} light"
+      class="{{ $.LogoClass }} light"
       src="{{ $light }}"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-light"
@@ -52,9 +52,9 @@
       data-previewable-resource-original-value="{{ .light }}"
     >
   </div>
-  <div class="{{ $.ContainerAttr }} dark">
+  <div class="{{ $.ContainerClass }} dark">
     <img
-      class="{{ $.LogoAttr }} dark"
+      class="{{ $.LogoClass }} dark"
       src="{{ $dark }}"
       data-controller="previewable-resource"
       data-previewable-resource-key-value="brand-logo-dark"

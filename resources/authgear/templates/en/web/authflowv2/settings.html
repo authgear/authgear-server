@@ -50,18 +50,18 @@
       {{ end }}
 
       {{/* If is Email */}}
-      {{ $label := "v2.page.settings.default.button-label-email" }}{{ $icon := "email" }}
+      {{ $label := ( include "v2.page.settings.default.button-label-email" nil ) }}{{ $icon := "email" }}
       {{ $identityArr := $.Emails }}{{ $identity := $.Email }}
 
       {{/* If is Phone */}}
       {{ if eq .login_id_type "phone" }}
-        {{ $label = "v2.page.settings.default.button-label-phone" }}{{ $icon = "phone_iphone" }}
+        {{ $label = ( include "v2.page.settings.default.button-label-phone" nil ) }}{{ $icon = "phone_iphone" }}
         {{ $identityArr = $.PhoneNumbers }}{{ $identity = $.PhoneNumber }}
       {{ end }}
 
       {{/* If is Username */}}
       {{ if eq .login_id_type "username" }}
-        {{ $label = "v2.page.settings.default.button-label-username" }}{{ $icon = "account_circle" }}
+        {{ $label = ( include "v2.page.settings.default.button-label-username" nil ) }}{{ $icon = "account_circle" }}
         {{ $identityArr = $.PreferredUsernames }}{{ $identity = $.PreferredUsername }}
       {{ end }}
 
@@ -69,9 +69,9 @@
       {{ template "authflowv2/__settings_item.html"
         (dict
           "Label" $label
-          "RedirectURL" $url
-          "Icon" $icon
-          "ContentArr" $identityArr
+          "Href" $url
+          "MaterialIconName" $icon
+          "Children" $identityArr
         )
       }}
 
@@ -81,10 +81,9 @@
     {{ $url := call $.MakeURL "/settings/identity" }}
     {{ template "authflowv2/__settings_item.html"
       (dict
-        "Label" "v2.page.settings.default.button-label-social-accounts"
-        "RedirectURL" $url
-        "Icon" "link"
-        "ContentArr" nil
+        "Label" ( include "v2.page.settings.default.button-label-social-accounts" nil )
+        "Href" $url
+        "MaterialIconName" "link"
       )
     }}
     </div>
@@ -107,10 +106,9 @@
           {{ $url = call $.MakeURL "/settings/change_password" }}
           {{ template "authflowv2/__settings_item.html"
             (dict
-              "Label" "v2.page.settings.default.button-label-password"
-              "RedirectURL" $url
-              "Icon" "key"
-              "ContentArr" nil
+              "Label" ( include "v2.page.settings.default.button-label-password" nil )
+              "Href" $url
+              "MaterialIconName" "key"
             )
           }}
         {{ end }}
@@ -120,10 +118,9 @@
         {{ $url = call $.MakeURL "/settings/passkey" }}
         {{ template "authflowv2/__settings_item.html"
           (dict
-            "Label" "v2.page.settings.default.button-label-passkey"
-            "RedirectURL" $url
-            "Icon" "passkey"
-            "ContentArr" nil
+            "Label" ( include "v2.page.settings.default.button-label-passkey" nil )
+            "Href" $url
+            "MaterialIconName" "passkey"
           )
         }}
       {{ end }}
@@ -132,10 +129,9 @@
         {{ $url = call $.MakeURL "/settings/mfa" }}
         {{ template "authflowv2/__settings_item.html"
           (dict
-            "Label" "v2.page.settings.default.button-label-mfa"
-            "RedirectURL" $url
-            "Icon" "encrypted"
-            "ContentArr" nil
+            "Label" ( include "v2.page.settings.default.button-label-mfa" nil )
+            "Href" $url
+            "MaterialIconName" "encrypted"
           )
         }}
       {{ end }}
@@ -144,10 +140,9 @@
         {{ $url = call $.MakeURL "/settings/biometric" }}
         {{ template "authflowv2/__settings_item.html"
           (dict
-            "Label" "v2.page.settings.default.button-label-biometric-login"
-            "RedirectURL" $url
-            "Icon" "fingerprint"
-            "ContentArr" nil
+            "Label" ( include "v2.page.settings.default.button-label-biometric-login" nil )
+            "Href" $url
+            "MaterialIconName" "fingerprint"
           )
         }}
       {{ end }}
@@ -155,20 +150,18 @@
       {{ $url = call $.MakeURL "/settings/sessions" }}
       {{ template "authflowv2/__settings_item.html"
         (dict
-          "Label" "v2.page.settings.default.button-label-signed-in-devices"
-          "RedirectURL" $url
-          "Icon" "verified_user"
-          "ContentArr" nil
+          "Label" ( include "v2.page.settings.default.button-label-signed-in-devices" nil )
+          "Href" $url
+          "MaterialIconName" "verified_user"
         )
       }}
 
       {{ $url = call $.MakeURL "/settings/advanced_settings" }}
       {{ template "authflowv2/__settings_item.html"
         (dict
-          "Label" "v2.page.settings.default.button-label-advanced-settings"
-          "RedirectURL" $url
-          "Icon" "settings_alert"
-          "ContentArr" nil
+          "Label" ( include "v2.page.settings.default.button-label-advanced-settings" nil )
+          "Href" $url
+          "MaterialIconName" "settings_alert"
         )
       }}
     </div>
