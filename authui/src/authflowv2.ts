@@ -47,6 +47,7 @@ import { BotProtectionController } from "./authflowv2/botprotection/botProtectio
 import { BotProtectionDialogController } from "./authflowv2/botprotection/botProtectionDialog";
 import { DialogController } from "./authflowv2/dialog";
 import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
+import { LocaleInputController } from "./authflowv2/localeInput";
 
 axios.defaults.withCredentials = true;
 
@@ -87,6 +88,7 @@ Stimulus.register("password-policy", PasswordPolicyController);
 Stimulus.register("password-strength-meter", PasswordStrengthMeterController);
 Stimulus.register("custom-select", CustomSelectController);
 Stimulus.register("phone-input", PhoneInputController);
+Stimulus.register("locale-input", LocaleInputController);
 Stimulus.register("countdown", CountdownController);
 Stimulus.register("copy-button", CopyButtonController);
 
