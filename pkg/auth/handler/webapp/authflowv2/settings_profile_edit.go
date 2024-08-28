@@ -6,6 +6,8 @@ import (
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -22,6 +24,10 @@ type SettingsProfileEditHandler struct {
 	BaseViewModel            *viewmodels.BaseViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Renderer                 handlerwebapp.Renderer
+
+	Users       handlerwebapp.SettingsProfileEditUserService
+	StdAttrs    handlerwebapp.SettingsProfileEditStdAttrsService
+	CustomAttrs handlerwebapp.SettingsProfileEditCustomAttrsService
 }
 
 func (h *SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -67,6 +73,32 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	})
 
 	ctrl.PostAction("save", func() error {
+		userID := *session.GetUserID(r.Context())
+		m := handlerwebapp.JSONPointerFormToMap(r.Form)
+
+		u, err := h.Users.GetRaw(userID)
+		if err != nil {
+			return err
+		}
+
+		variant := httproute.GetParam(r, "variant")
+		if variant == "custom_attributes" {
+			err = h.CustomAttrs.UpdateCustomAttributesWithForm(config.RoleEndUser, userID, m)
+			if err != nil {
+				return err
+			}
+		} else {
+			attrs, err := stdattrs.T(u.StandardAttributes).MergedWithForm(m)
+			if err != nil {
+				return err
+			}
+
+			err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
+			if err != nil {
+				return err
+			}
+		}
+
 		result := webapp.Result{RedirectURI: "/settings/profile"}
 		result.WriteResponse(w, r)
 		return nil
