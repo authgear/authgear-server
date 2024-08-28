@@ -1,0 +1,30 @@
+@layer components {
+  :root {
+    --settings-description__font-family: var(
+      --typography-title-medium__font-family
+    );
+    --settings-description__font-size: var(--typography-body-medium__font-size);
+    --settings-description__line-height: var(
+      --typography-label-medium__line-height
+    );
+    --settings-description__letter-spacing: var(
+      --typography-title-medium__letter-spacing
+    );
+    --settings-description__font-weight: var(
+      --typography-title-medium__font-weight
+    );
+    --settings-description__text-color: var(--color-neutral-400);
+  }
+  :root.dark {
+    --settings-description__text-color: var(--color-neutral-200);
+  }
+
+  .settings-description {
+    font-family: var(--settings-description__font-family);
+    font-size: var(--settings-description__font-size);
+    line-height: var(--settings-description__line-height);
+    letter-spacing: var(--settings-description__letter-spacing);
+    font-weight: var(--settings-description__font-weight);
+    color: var(--settings-description__text-color);
+  }
+}

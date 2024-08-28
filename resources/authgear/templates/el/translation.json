@@ -1095,5 +1095,22 @@
   "v2-csrf-error-instruction-samsung-step6": "Στο \"<b>Cookies</b>\" &rarr; \"<b>Επιτρέψτε όλα τα cookies</b>\"",
   "v2-csrf-error-instruction-default-step1": "Μεταβείτε στις Ρυθμίσεις",
   "v2-csrf-error-instruction-default-step2": "Μεταβείτε στο Απόρρητο και ασφάλεια",
-  "v2-csrf-error-instruction-default-step3": "Επιτρέψτε τα cookies ή τα δεδομένα ιστότοπου στη συσκευή"
+  "v2-csrf-error-instruction-default-step3": "Επιτρέψτε τα cookies ή τα δεδομένα ιστότοπου στη συσκευή",
+  "v2.page.settings.default.link-label-edit-profile": "Επεξεργασία Προφίλ",
+  "v2.page.settings.default.title-my-account": "Ο Λογαριασμός μου",
+  "v2.page.settings.default.description-my-account": "Αυτή είναι η μέθοδος για να συνδεθείτε στον λογαριασμό σας",
+  "v2.page.settings.default.button-label-email": "Email",
+  "v2.page.settings.default.button-label-phone": "Τηλέφωνο",
+  "v2.page.settings.default.button-label-username": "Όνομα Χρήστη",
+  "v2.page.settings.default.button-label-social-accounts": "Λογαριασμός Κοινωνικών Μέσων",
+  "v2.page.settings.default.title-security": "Ασφάλεια",
+  "v2.page.settings.default.description-security": "Αυτά μπορούν να χρησιμοποιηθούν για να βεβαιωθείτε ότι είστε πραγματικά εσείς που συνδέεστε",
+  "v2.page.settings.default.button-label-password": "Κωδικός Πρόσβασης (Passkey)",
+  "v2.page.settings.default.button-label-passkey": "Passkey",
+  "v2.page.settings.default.button-label-mfa": "Έλεγχος Ταυτότητας Δύο Παραγόντων",
+  "v2.page.settings.default.button-label-biometric-login": "Βιομετρική Σύνδεση",
+  "v2.page.settings.default.button-label-signed-in-devices": "Συνδεδεμένες Συσκευές",
+  "v2.page.settings.default.button-label-advanced-settings": "Προχωρημένες Ρυθμίσεις",
+  "v2.page.settings.default.button-label-back-to-app": "Επιστροφή στην εφαρμογή μου",
+  "v2.page.settings.default.button-label-and-more": "και άλλα"
 }

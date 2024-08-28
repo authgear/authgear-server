@@ -66,6 +66,8 @@ const (
 	AuthflowV2RouteWechat               = "/authflow/v2/wechat"
 	AuthflowV2RouteAccountLinking       = "/authflow/v2/account_linking"
 
+	SettingsV2RouteSettings = "/settings"
+
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"

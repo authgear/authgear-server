@@ -6,6 +6,7 @@ import (
 )
 
 var Components = web.ComponentsHTML
+var SettingsCompenents = web.SettingsComponentsHTML
 
 var plainTextComponents = web.ComponentsPlainText
 

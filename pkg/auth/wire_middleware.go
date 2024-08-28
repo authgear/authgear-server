@@ -232,6 +232,13 @@ func newImplementationSwitcherMiddleware(p *deps.RequestProvider) httproute.Midd
 	))
 }
 
+func newSettingImplementationSwitcherMiddleware(p *deps.RequestProvider) httproute.Middleware {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(httproute.Middleware), new(*handlerwebapp.SettingsImplementationSwitcherMiddleware)),
+	))
+}
+
 func newDPoPMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	panic(wire.Build(
 		DependencySet,

@@ -1,59 +1,12 @@
 {{ define "authflowv2/__header.html" }}
 
-{{/* Always initialize src to an empty string */}}
-{{ $light := "" }}
-{{ $dark := "" }}
-
-{{ if $.LightThemeEnabled }}
-  {{ $light = call $.StaticAssetURL "app-logo" }}
-{{ end }}
-
-{{ if $.DarkThemeEnabled }}
-  {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
-{{ end }}
-
-{{ if $.ClientURI }}
-  <a class="brand-logo__container light" href="{{ $.ClientURI }}">
-    <img
-      class="brand-logo light"
-      src="{{ $light }}"
-      data-controller="previewable-resource"
-      data-previewable-resource-key-value="brand-logo-light"
-      data-previewable-resource-changable-attribute-value="src"
-      data-previewable-resource-original-value="{{ .light }}"
-    >
-  </a>
-  <a class="brand-logo__container dark" href="{{ $.ClientURI }}">
-    <img
-      class="brand-logo dark"
-      src="{{ $dark }}"
-      data-controller="previewable-resource"
-      data-previewable-resource-key-value="brand-logo-dark"
-      data-previewable-resource-changable-attribute-value="src"
-      data-previewable-resource-original-value="{{ .dark }}"
-    >
-  </a>
-{{ else }}
-  <div class="brand-logo__container light">
-    <img
-      class="brand-logo light"
-      src="{{ $light }}"
-      data-controller="previewable-resource"
-      data-previewable-resource-key-value="brand-logo-light"
-      data-previewable-resource-changable-attribute-value="src"
-      data-previewable-resource-original-value="{{ .light }}"
-    >
-  </div>
-  <div class="brand-logo__container dark">
-    <img
-      class="brand-logo dark"
-      src="{{ $dark }}"
-      data-controller="previewable-resource"
-      data-previewable-resource-key-value="brand-logo-dark"
-      data-previewable-resource-changable-attribute-value="src"
-      data-previewable-resource-original-value="{{ .dark }}"
-    >
-  </div>
-{{ end }}
+{{ template "authflowv2/__brand_logo.html"
+  (merge
+    (dict
+      "LogoClass" "brand-logo--default"
+    )
+    .
+  )
+}}
 
 {{ end }}

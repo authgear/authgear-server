@@ -1,0 +1,51 @@
+{{ define "authflowv2/__settings_page_frame.html" }}
+{{ template "authflowv2/__base_page_frame.html" . }}
+{{ end }}
+
+{{ define "page-frame-content" }}
+
+{{/* NOTE: The following code contains duplicated logic __brand_logo.html */}}
+{{/* Always initialize src to an empty string */}}
+{{ $light := "" }}
+{{ $dark := "" }}
+
+{{ if $.LightThemeEnabled }}
+  {{ $light = call $.StaticAssetURL "app-logo" }}
+{{ end }}
+
+{{ if $.DarkThemeEnabled }}
+  {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
+{{ end }}
+
+<div
+  class="shadow-logo light"
+  data-src="{{ $light }}"
+  data-controller="previewable-resource"
+  data-previewable-resource-key-value="brand-logo-light"
+  data-previewable-resource-changable-attribute-value="data-src"
+  data-previewable-resource-original-value="{{ .light }}"
+>
+  <div
+    class="shadow-logo dark"
+    data-src="{{ $dark }}"
+    data-controller="previewable-resource"
+    data-previewable-resource-key-value="brand-logo-dark"
+    data-previewable-resource-changable-attribute-value="data-src"
+    data-previewable-resource-original-value="{{ .dark }}"
+  >
+    {{ template "authflowv2/__settings_header.html" . }}
+    {{ template "web/authflowv2/settings_layout.html" . }}
+  </div>
+</div>
+{{/* NOTE: The above code contains duplicated logic __brand_logo.html */}}
+{{ end }}
+
+{{ define "widget" }}
+  <div class="widget widget--settings">
+    <div class="widget-content widget-content--settings">
+      {{ template "page-content" . }}
+      {{ template "authflowv2/__lockout.html" . }}
+    </div>
+  </div>
+{{ end }}
+

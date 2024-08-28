@@ -1095,5 +1095,22 @@
   "v2-csrf-error-instruction-samsung-step6": "En \"<b>Cookies</b>\" &rarr; \"<b>Permitir todas las cookies</b>\"",
   "v2-csrf-error-instruction-default-step1": "Ir a Ajustes",
   "v2-csrf-error-instruction-default-step2": "Ir a Privacidad y seguridad",
-  "v2-csrf-error-instruction-default-step3": "Permitir cookies o Datos de sitios en el dispositivo"
+  "v2-csrf-error-instruction-default-step3": "Permitir cookies o Datos de sitios en el dispositivo",
+  "v2.page.settings.default.link-label-edit-profile": "Editar perfil",
+  "v2.page.settings.default.title-my-account": "Mi cuenta",
+  "v2.page.settings.default.description-my-account": "Este es el método para iniciar sesión en tu cuenta",
+  "v2.page.settings.default.button-label-email": "Correo electrónico",
+  "v2.page.settings.default.button-label-phone": "Teléfono",
+  "v2.page.settings.default.button-label-username": "Nombre de usuario",
+  "v2.page.settings.default.button-label-social-accounts": "Cuenta social",
+  "v2.page.settings.default.title-security": "Seguridad",
+  "v2.page.settings.default.description-security": "Estos se pueden utilizar para asegurarse de que realmente eres tú quien inicia sesión",
+  "v2.page.settings.default.button-label-password": "Contraseña",
+  "v2.page.settings.default.button-label-passkey": "Passkey",
+  "v2.page.settings.default.button-label-mfa": "Autenticación de 2 factores",
+  "v2.page.settings.default.button-label-biometric-login": "Inicio de sesión biométrico",
+  "v2.page.settings.default.button-label-signed-in-devices": "Dispositivos con sesión iniciada",
+  "v2.page.settings.default.button-label-advanced-settings": "Configuración avanzada",
+  "v2.page.settings.default.button-label-back-to-app": "Volver a mi aplicación",
+  "v2.page.settings.default.button-label-and-more": "y más"
 }

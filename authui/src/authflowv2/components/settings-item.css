@@ -1,0 +1,118 @@
+@layer components {
+  :root {
+    --settings-item__bg-color: var(--color-surface-primary);
+    --settings-item__text-color: var(--color-neutral-700);
+    --settings-item__border-radius: var(--border-radius-rounded-square);
+    --settings-item__font-family: var(--typography-label-large__font-family);
+    --settings-item__font-size: var(--typography-label-large__font-size);
+    --settings-item__line-height: var(--typography-label-large__line-height);
+    --settings-item__letter-spacing: var(
+      --typography-label-large__letter-spacing
+    );
+    --settings-item__font-weight: var(--typography-label-large__font-weight);
+    --settings-item__ring-width: 1.5px;
+    --settings-item__ring-color: var(--color-neutral-100);
+    --settings-item__py: 1rem;
+    --settings-item__px: 0.5rem;
+
+    --settings-item__bg-color--hover: var(--color-neutral-100);
+    --settings-item__text-color--hover: var(--settings-item__text-color);
+    --settings-item__ring-width--hover: var(--settings-item__ring-width);
+    --settings-item__ring-color--hover: var(--settings-item__ring-color);
+
+    --settings-item__bg-color--active: var(--color-neutral-100);
+    --settings-item__text-color--active: var(--settings-item__text-color);
+    --settings-item__ring-width--active: var(--settings-item__ring-width);
+    --settings-item__ring-color--active: var(--settings-item__ring-color);
+
+    --settings-item__forward-arrow-font-size: 1.125rem;
+
+    --settings-item__forward-arrow-color: var(--color-neutral-200);
+
+    --settings-item__border-color: var(--color-neutral-100);
+  }
+
+  :root.dark {
+    --settings-item__text-color: var(--color-neutral-100);
+    --settings-item__ring-color: var(--color-neutral-500);
+    --settings-item__bg-color--hover: var(--color-neutral-500);
+    --settings-item__bg-color--active: var(--color-neutral-500);
+
+    --settings-item__forward-arrow-color: var(--color-neutral-200);
+
+    --settings-item__border-color: var(--color-neutral-400);
+  }
+
+  .settings-item {
+    @apply grid;
+    @apply items-center text-start;
+
+    background-color: var(--settings-item__bg-color);
+    padding: var(--settings-item__py) var(--settings-item__px);
+    color: var(--settings-item__text-color);
+    border-color: var(--settings-item__border-color);
+    border-bottom-width: 1px;
+    border-style: solid;
+
+    &.with-content {
+      /* When Mobile View */
+      grid-template-areas:
+        "icon title arrow"
+        ". content arrow";
+      grid-template-columns: 2rem auto 1.125rem;
+
+      /* When Not Mobile View */
+      @media (min-width: theme("screens.tablet")) {
+        grid-template-areas: "icon title content arrow";
+        grid-template-columns: 2rem 9rem auto 1.125rem;
+      }
+    }
+
+    &.without-content {
+      grid-template-areas: "icon title arrow";
+      grid-template-columns: 2rem auto 1.125rem;
+    }
+
+    &:hover {
+      background-color: var(--settings-item__bg-color--hover);
+      color: var(--settings-item__text-color--hover);
+      @apply ring-inset
+        ring-[length:var(--settings-item\_\_ring-width--hover)]
+        ring-[color:var(--settings-item\_\_ring-color--hover)];
+    }
+
+    &:active {
+      background-color: var(--secondary-item__bg-color--active);
+      color: var(--secondary-item__text-color--active);
+      @apply ring-inset
+        ring-[length:var(--secondary-item\_\_ring-width--active)]
+        ring-[color:var(--secondary-item\_\_ring-color--active)];
+    }
+  }
+
+  .settings-item > .settings-item_icon {
+    grid-area: icon;
+  }
+  .settings-item > .settings-item__label {
+    grid-area: title;
+  }
+  .settings-item > .settings-item__description {
+    grid-area: content;
+  }
+  .settings-item > .settings-item__forward_arrow {
+    grid-area: arrow;
+  }
+}
+
+.settings-item__label {
+  font-family: var(--settings-item__font-family);
+  font-size: var(--settings-item__font-size);
+  line-height: var(--settings-item__line-height);
+  letter-spacing: var(--settings-item__letter-spacing);
+  font-weight: var(--settings-item__font-weight);
+}
+
+.settings-item__forward_arrow {
+  font-size: var(--settings-item__forward-arrow-font-size);
+  color: var(--settings-item__forward-arrow-color);
+}

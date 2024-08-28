@@ -1095,5 +1095,22 @@
   "v2-csrf-error-instruction-samsung-step6": "Dalam \"<b>Cookies</b>\" &rarr; \"<b>Benarkan semua cookies</b>\"",
   "v2-csrf-error-instruction-default-step1": "Pergi ke Tetapan",
   "v2-csrf-error-instruction-default-step2": "Pergi ke Privasi dan keselamatan",
-  "v2-csrf-error-instruction-default-step3": "Benarkan cookies atau Data laman pada peranti"
+  "v2-csrf-error-instruction-default-step3": "Benarkan cookies atau Data laman pada peranti",
+  "v2.page.settings.default.link-label-edit-profile": "Edit Profil",
+  "v2.page.settings.default.title-my-account": "Akaun Saya",
+  "v2.page.settings.default.description-my-account": "Ini adalah kaedah untuk log masuk ke akaun anda",
+  "v2.page.settings.default.button-label-email": "E-mel",
+  "v2.page.settings.default.button-label-phone": "Telefon",
+  "v2.page.settings.default.button-label-username": "Nama Pengguna",
+  "v2.page.settings.default.button-label-social-accounts": "Akaun Sosial",
+  "v2.page.settings.default.title-security": "Keselamatan",
+  "v2.page.settings.default.description-security": "Ini boleh digunakan untuk memastikan bahawa anda benar-benar log masuk",
+  "v2.page.settings.default.button-label-password": "Kata Laluan",
+  "v2.page.settings.default.button-label-passkey": "Passkey",
+  "v2.page.settings.default.button-label-mfa": "Pengesahan 2-Faktor",
+  "v2.page.settings.default.button-label-biometric-login": "Log Masuk Biometrik",
+  "v2.page.settings.default.button-label-signed-in-devices": "Peranti yang Dilog Masuk",
+  "v2.page.settings.default.button-label-advanced-settings": "Tetapan Lanjutan",
+  "v2.page.settings.default.button-label-back-to-app": "Kembali ke aplikasi saya",
+  "v2.page.settings.default.button-label-and-more": "dan lebih banyak lagi"
 }

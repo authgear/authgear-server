@@ -49,6 +49,7 @@
     /* In any layout, the widget should NOT grow, and take its initial size. */
     @apply flex-initial;
   }
+
   .layout__header--default {
     /* In any layout, the layout header takes full widget. */
     @apply w-full;
@@ -68,5 +69,26 @@
     /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
     /* And the initial size is controlled by min-height. */
     @apply tablet:flex-auto tablet:min-h-5;
+  }
+
+  .layout__settings-header--default {
+    /* In any layout, the layout header takes full widget. */
+    @apply w-full;
+    /* In mobile layout, the layout header takes 0 height. */
+    @apply min-h-0 h-0;
+    /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
+    /* And the initial size is controlled by min-height and max-height. */
+    @apply tablet:flex-auto tablet:min-h-8 tablet:max-h-8;
+  }
+  .layout__settings-footer--default {
+    /* In any layout, the layout header takes full widget. */
+    @apply w-full;
+    /* In mobile layout, the layout footer takes the remaining height. */
+    @apply flex-1;
+    /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
+    /* And the initial size is controlled by min-height and max-height. */
+    /* In non-mobile layout, the layout header grows and shrinks with its initial size. */
+    /* And the initial size is controlled by min-height. */
+    @apply tablet:flex-auto tablet:min-h-8;
   }
 }

@@ -1,0 +1,49 @@
+<!-- Example usage:
+{{ template "authflowv2/__settings_item.html"
+  (dict
+    "Label" (include "some-key" nil)
+    "Href" "url"
+    "MaterialIconName" `email`
+    "Children" $.Emails
+  )
+}}
+-->
+{{ define "authflowv2/__settings_item.html" }}
+<a
+  class="settings-item with-content
+    {{ if $.Children }}
+      with-content
+    {{ else }}
+      without-content
+    {{ end }}
+    "
+  href="{{ $.Href}}"
+>
+  <i class="settings-item_icon alternative-icon material-icons">
+    {{ $.MaterialIconName }}
+  </i>
+  <p class="settings-item__label">
+    {{ $.Label }}
+  </p>
+
+  {{/* If there is content */}}
+  {{ if $.Children }}
+    {{ $length := len $.Children }}
+    <p class="settings-item__description settings-description block tablet:hidden">
+      {{ index $.Children  0}}
+      {{ if gt $length 1 }}<span> {{ template "v2.page.settings.default.button-label-and-more" .}} </span>{{ end }}
+    </p>
+    <ul class="settings-item__description settings-description hidden tablet:block">
+      {{ range $i, $child := $.Children }}
+      <li>
+        {{ $child }}
+      </li>
+      {{ end }}
+    </ul>
+  {{ end }}
+
+  <i class="settings-item__forward_arrow material-icons">
+    arrow_forward_ios
+  </i>
+</a>
+{{ end}}

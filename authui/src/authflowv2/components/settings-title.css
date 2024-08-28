@@ -1,0 +1,26 @@
+@layer components {
+  :root {
+    --settings-title__font-family: var(
+      --typography-headline-small__font-family
+    );
+    --settings-title__font-size: var(--typography-title-large__font-size);
+    --settings-title__line-height: var(--typography-title-large__line-height);
+    --settings-title__letter-spacing: var(
+      --typography-title-large__letter-spacing
+    );
+    --settings-title__font-weight: var(--typography-title-large__font-weight);
+    --settings-title__text-color: var(--color-neutral-700);
+  }
+  :root.dark {
+    --settings-title__text-color: var(--color-neutral-100);
+  }
+
+  .settings-title {
+    font-family: var(--settings-title__font-family);
+    font-size: var(--settings-title__font-size);
+    line-height: var(--settings-title__line-height);
+    letter-spacing: var(--settings-title__letter-spacing);
+    font-weight: var(--settings-title__font-weight);
+    color: var(--settings-title__text-color);
+  }
+}

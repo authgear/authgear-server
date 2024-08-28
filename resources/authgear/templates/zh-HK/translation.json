@@ -1095,5 +1095,22 @@
   "v2-csrf-error-instruction-samsung-step6": "在<b>Cookies</b>&rarr;<b>允許所有 Cookies</b>",
   "v2-csrf-error-instruction-default-step1": "前往設定",
   "v2-csrf-error-instruction-default-step2": "前往隱私權和安全性",
-  "v2-csrf-error-instruction-default-step3": "允許 Cookies 或裝置上的網站資料"
+  "v2-csrf-error-instruction-default-step3": "允許 Cookies 或裝置上的網站資料",
+  "v2.page.settings.default.link-label-edit-profile": "更改個人資料",
+  "v2.page.settings.default.title-my-account": "我的帳戶",
+  "v2.page.settings.default.description-my-account": "這是登入您的帳戶的方法",
+  "v2.page.settings.default.button-label-email": "電郵",
+  "v2.page.settings.default.button-label-phone": "電話",
+  "v2.page.settings.default.button-label-username": "用戶名稱",
+  "v2.page.settings.default.button-label-social-accounts": "社群帳戶",
+  "v2.page.settings.default.title-security": "安全",
+  "v2.page.settings.default.description-security": "這些可用於確保確實是您在登入",
+  "v2.page.settings.default.button-label-password": "密碼",
+  "v2.page.settings.default.button-label-passkey": "通行密匙",
+  "v2.page.settings.default.button-label-mfa": "多重驗證",
+  "v2.page.settings.default.button-label-biometric-login": "生物驗證登入",
+  "v2.page.settings.default.button-label-signed-in-devices": "已登入的裝置",
+  "v2.page.settings.default.button-label-advanced-settings": "進階設定",
+  "v2.page.settings.default.button-label-back-to-app": "返回我的App",
+  "v2.page.settings.default.button-label-and-more": "還有更多"
 }

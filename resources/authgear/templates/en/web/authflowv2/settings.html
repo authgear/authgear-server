@@ -1,0 +1,186 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-content" }}
+
+<div class="flex flex-col gap-8">
+  <div class="flex flex-col gap-4 items-center">
+    <img
+    class="rounded-full w-30 h-30"
+    {{ if (and (call $.IsReadable "/picture") $.Picture) }}
+      src="{{ $.Picture }}"
+    {{ else }}
+      src="{{ call $.GeneratedStaticAssetURL "v2_avatar_placeholder.svg" }}"
+    {{ end }}
+    >
+    <div class="flex flex-col gap-1">
+      <h1 class="settings-title">
+        {{ $any_name_readable := (or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname")) }}
+        {{ if (and $any_name_readable $.FormattedName) }}<span class="truncate">{{ $.FormattedName }}</span>{{ end }}
+        {{ if (and (not $.FormattedName) $.EndUserAccountID) }}<span class="truncate">{{ $.EndUserAccountID }}</span>{{ end }}
+      </h1>
+      <p class="body-text--lg">
+        {{ $editProfileHref := call $.MakeURL "/settings/profile"}}
+        <a href="{{ $editProfileHref }}" >
+          {{ template "v2.page.settings.default.link-label-edit-profile" . }}
+        </a>
+      </p>
+
+    </div>
+  </div>
+
+  {{/* Identity */}}
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1">
+      <h2 class="settings-title text-start">
+        {{ template "v2.page.settings.default.title-my-account" . }}
+      </h2>
+      <div class="settings-description text-start">
+        {{ template "v2.page.settings.default.description-my-account" . }}
+      </div>
+    </div>
+
+    <div>
+    {{ range .IdentityCandidates }}
+
+    {{ if eq .type "login_id" }}
+
+      {{ $url := call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type }}
+      {{ if .identity_id }}
+      {{ $url = call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}
+      {{ end }}
+
+      {{/* If is Email */}}
+      {{ $label := ( include "v2.page.settings.default.button-label-email" nil ) }}{{ $icon := "email" }}
+      {{ $identityArr := $.Emails }}{{ $identity := $.Email }}
+
+      {{/* If is Phone */}}
+      {{ if eq .login_id_type "phone" }}
+        {{ $label = ( include "v2.page.settings.default.button-label-phone" nil ) }}{{ $icon = "phone_iphone" }}
+        {{ $identityArr = $.PhoneNumbers }}{{ $identity = $.PhoneNumber }}
+      {{ end }}
+
+      {{/* If is Username */}}
+      {{ if eq .login_id_type "username" }}
+        {{ $label = ( include "v2.page.settings.default.button-label-username" nil ) }}{{ $icon = "account_circle" }}
+        {{ $identityArr = $.PreferredUsernames }}{{ $identity = $.PreferredUsername }}
+      {{ end }}
+
+      {{/* Render with given variable */}}
+      {{ template "authflowv2/__settings_item.html"
+        (dict
+          "Label" $label
+          "Href" $url
+          "MaterialIconName" $icon
+          "Children" $identityArr
+        )
+      }}
+
+    {{ end }}
+    {{ end}}
+
+    {{ $url := call $.MakeURL "/settings/identity" }}
+    {{ template "authflowv2/__settings_item.html"
+      (dict
+        "Label" ( include "v2.page.settings.default.button-label-social-accounts" nil )
+        "Href" $url
+        "MaterialIconName" "link"
+      )
+    }}
+    </div>
+  </div>
+
+  {{/* Security */}}
+  <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-1">
+      <h2 class="settings-title text-start">
+        {{ template "v2.page.settings.default.title-security" . }}
+      </h2>
+      <div class="settings-description text-start">
+        {{ template "v2.page.settings.default.description-security" . }}
+      </div>
+    </div>
+
+    <div>
+      {{ range $.Authenticators }}
+        {{ if and (eq .Type "password") (eq .Kind "primary") }}
+          {{ $url = call $.MakeURL "/settings/change_password" }}
+          {{ template "authflowv2/__settings_item.html"
+            (dict
+              "Label" ( include "v2.page.settings.default.button-label-password" nil )
+              "Href" $url
+              "MaterialIconName" "key"
+            )
+          }}
+        {{ end }}
+      {{ end }}
+
+      {{ if $.ShowPrimaryPasskey }}
+        {{ $url = call $.MakeURL "/settings/passkey" }}
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "Label" ( include "v2.page.settings.default.button-label-passkey" nil )
+            "Href" $url
+            "MaterialIconName" "passkey"
+          )
+        }}
+      {{ end }}
+
+      {{ if $.ShowMFA }}
+        {{ $url = call $.MakeURL "/settings/mfa" }}
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "Label" ( include "v2.page.settings.default.button-label-mfa" nil )
+            "Href" $url
+            "MaterialIconName" "encrypted"
+          )
+        }}
+      {{ end }}
+
+      {{ if $.ShowBiometric }}
+        {{ $url = call $.MakeURL "/settings/biometric" }}
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "Label" ( include "v2.page.settings.default.button-label-biometric-login" nil )
+            "Href" $url
+            "MaterialIconName" "fingerprint"
+          )
+        }}
+      {{ end }}
+
+      {{ $url = call $.MakeURL "/settings/sessions" }}
+      {{ template "authflowv2/__settings_item.html"
+        (dict
+          "Label" ( include "v2.page.settings.default.button-label-signed-in-devices" nil )
+          "Href" $url
+          "MaterialIconName" "verified_user"
+        )
+      }}
+
+      {{ $url = call $.MakeURL "/settings/advanced_settings" }}
+      {{ template "authflowv2/__settings_item.html"
+        (dict
+          "Label" ( include "v2.page.settings.default.button-label-advanced-settings" nil )
+          "Href" $url
+          "MaterialIconName" "settings_alert"
+        )
+      }}
+    </div>
+  </div>
+
+  {{ if and $.ClientURI (not $.IsNativePlatform) }}
+  <div class="flex justify-center">
+    <a
+      class="secondary-btn w-86"
+      href="{{ $.ClientURI }}"
+    >
+      <div class="flex gap-2 items-center">
+        <i class="alternative-icon material-icons">
+          home
+        </i>
+        {{ template "v2.page.settings.default.button-label-back-to-app" . }}
+      </div>
+    </a>
+  </div>
+  {{ end}}
+</div>
+{{ end }}

@@ -10,6 +10,8 @@
     --widget__bg_repeat: no-repeat;
     --widget__bg_size: cover;
 
+    --widget__max-width--settings: 605px;
+
     @media (min-width: theme("screens.tablet")) {
       --widget__border-radius: var(--border-radius-large);
       --widget__box-shadow: none;
@@ -38,10 +40,16 @@
   .widget-content {
     @apply relative;
     @apply h-full w-full;
-    @apply px-6 py-8;
     @apply flex flex-col;
     @apply self-center;
+
+    @apply px-6 py-8;
     max-width: var(--widget__max-width);
+  }
+
+  .widget-content.widget-content--settings {
+    @apply px-6 py-6;
+    max-width: var(--widget__max-width--settings);
   }
 
   /* In __html_head.html, there is a <noscript> element to revert this visibility. */
@@ -55,8 +63,16 @@
       max-width: var(--widget__max-width);
     }
 
+    .widget.widget--settings {
+      max-width: var(--widget__max-width--settings);
+    }
+
     .widget-content {
       @apply self-stretch;
+    }
+
+    .widget-content.widget-content--settings {
+      @apply px-8 py-8;
     }
   }
 }

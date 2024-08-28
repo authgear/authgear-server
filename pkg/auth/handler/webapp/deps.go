@@ -7,6 +7,7 @@ import (
 var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthEntryPointMiddleware), "*"),
 	wire.Struct(new(ImplementationSwitcherMiddleware), "*"),
+	wire.Struct(new(SettingsImplementationSwitcherMiddleware), "*"),
 
 	wire.Struct(new(ResponseRenderer), "*"),
 	wire.Struct(new(FormPrefiller), "*"),

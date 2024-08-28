@@ -4,6 +4,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
+func init() {
+	ComponentsHTML = append(ComponentsHTML, BaseComponentsHTML...)
+	ComponentsHTML = append(ComponentsHTML, TemplateWebAuthflowV2PageFrameHTML)
+	SettingsComponentsHTML = append(SettingsComponentsHTML, BaseComponentsHTML...)
+	SettingsComponentsHTML = append(SettingsComponentsHTML, TemplateWebSettingsV2PageFrameHTML)
+}
+
 var TemplateWebHTMLHeadHTML = template.RegisterHTML("web/__html_head.html")
 var TemplateWebGeneratedAssetHTML = template.RegisterHTML("web/__generated_asset.html")
 var TemplateWebHeaderHTML = template.RegisterHTML("web/__header.html")
@@ -29,6 +36,7 @@ var TemplateWebTranslationMessageHTML = template.RegisterHTML("web/__translation
 
 // TODO: This file could be overridable per app, depends on the project plan in future
 var TemplateWebAuthflowV2LayoutHTML = template.RegisterHTML("web/authflowv2/layout.html")
+var TemplateWebAuthflowV2SettingsLayoutHTML = template.RegisterHTML("web/authflowv2/settings_layout.html")
 
 var TemplateWebAuthflowV2HTMLHeadHTML = template.RegisterHTML("web/authflowv2/__html_head.html")
 var TemplateWebAuthflowV2LoadBotProtectionHTML = template.RegisterHTML("web/authflowv2/__load_bot_protection.html")
@@ -41,6 +49,7 @@ var TemplateWebAuthflowV2BotProtectionFormInputHTML = template.RegisterHTML("web
 var TemplateWebAuthflowV2BotProtectionControllerHTML = template.RegisterHTML("web/authflowv2/__bot_protection_controller.html")
 var TemplateWebAuthflowV2BotProtectionControllerAttrHTML = template.RegisterHTML("web/authflowv2/__bot_protection_controller_attr.html")
 var TemplateWebAuthflowV2BotProtectionDialogHTML = template.RegisterHTML("web/authflowv2/__bot_protection_dialog.html")
+var TemplateWebAuthflowV2BrandLogoHTML = template.RegisterHTML("web/authflowv2/__brand_logo.html")
 var TemplateWebAuthflowV2HeaderHTML = template.RegisterHTML("web/authflowv2/__header.html")
 var TemplateWebAuthflowV2DividerHTML = template.RegisterHTML("web/authflowv2/__divider.html")
 var TemplateWebAuthflowV2AlertMessageHTML = template.RegisterHTML("web/authflowv2/__alert_message.html")
@@ -60,8 +69,12 @@ var TemplateWebAuthflowV2DeviceTokenCheckboxHTML = template.RegisterHTML("web/au
 var TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML = template.RegisterHTML("web/authflowv2/__toc_pp_footer.html")
 var TemplateWebAuthflowV2WatermarkHTML = template.RegisterHTML("web/authflowv2/__watermark.html")
 var TemplateWebAuthflowV2CSRFErrorPageLayoutHTML = template.RegisterHTML("web/authflowv2/__csrf_error_page_layout.html")
+var TemplateWebAuthflowV2SettingsHeaderHTML = template.RegisterHTML("web/authflowv2/__settings_header.html")
+var TemplateWebAuthflowV2SettingsItemWithContentHTML = template.RegisterHTML("web/authflowv2/__settings_item.html")
 
-var ComponentsHTML = []*template.HTML{
+var TemplateWebSettingsV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__settings_page_frame.html")
+
+var BaseComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
 	TemplateWebGeneratedAssetHTML,
 	TemplateWebHeaderHTML,
@@ -86,11 +99,11 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebTranslationMessageHTML,
 
 	TemplateWebAuthflowV2LayoutHTML,
+	TemplateWebAuthflowV2SettingsLayoutHTML,
 	TemplateWebAuthflowV2HTMLHeadHTML,
 	TemplateWebAuthflowV2LoadBotProtectionHTML,
 	TemplateWebAuthflowV2GeneratedAssetHTML,
 	TemplateWebAuthflowV2BasePageFrameHTML,
-	TemplateWebAuthflowV2PageFrameHTML,
 	TemplateWebAuthflowV2DialogHTML,
 	TemplateWebAuthflowV2BotProtectionWidgetHTML,
 	TemplateWebAuthflowV2BotProtectionFormInputHTML,
@@ -116,4 +129,10 @@ var ComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML,
 	TemplateWebAuthflowV2WatermarkHTML,
 	TemplateWebAuthflowV2CSRFErrorPageLayoutHTML,
+	TemplateWebAuthflowV2BrandLogoHTML,
+	TemplateWebAuthflowV2SettingsHeaderHTML,
+	TemplateWebAuthflowV2SettingsItemWithContentHTML,
 }
+
+var ComponentsHTML []*template.HTML
+var SettingsComponentsHTML []*template.HTML

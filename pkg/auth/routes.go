@@ -174,6 +174,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 			p.Middleware(newTutorialMiddleware),
 			p.Middleware(newImplementationSwitcherMiddleware),
+			p.Middleware(newSettingImplementationSwitcherMiddleware),
 		)
 	}
 	webappChain := newWebappChain()
@@ -437,7 +438,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
 	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))
-	router.Add(webapphandler.ConfigureSettingsRoute(webappSettingsRoute), p.Handler(newWebAppSettingsHandler))
+	router.Add(webapphandler.ConfigureSettingsRoute(webappSettingsRoute), &webapphandler.SettingsImplementationSwitcherHandler{
+		SettingV1: p.Handler(newWebAppSettingsHandler),
+		SettingV2: p.Handler(newWebAppSettingsV2Handler),
+	})
 
 	router.Add(webapphandler.ConfigureSettingsProfileRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsProfileHandler))
 	router.Add(webapphandler.ConfigureSettingsProfileEditRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsProfileEditHandler))

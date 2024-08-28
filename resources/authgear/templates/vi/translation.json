@@ -1095,5 +1095,22 @@
   "v2-csrf-error-instruction-samsung-step6": "Trong \"<b>Cookies</b>\" &rarr; \"<b>Cho phép tất cả cookies</b>\"",
   "v2-csrf-error-instruction-default-step1": "Đi đến Cài đặt",
   "v2-csrf-error-instruction-default-step2": "Đi đến Quyền riêng tư và bảo mật",
-  "v2-csrf-error-instruction-default-step3": "Cho phép cookies hoặc Dữ liệu trang web trên thiết bị"
+  "v2-csrf-error-instruction-default-step3": "Cho phép cookies hoặc Dữ liệu trang web trên thiết bị",
+  "v2.page.settings.default.link-label-edit-profile": "Chỉnh sửa Hồ sơ",
+  "v2.page.settings.default.title-my-account": "Tài khoản của tôi",
+  "v2.page.settings.default.description-my-account": "Đây là phương thức để đăng nhập vào tài khoản của bạn",
+  "v2.page.settings.default.button-label-email": "Email",
+  "v2.page.settings.default.button-label-phone": "Điện thoại",
+  "v2.page.settings.default.button-label-username": "Tên đăng nhập",
+  "v2.page.settings.default.button-label-social-accounts": "Tài khoản Mạng xã hội",
+  "v2.page.settings.default.title-security": "Bảo mật",
+  "v2.page.settings.default.description-security": "Những thứ này có thể được sử dụng để đảm bảo rằng thực sự là bạn đang đăng nhập",
+  "v2.page.settings.default.button-label-password": "Mật khẩu",
+  "v2.page.settings.default.button-label-passkey": "Passkey",
+  "v2.page.settings.default.button-label-mfa": "Xác thực 2 Yếu tố",
+  "v2.page.settings.default.button-label-biometric-login": "Đăng nhập Sinh trắc học",
+  "v2.page.settings.default.button-label-signed-in-devices": "Thiết bị đã đăng nhập",
+  "v2.page.settings.default.button-label-advanced-settings": "Cài đặt Nâng cao",
+  "v2.page.settings.default.button-label-back-to-app": "Quay lại ứng dụng của tôi",
+  "v2.page.settings.default.button-label-and-more": "và nhiều hơn nữa"
 }
