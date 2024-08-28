@@ -1183,5 +1183,6 @@
   "v2.page.wechat-auth.default.open-app": "Open WeChat app to login",
   "v2.page.wechat-auth.default.proceed": "Proceed WeChat login",
   "v2.page.wechat-auth.default.qr-code-description": "Please scan the QR code in your WeChat app to sign in.",
-  "v2.page.wechat-auth.default.title": "Login with WeChat"
+  "v2.page.wechat-auth.default.title": "Login with WeChat",
+  "v2.page.settings-profile-edit-locale.default.navbar-title": "Language"
 }
