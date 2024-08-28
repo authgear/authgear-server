@@ -30,19 +30,19 @@ func NewSessionCookieDef() SessionCookieDef {
 	return SessionCookieDef{Def: def}
 }
 
-type ErrorCookieDef struct {
+type ErrorTokenCookieDef struct {
 	Def *httputil.CookieDef
 }
 
-func NewErrorCookieDef() ErrorCookieDef {
+func NewErrorTokenCookieDef() ErrorTokenCookieDef {
 	def := &httputil.CookieDef{
-		NameSuffix:        "web_err",
+		NameSuffix:        "web_error_token",
 		Path:              "/",
 		AllowScriptAccess: false,
 		SameSite:          http.SameSiteLaxMode,
 		MaxAge:            nil, // Use HTTP session cookie; expires when browser closes
 	}
-	return ErrorCookieDef{Def: def}
+	return ErrorTokenCookieDef{Def: def}
 }
 
 type SignedUpCookieDef struct {

@@ -46,7 +46,6 @@ type SettingsProfileEditHandler struct {
 	Users                    SettingsProfileEditUserService
 	StdAttrs                 SettingsProfileEditStdAttrsService
 	CustomAttrs              SettingsProfileEditCustomAttrsService
-	ErrorCookie              *webapp.ErrorCookie
 }
 
 func (h *SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {

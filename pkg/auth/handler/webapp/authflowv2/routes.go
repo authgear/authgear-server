@@ -86,7 +86,6 @@ type AuthflowV2NavigatorOAuthStateStore interface {
 type AuthflowV2Navigator struct {
 	Endpoints       AuthflowV2NavigatorEndpointsProvider
 	UIConfig        *config.UIConfig
-	ErrorCookie     *webapp.ErrorCookie
 	OAuthStateStore AuthflowV2NavigatorOAuthStateStore
 }
 

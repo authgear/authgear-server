@@ -27,7 +27,7 @@ type PanicMiddlewareEndpointsProvider interface {
 }
 
 type PanicMiddleware struct {
-	ErrorCookie   *webapp.ErrorCookie
+	ErrorService  *webapp.ErrorService
 	Logger        PanicMiddlewareLogger
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      Renderer
@@ -60,7 +60,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				m.Logger.WithError(err).Error("panic occurred")
 
 				apiError := apierrors.AsAPIError(err)
-				cookie, cookieErr := m.ErrorCookie.SetRecoverableError(r, apiError)
+				cookie, cookieErr := m.ErrorService.SetRecoverableError(r, apiError)
 				if cookieErr != nil {
 					panic(cookieErr)
 				}

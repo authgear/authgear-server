@@ -137,9 +137,8 @@ type StaticAssetResolver interface {
 	GeneratedStaticAssetURL(id string) (url string, err error)
 }
 
-type ErrorCookie interface {
-	GetError(r *http.Request) (*webapp.ErrorState, bool)
-	ResetRecoverableError() *http.Cookie
+type ErrorService interface {
+	PopError(w http.ResponseWriter, r *http.Request) (*webapp.ErrorState, bool)
 }
 
 type FlashMessage interface {
@@ -160,7 +159,7 @@ type BaseViewModeler struct {
 	Authentication                    *config.AuthenticationConfig
 	GoogleTagManager                  *config.GoogleTagManagerConfig
 	BotProtection                     *config.BotProtectionConfig
-	ErrorCookie                       ErrorCookie
+	ErrorService                      ErrorService
 	Translations                      TranslationService
 	Clock                             clock.Clock
 	FlashMessage                      FlashMessage
@@ -318,10 +317,9 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		},
 	}
 
-	if errorState, ok := m.ErrorCookie.GetError(r); ok {
+	if errorState, ok := m.ErrorService.PopError(rw, r); ok {
 		model.SetFormJSON(errorState.Form)
 		model.SetError(errorState.Error)
-		httputil.UpdateCookie(rw, m.ErrorCookie.ResetRecoverableError())
 	}
 
 	if s := webapp.GetSession(r.Context()); s != nil {

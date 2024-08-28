@@ -52,8 +52,8 @@ type TutorialCookie interface {
 	Pop(r *http.Request, rw http.ResponseWriter, name httputil.TutorialCookieName) bool
 }
 
-type ErrorCookie interface {
-	GetError(r *http.Request) (*webapp.ErrorState, bool)
+type ErrorService interface {
+	HasError(r *http.Request) bool
 }
 
 type LoginViewModel struct {
@@ -77,7 +77,7 @@ type LoginHandler struct {
 	Renderer                Renderer
 	MeterService            MeterService
 	TutorialCookie          TutorialCookie
-	ErrorCookie             ErrorCookie
+	ErrorService            ErrorService
 }
 
 func (h *LoginHandler) GetData(r *http.Request, rw http.ResponseWriter, graph *interaction.Graph, allowLoginOnly bool) (map[string]interface{}, error) {
@@ -154,7 +154,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		_, hasErr := h.ErrorCookie.GetError(r)
+		hasErr := h.ErrorService.HasError(r)
 		// If x_oauth_provider_alias is provided via authz endpoint
 		// redirect the user to the oauth provider
 		// If there is error in the ErrorCookie, the user will stay in the login
