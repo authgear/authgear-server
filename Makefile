@@ -53,7 +53,8 @@ test:
 
 .PHONY: lint-translation-keys
 lint-translation-keys:
-	go run ./devtools/gotemplatelinter --ignore-rule indentation --ignore-rule eol-at-eof ./resources/authgear/templates/en/web/authflowv2
+	-go run ./devtools/gotemplatelinter --ignore-rule indentation --ignore-rule eol-at-eof ./resources/authgear/templates/en/web/authflowv2 >.make-lint-translation-keys-expect 2>&1
+	git diff --exit-code .make-lint-translation-keys-expect > /dev/null 2>&1
 
 .PHONY: lint
 lint:
