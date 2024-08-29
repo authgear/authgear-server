@@ -40,6 +40,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowV2WechatHandler), "*"),
 	wire.Struct(new(AuthflowV2AccountLinkingHandler), "*"),
 	wire.Struct(new(AuthflowV2LDAPLoginHandler), "*"),
-	wire.Struct(new(SettingsV2Handler), "*"),
-	wire.Struct(new(SettingsProfileEditHandler), "*"),
+	wire.Struct(new(AuthflowV2SettingsHandler), "*"),
+	wire.Struct(new(AuthflowV2SettingsProfileEditHandler), "*"),
 )

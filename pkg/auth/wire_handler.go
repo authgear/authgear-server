@@ -419,10 +419,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppSettingsV2Handler(p *deps.RequestProvider) http.Handler {
+func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.SettingsV2Handler)),
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsHandler)),
 	))
 }
 
@@ -440,10 +440,10 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppSettingsProfileEditHandlerv2(p *deps.RequestProvider) http.Handler {
+func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.SettingsProfileEditHandler)),
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsProfileEditHandler)),
 	))
 }
 
