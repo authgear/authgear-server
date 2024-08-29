@@ -183,7 +183,7 @@
   "v2-login-link-otp-resend-button-label": "v2.page.oob-otp-link.default.resend-button-label",
   "v2-login-subtitle": "v2.page.login.default.subtitle",
   "v2-login-switch-to-signup": "v2.page.login.default.switch-to-signup",
-  "v2-login-title": "v2.page.login.login.default.title",
+  "v2-login-title": "v2.page.login.default.title",
   "v2-no-results-found": "v2.component.phone-input.default.no-results-found",
   "v2-oauth-provider-name": "v2.error.error-account-not-found-oauth-provider-name",
   "v2-oob-otp-page-resend-button-label--unit": "v2.component.oob-otp-resend-button.default.countdown-unit",
