@@ -34,4 +34,5 @@
 @import "./components/settings-title.css";
 @import "./components/settings-description.css";
 @import "./components/settings-item.css";
+@import "./components/settings-text-input.css";
 @import "./components/navbar.css";
