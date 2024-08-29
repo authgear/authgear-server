@@ -1,0 +1,19 @@
+{{ define "authflowv2/__settings_text_input.html" }}
+
+{{ $inputAttrs := (dict "type" "text")}}
+{{ if $.InputAttrs }}
+  {{ $inputAttrs = merge $inputAttrs $.InputAttrs }}
+{{ end }}
+
+<label class="settings-text-input__label">
+  <span class="settings-text-input__label-text">
+    {{ $.Label }}
+  </span>
+  <input
+    class="block input"
+    {{ range $attr, $value := $inputAttrs }}
+    {{htmlattr (printf "%s=\"%s\"" $attr $value) }}
+    {{end}}
+  />
+</label>
+{{ end }}
