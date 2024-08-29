@@ -2,7 +2,6 @@ package main
 
 import (
 	htmltemplate "html/template"
-	"sort"
 	"text/template/parse"
 
 	authgearutiltemplate "github.com/authgear/authgear-server/pkg/util/template"
@@ -39,9 +38,6 @@ func (r TranslationKeyRule) validateHTMLTemplate(template *htmltemplate.Template
 	tpls := template.Templates()
 
 	var violations LintViolations
-	sort.Slice(tpls, func(i, j int) bool {
-		return tpls[i].Name() < tpls[j].Name()
-	})
 
 	for _, tpl := range tpls {
 		if tpl.Tree == nil {

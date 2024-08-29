@@ -1,10 +1,12 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -26,17 +28,9 @@ type LintViolations []LintViolation
 
 func (violations LintViolations) Error() string {
 	var buf strings.Builder
-	violationsByPath := make(map[string]LintViolations)
 	for _, v := range violations {
-		violationsByPath[v.Path] = append(violationsByPath[v.Path], v)
+		fmt.Fprintf(&buf, "%s:%d:%d: %s\n", v.Path, v.Line, v.Column, v.Message)
 	}
-
-	for _, violations := range violationsByPath {
-		for _, v := range violations {
-			fmt.Fprintf(&buf, "%s:%d:%d: %s\n", v.Path, v.Line, v.Column, v.Message)
-		}
-	}
-
 	return buf.String()
 }
 
@@ -153,6 +147,15 @@ func doMain() (violations LintViolations, err error) {
 		}
 		violations = append(violations, newViolations...)
 	}
+
+	slices.SortStableFunc(violations, func(a, b LintViolation) int {
+		return cmp.Or(
+			cmp.Compare(a.Path, b.Path),
+			cmp.Compare(a.Line, b.Line),
+			cmp.Compare(a.Column, b.Column),
+			cmp.Compare(a.Message, b.Message),
+		)
+	})
 
 	return
 }
