@@ -90,6 +90,7 @@ refresh
 repeat
 restore
 rule
+save
 scale
 score
 script
