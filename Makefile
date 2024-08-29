@@ -51,6 +51,10 @@ test:
 	$(MAKE) -C ./k6 go-test
 	go test ./cmd/... ./pkg/... -timeout 1m30s
 
+.PHONY: lint-translation-keys
+lint-translation-keys:
+	go run ./devtools/gotemplatelinter --ignore-rule indentation --ignore-rule eol-at-eof ./resources/authgear/templates/en/web/authflowv2
+
 .PHONY: lint
 lint:
 	golangci-lint run ./cmd/... ./pkg/... --timeout 7m
@@ -66,7 +70,7 @@ lint:
 	-go run ./devtools/importlinter worker api lib util >> .make-lint-expect 2>&1
 	-go run ./devtools/bandimportlinter ./pkg ./cmd >> .make-lint-expect 2>&1
 	git diff --exit-code .make-lint-expect > /dev/null 2>&1
-	go run ./devtools/gotemplatelinter ./resources/authgear/templates/en/web/authflowv2
+	go run ./devtools/gotemplatelinter --ignore-rule translation-key ./resources/authgear/templates/en/web/authflowv2
 
 .PHONY: fmt
 fmt:

@@ -7,6 +7,8 @@ import (
 
 type IndentationRule struct{}
 
+var _ Rule = IndentationRule{}
+
 func (r IndentationRule) Check(content string, path string) LintViolations {
 	var violations LintViolations
 	lines := strings.Split(content, "\n")
@@ -23,4 +25,8 @@ func (r IndentationRule) Check(content string, path string) LintViolations {
 		}
 	}
 	return violations
+}
+
+func (r IndentationRule) Key() string {
+	return "indentation"
 }

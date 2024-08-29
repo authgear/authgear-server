@@ -1,15 +1,20 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
+
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type Rule interface {
 	Check(content string, path string) LintViolations
+	Key() string
 }
 
 type LintViolation struct {
@@ -23,17 +28,9 @@ type LintViolations []LintViolation
 
 func (violations LintViolations) Error() string {
 	var buf strings.Builder
-	violationsByPath := make(map[string]LintViolations)
 	for _, v := range violations {
-		violationsByPath[v.Path] = append(violationsByPath[v.Path], v)
+		fmt.Fprintf(&buf, "%s:%d:%d: %s\n", v.Path, v.Line, v.Column, v.Message)
 	}
-
-	for _, violations := range violationsByPath {
-		for _, v := range violations {
-			fmt.Fprintf(&buf, "%s:%d:%d: %s\n", v.Path, v.Line, v.Column, v.Message)
-		}
-	}
-
 	return buf.String()
 }
 
@@ -98,26 +95,67 @@ func (l *Linter) LintFile(path string, info os.FileInfo) (violations LintViolati
 	return
 }
 
+func constructRules(rulesToIgnore []string) []Rule {
+	indentationRule := IndentationRule{}
+	EOLAtEOFRule := EOLAtEOFRule{}
+	translationKeyRule := TranslationKeyRule{}
+	rules := []Rule{
+		indentationRule,
+		EOLAtEOFRule,
+		translationKeyRule,
+	}
+	ignoreRuleFn := func(rule Rule) {
+		rules = slice.Filter[Rule](rules, func(r Rule) bool {
+			return r != rule
+		})
+	}
+	for _, ruleToIgnore := range rulesToIgnore {
+		switch ruleToIgnore {
+		case indentationRule.Key():
+			ignoreRuleFn(indentationRule)
+		case EOLAtEOFRule.Key():
+			ignoreRuleFn(EOLAtEOFRule)
+		case translationKeyRule.Key():
+			ignoreRuleFn(translationKeyRule)
+		}
+	}
+
+	return rules
+}
+
 func doMain() (violations LintViolations, err error) {
 	if len(os.Args) < 2 {
-		err = fmt.Errorf("usage: gotemplatelinter <path/to/htmls>")
+		err = fmt.Errorf("usage: gotemplatelinter --path <path/to/htmls> --ignore-rule rule1ToIgnore --ignore-rule rule2ToIgnore")
 		return
 	}
-	path := os.Args[1]
-	linter := Linter{
-		IgnorePatterns: []string{
-			"__generated_asset.html",
-		},
-		Rules: []Rule{
-			IndentationRule{},
-			FinalNewlineRule{},
-		},
-		Path: path,
+	argsFlags := ParseArgsFlags()
+	rules := constructRules(argsFlags.RulesToIgnore)
+	ignorePatterns := []string{
+		"__generated_asset.html",
 	}
-	violations, err = linter.Lint()
-	if err != nil {
-		return
+	linters := slice.Map(argsFlags.Paths, func(path string) Linter {
+		return Linter{
+			IgnorePatterns: ignorePatterns,
+			Rules:          rules,
+			Path:           path,
+		}
+	})
+	for _, linter := range linters {
+		newViolations, err := linter.Lint()
+		if err != nil {
+			return violations, err
+		}
+		violations = append(violations, newViolations...)
 	}
+
+	slices.SortStableFunc(violations, func(a, b LintViolation) int {
+		return cmp.Or(
+			cmp.Compare(a.Path, b.Path),
+			cmp.Compare(a.Line, b.Line),
+			cmp.Compare(a.Column, b.Column),
+			cmp.Compare(a.Message, b.Message),
+		)
+	})
 
 	return
 }

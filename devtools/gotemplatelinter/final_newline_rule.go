@@ -4,9 +4,11 @@ import (
 	"strings"
 )
 
-type FinalNewlineRule struct{}
+type EOLAtEOFRule struct{}
 
-func (r FinalNewlineRule) Check(content string, path string) LintViolations {
+var _ Rule = EOLAtEOFRule{}
+
+func (r EOLAtEOFRule) Check(content string, path string) LintViolations {
 	var violations LintViolations
 	lines := strings.Split(content, "\n")
 	if len(content) > 0 && !strings.HasSuffix(content, "\n") {
@@ -20,4 +22,8 @@ func (r FinalNewlineRule) Check(content string, path string) LintViolations {
 		})
 	}
 	return violations
+}
+
+func (r EOLAtEOFRule) Key() string {
+	return "eol-at-eof"
 }
