@@ -7,6 +7,14 @@ import (
 	"text/template/parse"
 )
 
+const TranslationKeyPattern = `(v2)\.(page|component)\.([-a-z]+)\.(default)\.([-a-z]+)`
+
+var validKey *regexp.Regexp
+
+func init() {
+	validKey = regexp.MustCompile(TranslationKeyPattern)
+}
+
 func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
 	switch translationKeyNode.Type() {
 	case parse.NodeString:
@@ -22,8 +30,6 @@ func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
 	}
 }
 
-const TranslationKeyPattern = `(v2)\.(page|component)\.([-a-z]+)\.(default)\.([-a-z]+)`
-
 func CheckTranslationKeyPattern(translationKey string) (err error) {
 	key := strings.Trim(translationKey, "\"")
 
@@ -31,7 +37,6 @@ func CheckTranslationKeyPattern(translationKey string) (err error) {
 		return fmt.Errorf("translation key is empty")
 	}
 
-	var validKey = regexp.MustCompile(TranslationKeyPattern)
 	if ok := validKey.MatchString(key); !ok {
 		return fmt.Errorf("invalid translation key: \"%v\"", key)
 	}
