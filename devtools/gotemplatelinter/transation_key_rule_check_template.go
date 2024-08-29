@@ -15,7 +15,7 @@ func CheckTemplate(templateNode *parse.TemplateNode) (err error) {
 		return
 	}
 	translationKey := templateNode.Name
-	err = CheckTranslationKey(translationKey)
+	err = CheckTranslationKeyPattern(translationKey)
 	if err != nil {
 		return err
 	}
