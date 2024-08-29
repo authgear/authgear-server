@@ -10,18 +10,25 @@
 */}}
 {{ define "authflowv2/__settings_item.html" }}
 <a
-  class="settings-item with-content
+  class="settings-item
+    {{ if $.MaterialIconName }}
+      with-icon
+    {{ end }}
     {{ if $.Children }}
       with-content
     {{ else }}
       without-content
     {{ end }}
     "
-  href="{{ $.Href}}"
+  {{ if $.Href }}
+  href="{{ $.Href }}"
+  {{ end }}
 >
-  <i class="settings-item_icon alternative-icon material-icons">
-    {{ $.MaterialIconName }}
-  </i>
+  {{ if $.MaterialIconName }}
+    <i class="settings-item_icon alternative-icon material-icons">
+      {{ $.MaterialIconName }}
+    </i>
+  {{ end }}
   <p class="settings-item__label">
     {{ $.Label }}
   </p>
