@@ -51,7 +51,7 @@ const AppLogoPicker: React.VFC<AppLogoPickerProps> = function AppLogoPicker(
               "justify-center",
               "h-30",
               "w-30",
-              "bg-neutral-light",
+              imagePreviewData != null ? "bg-white" : "bg-neutral-light",
               "rounded",
               "border",
               "border-solid",
