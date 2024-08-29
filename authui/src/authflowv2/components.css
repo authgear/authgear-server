@@ -21,6 +21,7 @@
 @import "./components/password-strength-meter.css";
 @import "./components/select.css";
 @import "./components/phone-input.css";
+@import "./components/locale-input.css";
 @import "./components/screen-icon.css";
 @import "./components/screen-icon-layout.css";
 @import "./components/password-policy.css";
