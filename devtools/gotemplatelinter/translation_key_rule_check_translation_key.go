@@ -9,7 +9,9 @@ import (
 	"text/template/parse"
 )
 
-const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z]+)\.(default)\.([-a-z]+)$`
+// v2.page.<page>.<state>.<descriptor>
+// v2.component.<component>.<state>.<descriptor>
+const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z]+)\.([-a-z]+)\.([-a-z]+)$`
 const ErrTranslationKeyPattern = `^(v2)\.(error)\.([-a-z]+)$`
 const enTranslationJSONPath = "resources/authgear/templates/en/translation.json"
 
