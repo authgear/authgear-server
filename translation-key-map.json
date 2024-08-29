@@ -1,4 +1,5 @@
 {
+  "customer-support-link": "",
   "enter-recovery-code-placeholder": "v2.page.enter-recovery-code.default.enter-recovery-code-placeholder",
   "error-confirm-password-required": "v2.error.confirm-password-required",
   "error-developer-email-required": "v2.error.developer-email-required",
@@ -47,8 +48,6 @@
   "hide-password-label": "v2.component.password-input.default.hide-password-label",
   "oob-otp-sms-is-not-supported": "v2.error.oob-otp-sms-is-not-supported",
   "oob-otp-sms-is-not-supported-with-customer-support": "v2.error.oob-otp-sms-is-not-supported-with-customer-support",
-  "page-content": "",
-  "page-frame-content": "",
   "privacy-policy-link": "",
   "recovery-code-storage-description": "",
   "recovery-code-title": "",
@@ -276,5 +275,4 @@
   "v2-wechat-auth-page-proceed": "",
   "v2-wechat-auth-page-title": "",
   "v2-wechat-auth-page-with-qr-code-description": "",
-  "widget": ""
 }

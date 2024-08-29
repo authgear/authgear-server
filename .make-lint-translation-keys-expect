@@ -5,8 +5,12 @@ resources/authgear/templates/en/web/authflowv2/setup_totp.html:34:20: invalid tr
 resources/authgear/templates/en/web/authflowv2/view_recovery_code.html:55:20: invalid translation key: "copy-button-label"
 resources/authgear/templates/en/web/authflowv2/forgot_password.html:109:30: translation key not defined: "__forgot_password_alternative"
 resources/authgear/templates/en/web/authflowv2/forgot_password.html:165:26: translation key not defined: "__forgot_password_alternative"
-resources/authgear/templates/en/web/authflowv2/__error.html:201:31: translation key not defined: "customer-support-link"
 resources/authgear/templates/en/web/authflowv2/__dialog.html:9:14: translation key not defined: "dialog-attr"
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:5:19: translation key not defined: "dialog-content"
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:4:25: translation key not defined: "dialog-controller-str"
 resources/authgear/templates/en/web/authflowv2/view_recovery_code.html:44:22: invalid translation key: "download-button-label"
+resources/authgear/templates/en/web/authflowv2/__csrf_error_page_layout.html:28:18: translation key not defined: "page-content"
+resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:43:12: translation key not defined: "page-frame-content"
+resources/authgear/templates/en/web/authflowv2/layout.html:5:14: translation key not defined: "widget"
+<REPLACEME> errors found
+exit status 1
