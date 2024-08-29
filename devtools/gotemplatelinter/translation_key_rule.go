@@ -17,7 +17,7 @@ func (r TranslationKeyRule) Check(content string, path string) LintViolations {
 }
 
 func (r TranslationKeyRule) Key() string {
-	return "translationKey"
+	return "translation-key"
 }
 
 func (r TranslationKeyRule) check(content string, path string) LintViolations {
