@@ -134,18 +134,24 @@ func doMain() (violations LintViolations, err error) {
 		err = fmt.Errorf("usage: gotemplatelinter --path <path/to/htmls> --ignore-rule rule1ToIgnore --ignore-rule rule2ToIgnore")
 		return
 	}
-	flags := ParseFlags()
-	rules := constructRules(flags.RulesToIgnore)
-	linter := Linter{
-		IgnorePatterns: []string{
-			"__generated_asset.html",
-		},
-		Rules: rules,
-		Path:  flags.Path,
+	argsFlags := ParseArgsFlags()
+	rules := constructRules(argsFlags.RulesToIgnore)
+	ignorePatterns := []string{
+		"__generated_asset.html",
 	}
-	violations, err = linter.Lint()
-	if err != nil {
-		return
+	linters := slice.Map(argsFlags.Paths, func(path string) Linter {
+		return Linter{
+			IgnorePatterns: ignorePatterns,
+			Rules:          rules,
+			Path:           path,
+		}
+	})
+	for _, linter := range linters {
+		newViolations, err := linter.Lint()
+		if err != nil {
+			return violations, err
+		}
+		violations = append(violations, newViolations...)
 	}
 
 	return

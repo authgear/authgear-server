@@ -5,22 +5,21 @@ import (
 	"strings"
 )
 
-type Flags struct {
-	Path          string
+type ArgsFlags struct {
+	Paths         []string
 	RulesToIgnore []string
 }
 
-func ParseFlags() Flags {
-	var path string
-	flag.StringVar(&path, "path", "", "path to go templates htmls")
-
+func ParseArgsFlags() ArgsFlags {
 	var rulesToIgnore RulesToIgnoreFlags
 	flag.Var(&rulesToIgnore, "ignore-rule", "rules to ignore, repeat this flag to ignore more rules")
 
 	flag.Parse()
 
-	return Flags{
-		Path:          path,
+	paths := flag.Args()
+
+	return ArgsFlags{
+		Paths:         paths,
 		RulesToIgnore: rulesToIgnore,
 	}
 }
