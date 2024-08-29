@@ -1,0 +1,38 @@
+@layer component {
+  :root {
+    --settings-text-input__label-text-color: var(--color-neutral-700);
+    --settings-text-input__label-text-font-family: var(
+      --typography-label-large__font-family
+    );
+    --settings-text-input__label-text-font-size: var(
+      --typography-label-large__font-size
+    );
+    --settings-text-input__label-text-line-height: var(
+      --typography-label-large__line-height
+    );
+    --settings-text-input__label-text-letter-spacing: var(
+      --typography-label-large__letter-spacing
+    );
+    --settings-text-input__label-text-font-weight: var(
+      --typography-label-large__font-weight
+    );
+  }
+
+  :root.dark {
+    --settings-text-input__label-text-color: var(--color-neutral-100);
+  }
+
+  .settings-text-input__label {
+    @apply flex flex-col gap-y-1;
+  }
+
+  .settings-text-input__label-text {
+    @apply flex flex-col;
+    color: var(--settings-text-input__label-text-color);
+    font-family: var(--settings-text-input__label-text-font-family);
+    font-size: var(--settings-text-input__label-text-font-size);
+    line-height: var(--settings-text-input__label-text-line-height);
+    letter-spacing: var(--settings-text-input__label-text-letter-spacing);
+    font-weight: var(--settings-text-input__label-text-font-weight);
+  }
+}
