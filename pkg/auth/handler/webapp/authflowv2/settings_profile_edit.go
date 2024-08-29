@@ -2,6 +2,7 @@ package authflowv2
 
 import (
 	"net/http"
+	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -80,6 +81,7 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 
 	ctrl.PostAction("save", func() error {
 		userID := *session.GetUserID(r.Context())
+		PatchGenderForm(r.Form)
 		m := handlerwebapp.JSONPointerFormToMap(r.Form)
 
 		u, err := h.Users.GetRaw(userID)
@@ -109,4 +111,20 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		result.WriteResponse(w, r)
 		return nil
 	})
+}
+
+func PatchGenderForm(form url.Values) {
+	_, genderSelectOK := form["gender-select"]
+	if !genderSelectOK {
+		return
+	}
+
+	genderSelect := form.Get("gender-select")
+	genderInput := form.Get("gender-input")
+
+	if genderSelect == "other" {
+		form.Set("/gender", genderInput)
+	} else {
+		form.Set("/gender", genderSelect)
+	}
 }
