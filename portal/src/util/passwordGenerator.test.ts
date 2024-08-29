@@ -4,6 +4,7 @@ import {
   determineMinLength,
   generatePasswordWithSource,
   internalGeneratePasswordWithSource,
+  MaxTrials,
   prepareCharList,
   RandSource,
 } from "./passwordGenerator";
@@ -12,59 +13,87 @@ import { zxcvbnGuessableLevel } from "./zxcvbn";
 
 describe("passwordGenerator", () => {
   it("should generate a password with default settings", () => {
-    const password = generatePasswordWithSource(cryptoRandSource, {});
+    const password = generatePasswordWithSource(
+      cryptoRandSource,
+      {},
+      MaxTrials
+    );
     expect(password).not.toBeNull();
     expect(password!.length).toBeGreaterThanOrEqual(8);
   });
 
   it("should include at least one uppercase letter when required", () => {
-    const password = generatePasswordWithSource(cryptoRandSource, {
-      uppercase_required: true,
-    });
+    const password = generatePasswordWithSource(
+      cryptoRandSource,
+      {
+        uppercase_required: true,
+      },
+      MaxTrials
+    );
     expect(password).not.toBeNull();
     expect(password).toMatch(/[A-Z]/);
   });
 
   it("should include at least one lowercase letter when required", () => {
-    const password = generatePasswordWithSource(cryptoRandSource, {
-      lowercase_required: true,
-    });
+    const password = generatePasswordWithSource(
+      cryptoRandSource,
+      {
+        lowercase_required: true,
+      },
+      MaxTrials
+    );
     expect(password).not.toBeNull();
     expect(password).toMatch(/[a-z]/);
   });
 
   it("should include at least one digit when required", () => {
-    const password = generatePasswordWithSource(cryptoRandSource, {
-      digit_required: true,
-    });
+    const password = generatePasswordWithSource(
+      cryptoRandSource,
+      {
+        digit_required: true,
+      },
+      MaxTrials
+    );
     expect(password).not.toBeNull();
     expect(password).toMatch(/[0-9]/);
   });
 
   it("should include at least one special character when required", () => {
-    const password = generatePasswordWithSource(cryptoRandSource, {
-      symbol_required: true,
-    });
+    const password = generatePasswordWithSource(
+      cryptoRandSource,
+      {
+        symbol_required: true,
+      },
+      MaxTrials
+    );
     expect(password).not.toBeNull();
     expect(password).toMatch(/[^A-Za-z0-9]/);
   });
 
   it("should meet the minimum length requirement", () => {
-    const password = generatePasswordWithSource(cryptoRandSource, {
-      min_length: 40,
-    });
+    const password = generatePasswordWithSource(
+      cryptoRandSource,
+      {
+        min_length: 40,
+      },
+      MaxTrials
+    );
     expect(password).not.toBeNull();
     expect(password!.length).toBeGreaterThanOrEqual(40);
   });
 
   it("should meet all combined requirements", () => {
-    const password = generatePasswordWithSource(cryptoRandSource, {
-      uppercase_required: true,
-      lowercase_required: true,
-      digit_required: true,
-      symbol_required: true,
-      min_length: 12,
-    });
+    const password = generatePasswordWithSource(
+      cryptoRandSource,
+      {
+        uppercase_required: true,
+        lowercase_required: true,
+        digit_required: true,
+        symbol_required: true,
+        min_length: 12,
+      },
+      MaxTrials
+    );
     expect(password).not.toBeNull();
     expect(password).toMatch(/[A-Z]/);
     expect(password).toMatch(/[a-z]/);
@@ -74,9 +103,13 @@ describe("passwordGenerator", () => {
   });
 
   it("should meet the minimum guessable level requirement", () => {
-    const password = generatePasswordWithSource(cryptoRandSource, {
-      minimum_guessable_level: 4,
-    });
+    const password = generatePasswordWithSource(
+      cryptoRandSource,
+      {
+        minimum_guessable_level: 4,
+      },
+      MaxTrials
+    );
     expect(password).not.toBeNull();
     const guessableLevel = zxcvbnGuessableLevel(password);
     expect(password!.length).toBeGreaterThanOrEqual(32);
@@ -98,13 +131,14 @@ describe("passwordGenerator", () => {
         },
       };
     };
-
+    const OVERRIDE_MAX_TRIAL = 25; // ref PR#4666
     const [password, attempts] = internalGeneratePasswordWithSource(
       createRandSource(),
       {
         digit_required: true,
         excluded_keywords: ["0"],
-      }
+      },
+      OVERRIDE_MAX_TRIAL
     );
     expect(password).not.toBeNull();
     expect(password).not.toContain("0");

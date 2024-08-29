@@ -22,7 +22,7 @@ const (
 
 const (
 	// Max trials to generate a password that satisfies the checker.
-	MaxTrials = 10
+	DefaultMaxTrials MaxTrials = 10
 	// Default minimum length of a password, overrides min length in the policy if less than it.
 	DefaultMinLength = 8
 	// When min guessable level is > 0, the minimum length of a password.
@@ -87,7 +87,10 @@ type RandRand struct {
 
 var _ Rand = RandRand{}
 
+type MaxTrials int
+
 type Generator struct {
+	MaxTrials      MaxTrials
 	Checker        *Checker
 	Rand           Rand
 	PasswordConfig *config.AuthenticatorPasswordConfig
@@ -100,7 +103,7 @@ func (g *Generator) Generate() (string, error) {
 
 // generate generates a password that satisfies the checker
 func (g *Generator) generate() (string, int, error) {
-	for i := 0; i < MaxTrials; i++ {
+	for i := 0; i < int(g.MaxTrials); i++ {
 		password, err := g.generateOnce()
 		if err != nil {
 			return "", -1, err

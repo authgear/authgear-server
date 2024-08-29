@@ -848,8 +848,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	accountDeletionConfig := appConfig.AccountDeletion
 	accountAnonymizationConfig := appConfig.AccountAnonymization
+	maxTrials := _wireMaxTrialsValue
 	passwordRand := password.NewRandSource()
 	generator := &password.Generator{
+		MaxTrials:      maxTrials,
 		Checker:        passwordChecker,
 		Rand:           passwordRand,
 		PasswordConfig: authenticatorPasswordConfig,
@@ -1179,6 +1181,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 
 var (
 	_wireRandValue           = idpsession.Rand(rand.SecureRand)
+	_wireMaxTrialsValue      = password.DefaultMaxTrials
 	_wireTokenGeneratorValue = handler.TokenGenerator(oauth2.GenerateToken)
 )
 

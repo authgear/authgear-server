@@ -63,5 +63,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(CheckerHistoryStore), new(*HistoryStore)),
 	ProvideExpiry,
 	NewRandSource,
+	wire.Value(DefaultMaxTrials),
 	wire.Struct(new(Generator), "*"),
 )
