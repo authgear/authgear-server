@@ -12,5 +12,8 @@ resources/authgear/templates/en/web/authflowv2/view_recovery_code.html:44:22: in
 resources/authgear/templates/en/web/authflowv2/__csrf_error_page_layout.html:28:18: translation key not defined: "page-content"
 resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:43:12: translation key not defined: "page-frame-content"
 resources/authgear/templates/en/web/authflowv2/layout.html:5:14: translation key not defined: "widget"
+resources/authgear/templates/en/web/authflowv2/__toc_pp_footer.html:23:54: invalid translation key: "terms-of-service-link"
+resources/authgear/templates/en/web/authflowv2/__toc_pp_footer.html:24:53: invalid translation key: "privacy-policy-link"
+resources/authgear/templates/en/web/authflowv2/__error.html:201:31: translation key not defined: "customer-support-link"
 <REPLACEME> errors found
 exit status 1
