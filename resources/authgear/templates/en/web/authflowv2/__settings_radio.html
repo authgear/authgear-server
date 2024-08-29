@@ -1,0 +1,37 @@
+<!-- Example usage:
+{{ template "authflowv2/__settings_radio.html"
+  (dict
+    "Label" (include "some-key" nil)
+    "RadioName" "gender-select"
+    "RadioValue" "male"
+    "ShowInput" false
+    "InputName" "gender-input"
+    "InputValue" "customGender"
+    "DefaultChecked" true
+  )
+}}
+-->
+{{ define "authflowv2/__settings_radio.html" }}
+<label class="radio-label" for={{ $.RadioValue }}>
+  {{ $.Label }}
+
+  <input
+    type="radio"
+    class="radio"
+    id={{ $.RadioValue }}
+    name="{{ $.RadioName }}"
+    value="{{ $.RadioValue }}"
+    {{ if $.DefaultChecked }}checked{{end}}
+  >
+
+  {{ if $.ShowInput }}
+    <input
+      class="input radio-input col-span-2"
+      name="{{ $.InputName }}"
+      value="{{ $.InputValue }}"
+    >
+  {{ end }}
+</label>
+
+
+{{ end }}
