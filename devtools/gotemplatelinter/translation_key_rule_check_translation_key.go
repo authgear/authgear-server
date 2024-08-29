@@ -7,7 +7,7 @@ import (
 	"text/template/parse"
 )
 
-const TranslationKeyPattern = `(v2)\.(page|component)\.([-a-z]+)\.(default)\.([-a-z]+)`
+const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z]+)\.(default)\.([-a-z]+)$`
 
 var validKey *regexp.Regexp
 
