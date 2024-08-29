@@ -51,7 +51,7 @@ func CheckTranslationKeyPattern(translationKey string) (err error) {
 		return fmt.Errorf("translation key not defined: \"%v\"", key)
 	}
 
-	if !validKey.MatchString(key) || !validErrKey.MatchString(key) {
+	if !validKey.MatchString(key) && !validErrKey.MatchString(key) {
 		return fmt.Errorf("invalid translation key: \"%v\"", key)
 	}
 
