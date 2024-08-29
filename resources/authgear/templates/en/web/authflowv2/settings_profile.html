@@ -131,25 +131,23 @@
 {{ end }}
 
 {{ define "__settings_profile_item" }}
-<a
-  class="settings-item"
-  {{ if $.Editable }}
-  href="{{ $.EditURL }}"
-  {{ end }}
->
-  <div class="w-44 text-start">{{ $.Title }}</div>
-  <div class="flex-1 text-start settings-description">
-    {{ if $.Content }}
-      {{ $.Content }}
-    {{ else }}
-      {{ translate "v2.page.settings-profile.default.item-value-not-provided" nil}}
-    {{ end }}
-  </div>
-  <i class="settings-item__alternative_icon material-icons">
-    arrow_forward_ios
-  </i>
-</a>
+{{ $url := "" }}
+{{ if $.Editable }}
+  {{ $url = $.EditURL }}
+{{ end }}
 
+{{ $content := (translate "v2.page.settings-profile.default.item-value-not-provided" nil) }}
+{{ if $.Content }}
+  {{ $content = $.Content }}
+{{ end }}
+
+{{ template "authflowv2/__settings_item.html"
+  (dict
+    "Label" $.Title
+    "Href" $url
+    "Children" (list $content)
+  )
+}}
 {{ end }}
 
 {{ define "__settings_profile_date_item" }}
@@ -170,11 +168,11 @@
 
 
 {{ define "__settings_profile_address_item" }}
-<p>
+<span>
 {{- if $.AddressStreetAddress }}<span class="whitespace-pre-wrap">{{ $.AddressStreetAddress }}</span><br>{{ end }}
 {{- if $.AddressLocality }}{{ $.AddressLocality }}<br>{{ end }}
 {{- if $.AddressRegion }}{{ $.AddressRegion }}<br>{{ end }}
 {{- if $.AddressPostalCode }}{{ $.AddressPostalCode }}<br>{{ end }}
-{{- if $.AddressCountry }}{{ translate (printf "territory-%s" $.AddressCountry) nil }}<br>{{ end }}
-</p>
+{{- if $.AddressCountry }}{{ translate (printf "territory-%s" $.AddressCountry) nil }}<psan>{{ end }}
+</span>
 {{ end }}

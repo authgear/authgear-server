@@ -54,23 +54,28 @@
     border-bottom-width: 1px;
     border-style: solid;
 
+    --settings-item-grid-col-icon__width: 0;
+    &.with-icon {
+      --settings-item-grid-col-icon__width: 2rem;
+    }
+
     &.with-content {
       /* When Mobile View */
       grid-template-areas:
         "icon title arrow"
         ". content arrow";
-      grid-template-columns: 2rem auto 1.125rem;
+      grid-template-columns: var(--settings-item-grid-col-icon__width) auto 1.125rem;
 
       /* When Not Mobile View */
       @media (min-width: theme("screens.tablet")) {
         grid-template-areas: "icon title content arrow";
-        grid-template-columns: 2rem 9rem auto 1.125rem;
+        grid-template-columns: var(--settings-item-grid-col-icon__width) 9rem auto 1.125rem;
       }
     }
 
     &.without-content {
       grid-template-areas: "icon title arrow";
-      grid-template-columns: 2rem auto 1.125rem;
+      grid-template-columns: var(--settings-item-grid-col-icon__width) auto 1.125rem;
     }
 
     &:hover {
