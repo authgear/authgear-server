@@ -131,7 +131,7 @@ func constructRules(rulesToIgnore []string) []Rule {
 
 func doMain() (violations LintViolations, err error) {
 	if len(os.Args) < 2 {
-		err = fmt.Errorf("usage: gotemplatelinter --path <path/to/htmls> --ignore-rules rule1ToIgnore --ignore-rules rule2ToIgnore")
+		err = fmt.Errorf("usage: gotemplatelinter --path <path/to/htmls> --ignore-rule rule1ToIgnore --ignore-rule rule2ToIgnore")
 		return
 	}
 	flags := ParseFlags()

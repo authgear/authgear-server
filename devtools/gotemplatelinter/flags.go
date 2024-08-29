@@ -15,7 +15,7 @@ func ParseFlags() Flags {
 	flag.StringVar(&path, "path", "", "path to go templates htmls")
 
 	var rulesToIgnore RulesToIgnoreFlags
-	flag.Var(&rulesToIgnore, "ignore-rules", "rules to ignore")
+	flag.Var(&rulesToIgnore, "ignore-rule", "rules to ignore, repeat this flag to ignore more rules")
 
 	flag.Parse()
 
