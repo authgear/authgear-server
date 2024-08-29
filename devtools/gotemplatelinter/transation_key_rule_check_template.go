@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 	"text/template/parse"
 )
@@ -18,7 +17,7 @@ func CheckTemplate(templateNode *parse.TemplateNode) (err error) {
 	translationKey := templateNode.Name
 	err = CheckTranslationKey(translationKey)
 	if err != nil {
-		return fmt.Errorf("invalid template name: %w", err)
+		return err
 	}
 	return
 }

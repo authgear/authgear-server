@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"text/template/parse"
 )
 
@@ -14,7 +13,7 @@ func CheckCommandTranslate(translateNode *parse.CommandNode) (err error) {
 		if idx == 1 {
 			err = CheckTranslationKeyNode(arg)
 			if err != nil {
-				return fmt.Errorf("invalid 2nd arg of `translate`: %w", err)
+				return err
 			}
 		}
 
