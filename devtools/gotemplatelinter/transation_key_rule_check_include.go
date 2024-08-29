@@ -19,8 +19,7 @@ func CheckCommandInclude(includeNode *parse.CommandNode) (err error) {
 			}
 			err = CheckTranslationKeyNode(arg)
 			if err != nil {
-				// return fmt.Errorf("invalid 2nd arg of `include`: %w", err)
-				err = nil
+				return err
 			}
 		}
 
