@@ -19,7 +19,7 @@ func init() {
 
 var settingsProfileEditVariantToTemplate map[string]*template.HTML
 
-type SettingsProfileEditHandler struct {
+type AuthflowV2SettingsProfileEditHandler struct {
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
@@ -30,7 +30,7 @@ type SettingsProfileEditHandler struct {
 	CustomAttrs handlerwebapp.SettingsProfileEditCustomAttrsService
 }
 
-func (h *SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	userID := session.GetUserID(r.Context())
 
 	data := map[string]interface{}{}
@@ -47,7 +47,7 @@ func (h *SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWr
 	return data, nil
 }
 
-func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
