@@ -4,6 +4,7 @@ account_circle_off
 android
 animation
 api
+arrow_back_ios
 arrow_forward_ios
 block
 box

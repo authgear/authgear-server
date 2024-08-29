@@ -1,0 +1,61 @@
+@layer components {
+  :root {
+    --navbar__title-font-family: var(--typography-title-large__font-family);
+    --navbar__title-font-size: var(--typography-title-large__font-size);
+    --navbar__title-font-weight: var(--typography-title-large__font-weight);
+    --navbar__title-letter-spacing: var(
+      --typography-title-large__letter-spacing
+    );
+    --navbar__title-line-height: var(--typography-title-large__line-height);
+    --navbar__title-text-color: var(--color-neutral-700);
+
+    --navbar__item-font-family: var(--typography-label-large__font-family);
+    --navbar__item-font-size: var(--typography-label-large__font-size);
+    --navbar__item-font-weight: var(--typography-label-large__font-weight);
+    --navbar__item-letter-spacing: var(
+      --typography-label-large__letter-spacing
+    );
+    --navbar__item-line-height: var(--typography-label-large__line-height);
+    --navbar__item-text-color: var(--color-neutral-700);
+
+    --navbar__item-icon-font-size: 1.5rem;
+  }
+
+  :root.dark {
+    --navbar__title-text-color: var(--color-neutral-100);
+    --navbar__item-text-color: var(--color-neutral-100);
+  }
+
+  .navbar {
+    @apply relative;
+    @apply h-11;
+    @apply flex justify-between;
+  }
+
+  .navbar__title {
+    color: var(--navbar__title-text-color);
+    font-family: var(--navbar__title-font-family);
+    font-size: var(--navbar__title-font-size);
+    font-weight: var(--navbar__title-font-weight);
+    letter-spacing: var(--navbar__title-letter-spacing);
+    line-height: var(--navbar__title-line-height);
+
+    @apply absolute inset-0;
+    @apply flex justify-center items-center;
+  }
+
+  .navbar__item {
+    @apply relative;
+
+    color: var(--navbar__item-text-color);
+    font-family: var(--navbar__item-font-family);
+    font-size: var(--navbar__item-font-size);
+    font-weight: var(--navbar__item-font-weight);
+    letter-spacing: var(--navbar__item-letter-spacing);
+    line-height: var(--navbar__item-line-height);
+  }
+
+  .navbar__item_icon {
+    font-size: var(--navbar__item-icon-font-size);
+  }
+}
