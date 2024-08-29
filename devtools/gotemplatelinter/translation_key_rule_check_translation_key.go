@@ -10,13 +10,16 @@ import (
 )
 
 const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z]+)\.(default)\.([-a-z]+)$`
+const ErrTranslationKeyPattern = `^(v2)\.(error)\.([-a-z]+)$`
 const enTranslationJSONPath = "resources/authgear/templates/en/translation.json"
 
 var validKey *regexp.Regexp
+var validErrKey *regexp.Regexp
 var translationKeys []string
 
 func init() {
 	validKey = regexp.MustCompile(TranslationKeyPattern)
+	validErrKey = regexp.MustCompile(ErrTranslationKeyPattern)
 	translationKeys = getEnJSONTranslationKeys()
 }
 
@@ -46,7 +49,7 @@ func CheckTranslationKeyPattern(translationKey string) (err error) {
 		return fmt.Errorf("translation key not defined: \"%v\"", key)
 	}
 
-	if ok := validKey.MatchString(key); !ok {
+	if !validKey.MatchString(key) || !validErrKey.MatchString(key) {
 		return fmt.Errorf("invalid translation key: \"%v\"", key)
 	}
 
