@@ -72,6 +72,7 @@ lint:
 	-go run ./devtools/bandimportlinter ./pkg ./cmd >> .make-lint-expect 2>&1
 	git diff --exit-code .make-lint-expect > /dev/null 2>&1
 	go run ./devtools/gotemplatelinter --ignore-rule translation-key ./resources/authgear/templates/en/web/authflowv2
+	$(MAKE) lint-translation-keys
 
 .PHONY: fmt
 fmt:
