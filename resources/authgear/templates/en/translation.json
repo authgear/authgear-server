@@ -1112,5 +1112,6 @@
   "v2.page.settings.default.button-label-signed-in-devices": "Signed-in Devices",
   "v2.page.settings.default.button-label-advanced-settings": "Advanced Settings",
   "v2.page.settings.default.button-label-back-to-app": "Back to my app",
-  "v2.page.settings.default.button-label-and-more": "and more"
+  "v2.page.settings.default.button-label-and-more": "and more",
+  "v2.page.settings-profile-edit-name.default.navbar-title": "Name"
 }
