@@ -53,7 +53,7 @@ test:
 
 .PHONY: lint-translation-keys
 lint-translation-keys:
-	go run ./devtools/gotemplatelinter --path ./resources/authgear/templates/en/web/authflowv2 --ignore-rules indentation --ignore-rules finalNewline
+	go run ./devtools/gotemplatelinter --path ./resources/authgear/templates/en/web/authflowv2 --ignore-rules indentation --ignore-rules eol-at-eof
 
 .PHONY: lint
 lint:

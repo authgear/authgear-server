@@ -6,10 +6,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestFinalNewlineRule(t *testing.T) {
+func TestEOLAtEOFRule(t *testing.T) {
 	Convey("Given a empty file", t, func() {
 		html := ``
-		violations := FinalNewlineRule{}.Check(html, "test.html")
+		violations := EOLAtEOFRule{}.Check(html, "test.html")
 		Convey("Then I expect to see a lint violation", func() {
 			So(len(violations), ShouldEqual, 0)
 		})
@@ -17,7 +17,7 @@ func TestFinalNewlineRule(t *testing.T) {
 
 	Convey("Given a file with a single line", t, func() {
 		html := `<!DOCTYPE html><html lang="en"><head><title>Test</title></head><body><p>Test</p></body></html>`
-		violations := FinalNewlineRule{}.Check(html, "test.html")
+		violations := EOLAtEOFRule{}.Check(html, "test.html")
 		Convey("Then I expect to see a lint violation", func() {
 			So(len(violations), ShouldEqual, 1)
 			So(violations[0].Path, ShouldEqual, "test.html")
@@ -30,7 +30,7 @@ func TestFinalNewlineRule(t *testing.T) {
 	Convey("Given a file with a single line and a newline", t, func() {
 		html := `<!DOCTYPE html><html lang="en"><head><title>Test</title></head><body><p>Test</p></body></html>
 `
-		violations := FinalNewlineRule{}.Check(html, "test.html")
+		violations := EOLAtEOFRule{}.Check(html, "test.html")
 		Convey("Then I expect to see no violation", func() {
 			So(len(violations), ShouldEqual, 0)
 		})
@@ -39,7 +39,7 @@ func TestFinalNewlineRule(t *testing.T) {
 	Convey("Given a file with a single character and a newline", t, func() {
 		html := `A
 `
-		violations := FinalNewlineRule{}.Check(html, "test.html")
+		violations := EOLAtEOFRule{}.Check(html, "test.html")
 		Convey("Then I expect to see no violation", func() {
 			So(len(violations), ShouldEqual, 0)
 		})
@@ -55,7 +55,7 @@ func TestFinalNewlineRule(t *testing.T) {
 <p>Test</p>
 </body>
 </html>`
-		violations := FinalNewlineRule{}.Check(html, "test.html")
+		violations := EOLAtEOFRule{}.Check(html, "test.html")
 		Convey("Then I expect to see a lint violation", func() {
 			So(len(violations), ShouldEqual, 1)
 			So(violations[0].Path, ShouldEqual, "test.html")

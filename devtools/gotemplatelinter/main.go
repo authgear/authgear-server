@@ -103,11 +103,11 @@ func (l *Linter) LintFile(path string, info os.FileInfo) (violations LintViolati
 
 func constructRules(rulesToIgnore []string) []Rule {
 	indentationRule := IndentationRule{}
-	finalNewlineRule := FinalNewlineRule{}
+	EOLAtEOFRule := EOLAtEOFRule{}
 	translationKeyRule := TranslationKeyRule{}
 	rules := []Rule{
 		indentationRule,
-		finalNewlineRule,
+		EOLAtEOFRule,
 		translationKeyRule,
 	}
 	ignoreRuleFn := func(rule Rule) {
@@ -119,8 +119,8 @@ func constructRules(rulesToIgnore []string) []Rule {
 		switch ruleToIgnore {
 		case indentationRule.Key():
 			ignoreRuleFn(indentationRule)
-		case finalNewlineRule.Key():
-			ignoreRuleFn(finalNewlineRule)
+		case EOLAtEOFRule.Key():
+			ignoreRuleFn(EOLAtEOFRule)
 		case translationKeyRule.Key():
 			ignoreRuleFn(translationKeyRule)
 		}
