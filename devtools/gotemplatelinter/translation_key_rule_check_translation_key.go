@@ -1,18 +1,23 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"strings"
 	"text/template/parse"
 )
 
 const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z]+)\.(default)\.([-a-z]+)$`
+const enTranslationJSONPath = "resources/authgear/templates/en/translation.json"
 
 var validKey *regexp.Regexp
+var translationKeys []string
 
 func init() {
 	validKey = regexp.MustCompile(TranslationKeyPattern)
+	translationKeys = getEnJSONTranslationKeys()
 }
 
 func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
@@ -37,9 +42,45 @@ func CheckTranslationKeyPattern(translationKey string) (err error) {
 		return fmt.Errorf("translation key is empty")
 	}
 
+	if !isTranslationKeyDefined(key) {
+		return fmt.Errorf("translation key not defined: \"%v\"", key)
+	}
+
 	if ok := validKey.MatchString(key); !ok {
 		return fmt.Errorf("invalid translation key: \"%v\"", key)
 	}
 
 	return
+}
+
+func isTranslationKeyDefined(targetKey string) bool {
+	for _, key := range translationKeys {
+		if key == targetKey {
+			return true
+		}
+	}
+	return false
+}
+
+func getEnJSONTranslationKeys() []string {
+	bytes, err := ioutil.ReadFile(enTranslationJSONPath)
+	if err != nil {
+		panic(fmt.Errorf("failed to read %v: %w", enTranslationJSONPath, err))
+	}
+
+	var translationData map[string]string
+
+	err = json.Unmarshal(bytes, &translationData)
+	if err != nil {
+		panic(fmt.Errorf("failed to unmarshal %v: %w", enTranslationJSONPath, err))
+	}
+
+	keys := make([]string, len(translationData))
+	i := 0
+	for key := range translationData {
+		keys[i] = key
+		i++
+	}
+	return keys
+
 }
