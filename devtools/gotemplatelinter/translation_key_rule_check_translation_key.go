@@ -33,7 +33,7 @@ func CheckTranslationKey(translationKey string) (err error) {
 
 	var validKey = regexp.MustCompile(TranslationKeyPattern)
 	if ok := validKey.MatchString(key); !ok {
-		return fmt.Errorf("invalid translation key: \"%v\" -- please follow format: `v2.page.my-page.default.my-descriptor`", key)
+		return fmt.Errorf("invalid translation key: \"%v\"", key)
 	}
 
 	return
