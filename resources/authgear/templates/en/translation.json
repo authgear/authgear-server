@@ -1113,5 +1113,11 @@
   "v2.page.settings.default.button-label-advanced-settings": "Advanced Settings",
   "v2.page.settings.default.button-label-back-to-app": "Back to my app",
   "v2.page.settings.default.button-label-and-more": "and more",
-  "v2.page.settings-profile-edit-name.default.navbar-title": "Name"
+  "v2.page.settings-profile-edit-name.default.family-name-input-label": "Last name",
+  "v2.page.settings-profile-edit-name.default.fullname-input-label": "Full name",
+  "v2.page.settings-profile-edit-name.default.given-name-input-label": "First name",
+  "v2.page.settings-profile-edit-name.default.middle-name-input-label": "Middle name",
+  "v2.page.settings-profile-edit-name.default.navbar-title": "Name",
+  "v2.page.settings-profile-edit-name.default.nickname-input-label": "Nick name",
+  "v2.page.settings-profile-edit-name.default.save-button-label": "Save"
 }

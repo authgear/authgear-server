@@ -1,0 +1,12 @@
+@layer component {
+  :root {
+    --settings-content__width: 21.5625rem;
+  }
+
+  .settings-content {
+    @media (min-width: theme("screens.tablet")) {
+      margin: 0 auto;
+      width: var(--settings-content__width);
+    }
+  }
+}
