@@ -26,7 +26,7 @@ func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
 		// FIXME: support pipe, like (printf "territory-%s" $.AddressCountry)
 		fallthrough
 	default:
-		return fmt.Errorf("expected: *parse.StringNode, got: %T \n\t\t concerning node: %v", translationKeyNode, translationKeyNode)
+		return fmt.Errorf("invalid translation key: \"%v\"", translationKeyNode.String())
 	}
 }
 
