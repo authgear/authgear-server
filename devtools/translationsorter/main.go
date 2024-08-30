@@ -26,8 +26,11 @@ func doMain() (err error) {
 		defer f.Close()
 
 		keyValuePairs := GetKeyValuePairs(f)
-		// TODO: sort the pairs
-		fmt.Printf("%v\n", keyValuePairs)
+		sorted := SortKeyValuePairs(keyValuePairs)
+		err = ComposeJSON(sorted, match)
+		if err != nil {
+			return
+		}
 	}
 
 	return
