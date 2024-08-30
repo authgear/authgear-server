@@ -1,0 +1,61 @@
+@layer components {
+  :root {
+    --date-input__text-color: var(--color-neutral-700);
+    --date-input__text-color--error: var(--color-neutral-200);
+    --date-input__font-size: var(--typography-body-large__font-size);
+    --date-input__line-height: var(--typography-body-large__line-height);
+    --date-input__letter-spacing: var(--typography-body-large__letter-spacing);
+    --date-input__font-weight: var(--typography-body-large__font-weight);
+
+    --date-input__trigger-ring-color: var(--color-neutral-100);
+    --date-input__trigger-ring-color--focus: var(--color-primary-theme-primary);
+    --date-input__trigger-ring-color--error: var(--color-error);
+    --date-input__trigger-ring-width: var(--border-width-regular);
+    --date-input__trigger-ring-width--focus: var(
+      --border-width-regular--active
+    );
+    --date-input__trigger-border-radius: calc(
+        var(--date-input__font-size) * 14 / 16
+      )
+      /* 14 / 16 ratio to font size */;
+    --date-input__trigger-padding: 1em;
+    --date-input__trigger-height: 3.5rem;
+  }
+
+  :root.dark {
+    --date-input__text-color: var(--color-neutral-100);
+    --date-input__trigger-ring-color: var(--color-neutral-500);
+  }
+
+  .date-input__trigger {
+    @apply w-full;
+    @apply text-left;
+    @apply flex items-center justify-between;
+
+    color: var(--color-neutral-700);
+    font-size: var(--typography-body-large__font-size);
+    line-height: var(--typography-body-large__line-height);
+    letter-spacing: var(--typography-body-large__letter-spacing);
+    font-weight: var(--typography-body-large__font-weight);
+
+    display: block;
+    height: var(--date-input__trigger-height);
+    padding: var(--date-input__trigger-padding);
+    border-radius: var(--date-input__trigger-border-radius);
+    @apply ring-inset
+          ring-[length:var(--date-input\_\_trigger-ring-width)]
+          ring-[color:var(--date-input\_\_trigger-ring-color)];
+
+    &:focus {
+      @apply ring-inset
+          ring-[length:var(--date-input\_\_trigger-ring-width--focus)]
+          ring-[color:var(--date-input\_\_trigger-ring-color--focus)];
+    }
+
+    &::-webkit-calendar-picker-indicator {
+      height: 1.5rem;
+      width: 1.5rem;
+      /* cursor: pointer; */
+    }
+  }
+}
