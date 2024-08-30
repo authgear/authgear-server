@@ -56,14 +56,10 @@
   </h1>
 
   <p class="screen-description">
-    {{- if eq $.StateQuery "invalid_code" }}
-      {{ template "v2-login-link-otp-invalid-code-description" }}
+    {{- if eq $.FlowType "reauth" }}
+      {{ template "v2-login-link-otp-initial-description-reauth" (dict "target" $.MaskedClaimValue) }}
     {{- else }}
-      {{- if eq $.FlowType "reauth" }}
-        {{ template "v2-login-link-otp-initial-description-reauth" (dict "target" $.MaskedClaimValue) }}
-      {{- else }}
-        {{ template "v2-login-link-otp-initial-description" (dict "target" $.MaskedClaimValue) }}
-      {{- end }}
+      {{ template "v2-login-link-otp-initial-description" (dict "target" $.MaskedClaimValue) }}
     {{- end }}
   </p>
 
