@@ -74,6 +74,10 @@ lint:
 	go run ./devtools/gotemplatelinter --ignore-rule translation-key ./resources/authgear/templates/en/web/authflowv2
 	$(MAKE) lint-translation-keys
 
+.PHONY: sort-translations
+sort-translations:
+	go run ./devtools/translationsorter
+
 .PHONY: fmt
 fmt:
 	# Ignore generated files, such as wire_gen.go and *_mock_test.go
