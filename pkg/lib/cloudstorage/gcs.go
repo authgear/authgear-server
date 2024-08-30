@@ -30,6 +30,10 @@ func NewGCSStorage(
 	bucket string,
 	c clock.Clock,
 ) (*GCSStorage, error) {
+	// service account key is optional.
+	// For backward compatibility, it is still unsupported.
+	// When service account key is not provided, then the client is initialized with Application Default Credentials. (That is, without any option.ClientOption)
+	// See https://pkg.go.dev/cloud.google.com/go/storage#hdr-Creating_a_Client
 	var options []option.ClientOption
 	if len(credentialsJSON) > 0 {
 		options = append(options, option.WithCredentialsJSON(credentialsJSON))
@@ -65,6 +69,8 @@ func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Re
 
 	expires := now.Add(PresignPutExpires)
 	opts := storage.SignedURLOptions{
+		// We still need to tell the Client SDK which service account we want to sign the URL with.
+		// https://pkg.go.dev/cloud.google.com/go/storage#hdr-Credential_requirements_for_signing
 		GoogleAccessID: s.ServiceAccount,
 		Method:         "PUT",
 		Expires:        expires,
@@ -93,6 +99,8 @@ func (s *GCSStorage) PresignGetOrHeadObject(name string, method string) (*url.UR
 	expires := now.Add(PresignGetExpires)
 
 	opts := storage.SignedURLOptions{
+		// We still need to tell the Client SDK which service account we want to sign the URL with.
+		// https://pkg.go.dev/cloud.google.com/go/storage#hdr-Credential_requirements_for_signing
 		GoogleAccessID: s.ServiceAccount,
 		Method:         method,
 		Expires:        expires,
