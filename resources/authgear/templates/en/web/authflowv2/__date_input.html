@@ -1,0 +1,23 @@
+<!-- Example usage:
+{{ template "authflowv2/__date_input.html"
+  (dict
+    "Name" "/birthdate"
+    "Value" .Birthdate
+    "Max" .Today
+  )
+}}
+-->
+
+{{ define "authflowv2/__date_input.html" }}
+
+<input 
+type="date"
+class="date-input__trigger" 
+name="{{ .Name }}"
+value="{{ .Value }}"
+data-date-input-target="input" 
+data-action="input->date-input#updateLabel"
+{{ if .Min }} max="{{ .Max }}" {{ end }}
+{{ if .Max }} max="{{ .Max }}" {{ end }}>
+
+{{ end }}
