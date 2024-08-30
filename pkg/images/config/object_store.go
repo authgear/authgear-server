@@ -118,9 +118,10 @@ func (c *GCPGCSObjectStoreConfig) Validate(ctx *validation.Context) {
 	if c.ServiceAccount == "" {
 		ctx.Child("SERVICE_ACCOUNT").EmitErrorMessage("service account must be set")
 	}
-	if c.CredentialsJSONPath == "" {
-		ctx.Child("CREDENTIALS_JSON_PATH").EmitErrorMessage("credentials json must be set")
-	}
+	// In DEV-1689, we support Workload Identity, so service account key is no longer required.
+	// if c.CredentialsJSONPath == "" {
+	// 	ctx.Child("CREDENTIALS_JSON_PATH").EmitErrorMessage("credentials json must be set")
+	// }
 }
 
 type AzureBlobStorageObjectStoreConfig struct {
