@@ -15,11 +15,6 @@
         {{ template "v2-ldap-branding" }}
       {{ end }}
     </h1>
-    {{ if ($.Translations.HasKey "v2-ldap-login-page-description") }}
-      <p class="screen-description">
-        {{ include "v2-ldap-login-page-description" nil }}
-      </p>
-    {{ end }}
     {{ template "authflowv2/__alert_message.html"
       (dict
         "Type" "error"
