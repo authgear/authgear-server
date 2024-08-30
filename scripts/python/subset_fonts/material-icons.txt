@@ -114,6 +114,7 @@ source
 square
 start
 step
+storage
 store
 style
 support
