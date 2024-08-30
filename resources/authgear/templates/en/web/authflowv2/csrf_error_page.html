@@ -5,12 +5,12 @@
   {{ template "authflowv2/__header.html" . }}
   <div class="text-center">
     <h1 class="mb-5 screen-title text-2xl">
-      {{ template "v2-csrf-error-header" }}
+      {{ template "v2.page.csrf-error.default.title" }}
     </h1>
 
     <p class="body-text--md max-w-85 mx-auto">
-      {{ template "v2-csrf-error-message" }}
-      <a href="{{ call $.MakeURL "/errors/cookie_instruction" }}"> {{ template "v2-csrf-error-see-instructions" }}</a>
+      {{ template "v2.page.csrf-error.default.message" }}
+      <a href="{{ call $.MakeURL "/errors/cookie_instruction" }}"> {{ template "v2.page.csrf-error.default.see-instructions" }}</a>
     </p> 
   </div>
 </div>

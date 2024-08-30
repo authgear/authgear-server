@@ -8,14 +8,14 @@
   <header class="screen-title-description">
     <h1 class="screen-title">
       {{ if $.ClientName }}
-        {{ template "v2-select-account-title" (dict "AppOrClientName" $.ClientName) }}
+        {{ template "v2.page.select-account.default.title" (dict "AppOrClientName" $.ClientName) }}
       {{ else }}
         {{ $appName := (translate "app.name" nil) }}
-        {{ template "v2-select-account-title" (dict "AppOrClientName" $appName) }}
+        {{ template "v2.page.select-account.default.title" (dict "AppOrClientName" $appName) }}
       {{ end }}
     </h1>
     <p class="screen-description">
-      {{ template "v2-select-account-description" (merge (dict) $.UserProfile (dict "IdentityDisplayName" $.IdentityDisplayName)) }}
+      {{ template "v2.page.select-account.default.description" (merge (dict) $.UserProfile (dict "IdentityDisplayName" $.IdentityDisplayName)) }}
     </p>
     {{ template "authflowv2/__alert_message.html"
       (dict
@@ -34,7 +34,7 @@
       value="continue"
       data-authgear-event="authgear.button.continue_with_current_account"
       >
-      {{ template "v2-button-label-continue" }}
+      {{ template "v2.component.button.default.label-continue" }}
     </button>
     <button
       class="label-btn w-full"
@@ -43,7 +43,7 @@
       value="login"
       data-authgear-event="authgear.button.use_another_account"
       >
-      {{ template "v2-select-account-use-another-account" }}
+      {{ template "v2.page.select-account.default.use-another-account" }}
     </button>
   </footer>
 </form>

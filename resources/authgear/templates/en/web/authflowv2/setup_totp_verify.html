@@ -11,10 +11,10 @@
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <div class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2-setup-totp-verify-title" }}
+        {{ template "v2.page.setup-totp-verify.default.title" }}
       </h1>
       <h2 class="screen-description">
-        {{ template "v2-setup-totp-verify-description" . }}
+        {{ template "v2.page.setup-totp-verify.default.description" . }}
       </h2>
 
       {{ template "authflowv2/__alert_message.html"
@@ -61,7 +61,7 @@
         class="mt-4 inline-block link-btn"
         href="{{ call $.MakeURL "setup_totp" "q_setup_totp_step" "" }}"
       >
-        {{ template "v2-setup-totp-verify-rescan-button-label" }}
+        {{ template "v2.page.setup-totp-verify.default.rescan-button-label" }}
       </a>
     </div>
 

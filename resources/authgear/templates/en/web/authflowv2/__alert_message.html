@@ -6,14 +6,14 @@
   {{ if eq $.Type "warning" }}alert-message--warning{{ end }}
   {{ $.Classname }}"
   data-controller="alert-message"
-  data-server-error-message="{{ template "v2-error-server" }}"
-  data-network-error-message="{{ template "v2-error-network" }}"
-  data-passkey-not-supported="{{ template "v2-error-passkey-not-supported" }}"
-  data-invalid-passkey-or-not-supported="{{ template "v2-error-invalid-passkey-or-not-supported" }}"
-  data-no-passkey="{{ template "v2-error-no-passkey" }}"
-  data-passkey-duplicate="{{ template "v2-error-passkey-duplicate" }}"
-  data-bot-protection-cloudflare="{{ template "v2-error-bot-protection-cloudflare" }}"
-  data-bot-protection-recaptcha-v2="{{ template "v2-error-bot-protection-recaptcha-v2" }}"
+  data-server-error-message="{{ template "v2.error.server" }}"
+  data-network-error-message="{{ template "v2.error.network" }}"
+  data-passkey-not-supported="{{ template "v2.error.passkey-not-supported" }}"
+  data-invalid-passkey-or-not-supported="{{ template "v2.error.invalid-passkey-or-not-supported" }}"
+  data-no-passkey="{{ template "v2.error.no-passkey" }}"
+  data-passkey-duplicate="{{ template "v2.error.passkey-duplicate" }}"
+  data-bot-protection-cloudflare="{{ template "v2.error.bot-protection-cloudflare" }}"
+  data-bot-protection-recaptcha-v2="{{ template "v2.error.bot-protection-recaptcha-v2" }}"
   {{ if $message }}
     data-error-message={{ $message }}
   {{ end }}

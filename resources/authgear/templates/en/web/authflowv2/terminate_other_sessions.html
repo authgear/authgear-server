@@ -11,8 +11,8 @@
     {{ $.CSRFField }}
     <i class="material-icons screen-icon">phone_iphone</i>
     <header class="screen-title-description">
-      <h1 class="screen-title">{{ template "v2-confirm-terminate-other-sessions-title" }}</h1>
-      <p class="screen-description">{{ template "v2-confirm-terminate-other-sessions-description" }}</p>
+      <h1 class="screen-title">{{ template "v2.page.terminate-other-sessions.default.title" }}</h1>
+      <p class="screen-description">{{ template "v2.page.terminate-other-sessions.default.description" }}</p>
       {{ template "authflowv2/__alert_message.html"
         (dict
           "Type" "error"
@@ -31,7 +31,7 @@
         value="confirm"
         data-authgear-event="authgear.button.confirm_terminate_other_sessions"
       >
-        {{ template "v2-button-label-continue" }}
+        {{ template "v2.component.button.default.label-continue" }}
       </button>
       <button
         class="label-btn w-full"
@@ -40,7 +40,7 @@
         value="cancel"
         data-authgear-event="authgear.button.cancel_terminate_other_sessions"
       >
-        {{ template "v2-confirm-terminate-other-sessions-cancel-button-label" }}
+        {{ template "v2.page.terminate-other-sessions.default.cancel-button-label" }}
       </button>
     </footer>
   </form>

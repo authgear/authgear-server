@@ -67,13 +67,13 @@
       {{ template "authflowv2/__header.html" . }}
       <div class="screen-title-description">
         <h1 class="screen-title">
-          {{ template "v2-login-title" (dict
+          {{ template "v2.page.login.default.title" (dict
             "AppName" $appName
             "ClientName" $clientName)
           }}
         </h1>
         <h2 class="screen-description">
-          {{ template "v2-login-subtitle" (dict
+          {{ template "v2.page.login.default.subtitle" (dict
             "AppName" $appName
             "ClientName" $clientName)
           }}
@@ -120,8 +120,8 @@
             {{ end }}
             {{ template "authflowv2/__phone_input.html"
               (dict
-                "Placeholder" (include "v2-placeholder-phone" nil)
-                "PlaceholderWithExample" (include "v2-placeholder-phone--with-example" nil)
+                "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
+                "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
                 "IsError" $display_input_error
                 "AutoFocus" $.ShouldFocusInput
                 "PhoneInputAttrs" `
@@ -150,7 +150,7 @@
               autocomplete="username webauthn"
               autocapitalize="none"
               name="x_login_id"
-              placeholder="{{ template "v2-placeholder-login-id" (dict "variant" $.NonPhoneLoginIDType) }}"
+              placeholder="{{ template "v2.component.input.default.placeholder-login-id" (dict "variant" $.NonPhoneLoginIDType) }}"
               data-controller="retain-form-input"
               data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
               data-retain-form-form-target="input"
@@ -181,14 +181,14 @@
           {{/* Therefore, in this page, we opt-out for Turbo form submission. */}}
           {{/* Then the next page can use modal mediation normally. */}}
           data-authgear-event="authgear.button.sign_in"
-        >{{ template "v2-button-label-login" }}</button>
+        >{{ template "v2.component.button.default.label-login" }}</button>
       {{ end }}
     </form>
 
     {{ if (not $is_login_only) }}
       <p class="body-text--md mt-4">
         {{ $signupHref := call $.MakeURL "/signup" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}
-        {{ template "v2-login-switch-to-signup" (dict "href" $signupHref )}}
+        {{ template "v2.page.login.default.switch-to-signup" (dict "href" $signupHref )}}
       </p>
     {{ end }}
 
@@ -208,7 +208,7 @@
                   mail
                 {{- end -}}
               </i>
-              {{ template "v2-continue-with-text-login-id" (dict "variant" $.NonPhoneLoginIDType) }}
+              {{ template "v2.component.button.default.label-continue-with-text-login-id" (dict "variant" $.NonPhoneLoginIDType) }}
             </div>
           </a>
         {{ end }}
@@ -219,7 +219,7 @@
             href="{{ call $.MakeURL "" "q_login_id_input_type" "phone" }}">
             <div class="flex gap-2">
               <i class="alternative-icon material-icons">smartphone</i>
-              {{ template "v2-continue-with-phone" }}
+              {{ template "v2.component.button.default.label-continue-with-phone" }}
             </div>
           </a>
         {{ end }}
@@ -270,10 +270,10 @@
                 <div class="flex gap-2">
                   <i class="alternative-icon material-icons">person</i>
                   <span>
-                    {{ if ($.Translations.HasKey (printf "v2-ldap-branding-%s" .server_name)) }}
-                      {{ include (printf "v2-ldap-branding-%s" .server_name) nil }}
+                    {{ if ($.Translations.HasKey (printf "v2.component.ldap-branding.default.label-%s" .server_name)) }}
+                      {{ include (printf "v2.component.ldap-branding.default.label-%s" .server_name) nil }}
                     {{ else }}
-                      {{ template "v2-ldap-branding" }}
+                      {{ template "v2.component.ldap-branding.default.label" }}
                     {{ end }}
                   </span>
                 </div>
@@ -298,7 +298,7 @@
                   passkey
                 </i>
                 <span>
-                  {{ template "v2-continue-with-passkey" }}
+                  {{ template "v2.component.button.default.label-continue-with-passkey" }}
                 </span>
               </div>
               </span>

@@ -8,53 +8,53 @@
 
 <div class="mx-1 mt-10 tablet:mt-20">
   <h1 class="screen-title text-[18px]">
-    {{ template "v2-csrf-error-instruction-header" }}
+    {{ template "v2.page.csrf-error-instruction.default.instruction-header" }}
   </h1>
 
   {{ if eq $.Device "iOS" }}
   <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
-    <li>{{ template "v2-csrf-error-instruction-ios-step1" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-ios-step2" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-ios-step3" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.ios.step-1" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.ios.step-2" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.ios.step-3" }}</li>
   </ul>
   <div class="mt-6 mx-6 object-contain">
     <img src="{{ $instruction_image_src_ios }}" alt="" />
   </div>
   {{ else if eq $.Device "Chrome" }}
   <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
-    <li>{{ template "v2-csrf-error-instruction-chrome-desktop-step1" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-chrome-desktop-step2" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-chrome-desktop-step3" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-chrome-desktop-step4" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.chrome-desktop.step-1" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.chrome-desktop.step-2" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.chrome-desktop.step-3" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.chrome-desktop.step-4" }}</li>
   </ul>
   <img src="{{ $instruction_image_src_chrome }}" alt="" class="mt-6"/>
   {{ else if eq $.Device "ChromeAndroid" }}
   <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
-    <li>{{ template "v2-csrf-error-instruction-android-step1" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-android-step2" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-android-step3" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-android-step4" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.android.step-1" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.android.step-2" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.android.step-3" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.android.step-4" }}</li>
   </ul>
   <div class="mt-6 mx-6 object-contain">
     <img src="{{ $instruction_image_src_android }}" alt="" />
   </div>
   {{ else if eq $.Device "Samsung" }}
   <ul class="list-decimal ml-6 mt-8 space-y-2 dark:text-white">
-    <li>{{ template "v2-csrf-error-instruction-samsung-step1" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-samsung-step2" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-samsung-step3" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-samsung-step4" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-samsung-step5" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-samsung-step6" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.samsung.step-1" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.samsung.step-2" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.samsung.step-3" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.samsung.step-4" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.samsung.step-5" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.samsung.step-6" }}</li>
   </ul>
   <div class="mt-6 mx-6 object-contain">
     <img src="{{ $instruction_image_src_samsung }}" alt="" />
   </div>
   {{ else }}
   <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
-    <li>{{ template "v2-csrf-error-instruction-default-step1" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-default-step2" }}</li>
-    <li>{{ template "v2-csrf-error-instruction-default-step3" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.default.step-1" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.default.step-2" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.default.step-3" }}</li>
   </ul>
   {{ end }}
 

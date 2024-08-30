@@ -1,16 +1,16 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
-  {{ $error_message := include "v2-error-server" nil }}
+  {{ $error_message := include "v2.error.server" nil }}
   {{ if .Error }}
     {{ if eq .Error.reason "WebUIInvalidSession" }}
-      {{ $error_message = include "v2-error-web-ui-invalid-session-return" nil }}
+      {{ $error_message = include "v2.error.web-ui-invalid-session-return" nil }}
     {{ else if eq .Error.reason "AuthenticationFlowNoPublicSignup" nil }}
-      {{ $error_message = include "v2-error-no-public-signup" nil }}
+      {{ $error_message = include "v2.error.no-public-signup" nil }}
     {{ end }}
   {{ end }}
   {{ template "authflowv2/__error_page_layout.html"
     (dict
-      "Title" (include "v2-error-screen-title" nil)
+      "Title" (include "v2.error.screen-title" nil)
       "ErrorMessage" $error_message
     )
   }}

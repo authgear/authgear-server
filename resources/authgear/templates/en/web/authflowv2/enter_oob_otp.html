@@ -14,20 +14,20 @@
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <div class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2-oob-otp-page-title" }}
+        {{ template "v2.page.enter-oob-otp.default.title" }}
       </h1>
       <h2 class="screen-description">
         {{ if eq $.Channel "whatsapp" }}
           {{ if eq $.FlowType "reauth" }}
-            {{ template "v2-oob-otp-page-subtitle-reauth--whatsapp" . }}
+            {{ template "v2.page.enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp" . }}
           {{ else }}
-            {{ template "v2-oob-otp-page-subtitle--whatsapp" . }}
+            {{ template "v2.page.enter-oob-otp.auth-whatsapp.subtitle" . }}
           {{ end }}
         {{ else }}
           {{ if eq $.FlowType "reauth" }}
-            {{ template "v2-oob-otp-page-subtitle-reauth" . }}
+            {{ template "v2.page.enter-oob-otp.auth-email-or-sms.subtitle-reauth" . }}
           {{ else }}
-            {{ template "v2-oob-otp-page-subtitle" . }}
+            {{ template "v2.page.enter-oob-otp.auth-email-or-sms.subtitle" . }}
           {{ end }}
         {{ end }}
       </h2>
@@ -66,8 +66,8 @@
           "CodeLength" $.CodeLength
           "AutoFocus" $.ShouldFocusInput
           "Disabled" $.FailedAttemptRateLimitExceeded
-          "ResendButtonLabel" (include "v2-oob-otp-page-resend-button-label" nil)
-          "ResendButtonLabelWithValue" (include "v2-oob-otp-page-resend-button-label--unit" nil)
+          "ResendButtonLabel" (include "v2.component.oob-otp-resend-button.default.label" nil)
+          "ResendButtonLabelWithValue" (include "v2.component.oob-otp-resend-button.default.countdown-unit" nil)
           "ResendButtonCooldown" $.ResendCooldown
           "SubmitEvent" "authgear.button.submit_verification_code"
           "ResendEvent" "authgear.button.resend_verification_code"

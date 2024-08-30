@@ -12,11 +12,11 @@
     <i class="screen-icon material-icons">check_circle</i>
     <header class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2-login-link-otp-matched-title" }}
+        {{ template "v2.page.oob-otp-link.approved.title" }}
       </h1>
 
       <p class="screen-description">
-        {{ template "v2-login-link-otp-matched-description" }}
+        {{ template "v2.page.oob-otp-link.approved.description" }}
       </p>
       {{ template "authflowv2/__alert_message.html"
         (dict
@@ -40,7 +40,7 @@
         value="check"
         data-authgear-event="authgear.button.redirect_login_link_result"
       >
-        {{ template "v2-button-label-continue" }}
+        {{ template "v2.component.button.default.label-continue" }}
       </button>
     </footer>
   </form>
@@ -52,14 +52,14 @@
 <i class="screen-icon material-icons">forward_to_inbox</i>
 <header class="screen-title-description">
   <h1 class="screen-title">
-    {{ template "v2-login-link-otp-page-title" }}
+    {{ template "v2.page.oob-otp-link.default.title" }}
   </h1>
 
   <p class="screen-description">
     {{- if eq $.FlowType "reauth" }}
-      {{ template "v2-login-link-otp-initial-description-reauth" (dict "target" $.MaskedClaimValue) }}
+      {{ template "v2.page.oob-otp-link.initial-reauth.description" (dict "target" $.MaskedClaimValue) }}
     {{- else }}
-      {{ template "v2-login-link-otp-initial-description" (dict "target" $.MaskedClaimValue) }}
+      {{ template "v2.page.oob-otp-link.initial.description" (dict "target" $.MaskedClaimValue) }}
     {{- end }}
   </p>
 
@@ -91,11 +91,11 @@
       data-controller="countdown"
       data-countdown-target="button"
       data-countdown-cooldown-value="{{ $.ResendCooldown }}"
-      data-countdown-label-value='{{ template "v2-login-link-otp-resend-button-label" }}'
-      data-countdown-label-unit-value='{{ template "v2-login-link-otp-resend-button-label--unit" }}'
+      data-countdown-label-value='{{ template "v2.page.oob-otp-link.default.resend-button-label" }}'
+      data-countdown-label-unit-value='{{ template "v2.page.oob-otp-link.default.resend-countdown-label-unit" }}'
       data-authgear-event="authgear.button.resend_login_link_otp"
     >
-      {{ template "v2-login-link-otp-resend-button-label" }}
+      {{ template "v2.page.oob-otp-link.default.resend-button-label" }}
     </button>
   </form>
   {{ template "authflowv2/__authflow_branch.html" . }}
