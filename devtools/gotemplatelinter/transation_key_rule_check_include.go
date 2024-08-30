@@ -8,7 +8,7 @@ import (
 // validate `include` command
 //
 // e.g. (include "v2-error-screen-title" nil)
-// e.g. (include (printf "v2-oauth-branding-%s" .provider_type) nil)
+// e.g. (include (printf "v2.component.oauth-branding.%s.label" .provider_type) nil)
 // e.g. (include $description_key nil)
 func CheckCommandInclude(includeNode *parse.CommandNode) (err error) {
 	// 2nd arg should be translation key

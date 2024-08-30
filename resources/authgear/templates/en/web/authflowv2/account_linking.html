@@ -91,7 +91,7 @@
               <div class="flex gap-2">
                 <i class="sso-icon {{ $icon_class }}"></i>
                 <span>
-                  {{ include (printf "v2-oauth-branding-%s" .ProviderType) nil }}
+                  {{ include (printf "v2.component.oauth-branding.%s.label" .ProviderType) nil }}
                 </span>
               </div>
             </button>
