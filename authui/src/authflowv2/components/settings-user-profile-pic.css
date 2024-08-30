@@ -11,4 +11,8 @@
     @apply rounded-full bg-white;
     box-shadow: 0 4px 10px 0 #0000001a;
   }
+
+  .settings-user-profile-pic__image--edit {
+    @apply h-50 w-50 tablet:h-75 tablet:w-75 rounded-full;
+  }
 }

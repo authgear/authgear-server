@@ -1197,5 +1197,9 @@
   "v2.page.wechat-auth.default.open-app": "打開 WeChat 以登入",
   "v2.page.wechat-auth.default.proceed": "繼續 WeChat 登入",
   "v2.page.wechat-auth.default.qr-code-description": "請在你的 WeChat 內掃描此QR碼",
-  "v2.page.wechat-auth.default.title": "使用 WeChat 帳戶登入"
+  "v2.page.wechat-auth.default.title": "使用 WeChat 帳戶登入",
+  "v2.page.settings-profile.default.profile-picture-title": "頭像",
+  "v2.page.settings-profile.default.button-label-add-picture": "新增頭像",
+  "v2.page.settings-profile.default.button-label-remove-picture": "移除頭像",
+  "v2.page.settings-profile.default.button-label-upload-new-picture": "上傳新頭像"
 }

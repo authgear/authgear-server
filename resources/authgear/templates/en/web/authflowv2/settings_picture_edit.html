@@ -1,7 +1,52 @@
 {{ template "authflowv2/__settings_page_frame.html" . }}
 
 {{ define "page-content" }}
-<div>
-  testtt
+
+
+{{ template "authflowv2/__navbar.html"
+(dict
+  "BackHref" (call $.MakeURL "/settings/profile")
+  "BackTitle" (include "v2.component.navbar.default.item-back-button-label" nil )
+  "Title" (translate "v2.page.settings-profile.default.profile-picture-title" nil)
+)
+}}
+
+<div class="flex flex-col gap-10 mt-8 items-center">
+  <div class="flex flex-col gap-8 tablet:gap-10 items-center">
+  <img class="settings-user-profile-pic__image--edit"
+    {{ if $.Picture }}
+      src="{{ $.Picture }}"
+    {{ else }}
+      src="{{ call $.GeneratedStaticAssetURL "v2_avatar_placeholder.svg" }}"
+    {{ end }}
+  >
+
+  <div class="flex flex-col gap-4">
+    <button
+      id="save-button"
+      class="btn primary-btn w-86"
+      type="submit"
+      name="x_action"
+      value="save"
+      data-authgear-event="authgear.button.update_profile"
+    >
+      {{ if $.Picture }}
+        {{ template "v2.page.settings-profile.default.button-label-upload-new-picture" . }}
+      {{ else }}
+        {{ template "v2.page.settings-profile.default.button-label-add-picture" . }}
+      {{ end }}
+    </button>
+    <button
+      id="remove-button"
+      class="btn secondary-btn w-86 {{ if not $.Picture }}hidden{{ end }}"
+      type="submit"
+      name="x_action"
+      value="save"
+      data-authgear-event="authgear.button.update_profile"
+    >
+      {{ template "v2.page.settings-profile.default.button-label-remove-picture" . }}
+    </button>
+  </div>
+  </div>
 </div>
 {{ end }}
