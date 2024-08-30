@@ -66,7 +66,8 @@ const (
 	AuthflowV2RouteWechat               = "/authflow/v2/wechat"
 	AuthflowV2RouteAccountLinking       = "/authflow/v2/account_linking"
 
-	SettingsV2RouteSettings = "/settings"
+	SettingsV2RouteSettings                   = "/settings"
+	SettingsV2RouteProfilePictureEditSettings = "/settings/profile/picture/edit"
 
 	SettingsV2RouteSettingsProfileGenderEdit = "/settings/profile/gender/edit"
 
