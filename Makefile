@@ -82,6 +82,7 @@ sort-translations:
 fmt:
 	# Ignore generated files, such as wire_gen.go and *_mock_test.go
 	find ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
+	$(MAKE) sort-translations
 
 .PHONY: govulncheck
 govulncheck:
