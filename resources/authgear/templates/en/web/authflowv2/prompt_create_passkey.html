@@ -7,10 +7,10 @@
     <i class="material-icons screen-icon">encrypted</i>
     <header class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2-prompt-create-passkey-title" }}
+        {{ template "v2.page.prompt-create-passkey.default.title" }}
       </h1>
       <p class="screen-description">
-        {{ template "v2-prompt-create-passkey-description" }}
+        {{ template "v2.page.prompt-create-passkey.default.description" }}
       </p>
       {{ template "authflowv2/__alert_message.html"
         (dict
@@ -30,7 +30,7 @@
         data-authgear-event="authgear.button.create_passkey"
         disabled
         >
-        {{ template "v2-button-label-continue" }}
+        {{ template "v2.component.button.default.label-continue" }}
       </button>
       <form
         method="post"
@@ -45,7 +45,7 @@
           name="x_action"
           value="skip"
           >
-          {{ template "v2-prompt-create-passkey-skip" }}
+          {{ template "v2.page.prompt-create-passkey.default.skip" }}
         </button>
       </form>
     </footer>

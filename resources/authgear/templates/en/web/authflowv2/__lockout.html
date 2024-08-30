@@ -15,10 +15,10 @@
       <i class="material-icons screen-icon">account_circle_off</i>
       <header class="screen-title-description">
         <h1 class="screen-title" id="lockout-title">
-          {{ template "v2-lockout-title" }}
+          {{ template "v2.component.lockout.default.title" }}
         </h1>
         <h2 class="screen-description">
-          {{ template "v2-lockout-subtitle" }}
+          {{ template "v2.component.lockout.default.subtitle" }}
         </h2>
       </header>
       <div></div>
@@ -31,8 +31,8 @@
         data-controller="countdown"
         data-countdown-target="button"
         data-countdown-cooldown-until-value="{{ (rfc3339 $until) }}"
-        data-countdown-label-value="{{ template "v2-lockout-retry-button-label" . }}"
-        data-countdown-label-unit-value="{{ template "v2-lockout-retry-button-label--unit" . }}"
+        data-countdown-label-value="{{ template "v2.component.lockout.default.retry-button-label" . }}"
+        data-countdown-label-unit-value="{{ template "v2.component.lockout.default.retry-countdown-label-unit" . }}"
       ></button>
     </footer>
     </div>

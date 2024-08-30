@@ -6,18 +6,18 @@
   {{ if eq .State "invalid_code" }}
     {{ template "authflowv2/__error_page_layout.html"
       (dict
-        "Title" (include "v2-verify-login-link-invalid-title" nil)
-        "ErrorMessage" (include "v2-verify-login-link-invalid-description" nil)
+        "Title" (include "v2.page.verify-login-link.invalid.title" nil)
+        "ErrorMessage" (include "v2.page.verify-login-link.invalid.description" nil)
       )
     }}
   {{ else if eq .State "matched" }}
     <div class="screen-icon-layout flex-1-0-auto">
       <i class="screen-icon material-icons">check_circle</i>
       <h1 class="screen-title">
-        {{ template "v2-verify-login-link-approved-title" }}
+        {{ template "v2.page.verify-login-link.approved.title" }}
       </h1>
       <p class="screen-description">
-        {{ template "v2-verify-login-link-approved-description" (dict "AppOrClientName" $appName) }}
+        {{ template "v2.page.verify-login-link.approved.description" (dict "AppOrClientName" $appName) }}
       </p>
       {{ template "authflowv2/__alert_message.html"
         (dict
@@ -38,8 +38,8 @@
     >
       {{ $.CSRFField }}
       <input type="hidden" name="x_oob_otp_code" value="{{ .Code }}">
-      <h1 class="screen-title">{{ template "v2-verify-login-link-title" }}</h1>
-      <p class="screen-description">{{ template "v2-verify-login-link-description" (dict "AppOrClientName" $appName) }}</p>
+      <h1 class="screen-title">{{ template "v2.page.verify-login-link.default.title" }}</h1>
+      <p class="screen-description">{{ template "v2.page.verify-login-link.default.description" (dict "AppOrClientName" $appName) }}</p>
       {{ template "authflowv2/__alert_message.html"
         (dict
           "Type" "error"
@@ -54,7 +54,7 @@
         name="x_action"
         value=""
         data-authgear-event="authgear.button.verify_login_link">
-        {{ template "v2-verify-login-link-approve" }}
+        {{ template "v2.page.verify-login-link.default.approve-button-label" }}
       </button>
     </form>
   {{ end }}

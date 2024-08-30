@@ -46,12 +46,12 @@
       <div class="screen-title-description">
         <h1 class="screen-title">
           {{ if eq $.UIVariant "signup_login" }}
-            {{ template "v2-signup-login-title" (dict
+            {{ template "v2.page.signup.signup-login.title" (dict
               "AppName" $appName
               "ClientName" $clientName)
             }}
           {{ else }}
-            {{ template "v2-signup-title" (dict
+            {{ template "v2.page.signup.default.title" (dict
               "AppName" $appName
               "ClientName" $clientName)
             }}
@@ -59,12 +59,12 @@
         </h1>
         <h2 class="screen-description">
           {{ if eq $.UIVariant "signup_login" }}
-            {{ template "v2-signup-login-subtitle" (dict
+            {{ template "v2.page.signup.signup-login.subtitle" (dict
               "AppName" $appName
               "ClientName" $clientName)
             }}
           {{ else }}
-            {{ template "v2-signup-subtitle" (dict
+            {{ template "v2.page.signup.default.subtitle" (dict
               "AppName" $appName
               "ClientName" $clientName)
             }}
@@ -107,8 +107,8 @@
         {{ if eq .login_id_type "phone" }}
           {{ template "authflowv2/__phone_input.html"
             (dict
-              "Placeholder" (include "v2-placeholder-phone" nil)
-              "PlaceholderWithExample" (include "v2-placeholder-phone--with-example" nil)
+              "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
+              "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
               "IsError" $display_input_error
               "AutoFocus" $.ShouldFocusInput
               "PhoneInputAttrs" `
@@ -135,7 +135,7 @@
             name="q_login_id"
             autocomplete="username"
             autocapitalize="none"
-            placeholder="{{ template "v2-placeholder-login-id" (dict "variant" $.LoginIDKey) }}"
+            placeholder="{{ template "v2.component.input.default.placeholder-login-id" (dict "variant" $.LoginIDKey) }}"
             data-controller="retain-form-input"
             data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
             data-retain-form-form-target="input"
@@ -165,14 +165,14 @@
         name="x_action"
         value="login_id"
         data-authgear-event="authgear.button.sign_up"
-      >{{ template "v2-button-label-continue" }}</button>
+      >{{ template "v2.component.button.default.label-continue" }}</button>
     {{ end }}
   </form>
 
   {{ if $.CanSwitchToLogin }}
     <p class="body-text--md mt-4">
       {{ $loginHref := call $.MakeURL "/login" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}
-      {{ template "v2-signup-switch-to-login" (dict "href" $loginHref )}}
+      {{ template "v2.page.signup.default.switch-to-login" (dict "href" $loginHref )}}
     </p>
   {{ end }}
 
@@ -186,7 +186,7 @@
               href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
               <div class="flex gap-2">
                 <i class="alternative-icon material-icons">mail</i>
-                {{ template "v2-signup-signup-with-email" }}
+                {{ template "v2.page.signup.default.signup-with-email" }}
               </div>
             </a>
           {{ end }}
@@ -195,7 +195,7 @@
               href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
               <div class="flex gap-2">
                 <i class="alternative-icon material-icons">person</i>
-                {{ template "v2-signup-signup-with-username" }}
+                {{ template "v2.page.signup.default.signup-with-username" }}
               </div>
             </a>
           {{ end }}
@@ -204,7 +204,7 @@
               href="{{ call $.MakeURL "" "q_login_id_key" .login_id_key "q_login_id_input_type" .login_id_input_type }}">
               <div class="flex gap-2">
                 <i class="alternative-icon material-icons">smartphone</i>
-                {{ template "v2-signup-signup-with-phone" }}
+                {{ template "v2.page.signup.default.signup-with-photo" }}
               </div>
             </a>
           {{ end }}
@@ -234,7 +234,7 @@
                 <div class="flex gap-2">
                   <i class="sso-icon {{ $icon_class }}"></i>
                   <span>
-                    {{ include (printf "v2-oauth-branding-%s" .provider_type) nil }}
+                    {{ include (printf "v2.component.oauth-branding.%s.label" .provider_type) nil }}
                   </span>
                 </div>
               </button>
@@ -255,10 +255,10 @@
               <div class="flex gap-2">
               <i class="alternative-icon material-icons">person</i>
                 <span>
-                  {{ if ($.Translations.HasKey (printf "v2-ldap-branding-%s" .server_name)) }}
-                    {{ include (printf "v2-ldap-branding-%s" .server_name) nil }}
+                  {{ if ($.Translations.HasKey (printf "v2.component.ldap-branding.default.label-%s" .server_name)) }}
+                    {{ include (printf "v2.component.ldap-branding.default.label-%s" .server_name) nil }}
                   {{ else }}
-                    {{ template "v2-ldap-branding" }}
+                    {{ template "v2.component.ldap-branding.default.label" }}
                   {{ end }}
                 </span>
               </div>
@@ -284,7 +284,7 @@
                 passkey
               </i>
               <span>
-                {{ template "v2-continue-with-passkey" }}
+                {{ template "v2.component.button.default.label-continue-with-passkey" }}
               </span>
             </div>
             </span>

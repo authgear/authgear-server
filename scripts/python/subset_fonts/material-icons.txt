@@ -78,6 +78,7 @@ pending
 person
 phone
 phone_iphone
+photo
 place
 policy
 post
@@ -112,6 +113,8 @@ sms
 source
 square
 start
+step
+storage
 store
 style
 support

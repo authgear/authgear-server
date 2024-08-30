@@ -53,7 +53,8 @@ test:
 
 .PHONY: lint-translation-keys
 lint-translation-keys:
-	go run ./devtools/gotemplatelinter --ignore-rule indentation --ignore-rule eol-at-eof ./resources/authgear/templates/en/web/authflowv2
+	-go run ./devtools/gotemplatelinter --ignore-rule indentation --ignore-rule eol-at-eof ./resources/authgear/templates/en/web/authflowv2 >.make-lint-translation-keys-expect 2>&1
+	git diff --exit-code .make-lint-translation-keys-expect > /dev/null 2>&1
 
 .PHONY: lint
 lint:
@@ -71,11 +72,17 @@ lint:
 	-go run ./devtools/bandimportlinter ./pkg ./cmd >> .make-lint-expect 2>&1
 	git diff --exit-code .make-lint-expect > /dev/null 2>&1
 	go run ./devtools/gotemplatelinter --ignore-rule translation-key ./resources/authgear/templates/en/web/authflowv2
+	$(MAKE) lint-translation-keys
+
+.PHONY: sort-translations
+sort-translations:
+	go run ./devtools/translationsorter
 
 .PHONY: fmt
 fmt:
 	# Ignore generated files, such as wire_gen.go and *_mock_test.go
 	find ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
+	$(MAKE) sort-translations
 
 .PHONY: govulncheck
 govulncheck:

@@ -4,10 +4,10 @@
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <div class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2-account-linking-title" }}
+        {{ template "v2.page.account-linking.default.title" }}
       </h1>
       <h2 class="screen-description">
-        {{ template "v2-account-linking-subtitle--login-and-link" }}
+        {{ template "v2.page.account-linking.default.subtitle" }}
       </h2>
       {{ template "authflowv2/__alert_message.html"
         (dict
@@ -38,7 +38,7 @@
               <div class="flex gap-2 overflow-hidden">
                 <i class="alternative-icon material-icons">mail</i>
                 <span class="flex-1 truncate">
-                  {{ template "v2-account-linking-by-email" (dict
+                  {{ template "v2.page.account-linking.default.by-email" (dict
                     "IdentityDisplayName" .MaskedDisplayName
                   ) }}
                 </span>
@@ -55,7 +55,7 @@
               <div class="flex gap-2 overflow-hidden">
                 <i class="alternative-icon material-icons">smartphone</i>
                 <span class="flex-1 truncate">
-                  {{ template "v2-account-linking-by-phone" (dict
+                  {{ template "v2.page.account-linking.default.by-phone" (dict
                     "IdentityDisplayName" .MaskedDisplayName
                   ) }}
                 </span>
@@ -72,7 +72,7 @@
               <div class="flex gap-2 overflow-hidden">
                 <i class="alternative-icon material-icons">person</i>
                 <span class="flex-1 truncate">
-                  {{ template "v2-account-linking-by-username" (dict
+                  {{ template "v2.page.account-linking.default.by-username" (dict
                     "IdentityDisplayName" .MaskedDisplayName
                   ) }}
                 </span>
@@ -91,7 +91,7 @@
               <div class="flex gap-2">
                 <i class="sso-icon {{ $icon_class }}"></i>
                 <span>
-                  {{ include (printf "v2-oauth-branding-%s" .ProviderType) nil }}
+                  {{ include (printf "v2.component.oauth-branding.%s.label" .ProviderType) nil }}
                 </span>
               </div>
             </button>

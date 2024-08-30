@@ -11,8 +11,8 @@ import (
 
 // v2.page.<page>.<state>.<descriptor>
 // v2.component.<component>.<state>.<descriptor>
-const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z]+)\.([-a-z]+)\.([-a-z]+)$`
-const ErrTranslationKeyPattern = `^(v2)\.(error)\.([-a-z]+)$`
+const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z0-9]+)\.([-a-z0-9]+)\.([-a-z0-9]+)$`
+const ErrTranslationKeyPattern = `^(v2)\.(error)\.([-a-z0-9]+)$`
 const enTranslationJSONPath = "resources/authgear/templates/en/translation.json"
 
 var validKey *regexp.Regexp

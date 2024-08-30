@@ -11,14 +11,14 @@
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <div class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2-enter-recovery-code-title" }}
+        {{ template "v2.page.enter-recovery-code.default.title" }}
       </h1>
 
       <h2 class="screen-description">
         {{ if eq $.FlowType "reauth" }}
-          {{ template "v2-enter-recovery-code-description-reauth" }}
+          {{ template "v2.page.enter-recovery-code.reauth.description" }}
         {{ else }}
-          {{ template "v2-enter-recovery-code-description" }}
+          {{ template "v2.page.enter-recovery-code.default.description" }}
         {{ end }}
       </h2>
 
@@ -55,7 +55,7 @@
         autocomplete="one-time-code"
         autocapitalize="characters"
         name="x_recovery_code"
-        placeholder="{{ template "enter-recovery-code-placeholder" }}"
+        placeholder="{{ template "v2.page.enter-recovery-code.default.enter-recovery-code-placeholder" }}"
       >
 
       {{ if $display_input_error }}
@@ -75,7 +75,7 @@
         value=""
         data-authgear-event="authgear.button.enter_recovery_code"
       >
-        {{ template "v2-button-label-continue" }}
+        {{ template "v2.component.button.default.label-continue" }}
       </button>
     </form>
 

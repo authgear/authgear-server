@@ -10,16 +10,11 @@
   <header class="screen-title-description">
     <h1 class="screen-title">
       {{ if ($.Translations.HasKey (printf "v2-ldap-branching-%s" .server_name)) }}
-        {{ include (printf "v2-ldap-branding-%s" .server_name) nil }}
+        {{ include (printf "v2.component.ldap-branding.default.label-%s" .server_name) nil }}
       {{ else }}
-        {{ template "v2-ldap-branding" }}
+        {{ template "v2.component.ldap-branding.default.label" }}
       {{ end }}
     </h1>
-    {{ if ($.Translations.HasKey "v2-ldap-login-page-description") }}
-      <p class="screen-description">
-        {{ include "v2-ldap-login-page-description" nil }}
-      </p>
-    {{ end }}
     {{ template "authflowv2/__alert_message.html"
       (dict
         "Type" "error"
@@ -53,7 +48,7 @@
         value="{{ $.Username }}"
 
         data-text-field-target="input"
-        placeholder="{{ template "v2-placeholder-login-id" (dict "variant" "username") }}"
+        placeholder="{{ template "v2.component.input.default.placeholder-login-id" (dict "variant" "username") }}"
         required
       >
       {{ if $.LDAPUsernameInputError.HasErrorMessage }}
@@ -81,7 +76,7 @@
       data-authgear-event="authgear.button.login_with_ldap"
       data-action-button
     >
-      {{ template "v2-button-label-continue" }}
+      {{ template "v2.component.button.default.label-continue" }}
     </button>
   </form>
 
