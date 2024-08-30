@@ -1,9 +1,7 @@
 package cloudstorage
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -11,7 +9,6 @@ import (
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
-	raw "google.golang.org/api/storage/v1"
 
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -22,9 +19,7 @@ type GCSStorage struct {
 	CredentialsJSON []byte
 	Clock           clock.Clock
 
-	privateKey []byte
-	client     *storage.Client
-	service    *raw.Service
+	client *storage.Client
 }
 
 var _ Storage = &GCSStorage{}
@@ -35,39 +30,24 @@ func NewGCSStorage(
 	bucket string,
 	c clock.Clock,
 ) (*GCSStorage, error) {
-	s := &GCSStorage{
+	var options []option.ClientOption
+	if len(credentialsJSON) > 0 {
+		options = append(options, option.WithCredentialsJSON(credentialsJSON))
+	}
+
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx, options...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to initialize GCS: %w", err)
+	}
+
+	return &GCSStorage{
 		ServiceAccount:  serviceAccount,
 		Bucket:          bucket,
 		CredentialsJSON: credentialsJSON,
 		Clock:           c,
-	}
-
-	var j map[string]interface{}
-	err := json.NewDecoder(bytes.NewReader(credentialsJSON)).Decode(&j)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse credentials JSON: %w", err)
-	}
-
-	privateKeyStr, ok := j["private_key"].(string)
-	if !ok {
-		return nil, fmt.Errorf("missing private")
-	}
-	s.privateKey = []byte(privateKeyStr)
-
-	ctx := context.Background()
-	service, err := raw.NewService(ctx, option.WithCredentialsJSON(credentialsJSON))
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize GCS: %w", err)
-	}
-	s.service = service
-
-	client, err := storage.NewClient(ctx, option.WithCredentialsJSON(credentialsJSON))
-	if err != nil {
-		return nil, fmt.Errorf("failed to initialize GCS: %w", err)
-	}
-	s.client = client
-
-	return s, nil
+		client:          client,
+	}, nil
 }
 
 func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Request, error) {
@@ -86,7 +66,6 @@ func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Re
 	expires := now.Add(PresignPutExpires)
 	opts := storage.SignedURLOptions{
 		GoogleAccessID: s.ServiceAccount,
-		PrivateKey:     s.privateKey,
 		Method:         "PUT",
 		Expires:        expires,
 		ContentType:    header.Get("Content-Type"),
@@ -94,7 +73,7 @@ func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Re
 		MD5:            header.Get("Content-MD5"),
 		Scheme:         storage.SigningSchemeV4,
 	}
-	urlStr, err := storage.SignedURL(s.Bucket, name, &opts)
+	urlStr, err := s.client.Bucket(s.Bucket).SignedURL(name, &opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to presign put request: %w", err)
 	}
@@ -115,12 +94,11 @@ func (s *GCSStorage) PresignGetOrHeadObject(name string, method string) (*url.UR
 
 	opts := storage.SignedURLOptions{
 		GoogleAccessID: s.ServiceAccount,
-		PrivateKey:     s.privateKey,
 		Method:         method,
 		Expires:        expires,
 		Scheme:         storage.SigningSchemeV4,
 	}
-	urlStr, err := storage.SignedURL(s.Bucket, name, &opts)
+	urlStr, err := s.client.Bucket(s.Bucket).SignedURL(name, &opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to presign get or head request: %w", err)
 	}
