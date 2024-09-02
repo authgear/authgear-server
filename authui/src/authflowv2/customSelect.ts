@@ -153,7 +153,6 @@ export class CustomSelectController extends Controller {
 
     this.dropdownContainerTarget.classList.add("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "false");
-    this.triggerTarget.focus();
 
     this.dispatch("close");
   }
