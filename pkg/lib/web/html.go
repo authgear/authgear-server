@@ -78,6 +78,7 @@ var TemplateWebAuthflowV2NavBar = template.RegisterHTML("web/authflowv2/__navbar
 var TemplateWebAuthflowV2UserProfilePic = template.RegisterHTML("web/authflowv2/__settings_user_profile_pic.html")
 var TemplateWebAuthflowV2SettingsTextInput = template.RegisterHTML("web/authflowv2/__settings_text_input.html")
 var TemplateWebAuthflowV2LocaleInputHTML = template.RegisterHTML("web/authflowv2/__locale_input.html")
+var TemplateWebAuthflowV2TimezoneInput = template.RegisterHTML("web/authflowv2/__timezone_input.html")
 
 var BaseComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -142,6 +143,7 @@ var BaseComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2SettingsRadioHTML,
 	TemplateWebAuthflowV2SettingsTextInput,
 	TemplateWebAuthflowV2LocaleInputHTML,
+	TemplateWebAuthflowV2TimezoneInput,
 }
 
 var ComponentsHTML []*template.HTML
