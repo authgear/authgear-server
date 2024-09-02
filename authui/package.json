@@ -35,7 +35,7 @@
   "devDependencies": {
     "@jest/globals": "29.7.0",
     "@oursky/eslint-plugin": "11.2.0",
-    "@oursky/stylelint-oursky": "4.0.0",
+    "@oursky/stylelint-oursky": "5.1.0",
     "@parcel/config-default": "2.10.2",
     "@parcel/resolver-glob": "2.10.2",
     "@types/cloudflare-turnstile": "0.2.0",
@@ -51,7 +51,8 @@
     "parcel-reporter-static-files-copy": "1.5.3",
     "postcss": "8.4.31",
     "prettier": "2.8.8",
-    "stylelint": "14.16.1",
+    "stylelint": "16.9.0",
+    "caniuse-lite": "1.0.30001653",
     "tailwindcss": "3.3.5",
     "ts-jest": "29.1.1",
     "typescript": "5.2.2"
