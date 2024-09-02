@@ -4,6 +4,7 @@
   "workspaces": [
     "packages/*"
   ],
+  "type": "module",
   "scripts": {
     "typecheck": "tsc -b",
     "format": "npm run prettier:format && npm run eslint:format && npm run stylelint:format",
