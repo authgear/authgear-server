@@ -751,9 +751,15 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Clock:           clockClock,
 		Random:          rand,
 	}
+	globalUIImplementation := environmentConfig.UIImplementation
+	uiImplementationService := &web.UIImplementationService{
+		UIConfig:               uiConfig,
+		GlobalUIImplementation: globalUIImplementation,
+	}
 	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:  httpHost,
-		HTTPProto: httpProto,
+		HTTPHost:                httpHost,
+		HTTPProto:               httpProto,
+		UIImplementationService: uiImplementationService,
 	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,

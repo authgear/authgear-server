@@ -91,21 +91,6 @@ const (
 	UIImplementationAuthflowV2  UIImplementation = "authflowv2"
 )
 
-func (i UIImplementation) WithDefault() UIImplementation {
-	switch i {
-	case UIImplementationAuthflowV2:
-		return i
-	case UIImplementationAuthflow:
-		return i
-	case UIImplementationInteraction:
-		return i
-	case UIImplementationDefault:
-		fallthrough
-	default:
-		return UIImplementationInteraction
-	}
-}
-
 type SettingsUIImplementation string
 
 const (

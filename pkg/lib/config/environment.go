@@ -26,6 +26,8 @@ type AppHostSuffixes []string
 
 type AllowedFrameAncestors []string
 
+type GlobalUIImplementation UIImplementation
+
 func (s AppHostSuffixes) CheckIsDefaultDomain(host string) bool {
 	for _, suffix := range s {
 		if before, found := strings.CutSuffix(host, suffix); found {
@@ -96,4 +98,6 @@ type EnvironmentConfig struct {
 	End2EndTLSCACertFile string `envconfig:"E2E_TLS_CA_CERT_FILE"`
 	// End2EndBotProtection sets mocked endpoints for bot protection providers verification
 	End2EndBotProtection End2EndBotProtectionEnvironmentConfig `envconfig:"E2E_BOT_PROTECTION"`
+
+	UIImplementation GlobalUIImplementation `envconfig:"UI_IMPLEMENTATION"`
 }

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -21,7 +22,6 @@ type SSOCallbackHandlerOAuthStateStore interface {
 type SSOCallbackHandler struct {
 	AuthflowController *AuthflowController
 	ControllerFactory  ControllerFactory
-	UIConfig           *config.UIConfig
 	OAuthStateStore    SSOCallbackHandlerOAuthStateStore
 }
 
@@ -38,7 +38,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	switch state.UIImplementation.WithDefault() {
+	switch state.UIImplementation {
 	case config.UIImplementationAuthflow:
 		fallthrough
 	case config.UIImplementationAuthflowV2:
@@ -48,8 +48,6 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			State: state,
 		})
 	case config.UIImplementationInteraction:
-		fallthrough
-	default:
 		// interaction
 		ctrl, err := h.ControllerFactory.New(r, w)
 		if err != nil {
@@ -73,5 +71,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		ctrl.Get(handler)
 		ctrl.PostAction("", handler)
+	default:
+		panic(fmt.Errorf("expected ui implementation to be set in state"))
 	}
 }

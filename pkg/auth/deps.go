@@ -240,6 +240,10 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(authenticationflow.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(accountmanagement.RateLimitMiddlewareJSONResponseWriter), new(*httputil.JSONResponseWriter)),
+
+	wire.Bind(new(handlerwebapp.PanicMiddlewareUIImplementationService), new(*web.UIImplementationService)),
+	wire.Bind(new(handlerwebapp.CSRFMiddlewareUIImplementationService), new(*web.UIImplementationService)),
+	wire.Bind(new(handlerwebapp.ImplementationSwitcherMiddlewareUIImplementationService), new(*web.UIImplementationService)),
 )
 
 func ProvideOAuthConfig() *config.OAuthConfig {
@@ -353,6 +357,7 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 
 	endpoints.DependencySet,
 	wire.Bind(new(tester.EndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(endpoints.EndpointsUIImplementationService), new(*web.UIImplementationService)),
 
 	oauthclient.DependencySet,
 	wire.Bind(new(viewmodelswebapp.WebappOAuthClientResolver), new(*oauthclient.Resolver)),

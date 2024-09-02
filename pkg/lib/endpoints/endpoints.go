@@ -10,9 +10,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
+type EndpointsUIImplementationService interface {
+	GetUIImplementation() config.UIImplementation
+}
+
 type Endpoints struct {
-	HTTPHost  httputil.HTTPHost
-	HTTPProto httputil.HTTPProto
+	HTTPHost                httputil.HTTPHost
+	HTTPProto               httputil.HTTPProto
+	UIImplementationService EndpointsUIImplementationService
 }
 
 func (e *Endpoints) Origin() *url.URL {
@@ -54,8 +59,8 @@ func (e *Endpoints) SignupEndpointURL() *url.URL      { return e.urlOf("./signup
 func (e *Endpoints) PromoteUserEndpointURL() *url.URL { return e.urlOf("flows/promote_user") }
 func (e *Endpoints) LogoutEndpointURL() *url.URL      { return e.urlOf("./logout") }
 func (e *Endpoints) SettingsEndpointURL() *url.URL    { return e.urlOf("./settings") }
-func (e *Endpoints) ResetPasswordEndpointURL(uiImpl config.UIImplementation) *url.URL {
-	uiImpl = uiImpl.WithDefault()
+func (e *Endpoints) ResetPasswordEndpointURL() *url.URL {
+	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("authflow/v2/reset_password")
@@ -67,8 +72,8 @@ func (e *Endpoints) ResetPasswordEndpointURL(uiImpl config.UIImplementation) *ur
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 	}
 }
-func (e *Endpoints) ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL {
-	uiImpl = uiImpl.WithDefault()
+func (e *Endpoints) ErrorEndpointURL() *url.URL {
+	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/v2/errors/error")
@@ -80,8 +85,8 @@ func (e *Endpoints) ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL {
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 	}
 }
-func (e *Endpoints) SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL {
-	uiImpl = uiImpl.WithDefault()
+func (e *Endpoints) SelectAccountEndpointURL() *url.URL {
+	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/select_account")
@@ -93,8 +98,8 @@ func (e *Endpoints) SelectAccountEndpointURL(uiImpl config.UIImplementation) *ur
 		panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
 	}
 }
-func (e *Endpoints) VerifyBotProtectionEndpointURL(uiImpl config.UIImplementation) *url.URL {
-	uiImpl = uiImpl.WithDefault()
+func (e *Endpoints) VerifyBotProtectionEndpointURL() *url.URL {
+	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/verify_bot_protection")
@@ -109,8 +114,8 @@ func (e *Endpoints) WeChatCallbackEndpointURL() *url.URL {
 	return e.urlOf("sso/wechat/callback")
 }
 
-func (e *Endpoints) LoginLinkVerificationEndpointURL(uiImpl config.UIImplementation) *url.URL {
-	uiImpl = uiImpl.WithDefault()
+func (e *Endpoints) LoginLinkVerificationEndpointURL() *url.URL {
+	uiImpl := e.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
 	case config.UIImplementationAuthflowV2:
 		return e.urlOf("/authflow/v2/verify_login_link")

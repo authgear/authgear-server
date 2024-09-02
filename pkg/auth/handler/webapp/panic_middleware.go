@@ -23,16 +23,20 @@ func NewPanicMiddlewareLogger(lf *log.Factory) PanicMiddlewareLogger {
 }
 
 type PanicMiddlewareEndpointsProvider interface {
-	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
+	ErrorEndpointURL() *url.URL
+}
+
+type PanicMiddlewareUIImplementationService interface {
+	GetUIImplementation() config.UIImplementation
 }
 
 type PanicMiddleware struct {
-	ErrorService  *webapp.ErrorService
-	Logger        PanicMiddlewareLogger
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	UIConfig      *config.UIConfig
-	Endpoints     PanicMiddlewareEndpointsProvider
+	ErrorService            *webapp.ErrorService
+	Logger                  PanicMiddlewareLogger
+	BaseViewModel           *viewmodels.BaseViewModeler
+	Renderer                Renderer
+	Endpoints               PanicMiddlewareEndpointsProvider
+	UIImplementationService PanicMiddlewareUIImplementationService
 }
 
 func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
@@ -64,7 +68,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				if cookieErr != nil {
 					panic(cookieErr)
 				}
-				uiImpl := m.UIConfig.Implementation.WithDefault()
+				uiImpl := m.UIImplementationService.GetUIImplementation()
 				r.AddCookie(cookie)
 
 				if !written {
@@ -93,7 +97,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 
 						m.Renderer.RenderHTML(w, r, errorHTML, data)
 					default:
-						r.URL.Path = m.Endpoints.ErrorEndpointURL(uiImpl).Path
+						r.URL.Path = m.Endpoints.ErrorEndpointURL().Path
 						result := &webapp.Result{
 							// Show the error in the original page.
 							// The panic may come from an I/O error, which could recover by retrying.

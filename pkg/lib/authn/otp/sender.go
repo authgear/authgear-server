@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -20,8 +19,8 @@ type SendOptions struct {
 
 type EndpointsProvider interface {
 	Origin() *neturl.URL
-	LoginLinkVerificationEndpointURL(uiImpl config.UIImplementation) *neturl.URL
-	ResetPasswordEndpointURL(uiImpl config.UIImplementation) *neturl.URL
+	LoginLinkVerificationEndpointURL() *neturl.URL
+	ResetPasswordEndpointURL() *neturl.URL
 }
 
 type TranslationService interface {
@@ -68,7 +67,6 @@ type MessageSender struct {
 	Endpoints       EndpointsProvider
 	Sender          Sender
 	WhatsappService WhatsappService
-	UIConfig        *config.UIConfig
 }
 
 func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOptions) (any, error) {
@@ -91,14 +89,14 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 			nonblocking.MessageTypeAuthenticatePrimaryOOB,
 			nonblocking.MessageTypeAuthenticateSecondaryOOB:
 
-			linkURL = s.Endpoints.LoginLinkVerificationEndpointURL(s.UIConfig.Implementation)
+			linkURL = s.Endpoints.LoginLinkVerificationEndpointURL()
 			query := linkURL.Query()
 			query.Set("code", opts.OTP)
 			linkURL.RawQuery = query.Encode()
 
 		case nonblocking.MessageTypeForgotPassword:
 
-			linkURL = s.Endpoints.ResetPasswordEndpointURL(s.UIConfig.Implementation)
+			linkURL = s.Endpoints.ResetPasswordEndpointURL()
 			query := linkURL.Query()
 			query.Set("code", opts.OTP)
 			linkURL.RawQuery = query.Encode()

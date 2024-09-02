@@ -8,8 +8,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
+type ImplementationSwitcherMiddlewareUIImplementationService interface {
+	GetUIImplementation() config.UIImplementation
+}
+
 type ImplementationSwitcherMiddleware struct {
-	UIConfig *config.UIConfig
+	UIImplementationService ImplementationSwitcherMiddlewareUIImplementationService
 }
 
 type implementationSwitcherContextKeyType struct{}
@@ -42,7 +46,8 @@ func GetUIImplementation(ctx context.Context) config.UIImplementation {
 
 func (m *ImplementationSwitcherMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(WithUIImplementation(r.Context(), m.UIConfig.Implementation))
+		uiImpl := m.UIImplementationService.GetUIImplementation()
+		r = r.WithContext(WithUIImplementation(r.Context(), uiImpl))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -54,7 +59,7 @@ type ImplementationSwitcherHandler struct {
 }
 
 func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	impl := GetUIImplementation(r.Context()).WithDefault()
+	impl := GetUIImplementation(r.Context())
 	switch impl {
 	case config.UIImplementationAuthflow:
 		h.Authflow.ServeHTTP(w, r)

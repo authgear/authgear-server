@@ -11,7 +11,7 @@ import (
 )
 
 type SuccessPageMiddlewareEndpointsProvider interface {
-	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
+	ErrorEndpointURL() *url.URL
 }
 
 type SuccessPageMiddleware struct {
@@ -52,7 +52,7 @@ func (m *SuccessPageMiddleware) Handle(next http.Handler) http.Handler {
 					panic(err)
 				}
 				httputil.UpdateCookie(w, errorCookie)
-				http.Redirect(w, r, m.Endpoints.ErrorEndpointURL(m.UIConfig.Implementation).Path, http.StatusFound)
+				http.Redirect(w, r, m.Endpoints.ErrorEndpointURL().Path, http.StatusFound)
 				return
 			}
 		}
