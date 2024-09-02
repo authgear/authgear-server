@@ -1,0 +1,12 @@
+@layer components {
+  .settings-profile-editor {
+    @apply flex flex-col;
+    /* When Mobile View */
+    padding-top: 20px;
+
+    /* When Not Mobile View */
+    @media (min-width: theme("screens.tablet")) {
+      padding-top: 32px;
+    }
+  }
+}

@@ -38,5 +38,6 @@
 @import "./components/settings-description.css";
 @import "./components/settings-item.css";
 @import "./components/settings-text-input.css";
+@import "./components/settings-profile-editor.css";
 @import "./components/navbar.css";
 @import "./components/settings-user-profile-pic.css";

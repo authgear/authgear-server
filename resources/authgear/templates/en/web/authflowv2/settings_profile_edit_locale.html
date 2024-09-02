@@ -13,33 +13,28 @@
 <form
 data-controller="turbo-form"
 data-action="submit->turbo-form#submitForm"
+class="settings-profile-editor gap-4"
 method="post">
   {{ $.CSRFField }}
 
-  <div 
-  class="flex flex-col gap-4 pt-8"
+  {{ if (call $.IsEditable "/locale") }}
+  {{ template "authflowv2/__locale_input.html"   
+    (dict
+      "Languages" .Languages
+      "Locale" .Locale
+      "Translations" .Translations
+    ) 
+  }}
+  {{ end }}
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    value="save"
   >
-
-    {{ if (call $.IsEditable "/locale") }}
-    {{ template "authflowv2/__locale_input.html"   
-      (dict
-        "Languages" .Languages
-        "Locale" .Locale
-        "Translations" .Translations
-      ) 
-    }}
-    {{ end }}
-
-    <button
-      class="primary-btn"
-      type="submit"
-      name="x_action"
-      value="save"
-    >
-    {{ translate "v2.page.settings-profile-edit.default.save-button-label" . }}
-    </button>
-
-  </div>
+  {{ translate "v2.page.settings-profile-edit.default.save-button-label" . }}
+  </button>
 </form>
 
 {{ end }}
