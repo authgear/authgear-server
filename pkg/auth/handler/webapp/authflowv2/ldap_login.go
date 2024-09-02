@@ -38,6 +38,7 @@ func ConfigureAuthflowV2LDAPLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowLDAPLoginViewModel struct {
+	LDAPServerName         string
 	LDAPUsernameInputError *authflowv2viewmodels.InputError
 	PasswordInputError     *authflowv2viewmodels.InputError
 	HasUnknownError        bool
@@ -50,8 +51,9 @@ type AuthflowV2LDAPLoginHandler struct {
 }
 
 // nolint: gocognit
-func NewAuthflowLDAPLoginViewModel(apiError *apierrors.APIError) AuthflowLDAPLoginViewModel {
+func NewAuthflowLDAPLoginViewModel(ldapServerName string, apiError *apierrors.APIError) AuthflowLDAPLoginViewModel {
 	viewModel := AuthflowLDAPLoginViewModel{
+		LDAPServerName: ldapServerName,
 		LDAPUsernameInputError: &authflowv2viewmodels.InputError{
 			HasError:        false,
 			HasErrorMessage: false,
@@ -99,22 +101,24 @@ func NewAuthflowLDAPLoginViewModel(apiError *apierrors.APIError) AuthflowLDAPLog
 	return viewModel
 }
 
-func (h *AuthflowV2LDAPLoginHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2LDAPLoginHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, ldapServerName string) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	authflowLDAPLoginViewModel := NewAuthflowLDAPLoginViewModel(baseViewModel.RawError)
+	authflowLDAPLoginViewModel := NewAuthflowLDAPLoginViewModel(ldapServerName, baseViewModel.RawError)
 	viewmodels.Embed(data, authflowLDAPLoginViewModel)
 
 	return data, nil
 }
 
 func (h *AuthflowV2LDAPLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	serverName := r.URL.Query().Get("q_server_name")
+
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		data, err := h.GetData(w, r, s, screen)
+		data, err := h.GetData(w, r, s, screen, serverName)
 		if err != nil {
 			return err
 		}
@@ -128,7 +132,6 @@ func (h *AuthflowV2LDAPLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			return err
 		}
 
-		serverName := r.URL.Query().Get("q_server_name")
 		plainUsername := r.Form.Get("x_username")
 		plainPassword := r.Form.Get("x_password")
 

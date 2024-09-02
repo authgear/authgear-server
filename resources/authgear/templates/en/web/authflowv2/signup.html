@@ -255,8 +255,8 @@
               <div class="flex gap-2">
               <i class="alternative-icon material-icons">person</i>
                 <span>
-                  {{ if ($.Translations.HasKey (printf "v2.component.ldap-branding.%s.label" .server_name)) }}
-                    {{ include (printf "v2.component.ldap-branding.default.%s.label" .server_name) nil }}
+                  {{ if ($.Translations.HasKey (printf "v2.component.ldap-branding.default.label-%s" .server_name)) }}
+                    {{ include (printf "v2.component.ldap-branding.default.label-%s" .server_name) nil }}
                   {{ else }}
                     {{ template "v2.component.ldap-branding.default.label" }}
                   {{ end }}
