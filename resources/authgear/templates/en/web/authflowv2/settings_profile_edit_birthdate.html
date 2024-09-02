@@ -11,33 +11,30 @@
 }}
 
 <form
-data-controller="turbo-form"
-data-action="submit->turbo-form#submitForm"
-method="post">
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+  class="mt-8 flex flex-col settings-content gap-4"
+  method="post">
   {{ $.CSRFField }}
 
-  <div 
-  class="flex flex-col gap-4 pt-8"
-  >
-    {{ if (call $.IsEditable "/birthdate") }}
-    {{ template "authflowv2/__date_input.html"   
-      (dict
-        "Name" "/birthdate"
-        "Value" .Birthdate
-        "Max" .Today
-      ) 
-    }}
-    {{ end }}
+  {{ if (call $.IsEditable "/birthdate") }}
+  {{ template "authflowv2/__date_input.html"   
+    (dict
+      "Name" "/birthdate"
+      "Value" .Birthdate
+      "Max" .Today
+    ) 
+  }}
+  {{ end }}
 
-    <button
-      class="primary-btn"
-      type="submit"
-      name="x_action"
-      value="save"
-    >
-    {{ translate "v2.page.settings-profile-edit.default.save-button-label" . }}
-    </button>
-  </div>
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    value="save"
+  >
+  {{ translate "v2.page.settings-profile-edit.default.save-button-label" . }}
+  </button>
 </form>
 
 {{ end }}
