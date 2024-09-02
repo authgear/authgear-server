@@ -26,15 +26,19 @@ func NewCSRFMiddlewareLogger(lf *log.Factory) CSRFMiddlewareLogger {
 	return CSRFMiddlewareLogger{lf.New("webapp-csrf-middleware")}
 }
 
+type CSRFMiddlewareUIImplementationService interface {
+	GetUIImplementation() config.UIImplementation
+}
+
 type CSRFMiddleware struct {
-	Secret        *config.CSRFKeyMaterials
-	CookieDef     webapp.CSRFCookieDef
-	TrustProxy    config.TrustProxy
-	Cookies       CookieManager
-	Logger        CSRFMiddlewareLogger
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      Renderer
-	UIConfig      *config.UIConfig
+	Secret                  *config.CSRFKeyMaterials
+	CookieDef               webapp.CSRFCookieDef
+	TrustProxy              config.TrustProxy
+	Cookies                 CookieManager
+	Logger                  CSRFMiddlewareLogger
+	BaseViewModel           *viewmodels.BaseViewModeler
+	Renderer                Renderer
+	UIImplementationService CSRFMiddlewareUIImplementationService
 }
 
 func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
@@ -146,7 +150,7 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		"csrfFailureReason":       csrfFailureReason,
 	}).Errorf("CSRF Forbidden: %v", csrfFailureReason)
 
-	uiImpl := m.UIConfig.Implementation.WithDefault()
+	uiImpl := m.UIImplementationService.GetUIImplementation()
 
 	data := make(map[string]interface{})
 	baseViewModel := m.BaseViewModel.ViewModelForAuthFlow(r, w)

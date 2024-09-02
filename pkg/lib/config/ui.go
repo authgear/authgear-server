@@ -91,21 +91,6 @@ const (
 	UIImplementationAuthflowV2  UIImplementation = "authflowv2"
 )
 
-func (i UIImplementation) WithDefault() UIImplementation {
-	switch i {
-	case UIImplementationAuthflowV2:
-		return i
-	case UIImplementationAuthflow:
-		return i
-	case UIImplementationInteraction:
-		return i
-	case UIImplementationDefault:
-		fallthrough
-	default:
-		return UIImplementationInteraction
-	}
-}
-
 type SettingsUIImplementation string
 
 const (
@@ -113,19 +98,6 @@ const (
 	SettingsUIImplementationV1      SettingsUIImplementation = "v1"
 	SettingsUIImplementationV2      SettingsUIImplementation = "v2"
 )
-
-func (i SettingsUIImplementation) WithDefault() SettingsUIImplementation {
-	switch i {
-	case SettingsUIImplementationV2:
-		return i
-	case SettingsUIImplementationV1:
-		return i
-	case SettingsUIImplementationDefault:
-		fallthrough
-	default:
-		return SettingsUIImplementationV1
-	}
-}
 
 var _ = Schema.Add("UIForgotPasswordConfig", `
 {

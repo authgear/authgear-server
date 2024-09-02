@@ -65,9 +65,9 @@ const (
 )
 
 type AuthflowNavigatorEndpointsProvider interface {
-	ErrorEndpointURL(uiImpl config.UIImplementation) *url.URL
-	SelectAccountEndpointURL(uiImpl config.UIImplementation) *url.URL
-	VerifyBotProtectionEndpointURL(uiImpl config.UIImplementation) *url.URL
+	ErrorEndpointURL() *url.URL
+	SelectAccountEndpointURL() *url.URL
+	VerifyBotProtectionEndpointURL() *url.URL
 }
 
 type AuthflowNavigatorOAuthStateStore interface {
@@ -77,7 +77,6 @@ type AuthflowNavigatorOAuthStateStore interface {
 type AuthflowNavigator struct {
 	Endpoints       AuthflowNavigatorEndpointsProvider
 	OAuthStateStore AuthflowNavigatorOAuthStateStore
-	UIConfig        *config.UIConfig
 }
 
 func (n *AuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
@@ -87,14 +86,14 @@ func (n *AuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.
 	case errors.Is(e, api.ErrNoAuthenticator):
 		u.Path = AuthflowRouteNoAuthenticator
 	case errors.Is(e, authflow.ErrFlowNotFound):
-		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+		u.Path = n.Endpoints.ErrorEndpointURL().Path
 	case apierrors.IsKind(e, WebUIInvalidSession):
 		// Show WebUIInvalidSession error in different page.
-		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+		u.Path = n.Endpoints.ErrorEndpointURL().Path
 	case r.Method == http.MethodGet:
 		// If the request method is Get, avoid redirect back to the same path
 		// which causes infinite redirect loop
-		u.Path = n.Endpoints.ErrorEndpointURL(n.UIConfig.Implementation).Path
+		u.Path = n.Endpoints.ErrorEndpointURL().Path
 	}
 }
 
@@ -458,11 +457,11 @@ func (n *AuthflowNavigator) navigateAccountRecovery(s *AuthflowScreenWithFlowRes
 }
 
 func (n *AuthflowNavigator) NavigateSelectAccount(result *Result) {
-	url := n.Endpoints.SelectAccountEndpointURL(n.UIConfig.Implementation)
+	url := n.Endpoints.SelectAccountEndpointURL()
 	result.RedirectURI = url.String()
 }
 
 func (n *AuthflowNavigator) NavigateVerifyBotProtection(result *Result) {
-	url := n.Endpoints.VerifyBotProtectionEndpointURL(n.UIConfig.Implementation)
+	url := n.Endpoints.VerifyBotProtectionEndpointURL()
 	result.RedirectURI = url.String()
 }

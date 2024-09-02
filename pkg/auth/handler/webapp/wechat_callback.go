@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -70,7 +71,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			return err
 		}
 
-		switch state.UIImplementation.WithDefault() {
+		switch state.UIImplementation {
 		case config.UIImplementationAuthflow:
 			fallthrough
 		case config.UIImplementationAuthflowV2:
@@ -98,8 +99,6 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 			return nil
 		case config.UIImplementationInteraction:
-			fallthrough
-		default:
 			webSessionID := state.WebSessionID
 			session, err := ctrl.GetSession(webSessionID)
 			if err != nil {
@@ -119,6 +118,8 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			}
 
 			return nil
+		default:
+			panic(fmt.Errorf("expected ui implementation to be set in state"))
 		}
 	}
 

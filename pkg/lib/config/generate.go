@@ -23,6 +23,9 @@ func GenerateAppConfigFromOptions(opts *GenerateAppConfigOptions) *AppConfig {
 	cfg := &AppConfig{
 		ID:   AppID(opts.AppID),
 		HTTP: &HTTPConfig{PublicOrigin: opts.PublicOrigin},
+		UI: &UIConfig{
+			SignupLoginFlowEnabled: true,
+		},
 	}
 	if opts.CookieDomain != "" {
 		cfg.HTTP.CookieDomain = &opts.CookieDomain
