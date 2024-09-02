@@ -170,37 +170,12 @@ func (g *Generator) generateOnce() (string, error) {
 func prepareCharacterSet(policy *config.PasswordPolicyConfig) (string, error) {
 	set := map[characterSet]struct{}{}
 
-	if policy.AlphabetRequired {
-		set[characterSetAlphabet] = struct{}{}
-	}
-	if policy.LowercaseRequired {
-		set[characterSetLowercase] = struct{}{}
-	}
-	if policy.UppercaseRequired {
-		set[characterSetUppercase] = struct{}{}
-	}
-	if policy.DigitRequired {
-		set[characterSetDigit] = struct{}{}
-	}
+	// Default to use alphanumeric as base.
+	set[characterSetAlphabet] = struct{}{}
+	set[characterSetDigit] = struct{}{}
+
 	if policy.SymbolRequired {
 		set[characterSetSymbol] = struct{}{}
-	}
-
-	// Default to alphanumeric if no character set is required.
-	if len(set) == 0 {
-		set[characterSetAlphabet] = struct{}{}
-		set[characterSetDigit] = struct{}{}
-	}
-
-	// Remove overlapping character sets.
-	_, hasLowerCase := set[characterSetLowercase]
-	_, hasUpperCase := set[characterSetUppercase]
-	_, hasAlphabet := set[characterSetAlphabet]
-	if hasAlphabet && hasLowerCase {
-		delete(set, characterSetLowercase)
-	}
-	if hasAlphabet && hasUpperCase {
-		delete(set, characterSetUppercase)
 	}
 
 	var buf strings.Builder

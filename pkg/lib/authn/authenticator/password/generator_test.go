@@ -217,43 +217,43 @@ func TestPrepareCharacterSet(t *testing.T) {
 		Convey("When lowercase is required", func() {
 			policy := &config.PasswordPolicyConfig{LowercaseRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyz")
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 		})
 
 		Convey("When uppercase is required", func() {
 			policy := &config.PasswordPolicyConfig{UppercaseRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldEqual, "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 		})
 
 		Convey("When alphabet is required", func() {
 			policy := &config.PasswordPolicyConfig{AlphabetRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 		})
 
 		Convey("When alphabet and lowercase is required", func() {
 			policy := &config.PasswordPolicyConfig{AlphabetRequired: true, LowercaseRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 		})
 
 		Convey("When alphabet and uppercase is required", func() {
 			policy := &config.PasswordPolicyConfig{AlphabetRequired: true, UppercaseRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 		})
 
 		Convey("When digits are required", func() {
 			policy := &config.PasswordPolicyConfig{DigitRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldEqual, "0123456789")
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 		})
 
 		Convey("When symbols are required", func() {
 			policy := &config.PasswordPolicyConfig{SymbolRequired: true}
 			result, _ := prepareCharacterSet(policy)
-			So(result, ShouldEqual, "-~!@#$%^&*_+=`|(){}[:;\"'<>,.?]")
+			So(result, ShouldEqual, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-~!@#$%^&*_+=`|(){}[:;\"'<>,.?]")
 		})
 
 		Convey("When all character sets are required", func() {
