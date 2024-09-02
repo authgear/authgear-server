@@ -28,6 +28,8 @@ type AllowedFrameAncestors []string
 
 type GlobalUIImplementation UIImplementation
 
+type GlobalUISettingsImplementation SettingsUIImplementation
+
 func (s AppHostSuffixes) CheckIsDefaultDomain(host string) bool {
 	for _, suffix := range s {
 		if before, found := strings.CutSuffix(host, suffix); found {
@@ -100,4 +102,6 @@ type EnvironmentConfig struct {
 	End2EndBotProtection End2EndBotProtectionEnvironmentConfig `envconfig:"E2E_BOT_PROTECTION"`
 
 	UIImplementation GlobalUIImplementation `envconfig:"UI_IMPLEMENTATION"`
+
+	UISettingsImplementation GlobalUISettingsImplementation `envconfig:"UI_SETTINGS_IMPLEMENTATION"`
 }

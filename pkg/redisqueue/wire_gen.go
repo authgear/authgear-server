@@ -694,9 +694,11 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Random:          rand,
 	}
 	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
-		UIConfig:               uiConfig,
-		GlobalUIImplementation: globalUIImplementation,
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
 	}
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:                httpHost,

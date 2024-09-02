@@ -42,6 +42,7 @@ var envConfigDeps = wire.NewSet(
 		"SAML",
 		"AppHostSuffixes",
 		"UIImplementation",
+		"UISettingsImplementation",
 	),
 )
 

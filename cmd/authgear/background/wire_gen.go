@@ -779,9 +779,11 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Random:          rand,
 	}
 	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
-		UIConfig:               uiConfig,
-		GlobalUIImplementation: globalUIImplementation,
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
 	}
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:                httpHost,

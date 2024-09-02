@@ -99,19 +99,6 @@ const (
 	SettingsUIImplementationV2      SettingsUIImplementation = "v2"
 )
 
-func (i SettingsUIImplementation) WithDefault() SettingsUIImplementation {
-	switch i {
-	case SettingsUIImplementationV2:
-		return i
-	case SettingsUIImplementationV1:
-		return i
-	case SettingsUIImplementationDefault:
-		fallthrough
-	default:
-		return SettingsUIImplementationV1
-	}
-}
-
 var _ = Schema.Add("UIForgotPasswordConfig", `
 {
 	"type": "object",

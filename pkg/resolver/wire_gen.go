@@ -198,9 +198,11 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
 	uiConfig := appConfig.UI
 	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	uiImplementationService := &web.UIImplementationService{
-		UIConfig:               uiConfig,
-		GlobalUIImplementation: globalUIImplementation,
+		UIConfig:                       uiConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
 	}
 	endpointsEndpoints := &endpoints.Endpoints{
 		HTTPHost:                httpHost,

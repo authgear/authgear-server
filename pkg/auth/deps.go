@@ -244,6 +244,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.PanicMiddlewareUIImplementationService), new(*web.UIImplementationService)),
 	wire.Bind(new(handlerwebapp.CSRFMiddlewareUIImplementationService), new(*web.UIImplementationService)),
 	wire.Bind(new(handlerwebapp.ImplementationSwitcherMiddlewareUIImplementationService), new(*web.UIImplementationService)),
+	wire.Bind(new(handlerwebapp.SettingsImplementationSwitcherMiddlewareUIImplementationService), new(*web.UIImplementationService)),
 )
 
 func ProvideOAuthConfig() *config.OAuthConfig {

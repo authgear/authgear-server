@@ -8,8 +8,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
+type SettingsImplementationSwitcherMiddlewareUIImplementationService interface {
+	GetSettingsUIImplementation() config.SettingsUIImplementation
+}
+
 type SettingsImplementationSwitcherMiddleware struct {
-	UIConfig *config.UIConfig
+	UIImplementationService SettingsImplementationSwitcherMiddlewareUIImplementationService
 }
 
 type settingsImplementationSwitcherContextKeyType struct{}
@@ -42,7 +46,8 @@ func GetSettingsUIImplementation(ctx context.Context) config.SettingsUIImplement
 
 func (m *SettingsImplementationSwitcherMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		r = r.WithContext(WithSettingsUIImplementation(r.Context(), m.UIConfig.SettingsImplementation))
+		val := m.UIImplementationService.GetSettingsUIImplementation()
+		r = r.WithContext(WithSettingsUIImplementation(r.Context(), val))
 		next.ServeHTTP(w, r)
 	})
 }
@@ -53,7 +58,7 @@ type SettingsImplementationSwitcherHandler struct {
 }
 
 func (h *SettingsImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	impl := GetSettingsUIImplementation(r.Context()).WithDefault()
+	impl := GetSettingsUIImplementation(r.Context())
 	switch impl {
 	case config.SettingsUIImplementationV1:
 		h.SettingV1.ServeHTTP(w, r)
