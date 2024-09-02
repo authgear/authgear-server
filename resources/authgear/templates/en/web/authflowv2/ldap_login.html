@@ -10,7 +10,7 @@
   <header class="screen-title-description">
     <h1 class="screen-title">
       {{ if ($.Translations.HasKey (printf "v2-ldap-branching-%s" .server_name)) }}
-        {{ include (printf "v2.component.ldap-branding.default.label-%s" .server_name) nil }}
+        {{ include (printf "v2.component.ldap-branding.default.%s.label" .server_name) nil }}
       {{ else }}
         {{ template "v2.component.ldap-branding.default.label" }}
       {{ end }}
