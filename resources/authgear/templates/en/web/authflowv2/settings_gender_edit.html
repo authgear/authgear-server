@@ -10,13 +10,14 @@
 }}
 
 <form id="form" method="post" data-turbo="false" novalidate
-    class="flex flex-col gap-8 mt-8 items-center">
-  <div>
+    class="flex flex-col gap-8 mt-8 items-center w-full">
+  <div class="w-full tablet:max-w-86">
     {{ $.CSRFField }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
         "Label" (include "v2.page.settings-profile-edit.default.button-label-not-provided" nil)
-        "RadioName" "gender-select" "RadioValue" ""
+        "RadioName" "gender-select"
+        "RadioValue" ""
         "ShowInput" false
         "DefaultChecked" ( not $.Gender )
       )
@@ -24,7 +25,8 @@
     {{ template "authflowv2/__settings_radio.html"
       (dict
         "Label" (include "v2.page.settings-profile-edit.default.button-label-gender-female" nil)
-        "RadioName" "gender-select" "RadioValue" "female"
+        "RadioName" "gender-select"
+        "RadioValue" "female"
         "ShowInput" false
         "DefaultChecked" ( eq $.Gender "female")
       )
@@ -32,7 +34,8 @@
     {{ template "authflowv2/__settings_radio.html"
       (dict
         "Label" (include "v2.page.settings-profile-edit.default.button-label-gender-male" nil)
-        "RadioName" "gender-select" "RadioValue" "male"
+        "RadioName" "gender-select"
+        "RadioValue" "male"
         "ShowInput" false
         "DefaultChecked" ( eq $.Gender "male")
       )
@@ -45,7 +48,8 @@
     {{ template "authflowv2/__settings_radio.html"
       (dict
         "Label" (include "v2.page.settings-profile-edit.default.button-label-custom" nil)
-        "RadioName" "gender-select" "RadioValue" "other"
+        "RadioName" "gender-select"
+        "RadioValue" "other"
         "InputName" "gender-input"
         "InputValue" $.Gender
         "ShowInput" true
@@ -56,7 +60,7 @@
 
   <button
     id="save-button"
-    class="btn primary-btn w-86"
+    class="primary-btn w-full tablet:max-w-86"
     type="submit"
     name="x_action"
     value="save"
