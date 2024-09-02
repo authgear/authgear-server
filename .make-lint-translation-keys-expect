@@ -15,7 +15,7 @@ resources/authgear/templates/en/web/authflowv2/account_linking.html:94:21: inval
 resources/authgear/templates/en/web/authflowv2/forgot_password.html:109:30: translation key not defined: "__forgot_password_alternative"
 resources/authgear/templates/en/web/authflowv2/forgot_password.html:165:26: translation key not defined: "__forgot_password_alternative"
 resources/authgear/templates/en/web/authflowv2/layout.html:5:14: translation key not defined: "widget"
-resources/authgear/templates/en/web/authflowv2/ldap_login.html:13:11: invalid translation key: "printf "v2.component.ldap-branding.default.label-%s" .server_name"
+resources/authgear/templates/en/web/authflowv2/ldap_login.html:13:11: invalid translation key: "printf "v2.component.ldap-branding.default.label-%s" $.LDAPServerName"
 resources/authgear/templates/en/web/authflowv2/login.html:62:18: invalid translation key: "app.name"
 resources/authgear/templates/en/web/authflowv2/login.html:252:25: invalid translation key: "printf "v2.component.oauth-branding.%s.label" .provider_type"
 resources/authgear/templates/en/web/authflowv2/login.html:274:25: invalid translation key: "printf "v2.component.ldap-branding.default.label-%s" .server_name"
