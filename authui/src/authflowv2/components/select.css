@@ -91,6 +91,10 @@
     --select__empty-text-color: var(--color-neutral-300);
   }
 
+  .select__dropdown-container {
+    @apply fixed overflow-visible;
+  }
+
   .select__dropdown {
     @apply absolute;
     @apply flex;
