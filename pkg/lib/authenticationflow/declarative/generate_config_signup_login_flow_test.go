@@ -344,5 +344,76 @@ steps:
   - identification: passkey
     login_flow: default
 `)
+
+		// DEV-1972: bot_protection, depends on authenticator, oob_otp_email
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - oob_otp_email
+identity:
+  login_id:
+    keys:
+    - type: email
+bot_protection:
+  enabled: true
+  provider:
+    type: recaptchav2
+    site_key: some-site-key
+  requirements:
+    oob_otp_email:
+      mode: always
+    oob_otp_sms:
+      mode: never
+    password:
+      mode: never
+`, `
+name: default
+steps:
+- name: signup_login_identify
+  type: identify
+  one_of:
+  - identification: email
+    bot_protection:
+      mode: always
+    signup_flow: default
+    login_flow: default
+`)
+		// DEV-1972: bot_protection, depends on authenticator, oob_otp_sms
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - oob_otp_sms
+identity:
+  login_id:
+    keys:
+    - type: phone
+bot_protection:
+  enabled: true
+  provider:
+    type: recaptchav2
+    site_key: some-site-key
+  requirements:
+    oob_otp_email:
+      mode: never
+    oob_otp_sms:
+      mode: always
+    password:
+      mode: never
+`, `
+name: default
+steps:
+- name: signup_login_identify
+  type: identify
+  one_of:
+  - identification: phone
+    bot_protection:
+      mode: always
+    signup_flow: default
+    login_flow: default
+`)
 	})
 }
