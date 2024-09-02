@@ -133,6 +133,7 @@ transform
 translate
 try
 update
+upload
 uppercase
 verified_user
 visibility
