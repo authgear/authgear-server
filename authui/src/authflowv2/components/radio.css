@@ -43,7 +43,7 @@
   .radio-label {
     @apply grid grid-cols-[auto,1.25rem] gap-y-4;
     @apply px-2 py-4;
-    @apply w-86;
+    @apply w-full;
 
     color: var(--settings-item__text-color);
     background-color: var(--radio__bg-color);

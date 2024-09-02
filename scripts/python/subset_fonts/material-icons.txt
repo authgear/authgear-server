@@ -35,6 +35,7 @@ error
 event
 explicit
 face
+female
 fingerprint
 flag
 forward_to_inbox
@@ -62,6 +63,7 @@ lock
 login
 lowercase
 mail
+male
 margin
 mediation
 merge
@@ -88,10 +90,12 @@ privacy
 progress_activity
 public
 qr_code
+radio
 refresh
 repeat
 restore
 rule
+save
 scale
 score
 script
