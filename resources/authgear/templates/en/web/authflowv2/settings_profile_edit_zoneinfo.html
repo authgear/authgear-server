@@ -15,7 +15,15 @@
   data-controller="turbo-form"
   data-action="submit->turbo-form#submitForm"
 >
-  {{ template "authflowv2/__timezone_input.html" . }}
+  {{ $.CSRFField }}
+
+  {{ template "authflowv2/__timezone_input.html"
+      (dict
+        "Timezones" $.Timezones
+        "Name" "/zoneinfo"
+        "Value" $.Zoneinfo
+      )
+  }}
 
   <button
     class="primary-btn"
