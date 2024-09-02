@@ -160,7 +160,7 @@
 {{ end }}
 
 {{ define "__settings_profile_locale_item" }}
-{{ $label := (print "language-" $.Locale) }}
+{{ $label := (printf "language-%s" $.Locale) }}
 <span>
   {{ $.Locale }} - {{ translate $label nil}}
 </span>
