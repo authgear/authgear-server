@@ -18,7 +18,6 @@
         "Label" (include "v2.page.settings-profile-edit.default.button-label-not-provided" nil)
         "RadioName" "gender-select"
         "RadioValue" ""
-        "ShowInput" false
         "DefaultChecked" ( not $.Gender )
       )
     }}
@@ -27,7 +26,6 @@
         "Label" (include "v2.page.settings-profile-edit.default.button-label-gender-female" nil)
         "RadioName" "gender-select"
         "RadioValue" "female"
-        "ShowInput" false
         "DefaultChecked" ( eq $.Gender "female")
       )
     }}
@@ -36,7 +34,6 @@
         "Label" (include "v2.page.settings-profile-edit.default.button-label-gender-male" nil)
         "RadioName" "gender-select"
         "RadioValue" "male"
-        "ShowInput" false
         "DefaultChecked" ( eq $.Gender "male")
       )
     }}
@@ -50,9 +47,7 @@
         "Label" (include "v2.page.settings-profile-edit.default.button-label-custom" nil)
         "RadioName" "gender-select"
         "RadioValue" "other"
-        "InputName" "gender-input"
-        "InputValue" $.Gender
-        "ShowInput" true
+        "CustomHTML" (include "custom_input" .)
         "DefaultChecked" $defaultChecked
       )
     }}
@@ -70,4 +65,12 @@
   </button>
 </form>
 
+{{ end }}
+
+{{ define "custom_input" }}
+<input
+  class="input radio-input col-span-2"
+  name="gender-input"
+  value="{{ $.Gender }}"
+>
 {{ end }}
