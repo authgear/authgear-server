@@ -52,7 +52,7 @@ data-custom-select-options-value="[         {{/* TODO: Please take a careful loo
             <div class="select__search">
             <input
                 class="select__search-input"
-                placeholder="{{ template "v2-search-label" }}"
+                placeholder="{{ translate "v2.component.locale-input.default.search-label" . }}"
                 data-controller="dismiss-keyboard-on-scroll"
                 data-custom-select-target="search"
                 data-action="input->custom-select#search"
@@ -97,7 +97,7 @@ data-custom-select-options-value="[         {{/* TODO: Please take a careful loo
 
         <template data-custom-select-target="emptyTemplate">
         <li class="select__empty">
-            {{ template "v2-no-results-found" }}
+            {{ translate "v2.component.locale-input.default.no-results-found" . }}
         </li>
         </template>
     </div>
