@@ -9,4 +9,23 @@
    )
 }}
 
+<form
+  class="mt-8 settings-content flex flex-col gap-y-8"
+  method="post"
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+>
+  {{ template "authflowv2/__timezone_input.html" . }}
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    value="save"
+    data-authgear-event="authgear.button.update_profile"
+  >
+    {{ translate "v2.page.settings-profile-edit-zoneinfo.default.save-button-label" . }}
+  </button>
+</form>
+
 {{ end }}
