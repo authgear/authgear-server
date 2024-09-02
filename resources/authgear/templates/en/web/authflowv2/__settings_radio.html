@@ -3,35 +3,29 @@
   (dict
     "Label" (include "some-key" nil)
     "RadioName" "gender-select"
-    "RadioValue" "male"
-    "ShowInput" false
-    "InputName" "gender-input"
-    "InputValue" "customGender"
+    "RadioValue" "other"
+    "CustomHTML" (include "custom_input" .)
     "DefaultChecked" true
   )
 }}
 -->
 {{ define "authflowv2/__settings_radio.html" }}
-<label class="radio-label" for={{ $.RadioValue }}>
-  {{ $.Label }}
+<div class="radio-label">
+
+  <label for={{ $.RadioValue }}>
+    {{ $.Label }}
+  </label>
 
   <input
-    type="radio"
-    class="radio"
-    id={{ $.RadioValue }}
-    name="{{ $.RadioName }}"
-    value="{{ $.RadioValue }}"
-    {{ if $.DefaultChecked }}checked{{end}}
+  type="radio"
+  class="radio"
+  id={{ $.RadioValue }}
+  name="{{ $.RadioName }}"
+  value="{{ $.RadioValue }}"
+  {{ if $.DefaultChecked }}checked{{end}}
   >
 
-  {{ if $.ShowInput }}
-    <input
-      class="input radio-input col-span-2"
-      name="{{ $.InputName }}"
-      value="{{ $.InputValue }}"
-    >
-  {{ end }}
-</label>
-
+  {{ $.CustomHTML }}
+</div>
 
 {{ end }}
