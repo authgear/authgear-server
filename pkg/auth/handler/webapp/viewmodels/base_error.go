@@ -57,6 +57,65 @@ func resolveErrJSONPtrs(apiError *apierrors.APIError) (errJSONPtrs []*ErrJSONPtr
 	if apiError == nil {
 		return
 	}
+	ptrs := resolvePasswordInput(apiError)
+	errJSONPtrs = append(errJSONPtrs, ptrs...)
+	return
+}
+
+// TODO: Or should pass this resolver per-page?
+// ref pkg/auth/handler/webapp/authflowv2/viewmodels/password_input_error.go
+// nolint: gocognit
+func resolvePasswordInput(apiError *apierrors.APIError) (errJSONPtrs []*ErrJSONPtr) {
+	errJSONPtrs = []*ErrJSONPtr{}
+	addPtr := func(ptr *ErrJSONPtr) {
+		errJSONPtrs = append(errJSONPtrs, ptr)
+	}
+	addPasswordInputPtr := func(hasMsg bool) {
+		addPtr(&ErrJSONPtr{
+			JSONPtr:    "password-input",
+			HasMessage: hasMsg,
+		})
+	}
+	addConfirmPasswordInputPtr := func(hasMsg bool) {
+		addPtr(&ErrJSONPtr{
+			JSONPtr:    "confirm-password-input",
+			HasMessage: hasMsg,
+		})
+	}
+	if apiError == nil {
+		return
+	}
+
+	switch apiError.Reason {
+	case "InvalidCredentials":
+		addPasswordInputPtr(true)
+	case "PasswordPolicyViolated":
+		addPasswordInputPtr(true)
+		addConfirmPasswordInputPtr(false)
+	case "NewPasswordTypo":
+		addConfirmPasswordInputPtr(true)
+	case "ValidationFailed":
+		for _, causes := range apiError.Info["causes"].([]interface{}) {
+			if cause, ok := causes.(map[string]interface{}); ok {
+				if kind, ok := cause["kind"].(string); ok {
+					if kind == "required" {
+						if details, ok := cause["details"].(map[string]interface{}); ok {
+							if missing, ok := details["missing"].([]interface{}); ok {
+								if SliceContains(missing, "x_password") {
+									addPasswordInputPtr(true)
+								} else if SliceContains(missing, "x_new_password") {
+									addPasswordInputPtr(true)
+								} else if SliceContains(missing, "x_confirm_password") {
+									addConfirmPasswordInputPtr(true)
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
 
 	return
 }
