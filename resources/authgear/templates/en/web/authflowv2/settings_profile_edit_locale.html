@@ -13,16 +13,17 @@
   data-controller="turbo-form"
   data-action="submit->turbo-form#submitForm"
   class="settings-profile-editor gap-4"
-  method="post">
+  method="post"
+>
   {{ $.CSRFField }}
 
   {{ if (call $.IsEditable "/locale") }}
-  {{ template "authflowv2/__locale_input.html"   
+  {{ template "authflowv2/__locale_input.html"
     (dict
       "Languages" .Languages
       "Locale" .Locale
       "Translations" .Translations
-    ) 
+    )
   }}
   {{ end }}
 
@@ -32,7 +33,7 @@
     name="x_action"
     value="save"
   >
-  {{ translate "v2.page.settings-profile-edit.default.save-button-label" . }}
+    {{ translate "v2.page.settings-profile-edit.default.save-button-label" . }}
   </button>
 </form>
 
