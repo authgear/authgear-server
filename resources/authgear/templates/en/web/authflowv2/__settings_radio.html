@@ -4,7 +4,7 @@
     "Label" (include "some-key" nil)
     "Name" "gender-select"
     "Value" "other"
-    "CustomHTML" (include "custom_input" .)
+    "ExtraContentOnChecked" (include "other_content" .)
     "DefaultChecked" true
   )
 }}
@@ -27,7 +27,11 @@
     {{ if $.DefaultChecked }}checked{{end}}
   >
 
-  {{ $.CustomHTML }}
+  {{ if $.ExtraContentOnChecked }}
+    <div class="settings-radio__extra-content">
+      {{ $.ExtraContentOnChecked }}
+    </div>
+  {{ end }}
 </div>
 
 {{ end }}
