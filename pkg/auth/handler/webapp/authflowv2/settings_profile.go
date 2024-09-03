@@ -11,7 +11,7 @@ import (
 
 var TemplateWebSettingsProfileHTML = template.RegisterHTML(
 	"web/authflowv2/settings_profile.html",
-	handlerwebapp.SettingsCompenents...,
+	handlerwebapp.SettingsComponents...,
 )
 
 type AuthflowV2SettingsProfileHandler struct {
