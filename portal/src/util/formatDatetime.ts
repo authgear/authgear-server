@@ -1,11 +1,10 @@
-import { DateTime, DateTimeFormatOptions } from "luxon";
+import { DateTime } from "luxon";
 
 export function formatDatetime(
   locale: string,
   date: Date | string | null
 ): string | null {
   let datetime;
-  const format: DateTimeFormatOptions = DateTime.DATETIME_MED_WITH_SECONDS;
 
   if (date instanceof Date) {
     datetime = DateTime.fromJSDate(date);
@@ -18,5 +17,5 @@ export function formatDatetime(
   }
 
   datetime = datetime.setLocale(locale);
-  return datetime.toLocaleString(format);
+  return datetime.toFormat("ff ('UTC'ZZ)");
 }
