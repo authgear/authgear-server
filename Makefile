@@ -162,7 +162,8 @@ authui:
 	npm run --silent --prefix ./authui typecheck
 	npm run --silent --prefix ./authui format
 	npm run --silent --prefix ./authui build
-	rm resources/authgear/generated/build*.html
+	rm -rf resources/authgear/generated/src
+	git checkout -- resources/authgear/generated/.gitkeep
 
 .PHONY: portal
 portal:
