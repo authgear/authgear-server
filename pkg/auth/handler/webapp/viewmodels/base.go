@@ -113,10 +113,7 @@ func (m *BaseViewModel) SetError(err error) {
 		}
 		eJSONError = eJSON["error"]
 		m.Error = eJSONError
-		errJSONPtrs := ResolveErrJSONPtrs(apiError)
-		for _, errJSONPtr := range errJSONPtrs {
-			m.ErrorJSON[errJSONPtr] = eJSONError
-		}
+		m.ErrorJSON = GetErrorJSON(apiError)
 		m.RawError = apiError
 	}
 }
