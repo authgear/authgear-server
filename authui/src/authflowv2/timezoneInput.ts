@@ -6,7 +6,7 @@ interface Timezone {
   displayLabel: string;
 }
 
-export class TimezoneInput extends Controller {
+export class TimezoneInputController extends Controller {
   declare timezoneSelectTarget: HTMLElement;
   declare timezonesValue: Timezone[];
 

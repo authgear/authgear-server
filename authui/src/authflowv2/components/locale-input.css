@@ -29,7 +29,6 @@
   }
 
   .locale-input__trigger {
-    @apply w-full;
     @apply text-left;
     @apply flex items-center justify-between;
 
