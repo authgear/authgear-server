@@ -9,6 +9,13 @@
     --navbar__title-line-height: var(--typography-title-large__line-height);
     --navbar__title-text-color: var(--color-neutral-700);
 
+    --navbar__title--mobile-font-family: var(--navbar__title-font-family);
+    --navbar__title--mobile-font-size: 1.125rem;
+    --navbar__title--mobile-font-weight: var(--navbar__title-font-weight);
+    --navbar__title--mobile-letter-spacing: var(--navbar__title-letter-spacing);
+    --navbar__title--mobile-line-height: var(--navbar__title-line-height);
+    --navbar__title--mobile-text-color: var(--navbar__title-text-color);
+
     --navbar__item-font-family: var(--typography-label-large__font-family);
     --navbar__item-font-size: var(--typography-label-large__font-size);
     --navbar__item-font-weight: var(--typography-label-large__font-weight);
@@ -33,12 +40,21 @@
   }
 
   .navbar__title {
-    color: var(--navbar__title-text-color);
-    font-family: var(--navbar__title-font-family);
-    font-size: var(--navbar__title-font-size);
-    font-weight: var(--navbar__title-font-weight);
-    letter-spacing: var(--navbar__title-letter-spacing);
-    line-height: var(--navbar__title-line-height);
+    color: var(--navbar__title--mobile-text-color);
+    font-family: var(--navbar__title--mobile-font-family);
+    font-size: var(--navbar__title--mobile-font-size);
+    font-weight: var(--navbar__title--mobile-font-weight);
+    letter-spacing: var(--navbar__title--mobile-letter-spacing);
+    line-height: var(--navbar__title--mobile-line-height);
+
+    @media (min-width: theme("screens.tablet")) {
+      color: var(--navbar__title-text-color);
+      font-family: var(--navbar__title-font-family);
+      font-size: var(--navbar__title-font-size);
+      font-weight: var(--navbar__title-font-weight);
+      letter-spacing: var(--navbar__title-letter-spacing);
+      line-height: var(--navbar__title-line-height);
+    }
 
     @apply absolute inset-0;
     @apply flex justify-center items-center;

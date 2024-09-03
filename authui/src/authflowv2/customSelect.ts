@@ -135,7 +135,8 @@ export class CustomSelectController extends Controller {
     if (!this.dropdownContainerTarget.classList.contains("hidden")) return;
 
     this.dropdownContainerTarget.classList.remove("hidden");
-    this.triggerTarget.setAttribute("aria-expanded", "true");
+    this.triggerTarget.classList.add("select__trigger--expanded");
+    this.triggerTarget.dataset.expanded = "true";
 
     this.resetHightlightIndex();
     this.clearSearch();
@@ -153,7 +154,7 @@ export class CustomSelectController extends Controller {
 
     this.dropdownContainerTarget.classList.add("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "false");
-    this.triggerTarget.focus();
+    this.triggerTarget.classList.remove("select__trigger--expanded");
 
     this.dispatch("close");
   }
