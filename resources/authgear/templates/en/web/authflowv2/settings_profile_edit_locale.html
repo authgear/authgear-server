@@ -3,16 +3,17 @@
 {{ define "page-content" }}
 
 {{ template "authflowv2/__navbar.html"
-(dict
-  "BackHref" (call $.MakeURL "/settings/profile")
-  "Title" (translate "v2.page.settings-profile-edit-locale.default.navbar-title" nil)
-)
+    (dict
+      "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+      "BackHref" (call $.MakeURL "/settings/profile")
+      "Title" (translate "v2.page.settings-profile-edit-locale.default.navbar-title" nil)
+    )
 }}
 
 <form
   data-controller="turbo-form"
   data-action="submit->turbo-form#submitForm"
-  class="settings-profile-editor gap-4"
+  class="mt-8 settings-content flex flex-col gap-4"
   method="post"
 >
   {{ $.CSRFField }}
@@ -34,7 +35,7 @@
     name="x_action"
     value="save"
   >
-    {{ translate "v2.page.settings-profile-edit.default.save-button-label" . }}
+    {{ translate "v2.page.settings-profile-edit-locale.default.save-button-label" nil }}
   </button>
 </form>
 

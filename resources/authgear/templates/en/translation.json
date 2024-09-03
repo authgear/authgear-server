@@ -1117,6 +1117,7 @@
   "v2.page.settings-profile-edit-gender.default.button-label-save": "Save",
   "v2.page.settings-profile-edit-gender.default.title-gender": "Gender",
   "v2.page.settings-profile-edit-locale.default.navbar-title": "Language",
+  "v2.page.settings-profile-edit-locale.default.save-button-label": "Save",
   "v2.page.settings-profile-edit-name.default.family-name-input-label": "Last name",
   "v2.page.settings-profile-edit-name.default.fullname-input-label": "Full name",
   "v2.page.settings-profile-edit-name.default.given-name-input-label": "First name",
