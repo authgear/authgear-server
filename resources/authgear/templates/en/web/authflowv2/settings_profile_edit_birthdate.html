@@ -1,30 +1,30 @@
 {{ template "authflowv2/__settings_page_frame.html" . }}
 
-{{ define "page-content" }}
-
+{{ define "page-navbar" }}
 {{ template "authflowv2/__navbar.html"
-(dict
-  "BackHref" (call $.MakeURL "/settings/profile")
-  "Title" (translate "v2.page.settings-profile-edit-birthdate.default.navbar-title" nil)
-)
+  (dict
+    "BackHref" (call $.MakeURL "/settings/profile")
+    "Title" (translate "v2.page.settings-profile-edit-birthdate.default.navbar-title" nil)
+  )
 }}
+{{ end }}
 
+{{ define "page-content" }}
 <form
   data-controller="turbo-form"
   data-action="submit->turbo-form#submitForm"
-  class="mt-8 flex flex-col settings-content gap-4"
-  method="post">
+  class="flex flex-col settings-content gap-y-8"
+  method="post"
+>
   {{ $.CSRFField }}
 
-  {{ if (call $.IsEditable "/birthdate") }}
-  {{ template "authflowv2/__date_input.html"   
+  {{ template "authflowv2/__date_input.html"
     (dict
       "Name" "/birthdate"
       "Value" .Birthdate
       "Max" .Today
-    ) 
+    )
   }}
-  {{ end }}
 
   <button
     class="primary-btn"
