@@ -13,6 +13,7 @@ export class CustomSelectController extends Controller {
   static targets = [
     "input",
     "trigger",
+    "dropdownContainer",
     "dropdown",
     "search",
     "clearSearch",
@@ -29,6 +30,7 @@ export class CustomSelectController extends Controller {
   declare readonly inputTarget: HTMLInputElement;
   declare readonly triggerTarget: HTMLButtonElement;
   declare readonly dropdownTarget: HTMLElement;
+  declare readonly dropdownContainerTarget: HTMLElement;
   declare readonly searchTarget: HTMLInputElement;
   declare readonly clearSearchTarget: HTMLElement;
   declare readonly optionsTarget: HTMLElement;
@@ -66,7 +68,7 @@ export class CustomSelectController extends Controller {
   }
 
   get isOpen(): boolean {
-    return !this.dropdownTarget.classList.contains("hidden");
+    return !this.dropdownContainerTarget.classList.contains("hidden");
   }
 
   get value() {
@@ -101,7 +103,7 @@ export class CustomSelectController extends Controller {
       this._updateDropdownPosition
     );
 
-    this.dropdownTarget.classList.add("hidden");
+    this.dropdownContainerTarget.classList.add("hidden");
     this.renderTrigger();
     this.renderSearch();
     this.renderItems();
@@ -130,9 +132,9 @@ export class CustomSelectController extends Controller {
   }
 
   open() {
-    if (!this.dropdownTarget.classList.contains("hidden")) return;
+    if (!this.dropdownContainerTarget.classList.contains("hidden")) return;
 
-    this.dropdownTarget.classList.remove("hidden");
+    this.dropdownContainerTarget.classList.remove("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "true");
 
     this.resetHightlightIndex();
@@ -147,9 +149,9 @@ export class CustomSelectController extends Controller {
   }
 
   close() {
-    if (this.dropdownTarget.classList.contains("hidden")) return;
+    if (this.dropdownContainerTarget.classList.contains("hidden")) return;
 
-    this.dropdownTarget.classList.add("hidden");
+    this.dropdownContainerTarget.classList.add("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "false");
     this.triggerTarget.focus();
 
@@ -167,7 +169,8 @@ export class CustomSelectController extends Controller {
   }
 
   toggle() {
-    const willExpand = this.dropdownTarget.classList.contains("hidden");
+    const willExpand =
+      this.dropdownContainerTarget.classList.contains("hidden");
     if (willExpand) {
       this.open();
     } else {
