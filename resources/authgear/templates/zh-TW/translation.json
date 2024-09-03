@@ -1132,6 +1132,8 @@
   "v2.page.settings-profile-edit-zoneinfo.default.save-button-label": "儲存",
   "v2.page.settings-profile-edit.default.not-provided-label": "未提供",
   "v2.page.settings-profile-edit.default.save-button-label": "儲存",
+  "v2.page.settings-profile-no-permission.default.content": "未經授權",
+  "v2.page.settings-profile-no-permission.default.title": "系統錯誤",
   "v2.page.settings-profile.default.address-title": "地址",
   "v2.page.settings-profile.default.birthdate-title": "出生日期",
   "v2.page.settings-profile.default.gender-title": "性別",

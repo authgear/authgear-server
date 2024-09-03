@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -40,11 +41,18 @@ func init() {
 
 var settingsProfileEditVariantToTemplate map[string]*template.HTML
 
+var TemplateSettingsProfileNoPermission = template.RegisterHTML(
+	"web/authflowv2/settings_profile_no_permission.html",
+	handlerwebapp.Components...,
+)
+
 type AuthflowV2SettingsProfileEditHandler struct {
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Renderer                 handlerwebapp.Renderer
+
+	UserProfileConfig *config.UserProfileConfig
 
 	Users       handlerwebapp.SettingsProfileEditUserService
 	StdAttrs    handlerwebapp.SettingsProfileEditStdAttrsService
@@ -68,6 +76,35 @@ func (h *AuthflowV2SettingsProfileEditHandler) GetData(r *http.Request, rw http.
 	return data, nil
 }
 
+func (h *AuthflowV2SettingsProfileEditHandler) isAttributeEditable(attributeVariant string) bool {
+	accessControl := h.UserProfileConfig.StandardAttributes.GetAccessControl().MergedWith(
+		h.UserProfileConfig.CustomAttributes.GetAccessControl(),
+	)
+
+	isEditable := func(jsonpointer string) bool {
+		level := accessControl.GetLevel(
+			accesscontrol.Subject(jsonpointer),
+			config.RoleEndUser,
+			config.AccessControlLevelHidden,
+		)
+		return level == config.AccessControlLevelReadwrite
+	}
+
+	switch attributeVariant {
+	case "name":
+		names := []string{"name", "given_name", "family_name", "middle_name", "nickname"}
+		for _, name := range names {
+			editable := isEditable("/" + name)
+			if editable {
+				return true
+			}
+		}
+		return false
+	default:
+		return isEditable("/" + attributeVariant)
+	}
+}
+
 func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
@@ -83,9 +120,17 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 		}
 
 		variant := httproute.GetParam(r, "variant")
+
 		settingsTemplate, ok := settingsProfileEditVariantToTemplate[variant]
 		if !ok {
 			h.Renderer.RenderHTML(w, r, TemplateWebNotFoundHTML, data)
+			return nil
+		}
+
+		hasPermissionToEdit := h.isAttributeEditable(variant)
+
+		if !hasPermissionToEdit {
+			h.Renderer.RenderHTML(w, r, TemplateSettingsProfileNoPermission, data)
 			return nil
 		}
 
