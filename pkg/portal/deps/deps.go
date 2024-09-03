@@ -83,6 +83,8 @@ var DependencySet = wire.NewSet(
 		"NFTIndexerAPIEndpoint",
 		"DenoEndpoint",
 		"AppHostSuffixes",
+		"UIImplementation",
+		"UISettingsImplementation",
 	),
 	wire.FieldsOf(new(*RequestProvider),
 		"RootProvider",

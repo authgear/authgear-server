@@ -20,15 +20,17 @@ type ResourceManager interface {
 }
 
 type SystemConfigProvider struct {
-	AuthgearConfig       *config.AuthgearConfig
-	AppConfig            *config.AppConfig
-	SearchConfig         *config.SearchConfig
-	Web3Config           *config.Web3Config
-	AuditLogConfig       *config.AuditLogConfig
-	AnalyticConfig       *configlib.AnalyticConfig
-	GTMConfig            *config.GoogleTagManagerConfig
-	FrontendSentryConfig *config.PortalFrontendSentryConfig
-	Resources            ResourceManager
+	AuthgearConfig                 *config.AuthgearConfig
+	AppConfig                      *config.AppConfig
+	SearchConfig                   *config.SearchConfig
+	Web3Config                     *config.Web3Config
+	AuditLogConfig                 *config.AuditLogConfig
+	AnalyticConfig                 *configlib.AnalyticConfig
+	GTMConfig                      *config.GoogleTagManagerConfig
+	FrontendSentryConfig           *config.PortalFrontendSentryConfig
+	GlobalUIImplementation         configlib.GlobalUIImplementation
+	GlobalUISettingsImplementation configlib.GlobalUISettingsImplementation
+	Resources                      ResourceManager
 }
 
 func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
@@ -48,21 +50,23 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 	}
 
 	return &model.SystemConfig{
-		AuthgearClientID:   p.AuthgearConfig.ClientID,
-		AuthgearEndpoint:   p.AuthgearConfig.Endpoint,
-		SentryDSN:          p.FrontendSentryConfig.DSN,
-		AppHostSuffix:      p.AppConfig.HostSuffix,
-		AvailableLanguages: intl.AvailableLanguages,
-		BuiltinLanguages:   intl.BuiltinLanguages,
-		Themes:             themes,
-		Translations:       translations,
-		SearchEnabled:      p.SearchConfig.Enabled,
-		Web3Enabled:        p.Web3Config.Enabled,
-		AuditLogEnabled:    p.AuditLogConfig.Enabled,
-		AnalyticEnabled:    p.AnalyticConfig.Enabled,
-		AnalyticEpoch:      analyticEpoch,
-		GitCommitHash:      strings.TrimPrefix(version.Version, "git-"),
-		GTMContainerID:     p.GTMConfig.ContainerID,
+		AuthgearClientID:         p.AuthgearConfig.ClientID,
+		AuthgearEndpoint:         p.AuthgearConfig.Endpoint,
+		SentryDSN:                p.FrontendSentryConfig.DSN,
+		AppHostSuffix:            p.AppConfig.HostSuffix,
+		AvailableLanguages:       intl.AvailableLanguages,
+		BuiltinLanguages:         intl.BuiltinLanguages,
+		Themes:                   themes,
+		Translations:             translations,
+		SearchEnabled:            p.SearchConfig.Enabled,
+		Web3Enabled:              p.Web3Config.Enabled,
+		AuditLogEnabled:          p.AuditLogConfig.Enabled,
+		AnalyticEnabled:          p.AnalyticConfig.Enabled,
+		AnalyticEpoch:            analyticEpoch,
+		GitCommitHash:            strings.TrimPrefix(version.Version, "git-"),
+		GTMContainerID:           p.GTMConfig.ContainerID,
+		UIImplementation:         string(p.GlobalUIImplementation),
+		UISettingsImplementation: string(p.GlobalUISettingsImplementation),
 	}, nil
 }
 

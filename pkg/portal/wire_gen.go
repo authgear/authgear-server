@@ -389,17 +389,22 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 	analyticConfig := rootProvider.AnalyticConfig
 	googleTagManagerConfig := rootProvider.GoogleTagManagerConfig
 	portalFrontendSentryConfig := rootProvider.PortalFrontendSentryConfig
+	environmentConfig := rootProvider.EnvironmentConfig
+	globalUIImplementation := environmentConfig.UIImplementation
+	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
 	manager := rootProvider.Resources
 	systemConfigProvider := &service.SystemConfigProvider{
-		AuthgearConfig:       authgearConfig,
-		AppConfig:            appConfig,
-		SearchConfig:         searchConfig,
-		Web3Config:           web3Config,
-		AuditLogConfig:       auditLogConfig,
-		AnalyticConfig:       analyticConfig,
-		GTMConfig:            googleTagManagerConfig,
-		FrontendSentryConfig: portalFrontendSentryConfig,
-		Resources:            manager,
+		AuthgearConfig:                 authgearConfig,
+		AppConfig:                      appConfig,
+		SearchConfig:                   searchConfig,
+		Web3Config:                     web3Config,
+		AuditLogConfig:                 auditLogConfig,
+		AnalyticConfig:                 analyticConfig,
+		GTMConfig:                      googleTagManagerConfig,
+		FrontendSentryConfig:           portalFrontendSentryConfig,
+		GlobalUIImplementation:         globalUIImplementation,
+		GlobalUISettingsImplementation: globalUISettingsImplementation,
+		Resources:                      manager,
 	}
 	filesystemCache := rootProvider.FilesystemCache
 	systemConfigHandler := &transport.SystemConfigHandler{
