@@ -23,7 +23,7 @@
     --country-input__trigger-ring-color: var(--color-neutral-500);
   }
 
-  .timezone-input__trigger {
+  .country-input__trigger {
     @apply flex justify-between items-center;
     padding: var(--country-input__trigger-padding);
     border-radius: var(--country-input__trigger-border-radius);

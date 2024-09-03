@@ -885,6 +885,8 @@
   "v2.component.button.default.label-login": "Login",
   "v2.component.button.default.label-save": "Save",
   "v2.component.button.default.label-send": "Send",
+  "v2.component.country-input.default.no-results-found": "No results found",
+  "v2.component.country-input.default.search-label": "Search",
   "v2.component.device-token-checkbox.default.label": "Remember this device, and don’t ask again",
   "v2.component.divider.default.or-label": "or",
   "v2.component.input.default.placeholder-email": "Email address",
