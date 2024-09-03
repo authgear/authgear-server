@@ -6,8 +6,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
-func GetErrorJSON(apiError *apierrors.APIError) (errJSON map[string]interface{}) {
-	errJSON = make(map[string]interface{})
+func GetErrorJSON(apiError *apierrors.APIError) (errJSON map[string]map[string]interface{}) {
+	errJSON = make(map[string]map[string]interface{})
 
 	errJSONPtrs := resolveErrJSONPtrs(apiError)
 
