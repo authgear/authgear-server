@@ -29,6 +29,8 @@ func init() {
 	str := validation.SchemaBuilder{}.
 		Type(validation.TypeString)
 
+	minLenStr := str.MinLength(1)
+
 	makeBase := func() validation.SchemaBuilder {
 		boolean := validation.SchemaBuilder{}.
 			Type(validation.TypeBoolean)
@@ -41,7 +43,7 @@ func init() {
 
 		rolesOrGroups := validation.SchemaBuilder{}.
 			Type(validation.TypeArray).
-			Items(str)
+			Items(minLenStr)
 
 		password := validation.SchemaBuilder{}.
 			Type(validation.TypeObject).
@@ -49,7 +51,7 @@ func init() {
 			Required("type", "password_hash")
 		password.Properties().
 			Property("type", validation.SchemaBuilder{}.Type(validation.TypeString).Enum("bcrypt")).
-			Property("password_hash", str).
+			Property("password_hash", minLenStr).
 			Property("expire_after", validation.SchemaBuilder{}.Type(validation.TypeString).Format("date-time"))
 
 		totp := validation.SchemaBuilder{}.
@@ -57,7 +59,7 @@ func init() {
 			AdditionalPropertiesFalse().
 			Required("secret")
 		totp.Properties().
-			Property("secret", str)
+			Property("secret", minLenStr)
 
 		mfa := validation.SchemaBuilder{}.
 			Type(validation.TypeObject).
@@ -101,7 +103,7 @@ func init() {
 	email := makeBase().
 		Required("email")
 	email.Properties().
-		Property("email", str).
+		Property("email", minLenStr).
 		Property("phone_number", nullString).
 		Property("preferred_username", nullString)
 	RecordSchemaForIdentifierEmail = email.ToSimpleSchema()
@@ -109,7 +111,7 @@ func init() {
 	phoneNumber := makeBase().
 		Required("phone_number")
 	phoneNumber.Properties().
-		Property("phone_number", str).
+		Property("phone_number", minLenStr).
 		Property("email", nullString).
 		Property("preferred_username", nullString)
 	RecordSchemaForIdentifierPhoneNumber = phoneNumber.ToSimpleSchema()
@@ -117,7 +119,7 @@ func init() {
 	preferredUsername := makeBase().
 		Required("preferred_username")
 	preferredUsername.Properties().
-		Property("preferred_username", str).
+		Property("preferred_username", minLenStr).
 		Property("email", nullString).
 		Property("phone_number", nullString)
 	RecordSchemaForIdentifierPreferredUsername = preferredUsername.ToSimpleSchema()
