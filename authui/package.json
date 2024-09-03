@@ -22,7 +22,6 @@
     "process": false
   },
   "overrides": {
-    "word-wrap": "@aashutoshrathi/word-wrap",
     "ethers": {
       "ws": "^7.5.10"
     }
