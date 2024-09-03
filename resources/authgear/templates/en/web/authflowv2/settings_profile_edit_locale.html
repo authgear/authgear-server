@@ -1,4 +1,3 @@
-{{ template "authflowv2/__html_head.html" . }}
 {{ template "authflowv2/__settings_page_frame.html" . }}
 
 {{ define "page-content" }}
@@ -11,10 +10,10 @@
 }}
 
 <form
-data-controller="turbo-form"
-data-action="submit->turbo-form#submitForm"
-class="settings-profile-editor gap-4"
-method="post">
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+  class="settings-profile-editor gap-4"
+  method="post">
   {{ $.CSRFField }}
 
   {{ if (call $.IsEditable "/locale") }}

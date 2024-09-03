@@ -5,15 +5,15 @@
 <!-- NOTE: Use class="hidden" here for noscript,
 this will be reverted during connect() in localeInput.ts -->
 <div
-data-controller="custom-select body-scroll-lock locale-input"
-data-locale-input-target="localeSelect"
-data-action="custom-select:initialized->locale-input#handleLocaleSelectInitialized custom-select:open->body-scroll-lock#lock custom-select:close->body-scroll-lock#unlock"
-class="w-full hidden"
-data-locale-input-languages-json="{{ toJson $.Languages }}"
-data-custom-select-options-value="[         {{/* TODO: Please take a careful look at the Not provided span over here ↓ */}}
-{{if not $.Locale}}{&quot;searchLabel&quot;:&quot;{{/* TODO: WHAT GOES HERE???? */}}&quot;,&quot;label&quot;:&quot;<span class='locale-input__error-label'>{{ $notProvided }}</span>&quot;,&quot;value&quot;:&quot;&quot;},{{end}}
-{{ range $index, $element := $.Languages }}{{if $index}},{{end}}{&quot;searchLabel&quot;:&quot;{{/* TODO: WHAT GOES HERE???? */}}&quot;,&quot;label&quot;:&quot;{{ title ($.Translations.RenderText (print "language-" $element) nil) }}&quot;,&quot;value&quot;:&quot;{{ $element }}&quot;}{{ end }}
-]"
+    data-controller="custom-select body-scroll-lock locale-input"
+    data-locale-input-target="localeSelect"
+    data-action="custom-select:initialized->locale-input#handleLocaleSelectInitialized custom-select:open->body-scroll-lock#lock custom-select:close->body-scroll-lock#unlock"
+    class="w-full hidden"
+    data-locale-input-languages-json="{{ toJson $.Languages }}"
+    data-custom-select-options-value="[         {{/* TODO: Please take a careful look at the Not provided span over here ↓ */}}
+    {{if not $.Locale}}{&quot;searchLabel&quot;:&quot;{{/* TODO: WHAT GOES HERE???? */}}&quot;,&quot;label&quot;:&quot;<span class='locale-input__error-label'>{{ $notProvided }}</span>&quot;,&quot;value&quot;:&quot;&quot;},{{end}}
+    {{ range $index, $element := $.Languages }}{{if $index}},{{end}}{&quot;searchLabel&quot;:&quot;{{/* TODO: WHAT GOES HERE???? */}}&quot;,&quot;label&quot;:&quot;{{ title ($.Translations.RenderText (print "language-" $element) nil) }}&quot;,&quot;value&quot;:&quot;{{ $element }}&quot;}{{ end }}
+    ]"
 >
     <!-- NOTE(tung): Use type="text" here,
         because browser will not restore value of input with type="hidden" on back -->
@@ -106,13 +106,13 @@ data-custom-select-options-value="[         {{/* TODO: Please take a careful loo
     because browser will not restore value of input with type="hidden" on back.
     Late apply class="hidden" during connect() in localeInput.ts for noscript -->
     <input
-    type="text"
-    class="input w-full"
-    name="/locale"
-    value="{{ .Locale }}"
-    data-locale-input-target="input"
-    placeholder="{{ $.PlaceholderWithExample }}"
-    {{ if $.InputAttrs }}{{ htmlattr $.InputAttrs }}{{ end }}
+        type="text"
+        class="input w-full"
+        name="/locale"
+        value="{{ .Locale }}"
+        data-locale-input-target="input"
+        placeholder="{{ $.PlaceholderWithExample }}"
+        {{ if $.InputAttrs }}{{ htmlattr $.InputAttrs }}{{ end }}
     />
 </div>
 
