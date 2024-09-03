@@ -14,6 +14,7 @@ import { AppLogoResource, BranchDesignFormState, TranslationKey } from "./form";
 export type PreviewPageType =
   | "Login"
   | "SignUp"
+  | "LoginAndSignUp"
   | "EnterPassword"
   | "EnterOOBOTP"
   | "UsePasskey"
@@ -29,6 +30,7 @@ interface PreviewPageOption {
 const PreviewPage: Record<PreviewPageType, string> = {
   Login: "preview/login",
   SignUp: "preview/signup",
+  LoginAndSignUp: "preview/login",
   EnterPassword: "preview/authflow/v2/enter_password",
   EnterOOBOTP: "preview/authflow/v2/enter_oob_otp",
   UsePasskey: "preview/authflow/v2/use_passkey",
@@ -43,9 +45,13 @@ export function getSupportedPreviewPagesFromConfig(
 ): PreviewPageOption[] {
   const pages: PreviewPageOption[] = [];
 
-  pages.push({ key: "Login", screen: PreviewPage.Login }); // Login page is always there
-  pages.push({ key: "SignUp", screen: PreviewPage.SignUp }); // SignUp page is always there
- 
+  if (config.ui?.signup_login_flow_enabled) {
+    pages.push({ key: "LoginAndSignUp", screen: PreviewPage.LoginAndSignUp }); // Combined Login and SignUp page
+  } else {
+    pages.push({ key: "Login", screen: PreviewPage.Login }); // Login page is always there
+    pages.push({ key: "SignUp", screen: PreviewPage.SignUp }); // SignUp page is always there
+  }
+
   if (
     config.authentication?.primary_authenticators?.includes("oob_otp_sms") ||
     (config.authentication?.primary_authenticators?.includes("oob_otp_email") &&
