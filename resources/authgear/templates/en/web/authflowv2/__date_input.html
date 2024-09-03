@@ -12,11 +12,9 @@
 
 <input 
 type="date"
-class="date-input__trigger" 
+class="input" 
 name="{{ .Name }}"
 value="{{ .Value }}"
-data-date-input-target="input" 
-data-action="input->date-input#updateLabel"
 {{ if .Min }} max="{{ .Max }}" {{ end }}
 {{ if .Max }} max="{{ .Max }}" {{ end }}>
 
