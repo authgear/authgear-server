@@ -60,7 +60,7 @@ import styles from "./DesignScreen.module.css";
 import { useAppAndSecretConfigQuery } from "../query/appAndSecretConfigQuery";
 import { PortalAPIAppConfig } from "../../../types";
 import {
-  PreviewPage,
+  PreviewPageType,
   getSupportedPreviewPagesFromConfig,
   mapDesignFormStateToPreviewCustomisationMessage,
 } from "./viewModel";
@@ -827,14 +827,14 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
   );
 
   const [selectedPreviewPage, setSelectedPreviewPage] = useState(
-    () => supportedPreviewPages[0]
+    () => supportedPreviewPages[0].screen
   );
 
   const previewPageOptions = useMemo((): IDropdownOption[] => {
     return supportedPreviewPages.map(
       (page): IDropdownOption => ({
-        key: page,
-        text: renderToString(`DesignScreen.preview.pages.title.${page}`),
+        key: page.screen,
+        text: renderToString(`DesignScreen.preview.pages.title.${page.key}`),
       })
     );
   }, [supportedPreviewPages, renderToString]);
@@ -843,7 +843,7 @@ const Preview: React.VFC<PreviewProps> = function Preview(props) {
       if (option == null) {
         return;
       }
-      setSelectedPreviewPage(option.key as PreviewPage);
+      setSelectedPreviewPage(option.key as PreviewPageType);
     },
     []
   );
