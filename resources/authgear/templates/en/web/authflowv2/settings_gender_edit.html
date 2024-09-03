@@ -3,7 +3,7 @@
 {{ define "page-content" }}
 
 {{ template "authflowv2/__navbar.html" (dict
-  "Title" (include "v2.page.settings-profile-edit.default.title-gender" nil )
+  "Title" (include "v2.page.settings-profile-edit-gender.default.title-gender" nil )
   "BackTitle" (include "v2.component.navbar.default.item-back-button-label" nil )
   "BackHref" (call $.MakeURL "/settings/profile")
   )
@@ -21,7 +21,7 @@
     {{ $.CSRFField }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
-        "Label" (include "v2.page.settings-profile-edit.default.button-label-not-provided" nil)
+        "Label" (include "v2.page.settings-profile-edit-gender.default.button-label-not-provided" nil)
         "Name" "gender-select"
         "Value" ""
         "DefaultChecked" ( not $.Gender )
@@ -29,7 +29,7 @@
     }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
-        "Label" (include "v2.page.settings-profile-edit.default.button-label-gender-female" nil)
+        "Label" (include "v2.page.settings-profile-edit-gender.default.button-label-gender-female" nil)
         "Name" "gender-select"
         "Value" "female"
         "DefaultChecked" ( eq $.Gender "female")
@@ -37,7 +37,7 @@
     }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
-        "Label" (include "v2.page.settings-profile-edit.default.button-label-gender-male" nil)
+        "Label" (include "v2.page.settings-profile-edit-gender.default.button-label-gender-male" nil)
         "Name" "gender-select"
         "Value" "male"
         "DefaultChecked" ( eq $.Gender "male")
@@ -50,7 +50,7 @@
     {{ end }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
-        "Label" (include "v2.page.settings-profile-edit.default.button-label-custom" nil)
+        "Label" (include "v2.page.settings-profile-edit-gender.default.button-label-custom" nil)
         "Name" "gender-select"
         "Value" "other"
         "ExtraContentOnChecked" (include "__settings_gender_edit_custom_gender_input" .)
@@ -67,7 +67,7 @@
     value="save"
     data-authgear-event="authgear.button.update_profile"
   >
-    {{ template "v2.page.settings-profile-edit.default.button-label-save" }}
+    {{ template "v2.page.settings-profile-edit-gender.default.button-label-save" }}
   </button>
 </form>
 
