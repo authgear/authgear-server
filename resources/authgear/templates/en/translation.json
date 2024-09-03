@@ -1107,6 +1107,7 @@
   "v2.page.select-account.default.description": "You have logged in with {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Proceed to continue.",
   "v2.page.select-account.default.title": "Log in to {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Use another account",
+  "v2.page.settings-profile-edit-name.default.navbar-title": "Name",
   "v2.page.settings-profile-edit.default.button-label-custom": "Custom",
   "v2.page.settings-profile-edit.default.button-label-gender-female": "Female",
   "v2.page.settings-profile-edit.default.button-label-gender-male": "Male",
