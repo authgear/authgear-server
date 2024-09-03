@@ -10,5 +10,28 @@
 {{ end }}
 
 {{ define "page-content" }}
-Edit address
+<form
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+  class="flex flex-col settings-content gap-y-8"
+  method="post"
+>
+  {{ $.CSRFField }}
+
+  {{ template "authflowv2/__country_input.html"
+    (dict
+      "Alpha2" $.Alpha2
+      "Name" "/address/country"
+      "Value" $.AddressCountry
+    )
+  }}
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    value="save"
+  >
+  {{ translate "v2.page.settings-profile-edit.default.save-button-label" . }}
+  </button>
 {{ end }}
