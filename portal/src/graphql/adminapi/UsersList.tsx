@@ -335,17 +335,18 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
   }, []);
   const renderActionCell = useCallback(
     (item: UserListItem) => {
-      let variant: "destructive" | "default";
+      let variant: "destructive" | "default" | "no-action";
       let text = "";
       if (item.deleteAt != null) {
         variant = "default";
         text = renderToString("UsersList.cancel-removal");
+      } else if (item.isAnonymized) {
+        // This condition should precede isDisabled
+        variant = "no-action";
+        text = "-";
       } else if (item.isDisabled) {
         variant = "default";
         text = renderToString("UsersList.reenable-user");
-      } else if (item.isAnonymized) {
-        variant = "destructive";
-        text = "";
       } else if (item.anonymizeAt != null) {
         variant = "destructive";
         text = renderToString("UsersList.cancel-anonymization");
