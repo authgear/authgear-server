@@ -1113,6 +1113,7 @@
   "v2.page.select-account.default.description": "您正在使用 {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}} 登入。",
   "v2.page.select-account.default.title": "登入 {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "使用另一個帳號",
+  "v2.page.settings-profile-edit-address.default.navbar-title": "地址",
   "v2.page.settings-profile-edit-birthdate.default.navbar-title": "出生日期",
   "v2.page.settings-profile-edit-gender.default.button-label-custom": "自訂",
   "v2.page.settings-profile-edit-gender.default.button-label-gender-female": "女性",

@@ -1,0 +1,14 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+{{ template "authflowv2/__navbar.html"
+  (dict
+    "BackHref" (call $.MakeURL "/settings/profile")
+    "Title" (translate "v2.page.settings-profile-edit-address.default.navbar-title" nil)
+  )
+}}
+{{ end }}
+
+{{ define "page-content" }}
+Edit address
+{{ end }}
