@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -65,13 +66,23 @@ type AuthenticatorService interface {
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
 }
 
+type AuthenticationInfoService interface {
+	Save(entry *authenticationinfo.Entry) error
+}
+
+type SettingsDeleteAccountSuccessUIInfoResolver interface {
+	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
+}
+
 type Service struct {
-	Database       *appdb.Handle
-	Store          Store
-	OAuthProvider  OAuthProvider
-	Identities     IdentityService
-	Events         EventService
-	Authenticators AuthenticatorService
+	Database                  *appdb.Handle
+	Store                     Store
+	OAuthProvider             OAuthProvider
+	Identities                IdentityService
+	Events                    EventService
+	Authenticators            AuthenticatorService
+	AuthenticationInfoService AuthenticationInfoService
+	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
 }
 
 func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
@@ -200,14 +211,15 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 
 type ChangePasswordInput struct {
 	Session        session.ResolvedSession
-	OauthSessionID string
+	OAuthSessionID string
+	RedirectURI    string
 	OldPassword    string
 	NewPassword    string
 }
 
 // If have OauthSessionID, it means the user is changing password after login with SDK.
 // Then do special handling such as authenticationINFO
-func (s *Service) ChangePassword(input *ChangePasswordInput) error {
+func (s *Service) ChangePassword(input *ChangePasswordInput) (string, error) {
 	userID := input.Session.GetAuthenticationInfo().UserID
 
 	ais, err := s.Authenticators.List(
@@ -216,11 +228,11 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) error {
 		authenticator.KeepKind(authenticator.KindPrimary),
 	)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if len(ais) == 0 {
-		return api.ErrNoPassword
+		return "", api.ErrNoPassword
 	}
 
 	oldInfo := ais[0]
@@ -232,7 +244,7 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) error {
 	}, nil)
 	if err != nil {
 		err = api.ErrInvalidCredentials
-		return err
+		return "", err
 	}
 
 	changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
@@ -241,13 +253,23 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) error {
 		SetExpireAfter: true,
 	})
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	if changed {
 		s.Authenticators.Update(newInfo)
 	}
 
-	return nil
+	redirectURI := input.RedirectURI
+
+	// If is changing password with SDK.
+	if input.OAuthSessionID != "" {
+		authInfo := input.Session.GetAuthenticationInfo()
+		authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
+		s.AuthenticationInfoService.Save(authenticationInfoEntry)
+		redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
+	}
+
+	return redirectURI, nil
 
 }

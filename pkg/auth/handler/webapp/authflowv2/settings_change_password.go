@@ -98,21 +98,29 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 			return err
 		}
 
-		Session := session.GetSession(r.Context())
+		s := session.GetSession(r.Context())
+
+		webappSession := webapp.GetSession(r.Context())
+		var oAuthSessionID string
+		if webappSession != nil {
+			oAuthSessionID = webappSession.OAuthSessionID
+		}
+		redirectURI := ctrl.SettingV2RedirectURI(webappSession, "/settings")
 
 		input := &accountmanagement.ChangePasswordInput{
-			Session:        Session,
-			OauthSessionID: "",
+			Session:        s,
+			OAuthSessionID: oAuthSessionID,
+			RedirectURI:    redirectURI,
 			OldPassword:    oldPassword,
 			NewPassword:    newPassword,
 		}
 
-		err = h.AccountmanagementService.ChangePassword(input)
+		redirectURI, err = h.AccountmanagementService.ChangePassword(input)
 		if err != nil {
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: ctrl.RedirectURI()}
+		result := webapp.Result{RedirectURI: redirectURI}
 		result.WriteResponse(w, r)
 		return nil
 	})

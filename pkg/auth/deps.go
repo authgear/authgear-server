@@ -244,6 +244,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(authenticationflow.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(accountmanagement.RateLimitMiddlewareJSONResponseWriter), new(*httputil.JSONResponseWriter)),
+	wire.Bind(new(accountmanagement.SettingsDeleteAccountSuccessUIInfoResolver), new(*authenticationinfo.UIService)),
 
 	wire.Bind(new(handlerwebapp.PanicMiddlewareUIImplementationService), new(*web.UIImplementationService)),
 	wire.Bind(new(handlerwebapp.CSRFMiddlewareUIImplementationService), new(*web.UIImplementationService)),
