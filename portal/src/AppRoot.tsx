@@ -9,6 +9,7 @@ import ShowLoading from "./ShowLoading";
 import CookieLifetimeConfigurationScreen from "./graphql/portal/CookieLifetimeConfigurationScreen";
 import { useUnauthenticatedDialogContext } from "./components/auth/UnauthenticatedDialogContext";
 import EditConfigurationScreen from "./graphql/portal/EditConfigurationScreen";
+import { useUIImplementation } from "./hook/useUIImplementation";
 
 const RolesScreen = lazy(async () => import("./graphql/adminapi/RolesScreen"));
 const AddRoleScreen = lazy(
@@ -179,6 +180,10 @@ const AppRoot: React.VFC = function AppRoot() {
   const { effectiveAppConfig, loading, error } =
     useAppAndSecretConfigQuery(appID);
 
+  const uiImplementation = useUIImplementation(
+    effectiveAppConfig?.ui?.implementation
+  );
+
   if (loading) {
     return <ShowLoading />;
   }
@@ -192,7 +197,7 @@ const AppRoot: React.VFC = function AppRoot() {
     return <Navigate to="/projects" replace={true} />;
   }
 
-  const useAuthUIV2 = effectiveAppConfig?.ui?.implementation === "authflowv2";
+  const useAuthUIV2 = uiImplementation === "authflowv2";
 
   return (
     <ApolloProvider client={client}>

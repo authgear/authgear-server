@@ -18,6 +18,8 @@ export interface SystemConfig {
   analyticEnabled: boolean;
   analyticEpoch: string;
   gtmContainerID: string;
+  uiImplementation: string;
+  uiSettingsImplemenation: string;
 }
 
 export interface SystemConfigThemes {
@@ -268,5 +270,7 @@ export function instantiateSystemConfig(
     analyticEnabled: config.analyticEnabled ?? false,
     analyticEpoch: config.analyticEpoch ?? "",
     gtmContainerID: config.gtmContainerID ?? "",
+    uiImplementation: config.uiImplementation ?? "interaction",
+    uiSettingsImplemenation: config.uiSettingsImplemenation ?? "v1",
   };
 }
