@@ -2,25 +2,28 @@
 {{ template "authflowv2/__settings_radio.html"
   (dict
     "Label" (include "some-key" nil)
-    "RadioName" "gender-select"
-    "RadioValue" "other"
+    "Name" "gender-select"
+    "Value" "other"
     "CustomHTML" (include "custom_input" .)
     "DefaultChecked" true
   )
 }}
 -->
 {{ define "authflowv2/__settings_radio.html" }}
-<div class="radio-label">
 
-  <label for={{ $.RadioValue }}>
+{{ $inputID := (printf "radio-%s-%s" $.Name $.Value) }}
+
+<div class="settings-radio__container">
+  <label for="{{ $inputID }}">
     {{ $.Label }}
   </label>
 
   <input
+    id="{{$inputID}}"
     type="radio"
-    class="radio"
-    name="{{ $.RadioName }}"
-    value="{{ $.RadioValue }}"
+    class="settings-radio"
+    name="{{ $.Name }}"
+    value="{{ $.Value }}"
     {{ if $.DefaultChecked }}checked{{end}}
   >
 
