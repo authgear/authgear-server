@@ -1,0 +1,39 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+{{ template "authflowv2/__navbar.html"
+  (dict
+    "BackHref" (call $.MakeURL "/settings/profile")
+    "Title" (translate "v2.page.settings-profile-edit-birthdate.default.navbar-title" nil)
+  )
+}}
+{{ end }}
+
+{{ define "page-content" }}
+<form
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+  class="flex flex-col settings-content gap-y-8"
+  method="post"
+>
+  {{ $.CSRFField }}
+
+  {{ template "authflowv2/__date_input.html"
+    (dict
+      "Name" "/birthdate"
+      "Value" .Birthdate
+      "Max" .Today
+    )
+  }}
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    value="save"
+  >
+  {{ translate "v2.page.settings-profile-edit.default.save-button-label" . }}
+  </button>
+</form>
+
+{{ end }}
