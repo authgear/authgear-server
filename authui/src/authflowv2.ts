@@ -50,6 +50,7 @@ import { BotProtectionStandalonePageController } from "./authflowv2/botprotectio
 import { ImagePickerController } from "./imagepicker";
 import { LocaleInputController } from "./authflowv2/localeInput";
 import { TimezoneInput } from "./authflowv2/timezoneInput";
+import { CountryInputController } from "./authflowv2/countryInput";
 
 axios.defaults.withCredentials = true;
 
@@ -135,5 +136,6 @@ Stimulus.register("recaptcha-v2", RecaptchaV2Controller);
 Stimulus.register("bot-protection", BotProtectionController);
 Stimulus.register("bot-protection-dialog", BotProtectionDialogController);
 Stimulus.register("timezone-input", TimezoneInput);
+Stimulus.register("country-input", CountryInputController);
 
 injectCSSAttrs(document.documentElement);
