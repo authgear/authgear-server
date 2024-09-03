@@ -53,7 +53,7 @@
         "Label" (include "v2.page.settings-profile-edit.default.button-label-custom" nil)
         "Name" "gender-select"
         "Value" "other"
-        "CustomHTML" (include "custom_input" .)
+        "ExtraContentOnChecked" (include "__settings_gender_edit_custom_gender_input" .)
         "DefaultChecked" $defaultChecked
       )
     }}
@@ -73,10 +73,12 @@
 
 {{ end }}
 
-{{ define "custom_input" }}
-<input
-  class="input radio-input col-span-2"
-  name="gender-input"
-  value="{{ $.Gender }}"
->
+{{ define "__settings_gender_edit_custom_gender_input" }}
+<div>
+  <input
+    class="input w-full"
+    name="gender-input"
+    value="{{ $.Gender }}"
+  >
+</div>
 {{ end }}

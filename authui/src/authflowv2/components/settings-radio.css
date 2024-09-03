@@ -60,11 +60,12 @@
       var(--settings-radio__bg-color);
   }
 
-  .radio-input {
+  .settings-radio__extra-content {
     @apply hidden;
+    @apply col-span-2;
   }
 
-  .radio:checked ~ .radio-input {
+  .settings-radio:checked ~ .settings-radio__extra-content {
     @apply block;
   }
 }
