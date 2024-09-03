@@ -48,9 +48,7 @@ import { BotProtectionDialogController } from "./authflowv2/botprotection/botPro
 import { DialogController } from "./authflowv2/dialog";
 import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
 import { ImagePickerController } from "./imagepicker";
-import { LocaleInputController } from "./authflowv2/localeInput";
-import { TimezoneInputController } from "./authflowv2/timezoneInput";
-import { CountryInputController } from "./authflowv2/countryInput";
+import { SelectInputController } from "./authflowv2/selectInput";
 
 axios.defaults.withCredentials = true;
 
@@ -91,7 +89,6 @@ Stimulus.register("password-policy", PasswordPolicyController);
 Stimulus.register("password-strength-meter", PasswordStrengthMeterController);
 Stimulus.register("custom-select", CustomSelectController);
 Stimulus.register("phone-input", PhoneInputController);
-Stimulus.register("locale-input", LocaleInputController);
 Stimulus.register("countdown", CountdownController);
 Stimulus.register("copy-button", CopyButtonController);
 Stimulus.register("image-picker", ImagePickerController);
@@ -135,7 +132,6 @@ Stimulus.register("cloudflare-turnstile", CloudflareTurnstileController);
 Stimulus.register("recaptcha-v2", RecaptchaV2Controller);
 Stimulus.register("bot-protection", BotProtectionController);
 Stimulus.register("bot-protection-dialog", BotProtectionDialogController);
-Stimulus.register("timezone-input", TimezoneInputController);
-Stimulus.register("country-input", CountryInputController);
+Stimulus.register("select-input", SelectInputController);
 
 injectCSSAttrs(document.documentElement);
