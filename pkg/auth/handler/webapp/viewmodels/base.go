@@ -62,6 +62,7 @@ type BaseViewModel struct {
 	MakeCurrentStepURL    func(pairs ...string) string
 	RawError              *apierrors.APIError
 	Error                 interface{}
+	ErrorJSON             map[string]interface{}
 	SessionStepURLs       []string
 	ForgotPasswordEnabled bool
 	PublicSignupDisabled  bool
@@ -103,12 +104,19 @@ func (m *BaseViewModel) SetError(err error) {
 		if err != nil {
 			panic(err)
 		}
-		var eJSON map[string]interface{}
+
+		var eJSON map[string]map[string]interface{}
+		var eJSONError map[string]interface{}
 		err = json.Unmarshal(b, &eJSON)
 		if err != nil {
 			panic(err)
 		}
-		m.Error = eJSON["error"]
+		eJSONError = eJSON["error"]
+		m.Error = eJSONError
+		errJSONPtrs := ResolveErrJSONPtrs(apiError)
+		for _, errJSONPtr := range errJSONPtrs {
+			m.ErrorJSON[errJSONPtr] = eJSONError
+		}
 		m.RawError = apiError
 	}
 }
@@ -315,6 +323,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 
 			return ""
 		},
+		ErrorJSON: make(map[string]interface{}), // initialize error json as empty map
 	}
 
 	if errorState, ok := m.ErrorService.PopError(rw, r); ok {
