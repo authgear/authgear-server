@@ -49,7 +49,7 @@ import { DialogController } from "./authflowv2/dialog";
 import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
 import { ImagePickerController } from "./imagepicker";
 import { LocaleInputController } from "./authflowv2/localeInput";
-import { TimezoneInput } from "./authflowv2/timezoneInput";
+import { TimezoneInputController } from "./authflowv2/timezoneInput";
 import { CountryInputController } from "./authflowv2/countryInput";
 
 axios.defaults.withCredentials = true;
@@ -135,7 +135,7 @@ Stimulus.register("cloudflare-turnstile", CloudflareTurnstileController);
 Stimulus.register("recaptcha-v2", RecaptchaV2Controller);
 Stimulus.register("bot-protection", BotProtectionController);
 Stimulus.register("bot-protection-dialog", BotProtectionDialogController);
-Stimulus.register("timezone-input", TimezoneInput);
+Stimulus.register("timezone-input", TimezoneInputController);
 Stimulus.register("country-input", CountryInputController);
 
 injectCSSAttrs(document.documentElement);

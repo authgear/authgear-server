@@ -16,7 +16,6 @@
       )
       /* 14 / 16 ratio to font size */;
     --timezone-input__trigger-padding: 1em;
-    --timezone-input__trigger-width: 21.5625rem;
   }
 
   :root.dark {
@@ -26,8 +25,6 @@
 
   .timezone-input__trigger {
     @apply flex justify-between items-center;
-    width: var(--timezone-input__trigger-width);
-    max-width: 100%;
     padding: var(--timezone-input__trigger-padding);
     border-radius: var(--timezone-input__trigger-border-radius);
     @apply ring-inset
