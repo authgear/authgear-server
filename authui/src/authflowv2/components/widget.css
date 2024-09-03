@@ -49,6 +49,7 @@
 
   .widget-content.widget-content--settings {
     @apply px-6 py-6;
+    @apply gap-y-5 tablet:gap-y-8;
     max-width: var(--widget__max-width--settings);
   }
 

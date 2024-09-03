@@ -43,9 +43,10 @@
 {{ define "widget" }}
   <div class="widget widget--settings">
     <div class="widget-content widget-content--settings">
+      {{ block "page-navbar" . }}
+      {{ end }}
       {{ template "page-content" . }}
       {{ template "authflowv2/__lockout.html" . }}
     </div>
   </div>
 {{ end }}
-
