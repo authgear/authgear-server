@@ -17,12 +17,11 @@
   </label>
 
   <input
-  type="radio"
-  class="radio"
-  id={{ $.RadioValue }}
-  name="{{ $.RadioName }}"
-  value="{{ $.RadioValue }}"
-  {{ if $.DefaultChecked }}checked{{end}}
+    type="radio"
+    class="radio"
+    name="{{ $.RadioName }}"
+    value="{{ $.RadioValue }}"
+    {{ if $.DefaultChecked }}checked{{end}}
   >
 
   {{ $.CustomHTML }}
