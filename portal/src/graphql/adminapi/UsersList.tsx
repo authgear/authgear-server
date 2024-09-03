@@ -344,12 +344,14 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
         // This condition should precede isDisabled
         variant = "no-action";
         text = "-";
+      } else if (item.anonymizeAt != null) {
+        // This condition should precede isDisabled
+        // This condition takes place when the scheduled anonymization is not yet triggered
+        variant = "destructive";
+        text = renderToString("UsersList.cancel-anonymization");
       } else if (item.isDisabled) {
         variant = "default";
         text = renderToString("UsersList.reenable-user");
-      } else if (item.anonymizeAt != null) {
-        variant = "destructive";
-        text = renderToString("UsersList.cancel-anonymization");
       } else {
         variant = "destructive";
         text = renderToString("UsersList.disable-user");
