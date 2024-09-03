@@ -322,6 +322,15 @@ Given `bot_protection.enabled=true`,
                 </ul>
               </ul>
             </li>
+            <li>
+              <code>signup_login</code>
+              <ul>
+                <li><code>identify</code></li>
+                <ul>
+                  <li><code>email</code></li>
+                </ul>
+              </ul>
+            </li>
           </ol>
       </td>
    </tr>
@@ -357,6 +366,15 @@ Given `bot_protection.enabled=true`,
                 <ul>
                   <li><code>primary_oob_otp_sms</code></li>
                   <li><code>secondary_oob_otp_sms</code></li>
+                </ul>
+              </ul>
+            </li>
+            <li>
+              <code>signup_login</code>
+              <ul>
+                <li><code>identify</code></li>
+                <ul>
+                  <li><code>phone</code></li>
                 </ul>
               </ul>
             </li>

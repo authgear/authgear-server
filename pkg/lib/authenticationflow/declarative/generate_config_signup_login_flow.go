@@ -60,11 +60,21 @@ func generateSignupLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config
 		switch {
 		case keyConfig.Type == model.LoginIDKeyTypeEmail && !email:
 			email = true
-			output = append(output, newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationEmail))
+			oneOf := newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationEmail)
+			// Add bot protection to identify step if bot_protection.requirements.oob_otp_email is required
+			if bp, ok := getBotProtectionRequirementsOOBOTPEmail(cfg); ok {
+				oneOf.BotProtection = bp
+			}
+			output = append(output, oneOf)
 
 		case keyConfig.Type == model.LoginIDKeyTypePhone && !phone:
 			phone = true
-			output = append(output, newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationPhone))
+			oneOf := newSignupLoginFlowOneOf(config.AuthenticationFlowIdentificationPhone)
+			// Add bot protection to identify step if bot_protection.requirements.oob_otp_sms is required
+			if bp, ok := getBotProtectionRequirementsOOBOTPSMS(cfg); ok {
+				oneOf.BotProtection = bp
+			}
+			output = append(output, oneOf)
 
 		case keyConfig.Type == model.LoginIDKeyTypeUsername && !username:
 			username = true
@@ -74,7 +84,11 @@ func generateSignupLoginFlowStepIdentifyLoginID(cfg *config.AppConfig) []*config
 
 	if bp, ok := getBotProtectionRequirementsSignupOrLogin(cfg); ok {
 		for _, oneOf := range output {
-			oneOf.BotProtection = bp
+			if oneOf.BotProtection == nil {
+				oneOf.BotProtection = bp
+			} else {
+				oneOf.BotProtection = config.GetStrictestAuthFlowBotProtection(bp, oneOf.BotProtection)
+			}
 		}
 	}
 
