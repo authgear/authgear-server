@@ -1132,6 +1132,8 @@
   "v2.page.settings-profile-edit-zoneinfo.default.save-button-label": "Save",
   "v2.page.settings-profile-edit.default.not-provided-label": "Not provided",
   "v2.page.settings-profile-edit.default.save-button-label": "Save",
+  "v2.page.settings-profile-no-permission.default.content": "Not authorized",
+  "v2.page.settings-profile-no-permission.default.title": "Unexpected Issues",
   "v2.page.settings-profile.default.address-title": "Address",
   "v2.page.settings-profile.default.birthdate-title": "Birthdate",
   "v2.page.settings-profile.default.gender-title": "Gender",
