@@ -1164,6 +1164,7 @@
   "v2.page.settings.default.description-my-account": "這是登入您的帳戶的方法",
   "v2.page.settings.default.description-security": "這些可用於確保確實是您在登入",
   "v2.page.settings.default.link-label-edit-profile": "更改個人資料",
+  "v2.page.settings.default.title-change-password": "更改密碼",
   "v2.page.settings.default.title-my-account": "我的帳戶",
   "v2.page.settings.default.title-security": "安全",
   "v2.page.setup-oob-otp.default.title": "雙重驗證",
