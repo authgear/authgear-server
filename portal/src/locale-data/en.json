@@ -672,7 +672,7 @@
   "VerificationConfigurationScreen.verification.phone.allowed.label": "Allow users to verify their phone number from the setting page",
   "VerificationConfigurationScreen.verification.phone-sms.daily-sms-limit.label": "Daily 6-digit OTP limit per phone number (leave blank to turn off limit)",
   "VerificationConfigurationScreen.verification.phoneNumber.verify-by.label": "Verify phone number by",
-  "VerificationConfigurationScreen.verification.resend-cooldown.label": "Resend Cooldown Duration",
+  "VerificationConfigurationScreen.verification.resend-cooldown.label": "Resend Cooldown Duration (seconds)",
   "VerificationConfigurationScreen.verification.daily-limit.label": "Daily 6-digit OTP limit per user (leave blank to turn off limit)",
 
   "AnonymousUsersConfigurationScreen.title": "Anonymous Users",
