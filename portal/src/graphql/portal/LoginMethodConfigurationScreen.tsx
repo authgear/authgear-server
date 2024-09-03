@@ -125,6 +125,7 @@ import {
   LocalValidationError,
   makeLocalValidationError,
 } from "../../error/validation";
+import { useUIImplementation } from "../../hook/useUIImplementation";
 
 function splitByNewline(text: string): string[] {
   return text
@@ -3114,7 +3115,7 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
     const { renderToString } = useContext(Context);
 
     const {
-      uiImplementation,
+      uiImplementation: projectUIImplementation,
       identitiesControl,
       primaryAuthenticatorsControl,
       loginIDKeyConfigsControl,
@@ -3311,6 +3312,8 @@ const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContent
       },
       [setState]
     );
+
+    const uiImplementation = useUIImplementation(projectUIImplementation);
 
     return (
       <ScreenContent>

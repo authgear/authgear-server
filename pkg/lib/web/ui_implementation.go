@@ -39,6 +39,7 @@ func (s *UIImplementationService) GetUIImplementation() config.UIImplementation 
 		default:
 			// The ultimate default is still interaction.
 			// It is expected that the deployment set it to authflowv2 during the transition period.
+			// When you change this, you also need to change portal/src/system-config.ts
 			return config.UIImplementationInteraction
 		}
 	}
@@ -61,6 +62,7 @@ func (s *UIImplementationService) GetSettingsUIImplementation() config.SettingsU
 		default:
 			// The ultimate default is still v1
 			// It is expected that the deployment set it to v1 during the transition period.
+			// When you change this, you also need to change portal/src/system-config.ts
 			return config.SettingsUIImplementationV1
 		}
 	}
