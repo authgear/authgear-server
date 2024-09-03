@@ -78,7 +78,9 @@ const BLOCKING_EVENT_NAME_TO_TYPE_NAME: Record<string, string | undefined> = {
   "oidc.jwt.pre_create": "EventOIDCJWTPreCreate",
 };
 
-const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.land/x/authgear_deno_hook@v1.3.0/mod.ts";
+const authgear_deno_hook_version = "v1.4.0";
+
+const DENOHOOK_NONBLOCKING_DEFAULT = `import { HookEvent } from "https://deno.land/x/authgear_deno_hook@${authgear_deno_hook_version}/mod.ts";
 
 export default async function(e: HookEvent): Promise<void> {
   // Write your hook with the help of the type definition.
@@ -101,7 +103,7 @@ export default async function(e: HookEvent): Promise<void> {
 
 function makeDefaultDenoHookBlockingScript(event: string): string {
   const typeName = BLOCKING_EVENT_NAME_TO_TYPE_NAME[event] ?? "HookEvent";
-  return `import { ${typeName}, HookResponse } from "https://deno.land/x/authgear_deno_hook@v1.3.0/mod.ts";
+  return `import { ${typeName}, HookResponse } from "https://deno.land/x/authgear_deno_hook@${authgear_deno_hook_version}/mod.ts";
 
 export default async function(e: ${typeName}): Promise<HookResponse> {
   // Write your hook with the help of the type definition.
