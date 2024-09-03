@@ -4,8 +4,8 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("./icons/Twemoji.Mozilla-subset.woff2") format("woff2"),
-    url("./icons/Twemoji.Mozilla-subset.ttf") format("truetype");
+  src: url("./Twemoji.Mozilla-subset.woff2") format("woff2"),
+    url("./Twemoji.Mozilla-subset.ttf") format("truetype");
 }
 
 .twemoji-countries {
@@ -35,8 +35,8 @@
 @supports (-webkit-appearance: none) and (stroke-color: transparent) {
   @font-face {
     font-family: "twemoji-countries";
-    src: url("./icons/twemoji-color-subset.woff2") format("woff2"),
-      url("./icons/twemoji-color-subset.ttf") format("truetype");
+    src: url("./twemoji-color-subset.woff2") format("woff2"),
+      url("./twemoji-color-subset.ttf") format("truetype");
   }
 
   .twemoji-countries {

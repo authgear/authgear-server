@@ -5,9 +5,9 @@
 
   background-repeat: no-repeat;
   background-position: center;
-  background-image: url("../img/close.svg");
+  background-image: url("../../img/close.svg");
 }
 
 .dark .close-btn {
-  background-image: url("../img/close-dark.svg");
+  background-image: url("../../img/close-dark.svg");
 }
