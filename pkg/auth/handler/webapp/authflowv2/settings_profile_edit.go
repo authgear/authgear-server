@@ -21,7 +21,7 @@ func init() {
 		handlerwebapp.SettingsComponents...,
 	)
 	settingsProfileEditVariantToTemplate["gender"] = template.RegisterHTML(
-		"web/authflowv2/settings_gender_edit.html",
+		"web/authflowv2/settings_profile_edit_gender.html",
 		handlerwebapp.SettingsComponents...,
 	)
 	settingsProfileEditVariantToTemplate["locale"] = template.RegisterHTML(
