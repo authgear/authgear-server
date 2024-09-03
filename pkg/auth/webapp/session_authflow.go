@@ -501,6 +501,10 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 			// Below clause takes place only when index=0 branch is OOBOTP, and bot protection not in input
 			// otherwise, the bot protection is fed to auto-taken OOBOTP branch too
 			if option.BotProtection.IsRequired() && !input.HasBotProtectionInput() {
+				// Make sure bot protection input is fed with default channel
+				if input.Channel == "" {
+					input.Channel = channel
+				}
 				return s.takeBranchResultSimple(input, true)
 			}
 
