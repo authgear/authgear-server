@@ -3,11 +3,16 @@ package accountmanagement
 import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
 type StartAddingInput struct {
@@ -53,12 +58,20 @@ type EventService interface {
 	DispatchEventOnCommit(payload event.Payload) error
 }
 
+type AuthenticatorService interface {
+	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	Update(authenticatorInfo *authenticator.Info) error
+	UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
+	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
+}
+
 type Service struct {
-	Database      *appdb.Handle
-	Store         Store
-	OAuthProvider OAuthProvider
-	Identities    IdentityService
-	Events        EventService
+	Database       *appdb.Handle
+	Store          Store
+	OAuthProvider  OAuthProvider
+	Identities     IdentityService
+	Events         EventService
+	Authenticators AuthenticatorService
 }
 
 func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
@@ -183,4 +196,58 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	}
 
 	return &FinishAddingOutput{}, nil
+}
+
+type ChangePasswordInput struct {
+	Session        session.ResolvedSession
+	OauthSessionID string
+	OldPassword    string
+	NewPassword    string
+}
+
+// If have OauthSessionID, it means the user is changing password after login with SDK.
+// Then do special handling such as authenticationINFO
+func (s *Service) ChangePassword(input *ChangePasswordInput) error {
+	userID := input.Session.GetAuthenticationInfo().UserID
+
+	ais, err := s.Authenticators.List(
+		userID,
+		authenticator.KeepType(model.AuthenticatorTypePassword),
+		authenticator.KeepKind(authenticator.KindPrimary),
+	)
+	if err != nil {
+		return err
+	}
+
+	if len(ais) == 0 {
+		return api.ErrNoPassword
+	}
+
+	oldInfo := ais[0]
+
+	_, err = s.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
+		Password: &authenticator.PasswordSpec{
+			PlainPassword: input.OldPassword,
+		},
+	}, nil)
+	if err != nil {
+		err = api.ErrInvalidCredentials
+		return err
+	}
+
+	changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
+		SetPassword:    true,
+		PlainPassword:  input.NewPassword,
+		SetExpireAfter: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	if changed {
+		s.Authenticators.Update(newInfo)
+	}
+
+	return nil
+
 }

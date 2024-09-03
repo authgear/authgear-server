@@ -4,8 +4,14 @@ import (
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	"github.com/authgear/authgear-server/pkg/lib/session"
+	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var TemplateWebSettingsV2ChangePasswordHTML = template.RegisterHTML(
@@ -13,10 +19,24 @@ var TemplateWebSettingsV2ChangePasswordHTML = template.RegisterHTML(
 	handlerwebapp.SettingsComponents...,
 )
 
+var AuthflowV2SettingsChangePasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_old_password": { "type": "string" },
+			"x_new_password": { "type": "string" },
+			"x_confirm_password": { "type": "string" }
+		},
+		"required": ["x_old_password", "x_new_password", "x_confirm_password"]
+	}
+`)
+
 type AuthflowV2SettingsChangePasswordHandler struct {
-	ControllerFactory handlerwebapp.ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          handlerwebapp.Renderer
+	ControllerFactory        handlerwebapp.ControllerFactory
+	BaseViewModel            *viewmodels.BaseViewModeler
+	Renderer                 handlerwebapp.Renderer
+	AccountmanagementService *accountmanagement.Service
+	PasswordPolicy           handlerwebapp.PasswordPolicy
 }
 
 func (h *AuthflowV2SettingsChangePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -25,6 +45,21 @@ func (h *AuthflowV2SettingsChangePasswordHandler) GetData(r *http.Request, rw ht
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
+
+	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
+		h.PasswordPolicy.PasswordPolicy(),
+		h.PasswordPolicy.PasswordRules(),
+		baseViewModel.RawError,
+		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
+	)
+	viewmodels.Embed(data, passwordPolicyViewModel)
+
+	viewmodels.Embed(data, handlerwebapp.ChangePasswordViewModel{
+		Force: false,
+	})
+
+	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
+	viewmodels.Embed(data, passwordInputErrorViewModel)
 
 	return data, nil
 }
@@ -47,4 +82,39 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 
 		return nil
 	})
+
+	ctrl.PostAction("", func() error {
+		err := AuthflowV2SettingsChangePasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+
+		oldPassword := r.Form.Get("x_old_password")
+		newPassword := r.Form.Get("x_new_password")
+		confirmPassword := r.Form.Get("x_confirm_password")
+
+		err = pwd.ConfirmPassword(newPassword, confirmPassword)
+		if err != nil {
+			return err
+		}
+
+		Session := session.GetSession(r.Context())
+
+		input := &accountmanagement.ChangePasswordInput{
+			Session:        Session,
+			OauthSessionID: "",
+			OldPassword:    oldPassword,
+			NewPassword:    newPassword,
+		}
+
+		err = h.AccountmanagementService.ChangePassword(input)
+		if err != nil {
+			return err
+		}
+
+		result := webapp.Result{RedirectURI: ctrl.RedirectURI()}
+		result.WriteResponse(w, r)
+		return nil
+	})
+
 }
