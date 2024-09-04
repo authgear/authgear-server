@@ -139,50 +139,117 @@ func Validate(t T) error {
 func SchemaBuilderForPointerString(ptrStr string) (validation.SchemaBuilder, bool) {
 	switch ptrStr {
 	case "/email":
-		return schemaBuilderEmail, true
+		return SchemaBuilderEmail(), true
 	case "/phone_number":
-		return schemaBuilderPhoneNumber, true
+		return SchemaBuilderPhoneNumber(), true
 	case "/preferred_username":
-		return schemaBuilderPreferredUsername, true
+		return SchemaBuilderPreferredUsername(), true
 	case "/family_name":
-		return schemaBuilderFamilyName, true
+		return SchemaBuilderFamilyName(), true
 	case "/given_name":
-		return schemaBuilderGivenName, true
+		return SchemaBuilderGivenName(), true
 	case "/middle_name":
-		return schemaBuilderMiddleName, true
+		return SchemaBuilderMiddleName(), true
 	case "/name":
-		return schemaBuilderName, true
+		return SchemaBuilderName(), true
 	case "/nickname":
-		return schemaBuilderNickName, true
+		return SchemaBuilderNickName(), true
 	case "/picture":
-		return schemaBuilderPicture, true
+		return SchemaBuilderPicture(), true
 	case "/profile":
-		return schemaBuilderProfile, true
+		return SchemaBuilderProfile(), true
 	case "/website":
-		return schemaBuilderWebsite, true
+		return SchemaBuilderWebsite(), true
 	case "/gender":
-		return schemaBuilderGender, true
+		return SchemaBuilderGender(), true
 	case "/birthdate":
-		return schemaBuilderBirthdate, true
+		return SchemaBuilderBirthdate(), true
 	case "/zoneinfo":
-		return schemaBuilderZoneinfo, true
+		return SchemaBuilderZoneinfo(), true
 	case "/locale":
-		return schemaBuilderLocale, true
+		return SchemaBuilderLocale(), true
 	case "/address":
-		return schemaBuilderAddress, true
+		return SchemaBuilderAddress(), true
 	case "/address/formatted":
-		return schemaBuilderAddressFormatted, true
+		return SchemaBuilderAddressFormatted(), true
 	case "/address/street_address":
-		return schemaBuilderAddressStreetAddress, true
+		return SchemaBuilderAddressStreetAddress(), true
 	case "/address/locality":
-		return schemaBuilderAddressLocality, true
+		return SchemaBuilderAddressLocality(), true
 	case "/address/region":
-		return schemaBuilderAddressRegion, true
+		return SchemaBuilderAddressRegion(), true
 	case "/address/postal_code":
-		return schemaBuilderAddressPostalCode, true
+		return SchemaBuilderAddressPostalCode(), true
 	case "/address/country":
-		return schemaBuilderAddressCountry, true
+		return SchemaBuilderAddressCountry(), true
 	default:
 		return nil, false
 	}
+}
+
+func SchemaBuilderEmail() validation.SchemaBuilder {
+	return schemaBuilderEmail.Copy()
+}
+func SchemaBuilderPhoneNumber() validation.SchemaBuilder {
+	return schemaBuilderPhoneNumber.Copy()
+}
+func SchemaBuilderPreferredUsername() validation.SchemaBuilder {
+	return schemaBuilderPreferredUsername.Copy()
+}
+func SchemaBuilderFamilyName() validation.SchemaBuilder {
+	return schemaBuilderFamilyName.Copy()
+}
+func SchemaBuilderGivenName() validation.SchemaBuilder {
+	return schemaBuilderGivenName.Copy()
+}
+func SchemaBuilderMiddleName() validation.SchemaBuilder {
+	return schemaBuilderMiddleName.Copy()
+}
+func SchemaBuilderName() validation.SchemaBuilder {
+	return schemaBuilderName.Copy()
+}
+func SchemaBuilderNickName() validation.SchemaBuilder {
+	return schemaBuilderNickName.Copy()
+}
+func SchemaBuilderPicture() validation.SchemaBuilder {
+	return schemaBuilderPicture.Copy()
+}
+func SchemaBuilderProfile() validation.SchemaBuilder {
+	return schemaBuilderProfile.Copy()
+}
+func SchemaBuilderWebsite() validation.SchemaBuilder {
+	return schemaBuilderWebsite.Copy()
+}
+func SchemaBuilderGender() validation.SchemaBuilder {
+	return schemaBuilderGender.Copy()
+}
+func SchemaBuilderBirthdate() validation.SchemaBuilder {
+	return schemaBuilderBirthdate.Copy()
+}
+func SchemaBuilderZoneinfo() validation.SchemaBuilder {
+	return schemaBuilderZoneinfo.Copy()
+}
+func SchemaBuilderLocale() validation.SchemaBuilder {
+	return schemaBuilderLocale.Copy()
+}
+func SchemaBuilderAddress() validation.SchemaBuilder {
+	return schemaBuilderAddress.Copy()
+}
+func SchemaBuilderAddressFormatted() validation.SchemaBuilder {
+	return schemaBuilderAddressFormatted.Copy()
+}
+func SchemaBuilderAddressStreetAddress() validation.SchemaBuilder {
+	return schemaBuilderAddressStreetAddress.Copy()
+}
+func SchemaBuilderAddressLocality() validation.SchemaBuilder {
+	return schemaBuilderAddressLocality.Copy()
+}
+func SchemaBuilderAddressRegion() validation.SchemaBuilder {
+	return schemaBuilderAddressRegion.Copy()
+}
+func SchemaBuilderAddressPostalCode() validation.SchemaBuilder {
+	return schemaBuilderAddressPostalCode.Copy()
+}
+func SchemaBuilderAddressCountry() validation.SchemaBuilder {
+	return schemaBuilderAddressCountry.Copy()
 }
