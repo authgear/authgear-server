@@ -7,7 +7,11 @@ import React, {
   useCallback,
   useMemo,
 } from "react";
-import { init as sentryInit } from "@sentry/react";
+import {
+  Exception as SentryException,
+  Event as SentryEvent,
+  init as sentryInit,
+} from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import {
   LocaleProvider,
@@ -78,11 +82,34 @@ async function loadSystemConfig(): Promise<SystemConfig> {
   return instantiateSystemConfig(mergedConfig);
 }
 
+function isPosthogResetGroupsException(ex: SentryException) {
+  return (
+    ex.type === "TypeError" &&
+    ex.value === "posthog.resetGroups is not a function"
+  );
+}
+
+// DEV-1767: Unknown cause on posthog error, silence for now
+function sentryBeforeSend(event: SentryEvent) {
+  return {
+    ...event,
+    exception:
+      event.exception != null
+        ? {
+            values: event.exception.values?.filter(
+              (value) => !isPosthogResetGroupsException(value)
+            ),
+          }
+        : undefined,
+  };
+}
+
 async function initApp(systemConfig: SystemConfig) {
   if (systemConfig.sentryDSN !== "") {
     sentryInit({
       dsn: systemConfig.sentryDSN,
       tracesSampleRate: 0.0,
+      beforeSend: sentryBeforeSend,
     });
   }
 
