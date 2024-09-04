@@ -21,10 +21,6 @@ export interface SaveButtonProps {
   };
 }
 
-interface FormContainerHeaderComponentProps {
-  children?: React.ReactNode;
-}
-
 export interface FormContainerProps extends FormContainerBaseProps {
   className?: string;
   saveButtonProps?: SaveButtonProps;
@@ -33,7 +29,6 @@ export interface FormContainerProps extends FormContainerBaseProps {
   messageBar?: React.ReactNode;
   showDiscardButton?: boolean;
   hideFooterComponent?: boolean;
-  HeaderComponent?: React.VFC<FormContainerHeaderComponentProps>;
 }
 
 const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
@@ -45,7 +40,6 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
     hideFooterComponent,
     showDiscardButton = false,
     stickyFooterComponent = false,
-    HeaderComponent,
   } = props;
 
   const { canSave, isUpdating, canReset, onReset, onSave, onSubmit } =
@@ -77,8 +71,7 @@ const FormContainer_: React.VFC<FormContainerProps> = function FormContainer_(
   return (
     <>
       <DefaultLayout
-        position={stickyFooterComponent ? "sticky" : "end"}
-        HeaderComponent={HeaderComponent}
+        footerPosition={stickyFooterComponent ? "sticky" : "end"}
         footer={
           hideFooterComponent ? null : (
             <>

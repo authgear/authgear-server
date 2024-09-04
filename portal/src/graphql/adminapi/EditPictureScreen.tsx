@@ -336,8 +336,8 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
       rules={RULES}
     >
       <DefaultLayout
-        position="end"
         messageBar={<FormErrorMessageBar />}
+        footerPosition="end"
         footer={
           <>
             {showUpload ? (

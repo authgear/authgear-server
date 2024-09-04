@@ -1,10 +1,89 @@
 .widgetLabelIcon {
-  font-size: 16px;
-  margin-right: 16px;
+  font-size: 18px;
+}
+
+.widgetHeader {
+  @apply flex items-center gap-x-3;
+}
+
+.widgetHeaderIcon {
+  @apply flex items-center justify-center;
+  @apply w-6 h-6;
 }
 
 .textField,
 .checkbox,
 .fieldList {
-  margin: 0 8px 15px 50px;
+  @apply mb-2;
+}
+
+.cardContainer {
+  @apply p-4;
+  @apply border border-solid border-border-primary;
+}
+
+.cardHeader {
+  @apply flex items-center justify-between;
+  @apply mb-4;
+}
+
+.cardIcon {
+  @apply flex items-center justify-center;
+  @apply w-6 h-6;
+  @apply mr-3;
+}
+
+.cardTitleRow {
+  @apply flex;
+}
+
+.cardName {
+  @apply flex-1;
+  @apply flex flex-col;
+  @apply mt-0.5;
+}
+
+.cardTitle {
+  @apply font-semibold;
+}
+
+.cardAddedBadge {
+  @apply p-2;
+  @apply bg-neutral-lighter;
+}
+
+.cardBody {
+  @apply mb-1;
+}
+
+.cardDescription {
+  @apply text-tertiary;
+}
+
+.rowContainer {
+  @apply flex items-center gap-x-3;
+  @apply p-3;
+}
+
+.rowIcon {
+  @apply flex items-center justify-center;
+  @apply w-6 h-6;
+}
+
+.rowName {
+  @apply flex items-center gap-x-1;
+}
+
+.rowContent {
+  @apply flex-1;
+  @apply flex flex-col;
+}
+
+.rowDescription {
+  @apply mt-0.5;
+  @apply text-tertiary;
+}
+
+.rowActions {
+  @apply flex items-center gap-x-3;
 }
