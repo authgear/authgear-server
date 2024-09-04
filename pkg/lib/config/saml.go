@@ -37,7 +37,15 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"audience": { "type": "string", "format": "uri" },
 		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" }
 	},
-	"required": ["acs_urls"]
+	"required": ["acs_urls"],
+	"anyOf": [
+		{
+			"required": ["id"]
+		},
+		{
+			"required": ["client_id"]
+		}
+	]
 }
 `)
 
