@@ -126,11 +126,11 @@ func (c *SAMLServiceProviderConfig) DefaultAcsURL() string {
 }
 
 func (c *SAMLServiceProviderConfig) GetID() string {
-	if c.Deprecated_ID != "" {
-		return c.Deprecated_ID
-	}
 	if c.ClientID != "" {
 		return c.ClientID
+	}
+	if c.Deprecated_ID != "" {
+		return c.Deprecated_ID
 	}
 	panic("unexpected: service provider does not have id nor client id")
 }

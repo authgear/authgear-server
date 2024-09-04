@@ -357,6 +357,22 @@ func (c *AppConfig) validateSAML(ctx *validation.Context) {
 				"actual":   0,
 			})
 		}
+
+		for idx, sp := range c.SAML.ServiceProviders {
+			if sp.ClientID != "" {
+				found := false
+				for _, oauthClient := range c.OAuth.Clients {
+					if sp.ClientID == oauthClient.ClientID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					ctx.Child("saml", "service_providers", strconv.Itoa(idx), "client_id").
+						EmitErrorMessage("client_id does not exist in /oauth/clients")
+				}
+			}
+		}
 	}
 }
 
