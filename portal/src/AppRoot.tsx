@@ -72,6 +72,12 @@ const App2AppConfigurationScreen = lazy(
 const SingleSignOnConfigurationScreen = lazy(
   async () => import("./graphql/portal/SingleSignOnConfigurationScreen")
 );
+const AddSingleSignOnConfigurationScreen = lazy(
+  async () => import("./graphql/portal/AddSingleSignOnConfigurationScreen")
+);
+const EditSingleSignOnConfigurationScreen = lazy(
+  async () => import("./graphql/portal/EditSingleSignOnConfigurationScreen")
+);
 const ApplicationsConfigurationScreen = lazy(
   async () => import("./graphql/portal/ApplicationsConfigurationScreen")
 );
@@ -510,14 +516,32 @@ const AppRoot: React.VFC = function AppRoot() {
                   </Suspense>
                 }
               />
-              <Route
-                path="external-oauth"
-                element={
-                  <Suspense fallback={<ShowLoading />}>
-                    <SingleSignOnConfigurationScreen />
-                  </Suspense>
-                }
-              />
+              <Route path="external-oauth">
+                <Route
+                  index={true}
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <SingleSignOnConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="add"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <AddSingleSignOnConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="edit/:provider"
+                  element={
+                    <Suspense fallback={<ShowLoading />}>
+                      <EditSingleSignOnConfigurationScreen />
+                    </Suspense>
+                  }
+                />
+              </Route>
               <Route
                 path="biometric"
                 element={

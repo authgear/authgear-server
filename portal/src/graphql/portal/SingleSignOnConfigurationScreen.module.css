@@ -1,18 +1,34 @@
 .widget {
-  grid-column: 1 / span 8;
-
-  @apply tablet:col-span-full;
-}
-
-.description {
-  padding-top: 18px;
+  @apply col-span-8 tablet:col-span-full;
 }
 
 .headerContent {
-  padding: 20px;
+  @apply p-5;
 }
 
-/* Increase specificity to override the original class */
-.screenContent.screenContent {
-  padding-top: 0;
+.screenTitle {
+  @apply col-span-12;
+  @apply flex items-center justify-between;
+}
+
+.content {
+  @apply col-span-full;
+  @apply grid grid-cols-12;
+}
+
+.contentItem {
+  @apply col-span-full;
+  @apply border-x-0 border-t-0 first:border-t border-b border-solid border-separator;
+}
+
+.emptyMessage {
+  @apply col-start-5 col-span-4;
+  @apply flex flex-col items-center justify-center;
+  @apply space-y-4;
+  @apply py-20;
+}
+
+.deleteButton {
+  @apply flex items-center justify-center;
+  @apply space-x-2;
 }

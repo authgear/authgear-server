@@ -28,6 +28,10 @@ module.exports = {
         theme: {
           primary: "#176df3",
         },
+        border: {
+          primary: "#dadada",
+        },
+        tertiary: "#898989",
         neutral: {
           dark: "#201F1E",
           light: "#edebe9",

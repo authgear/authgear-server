@@ -1,0 +1,22 @@
+.header {
+  @apply py-6;
+}
+
+.breadcrumb {
+  @apply py-6;
+}
+
+.content {
+  @apply py-6;
+}
+
+.widget {
+  @apply col-span-9 tablet:col-span-full;
+}
+
+.providerGrid {
+  @apply grid auto-rows-fr grid-cols-3 gap-3;
+}
+
+.providerCard {
+}

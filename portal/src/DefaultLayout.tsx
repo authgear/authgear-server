@@ -1,46 +1,31 @@
-import React, { useMemo } from "react";
+import React from "react";
 import cn from "classnames";
 
 import styles from "./DefaultLayout.module.css";
 
-interface DefaultLayoutHeaderComponentProps {
-  children?: React.ReactNode;
-}
-
 export interface DefaultLayoutProps {
-  position: "sticky" | "end";
   className?: string;
   messageBar?: React.ReactNode;
   footer?: React.ReactNode;
-  HeaderComponent?: React.VFC<DefaultLayoutHeaderComponentProps>;
+  footerPosition?: "sticky" | "end";
   children?: React.ReactNode;
 }
 
 const DefaultLayout: React.VFC<DefaultLayoutProps> = function DefaultLayout(
   props
 ) {
-  const { position, className, messageBar, footer, HeaderComponent, children } =
-    props;
-
-  const defaultHeaderContent = useMemo(() => messageBar, [messageBar]);
-
+  const { className, messageBar, footer, footerPosition, children } = props;
   return (
     <div className={cn(styles.container, className)}>
-      <div className={styles.header}>
-        {HeaderComponent != null ? (
-          <HeaderComponent>{defaultHeaderContent}</HeaderComponent>
-        ) : (
-          defaultHeaderContent
-        )}
-      </div>
-      <div className={cn(position === "sticky" && styles.contentExpand)}>
+      <div className={styles.header}>{messageBar}</div>
+      <div className={cn(footerPosition === "sticky" && styles.contentExpand)}>
         {children}
       </div>
       {footer != null ? (
         <div
           className={cn(
             styles.footer,
-            position === "sticky" && styles.footerSticky
+            footerPosition === "sticky" && styles.footerSticky
           )}
         >
           {footer}
