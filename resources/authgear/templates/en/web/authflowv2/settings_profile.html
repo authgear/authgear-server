@@ -13,7 +13,7 @@
 {{ define "page-content" }}
 <div>
   {{ if (call $.IsReadable "/picture") }}
-  {{ template "authflowv2/__settings_user_profile_pic"
+  {{ template "authflowv2/__settings_user_profile_pic.html"
      (dict
         "Picture" $.Picture
         "GeneratedStaticAssetURL" $.GeneratedStaticAssetURL
