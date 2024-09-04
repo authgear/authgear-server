@@ -118,6 +118,29 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 	}, nil
 }
 
+func (s *Service) validateDestination(sp *config.SAMLServiceProviderConfig, destination string) error {
+	allowedDestinations := []string{}
+	if sp.Deprecated_ID != "" {
+		allowedDestinations = append(allowedDestinations, s.Endpoints.SAMLLoginURL(sp.Deprecated_ID).String())
+	}
+	if sp.ClientID != "" {
+		allowedDestinations = append(allowedDestinations, s.Endpoints.SAMLLoginURL(sp.ClientID).String())
+	}
+
+	for _, allowedDestination := range allowedDestinations {
+		if destination == allowedDestination {
+			return nil
+		}
+	}
+	return &samlerror.InvalidRequestError{
+		Field:    "Destination",
+		Actual:   destination,
+		Expected: allowedDestinations,
+		Reason:   "unexpected Destination",
+	}
+
+}
+
 // Validate the AuthnRequest
 // This method does not verify the signature
 func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *samlprotocol.AuthnRequest) error {
@@ -128,13 +151,9 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	}
 
 	if authnRequest.Destination != "" {
-		if authnRequest.Destination != s.Endpoints.SAMLLoginURL(sp.GetID()).String() {
-			return &samlerror.InvalidRequestError{
-				Field:    "Destination",
-				Actual:   authnRequest.Destination,
-				Expected: []string{s.Endpoints.SAMLLoginURL(sp.GetID()).String()},
-				Reason:   "unexpected Destination",
-			}
+		err := s.validateDestination(sp, authnRequest.Destination)
+		if err != nil {
+			return err
 		}
 	}
 
