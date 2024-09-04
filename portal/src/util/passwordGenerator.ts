@@ -146,28 +146,11 @@ function generatePasswordOnce(
 export function prepareCharList(passwordPolicy: PasswordPolicyConfig): string {
   const set = new Set<string>();
 
-  if (passwordPolicy.alphabet_required) set.add(CharListAlphabet);
-  if (passwordPolicy.lowercase_required) set.add(CharListLowercase);
-  if (passwordPolicy.uppercase_required) set.add(CharListUppercase);
-  if (passwordPolicy.digit_required) set.add(CharListDigit);
+  // Use alphanumeric as base character set
+  set.add(CharListAlphabet);
+  set.add(CharListDigit);
+
   if (passwordPolicy.symbol_required) set.add(CharListSymbol);
-
-  // Default to alphanumeric if no character set is required.
-  if (set.size === 0) {
-    set.add(CharListAlphabet);
-    set.add(CharListDigit);
-  }
-
-  // Remove overlapping character sets.
-  const hasLowercase = set.has(CharListLowercase);
-  const hasUppercase = set.has(CharListUppercase);
-  const hasAlphabet = set.has(CharListAlphabet);
-  if (hasAlphabet && hasLowercase) {
-    set.delete(CharListLowercase);
-  }
-  if (hasAlphabet && hasUppercase) {
-    set.delete(CharListUppercase);
-  }
 
   // Build the final character list.
   let charList = "";

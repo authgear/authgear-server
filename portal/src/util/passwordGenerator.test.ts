@@ -155,58 +155,66 @@ describe("prepareCharList", () => {
     );
   });
 
-  it("should return lowercase characters when lowercase is required", () => {
+  it("should return alphanumeric characters when lowercase is required", () => {
     const policy: PasswordPolicyConfig = { lowercase_required: true };
     const result = prepareCharList(policy);
-    expect(result).toEqual("abcdefghijklmnopqrstuvwxyz");
-  });
-
-  it("should return uppercase characters when uppercase is required", () => {
-    const policy: PasswordPolicyConfig = { uppercase_required: true };
-    const result = prepareCharList(policy);
-    expect(result).toEqual("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-  });
-
-  it("should return alphabet characters when alphabet is required", () => {
-    const policy: PasswordPolicyConfig = { alphabet_required: true };
-    const result = prepareCharList(policy);
     expect(result).toEqual(
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     );
   });
 
-  it("should return alphabet and lowercase characters when both are required", () => {
+  it("should return alphanumeric characters when uppercase is required", () => {
+    const policy: PasswordPolicyConfig = { uppercase_required: true };
+    const result = prepareCharList(policy);
+    expect(result).toEqual(
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    );
+  });
+
+  it("should return alphanumeric characters when alphabet is required", () => {
+    const policy: PasswordPolicyConfig = { alphabet_required: true };
+    const result = prepareCharList(policy);
+    expect(result).toEqual(
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    );
+  });
+
+  it("should return alphanumeric characters when alphabet and lowercase characters are required", () => {
     const policy: PasswordPolicyConfig = {
       alphabet_required: true,
       lowercase_required: true,
     };
     const result = prepareCharList(policy);
     expect(result).toEqual(
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     );
   });
 
-  it("should return alphabet and uppercase characters when both are required", () => {
+  it("should return alphanumeric characters when alphabet and uppercase characters are required", () => {
     const policy: PasswordPolicyConfig = {
       alphabet_required: true,
       uppercase_required: true,
     };
     const result = prepareCharList(policy);
     expect(result).toEqual(
-      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     );
   });
 
-  it("should return digit characters when digits are required", () => {
+  it("should return alphanumeric base characters when digits are required", () => {
     const policy: PasswordPolicyConfig = { digit_required: true };
     const result = prepareCharList(policy);
-    expect(result).toEqual("0123456789");
+    expect(result).toEqual(
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    );
   });
 
-  it("should return symbol characters when symbols are required", () => {
+  it("should return alphanumeric base characters with symbol when symbols are required", () => {
     const policy: PasswordPolicyConfig = { symbol_required: true };
     const result = prepareCharList(policy);
-    expect(result).toEqual("-~!@#$%^&*_+=`|(){}[:;\"'<>,.?]");
+    expect(result).toEqual(
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-~!@#$%^&*_+=`|(){}[:;\"'<>,.?]"
+    );
   });
 
   it("should return all character sets when all are required", () => {
