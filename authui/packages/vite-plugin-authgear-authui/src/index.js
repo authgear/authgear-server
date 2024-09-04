@@ -202,6 +202,10 @@ function buildPlugin({ input }) {
           assetsInlineLimit: 0,
           assetsDir: "",
           rollupOptions: {
+            // Workaround for building bundles with non-deterministic filenames
+            // Active issue: https://github.com/vitejs/vite/issues/13672
+            // Workaround from https://github.com/vitejs/vite/issues/10506#issuecomment-1367718113
+            maxParallelFileOps: 1,
             input: input,
             output: {
               format: "module",
