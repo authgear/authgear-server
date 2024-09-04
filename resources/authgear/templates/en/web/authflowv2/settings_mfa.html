@@ -11,5 +11,38 @@
 {{ end }}
 
 {{ define "page-content" }}
-2FA
+
+{{ if $.ShowSecondaryPassword }}
+  {{ template "__settings_mfa_item"
+      (dict
+        "MaterialIconName" "lock"
+        "Label" (translate "v2.page.settings-mfa.default.additional-password-label" nil)
+        "Active" $.SecondaryPassword
+      )
+  }}
+
+{{ end }}
+
+{{ end }}
+
+{{ define "__settings_mfa_item" }}
+  {{ template "authflowv2/__settings_item.html"
+      (dict
+        "MaterialIconName" $.MaterialIconName
+        "Label" $.Label
+        "SupplementaryNote" (include "__settings_mfa_item_status"
+          (dict
+            "IsActive" $.IsActive
+          )
+        )
+      )
+  }}
+{{ end }}
+
+{{ define "__settings_mfa_item_status" }}
+  {{ if $.IsActive }}
+    <span class="text-[color:var(--color-success)]">{{ translate "v2.page.settings-mfa.default.activated-label" nil}}</span>
+  {{ else }}
+    <span class="text-[color:var(--color-warning)]">{{ translate "v2.page.settings-mfa.default.inactive-label" nil}}</span>
+  {{ end }}
 {{ end }}
