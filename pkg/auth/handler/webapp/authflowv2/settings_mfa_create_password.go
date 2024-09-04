@@ -7,13 +7,26 @@ import (
 	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	pwd "github.com/authgear/authgear-server/pkg/util/password"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var TemplateWebSettingsMFACreatePasswordHTML = template.RegisterHTML(
 	"web/authflowv2/settings_mfa_create_password.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+var AuthflowV2SettingsMFACreatePasswordSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_password": { "type": "string" },
+			"x_confirm_password": { "type": "string" }
+		},
+		"required": ["x_password", "x_confirm_password"]
+	}
+`)
 
 func ConfigureAuthflowV2SettingsMFACreatePassword(route httproute.Route) httproute.Route {
 	return route.
@@ -63,6 +76,23 @@ func (h *AuthflowV2SettingsMFACreatePasswordHandler) ServeHTTP(w http.ResponseWr
 			return err
 		}
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsMFACreatePasswordHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("", func() error {
+		err := AuthflowV2SettingsMFACreatePasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+
+		newPassword := r.Form.Get("x_password")
+		confirmPassword := r.Form.Get("x_confirm_password")
+
+		err = pwd.ConfirmPassword(newPassword, confirmPassword)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 }
