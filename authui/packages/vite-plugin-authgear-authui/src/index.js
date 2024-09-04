@@ -38,7 +38,7 @@ function stringifyHTMLAttributes(attributes) {
 }
 
 /**
- * @param {{type: "css" | "js", name: string, attributes: Record<string, string>}[]} elements
+ * @param {{type: "css" | "js" | "modulepreload", name: string, attributes: Record<string, string>}[]} elements
  * @returns {string}
  */
 function elementsToHTMLString(elements) {
@@ -53,6 +53,10 @@ function elementsToHTMLString(elements) {
       } else {
         textArray.push(htmlLine);
       }
+    }
+    if (element.type === "modulepreload") {
+      const htmlLine = `<link rel="modulepreload" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`;
+      textArray.push(htmlLine);
     }
     if (element.type === "js") {
       const attributes = Object.fromEntries(
@@ -79,7 +83,7 @@ async function writeManifest(targetPath, manifest) {
 /**
  * @param {string} targetPath
  * @param {string} templateName
- * @param {{type: "css" | "js", name: string, attributes: Record<string, string>}[]} elements
+ * @param {{type: "css" | "js" | "modulepreload", name: string, attributes: Record<string, string>}[]} elements
  */
 async function writeHTMLTemplate(targetPath, templateName, elements) {
   const tpl = [
@@ -128,16 +132,21 @@ function buildPlugin({ input }) {
           const head = root.getElementsByTagName("head")[0];
 
           for (const node of head.childNodes) {
-            if (
-              node.tagName === "LINK" &&
-              node.getAttribute("rel") === "stylesheet"
-            ) {
+            if (node.tagName === "LINK") {
               const hashedName = removeLeadingSlash(node.getAttribute("href"));
               const key = nameWithoutHash(hashedName);
-              elements.push({
-                type: "css",
-                name: key,
-              });
+              if (node.getAttribute("rel") === "stylesheet") {
+                elements.push({
+                  type: "css",
+                  name: key,
+                });
+              }
+              if (node.getAttribute("rel") === "modulepreload") {
+                elements.push({
+                  type: "modulepreload",
+                  name: key,
+                });
+              }
             }
             if (node.tagName === "SCRIPT") {
               let hashedName = removeLeadingSlash(node.getAttribute("src"));
