@@ -919,8 +919,8 @@ func TestRecordSchema(t *testing.T) {
 				}
 			}
 		}`, `invalid request body:
-/email: minLength
-  map[actual:0 expected:1]
+/email: format
+  map[error:invalid email address: mail: no address format:email]
 /mfa/password/password_hash: minLength
   map[actual:0 expected:1]
 /mfa/totp/secret: minLength
@@ -1012,8 +1012,8 @@ func TestRecordSchema(t *testing.T) {
   map[actual:0 expected:1]
 /password/password_hash: minLength
   map[actual:0 expected:1]
-/phone_number: minLength
-  map[actual:0 expected:1]`)
+/phone_number: format
+  map[error:not in E.164 format format:phone]`)
 	})
 
 	Convey("Record JSON Schema for preferred_username", t, func() {

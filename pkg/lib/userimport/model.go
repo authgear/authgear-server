@@ -24,8 +24,7 @@ var RecordSchemaForIdentifierPhoneNumber *validation.SimpleSchema
 var RecordSchemaForIdentifierPreferredUsername *validation.SimpleSchema
 
 func init() {
-	nullString := validation.SchemaBuilder{}.
-		Types(validation.TypeString, validation.TypeNull)
+	reusedSchemaBuilders := reuseSchemaBuilders()
 	str := validation.SchemaBuilder{}.
 		Type(validation.TypeString)
 
@@ -34,9 +33,6 @@ func init() {
 	makeBase := func() validation.SchemaBuilder {
 		boolean := validation.SchemaBuilder{}.
 			Type(validation.TypeBoolean)
-
-		nullObject := validation.SchemaBuilder{}.
-			Types(validation.TypeObject, validation.TypeNull)
 
 		customAttributes := validation.SchemaBuilder{}.
 			Type(validation.TypeObject)
@@ -65,8 +61,8 @@ func init() {
 			Type(validation.TypeObject).
 			AdditionalPropertiesFalse()
 		mfa.Properties().
-			Property("email", nullString).
-			Property("phone_number", nullString).
+			Property("email", reusedSchemaBuilders.Email.Nullable()).
+			Property("phone_number", reusedSchemaBuilders.PhoneNumber.Nullable()).
 			Property("password", password).
 			Property("totp", totp)
 
@@ -78,19 +74,19 @@ func init() {
 			Property("disabled", boolean).
 			Property("email_verified", boolean).
 			Property("phone_number_verified", boolean).
-			Property("name", nullString).
-			Property("given_name", nullString).
-			Property("family_name", nullString).
-			Property("middle_name", nullString).
-			Property("nickname", nullString).
-			Property("profile", nullString).
-			Property("picture", nullString).
-			Property("website", nullString).
-			Property("gender", nullString).
-			Property("birthdate", nullString).
-			Property("zoneinfo", nullString).
-			Property("locale", nullString).
-			Property("address", nullObject).
+			Property("name", reusedSchemaBuilders.Name.Nullable()).
+			Property("given_name", reusedSchemaBuilders.GivenName.Nullable()).
+			Property("family_name", reusedSchemaBuilders.FamilyName.Nullable()).
+			Property("middle_name", reusedSchemaBuilders.MiddleName.Nullable()).
+			Property("nickname", reusedSchemaBuilders.Nickname.Nullable()).
+			Property("profile", reusedSchemaBuilders.Profile.Nullable()).
+			Property("picture", reusedSchemaBuilders.Picture.Nullable()).
+			Property("website", reusedSchemaBuilders.Website.Nullable()).
+			Property("gender", reusedSchemaBuilders.Gender.Nullable()).
+			Property("birthdate", reusedSchemaBuilders.Birthdate.Nullable()).
+			Property("zoneinfo", reusedSchemaBuilders.Zoneinfo.Nullable()).
+			Property("locale", reusedSchemaBuilders.Locale.Nullable()).
+			Property("address", reusedSchemaBuilders.Address.Nullable()).
 			Property("custom_attributes", customAttributes).
 			Property("roles", rolesOrGroups).
 			Property("groups", rolesOrGroups).
@@ -103,25 +99,25 @@ func init() {
 	email := makeBase().
 		Required("email")
 	email.Properties().
-		Property("email", minLenStr).
-		Property("phone_number", nullString).
-		Property("preferred_username", nullString)
+		Property("email", reusedSchemaBuilders.Email).
+		Property("phone_number", reusedSchemaBuilders.PhoneNumber.Nullable()).
+		Property("preferred_username", reusedSchemaBuilders.PreferredUsername.Nullable())
 	RecordSchemaForIdentifierEmail = email.ToSimpleSchema()
 
 	phoneNumber := makeBase().
 		Required("phone_number")
 	phoneNumber.Properties().
-		Property("phone_number", minLenStr).
-		Property("email", nullString).
-		Property("preferred_username", nullString)
+		Property("phone_number", reusedSchemaBuilders.PhoneNumber).
+		Property("email", reusedSchemaBuilders.Email.Nullable()).
+		Property("preferred_username", reusedSchemaBuilders.PreferredUsername.Nullable())
 	RecordSchemaForIdentifierPhoneNumber = phoneNumber.ToSimpleSchema()
 
 	preferredUsername := makeBase().
 		Required("preferred_username")
 	preferredUsername.Properties().
-		Property("preferred_username", minLenStr).
-		Property("email", nullString).
-		Property("phone_number", nullString)
+		Property("preferred_username", reusedSchemaBuilders.PreferredUsername).
+		Property("email", reusedSchemaBuilders.Email.Nullable()).
+		Property("phone_number", reusedSchemaBuilders.PhoneNumber.Nullable())
 	RecordSchemaForIdentifierPreferredUsername = preferredUsername.ToSimpleSchema()
 }
 
