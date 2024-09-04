@@ -1122,6 +1122,7 @@
   "v2.page.settings-mfa-password.default.additional-password-label": "Additional password",
   "v2.page.settings-mfa-password.default.additional-password-updated-at": "Updated at <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.navbar-title": "Additional password",
+  "v2.page.settings-mfa-password.default.remove-button-label": "Remove additional password",
   "v2.page.settings-mfa.default.activated-label": "Activated",
   "v2.page.settings-mfa.default.additional-password-label": "Additional password",
   "v2.page.settings-mfa.default.inactive-label": "Inactive",

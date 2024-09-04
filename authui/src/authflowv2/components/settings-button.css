@@ -1,0 +1,92 @@
+@layer components {
+  :root {
+    --settings-link-btn-bg-color: var(--link-btn-bg-color);
+    --settings-link-btn-text-color: var(--link-btn-text-color);
+    --settings-link-btn-border-radius: var(--link-btn-border-radius);
+
+    --settings-link-btn-font-family: var(--typography-label-large__font-family);
+    --settings-link-btn-font-size: var(--typography-label-large__font-size);
+    --settings-link-btn-line-height: var(--typography-label-large__line-height);
+    --settings-link-btn-letter-spacing: var(
+      --typography-label-large__letter-spacing
+    );
+    --settings-link-btn-font-weight: var(--typography-label-large__font-weight);
+    --settings-link-btn-ring-width: var(--link-btn-ring-width);
+    --settings-link-btn-ring-color: var(--link-btn-ring-color);
+
+    --settings-link-btn-bg-color--hover: var(--link-btn-bg-color--hover);
+    --settings-link-btn-text-color--hover: var(--link-btn-text-color--hover);
+    --settings-link-btn-ring-width--hover: var(--settings-link-btn-ring-width);
+    --settings-link-btn-ring-color--hover: var(--settings-link-btn-ring-color);
+
+    --settings-link-btn-bg-color--active: var(--link-btn-bg-color--active);
+    --settings-link-btn-text-color--active: var(--link-btn-text-color--active);
+    --settings-link-btn-ring-width--active: var(--settings-link-btn-ring-width);
+    --settings-link-btn-ring-color--active: var(--settings-link-btn-ring-color);
+
+    --settings-link-btn-bg-color--disabled: var(--link-btn-bg-color--disabled);
+    --settings-link-btn-text-color--disabled: var(
+      --link-btn-text-color--disabled
+    );
+    --settings-link-btn-ring-width--disabled: var(
+      --settings-link-btn-ring-width
+    );
+    --settings-link-btn-ring-color--disabled: var(
+      --settings-link-btn-ring-color
+    );
+  }
+
+  :root.dark {
+    --settings-link-btn-text-color--disabled: var(
+      --link-btn-text-color--disabled
+    );
+
+    --settings-link-btn-text-color--hover: var(--link-btn-text-color--hover);
+    --settings-link-btn-text-color--active: var(--link-btn-text-color--active);
+  }
+
+  .settings-link-btn {
+    @apply text-center;
+
+    background-color: var(--settings-link-btn-bg-color);
+    color: var(--settings-link-btn-text-color);
+    border-radius: var(--settings-link-btn-border-radius);
+    font-family: var(--settings-link-btn-font-family);
+    font-size: var(--settings-link-btn-font-size);
+    line-height: var(--settings-link-btn-line-height);
+    letter-spacing: var(--settings-link-btn-letter-spacing);
+    font-weight: var(--settings-link-btn-font-weight);
+    @apply ring-inset
+      ring-[length:var(--settings-link-btn-ring-width)]
+      ring-[color:var(--settings-link-btn-ring-color)];
+    padding: var(--settings-link-btn-py) var(--link-btn-px);
+
+    &:hover {
+      background-color: var(--settings-link-btn-bg-color--hover);
+      color: var(--settings-link-btn-text-color--hover);
+      @apply ring-inset
+        ring-[length:var(--settings-link-btn-ring-width--hover)]
+        ring-[color:var(--settings-link-btn-ring-color--hover)];
+    }
+
+    &:active {
+      background-color: var(--settings-link-btn-bg-color--active);
+      color: var(--settings-link-btn-text-color--active);
+      @apply ring-inset
+        ring-[length:var(--settings-link-btn-ring-width--active)]
+        ring-[color:var(--settings-link-btn-ring-color--active)];
+    }
+
+    &:disabled {
+      background-color: var(--settings-link-btn-bg-color--disabled);
+      color: var(--settings-link-btn-text-color--disabled);
+      @apply ring-inset
+        ring-[length:var(--settings-link-btn-ring-width--disabled)]
+        ring-[color:var(--settings-link-btn-ring-color--disabled)];
+    }
+  }
+
+  .settings-link-btn--destructive {
+    --settings-link-btn-text-color: var(--color-error);
+  }
+}

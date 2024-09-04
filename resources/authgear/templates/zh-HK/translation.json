@@ -1122,6 +1122,7 @@
   "v2.page.settings-mfa-password.default.additional-password-label": "輔助密碼",
   "v2.page.settings-mfa-password.default.additional-password-updated-at": "上次更新時間: <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.navbar-title": "輔助密碼",
+  "v2.page.settings-mfa-password.default.remove-button-label": "刪除輔助密碼",
   "v2.page.settings-mfa.default.activated-label": "已啟用",
   "v2.page.settings-mfa.default.additional-password-label": "輔助密碼",
   "v2.page.settings-mfa.default.inactive-label": "未啟用",
