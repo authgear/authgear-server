@@ -355,6 +355,11 @@ export class CustomSelectController extends Controller {
     }
 
     this.triggerTarget.innerHTML = option.triggerLabel ?? option.label;
+    if (this.value) {
+      this.triggerTarget.classList.remove("custom-select__trigger-no-value");
+    } else {
+      this.triggerTarget.classList.add("custom-select__trigger-no-value");
+    }
   }
 
   renderSearch() {

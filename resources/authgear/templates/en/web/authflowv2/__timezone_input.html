@@ -1,104 +1,23 @@
 {{ define "authflowv2/__timezone_input.html" }}
 
-<div
-  class="timezone-input"
-  data-controller="timezone-input"
-  data-timezone-input-timezones-value="{{ toJson $.Timezones }}"
->
-  <div
-    data-controller="custom-select body-scroll-lock"
-    data-timezone-input-target="timezoneSelect"
-    data-action="custom-select:open->body-scroll-lock#lock custom-select:close->body-scroll-lock#unlock"
-  >
-    <input
-      type="text"
-      class="hidden"
-      name="{{ $.Name }}"
-      value="{{ $.Value }}"
-      data-custom-select-target="input"
-    />
+{{ $timezoneOptions := (list) }}
+{{ range $timezone := $.Timezones }}
+  {{
+    $timezoneOptions = append $timezoneOptions (dict
+      "value" $timezone.Name
+      "searchLabel" (printf "%s %s" $timezone.Name $timezone.DisplayLabel)
+      "label" $timezone.DisplayLabel
+      "triggerLabel" $timezone.DisplayLabel
+    )
+  }}
+{{ end }}
 
-    <button
-      type="button"
-      class="timezone-input__trigger"
-      aria-haspopup="listbox"
-      aria-expanded="false"
-      data-custom-select-target="trigger"
-      data-action="click->custom-select#toggle"
-    ></button>
-
-    <!-- Dropdown Menu -->
-    <div
-      class="select__dropdown-container hidden"
-      data-custom-select-target="dropdownContainer"
-    >
-      <div
-        class="select__dropdown"
-        role="listbox"
-        data-custom-select-target="dropdown"
-      >
-        <ul
-          class="select__options"
-          data-custom-select-target="options"
-        >
-        </ul>
-
-        <template data-custom-select-target="searchTemplate">
-          <div class="select__search-container">
-            <div class="select__search">
-              <input
-                class="select__search-input"
-                placeholder="{{ include "v2.component.timezone-input.default.search-label" nil }}"
-                data-controller="dismiss-keyboard-on-scroll"
-                data-custom-select-target="search"
-                data-action="input->custom-select#search"
-              >
-              <div class="select__search-icon">
-                <i class="material-icons">search</i>
-              </div>
-              <button
-                class="select__clear-icon"
-                type="button"
-                tabindex="-1"
-                data-custom-select-target="clearSearch"
-                data-action="click->custom-select#clearSearch"
-              >
-                <i class="material-icons material-icons--filled">cancel</i>
-              </button>
-            </div>
-            <button
-              class="select__close-icon"
-              type="button"
-              tabindex="-1"
-              data-action="click->custom-select#close"
-            >
-              <i class="material-icons">close</i>
-            </button>
-          </div>
-        </template>
-
-        <template data-custom-select-target="itemTemplate">
-          <li
-            class="select__option"
-            role="option"
-            data-action="
-              click->custom-select#handleSelect
-              keydown->custom-select#handleKeyDown
-            "
-            tabindex="-1"
-          >
-            <span data-label="content" class="select__option-content"></span>
-          </li>
-        </template>
-
-        <template data-custom-select-target="emptyTemplate">
-          <li class="select__empty">
-            {{ translate "v2.component.timezone-input.default.no-results-found" nil }}
-          </li>
-        </template>
-      </div>
-    </div>
-  </div>
-</div>
+{{ template "authflowv2/__select_input.html"
+    (dict
+      "Name" $.Name
+      "Value" $.Value
+      "Options" $timezoneOptions
+    )
+}}
 
 {{ end }}
