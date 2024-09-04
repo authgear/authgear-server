@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "登录到 {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "使用其他帐户",
   "v2.page.settings.default.button-label-advanced-settings": "高级设置",
-  "v2.page.settings.default.button-label-and-more": "等等",
+  "v2.page.settings.default.button-label-and-more": "{item}等",
   "v2.page.settings.default.button-label-back-to-app": "返回我的应用程序",
   "v2.page.settings.default.button-label-biometric-login": "生物识别登录",
   "v2.page.settings.default.button-label-email": "电子邮件",

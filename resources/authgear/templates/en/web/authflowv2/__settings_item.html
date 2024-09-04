@@ -6,7 +6,7 @@
     "MaterialIconName" `email`
     "Children" $.Emails
   )
-}} 
+}}
 */}}
 {{ define "authflowv2/__settings_item.html" }}
 <a
@@ -37,8 +37,12 @@
   {{ if $.Children }}
     {{ $length := len $.Children }}
     <p class="settings-item__description settings-description block tablet:hidden">
-      {{ index $.Children  0}}
-      {{ if gt $length 1 }}<span> {{ template "v2.page.settings.default.button-label-and-more" .}} </span>{{ end }}
+      {{ $item := index $.Children  0}}
+      {{ if gt $length 1 }}
+        <span> {{ template "v2.page.settings.default.button-label-and-more" (dict "item" $item ) }} </span>
+      {{ else }}
+        {{ $item }}
+      {{ end }}
     </p>
     <ul class="settings-item__description settings-description hidden tablet:block">
       {{ range $i, $child := $.Children }}

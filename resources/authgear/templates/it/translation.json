@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "Accedi a {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Usa un altro account",
   "v2.page.settings.default.button-label-advanced-settings": "Impostazioni avanzate",
-  "v2.page.settings.default.button-label-and-more": "e altro",
+  "v2.page.settings.default.button-label-and-more": "{item} e altro",
   "v2.page.settings.default.button-label-back-to-app": "Torna alla mia app",
   "v2.page.settings.default.button-label-biometric-login": "Accesso biometrico",
   "v2.page.settings.default.button-label-email": "Email",

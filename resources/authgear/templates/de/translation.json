@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "Melden Sie sich bei {AppOrClientName} an",
   "v2.page.select-account.default.use-another-account": "Verwenden Sie ein anderes Konto",
   "v2.page.settings.default.button-label-advanced-settings": "Erweiterte Einstellungen",
-  "v2.page.settings.default.button-label-and-more": "und mehr",
+  "v2.page.settings.default.button-label-and-more": "{item} und mehr",
   "v2.page.settings.default.button-label-back-to-app": "Zurück zu meiner App",
   "v2.page.settings.default.button-label-biometric-login": "Biometrische Anmeldung",
   "v2.page.settings.default.button-label-email": "E-Mail",

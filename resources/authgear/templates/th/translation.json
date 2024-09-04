@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "เข้าสู่ระบบ {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "ใช้บัญชีอื่น",
   "v2.page.settings.default.button-label-advanced-settings": "การตั้งค่าขั้นสูง",
-  "v2.page.settings.default.button-label-and-more": "และอื่นๆ อีก",
+  "v2.page.settings.default.button-label-and-more": "{item} และอื่นๆ",
   "v2.page.settings.default.button-label-back-to-app": "กลับไปที่แอปพลิเคชันของฉัน",
   "v2.page.settings.default.button-label-biometric-login": "การเข้าสู่ระบบด้วยข้อมูลชีวภาพ",
   "v2.page.settings.default.button-label-email": "อีเมล",

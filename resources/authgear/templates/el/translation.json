@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "Συνδεθείτε στο {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Χρησιμοποιήστε άλλον λογαριασμό",
   "v2.page.settings.default.button-label-advanced-settings": "Προχωρημένες Ρυθμίσεις",
-  "v2.page.settings.default.button-label-and-more": "και άλλα",
+  "v2.page.settings.default.button-label-and-more": "{item} και περισσότερα",
   "v2.page.settings.default.button-label-back-to-app": "Επιστροφή στην εφαρμογή μου",
   "v2.page.settings.default.button-label-biometric-login": "Βιομετρική Σύνδεση",
   "v2.page.settings.default.button-label-email": "Email",
