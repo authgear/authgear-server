@@ -1,14 +1,16 @@
-<!-- Example usage:
-{{ template "authflowv2/__settings_radio.html"
-  (dict
-    "Label" (include "some-key" nil)
-    "Name" "gender-select"
-    "Value" "other"
-    "ExtraContentOnChecked" (include "other_content" .)
-    "DefaultChecked" true
-  )
-}}
--->
+{{/*
+  Example usage:
+  {{ template "authflowv2/__settings_radio.html"
+    (dict
+      "Label" (include "some-key" nil)
+      "Name" "gender-select"
+      "Value" "other"
+      "ExtraContentOnChecked" (include "other_content" .)
+      "DefaultChecked" true
+    )
+  }}
+*/}}
+
 {{ define "authflowv2/__settings_radio.html" }}
 
 {{ $inputID := (printf "radio-%s-%s" $.Name $.Value) }}
