@@ -16,7 +16,6 @@ bot-protection-dialog {{ template "web/authflowv2/__bot_protection_controller.ht
 {{ end }}
 
 {{ define "dialog-content" }}
-<div class="dialog">
   {{ template "dialog-close-btn" (dict "Class" "close-btn dialog-close-btn") }}
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <header class="dialog-title-description">
@@ -29,5 +28,4 @@ bot-protection-dialog {{ template "web/authflowv2/__bot_protection_controller.ht
     </header>
     {{ template "web/authflowv2/__bot_protection_widget.html" . }}
   </div>
-</div>
 {{ end }}
