@@ -336,6 +336,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(workflow.UserService), new(*user.Provider)),
+		wire.Bind(new(accountmanagement.UserService), new(*user.Provider)),
 		wire.Bind(new(authenticationflow.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(featurestdattrs.UserQueries), new(*user.RawQueries)),

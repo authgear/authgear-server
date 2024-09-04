@@ -1,6 +1,8 @@
 package accountmanagement
 
 import (
+	"time"
+
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -14,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type StartAddingInput struct {
@@ -50,6 +53,20 @@ type ChangePasswordOutput struct {
 	RedirectURI string
 }
 
+type CreateAdditionalPasswordInput struct {
+	NewAuthenticatorID string
+	UserID             string
+	Password           string
+}
+
+func NewCreateAdditionalPasswordInput(userID string, password string) CreateAdditionalPasswordInput {
+	return CreateAdditionalPasswordInput{
+		NewAuthenticatorID: uuid.New(),
+		UserID:             userID,
+		Password:           password,
+	}
+}
+
 type Store interface {
 	GenerateToken(options GenerateTokenOptions) (string, error)
 	ConsumeToken(tokenStr string) (*Token, error)
@@ -72,7 +89,9 @@ type EventService interface {
 }
 
 type AuthenticatorService interface {
+	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
 	Update(authenticatorInfo *authenticator.Info) error
 	UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
@@ -86,6 +105,10 @@ type SettingsDeleteAccountSuccessUIInfoResolver interface {
 	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
 }
 
+type UserService interface {
+	UpdateMFAEnrollment(userID string, t *time.Time) error
+}
+
 type Service struct {
 	Database                  *appdb.Handle
 	Store                     Store
@@ -95,6 +118,7 @@ type Service struct {
 	Authenticators            AuthenticatorService
 	AuthenticationInfoService AuthenticationInfoService
 	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
+	Users                     UserService
 }
 
 func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
@@ -288,5 +312,41 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) (*ChangePasswordOut
 	}
 
 	return &ChangePasswordOutput{RedirectURI: redirectURI}, nil
+}
 
+func (s *Service) CreateAdditionalPassword(input CreateAdditionalPasswordInput) error {
+	spec := &authenticator.Spec{
+		UserID:    input.UserID,
+		IsDefault: false,
+		Kind:      model.AuthenticatorKindSecondary,
+		Type:      model.AuthenticatorTypePassword,
+		Password: &authenticator.PasswordSpec{
+			PlainPassword: input.Password,
+		},
+	}
+	info, err := s.Authenticators.NewWithAuthenticatorID(input.NewAuthenticatorID, spec)
+	if err != nil {
+		return err
+	}
+	return s.CreateAuthenticator(info)
+}
+
+func (s *Service) CreateAuthenticator(authenticatorInfo *authenticator.Info) error {
+	err := s.Database.WithTx(func() error {
+		err := s.Authenticators.Create(authenticatorInfo, false)
+		if err != nil {
+			return err
+		}
+		if authenticatorInfo.Kind == authenticator.KindSecondary {
+			err = s.Users.UpdateMFAEnrollment(authenticatorInfo.UserID, nil)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
