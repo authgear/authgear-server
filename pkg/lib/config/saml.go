@@ -51,7 +51,7 @@ func (c *SAMLConfig) ResolveProvider(id string) (*SAMLServiceProviderConfig, boo
 		return nil, false
 	}
 	for _, sp := range c.ServiceProviders {
-		if sp.ID == id || sp.ClientID == id {
+		if sp.Deprecated_ID == id || sp.ClientID == id {
 			return sp, true
 		}
 	}
@@ -96,7 +96,7 @@ func (p SAMLNameIDAttributePointer) MustGetJSONPointer() jsonpointer.T {
 }
 
 type SAMLServiceProviderConfig struct {
-	ID                     string                     `json:"id,omitempty"`
+	Deprecated_ID          string                     `json:"id,omitempty"`
 	ClientID               string                     `json:"client_id,omitempty"`
 	NameIDFormat           SAMLNameIDFormat           `json:"nameid_format,omitempty"`
 	NameIDAttributePointer SAMLNameIDAttributePointer `json:"nameid_attribute_pointer,omitempty"`
@@ -126,8 +126,8 @@ func (c *SAMLServiceProviderConfig) DefaultAcsURL() string {
 }
 
 func (c *SAMLServiceProviderConfig) GetID() string {
-	if c.ID != "" {
-		return c.ID
+	if c.Deprecated_ID != "" {
+		return c.Deprecated_ID
 	}
 	if c.ClientID != "" {
 		return c.ClientID
