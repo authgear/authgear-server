@@ -923,6 +923,7 @@
   "v2.component.oob-otp-resend-button.default.countdown-unit": "%s 後重發",
   "v2.component.oob-otp-resend-button.default.label": "重發",
   "v2.component.password-input.default.hide-password": "隱藏密碼",
+  "v2.component.password-input.default.placeholder-confirm-new-password": "再次輸入新密碼",
   "v2.component.password-input.default.placeholder-confirm-password": "再次輸入新密碼",
   "v2.component.password-input.default.placeholder-new-password": "新密碼",
   "v2.component.password-input.default.placeholder-password": "目前密碼",

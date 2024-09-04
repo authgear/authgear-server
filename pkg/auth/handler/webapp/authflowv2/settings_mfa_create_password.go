@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
+	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -25,7 +25,28 @@ type AuthflowV2SettingsMFACreatePasswordHandler struct {
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	SettingsViewModel *viewmodels.SettingsViewModeler
+	PasswordPolicy    handlerwebapp.PasswordPolicy
 	Renderer          handlerwebapp.Renderer
+}
+
+func (h *AuthflowV2SettingsMFACreatePasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
+	viewmodels.Embed(data, baseViewModel)
+
+	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
+		h.PasswordPolicy.PasswordPolicy(),
+		h.PasswordPolicy.PasswordRules(),
+		baseViewModel.RawError,
+		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
+	)
+	viewmodels.Embed(data, passwordPolicyViewModel)
+
+	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
+	viewmodels.Embed(data, passwordInputErrorViewModel)
+
+	return data, nil
 }
 
 func (h *AuthflowV2SettingsMFACreatePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -37,21 +58,11 @@ func (h *AuthflowV2SettingsMFACreatePasswordHandler) ServeHTTP(w http.ResponseWr
 	defer ctrl.Serve()
 
 	ctrl.Get(func() error {
-		userID := session.GetUserID(r.Context())
-
-		data := map[string]interface{}{}
-
-		baseViewModel := h.BaseViewModel.ViewModel(r, w)
-		viewmodels.Embed(data, baseViewModel)
-
-		viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
 		}
-		viewmodels.Embed(data, *viewModelPtr)
-
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsMFACreatePasswordHTML, data)
-
 		return nil
 	})
 }

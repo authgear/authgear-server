@@ -923,6 +923,7 @@
   "v2.component.oob-otp-resend-button.default.countdown-unit": "Resend code in %s",
   "v2.component.oob-otp-resend-button.default.label": "Resend code",
   "v2.component.password-input.default.hide-password": "Hide password",
+  "v2.component.password-input.default.placeholder-confirm-new-password": "Re-enter new password",
   "v2.component.password-input.default.placeholder-confirm-password": "Re-enter Password",
   "v2.component.password-input.default.placeholder-new-password": "New Password",
   "v2.component.password-input.default.placeholder-password": "Current Password",
