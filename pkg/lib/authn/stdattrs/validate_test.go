@@ -136,7 +136,7 @@ func TestSchema(t *testing.T) {
 	}
 }
 `
-		bytes, err := json.Marshal(SchemaBuilder)
+		bytes, err := json.Marshal(schemaBuilder)
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, expected)
 	})
