@@ -1,17 +1,19 @@
 {{ template "authflowv2/__settings_page_frame.html" . }}
 
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+    (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/profile")
+        "Title" (translate "v2.page.settings-profile.default.profile-picture-title" nil)
+    )
+  }}
+{{ end }}
+
 {{ define "page-content" }}
 
-
-{{ template "authflowv2/__navbar.html"
-(dict
-  "BackHref" (call $.MakeURL "/settings/profile")
-  "BackTitle" (include "v2.component.navbar.default.item-back-button-label" nil )
-  "Title" (translate "v2.page.settings-profile.default.profile-picture-title" nil)
-)
-}}
-
-<div class="grid grid-cols-1 auto-rows-auto w-full pt-5 mt-5 justify-items-center" data-controller="image-picker">
+<div class="grid grid-cols-1 auto-rows-auto w-full mt-2 justify-items-center" data-controller="image-picker">
 
   {{/* Normally form does not need action set. */}}
   {{/* However, this form is submitted asynchronously. */}}
@@ -44,7 +46,7 @@
     >
   </div>
 
-  <div class="flex flex-col mt-10 gap-4 w-full max-w-86">
+  <div class="flex flex-col mt-10 gap-4 w-full tablet:max-w-86">
     <input
       type="file"
       class="hidden"
