@@ -1118,6 +1118,7 @@
   "v2.page.select-account.default.use-another-account": "Use another account",
   "v2.page.settings-change-password.default.navbar-title": "Change Password",
   "v2.page.settings-mfa-create-password.default.navbar-title": "Additional password",
+  "v2.page.settings-mfa-password.default.navbar-title": "Additional password",
   "v2.page.settings-mfa.default.activated-label": "Activated",
   "v2.page.settings-mfa.default.additional-password-label": "Additional password",
   "v2.page.settings-mfa.default.inactive-label": "Inactive",

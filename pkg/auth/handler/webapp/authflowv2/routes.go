@@ -80,6 +80,7 @@ const (
 	AuthflowV2RouteSettingsProfile           = "/settings/v2/profile"
 	AuthflowV2RouteSettingsMFA               = "/settings/mfa"
 	AuthflowV2RouteSettingsMFACreatePassword = "/settings/mfa/create_password"
+	AuthflowV2RouteSettingsMFAPassword       = "/settings/mfa/password"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {

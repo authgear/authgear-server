@@ -478,6 +478,13 @@ func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider
 	))
 }
 
+func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsMFAPasswordHandler)),
+	))
+}
+
 func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

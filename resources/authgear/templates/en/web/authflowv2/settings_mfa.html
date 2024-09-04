@@ -14,6 +14,9 @@
 
 {{ if $.ShowSecondaryPassword }}
   {{ $href := (call $.MakeURL "/settings/mfa/create_password") }}
+  {{ if $.SecondaryPassword }}
+    {{ $href = (call $.MakeURL "/settings/mfa/password") }}
+  {{ end }}
   {{ template "__settings_mfa_item"
       (dict
         "MaterialIconName" "lock"

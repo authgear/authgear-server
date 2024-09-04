@@ -463,6 +463,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsMFAHandler),
 	})
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFACreatePassword(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFACreatePasswordHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAPassword(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAPasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsTOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsTOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsPasskeyRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsPasskeyHandler))
 	router.Add(webapphandler.ConfigureSettingsOOBOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsOOBOTPHandler))
