@@ -13,11 +13,13 @@
 {{ define "page-content" }}
 
 {{ if $.ShowSecondaryPassword }}
+  {{ $href := (call $.MakeURL "/settings/mfa/create_password") }}
   {{ template "__settings_mfa_item"
       (dict
         "MaterialIconName" "lock"
         "Label" (translate "v2.page.settings-mfa.default.additional-password-label" nil)
         "Active" $.SecondaryPassword
+        "Href" $href
       )
   }}
 
@@ -30,6 +32,7 @@
       (dict
         "MaterialIconName" $.MaterialIconName
         "Label" $.Label
+        "Href" $.Href
         "SupplementaryNote" (include "__settings_mfa_item_status"
           (dict
             "IsActive" $.IsActive
