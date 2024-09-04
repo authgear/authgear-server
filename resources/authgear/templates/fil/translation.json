@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "Mag-log in sa {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gumamit ng ibang account",
   "v2.page.settings.default.button-label-advanced-settings": "Mga Advanced na Setting",
-  "v2.page.settings.default.button-label-and-more": "at marami pang iba",
+  "v2.page.settings.default.button-label-and-more": "{item} at higit pa",
   "v2.page.settings.default.button-label-back-to-app": "Bumalik sa aking app",
   "v2.page.settings.default.button-label-biometric-login": "Pag-log in gamit ang Biometrics",
   "v2.page.settings.default.button-label-email": "Email",

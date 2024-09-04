@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "Đăng nhập vào {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Sử dụng tài khoản khác",
   "v2.page.settings.default.button-label-advanced-settings": "Cài đặt Nâng cao",
-  "v2.page.settings.default.button-label-and-more": "và nhiều hơn nữa",
+  "v2.page.settings.default.button-label-and-more": "{item} và nhiều hơn nữa",
   "v2.page.settings.default.button-label-back-to-app": "Quay lại ứng dụng của tôi",
   "v2.page.settings.default.button-label-biometric-login": "Đăng nhập Sinh trắc học",
   "v2.page.settings.default.button-label-email": "Email",

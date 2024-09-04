@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "Masuk ke {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gunakan akun lain",
   "v2.page.settings.default.button-label-advanced-settings": "Pengaturan Lanjutan",
-  "v2.page.settings.default.button-label-and-more": "dan lainnya",
+  "v2.page.settings.default.button-label-and-more": "{item} dan lainnya",
   "v2.page.settings.default.button-label-back-to-app": "Kembali ke aplikasi saya",
   "v2.page.settings.default.button-label-biometric-login": "Login Biometrik",
   "v2.page.settings.default.button-label-email": "Email",

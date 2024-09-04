@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "Iniciar sessão em {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Usar outra conta",
   "v2.page.settings.default.button-label-advanced-settings": "Definições Avançadas",
-  "v2.page.settings.default.button-label-and-more": "e mais",
+  "v2.page.settings.default.button-label-and-more": "{item} e mais",
   "v2.page.settings.default.button-label-back-to-app": "Voltar à minha aplicação",
   "v2.page.settings.default.button-label-biometric-login": "Início de Sessão Biométrico",
   "v2.page.settings.default.button-label-email": "Email",

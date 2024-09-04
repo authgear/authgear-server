@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "{AppOrClientName}에 로그인",
   "v2.page.select-account.default.use-another-account": "다른 계정 사용",
   "v2.page.settings.default.button-label-advanced-settings": "고급 설정",
-  "v2.page.settings.default.button-label-and-more": "그리고 더 많은 것들",
+  "v2.page.settings.default.button-label-and-more": "{item} 및 기타",
   "v2.page.settings.default.button-label-back-to-app": "앱으로 돌아가기",
   "v2.page.settings.default.button-label-biometric-login": "생체 인증 로그인",
   "v2.page.settings.default.button-label-email": "이메일",

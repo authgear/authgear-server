@@ -1153,7 +1153,7 @@
   "v2.page.settings-profile.default.profile-picture-title": "頭像",
   "v2.page.settings-profile.default.zoneinfo-title": "時區",
   "v2.page.settings.default.button-label-advanced-settings": "進階設定",
-  "v2.page.settings.default.button-label-and-more": "還有更多",
+  "v2.page.settings.default.button-label-and-more": "{item} 還有更多",
   "v2.page.settings.default.button-label-back-to-app": "返回我的App",
   "v2.page.settings.default.button-label-biometric-login": "生物驗證登入",
   "v2.page.settings.default.button-label-email": "電郵",

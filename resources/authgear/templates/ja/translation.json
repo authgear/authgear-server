@@ -1107,7 +1107,7 @@
   "v2.page.select-account.default.title": "{AppOrClientName}にログイン",
   "v2.page.select-account.default.use-another-account": "別のアカウントを使用",
   "v2.page.settings.default.button-label-advanced-settings": "高度な設定",
-  "v2.page.settings.default.button-label-and-more": "その他",
+  "v2.page.settings.default.button-label-and-more": "{item} 他",
   "v2.page.settings.default.button-label-back-to-app": "アプリに戻る",
   "v2.page.settings.default.button-label-biometric-login": "生体認証ログイン",
   "v2.page.settings.default.button-label-email": "メール",
