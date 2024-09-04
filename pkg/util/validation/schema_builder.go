@@ -166,3 +166,21 @@ func (b SchemaBuilder) Copy() SchemaBuilder {
 
 	return newB
 }
+
+func (b SchemaBuilder) Nullable() SchemaBuilder {
+	existingTypes := b["type"]
+
+	if existingTypes == nil {
+		b.Type(TypeNull)
+	}
+
+	if ts, ok := existingTypes.([]Type); ok {
+		b.Types(append(ts, TypeNull)...)
+	} else if t, ok := existingTypes.(Type); ok {
+		b.Types(t, TypeNull)
+	} else {
+		b.Type(TypeNull)
+	}
+
+	return b
+}

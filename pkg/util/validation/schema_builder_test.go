@@ -214,5 +214,50 @@ func TestSchemaBuilder(t *testing.T) {
 }
 `)
 		})
+		Convey("nullable should append type", func() {
+			b := SchemaBuilder{}
+			b.Type(TypeObject).Required("channel")
+
+			b.Properties().
+				Property("channel", SchemaBuilder{}.Type(TypeString).Enum("sms", "email", "whatsapp"))
+
+			test(b, `
+{
+    "type": "object",
+    "required": [
+        "channel"
+    ],
+    "properties": {
+        "channel": {
+            "type": "string",
+            "enum": [
+                "sms",
+                "email",
+                "whatsapp"
+            ]
+        }
+    }
+}
+`)
+			b.Nullable()
+			test(b, `
+{
+    "type": ["object", "null"],
+    "required": [
+        "channel"
+    ],
+    "properties": {
+        "channel": {
+            "type": "string",
+            "enum": [
+                "sms",
+                "email",
+                "whatsapp"
+            ]
+        }
+    }
+}
+`)
+		})
 	})
 }
