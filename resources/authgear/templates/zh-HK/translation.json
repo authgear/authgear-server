@@ -1116,6 +1116,7 @@
   "v2.page.select-account.default.title": "登入 {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "使用另一個帳戶",
   "v2.page.settings-change-password.default.navbar-title": "更改密碼",
+  "v2.page.settings-mfa.default.navbar-title": "多重驗證",
   "v2.page.settings-profile-edit-address.default.country-label": "國家",
   "v2.page.settings-profile-edit-address.default.locality-label": "城市",
   "v2.page.settings-profile-edit-address.default.navbar-title": "地址",
