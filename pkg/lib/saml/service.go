@@ -102,11 +102,11 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 				SingleSignOnServices: []crewjamsaml.Endpoint{
 					{
 						Binding:  crewjamsaml.HTTPRedirectBinding,
-						Location: s.Endpoints.SAMLLoginURL(sp.ID).String(),
+						Location: s.Endpoints.SAMLLoginURL(sp.GetID()).String(),
 					},
 					{
 						Binding:  crewjamsaml.HTTPPostBinding,
-						Location: s.Endpoints.SAMLLoginURL(sp.ID).String(),
+						Location: s.Endpoints.SAMLLoginURL(sp.GetID()).String(),
 					},
 				},
 			},
@@ -128,11 +128,11 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	}
 
 	if authnRequest.Destination != "" {
-		if authnRequest.Destination != s.Endpoints.SAMLLoginURL(sp.ID).String() {
+		if authnRequest.Destination != s.Endpoints.SAMLLoginURL(sp.GetID()).String() {
 			return &samlerror.InvalidRequestError{
 				Field:    "Destination",
 				Actual:   authnRequest.Destination,
-				Expected: []string{s.Endpoints.SAMLLoginURL(sp.ID).String()},
+				Expected: []string{s.Endpoints.SAMLLoginURL(sp.GetID()).String()},
 				Reason:   "unexpected Destination",
 			}
 		}

@@ -47,8 +47,11 @@ type SAMLConfig struct {
 }
 
 func (c *SAMLConfig) ResolveProvider(id string) (*SAMLServiceProviderConfig, bool) {
+	if id == "" {
+		return nil, false
+	}
 	for _, sp := range c.ServiceProviders {
-		if sp.ID == id {
+		if sp.ID == id || sp.ClientID == id {
 			return sp, true
 		}
 	}
@@ -120,6 +123,16 @@ func (c *SAMLServiceProviderConfig) SetDefaults() {
 
 func (c *SAMLServiceProviderConfig) DefaultAcsURL() string {
 	return c.AcsURLs[0]
+}
+
+func (c *SAMLServiceProviderConfig) GetID() string {
+	if c.ID != "" {
+		return c.ID
+	}
+	if c.ClientID != "" {
+		return c.ClientID
+	}
+	panic("unexpected: service provider does not have id nor client id")
 }
 
 var _ = Schema.Add("SAMLSigningConfig", `
