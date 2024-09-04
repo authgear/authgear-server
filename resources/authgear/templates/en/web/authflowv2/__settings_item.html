@@ -4,6 +4,7 @@
     "Label" (include "some-key" nil)
     "Href" "url"
     "MaterialIconName" `email`
+    "SupplementaryNote" "some content"
     "Children" $.Emails
   )
 }}
@@ -19,6 +20,9 @@
     {{ else }}
       without-content
     {{ end }}
+    {{ if $.SupplementaryNote }}
+      with-note
+    {{end }}
     "
   {{ if $.Href }}
   href="{{ $.Href }}"
@@ -35,10 +39,16 @@
     {{ $.Label }}
   </p>
 
+  {{ if $.SupplementaryNote }}
+    <div class="settings-item__note">
+      {{ $.SupplementaryNote }}
+    </div>
+  {{ end }}
+
   {{/* If there is content */}}
   {{ if $.Children }}
     {{ $length := len $.Children }}
-    <p class="settings-item__description settings-description block tablet:hidden">
+    <p class="settings-item__content settings-description block tablet:hidden">
       {{ $item := index $.Children  0}}
       {{ if gt $length 1 }}
         <span> {{ include "v2.page.settings.default.button-label-and-more" (dict "item" $item ) }} </span>
@@ -46,7 +56,7 @@
         {{ $item }}
       {{ end }}
     </p>
-    <ul class="settings-item__description settings-description hidden tablet:block">
+    <ul class="settings-item__content settings-description hidden tablet:block">
       {{ range $i, $child := $.Children }}
       <li>
         {{ $child }}

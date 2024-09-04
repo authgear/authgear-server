@@ -25,6 +25,20 @@
     --settings-item__ring-width--active: var(--settings-item__ring-width);
     --settings-item__ring-color--active: var(--settings-item__ring-color);
 
+    --settings-item__note-font-family: var(
+      --typography-body-medium__font-family
+    );
+    --settings-item__note-font-size: var(--typography-body-medium__font-size);
+    --settings-item__note-line-height: var(
+      --typography-body-medium__line-height
+    );
+    --settings-item__note-letter-spacing: var(
+      --typography-body-medium__letter-spacing
+    );
+    --settings-item__note-font-weight: var(
+      --typography-body-medium__font-weight
+    );
+
     --settings-item__forward-arrow-font-size: 1.125rem;
 
     --settings-item__forward-arrow-color: var(--color-neutral-200);
@@ -44,8 +58,7 @@
   }
 
   .settings-item {
-    @apply grid;
-    @apply gap-x-2;
+    @apply grid gap-x-2 gap-y-1;
     @apply items-center text-start;
 
     background-color: var(--settings-item__bg-color);
@@ -79,6 +92,13 @@
       grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
     }
 
+    &.with-note {
+      grid-template-areas:
+        "icon title arrow"
+        ".    note  arrow";
+      grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
+    }
+
     &:hover {
       background-color: var(--settings-item__bg-color--hover);
       color: var(--settings-item__text-color--hover);
@@ -96,18 +116,26 @@
     }
   }
 
-  .settings-item > .settings-item_icon-container {
+  .settings-item_icon-container {
     grid-area: icon;
     @apply flex items-center;
   }
-  .settings-item > .settings-item__label {
+  .settings-item__label {
     grid-area: title;
   }
-  .settings-item > .settings-item__description {
+  .settings-item__content {
     grid-area: content;
   }
-  .settings-item > .settings-item__forward_arrow {
+  .settings-item__forward_arrow {
     grid-area: arrow;
+  }
+  .settings-item__note {
+    grid-area: note;
+    font-family: var(--settings-item__note-font-family);
+    font-size: var(--settings-item__note-font-size);
+    line-height: var(--settings-item__note-line-height);
+    letter-spacing: var(--settings-item__note-letter-spacing);
+    font-weight: var(--settings-item__note-font-weight);
   }
 }
 
