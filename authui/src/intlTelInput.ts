@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus";
+import intlTelInput from "intl-tel-input";
 
 function swapElementsName(
   firstElement: HTMLInputElement,
@@ -132,7 +133,7 @@ export class IntlTelInputController extends Controller {
 
     this.ignoreConnect = true;
     this.ignoreDisconnect = true;
-    this.instance = window.intlTelInput(this.inputElement, {
+    this.instance = intlTelInput(this.inputElement, {
       autoPlaceholder: "aggressive",
       onlyCountries,
       preferredCountries,

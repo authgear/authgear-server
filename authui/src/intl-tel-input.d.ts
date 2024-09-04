@@ -1,5 +1,7 @@
 // Type definition for intl-tel-input v17.0.13
 
+declare module "intl-tel-input";
+
 declare type IntlTelInputAlpha2 = string;
 
 declare interface IntlTelInputCountryData {
