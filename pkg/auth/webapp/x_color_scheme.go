@@ -13,9 +13,10 @@ func isValidColorScheme(s string) bool {
 
 // ColorSchemeCookieDef is a HTTP session cookie.
 var ColorSchemeCookieDef = &httputil.CookieDef{
-	NameSuffix: "x_color_scheme",
-	Path:       "/",
-	SameSite:   http.SameSiteNoneMode,
+	NameSuffix:    "x_color_scheme",
+	Path:          "/",
+	SameSite:      http.SameSiteNoneMode,
+	IsNonHostOnly: false,
 }
 
 type colorSchemeContextKeyType struct{}

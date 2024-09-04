@@ -13,16 +13,18 @@ import (
 
 // WeChatRedirectURICookieDef is a HTTP session cookie.
 var WeChatRedirectURICookieDef = &httputil.CookieDef{
-	NameSuffix: "wechat_redirect_uri",
-	Path:       "/",
-	SameSite:   http.SameSiteNoneMode,
+	NameSuffix:    "wechat_redirect_uri",
+	Path:          "/",
+	SameSite:      http.SameSiteNoneMode,
+	IsNonHostOnly: true,
 }
 
 // PlatformCookieDef is a HTTP session cookie.
 var PlatformCookieDef = &httputil.CookieDef{
-	NameSuffix: "platform",
-	Path:       "/",
-	SameSite:   http.SameSiteNoneMode,
+	NameSuffix:    "platform",
+	Path:          "/",
+	SameSite:      http.SameSiteNoneMode,
+	IsNonHostOnly: true,
 }
 
 // WeChatRedirectURIMiddleware validates x_wechat_redirect_uri and stores it in context.

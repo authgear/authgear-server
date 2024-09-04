@@ -43,6 +43,7 @@ var CSRFDebugCookieSameSiteOmitDef = &httputil.CookieDef{
 	AllowScriptAccess: false,
 	SameSite:          http.SameSiteDefaultMode,
 	MaxAge:            &CSRFDebugCookieMaxAge,
+	IsNonHostOnly:     false,
 }
 
 var CSRFDebugCookieSameSiteNoneDef = &httputil.CookieDef{
@@ -51,6 +52,7 @@ var CSRFDebugCookieSameSiteNoneDef = &httputil.CookieDef{
 	AllowScriptAccess: false,
 	SameSite:          http.SameSiteNoneMode,
 	MaxAge:            &CSRFDebugCookieMaxAge,
+	IsNonHostOnly:     false,
 }
 
 var CSRFDebugCookieSameSiteLaxDef = &httputil.CookieDef{
@@ -59,6 +61,7 @@ var CSRFDebugCookieSameSiteLaxDef = &httputil.CookieDef{
 	AllowScriptAccess: false,
 	SameSite:          http.SameSiteLaxMode,
 	MaxAge:            &CSRFDebugCookieMaxAge,
+	IsNonHostOnly:     false,
 }
 
 var CSRFDebugCookieSameSiteStrictDef = &httputil.CookieDef{
@@ -67,4 +70,5 @@ var CSRFDebugCookieSameSiteStrictDef = &httputil.CookieDef{
 	AllowScriptAccess: false,
 	SameSite:          http.SameSiteStrictMode,
 	MaxAge:            &CSRFDebugCookieMaxAge,
+	IsNonHostOnly:     false,
 }

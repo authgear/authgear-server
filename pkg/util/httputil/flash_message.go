@@ -6,9 +6,10 @@ import (
 
 // FlashMessageTypeCookieDef is a HTTP session cookie.
 var FlashMessageTypeCookieDef = &CookieDef{
-	NameSuffix: "flash_message_type",
-	Path:       "/",
-	SameSite:   http.SameSiteNoneMode,
+	NameSuffix:    "flash_message_type",
+	Path:          "/",
+	SameSite:      http.SameSiteNoneMode,
+	IsNonHostOnly: false,
 }
 
 type FlashMessageCookieManager interface {

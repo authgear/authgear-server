@@ -20,9 +20,10 @@ import (
 
 // UILocalesCookieDef is a HTTP session cookie.
 var UILocalesCookieDef = &httputil.CookieDef{
-	NameSuffix: "ui_locales",
-	Path:       "/",
-	SameSite:   http.SameSiteNoneMode,
+	NameSuffix:    "ui_locales",
+	Path:          "/",
+	SameSite:      http.SameSiteNoneMode,
+	IsNonHostOnly: false,
 }
 
 // StateCookieDef is deprecated.

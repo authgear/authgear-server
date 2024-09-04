@@ -26,6 +26,7 @@ func NewSessionCookieDef() SessionCookieDef {
 		AllowScriptAccess: false,
 		SameSite:          http.SameSiteNoneMode, // For resumption after redirecting from OAuth providers
 		MaxAge:            nil,                   // Use HTTP session cookie; expires when browser closes
+		IsNonHostOnly:     true,
 	}
 	return SessionCookieDef{Def: def}
 }
@@ -41,6 +42,7 @@ func NewErrorTokenCookieDef() ErrorTokenCookieDef {
 		AllowScriptAccess: false,
 		SameSite:          http.SameSiteLaxMode,
 		MaxAge:            nil, // Use HTTP session cookie; expires when browser closes
+		IsNonHostOnly:     false,
 	}
 	return ErrorTokenCookieDef{Def: def}
 }
@@ -57,6 +59,7 @@ func NewSignedUpCookieDef() SignedUpCookieDef {
 		AllowScriptAccess: false,
 		SameSite:          http.SameSiteLaxMode,
 		MaxAge:            &long,
+		IsNonHostOnly:     false,
 	}
 	return SignedUpCookieDef{Def: def}
 }

@@ -16,4 +16,5 @@ var UserAgentIDCookieDef = &httputil.CookieDef{
 	Path:              "/",
 	AllowScriptAccess: false,
 	SameSite:          http.SameSiteNoneMode,
+	IsNonHostOnly:     false,
 }
