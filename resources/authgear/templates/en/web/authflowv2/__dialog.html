@@ -1,6 +1,7 @@
 <!-- Example usage:
   {{ template "authflowv2/__dialog.html" (dict
     "Ctx" .
+    "ClassName" "h-full"
     "DialogID" "bot-protection-dialog"
     "DialogControllerStr" "cloudflare-turnstile"
     "DialogContent" (include "dialog-content" .)
@@ -24,7 +25,9 @@
   data-action="click->dialog#closeOnBackgroundClick"
   {{ template "dialog-attr" $.Ctx }}
 >
-  {{ $.DialogContent }}
+  <div class="dialog {{ $.ClassName }}">
+    {{ $.DialogContent }}
+  </div>
 </div>
 {{ end }}
 
