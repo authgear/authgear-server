@@ -188,68 +188,68 @@ func SchemaBuilderForPointerString(ptrStr string) (validation.SchemaBuilder, boo
 }
 
 func SchemaBuilderEmail() validation.SchemaBuilder {
-	return schemaBuilderEmail.Copy()
+	return schemaBuilderEmail.Clone()
 }
 func SchemaBuilderPhoneNumber() validation.SchemaBuilder {
-	return schemaBuilderPhoneNumber.Copy()
+	return schemaBuilderPhoneNumber.Clone()
 }
 func SchemaBuilderPreferredUsername() validation.SchemaBuilder {
-	return schemaBuilderPreferredUsername.Copy()
+	return schemaBuilderPreferredUsername.Clone()
 }
 func SchemaBuilderFamilyName() validation.SchemaBuilder {
-	return schemaBuilderFamilyName.Copy()
+	return schemaBuilderFamilyName.Clone()
 }
 func SchemaBuilderGivenName() validation.SchemaBuilder {
-	return schemaBuilderGivenName.Copy()
+	return schemaBuilderGivenName.Clone()
 }
 func SchemaBuilderMiddleName() validation.SchemaBuilder {
-	return schemaBuilderMiddleName.Copy()
+	return schemaBuilderMiddleName.Clone()
 }
 func SchemaBuilderName() validation.SchemaBuilder {
-	return schemaBuilderName.Copy()
+	return schemaBuilderName.Clone()
 }
 func SchemaBuilderNickName() validation.SchemaBuilder {
-	return schemaBuilderNickName.Copy()
+	return schemaBuilderNickName.Clone()
 }
 func SchemaBuilderPicture() validation.SchemaBuilder {
-	return schemaBuilderPicture.Copy()
+	return schemaBuilderPicture.Clone()
 }
 func SchemaBuilderProfile() validation.SchemaBuilder {
-	return schemaBuilderProfile.Copy()
+	return schemaBuilderProfile.Clone()
 }
 func SchemaBuilderWebsite() validation.SchemaBuilder {
-	return schemaBuilderWebsite.Copy()
+	return schemaBuilderWebsite.Clone()
 }
 func SchemaBuilderGender() validation.SchemaBuilder {
-	return schemaBuilderGender.Copy()
+	return schemaBuilderGender.Clone()
 }
 func SchemaBuilderBirthdate() validation.SchemaBuilder {
-	return schemaBuilderBirthdate.Copy()
+	return schemaBuilderBirthdate.Clone()
 }
 func SchemaBuilderZoneinfo() validation.SchemaBuilder {
-	return schemaBuilderZoneinfo.Copy()
+	return schemaBuilderZoneinfo.Clone()
 }
 func SchemaBuilderLocale() validation.SchemaBuilder {
-	return schemaBuilderLocale.Copy()
+	return schemaBuilderLocale.Clone()
 }
 func SchemaBuilderAddress() validation.SchemaBuilder {
-	return schemaBuilderAddress.Copy()
+	return schemaBuilderAddress.Clone()
 }
 func SchemaBuilderAddressFormatted() validation.SchemaBuilder {
-	return schemaBuilderAddressFormatted.Copy()
+	return schemaBuilderAddressFormatted.Clone()
 }
 func SchemaBuilderAddressStreetAddress() validation.SchemaBuilder {
-	return schemaBuilderAddressStreetAddress.Copy()
+	return schemaBuilderAddressStreetAddress.Clone()
 }
 func SchemaBuilderAddressLocality() validation.SchemaBuilder {
-	return schemaBuilderAddressLocality.Copy()
+	return schemaBuilderAddressLocality.Clone()
 }
 func SchemaBuilderAddressRegion() validation.SchemaBuilder {
-	return schemaBuilderAddressRegion.Copy()
+	return schemaBuilderAddressRegion.Clone()
 }
 func SchemaBuilderAddressPostalCode() validation.SchemaBuilder {
-	return schemaBuilderAddressPostalCode.Copy()
+	return schemaBuilderAddressPostalCode.Clone()
 }
 func SchemaBuilderAddressCountry() validation.SchemaBuilder {
-	return schemaBuilderAddressCountry.Copy()
+	return schemaBuilderAddressCountry.Clone()
 }

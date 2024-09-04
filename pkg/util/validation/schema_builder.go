@@ -153,12 +153,12 @@ func (b SchemaBuilder) ToSimpleSchema() *SimpleSchema {
 
 // This function allow copying the schema builder to a reference
 // Expected usage is to avoid mutating original schema builder
-func (b SchemaBuilder) Copy() SchemaBuilder {
+func (b SchemaBuilder) Clone() SchemaBuilder {
 	newB := make(SchemaBuilder)
 	for k, v := range b {
 		vb, ok := v.(SchemaBuilder)
 		if ok {
-			newB[k] = vb.Copy()
+			newB[k] = vb.Clone()
 		} else {
 			newB[k] = v
 		}

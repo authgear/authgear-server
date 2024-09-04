@@ -145,7 +145,7 @@ func TestSchemaBuilder(t *testing.T) {
 `)
 		})
 
-		Convey("mutation on copied builder should not affect original builder", func() {
+		Convey("mutation on cloned builder should not affect original builder", func() {
 			b := SchemaBuilder{}
 			b.Type(TypeObject).Required("channel")
 
@@ -170,7 +170,7 @@ func TestSchemaBuilder(t *testing.T) {
     }
 }
 `)
-			newB := b.Copy()
+			newB := b.Clone()
 			So(newB, ShouldResemble, b)
 
 			newB.Properties().Property("myNewProperty", SchemaBuilder{}.Type(TypeString))
