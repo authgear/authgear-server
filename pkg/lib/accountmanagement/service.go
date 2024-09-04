@@ -257,7 +257,10 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) (string, error) {
 	}
 
 	if changed {
-		s.Authenticators.Update(newInfo)
+		err = s.Authenticators.Update(newInfo)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	redirectURI := input.RedirectURI
@@ -266,7 +269,10 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) (string, error) {
 	if input.OAuthSessionID != "" {
 		authInfo := input.Session.GetAuthenticationInfo()
 		authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
-		s.AuthenticationInfoService.Save(authenticationInfoEntry)
+		err = s.AuthenticationInfoService.Save(authenticationInfoEntry)
+		if err != nil {
+			return "", err
+		}
 		redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
 	}
 

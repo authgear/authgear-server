@@ -111,13 +111,6 @@ func (c *Controller) RedirectURI() string {
 	return ruri
 }
 
-func (c *Controller) SettingV2RedirectURI(session *webapp.Session, defaultURL string) string {
-	if session != nil {
-		return session.RedirectURI
-	}
-	return defaultURL
-}
-
 func (c *Controller) Get(fn func() error) {
 	c.getHandler = fn
 }
