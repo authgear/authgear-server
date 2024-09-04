@@ -47,6 +47,7 @@ import { BotProtectionController } from "./authflowv2/botprotection/botProtectio
 import { BotProtectionDialogController } from "./authflowv2/botprotection/botProtectionDialog";
 import { DialogController } from "./authflowv2/dialog";
 import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
+import { ImagePickerController } from "./imagepicker";
 import { LocaleInputController } from "./authflowv2/localeInput";
 import { TimezoneInput } from "./authflowv2/timezoneInput";
 
@@ -92,6 +93,7 @@ Stimulus.register("phone-input", PhoneInputController);
 Stimulus.register("locale-input", LocaleInputController);
 Stimulus.register("countdown", CountdownController);
 Stimulus.register("copy-button", CopyButtonController);
+Stimulus.register("image-picker", ImagePickerController);
 
 Stimulus.register("text-field", TextFieldController);
 Stimulus.register("dialog", DialogController);

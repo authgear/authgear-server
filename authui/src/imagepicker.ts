@@ -10,6 +10,7 @@ import {
   showErrorMessage,
   hideErrorMessage,
 } from "./messageBar";
+import Cropper from "cropperjs";
 import { Controller } from "@hotwired/stimulus";
 
 function destroyCropper(img: HTMLImageElement) {

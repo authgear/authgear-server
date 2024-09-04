@@ -33,6 +33,10 @@ func init() {
 		"web/authflowv2/settings_profile_edit_name.html",
 		handlerwebapp.SettingsComponents...,
 	)
+	settingsProfileEditVariantToTemplate["picture"] = template.RegisterHTML(
+		"web/authflowv2/settings_picture_edit.html",
+		handlerwebapp.SettingsComponents...,
+	)
 	settingsProfileEditVariantToTemplate["zoneinfo"] = template.RegisterHTML(
 		"web/authflowv2/settings_profile_edit_zoneinfo.html",
 		handlerwebapp.SettingsComponents...,
