@@ -61,8 +61,8 @@ func init() {
 			Type(validation.TypeObject).
 			AdditionalPropertiesFalse()
 		mfa.Properties().
-			Property("email", reusedSchemaBuilders.Email.Nullable()).
-			Property("phone_number", reusedSchemaBuilders.PhoneNumber.Nullable()).
+			Property("email", reusedSchemaBuilders.Email.AddTypeNull()).
+			Property("phone_number", reusedSchemaBuilders.PhoneNumber.AddTypeNull()).
 			Property("password", password).
 			Property("totp", totp)
 
@@ -74,19 +74,19 @@ func init() {
 			Property("disabled", boolean).
 			Property("email_verified", boolean).
 			Property("phone_number_verified", boolean).
-			Property("name", reusedSchemaBuilders.Name.Nullable()).
-			Property("given_name", reusedSchemaBuilders.GivenName.Nullable()).
-			Property("family_name", reusedSchemaBuilders.FamilyName.Nullable()).
-			Property("middle_name", reusedSchemaBuilders.MiddleName.Nullable()).
-			Property("nickname", reusedSchemaBuilders.Nickname.Nullable()).
-			Property("profile", reusedSchemaBuilders.Profile.Nullable()).
-			Property("picture", reusedSchemaBuilders.Picture.Nullable()).
-			Property("website", reusedSchemaBuilders.Website.Nullable()).
-			Property("gender", reusedSchemaBuilders.Gender.Nullable()).
-			Property("birthdate", reusedSchemaBuilders.Birthdate.Nullable()).
-			Property("zoneinfo", reusedSchemaBuilders.Zoneinfo.Nullable()).
-			Property("locale", reusedSchemaBuilders.Locale.Nullable()).
-			Property("address", reusedSchemaBuilders.Address.Nullable()).
+			Property("name", reusedSchemaBuilders.Name.AddTypeNull()).
+			Property("given_name", reusedSchemaBuilders.GivenName.AddTypeNull()).
+			Property("family_name", reusedSchemaBuilders.FamilyName.AddTypeNull()).
+			Property("middle_name", reusedSchemaBuilders.MiddleName.AddTypeNull()).
+			Property("nickname", reusedSchemaBuilders.Nickname.AddTypeNull()).
+			Property("profile", reusedSchemaBuilders.Profile.AddTypeNull()).
+			Property("picture", reusedSchemaBuilders.Picture.AddTypeNull()).
+			Property("website", reusedSchemaBuilders.Website.AddTypeNull()).
+			Property("gender", reusedSchemaBuilders.Gender.AddTypeNull()).
+			Property("birthdate", reusedSchemaBuilders.Birthdate.AddTypeNull()).
+			Property("zoneinfo", reusedSchemaBuilders.Zoneinfo.AddTypeNull()).
+			Property("locale", reusedSchemaBuilders.Locale.AddTypeNull()).
+			Property("address", reusedSchemaBuilders.Address.AddTypeNull()).
 			Property("custom_attributes", customAttributes).
 			Property("roles", rolesOrGroups).
 			Property("groups", rolesOrGroups).
@@ -100,24 +100,24 @@ func init() {
 		Required("email")
 	email.Properties().
 		Property("email", reusedSchemaBuilders.Email).
-		Property("phone_number", reusedSchemaBuilders.PhoneNumber.Nullable()).
-		Property("preferred_username", reusedSchemaBuilders.PreferredUsername.Nullable())
+		Property("phone_number", reusedSchemaBuilders.PhoneNumber.AddTypeNull()).
+		Property("preferred_username", reusedSchemaBuilders.PreferredUsername.AddTypeNull())
 	RecordSchemaForIdentifierEmail = email.ToSimpleSchema()
 
 	phoneNumber := makeBase().
 		Required("phone_number")
 	phoneNumber.Properties().
 		Property("phone_number", reusedSchemaBuilders.PhoneNumber).
-		Property("email", reusedSchemaBuilders.Email.Nullable()).
-		Property("preferred_username", reusedSchemaBuilders.PreferredUsername.Nullable())
+		Property("email", reusedSchemaBuilders.Email.AddTypeNull()).
+		Property("preferred_username", reusedSchemaBuilders.PreferredUsername.AddTypeNull())
 	RecordSchemaForIdentifierPhoneNumber = phoneNumber.ToSimpleSchema()
 
 	preferredUsername := makeBase().
 		Required("preferred_username")
 	preferredUsername.Properties().
 		Property("preferred_username", reusedSchemaBuilders.PreferredUsername).
-		Property("email", reusedSchemaBuilders.Email.Nullable()).
-		Property("phone_number", reusedSchemaBuilders.PhoneNumber.Nullable())
+		Property("email", reusedSchemaBuilders.Email.AddTypeNull()).
+		Property("phone_number", reusedSchemaBuilders.PhoneNumber.AddTypeNull())
 	RecordSchemaForIdentifierPreferredUsername = preferredUsername.ToSimpleSchema()
 }
 

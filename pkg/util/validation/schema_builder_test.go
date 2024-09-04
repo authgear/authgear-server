@@ -214,7 +214,7 @@ func TestSchemaBuilder(t *testing.T) {
 }
 `)
 		})
-		Convey("nullable should append type", func() {
+		Convey("AddTypeNull should append type", func() {
 			b := SchemaBuilder{}
 			b.Type(TypeObject).Required("channel")
 
@@ -239,7 +239,7 @@ func TestSchemaBuilder(t *testing.T) {
     }
 }
 `)
-			b.Nullable()
+			b.AddTypeNull()
 			test(b, `
 {
     "type": ["object", "null"],
