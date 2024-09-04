@@ -24,6 +24,7 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"id": { "type": "string" },
+		"client_id": { "type": "string" },
 		"nameid_format": { "$ref": "#/$defs/SAMLNameIDFormat" },
 		"nameid_attribute_pointer": { "$ref": "#/$defs/SAMLNameIDAttributePointer" },
 		"acs_urls": {
@@ -36,7 +37,7 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"audience": { "type": "string", "format": "uri" },
 		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" }
 	},
-	"required": ["id", "acs_urls"]
+	"required": ["acs_urls"]
 }
 `)
 
@@ -93,6 +94,7 @@ func (p SAMLNameIDAttributePointer) MustGetJSONPointer() jsonpointer.T {
 
 type SAMLServiceProviderConfig struct {
 	ID                     string                     `json:"id,omitempty"`
+	ClientID               string                     `json:"client_id,omitempty"`
 	NameIDFormat           SAMLNameIDFormat           `json:"nameid_format,omitempty"`
 	NameIDAttributePointer SAMLNameIDAttributePointer `json:"nameid_attribute_pointer,omitempty"`
 	AcsURLs                []string                   `json:"acs_urls,omitempty"`
