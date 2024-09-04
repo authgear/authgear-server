@@ -212,8 +212,8 @@ const UserDetailsSession: React.VFC<Props> = function UserDetailsSession(
         fieldName: "lastActivity",
         name: renderToString("UserDetails.session.last-activity"),
         className: styles.cell,
-        minWidth: 140,
-        maxWidth: 140,
+        minWidth: 220,
+        maxWidth: 220,
       },
       {
         key: "action",

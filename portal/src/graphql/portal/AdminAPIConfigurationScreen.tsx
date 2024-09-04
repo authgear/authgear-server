@@ -280,7 +280,7 @@ const AdminAPIConfigurationScreenContent: React.VFC<AdminAPIConfigurationScreenC
           key: "createdAt",
           fieldName: "createdAt",
           name: renderToString("AdminAPIConfigurationScreen.column.created-at"),
-          minWidth: 150,
+          minWidth: 220,
         },
         {
           key: "action",

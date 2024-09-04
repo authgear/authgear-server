@@ -158,8 +158,8 @@ const UserDetailsAuthorization: React.VFC<Props> =
           fieldName: "createdAt",
           name: renderToString("UserDetails.authorization.created-at"),
           className: styles.cell,
-          minWidth: 140,
-          maxWidth: 140,
+          minWidth: 220,
+          maxWidth: 220,
         },
         {
           key: "action",
