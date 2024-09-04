@@ -181,8 +181,10 @@ function buildPlugin({ input }) {
       }
 
       // Generate manifest file
-      const targetManifestPath =
-        "../resources/authgear/generated/manifest.json";
+      const targetManifestPath = path.join(
+        path.relative(config.root, config.build.outDir),
+        "/manifest.json"
+      );
       await writeManifest(targetManifestPath, manifest);
       config.logger.info(`📄 Wrote bundle manifest to: ${targetManifestPath}`);
     },
