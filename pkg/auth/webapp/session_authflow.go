@@ -434,16 +434,15 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(input *TakeBran
 	case config.AuthenticationFlowStepTypeVerify:
 		// If we ever reach here, this means we have to choose channels.
 		data := s.StateTokenFlowResponse.Action.Data.(declarative.SelectOOBOTPChannelsData)
-		channel := input.Channel
-		if channel == "" {
-			channel = data.Channels[0]
+		if input.Channel == "" {
+			input.Channel = data.Channels[0]
 		}
 		inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
 			return map[string]interface{}{
 				"channel": c,
 			}
 		}
-		resultInput := inputFactory(channel)
+		resultInput := inputFactory(input.Channel)
 		onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
 			inputFactory,
 			data.Channels,
@@ -456,7 +455,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchSignupPromote(input *TakeBran
 				isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 					return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeVerify)
 				}
-				takenChannel := channel
+				takenChannel := input.Channel
 				if d, ok := flowResponse.Action.Data.(declarative.VerifyOOBOTPData); ok {
 					takenChannel = d.Channel
 				}
@@ -494,9 +493,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			// This branch requires input to take.
-			channel := input.Channel
-			if channel == "" {
-				channel = option.Channels[0]
+			if input.Channel == "" {
+				input.Channel = option.Channels[0]
 			}
 			// Below clause takes place only when index=0 branch is OOBOTP, and bot protection not in input
 			// otherwise, the bot protection is fed to auto-taken OOBOTP branch too
@@ -519,7 +517,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 				}
 				return out
 			}
-			resultInput := inputFactory(channel)
+			resultInput := inputFactory(input.Channel)
 			onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
 				inputFactory,
 				option.Channels,
@@ -532,7 +530,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowLoginFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
 					}
-					takenChannel := channel
+					takenChannel := input.Channel
 					switch d := flowResponse.Action.Data.(type) {
 					case declarative.VerifyOOBOTPData:
 						takenChannel = d.Channel
@@ -606,9 +604,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(input *TakeBranchInput
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			// This branch requires input to take.
-			channel := input.Channel
-			if channel == "" {
-				channel = option.Channels[0]
+			if input.Channel == "" {
+				input.Channel = option.Channels[0]
 			}
 
 			if option.BotProtection.IsRequired() {
@@ -622,7 +619,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(input *TakeBranchInput
 					"channel":        c,
 				}
 			}
-			resultInput := inputFactory(channel)
+			resultInput := inputFactory(input.Channel)
 			onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
 				inputFactory,
 				option.Channels,
@@ -635,7 +632,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchReauth(input *TakeBranchInput
 					isContinuation := func(flowResponse *authflow.FlowResponse) bool {
 						return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowStepTypeAuthenticate) && flowResponse.Action.Authentication == option.Authentication
 					}
-					takenChannel := channel
+					takenChannel := input.Channel
 					switch d := flowResponse.Action.Data.(type) {
 					case declarative.VerifyOOBOTPData:
 						takenChannel = d.Channel
@@ -820,9 +817,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *Ta
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		channel := input.Channel
-		if channel == "" {
-			channel = option.Channels[0]
+		if input.Channel == "" {
+			input.Channel = option.Channels[0]
 		}
 		inputFactory := func(c model.AuthenticatorOOBChannel) map[string]interface{} {
 			return map[string]interface{}{
@@ -830,7 +826,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *Ta
 				"channel":        c,
 			}
 		}
-		resultInput := inputFactory(channel)
+		resultInput := inputFactory(input.Channel)
 		onFailureHandler := s.makeFallbackToSMSFromWhatsappRetryHandler(
 			inputFactory,
 			option.Channels,
@@ -843,7 +839,7 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *Ta
 					return flowResponse.Action.Type == authflow.FlowActionType(config.AuthenticationFlowSignupFlowStepTypeCreateAuthenticator) &&
 						flowResponse.Action.Authentication == option.Authentication
 				}
-				takenChannel := channel
+				takenChannel := input.Channel
 				if d, ok := flowResponse.Action.Data.(declarative.VerifyOOBOTPData); ok {
 					takenChannel = d.Channel
 				}
@@ -857,13 +853,12 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *Ta
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		channel := input.Channel
-		if channel == "" {
-			channel = option.Channels[0]
+		if input.Channel == "" {
+			input.Channel = option.Channels[0]
 		}
 		return s.takeBranchResultSimple(&TakeBranchInput{
 			Index:   input.Index,
-			Channel: channel,
+			Channel: input.Channel,
 		}, false)
 	default:
 		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
