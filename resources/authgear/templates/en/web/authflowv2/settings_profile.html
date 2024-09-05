@@ -40,11 +40,17 @@
     {{ end }}
 
     {{ if (call $.IsReadable "/gender") }}
+      {{ $content := (translate "v2.component.select-input.default.not-provided-label" nil) }}
+      {{ if (eq $.Gender "male") }}
+        {{ $content = (translate "v2.page.settings-profile-edit-gender.default.gender-label-male" nil) }}
+      {{ else if (eq $.Gender "female") }}
+        {{ $content = (translate "v2.page.settings-profile-edit-gender.default.gender-label-female" nil) }}
+      {{ end }}
       {{ template "__settings_profile_item"
           (merge
             (dict
               "Title" (translate "v2.page.settings-profile.default.gender-title" nil)
-              "Content" $.Gender
+              "Content" $content
               "Editable" (call $.IsEditable "/gender")
               "EditURL" (call $.MakeURL "/settings/profile/gender/edit")
             )

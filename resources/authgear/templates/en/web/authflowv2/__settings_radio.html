@@ -16,7 +16,7 @@
 {{ $inputID := (printf "radio-%s-%s" $.Name $.Value) }}
 
 <div class="settings-radio__container">
-  <label for="{{ $inputID }}">
+  <label class="settings-radio__label" for="{{ $inputID }}">
     {{ $.Label }}
   </label>
 

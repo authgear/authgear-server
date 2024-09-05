@@ -24,6 +24,7 @@
     @apply grid grid-cols-[auto,1.25rem] gap-y-4;
     @apply px-2 py-4;
     @apply w-full;
+    @apply cursor-pointer;
 
     color: var(--settings-item__text-color);
     background-color: var(--settings-radio__bg-color);
@@ -39,7 +40,12 @@
     font-weight: var(--settings-radio__font-weight);
   }
 
+  .settings-radio__label {
+    @apply cursor-pointer;
+  }
+
   .settings-radio {
+    @apply cursor-pointer;
     @apply w-5 h-5;
     @apply rounded-full;
     @apply border-2 border-solid;
