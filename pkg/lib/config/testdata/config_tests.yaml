@@ -1200,3 +1200,39 @@ config:
     signing:
       key_id: asdfasdf
       signature_method: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
+---
+name: saml-service-provider-missing-id
+error: |-
+  invalid configuration:
+  /saml/service_providers/0: required
+    map[actual:[acs_urls nameid_format] expected:[id] missing:[id]]
+  /saml/service_providers/0: required
+    map[actual:[acs_urls nameid_format] expected:[client_id] missing:[client_id]]
+config:
+  id: test
+  http:
+    public_origin: http://test
+  saml:
+    signing:
+      key_id: asdfasdf
+    service_providers:
+      - nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+        acs_urls:
+          - http://localhost:3000/acs
+---
+name: saml-service-provider-invalid-client-id
+error: |-
+  invalid configuration:
+  /saml/service_providers/0/client_id: client_id does not exist in /oauth/clients
+config:
+  id: test
+  http:
+    public_origin: http://test
+  saml:
+    signing:
+      key_id: asdfasdf
+    service_providers:
+      - client_id: notexist
+        nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress
+        acs_urls:
+          - http://localhost:3000/acs
