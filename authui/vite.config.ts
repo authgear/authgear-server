@@ -14,8 +14,8 @@ export default defineConfig(() => ({
     }),
     viteAuthgearAuthUI({
       input: {
-        authgear: "./src/build.html",
-        authflowv2: "./src/build-authflowv2.html",
+        v1: "./src/build.html",
+        v2: "./src/build-authflowv2.html",
         colorscheme: "./src/colorscheme.ts",
       },
     }),
