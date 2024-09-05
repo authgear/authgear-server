@@ -22,7 +22,7 @@
     {{ $.CSRFField }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
-        "Label" (include "v2.page.settings-profile-edit-gender.default.button-label-not-provided" nil)
+        "Label" (include "v2.component.select-input.default.not-provided-label" nil)
         "Name" "gender-select"
         "Value" ""
         "DefaultChecked" ( not $.Gender )
@@ -30,7 +30,7 @@
     }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
-        "Label" (include "v2.page.settings-profile-edit-gender.default.button-label-gender-female" nil)
+        "Label" (include "v2.page.settings-profile-edit-gender.default.gender-label-female" nil)
         "Name" "gender-select"
         "Value" "female"
         "DefaultChecked" ( eq $.Gender "female")
@@ -38,7 +38,7 @@
     }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
-        "Label" (include "v2.page.settings-profile-edit-gender.default.button-label-gender-male" nil)
+        "Label" (include "v2.page.settings-profile-edit-gender.default.gender-label-male" nil)
         "Name" "gender-select"
         "Value" "male"
         "DefaultChecked" ( eq $.Gender "male")
@@ -51,7 +51,7 @@
     {{ end }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
-        "Label" (include "v2.page.settings-profile-edit-gender.default.button-label-custom" nil)
+        "Label" (include "v2.page.settings-profile-edit-gender.default.gender-label-custom" nil)
         "Name" "gender-select"
         "Value" "other"
         "ExtraContentOnChecked" (include "__settings_gender_edit_custom_gender_input" .)
@@ -68,7 +68,7 @@
     value="save"
     data-authgear-event="authgear.button.update_profile"
   >
-    {{ template "v2.page.settings-profile-edit-gender.default.button-label-save" }}
+    {{ template "v2.component.button.default.label-save" }}
   </button>
 </form>
 
