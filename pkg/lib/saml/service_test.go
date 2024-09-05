@@ -15,6 +15,26 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
+const pemCert = `
+-----BEGIN CERTIFICATE-----
+MIICvDCCAaSgAwIBAgIQdYSL2dOaN9QHxzugY+xbjjANBgkqhkiG9w0BAQsFADAP
+MQ0wCwYDVQQDEwR0ZXN0MCAXDTI0MDkwNTA3MzcxMVoYDzIwNzQwODI0MDczNzEx
+WjAPMQ0wCwYDVQQDEwR0ZXN0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
+AQEArrtotTiwy0GSjr+a4i5KXEwZYIajhVazoCyIbC1ogchkvOWMU9bKA3vR2to/
+QNAOLF+ysYS/jjnctAQTz8jVCuneV1fKrIWfUyQ0gIsHCgnItXuaNiH6XCRYEUxc
+g0d6owh6GtH9XFPmcGdhshl2qm59DWRkfTZ77AVnccmawdU0oyIgIJiYuRyHnUhZ
+thhSX9GL7JUFjIV2cN7GwVMtrF6eCc4vOnZ6g8Q9KOU5i9cBnP85aoh17yKCZPpg
+mtInA5FN+3JvKeqdFG7fw427a9JiVlT6p4WYAgCeVWwPtjvKXU9Kb+ph2urfBJoE
+RVMXvG2TezY2Vzj7sNUhyKNM6wIDAQABoxIwEDAOBgNVHQ8BAf8EBAMCB4AwDQYJ
+KoZIhvcNAQELBQADggEBAJNju5+RqjUrI0jS+9iwz/CoNESN0aI9zBJX/IELwCQ3
+XhZ9ZPPzqH8rcl0FMR/Rh25XGfDpWO1eDLY7dPCz0AYXT+qfvhRccP32bnD2L+O8
+PVHEdBEBFBMk2hlK/kozOOI8QRODvkPxmuopEAT7S+V/BK/3XOkkn8dGxoe+3sVt
+og96FvZ3r3495xebFZWHxNECv5Slj8iaHzfqWOCI1p5MrRS+NeJimHMqpo7KhnlB
+RnUXcFkdRIKGMztcONpsxoGMo8+QLdjSHDoRXOuHHmBK1g3woNeuZZAX944Dylzu
+T2zRqm3yyu2XEfF8k/Z7+b1L1td7tZNa6EbaNi/+y4c=
+-----END CERTIFICATE-----
+`
+
 func TestSAMLService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -172,25 +192,7 @@ func TestSAMLService(t *testing.T) {
 				ServiceProviderID: spID,
 				Certificates: []config.X509Certificate{
 					{
-						Pem: config.X509CertificatePem(`
------BEGIN CERTIFICATE-----
-MIICvDCCAaSgAwIBAgIQdYSL2dOaN9QHxzugY+xbjjANBgkqhkiG9w0BAQsFADAP
-MQ0wCwYDVQQDEwR0ZXN0MCAXDTI0MDkwNTA3MzcxMVoYDzIwNzQwODI0MDczNzEx
-WjAPMQ0wCwYDVQQDEwR0ZXN0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
-AQEArrtotTiwy0GSjr+a4i5KXEwZYIajhVazoCyIbC1ogchkvOWMU9bKA3vR2to/
-QNAOLF+ysYS/jjnctAQTz8jVCuneV1fKrIWfUyQ0gIsHCgnItXuaNiH6XCRYEUxc
-g0d6owh6GtH9XFPmcGdhshl2qm59DWRkfTZ77AVnccmawdU0oyIgIJiYuRyHnUhZ
-thhSX9GL7JUFjIV2cN7GwVMtrF6eCc4vOnZ6g8Q9KOU5i9cBnP85aoh17yKCZPpg
-mtInA5FN+3JvKeqdFG7fw427a9JiVlT6p4WYAgCeVWwPtjvKXU9Kb+ph2urfBJoE
-RVMXvG2TezY2Vzj7sNUhyKNM6wIDAQABoxIwEDAOBgNVHQ8BAf8EBAMCB4AwDQYJ
-KoZIhvcNAQELBQADggEBAJNju5+RqjUrI0jS+9iwz/CoNESN0aI9zBJX/IELwCQ3
-XhZ9ZPPzqH8rcl0FMR/Rh25XGfDpWO1eDLY7dPCz0AYXT+qfvhRccP32bnD2L+O8
-PVHEdBEBFBMk2hlK/kozOOI8QRODvkPxmuopEAT7S+V/BK/3XOkkn8dGxoe+3sVt
-og96FvZ3r3495xebFZWHxNECv5Slj8iaHzfqWOCI1p5MrRS+NeJimHMqpo7KhnlB
-RnUXcFkdRIKGMztcONpsxoGMo8+QLdjSHDoRXOuHHmBK1g3woNeuZZAX944Dylzu
-T2zRqm3yyu2XEfF8k/Z7+b1L1td7tZNa6EbaNi/+y4c=
------END CERTIFICATE-----
-					`),
+						Pem: config.X509CertificatePem(pemCert),
 					},
 				},
 			},
@@ -199,5 +201,40 @@ T2zRqm3yyu2XEfF8k/Z7+b1L1td7tZNa6EbaNi/+y4c=
 		err := svc.VerifyEmbeddedSignature(sp, requestXml)
 		So(err, ShouldBeNil)
 
+	})
+
+	Convey("VerifyExternalSignature", t, func() {
+		svc := createService()
+		svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
+			config.SAMLSpSigningCertificate{
+				ServiceProviderID: spID,
+				Certificates: []config.X509Certificate{
+					{
+						Pem: config.X509CertificatePem(pemCert),
+					},
+				},
+			},
+		}
+
+		// The request in xml is
+		/*
+			<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ForceAuthn="false"  ID="ae230b376c88c3f4f8c7a4db12d24e38357205829" IssueInstant="2024-09-05T07:35:34Z" Destination="http://localhost:3000/saml2/login/sp1" AssertionConsumerServiceURL="https://sptest.iamshowcase.com/acs"  ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"   Version="2.0"><saml:Issuer >IAMShowcase</saml:Issuer><saml:Subject >
+			<saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">test@example.com</saml:NameID>
+			</saml:Subject></samlp:AuthnRequest>
+		*/
+
+		// Use this site to encode the request:
+		// https://www.samltool.com/encode.php
+		samlRequest := "fVLLTuMwFN0jzT9Y3rdxnZQGq4kmTDWaSDwqUmYxO9e5pUaxnfF1gM8njyKVBSx97rnnceU1StO0oujC0T7A/w4wkDfTWBTjIKOdt8JJ1CisNIAiKFEVtzeCz5lovQtOuYaerXy/IRHBB+0sJb+dVzD6ZvQgGwRKSLnJqAQes328ulRpquJDckjVSib1fsFrnkCcxssVZ8uUX1FSInZQWgzShoxyxpMZu5qx5Y6tRLwUcfKPkk3fSFs5eGb0GEIroqhxSjZHh0HEjLFoiM178EnbCNsFJcVHyl/OYmfAV+BftILHh5tJA3sRbEMvPdfS4NG9KokwV85EUmFfZHu6zLW2tbZP3x9lP5FQ/NnttrPtfbXrFchf8DiG7ik0Xw8hxVjYk7wsbquT6To6m5xoVbd/BhVI/uNiAu56z3IznNzI8HWYxXwxIrqeHUaqACN1U9S1B0SaD4V/wps0bTOWPXlP6oNZdG6fT8/Pnyt/Bw=="
+		// Use this site to generate the signature:
+		// https://www.samltool.com/sign_authn.php
+		signature := "LAre0pDAbJPSP1swdYTIDuTltnQGyfDtmJBnXyCr6Hij/EWvAhtS7g3SuDx3GYaUc2gv/NE1JFIXMEewziF80n2GcP9Xfog8ToxEqKcjT2VUTvAZGnY66u9jRcoqVhnbG15Q11HmQiGFVD0MoPVebOD8LtDOD1l6+IzuIYk+uHsiqHNM98UM+VDIZ0YlHGoO/bu9cJIpGStr+xQEA/VJcrpD+qB6a2QB7Tn2D+CIK5cf+7uROm44loJeI7vs9bwSvNQM7xvJPewXhWtqWCqg/mFsaV/FgYoHfP8zsBAi2RNJLf454Klih47he7wps8VN4FvtW4DP4ZE8J9HXXaYO/Q=="
+		err := svc.VerifyExternalSignature(
+			sp,
+			samlRequest,
+			"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+			"indigo",
+			signature)
+		So(err, ShouldBeNil)
 	})
 }
