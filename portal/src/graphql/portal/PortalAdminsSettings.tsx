@@ -1,6 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import { ICommandBarItemProps } from "@fluentui/react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { makeReasonErrorParseRule } from "../../error/parse";
@@ -20,11 +19,10 @@ import ShowError from "../../ShowError";
 import ErrorDialog from "../../error/ErrorDialog";
 
 import styles from "./PortalAdminsSettings.module.css";
-import CommandBarContainer from "../../CommandBarContainer";
 import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
+import PrimaryButton from "../../PrimaryButton";
 
 const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
@@ -79,7 +77,7 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
     featureConfigRefetch().finally(() => {});
   }, [refetchCollaboratorsAndInvitations, featureConfigRefetch]);
 
-  const primaryItems: ICommandBarItemProps[] = useMemo(() => {
+  const inviteButtonProps = useMemo(() => {
     let disabled = false;
     if (effectiveFeatureConfig?.collaborator.maximum != null) {
       const maximum = effectiveFeatureConfig?.collaborator.maximum;
@@ -89,18 +87,14 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
         disabled = true;
       }
     }
-    return [
-      {
-        key: "invite",
-        text: renderToString("PortalAdminsSettings.invite"),
-        iconProps: { iconName: "CirclePlus" },
-        disabled,
-        onClick: () => {
-          navigate("./invite");
-        },
-        onRender: onRenderCommandBarPrimaryButton,
+    return {
+      text: renderToString("PortalAdminsSettings.invite"),
+      iconProps: { iconName: "Add" },
+      disabled,
+      onClick: () => {
+        navigate("./invite");
       },
-    ];
+    };
   }, [
     navigate,
     renderToString,
@@ -195,10 +189,16 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
   }
 
   return (
-    <CommandBarContainer isLoading={false} primaryItems={primaryItems}>
-      <ScreenContent>
+    <>
+      <ScreenContent layout="list">
         <div className={styles.widget}>
-          <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+          <div className={styles.header}>
+            <NavBreadcrumb
+              className={styles.widget}
+              items={navBreadcrumbItems}
+            />
+            <PrimaryButton {...inviteButtonProps} />
+          </div>
           {effectiveFeatureConfig?.collaborator.maximum != null ? (
             <FeatureDisabledMessageBar
               className={styles.messageBar}
@@ -249,7 +249,7 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
         rules={[]}
         fallbackErrorMessageID="PortalAdminsSettings.delete-collaborator-invitation-dialog.generic-error"
       />
-    </CommandBarContainer>
+    </>
   );
 };
 

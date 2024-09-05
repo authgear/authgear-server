@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo, useContext } from "react";
+import React, { useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
+import { FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
 import cn from "classnames";
 import { Text } from "@fluentui/react";
@@ -22,7 +22,6 @@ import {
 } from "../../types";
 import { parseJSONPointer } from "../../util/jsonpointer";
 import styles from "./CustomAttributesConfigurationScreen.module.css";
-import { onRenderCommandBarPrimaryButton } from "../../CommandBarPrimaryButton";
 import PrimaryButton from "../../PrimaryButton";
 
 interface FormState {
@@ -146,27 +145,6 @@ const CustomAttributesConfigurationScreen: React.VFC =
       constructFormState,
       constructConfig,
     });
-    const navigate = useNavigate();
-    const { renderToString } = useContext(Context);
-
-    const primaryItems = useMemo(
-      () => [
-        {
-          key: "add",
-          text: renderToString(
-            "CustomAttributesConfigurationScreen.label.add-new-attribute"
-          ),
-          iconProps: { iconName: "CirclePlus" },
-          onClick: (e?: React.SyntheticEvent<unknown>) => {
-            e?.preventDefault();
-            e?.stopPropagation();
-            navigate("./add");
-          },
-          onRender: onRenderCommandBarPrimaryButton,
-        },
-      ],
-      [renderToString, navigate]
-    );
 
     if (form.isLoading) {
       return <ShowLoading />;
@@ -177,7 +155,7 @@ const CustomAttributesConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} primaryItems={primaryItems}>
+      <FormContainer form={form} showDiscardButton={true}>
         <CustomAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );

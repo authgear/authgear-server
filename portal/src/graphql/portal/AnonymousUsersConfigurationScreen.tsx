@@ -34,11 +34,16 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
-import FormContainer from "../../FormContainer";
 import Tooltip from "../../Tooltip";
 import Toggle from "../../Toggle";
 import ShowOnlyIfSIWEIsDisabled from "./ShowOnlyIfSIWEIsDisabled";
 import styles from "./AnonymousUsersConfigurationScreen.module.css";
+import {
+  FormContainerBase,
+  useFormContainerBaseContext,
+} from "../../FormContainerBase";
+import PrimaryButton from "../../PrimaryButton";
+import HorizontalDivider from "../../HorizontalDivider";
 
 const dropDownStyles = {
   dropdown: {
@@ -344,6 +349,7 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
     const { state, setState } = props.form;
 
     const { renderToString } = useContext(Context);
+    const { canSave, onSave } = useFormContainerBaseContext();
 
     const conflictBehaviourOptions = useMemo(
       () =>
@@ -412,6 +418,14 @@ const AnonymousUserConfigurationContent: React.VFC<AnonymousUserConfigurationCon
               onChange={onConflictOptionChange}
             />
           </Widget>
+          <div className={styles.controls}>
+            <PrimaryButton
+              text={renderToString("save")}
+              disabled={!canSave}
+              onClick={onSave}
+            />
+          </div>
+          <HorizontalDivider className={styles.separator} />
           <AnonymousUserLifeTimeDescription form={props.form} />
         </ShowOnlyIfSIWEIsDisabled>
       </ScreenContent>
@@ -436,9 +450,9 @@ const AnonymousUserConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form}>
+      <FormContainerBase form={form}>
         <AnonymousUserConfigurationContent form={form} />
-      </FormContainer>
+      </FormContainerBase>
     );
   };
 

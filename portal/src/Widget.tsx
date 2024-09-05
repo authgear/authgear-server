@@ -9,6 +9,7 @@ interface WidgetProps {
   contentLayout?: "flex-column" | "grid";
   children?: React.ReactNode;
   extended?: boolean;
+  showElevation?: boolean;
   showToggleButton?: boolean;
   toggleButtonDisabled?: boolean;
   onToggleButtonClick?: () => void;
@@ -31,6 +32,7 @@ const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
     contentLayout = "flex-column",
     children,
     extended = true,
+    showElevation = false,
     showToggleButton = false,
     toggleButtonDisabled = false,
     onToggleButtonClick,
@@ -70,7 +72,7 @@ const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
     <div
       className={cn(className, styles.root)}
       style={{
-        boxShadow: DefaultEffects.elevation4,
+        boxShadow: showElevation ? DefaultEffects.elevation4 : undefined,
         // When the widget is expanded,
         // it does not matter if max-height is unset or set to measured height.
         // Either one would lead to a visually expanded widget.
@@ -86,11 +88,12 @@ const Widget: React.VFC<WidgetProps> = function Widget(props: WidgetProps) {
       {/* The height of this div is stable. It will not change during expand/collapse */}
       <div
         ref={divRef}
-        className={
+        className={cn(
           contentLayout === "flex-column"
             ? styles.contentFlexColumn
-            : styles.contentGrid
-        }
+            : styles.contentGrid,
+          showElevation && styles.contentElevated
+        )}
       >
         {children}
       </div>

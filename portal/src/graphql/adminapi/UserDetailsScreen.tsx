@@ -3,9 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import {
   Pivot,
   PivotItem,
-  IButtonProps,
-  ICommandBarItemProps,
-  CommandButton,
   MessageBar,
   MessageBarType,
   IStyle,
@@ -31,7 +28,6 @@ import UserDetailsConnectedIdentities from "./UserDetailsConnectedIdentities";
 import UserDetailsSession from "./UserDetailsSession";
 import UserDetailsAuthorization from "./UserDetailsAuthorization";
 
-import { useSystemConfig } from "../../context/SystemConfigContext";
 import { useUpdateUserMutation } from "./mutations/updateUserMutation";
 import { SimpleFormModel, useSimpleForm } from "../../hook/useSimpleForm";
 import { useUserQuery } from "./query/userQuery";
@@ -519,130 +515,6 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   );
 };
 
-function useDeleteUserCommandBarItem(
-  onClick: IButtonProps["onClick"]
-): ICommandBarItemProps {
-  const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
-
-  const itemProps: ICommandBarItemProps = useMemo(() => {
-    return {
-      key: "remove",
-      text: renderToString("UserDetailsScreen.remove-user"),
-      iconProps: { iconName: "Delete" },
-      onRender: (props) => {
-        return (
-          <CommandButton
-            {...props}
-            theme={themes.destructive}
-            onClick={onClick}
-            styles={{
-              root: {
-                height: "44px",
-              },
-              // https://github.com/authgear/authgear-server/issues/2348#issuecomment-1226545493
-              label: {
-                whiteSpace: "nowrap",
-              },
-            }}
-          />
-        );
-      },
-    };
-  }, [onClick, renderToString, themes.destructive]);
-
-  return itemProps;
-}
-
-function useAnonymizeUserCommandBarItem(
-  onClick: IButtonProps["onClick"]
-): ICommandBarItemProps {
-  const { renderToString } = useContext(Context);
-  const { themes } = useSystemConfig();
-
-  const itemProps: ICommandBarItemProps = useMemo(() => {
-    return {
-      key: "anonymize",
-      text: renderToString("UserDetailsScreen.anonymize-user"),
-      iconProps: { iconName: "Archive" },
-      onRender: (props) => {
-        return (
-          <CommandButton
-            {...props}
-            theme={themes.destructive}
-            onClick={onClick}
-            styles={{
-              root: {
-                height: "44px",
-              },
-              // https://github.com/authgear/authgear-server/issues/2348#issuecomment-1226545493
-              label: {
-                whiteSpace: "nowrap",
-              },
-            }}
-          />
-        );
-      },
-    };
-  }, [onClick, renderToString, themes.destructive]);
-
-  return itemProps;
-}
-
-function useSetUserDisabledCommandBarItem(
-  user: UserQueryNodeFragment,
-  onClick: IButtonProps["onClick"]
-): ICommandBarItemProps {
-  const { renderToString } = useContext(Context);
-  const itemProps: ICommandBarItemProps = useMemo(() => {
-    const text =
-      user.deleteAt != null
-        ? renderToString("UserDetailsScreen.cancel-removal")
-        : user.anonymizeAt != null
-        ? renderToString("UserDetailsScreen.cancel-anonymization")
-        : user.isDisabled
-        ? renderToString("UserDetailsScreen.reenable-user")
-        : renderToString("UserDetailsScreen.disable-user");
-    const iconName =
-      user.deleteAt != null || user.anonymizeAt != null
-        ? "Undo"
-        : user.isDisabled
-        ? "Play"
-        : "CircleStop";
-    return {
-      key: "setDisabledStatus",
-      text,
-      iconProps: {
-        iconName,
-      },
-      onRender: (props) => {
-        return (
-          <CommandButton
-            {...props}
-            onClick={onClick}
-            styles={{
-              root: {
-                height: "44px",
-              },
-              // https://github.com/authgear/authgear-server/issues/2348#issuecomment-1226545493
-              label: {
-                whiteSpace: "nowrap",
-              },
-            }}
-          />
-        );
-      },
-    };
-  }, [
-    user.deleteAt,
-    user.anonymizeAt,
-    user.isDisabled,
-    onClick,
-    renderToString,
-  ]);
-  return itemProps;
-}
-
 interface WarnScheduledDeletionProps {
   user: UserQueryNodeFragment;
 }
@@ -727,8 +599,6 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
     const onClickDeleteUser = useCallback(() => {
       setDeleteUserDialogIsHidden(false);
     }, []);
-    const deleteUserCommandBarItem =
-      useDeleteUserCommandBarItem(onClickDeleteUser);
 
     const [anonymizeUserDialogIsHidden, setAnonymizeUserDialogIsHidden] =
       useState(true);
@@ -738,8 +608,6 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
     const onClickAnonymizeUser = useCallback(() => {
       setAnonymizeUserDialogIsHidden(false);
     }, []);
-    const anonymizeUserCommandBarItem =
-      useAnonymizeUserCommandBarItem(onClickAnonymizeUser);
 
     const [setUserDisabledDialogIsHidden, setSetUserDisabledDialogIsHidden] =
       useState(true);
@@ -751,32 +619,6 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
       setSetUserDisabledDialogIsHidden(false);
       setUserIsDisabled(user.isDisabled);
     }, [user.isDisabled]);
-    const setUserDisabledCommandBarItem = useSetUserDisabledCommandBarItem(
-      user,
-      onClickSetUserDisabled
-    );
-
-    const primaryItems: ICommandBarItemProps[] = useMemo(() => {
-      if (user.isAnonymized) {
-        if (user.deleteAt) {
-          return [deleteUserCommandBarItem, setUserDisabledCommandBarItem];
-        }
-
-        return [deleteUserCommandBarItem];
-      }
-
-      return [
-        deleteUserCommandBarItem,
-        anonymizeUserCommandBarItem,
-        setUserDisabledCommandBarItem,
-      ];
-    }, [
-      deleteUserCommandBarItem,
-      anonymizeUserCommandBarItem,
-      setUserDisabledCommandBarItem,
-      user.deleteAt,
-      user.isAnonymized,
-    ]);
 
     const defaultState = useMemo(() => {
       return {
@@ -824,7 +666,7 @@ const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
         className={styles.formContainer}
         errorRules={ERROR_RULES}
         form={form}
-        primaryItems={primaryItems}
+        hideFooterComponent={true}
         messageBar={
           <>
             <WarnScheduledDeletion user={user} />

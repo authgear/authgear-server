@@ -1347,7 +1347,7 @@ const BotProtectionConfigurationScreen1: React.VFC<{
   }
 
   return (
-    <FormContainer form={form}>
+    <FormContainer form={form} stickyFooterComponent={true}>
       <BotProtectionConfigurationContent form={form} />
     </FormContainer>
   );

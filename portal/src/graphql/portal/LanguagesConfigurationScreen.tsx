@@ -414,7 +414,12 @@ const LanguagesConfigurationScreen: React.VFC =
 
     return (
       <PageContext.Provider value={pageContextValue}>
-        <FormContainer form={appConfigForm} canSave={true}>
+        <FormContainer
+          form={appConfigForm}
+          canSave={true}
+          stickyFooterComponent={true}
+          showDiscardButton={true}
+        >
           <ScreenContent>
             <ScreenTitle className={cn("col-span-8", "tablet:col-span-full")}>
               <FormattedMessage id="LanguagesConfigurationScreen.title" />

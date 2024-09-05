@@ -1,44 +1,41 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import { Checkbox, DirectionalHint, Label, Text } from "@fluentui/react";
+import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import cn from "classnames";
 import { produce } from "immer";
-import { Checkbox, DirectionalHint } from "@fluentui/react";
-import { Context, FormattedMessage } from "@oursky/react-messageformat";
-import Widget from "../../Widget";
+import React, { useCallback, useContext, useMemo } from "react";
 import FormTextField from "../../FormTextField";
 import {
   createOAuthSSOProviderItemKey,
+  isOAuthSSOProvider,
+  OAuthSSOFeatureConfig,
   OAuthSSOProviderConfig,
+  OAuthSSOProviderFeatureConfig,
   OAuthSSOProviderItemKey,
   OAuthSSOProviderType,
   OAuthSSOWeChatAppType,
+  parseOAuthSSOProviderItemKey,
   SSOProviderFormSecretViewModel,
 } from "../../types";
+import Widget from "../../Widget";
 
-import styles from "./SingleSignOnConfigurationWidget.module.css";
 import FormTextFieldList from "../../FormTextFieldList";
 import LabelWithTooltip from "../../LabelWithTooltip";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
-import Toggle from "../../Toggle";
+import styles from "./SingleSignOnConfigurationWidget.module.css";
+import ActionButton from "../../ActionButton";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import {
+  OAuthProviderFormModel,
+  SSOProviderFormState,
+} from "../../hook/useOAuthProviderForm";
 
-interface WidgetHeaderLabelProps {
-  icon: React.ReactNode;
-  messageID: string;
-}
-
-interface WidgetHeaderProps extends WidgetHeaderLabelProps {
-  checked: boolean;
-  onChange: (value: boolean) => void;
-  disabled: boolean;
-}
+const MASKED_SECRET = "***************";
 
 interface SingleSignOnConfigurationWidgetProps {
   className?: string;
 
   jsonPointer: string;
   clientSecretParentJsonPointer: RegExp;
-
-  isEnabled: boolean;
-  onIsEnabledChange: (value: boolean) => void;
 
   config: OAuthSSOProviderConfig;
   secret: SSOProviderFormSecretViewModel;
@@ -48,8 +45,6 @@ interface SingleSignOnConfigurationWidgetProps {
   ) => void;
 
   disabled: boolean;
-  limitReached: boolean;
-  isEditable: boolean;
 }
 
 type WidgetTextFieldKey =
@@ -59,10 +54,13 @@ type WidgetTextFieldKey =
 
 interface OAuthProviderInfo {
   providerType: OAuthSSOProviderType;
-  iconNode: React.ReactNode;
+  iconClassName: string;
   fields: Set<WidgetTextFieldKey>;
   isSecretFieldTextArea: boolean;
   appType?: OAuthSSOWeChatAppType;
+  titleId: string;
+  subtitleId?: string;
+  descriptionId: string;
 }
 
 const TEXT_FIELD_STYLE = { errorMessage: { whiteSpace: "pre" } };
@@ -74,7 +72,7 @@ const MULTILINE_TEXT_FIELD_STYLE = {
 const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
   apple: {
     providerType: "apple",
-    iconNode: <i className={cn("fab", "fa-apple", styles.widgetLabelIcon)} />,
+    iconClassName: "fa-apple",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -85,10 +83,12 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "delete_disabled",
     ]),
     isSecretFieldTextArea: true,
+    titleId: "AddSingleSignOnConfigurationScreen.card.apple.title",
+    descriptionId: "AddSingleSignOnConfigurationScreen.card.apple.description",
   },
   google: {
     providerType: "google",
-    iconNode: <i className={cn("fab", "fa-google", styles.widgetLabelIcon)} />,
+    iconClassName: "fa-google",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -97,12 +97,12 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
+    titleId: "AddSingleSignOnConfigurationScreen.card.google.title",
+    descriptionId: "AddSingleSignOnConfigurationScreen.card.google.description",
   },
   facebook: {
     providerType: "facebook",
-    iconNode: (
-      <i className={cn("fab", "fa-facebook", styles.widgetLabelIcon)} />
-    ),
+    iconClassName: "fa-facebook",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -111,10 +111,13 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
+    titleId: "AddSingleSignOnConfigurationScreen.card.facebook.title",
+    descriptionId:
+      "AddSingleSignOnConfigurationScreen.card.facebook.description",
   },
   github: {
     providerType: "github",
-    iconNode: <i className={cn("fab", "fa-github", styles.widgetLabelIcon)} />,
+    iconClassName: "fa-github",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -124,12 +127,12 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "email_required",
     ]),
     isSecretFieldTextArea: false,
+    titleId: "AddSingleSignOnConfigurationScreen.card.github.title",
+    descriptionId: "AddSingleSignOnConfigurationScreen.card.github.description",
   },
   linkedin: {
     providerType: "linkedin",
-    iconNode: (
-      <i className={cn("fab", "fa-linkedin", styles.widgetLabelIcon)} />
-    ),
+    iconClassName: "fa-linkedin",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -138,12 +141,13 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
+    titleId: "AddSingleSignOnConfigurationScreen.card.linkedin.title",
+    descriptionId:
+      "AddSingleSignOnConfigurationScreen.card.linkedin.description",
   },
   azureadv2: {
     providerType: "azureadv2",
-    iconNode: (
-      <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
-    ),
+    iconClassName: "fa-microsoft",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -154,12 +158,13 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "email_required",
     ]),
     isSecretFieldTextArea: false,
+    titleId: "AddSingleSignOnConfigurationScreen.card.azureadv2.title",
+    descriptionId:
+      "AddSingleSignOnConfigurationScreen.card.azureadv2.description",
   },
   azureadb2c: {
     providerType: "azureadb2c",
-    iconNode: (
-      <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
-    ),
+    iconClassName: "fa-microsoft",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -171,12 +176,13 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "email_required",
     ]),
     isSecretFieldTextArea: false,
+    titleId: "AddSingleSignOnConfigurationScreen.card.azureadb2c.title",
+    descriptionId:
+      "AddSingleSignOnConfigurationScreen.card.azureadb2c.description",
   },
   adfs: {
     providerType: "adfs",
-    iconNode: (
-      <i className={cn("fab", "fa-microsoft", styles.widgetLabelIcon)} />
-    ),
+    iconClassName: "fa-microsoft",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -187,11 +193,13 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "email_required",
     ]),
     isSecretFieldTextArea: false,
+    titleId: "AddSingleSignOnConfigurationScreen.card.adfs.title",
+    descriptionId: "AddSingleSignOnConfigurationScreen.card.adfs.description",
   },
   "wechat.web": {
     providerType: "wechat",
     appType: "web",
-    iconNode: <i className={cn("fab", "fa-weixin", styles.widgetLabelIcon)} />,
+    iconClassName: "fa-weixin",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -202,11 +210,15 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
+    titleId: "AddSingleSignOnConfigurationScreen.card.wechat.web.title",
+    subtitleId: "AddSingleSignOnConfigurationScreen.card.wechat.web.subtitle",
+    descriptionId:
+      "AddSingleSignOnConfigurationScreen.card.wechat.web.description",
   },
   "wechat.mobile": {
     providerType: "wechat",
-    appType: "web",
-    iconNode: <i className={cn("fab", "fa-weixin", styles.widgetLabelIcon)} />,
+    appType: "mobile",
+    iconClassName: "fa-weixin",
     fields: new Set<WidgetTextFieldKey>([
       "alias",
       "client_id",
@@ -217,36 +229,127 @@ const oauthProviders: Record<OAuthSSOProviderItemKey, OAuthProviderInfo> = {
       "delete_disabled",
     ]),
     isSecretFieldTextArea: false,
+    titleId: "AddSingleSignOnConfigurationScreen.card.wechat.mobile.title",
+    subtitleId:
+      "AddSingleSignOnConfigurationScreen.card.wechat.mobile.subtitle",
+    descriptionId:
+      "AddSingleSignOnConfigurationScreen.card.wechat.mobile.description",
   },
 };
 
-const WidgetHeader: React.VFC<WidgetHeaderProps> = function WidgetHeader(
-  props: WidgetHeaderProps
+interface OAuthClientIconProps {
+  className?: string;
+  providerItemKey: OAuthSSOProviderItemKey;
+}
+
+const OAuthClientIcon: React.VFC<OAuthClientIconProps> =
+  function OAuthClientIcon(props) {
+    const { providerItemKey } = props;
+    const { iconClassName } = oauthProviders[providerItemKey];
+    return <i className={cn("fab", iconClassName, styles.widgetLabelIcon)} />;
+  };
+
+function defaultAlias(
+  providerType: OAuthSSOProviderType,
+  appType?: OAuthSSOWeChatAppType
 ) {
-  const { icon, messageID, checked, onChange: onChangeProp, disabled } = props;
+  return appType ? [providerType, appType].join("_") : providerType;
+}
+
+export function useSingleSignOnConfigurationWidget(
+  providerItemKey: OAuthSSOProviderItemKey,
+  form: OAuthProviderFormModel,
+  oauthSSOFeatureConfig?: OAuthSSOFeatureConfig
+): SingleSignOnConfigurationWidgetProps {
+  const {
+    state: { providers, isEnabled },
+    setState,
+  } = form;
+
+  const [providerType, appType] = parseOAuthSSOProviderItemKey(providerItemKey);
+
+  const disabled = useMemo(() => {
+    const providersConfig = oauthSSOFeatureConfig?.providers ?? {};
+    const providerConfig = providersConfig[
+      providerType
+    ] as OAuthSSOProviderFeatureConfig | null;
+    return providerConfig?.disabled ?? false;
+  }, [oauthSSOFeatureConfig?.providers, providerType]);
+
+  const provider = useMemo<SSOProviderFormState>(
+    () =>
+      providers.find((p) =>
+        isOAuthSSOProvider(p.config, providerType, appType)
+      ) ?? {
+        config: {
+          type: providerType,
+          alias: defaultAlias(providerType, appType),
+          ...(appType && { app_type: appType }),
+        },
+        secret: {
+          originalAlias: null,
+          newAlias: defaultAlias(providerType, appType),
+          newClientSecret: "",
+        },
+      },
+    [providers, providerType, appType]
+  );
+
+  const enabledProviders = providers.filter(
+    (p) =>
+      isEnabled[createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)]
+  );
+  const index = enabledProviders.findIndex((p) =>
+    isOAuthSSOProvider(p.config, providerType, appType)
+  );
+  const jsonPointer = useMemo(() => {
+    return index >= 0 ? `/identity/oauth/providers/${index}` : "";
+  }, [index]);
+  const clientSecretParentJsonPointer =
+    index >= 0
+      ? new RegExp(`/secrets/\\d+/data/items/${index}`)
+      : /placeholder/;
 
   const onChange = useCallback(
-    (_, value?: boolean) => {
-      onChangeProp(value ?? false);
-    },
-    [onChangeProp]
+    (config: OAuthSSOProviderConfig, secret: SSOProviderFormSecretViewModel) =>
+      setState((state) =>
+        produce(state, (state) => {
+          const existingIdx = state.providers.findIndex((p) =>
+            isOAuthSSOProvider(p.config, providerType, appType)
+          );
+          if (existingIdx === -1) {
+            state.providers.push({
+              config,
+              secret: {
+                originalAlias: null,
+                newAlias: secret.newAlias,
+                newClientSecret: secret.newClientSecret,
+              },
+            });
+          } else {
+            state.providers[existingIdx] = {
+              config,
+              secret: {
+                originalAlias: secret.originalAlias,
+                newAlias: secret.newAlias,
+                newClientSecret: secret.newClientSecret,
+              },
+            };
+          }
+        })
+      ),
+    [setState, providerType, appType]
   );
 
-  return (
-    <Toggle
-      checked={checked}
-      onChange={onChange}
-      inlineLabel={true}
-      label={
-        <>
-          {icon}
-          <FormattedMessage id={messageID} />
-        </>
-      }
-      disabled={disabled}
-    />
-  );
-};
+  return {
+    jsonPointer: jsonPointer,
+    clientSecretParentJsonPointer: clientSecretParentJsonPointer,
+    config: provider.config,
+    secret: provider.secret,
+    onChange: onChange,
+    disabled: disabled,
+  };
+}
 
 const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidgetProps> =
   // eslint-disable-next-line complexity
@@ -257,36 +360,21 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       className,
       jsonPointer,
       clientSecretParentJsonPointer,
-      isEnabled,
-      onIsEnabledChange,
       config,
       secret,
       onChange,
       disabled: featureDisabled,
-      limitReached,
-      isEditable,
     } = props;
 
     const { renderToString } = useContext(Context);
-
-    const [extended, setExtended] = useState(isEnabled);
-
-    const onToggleButtonClick = useCallback(() => {
-      setExtended((prev) => {
-        return !prev;
-      });
-    }, []);
 
     const providerItemKey = createOAuthSSOProviderItemKey(
       config.type,
       config.app_type
     );
 
-    const {
-      isSecretFieldTextArea,
-      iconNode,
-      fields: visibleFields,
-    } = oauthProviders[providerItemKey];
+    const { isSecretFieldTextArea, fields: visibleFields } =
+      oauthProviders[providerItemKey];
 
     const messageID = "OAuthBranding." + providerItemKey;
 
@@ -384,42 +472,16 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
       [onChange, config, secret]
     );
 
-    const disabledByLimitReached = useMemo(() => {
-      return !isEnabled && limitReached;
-    }, [limitReached, isEnabled]);
-
-    const noneditable =
-      !isEnabled || featureDisabled || disabledByLimitReached || !isEditable;
-
-    const masking = isEnabled ? "***************" : "";
-
-    const canToggle = useMemo(() => {
-      if (!isEditable) {
-        // Not in edit mode, no toggle possible.
-        return false;
-      }
-      // Can only turn off if limit reached or feature disabled
-      if (featureDisabled || disabledByLimitReached) {
-        return isEnabled;
-      }
-      return true;
-    }, [featureDisabled, disabledByLimitReached, isEditable, isEnabled]);
+    const noneditable = featureDisabled;
 
     return (
-      <Widget
-        className={className}
-        extended={isEnabled || extended}
-        showToggleButton={true}
-        toggleButtonDisabled={isEnabled}
-        onToggleButtonClick={onToggleButtonClick}
-      >
-        <WidgetHeader
-          icon={iconNode}
-          checked={isEnabled}
-          onChange={onIsEnabledChange}
-          messageID={messageID}
-          disabled={!canToggle}
-        />
+      <Widget className={className}>
+        <div className={styles.widgetHeader}>
+          <div className={styles.widgetHeaderIcon}>
+            <OAuthClientIcon providerItemKey={providerItemKey} />
+          </div>
+          <Label>{renderToString(messageID)}</Label>
+        </div>
         {featureDisabled ? (
           <FeatureDisabledMessageBar messageID="FeatureConfig.disabled" />
         ) : null}
@@ -467,7 +529,7 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
             multiline={isSecretFieldTextArea}
             value={
               noneditable || secret.newClientSecret == null
-                ? masking
+                ? MASKED_SECRET
                 : secret.newClientSecret
             }
             onChange={onClientSecretChange}
@@ -628,6 +690,128 @@ const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidget
           />
         ) : null}
       </Widget>
+    );
+  };
+
+interface OAuthClientCardProps {
+  className?: string;
+  providerItemKey: OAuthSSOProviderItemKey;
+  isAdded?: boolean;
+  onAddClick?: (k: OAuthSSOProviderItemKey) => void;
+}
+
+export const OAuthClientCard: React.VFC<OAuthClientCardProps> =
+  function OAuthClientCard(props) {
+    const { className, providerItemKey, isAdded, onAddClick } = props;
+
+    const {
+      titleId: cardTitleId,
+      subtitleId: cardSubtitleId,
+      descriptionId: cardDescriptionId,
+    } = oauthProviders[providerItemKey];
+
+    const handleAddClick = useCallback(() => {
+      onAddClick?.(providerItemKey);
+    }, [onAddClick, providerItemKey]);
+
+    return (
+      <div className={cn(styles.cardContainer, className)}>
+        <div className={styles.cardHeader}>
+          <div className={styles.cardTitleRow}>
+            <div className={styles.cardIcon}>
+              <OAuthClientIcon providerItemKey={providerItemKey} />
+            </div>
+            <div className={styles.cardName}>
+              <Text variant="medium" className={styles.cardTitle}>
+                <FormattedMessage id={cardTitleId} />
+              </Text>
+              {cardSubtitleId != null ? (
+                <Text variant="small" className={styles.cardSubtitle}>
+                  <FormattedMessage id={cardSubtitleId} />
+                </Text>
+              ) : null}
+            </div>
+          </div>
+          {isAdded ? (
+            <div className={styles.cardAddedBadge}>
+              <Text variant="small" styles={{ root: { color: "#898989" } }}>
+                <FormattedMessage id="AddSingleSignOnConfigurationScreen.card.button.added" />
+              </Text>
+            </div>
+          ) : (
+            <ActionButton
+              iconProps={{ iconName: "Add" }}
+              onClick={handleAddClick}
+            />
+          )}
+        </div>
+        <div className={styles.cardBody}>
+          <Text variant="small" className={styles.cardDescription}>
+            <FormattedMessage id={cardDescriptionId} />
+          </Text>
+        </div>
+      </div>
+    );
+  };
+
+interface OAuthClientRowProps {
+  className?: string;
+  providerItemKey: OAuthSSOProviderItemKey;
+  onEditClick?: (k: OAuthSSOProviderItemKey) => void;
+  onDeleteClick?: (k: OAuthSSOProviderItemKey) => void;
+}
+
+export const OAuthClientRow: React.VFC<OAuthClientRowProps> =
+  function OAuthClientRow(props) {
+    const { className, providerItemKey, onEditClick, onDeleteClick } = props;
+    const { renderToString } = useContext(Context);
+    const { themes } = useSystemConfig();
+
+    const { titleId, subtitleId, descriptionId } =
+      oauthProviders[providerItemKey];
+
+    const handleEditClick = useCallback(() => {
+      onEditClick?.(providerItemKey);
+    }, [onEditClick, providerItemKey]);
+
+    const handleDeleteClick = useCallback(() => {
+      onDeleteClick?.(providerItemKey);
+    }, [onDeleteClick, providerItemKey]);
+
+    return (
+      <div className={cn(styles.rowContainer, className)}>
+        <div className={styles.rowIcon}>
+          <OAuthClientIcon providerItemKey={providerItemKey} />
+        </div>
+        <div className={styles.rowContent}>
+          <div className={styles.rowName}>
+            <Text variant="medium" className={styles.rowTitle}>
+              {`${renderToString(titleId)}${
+                subtitleId != null ? ` (${renderToString(subtitleId)})` : ""
+              }`}
+            </Text>
+          </div>
+          <div className={styles.rowDescription}>
+            <Text variant="small" className={styles.rowDescription}>
+              <FormattedMessage id={descriptionId} />
+            </Text>
+          </div>
+        </div>
+        <div className={styles.rowActions}>
+          <ActionButton
+            text={renderToString("SingleSignOnConfigurationScreen.edit")}
+            styles={{ label: { fontWeight: 600 } }}
+            theme={themes.actionButton}
+            onClick={handleEditClick}
+          />
+          <ActionButton
+            text={renderToString("SingleSignOnConfigurationScreen.delete")}
+            styles={{ label: { fontWeight: 600 } }}
+            theme={themes.destructive}
+            onClick={handleDeleteClick}
+          />
+        </div>
+      </div>
     );
   };
 

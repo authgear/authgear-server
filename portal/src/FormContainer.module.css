@@ -1,0 +1,4 @@
+.saveButton {
+  @apply flex items-center justify-center;
+  @apply space-x-2;
+}

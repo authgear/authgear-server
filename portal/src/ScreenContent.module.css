@@ -1,6 +1,9 @@
+.container {
+  @apply p-6;
+}
+
 .root {
   display: grid;
-  padding: 24px;
   column-gap: 16px;
   row-gap: 20px;
 }

@@ -62,3 +62,8 @@
     margin-top: 4px;
   }
 }
+
+.titleActions {
+  @apply flex items-center;
+  @apply gap-4;
+}

@@ -8,6 +8,16 @@
   margin-bottom: 8px;
 }
 
+.controls {
+  grid-column: 1 / span 8;
+  @apply tablet:col-span-full;
+}
+
+.separator {
+  grid-column: 1 / span 8;
+  @apply tablet:col-span-full;
+}
+
 .title {
   font-weight: 600;
   margin-bottom: 8px;

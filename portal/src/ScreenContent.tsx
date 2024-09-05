@@ -5,23 +5,28 @@ import styles from "./ScreenContent.module.css";
 export interface ScreenContentProps {
   className?: string;
   layout?: "list" | "auto-rows";
+  header?: React.ReactNode;
   children?: React.ReactNode;
 }
 
 const ScreenContent: React.VFC<ScreenContentProps> = function ScreenContent(
   props: ScreenContentProps
 ) {
-  const { className, children, layout = "auto-rows" } = props;
+  const { className, header, children, layout = "auto-rows" } = props;
   return (
-    <div
-      className={cn(
-        className,
-        styles.root,
-        layout === "list" ? styles.list : styles.autoRows
-      )}
-    >
-      {children}
-    </div>
+    <>
+      {header != null ? <div className={styles.container}>{header}</div> : null}
+      <div
+        className={cn(
+          className,
+          styles.root,
+          styles.container,
+          layout === "list" ? styles.list : styles.autoRows
+        )}
+      >
+        {children}
+      </div>
+    </>
   );
 };
 
