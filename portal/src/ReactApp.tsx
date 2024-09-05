@@ -88,20 +88,16 @@ function isPosthogResetGroupsException(ex: SentryException) {
     ex.value === "posthog.resetGroups is not a function"
   );
 }
+function isPosthogResetGroupsEvent(event: SentryEvent) {
+  return event.exception?.values?.some(isPosthogResetGroupsException) ?? false;
+}
 
 // DEV-1767: Unknown cause on posthog error, silence for now
 function sentryBeforeSend(event: SentryEvent) {
-  return {
-    ...event,
-    exception:
-      event.exception != null
-        ? {
-            values: event.exception.values?.filter(
-              (value) => !isPosthogResetGroupsException(value)
-            ),
-          }
-        : undefined,
-  };
+  if (isPosthogResetGroupsEvent(event)) {
+    return null;
+  }
+  return event;
 }
 
 async function initApp(systemConfig: SystemConfig) {
