@@ -431,6 +431,12 @@ func (c *AuthflowController) createAuthflow(r *http.Request, s *webapp.Session, 
 		if err != nil {
 			return nil, err
 		}
+	} else if s.SAMLSessionID != "" {
+		var err error
+		flowName, err = c.deriveFlowNameFromSAMLSession(s.SAMLSessionID, flowType)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	flowReference := authflow.FlowReference{
@@ -910,6 +916,29 @@ func (c *AuthflowController) deriveFlowNameFromOAuthSession(oauthSessionID strin
 		flowType,
 		specifiedFlowGroup,
 		client.AuthenticationFlowAllowlist,
+		c.UIConfig.AuthenticationFlow.Groups,
+	)
+}
+
+func (c *AuthflowController) deriveFlowNameFromSAMLSession(samlSessionID string, flowType authflow.FlowType) (string, error) {
+	samlSession, err := c.SAMLSessions.Get(samlSessionID)
+	if err != nil {
+		return "", err
+	}
+
+	specifiedFlowGroup := "" // SAML cannot specify flow group in request
+	client := c.OAuthClientResolver.ResolveClient(samlSession.Entry.ServiceProviderID)
+
+	// TODO(DEV-2004): Remove the check after service provider `id` is completely removed
+	var allowList *config.AuthenticationFlowAllowlist
+	if client != nil {
+		allowList = client.AuthenticationFlowAllowlist
+	}
+
+	return DeriveFlowName(
+		flowType,
+		specifiedFlowGroup,
+		allowList,
 		c.UIConfig.AuthenticationFlow.Groups,
 	)
 }
