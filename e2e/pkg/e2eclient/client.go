@@ -47,7 +47,10 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 	if err != nil {
 		panic(err)
 	}
-	customJar := NewCustomJar(jar)
+	customJar := &JarWorkingAroundGolangIssue38988{
+		Jar:           jar,
+		CorrectedHost: string(httpHost),
+	}
 	var httpClient = &http.Client{
 		Jar: customJar,
 	}
