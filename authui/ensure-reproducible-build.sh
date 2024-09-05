@@ -4,43 +4,45 @@
 
 N=5
 MANIFEST_LOCATION=../resources/authgear/generated/manifest.json
-TEMP_DIR=$(mktemp -d)
 
 if [ $N -lt 2 ]; then
-  echo "[ERROR] The build number must be greater than 1"
+  echo 1>&2 "[ERROR] The build number must be greater than 1"
   exit 1
 fi
+
+TEMP_DIR="$(mktemp -d)"
+echo 1>&2 "[INFO] TEMP_DIR is ${TEMP_DIR}"
 
 build_bundles()
 {
   for i in $(seq 1 $N)
   do
-    echo "[INFO] Build no.$i"
+    echo 1>&2 "[INFO] Build no.$i"
 
     # Clear vite cache before building bundles
     rm -rf node_modules/.vite > /dev/null 2>&1
     npm run build > /dev/null 2>&1
 
-    python3 -m json.tool --sort-keys --no-ensure-ascii --indent 2 <$MANIFEST_LOCATION >$TEMP_DIR/$i.json
+    python3 -m json.tool --sort-keys --no-ensure-ascii --indent 2 <"$MANIFEST_LOCATION" >"$TEMP_DIR/$i.json"
   done
 }
 
 compare_bundles()
 {
-  echo "[INFO] Comparing $i builds..."
+  echo 1>&2 "[INFO] Comparing $i builds..."
 
   for j in $(seq 2 $N)
   do
-    diff $TEMP_DIR/1.json $TEMP_DIR/$j.json
+    diff -u "$TEMP_DIR/1.json" "$TEMP_DIR/$j.json"
     # Used to check the error code
-    V=$?
-    if [ $V -eq 1 ];then
-      echo "[ERROR] Build hashes are not identical"
-      exit $V
+    exit_code=$?
+    if [ $exit_code -ne 0 ];then
+      echo 1>&2 "[ERROR] Build hashes are not identical"
+      exit 1
     fi
   done
 
-  echo "[INFO] Everything works fine, Bye!"
+  echo 1>&2 "[INFO] Everything works fine, Bye!"
 }
 
 main()
@@ -49,6 +51,6 @@ main()
   compare_bundles
 }
 
-echo "[INFO] Start of script"
+echo 1>&2 "[INFO] Start of script"
 main
-echo "[INFO] End of script"
+echo 1>&2 "[INFO] End of script"
