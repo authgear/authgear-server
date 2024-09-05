@@ -35,6 +35,26 @@ T2zRqm3yyu2XEfF8k/Z7+b1L1td7tZNa6EbaNi/+y4c=
 -----END CERTIFICATE-----
 `
 
+const anotherCert = `
+-----BEGIN CERTIFICATE-----
+MIIC1TCCAb2gAwIBAgIRAJpxx1DW2ObGLT5lUpXARWkwDQYJKoZIhvcNAQELBQAw
+GzEZMBcGA1UEAxMQbXktYXBwLmxvY2FsaG9zdDAgFw0yNDA4MDkwODA3MzlaGA8y
+MDc0MDcyODA4MDczOVowGzEZMBcGA1UEAxMQbXktYXBwLmxvY2FsaG9zdDCCASIw
+DQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN83SCP6m3ayNriEX6VLiwCqoIHu
+E1d2vFwULyUWOjinI3olWWkA1txAZu2e0Rm+Zslq2sWx/HZ5e83NCzyLQ8aaG1JQ
+OtpbxV2IOybOonveZr1qszvs+1ofGw9sW6AZa7vhH9HhuDqZnM6ArsC7E/D03D4x
+J/2hb6uVj9zHb+Cx4vh1nAnBXXwOSIuo1Jm4a0vZHFs8HT2gmX31K/5hhJuchqiH
+ptqerf0OHq/Zyx+v40oj3/cFwGAJ291z6kv318bfjBhZTdQ2ovbnFnU9NfQ02IgW
+tSj1Grr8dAp5aIDZvgvvYg/m+FnyMqrSU5s0NIyn13tqipZgN4YUk8CUkCECAwEA
+AaMSMBAwDgYDVR0PAQH/BAQDAgeAMA0GCSqGSIb3DQEBCwUAA4IBAQAVuZEbgLi0
+gzKy5x+L1j+uQMFdY4taFWGdTF7gZx/hw2YpKakPSCl/Sb+624u3+XhQSzByjt7m
+0yGhAml5aLQ+y7jOAwagL0pWhK/AW6kZKU2lz36J+T8LTzq3YOFBHrLTJ58ZcWKe
+kgwAWDr8Uj9BgxnQWF4Rwu8yAP8POV4E6aIajalFK3tNdyGaXIS5rSHGd/QKuJNW
+eCHF7sKGUSTw3p3MADXGkDykUCuXevyNACH6opOLrDCHr/uEEFmSTVf5zlIeSk+Y
+EMgvAyAtQw4fi3WItQNOSLm+01kxkCC1SF+LXTSUPMsLOnX++WJ4u4VJTMfqrh6d
+UgPkRnolBQXT
+-----END CERTIFICATE-----`
+
 func TestSAMLService(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -174,6 +194,7 @@ func TestSAMLService(t *testing.T) {
 	})
 
 	Convey("VerifyEmbeddedSignature", t, func() {
+
 		// Keep the indentation as spaces in the xml, or the test will fail
 		requestXml := `
 <?xml version="1.0"?>
@@ -186,36 +207,44 @@ func TestSAMLService(t *testing.T) {
 </saml:Subject></samlp:AuthnRequest>
 		`
 
-		svc := createService()
-		svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
-			config.SAMLSpSigningCertificate{
-				ServiceProviderID: spID,
-				Certificates: []config.X509Certificate{
-					{
-						Pem: config.X509CertificatePem(pemCert),
+		Convey("success", func() {
+			svc := createService()
+			svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
+				config.SAMLSpSigningCertificate{
+					ServiceProviderID: spID,
+					Certificates: []config.X509Certificate{
+						{
+							Pem: config.X509CertificatePem(pemCert),
+						},
 					},
 				},
-			},
-		}
+			}
 
-		err := svc.VerifyEmbeddedSignature(sp, requestXml)
-		So(err, ShouldBeNil)
+			err := svc.VerifyEmbeddedSignature(sp, requestXml)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("will fail when the cert is incorrect", func() {
+			svc := createService()
+			svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
+				config.SAMLSpSigningCertificate{
+					ServiceProviderID: spID,
+					Certificates: []config.X509Certificate{
+						{
+							Pem: config.X509CertificatePem(anotherCert),
+						},
+					},
+				},
+			}
+
+			err := svc.VerifyEmbeddedSignature(sp, requestXml)
+			expectedErr := &samlerror.InvalidSignatureError{}
+			So(err, ShouldHaveSameTypeAs, expectedErr)
+		})
 
 	})
 
 	Convey("VerifyExternalSignature", t, func() {
-		svc := createService()
-		svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
-			config.SAMLSpSigningCertificate{
-				ServiceProviderID: spID,
-				Certificates: []config.X509Certificate{
-					{
-						Pem: config.X509CertificatePem(pemCert),
-					},
-				},
-			},
-		}
-
 		// The request in xml is
 		/*
 			<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ForceAuthn="false"  ID="ae230b376c88c3f4f8c7a4db12d24e38357205829" IssueInstant="2024-09-05T07:35:34Z" Destination="http://localhost:3000/saml2/login/sp1" AssertionConsumerServiceURL="https://sptest.iamshowcase.com/acs"  ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"   Version="2.0"><saml:Issuer >IAMShowcase</saml:Issuer><saml:Subject >
@@ -229,12 +258,51 @@ func TestSAMLService(t *testing.T) {
 		// Use this site to generate the signature:
 		// https://www.samltool.com/sign_authn.php
 		signature := "LAre0pDAbJPSP1swdYTIDuTltnQGyfDtmJBnXyCr6Hij/EWvAhtS7g3SuDx3GYaUc2gv/NE1JFIXMEewziF80n2GcP9Xfog8ToxEqKcjT2VUTvAZGnY66u9jRcoqVhnbG15Q11HmQiGFVD0MoPVebOD8LtDOD1l6+IzuIYk+uHsiqHNM98UM+VDIZ0YlHGoO/bu9cJIpGStr+xQEA/VJcrpD+qB6a2QB7Tn2D+CIK5cf+7uROm44loJeI7vs9bwSvNQM7xvJPewXhWtqWCqg/mFsaV/FgYoHfP8zsBAi2RNJLf454Klih47he7wps8VN4FvtW4DP4ZE8J9HXXaYO/Q=="
-		err := svc.VerifyExternalSignature(
-			sp,
-			samlRequest,
-			"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
-			"indigo",
-			signature)
-		So(err, ShouldBeNil)
+
+		relayState := "indigo"
+
+		Convey("success", func() {
+			svc := createService()
+			svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
+				config.SAMLSpSigningCertificate{
+					ServiceProviderID: spID,
+					Certificates: []config.X509Certificate{
+						{
+							Pem: config.X509CertificatePem(pemCert),
+						},
+					},
+				},
+			}
+			err := svc.VerifyExternalSignature(
+				sp,
+				samlRequest,
+				"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+				relayState,
+				signature)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("will fail when the cert is incorrect", func() {
+			svc := createService()
+			svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
+				config.SAMLSpSigningCertificate{
+					ServiceProviderID: spID,
+					Certificates: []config.X509Certificate{
+						{
+							Pem: config.X509CertificatePem(anotherCert),
+						},
+					},
+				},
+			}
+
+			err := svc.VerifyExternalSignature(
+				sp,
+				samlRequest,
+				"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+				relayState,
+				signature)
+			expectedErr := &samlerror.InvalidSignatureError{}
+			So(err, ShouldHaveSameTypeAs, expectedErr)
+		})
 	})
 }
