@@ -1,4 +1,4 @@
-@layer component {
+@layer components {
   .settings-user-profile-pic__image-container {
     @apply relative;
     @apply h-22 w-22 tablet:h-50 tablet:w-50;

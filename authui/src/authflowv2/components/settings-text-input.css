@@ -1,4 +1,4 @@
-@layer component {
+@layer components {
   :root {
     --settings-text-input__label-text-color: var(--color-neutral-700);
     --settings-text-input__label-text-font-family: var(

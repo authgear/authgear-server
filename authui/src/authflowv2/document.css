@@ -1,4 +1,4 @@
-@layer component {
+@layer components {
   :root {
     --document-pointer-event: auto;
   }
