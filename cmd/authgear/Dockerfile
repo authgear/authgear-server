@@ -29,6 +29,8 @@ RUN cd ./scripts/npm && npm ci
 COPY ./authui/package.json ./authui/package-lock.json ./authui/
 # See /authui/README.md for the reason why we need to copy tarballs.
 COPY ./authui/tarballs/. ./authui/tarballs/.
+# Copy the vite plugin
+COPY ./authui/packages/. ./authui/packages/.
 RUN cd ./authui && npm ci
 COPY . .
 RUN make authui GIT_HASH=$GIT_HASH

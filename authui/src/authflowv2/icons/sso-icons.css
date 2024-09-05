@@ -3,59 +3,59 @@
 }
 
 .sso-icon.google-icon {
-  background-image: url("./icons/raw/icon-google.svg");
+  background-image: url("./raw/icon-google.svg");
 }
 .sso-icon.apple-icon {
-  background-image: url("./icons/raw/icon-apple.svg");
+  background-image: url("./raw/icon-apple.svg");
 }
 .sso-icon.linkedin-icon {
-  background-image: url("./icons/raw/icon-linkedin.svg");
+  background-image: url("./raw/icon-linkedin.svg");
 }
 .sso-icon.github-icon {
-  background-image: url("./icons/raw/icon-github.svg");
+  background-image: url("./raw/icon-github.svg");
 }
 .sso-icon.whatsapp-icon {
-  background-image: url("./icons/raw/icon-whatsapp.svg");
+  background-image: url("./raw/icon-whatsapp.svg");
 }
 .sso-icon.azureadv2-icon,
 .sso-icon.azureadb2c-icon,
 .sso-icon.adfs-icon {
-  background-image: url("./icons/raw/icon-microsoft.svg");
+  background-image: url("./raw/icon-microsoft.svg");
 }
 .sso-icon.facebook-icon {
-  background-image: url("./icons/raw/icon-facebook.svg");
+  background-image: url("./raw/icon-facebook.svg");
 }
 .sso-icon.wechat-icon {
-  background-image: url("./icons/raw/icon-wechat.svg");
+  background-image: url("./raw/icon-wechat.svg");
 }
 .sso-icon.iamsmart-icon {
-  background-image: url("./icons/raw/icon-iamsmart-light.png");
+  background-image: url("./raw/icon-iamsmart-light.png");
 }
 
 .dark .sso-icon.google-icon {
-  background-image: url("./icons/raw/icon-google-dark.svg");
+  background-image: url("./raw/icon-google-dark.svg");
 }
 .dark .sso-icon.apple-icon {
-  background-image: url("./icons/raw/icon-apple-dark.svg");
+  background-image: url("./raw/icon-apple-dark.svg");
 }
 .dark .sso-icon.linkedin-icon {
-  background-image: url("./icons/raw/icon-linkedin-dark.svg");
+  background-image: url("./raw/icon-linkedin-dark.svg");
 }
 .dark .sso-icon.github-icon {
-  background-image: url("./icons/raw/icon-github-dark.svg");
+  background-image: url("./raw/icon-github-dark.svg");
 }
 .dark .sso-icon.whatsapp-icon {
-  background-image: url("./icons/raw/icon-whatsapp-dark.svg");
+  background-image: url("./raw/icon-whatsapp-dark.svg");
 }
 .dark .sso-icon.microsoft-icon {
-  background-image: url("./icons/raw/icon-microsoft-dark.svg");
+  background-image: url("./raw/icon-microsoft-dark.svg");
 }
 .dark .sso-icon.facebook-icon {
-  background-image: url("./icons/raw/icon-facebook-dark.svg");
+  background-image: url("./raw/icon-facebook-dark.svg");
 }
 .dark .sso-icon.wechat-icon {
-  background-image: url("./icons/raw/icon-wechat-dark.svg");
+  background-image: url("./raw/icon-wechat-dark.svg");
 }
 .dark .sso-icon.iamsmart-icon {
-  background-image: url("./icons/raw/icon-iamsmart-dark.png");
+  background-image: url("./raw/icon-iamsmart-dark.png");
 }

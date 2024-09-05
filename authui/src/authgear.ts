@@ -1,3 +1,8 @@
+import "@tabler/icons/iconfont/tabler-icons.min.css";
+import "cropperjs/dist/cropper.min.css";
+import "intl-tel-input/build/js/utils.js";
+import "intl-tel-input/build/css/intlTelInput.min.css";
+
 import { start } from "@hotwired/turbo";
 import { Application, Controller } from "@hotwired/stimulus";
 import axios from "axios";

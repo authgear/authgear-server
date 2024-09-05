@@ -52,6 +52,9 @@ jobs:
     - run: npm run build
       working-directory: ./authui
       if: ${{ !cancelled() }}
+    - run: ./ensure-reproducible-build.sh
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
 
   portal-test:
     if: ${{ github.repository != 'oursky/authgear-server' }}

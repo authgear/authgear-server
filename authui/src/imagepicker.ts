@@ -11,6 +11,7 @@ import {
   hideErrorMessage,
 } from "./messageBar";
 import { Controller } from "@hotwired/stimulus";
+import Cropper from "cropperjs";
 
 function destroyCropper(img: HTMLImageElement) {
   // The namespace .cropper is known by reading the source code.

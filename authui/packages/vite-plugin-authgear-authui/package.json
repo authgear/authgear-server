@@ -1,0 +1,12 @@
+{
+  "name": "vite-plugin-authgear-authui",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/index.js",
+  "dependencies": {
+    "node-html-parser": "6.1.13"
+  },
+  "peerDependencies": {
+    "vite": "^5"
+  }
+}
