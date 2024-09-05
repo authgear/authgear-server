@@ -113,12 +113,12 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	switch parseResult := parseResult.(type) {
 	case *samlbinding.SAMLBindingHTTPRedirectParseResult:
 		relayState = parseResult.RelayState
-		err = h.SAMLService.ValidateAuthnRequest(sp.ID, parseResult.AuthnRequest)
+		err = h.SAMLService.ValidateAuthnRequest(sp.GetID(), parseResult.AuthnRequest)
 		// TODO(saml): Validate the signature in parseResult
 		authnRequest = parseResult.AuthnRequest
 	case *samlbinding.SAMLBindingHTTPPostParseResult:
 		relayState = parseResult.RelayState
-		err = h.SAMLService.ValidateAuthnRequest(sp.ID, parseResult.AuthnRequest)
+		err = h.SAMLService.ValidateAuthnRequest(sp.GetID(), parseResult.AuthnRequest)
 		// TODO(saml): Validate the signature in AuthnRequest
 		authnRequest = parseResult.AuthnRequest
 	default:
@@ -224,7 +224,7 @@ func (h *LoginHandler) startSSOFlow(
 	issuer := h.SAMLService.IdpEntityID()
 
 	samlSessionEntry := &samlsession.SAMLSessionEntry{
-		ServiceProviderID: sp.ID,
+		ServiceProviderID: sp.GetID(),
 		AuthnRequestXML:   authnRequestXML,
 		CallbackURL:       callbackURL,
 		RelayState:        relayState,

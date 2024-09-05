@@ -24,6 +24,7 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 	"additionalProperties": false,
 	"properties": {
 		"id": { "type": "string" },
+		"client_id": { "type": "string" },
 		"nameid_format": { "$ref": "#/$defs/SAMLNameIDFormat" },
 		"nameid_attribute_pointer": { "$ref": "#/$defs/SAMLNameIDAttributePointer" },
 		"acs_urls": {
@@ -36,7 +37,15 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"audience": { "type": "string", "format": "uri" },
 		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" }
 	},
-	"required": ["id", "acs_urls"]
+	"required": ["acs_urls"],
+	"anyOf": [
+		{
+			"required": ["id"]
+		},
+		{
+			"required": ["client_id"]
+		}
+	]
 }
 `)
 
@@ -46,8 +55,11 @@ type SAMLConfig struct {
 }
 
 func (c *SAMLConfig) ResolveProvider(id string) (*SAMLServiceProviderConfig, bool) {
+	if id == "" {
+		return nil, false
+	}
 	for _, sp := range c.ServiceProviders {
-		if sp.ID == id {
+		if sp.Deprecated_ID == id || sp.ClientID == id {
 			return sp, true
 		}
 	}
@@ -92,7 +104,8 @@ func (p SAMLNameIDAttributePointer) MustGetJSONPointer() jsonpointer.T {
 }
 
 type SAMLServiceProviderConfig struct {
-	ID                     string                     `json:"id,omitempty"`
+	Deprecated_ID          string                     `json:"id,omitempty"`
+	ClientID               string                     `json:"client_id,omitempty"`
 	NameIDFormat           SAMLNameIDFormat           `json:"nameid_format,omitempty"`
 	NameIDAttributePointer SAMLNameIDAttributePointer `json:"nameid_attribute_pointer,omitempty"`
 	AcsURLs                []string                   `json:"acs_urls,omitempty"`
@@ -118,6 +131,16 @@ func (c *SAMLServiceProviderConfig) SetDefaults() {
 
 func (c *SAMLServiceProviderConfig) DefaultAcsURL() string {
 	return c.AcsURLs[0]
+}
+
+func (c *SAMLServiceProviderConfig) GetID() string {
+	if c.ClientID != "" {
+		return c.ClientID
+	}
+	if c.Deprecated_ID != "" {
+		return c.Deprecated_ID
+	}
+	panic("unexpected: service provider does not have id nor client id")
 }
 
 var _ = Schema.Add("SAMLSigningConfig", `

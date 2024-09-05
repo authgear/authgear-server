@@ -102,11 +102,11 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 				SingleSignOnServices: []crewjamsaml.Endpoint{
 					{
 						Binding:  crewjamsaml.HTTPRedirectBinding,
-						Location: s.Endpoints.SAMLLoginURL(sp.ID).String(),
+						Location: s.Endpoints.SAMLLoginURL(sp.GetID()).String(),
 					},
 					{
 						Binding:  crewjamsaml.HTTPPostBinding,
-						Location: s.Endpoints.SAMLLoginURL(sp.ID).String(),
+						Location: s.Endpoints.SAMLLoginURL(sp.GetID()).String(),
 					},
 				},
 			},
@@ -116,6 +116,29 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 	return &samlprotocol.Metadata{
 		EntityDescriptor: descriptor,
 	}, nil
+}
+
+func (s *Service) validateDestination(sp *config.SAMLServiceProviderConfig, destination string) error {
+	allowedDestinations := []string{}
+	if sp.Deprecated_ID != "" {
+		allowedDestinations = append(allowedDestinations, s.Endpoints.SAMLLoginURL(sp.Deprecated_ID).String())
+	}
+	if sp.ClientID != "" {
+		allowedDestinations = append(allowedDestinations, s.Endpoints.SAMLLoginURL(sp.ClientID).String())
+	}
+
+	for _, allowedDestination := range allowedDestinations {
+		if destination == allowedDestination {
+			return nil
+		}
+	}
+	return &samlerror.InvalidRequestError{
+		Field:    "Destination",
+		Actual:   destination,
+		Expected: allowedDestinations,
+		Reason:   "unexpected Destination",
+	}
+
 }
 
 // Validate the AuthnRequest
@@ -128,13 +151,9 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	}
 
 	if authnRequest.Destination != "" {
-		if authnRequest.Destination != s.Endpoints.SAMLLoginURL(sp.ID).String() {
-			return &samlerror.InvalidRequestError{
-				Field:    "Destination",
-				Actual:   authnRequest.Destination,
-				Expected: []string{s.Endpoints.SAMLLoginURL(sp.ID).String()},
-				Reason:   "unexpected Destination",
-			}
+		err := s.validateDestination(sp, authnRequest.Destination)
+		if err != nil {
+			return err
 		}
 	}
 

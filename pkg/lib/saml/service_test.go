@@ -33,7 +33,7 @@ func TestSAMLService(t *testing.T) {
 		SAMLConfig: &config.SAMLConfig{
 			ServiceProviders: []*config.SAMLServiceProviderConfig{
 				{
-					ID:           spID,
+					ClientID:     spID,
 					NameIDFormat: config.SAMLNameIDFormatEmailAddress,
 					AcsURLs: []string{
 						"http://localhost/saml-test",
