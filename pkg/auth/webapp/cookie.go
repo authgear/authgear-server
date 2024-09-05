@@ -26,7 +26,7 @@ func NewSessionCookieDef() SessionCookieDef {
 		AllowScriptAccess: false,
 		SameSite:          http.SameSiteNoneMode, // For resumption after redirecting from OAuth providers
 		MaxAge:            nil,                   // Use HTTP session cookie; expires when browser closes
-		IsNonHostOnly:     true,
+		IsNonHostOnly:     false,
 	}
 	return SessionCookieDef{Def: def}
 }

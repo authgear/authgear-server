@@ -16,7 +16,7 @@ var WeChatRedirectURICookieDef = &httputil.CookieDef{
 	NameSuffix:    "wechat_redirect_uri",
 	Path:          "/",
 	SameSite:      http.SameSiteNoneMode,
-	IsNonHostOnly: true,
+	IsNonHostOnly: false,
 }
 
 // PlatformCookieDef is a HTTP session cookie.
@@ -24,7 +24,7 @@ var PlatformCookieDef = &httputil.CookieDef{
 	NameSuffix:    "platform",
 	Path:          "/",
 	SameSite:      http.SameSiteNoneMode,
-	IsNonHostOnly: true,
+	IsNonHostOnly: false,
 }
 
 // WeChatRedirectURIMiddleware validates x_wechat_redirect_uri and stores it in context.
