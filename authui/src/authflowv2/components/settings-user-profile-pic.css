@@ -9,7 +9,7 @@
     @apply w-9 h-9;
     @apply absolute bottom-0 -right-2 tablet:right-3.5;
     @apply rounded-full bg-white;
-    box-shadow: 0 4px 10px 0 #0000001a;
+    @apply shadow-settings-user-profile-pic-edit-button;
   }
 
   .settings-user-profile-pic__image--edit {

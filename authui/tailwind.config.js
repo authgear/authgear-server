@@ -36,6 +36,10 @@ module.exports = {
         }
         return spacing;
       },
+      boxShadow: {
+        "settings-user-profile-pic-edit-button":
+          "0px 4px 10px 0px rgba(0, 0, 0, 0.1)",
+      },
     },
     screens: {
       tablet: "640px",
