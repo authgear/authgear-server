@@ -16,7 +16,8 @@
     "stylelint": "stylelint --cache './src/**/*.{css,scss}'",
     "build": "vite build --outDir '../resources/authgear/generated'",
     "watch": "vite build --watch --outDir '../resources/authgear/generated'",
-    "test": "jest"
+    "test": "jest",
+    "ensure-reproducible-build": "./ensure-reproducible-build.sh"
   },
   "alias": {
     "process": false

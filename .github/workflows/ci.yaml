@@ -52,7 +52,7 @@ jobs:
     - run: npm run build
       working-directory: ./authui
       if: ${{ !cancelled() }}
-    - run: ./check-bundle-consistency.sh
+    - run: ./ensure-reproducible-build.sh
       working-directory: ./authui
       if: ${{ !cancelled() }}
 
