@@ -125,7 +125,8 @@ var secretDeps = wire.NewSet(
 	ProvideBotProtectionProvidersCredentials,
 	ProvideWhatsappOnPremisesCredentials,
 	ProvideLDAPServerUserCredentials,
-	ProvideSAMLSAMLIdpSigningMaterials,
+	ProvideSAMLIdpSigningMaterials,
+	ProvideSAMLSpSigningMaterials,
 )
 
 func ProvideDatabaseCredentials(c *config.SecretConfig) *config.DatabaseCredentials {
@@ -232,7 +233,12 @@ func ProvideLDAPServerUserCredentials(c *config.SecretConfig) *config.LDAPServer
 	return s
 }
 
-func ProvideSAMLSAMLIdpSigningMaterials(c *config.SecretConfig) *config.SAMLIdpSigningMaterials {
+func ProvideSAMLIdpSigningMaterials(c *config.SecretConfig) *config.SAMLIdpSigningMaterials {
 	s, _ := c.LookupData(config.SAMLIdpSigningMaterialsKey).(*config.SAMLIdpSigningMaterials)
+	return s
+}
+
+func ProvideSAMLSpSigningMaterials(c *config.SecretConfig) *config.SAMLSpSigningMaterials {
+	s, _ := c.LookupData(config.SAMLSpSigningMaterialsKey).(*config.SAMLSpSigningMaterials)
 	return s
 }

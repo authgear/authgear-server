@@ -3,6 +3,7 @@ package saml
 import (
 	"bytes"
 	"crypto/rsa"
+	"crypto/x509"
 	"fmt"
 	"net/url"
 	"text/template"
@@ -45,6 +46,7 @@ type Service struct {
 	SAMLEnvironmentConfig   config.SAMLEnvironmentConfig
 	SAMLConfig              *config.SAMLConfig
 	SAMLIdpSigningMaterials *config.SAMLIdpSigningMaterials
+	SAMLSpSigningMaterials  *config.SAMLSpSigningMaterials
 	Endpoints               SAMLEndpoints
 	UserInfoProvider        SAMLUserInfoProvider
 }
@@ -427,6 +429,36 @@ func (s *Service) IssueSuccessResponse(
 	}
 
 	return response, nil
+}
+
+func (s *Service) VerifyEmbeddedSignature(
+	sp *config.SAMLServiceProviderConfig,
+	authnRequestXML string) error {
+	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
+	if !ok {
+		// Signing cert not configured, nothing to verify
+		return nil
+	}
+	certificateStore := &dsig.MemoryX509CertificateStore{
+		Roots: slice.Map(certs.Certificates, func(c config.X509Certificate) *x509.Certificate {
+			return c.X509Certificate()
+		}),
+	}
+	validationCtx := dsig.NewDefaultValidationContext(certificateStore)
+
+	doc := etree.NewDocument()
+	err := doc.ReadFromString(authnRequestXML)
+	if err != nil {
+		return err
+	}
+
+	_, err = validationCtx.Validate(doc.Root())
+	if err != nil {
+		return &samlerror.InvalidSignatureError{
+			Cause: err,
+		}
+	}
+	return nil
 }
 
 func (s *Service) getUserNameID(

@@ -59,6 +59,20 @@ var _ = SecretConfigSchema.Add("SAMLSpSigningMaterials", `
 
 type SAMLSpSigningMaterials []SAMLSpSigningCertificate
 
+func (m *SAMLSpSigningMaterials) Resolve(sp *SAMLServiceProviderConfig) (*SAMLSpSigningCertificate, bool) {
+	if m == nil {
+		return nil, false
+	}
+	for _, item := range *m {
+		item := item
+		if item.ServiceProviderID == sp.Deprecated_ID || item.ServiceProviderID == sp.ClientID {
+			return &item, true
+		}
+	}
+
+	return nil, false
+}
+
 var _ SecretItemData = &SAMLSpSigningMaterials{}
 
 func (s *SAMLSpSigningMaterials) SensitiveStrings() []string {

@@ -119,7 +119,13 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case *samlbinding.SAMLBindingHTTPPostParseResult:
 		relayState = parseResult.RelayState
 		err = h.SAMLService.ValidateAuthnRequest(sp.GetID(), parseResult.AuthnRequest)
-		// TODO(saml): Validate the signature in AuthnRequest
+		if err != nil {
+			break
+		}
+		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.AuthnRequestXML)
+		if err != nil {
+			break
+		}
 		authnRequest = parseResult.AuthnRequest
 	default:
 		panic("unexpected parse result type")
@@ -137,6 +143,24 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 						issuer,
 						fmt.Sprintf("invalid SAMLRequest: %s", invalidRequestErr.Reason),
 						invalidRequestErr.GetDetailElements(),
+					),
+					RelayState: relayState,
+				},
+			)
+			h.writeResult(rw, r, errResponse)
+			return
+		}
+		var invalidSignatureErr *samlerror.InvalidSignatureError
+		if errors.As(err, &invalidSignatureErr) {
+			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
+				samlprotocolhttp.SAMLResult{
+					CallbackURL: callbackURL,
+					Binding:     samlprotocol.SAMLBindingHTTPPost,
+					Response: samlprotocol.NewRequestDeniedErrorResponse(
+						now,
+						issuer,
+						"invalid signature",
+						invalidSignatureErr.GetDetailElements(),
 					),
 					RelayState: relayState,
 				},
