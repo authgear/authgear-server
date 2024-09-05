@@ -47,8 +47,12 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 	if err != nil {
 		panic(err)
 	}
+	customJar := &JarWorkingAroundGolangIssue38988{
+		Jar:           jar,
+		CorrectedHost: string(httpHost),
+	}
 	var httpClient = &http.Client{
-		Jar: jar,
+		Jar: customJar,
 	}
 	var oauthClient = &http.Client{}
 

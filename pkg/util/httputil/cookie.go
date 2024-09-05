@@ -9,6 +9,8 @@ import (
 	"golang.org/x/net/publicsuffix"
 )
 
+// CookieDef defines a cookie that is written to the response.
+// All cookies in our server expects to be created with this definition.
 type CookieDef struct {
 	// NameSuffix means the cookie could have prefix.
 	NameSuffix string
@@ -18,6 +20,13 @@ type CookieDef struct {
 	AllowScriptAccess bool
 	SameSite          http.SameSite
 	MaxAge            *int
+
+	// This flag is the inverse of http cookie host-only-flag (RFC6265 section5.3.6), default false
+	IsNonHostOnly bool
+}
+
+func (cd *CookieDef) HostOnly() bool {
+	return !cd.IsNonHostOnly
 }
 
 func UpdateCookie(w http.ResponseWriter, cookie *http.Cookie) {
@@ -117,9 +126,12 @@ func (f *CookieManager) ValueCookie(def *CookieDef, value string) *http.Cookie {
 	cookie := &http.Cookie{
 		Name:     f.CookieName(def),
 		Path:     def.Path,
-		Domain:   f.CookieDomain,
 		HttpOnly: !def.AllowScriptAccess,
 		SameSite: def.SameSite,
+	}
+
+	if !def.HostOnly() {
+		cookie.Domain = f.CookieDomain
 	}
 
 	cookie.Value = value
