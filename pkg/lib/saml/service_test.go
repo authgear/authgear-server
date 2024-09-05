@@ -24,25 +24,29 @@ func TestSAMLService(t *testing.T) {
 	spID := "testsp"
 	loginEndpoint, _ := url.Parse("http://idp.local/login")
 	endpoints.EXPECT().SAMLLoginURL(spID).AnyTimes().Return(loginEndpoint)
-	svc := &saml.Service{
-		Clock: clk,
-		AppID: config.AppID("test"),
-		SAMLEnvironmentConfig: config.SAMLEnvironmentConfig{
-			IdPEntityIDTemplate: "urn:{{.app_id}}.localhost",
+	sp := &config.SAMLServiceProviderConfig{
+		ClientID:     spID,
+		NameIDFormat: config.SAMLNameIDFormatEmailAddress,
+		AcsURLs: []string{
+			"http://localhost/saml-test",
 		},
-		SAMLConfig: &config.SAMLConfig{
-			ServiceProviders: []*config.SAMLServiceProviderConfig{
-				{
-					ClientID:     spID,
-					NameIDFormat: config.SAMLNameIDFormatEmailAddress,
-					AcsURLs: []string{
-						"http://localhost/saml-test",
-					},
+	}
+	createService := func() *saml.Service {
+		return &saml.Service{
+			Clock: clk,
+			AppID: config.AppID("test"),
+			SAMLEnvironmentConfig: config.SAMLEnvironmentConfig{
+				IdPEntityIDTemplate: "urn:{{.app_id}}.localhost",
+			},
+			SAMLConfig: &config.SAMLConfig{
+				ServiceProviders: []*config.SAMLServiceProviderConfig{
+					sp,
 				},
 			},
-		},
-		SAMLIdpSigningMaterials: nil,
-		Endpoints:               endpoints,
+			SAMLIdpSigningMaterials: nil,
+			SAMLSpSigningMaterials:  nil,
+			Endpoints:               endpoints,
+		}
 	}
 
 	Convey("ValidateAuthnRequest", t, func() {
@@ -65,14 +69,14 @@ func TestSAMLService(t *testing.T) {
 
 		Convey("valid request", func() {
 			authnRequest := makeValidRequest()
-			err := svc.ValidateAuthnRequest(spID, authnRequest)
+			err := createService().ValidateAuthnRequest(spID, authnRequest)
 			So(err, ShouldBeNil)
 		})
 
 		Convey("invalid destination", func() {
 			authnRequest := makeValidRequest()
 			authnRequest.Destination = "http://idp.local/wrong"
-			err := svc.ValidateAuthnRequest(spID, authnRequest)
+			err := createService().ValidateAuthnRequest(spID, authnRequest)
 
 			So(err, ShouldBeError, &samlerror.InvalidRequestError{
 				Field:    "Destination",
@@ -85,7 +89,7 @@ func TestSAMLService(t *testing.T) {
 		Convey("unsupported binding", func() {
 			authnRequest := makeValidRequest()
 			authnRequest.ProtocolBinding = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
-			err := svc.ValidateAuthnRequest(spID, authnRequest)
+			err := createService().ValidateAuthnRequest(spID, authnRequest)
 			So(err, ShouldBeError, &samlerror.InvalidRequestError{
 				Field:  "ProtocolBinding",
 				Actual: authnRequest.ProtocolBinding,
@@ -100,7 +104,7 @@ func TestSAMLService(t *testing.T) {
 		Convey("unsupported version", func() {
 			authnRequest := makeValidRequest()
 			authnRequest.Version = "1.0"
-			err := svc.ValidateAuthnRequest(spID, authnRequest)
+			err := createService().ValidateAuthnRequest(spID, authnRequest)
 			So(err, ShouldBeError, &samlerror.InvalidRequestError{
 				Field:    "Version",
 				Actual:   authnRequest.Version,
@@ -113,7 +117,7 @@ func TestSAMLService(t *testing.T) {
 			authnRequest := makeValidRequest()
 			issueInstant, _ := time.Parse(time.RFC3339, "2006-01-02T14:00:05Z")
 			authnRequest.IssueInstant = issueInstant
-			err := svc.ValidateAuthnRequest(spID, authnRequest)
+			err := createService().ValidateAuthnRequest(spID, authnRequest)
 			So(err, ShouldBeError, &samlerror.InvalidRequestError{
 				Field:  "IssueInstant",
 				Actual: issueInstant.Format(time.RFC3339),
@@ -125,7 +129,7 @@ func TestSAMLService(t *testing.T) {
 			authnRequest := makeValidRequest()
 			format := "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName"
 			authnRequest.NameIDPolicy.Format = &format
-			err := svc.ValidateAuthnRequest(spID, authnRequest)
+			err := createService().ValidateAuthnRequest(spID, authnRequest)
 			So(err, ShouldBeError, &samlerror.InvalidRequestError{
 				Field:  "NameIDPolicy/Format",
 				Actual: format,
@@ -140,7 +144,7 @@ func TestSAMLService(t *testing.T) {
 		Convey("acs url not allowed", func() {
 			authnRequest := makeValidRequest()
 			authnRequest.AssertionConsumerServiceURL = "http://localhost/wrong"
-			err := svc.ValidateAuthnRequest(spID, authnRequest)
+			err := createService().ValidateAuthnRequest(spID, authnRequest)
 			So(err, ShouldBeError, &samlerror.InvalidRequestError{
 				Field:  "AssertionConsumerServiceURL",
 				Actual: "http://localhost/wrong",
@@ -149,4 +153,51 @@ func TestSAMLService(t *testing.T) {
 		})
 	})
 
+	Convey("VerifyEmbeddedSignature", t, func() {
+		// Keep the indentation as spaces in the xml, or the test will fail
+		requestXml := `
+<?xml version="1.0"?>
+<samlp:AuthnRequest xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol" xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ForceAuthn="false" ID="pfxfcc76a4e-1dad-24bb-6753-aa23909601e3" IssueInstant="2024-09-05T07:35:34Z" Destination="http://localhost:3000/saml2/login/sp1" AssertionConsumerServiceURL="https://sptest.iamshowcase.com/acs" ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Version="2.0"><saml:Issuer>IAMShowcase</saml:Issuer><ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+  <ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+    <ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"/>
+  <ds:Reference URI="#pfxfcc76a4e-1dad-24bb-6753-aa23909601e3"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/><ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><ds:DigestValue>1jRKgEs73mif6vqWcGPukA9HzP4=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue>ncDAze9fD8EOw24HlXjsi8xVIHwDACHCnfs/axtybRC8VyEVuuZCO00MxSHGEv1oBoj8OQwGT5IxPupKUwoWNy6QLm6jC2+CHCu53FcYEvNz+m5Pk8xdUWHQLR7tZ8Eb1wyavFm7KD6VgRjppKByz8F6WGP5tP/x2KM3MI4Mh/Ki1NYbkXm7WykAOO2FjZE9Lmi9he/ScQO+g03Hzz91Uk9kdhsx7aCz4b+YltdOpk6rnUe8WCOba2/jXzhwr8IndlsmxPmqrlASbe/E5POhl89ap1Vsaur3hh1FP6DyhhSp8DvFarSeqNZYSbhDylcXa52ro6Kl8ErGOaMUW3getA==</ds:SignatureValue>
+<ds:KeyInfo><ds:X509Data><ds:X509Certificate>MIICvDCCAaSgAwIBAgIQdYSL2dOaN9QHxzugY+xbjjANBgkqhkiG9w0BAQsFADAPMQ0wCwYDVQQDEwR0ZXN0MCAXDTI0MDkwNTA3MzcxMVoYDzIwNzQwODI0MDczNzExWjAPMQ0wCwYDVQQDEwR0ZXN0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArrtotTiwy0GSjr+a4i5KXEwZYIajhVazoCyIbC1ogchkvOWMU9bKA3vR2to/QNAOLF+ysYS/jjnctAQTz8jVCuneV1fKrIWfUyQ0gIsHCgnItXuaNiH6XCRYEUxcg0d6owh6GtH9XFPmcGdhshl2qm59DWRkfTZ77AVnccmawdU0oyIgIJiYuRyHnUhZthhSX9GL7JUFjIV2cN7GwVMtrF6eCc4vOnZ6g8Q9KOU5i9cBnP85aoh17yKCZPpgmtInA5FN+3JvKeqdFG7fw427a9JiVlT6p4WYAgCeVWwPtjvKXU9Kb+ph2urfBJoERVMXvG2TezY2Vzj7sNUhyKNM6wIDAQABoxIwEDAOBgNVHQ8BAf8EBAMCB4AwDQYJKoZIhvcNAQELBQADggEBAJNju5+RqjUrI0jS+9iwz/CoNESN0aI9zBJX/IELwCQ3XhZ9ZPPzqH8rcl0FMR/Rh25XGfDpWO1eDLY7dPCz0AYXT+qfvhRccP32bnD2L+O8PVHEdBEBFBMk2hlK/kozOOI8QRODvkPxmuopEAT7S+V/BK/3XOkkn8dGxoe+3sVtog96FvZ3r3495xebFZWHxNECv5Slj8iaHzfqWOCI1p5MrRS+NeJimHMqpo7KhnlBRnUXcFkdRIKGMztcONpsxoGMo8+QLdjSHDoRXOuHHmBK1g3woNeuZZAX944DylzuT2zRqm3yyu2XEfF8k/Z7+b1L1td7tZNa6EbaNi/+y4c=</ds:X509Certificate></ds:X509Data></ds:KeyInfo></ds:Signature><saml:Subject>
+<saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress">test@example.com</saml:NameID>
+</saml:Subject></samlp:AuthnRequest>
+		`
+
+		svc := createService()
+		svc.SAMLSpSigningMaterials = &config.SAMLSpSigningMaterials{
+			config.SAMLSpSigningCertificate{
+				ServiceProviderID: spID,
+				Certificates: []config.X509Certificate{
+					{
+						Pem: config.X509CertificatePem(`
+-----BEGIN CERTIFICATE-----
+MIICvDCCAaSgAwIBAgIQdYSL2dOaN9QHxzugY+xbjjANBgkqhkiG9w0BAQsFADAP
+MQ0wCwYDVQQDEwR0ZXN0MCAXDTI0MDkwNTA3MzcxMVoYDzIwNzQwODI0MDczNzEx
+WjAPMQ0wCwYDVQQDEwR0ZXN0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
+AQEArrtotTiwy0GSjr+a4i5KXEwZYIajhVazoCyIbC1ogchkvOWMU9bKA3vR2to/
+QNAOLF+ysYS/jjnctAQTz8jVCuneV1fKrIWfUyQ0gIsHCgnItXuaNiH6XCRYEUxc
+g0d6owh6GtH9XFPmcGdhshl2qm59DWRkfTZ77AVnccmawdU0oyIgIJiYuRyHnUhZ
+thhSX9GL7JUFjIV2cN7GwVMtrF6eCc4vOnZ6g8Q9KOU5i9cBnP85aoh17yKCZPpg
+mtInA5FN+3JvKeqdFG7fw427a9JiVlT6p4WYAgCeVWwPtjvKXU9Kb+ph2urfBJoE
+RVMXvG2TezY2Vzj7sNUhyKNM6wIDAQABoxIwEDAOBgNVHQ8BAf8EBAMCB4AwDQYJ
+KoZIhvcNAQELBQADggEBAJNju5+RqjUrI0jS+9iwz/CoNESN0aI9zBJX/IELwCQ3
+XhZ9ZPPzqH8rcl0FMR/Rh25XGfDpWO1eDLY7dPCz0AYXT+qfvhRccP32bnD2L+O8
+PVHEdBEBFBMk2hlK/kozOOI8QRODvkPxmuopEAT7S+V/BK/3XOkkn8dGxoe+3sVt
+og96FvZ3r3495xebFZWHxNECv5Slj8iaHzfqWOCI1p5MrRS+NeJimHMqpo7KhnlB
+RnUXcFkdRIKGMztcONpsxoGMo8+QLdjSHDoRXOuHHmBK1g3woNeuZZAX944Dylzu
+T2zRqm3yyu2XEfF8k/Z7+b1L1td7tZNa6EbaNi/+y4c=
+-----END CERTIFICATE-----
+					`),
+					},
+				},
+			},
+		}
+
+		err := svc.VerifyEmbeddedSignature(sp, requestXml)
+		So(err, ShouldBeNil)
+
+	})
 }
