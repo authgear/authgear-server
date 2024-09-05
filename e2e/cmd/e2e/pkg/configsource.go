@@ -105,17 +105,6 @@ func (c *End2End) createTempConfigSource(appID string, baseConfigSource string, 
 
 	cfg.ID = config.AppID(appID)
 	cfg.HTTP.PublicOrigin = fmt.Sprintf("http://%s.authgeare2e.localhost:4000", appID)
-	// This is a workaround for this bug
-	// https://github.com/golang/go/issues/38988
-	//
-	// http.Client always pass request.URL to http.CookieJar.
-	// But a more correct behavior should be passing a net.URL
-	// with net.URL.Host = http.Request.Host (if http.Request.Host is non-zero)
-	//
-	// To work around this problem, we ask Authgear to write the cookie
-	// with a buggy domain, that is request.URL.Host = "127.0.0.1"
-	cookieDomain := "127.0.0.1"
-	cfg.HTTP.CookieDomain = &cookieDomain
 
 	newAuthgearYAML, err := exportConfig(cfg)
 	if err != nil {

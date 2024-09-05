@@ -47,8 +47,9 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 	if err != nil {
 		panic(err)
 	}
+	customJar := NewCustomJar(jar)
 	var httpClient = &http.Client{
-		Jar: jar,
+		Jar: customJar,
 	}
 	var oauthClient = &http.Client{}
 

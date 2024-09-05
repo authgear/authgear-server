@@ -27,7 +27,7 @@ var _ http.CookieJar = &bugObserver{}
 // If that issue is still unfixed, then this test should pass.
 // If that issue is fixed, then this test should fail.
 // When this test fail, then we need to remove the workaround.
-// The workaround is in e2e/cmd/e2e/pkg/configsource.go
+// The workaround is in e2e/pkg/e2eclient/httpcookiejar.go
 func TestHTTPClientCookieJarBug(t *testing.T) {
 	jar := &bugObserver{}
 	client := &http.Client{
