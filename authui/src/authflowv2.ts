@@ -1,3 +1,4 @@
+import "cropperjs/dist/cropper.min.css";
 import { start } from "@hotwired/turbo";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
