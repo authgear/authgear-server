@@ -26,6 +26,7 @@
 
   .select-input__trigger {
     @apply flex justify-between items-center;
+    color: var(--select-input__text-color);
     padding: var(--select-input__trigger-padding);
     border-radius: var(--select-input__trigger-border-radius);
     @apply ring-inset
