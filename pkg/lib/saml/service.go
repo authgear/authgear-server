@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"fmt"
 	"net/url"
+	"strings"
 	"text/template"
 	"time"
 
@@ -29,6 +31,12 @@ import (
 
 const MetadataValidDuration = time.Hour * 24
 const MaxAuthnRequestValidDuration = duration.Short
+
+var x509SignatureAlgorithmByIdentifier = map[string]x509.SignatureAlgorithm{
+	"http://www.w3.org/2000/09/xmldsig#rsa-sha1":        x509.SHA1WithRSA,
+	"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256": x509.SHA256WithRSA,
+	"http://www.w3.org/2000/09/xmldsig#dsa-sha1":        x509.DSAWithSHA1,
+}
 
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package saml_test
 
@@ -456,6 +464,63 @@ func (s *Service) VerifyEmbeddedSignature(
 	if err != nil {
 		return &samlerror.InvalidSignatureError{
 			Cause: err,
+		}
+	}
+	return nil
+}
+
+func (s *Service) VerifyExternalSignature(
+	sp *config.SAMLServiceProviderConfig,
+	samlRequest string,
+	sigAlg string,
+	relayState string,
+	signature string) error {
+	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
+	if !ok {
+		// Signing cert not configured, nothing to verify
+		return nil
+	}
+
+	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf 3.4.4.1
+	signedValues := []string{}
+	signedValues = append(signedValues, fmt.Sprintf("SAMLRequest=%s", url.QueryEscape(samlRequest)))
+	if relayState != "" {
+		signedValues = append(signedValues, fmt.Sprintf("RelayState=%s", url.QueryEscape(relayState)))
+	}
+	if sigAlg != "" {
+		signedValues = append(signedValues, fmt.Sprintf("SigAlg=%s", url.QueryEscape(sigAlg)))
+
+	}
+
+	signedValue := strings.Join(signedValues, "&")
+
+	verified := false
+	for _, cert := range certs.Certificates {
+		x509cert := cert.X509Certificate()
+		algo, ok := x509SignatureAlgorithmByIdentifier[sigAlg]
+		if !ok {
+			return &samlerror.InvalidSignatureError{
+				Cause: fmt.Errorf("unknown algorithm"),
+			}
+		}
+
+		decodedSignature, err := base64.StdEncoding.DecodeString(signature)
+		if err != nil {
+			return &samlerror.InvalidSignatureError{
+				Cause: fmt.Errorf("invalid signature"),
+			}
+		}
+
+		err = x509cert.CheckSignature(algo, []byte(signedValue), decodedSignature)
+		if err == nil {
+			verified = true
+		}
+
+	}
+
+	if !verified {
+		return &samlerror.InvalidSignatureError{
+			Cause: fmt.Errorf("incorrect signature"),
 		}
 	}
 	return nil

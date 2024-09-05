@@ -114,7 +114,17 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	case *samlbinding.SAMLBindingHTTPRedirectParseResult:
 		relayState = parseResult.RelayState
 		err = h.SAMLService.ValidateAuthnRequest(sp.GetID(), parseResult.AuthnRequest)
-		// TODO(saml): Validate the signature in parseResult
+		if err != nil {
+			break
+		}
+		err = h.SAMLService.VerifyExternalSignature(sp,
+			parseResult.SAMLRequest,
+			parseResult.SigAlg,
+			parseResult.RelayState,
+			parseResult.Signature)
+		if err != nil {
+			break
+		}
 		authnRequest = parseResult.AuthnRequest
 	case *samlbinding.SAMLBindingHTTPPostParseResult:
 		relayState = parseResult.RelayState

@@ -23,6 +23,12 @@ type HandlerSAMLService interface {
 	VerifyEmbeddedSignature(
 		sp *config.SAMLServiceProviderConfig,
 		authnRequestXML string) error
+	VerifyExternalSignature(
+		sp *config.SAMLServiceProviderConfig,
+		samlRequest string,
+		sigAlg string,
+		relayState string,
+		signature string) error
 }
 
 type SAMLSessionService interface {
