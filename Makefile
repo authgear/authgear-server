@@ -162,8 +162,11 @@ authui:
 	npm run --silent --prefix ./authui typecheck
 	npm run --silent --prefix ./authui format
 	npm run --silent --prefix ./authui build
-	rm -rf resources/authgear/generated/src
-	git checkout -- resources/authgear/generated/.gitkeep
+	# We do not need the built html files.
+	rm -rf resources/authgear/generated/src/*.html
+	# Vite by default will remove the output directory before the build.
+	# So we need to touch .gitkeep after the build to avoid git changes.
+	touch resources/authgear/generated/.gitkeep
 
 .PHONY: portal
 portal:
