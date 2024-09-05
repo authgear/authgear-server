@@ -33,6 +33,30 @@ func (b SchemaBuilder) Types(ts ...Type) SchemaBuilder {
 	return b
 }
 
+func (b SchemaBuilder) AddTypeNull() SchemaBuilder {
+	bType, ok := b["type"]
+	if !ok {
+		b.Type(TypeNull)
+		return b
+	}
+
+	originals, ok := bType.([]Type)
+	if ok {
+		newTypes := append(originals, TypeNull)
+		b.Types(newTypes...)
+		return b
+	}
+
+	original, ok := bType.(Type)
+	if ok {
+		newTypes := []Type{original, TypeNull}
+		b.Types(newTypes...)
+		return b
+	}
+
+	panic("unexpected: schema builder has invalid type")
+}
+
 func (b SchemaBuilder) Properties() SchemaBuilder {
 	bb, ok := b["properties"].(SchemaBuilder)
 	if !ok {
@@ -149,4 +173,20 @@ func (b SchemaBuilder) ToSimpleSchema() *SimpleSchema {
 		panic(err)
 	}
 	return NewSimpleSchema(string(bytes))
+}
+
+// This function allow copying the schema builder to a reference
+// Expected usage is to avoid mutating original schema builder
+func (b SchemaBuilder) Clone() SchemaBuilder {
+	newB := make(SchemaBuilder)
+	for k, v := range b {
+		vb, ok := v.(SchemaBuilder)
+		if ok {
+			newB[k] = vb.Clone()
+		} else {
+			newB[k] = v
+		}
+	}
+
+	return newB
 }

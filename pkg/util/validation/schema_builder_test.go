@@ -144,5 +144,120 @@ func TestSchemaBuilder(t *testing.T) {
 }
 `)
 		})
+
+		Convey("mutation on cloned builder should not affect original builder", func() {
+			b := SchemaBuilder{}
+			b.Type(TypeObject).Required("channel")
+
+			b.Properties().
+				Property("channel", SchemaBuilder{}.Type(TypeString).Enum("sms", "email", "whatsapp"))
+
+			test(b, `
+{
+    "type": "object",
+    "required": [
+        "channel"
+    ],
+    "properties": {
+        "channel": {
+            "type": "string",
+            "enum": [
+                "sms",
+                "email",
+                "whatsapp"
+            ]
+        }
+    }
+}
+`)
+			newB := b.Clone()
+			So(newB, ShouldResemble, b)
+
+			newB.Properties().Property("myNewProperty", SchemaBuilder{}.Type(TypeString))
+			test(newB, `
+{
+    "type": "object",
+    "required": [
+        "channel"
+    ],
+    "properties": {
+        "channel": {
+            "type": "string",
+            "enum": [
+                "sms",
+                "email",
+                "whatsapp"
+            ]
+        },
+        "myNewProperty": {
+            "type": "string"
+        }
+    }
+}
+`)
+			test(b, `
+{
+    "type": "object",
+    "required": [
+        "channel"
+    ],
+    "properties": {
+        "channel": {
+            "type": "string",
+            "enum": [
+                "sms",
+                "email",
+                "whatsapp"
+            ]
+        }
+    }
+}
+`)
+		})
+		Convey("AddTypeNull should append type", func() {
+			b := SchemaBuilder{}
+			b.Type(TypeObject).Required("channel")
+
+			b.Properties().
+				Property("channel", SchemaBuilder{}.Type(TypeString).Enum("sms", "email", "whatsapp"))
+
+			test(b, `
+{
+    "type": "object",
+    "required": [
+        "channel"
+    ],
+    "properties": {
+        "channel": {
+            "type": "string",
+            "enum": [
+                "sms",
+                "email",
+                "whatsapp"
+            ]
+        }
+    }
+}
+`)
+			b.AddTypeNull()
+			test(b, `
+{
+    "type": ["object", "null"],
+    "required": [
+        "channel"
+    ],
+    "properties": {
+        "channel": {
+            "type": "string",
+            "enum": [
+                "sms",
+                "email",
+                "whatsapp"
+            ]
+        }
+    }
+}
+`)
+		})
 	})
 }

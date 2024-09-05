@@ -784,6 +784,16 @@ func TestRecordSchema(t *testing.T) {
 /password: required
   map[actual:[unknown] expected:[password_hash type] missing:[password_hash type]]
 /password/unknown: `)
+
+		test(`{
+			"email": "user@example.com",
+			"password": {
+				"type": "bcrypt",
+				"password_hash": ""
+			}
+		}`, `invalid request body:
+/password/password_hash: minLength
+  map[actual:0 expected:1]`)
 	})
 
 	Convey("Record JSON schema for mfa", t, func() {
@@ -819,6 +829,17 @@ func TestRecordSchema(t *testing.T) {
 			}
 		}`, `invalid request body:
 /mfa/totp/unknown: `)
+
+		test(`{
+			"email": "user@example.com",
+			"mfa": {
+				"totp": {
+					"secret": ""
+				}
+			}
+		}`, `invalid request body:
+/mfa/totp/secret: minLength
+  map[actual:0 expected:1]`)
 	})
 
 	Convey("Record JSON Schema for email", t, func() {
@@ -881,6 +902,31 @@ func TestRecordSchema(t *testing.T) {
   map[actual:<nil> expected:[secret] missing:[secret]]
 /password: required
   map[actual:<nil> expected:[password_hash type] missing:[password_hash type]]`)
+
+		test(`{
+			"email": "",
+			"password": {
+				"type": "bcrypt",
+				"password_hash": ""
+			},
+			"mfa": {
+				"password": {
+					"type": "bcrypt",
+					"password_hash": ""
+				},
+				"totp": {
+					"secret": ""
+				}
+			}
+		}`, `invalid request body:
+/email: format
+  map[error:invalid email address: mail: no address format:email]
+/mfa/password/password_hash: minLength
+  map[actual:0 expected:1]
+/mfa/totp/secret: minLength
+  map[actual:0 expected:1]
+/password/password_hash: minLength
+  map[actual:0 expected:1]`)
 	})
 
 	Convey("Record JSON Schema for phone_number", t, func() {
@@ -943,6 +989,31 @@ func TestRecordSchema(t *testing.T) {
   map[actual:<nil> expected:[secret] missing:[secret]]
 /password: required
   map[actual:<nil> expected:[password_hash type] missing:[password_hash type]]`)
+
+		test(`{
+			"phone_number": "",
+			"password": {
+				"type": "bcrypt",
+				"password_hash": ""
+			},
+			"mfa": {
+				"password": {
+					"type": "bcrypt",
+					"password_hash": ""
+				},
+				"totp": {
+					"secret": ""
+				}
+			}
+		}`, `invalid request body:
+/mfa/password/password_hash: minLength
+  map[actual:0 expected:1]
+/mfa/totp/secret: minLength
+  map[actual:0 expected:1]
+/password/password_hash: minLength
+  map[actual:0 expected:1]
+/phone_number: format
+  map[error:not in E.164 format format:phone]`)
 	})
 
 	Convey("Record JSON Schema for preferred_username", t, func() {
@@ -1005,5 +1076,30 @@ func TestRecordSchema(t *testing.T) {
   map[actual:<nil> expected:[secret] missing:[secret]]
 /password: required
   map[actual:<nil> expected:[password_hash type] missing:[password_hash type]]`)
+
+		test(`{
+			"preferred_username": "",
+			"password": {
+				"type": "bcrypt",
+				"password_hash": ""
+			},
+			"mfa": {
+				"password": {
+					"type": "bcrypt",
+					"password_hash": ""
+				},
+				"totp": {
+					"secret": ""
+				}
+			}
+		}`, `invalid request body:
+/mfa/password/password_hash: minLength
+  map[actual:0 expected:1]
+/mfa/totp/secret: minLength
+  map[actual:0 expected:1]
+/password/password_hash: minLength
+  map[actual:0 expected:1]
+/preferred_username: minLength
+  map[actual:0 expected:1]`)
 	})
 }

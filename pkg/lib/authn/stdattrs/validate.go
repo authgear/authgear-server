@@ -4,182 +4,252 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
+// SchemaBuilders in this file should be private to avoid unexpected mutation,
+// due to the fact that SchemaBuilder is just a map
+// We only expose public functions to create SchemaBuilder
 func init() {
-	SchemaBuilderAddress = validation.SchemaBuilder{}.
+	schemaBuilderAddress = validation.SchemaBuilder{}.
 		Type(validation.TypeObject)
-	addressProperties := SchemaBuilderAddress.Properties()
-	addressProperties.Property("formatted", SchemaBuilderAddressFormatted)
-	addressProperties.Property("street_address", SchemaBuilderAddressStreetAddress)
-	addressProperties.Property("locality", SchemaBuilderAddressLocality)
-	addressProperties.Property("region", SchemaBuilderAddressRegion)
-	addressProperties.Property("postal_code", SchemaBuilderAddressPostalCode)
-	addressProperties.Property("country", SchemaBuilderAddressCountry)
+	addressProperties := schemaBuilderAddress.Properties()
+	addressProperties.Property("formatted", schemaBuilderAddressFormatted)
+	addressProperties.Property("street_address", schemaBuilderAddressStreetAddress)
+	addressProperties.Property("locality", schemaBuilderAddressLocality)
+	addressProperties.Property("region", schemaBuilderAddressRegion)
+	addressProperties.Property("postal_code", schemaBuilderAddressPostalCode)
+	addressProperties.Property("country", schemaBuilderAddressCountry)
 
-	SchemaBuilder = validation.SchemaBuilder{}.
+	schemaBuilder = validation.SchemaBuilder{}.
 		Type(validation.TypeObject).
 		AdditionalPropertiesFalse()
 
-	schemaProperties := SchemaBuilder.Properties()
-	schemaProperties.Property("email", SchemaBuilderEmail)
-	schemaProperties.Property("phone_number", SchemaBuilderPhoneNumber)
-	schemaProperties.Property("preferred_username", SchemaBuilderPreferredUsername)
-	schemaProperties.Property("family_name", SchemaBuilderFamilyName)
-	schemaProperties.Property("given_name", SchemaBuilderGivenName)
-	schemaProperties.Property("middle_name", SchemaBuilderMiddleName)
-	schemaProperties.Property("name", SchemaBuilderName)
-	schemaProperties.Property("nickname", SchemaBuilderNickName)
-	schemaProperties.Property("picture", SchemaBuilderPicture)
-	schemaProperties.Property("profile", SchemaBuilderProfile)
-	schemaProperties.Property("website", SchemaBuilderWebsite)
-	schemaProperties.Property("gender", SchemaBuilderGender)
-	schemaProperties.Property("birthdate", SchemaBuilderBirthdate)
-	schemaProperties.Property("zoneinfo", SchemaBuilderZoneinfo)
-	schemaProperties.Property("locale", SchemaBuilderLocale)
-	schemaProperties.Property("address", SchemaBuilderAddress)
+	schemaProperties := schemaBuilder.Properties()
+	schemaProperties.Property("email", schemaBuilderEmail)
+	schemaProperties.Property("phone_number", schemaBuilderPhoneNumber)
+	schemaProperties.Property("preferred_username", schemaBuilderPreferredUsername)
+	schemaProperties.Property("family_name", schemaBuilderFamilyName)
+	schemaProperties.Property("given_name", schemaBuilderGivenName)
+	schemaProperties.Property("middle_name", schemaBuilderMiddleName)
+	schemaProperties.Property("name", schemaBuilderName)
+	schemaProperties.Property("nickname", schemaBuilderNickName)
+	schemaProperties.Property("picture", schemaBuilderPicture)
+	schemaProperties.Property("profile", schemaBuilderProfile)
+	schemaProperties.Property("website", schemaBuilderWebsite)
+	schemaProperties.Property("gender", schemaBuilderGender)
+	schemaProperties.Property("birthdate", schemaBuilderBirthdate)
+	schemaProperties.Property("zoneinfo", schemaBuilderZoneinfo)
+	schemaProperties.Property("locale", schemaBuilderLocale)
+	schemaProperties.Property("address", schemaBuilderAddress)
 
-	Schema = SchemaBuilder.ToSimpleSchema()
+	schema = schemaBuilder.ToSimpleSchema()
 }
 
-var SchemaBuilderAddress validation.SchemaBuilder
-var SchemaBuilder validation.SchemaBuilder
-var Schema *validation.SimpleSchema
+var schemaBuilderAddress validation.SchemaBuilder
+var schemaBuilder validation.SchemaBuilder
+var schema *validation.SimpleSchema
 
-var SchemaBuilderEmail = validation.SchemaBuilder{}.
+var schemaBuilderEmail = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	Format("email")
 
-var SchemaBuilderPhoneNumber = validation.SchemaBuilder{}.
+var schemaBuilderPhoneNumber = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	Format("phone")
 
-var SchemaBuilderPreferredUsername = validation.SchemaBuilder{}.
+var schemaBuilderPreferredUsername = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderFamilyName = validation.SchemaBuilder{}.
+var schemaBuilderFamilyName = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderGivenName = validation.SchemaBuilder{}.
+var schemaBuilderGivenName = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderMiddleName = validation.SchemaBuilder{}.
+var schemaBuilderMiddleName = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderName = validation.SchemaBuilder{}.
+var schemaBuilderName = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderNickName = validation.SchemaBuilder{}.
+var schemaBuilderNickName = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderPicture = validation.SchemaBuilder{}.
+var schemaBuilderPicture = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	Format("x_picture")
 
-var SchemaBuilderProfile = validation.SchemaBuilder{}.
+var schemaBuilderProfile = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	Format("uri")
 
-var SchemaBuilderWebsite = validation.SchemaBuilder{}.
+var schemaBuilderWebsite = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	Format("uri")
 
-var SchemaBuilderGender = validation.SchemaBuilder{}.
+var schemaBuilderGender = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderBirthdate = validation.SchemaBuilder{}.
+var schemaBuilderBirthdate = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	Format("birthdate")
 
-var SchemaBuilderZoneinfo = validation.SchemaBuilder{}.
+var schemaBuilderZoneinfo = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	Format("timezone")
 
-var SchemaBuilderLocale = validation.SchemaBuilder{}.
+var schemaBuilderLocale = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	Format("bcp47")
 
-var SchemaBuilderAddressFormatted = validation.SchemaBuilder{}.
+var schemaBuilderAddressFormatted = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderAddressStreetAddress = validation.SchemaBuilder{}.
+var schemaBuilderAddressStreetAddress = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderAddressLocality = validation.SchemaBuilder{}.
+var schemaBuilderAddressLocality = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderAddressRegion = validation.SchemaBuilder{}.
+var schemaBuilderAddressRegion = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderAddressPostalCode = validation.SchemaBuilder{}.
+var schemaBuilderAddressPostalCode = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
-var SchemaBuilderAddressCountry = validation.SchemaBuilder{}.
+var schemaBuilderAddressCountry = validation.SchemaBuilder{}.
 	Type(validation.TypeString).
 	MinLength(1)
 
 func Validate(t T) error {
 	a := t.ToClaims()
-	return Schema.Validator().ValidateValue(a)
+	return schema.Validator().ValidateValue(a)
 }
 
 func SchemaBuilderForPointerString(ptrStr string) (validation.SchemaBuilder, bool) {
 	switch ptrStr {
 	case "/email":
-		return SchemaBuilderEmail, true
+		return SchemaBuilderEmail(), true
 	case "/phone_number":
-		return SchemaBuilderPhoneNumber, true
+		return SchemaBuilderPhoneNumber(), true
 	case "/preferred_username":
-		return SchemaBuilderPreferredUsername, true
+		return SchemaBuilderPreferredUsername(), true
 	case "/family_name":
-		return SchemaBuilderFamilyName, true
+		return SchemaBuilderFamilyName(), true
 	case "/given_name":
-		return SchemaBuilderGivenName, true
+		return SchemaBuilderGivenName(), true
 	case "/middle_name":
-		return SchemaBuilderMiddleName, true
+		return SchemaBuilderMiddleName(), true
 	case "/name":
-		return SchemaBuilderName, true
+		return SchemaBuilderName(), true
 	case "/nickname":
-		return SchemaBuilderNickName, true
+		return SchemaBuilderNickName(), true
 	case "/picture":
-		return SchemaBuilderPicture, true
+		return SchemaBuilderPicture(), true
 	case "/profile":
-		return SchemaBuilderProfile, true
+		return SchemaBuilderProfile(), true
 	case "/website":
-		return SchemaBuilderWebsite, true
+		return SchemaBuilderWebsite(), true
 	case "/gender":
-		return SchemaBuilderGender, true
+		return SchemaBuilderGender(), true
 	case "/birthdate":
-		return SchemaBuilderBirthdate, true
+		return SchemaBuilderBirthdate(), true
 	case "/zoneinfo":
-		return SchemaBuilderZoneinfo, true
+		return SchemaBuilderZoneinfo(), true
 	case "/locale":
-		return SchemaBuilderLocale, true
+		return SchemaBuilderLocale(), true
 	case "/address":
-		return SchemaBuilderAddress, true
+		return SchemaBuilderAddress(), true
 	case "/address/formatted":
-		return SchemaBuilderAddressFormatted, true
+		return SchemaBuilderAddressFormatted(), true
 	case "/address/street_address":
-		return SchemaBuilderAddressStreetAddress, true
+		return SchemaBuilderAddressStreetAddress(), true
 	case "/address/locality":
-		return SchemaBuilderAddressLocality, true
+		return SchemaBuilderAddressLocality(), true
 	case "/address/region":
-		return SchemaBuilderAddressRegion, true
+		return SchemaBuilderAddressRegion(), true
 	case "/address/postal_code":
-		return SchemaBuilderAddressPostalCode, true
+		return SchemaBuilderAddressPostalCode(), true
 	case "/address/country":
-		return SchemaBuilderAddressCountry, true
+		return SchemaBuilderAddressCountry(), true
 	default:
 		return nil, false
 	}
+}
+
+func SchemaBuilderEmail() validation.SchemaBuilder {
+	return schemaBuilderEmail.Clone()
+}
+func SchemaBuilderPhoneNumber() validation.SchemaBuilder {
+	return schemaBuilderPhoneNumber.Clone()
+}
+func SchemaBuilderPreferredUsername() validation.SchemaBuilder {
+	return schemaBuilderPreferredUsername.Clone()
+}
+func SchemaBuilderFamilyName() validation.SchemaBuilder {
+	return schemaBuilderFamilyName.Clone()
+}
+func SchemaBuilderGivenName() validation.SchemaBuilder {
+	return schemaBuilderGivenName.Clone()
+}
+func SchemaBuilderMiddleName() validation.SchemaBuilder {
+	return schemaBuilderMiddleName.Clone()
+}
+func SchemaBuilderName() validation.SchemaBuilder {
+	return schemaBuilderName.Clone()
+}
+func SchemaBuilderNickName() validation.SchemaBuilder {
+	return schemaBuilderNickName.Clone()
+}
+func SchemaBuilderPicture() validation.SchemaBuilder {
+	return schemaBuilderPicture.Clone()
+}
+func SchemaBuilderProfile() validation.SchemaBuilder {
+	return schemaBuilderProfile.Clone()
+}
+func SchemaBuilderWebsite() validation.SchemaBuilder {
+	return schemaBuilderWebsite.Clone()
+}
+func SchemaBuilderGender() validation.SchemaBuilder {
+	return schemaBuilderGender.Clone()
+}
+func SchemaBuilderBirthdate() validation.SchemaBuilder {
+	return schemaBuilderBirthdate.Clone()
+}
+func SchemaBuilderZoneinfo() validation.SchemaBuilder {
+	return schemaBuilderZoneinfo.Clone()
+}
+func SchemaBuilderLocale() validation.SchemaBuilder {
+	return schemaBuilderLocale.Clone()
+}
+func SchemaBuilderAddress() validation.SchemaBuilder {
+	return schemaBuilderAddress.Clone()
+}
+func SchemaBuilderAddressFormatted() validation.SchemaBuilder {
+	return schemaBuilderAddressFormatted.Clone()
+}
+func SchemaBuilderAddressStreetAddress() validation.SchemaBuilder {
+	return schemaBuilderAddressStreetAddress.Clone()
+}
+func SchemaBuilderAddressLocality() validation.SchemaBuilder {
+	return schemaBuilderAddressLocality.Clone()
+}
+func SchemaBuilderAddressRegion() validation.SchemaBuilder {
+	return schemaBuilderAddressRegion.Clone()
+}
+func SchemaBuilderAddressPostalCode() validation.SchemaBuilder {
+	return schemaBuilderAddressPostalCode.Clone()
+}
+func SchemaBuilderAddressCountry() validation.SchemaBuilder {
+	return schemaBuilderAddressCountry.Clone()
 }
