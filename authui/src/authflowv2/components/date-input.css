@@ -1,6 +1,7 @@
 @layer components {
   .date-input {
     &::-webkit-calendar-picker-indicator {
+      filter: invert(100%);
       height: 1.5rem;
       width: 1.5rem;
     }
