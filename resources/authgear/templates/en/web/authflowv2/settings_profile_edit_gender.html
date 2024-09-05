@@ -22,7 +22,7 @@
     {{ $.CSRFField }}
     {{ template "authflowv2/__settings_radio.html"
       (dict
-        "Label" (include "v2.component.select-input.default.not-provided-label" nil)
+        "Label" (include "v2.page.settings-profile-edit-gender.default.gender-label-unspecified" nil)
         "Name" "gender-select"
         "Value" ""
         "DefaultChecked" ( not $.Gender )
