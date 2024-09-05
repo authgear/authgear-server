@@ -14,6 +14,7 @@
     "prettier": "prettier --cache --list-different ./src ./packages",
     "eslint": "eslint --cache './src/**/*.{js,ts}'",
     "stylelint": "stylelint --cache './src/**/*.{css,scss}'",
+    "dev": "vite",
     "build": "vite build --outDir '../resources/authgear/generated'",
     "watch": "vite build --watch --outDir '../resources/authgear/generated'",
     "test": "jest",

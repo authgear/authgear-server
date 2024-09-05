@@ -2,10 +2,13 @@ import htmlParser from "node-html-parser";
 import path from "path";
 import fs from "fs/promises";
 
+const templateBase = "../resources/authgear/templates/en/web/";
 const templateNameByAssetName = {
   "build.html": "__generated_asset.html",
   "build-authflowv2.html": "authflowv2/__generated_asset.html",
 };
+
+const devServerBase = "/_vite";
 
 /**
  * @param {string} s
@@ -83,21 +86,103 @@ async function writeManifest(targetPath, manifest) {
 /**
  * @param {string} targetPath
  * @param {string} templateName
- * @param {{type: "css" | "js" | "modulepreload", name: string, attributes: Record<string, string>}[]} elements
+ * @param {string} elementsString
  */
-async function writeHTMLTemplate(targetPath, templateName, elements) {
+async function writeHTMLTemplate(targetPath, templateName, elementsString) {
   const tpl = [
     `{{ define "${templateName}" }}`,
-    elementsToHTMLString(elements),
+    elementsString,
     "{{ end }}",
   ].join("\n");
   await fs.writeFile(targetPath, tpl);
 }
 
-// TODO: Support hot reload without reloading webpage
 /** @returns {import("vite").Plugin} */
 function servePlugin({ input }) {
   let config;
+
+  /**
+   * @param {string} entrtPoint
+   * @param {string} moduleName
+   * @returns {string}
+   */
+  function rewriteModuleNameByEntryPoint(entrtPoint, moduleName) {
+    // Do not rewrite the module name if it is a URL
+    if (moduleName.includes("//")) {
+      return moduleName;
+    }
+    const entryPointDir = path.dirname(path.join(config.base, entrtPoint));
+    const newModuleName = path.join(entryPointDir, moduleName);
+    return newModuleName;
+  }
+
+  /**
+   * @param {string} filePath
+   */
+  async function buildHTMLTemplateFromEntryPoint(filePath) {
+    const templateName = templateNameByAssetName[path.basename(filePath)];
+    if (templateName == null) {
+      config.logger.error(`No template name found for ${filePath}`);
+      return;
+    }
+
+    const source = await fs.readFile(filePath);
+    const root = htmlParser.parse(source);
+    const head = root.getElementsByTagName("head")[0];
+
+    const nodes = [];
+    for (const node of head.childNodes) {
+      if (node.attributes == null) {
+        continue;
+      }
+
+      // Rewrite node attributes by condition
+      // If it is <script>, only rewrite the "src"
+      // If it is <link>, only rewrite the "href"
+      for (const [key, value] of Object.entries(node.attributes)) {
+        if (
+          (node.tagName === "SCRIPT" && key === "src") ||
+          (node.tagName === "LINK" &&
+            node.getAttribute("rel") === "stylesheet" &&
+            key === "href")
+        ) {
+          const moduleName = rewriteModuleNameByEntryPoint(filePath, value);
+          node.setAttribute(key, moduleName);
+          node.setAttribute("nonce", "{{ $.CSPNonce }}");
+        }
+      }
+
+      nodes.push(node);
+    }
+
+    const elementsStringList = nodes.map((node) => node.toString());
+
+    // Inject vite client for HMR
+    // ref https://vitejs.dev/guide/backend-integration.html
+    const viteClientSrc = path.join(config.base, "/@vite/client");
+    const elementsString = [
+      `<script type="module" nonce="{{ $.CSPNonce }}" src="${viteClientSrc}"></script>`,
+      ...elementsStringList,
+    ].join("\n");
+
+    const targetHTMLTemplatePath = path.join(templateBase, templateName);
+    await writeHTMLTemplate(
+      targetHTMLTemplatePath,
+      templateName,
+      elementsString
+    );
+    config.logger.info(`📄 Wrote HTML to: ${targetHTMLTemplatePath}`);
+  }
+
+  /**
+   * @param {string} filePath
+   */
+  async function buildHTMLTemplateIfNeeded(filePath) {
+    const relativeFilePath = path.relative(config.root, filePath);
+    if (path.extname(relativeFilePath) === ".html") {
+      await buildHTMLTemplateFromEntryPoint(relativeFilePath);
+    }
+  }
 
   return {
     name: "vite-plugin-authgear-authui:serve",
@@ -105,6 +190,23 @@ function servePlugin({ input }) {
 
     configResolved(_config) {
       config = _config;
+    },
+
+    config() {
+      return {
+        base: devServerBase,
+      };
+    },
+
+    async handleHotUpdate({ file }) {
+      await buildHTMLTemplateIfNeeded(file);
+    },
+
+    async buildStart(_options) {
+      const entryPoints = Object.values(input);
+      for (const entryPoint of entryPoints) {
+        await buildHTMLTemplateIfNeeded(entryPoint);
+      }
     },
   };
 }
@@ -167,11 +269,11 @@ function buildPlugin({ input }) {
           // Generate html template(s)
           /** @type {string} */
           const templateName = templateNameByAssetName[assetBaseName];
-          const targetHTMLTemplatePath = `../resources/authgear/templates/en/web/${templateName}`;
+          const targetHTMLTemplatePath = path.join(templateBase, templateName);
           await writeHTMLTemplate(
             targetHTMLTemplatePath,
             templateName,
-            elements
+            elementsToHTMLString(elements)
           );
           config.logger.info(
             `📄 Wrote bundle HTML to: ${targetHTMLTemplatePath}`
