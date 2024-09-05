@@ -10,9 +10,8 @@ import (
 var pathCookieMaxAge = int(duration.Short.Seconds())
 
 var PathCookieDef = &httputil.CookieDef{
-	NameSuffix:    "successful_page_path",
-	Path:          "/",
-	SameSite:      http.SameSiteNoneMode,
-	MaxAge:        &pathCookieMaxAge,
-	IsNonHostOnly: false,
+	NameSuffix: "successful_page_path",
+	Path:       "/",
+	SameSite:   http.SameSiteNoneMode,
+	MaxAge:     &pathCookieMaxAge,
 }

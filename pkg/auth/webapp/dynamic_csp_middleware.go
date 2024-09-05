@@ -20,10 +20,9 @@ import (
 // If nonce changes on every page load, the script in the new page
 // cannot be run in the current page due to different nonce.
 var CSPNonceCookieDef = &httputil.CookieDef{
-	NameSuffix:    "csp_nonce",
-	Path:          "/",
-	SameSite:      http.SameSiteNoneMode,
-	IsNonHostOnly: false,
+	NameSuffix: "csp_nonce",
+	Path:       "/",
+	SameSite:   http.SameSiteNoneMode,
 }
 
 type AllowInlineScript bool

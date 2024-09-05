@@ -9,10 +9,9 @@ import (
 )
 
 var cookieDef = &httputil.CookieDef{
-	NameSuffix:    "nonce",
-	Path:          "/",
-	SameSite:      http.SameSiteNoneMode,
-	IsNonHostOnly: false,
+	NameSuffix: "nonce",
+	Path:       "/",
+	SameSite:   http.SameSiteNoneMode,
 }
 
 type CookieManager interface {

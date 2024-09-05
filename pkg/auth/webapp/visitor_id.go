@@ -16,7 +16,6 @@ var VisitorIDCookieDef = &httputil.CookieDef{
 	AllowScriptAccess: false,
 	SameSite:          http.SameSiteNoneMode, // Ensure it can be read after redirecting from OAuth providers
 	MaxAge:            &visitorIDCookieMaxAge,
-	IsNonHostOnly:     false,
 }
 
 type visitorIDContextKeyType struct{}
