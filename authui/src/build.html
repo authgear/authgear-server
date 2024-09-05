@@ -6,6 +6,11 @@
     <link rel="stylesheet" href="overrides.css" />
     <link rel="stylesheet" href="tailwind-light-theme.css" />
     <link rel="stylesheet" href="tailwind-dark-theme.css" />
+    <!-- Classic script will be ignored by Vite -->
+    <!-- See https://github.com/vitejs/vite/blob/v5.4.3/packages/vite/src/node/plugins/html.ts#L477 -->
+    <!-- But Vite will keep this line in the output -->
+    <!-- Our plugin is configured to bundle colorscheme.ts separately -->
+    <!-- And our plugin will replace this line with the separately bundled output -->
     <script src="colorscheme.ts"></script>
     <script type="module" src="authgear.ts"></script>
   </head>

@@ -2,6 +2,11 @@
 <html lang="en">
   <head>
     <script type="module" src="authflowv2.ts"></script>
+    <!-- Classic script will be ignored by Vite -->
+    <!-- See https://github.com/vitejs/vite/blob/v5.4.3/packages/vite/src/node/plugins/html.ts#L477 -->
+    <!-- But Vite will keep this line in the output -->
+    <!-- Our plugin is configured to bundle colorscheme.ts separately -->
+    <!-- And our plugin will replace this line with the separately bundled output -->
     <script src="colorscheme.ts"></script>
     <link rel="stylesheet" href="authflowv2/index.css" />
   </head>
