@@ -28,12 +28,6 @@
   padding-top: 16px;
 }
 
-.searchBox {
-  width: 300px;
-  align-self: center;
-  margin: 0 16px;
-}
-
 .list {
   flex: 1 1 0px;
 }

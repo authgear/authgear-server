@@ -20,7 +20,7 @@ import {
   IContextualMenuItem,
   Pivot,
   PivotItem,
-  SearchBox,
+  ISearchBoxProps,
 } from "@fluentui/react";
 import { useId } from "@fluentui/react-hooks";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
@@ -48,6 +48,10 @@ import { toTypedID } from "../../util/graphql";
 import { NodeType } from "./node";
 import { parseEmail } from "../../util/email";
 import { parsePhoneNumber } from "../../util/phone";
+import {
+  AuditLogFilter,
+  AuditLogFilterBar,
+} from "../../components/audit-log/AuditLogFilterBar";
 
 const pageSize = 100;
 
@@ -70,7 +74,7 @@ function isAuditLogKind(s: string): s is AuditLogKind {
 
 const ALL = "ALL" as const;
 
-function RefreshButton(props: ICommandBarItemProps) {
+function _RefreshButton(props: ICommandBarItemProps) {
   const tooltipStyle: Partial<ITooltipHostStyles> = {
     root: { display: "inline-block" },
   };
@@ -151,7 +155,12 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
     return AuditLogKind.User;
   });
-  const [searchQuery, setSearchQuery] = useState<string>(queryString);
+
+  const [filters, setFilters] = useState<AuditLogFilter>({
+    searchKeyword: "",
+    // dateRange: ...,
+    // activityType: ...,
+  });
 
   const {
     committedValue: rangeFrom,
@@ -219,7 +228,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return lastUpdatedAt.toISOString();
   }, [rangeTo, lastUpdatedAt]);
 
-  const isCustomDateRange = rangeFrom != null || rangeTo != null;
+  const _isCustomDateRange = rangeFrom != null || rangeTo != null;
 
   const availableActivityTypes = useMemo(() => {
     return activityKind === "admin"
@@ -239,7 +248,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return ALL;
   }, [availableActivityTypes, stateSelectedKey]);
 
-  const [debouncedSearchQuery] = useDebounced(searchQuery, 300);
+  const [debouncedSearchQuery] = useDebounced(filters.searchKeyword, 300);
 
   const { renderToString } = useContext(Context);
 
@@ -332,7 +341,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     queryString,
   ]);
 
-  const activityTypeOptions = useMemo(() => {
+  const _activityTypeOptions = useMemo(() => {
     const options = [
       {
         key: ALL as string,
@@ -456,7 +465,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return null;
   }, [error, refetch, featureConfig]);
 
-  const onChangeSelectedKey = useCallback(
+  // TODO: rename this with _ for later usage
+  const _onChangeSelectedKey = useCallback(
     (
       e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>,
       item?: IContextualMenuItem
@@ -470,7 +480,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     []
   );
 
-  const onClickAllDateRange = useCallback(
+  const _onClickAllDateRange = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
       e?.stopPropagation();
       setRangeFromImmediately(null);
@@ -479,7 +489,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     [setRangeFromImmediately, setRangeToImmediately]
   );
 
-  const onClickCustomDateRange = useCallback(
+  const _onClickCustomDateRange = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
       e?.stopPropagation();
       setDateRangeDialogHidden(false);
@@ -487,7 +497,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     []
   );
 
-  const onClickRefresh = useCallback(
+  const _onClickRefresh = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
       e?.stopPropagation();
       setLastUpdatedAt(new Date());
@@ -495,20 +505,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     },
     [setLastUpdatedAt, setOffset]
   );
-
-  const onChangeSearchQuery = useCallback(
-    (e?: React.ChangeEvent<HTMLInputElement>) => {
-      if (e === undefined) {
-        return;
-      }
-      setSearchQuery(e.currentTarget.value);
-    },
-    []
-  );
-
-  const onClearSearchQuery = useCallback(() => {
-    setSearchQuery("");
-  }, []);
 
   const searchBoxPlaceholder = useMemo(() => {
     switch (selectedKey) {
@@ -522,113 +518,11 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }
   }, [renderToString, selectedKey]);
 
-  const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => {
-    const allDateRangeLabel = renderToString("AuditLogScreen.date-range.all");
-    const customDateRangeLabel = renderToString(
-      "AuditLogScreen.date-range.custom"
-    );
-    const items: ICommandBarItemProps[] = [
-      {
-        key: "dateRange",
-        text: isCustomDateRange ? customDateRangeLabel : allDateRangeLabel,
-        iconProps: { iconName: "Calendar" },
-        subMenuProps: {
-          items: [
-            {
-              key: "allDateRange",
-              text: allDateRangeLabel,
-              onClick: onClickAllDateRange,
-            },
-            {
-              key: "customDateRange",
-              text: customDateRangeLabel,
-              onClick: onClickCustomDateRange,
-            },
-          ],
-        },
-      },
-      {
-        key: "activityTypes",
-        text: activityTypeOptions.find((option) => option.key === selectedKey)!
-          .text,
-        iconProps: {
-          iconName: "PC1",
-        },
-        subMenuProps: {
-          items: activityTypeOptions.map((option) => {
-            return {
-              key: option.key,
-              text: option.text,
-              onClick: onChangeSelectedKey,
-            };
-          }),
-        },
-      },
-      {
-        key: "search",
-        // eslint-disable-next-line react/no-unstable-nested-components
-        onRender: () => {
-          return (
-            <SearchBox
-              placeholder={searchBoxPlaceholder}
-              className={styles.searchBox}
-              value={searchQuery}
-              onChange={onChangeSearchQuery}
-              onClear={onClearSearchQuery}
-            />
-          );
-        },
-      },
-      {
-        key: "clear",
-        text: renderToString("AuditLogScreen.clear-all-filters"),
-        iconProps: {
-          iconName: "",
-        },
-        onClick: () => {
-          setOffset(0);
-          setRangeFromImmediately(null);
-          setRangeToImmediately(null);
-          setSelectedKey(ALL);
-          setSearchQuery("");
-        },
-        buttonStyles: {
-          root: {
-            color: "rgba(89, 86, 83, 0.4)",
-          },
-        },
-      },
-    ];
-    return items;
-  }, [
-    renderToString,
-    isCustomDateRange,
-    onClickAllDateRange,
-    onClickCustomDateRange,
-    activityTypeOptions,
-    selectedKey,
-    onChangeSelectedKey,
-    searchBoxPlaceholder,
-    searchQuery,
-    onChangeSearchQuery,
-    onClearSearchQuery,
-    setRangeFromImmediately,
-    setRangeToImmediately,
-  ]);
-
-  const commandBarSecondaryItems: ICommandBarItemProps[] = useMemo(() => {
-    const refreshLabel = renderToString("AuditLogScreen.refresh");
-    return [
-      {
-        key: "refresh",
-        text: refreshLabel,
-        iconProps: { iconName: "Sync" },
-        onClick: onClickRefresh,
-        commandBarButtonAs: RefreshButton,
-        lastUpdatedAt,
-      },
-    ];
-  }, [onClickRefresh, renderToString, lastUpdatedAt]);
+  const searchBoxProps = useMemo<ISearchBoxProps>(() => {
+    return {
+      placeholder: searchBoxPlaceholder,
+    };
+  }, [searchBoxPlaceholder]);
 
   const onDismissDateRangeDialog = useCallback(
     (e?: React.MouseEvent<unknown>) => {
@@ -704,7 +598,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     // Reset pagination on tab change
     setOffset(0);
   }, []);
-
   return (
     <>
       <div className={styles.root}>
@@ -732,12 +625,16 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
             />
           </Pivot>
         </div>
+        <AuditLogFilterBar
+          filters={filters}
+          onFilterChange={setFilters}
+          searchBoxProps={searchBoxProps}
+        />
         <div className={styles.listContainer}>
           <CommandBarContainer
             isLoading={loading}
             messageBar={messageBar}
-            primaryItems={commandBarFarItems}
-            secondaryItems={commandBarSecondaryItems}
+            hideCommandBar={true}
             className={styles.commandBarContainerContent}
             headerPosition="static"
           >
