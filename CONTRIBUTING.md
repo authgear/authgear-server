@@ -232,9 +232,6 @@ react-router-dom@6.4.0 removed the `block` function from NavigationContext.
 We have to remain on react-router-dom@6.3.0 until we find an alternative.
 As of react-router-dom@6.18.0, unstable_useBlocker and unstable_usePrompt are still marked as unstable.
 
-@tabler/icons@1.92.0 is the last version that can be built with our current setup.
-Newer version will cause our `npm run build` command to fail.
-
 NPM has an outstanding issue related to optional native dependencies.
 https://github.com/npm/cli/issues/4828
 The issue will happen if the following conditions hold:
