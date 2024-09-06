@@ -180,6 +180,15 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			}
 		}
 
+		// If a login id login_hint exist, go to login
+		if webSession != nil && webSession.LoginHint != "" {
+			loginHint, err := oauth.ParseLoginHint(webSession.LoginHint)
+			if err == nil && loginHint.Type == oauth.LoginHintTypeLoginID {
+				h.continueFlow(w, r, "/login")
+				return
+			}
+		}
+
 		// Page is something that we do not understand or it is absent.
 		// In this case, we look at the cookie.
 		signedUpCookie, err := h.Cookies.GetCookie(r, h.SignedUpCookie.Def)
