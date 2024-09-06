@@ -6,9 +6,9 @@
   ],
   "scripts": {
     "test": "jest",
-    "start": "parcel serve --port 1234 --no-cache './src/*.html'",
-    "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build --no-cache --no-scope-hoist './src/*.html'",
-    "clean": "rm -rf ./dist/ ./parcel-bundle-reports/ && mkdir ./dist/ && touch ./dist/.gitkeep",
+    "start": "vite",
+    "build": "vite build",
+    "clean": "rm -rf ./dist/ && mkdir ./dist/ && touch ./dist/.gitkeep",
     "typecheck": "tsc",
     "prettier:format": "prettier --list-different --write --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint:format": "eslint --cache --fix './src/**/*.{js,ts,jsx,tsx}'",
@@ -45,6 +45,7 @@
     "@types/stripe-v3": "3.1.32",
     "@types/uuid": "9.0.7",
     "@types/zxcvbn": "4.4.4",
+    "@vitejs/plugin-react": "4.3.1",
     "eslint": "8.45.0",
     "graphql": "16.8.1",
     "jest": "29.7.0",
@@ -56,7 +57,8 @@
     "stylelint": "14.11.0",
     "tailwindcss": "3.3.5",
     "ts-jest": "29.1.1",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "vite": "5.4.3"
   },
   "dependencies": {
     "@apollo/client": "3.8.7",
