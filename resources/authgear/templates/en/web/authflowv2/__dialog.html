@@ -1,3 +1,21 @@
+{{/*
+Example usage:
+  {{ template "authflowv2/__dialog.html" (dict
+    "Ctx" .
+    "ClassName" "h-full"
+    "DialogID" "bot-protection-dialog"
+    "DialogControllerStr" "cloudflare-turnstile"
+    "DialogContent" (include "dialog-content" .)
+  ) }}
+
+  {{ define "dialog-content" }}
+    <div class="dialog">
+      {{ template "dialog-close-btn" (dict "Class" "close-btn") }}
+      content................
+    </div>
+  {{ end }}
+*/}}
+
 {{ define "authflowv2/__dialog.html" }}
 <div
   class="dialog-backdrop"
@@ -8,11 +26,12 @@
   data-action="click->dialog#closeOnBackgroundClick"
   {{ template "dialog-attr" $.Ctx }}
 >
-  <div class="dialog">
-    <button class="close-btn" data-action="click->dialog#closeOnCrossBtnClick"></button>
+  <div class="dialog {{ $.ClassName }}">
     {{ $.DialogContent }}
   </div>
 </div>
 {{ end }}
 
-
+{{ define "dialog-close-btn" }}
+  <button class="close-btn {{ $.Class }}" data-action="click->dialog#closeOnCrossBtnClick"></button>
+{{ end }}

@@ -1,0 +1,25 @@
+{{ define "authflowv2/__country_input.html" }}
+
+{{ $countryOptions := (list) }}
+{{ range $alpha2 := $.Alpha2 }}
+  {{ $labelKey := (printf "territory-%s" $alpha2 ) }}
+  {{ $label := (include $labelKey nil) }}
+  {{
+    $countryOptions = append $countryOptions (dict
+      "value" $alpha2
+      "searchLabel" (printf "%s %s" $alpha2 $label)
+      "label" $label
+      "triggerLabel" $label
+    )
+  }}
+{{ end }}
+
+{{ template "authflowv2/__select_input.html"
+    (dict
+      "Name" $.Name
+      "Value" $.Value
+      "Options" $countryOptions
+    )
+}}
+
+{{ end }}

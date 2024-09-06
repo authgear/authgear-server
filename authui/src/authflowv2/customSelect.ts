@@ -136,6 +136,7 @@ export class CustomSelectController extends Controller {
 
     this.dropdownContainerTarget.classList.remove("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "true");
+    this.triggerTarget.classList.add("select__trigger--expanded");
 
     this.resetHightlightIndex();
     this.clearSearch();
@@ -153,7 +154,7 @@ export class CustomSelectController extends Controller {
 
     this.dropdownContainerTarget.classList.add("hidden");
     this.triggerTarget.setAttribute("aria-expanded", "false");
-    this.triggerTarget.focus();
+    this.triggerTarget.classList.remove("select__trigger--expanded");
 
     this.dispatch("close");
   }
@@ -354,6 +355,11 @@ export class CustomSelectController extends Controller {
     }
 
     this.triggerTarget.innerHTML = option.triggerLabel ?? option.label;
+    if (this.value) {
+      this.triggerTarget.classList.remove("custom-select__trigger-no-value");
+    } else {
+      this.triggerTarget.classList.add("custom-select__trigger-no-value");
+    }
   }
 
   renderSearch() {

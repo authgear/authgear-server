@@ -45,6 +45,7 @@
 
   .settings-item {
     @apply grid;
+    @apply gap-x-2;
     @apply items-center text-start;
 
     background-color: var(--settings-item__bg-color);
@@ -54,23 +55,28 @@
     border-bottom-width: 1px;
     border-style: solid;
 
+    --settings-item__grid-col-icon-width: 0;
+    &.with-icon {
+      --settings-item__grid-col-icon-width: 1.5rem;
+    }
+
     &.with-content {
       /* When Mobile View */
       grid-template-areas:
         "icon title arrow"
         ". content arrow";
-      grid-template-columns: 2rem auto 1.125rem;
+      grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
 
       /* When Not Mobile View */
       @media (min-width: theme("screens.tablet")) {
         grid-template-areas: "icon title content arrow";
-        grid-template-columns: 2rem 9rem auto 1.125rem;
+        grid-template-columns: var(--settings-item__grid-col-icon-width) 9rem auto 1.125rem;
       }
     }
 
     &.without-content {
       grid-template-areas: "icon title arrow";
-      grid-template-columns: 2rem auto 1.125rem;
+      grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
     }
 
     &:hover {
@@ -90,8 +96,9 @@
     }
   }
 
-  .settings-item > .settings-item_icon {
+  .settings-item > .settings-item_icon-container {
     grid-area: icon;
+    @apply flex items-center;
   }
   .settings-item > .settings-item__label {
     grid-area: title;
@@ -115,4 +122,11 @@
 .settings-item__forward_arrow {
   font-size: var(--settings-item__forward-arrow-font-size);
   color: var(--settings-item__forward-arrow-color);
+
+  @apply flex items-center;
+
+  &::before {
+    @apply material-icons;
+    @apply ltr:content-['arrow\_forward\_ios'] rtl:content-['arrow\_back\_ios'];
+  }
 }

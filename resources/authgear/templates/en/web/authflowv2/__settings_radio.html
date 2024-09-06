@@ -1,0 +1,39 @@
+{{/*
+  Example usage:
+  {{ template "authflowv2/__settings_radio.html"
+    (dict
+      "Label" (include "some-key" nil)
+      "Name" "gender-select"
+      "Value" "other"
+      "ExtraContentOnChecked" (include "other_content" .)
+      "DefaultChecked" true
+    )
+  }}
+*/}}
+
+{{ define "authflowv2/__settings_radio.html" }}
+
+{{ $inputID := (printf "radio-%s-%s" $.Name $.Value) }}
+
+<div class="settings-radio__container">
+  <label class="settings-radio__label" for="{{ $inputID }}">
+    {{ $.Label }}
+  </label>
+
+  <input
+    id="{{$inputID}}"
+    type="radio"
+    class="settings-radio"
+    name="{{ $.Name }}"
+    value="{{ $.Value }}"
+    {{ if $.DefaultChecked }}checked{{end}}
+  >
+
+  {{ if $.ExtraContentOnChecked }}
+    <div class="settings-radio__extra-content">
+      {{ $.ExtraContentOnChecked }}
+    </div>
+  {{ end }}
+</div>
+
+{{ end }}

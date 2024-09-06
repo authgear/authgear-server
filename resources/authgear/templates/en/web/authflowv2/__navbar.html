@@ -8,10 +8,7 @@
     href="{{ .BackHref }}"
     data-turbo-action="replace"
   >
-    <i class="navbar__item_icon material-icons">
-      arrow_back_ios
-    </i>
-    <span class="inline-block">{{ .BackTitle }}</span>
+    <span class="hidden tablet:inline-block">{{ .BackTitle }}</span>
   </a>
 </nav>
 {{ end }}

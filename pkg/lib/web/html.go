@@ -70,10 +70,18 @@ var TemplateWebAuthflowV2TermsOfServiceAndPrivacyPolicyFooterHTML = template.Reg
 var TemplateWebAuthflowV2WatermarkHTML = template.RegisterHTML("web/authflowv2/__watermark.html")
 var TemplateWebAuthflowV2CSRFErrorPageLayoutHTML = template.RegisterHTML("web/authflowv2/__csrf_error_page_layout.html")
 var TemplateWebAuthflowV2SettingsHeaderHTML = template.RegisterHTML("web/authflowv2/__settings_header.html")
-var TemplateWebAuthflowV2SettingsItemWithContentHTML = template.RegisterHTML("web/authflowv2/__settings_item.html")
+var TemplateWebAuthflowV2SettingsItemHTML = template.RegisterHTML("web/authflowv2/__settings_item.html")
+var TemplateWebAuthflowV2SettingsRadioHTML = template.RegisterHTML("web/authflowv2/__settings_radio.html")
 
 var TemplateWebSettingsV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__settings_page_frame.html")
 var TemplateWebAuthflowV2NavBar = template.RegisterHTML("web/authflowv2/__navbar.html")
+var TemplateWebAuthflowV2DateInputHTML = template.RegisterHTML("web/authflowv2/__date_input.html")
+var TemplateWebAuthflowV2UserProfilePic = template.RegisterHTML("web/authflowv2/__settings_user_profile_pic.html")
+var TemplateWebAuthflowV2SettingsTextInput = template.RegisterHTML("web/authflowv2/__settings_text_input.html")
+var TemplateWebAuthflowV2LocaleInputHTML = template.RegisterHTML("web/authflowv2/__locale_input.html")
+var TemplateWebAuthflowV2TimezoneInput = template.RegisterHTML("web/authflowv2/__timezone_input.html")
+var TemplateWebAuthflowV2CountryInput = template.RegisterHTML("web/authflowv2/__country_input.html")
+var TemplateWebAuthflowV2SelectInput = template.RegisterHTML("web/authflowv2/__select_input.html")
 
 var BaseComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
@@ -132,8 +140,16 @@ var BaseComponentsHTML = []*template.HTML{
 	TemplateWebAuthflowV2CSRFErrorPageLayoutHTML,
 	TemplateWebAuthflowV2BrandLogoHTML,
 	TemplateWebAuthflowV2SettingsHeaderHTML,
-	TemplateWebAuthflowV2SettingsItemWithContentHTML,
+	TemplateWebAuthflowV2SettingsItemHTML,
 	TemplateWebAuthflowV2NavBar,
+	TemplateWebAuthflowV2DateInputHTML,
+	TemplateWebAuthflowV2UserProfilePic,
+	TemplateWebAuthflowV2SettingsRadioHTML,
+	TemplateWebAuthflowV2SettingsTextInput,
+	TemplateWebAuthflowV2LocaleInputHTML,
+	TemplateWebAuthflowV2TimezoneInput,
+	TemplateWebAuthflowV2CountryInput,
+	TemplateWebAuthflowV2SelectInput,
 }
 
 var ComponentsHTML []*template.HTML

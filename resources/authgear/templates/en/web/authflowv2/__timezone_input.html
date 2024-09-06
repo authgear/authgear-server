@@ -1,0 +1,23 @@
+{{ define "authflowv2/__timezone_input.html" }}
+
+{{ $timezoneOptions := (list) }}
+{{ range $timezone := $.Timezones }}
+  {{
+    $timezoneOptions = append $timezoneOptions (dict
+      "value" $timezone.Name
+      "searchLabel" (printf "%s %s" $timezone.Name $timezone.DisplayLabel)
+      "label" $timezone.DisplayLabel
+      "triggerLabel" $timezone.DisplayLabel
+    )
+  }}
+{{ end }}
+
+{{ template "authflowv2/__select_input.html"
+    (dict
+      "Name" $.Name
+      "Value" $.Value
+      "Options" $timezoneOptions
+    )
+}}
+
+{{ end }}

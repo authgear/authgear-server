@@ -7,6 +7,7 @@ api
 arrow_back_ios
 arrow_forward_ios
 block
+border_color
 box
 call
 cancel
@@ -33,6 +34,8 @@ error
 event
 explicit
 face
+female
+filter
 fingerprint
 flag
 forward_to_inbox
@@ -60,6 +63,7 @@ lock
 login
 lowercase
 mail
+male
 margin
 mediation
 merge
@@ -86,10 +90,12 @@ privacy
 progress_activity
 public
 qr_code
+radio
 refresh
 repeat
 restore
 rule
+save
 scale
 score
 script
@@ -127,6 +133,7 @@ transform
 translate
 try
 update
+upload
 uppercase
 verified_user
 visibility

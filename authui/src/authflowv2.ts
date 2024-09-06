@@ -1,3 +1,4 @@
+import "cropperjs/dist/cropper.min.css";
 import { start } from "@hotwired/turbo";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
@@ -47,6 +48,8 @@ import { BotProtectionController } from "./authflowv2/botprotection/botProtectio
 import { BotProtectionDialogController } from "./authflowv2/botprotection/botProtectionDialog";
 import { DialogController } from "./authflowv2/dialog";
 import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
+import { ImagePickerController } from "./imagepicker";
+import { SelectInputController } from "./authflowv2/selectInput";
 
 axios.defaults.withCredentials = true;
 
@@ -89,6 +92,7 @@ Stimulus.register("custom-select", CustomSelectController);
 Stimulus.register("phone-input", PhoneInputController);
 Stimulus.register("countdown", CountdownController);
 Stimulus.register("copy-button", CopyButtonController);
+Stimulus.register("image-picker", ImagePickerController);
 
 Stimulus.register("text-field", TextFieldController);
 Stimulus.register("dialog", DialogController);
@@ -129,5 +133,6 @@ Stimulus.register("cloudflare-turnstile", CloudflareTurnstileController);
 Stimulus.register("recaptcha-v2", RecaptchaV2Controller);
 Stimulus.register("bot-protection", BotProtectionController);
 Stimulus.register("bot-protection-dialog", BotProtectionDialogController);
+Stimulus.register("select-input", SelectInputController);
 
 injectCSSAttrs(document.documentElement);

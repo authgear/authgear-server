@@ -12,7 +12,7 @@ import (
 
 var TemplateWebSettingsV2HTML = template.RegisterHTML(
 	"web/authflowv2/settings.html",
-	handlerwebapp.SettingsCompenents...,
+	handlerwebapp.SettingsComponents...,
 )
 
 func ConfigureSettingsV2Route(route httproute.Route) httproute.Route {
@@ -21,7 +21,7 @@ func ConfigureSettingsV2Route(route httproute.Route) httproute.Route {
 		WithPathPattern(SettingsV2RouteSettings)
 }
 
-type SettingsV2Handler struct {
+type AuthflowV2SettingsHandler struct {
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
 	AuthenticationViewModel  *viewmodels.AuthenticationViewModeler
@@ -31,7 +31,7 @@ type SettingsV2Handler struct {
 	Renderer                 handlerwebapp.Renderer
 }
 
-func (h *SettingsV2Handler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	userID := session.GetUserID(r.Context())
 
 	data := map[string]interface{}{}
@@ -65,7 +65,7 @@ func (h *SettingsV2Handler) GetData(r *http.Request, rw http.ResponseWriter) (ma
 	return data, nil
 }
 
-func (h *SettingsV2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *AuthflowV2SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

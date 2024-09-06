@@ -1,0 +1,86 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/profile")
+        "Title" (translate "v2.page.settings-profile-edit-name.default.navbar-title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+
+<form
+  class="settings-content flex flex-col gap-y-8"
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+  method="post"
+>
+  {{ $.CSRFField }}
+
+  <div class="flex flex-col gap-y-4">
+    {{ if (call $.IsEditable "/name") }}
+      {{ template "authflowv2/__settings_text_input.html"
+          (dict
+            "Label" (translate "v2.page.settings-profile-edit-name.default.fullname-input-label" nil)
+            "Name" "/name"
+            "Value" $.Name
+          )
+      }}
+    {{ end }}
+
+    {{ if (call $.IsEditable "/given_name") }}
+      {{ template "authflowv2/__settings_text_input.html"
+          (dict
+            "Label" (translate "v2.page.settings-profile-edit-name.default.given-name-input-label" nil)
+            "Name" "/given_name"
+            "Value" $.GivenName
+          )
+      }}
+    {{ end }}
+
+    {{ if (call $.IsEditable "/middle_name") }}
+      {{ template "authflowv2/__settings_text_input.html"
+          (dict
+            "Label" (translate "v2.page.settings-profile-edit-name.default.middle-name-input-label" nil)
+            "Name" "/middle_name"
+            "Value" $.MiddleName
+          )
+      }}
+    {{ end }}
+
+    {{ if (call $.IsEditable "/family_name") }}
+      {{ template "authflowv2/__settings_text_input.html"
+          (dict
+            "Label" (translate "v2.page.settings-profile-edit-name.default.family-name-input-label" nil)
+            "Name" "/family_name"
+            "Value" $.FamilyName
+          )
+      }}
+    {{ end }}
+
+    {{ if (call $.IsEditable "/nickname") }}
+      {{ template "authflowv2/__settings_text_input.html"
+          (dict
+            "Label" (translate "v2.page.settings-profile-edit-name.default.nickname-input-label" nil)
+            "Name" "/nickname"
+            "Value" $.Nickname
+          )
+      }}
+    {{ end }}
+  </div>
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    value="save"
+    data-authgear-event="authgear.button.update_profile"
+  >
+    {{ translate "v2.component.button.default.label-save" . }}
+  </button>
+</form>
+
+{{ end }}

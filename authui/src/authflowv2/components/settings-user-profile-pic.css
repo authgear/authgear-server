@@ -1,0 +1,18 @@
+@layer components {
+  .settings-user-profile-pic__image-container {
+    @apply relative;
+    @apply h-22 w-22 tablet:h-50 tablet:w-50;
+  }
+
+  .settings-user-profile-pic__edit-button {
+    @apply inline-flex items-center justify-center;
+    @apply w-9 h-9;
+    @apply absolute bottom-0 ltr:-right-2 rtl:-left-2 ltr:tablet:right-3.5 rtl:tablet:left-3.5;
+    @apply rounded-full bg-white;
+    @apply shadow-settings-user-profile-pic-edit-button;
+  }
+
+  .settings-user-profile-pic__image--edit {
+    @apply h-50 w-50 tablet:h-75 tablet:w-75 rounded-full;
+  }
+}

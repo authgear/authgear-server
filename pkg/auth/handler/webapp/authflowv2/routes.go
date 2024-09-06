@@ -66,13 +66,18 @@ const (
 	AuthflowV2RouteWechat               = "/authflow/v2/wechat"
 	AuthflowV2RouteAccountLinking       = "/authflow/v2/account_linking"
 
-	SettingsV2RouteSettings = "/settings"
+	SettingsV2RouteSettings                   = "/settings"
+	SettingsV2RouteProfilePictureEditSettings = "/settings/profile/picture/edit"
+
+	SettingsV2RouteSettingsProfileGenderEdit = "/settings/profile/gender/edit"
 
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
 
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
+
+	AuthflowV2RouteSettingsProfile = "/settings/v2/profile"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {

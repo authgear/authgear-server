@@ -1,0 +1,187 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings")
+        "Title" (translate "v2.page.settings-profile.default.navbar-title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+<div>
+  {{ if (call $.IsReadable "/picture") }}
+  {{ template "authflowv2/__settings_user_profile_pic.html"
+     (dict
+        "Picture" $.Picture
+        "GeneratedStaticAssetURL" $.GeneratedStaticAssetURL
+        "Editable" (call $.IsEditable "/picture")
+        "EditURL" (call $.MakeURL "/settings/profile/picture/edit")
+     )
+  }}
+  {{ end }}
+
+  <div class="mt-8">
+    {{ $anyReadableName := or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname") }}
+    {{ if $anyReadableName }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.name-title" nil)
+              "Content" $.FormattedNames
+              "Editable" (or (call $.IsEditable "/name") (call $.IsEditable "/given_name") (call $.IsEditable "/family_name") (call $.IsEditable "/middle_name") (call $.IsEditable "/nickname"))
+              "EditURL" (call $.MakeURL "/settings/profile/name/edit")
+            )
+            .
+          )
+      }}
+    {{ end }}
+
+    {{ if (call $.IsReadable "/gender") }}
+      {{ $content := $.Gender }}
+      {{ if (eq $.Gender "male") }}
+        {{ $content = (translate "v2.page.settings-profile-edit-gender.default.gender-label-male" nil) }}
+      {{ else if (eq $.Gender "female") }}
+        {{ $content = (translate "v2.page.settings-profile-edit-gender.default.gender-label-female" nil) }}
+      {{ else if (eq $.Gender "") }}
+        {{ $content = (translate "v2.page.settings-profile.default.attribute-value-unspecified-label" nil) }}
+      {{ end }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.gender-title" nil)
+              "Content" $content
+              "Editable" (call $.IsEditable "/gender")
+              "EditURL" (call $.MakeURL "/settings/profile/gender/edit")
+            )
+            .
+          )
+      }}
+    {{ end }}
+
+
+    {{ if (call $.IsReadable "/birthdate") }}
+      {{ $content := "" }}
+      {{ if $.Birthdate }}
+        {{ $content = include "__settings_profile_date_item" $.Birthdate }}
+      {{ end }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.birthdate-title" nil)
+              "Content" $content
+              "Editable" (call $.IsEditable "/birthdate")
+              "EditURL" (call $.MakeURL "/settings/profile/birthdate/edit")
+            )
+            .
+          )
+      }}
+    {{ end }}
+
+    {{ if (call $.IsReadable "/address") }}
+      {{ $content := "" }}
+      {{ $anyAddressComponents := (or $.AddressStreetAddress $.AddressLocality $.AddressRegion $.AddressPostalCode $.AddressCountry) }}
+      {{ if $anyAddressComponents }}
+        {{ $content = include "__settings_profile_address_item" . }}
+      {{ end }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.address-title" nil)
+              "Content" $content
+              "Editable" (call $.IsEditable "/address")
+              "EditURL" (call $.MakeURL "/settings/profile/address/edit")
+            )
+            .
+          )
+      }}
+    {{ end }}
+
+    {{ if (call $.IsReadable "/zoneinfo") }}
+      {{ $content := "" }}
+      {{ if $.Zoneinfo }}
+        {{ $content = $.ZoneinfoTimezone.DisplayLabel }}
+      {{ end }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.zoneinfo-title" nil)
+              "Content" $content
+              "Editable" (call $.IsEditable "/zoneinfo")
+              "EditURL" (call $.MakeURL "/settings/profile/zoneinfo/edit")
+            )
+            .
+          )
+      }}
+    {{ end }}
+
+    {{ if (call $.IsReadable "/locale") }}
+      {{ $content := "" }}
+      {{ if $.Locale }}
+        {{ $content = (include "__settings_profile_locale_item" .) }}
+      {{ end }}
+      {{ template "__settings_profile_item"
+          (merge
+            (dict
+              "Title" (translate "v2.page.settings-profile.default.language-title" nil)
+              "Content" $content
+              "Editable" (call $.IsEditable "/locale")
+              "EditURL" (call $.MakeURL "/settings/profile/locale/edit")
+            )
+            .
+          )
+      }}
+    {{ end }}
+  </div>
+</div>
+
+{{ end }}
+
+{{ define "__settings_profile_item" }}
+{{ $url := "" }}
+{{ if $.Editable }}
+  {{ $url = $.EditURL }}
+{{ end }}
+
+{{ $content := (translate "v2.page.settings-profile.default.attribute-value-unspecified-label" nil) }}
+{{ if $.Content }}
+  {{ $content = $.Content }}
+{{ end }}
+
+{{ template "authflowv2/__settings_item.html"
+  (dict
+    "Label" $.Title
+    "Href" $url
+    "Children" (list $content)
+  )
+}}
+{{ end }}
+
+{{ define "__settings_profile_date_item" }}
+<span
+  data-controller="format-input-date"
+  data-format-input-date-date-value="{{ . }}"
+>
+  {{ . }}
+</span>
+{{ end }}
+
+{{ define "__settings_profile_locale_item" }}
+{{ $label := (printf "language-%s" $.Locale) }}
+<span>
+  {{ $.Locale }} - {{ translate $label nil}}
+</span>
+{{ end }}
+
+
+{{ define "__settings_profile_address_item" }}
+<span>
+{{- if $.AddressStreetAddress }}<span class="whitespace-pre-wrap">{{ $.AddressStreetAddress }}</span><br>{{ end }}
+{{- if $.AddressLocality }}{{ $.AddressLocality }}<br>{{ end }}
+{{- if $.AddressRegion }}{{ $.AddressRegion }}<br>{{ end }}
+{{- if $.AddressPostalCode }}{{ $.AddressPostalCode }}<br>{{ end }}
+{{- if $.AddressCountry }}{{ translate (printf "territory-%s" $.AddressCountry) nil }}<br>{{ end }}
+</span>
+{{ end }}

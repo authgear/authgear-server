@@ -419,10 +419,10 @@ func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppSettingsV2Handler(p *deps.RequestProvider) http.Handler {
+func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.SettingsV2Handler)),
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsHandler)),
 	))
 }
 
@@ -437,6 +437,13 @@ func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsProfileEditHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsProfileEditHandler)),
 	))
 }
 
@@ -1198,5 +1205,12 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlersaml.LoginFinishHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsProfileHandler)),
 	))
 }

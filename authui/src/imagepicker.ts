@@ -1,4 +1,6 @@
 import axios from "axios";
+import Cropper from "cropperjs";
+import { Controller } from "@hotwired/stimulus";
 import {
   disableAllButtons,
   hideProgressBar,
@@ -10,8 +12,6 @@ import {
   showErrorMessage,
   hideErrorMessage,
 } from "./messageBar";
-import { Controller } from "@hotwired/stimulus";
-import Cropper from "cropperjs";
 
 function destroyCropper(img: HTMLImageElement) {
   // The namespace .cropper is known by reading the source code.

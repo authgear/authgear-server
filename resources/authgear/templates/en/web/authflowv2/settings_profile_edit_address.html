@@ -1,0 +1,76 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+{{ template "authflowv2/__navbar.html"
+  (dict
+    "BackHref" (call $.MakeURL "/settings/profile")
+    "Title" (translate "v2.page.settings-profile-edit-address.default.navbar-title" nil)
+  )
+}}
+{{ end }}
+
+{{ define "page-content" }}
+<form
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+  class="flex flex-col settings-content gap-y-8"
+  method="post"
+>
+  {{ $.CSRFField }}
+
+  <div class="flex flex-col gap-y-4">
+    <div class="settings-text-input__label">
+      <span class="settings-text-input__label-text">
+        {{ translate "v2.page.settings-profile-edit-address.default.country-label" nil}}
+      </span>
+      {{ template "authflowv2/__country_input.html"
+        (dict
+          "Alpha2" $.Alpha2
+          "Name" "/address/country"
+          "Value" $.AddressCountry
+        )
+      }}
+    </div>
+
+    {{ template "authflowv2/__settings_text_input.html"
+        (dict
+          "Label" (translate "v2.page.settings-profile-edit-address.default.region-label" nil)
+          "Name" "/address/region"
+          "Value" $.AddressRegion
+        )
+    }}
+
+    {{ template "authflowv2/__settings_text_input.html"
+        (dict
+          "Label" (translate "v2.page.settings-profile-edit-address.default.postal-code-label" nil)
+          "Name" "/address/postal_code"
+          "Value" $.AddressPostalCode
+        )
+    }}
+
+    {{ template "authflowv2/__settings_text_input.html"
+        (dict
+          "Label" (translate "v2.page.settings-profile-edit-address.default.locality-label" nil)
+          "Name" "/address/locality"
+          "Value" $.AddressLocality
+        )
+    }}
+
+    {{ template "authflowv2/__settings_text_input.html"
+        (dict
+          "Label" (translate "v2.page.settings-profile-edit-address.default.street-label" nil)
+          "Name" "/address/street_address"
+          "Value" $.AddressStreetAddress
+        )
+    }}
+  </div>
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    value="save"
+  >
+  {{ translate "v2.component.button.default.label-save" . }}
+  </button>
+{{ end }}

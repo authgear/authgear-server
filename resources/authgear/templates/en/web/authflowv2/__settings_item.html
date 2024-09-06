@@ -6,22 +6,31 @@
     "MaterialIconName" `email`
     "Children" $.Emails
   )
-}} 
+}}
 */}}
 {{ define "authflowv2/__settings_item.html" }}
 <a
-  class="settings-item with-content
+  class="settings-item
+    {{ if $.MaterialIconName }}
+      with-icon
+    {{ end }}
     {{ if $.Children }}
       with-content
     {{ else }}
       without-content
     {{ end }}
     "
-  href="{{ $.Href}}"
+  {{ if $.Href }}
+  href="{{ $.Href }}"
+  {{ end }}
 >
-  <i class="settings-item_icon alternative-icon material-icons">
-    {{ $.MaterialIconName }}
-  </i>
+  {{ if $.MaterialIconName }}
+    <div class="settings-item_icon-container">
+      <i class="settings-item-icon material-icons">
+        {{ $.MaterialIconName }}
+      </i>
+    </div>
+  {{ end }}
   <p class="settings-item__label">
     {{ $.Label }}
   </p>
@@ -30,8 +39,12 @@
   {{ if $.Children }}
     {{ $length := len $.Children }}
     <p class="settings-item__description settings-description block tablet:hidden">
-      {{ index $.Children  0}}
-      {{ if gt $length 1 }}<span> {{ template "v2.page.settings.default.button-label-and-more" .}} </span>{{ end }}
+      {{ $item := index $.Children  0}}
+      {{ if gt $length 1 }}
+        <span> {{ template "v2.page.settings.default.button-label-and-more" (dict "item" $item ) }} </span>
+      {{ else }}
+        {{ $item }}
+      {{ end }}
     </p>
     <ul class="settings-item__description settings-description hidden tablet:block">
       {{ range $i, $child := $.Children }}
@@ -42,8 +55,6 @@
     </ul>
   {{ end }}
 
-  <i class="settings-item__forward_arrow material-icons">
-    arrow_forward_ios
-  </i>
+  <div class="settings-item__forward_arrow"></div>
 </a>
 {{ end}}

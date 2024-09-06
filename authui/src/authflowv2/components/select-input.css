@@ -1,0 +1,59 @@
+@layer components {
+  :root {
+    --select-input__font-size: var(--typography-body-large__font-size);
+
+    --select-input__placeholder_color: var(--color-neutral-200);
+    --select-input__trigger-ring-color: var(--color-neutral-100);
+    --select-input__trigger-ring-color--focus: var(
+      --color-primary-theme-primary
+    );
+    --select-input__trigger-ring-color--error: var(--color-error);
+    --select-input__trigger-ring-width: var(--border-width-regular);
+    --select-input__trigger-ring-width--focus: var(
+      --border-width-regular--active
+    );
+    --select-input__trigger-border-radius: calc(
+        var(--select-input__font-size) * 14 / 16
+      )
+      /* 14 / 16 ratio to font size */;
+    --select-input__trigger-padding: 1em;
+  }
+
+  :root.dark {
+    --select-input__text-color: var(--color-neutral-100);
+    --select-input__trigger-ring-color: var(--color-neutral-500);
+  }
+
+  .select-input__trigger {
+    @apply flex justify-between items-center;
+    color: var(--select-input__text-color);
+    padding: var(--select-input__trigger-padding);
+    border-radius: var(--select-input__trigger-border-radius);
+    @apply ring-inset
+        ring-[length:var(--select-input\_\_trigger-ring-width)]
+        ring-[color:var(--select-input\_\_trigger-ring-color)];
+
+    &:focus {
+      @apply ring-inset
+        ring-[length:var(--select-input\_\_trigger-ring-width--focus)]
+        ring-[color:var(--select-input\_\_trigger-ring-color--focus)];
+    }
+
+    &::after {
+      @apply material-icons;
+      content: "arrow_forward_ios";
+      font-size: 1.125rem;
+      @apply rotate-90;
+    }
+
+    &.custom-select__trigger-no-value {
+      color: var(--select-input__placeholder_color);
+    }
+
+    &.select__trigger--expanded {
+      &::after {
+        @apply -rotate-90;
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{{ define "authflowv2/__locale_input.html" }}
+
+{{ $languageOptions := (list) }}
+{{ range $language := $.Languages }}
+  {{ $labelKey := (printf "language-%s" $language)}}
+  {{ $label := (include $labelKey nil) }}
+  {{
+    $languageOptions = append $languageOptions (dict
+      "value" $language
+      "searchLabel" (printf "%s %s" $language $label)
+      "label" $label
+      "triggerLabel" $label
+    )
+  }}
+{{ end }}
+
+{{ template "authflowv2/__select_input.html"
+    (dict
+      "Name" $.Name
+      "Value" $.Locale
+      "Options" $languageOptions
+    )
+}}
+
+{{ end }}

@@ -1,9 +1,11 @@
-{{ template "authflowv2/__dialog.html" (dict 
-  "Ctx" .
-  "DialogID" "bot-protection-dialog"
-  "DialogControllerStr" (include "dialog-controller-str" .)
-  "DialogContent" (include "dialog-content" .) 
-) }}
+{{ define "authflowv2/__bot_protection_dialog.html" }}
+  {{ template "authflowv2/__dialog.html" (dict
+    "Ctx" .
+    "DialogID" "bot-protection-dialog"
+    "DialogControllerStr" (include "dialog-controller-str" .)
+    "DialogContent" (include "dialog-content" .)
+  ) }}
+{{ end }}
 
 {{ define "dialog-controller-str" }}
 bot-protection-dialog {{ template "web/authflowv2/__bot_protection_controller.html" . }}
@@ -14,6 +16,7 @@ bot-protection-dialog {{ template "web/authflowv2/__bot_protection_controller.ht
 {{ end }}
 
 {{ define "dialog-content" }}
+  {{ template "dialog-close-btn" (dict "Class" "dialog-close-btn--bot-protection") }}
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <header class="dialog-title-description">
       <h1 class="dialog-title" id="bot-protection-title">

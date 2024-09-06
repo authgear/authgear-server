@@ -1,0 +1,15 @@
+@layer components {
+  :root {
+    --date-input--calendar-icon-filter: unset;
+  }
+  :root.dark {
+    --date-input--calendar-icon-filter: invert(100%);
+  }
+  .date-input {
+    &::-webkit-calendar-picker-indicator {
+      filter: var(--date-input--calendar-icon-filter);
+      height: 1.5rem;
+      width: 1.5rem;
+    }
+  }
+}

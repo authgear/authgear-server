@@ -1,0 +1,15 @@
+{{ define "authflowv2/__settings_text_input.html" }}
+
+<label class="settings-text-input__label">
+  <span class="settings-text-input__label-text">
+    {{ $.Label }}
+  </span>
+  <input
+    class="block input"
+    type="text"
+    {{ if $.InputAttrs }}{{htmlattr $.InputAttrs }}{{end}}
+    name="{{ $.Name }}"
+    value="{{ $.Value }}"
+  />
+</label>
+{{ end }}
