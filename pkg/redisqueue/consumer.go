@@ -23,6 +23,8 @@ import (
 // and does not poll redis too frequently.
 var timeout = 10 * time.Second
 
+var errNoTask = errors.New("no task in queue")
+
 type TaskProcessor func(ctx context.Context, appProvider *deps.AppProvider, task *redisqueue.Task) (output json.RawMessage, err error)
 
 type Consumer struct {
@@ -121,12 +123,11 @@ func (c *Consumer) dequeue(ctx context.Context) {
 		strs, err := conn.BRPop(ctx, timeout, queueKey).Result()
 		if errors.Is(err, goredis.Nil) {
 			// timeout.
-			return nil
+			return errNoTask
 		}
 		if err != nil {
 			// other errors.
-			c.logger.WithError(err).Error("failed to BRPOP a queue item")
-			return err
+			return fmt.Errorf("BRPOP queue: %w", err)
 		}
 
 		// The first item in the array is the queue name.
@@ -136,42 +137,36 @@ func (c *Consumer) dequeue(ctx context.Context) {
 		var queueItem redisqueue.QueueItem
 		err = json.Unmarshal(queueItemBytes, &queueItem)
 		if err != nil {
-			c.logger.WithError(err).Error("failed to unmarshal a queue item")
-			return err
+			return fmt.Errorf("unmarshal queue item: %w", err)
 		}
 
 		taskBytes, err := conn.Get(ctx, queueItem.RedisKey()).Bytes()
 		if errors.Is(err, goredis.Nil) {
-			c.logger.WithError(err).Error("task not found")
-			return err
+			return errors.New("task item not found")
 		}
 		if err != nil {
-			c.logger.WithError(err).Error("failed to get task")
-			return err
+			return fmt.Errorf("get task: %w", err)
 		}
 
 		err = json.Unmarshal(taskBytes, &task)
 		if err != nil {
-			c.logger.WithError(err).Error("failed to unmarshal a task")
-			return err
+			return fmt.Errorf("unmarshal task: %w", err)
 		}
 
 		appCtx, err := c.configSourceController.ResolveContext(queueItem.AppID)
 		if err != nil {
-			c.logger.WithError(err).Error("failed to resolve app context")
-			return err
+			return fmt.Errorf("resolve app context: %w", err)
 		}
 
 		appProvider = c.rootProvider.NewAppProvider(ctx, appCtx)
 		appProvider.LoggerFactory.DefaultFields["task_id"] = task.ID
 		return nil
 	})
-	if err != nil {
-		return
-	}
 
-	// When BRPOP times out, appProvider is nil.
-	if appProvider == nil {
+	if errors.Is(err, errNoTask) {
+		return
+	} else if err != nil {
+		c.logger.WithError(err).Error("failed to dequeue task")
 		return
 	}
 
