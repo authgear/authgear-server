@@ -2,6 +2,7 @@
   :root {
     --alternative-icon__font-size: 1.5rem; /* 24 / 16 = 1.5 */
     --country-flag-icon__font-size: 1.5rem; /* 24 / 16 = 1.5 */
+    --settings-item-icon__font-size: 1.5rem;
   }
 
   :root.dark {
@@ -14,5 +15,9 @@
 
   .country-flag-icon {
     font-size: var(--country-flag-icon__font-size);
+  }
+
+  .settings-item-icon {
+    font-size: var(--settings-item-icon__font-size);
   }
 }

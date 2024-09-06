@@ -45,6 +45,7 @@
 
   .settings-item {
     @apply grid;
+    @apply gap-x-2;
     @apply items-center text-start;
 
     background-color: var(--settings-item__bg-color);
@@ -56,7 +57,7 @@
 
     --settings-item__grid-col-icon-width: 0;
     &.with-icon {
-      --settings-item__grid-col-icon-width: 2rem;
+      --settings-item__grid-col-icon-width: 1.5rem;
     }
 
     &.with-content {
@@ -95,8 +96,9 @@
     }
   }
 
-  .settings-item > .settings-item_icon {
+  .settings-item > .settings-item_icon-container {
     grid-area: icon;
+    @apply flex items-center;
   }
   .settings-item > .settings-item__label {
     grid-area: title;

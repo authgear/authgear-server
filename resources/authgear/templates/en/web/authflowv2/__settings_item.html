@@ -25,9 +25,11 @@
   {{ end }}
 >
   {{ if $.MaterialIconName }}
-    <i class="settings-item_icon alternative-icon material-icons">
-      {{ $.MaterialIconName }}
-    </i>
+    <div class="settings-item_icon-container">
+      <i class="settings-item-icon material-icons">
+        {{ $.MaterialIconName }}
+      </i>
+    </div>
   {{ end }}
   <p class="settings-item__label">
     {{ $.Label }}
