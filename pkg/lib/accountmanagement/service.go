@@ -222,7 +222,7 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 }
 
 // If have OAuthSessionID, it means the user is changing password after login with SDK.
-// Then do special handling such as authenticationINFO
+// Then do special handling such as authenticationInfo
 func (s *Service) ChangePassword(input *ChangePasswordInput) (*ChangePasswordOutput, error) {
 	userID := input.Session.GetAuthenticationInfo().UserID
 
