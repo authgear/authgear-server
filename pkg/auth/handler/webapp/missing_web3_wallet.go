@@ -74,7 +74,7 @@ func (h *MissingWeb3WalletHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)

@@ -63,7 +63,7 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	webSession := webapp.GetSession(r.Context())
 

@@ -87,7 +87,7 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	currentSession := session.GetSession(r.Context())
 	redirectURI := "/settings/delete_account/success"

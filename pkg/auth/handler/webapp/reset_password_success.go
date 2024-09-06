@@ -38,7 +38,7 @@ func (h *ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)

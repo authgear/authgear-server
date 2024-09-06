@@ -27,7 +27,7 @@ func (h *AuthflowV2SettingsProfileHandler) ServeHTTP(w http.ResponseWriter, r *h
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	ctrl.Get(func() error {
 		userID := session.GetUserID(r.Context())

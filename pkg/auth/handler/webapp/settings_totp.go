@@ -63,7 +63,7 @@ func (h *SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	authenticatorID := r.Form.Get("x_authenticator_id")

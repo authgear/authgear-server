@@ -78,7 +78,7 @@ func (h *SettingsIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	providerAlias := r.Form.Get("x_provider_alias")

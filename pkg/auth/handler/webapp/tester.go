@@ -271,7 +271,7 @@ func (h *TesterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	ctrl.Get(func() error {
 		token := r.URL.Query().Get("token")

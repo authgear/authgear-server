@@ -92,7 +92,7 @@ func (h *ConnectWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	opts := webapp.SessionOptions{
 		RedirectURI: ctrl.RedirectURI(),

@@ -108,7 +108,7 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	finishWithState := func(state LoginLinkOTPPageQueryState) {
 		url := url.URL{}

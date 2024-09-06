@@ -151,7 +151,7 @@ func (c *Controller) DeleteSession(id string) error {
 	return c.Page.DeleteSession(id)
 }
 
-func (c *Controller) Serve() {
+func (c *Controller) ServeWithDBTx() {
 	var err error
 	fns := [](func() error){
 		func() error {
