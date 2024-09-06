@@ -32,10 +32,28 @@ func (h *AuthflowV2ErrorHandler) GetData(w http.ResponseWriter, r *http.Request,
 	return data, nil
 }
 
+func (h *AuthflowV2ErrorHandler) GetInlinePreviewData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModelForInlinePreviewAuthFlow(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	return data, nil
+}
+
 func (h *AuthflowV2ErrorHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
+		if err != nil {
+			return err
+		}
+
+		h.Renderer.RenderHTML(w, r, TemplateWebFatalErrorHTML, data)
+		return nil
+	})
+	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetInlinePreviewData(w, r)
 		if err != nil {
 			return err
 		}

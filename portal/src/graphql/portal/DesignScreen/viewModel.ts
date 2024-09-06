@@ -20,7 +20,8 @@ export type PreviewPageType =
   | "UsePasskey"
   | "EnterTOTP"
   | "OOBOTPLink"
-  | "CreatePassword";
+  | "CreatePassword"
+  | "Error";
 
 interface PreviewPageOption {
   key: PreviewPageType;
@@ -37,6 +38,7 @@ const PreviewPage: Record<PreviewPageType, string> = {
   EnterTOTP: "preview/authflow/v2/enter_totp",
   OOBOTPLink: "preview/authflow/v2/oob_otp_link",
   CreatePassword: "preview/authflow/v2/create_password",
+  Error: "preview/v2/errors/error",
 };
 
 // eslint-disable-next-line complexity
@@ -78,6 +80,9 @@ export function getSupportedPreviewPagesFromConfig(
   ) {
     pages.push({ key: "OOBOTPLink", screen: PreviewPage.OOBOTPLink });
   }
+
+  pages.push({ key: "Error", screen: PreviewPage.Error }); // Always have error page preview
+
   return pages;
 }
 
