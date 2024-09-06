@@ -77,10 +77,12 @@ const (
 
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 
-	AuthflowV2RouteSettingsProfile           = "/settings/v2/profile"
-	AuthflowV2RouteSettingsMFA               = "/settings/mfa"
+	AuthflowV2RouteSettingsProfile = "/settings/v2/profile"
+	AuthflowV2RouteSettingsMFA     = "/settings/mfa"
+	// nolint: gosec
 	AuthflowV2RouteSettingsMFACreatePassword = "/settings/mfa/create_password"
-	AuthflowV2RouteSettingsMFAPassword       = "/settings/mfa/password"
+	// nolint: gosec
+	AuthflowV2RouteSettingsMFAPassword = "/settings/mfa/password"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {
