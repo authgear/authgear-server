@@ -170,6 +170,8 @@ authui:
 
 .PHONY: authui-dev
 authui-dev:
+	# Make sure that assets are generated before starting dev server
+	$(MAKE) authui
 	# Start development server for Auth UI
 	npm run --silent --prefix ./authui dev
 
