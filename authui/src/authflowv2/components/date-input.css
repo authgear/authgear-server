@@ -1,6 +1,6 @@
 @layer components {
   :root {
-    --date-input--calendar-icon-filter:;
+    --date-input--calendar-icon-filter: unset;
   }
   :root.dark {
     --date-input--calendar-icon-filter: invert(100%);
