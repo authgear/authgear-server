@@ -225,74 +225,66 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 // Then do special handling such as authenticationInfo
 func (s *Service) ChangePassword(input *ChangePasswordInput) (*ChangePasswordOutput, error) {
 	userID := input.Session.GetAuthenticationInfo().UserID
+	redirectURI := input.RedirectURI
 
-	ais, err := s.Authenticators.List(
-		userID,
-		authenticator.KeepType(model.AuthenticatorTypePassword),
-		authenticator.KeepKind(authenticator.KindPrimary),
-	)
-	if err != nil {
-		return &ChangePasswordOutput{}, err
-	}
+	err := s.Database.WithTx(func() error {
+		ais, err := s.Authenticators.List(
+			userID,
+			authenticator.KeepType(model.AuthenticatorTypePassword),
+			authenticator.KeepKind(authenticator.KindPrimary),
+		)
+		if err != nil {
+			return err
+		}
 
-	if len(ais) == 0 {
-		return &ChangePasswordOutput{}, api.ErrNoPassword
-	}
+		if len(ais) == 0 {
+			return api.ErrNoPassword
+		}
 
-	oldInfo := ais[0]
+		oldInfo := ais[0]
 
-	_, err = s.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
-		Password: &authenticator.PasswordSpec{
-			PlainPassword: input.OldPassword,
-		},
-	}, nil)
-	if err != nil {
-		err = api.ErrInvalidCredentials
-		return &ChangePasswordOutput{}, err
-	}
+		_, err = s.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
+			Password: &authenticator.PasswordSpec{
+				PlainPassword: input.OldPassword,
+			},
+		}, nil)
+		if err != nil {
+			return api.ErrInvalidCredentials
+		}
 
-	changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
-		SetPassword:    true,
-		PlainPassword:  input.NewPassword,
-		SetExpireAfter: true,
-	})
-	if err != nil {
-		return &ChangePasswordOutput{}, err
-	}
+		changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
+			SetPassword:    true,
+			PlainPassword:  input.NewPassword,
+			SetExpireAfter: true,
+		})
+		if err != nil {
+			return err
+		}
 
-	if changed {
-		err = s.Database.WithTx(func() error {
+		if changed {
 			err = s.Authenticators.Update(newInfo)
 			if err != nil {
 				return err
 			}
-			return nil
-		})
-		if err != nil {
-			return &ChangePasswordOutput{}, err
 		}
-	}
 
-	redirectURI := input.RedirectURI
+		// If is changing password with SDK.
+		if input.OAuthSessionID != "" {
+			authInfo := input.Session.GetAuthenticationInfo()
+			authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
 
-	// If is changing password with SDK.
-	if input.OAuthSessionID != "" {
-		authInfo := input.Session.GetAuthenticationInfo()
-		authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
-
-		err = s.Database.WithTx(func() error {
 			err = s.AuthenticationInfoService.Save(authenticationInfoEntry)
 
 			if err != nil {
 				return err
 			}
-			return nil
-		})
-		if err != nil {
-			return &ChangePasswordOutput{}, err
-		}
 
-		redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
+			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	return &ChangePasswordOutput{RedirectURI: redirectURI}, nil
