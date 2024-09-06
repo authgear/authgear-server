@@ -151,7 +151,23 @@ func (c *Controller) DeleteSession(id string) error {
 	return c.Page.DeleteSession(id)
 }
 
+func (c *Controller) ServeWithoutDBTx() {
+	c.serve(serveOption{
+		withDBTx: false,
+	})
+}
+
 func (c *Controller) ServeWithDBTx() {
+	c.serve(serveOption{
+		withDBTx: true,
+	})
+}
+
+type serveOption struct {
+	withDBTx bool
+}
+
+func (c *Controller) serve(option serveOption) {
 	var err error
 	fns := [](func() error){
 		func() error {
@@ -176,7 +192,7 @@ func (c *Controller) ServeWithDBTx() {
 		http.Error(c.response, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 
-	err = c.Database.WithTx(func() error {
+	handleFunc := func() error {
 		for _, fn := range fns {
 			err := fn()
 			if err != nil {
@@ -184,7 +200,13 @@ func (c *Controller) ServeWithDBTx() {
 			}
 		}
 		return nil
-	})
+	}
+
+	if option.withDBTx {
+		err = c.Database.WithTx(handleFunc)
+	} else {
+		err = handleFunc()
+	}
 
 	if err != nil {
 		if apierrors.IsAPIError(err) {
