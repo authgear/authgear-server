@@ -3,6 +3,7 @@ package oauth
 import (
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -12,10 +13,12 @@ const (
 	LoginHintTypeAnonymous LoginHintType = "anonymous"
 	// nolint: gosec
 	LoginHintTypeAppSessionToken LoginHintType = "app_session_token"
+	LoginHintTypeLoginID         LoginHintType = "login_id"
 )
 
 type LoginHint struct {
-	Type LoginHintType
+	Type    LoginHintType
+	Enforce bool
 
 	// Specific to LoginHintTypeAnonymous
 	PromotionCode string
@@ -23,6 +26,11 @@ type LoginHint struct {
 
 	// Specific to LoginHintTypeAppSessionToken
 	AppSessionToken string
+
+	// Specific to LoginHintTypeLoginID
+	LoginIDEmail    string
+	LoginIDUsername string
+	LoginIDPhone    string
 }
 
 func ParseLoginHint(s string) (*LoginHint, error) {
@@ -39,6 +47,11 @@ func ParseLoginHint(s string) (*LoginHint, error) {
 	var loginHint LoginHint
 
 	typ := q.Get("type")
+	enforce, err := strconv.ParseBool(q.Get("enforce"))
+	if err != nil {
+		enforce = false
+	}
+	loginHint.Enforce = enforce
 
 	switch typ {
 	case string(LoginHintTypeAnonymous):
@@ -48,6 +61,11 @@ func ParseLoginHint(s string) (*LoginHint, error) {
 	case string(LoginHintTypeAppSessionToken):
 		loginHint.Type = LoginHintTypeAppSessionToken
 		loginHint.AppSessionToken = q.Get("app_session_token")
+	case string(LoginHintTypeLoginID):
+		loginHint.Type = LoginHintTypeLoginID
+		loginHint.LoginIDEmail = q.Get("email")
+		loginHint.LoginIDPhone = q.Get("phone")
+		loginHint.LoginIDUsername = q.Get("username")
 	default:
 		return nil, fmt.Errorf("invalid login_hint type: %v", typ)
 	}
