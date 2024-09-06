@@ -40,11 +40,13 @@
     {{ end }}
 
     {{ if (call $.IsReadable "/gender") }}
-      {{ $content := (translate "v2.page.settings-profile.default.attribute-value-unspecified-label" nil) }}
+      {{ $content := $.Gender }}
       {{ if (eq $.Gender "male") }}
         {{ $content = (translate "v2.page.settings-profile-edit-gender.default.gender-label-male" nil) }}
       {{ else if (eq $.Gender "female") }}
         {{ $content = (translate "v2.page.settings-profile-edit-gender.default.gender-label-female" nil) }}
+      {{ else if (eq $.Gender "") }}
+        {{ $content = (translate "v2.page.settings-profile.default.attribute-value-unspecified-label" nil) }}
       {{ end }}
       {{ template "__settings_profile_item"
           (merge
