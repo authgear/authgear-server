@@ -53,7 +53,9 @@ describe("StyleCssVisitor", () => {
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
     --phone-input__trigger-border-radius: 0.875em;
-    --body-text__link-color: #176df3;
+    --color-link: #176df3;
+    --color-link--active: #1151b8;
+    --color-link--hover: #1151b8;
     --body-text__link-text-decoration: underline;
     --brand-logo__height: 2.5rem
 }`;
@@ -102,6 +104,8 @@ describe("StyleCssVisitor", () => {
       },
       link: {
         color: "#176df3",
+        colorActive: "#1151b8",
+        colorHover: "#1151b8",
         textDecoration: "underline",
       },
       logo: {
@@ -166,6 +170,8 @@ describe("CssAstVisitor", () => {
       },
       link: {
         color: "#2f7bf4",
+        colorActive: "#235dba",
+        colorHover: "#235dba",
         textDecoration: "underline",
       },
       logo: {},
@@ -181,7 +187,9 @@ describe("CssAstVisitor", () => {
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
     --phone-input__trigger-border-radius: 0.875em;
-    --body-text__link-color: #2f7bf4;
+    --color-link: #2f7bf4;
+    --color-link--active: #235dba;
+    --color-link--hover: #235dba;
     --body-text__link-text-decoration: underline;
     --brand-logo__height: 2.5rem
 }`;
