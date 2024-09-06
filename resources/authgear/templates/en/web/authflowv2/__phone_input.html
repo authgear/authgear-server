@@ -7,6 +7,8 @@
     "IsError" true
     "AutoFocus" true
     "PhoneInputAttrs" `data-foo="bar"`
+    "Value" "+12345678"
+    "ReadOnly" true
   )
 }}
 -->
@@ -39,6 +41,7 @@
       aria-expanded="false"
       data-custom-select-target="trigger"
       data-action="click->custom-select#toggle"
+      {{ if $.ReadOnly }}disabled{{ end }}
     ></button>
 
     <!-- Dropdown Menu -->
@@ -132,6 +135,7 @@
       data-phone-input-target="phoneInput"
       {{ if $.AutoFocus }}autofocus{{ end }}
       {{ if $.PhoneInputAttrs }}{{ htmlattr $.PhoneInputAttrs }}{{ end }}
+      {{ if $.ReadOnly }}readonly{{ end }}
     />
   </div>
   <!-- NOTE(tung): Use type="text" here,
@@ -144,6 +148,7 @@
     data-phone-input-target="input"
     placeholder="{{ $.PlaceholderWithExample }}"
     {{ if $.InputAttrs }}{{ htmlattr $.InputAttrs }}{{ end }}
+    value="{{ $.Value }}"
   />
 </div>
 {{ end }}
