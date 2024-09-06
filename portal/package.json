@@ -1,6 +1,7 @@
 {
   "name": "authgear-portal",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
