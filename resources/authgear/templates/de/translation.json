@@ -1115,6 +1115,7 @@
   "v2.page.select-account.default.description": "Sie haben sich mit {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}} angemeldet. Fahren Sie fort, um fortzufahren.",
   "v2.page.select-account.default.title": "Melden Sie sich bei {AppOrClientName} an",
   "v2.page.select-account.default.use-another-account": "Verwenden Sie ein anderes Konto",
+  "v2.page.settings-change-password.default.navbar-title": "Passwort ändern",
   "v2.page.settings-profile-edit-address.default.country-label": "Land",
   "v2.page.settings-profile-edit-address.default.locality-label": "Stadt",
   "v2.page.settings-profile-edit-address.default.navbar-title": "Adresse",

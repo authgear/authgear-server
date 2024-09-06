@@ -1115,6 +1115,7 @@
   "v2.page.select-account.default.description": "{email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}でログインしました。続行するにはこのアカウントを使用してください。",
   "v2.page.select-account.default.title": "{AppOrClientName}にログイン",
   "v2.page.select-account.default.use-another-account": "別のアカウントを使用",
+  "v2.page.settings-change-password.default.navbar-title": "パスワードの変更",
   "v2.page.settings-profile-edit-address.default.country-label": "国",
   "v2.page.settings-profile-edit-address.default.locality-label": "市区町村",
   "v2.page.settings-profile-edit-address.default.navbar-title": "住所",

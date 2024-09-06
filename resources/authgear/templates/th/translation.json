@@ -1115,6 +1115,7 @@
   "v2.page.select-account.default.description": "คุณได้เข้าสู่ระบบด้วย {IdentityDisplayName} ดำเนินการต่อเพื่อดำเนินการต่อ.",
   "v2.page.select-account.default.title": "เข้าสู่ระบบ {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "ใช้บัญชีอื่น",
+  "v2.page.settings-change-password.default.navbar-title": "เปลี่ยนรหัสผ่าน",
   "v2.page.settings-profile-edit-address.default.country-label": "ประเทศ",
   "v2.page.settings-profile-edit-address.default.locality-label": "เมือง",
   "v2.page.settings-profile-edit-address.default.navbar-title": "ที่อยู่",

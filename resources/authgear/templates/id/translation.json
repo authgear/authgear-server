@@ -1115,6 +1115,7 @@
   "v2.page.select-account.default.description": "Anda telah masuk dengan {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Lanjutkan untuk melanjutkan.",
   "v2.page.select-account.default.title": "Masuk ke {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gunakan akun lain",
+  "v2.page.settings-change-password.default.navbar-title": "Ubah Kata Sandi",
   "v2.page.settings-profile-edit-address.default.country-label": "Negara",
   "v2.page.settings-profile-edit-address.default.locality-label": "Kota",
   "v2.page.settings-profile-edit-address.default.navbar-title": "Alamat",

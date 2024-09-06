@@ -1115,6 +1115,7 @@
   "v2.page.select-account.default.description": "Você entrou com {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Prossiga para continuar.",
   "v2.page.select-account.default.title": "Entrar no {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Usar outra conta",
+  "v2.page.settings-change-password.default.navbar-title": "Alterar Senha",
   "v2.page.settings-profile-edit-address.default.country-label": "País",
   "v2.page.settings-profile-edit-address.default.locality-label": "Cidade",
   "v2.page.settings-profile-edit-address.default.navbar-title": "Endereço",

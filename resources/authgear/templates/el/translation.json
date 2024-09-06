@@ -1115,6 +1115,7 @@
   "v2.page.select-account.default.description": "Έχετε συνδεθεί με {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Συνεχίστε για να προχωρήσετε.",
   "v2.page.select-account.default.title": "Συνδεθείτε στο {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Χρησιμοποιήστε άλλον λογαριασμό",
+  "v2.page.settings-change-password.default.navbar-title": "Αλλαγή Κωδικού Πρόσβασης",
   "v2.page.settings-profile-edit-address.default.country-label": "Χώρα",
   "v2.page.settings-profile-edit-address.default.locality-label": "Πόλη",
   "v2.page.settings-profile-edit-address.default.navbar-title": "Διεύθυνση",

@@ -1115,6 +1115,7 @@
   "v2.page.select-account.default.description": "Anda telah log masuk dengan {IdentityDisplayName}. Teruskan untuk meneruskan.",
   "v2.page.select-account.default.title": "Log masuk ke {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gunakan akaun lain",
+  "v2.page.settings-change-password.default.navbar-title": "Tukar Kata Laluan",
   "v2.page.settings-profile-edit-address.default.country-label": "Negara",
   "v2.page.settings-profile-edit-address.default.locality-label": "Bandar",
   "v2.page.settings-profile-edit-address.default.navbar-title": "Alamat",

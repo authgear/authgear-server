@@ -1115,6 +1115,7 @@
   "v2.page.select-account.default.description": "U bent ingelogd met {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Ga verder om door te gaan.",
   "v2.page.select-account.default.title": "Log in op {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Gebruik een ander account",
+  "v2.page.settings-change-password.default.navbar-title": "Wachtwoord wijzigen",
   "v2.page.settings-profile-edit-address.default.country-label": "Land",
   "v2.page.settings-profile-edit-address.default.locality-label": "Stad",
   "v2.page.settings-profile-edit-address.default.navbar-title": "Adres",

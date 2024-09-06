@@ -1115,6 +1115,7 @@
   "v2.page.select-account.default.description": "Zalogowałeś się za pomocą {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Kontynuuj, aby przejść dalej.",
   "v2.page.select-account.default.title": "Zaloguj się do {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Użyj innego konta",
+  "v2.page.settings-change-password.default.navbar-title": "Zmień hasło",
   "v2.page.settings-profile-edit-address.default.country-label": "Kraj",
   "v2.page.settings-profile-edit-address.default.locality-label": "Miasto",
   "v2.page.settings-profile-edit-address.default.navbar-title": "Adres",
