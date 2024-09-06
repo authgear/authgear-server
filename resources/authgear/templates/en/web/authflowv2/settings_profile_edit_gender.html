@@ -75,11 +75,15 @@
 {{ end }}
 
 {{ define "__settings_gender_edit_custom_gender_input" }}
+{{ $value := $.Gender }}
+{{ if (or (eq $.Gender "male") (eq $.Gender "female")) }}
+  {{ $value = "" }}
+{{ end }}
 <div>
   <input
     class="input w-full"
     name="gender-input"
-    value="{{ $.Gender }}"
+    value="{{ $value }}"
   >
 </div>
 {{ end }}
