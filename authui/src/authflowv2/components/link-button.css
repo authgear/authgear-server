@@ -22,13 +22,9 @@
     --link-btn-ring-color--active: var(--link-btn-ring-color);
 
     --link-btn-bg-color--disabled: transparent;
-    --link-btn-text-color--disabled: var(--color-neutral-300);
+    --link-btn-text-color--disabled: var(--color-link--disabled);
     --link-btn-ring-width--disabled: var(--link-btn-ring-width);
     --link-btn-ring-color--disabled: var(--link-btn-ring-color);
-  }
-
-  :root.dark {
-    --link-btn-text-color--disabled: var(--color-neutral-400);
   }
 
   .link-btn {

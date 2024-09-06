@@ -29,13 +29,9 @@
     --label-btn__ring-color--active: var(--label-btn__ring-color);
 
     --label-btn__bg-color--disabled: transparent;
-    --label-btn__text-color--disabled: var(--color-neutral-300);
+    --label-btn__text-color--disabled: var(--color-link--disabled);
     --label-btn__ring-width--disabled: var(--label-btn__ring-width);
     --label-btn__ring-color--disabled: var(--label-btn__ring-color);
-  }
-
-  :root.dark {
-    --label-btn__text-color--disabled: var(--color-neutral-400);
   }
 
   .label-btn {
