@@ -1123,7 +1123,7 @@
   "v2.page.settings-profile-edit-gender.default.gender-label-female": "หญิง",
   "v2.page.settings-profile-edit-gender.default.gender-label-male": "ชาย",
   "v2.page.settings-profile-edit-gender.default.gender-label-unspecified": "ไม่ได้ระบุ",
-  "v2.page.settings-profile-edit-gender.default.title-gender": "เพศ",
+  "v2.page.settings-profile-edit-gender.default.title": "เพศ",
   "v2.page.settings-profile-edit-locale.default.navbar-title": "ภาษา",
   "v2.page.settings-profile-edit-name.default.family-name-input-label": "นามสกุล",
   "v2.page.settings-profile-edit-name.default.fullname-input-label": "ชื่อเต็ม",

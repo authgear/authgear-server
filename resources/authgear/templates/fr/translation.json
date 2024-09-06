@@ -1123,7 +1123,7 @@
   "v2.page.settings-profile-edit-gender.default.gender-label-female": "Femme",
   "v2.page.settings-profile-edit-gender.default.gender-label-male": "Homme",
   "v2.page.settings-profile-edit-gender.default.gender-label-unspecified": "Non fourni",
-  "v2.page.settings-profile-edit-gender.default.title-gender": "Genre",
+  "v2.page.settings-profile-edit-gender.default.title": "Genre",
   "v2.page.settings-profile-edit-locale.default.navbar-title": "Langue",
   "v2.page.settings-profile-edit-name.default.family-name-input-label": "Nom de famille",
   "v2.page.settings-profile-edit-name.default.fullname-input-label": "Nom complet",

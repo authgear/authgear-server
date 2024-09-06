@@ -1123,7 +1123,7 @@
   "v2.page.settings-profile-edit-gender.default.gender-label-female": "여성",
   "v2.page.settings-profile-edit-gender.default.gender-label-male": "남성",
   "v2.page.settings-profile-edit-gender.default.gender-label-unspecified": "제공되지 않음",
-  "v2.page.settings-profile-edit-gender.default.title-gender": "성별",
+  "v2.page.settings-profile-edit-gender.default.title": "성별",
   "v2.page.settings-profile-edit-locale.default.navbar-title": "언어",
   "v2.page.settings-profile-edit-name.default.family-name-input-label": "성",
   "v2.page.settings-profile-edit-name.default.fullname-input-label": "전체 이름",

@@ -1123,7 +1123,7 @@
   "v2.page.settings-profile-edit-gender.default.gender-label-female": "Vrouw",
   "v2.page.settings-profile-edit-gender.default.gender-label-male": "Man",
   "v2.page.settings-profile-edit-gender.default.gender-label-unspecified": "Niet opgegeven",
-  "v2.page.settings-profile-edit-gender.default.title-gender": "Geslacht",
+  "v2.page.settings-profile-edit-gender.default.title": "Geslacht",
   "v2.page.settings-profile-edit-locale.default.navbar-title": "Taal",
   "v2.page.settings-profile-edit-name.default.family-name-input-label": "Achternaam",
   "v2.page.settings-profile-edit-name.default.fullname-input-label": "Volledige naam",
