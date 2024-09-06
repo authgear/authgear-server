@@ -42,7 +42,9 @@ export const enum CSSVariable {
   PrimaryButtonBorderRadius = "--primary-btn__border-radius",
   SecondaryButtonBorderRadius = "--secondary-btn__border-radius",
   InputFiledBorderRadius = "--input__border-radius",
-  LinkColor = "--body-text__link-color",
+  LinkColor = "--color-link",
+  LinkColorActive = "--color-link--active",
+  LinkColorHover = "--color-link--hover",
   LinkTextDecoration = "--body-text__link-text-decoration",
   WatermarkDisplay = "--watermark-display",
   LogoHeight = "--brand-logo__height",
@@ -108,6 +110,8 @@ export interface PhoneInputFieldStyle {
 
 export interface LinkStyle {
   color: CSSColor;
+  colorActive: CSSColor;
+  colorHover: CSSColor;
   textDecoration: TextDecorationType;
 }
 
@@ -190,6 +194,8 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
   },
   link: {
     color: "#176df3",
+    colorActive: "#1151b8",
+    colorHover: "#1151b8",
     textDecoration: "none",
   },
   logo: {
@@ -234,6 +240,8 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
   },
   link: {
     color: "#2f7bf4",
+    colorActive: "#235dba",
+    colorHover: "#235dba",
     textDecoration: "none",
   },
   logo: {
@@ -590,6 +598,14 @@ export class CustomisableThemeStyleGroup extends StyleGroup<PartialCustomisableT
 
       link: new StyleGroup({
         color: new ColorStyleProperty(CSSVariable.LinkColor, value.link.color),
+        colorActive: new ColorStyleProperty(
+          CSSVariable.LinkColorActive,
+          value.link.colorActive
+        ),
+        colorHover: new ColorStyleProperty(
+          CSSVariable.LinkColorHover,
+          value.link.colorHover
+        ),
         textDecoration: new TextDecorationStyleProperty(
           CSSVariable.LinkTextDecoration,
           value.link.textDecoration

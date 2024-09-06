@@ -679,7 +679,33 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     (color: CSSColor | undefined, targetTheme: Theme) => {
       resourceMutator.updateCustomisableTheme((prev) => {
         return produce(prev, (draft) => {
+          if (color == null) {
+            draft.link.color = undefined;
+            draft.link.colorActive = undefined;
+            draft.link.colorHover = undefined;
+            return;
+          }
           draft.link.color = color;
+          const themeRules = themeRulesStandardCreator();
+          const colorObject = getColorFromString(color);
+          if (colorObject == null) {
+            draft.link.color = undefined;
+            draft.link.colorActive = undefined;
+            draft.link.colorHover = undefined;
+            return;
+          }
+          ThemeGenerator.insureSlots(themeRules, false);
+          ThemeGenerator.setSlot(
+            themeRules[BaseSlots[BaseSlots.primaryColor]],
+            colorObject,
+            false,
+            true,
+            true
+          );
+          const json = ThemeGenerator.getThemeAsJson(themeRules);
+
+          draft.link.colorActive = json.themeDark;
+          draft.link.colorHover = json.themeDark;
         });
       }, targetTheme);
     },
