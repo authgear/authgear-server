@@ -242,10 +242,6 @@ The issue will happen if the following conditions hold:
 So whenever we want to update dependencies, we first delete node\_modules and package-lock.json.
 Then npm install will generate a correct package-lock.json.
 
-When we allow Parcel to perform tree shaking on code-splitted third party bundle,
-refreshing a page will encounter module not found error.
-To work around this, we disallow tree shaking in codesplit.ts.
-
 Docker Desktop on Mac has [an issue](https://github.com/docker/for-mac/issues/5812#issuecomment-874532024) that would lead to an unresponsive reverse proxy.
 One of the comment says enabling "Use the new Virtualization framework" would help.
 After >5000 requests to the portal, "upstream timed out" errors will begin to pop up.
