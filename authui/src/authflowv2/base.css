@@ -68,6 +68,11 @@
 
     /* background */
     --color-surface-primary: var(--color-white);
+
+    /* Link style element color (link-btn, lable-btn, link text) */
+    --color-link: var(--color-primary-theme-primary);
+    --color-link--hover: var(--color-primary-theme-dark);
+    --color-link--active: var(--color-primary-theme-dark);
   }
 
   :root.dark {

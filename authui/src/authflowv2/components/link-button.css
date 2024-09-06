@@ -1,7 +1,7 @@
 @layer components {
   :root {
     --link-btn-bg-color: transparent;
-    --link-btn-text-color: var(--color-primary-theme-primary);
+    --link-btn-text-color: var(--color-link);
     --link-btn-border-radius: 0;
     --link-btn-font-family: var(--typography-label-medium__font-family);
     --link-btn-font-size: var(--typography-label-medium__font-size);
@@ -12,12 +12,12 @@
     --link-btn-ring-color: transparent;
 
     --link-btn-bg-color--hover: transparent;
-    --link-btn-text-color--hover: var(--color-primary-theme-dark);
+    --link-btn-text-color--hover: var(--color-link--hover);
     --link-btn-ring-width--hover: var(--link-btn-ring-width);
     --link-btn-ring-color--hover: var(--link-btn-ring-color);
 
     --link-btn-bg-color--active: transparent;
-    --link-btn-text-color--active: var(--color-primary-theme-dark);
+    --link-btn-text-color--active: var(--color-link--active);
     --link-btn-ring-width--active: var(--link-btn-ring-width);
     --link-btn-ring-color--active: var(--link-btn-ring-color);
 
@@ -29,9 +29,6 @@
 
   :root.dark {
     --link-btn-text-color--disabled: var(--color-neutral-400);
-
-    --link-btn-text-color--hover: var(--color-primary-theme-tertiary);
-    --link-btn-text-color--active: var(--color-primary-theme-tertiary);
   }
 
   .link-btn {
