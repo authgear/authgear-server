@@ -6,14 +6,18 @@ import {
   DateRangeFilterDropdown,
   DateRangeFilterDropdownOptionKey,
 } from "./DateRangeFilterDropdown";
+import {
+  ActivityTypeFilterDropdown,
+  ActivityTypeFilterDropdownOptionKey,
+} from "./ActivityTypeFilterDropdown";
+import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
 
 export interface AuditLogFilter {
   searchKeyword: string;
-  // TODO: add below
-  // activityType: ActivityTypeDropdownOption | null;
+  activityType: ActivityTypeFilterDropdownOptionKey;
 }
 
-interface AuditLogFilterBarPropsDateRange {
+export interface AuditLogFilterBarPropsDateRange {
   value: DateRangeFilterDropdownOptionKey;
   onClickAllDateRange: (
     e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>
@@ -29,6 +33,7 @@ interface AuditLogFilterBarProps {
   onFilterChange: (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => void;
   searchBoxProps?: ISearchBoxProps;
   dateRange: AuditLogFilterBarPropsDateRange;
+  availableActivityTypes: AuditLogActivityType[];
 }
 
 export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
@@ -38,6 +43,7 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     onFilterChange,
     searchBoxProps,
     dateRange,
+    availableActivityTypes,
   }) {
     const onChangeSearchKeyword = useCallback(
       (e?: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +54,12 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
           ...prev,
           searchKeyword: e.currentTarget.value,
         }));
+      },
+      [onFilterChange]
+    );
+    const onChangeActivityType = useCallback(
+      (newAT: ActivityTypeFilterDropdownOptionKey) => {
+        onFilterChange((prev) => ({ ...prev, activityType: newAT }));
       },
       [onFilterChange]
     );
@@ -62,6 +74,12 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
           value={dateRange.value}
           onClickAllDateRange={dateRange.onClickAllDateRange}
           onClickCustomDateRange={dateRange.onClickCustomDateRange}
+        />
+        <ActivityTypeFilterDropdown
+          className={styles.activityTypeFilter}
+          value={filters.activityType}
+          onChange={onChangeActivityType}
+          availableActivityTypes={availableActivityTypes}
         />
         <SearchBox
           className={styles.searchBox}
