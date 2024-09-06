@@ -120,4 +120,11 @@
 .settings-item__forward_arrow {
   font-size: var(--settings-item__forward-arrow-font-size);
   color: var(--settings-item__forward-arrow-color);
+
+  @apply flex items-center;
+
+  &::before {
+    @apply material-icons;
+    @apply ltr:content-['arrow\_forward\_ios'] rtl:content-['arrow\_back\_ios'];
+  }
 }

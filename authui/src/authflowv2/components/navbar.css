@@ -69,9 +69,12 @@
     font-weight: var(--navbar__item-font-weight);
     letter-spacing: var(--navbar__item-letter-spacing);
     line-height: var(--navbar__item-line-height);
-  }
 
-  .navbar__item_icon {
-    font-size: var(--navbar__item-icon-font-size);
+    &::before {
+      /* arrow_back_ios (<) in ltr and arrow_forward_ios (>) in rtl */
+      @apply ltr:content-['arrow\_back\_ios'] rtl:content-['arrow\_forward\_ios'];
+      @apply material-icons;
+      font-size: var(--navbar__item-icon-font-size);
+    }
   }
 }

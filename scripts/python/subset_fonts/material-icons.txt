@@ -9,7 +9,6 @@ arrow_forward_ios
 block
 border_color
 box
-build
 call
 cancel
 check
@@ -36,6 +35,7 @@ event
 explicit
 face
 female
+filter
 fingerprint
 flag
 forward_to_inbox
