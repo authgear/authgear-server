@@ -20,10 +20,6 @@
     "gentype": "graphql-codegen --config ./graphql.portal.codegen.yaml && graphql-codegen --config ./graphql.adminapi.codegen.yaml",
     "generateCodesplit": "node ./scripts/generateCodesplit.mjs"
   },
-  "alias": {
-    "process": false,
-    "buffer": false
-  },
   "overrides": {
     "word-wrap": "@aashutoshrathi/word-wrap"
   },

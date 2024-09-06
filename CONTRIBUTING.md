@@ -242,12 +242,6 @@ The issue will happen if the following conditions hold:
 So whenever we want to update dependencies, we first delete node\_modules and package-lock.json.
 Then npm install will generate a correct package-lock.json.
 
-When Parcel cannot resolve nodejs globals such as `process` and `Buffer`,
-it installs them for us.
-But we do not want to do that.
-The workaround is to add `alias` to package.json.
-See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
-
 When we allow Parcel to perform tree shaking on code-splitted third party bundle,
 refreshing a page will encounter module not found error.
 To work around this, we disallow tree shaking in codesplit.ts.
