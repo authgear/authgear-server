@@ -51,6 +51,7 @@ import { parsePhoneNumber } from "../../util/phone";
 import {
   AuditLogFilter,
   AuditLogFilterBar,
+  AuditLogFilterBarPropsDateRange,
 } from "../../components/audit-log/AuditLogFilterBar";
 
 const pageSize = 100;
@@ -158,7 +159,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const [filters, setFilters] = useState<AuditLogFilter>({
     searchKeyword: "",
-    // dateRange: ...,
     // activityType: ...,
   });
 
@@ -228,7 +228,32 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     return lastUpdatedAt.toISOString();
   }, [rangeTo, lastUpdatedAt]);
 
-  const _isCustomDateRange = rangeFrom != null || rangeTo != null;
+  const isCustomDateRange = rangeFrom != null || rangeTo != null;
+
+  const onClickAllDateRange = useCallback(
+    (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
+      e?.stopPropagation();
+      setRangeFromImmediately(null);
+      setRangeToImmediately(null);
+    },
+    [setRangeFromImmediately, setRangeToImmediately]
+  );
+
+  const onClickCustomDateRange = useCallback(
+    (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
+      e?.stopPropagation();
+      setDateRangeDialogHidden(false);
+    },
+    []
+  );
+
+  const filtersDateRange = useMemo<AuditLogFilterBarPropsDateRange>(() => {
+    return {
+      value: isCustomDateRange ? "customDateRange" : "allDateRange",
+      onClickAllDateRange,
+      onClickCustomDateRange,
+    };
+  }, [isCustomDateRange, onClickAllDateRange, onClickCustomDateRange]);
 
   const availableActivityTypes = useMemo(() => {
     return activityKind === "admin"
@@ -480,23 +505,6 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     []
   );
 
-  const _onClickAllDateRange = useCallback(
-    (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
-      e?.stopPropagation();
-      setRangeFromImmediately(null);
-      setRangeToImmediately(null);
-    },
-    [setRangeFromImmediately, setRangeToImmediately]
-  );
-
-  const _onClickCustomDateRange = useCallback(
-    (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
-      e?.stopPropagation();
-      setDateRangeDialogHidden(false);
-    },
-    []
-  );
-
   const _onClickRefresh = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
       e?.stopPropagation();
@@ -629,6 +637,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           filters={filters}
           onFilterChange={setFilters}
           searchBoxProps={searchBoxProps}
+          dateRange={filtersDateRange}
         />
         <div className={styles.listContainer}>
           <CommandBarContainer

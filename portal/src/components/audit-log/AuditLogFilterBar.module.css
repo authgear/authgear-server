@@ -1,5 +1,5 @@
 .root {
-  @apply flex flex-wrap;
+  @apply flex gap-4 items-center flex-wrap;
   /* imitate command bar height ref https://github.com/microsoft/fluentui/blob/master/packages/azure-themes/src/azure/styles/CommandBar.styles.ts#L14 */
   @apply h-9; 
 
@@ -10,4 +10,8 @@
 .searchBox {
   @apply w-[300px] flex-none;
   @apply mobile:w-full;
+}
+
+.dateRangeFilter {
+  @apply h-11;
 }

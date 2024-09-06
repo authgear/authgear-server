@@ -2,12 +2,25 @@ import React, { useCallback } from "react";
 import cn from "classnames";
 import styles from "./AuditLogFilterBar.module.css";
 import { ISearchBoxProps, SearchBox } from "@fluentui/react";
+import {
+  DateRangeFilterDropdown,
+  DateRangeFilterDropdownOptionKey,
+} from "./DateRangeFilterDropdown";
 
 export interface AuditLogFilter {
   searchKeyword: string;
   // TODO: add below
-  // dateRange: DateRangeDropdownOption | null;
   // activityType: ActivityTypeDropdownOption | null;
+}
+
+interface AuditLogFilterBarPropsDateRange {
+  value: DateRangeFilterDropdownOptionKey;
+  onClickAllDateRange: (
+    e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>
+  ) => void;
+  onClickCustomDateRange: (
+    e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>
+  ) => void;
 }
 
 interface AuditLogFilterBarProps {
@@ -15,6 +28,7 @@ interface AuditLogFilterBarProps {
   filters: AuditLogFilter;
   onFilterChange: (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => void;
   searchBoxProps?: ISearchBoxProps;
+  dateRange: AuditLogFilterBarPropsDateRange;
 }
 
 export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
@@ -23,6 +37,7 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     filters,
     onFilterChange,
     searchBoxProps,
+    dateRange,
   }) {
     const onChangeSearchKeyword = useCallback(
       (e?: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,6 +57,12 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
 
     return (
       <div className={cn(styles.root, className)}>
+        <DateRangeFilterDropdown
+          className={styles.dateRangeFilter}
+          value={dateRange.value}
+          onClickAllDateRange={dateRange.onClickAllDateRange}
+          onClickCustomDateRange={dateRange.onClickCustomDateRange}
+        />
         <SearchBox
           className={styles.searchBox}
           value={filters.searchKeyword}
