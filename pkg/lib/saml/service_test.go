@@ -134,7 +134,6 @@ func TestSAMLService(t *testing.T) {
 				Field:  "ProtocolBinding",
 				Actual: authnRequest.ProtocolBinding,
 				Expected: []string{
-					"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
 					"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
 				},
 				Reason: "unsupported ProtocolBinding",

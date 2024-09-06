@@ -96,6 +96,15 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 			})
 	}
 
+	ssoServices := []crewjamsaml.Endpoint{}
+
+	for _, binding := range samlprotocol.SSOSupportedBindings {
+		ssoServices = append(ssoServices, crewjamsaml.Endpoint{
+			Binding:  string(binding),
+			Location: s.Endpoints.SAMLLoginURL(sp.GetID()).String(),
+		})
+	}
+
 	descriptor := samlprotocol.EntityDescriptor{
 		EntityID: s.IdpEntityID(),
 		IDPSSODescriptors: []crewjamsaml.IDPSSODescriptor{
@@ -109,16 +118,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 						crewjamsaml.NameIDFormat(sp.NameIDFormat),
 					},
 				},
-				SingleSignOnServices: []crewjamsaml.Endpoint{
-					{
-						Binding:  crewjamsaml.HTTPRedirectBinding,
-						Location: s.Endpoints.SAMLLoginURL(sp.GetID()).String(),
-					},
-					{
-						Binding:  crewjamsaml.HTTPPostBinding,
-						Location: s.Endpoints.SAMLLoginURL(sp.GetID()).String(),
-					},
-				},
+				SingleSignOnServices: ssoServices,
 			},
 		},
 	}
@@ -167,11 +167,11 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 		}
 	}
 
-	if !authnRequest.GetProtocolBinding().IsSupported() {
+	if !authnRequest.GetProtocolBinding().IsACSSupported() {
 		return &samlerror.InvalidRequestError{
 			Field:    "ProtocolBinding",
 			Actual:   authnRequest.ProtocolBinding,
-			Expected: slice.Map(samlprotocol.SupportedBindings, func(b samlprotocol.SAMLBinding) string { return string(b) }),
+			Expected: slice.Map(samlprotocol.ACSSupportedBindings, func(b samlprotocol.SAMLBinding) string { return string(b) }),
 			Reason:   "unsupported ProtocolBinding",
 		}
 	}
