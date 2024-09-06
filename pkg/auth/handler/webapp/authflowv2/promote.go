@@ -44,13 +44,17 @@ type AuthflowV2PromoteHandler struct {
 	Endpoints         AuthflowV2PromoteEndpointsProvider
 }
 
-func (h *AuthflowV2PromoteHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2PromoteHandler) GetData(
+	w http.ResponseWriter, r *http.Request,
+	s *webapp.Session,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r)
+	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(s, screen.StateTokenFlowResponse, r)
 	viewmodels.Embed(data, authflowViewModel)
 
 	signupViewModel := AuthflowV2SignupViewModel{
@@ -69,7 +73,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		data, err := h.GetData(w, r, screen)
+		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
 		}

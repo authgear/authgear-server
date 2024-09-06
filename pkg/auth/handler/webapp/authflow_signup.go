@@ -53,14 +53,18 @@ type AuthflowSignupHandler struct {
 	Endpoints         AuthflowSignupEndpointsProvider
 }
 
-func (h *AuthflowSignupHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowSignupHandler) GetData(
+	w http.ResponseWriter, r *http.Request,
+	s *webapp.Session,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	if h.TutorialCookie.Pop(r, w, httputil.SignupLoginTutorialCookieName) {
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
-	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r)
+	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(s, screen.StateTokenFlowResponse, r)
 	viewmodels.Embed(data, authflowViewModel)
 	return data, nil
 }
@@ -83,7 +87,7 @@ func (h *AuthflowSignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			return err
 		}
 
-		data, err := h.GetData(w, r, screen)
+		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
 		}

@@ -65,14 +65,20 @@ type AuthflowLoginHandler struct {
 	Endpoints         AuthflowLoginEndpointsProvider
 }
 
-func (h *AuthflowLoginHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse, allowLoginOnly bool) (map[string]interface{}, error) {
+func (h *AuthflowLoginHandler) GetData(
+	w http.ResponseWriter,
+	r *http.Request,
+	s *webapp.Session,
+	screen *webapp.AuthflowScreenWithFlowResponse,
+	allowLoginOnly bool,
+) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	if h.TutorialCookie.Pop(r, w, httputil.SignupLoginTutorialCookieName) {
 		baseViewModel.SetTutorial(httputil.SignupLoginTutorialCookieName)
 	}
 	viewmodels.Embed(data, baseViewModel)
-	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(screen.StateTokenFlowResponse, r)
+	authflowViewModel := h.AuthflowViewModel.NewWithAuthflow(s, screen.StateTokenFlowResponse, r)
 	viewmodels.Embed(data, authflowViewModel)
 	viewmodels.Embed(data, NewAuthflowLoginViewModel(allowLoginOnly))
 	return data, nil
@@ -126,7 +132,7 @@ func (h *AuthflowLoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return oauthPostAction(s, oauthProviderAlias)
 		}
 
-		data, err := h.GetData(w, r, screen, allowLoginOnly)
+		data, err := h.GetData(w, r, s, screen, allowLoginOnly)
 		if err != nil {
 			return err
 		}

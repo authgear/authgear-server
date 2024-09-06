@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -197,8 +198,11 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	ctrl.Get(func() error {
 		// When promote anonymous user, the end-user should not see this page.
 		if webSession != nil && webSession.LoginHint != "" {
-			h.continueFlow(w, r, "/flows/promote_user")
-			return nil
+			loginHint, err := oauth.ParseLoginHint(webSession.LoginHint)
+			if err == nil && loginHint.Type == oauth.LoginHintTypeAnonymous {
+				h.continueFlow(w, r, "/flows/promote_user")
+				return nil
+			}
 		}
 
 		// When UserIDHint is present, the end-user should never need to select anything in /select_account,

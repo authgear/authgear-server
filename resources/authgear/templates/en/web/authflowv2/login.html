@@ -146,6 +146,7 @@
               data-text-field-target="input"
               class="block input w-full {{ if $display_input_error }}input--error{{end}}"
               {{ if $.ShouldFocusInput }}autofocus{{ end }}
+              {{ if $.LoginIDInputReadOnly }}readonly{{ end }}
               type="{{ $.NonPhoneLoginIDInputType }}"
               autocomplete="username webauthn"
               autocapitalize="none"
@@ -155,6 +156,7 @@
               data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
               data-retain-form-form-target="input"
               data-retain-form-form-name-param="text"
+              value="{{ $.LoginIDDefaultValue }}"
             >
           {{ end }}
           {{ if $display_input_error }}
@@ -192,7 +194,7 @@
       </p>
     {{ end }}
 
-    {{ if $has_alternatives }}
+    {{ if and $has_alternatives (not $.AlternativesDisabled) }}
       {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
       <section class="flex flex-col gap-4">
         {{ if $show_use_text_login_id_option }}

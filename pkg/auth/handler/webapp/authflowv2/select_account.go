@@ -205,8 +205,11 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	ctrl.Get(func() error {
 		// When promote anonymous user, the end-user should not see this page.
 		if webSession != nil && webSession.LoginHint != "" {
-			h.continueFlow(w, r, "/flows/promote_user")
-			return nil
+			loginHint, err := oauth.ParseLoginHint(webSession.LoginHint)
+			if err == nil && loginHint.Type == oauth.LoginHintTypeAnonymous {
+				h.continueFlow(w, r, "/flows/promote_user")
+				return nil
+			}
 		}
 
 		// When UserIDHint is present, the end-user should never need to select anything in /select_account,
