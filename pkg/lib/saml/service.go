@@ -157,11 +157,11 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 		}
 	}
 
-	if !authnRequest.GetProtocolBinding().IsSupported() {
+	if !authnRequest.GetProtocolBinding().IsACSSupported() {
 		return &samlerror.InvalidRequestError{
 			Field:    "ProtocolBinding",
 			Actual:   authnRequest.ProtocolBinding,
-			Expected: slice.Map(samlprotocol.SupportedBindings, func(b samlprotocol.SAMLBinding) string { return string(b) }),
+			Expected: slice.Map(samlprotocol.ACSSupportedBindings, func(b samlprotocol.SAMLBinding) string { return string(b) }),
 			Reason:   "unsupported ProtocolBinding",
 		}
 	}

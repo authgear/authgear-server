@@ -13,13 +13,17 @@ const (
 	SAMLBindingHTTPPost     SAMLBinding = crewjamsaml.HTTPPostBinding
 )
 
-var SupportedBindings []SAMLBinding = []SAMLBinding{
+var SSOSupportedBindings []SAMLBinding = []SAMLBinding{
 	SAMLBindingHTTPRedirect,
 	SAMLBindingHTTPPost,
 }
 
-func (b SAMLBinding) IsSupported() bool {
-	for _, supported := range SupportedBindings {
+var ACSSupportedBindings []SAMLBinding = []SAMLBinding{
+	SAMLBindingHTTPPost,
+}
+
+func (b SAMLBinding) IsACSSupported() bool {
+	for _, supported := range ACSSupportedBindings {
 		if b == supported {
 			return true
 		}
