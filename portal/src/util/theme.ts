@@ -40,6 +40,30 @@ export const DEFAULT_BANNER_CONFIGURATION: BannerConfiguration = {
   backgroundColor: "transparent",
 };
 
+export function deriveColors(
+  color: string
+): { original: string; variant: string } | null {
+  const themeRules = themeRulesStandardCreator();
+  const colorObject = getColorFromString(color);
+  if (colorObject == null) {
+    return null;
+  }
+  ThemeGenerator.insureSlots(themeRules, false);
+  ThemeGenerator.setSlot(
+    themeRules[BaseSlots[BaseSlots.primaryColor]],
+    colorObject,
+    false,
+    true,
+    true
+  );
+  const json = ThemeGenerator.getThemeAsJson(themeRules);
+  return {
+    original: color,
+    variant: json.themeDark,
+  };
+}
+
+// This function is for v1 UI. Should avoid using it.
 // getShades takes a color and then return the shades.
 // The return value is 9-element array, with the first element being the originally given color.
 // The remaining 8 elements are the shades, ordered from Shade.Shade1 to Shade.Shade8
