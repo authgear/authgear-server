@@ -5,6 +5,7 @@ import (
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -16,6 +17,7 @@ var TemplateWebSettingsMFAPasswordHTML = template.RegisterHTML(
 )
 
 type AuthflowV2SettingsMFAPasswordHandler struct {
+	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	SettingsViewModel *viewmodels.SettingsViewModeler
@@ -35,11 +37,18 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) GetData(r *http.Request, w http.R
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+	err := h.Database.WithTx(func() error {
+		viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+		if err != nil {
+			return err
+		}
+		viewmodels.Embed(data, *viewModelPtr)
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	viewmodels.Embed(data, *viewModelPtr)
+
 	return data, nil
 
 }
