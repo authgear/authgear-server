@@ -168,6 +168,13 @@ authui:
 	# So we need to touch .gitkeep after the build to avoid git changes.
 	touch resources/authgear/generated/.gitkeep
 
+.PHONY: authui-dev
+authui-dev:
+	# Make sure that assets are generated before starting dev server
+	$(MAKE) authui
+	# Start development server for Auth UI
+	npm run --silent --prefix ./authui dev
+
 .PHONY: portal
 portal:
 	npm run --silent --prefix ./portal build

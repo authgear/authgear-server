@@ -161,7 +161,7 @@ This project uses asdf, and there is a .tool-versions file at the project root.
 
 ## Run
 
-1. In case you have made changes to authui, you run `make authui` to re-build the assets.
+1. In case you have made changes to authui, you run `make authui` to re-build the assets, or run `make authui-dev` to start the development server (Hot Reload/Hot Module Replacement supported).
 2. In case you have not started the dependencies, run `docker compose up -d`.
 3. Run `make start` to run the main server.
 4. Run `make start-portal` to run the portal server.
