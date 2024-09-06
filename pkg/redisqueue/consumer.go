@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/util/backoff"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -35,6 +36,9 @@ type Consumer struct {
 	taskProcessor          TaskProcessor
 	redis                  *globalredis.Handle
 	logger                 *log.Logger
+
+	dequeueBackoff *backoff.Counter
+
 	// shutdown is for breaking the loop.
 	shutdown chan struct{}
 	// shutdown blocks Stop until the loop has ended.
@@ -58,7 +62,11 @@ func NewConsumer(queueName string, rootProvider *deps.RootProvider, configSource
 			&rootProvider.EnvironmentConfig.GlobalRedis,
 			rootProvider.LoggerFactory,
 		),
-		logger:       rootProvider.LoggerFactory.New("redis-queue-consumer"),
+		logger: rootProvider.LoggerFactory.New("redis-queue-consumer"),
+		dequeueBackoff: &backoff.Counter{
+			Interval:    time.Millisecond * 500,
+			MaxInterval: time.Second * 10,
+		},
 		shutdown:     make(chan struct{}),
 		shutdownDone: make(chan struct{}),
 		shutdownCtx:  context.Background(),
@@ -82,7 +90,7 @@ loop:
 			c.logger.Infof("shutdown context timeout")
 			break loop
 		default:
-			c.dequeue(ctx)
+			c.work(ctx)
 		}
 	}
 	close(c.shutdownDone)
@@ -103,17 +111,7 @@ func (c *Consumer) Stop(ctx context.Context, _ *log.Logger) error {
 	return nil
 }
 
-func (c *Consumer) dequeue(ctx context.Context) {
-	defer func() {
-		if r := recover(); r != nil {
-			c.logger.WithFields(map[string]interface{}{
-				"queue_name": c.QueueName,
-				"error":      r,
-				"stack":      errorutil.Callers(8),
-			}).Error("panic occurred when running task")
-		}
-	}()
-
+func (c *Consumer) dequeue(ctx context.Context) (*redisqueue.Task, *deps.AppProvider, error) {
 	var task redisqueue.Task
 	var appProvider *deps.AppProvider
 
@@ -163,14 +161,46 @@ func (c *Consumer) dequeue(ctx context.Context) {
 		return nil
 	})
 
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &task, appProvider, err
+}
+
+func (c *Consumer) work(ctx context.Context) {
+	defer func() {
+		if r := recover(); r != nil {
+			c.logger.WithFields(map[string]interface{}{
+				"queue_name": c.QueueName,
+				"error":      r,
+				"stack":      errorutil.Callers(8),
+			}).Error("panic occurred when running task")
+		}
+	}()
+
+	if backoff := c.dequeueBackoff.BackoffDuration(); backoff != 0 {
+		c.logger.WithField("delay", backoff).Debug("backoff from dequeue")
+		select {
+		case <-c.shutdown:
+			return
+		case <-time.After(backoff):
+			break
+		}
+	}
+
+	task, appProvider, err := c.dequeue(ctx)
 	if errors.Is(err, errNoTask) {
 		return
 	} else if err != nil {
 		c.logger.WithError(err).Error("failed to dequeue task")
+		c.dequeueBackoff.Increment()
 		return
 	}
 
-	output, err := c.taskProcessor(ctx, appProvider, &task)
+	c.dequeueBackoff.Reset()
+
+	output, err := c.taskProcessor(ctx, appProvider, task)
 	if err != nil {
 		c.logger.WithError(err).Error("failed to process task")
 		return
