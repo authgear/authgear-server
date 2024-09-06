@@ -217,7 +217,7 @@ type ChangePasswordInput struct {
 	NewPassword    string
 }
 
-// If have OauthSessionID, it means the user is changing password after login with SDK.
+// If have OAuthSessionID, it means the user is changing password after login with SDK.
 // Then do special handling such as authenticationINFO
 func (s *Service) ChangePassword(input *ChangePasswordInput) (string, error) {
 	userID := input.Session.GetAuthenticationInfo().UserID

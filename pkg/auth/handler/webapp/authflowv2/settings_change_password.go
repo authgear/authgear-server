@@ -35,7 +35,7 @@ type AuthflowV2SettingsChangePasswordHandler struct {
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
 	Renderer                 handlerwebapp.Renderer
-	AccountmanagementService *accountmanagement.Service
+	AccountManagementService *accountmanagement.Service
 	PasswordPolicy           handlerwebapp.PasswordPolicy
 }
 
@@ -115,7 +115,7 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 			NewPassword:    newPassword,
 		}
 
-		redirectURI, err = h.AccountmanagementService.ChangePassword(input)
+		redirectURI, err = h.AccountManagementService.ChangePassword(input)
 		if err != nil {
 			return err
 		}
