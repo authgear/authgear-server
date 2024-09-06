@@ -12,8 +12,9 @@ import (
 )
 
 type SAMLBindingHTTPPostParseResult struct {
-	AuthnRequest *samlprotocol.AuthnRequest
-	RelayState   string
+	AuthnRequestXML string
+	AuthnRequest    *samlprotocol.AuthnRequest
+	RelayState      string
 }
 
 var _ SAMLBindingParseResult = &SAMLBindingHTTPPostParseResult{}
@@ -41,6 +42,8 @@ func SAMLBindingHTTPPostParse(r *http.Request) (
 			Cause:  err,
 		}
 	}
+
+	result.AuthnRequestXML = string(requestBuffer)
 
 	authnRequest, err := samlprotocol.ParseAuthnRequest(requestBuffer)
 	if err != nil {

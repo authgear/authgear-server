@@ -3,11 +3,8 @@ package samlbinding
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"io"
 	"net/http"
-	"net/url"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
@@ -15,8 +12,8 @@ import (
 
 type SAMLBindingHTTPRedirectParseResult struct {
 	AuthnRequest *samlprotocol.AuthnRequest
+	SAMLRequest  string
 	RelayState   string
-	SignedValue  string
 	SigAlg       string
 	Signature    string
 }
@@ -35,6 +32,7 @@ func SAMLBindingHTTPRedirectParse(r *http.Request) (
 	signature := r.URL.Query().Get("Signature")
 	sigAlg := r.URL.Query().Get("SigAlg")
 	samlRequest := r.URL.Query().Get("SAMLRequest")
+	result.SAMLRequest = samlRequest
 	if samlRequest == "" {
 		return nil, ErrNoRequest
 	}
@@ -64,19 +62,6 @@ func SAMLBindingHTTPRedirectParse(r *http.Request) (
 	result.AuthnRequest = request
 	result.Signature = signature
 	result.SigAlg = sigAlg
-
-	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf 3.4.4.1
-	signedValues := []string{}
-	signedValues = append(signedValues, fmt.Sprintf("SAMLRequest=%s", url.QueryEscape(samlRequest)))
-	if relayState != "" {
-		signedValues = append(signedValues, fmt.Sprintf("RelayState=%s", url.QueryEscape(relayState)))
-	}
-	if sigAlg != "" {
-		signedValues = append(signedValues, fmt.Sprintf("SigAlg=%s", url.QueryEscape(sigAlg)))
-
-	}
-
-	result.SignedValue = strings.Join(signedValues, "&")
 
 	return result, nil
 }

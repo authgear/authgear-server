@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 )
@@ -19,6 +20,15 @@ type HandlerSAMLService interface {
 		authInfo authenticationinfo.T,
 		inResponseToAuthnRequest *samlprotocol.AuthnRequest,
 	) (*samlprotocol.Response, error)
+	VerifyEmbeddedSignature(
+		sp *config.SAMLServiceProviderConfig,
+		authnRequestXML string) error
+	VerifyExternalSignature(
+		sp *config.SAMLServiceProviderConfig,
+		samlRequest string,
+		sigAlg string,
+		relayState string,
+		signature string) error
 }
 
 type SAMLSessionService interface {

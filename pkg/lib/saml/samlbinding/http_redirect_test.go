@@ -21,6 +21,7 @@ func TestSAMLBindingHTTPRedirect(t *testing.T) {
 			req.URL = &url.URL{}
 			q := url.Values{}
 			relayState := "testrelaystate"
+			sigAlg := "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
 			samlRequestXML := `
 				<samlp:AuthnRequest
 					xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
@@ -44,11 +45,14 @@ func TestSAMLBindingHTTPRedirect(t *testing.T) {
 			So(err, ShouldBeNil)
 			base64EncodedRequest := base64.StdEncoding.EncodeToString(compressedRequestBuffer.Bytes())
 			q.Add("RelayState", relayState)
+			q.Add("SigAlg", sigAlg)
 			q.Add("SAMLRequest", base64EncodedRequest)
 			req.URL.RawQuery = q.Encode()
 			result, err := samlbinding.SAMLBindingHTTPRedirectParse(req)
 			So(err, ShouldBeNil)
 
+			So(result.SAMLRequest, ShouldEqual, base64EncodedRequest)
+			So(result.SigAlg, ShouldEqual, sigAlg)
 			So(result.RelayState, ShouldEqual, relayState)
 			So(result.AuthnRequest, ShouldNotBeNil)
 			So(result.AuthnRequest.ProtocolBinding, ShouldEqual, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST")

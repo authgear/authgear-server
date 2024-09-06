@@ -9,6 +9,7 @@ type SAMLErrorCode string
 const (
 	SAMLErrorCodeServiceProviderNotFound SAMLErrorCode = "service_provider_not_found"
 	SAMLErrorCodeInvalidRequest          SAMLErrorCode = "invalid_request"
+	SAMLErrorCodeInvalidSignature        SAMLErrorCode = "invalid_signature"
 	SAMLErrorCodeParseRequestFailed      SAMLErrorCode = "parse_request_failed"
 	SAMLErrorCodeMissingNameID           SAMLErrorCode = "missing_nameid"
 )
