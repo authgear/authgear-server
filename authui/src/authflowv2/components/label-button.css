@@ -1,7 +1,7 @@
 @layer components {
   :root {
     --label-btn__bg-color: transparent;
-    --label-btn__text-color: var(--color-primary-theme-primary);
+    --label-btn__text-color: var(--color-link);
     --label-btn__border-radius: 0;
     --label-btn__font-family: var(--typography-label-large__font-family);
     --label-btn__font-size: var(--typography-label-large__font-size);
@@ -19,26 +19,19 @@
     ); /* = Height / 2 */
 
     --label-btn__bg-color--hover: transparent;
-    --label-btn__text-color--hover: var(--color-primary-theme-dark);
+    --label-btn__text-color--hover: var(--color-link--hover);
     --label-btn__ring-width--hover: var(--label-btn__ring-width);
     --label-btn__ring-color--hover: var(--label-btn__ring-color);
 
     --label-btn__bg-color--active: transparent;
-    --label-btn__text-color--active: var(--color-primary-theme-dark);
+    --label-btn__text-color--active: var(--color-link--active);
     --label-btn__ring-width--active: var(--label-btn__ring-width);
     --label-btn__ring-color--active: var(--label-btn__ring-color);
 
     --label-btn__bg-color--disabled: transparent;
-    --label-btn__text-color--disabled: var(--color-neutral-300);
+    --label-btn__text-color--disabled: var(--color-link--disabled);
     --label-btn__ring-width--disabled: var(--label-btn__ring-width);
     --label-btn__ring-color--disabled: var(--label-btn__ring-color);
-  }
-
-  :root.dark {
-    --label-btn__text-color--disabled: var(--color-neutral-400);
-
-    --label-btn__text-color--hover: var(--color-primary-theme-tertiary);
-    --label-btn__text-color--active: var(--color-primary-theme-tertiary);
   }
 
   .label-btn {

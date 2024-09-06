@@ -44,13 +44,8 @@ import { ErrorParseRule } from "../../../error/parse";
 import { useAppFeatureConfigQuery } from "../query/appFeatureConfigQuery";
 import { makeImageSizeTooLargeErrorRule } from "../../../error/resources";
 import { nonNullable } from "../../../util/types";
-import {
-  BaseSlots,
-  ThemeGenerator,
-  getColorFromString,
-  themeRulesStandardCreator,
-} from "@fluentui/react";
 import { nullishCoalesce, or_ } from "../../../util/operators";
+import { deriveColors } from "../../../util/theme";
 
 const LOCALE_BASED_RESOUCE_DEFINITIONS = [
   RESOURCE_TRANSLATION_JSON,
@@ -639,25 +634,16 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
             return;
           }
           draft.primaryButton.backgroundColor = backgroundColor;
-          const themeRules = themeRulesStandardCreator();
-          const color = getColorFromString(backgroundColor);
-          if (color == null) {
+
+          const derivedColors = deriveColors(backgroundColor);
+          if (derivedColors == null) {
             draft.primaryButton.backgroundColor = undefined;
             draft.primaryButton.backgroundColorActive = undefined;
             draft.primaryButton.backgroundColorHover = undefined;
             return;
           }
-          ThemeGenerator.insureSlots(themeRules, false);
-          ThemeGenerator.setSlot(
-            themeRules[BaseSlots[BaseSlots.primaryColor]],
-            color,
-            false,
-            true,
-            true
-          );
-          const json = ThemeGenerator.getThemeAsJson(themeRules);
-          draft.primaryButton.backgroundColorActive = json.themeDark;
-          draft.primaryButton.backgroundColorHover = json.themeDark;
+          draft.primaryButton.backgroundColorActive = derivedColors.variant;
+          draft.primaryButton.backgroundColorHover = derivedColors.variant;
         });
       }, targetTheme);
     },
@@ -679,7 +665,23 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     (color: CSSColor | undefined, targetTheme: Theme) => {
       resourceMutator.updateCustomisableTheme((prev) => {
         return produce(prev, (draft) => {
+          if (color == null) {
+            draft.link.color = undefined;
+            draft.link.colorActive = undefined;
+            draft.link.colorHover = undefined;
+            return;
+          }
           draft.link.color = color;
+
+          const derivedColors = deriveColors(color);
+          if (derivedColors == null) {
+            draft.link.color = undefined;
+            draft.link.colorActive = undefined;
+            draft.link.colorHover = undefined;
+            return;
+          }
+          draft.link.colorActive = derivedColors.variant;
+          draft.link.colorHover = derivedColors.variant;
         });
       }, targetTheme);
     },

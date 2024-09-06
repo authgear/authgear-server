@@ -2,9 +2,9 @@
   :root {
     /* Common */
     --body-text__text-color: var(--color-neutral-400);
-    --body-text__link-color: var(--color-primary-theme-primary);
-    --body-text__link-color--hover: var(--body-text__link-color);
-    --body-text__link-color--active: var(--body-text__link-color);
+    --body-text__link-color: var(--color-link);
+    --body-text__link-color--hover: var(--color-link--hover);
+    --body-text__link-color--active: var(--color-link--active);
     --body-text__link-text-decoration: none;
     --body-text__link-text-decoration--hover: underline;
     --body-text__link-text-decoration--active: var(
