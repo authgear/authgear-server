@@ -136,6 +136,7 @@ interface ThemeSetters {
   ) => void;
   setPrimaryButtonBackgroundColor: (color: CSSColor | undefined) => void;
   setPrimaryButtonLabelColor: (color: CSSColor | undefined) => void;
+  setIconColor: (color: CSSColor | undefined) => void;
   setLinkColor: (color: CSSColor | undefined) => void;
 }
 
@@ -661,6 +662,21 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
     [resourceMutator]
   );
 
+  const _setIconColor = useCallback(
+    (color: CSSColor | undefined, targetTheme: Theme) => {
+      resourceMutator.updateCustomisableTheme((prev) => {
+        return produce(prev, (draft) => {
+          if (color == null) {
+            draft.icon.color = undefined;
+            return;
+          }
+          draft.icon.color = color;
+        });
+      }, targetTheme);
+    },
+    [resourceMutator]
+  );
+
   const _setLinkColor = useCallback(
     (color: CSSColor | undefined, targetTheme: Theme) => {
       resourceMutator.updateCustomisableTheme((prev) => {
@@ -826,6 +842,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           _setPrimaryButtonBackgroundColor(color, Theme.Light),
         setPrimaryButtonLabelColor: (color) =>
           _setPrimaryButtonLabelColor(color, Theme.Light),
+        setIconColor: (color) => _setIconColor(color, Theme.Light),
         setLinkColor: (color) => _setLinkColor(color, Theme.Light),
       },
       darkThemeSetters: {
@@ -837,6 +854,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
           _setPrimaryButtonBackgroundColor(color, Theme.Dark),
         setPrimaryButtonLabelColor: (color) =>
           _setPrimaryButtonLabelColor(color, Theme.Dark),
+        setIconColor: (color) => _setIconColor(color, Theme.Dark),
         setLinkColor: (color) => _setLinkColor(color, Theme.Dark),
       },
     }),
@@ -853,6 +871,7 @@ export function useBrandDesignForm(appID: string): BranchDesignForm {
       _setBackgroundImage,
       _setPrimaryButtonBackgroundColor,
       _setPrimaryButtonLabelColor,
+      _setIconColor,
       _setLinkColor,
     ]
   );

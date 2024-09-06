@@ -53,6 +53,7 @@ describe("StyleCssVisitor", () => {
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
     --phone-input__trigger-border-radius: 0.875em;
+    --icon-color: #176df3;
     --color-link: #176df3;
     --color-link--active: #1151b8;
     --color-link--hover: #1151b8;
@@ -101,6 +102,9 @@ describe("StyleCssVisitor", () => {
           type: "rounded",
           radius: "0.875em",
         },
+      },
+      icon: {
+        color: "#176df3",
       },
       link: {
         color: "#176df3",
@@ -168,6 +172,9 @@ describe("CssAstVisitor", () => {
           radius: "0.875em",
         },
       },
+      icon: {
+        color: "#2f7bf4",
+      },
       link: {
         color: "#2f7bf4",
         colorActive: "#235dba",
@@ -187,6 +194,7 @@ describe("CssAstVisitor", () => {
     --secondary-btn__border-radius: 0.875em;
     --input__border-radius: 0.875em;
     --phone-input__trigger-border-radius: 0.875em;
+    --icon-color: #2f7bf4;
     --color-link: #2f7bf4;
     --color-link--active: #235dba;
     --color-link--hover: #235dba;
