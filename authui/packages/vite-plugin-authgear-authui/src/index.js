@@ -22,11 +22,9 @@ function removeLeadingSlash(s) {
  * @return {string}
  */
 function nameWithoutHash(filePath) {
-  const textArray = filePath.split(".");
-  if (textArray.length === 3) {
-    return textArray[0] + "." + textArray[2];
-  }
-  return filePath;
+  // The hash is placed between the base name and the extension
+  // e.g. abc.[hash].js or abc.def.[hash].css
+  return filePath.replace(/\.[0-9a-z]{8}\./, ".");
 }
 
 /**
