@@ -206,12 +206,15 @@ func (m *AuthflowViewModeler) NewWithAuthflow(
 	if loginHint != nil && loginHint.Type == oauth.LoginHintTypeLoginID {
 		switch {
 		case loginHint.LoginIDEmail != "" && hasEmail:
+			loginIDKey = "email"
 			loginIDInputType = "email"
 			loginIDDefaultValue = loginHint.LoginIDEmail
 		case loginHint.LoginIDPhone != "" && hasPhone:
+			loginIDKey = "phone"
 			loginIDInputType = "phone"
 			loginIDDefaultValue = loginHint.LoginIDPhone
 		case loginHint.LoginIDUsername != "" && hasUsername:
+			loginIDKey = "username"
 			loginIDInputType = "text"
 			loginIDDefaultValue = loginHint.LoginIDUsername
 		}
