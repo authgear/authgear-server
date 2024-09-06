@@ -115,12 +115,12 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 			NewPassword:    newPassword,
 		}
 
-		redirectURI, err = h.AccountManagementService.ChangePassword(input)
+		changePasswordOutput, err := h.AccountManagementService.ChangePassword(input)
 		if err != nil {
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: redirectURI}
+		result := webapp.Result{RedirectURI: changePasswordOutput.RedirectURI}
 		result.WriteResponse(w, r)
 		return nil
 	})

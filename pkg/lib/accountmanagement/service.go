@@ -38,6 +38,18 @@ type FinishAddingOutput struct {
 	// It is intentionally empty.
 }
 
+type ChangePasswordInput struct {
+	Session        session.ResolvedSession
+	OAuthSessionID string
+	RedirectURI    string
+	OldPassword    string
+	NewPassword    string
+}
+
+type ChangePasswordOutput struct {
+	RedirectURI string
+}
+
 type Store interface {
 	GenerateToken(options GenerateTokenOptions) (string, error)
 	ConsumeToken(tokenStr string) (*Token, error)
@@ -209,17 +221,9 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	return &FinishAddingOutput{}, nil
 }
 
-type ChangePasswordInput struct {
-	Session        session.ResolvedSession
-	OAuthSessionID string
-	RedirectURI    string
-	OldPassword    string
-	NewPassword    string
-}
-
 // If have OAuthSessionID, it means the user is changing password after login with SDK.
 // Then do special handling such as authenticationINFO
-func (s *Service) ChangePassword(input *ChangePasswordInput) (string, error) {
+func (s *Service) ChangePassword(input *ChangePasswordInput) (*ChangePasswordOutput, error) {
 	userID := input.Session.GetAuthenticationInfo().UserID
 
 	ais, err := s.Authenticators.List(
@@ -228,11 +232,11 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) (string, error) {
 		authenticator.KeepKind(authenticator.KindPrimary),
 	)
 	if err != nil {
-		return "", err
+		return &ChangePasswordOutput{}, err
 	}
 
 	if len(ais) == 0 {
-		return "", api.ErrNoPassword
+		return &ChangePasswordOutput{}, api.ErrNoPassword
 	}
 
 	oldInfo := ais[0]
@@ -244,7 +248,7 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) (string, error) {
 	}, nil)
 	if err != nil {
 		err = api.ErrInvalidCredentials
-		return "", err
+		return &ChangePasswordOutput{}, err
 	}
 
 	changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
@@ -253,13 +257,19 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) (string, error) {
 		SetExpireAfter: true,
 	})
 	if err != nil {
-		return "", err
+		return &ChangePasswordOutput{}, err
 	}
 
 	if changed {
-		err = s.Authenticators.Update(newInfo)
+		err = s.Database.WithTx(func() error {
+			err = s.Authenticators.Update(newInfo)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			return "", err
+			return &ChangePasswordOutput{}, err
 		}
 	}
 
@@ -269,13 +279,22 @@ func (s *Service) ChangePassword(input *ChangePasswordInput) (string, error) {
 	if input.OAuthSessionID != "" {
 		authInfo := input.Session.GetAuthenticationInfo()
 		authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
-		err = s.AuthenticationInfoService.Save(authenticationInfoEntry)
+
+		err = s.Database.WithTx(func() error {
+			err = s.AuthenticationInfoService.Save(authenticationInfoEntry)
+
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
-			return "", err
+			return &ChangePasswordOutput{}, err
 		}
+
 		redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
 	}
 
-	return redirectURI, nil
+	return &ChangePasswordOutput{RedirectURI: redirectURI}, nil
 
 }
