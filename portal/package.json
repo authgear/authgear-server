@@ -2,9 +2,6 @@
   "name": "authgear-portal",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
   "scripts": {
     "test": "jest",
     "start": "vite",
@@ -47,9 +44,6 @@
     "graphql": "16.8.1",
     "jest": "29.7.0",
     "jest-environment-jsdom": "29.7.0",
-    "parcel": "2.10.2",
-    "parcel-resolver-authgear": "1.0.0",
-    "parcel-resolver-ignore": "2.2.0",
     "prettier": "2.8.8",
     "stylelint": "14.11.0",
     "tailwindcss": "3.3.5",
@@ -95,8 +89,5 @@
     "tzdata": "1.0.40",
     "uuid": "9.0.1",
     "zxcvbn": "4.4.2"
-  },
-  "parcelIgnore": [
-    "/api/osano.js"
-  ]
+  }
 }
