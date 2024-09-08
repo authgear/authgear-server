@@ -13,6 +13,7 @@ export default defineConfig(() => ({
     outDir: "../dist",
     sourcemap: true,
     cssCodeSplit: true,
+    manifest: true,
     // Avoid image assets being inlined into css files
     assetsInlineLimit: 0,
     assetsDir: "",
