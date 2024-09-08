@@ -105,6 +105,9 @@ jobs:
     - run: npm run build
       working-directory: ./portal
       if: ${{ !cancelled() }}
+    - run: npm run ensure-reproducible-build
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
 
   portal-image:
     if: ${{ github.repository != 'oursky/authgear-server' }}
