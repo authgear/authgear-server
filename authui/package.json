@@ -18,7 +18,7 @@
     "build": "vite build --outDir '../resources/authgear/generated'",
     "watch": "vite build --watch --outDir '../resources/authgear/generated'",
     "test": "jest",
-    "ensure-reproducible-build": "./ensure-reproducible-build.sh"
+    "ensure-reproducible-build": "../scripts/sh/ensure-reproducible-build.sh -n 5 -p '../resources/authgear/generated/manifest.json'"
   },
   "alias": {
     "process": false
