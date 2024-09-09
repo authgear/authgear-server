@@ -42,7 +42,7 @@ export const enum CSSVariable {
   PrimaryButtonBorderRadius = "--primary-btn__border-radius",
   SecondaryButtonBorderRadius = "--secondary-btn__border-radius",
   InputFiledBorderRadius = "--input__border-radius",
-  IconColor = "--icon-color",
+  IconColor = "--screen-icon__color",
   LinkColor = "--color-link",
   LinkColorActive = "--color-link--active",
   LinkColorHover = "--color-link--hover",

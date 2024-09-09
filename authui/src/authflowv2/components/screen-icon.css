@@ -1,7 +1,7 @@
 @layer components {
   :root {
     --screen-icon__font-size: 4rem;
-    --screen-icon__color: var(--icon-color);
+    --screen-icon__color: var(--color-primary-theme-primary);
   }
 
   .screen-icon {
