@@ -1,7 +1,6 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { Context as MessageContext } from "@oursky/react-messageformat";
 import {
-  Dropdown,
   IContextualMenuItem,
   IContextualMenuProps,
   IDropdownOption,
@@ -9,6 +8,7 @@ import {
 import CommandBarButton from "../../CommandBarButton";
 import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
 import { useScreenBreakpoint } from "../../hook/useScreenBreakpoint";
+import { SearchableDropdown } from "../common/SearchableDropdown";
 
 export type AuditLogActivityTypeAll = "ALL";
 export const ACTIVITY_TYPE_ALL: AuditLogActivityTypeAll = "ALL";
@@ -99,22 +99,18 @@ const MobileActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownProp
     availableActivityTypes,
   }: ActivityTypeFilterDropdownProps) {
     const { renderToString } = useContext(MessageContext);
+    const [searchValue, setSearchValue] = useState<string>("");
 
     const options = useMemo<IDropdownOption[]>(() => {
-      const options: IDropdownOption[] = [
-        {
-          key: ACTIVITY_TYPE_ALL,
-          text: renderToString("AuditLogActivityType.ALL"),
-        },
-      ];
-      for (const key of availableActivityTypes) {
-        options.push({
-          key: key,
+      return availableActivityTypes
+        .map((key) => ({
+          key,
           text: renderToString("AuditLogActivityType." + key),
-        });
-      }
-      return options;
-    }, [availableActivityTypes, renderToString]);
+        }))
+        .filter((option) =>
+          option.text.toLowerCase().includes(searchValue.toLowerCase())
+        );
+    }, [availableActivityTypes, renderToString, searchValue]);
 
     const onChangeOption = useCallback(
       (_e: unknown, option?: IDropdownOption) => {
@@ -125,12 +121,30 @@ const MobileActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownProp
       },
       [onChange]
     );
+
+    const onClearFilter = useCallback(() => {
+      setSearchValue("");
+      onChange(ACTIVITY_TYPE_ALL);
+    }, [onChange]);
+
+    const selectedOption = useMemo(() => {
+      const matched = options.find((option) => option.key === value);
+      return matched ?? null;
+    }, [options, value]);
+
+    // Note extra layer of mapping here.
+    //           ALL -> null              in SearchableDropdown
+    // normal option -> normal option     in SearchableDropdown
     return (
-      <Dropdown
+      <SearchableDropdown
         className={className}
-        selectedKey={value}
+        placeholder={renderToString("AuditLogActivityType.ALL")}
+        selectedItem={selectedOption}
         options={options}
         onChange={onChangeOption}
+        searchValue={searchValue}
+        onSearchValueChange={setSearchValue}
+        onClear={onClearFilter}
       />
     );
   };
