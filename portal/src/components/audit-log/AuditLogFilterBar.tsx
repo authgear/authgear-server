@@ -11,6 +11,7 @@ import {
   ActivityTypeFilterDropdownOptionKey,
 } from "./ActivityTypeFilterDropdown";
 import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
+import { ClearAllButton } from "./ClearAllButton";
 
 export interface AuditLogFilter {
   searchKeyword: string;
@@ -31,6 +32,7 @@ interface AuditLogFilterBarProps {
   className?: string;
   filters: AuditLogFilter;
   onFilterChange: (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => void;
+  onRemoveAllFilters: () => void;
   searchBoxProps?: ISearchBoxProps;
   dateRange: AuditLogFilterBarPropsDateRange;
   availableActivityTypes: AuditLogActivityType[];
@@ -41,6 +43,7 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     className,
     filters,
     onFilterChange,
+    onRemoveAllFilters,
     searchBoxProps,
     dateRange,
     availableActivityTypes,
@@ -87,6 +90,10 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
           onChange={onChangeSearchKeyword}
           onClear={onClearSearchKeyword}
           {...searchBoxProps}
+        />
+        <ClearAllButton
+          className={styles.clearAllButton}
+          onClick={onRemoveAllFilters}
         />
       </div>
     );

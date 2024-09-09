@@ -491,6 +491,16 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     [filters]
   );
 
+  const onRemoveAllFilters = useCallback(() => {
+    setOffset(0);
+    setRangeFromImmediately(null);
+    setRangeToImmediately(null);
+    onFilterChange(() => ({
+      searchKeyword: "",
+      activityType: ACTIVITY_TYPE_ALL,
+    }));
+  }, [onFilterChange, setRangeFromImmediately, setRangeToImmediately]);
+
   const _onClickRefresh = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
       e?.stopPropagation();
@@ -625,6 +635,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           searchBoxProps={searchBoxProps}
           dateRange={filtersDateRange}
           availableActivityTypes={availableActivityTypes}
+          onRemoveAllFilters={onRemoveAllFilters}
         />
         <div className={styles.listContainer}>
           <CommandBarContainer
