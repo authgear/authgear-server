@@ -79,6 +79,15 @@ func NewCreateAdditionalPasswordInput(userID string, password string) CreateAddi
 	}
 }
 
+type RemovePasskeyInput struct {
+	Session    session.ResolvedSession
+	IdentityID string
+}
+
+type RemovePasskeyOutput struct {
+	// It is intentionally empty.
+}
+
 type Store interface {
 	GenerateToken(options GenerateTokenOptions) (string, error)
 	ConsumeToken(tokenStr string) (*Token, error)
@@ -91,9 +100,11 @@ type OAuthProvider interface {
 }
 
 type IdentityService interface {
+	Get(id string) (*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	CheckDuplicated(info *identity.Info) (dupe *identity.Info, err error)
 	Create(info *identity.Info) error
+	Delete(is *identity.Info) error
 }
 
 type EventService interface {
@@ -425,4 +436,40 @@ func (s *Service) AddPasskey(input *AddPasskeyInput) (*AddPasskeyOutput, error) 
 	}
 
 	return &AddPasskeyOutput{}, nil
+}
+
+func (s *Service) RemovePasskey(input *RemovePasskeyInput) (*RemovePasskeyOutput, error) {
+	userID := input.Session.GetAuthenticationInfo().UserID
+	identityID := input.IdentityID
+	var identityInfo *identity.Info
+	err := s.Database.WithTx(func() (err error) {
+		// case *nodes.NodeDoUseUser:
+		identityInfo, err = s.Identities.Get(identityID)
+		if err != nil {
+			return err
+		}
+
+		if identityInfo.UserID != userID {
+			return api.NewInvariantViolated(
+				"IdentityNotBelongToUser",
+				"identity does not belong to the user",
+				nil,
+			)
+		}
+
+		// case *nodes.NodeRemoveIdentity: EdgeDoRemoveIdentity{Identity: node.IdentityInfo}
+		// (Passkey skip DeleteDisabled check)
+		// NodeDoRemoveIdentity GetEffects()
+		err = s.Identities.Delete(identityInfo)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RemovePasskeyOutput{}, nil
 }
