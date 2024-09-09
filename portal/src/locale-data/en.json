@@ -1001,6 +1001,10 @@
   "DesignScreen.configuration.button.primaryButtonLabel.label.light": "Primary button label - light mode",
   "DesignScreen.configuration.button.primaryButtonLabel.label.dark": "Primary button label - dark mode",
   "DesignScreen.configuration.button.borderRadiusStyle.label": "Border radius style",
+  "DesignScreen.configuration.icon.label": "Icon",
+  "DesignScreen.configuration.icon.description": "The status icon displayed at the top of messages in error and success screens.",
+  "DesignScreen.configuration.icon.color.label.light": "Icon color - light mode",
+  "DesignScreen.configuration.icon.color.label.dark": "Icon color - dark mode",
   "DesignScreen.configuration.link.label": "Links",
   "DesignScreen.configuration.link.color.label.light": "Link color - light mode",
   "DesignScreen.configuration.link.color.label.dark": "Link color - dark mode",
@@ -1030,6 +1034,7 @@
   "DesignScreen.preview.pages.title.EnterTOTP": "2-Step Verification",
   "DesignScreen.preview.pages.title.OOBOTPLink": "Log in link",
   "DesignScreen.preview.pages.title.CreatePassword": "Create Password",
+  "DesignScreen.preview.pages.title.Error": "Error page",
 
   "UISettingsScreen.title": "Design",
   "UISettingsScreen.description": "Authgear comes with some simple styling for your login and signup page. You can customize the look and feel here.",

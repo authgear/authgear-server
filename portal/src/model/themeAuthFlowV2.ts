@@ -42,6 +42,7 @@ export const enum CSSVariable {
   PrimaryButtonBorderRadius = "--primary-btn__border-radius",
   SecondaryButtonBorderRadius = "--secondary-btn__border-radius",
   InputFiledBorderRadius = "--input__border-radius",
+  IconColor = "--screen-icon__color",
   LinkColor = "--color-link",
   LinkColorActive = "--color-link--active",
   LinkColorHover = "--color-link--hover",
@@ -108,6 +109,10 @@ export interface PhoneInputFieldStyle {
   borderRadius: BorderRadiusStyle;
 }
 
+export interface IconStyle {
+  color: CSSColor;
+}
+
 export interface LinkStyle {
   color: CSSColor;
   colorActive: CSSColor;
@@ -129,6 +134,7 @@ export interface CustomisableTheme {
   secondaryButton: SecondaryButtonStyle;
   inputField: InputFieldStyle;
   phoneInputField: PhoneInputFieldStyle;
+  icon: IconStyle;
   link: LinkStyle;
   logo: LogoStyte;
 }
@@ -140,6 +146,7 @@ export interface PartialCustomisableTheme {
   secondaryButton: Partial<SecondaryButtonStyle>;
   inputField: Partial<InputFieldStyle>;
   phoneInputField: Partial<PhoneInputFieldStyle>;
+  icon: Partial<IconStyle>;
   link: Partial<LinkStyle>;
   logo: Partial<LogoStyte>;
 }
@@ -151,6 +158,7 @@ export const EMPTY_THEME: PartialCustomisableTheme = {
   secondaryButton: {},
   inputField: {},
   phoneInputField: {},
+  icon: {},
   link: {},
   logo: {},
 };
@@ -191,6 +199,9 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
       type: "rounded",
       radius: "0.875em",
     },
+  },
+  icon: {
+    color: "#176df3",
   },
   link: {
     color: "#176df3",
@@ -237,6 +248,9 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
       type: "rounded",
       radius: "0.875em",
     },
+  },
+  icon: {
+    color: "#176df3",
   },
   link: {
     color: "#2f7bf4",
@@ -594,6 +608,10 @@ export class CustomisableThemeStyleGroup extends StyleGroup<PartialCustomisableT
           CSSVariable.PhoneInputTriggerBorderRadius,
           value.inputField.borderRadius
         ),
+      }),
+
+      icon: new StyleGroup({
+        color: new ColorStyleProperty(CSSVariable.IconColor, value.icon.color),
       }),
 
       link: new StyleGroup({

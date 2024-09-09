@@ -333,6 +333,10 @@ func (c *AuthflowController) HandleStep(w http.ResponseWriter, r *http.Request, 
 }
 
 func (c *AuthflowController) HandleWithoutFlow(w http.ResponseWriter, r *http.Request, handlers *AuthflowControllerHandlers) {
+	if handled := c.handleInlinePreviewIfNecessary(w, r, handlers); handled {
+		return
+	}
+
 	var session *webapp.Session
 	s, err := c.getWebSession(r)
 	if err != nil {

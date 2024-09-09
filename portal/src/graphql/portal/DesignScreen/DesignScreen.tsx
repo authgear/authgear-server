@@ -465,6 +465,41 @@ const ButtonConfiguration: React.VFC<ButtonConfigurationProps> =
     );
   };
 
+interface IconConfigurationProps {
+  designForm: BranchDesignForm;
+}
+const IconConfiguration: React.VFC<IconConfigurationProps> =
+  function IconConfiguration(props) {
+    const { designForm } = props;
+    return (
+      <ConfigurationGroup labelKey="DesignScreen.configuration.icon.label">
+        <ConfigurationDescription labelKey="DesignScreen.configuration.icon.description" />
+        {designForm.state.themeOption !== "darkOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.icon.color.label.light">
+              <ColorPicker
+                color={designForm.state.customisableLightTheme.icon.color}
+                placeholderColor={DEFAULT_LIGHT_THEME.icon.color}
+                onChange={designForm.lightThemeSetters.setIconColor}
+              />
+            </Configuration>
+          </>
+        ) : null}
+        {designForm.state.themeOption !== "lightOnly" ? (
+          <>
+            <Configuration labelKey="DesignScreen.configuration.icon.color.label.dark">
+              <ColorPicker
+                color={designForm.state.customisableDarkTheme.icon.color}
+                placeholderColor={DEFAULT_DARK_THEME.icon.color}
+                onChange={designForm.darkThemeSetters.setIconColor}
+              />
+            </Configuration>
+          </>
+        ) : null}
+      </ConfigurationGroup>
+    );
+  };
+
 interface LinkConfigurationProps {
   designForm: BranchDesignForm;
 }
@@ -721,6 +756,8 @@ const ConfigurationPanel: React.VFC<ConfigurationPanelProps> =
         <BackgroundConfiguration designForm={designForm} />
         <Separator />
         <ButtonConfiguration designForm={designForm} />
+        <Separator />
+        <IconConfiguration designForm={designForm} />
         <Separator />
         <LinkConfiguration designForm={designForm} />
         <Separator />
