@@ -1,5 +1,5 @@
 .root {
-  @apply flex gap-4 items-center flex-wrap;
+  @apply flex items-center flex-wrap;
   @apply h-11;
 
   /* Align the first item with the screen title. */
@@ -9,6 +9,7 @@
 .searchBox {
   @apply w-[300px] flex-none;
   @apply mobile:w-full;
+  @apply mx-4;
 }
 
 .dateRangeFilter {
