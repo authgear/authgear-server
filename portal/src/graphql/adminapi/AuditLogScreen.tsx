@@ -275,6 +275,11 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
 
   const [debouncedSearchQuery] = useDebounced(filters.searchKeyword, 300);
 
+  // Reset page to zero on search
+  useEffect(() => {
+    setOffset(0);
+  }, [debouncedSearchQuery]);
+
   const { renderToString } = useContext(Context);
 
   // When the page is refreshed, and it is on the first page,
