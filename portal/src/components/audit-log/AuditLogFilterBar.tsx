@@ -97,13 +97,16 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
             onClear={onClearSearchKeyword}
             {...searchBoxProps}
           />
-          <ClearAllButton
-            className={styles.clearAllButton}
-            onClick={onRemoveAllFilters}
-          />
         </div>
-
-        <RefreshButton onClick={onRefresh} lastUpdatedAt={lastUpdatedAt} />
+        <div className={styles.filterActionContainer}>
+          <div className={styles.clearAllButtonContainer}>
+            <ClearAllButton
+              className={styles.clearAllButton}
+              onClick={onRemoveAllFilters}
+            />
+          </div>
+          <RefreshButton onClick={onRefresh} lastUpdatedAt={lastUpdatedAt} />
+        </div>
       </div>
     );
   };

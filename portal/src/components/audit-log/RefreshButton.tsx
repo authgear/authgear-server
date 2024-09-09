@@ -22,7 +22,10 @@ export const RefreshButton: React.VFC<RefreshButtonProps> =
         display: "flex",
         padding: "auto",
         height: "100%",
-        justifySelf: "flex-end",
+        // mobile
+        "@media(max-width: 640px)": {
+          height: "2.75rem", // 44px
+        },
       },
     };
     const tooltipId = useId("refreshTooltip");

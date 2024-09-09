@@ -5,6 +5,10 @@
   /* Align the first item with the screen title. */
   @apply px-3.5;
 
+  @apply tablet:flex tablet:flex-col;
+  @apply tablet:h-auto;
+  @apply tablet:px-4;
+
   /* Mimick command bar bottom border */
   border-bottom: 1px solid #edebe9;
 }
@@ -12,23 +16,42 @@
 .filterContainer {
   @apply flex items-center;
   @apply h-full;
-  @apply flex-1-0-auto;
+
+  @apply tablet:grid tablet:grid-cols-2 tablet:gap-4;
+  @apply tablet:h-auto tablet:w-full;
 }
 
 .searchBox {
-  @apply w-[300px] flex-none;
-  @apply mobile:w-full;
+  @apply w-[300px] flex-1-0-auto;
   @apply mx-4;
+
+  @apply tablet:w-full;
+  @apply tablet:col-span-2;
+  @apply tablet:mx-0;
 }
 
 .dateRangeFilter {
-  @apply h-full;
+  @apply h-full tablet:h-11;
 }
 
 .activityTypeFilter {
+  @apply h-full tablet:h-11;
+}
+
+.filterActionContainer {
   @apply h-full;
+  @apply flex items-center;
+  @apply flex-1-0-auto;
+
+  @apply tablet:h-auto;
+  @apply tablet:w-full;
+}
+
+.clearAllButtonContainer {
+  @apply h-full;
+  @apply flex-1-0-auto;
 }
 
 .clearAllButton {
-  @apply h-full;
+  @apply h-full tablet:h-11;
 }
