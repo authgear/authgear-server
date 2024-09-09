@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-restricted-imports
-import * as zxcvbn from "zxcvbn";
+import zxcvbn from "zxcvbn";
 
 export type GuessableLevel = 0 | 1 | 2 | 3 | 4 | 5;
 

@@ -1,14 +1,12 @@
 {
   "name": "authgear-portal",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "type": "module",
   "scripts": {
     "test": "jest",
-    "start": "parcel serve --port 1234 --no-cache './src/*.html'",
-    "build": "PARCEL_BUNDLE_ANALYZER=1 parcel build --no-cache --no-scope-hoist './src/*.html'",
-    "clean": "rm -rf ./dist/ ./parcel-bundle-reports/ && mkdir ./dist/ && touch ./dist/.gitkeep",
+    "start": "vite",
+    "build": "vite build",
+    "clean": "rm -rf ./dist/ && mkdir ./dist/ && touch ./dist/.gitkeep",
     "typecheck": "tsc",
     "prettier:format": "prettier --list-different --write --cache './src/**/*.{js,ts,jsx,tsx,css,scss,html}'",
     "eslint:format": "eslint --cache --fix './src/**/*.{js,ts,jsx,tsx}'",
@@ -17,11 +15,8 @@
     "eslint": "eslint --cache './src/**/*.{js,ts,jsx,tsx}'",
     "stylelint": "stylelint --cache './src/**/*.{css,scss}'",
     "gentype": "graphql-codegen --config ./graphql.portal.codegen.yaml && graphql-codegen --config ./graphql.adminapi.codegen.yaml",
-    "generateCodesplit": "node ./scripts/generateCodesplit.mjs"
-  },
-  "alias": {
-    "process": false,
-    "buffer": false
+    "generateCodesplit": "node ./scripts/generateCodesplit.mjs",
+    "ensure-reproducible-build": "../scripts/sh/ensure-reproducible-build.sh -n 5 -p './dist/.vite/manifest.json'"
   },
   "overrides": {
     "word-wrap": "@aashutoshrathi/word-wrap"
@@ -45,18 +40,17 @@
     "@types/stripe-v3": "3.1.32",
     "@types/uuid": "9.0.7",
     "@types/zxcvbn": "4.4.4",
+    "@vitejs/plugin-react": "4.3.1",
     "eslint": "8.45.0",
     "graphql": "16.8.1",
     "jest": "29.7.0",
     "jest-environment-jsdom": "29.7.0",
-    "parcel": "2.10.2",
-    "parcel-resolver-authgear": "1.0.0",
-    "parcel-resolver-ignore": "2.2.0",
     "prettier": "2.8.8",
     "stylelint": "14.11.0",
     "tailwindcss": "3.3.5",
     "ts-jest": "29.1.1",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "vite": "5.4.3"
   },
   "dependencies": {
     "@apollo/client": "3.8.7",
@@ -70,7 +64,7 @@
     "@monaco-editor/react": "4.6.0",
     "@oursky/react-messageformat": "2.0.2",
     "@sentry/react": "7.80.0",
-    "@tabler/icons": "1.92.0",
+    "@tabler/icons": "1.107.0",
     "axios": "1.7.4",
     "base64-js": "1.5.1",
     "bignumber.js": "9.1.2",
@@ -91,13 +85,10 @@
     "react": "17.0.2",
     "react-chartjs-2": "5.2.0",
     "react-dom": "17.0.2",
-    "react-helmet-async": "1.3.0",
+    "react-helmet-async": "2.0.5",
     "react-router-dom": "6.3.0",
     "tzdata": "1.0.40",
     "uuid": "9.0.1",
     "zxcvbn": "4.4.2"
-  },
-  "parcelIgnore": [
-    "/api/osano.js"
-  ]
+  }
 }

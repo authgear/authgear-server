@@ -46,13 +46,16 @@ jobs:
     - run: npm run prettier
       working-directory: ./authui
       if: ${{ !cancelled() }}
+    - run: npm run test
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
     - run: make check-tidy
       working-directory: ./authui
       if: ${{ !cancelled() }}
     - run: npm run build
       working-directory: ./authui
       if: ${{ !cancelled() }}
-    - run: ./ensure-reproducible-build.sh
+    - run: npm run ensure-reproducible-build
       working-directory: ./authui
       if: ${{ !cancelled() }}
 
@@ -100,6 +103,9 @@ jobs:
       working-directory: ./portal
       if: ${{ !cancelled() }}
     - run: npm run build
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run ensure-reproducible-build
       working-directory: ./portal
       if: ${{ !cancelled() }}
 

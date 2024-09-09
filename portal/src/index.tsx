@@ -1,4 +1,10 @@
 // /* global process */
+import "intl-tel-input/build/js/utils.js";
+import "intl-tel-input/build/css/intlTelInput.css";
+import "cropperjs/dist/cropper.min.css";
+import "@tabler/icons/iconfont/tabler-icons.min.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
 import React from "react";
 import { render } from "react-dom";
 import { initializeIcons, registerIcons } from "@fluentui/react";

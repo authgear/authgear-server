@@ -232,9 +232,6 @@ react-router-dom@6.4.0 removed the `block` function from NavigationContext.
 We have to remain on react-router-dom@6.3.0 until we find an alternative.
 As of react-router-dom@6.18.0, unstable_useBlocker and unstable_usePrompt are still marked as unstable.
 
-@tabler/icons@1.92.0 is the last version that can be built with our current setup.
-Newer version will cause our `npm run build` command to fail.
-
 NPM has an outstanding issue related to optional native dependencies.
 https://github.com/npm/cli/issues/4828
 The issue will happen if the following conditions hold:
@@ -244,16 +241,6 @@ The issue will happen if the following conditions hold:
 - npm ci becomes broken on non macOS arm machines
 So whenever we want to update dependencies, we first delete node\_modules and package-lock.json.
 Then npm install will generate a correct package-lock.json.
-
-When Parcel cannot resolve nodejs globals such as `process` and `Buffer`,
-it installs them for us.
-But we do not want to do that.
-The workaround is to add `alias` to package.json.
-See [https://github.com/parcel-bundler/parcel/issues/7697](https://github.com/parcel-bundler/parcel/issues/7697).
-
-When we allow Parcel to perform tree shaking on code-splitted third party bundle,
-refreshing a page will encounter module not found error.
-To work around this, we disallow tree shaking in codesplit.ts.
 
 Docker Desktop on Mac has [an issue](https://github.com/docker/for-mac/issues/5812#issuecomment-874532024) that would lead to an unresponsive reverse proxy.
 One of the comment says enabling "Use the new Virtualization framework" would help.
