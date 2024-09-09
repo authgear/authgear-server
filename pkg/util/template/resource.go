@@ -32,7 +32,7 @@ func isTemplateUpdateAllowed(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// HTML defines a HTML template
+// HTML defines a HTML template that is non-customizable
 type HTML struct {
 	// Name is the name of template
 	Name string
@@ -40,6 +40,7 @@ type HTML struct {
 	ComponentDependencies []*HTML
 }
 
+// MessageHTML defines a HTML template that is customizable
 type MessageHTML struct {
 	// Name is the name of template
 	Name string
@@ -94,7 +95,7 @@ func (t *MessageHTML) UpdateResource(ctx context.Context, _ []resource.ResourceF
 	}, nil
 }
 
-// PlainText defines a plain text template
+// PlainText defines a plain text template that is non-customizable
 type PlainText struct {
 	// Name is the name of template
 	Name string
@@ -102,6 +103,7 @@ type PlainText struct {
 	ComponentDependencies []*PlainText
 }
 
+// MessagePlainText defines a plain text template that is customizable
 type MessagePlainText struct {
 	// Name is the name of template
 	Name string
