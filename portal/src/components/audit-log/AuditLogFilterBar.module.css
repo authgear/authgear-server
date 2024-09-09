@@ -4,6 +4,9 @@
 
   /* Align the first item with the screen title. */
   @apply px-3.5;
+
+  /* Mimick command bar bottom border */
+  border-bottom: 1px solid #edebe9;
 }
 
 .filterContainer {
