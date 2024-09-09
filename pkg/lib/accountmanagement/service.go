@@ -88,6 +88,15 @@ type RemovePasskeyOutput struct {
 	// It is intentionally empty.
 }
 
+type RemoveBiometricInput struct {
+	Session    session.ResolvedSession
+	IdentityID string
+}
+
+type RemoveBiometricOuput struct {
+	// It is intentionally empty.
+}
+
 type Store interface {
 	GenerateToken(options GenerateTokenOptions) (string, error)
 	ConsumeToken(tokenStr string) (*Token, error)
@@ -147,6 +156,71 @@ type Service struct {
 	PasskeyService            PasskeyService
 	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
 	Users                     UserService
+}
+
+func (s *Service) removeIdentity(identityID string, userID string) (identityInfo *identity.Info, err error) {
+	identityInfo, err = s.Identities.Get(identityID)
+	if err != nil {
+		return nil, err
+	}
+
+	if identityInfo.UserID != userID {
+		return nil, api.NewInvariantViolated(
+			"IdentityNotBelongToUser",
+			"identity does not belong to the user",
+			nil,
+		)
+	}
+
+	err = s.Identities.Delete(identityInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return identityInfo, nil
+}
+
+func (s *Service) dispatchDisabledIdentityEvent(identityInfo *identity.Info) (err error) {
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: identityInfo.UserID,
+		},
+	}
+
+	var e event.Payload
+	switch identityInfo.Type {
+	case model.IdentityTypeLoginID:
+		loginIDType := identityInfo.LoginID.LoginIDType
+		if payload, ok := nonblocking.NewIdentityLoginIDRemovedEventPayload(
+			userRef,
+			identityInfo.ToModel(),
+			string(loginIDType),
+			false,
+		); ok {
+			e = payload
+		}
+	case model.IdentityTypeOAuth:
+		e = &nonblocking.IdentityOAuthDisconnectedEventPayload{
+			UserRef:  userRef,
+			Identity: identityInfo.ToModel(),
+			AdminAPI: false,
+		}
+	case model.IdentityTypeBiometric:
+		e = &nonblocking.IdentityBiometricDisabledEventPayload{
+			UserRef:  userRef,
+			Identity: identityInfo.ToModel(),
+			AdminAPI: false,
+		}
+	}
+
+	if e != nil {
+		err = s.Events.DispatchEventOnCommit(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
@@ -441,26 +515,38 @@ func (s *Service) AddPasskey(input *AddPasskeyInput) (*AddPasskeyOutput, error) 
 func (s *Service) RemovePasskey(input *RemovePasskeyInput) (*RemovePasskeyOutput, error) {
 	userID := input.Session.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
-	var identityInfo *identity.Info
+
 	err := s.Database.WithTx(func() (err error) {
-		// case *nodes.NodeDoUseUser:
-		identityInfo, err = s.Identities.Get(identityID)
+		// case *nodes.NodeDoUseUser: (Passkey skip DeleteDisabled check)
+		_, err = s.removeIdentity(identityID, userID)
+		if err != nil {
+			return err
+		}
+		// NodeDoRemoveIdentity GetEffects() -> EffectOnCommit()
+		// Passkey no PayloadEvent for EffectOnCommit
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RemovePasskeyOutput{}, nil
+}
+
+func (s *Service) RemoveBiometric(input *RemoveBiometricInput) (*RemoveBiometricOuput, error) {
+	identityID := input.IdentityID
+	userID := input.Session.GetAuthenticationInfo().UserID
+
+	err := s.Database.WithTx(func() (err error) {
+		// case *nodes.NodeDoUseUser: (Biometric skip DeleteDisabled check)
+		identityInfo, err := s.removeIdentity(identityID, userID)
 		if err != nil {
 			return err
 		}
 
-		if identityInfo.UserID != userID {
-			return api.NewInvariantViolated(
-				"IdentityNotBelongToUser",
-				"identity does not belong to the user",
-				nil,
-			)
-		}
-
-		// case *nodes.NodeRemoveIdentity: EdgeDoRemoveIdentity{Identity: node.IdentityInfo}
-		// (Passkey skip DeleteDisabled check)
-		// NodeDoRemoveIdentity GetEffects()
-		err = s.Identities.Delete(identityInfo)
+		// NodeDoRemoveIdentity GetEffects() -> EffectOnCommit()
+		err = s.dispatchDisabledIdentityEvent(identityInfo)
 		if err != nil {
 			return err
 		}
@@ -471,5 +557,5 @@ func (s *Service) RemovePasskey(input *RemovePasskeyInput) (*RemovePasskeyOutput
 		return nil, err
 	}
 
-	return &RemovePasskeyOutput{}, nil
+	return &RemoveBiometricOuput{}, nil
 }
