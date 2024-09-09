@@ -1,9 +1,12 @@
 package accountmanagement
 
 import (
+	"encoding/json"
+
 	"time"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+	"github.com/go-webauthn/webauthn/protocol"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -59,6 +62,15 @@ type CreateAdditionalPasswordInput struct {
 	Password           string
 }
 
+type AddPasskeyInput struct {
+	Session          session.ResolvedSession
+	CreationResponse *protocol.CredentialCreationResponse
+}
+
+type AddPasskeyOutput struct {
+	// It is intentionally empty.
+}
+
 func NewCreateAdditionalPasswordInput(userID string, password string) CreateAdditionalPasswordInput {
 	return CreateAdditionalPasswordInput{
 		NewAuthenticatorID: uuid.New(),
@@ -101,6 +113,10 @@ type AuthenticationInfoService interface {
 	Save(entry *authenticationinfo.Entry) error
 }
 
+type PasskeyService interface {
+	ConsumeAttestationResponse(attestationResponse []byte) (err error)
+}
+
 type SettingsDeleteAccountSuccessUIInfoResolver interface {
 	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
 }
@@ -117,6 +133,7 @@ type Service struct {
 	Events                    EventService
 	Authenticators            AuthenticatorService
 	AuthenticationInfoService AuthenticationInfoService
+	PasskeyService            PasskeyService
 	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
 	Users                     UserService
 }
@@ -349,4 +366,63 @@ func (s *Service) CreateAuthenticator(authenticatorInfo *authenticator.Info) err
 		return err
 	}
 	return nil
+}
+
+func (s *Service) AddPasskey(input *AddPasskeyInput) (*AddPasskeyOutput, error) {
+	// NodePromptCreatePasskey ReactTo
+	// case inputNodePromptCreatePasskey.IsCreationResponse()
+	userID := input.Session.GetAuthenticationInfo().UserID
+	creationResponse := input.CreationResponse
+	creationResponseBytes, err := json.Marshal(creationResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	authenticatorSpec := &authenticator.Spec{
+		UserID: userID,
+		Kind:   authenticator.KindPrimary,
+		Type:   model.AuthenticatorTypePasskey,
+		Passkey: &authenticator.PasskeySpec{
+			AttestationResponse: creationResponseBytes,
+		},
+	}
+
+	authenticatorID := uuid.New()
+	authenticatorInfo, err := s.Authenticators.NewWithAuthenticatorID(authenticatorID, authenticatorSpec)
+	if err != nil {
+		return nil, err
+	}
+
+	identitySpec := &identity.Spec{
+		Type: model.IdentityTypePasskey,
+		Passkey: &identity.PasskeySpec{
+			AttestationResponse: creationResponseBytes,
+		},
+	}
+	identityInfo, err := s.Identities.New(userID, identitySpec, identity.NewIdentityOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Database.WithTx(func() error {
+		err := s.Identities.Create(identityInfo)
+		if err != nil {
+			return err
+		}
+		// NodeDoCreatePasskey GetEffects()
+		err = s.Authenticators.Create(authenticatorInfo, false)
+		if err != nil {
+			return err
+		}
+		err = s.PasskeyService.ConsumeAttestationResponse(creationResponseBytes)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AddPasskeyOutput{}, nil
 }
