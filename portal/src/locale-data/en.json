@@ -1022,7 +1022,7 @@
   "DesignScreen.configuration.authgearBranding.disableAuthgearLogo.label": "Display Authgear logo in Sign in and Sign up page",
   "DesignScreen.configuration.fallback": "Leave unset to fallback to primary language settings - {fallbackLanguage}",
   "DesignScreen.preview.pages.title.Login": "Log In",
-  "DesignScreen.preview.pages.title.LoginAndSignUp": "Sign Up/Login",
+  "DesignScreen.preview.pages.title.LoginAndSignUp": "Sign Up or Log In",
   "DesignScreen.preview.pages.title.SignUp": "Sign Up",
   "DesignScreen.preview.pages.title.EnterPassword": "Enter Password",
   "DesignScreen.preview.pages.title.EnterOOBOTP": "Verification Code",
