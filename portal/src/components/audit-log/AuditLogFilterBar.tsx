@@ -12,6 +12,7 @@ import {
 } from "./ActivityTypeFilterDropdown";
 import { AuditLogActivityType } from "../../graphql/adminapi/globalTypes.generated";
 import { ClearAllButton } from "./ClearAllButton";
+import { RefreshButton } from "./RefreshButton";
 
 export interface AuditLogFilter {
   searchKeyword: string;
@@ -33,9 +34,11 @@ interface AuditLogFilterBarProps {
   filters: AuditLogFilter;
   onFilterChange: (fn: (prevValue: AuditLogFilter) => AuditLogFilter) => void;
   onRemoveAllFilters: () => void;
+  onRefresh: () => void;
   searchBoxProps?: ISearchBoxProps;
   dateRange: AuditLogFilterBarPropsDateRange;
   availableActivityTypes: AuditLogActivityType[];
+  lastUpdatedAt: Date;
 }
 
 export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
@@ -44,9 +47,11 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
     filters,
     onFilterChange,
     onRemoveAllFilters,
+    onRefresh,
     searchBoxProps,
     dateRange,
     availableActivityTypes,
+    lastUpdatedAt,
   }) {
     const onChangeSearchKeyword = useCallback(
       (e?: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,29 +77,33 @@ export const AuditLogFilterBar: React.VFC<AuditLogFilterBarProps> =
 
     return (
       <div className={cn(styles.root, className)}>
-        <DateRangeFilterDropdown
-          className={styles.dateRangeFilter}
-          value={dateRange.value}
-          onClickAllDateRange={dateRange.onClickAllDateRange}
-          onClickCustomDateRange={dateRange.onClickCustomDateRange}
-        />
-        <ActivityTypeFilterDropdown
-          className={styles.activityTypeFilter}
-          value={filters.activityType}
-          onChange={onChangeActivityType}
-          availableActivityTypes={availableActivityTypes}
-        />
-        <SearchBox
-          className={styles.searchBox}
-          value={filters.searchKeyword}
-          onChange={onChangeSearchKeyword}
-          onClear={onClearSearchKeyword}
-          {...searchBoxProps}
-        />
-        <ClearAllButton
-          className={styles.clearAllButton}
-          onClick={onRemoveAllFilters}
-        />
+        <div className={styles.filterContainer}>
+          <DateRangeFilterDropdown
+            className={styles.dateRangeFilter}
+            value={dateRange.value}
+            onClickAllDateRange={dateRange.onClickAllDateRange}
+            onClickCustomDateRange={dateRange.onClickCustomDateRange}
+          />
+          <ActivityTypeFilterDropdown
+            className={styles.activityTypeFilter}
+            value={filters.activityType}
+            onChange={onChangeActivityType}
+            availableActivityTypes={availableActivityTypes}
+          />
+          <SearchBox
+            className={styles.searchBox}
+            value={filters.searchKeyword}
+            onChange={onChangeSearchKeyword}
+            onClear={onClearSearchKeyword}
+            {...searchBoxProps}
+          />
+          <ClearAllButton
+            className={styles.clearAllButton}
+            onClick={onRemoveAllFilters}
+          />
+        </div>
+
+        <RefreshButton onClick={onRefresh} lastUpdatedAt={lastUpdatedAt} />
       </div>
     );
   };

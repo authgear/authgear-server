@@ -6,6 +6,12 @@
   @apply px-3.5;
 }
 
+.filterContainer {
+  @apply flex items-center;
+  @apply h-full;
+  @apply flex-1-0-auto;
+}
+
 .searchBox {
   @apply w-[300px] flex-none;
   @apply mobile:w-full;

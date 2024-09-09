@@ -10,18 +10,7 @@ import {
   useSearchParams,
   URLSearchParamsInit,
 } from "react-router-dom";
-import {
-  ICommandBarItemProps,
-  addDays,
-  TooltipHost,
-  ITooltipHostStyles,
-  ITooltipProps,
-  DirectionalHint,
-  Pivot,
-  PivotItem,
-  ISearchBoxProps,
-} from "@fluentui/react";
-import { useId } from "@fluentui/react-hooks";
+import { addDays, Pivot, PivotItem, ISearchBoxProps } from "@fluentui/react";
 import { FormattedMessage, Context } from "@oursky/react-messageformat";
 import { useQuery } from "@apollo/client";
 import { DateTime } from "luxon";
@@ -41,7 +30,6 @@ import { AuditLogActivityType, SortDirection } from "./globalTypes.generated";
 import styles from "./AuditLogScreen.module.css";
 import { useAppFeatureConfigQuery } from "../portal/query/appFeatureConfigQuery";
 import FeatureDisabledMessageBar from "../portal/FeatureDisabledMessageBar";
-import CommandBarButton from "../../CommandBarButton";
 import { useDebounced } from "../../hook/useDebounced";
 import { toTypedID } from "../../util/graphql";
 import { NodeType } from "./node";
@@ -74,45 +62,6 @@ enum AuditLogKind {
 }
 function isAuditLogKind(s: string): s is AuditLogKind {
   return Object.values(AuditLogKind).includes(s as AuditLogKind);
-}
-
-function _RefreshButton(props: ICommandBarItemProps) {
-  const tooltipStyle: Partial<ITooltipHostStyles> = {
-    root: { display: "inline-block" },
-  };
-  const tooltipId = useId("refreshTooltip");
-  const tooltipCalloutProps = {
-    gapSpace: 0,
-  };
-
-  const { renderToString, locale } = useContext(Context);
-
-  const tooltipProps: ITooltipProps = useMemo(() => {
-    return {
-      // eslint-disable-next-line react/no-unstable-nested-components
-      onRenderContent: () => {
-        const tooltipcontent = renderToString("AuditLogScreen.last-update-at", {
-          datetime: DateTime.fromJSDate(props.lastUpdatedAt).toRelative({
-            locale,
-          }),
-        });
-        return <>{tooltipcontent}</>;
-      },
-    };
-  }, [locale, props.lastUpdatedAt, renderToString]);
-
-  return (
-    <TooltipHost
-      styles={tooltipStyle}
-      id={tooltipId}
-      calloutProps={tooltipCalloutProps}
-      directionalHint={DirectionalHint.bottomCenter}
-      tooltipProps={tooltipProps}
-    >
-      {/* @ts-expect-error */}
-      <CommandBarButton {...props} />
-    </TooltipHost>
-  );
 }
 
 // eslint-disable-next-line complexity
@@ -501,7 +450,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
     }));
   }, [onFilterChange, setRangeFromImmediately, setRangeToImmediately]);
 
-  const _onClickRefresh = useCallback(
+  const onClickRefresh = useCallback(
     (e?: React.MouseEvent<unknown> | React.KeyboardEvent<unknown>) => {
       e?.stopPropagation();
       setLastUpdatedAt(new Date());
@@ -636,6 +585,8 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
           dateRange={filtersDateRange}
           availableActivityTypes={availableActivityTypes}
           onRemoveAllFilters={onRemoveAllFilters}
+          onRefresh={onClickRefresh}
+          lastUpdatedAt={lastUpdatedAt}
         />
         <div className={styles.listContainer}>
           <CommandBarContainer
