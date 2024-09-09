@@ -1,5 +1,5 @@
 # Stage 1: Build the Go binary
-FROM quay.io/theauthgear/golang:1.22.5-noble as stage1
+FROM quay.io/theauthgear/golang:1.22.7-noble as stage1
 
 # Install build time C dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
