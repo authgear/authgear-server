@@ -38,7 +38,10 @@ type SAMLSessionService interface {
 }
 
 type SAMLUIService interface {
-	ResolveUIInfo(entry *samlsession.SAMLSessionEntry) (*samlsession.SAMLUIInfo, error)
+	ResolveUIInfo(
+		sp *config.SAMLServiceProviderConfig,
+		entry *samlsession.SAMLSessionEntry,
+	) (info *samlsession.SAMLUIInfo, showUI bool, err error)
 	BuildAuthenticationURL(s *samlsession.SAMLSession) (*url.URL, error)
 }
 

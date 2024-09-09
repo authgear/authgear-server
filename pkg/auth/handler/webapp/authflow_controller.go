@@ -901,6 +901,7 @@ func (c *AuthflowController) makeSessionOptionsFromSAML(samlSessionID string) (*
 
 		RedirectURI: uiInfo.RedirectURI,
 		Prompt:      uiInfo.Prompt,
+		LoginHint:   uiInfo.LoginHint,
 	}
 
 	return sessionOptions, nil

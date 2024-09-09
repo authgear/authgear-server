@@ -5,6 +5,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 )
 
@@ -23,6 +26,9 @@ type SAMLUIInfo struct {
 	RedirectURI string
 	// Prompt is the resolved oidc prompt from ForceAuthn and IsPassive for AuthnRequest.
 	Prompt []string
+
+	// login_hint resolved from <Subject>
+	LoginHint string
 }
 
 func (i *SAMLUIInfo) ToUIParam() uiparam.T {
@@ -64,36 +70,70 @@ func (r *UIService) RemoveSAMLSessionID(w http.ResponseWriter, req *http.Request
 	req.URL = &reqURL
 }
 
-func (r *UIService) ResolveUIInfo(entry *SAMLSessionEntry) (*SAMLUIInfo, error) {
+func (r *UIService) ResolveUIInfo(sp *config.SAMLServiceProviderConfig, entry *SAMLSessionEntry) (
+	info *SAMLUIInfo, showUI bool, err error) {
 	var prompt []string
 	authnRequest, authnRequestExist := entry.AuthnRequest()
 	switch {
 	case !authnRequestExist:
 		// This is an Idp-Initiated flow, allow user to select_account or login
 		prompt = []string{}
+		showUI = true
 	case authnRequest.GetIsPassive() == false && authnRequest.GetForceAuthn() == false:
 		prompt = []string{}
+		showUI = true
 	case authnRequest.GetIsPassive() == false && authnRequest.GetForceAuthn() == true:
 		prompt = []string{"login"}
+		showUI = true
 	case authnRequest.GetIsPassive() == true && authnRequest.GetForceAuthn() == false:
 		// prompt=none
-		// This case does not involves ui, so it is unexpected to reach here
-		fallthrough
+		showUI = false
 	default:
 		// Other cases should be blocked in request validation stage.
 		// It is an unexpected error if it reaches here
-		return nil, fmt.Errorf("unexpected: IsPassive=%v and ForceAuthn=%v",
+		return nil, false, fmt.Errorf("unexpected: IsPassive=%v and ForceAuthn=%v",
 			authnRequest.GetIsPassive(),
 			authnRequest.GetForceAuthn())
 	}
 
-	info := &SAMLUIInfo{
+	var loginHintStr string
+	if authnRequestExist && authnRequest.Subject != nil && authnRequest.Subject.NameID != nil {
+		nameID := authnRequest.Subject.NameID
+		loginHint := &oauth.LoginHint{
+			Type:    oauth.LoginHintTypeLoginID,
+			Enforce: true,
+		}
+		switch sp.NameIDFormat {
+		case config.SAMLNameIDFormatEmailAddress:
+			loginHint.LoginIDEmail = nameID.Value
+		case config.SAMLNameIDFormatUnspecified:
+			switch sp.NameIDAttributePointer {
+			case "/email":
+				loginHint.LoginIDEmail = nameID.Value
+			case "/phone_number":
+				loginHint.LoginIDPhone = nameID.Value
+			case "/preferred_username":
+				loginHint.LoginIDUsername = nameID.Value
+			default:
+				return nil, false, &samlerror.InvalidRequestError{
+					Field:  "Subject",
+					Reason: "Using <Subject> in <AuthnRequest> is only supported when nameid_attribute_pointer is '/email', '/phone_number' or 'preferred_username'",
+				}
+			}
+		default:
+			panic(fmt.Errorf("unknown nameid format %v", sp.NameIDFormat))
+		}
+		loginHintStr = loginHint.String()
+	}
+
+	info = &SAMLUIInfo{
 		SAMLServiceProviderID: entry.ServiceProviderID,
 		RedirectURI:           r.Endpoints.SAMLLoginFinishURL().String(),
 		Prompt:                prompt,
+		LoginHint:             loginHintStr,
 	}
 
-	return info, nil
+	return info, showUI, nil
 }
 
 func (s *UIService) BuildAuthenticationURL(session *SAMLSession) (*url.URL, error) {

@@ -16,6 +16,8 @@ const (
 	LoginHintTypeLoginID         LoginHintType = "login_id"
 )
 
+const loginHintPrefix = "https://authgear.com/login_hint?"
+
 type LoginHint struct {
 	Type    LoginHintType
 	Enforce bool
@@ -33,8 +35,35 @@ type LoginHint struct {
 	LoginIDPhone    string
 }
 
+func (h *LoginHint) String() string {
+	q := url.Values{}
+	switch h.Type {
+	case LoginHintTypeLoginID:
+		q.Set("type", string(LoginHintTypeLoginID))
+		q.Set("enforce", strconv.FormatBool(h.Enforce))
+		if h.LoginIDEmail != "" {
+			q.Set("email", h.LoginIDEmail)
+		}
+		if h.LoginIDPhone != "" {
+			q.Set("phone", h.LoginIDPhone)
+		}
+		if h.LoginIDUsername != "" {
+			q.Set("username", h.LoginIDUsername)
+		}
+	default:
+		panic(fmt.Errorf("cannot convert login_hint to string with type: %v", h.Type))
+	}
+	u, err := url.Parse(loginHintPrefix)
+	if err != nil {
+		panic(err)
+	}
+
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
 func ParseLoginHint(s string) (*LoginHint, error) {
-	if !strings.HasPrefix(s, "https://authgear.com/login_hint?") {
+	if !strings.HasPrefix(s, loginHintPrefix) {
 		return nil, fmt.Errorf("invalid login_hint: %v", s)
 	}
 

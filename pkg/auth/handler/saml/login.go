@@ -191,7 +191,6 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		string(authnRequest.ToXMLBytes()),
 		callbackURL,
 		relayState,
-		authnRequest.GetIsPassive(),
 	)
 	h.writeResult(rw, r, result)
 }
@@ -242,7 +241,6 @@ func (h *LoginHandler) handleIdpInitiated(
 		"",
 		callbackURL,
 		"",
-		false,
 	)
 }
 
@@ -252,7 +250,6 @@ func (h *LoginHandler) startSSOFlow(
 	authnRequestXML string,
 	callbackURL string,
 	relayState string,
-	isPassive bool,
 ) httputil.Result {
 	now := h.Clock.NowUTC()
 	issuer := h.SAMLService.IdpEntityID()
@@ -264,7 +261,28 @@ func (h *LoginHandler) startSSOFlow(
 		RelayState:        relayState,
 	}
 
-	if isPassive == true {
+	uiInfo, showUI, err := h.SAMLUIService.ResolveUIInfo(sp, samlSessionEntry)
+	if err != nil {
+		var invalidRequestErr *samlerror.InvalidRequestError
+		if errors.As(err, &invalidRequestErr) {
+			return samlprotocolhttp.NewExpectedSAMLErrorResult(err,
+				samlprotocolhttp.SAMLResult{
+					CallbackURL: callbackURL,
+					Binding:     samlprotocol.SAMLBindingHTTPPost,
+					Response: samlprotocol.NewRequestDeniedErrorResponse(
+						now,
+						issuer,
+						fmt.Sprintf("invalid SAMLRequest: %s", invalidRequestErr.Reason),
+						invalidRequestErr.GetDetailElements(),
+					),
+					RelayState: relayState,
+				},
+			)
+		}
+		panic(err)
+	}
+
+	if !showUI {
 		// If IsPassive=true, no ui should be displayed.
 		// Authenticate by existing session or error.
 		var resolvedSession session.ResolvedSession
@@ -300,11 +318,6 @@ func (h *LoginHandler) startSSOFlow(
 			return result
 		}
 
-	}
-
-	uiInfo, err := h.SAMLUIService.ResolveUIInfo(samlSessionEntry)
-	if err != nil {
-		panic(err)
 	}
 
 	samlSession := samlsession.NewSAMLSession(samlSessionEntry, uiInfo)
