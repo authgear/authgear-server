@@ -28,5 +28,7 @@ export function formatDatetime(
   }
 
   datetime = datetime.setLocale(locale);
-  return datetime.toLocaleString(dateTimeWithTimezoneFormatOption);
+  return datetime
+    .toLocaleString(dateTimeWithTimezoneFormatOption)
+    .replace("GMT+", "UTC+");
 }
