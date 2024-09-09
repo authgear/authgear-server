@@ -85,8 +85,8 @@ func (t *HTML) UpdateResource(_ context.Context, _ []resource.ResourceFile, resr
 }
 
 func (t *MessageHTML) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
-	if isAllowed, error := isTemplateUpdateAllowed(ctx); !isAllowed || error != nil {
-		return nil, error
+	if isAllowed, err := isTemplateUpdateAllowed(ctx); !isAllowed || err != nil {
+		return nil, err
 	}
 	return &resource.ResourceFile{
 		Location: resrc.Location,
@@ -145,8 +145,8 @@ func (t *PlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile,
 }
 
 func (t *MessagePlainText) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
-	if isAllowed, error := isTemplateUpdateAllowed(ctx); !isAllowed || error != nil {
-		return nil, error
+	if isAllowed, err := isTemplateUpdateAllowed(ctx); !isAllowed || err != nil {
+		return nil, err
 	}
 	return &resource.ResourceFile{
 		Location: resrc.Location,
