@@ -15,10 +15,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -88,6 +93,15 @@ type RemovePasskeyOutput struct {
 	// It is intentionally empty.
 }
 
+type AddBiometricInput struct {
+	Session  session.ResolvedSession
+	JWTToken string
+}
+
+type AddBiometricOutput struct {
+	// It is intentionally empty.
+}
+
 type RemoveBiometricInput struct {
 	Session    session.ResolvedSession
 	IdentityID string
@@ -95,6 +109,14 @@ type RemoveBiometricInput struct {
 
 type RemoveBiometricOuput struct {
 	// It is intentionally empty.
+}
+
+type ChallengeProvider interface {
+	Consume(token string) (*challenge.Purpose, error)
+}
+
+type UserService interface {
+	Get(id string, role accesscontrol.Role) (*model.User, error)
 }
 
 type Store interface {
@@ -108,8 +130,13 @@ type OAuthProvider interface {
 	GetUserProfile(alias string, options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
 }
 
+type BiometricIdentityProvider interface {
+	ParseRequestUnverified(requestJWT string) (*biometric.Request, error)
+}
+
 type IdentityService interface {
 	Get(id string) (*identity.Info, error)
+	ListByUser(userID string) ([]*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	CheckDuplicated(info *identity.Info) (dupe *identity.Info, err error)
 	Create(info *identity.Info) error
@@ -147,8 +174,12 @@ type UserService interface {
 
 type Service struct {
 	Database                  *appdb.Handle
+	Config                    *config.AppConfig
+	Challenges                ChallengeProvider
+	Users                     UserService
 	Store                     Store
 	OAuthProvider             OAuthProvider
+	BiometricProvider         BiometricIdentityProvider
 	Identities                IdentityService
 	Events                    EventService
 	Authenticators            AuthenticatorService
@@ -178,6 +209,49 @@ func (s *Service) removeIdentity(identityID string, userID string) (identityInfo
 	}
 
 	return identityInfo, nil
+}
+
+func (s *Service) dispatchEnableIdentityEvent(identityInfo *identity.Info) (err error) {
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: identityInfo.UserID,
+		},
+	}
+
+	var e event.Payload
+	switch identityInfo.Type {
+	case model.IdentityTypeLoginID:
+		loginIDType := identityInfo.LoginID.LoginIDType
+		if payload, ok := nonblocking.NewIdentityLoginIDAddedEventPayload(
+			userRef,
+			identityInfo.ToModel(),
+			string(loginIDType),
+			false,
+		); ok {
+			e = payload
+		}
+	case model.IdentityTypeOAuth:
+		e = &nonblocking.IdentityOAuthConnectedEventPayload{
+			UserRef:  userRef,
+			Identity: identityInfo.ToModel(),
+			AdminAPI: false,
+		}
+	case model.IdentityTypeBiometric:
+		e = &nonblocking.IdentityBiometricEnabledEventPayload{
+			UserRef:  userRef,
+			Identity: identityInfo.ToModel(),
+			AdminAPI: false,
+		}
+	}
+
+	if e != nil {
+		err = s.Events.DispatchEventOnCommit(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (s *Service) dispatchDisabledIdentityEvent(identityInfo *identity.Info) (err error) {
@@ -532,6 +606,114 @@ func (s *Service) RemovePasskey(input *RemovePasskeyInput) (*RemovePasskeyOutput
 	}
 
 	return &RemovePasskeyOutput{}, nil
+}
+
+func (s *Service) AddBiometric(input *AddBiometricInput) (*AddBiometricOutput, error) {
+
+	// EdgeUseIdentityBiometric
+	enabled := false
+	for _, t := range s.Config.Authentication.Identities {
+		if t == model.IdentityTypeBiometric {
+			enabled = true
+			break
+		}
+	}
+
+	if !enabled {
+		return nil, api.NewInvariantViolated(
+			"BiometricDisallowed",
+			"biometric is not allowed",
+			nil,
+		)
+	}
+
+	jwt := input.JWTToken
+
+	request, err := s.BiometricProvider.ParseRequestUnverified(jwt)
+	if err != nil {
+		return nil, api.ErrInvalidCredentials
+	}
+
+	purpose, err := s.Challenges.Consume(request.Challenge)
+	if err != nil || *purpose != challenge.PurposeBiometricRequest {
+		return nil, api.ErrInvalidCredentials
+	}
+
+	// request.Action case: identitybiometric.RequestActionSetup
+	displayName := deviceinfo.DeviceModel(request.DeviceInfo)
+	if displayName == "" {
+		return nil, api.ErrInvalidCredentials
+	}
+	if request.Key == nil {
+		return nil, api.ErrInvalidCredentials
+	}
+
+	key, err := json.Marshal(request.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	userID := input.Session.GetAuthenticationInfo().UserID
+
+	// IsCreating: true
+	identitySpec := &identity.Spec{
+		Type: model.IdentityTypeBiometric,
+		Biometric: &identity.BiometricSpec{
+			KeyID:      request.KeyID,
+			Key:        string(key),
+			DeviceInfo: request.DeviceInfo,
+		},
+	}
+
+	// EdgeCreateIdentityEnd
+	identityInfo, err := s.Identities.New(userID, identitySpec, identity.NewIdentityOptions{LoginIDEmailByPassBlocklistAllowlist: false})
+	if err != nil {
+		return nil, err
+	}
+
+	// EdgeDoCreateIdentity
+	err = s.Database.WithTx(func() error {
+		user, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
+		if err != nil {
+			return err
+		}
+
+		if user.IsAnonymous {
+			return api.NewInvariantViolated(
+				"AnonymousUserAddIdentity",
+				"anonymous user cannot add identity",
+				nil,
+			)
+		}
+
+		if _, err := s.Identities.CheckDuplicated(identityInfo); err != nil {
+			return err
+		}
+
+		if err := s.Identities.Create(identityInfo); err != nil {
+			return err
+		}
+
+		// EdgeEnsureVerificationBegin (shouldVerify: false)
+		// -> EdgeDoVerifyIdentity (NewVerifiedClaim = nil, SkipVerificationEvent = true)
+		// -> EdgeDoUseIdentity (e.UserIDHint == "")
+		// -> EdgeEnsureRemoveAnonymousIdentity (anonymousIdentities == nil as checked above)
+		// -> EdgeCreateAuthenticatorBegin (n.Stage: authn.AuthenticationStagePrimary -> identityRequiresPrimaryAuthentication = false)
+		// -> EdgeCreateAuthenticatorEnd (Authenticators: nil so do nothing)
+		// -> NodeDoCreateAuthenticator (node.Stage: authn.AuthenticationStagePrimary -> authenticators == nil so do nothing)
+
+		if err := s.dispatchEnableIdentityEvent(identityInfo); err != nil {
+			return err
+		}
+		// NodeDoVerifyIdentity (EffectOnCommit return nil as n.SkipVerificationEvent == true)
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AddBiometricOutput{}, nil
 }
 
 func (s *Service) RemoveBiometric(input *RemoveBiometricInput) (*RemoveBiometricOuput, error) {
