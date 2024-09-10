@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"regexp"
 	"strings"
 	"text/template/parse"
@@ -68,7 +68,7 @@ func isTranslationKeyDefined(targetKey string) bool {
 }
 
 func getEnJSONTranslationKeys() []string {
-	bytes, err := ioutil.ReadFile(enTranslationJSONPath)
+	bytes, err := os.ReadFile(enTranslationJSONPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read %v: %w", enTranslationJSONPath, err))
 	}
