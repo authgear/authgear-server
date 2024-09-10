@@ -36,12 +36,19 @@ func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
 		// FIXME: support pipe, like (printf "territory-%s" $.AddressCountry)
 		fallthrough
 	default:
+		if IsSpecialCase(translationKeyNode.String()) {
+			return nil
+		}
 		return fmt.Errorf("invalid translation key: \"%v\"", translationKeyNode.String())
 	}
 }
 
 func CheckTranslationKeyPattern(translationKey string) (err error) {
 	key := strings.Trim(translationKey, "\"")
+
+	if IsSpecialCase(translationKey) {
+		return nil
+	}
 
 	if key == "" {
 		return fmt.Errorf("translation key is empty")
