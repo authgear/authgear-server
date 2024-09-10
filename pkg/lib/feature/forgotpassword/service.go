@@ -8,6 +8,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -27,6 +28,9 @@ func NewLogger(lf *log.Factory) Logger {
 	return Logger{lf.New("forgot-password")}
 }
 
+type EventService interface {
+	DispatchEventImmediately(payload event.NonBlockingPayload) error
+}
 type IdentityService interface {
 	ListByClaim(name string, value string) ([]*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
@@ -64,6 +68,8 @@ type Service struct {
 	OTPCodes       OTPCodeService
 	OTPSender      OTPSender
 	PasswordSender Sender
+
+	Events EventService
 }
 
 type CodeKind string
