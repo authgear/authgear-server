@@ -9,6 +9,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -450,7 +451,15 @@ func (s *Service) ResetPasswordByEndUser(code string, newPassword string) error 
 		return err
 	}
 
-	return s.resetPassword(target, state, newPassword, CodeChannelUnknown)
+	err = s.resetPassword(target, state, newPassword, CodeChannelUnknown)
+	if err != nil {
+		return err
+	}
+	err = s.persistAuditLog(state.UserID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ResetPasswordWithTarget is same as ResetPassword, except target is passed by caller.
@@ -464,7 +473,15 @@ func (s *Service) ResetPasswordWithTarget(target string, code string, newPasswor
 		return err
 	}
 
-	return s.resetPassword(target, state, newPassword, channel)
+	err = s.resetPassword(target, state, newPassword, channel)
+	if err != nil {
+		return err
+	}
+	err = s.persistAuditLog(state.UserID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) resetPassword(target string, otpState *otp.State, newPassword string, channel CodeChannel) error {
@@ -579,4 +596,15 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 
 func (s *Service) ChangePasswordByAdmin(options *SetPasswordOptions) error {
 	return s.setPassword(options)
+}
+
+func (s *Service) persistAuditLog(userID string) (err error) {
+	err = s.Events.DispatchEventImmediately(&nonblocking.UserForgotPasswordPasswordChangedEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+	})
+	return
 }
