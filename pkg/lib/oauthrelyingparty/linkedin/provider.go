@@ -20,8 +20,6 @@ const Type = liboauthrelyingparty.TypeLinkedin
 var _ oauthrelyingparty.Provider = Linkedin{}
 
 const (
-	// nolint: gosec
-	linkedinTokenURL                 string = "https://www.linkedin.com/oauth/v2/accessToken"
 	linkedinOIDCDiscoveryDocumentURL string = "https://www.linkedin.com/oauth/.well-known/openid-configuration"
 )
 
