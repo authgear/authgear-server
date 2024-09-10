@@ -29,15 +29,16 @@ func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
 	switch translationKeyNode.Type() {
 	case parse.NodeString:
 		return CheckTranslationKeyPattern(translationKeyNode.(*parse.StringNode).Text)
-	case parse.NodeVariable:
-		// FIXME: support variable, like $label, $label_key, $variant_label_key
-		fallthrough
 	case parse.NodePipe:
 		// we can skip printf-only pipe nodes here, since it is already checked in CheckCommandPrintf
 		if IsPipeNodeOnlyPrintfCommand(translationKeyNode.(*parse.PipeNode)) {
 			return
 		}
 		fallthrough
+	case parse.NodeVariable:
+		// FIXME: support variable, like $label, $label_key, $variant_label_key
+		fallthrough
+
 	default:
 		if IsSpecialCase(translationKeyNode.String()) {
 			return nil
