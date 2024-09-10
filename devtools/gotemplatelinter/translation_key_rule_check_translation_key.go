@@ -33,7 +33,10 @@ func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
 		// FIXME: support variable, like $label, $label_key, $variant_label_key
 		fallthrough
 	case parse.NodePipe:
-		// FIXME: support pipe, like (printf "territory-%s" $.AddressCountry)
+		// we can skip printf-only pipe nodes here, since it is already checked in CheckCommandPrintf
+		if IsPipeNodeOnlyPrintfCommand(translationKeyNode.(*parse.PipeNode)) {
+			return
+		}
 		fallthrough
 	default:
 		if IsSpecialCase(translationKeyNode.String()) {
