@@ -14,7 +14,7 @@ The endpoint is `POST /_api/admin/users/export`.
 - This endpoint is added to Admin API server.
 - It is not part of the GraphQL API.
 - At most 1 running export at any given moment for a project.
-- The rate limit of creating a export is 24 per 24h. This means failed requests do not count.
+- The rate limit of creating a export is 24 per 24h. This means failed requests do not count. This rate limit is hard-coded at the moment. It could be configurable in the future.
 - A pending export lasts for 24h before it expires.
 
 ### The request body of Create an export
