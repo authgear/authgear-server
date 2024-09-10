@@ -25,7 +25,7 @@ The endpoint is `POST /_api/admin/users/export`.
   "csv": {
     "fields": [
       {
-        "json_pointer": "/sub",
+        "pointer": "/sub",
         "field_name": "user_id"
       }
     ]
@@ -37,8 +37,33 @@ The endpoint is `POST /_api/admin/users/export`.
   - `ndjson`: The output is a ndjson file. See https://github.com/ndjson/ndjson-spec
   - `csv`: The output is a CSV file. See https://datatracker.ietf.org/doc/html/rfc4180
 - `csv.fields`: Required when `format` is `csv`. It must be an non-empty array.
-  - `csv.fields.json_pointer`: Required. Select which field in the record to output. It must be a JSON pointer. See https://datatracker.ietf.org/doc/html/rfc6901 and [The record format](#the-record-format)
-  - `csv.fields.field_name`: Optional. If it is not given, then the field name is derived from `json_pointer` by taking the last reference token. For example, if the JSON pointers are `/sub` and `/address/formatted`, then the field names are `sub` and `formatted` respectively. If the field names are not unique, it is an error when the export is initiated. An error is immediately returned in this case, the import job is not created. See [The error response of Create an export](#the-error-response-of-create-an-export)
+  - `csv.fields.pointer`: Required. Select which field in the record to output. It must be a JSON pointer of at least one reference token. Each reference token must be non-empty. See https://datatracker.ietf.org/doc/html/rfc6901 and [The record format](#the-record-format)
+  - `csv.fields.field_name`: See [The field name](#the-field-name)
+
+#### The field name
+
+- `field_name` is optional.
+- If `field_name` is given, then it is used as is.
+- If `field_name` is not given, then it is derived from `pointer` with the following rules.
+  - Let `parts` be the list of the reference tokens in `pointer`.
+  - Join `parts` with the character `.`.
+
+For example, given `pointer` is `/address/formatted`,
+
+- Then `parts` is `["address", "formatted"]`.
+- The join result is `address.formatted`.
+- The field name is the join result.
+
+For example, given `pointer` is `/roles/0`,
+
+- Then `parts` is `["roles", "0"]`.
+- The join result is `roles.0`.
+- The field name is the join result.
+
+Regardless of whether the field names are given or derived, they must be unique.
+If the field names are not unique, it is an error when the export is created.
+An error is immediately returned in this case, the import is not created.
+See [The error response of Create an export](#the-error-response-of-create-an-export)
 
 ### The response body of Create an export
 
@@ -172,9 +197,9 @@ So there is no need to housekeep manually.
 - If `format` is `csv`, then the file starts with a header, followed by records.
   - The header correspond to the `csv.fields`.
   - The order of the field in the header correspond to the order in `csv.fields`.
-  - The name of the field is taken from `csv.fields.field_name` if it is specified, or derived from `csv.fields.json_pointer` if `field_name` is absent.
+  - The name of the field is taken from `csv.fields.field_name` if it is specified, or derived from `csv.fields.pointer` if `field_name` is absent.
   - The CSV follows the format documented in RFC4180. Internally, it is handled with https://pkg.go.dev/encoding/csv.
-  - If `json_pointer` resolves to
+  - If `pointer` resolves to
     - JSON string, then the string is written directly.
     - JSON number, then the number is written directly.
     - JSON boolean, then `true` or `false` is written directly.
@@ -191,16 +216,16 @@ For example, given the request
   "csv": {
     "fields": [
       {
-        "json_pointer": "/sub"
+        "pointer": "/sub"
       },
       {
-        "json_pointer": "/roles"
+        "pointer": "/roles"
       },
       {
-        "json_pointer": "/address"
+        "pointer": "/address"
       },
       {
-        "json_pointer": "/address/formatted",
+        "pointer": "/address/formatted",
         "field_name": "address_formatted"
       }
     ]
