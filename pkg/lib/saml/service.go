@@ -476,7 +476,7 @@ func (s *Service) VerifyExternalSignature(
 	relayState string,
 	signature string) error {
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
-	if !ok {
+	if !ok || len(certs.Certificates) == 0 {
 		// Signing cert not configured, nothing to verify
 		return nil
 	}
