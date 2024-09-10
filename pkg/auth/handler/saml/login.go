@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
@@ -19,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 func ConfigureLoginRoute(route httproute.Route) httproute.Route {
@@ -36,10 +38,13 @@ func NewLoginHandlerLogger(lf *log.Factory) *LoginHandlerLogger {
 type LoginHandler struct {
 	Logger             *LoginHandlerLogger
 	Clock              clock.Clock
+	Database           *appdb.Handle
 	SAMLConfig         *config.SAMLConfig
 	SAMLService        HandlerSAMLService
 	SAMLSessionService SAMLSessionService
 	SAMLUIService      SAMLUIService
+
+	UserFacade SAMLUserFacade
 
 	LoginResultHandler LoginResultHandler
 }
@@ -282,6 +287,12 @@ func (h *LoginHandler) startSSOFlow(
 		panic(err)
 	}
 
+	var loginHint *oauth.LoginHint
+	l, err := oauth.ParseLoginHint(uiInfo.LoginHint)
+	if err == nil {
+		loginHint = l
+	}
+
 	if !showUI {
 		// If IsPassive=true, no ui should be displayed.
 		// Authenticate by existing session or error.
@@ -293,6 +304,21 @@ func (h *LoginHandler) startSSOFlow(
 		if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.PreAuthenticatedURLScope}) {
 			resolvedSession = nil
 		}
+
+		// Ignore any session that does not match login_hint
+		h.Database.WithTx(func() error {
+			if loginHint != nil && resolvedSession != nil {
+				hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
+				if err != nil {
+					return err
+				}
+				hintUserIDsSet := setutil.NewStringSetFromSlice(hintUserIDs)
+				if !hintUserIDsSet.Has(resolvedSession.GetAuthenticationInfo().UserID) {
+					resolvedSession = nil
+				}
+			}
+			return nil
+		})
 
 		if resolvedSession == nil {
 			// No session, return NoPassive error.
@@ -312,8 +338,6 @@ func (h *LoginHandler) startSSOFlow(
 		} else {
 			// Else, authenticate with the existing session.
 			authInfo := resolvedSession.CreateNewAuthenticationInfoByThisSession()
-			// TODO(saml): If <Subject> is provided in the request,
-			// ensure the user of current session matches the subject.
 			result := h.LoginResultHandler.handleLoginResult(&authInfo, samlSessionEntry)
 			return result
 		}
