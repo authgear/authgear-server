@@ -75,8 +75,16 @@ func validateTree(tree *parse.Tree, path string) LintViolations {
 					err = CheckCommandTranslationsRenderText(n)
 					handleNodeErrFn(n, err)
 				}
+				if variable, ok := arg.(*parse.VariableNode); ok && variable.String() == "$.Translations.HasKey" {
+					err = CheckCommandTranslationsHasKey(n)
+					handleNodeErrFn(n, err)
+				}
 				if field, ok := arg.(*parse.FieldNode); ok && field.String() == ".Translations.RenderText" {
 					err = CheckCommandTranslationsRenderText(n)
+					handleNodeErrFn(n, err)
+				}
+				if field, ok := arg.(*parse.FieldNode); ok && field.String() == ".Translations.HasKey" {
+					err = CheckCommandTranslationsHasKey(n)
 					handleNodeErrFn(n, err)
 				}
 				if ident, ok := arg.(*parse.IdentifierNode); ok {
