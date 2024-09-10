@@ -8,6 +8,7 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -29,6 +30,10 @@ func NewLogger(lf *log.Factory) Logger {
 
 type messageContext struct {
 	HasPassword bool
+}
+
+type EventService interface {
+	DispatchEventImmediately(payload event.NonBlockingPayload) error
 }
 
 type IdentityService interface {
@@ -68,6 +73,8 @@ type Service struct {
 	OTPCodes       OTPCodeService
 	OTPSender      OTPSender
 	PasswordSender Sender
+
+	Events EventService
 }
 
 type CodeKind string

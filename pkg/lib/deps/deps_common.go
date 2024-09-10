@@ -154,6 +154,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.EventService), new(*event.Service)),
 		wire.Bind(new(oauth.EventService), new(*event.Service)),
 		wire.Bind(new(botprotection.EventService), new(*event.Service)),
+		wire.Bind(new(forgotpassword.EventService), new(*event.Service)),
 	),
 
 	wire.NewSet(

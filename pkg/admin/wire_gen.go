@@ -948,6 +948,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OTPCodes:       otpService,
 		OTPSender:      messageSender,
 		PasswordSender: sender2,
+		Events:         eventService,
 	}
 	responseWriter := p.ResponseWriter
 	nonceService := &nonce.Service{
