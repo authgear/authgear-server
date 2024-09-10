@@ -121,6 +121,17 @@ type AddUsernameOutput struct {
 	// It is intentionally empty.
 }
 
+type UpdateUsernameInput struct {
+	Session    session.ResolvedSession
+	LoginID    string
+	LoginIDKey string
+	IdentityID string
+}
+
+type UpdateUsernameOutput struct {
+	// It is intentionally empty.
+}
+
 type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
 }
@@ -148,8 +159,10 @@ type IdentityService interface {
 	Get(id string) (*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
 	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
 	CheckDuplicated(info *identity.Info) (dupe *identity.Info, err error)
 	Create(info *identity.Info) error
+	Update(oldInfo *identity.Info, newInfo *identity.Info) error
 	Delete(is *identity.Info) error
 }
 
@@ -221,6 +234,56 @@ func (s *Service) removeIdentity(identityID string, userID string) (identityInfo
 	return identityInfo, nil
 }
 
+func (s *Service) updateIdentity(identityID string, userID string, identitySpec *identity.Spec) (oldInfo *identity.Info, newInfo *identity.Info, err error) {
+	oldInfo, err = s.Identities.Get(identityID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if oldInfo.UserID != userID {
+		return nil, nil, api.NewInvariantViolated(
+			"IdentityNotBelongToUser",
+			"identity does not belong to the user",
+			nil,
+		)
+	}
+
+	newInfo, err = s.Identities.UpdateWithSpec(oldInfo, identitySpec, identity.NewIdentityOptions{
+		LoginIDEmailByPassBlocklistAllowlist: false,
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// EdgeDoUpdateIdentity
+	updateDisabled := oldInfo.UpdateDisabled(s.Config.Identity)
+	if updateDisabled {
+		return nil, nil, api.ErrIdentityModifyDisabled
+	}
+
+	// NodeDoUpdateIdentity GetEffects() -> EffectRun()
+	if _, err := s.Identities.CheckDuplicated(newInfo); err != nil {
+		if identity.IsErrDuplicatedIdentity(err) {
+			s1 := oldInfo.ToSpec()
+			s2 := newInfo.ToSpec()
+			return nil, nil, identity.NewErrDuplicatedIdentity(&s2, &s1)
+		}
+		return nil, nil, err
+	}
+
+	if err := s.Identities.Update(oldInfo, newInfo); err != nil {
+		return nil, nil, err
+	}
+
+	// NodeDoUpdateIdentity GetEffects() -> EffectOnCommit()
+	if err := s.dispatchUpdatedIdentityEvent(oldInfo, newInfo); err != nil {
+		return nil, nil, err
+	}
+
+	return oldInfo, newInfo, nil
+
+}
+
 func (s *Service) dispatchEnableIdentityEvent(identityInfo *identity.Info) (err error) {
 	userRef := model.UserRef{
 		Meta: model.Meta{
@@ -251,6 +314,38 @@ func (s *Service) dispatchEnableIdentityEvent(identityInfo *identity.Info) (err 
 			UserRef:  userRef,
 			Identity: identityInfo.ToModel(),
 			AdminAPI: false,
+		}
+	}
+
+	if e != nil {
+		err = s.Events.DispatchEventOnCommit(e)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) dispatchUpdatedIdentityEvent(identityAfterUpdate *identity.Info, identityBeforeUpdate *identity.Info) (err error) {
+	userRef := model.UserRef{
+		Meta: model.Meta{
+			ID: identityAfterUpdate.UserID,
+		},
+	}
+
+	var e event.Payload
+	switch identityAfterUpdate.Type {
+	case model.IdentityTypeLoginID:
+		loginIDType := identityAfterUpdate.LoginID.LoginIDType
+		if payload, ok := nonblocking.NewIdentityLoginIDUpdatedEventPayload(
+			userRef,
+			identityAfterUpdate.ToModel(),
+			identityBeforeUpdate.ToModel(),
+			string(loginIDType),
+			false,
+		); ok {
+			e = payload
 		}
 	}
 
@@ -823,4 +918,31 @@ func (s *Service) AddUsername(input *AddUsernameInput) (*AddUsernameOutput, erro
 
 	return &AddUsernameOutput{}, nil
 
+}
+
+func (s *Service) UpdateUsername(input *UpdateUsernameInput) (*UpdateUsernameOutput, error) {
+	userID := input.Session.GetAuthenticationInfo().UserID
+	loginKey := input.LoginIDKey
+	loginID := input.LoginID
+	identityID := input.IdentityID
+
+	// EdgeUseIdentityLoginID
+	identitySpec, err := s.makeLoginIDSpec(loginKey, loginID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Database.WithTx(func() error {
+		_, _, err = s.updateIdentity(identityID, userID, identitySpec)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &UpdateUsernameOutput{}, nil
 }
