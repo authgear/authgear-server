@@ -151,6 +151,7 @@ See [The response body](#the-response-body).
 
 |Description|Name|Reason|Info|
 |---|---|---|---|
+|When user import is disabled|`InternalError`|`UserExportDisabled`|-|
 |When the rate limit exceeded|`TooManyRequest`|`RateLimited`|{"bucket_name": "UserExport"}|
 |When there is a running export|`TooManyRequest`|`MaximumConcurrentJobLimitExceeded`|-|
 |When the input fails the validation|`Invalid`|`ValidationFailed`|The info should contain the JSON schema validation output|
@@ -177,6 +178,7 @@ See [The response body](#the-response-body).
 
 |Description|Name|Reason|Info|
 |---|---|---|---|
+|When user import is disabled|`InternalError`|`UserExportDisabled`|-|
 |When the given ID does not refer to an export|`NotFound`|`TaskNotFound`|-|
 
 ## The response body
@@ -251,7 +253,7 @@ The name of the export file is `myapp-userexport_deadbeef-20240909104651Z.ndjson
 
 Since the export file is accessed with a signed URL of a short validity, setting `Cache-Control` is not really helpful.
 
-### The housekeep of the export file
+### The storage of the export file
 
 - GCS: https://cloud.google.com/storage/docs/lifecycle
 - S3: https://docs.aws.amazon.com/AmazonS3/latest/userguide/object-lifecycle-mgmt.html
@@ -259,6 +261,32 @@ Since the export file is accessed with a signed URL of a short validity, setting
 
 The above cloud storage can be configured to delete objects of a certain age.
 So there is no need to housekeep manually.
+
+The following environment variables are added to configure the cloud storage to store export files.
+Every project in the deployment shares the same cloud storage.
+
+```
+USEREXPORT_OBJECT_STORE_TYPE=AWS_S3
+USEREXPORT_OBJECT_STORE_AWS_S3_BUCKET_NAME=
+USEREXPORT_OBJECT_STORE_AWS_S3_REGION=
+USEREXPORT_OBJECT_STORE_AWS_S3_ACCESS_KEY_ID=
+USEREXPORT_OBJECT_STORE_AWS_S3_SECRET_ACCESS_KEY=
+
+USEREXPORT_OBJECT_STORE_TYPE=GCP_GCS
+USEREXPORT_OBJECT_STORE_GCP_GCS_BUCKET_NAME=
+USEREXPORT_OBJECT_STORE_GCP_GCS_SERVICE_ACCOUNT=
+USEREXPORT_OBJECT_STORE_GCP_GCS_CREDENTIALS_JSON_PATH=
+
+USEREXPORT_OBJECT_STORE_TYPE=AZURE_BLOB_STORAGE
+USEREXPORT_OBJECT_STORE_AZURE_BLOB_STORAGE_STORAGE_ACCOUNT=
+USEREXPORT_OBJECT_STORE_AZURE_BLOB_STORAGE_CONTAINER=
+USEREXPORT_OBJECT_STORE_AZURE_BLOB_STORAGE_SERVICE_URL=
+USEREXPORT_OBJECT_STORE_AZURE_BLOB_STORAGE_ACCESS_KEY=
+```
+
+If `USEREXPORT_OBJECT_STORE_TYPE` is not set, then the user export feature is disabled.
+See [The error response of Create an export](#the-error-response-of-create-an-export) and
+[The error response of Get the status of an export](#the-error-responseof-get-the-status-of-an-export).
 
 ### The content of the export file
 
