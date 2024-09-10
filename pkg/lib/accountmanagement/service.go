@@ -150,6 +150,15 @@ type RemoveEmailOutput struct {
 	// It is intentionally empty.
 }
 
+type RemovePhoneNumberInput struct {
+	Session    session.ResolvedSession
+	IdentityID string
+}
+
+type RemovePhoneNumberOutput struct {
+	// It is intentionally empty.
+}
+
 type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
 }
@@ -1006,4 +1015,22 @@ func (s *Service) RemoveEmail(input *RemoveEmailInput) (*RemoveEmailOutput, erro
 	}
 
 	return &RemoveEmailOutput{}, nil
+}
+
+func (s *Service) RemovePhoneNumber(input *RemovePhoneNumberInput) (*RemovePhoneNumberOutput, error) {
+	userID := input.Session.GetAuthenticationInfo().UserID
+	identityID := input.IdentityID
+
+	err := s.Database.WithTx(func() (err error) {
+		_, err = s.removeIdentity(identityID, userID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RemovePhoneNumberOutput{}, nil
 }
