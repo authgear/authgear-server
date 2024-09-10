@@ -141,6 +141,15 @@ type RemoveUsernameOutput struct {
 	// It is intentionally empty.
 }
 
+type RemoveEmailInput struct {
+	Session    session.ResolvedSession
+	IdentityID string
+}
+
+type RemoveEmailOutput struct {
+	// It is intentionally empty.
+}
+
 type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
 }
@@ -979,4 +988,22 @@ func (s *Service) RemoveUsername(input *RemoveUsernameInput) (*RemoveUsernameOut
 	}
 
 	return &RemoveUsernameOutput{}, nil
+}
+
+func (s *Service) RemoveEmail(input *RemoveEmailInput) (*RemoveEmailOutput, error) {
+	userID := input.Session.GetAuthenticationInfo().UserID
+	identityID := input.IdentityID
+
+	err := s.Database.WithTx(func() (err error) {
+		_, err = s.removeIdentity(identityID, userID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RemoveEmailOutput{}, nil
 }
