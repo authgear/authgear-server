@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -30,6 +31,10 @@ func ConfigureSelectAccountRoute(route httproute.Route) httproute.Route {
 
 type SelectAccountUserService interface {
 	Get(userID string, role accesscontrol.Role) (*model.User, error)
+}
+
+type SelectAccountUserFacade interface {
+	GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error)
 }
 
 type SelectAccountIdentityService interface {
@@ -56,6 +61,7 @@ type SelectAccountHandler struct {
 	AuthenticationConfig      *config.AuthenticationConfig
 	SignedUpCookie            webapp.SignedUpCookieDef
 	Users                     SelectAccountUserService
+	UserFacade                SelectAccountUserFacade
 	Identities                SelectAccountIdentityService
 	AuthenticationInfoService SelectAccountAuthenticationInfoService
 	UIInfoResolver            SelectAccountUIInfoResolver
@@ -109,6 +115,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	canUseIntentReauthenticate := false
 	suppressIDPSessionCookie := false
 	oauthProviderAlias := ""
+	var loginHint *oauth.LoginHint
 
 	if webSession != nil {
 		oauthSessionID = webSession.OAuthSessionID
@@ -117,12 +124,38 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
 		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
 		oauthProviderAlias = webSession.OAuthProviderAlias
+		if webSession.LoginHint != "" {
+			l, err := oauth.ParseLoginHint(webSession.LoginHint)
+			// Ignore the login_hint if it is not something we understand
+			if err == nil {
+				loginHint = l
+			}
+		}
 	}
 
 	// When x_suppress_idp_session_cookie is true, ignore IDP session cookie.
 	if suppressIDPSessionCookie {
 		session = nil
 	}
+
+	// Ignore any session that is not allow to be used here
+	if !oauth.ContainsAllScopes(oauth.SessionScopes(session), []string{oauth.PreAuthenticatedURLScope}) {
+		session = nil
+	}
+	// Ignore any session that does not match login_hint
+	ctrl.BeforeHandle(func() error {
+		if loginHint != nil && session != nil {
+			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
+			if err != nil {
+				return err
+			}
+			hintUserIDsSet := setutil.NewStringSetFromSlice(hintUserIDs)
+			if !hintUserIDsSet.Has(session.GetAuthenticationInfo().UserID) {
+				session = nil
+			}
+		}
+		return nil
+	})
 
 	continueWithCurrentAccount := func() error {
 		redirectURI := ""
