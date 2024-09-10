@@ -17,7 +17,7 @@ const enTranslationJSONPath = "resources/authgear/templates/en/translation.json"
 
 var validKey *regexp.Regexp
 var validErrKey *regexp.Regexp
-var translationKeys []string
+var translationKeys map[string]struct{}
 
 func init() {
 	validKey = regexp.MustCompile(TranslationKeyPattern)
@@ -59,15 +59,11 @@ func CheckTranslationKeyPattern(translationKey string) (err error) {
 }
 
 func isTranslationKeyDefined(targetKey string) bool {
-	for _, key := range translationKeys {
-		if key == targetKey {
-			return true
-		}
-	}
-	return false
+	_, ok := translationKeys[targetKey]
+	return ok
 }
 
-func getEnJSONTranslationKeys() []string {
+func getEnJSONTranslationKeys() map[string]struct{} {
 	bytes, err := os.ReadFile(enTranslationJSONPath)
 	if err != nil {
 		panic(fmt.Errorf("failed to read %v: %w", enTranslationJSONPath, err))
@@ -80,11 +76,9 @@ func getEnJSONTranslationKeys() []string {
 		panic(fmt.Errorf("failed to unmarshal %v: %w", enTranslationJSONPath, err))
 	}
 
-	keys := make([]string, len(translationData))
-	i := 0
+	keys := make(map[string]struct{})
 	for key := range translationData {
-		keys[i] = key
-		i++
+		keys[key] = struct{}{}
 	}
 	return keys
 
