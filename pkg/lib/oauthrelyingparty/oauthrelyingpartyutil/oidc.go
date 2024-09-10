@@ -29,6 +29,7 @@ type OIDCDiscoveryDocument struct {
 	Issuer                string `json:"issuer"`
 	AuthorizationEndpoint string `json:"authorization_endpoint"`
 	TokenEndpoint         string `json:"token_endpoint"`
+	UserInfoEndpoint      string `json:"userinfo_endpoint"`
 	JWKSUri               string `json:"jwks_uri"`
 }
 
@@ -149,4 +150,8 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	}
 
 	return payload, nil
+}
+
+func (d *OIDCDiscoveryDocument) FetchUserInfo(client *http.Client, accessTokenResp AccessTokenResp) (userInfo map[string]interface{}, err error) {
+	return FetchUserProfile(client, accessTokenResp, d.UserInfoEndpoint)
 }
