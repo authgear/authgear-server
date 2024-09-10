@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
@@ -94,4 +95,8 @@ func (u UserFacade) GetUserByLoginID(loginIDKey string, loginIDValue string) (st
 
 func (u UserFacade) GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error) {
 	return u.Coordinator.GetUserByOAuth(oauthProviderAlias, oauthProviderUserID)
+}
+
+func (i UserFacade) GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error) {
+	return i.Coordinator.GetUserIDsByLoginHint(hint)
 }

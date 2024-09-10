@@ -60,31 +60,14 @@ func (n *NodeCheckLoginHint) check(deps *authflow.Dependencies) error {
 }
 
 func (n *NodeCheckLoginHint) checkEnforcedLoginID(deps *authflow.Dependencies, hint *oauth.LoginHint) error {
-	if hint.Type != oauth.LoginHintTypeLoginID {
-		panic("This method should only be called if login_hint have type login_id")
+	userIDs, err := deps.UserFacade.GetUserIDsByLoginHint(hint)
+	if err != nil {
+		return err
 	}
-
-	checkForAtLeastOneIdentityWithClaim := func(claimName string, value string) error {
-		identities, err := deps.Identities.ListByClaim(claimName, value)
-		if err != nil {
-			return err
+	for _, userID := range userIDs {
+		if userID == n.UserID {
+			return nil
 		}
-		for _, iden := range identities {
-			if iden.UserID == n.UserID {
-				return nil
-			}
-		}
-		return ErrDifferentUserID
 	}
-
-	switch {
-	case hint.LoginIDEmail != "":
-		return checkForAtLeastOneIdentityWithClaim("email", hint.LoginIDEmail)
-	case hint.LoginIDPhone != "":
-		return checkForAtLeastOneIdentityWithClaim("phone_number", hint.LoginIDPhone)
-	case hint.LoginIDUsername != "":
-		return checkForAtLeastOneIdentityWithClaim("preferred_username", hint.LoginIDUsername)
-	default:
-		return fmt.Errorf("unable to enforce login_hint as no login_id provided")
-	}
+	return ErrDifferentUserID
 }
