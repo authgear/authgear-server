@@ -76,6 +76,7 @@ If `csv.fields` is unspecified, the default is derived with the following rules:
   {"pointer": "/identities"},
   {"pointer": "/mfa/emails"},
   {"pointer": "/mfa/phone_numbers"},
+  {"pointer": "/mfa/totps"},
   {"pointer": "/biometric_count"},
   {"pointer": "/passkey_count"}
 ]
@@ -483,6 +484,12 @@ Here is an example of the record
   "mfa": {
     "emails": ["louischan@oursky.com"],
     "phone_numbers": ["+85298765432"]
+    "totps" [
+      {
+        "secret": "the-secret",
+        "uri": "otpauth://totp...."
+      }
+    ]
   },
 
   "biometric_count": 0,
@@ -508,6 +515,7 @@ Here is an example of the record
   - `ldap`
 - `mfa.emails`: The list of MFA emails the user has. It is an empty array if the user has none.
 - `mfa.phone_numbers`: The list of MFA phone numbers the user has. It is an empty array if the user has none.
+- `mfa.totps`: The list of MFA TOTP authenticator the user has. It is an empty array if the user has none.
 - `biometric_count`: The number of biometric login the user has.
 - `passkey_count`: The number of passkey the user has.
 
