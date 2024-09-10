@@ -36,9 +36,84 @@ The endpoint is `POST /_api/admin/users/export`.
 - `format`: Required. It must be `ndjson` or `csv`.
   - `ndjson`: The output is a ndjson file. See https://github.com/ndjson/ndjson-spec
   - `csv`: The output is a CSV file. See https://datatracker.ietf.org/doc/html/rfc4180
-- `csv.fields`: Required when `format` is `csv`. It must be an non-empty array.
+- `csv.fields`: Optional. See [Default CSV fields] for the list of default fields. If this is specified, then it must be an non-empty list.
   - `csv.fields.pointer`: Required. Select which field in the record to output. It must be a JSON pointer of at least one reference token. Each reference token must be non-empty. See https://datatracker.ietf.org/doc/html/rfc6901 and [The record format](#the-record-format)
   - `csv.fields.field_name`: See [The field name](#the-field-name). See [The content of the export file](#the-content-of-the-export-file) for how values are written.
+
+#### Default CSV fields
+
+If `csv.fields` is unspecified, the default is derived with the following rules:
+
+- Let list be the following list.
+```
+[
+  {"pointer": "/sub"},
+  {"pointer": "/preferred_username"},
+  {"pointer": "/email"},
+  {"pointer": "/phone_number"},
+  {"pointer": "/email_verified"},
+  {"pointer": "/phone_number_verified"},
+  {"pointer": "/name"},
+  {"pointer": "/given_name"},
+  {"pointer": "/middle_name"},
+  {"pointer": "/nickname"},
+  {"pointer": "/profile"},
+  {"pointer": "/picture"},
+  {"pointer": "/website"},
+  {"pointer": "/gender"},
+  {"pointer": "/birthdate"},
+  {"pointer": "/zoneinfo"},
+  {"pointer": "/locale"},
+  {"pointer": "/address/formatted"},
+  {"pointer": "/address/street_address"},
+  {"pointer": "/address/locality"},
+  {"pointer": "/address/region"},
+  {"pointer": "/address/postal_code"},
+  {"pointer": "/address/country"},
+  {"pointer": "/roles"},
+  {"pointer": "/groups"},
+  {"pointer": "/disabled"}
+]
+```
+- For each custom attribute of the project, add the following to the list.
+```
+{"pointer": "/custom_attributes/CUSTOM_ATTRIBUTE_NAME"}
+```
+
+For example, if the project has two custom attributes `member_id` and `loyalty_system_user_id`, the default is
+
+```
+[
+  {"pointer": "/sub"},
+  {"pointer": "/preferred_username"},
+  {"pointer": "/email"},
+  {"pointer": "/phone_number"},
+  {"pointer": "/email_verified"},
+  {"pointer": "/phone_number_verified"},
+  {"pointer": "/name"},
+  {"pointer": "/given_name"},
+  {"pointer": "/middle_name"},
+  {"pointer": "/nickname"},
+  {"pointer": "/profile"},
+  {"pointer": "/picture"},
+  {"pointer": "/website"},
+  {"pointer": "/gender"},
+  {"pointer": "/birthdate"},
+  {"pointer": "/zoneinfo"},
+  {"pointer": "/locale"},
+  {"pointer": "/address/formatted"},
+  {"pointer": "/address/street_address"},
+  {"pointer": "/address/locality"},
+  {"pointer": "/address/region"},
+  {"pointer": "/address/postal_code"},
+  {"pointer": "/address/country"},
+  {"pointer": "/roles"},
+  {"pointer": "/groups"},
+  {"pointer": "/disabled"},
+  {"pointer": "/custom_attributes/member_id"},
+  {"pointer": "/custom_attributes/loyalty_system_user_id"}
+]
+```
 
 #### The field name
 
