@@ -95,6 +95,9 @@ func validateTree(tree *parse.Tree, path string) LintViolations {
 					case "translate":
 						err = CheckCommandTranslate(n)
 						handleNodeErrFn(n, err)
+					case "printf":
+						err = CheckCommandPrintf(n)
+						handleNodeErrFn(n, err)
 					}
 				}
 			}
