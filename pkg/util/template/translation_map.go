@@ -34,11 +34,6 @@ func (t *TranslationMap) RenderText(key string, args interface{}) (string, error
 	}
 	tpl = tpl.Lookup("translation")
 
-	err = t.validator.ValidateTextTemplate(tpl)
-	if err != nil {
-		return "", fmt.Errorf("template: failed to validate template: %w", err)
-	}
-
 	var buf strings.Builder
 	err = tpl.Execute(NewLimitWriter(&buf), args)
 	if err != nil {

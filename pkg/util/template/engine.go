@@ -114,12 +114,6 @@ func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interf
 		}
 	}
 
-	// Validate all templates
-	err = templateValidator.ValidateHTMLTemplate(t)
-	if err != nil {
-		return "", fmt.Errorf("invalid html template %s: %w", desc.Name, err)
-	}
-
 	var buf strings.Builder
 	err = t.Execute(NewLimitWriter(&buf), data)
 	if err != nil {
@@ -172,12 +166,6 @@ func (e *Engine) renderMessageHTML(desc *MessageHTML, preferredLanguages []strin
 		if err != nil {
 			return "", fmt.Errorf("failed to add messageformat parse tree for key %s: %w", key, err)
 		}
-	}
-
-	// Validate all templates
-	err = templateValidator.ValidateHTMLTemplate(t)
-	if err != nil {
-		return "", fmt.Errorf("invalid html template %s: %w", desc.Name, err)
 	}
 
 	var buf strings.Builder
@@ -239,12 +227,6 @@ func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, d
 		}
 	}
 
-	// Validate all templates
-	err = templateValidator.ValidateTextTemplate(t)
-	if err != nil {
-		return "", fmt.Errorf("invalid text template %s: %w", desc.Name, err)
-	}
-
 	var buf strings.Builder
 	err = t.Execute(NewLimitWriter(&buf), data)
 	if err != nil {
@@ -297,12 +279,6 @@ func (e *Engine) renderMessagePlainText(desc *MessagePlainText, preferredLanguag
 		if err != nil {
 			return "", fmt.Errorf("failed to add messageformat parse tree for key %s: %w", key, err)
 		}
-	}
-
-	// Validate all templates
-	err = templateValidator.ValidateTextTemplate(t)
-	if err != nil {
-		return "", fmt.Errorf("invalid text template %s: %w", desc.Name, err)
 	}
 
 	var buf strings.Builder
