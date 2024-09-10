@@ -1046,7 +1046,7 @@
   "v2.page.csrf-error-instruction.default.step-2": "进入隐私和安全",
   "v2.page.csrf-error-instruction.default.step-3": "允许Cookies或设备上的网站数据",
   "v2.page.csrf-error-instruction.ios.step-1": "进入<b>设置</b>应用程序",
-  "v2.page.csrf-error-instruction.ios.step-2": "进入<b>Safari &rarr; 高级</b>",
+  "v2.page.csrf-error-instruction.ios.step-2": "进入<b>Safari 浏览器 &rarr; 高级</b>",
   "v2.page.csrf-error-instruction.ios.step-3": "关闭<b>阻止所有 Cookies</b>",
   "v2.page.csrf-error-instruction.samsung.step-1": "在您的系统中打开\"<b>设置</b>\"应用程序",
   "v2.page.csrf-error-instruction.samsung.step-2": "选择\"<b>应用程序</b>",

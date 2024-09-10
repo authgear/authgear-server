@@ -1047,7 +1047,7 @@
   "v2.page.csrf-error-instruction.default.step-3": "允許 Cookies 或裝置上的網站資料",
   "v2.page.csrf-error-instruction.ios.step-1": "前往<b>設定</b>應用程式",
   "v2.page.csrf-error-instruction.ios.step-2": "前往<b>Safari &rarr; 進階</b>",
-  "v2.page.csrf-error-instruction.ios.step-3": "關閉<b>阻擋所有 Cookies</b>",
+  "v2.page.csrf-error-instruction.ios.step-3": "關閉<b>封鎖所有 Cookies</b>",
   "v2.page.csrf-error-instruction.samsung.step-1": "在您的系統中開啟<b>設定</b>應用程式",
   "v2.page.csrf-error-instruction.samsung.step-2": "選擇<b>應用程式</b>",
   "v2.page.csrf-error-instruction.samsung.step-3": "選擇<b>Samsung 應用程式設定</b>",
