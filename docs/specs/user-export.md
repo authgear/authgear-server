@@ -94,7 +94,7 @@ The response body of a just created export looks like
 }
 ```
 
-The response body of completed export looks like
+The response body of a completed export looks like
 
 ```
 {
@@ -108,6 +108,26 @@ The response body of completed export looks like
   "download_url": "https://some-signed-url?with-a=signature"
 }
 ```
+
+The response body of a failed export looks like
+
+```
+{
+  "id": "some_opaque_string",
+  "status": "completed",
+  "created_at": "2024-01-01T00:00:00.000Z",
+  "failed_at": "2024-01-01T00:01:00.000Z",
+  "request": {
+    "format": "ndjson"
+  },
+  "error": {
+    "message": "blahblahblah",
+    "reason": "SomeReason"
+  }
+}
+```
+
+- `error`: The API error object we have been using in all other API.
 
 ## The export file
 
