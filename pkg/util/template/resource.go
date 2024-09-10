@@ -387,7 +387,11 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 			tpl := htmltemplate.New(name)
 			funcMap := MakeTemplateFuncMap(tpl)
 			tpl.Funcs(funcMap)
-			_, err := tpl.Parse(string(resrc.Data))
+			template, err := tpl.Parse(string(resrc.Data))
+			if err != nil {
+				return nil, fmt.Errorf("invalid HTML template: %w", err)
+			}
+			err = templateValidator.ValidateHTMLTemplate(template)
 			if err != nil {
 				return nil, fmt.Errorf("invalid HTML template: %w", err)
 			}
@@ -432,7 +436,11 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, view reso
 			tpl := texttemplate.New(name)
 			funcMap := MakeTemplateFuncMap(tpl)
 			tpl.Funcs(funcMap)
-			_, err := tpl.Parse(string(resrc.Data))
+			template, err := tpl.Parse(string(resrc.Data))
+			if err != nil {
+				return nil, fmt.Errorf("invalid text template: %w", err)
+			}
+			err = templateValidator.ValidateTextTemplate(template)
 			if err != nil {
 				return nil, fmt.Errorf("invalid text template: %w", err)
 			}
