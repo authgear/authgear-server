@@ -10,8 +10,7 @@ import (
 )
 
 type TranslationMap struct {
-	validator *Validator
-	items     map[string]*parse.Tree
+	items map[string]*parse.Tree
 }
 
 func (t *TranslationMap) HasKey(key string) bool {

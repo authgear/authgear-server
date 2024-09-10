@@ -46,7 +46,7 @@ func (e *Engine) Translation(preferredLanguages []string) (*TranslationMap, erro
 		items[key] = tree
 	}
 
-	return &TranslationMap{items: items, validator: templateValidator}, nil
+	return &TranslationMap{items: items}, nil
 }
 
 func (e *Engine) Render(resource Resource, preferredLanguages []string, data interface{}) (string, error) {
