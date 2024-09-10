@@ -72,7 +72,12 @@ If `csv.fields` is unspecified, the default is derived with the following rules:
   {"pointer": "/address/country"},
   {"pointer": "/roles"},
   {"pointer": "/groups"},
-  {"pointer": "/disabled"}
+  {"pointer": "/disabled"},
+  {"pointer": "/identities"},
+  {"pointer": "/mfa/emails"},
+  {"pointer": "/mfa/phone_numbers"},
+  {"pointer": "/biometric_count"},
+  {"pointer": "/passkey_count"}
 ]
 ```
 - For each custom attribute of the project, add the following to the list.
@@ -405,7 +410,83 @@ Here is an example of the record
   "roles": ["role_a", "role_b"],
   "groups": ["group_a"],
 
-  "disabled": false
+  "disabled": false,
+
+  "identities": [
+    {
+      "type": "login_id",
+      "login_id": {
+        "type": "username",
+        "key": "username",
+        "value": "louischan",
+        "original_value": "LOUISCHAN"
+      },
+      "claims": {
+        "preferred_username": "louischan"
+      }
+    },
+    {
+      "type": "login_id",
+      "login_id": {
+        "type": "email",
+        "key": "email",
+        "value": "louischan@oursky.com",
+        "original_value": "LOUISCHAN@oursky.com"
+      },
+      "claims": {
+        "email": "louischan@oursky.com"
+      }
+    },
+    {
+      "type": "login_id",
+      "login_id": {
+        "type": "phone",
+        "key": "phone",
+        "value": "+85298765432",
+        "original_value": "+85298765432"
+      },
+      "claims": {
+        "phone_number": "+85298765432"
+      }
+    },
+    {
+      "type": "oauth",
+      "oauth": {
+        "provider_alias": "google",
+        "provider_type": "google",
+        "provider_subject_id": "blahblahblah"
+        "user_profile": {
+          "email": "louischan@oursky.com"
+        }
+      },
+      "claims": {
+        "email": "louischan@oursky.com"
+      }
+    },
+    {
+      "type": "ldap",
+      "ldap": {
+        "server_name": "myldap",
+        "last_login_username": "louischan",
+        "user_id_attribute_name": "uid",
+        "user_id_attribute_value": "blahblahblah",
+        "attributes": {
+          "dn": "the DN"
+        }
+      },
+      "claims": {
+        "preferred_username": "louischan"
+      }
+    }
+  ],
+
+  "mfa": {
+    "emails": ["louischan@oursky.com"],
+    "phone_numbers": ["+85298765432"]
+  },
+
+  "biometric_count": 0,
+  "passkey_count": 0,
 }
 ```
 
@@ -421,12 +502,18 @@ Here is an example of the record
 - `roles`: The role keys of all roles directly assigned to the user. This DOES NOT include roles implied by the groups.
 - `groups`: The group keys of all groups assigned to the user.
 - `disabled`: Whether the user is disabled.
-
-> TODO: Support exporting `identities`
+- `identities`: The array of identities that may contain the following types. It is an empty array if the user no identities of the following types.
+  - `login_id`
+  - `oauth`
+  - `ldap`
+- `mfa.emails`: The list of MFA emails the user has. It is an empty array if the user has none.
+- `mfa.phone_numbers`: The list of MFA phone numbers the user has. It is an empty array if the user has none.
+- `biometric_count`: The number of biometric login the user has.
+- `passkey_count`: The number of passkey the user has.
 
 > Future work: Support exporting the password hash.
 
 ## Ceveats
 
-Since we do not export the password hash and MFA information.
+Since we do not export the password hash,
 The exported JSON record cannot be imported into another Authgear project directly.
