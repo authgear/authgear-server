@@ -38,7 +38,7 @@ The endpoint is `POST /_api/admin/users/export`.
   - `csv`: The output is a CSV file. See https://datatracker.ietf.org/doc/html/rfc4180
 - `csv.fields`: Required when `format` is `csv`. It must be an non-empty array.
   - `csv.fields.pointer`: Required. Select which field in the record to output. It must be a JSON pointer of at least one reference token. Each reference token must be non-empty. See https://datatracker.ietf.org/doc/html/rfc6901 and [The record format](#the-record-format)
-  - `csv.fields.field_name`: See [The field name](#the-field-name)
+  - `csv.fields.field_name`: See [The field name](#the-field-name). See [The content of the export file](#the-content-of-the-export-file) for how values are written.
 
 #### The field name
 
