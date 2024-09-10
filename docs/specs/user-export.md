@@ -136,6 +136,12 @@ For example, if the project has two custom attributes `member_id` and `loyalty_s
   {"pointer": "/roles"},
   {"pointer": "/groups"},
   {"pointer": "/disabled"},
+  {"pointer": "/identities"},
+  {"pointer": "/mfa/emails"},
+  {"pointer": "/mfa/phone_numbers"},
+  {"pointer": "/mfa/totps"},
+  {"pointer": "/biometric_count"},
+  {"pointer": "/passkey_count"},
   {"pointer": "/custom_attributes/member_id"},
   {"pointer": "/custom_attributes/loyalty_system_user_id"}
 ]
