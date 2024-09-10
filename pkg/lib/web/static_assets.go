@@ -25,10 +25,10 @@ var Favicon = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "favico
 var AppBackgroundImage = resource.RegisterResource(NonLocaleAwareImageDescriptor{Name: "app_background_image", SizeLimit: 500 * 1024})
 var AppBackgroundImageDark = resource.RegisterResource(NonLocaleAwareImageDescriptor{Name: "app_background_image_dark", SizeLimit: 500 * 1024})
 
-var CSRFIOSInsturction = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-ios-instruction"})
-var CSRFAndroidInsturction = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-android-instruction"})
-var CSRFChromeInsturction = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-chrome-instruction"})
-var CSRFSamsungInsturction = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-samsung-instruction"})
+var CSRFErrorInsturctionIOS = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-ios"})
+var CSRFErrorInsturctionAndroid = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-android"})
+var CSRFErrorInsturctionChrome = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-chrome"})
+var CSRFErrorInsturctionSamsung = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-samsung"})
 
 var AuthgearAuthflowV2LightThemeCSS = resource.RegisterResource(CSSDescriptor{
 	Path: path.Join(AppAssetsURLDirname, "authgear-authflowv2-light-theme.css"),
