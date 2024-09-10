@@ -3,9 +3,9 @@ package webapp
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -28,7 +28,7 @@ func (h *CSRFErrorInstructionHandler) GetData(w http.ResponseWriter, r *http.Req
 	viewmodels.Embed(data, baseViewModel)
 
 	userAgent := r.UserAgent()
-	device, _ := model.GetRecognizedMobileDevice(userAgent)
+	device, _ := web.GetRecognizedMobileDevice(userAgent)
 	data["Device"] = device
 
 	return data, nil
