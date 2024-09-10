@@ -220,9 +220,12 @@ export enum AuditLogActivityType {
   UserDeletionScheduled = 'USER_DELETION_SCHEDULED',
   UserDeletionUnscheduled = 'USER_DELETION_UNSCHEDULED',
   UserDisabled = 'USER_DISABLED',
+  UserForceUpdatePasswordChanged = 'USER_FORCE_UPDATE_PASSWORD_CHANGED',
+  UserForgotPasswordPasswordChanged = 'USER_FORGOT_PASSWORD_PASSWORD_CHANGED',
   UserProfileUpdated = 'USER_PROFILE_UPDATED',
   UserReenabled = 'USER_REENABLED',
   UserSessionTerminated = 'USER_SESSION_TERMINATED',
+  UserSettingsPasswordChanged = 'USER_SETTINGS_PASSWORD_CHANGED',
   UserSignedOut = 'USER_SIGNED_OUT',
   WhatsappOtpVerified = 'WHATSAPP_OTP_VERIFIED',
   WhatsappSent = 'WHATSAPP_SENT'
