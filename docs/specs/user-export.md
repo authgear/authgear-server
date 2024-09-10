@@ -1,3 +1,23 @@
+- [User Export](#user-export)
+  * [About User Export](#about-user-export)
+  * [Create an export](#create-an-export)
+    + [The request body of Create an export](#the-request-body-of-create-an-export)
+      - [Default CSV fields](#default-csv-fields)
+      - [The field name](#the-field-name)
+    + [The response body of Create an export](#the-response-body-of-create-an-export)
+    + [The error response of Create an export](#the-error-response-of-create-an-export)
+  * [Get the status of an export](#get-the-status-of-an-export)
+    + [The response body of Get the status of an export](#the-response-body-of-get-the-status-of-an-export)
+    + [The error response of Get the status of an export](#the-error-response-of-get-the-status-of-an-export)
+  * [The response body](#the-response-body)
+  * [The export file](#the-export-file)
+    + [The name of the export file](#the-name-of-the-export-file)
+    + [The metadata of the export file](#the-metadata-of-the-export-file)
+    + [The storage of the export file](#the-storage-of-the-export-file)
+    + [The content of the export file](#the-content-of-the-export-file)
+    + [The record format](#the-record-format)
+  * [Ceveats](#ceveats)
+
 # User Export
 
 User Export allows the developer to bulk export all users from Authgear to a file.
