@@ -111,6 +111,16 @@ type RemoveBiometricOuput struct {
 	// It is intentionally empty.
 }
 
+type AddUsernameInput struct {
+	Session    session.ResolvedSession
+	LoginID    string
+	LoginIDKey string
+}
+
+type AddUsernameOutput struct {
+	// It is intentionally empty.
+}
+
 type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
 }
@@ -740,4 +750,77 @@ func (s *Service) RemoveBiometric(input *RemoveBiometricInput) (*RemoveBiometric
 	}
 
 	return &RemoveBiometricOuput{}, nil
+}
+
+func (s *Service) makeLoginIDSpec(loginIDKey string, loginID string) (*identity.Spec, error) {
+	// EdgeUseIdentityLoginID
+	matchedLoginIDConfig, ok := s.Config.Identity.LoginID.GetKeyConfig(loginIDKey)
+	if !ok {
+		return nil, api.NewInvariantViolated(
+			"InvalidLoginIDKey",
+			"invalid login ID key",
+			nil,
+		)
+	}
+	typ := matchedLoginIDConfig.Type
+	identitySpec := &identity.Spec{
+		Type: model.IdentityTypeLoginID,
+		LoginID: &identity.LoginIDSpec{
+			Key:   loginIDKey,
+			Type:  typ,
+			Value: loginID,
+		},
+	}
+	return identitySpec, nil
+}
+
+func (s *Service) AddUsername(input *AddUsernameInput) (*AddUsernameOutput, error) {
+	userID := input.Session.GetAuthenticationInfo().UserID
+	loginKey := input.LoginIDKey
+	loginID := input.LoginID
+
+	// EdgeUseIdentityLoginID
+	identitySpec, err := s.makeLoginIDSpec(loginKey, loginID)
+	if err != nil {
+		return nil, err
+	}
+
+	// EdgeCreateIdentityEnd
+	identityInfo, err := s.Identities.New(userID, identitySpec, identity.NewIdentityOptions{LoginIDEmailByPassBlocklistAllowlist: false})
+	if err != nil {
+		return nil, err
+	}
+	// EdgeDoCreateIdentity
+	createDisabled := identityInfo.CreateDisabled(s.Config.Identity)
+	if createDisabled {
+		return nil, api.ErrIdentityModifyDisabled
+	}
+
+	// NodeDoCreateIdentity GetEffects() -> EffectOnCommit()
+	if _, err := s.Identities.CheckDuplicated(identityInfo); err != nil {
+		return nil, err
+	}
+
+	err = s.Database.WithTx(func() error {
+		err := s.Identities.Create(identityInfo)
+		if err != nil {
+			return err
+		}
+
+		// No Need to Verify shouldVerify: false
+		// Skip EdgeEnsureVerificationBegin, EdgeDoVerifyIdentity, EdgeCreateAuthenticatorBegin, EdgeDoCreateAuthenticator
+
+		// NodeDoCreateIdentity GetEffects() -> EffectOnCommit()
+		if err := s.dispatchEnableIdentityEvent(identityInfo); err != nil {
+			return err
+		}
+		return nil
+
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AddUsernameOutput{}, nil
+
 }
