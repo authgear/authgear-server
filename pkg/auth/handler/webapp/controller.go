@@ -84,6 +84,8 @@ type Controller struct {
 	request  *http.Request
 	response http.ResponseWriter
 
+	// preHandler will be executed before any handler executed
+	preHandler   func() error
 	getHandler   func() error
 	postHandlers map[string]func() error
 
@@ -112,6 +114,10 @@ func (c *Controller) RedirectURI() string {
 
 func (c *Controller) Get(fn func() error) {
 	c.getHandler = fn
+}
+
+func (c *Controller) BeforeHandle(fn func() error) {
+	c.preHandler = fn
 }
 
 func (c *Controller) PostAction(action string, fn func() error) {
@@ -148,9 +154,17 @@ func (c *Controller) DeleteSession(id string) error {
 
 func (c *Controller) Serve() {
 	var err error
+	fns := [](func() error){
+		func() error {
+			if c.preHandler != nil {
+				return c.preHandler()
+			}
+			return nil
+		},
+	}
 	switch c.request.Method {
 	case http.MethodGet:
-		err = c.Database.WithTx(c.getHandler)
+		fns = append(fns, c.getHandler)
 	case http.MethodPost:
 		handler, ok := c.postHandlers[c.request.Form.Get("x_action")]
 		if !ok {
@@ -158,10 +172,20 @@ func (c *Controller) Serve() {
 			break
 		}
 
-		err = c.Database.WithTx(handler)
+		fns = append(fns, handler)
 	default:
 		http.Error(c.response, "Invalid request method", http.StatusMethodNotAllowed)
 	}
+
+	err = c.Database.WithTx(func() error {
+		for _, fn := range fns {
+			err := fn()
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 
 	if err != nil {
 		if apierrors.IsAPIError(err) {
