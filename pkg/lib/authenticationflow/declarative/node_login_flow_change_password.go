@@ -6,6 +6,8 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
+	"github.com/authgear/authgear-server/pkg/api/model"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -70,6 +72,9 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflo
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
 
+		// changed
+		n.persistAuditLog(deps, newInfo.UserID)
+
 		return authflow.NewNodeSimple(&NodeDoUpdateAuthenticator{
 			Authenticator: newInfo,
 		}), nil
@@ -86,4 +91,18 @@ func (n *NodeLoginFlowChangePassword) OutputData(ctx context.Context, deps *auth
 		),
 		ForceChangeReason: n.Reason,
 	}), nil
+}
+
+func (n *NodeLoginFlowChangePassword) persistAuditLog(deps *authflow.Dependencies, userID string) error {
+	err := deps.Events.DispatchEventImmediately(&nonblocking.UserForceUpdatePasswordChangedEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: userID,
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
