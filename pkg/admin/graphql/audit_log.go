@@ -53,6 +53,15 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"USER_ANONYMIZED": &graphql.EnumValueConfig{
 			Value: "user.anonymized",
 		},
+		"USER_FORGOT_PASSWORD_PASSWORD_CHANGED": &graphql.EnumValueConfig{
+			Value: "user.forgot_password.password_changed",
+		},
+		"USER_SETTINGS_PASSWORD_CHANGED": &graphql.EnumValueConfig{
+			Value: "user.settings.password_changed",
+		},
+		"USER_FORCE_UPDATE_PASSWORD_CHANGED": &graphql.EnumValueConfig{
+			Value: "user.force_update.password_changed",
+		},
 		"BOT_PROTECTION_VERIFICATION_FAILED": &graphql.EnumValueConfig{
 			Value: "bot_protection.verification.failed",
 		},
