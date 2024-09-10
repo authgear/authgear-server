@@ -26,10 +26,11 @@ var StaticAssetResources = map[string]resource.Descriptor{
 	"app-background-image":      AppBackgroundImage,
 	"app-background-image-dark": AppBackgroundImageDark,
 
-	"csrf-error-instruction-ios":     CSRFErrorInsturctionIOS,
-	"csrf-error-instruction-android": CSRFErrorInsturctionAndroid,
-	"csrf-error-instruction-chrome":  CSRFErrorInsturctionChrome,
-	"csrf-error-instruction-samsung": CSRFErrorInsturctionSamsung,
+	"csrf-error-instruction-ios":          CSRFErrorInsturctionIOS,
+	"csrf-error-instruction-ios-below-17": CSRFErrorInsturctionIOSBelow17,
+	"csrf-error-instruction-android":      CSRFErrorInsturctionAndroid,
+	"csrf-error-instruction-chrome":       CSRFErrorInsturctionChrome,
+	"csrf-error-instruction-samsung":      CSRFErrorInsturctionSamsung,
 
 	"authgear-light-theme.css":            AuthgearLightThemeCSS,
 	"authgear-dark-theme.css":             AuthgearDarkThemeCSS,

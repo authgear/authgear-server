@@ -26,6 +26,7 @@ var AppBackgroundImage = resource.RegisterResource(NonLocaleAwareImageDescriptor
 var AppBackgroundImageDark = resource.RegisterResource(NonLocaleAwareImageDescriptor{Name: "app_background_image_dark", SizeLimit: 500 * 1024})
 
 var CSRFErrorInsturctionIOS = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-ios"})
+var CSRFErrorInsturctionIOSBelow17 = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-ios-below-17"})
 var CSRFErrorInsturctionAndroid = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-android"})
 var CSRFErrorInsturctionChrome = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-chrome"})
 var CSRFErrorInsturctionSamsung = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-samsung"})

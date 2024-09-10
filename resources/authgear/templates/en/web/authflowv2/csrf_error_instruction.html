@@ -2,6 +2,7 @@
 
 {{ define "page-content" }}
 {{ $instruction_image_src_ios := call $.StaticAssetURL "csrf-error-instruction-ios" }}
+{{ $instruction_image_src_ios_below_17 := call $.StaticAssetURL "csrf-error-instruction-ios-below-17" }}
 {{ $instruction_image_src_android := call $.StaticAssetURL "csrf-error-instruction-android" }}
 {{ $instruction_image_src_chrome := call $.StaticAssetURL "csrf-error-instruction-chrome" }}
 {{ $instruction_image_src_samsung := call $.StaticAssetURL "csrf-error-instruction-samsung" }}
@@ -12,14 +13,26 @@
   </h1>
 
   {{ if eq $.Device.Type "iOS" }}
-  <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
-    <li>{{ template "v2.page.csrf-error-instruction.ios.step-1" }}</li>
-    <li>{{ template "v2.page.csrf-error-instruction.ios.step-2" }}</li>
-    <li>{{ template "v2.page.csrf-error-instruction.ios.step-3" }}</li>
-  </ul>
-  <div class="mt-6 mx-6 object-contain">
-    <img src="{{ $instruction_image_src_ios }}" alt="" />
-  </div>
+    <!-- Since iOS 17, the cookie setting is moved to another place -->
+    {{ if lt $.Device.OSVersionMajorInt 17 }}
+    <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
+      <li>{{ template "v2.page.csrf-error-instruction.ios-below-17.step-1" }}</li>
+      <li>{{ template "v2.page.csrf-error-instruction.ios-below-17.step-2" }}</li>
+      <li>{{ template "v2.page.csrf-error-instruction.ios-below-17.step-3" }}</li>
+    </ul>
+    <div class="mt-6 mx-6 object-contain">
+      <img src="{{ $instruction_image_src_ios_below_17 }}" alt="" />
+    </div>
+    {{ else }}
+    <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
+      <li>{{ template "v2.page.csrf-error-instruction.ios.step-1" }}</li>
+      <li>{{ template "v2.page.csrf-error-instruction.ios.step-2" }}</li>
+      <li>{{ template "v2.page.csrf-error-instruction.ios.step-3" }}</li>
+    </ul>
+    <div class="mt-6 mx-6 object-contain">
+      <img src="{{ $instruction_image_src_ios }}" alt="" />
+    </div>
+    {{ end }}
   {{ else if eq $.Device.Type "Chrome" }}
   <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
     <li>{{ template "v2.page.csrf-error-instruction.chrome-desktop.step-1" }}</li>
