@@ -28,7 +28,7 @@ func (h *CSRFErrorInstructionHandler) GetData(w http.ResponseWriter, r *http.Req
 	viewmodels.Embed(data, baseViewModel)
 
 	userAgent := r.UserAgent()
-	device, _ := web.GetRecognizedMobileDevice(userAgent)
+	device := web.GetRecognizedMobileDevice(userAgent)
 	data["Device"] = device
 
 	return data, nil

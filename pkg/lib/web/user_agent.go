@@ -1,33 +1,53 @@
 package web
 
 import (
+	"strconv"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
 // The name is borrowed from https://github.com/browserslist/browserslist
 type RecognizedMobileDeviceType string
 
+type RecognizedMobileDevice struct {
+	Type                 RecognizedMobileDeviceType
+	OSVersionMajorString string
+	OSVersionMinorString string
+	OSVersionPatchString string
+	OSVersionMajorInt    int
+	OSVersionMinorInt    int
+	OSVersionPatchInt    int
+}
+
 const (
-	RecognizedMobileDeviceIOS           = "iOS"
-	RecognizedMobileDeviceChromeAndroid = "ChromeAndroid"
-	RecognizedMobileDeviceChrome        = "Chrome"
-	RecognizedMobileDeviceSamsung       = "Samsung"
+	RecognizedMobileDeviceTypeIOS           = "iOS"
+	RecognizedMobileDeviceTypeChromeAndroid = "ChromeAndroid"
+	RecognizedMobileDeviceTypeChrome        = "Chrome"
+	RecognizedMobileDeviceTypeSamsung       = "Samsung"
 )
 
-func GetRecognizedMobileDevice(ua string) (string, bool) {
+func GetRecognizedMobileDevice(ua string) (device RecognizedMobileDevice) {
 	client := model.ParseUserAgentRaw(ua)
+
+	device.OSVersionMajorString = client.Os.Major
+	device.OSVersionMinorString = client.Os.Minor
+	device.OSVersionPatchString = client.Os.Patch
+	device.OSVersionMajorInt, _ = strconv.Atoi(device.OSVersionMajorString)
+	device.OSVersionMinorInt, _ = strconv.Atoi(device.OSVersionMinorString)
+	device.OSVersionPatchInt, _ = strconv.Atoi(device.OSVersionPatchString)
+
 	if client.Os.Family == "iOS" {
-		return RecognizedMobileDeviceIOS, true
-	}
-	if client.Os.Family == "Android" && client.Device.Brand == "Samsung" {
-		return RecognizedMobileDeviceSamsung, true
+		device.Type = RecognizedMobileDeviceTypeIOS
 	}
 	if client.Os.Family == "Android" {
-		return RecognizedMobileDeviceChromeAndroid, true
+		device.Type = RecognizedMobileDeviceTypeChromeAndroid
+	}
+	if client.Os.Family == "Android" && client.Device.Brand == "Samsung" {
+		device.Type = RecognizedMobileDeviceTypeSamsung
 	}
 	if client.UserAgent.Family == "Chrome" {
-		return RecognizedMobileDeviceChrome, true
+		device.Type = RecognizedMobileDeviceTypeChrome
 	}
 
-	return "", false
+	return device
 }

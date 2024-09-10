@@ -11,7 +11,7 @@
     {{ template "v2.page.csrf-error-instruction.default.instruction-header" }}
   </h1>
 
-  {{ if eq $.Device "iOS" }}
+  {{ if eq $.Device.Type "iOS" }}
   <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
     <li>{{ template "v2.page.csrf-error-instruction.ios.step-1" }}</li>
     <li>{{ template "v2.page.csrf-error-instruction.ios.step-2" }}</li>
@@ -20,7 +20,7 @@
   <div class="mt-6 mx-6 object-contain">
     <img src="{{ $instruction_image_src_ios }}" alt="" />
   </div>
-  {{ else if eq $.Device "Chrome" }}
+  {{ else if eq $.Device.Type "Chrome" }}
   <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
     <li>{{ template "v2.page.csrf-error-instruction.chrome-desktop.step-1" }}</li>
     <li>{{ template "v2.page.csrf-error-instruction.chrome-desktop.step-2" }}</li>
@@ -28,7 +28,7 @@
     <li>{{ template "v2.page.csrf-error-instruction.chrome-desktop.step-4" }}</li>
   </ul>
   <img src="{{ $instruction_image_src_chrome }}" alt="" class="mt-6"/>
-  {{ else if eq $.Device "ChromeAndroid" }}
+  {{ else if eq $.Device.Type "ChromeAndroid" }}
   <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
     <li>{{ template "v2.page.csrf-error-instruction.android.step-1" }}</li>
     <li>{{ template "v2.page.csrf-error-instruction.android.step-2" }}</li>
@@ -38,7 +38,7 @@
   <div class="mt-6 mx-6 object-contain">
     <img src="{{ $instruction_image_src_android }}" alt="" />
   </div>
-  {{ else if eq $.Device "Samsung" }}
+  {{ else if eq $.Device.Type "Samsung" }}
   <ul class="list-decimal ml-6 mt-8 space-y-2 dark:text-white">
     <li>{{ template "v2.page.csrf-error-instruction.samsung.step-1" }}</li>
     <li>{{ template "v2.page.csrf-error-instruction.samsung.step-2" }}</li>
