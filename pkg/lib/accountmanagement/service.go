@@ -132,6 +132,15 @@ type UpdateUsernameOutput struct {
 	// It is intentionally empty.
 }
 
+type RemoveUsernameInput struct {
+	Session    session.ResolvedSession
+	IdentityID string
+}
+
+type RemoveUsernameOutput struct {
+	// It is intentionally empty.
+}
+
 type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
 }
@@ -213,6 +222,7 @@ type Service struct {
 }
 
 func (s *Service) removeIdentity(identityID string, userID string) (identityInfo *identity.Info, err error) {
+	// EdgeRemoveIdentity
 	identityInfo, err = s.Identities.Get(identityID)
 	if err != nil {
 		return nil, err
@@ -226,7 +236,19 @@ func (s *Service) removeIdentity(identityID string, userID string) (identityInfo
 		)
 	}
 
+	// EdgeDoRemoveIdentity
+	deleteDisabled := identityInfo.DeleteDisabled(s.Config.Identity)
+	if deleteDisabled {
+		return nil, api.ErrIdentityModifyDisabled
+	}
+
 	err = s.Identities.Delete(identityInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	// NodeDoRemoveIdentity GetEffects() -> EffectOnCommit()
+	err = s.dispatchDisabledIdentityEvent(identityInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -827,17 +849,10 @@ func (s *Service) RemoveBiometric(input *RemoveBiometricInput) (*RemoveBiometric
 
 	err := s.Database.WithTx(func() (err error) {
 		// case *nodes.NodeDoUseUser: (Biometric skip DeleteDisabled check)
-		identityInfo, err := s.removeIdentity(identityID, userID)
+		_, err = s.removeIdentity(identityID, userID)
 		if err != nil {
 			return err
 		}
-
-		// NodeDoRemoveIdentity GetEffects() -> EffectOnCommit()
-		err = s.dispatchDisabledIdentityEvent(identityInfo)
-		if err != nil {
-			return err
-		}
-
 		return nil
 	})
 	if err != nil {
@@ -945,4 +960,23 @@ func (s *Service) UpdateUsername(input *UpdateUsernameInput) (*UpdateUsernameOut
 	}
 
 	return &UpdateUsernameOutput{}, nil
+}
+
+func (s *Service) RemoveUsername(input *RemoveUsernameInput) (*RemoveUsernameOutput, error) {
+	userID := input.Session.GetAuthenticationInfo().UserID
+	identityID := input.IdentityID
+
+	err := s.Database.WithTx(func() (err error) {
+		// case *nodes.NodeDoUseUser: (Username skip DeleteDisabled check)
+		_, err = s.removeIdentity(identityID, userID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RemoveUsernameOutput{}, nil
 }
