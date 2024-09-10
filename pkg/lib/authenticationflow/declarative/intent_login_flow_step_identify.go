@@ -126,9 +126,13 @@ func (i *IntentLoginFlowStepIdentify) CanReactTo(ctx context.Context, deps *auth
 	}
 
 	_, _, identityUsed := authflow.FindMilestoneInCurrentFlow[MilestoneFlowUseIdentity](flows)
+	_, _, loginHintChecked := authflow.FindMilestoneInCurrentFlow[MilestoneCheckLoginHint](flows)
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
+	case identityUsed && !loginHintChecked:
+		// Check login_hint
+		return nil, nil
 	case identityUsed && !nestedStepsHandled:
 		// Handle nested steps.
 		return nil, nil
@@ -183,9 +187,20 @@ func (i *IntentLoginFlowStepIdentify) ReactTo(ctx context.Context, deps *authflo
 	}
 
 	_, _, identityUsed := authflow.FindMilestoneInCurrentFlow[MilestoneFlowUseIdentity](flows)
+	_, _, loginHintChecked := authflow.FindMilestoneInCurrentFlow[MilestoneCheckLoginHint](flows)
 	_, _, nestedStepsHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
+	case identityUsed && !loginHintChecked:
+		userID, err := getUserID(flows)
+		if err != nil {
+			panic("unexpected: identityUsed is true but no userID")
+		}
+		n, err := NewNodeCheckLoginHint(ctx, deps, userID)
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewNodeSimple(n), nil
 	case identityUsed && !nestedStepsHandled:
 		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentLoginFlowSteps{

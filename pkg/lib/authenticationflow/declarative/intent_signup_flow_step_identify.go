@@ -206,13 +206,17 @@ func (i *IntentSignupFlowStepIdentify) CanReactTo(ctx context.Context, deps *aut
 
 	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	_, _, standardAttributesPopulated := authflow.FindMilestoneInCurrentFlow[MilestoneDoPopulateStandardAttributes](flows)
+	_, _, loginHintChecked := authflow.FindMilestoneInCurrentFlow[MilestoneCheckLoginHint](flows)
 	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
-	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
+	case identityCreated && !standardAttributesPopulated:
 		// Populate standard attributes
 		return nil, nil
-	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
+	case identityCreated && !loginHintChecked:
+		// Check login_hint
+		return nil, nil
+	case identityCreated && standardAttributesPopulated && loginHintChecked && !nestedStepHandled:
 		// Handle nested steps.
 		return nil, nil
 	default:
@@ -278,16 +282,27 @@ func (i *IntentSignupFlowStepIdentify) ReactTo(ctx context.Context, deps *authfl
 
 	_, _, identityCreated := authflow.FindMilestoneInCurrentFlow[MilestoneFlowCreateIdentity](flows)
 	_, _, standardAttributesPopulated := authflow.FindMilestoneInCurrentFlow[MilestoneDoPopulateStandardAttributes](flows)
+	_, _, loginHintChecked := authflow.FindMilestoneInCurrentFlow[MilestoneCheckLoginHint](flows)
 	_, _, nestedStepHandled := authflow.FindMilestoneInCurrentFlow[MilestoneNestedSteps](flows)
 
 	switch {
-	case identityCreated && !standardAttributesPopulated && !nestedStepHandled:
+	case identityCreated && !standardAttributesPopulated:
 		iden := i.identityInfo(flows)
 		return authflow.NewNodeSimple(&NodeDoPopulateStandardAttributesInSignup{
 			Identity:   iden,
 			SkipUpdate: i.IsUpdatingExistingUser,
 		}), nil
-	case identityCreated && standardAttributesPopulated && !nestedStepHandled:
+	case identityCreated && !loginHintChecked:
+		userID, err := getUserID(flows)
+		if err != nil {
+			panic("unexpected: identityUsed is true but no userID")
+		}
+		n, err := NewNodeCheckLoginHint(ctx, deps, userID)
+		if err != nil {
+			return nil, err
+		}
+		return authflow.NewNodeSimple(n), nil
+	case identityCreated && standardAttributesPopulated && loginHintChecked && !nestedStepHandled:
 		identification := i.identificationMethod(flows)
 		return authflow.NewSubFlow(&IntentSignupFlowSteps{
 			FlowReference:          i.FlowReference,
