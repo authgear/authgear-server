@@ -1,0 +1,28 @@
+{{ template "authflowv2/__direct_access_disable_page_frame.html" . }}
+
+{{ define "page-content" }}
+
+<div>
+  <div class="mt-16 mb-4">
+    {{ template "authflowv2/__brand_logo.html"
+      (merge
+        (dict
+          "LogoClass" "brand-logo--settings"
+        )
+        .
+      )
+    }}
+  </div>
+  
+  <div class="text-center px-6 tablet:px-8 desktop:px-8 max-w-90 mx-auto">
+    <p class="text-3xl break-words body-text--lg font-bold mb-4">{{ $.Translations.RenderText "app.name" nil }}</p>
+    {{ if $.DefaultBrandingPageURI }}
+      <p class="body-text--md">
+        <a href="{{ $.DefaultBrandingPageURI }}">{{ $.DefaultBrandingPageURI }}</a>
+      </p>
+    {{ else }}
+      <p class="break-words body-text--sm m-0">{{ template "configure-direct-access-description" }}</p>
+    {{ end }}
+  </div>
+</div>
+{{ end }}

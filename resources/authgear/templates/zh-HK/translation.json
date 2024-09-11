@@ -460,6 +460,7 @@
   "hide-password-label": "隱藏密碼",
   "return-page-title": "返回你原來的位置",
   "return-page-description": "請返回以繼續。如你正使用移動應用程式，請返回該應用程式；如你正使用網頁，請返回該分頁。",
+  "configure-direct-access-description": "Direct access of the endpoint URL is not allowed. There could be a misconfiguration in the system. Please contact the systems admin.",
   "require-oauth-page-title": "Direct access to this page is disallowed",
   "require-oauth-page-description": "This page can only be accessed via the authorization endpoint.",
   "wechat-auth-title": "使用 WeChat 帳戶登入",
