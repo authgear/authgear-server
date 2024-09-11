@@ -5,13 +5,13 @@
     <i class="screen-icon material-icons">passkey</i>
     <header class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2.page.use-passkey.default.title" }}
+        {{ include "v2.page.use-passkey.default.title" nil }}
       </h1>
       <p class="screen-description">
         {{ if eq $.FlowType "reauth" }}
-          {{ template "v2.page.use-passkey.reauth.description" }}
+          {{ include "v2.page.use-passkey.reauth.description" nil }}
         {{ else }}
-          {{ template "v2.page.use-passkey.default.description" }}
+          {{ include "v2.page.use-passkey.default.description" nil }}
         {{ end }}
       </p>
       {{ template "authflowv2/__alert_message.html"
@@ -38,7 +38,7 @@
         data-authflow-passkey-request-target="button"
         disabled
       >
-        {{ template "v2.page.use-passkey.default.button-action-label" }}
+        {{ include "v2.page.use-passkey.default.button-action-label" nil }}
       </button>
       <form
         class="hidden"

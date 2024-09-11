@@ -4,7 +4,7 @@ function like helm include function
 https://helm.sh/docs/howto/charts_tips_and_tricks/#know-your-template-functions
 */}}
 <div role="separator" class="divider {{$.Classname}}">
-  {{template "v2.component.divider.default.or-label"}}
+  {{ include "v2.component.divider.default.or-label" nil }}
 </div>
 
 {{ end }}

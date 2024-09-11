@@ -11,13 +11,13 @@
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <div class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2.page.enter-totp.default.title" }}
+        {{ include "v2.page.enter-totp.default.title" nil }}
       </h1>
       <h2 class="screen-description">
         {{ if eq $.FlowType "reauth" }}
-          {{ template "v2.page.enter-totp.reauth.description" . }}
+          {{ include "v2.page.enter-totp.reauth.description" . }}
         {{ else }}
-          {{ template "v2.page.enter-totp.default.description" . }}
+          {{ include "v2.page.enter-totp.default.description" . }}
         {{ end }}
       </h2>
 

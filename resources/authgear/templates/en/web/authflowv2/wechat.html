@@ -12,10 +12,10 @@
 <div class="screen-action-layout flex-1-0-auto">
   <header class="screen-title-description">
     <h1 class="screen-title">
-      {{ template "v2.page.wechat-auth.default.title" }}
+      {{ include "v2.page.wechat-auth.default.title" nil }}
     </h1>
     <h2 class="screen-description">
-      {{ template "v2.page.wechat-auth.default.app-description" }}
+      {{ include "v2.page.wechat-auth.default.app-description" nil }}
     </h2>
     {{ template "authflowv2/__alert_message.html"
       (dict
@@ -43,7 +43,7 @@
     data-click-to-switch-target="clickToHide"
     data-action="click-to-switch#click"
   >
-    {{ template "v2.page.wechat-auth.default.open-app" }}
+    {{ include "v2.page.wechat-auth.default.open-app" nil }}
   </a>
 
   <button
@@ -54,7 +54,7 @@
     data-is-refresh-link="true"
     data-click-to-switch-target="clickToShow"
   >
-    {{ template "v2.page.wechat-auth.default.proceed" }}
+    {{ include "v2.page.wechat-auth.default.proceed" nil }}
   </button>
 
   </form>
@@ -66,10 +66,10 @@
 <div class="screen-action-layout flex-1-0-auto">
   <header class="screen-title-description">
     <h1 class="screen-title">
-      {{ template "v2.page.wechat-auth.default.title" }}
+      {{ include "v2.page.wechat-auth.default.title" nil }}
     </h1>
     <h2 class="screen-description">
-      {{ template "v2.page.wechat-auth.default.qr-code-description" }}
+      {{ include "v2.page.wechat-auth.default.qr-code-description" nil }}
     </h2>
   </header>
 

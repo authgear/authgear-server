@@ -5,30 +5,30 @@
     <i class="material-icons screen-icon">account_circle_off</i>
     <header class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2.error.disabled-user-title" }}
+        {{ include "v2.error.disabled-user-title" nil }}
       </h1>
       {{- if $.Error }}
         <h2 class="screen-description">
           {{- if eq .Error.reason "DisabledUser" }}
             {{- if $.Error.info.reason }}
-              {{ template "v2.error.disabled-user-subtitle" }}
+              {{ include "v2.error.disabled-user-subtitle" nil }}
               <br>
-              {{ template "v2.error.disabled-user-reason" (dict "reason" $.Error.info.reason) }}
+              {{ include "v2.error.disabled-user-reason" (dict "reason" $.Error.info.reason) }}
             {{- else }}
-              {{ template "v2.error.disabled-user-subtitle" }}
+              {{ include "v2.error.disabled-user-subtitle" nil }}
             {{- end }}
           {{- end }}
 
           {{- if eq $.Error.reason "DeactivatedUser" }}
-            {{ template "v2.error.deactivated-user" }}
+            {{ include "v2.error.deactivated-user" nil }}
           {{- end }}
 
           {{- if eq $.Error.reason "ScheduledDeletionByAdmin" }}
-            {{ template "v2.error.scheduled-deletion-by-admin" (dict "date" (ensureTime $.Error.info.delete_at) "rfc3339" (rfc3339 (ensureTime $.Error.info.delete_at))) }}
+            {{ include "v2.error.scheduled-deletion-by-admin" (dict "date" (ensureTime $.Error.info.delete_at) "rfc3339" (rfc3339 (ensureTime $.Error.info.delete_at))) }}
           {{- end }}
 
           {{- if eq $.Error.reason "ScheduledDeletionByEndUser" }}
-            {{ template "v2.error.scheduled-deletion-by-end-user" (dict "date" (ensureTime $.Error.info.delete_at) "rfc3339" (rfc3339 (ensureTime $.Error.info.delete_at))) }}
+            {{ include "v2.error.scheduled-deletion-by-end-user" (dict "date" (ensureTime $.Error.info.delete_at) "rfc3339" (rfc3339 (ensureTime $.Error.info.delete_at))) }}
           {{- end }}
         </h2>
       {{- end }}
@@ -37,7 +37,7 @@
 
   <footer>
     <a class="primary-btn w-full" href="/login" data-turbo="false">
-      {{ template "v2.page.account-status.default.return-button-label" }}
+      {{ include "v2.page.account-status.default.return-button-label" nil }}
     </a>
   </footer>
   </div>

@@ -41,7 +41,7 @@
     <p class="settings-item__description settings-description block tablet:hidden">
       {{ $item := index $.Children  0}}
       {{ if gt $length 1 }}
-        <span> {{ template "v2.page.settings.default.button-label-and-more" (dict "item" $item ) }} </span>
+        <span> {{ include "v2.page.settings.default.button-label-and-more" (dict "item" $item ) }} </span>
       {{ else }}
         {{ $item }}
       {{ end }}

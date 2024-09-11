@@ -20,17 +20,17 @@
       {{ end }}
       {{ if $general_policy_error }}
         <span>
-          {{ template "v2.error.password-policy-violated" }}
+          {{ include "v2.error.password-policy-violated" nil }}
         </span>
       {{ else if $contain_excluded_keywords_policy_error }}
         <span>
-          {{ template "v2.error.password-policy-disallowed-keywords" }}
+          {{ include "v2.error.password-policy-disallowed-keywords" nil }}
         </span>
       {{ else if $reused_error }}
         {{ range .PasswordPolicies }}
           {{ if eq .Name "PasswordReused" }}
             <span>
-              {{ template "v2.error.password-policy-reuse" (dict "size" .Info.history_size "day" .Info.history_days) }}
+              {{ include "v2.error.password-policy-reuse" (dict "size" .Info.history_size "day" .Info.history_days) }}
             </span>
           {{ end }}
         {{ end }}
@@ -47,36 +47,36 @@
           {{ end }}
           {{ if $is_missing_login_id }}
             <span>
-              {{ template "v2.error.login-id-required" (dict "variant" $.LoginIDContextualType) }}
+              {{ include "v2.error.login-id-required" (dict "variant" $.LoginIDContextualType) }}
             </span>
           {{ else if (call $.SliceContains .details.missing "x_password" ) }}
-            <span>{{ template "v2.error.password-required" }}</span>
+            <span>{{ include "v2.error.password-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_oob_otp_code" ) }}
-            <span>{{ template "v2.error.oob-otp-code-required" }}</span>
+            <span>{{ include "v2.error.oob-otp-code-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_totp_code" ) }}
-            <span>{{ template "v2.error.totp-code-required" }}</span>
+            <span>{{ include "v2.error.totp-code-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_verification_code" ) }}
-            <span>{{ template "v2.error.verification-code-required" }}</span>
+            <span>{{ include "v2.error.verification-code-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_recovery_code" ) }}
-            <span>{{ template "v2.error.recovery-code-required" }}</span>
+            <span>{{ include "v2.error.recovery-code-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_old_password" ) }}
-            <span>{{ template "v2.error.old-password-required" }}</span>
+            <span>{{ include "v2.error.old-password-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_new_password" ) }}
-            <span>{{ template "v2.error.new-password-required" }}</span>
+            <span>{{ include "v2.error.new-password-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_confirm_password" ) }}
-            <span>{{ template "v2.error.confirm-password-required" }}</span>
+            <span>{{ include "v2.error.confirm-password-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_email" ) }}
-            <span>{{ template "v2.error.email-required" }}</span>
+            <span>{{ include "v2.error.email-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_e164" ) }}
-            <span>{{ template "v2.error.phone-number-required" }}</span>
+            <span>{{ include "v2.error.phone-number-required" nil }}</span>
           {{ else if (call $.SliceContains .details.missing "x_target" ) }}
             {{ if eq $.OOBAuthenticatorType "oob_otp_email" }}
-            <span>{{ template "v2.error.email-required" }}</span>
+            <span>{{ include "v2.error.email-required" nil }}</span>
             {{ else }}
-            <span>{{ template "v2.error.phone-number-required" }}</span>
+            <span>{{ include "v2.error.phone-number-required" nil }}</span>
             {{ end }}
           {{ else if (call $.SliceContains .details.missing "x_bot_protection_provider_response" ) }}
-            <span>{{ template "v2.error.bot-protection-required" }}</span>
+            <span>{{ include "v2.error.bot-protection-required" nil }}</span>
           {{ else }}
             <span>
               {{ $.Error.message }}
@@ -84,46 +84,46 @@
           {{ end }}
         {{ else if (eq .kind "format") }}
           {{ if (eq .details.format "phone") }}
-            <span>{{ template "v2.error.phone-number-format" }}</span>
+            <span>{{ include "v2.error.phone-number-format" nil }}</span>
           {{ else if (eq .details.format "email") }}
-            <span>{{ template "v2.error.invalid-email" }}</span>
+            <span>{{ include "v2.error.invalid-email" nil }}</span>
           {{ else if (eq .details.format "username") }}
-            <span>{{ template "v2.error.invalid-username" }}</span>
+            <span>{{ include "v2.error.invalid-username" nil }}</span>
           {{ else if (eq .details.format "x_totp_code") }}
-            <span>{{ template "v2.error.totp-code-format" }}</span>
+            <span>{{ include "v2.error.totp-code-format" nil }}</span>
           {{ else if (eq .details.format "x_oob_otp_code") }}
-            <span>{{ template "v2.error.oob-otp-code-format" }}</span>
+            <span>{{ include "v2.error.oob-otp-code-format" nil }}</span>
           {{ else if (eq .details.format "x_verification_code") }}
-            <span>{{ template "v2.error.verification-code-format" }}</span>
+            <span>{{ include "v2.error.verification-code-format" nil }}</span>
           {{ else if (eq .details.format "x_recovery_code") }}
-            <span>{{ template "v2.error.recovery-code-format" }}</span>
+            <span>{{ include "v2.error.recovery-code-format" nil }}</span>
           {{ else if (eq .details.format "uri") }}
-            <span>{{ template "v2.error.uri-format" }}</span>
+            <span>{{ include "v2.error.uri-format" nil }}</span>
           {{ else }}
             <span>{{ .Error.message }}</span>
           {{ end }}
         {{ else if (eq .kind "maxLength") }}
           <span>
-            {{ template "v2.error.max-length" (dict "expected" .details.expected) }}
+            {{ include "v2.error.max-length" (dict "expected" .details.expected) }}
           </span>
         {{ else if (eq .kind "blocked") }}
           {{ if (or (eq .details.reason "EmailDomainBlocklist") (eq .details.reason "EmailDomainAllowlist")) }}
-            <span>{{ template "v2.error.email-not-allowed" }}</span>
+            <span>{{ include "v2.error.email-not-allowed" nil }}</span>
           {{ else if (or (eq .details.reason "UsernameReserved") (eq .details.reason "UsernameExcludedKeywords")) }}
-            <span>{{ template "v2.error.username-not-allowed" }}</span>
+            <span>{{ include "v2.error.username-not-allowed" nil }}</span>
           {{ else if (eq .details.reason "PhoneNumberCountryCodeAllowlist") }}
-            <span>{{ template "v2.error.phone-number-not-allowed" }}</span>
+            <span>{{ include "v2.error.phone-number-not-allowed" nil }}</span>
           {{ else }}
             <span>{{ .details.reason }}</span>
           {{ end }}
         {{ else if (eq .kind "type") }}
           <span>
-            {{ template "v2.error.type" (dict "expected" (index .details.expected 0)) }}
+            {{ include "v2.error.type" (dict "expected" (index .details.expected 0)) }}
           </span>
         {{ else if (eq .kind "minimum") }}
-          <span>{{ template "v2.error.minimum" (dict "minimum" .details.minimum) }}</span>
+          <span>{{ include "v2.error.minimum" (dict "minimum" .details.minimum) }}</span>
         {{ else if (eq .kind "maximum") }}
-          <span>{{ template "v2.error.maximum" (dict "maximum" .details.maximum) }}</span>
+          <span>{{ include "v2.error.maximum" (dict "maximum" .details.maximum) }}</span>
         {{ else if (eq .kind "general") }}
           <span>{{ .details.msg }}</span>
         {{ else }}
@@ -134,72 +134,72 @@
       {{ template "authflowv2/__error_account" . }}
     {{ else if eq .Error.reason "InvalidCredentials" }}
       <span>
-        {{ template "v2.error.invalid-credentials" (dict "AuthenticationType" $info.AuthenticationType) }}
+        {{ include "v2.error.invalid-credentials" (dict "AuthenticationType" $info.AuthenticationType) }}
       </span>
     {{ else if eq .Error.reason "PasswordResetFailed" }}
       {{ if and (.Error.info) (eq .Error.info.otp_form "code") }}
-        <span>{{ template "v2.error.invalid-credentials" }}</span>
+        <span>{{ include "v2.error.invalid-credentials" nil }}</span>
       {{ else }}
-        <span>{{ template "v2.error.password-reset-failed-description" }}</span>
+        <span>{{ include "v2.error.password-reset-failed-description" nil }}</span>
       {{ end }}
     {{ else if eq .Error.reason "NewPasswordTypo" }}
-      <span>{{ template "v2.error.new-password-typo" }}</span>
+      <span>{{ include "v2.error.new-password-typo" nil }}</span>
     {{ else if eq .Error.reason "StandardAttributesEmailRequired" }}
       {{ if .Error.info.ProviderType }}
         {{ if eq .Error.info.ProviderType "github" }}
-          <span>{{ template "v2.error.email-required-github" }}</span>
+          <span>{{ include "v2.error.email-required-github" nil }}</span>
         {{ else }}
-          <span>{{ template "v2.error.developer-email-required" }}</span>
+          <span>{{ include "v2.error.developer-email-required" nil }}</span>
         {{ end }}
       {{ else }}
-        <span>{{ template "v2.error.developer-email-required" }}</span>
+        <span>{{ include "v2.error.developer-email-required" nil }}</span>
       {{ end }}
     {{ else if eq .Error.reason "InvariantViolated" }}
       {{ $cause := .Error.info.cause }}
       {{ if (eq $cause.kind "RemoveLastIdentity") }}
-        <span>{{ template "v2.error.remove-last-identity" }}</span>
+        <span>{{ include "v2.error.remove-last-identity" nil }}</span>
       {{ else if (eq $cause.kind "RemoveLastPrimaryAuthenticator") }}
-        <span>{{ template "v2.error.remove-last-primary-authenticator" }}</span>
+        <span>{{ include "v2.error.remove-last-primary-authenticator" nil }}</span>
       {{ else if (eq $cause.kind "RemoveLastSecondaryAuthenticator") }}
-        <span>{{ template "v2.error.remove-last-secondary-authenticator" }}</span>
+        <span>{{ include "v2.error.remove-last-secondary-authenticator" nil }}</span>
       {{ else if (eq $cause.kind "DuplicatedIdentity") }}
         {{ template "authflowv2/__error_account" . }}
       {{ else if (eq $cause.kind "DuplicatedAuthenticator") }}
         <span>
-          {{ template "v2.error.duplicated-authenticator" (dict "AuthenticatorType"
+          {{ include "v2.error.duplicated-authenticator" (dict "AuthenticatorType"
           $cause.AuthenticatorType) }}
         </span>
       {{ else if (eq $cause.kind "MismatchedUser") }}
-        <span>{{ template "v2.error.developer-reauthentication" }}</span>
+        <span>{{ include "v2.error.developer-reauthentication" nil }}</span>
       {{ else if (eq $cause.kind "NoAuthenticator") }}
-        <span>{{ template "v2.error.no-authenticator" }}</span>
+        <span>{{ include "v2.error.no-authenticator" nil }}</span>
       {{ else }}
         <span>{{ .Error.message }}</span>
       {{ end }}
     {{ else if eq .Error.reason "InvalidVerificationCode" }}
       <span>
-        {{ template "v2.error.verification-code-invalid" }}
+        {{ include "v2.error.verification-code-invalid" nil }}
       </span>
     {{ else if eq .Error.reason "RateLimited" }}
       {{ if eq .Error.info.bucket_name "MessagingSMSPerTarget" }}
-        <span>{{ template "v2.error.sms-send-limit-exceeded" }}</span>
+        <span>{{ include "v2.error.sms-send-limit-exceeded" nil }}</span>
       {{ else if eq .Error.info.bucket_name "MessagingSMSPerIP" }}
-        <span>{{ template "v2.error.sms-send-limit-exceeded" }}</span>
+        <span>{{ include "v2.error.sms-send-limit-exceeded" nil }}</span>
       {{ else if eq .Error.info.bucket_name "MessagingSMS" }}
-        <span>{{ template "v2.error.sms-send-limit-exceeded" }}</span>
+        <span>{{ include "v2.error.sms-send-limit-exceeded" nil }}</span>
       {{ else }}
-        <span>{{ template "v2.error.rate-limited" }}</span>
+        <span>{{ include "v2.error.rate-limited" nil }}</span>
       {{ end }}
     {{ else if eq .Error.reason "AccountLockout" }}
       <!-- We need to render a full-screen modal for this case, done in __lockout.html instead -->
     {{ else if eq .Error.reason "UsageLimitExceeded" }}
-      <span>{{ template "v2.error.usage-limit-exceeded" }}</span>
+      <span>{{ include "v2.error.usage-limit-exceeded" nil }}</span>
     {{ else if eq .Error.reason "SMSNotSupported" }}
       <span>
         {{/* TODO: replace `include` with `translateText` */}}
-        {{ if ($.Translations.HasKey "customer-support-link") }} {{ template
+        {{ if ($.Translations.HasKey "customer-support-link") }} {{ include
         "v2.error.oob-otp-sms-not-supported-with-customer-support" (dict
-        "customerSupportLink" (include "customer-support-link" nil)) }} {{ else }} {{ template "v2.error.oob-otp-sms-not-supported" }} {{ end
+        "customerSupportLink" (include "customer-support-link" nil)) }} {{ else }} {{ include "v2.error.oob-otp-sms-not-supported" nil }} {{ end
         }}
       </span>
     {{ else if eq .Error.reason "WebHookDisallowed" }}
@@ -207,39 +207,42 @@
       <span>
         {{ if $error_reason.title }} {{ $error_reason.title }} {{ else }}
         <!-- title is not provided, use default title -->
-        {{ if eq .Error.info.event_type "pre_signup" }} {{ template
-        "v2.error.webhook-pre-signup-disallowed" }} {{ else }} {{ template
-        "v2.error.webhook-disallowed" }} {{ end }} {{ end }} {{ if
-        $error_reason.reason }}
+        {{ if eq .Error.info.event_type "pre_signup" }} 
+          {{ include "v2.error.webhook-pre-signup-disallowed" nil }} 
+        {{ else }}
+          {{ include "v2.error.webhook-disallowed" nil }}
+        {{ end }} 
+    {{ end }} 
+    {{ if $error_reason.reason }}
         <br />
         {{ $error_reason.reason }} {{ end }}
       </span>
     {{ else if eq .Error.reason "WebHookInvalidResponse" }}
-      <span>{{ template "v2.error.webhook-invalid-response" }}</span>
+      <span>{{ include "v2.error.webhook-invalid-response" nil }}</span>
     {{ else if eq .Error.reason "WebHookDeliveryTimeout" }}
-      <span>{{ template "v2.error.webhook-delivery-timeout" }}</span>
+      <span>{{ include "v2.error.webhook-delivery-timeout" nil }}</span>
     {{ else if eq .Error.reason "InvalidNetwork" }}
       <span>
-        {{ template "v2.error.invalid-web3-network" (dict "chainID"
+        {{ include "v2.error.invalid-web3-network" (dict "chainID"
         $info.expected_chain_id) }}
       </span>
     {{ else if eq .Error.reason "InvalidWhatsappUser" }}
-      <span>{{ template "v2.error.invalid-whatsapp-user" }}</span>
+      <span>{{ include "v2.error.invalid-whatsapp-user" nil }}</span>
     {{ else if eq .Error.reason "NoAvailableWhatsappClient" }}
-      <span>{{ template "v2.error.no-available-whatsapp-client" }}</span>
+      <span>{{ include "v2.error.no-available-whatsapp-client" nil }}</span>
     {{ else if eq .Error.reason "ChangePasswordFailed" }}
       {{ $cause := .Error.info.cause }}
         {{ if (eq $cause.kind "PasswordReused") }}
-        <span>{{ template "v2.error.password-change-password-reused" }}</span>
+        <span>{{ include "v2.error.password-change-password-reused" nil }}</span>
         {{ else }}
         <span>{{ .Error.message }}</span>
         {{ end }}
     {{ else if eq .Error.reason "AuthenticationFlowDifferentUserID" }}
-      <span>{{ template "v2.error.unexpected-user" }}</span>
+      <span>{{ include "v2.error.unexpected-user" nil }}</span>
     {{ else if eq .Error.reason "BotProtectionVerificationFailed" }}
-      <span>{{ template "v2.error.bot-protection-verification-failed" }}</span>
+      <span>{{ include "v2.error.bot-protection-verification-failed" nil }}</span>
     {{ else }}
-      <span>{{ template "v2.error.unknown" }}{{ call $.LogUnknownError .Error }}</span>
+      <span>{{ include "v2.error.unknown" nil }}{{ call $.LogUnknownError .Error }}</span>
     {{ end }}
   {{- end -}}
 {{- end -}}
@@ -268,7 +271,7 @@
   {{ end }}
   {{/* Tell the end-user the account is not found if there is no conflict */}}
   {{ if not $is_conflict }}
-    <span>{{ template "v2.error.account-not-found" $dict }}</span>
+    <span>{{ include "v2.error.account-not-found" $dict }}</span>
   {{ end }}
   {{/* Tell the end-user these is a conflict */}}
   {{/* and give suggestion contextually */}}
@@ -281,11 +284,11 @@
       {{ $suggest_oauth = false }}
     {{ end }}
     <span>
-      {{ template "v2.error.account-conflict" $dict }}
+      {{ include "v2.error.account-conflict" $dict }}
       {{ if $suggest_oauth }}
-        {{ template "v2.error.suggestion-account-conflict-oauth" $dict }}
+        {{ include "v2.error.suggestion-account-conflict-oauth" $dict }}
       {{ else }}
-        {{ template "v2.error.suggestion-account-conflict-login-id" $dict }}
+        {{ include "v2.error.suggestion-account-conflict-login-id" $dict }}
       {{ end }}
     </span>
   {{ end }}

@@ -16,18 +16,18 @@
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <div class="space-y-4">
       <h1 class="screen-title">
-        {{ template "v2.page.setup-oob-otp.default.title" }}
+        {{ include "v2.page.setup-oob-otp.default.title" nil }}
       </h1>
       <h2 class="screen-description">
         {{- if eq $.OOBAuthenticatorType "oob_otp_sms" }}
           {{- if eq .Channel "whatsapp" }}
-            {{ template "v2.page.setup-oob-otp.whatsapp.subtitle" }}
+            {{ include "v2.page.setup-oob-otp.whatsapp.subtitle" nil }}
           {{ else }}
-            {{ template "v2.page.setup-oob-otp.sms.subtitle" }}
+            {{ include "v2.page.setup-oob-otp.sms.subtitle" nil }}
           {{- end }}
         {{- end }}
         {{- if eq $.OOBAuthenticatorType "oob_otp_email" }}
-          {{ template "v2.page.setup-oob-otp.email.subtitle" }}
+          {{ include "v2.page.setup-oob-otp.email.subtitle" nil }}
         {{ end }}
       </h2>
 
@@ -77,7 +77,7 @@
         name="x_target"
         autocomplete="email"
         autocapitalize="none"
-        placeholder="{{ template "v2.component.input.default.placeholder-email" }}"
+        placeholder="{{ include "v2.component.input.default.placeholder-email" nil }}"
       >
       {{- end }}
 
@@ -93,7 +93,7 @@
         name="x_action"
         value=""
         data-authgear-event="authgear.button.setup_oob_otp"
-      >{{ template "v2.component.button.default.label-continue" }}</button>
+      >{{ include "v2.component.button.default.label-continue" nil }}</button>
     </form>
 
     {{ template "authflowv2/__authflow_branch.html" $ }}

@@ -4,10 +4,10 @@
 <div class="flex-1-0-auto">
   <div class="space-y-4">
     <h1 class="screen-title">
-      {{ template "v2.page.view-recovery-code.default.title" }}
+      {{ include "v2.page.view-recovery-code.default.title" nil }}
     </h1>
     <h2 class="screen-description">
-      {{ template "v2.page.view-recovery-code.default.storage-description" }}
+      {{ include "v2.page.view-recovery-code.default.storage-description" nil }}
     </h2>
     {{ template "authflowv2/__alert_message.html"
       (dict
@@ -41,7 +41,7 @@
           name="x_action"
           value="download"
         >
-          {{ template "v2.component.button.default.download" }}
+          {{ include "v2.component.button.default.download" nil }}
         </button>
       </form>
       {{ end }}
@@ -52,7 +52,7 @@
         data-copy-button-source-value="#copy-button-source"
         data-action="copy-button#copy"
       >
-        {{ template "v2.component.button.default.copy" }}
+        {{ include "v2.component.button.default.copy" nil }}
       </button>
     </div>
   </div>
@@ -65,7 +65,7 @@
   >
     {{ $.CSRFField }}
     <button class="btn primary-btn w-full" type="submit" name="x_action" value="proceed">
-    {{ template "v2.component.button.default.label-continue" }}
+    {{ include "v2.component.button.default.label-continue" nil }}
     </button>
   </form>
 </div>

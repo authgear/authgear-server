@@ -12,7 +12,7 @@
       {{ if ($.Translations.HasKey (printf "v2.component.ldap-branding.default.label-%s" $.LDAPServerName)) }}
         {{ include (printf "v2.component.ldap-branding.default.label-%s" $.LDAPServerName) nil }}
       {{ else }}
-        {{ template "v2.component.ldap-branding.default.label" }}
+        {{ include "v2.component.ldap-branding.default.label" nil }}
       {{ end }}
     </h1>
     {{ template "authflowv2/__alert_message.html"
@@ -48,7 +48,7 @@
         value="{{ $.Username }}"
 
         data-text-field-target="input"
-        placeholder="{{ template "v2.component.input.default.placeholder-login-id" (dict "variant" "username") }}"
+        placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" "username") }}"
         required
       >
       {{ if $.LDAPUsernameInputError.HasErrorMessage }}
@@ -76,7 +76,7 @@
       data-authgear-event="authgear.button.login_with_ldap"
       data-action-button
     >
-      {{ template "v2.component.button.default.label-continue" }}
+      {{ include "v2.component.button.default.label-continue" nil }}
     </button>
   </form>
 

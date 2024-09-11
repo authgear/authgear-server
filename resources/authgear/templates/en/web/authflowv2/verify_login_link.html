@@ -14,10 +14,10 @@
     <div class="screen-icon-layout flex-1-0-auto">
       <i class="screen-icon material-icons">check_circle</i>
       <h1 class="screen-title">
-        {{ template "v2.page.verify-login-link.approved.title" }}
+        {{ include "v2.page.verify-login-link.approved.title" nil }}
       </h1>
       <p class="screen-description">
-        {{ template "v2.page.verify-login-link.approved.description" (dict "AppOrClientName" $appName) }}
+        {{ include "v2.page.verify-login-link.approved.description" (dict "AppOrClientName" $appName) }}
       </p>
       {{ template "authflowv2/__alert_message.html"
         (dict
@@ -38,8 +38,8 @@
     >
       {{ $.CSRFField }}
       <input type="hidden" name="x_oob_otp_code" value="{{ .Code }}">
-      <h1 class="screen-title">{{ template "v2.page.verify-login-link.default.title" }}</h1>
-      <p class="screen-description">{{ template "v2.page.verify-login-link.default.description" (dict "AppOrClientName" $appName) }}</p>
+      <h1 class="screen-title">{{ include "v2.page.verify-login-link.default.title" nil }}</h1>
+      <p class="screen-description">{{ include "v2.page.verify-login-link.default.description" (dict "AppOrClientName" $appName) }}</p>
       {{ template "authflowv2/__alert_message.html"
         (dict
           "Type" "error"
@@ -54,7 +54,7 @@
         name="x_action"
         value=""
         data-authgear-event="authgear.button.verify_login_link">
-        {{ template "v2.page.verify-login-link.default.approve-button-label" }}
+        {{ include "v2.page.verify-login-link.default.approve-button-label" nil }}
       </button>
     </form>
   {{ end }}
