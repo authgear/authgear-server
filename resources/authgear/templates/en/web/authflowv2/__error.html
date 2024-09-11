@@ -196,10 +196,10 @@
       <span>{{ template "v2.error.usage-limit-exceeded" }}</span>
     {{ else if eq .Error.reason "SMSNotSupported" }}
       <span>
+        {{/* TODO: replace `include` with `translateText` */}}
         {{ if ($.Translations.HasKey "customer-support-link") }} {{ template
         "v2.error.oob-otp-sms-not-supported-with-customer-support" (dict
-        "customerSupportLink" ($.Translations.RenderText "customer-support-link"
-        nil)) }} {{ else }} {{ template "v2.error.oob-otp-sms-not-supported" }} {{ end
+        "customerSupportLink" (include "customer-support-link" nil)) }} {{ else }} {{ template "v2.error.oob-otp-sms-not-supported" }} {{ end
         }}
       </span>
     {{ else if eq .Error.reason "WebHookDisallowed" }}

@@ -19,9 +19,10 @@
 
 {{ if $showFooter }}
 <p class="body-text--md mt-4">
+  {{/* TODO: replace `include` with `translateText` */}}
   {{ template "v2.component.toc-pp-footer.default.label" (dict "variant" $variant
-                                    "termsOfService" (.Translations.RenderText "terms-of-service-link" nil)
-                                    "privacyPolicy" (.Translations.RenderText "privacy-policy-link" nil)) }}
+                                    "termsOfService" (include "terms-of-service-link" nil)
+                                    "privacyPolicy" (include "privacy-policy-link" nil)) }}
 </p>
 {{ end }}
 {{ end }}
