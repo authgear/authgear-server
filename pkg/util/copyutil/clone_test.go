@@ -13,6 +13,9 @@ func TestClone(t *testing.T) {
 			"b": map[string]interface{}{
 				"c": 123,
 			},
+			"d": map[string]interface{}{
+				"e": []int{1, 2, 3},
+			},
 		}
 
 		m2, err := Clone(m1)
@@ -22,12 +25,16 @@ func TestClone(t *testing.T) {
 		// change m1
 		m1["a"] = "zzz"
 		delete(m1, "b")
+		m1["d"].(map[string]interface{})["e"] = []int{4, 5, 6}
 
-		So(m1, ShouldResemble, map[string]interface{}{"a": "zzz"})
+		So(m1, ShouldResemble, map[string]interface{}{"a": "zzz", "d": map[string]interface{}{"e": []int{4, 5, 6}}})
 		So(m2, ShouldResemble, map[string]interface{}{
 			"a": "bbb",
 			"b": map[string]interface{}{
 				"c": 123,
+			},
+			"d": map[string]interface{}{
+				"e": []int{1, 2, 3},
 			},
 		})
 	})
