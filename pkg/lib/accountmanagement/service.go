@@ -2,6 +2,7 @@ package accountmanagement
 
 import (
 	"encoding/json"
+	"fmt"
 
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -18,9 +20,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
+	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
@@ -46,6 +51,56 @@ type FinishAddingInput struct {
 }
 
 type FinishAddingOutput struct {
+	// It is intentionally empty.
+}
+type ResendOTPCodeInput struct {
+	Channel model.AuthenticatorOOBChannel
+	LoginID string
+}
+
+type sendOTPCodeInput struct {
+	Channel  model.AuthenticatorOOBChannel
+	Target   string
+	isResend bool
+}
+
+type StartAddingIdentityWithVerificationInput struct {
+	LoginID    string
+	LoginIDKey string
+	Channel    model.AuthenticatorOOBChannel
+}
+
+type StartAddingIdentityWithVerificationOutput struct {
+	Token string `json:"token,omitempty"`
+}
+
+type ResumeAddingIdentityWithVerificationInput struct {
+	Token string
+}
+
+type ResumeAddingIdentityWithVerificationOutput struct {
+	Token          string `json:"token,omitempty"`
+	LoginID        string
+	LoginIDKeyType model.LoginIDKeyType
+}
+
+type verifyIdentityInput struct {
+	UserID       string
+	Token        string
+	Channel      model.AuthenticatorOOBChannel
+	Code         string
+	IdentityInfo *identity.Info
+}
+
+type AddPhoneNumberInput struct {
+	LoginID    string
+	LoginIDKey string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
+}
+
+type AddPhoneNumberOutput struct {
 	// It is intentionally empty.
 }
 
@@ -165,10 +220,12 @@ type ChallengeProvider interface {
 
 type UserService interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
+	UpdateMFAEnrollment(userID string, t *time.Time) error
 }
 
 type Store interface {
 	GenerateToken(options GenerateTokenOptions) (string, error)
+	GetToken(tokenStr string) (*Token, error)
 	ConsumeToken(tokenStr string) (*Token, error)
 }
 
@@ -218,8 +275,19 @@ type SettingsDeleteAccountSuccessUIInfoResolver interface {
 	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
 }
 
-type UserService interface {
-	UpdateMFAEnrollment(userID string, t *time.Time) error
+type OTPSender interface {
+	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
+	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
+}
+
+type OTPCodeService interface {
+	GenerateOTP(kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
+	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
+}
+
+type VerificationService interface {
+	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
+	MarkClaimVerified(claim *verification.Claim) error
 }
 
 type Service struct {
@@ -236,7 +304,111 @@ type Service struct {
 	AuthenticationInfoService AuthenticationInfoService
 	PasskeyService            PasskeyService
 	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
-	Users                     UserService
+	OTPSender                 OTPSender
+	OTPCodeService            OTPCodeService
+	Verification              VerificationService
+}
+
+func (s *Service) verifyIdentity(input *verifyIdentityInput) (err error) {
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(input.Token)
+		}
+	}()
+
+	token, err := s.Store.GetToken(input.Token)
+	err = token.CheckUser(input.UserID)
+	if err != nil {
+		return err
+	}
+
+	var loginID string
+	var loginIDType model.LoginIDKeyType
+	switch {
+	case token.Email != "":
+		loginID = token.Email
+		loginIDType = model.LoginIDKeyTypeEmail
+	case token.PhoneNumber != "":
+		loginID = token.PhoneNumber
+		loginIDType = model.LoginIDKeyTypePhone
+	default:
+		return ErrAccountManagementTokenInvalid
+	}
+
+	err = s.OTPCodeService.VerifyOTP(
+		otp.KindVerification(s.Config, input.Channel),
+		loginID,
+		input.Code,
+		&otp.VerifyOptions{UserID: input.UserID},
+	)
+	if apierrors.IsKind(err, otp.InvalidOTPCode) {
+		return verification.ErrInvalidVerificationCode
+	} else if err != nil {
+		return err
+	}
+
+	var claimName model.ClaimName
+	claimName, ok := model.GetLoginIDKeyTypeClaim(loginIDType)
+	if !ok {
+		panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
+	}
+
+	verifiedClaim := s.Verification.NewVerifiedClaim(input.UserID, string(claimName), loginID)
+
+	// NodeDoVerifyIdentity GetEffects()
+	err = s.Verification.MarkClaimVerified(verifiedClaim)
+	if err != nil {
+		return err
+	}
+
+	identityInfo := input.IdentityInfo
+	var e event.Payload
+	if payload, ok := nonblocking.NewIdentityVerifiedEventPayload(
+		model.UserRef{
+			Meta: model.Meta{
+				ID: identityInfo.UserID,
+			},
+		},
+		identityInfo.ToModel(),
+		string(verifiedClaim.Name),
+		false,
+	); ok {
+		e = payload
+	}
+
+	if e != nil {
+		if err := s.Events.DispatchEventOnCommit(e); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *Service) makeAndCheckCreateLoginIDIdentityInfo(loginKey string, loginID string, userID string) (*identity.Info, error) {
+	// EdgeUseIdentityLoginID
+	identitySpec, err := s.makeLoginIDSpec(loginKey, loginID)
+	if err != nil {
+		return nil, err
+	}
+
+	// EdgeCreateIdentityEnd
+	identityInfo, err := s.Identities.New(userID, identitySpec, identity.NewIdentityOptions{LoginIDEmailByPassBlocklistAllowlist: false})
+	if err != nil {
+		return nil, err
+	}
+	// EdgeDoCreateIdentity
+	createDisabled := identityInfo.CreateDisabled(s.Config.Identity)
+	if createDisabled {
+		return nil, api.ErrIdentityModifyDisabled
+	}
+
+	// NodeDoCreateIdentity GetEffects() -> EffectOnCommit()
+	if _, err := s.Identities.CheckDuplicated(identityInfo); err != nil {
+		return nil, err
+	}
+
+	return identityInfo, nil
 }
 
 func (s *Service) removeIdentity(identityID string, userID string) (identityInfo *identity.Info, err error) {
@@ -247,11 +419,7 @@ func (s *Service) removeIdentity(identityID string, userID string) (identityInfo
 	}
 
 	if identityInfo.UserID != userID {
-		return nil, api.NewInvariantViolated(
-			"IdentityNotBelongToUser",
-			"identity does not belong to the user",
-			nil,
-		)
+		return nil, ErrAccountManagementTokenNotBoundToUser
 	}
 
 	// EdgeDoRemoveIdentity
@@ -281,11 +449,7 @@ func (s *Service) updateIdentity(identityID string, userID string, identitySpec 
 	}
 
 	if oldInfo.UserID != userID {
-		return nil, nil, api.NewInvariantViolated(
-			"IdentityNotBelongToUser",
-			"identity does not belong to the user",
-			nil,
-		)
+		return nil, nil, ErrAccountManagementTokenNotBoundToUser
 	}
 
 	newInfo, err = s.Identities.UpdateWithSpec(oldInfo, identitySpec, identity.NewIdentityOptions{
@@ -480,7 +644,7 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 		return nil, err
 	}
 
-	err = token.CheckUser(input.UserID)
+	err = token.CheckOAuthUser(input.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -564,6 +728,132 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	}
 
 	return &FinishAddingOutput{}, nil
+}
+
+func (s *Service) sendOTPCode(input *sendOTPCodeInput) error {
+	var msgType otp.MessageType
+	switch input.Channel {
+	case model.AuthenticatorOOBChannelWhatsapp:
+		msgType = otp.MessageTypeWhatsappCode
+	case model.AuthenticatorOOBChannelSMS:
+		msgType = otp.MessageTypeVerification
+	case model.AuthenticatorOOBChannelEmail:
+		msgType = otp.MessageTypeVerification
+	default:
+		panic(fmt.Errorf("accountmanagement: unknown channel"))
+	}
+
+	msg, err := s.OTPSender.Prepare(input.Channel, input.Target, otp.FormCode, msgType)
+	if !input.isResend && apierrors.IsKind(err, ratelimit.RateLimited) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	defer msg.Close()
+
+	code, err := s.OTPCodeService.GenerateOTP(
+		otp.KindVerification(s.Config, input.Channel),
+		input.Target,
+		otp.FormCode,
+		&otp.GenerateOptions{},
+	)
+	if !input.isResend && apierrors.IsKind(err, ratelimit.RateLimited) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	err = s.OTPSender.Send(msg, otp.SendOptions{OTP: code})
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func (s *Service) StartAddingIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartAddingIdentityWithVerificationInput) (output *StartAddingIdentityWithVerificationOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	var token string
+	spec, err := s.makeAndCheckCreateLoginIDIdentityInfo(input.LoginIDKey, input.LoginID, userID)
+	if err != nil {
+		return nil, err
+	}
+	loginIDType := spec.LoginID.LoginIDType
+	switch loginIDType {
+	case model.LoginIDKeyTypeEmail:
+		token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			UserID: userID,
+			Email:  input.LoginID,
+		})
+	case model.LoginIDKeyTypePhone:
+		token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			UserID:      userID,
+			PhoneNumber: input.LoginID,
+		})
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.sendOTPCode(&sendOTPCodeInput{
+		Channel:  input.Channel,
+		Target:   input.LoginID,
+		isResend: false,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &StartAddingIdentityWithVerificationOutput{
+		Token: token,
+	}, nil
+}
+
+func (s *Service) ResumeAddingIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (output *ResumeAddingIdentityWithVerificationOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	token, err := s.Store.GetToken(input.Token)
+	if err != nil {
+		return nil, err
+	}
+	err = token.CheckUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var loginID string
+	var loginIDKeyType model.LoginIDKeyType
+
+	switch {
+	case token.Email != "":
+		loginID = token.Email
+		loginIDKeyType = model.LoginIDKeyTypeEmail
+	case token.PhoneNumber != "":
+		loginID = token.PhoneNumber
+		loginIDKeyType = model.LoginIDKeyTypePhone
+	default:
+		return nil, ErrAccountManagementTokenInvalid
+	}
+
+	return &ResumeAddingIdentityWithVerificationOutput{
+		Token:          input.Token,
+		LoginID:        loginID,
+		LoginIDKeyType: loginIDKeyType,
+	}, nil
+}
+
+func (s *Service) ResendOTPCode(input *ResendOTPCodeInput) (err error) {
+
+	err = s.sendOTPCode(&sendOTPCodeInput{
+		Channel:  input.Channel,
+		Target:   input.LoginID,
+		isResend: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // If have OAuthSessionID, it means the user is changing password after login with SDK.
@@ -907,25 +1197,8 @@ func (s *Service) AddUsername(input *AddUsernameInput) (*AddUsernameOutput, erro
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
 
-	// EdgeUseIdentityLoginID
-	identitySpec, err := s.makeLoginIDSpec(loginKey, loginID)
+	identityInfo, err := s.makeAndCheckCreateLoginIDIdentityInfo(loginKey, loginID, userID)
 	if err != nil {
-		return nil, err
-	}
-
-	// EdgeCreateIdentityEnd
-	identityInfo, err := s.Identities.New(userID, identitySpec, identity.NewIdentityOptions{LoginIDEmailByPassBlocklistAllowlist: false})
-	if err != nil {
-		return nil, err
-	}
-	// EdgeDoCreateIdentity
-	createDisabled := identityInfo.CreateDisabled(s.Config.Identity)
-	if createDisabled {
-		return nil, api.ErrIdentityModifyDisabled
-	}
-
-	// NodeDoCreateIdentity GetEffects() -> EffectOnCommit()
-	if _, err := s.Identities.CheckDuplicated(identityInfo); err != nil {
 		return nil, err
 	}
 
@@ -997,6 +1270,48 @@ func (s *Service) RemoveUsername(input *RemoveUsernameInput) (*RemoveUsernameOut
 	}
 
 	return &RemoveUsernameOutput{}, nil
+}
+
+func (s *Service) AddPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *AddPhoneNumberInput) (*AddPhoneNumberOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	loginID := input.LoginID
+	loginIDKey := input.LoginIDKey
+
+	err := s.Database.WithTx(func() error {
+		identityInfo, err := s.makeAndCheckCreateLoginIDIdentityInfo(loginIDKey, loginID, userID)
+		if err != nil {
+			return err
+		}
+
+		err = s.verifyIdentity(&verifyIdentityInput{
+			UserID:       userID,
+			Token:        input.Token,
+			Channel:      input.Channel,
+			Code:         input.Code,
+			IdentityInfo: identityInfo,
+		})
+		if err != nil {
+			return err
+		}
+
+		// Create identity after verification
+		err = s.Identities.Create(identityInfo)
+		if err != nil {
+			return err
+		}
+
+		// Dispatch event
+		if err = s.dispatchEnableIdentityEvent(identityInfo); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AddPhoneNumberOutput{}, nil
 }
 
 func (s *Service) RemoveEmail(input *RemoveEmailInput) (*RemoveEmailOutput, error) {

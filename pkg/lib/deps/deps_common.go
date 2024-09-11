@@ -340,7 +340,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.UserService), new(*user.Provider)),
 		wire.Bind(new(accountmanagement.UserService), new(*user.Provider)),
 		wire.Bind(new(authenticationflow.UserService), new(*user.Provider)),
-		wire.Bind(new(accountmanagement.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(featurestdattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
@@ -463,6 +462,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
 		wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
+		wire.Bind(new(accountmanagement.VerificationService), new(*verification.Service)),
 		wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
 	),
 
@@ -474,10 +474,12 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(forgotpassword.OTPCodeService), new(*otp.Service)),
+		wire.Bind(new(accountmanagement.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(interaction.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(workflow.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(authenticationflow.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(forgotpassword.OTPSender), new(*otp.MessageSender)),
+		wire.Bind(new(accountmanagement.OTPSender), new(*otp.MessageSender)),
 	),
 
 	wire.NewSet(
