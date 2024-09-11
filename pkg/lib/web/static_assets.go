@@ -25,11 +25,11 @@ var Favicon = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "favico
 var AppBackgroundImage = resource.RegisterResource(NonLocaleAwareImageDescriptor{Name: "app_background_image", SizeLimit: 500 * 1024})
 var AppBackgroundImageDark = resource.RegisterResource(NonLocaleAwareImageDescriptor{Name: "app_background_image_dark", SizeLimit: 500 * 1024})
 
-var CSRFErrorInsturctionIOS = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-ios"})
-var CSRFErrorInsturctionIOSBelow17 = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-ios-below-17"})
-var CSRFErrorInsturctionAndroid = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-android"})
-var CSRFErrorInsturctionChrome = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-chrome"})
-var CSRFErrorInsturctionSamsung = resource.RegisterResource(LocaleAwareImageDescriptor{Name: "csrf-error-instruction-samsung"})
+var CSRFErrorInsturctionIOS = resource.RegisterResource(LocaleAwareStaticImageDescriptor{Name: "csrf-error-instruction-ios"})
+var CSRFErrorInsturctionIOSBelow17 = resource.RegisterResource(LocaleAwareStaticImageDescriptor{Name: "csrf-error-instruction-ios-below-17"})
+var CSRFErrorInsturctionAndroid = resource.RegisterResource(LocaleAwareStaticImageDescriptor{Name: "csrf-error-instruction-android"})
+var CSRFErrorInsturctionChrome = resource.RegisterResource(LocaleAwareStaticImageDescriptor{Name: "csrf-error-instruction-chrome"})
+var CSRFErrorInsturctionSamsung = resource.RegisterResource(LocaleAwareStaticImageDescriptor{Name: "csrf-error-instruction-samsung"})
 
 var AuthgearAuthflowV2LightThemeCSS = resource.RegisterResource(CSSDescriptor{
 	Path: path.Join(AppAssetsURLDirname, "authgear-authflowv2-light-theme.css"),
