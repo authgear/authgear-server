@@ -1,10 +1,38 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  {{ $unknown_error_message := "" }}
-  {{ if $.HasUnknownError }}
-    {{ $unknown_error_message = (include "authflowv2/__error.html" .) }}
-  {{ end }}
+
+{{ $err_map := (resolveError $.RawError (dict 
+  "passwordField" (dict
+    "by_reason"                    (list "InvalidCredentials")
+    "by_location"                  (list "x_password")
+  )
+  "usernameField" (dict
+    "by_reason"                    (list "InvalidCredentials")
+    "by_location"                  (list "x_username")
+  )
+  "alert"         (dict
+    "by_reason"                    (list "InvalidCredentials")
+  )
+)) }}
+
+{{ $username_err := index $err_map "usernameField" }}
+{{ $has_username_err := not (isNil $username_err)}}
+
+{{ $pw_err := index $err_map "passwordField" }}
+{{ $alert_err := index $err_map "alert" }}
+{{ $unknown_err := index $err_map "unknown" }}
+
+{{ if not (isNil $alert_err) }}
+  {{ $unknown_err = $alert_err }}
+{{ end }}
+
+{{ $has_unknown_err := not (isNil $unknown_err)}}
+
+{{ $unknown_error_message := "" }}
+{{ if $has_unknown_err }}
+  {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
+{{ end }}
 
 <div class="flex flex-col gap-y-8 flex-1-0-auto">
   <header class="screen-title-description">
@@ -39,7 +67,7 @@
     {{ end }}
     <div class="w-full flex flex-col gap-2" data-controller="text-field">
       <input
-        class="input w-full {{ if $.LDAPUsernameInputError.HasError }} input--error {{end}}"
+        class="input w-full {{ if $has_username_err }} input--error {{end}}"
         {{ if $.ShouldFocusInput }}autofocus{{ end }}
         type="text"
         autocomplete="username"
@@ -51,9 +79,9 @@
         placeholder="{{ include "v2.component.input.default.placeholder-login-id" (dict "variant" "username") }}"
         required
       >
-      {{ if $.LDAPUsernameInputError.HasErrorMessage }}
+      {{ if $has_username_err }}
       <p class="input__error-message" data-text-field-target="errorMessage">
-        {{ template "authflowv2/__error.html" $ }}
+        {{ template "authflowv2/__error.html" (merge (dict "Error" $username_err) $) }}
       </p>
       {{ end }}
     </div>
@@ -64,8 +92,7 @@
       "Type" "old-password"
       "AutoFocus" $.ShouldFocusInput
       "Classname" "w-full"
-      "HasError" $.PasswordInputError.HasError
-      "HasErrorMessage" $.PasswordInputError.HasErrorMessage
+      "Error" $pw_err
     ) }}
 
     <button
