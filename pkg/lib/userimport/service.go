@@ -1160,7 +1160,7 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Det
 		var accountStatus *user.AccountStatus
 		// Treat invalid account status transition as warning.
 		accountStatus, accountStatusErr := u.AccountStatus().Reenable()
-		if err != accountStatusErr {
+		if accountStatusErr != nil {
 			detail.Warnings = append(detail.Warnings, Warning{
 				Message: accountStatusErr.Error(),
 			})
