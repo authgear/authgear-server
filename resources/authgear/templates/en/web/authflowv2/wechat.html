@@ -1,10 +1,6 @@
 {{ template "authflowv2/__page_frame.html" . }}
 
 {{ define "page-content" }}
-{{ $unknown_error_message := "" }}
-{{ if $.HasUnknownError }}
-  {{ $unknown_error_message = (include "authflowv2/__error.html" .) }}
-{{ end }}
 
 {{ if $.IsNativePlatform }}
 {{ if $.WechatRedirectURI }}
@@ -21,7 +17,7 @@
       (dict
         "Type" "error"
         "Classname" "mt-4"
-        "Message" $unknown_error_message
+        "Message" (include "authflowv2/__error.html" .)
       )
     }}
   </header>
