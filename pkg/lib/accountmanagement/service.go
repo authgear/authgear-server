@@ -249,6 +249,15 @@ type AddPhoneNumberInput struct {
 	Channel    model.AuthenticatorOOBChannel
 }
 
+type UpdatePhoneNumberInput struct {
+	LoginID    string
+	LoginIDKey string
+	IdentityID string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
+}
+
 type RemovePhoneNumberInput struct {
 	Session    session.ResolvedSession
 	IdentityID string
@@ -366,14 +375,14 @@ func (s *Service) verifyIdentity(input *verifyIdentityInput) (err error) {
 		return err
 	}
 
-	var loginID string
+	var loginIDValue string
 	var loginIDType model.LoginIDKeyType
 	switch {
 	case token.Email != "":
-		loginID = token.Email
+		loginIDValue = token.Email
 		loginIDType = model.LoginIDKeyTypeEmail
 	case token.PhoneNumber != "":
-		loginID = token.PhoneNumber
+		loginIDValue = token.PhoneNumber
 		loginIDType = model.LoginIDKeyTypePhone
 	default:
 		return ErrAccountManagementTokenInvalid
@@ -381,7 +390,7 @@ func (s *Service) verifyIdentity(input *verifyIdentityInput) (err error) {
 
 	err = s.OTPCodeService.VerifyOTP(
 		otp.KindVerification(s.Config, input.Channel),
-		loginID,
+		loginIDValue,
 		input.Code,
 		&otp.VerifyOptions{UserID: input.UserID},
 	)
@@ -397,7 +406,7 @@ func (s *Service) verifyIdentity(input *verifyIdentityInput) (err error) {
 		panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
 	}
 
-	verifiedClaim := s.Verification.NewVerifiedClaim(input.UserID, string(claimName), loginID)
+	verifiedClaim := s.Verification.NewVerifiedClaim(input.UserID, string(claimName), loginIDValue)
 
 	// NodeDoVerifyIdentity GetEffects()
 	err = s.Verification.MarkClaimVerified(verifiedClaim)
@@ -1453,6 +1462,17 @@ func (s *Service) AddPhoneNumberWithVerification(resolvedSession session.Resolve
 	return s.createIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
+		Code:       input.Code,
+		Channel:    input.Channel,
+		Token:      input.Token,
+	})
+}
+
+func (s *Service) UpdatePhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *UpdatePhoneNumberInput) (*UpdateIdentityWithVerificationOutput, error) {
+	return s.updateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
+		LoginID:    input.LoginID,
+		LoginIDKey: input.LoginIDKey,
+		IdentityID: input.IdentityID,
 		Code:       input.Code,
 		Channel:    input.Channel,
 		Token:      input.Token,
