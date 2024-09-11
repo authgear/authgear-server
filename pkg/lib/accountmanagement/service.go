@@ -120,7 +120,6 @@ type UpdateIdentityWithVerificationOutput struct {
 }
 
 type ChangePasswordInput struct {
-	Session        session.ResolvedSession
 	OAuthSessionID string
 	RedirectURI    string
 	OldPassword    string
@@ -138,7 +137,6 @@ type CreateAdditionalPasswordInput struct {
 }
 
 type AddPasskeyInput struct {
-	Session          session.ResolvedSession
 	CreationResponse *protocol.CredentialCreationResponse
 }
 
@@ -155,7 +153,6 @@ func NewCreateAdditionalPasswordInput(userID string, password string) CreateAddi
 }
 
 type RemovePasskeyInput struct {
-	Session    session.ResolvedSession
 	IdentityID string
 }
 
@@ -164,7 +161,6 @@ type RemovePasskeyOutput struct {
 }
 
 type AddBiometricInput struct {
-	Session  session.ResolvedSession
 	JWTToken string
 }
 
@@ -173,7 +169,6 @@ type AddBiometricOutput struct {
 }
 
 type RemoveBiometricInput struct {
-	Session    session.ResolvedSession
 	IdentityID string
 }
 
@@ -182,7 +177,6 @@ type RemoveBiometricOuput struct {
 }
 
 type AddUsernameInput struct {
-	Session    session.ResolvedSession
 	LoginID    string
 	LoginIDKey string
 }
@@ -192,7 +186,6 @@ type AddUsernameOutput struct {
 }
 
 type UpdateUsernameInput struct {
-	Session    session.ResolvedSession
 	LoginID    string
 	LoginIDKey string
 	IdentityID string
@@ -203,7 +196,6 @@ type UpdateUsernameOutput struct {
 }
 
 type RemoveUsernameInput struct {
-	Session    session.ResolvedSession
 	IdentityID string
 }
 
@@ -212,7 +204,6 @@ type RemoveUsernameOutput struct {
 }
 
 type RemoveEmailInput struct {
-	Session    session.ResolvedSession
 	IdentityID string
 }
 
@@ -221,7 +212,6 @@ type RemoveEmailOutput struct {
 }
 
 type RemovePhoneNumberInput struct {
-	Session    session.ResolvedSession
 	IdentityID string
 }
 
@@ -869,71 +859,71 @@ func (s *Service) ResendOTPCode(input *ResendOTPCodeInput) (err error) {
 
 // If have OAuthSessionID, it means the user is changing password after login with SDK.
 // Then do special handling such as authenticationInfo
-func (s *Service) ChangePassword(input *ChangePasswordInput) (*ChangePasswordOutput, error) {
-	userID := input.Session.GetAuthenticationInfo().UserID
-	redirectURI := input.RedirectURI
+func (s *Service) ChangePassword(resolvedSession session.ResolvedSession, input *ChangePasswordInput) (*ChangePasswordOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 
-	err := s.Database.WithTx(func() error {
-		ais, err := s.Authenticators.List(
-			userID,
-			authenticator.KeepType(model.AuthenticatorTypePassword),
-			authenticator.KeepKind(authenticator.KindPrimary),
-		)
-		if err != nil {
-			return err
-		}
-
-		if len(ais) == 0 {
-			return api.ErrNoPassword
-		}
-
-		oldInfo := ais[0]
-
-		_, err = s.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
-			Password: &authenticator.PasswordSpec{
-				PlainPassword: input.OldPassword,
-			},
-		}, nil)
-		if err != nil {
-			return api.ErrInvalidCredentials
-		}
-
-		changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
-			SetPassword:    true,
-			PlainPassword:  input.NewPassword,
-			SetExpireAfter: true,
-		})
-		if err != nil {
-			return err
-		}
-
-		if changed {
+	ais, err := s.Authenticators.List(
+		userID,
+		authenticator.KeepType(model.AuthenticatorTypePassword),
+		authenticator.KeepKind(authenticator.KindPrimary),
+	)
+	if err != nil {
+		return &ChangePasswordOutput{}, err
+	}
+	if len(ais) == 0 {
+		return &ChangePasswordOutput{}, api.ErrNoPassword
+	}
+	oldInfo := ais[0]
+	_, err = s.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
+		Password: &authenticator.PasswordSpec{
+			PlainPassword: input.OldPassword,
+		},
+	}, nil)
+	if err != nil {
+		err = api.ErrInvalidCredentials
+		return &ChangePasswordOutput{}, err
+	}
+	changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
+		SetPassword:    true,
+		PlainPassword:  input.NewPassword,
+		SetExpireAfter: true,
+	})
+	if err != nil {
+		return &ChangePasswordOutput{}, err
+	}
+	if changed {
+		err = s.Database.WithTx(func() error {
 			err = s.Authenticators.Update(newInfo)
 			if err != nil {
 				return err
 			}
+			return nil
+		})
+		if err != nil {
+			return &ChangePasswordOutput{}, err
 		}
 
-		// If is changing password with SDK.
-		if input.OAuthSessionID != "" {
-			authInfo := input.Session.GetAuthenticationInfo()
-			authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
+	}
+	redirectURI := input.RedirectURI
+	// If is changing password with SDK.
+	if input.OAuthSessionID != "" {
+		authInfo := resolvedSession.GetAuthenticationInfo()
+		authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
 
+		err = s.Database.WithTx(func() error {
 			err = s.AuthenticationInfoService.Save(authenticationInfoEntry)
-
 			if err != nil {
 				return err
 			}
-
-			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
+			return nil
+		})
+		if err != nil {
+			return &ChangePasswordOutput{}, err
 		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
+		redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
 	}
-
 	return &ChangePasswordOutput{RedirectURI: redirectURI}, nil
+
 }
 
 func (s *Service) CreateAdditionalPassword(input CreateAdditionalPasswordInput) error {
@@ -973,10 +963,10 @@ func (s *Service) CreateAuthenticator(authenticatorInfo *authenticator.Info) err
 	return nil
 }
 
-func (s *Service) AddPasskey(input *AddPasskeyInput) (*AddPasskeyOutput, error) {
+func (s *Service) AddPasskey(resolvedSession session.ResolvedSession, input *AddPasskeyInput) (*AddPasskeyOutput, error) {
 	// NodePromptCreatePasskey ReactTo
 	// case inputNodePromptCreatePasskey.IsCreationResponse()
-	userID := input.Session.GetAuthenticationInfo().UserID
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 	creationResponse := input.CreationResponse
 	creationResponseBytes, err := json.Marshal(creationResponse)
 	if err != nil {
@@ -1032,8 +1022,8 @@ func (s *Service) AddPasskey(input *AddPasskeyInput) (*AddPasskeyOutput, error) 
 	return &AddPasskeyOutput{}, nil
 }
 
-func (s *Service) RemovePasskey(input *RemovePasskeyInput) (*RemovePasskeyOutput, error) {
-	userID := input.Session.GetAuthenticationInfo().UserID
+func (s *Service) RemovePasskey(resolvedSession session.ResolvedSession, input *RemovePasskeyInput) (*RemovePasskeyOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
 	err := s.Database.WithTx(func() (err error) {
@@ -1054,7 +1044,7 @@ func (s *Service) RemovePasskey(input *RemovePasskeyInput) (*RemovePasskeyOutput
 	return &RemovePasskeyOutput{}, nil
 }
 
-func (s *Service) AddBiometric(input *AddBiometricInput) (*AddBiometricOutput, error) {
+func (s *Service) AddBiometric(resolvedSession session.ResolvedSession, input *AddBiometricInput) (*AddBiometricOutput, error) {
 
 	// EdgeUseIdentityBiometric
 	enabled := false
@@ -1099,7 +1089,7 @@ func (s *Service) AddBiometric(input *AddBiometricInput) (*AddBiometricOutput, e
 		return nil, err
 	}
 
-	userID := input.Session.GetAuthenticationInfo().UserID
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 
 	// IsCreating: true
 	identitySpec := &identity.Spec{
@@ -1162,9 +1152,9 @@ func (s *Service) AddBiometric(input *AddBiometricInput) (*AddBiometricOutput, e
 	return &AddBiometricOutput{}, nil
 }
 
-func (s *Service) RemoveBiometric(input *RemoveBiometricInput) (*RemoveBiometricOuput, error) {
+func (s *Service) RemoveBiometric(resolvedSession session.ResolvedSession, input *RemoveBiometricInput) (*RemoveBiometricOuput, error) {
 	identityID := input.IdentityID
-	userID := input.Session.GetAuthenticationInfo().UserID
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 
 	err := s.Database.WithTx(func() (err error) {
 		// case *nodes.NodeDoUseUser: (Biometric skip DeleteDisabled check)
@@ -1203,8 +1193,8 @@ func (s *Service) makeLoginIDSpec(loginIDKey string, loginID string) (*identity.
 	return identitySpec, nil
 }
 
-func (s *Service) AddUsername(input *AddUsernameInput) (*AddUsernameOutput, error) {
-	userID := input.Session.GetAuthenticationInfo().UserID
+func (s *Service) AddUsername(resolvedSession session.ResolvedSession, input *AddUsernameInput) (*AddUsernameOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
 
@@ -1237,8 +1227,8 @@ func (s *Service) AddUsername(input *AddUsernameInput) (*AddUsernameOutput, erro
 
 }
 
-func (s *Service) UpdateUsername(input *UpdateUsernameInput) (*UpdateUsernameOutput, error) {
-	userID := input.Session.GetAuthenticationInfo().UserID
+func (s *Service) UpdateUsername(resolvedSession session.ResolvedSession, input *UpdateUsernameInput) (*UpdateUsernameOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
 	identityID := input.IdentityID
@@ -1272,8 +1262,8 @@ func (s *Service) UpdateUsername(input *UpdateUsernameInput) (*UpdateUsernameOut
 	return &UpdateUsernameOutput{}, nil
 }
 
-func (s *Service) RemoveUsername(input *RemoveUsernameInput) (*RemoveUsernameOutput, error) {
-	userID := input.Session.GetAuthenticationInfo().UserID
+func (s *Service) RemoveUsername(resolvedSession session.ResolvedSession, input *RemoveUsernameInput) (*RemoveUsernameOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
 	err := s.Database.WithTx(func() (err error) {
@@ -1402,8 +1392,8 @@ func (s *Service) UpdateEmailWithVerification(resolvedSession session.ResolvedSe
 	})
 }
 
-func (s *Service) RemoveEmail(input *RemoveEmailInput) (*RemoveEmailOutput, error) {
-	userID := input.Session.GetAuthenticationInfo().UserID
+func (s *Service) RemoveEmail(resolvedSession session.ResolvedSession, input *RemoveEmailInput) (*RemoveEmailOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
 	err := s.Database.WithTx(func() (err error) {
@@ -1441,8 +1431,8 @@ func (s *Service) UpdatePhoneNumberWithVerification(resolvedSession session.Reso
 	})
 }
 
-func (s *Service) RemovePhoneNumber(input *RemovePhoneNumberInput) (*RemovePhoneNumberOutput, error) {
-	userID := input.Session.GetAuthenticationInfo().UserID
+func (s *Service) RemovePhoneNumber(resolvedSession session.ResolvedSession, input *RemovePhoneNumberInput) (*RemovePhoneNumberOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
 	err := s.Database.WithTx(func() (err error) {
