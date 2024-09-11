@@ -2,6 +2,7 @@ package web_test
 
 import (
 	"bytes"
+	"fmt"
 	"image"
 	"image/color"
 	"image/png"
@@ -809,6 +810,218 @@ func TestNonLocaleAwareStaticImageDescriptor(t *testing.T) {
 
 			data, err := read(resource.EffectiveFile{
 				Path: "static/myimage.png",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngA)
+		})
+	})
+}
+
+func TestLocaleAwareStaticImageDescriptor(t *testing.T) {
+	Convey("LocaleAwareStaticImageDescriptor EffectiveResource", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+		})
+
+		img := web.LocaleAwareStaticImageDescriptor{
+			Name: "myimage",
+		}
+		r.Register(img)
+
+		writeFile := func(fs afero.Fs, langTag string, ext string, data []byte) {
+			_ = fs.MkdirAll(fmt.Sprintf("static/%s/", langTag), 0777)
+			_ = afero.WriteFile(fs, fmt.Sprintf("static/%s/myimage%s", langTag, ext), data, 0666)
+		}
+
+		read := func(view resource.View) (asset *web.StaticAsset, err error) {
+			result, err := manager.Read(img, view)
+			if err != nil {
+				return
+			}
+
+			asset = result.(*web.StaticAsset)
+			return
+		}
+
+		makeImage := func(c color.Color) image.Image {
+			i := image.NewRGBA(image.Rect(0, 0, 1, 1))
+			i.Set(0, 0, c)
+			return i
+		}
+
+		encodePNG := func(i image.Image) ([]byte, error) {
+			var buf bytes.Buffer
+			err := png.Encode(&buf, i)
+			if err != nil {
+				return nil, err
+			}
+			return buf.Bytes(), nil
+		}
+
+		pngA, err := encodePNG(makeImage(color.RGBA{255, 0, 0, 255}))
+		So(err, ShouldBeNil)
+
+		pngB, err := encodePNG(makeImage(color.RGBA{0, 255, 0, 255}))
+		So(err, ShouldBeNil)
+
+		So(pngA, ShouldNotResemble, pngB)
+
+		Convey("it should return single resource", func() {
+			writeFile(fsA, "en", ".png", pngA)
+
+			asset, err := read(resource.EffectiveResource{
+				PreferredTags: []string{"zh", "en"},
+				DefaultTag:    "en",
+				SupportedTags: []string{"zh", "en"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/en/myimage.png")
+			So(asset.Data, ShouldResemble, pngA)
+		})
+
+		Convey("it should return single resource with preferred language tag", func() {
+			writeFile(fsA, "en", ".png", pngA)
+			writeFile(fsA, "zh", ".png", pngA)
+
+			asset, err := read(resource.EffectiveResource{
+				PreferredTags: []string{"zh", "en"},
+				DefaultTag:    "en",
+				SupportedTags: []string{"zh", "en"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/zh/myimage.png")
+			So(asset.Data, ShouldResemble, pngA)
+		})
+
+		Convey("it should return build in resource only", func() {
+			writeFile(fsA, "en", ".png", pngA)
+			writeFile(fsB, "en", ".png", pngB)
+
+			asset, err := read(resource.EffectiveResource{
+				DefaultTag:    "en",
+				SupportedTags: []string{"en"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/en/myimage.png")
+			So(asset.Data, ShouldResemble, pngA)
+		})
+
+		Convey("it should not fail when fallback is not en", func() {
+			writeFile(fsA, "en", ".png", pngA)
+
+			asset, err := read(resource.EffectiveResource{
+				DefaultTag:    "zh",
+				SupportedTags: []string{"zh"},
+			})
+			So(err, ShouldBeNil)
+			So(asset.Path, ShouldEqual, "static/en/myimage.png")
+			So(asset.Data, ShouldResemble, pngA)
+		})
+	})
+
+	Convey("LocaleAwareStaticImageDescriptor EffectiveFile", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
+		})
+
+		img := web.LocaleAwareStaticImageDescriptor{
+			Name: "myimage",
+		}
+		r.Register(img)
+
+		writeFile := func(fs afero.Fs, langTag string, ext string, data []byte) {
+			_ = fs.MkdirAll(fmt.Sprintf("static/%s/", langTag), 0777)
+			_ = afero.WriteFile(fs, fmt.Sprintf("static/%s/myimage%s", langTag, ext), data, 0666)
+		}
+
+		read := func(view resource.View) (b []byte, err error) {
+			result, err := manager.Read(img, view)
+			if err != nil {
+				return
+			}
+
+			b = result.([]byte)
+			return
+		}
+
+		makeImage := func(c color.Color) image.Image {
+			i := image.NewRGBA(image.Rect(0, 0, 1, 1))
+			i.Set(0, 0, c)
+			return i
+		}
+
+		encodePNG := func(i image.Image) ([]byte, error) {
+			var buf bytes.Buffer
+			err := png.Encode(&buf, i)
+			if err != nil {
+				return nil, err
+			}
+			return buf.Bytes(), nil
+		}
+
+		pngA, err := encodePNG(makeImage(color.RGBA{255, 0, 0, 255}))
+		So(err, ShouldBeNil)
+
+		pngB, err := encodePNG(makeImage(color.RGBA{0, 255, 0, 255}))
+		So(err, ShouldBeNil)
+
+		So(pngA, ShouldNotResemble, pngB)
+
+		Convey("it should return single resource", func() {
+			writeFile(fsA, "en", ".png", pngA)
+
+			data, err := read(resource.EffectiveFile{
+				Path: "static/en/myimage.png",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngA)
+		})
+
+		Convey("it should return resource with specific path", func() {
+			writeFile(fsA, "en", ".jpg", pngA)
+			writeFile(fsA, "zh", ".jpg", pngA)
+			writeFile(fsA, "en", ".png", pngB)
+			writeFile(fsA, "zh", ".png", pngB)
+
+			data, err := read(resource.EffectiveFile{
+				Path: "static/en/myimage.png",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngB)
+
+			data, err = read(resource.EffectiveFile{
+				Path: "static/zh/myimage.png",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngB)
+
+			data, err = read(resource.EffectiveFile{
+				Path: "static/en/myimage.jpg",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngA)
+
+			data, err = read(resource.EffectiveFile{
+				Path: "static/zh/myimage.jpg",
+			})
+			So(err, ShouldBeNil)
+			So(data, ShouldResemble, pngA)
+		})
+
+		Convey("it should use build in resource only", func() {
+			writeFile(fsA, "en", ".png", pngA)
+			writeFile(fsB, "en", ".png", pngB)
+
+			data, err := read(resource.EffectiveFile{
+				Path: "static/en/myimage.png",
 			})
 			So(err, ShouldBeNil)
 			So(data, ShouldResemble, pngA)
