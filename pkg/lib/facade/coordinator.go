@@ -23,10 +23,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -1591,4 +1593,44 @@ func (c *Coordinator) GetUserByOAuth(oauthProviderAlias string, oauthProviderUse
 	}
 
 	return info.UserID, nil
+}
+
+func (c *Coordinator) GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error) {
+	if hint.Type != oauth.LoginHintTypeLoginID {
+		panic("Only login_hint with type login_id is supported")
+	}
+
+	userIDs := setutil.Set[string]{}
+
+	findUserIDsByClaim := func(claimName string, value string) error {
+		ids, err := c.GetUsersByStandardAttribute(claimName, value)
+		if err != nil {
+			return err
+		}
+		for _, id := range ids {
+			userIDs.Add(id)
+		}
+		return nil
+	}
+
+	switch {
+	case hint.LoginIDEmail != "":
+		err := findUserIDsByClaim(stdattrs.Email, hint.LoginIDEmail)
+		if err != nil {
+			return nil, err
+		}
+	case hint.LoginIDPhone != "":
+		err := findUserIDsByClaim(stdattrs.PhoneNumber, hint.LoginIDPhone)
+		if err != nil {
+			return nil, err
+		}
+	case hint.LoginIDUsername != "":
+		err := findUserIDsByClaim(stdattrs.PreferredUsername, hint.LoginIDUsername)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("unable to find user by login_hint as no login_id provided")
+	}
+	return userIDs.Keys(), nil
 }

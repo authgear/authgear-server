@@ -158,6 +158,7 @@ func (m *SessionMiddleware) createSessionFromSAMLSession(samlSessionID string) (
 			SAMLSessionID: samlSession.ID,
 			RedirectURI:   uiInfo.RedirectURI,
 			Prompt:        uiInfo.Prompt,
+			LoginHint:     uiInfo.LoginHint,
 		}
 	}
 

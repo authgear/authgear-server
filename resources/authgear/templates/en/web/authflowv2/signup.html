@@ -121,6 +121,8 @@
                 data-retain-form-form-name-param="phone"
                 data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
               `
+              "Value" $.LoginIDDefaultValue
+              "ReadOnly" $.LoginIDInputReadOnly
             )
           }}
           {{ if $show_captcha_phone }}
@@ -130,6 +132,7 @@
           <input
             data-text-field-target="input"
             {{ if $.ShouldFocusInput }}autofocus{{ end }}
+            {{ if $.LoginIDInputReadOnly }}readonly{{ end }}
             class="block input w-full {{ if $display_input_error }}input--error{{end}}"
             type="{{ $.NonPhoneLoginIDInputType }}"
             name="q_login_id"
@@ -140,6 +143,7 @@
             data-action="input->retain-form-input#input retain-form-input:input->retain-form-form#input"
             data-retain-form-form-target="input"
             data-retain-form-form-name-param="text"
+            value="{{ $.LoginIDDefaultValue }}"
           >
           {{ if $show_captcha_text }}
             {{ template "web/authflowv2/__bot_protection_form_input.html" $ }}
@@ -176,7 +180,7 @@
     </p>
   {{ end }}
 
-  {{ if $has_alternatives }}
+  {{ if and $has_alternatives (not $.AlternativesDisabled) }}
     {{ template "authflowv2/__divider.html" (dict "Classname" "my-8")  }}
     <section class="flex flex-col gap-4">
       {{ range .IdentityCandidates }}

@@ -230,6 +230,10 @@ type LDAPClientFactory interface {
 	MakeClient(serverConfig *config.LDAPServerConfig) *ldap.Client
 }
 
+type UserFacade interface {
+	GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error)
+}
+
 type Dependencies struct {
 	Config        *config.AppConfig
 	FeatureConfig *config.FeatureConfig
@@ -270,6 +274,8 @@ type Dependencies struct {
 	AuthenticationInfos  AuthenticationInfoService
 	SessionCookie        session.CookieDef
 	MFADeviceTokenCookie mfa.CookieDef
+
+	UserFacade UserFacade
 
 	Cookies CookieManager
 

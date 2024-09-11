@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
@@ -19,6 +20,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 func ConfigureLoginRoute(route httproute.Route) httproute.Route {
@@ -36,10 +38,13 @@ func NewLoginHandlerLogger(lf *log.Factory) *LoginHandlerLogger {
 type LoginHandler struct {
 	Logger             *LoginHandlerLogger
 	Clock              clock.Clock
+	Database           *appdb.Handle
 	SAMLConfig         *config.SAMLConfig
 	SAMLService        HandlerSAMLService
 	SAMLSessionService SAMLSessionService
 	SAMLUIService      SAMLUIService
+
+	UserFacade SAMLUserFacade
 
 	LoginResultHandler LoginResultHandler
 }
@@ -191,7 +196,6 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		string(authnRequest.ToXMLBytes()),
 		callbackURL,
 		relayState,
-		authnRequest.GetIsPassive(),
 	)
 	h.writeResult(rw, r, result)
 }
@@ -242,7 +246,6 @@ func (h *LoginHandler) handleIdpInitiated(
 		"",
 		callbackURL,
 		"",
-		false,
 	)
 }
 
@@ -252,7 +255,6 @@ func (h *LoginHandler) startSSOFlow(
 	authnRequestXML string,
 	callbackURL string,
 	relayState string,
-	isPassive bool,
 ) httputil.Result {
 	now := h.Clock.NowUTC()
 	issuer := h.SAMLService.IdpEntityID()
@@ -264,7 +266,34 @@ func (h *LoginHandler) startSSOFlow(
 		RelayState:        relayState,
 	}
 
-	if isPassive == true {
+	uiInfo, showUI, err := h.SAMLUIService.ResolveUIInfo(sp, samlSessionEntry)
+	if err != nil {
+		var invalidRequestErr *samlerror.InvalidRequestError
+		if errors.As(err, &invalidRequestErr) {
+			return samlprotocolhttp.NewExpectedSAMLErrorResult(err,
+				samlprotocolhttp.SAMLResult{
+					CallbackURL: callbackURL,
+					Binding:     samlprotocol.SAMLBindingHTTPPost,
+					Response: samlprotocol.NewRequestDeniedErrorResponse(
+						now,
+						issuer,
+						fmt.Sprintf("invalid SAMLRequest: %s", invalidRequestErr.Reason),
+						invalidRequestErr.GetDetailElements(),
+					),
+					RelayState: relayState,
+				},
+			)
+		}
+		panic(err)
+	}
+
+	var loginHint *oauth.LoginHint
+	l, err := oauth.ParseLoginHint(uiInfo.LoginHint)
+	if err == nil {
+		loginHint = l
+	}
+
+	if !showUI {
 		// If IsPassive=true, no ui should be displayed.
 		// Authenticate by existing session or error.
 		var resolvedSession session.ResolvedSession
@@ -274,6 +303,31 @@ func (h *LoginHandler) startSSOFlow(
 		// Ignore any session that is not allow to be used here
 		if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.PreAuthenticatedURLScope}) {
 			resolvedSession = nil
+		}
+
+		// Ignore any session that does not match login_hint
+		err = h.Database.WithTx(func() error {
+			if loginHint != nil && resolvedSession != nil {
+				hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
+				if err != nil {
+					return err
+				}
+				hintUserIDsSet := setutil.NewStringSetFromSlice(hintUserIDs)
+				if !hintUserIDsSet.Has(resolvedSession.GetAuthenticationInfo().UserID) {
+					resolvedSession = nil
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return samlprotocolhttp.NewUnexpectedSAMLErrorResult(err,
+				samlprotocolhttp.SAMLResult{
+					CallbackURL: callbackURL,
+					Binding:     samlprotocol.SAMLBindingHTTPPost,
+					Response:    samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
+					RelayState:  relayState,
+				},
+			)
 		}
 
 		if resolvedSession == nil {
@@ -294,17 +348,10 @@ func (h *LoginHandler) startSSOFlow(
 		} else {
 			// Else, authenticate with the existing session.
 			authInfo := resolvedSession.CreateNewAuthenticationInfoByThisSession()
-			// TODO(saml): If <Subject> is provided in the request,
-			// ensure the user of current session matches the subject.
 			result := h.LoginResultHandler.handleLoginResult(&authInfo, samlSessionEntry)
 			return result
 		}
 
-	}
-
-	uiInfo, err := h.SAMLUIService.ResolveUIInfo(samlSessionEntry)
-	if err != nil {
-		panic(err)
 	}
 
 	samlSession := samlsession.NewSAMLSession(samlSessionEntry, uiInfo)

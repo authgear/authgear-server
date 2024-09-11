@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 )
@@ -38,7 +39,10 @@ type SAMLSessionService interface {
 }
 
 type SAMLUIService interface {
-	ResolveUIInfo(entry *samlsession.SAMLSessionEntry) (*samlsession.SAMLUIInfo, error)
+	ResolveUIInfo(
+		sp *config.SAMLServiceProviderConfig,
+		entry *samlsession.SAMLSessionEntry,
+	) (info *samlsession.SAMLUIInfo, showUI bool, err error)
 	BuildAuthenticationURL(s *samlsession.SAMLSession) (*url.URL, error)
 }
 
@@ -49,4 +53,8 @@ type SAMLAuthenticationInfoResolver interface {
 type SAMLAuthenticationInfoService interface {
 	Get(entryID string) (*authenticationinfo.Entry, error)
 	Delete(entryID string) error
+}
+
+type SAMLUserFacade interface {
+	GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error)
 }

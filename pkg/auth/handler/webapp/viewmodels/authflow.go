@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/wechat"
 )
 
@@ -35,7 +36,10 @@ type AuthflowViewModel struct {
 
 	// LoginIDInputType is the input the end-user has chosen.
 	// It is "email", "phone" or "text".
-	LoginIDInputType string
+	LoginIDInputType     string
+	LoginIDDefaultValue  string
+	LoginIDInputReadOnly bool
+	AlternativesDisabled bool
 
 	// LoginIDContextualType is the type the end-user thinks they should enter.
 	// It depends on LoginIDInputType.
@@ -58,7 +62,11 @@ type AuthflowViewModeler struct {
 }
 
 // nolint: gocognit
-func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.Request) AuthflowViewModel {
+func (m *AuthflowViewModeler) NewWithAuthflow(
+	s *webapp.Session,
+	f *authflow.FlowResponse,
+	r *http.Request,
+) AuthflowViewModel {
 	options := webapp.GetIdentificationOptions(f)
 
 	var firstLoginIDIdentification config.AuthenticationFlowIdentification
@@ -187,6 +195,35 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 		}
 	}
 
+	var loginIDDefaultValue string
+	var loginIDInputReadOnly bool
+	var alternativesDisabled bool
+
+	var loginHint *oauth.LoginHint
+	if s != nil && s.LoginHint != "" {
+		loginHint, _ = oauth.ParseLoginHint(s.LoginHint)
+	}
+	if loginHint != nil && loginHint.Type == oauth.LoginHintTypeLoginID {
+		switch {
+		case loginHint.LoginIDEmail != "" && hasEmail:
+			loginIDKey = "email"
+			loginIDInputType = "email"
+			loginIDDefaultValue = loginHint.LoginIDEmail
+		case loginHint.LoginIDPhone != "" && hasPhone:
+			loginIDKey = "phone"
+			loginIDInputType = "phone"
+			loginIDDefaultValue = loginHint.LoginIDPhone
+		case loginHint.LoginIDUsername != "" && hasUsername:
+			loginIDKey = "username"
+			loginIDInputType = "text"
+			loginIDDefaultValue = loginHint.LoginIDUsername
+		}
+		if loginHint.Enforce {
+			loginIDInputReadOnly = true
+			alternativesDisabled = true
+		}
+	}
+
 	var loginIDContextualType string
 	switch {
 	case loginIDInputType == "phone":
@@ -259,6 +296,9 @@ func (m *AuthflowViewModeler) NewWithAuthflow(f *authflow.FlowResponse, r *http.
 
 		LoginIDKey:               loginIDKey,
 		LoginIDInputType:         loginIDInputType,
+		LoginIDDefaultValue:      loginIDDefaultValue,
+		LoginIDInputReadOnly:     loginIDInputReadOnly,
+		AlternativesDisabled:     alternativesDisabled,
 		NonPhoneLoginIDInputType: nonPhoneLoginIDInputType,
 		NonPhoneLoginIDType:      nonPhoneLoginIDType,
 		LoginIDContextualType:    loginIDContextualType,

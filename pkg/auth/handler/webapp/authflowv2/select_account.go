@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -31,6 +32,10 @@ func ConfigureAuthflowV2SelectAccountRoute(route httproute.Route) httproute.Rout
 
 type SelectAccountUserService interface {
 	Get(userID string, role accesscontrol.Role) (*model.User, error)
+}
+
+type SelectAccountUserFacade interface {
+	GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error)
 }
 
 type SelectAccountIdentityService interface {
@@ -57,6 +62,7 @@ type AuthflowV2SelectAccountHandler struct {
 	AuthenticationConfig      *config.AuthenticationConfig
 	SignedUpCookie            webapp.SignedUpCookieDef
 	Users                     SelectAccountUserService
+	UserFacade                SelectAccountUserFacade
 	Identities                SelectAccountIdentityService
 	AuthenticationInfoService SelectAccountAuthenticationInfoService
 	UIInfoResolver            SelectAccountUIInfoResolver
@@ -111,6 +117,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	canUseIntentReauthenticate := false
 	suppressIDPSessionCookie := false
 	oauthProviderAlias := ""
+	var loginHint *oauth.LoginHint
 
 	if webSession != nil {
 		oauthSessionID = webSession.OAuthSessionID
@@ -120,6 +127,13 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
 		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
 		oauthProviderAlias = webSession.OAuthProviderAlias
+		if webSession.LoginHint != "" {
+			l, err := oauth.ParseLoginHint(webSession.LoginHint)
+			// Ignore the login_hint if it is not something we understand
+			if err == nil {
+				loginHint = l
+			}
+		}
 	}
 
 	// When x_suppress_idp_session_cookie is true, ignore IDP session cookie.
@@ -130,6 +144,20 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	if !oauth.ContainsAllScopes(oauth.SessionScopes(session), []string{oauth.PreAuthenticatedURLScope}) {
 		session = nil
 	}
+	// Ignore any session that does not match login_hint
+	ctrl.BeforeHandle(func() error {
+		if loginHint != nil && session != nil {
+			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
+			if err != nil {
+				return err
+			}
+			hintUserIDsSet := setutil.NewStringSetFromSlice(hintUserIDs)
+			if !hintUserIDsSet.Has(session.GetAuthenticationInfo().UserID) {
+				session = nil
+			}
+		}
+		return nil
+	})
 
 	continueWithCurrentAccount := func() error {
 		redirectURI := ""
@@ -180,6 +208,12 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 			}
 		}
 
+		// If a login id login_hint exist, go to login
+		if loginHint != nil && loginHint.Type == oauth.LoginHintTypeLoginID {
+			h.continueFlow(w, r, "/login")
+			return
+		}
+
 		// Page is something that we do not understand or it is absent.
 		// In this case, we look at the cookie.
 		signedUpCookie, err := h.Cookies.GetCookie(r, h.SignedUpCookie.Def)
@@ -204,7 +238,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 	ctrl.Get(func() error {
 		// When promote anonymous user, the end-user should not see this page.
-		if webSession != nil && webSession.LoginHint != "" {
+		if loginHint != nil && loginHint.Type == oauth.LoginHintTypeAnonymous {
 			h.continueFlow(w, r, "/flows/promote_user")
 			return nil
 		}

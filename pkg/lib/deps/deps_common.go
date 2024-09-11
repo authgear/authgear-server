@@ -301,6 +301,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(userimport.AuthenticatorService), new(*facade.AuthenticatorFacade)),
 		wire.Bind(new(accountmanagement.IdentityService), new(*facade.IdentityFacade)),
 		wire.Bind(new(oauth.AccessTokenEncodingIdentityService), new(*facade.IdentityFacade)),
+		wire.Bind(new(authenticationflow.UserFacade), new(*facade.UserFacade)),
+		wire.Bind(new(handlersaml.SAMLUserFacade), new(*facade.UserFacade)),
 	),
 
 	wire.NewSet(

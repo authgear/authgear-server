@@ -295,3 +295,8 @@ type MilestonePromptCreatePasskey interface {
 	authflow.Milestone
 	MilestonePromptCreatePasskey()
 }
+
+type MilestoneCheckLoginHint interface {
+	authflow.Milestone
+	MilestoneCheckLoginHint()
+}

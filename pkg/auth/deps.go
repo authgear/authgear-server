@@ -212,6 +212,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SelectAccountUserService), new(*user.Queries)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountUserService), new(*user.Queries)),
+	wire.Bind(new(handlerwebappauthflowv2.SelectAccountUserFacade), new(*facade.UserFacade)),
+	wire.Bind(new(handlerwebapp.SelectAccountUserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(handlerwebapp.MeterService), new(*meter.Service)),
 	wire.Bind(new(handlerwebapp.ErrorService), new(*webapp.ErrorService)),
 	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
