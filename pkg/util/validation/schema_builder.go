@@ -2,6 +2,8 @@ package validation
 
 import (
 	"encoding/json"
+
+	"github.com/authgear/authgear-server/pkg/util/copyutil"
 )
 
 // SchemaBuilder is just map[string]interface{} with
@@ -178,15 +180,9 @@ func (b SchemaBuilder) ToSimpleSchema() *SimpleSchema {
 // This function allow copying the schema builder to a reference
 // Expected usage is to avoid mutating original schema builder
 func (b SchemaBuilder) Clone() SchemaBuilder {
-	newB := make(SchemaBuilder)
-	for k, v := range b {
-		vb, ok := v.(SchemaBuilder)
-		if ok {
-			newB[k] = vb.Clone()
-		} else {
-			newB[k] = v
-		}
+	newB, err := copyutil.Clone(b)
+	if err != nil {
+		panic(err)
 	}
-
-	return newB
+	return newB.(SchemaBuilder)
 }
