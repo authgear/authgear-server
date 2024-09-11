@@ -36,6 +36,7 @@
 
 .activityTypeFilter {
   @apply h-full tablet:h-11;
+  @apply flex items-center tablet:block;
 }
 
 .filterActionContainer {
