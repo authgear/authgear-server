@@ -306,7 +306,7 @@ func (h *LoginHandler) startSSOFlow(
 		}
 
 		// Ignore any session that does not match login_hint
-		h.Database.WithTx(func() error {
+		err = h.Database.WithTx(func() error {
 			if loginHint != nil && resolvedSession != nil {
 				hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
 				if err != nil {
@@ -319,6 +319,16 @@ func (h *LoginHandler) startSSOFlow(
 			}
 			return nil
 		})
+		if err != nil {
+			return samlprotocolhttp.NewUnexpectedSAMLErrorResult(err,
+				samlprotocolhttp.SAMLResult{
+					CallbackURL: callbackURL,
+					Binding:     samlprotocol.SAMLBindingHTTPPost,
+					Response:    samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
+					RelayState:  relayState,
+				},
+			)
+		}
 
 		if resolvedSession == nil {
 			// No session, return NoPassive error.
