@@ -3,7 +3,7 @@
 {{ define "page-content" }}
 {{ $instruction_image_src_ios := call $.StaticAssetURL "csrf-error-instruction-ios" }}
 {{ $instruction_image_src_ios_below_17 := call $.StaticAssetURL "csrf-error-instruction-ios-below-17" }}
-{{ $instruction_image_src_android := call $.StaticAssetURL "csrf-error-instruction-android" }}
+{{ $instruction_image_src_chrome_android := call $.StaticAssetURL "csrf-error-instruction-chrome-android" }}
 {{ $instruction_image_src_chrome := call $.StaticAssetURL "csrf-error-instruction-chrome" }}
 {{ $instruction_image_src_samsung := call $.StaticAssetURL "csrf-error-instruction-samsung" }}
 
@@ -43,13 +43,13 @@
   <img src="{{ $instruction_image_src_chrome }}" alt="" class="mt-6"/>
   {{ else if eq $.Device.Type "ChromeAndroid" }}
   <ul class="list-decimal ml-6 mt-6 space-y-2 dark:text-white">
-    <li>{{ template "v2.page.csrf-error-instruction.android.step-1" }}</li>
-    <li>{{ template "v2.page.csrf-error-instruction.android.step-2" }}</li>
-    <li>{{ template "v2.page.csrf-error-instruction.android.step-3" }}</li>
-    <li>{{ template "v2.page.csrf-error-instruction.android.step-4" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.chrome-android.step-1" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.chrome-android.step-2" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.chrome-android.step-3" }}</li>
+    <li>{{ template "v2.page.csrf-error-instruction.chrome-android.step-4" }}</li>
   </ul>
   <div class="mt-6 mx-6 object-contain">
-    <img src="{{ $instruction_image_src_android }}" alt="" />
+    <img src="{{ $instruction_image_src_chrome_android }}" alt="" />
   </div>
   {{ else if eq $.Device.Type "Samsung" }}
   <ul class="list-decimal ml-6 mt-8 space-y-2 dark:text-white">
