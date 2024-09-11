@@ -34,6 +34,9 @@ type GenerateTokenOptions struct {
 
 	// Email
 	Email string
+
+	// IdentityID for updating identity
+	IdentityID string
 }
 
 func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error) {
@@ -61,6 +64,9 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 
 		// Email
 		Email: options.Email,
+
+		// Updating Identity
+		IdentityID: options.IdentityID,
 	}
 
 	tokenBytes, err := json.Marshal(token)

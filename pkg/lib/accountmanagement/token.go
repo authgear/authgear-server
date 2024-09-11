@@ -25,6 +25,9 @@ type Token struct {
 
 	// Adding Email
 	Email string `json:"email,omitempty"`
+
+	// Updating Identity
+	IdentityID string `json:"identity_id,omitempty"`
 }
 
 func (t *Token) CheckUserWithError(userID string, err error) error {

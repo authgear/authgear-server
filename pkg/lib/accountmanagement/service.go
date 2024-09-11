@@ -64,13 +64,14 @@ type sendOTPCodeInput struct {
 	isResend bool
 }
 
-type StartAddingIdentityWithVerificationInput struct {
+type StartIdentityWithVerificationInput struct {
 	LoginID    string
 	LoginIDKey string
+	IdentityID string
 	Channel    model.AuthenticatorOOBChannel
 }
 
-type StartAddingIdentityWithVerificationOutput struct {
+type StartIdentityWithVerificationOutput struct {
 	Token string `json:"token,omitempty"`
 }
 
@@ -82,6 +83,7 @@ type ResumeAddingIdentityWithVerificationOutput struct {
 	Token          string `json:"token,omitempty"`
 	LoginID        string
 	LoginIDKeyType model.LoginIDKeyType
+	IdentityID     string
 }
 
 type verifyIdentityInput struct {
@@ -101,6 +103,19 @@ type CreateIdentityWithVerificationInput struct {
 }
 
 type CreateIdentityWithVerificationOutput struct {
+	// It is intentionally empty.
+}
+
+type UpdateIdentityWithVerificationInput struct {
+	LoginID    string
+	LoginIDKey string
+	IdentityID string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
+}
+
+type UpdateIdentityWithVerificationOutput struct {
 	// It is intentionally empty.
 }
 
@@ -202,6 +217,19 @@ type AddEmailInput struct {
 	Code       string
 	Token      string
 	Channel    model.AuthenticatorOOBChannel
+}
+
+type UpdateEmailInput struct {
+	LoginID    string
+	LoginIDKey string
+	IdentityID string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
+}
+
+type UpdateEmailOutput struct {
+	// It is intentionally empty.
 }
 
 type RemoveEmailInput struct {
@@ -458,7 +486,7 @@ func (s *Service) removeIdentity(identityID string, userID string) (identityInfo
 	return identityInfo, nil
 }
 
-func (s *Service) updateIdentity(identityID string, userID string, identitySpec *identity.Spec) (oldInfo *identity.Info, newInfo *identity.Info, err error) {
+func (s *Service) makeAndCheckUpdateIdentityInfo(identityID string, userID string, identitySpec *identity.Spec) (oldInfo *identity.Info, newInfo *identity.Info, err error) {
 	oldInfo, err = s.Identities.Get(identityID)
 	if err != nil {
 		return nil, nil, err
@@ -488,15 +516,6 @@ func (s *Service) updateIdentity(identityID string, userID string, identitySpec 
 			s2 := newInfo.ToSpec()
 			return nil, nil, identity.NewErrDuplicatedIdentity(&s2, &s1)
 		}
-		return nil, nil, err
-	}
-
-	if err := s.Identities.Update(oldInfo, newInfo); err != nil {
-		return nil, nil, err
-	}
-
-	// NodeDoUpdateIdentity GetEffects() -> EffectOnCommit()
-	if err := s.dispatchUpdatedIdentityEvent(oldInfo, newInfo); err != nil {
 		return nil, nil, err
 	}
 
@@ -788,24 +807,27 @@ func (s *Service) sendOTPCode(input *sendOTPCodeInput) error {
 
 }
 
-func (s *Service) StartAddingIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartAddingIdentityWithVerificationInput) (output *StartAddingIdentityWithVerificationOutput, err error) {
+func (s *Service) StartIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartIdentityWithVerificationInput) (output *StartIdentityWithVerificationOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	var token string
-	spec, err := s.makeAndCheckCreateLoginIDIdentityInfo(input.LoginIDKey, input.LoginID, userID)
+
+	spec, err := s.makeLoginIDSpec(input.LoginIDKey, input.LoginID)
 	if err != nil {
 		return nil, err
 	}
-	loginIDType := spec.LoginID.LoginIDType
+	loginIDType := spec.LoginID.Type
 	switch loginIDType {
 	case model.LoginIDKeyTypeEmail:
 		token, err = s.Store.GenerateToken(GenerateTokenOptions{
-			UserID: userID,
-			Email:  input.LoginID,
+			UserID:     userID,
+			Email:      input.LoginID,
+			IdentityID: input.IdentityID,
 		})
 	case model.LoginIDKeyTypePhone:
 		token, err = s.Store.GenerateToken(GenerateTokenOptions{
 			UserID:      userID,
 			PhoneNumber: input.LoginID,
+			IdentityID:  input.IdentityID,
 		})
 	}
 	if err != nil {
@@ -821,7 +843,7 @@ func (s *Service) StartAddingIdentityWithVerification(resolvedSession session.Re
 		return nil, err
 	}
 
-	return &StartAddingIdentityWithVerificationOutput{
+	return &StartIdentityWithVerificationOutput{
 		Token: token,
 	}, nil
 }
@@ -839,6 +861,7 @@ func (s *Service) ResumeAddingIdentityWithVerification(resolvedSession session.R
 
 	var loginID string
 	var loginIDKeyType model.LoginIDKeyType
+	identityID := token.IdentityID
 
 	switch {
 	case token.Email != "":
@@ -855,6 +878,7 @@ func (s *Service) ResumeAddingIdentityWithVerification(resolvedSession session.R
 		Token:          input.Token,
 		LoginID:        loginID,
 		LoginIDKeyType: loginIDKeyType,
+		IdentityID:     identityID,
 	}, nil
 }
 
@@ -1255,8 +1279,16 @@ func (s *Service) UpdateUsername(input *UpdateUsernameInput) (*UpdateUsernameOut
 	}
 
 	err = s.Database.WithTx(func() error {
-		_, _, err = s.updateIdentity(identityID, userID, identitySpec)
+		oldInfo, newInfo, err := s.makeAndCheckUpdateIdentityInfo(identityID, userID, identitySpec)
 		if err != nil {
+			return err
+		}
+		if err := s.Identities.Update(oldInfo, newInfo); err != nil {
+			return err
+		}
+
+		// NodeDoUpdateIdentity GetEffects() -> EffectOnCommit()
+		if err := s.dispatchUpdatedIdentityEvent(oldInfo, newInfo); err != nil {
 			return err
 		}
 
@@ -1330,10 +1362,69 @@ func (s *Service) createIdentityWithVerification(resolvedSession session.Resolve
 	return &CreateIdentityWithVerificationOutput{}, nil
 }
 
+func (s *Service) updateIdentityWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	loginID := input.LoginID
+	loginIDKey := input.LoginIDKey
+	identityID := input.IdentityID
+
+	// EdgeUseIdentityLoginID
+	identitySpec, err := s.makeLoginIDSpec(loginIDKey, loginID)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Database.WithTx(func() error {
+		oldInfo, newInfo, err := s.makeAndCheckUpdateIdentityInfo(identityID, userID, identitySpec)
+		if err != nil {
+			return err
+		}
+
+		err = s.verifyIdentity(&verifyIdentityInput{
+			UserID:       userID,
+			Token:        input.Token,
+			Channel:      input.Channel,
+			Code:         input.Code,
+			IdentityInfo: newInfo,
+		})
+		if err != nil {
+			return err
+		}
+
+		// Update identity after verification
+		if err := s.Identities.Update(oldInfo, newInfo); err != nil {
+			return err
+		}
+
+		// Dispatch event
+		if err = s.dispatchUpdatedIdentityEvent(oldInfo, newInfo); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &UpdateIdentityWithVerificationOutput{}, nil
+}
+
 func (s *Service) AddEmailWithVerification(resolvedSession session.ResolvedSession, input *AddEmailInput) (*CreateIdentityWithVerificationOutput, error) {
 	return s.createIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
+		Code:       input.Code,
+		Channel:    input.Channel,
+		Token:      input.Token,
+	})
+}
+
+func (s *Service) UpdateEmailWithVerification(resolvedSession session.ResolvedSession, input *UpdateEmailInput) (*UpdateIdentityWithVerificationOutput, error) {
+	return s.updateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
+		LoginID:    input.LoginID,
+		LoginIDKey: input.LoginIDKey,
+		IdentityID: input.IdentityID,
 		Code:       input.Code,
 		Channel:    input.Channel,
 		Token:      input.Token,
