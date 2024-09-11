@@ -18,6 +18,7 @@ clear
 close
 code
 colors
+cookie
 create
 css
 description
