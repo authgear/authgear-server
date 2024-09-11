@@ -11,8 +11,8 @@ import (
 
 // v2.page.<page>.<state>.<descriptor>
 // v2.component.<component>.<state>.<descriptor>
-const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z0-9]+)\.([-a-z0-9]+)\.([-a-z0-9]+)$`
-const ErrTranslationKeyPattern = `^(v2)\.(error)\.([-a-z0-9]+)$`
+const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z0-9%]+)\.([-a-z0-9%]+)\.([-a-z0-9%]+)$`
+const ErrTranslationKeyPattern = `^(v2)\.(error)\.([-a-z0-9%]+)$`
 const enTranslationJSONPath = "resources/authgear/templates/en/translation.json"
 
 var validKey *regexp.Regexp
@@ -58,11 +58,17 @@ func CheckTranslationKeyPattern(translationKey string) (err error) {
 		return fmt.Errorf("translation key is empty")
 	}
 
+	isPatternValid := validKey.MatchString(key) || validErrKey.MatchString(key)
+
 	if !isTranslationKeyDefined(key) {
+		// Allow wild card key like `v2.component.oauth-branding.%s.label`
+		if isPatternValid && hasWildcard(key) {
+			return nil
+		}
 		return fmt.Errorf("translation key not defined: \"%v\"", key)
 	}
 
-	if !validKey.MatchString(key) && !validErrKey.MatchString(key) {
+	if !isPatternValid {
 		return fmt.Errorf("invalid translation key: \"%v\"", key)
 	}
 
@@ -93,4 +99,8 @@ func getEnJSONTranslationKeys() map[string]struct{} {
 	}
 	return keys
 
+}
+
+func hasWildcard(key string) bool {
+	return strings.Contains(key, `%s`)
 }
