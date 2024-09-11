@@ -434,4 +434,73 @@ func TestTemplateResource(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
+
+	Convey("Template validation on view validate resource", t, func() {
+		fsA := afero.NewMemMapFs()
+		fsB := afero.NewMemMapFs()
+		r := &resource.Registry{}
+		manager := resource.NewManager(r, []resource.Fs{
+			resource.LeveledAferoFs{Fs: fsA, FsLevel: resource.FsLevelBuiltin},
+			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelCustom},
+		})
+
+		txt := &template.MessagePlainText{Name: "resource.txt"}
+		html := &template.MessageHTML{Name: "resource.html"}
+		r.Register(txt)
+		r.Register(html)
+
+		writeFileTxt := func(fs afero.Fs, lang string, data string) {
+			_ = fs.MkdirAll("templates/"+lang, 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/resource.txt", []byte(data), 0666)
+		}
+		writeFileHTML := func(fs afero.Fs, lang string, data string) {
+			_ = fs.MkdirAll("templates/"+lang, 0777)
+			_ = afero.WriteFile(fs, "templates/"+lang+"/resource.html", []byte(data), 0666)
+		}
+
+		readTxtAndValidate := func(view resource.ValidateResourceView) (str string, err error) {
+			_, err = manager.Read(txt, view)
+			if err != nil {
+				return
+			}
+			return
+		}
+		readHTMLAndValidate := func(view resource.ValidateResourceView) (str string, err error) {
+			_, err = manager.Read(html, view)
+			if err != nil {
+				return
+			}
+			return
+		}
+
+		templateStrOf100JSCalls := `{{ template "name" (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js (js "\\")))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))) }}`
+		Convey("Should throw err if invalid message text template", func() {
+			writeFileTxt(fsA, "en", templateStrOf100JSCalls)
+
+			_, err := readTxtAndValidate(resource.ValidateResource{})
+			So(err, ShouldBeError, "invalid text template: resource.txt:1:408: template nested too deep")
+		})
+
+		Convey("Should run normally if valid message text template", func() {
+			writeFileTxt(fsA, "en", `{{ template "name" }}`)
+
+			_, err := readTxtAndValidate(resource.ValidateResource{})
+			So(err, ShouldBeNil)
+
+		})
+
+		Convey("Should throw err if invalid message html template", func() {
+			writeFileHTML(fsA, "en", templateStrOf100JSCalls)
+
+			_, err := readHTMLAndValidate(resource.ValidateResource{})
+			So(err, ShouldBeError, "invalid HTML template: resource.html:1:408: template nested too deep")
+		})
+
+		Convey("Should run normally if valid message html template", func() {
+			writeFileHTML(fsA, "en", `{{ template "name" }}`)
+
+			_, err := readHTMLAndValidate(resource.ValidateResource{})
+			So(err, ShouldBeNil)
+		})
+	})
 }

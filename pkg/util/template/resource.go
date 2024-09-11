@@ -32,7 +32,7 @@ func isTemplateUpdateAllowed(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// HTML defines a HTML template
+// HTML defines a HTML template that is non-customizable
 type HTML struct {
 	// Name is the name of template
 	Name string
@@ -40,6 +40,7 @@ type HTML struct {
 	ComponentDependencies []*HTML
 }
 
+// MessageHTML defines a HTML template that is customizable
 type MessageHTML struct {
 	// Name is the name of template
 	Name string
@@ -85,8 +86,8 @@ func (t *HTML) UpdateResource(_ context.Context, _ []resource.ResourceFile, resr
 }
 
 func (t *MessageHTML) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
-	if isAllowed, error := isTemplateUpdateAllowed(ctx); !isAllowed || error != nil {
-		return nil, error
+	if isAllowed, err := isTemplateUpdateAllowed(ctx); !isAllowed || err != nil {
+		return nil, err
 	}
 	return &resource.ResourceFile{
 		Location: resrc.Location,
@@ -94,7 +95,7 @@ func (t *MessageHTML) UpdateResource(ctx context.Context, _ []resource.ResourceF
 	}, nil
 }
 
-// PlainText defines a plain text template
+// PlainText defines a plain text template that is non-customizable
 type PlainText struct {
 	// Name is the name of template
 	Name string
@@ -102,6 +103,7 @@ type PlainText struct {
 	ComponentDependencies []*PlainText
 }
 
+// MessagePlainText defines a plain text template that is customizable
 type MessagePlainText struct {
 	// Name is the name of template
 	Name string
@@ -145,8 +147,8 @@ func (t *PlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile,
 }
 
 func (t *MessagePlainText) UpdateResource(ctx context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
-	if isAllowed, error := isTemplateUpdateAllowed(ctx); !isAllowed || error != nil {
-		return nil, error
+	if isAllowed, err := isTemplateUpdateAllowed(ctx); !isAllowed || err != nil {
+		return nil, err
 	}
 	return &resource.ResourceFile{
 		Location: resrc.Location,
@@ -385,7 +387,11 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 			tpl := htmltemplate.New(name)
 			funcMap := MakeTemplateFuncMap(tpl)
 			tpl.Funcs(funcMap)
-			_, err := tpl.Parse(string(resrc.Data))
+			template, err := tpl.Parse(string(resrc.Data))
+			if err != nil {
+				return nil, fmt.Errorf("invalid HTML template: %w", err)
+			}
+			err = templateValidator.ValidateHTMLTemplate(template)
 			if err != nil {
 				return nil, fmt.Errorf("invalid HTML template: %w", err)
 			}
@@ -430,7 +436,11 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, view reso
 			tpl := texttemplate.New(name)
 			funcMap := MakeTemplateFuncMap(tpl)
 			tpl.Funcs(funcMap)
-			_, err := tpl.Parse(string(resrc.Data))
+			template, err := tpl.Parse(string(resrc.Data))
+			if err != nil {
+				return nil, fmt.Errorf("invalid text template: %w", err)
+			}
+			err = templateValidator.ValidateTextTemplate(template)
 			if err != nil {
 				return nil, fmt.Errorf("invalid text template: %w", err)
 			}
