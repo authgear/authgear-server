@@ -72,6 +72,8 @@ export const ActivityTypeFilterDropdown: React.VFC<ActivityTypeFilterDropdownPro
         searchValue={searchValue}
         onSearchValueChange={setSearchValue}
         onClear={onClearFilter}
+        // To avoid activity type string got truncated
+        calloutProps={{ calloutMinWidth: 300 }}
       />
     );
   };
