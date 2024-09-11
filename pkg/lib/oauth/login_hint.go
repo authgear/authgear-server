@@ -37,10 +37,12 @@ type LoginHint struct {
 
 func (h *LoginHint) String() string {
 	q := url.Values{}
+	q.Set("type", string(h.Type))
 	switch h.Type {
 	case LoginHintTypeLoginID:
-		q.Set("type", string(LoginHintTypeLoginID))
-		q.Set("enforce", strconv.FormatBool(h.Enforce))
+		if h.Enforce {
+			q.Set("enforce", strconv.FormatBool(h.Enforce))
+		}
 		if h.LoginIDEmail != "" {
 			q.Set("email", h.LoginIDEmail)
 		}
@@ -50,6 +52,11 @@ func (h *LoginHint) String() string {
 		if h.LoginIDUsername != "" {
 			q.Set("username", h.LoginIDUsername)
 		}
+	case LoginHintTypeAppSessionToken:
+		q.Set("app_session_token", h.AppSessionToken)
+	case LoginHintTypeAnonymous:
+		q.Set("promotion_code", h.PromotionCode)
+		q.Set("jwt", h.JWT)
 	default:
 		panic(fmt.Errorf("cannot convert login_hint to string with type: %v", h.Type))
 	}
