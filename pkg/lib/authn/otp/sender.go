@@ -9,12 +9,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
-	"github.com/authgear/authgear-server/pkg/util/template"
 )
+
+type AdditionalContext struct {
+	HasPassword bool
+}
 
 type SendOptions struct {
 	OTP               string
-	AdditionalContext any
+	AdditionalContext *AdditionalContext
 }
 
 type EndpointsProvider interface {
@@ -24,9 +27,9 @@ type EndpointsProvider interface {
 }
 
 type TranslationService interface {
-	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
-	SMSMessageData(msg *translation.MessageSpec, args interface{}) (*translation.SMSMessageData, error)
-	WhatsappMessageData(language string, msg *translation.MessageSpec, args interface{}) (*translation.WhatsappMessageData, error)
+	EmailMessageData(msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.EmailMessageData, error)
+	SMSMessageData(msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.SMSMessageData, error)
+	WhatsappMessageData(language string, msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.WhatsappMessageData, error)
 }
 
 type Sender interface {
@@ -69,7 +72,7 @@ type MessageSender struct {
 	WhatsappService WhatsappService
 }
 
-func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOptions) (any, error) {
+func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOptions) (*translation.PartialTemplateVariables, error) {
 	email := ""
 	if msg.email != nil {
 		email = msg.email.Recipient
@@ -108,17 +111,17 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 		url = linkURL.String()
 	}
 
-	ctx := make(map[string]any)
-	template.Embed(ctx, messageTemplateContext{
+	ctx := &translation.PartialTemplateVariables{
 		Email: email,
 		Phone: phone,
 		Code:  opts.OTP,
 		URL:   url,
 		Link:  url,
 		Host:  s.Endpoints.Origin().Host,
-	})
+	}
+
 	if opts.AdditionalContext != nil {
-		template.Embed(ctx, opts.AdditionalContext)
+		ctx.HasPassword = opts.AdditionalContext.HasPassword
 	}
 
 	return ctx, nil

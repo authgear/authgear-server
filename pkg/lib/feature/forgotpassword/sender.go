@@ -6,11 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
-	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type TranslationService interface {
-	EmailMessageData(msg *translation.MessageSpec, args interface{}) (*translation.EmailMessageData, error)
+	EmailMessageData(msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.EmailMessageData, error)
 }
 
 type SenderService interface {
@@ -99,14 +98,13 @@ func (s *Sender) Send(userID string, password string, msgType nonblocking.Messag
 		}
 		defer msg.Close()
 
-		ctx := make(map[string]any)
-		template.Embed(ctx, messageTemplateContext{
+		partialTemplateVariables := &translation.PartialTemplateVariables{
 			AppName:  string(s.AppConfg.ID),
 			Email:    email,
 			Password: password,
-		})
+		}
 
-		data, err := s.Translation.EmailMessageData(msg.spec, ctx)
+		data, err := s.Translation.EmailMessageData(msg.spec, partialTemplateVariables)
 		if err != nil {
 			return err
 		}
