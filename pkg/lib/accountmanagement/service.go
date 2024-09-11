@@ -92,7 +92,7 @@ type verifyIdentityInput struct {
 	IdentityInfo *identity.Info
 }
 
-type AddPhoneNumberInput struct {
+type CreateIdentityWithVerificationInput struct {
 	LoginID    string
 	LoginIDKey string
 	Code       string
@@ -100,7 +100,7 @@ type AddPhoneNumberInput struct {
 	Channel    model.AuthenticatorOOBChannel
 }
 
-type AddPhoneNumberOutput struct {
+type CreateIdentityWithVerificationOutput struct {
 	// It is intentionally empty.
 }
 
@@ -196,6 +196,14 @@ type RemoveUsernameOutput struct {
 	// It is intentionally empty.
 }
 
+type AddEmailInput struct {
+	LoginID    string
+	LoginIDKey string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
+}
+
 type RemoveEmailInput struct {
 	Session    session.ResolvedSession
 	IdentityID string
@@ -203,6 +211,14 @@ type RemoveEmailInput struct {
 
 type RemoveEmailOutput struct {
 	// It is intentionally empty.
+}
+
+type AddPhoneNumberInput struct {
+	LoginID    string
+	LoginIDKey string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
 }
 
 type RemovePhoneNumberInput struct {
@@ -1272,7 +1288,7 @@ func (s *Service) RemoveUsername(input *RemoveUsernameInput) (*RemoveUsernameOut
 	return &RemoveUsernameOutput{}, nil
 }
 
-func (s *Service) AddPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *AddPhoneNumberInput) (*AddPhoneNumberOutput, error) {
+func (s *Service) createIdentityWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginID := input.LoginID
 	loginIDKey := input.LoginIDKey
@@ -1311,7 +1327,17 @@ func (s *Service) AddPhoneNumberWithVerification(resolvedSession session.Resolve
 		return nil, err
 	}
 
-	return &AddPhoneNumberOutput{}, nil
+	return &CreateIdentityWithVerificationOutput{}, nil
+}
+
+func (s *Service) AddEmailWithVerification(resolvedSession session.ResolvedSession, input *AddEmailInput) (*CreateIdentityWithVerificationOutput, error) {
+	return s.createIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
+		LoginID:    input.LoginID,
+		LoginIDKey: input.LoginIDKey,
+		Code:       input.Code,
+		Channel:    input.Channel,
+		Token:      input.Token,
+	})
 }
 
 func (s *Service) RemoveEmail(input *RemoveEmailInput) (*RemoveEmailOutput, error) {
@@ -1330,6 +1356,16 @@ func (s *Service) RemoveEmail(input *RemoveEmailInput) (*RemoveEmailOutput, erro
 	}
 
 	return &RemoveEmailOutput{}, nil
+}
+
+func (s *Service) AddPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *AddPhoneNumberInput) (*CreateIdentityWithVerificationOutput, error) {
+	return s.createIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
+		LoginID:    input.LoginID,
+		LoginIDKey: input.LoginIDKey,
+		Code:       input.Code,
+		Channel:    input.Channel,
+		Token:      input.Token,
+	})
 }
 
 func (s *Service) RemovePhoneNumber(input *RemovePhoneNumberInput) (*RemovePhoneNumberOutput, error) {
