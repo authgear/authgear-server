@@ -627,8 +627,8 @@ func TestImageSizeLimit(t *testing.T) {
 	})
 }
 
-func TestStaticImageDescriptor(t *testing.T) {
-	Convey("StaticImageDescriptor EffectiveResource", t, func() {
+func TestNonLocaleAwareStaticImageDescriptor(t *testing.T) {
+	Convey("NonLocaleAwareStaticImageDescriptor EffectiveResource", t, func() {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
@@ -637,7 +637,7 @@ func TestStaticImageDescriptor(t *testing.T) {
 			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
-		img := web.StaticImageDescriptor{
+		img := web.NonLocaleAwareStaticImageDescriptor{
 			Name: "myimage",
 		}
 		r.Register(img)
@@ -719,7 +719,7 @@ func TestStaticImageDescriptor(t *testing.T) {
 		})
 	})
 
-	Convey("StaticImageDescriptor EffectiveFile", t, func() {
+	Convey("NonLocaleAwareStaticImageDescriptor EffectiveFile", t, func() {
 		fsA := afero.NewMemMapFs()
 		fsB := afero.NewMemMapFs()
 		r := &resource.Registry{}
@@ -728,7 +728,7 @@ func TestStaticImageDescriptor(t *testing.T) {
 			resource.LeveledAferoFs{Fs: fsB, FsLevel: resource.FsLevelApp},
 		})
 
-		img := web.StaticImageDescriptor{
+		img := web.NonLocaleAwareStaticImageDescriptor{
 			Name: "myimage",
 		}
 		r.Register(img)

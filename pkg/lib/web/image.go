@@ -511,16 +511,16 @@ func (a LocaleAwareImageDescriptor) GetSizeLimit() int {
 	return a.SizeLimit
 }
 
-var staticImageRegex = regexp.MustCompile(`^static/(.+)\.(png|jpe|jpeg|jpg|gif)$`)
+var nonLocaleAwareStaticImageRegex = regexp.MustCompile(`^static/(.+)\.(png|jpe|jpeg|jpg|gif)$`)
 
-type StaticImageDescriptor struct {
+type NonLocaleAwareStaticImageDescriptor struct {
 	Name string
 }
 
-var _ resource.Descriptor = StaticImageDescriptor{}
+var _ resource.Descriptor = NonLocaleAwareStaticImageDescriptor{}
 
-func (a StaticImageDescriptor) MatchResource(path string) (*resource.Match, bool) {
-	matches := staticImageRegex.FindStringSubmatch(path)
+func (a NonLocaleAwareStaticImageDescriptor) MatchResource(path string) (*resource.Match, bool) {
+	matches := nonLocaleAwareStaticImageRegex.FindStringSubmatch(path)
 	if len(matches) != 3 {
 		return nil, false
 	}
@@ -532,7 +532,7 @@ func (a StaticImageDescriptor) MatchResource(path string) (*resource.Match, bool
 	return &resource.Match{}, true
 }
 
-func (a StaticImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
+func (a NonLocaleAwareStaticImageDescriptor) FindResources(fs resource.Fs) ([]resource.Location, error) {
 	if fs.GetFsLevel() != resource.FsLevelBuiltin {
 		return []resource.Location{}, nil
 	}
@@ -568,7 +568,7 @@ func (a StaticImageDescriptor) FindResources(fs resource.Fs) ([]resource.Locatio
 	return locations, nil
 }
 
-func (a StaticImageDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
+func (a NonLocaleAwareStaticImageDescriptor) ViewResources(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		return nil, nil
@@ -583,7 +583,7 @@ func (a StaticImageDescriptor) ViewResources(resources []resource.ResourceFile, 
 	}
 }
 
-func (a StaticImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
+func (a NonLocaleAwareStaticImageDescriptor) viewEffectiveFile(resources []resource.ResourceFile, view resource.EffectiveFileView) (interface{}, error) {
 	path := view.EffectiveFilePath()
 	asset, err := a.viewByPath(resources, path)
 	if err != nil {
@@ -592,7 +592,7 @@ func (a StaticImageDescriptor) viewEffectiveFile(resources []resource.ResourceFi
 	return asset.Data, nil
 }
 
-func (a StaticImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+func (a NonLocaleAwareStaticImageDescriptor) viewEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
 	for _, resrc := range resources {
 		if resrc.Location.Fs.GetFsLevel() == resource.FsLevelBuiltin {
 			mimeType := http.DetectContentType(resrc.Data)
@@ -610,16 +610,16 @@ func (a StaticImageDescriptor) viewEffectiveResource(resources []resource.Resour
 	return nil, resource.ErrResourceNotFound
 }
 
-func (a StaticImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
+func (a NonLocaleAwareStaticImageDescriptor) viewValidateResource(resources []resource.ResourceFile, view resource.ValidateResourceView) (interface{}, error) {
 	return nil, nil
 }
 
-func (a StaticImageDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
+func (a NonLocaleAwareStaticImageDescriptor) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
 	return nil, fmt.Errorf("Static image resource cannot be updated. Use locale aware image or non locale aware image resource instead.")
 }
 
-func (a StaticImageDescriptor) viewByPath(resources []resource.ResourceFile, path string) (*StaticAsset, error) {
-	matches := staticImageRegex.FindStringSubmatch(path)
+func (a NonLocaleAwareStaticImageDescriptor) viewByPath(resources []resource.ResourceFile, path string) (*StaticAsset, error) {
+	matches := nonLocaleAwareStaticImageRegex.FindStringSubmatch(path)
 	if len(matches) < 3 {
 		return nil, resource.ErrResourceNotFound
 	}
@@ -628,7 +628,7 @@ func (a StaticImageDescriptor) viewByPath(resources []resource.ResourceFile, pat
 	var found bool
 	var bytes []byte
 	for _, resrc := range resources {
-		m := staticImageRegex.FindStringSubmatch(resrc.Location.Path)
+		m := nonLocaleAwareStaticImageRegex.FindStringSubmatch(resrc.Location.Path)
 		extension := m[2]
 		if extension == requestedExtension {
 			found = true
