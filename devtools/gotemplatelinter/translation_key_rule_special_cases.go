@@ -25,11 +25,6 @@ var goTemplateFalstPositives []string = []string{
 	"__settings_gender_edit_custom_gender_input",
 }
 
-var allowedVariableKeys []string = []string{
-	"$label",
-	"$labelKey",
-}
-
 var AllowedKeys map[string]struct{}
 
 func init() {
@@ -38,9 +33,6 @@ func init() {
 		AllowedKeys[k] = struct{}{}
 	}
 	for _, k := range goTemplateFalstPositives {
-		AllowedKeys[k] = struct{}{}
-	}
-	for _, k := range allowedVariableKeys {
 		AllowedKeys[k] = struct{}{}
 	}
 }
