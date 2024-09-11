@@ -42,7 +42,7 @@ func GetRecognizedMobileDevice(ua string) (device RecognizedMobileDevice) {
 	if client.Os.Family == "Android" {
 		device.Type = RecognizedMobileDeviceTypeChromeAndroid
 	}
-	if client.Os.Family == "Android" && client.Device.Brand == "Samsung" {
+	if client.Os.Family == "Android" && client.UserAgent.Family == "Samsung Internet" {
 		device.Type = RecognizedMobileDeviceTypeSamsung
 	}
 	if client.UserAgent.Family == "Chrome" {
