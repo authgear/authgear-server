@@ -64,7 +64,7 @@
       {{ if eq .login_id_type "username" }}
         {{ $label = ( include "v2.page.settings.default.button-label-username" nil ) }}{{ $icon = "account_circle" }}
         {{ $identityArr = $.PreferredUsernames }}{{ $identity = $.PreferredUsername }}
-        {{ $url = call $.MakeURL "/settings/identity/username" }}
+        {{ $url = call $.MakeURL "/settings/identity/username" "q_login_id_key" .login_id_key }}
       {{ end }}
 
       {{/* Render with given variable */}}
