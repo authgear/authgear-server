@@ -1,12 +1,25 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  {{/* change this */}}
-  {{ $display_input_error := false }}
-  {{ if $.Error }}
-    {{ if eq $.Error.reason "ValidationFailed" }}
-      {{ $display_input_error = true }}
-    {{ end }}
+  {{ $err_map := (resolveError $.RawError (dict 
+    "codeInput" (dict
+      "by_reason"                    (list "ValidationFailed")
+    )
+  )) }}
+
+  {{ $input_err := index $err_map "codeInput" }}
+  {{ $unknown_err := index $err_map "unknown" }}
+  {{ $has_input_err := not (isNil $input_err) }}
+  {{ $has_unknown_err := not (isNil $unknown_err )}}
+
+  {{ $input_error_message := "" }}
+  {{ if $has_input_err }}
+    {{ $input_error_message = include "authflowv2/__error.html" (merge (dict "Error" $input_err) $) }}
+  {{ end }}
+
+  {{ $unknown_error_message := "" }}
+  {{ if $has_unknown_err }}
+    {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
   {{ end }}
 
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
@@ -27,7 +40,7 @@
         (dict
           "Type" "error"
           "Classname" "mt-4"
-          "Message" (ternary (include "authflowv2/__error.html" .) nil (not $display_input_error))
+          "Message" $unknown_error_message
         )
       }}
     </div>
@@ -41,13 +54,6 @@
     >
       {{ $.CSRFField }}
 
-      {{ $input_error_message := "" }}
-      {{ if $.Error  }}
-        {{ if $display_input_error }}
-          {{ $input_error_message = include "authflowv2/__error.html" .  }}
-        {{ end }}
-      {{ end }}
-
       <input
         form="main-form"
         {{ if $.ShouldFocusInput }}autofocus{{ end }}
@@ -59,7 +65,7 @@
         placeholder="{{ include "v2.page.enter-recovery-code.default.enter-recovery-code-placeholder" nil }}"
       >
 
-      {{ if $display_input_error }}
+      {{ if $has_input_err }}
       <p class="input__error-message mt-2">
         {{ $input_error_message }}
       </p>
