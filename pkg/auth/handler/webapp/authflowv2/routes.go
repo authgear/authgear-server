@@ -85,6 +85,8 @@ const (
 	AuthflowV2RouteSettingsMFAPassword = "/settings/mfa/password"
 
 	AuthflowV2RouteSettingsIdentityListEmail = "/settings/identity/email"
+
+	AuthflowV2RouteSettingsIdentityListUsername = "/settings/identity/username"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {

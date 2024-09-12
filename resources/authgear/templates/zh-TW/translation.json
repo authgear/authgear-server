@@ -1122,6 +1122,7 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "電子郵件",
   "v2.page.settings-identity-list-email.default.not-verified-label": "未驗證",
   "v2.page.settings-identity-list-email.default.verified-label": "已驗證",
+  "v2.page.settings-identity-list-username.default.navbar-title": "用戶名稱",
   "v2.page.settings-mfa-create-password.default.navbar-title": "輔助密碼",
   "v2.page.settings-mfa-password.default.additional-password-added-at": "新增時間: <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "輔助密碼",
