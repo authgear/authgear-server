@@ -8,7 +8,7 @@
 - [Changes in User Info](#changes-in-user-info)
 - [Changes in the headers of resolver](#changes-in-the-headers-of-resolver)
 - [Changes in blocking event hooks](#changes-in-blocking-event-hooks)
-- [Changes in search](#changes-in-search)
+- [Changes in user listing](#changes-in-user-listing)
 - [Changes in account deletion and account anonymization](#changes-in-account-deletion-and-account-anonymization)
 
 # Roles and Groups
@@ -23,7 +23,7 @@
 
 - The key must be nonempty.
 - The key must be between 1 and 40 characters long.
-- The key must satisfy this regex `[a-zA-Z_][a-zA-Z0-9:_]*`. That is, the valid characters of the key are alphanumeric, a colon, or an underscore. The first character must be an alphabet or an underscore.
+- The key must satisfy this regex `^[a-zA-Z_][a-zA-Z0-9:_]*$`. That is, the valid characters of the key are alphanumeric, a colon, or an underscore. The first character must be an alphabet or an underscore.
 - The prefix `authgear:` is reserved for future use.
 
 Here are some example of valid keys:
