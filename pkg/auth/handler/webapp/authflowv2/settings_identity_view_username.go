@@ -5,7 +5,11 @@ import (
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -21,8 +25,15 @@ func ConfigureAuthflowV2SettingsIdentityViewUsername(route httproute.Route) http
 		WithPathPattern(AuthflowV2RouteSettingsIdentityViewUsername)
 }
 
+type AuthflowV2SettingsIdentityViewUsernameViewModel struct {
+	LoginIDKey string
+	Identity   *identity.LoginID
+}
+
 type AuthflowV2SettingsIdentityViewUsernameHandler struct {
 	Database          *appdb.Handle
+	LoginIDConfig     *config.LoginIDConfig
+	Identities        *identityservice.Service
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
@@ -32,6 +43,20 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) GetData(w http.ResponseW
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
+
+	userID := session.GetUserID(r.Context())
+	loginID := r.Form.Get("q_login_id")
+	usernameIdentity, err := h.Identities.LoginID.Get(*userID, loginID)
+	if err != nil {
+		return nil, err
+	}
+
+	vm := AuthflowV2SettingsIdentityViewUsernameViewModel{
+		LoginIDKey: usernameIdentity.LoginIDKey,
+		Identity:   usernameIdentity,
+	}
+	viewmodels.Embed(data, vm)
+
 	return data, nil
 }
 
