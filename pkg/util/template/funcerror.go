@@ -93,16 +93,15 @@ func getError(apiErr *apierrors.APIError, getErrInput *GetErrorInput) *apierrors
 	if apiErr == nil {
 		return nil
 	}
+	apiErrByReason := getErrorByReason(apiErr, getErrInput.ByReason)
+	if apiErrByReason != nil {
+		return apiErrByReason
+	}
 	switch apiErr.Reason {
 	case "ValidationFailed":
 		apiErrByLocation := getValidationErrorByLocation(apiErr, getErrInput.ByLocation)
 		if apiErrByLocation != nil {
 			return apiErrByLocation
-		}
-	default:
-		apiErrByReason := getErrorByReason(apiErr, getErrInput.ByReason)
-		if apiErrByReason != nil {
-			return apiErrByReason
 		}
 	}
 

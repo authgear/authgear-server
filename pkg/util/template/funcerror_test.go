@@ -282,6 +282,50 @@ func TestFuncsError(t *testing.T) {
 
 		})
 
+		Convey("it should return ValidationFailed error if ValidationFailed reason is provided", func() {
+			apiErr := makePasswordEmptyAPIErrFixture()
+			errMap := execResolveErrTemplate(`
+{{- $err_map := (resolveError .RawError (dict 
+	"myField" (dict
+		"by_reason"                    (list "ValidationFailed")
+		"by_location"                  (list "x_password")
+	)
+)) -}}
+{{- toPrettyJson $err_map | unescapeHTML -}}
+`, map[string]interface{}{"RawError": apiErr})
+			So(errMap, ShouldEqual, `{
+  "myField": {
+    "code": 400,
+    "info": {
+      "causes": [
+        {
+          "details": {
+            "actual": [
+              "gorilla.csrf.Token",
+              "x_step"
+            ],
+            "expected": [
+              "x_confirm_password",
+              "x_password"
+            ],
+            "missing": [
+              "x_confirm_password",
+              "x_password"
+            ]
+          },
+          "kind": "required",
+          "location": ""
+        }
+      ]
+    },
+    "message": "invalid value",
+    "name": "Invalid",
+    "reason": "ValidationFailed"
+  },
+  "unknown": null
+}`)
+		})
+
 		Convey("it should slice validation error by the locations (required fields) provided", func() {
 			apiErr := makePasswordEmptyAPIErrFixture()
 			errMap := execResolveErrTemplate(`
