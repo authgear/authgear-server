@@ -14,20 +14,20 @@
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <div class="screen-title-description">
       <h1 class="screen-title">
-        {{ template "v2.page.enter-oob-otp.default.title" }}
+        {{ include "v2.page.enter-oob-otp.default.title" nil }}
       </h1>
       <h2 class="screen-description">
         {{ if eq $.Channel "whatsapp" }}
           {{ if eq $.FlowType "reauth" }}
-            {{ template "v2.page.enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp" . }}
+            {{ include "v2.page.enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp" . }}
           {{ else }}
-            {{ template "v2.page.enter-oob-otp.auth-whatsapp.subtitle" . }}
+            {{ include "v2.page.enter-oob-otp.auth-whatsapp.subtitle" . }}
           {{ end }}
         {{ else }}
           {{ if eq $.FlowType "reauth" }}
-            {{ template "v2.page.enter-oob-otp.auth-email-or-sms.subtitle-reauth" . }}
+            {{ include "v2.page.enter-oob-otp.auth-email-or-sms.subtitle-reauth" . }}
           {{ else }}
-            {{ template "v2.page.enter-oob-otp.auth-email-or-sms.subtitle" . }}
+            {{ include "v2.page.enter-oob-otp.auth-email-or-sms.subtitle" . }}
           {{ end }}
         {{ end }}
       </h2>

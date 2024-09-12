@@ -1,38 +1,38 @@
-resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:43:12: translation key not defined: "page-frame-content"
+resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:43:12: template translation is forbidden: `page-frame-content`
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:5:27: translation key not defined: "dialog-controller-str"
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:6:21: translation key not defined: "dialog-content"
-resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:19:14: translation key not defined: "dialog-close-btn"
+resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:19:14: template translation is forbidden: `dialog-close-btn`
 resources/authgear/templates/en/web/authflowv2/__country_input.html:6:16: invalid translation key: "$labelKey"
 resources/authgear/templates/en/web/authflowv2/__country_input.html:10:21: translation key not defined: "%s %s"
-resources/authgear/templates/en/web/authflowv2/__csrf_error_page_layout.html:28:18: translation key not defined: "page-content"
-resources/authgear/templates/en/web/authflowv2/__dialog.html:27:14: translation key not defined: "dialog-attr"
-resources/authgear/templates/en/web/authflowv2/__error.html:134:18: translation key not defined: "authflowv2/__error_account"
-resources/authgear/templates/en/web/authflowv2/__error.html:166:20: translation key not defined: "authflowv2/__error_account"
+resources/authgear/templates/en/web/authflowv2/__csrf_error_page_layout.html:28:18: template translation is forbidden: `page-content`
+resources/authgear/templates/en/web/authflowv2/__dialog.html:27:14: template translation is forbidden: `dialog-attr`
+resources/authgear/templates/en/web/authflowv2/__error.html:134:18: template translation is forbidden: `authflowv2/__error_account`
+resources/authgear/templates/en/web/authflowv2/__error.html:166:20: template translation is forbidden: `authflowv2/__error_account`
 resources/authgear/templates/en/web/authflowv2/__locale_input.html:6:16: invalid translation key: "$labelKey"
 resources/authgear/templates/en/web/authflowv2/__locale_input.html:10:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/__new_password_field.html:38:33: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/__new_password_field.html:62:38: translation key not defined: "%s %s"
-resources/authgear/templates/en/web/authflowv2/__page_frame.html:12:18: translation key not defined: "page-content"
+resources/authgear/templates/en/web/authflowv2/__page_frame.html:12:18: template translation is forbidden: `page-content`
 resources/authgear/templates/en/web/authflowv2/__password_field.html:10:20: translation key not defined: "%s %s"
-resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:46:15: translation key not defined: "page-navbar"
-resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:48:18: translation key not defined: "page-content"
+resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:46:15: template translation is forbidden: `page-navbar`
+resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:48:18: template translation is forbidden: `page-content`
 resources/authgear/templates/en/web/authflowv2/__settings_radio.html:16:16: translation key not defined: "radio-%s-%s"
 resources/authgear/templates/en/web/authflowv2/__timezone_input.html:8:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/account_linking.html:90:33: translation key not defined: "%s-icon"
-resources/authgear/templates/en/web/authflowv2/forgot_password.html:109:30: translation key not defined: "__forgot_password_alternative"
-resources/authgear/templates/en/web/authflowv2/forgot_password.html:165:26: translation key not defined: "__forgot_password_alternative"
-resources/authgear/templates/en/web/authflowv2/layout.html:5:14: translation key not defined: "widget"
+resources/authgear/templates/en/web/authflowv2/forgot_password.html:109:30: template translation is forbidden: `__forgot_password_alternative`
+resources/authgear/templates/en/web/authflowv2/forgot_password.html:165:26: template translation is forbidden: `__forgot_password_alternative`
+resources/authgear/templates/en/web/authflowv2/layout.html:5:14: template translation is forbidden: `widget`
 resources/authgear/templates/en/web/authflowv2/login.html:252:37: translation key not defined: "%s-icon"
-resources/authgear/templates/en/web/authflowv2/settings_layout.html:3:14: translation key not defined: "widget"
-resources/authgear/templates/en/web/authflowv2/settings_profile.html:29:18: translation key not defined: "__settings_profile_item"
-resources/authgear/templates/en/web/authflowv2/settings_profile.html:51:18: translation key not defined: "__settings_profile_item"
+resources/authgear/templates/en/web/authflowv2/settings_layout.html:3:14: template translation is forbidden: `widget`
+resources/authgear/templates/en/web/authflowv2/settings_profile.html:29:18: template translation is forbidden: `__settings_profile_item`
+resources/authgear/templates/en/web/authflowv2/settings_profile.html:51:18: template translation is forbidden: `__settings_profile_item`
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:68:22: translation key not defined: "__settings_profile_date_item"
-resources/authgear/templates/en/web/authflowv2/settings_profile.html:70:18: translation key not defined: "__settings_profile_item"
+resources/authgear/templates/en/web/authflowv2/settings_profile.html:70:18: template translation is forbidden: `__settings_profile_item`
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:87:22: translation key not defined: "__settings_profile_address_item"
-resources/authgear/templates/en/web/authflowv2/settings_profile.html:89:18: translation key not defined: "__settings_profile_item"
-resources/authgear/templates/en/web/authflowv2/settings_profile.html:107:18: translation key not defined: "__settings_profile_item"
+resources/authgear/templates/en/web/authflowv2/settings_profile.html:89:18: template translation is forbidden: `__settings_profile_item`
+resources/authgear/templates/en/web/authflowv2/settings_profile.html:107:18: template translation is forbidden: `__settings_profile_item`
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:123:23: translation key not defined: "__settings_profile_locale_item"
-resources/authgear/templates/en/web/authflowv2/settings_profile.html:125:18: translation key not defined: "__settings_profile_item"
+resources/authgear/templates/en/web/authflowv2/settings_profile.html:125:18: template translation is forbidden: `__settings_profile_item`
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:174:22: invalid translation key: "$label"
 resources/authgear/templates/en/web/authflowv2/settings_profile_edit_gender.html:57:33: translation key not defined: "__settings_gender_edit_custom_gender_input"
 resources/authgear/templates/en/web/authflowv2/signup.html:237:35: translation key not defined: "%s-icon"

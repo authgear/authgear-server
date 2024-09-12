@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 	"text/template/parse"
 )
@@ -14,12 +15,13 @@ func CheckTemplate(templateNode *parse.TemplateNode) (err error) {
 	if isHTMLTemplate(templateNode) { // false positive
 		return
 	}
-	translationKey := templateNode.Name
-	err = CheckTranslationKeyPattern(translationKey)
-	if err != nil {
-		return err
+
+	key := templateNode.Name
+	if IsSpecialCase(key) {
+		return
 	}
-	return
+
+	return fmt.Errorf("template translation is forbidden: `%s`", key)
 }
 
 func isHTMLTemplate(templateNode *parse.TemplateNode) bool {

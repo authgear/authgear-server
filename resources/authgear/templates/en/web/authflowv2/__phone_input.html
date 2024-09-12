@@ -65,7 +65,7 @@
             <div class="select__search">
               <input
                 class="select__search-input"
-                placeholder="{{ template "v2.component.phone-input.default.search-label" }}"
+                placeholder="{{ include "v2.component.phone-input.default.search-label" nil }}"
                 data-controller="dismiss-keyboard-on-scroll"
                 data-custom-select-target="search"
                 data-action="input->custom-select#search"
@@ -111,7 +111,7 @@
 
         <template data-custom-select-target="emptyTemplate">
           <li class="select__empty">
-            {{ template "v2.component.phone-input.default.no-results-found" }}
+            {{ include "v2.component.phone-input.default.no-results-found" nil }}
           </li>
         </template>
       </div>

@@ -3,9 +3,9 @@
 
 <div class="flex flex-col gap-y-8 flex-1-0-auto">
   <div class="space-y-4">
-    <h1 class="screen-title">{{ template "v2.page.setup-totp.default.title" }}</h1>
+    <h1 class="screen-title">{{ include "v2.page.setup-totp.default.title" nil }}</h1>
 
-    <h2 class="screen-description">{{ template "v2.page.setup-totp.default.description" }}</h2>
+    <h2 class="screen-description">{{ include "v2.page.setup-totp.default.description" nil }}</h2>
     {{ template "authflowv2/__alert_message.html"
       (dict
         "Type" "error"
@@ -22,7 +22,7 @@
       <p
         id="copy-button-source"
         class="code-block__text"
-      >{{ template "v2.page.setup-totp.default.raw-secret" (dict "secret" $.Secret) }}</p>
+      >{{ include "v2.page.setup-totp.default.raw-secret" (dict "secret" $.Secret) }}</p>
 
       <button
         class="tertiary-btn"
@@ -31,7 +31,7 @@
         data-copy-button-source-value="#copy-button-source"
         data-action="copy-button#copy"
       >
-        {{ template "v2.component.button.default.copy" }}
+        {{ include "v2.component.button.default.copy" nil }}
       </button>
     </div>
 
@@ -39,7 +39,7 @@
       class="primary-btn w-full mt-10"
       href="{{ call $.MakeURL "setup_totp" "q_setup_totp_step" "verify"}}"
     >
-      {{ template "v2.component.button.default.label-continue" }}
+      {{ include "v2.component.button.default.label-continue" nil }}
     </a>
   </div>
 

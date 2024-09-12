@@ -63,9 +63,9 @@
       data-action="click->image-picker#onClickFile"
     >
       {{ if $.Picture }}
-        {{ template "v2.page.settings-profile.default.button-label-upload-new-picture" . }}
+        {{ include "v2.page.settings-profile.default.button-label-upload-new-picture" . }}
       {{ else }}
-        {{ template "v2.page.settings-profile.default.button-label-add-picture" . }}
+        {{ include "v2.page.settings-profile.default.button-label-add-picture" . }}
       {{ end }}
     </button>
 
@@ -80,7 +80,7 @@
         value="save"
         data-image-picker-target="buttonRemove"
       >
-        {{ template "v2.page.settings-profile.default.button-label-remove-picture" . }}
+        {{ include "v2.page.settings-profile.default.button-label-remove-picture" . }}
       </button>
     </form>
 
@@ -92,7 +92,7 @@
       data-image-picker-target="buttonSave"
       data-action="click->image-picker#onClickSave"
     >
-      {{ template "v2.component.button.default.label-save" }}
+      {{ include "v2.component.button.default.label-save" nil }}
     </button>
   </div>
 </div>
