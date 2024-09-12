@@ -17,10 +17,6 @@ func CheckTemplate(templateNode *parse.TemplateNode) (err error) {
 	}
 
 	key := templateNode.Name
-	if IsSpecialCase(key) {
-		return
-	}
-
 	return fmt.Errorf("template translation is forbidden: `%s`", key)
 }
 
