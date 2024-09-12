@@ -1,7 +1,7 @@
 {{ define "authflowv2/__html_head.html" }}
 <head>
 <meta charset="UTF-8">
-<title>{{ template "app.name" }}</title>
+<title>{{ include "app.name" nil }}</title>
 <link rel="shortcut icon" href="{{ call $.StaticAssetURL "favicon" }}">
 <meta name="x-authgear-page-loaded-at" content="{{ .PageLoadedAt }}">
 <meta name="x-phone-input-only-countries" content="{{ $.AllowedPhoneCountryCodeJSON }}">
