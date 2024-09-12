@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 )
 
@@ -104,9 +105,9 @@ func (r *UIService) ResolveUIInfo(sp *config.SAMLServiceProviderConfig, entry *S
 			Enforce: true,
 		}
 		switch sp.NameIDFormat {
-		case config.SAMLNameIDFormatEmailAddress:
+		case samlprotocol.SAMLNameIDFormatEmailAddress:
 			loginHint.LoginIDEmail = nameID.Value
-		case config.SAMLNameIDFormatUnspecified:
+		case samlprotocol.SAMLNameIDFormatUnspecified:
 			switch sp.NameIDAttributePointer {
 			case "/email":
 				loginHint.LoginIDEmail = nameID.Value

@@ -216,7 +216,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 
 	// unspecified is always allowed
 	allowedNameFormats := setutil.Set[string]{
-		string(config.SAMLNameIDFormatUnspecified): {},
+		string(samlprotocol.SAMLNameIDFormatUnspecified): {},
 	}
 	allowedNameFormats.Add(string(sp.NameIDFormat))
 
@@ -527,28 +527,28 @@ func (s *Service) VerifyExternalSignature(
 }
 
 func (s *Service) getUserNameID(
-	format config.SAMLNameIDFormat,
+	format samlprotocol.SAMLNameIDFormat,
 	sp *config.SAMLServiceProviderConfig,
 	userInfo map[string]interface{},
 ) (string, error) {
 	switch format {
-	case config.SAMLNameIDFormatEmailAddress:
+	case samlprotocol.SAMLNameIDFormatEmailAddress:
 		{
 			email, ok := userInfo["email"].(string)
 			if !ok {
 				return "", &samlerror.MissingNameIDError{
-					ExpectedNameIDFormat: string(config.SAMLNameIDFormatEmailAddress),
+					ExpectedNameIDFormat: string(samlprotocol.SAMLNameIDFormatEmailAddress),
 				}
 			}
 			return email, nil
 		}
-	case config.SAMLNameIDFormatUnspecified:
+	case samlprotocol.SAMLNameIDFormatUnspecified:
 		{
 			jsonPointer := sp.NameIDAttributePointer.MustGetJSONPointer()
 			nameID, err := jsonPointer.Traverse(userInfo)
 			if err != nil {
 				return "", &samlerror.MissingNameIDError{
-					ExpectedNameIDFormat:   string(config.SAMLNameIDFormatUnspecified),
+					ExpectedNameIDFormat:   string(samlprotocol.SAMLNameIDFormatUnspecified),
 					NameIDAttributePointer: jsonPointer.String(),
 				}
 			}
@@ -561,7 +561,7 @@ func (s *Service) getUserNameID(
 				return fmt.Sprintf("%v", nameID), nil
 			default:
 				return "", &samlerror.MissingNameIDError{
-					ExpectedNameIDFormat:   string(config.SAMLNameIDFormatUnspecified),
+					ExpectedNameIDFormat:   string(samlprotocol.SAMLNameIDFormatUnspecified),
 					NameIDAttributePointer: jsonPointer.String(),
 				}
 			}
