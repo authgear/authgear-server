@@ -99,7 +99,6 @@ func (s *Sender) Send(userID string, password string, msgType nonblocking.Messag
 		defer msg.Close()
 
 		partialTemplateVariables := &translation.PartialTemplateVariables{
-			AppName:  string(s.AppConfg.ID),
 			Email:    email,
 			Password: password,
 		}

@@ -13,7 +13,6 @@ type PartialTemplateVariables struct {
 	HasPassword bool
 
 	// Forgot password
-	AppName  string
 	Password string
 }
 
