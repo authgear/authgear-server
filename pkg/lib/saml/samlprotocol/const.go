@@ -2,15 +2,13 @@ package samlprotocol
 
 import (
 	"fmt"
-
-	crewjamsaml "github.com/crewjam/saml"
 )
 
 type SAMLBinding string
 
 const (
-	SAMLBindingHTTPRedirect SAMLBinding = crewjamsaml.HTTPRedirectBinding
-	SAMLBindingHTTPPost     SAMLBinding = crewjamsaml.HTTPPostBinding
+	SAMLBindingHTTPRedirect SAMLBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+	SAMLBindingHTTPPost     SAMLBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 )
 
 var SSOSupportedBindings []SAMLBinding = []SAMLBinding{
@@ -30,6 +28,13 @@ func (b SAMLBinding) IsACSSupported() bool {
 	}
 	return false
 }
+
+type SAMLNameIDFormat string
+
+const (
+	SAMLNameIDFormatUnspecified  SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+	SAMLNameIDFormatEmailAddress SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+)
 
 const xmlSchemaNamespace = "xs"
 
