@@ -12,7 +12,7 @@ import (
 )
 
 var TemplateDirectAccessDisable = template.RegisterHTML(
-	"web/authflowv2/direct_access_disable.html",
+	"web/authflowv2/direct_access_disabled.html",
 	DirectAccessDisableComponents...,
 )
 
