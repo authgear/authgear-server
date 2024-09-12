@@ -1,12 +1,12 @@
-<!--
-  {{ template "authflowv2/__settings_action_item.html" (dict
+{{/*
+  template "authflowv2/__settings_action_item.html" (dict
     "IconName" "email"
     "Label" .Email
     "Description" (include "actionbtn" (dict "isVerified" .isVerified))
     "ActionButton" (include "actionbtn" nil)
     "ExtraContent" (include "ExtraContent" nil)
-  )}}
--->
+  )
+*/}}
 
 {{ define "authflowv2/__settings_action_item.html" }}
 <div class="settings-action-item__container
