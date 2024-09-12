@@ -47,7 +47,7 @@ function constructRedirectURLFormState(
 ): RedirectURLFormState {
   return {
     directAccessDisabled: config.ui?.direct_access_disabled,
-    brandPageURL: config.ui?.default_branding_page_uri ?? "",
+    brandPageURL: config.ui?.branding_page_uri ?? "",
     postLoginURL: config.ui?.default_redirect_uri,
     postLogoutURL: config.ui?.default_post_logout_redirect_uri ?? "",
   };
@@ -60,7 +60,7 @@ function constructConfigFromRedirectURLFormState(
   return produce(config, (draft) => {
     draft.ui ??= {};
     draft.ui.direct_access_disabled = currentState.directAccessDisabled;
-    draft.ui.default_branding_page_uri = currentState.brandPageURL || undefined;
+    draft.ui.branding_page_uri = currentState.brandPageURL || undefined;
     draft.ui.default_redirect_uri = currentState.postLoginURL;
     draft.ui.default_post_logout_redirect_uri =
       currentState.postLogoutURL || undefined;
@@ -207,7 +207,7 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
                 </div>
                 <RedirectURLTextField
                   className={cn(styles.optionsChild, styles["options--last"])}
-                  fieldName="default_branding_page_uri"
+                  fieldName="branding_page_uri"
                   label=""
                   description=""
                   value={redirectURLForm.state.brandPageURL}
