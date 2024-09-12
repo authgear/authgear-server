@@ -4,7 +4,6 @@ import {
   OAuthSSOProviderClientSecret,
   OAuthSSOProviderConfig,
   OAuthSSOProviderItemKey,
-  oauthSSOProviderItemKeys,
   PortalAPIAppConfig,
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
@@ -23,7 +22,6 @@ export interface SSOProviderFormState {
 
 interface FormState {
   providers: SSOProviderFormState[];
-  isEnabled: Record<OAuthSSOProviderItemKey, boolean>;
   initialProvidersKey: OAuthSSOProviderItemKey[];
 }
 
@@ -57,39 +55,25 @@ function constructFormState(
     });
   }
 
-  const isEnabled = {} as Record<OAuthSSOProviderItemKey, boolean>;
-  const isOAuthEnabled =
-    appConfig.authentication?.identities?.includes("oauth") ?? true;
-  for (const itemKey of oauthSSOProviderItemKeys) {
-    isEnabled[itemKey] = isOAuthEnabled;
-  }
-
   const initialProvidersKey = providerList.map((x) =>
     createOAuthSSOProviderItemKey(x.type, x.app_type)
   );
 
-  return { providers, isEnabled, initialProvidersKey };
+  return { providers, initialProvidersKey };
 }
 
 function constructConfig(
   config: PortalAPIAppConfig,
   secretConfig: PortalAPISecretConfig,
-  initialState: FormState,
+  _initialState: FormState,
   currentState: FormState,
   effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
   // eslint-disable-next-line complexity
   return produce([config, secretConfig], ([config, secretConfig]) => {
-    const providers = currentState.providers.filter(
-      (p) =>
-        currentState.isEnabled[
-          createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)
-        ]
-    );
-
     const configs: OAuthSSOProviderConfig[] = [];
     const clientSecrets: OAuthSSOProviderClientSecret[] = [];
-    for (const p of providers) {
+    for (const p of currentState.providers) {
       configs.push(p.config);
       clientSecrets.push({
         alias: p.secret.newAlias,
@@ -103,24 +87,20 @@ function constructConfig(
 
     secretConfig.oauthSSOProviderClientSecrets = clientSecrets;
 
-    function hasOAuthProviders(s: FormState) {
-      return Object.values(s.isEnabled).some(Boolean);
-    }
-    if (hasOAuthProviders(initialState) !== hasOAuthProviders(currentState)) {
-      const identities = (
-        effectiveConfig.authentication?.identities ?? []
-      ).slice();
-      const index = identities.indexOf("oauth");
-      const isEnabled = hasOAuthProviders(currentState);
+    const identities = (
+      effectiveConfig.authentication?.identities ?? []
+    ).slice();
+    const oauthIdentityIndex = identities.indexOf("oauth");
 
-      if (isEnabled && index === -1) {
-        identities.push("oauth");
-      } else if (!isEnabled && index >= 0) {
-        identities.splice(index, 1);
-      }
-      config.authentication ??= {};
-      config.authentication.identities = identities;
+    if (currentState.providers.length > 0 && oauthIdentityIndex === -1) {
+      identities.push("oauth");
     }
+    if (currentState.providers.length === 0) {
+      identities.splice(oauthIdentityIndex, 1);
+    }
+
+    config.authentication ??= {};
+    config.authentication.identities = identities;
 
     clearEmptyObject(config);
   });

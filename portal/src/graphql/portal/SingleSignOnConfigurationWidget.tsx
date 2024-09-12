@@ -262,7 +262,7 @@ export function useSingleSignOnConfigurationWidget(
   oauthSSOFeatureConfig?: OAuthSSOFeatureConfig
 ): SingleSignOnConfigurationWidgetProps {
   const {
-    state: { providers, isEnabled },
+    state: { providers },
     setState,
   } = form;
 
@@ -295,11 +295,7 @@ export function useSingleSignOnConfigurationWidget(
     [providers, providerType, appType]
   );
 
-  const enabledProviders = providers.filter(
-    (p) =>
-      isEnabled[createOAuthSSOProviderItemKey(p.config.type, p.config.app_type)]
-  );
-  const index = enabledProviders.findIndex((p) =>
+  const index = providers.findIndex((p) =>
     isOAuthSSOProvider(p.config, providerType, appType)
   );
   const jsonPointer = useMemo(() => {
