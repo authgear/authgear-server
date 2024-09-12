@@ -1,6 +1,7 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
+  {{/* change this */}}
   {{ $display_otp_input_error := false }}
   {{ if $.Error }}
     {{ if eq $.Error.reason "InvalidCredentials" }}
@@ -30,6 +31,7 @@
       }}
     </div>
     <div>
+      {{/* change this */}}
       {{ $otp_error_message := "" }}
       {{ if $.Error  }}
         {{ if $display_otp_input_error }}

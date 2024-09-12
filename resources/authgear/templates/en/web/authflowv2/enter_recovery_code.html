@@ -1,6 +1,7 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
+  {{/* change this */}}
   {{ $display_input_error := false }}
   {{ if $.Error }}
     {{ if eq $.Error.reason "ValidationFailed" }}
