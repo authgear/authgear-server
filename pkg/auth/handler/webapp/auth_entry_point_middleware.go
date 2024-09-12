@@ -39,13 +39,14 @@ func (m *AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 
 		host := httputil.GetHost(r, bool(m.TrustProxy))
 		isDefaultDomain := m.AppHostSuffixes.CheckIsDefaultDomain(host)
+		directAccessDisabled := isDefaultDomain || m.UIConfig.DirectAccessDisabled
 
-		if userID != nil && !fromAuthzEndpoint && !m.UIConfig.DirectAccessDisabled {
+		if userID != nil && !fromAuthzEndpoint {
 			defaultRedirectURI := webapp.DerivePostLoginRedirectURIFromRequest(r, m.OAuthClientResolver, m.UIConfig)
 			redirectURI := webapp.GetRedirectURI(r, bool(m.TrustProxy), defaultRedirectURI)
 
 			http.Redirect(w, r, redirectURI, http.StatusFound)
-		} else if (userID == nil && !fromAuthzEndpoint && isDefaultDomain) || m.UIConfig.DirectAccessDisabled {
+		} else if userID == nil && !fromAuthzEndpoint && directAccessDisabled {
 			m.renderBlocked(w, r)
 		} else {
 			next.ServeHTTP(w, r)
