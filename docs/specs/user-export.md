@@ -169,7 +169,7 @@ For example, given `pointer` is `/roles/0`,
 
 Regardless of whether the field names are given or derived, they must be unique.
 If the field names are not unique, it is an error when the export is created.
-An error is immediately returned in this case, the import is not created.
+An error is immediately returned in this case, the export is not created.
 See [The error response of Create an export](#the-error-response-of-create-an-export)
 
 ### The response body of Create an export
@@ -183,7 +183,7 @@ See [The response body](#the-response-body).
 
 |Description|Name|Reason|Info|
 |---|---|---|---|
-|When user import is disabled|`InternalError`|`UserExportDisabled`|-|
+|When user export is disabled|`InternalError`|`UserExportDisabled`|-|
 |When the rate limit exceeded|`TooManyRequest`|`RateLimited`|{"bucket_name": "UserExport"}|
 |When there is a running export|`TooManyRequest`|`MaximumConcurrentJobLimitExceeded`|-|
 |When the input fails the validation|`Invalid`|`ValidationFailed`|The info should contain the JSON schema validation output|
@@ -210,7 +210,7 @@ See [The response body](#the-response-body).
 
 |Description|Name|Reason|Info|
 |---|---|---|---|
-|When user import is disabled|`InternalError`|`UserExportDisabled`|-|
+|When user export is disabled|`InternalError`|`UserExportDisabled`|-|
 |When the given ID does not refer to an export|`NotFound`|`TaskNotFound`|-|
 
 ## The response body
