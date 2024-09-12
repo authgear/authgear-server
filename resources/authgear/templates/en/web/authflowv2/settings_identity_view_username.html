@@ -11,5 +11,28 @@
 {{ end }}
 
 {{ define "page-content" }}
-View username
+
+<div class="flex flex-col gap-y-6">
+  {{ template "authflowv2/__settings_action_item.html"
+      (dict
+        "Label" $.Identity.OriginalLoginID
+        "ActionButton" (include "__settings_identity_view_username_edit_button" .)
+      )
+  }}
+
+  <button type="button" class="settings-link-btn--destructive">
+    {{ translate "v2.page.settings-identity-view-username.default.button-remove-label" nil}}
+  </button>
+</div>
+
+{{ end }}
+
+{{ define "__settings_identity_view_username_edit_button" }}
+{{ $editURL := (call $.MakeURL "/settings/identity/edit_username" "q_login_id" $.Identity.ID) }}
+<a
+  class="settings-link-btn"
+  href="{{ $editURL }}"
+>
+  {{ translate "v2.component.button.default.label-edit" nil }}
+</a>
 {{ end }}
