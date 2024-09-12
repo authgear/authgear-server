@@ -27,10 +27,6 @@ func NewLogger(lf *log.Factory) Logger {
 	return Logger{lf.New("forgot-password")}
 }
 
-type messageContext struct {
-	HasPassword bool
-}
-
 type IdentityService interface {
 	ListByClaim(name string, value string) ([]*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)

@@ -18,17 +18,6 @@ const (
 	MessageTypeWhatsappCode             MessageType = "whatsapp-code"
 )
 
-type messageTemplateContext struct {
-	Email string
-	Phone string
-	Code  string
-	URL   string
-	Host  string
-
-	// compatibility with forgot password templates
-	Link string
-}
-
 var (
 	TemplateMessageVerificationSMSTXT    = template.RegisterMessagePlainText("messages/verification_sms.txt")
 	TemplateMessageVerificationEmailTXT  = template.RegisterMessagePlainText("messages/verification_email.txt")

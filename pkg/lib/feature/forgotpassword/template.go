@@ -5,12 +5,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-type messageTemplateContext struct {
-	AppName  string
-	Email    string
-	Password string
-}
-
 var (
 	TemplateMessageSendPasswordToExistingUserTXT       = template.RegisterMessagePlainText("messages/send_password_to_existing_user_email.txt")
 	TemplateMessageSendPasswordToExistingUserEmailHTML = template.RegisterMessageHTML("messages/send_password_to_existing_user_email.html")
