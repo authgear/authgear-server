@@ -14,10 +14,10 @@
   <div class="flex-1">
     {{ if .RedirectURL }}
       <a class="block" href="{{ .RedirectURL }}">
-        {{ template "temp" . }}
+        {{ template "__content" . }}
       </a>
     {{ else }}
-      {{ template "temp" . }}
+      {{ template "__content" . }}
     {{ end }}
     {{/* ExtraContent shows under label and description (e.g. Verify Button) */}}
     {{ if .ExtraContent }}
@@ -26,7 +26,7 @@
       </div>
     {{ end }}
   </div>
-  {{ if and .ActionButton (not .DetailURL) }}
+  {{ if and .ActionButton (not .RedirectURL) }}
     <div class="settings-action-item__action-button-container">
       {{ .ActionButton }}
     </div>
@@ -39,7 +39,7 @@
 </div>
 {{ end }}
 
-{{ define "temp"}}
+{{ define "__content"}}
 <div class="settings-action-item__content-container">
   {{ if .IconName }}
   <i class="settings-action-item__icon material-icons">{{ .IconName }}</i>
@@ -52,4 +52,3 @@
   </div>
 {{ end }}
 {{ end }}
-
