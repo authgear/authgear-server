@@ -1,7 +1,8 @@
 @layer components {
   .settings-action-item__container {
     @apply flex;
-    @apply px-2 py-4;
+    --settings-action-item-padding-x: 0.5rem;
+    --settings-action-item-padding-y: 1rem;
     color: var(--settings-item__text-color);
     border-color: var(--settings-item__border-color);
     border-bottom-width: 1px;
@@ -9,16 +10,30 @@
 
     --icon-placeholder-display: none;
     --icon-size: 1.5rem;
-    &.with-icon {
+    &.settings-action-item__container-with-icon {
       --icon-placeholder-display: block;
     }
   }
 
-  .settings-action-item__content-container {
-    @apply flex gap-x-2 items-center;
+  .settings-action-item__container {
+    &.settings-action-item__container-with-extra-content {
+      .settings-action-item__content-container {
+        @apply pb-2;
+      }
+    }
   }
 
-  .settings-action-item__additional-content-container {
+  .settings-action-item__content-container {
+    @apply block;
+    @apply px-[var(--settings-action-item-padding-x)];
+    @apply py-[var(--settings-action-item-padding-y)];
+  }
+
+  .settings-action-item__label-container {
+    @apply flex gap-x-2;
+  }
+
+  .settings-action-item__description-container {
     @apply flex gap-x-2 items-center;
     @apply mt-1;
     &::before {
@@ -30,7 +45,8 @@
 
   .settings-action-item__extra-content-container {
     @apply flex gap-x-2 items-center;
-    @apply mt-2;
+    @apply px-[var(--settings-action-item-padding-x)];
+    @apply pb-[var(--settings-action-item-padding-y)];
     &::before {
       content: "";
       width: var(--icon-size);
@@ -40,17 +56,15 @@
 
   .settings-action-item__icon {
     @apply settings-item-icon;
-    @apply inline-block items-center;
   }
 
-  .settings-action-item__edit-button-container {
-    @apply flex items-center;
-    height: var(--icon-size);
-    display: flex;
+  .settings-action-item__action-button-container {
+    @apply py-[var(--settings-action-item-padding-y)];
   }
 
   .settings-action-item__arrow-container {
     @apply flex flex-none items-center;
+    @apply py-[var(--settings-action-item-padding-y)];
   }
 
   .settings-action-item__label {

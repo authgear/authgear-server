@@ -9,15 +9,22 @@
 */}}
 
 {{ define "authflowv2/__settings_action_item.html" }}
-<div class="settings-action-item__container
-  {{ if .IconName }} with-icon {{ end }}">
+<div
+  class="
+    settings-action-item__container
+    {{ if .IconName }}settings-action-item__container-with-icon{{ end }}
+    {{ if .ExtraContent }}settings-action-item__container-with-extra-content{{ end }}
+  "
+>
   <div class="flex-1">
     {{ if .RedirectURL }}
-      <a class="block" href="{{ .RedirectURL }}">
+      <a class="settings-action-item__content-container" href="{{ .RedirectURL }}">
         {{ template "__settings_action_item_content" . }}
       </a>
     {{ else }}
-      {{ template "__settings_action_item_content" . }}
+      <div class="settings-action-item__content-container">
+        {{ template "__settings_action_item_content" . }}
+      </div>
     {{ end }}
     {{/* ExtraContent shows under label and description (e.g. Verify Button) */}}
     {{ if .ExtraContent }}
@@ -33,21 +40,21 @@
   {{ end }}
   {{ if and .RedirectURL (not .ActionButton) }}
     <a class="settings-action-item__arrow-container" href="{{ .RedirectURL }}">
-      <div class="settings-item__forward_arrow"></div>
+      <span class="settings-item__forward_arrow"></span>
     </a>
   {{ end }}
 </div>
 {{ end }}
 
 {{ define "__settings_action_item_content" }}
-<div class="settings-action-item__content-container">
+<div class="settings-action-item__label-container">
   {{ if .IconName }}
   <i class="settings-action-item__icon material-icons">{{ .IconName }}</i>
   {{ end }}
   <p class="settings-action-item__label">{{ .Label }}</p>
 </div>
 {{ if .Description }}
-  <div class="settings-action-item__additional-content-container">
+  <div class="settings-action-item__description-container">
     {{ .Description }}
   </div>
 {{ end }}
