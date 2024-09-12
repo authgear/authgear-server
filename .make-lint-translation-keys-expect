@@ -19,8 +19,8 @@ resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:48:18:
 resources/authgear/templates/en/web/authflowv2/__settings_radio.html:16:16: translation key not defined: "radio-%s-%s"
 resources/authgear/templates/en/web/authflowv2/__timezone_input.html:8:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/account_linking.html:90:33: translation key not defined: "%s-icon"
-resources/authgear/templates/en/web/authflowv2/forgot_password.html:109:30: template translation is forbidden: `__forgot_password_alternative`
-resources/authgear/templates/en/web/authflowv2/forgot_password.html:165:26: template translation is forbidden: `__forgot_password_alternative`
+resources/authgear/templates/en/web/authflowv2/forgot_password.html:103:30: template translation is forbidden: `__forgot_password_alternative`
+resources/authgear/templates/en/web/authflowv2/forgot_password.html:159:26: template translation is forbidden: `__forgot_password_alternative`
 resources/authgear/templates/en/web/authflowv2/layout.html:5:14: template translation is forbidden: `widget`
 resources/authgear/templates/en/web/authflowv2/login.html:252:37: translation key not defined: "%s-icon"
 resources/authgear/templates/en/web/authflowv2/settings_layout.html:3:14: template translation is forbidden: `widget`
