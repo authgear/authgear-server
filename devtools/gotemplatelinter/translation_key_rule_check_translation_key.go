@@ -11,8 +11,8 @@ import (
 
 // v2.page.<page>.<state>.<descriptor>
 // v2.component.<component>.<state>.<descriptor>
-const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z0-9]+)\.([-a-z0-9]+)\.([-a-z0-9]+)$`
-const ErrTranslationKeyPattern = `^(v2)\.(error)\.([-a-z0-9]+)$`
+const TranslationKeyPattern = `^(v2)\.(page|component)\.([-a-z0-9%]+)\.([-a-z0-9%]+)\.([-a-z0-9%]+)$`
+const ErrTranslationKeyPattern = `^(v2)\.(error)\.([-a-z0-9%]+)$`
 const enTranslationJSONPath = "resources/authgear/templates/en/translation.json"
 
 var validKey *regexp.Regexp
@@ -29,12 +29,16 @@ func CheckTranslationKeyNode(translationKeyNode parse.Node) (err error) {
 	switch translationKeyNode.Type() {
 	case parse.NodeString:
 		return CheckTranslationKeyPattern(translationKeyNode.(*parse.StringNode).Text)
+	case parse.NodePipe:
+		// we can skip printf-only pipe nodes here, since it is already checked in CheckCommandPrintf
+		if IsPipeNodeOnlyPrintfCommand(translationKeyNode.(*parse.PipeNode)) {
+			return
+		}
+		fallthrough
 	case parse.NodeVariable:
 		// FIXME: support variable, like $label, $label_key, $variant_label_key
 		fallthrough
-	case parse.NodePipe:
-		// FIXME: support pipe, like (printf "territory-%s" $.AddressCountry)
-		fallthrough
+
 	default:
 		if IsSpecialCase(translationKeyNode.String()) {
 			return nil
@@ -54,11 +58,17 @@ func CheckTranslationKeyPattern(translationKey string) (err error) {
 		return fmt.Errorf("translation key is empty")
 	}
 
+	isPatternValid := validKey.MatchString(key) || validErrKey.MatchString(key)
+
 	if !isTranslationKeyDefined(key) {
+		// Allow wild card key like `v2.component.oauth-branding.%s.label`
+		if isPatternValid && hasWildcard(key) {
+			return nil
+		}
 		return fmt.Errorf("translation key not defined: \"%v\"", key)
 	}
 
-	if !validKey.MatchString(key) && !validErrKey.MatchString(key) {
+	if !isPatternValid {
 		return fmt.Errorf("invalid translation key: \"%v\"", key)
 	}
 
@@ -89,4 +99,8 @@ func getEnJSONTranslationKeys() map[string]struct{} {
 	}
 	return keys
 
+}
+
+func hasWildcard(key string) bool {
+	return strings.Contains(key, `%s`)
 }
