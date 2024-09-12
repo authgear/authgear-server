@@ -1,6 +1,10 @@
 package config
 
 import (
+	crewjamsaml "github.com/crewjam/saml"
+
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
+
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 )
 
@@ -35,7 +39,16 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"destination": { "type": "string", "format": "uri" },
 		"recipient": { "type": "string", "format": "uri" },
 		"audience": { "type": "string", "format": "uri" },
-		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" }
+		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" },
+		"slo_enabled": { "type": "boolean" },
+		"slo_callback_url": { "type": "string", "format": "uri" },
+		"slo_binding": {
+			"type": "string",
+			"enum": [
+				"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+				"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Post"
+			]
+		}
 	},
 	"required": ["acs_urls"],
 	"anyOf": [
@@ -44,6 +57,21 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		},
 		{
 			"required": ["client_id"]
+		}
+	],
+	"allOf": [
+		{
+			"if": {
+				"properties": {
+					"slo_enabled": {
+						"const": true
+					}
+				},
+				"required": ["slo_enabled"]
+			},
+			"then": {
+				"required": ["slo_callback_url"]
+			}
 		}
 	]
 }
@@ -76,12 +104,15 @@ var _ = Schema.Add("SAMLNameIDFormat", `
 }
 `)
 
-type SAMLNameIDFormat string
-
-const (
-	SAMLNameIDFormatUnspecified  SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
-	SAMLNameIDFormatEmailAddress SAMLNameIDFormat = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
-)
+var _ = Schema.Add("SAMLBinding", `
+{
+	"type": "string",
+	"enum": [
+		"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+		"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Post"
+	]
+}
+`)
 
 var _ = Schema.Add("SAMLNameIDAttributePointer", `
 {
@@ -104,28 +135,35 @@ func (p SAMLNameIDAttributePointer) MustGetJSONPointer() jsonpointer.T {
 }
 
 type SAMLServiceProviderConfig struct {
-	Deprecated_ID          string                     `json:"id,omitempty"`
-	ClientID               string                     `json:"client_id,omitempty"`
-	NameIDFormat           SAMLNameIDFormat           `json:"nameid_format,omitempty"`
-	NameIDAttributePointer SAMLNameIDAttributePointer `json:"nameid_attribute_pointer,omitempty"`
-	AcsURLs                []string                   `json:"acs_urls,omitempty"`
-	Destination            string                     `json:"destination,omitempty"`
-	Recipient              string                     `json:"recipient,omitempty"`
-	Audience               string                     `json:"audience,omitempty"`
-	AssertionValidDuration DurationString             `json:"assertion_valid_duration,omitempty"`
+	Deprecated_ID          string                        `json:"id,omitempty"`
+	ClientID               string                        `json:"client_id,omitempty"`
+	NameIDFormat           samlprotocol.SAMLNameIDFormat `json:"nameid_format,omitempty"`
+	NameIDAttributePointer SAMLNameIDAttributePointer    `json:"nameid_attribute_pointer,omitempty"`
+	AcsURLs                []string                      `json:"acs_urls,omitempty"`
+	Destination            string                        `json:"destination,omitempty"`
+	Recipient              string                        `json:"recipient,omitempty"`
+	Audience               string                        `json:"audience,omitempty"`
+	AssertionValidDuration DurationString                `json:"assertion_valid_duration,omitempty"`
+	SLOEnabled             bool                          `json:"slo_enabled,omitempty"`
+	SLOCallbackURL         string                        `json:"slo_callback_url,omitempty"`
+	SLOBinding             samlprotocol.SAMLBinding      `json:"slo_binding,omitempty"`
 }
 
 func (c *SAMLServiceProviderConfig) SetDefaults() {
 	if c.NameIDFormat == "" {
-		c.NameIDFormat = SAMLNameIDFormatUnspecified
+		c.NameIDFormat = samlprotocol.SAMLNameIDFormatUnspecified
 	}
 
-	if c.NameIDFormat == SAMLNameIDFormatUnspecified && c.NameIDAttributePointer == "" {
+	if c.NameIDFormat == samlprotocol.SAMLNameIDFormatUnspecified && c.NameIDAttributePointer == "" {
 		c.NameIDAttributePointer = "/sub"
 	}
 
 	if c.AssertionValidDuration == "" {
 		c.AssertionValidDuration = DurationString("20m")
+	}
+
+	if c.SLOBinding == "" {
+		c.SLOBinding = crewjamsaml.HTTPPostBinding
 	}
 }
 

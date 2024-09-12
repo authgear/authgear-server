@@ -1189,6 +1189,9 @@ config:
         recipient: http://localhost:3000/recipient
         audience: http://localhost:3000/audience
         assertion_valid_duration: 1h
+        slo_enabled: true
+        slo_callback_url: https://authgear.cloud/slo
+        slo_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
 ---
 name: saml-signing
 error: null
