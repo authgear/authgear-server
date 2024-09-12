@@ -106,35 +106,35 @@ XState: {{ .XState }}`, lang, path))
 		}
 
 		Convey("it should render otp messages correctly", func() {
-			emailMessageData, err := service.EmailMessageData(messageSpec, map[string]interface{}{
-				"Email":       "my-email@example.com",
-				"Phone":       "+85298765432",
-				"Code":        "123456",
-				"URL":         "https://www.example.com/url",
-				"Host":        "https://www.example.com",
-				"Link":        "https://www.example.com/link",
-				"HasPassword": true,
+			emailMessageData, err := service.EmailMessageData(messageSpec, &translation.PartialTemplateVariables{
+				Email:       "my-email@example.com",
+				Phone:       "+85298765432",
+				Code:        "123456",
+				URL:         "https://www.example.com/url",
+				Host:        "https://www.example.com",
+				Link:        "https://www.example.com/link",
+				HasPassword: true,
 			})
 			So(err, ShouldBeNil)
 			So(emailMessageData.Sender, ShouldEqual, "no-reply@authgear.com")
 			So(emailMessageData.ReplyTo, ShouldEqual, "")
 			So(emailMessageData.Subject, ShouldEqual, "[My App Name] Test")
 			So(emailMessageData.TextBody, ShouldEqual, `zh/messages/email.txt
-AppName: <no value>
+AppName: My App Name
 ClientID: my+client+id
 Code: 123456
 Email: my-email@example.com
 HasPassword: true
 Host: https://www.example.com
 Link: https://www.example.com/link
-Password: <no value>
+Password: 
 Phone: +85298765432
 State: my+state
 UILocales: my+ui+locales
 URL: https://www.example.com/url
 XState: my+x+state`)
 			So(emailMessageData.HTMLBody, ShouldEqual, `zh/messages/email.html
-AppName: 
+AppName: My App Name
 ClientID: my client id
 Code: 123456
 Email: my-email@example.com
@@ -148,86 +148,85 @@ UILocales: my ui locales
 URL: https://www.example.com/url
 XState: my x state`)
 
-			smsMessageData, err := service.SMSMessageData(messageSpec, map[string]interface{}{
-				"Email": "my-email@example.com",
-				"Phone": "+85298765432",
-				"Code":  "123456",
-				"URL":   "https://www.example.com/url",
-				"Host":  "https://www.example.com",
-				"Link":  "https://www.example.com/link",
+			smsMessageData, err := service.SMSMessageData(messageSpec, &translation.PartialTemplateVariables{
+				Email: "my-email@example.com",
+				Phone: "+85298765432",
+				Code:  "123456",
+				URL:   "https://www.example.com/url",
+				Host:  "https://www.example.com",
+				Link:  "https://www.example.com/link",
 			})
 			So(err, ShouldBeNil)
 			So(smsMessageData.Sender, ShouldEqual, "Sender: [My App Name]")
 			So(smsMessageData.Body, ShouldEqual, `zh/messages/sms.txt
-AppName: <no value>
+AppName: My App Name
 ClientID: my+client+id
 Code: 123456
 Email: my-email@example.com
-HasPassword: <no value>
+HasPassword: false
 Host: https://www.example.com
 Link: https://www.example.com/link
-Password: <no value>
+Password: 
 Phone: +85298765432
 State: my+state
 UILocales: my+ui+locales
 URL: https://www.example.com/url
 XState: my+x+state`)
 
-			whatsappMessageData, err := service.WhatsappMessageData("en", messageSpec, map[string]interface{}{
-				"Email": "my-email@example.com",
-				"Phone": "+85298765432",
-				"Code":  "123456",
-				"URL":   "https://www.example.com/url",
-				"Host":  "https://www.example.com",
-				"Link":  "https://www.example.com/link",
+			whatsappMessageData, err := service.WhatsappMessageData("en", messageSpec, &translation.PartialTemplateVariables{
+				Email: "my-email@example.com",
+				Phone: "+85298765432",
+				Code:  "123456",
+				URL:   "https://www.example.com/url",
+				Host:  "https://www.example.com",
+				Link:  "https://www.example.com/link",
 			})
 			So(err, ShouldBeNil)
 			So(whatsappMessageData.Body, ShouldEqual, `en/messages/whatsapp.txt
-AppName: <no value>
-ClientID: <no value>
+AppName: My App Name
+ClientID: my client id
 Code: 123456
 Email: my-email@example.com
-HasPassword: <no value>
+HasPassword: false
 Host: https://www.example.com
 Link: https://www.example.com/link
-Password: <no value>
+Password: 
 Phone: +85298765432
-State: <no value>
-UILocales: <no value>
+State: my state
+UILocales: my ui locales
 URL: https://www.example.com/url
-XState: <no value>`)
+XState: my x state`)
 		})
 
 		Convey("it should render forgot password messages correctly", func() {
-			emailMessageData, err := service.EmailMessageData(messageSpec, map[string]interface{}{
-				"AppName":  "My app",
-				"Email":    "email@example.com",
-				"Password": "P@ssw0rd",
+			emailMessageData, err := service.EmailMessageData(messageSpec, &translation.PartialTemplateVariables{
+				Email:    "email@example.com",
+				Password: "P@ssw0rd",
 			})
 			So(err, ShouldBeNil)
 			So(emailMessageData.Sender, ShouldEqual, "no-reply@authgear.com")
 			So(emailMessageData.ReplyTo, ShouldEqual, "")
 			So(emailMessageData.Subject, ShouldEqual, "[My App Name] Test")
 			So(emailMessageData.TextBody, ShouldEqual, `zh/messages/email.txt
-AppName: My app
+AppName: My App Name
 ClientID: my+client+id
-Code: <no value>
+Code: 
 Email: email@example.com
-HasPassword: <no value>
-Host: <no value>
-Link: <no value>
+HasPassword: false
+Host: 
+Link: 
 Password: P@ssw0rd
-Phone: <no value>
+Phone: 
 State: my+state
 UILocales: my+ui+locales
-URL: <no value>
+URL: 
 XState: my+x+state`)
 			So(emailMessageData.HTMLBody, ShouldEqual, `zh/messages/email.html
-AppName: My app
+AppName: My App Name
 ClientID: my client id
 Code: 
 Email: email@example.com
-HasPassword: 
+HasPassword: false
 Host: 
 Link: 
 Password: P@ssw0rd
@@ -237,48 +236,46 @@ UILocales: my ui locales
 URL: 
 XState: my x state`)
 
-			smsMessageData, err := service.SMSMessageData(messageSpec, map[string]interface{}{
-				"AppName":  "My app",
-				"Email":    "email@example.com",
-				"Password": "P@ssw0rd",
+			smsMessageData, err := service.SMSMessageData(messageSpec, &translation.PartialTemplateVariables{
+				Email:    "email@example.com",
+				Password: "P@ssw0rd",
 			})
 			So(err, ShouldBeNil)
 			So(smsMessageData.Sender, ShouldEqual, "Sender: [My App Name]")
 			So(smsMessageData.Body, ShouldEqual, `zh/messages/sms.txt
-AppName: My app
+AppName: My App Name
 ClientID: my+client+id
-Code: <no value>
+Code: 
 Email: email@example.com
-HasPassword: <no value>
-Host: <no value>
-Link: <no value>
+HasPassword: false
+Host: 
+Link: 
 Password: P@ssw0rd
-Phone: <no value>
+Phone: 
 State: my+state
 UILocales: my+ui+locales
-URL: <no value>
+URL: 
 XState: my+x+state`)
 
-			whatsappMessageData, err := service.WhatsappMessageData("en", messageSpec, map[string]interface{}{
-				"AppName":  "My app",
-				"Email":    "email@example.com",
-				"Password": "P@ssw0rd",
+			whatsappMessageData, err := service.WhatsappMessageData("en", messageSpec, &translation.PartialTemplateVariables{
+				Email:    "email@example.com",
+				Password: "P@ssw0rd",
 			})
 			So(err, ShouldBeNil)
 			So(whatsappMessageData.Body, ShouldEqual, `en/messages/whatsapp.txt
-AppName: My app
-ClientID: <no value>
-Code: <no value>
+AppName: My App Name
+ClientID: my client id
+Code: 
 Email: email@example.com
-HasPassword: <no value>
-Host: <no value>
-Link: <no value>
+HasPassword: false
+Host: 
+Link: 
 Password: P@ssw0rd
-Phone: <no value>
-State: <no value>
-UILocales: <no value>
-URL: <no value>
-XState: <no value>`)
+Phone: 
+State: my state
+UILocales: my ui locales
+URL: 
+XState: my x state`)
 		})
 	})
 }
