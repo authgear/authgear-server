@@ -11,5 +11,15 @@
 {{ end }}
 
 {{ define "page-content" }}
-usernames
+
+{{ if not $.CreateDisabled}}
+  {{ $href := (call $.MakeURL "/settings/identity/new_username" "q_login_id_key" $.LoginIDKey ) }}
+  <a
+    class="settings-link-btn"
+    href="{{ $href }}"
+  >
+    {{ translate "v2.page.settings-identity-list-username.default.button-add-username-label" nil }}
+  </a>
+{{ end }}
+
 {{ end }}
