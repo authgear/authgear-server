@@ -212,17 +212,17 @@ const UserDetailsAdminActions: React.VFC<UserDetailsAdminActionsProps> =
         </Label>
         <div className="-mt-3">
           {data.isAnonymized || data.deleteAt != null ? null : (
-            <>
-              <DisableUserCell
-                isDisabled={data.isDisabled}
-                onDisableData={handleDataStatusChange}
-              />
-              <AnonymizeUserCell
-                isScheduledAnonymization={data.anonymizeAt != null}
-                onAnonymizeData={onAnonymizeData}
-                onCancelAnonymizeData={handleDataStatusChange}
-              />
-            </>
+            <DisableUserCell
+              isDisabled={data.isDisabled}
+              onDisableData={handleDataStatusChange}
+            />
+          )}
+          {data.isAnonymized ? null : (
+            <AnonymizeUserCell
+              isScheduledAnonymization={data.anonymizeAt != null}
+              onAnonymizeData={onAnonymizeData}
+              onCancelAnonymizeData={handleDataStatusChange}
+            />
           )}
           <RemoveUserCell
             isScheduledRemoval={data.deleteAt != null}
