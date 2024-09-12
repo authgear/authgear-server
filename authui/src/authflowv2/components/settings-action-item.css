@@ -1,0 +1,59 @@
+@layer components {
+  .settings-action-item__container {
+    @apply flex;
+    @apply px-2 py-4;
+    color: var(--settings-item__text-color);
+    border-color: var(--settings-item__border-color);
+    border-bottom-width: 1px;
+    border-style: solid;
+
+    --icon-placeholder-display: none;
+    --icon-size: 1.5rem;
+    &.with-icon {
+      --icon-placeholder-display: block;
+    }
+  }
+
+  .settings-action-item__content-container {
+    @apply flex gap-x-2 items-center;
+  }
+
+  .settings-action-item__additional-content-container {
+    @apply flex gap-x-2 items-center;
+    @apply mt-1;
+    &::before {
+      content: "";
+      width: var(--icon-size);
+      display: var(--icon-placeholder-display);
+    }
+  }
+
+  .settings-action-item__extra-content-container {
+    @apply flex gap-x-2 items-center;
+    @apply mt-2;
+    &::before {
+      content: "";
+      width: var(--icon-size);
+      display: var(--icon-placeholder-display);
+    }
+  }
+
+  .settings-action-item__icon {
+    @apply settings-item-icon;
+    @apply inline-block items-center;
+  }
+
+  .settings-action-item__edit-button-container {
+    @apply flex items-center;
+    height: var(--icon-size);
+    display: flex;
+  }
+
+  .settings-action-item__arrow-container {
+    @apply flex flex-none items-center;
+  }
+
+  .settings-action-item__label {
+    @apply settings-item__label;
+  }
+}
