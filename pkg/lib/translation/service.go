@@ -11,6 +11,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
+//go:generate mockgen -source=service.go -destination=service_mock_test.go -package translation_test
+
 type StaticAssetResolver interface {
 	StaticAssetURL(id string) (url string, err error)
 }
