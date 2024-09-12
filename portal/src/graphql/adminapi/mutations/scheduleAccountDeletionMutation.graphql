@@ -6,6 +6,8 @@ mutation scheduleAccountDeletionMutation($userID: ID!) {
       disableReason
       isDeactivated
       deleteAt
+      isAnonymized
+      anonymizeAt
     }
   }
 }

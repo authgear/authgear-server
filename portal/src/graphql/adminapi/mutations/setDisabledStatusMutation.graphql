@@ -6,6 +6,8 @@ mutation setDisabledStatusMutation($userID: ID!, $isDisabled: Boolean!) {
       disableReason
       isDeactivated
       deleteAt
+      isAnonymized
+      anonymizeAt
     }
   }
 }

@@ -8,7 +8,7 @@ export type UnscheduleAccountDeletionMutationMutationVariables = Types.Exact<{
 }>;
 
 
-export type UnscheduleAccountDeletionMutationMutation = { __typename?: 'Mutation', unscheduleAccountDeletion: { __typename?: 'UnscheduleAccountDeletionPayload', user: { __typename?: 'User', id: string, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null } } };
+export type UnscheduleAccountDeletionMutationMutation = { __typename?: 'Mutation', unscheduleAccountDeletion: { __typename?: 'UnscheduleAccountDeletionPayload', user: { __typename?: 'User', id: string, isDisabled: boolean, disableReason?: string | null, isDeactivated: boolean, deleteAt?: any | null, isAnonymized: boolean, anonymizeAt?: any | null } } };
 
 
 export const UnscheduleAccountDeletionMutationDocument = gql`
@@ -20,6 +20,8 @@ export const UnscheduleAccountDeletionMutationDocument = gql`
       disableReason
       isDeactivated
       deleteAt
+      isAnonymized
+      anonymizeAt
     }
   }
 }
