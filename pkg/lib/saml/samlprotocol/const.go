@@ -16,6 +16,11 @@ var SSOSupportedBindings []SAMLBinding = []SAMLBinding{
 	SAMLBindingHTTPPost,
 }
 
+var SLOSupportedBindings []SAMLBinding = []SAMLBinding{
+	SAMLBindingHTTPRedirect,
+	SAMLBindingHTTPPost,
+}
+
 var ACSSupportedBindings []SAMLBinding = []SAMLBinding{
 	SAMLBindingHTTPPost,
 }

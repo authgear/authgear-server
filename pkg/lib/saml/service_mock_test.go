@@ -49,6 +49,20 @@ func (mr *MockSAMLEndpointsMockRecorder) SAMLLoginURL(serviceProviderId interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SAMLLoginURL", reflect.TypeOf((*MockSAMLEndpoints)(nil).SAMLLoginURL), serviceProviderId)
 }
 
+// SAMLLogoutURL mocks base method.
+func (m *MockSAMLEndpoints) SAMLLogoutURL(serviceProviderId string) *url.URL {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SAMLLogoutURL", serviceProviderId)
+	ret0, _ := ret[0].(*url.URL)
+	return ret0
+}
+
+// SAMLLogoutURL indicates an expected call of SAMLLogoutURL.
+func (mr *MockSAMLEndpointsMockRecorder) SAMLLogoutURL(serviceProviderId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SAMLLogoutURL", reflect.TypeOf((*MockSAMLEndpoints)(nil).SAMLLogoutURL), serviceProviderId)
+}
+
 // MockSAMLUserInfoProvider is a mock of SAMLUserInfoProvider interface.
 type MockSAMLUserInfoProvider struct {
 	ctrl     *gomock.Controller
