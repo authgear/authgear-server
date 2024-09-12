@@ -460,7 +460,6 @@
   "hide-password-label": "Sembunyikan kata sandi",
   "return-page-title": "Kembali ke tempat Anda berada",
   "return-page-description": "Silakan kembali ke tempat Anda berada untuk melanjutkan. Jika Anda berinteraksi dengan aplikasi seluler, silakan beralih kembali ke aplikasi tersebut. Jika Anda berinteraksi dengan situs web, silakan beralih kembali ke tab tersebut.",
-  "configure-direct-access-description": "Direct access of the endpoint URL is not allowed. There could be a misconfiguration in the system. Please contact the systems admin.",
   "require-oauth-page-title": "Akses langsung ke halaman ini tidak diizinkan",
   "require-oauth-page-description": "Halaman ini hanya dapat diakses melalui titik akhir otorisasi.",
   "wechat-auth-title": "Login dengan WeChat",

@@ -460,7 +460,6 @@
   "hide-password-label": "Wachtwoord verbergen",
   "return-page-title": "Keer terug naar waar u was",
   "return-page-description": "Ga terug naar waar u was om door te gaan. Als u met een mobiele app bezig was, schakel dan terug naar de app. Als u met een website bezig was, schakel dan terug naar die tab.",
-  "configure-direct-access-description": "Direct access of the endpoint URL is not allowed. There could be a misconfiguration in the system. Please contact the systems admin.",
   "require-oauth-page-title": "Directe toegang tot deze pagina is niet toegestaan",
   "require-oauth-page-description": "Deze pagina kan alleen via het autorisatie-eindpunt worden geopend.",
   "wechat-auth-title": "Inloggen met WeChat",

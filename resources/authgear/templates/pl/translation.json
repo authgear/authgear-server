@@ -460,7 +460,6 @@
   "hide-password-label": "Ukryj hasło",
   "return-page-title": "Wróć tam, gdzie byłeś",
   "return-page-description": "Wróć tam, gdzie byłeś, aby kontynuować. Jeśli korzystałeś z aplikacji mobilnej, przełącz się z powrotem na aplikację. Jeśli korzystałeś ze strony internetowej, przełącz się z powrotem na tę kartę.",
-  "configure-direct-access-description": "Direct access of the endpoint URL is not allowed. There could be a misconfiguration in the system. Please contact the systems admin.",
   "require-oauth-page-title": "Bezpośredni dostęp do tej strony jest niedozwolony",
   "require-oauth-page-description": "Ta strona może być dostępna tylko za pośrednictwem punktu końcowego autoryzacji.",
   "wechat-auth-title": "Zaloguj się przez WeChat",

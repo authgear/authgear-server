@@ -460,7 +460,6 @@
   "hide-password-label": "Ẩn mật khẩu",
   "return-page-title": "Quay lại nơi bạn đang ở",
   "return-page-description": "Vui lòng quay lại nơi bạn đang ở để tiếp tục. Nếu bạn đang tương tác với một ứng dụng di động, vui lòng chuyển lại sang ứng dụng. Nếu bạn đang tương tác với một trang web, vui lòng chuyển lại sang tab đó.",
-  "configure-direct-access-description": "Direct access of the endpoint URL is not allowed. There could be a misconfiguration in the system. Please contact the systems admin.",
   "require-oauth-page-title": "Không được phép truy cập trực tiếp vào trang này",
   "require-oauth-page-description": "Trang này chỉ có thể được truy cập thông qua điểm cuối ủy quyền.",
   "wechat-auth-title": "Đăng nhập bằng WeChat",

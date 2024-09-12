@@ -460,7 +460,6 @@
   "hide-password-label": "Itago ang password",
   "return-page-title": "Bumalik sa kung saan ka naroroon",
   "return-page-description": "Mangyaring bumalik sa kung saan ka naroroon upang magpatuloy. Kung nakikipag-ugnayan ka sa isang mobile app, mangyaring lumipat pabalik sa app. Kung nakikipag-ugnayan ka sa isang website, mangyaring lumipat pabalik sa tab na iyon.",
-  "configure-direct-access-description": "Direct access of the endpoint URL is not allowed. There could be a misconfiguration in the system. Please contact the systems admin.",
   "require-oauth-page-title": "Hindi pinapayagan ang direktang pag-access sa pahinang ito",
   "require-oauth-page-description": "Ang pahinang ito ay maaaring ma-access lamang sa pamamagitan ng authorization endpoint.",
   "wechat-auth-title": "Mag-login gamit ang WeChat",
