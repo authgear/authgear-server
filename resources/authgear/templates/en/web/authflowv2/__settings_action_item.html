@@ -14,10 +14,10 @@
   <div class="flex-1">
     {{ if .RedirectURL }}
       <a class="block" href="{{ .RedirectURL }}">
-        {{ template "__content" . }}
+        {{ template "__settings_action_item_content" . }}
       </a>
     {{ else }}
-      {{ template "__content" . }}
+      {{ template "__settings_action_item_content" . }}
     {{ end }}
     {{/* ExtraContent shows under label and description (e.g. Verify Button) */}}
     {{ if .ExtraContent }}
@@ -39,7 +39,7 @@
 </div>
 {{ end }}
 
-{{ define "__content"}}
+{{ define "__settings_action_item_content" }}
 <div class="settings-action-item__content-container">
   {{ if .IconName }}
   <i class="settings-action-item__icon material-icons">{{ .IconName }}</i>
