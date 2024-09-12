@@ -1,12 +1,25 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  {{/* change this */}}
-  {{ $display_otp_input_error := false }}
-  {{ if $.Error }}
-    {{ if eq $.Error.reason "InvalidCredentials" }}
-      {{ $display_otp_input_error = true }}
-    {{ end }}
+  {{ $err_map := (resolveError $.RawError (dict 
+    "otpInput" (dict
+      "by_reason"                    (list "InvalidCredentials")
+    )
+  )) }}
+
+  {{ $otp_err := index $err_map "otpInput" }}
+  {{ $unknown_err := index $err_map "unknown" }}
+  {{ $has_otp_err := not (isNil $otp_err) }}
+  {{ $has_unknown_err := not (isNil $unknown_err )}}
+
+  {{ $otp_error_message := "" }}
+  {{ if $has_otp_err }}
+    {{ $otp_error_message = include "authflowv2/__error.html" (merge (dict "Error" $otp_err) $) }}
+  {{ end }}
+
+  {{ $unknown_error_message := "" }}
+  {{ if $has_unknown_err }}
+    {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
   {{ end }}
 
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
@@ -26,19 +39,11 @@
         (dict
           "Type" "error"
           "Classname" "mt-4"
-          "Message" (ternary (include "authflowv2/__error.html" .) nil (not $display_otp_input_error))
+          "Message" $unknown_error_message
         )
       }}
     </div>
     <div>
-      {{/* change this */}}
-      {{ $otp_error_message := "" }}
-      {{ if $.Error  }}
-        {{ if $display_otp_input_error }}
-          {{ $otp_error_message = include "authflowv2/__error.html" .  }}
-        {{ end }}
-      {{ end }}
-
       <form
         id="main-form"
         method="post"
