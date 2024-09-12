@@ -1,0 +1,5 @@
+@layer components {
+  .settings-dialog {
+    @apply p-8 tablet:p-10;
+  }
+}
