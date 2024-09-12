@@ -13,16 +13,24 @@
 {{ define "page-content" }}
 
 <div class="flex flex-col gap-y-6">
+  {{ $actionButton := "" }}
+  {{ if not $.UpdateDisabled }}
+    {{ $actionButton = (include "__settings_identity_view_username_edit_button" .) }}
+  {{ end }}
+
+
   {{ template "authflowv2/__settings_action_item.html"
       (dict
         "Label" $.Identity.OriginalLoginID
-        "ActionButton" (include "__settings_identity_view_username_edit_button" .)
+        "ActionButton" $actionButton
       )
   }}
 
-  <button type="button" class="settings-link-btn--destructive">
-    {{ translate "v2.page.settings-identity-view-username.default.button-remove-label" nil}}
-  </button>
+  {{ if not $.DeleteDisabled }}
+    <button type="button" class="settings-link-btn--destructive">
+      {{ translate "v2.page.settings-identity-view-username.default.button-remove-label" nil}}
+    </button>
+  {{ end }}
 </div>
 
 {{ end }}

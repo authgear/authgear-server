@@ -26,8 +26,10 @@ func ConfigureAuthflowV2SettingsIdentityViewUsername(route httproute.Route) http
 }
 
 type AuthflowV2SettingsIdentityViewUsernameViewModel struct {
-	LoginIDKey string
-	Identity   *identity.LoginID
+	LoginIDKey     string
+	Identity       *identity.LoginID
+	UpdateDisabled bool
+	DeleteDisabled bool
 }
 
 type AuthflowV2SettingsIdentityViewUsernameHandler struct {
@@ -51,9 +53,18 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) GetData(w http.ResponseW
 		return nil, err
 	}
 
+	updateDisabled := true
+	deleteDisabled := true
+	if loginIDConfig, ok := h.LoginIDConfig.GetKeyConfig(usernameIdentity.LoginIDKey); ok {
+		updateDisabled = *loginIDConfig.UpdateDisabled
+		deleteDisabled = *loginIDConfig.DeleteDisabled
+	}
+
 	vm := AuthflowV2SettingsIdentityViewUsernameViewModel{
-		LoginIDKey: usernameIdentity.LoginIDKey,
-		Identity:   usernameIdentity,
+		LoginIDKey:     usernameIdentity.LoginIDKey,
+		Identity:       usernameIdentity,
+		UpdateDisabled: updateDisabled,
+		DeleteDisabled: deleteDisabled,
 	}
 	viewmodels.Embed(data, vm)
 
