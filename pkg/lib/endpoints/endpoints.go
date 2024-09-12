@@ -166,3 +166,6 @@ func (e *Endpoints) SAMLLoginURL(serviceProviderId string) *url.URL {
 func (e *Endpoints) SAMLLoginFinishURL() *url.URL {
 	return e.urlOf(fmt.Sprintf("saml2/login_finish"))
 }
+func (e *Endpoints) SAMLLogoutURL(serviceProviderId string) *url.URL {
+	return e.urlOf(fmt.Sprintf("saml2/logout/%s", serviceProviderId))
+}

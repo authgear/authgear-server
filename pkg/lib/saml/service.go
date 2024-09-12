@@ -42,6 +42,7 @@ var x509SignatureAlgorithmByIdentifier = map[string]x509.SignatureAlgorithm{
 
 type SAMLEndpoints interface {
 	SAMLLoginURL(serviceProviderId string) *url.URL
+	SAMLLogoutURL(serviceProviderId string) *url.URL
 }
 
 type SAMLUserInfoProvider interface {
@@ -105,6 +106,15 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 		})
 	}
 
+	sloServices := []crewjamsaml.Endpoint{}
+
+	for _, binding := range samlprotocol.SLOSupportedBindings {
+		ssoServices = append(sloServices, crewjamsaml.Endpoint{
+			Binding:  string(binding),
+			Location: s.Endpoints.SAMLLogoutURL(sp.GetID()).String(),
+		})
+	}
+
 	descriptor := samlprotocol.EntityDescriptor{
 		EntityID: s.IdpEntityID(),
 		IDPSSODescriptors: []crewjamsaml.IDPSSODescriptor{
@@ -117,6 +127,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 					NameIDFormats: []crewjamsaml.NameIDFormat{
 						crewjamsaml.NameIDFormat(sp.NameIDFormat),
 					},
+					SingleLogoutServices: sloServices,
 				},
 				SingleSignOnServices: ssoServices,
 			},
