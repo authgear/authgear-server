@@ -32,13 +32,12 @@ type AuthflowV2SettingsIdentityListUsernameViewModel struct {
 }
 
 type AuthflowV2SettingsIdentityListUsernameHandler struct {
-	Database                 *appdb.Handle
-	LoginIDConfig            *config.LoginIDConfig
-	Identities               *identityservice.Service
-	ControllerFactory        handlerwebapp.ControllerFactory
-	BaseViewModel            *viewmodels.BaseViewModeler
-	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
-	Renderer                 handlerwebapp.Renderer
+	Database          *appdb.Handle
+	LoginIDConfig     *config.LoginIDConfig
+	Identities        *identityservice.Service
+	ControllerFactory handlerwebapp.ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2SettingsIdentityListUsernameHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {

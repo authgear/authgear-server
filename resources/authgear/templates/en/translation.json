@@ -1148,6 +1148,7 @@
   "v2.page.settings-identity-list-phone.default.primary-phone-label": "Primary phone",
   "v2.page.settings-identity-list-username.default.button-add-username-label": "+ Add username",
   "v2.page.settings-identity-list-username.default.navbar-title": "Username",
+  "v2.page.settings-identity-new-username.default.navbar-title": "Add Username",
   "v2.page.settings-identity-phone.default.navbar-title": "Phone",
   "v2.page.settings-identity-verify-email.default.navbar-title": "Verification",
   "v2.page.settings-identity-verify-phone.default.navbar-title": "Verification",
