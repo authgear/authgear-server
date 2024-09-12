@@ -10,3 +10,5 @@ var ErrOAuthTokenNotBoundToUser = apierrors.Invalid.WithReason("AccountManagemen
 
 var ErrAccountManagementTokenInvalid = apierrors.Invalid.WithReason("AccountManagementTokenInvalid").New("invalid token")
 var ErrAccountManagementTokenNotBoundToUser = apierrors.Invalid.WithReason("AccountManagementTokenNotBoundToUser").New("token is not bound to the current user")
+
+var ErrAccountManagementIdentityNotOwnedbyToUser = apierrors.Invalid.WithReason("AccountManagementIdentityNotOwnedByUser").New("identity not owned by current user")
