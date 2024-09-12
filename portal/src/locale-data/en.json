@@ -425,6 +425,7 @@
   "UserDetailsAdminActions.remove-user.title": "Remove User",
   "UserDetailsAdminActions.remove-user.body": "Permanently deletes the user's account and all related data. This action is irreversible.",
   "UserDetailsAdminActions.remove-user.action.remove": "Remove user",
+  "UserDetailsAdminActions.remove-user.action.remove-now": "Remove now",
   "UserDetailsAdminActions.remove-user.action.cancel": "Cancel removal",
 
   "Add2FAScreen.title.phone": "Add 2FA Phone",

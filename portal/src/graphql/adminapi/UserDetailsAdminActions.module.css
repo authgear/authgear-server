@@ -14,7 +14,7 @@
     "pbody     paction"
     "pspacer   pspacer"
     / auto min-content min-content;
-  grid-gap: 4px 0;
+  grid-gap: 4px 8px;
 }
 
 .actionCellSpacer {
@@ -28,6 +28,11 @@
 
 .actionCellBody {
   grid-area: pbody;
+}
+
+.actionCellActionButtonContainer {
+  @apply flex flex-row place-self-center justify-between items-center gap-2;
+  grid-area: paction;
 }
 
 .actionCellActionButton {

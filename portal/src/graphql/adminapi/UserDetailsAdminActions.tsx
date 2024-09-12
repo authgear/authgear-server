@@ -166,15 +166,26 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
         <FormattedMessage id="UserDetailsAdminActions.remove-user.body" />
       </Text>
       {isScheduledRemoval ? (
-        <AdminActionButton
-          theme={themes.actionButton}
-          className={cn(styles.actionCellActionButton)}
-          iconProps={{ iconName: "Undo" }}
-          text={
-            <FormattedMessage id="UserDetailsAdminActions.remove-user.action.cancel" />
-          }
-          onClick={onCancelRemoveData}
-        />
+        <div className={cn(styles.actionCellActionButtonContainer)}>
+          <AdminActionButton
+            theme={themes.actionButton}
+            className={cn(styles.actionCellActionButton)}
+            iconProps={{ iconName: "Undo" }}
+            text={
+              <FormattedMessage id="UserDetailsAdminActions.remove-user.action.cancel" />
+            }
+            onClick={onCancelRemoveData}
+          />
+          <AdminActionButton
+            theme={themes.destructive}
+            className={cn(styles.actionCellActionButton)}
+            iconProps={{ iconName: "Delete" }}
+            text={
+              <FormattedMessage id="UserDetailsAdminActions.remove-user.action.remove-now" />
+            }
+            onClick={onRemoveData}
+          />
+        </div>
       ) : (
         <AdminActionButton
           theme={themes.destructive}
