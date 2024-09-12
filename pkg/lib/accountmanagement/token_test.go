@@ -11,10 +11,10 @@ func TestTokenCheckUser(t *testing.T) {
 	Convey("Token.CheckUser", t, func() {
 		token := Token{UserID: "user"}
 
-		err := token.CheckUser("")
+		err := token.CheckOAuthUser("")
 		So(errors.Is(err, ErrOAuthTokenNotBoundToUser), ShouldBeTrue)
 
-		err = token.CheckUser("user")
+		err = token.CheckOAuthUser("user")
 		So(err, ShouldBeNil)
 	})
 }
