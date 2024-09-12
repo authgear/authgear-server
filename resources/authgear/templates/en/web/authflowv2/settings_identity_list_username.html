@@ -11,15 +11,32 @@
 {{ end }}
 
 {{ define "page-content" }}
+<div class="flex flex-col gap-y-6">
+  {{ if $.UsernameIdentities }}
+  <ul>
+    {{ range $.UsernameIdentities }}
+      <li>
+        {{ $href := (call $.MakeURL "/settings/identity/view_username" "q_login_id" .ID )}}
+        {{ template "authflowv2/__settings_action_item.html"
+            (dict
+              "Label" .OriginalLoginID
+              "RedirectURL" $href
+            )
+        }}
+      </li>
+    {{ end }}
+  </ul>
+  {{ end }}
 
-{{ if not $.CreateDisabled}}
-  {{ $href := (call $.MakeURL "/settings/identity/new_username" "q_login_id_key" $.LoginIDKey ) }}
-  <a
-    class="settings-link-btn"
-    href="{{ $href }}"
-  >
-    {{ translate "v2.page.settings-identity-list-username.default.button-add-username-label" nil }}
-  </a>
-{{ end }}
+  {{ if not $.CreateDisabled}}
+    {{ $href := (call $.MakeURL "/settings/identity/new_username" "q_login_id_key" $.LoginIDKey ) }}
+    <a
+      class="settings-link-btn"
+      href="{{ $href }}"
+    >
+      {{ translate "v2.page.settings-identity-list-username.default.button-add-username-label" nil }}
+    </a>
+  {{ end }}
+</div>
 
 {{ end }}
