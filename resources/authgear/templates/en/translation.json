@@ -1162,6 +1162,7 @@
   "v2.page.settings-identity-view-phone.default.button-verify-phone-label": "Verify",
   "v2.page.settings-identity-view-phone.default.remove-identity-dialog-description": "Are you sure you want to remove the phone number {target} from your account?",
   "v2.page.settings-identity-view-phone.default.remove-identity-dialog-title": "Remove Phone Number",
+  "v2.page.settings-identity-view-username.default.navbar-title": "Username",
   "v2.page.settings-identity.default.verification-status-unverified-label": "Not Verified",
   "v2.page.settings-identity.default.verification-status-verified-label": "Verified",
   "v2.page.settings-mfa-create-password.default.navbar-title": "Additional password",

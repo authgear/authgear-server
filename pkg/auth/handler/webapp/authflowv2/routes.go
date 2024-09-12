@@ -100,6 +100,7 @@ const (
 
 	AuthflowV2RouteSettingsIdentityListUsername = "/settings/identity/username"
 	AuthflowV2RouteSettingsIdentityNewUsername  = "/settings/identity/new_username"
+	AuthflowV2RouteSettingsIdentityViewUsername = "/settings/identity/view_username"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {
