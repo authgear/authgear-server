@@ -74,7 +74,7 @@ func (h *AuthflowV2SettingsMFACreatePasswordHandler) ServeHTTP(w http.ResponseWr
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)

@@ -29,7 +29,7 @@ func (h *AuthflowV2SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
 		userID := session.GetUserID(r.Context())

@@ -224,7 +224,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		h.continueFlow(w, r, "/reauth")
 	}
 
-	// ctrl.Serve() always write response.
+	// ctrl.ServeWithDBTx() always write response.
 	// So we have to put http.Redirect before it.
 	defer ctrl.ServeWithDBTx()
 
