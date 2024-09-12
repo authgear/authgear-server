@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/util/copyutil"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -63,6 +64,14 @@ func (e *APIError) HasCause(kind string) bool {
 	}
 
 	return false
+}
+
+func (e *APIError) Clone() *APIError {
+	ee, err := copyutil.Clone(e)
+	if err != nil {
+		return nil
+	}
+	return ee.(*APIError)
 }
 
 func (k Kind) New(msg string) error {

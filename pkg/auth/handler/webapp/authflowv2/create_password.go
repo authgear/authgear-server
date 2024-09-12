@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
@@ -85,11 +84,8 @@ func (h *AuthflowV2CreatePasswordHandler) GetData(w http.ResponseWriter, r *http
 		},
 	)
 
-	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
-
 	viewmodels.Embed(data, screenViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
-	viewmodels.Embed(data, passwordInputErrorViewModel)
 
 	branchViewModel := viewmodels.NewAuthflowBranchViewModel(screen)
 	viewmodels.Embed(data, branchViewModel)
@@ -118,11 +114,8 @@ func (h *AuthflowV2CreatePasswordHandler) GetInlinePreviewData(w http.ResponseWr
 		},
 	)
 
-	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
-
 	viewmodels.Embed(data, screenViewModel)
 	viewmodels.Embed(data, passwordPolicyViewModel)
-	viewmodels.Embed(data, passwordInputErrorViewModel)
 
 	branchViewModel := h.InlinePreviewAuthflowBranchViewModeler.NewAuthflowBranchViewModelForInlinePreviewCreatePassword()
 	viewmodels.Embed(data, branchViewModel)

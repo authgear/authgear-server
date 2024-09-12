@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
@@ -38,10 +37,7 @@ func ConfigureAuthflowV2LDAPLoginRoute(route httproute.Route) httproute.Route {
 }
 
 type AuthflowLDAPLoginViewModel struct {
-	LDAPServerName         string
-	LDAPUsernameInputError *authflowv2viewmodels.InputError
-	PasswordInputError     *authflowv2viewmodels.InputError
-	HasUnknownError        bool
+	LDAPServerName string
 }
 
 type AuthflowV2LDAPLoginHandler struct {
@@ -54,50 +50,7 @@ type AuthflowV2LDAPLoginHandler struct {
 func NewAuthflowLDAPLoginViewModel(ldapServerName string, apiError *apierrors.APIError) AuthflowLDAPLoginViewModel {
 	viewModel := AuthflowLDAPLoginViewModel{
 		LDAPServerName: ldapServerName,
-		LDAPUsernameInputError: &authflowv2viewmodels.InputError{
-			HasError:        false,
-			HasErrorMessage: false,
-		},
-		PasswordInputError: &authflowv2viewmodels.InputError{
-			HasError:        false,
-			HasErrorMessage: false,
-		},
 	}
-	if apiError != nil {
-		switch apiError.Reason {
-		case "InvalidCredentials":
-			viewModel.LDAPUsernameInputError.HasError = true
-			viewModel.PasswordInputError.HasError = true
-			// Alert invalid credentials error
-			viewModel.HasUnknownError = true
-		case "ValidationFailed":
-			for _, causes := range apiError.Info["causes"].([]interface{}) {
-				if cause, ok := causes.(map[string]interface{}); ok {
-					if kind, ok := cause["kind"].(string); ok {
-						if kind == "required" {
-							if details, ok := cause["details"].(map[string]interface{}); ok {
-								if missing, ok := details["missing"].([]interface{}); ok {
-									if viewmodels.SliceContains(missing, "x_username") {
-										viewModel.LDAPUsernameInputError.HasError = true
-										viewModel.LDAPUsernameInputError.HasErrorMessage = true
-									} else if viewmodels.SliceContains(missing, "x_password") {
-										viewModel.PasswordInputError.HasError = true
-										viewModel.PasswordInputError.HasErrorMessage = true
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if !viewModel.LDAPUsernameInputError.HasError && !viewModel.PasswordInputError.HasError {
-			// If it is not an error shown in inputs, it is an unknown error
-			viewModel.HasUnknownError = true
-		}
-	}
-
 	return viewModel
 }
 

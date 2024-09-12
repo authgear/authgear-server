@@ -28,6 +28,7 @@ func MakeTemplateFuncMap(t tpl) map[string]interface{} {
 	templateFuncMap["include"] = makeInclude(t)
 	templateFuncMap["translate"] = makeTranslate(t)
 	templateFuncMap["trimHTML"] = trimHTML
+	templateFuncMap["resolveError"] = ResolveError
 	return templateFuncMap
 }
 
