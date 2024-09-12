@@ -87,6 +87,9 @@
   }
 
   .settings-link-btn--destructive {
-    --settings-link-btn-text-color: var(--color-error);
+    @apply settings-link-btn;
+    --settings-link-btn-text-color: var(--color-secondary-theme-primary);
+    --settings-link-btn-text-color--hover: var(--color-secondary-theme-dark);
+    --settings-link-btn-text-color--active: var(--color-secondary-theme-dark);
   }
 }
