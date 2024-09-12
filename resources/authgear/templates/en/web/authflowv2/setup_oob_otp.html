@@ -1,12 +1,25 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  {{/* change this */}}
-  {{ $display_otp_input_error := false }}
-  {{ if $.Error }}
-    {{ if eq $.Error.reason "ValidationFailed" }}
-      {{ $display_otp_input_error = true }}
-    {{ end }}
+  {{ $err_map := (resolveError $.RawError (dict 
+    "otpInput" (dict
+      "by_reason"                    (list "ValidationFailed")
+    )
+  )) }}
+
+  {{ $otp_err := index $err_map "otpInput" }}
+  {{ $unknown_err := index $err_map "unknown" }}
+  {{ $has_otp_err := not (isNil $otp_err) }}
+  {{ $has_unknown_err := not (isNil $unknown_err )}}
+
+  {{ $otp_error_message := "" }}
+  {{ if $has_otp_err }}
+    {{ $otp_error_message = include "authflowv2/__error.html" (merge (dict "Error" $otp_err) $) }}
+  {{ end }}
+
+  {{ $unknown_error_message := "" }}
+  {{ if $has_unknown_err }}
+    {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
   {{ end }}
 
   {{ $show_captcha := false}}
@@ -36,7 +49,7 @@
         (dict
           "Type" "error"
           "Classname" "mt-4"
-          "Message" (ternary (include "authflowv2/__error.html" .) nil (not $display_otp_input_error))
+          "Message" $unknown_error_message
         )
       }}
     </div>
@@ -51,19 +64,13 @@
       {{ if $show_captcha }}
         {{ template "web/authflowv2/__bot_protection_form_input.html" . }}
       {{ end }}
-      {{ $otp_error_message := "" }}
-      {{ if $.Error  }}
-        {{ if $display_otp_input_error }}
-          {{ $otp_error_message = include "authflowv2/__error.html" .  }}
-        {{ end }}
-      {{ end }}
 
       {{- if eq $.OOBAuthenticatorType "oob_otp_sms" }}
       {{ template "authflowv2/__phone_input.html"
         (dict
           "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
           "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
-          "IsError" $display_otp_input_error
+          "IsError" $has_otp_err
           "AutoFocus" $.ShouldFocusInput
           "InputName" "x_target"
         )
@@ -73,7 +80,7 @@
       {{- if eq $.OOBAuthenticatorType "oob_otp_email" }}
       <input
         {{ if $.ShouldFocusInput }}autofocus{{ end }}
-        class="input w-full{{ if $display_otp_input_error }} input--error{{end}}"
+        class="input w-full{{ if $has_otp_err }} input--error{{end}}"
         type="email"
         name="x_target"
         autocomplete="email"
@@ -82,7 +89,7 @@
       >
       {{- end }}
 
-      {{ if $display_otp_input_error }}
+      {{ if $has_otp_err }}
       <p class="input__error-message mt-2">
         {{ $otp_error_message }}
       </p>
