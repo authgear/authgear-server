@@ -15,13 +15,13 @@
   </div>
   
   <div class="text-center px-6 tablet:px-8 desktop:px-8 max-w-90 mx-auto">
-    <p class="text-3xl break-words body-text--lg font-bold mb-4">{{ $.Translations.RenderText "app.name" nil }}</p>
+    <p class="text-3xl break-words body-text--lg font-bold mb-4">{{ translate "app.name" nil }}</p>
     {{ if $.BrandingPageURI }}
       <p class="body-text--md">
         <a href="{{ $.BrandingPageURI }}">{{ $.BrandingPageURI }}</a>
       </p>
     {{ else }}
-      <p class="break-words body-text--sm m-0">{{ template "configure-direct-access-description" }}</p>
+      <p class="break-words body-text--sm m-0">{{ translate "configure-direct-access-description" nil }}</p>
     {{ end }}
   </div>
 </div>
