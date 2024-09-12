@@ -9,7 +9,7 @@ var KeySchema = validation.NewSimpleSchema(`
 		"type": "string",
 		"minLength": 1,
 		"maxLength": 40,
-		"pattern": "[a-zA-Z_][a-zA-Z0-9:_]*",
+		"pattern": "^[a-zA-Z_][a-zA-Z0-9:_]*$",
 		"format": "x_role_group_key"
 	}
 `)
