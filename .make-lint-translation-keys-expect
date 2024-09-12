@@ -10,10 +10,10 @@ resources/authgear/templates/en/web/authflowv2/__error.html:134:18: template tra
 resources/authgear/templates/en/web/authflowv2/__error.html:166:20: template translation is forbidden: `authflowv2/__error_account`
 resources/authgear/templates/en/web/authflowv2/__locale_input.html:6:16: invalid translation key: "$labelKey"
 resources/authgear/templates/en/web/authflowv2/__locale_input.html:10:21: translation key not defined: "%s %s"
-resources/authgear/templates/en/web/authflowv2/__new_password_field.html:38:33: translation key not defined: "%s %s"
-resources/authgear/templates/en/web/authflowv2/__new_password_field.html:62:38: translation key not defined: "%s %s"
+resources/authgear/templates/en/web/authflowv2/__new_password_field.html:53:33: translation key not defined: "%s %s"
+resources/authgear/templates/en/web/authflowv2/__new_password_field.html:77:38: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/__page_frame.html:12:18: template translation is forbidden: `page-content`
-resources/authgear/templates/en/web/authflowv2/__password_field.html:10:20: translation key not defined: "%s %s"
+resources/authgear/templates/en/web/authflowv2/__password_field.html:21:20: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:46:15: template translation is forbidden: `page-navbar`
 resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:48:18: template translation is forbidden: `page-content`
 resources/authgear/templates/en/web/authflowv2/__settings_radio.html:16:16: translation key not defined: "radio-%s-%s"
