@@ -5,8 +5,10 @@ import (
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -22,6 +24,10 @@ func ConfigureAuthflowV2SettingsIdentityEditUsername(route httproute.Route) http
 		WithPathPattern(AuthflowV2RouteSettingsIdentityEditUsername)
 }
 
+type AuthflowV2SettingsIdentityEditUsernameViewModel struct {
+	Identity *identity.LoginID
+}
+
 type AuthflowV2SettingsIdentityEditUsernameHandler struct {
 	Database          *appdb.Handle
 	Identities        *identityservice.Service
@@ -34,6 +40,19 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) GetData(w http.ResponseW
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
+
+	userID := session.GetUserID(r.Context())
+	loginID := r.Form.Get("q_login_id")
+	usernameIdentity, err := h.Identities.LoginID.Get(*userID, loginID)
+	if err != nil {
+		return nil, err
+	}
+
+	vm := AuthflowV2SettingsIdentityEditUsernameViewModel{
+		Identity: usernameIdentity,
+	}
+	viewmodels.Embed(data, vm)
+
 	return data, nil
 }
 
