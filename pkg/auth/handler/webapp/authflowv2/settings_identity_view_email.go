@@ -2,9 +2,12 @@ package authflowv2
 
 import (
 	"net/http"
+	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -13,12 +16,23 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 var TemplateWebSettingsIdentityViewEmailHTML = template.RegisterHTML(
 	"web/authflowv2/settings_identity_view_email.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+var AuthflowV2SettingsRemoveIdentityEmailSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_identity_id": { "type": "string" }
+		},
+		"required": ["x_identity_id"]
+	}
+`)
 
 func ConfigureAuthflowV2SettingsIdentityViewEmailRoute(route httproute.Route) httproute.Route {
 	return route.
@@ -42,6 +56,7 @@ type AuthflowV2SettingsIdentityViewEmailHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Verification      handlerwebapp.SettingsVerificationService
 	Renderer          handlerwebapp.Renderer
+	AccountManagement accountmanagement.Service
 }
 
 func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -103,6 +118,36 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityViewEmailHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("remove", func() error {
+		err := AuthflowV2SettingsRemoveIdentityEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+
+		removeID := r.Form.Get("x_identity_id")
+
+		_, err = h.AccountManagement.RemoveIdentityEmail(session.GetSession(r.Context()), &accountmanagement.RemoveIdentityEmailInput{
+			IdentityID: removeID,
+		})
+		if err != nil {
+			return err
+		}
+
+		loginIDKey := r.Form.Get("q_login_id_key")
+		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
+		if err != nil {
+			return err
+		}
+		q := redirectURI.Query()
+		q.Set("q_login_id_key", loginIDKey)
+		redirectURI.RawQuery = q.Encode()
+
+		result := webapp.Result{RedirectURI: redirectURI.String()}
+
+		result.WriteResponse(w, r)
 		return nil
 	})
 }

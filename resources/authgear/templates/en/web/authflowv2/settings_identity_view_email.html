@@ -103,7 +103,7 @@
             "target" (include "__settings_identity_view_email_inline_breakable" $.EmailIdentity.OriginalLoginID )
           )
         )
-        "FormContent" $.CSRFField
+        "FormContent" (include "__settings_identity_view_email_remove_dialog_form_content" .)
         "Buttons" (list 
           (dict 
             "Type" "Destructive" 
@@ -120,6 +120,11 @@
   {{ end }}
 </div>
 
+{{ end }}
+
+{{ define "__settings_identity_view_email_remove_dialog_form_content" }}
+  {{ $.CSRFField }}
+  <input type="hidden" name="x_identity_id" value="{{ $.EmailIdentity.ID }}">
 {{ end }}
 
 {{ define "__settings_identity_view_email_inline_breakable" }}
