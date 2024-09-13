@@ -33,8 +33,11 @@ resources/authgear/templates/en/web/authflowv2/login.html:252:37: translation ke
 resources/authgear/templates/en/web/authflowv2/settings_change_password.html:76:18: template translation is forbidden: `v2.component.button.default.label-continue`
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:40:31: translation key not defined: "settings_identity_email_verification_label"
 resources/authgear/templates/en/web/authflowv2/settings_layout.html:3:14: template translation is forbidden: `widget`
-resources/authgear/templates/en/web/authflowv2/settings_mfa.html:20:14: template translation is forbidden: `__settings_mfa_item`
-resources/authgear/templates/en/web/authflowv2/settings_mfa.html:39:29: translation key not defined: "__settings_mfa_item_status"
+resources/authgear/templates/en/web/authflowv2/settings_mfa.html:22:16: template translation is forbidden: `__settings_mfa_item`
+resources/authgear/templates/en/web/authflowv2/settings_mfa.html:37:16: template translation is forbidden: `__settings_mfa_item`
+resources/authgear/templates/en/web/authflowv2/settings_mfa.html:52:16: template translation is forbidden: `__settings_mfa_item`
+resources/authgear/templates/en/web/authflowv2/settings_mfa.html:67:16: template translation is forbidden: `__settings_mfa_item`
+resources/authgear/templates/en/web/authflowv2/settings_mfa.html:105:23: translation key not defined: "__settings_mfa_item_status"
 resources/authgear/templates/en/web/authflowv2/settings_mfa_create_password.html:61:16: template translation is forbidden: `v2.component.button.default.label-continue`
 resources/authgear/templates/en/web/authflowv2/settings_mfa_password.html:25:31: translation key not defined: "__settings_mfa_password_description"
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:29:18: template translation is forbidden: `__settings_profile_item`
@@ -50,5 +53,5 @@ resources/authgear/templates/en/web/authflowv2/settings_profile.html:174:22: inv
 resources/authgear/templates/en/web/authflowv2/settings_profile_edit_gender.html:57:33: translation key not defined: "__settings_gender_edit_custom_gender_input"
 resources/authgear/templates/en/web/authflowv2/signup.html:88:26: translation key not defined: "v2.page.signup.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:261:35: translation key not defined: "%s-icon"
-52 errors found
+55 errors found
 exit status 1
