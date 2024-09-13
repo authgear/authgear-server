@@ -37,7 +37,7 @@ import {
 
 interface RedirectURLFormState {
   directAccessDisabled: boolean | undefined;
-  brandPageURL: string;
+  brandingPageURL: string;
   postLoginURL: string | undefined;
   postLogoutURL: string;
 }
@@ -47,7 +47,7 @@ function constructRedirectURLFormState(
 ): RedirectURLFormState {
   return {
     directAccessDisabled: config.ui?.direct_access_disabled,
-    brandPageURL: config.ui?.branding_page_uri ?? "",
+    brandingPageURL: config.ui?.branding_page_uri ?? "",
     postLoginURL: config.ui?.default_redirect_uri,
     postLogoutURL: config.ui?.default_post_logout_redirect_uri ?? "",
   };
@@ -60,7 +60,7 @@ function constructConfigFromRedirectURLFormState(
   return produce(config, (draft) => {
     draft.ui ??= {};
     draft.ui.direct_access_disabled = currentState.directAccessDisabled;
-    draft.ui.branding_page_uri = currentState.brandPageURL || undefined;
+    draft.ui.branding_page_uri = currentState.brandingPageURL || undefined;
     draft.ui.default_redirect_uri = currentState.postLoginURL;
     draft.ui.default_post_logout_redirect_uri =
       currentState.postLogoutURL || undefined;
@@ -135,7 +135,7 @@ interface EndpointDirectAccessConfigOptionSelectorProps {
   disabled: boolean;
   selectedDirectAccessOption: DirectAccessOptions | undefined;
   onChangeDirectAccessOption: (key: DirectAccessOptions) => void;
-  onChangeBrandPageURL: (url: string) => void;
+  onChangebrandingPageURL: (url: string) => void;
   onChangePostLoginURL: (url: string | undefined) => void;
   onChangePostLogoutURL: (url: string) => void;
 }
@@ -148,7 +148,7 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
       disabled,
       selectedDirectAccessOption,
       onChangeDirectAccessOption,
-      onChangeBrandPageURL,
+      onChangebrandingPageURL,
       onChangePostLoginURL,
       onChangePostLogoutURL,
     } = props;
@@ -210,8 +210,8 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
                   fieldName="branding_page_uri"
                   label=""
                   description=""
-                  value={redirectURLForm.state.brandPageURL}
-                  onChangeValue={onChangeBrandPageURL}
+                  value={redirectURLForm.state.brandingPageURL}
+                  onChangeValue={onChangebrandingPageURL}
                   disabled={!props?.checked}
                 />
                 {disabled ? (
@@ -229,8 +229,8 @@ const EndpointDirectAccessConfigOptionSelector: React.VFC<EndpointDirectAccessCo
             );
           },
           [
-            redirectURLForm.state.brandPageURL,
-            onChangeBrandPageURL,
+            redirectURLForm.state.brandingPageURL,
+            onChangebrandingPageURL,
             disabled,
             appID,
           ]
@@ -362,12 +362,12 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
     const [selectedDirectAccessOption, setSelectedDirectAccessOption] =
       useState<DirectAccessOptions>(initSelectedDirectAccessOption);
 
-    const onChangeBrandPageURL = useCallback(
+    const onChangebrandingPageURL = useCallback(
       (url: string) => {
         redirectURLForm.setState((prev) =>
           produce(prev, (draft) => {
             draft.directAccessDisabled = true;
-            draft.brandPageURL = url;
+            draft.brandingPageURL = url;
           })
         );
       },
@@ -428,7 +428,7 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
           disabled={disabled}
           selectedDirectAccessOption={selectedDirectAccessOption}
           onChangeDirectAccessOption={onChangeDirectAccessOption}
-          onChangeBrandPageURL={onChangeBrandPageURL}
+          onChangebrandingPageURL={onChangebrandingPageURL}
           onChangePostLoginURL={onChangePostLoginURL}
           onChangePostLogoutURL={onChangePostLogoutURL}
         />
