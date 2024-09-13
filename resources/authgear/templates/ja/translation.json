@@ -1122,6 +1122,8 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "メール",
   "v2.page.settings-identity-list-email.default.not-verified-label": "未確認",
   "v2.page.settings-identity-list-email.default.verified-label": "確認済み",
+  "v2.page.settings-identity-list-username.default.button-add-username-label": "+ ユーザー名を追加",
+  "v2.page.settings-identity-list-username.default.navbar-title": "ユーザー名",
   "v2.page.settings-mfa-create-password.default.navbar-title": "追加のパスワード",
   "v2.page.settings-mfa-password.default.additional-password-added-at": "追加日時: <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "追加のパスワード",

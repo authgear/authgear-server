@@ -1122,6 +1122,8 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "Emel",
   "v2.page.settings-identity-list-email.default.not-verified-label": "Tidak Disahkan",
   "v2.page.settings-identity-list-email.default.verified-label": "Disahkan",
+  "v2.page.settings-identity-list-username.default.button-add-username-label": "+ Tambah nama pengguna",
+  "v2.page.settings-identity-list-username.default.navbar-title": "Nama pengguna",
   "v2.page.settings-mfa-create-password.default.navbar-title": "Kata laluan tambahan",
   "v2.page.settings-mfa-password.default.additional-password-added-at": "Ditambah pada <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "Kata laluan tambahan",

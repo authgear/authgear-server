@@ -1122,6 +1122,8 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "Email",
   "v2.page.settings-identity-list-email.default.not-verified-label": "Hindi Napatunayan",
   "v2.page.settings-identity-list-email.default.verified-label": "Napatunayan",
+  "v2.page.settings-identity-list-username.default.button-add-username-label": "+ Magdagdag ng username",
+  "v2.page.settings-identity-list-username.default.navbar-title": "Username (Passkey)",
   "v2.page.settings-mfa-create-password.default.navbar-title": "Karagdagang password",
   "v2.page.settings-mfa-password.default.additional-password-added-at": "Naidagdag sa <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "Karagdagang password",

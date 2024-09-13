@@ -1122,6 +1122,8 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "E-mail",
   "v2.page.settings-identity-list-email.default.not-verified-label": "Niet geverifieerd",
   "v2.page.settings-identity-list-email.default.verified-label": "Geverifieerd",
+  "v2.page.settings-identity-list-username.default.button-add-username-label": "+ Gebruikersnaam toevoegen",
+  "v2.page.settings-identity-list-username.default.navbar-title": "Gebruikersnaam",
   "v2.page.settings-mfa-create-password.default.navbar-title": "Aanvullend wachtwoord",
   "v2.page.settings-mfa-password.default.additional-password-added-at": "Toegevoegd op <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "Aanvullend wachtwoord",

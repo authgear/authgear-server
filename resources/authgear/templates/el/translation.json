@@ -1122,6 +1122,8 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "Email",
   "v2.page.settings-identity-list-email.default.not-verified-label": "Μη επαληθευμένο",
   "v2.page.settings-identity-list-email.default.verified-label": "Επαληθευμένο",
+  "v2.page.settings-identity-list-username.default.button-add-username-label": "+ Προσθήκη ονόματος χρήστη",
+  "v2.page.settings-identity-list-username.default.navbar-title": "Όνομα χρήστη",
   "v2.page.settings-mfa-create-password.default.navbar-title": "Πρόσθετος κωδικός πρόσβασης",
   "v2.page.settings-mfa-password.default.additional-password-added-at": "Προστέθηκε στις <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "Πρόσθετος κωδικός πρόσβασης",

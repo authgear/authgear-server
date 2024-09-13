@@ -1122,6 +1122,8 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "Email",
   "v2.page.settings-identity-list-email.default.not-verified-label": "Non verificata",
   "v2.page.settings-identity-list-email.default.verified-label": "Verificata",
+  "v2.page.settings-identity-list-username.default.button-add-username-label": "+ Aggiungi nome utente",
+  "v2.page.settings-identity-list-username.default.navbar-title": "Nome utente",
   "v2.page.settings-mfa-create-password.default.navbar-title": "Password aggiuntiva",
   "v2.page.settings-mfa-password.default.additional-password-added-at": "Aggiunta alle <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "Password aggiuntiva",

@@ -1122,6 +1122,8 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "อีเมล",
   "v2.page.settings-identity-list-email.default.not-verified-label": "ยังไม่ได้ยืนยัน",
   "v2.page.settings-identity-list-email.default.verified-label": "ยืนยันแล้ว",
+  "v2.page.settings-identity-list-username.default.button-add-username-label": "+ เพิ่มชื่อผู้ใช้",
+  "v2.page.settings-identity-list-username.default.navbar-title": "ชื่อผู้ใช้",
   "v2.page.settings-mfa-create-password.default.navbar-title": "รหัสผ่านเพิ่มเติม",
   "v2.page.settings-mfa-password.default.additional-password-added-at": "เพิ่มเมื่อ <span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "รหัสผ่านเพิ่มเติม",

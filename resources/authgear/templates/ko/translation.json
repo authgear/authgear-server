@@ -1122,6 +1122,8 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "이메일",
   "v2.page.settings-identity-list-email.default.not-verified-label": "인증되지 않음",
   "v2.page.settings-identity-list-email.default.verified-label": "인증됨",
+  "v2.page.settings-identity-list-username.default.button-add-username-label": "+ 사용자 이름 추가",
+  "v2.page.settings-identity-list-username.default.navbar-title": "사용자 이름",
   "v2.page.settings-mfa-create-password.default.navbar-title": "추가 비밀번호",
   "v2.page.settings-mfa-password.default.additional-password-added-at": "<span data-date=\"{rfc3339}\">{time, datetime, short} UTC</span>에 추가됨",
   "v2.page.settings-mfa-password.default.additional-password-label": "추가 비밀번호",
