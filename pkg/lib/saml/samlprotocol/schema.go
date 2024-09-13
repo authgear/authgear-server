@@ -505,6 +505,8 @@ type Response struct {
 	Assertion *Assertion `xml:"urn:oasis:names:tc:SAML:2.0:assertion Assertion"`
 }
 
+var _ Respondable = &Response{}
+
 // Element returns an etree.Element representing the object in XML form.
 func (r *Response) Element() *etree.Element {
 	el := etree.NewElement("samlp:Response")
@@ -1271,6 +1273,8 @@ type LogoutResponse struct {
 	Signature    *etree.Element
 	Status       Status `xml:"urn:oasis:names:tc:SAML:2.0:protocol Status"`
 }
+
+var _ Respondable = &LogoutResponse{}
 
 // Element returns an etree.Element representing the object in XML form.
 func (r *LogoutResponse) Element() *etree.Element {

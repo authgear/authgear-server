@@ -76,8 +76,9 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		// HTTP-Redirect binding
-		r, err := samlbinding.SAMLBindingHTTPRedirectParse(r)
-		if err != nil {
+		r, e := samlbinding.SAMLBindingHTTPRedirectParse(r)
+		if e != nil {
+			err = e
 			break
 		}
 		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))
@@ -92,8 +93,9 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		relayState = r.RelayState
 	case "POST":
 		// HTTP-POST binding
-		r, err := samlbinding.SAMLBindingHTTPPostParse(r)
-		if err != nil {
+		r, e := samlbinding.SAMLBindingHTTPPostParse(r)
+		if e != nil {
+			err = e
 			break
 		}
 		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))

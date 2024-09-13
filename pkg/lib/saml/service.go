@@ -452,6 +452,40 @@ func (s *Service) IssueSuccessResponse(
 	return response, nil
 }
 
+func (s *Service) IssueLogoutResponse(
+	callbackURL string,
+	serviceProviderId string,
+	inResponseToLogoutRequest *samlprotocol.LogoutRequest,
+) (*samlprotocol.LogoutResponse, error) {
+	_, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
+	if !ok {
+		return nil, samlerror.ErrServiceProviderNotFound
+	}
+
+	now := s.Clock.NowUTC()
+
+	response := &samlprotocol.LogoutResponse{
+		ID:           samlprotocol.GenerateResponseID(),
+		InResponseTo: inResponseToLogoutRequest.ID,
+		IssueInstant: now,
+		Destination:  callbackURL,
+		Version:      samlprotocol.SAMLVersion2,
+		Status: samlprotocol.Status{
+			StatusCode: samlprotocol.StatusCode{
+				Value: samlprotocol.StatusSuccess,
+			},
+		},
+		Issuer: &samlprotocol.Issuer{
+			Format: samlprotocol.SAMLIssertFormatEntity,
+			Value:  s.IdpEntityID(),
+		},
+	}
+
+	// TODO: Sign the response
+
+	return response, nil
+}
+
 func (s *Service) VerifyEmbeddedSignature(
 	sp *config.SAMLServiceProviderConfig,
 	samlRequestXML string) error {

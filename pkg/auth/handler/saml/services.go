@@ -30,6 +30,11 @@ type HandlerSAMLService interface {
 		sigAlg string,
 		relayState string,
 		signature string) error
+	IssueLogoutResponse(
+		callbackURL string,
+		serviceProviderId string,
+		inResponseToLogoutRequest *samlprotocol.LogoutRequest,
+	) (*samlprotocol.LogoutResponse, error)
 }
 
 type SAMLSessionService interface {
