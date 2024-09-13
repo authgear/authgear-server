@@ -1122,6 +1122,7 @@
   "v2.page.settings-identity-add-email.default.email-input-placeholder": "新電郵地址",
   "v2.page.settings-identity-add-email.default.navbar-title": "新增電郵地址",
   "v2.page.settings-identity-change-primary-email.default.navbar-title": "主要電子郵件",
+  "v2.page.settings-identity-change-primary-phone.default.navbar-title": "主要電話號碼",
   "v2.page.settings-identity-edit-email.default.description": "您目前的電子郵件地址是{target}",
   "v2.page.settings-identity-edit-email.default.email-input-placeholder": "新電子郵件地址",
   "v2.page.settings-identity-edit-email.default.navbar-title": "編輯電子郵件",

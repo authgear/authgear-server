@@ -1248,6 +1248,13 @@ func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider
 	))
 }
 
+func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityChangePrimaryPhoneHandler)),
+	))
+}
+
 func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
