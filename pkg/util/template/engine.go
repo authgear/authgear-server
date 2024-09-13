@@ -16,10 +16,10 @@ import (
 )
 
 type EngineTemplateResolver interface {
-	ResolveHTML(desc *HTML, preferredLanguages []string) (*htmltemplate.Template, error)
-	ResolveMessageHTML(desc *MessageHTML, preferredLanguages []string) (*htmltemplate.Template, error)
-	ResolvePlainText(desc *PlainText, preferredLanguages []string) (*texttemplate.Template, error)
-	ResolveMessagePlainText(desc *MessagePlainText, preferredLanguages []string) (*texttemplate.Template, error)
+	ResolveHTML(desc *HTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error)
+	ResolveMessageHTML(desc *MessageHTML, preferredLanguages []string) (*HTMLTemplateEffectiveResource, error)
+	ResolvePlainText(desc *PlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
+	ResolveMessagePlainText(desc *MessagePlainText, preferredLanguages []string) (*TextTemplateEffectiveResource, error)
 	ResolveTranslations(preferredLanguages []string) (map[string]Translation, error)
 }
 
@@ -72,7 +72,8 @@ func (e *Engine) renderHTML(desc *HTML, preferredLanguages []string, data interf
 	var loadTemplate func(desc *HTML) error
 	loadTemplate = func(desc *HTML) error {
 		// Include main template.
-		tpl, err := e.Resolver.ResolveHTML(desc, preferredLanguages)
+		h, err := e.Resolver.ResolveHTML(desc, preferredLanguages)
+		tpl := h.Template
 		if err != nil {
 			return fmt.Errorf("failed to load template %s: %w", desc.Name, err)
 		}
@@ -131,7 +132,8 @@ func (e *Engine) renderMessageHTML(desc *MessageHTML, preferredLanguages []strin
 	var loadTemplate func(desc *MessageHTML) error
 	loadTemplate = func(desc *MessageHTML) error {
 		// Include main template.
-		tpl, err := e.Resolver.ResolveMessageHTML(desc, preferredLanguages)
+		h, err := e.Resolver.ResolveMessageHTML(desc, preferredLanguages)
+		tpl := h.Template
 		if err != nil {
 			return fmt.Errorf("failed to load template %s: %w", desc.Name, err)
 		}
@@ -185,7 +187,8 @@ func (e *Engine) renderPlainText(desc *PlainText, preferredLanguages []string, d
 	var loadTemplate func(desc *PlainText) error
 	loadTemplate = func(desc *PlainText) error {
 		// Include main template.
-		tpl, err := e.Resolver.ResolvePlainText(desc, preferredLanguages)
+		h, err := e.Resolver.ResolvePlainText(desc, preferredLanguages)
+		tpl := h.Template
 		if err != nil {
 			return fmt.Errorf("failed to load template: %w", err)
 		}
@@ -244,7 +247,8 @@ func (e *Engine) renderMessagePlainText(desc *MessagePlainText, preferredLanguag
 	var loadTemplate func(desc *MessagePlainText) error
 	loadTemplate = func(desc *MessagePlainText) error {
 		// Include main template.
-		tpl, err := e.Resolver.ResolveMessagePlainText(desc, preferredLanguages)
+		h, err := e.Resolver.ResolveMessagePlainText(desc, preferredLanguages)
+		tpl := h.Template
 		if err != nil {
 			return fmt.Errorf("failed to load template: %w", err)
 		}
