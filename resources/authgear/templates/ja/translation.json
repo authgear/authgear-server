@@ -460,6 +460,7 @@
   "hide-password-label": "パスワードを隠す",
   "return-page-title": "元の場所に戻る",
   "return-page-description": "続行するには元の場所に戻ってください。モバイルアプリと連携していた場合はアプリに切り替え、ウェブサイトと連携していた場合はそのタブに切り替えてください。",
+  "configure-direct-access-description": "エンドポイントURLへの直接アクセスは許可されていません。システムの設定が正しくない可能性があります。システム管理者に連絡してください。",
   "require-oauth-page-title": "このページへの直接アクセスは許可されていません",
   "require-oauth-page-description": "このページは認証エンドポイントからのみアクセスできます。",
   "wechat-auth-title": "WeChat でログイン",

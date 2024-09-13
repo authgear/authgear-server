@@ -460,6 +460,7 @@
   "hide-password-label": "隐藏密码",
   "return-page-title": "返回到您之前的位置",
   "return-page-description": "请返回到您之前的位置以继续。如果您正在与移动应用程序交互,请切换回该应用程序。如果您正在与网站交互,请切换回该选项卡。",
+  "configure-direct-access-description": "不允许直接访问端点URL。系统可能配置错误。请联系系统管理员。",
   "require-oauth-page-title": "禁止直接访问此页面",
   "require-oauth-page-description": "此页面只能通过授权端点访问。",
   "wechat-auth-title": "使用微信登录",

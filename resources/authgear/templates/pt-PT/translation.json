@@ -460,6 +460,7 @@
   "hide-password-label": "Ocultar senha",
   "return-page-title": "Voltar para onde você estava",
   "return-page-description": "Por favor, volte para onde você estava para continuar. Se você estava interagindo com um aplicativo móvel, por favor, volte para o aplicativo. Se você estava interagindo com um site, por favor, volte para essa guia.",
+  "configure-direct-access-description": "O acesso direto ao URL do ponto final não é permitido. Pode haver uma configuração incorreta no sistema. Por favor, contacte o administrador de sistemas.",
   "require-oauth-page-title": "Acesso direto a esta página não é permitido",
   "require-oauth-page-description": "Esta página só pode ser acessada através do endpoint de autorização.",
   "wechat-auth-title": "Entrar com WeChat",
