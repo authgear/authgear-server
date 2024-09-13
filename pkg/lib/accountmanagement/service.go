@@ -2,6 +2,7 @@ package accountmanagement
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"time"
@@ -267,11 +268,17 @@ func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, erro
 func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, error) {
 	token, err := s.Store.ConsumeToken(input.Token)
 	if err != nil {
+		if errors.Is(err, ErrAccountManagementTokenInvalid) {
+			return nil, ErrOAuthTokenInvalid
+		}
 		return nil, err
 	}
 
-	err = token.CheckOAuthUser(input.UserID)
+	err = token.CheckUser(input.UserID)
 	if err != nil {
+		if errors.Is(err, ErrAccountManagementTokenNotBoundToUser) {
+			return nil, ErrOAuthTokenNotBoundToUser
+		}
 		return nil, err
 	}
 

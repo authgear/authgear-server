@@ -30,20 +30,12 @@ type Token struct {
 	IdentityID string `json:"identity_id,omitempty"`
 }
 
-func (t *Token) CheckUserWithError(userID string, err error) error {
+func (t *Token) CheckUser(userID string) error {
 	if subtle.ConstantTimeCompare([]byte(t.UserID), []byte(userID)) == 1 {
 		return nil
 	}
 
-	return err
-}
-
-func (t *Token) CheckOAuthUser(userID string) error {
-	return t.CheckUserWithError(userID, ErrOAuthTokenNotBoundToUser)
-}
-
-func (t *Token) CheckUser(userID string) error {
-	return t.CheckUserWithError(userID, ErrAccountManagementTokenNotBoundToUser)
+	return ErrAccountManagementTokenNotBoundToUser
 }
 
 func (t *Token) CheckState(state string) error {
