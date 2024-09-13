@@ -5,7 +5,7 @@
      (dict
         "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
         "BackHref" (call $.MakeURL "/settings")
-        "Title" (translate "v2.page.settings-identity-list-email.default.navbar-title" nil)
+        "Title" (translate "v2.page.settings-identity-email.default.navbar-title" nil)
      )
   }}
 {{ end }}
@@ -13,11 +13,11 @@
 {{ define "settings_identity_email_verification_label" }}
   {{ if $.Verified }}
     <div class="body-text--md settings-text-color-success">
-      {{ translate "v2.page.settings-identity-list-email.default.verified-label" . }}
+      {{ translate "v2.page.settings-identity-email.default.verified-label" . }}
     </div>
   {{ else }}
     <div class="body-text--md settings-text-color-failure">
-      {{ translate "v2.page.settings-identity-list-email.default.not-verified-label" . }}
+      {{ translate "v2.page.settings-identity-email.default.not-verified-label" . }}
     </div>
   {{ end }}
 {{ end }}
