@@ -7,6 +7,7 @@ import (
 
 var Components = web.ComponentsHTML
 var SettingsComponents = web.SettingsComponentsHTML
+var DirectAccessDisableComponents = web.DirectAccessDisableComponentsHTML
 
 var plainTextComponents = web.ComponentsPlainText
 

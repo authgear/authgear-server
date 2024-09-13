@@ -460,6 +460,7 @@
   "hide-password-label": "Ẩn mật khẩu",
   "return-page-title": "Quay lại nơi bạn đang ở",
   "return-page-description": "Vui lòng quay lại nơi bạn đang ở để tiếp tục. Nếu bạn đang tương tác với một ứng dụng di động, vui lòng chuyển lại sang ứng dụng. Nếu bạn đang tương tác với một trang web, vui lòng chuyển lại sang tab đó.",
+  "configure-direct-access-description": "Không được phép truy cập trực tiếp vào URL điểm cuối. Có thể có sự cấu hình sai trong hệ thống. Vui lòng liên hệ với quản trị viên hệ thống.",
   "require-oauth-page-title": "Không được phép truy cập trực tiếp vào trang này",
   "require-oauth-page-description": "Trang này chỉ có thể được truy cập thông qua điểm cuối ủy quyền.",
   "wechat-auth-title": "Đăng nhập bằng WeChat",

@@ -460,6 +460,7 @@
   "hide-password-label": "Passwort verbergen",
   "return-page-title": "Zurück zu Ihrem vorherigen Standort",
   "return-page-description": "Bitte kehren Sie zu Ihrem vorherigen Standort zurück, um fortzufahren. Wenn Sie mit einer mobilen App interagiert haben, wechseln Sie bitte wieder zu dieser App. Wenn Sie mit einer Website interagiert haben, wechseln Sie bitte wieder zu diesem Tab.",
+  "configure-direct-access-description": "Der direkte Zugriff auf die Endpunkt-URL ist nicht erlaubt. Es könnte eine Fehlkonfiguration im System vorliegen. Bitte wenden Sie sich an den Systemadministrator.",
   "require-oauth-page-title": "Direkter Zugriff auf diese Seite ist nicht zulässig",
   "require-oauth-page-description": "Diese Seite kann nur über den Autorisierungs-Endpunkt aufgerufen werden.",
   "wechat-auth-title": "Mit WeChat anmelden",

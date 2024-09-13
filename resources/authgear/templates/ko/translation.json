@@ -460,6 +460,7 @@
   "hide-password-label": "비밀번호 숨기기",
   "return-page-title": "이전 페이지로 돌아가기",
   "return-page-description": "계속하려면 이전 페이지로 돌아가세요. 모바일 앱과 상호 작용하고 있었다면 앱으로 돌아가세요. 웹사이트와 상호 작용하고 있었다면 해당 탭으로 돌아가세요.",
+  "configure-direct-access-description": "엔드포인트 URL에 대한 직접 액세스가 허용되지 않습니다. 시스템 구성이 잘못되었을 수 있습니다. 시스템 관리자에게 문의하세요.",
   "require-oauth-page-title": "이 페이지에 직접 액세스할 수 없습니다",
   "require-oauth-page-description": "이 페이지는 인증 엔드포인트를 통해서만 액세스할 수 있습니다.",
   "wechat-auth-title": "WeChat으로 로그인",

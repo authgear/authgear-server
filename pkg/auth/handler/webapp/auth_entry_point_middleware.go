@@ -11,9 +11,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var TemplateRequireOAuth = template.RegisterHTML(
-	"web/require_oauth.html",
-	Components...,
+var TemplateDirectAccessDisable = template.RegisterHTML(
+	"web/authflowv2/direct_access_disabled.html",
+	DirectAccessDisableComponents...,
 )
 
 type AuthEntryPointMiddleware struct {
@@ -39,13 +39,14 @@ func (m *AuthEntryPointMiddleware) Handle(next http.Handler) http.Handler {
 
 		host := httputil.GetHost(r, bool(m.TrustProxy))
 		isDefaultDomain := m.AppHostSuffixes.CheckIsDefaultDomain(host)
+		directAccessDisabled := isDefaultDomain || m.UIConfig.DirectAccessDisabled
 
 		if userID != nil && !fromAuthzEndpoint {
 			defaultRedirectURI := webapp.DerivePostLoginRedirectURIFromRequest(r, m.OAuthClientResolver, m.UIConfig)
 			redirectURI := webapp.GetRedirectURI(r, bool(m.TrustProxy), defaultRedirectURI)
 
 			http.Redirect(w, r, redirectURI, http.StatusFound)
-		} else if userID == nil && !fromAuthzEndpoint && isDefaultDomain {
+		} else if userID == nil && !fromAuthzEndpoint && directAccessDisabled {
 			m.renderBlocked(w, r)
 		} else {
 			next.ServeHTTP(w, r)
@@ -57,5 +58,5 @@ func (m *AuthEntryPointMiddleware) renderBlocked(w http.ResponseWriter, r *http.
 	data := make(map[string]interface{})
 	baseViewModel := m.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
-	m.Renderer.RenderHTML(w, r, TemplateRequireOAuth, data)
+	m.Renderer.RenderHTML(w, r, TemplateDirectAccessDisable, data)
 }

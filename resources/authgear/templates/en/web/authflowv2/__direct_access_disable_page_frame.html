@@ -1,0 +1,24 @@
+{{ define "authflowv2/__direct_access_disable_page_frame.html" }}
+{{ template "authflowv2/__base_page_frame.html" . }}
+{{ end }}
+
+{{ define "page-frame-content" }}
+
+{{/* NOTE: The following code contains duplicated logic __brand_logo.html */}}
+{{/* Always initialize src to an empty string */}}
+{{ $light := "" }}
+{{ $dark := "" }}
+
+{{ if $.LightThemeEnabled }}
+  {{ $light = call $.StaticAssetURL "app-logo" }}
+{{ end }}
+
+{{ if $.DarkThemeEnabled }}
+  {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
+{{ end }}
+
+<div class="layout--default">
+  {{ template "page-content" . }}
+</div>
+
+{{ end }}

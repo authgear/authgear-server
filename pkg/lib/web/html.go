@@ -9,6 +9,8 @@ func init() {
 	ComponentsHTML = append(ComponentsHTML, TemplateWebAuthflowV2PageFrameHTML)
 	SettingsComponentsHTML = append(SettingsComponentsHTML, BaseComponentsHTML...)
 	SettingsComponentsHTML = append(SettingsComponentsHTML, TemplateWebSettingsV2PageFrameHTML)
+	DirectAccessDisableComponentsHTML = append(DirectAccessDisableComponentsHTML, BaseComponentsHTML...)
+	DirectAccessDisableComponentsHTML = append(DirectAccessDisableComponentsHTML, TemplateWebDirectAccessDisableV2PageFrameHTML)
 }
 
 var TemplateWebHTMLHeadHTML = template.RegisterHTML("web/__html_head.html")
@@ -83,6 +85,8 @@ var TemplateWebAuthflowV2TimezoneInput = template.RegisterHTML("web/authflowv2/_
 var TemplateWebAuthflowV2CountryInput = template.RegisterHTML("web/authflowv2/__country_input.html")
 var TemplateWebAuthflowV2SelectInput = template.RegisterHTML("web/authflowv2/__select_input.html")
 
+var TemplateWebDirectAccessDisableV2PageFrameHTML = template.RegisterHTML("web/authflowv2/__direct_access_disable_page_frame.html")
+
 var BaseComponentsHTML = []*template.HTML{
 	TemplateWebHTMLHeadHTML,
 	TemplateWebGeneratedAssetHTML,
@@ -154,3 +158,4 @@ var BaseComponentsHTML = []*template.HTML{
 
 var ComponentsHTML []*template.HTML
 var SettingsComponentsHTML []*template.HTML
+var DirectAccessDisableComponentsHTML []*template.HTML
