@@ -593,7 +593,7 @@ config:
 name: invalid-default-uris
 error: |-
   invalid configuration:
-  /ui/branding_page_uri: format
+  /ui/brand_page_uri: format
     map[error:input URL must be absolute format:uri]
   /ui/default_client_uri: format
     map[error:input URL must be absolute format:uri]
@@ -607,7 +607,7 @@ config:
     public_origin: http://test
   ui:
     default_client_uri: nonsense
-    branding_page_uri: nonsense
+    brand_page_uri: nonsense
     default_redirect_uri: nonsense
     default_post_logout_redirect_uri: nonsense
 

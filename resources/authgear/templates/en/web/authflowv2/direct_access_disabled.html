@@ -16,9 +16,9 @@
   
   <div class="text-center px-6 tablet:px-8 desktop:px-8 max-w-90 mx-auto">
     <p class="text-3xl break-words body-text--lg font-bold mb-4">{{ translate "app.name" nil }}</p>
-    {{ if $.BrandingPageURI }}
+    {{ if $.BrandPageURI }}
       <p class="body-text--md">
-        <a href="{{ $.BrandingPageURI }}">{{ $.BrandingPageURI }}</a>
+        <a href="{{ $.BrandPageURI }}">{{ $.BrandPageURI }}</a>
       </p>
     {{ else }}
       <p class="break-words body-text--sm m-0">{{ translate "configure-direct-access-description" nil }}</p>

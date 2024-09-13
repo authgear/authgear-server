@@ -54,7 +54,7 @@ type BaseViewModel struct {
 	PinnedPhoneCountryCodeJSON  string
 	GeoIPCountryCode            string
 	FormJSON                    string
-	BrandingPageURI             string
+	BrandPageURI                string
 	// ClientURI is the home page of the client.
 	ClientURI             string
 	ClientName            string
@@ -271,7 +271,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		AllowedPhoneCountryCodeJSON: string(allowedPhoneCountryCodeJSON),
 		PinnedPhoneCountryCodeJSON:  string(pinnedPhoneCountryCodeJSON),
 		GeoIPCountryCode:            geoipCountryCode,
-		BrandingPageURI:             m.AuthUI.BrandingPageURI,
+		BrandPageURI:                m.AuthUI.BrandPageURI,
 		ClientURI:                   clientURI,
 		ClientName:                  clientName,
 		SliceContains:               SliceContains,
