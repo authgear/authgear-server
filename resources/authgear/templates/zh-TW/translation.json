@@ -1165,6 +1165,8 @@
   "v2.page.settings-identity-view-phone.default.remove-identity-dialog-description": "您確定要從您的帳戶中刪除電話號碼{target}嗎？",
   "v2.page.settings-identity-view-phone.default.remove-identity-dialog-title": "刪除電話號碼",
   "v2.page.settings-identity-view-username.default.button-remove-label": "刪除用戶名稱",
+  "v2.page.settings-identity-view-username.default.dialog-delete-username-description": "您確定要刪除來自您的帳戶的用戶名稱<span class=\"settings-dialog__description-text--highlight\"> {Username }</span>?",
+  "v2.page.settings-identity-view-username.default.dialog-delete-username-title": "刪除用戶名稱",
   "v2.page.settings-identity-view-username.default.navbar-title": "用戶名稱",
   "v2.page.settings-identity.default.verification-status-unverified-label": "未驗證",
   "v2.page.settings-identity.default.verification-status-verified-label": "已驗證",

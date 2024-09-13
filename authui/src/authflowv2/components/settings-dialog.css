@@ -1,5 +1,13 @@
 @layer components {
+  :root {
+    --settings-dialog__description-text--highlight-color: var(--color-neutral-700);
+  }
+
   .settings-dialog {
     @apply p-8 tablet:p-10;
+  }
+
+  .settings-dialog__description-text--highlight {
+    color: var(--settings-dialog__description-text--highlight-color);
   }
 }

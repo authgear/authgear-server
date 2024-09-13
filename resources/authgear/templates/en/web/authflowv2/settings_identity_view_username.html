@@ -27,9 +27,35 @@
   }}
 
   {{ if not $.DeleteDisabled }}
-    <button type="button" class="settings-link-btn--destructive">
+    <button
+      type="button"
+      class="settings-link-btn--destructive"i
+      data-controller="settings-dialog"
+      data-action="click->settings-dialog#open"
+      data-settings-dialog-dialogid-param="settings-identity-delete-username"
+    >
       {{ translate "v2.page.settings-identity-view-username.default.button-remove-label" nil}}
     </button>
+
+    {{ template "authflowv2/__settings_dialog.html" (dict
+      "Ctx" .
+      "DialogID" "settings-identity-delete-username"
+      "Title" (translate "v2.page.settings-identity-view-username.default.dialog-delete-username-title" nil)
+      "Description" (translate "v2.page.settings-identity-view-username.default.dialog-delete-username-description" (dict "Username" $.Identity.OriginalLoginID))
+      "FormContent" (include "__settings_identity_view_username_delete_username_form_content" .)
+      "Buttons" (list
+        (dict
+          "Type" "Destructive"
+          "Label" (include "v2.component.button.default.label-remove" nil)
+          "Value" "remove"
+          "Event" "authgear.button.remove_login_id"
+        )
+        (dict
+          "Type" "Cancel"
+          "Label" (include "v2.component.button.default.label-cancel" nil)
+        )
+      )
+    )}}
   {{ end }}
 </div>
 
@@ -43,4 +69,10 @@
 >
   {{ translate "v2.component.button.default.label-edit" nil }}
 </a>
+{{ end }}
+
+{{ define "__settings_identity_view_username_delete_username_form_content" }}
+{{ $.CSRFField }}
+<input type="hidden" name="x_identity_id" value="{{$.Identity.ID}}" />
+<input type="hidden" name="x_login_id_key" value="{{$.Identity.LoginIDKey}}" />
 {{ end }}
