@@ -27,10 +27,6 @@ func NewLogger(lf *log.Factory) Logger {
 	return Logger{lf.New("forgot-password")}
 }
 
-type messageContext struct {
-	HasPassword bool
-}
-
 type IdentityService interface {
 	ListByClaim(name string, value string) ([]*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
@@ -195,7 +191,7 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 	if err != nil {
 		return err
 	}
-	ctx := messageContext{HasPassword: len(ais) > 0}
+	ctx := otp.AdditionalContext{HasPassword: len(ais) > 0}
 
 	otpKind, otpForm := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelEmail, options.Kind)
 
@@ -226,7 +222,7 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 
 	err = s.OTPSender.Send(msg, otp.SendOptions{
 		OTP:               code,
-		AdditionalContext: ctx,
+		AdditionalContext: &ctx,
 	})
 	if err != nil {
 		return err
@@ -240,7 +236,7 @@ func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions)
 	if err != nil {
 		return err
 	}
-	ctx := messageContext{HasPassword: len(ais) > 0}
+	ctx := otp.AdditionalContext{HasPassword: len(ais) > 0}
 
 	if s.FeatureConfig.Identity.LoginID.Types.Phone.Disabled {
 		return feature.ErrFeatureDisabledSendingSMS
@@ -287,7 +283,7 @@ func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions)
 
 	err = s.OTPSender.Send(msg, otp.SendOptions{
 		OTP:               code,
-		AdditionalContext: ctx,
+		AdditionalContext: &ctx,
 	})
 	if err != nil {
 		return err
