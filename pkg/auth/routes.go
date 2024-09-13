@@ -493,6 +493,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(samlhandler.ConfigureMetadataRoute(samlStaticRoute), p.Handler(newSAMLMetadataHandler))
 	router.Add(samlhandler.ConfigureLoginRoute(samlAPIRoute), p.Handler(newSAMLLoginHandler))
 	router.Add(samlhandler.ConfigureLoginFinishRoute(samlAPIRoute), p.Handler(newSAMLLoginFinishHandler))
+	router.Add(samlhandler.ConfigureLogoutRoute(samlAPIRoute), p.Handler(newSAMLLogoutHandler))
 
 	router.Add(siwehandler.ConfigureNonceRoute(siweAPIRoute), p.Handler(newSIWENonceHandler))
 
