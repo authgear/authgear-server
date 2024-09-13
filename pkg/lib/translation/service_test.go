@@ -119,7 +119,8 @@ XState: {{ .XState }}`, lang, path))
 			So(emailMessageData.Sender, ShouldEqual, "no-reply@authgear.com")
 			So(emailMessageData.ReplyTo, ShouldEqual, "")
 			So(emailMessageData.Subject, ShouldEqual, "[My App Name] Test")
-			So(emailMessageData.TextBody, ShouldEqual, `zh/messages/email.txt
+			So(emailMessageData.TextBody.LanguageTag, ShouldEqual, "zh")
+			So(emailMessageData.TextBody.String, ShouldEqual, `zh/messages/email.txt
 AppName: My App Name
 ClientID: my+client+id
 Code: 123456
@@ -133,7 +134,8 @@ State: my+state
 UILocales: my+ui+locales
 URL: https://www.example.com/url
 XState: my+x+state`)
-			So(emailMessageData.HTMLBody, ShouldEqual, `zh/messages/email.html
+			So(emailMessageData.HTMLBody.LanguageTag, ShouldEqual, "zh")
+			So(emailMessageData.HTMLBody.String, ShouldEqual, `zh/messages/email.html
 AppName: My App Name
 ClientID: my client id
 Code: 123456
@@ -158,7 +160,8 @@ XState: my x state`)
 			})
 			So(err, ShouldBeNil)
 			So(smsMessageData.Sender, ShouldEqual, "Sender: [My App Name]")
-			So(smsMessageData.Body, ShouldEqual, `zh/messages/sms.txt
+			So(smsMessageData.Body.LanguageTag, ShouldEqual, "zh")
+			So(smsMessageData.Body.String, ShouldEqual, `zh/messages/sms.txt
 AppName: My App Name
 ClientID: my+client+id
 Code: 123456
@@ -182,7 +185,8 @@ XState: my+x+state`)
 				Link:  "https://www.example.com/link",
 			})
 			So(err, ShouldBeNil)
-			So(whatsappMessageData.Body, ShouldEqual, `en/messages/whatsapp.txt
+			So(whatsappMessageData.Body.LanguageTag, ShouldEqual, "en")
+			So(whatsappMessageData.Body.String, ShouldEqual, `en/messages/whatsapp.txt
 AppName: My App Name
 ClientID: my client id
 Code: 123456
@@ -207,7 +211,8 @@ XState: my x state`)
 			So(emailMessageData.Sender, ShouldEqual, "no-reply@authgear.com")
 			So(emailMessageData.ReplyTo, ShouldEqual, "")
 			So(emailMessageData.Subject, ShouldEqual, "[My App Name] Test")
-			So(emailMessageData.TextBody, ShouldEqual, `zh/messages/email.txt
+			So(emailMessageData.TextBody.LanguageTag, ShouldEqual, "zh")
+			So(emailMessageData.TextBody.String, ShouldEqual, `zh/messages/email.txt
 AppName: My App Name
 ClientID: my+client+id
 Code: 
@@ -221,7 +226,8 @@ State: my+state
 UILocales: my+ui+locales
 URL: 
 XState: my+x+state`)
-			So(emailMessageData.HTMLBody, ShouldEqual, `zh/messages/email.html
+			So(emailMessageData.HTMLBody.LanguageTag, ShouldEqual, "zh")
+			So(emailMessageData.HTMLBody.String, ShouldEqual, `zh/messages/email.html
 AppName: My App Name
 ClientID: my client id
 Code: 
@@ -242,7 +248,8 @@ XState: my x state`)
 			})
 			So(err, ShouldBeNil)
 			So(smsMessageData.Sender, ShouldEqual, "Sender: [My App Name]")
-			So(smsMessageData.Body, ShouldEqual, `zh/messages/sms.txt
+			So(smsMessageData.Body.LanguageTag, ShouldEqual, "zh")
+			So(smsMessageData.Body.String, ShouldEqual, `zh/messages/sms.txt
 AppName: My App Name
 ClientID: my+client+id
 Code: 
@@ -262,7 +269,8 @@ XState: my+x+state`)
 				Password: "P@ssw0rd",
 			})
 			So(err, ShouldBeNil)
-			So(whatsappMessageData.Body, ShouldEqual, `en/messages/whatsapp.txt
+			So(whatsappMessageData.Body.LanguageTag, ShouldEqual, "en")
+			So(whatsappMessageData.Body.String, ShouldEqual, `en/messages/whatsapp.txt
 AppName: My App Name
 ClientID: my client id
 Code: 
