@@ -1,6 +1,7 @@
 360
 account_circle
 account_circle_off
+add
 android
 animation
 api
@@ -139,6 +140,7 @@ try
 update
 upload
 uppercase
+verified
 verified_user
 visibility
 visibility_off
