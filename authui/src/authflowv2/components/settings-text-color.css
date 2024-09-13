@@ -1,0 +1,9 @@
+@layer components {
+  .settings-text-color-success {
+    color: var(--color-success);
+  }
+
+  .settings-text-color-failure {
+    color: var(--color-error);
+  }
+}
