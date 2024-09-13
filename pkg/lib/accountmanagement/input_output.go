@@ -152,61 +152,61 @@ type RemovePasskeyOutput struct {
 	IdentityInfo *identity.Info
 }
 
-type AddBiometricInput struct {
+type AddIdentityBiometricInput struct {
 	JWTToken string
 }
 
-type AddBiometricOutput struct {
+type AddIdentityBiometricOutput struct {
 	IdentityInfo *identity.Info
 }
 
-type RemoveBiometricInput struct {
+type RemoveIdentityBiometricInput struct {
 	IdentityID string
 }
 
-type RemoveBiometricOuput struct {
+type RemoveIdentityBiometricOuput struct {
 	IdentityInfo *identity.Info
 }
 
-type AddUsernameInput struct {
+type AddIdentityUsernameInput struct {
 	LoginID    string
 	LoginIDKey string
 }
 
-type AddUsernameOutput struct {
+type AddIdentityUsernameOutput struct {
 	IdentityInfo *identity.Info
 }
 
-type UpdateUsernameInput struct {
+type UpdateIdentityUsernameInput struct {
 	LoginID    string
 	LoginIDKey string
 	IdentityID string
 }
 
-type UpdateUsernameOutput struct {
+type UpdateIdentityUsernameOutput struct {
 	IdentityInfo *identity.Info
 }
 
-type RemoveUsernameInput struct {
+type RemoveIdentityUsernameInput struct {
 	IdentityID string
 }
 
-type RemoveUsernameOutput struct {
+type RemoveIdentityUsernameOutput struct {
 	IdentityInfo *identity.Info
 }
 
-type RemoveEmailInput struct {
+type RemoveIdentityEmailInput struct {
 	IdentityID string
 }
 
-type RemoveEmailOutput struct {
+type RemoveIdentityEmailOutput struct {
 	IdentityInfo *identity.Info
 }
 
-type RemovePhoneNumberInput struct {
+type RemoveIdentityPhoneNumberInput struct {
 	IdentityID string
 }
 
-type RemovePhoneNumberOutput struct {
+type RemoveIdentityPhoneNumberOutput struct {
 	IdentityInfo *identity.Info
 }

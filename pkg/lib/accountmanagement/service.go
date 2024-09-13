@@ -682,7 +682,7 @@ func (s *Service) RemovePasskey(resolvedSession session.ResolvedSession, input *
 	return &RemovePasskeyOutput{IdentityInfo: identityInfo}, nil
 }
 
-func (s *Service) AddBiometric(resolvedSession session.ResolvedSession, input *AddBiometricInput) (*AddBiometricOutput, error) {
+func (s *Service) AddIdentityBiometric(resolvedSession session.ResolvedSession, input *AddIdentityBiometricInput) (*AddIdentityBiometricOutput, error) {
 
 	// EdgeUseIdentityBiometric
 	enabled := false
@@ -766,10 +766,10 @@ func (s *Service) AddBiometric(resolvedSession session.ResolvedSession, input *A
 		return nil, err
 	}
 
-	return &AddBiometricOutput{IdentityInfo: identityInfo}, nil
+	return &AddIdentityBiometricOutput{IdentityInfo: identityInfo}, nil
 }
 
-func (s *Service) RemoveBiometric(resolvedSession session.ResolvedSession, input *RemoveBiometricInput) (*RemoveBiometricOuput, error) {
+func (s *Service) RemoveIdentityBiometric(resolvedSession session.ResolvedSession, input *RemoveIdentityBiometricInput) (*RemoveIdentityBiometricOuput, error) {
 	identityID := input.IdentityID
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 
@@ -786,10 +786,10 @@ func (s *Service) RemoveBiometric(resolvedSession session.ResolvedSession, input
 		return nil, err
 	}
 
-	return &RemoveBiometricOuput{IdentityInfo: identityInfo}, nil
+	return &RemoveIdentityBiometricOuput{IdentityInfo: identityInfo}, nil
 }
 
-func (s *Service) AddUsername(resolvedSession session.ResolvedSession, input *AddUsernameInput) (*AddUsernameOutput, error) {
+func (s *Service) AddIdentityUsername(resolvedSession session.ResolvedSession, input *AddIdentityUsernameInput) (*AddIdentityUsernameOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
@@ -809,11 +809,11 @@ func (s *Service) AddUsername(resolvedSession session.ResolvedSession, input *Ad
 		return nil, err
 	}
 
-	return &AddUsernameOutput{IdentityInfo: identityInfo}, nil
+	return &AddIdentityUsernameOutput{IdentityInfo: identityInfo}, nil
 
 }
 
-func (s *Service) UpdateUsername(resolvedSession session.ResolvedSession, input *UpdateUsernameInput) (*UpdateUsernameOutput, error) {
+func (s *Service) UpdateIdentityUsername(resolvedSession session.ResolvedSession, input *UpdateIdentityUsernameInput) (*UpdateIdentityUsernameOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
@@ -837,10 +837,10 @@ func (s *Service) UpdateUsername(resolvedSession session.ResolvedSession, input 
 		return nil, err
 	}
 
-	return &UpdateUsernameOutput{IdentityInfo: identityInfo}, nil
+	return &UpdateIdentityUsernameOutput{IdentityInfo: identityInfo}, nil
 }
 
-func (s *Service) RemoveUsername(resolvedSession session.ResolvedSession, input *RemoveUsernameInput) (*RemoveUsernameOutput, error) {
+func (s *Service) RemoveIdentityUsername(resolvedSession session.ResolvedSession, input *RemoveIdentityUsernameInput) (*RemoveIdentityUsernameOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
@@ -856,7 +856,7 @@ func (s *Service) RemoveUsername(resolvedSession session.ResolvedSession, input 
 		return nil, err
 	}
 
-	return &RemoveUsernameOutput{IdentityInfo: identityInfo}, nil
+	return &RemoveIdentityUsernameOutput{IdentityInfo: identityInfo}, nil
 }
 
 func (s *Service) dispatchVerifyIdentityEvent(identityInfo *identity.Info, verifiedClaim *verification.Claim) error {
@@ -964,7 +964,7 @@ func (s *Service) updateIdentityWithVerification(resolvedSession session.Resolve
 	return &UpdateIdentityWithVerificationOutput{IdentityInfo: identityInfo}, nil
 }
 
-func (s *Service) AddEmailWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error) {
+func (s *Service) AddIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error) {
 	return s.createIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
@@ -974,7 +974,7 @@ func (s *Service) AddEmailWithVerification(resolvedSession session.ResolvedSessi
 	})
 }
 
-func (s *Service) UpdateEmailWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error) {
+func (s *Service) UpdateIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error) {
 	return s.updateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
@@ -985,7 +985,7 @@ func (s *Service) UpdateEmailWithVerification(resolvedSession session.ResolvedSe
 	})
 }
 
-func (s *Service) RemoveEmail(resolvedSession session.ResolvedSession, input *RemoveEmailInput) (*RemoveEmailOutput, error) {
+func (s *Service) RemoveIdentityEmail(resolvedSession session.ResolvedSession, input *RemoveIdentityEmailInput) (*RemoveIdentityEmailOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
@@ -1001,10 +1001,10 @@ func (s *Service) RemoveEmail(resolvedSession session.ResolvedSession, input *Re
 		return nil, err
 	}
 
-	return &RemoveEmailOutput{IdentityInfo: identityInfo}, nil
+	return &RemoveIdentityEmailOutput{IdentityInfo: identityInfo}, nil
 }
 
-func (s *Service) AddPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error) {
+func (s *Service) AddIdentityPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error) {
 	return s.createIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
@@ -1014,7 +1014,7 @@ func (s *Service) AddPhoneNumberWithVerification(resolvedSession session.Resolve
 	})
 }
 
-func (s *Service) UpdatePhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error) {
+func (s *Service) UpdateIdentityPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error) {
 	return s.updateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
@@ -1025,7 +1025,7 @@ func (s *Service) UpdatePhoneNumberWithVerification(resolvedSession session.Reso
 	})
 }
 
-func (s *Service) RemovePhoneNumber(resolvedSession session.ResolvedSession, input *RemovePhoneNumberInput) (*RemovePhoneNumberOutput, error) {
+func (s *Service) RemoveIdentityPhoneNumber(resolvedSession session.ResolvedSession, input *RemoveIdentityPhoneNumberInput) (*RemoveIdentityPhoneNumberOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
@@ -1041,5 +1041,5 @@ func (s *Service) RemovePhoneNumber(resolvedSession session.ResolvedSession, inp
 		return nil, err
 	}
 
-	return &RemovePhoneNumberOutput{IdentityInfo: identityInfo}, nil
+	return &RemoveIdentityPhoneNumberOutput{IdentityInfo: identityInfo}, nil
 }
