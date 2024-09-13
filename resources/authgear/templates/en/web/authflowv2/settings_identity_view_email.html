@@ -82,14 +82,46 @@
   {{ end }}
 
   {{ if not $.DeleteDisabled}}
-    {{ $href := (call $.MakeURL "/settings/identity/new_email" "q_login_id_key" $.LoginIDKey ) }}
-    <a
-      class="settings-link-btn--destructive"
-      href="{{ $href }}"
-    >
+    {{ $RemoveDialogID := "remove-email-identity-dialog" }}
+
+    {{ $href := (call $.MakeURL "/settings/identity/new_email" "q_login_id_key" $LoginID ) }}
+    <button 
+      class="settings-link-btn--destructive" 
+      data-controller="settings-dialog"
+      data-settings-dialog-dialogid-param="{{ $RemoveDialogID }}"
+      data-action="click->settings-dialog#open">
       {{ translate "v2.page.settings-identity-view-email.default.button-remove-email-label" nil }}
-    </a>
+    </button>
+
+    {{ template "authflowv2/__settings_dialog.html" 
+      (dict
+        "Ctx" .
+        "DialogID" $RemoveDialogID
+        "Title" (include "v2.page.settings-identity-view-email.remove.title" nil)
+        "Description" (include "v2.page.settings-identity-view-email.remove.description" 
+          (dict 
+            "target" (include "__settings_identity_view_email_inline_breakable" $.EmailIdentity.OriginalLoginID )
+          )
+        )
+        "FormContent" $.CSRFField
+        "Buttons" (list 
+          (dict 
+            "Type" "Destructive" 
+            "Label" (include "v2.component.button.default.label-remove" nil)
+            "Value" "remove"
+          )
+          (dict 
+            "Type" "Cancel"
+            "Label" (include "v2.component.button.default.label-cancel" nil)
+          )
+        )
+      ) 
+    }}
   {{ end }}
 </div>
 
+{{ end }}
+
+{{ define "__settings_identity_view_email_inline_breakable" }}
+  <span class="break-all">{{ . }}</span>
 {{ end }}

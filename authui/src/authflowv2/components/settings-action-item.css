@@ -96,5 +96,6 @@
 
   .settings-action-item__label {
     @apply settings-item__label;
+    @apply break-all;
   }
 }
