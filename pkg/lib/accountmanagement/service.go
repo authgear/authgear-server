@@ -152,11 +152,11 @@ func (s *Service) verifyIdentity(input *verifyIdentityInput) (verifiedClaim *ver
 	var loginIDValue string
 	var loginIDType model.LoginIDKeyType
 	switch {
-	case token.Email != "":
-		loginIDValue = token.Email
+	case token.IdentityToken.Email != "":
+		loginIDValue = token.IdentityToken.Email
 		loginIDType = model.LoginIDKeyTypeEmail
-	case token.PhoneNumber != "":
-		loginIDValue = token.PhoneNumber
+	case token.IdentityToken.PhoneNumber != "":
+		loginIDValue = token.IdentityToken.PhoneNumber
 		loginIDType = model.LoginIDKeyTypePhone
 	default:
 		return nil, ErrAccountManagementTokenInvalid
@@ -460,14 +460,14 @@ func (s *Service) ResumeAddingIdentityWithVerification(resolvedSession session.R
 
 	var loginID string
 	var loginIDKeyType model.LoginIDKeyType
-	identityID := token.IdentityID
+	identityID := token.IdentityToken.IdentityID
 
 	switch {
-	case token.Email != "":
-		loginID = token.Email
+	case token.IdentityToken.Email != "":
+		loginID = token.IdentityToken.Email
 		loginIDKeyType = model.LoginIDKeyTypeEmail
-	case token.PhoneNumber != "":
-		loginID = token.PhoneNumber
+	case token.IdentityToken.PhoneNumber != "":
+		loginID = token.IdentityToken.PhoneNumber
 		loginIDKeyType = model.LoginIDKeyTypePhone
 	default:
 		return nil, ErrAccountManagementTokenInvalid

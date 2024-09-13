@@ -47,6 +47,12 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 	ttl := duration.UserInteraction
 	expireAt := now.Add(ttl)
 
+	IdentityToken := &IdentityToken{
+		IdentityID:  options.IdentityID,
+		PhoneNumber: options.PhoneNumber,
+		Email:       options.Email,
+	}
+
 	token := &Token{
 		AppID:     string(s.AppID),
 		UserID:    options.UserID,
@@ -59,14 +65,8 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 		State:       options.MaybeState,
 		RedirectURI: options.RedirectURI,
 
-		// Phone
-		PhoneNumber: options.PhoneNumber,
-
-		// Email
-		Email: options.Email,
-
-		// Updating Identity
-		IdentityID: options.IdentityID,
+		// IdentityToken
+		IdentityToken: IdentityToken,
 	}
 
 	tokenBytes, err := json.Marshal(token)

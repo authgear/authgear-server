@@ -20,14 +20,14 @@ type Token struct {
 	RedirectURI string `json:"redirect_uri,omitempty"`
 	State       string `json:"state,omitempty"`
 
-	// Adding Phone
+	// Adding IdentityToken
+	IdentityToken *IdentityToken `json:"identity_token,omitempty"`
+}
+
+type IdentityToken struct {
+	IdentityID  string `json:"identity_id,omitempty"`
 	PhoneNumber string `json:"phone_number,omitempty"`
-
-	// Adding Email
-	Email string `json:"email,omitempty"`
-
-	// Updating Identity
-	IdentityID string `json:"identity_id,omitempty"`
+	Email       string `json:"email,omitempty"`
 }
 
 func (t *Token) CheckUser(userID string) error {
