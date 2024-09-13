@@ -12,20 +12,38 @@
 
 {{ define "page-content" }}
 
-{{ if $.ShowSecondaryPassword }}
-  {{ $href := (call $.MakeURL "/settings/mfa/create_password") }}
-  {{ if $.SecondaryPassword }}
-    {{ $href = (call $.MakeURL "/settings/mfa/password") }}
+{{ if $.ShowMFA }}
+<div>
+  {{ if $.ShowSecondaryTOTP }}
+    {{ $href := (call $.MakeURL "/settings/mfa/new_totp") }}
+    {{ if $.SecondaryPassword }}
+      {{ $href = (call $.MakeURL "/settings/mfa/totp") }}
+    {{ end }}
+    {{ template "__settings_mfa_item"
+        (dict
+          "MaterialIconName" "phone_iphone"
+          "Label" (translate "v2.page.settings-mfa.default.secondary-totp-label" nil)
+          "IsActive" $.HasSecondaryTOTP
+          "Href" $href
+        )
+    }}
   {{ end }}
-  {{ template "__settings_mfa_item"
-      (dict
-        "MaterialIconName" "lock"
-        "Label" (translate "v2.page.settings-mfa.default.additional-password-label" nil)
-        "IsActive" $.SecondaryPassword
-        "Href" $href
-      )
-  }}
 
+  {{ if $.ShowSecondaryPassword }}
+    {{ $href := (call $.MakeURL "/settings/mfa/create_password") }}
+    {{ if $.SecondaryPassword }}
+      {{ $href = (call $.MakeURL "/settings/mfa/password") }}
+    {{ end }}
+    {{ template "__settings_mfa_item"
+        (dict
+          "MaterialIconName" "lock"
+          "Label" (translate "v2.page.settings-mfa.default.additional-password-label" nil)
+          "IsActive" $.SecondaryPassword
+          "Href" $href
+        )
+    }}
+  {{ end }}
+</div>
 {{ end }}
 
 {{ end }}
