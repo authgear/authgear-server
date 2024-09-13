@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { produce } from "immer";
@@ -10,7 +10,6 @@ import {
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
 import ScreenContent from "../../ScreenContent";
-import ScreenTitle from "../../ScreenTitle";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import UserProfileAttributesList, {
@@ -23,6 +22,7 @@ import {
 import { parseJSONPointer } from "../../util/jsonpointer";
 import styles from "./CustomAttributesConfigurationScreen.module.css";
 import PrimaryButton from "../../PrimaryButton";
+import NavBreadcrumb from "../../NavBreadcrumb";
 
 interface FormState {
   items: CustomAttributesAttributeConfig[];
@@ -97,6 +97,17 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
     const { state, setState } = props.form;
     const { items } = state;
 
+    const navBreadcrumbItems = useMemo(() => {
+      return [
+        {
+          to: ".",
+          label: (
+            <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
+          ),
+        },
+      ];
+    }, []);
+
     const onChangeItems = useCallback(
       (newItems: CustomAttributesAttributeConfig[]) => {
         setState((prev) => {
@@ -119,9 +130,21 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
     return (
       <>
         <ScreenContent>
-          <ScreenTitle className={styles.widget}>
-            <FormattedMessage id="CustomAttributesConfigurationScreen.title" />
-          </ScreenTitle>
+          <div className={styles.widget}>
+            <div className="flex gap-x-1">
+              <NavBreadcrumb
+                className="flex-1 overflow-hidden items-center"
+                items={navBreadcrumbItems}
+              />
+              <PrimaryButton
+                text={
+                  <FormattedMessage id="CustomAttributesConfigurationScreen.label.add-new-attribute" />
+                }
+                iconProps={useMemo(() => ({ iconName: "Add" }), [])}
+                onClick={useCallback(() => navigate("./add"), [navigate])}
+              />
+            </div>
+          </div>
           <div className={styles.widget}>
             <UserProfileAttributesList
               items={items}
