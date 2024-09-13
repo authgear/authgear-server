@@ -108,11 +108,13 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 
 	sloServices := []crewjamsaml.Endpoint{}
 
-	for _, binding := range samlprotocol.SLOSupportedBindings {
-		ssoServices = append(sloServices, crewjamsaml.Endpoint{
-			Binding:  string(binding),
-			Location: s.Endpoints.SAMLLogoutURL(sp.GetID()).String(),
-		})
+	if sp.SLOEnabled {
+		for _, binding := range samlprotocol.SLOSupportedBindings {
+			ssoServices = append(sloServices, crewjamsaml.Endpoint{
+				Binding:  string(binding),
+				Location: s.Endpoints.SAMLLogoutURL(sp.GetID()).String(),
+			})
+		}
 	}
 
 	descriptor := samlprotocol.EntityDescriptor{
@@ -452,7 +454,7 @@ func (s *Service) IssueSuccessResponse(
 
 func (s *Service) VerifyEmbeddedSignature(
 	sp *config.SAMLServiceProviderConfig,
-	authnRequestXML string) error {
+	samlRequestXML string) error {
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
 	if !ok {
 		// Signing cert not configured, nothing to verify
@@ -466,7 +468,7 @@ func (s *Service) VerifyEmbeddedSignature(
 	validationCtx := dsig.NewDefaultValidationContext(certificateStore)
 
 	doc := etree.NewDocument()
-	err := doc.ReadFromString(authnRequestXML)
+	err := doc.ReadFromString(samlRequestXML)
 	if err != nil {
 		return err
 	}

@@ -70,14 +70,42 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	var err error
 	var parseResult samlbinding.SAMLBindingParseResult
+	var authnRequest *samlprotocol.AuthnRequest
 
+	// Get data with corresponding binding
 	switch r.Method {
 	case "GET":
 		// HTTP-Redirect binding
-		parseResult, err = samlbinding.SAMLBindingHTTPRedirectParse(r)
+		r, err := samlbinding.SAMLBindingHTTPRedirectParse(r)
+		if err != nil {
+			break
+		}
+		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))
+		if err != nil {
+			err = &samlerror.ParseRequestFailedError{
+				Reason: "malformed AuthnRequest",
+				Cause:  err,
+			}
+			break
+		}
+		parseResult = r
+		relayState = r.RelayState
 	case "POST":
 		// HTTP-POST binding
-		parseResult, err = samlbinding.SAMLBindingHTTPPostParse(r)
+		r, err := samlbinding.SAMLBindingHTTPPostParse(r)
+		if err != nil {
+			break
+		}
+		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))
+		if err != nil {
+			err = &samlerror.ParseRequestFailedError{
+				Reason: "malformed AuthnRequest",
+				Cause:  err,
+			}
+			break
+		}
+		parseResult = r
+		relayState = r.RelayState
 	default:
 		panic(fmt.Errorf("unexpected method %s", r.Method))
 	}
@@ -114,14 +142,9 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	var authnRequest *samlprotocol.AuthnRequest
+	// Verify the signature
 	switch parseResult := parseResult.(type) {
 	case *samlbinding.SAMLBindingHTTPRedirectParseResult:
-		relayState = parseResult.RelayState
-		err = h.SAMLService.ValidateAuthnRequest(sp.GetID(), parseResult.AuthnRequest)
-		if err != nil {
-			break
-		}
 		err = h.SAMLService.VerifyExternalSignature(sp,
 			parseResult.SAMLRequest,
 			parseResult.SigAlg,
@@ -130,41 +153,17 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			break
 		}
-		authnRequest = parseResult.AuthnRequest
 	case *samlbinding.SAMLBindingHTTPPostParseResult:
 		relayState = parseResult.RelayState
-		err = h.SAMLService.ValidateAuthnRequest(sp.GetID(), parseResult.AuthnRequest)
+		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.SAMLRequestXML)
 		if err != nil {
 			break
 		}
-		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.AuthnRequestXML)
-		if err != nil {
-			break
-		}
-		authnRequest = parseResult.AuthnRequest
 	default:
 		panic("unexpected parse result type")
 	}
 
 	if err != nil {
-		var invalidRequestErr *samlerror.InvalidRequestError
-		if errors.As(err, &invalidRequestErr) {
-			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
-				samlprotocolhttp.SAMLResult{
-					CallbackURL: callbackURL,
-					Binding:     samlprotocol.SAMLBindingHTTPPost,
-					Response: samlprotocol.NewRequestDeniedErrorResponse(
-						now,
-						issuer,
-						fmt.Sprintf("invalid SAMLRequest: %s", invalidRequestErr.Reason),
-						invalidRequestErr.GetDetailElements(),
-					),
-					RelayState: relayState,
-				},
-			)
-			h.writeResult(rw, r, errResponse)
-			return
-		}
 		var invalidSignatureErr *samlerror.InvalidSignatureError
 		if errors.As(err, &invalidSignatureErr) {
 			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
@@ -176,6 +175,30 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 						issuer,
 						"invalid signature",
 						invalidSignatureErr.GetDetailElements(),
+					),
+					RelayState: relayState,
+				},
+			)
+			h.writeResult(rw, r, errResponse)
+			return
+		}
+		panic(err)
+	}
+
+	// Validate the AuthnRequest
+	err = h.SAMLService.ValidateAuthnRequest(sp.GetID(), authnRequest)
+	if err != nil {
+		var invalidRequestErr *samlerror.InvalidRequestError
+		if errors.As(err, &invalidRequestErr) {
+			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
+				samlprotocolhttp.SAMLResult{
+					CallbackURL: callbackURL,
+					Binding:     samlprotocol.SAMLBindingHTTPPost,
+					Response: samlprotocol.NewRequestDeniedErrorResponse(
+						now,
+						issuer,
+						fmt.Sprintf("invalid AuthnRequest: %s", invalidRequestErr.Reason),
+						invalidRequestErr.GetDetailElements(),
 					),
 					RelayState: relayState,
 				},
