@@ -318,8 +318,8 @@ Various files in this project have versioned dependencies.
   - Also need to update `.ttf`, `.codepoint` and `.gitcommit`
   - Run `make generate-material-icons` again after update
   - Then run `make authui` for updating the UI
-- [Twemoji SVG](authui/src/authflowv2/icons/twemoji-color.woff2), [Twemoji Mozilla](authui/src/authflowv2/icons/Twemoji.Mozilla.woff2)
-  - Download the latest versions from https://github.com/13rac1/twemoji-color-font and https://github.com/mozilla/twemoji-colr
+- [Twemoji Mozilla](authui/src/authflowv2/icons/Twemoji.Mozilla.woff2)
+  - Download the latest versions from https://github.com/mozilla/twemoji-colr
   - Also need to update `.ttf` and `.gitcommit`
   - Run `make generate-twemoji-icons` again after update
 

@@ -5,7 +5,7 @@
     --phone-input__line-height: var(--typography-body-large__line-height);
     --phone-input__letter-spacing: var(--typography-body-large__letter-spacing);
     --phone-input__font-weight: var(--typography-body-large__font-weight);
-    --phone-input__font-family: twemoji-countries, inter;
+    --phone-input__font-family: var(--typography-body-large__font-family);
     --phone-input__space-x: 0.5em;
 
     --phone-input__trigger-ring-color: var(--color-neutral-100);

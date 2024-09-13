@@ -17,17 +17,3 @@ if __name__ == '__main__':
     'ttf',
     unicode_range,
   )
-
-  # Subset ttf and woff2 fonts for twemoji-color
-  subset_font(
-    '../../authui/src/authflowv2/icons/twemoji-color.woff2',
-    '../../authui/src/authflowv2/icons/twemoji-color-subset.woff2',
-    'woff2',
-    unicode_range,
-  )
-  subset_font(
-    '../../authui/src/authflowv2/icons/twemoji-color.ttf',
-    '../../authui/src/authflowv2/icons/twemoji-color-subset.ttf',
-    'ttf',
-    unicode_range,
-  )

@@ -2,6 +2,8 @@ import htmlParser from "node-html-parser";
 import path from "path";
 import fs from "fs/promises";
 
+const fontFileExtensions = [".eot", ".otf", ".ttf", "woff", ".woff2"];
+
 const templateBase = "../resources/authgear/templates/en/web/";
 const templateNameByAssetName = {
   "build.html": "__generated_asset.html",
@@ -39,7 +41,7 @@ function stringifyHTMLAttributes(attributes) {
 }
 
 /**
- * @param {{type: "css" | "js" | "modulepreload", name: string, attributes: Record<string, string>}[]} elements
+ * @param {{type: "css" | "js" | "modulepreload" | "fontpreload", name: string, attributes: Record<string, string>}[]} elements
  * @returns {string}
  */
 function elementsToHTMLString(elements) {
@@ -54,6 +56,10 @@ function elementsToHTMLString(elements) {
       } else {
         textArray.push(htmlLine);
       }
+    }
+    if (element.type === "fontpreload") {
+      const htmlLine = `<link rel="preload" as="font" crossorigin="anonymous" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`;
+      textArray.push(htmlLine);
     }
     if (element.type === "modulepreload") {
       const htmlLine = `<link rel="modulepreload" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`;
@@ -223,11 +229,26 @@ function buildPlugin({ input }) {
     },
 
     async writeBundle(_options, bundles) {
+      // Handle font preload
+      const fontPreloadElements = [];
+      for (const [bundleName, _bundleInfo] of Object.entries(bundles)) {
+        const assetName = nameWithoutHash(bundleName);
+        const assetBaseName = path.basename(assetName);
+        const assetExt = path.extname(assetBaseName);
+        if (fontFileExtensions.includes(assetExt)) {
+          fontPreloadElements.push({
+            type: "fontpreload",
+            name: assetBaseName,
+          });
+        }
+      }
+
+      // Handle other bundles
       for (const [bundleName, bundleInfo] of Object.entries(bundles)) {
         const assetName = nameWithoutHash(bundleName);
         const assetBaseName = path.basename(assetName);
         if (Object.keys(templateNameByAssetName).includes(assetBaseName)) {
-          const elements = [];
+          const elements = [...fontPreloadElements];
           const root = htmlParser.parse(bundleInfo.source);
           const head = root.getElementsByTagName("head")[0];
 

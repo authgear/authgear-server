@@ -3,15 +3,26 @@
   unicode-range: U+1F1E6-1F1FF;
   font-style: normal;
   font-weight: 400;
-  font-display: swap;
   src: url("./Twemoji.Mozilla-subset.woff2") format("woff2"),
     url("./Twemoji.Mozilla-subset.ttf") format("truetype");
 }
 
 .twemoji-countries {
-  font-family: "twemoji-countries";
+  /*
+  There are several issues happening with different versions of iOS safari browsers
+  so we reference the font-family from GitHub to workaround this problem.
+
+  GitHub is using the following font-family:
+  `-apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+    "Helvetica", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji"`
+
+  Also added "Noto Color Emoji" for Android and "twemoji-countries" for our defined font-face */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+    "Helvetica", "Arial", sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+    "Noto Color Emoji", "twemoji-countries";
   font-weight: 400;
   font-style: normal;
+  font-size: 24px;
   display: inline-block;
   line-height: 1;
   text-transform: none;
@@ -30,17 +41,4 @@
 
   /* Support for IE. */
   font-feature-settings: "liga";
-}
-
-@supports (-webkit-appearance: none) and (stroke-color: transparent) {
-  @font-face {
-    font-family: "twemoji-countries";
-    src: url("./twemoji-color-subset.woff2") format("woff2"),
-      url("./twemoji-color-subset.ttf") format("truetype");
-  }
-
-  .twemoji-countries {
-    position: relative;
-    bottom: 0.2rem;
-  }
 }
