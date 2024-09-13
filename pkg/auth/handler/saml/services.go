@@ -23,7 +23,7 @@ type HandlerSAMLService interface {
 	) (*samlprotocol.Response, error)
 	VerifyEmbeddedSignature(
 		sp *config.SAMLServiceProviderConfig,
-		authnRequestXML string) error
+		samlRequestXML string) error
 	VerifyExternalSignature(
 		sp *config.SAMLServiceProviderConfig,
 		samlRequest string,
