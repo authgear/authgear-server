@@ -13,11 +13,11 @@
 {{ define "settings_identity_phone_verification_label" }}
   {{ if $.Verified }}
     <div class="body-text--md settings-text-color-success">
-      {{ translate "v2.page.settings-identity-phone.default.verified-label" . }}
+      {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
     </div>
   {{ else }}
     <div class="body-text--md settings-text-color-failure">
-      {{ translate "v2.page.settings-identity-phone.default.not-verified-label" . }}
+      {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
     </div>
   {{ end }}
 {{ end }}
@@ -82,14 +82,51 @@
   {{ end }}
 
   {{ if not $.DeleteDisabled}}
+    {{ $RemoveDialogID := "remove-phone-identity-dialog" }}
+
     {{ $href := (call $.MakeURL "/settings/identity/new_phone" "q_login_id_key" $.LoginIDKey ) }}
-    <a
-      class="settings-link-btn--destructive"
-      href="{{ $href }}"
-    >
+    <button 
+      class="settings-link-btn--destructive" 
+      data-controller="settings-dialog"
+      data-settings-dialog-dialogid-param="{{ $RemoveDialogID }}"
+      data-action="click->settings-dialog#open">
       {{ translate "v2.page.settings-identity-view-phone.default.button-remove-phone-label" nil }}
-    </a>
+    </button>
+
+    {{ template "authflowv2/__settings_dialog.html" 
+      (dict
+        "Ctx" .
+        "DialogID" $RemoveDialogID
+        "Title" (include "v2.page.settings-identity-view-phone.remove.title" nil)
+        "Description" (include "v2.page.settings-identity-view-phone.remove.description" 
+          (dict 
+            "target" (include "__settings_identity_view_phone_inline_breakable" $.PhoneIdentity.OriginalLoginID )
+          )
+        )
+        "FormContent" (include "__settings_identity_view_phone_remove_dialog_form_content" .)
+        "Buttons" (list 
+          (dict 
+            "Type" "Destructive" 
+            "Label" (include "v2.component.button.default.label-remove" nil)
+            "Value" "remove"
+          )
+          (dict 
+            "Type" "Cancel"
+            "Label" (include "v2.component.button.default.label-cancel" nil)
+          )
+        )
+      ) 
+    }}
   {{ end }}
 </div>
 
+{{ end }}
+
+{{ define "__settings_identity_view_phone_remove_dialog_form_content" }}
+  {{ $.CSRFField }}
+  <input type="hidden" name="x_identity_id" value="{{ $.PhoneIdentity.ID }}">
+{{ end }}
+
+{{ define "__settings_identity_view_phone_inline_breakable" }}
+  <span class="break-all">{{ . }}</span>
 {{ end }}
