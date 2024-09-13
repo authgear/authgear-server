@@ -430,8 +430,8 @@ func (s *CollaboratorService) SendInvitation(
 				ReplyTo:   s.MailConfig.ReplyTo,
 				Subject:   "You are invited to collaborate on \"" + appID + "\" in Authgear",
 				Recipient: inviteeEmail,
-				TextBody:  textBody,
-				HTMLBody:  htmlBody,
+				TextBody:  textBody.String,
+				HTMLBody:  htmlBody.String,
 			},
 		},
 	})

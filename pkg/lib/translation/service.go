@@ -49,7 +49,7 @@ func (s *Service) renderTemplateInLanguage(preferredLanguages []string, tpl temp
 		return "", err
 	}
 
-	return out, nil
+	return out.String, nil
 }
 
 func (s *Service) GetSenderForTestEmail() (sender string, err error) {

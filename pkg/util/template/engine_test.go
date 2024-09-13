@@ -63,15 +63,15 @@ func TestEngine(t *testing.T) {
 		Convey("it should render correct localized template", func() {
 			data, err := engine.Render(index, []string{}, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "en header;en a title;en footer")
+			So(data.String, ShouldEqual, "en header;en a title;en footer")
 
 			data, err = engine.Render(index, []string{"en"}, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "en header;en a title;en footer")
+			So(data.String, ShouldEqual, "en header;en a title;en footer")
 
 			data, err = engine.Render(index, []string{"zh"}, nil)
 			So(err, ShouldBeNil)
-			So(data, ShouldEqual, "zh header;zh b title;zh footer")
+			So(data.String, ShouldEqual, "zh header;zh b title;zh footer")
 		})
 
 		Convey("it should render correct localized translation", func() {
