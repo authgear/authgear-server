@@ -5,15 +5,46 @@
      (dict
         "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
         "BackHref" (call $.MakeURL "/settings")
-        "Title" (translate "v2.page.settings-identity-list-email.default.navbar-title" nil)
+        "Title" (translate "v2.page.settings-identity-change-primary-phone.default.navbar-title" nil)
      )
   }}
 {{ end }}
 
 {{ define "page-content" }}
 
-<div class="flex flex-col gap-y-6">
+<form id="form" method="post" data-turbo="false" novalidate class="flex flex-col gap-y-6">
+  {{ $.CSRFField }}
+  <ul>
+    {{ $currentPhone := .Phone }}
+    {{ range .PhoneIdentities }}
+      <li>
+        {{ template "authflowv2/__settings_radio.html"
+        (dict
+          "Label" (include "inline_breakable" .OriginalLoginID)
+          "Name" "/phone" "Value" .OriginalLoginID
+          "ShowInput" false
+          "DefaultChecked" (eq .OriginalLoginID $currentPhone)
+        )
+        }}
+      </li>
+    {{ end }}
+  </ul>
+  
+  <button
+  id="save-button"
+  class="btn primary-btn w-86"
+  type="submit"
+  name="x_action"
+  value="save"
+  data-authgear-event="authgear.button.update_profile"
+  >
+  {{ template "save-button-label" }}
+  </button>
 
-</div>
+</form>
 
+{{ end }}
+
+{{ define "inline_breakable" }}
+  <span style="word-break: break-all;">{{ . }}</span>
 {{ end }}
