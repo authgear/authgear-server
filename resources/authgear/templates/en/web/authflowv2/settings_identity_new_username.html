@@ -18,6 +18,13 @@
   data-controller="turbo-form"
   data-action="submit->turbo-form#submitForm"
 >
+  {{ template "authflowv2/__alert_message.html"
+    (dict
+      "Type" "error"
+      "Message" (include "authflowv2/__error.html" .)
+    )
+  }}
+
   {{ $.CSRFField }}
 
   <input
