@@ -8,7 +8,6 @@ fmt:
 	npm run stylelint:format
 	npm run prettier:format
 	npm run gentype
-	npm run generateCodesplit
 
 .PHONY: lint
 lint:
