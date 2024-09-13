@@ -23,6 +23,7 @@ type StoreDeviceToken interface {
 	Create(token *DeviceToken) error
 	DeleteAll(userID string) error
 	HasTokens(userID string) (bool, error)
+	Count(userID string) (int, error)
 }
 
 type StoreRecoveryCode interface {
