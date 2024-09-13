@@ -132,6 +132,10 @@ func (s *Service) HasDeviceTokens(userID string) (bool, error) {
 	return s.DeviceTokens.HasTokens(userID)
 }
 
+func (s *Service) CountDeviceTokens(userID string) (int, error) {
+	return s.DeviceTokens.Count(userID)
+}
+
 func (s *Service) GenerateRecoveryCodes() []string {
 	codes := make([]string, s.Config.RecoveryCode.Count)
 	for i := range codes {

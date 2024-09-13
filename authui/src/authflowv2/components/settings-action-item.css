@@ -1,4 +1,23 @@
 @layer components {
+  :root {
+    --settings-action-item__description-color: var(--body-text__text-color);
+    --settings-action-item__description-font-family: var(
+      --body-text__font-family--md
+    );
+    --settings-action-item__description-font-size: var(
+      --body-text__font-size--md
+    );
+    --settings-action-item__description-line-height: var(
+      --body-text__line-height--md
+    );
+    --settings-action-item__description-letter-spacing: var(
+      --body-text__letter-spacing--md
+    );
+    --settings-action-item__description-font-weight: var(
+      --body-text__font-weight--md
+    );
+  }
+
   .settings-action-item__container {
     @apply flex;
     --settings-action-item-padding-x: 0.5rem;
@@ -34,13 +53,21 @@
   }
 
   .settings-action-item__description-container {
-    @apply flex gap-x-2 items-center;
+    @apply text-start;
+    @apply flex gap-x-2 items-center justify-start;
     @apply mt-1;
     &::before {
       content: "";
       width: var(--icon-size);
       display: var(--icon-placeholder-display);
     }
+
+    color: var(--settings-action-item__description-color);
+    font-family: var(--settings-action-item__description-font-family);
+    font-size: var(--settings-action-item__description-font-size);
+    line-height: var(--settings-action-item__description-line-height);
+    letter-spacing: var(--settings-action-item__description-letter-spacing);
+    font-weight: var(--settings-action-item__description-font-weight);
   }
 
   .settings-action-item__extra-content-container {

@@ -73,6 +73,24 @@
         )
     }}
   {{ end }}
+
+  {{ if $.HasMFA}}
+    <button class="block w-full" type="button">
+      {{ $description := "" }}
+      {{ if gt $.NumberOfDeviceTokens 0 }}
+        {{ $description = (translate "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message" (dict "" $.NumberOfDeviceTokens)) }}
+      {{ else }}
+        {{ $description = (translate "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message" nil) }}
+      {{ end }}
+      {{ template "authflowv2/__settings_action_item.html"
+          (dict
+            "IconName" "person_check"
+            "Label" (translate "v2.page.settings-mfa.default.trusted-devices-label" nil)
+            "Description" $description
+          )
+      }}
+    </button>
+  {{ end }}
 </div>
 {{ end }}
 

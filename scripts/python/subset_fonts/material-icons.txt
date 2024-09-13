@@ -82,6 +82,7 @@ password
 pattern
 pending
 person
+person_check
 phone
 phone_iphone
 photo
