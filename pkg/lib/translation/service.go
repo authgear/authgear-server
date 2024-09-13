@@ -37,19 +37,19 @@ func (s *Service) translationMap() (*template.TranslationMap, error) {
 	return s.translations, nil
 }
 
-func (s *Service) renderTemplate(tpl template.Resource, variables *PreparedTemplateVariables) (string, error) {
+func (s *Service) renderTemplate(tpl template.Resource, variables *PreparedTemplateVariables) (*template.RenderResult, error) {
 	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
 
 	return s.renderTemplateInLanguage(preferredLanguageTags, tpl, variables)
 }
 
-func (s *Service) renderTemplateInLanguage(preferredLanguages []string, tpl template.Resource, variables *PreparedTemplateVariables) (string, error) {
+func (s *Service) renderTemplateInLanguage(preferredLanguages []string, tpl template.Resource, variables *PreparedTemplateVariables) (*template.RenderResult, error) {
 	out, err := s.TemplateEngine.Render(tpl, preferredLanguages, variables)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return out.String, nil
+	return out, nil
 }
 
 func (s *Service) GetSenderForTestEmail() (sender string, err error) {

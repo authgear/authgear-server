@@ -1,18 +1,20 @@
 package translation
 
+import "github.com/authgear/authgear-server/pkg/util/template"
+
 type EmailMessageData struct {
 	Sender   string
 	ReplyTo  string
 	Subject  string
-	HTMLBody string
-	TextBody string
+	HTMLBody *template.RenderResult
+	TextBody *template.RenderResult
 }
 
 type SMSMessageData struct {
 	Sender string
-	Body   string
+	Body   *template.RenderResult
 }
 
 type WhatsappMessageData struct {
-	Body string
+	Body *template.RenderResult
 }
