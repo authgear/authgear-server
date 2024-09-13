@@ -471,6 +471,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityListUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityListUsernameHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityNewUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityNewUsernameHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityViewUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityViewUsernameHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityEditUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityEditUsernameHandler))
 	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsIdentityHandler))
 	router.Add(webapphandler.ConfigureSettingsBiometricRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV1: p.Handler(newWebAppSettingsBiometricHandler),

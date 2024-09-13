@@ -1140,6 +1140,7 @@
   "v2.page.settings-identity-edit-phone.default.description": "您目前的電話號碼是 {target}",
   "v2.page.settings-identity-edit-phone.default.navbar-title": "編輯電話",
   "v2.page.settings-identity-edit-phone.default.phone-input-placeholder": "電話號碼",
+  "v2.page.settings-identity-edit-username.default.navbar-title": "更改用戶名稱",
   "v2.page.settings-identity-email.default.navbar-title": "電子郵件",
   "v2.page.settings-identity-list-email.default.button-add-email-label": "+ 新增電子郵件",
   "v2.page.settings-identity-list-email.default.button-change-primary-email-label": "更改",

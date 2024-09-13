@@ -1331,3 +1331,10 @@ func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvi
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityViewUsernameHandler)),
 	))
 }
+
+func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityEditUsernameHandler)),
+	))
+}
