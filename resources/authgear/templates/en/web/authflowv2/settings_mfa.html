@@ -44,6 +44,21 @@
     }}
   {{ end }}
 
+  {{ if $.ShowSecondaryOOBOTPSMS }}
+    {{ $href := (call $.MakeURL "/settings/mfa/new_oob_otp_sms") }}
+    {{ if $.SecondaryPassword }}
+      {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
+    {{ end }}
+    {{ template "__settings_mfa_item"
+        (dict
+          "MaterialIconName" "phone_iphone"
+          "Label" (translate "v2.page.settings-mfa.default.secondary-oob-otp-sms-label" nil)
+          "IsActive" $.HasSecondaryOOBOTPSMS
+          "Href" $href
+        )
+    }}
+  {{ end }}
+
   {{ if $.ShowSecondaryPassword }}
     {{ $href := (call $.MakeURL "/settings/mfa/create_password") }}
     {{ if $.SecondaryPassword }}

@@ -1135,6 +1135,7 @@
   "v2.page.settings-mfa.default.inactive-label": "Inactive",
   "v2.page.settings-mfa.default.navbar-title": "2-Factor Authentication",
   "v2.page.settings-mfa.default.secondary-oob-otp-email-label": "Email",
+  "v2.page.settings-mfa.default.secondary-oob-otp-sms-label": "Whatsapp/SMS message",
   "v2.page.settings-mfa.default.secondary-totp-label": "Authenticator app/device",
   "v2.page.settings-profile-edit-address.default.country-label": "Country",
   "v2.page.settings-profile-edit-address.default.locality-label": "City",
