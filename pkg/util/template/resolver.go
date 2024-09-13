@@ -30,7 +30,7 @@ func (r *Resolver) ResolveHTML(desc *HTML, preferredLanguages []string) (*htmlte
 		return nil, err
 	}
 
-	return resrc.(*htmltemplate.Template), nil
+	return resrc.(*HTMLTemplateEffectiveResource).Template, nil
 }
 
 func (r *Resolver) ResolveMessageHTML(desc *MessageHTML, preferredLanguages []string) (*htmltemplate.Template, error) {
@@ -43,7 +43,7 @@ func (r *Resolver) ResolveMessageHTML(desc *MessageHTML, preferredLanguages []st
 		return nil, err
 	}
 
-	return resrc.(*htmltemplate.Template), nil
+	return resrc.(*HTMLTemplateEffectiveResource).Template, nil
 }
 
 func (r *Resolver) ResolvePlainText(desc *PlainText, preferredLanguages []string) (*texttemplate.Template, error) {
@@ -56,7 +56,7 @@ func (r *Resolver) ResolvePlainText(desc *PlainText, preferredLanguages []string
 		return nil, err
 	}
 
-	return resrc.(*texttemplate.Template), nil
+	return resrc.(*TextTemplateEffectiveResource).Template, nil
 }
 
 func (r *Resolver) ResolveMessagePlainText(desc *MessagePlainText, preferredLanguages []string) (*texttemplate.Template, error) {
@@ -69,7 +69,7 @@ func (r *Resolver) ResolveMessagePlainText(desc *MessagePlainText, preferredLang
 		return nil, err
 	}
 
-	return resrc.(*texttemplate.Template), nil
+	return resrc.(*TextTemplateEffectiveResource).Template, nil
 }
 
 func (r *Resolver) ResolveTranslations(preferredLanguages []string) (map[string]Translation, error) {
