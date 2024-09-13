@@ -407,12 +407,16 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
           redirectURLForm.setState((prev) =>
             produce(prev, (draft) => {
               draft.directAccessDisabled = true;
+              draft.postLoginURL = redirectURLForm.initialState.postLoginURL;
+              draft.postLogoutURL = redirectURLForm.initialState.postLogoutURL;
             })
           );
         } else {
           redirectURLForm.setState((prev) =>
             produce(prev, (draft) => {
               draft.directAccessDisabled = undefined;
+              draft.brandingPageURL =
+                redirectURLForm.initialState.brandingPageURL;
             })
           );
         }
