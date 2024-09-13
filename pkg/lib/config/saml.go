@@ -40,13 +40,7 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" },
 		"slo_enabled": { "type": "boolean" },
 		"slo_callback_url": { "type": "string", "format": "uri" },
-		"slo_binding": {
-			"type": "string",
-			"enum": [
-				"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-				"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Post"
-			]
-		}
+		"slo_binding": { "$ref": "#/$defs/SAMLSLOBinding" }
 	},
 	"required": ["acs_urls"],
 	"anyOf": [
@@ -102,7 +96,7 @@ var _ = Schema.Add("SAMLNameIDFormat", `
 }
 `)
 
-var _ = Schema.Add("SAMLBinding", `
+var _ = Schema.Add("SAMLSLOBinding", `
 {
 	"type": "string",
 	"enum": [
