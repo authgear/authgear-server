@@ -1122,6 +1122,7 @@
   "v2.page.settings-identity-list-email.default.navbar-title": "Email",
   "v2.page.settings-identity-list-email.default.not-verified-label": "Not Verified",
   "v2.page.settings-identity-list-email.default.verified-label": "Verified",
+  "v2.page.settings-identity-view-email.default.navbar-title": "Email",
   "v2.page.settings-identity-list-username.default.button-add-username-label": "+ Add username",
   "v2.page.settings-identity-list-username.default.navbar-title": "Username",
   "v2.page.settings-mfa-create-password.default.navbar-title": "Additional password",

@@ -32,7 +32,7 @@
         {{ $claims := index $.Verifications .ID }}
         {{ if not (empty $claims) }}
           {{ $claim := first $claims }}
-          {{ $href := (call $.MakeURL "/settings/identity/view_email" "q_login_id" .ID )}}
+          {{ $href := (call $.MakeURL "/settings/identity/view_email" "q_login_id_key" $.LoginIDKey "q_login_id" .ID )}}
           {{ template "authflowv2/__settings_action_item.html"
               (dict
                 "IconName" "email"

@@ -85,6 +85,7 @@ const (
 	AuthflowV2RouteSettingsMFAPassword = "/settings/mfa/password"
 
 	AuthflowV2RouteSettingsIdentityListEmail = "/settings/identity/email"
+	AuthflowV2RouteSettingsIdentityViewEmail = "/settings/identity/view_email"
 
 	AuthflowV2RouteSettingsIdentityListUsername = "/settings/identity/username"
 )
