@@ -4,6 +4,7 @@ import {
   AppConfigFormModel,
   useAppConfigForm,
 } from "../../hook/useAppConfigForm";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import {
   FormContainerBase,
@@ -26,6 +27,7 @@ import ScreenContent from "../../ScreenContent";
 import { Domain } from "./globalTypes.generated";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ScreenDescription from "../../ScreenDescription";
+import { getHostFromOrigin } from "../../util/domain";
 import {
   ChoiceGroup,
   IChoiceGroupOption,
@@ -449,11 +451,12 @@ const RedirectURLForm: React.VFC<RedirectURLFormProps> =
 interface EndpointDirectAccessContentProps {
   domains: Domain[];
   redirectURLForm: AppConfigFormModel<RedirectURLFormState>;
+  publicOrigin: string;
 }
 
 const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
   function EndpointDirectAccessContent(props) {
-    const { domains, redirectURLForm } = props;
+    const { domains, redirectURLForm, publicOrigin } = props;
 
     const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
       return [
@@ -464,10 +467,18 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
       ];
     }, []);
 
-    const hasNoCustomDomains = useMemo(() => {
-      const index = domains.findIndex((d) => d.isCustom && d.isVerified);
-      return index < 0;
-    }, [domains]);
+    const isCustomDomain = useMemo(() => {
+      if (domains.length === 0) {
+        return false;
+      }
+      const index = domains.findIndex((d) =>
+        getHostFromOrigin(publicOrigin).includes(d.domain)
+      );
+      if (index < 0) {
+        return false;
+      }
+      return domains[index].isCustom;
+    }, [domains, publicOrigin]);
 
     return (
       <ScreenLayoutScrollView>
@@ -479,7 +490,7 @@ const EndpointDirectAccessContent: React.VFC<EndpointDirectAccessContentProps> =
           <RedirectURLForm
             className={cn(styles.widget)}
             redirectURLForm={redirectURLForm}
-            disabled={hasNoCustomDomains}
+            disabled={!isCustomDomain}
           />
         </ScreenContent>
       </ScreenLayoutScrollView>
@@ -500,6 +511,7 @@ const EndpointDirectAccessScreen: React.VFC =
       constructFormState: constructRedirectURLFormState,
       constructConfig: constructConfigFromRedirectURLFormState,
     });
+    const appConfig = useAppAndSecretConfigQuery(appID);
 
     const isloading = or_(fetchingDomains, redirectURLForm.isLoading);
     const error = nullishCoalesce(fetchDomainsError, redirectURLForm.loadError);
@@ -522,6 +534,7 @@ const EndpointDirectAccessScreen: React.VFC =
         <EndpointDirectAccessContent
           domains={domains ?? []}
           redirectURLForm={redirectURLForm}
+          publicOrigin={appConfig.rawAppConfig?.http?.public_origin ?? ""}
         />
       </FormContainerBase>
     );

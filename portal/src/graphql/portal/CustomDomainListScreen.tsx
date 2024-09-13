@@ -58,21 +58,8 @@ import TextField from "../../TextField";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import { FormContainerBase } from "../../FormContainerBase";
 import { nullishCoalesce, or_ } from "../../util/operators";
+import { getHostFromOrigin, getOriginFromDomain } from "../../util/domain";
 import { FormErrorMessageBar } from "../../FormErrorMessageBar";
-
-function getOriginFromDomain(domain: string): string {
-  // assume domain has no scheme
-  // use https scheme
-  return `https://${domain}`;
-}
-
-function getHostFromOrigin(urlOrigin: string): string {
-  try {
-    return new URL(urlOrigin).host;
-  } catch (_: unknown) {
-    return "";
-  }
-}
 
 interface DomainListItem {
   id?: string;
