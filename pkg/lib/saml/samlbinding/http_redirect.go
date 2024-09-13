@@ -7,15 +7,14 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
 type SAMLBindingHTTPRedirectParseResult struct {
-	AuthnRequest *samlprotocol.AuthnRequest
-	SAMLRequest  string
-	RelayState   string
-	SigAlg       string
-	Signature    string
+	SAMLRequest    string
+	SAMLRequestXML string
+	RelayState     string
+	SigAlg         string
+	Signature      string
 }
 
 var _ SAMLBindingParseResult = &SAMLBindingHTTPRedirectParseResult{}
@@ -51,15 +50,7 @@ func SAMLBindingHTTPRedirectParse(r *http.Request) (
 		}
 	}
 
-	request, err := samlprotocol.ParseAuthnRequest(requestBuffer)
-	if err != nil {
-		return result, &samlerror.ParseRequestFailedError{
-			Reason: "malformed AuthnRequest",
-			Cause:  err,
-		}
-	}
-
-	result.AuthnRequest = request
+	result.SAMLRequestXML = string(requestBuffer)
 	result.Signature = signature
 	result.SigAlg = sigAlg
 
