@@ -1,8 +1,6 @@
 package config
 
 import (
-	crewjamsaml "github.com/crewjam/saml"
-
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
@@ -163,7 +161,7 @@ func (c *SAMLServiceProviderConfig) SetDefaults() {
 	}
 
 	if c.SLOBinding == "" {
-		c.SLOBinding = crewjamsaml.HTTPPostBinding
+		c.SLOBinding = samlprotocol.SAMLBindingHTTPPost
 	}
 }
 
