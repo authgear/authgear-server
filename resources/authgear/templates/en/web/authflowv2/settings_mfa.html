@@ -29,6 +29,21 @@
     }}
   {{ end }}
 
+  {{ if $.ShowSecondaryOOBOTPEmail }}
+    {{ $href := (call $.MakeURL "/settings/mfa/new_oob_otp_email") }}
+    {{ if $.SecondaryPassword }}
+      {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_email") }}
+    {{ end }}
+    {{ template "__settings_mfa_item"
+        (dict
+          "MaterialIconName" "mail"
+          "Label" (translate "v2.page.settings-mfa.default.secondary-oob-otp-email-label" nil)
+          "IsActive" $.HasSecondaryOOBOTPEmail
+          "Href" $href
+        )
+    }}
+  {{ end }}
+
   {{ if $.ShowSecondaryPassword }}
     {{ $href := (call $.MakeURL "/settings/mfa/create_password") }}
     {{ if $.SecondaryPassword }}

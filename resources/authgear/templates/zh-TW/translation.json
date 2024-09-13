@@ -1134,6 +1134,7 @@
   "v2.page.settings-mfa.default.additional-password-label": "輔助密碼",
   "v2.page.settings-mfa.default.inactive-label": "未啟用",
   "v2.page.settings-mfa.default.navbar-title": "多重驗證",
+  "v2.page.settings-mfa.default.secondary-oob-otp-email-label": "電郵",
   "v2.page.settings-mfa.default.secondary-totp-label": "驗證器應用程式／裝置",
   "v2.page.settings-profile-edit-address.default.country-label": "國家",
   "v2.page.settings-profile-edit-address.default.locality-label": "城市",
