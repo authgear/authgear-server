@@ -31,12 +31,12 @@
 {{ end }}
 
 {{ define "__settings_mfa_item" }}
-  {{ template "authflowv2/__settings_item.html"
+  {{ template "authflowv2/__settings_action_item.html"
       (dict
-        "MaterialIconName" $.MaterialIconName
+        "IconName" $.MaterialIconName
         "Label" $.Label
-        "Href" $.Href
-        "SupplementaryNote" (include "__settings_mfa_item_status"
+        "RedirectURL" $.Href
+        "Description" (include "__settings_mfa_item_status"
           (dict
             "IsActive" $.IsActive
           )
