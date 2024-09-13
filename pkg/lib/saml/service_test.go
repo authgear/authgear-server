@@ -66,7 +66,7 @@ func TestSAMLService(t *testing.T) {
 	endpoints.EXPECT().SAMLLoginURL(spID).AnyTimes().Return(loginEndpoint)
 	sp := &config.SAMLServiceProviderConfig{
 		ClientID:     spID,
-		NameIDFormat: config.SAMLNameIDFormatEmailAddress,
+		NameIDFormat: samlprotocol.SAMLNameIDFormatEmailAddress,
 		AcsURLs: []string{
 			"http://localhost/saml-test",
 		},

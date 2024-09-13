@@ -5,8 +5,6 @@ import (
 	"encoding/xml"
 
 	xrv "github.com/mattermost/xml-roundtrip-validator"
-
-	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 func (a *AuthnRequest) GetProtocolBinding() SAMLBinding {
@@ -29,9 +27,9 @@ func (a *AuthnRequest) GetForceAuthn() bool {
 	return *a.ForceAuthn
 }
 
-func (a *AuthnRequest) GetNameIDFormat() (config.SAMLNameIDFormat, bool) {
+func (a *AuthnRequest) GetNameIDFormat() (SAMLNameIDFormat, bool) {
 	if a.NameIDPolicy != nil && a.NameIDPolicy.Format != nil {
-		return config.SAMLNameIDFormat(*a.NameIDPolicy.Format), true
+		return SAMLNameIDFormat(*a.NameIDPolicy.Format), true
 	}
 	return "", false
 }
