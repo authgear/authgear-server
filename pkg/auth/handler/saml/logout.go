@@ -77,8 +77,9 @@ func (h *LogoutHandler) handleSLORequest(
 	switch r.Method {
 	case "GET":
 		// HTTP-Redirect binding
-		r, err := samlbinding.SAMLBindingHTTPRedirectParse(r)
-		if err != nil {
+		r, e := samlbinding.SAMLBindingHTTPRedirectParse(r)
+		if e != nil {
+			err = e
 			break
 		}
 		logoutRequest, err = samlprotocol.ParseLogoutRequest([]byte(r.SAMLRequestXML))
@@ -93,8 +94,9 @@ func (h *LogoutHandler) handleSLORequest(
 		relayState = r.RelayState
 	case "POST":
 		// HTTP-POST binding
-		r, err := samlbinding.SAMLBindingHTTPPostParse(r)
-		if err != nil {
+		r, e := samlbinding.SAMLBindingHTTPPostParse(r)
+		if e != nil {
+			err = e
 			break
 		}
 		logoutRequest, err = samlprotocol.ParseLogoutRequest([]byte(r.SAMLRequestXML))
@@ -181,6 +183,27 @@ func (h *LogoutHandler) handleSLORequest(
 				err,
 			)
 		}
+	}
+
+	response, err := h.SAMLService.IssueLogoutResponse(
+		callbackURL,
+		sp.GetID(),
+		logoutRequest,
+	)
+	if err != nil {
+		return h.makeUnknownErrorResult(
+			callbackURL,
+			responseBinding,
+			relayState,
+			err,
+		)
+	}
+
+	return &samlprotocolhttp.SAMLResult{
+		CallbackURL: callbackURL,
+		Binding:     responseBinding,
+		Response:    response,
+		RelayState:  relayState,
 	}
 }
 

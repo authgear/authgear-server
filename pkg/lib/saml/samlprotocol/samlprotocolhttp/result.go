@@ -12,7 +12,7 @@ import (
 type SAMLResult struct {
 	CallbackURL string
 	Binding     samlprotocol.SAMLBinding
-	Response    *samlprotocol.Response
+	Response    samlprotocol.Respondable
 	RelayState  string
 }
 
