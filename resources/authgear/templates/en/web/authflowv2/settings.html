@@ -52,6 +52,7 @@
       {{/* If is Email */}}
       {{ $label := ( include "v2.page.settings.default.button-label-email" nil ) }}{{ $icon := "email" }}
       {{ $identityArr := $.Emails }}{{ $identity := $.Email }}
+      {{ $url := call $.MakeURL "/settings/identity/email" "q_login_id_key" .login_id_key }}
 
       {{/* If is Phone */}}
       {{ if eq .login_id_type "phone" }}

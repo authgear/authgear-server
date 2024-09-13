@@ -83,6 +83,8 @@ const (
 	AuthflowV2RouteSettingsMFACreatePassword = "/settings/mfa/create_password"
 	// nolint: gosec
 	AuthflowV2RouteSettingsMFAPassword = "/settings/mfa/password"
+
+	AuthflowV2RouteSettingsIdentityListEmail = "/settings/identity/email"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {
