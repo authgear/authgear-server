@@ -92,6 +92,7 @@ const (
 	AuthflowV2RouteSettingsIdentityVerifyEmail        = "/settings/identity/verify_email"
 
 	AuthflowV2RouteSettingsIdentityListPhone          = "/settings/identity/phone"
+	AuthflowV2RouteSettingsIdentityAddPhone           = "/settings/identity/add_phone"
 	AuthflowV2RouteSettingsIdentityViewPhone          = "/settings/identity/view_phone"
 	AuthflowV2RouteSettingsIdentityChangePrimaryPhone = "/settings/identity/change_primary_phone"
 	AuthflowV2RouteSettingsIdentityVerifyPhone        = "/settings/identity/verify_phone"

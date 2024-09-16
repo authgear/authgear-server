@@ -1234,6 +1234,13 @@ func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.Reques
 	))
 }
 
+func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityAddPhoneHandler)),
+	))
+}
+
 func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
