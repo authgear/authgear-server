@@ -12,14 +12,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
 type IdentityFacade struct {
 	Config         *config.AppConfig
-	Database       *appdb.Handle
 	Store          Store
 	Identities     IdentityService
 	Events         EventService
@@ -263,34 +261,25 @@ func (i *IdentityFacade) StartIdentityWithVerification(resolvedSession session.R
 	identitySpec := input.IdentitySpec
 
 	var needVerify bool
-	err = i.Database.WithTx(func() error {
-		switch {
-		case input.isUpdate:
-			newInfo, needVerify, err = i.UpdateIdentity(userID, input.IdentityID, identitySpec, true)
-		case !input.isUpdate:
-			newInfo, needVerify, err = i.CreateIdentity(userID, identitySpec, true)
-		}
-		if err != nil {
-			return err
-		}
+	switch {
+	case input.isUpdate:
+		newInfo, needVerify, err = i.UpdateIdentity(userID, input.IdentityID, identitySpec, true)
+	case !input.isUpdate:
+		newInfo, needVerify, err = i.CreateIdentity(userID, identitySpec, true)
+	}
+	if err != nil {
+		return nil, err
+	}
 
-		if !needVerify {
-			// Already Create / Update, we can skip send OTP code.
-			return nil
-		}
-
+	if needVerify {
 		err = i.SendOTPCode(&sendOTPCodeInput{
 			Channel:  input.Channel,
 			Target:   input.LoginID,
 			isResend: false,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
 	}
 
 	return &StartIdentityWithVerificationOutput{
@@ -305,29 +294,23 @@ func (i *IdentityFacade) CreateIdentityWithVerification(resolvedSession session.
 	identitySpec := input.IdentitySpec
 
 	var identityInfo *identity.Info
-	err := i.Database.WithTx(func() (err error) {
-		verifiedClaim, err := i.VerifyIdentity(&verifyIdentityInput{
-			UserID:  userID,
-			Token:   input.Token,
-			Channel: input.Channel,
-			Code:    input.Code,
-		})
-		if err != nil {
-			return err
-		}
-
-		// Create identity after verification
-		identityInfo, _, err = i.CreateIdentity(userID, identitySpec, false)
-		if err != nil {
-			return err
-		}
-
-		err = i.dispatchIdentityVerifiedEvent(identityInfo, verifiedClaim)
-		if err != nil {
-			return err
-		}
-		return nil
+	verifiedClaim, err := i.VerifyIdentity(&verifyIdentityInput{
+		UserID:  userID,
+		Token:   input.Token,
+		Channel: input.Channel,
+		Code:    input.Code,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Create identity after verification
+	identityInfo, _, err = i.CreateIdentity(userID, identitySpec, false)
+	if err != nil {
+		return nil, err
+	}
+
+	err = i.dispatchIdentityVerifiedEvent(identityInfo, verifiedClaim)
 	if err != nil {
 		return nil, err
 	}
@@ -342,29 +325,23 @@ func (i *IdentityFacade) UpdateIdentityWithVerification(resolvedSession session.
 	identitySpec := input.IdentitySpec
 
 	var identityInfo *identity.Info
-	err := i.Database.WithTx(func() (err error) {
-		verifiedClaim, err := i.VerifyIdentity(&verifyIdentityInput{
-			UserID:  userID,
-			Token:   input.Token,
-			Channel: input.Channel,
-			Code:    input.Code,
-		})
-		if err != nil {
-			return err
-		}
-
-		// Update identity after verification
-		identityInfo, _, err = i.UpdateIdentity(userID, identityID, identitySpec, false)
-		if err != nil {
-			return err
-		}
-
-		err = i.dispatchIdentityVerifiedEvent(identityInfo, verifiedClaim)
-		if err != nil {
-			return err
-		}
-		return nil
+	verifiedClaim, err := i.VerifyIdentity(&verifyIdentityInput{
+		UserID:  userID,
+		Token:   input.Token,
+		Channel: input.Channel,
+		Code:    input.Code,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	// Update identity after verification
+	identityInfo, _, err = i.UpdateIdentity(userID, identityID, identitySpec, false)
+	if err != nil {
+		return nil, err
+	}
+
+	err = i.dispatchIdentityVerifiedEvent(identityInfo, verifiedClaim)
 	if err != nil {
 		return nil, err
 	}

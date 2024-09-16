@@ -269,12 +269,19 @@ func (s *Service) StartCreateIdentityWithVerification(resolvedSession session.Re
 	if err != nil {
 		return nil, err
 	}
-	output, err := s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
-		LoginID:      input.LoginID,
-		LoginIDKey:   input.LoginIDKey,
-		IdentitySpec: identitySpec,
-		Channel:      input.Channel,
-		isUpdate:     false,
+	var output *StartIdentityWithVerificationOutput
+	err = s.Database.WithTx(func() error {
+		output, err = s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
+			LoginID:      input.LoginID,
+			LoginIDKey:   input.LoginIDKey,
+			IdentitySpec: identitySpec,
+			Channel:      input.Channel,
+			isUpdate:     false,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -318,13 +325,20 @@ func (s *Service) StartUpdateIdentityWithVerification(resolvedSession session.Re
 	if err != nil {
 		return nil, err
 	}
-	output, err := s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
-		LoginID:      input.LoginID,
-		LoginIDKey:   input.LoginIDKey,
-		IdentitySpec: identitySpec,
-		Channel:      input.Channel,
-		IdentityID:   input.IdentityID,
-		isUpdate:     true,
+	var output *StartIdentityWithVerificationOutput
+	err = s.Database.WithTx(func() error {
+		output, err = s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
+			LoginID:      input.LoginID,
+			LoginIDKey:   input.LoginIDKey,
+			IdentitySpec: identitySpec,
+			Channel:      input.Channel,
+			IdentityID:   input.IdentityID,
+			isUpdate:     true,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		return nil, err
@@ -777,12 +791,22 @@ func (s *Service) AddIdentityEmailWithVerification(resolvedSession session.Resol
 		return nil, err
 	}
 
-	return s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
-		IdentitySpec: identitySpec,
-		Code:         input.Code,
-		Channel:      input.Channel,
-		Token:        token,
+	err = s.Database.WithTx(func() (err error) {
+		output, err = s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
+			IdentitySpec: identitySpec,
+			Code:         input.Code,
+			Channel:      input.Channel,
+			Token:        token,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func (s *Service) UpdateIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityEmailWithVerificationInput) (output *UpdateIdentityWithVerificationOutput, err error) {
@@ -803,13 +827,23 @@ func (s *Service) UpdateIdentityEmailWithVerification(resolvedSession session.Re
 	if err != nil {
 		return nil, err
 	}
-	return s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
-		IdentityID:   input.IdentityID,
-		IdentitySpec: identitySpec,
-		Code:         input.Code,
-		Channel:      input.Channel,
-		Token:        token,
+	err = s.Database.WithTx(func() (err error) {
+		output, err = s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
+			IdentityID:   input.IdentityID,
+			IdentitySpec: identitySpec,
+			Code:         input.Code,
+			Channel:      input.Channel,
+			Token:        token,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func (s *Service) RemoveIdentityEmail(resolvedSession session.ResolvedSession, input *RemoveIdentityEmailInput) (*RemoveIdentityEmailOutput, error) {
@@ -850,12 +884,22 @@ func (s *Service) AddIdentityPhoneNumberWithVerification(resolvedSession session
 		return nil, err
 	}
 
-	return s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
-		IdentitySpec: identitySpec,
-		Code:         input.Code,
-		Channel:      input.Channel,
-		Token:        token,
+	err = s.Database.WithTx(func() (err error) {
+		output, err = s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
+			IdentitySpec: identitySpec,
+			Code:         input.Code,
+			Channel:      input.Channel,
+			Token:        token,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func (s *Service) UpdateIdentityPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityPhoneNumberWithVerificationInput) (output *UpdateIdentityWithVerificationOutput, err error) {
@@ -877,13 +921,23 @@ func (s *Service) UpdateIdentityPhoneNumberWithVerification(resolvedSession sess
 		return nil, err
 	}
 
-	return s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
-		IdentityID:   input.IdentityID,
-		IdentitySpec: identitySpec,
-		Code:         input.Code,
-		Channel:      input.Channel,
-		Token:        token,
+	err = s.Database.WithTx(func() (err error) {
+		output, err = s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
+			IdentityID:   input.IdentityID,
+			IdentitySpec: identitySpec,
+			Code:         input.Code,
+			Channel:      input.Channel,
+			Token:        token,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	return output, nil
 }
 
 func (s *Service) RemoveIdentityPhoneNumber(resolvedSession session.ResolvedSession, input *RemoveIdentityPhoneNumberInput) (*RemoveIdentityPhoneNumberOutput, error) {
