@@ -35,6 +35,10 @@ type HandlerSAMLService interface {
 		serviceProviderId string,
 		inResponseToLogoutRequest *samlprotocol.LogoutRequest,
 	) (*samlprotocol.LogoutResponse, error)
+	ConstructSignedQueryParameters(
+		samlResponse string,
+		relayState string,
+	) (url.Values, error)
 }
 
 type SAMLSessionService interface {

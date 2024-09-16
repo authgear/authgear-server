@@ -204,6 +204,8 @@ func (h *LogoutHandler) handleSLORequest(
 		Binding:     responseBinding,
 		Response:    response,
 		RelayState:  relayState,
+		// TODO(tung): Refactor the code to inject the signer automatically
+		Signer: h.SAMLService,
 	}
 }
 

@@ -61,9 +61,11 @@ func SAMLBindingHTTPRedirectParse(r *http.Request) (
 	return result, nil
 }
 
-type SAMLBindingHTTPRedirectWriter struct{}
+type SAMLBindingHTTPRedirectWriter struct {
+	Signer SAMLBindingSigner
+}
 
-func (*SAMLBindingHTTPRedirectWriter) Write(
+func (s *SAMLBindingHTTPRedirectWriter) Write(
 	rw http.ResponseWriter,
 	r *http.Request,
 	callbackURL string,
@@ -71,6 +73,14 @@ func (*SAMLBindingHTTPRedirectWriter) Write(
 	relayState string) error {
 
 	responseEl := response.Element()
+
+	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf
+	// 3.4.4.1 DEFLATE Encoding
+	// Any signature on the SAML protocol message, including the <ds:Signature> XML element itself,
+	// MUST be removed.
+	if sigEl := responseEl.FindElement("./Signature"); sigEl != nil {
+		responseEl.RemoveChild(sigEl)
+	}
 
 	doc := etree.NewDocument()
 	doc.SetRoot(responseEl)
@@ -101,10 +111,19 @@ func (*SAMLBindingHTTPRedirectWriter) Write(
 		return err
 	}
 
-	q := redirectURL.Query()
-	q.Add("RelayState", relayState)
-	q.Add("SAMLResponse", encodedResponse)
-	redirectURL.RawQuery = q.Encode()
+	q, err := s.Signer.ConstructSignedQueryParameters(encodedResponse, relayState)
+	if err != nil {
+		return err
+	}
+
+	redirectURLQuery := redirectURL.Query()
+	for key, values := range q {
+		for _, v := range values {
+			redirectURLQuery.Add(key, v)
+		}
+	}
+
+	redirectURL.RawQuery = redirectURLQuery.Encode()
 
 	http.Redirect(rw, r, redirectURL.String(), http.StatusFound)
 	return nil
