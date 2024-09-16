@@ -2,11 +2,15 @@ package samlbinding
 
 import (
 	"bytes"
+	"compress/flate"
 	"encoding/base64"
 	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
+	"github.com/beevik/etree"
 )
 
 type SAMLBindingHTTPRedirectParseResult struct {
@@ -55,4 +59,53 @@ func SAMLBindingHTTPRedirectParse(r *http.Request) (
 	result.SigAlg = sigAlg
 
 	return result, nil
+}
+
+type SAMLBindingHTTPRedirectWriter struct{}
+
+func (*SAMLBindingHTTPRedirectWriter) Write(
+	rw http.ResponseWriter,
+	r *http.Request,
+	callbackURL string,
+	response samlprotocol.Respondable,
+	relayState string) error {
+
+	responseEl := response.Element()
+
+	doc := etree.NewDocument()
+	doc.SetRoot(responseEl)
+	responseBuf, err := doc.WriteToBytes()
+	if err != nil {
+		return err
+	}
+
+	compressedResponseBuffer := &bytes.Buffer{}
+	writer, err := flate.NewWriter(compressedResponseBuffer, 9)
+	if err != nil {
+		return err
+	}
+	_, err = writer.Write(responseBuf)
+	if err != nil {
+		return err
+	}
+
+	err = writer.Close()
+	if err != nil {
+		return err
+	}
+
+	encodedResponse := base64.StdEncoding.EncodeToString(compressedResponseBuffer.Bytes())
+
+	redirectURL, err := url.Parse(callbackURL)
+	if err != nil {
+		return err
+	}
+
+	q := redirectURL.Query()
+	q.Add("RelayState", relayState)
+	q.Add("SAMLResponse", encodedResponse)
+	redirectURL.RawQuery = q.Encode()
+
+	http.Redirect(rw, r, redirectURL.String(), http.StatusFound)
+	return nil
 }

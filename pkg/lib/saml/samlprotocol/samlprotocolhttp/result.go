@@ -20,7 +20,13 @@ func (s *SAMLResult) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 	switch s.Binding {
 	case samlprotocol.SAMLBindingHTTPPost:
 		writer := &samlbinding.SAMLBindingHTTPPostWriter{}
-		err := writer.Write(rw, s.CallbackURL, s.Response, s.RelayState)
+		err := writer.Write(rw, r, s.CallbackURL, s.Response, s.RelayState)
+		if err != nil {
+			panic(err)
+		}
+	case samlprotocol.SAMLBindingHTTPRedirect:
+		writer := &samlbinding.SAMLBindingHTTPRedirectWriter{}
+		err := writer.Write(rw, r, s.CallbackURL, s.Response, s.RelayState)
 		if err != nil {
 			panic(err)
 		}
