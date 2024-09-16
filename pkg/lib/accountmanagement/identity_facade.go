@@ -75,6 +75,9 @@ func (i *IdentityFacade) CreateIdentity(userID string, identitySpec *identity.Sp
 	}
 
 	if err = i.Identities.Create(identityInfo); err != nil {
+		if identity.IsErrDuplicatedIdentity(err) {
+			return identityInfo, false, nil
+		}
 		return nil, false, err
 	}
 
