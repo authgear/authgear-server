@@ -178,8 +178,9 @@ func (s *Service) SMSMessageData(msg *MessageSpec, variables *PartialTemplateVar
 	}
 
 	return &SMSMessageData{
-		Sender: sender,
-		Body:   body,
+		Sender:                    sender,
+		Body:                      body,
+		PreparedTemplateVariables: data,
 	}, nil
 }
 

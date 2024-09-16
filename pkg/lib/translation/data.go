@@ -11,8 +11,9 @@ type EmailMessageData struct {
 }
 
 type SMSMessageData struct {
-	Sender string
-	Body   *template.RenderResult
+	Sender                    string
+	Body                      *template.RenderResult
+	PreparedTemplateVariables *PreparedTemplateVariables
 }
 
 type WhatsappMessageData struct {
