@@ -19,7 +19,7 @@ var TemplateWebSettingsTOTPHTML = template.RegisterHTML(
 )
 
 type AuthflowV2SettingsTOTPViewModel struct {
-	Authenticators []*authenticator.TOTP
+	TOTPAuthenticators []*authenticator.TOTP
 }
 
 type AuthflowV2SettingsTOTPHandler struct {
@@ -52,7 +52,7 @@ func (h *AuthflowV2SettingsTOTPHandler) GetData(w http.ResponseWriter, r *http.R
 	}
 
 	vm := AuthflowV2SettingsTOTPViewModel{
-		Authenticators: totpAuthenticators,
+		TOTPAuthenticators: totpAuthenticators,
 	}
 	viewmodels.Embed(data, vm)
 

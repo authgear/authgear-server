@@ -4,12 +4,54 @@
   {{ template "authflowv2/__navbar.html"
      (dict
         "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
-        "BackHref" (call $.MakeURL "/settings")
+        "BackHref" (call $.MakeURL "/settings/mfa")
         "Title" (translate "v2.page.settings-totp.default.navbar-title" nil)
      )
   }}
 {{ end }}
 
 {{ define "page-content" }}
-TOTP
+<div>
+  {{ if $.TOTPAuthenticators }}
+    <ul>
+      {{ range $.TOTPAuthenticators }}
+        <li>
+          {{ template "authflowv2/__settings_action_item.html"
+              (dict
+                "Label" .DisplayName
+                "Description" (include "__settings_totp_item_added_at" .)
+                "ActionButton" (include "__settings_totp_item_delete_button" nil)
+              )
+          }}
+        </li>
+      {{ end }}
+    </ul>
+  {{ end }}
+
+  {{ $href := (call $.MakeURL "/settings/mfa/new_totp") }}
+  <a
+    class="settings-link-btn mt-6 block"
+    href="{{ $href }}"
+  >
+    {{ translate "v2.page.settings-totp.default.button-add-authenticator-label" nil }}
+  </a>
+</div>
+{{ end }}
+
+{{ define "__settings_totp_item_added_at" }}
+<span>
+  {{
+    translate "v2.page.settings-totp.default.added-at-label"
+      (dict
+        "time" .CreatedAt
+        "rfc3339" (rfc3339 .CreatedAt)
+      )
+  }}
+</span>
+{{ end }}
+
+{{ define "__settings_totp_item_delete_button" }}
+<button type="button">
+  <i class="material-icons text-[1.5rem] text-[var(--color-neutral-200)]">close</i>
+</button>
 {{ end }}
