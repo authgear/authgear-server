@@ -9,6 +9,7 @@ import (
 
 	goredis "github.com/go-redis/redis/v8"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
@@ -17,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
 )
 
@@ -168,6 +170,22 @@ func (c *Consumer) dequeue(ctx context.Context) (*redisqueue.Task, *deps.AppProv
 	return &task, appProvider, err
 }
 
+func (c *Consumer) process(
+	ctx context.Context,
+	task *redisqueue.Task,
+	appProvider *deps.AppProvider,
+) (result json.RawMessage, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			// Transform any panic into a saml result
+			err = panicutil.MakeError(e)
+		}
+	}()
+
+	result, err = c.taskProcessor(ctx, appProvider, task)
+	return
+}
+
 func (c *Consumer) work(ctx context.Context) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -200,12 +218,16 @@ func (c *Consumer) work(ctx context.Context) {
 
 	c.dequeueBackoff.Reset()
 
-	output, err := c.taskProcessor(ctx, appProvider, task)
-	if err != nil {
-		c.logger.WithError(err).Error("failed to process task")
-		return
-	}
+	output, err := c.process(ctx, task, appProvider)
 
+	if err != nil {
+		c.logger.WithFields(map[string]interface{}{
+			"queue_name": c.QueueName,
+			"error":      err,
+			"stack":      errorutil.Callers(8),
+		}).Error("failed to process task")
+		task.Error = apierrors.AsAPIError(err)
+	}
 	task.Status = redisqueue.TaskStatusCompleted
 	completedAt := c.clock.NowUTC()
 	task.CompletedAt = &completedAt
