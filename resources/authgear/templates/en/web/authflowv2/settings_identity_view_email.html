@@ -97,8 +97,8 @@
       (dict
         "Ctx" .
         "DialogID" $RemoveDialogID
-        "Title" (include "v2.page.settings-identity-view-email.remove.title" nil)
-        "Description" (include "v2.page.settings-identity-view-email.remove.description" 
+        "Title" (include "v2.page.settings-identity-view-email.default.remove-identity-dialog-title" nil)
+        "Description" (include "v2.page.settings-identity-view-email.default.remove-identity-dialog-description" 
           (dict 
             "target" (include "__settings_identity_view_email_inline_breakable" $.EmailIdentity.OriginalLoginID )
           )
@@ -128,5 +128,5 @@
 {{ end }}
 
 {{ define "__settings_identity_view_email_inline_breakable" }}
-  <span class="break-all">{{ . }}</span>
+  <span class="break-all"><b>{{ . }}</b></span>
 {{ end }}
