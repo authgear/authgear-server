@@ -50,7 +50,7 @@
   {{ end }}
 
   {{ if not $.CreateDisabled}}
-    {{ $href := (call $.MakeURL "/settings/identity/new_email" "q_login_id_key" $.LoginIDKey ) }}
+    {{ $href := (call $.MakeURL "/settings/identity/add_email" "q_login_id_key" $.LoginIDKey ) }}
     <a
       class="settings-link-btn"
       href="{{ $href }}"
