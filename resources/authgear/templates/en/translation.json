@@ -1137,6 +1137,7 @@
   "v2.page.settings-identity-list-username.default.navbar-title": "Username",
   "v2.page.settings-identity-phone.default.navbar-title": "Phone",
   "v2.page.settings-identity-verify-email.default.navbar-title": "Verification",
+  "v2.page.settings-identity-verify-phone.default.navbar-title": "Verification",
   "v2.page.settings-identity-view-email.default.button-edit-email-label": "Edit",
   "v2.page.settings-identity-view-email.default.button-remove-email-label": "Remove this email",
   "v2.page.settings-identity-view-email.default.button-verify-email-label": "Verify",
