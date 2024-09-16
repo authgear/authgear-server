@@ -71,7 +71,7 @@
           (dict "Verified" $.Verified)
         )
         "ActionButton" (include "settings_identity_email_edit_button"
-          (dict "Href" (call $.MakeURL "/settings/identity/edit_email" "q_identity_id" $IdentityID))
+          (dict "Href" (call $.MakeURL "/settings/identity/edit_email" "q_login_id_key" $.LoginIDKey "q_identity_id" $IdentityID))
         )
         "ExtraContent" $extraContent
       )
