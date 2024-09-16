@@ -48,96 +48,95 @@ func (i *IdentityFacade) MakeLoginIDSpec(loginIDKey string, loginID string) (*id
 }
 
 func (i *IdentityFacade) CreateIdentity(userID string, identitySpec *identity.Spec, needVerify bool) (*identity.Info, bool, error) {
+	isVerified := false
 	identityInfo, err := i.Identities.New(userID, identitySpec, identity.NewIdentityOptions{LoginIDEmailByPassBlocklistAllowlist: false})
 	if err != nil {
-		return nil, false, err
+		return nil, isVerified, err
 	}
 	createDisabled := identityInfo.CreateDisabled(i.Config.Identity)
 	if createDisabled {
-		return nil, false, api.ErrIdentityModifyDisabled
+		return nil, isVerified, api.ErrIdentityModifyDisabled
 	}
 
 	if _, err := i.Identities.CheckDuplicated(identityInfo); err != nil {
-		return nil, false, err
+		return nil, isVerified, err
 	}
 
 	if needVerify {
 		claims, err := i.Verification.GetIdentityVerificationStatus(identityInfo)
 		if err != nil {
-			return nil, false, err
+			return nil, isVerified, err
 		}
-		// if not verified, send verification code
-		if len(claims) > 0 && !claims[0].Verified {
-			return identityInfo, true, nil
+		// if verified, create identity immediately
+		if len(claims) > 0 && claims[0].Verified {
+			isVerified = true
+			if err = i.Identities.Create(identityInfo); err != nil {
+				if identity.IsErrDuplicatedIdentity(err) {
+					return identityInfo, isVerified, nil
+				}
+				return nil, isVerified, err
+			}
+			if err = i.dispatchIdentityCreatedEvent(identityInfo); err != nil {
+				return nil, isVerified, err
+			}
 		}
 	}
 
-	if err = i.Identities.Create(identityInfo); err != nil {
-		if identity.IsErrDuplicatedIdentity(err) {
-			return identityInfo, false, nil
-		}
-		return nil, false, err
-	}
-
-	if err = i.dispatchIdentityCreatedEvent(identityInfo); err != nil {
-		return nil, false, err
-	}
-
-	return identityInfo, false, nil
+	return identityInfo, isVerified, nil
 }
 
 func (i *IdentityFacade) UpdateIdentity(userID string, identityID string, identitySpec *identity.Spec, needVerify bool) (*identity.Info, bool, error) {
+	isVerified := false
 	oldInfo, err := i.Identities.Get(identityID)
 	fmt.Printf("oldInfo: %v\n", oldInfo)
 	if err != nil {
-		return nil, false, err
+		return nil, isVerified, err
 	}
 
 	if oldInfo.UserID != userID {
-		return nil, false, ErrAccountManagementIdentityNotOwnedbyToUser
+		return nil, isVerified, ErrAccountManagementIdentityNotOwnedbyToUser
 	}
 
 	newInfo, err := i.Identities.UpdateWithSpec(oldInfo, identitySpec, identity.NewIdentityOptions{
 		LoginIDEmailByPassBlocklistAllowlist: false,
 	})
 	if err != nil {
-		return nil, false, err
+		return nil, isVerified, err
 	}
 
 	updateDisabled := oldInfo.UpdateDisabled(i.Config.Identity)
 	if updateDisabled {
-		return nil, false, api.ErrIdentityModifyDisabled
+		return nil, isVerified, api.ErrIdentityModifyDisabled
 	}
 
 	if _, err := i.Identities.CheckDuplicated(newInfo); err != nil {
 		if identity.IsErrDuplicatedIdentity(err) {
 			s1 := oldInfo.ToSpec()
 			s2 := newInfo.ToSpec()
-			return nil, false, identity.NewErrDuplicatedIdentity(&s2, &s1)
+			return nil, isVerified, identity.NewErrDuplicatedIdentity(&s2, &s1)
 		}
-		return nil, false, err
+		return nil, isVerified, err
 	}
 
 	if needVerify {
 		claims, err := i.Verification.GetIdentityVerificationStatus(newInfo)
 		if err != nil {
-			return nil, false, err
+			return nil, isVerified, err
 		}
-		// if not verified, send verification code
-		if len(claims) > 0 && !claims[0].Verified {
-			return newInfo, true, nil
+		// if verified, update identity immediately
+		if len(claims) > 0 && claims[0].Verified {
+			isVerified = true
+			if err := i.Identities.Update(oldInfo, newInfo); err != nil {
+				return nil, isVerified, err
+			}
+
+			if err = i.dispatchIdentityUpdatedEvent(oldInfo, newInfo); err != nil {
+				return nil, isVerified, err
+			}
 		}
 	}
 
-	if err := i.Identities.Update(oldInfo, newInfo); err != nil {
-		return nil, false, err
-	}
-
-	if err = i.dispatchIdentityUpdatedEvent(oldInfo, newInfo); err != nil {
-		return nil, false, err
-	}
-
-	return newInfo, false, nil
+	return newInfo, isVerified, nil
 }
 
 func (i *IdentityFacade) RemoveIdentity(userID string, identityID string) (*identity.Info, error) {
@@ -260,18 +259,18 @@ func (i *IdentityFacade) StartIdentityWithVerification(resolvedSession session.R
 	// Currently only LoginID requires verification.
 	identitySpec := input.IdentitySpec
 
-	var needVerify bool
+	var isVerified bool
 	switch {
 	case input.isUpdate:
-		newInfo, needVerify, err = i.UpdateIdentity(userID, input.IdentityID, identitySpec, true)
+		newInfo, isVerified, err = i.UpdateIdentity(userID, input.IdentityID, identitySpec, true)
 	case !input.isUpdate:
-		newInfo, needVerify, err = i.CreateIdentity(userID, identitySpec, true)
+		newInfo, isVerified, err = i.CreateIdentity(userID, identitySpec, true)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	if needVerify {
+	if !isVerified {
 		err = i.SendOTPCode(&sendOTPCodeInput{
 			Channel:  input.Channel,
 			Target:   input.LoginID,
@@ -284,7 +283,7 @@ func (i *IdentityFacade) StartIdentityWithVerification(resolvedSession session.R
 
 	return &StartIdentityWithVerificationOutput{
 		IdentityInfo:     newInfo,
-		NeedVerification: needVerify,
+		NeedVerification: !isVerified,
 	}, nil
 }
 
