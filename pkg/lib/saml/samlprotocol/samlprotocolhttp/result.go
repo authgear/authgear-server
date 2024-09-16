@@ -3,17 +3,26 @@ package samlprotocolhttp
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+type SAMLResultSigner interface {
+	ConstructSignedQueryParameters(
+		samlResponse string,
+		relayState string,
+	) (url.Values, error)
+}
+
 type SAMLResult struct {
 	CallbackURL string
 	Binding     samlprotocol.SAMLBinding
 	Response    samlprotocol.Respondable
 	RelayState  string
+	Signer      SAMLResultSigner
 }
 
 func (s *SAMLResult) WriteResponse(rw http.ResponseWriter, r *http.Request) {
@@ -25,7 +34,9 @@ func (s *SAMLResult) WriteResponse(rw http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 	case samlprotocol.SAMLBindingHTTPRedirect:
-		writer := &samlbinding.SAMLBindingHTTPRedirectWriter{}
+		writer := &samlbinding.SAMLBindingHTTPRedirectWriter{
+			Signer: s.Signer,
+		}
 		err := writer.Write(rw, r, s.CallbackURL, s.Response, s.RelayState)
 		if err != nil {
 			panic(err)
