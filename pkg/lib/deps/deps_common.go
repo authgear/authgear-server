@@ -49,6 +49,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
@@ -167,7 +169,18 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		saml.DependencySet,
 
+		wire.Bind(new(samlprotocolhttp.ResultWriterSigner), new(*saml.Service)),
 		wire.Bind(new(handlersaml.HandlerSAMLService), new(*saml.Service)),
+		wire.Bind(new(samlbinding.SAMLBindingSigner), new(*saml.Service)),
+	),
+
+	wire.NewSet(
+		samlprotocolhttp.DependencySet,
+		wire.Bind(new(handlersaml.SAMLResultWriter), new(*samlprotocolhttp.ResultWriter)),
+	),
+
+	wire.NewSet(
+		samlbinding.DependencySet,
 	),
 
 	wire.NewSet(

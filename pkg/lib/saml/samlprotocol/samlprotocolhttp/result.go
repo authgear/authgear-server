@@ -2,12 +2,9 @@ package samlprotocolhttp
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type SAMLResultSigner interface {
@@ -17,44 +14,30 @@ type SAMLResultSigner interface {
 	) (url.Values, error)
 }
 
-type SAMLResult struct {
-	CallbackURL string
-	Binding     samlprotocol.SAMLBinding
-	Response    samlprotocol.Respondable
-	RelayState  string
-	Signer      SAMLResultSigner
+type SAMLResult interface {
+	GetResponse() samlprotocol.Respondable
 }
 
-func (s *SAMLResult) WriteResponse(rw http.ResponseWriter, r *http.Request) {
-	switch s.Binding {
-	case samlprotocol.SAMLBindingHTTPPost:
-		writer := &samlbinding.SAMLBindingHTTPPostWriter{}
-		err := writer.Write(rw, r, s.CallbackURL, s.Response, s.RelayState)
-		if err != nil {
-			panic(err)
-		}
-	case samlprotocol.SAMLBindingHTTPRedirect:
-		writer := &samlbinding.SAMLBindingHTTPRedirectWriter{
-			Signer: s.Signer,
-		}
-		err := writer.Write(rw, r, s.CallbackURL, s.Response, s.RelayState)
-		if err != nil {
-			panic(err)
-		}
-	default:
-		panic(fmt.Errorf("SAMLResult: unsupported binding %s", s.Binding))
-	}
+type SAMLSuccessResult struct {
+	Response samlprotocol.Respondable
 }
 
-func (s *SAMLResult) IsInternalError() bool {
-	// Not used
-	return false
+var _ SAMLResult = &SAMLSuccessResult{}
+
+func (r *SAMLSuccessResult) GetResponse() samlprotocol.Respondable {
+	return r.Response
 }
 
 type SAMLErrorResult struct {
-	SAMLResult
+	Response     samlprotocol.Respondable
 	Cause        error
 	IsUnexpected bool
+}
+
+var _ SAMLResult = &SAMLErrorResult{}
+
+func (r *SAMLErrorResult) GetResponse() samlprotocol.Respondable {
+	return r.Response
 }
 
 var _ error = &SAMLErrorResult{}
@@ -67,23 +50,21 @@ func (s *SAMLErrorResult) Unwrap() error {
 	return s.Cause
 }
 
-var _ httputil.Result = &SAMLErrorResult{}
-
 func (s *SAMLErrorResult) IsInternalError() bool {
 	return s.IsUnexpected
 }
 
-func NewExpectedSAMLErrorResult(cause error, result SAMLResult) *SAMLErrorResult {
+func NewExpectedSAMLErrorResult(cause error, response samlprotocol.Respondable) *SAMLErrorResult {
 	return &SAMLErrorResult{
-		SAMLResult:   result,
+		Response:     response,
 		Cause:        cause,
 		IsUnexpected: false,
 	}
 }
 
-func NewUnexpectedSAMLErrorResult(cause error, result SAMLResult) *SAMLErrorResult {
+func NewUnexpectedSAMLErrorResult(cause error, response samlprotocol.Respondable) *SAMLErrorResult {
 	return &SAMLErrorResult{
-		SAMLResult:   result,
+		Response:     response,
 		Cause:        cause,
 		IsUnexpected: true,
 	}
