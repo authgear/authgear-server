@@ -3,9 +3,13 @@ package authflowv2
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -16,7 +20,8 @@ var TemplateWebSettingsOOBOTPHTML = template.RegisterHTML(
 )
 
 type AuthflowV2SettingsOOBOTPViewModel struct {
-	OOBOTPType string
+	OOBOTPType           string
+	OOBOTPAuthenticators []*authenticator.OOBOTP
 }
 
 type AuthflowV2SettingsOOBOTPHandler struct {
@@ -24,6 +29,7 @@ type AuthflowV2SettingsOOBOTPHandler struct {
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
+	Authenticators    authenticatorservice.Service
 }
 
 func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
@@ -32,8 +38,28 @@ func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http
 	viewmodels.Embed(data, baseViewModel)
 
 	oc := httproute.GetParam(r, "channel")
+
+	userID := session.GetUserID(r.Context())
+	t, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
+	if err != nil {
+		return nil, err
+	}
+	authenticators, err := h.Authenticators.List(
+		*userID,
+		authenticator.KeepKind(authenticator.KindSecondary),
+		authenticator.KeepType(t),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	var OOBOTPAuthenticators []*authenticator.OOBOTP
+	for _, a := range authenticators {
+		OOBOTPAuthenticators = append(OOBOTPAuthenticators, a.OOBOTP)
+	}
 	vm := AuthflowV2SettingsOOBOTPViewModel{
-		OOBOTPType: oc,
+		OOBOTPType:           oc,
+		OOBOTPAuthenticators: OOBOTPAuthenticators,
 	}
 	viewmodels.Embed(data, vm)
 
