@@ -12,8 +12,38 @@
 
 {{ define "page-content" }}
 
-<div class="flex flex-col gap-y-6">
+<form  
+  class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
+  method="post"
+  novalidate
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm">  
+  
+  {{ template "authflowv2/__alert_message.html"
+    (dict
+      "Type" "error"
+      "Message" (include "authflowv2/__error.html" .)
+    )
+  }}
 
-</div>
+  {{ $.CSRFField }}
+
+  <input
+    class="input"
+    name="x_login_id"
+    placeholder="{{ include "v2.page.settings-identity-add-email.default.email-input-placeholder" nil }}"
+    autocomplete="username webauthn"
+    autocapitalize="none"
+  />
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    data-authgear-event="authgear.button.change_login_id"
+  >
+    {{ template "v2.component.button.default.label-save" }}
+  </button>
+</form>
 
 {{ end }}
