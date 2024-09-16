@@ -267,8 +267,8 @@ func (s *MessageSender) sendEmail(msg *PreparedMessage, opts SendOptions) error 
 	msg.email.Sender = data.Sender
 	msg.email.ReplyTo = data.ReplyTo
 	msg.email.Subject = data.Subject
-	msg.email.TextBody = data.TextBody
-	msg.email.HTMLBody = data.HTMLBody
+	msg.email.TextBody = data.TextBody.String
+	msg.email.HTMLBody = data.HTMLBody.String
 
 	return msg.email.Send()
 }
@@ -285,7 +285,7 @@ func (s *MessageSender) sendSMS(msg *PreparedMessage, opts SendOptions) error {
 	}
 
 	msg.sms.Sender = data.Sender
-	msg.sms.Body = data.Body
+	msg.sms.Body = data.Body.String
 
 	return msg.sms.Send()
 }
@@ -317,7 +317,7 @@ func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) (er
 		return
 	}
 
-	prepared, err := s.WhatsappService.PrepareOTPTemplate(language, data.Body, opts.OTP)
+	prepared, err := s.WhatsappService.PrepareOTPTemplate(language, data.Body.String, opts.OTP)
 	if err != nil {
 		return
 	}

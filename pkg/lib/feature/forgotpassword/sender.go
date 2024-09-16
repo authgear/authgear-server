@@ -111,8 +111,8 @@ func (s *Sender) Send(userID string, password string, msgType nonblocking.Messag
 		msg.email.Sender = data.Sender
 		msg.email.ReplyTo = data.ReplyTo
 		msg.email.Subject = data.Subject
-		msg.email.TextBody = data.TextBody
-		msg.email.HTMLBody = data.HTMLBody
+		msg.email.TextBody = data.TextBody.String
+		msg.email.HTMLBody = data.HTMLBody.String
 
 		if err := msg.email.Send(); err != nil {
 			return err

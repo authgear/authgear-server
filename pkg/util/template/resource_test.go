@@ -2,7 +2,6 @@ package template_test
 
 import (
 	"context"
-	htmltemplate "html/template"
 	"strings"
 	"testing"
 
@@ -39,7 +38,8 @@ func TestTemplateResource(t *testing.T) {
 				return
 			}
 
-			tpl := result.(*htmltemplate.Template)
+			h := result.(*template.HTMLTemplateEffectiveResource)
+			tpl := h.Template
 			var out strings.Builder
 			err = tpl.Execute(&out, nil)
 			if err != nil {

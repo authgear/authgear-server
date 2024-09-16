@@ -247,19 +247,6 @@ func (t languageTemplate) GetLanguageTag() string {
 
 var templateLanguageTagRegex = regexp.MustCompile("^templates/([a-zA-Z0-9-_]+)/")
 
-func viewTemplates(resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
-	switch view := rawView.(type) {
-	case resource.AppFileView:
-		return viewTemplatesAppFile(resources, view)
-	case resource.EffectiveFileView:
-		return viewTemplatesEffectiveFile(resources, view)
-	case resource.EffectiveResourceView:
-		return viewTemplatesEffectiveResource(resources, view)
-	default:
-		return nil, fmt.Errorf("unsupported view: %T", rawView)
-	}
-}
-
 func viewTemplatesAppFile(resources []resource.ResourceFile, view resource.AppFileView) (interface{}, error) {
 	// When template is viewed as AppFile,
 	// the exact file is returned.
@@ -309,7 +296,7 @@ func viewTemplatesEffectiveFile(resources []resource.ResourceFile, view resource
 	return bytes, nil
 }
 
-func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (interface{}, error) {
+func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view resource.EffectiveResourceView) (*languageTemplate, error) {
 	preferredLanguageTags := view.PreferredLanguageTags()
 	defaultLanguageTag := view.DefaultLanguageTag()
 
@@ -351,37 +338,41 @@ func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view reso
 	}
 
 	tagger := matched.(languageTemplate)
-	return tagger.data, nil
+	return &tagger, nil
 }
 
-func viewHTMLTemplates(name string, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func viewHTMLTemplates(name string, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 
-	switch view.(type) {
+	switch view := rawView.(type) {
 	case resource.AppFileView:
-		bytes, err := viewTemplates(resources, view)
+		bytes, err := viewTemplatesAppFile(resources, view)
 		if err != nil {
 			return nil, err
 		}
 		return bytes, nil
 	case resource.EffectiveFileView:
-		bytes, err := viewTemplates(resources, view)
+		bytes, err := viewTemplatesEffectiveFile(resources, view)
 		if err != nil {
 			return nil, err
 		}
 		return bytes, nil
 	case resource.EffectiveResourceView:
-		bytes, err := viewTemplates(resources, view)
+		templatesEffectiveResource, err := viewTemplatesEffectiveResource(resources, view)
 		if err != nil {
 			return nil, err
 		}
 		tpl := htmltemplate.New(name)
 		funcMap := MakeTemplateFuncMap(tpl)
 		tpl.Funcs(funcMap)
-		_, err = tpl.Parse(string(bytes.([]byte)))
+		_, err = tpl.Parse(string(templatesEffectiveResource.data))
 		if err != nil {
 			return nil, fmt.Errorf("invalid HTML template: %w", err)
 		}
-		return tpl, nil
+		return &HTMLTemplateEffectiveResource{
+			Data:        templatesEffectiveResource.data,
+			LanguageTag: templatesEffectiveResource.languageTag,
+			Template:    tpl,
+		}, nil
 	case resource.ValidateResourceView:
 		for _, resrc := range resources {
 			tpl := htmltemplate.New(name)
@@ -403,34 +394,38 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, view reso
 
 }
 
-func viewTextTemplates(name string, resources []resource.ResourceFile, view resource.View) (interface{}, error) {
+func viewTextTemplates(name string, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
 
-	switch view.(type) {
+	switch view := rawView.(type) {
 	case resource.AppFileView:
-		bytes, err := viewTemplates(resources, view)
+		bytes, err := viewTemplatesAppFile(resources, view)
 		if err != nil {
 			return nil, err
 		}
 		return bytes, nil
 	case resource.EffectiveFileView:
-		bytes, err := viewTemplates(resources, view)
+		bytes, err := viewTemplatesEffectiveFile(resources, view)
 		if err != nil {
 			return nil, err
 		}
 		return bytes, nil
 	case resource.EffectiveResourceView:
-		bytes, err := viewTemplates(resources, view)
+		templatesEffectiveResource, err := viewTemplatesEffectiveResource(resources, view)
 		if err != nil {
 			return nil, err
 		}
 		tpl := texttemplate.New(name)
 		funcMap := MakeTemplateFuncMap(tpl)
 		tpl.Funcs(funcMap)
-		_, err = tpl.Parse(string(bytes.([]byte)))
+		_, err = tpl.Parse(string(templatesEffectiveResource.data))
 		if err != nil {
-			return nil, fmt.Errorf("invalid text template: %w", err)
+			return nil, fmt.Errorf("invalid HTML template: %w", err)
 		}
-		return tpl, nil
+		return &TextTemplateEffectiveResource{
+			Data:        templatesEffectiveResource.data,
+			LanguageTag: templatesEffectiveResource.languageTag,
+			Template:    tpl,
+		}, nil
 	case resource.ValidateResourceView:
 		for _, resrc := range resources {
 			tpl := texttemplate.New(name)
