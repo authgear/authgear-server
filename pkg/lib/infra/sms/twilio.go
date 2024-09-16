@@ -31,18 +31,18 @@ func NewTwilioClient(c *config.TwilioCredentials) *TwilioClient {
 	}
 }
 
-func (t *TwilioClient) Send(from string, to string, body string) error {
+func (t *TwilioClient) Send(opts SendOptions) error {
 	if t.TwilioClient == nil {
 		return ErrMissingTwilioConfiguration
 	}
 
 	params := &api.CreateMessageParams{}
-	params.SetBody(body)
-	params.SetTo(to)
+	params.SetBody(opts.Body)
+	params.SetTo(opts.To)
 	if t.MessagingServiceSID != "" {
 		params.SetMessagingServiceSid(t.MessagingServiceSID)
 	} else {
-		params.SetFrom(from)
+		params.SetFrom(opts.Sender)
 	}
 
 	_, err := t.TwilioClient.Api.CreateMessage(params)

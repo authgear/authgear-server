@@ -22,7 +22,7 @@ type SendOptions struct {
 }
 
 type RawClient interface {
-	Send(from string, to string, body string) error
+	Send(opts SendOptions) error
 }
 
 type Logger struct{ *log.Logger }
@@ -104,7 +104,7 @@ func (c *Client) Send(opts SendOptions) error {
 		client = availableClients[0]
 	}
 
-	return client.Send(opts.Sender, opts.To, opts.Body)
+	return client.Send(opts)
 }
 
 func (c *Client) testModeSend(opts SendOptions) {
