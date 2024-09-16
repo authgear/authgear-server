@@ -29,6 +29,7 @@ func ConfigureAuthflowV2SettingsIdentityChangePrimaryPhoneRoute(route httproute.
 }
 
 type AuthflowV2SettingsIdentityChangePrimaryPhoneViewModel struct {
+	LoginIDKey      string
 	PhoneIdentities []*identity.LoginID
 }
 
@@ -45,6 +46,8 @@ type AuthflowV2SettingsIdentityChangePrimaryPhoneHandler struct {
 
 func (h *AuthflowV2SettingsIdentityChangePrimaryPhoneHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
+
+	loginIDKey := r.Form.Get("q_login_id_key")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
@@ -70,6 +73,7 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryPhoneHandler) GetData(r *http.Re
 	}
 
 	vm := AuthflowV2SettingsIdentityListPhoneViewModel{
+		LoginIDKey:      loginIDKey,
 		PhoneIdentities: phoneIdentities,
 	}
 	viewmodels.Embed(data, vm)
