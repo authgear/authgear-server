@@ -1205,6 +1205,7 @@
   "v2.page.settings-profile.default.navbar-title": "個人資料",
   "v2.page.settings-profile.default.profile-picture-title": "頭像",
   "v2.page.settings-profile.default.zoneinfo-title": "時區",
+  "v2.page.settings-totp.default.navbar-title": "驗證器應用程式／裝置",
   "v2.page.settings.default.button-label-advanced-settings": "進階設定",
   "v2.page.settings.default.button-label-and-more": "{item} 還有更多",
   "v2.page.settings.default.button-label-back-to-app": "返回我的App",

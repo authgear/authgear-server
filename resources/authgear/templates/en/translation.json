@@ -1205,6 +1205,7 @@
   "v2.page.settings-profile.default.navbar-title": "Profile",
   "v2.page.settings-profile.default.profile-picture-title": "Profile Picture",
   "v2.page.settings-profile.default.zoneinfo-title": "Timezone",
+  "v2.page.settings-totp.default.navbar-title": "Authenticator app/device",
   "v2.page.settings.default.button-label-advanced-settings": "Advanced Settings",
   "v2.page.settings.default.button-label-and-more": "{item} and more",
   "v2.page.settings.default.button-label-back-to-app": "Back to my app",
