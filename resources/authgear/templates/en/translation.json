@@ -1119,6 +1119,7 @@
   "v2.page.select-account.default.title": "Log in to {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Use another account",
   "v2.page.settings-change-password.default.navbar-title": "Change Password",
+  "v2.page.settings-identity-add-email.default.navbar-title": "Add New Email",
   "v2.page.settings-identity-change-primary-email.default.navbar-title": "Primary Email",
   "v2.page.settings-identity-email.default.navbar-title": "Email",
   "v2.page.settings-identity-email.default.not-verified-label": "Not Verified",
