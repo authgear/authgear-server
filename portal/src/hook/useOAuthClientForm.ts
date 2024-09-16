@@ -49,36 +49,39 @@ function constructConfig(
   currentState: FormState,
   _effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
-  const newConfig = produce(config, (config) => {
-    config.oauth ??= {};
-    config.oauth.clients = currentState.clients.slice();
+  const [newConfig, _] = produce(
+    [config, currentState],
+    ([config, currentState]) => {
+      config.oauth ??= {};
+      config.oauth.clients = currentState.clients;
 
-    if (currentState.removeClientByID) {
-      config.oauth.clients = config.oauth.clients.filter(
-        (c) => c.client_id !== currentState.removeClientByID
-      );
-      clearEmptyObject(config);
-      return;
-    }
-
-    const client = currentState.editedClient;
-    if (client) {
-      const index = config.oauth.clients.findIndex(
-        (c) => c.client_id === client.client_id
-      );
-      if (
-        index !== -1 &&
-        !deepEqual(
-          getReducedClientConfig(client),
-          getReducedClientConfig(config.oauth.clients[index]),
-          { strict: true }
-        )
-      ) {
-        config.oauth.clients[index] = createDraft(client);
+      if (currentState.removeClientByID) {
+        config.oauth.clients = config.oauth.clients.filter(
+          (c) => c.client_id !== currentState.removeClientByID
+        );
+        clearEmptyObject(config);
+        return;
       }
+
+      const client = currentState.editedClient;
+      if (client) {
+        const index = config.oauth.clients.findIndex(
+          (c) => c.client_id === client.client_id
+        );
+        if (
+          index !== -1 &&
+          !deepEqual(
+            getReducedClientConfig(client),
+            getReducedClientConfig(config.oauth.clients[index]),
+            { strict: true }
+          )
+        ) {
+          config.oauth.clients[index] = createDraft(client);
+        }
+      }
+      clearEmptyObject(config);
     }
-    clearEmptyObject(config);
-  });
+  );
   return [newConfig, secrets];
 }
 

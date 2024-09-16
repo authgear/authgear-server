@@ -74,14 +74,18 @@ function constructFormState(config: PortalAPIAppConfig): FormState {
 
 function constructConfig(
   config: PortalAPIAppConfig,
-  _: FormState,
+  _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
-  return produce(config, (config) => {
-    config.oauth ??= {};
-    config.oauth.clients = currentState.clients;
-    clearEmptyObject(config);
-  });
+  const [newConfig, _] = produce(
+    [config, currentState],
+    ([config, currentState]) => {
+      config.oauth ??= {};
+      config.oauth.clients = currentState.clients;
+      clearEmptyObject(config);
+    }
+  );
+  return newConfig;
 }
 
 function makeOAuthClientListColumns(
