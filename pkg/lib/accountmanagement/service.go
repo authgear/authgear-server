@@ -264,7 +264,15 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	return &FinishAddingOutput{}, nil
 }
 
-func (s *Service) StartCreateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (*StartCreateIdentityWithVerificationOutput, error) {
+func (s *Service) StartCreateEmailIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (*StartCreateIdentityWithVerificationOutput, error) {
+	return s.startCreateIdentityWithVerification(resolvedSession, input)
+}
+
+func (s *Service) StartCreatePhoneNumberIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (*StartCreateIdentityWithVerificationOutput, error) {
+	return s.startCreateIdentityWithVerification(resolvedSession, input)
+}
+
+func (s *Service) startCreateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (*StartCreateIdentityWithVerificationOutput, error) {
 	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
 	if err != nil {
 		return nil, err
@@ -320,7 +328,15 @@ func (s *Service) StartCreateIdentityWithVerification(resolvedSession session.Re
 	}, nil
 }
 
-func (s *Service) StartUpdateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (*StartUpdateIdentityWithVerificationOutput, error) {
+func (s *Service) StartUpdateEmailIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (*StartUpdateIdentityWithVerificationOutput, error) {
+	return s.startUpdateIdentityWithVerification(resolvedSession, input)
+}
+
+func (s *Service) StartUpdatePhoneNumberIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (*StartUpdateIdentityWithVerificationOutput, error) {
+	return s.startUpdateIdentityWithVerification(resolvedSession, input)
+}
+
+func (s *Service) startUpdateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (*StartUpdateIdentityWithVerificationOutput, error) {
 	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
 	if err != nil {
 		return nil, err
@@ -379,7 +395,23 @@ func (s *Service) StartUpdateIdentityWithVerification(resolvedSession session.Re
 	}, nil
 }
 
-func (s *Service) ResumeAddingIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (output *ResumeAddingIdentityWithVerificationOutput, err error) {
+func (s *Service) ResumeCreatingEmailIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (*ResumeAddingIdentityWithVerificationOutput, error) {
+	return s.resumeAddingIdentityWithVerification(resolvedSession, input)
+}
+
+func (s *Service) ResumeCreatingPhoneNumberIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (*ResumeAddingIdentityWithVerificationOutput, error) {
+	return s.resumeAddingIdentityWithVerification(resolvedSession, input)
+}
+
+func (s *Service) ResumeUpdatingEmailIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (*ResumeAddingIdentityWithVerificationOutput, error) {
+	return s.resumeAddingIdentityWithVerification(resolvedSession, input)
+}
+
+func (s *Service) ResumeUpdatingPhoneNumberIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (*ResumeAddingIdentityWithVerificationOutput, error) {
+	return s.resumeAddingIdentityWithVerification(resolvedSession, input)
+}
+
+func (s *Service) resumeAddingIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (output *ResumeAddingIdentityWithVerificationOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	token, err := s.Store.GetToken(input.Token)
 	if err != nil {
