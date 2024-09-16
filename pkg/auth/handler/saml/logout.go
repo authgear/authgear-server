@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 )
@@ -33,6 +32,8 @@ type LogoutHandler struct {
 	Clock       clock.Clock
 	SAMLConfig  *config.SAMLConfig
 	SAMLService HandlerSAMLService
+
+	ResultWriter SAMLResultWriter
 }
 
 func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -57,19 +58,21 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 	}()
 
-	result := h.handleSLORequest(r, sp, callbackURL, responseBinding)
-	h.writeResult(rw, r, result)
+	relayState, result := h.handleSLORequest(r, sp, callbackURL)
+	h.writeResult(rw, r, result, &samlprotocolhttp.WriteOptions{
+		Binding:     responseBinding,
+		CallbackURL: callbackURL,
+		RelayState:  relayState,
+	})
 }
 
 func (h *LogoutHandler) handleSLORequest(
 	r *http.Request,
 	sp *config.SAMLServiceProviderConfig,
 	callbackURL string,
-	responseBinding samlprotocol.SAMLBinding,
-) httputil.Result {
+) (relayState string, result samlprotocolhttp.SAMLResult) {
 	now := h.Logger.Time.UTC()
 	var parseResult samlbinding.SAMLBindingParseResult
-	var relayState string
 	var logoutRequest *samlprotocol.LogoutRequest
 
 	// Get data with corresponding binding
@@ -117,23 +120,16 @@ func (h *LogoutHandler) handleSLORequest(
 	if err != nil {
 		var parseRequestFailedErr *samlerror.ParseRequestFailedError
 		if errors.As(err, &parseRequestFailedErr) {
-			return samlprotocolhttp.NewExpectedSAMLErrorResult(err,
-				samlprotocolhttp.SAMLResult{
-					CallbackURL: callbackURL,
-					Binding:     responseBinding,
-					Response: samlprotocol.NewRequestDeniedErrorResponse(
-						now,
-						h.SAMLService.IdpEntityID(),
-						"failed to parse SAMLRequest",
-						parseRequestFailedErr.GetDetailElements(),
-					),
-				},
+			return relayState, samlprotocolhttp.NewExpectedSAMLErrorResult(err,
+				samlprotocol.NewRequestDeniedErrorResponse(
+					now,
+					h.SAMLService.IdpEntityID(),
+					"failed to parse SAMLRequest",
+					parseRequestFailedErr.GetDetailElements(),
+				),
 			)
 		} else {
-			return h.makeUnknownErrorResult(
-				callbackURL,
-				responseBinding,
-				relayState,
+			return relayState, h.makeUnknownErrorResult(
 				err,
 			)
 		}
@@ -162,24 +158,16 @@ func (h *LogoutHandler) handleSLORequest(
 	if err != nil {
 		var invalidSignatureErr *samlerror.InvalidSignatureError
 		if errors.As(err, &invalidSignatureErr) {
-			return samlprotocolhttp.NewExpectedSAMLErrorResult(err,
-				samlprotocolhttp.SAMLResult{
-					CallbackURL: callbackURL,
-					Binding:     samlprotocol.SAMLBindingHTTPPost,
-					Response: samlprotocol.NewRequestDeniedErrorResponse(
-						now,
-						h.SAMLService.IdpEntityID(),
-						"invalid signature",
-						invalidSignatureErr.GetDetailElements(),
-					),
-					RelayState: relayState,
-				},
+			return relayState, samlprotocolhttp.NewExpectedSAMLErrorResult(err,
+				samlprotocol.NewRequestDeniedErrorResponse(
+					now,
+					h.SAMLService.IdpEntityID(),
+					"invalid signature",
+					invalidSignatureErr.GetDetailElements(),
+				),
 			)
 		} else {
-			return h.makeUnknownErrorResult(
-				callbackURL,
-				responseBinding,
-				relayState,
+			return relayState, h.makeUnknownErrorResult(
 				err,
 			)
 		}
@@ -191,40 +179,24 @@ func (h *LogoutHandler) handleSLORequest(
 		logoutRequest,
 	)
 	if err != nil {
-		return h.makeUnknownErrorResult(
-			callbackURL,
-			responseBinding,
-			relayState,
+		return relayState, h.makeUnknownErrorResult(
 			err,
 		)
 	}
 
-	return &samlprotocolhttp.SAMLResult{
-		CallbackURL: callbackURL,
-		Binding:     responseBinding,
-		Response:    response,
-		RelayState:  relayState,
-		// TODO(tung): Refactor the code to inject the signer automatically
-		Signer: h.SAMLService,
+	return relayState, &samlprotocolhttp.SAMLSuccessResult{
+		Response: response,
 	}
 }
 
 func (h *LogoutHandler) makeUnknownErrorResult(
-	callbackURL string,
-	responseBinding samlprotocol.SAMLBinding,
-	relayState string,
 	err any,
 ) *samlprotocolhttp.SAMLErrorResult {
 	now := h.Logger.Time.UTC()
 	e := panicutil.MakeError(err)
 
 	return samlprotocolhttp.NewUnexpectedSAMLErrorResult(e,
-		samlprotocolhttp.SAMLResult{
-			CallbackURL: callbackURL,
-			Binding:     responseBinding,
-			Response:    samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
-			RelayState:  relayState,
-		},
+		samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
 	)
 
 }
@@ -237,17 +209,19 @@ func (h *LogoutHandler) handleUnknownError(
 	err any,
 ) {
 	result := h.makeUnknownErrorResult(
-		callbackURL,
-		responseBinding,
-		relayState,
 		err,
 	)
-	h.writeResult(rw, r, result)
+	h.writeResult(rw, r, result, &samlprotocolhttp.WriteOptions{
+		Binding:     responseBinding,
+		CallbackURL: callbackURL,
+		RelayState:  relayState,
+	})
 }
 
 func (h *LogoutHandler) writeResult(
 	rw http.ResponseWriter, r *http.Request,
-	result httputil.Result,
+	result samlprotocolhttp.SAMLResult,
+	options *samlprotocolhttp.WriteOptions,
 ) {
 	switch result := result.(type) {
 	case *samlprotocolhttp.SAMLErrorResult:
@@ -257,5 +231,8 @@ func (h *LogoutHandler) writeResult(
 			h.Logger.WithError(result).Warnln("saml logout failed with expected error")
 		}
 	}
-	result.WriteResponse(rw, r)
+	err := h.ResultWriter.Write(rw, r, result, options)
+	if err != nil {
+		panic(err)
+	}
 }

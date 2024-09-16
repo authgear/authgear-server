@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/beevik/etree"
+
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
-	"github.com/beevik/etree"
 )
 
 type SAMLBindingHTTPRedirectParseResult struct {
