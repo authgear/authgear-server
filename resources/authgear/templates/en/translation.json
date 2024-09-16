@@ -1122,6 +1122,7 @@
   "v2.page.settings-identity-add-email.default.email-input-placeholder": "New Email Address",
   "v2.page.settings-identity-add-email.default.navbar-title": "Add New Email",
   "v2.page.settings-identity-add-phone.default.navbar-title": "Add New Phone",
+  "v2.page.settings-identity-add-phone.default.phone-input-placeholder": "Phone Number",
   "v2.page.settings-identity-change-primary-email.default.navbar-title": "Primary Email",
   "v2.page.settings-identity-change-primary-phone.default.navbar-title": "Primary Phone",
   "v2.page.settings-identity-edit-email.default.description": "Your current email is {target}",

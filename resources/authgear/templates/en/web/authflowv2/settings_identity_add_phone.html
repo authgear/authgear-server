@@ -12,8 +12,47 @@
 
 {{ define "page-content" }}
 
-<div class="flex flex-col gap-y-6">
+<form  
+  class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
+  method="post"
+  novalidate
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm">  
 
-</div>
+  {{ $display_error := false }}
+  {{ if $.Error }}
+    {{ $display_error = true }}
+  {{ end }}
+  
+  {{ template "authflowv2/__alert_message.html"
+    (dict
+      "Type" "error"
+      "Message" (include "authflowv2/__error.html" .)
+    )
+  }}
+
+  {{ $.CSRFField }}
+
+  {{ template "authflowv2/__phone_input.html"
+    (dict
+      "Placeholder" (include "v2.page.settings-identity-add-phone.default.phone-input-placeholder" nil)
+      "IsError" $display_error
+      "AutoFocus" $.ShouldFocusInput
+      "PhoneInputAttrs" `
+        data-text-field-target="input"
+      `
+      "InputName" "x_login_id"
+    )
+  }}
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    data-authgear-event="authgear.button.change_login_id"
+  >
+    {{ template "v2.component.button.default.label-save" }}
+  </button>
+</form>
 
 {{ end }}
