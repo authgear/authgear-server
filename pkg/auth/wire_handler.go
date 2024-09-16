@@ -499,6 +499,13 @@ func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handle
 	))
 }
 
+func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsOOBOTPHandler)),
+	))
+}
+
 func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

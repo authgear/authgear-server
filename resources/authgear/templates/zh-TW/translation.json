@@ -1171,6 +1171,8 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "您有{NumberOfDeviceTokens, plural, one{#個受信任裝置} other{#個受信任裝置}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "受信任裝置",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "您沒有任何可以跳過兩個步驟驗證的受信任裝置。",
+  "v2.page.settings-oob-otp-email.default.navbar-title": "電子郵件",
+  "v2.page.settings-oob-otp-sms.default.navbar-title": "WhatsApp/短信訊息",
   "v2.page.settings-profile-edit-address.default.country-label": "國家",
   "v2.page.settings-profile-edit-address.default.locality-label": "城市",
   "v2.page.settings-profile-edit-address.default.navbar-title": "地址",

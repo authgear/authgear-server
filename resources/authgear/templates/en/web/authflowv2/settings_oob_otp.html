@@ -1,0 +1,19 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ $title := (translate "v2.page.settings-oob-otp-sms.default.navbar-title" nil) }}
+  {{ if eq $.OOBOTPType "email" }}
+    {{ $title = (translate "v2.page.settings-oob-otp-email.default.navbar-title" nil) }}
+  {{ end }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/mfa")
+        "Title" $title
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+OOB OTP
+{{ end }}
