@@ -63,7 +63,19 @@ type startIdentityWithVerificationInput struct {
 }
 
 type StartIdentityWithVerificationOutput struct {
+	IdentityInfo     *identity.Info
+	NeedVerification bool
+}
+
+type StartCreateIdentityWithVerificationOutput struct {
 	Token            string
+	IdentityInfo     *identity.Info
+	NeedVerification bool
+}
+
+type StartUpdateIdentityWithVerificationOutput struct {
+	Token            string
+	IdentityInfo     *identity.Info
 	NeedVerification bool
 }
 
@@ -80,17 +92,51 @@ type ResumeAddingIdentityWithVerificationOutput struct {
 
 type verifyIdentityInput struct {
 	UserID       string
-	Token        string
+	Token        *Token
 	Channel      model.AuthenticatorOOBChannel
 	Code         string
 	IdentityInfo *identity.Info
+}
+
+type AddIdentityEmailWithVerificationInput struct {
+	LoginID    string
+	LoginIDKey string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
+}
+
+type AddIdentityPhoneNumberWithVerificationInput struct {
+	LoginID    string
+	LoginIDKey string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
+}
+
+type UpdateIdentityEmailWithVerificationInput struct {
+	LoginID    string
+	LoginIDKey string
+	IdentityID string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
+}
+
+type UpdateIdentityPhoneNumberWithVerificationInput struct {
+	LoginID    string
+	LoginIDKey string
+	IdentityID string
+	Code       string
+	Token      string
+	Channel    model.AuthenticatorOOBChannel
 }
 
 type CreateIdentityWithVerificationInput struct {
 	LoginID    string
 	LoginIDKey string
 	Code       string
-	Token      string
+	Token      *Token
 	Channel    model.AuthenticatorOOBChannel
 }
 
@@ -103,7 +149,7 @@ type UpdateIdentityWithVerificationInput struct {
 	LoginIDKey string
 	IdentityID string
 	Code       string
-	Token      string
+	Token      *Token
 	Channel    model.AuthenticatorOOBChannel
 }
 

@@ -3,14 +3,12 @@ package accountmanagement
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 
 	"time"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -25,7 +23,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
@@ -73,6 +70,10 @@ type IdentityAction interface {
 	UpdateIdentity(userID string, identityID string, identitySpec *identity.Spec, needVerify bool) (*identity.Info, bool, error)
 	RemoveIdentity(userID string, identityID string) (*identity.Info, error)
 	MakeLoginIDSpec(loginIDKey string, loginID string) (*identity.Spec, error)
+	SendOTPCode(input *sendOTPCodeInput) error
+	StartIdentityWithVerification(resolvedSession session.ResolvedSession, input *startIdentityWithVerificationInput) (output *StartIdentityWithVerificationOutput, err error)
+	CreateIdentityWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error)
+	UpdateIdentityWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error)
 }
 
 type EventService interface {
@@ -131,106 +132,6 @@ type Service struct {
 	AuthenticationInfoService AuthenticationInfoService
 	PasskeyService            PasskeyService
 	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
-	OTPSender                 OTPSender
-	OTPCodeService            OTPCodeService
-	Verification              VerificationService
-}
-
-func (s *Service) verifyIdentity(input *verifyIdentityInput) (verifiedClaim *verification.Claim, err error) {
-	defer func() {
-		if err == nil {
-			_, err = s.Store.ConsumeToken(input.Token)
-		}
-	}()
-
-	token, err := s.Store.GetToken(input.Token)
-	err = token.CheckUser(input.UserID)
-	if err != nil {
-		return nil, err
-	}
-
-	var loginIDValue string
-	var loginIDType model.LoginIDKeyType
-	switch {
-	case token.IdentityToken.Email != "":
-		loginIDValue = token.IdentityToken.Email
-		loginIDType = model.LoginIDKeyTypeEmail
-	case token.IdentityToken.PhoneNumber != "":
-		loginIDValue = token.IdentityToken.PhoneNumber
-		loginIDType = model.LoginIDKeyTypePhone
-	default:
-		return nil, ErrAccountManagementTokenInvalid
-	}
-
-	err = s.OTPCodeService.VerifyOTP(
-		otp.KindVerification(s.Config, input.Channel),
-		loginIDValue,
-		input.Code,
-		&otp.VerifyOptions{UserID: input.UserID},
-	)
-	if apierrors.IsKind(err, otp.InvalidOTPCode) {
-		return nil, verification.ErrInvalidVerificationCode
-	} else if err != nil {
-		return nil, err
-	}
-
-	var claimName model.ClaimName
-	claimName, ok := model.GetLoginIDKeyTypeClaim(loginIDType)
-	if !ok {
-		panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
-	}
-
-	verifiedClaim = s.Verification.NewVerifiedClaim(input.UserID, string(claimName), loginIDValue)
-
-	// NodeDoVerifyIdentity GetEffects()
-	err = s.Verification.MarkClaimVerified(verifiedClaim)
-	if err != nil {
-		return nil, err
-	}
-
-	return verifiedClaim, nil
-}
-
-func (s *Service) sendOTPCode(input *sendOTPCodeInput) error {
-	var msgType otp.MessageType
-	switch input.Channel {
-	case model.AuthenticatorOOBChannelWhatsapp:
-		msgType = otp.MessageTypeWhatsappCode
-	case model.AuthenticatorOOBChannelSMS:
-		msgType = otp.MessageTypeVerification
-	case model.AuthenticatorOOBChannelEmail:
-		msgType = otp.MessageTypeVerification
-	default:
-		panic(fmt.Errorf("accountmanagement: unknown channel"))
-	}
-
-	msg, err := s.OTPSender.Prepare(input.Channel, input.Target, otp.FormCode, msgType)
-	if !input.isResend && apierrors.IsKind(err, ratelimit.RateLimited) {
-		return nil
-	} else if err != nil {
-		return err
-	}
-	defer msg.Close()
-
-	code, err := s.OTPCodeService.GenerateOTP(
-		otp.KindVerification(s.Config, input.Channel),
-		input.Target,
-		otp.FormCode,
-		&otp.GenerateOptions{},
-	)
-	// If it is not resend (switch between page), we should not send and return rate limit error to the caller.
-	if !input.isResend && apierrors.IsKind(err, ratelimit.RateLimited) {
-		return nil
-	} else if err != nil {
-		return err
-	}
-
-	err = s.OTPSender.Send(msg, otp.SendOptions{OTP: code})
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
@@ -363,87 +264,94 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	return &FinishAddingOutput{}, nil
 }
 
-func (s *Service) StartCreateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (output *StartIdentityWithVerificationOutput, err error) {
-	return s.startIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
+func (s *Service) StartCreateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (*StartCreateIdentityWithVerificationOutput, error) {
+	output, err := s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
 		Channel:    input.Channel,
 		isUpdate:   false,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	if !output.NeedVerification {
+		return &StartCreateIdentityWithVerificationOutput{
+			IdentityInfo:     output.IdentityInfo,
+			NeedVerification: false,
+		}, nil
+	}
+
+	var token string
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	loginIDType := output.IdentityInfo.LoginID.LoginIDType
+
+	switch loginIDType {
+	case model.LoginIDKeyTypeEmail:
+		token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			UserID: userID,
+			Email:  input.LoginID,
+		})
+	case model.LoginIDKeyTypePhone:
+		token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			UserID:      userID,
+			PhoneNumber: input.LoginID,
+		})
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &StartCreateIdentityWithVerificationOutput{
+		Token:            token,
+		IdentityInfo:     output.IdentityInfo,
+		NeedVerification: output.NeedVerification,
+	}, nil
 }
 
-func (s *Service) StartUpdateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (output *StartIdentityWithVerificationOutput, err error) {
-	return s.startIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
+func (s *Service) StartUpdateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (*StartUpdateIdentityWithVerificationOutput, error) {
+	output, err := s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
 		Channel:    input.Channel,
 		IdentityID: input.IdentityID,
 		isUpdate:   true,
 	})
-}
-
-func (s *Service) startIdentityWithVerification(resolvedSession session.ResolvedSession, input *startIdentityWithVerificationInput) (output *StartIdentityWithVerificationOutput, err error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	var token string
-
-	var newInfo *identity.Info
-
-	// Currently only LoginID requires verification.
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
-
-	var needVerify bool
-	err = s.Database.WithTx(func() error {
-		switch {
-		case input.isUpdate:
-			newInfo, needVerify, err = s.IdentityAction.UpdateIdentity(userID, input.IdentityID, identitySpec, true)
-		case !input.isUpdate:
-			newInfo, needVerify, err = s.IdentityAction.CreateIdentity(userID, identitySpec, true)
-		}
-		if err != nil {
-			return err
-		}
-
-		if !needVerify {
-			// Already Create / Update, we can skip send OTP code.
-			return nil
-		}
-
-		loginIDType := newInfo.LoginID.LoginIDType
-		switch loginIDType {
-		case model.LoginIDKeyTypeEmail:
-			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID:     userID,
-				Email:      input.LoginID,
-				IdentityID: input.IdentityID,
-			})
-		case model.LoginIDKeyTypePhone:
-			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID:      userID,
-				PhoneNumber: input.LoginID,
-				IdentityID:  input.IdentityID,
-			})
-		}
-		if err != nil {
-			return err
-		}
-
-		err = s.sendOTPCode(&sendOTPCodeInput{
-			Channel:  input.Channel,
-			Target:   input.LoginID,
-			isResend: false,
-		})
-		if err != nil {
-			return err
-		}
-		return nil
-	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &StartIdentityWithVerificationOutput{
+	if !output.NeedVerification {
+		return &StartUpdateIdentityWithVerificationOutput{
+			IdentityInfo:     output.IdentityInfo,
+			NeedVerification: false,
+		}, nil
+	}
+
+	var token string
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	loginIDType := output.IdentityInfo.LoginID.LoginIDType
+
+	switch loginIDType {
+	case model.LoginIDKeyTypeEmail:
+		token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			UserID:     userID,
+			Email:      input.LoginID,
+			IdentityID: input.IdentityID,
+		})
+	case model.LoginIDKeyTypePhone:
+		token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			UserID:      userID,
+			PhoneNumber: input.LoginID,
+			IdentityID:  input.IdentityID,
+		})
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &StartUpdateIdentityWithVerificationOutput{
 		Token:            token,
-		NeedVerification: needVerify,
+		IdentityInfo:     output.IdentityInfo,
+		NeedVerification: output.NeedVerification,
 	}, nil
 }
 
@@ -484,7 +392,7 @@ func (s *Service) ResumeAddingIdentityWithVerification(resolvedSession session.R
 func (s *Service) ResendOTPCode(input *ResendOTPCodeInput) (err error) {
 	// Either it is a switch page or resend
 	isResend := !input.isSwitchPage
-	err = s.sendOTPCode(&sendOTPCodeInput{
+	err = s.IdentityAction.SendOTPCode(&sendOTPCodeInput{
 		Channel:  input.Channel,
 		Target:   input.LoginID,
 		isResend: isResend,
@@ -859,129 +767,49 @@ func (s *Service) RemoveIdentityUsername(resolvedSession session.ResolvedSession
 	return &RemoveIdentityUsernameOutput{IdentityInfo: identityInfo}, nil
 }
 
-func (s *Service) dispatchVerifyIdentityEvent(identityInfo *identity.Info, verifiedClaim *verification.Claim) error {
-	var e event.Payload
-	if payload, ok := nonblocking.NewIdentityVerifiedEventPayload(
-		model.UserRef{
-			Meta: model.Meta{
-				ID: identityInfo.UserID,
-			},
-		},
-		identityInfo.ToModel(),
-		string(verifiedClaim.Name),
-		false,
-	); ok {
-		e = payload
-	}
-
-	if e != nil {
-		if err := s.Events.DispatchEventOnCommit(e); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (s *Service) createIdentityWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error) {
+func (s *Service) AddIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *AddIdentityEmailWithVerificationInput) (output *CreateIdentityWithVerificationOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	loginID := input.LoginID
-	loginIDKey := input.LoginIDKey
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(input.Token)
+		}
+	}()
 
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(loginIDKey, loginID)
+	token, err := s.Store.GetToken(input.Token)
+	err = token.CheckUser(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	var identityInfo *identity.Info
-	err = s.Database.WithTx(func() error {
-		verifiedClaim, err := s.verifyIdentity(&verifyIdentityInput{
-			UserID:  userID,
-			Token:   input.Token,
-			Channel: input.Channel,
-			Code:    input.Code,
-		})
-		if err != nil {
-			return err
-		}
-
-		// Create identity after verification
-		identityInfo, _, err = s.IdentityAction.CreateIdentity(userID, identitySpec, false)
-		if err != nil {
-			return err
-		}
-
-		err = s.dispatchVerifyIdentityEvent(identityInfo, verifiedClaim)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &CreateIdentityWithVerificationOutput{IdentityInfo: identityInfo}, nil
-}
-
-func (s *Service) updateIdentityWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	loginID := input.LoginID
-	loginIDKey := input.LoginIDKey
-	identityID := input.IdentityID
-
-	var identityInfo *identity.Info
-	err := s.Database.WithTx(func() error {
-		verifiedClaim, err := s.verifyIdentity(&verifyIdentityInput{
-			UserID:  userID,
-			Token:   input.Token,
-			Channel: input.Channel,
-			Code:    input.Code,
-		})
-		if err != nil {
-			return err
-		}
-
-		identitySpec, err := s.IdentityAction.MakeLoginIDSpec(loginIDKey, loginID)
-		if err != nil {
-			return err
-		}
-
-		identityInfo, _, err = s.IdentityAction.UpdateIdentity(userID, identityID, identitySpec, false)
-		if err != nil {
-			return err
-		}
-
-		err = s.dispatchVerifyIdentityEvent(identityInfo, verifiedClaim)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &UpdateIdentityWithVerificationOutput{IdentityInfo: identityInfo}, nil
-}
-
-func (s *Service) AddIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error) {
-	return s.createIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
+	return s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
 		Code:       input.Code,
 		Channel:    input.Channel,
-		Token:      input.Token,
+		Token:      token,
 	})
 }
 
-func (s *Service) UpdateIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error) {
-	return s.updateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
+func (s *Service) UpdateIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityEmailWithVerificationInput) (output *UpdateIdentityWithVerificationOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(input.Token)
+		}
+	}()
+
+	token, err := s.Store.GetToken(input.Token)
+	err = token.CheckUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
 		IdentityID: input.IdentityID,
 		Code:       input.Code,
 		Channel:    input.Channel,
-		Token:      input.Token,
+		Token:      token,
 	})
 }
 
@@ -1004,24 +832,49 @@ func (s *Service) RemoveIdentityEmail(resolvedSession session.ResolvedSession, i
 	return &RemoveIdentityEmailOutput{IdentityInfo: identityInfo}, nil
 }
 
-func (s *Service) AddIdentityPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error) {
-	return s.createIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
+func (s *Service) AddIdentityPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *AddIdentityPhoneNumberWithVerificationInput) (output *CreateIdentityWithVerificationOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(input.Token)
+		}
+	}()
+
+	token, err := s.Store.GetToken(input.Token)
+	err = token.CheckUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
 		Code:       input.Code,
 		Channel:    input.Channel,
-		Token:      input.Token,
+		Token:      token,
 	})
 }
 
-func (s *Service) UpdateIdentityPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error) {
-	return s.updateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
+func (s *Service) UpdateIdentityPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityPhoneNumberWithVerificationInput) (output *UpdateIdentityWithVerificationOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(input.Token)
+		}
+	}()
+
+	token, err := s.Store.GetToken(input.Token)
+	err = token.CheckUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
 		LoginID:    input.LoginID,
 		LoginIDKey: input.LoginIDKey,
 		IdentityID: input.IdentityID,
 		Code:       input.Code,
 		Channel:    input.Channel,
-		Token:      input.Token,
+		Token:      token,
 	})
 }
 
