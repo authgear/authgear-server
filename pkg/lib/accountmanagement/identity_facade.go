@@ -59,6 +59,9 @@ func (i *IdentityFacade) CreateIdentity(userID string, identitySpec *identity.Sp
 	}
 
 	if _, err := i.Identities.CheckDuplicated(identityInfo); err != nil {
+		if identity.IsErrDuplicatedIdentity(err) {
+			return nil, isVerified, ErrAccountManagementDuplicatedIdentity
+		}
 		return nil, isVerified, err
 	}
 
@@ -111,9 +114,7 @@ func (i *IdentityFacade) UpdateIdentity(userID string, identityID string, identi
 
 	if _, err := i.Identities.CheckDuplicated(newInfo); err != nil {
 		if identity.IsErrDuplicatedIdentity(err) {
-			s1 := oldInfo.ToSpec()
-			s2 := newInfo.ToSpec()
-			return nil, isVerified, identity.NewErrDuplicatedIdentity(&s2, &s1)
+			return nil, isVerified, ErrAccountManagementDuplicatedIdentity
 		}
 		return nil, isVerified, err
 	}

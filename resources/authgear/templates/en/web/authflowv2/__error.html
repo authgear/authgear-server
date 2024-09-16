@@ -1,4 +1,5 @@
 {{- define "authflowv2/__error.html" -}}
+{{ $dict := (dict "IdentityTypeIncoming" "other") }}
   {{ $display_error := false }}
   {{ if .Error }}
     {{ $display_error = true }}
@@ -154,6 +155,9 @@
       {{ else }}
         <span>{{ include "v2.error.developer-email-required" nil }}</span>
       {{ end }}
+    {{ else if eq .Error.reason "AccountManagementDuplicatedIdentity" }}
+      {{ $dict := (dict "IdentityTypeIncoming" "other") }}
+      <span>{{ include "v2.error.account-conflict" $dict }}</span>
     {{ else if eq .Error.reason "InvariantViolated" }}
       {{ $cause := .Error.info.cause }}
       {{ if (eq $cause.kind "RemoveLastIdentity") }}
@@ -207,12 +211,12 @@
       <span>
         {{ if $error_reason.title }} {{ $error_reason.title }} {{ else }}
         <!-- title is not provided, use default title -->
-        {{ if eq .Error.info.event_type "pre_signup" }} 
-          {{ include "v2.error.webhook-pre-signup-disallowed" nil }} 
+        {{ if eq .Error.info.event_type "pre_signup" }}
+          {{ include "v2.error.webhook-pre-signup-disallowed" nil }}
         {{ else }}
           {{ include "v2.error.webhook-disallowed" nil }}
-        {{ end }} 
-    {{ end }} 
+        {{ end }}
+    {{ end }}
     {{ if $error_reason.reason }}
         <br />
         {{ $error_reason.reason }} {{ end }}
