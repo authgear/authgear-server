@@ -35,6 +35,7 @@ resources/authgear/templates/en/web/authflowv2/settings_identity_change_primary_
 resources/authgear/templates/en/web/authflowv2/settings_identity_edit_email.html:33:22: translation key not defined: "__settings_identity_edit_email_inline_breakable"
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:40:31: translation key not defined: "settings_identity_email_verification_label"
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:72:26: translation key not defined: "settings_identity_email_change_button"
+resources/authgear/templates/en/web/authflowv2/settings_identity_list_phone.html:40:31: translation key not defined: "settings_identity_phone_verification_label"
 resources/authgear/templates/en/web/authflowv2/settings_identity_verify_email.html:21:30: translation key not defined: "__settings_identity_verify_mask_claim"
 resources/authgear/templates/en/web/authflowv2/settings_identity_verify_email.html:62:29: translation key not defined: "__settings_identity_verify_phone_resend_form_content"
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_email.html:57:24: translation key not defined: "settings_identity_email_verification_button"
@@ -63,5 +64,5 @@ resources/authgear/templates/en/web/authflowv2/settings_profile.html:174:22: inv
 resources/authgear/templates/en/web/authflowv2/settings_profile_edit_gender.html:57:33: translation key not defined: "__settings_gender_edit_custom_gender_input"
 resources/authgear/templates/en/web/authflowv2/signup.html:88:26: translation key not defined: "v2.page.signup.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:261:35: translation key not defined: "%s-icon"
-65 errors found
+66 errors found
 exit status 1

@@ -13,11 +13,11 @@
 {{ define "settings_identity_phone_verification_label" }}
   {{ if $.Verified }}
     <div class="body-text--md settings-text-color-success">
-      {{ translate "v2.page.settings-identity-list-phone.default.verified-label" . }}
+      {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
     </div>
   {{ else }}
     <div class="body-text--md settings-text-color-failure">
-      {{ translate "v2.page.settings-identity-list-phone.default.not-verified-label" . }}
+      {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
     </div>
   {{ end }}
 {{ end }}
