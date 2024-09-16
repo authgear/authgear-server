@@ -260,7 +260,7 @@ func (i *IdentityFacade) StartIdentityWithVerification(resolvedSession session.R
 	var newInfo *identity.Info
 
 	// Currently only LoginID requires verification.
-	identitySpec, err := i.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
+	identitySpec := input.IdentitySpec
 
 	var needVerify bool
 	err = i.Database.WithTx(func() error {
@@ -301,16 +301,11 @@ func (i *IdentityFacade) StartIdentityWithVerification(resolvedSession session.R
 
 func (i *IdentityFacade) CreateIdentityWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	loginID := input.LoginID
-	loginIDKey := input.LoginIDKey
 
-	identitySpec, err := i.MakeLoginIDSpec(loginIDKey, loginID)
-	if err != nil {
-		return nil, err
-	}
+	identitySpec := input.IdentitySpec
 
 	var identityInfo *identity.Info
-	err = i.Database.WithTx(func() (err error) {
+	err := i.Database.WithTx(func() (err error) {
 		verifiedClaim, err := i.VerifyIdentity(&verifyIdentityInput{
 			UserID:  userID,
 			Token:   input.Token,
@@ -342,9 +337,9 @@ func (i *IdentityFacade) CreateIdentityWithVerification(resolvedSession session.
 
 func (i *IdentityFacade) UpdateIdentityWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	loginID := input.LoginID
-	loginIDKey := input.LoginIDKey
 	identityID := input.IdentityID
+
+	identitySpec := input.IdentitySpec
 
 	var identityInfo *identity.Info
 	err := i.Database.WithTx(func() (err error) {
@@ -354,11 +349,6 @@ func (i *IdentityFacade) UpdateIdentityWithVerification(resolvedSession session.
 			Channel: input.Channel,
 			Code:    input.Code,
 		})
-		if err != nil {
-			return err
-		}
-
-		identitySpec, err := i.MakeLoginIDSpec(loginIDKey, loginID)
 		if err != nil {
 			return err
 		}

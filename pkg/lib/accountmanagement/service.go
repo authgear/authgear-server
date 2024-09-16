@@ -265,11 +265,16 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 }
 
 func (s *Service) StartCreateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (*StartCreateIdentityWithVerificationOutput, error) {
+	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
+	if err != nil {
+		return nil, err
+	}
 	output, err := s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
-		LoginID:    input.LoginID,
-		LoginIDKey: input.LoginIDKey,
-		Channel:    input.Channel,
-		isUpdate:   false,
+		LoginID:      input.LoginID,
+		LoginIDKey:   input.LoginIDKey,
+		IdentitySpec: identitySpec,
+		Channel:      input.Channel,
+		isUpdate:     false,
 	})
 	if err != nil {
 		return nil, err
@@ -309,12 +314,17 @@ func (s *Service) StartCreateIdentityWithVerification(resolvedSession session.Re
 }
 
 func (s *Service) StartUpdateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (*StartUpdateIdentityWithVerificationOutput, error) {
+	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
+	if err != nil {
+		return nil, err
+	}
 	output, err := s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
-		LoginID:    input.LoginID,
-		LoginIDKey: input.LoginIDKey,
-		Channel:    input.Channel,
-		IdentityID: input.IdentityID,
-		isUpdate:   true,
+		LoginID:      input.LoginID,
+		LoginIDKey:   input.LoginIDKey,
+		IdentitySpec: identitySpec,
+		Channel:      input.Channel,
+		IdentityID:   input.IdentityID,
+		isUpdate:     true,
 	})
 	if err != nil {
 		return nil, err
@@ -762,12 +772,16 @@ func (s *Service) AddIdentityEmailWithVerification(resolvedSession session.Resol
 		return nil, err
 	}
 
+	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
+	if err != nil {
+		return nil, err
+	}
+
 	return s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
-		LoginID:    input.LoginID,
-		LoginIDKey: input.LoginIDKey,
-		Code:       input.Code,
-		Channel:    input.Channel,
-		Token:      token,
+		IdentitySpec: identitySpec,
+		Code:         input.Code,
+		Channel:      input.Channel,
+		Token:        token,
 	})
 }
 
@@ -784,13 +798,17 @@ func (s *Service) UpdateIdentityEmailWithVerification(resolvedSession session.Re
 	if err != nil {
 		return nil, err
 	}
+
+	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
+	if err != nil {
+		return nil, err
+	}
 	return s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
-		LoginID:    input.LoginID,
-		LoginIDKey: input.LoginIDKey,
-		IdentityID: input.IdentityID,
-		Code:       input.Code,
-		Channel:    input.Channel,
-		Token:      token,
+		IdentityID:   input.IdentityID,
+		IdentitySpec: identitySpec,
+		Code:         input.Code,
+		Channel:      input.Channel,
+		Token:        token,
 	})
 }
 
@@ -827,12 +845,16 @@ func (s *Service) AddIdentityPhoneNumberWithVerification(resolvedSession session
 		return nil, err
 	}
 
+	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
+	if err != nil {
+		return nil, err
+	}
+
 	return s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
-		LoginID:    input.LoginID,
-		LoginIDKey: input.LoginIDKey,
-		Code:       input.Code,
-		Channel:    input.Channel,
-		Token:      token,
+		IdentitySpec: identitySpec,
+		Code:         input.Code,
+		Channel:      input.Channel,
+		Token:        token,
 	})
 }
 
@@ -849,13 +871,18 @@ func (s *Service) UpdateIdentityPhoneNumberWithVerification(resolvedSession sess
 	if err != nil {
 		return nil, err
 	}
+
+	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
+	if err != nil {
+		return nil, err
+	}
+
 	return s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
-		LoginID:    input.LoginID,
-		LoginIDKey: input.LoginIDKey,
-		IdentityID: input.IdentityID,
-		Code:       input.Code,
-		Channel:    input.Channel,
-		Token:      token,
+		IdentityID:   input.IdentityID,
+		IdentitySpec: identitySpec,
+		Code:         input.Code,
+		Channel:      input.Channel,
+		Token:        token,
 	})
 }
 

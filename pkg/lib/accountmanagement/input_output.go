@@ -55,11 +55,12 @@ type StartUpdateIdentityWithVerificationInput struct {
 }
 
 type startIdentityWithVerificationInput struct {
-	LoginID    string
-	LoginIDKey string
-	IdentityID string
-	Channel    model.AuthenticatorOOBChannel
-	isUpdate   bool
+	LoginID      string
+	LoginIDKey   string
+	IdentityID   string
+	IdentitySpec *identity.Spec
+	Channel      model.AuthenticatorOOBChannel
+	isUpdate     bool
 }
 
 type StartIdentityWithVerificationOutput struct {
@@ -133,11 +134,10 @@ type UpdateIdentityPhoneNumberWithVerificationInput struct {
 }
 
 type CreateIdentityWithVerificationInput struct {
-	LoginID    string
-	LoginIDKey string
-	Code       string
-	Token      *Token
-	Channel    model.AuthenticatorOOBChannel
+	IdentitySpec *identity.Spec
+	Code         string
+	Token        *Token
+	Channel      model.AuthenticatorOOBChannel
 }
 
 type CreateIdentityWithVerificationOutput struct {
@@ -145,12 +145,11 @@ type CreateIdentityWithVerificationOutput struct {
 }
 
 type UpdateIdentityWithVerificationInput struct {
-	LoginID    string
-	LoginIDKey string
-	IdentityID string
-	Code       string
-	Token      *Token
-	Channel    model.AuthenticatorOOBChannel
+	IdentityID   string
+	IdentitySpec *identity.Spec
+	Code         string
+	Token        *Token
+	Channel      model.AuthenticatorOOBChannel
 }
 
 type UpdateIdentityWithVerificationOutput struct {
