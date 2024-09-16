@@ -480,8 +480,10 @@ func (s *Service) IssueLogoutResponse(
 			Value:  s.IdpEntityID(),
 		},
 	}
-
-	// TODO: Sign the response
+	err := s.signLogoutResponse(response)
+	if err != nil {
+		return nil, err
+	}
 
 	return response, nil
 }
@@ -630,6 +632,17 @@ func (s *Service) signResponse(response *samlprotocol.Response) error {
 	response.Assertion.Signature = assertionSigEl
 
 	// Sign the response
+	responseEl := response.Element()
+	responseSigEl, err := s.constructSignature(responseEl)
+	if err != nil {
+		return err
+	}
+	response.Signature = responseSigEl
+
+	return nil
+}
+
+func (s *Service) signLogoutResponse(response *samlprotocol.LogoutResponse) error {
 	responseEl := response.Element()
 	responseSigEl, err := s.constructSignature(responseEl)
 	if err != nil {
