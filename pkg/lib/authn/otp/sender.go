@@ -3,9 +3,11 @@ package otp
 import (
 	"errors"
 	neturl "net/url"
+	"path/filepath"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -282,6 +284,11 @@ func (s *MessageSender) sendSMS(msg *PreparedMessage, opts SendOptions) error {
 
 	msg.sms.Sender = data.Sender
 	msg.sms.Body = data.Body.String
+	msg.sms.MessageType = string(msg.spec.MessageType)
+	msg.sms.TemplateName = filepath.Base(msg.spec.SMSTemplate.Name)
+	msg.sms.LanguageTag = data.Body.LanguageTag
+	msg.sms.TemplateVariables = sms.NewTemplateVariablesFromPreparedTemplateVariables(data.PreparedTemplateVariables)
+	msg.sms.AppID = string(s.AppID)
 
 	return msg.sms.Send()
 }
