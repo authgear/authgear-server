@@ -504,8 +504,6 @@ func (s *Service) CreateAuthenticator(authenticatorInfo *authenticator.Info) err
 }
 
 func (s *Service) AddPasskey(resolvedSession session.ResolvedSession, input *AddPasskeyInput) (*AddPasskeyOutput, error) {
-	// NodePromptCreatePasskey ReactTo
-	// case inputNodePromptCreatePasskey.IsCreationResponse()
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	creationResponse := input.CreationResponse
 	creationResponseBytes, err := json.Marshal(creationResponse)
@@ -542,7 +540,6 @@ func (s *Service) AddPasskey(resolvedSession session.ResolvedSession, input *Add
 		if err != nil {
 			return err
 		}
-		// NodeDoCreatePasskey GetEffects()
 		err = s.Authenticators.Create(authenticatorInfo, false)
 		if err != nil {
 			return err
@@ -566,13 +563,10 @@ func (s *Service) RemovePasskey(resolvedSession session.ResolvedSession, input *
 
 	var identityInfo *identity.Info
 	err := s.Database.WithTx(func() (err error) {
-		// case *nodes.NodeDoUseUser: (Passkey skip DeleteDisabled check)
 		identityInfo, err = s.IdentityAction.RemoveIdentity(userID, identityID)
 		if err != nil {
 			return err
 		}
-		// NodeDoRemoveIdentity GetEffects() -> EffectOnCommit()
-		// Passkey no PayloadEvent for EffectOnCommit
 
 		return nil
 	})
@@ -584,8 +578,6 @@ func (s *Service) RemovePasskey(resolvedSession session.ResolvedSession, input *
 }
 
 func (s *Service) AddIdentityBiometric(resolvedSession session.ResolvedSession, input *AddIdentityBiometricInput) (*AddIdentityBiometricOutput, error) {
-
-	// EdgeUseIdentityBiometric
 	enabled := false
 	for _, t := range s.Config.Authentication.Identities {
 		if t == model.IdentityTypeBiometric {
@@ -614,7 +606,6 @@ func (s *Service) AddIdentityBiometric(resolvedSession session.ResolvedSession, 
 		return nil, api.ErrInvalidCredentials
 	}
 
-	// request.Action case: identitybiometric.RequestActionSetup
 	displayName := deviceinfo.DeviceModel(request.DeviceInfo)
 	if displayName == "" {
 		return nil, api.ErrInvalidCredentials
@@ -630,7 +621,6 @@ func (s *Service) AddIdentityBiometric(resolvedSession session.ResolvedSession, 
 
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 
-	// IsCreating: true
 	identitySpec := &identity.Spec{
 		Type: model.IdentityTypeBiometric,
 		Biometric: &identity.BiometricSpec{
@@ -641,7 +631,6 @@ func (s *Service) AddIdentityBiometric(resolvedSession session.ResolvedSession, 
 	}
 
 	var identityInfo *identity.Info
-	// EdgeDoCreateIdentity
 	err = s.Database.WithTx(func() error {
 		user, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
 		if err != nil {
@@ -676,7 +665,6 @@ func (s *Service) RemoveIdentityBiometric(resolvedSession session.ResolvedSessio
 
 	var identityInfo *identity.Info
 	err := s.Database.WithTx(func() (err error) {
-		// case *nodes.NodeDoUseUser: (Biometric skip DeleteDisabled check)
 		identityInfo, err = s.IdentityAction.RemoveIdentity(userID, identityID)
 		if err != nil {
 			return err

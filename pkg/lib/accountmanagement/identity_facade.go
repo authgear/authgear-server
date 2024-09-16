@@ -29,7 +29,6 @@ type IdentityFacade struct {
 }
 
 func (i *IdentityFacade) MakeLoginIDSpec(loginIDKey string, loginID string) (*identity.Spec, error) {
-	// EdgeUseIdentityLoginID
 	matchedLoginIDConfig, ok := i.Config.Identity.LoginID.GetKeyConfig(loginIDKey)
 	if !ok {
 		return nil, api.NewInvariantViolated(
@@ -51,18 +50,15 @@ func (i *IdentityFacade) MakeLoginIDSpec(loginIDKey string, loginID string) (*id
 }
 
 func (i *IdentityFacade) CreateIdentity(userID string, identitySpec *identity.Spec, needVerify bool) (*identity.Info, bool, error) {
-	// EdgeCreateIdentityEnd
 	identityInfo, err := i.Identities.New(userID, identitySpec, identity.NewIdentityOptions{LoginIDEmailByPassBlocklistAllowlist: false})
 	if err != nil {
 		return nil, false, err
 	}
-	// EdgeDoCreateIdentity
 	createDisabled := identityInfo.CreateDisabled(i.Config.Identity)
 	if createDisabled {
 		return nil, false, api.ErrIdentityModifyDisabled
 	}
 
-	// NodeDoCreateIdentity GetEffects() -> EffectOnCommit()
 	if _, err := i.Identities.CheckDuplicated(identityInfo); err != nil {
 		return nil, false, err
 	}
@@ -82,7 +78,7 @@ func (i *IdentityFacade) CreateIdentity(userID string, identitySpec *identity.Sp
 		return nil, false, err
 	}
 
-	if err = i.dispatchCreateIdentityEvent(identityInfo); err != nil {
+	if err = i.dispatchIdentityCreatedEvent(identityInfo); err != nil {
 		return nil, false, err
 	}
 
@@ -107,13 +103,11 @@ func (i *IdentityFacade) UpdateIdentity(userID string, identityID string, identi
 		return nil, false, err
 	}
 
-	// EdgeDoUpdateIdentity
 	updateDisabled := oldInfo.UpdateDisabled(i.Config.Identity)
 	if updateDisabled {
 		return nil, false, api.ErrIdentityModifyDisabled
 	}
 
-	// NodeDoUpdateIdentity GetEffects() -> EffectRun()
 	if _, err := i.Identities.CheckDuplicated(newInfo); err != nil {
 		if identity.IsErrDuplicatedIdentity(err) {
 			s1 := oldInfo.ToSpec()
@@ -134,13 +128,11 @@ func (i *IdentityFacade) UpdateIdentity(userID string, identityID string, identi
 		}
 	}
 
-	// Update identity after verification
 	if err := i.Identities.Update(oldInfo, newInfo); err != nil {
 		return nil, false, err
 	}
 
-	// Dispatch event
-	if err = i.dispatchUpdatedIdentityEvent(oldInfo, newInfo); err != nil {
+	if err = i.dispatchIdentityUpdatedEvent(oldInfo, newInfo); err != nil {
 		return nil, false, err
 	}
 
@@ -158,7 +150,6 @@ func (i *IdentityFacade) RemoveIdentity(userID string, identityID string) (*iden
 		return nil, ErrAccountManagementIdentityNotOwnedbyToUser
 	}
 
-	// EdgeDoRemoveIdentity
 	deleteDiabled := identityInfo.DeleteDisabled(i.Config.Identity)
 	if deleteDiabled {
 		return nil, api.ErrIdentityModifyDisabled
@@ -168,7 +159,7 @@ func (i *IdentityFacade) RemoveIdentity(userID string, identityID string) (*iden
 		return nil, err
 	}
 
-	if err := i.dispatchRemoveIdentityEvent(identityInfo); err != nil {
+	if err := i.dispatchIdentityRemovedEvent(identityInfo); err != nil {
 		return nil, err
 	}
 
@@ -210,7 +201,6 @@ func (i *IdentityFacade) VerifyIdentity(input *verifyIdentityInput) (verifiedCla
 
 	verifiedClaim = i.Verification.NewVerifiedClaim(input.UserID, string(claimName), loginIDValue)
 
-	// NodeDoVerifyIdentity GetEffects()
 	err = i.Verification.MarkClaimVerified(verifiedClaim)
 	if err != nil {
 		return nil, err
@@ -334,7 +324,7 @@ func (i *IdentityFacade) CreateIdentityWithVerification(resolvedSession session.
 			return err
 		}
 
-		err = i.dispatchVerifyIdentityEvent(identityInfo, verifiedClaim)
+		err = i.dispatchIdentityVerifiedEvent(identityInfo, verifiedClaim)
 		if err != nil {
 			return err
 		}
@@ -370,12 +360,13 @@ func (i *IdentityFacade) UpdateIdentityWithVerification(resolvedSession session.
 			return err
 		}
 
+		// Update identity after verification
 		identityInfo, _, err = i.UpdateIdentity(userID, identityID, identitySpec, false)
 		if err != nil {
 			return err
 		}
 
-		err = i.dispatchVerifyIdentityEvent(identityInfo, verifiedClaim)
+		err = i.dispatchIdentityVerifiedEvent(identityInfo, verifiedClaim)
 		if err != nil {
 			return err
 		}
@@ -388,7 +379,7 @@ func (i *IdentityFacade) UpdateIdentityWithVerification(resolvedSession session.
 	return &UpdateIdentityWithVerificationOutput{IdentityInfo: identityInfo}, nil
 }
 
-func (i *IdentityFacade) dispatchCreateIdentityEvent(identityInfo *identity.Info) (err error) {
+func (i *IdentityFacade) dispatchIdentityCreatedEvent(identityInfo *identity.Info) (err error) {
 	userRef := model.UserRef{
 		Meta: model.Meta{
 			ID: identityInfo.UserID,
@@ -431,7 +422,7 @@ func (i *IdentityFacade) dispatchCreateIdentityEvent(identityInfo *identity.Info
 	return nil
 }
 
-func (i *IdentityFacade) dispatchUpdatedIdentityEvent(identityAfterUpdate *identity.Info, identityBeforeUpdate *identity.Info) (err error) {
+func (i *IdentityFacade) dispatchIdentityUpdatedEvent(identityAfterUpdate *identity.Info, identityBeforeUpdate *identity.Info) (err error) {
 	userRef := model.UserRef{
 		Meta: model.Meta{
 			ID: identityAfterUpdate.UserID,
@@ -463,7 +454,7 @@ func (i *IdentityFacade) dispatchUpdatedIdentityEvent(identityAfterUpdate *ident
 	return nil
 }
 
-func (i *IdentityFacade) dispatchRemoveIdentityEvent(identityInfo *identity.Info) (err error) {
+func (i *IdentityFacade) dispatchIdentityRemovedEvent(identityInfo *identity.Info) (err error) {
 	userRef := model.UserRef{
 		Meta: model.Meta{
 			ID: identityInfo.UserID,
@@ -506,7 +497,7 @@ func (i *IdentityFacade) dispatchRemoveIdentityEvent(identityInfo *identity.Info
 	return nil
 }
 
-func (i *IdentityFacade) dispatchVerifyIdentityEvent(identityInfo *identity.Info, verifiedClaim *verification.Claim) error {
+func (i *IdentityFacade) dispatchIdentityVerifiedEvent(identityInfo *identity.Info, verifiedClaim *verification.Claim) error {
 	var e event.Payload
 	if payload, ok := nonblocking.NewIdentityVerifiedEventPayload(
 		model.UserRef{
