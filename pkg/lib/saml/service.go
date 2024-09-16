@@ -530,18 +530,12 @@ func (s *Service) VerifyExternalSignature(
 		return nil
 	}
 
-	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf 3.4.4.1
-	signedValues := []string{}
-	signedValues = append(signedValues, fmt.Sprintf("SAMLRequest=%s", url.QueryEscape(samlRequest)))
-	if relayState != "" {
-		signedValues = append(signedValues, fmt.Sprintf("RelayState=%s", url.QueryEscape(relayState)))
-	}
-	if sigAlg != "" {
-		signedValues = append(signedValues, fmt.Sprintf("SigAlg=%s", url.QueryEscape(sigAlg)))
+	q := url.Values{}
+	q.Set("SAMLRequest", samlRequest)
+	q.Set("RelayState", relayState)
+	q.Set("SigAlg", sigAlg)
 
-	}
-
-	signedValue := strings.Join(signedValues, "&")
+	signedValue := s.constructSigningValue(q)
 
 	verified := false
 	for _, cert := range certs.Certificates {
@@ -573,6 +567,74 @@ func (s *Service) VerifyExternalSignature(
 		}
 	}
 	return nil
+}
+
+func (s *Service) ConstructSignedQueryParameters(
+	samlResponse string,
+	relayState string,
+) (url.Values, error) {
+	signingCtx, err := s.idpSigningContext()
+	if err != nil {
+		return nil, err
+	}
+
+	q := url.Values{}
+	q.Set("SAMLResponse", samlResponse)
+	q.Set("RelayState", relayState)
+	q.Set("SigAlg", string(s.SAMLConfig.Signing.SignatureMethod))
+
+	signingValue := s.constructSigningValue(q)
+
+	hash := signingCtx.Hash.New()
+	_, err = hash.Write([]byte(signingValue))
+	if err != nil {
+		return nil, err
+	}
+
+	digest := hash.Sum(nil)
+
+	key, _, err := signingCtx.KeyStore.GetKeyPair()
+	if err != nil {
+		return nil, err
+	}
+
+	rawSignature, err := rsa.SignPKCS1v15(nil, key, signingCtx.Hash, digest)
+	if err != nil {
+		return nil, err
+	}
+	signature := base64.StdEncoding.EncodeToString(rawSignature)
+
+	q.Set("Signature", signature)
+
+	return q, err
+}
+
+func (s *Service) constructSigningValue(
+	query url.Values,
+) string {
+	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf 3.4.4.1
+	signedValues := []string{}
+
+	samlRequest := query.Get("SAMLRequest")
+	if samlRequest != "" {
+		signedValues = append(signedValues, fmt.Sprintf("SAMLRequest=%s", url.QueryEscape(samlRequest)))
+	}
+	samlResponse := query.Get("SAMLResponse")
+	if samlResponse != "" {
+		signedValues = append(signedValues, fmt.Sprintf("SAMLResponse=%s", url.QueryEscape(samlResponse)))
+	}
+	relayState := query.Get("RelayState")
+	if relayState != "" {
+		signedValues = append(signedValues, fmt.Sprintf("RelayState=%s", url.QueryEscape(relayState)))
+	}
+	sigAlg := query.Get("SigAlg")
+	if sigAlg != "" {
+		signedValues = append(signedValues, fmt.Sprintf("SigAlg=%s", url.QueryEscape(sigAlg)))
+
+	}
+
+	signedValue := strings.Join(signedValues, "&")
+	return signedValue
 }
 
 func (s *Service) getUserNameID(
