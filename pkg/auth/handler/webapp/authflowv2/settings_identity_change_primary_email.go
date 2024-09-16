@@ -29,6 +29,7 @@ func ConfigureAuthflowV2SettingsIdentityChangePrimaryEmailRoute(route httproute.
 }
 
 type AuthflowV2SettingsIdentityChangePrimaryEmailViewModel struct {
+	LoginIDKey      string
 	EmailIdentities []*identity.LoginID
 }
 
@@ -45,6 +46,8 @@ type AuthflowV2SettingsIdentityChangePrimaryEmailHandler struct {
 
 func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
+
+	loginIDKey := r.Form.Get("q_login_id_key")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
@@ -70,6 +73,7 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) GetData(r *http.Re
 	}
 
 	vm := AuthflowV2SettingsIdentityListEmailViewModel{
+		LoginIDKey:      loginIDKey,
 		EmailIdentities: emailIdentities,
 	}
 	viewmodels.Embed(data, vm)

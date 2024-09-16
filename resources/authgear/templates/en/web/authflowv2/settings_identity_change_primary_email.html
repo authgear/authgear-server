@@ -4,7 +4,7 @@
   {{ template "authflowv2/__navbar.html"
      (dict
         "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
-        "BackHref" (call $.MakeURL "/settings")
+        "BackHref" (call $.MakeURL "/settings/identity/email" "q_login_id_key" $.LoginIDKey)
         "Title" (translate "v2.page.settings-identity-change-primary-email.default.navbar-title" nil)
      )
   }}
