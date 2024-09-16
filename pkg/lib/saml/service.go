@@ -110,7 +110,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 
 	if sp.SLOEnabled {
 		for _, binding := range samlprotocol.SLOSupportedBindings {
-			ssoServices = append(sloServices, crewjamsaml.Endpoint{
+			sloServices = append(sloServices, crewjamsaml.Endpoint{
 				Binding:  string(binding),
 				Location: s.Endpoints.SAMLLogoutURL(sp.GetID()).String(),
 			})
