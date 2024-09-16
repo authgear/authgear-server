@@ -71,6 +71,7 @@ const postForm = `
 
 func (*SAMLBindingHTTPPostWriter) Write(
 	rw http.ResponseWriter,
+	r *http.Request,
 	callbackURL string,
 	response samlprotocol.Respondable,
 	relayState string) error {
