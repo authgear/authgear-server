@@ -58,6 +58,7 @@
       {{ if eq .login_id_type "phone" }}
         {{ $label = ( include "v2.page.settings.default.button-label-phone" nil ) }}{{ $icon = "phone_iphone" }}
         {{ $identityArr = $.PhoneNumbers }}{{ $identity = $.PhoneNumber }}
+        {{ $url = call $.MakeURL "/settings/identity/phone" "q_login_id_key" .login_id_key }}
       {{ end }}
 
       {{/* If is Username */}}

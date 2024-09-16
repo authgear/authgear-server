@@ -91,6 +91,8 @@ const (
 	AuthflowV2RouteSettingsIdentityChangePrimaryEmail = "/settings/identity/change_primary_email"
 	AuthflowV2RouteSettingsIdentityVerifyEmail        = "/settings/identity/verify_email"
 
+	AuthflowV2RouteSettingsIdentityListPhone = "/settings/identity/phone"
+
 	AuthflowV2RouteSettingsIdentityListUsername = "/settings/identity/username"
 )
 
