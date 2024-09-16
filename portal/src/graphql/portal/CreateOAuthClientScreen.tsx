@@ -69,30 +69,34 @@ function constructConfig(
   currentState: FormState,
   _effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
-  return produce([config, secretConfig], ([config, _secretConfig]) => {
-    config.oauth ??= {};
-    config.oauth.clients = currentState.clients.slice();
-    const draft = createDraft(currentState.newClient);
-    if (
-      draft.x_application_type === "spa" ||
-      draft.x_application_type === "traditional_webapp"
-    ) {
-      draft.redirect_uris = ["http://localhost/after-authentication"];
-      draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
-    } else if (draft.x_application_type === "native") {
-      draft.redirect_uris = ["com.example.myapp://host/path"];
-      draft.post_logout_redirect_uris = undefined;
-    } else if (
-      draft.x_application_type === "confidential" ||
-      draft.x_application_type === "third_party_app"
-    ) {
-      draft.client_name = draft.name;
-      draft.redirect_uris = ["http://localhost/after-authentication"];
-      draft.post_logout_redirect_uris = undefined;
+  const [newConfig, _] = produce(
+    [config, currentState],
+    ([config, currentState]) => {
+      config.oauth ??= {};
+      config.oauth.clients = currentState.clients;
+      const draft = createDraft(currentState.newClient);
+      if (
+        draft.x_application_type === "spa" ||
+        draft.x_application_type === "traditional_webapp"
+      ) {
+        draft.redirect_uris = ["http://localhost/after-authentication"];
+        draft.post_logout_redirect_uris = ["http://localhost/after-logout"];
+      } else if (draft.x_application_type === "native") {
+        draft.redirect_uris = ["com.example.myapp://host/path"];
+        draft.post_logout_redirect_uris = undefined;
+      } else if (
+        draft.x_application_type === "confidential" ||
+        draft.x_application_type === "third_party_app"
+      ) {
+        draft.client_name = draft.name;
+        draft.redirect_uris = ["http://localhost/after-authentication"];
+        draft.post_logout_redirect_uris = undefined;
+      }
+      config.oauth.clients.push(draft);
+      clearEmptyObject(config);
     }
-    config.oauth.clients.push(draft);
-    clearEmptyObject(config);
-  });
+  );
+  return [newConfig, secretConfig];
 }
 
 function constructSecretUpdateInstruction(
