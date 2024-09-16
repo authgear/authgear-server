@@ -30,24 +30,27 @@ func ConfigureAuthflowV2SettingsIdentityListEmailRoute(route httproute.Route) ht
 
 type AuthflowV2SettingsIdentityListEmailViewModel struct {
 	LoginIDKey      string
+	PrimaryEmail    *identity.LoginID
 	EmailIdentities []*identity.LoginID
 	Verifications   map[string][]verification.ClaimStatus
 	CreateDisabled  bool
 }
 
 type AuthflowV2SettingsIdentityListEmailHandler struct {
-	Database          *appdb.Handle
-	LoginIDConfig     *config.LoginIDConfig
-	Identities        *identityservice.Service
-	ControllerFactory handlerwebapp.ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Verification      handlerwebapp.SettingsVerificationService
-	Renderer          handlerwebapp.Renderer
+	Database                 *appdb.Handle
+	LoginIDConfig            *config.LoginIDConfig
+	Identities               *identityservice.Service
+	ControllerFactory        handlerwebapp.ControllerFactory
+	BaseViewModel            *viewmodels.BaseViewModeler
+	Verification             handlerwebapp.SettingsVerificationService
+	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
+	Renderer                 handlerwebapp.Renderer
 }
 
 func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	loginIDKey := r.Form.Get("q_login_id_key")
 	data := map[string]interface{}{}
+
+	loginIDKey := r.Form.Get("q_login_id_key")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
@@ -59,6 +62,12 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(r *http.Request, rw
 		return nil, err
 	}
 
+	settingsProfileViewModel, err := h.SettingsProfileViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+
+	primary := &identity.LoginID{}
 	var emailIdentities []*identity.LoginID
 	var emailInfos []*identity.Info
 	for _, identity := range identities {
@@ -66,6 +75,9 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(r *http.Request, rw
 			if loginIDKey == "" || identity.LoginIDKey == loginIDKey {
 				emailIdentities = append(emailIdentities, identity)
 				emailInfos = append(emailInfos, identity.ToInfo())
+				if identity.OriginalLoginID == settingsProfileViewModel.Email {
+					primary = identity
+				}
 			}
 		}
 	}
@@ -89,6 +101,7 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(r *http.Request, rw
 		EmailIdentities: emailIdentities,
 		Verifications:   verifications,
 		CreateDisabled:  createDisabled,
+		PrimaryEmail:    primary,
 	}
 	viewmodels.Embed(data, vm)
 
