@@ -2,7 +2,7 @@
 {{ define "page-content" }}
   {{ template "authflowv2/__error_page_layout.html"
     (dict
-      "Title" (include "v2.error.screen-title" nil)
+      "Title" (include "v2.page.no-available-authenticator.default.title" nil)
       "ErrorMessage" (include "v2.error.no-available-authenticator" nil)
     )
   }}
