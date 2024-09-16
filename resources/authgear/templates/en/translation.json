@@ -1133,6 +1133,7 @@
   "v2.page.settings-identity-list-email.default.button-add-email-label": "+ Add new email",
   "v2.page.settings-identity-list-email.default.button-change-primary-email-label": "Change",
   "v2.page.settings-identity-list-email.default.primary-email-label": "Primary email",
+  "v2.page.settings-identity-edit-phone.default.description": "Your current phone number is {target}",
   "v2.page.settings-identity-list-phone.default.button-add-phone-label": "+ Add new phone number",
   "v2.page.settings-identity-list-phone.default.button-change-primary-phone-label": "Change",
   "v2.page.settings-identity-list-phone.default.primary-phone-label": "Primary phone",
