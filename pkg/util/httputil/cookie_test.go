@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 
@@ -143,5 +144,63 @@ func TestCookieDomainWithoutPort(t *testing.T) {
 		check("auth.app.example.co.jp", "app.example.co.jp")
 		check("auth.app.example.co.jp:80", "app.example.co.jp")
 		check("auth.app.example.co.jp:8080", "app.example.co.jp")
+	})
+}
+
+func TestCookieManager(t *testing.T) {
+	cookieHostOnly := &httputil.CookieDef{
+		NameSuffix: "csrf_token",
+		Path:       "/",
+		SameSite:   http.SameSiteLaxMode,
+	}
+
+	cookieNonHostOnly := &httputil.CookieDef{
+		NameSuffix:    "session",
+		Path:          "/",
+		SameSite:      http.SameSiteLaxMode,
+		IsNonHostOnly: true,
+	}
+
+	age := int((20 * time.Minute).Seconds())
+	cookieWithMaxAge := &httputil.CookieDef{
+		NameSuffix: "web_session",
+		Path:       "/",
+		SameSite:   http.SameSiteLaxMode,
+		MaxAge:     &age,
+	}
+
+	r, _ := http.NewRequest("GET", "", nil)
+	r.Header.Set("X-Forwarded-Proto", "https")
+
+	cm := &httputil.CookieManager{
+		TrustProxy:   true,
+		Request:      r,
+		CookiePrefix: "prefix_",
+		CookieDomain: "cookiedomain.com",
+	}
+
+	Convey("CookieManager.CookieName supports prefix", t, func() {
+		cookie := cm.ValueCookie(cookieHostOnly, "test")
+		So(cookie.String(), ShouldEqual, "prefix_csrf_token=test; Path=/; HttpOnly; Secure; SameSite=Lax")
+	})
+
+	Convey("CookieManager.ValueCookie supports host-only cookie", t, func() {
+		cookie := cm.ValueCookie(cookieHostOnly, "test")
+		So(cookie.String(), ShouldEqual, "prefix_csrf_token=test; Path=/; HttpOnly; Secure; SameSite=Lax")
+	})
+
+	Convey("CookieManager.ValueCookie supports non-host-only cookie", t, func() {
+		cookie := cm.ValueCookie(cookieNonHostOnly, "test")
+		So(cookie.String(), ShouldEqual, "prefix_session=test; Path=/; Domain=cookiedomain.com; HttpOnly; Secure; SameSite=Lax")
+	})
+
+	Convey("CookieManager.ValueCookie supports cookie with Max-Age", t, func() {
+		cookie := cm.ValueCookie(cookieWithMaxAge, "test")
+		So(cookie.String(), ShouldEqual, "prefix_web_session=test; Path=/; Max-Age=1200; HttpOnly; Secure; SameSite=Lax")
+	})
+
+	Convey("CookieManager.ClearCookie does not set Max-Age, but set Expires", t, func() {
+		cookie := cm.ClearCookie(cookieWithMaxAge)
+		So(cookie.String(), ShouldEqual, "prefix_web_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; Secure; SameSite=Lax")
 	})
 }

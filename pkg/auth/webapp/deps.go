@@ -7,7 +7,6 @@ import (
 var DependencySet = wire.NewSet(
 	wire.Struct(new(AnonymousUserPromotionService), "*"),
 
-	NewCSRFCookieDef,
 	NewSessionCookieDef,
 	NewErrorTokenCookieDef,
 	NewSignedUpCookieDef,

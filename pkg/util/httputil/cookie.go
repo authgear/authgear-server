@@ -95,21 +95,6 @@ type CookieManager struct {
 	CookieDomain string
 }
 
-func (f *CookieManager) fixupCookie(cookie *http.Cookie) {
-	host := GetHost(f.Request, f.TrustProxy)
-	proto := GetProto(f.Request, f.TrustProxy)
-
-	cookie.Secure = proto == "https"
-	if cookie.Domain == "" {
-		cookie.Domain = CookieDomainWithoutPort(host)
-	}
-
-	if cookie.SameSite == http.SameSiteNoneMode &&
-		!ShouldSendSameSiteNone(f.Request.UserAgent(), cookie.Secure) {
-		cookie.SameSite = 0
-	}
-}
-
 // CookieName returns the full name, that is, CookiePrefix followed by NameSuffix.
 func (f *CookieManager) CookieName(def *CookieDef) string {
 	return f.CookiePrefix + def.NameSuffix
@@ -127,35 +112,47 @@ func (f *CookieManager) ValueCookie(def *CookieDef, value string) *http.Cookie {
 		Name:     f.CookieName(def),
 		Path:     def.Path,
 		HttpOnly: !def.AllowScriptAccess,
-		SameSite: def.SameSite,
+		Value:    value,
 	}
+
+	secure := f.secure()
+	cookie.Secure = secure
+	cookie.SameSite = f.sameSite(def, secure)
 
 	if !def.HostOnly() {
 		cookie.Domain = f.CookieDomain
 	}
 
-	cookie.Value = value
 	if def.MaxAge != nil {
 		cookie.MaxAge = *def.MaxAge
 	}
-
-	f.fixupCookie(cookie)
 
 	return cookie
 }
 
 // ClearCookie generates a cookie that when set, the cookie is clear.
 func (f *CookieManager) ClearCookie(def *CookieDef) *http.Cookie {
-	cookie := &http.Cookie{
-		Name:     f.CookieName(def),
-		Path:     def.Path,
-		Domain:   f.CookieDomain,
-		HttpOnly: !def.AllowScriptAccess,
-		SameSite: def.SameSite,
-		Expires:  time.Unix(0, 0).UTC(),
-	}
+	emptyValue := ""
+	cookie := f.ValueCookie(def, emptyValue)
 
-	f.fixupCookie(cookie)
+	// Suppress the MaxAge attribute written by ValueCookie
+	cookie.MaxAge = 0
+	// This is the defacto way to ask the browser to clear the cookie.
+	cookie.Expires = time.Unix(0, 0).UTC()
 
 	return cookie
+}
+
+func (f *CookieManager) secure() bool {
+	proto := GetProto(f.Request, f.TrustProxy)
+	return proto == "https"
+}
+
+func (f *CookieManager) sameSite(def *CookieDef, secure bool) http.SameSite {
+	if def.SameSite == http.SameSiteNoneMode &&
+		!ShouldSendSameSiteNone(f.Request.UserAgent(), secure) {
+		return 0
+	}
+
+	return def.SameSite
 }

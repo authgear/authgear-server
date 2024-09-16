@@ -11,8 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/duration"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 
@@ -32,7 +30,6 @@ type CSRFMiddlewareUIImplementationService interface {
 
 type CSRFMiddleware struct {
 	Secret                  *config.CSRFKeyMaterials
-	CookieDef               webapp.CSRFCookieDef
 	TrustProxy              config.TrustProxy
 	Cookies                 CookieManager
 	Logger                  CSRFMiddlewareLogger
@@ -43,30 +40,15 @@ type CSRFMiddleware struct {
 
 func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		secure := httputil.GetProto(r, bool(m.TrustProxy)) == "https"
+		cookieThatWouldBeWrittenByOurCookieManager := m.Cookies.ValueCookie(webapp.CSRFCookieDef, "unimportant")
 		options := []csrf.Option{
-			csrf.MaxAge(m.maxAge()),
 			csrf.FieldName(webapp.CSRFFieldName),
-			csrf.CookieName(m.CookieDef.Name),
-			csrf.Path("/"),
-			csrf.Secure(secure),
-		}
-		if m.CookieDef.Domain != "" {
-			options = append(options, csrf.Domain(m.CookieDef.Domain))
-		}
-
-		useragent := r.UserAgent()
-		if httputil.ShouldSendSameSiteNone(useragent, secure) {
-			options = append(options, csrf.SameSite(csrf.SameSiteNoneMode))
-		} else {
-			// http.Cookie SameSiteDefaultMode option will write SameSite
-			// with empty value to the cookie header which doesn't work for
-			// some old browsers
-			// ref: https://github.com/golang/go/issues/36990
-			// To avoid writing samesite to the header
-			// set empty value to Cookie SameSite
-			// https://golang.org/src/net/http/cookie.go#L220
-			options = append(options, csrf.SameSite(0))
+			csrf.CookieName(cookieThatWouldBeWrittenByOurCookieManager.Name),
+			csrf.Domain(cookieThatWouldBeWrittenByOurCookieManager.Domain),
+			csrf.Path(cookieThatWouldBeWrittenByOurCookieManager.Path),
+			csrf.Secure(cookieThatWouldBeWrittenByOurCookieManager.Secure),
+			csrf.SameSite(csrf.SameSiteMode(cookieThatWouldBeWrittenByOurCookieManager.SameSite)),
+			csrf.MaxAge(cookieThatWouldBeWrittenByOurCookieManager.MaxAge),
 		}
 
 		options = append(options, csrf.ErrorHandler(http.HandlerFunc(m.unauthorizedHandler)))
@@ -95,7 +77,8 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	strictCookie, err := m.Cookies.GetCookie(r, webapp.CSRFDebugCookieSameSiteStrictDef)
 	hasStrictCookie := (err == nil && strictCookie.Value == "exists")
 
-	csrfCookie, _ := r.Cookie(m.CookieDef.Name)
+	cookieThatWouldBeWrittenByOurCookieManager := m.Cookies.ValueCookie(webapp.CSRFCookieDef, "unimportant")
+	csrfCookie, _ := m.Cookies.GetCookie(r, webapp.CSRFCookieDef)
 	csrfCookieSizeInBytes := 0
 	maskedCsrfCookieContent := ""
 	securecookieError := ""
@@ -127,12 +110,12 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 			// See https://github.com/gorilla/csrf/blob/v1.7.2/csrf.go#L175
 			sc := securecookie.New(key, nil)
 			sc.SetSerializer(securecookie.JSONEncoder{})
-			sc.MaxAge(m.maxAge())
+			sc.MaxAge(cookieThatWouldBeWrittenByOurCookieManager.MaxAge)
 
 			// Token length is 32.
 			// https://github.com/gorilla/csrf/blob/v1.7.2/store.go#L46
 			token := make([]byte, 32)
-			err = sc.Decode(m.CookieDef.Name, csrfCookie.Value, &token)
+			err = sc.Decode(cookieThatWouldBeWrittenByOurCookieManager.Name, csrfCookie.Value, &token)
 			if err != nil {
 				securecookieError = err.Error()
 			}
@@ -179,8 +162,4 @@ func (m *CSRFMiddleware) getSecretKey() ([]byte, error) {
 	}
 
 	return key, nil
-}
-
-func (m *CSRFMiddleware) maxAge() int {
-	return int(duration.UserInteraction.Seconds())
 }
