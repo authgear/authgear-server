@@ -11,7 +11,111 @@
 {{ end }}
 
 {{ define "page-content" }}
+<div class="flex flex-col">
+  {{ $ctx := . }}
+  {{ range .Sessions }}
+  {{ $actionBtn := "" }}
+  {{ if not .IsCurrent }}
+    {{ $actionBtn = (include "remove-btn" (dict "DialogID" .ID)) }}
+      {{ template "authflowv2/__settings_dialog.html" (dict
+        "Ctx" $ctx
+        "DialogID" .ID
+        "Title" (include "v2.page.settings-sessions.default.dialog-title-session" nil)
+        "Description" (include "v2.page.settings-sessions.default.dialog-description-session" nil)
+        "FormContent" (include "remove-input" (dict "ID" .ID "CSRFField" $.CSRFField))
+        "Buttons" (list
+          (dict
+            "Type" "Destructive"
+            "Label" (include "v2.component.button.default.label-terminate" nil)
+            "Value" "revoke"
+            "Event" "authgear.button.revoke_session"
+          )
+          (dict
+            "Type" "Cancel"
+            "Label" (include "v2.component.button.default.label-cancel" nil)
+          )
+        )
+      )}}
+    {{ end }}
+
+    {{
+      template "authflowv2/__settings_action_item.html"
+      (dict
+        "Label" .DisplayName
+        "Description" (include "description" .)
+        "ActionButton" $actionBtn
+      )
+    }}
+  {{ end }}
+
+  {{ if gt (len .Sessions) 1 }}
+    <button
+      class="settings-link-btn--destructive py-6"
+      data-controller="settings-dialog"
+      data-action="click->settings-dialog#open"
+      data-settings-dialog-dialogid-param="revoke-all"
+    >
+      {{ include "v2.page.settings-sessions.default.revoke-all-label" nil }}
+    </button>
+
+    {{ template "authflowv2/__settings_dialog.html" (dict
+      "Ctx" $ctx
+      "DialogID" "revoke-all"
+      "Title" (include "v2.page.settings-sessions.default.dialog-title-all-sessions" nil)
+      "Description" (include "v2.page.settings-sessions.default.dialog-description-all-sessions" nil)
+      "FormContent" (include "remove-all-input" (dict "CSRFField" $.CSRFField))
+      "Buttons" (list
+        (dict
+          "Type" "Destructive"
+          "Label" (include "v2.component.button.default.label-terminate" nil)
+          "Value" "revoke_all"
+          "Event" "authgear.button.revoke_all_sessions"
+        )
+        (dict
+          "Type" "Cancel"
+          "Label" (include "v2.component.button.default.label-cancel" nil)
+        )
+      )
+    )}}
+  {{ end }}
+</div>
+{{ end }}
+
+{{ define "remove-input" }}
+  {{ $.CSRFField }}
+  <input type="hidden" name="x_session_id" value="{{ .ID }}">
+{{ end }}
+
+{{ define "remove-all-input" }}
+  {{ $.CSRFField }}
+{{ end }}
+
+{{ define "remove-btn" }}
+<button
+  class="settings-action-item__icon--pale"
+  data-controller="settings-dialog"
+  data-action="click->settings-dialog#open"
+  data-settings-dialog-dialogid-param="{{ .DialogID }}"
+>
+  <i class="material-icons">close</i>
+</button>
+{{ end }}
+
+{{ define "description"}}
 <div>
-  test
+  <p>
+    {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
+      {{ template "v2.page.settings-sessions.default.description-country-ip" (dict "countryName" .LastAccessedByIPEnglishCountryName "countryCode" .LastAccessedByIPCountryCode "ip" .LastAccessedByIP) }}
+    {{ else }}
+      {{ .LastAccessedByIP }}
+    {{ end }}
+  </p>
+  <p>
+    {{ $desc := .DisplayName }}
+    {{ if .ApplicationName }}
+      {{ $desc = .ApplicationName }}
+    {{ end }}
+    {{ template "v2.page.settings-sessions.default.description-device" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" .IsCurrent) }}
+  </p>
 </div>
 {{ end }}

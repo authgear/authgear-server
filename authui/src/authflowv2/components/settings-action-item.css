@@ -106,4 +106,10 @@
     line-height: normal;
     color: var(--settings-action-item__icon-color--pale);
   }
+
+  .settings-action-item__icon--pale {
+    @apply settings-item-icon;
+    line-height: normal;
+    color: var(--settings-action-item__icon-color--pale);
+  }
 }
