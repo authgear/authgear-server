@@ -11,8 +11,93 @@
 {{ end }}
 
 {{ define "page-content" }}
-
-<div>
-  test
+<div
+  class="flex flex-col"
+  data-controller="authflow-passkey-creation"
+  data-authflow-passkey-creation-options-value="{{ $.CreationOptionsJSON }}"
+>
+  {{ $ctx := . }}
+  {{ range $.PasskeyIdentities }}
+    {{
+      template "authflowv2/__settings_action_item.html"
+      (dict
+        "Label" .Passkey.CreationOptions.PublicKey.User.DisplayName
+        "Description" ( include "description" . )
+        "ActionButton" (include "remove-btn" (dict "DialogID" .ID))
+      )
+    }}
+    {{ template "authflowv2/__settings_dialog.html" (dict
+      "Ctx" $ctx
+      "DialogID" .ID
+      "Title" (include "v2.page.settings-passkey.default.dialog-title" nil)
+      "Description" (include "v2.page.settings-passkey.default.dialog-description" nil)
+      "FormContent" (include "remove-input" (dict "ID" .ID "CSRFField" $.CSRFField))
+      "Buttons" (list
+        (dict
+          "Type" "Destructive"
+          "Label" (include "v2.component.button.default.label-remove" nil)
+          "Value" "remove"
+          "Event" "authgear.button.remove_passkey"
+        )
+        (dict
+          "Type" "Cancel"
+          "Label" (include "v2.component.button.default.label-cancel" nil)
+        )
+      )
+    )}}
+  {{ end }}
+  <button
+    type="button"
+    class="settings-link-btn py-6"
+    data-action="click->authflow-passkey-creation#create"
+    data-authflow-passkey-creation-target="button"
+    data-authgear-event="authgear.button.create_passkey"
+  >
+    {{ translate "v2.page.settings-passkey.default.button-label-add-passkey" nil }}
+  </button>
+  <form
+    class="hidden"
+    method="post"
+    novalidate
+    data-controller="turbo-form"
+    data-action="submit->turbo-form#submitForm"
+  >
+    {{ $.CSRFField }}
+    <input
+      type="hidden"
+      name="x_attestation_response"
+      data-authflow-passkey-creation-target="input"
+    />
+    <button
+      type="submit"
+      class="hidden"
+      name="x_action"
+      value="add"
+      data-authflow-passkey-creation-target="submit">
+    </button>
+  </form>
 </div>
+{{ end }}
+
+{{ define "description" }}
+  <div>
+    <p>{{ .Passkey.CreationOptions.PublicKey.User.DisplayName }}</p>
+    <p>{{ template "v2.page.settings-passkey.default.item-description-time" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt))}}</p>
+  </div>
+{{ end }}
+
+{{ define "remove-btn" }}
+<button
+  class="settings-action-item__icon--pale"
+  data-controller="settings-dialog"
+  data-action="click->settings-dialog#open"
+  data-settings-dialog-dialogid-param="{{ .DialogID }}"
+>
+  <i class="material-icons">close</i>
+</button>
+{{ end }}
+
+{{ define "remove-input" }}
+{{ $.CSRFField }}
+  <input type="hidden" name="q_identity_id" value="{{ .ID }}">
 {{ end }}

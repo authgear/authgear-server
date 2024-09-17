@@ -16,6 +16,8 @@
     --settings-action-item__description-font-weight: var(
       --body-text__font-weight--md
     );
+
+    --settings-action-item__icon-color--pale: var(--color-neutral-200);
   }
 
   .settings-action-item__container {
@@ -97,5 +99,11 @@
   .settings-action-item__label {
     @apply settings-item__label;
     @apply break-all;
+  }
+
+  .settings-action-item__icon--pale {
+    @apply settings-item-icon;
+    line-height: normal;
+    color: var(--settings-action-item__icon-color--pale);
   }
 }
