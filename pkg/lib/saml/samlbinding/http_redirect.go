@@ -62,7 +62,7 @@ func SAMLBindingHTTPRedirectParse(r *http.Request) (
 }
 
 type SAMLBindingHTTPRedirectWriter struct {
-	Signer SAMLBindingSigner
+	Signer SAMLRedirectBindingSigner
 }
 
 func (s *SAMLBindingHTTPRedirectWriter) Write(
