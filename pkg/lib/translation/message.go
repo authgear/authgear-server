@@ -9,7 +9,3 @@ type MessageSpec struct {
 	SMSTemplate       *template.MessagePlainText
 	WhatsappTemplate  *template.MessagePlainText
 }
-
-func RegisterMessage(msg *MessageSpec) *MessageSpec {
-	return msg
-}
