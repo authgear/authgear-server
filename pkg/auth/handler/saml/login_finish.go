@@ -100,6 +100,7 @@ func (h *LoginFinishHandler) handleError(
 			panic(err)
 		}
 	} else {
+		h.Logger.WithError(err).Error("unexpected error")
 		err = h.BindingHTTPPostWriter.Write(rw, r,
 			samlSession.Entry.CallbackURL,
 			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
