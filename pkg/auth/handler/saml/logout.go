@@ -50,28 +50,35 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 	callbackURL := sp.SLOCallbackURL
 	responseBinding := sp.SLOBinding
+	var relayState string
 
 	defer func() {
 		if err := recover(); err != nil {
-			h.handleUnknownError(rw, r, callbackURL, responseBinding, "", err)
+			e := panicutil.MakeError(err)
+			h.handleError(rw, r, responseBinding, callbackURL, relayState, e)
 		}
 	}()
 
-	relayState, result := h.handleSLORequest(r, sp, callbackURL)
-	h.writeResult(rw, r, result, callbackURL, responseBinding, relayState)
+	var response samlprotocol.Respondable
+	var err error
+	relayState, response, err = h.handleSLORequest(r, sp, callbackURL)
+	if err != nil {
+		h.handleError(rw, r, responseBinding, callbackURL, relayState, err)
+		return
+	}
+	h.writeResponse(rw, r, response, responseBinding, callbackURL, relayState)
 }
 
 func (h *LogoutHandler) handleSLORequest(
 	r *http.Request,
 	sp *config.SAMLServiceProviderConfig,
 	callbackURL string,
-) (relayState string, result SAMLResult) {
+) (relayState string, response samlprotocol.Respondable, err error) {
 	now := h.Logger.Time.UTC()
 	var parseResult samlbinding.SAMLBindingParseResult
 	var logoutRequest *samlprotocol.LogoutRequest
 
 	// Get data with corresponding binding
-	var err error
 	switch r.Method {
 	case "GET":
 		// HTTP-Redirect binding
@@ -115,7 +122,7 @@ func (h *LogoutHandler) handleSLORequest(
 	if err != nil {
 		var parseRequestFailedErr *samlprotocol.ParseRequestFailedError
 		if errors.As(err, &parseRequestFailedErr) {
-			return relayState, NewExpectedSAMLErrorResult(err,
+			return relayState, nil, NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
 					now,
 					h.SAMLService.IdpEntityID(),
@@ -124,9 +131,7 @@ func (h *LogoutHandler) handleSLORequest(
 				),
 			)
 		} else {
-			return relayState, h.makeUnknownErrorResult(
-				err,
-			)
+			return relayState, nil, err
 		}
 	}
 
@@ -153,7 +158,7 @@ func (h *LogoutHandler) handleSLORequest(
 	if err != nil {
 		var invalidSignatureErr *samlprotocol.InvalidSignatureError
 		if errors.As(err, &invalidSignatureErr) {
-			return relayState, NewExpectedSAMLErrorResult(err,
+			return relayState, nil, NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
 					now,
 					h.SAMLService.IdpEntityID(),
@@ -162,73 +167,34 @@ func (h *LogoutHandler) handleSLORequest(
 				),
 			)
 		} else {
-			return relayState, h.makeUnknownErrorResult(
-				err,
-			)
+			return relayState, nil, err
 		}
 	}
 
-	response, err := h.SAMLService.IssueLogoutResponse(
+	response, err = h.SAMLService.IssueLogoutResponse(
 		callbackURL,
 		sp.GetID(),
 		logoutRequest,
 	)
 	if err != nil {
-		return relayState, h.makeUnknownErrorResult(
-			err,
-		)
+		return relayState, nil, err
 	}
 
-	return relayState, &SAMLSuccessResult{
-		Response: response,
-	}
+	return relayState, response, nil
 }
 
-func (h *LogoutHandler) makeUnknownErrorResult(
-	err any,
-) *SAMLErrorResult {
-	now := h.Logger.Time.UTC()
-	e := panicutil.MakeError(err)
-
-	return NewUnexpectedSAMLErrorResult(e,
-		samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
-	)
-
-}
-
-func (h *LogoutHandler) handleUnknownError(
+func (h *LogoutHandler) writeResponse(
 	rw http.ResponseWriter, r *http.Request,
-	callbackURL string,
+	response samlprotocol.Respondable,
 	responseBinding samlprotocol.SAMLBinding,
-	relayState string,
-	err any,
-) {
-	result := h.makeUnknownErrorResult(
-		err,
-	)
-	h.writeResult(rw, r, result, callbackURL, responseBinding, relayState)
-}
-
-func (h *LogoutHandler) writeResult(
-	rw http.ResponseWriter, r *http.Request,
-	result SAMLResult,
 	callbackURL string,
-	responseBinding samlprotocol.SAMLBinding,
 	relayState string,
 ) {
-	switch result := result.(type) {
-	case *SAMLErrorResult:
-		if result.IsUnexpected {
-			h.Logger.WithError(result.Cause).Error("unexpected error")
-		} else {
-			h.Logger.WithError(result).Warnln("saml logout failed with expected error")
-		}
-	}
 	switch responseBinding {
 	case samlprotocol.SAMLBindingHTTPPost:
 		err := h.BindingHTTPPostWriter.Write(rw, r,
 			callbackURL,
-			result.GetResponse(),
+			response,
 			relayState,
 		)
 		if err != nil {
@@ -237,11 +203,35 @@ func (h *LogoutHandler) writeResult(
 	case samlprotocol.SAMLBindingHTTPRedirect:
 		err := h.BindingHTTPRedirectWriter.Write(rw, r,
 			callbackURL,
-			result.GetResponse(),
+			response,
 			relayState,
 		)
 		if err != nil {
 			panic(err)
 		}
 	}
+}
+
+func (h *LogoutHandler) handleError(
+	rw http.ResponseWriter,
+	r *http.Request,
+	responseBinding samlprotocol.SAMLBinding,
+	callbackURL string,
+	relayState string,
+	err error,
+) {
+	now := h.Clock.NowUTC()
+	var samlErrResult *SAMLErrorResult
+	var response samlprotocol.Respondable
+	if errors.As(err, &samlErrResult) {
+		if samlErrResult.IsUnexpected {
+			h.Logger.WithError(samlErrResult.Cause).Error("unexpected error")
+		} else {
+			h.Logger.WithError(samlErrResult.Cause).Warnln("saml logout failed with expected error")
+		}
+		response = samlErrResult.Response
+	} else {
+		response = samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID())
+	}
+	h.writeResponse(rw, r, response, responseBinding, callbackURL, relayState)
 }
