@@ -50,10 +50,6 @@ func (s *SAMLErrorResult) Unwrap() error {
 	return s.Cause
 }
 
-func (s *SAMLErrorResult) IsInternalError() bool {
-	return s.IsUnexpected
-}
-
 func NewExpectedSAMLErrorResult(cause error, response samlprotocol.Respondable) *SAMLErrorResult {
 	return &SAMLErrorResult{
 		Response:     response,
