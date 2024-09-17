@@ -61,6 +61,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	router.Add(transport.ConfigurePresignImagesUploadRoute(route), p.Handler(newPresignImagesUploadHandler))
 	router.Add(transport.ConfigureUserImportCreateRoute(route), p.Handler(newUserImportCreateHandler))
 	router.Add(transport.ConfigureUserImportGetRoute(route), p.Handler(newUserImportGetHandler))
+	router.Add(transport.ConfigureUserExportCreateRoute(route), p.Handler(newUserExportCreateHandler))
+	router.Add(transport.ConfigureUserExportGetRoute(route), p.Handler(newUserExportGetHandler))
 
 	return router
 }
