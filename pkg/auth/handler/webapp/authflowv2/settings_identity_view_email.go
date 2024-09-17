@@ -1,9 +1,11 @@
 package authflowv2
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -23,6 +25,17 @@ var TemplateWebSettingsIdentityViewEmailHTML = template.RegisterHTML(
 	"web/authflowv2/settings_identity_view_email.html",
 	handlerwebapp.SettingsComponents...,
 )
+
+var AuthflowV2SettingsIdentityUpdateVerificationEmailSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_login_id": { "type": "string" },
+			"x_identity_id": { "type": "string" }
+		},
+		"required": ["x_login_id", "x_identity_id"]
+	}
+`)
 
 var AuthflowV2SettingsRemoveIdentityEmailSchema = validation.NewSimpleSchema(`
 	{
@@ -147,6 +160,46 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 
 		result := webapp.Result{RedirectURI: redirectURI.String()}
 
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("verify", func() error {
+		fmt.Printf("%s\n", r.Form)
+
+		loginIDKey := r.Form.Get("q_login_id_key")
+
+		err := AuthflowV2SettingsIdentityUpdateVerificationEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+
+		loginID := r.Form.Get("x_login_id")
+		identityID := r.Form.Get("x_identity_id")
+
+		s := session.GetSession(r.Context())
+		output, err := h.AccountManagement.StartUpdateEmailIdentityWithVerification(s, &accountmanagement.StartUpdateIdentityWithVerificationInput{
+			LoginID:    loginID,
+			LoginIDKey: loginIDKey,
+			IdentityID: identityID,
+			Channel:    model.AuthenticatorOOBChannelEmail,
+		})
+		if err != nil {
+			return err
+		}
+
+		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityVerifyEmail)
+
+		q := redirectURI.Query()
+		q.Set("q_login_id_key", loginIDKey)
+		q.Set("q_token", output.Token)
+
+		redirectURI.RawQuery = q.Encode()
+		if err != nil {
+			return err
+		}
+
+		result := webapp.Result{RedirectURI: redirectURI.String()}
 		result.WriteResponse(w, r)
 		return nil
 	})
