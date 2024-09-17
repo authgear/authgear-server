@@ -20,11 +20,11 @@ type LoginResultHandler struct {
 func (h *LoginResultHandler) handleLoginResult(
 	authInfo *authenticationinfo.T,
 	samlSessionEntry *samlsession.SAMLSessionEntry,
-) (result SAMLResult) {
+) (response samlprotocol.Respondable, err error) {
 	now := h.Clock.NowUTC()
 	callbackURL := samlSessionEntry.CallbackURL
 
-	unexpectedErrorResult := func(err error) SAMLResult {
+	unexpectedErrorResult := func(err error) *SAMLErrorResult {
 		return NewUnexpectedSAMLErrorResult(err,
 			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
 		)
@@ -34,12 +34,12 @@ func (h *LoginResultHandler) handleLoginResult(
 		if e := recover(); e != nil {
 			// Transform any panic into a saml result
 			e := panicutil.MakeError(e)
-			result = unexpectedErrorResult(e)
+			response = nil
+			err = unexpectedErrorResult(e)
 		}
 	}()
 
-	var response *samlprotocol.Response
-	err := h.Database.WithTx(func() error {
+	err = h.Database.WithTx(func() error {
 		authnRequest, _ := samlSessionEntry.AuthnRequest()
 
 		resp, err := h.SAMLService.IssueSuccessResponse(
@@ -57,7 +57,7 @@ func (h *LoginResultHandler) handleLoginResult(
 	if err != nil {
 		var missingNameIDErr *samlprotocol.MissingNameIDError
 		if errors.As(err, &missingNameIDErr) {
-			errResponse := NewExpectedSAMLErrorResult(err,
+			errResult := NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewServerErrorResponse(
 					now,
 					h.SAMLService.IdpEntityID(),
@@ -65,13 +65,11 @@ func (h *LoginResultHandler) handleLoginResult(
 					missingNameIDErr.GetDetailElements(),
 				),
 			)
-			return errResponse
+			return nil, errResult
 		}
 
-		return unexpectedErrorResult(err)
+		return nil, unexpectedErrorResult(err)
 	}
 
-	return &SAMLSuccessResult{
-		Response: response,
-	}
+	return response, nil
 }

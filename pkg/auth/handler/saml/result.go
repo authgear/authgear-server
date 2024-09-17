@@ -6,30 +6,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
-type SAMLResult interface {
-	GetResponse() samlprotocol.Respondable
-}
-
-type SAMLSuccessResult struct {
-	Response samlprotocol.Respondable
-}
-
-var _ SAMLResult = &SAMLSuccessResult{}
-
-func (r *SAMLSuccessResult) GetResponse() samlprotocol.Respondable {
-	return r.Response
-}
-
 type SAMLErrorResult struct {
 	Response     samlprotocol.Respondable
 	Cause        error
 	IsUnexpected bool
-}
-
-var _ SAMLResult = &SAMLErrorResult{}
-
-func (r *SAMLErrorResult) GetResponse() samlprotocol.Respondable {
-	return r.Response
 }
 
 var _ error = &SAMLErrorResult{}
