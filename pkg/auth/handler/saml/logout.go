@@ -254,6 +254,7 @@ func (h *LogoutHandler) handleError(
 		}
 		response = samlErrResult.Response
 	} else {
+		h.Logger.WithError(err).Error("unexpected error")
 		response = samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID())
 	}
 	h.writeResponse(rw, r, response, responseBinding, callbackURL, relayState)
