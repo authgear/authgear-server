@@ -312,6 +312,63 @@ func (h *LoginHandler) handleIdpInitiated(
 	)
 }
 
+func (h *LoginHandler) finishWithoutUI(
+	ctx context.Context,
+	loginHint *oauth.LoginHint,
+	samlSessionEntry *samlsession.SAMLSessionEntry,
+) (result loginResult, err error) {
+	var resolvedSession session.ResolvedSession
+	if s := session.GetSession(ctx); s != nil {
+		resolvedSession = s
+	}
+	// Ignore any session that is not allow to be used here
+	if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.PreAuthenticatedURLScope}) {
+		resolvedSession = nil
+	}
+
+	// Ignore any session that does not match login_hint
+	err = h.Database.WithTx(func() error {
+		if loginHint != nil && resolvedSession != nil {
+			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
+			if err != nil {
+				return err
+			}
+			hintUserIDsSet := setutil.NewStringSetFromSlice(hintUserIDs)
+			if !hintUserIDsSet.Has(resolvedSession.GetAuthenticationInfo().UserID) {
+				resolvedSession = nil
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if resolvedSession == nil {
+		// No session, return NoPassive error.
+		err := fmt.Errorf("no session but IsPassive=true")
+		errorResult := NewSAMLErrorResult(err,
+			samlprotocol.NewNoPassiveErrorResponse(
+				h.Clock.NowUTC(),
+				h.SAMLService.IdpEntityID(),
+			),
+		)
+		return nil, errorResult
+	} else {
+		// Else, authenticate with the existing session.
+		authInfo := resolvedSession.CreateNewAuthenticationInfoByThisSession()
+		response, err := h.LoginResultHandler.handleLoginResult(&authInfo, samlSessionEntry)
+		if err != nil {
+			return nil, err
+		}
+		return &loginResultSAMLResponse{
+			Response:    response,
+			RelayState:  samlSessionEntry.RelayState,
+			CallbackURL: samlSessionEntry.CallbackURL,
+		}, nil
+	}
+}
+
 func (h *LoginHandler) startSSOFlow(
 	ctx context.Context,
 	sp *config.SAMLServiceProviderConfig,
@@ -356,57 +413,7 @@ func (h *LoginHandler) startSSOFlow(
 	if !showUI {
 		// If IsPassive=true, no ui should be displayed.
 		// Authenticate by existing session or error.
-		var resolvedSession session.ResolvedSession
-		if s := session.GetSession(ctx); s != nil {
-			resolvedSession = s
-		}
-		// Ignore any session that is not allow to be used here
-		if !oauth.ContainsAllScopes(oauth.SessionScopes(resolvedSession), []string{oauth.PreAuthenticatedURLScope}) {
-			resolvedSession = nil
-		}
-
-		// Ignore any session that does not match login_hint
-		err = h.Database.WithTx(func() error {
-			if loginHint != nil && resolvedSession != nil {
-				hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
-				if err != nil {
-					return err
-				}
-				hintUserIDsSet := setutil.NewStringSetFromSlice(hintUserIDs)
-				if !hintUserIDsSet.Has(resolvedSession.GetAuthenticationInfo().UserID) {
-					resolvedSession = nil
-				}
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		if resolvedSession == nil {
-			// No session, return NoPassive error.
-			err := fmt.Errorf("no session but IsPassive=true")
-			errorResult := NewSAMLErrorResult(err,
-				samlprotocol.NewNoPassiveErrorResponse(
-					now,
-					issuer,
-				),
-			)
-			return nil, errorResult
-		} else {
-			// Else, authenticate with the existing session.
-			authInfo := resolvedSession.CreateNewAuthenticationInfoByThisSession()
-			response, err := h.LoginResultHandler.handleLoginResult(&authInfo, samlSessionEntry)
-			if err != nil {
-				return nil, err
-			}
-			return &loginResultSAMLResponse{
-				Response:    response,
-				RelayState:  relayState,
-				CallbackURL: callbackURL,
-			}, nil
-		}
-
+		return h.finishWithoutUI(ctx, loginHint, samlSessionEntry)
 	}
 
 	samlSession := samlsession.NewSAMLSession(samlSessionEntry, uiInfo)
