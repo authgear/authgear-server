@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/panicutil"
 )
 
 type LoginResultHandler struct {
@@ -23,21 +22,6 @@ func (h *LoginResultHandler) handleLoginResult(
 ) (response samlprotocol.Respondable, err error) {
 	now := h.Clock.NowUTC()
 	callbackURL := samlSessionEntry.CallbackURL
-
-	unexpectedErrorResult := func(err error) *SAMLErrorResult {
-		return NewUnexpectedSAMLErrorResult(err,
-			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
-		)
-	}
-
-	defer func() {
-		if e := recover(); e != nil {
-			// Transform any panic into a saml result
-			e := panicutil.MakeError(e)
-			response = nil
-			err = unexpectedErrorResult(e)
-		}
-	}()
 
 	err = h.Database.WithTx(func() error {
 		authnRequest, _ := samlSessionEntry.AuthnRequest()
@@ -57,7 +41,7 @@ func (h *LoginResultHandler) handleLoginResult(
 	if err != nil {
 		var missingNameIDErr *samlprotocol.MissingNameIDError
 		if errors.As(err, &missingNameIDErr) {
-			errResult := NewExpectedSAMLErrorResult(err,
+			errResult := NewSAMLErrorResult(err,
 				samlprotocol.NewServerErrorResponse(
 					now,
 					h.SAMLService.IdpEntityID(),
@@ -68,7 +52,7 @@ func (h *LoginResultHandler) handleLoginResult(
 			return nil, errResult
 		}
 
-		return nil, unexpectedErrorResult(err)
+		return nil, err
 	}
 
 	return response, nil

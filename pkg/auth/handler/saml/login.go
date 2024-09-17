@@ -132,7 +132,7 @@ func (h *LoginHandler) parseRequest(r *http.Request,
 			if errors.As(err, &parseRequestFailedErr) {
 				now := h.Clock.NowUTC()
 				issuer := h.SAMLService.IdpEntityID()
-				err = NewExpectedSAMLErrorResult(err,
+				err = NewSAMLErrorResult(err,
 					samlprotocol.NewRequestDeniedErrorResponse(
 						now,
 						issuer,
@@ -198,7 +198,7 @@ func (h *LoginHandler) verifyRequestSignature(
 			if errors.As(err, &invalidSignatureErr) {
 				now := h.Clock.NowUTC()
 				issuer := h.SAMLService.IdpEntityID()
-				err = NewExpectedSAMLErrorResult(err,
+				err = NewSAMLErrorResult(err,
 					samlprotocol.NewRequestDeniedErrorResponse(
 						now,
 						issuer,
@@ -270,7 +270,7 @@ func (h *LoginHandler) handleLoginRequest(
 	if err != nil {
 		var invalidRequestErr *samlprotocol.InvalidRequestError
 		if errors.As(err, &invalidRequestErr) {
-			errorResult := NewExpectedSAMLErrorResult(err,
+			errorResult := NewSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
 					now,
 					issuer,
@@ -333,7 +333,7 @@ func (h *LoginHandler) startSSOFlow(
 	if err != nil {
 		var invalidRequestErr *samlprotocol.InvalidRequestError
 		if errors.As(err, &invalidRequestErr) {
-			errorResult := NewExpectedSAMLErrorResult(err,
+			errorResult := NewSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
 					now,
 					issuer,
@@ -386,7 +386,7 @@ func (h *LoginHandler) startSSOFlow(
 		if resolvedSession == nil {
 			// No session, return NoPassive error.
 			err := fmt.Errorf("no session but IsPassive=true")
-			errorResult := NewExpectedSAMLErrorResult(err,
+			errorResult := NewSAMLErrorResult(err,
 				samlprotocol.NewNoPassiveErrorResponse(
 					now,
 					issuer,
@@ -435,11 +435,7 @@ func (h *LoginHandler) handleError(
 	now := h.Clock.NowUTC()
 	var samlErrResult *SAMLErrorResult
 	if errors.As(err, &samlErrResult) {
-		if samlErrResult.IsUnexpected {
-			h.Logger.WithError(samlErrResult.Cause).Error("unexpected error")
-		} else {
-			h.Logger.WithError(samlErrResult.Cause).Warnln("saml login failed with expected error")
-		}
+		h.Logger.WithError(samlErrResult.Cause).Warnln("saml login failed with expected error")
 		err = h.BindingHTTPPostWriter.Write(rw, r,
 			callbackURL,
 			samlErrResult.Response,

@@ -7,9 +7,8 @@ import (
 )
 
 type SAMLErrorResult struct {
-	Response     samlprotocol.Respondable
-	Cause        error
-	IsUnexpected bool
+	Response samlprotocol.Respondable
+	Cause    error
 }
 
 var _ error = &SAMLErrorResult{}
@@ -22,18 +21,9 @@ func (s *SAMLErrorResult) Unwrap() error {
 	return s.Cause
 }
 
-func NewExpectedSAMLErrorResult(cause error, response samlprotocol.Respondable) *SAMLErrorResult {
+func NewSAMLErrorResult(cause error, response samlprotocol.Respondable) *SAMLErrorResult {
 	return &SAMLErrorResult{
-		Response:     response,
-		Cause:        cause,
-		IsUnexpected: false,
-	}
-}
-
-func NewUnexpectedSAMLErrorResult(cause error, response samlprotocol.Respondable) *SAMLErrorResult {
-	return &SAMLErrorResult{
-		Response:     response,
-		Cause:        cause,
-		IsUnexpected: true,
+		Response: response,
+		Cause:    cause,
 	}
 }

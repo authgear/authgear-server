@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/panicutil"
 )
 
 func ConfigureLoginFinishRoute(route httproute.Route) httproute.Route {
@@ -61,9 +62,19 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 		panic(err)
 	}
 
+	defer func() {
+		if err := recover(); err != nil {
+			e := panicutil.MakeError(err)
+			h.handleError(rw, r,
+				samlSession,
+				e,
+			)
+		}
+	}()
+
 	response, err := h.LoginResultHandler.handleLoginResult(&authInfo.T, samlSession.Entry)
 	if err != nil {
-		h.handleError(rw, r, *samlSession, err)
+		h.handleError(rw, r, samlSession, err)
 		return
 	}
 	err = h.BindingHTTPPostWriter.Write(rw, r,
@@ -80,17 +91,13 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 func (h *LoginFinishHandler) handleError(
 	rw http.ResponseWriter,
 	r *http.Request,
-	samlSession samlsession.SAMLSession,
+	samlSession *samlsession.SAMLSession,
 	err error,
 ) {
 	now := h.Clock.NowUTC()
 	var samlErrResult *SAMLErrorResult
 	if errors.As(err, &samlErrResult) {
-		if samlErrResult.IsUnexpected {
-			h.Logger.WithError(samlErrResult.Cause).Error("unexpected error")
-		} else {
-			h.Logger.WithError(samlErrResult.Cause).Warnln("saml login failed with expected error")
-		}
+		h.Logger.WithError(samlErrResult.Cause).Warnln("saml login failed with expected error")
 		err = h.BindingHTTPPostWriter.Write(rw, r,
 			samlSession.Entry.CallbackURL,
 			samlErrResult.Response,
