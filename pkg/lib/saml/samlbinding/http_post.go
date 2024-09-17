@@ -7,7 +7,6 @@ import (
 
 	"github.com/beevik/etree"
 
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
@@ -26,7 +25,7 @@ func SAMLBindingHTTPPostParse(r *http.Request) (
 ) {
 	result = &SAMLBindingHTTPPostParseResult{}
 	if err := r.ParseForm(); err != nil {
-		return result, &samlerror.ParseRequestFailedError{
+		return result, &samlprotocol.ParseRequestFailedError{
 			Reason: "failed to parse request body as a application/x-www-form-urlencoded form",
 			Cause:  err,
 		}
@@ -36,7 +35,7 @@ func SAMLBindingHTTPPostParse(r *http.Request) (
 
 	requestBuffer, err := base64.StdEncoding.DecodeString(r.PostForm.Get("SAMLRequest"))
 	if err != nil {
-		return result, &samlerror.ParseRequestFailedError{
+		return result, &samlprotocol.ParseRequestFailedError{
 			Reason: "base64 decode failed",
 			Cause:  err,
 		}

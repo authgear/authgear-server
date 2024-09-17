@@ -5,7 +5,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
@@ -57,7 +56,7 @@ func (h *LoginResultHandler) handleLoginResult(
 		return nil
 	})
 	if err != nil {
-		var missingNameIDErr *samlerror.MissingNameIDError
+		var missingNameIDErr *samlprotocol.MissingNameIDError
 		if errors.As(err, &missingNameIDErr) {
 			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewServerErrorResponse(

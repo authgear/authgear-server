@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 )
@@ -116,7 +115,7 @@ func (r *UIService) ResolveUIInfo(sp *config.SAMLServiceProviderConfig, entry *S
 			case "/preferred_username":
 				loginHint.LoginIDUsername = nameID.Value
 			default:
-				return nil, false, &samlerror.InvalidRequestError{
+				return nil, false, &samlprotocol.InvalidRequestError{
 					Field:  "Subject",
 					Reason: "Using <Subject> in <AuthnRequest> is only supported when nameid_attribute_pointer is '/email', '/phone_number' or 'preferred_username'",
 				}
