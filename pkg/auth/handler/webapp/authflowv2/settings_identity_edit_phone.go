@@ -9,7 +9,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -25,9 +28,10 @@ var AuthflowV2SettingsIdentityEditPhoneSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id": { "type": "string" }
+			"x_login_id": { "type": "string" },
+			"x_identity_id": { "type": "string" }
 		},
-		"required": ["x_login_id"]
+		"required": ["x_login_id", "x_identity_id"]
 	}
 `)
 
@@ -39,26 +43,38 @@ func ConfigureAuthflowV2SettingsIdentityEditPhoneRoute(route httproute.Route) ht
 
 type AuthflowV2SettingsIdentityEditPhoneViewModel struct {
 	LoginIDKey string
+	Target     *identity.LoginID
 }
 
 type AuthflowV2SettingsIdentityEditPhoneHandler struct {
+	Database            *appdb.Handle
 	ControllerFactory   handlerwebapp.ControllerFactory
 	BaseViewModel       *viewmodels.BaseViewModeler
 	Renderer            handlerwebapp.Renderer
 	AuthenticatorConfig *config.AuthenticatorConfig
 	AccountManagement   accountmanagement.Service
+	Identities          *identityservice.Service
 }
 
 func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
+	loginID := r.Form.Get("q_login_id")
+
+	userID := session.GetUserID(r.Context())
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
+	target, err := h.Identities.LoginID.Get(*userID, loginID)
+	if err != nil {
+		return nil, err
+	}
+
 	vm := AuthflowV2SettingsIdentityEditPhoneViewModel{
 		LoginIDKey: loginIDKey,
+		Target:     target,
 	}
 	viewmodels.Embed(data, vm)
 
@@ -74,7 +90,14 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		var data map[string]interface{}
+		err = h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
@@ -84,6 +107,7 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 	})
 
 	ctrl.PostAction("", func() error {
+
 		loginIDKey := r.Form.Get("q_login_id_key")
 
 		err := AuthflowV2SettingsIdentityEditPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
@@ -92,6 +116,7 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		loginID := r.Form.Get("x_login_id")
+		identityID := r.Form.Get("x_identity_id")
 
 		var channel model.AuthenticatorOOBChannel
 		if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
@@ -101,9 +126,10 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartCreatePhoneNumberIdentityWithVerification(s, &accountmanagement.StartCreateIdentityWithVerificationInput{
+		output, err := h.AccountManagement.StartUpdatePhoneNumberIdentityWithVerification(s, &accountmanagement.StartUpdateIdentityWithVerificationInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
+			IdentityID: identityID,
 			Channel:    channel,
 		})
 		if err != nil {
