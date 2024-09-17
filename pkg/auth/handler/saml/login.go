@@ -118,6 +118,120 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *LoginHandler) parseRequest(r *http.Request,
+) (
+	result samlbinding.SAMLBindingParseResult,
+	authnRequest *samlprotocol.AuthnRequest,
+	relayState string,
+	err error,
+) {
+	defer func() {
+		// Transform known errors
+		if err != nil {
+			var parseRequestFailedErr *samlprotocol.ParseRequestFailedError
+			if errors.As(err, &parseRequestFailedErr) {
+				now := h.Clock.NowUTC()
+				issuer := h.SAMLService.IdpEntityID()
+				err = NewExpectedSAMLErrorResult(err,
+					samlprotocol.NewRequestDeniedErrorResponse(
+						now,
+						issuer,
+						"failed to parse SAMLRequest",
+						parseRequestFailedErr.GetDetailElements(),
+					),
+				)
+				return
+			}
+		}
+	}()
+
+	// Get data with corresponding binding
+	switch r.Method {
+	case "GET":
+		// HTTP-Redirect binding
+		r, parseErr := samlbinding.SAMLBindingHTTPRedirectParse(r)
+		if parseErr != nil {
+			return nil, nil, "", parseErr
+		}
+		relayState = r.RelayState
+		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))
+		if err != nil {
+			cause := err
+			err = &samlprotocol.ParseRequestFailedError{
+				Reason: "malformed AuthnRequest",
+				Cause:  cause,
+			}
+			return
+		}
+		result = r
+	case "POST":
+		// HTTP-POST binding
+		r, parseErr := samlbinding.SAMLBindingHTTPPostParse(r)
+		if parseErr != nil {
+			return nil, nil, "", parseErr
+		}
+		relayState = r.RelayState
+		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))
+		if err != nil {
+			cause := err
+			err = &samlprotocol.ParseRequestFailedError{
+				Reason: "malformed AuthnRequest",
+				Cause:  cause,
+			}
+			return
+		}
+		result = r
+	default:
+		panic(fmt.Errorf("unexpected method %s", r.Method))
+	}
+	return result, authnRequest, relayState, nil
+}
+
+func (h *LoginHandler) verifyRequestSignature(
+	sp *config.SAMLServiceProviderConfig,
+	parseResult samlbinding.SAMLBindingParseResult,
+) (err error) {
+	defer func() {
+		// Transform known errors
+		if err != nil {
+			var invalidSignatureErr *samlprotocol.InvalidSignatureError
+			if errors.As(err, &invalidSignatureErr) {
+				now := h.Clock.NowUTC()
+				issuer := h.SAMLService.IdpEntityID()
+				err = NewExpectedSAMLErrorResult(err,
+					samlprotocol.NewRequestDeniedErrorResponse(
+						now,
+						issuer,
+						"invalid signature",
+						invalidSignatureErr.GetDetailElements(),
+					),
+				)
+			}
+		}
+	}()
+
+	// Verify the signature
+	switch parseResult := parseResult.(type) {
+	case *samlbinding.SAMLBindingHTTPRedirectParseResult:
+		err = h.SAMLService.VerifyExternalSignature(sp,
+			parseResult.SAMLRequest,
+			parseResult.SigAlg,
+			parseResult.RelayState,
+			parseResult.Signature)
+		if err != nil {
+			return err
+		}
+	case *samlbinding.SAMLBindingHTTPPostParseResult:
+		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.SAMLRequestXML)
+		if err != nil {
+			return err
+		}
+	default:
+		panic("unexpected parse result type")
+	}
+	return nil
+}
+
 func (h *LoginHandler) handleLoginRequest(
 	rw http.ResponseWriter,
 	r *http.Request,
@@ -130,46 +244,7 @@ func (h *LoginHandler) handleLoginRequest(
 	callbackURL = defaultCallbackURL
 	issuer := h.SAMLService.IdpEntityID()
 
-	// Get data with corresponding binding
-	switch r.Method {
-	case "GET":
-		// HTTP-Redirect binding
-		r, e := samlbinding.SAMLBindingHTTPRedirectParse(r)
-		if e != nil {
-			err = e
-			break
-		}
-		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))
-		if err != nil {
-			err = &samlprotocol.ParseRequestFailedError{
-				Reason: "malformed AuthnRequest",
-				Cause:  err,
-			}
-			break
-		}
-		parseResult = r
-		relayState = r.RelayState
-	case "POST":
-		// HTTP-POST binding
-		r, e := samlbinding.SAMLBindingHTTPPostParse(r)
-		if e != nil {
-			err = e
-			break
-		}
-		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))
-		if err != nil {
-			err = &samlprotocol.ParseRequestFailedError{
-				Reason: "malformed AuthnRequest",
-				Cause:  err,
-			}
-			break
-		}
-		parseResult = r
-		relayState = r.RelayState
-	default:
-		panic(fmt.Errorf("unexpected method %s", r.Method))
-	}
-
+	parseResult, authnRequest, relayState, err = h.parseRequest(r)
 	if err != nil {
 		if errors.Is(err, samlbinding.ErrNoRequest) {
 			// This is a IdP-initated flow
@@ -179,60 +254,15 @@ func (h *LoginHandler) handleLoginRequest(
 				callbackURL,
 			)
 			return relayState, callbackURL, result, err
-		}
-
-		var parseRequestFailedErr *samlprotocol.ParseRequestFailedError
-		if errors.As(err, &parseRequestFailedErr) {
-			errorResult := NewExpectedSAMLErrorResult(err,
-				samlprotocol.NewRequestDeniedErrorResponse(
-					now,
-					issuer,
-					"failed to parse SAMLRequest",
-					parseRequestFailedErr.GetDetailElements(),
-				),
-			)
-			return relayState, callbackURL, nil, errorResult
 		} else {
 			return relayState, callbackURL, nil, err
 		}
 	}
 
 	// Verify the signature
-	switch parseResult := parseResult.(type) {
-	case *samlbinding.SAMLBindingHTTPRedirectParseResult:
-		err = h.SAMLService.VerifyExternalSignature(sp,
-			parseResult.SAMLRequest,
-			parseResult.SigAlg,
-			parseResult.RelayState,
-			parseResult.Signature)
-		if err != nil {
-			break
-		}
-	case *samlbinding.SAMLBindingHTTPPostParseResult:
-		relayState = parseResult.RelayState
-		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.SAMLRequestXML)
-		if err != nil {
-			break
-		}
-	default:
-		panic("unexpected parse result type")
-	}
-
+	err = h.verifyRequestSignature(sp, parseResult)
 	if err != nil {
-		var invalidSignatureErr *samlprotocol.InvalidSignatureError
-		if errors.As(err, &invalidSignatureErr) {
-			errorResult := NewExpectedSAMLErrorResult(err,
-				samlprotocol.NewRequestDeniedErrorResponse(
-					now,
-					issuer,
-					"invalid signature",
-					invalidSignatureErr.GetDetailElements(),
-				),
-			)
-			return relayState, callbackURL, nil, errorResult
-		} else {
-			return relayState, callbackURL, nil, err
-		}
+		return relayState, callbackURL, nil, err
 	}
 
 	// Validate the AuthnRequest
