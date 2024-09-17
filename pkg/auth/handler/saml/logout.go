@@ -69,23 +69,36 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	h.writeResponse(rw, r, response, responseBinding, callbackURL, relayState)
 }
 
-func (h *LogoutHandler) handleSLORequest(
+func (h *LogoutHandler) parseSLORequest(
 	r *http.Request,
-	sp *config.SAMLServiceProviderConfig,
-	callbackURL string,
-) (relayState string, response samlprotocol.Respondable, err error) {
-	now := h.Logger.Time.UTC()
-	var parseResult samlbinding.SAMLBindingParseResult
-	var logoutRequest *samlprotocol.LogoutRequest
-
-	// Get data with corresponding binding
+) (
+	parseResult samlbinding.SAMLBindingParseResult,
+	logoutRequest *samlprotocol.LogoutRequest,
+	relayState string,
+	err error,
+) {
+	defer func() {
+		// Transform known errors
+		if err != nil {
+			var parseRequestFailedErr *samlprotocol.ParseRequestFailedError
+			if errors.As(err, &parseRequestFailedErr) {
+				err = NewExpectedSAMLErrorResult(err,
+					samlprotocol.NewRequestDeniedErrorResponse(
+						h.Clock.NowUTC(),
+						h.SAMLService.IdpEntityID(),
+						"failed to parse SAMLRequest",
+						parseRequestFailedErr.GetDetailElements(),
+					),
+				)
+			}
+		}
+	}()
 	switch r.Method {
 	case "GET":
 		// HTTP-Redirect binding
-		r, e := samlbinding.SAMLBindingHTTPRedirectParse(r)
-		if e != nil {
-			err = e
-			break
+		r, parseErr := samlbinding.SAMLBindingHTTPRedirectParse(r)
+		if parseErr != nil {
+			return nil, nil, "", parseErr
 		}
 		logoutRequest, err = samlprotocol.ParseLogoutRequest([]byte(r.SAMLRequestXML))
 		if err != nil {
@@ -99,10 +112,9 @@ func (h *LogoutHandler) handleSLORequest(
 		relayState = r.RelayState
 	case "POST":
 		// HTTP-POST binding
-		r, e := samlbinding.SAMLBindingHTTPPostParse(r)
-		if e != nil {
-			err = e
-			break
+		r, parseErr := samlbinding.SAMLBindingHTTPPostParse(r)
+		if parseErr != nil {
+			return nil, nil, "", parseErr
 		}
 		logoutRequest, err = samlprotocol.ParseLogoutRequest([]byte(r.SAMLRequestXML))
 		if err != nil {
@@ -118,24 +130,29 @@ func (h *LogoutHandler) handleSLORequest(
 		// panic because it should not happen if ConfigureLogoutRoute is correct
 		panic("unexpected method")
 	}
+	return parseResult, logoutRequest, relayState, nil
+}
 
-	if err != nil {
-		var parseRequestFailedErr *samlprotocol.ParseRequestFailedError
-		if errors.As(err, &parseRequestFailedErr) {
-			return relayState, nil, NewExpectedSAMLErrorResult(err,
-				samlprotocol.NewRequestDeniedErrorResponse(
-					now,
-					h.SAMLService.IdpEntityID(),
-					"failed to parse SAMLRequest",
-					parseRequestFailedErr.GetDetailElements(),
-				),
-			)
-		} else {
-			return relayState, nil, err
+func (h *LogoutHandler) verifySignature(
+	sp *config.SAMLServiceProviderConfig,
+	parseResult samlbinding.SAMLBindingParseResult,
+) (err error) {
+	defer func() {
+		// Transform known errors
+		if err != nil {
+			var invalidSignatureErr *samlprotocol.InvalidSignatureError
+			if errors.As(err, &invalidSignatureErr) {
+				err = NewExpectedSAMLErrorResult(err,
+					samlprotocol.NewRequestDeniedErrorResponse(
+						h.Clock.NowUTC(),
+						h.SAMLService.IdpEntityID(),
+						"invalid signature",
+						invalidSignatureErr.GetDetailElements(),
+					),
+				)
+			}
 		}
-	}
-
-	// Verify the signature
+	}()
 	switch parseResult := parseResult.(type) {
 	case *samlbinding.SAMLBindingHTTPRedirectParseResult:
 		err = h.SAMLService.VerifyExternalSignature(sp,
@@ -147,7 +164,6 @@ func (h *LogoutHandler) handleSLORequest(
 			break
 		}
 	case *samlbinding.SAMLBindingHTTPPostParseResult:
-		relayState = parseResult.RelayState
 		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.SAMLRequestXML)
 		if err != nil {
 			break
@@ -155,20 +171,27 @@ func (h *LogoutHandler) handleSLORequest(
 	default:
 		panic("unexpected parse result type")
 	}
+	return nil
+}
+
+func (h *LogoutHandler) handleSLORequest(
+	r *http.Request,
+	sp *config.SAMLServiceProviderConfig,
+	callbackURL string,
+) (relayState string, response samlprotocol.Respondable, err error) {
+	var parseResult samlbinding.SAMLBindingParseResult
+	var logoutRequest *samlprotocol.LogoutRequest
+
+	// Get data with corresponding binding
+	parseResult, logoutRequest, relayState, err = h.parseSLORequest(r)
 	if err != nil {
-		var invalidSignatureErr *samlprotocol.InvalidSignatureError
-		if errors.As(err, &invalidSignatureErr) {
-			return relayState, nil, NewExpectedSAMLErrorResult(err,
-				samlprotocol.NewRequestDeniedErrorResponse(
-					now,
-					h.SAMLService.IdpEntityID(),
-					"invalid signature",
-					invalidSignatureErr.GetDetailElements(),
-				),
-			)
-		} else {
-			return relayState, nil, err
-		}
+		return relayState, nil, err
+	}
+
+	// Verify the signature
+	err = h.verifySignature(sp, parseResult)
+	if err != nil {
+		return relayState, nil, err
 	}
 
 	response, err = h.SAMLService.IssueLogoutResponse(
