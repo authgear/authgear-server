@@ -9,19 +9,24 @@ import (
 
 	goredis "github.com/go-redis/redis/v8"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/util/backoff"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
 )
 
 // timeout is a reasonble number that does not block too long,
 // and does not poll redis too frequently.
 var timeout = 10 * time.Second
+
+var errNoTask = errors.New("no task in queue")
 
 type TaskProcessor func(ctx context.Context, appProvider *deps.AppProvider, task *redisqueue.Task) (output json.RawMessage, err error)
 
@@ -33,6 +38,9 @@ type Consumer struct {
 	taskProcessor          TaskProcessor
 	redis                  *globalredis.Handle
 	logger                 *log.Logger
+
+	dequeueBackoff *backoff.Counter
+
 	// shutdown is for breaking the loop.
 	shutdown chan struct{}
 	// shutdown blocks Stop until the loop has ended.
@@ -56,7 +64,11 @@ func NewConsumer(queueName string, rootProvider *deps.RootProvider, configSource
 			&rootProvider.EnvironmentConfig.GlobalRedis,
 			rootProvider.LoggerFactory,
 		),
-		logger:       rootProvider.LoggerFactory.New("redis-queue-consumer"),
+		logger: rootProvider.LoggerFactory.New("redis-queue-consumer"),
+		dequeueBackoff: &backoff.Counter{
+			Interval:    time.Millisecond * 500,
+			MaxInterval: time.Second * 10,
+		},
 		shutdown:     make(chan struct{}),
 		shutdownDone: make(chan struct{}),
 		shutdownCtx:  context.Background(),
@@ -80,7 +92,7 @@ loop:
 			c.logger.Infof("shutdown context timeout")
 			break loop
 		default:
-			c.dequeue(ctx)
+			c.work(ctx)
 		}
 	}
 	close(c.shutdownDone)
@@ -101,7 +113,80 @@ func (c *Consumer) Stop(ctx context.Context, _ *log.Logger) error {
 	return nil
 }
 
-func (c *Consumer) dequeue(ctx context.Context) {
+func (c *Consumer) dequeue(ctx context.Context) (*redisqueue.Task, *deps.AppProvider, error) {
+	var task redisqueue.Task
+	var appProvider *deps.AppProvider
+
+	err := c.redis.WithConnContext(ctx, func(conn *goredis.Conn) error {
+		queueKey := redisqueue.RedisKeyForQueue(c.QueueName)
+
+		strs, err := conn.BRPop(ctx, timeout, queueKey).Result()
+		if errors.Is(err, goredis.Nil) {
+			// timeout.
+			return errNoTask
+		}
+		if err != nil {
+			// other errors.
+			return fmt.Errorf("BRPOP queue: %w", err)
+		}
+
+		// The first item in the array is the queue name.
+		// The second item in the array is the value.
+		// See https://redis.io/commands/blpop/
+		queueItemBytes := []byte(strs[1])
+		var queueItem redisqueue.QueueItem
+		err = json.Unmarshal(queueItemBytes, &queueItem)
+		if err != nil {
+			return fmt.Errorf("unmarshal queue item: %w", err)
+		}
+
+		taskBytes, err := conn.Get(ctx, queueItem.RedisKey()).Bytes()
+		if errors.Is(err, goredis.Nil) {
+			return errors.New("task item not found")
+		}
+		if err != nil {
+			return fmt.Errorf("get task: %w", err)
+		}
+
+		err = json.Unmarshal(taskBytes, &task)
+		if err != nil {
+			return fmt.Errorf("unmarshal task: %w", err)
+		}
+
+		appCtx, err := c.configSourceController.ResolveContext(queueItem.AppID)
+		if err != nil {
+			return fmt.Errorf("resolve app context: %w", err)
+		}
+
+		appProvider = c.rootProvider.NewAppProvider(ctx, appCtx)
+		appProvider.LoggerFactory.DefaultFields["task_id"] = task.ID
+		return nil
+	})
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return &task, appProvider, err
+}
+
+func (c *Consumer) process(
+	ctx context.Context,
+	task *redisqueue.Task,
+	appProvider *deps.AppProvider,
+) (result json.RawMessage, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			// Transform any panic into a saml result
+			err = panicutil.MakeError(e)
+		}
+	}()
+
+	result, err = c.taskProcessor(ctx, appProvider, task)
+	return
+}
+
+func (c *Consumer) work(ctx context.Context) {
 	defer func() {
 		if r := recover(); r != nil {
 			c.logger.WithFields(map[string]interface{}{
@@ -112,75 +197,37 @@ func (c *Consumer) dequeue(ctx context.Context) {
 		}
 	}()
 
-	var task redisqueue.Task
-	var appProvider *deps.AppProvider
-
-	err := c.redis.WithConnContext(ctx, func(conn *goredis.Conn) error {
-		queueKey := redisqueue.RedisKeyForQueue(c.QueueName)
-
-		strs, err := conn.BRPop(ctx, timeout, queueKey).Result()
-		if errors.Is(err, goredis.Nil) {
-			// timeout.
-			return nil
+	if backoff := c.dequeueBackoff.BackoffDuration(); backoff != 0 {
+		c.logger.WithField("delay", backoff).Debug("backoff from dequeue")
+		select {
+		case <-c.shutdown:
+			return
+		case <-time.After(backoff):
+			break
 		}
-		if err != nil {
-			// other errors.
-			c.logger.WithError(err).Error("failed to BRPOP a queue item")
-			return err
-		}
+	}
 
-		// The first item in the array is the queue name.
-		// The second item in the array is the value.
-		// See https://redis.io/commands/blpop/
-		queueItemBytes := []byte(strs[1])
-		var queueItem redisqueue.QueueItem
-		err = json.Unmarshal(queueItemBytes, &queueItem)
-		if err != nil {
-			c.logger.WithError(err).Error("failed to unmarshal a queue item")
-			return err
-		}
+	task, appProvider, err := c.dequeue(ctx)
+	if errors.Is(err, errNoTask) {
+		return
+	} else if err != nil {
+		c.logger.WithError(err).Error("failed to dequeue task")
+		c.dequeueBackoff.Increment()
+		return
+	}
 
-		taskBytes, err := conn.Get(ctx, queueItem.RedisKey()).Bytes()
-		if errors.Is(err, goredis.Nil) {
-			c.logger.WithError(err).Error("task not found")
-			return err
-		}
-		if err != nil {
-			c.logger.WithError(err).Error("failed to get task")
-			return err
-		}
+	c.dequeueBackoff.Reset()
 
-		err = json.Unmarshal(taskBytes, &task)
-		if err != nil {
-			c.logger.WithError(err).Error("failed to unmarshal a task")
-			return err
-		}
+	output, err := c.process(ctx, task, appProvider)
 
-		appCtx, err := c.configSourceController.ResolveContext(queueItem.AppID)
-		if err != nil {
-			c.logger.WithError(err).Error("failed to resolve app context")
-			return err
-		}
-
-		appProvider = c.rootProvider.NewAppProvider(ctx, appCtx)
-		appProvider.LoggerFactory.DefaultFields["task_id"] = task.ID
-		return nil
-	})
 	if err != nil {
-		return
+		c.logger.WithFields(map[string]interface{}{
+			"queue_name": c.QueueName,
+			"error":      err,
+			"stack":      errorutil.Callers(8),
+		}).Error("failed to process task")
+		task.Error = apierrors.AsAPIError(err)
 	}
-
-	// When BRPOP times out, appProvider is nil.
-	if appProvider == nil {
-		return
-	}
-
-	output, err := c.taskProcessor(ctx, appProvider, &task)
-	if err != nil {
-		c.logger.WithError(err).Error("failed to process task")
-		return
-	}
-
 	task.Status = redisqueue.TaskStatusCompleted
 	completedAt := c.clock.NowUTC()
 	task.CompletedAt = &completedAt

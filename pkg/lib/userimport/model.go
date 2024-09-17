@@ -476,6 +476,7 @@ type Response struct {
 	CreatedAt   *time.Time            `json:"created_at,omitempty"`
 	CompletedAt *time.Time            `json:"completed_at,omitempty"`
 	Status      redisqueue.TaskStatus `json:"status,omitempty"`
+	Error       *apierrors.APIError   `json:"error,omitempty"`
 	Summary     *Summary              `json:"summary,omitempty"`
 	Details     []Detail              `json:"details,omitempty"`
 }
@@ -486,6 +487,7 @@ func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 		CreatedAt:   task.CreatedAt,
 		CompletedAt: task.CompletedAt,
 		Status:      task.Status,
+		Error:       task.Error,
 	}
 
 	if task.Output != nil {

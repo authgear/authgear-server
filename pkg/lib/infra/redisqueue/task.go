@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 )
 
 type TaskStatus string
@@ -14,13 +16,14 @@ const (
 )
 
 type Task struct {
-	ID          string          `json:"id,omitempty"`
-	AppID       string          `json:"app_id,omitempty"`
-	CreatedAt   *time.Time      `json:"created_at,omitempty"`
-	CompletedAt *time.Time      `json:"completed_at,omitempty"`
-	Status      TaskStatus      `json:"status,omitempty"`
-	Input       json.RawMessage `json:"input,omitempty"`
-	Output      json.RawMessage `json:"output,omitempty"`
+	ID          string              `json:"id,omitempty"`
+	AppID       string              `json:"app_id,omitempty"`
+	CreatedAt   *time.Time          `json:"created_at,omitempty"`
+	CompletedAt *time.Time          `json:"completed_at,omitempty"`
+	Status      TaskStatus          `json:"status,omitempty"`
+	Input       json.RawMessage     `json:"input,omitempty"`
+	Output      json.RawMessage     `json:"output,omitempty"`
+	Error       *apierrors.APIError `json:"error,omitempty"`
 }
 
 func (t *Task) RedisKey() string {
