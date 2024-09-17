@@ -457,6 +457,13 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsBiometricHandler)),
+	))
+}
+
 func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
