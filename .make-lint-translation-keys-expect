@@ -7,8 +7,8 @@ resources/authgear/templates/en/web/authflowv2/__country_input.html:10:21: trans
 resources/authgear/templates/en/web/authflowv2/__csrf_error_page_layout.html:28:18: template translation is forbidden: `page-content`
 resources/authgear/templates/en/web/authflowv2/__dialog.html:27:14: template translation is forbidden: `dialog-attr`
 resources/authgear/templates/en/web/authflowv2/__direct_access_disable_page_frame.html:7:16: template translation is forbidden: `page-content`
-resources/authgear/templates/en/web/authflowv2/__error.html:134:18: template translation is forbidden: `authflowv2/__error_account`
-resources/authgear/templates/en/web/authflowv2/__error.html:166:20: template translation is forbidden: `authflowv2/__error_account`
+resources/authgear/templates/en/web/authflowv2/__error.html:135:18: template translation is forbidden: `authflowv2/__error_account`
+resources/authgear/templates/en/web/authflowv2/__error.html:170:20: template translation is forbidden: `authflowv2/__error_account`
 resources/authgear/templates/en/web/authflowv2/__locale_input.html:6:16: invalid translation key: "$labelKey"
 resources/authgear/templates/en/web/authflowv2/__locale_input.html:10:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/__new_password_field.html:54:33: translation key not defined: "%s %s"
