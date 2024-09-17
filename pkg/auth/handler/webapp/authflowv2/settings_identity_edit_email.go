@@ -9,6 +9,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -24,9 +27,10 @@ var AuthflowV2SettingsIdentityEditEmailSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id": { "type": "string" }
+			"x_login_id": { "type": "string" },
+			"x_identity_id": { "type": "string" }
 		},
-		"required": ["x_login_id"]
+		"required": ["x_login_id", "x_identity_id"]
 	}
 `)
 
@@ -38,25 +42,37 @@ func ConfigureAuthflowV2SettingsIdentityEditEmailRoute(route httproute.Route) ht
 
 type AuthflowV2SettingsIdentityEditEmailViewModel struct {
 	LoginIDKey string
+	Target     *identity.LoginID
 }
 
 type AuthflowV2SettingsIdentityEditEmailHandler struct {
+	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
 	AccountManagement accountmanagement.Service
+	Identities        *identityservice.Service
 }
 
 func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
+	loginID := r.Form.Get("q_login_id")
+
+	userID := session.GetUserID(r.Context())
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
+	target, err := h.Identities.LoginID.Get(*userID, loginID)
+	if err != nil {
+		return nil, err
+	}
+
 	vm := AuthflowV2SettingsIdentityEditEmailViewModel{
 		LoginIDKey: loginIDKey,
+		Target:     target,
 	}
 	viewmodels.Embed(data, vm)
 
@@ -72,7 +88,14 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		var data map[string]interface{}
+		err = h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
@@ -82,6 +105,7 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 	})
 
 	ctrl.PostAction("", func() error {
+
 		loginIDKey := r.Form.Get("q_login_id_key")
 
 		err := AuthflowV2SettingsIdentityEditEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
@@ -90,11 +114,13 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		loginID := r.Form.Get("x_login_id")
+		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartCreateEmailIdentityWithVerification(s, &accountmanagement.StartCreateIdentityWithVerificationInput{
+		output, err := h.AccountManagement.StartUpdateEmailIdentityWithVerification(s, &accountmanagement.StartUpdateIdentityWithVerificationInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
+			IdentityID: identityID,
 			Channel:    model.AuthenticatorOOBChannelEmail,
 		})
 		if err != nil {
