@@ -10,7 +10,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -118,7 +117,7 @@ func TestSAMLService(t *testing.T) {
 			authnRequest.Destination = "http://idp.local/wrong"
 			err := createService().ValidateAuthnRequest(spID, authnRequest)
 
-			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+			So(err, ShouldBeError, &samlprotocol.InvalidRequestError{
 				Field:    "Destination",
 				Actual:   "http://idp.local/wrong",
 				Expected: []string{"http://idp.local/login"},
@@ -130,7 +129,7 @@ func TestSAMLService(t *testing.T) {
 			authnRequest := makeValidRequest()
 			authnRequest.ProtocolBinding = "urn:oasis:names:tc:SAML:2.0:bindings:SOAP"
 			err := createService().ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+			So(err, ShouldBeError, &samlprotocol.InvalidRequestError{
 				Field:  "ProtocolBinding",
 				Actual: authnRequest.ProtocolBinding,
 				Expected: []string{
@@ -144,7 +143,7 @@ func TestSAMLService(t *testing.T) {
 			authnRequest := makeValidRequest()
 			authnRequest.Version = "1.0"
 			err := createService().ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+			So(err, ShouldBeError, &samlprotocol.InvalidRequestError{
 				Field:    "Version",
 				Actual:   authnRequest.Version,
 				Expected: []string{samlprotocol.SAMLVersion2},
@@ -157,7 +156,7 @@ func TestSAMLService(t *testing.T) {
 			issueInstant, _ := time.Parse(time.RFC3339, "2006-01-02T14:00:05Z")
 			authnRequest.IssueInstant = issueInstant
 			err := createService().ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+			So(err, ShouldBeError, &samlprotocol.InvalidRequestError{
 				Field:  "IssueInstant",
 				Actual: issueInstant.Format(time.RFC3339),
 				Reason: "request expired",
@@ -169,7 +168,7 @@ func TestSAMLService(t *testing.T) {
 			format := "urn:oasis:names:tc:SAML:1.1:nameid-format:X509SubjectName"
 			authnRequest.NameIDPolicy.Format = &format
 			err := createService().ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+			So(err, ShouldBeError, &samlprotocol.InvalidRequestError{
 				Field:  "NameIDPolicy/Format",
 				Actual: format,
 				Expected: []string{
@@ -184,7 +183,7 @@ func TestSAMLService(t *testing.T) {
 			authnRequest := makeValidRequest()
 			authnRequest.AssertionConsumerServiceURL = "http://localhost/wrong"
 			err := createService().ValidateAuthnRequest(spID, authnRequest)
-			So(err, ShouldBeError, &samlerror.InvalidRequestError{
+			So(err, ShouldBeError, &samlprotocol.InvalidRequestError{
 				Field:  "AssertionConsumerServiceURL",
 				Actual: "http://localhost/wrong",
 				Reason: "AssertionConsumerServiceURL not allowed",
@@ -237,7 +236,7 @@ func TestSAMLService(t *testing.T) {
 			}
 
 			err := svc.VerifyEmbeddedSignature(sp, requestXml)
-			expectedErr := &samlerror.InvalidSignatureError{}
+			expectedErr := &samlprotocol.InvalidSignatureError{}
 			So(err, ShouldHaveSameTypeAs, expectedErr)
 		})
 
@@ -300,7 +299,7 @@ func TestSAMLService(t *testing.T) {
 				"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
 				relayState,
 				signature)
-			expectedErr := &samlerror.InvalidSignatureError{}
+			expectedErr := &samlprotocol.InvalidSignatureError{}
 			So(err, ShouldHaveSameTypeAs, expectedErr)
 		})
 	})
