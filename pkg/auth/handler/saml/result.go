@@ -1,18 +1,10 @@
-package samlprotocolhttp
+package saml
 
 import (
 	"fmt"
-	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
-
-type SAMLResultSigner interface {
-	ConstructSignedQueryParameters(
-		samlResponse string,
-		relayState string,
-	) (url.Values, error)
-}
 
 type SAMLResult interface {
 	GetResponse() samlprotocol.Respondable

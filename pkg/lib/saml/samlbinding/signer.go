@@ -2,7 +2,7 @@ package samlbinding
 
 import "net/url"
 
-type SAMLBindingSigner interface {
+type SAMLRedirectBindingSigner interface {
 	ConstructSignedQueryParameters(
 		samlResponse string,
 		relayState string,

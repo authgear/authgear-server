@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
@@ -21,12 +20,12 @@ type LoginResultHandler struct {
 func (h *LoginResultHandler) handleLoginResult(
 	authInfo *authenticationinfo.T,
 	samlSessionEntry *samlsession.SAMLSessionEntry,
-) (result samlprotocolhttp.SAMLResult) {
+) (result SAMLResult) {
 	now := h.Clock.NowUTC()
 	callbackURL := samlSessionEntry.CallbackURL
 
-	unexpectedErrorResult := func(err error) samlprotocolhttp.SAMLResult {
-		return samlprotocolhttp.NewUnexpectedSAMLErrorResult(err,
+	unexpectedErrorResult := func(err error) SAMLResult {
+		return NewUnexpectedSAMLErrorResult(err,
 			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
 		)
 	}
@@ -58,7 +57,7 @@ func (h *LoginResultHandler) handleLoginResult(
 	if err != nil {
 		var missingNameIDErr *samlprotocol.MissingNameIDError
 		if errors.As(err, &missingNameIDErr) {
-			errResponse := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
+			errResponse := NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewServerErrorResponse(
 					now,
 					h.SAMLService.IdpEntityID(),
@@ -72,7 +71,7 @@ func (h *LoginResultHandler) handleLoginResult(
 		return unexpectedErrorResult(err)
 	}
 
-	return &samlprotocolhttp.SAMLSuccessResult{
+	return &SAMLSuccessResult{
 		Response: response,
 	}
 }
