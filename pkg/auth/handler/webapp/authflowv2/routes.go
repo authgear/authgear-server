@@ -86,6 +86,7 @@ const (
 
 	AuthflowV2RouteSettingsIdentityListEmail          = "/settings/identity/email"
 	AuthflowV2RouteSettingsIdentityAddEmail           = "/settings/identity/add_email"
+	AuthflowV2RouteSettingsIdentityEditEmail          = "/settings/identity/edit_email"
 	AuthflowV2RouteSettingsIdentityViewEmail          = "/settings/identity/view_email"
 	AuthflowV2RouteSettingsIdentityChangePrimaryEmail = "/settings/identity/change_primary_email"
 	AuthflowV2RouteSettingsIdentityVerifyEmail        = "/settings/identity/verify_email"
