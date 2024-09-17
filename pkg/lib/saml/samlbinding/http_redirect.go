@@ -10,7 +10,6 @@ import (
 
 	"github.com/beevik/etree"
 
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
@@ -42,14 +41,14 @@ func SAMLBindingHTTPRedirectParse(r *http.Request) (
 	}
 	compressedRequest, err := base64.StdEncoding.DecodeString(samlRequest)
 	if err != nil {
-		return result, &samlerror.ParseRequestFailedError{
+		return result, &samlprotocol.ParseRequestFailedError{
 			Reason: "base64 decode failed",
 			Cause:  err,
 		}
 	}
 	requestBuffer, err := io.ReadAll(newSaferFlateReader(bytes.NewReader(compressedRequest)))
 	if err != nil {
-		return result, &samlerror.ParseRequestFailedError{
+		return result, &samlprotocol.ParseRequestFailedError{
 			Reason: "decompress failed",
 			Cause:  err,
 		}

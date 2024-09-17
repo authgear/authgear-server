@@ -10,7 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
@@ -137,7 +136,7 @@ func (h *LoginHandler) handleLoginRequest(
 		}
 		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))
 		if err != nil {
-			err = &samlerror.ParseRequestFailedError{
+			err = &samlprotocol.ParseRequestFailedError{
 				Reason: "malformed AuthnRequest",
 				Cause:  err,
 			}
@@ -154,7 +153,7 @@ func (h *LoginHandler) handleLoginRequest(
 		}
 		authnRequest, err = samlprotocol.ParseAuthnRequest([]byte(r.SAMLRequestXML))
 		if err != nil {
-			err = &samlerror.ParseRequestFailedError{
+			err = &samlprotocol.ParseRequestFailedError{
 				Reason: "malformed AuthnRequest",
 				Cause:  err,
 			}
@@ -176,7 +175,7 @@ func (h *LoginHandler) handleLoginRequest(
 			)
 		}
 
-		var parseRequestFailedErr *samlerror.ParseRequestFailedError
+		var parseRequestFailedErr *samlprotocol.ParseRequestFailedError
 		if errors.As(err, &parseRequestFailedErr) {
 			samlResult := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
@@ -217,7 +216,7 @@ func (h *LoginHandler) handleLoginRequest(
 	}
 
 	if err != nil {
-		var invalidSignatureErr *samlerror.InvalidSignatureError
+		var invalidSignatureErr *samlprotocol.InvalidSignatureError
 		if errors.As(err, &invalidSignatureErr) {
 			samlResult := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
@@ -239,7 +238,7 @@ func (h *LoginHandler) handleLoginRequest(
 	// Validate the AuthnRequest
 	err = h.SAMLService.ValidateAuthnRequest(sp.GetID(), authnRequest)
 	if err != nil {
-		var invalidRequestErr *samlerror.InvalidRequestError
+		var invalidRequestErr *samlprotocol.InvalidRequestError
 		if errors.As(err, &invalidRequestErr) {
 			samlResult := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
@@ -343,7 +342,7 @@ func (h *LoginHandler) startSSOFlow(
 
 	uiInfo, showUI, err := h.SAMLUIService.ResolveUIInfo(sp, samlSessionEntry)
 	if err != nil {
-		var invalidRequestErr *samlerror.InvalidRequestError
+		var invalidRequestErr *samlprotocol.InvalidRequestError
 		if errors.As(err, &invalidRequestErr) {
 			samlResult := samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
