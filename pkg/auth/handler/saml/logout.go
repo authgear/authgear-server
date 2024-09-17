@@ -82,7 +82,7 @@ func (h *LogoutHandler) parseSLORequest(
 		if err != nil {
 			var parseRequestFailedErr *samlprotocol.ParseRequestFailedError
 			if errors.As(err, &parseRequestFailedErr) {
-				err = NewExpectedSAMLErrorResult(err,
+				err = NewSAMLErrorResult(err,
 					samlprotocol.NewRequestDeniedErrorResponse(
 						h.Clock.NowUTC(),
 						h.SAMLService.IdpEntityID(),
@@ -142,7 +142,7 @@ func (h *LogoutHandler) verifySignature(
 		if err != nil {
 			var invalidSignatureErr *samlprotocol.InvalidSignatureError
 			if errors.As(err, &invalidSignatureErr) {
-				err = NewExpectedSAMLErrorResult(err,
+				err = NewSAMLErrorResult(err,
 					samlprotocol.NewRequestDeniedErrorResponse(
 						h.Clock.NowUTC(),
 						h.SAMLService.IdpEntityID(),
@@ -247,11 +247,7 @@ func (h *LogoutHandler) handleError(
 	var samlErrResult *SAMLErrorResult
 	var response samlprotocol.Respondable
 	if errors.As(err, &samlErrResult) {
-		if samlErrResult.IsUnexpected {
-			h.Logger.WithError(samlErrResult.Cause).Error("unexpected error")
-		} else {
-			h.Logger.WithError(samlErrResult.Cause).Warnln("saml logout failed with expected error")
-		}
+		h.Logger.WithError(samlErrResult.Cause).Warnln("saml logout failed with expected error")
 		response = samlErrResult.Response
 	} else {
 		h.Logger.WithError(err).Error("unexpected error")
