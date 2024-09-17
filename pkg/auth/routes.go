@@ -493,8 +493,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsOOBOTPHandler),
 	})
 	router.Add(webapphandler.ConfigureSettingsRecoveryCodeRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsRecoveryCodeHandler))
-	router.Add(webapphandler.ConfigureSettingsSessionsRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsSessionsHandler))
-
+	router.Add(webapphandler.ConfigureSettingsSessionsRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
+		SettingV1: p.Handler(newWebAppSettingsSessionsHandler),
+		SettingV2: p.Handler(newWebAppAuthflowV2SettingsSessionsHandler),
+	})
 	router.Add(webapphandler.ConfigureSettingsChangePasswordRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV1: p.Handler(newWebAppSettingsChangePasswordHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsChangePasswordHandler),

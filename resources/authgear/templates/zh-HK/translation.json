@@ -1222,6 +1222,7 @@
   "v2.page.settings-profile.default.navbar-title": "個人資料",
   "v2.page.settings-profile.default.profile-picture-title": "頭像",
   "v2.page.settings-profile.default.zoneinfo-title": "時區",
+  "v2.page.settings-sessions.default.navbar-title": "已登入的裝置",
   "v2.page.settings-totp.default.added-at-label": "新增時間: <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long>{time, datetime, short} UTC</span>",
   "v2.page.settings-totp.default.button-add-authenticator-label": "+ 新增驗證器應用程式／裝置",
   "v2.page.settings-totp.default.navbar-title": "驗證器應用程式／裝置",
