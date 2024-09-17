@@ -1139,6 +1139,7 @@
   "v2.page.settings-identity-view-email.default.button-verify-email-label": "Verify",
   "v2.page.settings-identity-view-email.default.remove-identity-dialog-description": "Are you sure you want to remove the email address {target} from your account?",
   "v2.page.settings-identity-view-email.default.remove-identity-dialog-title": "Remove Email Address",
+  "v2.page.settings-identity-view-phone.default.navbar-title": "Phone",
   "v2.page.settings-identity.default.verification-status-unverified-label": "Not Verified",
   "v2.page.settings-identity.default.verification-status-verified-label": "Verified",
   "v2.page.settings-mfa-create-password.default.navbar-title": "Additional password",
