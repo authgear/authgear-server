@@ -449,6 +449,7 @@ func (h *LoginHandler) handleError(
 			panic(err)
 		}
 	} else {
+		h.Logger.WithError(err).Error("unexpected error")
 		err = h.BindingHTTPPostWriter.Write(rw, r,
 			callbackURL,
 			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
