@@ -11,7 +11,67 @@
 {{ end }}
 
 {{ define "page-content" }}
-<div>
-  test
+<div class="flex flex-col">
+  {{ if not $.BiometricIdentities }}
+    <p class="settings-description text-center pt-5">
+      {{ template "v2.page.settings-biometric.default.description-no-biometric" . }}
+    </p>
+  {{ end }}
+
+  {{ $ctx := .}}
+  {{ range $.BiometricIdentities }}
+    {{ $name := (include "v2.page.settings-biometric.default.item-label-unknown-name" .) }}
+    {{ if .DisplayName }}
+      {{ $name = .DisplayName }}
+    {{ end }}
+    {{
+      template "authflowv2/__settings_action_item.html"
+      (dict
+        "IconName" "phone_iphone"
+        "Label" $name
+        "Description" ( include "v2.page.settings-biometric.default.item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) )
+        "ActionButton" (include "remove-btn" (dict "DialogID" .ID))
+      )
+    }}
+
+    {{ template "authflowv2/__settings_dialog.html"
+      (dict
+        "Ctx" $ctx
+        "DialogID" .ID
+        "Title" (include "v2.page.settings-biometric.default.dialog-title" nil)
+        "Description" (include "v2.page.settings-biometric.default.dialog-description" nil)
+        "FormContent" (include "remove-input" (dict "BiometricID" .ID "CSRFField" $.CSRFField))
+        "Buttons"
+          (list
+            (dict
+              "Type" "Destructive"
+              "Label" (include "v2.component.button.default.label-remove" nil)
+              "Value" "remove"
+              "Event" "authgear.button.remove_biometric"
+            )
+            (dict
+              "Type" "Cancel"
+              "Label" (include "v2.component.button.default.label-cancel" nil)
+            )
+          )
+    )}}
+  {{ end }}
+
 </div>
+{{end}}
+
+{{ define "remove-btn" }}
+<button
+  class="settings-link-btn--destructive"
+  data-controller="settings-dialog"
+  data-action="click->settings-dialog#open"
+  data-settings-dialog-dialogid-param="{{ .DialogID }}"
+>
+  {{translate "v2.page.settings-biometric.default.button-label-disconnect" nil}}
+</button>
+{{ end }}
+
+{{ define "remove-input" }}
+{{ $.CSRFField }}
+  <input type="hidden" name="q_identity_id" value="{{ $.BiometricID }}">
 {{ end }}
