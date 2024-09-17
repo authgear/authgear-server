@@ -45,15 +45,15 @@ var _ loginResult = &loginResultRedirect{}
 
 func (l *loginResultRedirect) loginResult() {}
 
-type loginResultSAML struct {
-	SAMLResult  SAMLResult
+type loginResultSAMLResponse struct {
+	Response    samlprotocol.Respondable
 	CallbackURL string
 	RelayState  string
 }
 
-var _ loginResult = &loginResultSAML{}
+var _ loginResult = &loginResultSAMLResponse{}
 
-func (l *loginResultSAML) loginResult() {}
+func (l *loginResultSAMLResponse) loginResult() {}
 
 type LoginHandler struct {
 	Logger             *LoginHandlerLogger
@@ -79,14 +79,22 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	callbackURL := sp.DefaultAcsURL()
+	var relayState string
 
 	defer func() {
 		if err := recover(); err != nil {
-			h.handleUnknownError(rw, r, callbackURL, "", err)
+			e := panicutil.MakeError(err)
+			h.handleError(rw, r, callbackURL, relayState, e)
 		}
 	}()
 
-	result := h.handleLoginRequest(rw, r, sp, callbackURL)
+	var result loginResult
+	var err error
+	relayState, callbackURL, result, err = h.handleLoginRequest(rw, r, sp, callbackURL)
+	if err != nil {
+		h.handleError(rw, r, callbackURL, relayState, err)
+		return
+	}
 	switch result := result.(type) {
 	case *loginResultRedirect:
 		redirectResult := &httputil.ResultRedirect{
@@ -94,13 +102,13 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 		redirectResult.WriteResponse(rw, r)
 		return
-	case *loginResultSAML:
+	case *loginResultSAMLResponse:
 		if result.CallbackURL != "" {
 			callbackURL = result.CallbackURL
 		}
 		err := h.BindingHTTPPostWriter.Write(rw, r,
 			callbackURL,
-			result.SAMLResult.GetResponse(),
+			result.Response,
 			result.RelayState,
 		)
 		if err != nil {
@@ -115,13 +123,11 @@ func (h *LoginHandler) handleLoginRequest(
 	r *http.Request,
 	sp *config.SAMLServiceProviderConfig,
 	defaultCallbackURL string,
-) loginResult {
+) (relayState string, callbackURL string, result loginResult, err error) {
 	now := h.Clock.NowUTC()
-	var err error
 	var parseResult samlbinding.SAMLBindingParseResult
 	var authnRequest *samlprotocol.AuthnRequest
-	var relayState string
-	var callbackURL string = defaultCallbackURL
+	callbackURL = defaultCallbackURL
 	issuer := h.SAMLService.IdpEntityID()
 
 	// Get data with corresponding binding
@@ -167,16 +173,17 @@ func (h *LoginHandler) handleLoginRequest(
 	if err != nil {
 		if errors.Is(err, samlbinding.ErrNoRequest) {
 			// This is a IdP-initated flow
-			return h.handleIdpInitiated(
+			result, err := h.handleIdpInitiated(
 				r.Context(),
 				sp,
 				callbackURL,
 			)
+			return relayState, callbackURL, result, err
 		}
 
 		var parseRequestFailedErr *samlprotocol.ParseRequestFailedError
 		if errors.As(err, &parseRequestFailedErr) {
-			samlResult := NewExpectedSAMLErrorResult(err,
+			errorResult := NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
 					now,
 					issuer,
@@ -184,13 +191,10 @@ func (h *LoginHandler) handleLoginRequest(
 					parseRequestFailedErr.GetDetailElements(),
 				),
 			)
-			return &loginResultSAML{
-				SAMLResult:  samlResult,
-				CallbackURL: callbackURL,
-				RelayState:  relayState,
-			}
+			return relayState, callbackURL, nil, errorResult
+		} else {
+			return relayState, callbackURL, nil, err
 		}
-		panic(err)
 	}
 
 	// Verify the signature
@@ -217,7 +221,7 @@ func (h *LoginHandler) handleLoginRequest(
 	if err != nil {
 		var invalidSignatureErr *samlprotocol.InvalidSignatureError
 		if errors.As(err, &invalidSignatureErr) {
-			samlResult := NewExpectedSAMLErrorResult(err,
+			errorResult := NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
 					now,
 					issuer,
@@ -225,13 +229,10 @@ func (h *LoginHandler) handleLoginRequest(
 					invalidSignatureErr.GetDetailElements(),
 				),
 			)
-			return &loginResultSAML{
-				SAMLResult:  samlResult,
-				CallbackURL: callbackURL,
-				RelayState:  relayState,
-			}
+			return relayState, callbackURL, nil, errorResult
+		} else {
+			return relayState, callbackURL, nil, err
 		}
-		panic(err)
 	}
 
 	// Validate the AuthnRequest
@@ -239,7 +240,7 @@ func (h *LoginHandler) handleLoginRequest(
 	if err != nil {
 		var invalidRequestErr *samlprotocol.InvalidRequestError
 		if errors.As(err, &invalidRequestErr) {
-			samlResult := NewExpectedSAMLErrorResult(err,
+			errorResult := NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
 					now,
 					issuer,
@@ -247,72 +248,31 @@ func (h *LoginHandler) handleLoginRequest(
 					invalidRequestErr.GetDetailElements(),
 				),
 			)
-			return &loginResultSAML{
-				SAMLResult:  samlResult,
-				CallbackURL: callbackURL,
-				RelayState:  relayState,
-			}
+			return relayState, callbackURL, nil, errorResult
+		} else {
+			return relayState, callbackURL, nil, err
 		}
-		panic(err)
 	}
 
 	if authnRequest.AssertionConsumerServiceURL != "" {
 		callbackURL = authnRequest.AssertionConsumerServiceURL
 	}
 
-	return h.startSSOFlow(
+	result, err = h.startSSOFlow(
 		r.Context(),
 		sp,
 		string(authnRequest.ToXMLBytes()),
 		callbackURL,
 		relayState,
 	)
-}
-
-func (h *LoginHandler) handleUnknownError(
-	rw http.ResponseWriter, r *http.Request,
-	callbackURL string,
-	relayState string,
-	err any,
-) {
-	now := h.Logger.Time.UTC()
-	e := panicutil.MakeError(err)
-
-	result := NewUnexpectedSAMLErrorResult(e,
-		samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
-	)
-	h.writeResult(rw, r, callbackURL, relayState, result)
-}
-
-func (h *LoginHandler) writeResult(
-	rw http.ResponseWriter, r *http.Request,
-	callbackURL string,
-	relayState string,
-	result SAMLResult,
-) {
-	switch result := result.(type) {
-	case *SAMLErrorResult:
-		if result.IsUnexpected {
-			h.Logger.WithError(result.Cause).Error("unexpected error")
-		} else {
-			h.Logger.WithError(result).Warnln("saml login failed with expected error")
-		}
-	}
-	err := h.BindingHTTPPostWriter.Write(rw, r,
-		callbackURL,
-		result.GetResponse(),
-		relayState,
-	)
-	if err != nil {
-		panic(err)
-	}
+	return relayState, callbackURL, result, err
 }
 
 func (h *LoginHandler) handleIdpInitiated(
 	ctx context.Context,
 	sp *config.SAMLServiceProviderConfig,
 	callbackURL string,
-) loginResult {
+) (loginResult, error) {
 	return h.startSSOFlow(
 		ctx,
 		sp,
@@ -328,7 +288,7 @@ func (h *LoginHandler) startSSOFlow(
 	authnRequestXML string,
 	callbackURL string,
 	relayState string,
-) loginResult {
+) (loginResult, error) {
 	now := h.Clock.NowUTC()
 	issuer := h.SAMLService.IdpEntityID()
 
@@ -343,7 +303,7 @@ func (h *LoginHandler) startSSOFlow(
 	if err != nil {
 		var invalidRequestErr *samlprotocol.InvalidRequestError
 		if errors.As(err, &invalidRequestErr) {
-			samlResult := NewExpectedSAMLErrorResult(err,
+			errorResult := NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
 					now,
 					issuer,
@@ -351,13 +311,10 @@ func (h *LoginHandler) startSSOFlow(
 					invalidRequestErr.GetDetailElements(),
 				),
 			)
-			return &loginResultSAML{
-				SAMLResult:  samlResult,
-				CallbackURL: callbackURL,
-				RelayState:  relayState,
-			}
+			return nil, errorResult
+		} else {
+			return nil, err
 		}
-		panic(err)
 	}
 
 	var loginHint *oauth.LoginHint
@@ -393,39 +350,31 @@ func (h *LoginHandler) startSSOFlow(
 			return nil
 		})
 		if err != nil {
-			samlResult := NewUnexpectedSAMLErrorResult(err,
-				samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
-			)
-			return &loginResultSAML{
-				SAMLResult:  samlResult,
-				CallbackURL: callbackURL,
-				RelayState:  relayState,
-			}
+			return nil, err
 		}
 
 		if resolvedSession == nil {
 			// No session, return NoPassive error.
 			err := fmt.Errorf("no session but IsPassive=true")
-			samlResult := NewExpectedSAMLErrorResult(err,
+			errorResult := NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewNoPassiveErrorResponse(
 					now,
 					issuer,
 				),
 			)
-			return &loginResultSAML{
-				SAMLResult:  samlResult,
-				RelayState:  relayState,
-				CallbackURL: callbackURL,
-			}
+			return nil, errorResult
 		} else {
 			// Else, authenticate with the existing session.
 			authInfo := resolvedSession.CreateNewAuthenticationInfoByThisSession()
-			samlResult := h.LoginResultHandler.handleLoginResult(&authInfo, samlSessionEntry)
-			return &loginResultSAML{
-				SAMLResult:  samlResult,
+			response, err := h.LoginResultHandler.handleLoginResult(&authInfo, samlSessionEntry)
+			if err != nil {
+				return nil, err
+			}
+			return &loginResultSAMLResponse{
+				Response:    response,
 				RelayState:  relayState,
 				CallbackURL: callbackURL,
-			}
+			}, nil
 		}
 
 	}
@@ -433,15 +382,50 @@ func (h *LoginHandler) startSSOFlow(
 	samlSession := samlsession.NewSAMLSession(samlSessionEntry, uiInfo)
 	err = h.SAMLSessionService.Save(samlSession)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	endpoint, err := h.SAMLUIService.BuildAuthenticationURL(samlSession)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return &loginResultRedirect{
 		RedirectURL: endpoint.String(),
+	}, nil
+}
+
+func (h *LoginHandler) handleError(
+	rw http.ResponseWriter,
+	r *http.Request,
+	callbackURL string,
+	relayState string,
+	err error,
+) {
+	now := h.Clock.NowUTC()
+	var samlErrResult *SAMLErrorResult
+	if errors.As(err, &samlErrResult) {
+		if samlErrResult.IsUnexpected {
+			h.Logger.WithError(samlErrResult.Cause).Error("unexpected error")
+		} else {
+			h.Logger.WithError(samlErrResult.Cause).Warnln("saml login failed with expected error")
+		}
+		err = h.BindingHTTPPostWriter.Write(rw, r,
+			callbackURL,
+			samlErrResult.Response,
+			relayState,
+		)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		err = h.BindingHTTPPostWriter.Write(rw, r,
+			callbackURL,
+			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
+			relayState,
+		)
+		if err != nil {
+			panic(err)
+		}
 	}
 }
