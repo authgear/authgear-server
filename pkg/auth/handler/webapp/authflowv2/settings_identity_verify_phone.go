@@ -1,7 +1,6 @@
 package authflowv2
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"net/url"
@@ -32,6 +31,7 @@ var AuthflowV2SettingsIdentityVerifyPhoneSchema = validation.NewSimpleSchema(`
 		"properties": {
 			"x_login_id_key": { "type": "string" },
 			"x_login_id": { "type": "string" },
+			"x_identity_id": { "type": "string" },
 			"x_token": { "type": "string" },
 			"x_code": { "type": "string" }
 		},
@@ -58,6 +58,7 @@ func ConfigureAuthflowV2SettingsIdentityVerifyPhoneRoute(route httproute.Route) 
 type AuthflowV2SettingsIdentityVerifyPhoneViewModel struct {
 	LoginIDKey string
 	LoginID    string
+	IdentityID string
 	TokenID    string
 
 	CodeLength                     int
@@ -105,6 +106,7 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(r *http.Request, 
 	vm := AuthflowV2SettingsIdentityVerifyPhoneViewModel{
 		LoginIDKey: loginIDKey,
 		LoginID:    output.LoginID,
+		IdentityID: output.IdentityID,
 		TokenID:    tokenID,
 
 		CodeLength:       6,
@@ -148,15 +150,13 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 	})
 
 	ctrl.PostAction("submit", func() error {
-
-		fmt.Printf("%s\n", r.Form)
-
 		err := AuthflowV2SettingsIdentityVerifyPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
 		loginID := r.Form.Get("x_login_id")
+		identityID := r.Form.Get("x_identity_id")
 		loginIDKey := r.Form.Get("x_login_id_key")
 		tokenID := r.Form.Get("x_token")
 
@@ -170,13 +170,24 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 		}
 
 		s := session.GetSession(r.Context())
-		_, err = h.AccountManagement.AddIdentityPhoneNumberWithVerification(s, &accountmanagement.AddIdentityPhoneNumberWithVerificationInput{
-			LoginID:    loginID,
-			LoginIDKey: loginIDKey,
-			Code:       code,
-			Token:      tokenID,
-			Channel:    channel,
-		})
+		if identityID == "" {
+			_, err = h.AccountManagement.AddIdentityPhoneNumberWithVerification(s, &accountmanagement.AddIdentityPhoneNumberWithVerificationInput{
+				LoginID:    loginID,
+				LoginIDKey: loginIDKey,
+				Code:       code,
+				Token:      tokenID,
+				Channel:    channel,
+			})
+		} else {
+			_, err = h.AccountManagement.UpdateIdentityPhoneNumberWithVerification(s, &accountmanagement.UpdateIdentityPhoneNumberWithVerificationInput{
+				LoginID:    loginID,
+				LoginIDKey: loginIDKey,
+				IdentityID: identityID,
+				Code:       code,
+				Token:      tokenID,
+				Channel:    channel,
+			})
+		}
 		if err != nil {
 			return err
 		}
