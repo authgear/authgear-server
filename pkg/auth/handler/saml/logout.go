@@ -6,7 +6,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -87,7 +86,7 @@ func (h *LogoutHandler) handleSLORequest(
 		}
 		logoutRequest, err = samlprotocol.ParseLogoutRequest([]byte(r.SAMLRequestXML))
 		if err != nil {
-			err = &samlerror.ParseRequestFailedError{
+			err = &samlprotocol.ParseRequestFailedError{
 				Reason: "malformed LogoutRequest",
 				Cause:  err,
 			}
@@ -104,7 +103,7 @@ func (h *LogoutHandler) handleSLORequest(
 		}
 		logoutRequest, err = samlprotocol.ParseLogoutRequest([]byte(r.SAMLRequestXML))
 		if err != nil {
-			err = &samlerror.ParseRequestFailedError{
+			err = &samlprotocol.ParseRequestFailedError{
 				Reason: "malformed LogoutRequest",
 				Cause:  err,
 			}
@@ -118,7 +117,7 @@ func (h *LogoutHandler) handleSLORequest(
 	}
 
 	if err != nil {
-		var parseRequestFailedErr *samlerror.ParseRequestFailedError
+		var parseRequestFailedErr *samlprotocol.ParseRequestFailedError
 		if errors.As(err, &parseRequestFailedErr) {
 			return relayState, samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
@@ -156,7 +155,7 @@ func (h *LogoutHandler) handleSLORequest(
 		panic("unexpected parse result type")
 	}
 	if err != nil {
-		var invalidSignatureErr *samlerror.InvalidSignatureError
+		var invalidSignatureErr *samlprotocol.InvalidSignatureError
 		if errors.As(err, &invalidSignatureErr) {
 			return relayState, samlprotocolhttp.NewExpectedSAMLErrorResult(err,
 				samlprotocol.NewRequestDeniedErrorResponse(
