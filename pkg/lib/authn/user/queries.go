@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -180,4 +181,115 @@ func (p *Queries) GetMany(ids []string, role accesscontrol.Role) (users []*model
 	}
 
 	return
+}
+
+func (p *Queries) GetPageForExport(offset uint64) (users []*userexport.UserForExport, err error) {
+	rawUsers, err := p.Store.QueryForExport(offset)
+
+	userIDs := []string{}
+	updatedAts := []time.Time{}
+	stdAttrsList := []map[string]interface{}{}
+	customAttrsList := []map[string]interface{}{}
+	for _, rawUser := range rawUsers {
+		if rawUser == nil {
+			continue
+		}
+		userIDs = append(userIDs, rawUser.ID)
+		updatedAts = append(updatedAts, rawUser.UpdatedAt)
+		stdAttrsList = append(stdAttrsList, rawUser.StandardAttributes)
+		customAttrsList = append(customAttrsList, rawUser.CustomAttributes)
+	}
+
+	identitiesByUserID, err := p.Identities.ListByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	authenticatorsByUserID, err := p.Authenticators.ListByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	isVerifiedByUserID, err := p.Verification.AreUsersVerified(identitiesByUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	stdAttrsByUserID, err := p.StandardAttributes.DeriveStandardAttributesForUsers(
+		"",
+		userIDs,
+		updatedAts,
+		stdAttrsList,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	customAttrsByUserID, err := p.CustomAttributes.ReadCustomAttributesInStorageFormForUsers(
+		"",
+		userIDs,
+		customAttrsList)
+	if err != nil {
+		return nil, err
+	}
+
+	rolesByUserID, err := p.RolesAndGroups.ListRolesByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+	groupsByUserID, err := p.RolesAndGroups.ListGroupsByUserIDs(userIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, rawUser := range rawUsers {
+		if rawUser == nil {
+			users = append(users, nil)
+		} else {
+			identities := identitiesByUserID[rawUser.ID]
+			authenticators := authenticatorsByUserID[rawUser.ID]
+			isVerified := isVerifiedByUserID[rawUser.ID]
+			stdAttrs := stdAttrsByUserID[rawUser.ID]
+			customAttrs := customAttrsByUserID[rawUser.ID]
+			web3Info, web3err := p.Web3.GetWeb3Info(identities)
+			if web3err != nil {
+				return nil, web3err
+			}
+			roles := rolesByUserID[rawUser.ID]
+			roleKeys := make([]string, len(roles))
+			for i, v := range roles {
+				roleKeys[i] = v.Key
+			}
+
+			groups := groupsByUserID[rawUser.ID]
+			groupKeys := make([]string, len(groups))
+			for i, v := range groups {
+				groupKeys[i] = v.Key
+			}
+			u := newUserModelForExport(
+				rawUser,
+				identities,
+				authenticators,
+				isVerified,
+				stdAttrs,
+				customAttrs,
+				web3Info,
+				roleKeys,
+				groupKeys,
+			)
+
+			users = append(users, u)
+		}
+	}
+
+	return users, nil
+}
+
+func (p *Queries) CountAll() (count uint64, err error) {
+	count, err = p.Store.Count()
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }

@@ -3,9 +3,11 @@ package transport
 import (
 	"net/http"
 
+	"github.com/authgear/authgear-server/pkg/admin/facade"
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureUserExportCreateRoute(route httproute.Route) httproute.Route {
@@ -15,6 +17,8 @@ func ConfigureUserExportCreateRoute(route httproute.Route) httproute.Route {
 
 type UserExportCreateHandler struct {
 	JSON JSONResponseWriter
+	// TODO: Replace facade by worker task
+	User facade.UserExportFacade
 }
 
 func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -26,15 +30,17 @@ func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request) error {
-	// TODO: export users
+	var request userexport.Request
+	err := httputil.BindJSONBody(r, w, userexport.RequestSchema.Validator(), &request)
+	if err != nil {
+		return err
+	}
+
+	// TODO: change direct call to be a worker task
+	response := h.User.ExportRecords(nil, nil)
+
 	h.JSON.WriteResponse(w, &api.Response{
-		Result: userexport.Response{
-			ID:     "dummy_id",
-			Status: "pending",
-			Request: &userexport.Request{
-				Format: "ndjson",
-			},
-		},
+		Result: response,
 	})
 	return nil
 }
