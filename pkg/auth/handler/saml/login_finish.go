@@ -3,8 +3,6 @@ package saml
 import (
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -30,7 +28,8 @@ type LoginFinishHandler struct {
 	AuthenticationInfoService  SAMLAuthenticationInfoService
 
 	LoginResultHandler LoginResultHandler
-	ResultWriter       SAMLResultWriter
+
+	BindingHTTPPostWriter BindingHTTPPostWriter
 }
 
 func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
@@ -60,18 +59,18 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 
 	result := h.LoginResultHandler.handleLoginResult(&authInfo.T, samlSession.Entry)
 	switch result := result.(type) {
-	case *samlprotocolhttp.SAMLErrorResult:
+	case *SAMLErrorResult:
 		if result.IsUnexpected {
 			h.Logger.WithError(result.Cause).Error("unexpected error")
 		} else {
 			h.Logger.WithError(result.Cause).Warnln("saml login failed with expected error")
 		}
 	}
-	err = h.ResultWriter.Write(rw, r, result, &samlprotocolhttp.WriteOptions{
-		Binding:     samlprotocol.SAMLBindingHTTPPost,
-		CallbackURL: samlSession.Entry.CallbackURL,
-		RelayState:  samlSession.Entry.RelayState,
-	})
+	err = h.BindingHTTPPostWriter.Write(rw, r,
+		samlSession.Entry.CallbackURL,
+		result.GetResponse(),
+		samlSession.Entry.RelayState,
+	)
 	if err != nil {
 		// Don't know how to handle error when writing result, simply panic
 		panic(err)

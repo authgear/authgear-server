@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol/samlprotocolhttp"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 )
 
@@ -69,11 +68,20 @@ type SAMLUserFacade interface {
 	GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error)
 }
 
-type SAMLResultWriter interface {
+type BindingHTTPPostWriter interface {
 	Write(
 		rw http.ResponseWriter,
 		r *http.Request,
-		result samlprotocolhttp.SAMLResult,
-		options *samlprotocolhttp.WriteOptions,
-	) error
+		callbackURL string,
+		response samlprotocol.Respondable,
+		relayState string) error
+}
+
+type BindingHTTPRedirectWriter interface {
+	Write(
+		rw http.ResponseWriter,
+		r *http.Request,
+		callbackURL string,
+		response samlprotocol.Respondable,
+		relayState string) error
 }
