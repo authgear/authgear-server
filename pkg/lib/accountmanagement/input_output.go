@@ -213,33 +213,6 @@ type RemoveIdentityBiometricOuput struct {
 	IdentityInfo *identity.Info
 }
 
-type AddIdentityUsernameInput struct {
-	LoginID    string
-	LoginIDKey string
-}
-
-type AddIdentityUsernameOutput struct {
-	IdentityInfo *identity.Info
-}
-
-type UpdateIdentityUsernameInput struct {
-	LoginID    string
-	LoginIDKey string
-	IdentityID string
-}
-
-type UpdateIdentityUsernameOutput struct {
-	IdentityInfo *identity.Info
-}
-
-type RemoveIdentityUsernameInput struct {
-	IdentityID string
-}
-
-type RemoveIdentityUsernameOutput struct {
-	IdentityInfo *identity.Info
-}
-
 type RemoveIdentityEmailInput struct {
 	IdentityID string
 }

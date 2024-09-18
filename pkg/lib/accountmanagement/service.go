@@ -3,12 +3,14 @@ package accountmanagement
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"time"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -23,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
@@ -128,9 +131,12 @@ type Service struct {
 	Identities                IdentityService
 	IdentityAction            IdentityAction
 	Events                    EventService
+	OTPSender                 OTPSender
+	OTPCodeService            OTPCodeService
 	Authenticators            AuthenticatorService
 	AuthenticationInfoService AuthenticationInfoService
 	PasskeyService            PasskeyService
+	Verification              VerificationService
 	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
 }
 
@@ -734,76 +740,6 @@ func (s *Service) RemoveIdentityBiometric(resolvedSession session.ResolvedSessio
 	return &RemoveIdentityBiometricOuput{IdentityInfo: identityInfo}, nil
 }
 
-func (s *Service) AddIdentityUsername(resolvedSession session.ResolvedSession, input *AddIdentityUsernameInput) (*AddIdentityUsernameOutput, error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	loginKey := input.LoginIDKey
-	loginID := input.LoginID
-
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(loginKey, loginID)
-
-	var identityInfo *identity.Info
-	err = s.Database.WithTx(func() error {
-		identityInfo, _, err = s.IdentityAction.CreateIdentity(userID, identitySpec, false)
-		if err != nil {
-			return err
-		}
-		return nil
-
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &AddIdentityUsernameOutput{IdentityInfo: identityInfo}, nil
-
-}
-
-func (s *Service) UpdateIdentityUsername(resolvedSession session.ResolvedSession, input *UpdateIdentityUsernameInput) (*UpdateIdentityUsernameOutput, error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	loginKey := input.LoginIDKey
-	loginID := input.LoginID
-	identityID := input.IdentityID
-
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(loginKey, loginID)
-	if err != nil {
-		return nil, err
-	}
-
-	var identityInfo *identity.Info
-	err = s.Database.WithTx(func() error {
-		identityInfo, _, err = s.IdentityAction.UpdateIdentity(userID, identityID, identitySpec, false)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &UpdateIdentityUsernameOutput{IdentityInfo: identityInfo}, nil
-}
-
-func (s *Service) RemoveIdentityUsername(resolvedSession session.ResolvedSession, input *RemoveIdentityUsernameInput) (*RemoveIdentityUsernameOutput, error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	identityID := input.IdentityID
-
-	var identityInfo *identity.Info
-	err := s.Database.WithTx(func() (err error) {
-		identityInfo, err = s.IdentityAction.RemoveIdentity(userID, identityID)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &RemoveIdentityUsernameOutput{IdentityInfo: identityInfo}, nil
-}
-
 func (s *Service) AddIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *AddIdentityEmailWithVerificationInput) (output *CreateIdentityWithVerificationOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	defer func() {
@@ -989,4 +925,75 @@ func (s *Service) RemoveIdentityPhoneNumber(resolvedSession session.ResolvedSess
 	}
 
 	return &RemoveIdentityPhoneNumberOutput{IdentityInfo: identityInfo}, nil
+}
+
+func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChannel, target string, isResend bool) error {
+	var msgType otp.MessageType
+	switch channel {
+	case model.AuthenticatorOOBChannelWhatsapp:
+		msgType = otp.MessageTypeWhatsappCode
+	case model.AuthenticatorOOBChannelSMS:
+		msgType = otp.MessageTypeVerification
+	case model.AuthenticatorOOBChannelEmail:
+		msgType = otp.MessageTypeVerification
+	default:
+		panic(fmt.Errorf("accountmanagement: unknown channel"))
+	}
+
+	msg, err := s.OTPSender.Prepare(channel, target, otp.FormCode, msgType)
+	if !isResend && apierrors.IsKind(err, ratelimit.RateLimited) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	defer msg.Close()
+
+	code, err := s.OTPCodeService.GenerateOTP(
+		otp.KindVerification(s.Config, channel),
+		target,
+		otp.FormCode,
+		&otp.GenerateOptions{
+			UserID: userID,
+		},
+	)
+	// If it is not resend (switch between page), we should not send and return rate limit error to the caller.
+	if !isResend && apierrors.IsKind(err, ratelimit.RateLimited) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	err = s.OTPSender.Send(msg, otp.SendOptions{OTP: code})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) verifyOTP(userID string, channel model.AuthenticatorOOBChannel, target string, code string) error {
+	err := s.OTPCodeService.VerifyOTP(
+		otp.KindVerification(s.Config, channel),
+		target,
+		code,
+		&otp.VerifyOptions{
+			UserID: userID,
+		},
+	)
+	if apierrors.IsKind(err, otp.InvalidOTPCode) {
+		return verification.ErrInvalidVerificationCode
+	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) markClaimVerified(userID string, claimName model.ClaimName, claimValue string) error {
+	verifiedClaim := s.Verification.NewVerifiedClaim(userID, string(claimName), claimValue)
+
+	err := s.Verification.MarkClaimVerified(verifiedClaim)
+	if err != nil {
+		return err
+	}
+	return nil
 }
