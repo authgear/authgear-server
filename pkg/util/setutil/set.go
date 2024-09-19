@@ -46,6 +46,9 @@ func SetToSlice[A any, B cmp.Ordered](slice []A, set Set[B], f func(a A) B) []A 
 }
 
 func (s Set[T]) Keys() []T {
+	if s == nil {
+		return []T{}
+	}
 	keys := []T{}
 	for k, _ := range s {
 		keys = append(keys, k)
@@ -54,14 +57,20 @@ func (s Set[T]) Keys() []T {
 	return keys
 }
 
-func (s Set[T]) Add(key T) {
-	if _, ok := s[key]; ok {
+func (s *Set[T]) Add(key T) {
+	if (*s) == nil {
+		*s = Set[T]{}
+	}
+	if _, ok := (*s)[key]; ok {
 		return
 	}
-	s[key] = struct{}{}
+	(*s)[key] = struct{}{}
 }
 
 func (s Set[T]) Has(key T) bool {
+	if s == nil {
+		return false
+	}
 	if _, ok := s[key]; ok {
 		return true
 	}
@@ -76,6 +85,13 @@ func (s *Set[T]) UnmarshalJSON(b []byte) error {
 	err := json.Unmarshal(b, &rawArray)
 	if err != nil {
 		return err
+	}
+
+	if rawArray == nil {
+		return nil
+	}
+	if *s == nil {
+		*s = Set[T]{}
 	}
 
 	for _, value := range rawArray {
