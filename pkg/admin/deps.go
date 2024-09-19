@@ -32,7 +32,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
-	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -70,7 +69,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(facade.AuthorizationService), new(*oauth.AuthorizationService)),
 	wire.Bind(new(facade.OAuthAuthorizationService), new(*oauth.AuthorizationService)),
 	wire.Bind(new(facade.OAuthTokenService), new(*oauthhandler.TokenService)),
-	wire.Bind(new(facade.UserExportService), new(*userexport.UserExportService)),
 
 	wire.Bind(new(facade.OAuthClientResolver), new(*oauthclient.Resolver)),
 
@@ -104,6 +102,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.PresignProvider), new(*presign.Provider)),
 	wire.Bind(new(transport.UserImportCreateProducer), new(*redisqueue.UserImportProducer)),
 	wire.Bind(new(transport.UserImportGetProducer), new(*redisqueue.UserImportProducer)),
+	wire.Bind(new(transport.UserExportCreateProducer), new(*redisqueue.UserExportProducer)),
 
 	adminauthz.DependencySet,
 )

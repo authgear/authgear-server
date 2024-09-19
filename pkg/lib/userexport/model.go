@@ -1,6 +1,7 @@
 package userexport
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -118,4 +119,35 @@ type Record struct {
 
 	BiometricCount int `json:"biometric_count"`
 	PasskeyCount   int `json:"passkey_count"`
+}
+
+func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
+	response := &Response{
+		ID:          task.ID,
+		CreatedAt:   task.CreatedAt,
+		CompletedAt: task.CompletedAt,
+		Status:      task.Status,
+	}
+
+	if task.Input != nil {
+		var request Request
+		err := json.Unmarshal(task.Input, &request)
+		if err != nil {
+			return nil, err
+		}
+		response.Request = &request
+	}
+
+	if task.Output != nil {
+		var result Result
+		err := json.Unmarshal(task.Output, &result)
+		if err != nil {
+			return nil, err
+		}
+
+		// TODO: sign a download url from filename
+		response.DownloadUrl = result.Filename
+	}
+
+	return response, nil
 }

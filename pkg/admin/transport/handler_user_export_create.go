@@ -1,10 +1,13 @@
 package transport
 
 import (
+	"context"
+	"encoding/json"
 	"net/http"
 
-	"github.com/authgear/authgear-server/pkg/admin/facade"
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -15,10 +18,15 @@ func ConfigureUserExportCreateRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/_api/admin/users/export")
 }
 
+type UserExportCreateProducer interface {
+	NewTask(appID string, input json.RawMessage) *redisqueue.Task
+	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
+}
+
 type UserExportCreateHandler struct {
-	JSON JSONResponseWriter
-	// TODO: Replace facade by worker task
-	User facade.UserExportFacade
+	AppID       config.AppID
+	JSON        JSONResponseWriter
+	UserExports UserExportCreateProducer
 }
 
 func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -36,8 +44,21 @@ func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	// TODO: change direct call to be a worker task
-	response := h.User.ExportRecords(nil, nil)
+	rawMessage, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	task := h.UserExports.NewTask(string(h.AppID), rawMessage)
+	err = h.UserExports.EnqueueTask(r.Context(), task)
+	if err != nil {
+		return err
+	}
+
+	response, err := userexport.NewResponseFromTask(task)
+	if err != nil {
+		return err
+	}
 
 	h.JSON.WriteResponse(w, &api.Response{
 		Result: response,

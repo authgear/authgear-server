@@ -168,6 +168,13 @@ func (c *Controller) Start() {
 			configSrcController,
 			redisqueue.UserImport,
 		))
+
+		specs = append(specs, redisqueue.NewConsumer(
+			infraredisqueue.QueueUserExport,
+			p,
+			configSrcController,
+			redisqueue.UserExport,
+		))
 	}
 
 	signalutil.Start(c.logger, specs...)
