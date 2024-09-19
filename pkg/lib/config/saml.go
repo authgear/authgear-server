@@ -155,7 +155,7 @@ func (c *SAMLServiceProviderConfig) SetDefaults() {
 	}
 
 	if c.SLOBinding == "" {
-		c.SLOBinding = samlprotocol.SAMLBindingHTTPPost
+		c.SLOBinding = samlprotocol.SAMLBindingHTTPRedirect
 	}
 }
 

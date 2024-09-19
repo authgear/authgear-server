@@ -23,13 +23,22 @@ type HandlerSAMLService interface {
 	) (*samlprotocol.Response, error)
 	VerifyEmbeddedSignature(
 		sp *config.SAMLServiceProviderConfig,
-		authnRequestXML string) error
+		samlRequestXML string) error
 	VerifyExternalSignature(
 		sp *config.SAMLServiceProviderConfig,
 		samlRequest string,
 		sigAlg string,
 		relayState string,
 		signature string) error
+	IssueLogoutResponse(
+		callbackURL string,
+		serviceProviderId string,
+		inResponseToLogoutRequest *samlprotocol.LogoutRequest,
+	) (*samlprotocol.LogoutResponse, error)
+	ConstructSignedQueryParameters(
+		samlResponse string,
+		relayState string,
+	) (url.Values, error)
 }
 
 type SAMLSessionService interface {
@@ -57,4 +66,22 @@ type SAMLAuthenticationInfoService interface {
 
 type SAMLUserFacade interface {
 	GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error)
+}
+
+type BindingHTTPPostWriter interface {
+	Write(
+		rw http.ResponseWriter,
+		r *http.Request,
+		callbackURL string,
+		response samlprotocol.Respondable,
+		relayState string) error
+}
+
+type BindingHTTPRedirectWriter interface {
+	Write(
+		rw http.ResponseWriter,
+		r *http.Request,
+		callbackURL string,
+		response samlprotocol.Respondable,
+		relayState string) error
 }

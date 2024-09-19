@@ -7,14 +7,12 @@ import (
 
 	"github.com/beevik/etree"
 
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
 type SAMLBindingHTTPPostParseResult struct {
-	AuthnRequestXML string
-	AuthnRequest    *samlprotocol.AuthnRequest
-	RelayState      string
+	SAMLRequestXML string
+	RelayState     string
 }
 
 var _ SAMLBindingParseResult = &SAMLBindingHTTPPostParseResult{}
@@ -27,7 +25,7 @@ func SAMLBindingHTTPPostParse(r *http.Request) (
 ) {
 	result = &SAMLBindingHTTPPostParseResult{}
 	if err := r.ParseForm(); err != nil {
-		return result, &samlerror.ParseRequestFailedError{
+		return result, &samlprotocol.ParseRequestFailedError{
 			Reason: "failed to parse request body as a application/x-www-form-urlencoded form",
 			Cause:  err,
 		}
@@ -37,22 +35,13 @@ func SAMLBindingHTTPPostParse(r *http.Request) (
 
 	requestBuffer, err := base64.StdEncoding.DecodeString(r.PostForm.Get("SAMLRequest"))
 	if err != nil {
-		return result, &samlerror.ParseRequestFailedError{
+		return result, &samlprotocol.ParseRequestFailedError{
 			Reason: "base64 decode failed",
 			Cause:  err,
 		}
 	}
 
-	result.AuthnRequestXML = string(requestBuffer)
-
-	authnRequest, err := samlprotocol.ParseAuthnRequest(requestBuffer)
-	if err != nil {
-		return result, &samlerror.ParseRequestFailedError{
-			Reason: "malformed AuthnRequest",
-			Cause:  err,
-		}
-	}
-	result.AuthnRequest = authnRequest
+	result.SAMLRequestXML = string(requestBuffer)
 
 	return result, nil
 }
@@ -81,8 +70,9 @@ const postForm = `
 
 func (*SAMLBindingHTTPPostWriter) Write(
 	rw http.ResponseWriter,
+	r *http.Request,
 	callbackURL string,
-	response *samlprotocol.Response,
+	response samlprotocol.Respondable,
 	relayState string) error {
 
 	responseEl := response.Element()

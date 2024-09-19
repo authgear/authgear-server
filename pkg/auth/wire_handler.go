@@ -1208,6 +1208,13 @@ func newSAMLLoginFinishHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newSAMLLogoutHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlersaml.LogoutHandler)),
+	))
+}
+
 func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
