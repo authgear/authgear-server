@@ -53,7 +53,7 @@
     data-authflow-passkey-creation-target="button"
     data-authgear-event="authgear.button.create_passkey"
   >
-    {{ translate "v2.page.settings-passkey.default.button-label-add-passkey" nil }}
+    {{ translate "v2.page.settings-passkey.default.add-passkey-button-label" nil }}
   </button>
   <form
     class="hidden"
@@ -82,7 +82,7 @@
 {{ define "description" }}
   <div>
     <p>{{ .Passkey.CreationOptions.PublicKey.User.DisplayName }}</p>
-    <p>{{ template "v2.page.settings-passkey.default.item-description-time" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt))}}</p>
+    <p>{{ translate "v2.page.settings-passkey.default.item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt))}}</p>
   </div>
 {{ end }}
 
