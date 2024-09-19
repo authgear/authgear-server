@@ -1,8 +1,6 @@
 package accountmanagement
 
 import (
-	"github.com/go-webauthn/webauthn/protocol"
-
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -173,28 +171,12 @@ type CreateAdditionalPasswordInput struct {
 	Password           string
 }
 
-type AddPasskeyInput struct {
-	CreationResponse *protocol.CredentialCreationResponse
-}
-
-type AddPasskeyOutput struct {
-	IdentityInfo *identity.Info
-}
-
 func NewCreateAdditionalPasswordInput(userID string, password string) CreateAdditionalPasswordInput {
 	return CreateAdditionalPasswordInput{
 		NewAuthenticatorID: uuid.New(),
 		UserID:             userID,
 		Password:           password,
 	}
-}
-
-type RemovePasskeyInput struct {
-	IdentityID string
-}
-
-type RemovePasskeyOutput struct {
-	IdentityInfo *identity.Info
 }
 
 type AddIdentityBiometricInput struct {

@@ -1,14 +1,18 @@
 package accountmanagement
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/go-webauthn/webauthn/protocol"
 )
 
 type AddIdentityUsernameInput struct {
@@ -840,6 +844,116 @@ func (s *Service) DeleteIdentityPhone(resolvedSession session.ResolvedSession, i
 	}
 
 	return &DeleteIdentityPhoneOutput{IdentityInfo: info}, nil
+}
+
+type AddPasskeyInput struct {
+	CreationResponse *protocol.CredentialCreationResponse
+}
+
+type AddPasskeyOutput struct {
+	IdentityInfo *identity.Info
+}
+
+func (s *Service) AddPasskey(resolvedSession session.ResolvedSession, input *AddPasskeyInput) (*AddPasskeyOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	creationResponse := input.CreationResponse
+	creationResponseBytes, err := json.Marshal(creationResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	authenticatorSpec := &authenticator.Spec{
+		UserID: userID,
+		Kind:   authenticator.KindPrimary,
+		Type:   model.AuthenticatorTypePasskey,
+		Passkey: &authenticator.PasskeySpec{
+			AttestationResponse: creationResponseBytes,
+		},
+	}
+
+	authenticatorID := uuid.New()
+	authenticatorInfo, err := s.Authenticators.NewWithAuthenticatorID(authenticatorID, authenticatorSpec)
+	if err != nil {
+		return nil, err
+	}
+
+	identitySpec := &identity.Spec{
+		Type: model.IdentityTypePasskey,
+		Passkey: &identity.PasskeySpec{
+			AttestationResponse: creationResponseBytes,
+		},
+	}
+
+	var identityInfo *identity.Info
+	err = s.Database.WithTx(func() error {
+		identityInfo, err = s.prepareNewIdentity(userID, identitySpec)
+		if err != nil {
+			return err
+		}
+
+		err = s.createIdentity(identityInfo)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityCreatedEvent(identityInfo)
+		if err != nil {
+			return err
+		}
+
+		err = s.Authenticators.Create(authenticatorInfo, false)
+		if err != nil {
+			return err
+		}
+		err = s.PasskeyService.ConsumeAttestationResponse(creationResponseBytes)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AddPasskeyOutput{IdentityInfo: identityInfo}, nil
+}
+
+type RemovePasskeyInput struct {
+	IdentityID string
+}
+
+type RemovePasskeyOutput struct {
+	IdentityInfo *identity.Info
+}
+
+func (s *Service) RemovePasskey(resolvedSession session.ResolvedSession, input *RemovePasskeyInput) (*RemovePasskeyOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	identityID := input.IdentityID
+
+	var info *identity.Info
+	err := s.Database.WithTx(func() (err error) {
+		info, err = s.prepareDeleteIdentity(userID, identityID)
+		if err != nil {
+			return err
+		}
+
+		err = s.deleteIdentity(info)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityDeletedEvent(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &RemovePasskeyOutput{IdentityInfo: info}, nil
 }
 
 func (i *Service) makeLoginIDSpec(loginIDKey string, loginID string) (*identity.Spec, error) {
