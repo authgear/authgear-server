@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -183,7 +182,7 @@ func (p *Queries) GetMany(ids []string, role accesscontrol.Role) (users []*model
 	return
 }
 
-func (p *Queries) GetPageForExport(offset uint64, limit uint64) (users []*userexport.UserForExport, err error) {
+func (p *Queries) GetPageForExport(offset uint64, limit uint64) (users []*UserForExport, err error) {
 	rawUsers, err := p.Store.QueryForExport(offset, limit)
 
 	userIDs := []string{}
@@ -266,7 +265,7 @@ func (p *Queries) GetPageForExport(offset uint64, limit uint64) (users []*userex
 			for i, v := range groups {
 				groupKeys[i] = v.Key
 			}
-			u := newUserModelForExport(
+			u := newUserModel(
 				rawUser,
 				identities,
 				authenticators,
@@ -278,7 +277,13 @@ func (p *Queries) GetPageForExport(offset uint64, limit uint64) (users []*userex
 				groupKeys,
 			)
 
-			users = append(users, u)
+			userForExport := UserForExport{
+				User:           *u,
+				Identities:     identities,
+				Authenticators: authenticators,
+			}
+
+			users = append(users, &userForExport)
 		}
 	}
 

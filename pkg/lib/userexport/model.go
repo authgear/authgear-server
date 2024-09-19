@@ -6,20 +6,11 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 const BatchSize = 1000
-
-type UserForExport struct {
-	model.User
-
-	Identities     []*identity.Info
-	Authenticators []*authenticator.Info
-}
 
 var RequestSchema = validation.NewSimpleSchema(`
 {

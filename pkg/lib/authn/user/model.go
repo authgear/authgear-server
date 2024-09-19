@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/userexport"
 )
 
 type ListOptions struct {
@@ -318,34 +317,11 @@ func newUserModel(
 	}
 }
 
-func newUserModelForExport(
-	user *User,
-	identities []*identity.Info,
-	authenticators []*authenticator.Info,
-	isVerified bool,
-	derivedStandardAttributes map[string]interface{},
-	customAttributes map[string]interface{},
-	web3Info *model.UserWeb3Info,
-	roles []string,
-	groups []string,
-) *userexport.UserForExport {
-	modelUser := newUserModel(
-		user,
-		identities,
-		authenticators,
-		isVerified,
-		derivedStandardAttributes,
-		customAttributes,
-		web3Info,
-		roles,
-		groups,
-	)
+type UserForExport struct {
+	model.User
 
-	return &userexport.UserForExport{
-		User:           *modelUser,
-		Identities:     identities,
-		Authenticators: authenticators,
-	}
+	Identities     []*identity.Info
+	Authenticators []*authenticator.Info
 }
 
 func computeEndUserAccountID(derivedStandardAttributes map[string]interface{}, identities []*identity.Info, web3Info *model.UserWeb3Info) string {

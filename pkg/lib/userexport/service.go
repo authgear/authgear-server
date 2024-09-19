@@ -7,12 +7,13 @@ import (
 	"os"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type UserQueries interface {
-	GetPageForExport(page uint64, limit uint64) (users []*UserForExport, err error)
+	GetPageForExport(page uint64, limit uint64) (users []*user.UserForExport, err error)
 	CountAll() (count uint64, err error)
 }
 
@@ -33,7 +34,7 @@ func mapGet[T string | bool | map[string]interface{}](m map[string]interface{}, 
 	return value
 }
 
-func convertDBUserToRecord(user *UserForExport, record *Record) {
+func convertDBUserToRecord(user *user.UserForExport, record *Record) {
 	record.Sub = user.ID
 
 	record.PreferredUsername = mapGet[string](user.StandardAttributes, "preferred_username")
@@ -163,7 +164,7 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request)
 		writer := io.MultiWriter(io.Discard, os.Stdout)
 
 		for offset := uint64(0); offset < total_user; offset += BatchSize {
-			var page []*UserForExport = nil
+			var page []*user.UserForExport = nil
 			err = s.AppDatabase.WithTx(func() (e error) {
 				result, pageErr := s.UserQueries.GetPageForExport(offset, BatchSize)
 				if pageErr != nil {
