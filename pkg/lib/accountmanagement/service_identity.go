@@ -9,8 +9,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
+	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 	"github.com/go-webauthn/webauthn/protocol"
 )
@@ -918,15 +921,15 @@ func (s *Service) AddPasskey(resolvedSession session.ResolvedSession, input *Add
 	return &AddPasskeyOutput{IdentityInfo: identityInfo}, nil
 }
 
-type RemovePasskeyInput struct {
+type DeletePasskeyInput struct {
 	IdentityID string
 }
 
-type RemovePasskeyOutput struct {
+type DeletePasskeyOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) RemovePasskey(resolvedSession session.ResolvedSession, input *RemovePasskeyInput) (*RemovePasskeyOutput, error) {
+func (s *Service) DeletePasskey(resolvedSession session.ResolvedSession, input *DeletePasskeyInput) (*DeletePasskeyOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
@@ -953,7 +956,145 @@ func (s *Service) RemovePasskey(resolvedSession session.ResolvedSession, input *
 		return nil, err
 	}
 
-	return &RemovePasskeyOutput{IdentityInfo: info}, nil
+	return &DeletePasskeyOutput{IdentityInfo: info}, nil
+}
+
+type AddIdentityBiometricInput struct {
+	JWTToken string
+}
+
+type AddIdentityBiometricOutput struct {
+	IdentityInfo *identity.Info
+}
+
+func (s *Service) AddIdentityBiometric(resolvedSession session.ResolvedSession, input *AddIdentityBiometricInput) (*AddIdentityBiometricOutput, error) {
+	enabled := false
+	for _, t := range s.Config.Authentication.Identities {
+		if t == model.IdentityTypeBiometric {
+			enabled = true
+			break
+		}
+	}
+
+	if !enabled {
+		return nil, api.NewInvariantViolated(
+			"BiometricDisallowed",
+			"biometric is not allowed",
+			nil,
+		)
+	}
+
+	jwt := input.JWTToken
+
+	request, err := s.BiometricProvider.ParseRequestUnverified(jwt)
+	if err != nil {
+		return nil, api.ErrInvalidCredentials
+	}
+
+	purpose, err := s.Challenges.Consume(request.Challenge)
+	if err != nil || *purpose != challenge.PurposeBiometricRequest {
+		return nil, api.ErrInvalidCredentials
+	}
+
+	displayName := deviceinfo.DeviceModel(request.DeviceInfo)
+	if displayName == "" {
+		return nil, api.ErrInvalidCredentials
+	}
+	if request.Key == nil {
+		return nil, api.ErrInvalidCredentials
+	}
+
+	key, err := json.Marshal(request.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	identitySpec := &identity.Spec{
+		Type: model.IdentityTypeBiometric,
+		Biometric: &identity.BiometricSpec{
+			KeyID:      request.KeyID,
+			Key:        string(key),
+			DeviceInfo: request.DeviceInfo,
+		},
+	}
+
+	var identityInfo *identity.Info
+	err = s.Database.WithTx(func() error {
+		user, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
+		if err != nil {
+			return err
+		}
+
+		if user.IsAnonymous {
+			return api.NewInvariantViolated(
+				"AnonymousUserAddIdentity",
+				"anonymous user cannot add identity",
+				nil,
+			)
+		}
+
+		identityInfo, err = s.prepareNewIdentity(userID, identitySpec)
+		if err != nil {
+			return err
+		}
+
+		err = s.createIdentity(identityInfo)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityCreatedEvent(identityInfo)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &AddIdentityBiometricOutput{IdentityInfo: identityInfo}, nil
+}
+
+type DeleteIdentityBiometricInput struct {
+	IdentityID string
+}
+
+type DeleteIdentityBiometricOuput struct {
+	IdentityInfo *identity.Info
+}
+
+func (s *Service) DeleteIdentityBiometric(resolvedSession session.ResolvedSession, input *DeleteIdentityBiometricInput) (*DeleteIdentityBiometricOuput, error) {
+	identityID := input.IdentityID
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	var info *identity.Info
+	err := s.Database.WithTx(func() (err error) {
+		info, err = s.prepareDeleteIdentity(userID, identityID)
+		if err != nil {
+			return err
+		}
+
+		err = s.deleteIdentity(info)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityDeletedEvent(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &DeleteIdentityBiometricOuput{IdentityInfo: info}, nil
 }
 
 func (i *Service) makeLoginIDSpec(loginIDKey string, loginID string) (*identity.Spec, error) {

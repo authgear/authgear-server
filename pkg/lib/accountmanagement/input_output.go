@@ -179,22 +179,6 @@ func NewCreateAdditionalPasswordInput(userID string, password string) CreateAddi
 	}
 }
 
-type AddIdentityBiometricInput struct {
-	JWTToken string
-}
-
-type AddIdentityBiometricOutput struct {
-	IdentityInfo *identity.Info
-}
-
-type RemoveIdentityBiometricInput struct {
-	IdentityID string
-}
-
-type RemoveIdentityBiometricOuput struct {
-	IdentityInfo *identity.Info
-}
-
 type RemoveIdentityEmailInput struct {
 	IdentityID string
 }
