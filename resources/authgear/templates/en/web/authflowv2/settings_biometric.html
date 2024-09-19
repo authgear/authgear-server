@@ -30,7 +30,7 @@
         "IconName" "phone_iphone"
         "Label" $name
         "Description" ( include "v2.page.settings-biometric.default.item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt)) )
-        "ActionButton" (include "remove-btn" (dict "DialogID" .ID))
+        "ActionButton" (include "__settings_biometric_item_remove_btn" (dict "DialogID" .ID))
       )
     }}
 
@@ -40,7 +40,7 @@
         "DialogID" .ID
         "Title" (include "v2.page.settings-biometric.default.dialog-title" nil)
         "Description" (include "v2.page.settings-biometric.default.dialog-description" nil)
-        "FormContent" (include "remove-input" (dict "BiometricID" .ID "CSRFField" $.CSRFField))
+        "FormContent" (include "__settings_biometric_dialog_remove_input" (dict "BiometricID" .ID "CSRFField" $.CSRFField))
         "Buttons"
           (list
             (dict
@@ -60,7 +60,7 @@
 </div>
 {{end}}
 
-{{ define "remove-btn" }}
+{{ define "__settings_biometric_item_remove_btn" }}
 <button
   class="settings-link-btn--destructive"
   data-controller="settings-dialog"
@@ -71,7 +71,7 @@
 </button>
 {{ end }}
 
-{{ define "remove-input" }}
-{{ $.CSRFField }}
+{{ define "__settings_biometric_dialog_remove_input" }}
+  {{ $.CSRFField }}
   <input type="hidden" name="x_identity_id" value="{{ $.BiometricID }}">
 {{ end }}
