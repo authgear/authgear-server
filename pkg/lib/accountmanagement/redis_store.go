@@ -31,13 +31,15 @@ type GenerateTokenOptions struct {
 	RedirectURI string
 
 	// Phone
-	PhoneNumber string
-
+	IdentityPhoneNumber string
 	// Email
-	Email string
-
+	IdentityEmail string
 	// IdentityID for updating identity
 	IdentityID string
+
+	// AuthenticatorID for updating identity
+	AuthenticatorID         string
+	AuthenticatorTOTPSecret string
 }
 
 func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error) {
@@ -48,10 +50,21 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 	ttl := duration.UserInteraction
 	expireAt := now.Add(ttl)
 
-	tokenIdentity := &TokenIdentity{
-		IdentityID:  options.IdentityID,
-		PhoneNumber: options.PhoneNumber,
-		Email:       options.Email,
+	var tokenIdentity *TokenIdentity
+	if options.IdentityID != "" || options.IdentityPhoneNumber != "" || options.IdentityEmail != "" {
+		tokenIdentity = &TokenIdentity{
+			IdentityID:  options.IdentityID,
+			PhoneNumber: options.IdentityPhoneNumber,
+			Email:       options.IdentityEmail,
+		}
+	}
+
+	var tokenAuthenticator *TokenAuthenticator
+	if options.AuthenticatorID != "" || options.AuthenticatorTOTPSecret != "" {
+		tokenAuthenticator = &TokenAuthenticator{
+			AuthenticatorID: options.AuthenticatorID,
+			TOTPSecret:      options.AuthenticatorTOTPSecret,
+		}
 	}
 
 	token := &Token{
@@ -68,6 +81,8 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 
 		// Identity
 		Identity: tokenIdentity,
+
+		Authenticator: tokenAuthenticator,
 	}
 
 	tokenBytes, err := json.Marshal(token)

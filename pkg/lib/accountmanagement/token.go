@@ -22,12 +22,20 @@ type Token struct {
 
 	// Adding Identity
 	Identity *TokenIdentity `json:"token_identity,omitempty"`
+
+	// Authenticator
+	Authenticator *TokenAuthenticator `json:"token_authenticator,omitempty"`
 }
 
 type TokenIdentity struct {
 	IdentityID  string `json:"identity_id,omitempty"`
 	PhoneNumber string `json:"phone_number,omitempty"`
 	Email       string `json:"email,omitempty"`
+}
+
+type TokenAuthenticator struct {
+	AuthenticatorID string `json:"authenticator_id,omitempty"`
+	TOTPSecret      string `json:"totp_secret,omitempty"`
 }
 
 func (t *Token) CheckUser(userID string) error {
