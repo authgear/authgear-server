@@ -3,7 +3,7 @@ package translation
 import "github.com/authgear/authgear-server/pkg/util/template"
 
 type MessageSpec struct {
-	Name              string
+	Name              SpecName
 	TXTEmailTemplate  *template.MessagePlainText
 	HTMLEmailTemplate *template.MessageHTML
 	SMSTemplate       *template.MessagePlainText

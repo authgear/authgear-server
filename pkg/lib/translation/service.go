@@ -66,7 +66,7 @@ func (s *Service) GetSenderForTestEmail() (sender string, err error) {
 	return
 }
 
-func (s *Service) emailMessageHeader(name string, variables *PreparedTemplateVariables) (sender, replyTo, subject string, err error) {
+func (s *Service) emailMessageHeader(name SpecName, variables *PreparedTemplateVariables) (sender, replyTo, subject string, err error) {
 	t, err := s.translationMap()
 	if err != nil {
 		return
@@ -140,7 +140,7 @@ func (s *Service) EmailMessageData(msg *MessageSpec, variables *PartialTemplateV
 	}, nil
 }
 
-func (s *Service) smsMessageHeader(name string, variables *PreparedTemplateVariables) (sender string, err error) {
+func (s *Service) smsMessageHeader(name SpecName, variables *PreparedTemplateVariables) (sender string, err error) {
 	t, err := s.translationMap()
 	if err != nil {
 		return
