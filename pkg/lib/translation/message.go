@@ -3,13 +3,10 @@ package translation
 import "github.com/authgear/authgear-server/pkg/util/template"
 
 type MessageSpec struct {
-	Name              string
+	MessageType       MessageType
+	Name              SpecName
 	TXTEmailTemplate  *template.MessagePlainText
 	HTMLEmailTemplate *template.MessageHTML
 	SMSTemplate       *template.MessagePlainText
 	WhatsappTemplate  *template.MessagePlainText
-}
-
-func RegisterMessage(msg *MessageSpec) *MessageSpec {
-	return msg
 }

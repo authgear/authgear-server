@@ -11,12 +11,13 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 type IntentSignupFlowStepVerifyTarget interface {
 	GetVerifiableClaims(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (map[model.ClaimName]string, error)
 	GetPurpose(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) otp.Purpose
-	GetMessageType(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) otp.MessageType
+	GetMessageType(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) translation.MessageType
 }
 
 func init() {

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -108,7 +109,7 @@ func (n *NodeVerifyEmail) otpTarget() string {
 }
 
 func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies) error {
-	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelEmail, n.Email, nodeVerifyEmailOTPForm, otp.MessageTypeVerification)
+	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelEmail, n.Email, nodeVerifyEmailOTPForm, translation.MessageTypeVerification)
 	if err != nil {
 		return err
 	}

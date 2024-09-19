@@ -11,13 +11,18 @@ var ErrNoAvailableClient = errors.New("no available SMS client")
 var ErrAmbiguousClient = errors.New("ambiguous SMS client")
 
 type SendOptions struct {
-	Sender string
-	To     string
-	Body   string
+	Sender            string
+	To                string
+	Body              string
+	AppID             string
+	MessageType       string
+	TemplateName      string
+	LanguageTag       string
+	TemplateVariables *TemplateVariables
 }
 
 type RawClient interface {
-	Send(from string, to string, body string) error
+	Send(opts SendOptions) error
 }
 
 type Logger struct{ *log.Logger }
@@ -53,6 +58,11 @@ func (c *Client) Send(opts SendOptions) error {
 			WithField("recipient", opts.To).
 			WithField("sender", opts.Sender).
 			WithField("body", opts.Body).
+			WithField("app_id", opts.AppID).
+			WithField("message_type", opts.MessageType).
+			WithField("template_name", opts.TemplateName).
+			WithField("language_tag", opts.LanguageTag).
+			WithField("template_variables", opts.TemplateVariables).
 			Warn("skip sending SMS in development mode")
 		return nil
 	}
@@ -94,7 +104,7 @@ func (c *Client) Send(opts SendOptions) error {
 		client = availableClients[0]
 	}
 
-	return client.Send(opts.Sender, opts.To, opts.Body)
+	return client.Send(opts)
 }
 
 func (c *Client) testModeSend(opts SendOptions) {

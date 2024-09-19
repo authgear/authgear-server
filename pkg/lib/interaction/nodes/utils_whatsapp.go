@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 type SendWhatsappCodeResult struct {
@@ -33,7 +34,7 @@ func (s *SendWhatsappCode) Do() (*SendWhatsappCodeResult, error) {
 		Kind:       kind,
 	}
 
-	msg, err := s.Context.OTPSender.Prepare(channel, s.Target, form, otp.MessageTypeWhatsappCode)
+	msg, err := s.Context.OTPSender.Prepare(channel, s.Target, form, translation.MessageTypeWhatsappCode)
 	if !s.IsResend && apierrors.IsKind(err, ratelimit.RateLimited) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil

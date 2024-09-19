@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
@@ -177,12 +178,12 @@ func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.D
 	}), nil
 }
 
-func (*NodeAuthenticationOOB) otpMessageType(info *authenticator.Info) otp.MessageType {
+func (*NodeAuthenticationOOB) otpMessageType(info *authenticator.Info) translation.MessageType {
 	switch info.Kind {
 	case model.AuthenticatorKindPrimary:
-		return otp.MessageTypeAuthenticatePrimaryOOB
+		return translation.MessageTypeAuthenticatePrimaryOOB
 	case model.AuthenticatorKindSecondary:
-		return otp.MessageTypeAuthenticateSecondaryOOB
+		return translation.MessageTypeAuthenticateSecondaryOOB
 	default:
 		panic(fmt.Errorf("unexpected OOB OTP authenticator kind: %v", info.Kind))
 	}
@@ -233,7 +234,7 @@ func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dep
 	// See https://developers.facebook.com/docs/whatsapp/business-management-api/authentication-templates/
 	typ := n.otpMessageType(n.Info)
 	if n.Channel == model.AuthenticatorOOBChannelWhatsapp {
-		typ = otp.MessageTypeWhatsappCode
+		typ = translation.MessageTypeWhatsappCode
 	}
 	_, claimValue := n.Info.OOBOTP.ToClaimPair()
 

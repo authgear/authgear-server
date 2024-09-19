@@ -8,7 +8,6 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -17,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -50,7 +50,7 @@ type OTPCodeService interface {
 }
 
 type OTPSender interface {
-	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
+	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
 	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
@@ -199,7 +199,7 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 		model.AuthenticatorOOBChannelEmail,
 		email,
 		otpForm,
-		otp.MessageTypeForgotPassword,
+		translation.MessageTypeForgotPassword,
 	)
 	if err != nil {
 		return err
@@ -243,15 +243,15 @@ func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions)
 	}
 
 	otpChannel := s.getChannel(phone, options.Channel)
-	var msgType otp.MessageType
+	var msgType translation.MessageType
 
 	switch options.Channel {
 	case CodeChannelWhatsapp:
-		msgType = otp.MessageTypeWhatsappCode
+		msgType = translation.MessageTypeWhatsappCode
 	case CodeChannelSMS:
 		fallthrough
 	default:
-		msgType = otp.MessageTypeForgotPassword
+		msgType = translation.MessageTypeForgotPassword
 	}
 
 	otpKind, otpForm := s.getForgotPasswordOTP(otpChannel, options.Kind)
@@ -515,7 +515,7 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 			}
 
 			if options.SendPassword {
-				err = s.PasswordSender.Send(options.UserID, options.PlainPassword, nonblocking.MessageTypeSendPasswordToExistingUser)
+				err = s.PasswordSender.Send(options.UserID, options.PlainPassword, translation.MessageTypeSendPasswordToExistingUser)
 				if err != nil {
 					return
 				}
@@ -559,7 +559,7 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 		}
 
 		if options.SendPassword {
-			err = s.PasswordSender.Send(options.UserID, options.PlainPassword, nonblocking.MessageTypeSendPasswordToNewUser)
+			err = s.PasswordSender.Send(options.UserID, options.PlainPassword, translation.MessageTypeSendPasswordToNewUser)
 			if err != nil {
 				return
 			}

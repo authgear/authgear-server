@@ -26,16 +26,16 @@ func NewNexmoClient(c *config.NexmoCredentials) *NexmoClient {
 	}
 }
 
-func (n *NexmoClient) Send(from string, to string, body string) error {
+func (n *NexmoClient) Send(opts SendOptions) error {
 	if n.NexmoClient == nil {
 		return ErrMissingNexmoConfiguration
 	}
 
 	message := nexmo.SMSMessage{
-		From:  from,
-		To:    to,
+		From:  opts.Sender,
+		To:    opts.To,
 		Type:  nexmo.Text,
-		Text:  body,
+		Text:  opts.Body,
 		Class: nexmo.Standard,
 	}
 

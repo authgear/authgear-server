@@ -9,9 +9,9 @@ const (
 )
 
 type EmailSentEventPayload struct {
-	Sender    string      `json:"sender"`
-	Recipient string      `json:"recipient"`
-	Type      MessageType `json:"type"`
+	Sender    string `json:"sender"`
+	Recipient string `json:"recipient"`
+	Type      string `json:"type"`
 }
 
 func (e *EmailSentEventPayload) NonBlockingEventType() event.Type {

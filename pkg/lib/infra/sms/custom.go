@@ -30,11 +30,16 @@ func NewCustomClient(c *config.CustomSMSProviderConfig, d SMSDenoHook, w SMSWebH
 }
 
 type SendSMSPayload struct {
-	To   string `json:"to"`
-	Body string `json:"body"`
+	To                string             `json:"to"`
+	Body              string             `json:"body"`
+	AppID             string             `json:"app_id"`
+	MessageType       string             `json:"message_type"`
+	TemplateName      string             `json:"template_name"`
+	LanguageTag       string             `json:"language_tag"`
+	TemplateVariables *TemplateVariables `json:"template_variables"`
 }
 
-func (c *CustomClient) Send(from string, to string, body string) error {
+func (c *CustomClient) Send(opts SendOptions) error {
 	if c.Config == nil {
 		return ErrMissingCustomSMSProviderConfiguration
 	}
@@ -42,7 +47,15 @@ func (c *CustomClient) Send(from string, to string, body string) error {
 	if err != nil {
 		return err
 	}
-	payload := SendSMSPayload{To: to, Body: body}
+	payload := SendSMSPayload{
+		To:                opts.To,
+		Body:              opts.Body,
+		AppID:             opts.AppID,
+		MessageType:       opts.MessageType,
+		TemplateName:      opts.TemplateName,
+		LanguageTag:       opts.LanguageTag,
+		TemplateVariables: opts.TemplateVariables,
+	}
 	switch {
 	case c.SMSDenoHook.SupportURL(u):
 		return c.SMSDenoHook.Call(u, payload)

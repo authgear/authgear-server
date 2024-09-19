@@ -1,7 +1,6 @@
 package forgotpassword
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
@@ -13,7 +12,7 @@ type TranslationService interface {
 }
 
 type SenderService interface {
-	PrepareEmail(email string, msgType nonblocking.MessageType) (*messaging.EmailMessage, error)
+	PrepareEmail(email string, msgType translation.MessageType) (*messaging.EmailMessage, error)
 }
 
 type Sender struct {
@@ -26,7 +25,7 @@ type Sender struct {
 type PreparedMessage struct {
 	email   *messaging.EmailMessage
 	spec    *translation.MessageSpec
-	msgType nonblocking.MessageType
+	msgType translation.MessageType
 }
 
 func (m *PreparedMessage) Close() {
@@ -57,14 +56,14 @@ func (s *Sender) getEmailList(userID string) ([]string, error) {
 	return emails, nil
 }
 
-func (s *Sender) prepareMessage(email string, msgType nonblocking.MessageType) (*PreparedMessage, error) {
+func (s *Sender) prepareMessage(email string, msgType translation.MessageType) (*PreparedMessage, error) {
 	var spec *translation.MessageSpec
 
 	switch msgType {
-	case nonblocking.MessageTypeSendPasswordToExistingUser:
-		spec = messageSendPasswordToExistingUser
-	case nonblocking.MessageTypeSendPasswordToNewUser:
-		spec = messageSendPasswordToNewUser
+	case translation.MessageTypeSendPasswordToExistingUser:
+		spec = translation.MessageSendPasswordToExistingUser
+	case translation.MessageTypeSendPasswordToNewUser:
+		spec = translation.MessageSendPasswordToNewUser
 	default:
 		panic("forgotpassword: unknown message type: " + msgType)
 	}
@@ -81,7 +80,7 @@ func (s *Sender) prepareMessage(email string, msgType nonblocking.MessageType) (
 	}, nil
 }
 
-func (s *Sender) Send(userID string, password string, msgType nonblocking.MessageType) error {
+func (s *Sender) Send(userID string, password string, msgType translation.MessageType) error {
 	emails, err := s.getEmailList(userID)
 	if err != nil {
 		return err

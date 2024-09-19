@@ -9,10 +9,10 @@ const (
 )
 
 type SMSSentEventPayload struct {
-	Sender              string      `json:"sender"`
-	Recipient           string      `json:"recipient"`
-	Type                MessageType `json:"type"`
-	IsNotCountedInUsage bool        `json:"is_not_counted_in_usage"`
+	Sender              string `json:"sender"`
+	Recipient           string `json:"recipient"`
+	Type                string `json:"type"`
+	IsNotCountedInUsage bool   `json:"is_not_counted_in_usage"`
 }
 
 func (e *SMSSentEventPayload) NonBlockingEventType() event.Type {

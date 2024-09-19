@@ -28,7 +28,8 @@ func TestService(t *testing.T) {
 		var TemplateMessageWhatsappTXT = template.RegisterMessagePlainText("messages/whatsapp.txt")
 
 		var messageSpec = &translation.MessageSpec{
-			Name:              "test",
+			MessageType:       translation.MessageTypeSetupPrimaryOOB,
+			Name:              translation.SpecNameSetupPrimaryOOB,
 			TXTEmailTemplate:  TemplateMessageEmailTXT,
 			HTMLEmailTemplate: TemplateMessageEmailHTML,
 			SMSTemplate:       TemplateMessageSMSTXT,
@@ -60,7 +61,7 @@ func TestService(t *testing.T) {
 	"email.default.sender":"no-reply@authgear.com",
 	"email.default.reply-to": "",
 	"email.default.subject": "",
-	"email.test.subject": "[{AppName}] Test",
+	"email.setup-primary-oob.subject": "[{AppName}] Test",
 	"sms.default.sender": "Sender: [{AppName}]"
 }`)
 		for _, lang := range []string{"zh", "en"} {

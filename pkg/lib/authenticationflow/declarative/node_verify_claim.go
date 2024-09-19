@@ -13,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
@@ -24,7 +25,7 @@ type NodeVerifyClaim struct {
 	JSONPointer          jsonpointer.T                 `json:"json_pointer,omitempty"`
 	UserID               string                        `json:"user_id,omitempty"`
 	Purpose              otp.Purpose                   `json:"purpose,omitempty"`
-	MessageType          otp.MessageType               `json:"message_type,omitempty"`
+	MessageType          translation.MessageType       `json:"message_type,omitempty"`
 	Form                 otp.Form                      `json:"form,omitempty"`
 	ClaimName            model.ClaimName               `json:"claim_name,omitempty"`
 	ClaimValue           string                        `json:"claim_value,omitempty"`
@@ -199,7 +200,7 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 	// See https://developers.facebook.com/docs/whatsapp/business-management-api/authentication-templates/
 	typ := n.MessageType
 	if n.Channel == model.AuthenticatorOOBChannelWhatsapp {
-		typ = otp.MessageTypeWhatsappCode
+		typ = translation.MessageTypeWhatsappCode
 	}
 
 	msg, err := deps.OTPSender.Prepare(
