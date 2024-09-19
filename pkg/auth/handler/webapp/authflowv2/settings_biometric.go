@@ -101,7 +101,7 @@ func (h *AuthflowV2SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r 
 	})
 
 	ctrl.PostAction("remove", func() error {
-		identityID := r.Form.Get("q_identity_id")
+		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(r.Context())
 
