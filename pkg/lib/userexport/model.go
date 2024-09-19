@@ -28,7 +28,8 @@ var RequestSchema = validation.NewSimpleSchema(`
 	"additionalProperties": false,
 	"properties": {
 		"format": {
-			"type": "string"
+			"type": "string",
+			"enum": ["ndjson", "csv"]
 		}
 	},
 	"required": ["format"]
