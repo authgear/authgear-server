@@ -131,45 +131,45 @@ func (s *MessageSender) selectMessage(form Form, typ translation.MessageType) (*
 	var msgType translation.MessageType
 	switch typ {
 	case translation.MessageTypeVerification:
-		spec = messageVerification
+		spec = translation.MessageVerification
 		msgType = translation.MessageTypeVerification
 	case translation.MessageTypeSetupPrimaryOOB:
 		if form == FormLink {
-			spec = messageSetupPrimaryLoginLink
+			spec = translation.MessageSetupPrimaryLoginLink
 		} else {
-			spec = messageSetupPrimaryOOB
+			spec = translation.MessageSetupPrimaryOOB
 		}
 		msgType = translation.MessageTypeSetupPrimaryOOB
 	case translation.MessageTypeSetupSecondaryOOB:
 		if form == FormLink {
-			spec = messageSetupSecondaryLoginLink
+			spec = translation.MessageSetupSecondaryLoginLink
 		} else {
-			spec = messageSetupSecondaryOOB
+			spec = translation.MessageSetupSecondaryOOB
 		}
 		msgType = translation.MessageTypeSetupSecondaryOOB
 	case translation.MessageTypeAuthenticatePrimaryOOB:
 		if form == FormLink {
-			spec = messageAuthenticatePrimaryLoginLink
+			spec = translation.MessageAuthenticatePrimaryLoginLink
 		} else {
-			spec = messageAuthenticatePrimaryOOB
+			spec = translation.MessageAuthenticatePrimaryOOB
 		}
 		msgType = translation.MessageTypeAuthenticatePrimaryOOB
 	case translation.MessageTypeAuthenticateSecondaryOOB:
 		if form == FormLink {
-			spec = messageAuthenticateSecondaryLoginLink
+			spec = translation.MessageAuthenticateSecondaryLoginLink
 		} else {
-			spec = messageAuthenticateSecondaryOOB
+			spec = translation.MessageAuthenticateSecondaryOOB
 		}
 		msgType = translation.MessageTypeAuthenticateSecondaryOOB
 	case translation.MessageTypeForgotPassword:
 		if form == FormLink {
-			spec = messageForgotPasswordLink
+			spec = translation.MessageForgotPasswordLink
 		} else {
-			spec = messageForgotPasswordOOB
+			spec = translation.MessageForgotPasswordOOB
 		}
 		msgType = translation.MessageTypeForgotPassword
 	case translation.MessageTypeWhatsappCode:
-		spec = messageWhatsappCode
+		spec = translation.MessageWhatsappCode
 		msgType = translation.MessageTypeWhatsappCode
 	default:
 		panic("otp: unknown message type: " + msgType)

@@ -61,9 +61,9 @@ func (s *Sender) prepareMessage(email string, msgType translation.MessageType) (
 
 	switch msgType {
 	case translation.MessageTypeSendPasswordToExistingUser:
-		spec = messageSendPasswordToExistingUser
+		spec = translation.MessageSendPasswordToExistingUser
 	case translation.MessageTypeSendPasswordToNewUser:
-		spec = messageSendPasswordToNewUser
+		spec = translation.MessageSendPasswordToNewUser
 	default:
 		panic("forgotpassword: unknown message type: " + msgType)
 	}
