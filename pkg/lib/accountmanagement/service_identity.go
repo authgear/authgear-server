@@ -230,7 +230,6 @@ func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession,
 
 type ResumeAddIdentityEmailInput struct {
 	LoginIDKey string
-	Token      string
 	Code       string
 }
 
@@ -238,12 +237,12 @@ type ResumeAddIdentityEmailOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession, input *ResumeAddIdentityEmailInput) (output *ResumeAddIdentityEmailOutput, err error) {
+func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddIdentityEmailInput) (output *ResumeAddIdentityEmailOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(input.Token)
+	token, err := s.Store.GetToken(tokenString)
 	defer func() {
 		if err == nil {
-			_, err = s.Store.ConsumeToken(input.Token)
+			_, err = s.Store.ConsumeToken(tokenString)
 		}
 	}()
 
@@ -387,7 +386,6 @@ func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSessi
 
 type ResumeUpdateIdentityEmailInput struct {
 	LoginIDKey string
-	Token      string
 	Code       string
 }
 
@@ -395,12 +393,12 @@ type ResumeUpdateIdentityEmailOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSession, input *ResumeAddIdentityEmailInput) (output *ResumeUpdateIdentityEmailOutput, err error) {
+func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSession, tokenString string, input *ResumeUpdateIdentityEmailInput) (output *ResumeUpdateIdentityEmailOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(input.Token)
+	token, err := s.Store.GetToken(tokenString)
 	defer func() {
 		if err == nil {
-			_, err = s.Store.ConsumeToken(input.Token)
+			_, err = s.Store.ConsumeToken(tokenString)
 		}
 	}()
 
@@ -580,7 +578,6 @@ func (s *Service) StartAddIdentityPhone(resolvedSession session.ResolvedSession,
 
 type ResumeAddIdentityPhoneInput struct {
 	LoginIDKey string
-	Token      string
 	Code       string
 }
 
@@ -588,12 +585,12 @@ type ResumeAddIdentityPhoneOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession, input *ResumeAddIdentityPhoneInput) (output *ResumeAddIdentityPhoneOutput, err error) {
+func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddIdentityPhoneInput) (output *ResumeAddIdentityPhoneOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(input.Token)
+	token, err := s.Store.GetToken(tokenString)
 	defer func() {
 		if err == nil {
-			_, err = s.Store.ConsumeToken(input.Token)
+			_, err = s.Store.ConsumeToken(tokenString)
 		}
 	}()
 
@@ -737,7 +734,6 @@ func (s *Service) StartUpdateIdentityPhone(resolvedSession session.ResolvedSessi
 
 type ResumeUpdateIdentityPhoneInput struct {
 	LoginIDKey string
-	Token      string
 	Code       string
 }
 
@@ -745,12 +741,12 @@ type ResumeUpdateIdentityPhoneOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSession, input *ResumeAddIdentityEmailInput) (output *ResumeUpdateIdentityPhoneOutput, err error) {
+func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSession, tokenString string, input *ResumeUpdateIdentityPhoneInput) (output *ResumeUpdateIdentityPhoneOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(input.Token)
+	token, err := s.Store.GetToken(tokenString)
 	defer func() {
 		if err == nil {
-			_, err = s.Store.ConsumeToken(input.Token)
+			_, err = s.Store.ConsumeToken(tokenString)
 		}
 	}()
 
