@@ -14,13 +14,13 @@
 <div class="flex flex-col">
   {{ if not $.BiometricIdentities }}
     <p class="settings-description text-center pt-5">
-      {{ template "v2.page.settings-biometric.default.description-no-biometric" . }}
+      {{ template "v2.page.settings-biometric.default.no-biometric-description" . }}
     </p>
   {{ end }}
 
   {{ $ctx := .}}
   {{ range $.BiometricIdentities }}
-    {{ $name := (include "v2.page.settings-biometric.default.item-label-unknown-name" .) }}
+    {{ $name := (include "v2.page.settings-biometric.default.unknown-name-item-label" .) }}
     {{ if .DisplayName }}
       {{ $name = .DisplayName }}
     {{ end }}
@@ -67,7 +67,7 @@
   data-action="click->settings-dialog#open"
   data-settings-dialog-dialogid-param="{{ .DialogID }}"
 >
-  {{translate "v2.page.settings-biometric.default.button-label-disconnect" nil}}
+  {{translate "v2.page.settings-biometric.default.disconnect-button-label" nil}}
 </button>
 {{ end }}
 
