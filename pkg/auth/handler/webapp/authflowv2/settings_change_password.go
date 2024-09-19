@@ -103,14 +103,14 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 			redirectURI = webappSession.RedirectURI
 		}
 
-		input := &accountmanagement.ChangePasswordInput{
+		input := &accountmanagement.ChangePrimaryPasswordInput{
 			OAuthSessionID: oAuthSessionID,
 			RedirectURI:    redirectURI,
 			OldPassword:    oldPassword,
 			NewPassword:    newPassword,
 		}
 
-		changePasswordOutput, err := h.AccountManagementService.ChangePassword(s, input)
+		changePasswordOutput, err := h.AccountManagementService.ChangePrimaryPassword(s, input)
 		if err != nil {
 			return err
 		}
