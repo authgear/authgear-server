@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
@@ -271,20 +272,41 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 }
 
 type ResendOTPCodeInput struct {
-	UserID       string
-	Channel      model.AuthenticatorOOBChannel
-	LoginID      string
-	isSwitchPage bool
+	Token string
 }
 
-func (s *Service) ResendOTPCode(input *ResendOTPCodeInput) (err error) {
-	// Either it is a switch page or resend
-	isResend := !input.isSwitchPage
+func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, input *ResendOTPCodeInput) (err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	token, err := s.Store.GetToken(input.Token)
+	if err != nil {
+		return err
+	}
+
+	err = token.CheckUser_OAuth(userID)
+	if err != nil {
+		return err
+	}
+
+	var target string
+	var channel model.AuthenticatorOOBChannel
+	if token.Identity != nil {
+		if token.Identity.Email != "" {
+			target = token.Identity.Email
+			channel = model.AuthenticatorOOBChannelEmail
+		} else if token.Identity.PhoneNumber != "" {
+			target = token.Identity.PhoneNumber
+			channel = model.AuthenticatorOOBChannelSMS
+		}
+	} else {
+		panic(fmt.Errorf("accountmanagement: unexpected token in resend otp code"))
+	}
+
 	err = s.sendOTPCode(
-		input.UserID,
-		input.Channel,
-		input.LoginID,
-		isResend,
+		userID,
+		channel,
+		target,
+		true,
 	)
 	if err != nil {
 		return err
