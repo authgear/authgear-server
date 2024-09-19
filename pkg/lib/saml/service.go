@@ -2,6 +2,7 @@ package saml
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -22,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
@@ -48,6 +50,20 @@ type SAMLUserInfoProvider interface {
 	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
 }
 
+type IDPSessionProvider interface {
+	AddSAMLServiceProviderParticipant(
+		session *idpsession.IDPSession,
+		serviceProviderID string,
+	) (*idpsession.IDPSession, error)
+}
+
+type OfflineGrantService interface {
+	AddSAMLServiceProviderParticipant(
+		grant *oauth.OfflineGrant,
+		serviceProviderID string,
+	) (*oauth.OfflineGrant, error)
+}
+
 type Service struct {
 	Clock                   clock.Clock
 	AppID                   config.AppID
@@ -57,6 +73,9 @@ type Service struct {
 	SAMLSpSigningMaterials  *config.SAMLSpSigningMaterials
 	Endpoints               SAMLEndpoints
 	UserInfoProvider        SAMLUserInfoProvider
+
+	IDPSessionProvider          IDPSessionProvider
+	OfflineGrantSessionProvider OfflineGrantService
 }
 
 func (s *Service) IdpEntityID() string {
@@ -277,7 +296,8 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	return nil
 }
 
-func (s *Service) IssueSuccessResponse(
+func (s *Service) IssueLoginSuccessResponse(
+	ctx context.Context,
 	callbackURL string,
 	serviceProviderId string,
 	authInfo authenticationinfo.T,
@@ -444,6 +464,11 @@ func (s *Service) IssueSuccessResponse(
 	response.Assertion = assertion
 
 	err = s.signResponse(response)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.recordSessionParticipant(ctx, sp)
 	if err != nil {
 		return nil, err
 	}
@@ -755,6 +780,31 @@ func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
 	}
 
 	return signingContext, nil
+}
+
+func (s Service) recordSessionParticipant(
+	ctx context.Context,
+	sp *config.SAMLServiceProviderConfig) error {
+	resolvedSession := session.GetSession(ctx)
+	if resolvedSession == nil {
+		return fmt.Errorf("failed to record session participant as no session in context")
+	}
+
+	switch resolvedSession := resolvedSession.(type) {
+	case *oauth.OfflineGrantSession:
+		_, err := s.OfflineGrantSessionProvider.AddSAMLServiceProviderParticipant(resolvedSession.OfflineGrant, sp.GetID())
+		if err != nil {
+			return err
+		}
+	case *idpsession.IDPSession:
+		_, err := s.IDPSessionProvider.AddSAMLServiceProviderParticipant(resolvedSession, sp.GetID())
+		if err != nil {
+			return err
+		}
+	default:
+		panic("unexpected session type")
+	}
+	return nil
 }
 
 func spToClientLike(sp *config.SAMLServiceProviderConfig) *oauth.ClientLike {

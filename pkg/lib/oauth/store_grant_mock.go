@@ -214,6 +214,21 @@ func (mr *MockOfflineGrantStoreMockRecorder) AddOfflineGrantRefreshToken(grantID
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOfflineGrantRefreshToken", reflect.TypeOf((*MockOfflineGrantStore)(nil).AddOfflineGrantRefreshToken), grantID, expireAt, tokenHash, clientID, scopes, authorizationID, dpopJKT)
 }
 
+// AddOfflineGrantSAMLServiceProviderParticipant mocks base method.
+func (m *MockOfflineGrantStore) AddOfflineGrantSAMLServiceProviderParticipant(grantID, newServiceProviderID string, expireAt time.Time) (*OfflineGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddOfflineGrantSAMLServiceProviderParticipant", grantID, newServiceProviderID, expireAt)
+	ret0, _ := ret[0].(*OfflineGrant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddOfflineGrantSAMLServiceProviderParticipant indicates an expected call of AddOfflineGrantSAMLServiceProviderParticipant.
+func (mr *MockOfflineGrantStoreMockRecorder) AddOfflineGrantSAMLServiceProviderParticipant(grantID, newServiceProviderID, expireAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOfflineGrantSAMLServiceProviderParticipant", reflect.TypeOf((*MockOfflineGrantStore)(nil).AddOfflineGrantSAMLServiceProviderParticipant), grantID, newServiceProviderID, expireAt)
+}
+
 // CleanUpForDeletingUserID mocks base method.
 func (m *MockOfflineGrantStore) CleanUpForDeletingUserID(userID string) error {
 	m.ctrl.T.Helper()

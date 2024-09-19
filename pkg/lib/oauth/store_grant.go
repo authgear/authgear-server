@@ -45,6 +45,11 @@ type OfflineGrantStore interface {
 		authorizationID string,
 		dpopJKT string,
 	) (*OfflineGrant, error)
+	AddOfflineGrantSAMLServiceProviderParticipant(
+		grantID string,
+		newServiceProviderID string,
+		expireAt time.Time,
+	) (*OfflineGrant, error)
 
 	ListOfflineGrants(userID string) ([]*OfflineGrant, error)
 	ListClientOfflineGrants(clientID string, userID string) ([]*OfflineGrant, error)

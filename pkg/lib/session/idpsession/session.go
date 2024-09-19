@@ -25,6 +25,8 @@ type IDPSession struct {
 
 	TokenHash string `json:"token_hash"`
 
+	ParticipatedSAMLServiceProviderIDs []string `json:"participated_saml_service_provider_ids,omitempty"`
+
 	// ExpireAtForResolvedSession is a transient field that tells when the session will exire at, computed now.
 	// Note that ExpireAtForResolvedSession will keep changing if idle timeout is enabled.
 	// This is NOT supposed to be stored, hence it is json-ignored.

@@ -192,6 +192,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauth.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(authenticationflow.IDPSessionService), new(*idpsession.Provider)),
 		wire.Bind(new(sessionlisting.IDPSessionProvider), new(*idpsession.Provider)),
+		wire.Bind(new(saml.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
 	),
 
@@ -414,6 +415,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oidc.UIInfoResolverPromptResolver), new(*oauth.PromptResolver)),
 		wire.Bind(new(oidc.IDTokenHintResolverOfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Bind(new(oauthhandler.RevokeHandlerOfflineGrantService), new(*oauth.OfflineGrantService)),
+		wire.Bind(new(saml.OfflineGrantService), new(*oauth.OfflineGrantService)),
 
 		oauthhandler.DependencySet,
 
