@@ -10,6 +10,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 func init() {
@@ -208,16 +209,16 @@ func (n *IntentCreateAuthenticatorOOBOTP) oneOf(o config.AuthenticationFlowObjec
 	return oneOf
 }
 
-func (i *IntentCreateAuthenticatorOOBOTP) otpMessageType() otp.MessageType {
+func (i *IntentCreateAuthenticatorOOBOTP) otpMessageType() translation.MessageType {
 	switch i.Authentication {
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
-		return otp.MessageTypeSetupPrimaryOOB
+		return translation.MessageTypeSetupPrimaryOOB
 	case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
-		return otp.MessageTypeSetupPrimaryOOB
+		return translation.MessageTypeSetupPrimaryOOB
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
-		return otp.MessageTypeSetupSecondaryOOB
+		return translation.MessageTypeSetupSecondaryOOB
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
-		return otp.MessageTypeSetupSecondaryOOB
+		return translation.MessageTypeSetupSecondaryOOB
 	default:
 		panic(fmt.Errorf("unexpected authentication method: %v", i.Authentication))
 	}

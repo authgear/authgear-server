@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 )
 
@@ -21,19 +22,19 @@ type SendOOBCode struct {
 }
 
 func (p *SendOOBCode) Do() error {
-	var messageType otp.MessageType
+	var messageType translation.MessageType
 	switch p.Stage {
 	case authn.AuthenticationStagePrimary:
 		if p.IsAuthenticating {
-			messageType = otp.MessageTypeAuthenticatePrimaryOOB
+			messageType = translation.MessageTypeAuthenticatePrimaryOOB
 		} else {
-			messageType = otp.MessageTypeSetupPrimaryOOB
+			messageType = translation.MessageTypeSetupPrimaryOOB
 		}
 	case authn.AuthenticationStageSecondary:
 		if p.IsAuthenticating {
-			messageType = otp.MessageTypeAuthenticateSecondaryOOB
+			messageType = translation.MessageTypeAuthenticateSecondaryOOB
 		} else {
-			messageType = otp.MessageTypeSetupSecondaryOOB
+			messageType = translation.MessageTypeSetupSecondaryOOB
 		}
 	default:
 		panic("interaction: unknown authentication stage: " + p.Stage)

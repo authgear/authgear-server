@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 func init() {
@@ -104,7 +105,7 @@ func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitE
 		CodeLength: otp.FormCode.CodeLength(),
 	}
 
-	msg, err := ctx.OTPSender.Prepare(channel, target, otp.FormCode, otp.MessageTypeVerification)
+	msg, err := ctx.OTPSender.Prepare(channel, target, otp.FormCode, translation.MessageTypeVerification)
 	if ignoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil

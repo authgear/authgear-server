@@ -9,6 +9,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 func init() {
@@ -16,13 +17,13 @@ func init() {
 }
 
 type IntentVerifyClaim struct {
-	JSONPointer jsonpointer.T   `json:"json_pointer,omitempty"`
-	UserID      string          `json:"user_id,omitempty"`
-	Purpose     otp.Purpose     `json:"purpose,omitempty"`
-	MessageType otp.MessageType `json:"message_type,omitempty"`
-	Form        otp.Form        `json:"form,omitempty"`
-	ClaimName   model.ClaimName `json:"claim_name,omitempty"`
-	ClaimValue  string          `json:"claim_value,omitempty"`
+	JSONPointer jsonpointer.T           `json:"json_pointer,omitempty"`
+	UserID      string                  `json:"user_id,omitempty"`
+	Purpose     otp.Purpose             `json:"purpose,omitempty"`
+	MessageType translation.MessageType `json:"message_type,omitempty"`
+	Form        otp.Form                `json:"form,omitempty"`
+	ClaimName   model.ClaimName         `json:"claim_name,omitempty"`
+	ClaimValue  string                  `json:"claim_value,omitempty"`
 }
 
 var _ authflow.Intent = &IntentVerifyClaim{}

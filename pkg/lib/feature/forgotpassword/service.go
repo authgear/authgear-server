@@ -50,7 +50,7 @@ type OTPCodeService interface {
 }
 
 type OTPSender interface {
-	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
+	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
 	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
@@ -199,7 +199,7 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 		model.AuthenticatorOOBChannelEmail,
 		email,
 		otpForm,
-		otp.MessageTypeForgotPassword,
+		translation.MessageTypeForgotPassword,
 	)
 	if err != nil {
 		return err
@@ -243,15 +243,15 @@ func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions)
 	}
 
 	otpChannel := s.getChannel(phone, options.Channel)
-	var msgType otp.MessageType
+	var msgType translation.MessageType
 
 	switch options.Channel {
 	case CodeChannelWhatsapp:
-		msgType = otp.MessageTypeWhatsappCode
+		msgType = translation.MessageTypeWhatsappCode
 	case CodeChannelSMS:
 		fallthrough
 	default:
-		msgType = otp.MessageTypeForgotPassword
+		msgType = translation.MessageTypeForgotPassword
 	}
 
 	otpKind, otpForm := s.getForgotPasswordOTP(otpChannel, options.Kind)

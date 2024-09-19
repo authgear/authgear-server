@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 func init() {
@@ -65,8 +66,8 @@ func (*IntentPromoteFlowStepIdentify) GetPurpose(_ context.Context, _ *authflow.
 	return otp.PurposeVerification
 }
 
-func (*IntentPromoteFlowStepIdentify) GetMessageType(_ context.Context, _ *authflow.Dependencies, _ authflow.Flows) otp.MessageType {
-	return otp.MessageTypeVerification
+func (*IntentPromoteFlowStepIdentify) GetMessageType(_ context.Context, _ *authflow.Dependencies, _ authflow.Flows) translation.MessageType {
+	return translation.MessageTypeVerification
 }
 
 var _ IntentSignupFlowStepCreateAuthenticatorTarget = &IntentPromoteFlowStepIdentify{}

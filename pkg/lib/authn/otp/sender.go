@@ -126,49 +126,49 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 	return ctx, nil
 }
 
-func (s *MessageSender) selectMessage(form Form, typ MessageType) (*translation.MessageSpec, translation.MessageType) {
+func (s *MessageSender) selectMessage(form Form, typ translation.MessageType) (*translation.MessageSpec, translation.MessageType) {
 	var spec *translation.MessageSpec
 	var msgType translation.MessageType
 	switch typ {
-	case MessageTypeVerification:
+	case translation.MessageTypeVerification:
 		spec = messageVerification
 		msgType = translation.MessageTypeVerification
-	case MessageTypeSetupPrimaryOOB:
+	case translation.MessageTypeSetupPrimaryOOB:
 		if form == FormLink {
 			spec = messageSetupPrimaryLoginLink
 		} else {
 			spec = messageSetupPrimaryOOB
 		}
 		msgType = translation.MessageTypeSetupPrimaryOOB
-	case MessageTypeSetupSecondaryOOB:
+	case translation.MessageTypeSetupSecondaryOOB:
 		if form == FormLink {
 			spec = messageSetupSecondaryLoginLink
 		} else {
 			spec = messageSetupSecondaryOOB
 		}
 		msgType = translation.MessageTypeSetupSecondaryOOB
-	case MessageTypeAuthenticatePrimaryOOB:
+	case translation.MessageTypeAuthenticatePrimaryOOB:
 		if form == FormLink {
 			spec = messageAuthenticatePrimaryLoginLink
 		} else {
 			spec = messageAuthenticatePrimaryOOB
 		}
 		msgType = translation.MessageTypeAuthenticatePrimaryOOB
-	case MessageTypeAuthenticateSecondaryOOB:
+	case translation.MessageTypeAuthenticateSecondaryOOB:
 		if form == FormLink {
 			spec = messageAuthenticateSecondaryLoginLink
 		} else {
 			spec = messageAuthenticateSecondaryOOB
 		}
 		msgType = translation.MessageTypeAuthenticateSecondaryOOB
-	case MessageTypeForgotPassword:
+	case translation.MessageTypeForgotPassword:
 		if form == FormLink {
 			spec = messageForgotPasswordLink
 		} else {
 			spec = messageForgotPasswordOOB
 		}
 		msgType = translation.MessageTypeForgotPassword
-	case MessageTypeWhatsappCode:
+	case translation.MessageTypeWhatsappCode:
 		spec = messageWhatsappCode
 		msgType = translation.MessageTypeWhatsappCode
 	default:
@@ -178,7 +178,7 @@ func (s *MessageSender) selectMessage(form Form, typ MessageType) (*translation.
 	return spec, msgType
 }
 
-func (s *MessageSender) Prepare(channel model.AuthenticatorOOBChannel, target string, form Form, typ MessageType) (*PreparedMessage, error) {
+func (s *MessageSender) Prepare(channel model.AuthenticatorOOBChannel, target string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
 	switch channel {
 	case model.AuthenticatorOOBChannelEmail:
 		return s.prepareEmail(target, form, typ)
@@ -191,7 +191,7 @@ func (s *MessageSender) Prepare(channel model.AuthenticatorOOBChannel, target st
 	}
 }
 
-func (s *MessageSender) prepareEmail(email string, form Form, typ MessageType) (*PreparedMessage, error) {
+func (s *MessageSender) prepareEmail(email string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
 	spec, msgType := s.selectMessage(form, typ)
 
 	msg, err := s.Sender.PrepareEmail(email, msgType)
@@ -207,7 +207,7 @@ func (s *MessageSender) prepareEmail(email string, form Form, typ MessageType) (
 	}, nil
 }
 
-func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ MessageType) (*PreparedMessage, error) {
+func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
 	spec, msgType := s.selectMessage(form, typ)
 
 	msg, err := s.Sender.PrepareSMS(phoneNumber, msgType)
@@ -223,7 +223,7 @@ func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ MessageTyp
 	}, nil
 }
 
-func (s *MessageSender) prepareWhatsapp(phoneNumber string, form Form, typ MessageType) (*PreparedMessage, error) {
+func (s *MessageSender) prepareWhatsapp(phoneNumber string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
 	spec, msgType := s.selectMessage(form, typ)
 
 	msg, err := s.Sender.PrepareWhatsapp(phoneNumber, msgType)

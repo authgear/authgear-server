@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/phone"
 )
@@ -115,7 +116,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
-	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, nodeVerifyPhoneSMSForm, otp.MessageTypeVerification)
+	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, nodeVerifyPhoneSMSForm, translation.MessageTypeVerification)
 	if err != nil {
 		return err
 	}
