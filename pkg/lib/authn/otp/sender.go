@@ -126,56 +126,48 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 	return ctx, nil
 }
 
-func (s *MessageSender) selectMessage(form Form, typ translation.MessageType) (*translation.MessageSpec, translation.MessageType) {
+func (s *MessageSender) selectMessage(form Form, typ translation.MessageType) *translation.MessageSpec {
 	var spec *translation.MessageSpec
-	var msgType translation.MessageType
 	switch typ {
 	case translation.MessageTypeVerification:
 		spec = translation.MessageVerification
-		msgType = translation.MessageTypeVerification
 	case translation.MessageTypeSetupPrimaryOOB:
 		if form == FormLink {
 			spec = translation.MessageSetupPrimaryLoginLink
 		} else {
 			spec = translation.MessageSetupPrimaryOOB
 		}
-		msgType = translation.MessageTypeSetupPrimaryOOB
 	case translation.MessageTypeSetupSecondaryOOB:
 		if form == FormLink {
 			spec = translation.MessageSetupSecondaryLoginLink
 		} else {
 			spec = translation.MessageSetupSecondaryOOB
 		}
-		msgType = translation.MessageTypeSetupSecondaryOOB
 	case translation.MessageTypeAuthenticatePrimaryOOB:
 		if form == FormLink {
 			spec = translation.MessageAuthenticatePrimaryLoginLink
 		} else {
 			spec = translation.MessageAuthenticatePrimaryOOB
 		}
-		msgType = translation.MessageTypeAuthenticatePrimaryOOB
 	case translation.MessageTypeAuthenticateSecondaryOOB:
 		if form == FormLink {
 			spec = translation.MessageAuthenticateSecondaryLoginLink
 		} else {
 			spec = translation.MessageAuthenticateSecondaryOOB
 		}
-		msgType = translation.MessageTypeAuthenticateSecondaryOOB
 	case translation.MessageTypeForgotPassword:
 		if form == FormLink {
 			spec = translation.MessageForgotPasswordLink
 		} else {
 			spec = translation.MessageForgotPasswordOOB
 		}
-		msgType = translation.MessageTypeForgotPassword
 	case translation.MessageTypeWhatsappCode:
 		spec = translation.MessageWhatsappCode
-		msgType = translation.MessageTypeWhatsappCode
 	default:
-		panic("otp: unknown message type: " + msgType)
+		panic("otp: unknown message type: " + typ)
 	}
 
-	return spec, msgType
+	return spec
 }
 
 func (s *MessageSender) Prepare(channel model.AuthenticatorOOBChannel, target string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
@@ -192,7 +184,8 @@ func (s *MessageSender) Prepare(channel model.AuthenticatorOOBChannel, target st
 }
 
 func (s *MessageSender) prepareEmail(email string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
-	spec, msgType := s.selectMessage(form, typ)
+	spec := s.selectMessage(form, typ)
+	msgType := spec.MessageType
 
 	msg, err := s.Sender.PrepareEmail(email, msgType)
 	if err != nil {
@@ -208,7 +201,8 @@ func (s *MessageSender) prepareEmail(email string, form Form, typ translation.Me
 }
 
 func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
-	spec, msgType := s.selectMessage(form, typ)
+	spec := s.selectMessage(form, typ)
+	msgType := spec.MessageType
 
 	msg, err := s.Sender.PrepareSMS(phoneNumber, msgType)
 	if err != nil {
@@ -224,7 +218,8 @@ func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ translatio
 }
 
 func (s *MessageSender) prepareWhatsapp(phoneNumber string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
-	spec, msgType := s.selectMessage(form, typ)
+	spec := s.selectMessage(form, typ)
+	msgType := spec.MessageType
 
 	msg, err := s.Sender.PrepareWhatsapp(phoneNumber, msgType)
 	if err != nil {
