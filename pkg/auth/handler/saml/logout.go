@@ -106,7 +106,7 @@ func (h *LogoutHandler) parseSLORequest(
 				Reason: "malformed LogoutRequest",
 				Cause:  err,
 			}
-			break
+			return nil, nil, "", err
 		}
 		parseResult = r
 		relayState = r.RelayState
@@ -122,7 +122,7 @@ func (h *LogoutHandler) parseSLORequest(
 				Reason: "malformed LogoutRequest",
 				Cause:  err,
 			}
-			break
+			return nil, nil, "", err
 		}
 		parseResult = r
 		relayState = r.RelayState
@@ -161,12 +161,12 @@ func (h *LogoutHandler) verifySignature(
 			parseResult.RelayState,
 			parseResult.Signature)
 		if err != nil {
-			break
+			return err
 		}
 	case *samlbinding.SAMLBindingHTTPPostParseResult:
 		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.SAMLRequestXML)
 		if err != nil {
-			break
+			return err
 		}
 	default:
 		panic("unexpected parse result type")
