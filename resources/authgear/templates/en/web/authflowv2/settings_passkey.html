@@ -22,8 +22,8 @@
       template "authflowv2/__settings_action_item.html"
       (dict
         "Label" .Passkey.CreationOptions.PublicKey.User.DisplayName
-        "Description" ( include "description" . )
-        "ActionButton" (include "remove-btn" (dict "DialogID" .ID))
+        "Description" ( include "__settings_passkey_item_description" . )
+        "ActionButton" (include "__settings_passkey_item_remove_btn" (dict "DialogID" .ID))
       )
     }}
     {{ template "authflowv2/__settings_dialog.html" (dict
@@ -31,7 +31,7 @@
       "DialogID" .ID
       "Title" (include "v2.page.settings-passkey.default.dialog-title" nil)
       "Description" (include "v2.page.settings-passkey.default.dialog-description" nil)
-      "FormContent" (include "remove-input" (dict "ID" .ID "CSRFField" $.CSRFField))
+      "FormContent" (include "__settings_passkey_dialog_remove_input" (dict "ID" .ID "CSRFField" $.CSRFField))
       "Buttons" (list
         (dict
           "Type" "Destructive"
@@ -79,14 +79,14 @@
 </div>
 {{ end }}
 
-{{ define "description" }}
+{{ define "__settings_passkey_item_description" }}
   <div>
     <p>{{ .Passkey.CreationOptions.PublicKey.User.DisplayName }}</p>
     <p>{{ translate "v2.page.settings-passkey.default.item-description" (dict "time" .CreatedAt "rfc3339" (rfc3339 .CreatedAt))}}</p>
   </div>
 {{ end }}
 
-{{ define "remove-btn" }}
+{{ define "__settings_passkey_item_remove_btn" }}
 <button
   class="settings-action-item__icon--pale"
   data-controller="settings-dialog"
@@ -97,7 +97,7 @@
 </button>
 {{ end }}
 
-{{ define "remove-input" }}
+{{ define "__settings_passkey_dialog_remove_input" }}
 {{ $.CSRFField }}
   <input type="hidden" name="q_identity_id" value="{{ .ID }}">
 {{ end }}
