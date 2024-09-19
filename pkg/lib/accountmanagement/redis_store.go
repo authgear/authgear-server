@@ -23,8 +23,9 @@ type RedisStore struct {
 }
 
 type GenerateTokenOptions struct {
+	UserID string
+
 	// OAuth
-	UserID      string
 	Alias       string
 	MaybeState  string
 	RedirectURI string
