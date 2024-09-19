@@ -88,77 +88,91 @@ const (
 
 var (
 	MessageVerification = &MessageSpec{
+		MessageType:       MessageTypeVerification,
 		Name:              SpecNameVerification,
 		TXTEmailTemplate:  TemplateMessageVerificationEmailTXT,
 		HTMLEmailTemplate: TemplateMessageVerificationEmailHTML,
 		SMSTemplate:       TemplateMessageVerificationSMSTXT,
 	}
 	MessageSetupPrimaryOOB = &MessageSpec{
+		MessageType:       MessageTypeSetupPrimaryOOB,
 		Name:              SpecNameSetupPrimaryOOB,
 		TXTEmailTemplate:  TemplateMessageSetupPrimaryOOBEmailTXT,
 		HTMLEmailTemplate: TemplateMessageSetupPrimaryOOBEmailHTML,
 		SMSTemplate:       TemplateMessageSetupPrimaryOOBSMSTXT,
 	}
 	MessageSetupPrimaryLoginLink = &MessageSpec{
+		MessageType:       MessageTypeSetupPrimaryOOB,
 		Name:              SpecNameSetupPrimaryLoginLink,
 		TXTEmailTemplate:  TemplateMessageSetupPrimaryLoginLinkEmailTXT,
 		HTMLEmailTemplate: TemplateMessageSetupPrimaryLoginLinkEmailHTML,
 	}
 	MessageSetupSecondaryOOB = &MessageSpec{
+		MessageType:       MessageTypeSetupSecondaryOOB,
 		Name:              SpecNameSetupSecondaryOOB,
 		TXTEmailTemplate:  TemplateMessageSetupSecondaryOOBEmailTXT,
 		HTMLEmailTemplate: TemplateMessageSetupSecondaryOOBEmailHTML,
 		SMSTemplate:       TemplateMessageSetupSecondaryOOBSMSTXT,
 	}
 	MessageSetupSecondaryLoginLink = &MessageSpec{
+		MessageType:       MessageTypeSetupSecondaryOOB,
 		Name:              SpecNameSetupSecondaryLoginLink,
 		TXTEmailTemplate:  TemplateMessageSetupSecondaryLoginLinkEmailTXT,
 		HTMLEmailTemplate: TemplateMessageSetupSecondaryLoginLinkEmailHTML,
 	}
 	MessageAuthenticatePrimaryOOB = &MessageSpec{
+		MessageType:       MessageTypeAuthenticatePrimaryOOB,
 		Name:              SpecNameAuthenticatePrimaryOOB,
 		TXTEmailTemplate:  TemplateMessageAuthenticatePrimaryOOBEmailTXT,
 		HTMLEmailTemplate: TemplateMessageAuthenticatePrimaryOOBEmailHTML,
 		SMSTemplate:       TemplateMessageAuthenticatePrimaryOOBSMSTXT,
 	}
 	MessageAuthenticatePrimaryLoginLink = &MessageSpec{
+		MessageType:       MessageTypeAuthenticatePrimaryOOB,
 		Name:              SpecNameAuthenticatePrimaryLoginLink,
 		TXTEmailTemplate:  TemplateMessageAuthenticatePrimaryLoginLinkEmailTXT,
 		HTMLEmailTemplate: TemplateMessageAuthenticatePrimaryLoginLinkEmailHTML,
 	}
 	MessageAuthenticateSecondaryOOB = &MessageSpec{
+		MessageType:       MessageTypeAuthenticateSecondaryOOB,
 		Name:              SpecNameAuthenticateSecondaryOOB,
 		TXTEmailTemplate:  TemplateMessageAuthenticateSecondaryOOBEmailTXT,
 		HTMLEmailTemplate: TemplateMessageAuthenticateSecondaryOOBEmailHTML,
 		SMSTemplate:       TemplateMessageAuthenticateSecondaryOOBSMSTXT,
 	}
 	MessageAuthenticateSecondaryLoginLink = &MessageSpec{
+		MessageType:       MessageTypeAuthenticateSecondaryOOB,
 		Name:              SpecNameAuthenticateSecondaryLoginLink,
 		TXTEmailTemplate:  TemplateMessageAuthenticateSecondaryLoginLinkEmailTXT,
 		HTMLEmailTemplate: TemplateMessageAuthenticateSecondaryLoginLinkEmailHTML,
 	}
 	MessageForgotPasswordLink = &MessageSpec{
+		MessageType:       MessageTypeForgotPassword,
 		Name:              SpecNameForgotPassword,
 		TXTEmailTemplate:  TemplateMessageForgotPasswordLinkEmailTXT,
 		HTMLEmailTemplate: TemplateMessageForgotPasswordLinkEmailHTML,
 		SMSTemplate:       TemplateMessageForgotPasswordLinkSMSTXT,
 	}
 	MessageForgotPasswordOOB = &MessageSpec{
+		MessageType:       MessageTypeForgotPassword,
 		Name:              SpecNameForgotPasswordOOB,
 		TXTEmailTemplate:  TemplateMessageForgotPasswordOOBEmailTXT,
 		HTMLEmailTemplate: TemplateMessageForgotPasswordOOBEmailHTML,
 		SMSTemplate:       TemplateMessageForgotPasswordOOBSMSTXT,
 	}
 	MessageWhatsappCode = &MessageSpec{
+		MessageType:      MessageTypeWhatsappCode,
 		Name:             SpecNameWhatsappCode,
 		WhatsappTemplate: TemplateWhatsappOTPCodeTXT,
 	}
 	MessageSendPasswordToExistingUser = &MessageSpec{
+		MessageType:       MessageTypeSendPasswordToExistingUser,
 		Name:              SpecNameSendPasswordToExistingUser,
 		TXTEmailTemplate:  TemplateMessageSendPasswordToExistingUserTXT,
 		HTMLEmailTemplate: TemplateMessageSendPasswordToExistingUserEmailHTML,
 	}
 	MessageSendPasswordToNewUser = &MessageSpec{
+		MessageType:       MessageTypeSendPasswordToNewUser,
 		Name:              SpecNameSendPasswordToNewUser,
 		TXTEmailTemplate:  TemplateMessageSendPasswordToNewUserTXT,
 		HTMLEmailTemplate: TemplateMessageSendPasswordToNewUserEmailHTML,
