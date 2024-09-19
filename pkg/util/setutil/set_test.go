@@ -34,6 +34,6 @@ func TestSet(t *testing.T) {
 		s1 := NewSetFromSlice(slice1, Identity[string])
 		b, err := s1.MarshalJSON()
 		So(err, ShouldBeNil)
-		So(b, ShouldResemble, []byte(`["1", "3", "5"]`))
+		So(string(b), ShouldResemble, `["1","3","5"]`)
 	})
 }
