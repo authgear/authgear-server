@@ -9,7 +9,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
 type UserQueries interface {
@@ -21,6 +23,7 @@ type UserExportService struct {
 	AppDatabase *appdb.Handle
 	UserQueries UserQueries
 	Logger      Logger
+	HTTPOrigin  httputil.HTTPOrigin
 }
 
 type Logger struct{ *log.Logger }
@@ -34,7 +37,7 @@ func mapGet[T string | bool | map[string]interface{}](m map[string]interface{}, 
 	return value
 }
 
-func convertDBUserToRecord(user *user.UserForExport, record *Record) {
+func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport, record *Record) {
 	record.Sub = user.ID
 
 	record.PreferredUsername = mapGet[string](user.StandardAttributes, "preferred_username")
@@ -130,9 +133,20 @@ func convertDBUserToRecord(user *user.UserForExport, record *Record) {
 		case model.AuthenticatorTypeOOBEmail:
 			record.Mfa.Emails = append(record.Mfa.Emails, authenticator.OOBOTP.Email)
 		case model.AuthenticatorTypeTOTP:
+			opts := secretcode.URIOptions{
+				Issuer:      string(s.HTTPOrigin),
+				AccountName: user.EndUserAccountID,
+			}
+			totp, err := secretcode.NewTOTPFromSecret(authenticator.TOTP.Secret)
+			if err != nil {
+				s.Logger.Warningf("Failed to get TOTP URI: %s\n", err)
+				continue
+			}
+			otpauthURI := totp.GetURI(opts).String()
+
 			record.Mfa.TOTPs = append(record.Mfa.TOTPs, &MFATOTP{
 				Secret: authenticator.TOTP.Secret,
-				URI:    authenticator.TOTP.UserID,
+				URI:    otpauthURI,
 			})
 		case model.AuthenticatorTypeOOBSMS:
 			record.Mfa.PhoneNumbers = append(record.Mfa.PhoneNumbers, authenticator.OOBOTP.Phone)
@@ -167,7 +181,7 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request)
 
 		for _, user := range page {
 			var record Record
-			convertDBUserToRecord(user, &record)
+			s.convertDBUserToRecord(user, &record)
 
 			recordJson, jsonErr := json.Marshal(record)
 			if jsonErr != nil {

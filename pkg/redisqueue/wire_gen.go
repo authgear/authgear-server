@@ -1185,6 +1185,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		AppDatabase: handle,
 		UserQueries: userQueries,
 		Logger:      userexportLogger,
+		HTTPOrigin:  httpOrigin,
 	}
 	return userExportService
 }
