@@ -38,6 +38,13 @@ func (t *Token) CheckUser(userID string) error {
 	return ErrAccountManagementTokenNotBoundToUser
 }
 
+func (t *Token) CheckUser_OAuth(userID string) error {
+	if subtle.ConstantTimeCompare([]byte(t.UserID), []byte(userID)) == 1 {
+		return nil
+	}
+	return ErrOAuthTokenNotBoundToUser
+}
+
 func (t *Token) CheckState(state string) error {
 	if t.State == "" {
 		// token is not originally bound to state.

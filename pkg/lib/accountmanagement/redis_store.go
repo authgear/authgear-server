@@ -158,6 +158,14 @@ func (s *RedisStore) ConsumeToken(tokenStr string) (*Token, error) {
 	return &token, nil
 }
 
+func (s *RedisStore) ConsumeToken_OAuth(tokenStr string) (*Token, error) {
+	token, err := s.ConsumeToken(tokenStr)
+	if errors.Is(err, ErrAccountManagementTokenInvalid) {
+		return token, ErrOAuthTokenInvalid
+	}
+	return token, err
+}
+
 func tokenKey(appID string, tokenHash string) string {
 	return fmt.Sprintf("app:%s:account-management-token:%s", appID, tokenHash)
 }

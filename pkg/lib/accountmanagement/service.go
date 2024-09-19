@@ -1,7 +1,6 @@
 package accountmanagement
 
 import (
-	"errors"
 	"fmt"
 
 	"time"
@@ -36,6 +35,7 @@ type Store interface {
 	GenerateToken(options GenerateTokenOptions) (string, error)
 	GetToken(tokenStr string) (*Token, error)
 	ConsumeToken(tokenStr string) (*Token, error)
+	ConsumeToken_OAuth(tokenStr string) (*Token, error)
 }
 
 type OAuthProvider interface {
@@ -168,19 +168,13 @@ type FinishAddingOutput struct {
 }
 
 func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, error) {
-	token, err := s.Store.ConsumeToken(input.Token)
+	token, err := s.Store.ConsumeToken_OAuth(input.Token)
 	if err != nil {
-		if errors.Is(err, ErrAccountManagementTokenInvalid) {
-			return nil, ErrOAuthTokenInvalid
-		}
 		return nil, err
 	}
 
-	err = token.CheckUser(input.UserID)
+	err = token.CheckUser_OAuth(input.UserID)
 	if err != nil {
-		if errors.Is(err, ErrAccountManagementTokenNotBoundToUser) {
-			return nil, ErrOAuthTokenNotBoundToUser
-		}
 		return nil, err
 	}
 
