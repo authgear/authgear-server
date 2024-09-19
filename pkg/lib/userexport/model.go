@@ -12,8 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-// TODO: Set to 1000 as default after putting in worker task
-const BatchSize = 3
+const BatchSize = 1000
 
 type UserForExport struct {
 	model.User

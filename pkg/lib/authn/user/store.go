@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -24,7 +23,7 @@ type store interface {
 	GetByIDs(userIDs []string) ([]*User, error)
 	Count() (uint64, error)
 	QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
-	QueryForExport(offset uint64) ([]*User, error)
+	QueryForExport(offset uint64, limit uint64) ([]*User, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
 	UpdateMFAEnrollment(userID string, endAt *time.Time) error
 	UpdateAccountStatus(userID string, status AccountStatus) error
@@ -287,9 +286,9 @@ func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs)
 	return users, offset, nil
 }
 
-func (s *Store) QueryForExport(offset uint64) ([]*User, error) {
+func (s *Store) QueryForExport(offset uint64, limit uint64) ([]*User, error) {
 	// created_at indexed as DESC NULLS LAST, to re use the index but in invented direction, need to use ASC NULLS FIRST
-	query := s.selectQuery("u").Offset(offset).Limit(userexport.BatchSize).OrderBy("created_at ASC NULLS FIRST")
+	query := s.selectQuery("u").Offset(offset).Limit(limit).OrderBy("created_at ASC NULLS FIRST")
 
 	rows, err := s.SQLExecutor.QueryWith(query)
 	if err != nil {

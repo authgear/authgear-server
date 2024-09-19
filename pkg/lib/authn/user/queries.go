@@ -183,8 +183,8 @@ func (p *Queries) GetMany(ids []string, role accesscontrol.Role) (users []*model
 	return
 }
 
-func (p *Queries) GetPageForExport(offset uint64) (users []*userexport.UserForExport, err error) {
-	rawUsers, err := p.Store.QueryForExport(offset)
+func (p *Queries) GetPageForExport(offset uint64, limit uint64) (users []*userexport.UserForExport, err error) {
+	rawUsers, err := p.Store.QueryForExport(offset, limit)
 
 	userIDs := []string{}
 	updatedAts := []time.Time{}

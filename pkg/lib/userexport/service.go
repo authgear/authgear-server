@@ -12,7 +12,7 @@ import (
 )
 
 type UserQueries interface {
-	GetPageForExport(page uint64) (users []*UserForExport, err error)
+	GetPageForExport(page uint64, limit uint64) (users []*UserForExport, err error)
 	CountAll() (count uint64, err error)
 }
 
@@ -165,7 +165,7 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request)
 		for offset := uint64(0); offset < total_user; offset += BatchSize {
 			var page []*UserForExport = nil
 			err = s.AppDatabase.WithTx(func() (e error) {
-				result, pageErr := s.UserQueries.GetPageForExport(offset)
+				result, pageErr := s.UserQueries.GetPageForExport(offset, BatchSize)
 				if pageErr != nil {
 					return pageErr
 				}
