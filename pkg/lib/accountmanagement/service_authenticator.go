@@ -10,77 +10,47 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-type ChangePasswordInput struct {
+type ChangePrimaryPasswordInput struct {
 	OAuthSessionID string
 	RedirectURI    string
 	OldPassword    string
 	NewPassword    string
 }
 
-type ChangePasswordOutput struct {
+type ChangePrimaryPasswordOutput struct {
 	RedirectURI string
 }
 
 // If have OAuthSessionID, it means the user is changing password after login with SDK.
 // Then do special handling such as authenticationInfo
-func (s *Service) ChangePassword(resolvedSession session.ResolvedSession, input *ChangePasswordInput) (*ChangePasswordOutput, error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
+func (s *Service) ChangePrimaryPassword(resolvedSession session.ResolvedSession, input *ChangePrimaryPasswordInput) (*ChangePrimaryPasswordOutput, error) {
 	redirectURI := input.RedirectURI
 
-	err := s.Database.WithTx(func() error {
-		ais, err := s.Authenticators.List(
-			userID,
-			authenticator.KeepType(model.AuthenticatorTypePassword),
-			authenticator.KeepKind(authenticator.KindPrimary),
-		)
-		if err != nil {
-			return err
-		}
-		if len(ais) == 0 {
-			return api.ErrNoPassword
-		}
-		oldInfo := ais[0]
-		_, err = s.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
-			Password: &authenticator.PasswordSpec{
-				PlainPassword: input.OldPassword,
-			},
-		}, nil)
-		if err != nil {
-			err = api.ErrInvalidCredentials
-			return err
-		}
-		changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &authenticatorservice.UpdatePasswordOptions{
-			SetPassword:    true,
-			PlainPassword:  input.NewPassword,
-			SetExpireAfter: true,
-		})
-		if err != nil {
-			return err
-		}
-		if changed {
-			err = s.Authenticators.Update(newInfo)
-			if err != nil {
-				return err
-			}
-		}
-		// If is changing password with SDK.
-		if input.OAuthSessionID != "" {
-			authInfo := resolvedSession.GetAuthenticationInfo()
-			authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
-
-			err = s.AuthenticationInfoService.Save(authenticationInfoEntry)
-			if err != nil {
-				return err
-			}
-			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
-		}
-		return nil
+	_, err := s.changePassword(resolvedSession, &changePasswordInput{
+		Kind:        authenticator.KindPrimary,
+		OldPassword: input.OldPassword,
+		NewPassword: input.NewPassword,
 	})
+
 	if err != nil {
 		return nil, err
 	}
-	return &ChangePasswordOutput{RedirectURI: redirectURI}, nil
 
+	// If is changing password with SDK.
+	if input.OAuthSessionID != "" {
+		authInfo := resolvedSession.GetAuthenticationInfo()
+		authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
+
+		err = s.AuthenticationInfoService.Save(authenticationInfoEntry)
+		if err != nil {
+			return nil, err
+		}
+		redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
+	}
+
+	return &ChangePrimaryPasswordOutput{
+		RedirectURI: redirectURI,
+	}, nil
 }
 
 type CreateAdditionalPasswordInput struct {
@@ -123,4 +93,83 @@ func (s *Service) createAuthenticator(authenticatorInfo *authenticator.Info) err
 		return err
 	}
 	return nil
+}
+
+type ChangeSecondaryPasswordInput struct {
+	OldPassword string
+	NewPassword string
+}
+
+type ChangeSecondaryPasswordOutput struct {
+}
+
+func (s *Service) ChangeSecondaryPassword(resolvedSession session.ResolvedSession, input *ChangeSecondaryPasswordInput) (*ChangeSecondaryPasswordOutput, error) {
+	_, err := s.changePassword(resolvedSession, &changePasswordInput{
+		Kind:        authenticator.KindSecondary,
+		OldPassword: input.OldPassword,
+		NewPassword: input.NewPassword,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &ChangeSecondaryPasswordOutput{}, nil
+}
+
+type changePasswordInput struct {
+	Kind        authenticator.Kind
+	OldPassword string
+	NewPassword string
+}
+
+type changePasswordOutput struct {
+}
+
+func (s *Service) changePassword(resolvedSession session.ResolvedSession, input *changePasswordInput) (*changePasswordOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	err := s.Database.WithTx(func() error {
+		ais, err := s.Authenticators.List(
+			userID,
+			authenticator.KeepType(model.AuthenticatorTypePassword),
+			authenticator.KeepKind(input.Kind),
+		)
+		if err != nil {
+			return err
+		}
+		if len(ais) == 0 {
+			return api.ErrNoPassword
+		}
+		oldInfo := ais[0]
+		_, err = s.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
+			Password: &authenticator.PasswordSpec{
+				PlainPassword: input.OldPassword,
+			},
+		}, nil)
+		if err != nil {
+			err = api.ErrInvalidCredentials
+			return err
+		}
+		changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &authenticatorservice.UpdatePasswordOptions{
+			SetPassword:    true,
+			PlainPassword:  input.NewPassword,
+			SetExpireAfter: true,
+		})
+		if err != nil {
+			return err
+		}
+		if changed {
+			err = s.Authenticators.Update(newInfo)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &changePasswordOutput{}, nil
+
 }
