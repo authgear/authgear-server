@@ -53,11 +53,14 @@ func (s *Service) ChangePrimaryPassword(resolvedSession session.ResolvedSession,
 	}, nil
 }
 
-type CreateAdditionalPasswordInput struct {
+type CreateSecondaryPasswordInput struct {
 	PlainPassword string
 }
 
-func (s *Service) CreateAdditionalPassword(resolvedSession session.ResolvedSession, input CreateAdditionalPasswordInput) error {
+type CreateSecondaryPasswordOutput struct {
+}
+
+func (s *Service) CreateSecondaryPassword(resolvedSession session.ResolvedSession, input CreateSecondaryPasswordInput) (*CreateSecondaryPasswordOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	spec := &authenticator.Spec{
 		UserID:    userID,
@@ -70,29 +73,13 @@ func (s *Service) CreateAdditionalPassword(resolvedSession session.ResolvedSessi
 	}
 	info, err := s.Authenticators.NewWithAuthenticatorID(uuid.New(), spec)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return s.createAuthenticator(info)
-}
-
-func (s *Service) createAuthenticator(authenticatorInfo *authenticator.Info) error {
-	err := s.Database.WithTx(func() error {
-		err := s.Authenticators.Create(authenticatorInfo, false)
-		if err != nil {
-			return err
-		}
-		if authenticatorInfo.Kind == authenticator.KindSecondary {
-			err = s.Users.UpdateMFAEnrollment(authenticatorInfo.UserID, nil)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	err = s.createAuthenticator(info)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &CreateSecondaryPasswordOutput{}, nil
 }
 
 type ChangeSecondaryPasswordInput struct {
@@ -172,4 +159,24 @@ func (s *Service) changePassword(resolvedSession session.ResolvedSession, input 
 	}
 	return &changePasswordOutput{}, nil
 
+}
+
+func (s *Service) createAuthenticator(authenticatorInfo *authenticator.Info) error {
+	err := s.Database.WithTx(func() error {
+		err := s.Authenticators.Create(authenticatorInfo, false)
+		if err != nil {
+			return err
+		}
+		if authenticatorInfo.Kind == authenticator.KindSecondary {
+			err = s.Users.UpdateMFAEnrollment(authenticatorInfo.UserID, nil)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }
