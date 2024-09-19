@@ -20,8 +20,8 @@ type Token struct {
 	RedirectURI string `json:"redirect_uri,omitempty"`
 	State       string `json:"state,omitempty"`
 
-	// Adding IdentityToken
-	IdentityToken *IdentityToken `json:"identity_token,omitempty"`
+	// Adding Identity
+	Identity *IdentityToken `json:"identity_token,omitempty"`
 }
 
 type IdentityToken struct {

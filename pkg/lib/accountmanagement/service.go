@@ -430,14 +430,14 @@ func (s *Service) resumeAddingIdentityWithVerification(resolvedSession session.R
 
 	var loginID string
 	var loginIDKeyType model.LoginIDKeyType
-	identityID := token.IdentityToken.IdentityID
+	identityID := token.Identity.IdentityID
 
 	switch {
-	case token.IdentityToken.Email != "":
-		loginID = token.IdentityToken.Email
+	case token.Identity.Email != "":
+		loginID = token.Identity.Email
 		loginIDKeyType = model.LoginIDKeyTypeEmail
-	case token.IdentityToken.PhoneNumber != "":
-		loginID = token.IdentityToken.PhoneNumber
+	case token.Identity.PhoneNumber != "":
+		loginID = token.Identity.PhoneNumber
 		loginIDKeyType = model.LoginIDKeyTypePhone
 	default:
 		return nil, ErrAccountManagementTokenInvalid

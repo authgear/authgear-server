@@ -65,8 +65,8 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 		State:       options.MaybeState,
 		RedirectURI: options.RedirectURI,
 
-		// IdentityToken
-		IdentityToken: IdentityToken,
+		// Identity
+		Identity: IdentityToken,
 	}
 
 	tokenBytes, err := json.Marshal(token)

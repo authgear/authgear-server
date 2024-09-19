@@ -172,11 +172,11 @@ func (i *IdentityFacade) VerifyIdentity(input *verifyIdentityInput) (verifiedCla
 	var loginIDType model.LoginIDKeyType
 	token := input.Token
 	switch {
-	case token.IdentityToken.Email != "":
-		loginIDValue = token.IdentityToken.Email
+	case token.Identity.Email != "":
+		loginIDValue = token.Identity.Email
 		loginIDType = model.LoginIDKeyTypeEmail
-	case token.IdentityToken.PhoneNumber != "":
-		loginIDValue = token.IdentityToken.PhoneNumber
+	case token.Identity.PhoneNumber != "":
+		loginIDValue = token.Identity.PhoneNumber
 		loginIDType = model.LoginIDKeyTypePhone
 	default:
 		return nil, ErrAccountManagementTokenInvalid

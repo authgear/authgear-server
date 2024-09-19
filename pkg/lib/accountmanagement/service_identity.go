@@ -1,6 +1,8 @@
 package accountmanagement
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -138,6 +140,356 @@ func (s *Service) DeleteIdentityUsername(resolvedSession session.ResolvedSession
 	}
 
 	return &DeleteIdentityUsernameOutput{IdentityInfo: info}, nil
+}
+
+type StartAddIdentityEmailInput struct {
+	LoginID    string
+	LoginIDKey string
+}
+
+type StartAddIdentityEmailOutput struct {
+	IdentityInfo     *identity.Info
+	NeedVerification bool
+	Token            string
+}
+
+func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession, input *StartAddIdentityEmailInput) (*StartAddIdentityEmailOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	loginKey := input.LoginIDKey
+	loginID := input.LoginID
+
+	spec, err := s.makeLoginIDSpec(loginKey, loginID)
+	if err != nil {
+		return nil, err
+	}
+
+	var info *identity.Info
+	var token string
+	var needVerification bool
+	err = s.Database.WithTx(func() error {
+		info, err = s.prepareNewIdentity(userID, spec)
+		if err != nil {
+			return err
+		}
+
+		verified, err := s.checkIdentityVerified(info)
+		if err != nil {
+			return err
+		}
+		needVerification = !verified
+
+		if !verified {
+			return nil
+		}
+
+		err = s.createIdentity(info)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityCreatedEvent(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if needVerification {
+		channel, target := info.LoginID.ToChannelTarget()
+		err = s.sendOTPCode(userID, channel, target, false)
+		if err != nil {
+			return nil, err
+		}
+		token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			UserID: userID,
+			Email:  info.LoginID.LoginID,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &StartAddIdentityEmailOutput{
+		IdentityInfo:     info,
+		NeedVerification: needVerification,
+		Token:            token,
+	}, nil
+}
+
+type ResumeAddIdentityEmailInput struct {
+	LoginIDKey string
+	Token      string
+	Code       string
+}
+
+type ResumeAddIdentityEmailOutput struct {
+	IdentityInfo *identity.Info
+}
+
+func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession, input *ResumeAddIdentityEmailInput) (output *ResumeAddIdentityEmailOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	token, err := s.Store.GetToken(input.Token)
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(input.Token)
+		}
+	}()
+
+	if err != nil {
+		return
+	}
+	err = token.CheckUser(userID)
+	if err != nil {
+		return
+	}
+
+	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code)
+	if err != nil {
+		return
+	}
+
+	spec, err := s.makeLoginIDSpec(input.LoginIDKey, token.Identity.Email)
+	if err != nil {
+		return
+	}
+
+	var info *identity.Info
+	err = s.Database.WithTx(func() error {
+		info, err = s.prepareNewIdentity(userID, spec)
+		if err != nil {
+			return err
+		}
+
+		err = s.createIdentity(info)
+		if err != nil {
+			return err
+		}
+
+		claimName, ok := model.GetLoginIDKeyTypeClaim(info.LoginID.LoginIDType)
+		if !ok {
+			panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
+		}
+		err = s.markClaimVerified(userID, claimName, info.LoginID.LoginID)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityCreatedEvent(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	output = &ResumeAddIdentityEmailOutput{
+		IdentityInfo: info,
+	}
+	return
+}
+
+type StartUpdateIdentityEmailInput struct {
+	IdentityID string
+	LoginID    string
+	LoginIDKey string
+}
+
+type StartUpdateIdentityEmailOutput struct {
+	IdentityInfo     *identity.Info
+	NeedVerification bool
+	Token            string
+}
+
+func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSession, input *StartUpdateIdentityEmailInput) (*StartUpdateIdentityEmailOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	loginKey := input.LoginIDKey
+	loginID := input.LoginID
+
+	spec, err := s.makeLoginIDSpec(loginKey, loginID)
+	if err != nil {
+		return nil, err
+	}
+
+	var info *identity.Info
+	var token string
+	var needVerification bool
+	err = s.Database.WithTx(func() error {
+		oldInfo, newInfo, err := s.prepareUpdateIdentity(userID, input.IdentityID, spec)
+		if err != nil {
+			return err
+		}
+		info = newInfo
+
+		verified, err := s.checkIdentityVerified(newInfo)
+		if err != nil {
+			return err
+		}
+		needVerification = !verified
+
+		if !verified {
+			return nil
+		}
+
+		err = s.updateIdentity(oldInfo, newInfo)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityCreatedEvent(newInfo)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if needVerification {
+		channel, target := info.LoginID.ToChannelTarget()
+		err = s.sendOTPCode(userID, channel, target, false)
+		if err != nil {
+			return nil, err
+		}
+		token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			UserID:     userID,
+			Email:      info.LoginID.LoginID,
+			IdentityID: info.ID,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &StartUpdateIdentityEmailOutput{
+		IdentityInfo:     info,
+		NeedVerification: needVerification,
+		Token:            token,
+	}, nil
+}
+
+type ResumeUpdateIdentityEmailInput struct {
+	LoginIDKey string
+	Token      string
+	Code       string
+}
+
+type ResumeUpdateIdentityEmailOutput struct {
+	IdentityInfo *identity.Info
+}
+
+func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSession, input *ResumeAddIdentityEmailInput) (output *ResumeUpdateIdentityEmailOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	token, err := s.Store.GetToken(input.Token)
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(input.Token)
+		}
+	}()
+
+	if err != nil {
+		return
+	}
+	err = token.CheckUser(userID)
+	if err != nil {
+		return
+	}
+
+	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code)
+	if err != nil {
+		return
+	}
+
+	spec, err := s.makeLoginIDSpec(input.LoginIDKey, token.Identity.Email)
+	if err != nil {
+		return
+	}
+
+	var info *identity.Info
+	err = s.Database.WithTx(func() error {
+		oldInfo, newInfo, err := s.prepareUpdateIdentity(userID, token.Identity.IdentityID, spec)
+		if err != nil {
+			return err
+		}
+		info = newInfo
+
+		err = s.updateIdentity(oldInfo, newInfo)
+		if err != nil {
+			return err
+		}
+
+		claimName, ok := model.GetLoginIDKeyTypeClaim(info.LoginID.LoginIDType)
+		if !ok {
+			panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
+		}
+		err = s.markClaimVerified(userID, claimName, info.LoginID.LoginID)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityUpdatedEvent(oldInfo, newInfo)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	output = &ResumeUpdateIdentityEmailOutput{
+		IdentityInfo: info,
+	}
+	return
+}
+
+type DeleteIdentityEmailInput struct {
+	IdentityID string
+}
+
+type DeleteIdentityEmailOutput struct {
+	IdentityInfo *identity.Info
+}
+
+func (s *Service) DeleteIdentityEmail(resolvedSession session.ResolvedSession, input *DeleteIdentityEmailInput) (*DeleteIdentityEmailOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	identityID := input.IdentityID
+
+	var info *identity.Info
+	err := s.Database.WithTx(func() (err error) {
+		info, err = s.prepareDeleteIdentity(userID, identityID)
+		if err != nil {
+			return err
+		}
+
+		err = s.deleteIdentity(info)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityDeletedEvent(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &DeleteIdentityEmailOutput{IdentityInfo: info}, nil
 }
 
 func (i *Service) makeLoginIDSpec(loginIDKey string, loginID string) (*identity.Spec, error) {
