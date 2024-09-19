@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -31,12 +30,17 @@ type SettingsBiometricViewModel struct {
 	BiometricIdentities []*BiometricIdentity
 }
 
+type BiometricIdentityProvider interface {
+	List(userID string) ([]*identity.Biometric, error)
+}
+
 type AuthflowV2SettingsBiometricHandler struct {
 	Database                 *appdb.Handle
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
 	Renderer                 handlerwebapp.Renderer
 	Identities               handlerwebapp.SettingsIdentityService
+	BiometricProvider        BiometricIdentityProvider
 	AccountManagementService *accountmanagement.Service
 }
 
@@ -48,10 +52,10 @@ func (h *AuthflowV2SettingsBiometricHandler) GetData(r *http.Request, rw http.Re
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	// BioMetricViewModel
-	var identityInfos []*identity.Info
+	// BiometricViewModel
+	var biometricIdentityInfos []*identity.Biometric
 	err := h.Database.WithTx(func() (err error) {
-		identityInfos, err = h.Identities.ListByUser(*userID)
+		biometricIdentityInfos, err = h.BiometricProvider.List(*userID)
 		if err != nil {
 			return err
 		}
@@ -61,19 +65,14 @@ func (h *AuthflowV2SettingsBiometricHandler) GetData(r *http.Request, rw http.Re
 		return nil, err
 	}
 
-	biometricIdentityInfos := identity.ApplyFilters(
-		identityInfos,
-		identity.KeepType(model.IdentityTypeBiometric),
-	)
-
 	biometricViewModel := SettingsBiometricViewModel{}
 
-	for _, info := range biometricIdentityInfos {
-		displayName := info.Biometric.FormattedDeviceInfo()
+	for _, biometricInfo := range biometricIdentityInfos {
+		displayName := biometricInfo.FormattedDeviceInfo()
 		biometricViewModel.BiometricIdentities = append(biometricViewModel.BiometricIdentities, &BiometricIdentity{
-			ID:          info.ID,
+			ID:          biometricInfo.ID,
 			DisplayName: displayName,
-			CreatedAt:   info.CreatedAt,
+			CreatedAt:   biometricInfo.CreatedAt,
 		})
 	}
 

@@ -283,6 +283,7 @@ var CommonDependencySet = wire.NewSet(
 
 		identitybiometric.DependencySet,
 		wire.Bind(new(interaction.BiometricIdentityProvider), new(*identitybiometric.Provider)),
+		wire.Bind(new(handlerwebappauthflowv2.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 
 		identitysiwe.DependencySet,
 
