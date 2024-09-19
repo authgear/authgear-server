@@ -145,7 +145,6 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		challenge.DependencySet,
 		wire.Bind(new(interaction.ChallengeProvider), new(*challenge.Provider)),
-		wire.Bind(new(accountmanagement.ChallengeProvider), new(*challenge.Provider)),
 		wire.Bind(new(oauthhandler.ChallengeProvider), new(*challenge.Provider)),
 		wire.Bind(new(authenticationflow.ChallengeService), new(*challenge.Provider)),
 	),
@@ -284,7 +283,6 @@ var CommonDependencySet = wire.NewSet(
 
 		identitybiometric.DependencySet,
 		wire.Bind(new(interaction.BiometricIdentityProvider), new(*identitybiometric.Provider)),
-		wire.Bind(new(accountmanagement.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 
 		identitysiwe.DependencySet,
 
