@@ -21,10 +21,10 @@ type Token struct {
 	State       string `json:"state,omitempty"`
 
 	// Adding Identity
-	Identity *IdentityToken `json:"identity_token,omitempty"`
+	Identity *TokenIdentity `json:"token_identity,omitempty"`
 }
 
-type IdentityToken struct {
+type TokenIdentity struct {
 	IdentityID  string `json:"identity_id,omitempty"`
 	PhoneNumber string `json:"phone_number,omitempty"`
 	Email       string `json:"email,omitempty"`
