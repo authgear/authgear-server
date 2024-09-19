@@ -103,6 +103,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.UserImportCreateProducer), new(*redisqueue.UserImportProducer)),
 	wire.Bind(new(transport.UserImportGetProducer), new(*redisqueue.UserImportProducer)),
 	wire.Bind(new(transport.UserExportCreateProducer), new(*redisqueue.UserExportProducer)),
+	wire.Bind(new(transport.UserExportGetProducer), new(*redisqueue.UserExportProducer)),
 
 	adminauthz.DependencySet,
 )

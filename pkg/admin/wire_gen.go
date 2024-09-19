@@ -1298,13 +1298,22 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 
 func newUserExportGetHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	configConfig := appContext.Config
+	appConfig := configConfig.AppConfig
+	appID := appConfig.ID
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
 	}
+	handle := appProvider.Redis
+	clockClock := _wireSystemClockValue
+	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
 	userExportGetHandler := &transport.UserExportGetHandler{
-		JSON: jsonResponseWriter,
+		AppID:       appID,
+		JSON:        jsonResponseWriter,
+		UserExports: userExportProducer,
 	}
 	return userExportGetHandler
 }

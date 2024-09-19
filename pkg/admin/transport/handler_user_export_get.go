@@ -1,9 +1,12 @@
 package transport
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
@@ -13,8 +16,14 @@ func ConfigureUserExportGetRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/_api/admin/users/export/:id")
 }
 
+type UserExportGetProducer interface {
+	GetTask(ctx context.Context, item *redisqueue.QueueItem) (*redisqueue.Task, error)
+}
+
 type UserExportGetHandler struct {
-	JSON JSONResponseWriter
+	AppID       config.AppID
+	JSON        JSONResponseWriter
+	UserExports UserExportGetProducer
 }
 
 func (h *UserExportGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -26,16 +35,24 @@ func (h *UserExportGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *UserExportGetHandler) handle(w http.ResponseWriter, r *http.Request) error {
-	// TODO: get worker task status by id
 	taskID := httproute.GetParam(r, "id")
+	queueItem := &redisqueue.QueueItem{
+		AppID:  string(h.AppID),
+		TaskID: taskID,
+	}
+
+	task, err := h.UserExports.GetTask(r.Context(), queueItem)
+	if err != nil {
+		return err
+	}
+
+	response, err := userexport.NewResponseFromTask(task)
+	if err != nil {
+		return err
+	}
+
 	h.JSON.WriteResponse(w, &api.Response{
-		Result: userexport.Response{
-			ID:     taskID,
-			Status: "pending",
-			Request: &userexport.Request{
-				Format: "ndjson",
-			},
-		},
+		Result: response,
 	})
 	return nil
 }
