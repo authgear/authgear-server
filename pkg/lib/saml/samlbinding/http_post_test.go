@@ -11,6 +11,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
 func TestSAMLBindingHTTPPost(t *testing.T) {
@@ -50,10 +51,11 @@ func TestSAMLBindingHTTPPost(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			So(result.RelayState, ShouldEqual, relayState)
-			So(result.AuthnRequest, ShouldNotBeNil)
-			So(result.AuthnRequest.ProtocolBinding, ShouldEqual, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST")
-			So(*result.AuthnRequest.ForceAuthn, ShouldBeFalse)
-			So(result.AuthnRequest.AssertionConsumerServiceURL, ShouldEqual, "http://example.com/acs")
+			authnRequest, err := samlprotocol.ParseAuthnRequest([]byte(result.SAMLRequestXML))
+			So(err, ShouldBeNil)
+			So(authnRequest.ProtocolBinding, ShouldEqual, "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST")
+			So(*authnRequest.ForceAuthn, ShouldBeFalse)
+			So(authnRequest.AssertionConsumerServiceURL, ShouldEqual, "http://example.com/acs")
 		})
 	})
 }
