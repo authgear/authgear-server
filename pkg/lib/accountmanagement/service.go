@@ -14,9 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
-	"github.com/authgear/authgear-server/pkg/lib/authn/challenge"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/biometric"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
@@ -27,10 +25,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
-
-type ChallengeProvider interface {
-	Consume(token string) (*challenge.Purpose, error)
-}
 
 type UserService interface {
 	Get(id string, role accesscontrol.Role) (*model.User, error)
@@ -48,10 +42,6 @@ type OAuthProvider interface {
 	GetProviderConfig(alias string) (oauthrelyingparty.ProviderConfig, error)
 	GetAuthorizationURL(alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (string, error)
 	GetUserProfile(alias string, options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
-}
-
-type BiometricIdentityProvider interface {
-	ParseRequestUnverified(requestJWT string) (*biometric.Request, error)
 }
 
 type IdentityService interface {
@@ -109,11 +99,9 @@ type VerificationService interface {
 type Service struct {
 	Database                  *appdb.Handle
 	Config                    *config.AppConfig
-	Challenges                ChallengeProvider
 	Users                     UserService
 	Store                     Store
 	OAuthProvider             OAuthProvider
-	BiometricProvider         BiometricIdentityProvider
 	Identities                IdentityService
 	Events                    EventService
 	OTPSender                 OTPSender
