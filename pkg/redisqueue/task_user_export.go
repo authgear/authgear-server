@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
@@ -17,7 +18,13 @@ func UserExport(ctx context.Context, appProvider *deps.AppProvider, task *redisq
 		return
 	}
 
-	result := userExportService.ExportRecords(ctx, &request)
+	outputFilename, taskError := userExportService.ExportRecords(ctx, &request)
+	result := userexport.Result{
+		Filename: outputFilename,
+	}
+	if taskError != nil {
+		result.Error = apierrors.AsAPIError(taskError)
+	}
 
 	resultBytes, err := json.Marshal(result)
 	if err != nil {

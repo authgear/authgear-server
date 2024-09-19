@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -19,11 +20,6 @@ type UserForExport struct {
 
 	Identities     []*identity.Info
 	Authenticators []*authenticator.Info
-}
-
-type Error struct {
-	Message string `json:"message,omitempty"`
-	Reason  string `json:"reason,omitempty"`
 }
 
 var RequestSchema = validation.NewSimpleSchema(`
@@ -51,7 +47,12 @@ type Response struct {
 	Status      redisqueue.TaskStatus `json:"status,omitempty"`
 	Request     *Request              `json:"request,omitempty"`
 	DownloadUrl string                `json:"download_url,omitempty"`
-	Error       *Error                `json:"error,omitempty"`
+	Error       *apierrors.APIError   `json:"error,omitempty"`
+}
+
+type Result struct {
+	Filename string              `json:"file_name,omitempty"`
+	Error    *apierrors.APIError `json:"error,omitempty"`
 }
 
 type Address struct {
@@ -123,10 +124,9 @@ type Record struct {
 
 func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 	response := &Response{
-		ID:          task.ID,
-		CreatedAt:   task.CreatedAt,
-		CompletedAt: task.CompletedAt,
-		Status:      task.Status,
+		ID:        task.ID,
+		CreatedAt: task.CreatedAt,
+		Status:    task.Status,
 	}
 
 	if task.Input != nil {
@@ -143,6 +143,13 @@ func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 		err := json.Unmarshal(task.Output, &result)
 		if err != nil {
 			return nil, err
+		}
+
+		if result.Error != nil {
+			response.FailedAt = task.CompletedAt
+			response.Error = result.Error
+		} else {
+			response.CompletedAt = task.CompletedAt
 		}
 
 		// TODO: sign a download url from filename

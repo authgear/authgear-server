@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"os"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -140,17 +139,22 @@ func convertDBUserToRecord(user *UserForExport, record *Record) {
 	}
 }
 
-func (s *UserExportService) ExportRecords(ctx context.Context, request *Request) *Response {
+func (s *UserExportService) ExportRecords(ctx context.Context, request *Request) (outputFilename string, err error) {
 	var total_user uint64 = 0
-	err := s.AppDatabase.WithTx(func() (e error) {
-		count, err := s.UserQueries.CountAll()
+
+	err = s.AppDatabase.WithTx(func() (e error) {
+		count, countErr := s.UserQueries.CountAll()
 		if err != nil {
-			return
+			return countErr
 		}
 
 		total_user = count
 		return
 	})
+
+	if err != nil {
+		return "", err
+	}
 
 	s.Logger.Infof("Export total users: %v", total_user)
 
@@ -163,11 +167,15 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request)
 			err = s.AppDatabase.WithTx(func() (e error) {
 				result, pageErr := s.UserQueries.GetPageForExport(offset)
 				if pageErr != nil {
-					return
+					return pageErr
 				}
 				page = result
 				return
 			})
+
+			if err != nil {
+				return "", err
+			}
 
 			for _, user := range page {
 				var record Record
@@ -175,7 +183,7 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request)
 
 				recordJson, jsonErr := json.Marshal(record)
 				if jsonErr != nil {
-					return nil
+					return "", jsonErr
 				}
 				recordBytes := make([]byte, 0)
 				recordBytes = append(recordBytes, []byte(recordJson)...)
@@ -187,16 +195,6 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request)
 		// TODO: Upload tmp result output to cloud storage
 	}
 
-	if err != nil {
-		return nil
-	}
-
-	// TODO: return worker task response
-	now := time.Now()
-	return &Response{
-		ID:        "dummy_task_id",
-		CreatedAt: &now,
-		Status:    "pending",
-		Request:   request,
-	}
+	// TODO: Return output file name
+	return "dummy_output_filename", nil
 }
