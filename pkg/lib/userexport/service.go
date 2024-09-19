@@ -141,60 +141,51 @@ func convertDBUserToRecord(user *user.UserForExport, record *Record) {
 }
 
 func (s *UserExportService) ExportRecords(ctx context.Context, request *Request) (outputFilename string, err error) {
-	var total_user uint64 = 0
+	// TODO: write to a tmp file
+	writer := io.MultiWriter(io.Discard, os.Stdout)
 
-	err = s.AppDatabase.WithTx(func() (e error) {
-		count, countErr := s.UserQueries.CountAll()
+	// Bound export loop maximum count
+	const maxPageToGet = 10000
+	for pageNumber := 0; pageNumber < maxPageToGet; pageNumber += 1 {
+		s.Logger.Infof("Export user page %v", pageNumber)
+		var page []*user.UserForExport = nil
+		var offset uint64 = uint64(pageNumber * BatchSize)
+		err = s.AppDatabase.WithTx(func() (e error) {
+			result, pageErr := s.UserQueries.GetPageForExport(offset, BatchSize)
+			if pageErr != nil {
+				return pageErr
+			}
+			page = result
+			return
+		})
+
 		if err != nil {
-			return countErr
+			return "", err
 		}
 
-		total_user = count
-		return
-	})
+		s.Logger.Infof("Found number of users: %v", len(page))
 
-	if err != nil {
-		return "", err
-	}
+		for _, user := range page {
+			var record Record
+			convertDBUserToRecord(user, &record)
 
-	s.Logger.Infof("Export total users: %v", total_user)
-
-	if total_user > 0 {
-		// TODO: write to a tmp file
-		writer := io.MultiWriter(io.Discard, os.Stdout)
-
-		for offset := uint64(0); offset < total_user; offset += BatchSize {
-			var page []*user.UserForExport = nil
-			err = s.AppDatabase.WithTx(func() (e error) {
-				result, pageErr := s.UserQueries.GetPageForExport(offset, BatchSize)
-				if pageErr != nil {
-					return pageErr
-				}
-				page = result
-				return
-			})
-
-			if err != nil {
-				return "", err
+			recordJson, jsonErr := json.Marshal(record)
+			if jsonErr != nil {
+				return "", jsonErr
 			}
-
-			for _, user := range page {
-				var record Record
-				convertDBUserToRecord(user, &record)
-
-				recordJson, jsonErr := json.Marshal(record)
-				if jsonErr != nil {
-					return "", jsonErr
-				}
-				recordBytes := make([]byte, 0)
-				recordBytes = append(recordBytes, []byte(recordJson)...)
-				recordBytes = append(recordBytes, []byte("\n")...)
-				writer.Write(recordBytes)
-			}
+			recordBytes := make([]byte, 0)
+			recordBytes = append(recordBytes, []byte(recordJson)...)
+			recordBytes = append(recordBytes, []byte("\n")...)
+			writer.Write(recordBytes)
 		}
 
-		// TODO: Upload tmp result output to cloud storage
+		// Exit export loop early when no more record to read
+		if len(page) < BatchSize {
+			break
+		}
 	}
+
+	// TODO: Upload tmp result output to cloud storage
 
 	// TODO: Return output file name
 	return "dummy_output_filename", nil
