@@ -57,12 +57,12 @@ type Result struct {
 }
 
 type Address struct {
-	Formatted     string `json:"formatted"`
-	StreetAddress string `json:"street_address"`
-	Locality      string `json:"locality"`
-	Region        string `json:"region"`
-	PostalCode    string `json:"postal_code"`
-	Country       string `json:"country"`
+	Formatted     string `json:"formatted,omitempty"`
+	StreetAddress string `json:"street_address,omitempty"`
+	Locality      string `json:"locality,omitempty"`
+	Region        string `json:"region,omitempty"`
+	PostalCode    string `json:"postal_code,omitempty"`
+	Country       string `json:"country,omitempty"`
 }
 
 type Identity struct {
@@ -79,45 +79,45 @@ type MFATOTP struct {
 }
 
 type MFA struct {
-	Emails       []string   `json:"emails"`
-	PhoneNumbers []string   `json:"phone_numbers"`
-	TOTPs        []*MFATOTP `json:"totps"`
+	Emails       []string   `json:"emails,omitempty"`
+	PhoneNumbers []string   `json:"phone_numbers,omitempty"`
+	TOTPs        []*MFATOTP `json:"totps,omitempty"`
 }
 
 type Record struct {
-	Sub string `json:"sub"`
+	Sub string `json:"sub,omitempty"`
 
-	PreferredUsername string `json:"preferred_username"`
-	Email             string `json:"email"`
-	PhoneNumber       string `json:"phone_number"`
+	PreferredUsername string `json:"preferred_username,omitempty"`
+	Email             string `json:"email,omitempty"`
+	PhoneNumber       string `json:"phone_number,omitempty"`
 
 	EmailVerified       bool `json:"email_verified"`
 	PhoneNumberVerified bool `json:"phone_number_verified"`
 
-	Name       string   `json:"name"`
-	GivenName  string   `json:"given_name"`
-	FamilyName string   `json:"family_name"`
-	MiddleName string   `json:"middle_name"`
-	Nickname   string   `json:"nickname"`
-	Profile    string   `json:"profile"`
-	Picture    string   `json:"picture"`
-	Website    string   `json:"website"`
-	Gender     string   `json:"gender"`
-	Birthdate  string   `json:"birthdate"`
-	Zoneinfo   string   `json:"zoneinfo"`
-	Locale     string   `json:"locale"`
-	Address    *Address `json:"address"`
+	Name       string   `json:"name,omitempty"`
+	GivenName  string   `json:"given_name,omitempty"`
+	FamilyName string   `json:"family_name,omitempty"`
+	MiddleName string   `json:"middle_name,omitempty"`
+	Nickname   string   `json:"nickname,omitempty"`
+	Profile    string   `json:"profile,omitempty"`
+	Picture    string   `json:"picture,omitempty"`
+	Website    string   `json:"website,omitempty"`
+	Gender     string   `json:"gender,omitempty"`
+	Birthdate  string   `json:"birthdate,omitempty"`
+	Zoneinfo   string   `json:"zoneinfo,omitempty"`
+	Locale     string   `json:"locale,omitempty"`
+	Address    *Address `json:"address,omitempty"`
 
-	CustomAttributes map[string]interface{} `json:"custom_attributes"`
+	CustomAttributes map[string]interface{} `json:"custom_attributes,omitempty"`
 
-	Roles  []string `json:"roles"`
-	Groups []string `json:"groups"`
+	Roles  []string `json:"roles,omitempty"`
+	Groups []string `json:"groups,omitempty"`
 
 	Disabled bool `json:"disabled"`
 
-	Identities []*Identity `json:"identities"`
+	Identities []*Identity `json:"identities,omitempty"`
 
-	Mfa *MFA `json:"mfa"`
+	Mfa *MFA `json:"mfa,omitempty"`
 
 	BiometricCount int `json:"biometric_count"`
 	PasskeyCount   int `json:"passkey_count"`
