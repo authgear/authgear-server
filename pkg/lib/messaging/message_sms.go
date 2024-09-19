@@ -5,6 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 type SMSMessage struct {
@@ -12,7 +13,7 @@ type SMSMessage struct {
 	taskQueue task.Queue
 	events    EventService
 
-	Type nonblocking.MessageType
+	Type translation.MessageType
 	sms.SendOptions
 
 	IsNotCounted bool
@@ -22,7 +23,7 @@ func (m *SMSMessage) Send() error {
 	err := m.events.DispatchEventImmediately(&nonblocking.SMSSentEventPayload{
 		Sender:              m.Sender,
 		Recipient:           m.To,
-		Type:                m.Type,
+		Type:                string(m.Type),
 		IsNotCountedInUsage: m.IsNotCounted,
 	})
 	if err != nil {

@@ -25,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -96,7 +97,7 @@ type MFAService interface {
 }
 
 type SendPasswordService interface {
-	Send(userID string, password string, msgType nonblocking.MessageType) error
+	Send(userID string, password string, msgType translation.MessageType) error
 }
 
 type UserQueries interface {
@@ -683,7 +684,7 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(identityI
 	}
 
 	if passwordSpec != nil && sendPassword {
-		err := c.SendPassword.Send(userID, passwordSpec.Password.PlainPassword, nonblocking.MessageTypeSendPasswordToNewUser)
+		err := c.SendPassword.Send(userID, passwordSpec.Password.PlainPassword, translation.MessageTypeSendPasswordToNewUser)
 		if err != nil {
 			return nil, err
 		}

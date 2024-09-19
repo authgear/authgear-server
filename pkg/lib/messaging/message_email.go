@@ -5,6 +5,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/tasks"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
 type EmailMessage struct {
@@ -12,7 +13,7 @@ type EmailMessage struct {
 	taskQueue task.Queue
 	events    EventService
 
-	Type nonblocking.MessageType
+	Type translation.MessageType
 	mail.SendOptions
 }
 
@@ -20,7 +21,7 @@ func (m *EmailMessage) Send() error {
 	err := m.events.DispatchEventImmediately(&nonblocking.EmailSentEventPayload{
 		Sender:    m.Sender,
 		Recipient: m.Recipient,
-		Type:      m.Type,
+		Type:      string(m.Type),
 	})
 	if err != nil {
 		return err

@@ -4,7 +4,6 @@ import (
 	"errors"
 	neturl "net/url"
 
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
@@ -33,9 +32,9 @@ type TranslationService interface {
 }
 
 type Sender interface {
-	PrepareEmail(email string, msgType nonblocking.MessageType) (*messaging.EmailMessage, error)
-	PrepareSMS(phoneNumber string, msgType nonblocking.MessageType) (*messaging.SMSMessage, error)
-	PrepareWhatsapp(phoneNumber string, msgType nonblocking.MessageType) (*messaging.WhatsappMessage, error)
+	PrepareEmail(email string, msgType translation.MessageType) (*messaging.EmailMessage, error)
+	PrepareSMS(phoneNumber string, msgType translation.MessageType) (*messaging.SMSMessage, error)
+	PrepareWhatsapp(phoneNumber string, msgType translation.MessageType) (*messaging.WhatsappMessage, error)
 }
 
 type WhatsappService interface {
@@ -50,7 +49,7 @@ type PreparedMessage struct {
 	whatsapp *messaging.WhatsappMessage
 	spec     *translation.MessageSpec
 	form     Form
-	msgType  nonblocking.MessageType
+	msgType  translation.MessageType
 }
 
 func (m *PreparedMessage) Close() {
@@ -87,17 +86,17 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 	if msg.form == FormLink {
 		var linkURL *neturl.URL
 		switch msg.msgType {
-		case nonblocking.MessageTypeSetupPrimaryOOB,
-			nonblocking.MessageTypeSetupSecondaryOOB,
-			nonblocking.MessageTypeAuthenticatePrimaryOOB,
-			nonblocking.MessageTypeAuthenticateSecondaryOOB:
+		case translation.MessageTypeSetupPrimaryOOB,
+			translation.MessageTypeSetupSecondaryOOB,
+			translation.MessageTypeAuthenticatePrimaryOOB,
+			translation.MessageTypeAuthenticateSecondaryOOB:
 
 			linkURL = s.Endpoints.LoginLinkVerificationEndpointURL()
 			query := linkURL.Query()
 			query.Set("code", opts.OTP)
 			linkURL.RawQuery = query.Encode()
 
-		case nonblocking.MessageTypeForgotPassword:
+		case translation.MessageTypeForgotPassword:
 
 			linkURL = s.Endpoints.ResetPasswordEndpointURL()
 			query := linkURL.Query()
@@ -127,51 +126,51 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 	return ctx, nil
 }
 
-func (s *MessageSender) selectMessage(form Form, typ MessageType) (*translation.MessageSpec, nonblocking.MessageType) {
+func (s *MessageSender) selectMessage(form Form, typ MessageType) (*translation.MessageSpec, translation.MessageType) {
 	var spec *translation.MessageSpec
-	var msgType nonblocking.MessageType
+	var msgType translation.MessageType
 	switch typ {
 	case MessageTypeVerification:
 		spec = messageVerification
-		msgType = nonblocking.MessageTypeVerification
+		msgType = translation.MessageTypeVerification
 	case MessageTypeSetupPrimaryOOB:
 		if form == FormLink {
 			spec = messageSetupPrimaryLoginLink
 		} else {
 			spec = messageSetupPrimaryOOB
 		}
-		msgType = nonblocking.MessageTypeSetupPrimaryOOB
+		msgType = translation.MessageTypeSetupPrimaryOOB
 	case MessageTypeSetupSecondaryOOB:
 		if form == FormLink {
 			spec = messageSetupSecondaryLoginLink
 		} else {
 			spec = messageSetupSecondaryOOB
 		}
-		msgType = nonblocking.MessageTypeSetupSecondaryOOB
+		msgType = translation.MessageTypeSetupSecondaryOOB
 	case MessageTypeAuthenticatePrimaryOOB:
 		if form == FormLink {
 			spec = messageAuthenticatePrimaryLoginLink
 		} else {
 			spec = messageAuthenticatePrimaryOOB
 		}
-		msgType = nonblocking.MessageTypeAuthenticatePrimaryOOB
+		msgType = translation.MessageTypeAuthenticatePrimaryOOB
 	case MessageTypeAuthenticateSecondaryOOB:
 		if form == FormLink {
 			spec = messageAuthenticateSecondaryLoginLink
 		} else {
 			spec = messageAuthenticateSecondaryOOB
 		}
-		msgType = nonblocking.MessageTypeAuthenticateSecondaryOOB
+		msgType = translation.MessageTypeAuthenticateSecondaryOOB
 	case MessageTypeForgotPassword:
 		if form == FormLink {
 			spec = messageForgotPasswordLink
 		} else {
 			spec = messageForgotPasswordOOB
 		}
-		msgType = nonblocking.MessageTypeForgotPassword
+		msgType = translation.MessageTypeForgotPassword
 	case MessageTypeWhatsappCode:
 		spec = messageWhatsappCode
-		msgType = nonblocking.MessageTypeWhatsappCode
+		msgType = translation.MessageTypeWhatsappCode
 	default:
 		panic("otp: unknown message type: " + msgType)
 	}
