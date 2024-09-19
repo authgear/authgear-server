@@ -149,7 +149,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			if err != nil {
 				return err
 			}
-			hintUserIDsSet := setutil.NewStringSetFromSlice(hintUserIDs)
+			hintUserIDsSet := setutil.NewSetFromSlice(hintUserIDs, setutil.Identity[string])
 			if !hintUserIDsSet.Has(session.GetAuthenticationInfo().UserID) {
 				session = nil
 			}

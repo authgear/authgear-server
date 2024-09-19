@@ -333,7 +333,7 @@ func (h *LoginHandler) finishWithoutUI(
 			if err != nil {
 				return err
 			}
-			hintUserIDsSet := setutil.NewStringSetFromSlice(hintUserIDs)
+			hintUserIDsSet := setutil.NewSetFromSlice(hintUserIDs, setutil.Identity[string])
 			if !hintUserIDsSet.Has(resolvedSession.GetAuthenticationInfo().UserID) {
 				resolvedSession = nil
 			}

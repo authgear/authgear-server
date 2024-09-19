@@ -221,7 +221,7 @@ func (p *Provider) AddSAMLServiceProviderParticipant(session *IDPSession, servic
 	if err != nil {
 		return nil, err
 	}
-	s.ParticipatedSAMLServiceProviderIDs = append(s.ParticipatedSAMLServiceProviderIDs, serviceProviderID)
+	s.ParticipatedSAMLServiceProviderIDs.Add(serviceProviderID)
 	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
