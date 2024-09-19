@@ -2,6 +2,8 @@ package setutil
 
 import (
 	"cmp"
+	"encoding/json"
+	"fmt"
 	"slices"
 )
 
@@ -18,10 +20,6 @@ func NewSetFromSlice[A any, B cmp.Ordered](slice []A, f func(a A) B) Set[B] {
 		out[b] = struct{}{}
 	}
 	return out
-}
-
-func NewStringSetFromSlice(slice []string) Set[string] {
-	return NewSetFromSlice(slice, func(s string) string { return s })
 }
 
 func (s Set[T]) Subtract(that Set[T]) Set[T] {
@@ -68,4 +66,35 @@ func (s Set[T]) Has(key T) bool {
 		return true
 	}
 	return false
+}
+
+var _ json.Unmarshaler = &Set[string]{}
+
+func (s *Set[T]) UnmarshalJSON(b []byte) error {
+
+	var rawArray []interface{}
+	err := json.Unmarshal(b, &rawArray)
+	if err != nil {
+		return err
+	}
+
+	for _, value := range rawArray {
+		if t, ok := value.(T); ok {
+			s.Add(t)
+		} else {
+			return fmt.Errorf("failed to unmarshal set: unexpected type")
+		}
+	}
+	return nil
+}
+
+var _ json.Marshaler = Set[string]{}
+
+func (s Set[T]) MarshalJSON() ([]byte, error) {
+	items := []T{}
+	for _, k := range s.Keys() {
+		items = append(items, k)
+	}
+
+	return json.Marshal(items)
 }

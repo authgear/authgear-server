@@ -17,4 +17,23 @@ func TestSet(t *testing.T) {
 		So(SetToSlice(slice1, s1.Subtract(s2), Identity[string]), ShouldResemble, []string{"3", "5"})
 		So(SetToSlice(slice2, s2.Subtract(s1), Identity[string]), ShouldResemble, []string{"2", "6"})
 	})
+
+	Convey("Set.UnmarshalJSON", t, func() {
+		slice1 := []string{"1", "3", "5"}
+
+		s1 := NewSetFromSlice(slice1, Identity[string])
+		s2 := Set[string]{}
+		err := s2.UnmarshalJSON([]byte(`["1", "3", "5"]`))
+		So(err, ShouldBeNil)
+		So(s1, ShouldResemble, s2)
+	})
+
+	Convey("Set.MarshalJSON", t, func() {
+		slice1 := []string{"1", "3", "5"}
+
+		s1 := NewSetFromSlice(slice1, Identity[string])
+		b, err := s1.MarshalJSON()
+		So(err, ShouldBeNil)
+		So(b, ShouldResemble, []byte(`["1", "3", "5"]`))
+	})
 }

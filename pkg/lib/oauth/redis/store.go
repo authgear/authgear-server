@@ -444,7 +444,7 @@ func (s *Store) AddOfflineGrantSAMLServiceProviderParticipant(
 		return nil, err
 	}
 
-	grant.ParticipatedSAMLServiceProviderIDs = append(grant.ParticipatedSAMLServiceProviderIDs, newServiceProviderID)
+	grant.ParticipatedSAMLServiceProviderIDs.Add(newServiceProviderID)
 	err = s.updateOfflineGrant(grant, expireAt)
 	if err != nil {
 		return nil, err
