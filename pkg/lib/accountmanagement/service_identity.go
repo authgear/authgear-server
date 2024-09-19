@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/go-webauthn/webauthn/protocol"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -15,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
-	"github.com/go-webauthn/webauthn/protocol"
 )
 
 type AddIdentityUsernameInput struct {

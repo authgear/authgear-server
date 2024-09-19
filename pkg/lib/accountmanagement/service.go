@@ -1,7 +1,6 @@
 package accountmanagement
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -28,7 +27,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
-	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -66,17 +64,6 @@ type IdentityService interface {
 	Create(info *identity.Info) error
 	Update(oldInfo *identity.Info, newInfo *identity.Info) error
 	Delete(is *identity.Info) error
-}
-
-type IdentityAction interface {
-	CreateIdentity(userID string, identitySpec *identity.Spec, needVerify bool) (*identity.Info, bool, error)
-	UpdateIdentity(userID string, identityID string, identitySpec *identity.Spec, needVerify bool) (*identity.Info, bool, error)
-	RemoveIdentity(userID string, identityID string) (*identity.Info, error)
-	MakeLoginIDSpec(loginIDKey string, loginID string) (*identity.Spec, error)
-	SendOTPCode(input *sendOTPCodeInput) error
-	StartIdentityWithVerification(resolvedSession session.ResolvedSession, input *startIdentityWithVerificationInput) (output *StartIdentityWithVerificationOutput, err error)
-	CreateIdentityWithVerification(resolvedSession session.ResolvedSession, input *CreateIdentityWithVerificationInput) (*CreateIdentityWithVerificationOutput, error)
-	UpdateIdentityWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityWithVerificationInput) (*UpdateIdentityWithVerificationOutput, error)
 }
 
 type EventService interface {
@@ -129,7 +116,6 @@ type Service struct {
 	OAuthProvider             OAuthProvider
 	BiometricProvider         BiometricIdentityProvider
 	Identities                IdentityService
-	IdentityAction            IdentityAction
 	Events                    EventService
 	OTPSender                 OTPSender
 	OTPCodeService            OTPCodeService
@@ -138,6 +124,18 @@ type Service struct {
 	PasskeyService            PasskeyService
 	Verification              VerificationService
 	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
+}
+
+type StartAddingInput struct {
+	UserID                                          string
+	Alias                                           string
+	RedirectURI                                     string
+	IncludeStateAuthorizationURLAndBindStateToToken bool
+}
+
+type StartAddingOutput struct {
+	Token            string `json:"token,omitempty"`
+	AuthorizationURL string `json:"authorization_url,omitempty"`
 }
 
 func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
@@ -170,6 +168,16 @@ func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, erro
 		Token:            token,
 		AuthorizationURL: authorizationURL,
 	}, nil
+}
+
+type FinishAddingInput struct {
+	UserID string
+	Token  string
+	Query  string
+}
+
+type FinishAddingOutput struct {
+	// It is intentionally empty.
 }
 
 func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, error) {
@@ -270,200 +278,38 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	return &FinishAddingOutput{}, nil
 }
 
-func (s *Service) StartCreateEmailIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (*StartCreateIdentityWithVerificationOutput, error) {
-	return s.startCreateIdentityWithVerification(resolvedSession, input)
-}
-
-func (s *Service) StartCreatePhoneNumberIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (*StartCreateIdentityWithVerificationOutput, error) {
-	return s.startCreateIdentityWithVerification(resolvedSession, input)
-}
-
-func (s *Service) startCreateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartCreateIdentityWithVerificationInput) (*StartCreateIdentityWithVerificationOutput, error) {
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
-	if err != nil {
-		return nil, err
-	}
-	var output *StartIdentityWithVerificationOutput
-	err = s.Database.WithTx(func() error {
-		output, err = s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
-			LoginID:      input.LoginID,
-			LoginIDKey:   input.LoginIDKey,
-			IdentitySpec: identitySpec,
-			Channel:      input.Channel,
-			isUpdate:     false,
-		})
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if !output.NeedVerification {
-		return &StartCreateIdentityWithVerificationOutput{
-			IdentityInfo:     output.IdentityInfo,
-			NeedVerification: false,
-		}, nil
-	}
-
-	var token string
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	loginIDType := output.IdentityInfo.LoginID.LoginIDType
-
-	switch loginIDType {
-	case model.LoginIDKeyTypeEmail:
-		token, err = s.Store.GenerateToken(GenerateTokenOptions{
-			UserID: userID,
-			Email:  input.LoginID,
-		})
-	case model.LoginIDKeyTypePhone:
-		token, err = s.Store.GenerateToken(GenerateTokenOptions{
-			UserID:      userID,
-			PhoneNumber: input.LoginID,
-		})
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &StartCreateIdentityWithVerificationOutput{
-		Token:            token,
-		IdentityInfo:     output.IdentityInfo,
-		NeedVerification: output.NeedVerification,
-	}, nil
-}
-
-func (s *Service) StartUpdateEmailIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (*StartUpdateIdentityWithVerificationOutput, error) {
-	return s.startUpdateIdentityWithVerification(resolvedSession, input)
-}
-
-func (s *Service) StartUpdatePhoneNumberIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (*StartUpdateIdentityWithVerificationOutput, error) {
-	return s.startUpdateIdentityWithVerification(resolvedSession, input)
-}
-
-func (s *Service) startUpdateIdentityWithVerification(resolvedSession session.ResolvedSession, input *StartUpdateIdentityWithVerificationInput) (*StartUpdateIdentityWithVerificationOutput, error) {
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
-	if err != nil {
-		return nil, err
-	}
-	var output *StartIdentityWithVerificationOutput
-	err = s.Database.WithTx(func() error {
-		output, err = s.IdentityAction.StartIdentityWithVerification(resolvedSession, &startIdentityWithVerificationInput{
-			LoginID:      input.LoginID,
-			LoginIDKey:   input.LoginIDKey,
-			IdentitySpec: identitySpec,
-			Channel:      input.Channel,
-			IdentityID:   input.IdentityID,
-			isUpdate:     true,
-		})
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if !output.NeedVerification {
-		return &StartUpdateIdentityWithVerificationOutput{
-			IdentityInfo:     output.IdentityInfo,
-			NeedVerification: false,
-		}, nil
-	}
-
-	var token string
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	loginIDType := output.IdentityInfo.LoginID.LoginIDType
-
-	switch loginIDType {
-	case model.LoginIDKeyTypeEmail:
-		token, err = s.Store.GenerateToken(GenerateTokenOptions{
-			UserID:     userID,
-			Email:      input.LoginID,
-			IdentityID: input.IdentityID,
-		})
-	case model.LoginIDKeyTypePhone:
-		token, err = s.Store.GenerateToken(GenerateTokenOptions{
-			UserID:      userID,
-			PhoneNumber: input.LoginID,
-			IdentityID:  input.IdentityID,
-		})
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &StartUpdateIdentityWithVerificationOutput{
-		Token:            token,
-		IdentityInfo:     output.IdentityInfo,
-		NeedVerification: output.NeedVerification,
-	}, nil
-}
-
-func (s *Service) ResumeCreatingEmailIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (*ResumeAddingIdentityWithVerificationOutput, error) {
-	return s.resumeAddingIdentityWithVerification(resolvedSession, input)
-}
-
-func (s *Service) ResumeCreatingPhoneNumberIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (*ResumeAddingIdentityWithVerificationOutput, error) {
-	return s.resumeAddingIdentityWithVerification(resolvedSession, input)
-}
-
-func (s *Service) ResumeUpdatingEmailIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (*ResumeAddingIdentityWithVerificationOutput, error) {
-	return s.resumeAddingIdentityWithVerification(resolvedSession, input)
-}
-
-func (s *Service) ResumeUpdatingPhoneNumberIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (*ResumeAddingIdentityWithVerificationOutput, error) {
-	return s.resumeAddingIdentityWithVerification(resolvedSession, input)
-}
-
-func (s *Service) resumeAddingIdentityWithVerification(resolvedSession session.ResolvedSession, input *ResumeAddingIdentityWithVerificationInput) (output *ResumeAddingIdentityWithVerificationOutput, err error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(input.Token)
-	if err != nil {
-		return nil, err
-	}
-	err = token.CheckUser(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	var loginID string
-	var loginIDKeyType model.LoginIDKeyType
-	identityID := token.Identity.IdentityID
-
-	switch {
-	case token.Identity.Email != "":
-		loginID = token.Identity.Email
-		loginIDKeyType = model.LoginIDKeyTypeEmail
-	case token.Identity.PhoneNumber != "":
-		loginID = token.Identity.PhoneNumber
-		loginIDKeyType = model.LoginIDKeyTypePhone
-	default:
-		return nil, ErrAccountManagementTokenInvalid
-	}
-
-	return &ResumeAddingIdentityWithVerificationOutput{
-		Token:          input.Token,
-		LoginID:        loginID,
-		LoginIDKeyType: loginIDKeyType,
-		IdentityID:     identityID,
-	}, nil
+type ResendOTPCodeInput struct {
+	UserID       string
+	Channel      model.AuthenticatorOOBChannel
+	LoginID      string
+	isSwitchPage bool
 }
 
 func (s *Service) ResendOTPCode(input *ResendOTPCodeInput) (err error) {
 	// Either it is a switch page or resend
 	isResend := !input.isSwitchPage
-	err = s.IdentityAction.SendOTPCode(&sendOTPCodeInput{
-		Channel:  input.Channel,
-		Target:   input.LoginID,
-		isResend: isResend,
-	})
+	err = s.sendOTPCode(
+		input.UserID,
+		input.Channel,
+		input.LoginID,
+		isResend,
+	)
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+type ChangePasswordInput struct {
+	OAuthSessionID string
+	RedirectURI    string
+	OldPassword    string
+	NewPassword    string
+}
+
+type ChangePasswordOutput struct {
+	RedirectURI string
 }
 
 // If have OAuthSessionID, it means the user is changing password after login with SDK.
@@ -528,6 +374,20 @@ func (s *Service) ChangePassword(resolvedSession session.ResolvedSession, input 
 
 }
 
+type CreateAdditionalPasswordInput struct {
+	NewAuthenticatorID string
+	UserID             string
+	Password           string
+}
+
+func NewCreateAdditionalPasswordInput(userID string, password string) CreateAdditionalPasswordInput {
+	return CreateAdditionalPasswordInput{
+		NewAuthenticatorID: uuid.New(),
+		UserID:             userID,
+		Password:           password,
+	}
+}
+
 func (s *Service) CreateAdditionalPassword(input CreateAdditionalPasswordInput) error {
 	spec := &authenticator.Spec{
 		UserID:    input.UserID,
@@ -564,194 +424,6 @@ func (s *Service) CreateAuthenticator(authenticatorInfo *authenticator.Info) err
 	}
 	return nil
 }
-
-func (s *Service) AddIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *AddIdentityEmailWithVerificationInput) (output *CreateIdentityWithVerificationOutput, err error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	defer func() {
-		if err == nil {
-			_, err = s.Store.ConsumeToken(input.Token)
-		}
-	}()
-
-	token, err := s.Store.GetToken(input.Token)
-	err = token.CheckUser(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.Database.WithTx(func() (err error) {
-		output, err = s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
-			IdentitySpec: identitySpec,
-			Code:         input.Code,
-			Channel:      input.Channel,
-			Token:        token,
-		})
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return output, nil
-}
-
-func (s *Service) UpdateIdentityEmailWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityEmailWithVerificationInput) (output *UpdateIdentityWithVerificationOutput, err error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	defer func() {
-		if err == nil {
-			_, err = s.Store.ConsumeToken(input.Token)
-		}
-	}()
-
-	token, err := s.Store.GetToken(input.Token)
-	err = token.CheckUser(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
-	if err != nil {
-		return nil, err
-	}
-	err = s.Database.WithTx(func() (err error) {
-		output, err = s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
-			IdentityID:   input.IdentityID,
-			IdentitySpec: identitySpec,
-			Code:         input.Code,
-			Channel:      input.Channel,
-			Token:        token,
-		})
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return output, nil
-}
-
-func (s *Service) RemoveIdentityEmail(resolvedSession session.ResolvedSession, input *RemoveIdentityEmailInput) (*RemoveIdentityEmailOutput, error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	identityID := input.IdentityID
-
-	var identityInfo *identity.Info
-	err := s.Database.WithTx(func() (err error) {
-		identityInfo, err = s.IdentityAction.RemoveIdentity(userID, identityID)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &RemoveIdentityEmailOutput{IdentityInfo: identityInfo}, nil
-}
-
-func (s *Service) AddIdentityPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *AddIdentityPhoneNumberWithVerificationInput) (output *CreateIdentityWithVerificationOutput, err error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	defer func() {
-		if err == nil {
-			_, err = s.Store.ConsumeToken(input.Token)
-		}
-	}()
-
-	token, err := s.Store.GetToken(input.Token)
-	err = token.CheckUser(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.Database.WithTx(func() (err error) {
-		output, err = s.IdentityAction.CreateIdentityWithVerification(resolvedSession, &CreateIdentityWithVerificationInput{
-			IdentitySpec: identitySpec,
-			Code:         input.Code,
-			Channel:      input.Channel,
-			Token:        token,
-		})
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return output, nil
-}
-
-func (s *Service) UpdateIdentityPhoneNumberWithVerification(resolvedSession session.ResolvedSession, input *UpdateIdentityPhoneNumberWithVerificationInput) (output *UpdateIdentityWithVerificationOutput, err error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	defer func() {
-		if err == nil {
-			_, err = s.Store.ConsumeToken(input.Token)
-		}
-	}()
-
-	token, err := s.Store.GetToken(input.Token)
-	err = token.CheckUser(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	identitySpec, err := s.IdentityAction.MakeLoginIDSpec(input.LoginIDKey, input.LoginID)
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.Database.WithTx(func() (err error) {
-		output, err = s.IdentityAction.UpdateIdentityWithVerification(resolvedSession, &UpdateIdentityWithVerificationInput{
-			IdentityID:   input.IdentityID,
-			IdentitySpec: identitySpec,
-			Code:         input.Code,
-			Channel:      input.Channel,
-			Token:        token,
-		})
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return output, nil
-}
-
-func (s *Service) RemoveIdentityPhoneNumber(resolvedSession session.ResolvedSession, input *RemoveIdentityPhoneNumberInput) (*RemoveIdentityPhoneNumberOutput, error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	identityID := input.IdentityID
-
-	var identityInfo *identity.Info
-	err := s.Database.WithTx(func() (err error) {
-		identityInfo, err = s.IdentityAction.RemoveIdentity(userID, identityID)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return &RemoveIdentityPhoneNumberOutput{IdentityInfo: identityInfo}, nil
-}
-
 func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChannel, target string, isResend bool) error {
 	var msgType otp.MessageType
 	switch channel {
