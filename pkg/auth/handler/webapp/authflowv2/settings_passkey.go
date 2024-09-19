@@ -136,7 +136,7 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 	})
 
 	ctrl.PostAction("remove", func() error {
-		identityID := r.Form.Get("q_identity_id")
+		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(r.Context())
 

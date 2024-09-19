@@ -98,6 +98,6 @@
 {{ end }}
 
 {{ define "__settings_passkey_dialog_remove_input" }}
-{{ $.CSRFField }}
-  <input type="hidden" name="q_identity_id" value="{{ .ID }}">
+  {{ $.CSRFField }}
+  <input type="hidden" name="x_identity_id" value="{{ .ID }}">
 {{ end }}
