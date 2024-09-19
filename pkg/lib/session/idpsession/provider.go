@@ -206,6 +206,31 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 	return s, nil
 }
 
+func (p *Provider) AddSAMLServiceProviderParticipant(session *IDPSession, serviceProviderID string) (*IDPSession, error) {
+	mutexName := sessionMutexName(p.AppID, session.ID)
+	mutex := p.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(p.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(p.Context)
+	}()
+
+	s, err := p.Get(session.ID)
+	if err != nil {
+		return nil, err
+	}
+	s.ParticipatedSAMLServiceProviderIDs = append(s.ParticipatedSAMLServiceProviderIDs, serviceProviderID)
+	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
+	if err != nil {
+		err = fmt.Errorf("failed to update session: %w", err)
+		return nil, err
+	}
+
+	return s, nil
+}
+
 func (p *Provider) CheckSessionExpired(session *IDPSession) (expired bool) {
 	now := p.Clock.NowUTC()
 	cloned := *session

@@ -48,6 +48,8 @@ type OfflineGrant struct {
 
 	RefreshTokens []OfflineGrantRefreshToken `json:"refresh_tokens,omitempty"`
 
+	ParticipatedSAMLServiceProviderIDs []string `json:"participated_saml_service_provider_ids,omitempty"`
+
 	// Readonly fields for backward compatibility.
 	// Write these fields in OfflineGrantRefreshToken
 	Deprecated_AuthorizationID string   `json:"authz_id"`

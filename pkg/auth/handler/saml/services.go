@@ -1,6 +1,7 @@
 package saml
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 
@@ -15,7 +16,8 @@ type HandlerSAMLService interface {
 	IdpEntityID() string
 	IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata, error)
 	ValidateAuthnRequest(serviceProviderId string, authnRequest *samlprotocol.AuthnRequest) error
-	IssueSuccessResponse(
+	IssueLoginSuccessResponse(
+		ctx context.Context,
 		callbackURL string,
 		serviceProviderId string,
 		authInfo authenticationinfo.T,

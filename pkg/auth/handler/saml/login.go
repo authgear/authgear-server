@@ -357,7 +357,7 @@ func (h *LoginHandler) finishWithoutUI(
 	} else {
 		// Else, authenticate with the existing session.
 		authInfo := resolvedSession.CreateNewAuthenticationInfoByThisSession()
-		response, err := h.LoginResultHandler.handleLoginResult(&authInfo, samlSessionEntry)
+		response, err := h.LoginResultHandler.handleLoginResult(ctx, &authInfo, samlSessionEntry)
 		if err != nil {
 			return nil, err
 		}

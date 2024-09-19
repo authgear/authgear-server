@@ -72,7 +72,11 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 		}
 	}()
 
-	response, err := h.LoginResultHandler.handleLoginResult(&authInfo.T, samlSession.Entry)
+	response, err := h.LoginResultHandler.handleLoginResult(
+		r.Context(),
+		&authInfo.T,
+		samlSession.Entry,
+	)
 	if err != nil {
 		h.handleError(rw, r, samlSession, err)
 		return
