@@ -4,16 +4,92 @@
   {{ template "authflowv2/__navbar.html"
      (dict
         "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
-        "BackHref" (call $.MakeURL "/settings")
-        "Title" (translate "v2.page.settings-identity-view-phone.default.navbar-title" nil)
+        "BackHref" (call $.MakeURL "/settings/identity/phone" "q_login_id_key" $.LoginIDKey)
+        "Title" (translate "v2.page.settings-identity-phone.default.navbar-title" nil)
      )
   }}
 {{ end }}
 
+{{ define "settings_identity_phone_verification_label" }}
+  {{ if $.Verified }}
+    <div class="body-text--md settings-text-color-success">
+      {{ translate "v2.page.settings-identity-phone.default.verified-label" . }}
+    </div>
+  {{ else }}
+    <div class="body-text--md settings-text-color-failure">
+      {{ translate "v2.page.settings-identity-phone.default.not-verified-label" . }}
+    </div>
+  {{ end }}
+{{ end }}
+
+{{ define "settings_identity_phone_edit_button" }}
+  {{ if not $.Verified }}
+    <a class="settings-link-btn" href="{{ $.Href }}">
+      {{ translate "v2.page.settings-identity-view-phone.default.button-edit-phone-label" . }}
+    </a>
+  {{ end }}
+{{ end }}
+
+{{ define "settings_identity_phone_verification_button" }}
+  {{ if not $.Verified }}
+    <a class="secondary-btn" href="{{ $.Href }}">
+      {{ translate "v2.page.settings-identity-view-phone.default.button-verify-phone-label" . }}
+    </a>
+  {{ end }}
+{{ end }}
+
 {{ define "page-content" }}
 
+{{ $LoginID := $.PhoneIdentity.OriginalLoginID }}
+{{ $IdentityID := $.PhoneIdentity.ID }}
+
 <div class="flex flex-col gap-y-6">
-  view
+  {{ $claims := index $.Verifications $IdentityID }}
+  {{ if not (empty $claims) }}
+    {{ $claim := first $claims }}
+
+    {{/* We handle these cases separately because for some reason, even an empty "ExtraContent" value causes unwanted spacing. */}}
+    {{ if $claim.Verified }}
+      {{ template "authflowv2/__settings_action_item.html"
+          (dict
+            "IconName" "phone"
+            "Label" $LoginID
+            "Description" (include "settings_identity_phone_verification_label" 
+              (dict "Verified" true)
+            )
+            "ActionButton" (include "settings_identity_phone_edit_button" 
+              (dict "Href" (call $.MakeURL "/settings/identity/edit_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey))
+            )
+          )
+      }}
+    {{ else }}
+    {{ template "authflowv2/__settings_action_item.html"
+        (dict
+          "IconName" "phone"
+          "Label" $.PhoneIdentity.OriginalLoginID
+          "Description" (include "settings_identity_phone_verification_label" 
+            (dict "Verified" false)
+          )
+          "ActionButton" (include "settings_identity_phone_edit_button" 
+            (dict "Href" (call $.MakeURL "/settings/identity/edit_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey))
+          )
+          "ExtraContent" (include "settings_identity_phone_verification_button" 
+            (dict "Verified" false "Href" (call $.MakeURL "/settings/identity/verify_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey))
+          )
+        )
+    }}
+    {{ end }}
+  {{ end }}
+
+  {{ if not $.DeleteDisabled}}
+    {{ $href := (call $.MakeURL "/settings/identity/new_phone" "q_login_id_key" $.LoginIDKey ) }}
+    <a
+      class="settings-link-btn--destructive"
+      href="{{ $href }}"
+    >
+      {{ translate "v2.page.settings-identity-view-phone.default.button-remove-phone-label" nil }}
+    </a>
+  {{ end }}
 </div>
 
 {{ end }}
