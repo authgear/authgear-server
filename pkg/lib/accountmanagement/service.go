@@ -7,7 +7,6 @@ import (
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -24,10 +23,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
-	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
-	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type ChallengeProvider interface {
@@ -296,129 +293,6 @@ func (s *Service) ResendOTPCode(input *ResendOTPCodeInput) (err error) {
 	return nil
 }
 
-type ChangePasswordInput struct {
-	OAuthSessionID string
-	RedirectURI    string
-	OldPassword    string
-	NewPassword    string
-}
-
-type ChangePasswordOutput struct {
-	RedirectURI string
-}
-
-// If have OAuthSessionID, it means the user is changing password after login with SDK.
-// Then do special handling such as authenticationInfo
-func (s *Service) ChangePassword(resolvedSession session.ResolvedSession, input *ChangePasswordInput) (*ChangePasswordOutput, error) {
-	userID := resolvedSession.GetAuthenticationInfo().UserID
-	redirectURI := input.RedirectURI
-
-	err := s.Database.WithTx(func() error {
-		ais, err := s.Authenticators.List(
-			userID,
-			authenticator.KeepType(model.AuthenticatorTypePassword),
-			authenticator.KeepKind(authenticator.KindPrimary),
-		)
-		if err != nil {
-			return err
-		}
-		if len(ais) == 0 {
-			return api.ErrNoPassword
-		}
-		oldInfo := ais[0]
-		_, err = s.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
-			Password: &authenticator.PasswordSpec{
-				PlainPassword: input.OldPassword,
-			},
-		}, nil)
-		if err != nil {
-			err = api.ErrInvalidCredentials
-			return err
-		}
-		changed, newInfo, err := s.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
-			SetPassword:    true,
-			PlainPassword:  input.NewPassword,
-			SetExpireAfter: true,
-		})
-		if err != nil {
-			return err
-		}
-		if changed {
-			err = s.Authenticators.Update(newInfo)
-			if err != nil {
-				return err
-			}
-		}
-		// If is changing password with SDK.
-		if input.OAuthSessionID != "" {
-			authInfo := resolvedSession.GetAuthenticationInfo()
-			authenticationInfoEntry := authenticationinfo.NewEntry(authInfo, input.OAuthSessionID, "")
-
-			err = s.AuthenticationInfoService.Save(authenticationInfoEntry)
-			if err != nil {
-				return err
-			}
-			redirectURI = s.UIInfoResolver.SetAuthenticationInfoInQuery(input.RedirectURI, authenticationInfoEntry)
-		}
-		return nil
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &ChangePasswordOutput{RedirectURI: redirectURI}, nil
-
-}
-
-type CreateAdditionalPasswordInput struct {
-	NewAuthenticatorID string
-	UserID             string
-	Password           string
-}
-
-func NewCreateAdditionalPasswordInput(userID string, password string) CreateAdditionalPasswordInput {
-	return CreateAdditionalPasswordInput{
-		NewAuthenticatorID: uuid.New(),
-		UserID:             userID,
-		Password:           password,
-	}
-}
-
-func (s *Service) CreateAdditionalPassword(input CreateAdditionalPasswordInput) error {
-	spec := &authenticator.Spec{
-		UserID:    input.UserID,
-		IsDefault: false,
-		Kind:      model.AuthenticatorKindSecondary,
-		Type:      model.AuthenticatorTypePassword,
-		Password: &authenticator.PasswordSpec{
-			PlainPassword: input.Password,
-		},
-	}
-	info, err := s.Authenticators.NewWithAuthenticatorID(input.NewAuthenticatorID, spec)
-	if err != nil {
-		return err
-	}
-	return s.CreateAuthenticator(info)
-}
-
-func (s *Service) CreateAuthenticator(authenticatorInfo *authenticator.Info) error {
-	err := s.Database.WithTx(func() error {
-		err := s.Authenticators.Create(authenticatorInfo, false)
-		if err != nil {
-			return err
-		}
-		if authenticatorInfo.Kind == authenticator.KindSecondary {
-			err = s.Users.UpdateMFAEnrollment(authenticatorInfo.UserID, nil)
-			if err != nil {
-				return err
-			}
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	return nil
-}
 func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChannel, target string, isResend bool) error {
 	var msgType translation.MessageType
 	switch channel {
