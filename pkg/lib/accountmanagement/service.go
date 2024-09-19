@@ -265,14 +265,10 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	return &FinishAddingOutput{}, nil
 }
 
-type ResendOTPCodeInput struct {
-	Token string
-}
-
-func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, input *ResendOTPCodeInput) (err error) {
+func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, tokenString string) (err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 
-	token, err := s.Store.GetToken(input.Token)
+	token, err := s.Store.GetToken(tokenString)
 	if err != nil {
 		return err
 	}
