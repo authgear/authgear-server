@@ -18,7 +18,7 @@ type End2EndCmd struct {
 	AppID    string
 	Client   *e2eclient.Client
 	TestCase TestCase
-	Test     *testing.T
+	Test     testing.TB
 }
 
 func generateAppID() string {
@@ -32,7 +32,7 @@ func generateAppID() string {
 
 type NewEnd2EndCmdOptions struct {
 	TestCase *TestCase
-	Test     *testing.T
+	Test     testing.TB
 }
 
 func NewEnd2EndCmd(options NewEnd2EndCmdOptions) (*End2EndCmd, error) {
@@ -116,6 +116,9 @@ func (e *End2EndCmd) GenerateIDToken(userID string) (string, error) {
 }
 
 func (e *End2EndCmd) resolvePath(p string) string {
+	if path.IsAbs(p) {
+		return p
+	}
 	return path.Join("./tests", path.Dir(e.TestCase.Path), p)
 }
 
