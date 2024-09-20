@@ -2,6 +2,7 @@ package authflowv2
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 
@@ -10,7 +11,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -34,6 +39,16 @@ var AuthflowV2SettingsIdentityVerifyEmailSchema = validation.NewSimpleSchema(`
 	}
 `)
 
+var AuthflowV2SettingsIdentityResendEmailSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_login_id": { "type": "string" }
+		},
+		"required": ["x_login_id"]
+	}
+`)
+
 func ConfigureAuthflowV2SettingsIdentityVerifyEmailRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
@@ -45,15 +60,22 @@ type AuthflowV2SettingsIdentityVerifyEmailViewModel struct {
 	LoginID    string
 	TokenID    string
 
-	CodeLength       int
-	MaskedClaimValue string
+	CodeLength                     int
+	MaskedClaimValue               string
+	ResendCooldown                 int
+	FailedAttemptRateLimitExceeded bool
 }
 
 type AuthflowV2SettingsIdentityVerifyEmailHandler struct {
-	ControllerFactory handlerwebapp.ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	Renderer          handlerwebapp.Renderer
-	AccountManagement accountmanagement.Service
+	Database            *appdb.Handle
+	ControllerFactory   handlerwebapp.ControllerFactory
+	BaseViewModel       *viewmodels.BaseViewModeler
+	OTPCodeService      handlerwebapp.OTPCodeService
+	Renderer            handlerwebapp.Renderer
+	AccountManagement   accountmanagement.Service
+	Clock               clock.Clock
+	Config              *config.AppConfig
+	AuthenticatorConfig *config.AuthenticatorConfig
 }
 
 func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -81,6 +103,20 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(r *http.Request, 
 		CodeLength:       6,
 		MaskedClaimValue: output.LoginID,
 	}
+
+	state, err := h.OTPCodeService.InspectState(otp.KindVerification(h.Config, model.AuthenticatorOOBChannelEmail), output.LoginID)
+	if err != nil {
+		return nil, err
+	}
+	cooldown := int(math.Ceil(state.CanResendAt.Sub(h.Clock.NowUTC()).Seconds())) // Use ceil, because int conversion truncates decimal and can lead to Please Wait Before Resending error.
+	if cooldown < 0 {
+		vm.ResendCooldown = 0
+	} else {
+		vm.ResendCooldown = cooldown
+	}
+
+	vm.FailedAttemptRateLimitExceeded = state.TooManyAttempts
+
 	viewmodels.Embed(data, vm)
 
 	return data, nil
@@ -140,6 +176,35 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 		redirectURI.RawQuery = q.Encode()
 
 		result := webapp.Result{RedirectURI: redirectURI.String()}
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("resend", func() error {
+		err := AuthflowV2SettingsIdentityResendEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+
+		loginID := r.Form.Get("q_login_id")
+
+		err = h.Database.WithTx(func() error {
+			err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), &accountmanagement.ResendOTPCodeInput{
+				Channel:    model.AuthenticatorOOBChannelEmail,
+				Token:      r.Form.Get("q_token"),
+				LoginID:    loginID,
+				LoginIDKey: r.Form.Get("q_login_id_key"),
+			})
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		result := webapp.Result{}
 		result.WriteResponse(w, r)
 		return nil
 	})
