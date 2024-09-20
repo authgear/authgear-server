@@ -12,18 +12,18 @@
 
 {{ define "page-content" }}
 
-<form  
+<form
   class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
   method="post"
   novalidate
   data-controller="turbo-form"
-  data-action="submit->turbo-form#submitForm">  
+  data-action="submit->turbo-form#submitForm">
 
   {{ $display_error := false }}
   {{ if $.Error }}
     {{ $display_error = true }}
   {{ end }}
-  
+
   {{ template "authflowv2/__alert_message.html"
     (dict
       "Type" "error"
@@ -34,7 +34,7 @@
   {{ $.CSRFField }}
 
   <span class="screen-description">
-    {{ include "v2.page.settings-identity-edit-phone.default.description" 
+    {{ include "v2.page.settings-identity-edit-phone.default.description"
       (dict "target" (include "__settings_identity_edit_phone_inline_bold" .Target.OriginalLoginID))
     }}
   </span>
@@ -63,7 +63,7 @@
     name="x_action"
     data-authgear-event="authgear.button.change_login_id"
   >
-    {{ template "v2.component.button.default.label-save" }}
+    {{ translate "v2.component.button.default.label-continue" nil }}
   </button>
 </form>
 
