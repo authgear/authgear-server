@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -58,14 +57,14 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(r *http.Request, rw
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
-	loginID := r.Form.Get("q_login_id")
+	identityID := r.Form.Get("q_identity_id")
 
 	userID := session.GetUserID(r.Context())
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	target, err := h.Identities.LoginID.Get(*userID, loginID)
+	target, err := h.Identities.LoginID.Get(*userID, identityID)
 	if err != nil {
 		return nil, err
 	}
@@ -117,11 +116,10 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) ServeHTTP(w http.ResponseWr
 		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartUpdateEmailIdentityWithVerification(s, &accountmanagement.StartUpdateIdentityWithVerificationInput{
+		output, err := h.AccountManagement.StartUpdateIdentityEmail(s, &accountmanagement.StartUpdateIdentityEmailInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
 			IdentityID: identityID,
-			Channel:    model.AuthenticatorOOBChannelEmail,
 		})
 		if err != nil {
 			return err
