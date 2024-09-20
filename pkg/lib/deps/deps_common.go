@@ -51,6 +51,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
@@ -127,6 +128,11 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(handlersaml.SAMLSessionService), new(*samlsession.StoreRedis)),
 
 		wire.Bind(new(handlersaml.SAMLUIService), new(*samlsession.UIService)),
+	),
+
+	wire.NewSet(
+		samlslosession.DependencySet,
+		wire.Bind(new(handlersaml.SAMLSLOSessionService), new(*samlslosession.StoreRedis)),
 	),
 
 	wire.NewSet(
@@ -209,6 +215,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.SessionManager), new(*session.Manager)),
 		wire.Bind(new(workflow.SessionService), new(*session.Manager)),
 		wire.Bind(new(authenticationflow.SessionService), new(*session.Manager)),
+		wire.Bind(new(handlersaml.SessionManager), new(*session.Manager)),
 	),
 
 	wire.NewSet(

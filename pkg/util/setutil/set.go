@@ -67,6 +67,13 @@ func (s *Set[T]) Add(key T) {
 	(*s)[key] = struct{}{}
 }
 
+func (s *Set[T]) Delete(key T) {
+	if (*s) == nil {
+		*s = Set[T]{}
+	}
+	delete(*s, key)
+}
+
 func (s Set[T]) Has(key T) bool {
 	if s == nil {
 		return false

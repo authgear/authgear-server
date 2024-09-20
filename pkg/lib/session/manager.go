@@ -146,7 +146,7 @@ func (m *Manager) invalidateSession(session ListableSession) (ManagementService,
 	return provider, nil
 }
 
-func (m *Manager) Logout(session ResolvedSession, rw http.ResponseWriter) ([]ListableSession, error) {
+func (m *Manager) Logout(session SessionBase, rw http.ResponseWriter) ([]ListableSession, error) {
 	invalidatedSessions, provider, err := m.invalidate(session, &revokeEventOption{IsAdminAPI: false, IsTermination: false})
 	if err != nil {
 		return nil, err
