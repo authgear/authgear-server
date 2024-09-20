@@ -4,7 +4,7 @@
   {{ template "authflowv2/__navbar.html"
      (dict
         "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
-        "BackHref" (call $.MakeURL "/settings")
+        "BackHref" (call $.MakeURL "/settings/identity/phone" "q_login_id_key" $.LoginIDKey)
         "Title" (translate "v2.page.settings-identity-change-primary-phone.default.navbar-title" nil)
      )
   }}
@@ -12,39 +12,45 @@
 
 {{ define "page-content" }}
 
-<form id="form" method="post" data-turbo="false" novalidate class="flex flex-col gap-y-6">
+<form
+  class="settings-content flex flex-col gap-y-8"
+  method="post"
+  novalidate
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+>
   {{ $.CSRFField }}
   <ul>
-    {{ $currentPhone := .Phone }}
+    {{ $currentPhone := .PhoneNumber }}
     {{ range .PhoneIdentities }}
       <li>
-        {{ template "authflowv2/__settings_radio.html"
-        (dict
-          "Label" (include "inline_breakable" .OriginalLoginID)
-          "Name" "/phone" "Value" .OriginalLoginID
-          "ShowInput" false
-          "DefaultChecked" (eq .OriginalLoginID $currentPhone)
-        )
+        {{ template "authflowv2/__settings_radio.html" (dict
+            "Label" (include "__settgins_identity_change_primary_phone_item_label" .OriginalLoginID)
+            "Name" "/phone_number"
+            "Value" .LoginID
+            "ShowInput" false
+            "DefaultChecked" (eq .LoginID $currentPhone)
+          )
         }}
       </li>
     {{ end }}
   </ul>
-  
+
   <button
-  id="save-button"
-  class="btn primary-btn w-86"
-  type="submit"
-  name="x_action"
-  value="save"
-  data-authgear-event="authgear.button.update_profile"
+    id="save-button"
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    value="save"
+    data-authgear-event="authgear.button.update_profile"
   >
-  {{ template "save-button-label" }}
+    {{ translate "v2.component.button.default.label-save" nil }}
   </button>
 
 </form>
 
 {{ end }}
 
-{{ define "inline_breakable" }}
-  <span style="word-break: break-all;">{{ . }}</span>
+{{ define "__settgins_identity_change_primary_phone_item_label" }}
+  <span class="break-all">{{ . }}</span>
 {{ end }}

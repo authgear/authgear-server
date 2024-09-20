@@ -27,9 +27,10 @@
         {{ template "authflowv2/__settings_radio.html"
         (dict
           "Label" (include "__settgins_identity_change_primary_email_item_label" .OriginalLoginID)
-          "Name" "/email" "Value" .OriginalLoginID
+          "Name" "/email"
+          "Value" .LoginID
           "ShowInput" false
-          "DefaultChecked" (eq .OriginalLoginID $currentEmail)
+          "DefaultChecked" (eq .LoginID $currentEmail)
         )
         }}
       </li>

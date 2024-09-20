@@ -67,7 +67,7 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(r *http.Request, rw
 		return nil, err
 	}
 
-	primary := &identity.LoginID{}
+	var primary *identity.LoginID
 	var phoneIdentities []*identity.LoginID
 	var phoneInfos []*identity.Info
 	for _, identity := range identities {
@@ -75,7 +75,7 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(r *http.Request, rw
 			if loginIDKey == "" || identity.LoginIDKey == loginIDKey {
 				phoneIdentities = append(phoneIdentities, identity)
 				phoneInfos = append(phoneInfos, identity.ToInfo())
-				if identity.OriginalLoginID == settingsProfileViewModel.PhoneNumber {
+				if identity.LoginID == settingsProfileViewModel.PhoneNumber {
 					primary = identity
 				}
 			}

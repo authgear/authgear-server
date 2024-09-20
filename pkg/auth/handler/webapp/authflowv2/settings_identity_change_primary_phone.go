@@ -2,6 +2,7 @@ package authflowv2
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -129,7 +130,16 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryPhoneHandler) ServeHTTP(w http.R
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: "/settings/identity/phone"}
+		loginIDKey := r.Form.Get("q_login_id_key")
+		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListPhone)
+		if err != nil {
+			return err
+		}
+		q := redirectURI.Query()
+		q.Set("q_login_id_key", loginIDKey)
+		redirectURI.RawQuery = q.Encode()
+
+		result := webapp.Result{RedirectURI: redirectURI.String()}
 		result.WriteResponse(w, r)
 		return nil
 	})

@@ -59,31 +59,30 @@
     </a>
   {{ end }}
 
-  {{ if gt (1) (len $.PhoneIdentities)}}
-    <span>
+  {{ if (gt (len $.PhoneIdentities) 1) }}
+  {{ if $.PrimaryPhone }}
+    <div class="mt-5">
       <div class="settings-title">
         {{ translate "v2.page.settings-identity-list-phone.default.primary-phone-label" . }}
       </div>
-      {{ $href := (call $.MakeURL "/settings/identity/view_phone" "q_login_id_key" $.LoginIDKey "q_login_id" .PrimaryPhone.ID )}}
       {{ template "authflowv2/__settings_action_item.html"
         (dict
-          "IconName" "phone"
+          "IconName" "phone_iphone"
           "Label" .PrimaryPhone.OriginalLoginID
-          "ActionButton" (include "settings_identity_phone_change_button" 
-            (dict "Href" (call $.MakeURL "/settings/identity/change_primary_phone" "q_login_id_key" $.LoginIDKey "q_login_id" .PrimaryPhone.ID))
+          "ActionButton" (include "settings_identity_phone_change_button"
+            (dict "Href" (call $.MakeURL "/settings/identity/change_primary_phone" "q_login_id_key" $.LoginIDKey "q_identity_id" .PrimaryPhone.ID))
           )
         )
       }}
-    </span>
+    </div>
+  {{ end }}
   {{ end }}
 </div>
 
 {{ end }}
 
 {{ define "settings_identity_phone_change_button" }}
-  {{ if not $.Verified }}
-    <a class="settings-link-btn" href="{{ $.Href }}">
-      {{ translate "v2.page.settings-identity.default.change-primary-label" . }}
-    </a>
-  {{ end }}
+  <a class="settings-link-btn" href="{{ $.Href }}">
+    {{ translate "v2.page.settings-identity.default.change-primary-label" . }}
+  </a>
 {{ end }}
