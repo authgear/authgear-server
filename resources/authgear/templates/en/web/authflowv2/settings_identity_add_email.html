@@ -12,13 +12,13 @@
 
 {{ define "page-content" }}
 
-<form  
+<form
   class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
   method="post"
   novalidate
   data-controller="turbo-form"
-  data-action="submit->turbo-form#submitForm">  
-  
+  data-action="submit->turbo-form#submitForm">
+
   {{ template "authflowv2/__alert_message.html"
     (dict
       "Type" "error"
@@ -42,7 +42,7 @@
     name="x_action"
     data-authgear-event="authgear.button.change_login_id"
   >
-    {{ template "v2.component.button.default.label-save" }}
+    {{ translate "v2.component.button.default.label-save" }}
   </button>
 </form>
 
