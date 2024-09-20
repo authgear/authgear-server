@@ -102,6 +102,9 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 		var redirectURI *url.URL
 		if output.NeedVerification {
 			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityVerifyEmail)
+			if err != nil {
+				return err
+			}
 
 			q := redirectURI.Query()
 			q.Set("q_login_id_key", loginIDKey)
@@ -110,6 +113,9 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 			redirectURI.RawQuery = q.Encode()
 		} else {
 			redirectURI, err = url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
+			if err != nil {
+				return err
+			}
 
 			q := redirectURI.Query()
 			q.Set("q_login_id_key", loginIDKey)
