@@ -83,6 +83,7 @@ pattern
 pending
 person
 person_check
+person_remove
 phone
 phone_iphone
 photo

@@ -5,6 +5,7 @@ import (
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -21,6 +22,10 @@ func ConfigureSettingsV2Route(route httproute.Route) httproute.Route {
 		WithPathPattern(SettingsV2RouteSettings)
 }
 
+type SettingsAccountDeletionViewModel struct {
+	AccountDeletionAllowed bool
+}
+
 type AuthflowV2SettingsHandler struct {
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
@@ -29,6 +34,7 @@ type AuthflowV2SettingsHandler struct {
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
 	Identities               handlerwebapp.SettingsIdentityService
 	Renderer                 handlerwebapp.Renderer
+	AccountDeletion          *config.AccountDeletionConfig
 }
 
 func (h *AuthflowV2SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -61,6 +67,12 @@ func (h *AuthflowV2SettingsHandler) GetData(r *http.Request, rw http.ResponseWri
 	}
 	authenticationViewModel := h.AuthenticationViewModel.NewWithCandidates(candidates, r.Form)
 	viewmodels.Embed(data, authenticationViewModel)
+
+	// Account Deletion
+	accountDeletionViewModel := SettingsAccountDeletionViewModel{
+		AccountDeletionAllowed: h.AccountDeletion.ScheduledByEndUserEnabled,
+	}
+	viewmodels.Embed(data, accountDeletionViewModel)
 
 	return data, nil
 }

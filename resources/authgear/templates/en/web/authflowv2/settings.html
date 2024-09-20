@@ -159,14 +159,22 @@
         )
       }}
 
-      {{ $url = call $.MakeURL "/settings/advanced_settings" }}
-      {{ template "authflowv2/__settings_item.html"
-        (dict
-          "Label" ( include "v2.page.settings.default.button-label-advanced-settings" nil )
-          "Href" $url
-          "MaterialIconName" "settings_alert"
-        )
-      }}
+
+      {{ $show_advanced_settings_button := false }}
+      {{ if $.AccountDeletionAllowed }}
+        {{ $show_advanced_settings_button = true }}
+      {{ end }}
+
+      {{ if $show_advanced_settings_button }}
+        {{ $url = call $.MakeURL "/settings/advanced_settings" }}
+        {{ template "authflowv2/__settings_item.html"
+          (dict
+            "Label" ( include "v2.page.settings.default.button-label-advanced-settings" nil )
+            "Href" $url
+            "MaterialIconName" "settings_alert"
+          )
+        }}
+      {{ end }}
     </div>
   </div>
 
