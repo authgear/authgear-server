@@ -36,14 +36,13 @@
 
 {{ define "page-content" }}
 
-{{ $LoginID := $.PhoneIdentity.OriginalLoginID }}
 {{ $IdentityID := $.PhoneIdentity.ID }}
 
 <div class="flex flex-col gap-y-6">
   {{ $extraContent := "" }}
   {{ if not $.Verified }}
     {{ $extraContent = (include "settings_identity_phone_verification_button" (dict
-        "Href" (call $.MakeURL "/settings/identity/verify_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey)
+        "Href" (call $.MakeURL "/settings/identity/verify_phone" "q_identity_id" $IdentityID "q_login_id_key" $.LoginIDKey)
       ))
     }}
   {{ end }}
@@ -56,7 +55,7 @@
           (dict "Verified" $.Verified)
         )
         "ActionButton" (include "settings_identity_phone_edit_button"
-          (dict "Href" (call $.MakeURL "/settings/identity/edit_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey))
+          (dict "Href" (call $.MakeURL "/settings/identity/edit_phone" "q_identity_id" $IdentityID "q_login_id_key" $.LoginIDKey))
         )
         "ExtraContent" $extraContent
       )
