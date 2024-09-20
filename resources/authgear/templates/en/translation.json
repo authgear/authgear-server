@@ -1129,6 +1129,7 @@
   "v2.page.settings-biometric.default.no-biometric-description": "You do not have any devices with biometrics enabled.",
   "v2.page.settings-biometric.default.unknown-name-item-label": "Unknown Device",
   "v2.page.settings-change-password.default.navbar-title": "Change Password",
+  "v2.page.settings-delete-account.default.navbar-title": "Delete Account",
   "v2.page.settings-identity-add-email.default.email-input-placeholder": "New Email Address",
   "v2.page.settings-identity-add-email.default.navbar-title": "Add New Email",
   "v2.page.settings-identity-add-phone.default.navbar-title": "Add New Phone",

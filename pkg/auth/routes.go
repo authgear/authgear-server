@@ -506,7 +506,10 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	})
 
 	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
-	router.Add(webapphandler.ConfigureSettingsDeleteAccountRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsDeleteAccountHandler))
+	router.Add(webapphandler.ConfigureSettingsDeleteAccountRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
+		SettingV1: p.Handler(newWebAppSettingsDeleteAccountHandler),
+		SettingV2: p.Handler(newWebAppAuthflowV2SettingsDeleteAccountHandler),
+	})
 
 	router.Add(webapphandlerauthflowv2.ConfigureSettingsV2AdvancedSettingsRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsAdvancedSettingsHandler))
 
