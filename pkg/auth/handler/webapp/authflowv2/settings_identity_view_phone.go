@@ -1,11 +1,9 @@
 package authflowv2
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -165,8 +163,6 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 	})
 
 	ctrl.PostAction("verify", func() error {
-		fmt.Printf("%s\n", r.Form)
-
 		loginIDKey := r.Form.Get("q_login_id_key")
 
 		err := AuthflowV2SettingsUpdateIdentityVerificationPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
@@ -177,19 +173,11 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 		loginID := r.Form.Get("x_login_id")
 		identityID := r.Form.Get("x_identity_id")
 
-		var channel model.AuthenticatorOOBChannel
-		if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
-			channel = model.AuthenticatorOOBChannelWhatsapp
-		} else {
-			channel = model.AuthenticatorOOBChannelSMS
-		}
-
 		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartUpdatePhoneNumberIdentityWithVerification(s, &accountmanagement.StartUpdateIdentityWithVerificationInput{
+		output, err := h.AccountManagement.StartUpdateIdentityPhone(s, &accountmanagement.StartUpdateIdentityPhoneInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
 			IdentityID: identityID,
-			Channel:    channel,
 		})
 		if err != nil {
 			return err

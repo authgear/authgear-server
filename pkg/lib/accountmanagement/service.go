@@ -295,12 +295,14 @@ func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, input *
 		panic(fmt.Errorf("accountmanagement: unexpected token in resend otp code"))
 	}
 
-	err = s.sendOTPCode(
-		userID,
-		channel,
-		target,
-		true,
-	)
+	err = s.Database.WithTx(func() error {
+		return s.sendOTPCode(
+			userID,
+			channel,
+			target,
+			true,
+		)
+	})
 	if err != nil {
 		return err
 	}

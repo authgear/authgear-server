@@ -771,7 +771,8 @@ type ResumeUpdateIdentityPhoneInput struct {
 }
 
 type ResumeUpdateIdentityPhoneOutput struct {
-	IdentityInfo *identity.Info
+	OldInfo *identity.Info
+	NewInfo *identity.Info
 }
 
 func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSession, input *ResumeAddIdentityEmailInput) (output *ResumeUpdateIdentityPhoneOutput, err error) {
@@ -801,24 +802,24 @@ func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSess
 		return
 	}
 
-	var info *identity.Info
+	var oldInfo *identity.Info
+	var newInfo *identity.Info
 	err = s.Database.WithTx(func() error {
 		oldInfo, newInfo, err := s.prepareUpdateIdentity(userID, token.Identity.IdentityID, spec)
 		if err != nil {
 			return err
 		}
-		info = newInfo
 
 		err = s.updateIdentity(oldInfo, newInfo)
 		if err != nil {
 			return err
 		}
 
-		claimName, ok := model.GetLoginIDKeyTypeClaim(info.LoginID.LoginIDType)
+		claimName, ok := model.GetLoginIDKeyTypeClaim(newInfo.LoginID.LoginIDType)
 		if !ok {
 			panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
 		}
-		err = s.markClaimVerified(userID, claimName, info.LoginID.LoginID)
+		err = s.markClaimVerified(userID, claimName, newInfo.LoginID.LoginID)
 		if err != nil {
 			return err
 		}
@@ -836,9 +837,52 @@ func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSess
 	}
 
 	output = &ResumeUpdateIdentityPhoneOutput{
-		IdentityInfo: info,
+		OldInfo: oldInfo,
+		NewInfo: newInfo,
 	}
 	return
+}
+
+type ResumeAddOrUpdateIdentityPhoneInput struct {
+	LoginIDKey string
+	Code       string
+}
+
+type ResumeAddOrUpdateIdentityPhoneOutput struct {
+	OldInfo *identity.Info
+	NewInfo *identity.Info
+}
+
+func (s *Service) ResumeAddOrUpdateIdentityPhone(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddOrUpdateIdentityPhoneInput) (*ResumeAddOrUpdateIdentityPhoneOutput, error) {
+	token, err := s.Store.GetToken(tokenString)
+	if err != nil {
+		return nil, err
+	}
+
+	if token.Identity.IdentityID == "" {
+		output, err := s.ResumeAddIdentityPhone(resolvedSession, tokenString, &ResumeAddIdentityPhoneInput{
+			LoginIDKey: input.LoginIDKey,
+			Code:       input.Code,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return &ResumeAddOrUpdateIdentityPhoneOutput{
+			NewInfo: output.IdentityInfo,
+		}, nil
+	}
+
+	output, err := s.ResumeUpdateIdentityPhone(resolvedSession, tokenString, &ResumeUpdateIdentityPhoneInput{
+		LoginIDKey: input.LoginIDKey,
+		Code:       input.Code,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &ResumeAddOrUpdateIdentityPhoneOutput{
+		OldInfo: output.OldInfo,
+		NewInfo: output.NewInfo,
+	}, nil
 }
 
 type DeleteIdentityPhoneInput struct {

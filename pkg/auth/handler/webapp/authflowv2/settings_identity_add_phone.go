@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -93,18 +92,10 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 
 		loginID := r.Form.Get("x_login_id")
 
-		var channel model.AuthenticatorOOBChannel
-		if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
-			channel = model.AuthenticatorOOBChannelWhatsapp
-		} else {
-			channel = model.AuthenticatorOOBChannelSMS
-		}
-
 		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartCreatePhoneNumberIdentityWithVerification(s, &accountmanagement.StartCreateIdentityWithVerificationInput{
+		output, err := h.AccountManagement.StartAddIdentityPhone(s, &accountmanagement.StartAddIdentityPhoneInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
-			Channel:    channel,
 		})
 		if err != nil {
 			return err

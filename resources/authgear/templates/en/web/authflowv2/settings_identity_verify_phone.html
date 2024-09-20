@@ -48,8 +48,6 @@
         data-action="submit->turbo-form#submitForm"
       >
         {{ $.CSRFField }}
-        <input type="hidden" name="x_login_id" value="{{ $.LoginID }}">
-        <input type="hidden" name="x_identity_id" value="{{ $.IdentityID }}">
         <input type="hidden" name="x_login_id_key" value="{{ $.LoginIDKey }}">
         <input type="hidden" name="x_token" value="{{ $.TokenID }}">
       </form>
@@ -75,10 +73,10 @@
 
 {{ end }}
 
-{{ define "__settings_identity_verify_email_inline_breakable" }}
+{{ define "__settings_identity_verify_phone_inline_breakable" }}
   <span class="break-all"><b>{{ . }}</b></span>
 {{ end }}
 
 {{ define "__settings_identity_verify_phone_resend_form_content" }}
-  <input type="hidden" name="x_login_id" value="{{ $.LoginID }}">
+  <input type="hidden" name="x_token" value="{{ $.Token }}">
 {{ end }}

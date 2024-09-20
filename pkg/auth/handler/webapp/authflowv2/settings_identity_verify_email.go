@@ -177,14 +177,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 		}
 
 		tokenString := r.Form.Get("x_token")
-
-		err = h.Database.WithTx(func() error {
-			err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), tokenString)
-			if err != nil {
-				return err
-			}
-			return nil
-		})
+		err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), tokenString)
 		if err != nil {
 			return err
 		}

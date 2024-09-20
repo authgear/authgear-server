@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/phone"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -30,12 +31,9 @@ var AuthflowV2SettingsIdentityVerifyPhoneSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"properties": {
 			"x_login_id_key": { "type": "string" },
-			"x_login_id": { "type": "string" },
-			"x_identity_id": { "type": "string" },
-			"x_token": { "type": "string" },
 			"x_code": { "type": "string" }
 		},
-		"required": ["x_login_id_key", "x_login_id", "x_token", "x_code"]
+		"required": ["x_login_id_key", "x_code"]
 	}
 `)
 
@@ -43,9 +41,9 @@ var AuthflowV2SettingsIdentityResendPhoneSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id": { "type": "string" }
+			"x_token": { "type": "string" }
 		},
-		"required": ["x_login_id"]
+		"required": ["x_token"]
 	}
 `)
 
@@ -58,8 +56,7 @@ func ConfigureAuthflowV2SettingsIdentityVerifyPhoneRoute(route httproute.Route) 
 type AuthflowV2SettingsIdentityVerifyPhoneViewModel struct {
 	LoginIDKey string
 	LoginID    string
-	IdentityID string
-	TokenID    string
+	Token      string
 
 	CodeLength                     int
 	MaskedClaimValue               string
@@ -83,15 +80,13 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(r *http.Request, 
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
-	tokenID := r.Form.Get("q_token")
+	tokenString := r.Form.Get("q_token")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	s := session.GetSession(r.Context())
-	output, err := h.AccountManagement.ResumeCreatingPhoneNumberIdentityWithVerification(s, &accountmanagement.ResumeAddingIdentityWithVerificationInput{
-		Token: tokenID,
-	})
+	token, err := h.AccountManagement.GetToken(s, tokenString)
 	if err != nil {
 		return nil, err
 	}
@@ -105,15 +100,14 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(r *http.Request, 
 
 	vm := AuthflowV2SettingsIdentityVerifyPhoneViewModel{
 		LoginIDKey: loginIDKey,
-		LoginID:    output.LoginID,
-		IdentityID: output.IdentityID,
-		TokenID:    tokenID,
+		LoginID:    token.Identity.PhoneNumber,
+		Token:      tokenString,
 
 		CodeLength:       6,
-		MaskedClaimValue: output.LoginID,
+		MaskedClaimValue: phone.Mask(token.Identity.PhoneNumber),
 	}
 
-	state, err := h.OTPCodeService.InspectState(otp.KindVerification(h.Config, channel), output.LoginID)
+	state, err := h.OTPCodeService.InspectState(otp.KindVerification(h.Config, channel), token.Identity.PhoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -155,39 +149,15 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 			return err
 		}
 
-		loginID := r.Form.Get("x_login_id")
-		identityID := r.Form.Get("x_identity_id")
 		loginIDKey := r.Form.Get("x_login_id_key")
-		tokenID := r.Form.Get("x_token")
-
+		token := r.Form.Get("q_token")
 		code := r.Form.Get("x_code")
 
-		var channel model.AuthenticatorOOBChannel
-		if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
-			channel = model.AuthenticatorOOBChannelWhatsapp
-		} else {
-			channel = model.AuthenticatorOOBChannelSMS
-		}
-
 		s := session.GetSession(r.Context())
-		if identityID == "" {
-			_, err = h.AccountManagement.AddIdentityPhoneNumberWithVerification(s, &accountmanagement.AddIdentityPhoneNumberWithVerificationInput{
-				LoginID:    loginID,
-				LoginIDKey: loginIDKey,
-				Code:       code,
-				Token:      tokenID,
-				Channel:    channel,
-			})
-		} else {
-			_, err = h.AccountManagement.UpdateIdentityPhoneNumberWithVerification(s, &accountmanagement.UpdateIdentityPhoneNumberWithVerificationInput{
-				LoginID:    loginID,
-				LoginIDKey: loginIDKey,
-				IdentityID: identityID,
-				Code:       code,
-				Token:      tokenID,
-				Channel:    channel,
-			})
-		}
+		_, err = h.AccountManagement.ResumeAddOrUpdateIdentityPhone(s, token, &accountmanagement.ResumeAddOrUpdateIdentityPhoneInput{
+			LoginIDKey: loginIDKey,
+			Code:       code,
+		})
 		if err != nil {
 			return err
 		}
@@ -211,27 +181,8 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 			return err
 		}
 
-		loginID := r.Form.Get("q_login_id")
-
-		var channel model.AuthenticatorOOBChannel
-		if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
-			channel = model.AuthenticatorOOBChannelWhatsapp
-		} else {
-			channel = model.AuthenticatorOOBChannelSMS
-		}
-
-		err = h.Database.WithTx(func() error {
-			err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), &accountmanagement.ResendOTPCodeInput{
-				Channel:    channel,
-				Token:      r.Form.Get("q_token"),
-				LoginID:    loginID,
-				LoginIDKey: r.Form.Get("q_login_id_key"),
-			})
-			if err != nil {
-				return err
-			}
-			return nil
-		})
+		tokenString := r.Form.Get("x_token")
+		err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), tokenString)
 		if err != nil {
 			return err
 		}
