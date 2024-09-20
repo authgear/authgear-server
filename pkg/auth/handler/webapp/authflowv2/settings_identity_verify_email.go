@@ -1,7 +1,6 @@
 package authflowv2
 
 import (
-	"fmt"
 	"math"
 	"net/http"
 	"net/url"
@@ -14,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -31,11 +31,10 @@ var AuthflowV2SettingsIdentityVerifyEmailSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"properties": {
 			"x_login_id_key": { "type": "string" },
-			"x_login_id": { "type": "string" },
 			"x_token": { "type": "string" },
 			"x_code": { "type": "string" }
 		},
-		"required": ["x_login_id_key", "x_login_id", "x_token", "x_code"]
+		"required": ["x_login_id_key", "x_token", "x_code"]
 	}
 `)
 
@@ -43,9 +42,9 @@ var AuthflowV2SettingsIdentityResendEmailSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_login_id": { "type": "string" }
+			"x_token": { "type": "string" }
 		},
-		"required": ["x_login_id"]
+		"required": ["x_token"]
 	}
 `)
 
@@ -58,7 +57,7 @@ func ConfigureAuthflowV2SettingsIdentityVerifyEmailRoute(route httproute.Route) 
 type AuthflowV2SettingsIdentityVerifyEmailViewModel struct {
 	LoginIDKey string
 	LoginID    string
-	TokenID    string
+	Token      string
 
 	CodeLength                     int
 	MaskedClaimValue               string
@@ -82,29 +81,27 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(r *http.Request, 
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
-	tokenID := r.Form.Get("q_token")
+	tokenString := r.Form.Get("q_token")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	s := session.GetSession(r.Context())
-	output, err := h.AccountManagement.ResumeCreatingEmailIdentityWithVerification(s, &accountmanagement.ResumeAddingIdentityWithVerificationInput{
-		Token: tokenID,
-	})
+	token, err := h.AccountManagement.GetToken(s, tokenString)
 	if err != nil {
 		return nil, err
 	}
 
 	vm := AuthflowV2SettingsIdentityVerifyEmailViewModel{
 		LoginIDKey: loginIDKey,
-		LoginID:    output.LoginID,
-		TokenID:    tokenID,
+		LoginID:    token.Identity.Email,
+		Token:      tokenString,
 
 		CodeLength:       6,
-		MaskedClaimValue: output.LoginID,
+		MaskedClaimValue: mail.MaskAddress(token.Identity.Email),
 	}
 
-	state, err := h.OTPCodeService.InspectState(otp.KindVerification(h.Config, model.AuthenticatorOOBChannelEmail), output.LoginID)
+	state, err := h.OTPCodeService.InspectState(otp.KindVerification(h.Config, model.AuthenticatorOOBChannelEmail), token.Identity.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -141,27 +138,20 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 	})
 
 	ctrl.PostAction("submit", func() error {
-
-		fmt.Printf("%s\n", r.Form)
-
 		err := AuthflowV2SettingsIdentityVerifyEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
-		loginID := r.Form.Get("x_login_id")
 		loginIDKey := r.Form.Get("x_login_id_key")
-		tokenID := r.Form.Get("x_token")
+		tokenString := r.Form.Get("x_token")
 
 		code := r.Form.Get("x_code")
 
 		s := session.GetSession(r.Context())
-		_, err = h.AccountManagement.AddIdentityEmailWithVerification(s, &accountmanagement.AddIdentityEmailWithVerificationInput{
-			LoginID:    loginID,
+		_, err = h.AccountManagement.ResumeAddOrUpdateIdentityEmail(s, tokenString, &accountmanagement.ResumeAddOrUpdateIdentityEmailInput{
 			LoginIDKey: loginIDKey,
 			Code:       code,
-			Token:      tokenID,
-			Channel:    model.AuthenticatorOOBChannelEmail,
 		})
 		if err != nil {
 			return err
@@ -186,15 +176,10 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 			return err
 		}
 
-		loginID := r.Form.Get("q_login_id")
+		tokenString := r.Form.Get("x_token")
 
 		err = h.Database.WithTx(func() error {
-			err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), &accountmanagement.ResendOTPCodeInput{
-				Channel:    model.AuthenticatorOOBChannelEmail,
-				Token:      r.Form.Get("q_token"),
-				LoginID:    loginID,
-				LoginIDKey: r.Form.Get("q_login_id_key"),
-			})
+			err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), tokenString)
 			if err != nil {
 				return err
 			}

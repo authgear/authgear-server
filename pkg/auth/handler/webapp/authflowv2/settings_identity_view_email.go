@@ -1,11 +1,9 @@
 package authflowv2
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -165,8 +163,6 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 	})
 
 	ctrl.PostAction("verify", func() error {
-		fmt.Printf("%s\n", r.Form)
-
 		loginIDKey := r.Form.Get("q_login_id_key")
 
 		err := AuthflowV2SettingsIdentityUpdateVerificationEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
@@ -178,11 +174,10 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartUpdateEmailIdentityWithVerification(s, &accountmanagement.StartUpdateIdentityWithVerificationInput{
+		output, err := h.AccountManagement.StartUpdateIdentityEmail(s, &accountmanagement.StartUpdateIdentityEmailInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
 			IdentityID: identityID,
-			Channel:    model.AuthenticatorOOBChannelEmail,
 		})
 		if err != nil {
 			return err

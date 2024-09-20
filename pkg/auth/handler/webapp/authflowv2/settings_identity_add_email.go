@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -92,10 +91,9 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 		loginID := r.Form.Get("x_login_id")
 
 		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartCreateEmailIdentityWithVerification(s, &accountmanagement.StartCreateIdentityWithVerificationInput{
+		output, err := h.AccountManagement.StartAddIdentityEmail(s, &accountmanagement.StartAddIdentityEmailInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
-			Channel:    model.AuthenticatorOOBChannelEmail,
 		})
 		if err != nil {
 			return err
@@ -117,9 +115,6 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 			q.Set("q_login_id_key", loginIDKey)
 
 			redirectURI.RawQuery = q.Encode()
-		}
-		if err != nil {
-			return err
 		}
 
 		result := webapp.Result{RedirectURI: redirectURI.String()}
