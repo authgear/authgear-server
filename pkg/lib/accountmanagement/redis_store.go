@@ -98,7 +98,7 @@ func (s *RedisStore) GetToken(tokenStr string) (*Token, error) {
 	tokenKey := tokenKey(string(s.AppID), tokenHash)
 
 	var tokenBytes []byte
-	err := s.Redis.WithConnContext(s.Context, func(conn *goredis.Conn) error {
+	err := s.Redis.WithConnContext(s.Context, func(conn redis.Redis_6_0_Cmdable) error {
 		var err error
 		tokenBytes, err = conn.Get(s.Context, tokenKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
