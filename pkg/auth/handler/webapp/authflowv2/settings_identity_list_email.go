@@ -67,7 +67,7 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(r *http.Request, rw
 		return nil, err
 	}
 
-	primary := &identity.LoginID{}
+	var primary *identity.LoginID
 	var emailIdentities []*identity.LoginID
 	var emailInfos []*identity.Info
 	for _, identity := range identities {
@@ -75,7 +75,7 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(r *http.Request, rw
 			if loginIDKey == "" || identity.LoginIDKey == loginIDKey {
 				emailIdentities = append(emailIdentities, identity)
 				emailInfos = append(emailInfos, identity.ToInfo())
-				if identity.OriginalLoginID == settingsProfileViewModel.Email {
+				if identity.LoginID == settingsProfileViewModel.Email {
 					primary = identity
 				}
 			}

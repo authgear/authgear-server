@@ -60,6 +60,7 @@
   {{ end }}
 
   {{ if gt (len $.EmailIdentities) (1) }}
+  {{ if $.PrimaryEmail }}
     <div class="mt-5">
       <div class="settings-title">
         {{ translate "v2.page.settings-identity-list-email.default.primary-email-label" . }}
@@ -74,6 +75,7 @@
         )
       }}
     </div>
+  {{ end }}
   {{ end }}
 </div>
 

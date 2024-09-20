@@ -33,7 +33,7 @@ resources/authgear/templates/en/web/authflowv2/login.html:252:37: translation ke
 resources/authgear/templates/en/web/authflowv2/settings_change_password.html:76:18: template translation is forbidden: `v2.component.button.default.label-continue`
 resources/authgear/templates/en/web/authflowv2/settings_identity_change_primary_email.html:29:19: translation key not defined: "__settgins_identity_change_primary_email_item_label"
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:40:31: translation key not defined: "settings_identity_email_verification_label"
-resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:71:26: translation key not defined: "settings_identity_email_change_button"
+resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:72:26: translation key not defined: "settings_identity_email_change_button"
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_email.html:49:8: translation key not defined: "settings_identity_email_verification_button"
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_email.html:62:23: translation key not defined: "settings_identity_email_verification_label"
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_email.html:65:24: translation key not defined: "settings_identity_email_edit_button"
