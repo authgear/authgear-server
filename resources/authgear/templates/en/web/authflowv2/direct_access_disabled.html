@@ -7,11 +7,11 @@
 {{- $brandingURIText = trimPrefix "https://www." $brandingURIText -}}
 {{- $brandingURIText = trimPrefix "https://" $brandingURIText -}}
 <div class="flex-1 flex flex-col justify-center tablet:justify-normal">
-  <div class="tablet:mt-16 tablet:mb-4">
+  <div class="tablet:mt-16 tablet:mb-4 mx-auto">
     {{ template "authflowv2/__brand_logo.html"
       (merge
         (dict
-          "LogoClass" "brand-logo--settings"
+          "LogoClass" "brand-logo"
         )
         .
       )
