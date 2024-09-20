@@ -2,6 +2,7 @@ package authflowv2
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 
@@ -10,8 +11,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -35,6 +39,16 @@ var AuthflowV2SettingsIdentityVerifyPhoneSchema = validation.NewSimpleSchema(`
 	}
 `)
 
+var AuthflowV2SettingsIdentityResendPhoneSchema = validation.NewSimpleSchema(`
+	{
+		"type": "object",
+		"properties": {
+			"x_login_id": { "type": "string" }
+		},
+		"required": ["x_login_id"]
+	}
+`)
+
 func ConfigureAuthflowV2SettingsIdentityVerifyPhoneRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
@@ -46,16 +60,22 @@ type AuthflowV2SettingsIdentityVerifyPhoneViewModel struct {
 	LoginID    string
 	TokenID    string
 
-	CodeLength       int
-	MaskedClaimValue string
+	CodeLength                     int
+	MaskedClaimValue               string
+	ResendCooldown                 int
+	FailedAttemptRateLimitExceeded bool
 }
 
 type AuthflowV2SettingsIdentityVerifyPhoneHandler struct {
+	Database            *appdb.Handle
 	ControllerFactory   handlerwebapp.ControllerFactory
 	BaseViewModel       *viewmodels.BaseViewModeler
+	OTPCodeService      handlerwebapp.OTPCodeService
 	Renderer            handlerwebapp.Renderer
-	AuthenticatorConfig *config.AuthenticatorConfig
 	AccountManagement   accountmanagement.Service
+	Clock               clock.Clock
+	Config              *config.AppConfig
+	AuthenticatorConfig *config.AuthenticatorConfig
 }
 
 func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -75,6 +95,13 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(r *http.Request, 
 		return nil, err
 	}
 
+	var channel model.AuthenticatorOOBChannel
+	if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+		channel = model.AuthenticatorOOBChannelWhatsapp
+	} else {
+		channel = model.AuthenticatorOOBChannelSMS
+	}
+
 	vm := AuthflowV2SettingsIdentityVerifyPhoneViewModel{
 		LoginIDKey: loginIDKey,
 		LoginID:    output.LoginID,
@@ -83,6 +110,20 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(r *http.Request, 
 		CodeLength:       6,
 		MaskedClaimValue: output.LoginID,
 	}
+
+	state, err := h.OTPCodeService.InspectState(otp.KindVerification(h.Config, channel), output.LoginID)
+	if err != nil {
+		return nil, err
+	}
+	cooldown := int(math.Ceil(state.CanResendAt.Sub(h.Clock.NowUTC()).Seconds())) // Use ceil, because int conversion truncates decimal and can lead to Please Wait Before Resending error.
+	if cooldown < 0 {
+		vm.ResendCooldown = 0
+	} else {
+		vm.ResendCooldown = cooldown
+	}
+
+	vm.FailedAttemptRateLimitExceeded = state.TooManyAttempts
+
 	viewmodels.Embed(data, vm)
 
 	return data, nil
@@ -149,6 +190,42 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 		redirectURI.RawQuery = q.Encode()
 
 		result := webapp.Result{RedirectURI: redirectURI.String()}
+		result.WriteResponse(w, r)
+		return nil
+	})
+
+	ctrl.PostAction("resend", func() error {
+		err := AuthflowV2SettingsIdentityResendPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+
+		loginID := r.Form.Get("q_login_id")
+
+		var channel model.AuthenticatorOOBChannel
+		if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+			channel = model.AuthenticatorOOBChannelWhatsapp
+		} else {
+			channel = model.AuthenticatorOOBChannelSMS
+		}
+
+		err = h.Database.WithTx(func() error {
+			err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), &accountmanagement.ResendOTPCodeInput{
+				Channel:    channel,
+				Token:      r.Form.Get("q_token"),
+				LoginID:    loginID,
+				LoginIDKey: r.Form.Get("q_login_id_key"),
+			})
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		result := webapp.Result{}
 		result.WriteResponse(w, r)
 		return nil
 	})
