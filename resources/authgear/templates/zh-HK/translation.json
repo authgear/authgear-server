@@ -1120,6 +1120,7 @@
   "v2.page.select-account.default.description": "您正在使用 {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}} 登入。",
   "v2.page.select-account.default.title": "登入 {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "使用另一個帳戶",
+  "v2.page.settings-advanced-settings.default.navbar-title": "進階設定",
   "v2.page.settings-biometric.default.dialog-description": "您確定要移除此生物驗證登入嗎？",
   "v2.page.settings-biometric.default.dialog-title": "移除生物驗證登入",
   "v2.page.settings-biometric.default.disconnect-button-label": "移除連結",

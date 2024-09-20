@@ -1120,6 +1120,7 @@
   "v2.page.select-account.default.description": "You have logged in with {email_is_present,select,true{{email}} other{{phone_number_is_present,select,true{{phone_number}} other{{preferred_username}}}}}. Proceed to continue.",
   "v2.page.select-account.default.title": "Log in to {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Use another account",
+  "v2.page.settings-advanced-settings.default.navbar-title": "Advanced Settings",
   "v2.page.settings-biometric.default.dialog-description": "Are you sure you want to disconnect biometric login for this device?",
   "v2.page.settings-biometric.default.dialog-title": "Disconnect Biometric Login",
   "v2.page.settings-biometric.default.disconnect-button-label": "Disconnect",

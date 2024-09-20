@@ -508,6 +508,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsDeleteAccountRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsDeleteAccountHandler))
 
+	router.Add(webapphandlerauthflowv2.ConfigureSettingsV2AdvancedSettingsRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsAdvancedSettingsHandler))
+
 	router.Add(webapphandler.ConfigureTesterRoute(webappTesterRouter), p.Handler(newWebAppTesterHandler))
 
 	router.Add(webapphandler.ConfigureWechatAuthRoute(webappPageRoute), p.Handler(newWechatAuthHandler))

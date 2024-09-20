@@ -604,6 +604,13 @@ func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.
 	))
 }
 
+func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsAdvancedSettingsHandler)),
+	))
+}
+
 func newWebAppAccountStatusHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
