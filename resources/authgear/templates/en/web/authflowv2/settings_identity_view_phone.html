@@ -23,19 +23,15 @@
 {{ end }}
 
 {{ define "settings_identity_phone_edit_button" }}
-  {{ if not $.Verified }}
-    <a class="settings-link-btn" href="{{ $.Href }}">
-      {{ translate "v2.page.settings-identity-view-phone.default.button-edit-phone-label" . }}
-    </a>
-  {{ end }}
+  <a class="settings-link-btn" href="{{ $.Href }}">
+    {{ translate "v2.page.settings-identity-view-phone.default.button-edit-phone-label" . }}
+  </a>
 {{ end }}
 
 {{ define "settings_identity_phone_verification_button" }}
-  {{ if not $.Verified }}
-    <a class="secondary-btn" href="{{ $.Href }}">
-      {{ translate "v2.page.settings-identity-view-phone.default.button-verify-phone-label" . }}
-    </a>
-  {{ end }}
+  <a class="secondary-btn" href="{{ $.Href }}">
+    {{ translate "v2.page.settings-identity-view-phone.default.button-verify-phone-label" . }}
+  </a>
 {{ end }}
 
 {{ define "page-content" }}
@@ -44,78 +40,62 @@
 {{ $IdentityID := $.PhoneIdentity.ID }}
 
 <div class="flex flex-col gap-y-6">
-  {{ $claims := index $.Verifications $IdentityID }}
-  {{ if not (empty $claims) }}
-    {{ $claim := first $claims }}
-
-    {{/* We handle these cases separately because for some reason, even an empty "ExtraContent" value causes unwanted spacing. */}}
-    {{ if $claim.Verified }}
-      {{ template "authflowv2/__settings_action_item.html"
-          (dict
-            "IconName" "phone"
-            "Label" $LoginID
-            "Description" (include "settings_identity_phone_verification_label" 
-              (dict "Verified" true)
-            )
-            "ActionButton" (include "settings_identity_phone_edit_button" 
-              (dict "Href" (call $.MakeURL "/settings/identity/edit_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey))
-            )
-          )
-      }}
-    {{ else }}
-    {{ template "authflowv2/__settings_action_item.html"
-        (dict
-          "IconName" "phone"
-          "Label" $.PhoneIdentity.OriginalLoginID
-          "Description" (include "settings_identity_phone_verification_label" 
-            (dict "Verified" false)
-          )
-          "ActionButton" (include "settings_identity_phone_edit_button" 
-            (dict "Href" (call $.MakeURL "/settings/identity/edit_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey))
-          )
-          "ExtraContent" (include "settings_identity_phone_verification_button" 
-            (dict "Verified" false "Href" (call $.MakeURL "/settings/identity/verify_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey))
-          )
-        )
+  {{ $extraContent := "" }}
+  {{ if not $.Verified }}
+    {{ $extraContent = (include "settings_identity_phone_verification_button" (dict
+        "Href" (call $.MakeURL "/settings/identity/verify_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey)
+      ))
     }}
-    {{ end }}
   {{ end }}
+
+  {{ template "authflowv2/__settings_action_item.html"
+      (dict
+        "IconName" "phone_iphone"
+        "Label" $.PhoneIdentity.OriginalLoginID
+        "Description" (include "settings_identity_phone_verification_label"
+          (dict "Verified" $.Verified)
+        )
+        "ActionButton" (include "settings_identity_phone_edit_button"
+          (dict "Href" (call $.MakeURL "/settings/identity/edit_phone" "q_login_id" $LoginID "q_login_id_key" $.LoginIDKey))
+        )
+        "ExtraContent" $extraContent
+      )
+  }}
 
   {{ if not $.DeleteDisabled}}
     {{ $RemoveDialogID := "remove-phone-identity-dialog" }}
 
-    {{ $href := (call $.MakeURL "/settings/identity/new_phone" "q_login_id_key" $.LoginIDKey ) }}
-    <button 
-      class="settings-link-btn--destructive" 
+    <button
+      class="settings-link-btn--destructive"
       data-controller="settings-dialog"
       data-settings-dialog-dialogid-param="{{ $RemoveDialogID }}"
       data-action="click->settings-dialog#open">
       {{ translate "v2.page.settings-identity-view-phone.default.button-remove-phone-label" nil }}
     </button>
 
-    {{ template "authflowv2/__settings_dialog.html" 
+    {{ template "authflowv2/__settings_dialog.html"
       (dict
         "Ctx" .
         "DialogID" $RemoveDialogID
-        "Title" (include "v2.page.settings-identity-view-phone.remove.title" nil)
-        "Description" (include "v2.page.settings-identity-view-phone.remove.description" 
-          (dict 
+        "Title" (include "v2.page.settings-identity-view-phone.default.remove-identity-dialog-title" nil)
+        "Description" (include "v2.page.settings-identity-view-phone.default.remove-identity-dialog-description"
+          (dict
             "target" (include "__settings_identity_view_phone_inline_breakable" $.PhoneIdentity.OriginalLoginID )
           )
         )
         "FormContent" (include "__settings_identity_view_phone_remove_dialog_form_content" .)
-        "Buttons" (list 
-          (dict 
-            "Type" "Destructive" 
+        "Buttons" (list
+          (dict
+            "Type" "Destructive"
             "Label" (include "v2.component.button.default.label-remove" nil)
             "Value" "remove"
           )
-          (dict 
+          (dict
             "Type" "Cancel"
             "Label" (include "v2.component.button.default.label-cancel" nil)
           )
         )
-      ) 
+      )
     }}
   {{ end }}
 </div>
@@ -128,5 +108,5 @@
 {{ end }}
 
 {{ define "__settings_identity_view_phone_inline_breakable" }}
-  <span class="break-all">{{ . }}</span>
+  <b class="break-all">{{ . }}</b>
 {{ end }}

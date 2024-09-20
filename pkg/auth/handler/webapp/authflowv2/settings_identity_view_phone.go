@@ -11,7 +11,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -43,7 +42,7 @@ func ConfigureAuthflowV2SettingsIdentityViewPhoneRoute(route httproute.Route) ht
 type AuthflowV2SettingsIdentityViewPhoneViewModel struct {
 	LoginIDKey     string
 	PhoneIdentity  *identity.LoginID
-	Verifications  map[string][]verification.ClaimStatus
+	Verified       bool
 	UpdateDisabled bool
 	DeleteDisabled bool
 }
@@ -63,19 +62,19 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(r *http.Request, rw
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
-	loginID := r.Form.Get("q_login_id")
+	identityID := r.Form.Get("q_identity_id")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	userID := session.GetUserID(r.Context())
 
-	phoneIdentity, err := h.Identities.LoginID.Get(*userID, loginID)
+	phoneIdentity, err := h.Identities.LoginID.Get(*userID, identityID)
 	if err != nil {
 		return nil, err
 	}
 
-	verifications, err := h.Verification.GetVerificationStatuses([]*identity.Info{phoneIdentity.ToInfo()})
+	verified, err := h.AccountManagement.CheckIdentityVerified(phoneIdentity.ToInfo())
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +89,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(r *http.Request, rw
 	vm := AuthflowV2SettingsIdentityViewPhoneViewModel{
 		LoginIDKey:     loginIDKey,
 		PhoneIdentity:  phoneIdentity,
-		Verifications:  verifications,
+		Verified:       verified,
 		UpdateDisabled: updateDisabled,
 		DeleteDisabled: deleteDisabled,
 	}
@@ -129,7 +128,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 
 		removeID := r.Form.Get("x_identity_id")
 
-		_, err = h.AccountManagement.RemoveIdentityPhoneNumber(session.GetSession(r.Context()), &accountmanagement.RemoveIdentityPhoneNumberInput{
+		_, err = h.AccountManagement.DeleteIdentityPhone(session.GetSession(r.Context()), &accountmanagement.DeleteIdentityPhoneInput{
 			IdentityID: removeID,
 		})
 		if err != nil {

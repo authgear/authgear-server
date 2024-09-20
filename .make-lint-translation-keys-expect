@@ -43,6 +43,11 @@ resources/authgear/templates/en/web/authflowv2/settings_identity_view_email.html
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_email.html:73:24: translation key not defined: "settings_identity_email_edit_button"
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_email.html:97:22: translation key not defined: "__settings_identity_view_email_inline_breakable"
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_email.html:100:23: translation key not defined: "__settings_identity_view_email_remove_dialog_form_content"
+resources/authgear/templates/en/web/authflowv2/settings_identity_view_phone.html:45:24: translation key not defined: "settings_identity_phone_verification_button"
+resources/authgear/templates/en/web/authflowv2/settings_identity_view_phone.html:55:23: translation key not defined: "settings_identity_phone_verification_label"
+resources/authgear/templates/en/web/authflowv2/settings_identity_view_phone.html:58:24: translation key not defined: "settings_identity_phone_edit_button"
+resources/authgear/templates/en/web/authflowv2/settings_identity_view_phone.html:83:22: translation key not defined: "__settings_identity_view_phone_inline_breakable"
+resources/authgear/templates/en/web/authflowv2/settings_identity_view_phone.html:86:23: translation key not defined: "__settings_identity_view_phone_remove_dialog_form_content"
 resources/authgear/templates/en/web/authflowv2/settings_layout.html:3:14: template translation is forbidden: `widget`
 resources/authgear/templates/en/web/authflowv2/settings_mfa.html:22:16: template translation is forbidden: `__settings_mfa_item`
 resources/authgear/templates/en/web/authflowv2/settings_mfa.html:37:16: template translation is forbidden: `__settings_mfa_item`
@@ -64,5 +69,5 @@ resources/authgear/templates/en/web/authflowv2/settings_profile.html:174:22: inv
 resources/authgear/templates/en/web/authflowv2/settings_profile_edit_gender.html:57:33: translation key not defined: "__settings_gender_edit_custom_gender_input"
 resources/authgear/templates/en/web/authflowv2/signup.html:88:26: translation key not defined: "v2.page.signup.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:261:35: translation key not defined: "%s-icon"
-66 errors found
+71 errors found
 exit status 1
