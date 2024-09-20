@@ -11,7 +11,35 @@
 {{ end }}
 
 {{ define "page-content" }}
-<div>
-  test
+<div class="flex flex-col gap-y-8 w-full tablet:max-w-86 mx-auto">
+  <p class="settings-description text-center">
+    {{ translate "v2.page.settings-delete-account.default.description" (dict "date" $.ExpectedAccountDeletionTime "rfc3339" (rfc3339 $.ExpectedAccountDeletionTime)) }}
+  </p>
+  <form
+    method="post"
+    novalidate
+    data-controller="account-deletion"
+    class="w-full"
+  >
+    {{ $.CSRFField }}
+    <input
+      class="input w-full"
+      name="delete"
+      placeholder="{{ include "v2.page.settings-delete-account.default.input-placeholder" (dict "input" "DELETE") }}"
+      data-account-deletion-target="input"
+      data-action="input->account-deletion#delete"
+    >
+    <button
+      class="primary-btn--destructive w-full mt-4"
+      type="submit"
+      name="x_action"
+      value="delete"
+      data-account-deletion-target="button"
+      data-authgear-event="authgear.button.schedule_account_deletion"
+      disabled
+    >
+      {{ template "v2.page.settings-delete-account.default.button-label" . }}
+    </button>
+  </form>
 </div>
 {{ end }}
