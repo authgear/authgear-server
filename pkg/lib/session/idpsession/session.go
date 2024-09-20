@@ -123,3 +123,7 @@ func (s *IDPSession) IsSameSSOGroup(ss session.SessionBase) bool {
 func (s *IDPSession) EqualSession(ss session.SessionBase) bool {
 	return s.SessionID() == ss.SessionID() && s.SessionType() == ss.SessionType()
 }
+
+func (s *IDPSession) GetParticipatedSAMLServiceProviderIDs() setutil.Set[string] {
+	return s.ParticipatedSAMLServiceProviderIDs
+}

@@ -57,10 +57,14 @@ func (m *Manager) resolveManagementProvider(session ListableSession) ManagementS
 	}
 }
 
-func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (ManagementService, error) {
+func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (
+	[]ListableSession,
+	ManagementService,
+	error,
+) {
 	sessions, err := m.List(session.GetAuthenticationInfo().UserID)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	sort.Slice(sessions, func(i, j int) bool {
@@ -76,22 +80,27 @@ func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (Ma
 		return false
 	})
 
-	sessionModels := []model.Session{}
+	invalidatedSessions := []ListableSession{}
 
 	var provider ManagementService
 	for _, s := range sessions {
+		s := s
 		// invalidate the sessions that are in the same sso group
 		if s.IsSameSSOGroup(session) {
-			sessionModel := s.ToAPIModel()
-			sessionModels = append(sessionModels, *sessionModel)
+			invalidatedSessions = append(invalidatedSessions, s)
 			p, err := m.invalidateSession(s)
 			if err != nil {
-				return nil, err
+				return nil, nil, err
 			}
 			if s.EqualSession(session) {
 				provider = p
 			}
 		}
+	}
+
+	sessionModels := []model.Session{}
+	for _, s := range invalidatedSessions {
+		sessionModels = append(sessionModels, *s.ToAPIModel())
 	}
 
 	if option != nil && len(sessionModels) > 0 {
@@ -118,11 +127,11 @@ func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (Ma
 			})
 		}
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 	}
 
-	return provider, nil
+	return invalidatedSessions, provider, nil
 
 }
 
@@ -137,21 +146,21 @@ func (m *Manager) invalidateSession(session ListableSession) (ManagementService,
 	return provider, nil
 }
 
-func (m *Manager) Logout(session ResolvedSession, rw http.ResponseWriter) error {
-	provider, err := m.invalidate(session, &revokeEventOption{IsAdminAPI: false, IsTermination: false})
+func (m *Manager) Logout(session ResolvedSession, rw http.ResponseWriter) ([]ListableSession, error) {
+	invalidatedSessions, provider, err := m.invalidate(session, &revokeEventOption{IsAdminAPI: false, IsTermination: false})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	for _, cookie := range provider.ClearCookie() {
 		httputil.UpdateCookie(rw, cookie)
 	}
 
-	return nil
+	return invalidatedSessions, nil
 }
 
 func (m *Manager) RevokeWithEvent(session SessionBase, isTermination bool, isAdminAPI bool) error {
-	_, err := m.invalidate(session, &revokeEventOption{
+	_, _, err := m.invalidate(session, &revokeEventOption{
 		IsAdminAPI:    isAdminAPI,
 		IsTermination: isTermination,
 	})
@@ -163,7 +172,7 @@ func (m *Manager) RevokeWithEvent(session SessionBase, isTermination bool, isAdm
 }
 
 func (m *Manager) RevokeWithoutEvent(session SessionBase) error {
-	_, err := m.invalidate(session, nil)
+	_, _, err := m.invalidate(session, nil)
 	if err != nil {
 		return err
 	}

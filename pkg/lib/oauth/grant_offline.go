@@ -407,3 +407,7 @@ func (g *OfflineGrant) IsOnlyUsedInClientIDs(clientIDs []string) bool {
 	}
 	return result
 }
+
+func (s *OfflineGrant) GetParticipatedSAMLServiceProviderIDs() setutil.Set[string] {
+	return s.ParticipatedSAMLServiceProviderIDs
+}
