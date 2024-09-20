@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -33,13 +34,13 @@ type PasskeyCreationOptionsService interface {
 }
 
 type AuthflowV2SettingsChangePasskeyHandler struct {
-	Database                 *appdb.Handle
-	ControllerFactory        handlerwebapp.ControllerFactory
-	BaseViewModel            *viewmodels.BaseViewModeler
-	Renderer                 handlerwebapp.Renderer
-	Identities               handlerwebapp.SettingsIdentityService
-	AccountManagementService *accountmanagement.Service
-	Passkey                  PasskeyCreationOptionsService
+	Database          *appdb.Handle
+	ControllerFactory handlerwebapp.ControllerFactory
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          handlerwebapp.Renderer
+	Identities        identityservice.Service
+	AccountManagement *accountmanagement.Service
+	Passkey           PasskeyCreationOptionsService
 }
 
 func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
@@ -50,22 +51,18 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(r *http.Request, rw htt
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	passkeyViewModel := AuthflowV2SettingsPasskeyViewModel{}
-
 	// PasskeyViewModel
-	var identities []*identity.Info
+	var passkeyIdentities []*identity.Info
+	var creationOptionsJSON string
 	err := h.Database.WithTx(func() (err error) {
-		identities, err = h.Identities.ListByUser(*userID)
+		identities, err := h.Identities.Passkey.List(*userID)
 		if err != nil {
 			return err
 		}
-		var passkeyIdentities []*identity.Info
 		for _, i := range identities {
-			if i.Type == model.IdentityTypePasskey {
-				ii := i
-				passkeyIdentities = append(passkeyIdentities, ii)
-			}
+			passkeyIdentities = append(passkeyIdentities, i.ToInfo())
 		}
+
 		creationOptions, err := h.Passkey.MakeCreationOptions(*userID)
 		if err != nil {
 			return err
@@ -74,15 +71,17 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(r *http.Request, rw htt
 		if err != nil {
 			return err
 		}
-		creationOptionsJSON := string(creationOptionsJSONBytes)
-		passkeyViewModel = AuthflowV2SettingsPasskeyViewModel{
-			PasskeyIdentities:   passkeyIdentities,
-			CreationOptionsJSON: creationOptionsJSON,
-		}
+		creationOptionsJSON = string(creationOptionsJSONBytes)
 		return nil
 	})
+
 	if err != nil {
 		return nil, err
+	}
+
+	passkeyViewModel := AuthflowV2SettingsPasskeyViewModel{
+		PasskeyIdentities:   passkeyIdentities,
+		CreationOptionsJSON: creationOptionsJSON,
 	}
 	viewmodels.Embed(data, passkeyViewModel)
 
@@ -122,7 +121,7 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 			CreationResponse: &creationResponse,
 		}
 
-		_, err = h.AccountManagementService.AddPasskey(s, input)
+		_, err = h.AccountManagement.AddPasskey(s, input)
 		if err != nil {
 			return err
 		}
@@ -140,11 +139,11 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 
 		s := session.GetSession(r.Context())
 
-		input := &accountmanagement.RemovePasskeyInput{
+		input := &accountmanagement.DeletePasskeyInput{
 			IdentityID: identityID,
 		}
 
-		_, err = h.AccountManagementService.RemovePasskey(s, input)
+		_, err = h.AccountManagement.DeletePasskey(s, input)
 		if err != nil {
 			return err
 		}
