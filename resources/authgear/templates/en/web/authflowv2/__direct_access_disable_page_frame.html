@@ -17,8 +17,37 @@
   {{ $dark = call $.StaticAssetURL "app-logo-dark" }}
 {{ end }}
 
-<div class="layout--default no-background">
-  {{ template "page-content" . }}
+<div
+  class="flex flex-col flex-1-0-auto shadow-logo light"
+  data-src="{{ $light }}"
+  data-controller="previewable-resource"
+  data-previewable-resource-key-value="brand-logo-light"
+  data-previewable-resource-changable-attribute-value="data-src"
+  data-previewable-resource-original-value="{{ .light }}"
+>
+  <div
+    class="flex flex-col flex-1-0-auto shadow-logo dark"
+    data-src="{{ $dark }}"
+    data-controller="previewable-resource"
+    data-previewable-resource-key-value="brand-logo-dark"
+    data-previewable-resource-changable-attribute-value="data-src"
+    data-previewable-resource-original-value="{{ .dark }}"
+  >
+    <div class="direct-access-layout">
+      <div class="direct-access-header">
+      {{ template "authflowv2/__brand_logo.html"
+        (merge
+          (dict
+            "LogoClass" "brand-logo--settings"
+          )
+          .
+        )
+      }}
+      </div>
+      {{ template "page-content" . }}
+    </div>
+  </div>
 </div>
+{{/* NOTE: The above code contains duplicated logic __brand_logo.html */}}
 
 {{ end }}

@@ -34,12 +34,6 @@
     }
   }
 
-  .layout--default.no-background {
-    /* No background color and image in this layout style */
-    @apply bg-[var(--color-surface-primary)];
-    background-image: none;
-  }
-
   /* alignment-card */
   :root[alignment-card="start"] .layout--default {
     @apply tablet:items-start;

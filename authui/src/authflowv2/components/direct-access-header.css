@@ -1,0 +1,16 @@
+@layer components {
+  .direct-access-header {
+    @apply items-center;
+    @apply w-full;
+    @apply pt-16 pb-4;
+  }
+
+  /* The light logo is visible only in light mode and src is non-empty. */
+  :root:not(.dark) .shadow-logo.light:not([data-src=""]) .direct-access-header {
+    @apply flex flex-col;
+  }
+  /* The dark logo is visible only in dark mode and src is non-empty. */
+  :root.dark .shadow-logo.dark:not([data-src=""]) .direct-access-header {
+    @apply flex flex-col;
+  }
+}

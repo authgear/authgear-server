@@ -1,0 +1,10 @@
+@layer components {
+  .direct-access-layout {
+    @apply flex flex-col flex-1-0-auto;
+    @apply items-center justify-center tablet:justify-start;
+
+    @apply px-4;
+
+    @apply bg-[var(--color-surface-primary)];
+  }
+}
