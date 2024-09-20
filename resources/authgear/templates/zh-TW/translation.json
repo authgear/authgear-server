@@ -1131,7 +1131,7 @@
   "v2.page.settings-identity-list-email.default.button-change-primary-email-label": "更改",
   "v2.page.settings-identity-list-email.default.primary-email-label": "主要電子郵件",
   "v2.page.settings-identity-list-phone.default.button-add-phone-label": "新增電話號碼",
-  "v2.page.settings-identity-list-phone.default.navbar-title": "電話",
+  "v2.page.settings-identity-list-phone.default.button-change-primary-phone-label": "Change",
   "v2.page.settings-identity-list-phone.default.primary-phone-label": "主要電話號碼",
   "v2.page.settings-identity-list-username.default.button-add-username-label": "+ 新增用戶名稱",
   "v2.page.settings-identity-list-username.default.navbar-title": "用戶名稱",

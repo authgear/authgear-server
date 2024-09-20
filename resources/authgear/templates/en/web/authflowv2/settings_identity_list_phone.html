@@ -59,9 +59,8 @@
     </a>
   {{ end }}
 
-  {{ if (gt (len $.PhoneIdentities) 1) }}
-  {{ if $.PrimaryPhone }}
-    <div class="mt-5">
+  {{ if and ($.PrimaryEmail) (gt (len $.PhoneIdentities) (1)) }}
+    <span>
       <div class="settings-title">
         {{ translate "v2.page.settings-identity-list-phone.default.primary-phone-label" . }}
       </div>
@@ -83,6 +82,6 @@
 
 {{ define "settings_identity_phone_change_button" }}
   <a class="settings-link-btn" href="{{ $.Href }}">
-    {{ translate "v2.page.settings-identity.default.change-primary-label" . }}
+    {{ translate "v2.page.settings-identity-list-phone.default.button-change-primary-phone-label" . }}
   </a>
 {{ end }}
