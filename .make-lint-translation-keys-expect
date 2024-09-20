@@ -62,6 +62,9 @@ resources/authgear/templates/en/web/authflowv2/settings_mfa_password.html:25:31:
 resources/authgear/templates/en/web/authflowv2/settings_oob_otp.html:30:31: translation key not defined: "__settings_oob_otp_item_added_at"
 resources/authgear/templates/en/web/authflowv2/settings_oob_otp.html:31:32: translation key not defined: "__settings_oob_otp_item_delete_button"
 resources/authgear/templates/en/web/authflowv2/settings_oob_otp.html:39:31: translation key not defined: "/settings/mfa/new_oob_otp_%s"
+resources/authgear/templates/en/web/authflowv2/settings_passkey.html:25:24: translation key not defined: "__settings_passkey_item_description"
+resources/authgear/templates/en/web/authflowv2/settings_passkey.html:26:24: translation key not defined: "__settings_passkey_item_remove_btn"
+resources/authgear/templates/en/web/authflowv2/settings_passkey.html:34:21: translation key not defined: "__settings_passkey_dialog_remove_input"
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:29:18: template translation is forbidden: `__settings_profile_item`
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:51:18: template translation is forbidden: `__settings_profile_item`
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:68:22: translation key not defined: "__settings_profile_date_item"
@@ -77,5 +80,5 @@ resources/authgear/templates/en/web/authflowv2/settings_totp.html:22:31: transla
 resources/authgear/templates/en/web/authflowv2/settings_totp.html:23:32: translation key not defined: "__settings_totp_item_delete_button"
 resources/authgear/templates/en/web/authflowv2/signup.html:88:26: translation key not defined: "v2.page.signup.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:261:35: translation key not defined: "%s-icon"
-79 errors found
+82 errors found
 exit status 1
