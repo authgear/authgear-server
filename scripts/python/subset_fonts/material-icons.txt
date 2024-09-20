@@ -45,6 +45,7 @@ height
 hide
 home
 html
+http
 https
 iframe
 image
