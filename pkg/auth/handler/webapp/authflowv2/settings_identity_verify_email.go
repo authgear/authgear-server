@@ -31,10 +31,10 @@ var AuthflowV2SettingsIdentityVerifyEmailSchema = validation.NewSimpleSchema(`
 		"type": "object",
 		"properties": {
 			"x_login_id_key": { "type": "string" },
-			"x_token": { "type": "string" },
+			"q_token": { "type": "string" },
 			"x_code": { "type": "string" }
 		},
-		"required": ["x_login_id_key", "x_token", "x_code"]
+		"required": ["x_login_id_key", "q_token", "x_code"]
 	}
 `)
 
@@ -42,9 +42,9 @@ var AuthflowV2SettingsIdentityResendEmailSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_token": { "type": "string" }
+			"q_token": { "type": "string" }
 		},
-		"required": ["x_token"]
+		"required": ["q_token"]
 	}
 `)
 
@@ -144,7 +144,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 		}
 
 		loginIDKey := r.Form.Get("x_login_id_key")
-		tokenString := r.Form.Get("x_token")
+		tokenString := r.Form.Get("q_token")
 
 		code := r.Form.Get("x_code")
 
@@ -176,7 +176,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 			return err
 		}
 
-		tokenString := r.Form.Get("x_token")
+		tokenString := r.Form.Get("q_token")
 		err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), tokenString)
 		if err != nil {
 			return err

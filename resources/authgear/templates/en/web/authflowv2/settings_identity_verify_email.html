@@ -49,7 +49,6 @@
     >
       {{ $.CSRFField }}
       <input type="hidden" name="x_login_id_key" value="{{ $.LoginIDKey }}">
-      <input type="hidden" name="x_token" value="{{ $.Token }}">
     </form>
 
     {{ template "authflowv2/__otp_input.html"
@@ -59,7 +58,6 @@
         "CodeLength" $.CodeLength
         "AutoFocus" true
         "Disabled" $.FailedAttemptRateLimitExceeded
-        "ResendFormContent" (include "__settings_identity_verify_phone_resend_form_content" .)
         "ResendButtonLabel" (include "v2.component.oob-otp-resend-button.default.label" nil)
         "ResendButtonLabelWithValue" (include "v2.component.oob-otp-resend-button.default.countdown-unit" nil)
         "ResendButtonCooldown" $.ResendCooldown
@@ -75,8 +73,4 @@
 
 {{ define "__settings_identity_verify_mask_claim" }}
   <b>{{ . }}</b>
-{{ end }}
-
-{{ define "__settings_identity_verify_phone_resend_form_content" }}
-  <input type="hidden" name="x_token" value="{{ $.Token }}">
 {{ end }}

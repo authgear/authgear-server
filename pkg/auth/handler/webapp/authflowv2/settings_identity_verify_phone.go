@@ -41,9 +41,9 @@ var AuthflowV2SettingsIdentityResendPhoneSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
-			"x_token": { "type": "string" }
+			"q_token": { "type": "string" }
 		},
-		"required": ["x_token"]
+		"required": ["q_token"]
 	}
 `)
 
@@ -181,7 +181,7 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) ServeHTTP(w http.Response
 			return err
 		}
 
-		tokenString := r.Form.Get("x_token")
+		tokenString := r.Form.Get("q_token")
 		err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), tokenString)
 		if err != nil {
 			return err
