@@ -5,11 +5,15 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/beevik/etree"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
+	"github.com/authgear/authgear-server/pkg/lib/session"
 )
 
 type HandlerSAMLService interface {
@@ -71,19 +75,28 @@ type SAMLUserFacade interface {
 }
 
 type BindingHTTPPostWriter interface {
-	Write(
+	WriteResponse(
 		rw http.ResponseWriter,
 		r *http.Request,
 		callbackURL string,
-		response samlprotocol.Respondable,
+		responseElement *etree.Element,
 		relayState string) error
 }
 
 type BindingHTTPRedirectWriter interface {
-	Write(
+	WriteResponse(
 		rw http.ResponseWriter,
 		r *http.Request,
 		callbackURL string,
-		response samlprotocol.Respondable,
+		responseElement *etree.Element,
 		relayState string) error
+}
+
+type SessionManager interface {
+	Get(id string) (session.ListableSession, error)
+	Logout(session.SessionBase, http.ResponseWriter) ([]session.ListableSession, error)
+}
+
+type SAMLSLOSessionService interface {
+	Save(session *samlslosession.SAMLSLOSession) (err error)
 }

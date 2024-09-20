@@ -65,14 +65,12 @@ type SAMLBindingHTTPRedirectWriter struct {
 	Signer SAMLRedirectBindingSigner
 }
 
-func (s *SAMLBindingHTTPRedirectWriter) Write(
+func (s *SAMLBindingHTTPRedirectWriter) WriteResponse(
 	rw http.ResponseWriter,
 	r *http.Request,
 	callbackURL string,
-	response samlprotocol.Respondable,
+	responseEl *etree.Element,
 	relayState string) error {
-
-	responseEl := response.Element()
 
 	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf
 	// 3.4.4.1 DEFLATE Encoding

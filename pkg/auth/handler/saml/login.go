@@ -106,9 +106,9 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		if result.CallbackURL != "" {
 			callbackURL = result.CallbackURL
 		}
-		err := h.BindingHTTPPostWriter.Write(rw, r,
+		err := h.BindingHTTPPostWriter.WriteResponse(rw, r,
 			callbackURL,
-			result.Response,
+			result.Response.Element(),
 			result.RelayState,
 		)
 		if err != nil {
@@ -443,9 +443,9 @@ func (h *LoginHandler) handleError(
 	var samlErrResult *SAMLErrorResult
 	if errors.As(err, &samlErrResult) {
 		h.Logger.WithError(samlErrResult.Cause).Warnln("saml login failed with expected error")
-		err = h.BindingHTTPPostWriter.Write(rw, r,
+		err = h.BindingHTTPPostWriter.WriteResponse(rw, r,
 			callbackURL,
-			samlErrResult.Response,
+			samlErrResult.Response.Element(),
 			relayState,
 		)
 		if err != nil {
@@ -453,9 +453,9 @@ func (h *LoginHandler) handleError(
 		}
 	} else {
 		h.Logger.WithError(err).Error("unexpected error")
-		err = h.BindingHTTPPostWriter.Write(rw, r,
+		err = h.BindingHTTPPostWriter.WriteResponse(rw, r,
 			callbackURL,
-			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()),
+			samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID()).Element(),
 			relayState,
 		)
 		if err != nil {

@@ -19,7 +19,7 @@ type WebAppURLsProvider interface {
 }
 
 type LogoutSessionManager interface {
-	Logout(session.ResolvedSession, http.ResponseWriter) ([]session.ListableSession, error)
+	Logout(session.SessionBase, http.ResponseWriter) ([]session.ListableSession, error)
 }
 
 type CookieManager interface {

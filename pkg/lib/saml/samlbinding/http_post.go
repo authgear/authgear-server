@@ -68,14 +68,12 @@ const postForm = `
 </html>
 `
 
-func (*SAMLBindingHTTPPostWriter) Write(
+func (*SAMLBindingHTTPPostWriter) WriteResponse(
 	rw http.ResponseWriter,
 	r *http.Request,
 	callbackURL string,
-	response samlprotocol.Respondable,
+	responseEl *etree.Element,
 	relayState string) error {
-
-	responseEl := response.Element()
 
 	doc := etree.NewDocument()
 	doc.SetRoot(responseEl)
