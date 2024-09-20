@@ -77,6 +77,19 @@ func (s Set[T]) Has(key T) bool {
 	return false
 }
 
+func (s *Set[T]) Merge(other Set[T]) Set[T] {
+	result := Set[T]{}
+	if (*s) != nil {
+		for _, k := range other.Keys() {
+			result.Add(k)
+		}
+	}
+	for _, k := range other.Keys() {
+		result.Add(k)
+	}
+	return result
+}
+
 var _ json.Unmarshaler = &Set[string]{}
 
 func (s *Set[T]) UnmarshalJSON(b []byte) error {

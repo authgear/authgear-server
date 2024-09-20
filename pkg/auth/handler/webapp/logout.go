@@ -25,7 +25,7 @@ func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
 }
 
 type LogoutSessionManager interface {
-	Logout(session.ResolvedSession, http.ResponseWriter) error
+	Logout(session.ResolvedSession, http.ResponseWriter) ([]session.ListableSession, error)
 }
 
 type LogoutHandler struct {
@@ -61,7 +61,8 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("logout", func() error {
 		sess := session.GetSession(r.Context())
-		err := h.SessionManager.Logout(sess, w)
+		// TODO(SAML): Logout affected saml service providers
+		_, err := h.SessionManager.Logout(sess, w)
 		if err != nil {
 			return err
 		}
