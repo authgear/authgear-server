@@ -16,13 +16,13 @@
   {{ range .Sessions }}
   {{ $actionBtn := "" }}
   {{ if not .IsCurrent }}
-    {{ $actionBtn = (include "remove-btn" (dict "DialogID" .ID)) }}
+    {{ $actionBtn = (include "__settings_session_item_remove_btn" (dict "DialogID" .ID)) }}
       {{ template "authflowv2/__settings_dialog.html" (dict
         "Ctx" $ctx
         "DialogID" .ID
         "Title" (include "v2.page.settings-sessions.default.session-dialog-title" nil)
         "Description" (include "v2.page.settings-sessions.default.session-dialog-description" nil)
-        "FormContent" (include "remove-input" (dict "ID" .ID "CSRFField" $.CSRFField))
+        "FormContent" (include "__settings_session_dialog_remove_input" (dict "ID" .ID "CSRFField" $.CSRFField))
         "Buttons" (list
           (dict
             "Type" "Destructive"
@@ -42,7 +42,7 @@
       template "authflowv2/__settings_action_item.html"
       (dict
         "Label" .DisplayName
-        "Description" (include "description" .)
+        "Description" (include "__settings_session_item_description" .)
         "ActionButton" $actionBtn
       )
     }}
@@ -63,7 +63,7 @@
       "DialogID" "revoke-all"
       "Title" (include "v2.page.settings-sessions.default.all-sessions-dialog-title" nil)
       "Description" (include "v2.page.settings-sessions.default.all-sessions-dialog-description" nil)
-      "FormContent" (include "remove-all-input" (dict "CSRFField" $.CSRFField))
+      "FormContent" (include "__settings_session_dialog_remove_all_input" (dict "CSRFField" $.CSRFField))
       "Buttons" (list
         (dict
           "Type" "Destructive"
@@ -81,16 +81,16 @@
 </div>
 {{ end }}
 
-{{ define "remove-input" }}
+{{ define "__settings_session_dialog_remove_input" }}
   {{ $.CSRFField }}
   <input type="hidden" name="x_session_id" value="{{ .ID }}">
 {{ end }}
 
-{{ define "remove-all-input" }}
+{{ define "__settings_session_dialog_remove_all_input" }}
   {{ $.CSRFField }}
 {{ end }}
 
-{{ define "remove-btn" }}
+{{ define "__settings_session_item_remove_btn" }}
 <button
   class="settings-action-item__icon--pale"
   data-controller="settings-dialog"
@@ -101,7 +101,7 @@
 </button>
 {{ end }}
 
-{{ define "description"}}
+{{ define "__settings_session_item_description"}}
 <div>
   <p>
     {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
