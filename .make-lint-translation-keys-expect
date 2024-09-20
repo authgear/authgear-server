@@ -35,7 +35,7 @@ resources/authgear/templates/en/web/authflowv2/settings_identity_change_primary_
 resources/authgear/templates/en/web/authflowv2/settings_identity_change_primary_phone.html:28:21: translation key not defined: "__settgins_identity_change_primary_phone_item_label"
 resources/authgear/templates/en/web/authflowv2/settings_identity_edit_email.html:33:22: translation key not defined: "__settings_identity_edit_email_inline_breakable"
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:40:31: translation key not defined: "settings_identity_email_verification_label"
-resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:72:26: translation key not defined: "settings_identity_email_change_button"
+resources/authgear/templates/en/web/authflowv2/settings_identity_list_email.html:71:26: translation key not defined: "settings_identity_email_change_button"
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_phone.html:40:31: translation key not defined: "settings_identity_phone_verification_label"
 resources/authgear/templates/en/web/authflowv2/settings_identity_list_phone.html:72:26: translation key not defined: "settings_identity_phone_change_button"
 resources/authgear/templates/en/web/authflowv2/settings_identity_verify_email.html:21:30: translation key not defined: "__settings_identity_verify_mask_claim"
