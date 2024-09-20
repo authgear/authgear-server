@@ -43,79 +43,65 @@
 {{ $IdentityID := $.EmailIdentity.ID }}
 
 <div class="flex flex-col gap-y-6">
-  {{ $claims := index $.Verifications $IdentityID }}
-  {{ if not (empty $claims) }}
-    {{ $claim := first $claims }}
-    {{ $href := (call $.MakeURL "/settings/identity/edit_email" "q_login_id" $LoginID )}}
-
-    {{/* We handle these cases separately because for some reason, even an empty "ExtraContent" value causes unwanted spacing. */}}
-    {{ if $claim.Verified }}
-      {{ template "authflowv2/__settings_action_item.html"
+  {{ $extraContent := "" }}
+  {{ if not $.Verified }}
+    {{ $extraContent = (
+        include "settings_identity_email_verification_button"
           (dict
-            "IconName" "email"
-            "Label" $.EmailIdentity.OriginalLoginID
-            "Description" (include "settings_identity_email_verification_label" 
-              (dict "Verified" true)
-            )
-            "ActionButton" (include "settings_identity_email_edit_button" 
-              (dict "Href" (call $.MakeURL "/settings/identity/edit_email" "q_login_id" $LoginID))
-            )
+            "Verified" false
+            "Href" (call $.MakeURL "/settings/identity/verify_email" "q_login_id" $.LoginIDKey)
           )
-      }}
-    {{ else }}
-    {{ template "authflowv2/__settings_action_item.html"
-        (dict
-          "IconName" "email"
-          "Label" $.EmailIdentity.OriginalLoginID
-          "Description" (include "settings_identity_email_verification_label" 
-            (dict "Verified" false)
-          )
-          "ActionButton" (include "settings_identity_email_edit_button" 
-            (dict "Href" (call $.MakeURL "/settings/identity/edit_email" "q_login_id" $LoginID))
-          )
-          "ExtraContent" (include "settings_identity_email_verification_button" 
-            (dict "Verified" false "Href" (call $.MakeURL "/settings/identity/verify_email" "q_login_id" $.LoginIDKey))
-          )
-        )
+      )
     }}
-    {{ end }}
+
   {{ end }}
+  {{ template "authflowv2/__settings_action_item.html"
+      (dict
+        "IconName" "email"
+        "Label" $.EmailIdentity.OriginalLoginID
+        "Description" (include "settings_identity_email_verification_label"
+          (dict "Verified" $.Verified)
+        )
+        "ActionButton" (include "settings_identity_email_edit_button"
+          (dict "Href" (call $.MakeURL "/settings/identity/edit_email" "q_identity_id" $IdentityID))
+        )
+        "ExtraContent" $extraContent
+      )
+  }}
 
   {{ if not $.DeleteDisabled}}
     {{ $RemoveDialogID := "remove-email-identity-dialog" }}
-
-    {{ $href := (call $.MakeURL "/settings/identity/new_email" "q_login_id_key" $LoginID ) }}
-    <button 
-      class="settings-link-btn--destructive" 
+    <button
+      class="settings-link-btn--destructive"
       data-controller="settings-dialog"
       data-settings-dialog-dialogid-param="{{ $RemoveDialogID }}"
       data-action="click->settings-dialog#open">
       {{ translate "v2.page.settings-identity-view-email.default.button-remove-email-label" nil }}
     </button>
 
-    {{ template "authflowv2/__settings_dialog.html" 
+    {{ template "authflowv2/__settings_dialog.html"
       (dict
         "Ctx" .
         "DialogID" $RemoveDialogID
         "Title" (include "v2.page.settings-identity-view-email.default.remove-identity-dialog-title" nil)
-        "Description" (include "v2.page.settings-identity-view-email.default.remove-identity-dialog-description" 
-          (dict 
+        "Description" (include "v2.page.settings-identity-view-email.default.remove-identity-dialog-description"
+          (dict
             "target" (include "__settings_identity_view_email_inline_breakable" $.EmailIdentity.OriginalLoginID )
           )
         )
         "FormContent" (include "__settings_identity_view_email_remove_dialog_form_content" .)
-        "Buttons" (list 
-          (dict 
-            "Type" "Destructive" 
+        "Buttons" (list
+          (dict
+            "Type" "Destructive"
             "Label" (include "v2.component.button.default.label-remove" nil)
             "Value" "remove"
           )
-          (dict 
+          (dict
             "Type" "Cancel"
             "Label" (include "v2.component.button.default.label-cancel" nil)
           )
         )
-      ) 
+      )
     }}
   {{ end }}
 </div>

@@ -43,6 +43,7 @@ func ConfigureAuthflowV2SettingsIdentityViewEmailRoute(route httproute.Route) ht
 type AuthflowV2SettingsIdentityViewEmailViewModel struct {
 	LoginIDKey     string
 	EmailIdentity  *identity.LoginID
+	Verified       bool
 	Verifications  map[string][]verification.ClaimStatus
 	UpdateDisabled bool
 	DeleteDisabled bool
@@ -54,7 +55,7 @@ type AuthflowV2SettingsIdentityViewEmailHandler struct {
 	Identities        *identityservice.Service
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
-	Verification      handlerwebapp.SettingsVerificationService
+	Verification      verification.Service
 	Renderer          handlerwebapp.Renderer
 	AccountManagement accountmanagement.Service
 }
@@ -63,19 +64,19 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(r *http.Request, rw
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
-	loginID := r.Form.Get("q_login_id")
+	identityID := r.Form.Get("q_identity_id")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	userID := session.GetUserID(r.Context())
 
-	emailIdentity, err := h.Identities.LoginID.Get(*userID, loginID)
+	emailIdentity, err := h.Identities.LoginID.Get(*userID, identityID)
 	if err != nil {
 		return nil, err
 	}
 
-	verifications, err := h.Verification.GetVerificationStatuses([]*identity.Info{emailIdentity.ToInfo()})
+	verified, err := h.AccountManagement.CheckIdentityVerified(emailIdentity.ToInfo())
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +91,7 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(r *http.Request, rw
 	vm := AuthflowV2SettingsIdentityViewEmailViewModel{
 		LoginIDKey:     loginIDKey,
 		EmailIdentity:  emailIdentity,
-		Verifications:  verifications,
+		Verified:       verified,
 		UpdateDisabled: updateDisabled,
 		DeleteDisabled: deleteDisabled,
 	}
@@ -127,10 +128,9 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 			return err
 		}
 
-		removeID := r.Form.Get("x_identity_id")
-
-		_, err = h.AccountManagement.RemoveIdentityEmail(session.GetSession(r.Context()), &accountmanagement.RemoveIdentityEmailInput{
-			IdentityID: removeID,
+		IdentityID := r.Form.Get("x_identity_id")
+		_, err = h.AccountManagement.DeleteIdentityEmail(session.GetSession(r.Context()), &accountmanagement.DeleteIdentityEmailInput{
+			IdentityID: IdentityID,
 		})
 		if err != nil {
 			return err
