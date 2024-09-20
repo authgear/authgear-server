@@ -18,7 +18,7 @@
     --body-text__letter-spacing--sm: var(
       --typography-body-small__letter-spacing
     );
-    --body-text__font-weight--sm: var(--typography-body-medium__font-weight);
+    --body-text__font-weight--sm: var(--typography-body-small__font-weight);
 
     /* sm link */
     --body-text__font-family--link-sm: var(
