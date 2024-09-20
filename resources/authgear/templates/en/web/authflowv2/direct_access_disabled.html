@@ -2,27 +2,18 @@
 
 {{ define "page-content" }}
 
-<div>
-  <div class="mt-16 mb-4">
-    {{ template "authflowv2/__brand_logo.html"
-      (merge
-        (dict
-          "LogoClass" "brand-logo--settings"
-        )
-        .
-      )
-    }}
-  </div>
-  
-  <div class="text-center px-6 tablet:px-8 desktop:px-8 max-w-90 mx-auto">
-    <p class="text-3xl break-words body-text--lg font-bold mb-4">{{ translate "app.name" nil }}</p>
-    {{ if $.BrandPageURI }}
-      <p class="body-text--md">
-        <a href="{{ $.BrandPageURI }}">{{ $.BrandPageURI }}</a>
-      </p>
-    {{ else }}
-      <p class="break-words body-text--sm m-0">{{ translate "configure-direct-access-description" nil }}</p>
-    {{ end }}
-  </div>
+{{- $brandingURIText := trimPrefix "http://www." .BrandPageURI -}}
+{{- $brandingURIText = trimPrefix "http://" $brandingURIText -}}
+{{- $brandingURIText = trimPrefix "https://www." $brandingURIText -}}
+{{- $brandingURIText = trimPrefix "https://" $brandingURIText -}}
+<div class="text-center max-w-90">
+  <p class="screen-title mb-4">{{ translate "app.name" nil }}</p>
+  {{ if $.BrandPageURI }}
+    <p class="body-text--md">
+      <a href="{{ $.BrandPageURI }}">{{  $brandingURIText  }}</a>
+    </p>
+  {{ else }}
+    <p class="screen-description">{{ translate "configure-direct-access-description" nil }}</p>
+  {{ end }}
 </div>
 {{ end }}
