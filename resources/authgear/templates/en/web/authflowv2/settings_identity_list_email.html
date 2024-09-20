@@ -59,18 +59,17 @@
     </a>
   {{ end }}
 
-  {{ if gt (1) (len $.EmailIdentities)}}
-    <div>
+  {{ if gt (len $.EmailIdentities) (1) }}
+    <div class="mt-5">
       <div class="settings-title">
         {{ translate "v2.page.settings-identity-list-email.default.primary-email-label" . }}
       </div>
-      {{ $href := (call $.MakeURL "/settings/identity/view_email" "q_login_id_key" $.LoginIDKey "q_login_id" .PrimaryEmail.ID )}}
       {{ template "authflowv2/__settings_action_item.html"
         (dict
           "IconName" "email"
-          "Label" (include "inline_breakable" .PrimaryEmail.OriginalLoginID)
+          "Label" .PrimaryEmail.OriginalLoginID
           "ActionButton" (include "settings_identity_email_change_button"
-            (dict "Href" (call $.MakeURL "/settings/identity/change_primary_email" "q_login_id_key" $.LoginIDKey "q_login_id" .PrimaryEmail.ID))
+            (dict "Href" (call $.MakeURL "/settings/identity/change_primary_email" "q_login_id_key" $.LoginIDKey))
           )
         )
       }}

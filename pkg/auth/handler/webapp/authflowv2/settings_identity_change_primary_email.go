@@ -2,6 +2,8 @@ package authflowv2
 
 import (
 	"net/http"
+	"net/url"
+	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -17,7 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var TemplateWebSettingsIdentityEmailChangePrimaryHTML = template.RegisterHTML(
+var TemplateWebSettingsIdentityChangePrimaryEmailHTML = template.RegisterHTML(
 	"web/authflowv2/settings_identity_change_primary_email.html",
 	handlerwebapp.SettingsComponents...,
 )
@@ -72,6 +74,10 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) GetData(r *http.Re
 		}
 	}
 
+	sort.Slice(emailIdentities, func(i, j int) bool {
+		return emailIdentities[i].UpdatedAt.Before(emailIdentities[j].UpdatedAt)
+	})
+
 	vm := AuthflowV2SettingsIdentityListEmailViewModel{
 		LoginIDKey:      loginIDKey,
 		EmailIdentities: emailIdentities,
@@ -99,7 +105,7 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) ServeHTTP(w http.R
 			return err
 		}
 
-		h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityEmailChangePrimaryHTML, data)
+		h.Renderer.RenderHTML(w, r, TemplateWebSettingsIdentityChangePrimaryEmailHTML, data)
 		return nil
 	})
 
@@ -129,7 +135,16 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) ServeHTTP(w http.R
 			return err
 		}
 
-		result := webapp.Result{RedirectURI: "/settings/identity/email"}
+		loginIDKey := r.Form.Get("q_login_id_key")
+		redirectURI, err := url.Parse(AuthflowV2RouteSettingsIdentityListEmail)
+		if err != nil {
+			return err
+		}
+		q := redirectURI.Query()
+		q.Set("q_login_id_key", loginIDKey)
+		redirectURI.RawQuery = q.Encode()
+
+		result := webapp.Result{RedirectURI: redirectURI.String()}
 		result.WriteResponse(w, r)
 		return nil
 	})
