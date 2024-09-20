@@ -2,6 +2,10 @@
 
 {{ define "page-content" }}
 
+{{- $brandingURIText := trimPrefix "http://www." .BrandPageURI -}}
+{{- $brandingURIText = trimPrefix "http://" $brandingURIText -}}
+{{- $brandingURIText = trimPrefix "https://www." $brandingURIText -}}
+{{- $brandingURIText = trimPrefix "https://" $brandingURIText -}}
 <div>
   <div class="mt-16 mb-4">
     {{ template "authflowv2/__brand_logo.html"
@@ -18,7 +22,7 @@
     <p class="text-3xl break-words body-text--lg font-bold mb-4">{{ translate "app.name" nil }}</p>
     {{ if $.BrandPageURI }}
       <p class="body-text--md">
-        <a href="{{ $.BrandPageURI }}">{{ $.BrandPageURI }}</a>
+        <a href="{{ $.BrandPageURI }}">{{  $brandingURIText  }}</a>
       </p>
     {{ else }}
       <p class="break-words body-text--sm m-0">{{ translate "configure-direct-access-description" nil }}</p>
