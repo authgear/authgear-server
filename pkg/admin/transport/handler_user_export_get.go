@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
@@ -21,9 +22,10 @@ type UserExportGetProducer interface {
 }
 
 type UserExportGetHandler struct {
-	AppID       config.AppID
-	JSON        JSONResponseWriter
-	UserExports UserExportGetProducer
+	AppID        config.AppID
+	JSON         JSONResponseWriter
+	UserExports  UserExportGetProducer
+	CloudStorage cloudstorage.Storage
 }
 
 func (h *UserExportGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +48,7 @@ func (h *UserExportGetHandler) handle(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	response, err := userexport.NewResponseFromTask(task)
+	response, err := userexport.NewResponseFromTask(task, h.CloudStorage)
 	if err != nil {
 		return err
 	}

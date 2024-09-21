@@ -55,7 +55,7 @@ func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	response, err := userexport.NewResponseFromTask(task)
+	response, err := userexport.NewResponseFromTask(task, nil)
 	if err != nil {
 		return err
 	}

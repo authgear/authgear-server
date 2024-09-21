@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
@@ -113,7 +114,7 @@ type Record struct {
 	PasskeyCount   int `json:"passkey_count"`
 }
 
-func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
+func NewResponseFromTask(task *redisqueue.Task, cloudStorage cloudstorage.Storage) (*Response, error) {
 	response := &Response{
 		ID:        task.ID,
 		CreatedAt: task.CreatedAt,
@@ -143,8 +144,13 @@ func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 			response.CompletedAt = task.CompletedAt
 		}
 
-		// TODO: sign a download url from filename
-		response.DownloadUrl = result.Filename
+		if result.Filename != "" && cloudStorage != nil {
+			downloadUrl, err := cloudStorage.PresignHeadObject(result.Filename, cloudstorage.PresignGetExpiresForUserExport)
+			if err != nil {
+				return nil, err
+			}
+			response.DownloadUrl = downloadUrl.String()
+		}
 	}
 
 	return response, nil

@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
+	"github.com/authgear/authgear-server/pkg/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 )
 
@@ -102,5 +103,6 @@ func newUserExportGetHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*transport.UserExportGetHandler)),
+		redisqueue.NewCloudStorage,
 	))
 }

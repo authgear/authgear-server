@@ -78,6 +78,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
+	redisqueue2 "github.com/authgear/authgear-server/pkg/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -1310,10 +1311,15 @@ func newUserExportGetHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
+	storage := redisqueue2.NewCloudStorage(userExportObjectStoreConfig, clockClock)
 	userExportGetHandler := &transport.UserExportGetHandler{
-		AppID:       appID,
-		JSON:        jsonResponseWriter,
-		UserExports: userExportProducer,
+		AppID:        appID,
+		JSON:         jsonResponseWriter,
+		UserExports:  userExportProducer,
+		CloudStorage: storage,
 	}
 	return userExportGetHandler
 }
