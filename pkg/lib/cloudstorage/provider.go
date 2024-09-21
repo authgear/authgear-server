@@ -39,7 +39,7 @@ func (p *Provider) PresignPutRequest(r *PresignUploadRequest) (*PresignUploadRes
 }
 
 func (p *Provider) checkDuplicate(key string) error {
-	u, err := p.Storage.PresignHeadObject(key)
+	u, err := p.Storage.PresignHeadObject(key, PresignGetExpires)
 	if err != nil {
 		return err
 	}

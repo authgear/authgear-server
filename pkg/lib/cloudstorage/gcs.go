@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"google.golang.org/api/option"
@@ -94,9 +95,9 @@ func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Re
 	return &req, nil
 }
 
-func (s *GCSStorage) PresignGetOrHeadObject(name string, method string) (*url.URL, error) {
+func (s *GCSStorage) PresignGetOrHeadObject(name string, method string, expire time.Duration) (*url.URL, error) {
 	now := s.Clock.NowUTC()
-	expires := now.Add(PresignGetExpires)
+	expires := now.Add(expire)
 
 	opts := storage.SignedURLOptions{
 		// We still need to tell the Client SDK which service account we want to sign the URL with.
@@ -116,14 +117,14 @@ func (s *GCSStorage) PresignGetOrHeadObject(name string, method string) (*url.UR
 	return u, nil
 }
 
-func (s *GCSStorage) PresignHeadObject(name string) (*url.URL, error) {
-	return s.PresignGetOrHeadObject(name, "HEAD")
+func (s *GCSStorage) PresignHeadObject(name string, expire time.Duration) (*url.URL, error) {
+	return s.PresignGetOrHeadObject(name, "HEAD", expire)
 }
 
 func (s *GCSStorage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
-		u, err := s.PresignGetOrHeadObject(key, "GET")
+		u, err := s.PresignGetOrHeadObject(key, "GET", PresignGetExpires)
 		if err != nil {
 			panic(err)
 		}

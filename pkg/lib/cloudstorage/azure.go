@@ -67,15 +67,16 @@ func (s *AzureStorage) PresignPutObject(name string, header http.Header) (*http.
 	return &req, nil
 }
 
-func (s *AzureStorage) PresignGetObject(name string) (*url.URL, error) {
+func (s *AzureStorage) PresignGetObject(name string, expire time.Duration) (*url.URL, error) {
 	now := s.Clock.NowUTC()
-	return s.SignedURL(name, now, PresignGetExpires, azblob.BlobSASPermissions{
+
+	return s.SignedURL(name, now, expire, azblob.BlobSASPermissions{
 		Read: true,
 	})
 }
 
-func (s *AzureStorage) PresignHeadObject(name string) (*url.URL, error) {
-	return s.PresignGetObject(name)
+func (s *AzureStorage) PresignHeadObject(name string, expire time.Duration) (*url.URL, error) {
+	return s.PresignGetObject(name, expire)
 }
 
 func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Duration, perm azblob.BlobSASPermissions) (*url.URL, error) {
@@ -123,7 +124,7 @@ func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Durat
 func (s *AzureStorage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
-		u, err := s.PresignGetObject(key)
+		u, err := s.PresignGetObject(key, PresignGetExpires)
 		if err != nil {
 			panic(err)
 		}

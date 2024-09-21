@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -92,14 +93,14 @@ func (s *S3Storage) PresignPutObject(name string, header http.Header) (*http.Req
 	}, nil
 }
 
-func (s *S3Storage) PresignHeadObject(name string) (*url.URL, error) {
+func (s *S3Storage) PresignHeadObject(name string, expire time.Duration) (*url.URL, error) {
 	input := &s3.HeadObjectInput{
 		Bucket: aws.String(s.Bucket),
 		Key:    aws.String(name),
 	}
 	req, _ := s.s3.HeadObjectRequest(input)
 	req.NotHoist = false
-	urlStr, _, err := req.PresignRequest(PresignGetExpires)
+	urlStr, _, err := req.PresignRequest(expire)
 	if err != nil {
 		return nil, fmt.Errorf("failed to presign head request: %w", err)
 	}
