@@ -104,4 +104,6 @@ type EnvironmentConfig struct {
 	UIImplementation GlobalUIImplementation `envconfig:"UI_IMPLEMENTATION"`
 
 	UISettingsImplementation GlobalUISettingsImplementation `envconfig:"UI_SETTINGS_IMPLEMENTATION"`
+
+	UserExportObjectStore *UserExportObjectStoreConfig `envconfig:"USEREXPORT_OBJECT_STORE"`
 }

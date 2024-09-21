@@ -43,6 +43,7 @@ var envConfigDeps = wire.NewSet(
 		"AppHostSuffixes",
 		"UIImplementation",
 		"UISettingsImplementation",
+		"UserExportObjectStore",
 	),
 )
 
