@@ -80,6 +80,7 @@ func (s *AzureStorage) PresignHeadObject(name string) (*url.URL, error) {
 
 func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Duration, perm azblob.BlobSASPermissions) (*url.URL, error) {
 	sigValues := azblob.BlobSASSignatureValues{
+		// local blob development need to use `azblob.SASProtocolHTTPSandHTTP`
 		Protocol:      azblob.SASProtocolHTTPS,
 		StartTime:     now,
 		ExpiryTime:    now.Add(duration),
@@ -104,8 +105,12 @@ func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Durat
 	}
 
 	parts := azblob.BlobURLParts{
-		Scheme:        serviceURL.Scheme,
-		Host:          serviceURL.Host,
+		Scheme: serviceURL.Scheme,
+		Host:   serviceURL.Host,
+		// Inject storage account to URL when testing on IP style host, eg: 127.0.0.1
+		IPEndpointStyleInfo: azblob.IPEndpointStyleInfo{
+			AccountName: s.StorageAccount,
+		},
 		ContainerName: s.Container,
 		BlobName:      name,
 		SAS:           q,

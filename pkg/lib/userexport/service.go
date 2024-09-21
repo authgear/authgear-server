@@ -1,15 +1,23 @@
 package userexport
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
+	"net/http"
+	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/util/clock"
+	libhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
@@ -20,10 +28,12 @@ type UserQueries interface {
 }
 
 type UserExportService struct {
-	AppDatabase *appdb.Handle
-	UserQueries UserQueries
-	Logger      Logger
-	HTTPOrigin  httputil.HTTPOrigin
+	AppDatabase  *appdb.Handle
+	UserQueries  UserQueries
+	Logger       Logger
+	HTTPOrigin   libhttputil.HTTPOrigin
+	CloudStorage cloudstorage.Provider
+	Clock        clock.Clock
 }
 
 type Logger struct{ *log.Logger }
@@ -154,9 +164,12 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport, reco
 	}
 }
 
-func (s *UserExportService) ExportRecords(ctx context.Context, request *Request) (outputFilename string, err error) {
-	// TODO: write to a tmp file
-	writer := io.MultiWriter(io.Discard, os.Stdout)
+func (s *UserExportService) ExportRecords(ctx context.Context, request *Request, task *redisqueue.Task) (outputFilename string, err error) {
+	tmpResult, err := os.CreateTemp("", fmt.Sprintf("export-%s.tmp", task.ID))
+	if err != nil {
+		return "", err
+	}
+	defer os.Remove(tmpResult.Name())
 
 	// Bound export loop maximum count
 	const maxPageToGet = 10000
@@ -190,7 +203,7 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request)
 			recordBytes := make([]byte, 0)
 			recordBytes = append(recordBytes, []byte(recordJson)...)
 			recordBytes = append(recordBytes, []byte("\n")...)
-			writer.Write(recordBytes)
+			tmpResult.Write(recordBytes)
 		}
 
 		// Exit export loop early when no more record to read
@@ -199,8 +212,58 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request)
 		}
 	}
 
-	// TODO: Upload tmp result output to cloud storage
+	key := url.QueryEscape(fmt.Sprintf("%s-%s-%s.%s", task.AppID, task.ID, s.Clock.NowUTC().Format("20060102150405Z"), "ndjson"))
+	_, err = s.UploadResult(key, tmpResult)
 
-	// TODO: Return output file name
-	return "dummy_output_filename", nil
+	if err != nil {
+		return "", err
+	}
+
+	return key, nil
+}
+
+func (s *UserExportService) UploadResult(key string, resultFile *os.File) (response *http.Response, err error) {
+	file, err := os.Open(resultFile.Name())
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+
+	presignUploadRequest := cloudstorage.PresignUploadRequest{
+		Key:     key,
+		Headers: map[string]interface{}{},
+	}
+	presignUploadRequest.Headers["content-length"] = strconv.FormatInt(fileInfo.Size(), 10)
+	presignUploadRequest.Headers["content-type"] = "application/x-ndjson"
+	presignUploadRequest.Headers["Content-Disposition"] = fmt.Sprintf("attachment; filename=%s", key)
+	presignUploadResponse, err := s.CloudStorage.PresignPutRequest(&presignUploadRequest)
+	if err != nil {
+		return
+	}
+
+	buffer := bytes.NewBuffer(nil)
+	if _, err := io.Copy(buffer, file); err != nil {
+		return nil, err
+	}
+	uploadRequest, err := http.NewRequest(http.MethodPut, presignUploadResponse.URL, buffer)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, headerField := range presignUploadResponse.Headers {
+		uploadRequest.Header.Add(headerField.Name, headerField.Value)
+	}
+	client := &http.Client{}
+	response, err = client.Do(uploadRequest)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
 }

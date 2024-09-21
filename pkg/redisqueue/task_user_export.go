@@ -18,7 +18,7 @@ func UserExport(ctx context.Context, appProvider *deps.AppProvider, task *redisq
 		return
 	}
 
-	outputFilename, taskError := userExportService.ExportRecords(ctx, &request)
+	outputFilename, taskError := userExportService.ExportRecords(ctx, &request, task)
 	result := userexport.Result{
 		Filename: outputFilename,
 	}
