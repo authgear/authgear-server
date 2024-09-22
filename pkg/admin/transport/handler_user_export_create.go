@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
@@ -24,9 +25,10 @@ type UserExportCreateProducer interface {
 }
 
 type UserExportCreateHandler struct {
-	AppID       config.AppID
-	JSON        JSONResponseWriter
-	UserExports UserExportCreateProducer
+	AppID        config.AppID
+	JSON         JSONResponseWriter
+	UserExports  UserExportCreateProducer
+	CloudStorage cloudstorage.Storage
 }
 
 func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -38,6 +40,10 @@ func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 }
 
 func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request) error {
+	if h.CloudStorage == nil {
+		return userexport.ErrUserExportDisabled
+	}
+
 	var request userexport.Request
 	err := httputil.BindJSONBody(r, w, userexport.RequestSchema.Validator(), &request)
 	if err != nil {

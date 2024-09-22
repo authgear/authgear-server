@@ -1289,10 +1289,15 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
+	storage := redisqueue2.NewCloudStorage(userExportObjectStoreConfig, clockClock)
 	userExportCreateHandler := &transport.UserExportCreateHandler{
-		AppID:       appID,
-		JSON:        jsonResponseWriter,
-		UserExports: userExportProducer,
+		AppID:        appID,
+		JSON:         jsonResponseWriter,
+		UserExports:  userExportProducer,
+		CloudStorage: storage,
 	}
 	return userExportCreateHandler
 }

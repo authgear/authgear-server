@@ -32,6 +32,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
+	redisqueueTask "github.com/authgear/authgear-server/pkg/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -40,6 +41,7 @@ var DependencySet = wire.NewSet(
 	deps.CommonDependencySet,
 
 	middleware.DependencySet,
+	redisqueueTask.NewCloudStorage,
 
 	nonce.DependencySet,
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),

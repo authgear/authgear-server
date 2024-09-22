@@ -37,6 +37,10 @@ func (h *UserExportGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *UserExportGetHandler) handle(w http.ResponseWriter, r *http.Request) error {
+	if h.CloudStorage == nil {
+		return userexport.ErrUserExportDisabled
+	}
+
 	taskID := httproute.GetParam(r, "id")
 	queueItem := &redisqueue.QueueItem{
 		AppID:  string(h.AppID),
