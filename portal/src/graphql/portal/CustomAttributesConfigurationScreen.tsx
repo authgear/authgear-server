@@ -178,7 +178,11 @@ const CustomAttributesConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} showDiscardButton={true}>
+      <FormContainer
+        form={form}
+        showDiscardButton={true}
+        stickyFooterComponent={true}
+      >
         <CustomAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );
