@@ -160,7 +160,7 @@ func (h *LogoutHandler) handle(
 		}
 		// None of the SPs has slo enabled, end the logout immediately
 		logoutResponse, err := h.SAMLService.IssueLogoutResponse(
-			callbackURL,
+			result.sloSession.Entry.CallbackURL,
 			sp.GetID(),
 			result.sloSession.Entry.LogoutRequest(),
 			sloSession.Entry.IsPartialLogout,
