@@ -21,6 +21,7 @@ type SAMLSLOSessionEntry struct {
 	RelayState                      string                   `json:"relay_state,omitempty"`
 	SID                             string                   `json:"sid,omitempty"`
 	UserID                          string                   `json:"user_id,omitempty"`
+	IsPartialLogout                 bool                     `json:"is_partial_logout,omitempty"`
 }
 
 func NewSAMLSLOSession(entry *SAMLSLOSessionEntry) *SAMLSLOSession {
