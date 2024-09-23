@@ -1,12 +1,8 @@
 package db
 
-import (
-	"github.com/jmoiron/sqlx"
-)
-
 type MockHandle struct{}
 
-func (h *MockHandle) conn() (sqlx.ExtContext, error) {
+func (h *MockHandle) conn() (*txConn, error) {
 	panic("not mocked")
 }
 

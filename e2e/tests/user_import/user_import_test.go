@@ -8,8 +8,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/authgear/authgear-server/e2e/pkg/testrunner"
 	"golang.org/x/crypto/bcrypt"
+
+	"github.com/authgear/authgear-server/e2e/pkg/testrunner"
 )
 
 func generateUsers(t testing.TB, name string, n int, m int) string {
@@ -62,6 +63,7 @@ func BenchmarkUserImport(b *testing.B) {
 		},
 		Test: b,
 	})
+	cmd.ExtraEnv = append(cmd.ExtraEnv, "DATABASE_CONFIG_USE_PREPARED_STATEMENTS=1")
 
 	b.ResetTimer()
 

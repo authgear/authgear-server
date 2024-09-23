@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"os/exec"
 	"path"
 	"testing"
@@ -19,6 +20,7 @@ type End2EndCmd struct {
 	Client   *e2eclient.Client
 	TestCase TestCase
 	Test     testing.TB
+	ExtraEnv []string
 }
 
 func generateAppID() string {
@@ -127,6 +129,7 @@ func (e *End2EndCmd) execCmd(cmd string) (string, error) {
 	execCmd := exec.Command("sh", "-c", cmd)
 	execCmd.Stderr = &errb
 	execCmd.Dir = "../../"
+	execCmd.Env = append(os.Environ(), e.ExtraEnv...)
 	output, err := execCmd.Output()
 	if err != nil {
 		e.Test.Errorf("failed to execute command %s: %v\n%s", cmd, err, errb.String())

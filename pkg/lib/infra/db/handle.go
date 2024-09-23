@@ -1,7 +1,5 @@
 package db
 
-import "github.com/jmoiron/sqlx"
-
 // Handle allows a function to be run within a transaction.
 type Handle interface {
 	// WithTx runs do within a transaction.
@@ -13,5 +11,5 @@ type Handle interface {
 	ReadOnly(do func() error) (err error)
 
 	// conn allows internal access to the ongoing transaction.
-	conn() (sqlx.ExtContext, error)
+	conn() (*txConn, error)
 }

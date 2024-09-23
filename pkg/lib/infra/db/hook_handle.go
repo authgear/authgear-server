@@ -5,8 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/jmoiron/sqlx"
-
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -17,7 +15,7 @@ type HookHandle struct {
 	ConnectionOptions ConnectionOptions
 	Logger            *log.Logger
 
-	tx    *sqlx.Tx
+	tx    *txConn
 	hooks []TransactionHook
 }
 
@@ -30,7 +28,7 @@ func NewHookHandle(ctx context.Context, pool *Pool, opts ConnectionOptions, lf *
 	}
 }
 
-func (h *HookHandle) conn() (sqlx.ExtContext, error) {
+func (h *HookHandle) conn() (*txConn, error) {
 	tx := h.tx
 	if tx == nil {
 		panic("hook-handle: transaction not started")
@@ -139,7 +137,7 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	return
 }
 
-func (h *HookHandle) beginTx() (*sqlx.Tx, error) {
+func (h *HookHandle) beginTx() (*txConn, error) {
 	db, err := h.openDB()
 	if err != nil {
 		return nil, err
@@ -147,26 +145,31 @@ func (h *HookHandle) beginTx() (*sqlx.Tx, error) {
 
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
-	tx, err := db.BeginTxx(h.Context, txOptions)
+	tx, err := db.BeginTx(h.Context, txOptions)
 	if err != nil {
 		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
 
-	return tx, nil
+	return &txConn{
+		db:        db,
+		tx:        tx,
+		logger:    db.logger,
+		doPrepare: h.ConnectionOptions.UsePreparedStatements,
+	}, nil
 }
 
-func commitTx(tx *sqlx.Tx, hooks []TransactionHook) error {
+func commitTx(conn *txConn, hooks []TransactionHook) error {
 	for _, hook := range hooks {
 		err := hook.WillCommitTx()
 		if err != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
+			if rbErr := conn.tx.Rollback(); rbErr != nil {
 				err = errorutil.WithSecondaryError(err, rbErr)
 			}
 			return err
 		}
 	}
 
-	err := tx.Commit()
+	err := conn.tx.Commit()
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to commit transaction: %w", err)
 	}
@@ -174,8 +177,8 @@ func commitTx(tx *sqlx.Tx, hooks []TransactionHook) error {
 	return nil
 }
 
-func rollbackTx(tx *sqlx.Tx) error {
-	err := tx.Rollback()
+func rollbackTx(conn *txConn) error {
+	err := conn.tx.Rollback()
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to rollback transaction: %w", err)
 	}
@@ -183,7 +186,7 @@ func rollbackTx(tx *sqlx.Tx) error {
 	return nil
 }
 
-func (h *HookHandle) openDB() (*sqlx.DB, error) {
+func (h *HookHandle) openDB() (*PoolDB, error) {
 	h.Logger.WithFields(map[string]interface{}{
 		"max_open_conns":             h.ConnectionOptions.MaxOpenConnection,
 		"max_idle_conns":             h.ConnectionOptions.MaxIdleConnection,
