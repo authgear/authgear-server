@@ -1182,6 +1182,8 @@
   "v2.page.settings-mfa-password.default.additional-password-added-at": "新增時間: <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "輔助密碼",
   "v2.page.settings-mfa-password.default.additional-password-updated-at": "上次更新時間: <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
+  "v2.page.settings-mfa-password.default.dialog-delete-description": "您確定要刪除輔助密碼嗎？",
+  "v2.page.settings-mfa-password.default.dialog-delete-title": "刪除輔助密碼",
   "v2.page.settings-mfa-password.default.navbar-title": "輔助密碼",
   "v2.page.settings-mfa-password.default.remove-button-label": "刪除輔助密碼",
   "v2.page.settings-mfa.default.activated-label": "已啟用",

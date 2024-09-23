@@ -1182,6 +1182,8 @@
   "v2.page.settings-mfa-password.default.additional-password-added-at": "Added at <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
   "v2.page.settings-mfa-password.default.additional-password-label": "Additional password",
   "v2.page.settings-mfa-password.default.additional-password-updated-at": "Updated at <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
+  "v2.page.settings-mfa-password.default.dialog-delete-description": "Are you sure you want to remove additional password?",
+  "v2.page.settings-mfa-password.default.dialog-delete-title": "Remove additional password",
   "v2.page.settings-mfa-password.default.navbar-title": "Additional password",
   "v2.page.settings-mfa-password.default.remove-button-label": "Remove additional password",
   "v2.page.settings-mfa.default.activated-label": "Activated",
