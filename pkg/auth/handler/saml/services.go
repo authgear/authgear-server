@@ -39,7 +39,6 @@ type HandlerSAMLService interface {
 		signature string) error
 	IssueLogoutResponse(
 		callbackURL string,
-		serviceProviderId string,
 		inResponseToLogoutRequest *samlprotocol.LogoutRequest,
 		isPartialLogout bool,
 	) (*samlprotocol.LogoutResponse, error)

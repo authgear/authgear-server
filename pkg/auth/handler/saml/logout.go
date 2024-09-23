@@ -136,67 +136,75 @@ func (h *LogoutHandler) handle(
 		return
 	case *logoutRemainingSPsResult:
 		// Logout all remaining participants before finish
-		sloSession := result.sloSession
-		for _, spID := range result.sloSession.Entry.PendingLogoutServiceProviderIDs.Keys() {
-			sp, ok := h.SAMLConfig.ResolveProvider(spID)
-			if ok && sp.SLOEnabled {
-				err = h.SAMLSLOService.SendSLORequest(
-					rw, r,
-					result.sloSession,
-					sp,
-				)
-				if err != nil {
-					// For some reason it failed
-					// Skip this SP and send request to the next one
-					h.Logger.WithError(err).Error("failed to send logout request")
-					sloSession.Entry.IsPartialLogout = true
-					err = h.SAMLSLOSessionService.Save(sloSession)
-					if err != nil {
-						h.handleError(rw, r,
-							result.sloSession.Entry.ResponseBinding,
-							result.sloSession.Entry.CallbackURL,
-							result.sloSession.Entry.RelayState,
-							err,
-						)
-						return
-					}
-					continue
-				}
-				return
-			}
-		}
-		// None of the SPs has slo enabled, end the logout immediately
-		if logoutRequest, ok := result.sloSession.Entry.LogoutRequest(); ok {
-			logoutResponse, err := h.SAMLService.IssueLogoutResponse(
-				result.sloSession.Entry.CallbackURL,
-				sp.GetID(),
-				logoutRequest,
-				sloSession.Entry.IsPartialLogout,
+		h.doLogoutRemainingSPs(rw, r, result)
+		return
+	}
+}
+
+func (h *LogoutHandler) doLogoutRemainingSPs(
+	rw http.ResponseWriter,
+	r *http.Request,
+	result *logoutRemainingSPsResult,
+) {
+	var err error
+	sloSession := result.sloSession
+	for _, spID := range result.sloSession.Entry.PendingLogoutServiceProviderIDs.Keys() {
+		sp, ok := h.SAMLConfig.ResolveProvider(spID)
+		if ok && sp.SLOEnabled {
+			err = h.SAMLSLOService.SendSLORequest(
+				rw, r,
+				result.sloSession,
+				sp,
 			)
 			if err != nil {
-				h.handleError(rw, r,
-					result.sloSession.Entry.ResponseBinding,
-					result.sloSession.Entry.CallbackURL,
-					result.sloSession.Entry.RelayState,
-					err,
-				)
-				return
+				// For some reason it failed
+				// Skip this SP and send request to the next one
+				h.Logger.WithError(err).Error("failed to send logout request")
+				sloSession.Entry.IsPartialLogout = true
+				err = h.SAMLSLOSessionService.Save(sloSession)
+				if err != nil {
+					h.handleError(rw, r,
+						result.sloSession.Entry.ResponseBinding,
+						result.sloSession.Entry.CallbackURL,
+						result.sloSession.Entry.RelayState,
+						err,
+					)
+					return
+				}
+				continue
 			}
-			h.writeResponse(rw, r,
-				logoutResponse.Element(),
+			return
+		}
+	}
+	// None of the SPs has slo enabled, end the logout immediately
+	if logoutRequest, ok := result.sloSession.Entry.LogoutRequest(); ok {
+		logoutResponse, err := h.SAMLService.IssueLogoutResponse(
+			result.sloSession.Entry.CallbackURL,
+			logoutRequest,
+			sloSession.Entry.IsPartialLogout,
+		)
+		if err != nil {
+			h.handleError(rw, r,
 				result.sloSession.Entry.ResponseBinding,
 				result.sloSession.Entry.CallbackURL,
 				result.sloSession.Entry.RelayState,
+				err,
 			)
 			return
-		} else if result.sloSession.Entry.PostLogoutRedirectURI != "" {
-			// This is not a logout triggered by SP, redirect to post logout url
-			http.Redirect(rw, r, result.sloSession.Entry.PostLogoutRedirectURI, http.StatusFound)
-			return
-		} else {
-			panic("LogoutRequest and PostLogoutRedirectURI are empty, cannot determine the next action")
 		}
-
+		h.writeResponse(rw, r,
+			logoutResponse.Element(),
+			result.sloSession.Entry.ResponseBinding,
+			result.sloSession.Entry.CallbackURL,
+			result.sloSession.Entry.RelayState,
+		)
+		return
+	} else if result.sloSession.Entry.PostLogoutRedirectURI != "" {
+		// This is not a logout triggered by SP, redirect to post logout url
+		http.Redirect(rw, r, result.sloSession.Entry.PostLogoutRedirectURI, http.StatusFound)
+		return
+	} else {
+		panic("LogoutRequest and PostLogoutRedirectURI are empty, cannot determine the next action")
 	}
 }
 
@@ -517,7 +525,6 @@ func (h *LogoutHandler) handleSLORequest(
 
 	logoutResponse, err := h.SAMLService.IssueLogoutResponse(
 		callbackURL,
-		sp.GetID(),
 		logoutRequest,
 		false,
 	)
