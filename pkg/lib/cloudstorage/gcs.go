@@ -121,6 +121,10 @@ func (s *GCSStorage) PresignHeadObject(name string, expire time.Duration) (*url.
 	return s.PresignGetOrHeadObject(name, "HEAD", expire)
 }
 
+func (s *GCSStorage) PresignGetObject(name string, expire time.Duration) (*url.URL, error) {
+	return s.PresignGetOrHeadObject(name, "GET", expire)
+}
+
 func (s *GCSStorage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)

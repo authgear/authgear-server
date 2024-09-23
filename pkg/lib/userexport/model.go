@@ -145,7 +145,7 @@ func NewResponseFromTask(task *redisqueue.Task, cloudStorage cloudstorage.Storag
 		}
 
 		if result.Filename != "" && cloudStorage != nil {
-			downloadUrl, err := cloudStorage.PresignHeadObject(result.Filename, cloudstorage.PresignGetExpiresForUserExport)
+			downloadUrl, err := cloudStorage.PresignGetObject(result.Filename, cloudstorage.PresignGetExpiresForUserExport)
 			if err != nil {
 				return nil, err
 			}

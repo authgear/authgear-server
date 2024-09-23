@@ -109,6 +109,22 @@ func (s *S3Storage) PresignHeadObject(name string, expire time.Duration) (*url.U
 	return u, nil
 }
 
+func (s *S3Storage) PresignGetObject(name string, expire time.Duration) (*url.URL, error) {
+	input := &s3.GetObjectInput{
+		Bucket: aws.String(s.Bucket),
+		Key:    aws.String(name),
+	}
+	req, _ := s.s3.GetObjectRequest(input)
+	req.NotHoist = false
+	urlStr, _, err := req.PresignRequest(expire)
+	if err != nil {
+		return nil, fmt.Errorf("failed to presign get request: %w", err)
+	}
+	u, _ := url.Parse(urlStr)
+
+	return u, nil
+}
+
 func (s *S3Storage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
