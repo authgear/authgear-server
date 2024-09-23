@@ -92,7 +92,7 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 		loginIDKey := r.Form.Get("x_login_id_key")
 		loginID := r.Form.Get("x_login_id")
 		resolvedSession := session.GetSession(r.Context())
-		_, err = h.AccountManagement.AddUsername(resolvedSession, &accountmanagement.AddUsernameInput{
+		_, err = h.AccountManagement.AddIdentityUsername(resolvedSession, &accountmanagement.AddIdentityUsernameInput{
 			LoginIDKey: loginIDKey,
 			LoginID:    loginID,
 		})

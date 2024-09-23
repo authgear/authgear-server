@@ -1,6 +1,8 @@
 @layer components {
   :root {
-    --settings-dialog__description-text--highlight-color: var(--color-neutral-700);
+    --settings-dialog__description-text--highlight-color: var(
+      --color-neutral-700
+    );
   }
 
   .settings-dialog {

@@ -103,7 +103,7 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 		loginIDKey := r.Form.Get("x_login_id_key")
 		loginID := r.Form.Get("x_login_id")
 		resolvedSession := session.GetSession(r.Context())
-		_, err = h.AccountManagement.UpdateUsername(resolvedSession, &accountmanagement.UpdateUsernameInput{
+		_, err = h.AccountManagement.UpdateIdentityUsername(resolvedSession, &accountmanagement.UpdateIdentityUsernameInput{
 			IdentityID: identityID,
 			LoginIDKey: loginIDKey,
 			LoginID:    loginID,
