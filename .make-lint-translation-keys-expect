@@ -52,6 +52,8 @@ resources/authgear/templates/en/web/authflowv2/settings_identity_view_phone.html
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_phone.html:69:24: translation key not defined: "settings_identity_phone_edit_button"
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_phone.html:94:22: translation key not defined: "__settings_identity_view_phone_inline_breakable"
 resources/authgear/templates/en/web/authflowv2/settings_identity_view_phone.html:97:23: translation key not defined: "__settings_identity_view_phone_remove_dialog_form_content"
+resources/authgear/templates/en/web/authflowv2/settings_identity_view_username.html:18:24: translation key not defined: "__settings_identity_view_username_edit_button"
+resources/authgear/templates/en/web/authflowv2/settings_identity_view_username.html:45:21: translation key not defined: "__settings_identity_view_username_delete_username_form_content"
 resources/authgear/templates/en/web/authflowv2/settings_layout.html:3:14: template translation is forbidden: `widget`
 resources/authgear/templates/en/web/authflowv2/settings_mfa.html:22:16: template translation is forbidden: `__settings_mfa_item`
 resources/authgear/templates/en/web/authflowv2/settings_mfa.html:37:16: template translation is forbidden: `__settings_mfa_item`
@@ -84,5 +86,5 @@ resources/authgear/templates/en/web/authflowv2/settings_totp.html:22:31: transla
 resources/authgear/templates/en/web/authflowv2/settings_totp.html:23:32: translation key not defined: "__settings_totp_item_delete_button"
 resources/authgear/templates/en/web/authflowv2/signup.html:88:26: translation key not defined: "v2.page.signup.continue.subtitle-%v"
 resources/authgear/templates/en/web/authflowv2/signup.html:261:35: translation key not defined: "%s-icon"
-86 errors found
+88 errors found
 exit status 1
