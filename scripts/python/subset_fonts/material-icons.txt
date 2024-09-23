@@ -46,6 +46,7 @@ function
 functions
 height
 hide
+highlight
 home
 html
 http
