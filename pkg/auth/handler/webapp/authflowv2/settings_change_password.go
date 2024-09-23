@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
-	authflowv2viewmodels "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
@@ -57,9 +56,6 @@ func (h *AuthflowV2SettingsChangePasswordHandler) GetData(r *http.Request, rw ht
 	viewmodels.Embed(data, handlerwebapp.ChangePasswordViewModel{
 		Force: false,
 	})
-
-	passwordInputErrorViewModel := authflowv2viewmodels.NewPasswordInputErrorViewModel(baseViewModel.RawError)
-	viewmodels.Embed(data, passwordInputErrorViewModel)
 
 	return data, nil
 }
