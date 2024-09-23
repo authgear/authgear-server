@@ -20,7 +20,7 @@ func ConfigureUserExportCreateRoute(route httproute.Route) httproute.Route {
 }
 
 type UserExportCreateProducer interface {
-	NewTask(appID string, input json.RawMessage) *redisqueue.Task
+	NewTask(appID string, input json.RawMessage, taskIDPrefix string) *redisqueue.Task
 	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
 }
 
@@ -55,7 +55,7 @@ func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	task := h.UserExports.NewTask(string(h.AppID), rawMessage)
+	task := h.UserExports.NewTask(string(h.AppID), rawMessage, "userexport")
 	err = h.UserExports.EnqueueTask(r.Context(), task)
 	if err != nil {
 		return err

@@ -31,12 +31,12 @@ type Producer struct {
 	Clock     clock.Clock
 }
 
-func newTaskID() string {
-	return fmt.Sprintf("task_%v", corerand.StringWithAlphabet(idLength, idAlphabet, rng))
+func newTaskID(taskIDPrefix string) string {
+	return fmt.Sprintf("%v_%v", taskIDPrefix, corerand.StringWithAlphabet(idLength, idAlphabet, rng))
 }
 
-func (p *Producer) NewTask(appID string, input json.RawMessage) *Task {
-	id := newTaskID()
+func (p *Producer) NewTask(appID string, input json.RawMessage, taskIDPrefix string) *Task {
+	id := newTaskID(taskIDPrefix)
 	now := p.Clock.NowUTC()
 	task := &Task{
 		ID:        id,

@@ -19,7 +19,7 @@ func ConfigureUserImportCreateRoute(route httproute.Route) httproute.Route {
 }
 
 type UserImportCreateProducer interface {
-	NewTask(appID string, input json.RawMessage) *redisqueue.Task
+	NewTask(appID string, input json.RawMessage, taskIDPrefix string) *redisqueue.Task
 	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
 }
 
@@ -49,7 +49,7 @@ func (h *UserImportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	task := h.UserImports.NewTask(string(h.AppID), rawMessage)
+	task := h.UserImports.NewTask(string(h.AppID), rawMessage, "task")
 	err = h.UserImports.EnqueueTask(r.Context(), task)
 	if err != nil {
 		return err
