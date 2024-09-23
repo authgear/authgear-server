@@ -1136,7 +1136,6 @@
   "v2.page.settings-delete-account.default.description": "刪除帳戶後，新增的資料將會永久刪除，我們將無法找回。如果您繼續，您的帳戶將於 <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span> 被刪除",
   "v2.page.settings-delete-account.default.input-placeholder": "輸入 <b>{input}</b> 以確認",
   "v2.page.settings-delete-account.default.navbar-title": "刪除帳戶",
-  "v2.page.settings-delete-account.default.title": "刪除帳戶",
   "v2.page.settings-identity-add-email.default.email-input-placeholder": "新電郵地址",
   "v2.page.settings-identity-add-email.default.navbar-title": "新增電郵地址",
   "v2.page.settings-identity-add-phone.default.navbar-title": "新增電話",
