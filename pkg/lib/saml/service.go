@@ -570,7 +570,7 @@ func (s *Service) IssueLogoutResponse(
 
 func (s *Service) VerifyEmbeddedSignature(
 	sp *config.SAMLServiceProviderConfig,
-	samlRequestXML string) error {
+	samlElementXML string) error {
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
 	if !ok {
 		// Signing cert not configured, nothing to verify
@@ -584,7 +584,7 @@ func (s *Service) VerifyEmbeddedSignature(
 	validationCtx := dsig.NewDefaultValidationContext(certificateStore)
 
 	doc := etree.NewDocument()
-	err := doc.ReadFromString(samlRequestXML)
+	err := doc.ReadFromString(samlElementXML)
 	if err != nil {
 		return err
 	}
@@ -598,9 +598,14 @@ func (s *Service) VerifyEmbeddedSignature(
 	return nil
 }
 
+type SAMLElementSigned struct {
+	SAMLResponse string
+	SAMLRequest  string
+}
+
 func (s *Service) VerifyExternalSignature(
 	sp *config.SAMLServiceProviderConfig,
-	samlRequest string,
+	el *SAMLElementSigned,
 	sigAlg string,
 	relayState string,
 	signature string) error {
@@ -611,7 +616,13 @@ func (s *Service) VerifyExternalSignature(
 	}
 
 	q := url.Values{}
-	q.Set("SAMLRequest", samlRequest)
+	if el.SAMLRequest != "" {
+		q.Set("SAMLRequest", el.SAMLRequest)
+	} else if el.SAMLResponse != "" {
+		q.Set("SAMLResponse", el.SAMLResponse)
+	} else {
+		panic("no signed element")
+	}
 	q.Set("RelayState", relayState)
 	q.Set("SigAlg", sigAlg)
 
