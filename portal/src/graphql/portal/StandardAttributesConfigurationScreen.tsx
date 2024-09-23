@@ -137,7 +137,7 @@ const StandardAttributesConfigurationScreenContent: React.VFC<StandardAttributes
     );
     return (
       <>
-        <ScreenContent>
+        <ScreenContent layout="list">
           <ScreenTitle className={styles.widget}>
             <FormattedMessage id="StandardAttributesConfigurationScreen.title" />
           </ScreenTitle>
