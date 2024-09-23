@@ -47,7 +47,8 @@ func mapGet[T string | bool | map[string]interface{}](m map[string]interface{}, 
 	return value
 }
 
-func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport, record *Record) {
+func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (record *Record, err error) {
+	record = &Record{}
 	record.Sub = user.ID
 
 	record.PreferredUsername = mapGet[string](user.StandardAttributes, "preferred_username")
@@ -149,8 +150,7 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport, reco
 			}
 			totp, err := secretcode.NewTOTPFromSecret(authenticator.TOTP.Secret)
 			if err != nil {
-				s.Logger.Warningf("Failed to get TOTP URI: %s\n", err)
-				continue
+				return nil, err
 			}
 			otpauthURI := totp.GetURI(opts).String()
 
@@ -162,6 +162,8 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport, reco
 			record.Mfa.PhoneNumbers = append(record.Mfa.PhoneNumbers, authenticator.OOBOTP.Phone)
 		}
 	}
+
+	return record, nil
 }
 
 func (s *UserExportService) ExportRecords(ctx context.Context, request *Request, task *redisqueue.Task) (outputFilename string, err error) {
@@ -193,8 +195,10 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 		s.Logger.Infof("Found number of users: %v", len(page))
 
 		for _, user := range page {
-			var record Record
-			s.convertDBUserToRecord(user, &record)
+			record, convertErr := s.convertDBUserToRecord(user)
+			if convertErr != nil {
+				return "", convertErr
+			}
 
 			recordJson, jsonErr := json.Marshal(record)
 			if jsonErr != nil {
