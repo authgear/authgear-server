@@ -1,5 +1,5 @@
 .root {
-  @apply flex items-center flex-wrap;
+  @apply flex items-center flex-wrap gap-x-4 tablet:gap-x-0;
   @apply h-11;
 
   /* Align the first item with the screen title. */
@@ -39,7 +39,6 @@
 }
 
 .filterActionContainer {
-  @apply ml-4 tablet:ml-0;
   @apply h-full;
   @apply flex items-center;
   @apply flex-1-0-auto;
