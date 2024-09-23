@@ -14,6 +14,7 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
@@ -106,6 +107,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.UserImportGetProducer), new(*redisqueue.UserImportProducer)),
 	wire.Bind(new(transport.UserExportCreateProducer), new(*redisqueue.UserExportProducer)),
 	wire.Bind(new(transport.UserExportGetProducer), new(*redisqueue.UserExportProducer)),
+	wire.Bind(new(transport.UserExportCreateHandlerCloudStorage), new(cloudstorage.Storage)),
+	wire.Bind(new(transport.UserExportGetHandlerCloudStorage), new(cloudstorage.Storage)),
 
 	adminauthz.DependencySet,
 )

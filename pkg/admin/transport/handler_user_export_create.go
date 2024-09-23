@@ -4,9 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
@@ -19,6 +20,10 @@ func ConfigureUserExportCreateRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/_api/admin/users/export")
 }
 
+type UserExportCreateHandlerCloudStorage interface {
+	PresignGetObject(name string, expire time.Duration) (*url.URL, error)
+}
+
 type UserExportCreateProducer interface {
 	NewTask(appID string, input json.RawMessage, taskIDPrefix string) *redisqueue.Task
 	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
@@ -28,7 +33,7 @@ type UserExportCreateHandler struct {
 	AppID        config.AppID
 	JSON         JSONResponseWriter
 	UserExports  UserExportCreateProducer
-	CloudStorage cloudstorage.Storage
+	CloudStorage UserExportCreateHandlerCloudStorage
 }
 
 func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +66,7 @@ func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	response, err := userexport.NewResponseFromTask(task, nil)
+	response, err := userexport.NewResponseFromTask(task)
 	if err != nil {
 		return err
 	}

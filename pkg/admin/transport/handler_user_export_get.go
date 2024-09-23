@@ -3,6 +3,8 @@ package transport
 import (
 	"context"
 	"net/http"
+	"net/url"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
@@ -17,6 +19,10 @@ func ConfigureUserExportGetRoute(route httproute.Route) httproute.Route {
 		WithPathPattern("/_api/admin/users/export/:id")
 }
 
+type UserExportGetHandlerCloudStorage interface {
+	PresignGetObject(name string, expire time.Duration) (*url.URL, error)
+}
+
 type UserExportGetProducer interface {
 	GetTask(ctx context.Context, item *redisqueue.QueueItem) (*redisqueue.Task, error)
 }
@@ -25,7 +31,7 @@ type UserExportGetHandler struct {
 	AppID        config.AppID
 	JSON         JSONResponseWriter
 	UserExports  UserExportGetProducer
-	CloudStorage cloudstorage.Storage
+	CloudStorage UserExportGetHandlerCloudStorage
 }
 
 func (h *UserExportGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -52,9 +58,18 @@ func (h *UserExportGetHandler) handle(w http.ResponseWriter, r *http.Request) er
 		return err
 	}
 
-	response, err := userexport.NewResponseFromTask(task, h.CloudStorage)
+	response, err := userexport.NewResponseFromTask(task)
 	if err != nil {
 		return err
+	}
+
+	// Get presigned download url when the task completed successfully
+	if response.FailedAt == nil {
+		downloadUrl, err := h.CloudStorage.PresignGetObject(response.DownloadUrl, cloudstorage.PresignGetExpiresForUserExport)
+		if err != nil {
+			return err
+		}
+		response.DownloadUrl = downloadUrl.String()
 	}
 
 	h.JSON.WriteResponse(w, &api.Response{

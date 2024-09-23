@@ -114,7 +114,7 @@ type Record struct {
 	PasskeyCount   int `json:"passkey_count"`
 }
 
-func NewResponseFromTask(task *redisqueue.Task, cloudStorage cloudstorage.Storage) (*Response, error) {
+func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 	response := &Response{
 		ID:        task.ID,
 		CreatedAt: task.CreatedAt,
@@ -142,14 +142,7 @@ func NewResponseFromTask(task *redisqueue.Task, cloudStorage cloudstorage.Storag
 			response.Error = result.Error
 		} else {
 			response.CompletedAt = task.CompletedAt
-		}
-
-		if result.Filename != "" && cloudStorage != nil {
-			downloadUrl, err := cloudStorage.PresignGetObject(result.Filename, cloudstorage.PresignGetExpiresForUserExport)
-			if err != nil {
-				return nil, err
-			}
-			response.DownloadUrl = downloadUrl.String()
+			response.DownloadUrl = result.Filename
 		}
 	}
 
