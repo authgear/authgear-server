@@ -173,12 +173,11 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 	}
 	defer os.Remove(tmpResult.Name())
 
-	// Bound export loop maximum count
-	const maxPageToGet = 10000
-	for pageNumber := 0; pageNumber < maxPageToGet; pageNumber += 1 {
-		s.Logger.Infof("Export user page %v", pageNumber)
+	var offset uint64 = uint64(0)
+	for {
+		s.Logger.Infof("Export user page offset %v", offset)
 		var page []*user.UserForExport = nil
-		var offset uint64 = uint64(pageNumber * BatchSize)
+
 		err = s.AppDatabase.WithTx(func() (e error) {
 			result, pageErr := s.UserQueries.GetPageForExport(offset, BatchSize)
 			if pageErr != nil {
@@ -211,6 +210,8 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 		// Exit export loop early when no more record to read
 		if len(page) < BatchSize {
 			break
+		} else {
+			offset = offset + BatchSize
 		}
 	}
 
