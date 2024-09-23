@@ -5,6 +5,7 @@ type DatabaseEnvironmentConfig struct {
 	MaxIdleConn            int             `envconfig:"MAX_IDLE_CONN" default:"3"`
 	ConnMaxLifetimeSeconds DurationSeconds `envconfig:"CONN_MAX_LIFETIME" default:"1800"`
 	ConnMaxIdleTimeSeconds DurationSeconds `envconfig:"CONN_MAX_IDLE_TIME" default:"300"`
+	UsePreparedStatements  bool            `envconfig:"USE_PREPARED_STATEMENTS" default:"false"`
 }
 
 // NewDefaultDatabaseEnvironmentConfig provides default database config
