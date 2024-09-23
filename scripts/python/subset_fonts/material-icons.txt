@@ -7,6 +7,7 @@ animation
 api
 arrow_back_ios
 arrow_forward_ios
+auto_delete
 block
 border_color
 box
@@ -21,6 +22,7 @@ code
 colors
 create
 css
+delete
 description
 details
 devices
