@@ -87,7 +87,7 @@ func (s Set[T]) Has(key T) bool {
 func (s *Set[T]) Merge(other Set[T]) Set[T] {
 	result := Set[T]{}
 	if (*s) != nil {
-		for _, k := range other.Keys() {
+		for _, k := range s.Keys() {
 			result.Add(k)
 		}
 	}
