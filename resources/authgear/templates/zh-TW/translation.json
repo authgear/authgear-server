@@ -888,6 +888,7 @@
   "v2.component.button.default.label-remove": "移除",
   "v2.component.button.default.label-save": "儲存",
   "v2.component.button.default.label-send": "傳送",
+  "v2.component.button.default.label-terminate": "終止",
   "v2.component.device-token-checkbox.default.label": "記住此裝置，不要再詢問",
   "v2.component.divider.default.or-label": "或",
   "v2.component.input.default.placeholder-email": "電郵地址",
