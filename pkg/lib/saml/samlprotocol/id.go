@@ -26,3 +26,7 @@ func GenerateResponseID() string {
 func GenerateAssertionID() string {
 	return generateID("samlassertion")
 }
+
+func GenerateLogoutRequestID() string {
+	return generateID("samllogoutrequest")
+}
