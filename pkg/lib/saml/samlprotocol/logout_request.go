@@ -21,9 +21,9 @@ func ParseLogoutRequest(input []byte) (*LogoutRequest, error) {
 }
 
 func (a *LogoutRequest) ToXMLBytes() []byte {
-	buf, err := xml.Marshal(a)
+	bytes, err := a.Bytes()
 	if err != nil {
 		panic(err)
 	}
-	return buf
+	return bytes
 }
