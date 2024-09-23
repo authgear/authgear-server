@@ -4,6 +4,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/beevik/etree"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
@@ -15,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
-	"github.com/beevik/etree"
 )
 
 func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
@@ -102,7 +103,7 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	case *logoutRemainingSPsResult:
 		// Logout all remaining participants before finish
-		isSomeFailed := false
+		sloSession := result.sloSession
 		for _, spID := range result.sloSession.Entry.PendingLogoutServiceProviderIDs.Keys() {
 			sp, ok := h.SAMLConfig.ResolveProvider(spID)
 			if ok && sp.SLOEnabled {
@@ -114,7 +115,18 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					// For some reason it failed
 					// Skip this SP and send request to the next one
-					isSomeFailed = true
+					h.Logger.WithError(err).Error("failed to send logout request")
+					sloSession.Entry.IsPartialLogout = true
+					err = h.SAMLSLOSessionService.Save(sloSession)
+					if err != nil {
+						h.handleError(rw, r,
+							result.sloSession.Entry.ResponseBinding,
+							result.sloSession.Entry.CallbackURL,
+							result.sloSession.Entry.RelayState,
+							err,
+						)
+						return
+					}
 					continue
 				}
 				return
@@ -125,7 +137,7 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			callbackURL,
 			sp.GetID(),
 			result.sloSession.Entry.LogoutRequest(),
-			isSomeFailed,
+			sloSession.Entry.IsPartialLogout,
 		)
 		if err != nil {
 			h.handleError(rw, r,
@@ -374,6 +386,7 @@ func (s *LogoutHandler) createSLOSession(
 		RelayState:                      relayState,
 		SID:                             sid,
 		UserID:                          userID,
+		IsPartialLogout:                 false,
 	}
 	sloSession := samlslosession.NewSAMLSLOSession(sloSessionEntry)
 	err := s.SAMLSLOSessionService.Save(sloSession)
