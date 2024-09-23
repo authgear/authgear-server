@@ -37,7 +37,7 @@ type logoutResult interface {
 	logoutResult()
 }
 
-// logoutCompleteResult means the whole logout proccess is completed,
+// logoutCompleteResult means the whole logout process is completed,
 // and a response should be returned
 type logoutCompleteResult struct {
 	response *etree.Element
