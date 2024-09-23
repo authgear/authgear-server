@@ -111,5 +111,6 @@ type SessionManager interface {
 }
 
 type SAMLSLOSessionService interface {
+	Get(sessionID string) (entry *samlslosession.SAMLSLOSession, err error)
 	Save(session *samlslosession.SAMLSLOSession) (err error)
 }

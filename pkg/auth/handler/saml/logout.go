@@ -92,8 +92,17 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	var err error
 	relayState, result, err = h.handleSLORequest(rw, r, sp, responseBinding, callbackURL)
 	if err != nil {
-		h.handleError(rw, r, responseBinding, callbackURL, relayState, err)
-		return
+		if errors.Is(err, samlbinding.ErrNoRequest) {
+			// No request found, try to parse it as response
+			result, err = h.handleSLOResponse(rw, r, sp)
+			if err != nil {
+				// panic here because we are handling a response, so no need to return the error as a response.
+				panic(err)
+			}
+		} else {
+			h.handleError(rw, r, responseBinding, callbackURL, relayState, err)
+			return
+		}
 	}
 
 	switch result := result.(type) {
@@ -162,7 +171,7 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 func (h *LogoutHandler) parseSLORequest(
 	r *http.Request,
 ) (
-	parseResult samlbinding.SAMLBindingParseResult,
+	parseResult samlbinding.SAMLBindingParseReqeustResult,
 	logoutRequest *samlprotocol.LogoutRequest,
 	relayState string,
 	err error,
@@ -186,7 +195,7 @@ func (h *LogoutHandler) parseSLORequest(
 	switch r.Method {
 	case "GET":
 		// HTTP-Redirect binding
-		r, parseErr := samlbinding.SAMLBindingHTTPRedirectParse(r)
+		r, parseErr := samlbinding.SAMLBindingHTTPRedirectParseRequest(r)
 		if parseErr != nil {
 			return nil, nil, "", parseErr
 		}
@@ -202,7 +211,7 @@ func (h *LogoutHandler) parseSLORequest(
 		relayState = r.RelayState
 	case "POST":
 		// HTTP-POST binding
-		r, parseErr := samlbinding.SAMLBindingHTTPPostParse(r)
+		r, parseErr := samlbinding.SAMLBindingHTTPPostParseRequest(r)
 		if parseErr != nil {
 			return nil, nil, "", parseErr
 		}
@@ -223,9 +232,57 @@ func (h *LogoutHandler) parseSLORequest(
 	return parseResult, logoutRequest, relayState, nil
 }
 
-func (h *LogoutHandler) verifySignature(
+func (h *LogoutHandler) parseSLOResponse(
+	r *http.Request,
+) (
+	parseResult samlbinding.SAMLBindingParseResponseResult,
+	logoutResponse *samlprotocol.LogoutResponse,
+	relayState string,
+	err error,
+) {
+	switch r.Method {
+	case "GET":
+		// HTTP-Redirect binding
+		r, parseErr := samlbinding.SAMLBindingHTTPRedirectParseResponse(r)
+		if parseErr != nil {
+			return nil, nil, "", parseErr
+		}
+		logoutResponse, err = samlprotocol.ParseLogoutResponse([]byte(r.SAMLResponseXML))
+		if err != nil {
+			err = &samlprotocol.ParseRequestFailedError{
+				Reason: "malformed LogoutResponse",
+				Cause:  err,
+			}
+			return nil, nil, "", err
+		}
+		parseResult = r
+		relayState = r.RelayState
+	case "POST":
+		// HTTP-POST binding
+		r, parseErr := samlbinding.SAMLBindingHTTPPostParseResponse(r)
+		if parseErr != nil {
+			return nil, nil, "", parseErr
+		}
+		logoutResponse, err = samlprotocol.ParseLogoutResponse([]byte(r.SAMLResponseXML))
+		if err != nil {
+			err = &samlprotocol.ParseRequestFailedError{
+				Reason: "malformed LogoutResponse",
+				Cause:  err,
+			}
+			return nil, nil, "", err
+		}
+		parseResult = r
+		relayState = r.RelayState
+	default:
+		// panic because it should not happen if ConfigureLogoutRoute is correct
+		panic("unexpected method")
+	}
+	return parseResult, logoutResponse, relayState, nil
+}
+
+func (h *LogoutHandler) verifyRequestSignature(
 	sp *config.SAMLServiceProviderConfig,
-	parseResult samlbinding.SAMLBindingParseResult,
+	parseResult samlbinding.SAMLBindingParseReqeustResult,
 ) (err error) {
 	defer func() {
 		// Transform known errors
@@ -244,7 +301,7 @@ func (h *LogoutHandler) verifySignature(
 		}
 	}()
 	switch parseResult := parseResult.(type) {
-	case *samlbinding.SAMLBindingHTTPRedirectParseResult:
+	case *samlbinding.SAMLBindingHTTPRedirectParseRequestResult:
 		err = h.SAMLService.VerifyExternalSignature(sp,
 			parseResult.SAMLRequest,
 			parseResult.SigAlg,
@@ -253,7 +310,7 @@ func (h *LogoutHandler) verifySignature(
 		if err != nil {
 			return err
 		}
-	case *samlbinding.SAMLBindingHTTPPostParseResult:
+	case *samlbinding.SAMLBindingHTTPPostParseRequestResult:
 		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.SAMLRequestXML)
 		if err != nil {
 			return err
@@ -299,6 +356,46 @@ func (h *LogoutHandler) invalidateSession(
 	return "", setutil.Set[string]{}, nil
 }
 
+func (h *LogoutHandler) handleSLOResponse(
+	rw http.ResponseWriter,
+	r *http.Request,
+	sp *config.SAMLServiceProviderConfig,
+) (result logoutResult, err error) {
+	var logoutRequest *samlprotocol.LogoutResponse
+	var relayState string
+
+	// Get data with corresponding binding
+	_, logoutRequest, relayState, err = h.parseSLOResponse(r)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO(saml): Verify the response signature
+
+	sloSessionID := relayState
+	sloSession, err := h.SAMLSLOSessionService.Get(sloSessionID)
+	if err != nil {
+		// We do not check if it is ErrNotFound,
+		// because it is unexpected that we receive an logout response without a slo session
+		return nil, err
+	}
+	if logoutRequest.Status.StatusCode.Value != samlprotocol.StatusSuccess {
+		// At least one logout is failed, return a correct status to indicate it
+		sloSession.Entry.IsPartialLogout = true
+	}
+	// Remove the current SP id from the pending sp ids
+	sloSession.Entry.PendingLogoutServiceProviderIDs.Delete(sp.GetID())
+
+	err = h.SAMLSLOSessionService.Save(sloSession)
+	if err != nil {
+		return nil, err
+	}
+
+	return &logoutRemainingSPsResult{
+		sloSession: sloSession,
+	}, nil
+}
+
 func (h *LogoutHandler) handleSLORequest(
 	rw http.ResponseWriter,
 	r *http.Request,
@@ -306,7 +403,7 @@ func (h *LogoutHandler) handleSLORequest(
 	responseBinding samlprotocol.SAMLBinding,
 	callbackURL string,
 ) (relayState string, result logoutResult, err error) {
-	var parseResult samlbinding.SAMLBindingParseResult
+	var parseResult samlbinding.SAMLBindingParseReqeustResult
 	var logoutRequest *samlprotocol.LogoutRequest
 
 	// Get data with corresponding binding
@@ -316,7 +413,7 @@ func (h *LogoutHandler) handleSLORequest(
 	}
 
 	// Verify the signature
-	err = h.verifySignature(sp, parseResult)
+	err = h.verifyRequestSignature(sp, parseResult)
 	if err != nil {
 		return relayState, nil, err
 	}
