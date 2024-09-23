@@ -47,7 +47,7 @@ func TestSAMLBindingHTTPPost(t *testing.T) {
 			req.Method = "POST"
 			req.Header = header
 			req.Body = io.NopCloser(bytes.NewReader([]byte(bodyStr)))
-			result, err := samlbinding.SAMLBindingHTTPPostParse(req)
+			result, err := samlbinding.SAMLBindingHTTPPostParseRequest(req)
 			So(err, ShouldBeNil)
 
 			So(result.RelayState, ShouldEqual, relayState)

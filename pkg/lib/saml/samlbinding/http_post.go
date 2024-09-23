@@ -10,20 +10,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
-type SAMLBindingHTTPPostParseResult struct {
+type SAMLBindingHTTPPostParseRequestResult struct {
 	SAMLRequestXML string
 	RelayState     string
 }
 
-var _ SAMLBindingParseResult = &SAMLBindingHTTPPostParseResult{}
+var _ SAMLBindingParseReqeustResult = &SAMLBindingHTTPPostParseRequestResult{}
 
-func (*SAMLBindingHTTPPostParseResult) samlBindingParseResult() {}
+func (*SAMLBindingHTTPPostParseRequestResult) samlBindingParseRequestResult() {}
 
-func SAMLBindingHTTPPostParse(r *http.Request) (
-	result *SAMLBindingHTTPPostParseResult,
+func SAMLBindingHTTPPostParseRequest(r *http.Request) (
+	result *SAMLBindingHTTPPostParseRequestResult,
 	err error,
 ) {
-	result = &SAMLBindingHTTPPostParseResult{}
+	result = &SAMLBindingHTTPPostParseRequestResult{}
 	if err := r.ParseForm(); err != nil {
 		return result, &samlprotocol.ParseRequestFailedError{
 			Reason: "failed to parse request body as a application/x-www-form-urlencoded form",
@@ -32,6 +32,10 @@ func SAMLBindingHTTPPostParse(r *http.Request) (
 	}
 	relayState := r.PostForm.Get("RelayState")
 	result.RelayState = relayState
+
+	if r.PostForm.Get("SAMLRequest") == "" {
+		return nil, ErrNoRequest
+	}
 
 	requestBuffer, err := base64.StdEncoding.DecodeString(r.PostForm.Get("SAMLRequest"))
 	if err != nil {
@@ -42,6 +46,46 @@ func SAMLBindingHTTPPostParse(r *http.Request) (
 	}
 
 	result.SAMLRequestXML = string(requestBuffer)
+
+	return result, nil
+}
+
+type SAMLBindingHTTPPostParseResponseResult struct {
+	SAMLResponseXML string
+	RelayState      string
+}
+
+var _ SAMLBindingParseResponseResult = &SAMLBindingHTTPPostParseResponseResult{}
+
+func (*SAMLBindingHTTPPostParseResponseResult) samlBindingParseResponseResult() {}
+
+func SAMLBindingHTTPPostParseResponse(r *http.Request) (
+	result *SAMLBindingHTTPPostParseResponseResult,
+	err error,
+) {
+	result = &SAMLBindingHTTPPostParseResponseResult{}
+	if err := r.ParseForm(); err != nil {
+		return result, &samlprotocol.ParseRequestFailedError{
+			Reason: "failed to parse response body as a application/x-www-form-urlencoded form",
+			Cause:  err,
+		}
+	}
+	relayState := r.PostForm.Get("RelayState")
+	result.RelayState = relayState
+
+	if r.PostForm.Get("SAMLResponse") == "" {
+		return nil, ErrNoResponse
+	}
+
+	responseBuffer, err := base64.StdEncoding.DecodeString(r.PostForm.Get("SAMLResponse"))
+	if err != nil {
+		return result, &samlprotocol.ParseRequestFailedError{
+			Reason: "base64 decode failed",
+			Cause:  err,
+		}
+	}
+
+	result.SAMLResponseXML = string(responseBuffer)
 
 	return result, nil
 }

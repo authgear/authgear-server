@@ -14,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
-type SAMLBindingHTTPRedirectParseResult struct {
+type SAMLBindingHTTPRedirectParseRequestResult struct {
 	SAMLRequest    string
 	SAMLRequestXML string
 	RelayState     string
@@ -22,15 +22,15 @@ type SAMLBindingHTTPRedirectParseResult struct {
 	Signature      string
 }
 
-var _ SAMLBindingParseResult = &SAMLBindingHTTPRedirectParseResult{}
+var _ SAMLBindingParseReqeustResult = &SAMLBindingHTTPRedirectParseRequestResult{}
 
-func (*SAMLBindingHTTPRedirectParseResult) samlBindingParseResult() {}
+func (*SAMLBindingHTTPRedirectParseRequestResult) samlBindingParseRequestResult() {}
 
-func SAMLBindingHTTPRedirectParse(r *http.Request) (
-	result *SAMLBindingHTTPRedirectParseResult,
+func SAMLBindingHTTPRedirectParseRequest(r *http.Request) (
+	result *SAMLBindingHTTPRedirectParseRequestResult,
 	err error,
 ) {
-	result = &SAMLBindingHTTPRedirectParseResult{}
+	result = &SAMLBindingHTTPRedirectParseRequestResult{}
 	relayState := r.URL.Query().Get("RelayState")
 	result.RelayState = relayState
 	signature := r.URL.Query().Get("Signature")
@@ -56,6 +56,54 @@ func SAMLBindingHTTPRedirectParse(r *http.Request) (
 	}
 
 	result.SAMLRequestXML = string(requestBuffer)
+	result.Signature = signature
+	result.SigAlg = sigAlg
+
+	return result, nil
+}
+
+type SAMLBindingHTTPRedirectParseResponseResult struct {
+	SAMLResponse    string
+	SAMLResponseXML string
+	RelayState      string
+	SigAlg          string
+	Signature       string
+}
+
+var _ SAMLBindingParseResponseResult = &SAMLBindingHTTPRedirectParseResponseResult{}
+
+func (*SAMLBindingHTTPRedirectParseResponseResult) samlBindingParseResponseResult() {}
+
+func SAMLBindingHTTPRedirectParseResponse(r *http.Request) (
+	result *SAMLBindingHTTPRedirectParseResponseResult,
+	err error,
+) {
+	result = &SAMLBindingHTTPRedirectParseResponseResult{}
+	relayState := r.URL.Query().Get("RelayState")
+	result.RelayState = relayState
+	signature := r.URL.Query().Get("Signature")
+	sigAlg := r.URL.Query().Get("SigAlg")
+	samlResponse := r.URL.Query().Get("SAMLResponse")
+	result.SAMLResponse = samlResponse
+	if samlResponse == "" {
+		return nil, ErrNoResponse
+	}
+	compressedResponse, err := base64.StdEncoding.DecodeString(samlResponse)
+	if err != nil {
+		return result, &samlprotocol.ParseRequestFailedError{
+			Reason: "base64 decode failed",
+			Cause:  err,
+		}
+	}
+	responseBuffer, err := io.ReadAll(newSaferFlateReader(bytes.NewReader(compressedResponse)))
+	if err != nil {
+		return result, &samlprotocol.ParseRequestFailedError{
+			Reason: "decompress failed",
+			Cause:  err,
+		}
+	}
+
+	result.SAMLResponseXML = string(responseBuffer)
 	result.Signature = signature
 	result.SigAlg = sigAlg
 

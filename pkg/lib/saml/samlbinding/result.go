@@ -1,5 +1,9 @@
 package samlbinding
 
-type SAMLBindingParseResult interface {
-	samlBindingParseResult()
+type SAMLBindingParseReqeustResult interface {
+	samlBindingParseRequestResult()
+}
+
+type SAMLBindingParseResponseResult interface {
+	samlBindingParseResponseResult()
 }

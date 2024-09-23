@@ -49,7 +49,7 @@ func TestSAMLBindingHTTPRedirect(t *testing.T) {
 			q.Add("SigAlg", sigAlg)
 			q.Add("SAMLRequest", base64EncodedRequest)
 			req.URL.RawQuery = q.Encode()
-			result, err := samlbinding.SAMLBindingHTTPRedirectParse(req)
+			result, err := samlbinding.SAMLBindingHTTPRedirectParseRequest(req)
 			So(err, ShouldBeNil)
 
 			So(result.SAMLRequest, ShouldEqual, base64EncodedRequest)

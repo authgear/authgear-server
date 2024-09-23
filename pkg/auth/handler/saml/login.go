@@ -120,7 +120,7 @@ func (h *LoginHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (h *LoginHandler) parseRequest(r *http.Request,
 ) (
-	result samlbinding.SAMLBindingParseResult,
+	result samlbinding.SAMLBindingParseReqeustResult,
 	authnRequest *samlprotocol.AuthnRequest,
 	relayState string,
 	err error,
@@ -149,7 +149,7 @@ func (h *LoginHandler) parseRequest(r *http.Request,
 	switch r.Method {
 	case "GET":
 		// HTTP-Redirect binding
-		r, parseErr := samlbinding.SAMLBindingHTTPRedirectParse(r)
+		r, parseErr := samlbinding.SAMLBindingHTTPRedirectParseRequest(r)
 		if parseErr != nil {
 			return nil, nil, "", parseErr
 		}
@@ -166,7 +166,7 @@ func (h *LoginHandler) parseRequest(r *http.Request,
 		result = r
 	case "POST":
 		// HTTP-POST binding
-		r, parseErr := samlbinding.SAMLBindingHTTPPostParse(r)
+		r, parseErr := samlbinding.SAMLBindingHTTPPostParseRequest(r)
 		if parseErr != nil {
 			return nil, nil, "", parseErr
 		}
@@ -189,7 +189,7 @@ func (h *LoginHandler) parseRequest(r *http.Request,
 
 func (h *LoginHandler) verifyRequestSignature(
 	sp *config.SAMLServiceProviderConfig,
-	parseResult samlbinding.SAMLBindingParseResult,
+	parseResult samlbinding.SAMLBindingParseReqeustResult,
 ) (err error) {
 	defer func() {
 		// Transform known errors
@@ -212,7 +212,7 @@ func (h *LoginHandler) verifyRequestSignature(
 
 	// Verify the signature
 	switch parseResult := parseResult.(type) {
-	case *samlbinding.SAMLBindingHTTPRedirectParseResult:
+	case *samlbinding.SAMLBindingHTTPRedirectParseRequestResult:
 		err = h.SAMLService.VerifyExternalSignature(sp,
 			parseResult.SAMLRequest,
 			parseResult.SigAlg,
@@ -221,7 +221,7 @@ func (h *LoginHandler) verifyRequestSignature(
 		if err != nil {
 			return err
 		}
-	case *samlbinding.SAMLBindingHTTPPostParseResult:
+	case *samlbinding.SAMLBindingHTTPPostParseRequestResult:
 		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.SAMLRequestXML)
 		if err != nil {
 			return err
@@ -239,7 +239,7 @@ func (h *LoginHandler) handleLoginRequest(
 	defaultCallbackURL string,
 ) (relayState string, callbackURL string, result loginResult, err error) {
 	now := h.Clock.NowUTC()
-	var parseResult samlbinding.SAMLBindingParseResult
+	var parseResult samlbinding.SAMLBindingParseReqeustResult
 	var authnRequest *samlprotocol.AuthnRequest
 	callbackURL = defaultCallbackURL
 	issuer := h.SAMLService.IdpEntityID()
