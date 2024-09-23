@@ -1,5 +1,5 @@
 .root {
-  @apply flex items-center flex-wrap;
+  @apply flex items-center flex-wrap gap-x-4 tablet:gap-x-0;
   @apply h-11;
 
   /* Align the first item with the screen title. */
@@ -14,7 +14,7 @@
 }
 
 .filterContainer {
-  @apply flex items-center;
+  @apply flex items-center gap-x-4;
   @apply h-full;
 
   @apply tablet:grid tablet:grid-cols-2 tablet:gap-4;
@@ -23,7 +23,6 @@
 
 .searchBox {
   @apply w-[300px] flex-1-0-auto;
-  @apply mx-4;
 
   @apply tablet:w-full;
   @apply tablet:col-span-2;
