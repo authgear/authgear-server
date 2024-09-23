@@ -114,21 +114,6 @@ func (r *LogoutRequest) Element() *etree.Element {
 	return el
 }
 
-// MarshalXML implements xml.Marshaler
-func (r *LogoutRequest) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
-	type Alias LogoutRequest
-	aux := &struct {
-		IssueInstant RelaxedTime  `xml:",attr"`
-		NotOnOrAfter *RelaxedTime `xml:",attr"`
-		*Alias
-	}{
-		IssueInstant: RelaxedTime(r.IssueInstant),
-		NotOnOrAfter: (*RelaxedTime)(r.NotOnOrAfter),
-		Alias:        (*Alias)(r),
-	}
-	return e.Encode(aux)
-}
-
 // UnmarshalXML implements xml.Unmarshaler
 func (r *LogoutRequest) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	type Alias LogoutRequest
