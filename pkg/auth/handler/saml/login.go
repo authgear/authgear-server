@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
@@ -214,7 +215,9 @@ func (h *LoginHandler) verifyRequestSignature(
 	switch parseResult := parseResult.(type) {
 	case *samlbinding.SAMLBindingHTTPRedirectParseRequestResult:
 		err = h.SAMLService.VerifyExternalSignature(sp,
-			parseResult.SAMLRequest,
+			&saml.SAMLElementSigned{
+				SAMLRequest: parseResult.SAMLRequest,
+			},
 			parseResult.SigAlg,
 			parseResult.RelayState,
 			parseResult.Signature)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
+	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
@@ -303,7 +304,9 @@ func (h *LogoutHandler) verifyRequestSignature(
 	switch parseResult := parseResult.(type) {
 	case *samlbinding.SAMLBindingHTTPRedirectParseRequestResult:
 		err = h.SAMLService.VerifyExternalSignature(sp,
-			parseResult.SAMLRequest,
+			&saml.SAMLElementSigned{
+				SAMLRequest: parseResult.SAMLRequest,
+			},
 			parseResult.SigAlg,
 			parseResult.RelayState,
 			parseResult.Signature)
@@ -312,6 +315,33 @@ func (h *LogoutHandler) verifyRequestSignature(
 		}
 	case *samlbinding.SAMLBindingHTTPPostParseRequestResult:
 		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.SAMLRequestXML)
+		if err != nil {
+			return err
+		}
+	default:
+		panic("unexpected parse result type")
+	}
+	return nil
+}
+
+func (h *LogoutHandler) verifyResponseSignature(
+	sp *config.SAMLServiceProviderConfig,
+	parseResult samlbinding.SAMLBindingParseResponseResult,
+) (err error) {
+	switch parseResult := parseResult.(type) {
+	case *samlbinding.SAMLBindingHTTPRedirectParseResponseResult:
+		err = h.SAMLService.VerifyExternalSignature(sp,
+			&saml.SAMLElementSigned{
+				SAMLResponse: parseResult.SAMLResponse,
+			},
+			parseResult.SigAlg,
+			parseResult.RelayState,
+			parseResult.Signature)
+		if err != nil {
+			return err
+		}
+	case *samlbinding.SAMLBindingHTTPPostParseResponseResult:
+		err = h.SAMLService.VerifyEmbeddedSignature(sp, parseResult.SAMLResponseXML)
 		if err != nil {
 			return err
 		}
@@ -361,17 +391,21 @@ func (h *LogoutHandler) handleSLOResponse(
 	r *http.Request,
 	sp *config.SAMLServiceProviderConfig,
 ) (result logoutResult, err error) {
+	var parseResult samlbinding.SAMLBindingParseResponseResult
 	var logoutRequest *samlprotocol.LogoutResponse
 	var relayState string
 
 	// Get data with corresponding binding
-	_, logoutRequest, relayState, err = h.parseSLOResponse(r)
+	parseResult, logoutRequest, relayState, err = h.parseSLOResponse(r)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO(saml): Verify the response signature
-
+	// Verify the signature
+	err = h.verifyResponseSignature(sp, parseResult)
+	if err != nil {
+		return nil, err
+	}
 	sloSessionID := relayState
 	sloSession, err := h.SAMLSLOSessionService.Get(sloSessionID)
 	if err != nil {

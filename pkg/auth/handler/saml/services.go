@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
@@ -32,7 +33,7 @@ type HandlerSAMLService interface {
 		samlRequestXML string) error
 	VerifyExternalSignature(
 		sp *config.SAMLServiceProviderConfig,
-		samlRequest string,
+		element *saml.SAMLElementSigned,
 		sigAlg string,
 		relayState string,
 		signature string) error
