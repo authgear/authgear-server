@@ -115,3 +115,12 @@ type SAMLSLOSessionService interface {
 	Get(sessionID string) (entry *samlslosession.SAMLSLOSession, err error)
 	Save(session *samlslosession.SAMLSLOSession) (err error)
 }
+
+type SAMLSLOService interface {
+	SendSLORequest(
+		rw http.ResponseWriter,
+		r *http.Request,
+		sloSession *samlslosession.SAMLSLOSession,
+		sp *config.SAMLServiceProviderConfig,
+	) error
+}

@@ -133,6 +133,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		samlslosession.DependencySet,
 		wire.Bind(new(handlersaml.SAMLSLOSessionService), new(*samlslosession.StoreRedis)),
+		wire.Bind(new(webapp.SAMLSLOSessionService), new(*samlslosession.StoreRedis)),
 	),
 
 	wire.NewSet(
@@ -177,12 +178,18 @@ var CommonDependencySet = wire.NewSet(
 
 		wire.Bind(new(handlersaml.HandlerSAMLService), new(*saml.Service)),
 		wire.Bind(new(samlbinding.SAMLRedirectBindingSigner), new(*saml.Service)),
+		wire.Bind(new(saml.SAMLService), new(*saml.Service)),
+
+		wire.Bind(new(handlersaml.SAMLSLOService), new(*saml.SLOService)),
+		wire.Bind(new(webapp.SAMLSLOService), new(*saml.SLOService)),
 	),
 
 	wire.NewSet(
 		samlbinding.DependencySet,
 		wire.Bind(new(handlersaml.BindingHTTPPostWriter), new(*samlbinding.SAMLBindingHTTPPostWriter)),
+		wire.Bind(new(saml.BindingHTTPPostWriter), new(*samlbinding.SAMLBindingHTTPPostWriter)),
 		wire.Bind(new(handlersaml.BindingHTTPRedirectWriter), new(*samlbinding.SAMLBindingHTTPRedirectWriter)),
+		wire.Bind(new(saml.BindingHTTPRedirectWriter), new(*samlbinding.SAMLBindingHTTPRedirectWriter)),
 	),
 
 	wire.NewSet(
