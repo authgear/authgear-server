@@ -7,14 +7,11 @@ import (
 	"sync"
 
 	"github.com/jmoiron/sqlx"
-
-	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type PoolDB struct {
 	db *sqlx.DB
 
-	logger     *log.Logger
 	closeMutex sync.RWMutex
 	stmtLock   sync.RWMutex
 	stmts      map[string]*sqlx.Stmt
@@ -29,9 +26,7 @@ func (d *PoolDB) Close() error {
 	}
 
 	for _, stmt := range d.stmts {
-		if err := stmt.Close(); err != nil {
-			d.logger.WithError(err).Error("failed to close statement")
-		}
+		_ = stmt.Close()
 	}
 	clear(d.stmts)
 

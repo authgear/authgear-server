@@ -153,7 +153,7 @@ func (h *HookHandle) beginTx() (*txConn, error) {
 	return &txConn{
 		db:        db,
 		tx:        tx,
-		logger:    db.logger,
+		logger:    h.Logger,
 		doPrepare: h.ConnectionOptions.UsePreparedStatements,
 	}, nil
 }
