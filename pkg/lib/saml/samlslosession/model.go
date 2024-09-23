@@ -22,6 +22,7 @@ type SAMLSLOSessionEntry struct {
 	SID                             string                   `json:"sid,omitempty"`
 	UserID                          string                   `json:"user_id,omitempty"`
 	IsPartialLogout                 bool                     `json:"is_partial_logout,omitempty"`
+	PostLogoutRedirectURI           string                   `json:"post_logout_redirect_uri,omitempty"`
 }
 
 func NewSAMLSLOSession(entry *SAMLSLOSessionEntry) *SAMLSLOSession {
@@ -33,10 +34,13 @@ func NewSAMLSLOSession(entry *SAMLSLOSessionEntry) *SAMLSLOSession {
 	}
 }
 
-func (s *SAMLSLOSessionEntry) LogoutRequest() *samlprotocol.LogoutRequest {
+func (s *SAMLSLOSessionEntry) LogoutRequest() (*samlprotocol.LogoutRequest, bool) {
+	if s.LogoutRequestXML == "" {
+		return nil, false
+	}
 	r, err := samlprotocol.ParseLogoutRequest([]byte(s.LogoutRequestXML))
 	if err != nil {
 		panic(err)
 	}
-	return r
+	return r, true
 }

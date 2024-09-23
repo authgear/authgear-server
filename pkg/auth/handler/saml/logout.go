@@ -62,6 +62,7 @@ type LogoutHandler struct {
 	SAMLService           HandlerSAMLService
 	SessionManager        SessionManager
 	SAMLSLOSessionService SAMLSLOSessionService
+	SAMLSLOService        SAMLSLOService
 
 	BindingHTTPPostWriter     BindingHTTPPostWriter
 	BindingHTTPRedirectWriter BindingHTTPRedirectWriter
@@ -133,7 +134,7 @@ func (h *LogoutHandler) handle(
 		for _, spID := range result.sloSession.Entry.PendingLogoutServiceProviderIDs.Keys() {
 			sp, ok := h.SAMLConfig.ResolveProvider(spID)
 			if ok && sp.SLOEnabled {
-				err = h.sendSLORequest(
+				err = h.SAMLSLOService.SendSLORequest(
 					rw, r,
 					result.sloSession,
 					sp,
@@ -159,28 +160,36 @@ func (h *LogoutHandler) handle(
 			}
 		}
 		// None of the SPs has slo enabled, end the logout immediately
-		logoutResponse, err := h.SAMLService.IssueLogoutResponse(
-			result.sloSession.Entry.CallbackURL,
-			sp.GetID(),
-			result.sloSession.Entry.LogoutRequest(),
-			sloSession.Entry.IsPartialLogout,
-		)
-		if err != nil {
-			h.handleError(rw, r,
+		if logoutRequest, ok := result.sloSession.Entry.LogoutRequest(); ok {
+			logoutResponse, err := h.SAMLService.IssueLogoutResponse(
+				result.sloSession.Entry.CallbackURL,
+				sp.GetID(),
+				logoutRequest,
+				sloSession.Entry.IsPartialLogout,
+			)
+			if err != nil {
+				h.handleError(rw, r,
+					result.sloSession.Entry.ResponseBinding,
+					result.sloSession.Entry.CallbackURL,
+					result.sloSession.Entry.RelayState,
+					err,
+				)
+				return
+			}
+			h.writeResponse(rw, r,
+				logoutResponse.Element(),
 				result.sloSession.Entry.ResponseBinding,
 				result.sloSession.Entry.CallbackURL,
 				result.sloSession.Entry.RelayState,
-				err,
 			)
 			return
+		} else if result.sloSession.Entry.PostLogoutRedirectURI != "" {
+			// This is not a logout triggered by SP, redirect to post logout url
+			http.Redirect(rw, r, result.sloSession.Entry.PostLogoutRedirectURI, http.StatusFound)
+			return
+		} else {
+			panic("LogoutRequest and PostLogoutRedirectURI are empty, cannot determine the next action")
 		}
-		h.writeResponse(rw, r,
-			logoutResponse.Element(),
-			result.sloSession.Entry.ResponseBinding,
-			result.sloSession.Entry.CallbackURL,
-			result.sloSession.Entry.RelayState,
-		)
-		return
 
 	}
 }
@@ -591,34 +600,4 @@ func (h *LogoutHandler) handleError(
 		response = samlprotocol.NewUnexpectedServerErrorResponse(now, h.SAMLService.IdpEntityID())
 	}
 	h.writeResponse(rw, r, response.Element(), responseBinding, callbackURL, relayState)
-}
-
-func (h *LogoutHandler) sendSLORequest(
-	rw http.ResponseWriter,
-	r *http.Request,
-	sloSession *samlslosession.SAMLSLOSession,
-	sp *config.SAMLServiceProviderConfig,
-) error {
-	logoutRequest, err := h.SAMLService.IssueLogoutRequest(
-		sp,
-		sloSession,
-	)
-	if err != nil {
-		return err
-	}
-	logoutRequestEl := logoutRequest.Element()
-	callbackURL := sp.SLOCallbackURL
-	switch sp.SLOBinding {
-	case samlprotocol.SAMLBindingHTTPPost:
-		err = h.BindingHTTPPostWriter.WriteRequest(rw, r, callbackURL, logoutRequestEl, sloSession.ID)
-		if err != nil {
-			return err
-		}
-	case samlprotocol.SAMLBindingHTTPRedirect:
-		err = h.BindingHTTPRedirectWriter.WriteRequest(rw, r, callbackURL, logoutRequestEl, sloSession.ID)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
