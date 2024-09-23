@@ -124,3 +124,7 @@ type SAMLSLOService interface {
 		sp *config.SAMLServiceProviderConfig,
 	) error
 }
+
+type Endpoints interface {
+	LogoutEndpointURL() *url.URL
+}
