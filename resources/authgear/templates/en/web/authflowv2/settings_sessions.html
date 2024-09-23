@@ -105,7 +105,7 @@
 <div>
   <p>
     {{ if and .LastAccessedByIPEnglishCountryName .LastAccessedByIPCountryCode }}
-      {{ template "v2.page.settings-sessions.default.country-ip-item-description" (dict "countryName" .LastAccessedByIPEnglishCountryName "countryCode" .LastAccessedByIPCountryCode "ip" .LastAccessedByIP) }}
+      {{ translate "v2.page.settings-sessions.default.country-ip-item-description" (dict "countryName" .LastAccessedByIPEnglishCountryName "countryCode" .LastAccessedByIPCountryCode "ip" .LastAccessedByIP) }}
     {{ else }}
       {{ .LastAccessedByIP }}
     {{ end }}
@@ -115,7 +115,7 @@
     {{ if .ApplicationName }}
       {{ $desc = .ApplicationName }}
     {{ end }}
-    {{ template "v2.page.settings-sessions.default.device-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" .IsCurrent) }}
+    {{ translate "v2.page.settings-sessions.default.device-item-description" (dict "time" .LastAccessedAt "rfc3339" (rfc3339 .LastAccessedAt) "desc" $desc "isCurrent" .IsCurrent) }}
   </p>
 </div>
 {{ end }}
