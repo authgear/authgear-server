@@ -63,6 +63,7 @@ type LogoutHandler struct {
 	SessionManager        SessionManager
 	SAMLSLOSessionService SAMLSLOSessionService
 	SAMLSLOService        SAMLSLOService
+	Endpoints             Endpoints
 
 	BindingHTTPPostWriter     BindingHTTPPostWriter
 	BindingHTTPRedirectWriter BindingHTTPRedirectWriter
@@ -114,6 +115,11 @@ func (h *LogoutHandler) handle(
 			// No request found, try to parse it as response
 			result, err = h.handleSLOResponse(rw, r, sp)
 			if err != nil {
+				if errors.Is(err, samlbinding.ErrNoResponse) {
+					// No request nor response, Redirect to /logout for IdP-initiated logout
+					http.Redirect(rw, r, h.Endpoints.LogoutEndpointURL().String(), http.StatusFound)
+					return
+				}
 				// panic here because we are handling a response, so no need to return the error as a response.
 				panic(err)
 			}

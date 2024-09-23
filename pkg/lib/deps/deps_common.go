@@ -626,6 +626,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(saml.SAMLEndpoints), new(*endpoints.Endpoints)),
 		wire.Bind(new(samlsession.UIServiceAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(authenticationinfo.UIServiceEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(handlersaml.Endpoints), new(*endpoints.Endpoints)),
 	),
 
 	wire.NewSet(
