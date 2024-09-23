@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
 
@@ -80,7 +81,7 @@ type SettingsDeleteAccountSuccessUIInfoResolver interface {
 }
 
 type OTPSender interface {
-	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ otp.MessageType) (*otp.PreparedMessage, error)
+	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
 	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
@@ -311,14 +312,14 @@ func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, input *
 }
 
 func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChannel, target string, isResend bool) error {
-	var msgType otp.MessageType
+	var msgType translation.MessageType
 	switch channel {
 	case model.AuthenticatorOOBChannelWhatsapp:
-		msgType = otp.MessageTypeWhatsappCode
+		msgType = translation.MessageTypeWhatsappCode
 	case model.AuthenticatorOOBChannelSMS:
-		msgType = otp.MessageTypeVerification
+		msgType = translation.MessageTypeVerification
 	case model.AuthenticatorOOBChannelEmail:
-		msgType = otp.MessageTypeVerification
+		msgType = translation.MessageTypeVerification
 	default:
 		panic(fmt.Errorf("accountmanagement: unknown channel"))
 	}
