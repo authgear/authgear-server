@@ -134,29 +134,51 @@
           )
       }}
     {{ end }}
+
+    {{ range $.CustomAttributes }}
+      {{ $labelKey := printf "custom-attribute-label-%s" .Pointer }}
+      {{ $hasKey := $.Translations.HasKey $labelKey }}
+
+      {{ $label := .Label }}
+      {{ if $hasKey }}
+        {{ $label = $.Translations.RenderText $labelKey nil }}
+      {{ end }}
+
+      {{ template "__settings_profile_item"
+        (merge
+          (dict
+            "Title" .Label
+            "Content" (default "" .Value)
+            "Editable" .IsEditable
+            "EditURL" (call $.MakeURL "/settings/profile/custom_attributes/edit" "pointer" .Pointer)
+          )
+          $
+        )
+      }}
+    {{ end }}
   </div>
 </div>
 
 {{ end }}
 
 {{ define "__settings_profile_item" }}
-{{ $url := "" }}
-{{ if $.Editable }}
-  {{ $url = $.EditURL }}
-{{ end }}
+  {{ $url := "" }}
+  {{ if $.Editable }}
+    {{ $url = $.EditURL }}
+  {{ end }}
 
-{{ $content := (translate "v2.page.settings-profile.default.attribute-value-unspecified-label" nil) }}
-{{ if $.Content }}
-  {{ $content = $.Content }}
-{{ end }}
+  {{ $content := (translate "v2.page.settings-profile.default.attribute-value-unspecified-label" nil) }}
+  {{ if $.Content }}
+    {{ $content = $.Content }}
+  {{ end }}
 
-{{ template "authflowv2/__settings_item.html"
-  (dict
-    "Label" $.Title
-    "Href" $url
-    "Children" (list $content)
-  )
-}}
+  {{ template "authflowv2/__settings_item.html"
+    (dict
+      "Label" $.Title
+      "Href" $url
+      "Children" (list $content)
+    )
+  }}
 {{ end }}
 
 {{ define "__settings_profile_date_item" }}
