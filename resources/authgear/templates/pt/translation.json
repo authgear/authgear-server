@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "Nenhum resultado encontrado",
   "v2.component.select-input.default.not-provided-label": "Não fornecido",
   "v2.component.select-input.default.search-label": "Pesquisar",
-  "v2.component.select-input.default.unset-label": "Não definido",
   "v2.component.toc-pp-footer.default.label": "Ao se registrar, você concorda com {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Termos de Serviço</a> e <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Política de Privacidade</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Termos de Serviço</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Política de Privacidade</a>} other{}}",
   "v2.component.verify-bot-protection.default.description": "Você será redirecionado em breve após concluir o desafio 'Passkey'",
   "v2.component.verify-bot-protection.default.title": "Verificando o seu sistema...",

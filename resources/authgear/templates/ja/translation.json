@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "結果が見つかりません",
   "v2.component.select-input.default.not-provided-label": "未提供",
   "v2.component.select-input.default.search-label": "検索",
-  "v2.component.select-input.default.unset-label": "未設定",
   "v2.component.toc-pp-footer.default.label": "登録することで、{variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">利用規約</a>と<a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">プライバシーポリシー</a>}termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">利用規約</a>}privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">プライバシーポリシー</a>}other{}}に同意したことになります。",
   "v2.component.verify-bot-protection.default.description": "チャレンジを完了した後、すぐにリダイレクトされます。",
   "v2.component.verify-bot-protection.default.title": "システムを確認しています...",

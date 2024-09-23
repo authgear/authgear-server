@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "Tidak ada hasil yang ditemukan",
   "v2.component.select-input.default.not-provided-label": "Tidak disediakan",
   "v2.component.select-input.default.search-label": "Cari",
-  "v2.component.select-input.default.unset-label": "Tidak diatur",
   "v2.component.toc-pp-footer.default.label": "Dengan mendaftar, Anda setuju dengan {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Syarat Layanan</a> dan <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Kebijakan Privasi</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Syarat Layanan</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Kebijakan Privasi</a>} other{}}",
   "v2.component.verify-bot-protection.default.description": "Anda akan dialihkan setelah Anda menyelesaikan tantangan ini",
   "v2.component.verify-bot-protection.default.title": "Memeriksa sistem Anda...",

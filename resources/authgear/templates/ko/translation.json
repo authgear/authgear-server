@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "결과가 없습니다",
   "v2.component.select-input.default.not-provided-label": "제공되지 않음",
   "v2.component.select-input.default.search-label": "검색",
-  "v2.component.select-input.default.unset-label": "설정 해제",
   "v2.component.toc-pp-footer.default.label": "가입하면 {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">서비스 약관</a> 및 <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">개인정보 보호정책</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">서비스 약관</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">개인정보 보호정책</a>} other{}}에 동의하는 것으로 간주됩니다.",
   "v2.component.verify-bot-protection.default.description": "챌린지를 완료한 후 곧 리디렉션됩니다.",
   "v2.component.verify-bot-protection.default.title": "시스템 확인 중...",

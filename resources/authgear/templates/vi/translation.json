@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "Không tìm thấy kết quả",
   "v2.component.select-input.default.not-provided-label": "Không cung cấp",
   "v2.component.select-input.default.search-label": "Tìm kiếm",
-  "v2.component.select-input.default.unset-label": "Bỏ đặt",
   "v2.component.toc-pp-footer.default.label": "Bằng cách đăng ký, bạn đồng ý với {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Điều khoản dịch vụ</a> và <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Chính sách bảo mật</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Điều khoản dịch vụ</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Chính sách bảo mật</a>} other{}}",
   "v2.component.verify-bot-protection.default.description": "Bạn sẽ được chuyển hướng ngay sau khi hoàn thành thử thách",
   "v2.component.verify-bot-protection.default.title": "Đang kiểm tra hệ thống của bạn...",

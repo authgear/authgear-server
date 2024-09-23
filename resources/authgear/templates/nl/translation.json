@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "Geen resultaten gevonden",
   "v2.component.select-input.default.not-provided-label": "Niet opgegeven",
   "v2.component.select-input.default.search-label": "Zoeken",
-  "v2.component.select-input.default.unset-label": "Niet ingesteld",
   "v2.component.toc-pp-footer.default.label": "Door je te registreren, ga je akkoord met de {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Servicevoorwaarden</a> en <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Privacybeleid</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Servicevoorwaarden</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Privacybeleid</a>} other{}}",
   "v2.component.verify-bot-protection.default.description": "U wordt binnenkort doorgestuurd nadat u de uitdaging heeft voltooid",
   "v2.component.verify-bot-protection.default.title": "Uw systeem controleren...",

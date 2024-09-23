@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "未找到結果",
   "v2.component.select-input.default.not-provided-label": "未提供",
   "v2.component.select-input.default.search-label": "搜尋",
-  "v2.component.select-input.default.unset-label": "取消設定",
   "v2.component.toc-pp-footer.default.label": "註冊即表示我已同意 {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">條款和細則</a> 及 <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">隱私政策</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">條款和細則</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">隱私政策</a>} other{}}。",
   "v2.component.verify-bot-protection.default.description": "在您完成驗證後，您將很快被重新導向",
   "v2.component.verify-bot-protection.default.title": "正在驗證你的系統...",

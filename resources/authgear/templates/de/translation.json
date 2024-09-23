@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "Keine Ergebnisse gefunden",
   "v2.component.select-input.default.not-provided-label": "Nicht angegeben",
   "v2.component.select-input.default.search-label": "Suchen",
-  "v2.component.select-input.default.unset-label": "Nicht gesetzt",
   "v2.component.toc-pp-footer.default.label": "Durch die Registrierung stimmen Sie den {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Nutzungsbedingungen</a> und der <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Datenschutzerklärung</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Nutzungsbedingungen</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Datenschutzerklärung</a>} other{}} zu.",
   "v2.component.verify-bot-protection.default.description": "Du wirst kurz nach Abschluss der Herausforderung weitergeleitet",
   "v2.component.verify-bot-protection.default.title": "Überprüfung deines Systems...",

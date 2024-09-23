@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "Walang natagpuang resulta",
   "v2.component.select-input.default.not-provided-label": "Hindi ibinigay",
   "v2.component.select-input.default.search-label": "Maghanap",
-  "v2.component.select-input.default.unset-label": "Hindi naka-set",
   "v2.component.toc-pp-footer.default.label": "Sa pamamagitan ng pagpaparehistro, sumasang-ayon ka sa {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Mga Tuntunin ng Serbisyo</a> at <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Patakaran sa Pagkapribado</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Mga Tuntunin ng Serbisyo</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Patakaran sa Pagkapribado</a>} other{}}",
   "v2.component.verify-bot-protection.default.description": "Mailalipat ka sa ibang pahina pagkatapos mong makumpleto ang hamon na ito",
   "v2.component.verify-bot-protection.default.title": "Sinusuri ang iyong sistema...",

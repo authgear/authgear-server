@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "未找到结果",
   "v2.component.select-input.default.not-provided-label": "未提供",
   "v2.component.select-input.default.search-label": "搜索",
-  "v2.component.select-input.default.unset-label": "未设置",
   "v2.component.toc-pp-footer.default.label": "注册后, 您同意 {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">服务条款</a> 和 <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">隐私政策</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">服务条款</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">隐私政策</a>} other{}}",
   "v2.component.verify-bot-protection.default.description": "您完成挑战后将很快被重定向",
   "v2.component.verify-bot-protection.default.title": "正在检查您的系统...",

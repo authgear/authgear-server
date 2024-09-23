@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "ไม่พบผลลัพธ์",
   "v2.component.select-input.default.not-provided-label": "ไม่ได้ระบุ",
   "v2.component.select-input.default.search-label": "ค้นหา",
-  "v2.component.select-input.default.unset-label": "ยกเลิก",
   "v2.component.toc-pp-footer.default.label": "โดยการลงทะเบียน คุณตกลงกับ {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">ข้อกำหนดการให้บริการ</a> และ <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">นโยบายความเป็นส่วนตัว</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">ข้อกำหนดการให้บริการ</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">นโยบายความเป็นส่วนตัว</a>} other{}}",
   "v2.component.verify-bot-protection.default.description": "คุณจะถูกเปลี่ยนเส้นทางหลังจากที่คุณผ่านการทดสอบแล้ว",
   "v2.component.verify-bot-protection.default.title": "กำลังตรวจสอบระบบของคุณ...",

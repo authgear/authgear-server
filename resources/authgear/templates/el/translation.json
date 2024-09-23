@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "Δεν βρέθηκαν αποτελέσματα",
   "v2.component.select-input.default.not-provided-label": "Δεν παρασχέθηκε",
   "v2.component.select-input.default.search-label": "Αναζήτηση",
-  "v2.component.select-input.default.unset-label": "Μη ορισμένο",
   "v2.component.toc-pp-footer.default.label": "Με την εγγραφή, συμφωνείτε με τους <a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Όρους Παροχής Υπηρεσιών</a> και την <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Πολιτική Απορρήτου</a>",
   "v2.component.verify-bot-protection.default.description": "Θα ανακατευθυνθείτε σύντομα αφού ολοκληρώσετε την πρόκληση",
   "v2.component.verify-bot-protection.default.title": "Έλεγχος του συστήματός σας...",

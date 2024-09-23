@@ -937,7 +937,6 @@
   "v2.component.select-input.default.no-results-found": "Tiada hasil ditemui",
   "v2.component.select-input.default.not-provided-label": "Tidak disediakan",
   "v2.component.select-input.default.search-label": "Carian",
-  "v2.component.select-input.default.unset-label": "Nyahtetap",
   "v2.component.toc-pp-footer.default.label": "Dengan mendaftar, anda bersetuju dengan {variant, select, both{<a class=\"link-btn\" target=\"_blank\" href=\"{termsOfService}\">Terma Perkhidmatan</a> dan <a class=\"link-btn\" target=\"_blank\" href=\"{privacyPolicy}\">Dasar Privasi</a>} termsOnly{<a class=\"link\" target=\"_blank\" href=\"{termsOfService}\">Terma Perkhidmatan</a>} privacyOnly{<a class=\"link\" target=\"_blank\" href=\"{privacyPolicy}\">Dasar Privasi</a>} other{}}",
   "v2.component.verify-bot-protection.default.description": "Anda akan dialihkan tidak lama selepas anda melengkapkan cabaran",
   "v2.component.verify-bot-protection.default.title": "Menyemak sistem anda...",
