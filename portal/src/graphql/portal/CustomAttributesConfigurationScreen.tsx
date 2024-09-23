@@ -129,7 +129,7 @@ const CustomAttributesConfigurationScreenContent: React.VFC<CustomAttributesConf
 
     return (
       <>
-        <ScreenContent>
+        <ScreenContent layout="list">
           <div className={styles.widget}>
             <div className="flex gap-x-1">
               <NavBreadcrumb
@@ -178,7 +178,11 @@ const CustomAttributesConfigurationScreen: React.VFC =
     }
 
     return (
-      <FormContainer form={form} showDiscardButton={true}>
+      <FormContainer
+        form={form}
+        showDiscardButton={true}
+        stickyFooterComponent={true}
+      >
         <CustomAttributesConfigurationScreenContent form={form} />
       </FormContainer>
     );
