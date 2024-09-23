@@ -27,7 +27,11 @@ func (t *txConn) prepare(ctx context.Context, query string) (*sqlx.Stmt, error) 
 
 func (t *txConn) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
 	if !t.doPrepare {
-		return t.tx.QueryContext(ctx, query, args...)
+		rows, err := t.tx.QueryContext(ctx, query, args...)
+		if err != nil {
+			t.logger.WithError(err).Debug("failed to execute query")
+		}
+		return rows, err
 	}
 
 	stmt, err := t.prepare(ctx, query)
@@ -35,12 +39,21 @@ func (t *txConn) QueryContext(ctx context.Context, query string, args ...interfa
 		t.logger.WithError(err).WithField("query", query).Error("failed to prepare statement")
 		return t.tx.QueryContext(ctx, query, args...)
 	}
-	return stmt.QueryContext(ctx, args...)
+
+	rows, err := stmt.QueryContext(ctx, args...)
+	if err != nil {
+		t.logger.WithError(err).Debug("failed to execute prepared statement")
+	}
+	return rows, err
 }
 
 func (t *txConn) QueryRowxContext(ctx context.Context, query string, args ...interface{}) *sqlx.Row {
 	if !t.doPrepare {
-		return t.tx.QueryRowxContext(ctx, query, args...)
+		row := t.tx.QueryRowxContext(ctx, query, args...)
+		if err := row.Err(); err != nil {
+			t.logger.WithError(err).Debug("failed to execute query")
+		}
+		return row
 	}
 
 	stmt, err := t.prepare(ctx, query)
@@ -48,12 +61,21 @@ func (t *txConn) QueryRowxContext(ctx context.Context, query string, args ...int
 		t.logger.WithError(err).WithField("query", query).Error("failed to prepare statement")
 		return t.tx.QueryRowxContext(ctx, query, args...)
 	}
-	return stmt.QueryRowxContext(ctx, args...)
+
+	row := stmt.QueryRowxContext(ctx, args...)
+	if err := row.Err(); err != nil {
+		t.logger.WithError(err).Debug("failed to execute prepared statement")
+	}
+	return row
 }
 
 func (t *txConn) QueryxContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error) {
 	if !t.doPrepare {
-		return t.tx.QueryxContext(ctx, query, args...)
+		rows, err := t.tx.QueryxContext(ctx, query, args...)
+		if err != nil {
+			t.logger.WithError(err).Debug("failed to execute query")
+		}
+		return rows, err
 	}
 
 	stmt, err := t.prepare(ctx, query)
@@ -61,12 +83,21 @@ func (t *txConn) QueryxContext(ctx context.Context, query string, args ...interf
 		t.logger.WithError(err).WithField("query", query).Error("failed to prepare statement")
 		return t.tx.QueryxContext(ctx, query, args...)
 	}
-	return stmt.QueryxContext(ctx, args...)
+
+	rows, err := stmt.QueryxContext(ctx, args...)
+	if err != nil {
+		t.logger.WithError(err).Debug("failed to execute prepared statement")
+	}
+	return rows, err
 }
 
 func (t *txConn) ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error) {
 	if !t.doPrepare {
-		return t.tx.ExecContext(ctx, query, args...)
+		result, err := t.tx.ExecContext(ctx, query, args...)
+		if err != nil {
+			t.logger.WithError(err).Debug("failed to execute query")
+		}
+		return result, err
 	}
 
 	stmt, err := t.prepare(ctx, query)
@@ -74,5 +105,10 @@ func (t *txConn) ExecContext(ctx context.Context, query string, args ...interfac
 		t.logger.WithError(err).WithField("query", query).Error("failed to prepare statement")
 		return t.tx.ExecContext(ctx, query, args...)
 	}
-	return stmt.ExecContext(ctx, args...)
+
+	result, err := stmt.ExecContext(ctx, args...)
+	if err != nil {
+		t.logger.WithError(err).Debug("failed to execute prepared statement")
+	}
+	return result, err
 }
