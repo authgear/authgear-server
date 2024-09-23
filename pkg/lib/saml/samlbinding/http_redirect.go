@@ -10,6 +10,7 @@ import (
 
 	"github.com/beevik/etree"
 
+	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
@@ -65,34 +66,46 @@ type SAMLBindingHTTPRedirectWriter struct {
 	Signer SAMLRedirectBindingSigner
 }
 
-func (s *SAMLBindingHTTPRedirectWriter) WriteResponse(
+type writeElements struct {
+	SAMLResponse *etree.Element
+	SAMLRequest  *etree.Element
+}
+
+func (s *SAMLBindingHTTPRedirectWriter) write(
 	rw http.ResponseWriter,
 	r *http.Request,
 	callbackURL string,
-	responseEl *etree.Element,
-	relayState string) error {
-
+	relayState string,
+	elements *writeElements) error {
+	var el *etree.Element
+	if elements.SAMLRequest != nil {
+		el = elements.SAMLRequest
+	} else if elements.SAMLResponse != nil {
+		el = elements.SAMLResponse
+	} else {
+		panic("no SAMLRequest or SAMLResponse given")
+	}
 	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf
 	// 3.4.4.1 DEFLATE Encoding
 	// Any signature on the SAML protocol message, including the <ds:Signature> XML element itself,
 	// MUST be removed.
-	if sigEl := responseEl.FindElement("./Signature"); sigEl != nil {
-		responseEl.RemoveChild(sigEl)
+	if sigEl := el.FindElement("./Signature"); sigEl != nil {
+		el.RemoveChild(sigEl)
 	}
 
 	doc := etree.NewDocument()
-	doc.SetRoot(responseEl)
-	responseBuf, err := doc.WriteToBytes()
+	doc.SetRoot(el)
+	elBuf, err := doc.WriteToBytes()
 	if err != nil {
 		return err
 	}
 
-	compressedResponseBuffer := &bytes.Buffer{}
-	writer, err := flate.NewWriter(compressedResponseBuffer, 9)
+	compressedElBuffer := &bytes.Buffer{}
+	writer, err := flate.NewWriter(compressedElBuffer, 9)
 	if err != nil {
 		return err
 	}
-	_, err = writer.Write(responseBuf)
+	_, err = writer.Write(elBuf)
 	if err != nil {
 		return err
 	}
@@ -102,14 +115,27 @@ func (s *SAMLBindingHTTPRedirectWriter) WriteResponse(
 		return err
 	}
 
-	encodedResponse := base64.StdEncoding.EncodeToString(compressedResponseBuffer.Bytes())
+	encodedEl := base64.StdEncoding.EncodeToString(compressedElBuffer.Bytes())
 
 	redirectURL, err := url.Parse(callbackURL)
 	if err != nil {
 		return err
 	}
 
-	q, err := s.Signer.ConstructSignedQueryParameters(encodedResponse, relayState)
+	var elToSign *saml.SAMLElementToSign
+	if elements.SAMLRequest != nil {
+		elToSign = &saml.SAMLElementToSign{
+			SAMLRequest: encodedEl,
+		}
+	} else if elements.SAMLResponse != nil {
+		elToSign = &saml.SAMLElementToSign{
+			SAMLResponse: encodedEl,
+		}
+	} else {
+		panic("no SAMLRequest or SAMLResponse given")
+	}
+
+	q, err := s.Signer.ConstructSignedQueryParameters(relayState, elToSign)
 	if err != nil {
 		return err
 	}
@@ -125,4 +151,36 @@ func (s *SAMLBindingHTTPRedirectWriter) WriteResponse(
 
 	http.Redirect(rw, r, redirectURL.String(), http.StatusFound)
 	return nil
+}
+
+func (s *SAMLBindingHTTPRedirectWriter) WriteResponse(
+	rw http.ResponseWriter,
+	r *http.Request,
+	callbackURL string,
+	responseEl *etree.Element,
+	relayState string) error {
+	return s.write(
+		rw, r,
+		callbackURL,
+		relayState,
+		&writeElements{
+			SAMLResponse: responseEl,
+		},
+	)
+}
+
+func (s *SAMLBindingHTTPRedirectWriter) WriteRequest(
+	rw http.ResponseWriter,
+	r *http.Request,
+	callbackURL string,
+	requestEl *etree.Element,
+	relayState string) error {
+	return s.write(
+		rw, r,
+		callbackURL,
+		relayState,
+		&writeElements{
+			SAMLRequest: requestEl,
+		},
+	)
 }

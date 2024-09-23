@@ -40,11 +40,12 @@ type HandlerSAMLService interface {
 		callbackURL string,
 		serviceProviderId string,
 		inResponseToLogoutRequest *samlprotocol.LogoutRequest,
+		isPartialLogout bool,
 	) (*samlprotocol.LogoutResponse, error)
-	ConstructSignedQueryParameters(
-		samlResponse string,
-		relayState string,
-	) (url.Values, error)
+	IssueLogoutRequest(
+		sp *config.SAMLServiceProviderConfig,
+		sloSession *samlslosession.SAMLSLOSession,
+	) (*samlprotocol.LogoutRequest, error)
 }
 
 type SAMLSessionService interface {
@@ -81,6 +82,12 @@ type BindingHTTPPostWriter interface {
 		callbackURL string,
 		responseElement *etree.Element,
 		relayState string) error
+	WriteRequest(
+		rw http.ResponseWriter,
+		r *http.Request,
+		callbackURL string,
+		requestElement *etree.Element,
+		relayState string) error
 }
 
 type BindingHTTPRedirectWriter interface {
@@ -89,6 +96,12 @@ type BindingHTTPRedirectWriter interface {
 		r *http.Request,
 		callbackURL string,
 		responseElement *etree.Element,
+		relayState string) error
+	WriteRequest(
+		rw http.ResponseWriter,
+		r *http.Request,
+		callbackURL string,
+		requestElement *etree.Element,
 		relayState string) error
 }
 

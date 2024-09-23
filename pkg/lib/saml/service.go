@@ -22,6 +22,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -476,10 +477,58 @@ func (s *Service) IssueLoginSuccessResponse(
 	return response, nil
 }
 
+func (s *Service) IssueLogoutRequest(
+	sp *config.SAMLServiceProviderConfig,
+	sloSession *samlslosession.SAMLSLOSession,
+) (*samlprotocol.LogoutRequest, error) {
+	userID := sloSession.Entry.UserID
+	sessionIndex := sloSession.Entry.SID
+	now := s.Clock.NowUTC()
+	notOnOrAfter := now.Add(duration.UserInteraction)
+
+	clientLike := spToClientLike(sp)
+	userInfo, err := s.UserInfoProvider.GetUserInfo(userID, clientLike)
+	if err != nil {
+		return nil, err
+	}
+	nameIDFormat := sp.NameIDFormat
+	nameID, err := s.getUserNameID(nameIDFormat, sp, userInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	logoutRequest := &samlprotocol.LogoutRequest{
+		ID:           samlprotocol.GenerateLogoutRequestID(),
+		Version:      samlprotocol.SAMLVersion2,
+		IssueInstant: s.Clock.NowUTC(),
+		NotOnOrAfter: &notOnOrAfter,
+		Destination:  sp.SLOCallbackURL,
+		Issuer: &samlprotocol.Issuer{
+			Format: samlprotocol.SAMLIssertFormatEntity,
+			Value:  s.IdpEntityID(),
+		},
+		NameID: &samlprotocol.NameID{
+			Format: string(nameIDFormat),
+			Value:  nameID,
+		},
+		SessionIndex: &samlprotocol.SessionIndex{
+			Value: sessionIndex,
+		},
+	}
+
+	err = s.signLogoutRequest(logoutRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return logoutRequest, nil
+}
+
 func (s *Service) IssueLogoutResponse(
 	callbackURL string,
 	serviceProviderId string,
 	inResponseToLogoutRequest *samlprotocol.LogoutRequest,
+	isPartialLogout bool,
 ) (*samlprotocol.LogoutResponse, error) {
 	_, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
@@ -504,6 +553,13 @@ func (s *Service) IssueLogoutResponse(
 			Value:  s.IdpEntityID(),
 		},
 	}
+
+	if isPartialLogout {
+		response.Status.StatusCode.StatusCode = &samlprotocol.StatusCode{
+			Value: samlprotocol.StatusPartialLogout,
+		}
+	}
+
 	err := s.signLogoutResponse(response)
 	if err != nil {
 		return nil, err
@@ -593,9 +649,14 @@ func (s *Service) VerifyExternalSignature(
 	return nil
 }
 
+type SAMLElementToSign struct {
+	SAMLResponse string
+	SAMLRequest  string
+}
+
 func (s *Service) ConstructSignedQueryParameters(
-	samlResponse string,
 	relayState string,
+	el *SAMLElementToSign,
 ) (url.Values, error) {
 	signingCtx, err := s.idpSigningContext()
 	if err != nil {
@@ -603,7 +664,13 @@ func (s *Service) ConstructSignedQueryParameters(
 	}
 
 	q := url.Values{}
-	q.Set("SAMLResponse", samlResponse)
+	if el.SAMLResponse != "" {
+		q.Set("SAMLResponse", el.SAMLResponse)
+	} else if el.SAMLRequest != "" {
+		q.Set("SAMLRequest", el.SAMLRequest)
+	} else {
+		panic("nothing to sign: SAMLResponse and SAMLRequest are both empty")
+	}
 	q.Set("RelayState", relayState)
 	q.Set("SigAlg", string(s.SAMLConfig.Signing.SignatureMethod))
 
@@ -735,6 +802,17 @@ func (s *Service) signLogoutResponse(response *samlprotocol.LogoutResponse) erro
 		return err
 	}
 	response.Signature = responseSigEl
+
+	return nil
+}
+
+func (s *Service) signLogoutRequest(request *samlprotocol.LogoutRequest) error {
+	el := request.Element()
+	sigEl, err := s.constructSignature(el)
+	if err != nil {
+		return err
+	}
+	request.Signature = sigEl
 
 	return nil
 }

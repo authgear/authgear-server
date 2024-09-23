@@ -3,18 +3,24 @@ package samlslosession
 import (
 	"fmt"
 
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type SAMLSLOSession struct {
-	ID    string
-	Entry *SAMLSLOSessionEntry
+	ID    string               `json:"id,omitempty"`
+	Entry *SAMLSLOSessionEntry `json:"entry,omitempty"`
 }
 type SAMLSLOSessionEntry struct {
-	PendingLogoutServiceProviderIDs setutil.Set[string]
-	LogoutResponseXML               string
+	PendingLogoutServiceProviderIDs setutil.Set[string]      `json:"pending_logout_service_provider_ids,omitempty"`
+	LogoutRequestXML                string                   `json:"logout_request_xml,omitempty"`
+	ResponseBinding                 samlprotocol.SAMLBinding `json:"response_binding,omitempty"`
+	CallbackURL                     string                   `json:"callback_url,omitempty"`
+	RelayState                      string                   `json:"relay_state,omitempty"`
+	SID                             string                   `json:"sid,omitempty"`
+	UserID                          string                   `json:"user_id,omitempty"`
 }
 
 func NewSAMLSLOSession(entry *SAMLSLOSessionEntry) *SAMLSLOSession {
@@ -24,4 +30,12 @@ func NewSAMLSLOSession(entry *SAMLSLOSessionEntry) *SAMLSLOSession {
 		ID:    fmt.Sprintf("samlslosession_%s", id),
 		Entry: entry,
 	}
+}
+
+func (s *SAMLSLOSessionEntry) LogoutRequest() *samlprotocol.LogoutRequest {
+	r, err := samlprotocol.ParseLogoutRequest([]byte(s.LogoutRequestXML))
+	if err != nil {
+		panic(err)
+	}
+	return r
 }
