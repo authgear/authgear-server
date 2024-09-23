@@ -102,6 +102,7 @@ This project uses asdf, and there is a .tool-versions file at the project root.
    http:
       # Make sure this matches the host used to access main Authgear server.
       public_origin: "http://accounts.portal.localhost:3100"
+      cookie_domain: portal.localhost
    oauth:
       clients:
          # Create a client for the portal.
