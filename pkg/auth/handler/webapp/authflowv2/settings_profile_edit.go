@@ -45,6 +45,10 @@ func init() {
 		"web/authflowv2/settings_profile_edit_zoneinfo.html",
 		handlerwebapp.SettingsComponents...,
 	)
+	settingsProfileEditVariantToTemplate["custom_attributes"] = template.RegisterHTML(
+		"web/authflowv2/settings_profile_edit_custom.html",
+		handlerwebapp.SettingsComponents...,
+	)
 }
 
 var settingsProfileEditVariantToTemplate map[string]*template.HTML
@@ -71,6 +75,7 @@ func (h *AuthflowV2SettingsProfileEditHandler) GetData(r *http.Request, rw http.
 	userID := session.GetUserID(r.Context())
 
 	data := map[string]interface{}{}
+	data["Pointer"] = r.Form.Get("pointer")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
@@ -84,7 +89,7 @@ func (h *AuthflowV2SettingsProfileEditHandler) GetData(r *http.Request, rw http.
 	return data, nil
 }
 
-func (h *AuthflowV2SettingsProfileEditHandler) isAttributeEditable(attributeVariant string) bool {
+func (h *AuthflowV2SettingsProfileEditHandler) isAttributeEditable(attributeVariant string, isAlreadyPointer bool) bool {
 	accessControl := h.UserProfileConfig.StandardAttributes.GetAccessControl().MergedWith(
 		h.UserProfileConfig.CustomAttributes.GetAccessControl(),
 	)
@@ -109,7 +114,11 @@ func (h *AuthflowV2SettingsProfileEditHandler) isAttributeEditable(attributeVari
 		}
 		return false
 	default:
-		return isEditable("/" + attributeVariant)
+		if isAlreadyPointer {
+			return isEditable(attributeVariant)
+		} else {
+			return isEditable("/" + attributeVariant)
+		}
 	}
 }
 
@@ -135,7 +144,13 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 			return nil
 		}
 
-		hasPermissionToEdit := h.isAttributeEditable(variant)
+		hasPermissionToEdit := false
+		if variant == "custom_attributes" {
+			attribute := r.Form.Get("pointer")
+			hasPermissionToEdit = h.isAttributeEditable(attribute, true)
+		} else {
+			hasPermissionToEdit = h.isAttributeEditable(variant, false)
+		}
 
 		if !hasPermissionToEdit {
 			h.Renderer.RenderHTML(w, r, TemplateSettingsProfileNoPermission, data)
