@@ -273,7 +273,7 @@ func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, tokenSt
 		return err
 	}
 
-	err = token.CheckUser_OAuth(userID)
+	err = token.CheckUser(userID)
 	if err != nil {
 		return err
 	}
