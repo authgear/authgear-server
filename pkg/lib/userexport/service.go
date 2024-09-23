@@ -200,10 +200,8 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 			if jsonErr != nil {
 				return "", jsonErr
 			}
-			recordBytes := make([]byte, 0)
-			recordBytes = append(recordBytes, []byte(recordJson)...)
-			recordBytes = append(recordBytes, []byte("\n")...)
-			tmpResult.Write(recordBytes)
+			tmpResult.Write(recordJson)
+			tmpResult.Write([]byte("\n"))
 		}
 
 		// Exit export loop early when no more record to read
