@@ -7,6 +7,7 @@ import (
 	"github.com/beevik/etree"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
@@ -56,6 +57,7 @@ func (*logoutRemainingSPsResult) logoutResult() {}
 type LogoutHandler struct {
 	Logger                *LogoutHandlerLogger
 	Clock                 clock.Clock
+	Database              *appdb.Handle
 	SAMLConfig            *config.SAMLConfig
 	SAMLService           HandlerSAMLService
 	SessionManager        SessionManager
@@ -77,6 +79,20 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		http.NotFound(rw, r)
 		return
 	}
+
+	err := h.Database.WithTx(func() error {
+		h.handle(rw, r, sp)
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (h *LogoutHandler) handle(
+	rw http.ResponseWriter,
+	r *http.Request,
+	sp *config.SAMLServiceProviderConfig) {
 
 	callbackURL := sp.SLOCallbackURL
 	responseBinding := sp.SLOBinding
