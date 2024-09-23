@@ -105,10 +105,10 @@ func (h *AuthflowV2SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r 
 
 		s := session.GetSession(r.Context())
 
-		input := &accountmanagement.RemoveIdentityBiometricInput{
+		input := &accountmanagement.DeleteIdentityBiometricInput{
 			IdentityID: identityID,
 		}
-		_, err = h.AccountManagementService.RemoveIdentityBiometric(s, input)
+		_, err = h.AccountManagementService.DeleteIdentityBiometric(s, input)
 		if err != nil {
 			return err
 		}
