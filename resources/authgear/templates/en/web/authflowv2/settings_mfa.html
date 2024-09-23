@@ -75,21 +75,52 @@
   {{ end }}
 
   {{ if $.HasMFA}}
-    <button class="block w-full" type="button">
-      {{ $description := "" }}
-      {{ if gt $.NumberOfDeviceTokens 0 }}
-        {{ $description = (translate "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message" (dict "" $.NumberOfDeviceTokens)) }}
-      {{ else }}
-        {{ $description = (translate "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message" nil) }}
-      {{ end }}
+    {{ if gt $.NumberOfDeviceTokens 0 }}
+      <button
+        type="button"
+        class="block w-full"
+        data-controller="settings-dialog"
+        data-action="click->settings-dialog#open"
+        data-settings-dialog-dialogid-param="settings-mfa-revoke-device"
+      >
+        {{ template "authflowv2/__settings_action_item.html"
+            (dict
+              "IconName" "person_check"
+              "Label" (translate "v2.page.settings-mfa.default.trusted-devices-label" nil)
+              "Description" (translate "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message" (dict "NumberOfDeviceTokens" $.NumberOfDeviceTokens))
+            )
+        }}
+      </button>
+
+      {{ template "authflowv2/__settings_dialog.html" (dict
+        "Ctx" .
+        "DialogID" "settings-mfa-revoke-device"
+        "Title" (translate "v2.page.settings-mfa.default.dialog-revoke-device-title" nil)
+        "Description" (translate "v2.page.settings-mfa.default.dialog-revoke-device-description" (dict
+          "NumberOfDeviceTokens" $.NumberOfDeviceTokens
+        ))
+        "FormContent" $.CSRFField
+        "Buttons" (list
+          (dict
+            "Type" "Destructive"
+            "Label" (include "v2.component.button.default.label-remove" nil)
+            "Value" "revoke_device"
+          )
+          (dict
+            "Type" "Cancel"
+            "Label" (include "v2.component.button.default.label-cancel" nil)
+          )
+        )
+      )}}
+    {{ else }}
       {{ template "authflowv2/__settings_action_item.html"
           (dict
             "IconName" "person_check"
             "Label" (translate "v2.page.settings-mfa.default.trusted-devices-label" nil)
-            "Description" $description
+            "Description" (translate "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message" nil)
           )
       }}
-    </button>
+    {{ end }}
   {{ end }}
 </div>
 {{ end }}

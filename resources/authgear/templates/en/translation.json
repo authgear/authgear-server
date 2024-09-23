@@ -1188,6 +1188,8 @@
   "v2.page.settings-mfa-password.default.remove-button-label": "Remove additional password",
   "v2.page.settings-mfa.default.activated-label": "Activated",
   "v2.page.settings-mfa.default.additional-password-label": "Additional password",
+  "v2.page.settings-mfa.default.dialog-revoke-device-description": "You have {NumberOfDeviceTokens, plural, one{# trusted device} other{# trusted devices}} trusted devices associated with your account. Do you want to remove all trusted devices?",
+  "v2.page.settings-mfa.default.dialog-revoke-device-title": "Remove trusted devices",
   "v2.page.settings-mfa.default.inactive-label": "Inactive",
   "v2.page.settings-mfa.default.navbar-title": "2-Factor Authentication",
   "v2.page.settings-mfa.default.secondary-oob-otp-email-label": "Email",

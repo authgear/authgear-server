@@ -5,6 +5,8 @@ import (
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -21,6 +23,7 @@ type AuthflowV2SettingsMFAHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
+	MFA               *mfa.Service
 }
 
 func (h *AuthflowV2SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -53,6 +56,18 @@ func (h *AuthflowV2SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsMFAHTML, data)
 
+		return nil
+	})
+
+	ctrl.PostAction("revoke_device", func() error {
+		userID := session.GetUserID(r.Context())
+		err := h.MFA.InvalidateAllDeviceTokens(*userID)
+		if err != nil {
+			return err
+		}
+
+		result := webapp.Result{}
+		result.WriteResponse(w, r)
 		return nil
 	})
 }
