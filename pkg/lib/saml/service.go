@@ -526,14 +526,9 @@ func (s *Service) IssueLogoutRequest(
 
 func (s *Service) IssueLogoutResponse(
 	callbackURL string,
-	serviceProviderId string,
 	inResponseToLogoutRequest *samlprotocol.LogoutRequest,
 	isPartialLogout bool,
 ) (*samlprotocol.LogoutResponse, error) {
-	_, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
-	if !ok {
-		return nil, samlprotocol.ErrServiceProviderNotFound
-	}
 
 	now := s.Clock.NowUTC()
 
