@@ -1120,7 +1120,7 @@
   "v2.page.select-account.default.title": "Accedi a {AppOrClientName}",
   "v2.page.select-account.default.use-another-account": "Usa un altro account",
   "v2.page.settings-advanced-settings.default.navbar-title": "Impostazioni Avanzate",
-  "v2.page.settings-biometric.default.dialog-description": "Sei sicuro di voler disconnettere l'accesso biometrico per questo dispositivo?",
+  "v2.page.settings-biometric.default.dialog-description": "Sei sicuro di voler disconnettere l''accesso biometrico per questo dispositivo?",
   "v2.page.settings-biometric.default.dialog-title": "Disconnetti Accesso Biometrico",
   "v2.page.settings-biometric.default.disconnect-button-label": "Disconnetti",
   "v2.page.settings-biometric.default.item-description": "Creato alle <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
