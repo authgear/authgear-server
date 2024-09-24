@@ -41,15 +41,17 @@
     {{ $label = $.Translations.RenderText $labelKey nil }}
   {{ end }}
 
-  {{ $display_error := false }}
-  {{ if $.Error }}
-    {{ $display_error = true }}
+  {{ $err_map := (resolveError $.RawError (dict)) }}
+  {{ $unknown_err := index $err_map "unknown" }}
+  {{ $unknown_error_message := "" }}
+  {{ $has_unknown_err := not (empty $unknown_err) }}
+  {{ if $has_unknown_err }}
+    {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
   {{ end }}
-
   {{ template "authflowv2/__alert_message.html"
     (dict
-      "Type" "error"
-      "Message" (include "authflowv2/__error.html" .)
+    "Type" "error"
+    "Message" $unknown_error_message
     )
   }}
   
@@ -119,7 +121,6 @@
           "InputName" $.Pointer
           "AutoFocus" true
           "Value" $Value
-          "IsError" $display_error
         )
       }}
     {{ end }}
