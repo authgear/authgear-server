@@ -8,7 +8,7 @@
 
   {{ $label := $ca.Label }}
   {{ if $hasKey }}
-    {{ $label = $.Translations.RenderText $labelKey nil }}
+    {{ $label = (translate $labelKey nil) }}
   {{ end }}
 
   {{ template "authflowv2/__navbar.html"
@@ -33,14 +33,6 @@
   {{ $ca := (call $.GetCustomAttributeByPointer $.Pointer) }}
   {{ $Value := $ca.Value }}
 
-  {{ $labelKey := printf "custom-attribute-label-%s" $ca.Pointer }}
-  {{ $hasKey := $.Translations.HasKey $labelKey }}
-
-  {{ $label := $ca.Label }}
-  {{ if $hasKey }}
-    {{ $label = $.Translations.RenderText $labelKey nil }}
-  {{ end }}
-
   {{ $err_map := (resolveError $.RawError (dict)) }}
   {{ $unknown_err := index $err_map "unknown" }}
   {{ $unknown_error_message := "" }}
@@ -54,7 +46,7 @@
     "Message" $unknown_error_message
     )
   }}
-  
+
   <label class="flex flex-col gap-y-2">
     {{/* The control */}}
 
@@ -100,7 +92,7 @@
         {{ $enum_has_key := $.Translations.HasKey $enum_label_key }}
         {{ $enum_label := .Label}}
         {{ if $enum_has_key }}
-          {{ $enum_label = $.Translations.RenderText $enum_label_key nil }}
+          {{ $enum_label = (translate $enum_label_key nil) }}
         {{ end }}
 
         {{ template "authflowv2/__settings_radio.html"
@@ -176,10 +168,29 @@
 {{ define "__settings_profile_edit_custom_numerical_range_label" }}
   {{ if (and (isNil .Minimum) (isNil .Maximum)) }}
   {{ else if (and (not (isNil .Minimum)) (isNil .Maximum)) }}
-    <span class="body-text--md">{{ template "custom-attribute-numeric-hint-minimum" (dict "minimum" (showAttributeValue .Minimum)) }}</span>
+    <span class="body-text--md">
+      {{ translate "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum"
+          (dict
+            "minimum" (showAttributeValue .Minimum)
+          )
+      }}
+    </span>
   {{ else if (and (isNil .Minimum) (not (isNil .Maximum))) }}
-    <span class="body-text--md">{{ template "custom-attribute-numeric-hint-maximum" (dict "maximum" (showAttributeValue .Maximum)) }}</span>
+    <span class="body-text--md">
+      {{ translate "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-maximum"
+          (dict
+            "maximum" (showAttributeValue .Maximum)
+          )
+      }}
+    </span>
   {{ else }}
-    <span class="body-text--md">{{ template "custom-attribute-numeric-hint-minimum-maximum" (dict "minimum" (showAttributeValue .Minimum) "maximum" (showAttributeValue .Maximum)) }}</span>
+    <span class="body-text--md">
+      {{ translate "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum-maximum"
+          (dict
+            "minimum" (showAttributeValue .Minimum)
+            "maximum" (showAttributeValue .Maximum)
+          )
+      }}
+    </span>
   {{ end }}
 {{ end }}

@@ -141,13 +141,13 @@
 
       {{ $label := .Label }}
       {{ if $hasKey }}
-        {{ $label = $.Translations.RenderText $labelKey nil }}
+        {{ $label = (translate $labelKey nil) }}
       {{ end }}
 
       {{ template "__settings_profile_item"
         (merge
           (dict
-            "Title" .Label
+            "Title" $label
             "Content" (default "" .Value)
             "Editable" .IsEditable
             "EditURL" (call $.MakeURL "/settings/profile/custom_attributes/edit" "pointer" .Pointer)
