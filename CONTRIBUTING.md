@@ -212,8 +212,6 @@ As the first project `accounts` is created by the script instead of by user, we 
 
 cert-manager@v1.7.3 has transitive dependency problem.
 
-siwe has to be 1.1.6. siwe@2.x has runtime error on page load. siwe@1.1.6 requires ethers@5.5.1.
-
 When intl-tel-input is >= 21, it switched to use CSS variables. https://github.com/jackocnr/intl-tel-input/releases/tag/v21.0.0
 The problem is that it uses `--custom-var: url("../some-path");`, which is rejected by Parcel https://github.com/parcel-bundler/parcel/blob/v2.10.2/packages/transformers/css/src/CSSTransformer.js#L135
 
