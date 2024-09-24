@@ -24,14 +24,89 @@ var RequestSchema = validation.NewSimpleSchema(`
 		"format": {
 			"type": "string",
 			"enum": ["ndjson", "csv"]
+		},
+		"csv": {
+			"type": "object",
+			"properties": {
+				"fields": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"pointer": {
+								"type": "string"
+							},
+							"field_name": {
+								"type": "string"
+							}
+						},
+						"required": [
+							"pointer"
+						]
+					}
+				}
+			}
 		}
 	},
 	"required": ["format"]
 }
 `)
 
+const DefaultCSVExportField = `
+{
+  "fields": [
+		{"pointer": "/sub"},
+		{"pointer": "/preferred_username"},
+		{"pointer": "/email"},
+		{"pointer": "/phone_number"},
+		{"pointer": "/email_verified"},
+		{"pointer": "/phone_number_verified"},
+		{"pointer": "/name"},
+		{"pointer": "/given_name"},
+		{"pointer": "/middle_name"},
+		{"pointer": "/nickname"},
+		{"pointer": "/profile"},
+		{"pointer": "/picture"},
+		{"pointer": "/website"},
+		{"pointer": "/gender"},
+		{"pointer": "/birthdate"},
+		{"pointer": "/zoneinfo"},
+		{"pointer": "/locale"},
+		{"pointer": "/address/formatted"},
+		{"pointer": "/address/street_address"},
+		{"pointer": "/address/locality"},
+		{"pointer": "/address/region"},
+		{"pointer": "/address/postal_code"},
+		{"pointer": "/address/country"},
+		{"pointer": "/roles"},
+		{"pointer": "/groups"},
+		{"pointer": "/disabled"},
+		{"pointer": "/identities"},
+		{"pointer": "/mfa/emails"},
+		{"pointer": "/mfa/phone_numbers"},
+		{"pointer": "/mfa/totps"},
+		{"pointer": "/biometric_count"},
+		{"pointer": "/passkey_count"}
+	]
+}
+`
+
+type FieldPointer struct {
+	Pointer   string `json:"pointer"`
+	FieldName string `json:"field_name"`
+}
+
+type CSVField struct {
+	Fields []*FieldPointer `json:"fields"`
+}
+
 type Request struct {
-	Format string `json:"format"`
+	Format string   `json:"format"`
+	CSV    CSVField `json:"csv"`
+}
+
+type CSVHeaderFieldNames struct {
+	FieldNames []string `json:"field_names"`
 }
 
 type Response struct {

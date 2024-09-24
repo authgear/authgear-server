@@ -26,7 +26,7 @@ func TestRequest(t *testing.T) {
 		serialized, err := json.Marshal(request)
 		So(err, ShouldBeNil)
 
-		So(string(serialized), ShouldEqualJSON, requestBody)
+		So(string(serialized), ShouldEqualJSON, `{"csv":{"fields":null},"format":"ndjson"}`)
 	})
 
 	Convey("Request JSON Schema", t, func() {
@@ -65,5 +65,40 @@ func TestRequest(t *testing.T) {
 		`, `invalid request body:
 /format: enum
   map[actual:unknown format expected:[ndjson csv]]`)
+
+		test(`
+{
+	"format": "csv",
+	"csv": {
+		"fields": []
+	}
+}
+		`, "")
+		test(`
+{
+	"format": "csv",
+	"csv": {
+		"fields": [{ "unknown_pointer": "/sub" }]
+	}
+}
+		`, `invalid request body:
+/csv/fields/0: required
+  map[actual:[unknown_pointer] expected:[pointer] missing:[pointer]]`)
+		test(`
+{
+	"format": "csv",
+	"csv": {
+		"fields": [{ "pointer": "/sub" }]
+	}
+}
+		`, "")
+		test(`
+{
+	"format": "csv",
+	"csv": {
+		"fields": [{ "pointer": "/sub", "field_name": "user_id" }]
+	}
+}
+		`, "")
 	})
 }
