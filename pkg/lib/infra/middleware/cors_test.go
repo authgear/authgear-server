@@ -39,6 +39,17 @@ func TestCORSMiddleware(t *testing.T) {
 							RedirectURIs: []string{
 								"http://myapp.example.com/redrect",
 							},
+							PreAuthenticatedURLAllowedOrigins: []string{
+								"http://preauthenticatedurl.example.com",
+							},
+						},
+					},
+				},
+				SAMLConfig: &config.SAMLConfig{
+					ServiceProviders: []*config.SAMLServiceProviderConfig{
+						{
+							AcsURLs:        []string{"http://acs.example.com"},
+							SLOCallbackURL: "http://slo.example.com",
 						},
 					},
 				},
@@ -227,6 +238,60 @@ func TestCORSMiddleware(t *testing.T) {
 
 			So(resp.Header().Get("Vary"), ShouldEqual, "Origin")
 			So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, "http://myapp.example.com")
+			So(resp.Header().Get("Access-Control-Allow-Credentials"), ShouldEqual, "true")
+			So(resp.Body.Bytes(), ShouldResemble, testBody)
+		})
+
+		Convey("should allow origin in oauth client x_pre_authenticated_url_allowed_origins", func() {
+			req, handler := fixture(FixtureConfig{
+				Method: "POST",
+				URL:    "http://www.example.com",
+				Origin: "http://preauthenticatedurl.example.com",
+				Specs:  []string{""},
+				Env:    "",
+			})
+
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+
+			So(resp.Header().Get("Vary"), ShouldEqual, "Origin")
+			So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, "http://preauthenticatedurl.example.com")
+			So(resp.Header().Get("Access-Control-Allow-Credentials"), ShouldEqual, "true")
+			So(resp.Body.Bytes(), ShouldResemble, testBody)
+		})
+
+		Convey("should allow origin in saml sp acs_urls", func() {
+			req, handler := fixture(FixtureConfig{
+				Method: "POST",
+				URL:    "http://www.example.com",
+				Origin: "http://acs.example.com",
+				Specs:  []string{""},
+				Env:    "",
+			})
+
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+
+			So(resp.Header().Get("Vary"), ShouldEqual, "Origin")
+			So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, "http://acs.example.com")
+			So(resp.Header().Get("Access-Control-Allow-Credentials"), ShouldEqual, "true")
+			So(resp.Body.Bytes(), ShouldResemble, testBody)
+		})
+
+		Convey("should allow origin in saml sp slo_callback_url", func() {
+			req, handler := fixture(FixtureConfig{
+				Method: "POST",
+				URL:    "http://www.example.com",
+				Origin: "http://slo.example.com",
+				Specs:  []string{""},
+				Env:    "",
+			})
+
+			resp := httptest.NewRecorder()
+			handler.ServeHTTP(resp, req)
+
+			So(resp.Header().Get("Vary"), ShouldEqual, "Origin")
+			So(resp.Header().Get("Access-Control-Allow-Origin"), ShouldEqual, "http://slo.example.com")
 			So(resp.Header().Get("Access-Control-Allow-Credentials"), ShouldEqual, "true")
 			So(resp.Body.Bytes(), ShouldResemble, testBody)
 		})

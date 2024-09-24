@@ -12,6 +12,7 @@ import (
 type CORSMatcher struct {
 	Config             *config.HTTPConfig
 	OAuthConfig        *config.OAuthConfig
+	SAMLConfig         *config.SAMLConfig
 	CORSAllowedOrigins config.CORSAllowedOrigins
 }
 
@@ -25,10 +26,17 @@ func (m *CORSMatcher) PrepareOriginMatcher(r *http.Request) (*originmatcher.T, e
 	// Allow the origins in environment variable.
 	allowedOrigins = append(allowedOrigins, m.CORSAllowedOrigins.List()...)
 
-	// Allow the origins listed in redirect_uris and x_custom_ui_uri.
+	// Allow the origins listed in redirect_uris, x_custom_ui_uri, x_pre_authenticated_url_allowed_origins.
 	for _, oauthClient := range m.OAuthConfig.Clients {
 		allowedOrigins = append(allowedOrigins, oauthClient.RedirectURIs...)
 		allowedOrigins = append(allowedOrigins, oauthClient.CustomUIURI)
+		allowedOrigins = append(allowedOrigins, oauthClient.PreAuthenticatedURLAllowedOrigins...)
+	}
+
+	// Allow the origins listed in acs_urls, slo_callback_url
+	for _, samlSP := range m.SAMLConfig.ServiceProviders {
+		allowedOrigins = append(allowedOrigins, samlSP.AcsURLs...)
+		allowedOrigins = append(allowedOrigins, samlSP.SLOCallbackURL)
 	}
 
 	allowedOrigins = slice.Deduplicate(allowedOrigins)
