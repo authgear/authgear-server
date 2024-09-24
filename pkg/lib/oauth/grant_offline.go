@@ -49,7 +49,7 @@ type OfflineGrant struct {
 
 	RefreshTokens []OfflineGrantRefreshToken `json:"refresh_tokens,omitempty"`
 
-	ParticipatedSAMLServiceProviderIDs setutil.Set[string] `json:"participated_saml_service_provider_ids,omitempty"`
+	ParticipatedSAMLServiceProviderIDs []string `json:"participated_saml_service_provider_ids,omitempty"`
 
 	// Readonly fields for backward compatibility.
 	// Write these fields in OfflineGrantRefreshToken
@@ -408,6 +408,6 @@ func (g *OfflineGrant) IsOnlyUsedInClientIDs(clientIDs []string) bool {
 	return result
 }
 
-func (s *OfflineGrant) GetParticipatedSAMLServiceProviderIDs() setutil.Set[string] {
-	return s.ParticipatedSAMLServiceProviderIDs
+func (s *OfflineGrant) GetParticipatedSAMLServiceProviderIDsSet() setutil.Set[string] {
+	return setutil.NewSetFromSlice(s.ParticipatedSAMLServiceProviderIDs, setutil.Identity)
 }

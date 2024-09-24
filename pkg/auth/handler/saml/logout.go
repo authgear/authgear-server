@@ -148,7 +148,7 @@ func (h *LogoutHandler) doLogoutRemainingSPs(
 ) {
 	var err error
 	sloSession := result.sloSession
-	for _, spID := range result.sloSession.Entry.PendingLogoutServiceProviderIDs.Keys() {
+	for _, spID := range result.sloSession.Entry.PendingLogoutServiceProviderIDs {
 		sp, ok := h.SAMLConfig.ResolveProvider(spID)
 		if ok && sp.SLOEnabled {
 			err = h.SAMLSLOService.SendSLORequest(
@@ -416,7 +416,7 @@ func (h *LogoutHandler) invalidateSession(
 			return "", nil, err
 		}
 		for _, s := range invalidatedSessions {
-			affectedServiceProviderIDs = affectedServiceProviderIDs.Merge(s.GetParticipatedSAMLServiceProviderIDs())
+			affectedServiceProviderIDs = affectedServiceProviderIDs.Merge(s.GetParticipatedSAMLServiceProviderIDsSet())
 		}
 		// Exclude the current logging out service provider
 		affectedServiceProviderIDs.Delete(sp.GetID())
@@ -457,7 +457,9 @@ func (h *LogoutHandler) handleSLOResponse(
 		sloSession.Entry.IsPartialLogout = true
 	}
 	// Remove the current SP id from the pending sp ids
-	sloSession.Entry.PendingLogoutServiceProviderIDs.Delete(sp.GetID())
+	newPendingLogoutServiceProviderIDsSet := setutil.NewSetFromSlice(sloSession.Entry.PendingLogoutServiceProviderIDs, setutil.Identity)
+	newPendingLogoutServiceProviderIDsSet.Delete(sp.GetID())
+	sloSession.Entry.PendingLogoutServiceProviderIDs = newPendingLogoutServiceProviderIDsSet.Keys()
 
 	err = h.SAMLSLOSessionService.Save(sloSession)
 	if err != nil {
@@ -548,7 +550,7 @@ func (s *LogoutHandler) createSLOSession(
 ) (*samlslosession.SAMLSLOSession, error) {
 	requestXML := string(request.ToXMLBytes())
 	sloSessionEntry := &samlslosession.SAMLSLOSessionEntry{
-		PendingLogoutServiceProviderIDs: pendingLogoutServiceProviderIDs,
+		PendingLogoutServiceProviderIDs: pendingLogoutServiceProviderIDs.Keys(),
 		LogoutRequestXML:                requestXML,
 		ResponseBinding:                 responseBinding,
 		CallbackURL:                     callbackURL,

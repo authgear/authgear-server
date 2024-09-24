@@ -6,7 +6,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/rand"
-	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type SAMLSLOSession struct {
@@ -14,7 +13,7 @@ type SAMLSLOSession struct {
 	Entry *SAMLSLOSessionEntry `json:"entry,omitempty"`
 }
 type SAMLSLOSessionEntry struct {
-	PendingLogoutServiceProviderIDs setutil.Set[string]      `json:"pending_logout_service_provider_ids,omitempty"`
+	PendingLogoutServiceProviderIDs []string                 `json:"pending_logout_service_provider_ids,omitempty"`
 	LogoutRequestXML                string                   `json:"logout_request_xml,omitempty"`
 	ResponseBinding                 samlprotocol.SAMLBinding `json:"response_binding,omitempty"`
 	CallbackURL                     string                   `json:"callback_url,omitempty"`
