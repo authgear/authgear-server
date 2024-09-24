@@ -36,6 +36,7 @@
     "@types/grecaptcha": "3.0.9",
     "@types/luxon": "3.3.4",
     "@types/zxcvbn": "4.4.4",
+    "browserslist": "4.23.3",
     "buffer": "6.0.3",
     "caniuse-lite": "1.0.30001653",
     "eslint": "8.45.0",
