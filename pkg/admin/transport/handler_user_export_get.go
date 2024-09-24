@@ -64,7 +64,7 @@ func (h *UserExportGetHandler) handle(w http.ResponseWriter, r *http.Request) er
 	}
 
 	// Get presigned download url when the task completed successfully
-	if response.FailedAt == nil {
+	if response.Status == "completed" && response.FailedAt == nil {
 		downloadUrl, err := h.CloudStorage.PresignGetObject(response.DownloadUrl, cloudstorage.PresignGetExpiresForUserExport)
 		if err != nil {
 			return err
