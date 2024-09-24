@@ -164,15 +164,35 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (rec
 }
 
 func (s *UserExportService) ExportRecords(ctx context.Context, request *Request, task *redisqueue.Task) (outputFilename string, err error) {
-	tmpResult, err := os.CreateTemp("", fmt.Sprintf("export-%s.tmp", task.ID))
+	resultFile, err := os.CreateTemp("", fmt.Sprintf("export-%s.tmp", task.ID))
 	if err != nil {
 		return
 	}
-	defer os.Remove(tmpResult.Name())
+	defer os.Remove(resultFile.Name())
 
+	if request.Format == "csv" {
+		err = s.ExportToCSV(resultFile, request, task)
+	} else {
+		err = s.ExportToNDJson(resultFile, request, task)
+	}
+	if err != nil {
+		return "", err
+	}
+
+	key := url.QueryEscape(fmt.Sprintf("%s-%s-%s.%s", task.AppID, task.ID, s.Clock.NowUTC().Format("20060102150405Z"), request.Format))
+	_, err = s.UploadResult(key, resultFile, request.Format)
+
+	if err != nil {
+		return "", err
+	}
+
+	return key, nil
+}
+
+func (s *UserExportService) ExportToNDJson(tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
 	var offset uint64 = uint64(0)
 	for {
-		s.Logger.Infof("Export user page offset %v", offset)
+		s.Logger.Infof("Export ndjson user page offset %v", offset)
 		var page []*user.UserForExport = nil
 
 		err = s.AppDatabase.WithTx(func() (e error) {
@@ -185,7 +205,7 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 		})
 
 		if err != nil {
-			return "", err
+			return err
 		}
 
 		s.Logger.Infof("Found number of users: %v", len(page))
@@ -222,17 +242,15 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 		}
 	}
 
-	key := url.QueryEscape(fmt.Sprintf("%s-%s-%s.%s", task.AppID, task.ID, s.Clock.NowUTC().Format("20060102150405Z"), "ndjson"))
-	_, err = s.UploadResult(key, tmpResult)
-
-	if err != nil {
-		return "", err
-	}
-
-	return key, nil
+	return nil
 }
 
-func (s *UserExportService) UploadResult(key string, resultFile *os.File) (response *http.Response, err error) {
+func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
+	// TODO: add csv export
+	return nil
+}
+
+func (s *UserExportService) UploadResult(key string, resultFile *os.File, format string) (response *http.Response, err error) {
 	file, err := os.Open(resultFile.Name())
 	if err != nil {
 		return nil, err
@@ -245,9 +263,13 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File) (respo
 	}
 
 	headers := make(http.Header)
-	headers.Set("Content-Length", strconv.FormatInt(fileInfo.Size(), 10))
-	headers.Set("Content-Type", "application/x-ndjson")
 	headers.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", key))
+	headers.Set("Content-Length", strconv.FormatInt(fileInfo.Size(), 10))
+	if format == "csv" {
+		headers.Set("Content-Type", "text/csv")
+	} else {
+		headers.Set("Content-Type", "application/x-ndjson")
+	}
 
 	presignedRequest, err := s.CloudStorage.PresignPutObject(key, headers)
 	if err != nil {
