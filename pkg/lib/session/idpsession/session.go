@@ -26,7 +26,7 @@ type IDPSession struct {
 
 	TokenHash string `json:"token_hash"`
 
-	ParticipatedSAMLServiceProviderIDs setutil.Set[string] `json:"participated_saml_service_provider_ids,omitempty"`
+	ParticipatedSAMLServiceProviderIDs []string `json:"participated_saml_service_provider_ids,omitempty"`
 
 	// ExpireAtForResolvedSession is a transient field that tells when the session will exire at, computed now.
 	// Note that ExpireAtForResolvedSession will keep changing if idle timeout is enabled.
@@ -124,6 +124,6 @@ func (s *IDPSession) EqualSession(ss session.SessionBase) bool {
 	return s.SessionID() == ss.SessionID() && s.SessionType() == ss.SessionType()
 }
 
-func (s *IDPSession) GetParticipatedSAMLServiceProviderIDs() setutil.Set[string] {
-	return s.ParticipatedSAMLServiceProviderIDs
+func (s *IDPSession) GetParticipatedSAMLServiceProviderIDsSet() setutil.Set[string] {
+	return setutil.NewSetFromSlice(s.ParticipatedSAMLServiceProviderIDs, setutil.Identity)
 }

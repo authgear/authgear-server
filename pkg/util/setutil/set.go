@@ -2,8 +2,6 @@ package setutil
 
 import (
 	"cmp"
-	"encoding/json"
-	"fmt"
 	"slices"
 )
 
@@ -95,42 +93,4 @@ func (s *Set[T]) Merge(other Set[T]) Set[T] {
 		result.Add(k)
 	}
 	return result
-}
-
-var _ json.Unmarshaler = &Set[string]{}
-
-func (s *Set[T]) UnmarshalJSON(b []byte) error {
-
-	var rawArray []interface{}
-	err := json.Unmarshal(b, &rawArray)
-	if err != nil {
-		return err
-	}
-
-	if rawArray == nil {
-		return nil
-	}
-	if *s == nil {
-		*s = Set[T]{}
-	}
-
-	for _, value := range rawArray {
-		if t, ok := value.(T); ok {
-			s.Add(t)
-		} else {
-			return fmt.Errorf("failed to unmarshal set: unexpected type")
-		}
-	}
-	return nil
-}
-
-var _ json.Marshaler = Set[string]{}
-
-func (s Set[T]) MarshalJSON() ([]byte, error) {
-	items := []T{}
-	for _, k := range s.Keys() {
-		items = append(items, k)
-	}
-
-	return json.Marshal(items)
 }

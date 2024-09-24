@@ -94,11 +94,11 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		pendingLogoutServiceProviderIDs := setutil.Set[string]{}
 		for _, s := range invalidatedSessions {
-			pendingLogoutServiceProviderIDs = pendingLogoutServiceProviderIDs.Merge(s.GetParticipatedSAMLServiceProviderIDs())
+			pendingLogoutServiceProviderIDs = pendingLogoutServiceProviderIDs.Merge(s.GetParticipatedSAMLServiceProviderIDsSet())
 		}
 		if len(pendingLogoutServiceProviderIDs.Keys()) > 0 {
 			sloSessionEntry := &samlslosession.SAMLSLOSessionEntry{
-				PendingLogoutServiceProviderIDs: pendingLogoutServiceProviderIDs,
+				PendingLogoutServiceProviderIDs: pendingLogoutServiceProviderIDs.Keys(),
 				SID:                             oidc.EncodeSID(sess),
 				UserID:                          sess.GetAuthenticationInfo().UserID,
 				PostLogoutRedirectURI:           redirectURI,

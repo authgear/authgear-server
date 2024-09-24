@@ -47,7 +47,7 @@ type ListableSession interface {
 	IsSameSSOGroup(s SessionBase) bool
 	EqualSession(s SessionBase) bool
 
-	GetParticipatedSAMLServiceProviderIDs() setutil.Set[string]
+	GetParticipatedSAMLServiceProviderIDsSet() setutil.Set[string]
 }
 
 type CreateReason string
