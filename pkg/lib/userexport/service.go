@@ -1,11 +1,9 @@
 package userexport
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -249,11 +247,11 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File) (respo
 		return
 	}
 
-	buffer := bytes.NewBuffer(nil)
-	if _, err := io.Copy(buffer, file); err != nil {
-		return nil, err
-	}
-	uploadRequest, err := http.NewRequest(http.MethodPut, presignUploadResponse.URL, buffer)
+	// From library doc,
+	// https://cs.opensource.google/go/go/+/refs/tags/go1.23.1:src/net/http/request.go;l=933
+	// file pointer does not set `ContentLength` automatically, so we need to explicit set it
+	uploadRequest, err := http.NewRequest(http.MethodPut, presignUploadResponse.URL, file)
+	uploadRequest.ContentLength = fileInfo.Size()
 	if err != nil {
 		return nil, err
 	}
