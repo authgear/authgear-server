@@ -111,7 +111,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			// Send the logout request to the first sp
 			for _, spID := range pendingLogoutServiceProviderIDs.Keys() {
 				sp, ok := h.SAMLConfig.ResolveProvider(spID)
-				if ok {
+				if ok && sp.SLOEnabled {
 					return h.SAMLSLOService.SendSLORequest(w, r, sloSession, sp)
 				}
 			}
