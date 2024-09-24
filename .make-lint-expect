@@ -27,6 +27,7 @@ pkg/util/template/translation_test.go cannot import github.com/authgear/authgear
 exit status 1
 pkg/lib/config/config_test.go cannot import gopkg.in/yaml.v2
 pkg/lib/config/feature_test.go cannot import gopkg.in/yaml.v2
+pkg/lib/config/messaging_sms_gateway_test.go cannot import gopkg.in/yaml.v2
 pkg/lib/config/schema_test.go cannot import gopkg.in/yaml.v2
 pkg/lib/config/secret_test.go cannot import gopkg.in/yaml.v2
 pkg/lib/config/secret_update_instruction_test.go cannot import gopkg.in/yaml.v2
