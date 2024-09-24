@@ -18,7 +18,8 @@
     "build": "vite build --outDir '../resources/authgear/generated'",
     "watch": "vite build --watch --outDir '../resources/authgear/generated'",
     "test": "jest",
-    "ensure-reproducible-build": "../scripts/sh/ensure-reproducible-build.sh -n 5 -p '../resources/authgear/generated/manifest.json'"
+    "ensure-reproducible-build": "../scripts/sh/ensure-reproducible-build.sh -n 5 -p '../resources/authgear/generated/manifest.json'",
+    "browserslist-coverage-lint": "../scripts/sh/ensure-browserslist-coverage.sh"
   },
   "alias": {
     "process": false
