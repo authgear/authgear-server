@@ -273,7 +273,9 @@ func TestSAMLService(t *testing.T) {
 			}
 			err := svc.VerifyExternalSignature(
 				sp,
-				samlRequest,
+				&saml.SAMLElementSigned{
+					SAMLRequest: samlRequest,
+				},
 				"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
 				relayState,
 				signature)
@@ -295,7 +297,9 @@ func TestSAMLService(t *testing.T) {
 
 			err := svc.VerifyExternalSignature(
 				sp,
-				samlRequest,
+				&saml.SAMLElementSigned{
+					SAMLRequest: samlRequest,
+				},
 				"http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
 				relayState,
 				signature)

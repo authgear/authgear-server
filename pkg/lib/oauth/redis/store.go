@@ -425,6 +425,36 @@ func (s *Store) UpdateOfflineGrantDeviceSecretHash(
 	return grant, nil
 }
 
+func (s *Store) AddOfflineGrantSAMLServiceProviderParticipant(
+	grantID string,
+	newServiceProviderID string,
+	expireAt time.Time) (*oauth.OfflineGrant, error) {
+	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
+	mutex := s.Redis.NewMutex(mutexName)
+	err := mutex.LockContext(s.Context)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		_, _ = mutex.UnlockContext(s.Context)
+	}()
+
+	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
+	if err != nil {
+		return nil, err
+	}
+
+	newParticipatedSAMLServiceProviderIDs := grant.GetParticipatedSAMLServiceProviderIDsSet()
+	newParticipatedSAMLServiceProviderIDs.Add(newServiceProviderID)
+	grant.ParticipatedSAMLServiceProviderIDs = newParticipatedSAMLServiceProviderIDs.Keys()
+	err = s.updateOfflineGrant(grant, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
+}
+
 func (s *Store) AddOfflineGrantRefreshToken(
 	grantID string,
 	expireAt time.Time,

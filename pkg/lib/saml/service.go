@@ -2,6 +2,7 @@ package saml
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -21,7 +22,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
@@ -48,6 +51,20 @@ type SAMLUserInfoProvider interface {
 	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
 }
 
+type IDPSessionProvider interface {
+	AddSAMLServiceProviderParticipant(
+		session *idpsession.IDPSession,
+		serviceProviderID string,
+	) (*idpsession.IDPSession, error)
+}
+
+type OfflineGrantService interface {
+	AddSAMLServiceProviderParticipant(
+		grant *oauth.OfflineGrant,
+		serviceProviderID string,
+	) (*oauth.OfflineGrant, error)
+}
+
 type Service struct {
 	Clock                   clock.Clock
 	AppID                   config.AppID
@@ -57,6 +74,9 @@ type Service struct {
 	SAMLSpSigningMaterials  *config.SAMLSpSigningMaterials
 	Endpoints               SAMLEndpoints
 	UserInfoProvider        SAMLUserInfoProvider
+
+	IDPSessionProvider          IDPSessionProvider
+	OfflineGrantSessionProvider OfflineGrantService
 }
 
 func (s *Service) IdpEntityID() string {
@@ -277,7 +297,8 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	return nil
 }
 
-func (s *Service) IssueSuccessResponse(
+func (s *Service) IssueLoginSuccessResponse(
+	ctx context.Context,
 	callbackURL string,
 	serviceProviderId string,
 	authInfo authenticationinfo.T,
@@ -448,18 +469,66 @@ func (s *Service) IssueSuccessResponse(
 		return nil, err
 	}
 
+	err = s.recordSessionParticipant(ctx, sp)
+	if err != nil {
+		return nil, err
+	}
+
 	return response, nil
+}
+
+func (s *Service) IssueLogoutRequest(
+	sp *config.SAMLServiceProviderConfig,
+	sloSession *samlslosession.SAMLSLOSession,
+) (*samlprotocol.LogoutRequest, error) {
+	userID := sloSession.Entry.UserID
+	sessionIndex := sloSession.Entry.SID
+	now := s.Clock.NowUTC()
+	notOnOrAfter := now.Add(duration.UserInteraction)
+
+	clientLike := spToClientLike(sp)
+	userInfo, err := s.UserInfoProvider.GetUserInfo(userID, clientLike)
+	if err != nil {
+		return nil, err
+	}
+	nameIDFormat := sp.NameIDFormat
+	nameID, err := s.getUserNameID(nameIDFormat, sp, userInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	logoutRequest := &samlprotocol.LogoutRequest{
+		ID:           samlprotocol.GenerateLogoutRequestID(),
+		Version:      samlprotocol.SAMLVersion2,
+		IssueInstant: s.Clock.NowUTC(),
+		NotOnOrAfter: &notOnOrAfter,
+		Destination:  sp.SLOCallbackURL,
+		Issuer: &samlprotocol.Issuer{
+			Format: samlprotocol.SAMLIssertFormatEntity,
+			Value:  s.IdpEntityID(),
+		},
+		NameID: &samlprotocol.NameID{
+			Format: string(nameIDFormat),
+			Value:  nameID,
+		},
+		SessionIndex: &samlprotocol.SessionIndex{
+			Value: sessionIndex,
+		},
+	}
+
+	err = s.signLogoutRequest(logoutRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return logoutRequest, nil
 }
 
 func (s *Service) IssueLogoutResponse(
 	callbackURL string,
-	serviceProviderId string,
 	inResponseToLogoutRequest *samlprotocol.LogoutRequest,
+	isPartialLogout bool,
 ) (*samlprotocol.LogoutResponse, error) {
-	_, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
-	if !ok {
-		return nil, samlprotocol.ErrServiceProviderNotFound
-	}
 
 	now := s.Clock.NowUTC()
 
@@ -479,6 +548,13 @@ func (s *Service) IssueLogoutResponse(
 			Value:  s.IdpEntityID(),
 		},
 	}
+
+	if isPartialLogout {
+		response.Status.StatusCode.StatusCode = &samlprotocol.StatusCode{
+			Value: samlprotocol.StatusPartialLogout,
+		}
+	}
+
 	err := s.signLogoutResponse(response)
 	if err != nil {
 		return nil, err
@@ -489,7 +565,7 @@ func (s *Service) IssueLogoutResponse(
 
 func (s *Service) VerifyEmbeddedSignature(
 	sp *config.SAMLServiceProviderConfig,
-	samlRequestXML string) error {
+	samlElementXML string) error {
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
 	if !ok {
 		// Signing cert not configured, nothing to verify
@@ -503,7 +579,7 @@ func (s *Service) VerifyEmbeddedSignature(
 	validationCtx := dsig.NewDefaultValidationContext(certificateStore)
 
 	doc := etree.NewDocument()
-	err := doc.ReadFromString(samlRequestXML)
+	err := doc.ReadFromString(samlElementXML)
 	if err != nil {
 		return err
 	}
@@ -517,9 +593,14 @@ func (s *Service) VerifyEmbeddedSignature(
 	return nil
 }
 
+type SAMLElementSigned struct {
+	SAMLResponse string
+	SAMLRequest  string
+}
+
 func (s *Service) VerifyExternalSignature(
 	sp *config.SAMLServiceProviderConfig,
-	samlRequest string,
+	el *SAMLElementSigned,
 	sigAlg string,
 	relayState string,
 	signature string) error {
@@ -530,7 +611,13 @@ func (s *Service) VerifyExternalSignature(
 	}
 
 	q := url.Values{}
-	q.Set("SAMLRequest", samlRequest)
+	if el.SAMLRequest != "" {
+		q.Set("SAMLRequest", el.SAMLRequest)
+	} else if el.SAMLResponse != "" {
+		q.Set("SAMLResponse", el.SAMLResponse)
+	} else {
+		panic("no signed element")
+	}
 	q.Set("RelayState", relayState)
 	q.Set("SigAlg", sigAlg)
 
@@ -568,9 +655,14 @@ func (s *Service) VerifyExternalSignature(
 	return nil
 }
 
+type SAMLElementToSign struct {
+	SAMLResponse string
+	SAMLRequest  string
+}
+
 func (s *Service) ConstructSignedQueryParameters(
-	samlResponse string,
 	relayState string,
+	el *SAMLElementToSign,
 ) (url.Values, error) {
 	signingCtx, err := s.idpSigningContext()
 	if err != nil {
@@ -578,7 +670,13 @@ func (s *Service) ConstructSignedQueryParameters(
 	}
 
 	q := url.Values{}
-	q.Set("SAMLResponse", samlResponse)
+	if el.SAMLResponse != "" {
+		q.Set("SAMLResponse", el.SAMLResponse)
+	} else if el.SAMLRequest != "" {
+		q.Set("SAMLRequest", el.SAMLRequest)
+	} else {
+		panic("nothing to sign: SAMLResponse and SAMLRequest are both empty")
+	}
 	q.Set("RelayState", relayState)
 	q.Set("SigAlg", string(s.SAMLConfig.Signing.SignatureMethod))
 
@@ -714,6 +812,17 @@ func (s *Service) signLogoutResponse(response *samlprotocol.LogoutResponse) erro
 	return nil
 }
 
+func (s *Service) signLogoutRequest(request *samlprotocol.LogoutRequest) error {
+	el := request.Element()
+	sigEl, err := s.constructSignature(el)
+	if err != nil {
+		return err
+	}
+	request.Signature = sigEl
+
+	return nil
+}
+
 func (s *Service) constructSignature(el *etree.Element) (*etree.Element, error) {
 	signingContext, err := s.idpSigningContext()
 	if err != nil {
@@ -755,6 +864,31 @@ func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
 	}
 
 	return signingContext, nil
+}
+
+func (s Service) recordSessionParticipant(
+	ctx context.Context,
+	sp *config.SAMLServiceProviderConfig) error {
+	resolvedSession := session.GetSession(ctx)
+	if resolvedSession == nil {
+		return fmt.Errorf("failed to record session participant as no session in context")
+	}
+
+	switch resolvedSession := resolvedSession.(type) {
+	case *oauth.OfflineGrantSession:
+		_, err := s.OfflineGrantSessionProvider.AddSAMLServiceProviderParticipant(resolvedSession.OfflineGrant, sp.GetID())
+		if err != nil {
+			return err
+		}
+	case *idpsession.IDPSession:
+		_, err := s.IDPSessionProvider.AddSAMLServiceProviderParticipant(resolvedSession, sp.GetID())
+		if err != nil {
+			return err
+		}
+	default:
+		panic("unexpected session type")
+	}
+	return nil
 }
 
 func spToClientLike(sp *config.SAMLServiceProviderConfig) *oauth.ClientLike {

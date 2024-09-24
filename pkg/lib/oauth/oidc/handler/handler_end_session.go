@@ -19,7 +19,7 @@ type WebAppURLsProvider interface {
 }
 
 type LogoutSessionManager interface {
-	Logout(session.ResolvedSession, http.ResponseWriter) error
+	Logout(session.SessionBase, http.ResponseWriter) ([]session.ListableSession, error)
 }
 
 type CookieManager interface {
@@ -39,7 +39,8 @@ func (h *EndSessionHandler) Handle(s session.ResolvedSession, req protocol.EndSe
 	sameSiteStrict, err := h.Cookies.GetCookie(r, h.SessionCookieDef.SameSiteStrictDef)
 	if s != nil && err == nil && sameSiteStrict.Value == "true" {
 		// Logout directly.
-		err := h.SessionManager.Logout(s, rw)
+		// TODO(SAML): Logout affected saml service providers
+		_, err := h.SessionManager.Logout(s, rw)
 		if err != nil {
 			return err
 		}

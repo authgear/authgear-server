@@ -51,6 +51,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
@@ -130,6 +131,12 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
+		samlslosession.DependencySet,
+		wire.Bind(new(handlersaml.SAMLSLOSessionService), new(*samlslosession.StoreRedis)),
+		wire.Bind(new(webapp.SAMLSLOSessionService), new(*samlslosession.StoreRedis)),
+	),
+
+	wire.NewSet(
 		libes.DependencySet,
 		wire.Bind(new(userimport.ElasticsearchService), new(*libes.Service)),
 	),
@@ -171,12 +178,18 @@ var CommonDependencySet = wire.NewSet(
 
 		wire.Bind(new(handlersaml.HandlerSAMLService), new(*saml.Service)),
 		wire.Bind(new(samlbinding.SAMLRedirectBindingSigner), new(*saml.Service)),
+		wire.Bind(new(saml.SAMLService), new(*saml.Service)),
+
+		wire.Bind(new(handlersaml.SAMLSLOService), new(*saml.SLOService)),
+		wire.Bind(new(webapp.SAMLSLOService), new(*saml.SLOService)),
 	),
 
 	wire.NewSet(
 		samlbinding.DependencySet,
 		wire.Bind(new(handlersaml.BindingHTTPPostWriter), new(*samlbinding.SAMLBindingHTTPPostWriter)),
+		wire.Bind(new(saml.BindingHTTPPostWriter), new(*samlbinding.SAMLBindingHTTPPostWriter)),
 		wire.Bind(new(handlersaml.BindingHTTPRedirectWriter), new(*samlbinding.SAMLBindingHTTPRedirectWriter)),
+		wire.Bind(new(saml.BindingHTTPRedirectWriter), new(*samlbinding.SAMLBindingHTTPRedirectWriter)),
 	),
 
 	wire.NewSet(
@@ -192,6 +205,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauth.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(authenticationflow.IDPSessionService), new(*idpsession.Provider)),
 		wire.Bind(new(sessionlisting.IDPSessionProvider), new(*idpsession.Provider)),
+		wire.Bind(new(saml.IDPSessionProvider), new(*idpsession.Provider)),
 		wire.Bind(new(facade.IDPSessionManager), new(*idpsession.Manager)),
 	),
 
@@ -208,6 +222,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.SessionManager), new(*session.Manager)),
 		wire.Bind(new(workflow.SessionService), new(*session.Manager)),
 		wire.Bind(new(authenticationflow.SessionService), new(*session.Manager)),
+		wire.Bind(new(handlersaml.SessionManager), new(*session.Manager)),
 	),
 
 	wire.NewSet(
@@ -414,6 +429,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oidc.UIInfoResolverPromptResolver), new(*oauth.PromptResolver)),
 		wire.Bind(new(oidc.IDTokenHintResolverOfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Bind(new(oauthhandler.RevokeHandlerOfflineGrantService), new(*oauth.OfflineGrantService)),
+		wire.Bind(new(saml.OfflineGrantService), new(*oauth.OfflineGrantService)),
 
 		oauthhandler.DependencySet,
 
@@ -610,6 +626,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(saml.SAMLEndpoints), new(*endpoints.Endpoints)),
 		wire.Bind(new(samlsession.UIServiceAuthUIEndpointsProvider), new(*endpoints.Endpoints)),
 		wire.Bind(new(authenticationinfo.UIServiceEndpointsProvider), new(*endpoints.Endpoints)),
+		wire.Bind(new(handlersaml.Endpoints), new(*endpoints.Endpoints)),
 	),
 
 	wire.NewSet(

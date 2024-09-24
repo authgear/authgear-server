@@ -20,10 +20,6 @@ func NewSetFromSlice[A any, B cmp.Ordered](slice []A, f func(a A) B) Set[B] {
 	return out
 }
 
-func NewStringSetFromSlice(slice []string) Set[string] {
-	return NewSetFromSlice(slice, func(s string) string { return s })
-}
-
 func (s Set[T]) Subtract(that Set[T]) Set[T] {
 	out := make(Set[T])
 	for inThis := range s {
@@ -48,6 +44,9 @@ func SetToSlice[A any, B cmp.Ordered](slice []A, set Set[B], f func(a A) B) []A 
 }
 
 func (s Set[T]) Keys() []T {
+	if s == nil {
+		return []T{}
+	}
 	keys := []T{}
 	for k, _ := range s {
 		keys = append(keys, k)
@@ -56,16 +55,42 @@ func (s Set[T]) Keys() []T {
 	return keys
 }
 
-func (s Set[T]) Add(key T) {
-	if _, ok := s[key]; ok {
+func (s *Set[T]) Add(key T) {
+	if (*s) == nil {
+		*s = Set[T]{}
+	}
+	if _, ok := (*s)[key]; ok {
 		return
 	}
-	s[key] = struct{}{}
+	(*s)[key] = struct{}{}
+}
+
+func (s *Set[T]) Delete(key T) {
+	if (*s) == nil {
+		*s = Set[T]{}
+	}
+	delete(*s, key)
 }
 
 func (s Set[T]) Has(key T) bool {
+	if s == nil {
+		return false
+	}
 	if _, ok := s[key]; ok {
 		return true
 	}
 	return false
+}
+
+func (s *Set[T]) Merge(other Set[T]) Set[T] {
+	result := Set[T]{}
+	if (*s) != nil {
+		for _, k := range s.Keys() {
+			result.Add(k)
+		}
+	}
+	for _, k := range other.Keys() {
+		result.Add(k)
+	}
+	return result
 }

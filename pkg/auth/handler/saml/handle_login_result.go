@@ -1,6 +1,7 @@
 package saml
 
 import (
+	"context"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -17,6 +18,7 @@ type LoginResultHandler struct {
 }
 
 func (h *LoginResultHandler) handleLoginResult(
+	ctx context.Context,
 	authInfo *authenticationinfo.T,
 	samlSessionEntry *samlsession.SAMLSessionEntry,
 ) (response samlprotocol.Respondable, err error) {
@@ -26,7 +28,8 @@ func (h *LoginResultHandler) handleLoginResult(
 	err = h.Database.WithTx(func() error {
 		authnRequest, _ := samlSessionEntry.AuthnRequest()
 
-		resp, err := h.SAMLService.IssueSuccessResponse(
+		resp, err := h.SAMLService.IssueLoginSuccessResponse(
+			ctx,
 			callbackURL,
 			samlSessionEntry.ServiceProviderID,
 			*authInfo,
