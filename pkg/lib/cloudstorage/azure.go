@@ -109,9 +109,9 @@ func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Durat
 		Scheme: serviceURL.Scheme,
 		Host:   serviceURL.Host,
 		// Inject storage account to URL when testing on IP style host, eg: 127.0.0.1
-		IPEndpointStyleInfo: azblob.IPEndpointStyleInfo{
-			AccountName: s.StorageAccount,
-		},
+		// IPEndpointStyleInfo: azblob.IPEndpointStyleInfo{
+		// 	AccountName: s.StorageAccount,
+		// },
 		ContainerName: s.Container,
 		BlobName:      name,
 		SAS:           q,
