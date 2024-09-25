@@ -9,7 +9,7 @@ package images
 import (
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/images/handler"
-	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	"github.com/authgear/authgear-server/pkg/images/service"
 	deps2 "github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/images"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -71,9 +71,9 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := appProvider.RootProvider
 	objectStoreConfig := rootProvider.ObjectStoreConfig
 	clock := _wireSystemClockValue
-	storage := deps.NewCloudStorage(objectStoreConfig, clock)
-	provider := &cloudstorage.Provider{
-		Storage: storage,
+	imagesCloudStorageServiceStorage := deps.NewCloudStorage(objectStoreConfig, clock)
+	imagesCloudStorageService := &service.ImagesCloudStorageService{
+		Storage: imagesCloudStorageServiceStorage,
 	}
 	factory := rootProvider.LoggerFactory
 	getHandlerLogger := handler.NewGetHandlerLogger(factory)
@@ -85,7 +85,7 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 	httpProto := deps2.ProvideHTTPProto(request, trustProxy)
 	daemon := rootProvider.VipsDaemon
 	getHandler := &handler.GetHandler{
-		DirectorMaker: provider,
+		DirectorMaker: imagesCloudStorageService,
 		Logger:        getHandlerLogger,
 		ImagesCDNHost: imagesCDNHost,
 		HTTPHost:      httpHost,
@@ -110,9 +110,9 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	}
 	objectStoreConfig := rootProvider.ObjectStoreConfig
 	clockClock := _wireSystemClockValue
-	storage := deps.NewCloudStorage(objectStoreConfig, clockClock)
-	provider := cloudstorage.Provider{
-		Storage: storage,
+	imagesCloudStorageServiceStorage := deps.NewCloudStorage(objectStoreConfig, clockClock)
+	imagesCloudStorageService := &service.ImagesCloudStorageService{
+		Storage: imagesCloudStorageServiceStorage,
 	}
 	config := appProvider.Config
 	secretConfig := config.SecretConfig
@@ -121,7 +121,7 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	environmentConfig := &rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps2.ProvideHTTPHost(request, trustProxy)
-	presignProvider := &presign.Provider{
+	provider := &presign.Provider{
 		Secret: imagesKeyMaterials,
 		Clock:  clockClock,
 		Host:   httpHost,
@@ -140,13 +140,13 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	postHandler := &handler.PostHandler{
-		Logger:               postHandlerLogger,
-		JSON:                 jsonResponseWriter,
-		CloudStorageProvider: provider,
-		PresignProvider:      presignProvider,
-		Database:             handle,
-		ImagesStore:          store,
-		Clock:                clockClock,
+		Logger:                         postHandlerLogger,
+		JSON:                           jsonResponseWriter,
+		PostHandlerCloudStorageService: imagesCloudStorageService,
+		PresignProvider:                provider,
+		Database:                       handle,
+		ImagesStore:                    store,
+		Clock:                          clockClock,
 	}
 	return postHandler
 }

@@ -14,7 +14,6 @@ import (
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/event"
@@ -33,7 +32,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
-	redisqueueTask "github.com/authgear/authgear-server/pkg/redisqueue"
+	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -42,7 +41,6 @@ var DependencySet = wire.NewSet(
 	deps.CommonDependencySet,
 
 	middleware.DependencySet,
-	redisqueueTask.NewCloudStorage,
 
 	nonce.DependencySet,
 	wire.Bind(new(interaction.NonceService), new(*nonce.Service)),
@@ -107,8 +105,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.UserImportGetProducer), new(*redisqueue.UserImportProducer)),
 	wire.Bind(new(transport.UserExportCreateProducer), new(*redisqueue.UserExportProducer)),
 	wire.Bind(new(transport.UserExportGetProducer), new(*redisqueue.UserExportProducer)),
-	wire.Bind(new(transport.UserExportCreateHandlerCloudStorage), new(cloudstorage.Storage)),
-	wire.Bind(new(transport.UserExportGetHandlerCloudStorage), new(cloudstorage.Storage)),
+	wire.Bind(new(transport.UserExportCreateHandlerCloudStorage), new(userexport.UserExportCloudStorage)),
+	wire.Bind(new(transport.UserExportGetHandlerCloudStorage), new(userexport.UserExportCloudStorage)),
 
 	adminauthz.DependencySet,
 )

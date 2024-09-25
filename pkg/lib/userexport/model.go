@@ -7,8 +7,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
+
+// PresignGetExpiresForUserExport is how long the presign GET request remains valid for user export.
+const PresignGetExpiresForUserExport time.Duration = 1 * duration.PerMinute
 
 const BatchSize = 1000
 

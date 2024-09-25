@@ -4,13 +4,14 @@ import (
 	"github.com/google/wire"
 
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
+	imagesservice "github.com/authgear/authgear-server/pkg/images/service"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
-func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.Clock) cloudstorage.Storage {
+func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.Clock) imagesservice.ImagesCloudStorageServiceStorage {
 	switch objectStoreConfig.Type {
 	case imagesconfig.ObjectStoreTypeAWSS3:
 		s, err := cloudstorage.NewS3Storage(
@@ -90,6 +91,6 @@ var DependencySet = wire.NewSet(
 	deps.CommonDependencySet,
 	appdb.NewHandle,
 	clock.DependencySet,
-	cloudstorage.DependencySet,
+	imagesservice.DependencySet,
 	NewCloudStorage,
 )

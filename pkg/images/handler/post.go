@@ -14,7 +14,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
-	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	imagesservice "github.com/authgear/authgear-server/pkg/images/service"
 	"github.com/authgear/authgear-server/pkg/lib/images"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -46,14 +46,18 @@ func NewPostHandlerLogger(lf *log.Factory) PostHandlerLogger {
 	return PostHandlerLogger{lf.New("post-handler")}
 }
 
+type PostHandlerCloudStorageService interface {
+	PresignPutRequest(r *imagesservice.PresignUploadRequest) (*imagesservice.PresignUploadResponse, error)
+}
+
 type PostHandler struct {
-	Logger               PostHandlerLogger
-	JSON                 JSONResponseWriter
-	CloudStorageProvider cloudstorage.Provider
-	PresignProvider      PresignProvider
-	Database             *appdb.Handle
-	ImagesStore          ImagesStore
-	Clock                clock.Clock
+	Logger                         PostHandlerLogger
+	JSON                           JSONResponseWriter
+	PostHandlerCloudStorageService PostHandlerCloudStorageService
+	PresignProvider                PresignProvider
+	Database                       *appdb.Handle
+	ImagesStore                    ImagesStore
+	Clock                          clock.Clock
 }
 
 // nolint:gocognit
@@ -106,7 +110,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	key := ExtractKey(r)
 	// Transform the form into PresignUploadRequest.
-	presignUploadRequest := cloudstorage.PresignUploadRequest{
+	presignUploadRequest := imagesservice.PresignUploadRequest{
 		Key:     key,
 		Headers: map[string]interface{}{},
 	}
@@ -154,7 +158,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	presignUploadResponse, err := h.CloudStorageProvider.PresignPutRequest(&presignUploadRequest)
+	presignUploadResponse, err := h.PostHandlerCloudStorageService.PresignPutRequest(&presignUploadRequest)
 	if err != nil {
 		return
 	}

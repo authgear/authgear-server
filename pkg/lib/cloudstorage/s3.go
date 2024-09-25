@@ -125,7 +125,7 @@ func (s *S3Storage) PresignGetObject(name string, expire time.Duration) (*url.UR
 	return u, nil
 }
 
-func (s *S3Storage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
+func (s *S3Storage) MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
 		input := &s3.GetObjectInput{
@@ -134,7 +134,7 @@ func (s *S3Storage) MakeDirector(extractKey func(r *http.Request) string) func(r
 		}
 		req, _ := s.s3.GetObjectRequest(input)
 		req.NotHoist = false
-		urlStr, _, err := req.PresignRequest(PresignGetExpires)
+		urlStr, _, err := req.PresignRequest(expire)
 		if err != nil {
 			panic(fmt.Errorf("failed to presign head request: %w", err))
 		}

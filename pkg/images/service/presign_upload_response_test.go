@@ -1,4 +1,4 @@
-package cloudstorage
+package service
 
 import (
 	"net/http"

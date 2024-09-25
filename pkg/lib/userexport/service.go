@@ -11,7 +11,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -30,7 +29,7 @@ type UserExportService struct {
 	UserQueries  UserQueries
 	Logger       Logger
 	HTTPOrigin   libhttputil.HTTPOrigin
-	CloudStorage cloudstorage.Provider
+	CloudStorage UserExportCloudStorage
 	Clock        clock.Clock
 }
 
@@ -245,14 +244,12 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File) (respo
 		return nil, err
 	}
 
-	presignUploadRequest := cloudstorage.PresignUploadRequest{
-		Key:     key,
-		Headers: map[string]interface{}{},
-	}
-	presignUploadRequest.Headers["content-length"] = strconv.FormatInt(fileInfo.Size(), 10)
-	presignUploadRequest.Headers["content-type"] = "application/x-ndjson"
-	presignUploadRequest.Headers["Content-Disposition"] = fmt.Sprintf("attachment; filename=%s", key)
-	presignUploadResponse, err := s.CloudStorage.PresignPutRequest(&presignUploadRequest)
+	headers := make(http.Header)
+	headers.Set("Content-Length", strconv.FormatInt(fileInfo.Size(), 10))
+	headers.Set("Content-Type", "application/x-ndjson")
+	headers.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", key))
+
+	presignedRequest, err := s.CloudStorage.PresignPutObject(key, headers)
 	if err != nil {
 		return
 	}
@@ -260,14 +257,16 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File) (respo
 	// From library doc,
 	// https://cs.opensource.google/go/go/+/refs/tags/go1.23.1:src/net/http/request.go;l=933
 	// file pointer does not set `ContentLength` automatically, so we need to explicit set it
-	uploadRequest, err := http.NewRequest(http.MethodPut, presignUploadResponse.URL, file)
+	uploadRequest, err := http.NewRequest(http.MethodPut, presignedRequest.URL.String(), file)
 	uploadRequest.ContentLength = fileInfo.Size()
 	if err != nil {
 		return nil, err
 	}
 
-	for _, headerField := range presignUploadResponse.Headers {
-		uploadRequest.Header.Add(headerField.Name, headerField.Value)
+	for key, values := range presignedRequest.Header {
+		for _, value := range values {
+			uploadRequest.Header.Add(key, value)
+		}
 	}
 	client := &http.Client{}
 	response, err = client.Do(uploadRequest)

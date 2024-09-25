@@ -8,7 +8,6 @@ import (
 
 	"github.com/google/wire"
 
-	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
@@ -26,8 +25,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	panic(wire.Build(
 		deps.RedisQueueDependencySet,
 		deps.CommonDependencySet,
-		NewCloudStorage,
-		wire.Struct(new(cloudstorage.Provider), "*"),
 	))
 }
 

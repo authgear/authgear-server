@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
@@ -65,7 +64,7 @@ func (h *UserExportGetHandler) handle(w http.ResponseWriter, r *http.Request) er
 
 	// Get presigned download url when the task completed successfully
 	if response.Status == "completed" && response.FailedAt == nil {
-		downloadUrl, err := h.CloudStorage.PresignGetObject(response.DownloadUrl, cloudstorage.PresignGetExpiresForUserExport)
+		downloadUrl, err := h.CloudStorage.PresignGetObject(response.DownloadUrl, userexport.PresignGetExpiresForUserExport)
 		if err != nil {
 			return err
 		}

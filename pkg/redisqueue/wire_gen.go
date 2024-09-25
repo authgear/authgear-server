@@ -26,7 +26,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
@@ -1183,16 +1182,13 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	}
 	userexportLogger := userexport.NewLogger(factory)
 	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
-	storage := NewCloudStorage(userExportObjectStoreConfig, clockClock)
-	cloudstorageProvider := cloudstorage.Provider{
-		Storage: storage,
-	}
+	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
 	userExportService := &userexport.UserExportService{
 		AppDatabase:  handle,
 		UserQueries:  userQueries,
 		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
-		CloudStorage: cloudstorageProvider,
+		CloudStorage: userExportCloudStorage,
 		Clock:        clockClock,
 	}
 	return userExportService
