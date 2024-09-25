@@ -58,6 +58,9 @@ jobs:
     - run: npm run ensure-reproducible-build
       working-directory: ./authui
       if: ${{ !cancelled() }}
+    - run: npm run browserslist-coverage-lint
+      working-directory: ./authui
+      if: ${{ !cancelled() }}
 
   portal-test:
     if: ${{ github.repository != 'oursky/authgear-server' }}
@@ -106,6 +109,9 @@ jobs:
       working-directory: ./portal
       if: ${{ !cancelled() }}
     - run: npm run ensure-reproducible-build
+      working-directory: ./portal
+      if: ${{ !cancelled() }}
+    - run: npm run browserslist-coverage-lint
       working-directory: ./portal
       if: ${{ !cancelled() }}
 

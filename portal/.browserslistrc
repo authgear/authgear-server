@@ -4,7 +4,11 @@
 # As of 2020-08-27, the latest version of Edge is 84.
 # And Edge has adopted a release schedule similar to Chrome and Firefox.
 # Therefore we can write this.
-last 2 Edge versions
-last 2 Chrome versions
-last 2 Firefox versions
-Safari >= 11
+iOS >= 14
+Safari >= 14
+Android >= 5.0
+last 5 Chrome versions
+last 5 ChromeAndroid versions
+last 5 Edge versions
+last 5 Firefox versions
+>=0.4% and not dead

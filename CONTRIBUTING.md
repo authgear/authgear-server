@@ -212,7 +212,7 @@ As the first project `accounts` is created by the script instead of by user, we 
 
 cert-manager@v1.7.3 has transitive dependency problem.
 
-siwe has to be 1.1.6. siwe@2.x has runtime error on page load. siwe@1.1.6 requires ethers@5.5.1.
+caniuse-lite is not up-to-latest, which makes `last x versions` in `.browserslistrc` outdated. However, updating to `caniuse-lite 1.0.30001655` will lead to breaking changes in `doiuse 6.0.2` and `stylelint-no-unsupported-browser-features 8.0.2`. Thus, we need to override `caniuse-lite 1.0.30001653` until doiuse patch [this fix](https://github.com/anandthakker/doiuse/pull/191).
 
 When intl-tel-input is >= 21, it switched to use CSS variables. https://github.com/jackocnr/intl-tel-input/releases/tag/v21.0.0
 The problem is that it uses `--custom-var: url("../some-path");`, which is rejected by Parcel https://github.com/parcel-bundler/parcel/blob/v2.10.2/packages/transformers/css/src/CSSTransformer.js#L135

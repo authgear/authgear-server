@@ -15,7 +15,8 @@
     "eslint": "eslint --cache './src/**/*.{js,ts,jsx,tsx}'",
     "stylelint": "stylelint --cache './src/**/*.{css,scss}'",
     "gentype": "graphql-codegen --config ./graphql.portal.codegen.yaml && graphql-codegen --config ./graphql.adminapi.codegen.yaml",
-    "ensure-reproducible-build": "../scripts/sh/ensure-reproducible-build.sh -n 5 -p './dist/.vite/manifest.json'"
+    "ensure-reproducible-build": "../scripts/sh/ensure-reproducible-build.sh -n 5 -p './dist/.vite/manifest.json'",
+    "browserslist-coverage-lint": "../scripts/sh/ensure-browserslist-coverage.sh"
   },
   "overrides": {
     "word-wrap": "@aashutoshrathi/word-wrap"
