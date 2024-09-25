@@ -5,7 +5,7 @@
   - [IdP Initiated](#1_2)
   - [Configs](#1_3)
   - [Supported Parameters in `<AuthnRequest>`](#1_4)
-  - [Support Pre-Selecting User by SAML Subject in Authentication Flow](#1_5)
+  - [Support Pre-entering login id by SAML Subject in Auth UI](#1_5)
   - [The Login Endpoint](#1_6)
 - [Single Logout](#2)
   - [Configs](#2_1)
@@ -172,19 +172,30 @@ saml:
 - `<ProviderName>`
   - Not supported. Will be ignored if provided.
 
-### <a id="1_5"></a> Support Pre-Selecting User by SAML Subject in Authentication Flow
+### <a id="1_5"></a> Support Pre-entering login id by SAML Subject in Auth UI
 
-A new identification method `saml_authn_request` will be added. It accepts the base64url encoded SAML request as the input.
 
-```json
-{
-  "identification": "saml_authn_request",
-  "authn_request": "PHNhbWxwOkF1dGhuUmVxdWVzdA..."
-}
-```
 
-- The request MUST includes a valid Subject, with a valid NameID.
-- The NameID will be mapped to an existing user. See [NameID](#3) section for related configs.
+- In the oidc flow, new login_hint type `login_id` is supported for prefilling login ids:
+  - Supported login ids:
+    - Email: https://authgear.com/login_hint?type=login_id&email=test@example.com
+    - Phone: https://authgear.com/login_hint?type=login_id&phone=+123456
+    - Username: https://authgear.com/login_hint?type=login_id&username=test
+
+  - A parameter `enforce` will be supported in login_hint. It can only be `true` or `false`.
+    - If `true`, the Auth UI will enforce the user to login to the same user as the login_hint sepcified.
+    - If `false` or other invalid value, the UI will not prevent the user to login to another account which is different than the one specified by the login_hint.
+
+- If a `<Subject>` element exist in the `<AuthnRequest>`, the `<NameID>` inside the subject will be used to prefill the login id in Auth UI. It will be mapped to a login_hint by the following rules:
+  - If `nameid_format` (See the [NameID section](#3)) of the service provider is `urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified`, the login_hint will be generated according to `nameid_attribute_pointer`.
+    - When `nameid_attribute_pointer` is `/email`, a login_hint of email `https://authgear.com/login_hint?type=login_id&email=test@example.com` will be generated.
+    - When `nameid_attribute_pointer` is `/phone_number`, a login_hint of phone `https://authgear.com/login_hint?type=login_id&phone=+123456` will be generated.
+    - When `nameid_attribute_pointer` is `/preferred_username`, a login_hint of Username `https://authgear.com/login_hint?type=login_id&username=test` will be generated.
+    - All other values are not supported and will result in error.
+  - If `nameid_format` is `urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress`, a login_hint of email `https://authgear.com/login_hint?type=login_id&email=test@example.com` will be generated.
+
+  - The flow of Auth UI will be executed as if the above generated login_hint is provided.
+
 
 ### <a id="1_6"></a> The Login Endpoint
 
