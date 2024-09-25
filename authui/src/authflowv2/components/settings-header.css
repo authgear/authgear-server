@@ -11,7 +11,6 @@
     @apply hidden; /* NOTE(DEV-2123): Hide setting header for now */
     @apply items-center;
     @apply w-full;
-    @apply h-25;
     @apply py-5;
     background-color: var(--settings-header__bg-color);
   }
