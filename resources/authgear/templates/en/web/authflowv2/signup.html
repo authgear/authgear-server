@@ -197,7 +197,7 @@
     {{ end }}
   </form>
 
-  {{ if $.CanSwitchToLogin }}
+  {{ if and $.CanSwitchToLogin (not $isContinue) }}
     <p class="body-text--md mt-4">
       {{ $loginHref := call $.MakeURL "/login" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}
       {{ include "v2.page.signup.default.switch-to-login" (dict "href" $loginHref )}}
