@@ -17,7 +17,7 @@ const PresignGetExpires time.Duration = 1 * duration.PerHour
 // PresignGetExpiresForUserExport is how long the presign GET request remains valid for user export.
 const PresignGetExpiresForUserExport time.Duration = 1 * duration.PerMinute
 
-type Storage interface {
+type storage interface {
 	// PresignPutObject returns an HTTP request that is ready for use.
 	PresignPutObject(name string, header http.Header) (*http.Request, error)
 	// PresignHeadObject returns an URL that is ready for use.

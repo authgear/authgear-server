@@ -19,7 +19,7 @@ type AzureStorage struct {
 	Clock          clock.Clock
 }
 
-var _ Storage = &AzureStorage{}
+var _ storage = &AzureStorage{}
 
 func NewAzureStorage(serviceURL string, storageAccount string, accessKey string, container string, c clock.Clock) *AzureStorage {
 	return &AzureStorage{

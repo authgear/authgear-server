@@ -24,7 +24,7 @@ type S3Storage struct {
 	s3      *s3.S3
 }
 
-var _ Storage = &S3Storage{}
+var _ storage = &S3Storage{}
 
 func NewS3Storage(accessKeyID, secretAccessKey, region, bucket string) (*S3Storage, error) {
 	cred := credentials.NewStaticCredentials(accessKeyID, secretAccessKey, "")
