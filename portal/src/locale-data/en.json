@@ -945,11 +945,11 @@
   "CustomDomainListScreen.activate-domain-dialog.message": "Are you sure you want to activate {domain}? Only one domain can be active.",
   "CustomDomainListScreen.activate-domain-dialog.generic-error": "Failed to activate domain",
   "CustomDomainListScreen.verify-success-message": "Verified domain successfully",
-  "CustomDomainListScreen.rediect-endpoint-direct-access.message": "Please go to{a, react, href{{href}} children{Endpoint Direct Access}} to configure what happens when the users access the endpoint URL directly",
+  "CustomDomainListScreen.rediect-endpoint-direct-access.message": "Please go to{ReactRouterLink, react, to{{href}} children{Endpoint Direct Access}} to configure what happens when the users access the endpoint URL directly",
 
   "EndpointDirectAccessScreen.title": "Endpoint Direct Access",
   "EndpointDirectAccessScreen.desc": "Configure what happens when the users access the endpoint URL directly",
-  "EndpointDirectAccessScreen.redirect-custom-domain.message": "Redirect to settins page or URL are available when{a, react, href{{href}} children{custom domain}} is used",
+  "EndpointDirectAccessScreen.redirect-custom-domain.message": "Redirect to settins page or URL are available when{ReactRouterLink, react, to{{href}} children{custom domain}} is used",
   "EndpointDirectAccessScreen.configuration.options.brand-page.label": "Brand page",
   "EndpointDirectAccessScreen.configuration.options.brand-page.description": "Show a simple page with the brand logo and a back to home button",
   "EndpointDirectAccessScreen.configuration.options.redirect-to-setting-page.label": "Redirect to settings page",
