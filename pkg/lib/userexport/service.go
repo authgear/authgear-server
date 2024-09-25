@@ -167,7 +167,7 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (rec
 func (s *UserExportService) ExportRecords(ctx context.Context, request *Request, task *redisqueue.Task) (outputFilename string, err error) {
 	tmpResult, err := os.CreateTemp("", fmt.Sprintf("export-%s.tmp", task.ID))
 	if err != nil {
-		return "", err
+		return
 	}
 	defer os.Remove(tmpResult.Name())
 
@@ -192,17 +192,27 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 		s.Logger.Infof("Found number of users: %v", len(page))
 
 		for _, user := range page {
-			record, convertErr := s.convertDBUserToRecord(user)
-			if convertErr != nil {
-				return "", convertErr
+			var record *Record
+			record, err = s.convertDBUserToRecord(user)
+			if err != nil {
+				return
 			}
 
-			recordJson, jsonErr := json.Marshal(record)
-			if jsonErr != nil {
-				return "", jsonErr
+			var recordJson []byte
+			recordJson, err = json.Marshal(record)
+			if err != nil {
+				return
 			}
-			tmpResult.Write(recordJson)
-			tmpResult.Write([]byte("\n"))
+
+			_, err = tmpResult.Write(recordJson)
+			if err != nil {
+				return
+			}
+
+			_, err = tmpResult.Write([]byte("\n"))
+			if err != nil {
+				return
+			}
 		}
 
 		// Exit export loop early when no more record to read
