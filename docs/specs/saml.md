@@ -618,6 +618,8 @@ The content of the metadata will be as mentioned in [SAMLMetadata](https://docs.
 
 ## <a id="8"></a> Debug Logging
 
+NOTE: This section is WIP, the below is just an initial idea.
+
 When `debug_mode_enabled` is `true`. Addtional non-blocking events will be created:
 
 - `saml.debug.sso.authn_reqeust_received`
