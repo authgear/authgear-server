@@ -96,7 +96,7 @@ Here is an example of configurations about Web Browser SSO:
 ```yaml
 saml:
   service_providers:
-    - id: EXAMPLE_ID
+    - client_id: CLIENT_ID
       audience: https://example.com
       destination: https://example.com/acs
       recipient: https://example.com/acs
@@ -106,7 +106,7 @@ saml:
 ```
 
 - `saml.service_providers`: Required. A list of objects containing the configurations of a Service Provider. The objects in the list contains the following fields:
-  - `id`: Required. ID of the service provider. Authgear uses this ID to reference the service provider. Note that this is not the entity ID of the service provider.
+  - `client_id`: Required. ID of the service provider, and must match id of one of the items in `oauth.clients`. Conceptually, every service provider must be attached to an oauth client by pointing to that oauth client using this `client_id`. Note that this is not the entity ID of the service provider.
   - `audience`: Optional. `Audience` condition of the `<Assertion>` generated at the end of Browser SSO flow. If not set, the `Audience` will be the Assertion Consumer Service URL.
   - `destination`: Optional. `Destination` of the `<Response>` generated at the end of Browser SSO flow. If not set, the `Destination` will be the Assertion Consumer Service URL.
   - `recipient`: Optional. `Recipient` of the `<Subject>` generated at the end of Browser SSO flow. If not set, the `Recipient` will be the Assertion Consumer Service URL.
@@ -231,7 +231,7 @@ sequenceDiagram
 ```yaml
 saml:
   service_providers:
-    - id: EXAMPLE_ID
+    - client_id: EXAMPLE_ID
       logout_callback_url: https://app1.example.com/logout
       slo_enabled: true
       logout_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
@@ -260,7 +260,7 @@ saml:
 
 ### <a id="2_3"></a> The Logout Endpoint
 
-- The URL is https://example.authgear.cloud/saml2/logout/EXAMPLE_ID. Where `EXAMPLE_ID` is the `id` of the service provider as specified in the config `saml.service_providers[index].id`. As a result, each service provider will have a independent logout endpoint.
+- The URL is https://example.authgear.cloud/saml2/logout/EXAMPLE_ID. Where `EXAMPLE_ID` is the `client_id` of the service provider as specified in the config `saml.service_providers[index].client_id`. As a result, each service provider will have a independent logout endpoint.
 - The metadata for each service provider will includes the above login endpoint.
 - When the endpoint receives a GET or POST request with a `<LogoutRequest>` provided, the [Single Logout flow](#2) will be triggered. A `<LogoutResponse>` will be returned. The binding used to return the response will be same as the binding used to receive the `<LogoutRequest>`.
 - When the endpoint receives a GET request without a `<LogoutRequest>` provided, and if a valid IdPSession exist, redirect the user to the `/logout` endpoint.
@@ -280,7 +280,7 @@ saml:
 ```yaml
 saml:
   service_providers:
-    - id: EXAMPLE_ID
+    - client_id: EXAMPLE_ID
       nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
       nameid_attribute_pointer: /preferred_username
 ```
@@ -296,7 +296,7 @@ saml:
 ```yaml
 saml:
   service_providers:
-    - id: EXAMPLE_ID
+    - client_id: EXAMPLE_ID
       nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
       nameid_attribute_pointer: /preferred_username
 ```
@@ -389,7 +389,7 @@ The SAML attributes can be customized in the config. Here is an example:
 ```yaml
 saml:
   service_providers:
-    - id: EXAMPLE_ID
+    - client_id: EXAMPLE_ID
       attributes:
         definitions:
           - name: https://schemas.xmlsoap.org/ws/2005/05/identity/claims/email
@@ -653,7 +653,7 @@ saml:
     key_id: key01
     signature_method: http://www.w3.org/2001/04/xmldsig-more#rsa-sha256
   service_providers:
-    - id: EXAMPLE_ID
+    - client_id: EXAMPLE_ID
       audience: https://example.com
       destination: https://example.com/acs
       recipient: https://example.com/acs
@@ -689,7 +689,7 @@ saml:
       ```yaml
       saml:
         service_providers:
-          - id: EXAMPLE_ID
+          - client_id: EXAMPLE_ID
             audience: https://www.google.com/a/example.com/acs
             destination: https://www.google.com/a/example.com/acs
             acs_urls:
