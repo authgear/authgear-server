@@ -39,7 +39,7 @@
   {{ end }}
   {{ $appName := (translate "app.name" nil) }}
   {{ $clientName := or $.ClientName "null" }}
-
+  {{ $isContinue := $.HasXStep }}
   <div class="flex-1-0-auto">
     <div class="screen-logo-layout">
       {{ template "authflowv2/__header.html" . }}
@@ -51,10 +51,18 @@
               "ClientName" $clientName)
             }}
           {{ else }}
-            {{ include "v2.page.signup.default.title" (dict
-              "AppName" $appName
-              "ClientName" $clientName)
-            }}
+            {{ if $isContinue }}
+              {{ include "v2.page.signup.continue.title" (dict
+                "AppName" $appName
+                "ClientName" $clientName)
+              }}
+            {{ else }}
+              {{ include "v2.page.signup.default.title" (dict
+                "AppName" $appName
+                "ClientName" $clientName)
+              }}
+            {{ end }}
+            
           {{ end }}
         </h1>
         <h2 class="screen-description">
