@@ -189,6 +189,7 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
                 designForm.state.customisableLightTheme.logo.height ??
                 DEFAULT_LIGHT_THEME.logo.height
               }
+              defaultValue={DEFAULT_LIGHT_THEME.logo.height}
               onChange={designForm.lightThemeSetters.setLogoHeight}
             />
           </>
@@ -213,6 +214,7 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
                 designForm.state.customisableDarkTheme.logo.height ??
                 DEFAULT_DARK_THEME.logo.height
               }
+              defaultValue={DEFAULT_DARK_THEME.logo.height}
               onChange={designForm.darkThemeSetters.setLogoHeight}
             />
           </>
