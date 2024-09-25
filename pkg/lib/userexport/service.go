@@ -12,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -27,6 +28,7 @@ type UserQueries interface {
 
 type UserExportService struct {
 	AppDatabase  *appdb.Handle
+	Config       *config.UserProfileConfig
 	UserQueries  UserQueries
 	Logger       Logger
 	HTTPOrigin   libhttputil.HTTPOrigin
@@ -255,6 +257,13 @@ func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, ta
 		defaultHeader := CSVField{}
 		json.Unmarshal([]byte(DefaultCSVExportField), &defaultHeader)
 		exportFields = defaultHeader.Fields
+
+		// Append custom_attributes to default pointer set
+		for _, attribute := range s.Config.CustomAttributes.Attributes {
+			exportFields = append(exportFields, &FieldPointer{
+				Pointer: fmt.Sprintf("/custom_attributes%s", attribute.Pointer),
+			})
+		}
 	}
 
 	headerField, err := ExtractCSVHeaderField(exportFields)
