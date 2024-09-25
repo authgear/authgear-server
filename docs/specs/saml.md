@@ -196,6 +196,8 @@ saml:
 
   - The flow of Auth UI will be executed as if the above generated login_hint is provided.
 
+  - If `IsPassive` is `true` in `<AuthnRequest>`, and `<Subject>` also exist, the above rules will also be applied. And if the current logged in user is not the user specified by the login_hint, `urn:oasis:names:tc:SAML:2.0:status:NoPassive` error will be returned.
+
 
 ### <a id="1_6"></a> The Login Endpoint
 
