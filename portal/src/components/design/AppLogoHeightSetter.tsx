@@ -3,12 +3,43 @@ import cn from "classnames";
 import { Label, Slider } from "@fluentui/react";
 import TextField from "../../TextField";
 
+const PIXEL_HEIGHT_REGEX = /^[0-9]+px$/;
+const REM_HEIGHT_REGEX = /^[0-9]+rem$/;
+
+const FALLBACK_HEIGHT_PX = 40;
+
+/**
+ * parseHeightString handles all css units
+ * 1 rem -> 16 px
+ * 1 px  ->  1 px
+ * unidentified units -> 40 px
+ *
+ * @param {string} height
+ * @param {?string} [defaultValue]
+ * @returns {number}
+ */
+function parseHeightString(height: string, defaultValue?: string): number {
+  if (PIXEL_HEIGHT_REGEX.test(height)) {
+    return Number(height.replace("px", ""));
+  }
+  if (REM_HEIGHT_REGEX.test(height)) {
+    return Number(height.replace("rem", "")) * 16;
+  }
+
+  if (defaultValue != null && PIXEL_HEIGHT_REGEX.test(defaultValue)) {
+    return Number(defaultValue.replace("px", ""));
+  }
+
+  return FALLBACK_HEIGHT_PX;
+}
+
 interface AppLogoHeightSetterProps {
   /**
    * @type {string}
    * @example "40px"
    */
   value: string;
+  defaultValue?: string;
   onChange: (value: string) => void;
   minHeight?: number;
   maxHeight?: number;
@@ -25,6 +56,7 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
   function AppLogoHeightSetter(props) {
     const {
       value,
+      defaultValue,
       onChange,
       sliderAriaLabel,
       minHeight,
@@ -32,7 +64,9 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
       className,
     } = props;
 
-    const [heightPX, setHeightPX] = useState(Number(value.replace("px", "")));
+    const [heightPX, setHeightPX] = useState(
+      parseHeightString(value, defaultValue)
+    );
 
     useEffect(() => {
       onChange(`${heightPX}px`);
