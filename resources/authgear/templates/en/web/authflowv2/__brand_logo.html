@@ -20,7 +20,7 @@
 {{ end }}
 
 {{ if $.ClientURI }}
-  <div class="brand-logo__container light">
+  <div class="brand-logo__container light" data-src="{{ $light }}">
     <a href="{{ $.ClientURI }}">
       <img
         class="brand-logo {{ $.LogoClass }} light"
@@ -32,7 +32,7 @@
       >
     </a>
   </div>
-  <div class="brand-logo__container dark">
+  <div class="brand-logo__container dark" data-src="{{ $dark }}">
     <a href="{{ $.ClientURI }}">
       <img
         class="brand-logo {{ $.LogoClass }} dark"
@@ -45,7 +45,7 @@
     </a>
   </div>
 {{ else }}
-  <div class="brand-logo__container light">
+  <div class="brand-logo__container light" data-src="{{ $light }}">
     <img
       class="brand-logo {{ $.LogoClass }} light"
       src="{{ $light }}"
@@ -55,7 +55,7 @@
       data-previewable-resource-original-value="{{ .light }}"
     >
   </div>
-  <div class="brand-logo__container dark">
+  <div class="brand-logo__container dark" data-src="{{ $dark }}">
     <img
       class="brand-logo {{ $.LogoClass }} dark"
       src="{{ $dark }}"
