@@ -20,7 +20,14 @@
 {{ end }}
 
 {{ if $.ClientURI }}
-  <div class="brand-logo__container light" data-src="{{ $light }}">
+  <div 
+    class="brand-logo__container light"
+    data-src="{{ $light }}"
+    data-controller="previewable-resource"
+    data-previewable-resource-key-value="brand-logo-light"
+    data-previewable-resource-changable-attribute-value="data-src"
+    data-previewable-resource-original-value="{{ .light }}"
+  >
     <a href="{{ $.ClientURI }}">
       <img
         class="brand-logo {{ $.LogoClass }} light"
@@ -32,7 +39,14 @@
       >
     </a>
   </div>
-  <div class="brand-logo__container dark" data-src="{{ $dark }}">
+  <div 
+    class="brand-logo__container dark"
+    data-src="{{ $dark }}"
+    data-controller="previewable-resource"
+    data-previewable-resource-key-value="brand-logo-dark"
+    data-previewable-resource-changable-attribute-value="data-src"
+    data-previewable-resource-original-value="{{ .dark }}"
+  >
     <a href="{{ $.ClientURI }}">
       <img
         class="brand-logo {{ $.LogoClass }} dark"
@@ -45,7 +59,14 @@
     </a>
   </div>
 {{ else }}
-  <div class="brand-logo__container light" data-src="{{ $light }}">
+  <div
+    class="brand-logo__container light"
+    data-src="{{ $light }}"
+    data-controller="previewable-resource"
+    data-previewable-resource-key-value="brand-logo-light"
+    data-previewable-resource-changable-attribute-value="data-src"
+    data-previewable-resource-original-value="{{ .light }}"
+  >
     <img
       class="brand-logo {{ $.LogoClass }} light"
       src="{{ $light }}"
@@ -55,7 +76,14 @@
       data-previewable-resource-original-value="{{ .light }}"
     >
   </div>
-  <div class="brand-logo__container dark" data-src="{{ $dark }}">
+  <div
+    class="brand-logo__container dark"
+    data-src="{{ $dark }}"
+    data-controller="previewable-resource"
+    data-previewable-resource-key-value="brand-logo-dark"
+    data-previewable-resource-changable-attribute-value="data-src"
+    data-previewable-resource-original-value="{{ .dark }}"
+  >
     <img
       class="brand-logo {{ $.LogoClass }} dark"
       src="{{ $dark }}"
