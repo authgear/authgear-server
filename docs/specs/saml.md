@@ -11,6 +11,7 @@
   - [Configs](#2_1)
   - [Supported Parameters in `<LogoutRequest>`](#2_2)
   - [The Logout Endpoint](#2_3)
+  - [Limitations](#2_4)
 - [NameID](#3)
   - [Supported NameIDFormat](#3_1)
     - [Configure NameID when using urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified](#3_1_1)
@@ -278,6 +279,10 @@ saml:
 - When the endpoint receives a GET or POST request with a `<LogoutRequest>` provided, the [Single Logout flow](#2) will be triggered. A `<LogoutResponse>` will be returned. The binding used to return the response will be same as the binding used to receive the `<LogoutRequest>`.
 - When the endpoint receives a GET request without a `<LogoutRequest>` provided, and if a valid IdPSession exist, redirect the user to the `/logout` endpoint.
 - When the endpoint receives a GET request without a `<LogoutRequest>` provided, and if a valid IdPSession does not exist, redirect the user to the login endpoint as defined in [The Login Endpoint](#1_6).
+
+### <a id="2_4"></a> Limitations
+
+- Single Logout will only be triggered by an SP-initiated logout using the saml logout endpoint `https://example.authgear.cloud/saml2/logout/CLIENT_ID`, or IdP-initiated logout using the logout endpoint `https://example.authgear.cloud/logout`. If a session is invaliated by other means, such as admin api or settings page, Single Logout will not be triggered. This means, `<LogoutRequest>` will not be sent to service providers which participated in the session in these cases.
 
 ## <a id="3"></a> NameID
 
