@@ -210,7 +210,7 @@ export const DEFAULT_LIGHT_THEME: CustomisableTheme = {
     textDecoration: "none",
   },
   logo: {
-    height: "2.5rem",
+    height: "40px",
   },
 };
 
@@ -259,7 +259,7 @@ export const DEFAULT_DARK_THEME: CustomisableTheme = {
     textDecoration: "none",
   },
   logo: {
-    height: "2.5rem",
+    height: "40px",
   },
 };
 
