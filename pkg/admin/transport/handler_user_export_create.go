@@ -55,6 +55,11 @@ func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
+	_, err = userexport.ExtractCSVHeaderField(request.CSV.Fields)
+	if err != nil {
+		return err
+	}
+
 	rawMessage, err := json.Marshal(request)
 	if err != nil {
 		return err

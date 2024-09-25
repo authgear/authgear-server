@@ -2,7 +2,12 @@ package userexport
 
 import (
 	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
+
+	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -225,4 +230,78 @@ func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 	}
 
 	return response, nil
+}
+
+func jsonPointerToCSVFieldName(pointer string) (fieldName string) {
+	splitFn := func(c rune) bool {
+		return c == '/'
+	}
+	fields := strings.FieldsFunc(pointer, splitFn)
+	return strings.Join(fields, ".")
+}
+
+func ExtractCSVHeaderField(fieldPointer []*FieldPointer) (headerFields *CSVHeaderFieldNames, err error) {
+	isDuplicated := false
+	fields := make([]string, 0)
+	fieldsMap := map[string]bool{}
+	for _, pointer := range fieldPointer {
+		var fieldName string
+		if pointer.FieldName == "" {
+			fieldName = jsonPointerToCSVFieldName((pointer.Pointer))
+		} else {
+			fieldName = pointer.FieldName
+		}
+
+		if fieldsMap[fieldName] {
+			isDuplicated = true
+		}
+
+		fieldsMap[fieldName] = true
+		fields = append(fields, fieldName)
+	}
+
+	headerFields = &CSVHeaderFieldNames{
+		FieldNames: fields,
+	}
+
+	if isDuplicated {
+		headerFieldsString, _ := json.Marshal(headerFields)
+		return nil, ErrUserExportDuplicateField.New(fmt.Sprintf("%s", headerFieldsString))
+	}
+
+	return headerFields, nil
+}
+
+func TraverseRecordValue(jsonMap interface{}, pointer string) (fieldValue string, err error) {
+	ptr, err := jsonpointer.Parse(pointer)
+	if err != nil {
+		return "", err
+	}
+	value, err := ptr.Traverse(jsonMap)
+	if err != nil {
+		return "", err
+	}
+
+	switch v := value.(type) {
+	case bool:
+		if v {
+			fieldValue = "true"
+		} else {
+			fieldValue = "false"
+		}
+	case []interface{}:
+		valueJson, _ := json.Marshal(v)
+		fieldValue = string(valueJson)
+	case map[string]interface{}:
+		valueJson, _ := json.Marshal(v)
+		fieldValue = string(valueJson)
+	case float64:
+		fieldValue = strconv.FormatFloat(v, 'f', -1, 64)
+	case nil:
+		fieldValue = ""
+	default:
+		fieldValue = v.(string)
+	}
+
+	return fieldValue, nil
 }

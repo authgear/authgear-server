@@ -2,6 +2,7 @@ package userexport
 
 import (
 	"context"
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -246,7 +247,78 @@ func (s *UserExportService) ExportToNDJson(tmpResult *os.File, request *Request,
 }
 
 func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
-	// TODO: add csv export
+	csvWriter := csv.NewWriter(tmpResult)
+
+	exportFields := request.CSV.Fields
+	// Use default CSV field set if no field specified in request
+	if exportFields == nil || len(exportFields) == 0 {
+		defaultHeader := CSVField{}
+		json.Unmarshal([]byte(DefaultCSVExportField), &defaultHeader)
+		exportFields = defaultHeader.Fields
+	}
+
+	headerField, err := ExtractCSVHeaderField(exportFields)
+	if err != nil {
+		return err
+	}
+
+	csvWriter.Write(headerField.FieldNames)
+
+	var offset uint64 = uint64(0)
+	for {
+		s.Logger.Infof("Export csv user page offset %v", offset)
+		var page []*user.UserForExport = nil
+
+		err = s.AppDatabase.WithTx(func() (e error) {
+			result, pageErr := s.UserQueries.GetPageForExport(offset, BatchSize)
+			if pageErr != nil {
+				return pageErr
+			}
+			page = result
+			return
+		})
+
+		if err != nil {
+			return err
+		}
+
+		s.Logger.Infof("Found number of users: %v", len(page))
+
+		for _, user := range page {
+			record, convertErr := s.convertDBUserToRecord(user)
+			if convertErr != nil {
+				return convertErr
+			}
+
+			recordJson, jsonErr := json.Marshal(record)
+			if jsonErr != nil {
+				return jsonErr
+			}
+
+			var recordMap interface{}
+			err = json.Unmarshal(recordJson, &recordMap)
+			if err != nil {
+				return err
+			}
+
+			var outputLine = make([]string, 0)
+			for _, field := range exportFields {
+				value, _ := TraverseRecordValue(recordMap, field.Pointer)
+				outputLine = append(outputLine, value)
+			}
+			csvWriter.Write(outputLine)
+		}
+
+		// Exit export loop early when no more record to read
+		if len(page) < BatchSize {
+			break
+		} else {
+			offset = offset + BatchSize
+		}
+	}
+
+	csvWriter.Flush()
+
 	return nil
 }
 
