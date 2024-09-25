@@ -10,7 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/images/handler"
-	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	imagesservice "github.com/authgear/authgear-server/pkg/images/service"
 	"github.com/authgear/authgear-server/pkg/lib/images"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/presign"
@@ -48,7 +48,7 @@ func newGetHandler(p *deps.RequestProvider) http.Handler {
 		deps.DependencySet,
 		handler.DependencySet,
 		wire.Bind(new(handler.VipsDaemon), new(*vipsutil.Daemon)),
-		wire.Bind(new(handler.DirectorMaker), new(*cloudstorage.Provider)),
+		wire.Bind(new(handler.DirectorMaker), new(*imagesservice.ImagesCloudStorageService)),
 		wire.Bind(new(http.Handler), new(*handler.GetHandler)),
 	))
 }
@@ -61,6 +61,7 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(handler.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 		wire.Bind(new(handler.PresignProvider), new(*presign.Provider)),
 		wire.Bind(new(handler.ImagesStore), new(*images.Store)),
+		wire.Bind(new(handler.PostHandlerCloudStorageService), new(*imagesservice.ImagesCloudStorageService)),
 		wire.Bind(new(http.Handler), new(*handler.PostHandler)),
 	))
 }

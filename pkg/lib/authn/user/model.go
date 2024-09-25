@@ -317,6 +317,13 @@ func newUserModel(
 	}
 }
 
+type UserForExport struct {
+	model.User
+
+	Identities     []*identity.Info
+	Authenticators []*authenticator.Info
+}
+
 func computeEndUserAccountID(derivedStandardAttributes map[string]interface{}, identities []*identity.Info, web3Info *model.UserWeb3Info) string {
 	var endUserAccountID string
 

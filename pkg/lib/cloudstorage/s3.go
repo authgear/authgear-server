@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -23,7 +24,7 @@ type S3Storage struct {
 	s3      *s3.S3
 }
 
-var _ Storage = &S3Storage{}
+var _ storage = &S3Storage{}
 
 func NewS3Storage(accessKeyID, secretAccessKey, region, bucket string) (*S3Storage, error) {
 	cred := credentials.NewStaticCredentials(accessKeyID, secretAccessKey, "")
@@ -92,14 +93,14 @@ func (s *S3Storage) PresignPutObject(name string, header http.Header) (*http.Req
 	}, nil
 }
 
-func (s *S3Storage) PresignHeadObject(name string) (*url.URL, error) {
+func (s *S3Storage) PresignHeadObject(name string, expire time.Duration) (*url.URL, error) {
 	input := &s3.HeadObjectInput{
 		Bucket: aws.String(s.Bucket),
 		Key:    aws.String(name),
 	}
 	req, _ := s.s3.HeadObjectRequest(input)
 	req.NotHoist = false
-	urlStr, _, err := req.PresignRequest(PresignGetExpires)
+	urlStr, _, err := req.PresignRequest(expire)
 	if err != nil {
 		return nil, fmt.Errorf("failed to presign head request: %w", err)
 	}
@@ -108,7 +109,23 @@ func (s *S3Storage) PresignHeadObject(name string) (*url.URL, error) {
 	return u, nil
 }
 
-func (s *S3Storage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
+func (s *S3Storage) PresignGetObject(name string, expire time.Duration) (*url.URL, error) {
+	input := &s3.GetObjectInput{
+		Bucket: aws.String(s.Bucket),
+		Key:    aws.String(name),
+	}
+	req, _ := s.s3.GetObjectRequest(input)
+	req.NotHoist = false
+	urlStr, _, err := req.PresignRequest(expire)
+	if err != nil {
+		return nil, fmt.Errorf("failed to presign get request: %w", err)
+	}
+	u, _ := url.Parse(urlStr)
+
+	return u, nil
+}
+
+func (s *S3Storage) MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
 		input := &s3.GetObjectInput{
@@ -117,7 +134,7 @@ func (s *S3Storage) MakeDirector(extractKey func(r *http.Request) string) func(r
 		}
 		req, _ := s.s3.GetObjectRequest(input)
 		req.NotHoist = false
-		urlStr, _, err := req.PresignRequest(PresignGetExpires)
+		urlStr, _, err := req.PresignRequest(expire)
 		if err != nil {
 			panic(fmt.Errorf("failed to presign head request: %w", err))
 		}

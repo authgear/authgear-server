@@ -76,6 +76,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
+	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -1272,4 +1273,58 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 		UserImports: userImportProducer,
 	}
 	return userImportGetHandler
+}
+
+func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	configConfig := appContext.Config
+	appConfig := configConfig.AppConfig
+	appID := appConfig.ID
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	handle := appProvider.Redis
+	clockClock := _wireSystemClockValue
+	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
+	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
+	userExportCreateHandler := &transport.UserExportCreateHandler{
+		AppID:        appID,
+		JSON:         jsonResponseWriter,
+		UserExports:  userExportProducer,
+		CloudStorage: userExportCloudStorage,
+	}
+	return userExportCreateHandler
+}
+
+func newUserExportGetHandler(p *deps.RequestProvider) http.Handler {
+	appProvider := p.AppProvider
+	appContext := appProvider.AppContext
+	configConfig := appContext.Config
+	appConfig := configConfig.AppConfig
+	appID := appConfig.ID
+	factory := appProvider.LoggerFactory
+	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
+	jsonResponseWriter := &httputil.JSONResponseWriter{
+		Logger: jsonResponseWriterLogger,
+	}
+	handle := appProvider.Redis
+	clockClock := _wireSystemClockValue
+	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
+	rootProvider := appProvider.RootProvider
+	environmentConfig := rootProvider.EnvironmentConfig
+	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
+	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
+	userExportGetHandler := &transport.UserExportGetHandler{
+		AppID:        appID,
+		JSON:         jsonResponseWriter,
+		UserExports:  userExportProducer,
+		CloudStorage: userExportCloudStorage,
+	}
+	return userExportGetHandler
 }

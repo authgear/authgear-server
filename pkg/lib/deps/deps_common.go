@@ -50,6 +50,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
+	"github.com/authgear/authgear-server/pkg/lib/userexport"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -326,6 +327,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(libes.UserQueries), new(*user.Queries)),
 		wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
 		wire.Bind(new(userimport.UserQueries), new(*user.RawQueries)),
+		wire.Bind(new(userexport.UserQueries), new(*user.Queries)),
 	),
 
 	wire.NewSet(
@@ -585,6 +587,7 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	userimport.DependencySet,
+	userexport.DependencySet,
 
 	wire.NewSet(
 		endpoints.DependencySet,

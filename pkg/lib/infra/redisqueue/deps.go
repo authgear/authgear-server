@@ -8,10 +8,12 @@ import (
 )
 
 var QueueUserImport = "user-import"
+var QueueUserExport = "user-export"
 var QueueUserReindex = "user-reindex"
 
 var ProducerDependencySet = wire.NewSet(
 	NewUserImportProducer,
+	NewUserExportProducer,
 	NewUserReindexProducer,
 )
 
@@ -23,6 +25,20 @@ func NewUserImportProducer(redis *appredis.Handle, clock clock.Clock) *UserImpor
 	return &UserImportProducer{
 		&Producer{
 			QueueName: QueueUserImport,
+			Redis:     redis,
+			Clock:     clock,
+		},
+	}
+}
+
+type UserExportProducer struct {
+	*Producer
+}
+
+func NewUserExportProducer(redis *appredis.Handle, clock clock.Clock) *UserExportProducer {
+	return &UserExportProducer{
+		&Producer{
+			QueueName: QueueUserExport,
 			Redis:     redis,
 			Clock:     clock,
 		},

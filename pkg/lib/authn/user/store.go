@@ -23,6 +23,7 @@ type store interface {
 	GetByIDs(userIDs []string) ([]*User, error)
 	Count() (uint64, error)
 	QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
+	QueryForExport(offset uint64, limit uint64) ([]*User, error)
 	UpdateLoginTime(userID string, loginAt time.Time) error
 	UpdateMFAEnrollment(userID string, endAt *time.Time) error
 	UpdateAccountStatus(userID string, status AccountStatus) error
@@ -283,6 +284,28 @@ func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs)
 	}
 
 	return users, offset, nil
+}
+
+func (s *Store) QueryForExport(offset uint64, limit uint64) ([]*User, error) {
+	// created_at indexed as DESC NULLS LAST, to re use the index but in invented direction, need to use ASC NULLS FIRST
+	query := s.selectQuery("u").Offset(offset).Limit(limit).OrderBy("created_at ASC NULLS FIRST")
+
+	rows, err := s.SQLExecutor.QueryWith(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []*User
+	for rows.Next() {
+		u, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, u)
+	}
+
+	return users, nil
 }
 
 func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {

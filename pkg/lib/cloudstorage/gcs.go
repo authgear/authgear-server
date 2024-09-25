@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
-	"cloud.google.com/go/storage"
+	gcs "cloud.google.com/go/storage"
 	"google.golang.org/api/option"
 
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -19,10 +20,10 @@ type GCSStorage struct {
 	CredentialsJSON []byte
 	Clock           clock.Clock
 
-	client *storage.Client
+	client *gcs.Client
 }
 
-var _ Storage = &GCSStorage{}
+var _ storage = &GCSStorage{}
 
 func NewGCSStorage(
 	credentialsJSON []byte,
@@ -40,7 +41,7 @@ func NewGCSStorage(
 	}
 
 	ctx := context.Background()
-	client, err := storage.NewClient(ctx, options...)
+	client, err := gcs.NewClient(ctx, options...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize GCS: %w", err)
 	}
@@ -68,7 +69,7 @@ func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Re
 	}
 
 	expires := now.Add(PresignPutExpires)
-	opts := storage.SignedURLOptions{
+	opts := gcs.SignedURLOptions{
 		// We still need to tell the Client SDK which service account we want to sign the URL with.
 		// https://pkg.go.dev/cloud.google.com/go/storage#hdr-Credential_requirements_for_signing
 		GoogleAccessID: s.ServiceAccount,
@@ -77,7 +78,7 @@ func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Re
 		ContentType:    header.Get("Content-Type"),
 		Headers:        headers,
 		MD5:            header.Get("Content-MD5"),
-		Scheme:         storage.SigningSchemeV4,
+		Scheme:         gcs.SigningSchemeV4,
 	}
 	urlStr, err := s.client.Bucket(s.Bucket).SignedURL(name, &opts)
 	if err != nil {
@@ -94,17 +95,17 @@ func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Re
 	return &req, nil
 }
 
-func (s *GCSStorage) PresignGetOrHeadObject(name string, method string) (*url.URL, error) {
+func (s *GCSStorage) PresignGetOrHeadObject(name string, method string, expire time.Duration) (*url.URL, error) {
 	now := s.Clock.NowUTC()
-	expires := now.Add(PresignGetExpires)
+	expires := now.Add(expire)
 
-	opts := storage.SignedURLOptions{
+	opts := gcs.SignedURLOptions{
 		// We still need to tell the Client SDK which service account we want to sign the URL with.
 		// https://pkg.go.dev/cloud.google.com/go/storage#hdr-Credential_requirements_for_signing
 		GoogleAccessID: s.ServiceAccount,
 		Method:         method,
 		Expires:        expires,
-		Scheme:         storage.SigningSchemeV4,
+		Scheme:         gcs.SigningSchemeV4,
 	}
 	urlStr, err := s.client.Bucket(s.Bucket).SignedURL(name, &opts)
 	if err != nil {
@@ -116,14 +117,18 @@ func (s *GCSStorage) PresignGetOrHeadObject(name string, method string) (*url.UR
 	return u, nil
 }
 
-func (s *GCSStorage) PresignHeadObject(name string) (*url.URL, error) {
-	return s.PresignGetOrHeadObject(name, "HEAD")
+func (s *GCSStorage) PresignHeadObject(name string, expire time.Duration) (*url.URL, error) {
+	return s.PresignGetOrHeadObject(name, "HEAD", expire)
 }
 
-func (s *GCSStorage) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
+func (s *GCSStorage) PresignGetObject(name string, expire time.Duration) (*url.URL, error) {
+	return s.PresignGetOrHeadObject(name, "GET", expire)
+}
+
+func (s *GCSStorage) MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
-		u, err := s.PresignGetOrHeadObject(key, "GET")
+		u, err := s.PresignGetOrHeadObject(key, "GET", expire)
 		if err != nil {
 			panic(err)
 		}

@@ -39,7 +39,7 @@ func NewElasticsearchServiceLogger(lf *log.Factory) *ElasticsearchServiceLogger 
 }
 
 type UserReindexCreateProducer interface {
-	NewTask(appID string, input json.RawMessage) *redisqueue.Task
+	NewTask(appID string, input json.RawMessage, taskIDPrefix string) *redisqueue.Task
 	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
 }
 
@@ -86,7 +86,7 @@ func (s *Service) EnqueueReindexUserTask(userID string) error {
 		return err
 	}
 
-	task := s.Producer.NewTask(string(s.AppID), rawMessage)
+	task := s.Producer.NewTask(string(s.AppID), rawMessage, "task")
 	err = s.Producer.EnqueueTask(s.Context, task)
 	if err != nil {
 		return err

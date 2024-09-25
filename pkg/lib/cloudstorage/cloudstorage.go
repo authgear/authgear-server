@@ -11,14 +11,13 @@ import (
 // PresignPutExpires is how long the presign PUT request remains valid.
 const PresignPutExpires time.Duration = 15 * duration.PerMinute
 
-// PresignGetExpires is how long the presign GET request remains valid.
-const PresignGetExpires time.Duration = 1 * duration.PerHour
-
-type Storage interface {
+type storage interface {
 	// PresignPutObject returns an HTTP request that is ready for use.
 	PresignPutObject(name string, header http.Header) (*http.Request, error)
 	// PresignHeadObject returns an URL that is ready for use.
-	PresignHeadObject(name string) (*url.URL, error)
+	PresignHeadObject(name string, expire time.Duration) (*url.URL, error)
+	// PresignGetObject returns an URL that is ready for use.
+	PresignGetObject(name string, expire time.Duration) (*url.URL, error)
 	// MakeDirector takes extractKey and returns a Director of httputil.ReverseProxy.
-	MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request)
+	MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request)
 }

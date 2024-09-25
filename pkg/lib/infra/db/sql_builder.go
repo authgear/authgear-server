@@ -159,3 +159,8 @@ func (b SelectBuilder) Limit(limit uint64) SelectBuilder {
 	b.builder = b.builder.Limit(limit)
 	return b
 }
+
+func (b SelectBuilder) Offset(offset uint64) SelectBuilder {
+	b.builder = b.builder.Offset(offset)
+	return b
+}

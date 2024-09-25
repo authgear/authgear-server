@@ -90,3 +90,17 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 		wire.Bind(new(http.Handler), new(*transport.UserImportGetHandler)),
 	))
 }
+
+func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.UserExportCreateHandler)),
+	))
+}
+
+func newUserExportGetHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*transport.UserExportGetHandler)),
+	))
+}
