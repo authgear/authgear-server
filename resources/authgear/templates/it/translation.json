@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "Link inviato",
   "v2.page.oob-otp-link.initial-reauth.description": "Per la tua sicurezza, dobbiamo verificare che sei tu. Abbiamo appena inviato un link di accesso a {target}. Se non ricevuto, si prega di inviare nuovamente.",
   "v2.page.oob-otp-link.initial.description": "Abbiamo appena inviato un link di accesso a {target}. Se non ricevuto, si prega di inviare nuovamente.",
+  "v2.page.page-not-found.default.title": "Pagina non trovata",
   "v2.page.prompt-create-passkey.default.description": "Con i Passkey ora puoi utilizzare la tua impronta digitale, il viso o il blocco dello schermo per verificare che sei davvero tu.",
   "v2.page.prompt-create-passkey.default.skip": "Non ora",
   "v2.page.prompt-create-passkey.default.title": "Semplifica il tuo accesso",

@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "Tautan Terkirim",
   "v2.page.oob-otp-link.initial-reauth.description": "Demi keamanan Anda, kami perlu memverifikasi bahwa ini Anda. Kami baru saja mengirimkan tautan login ke {target}. Jika tidak diterima, harap kirim ulang.",
   "v2.page.oob-otp-link.initial.description": "Kami baru saja mengirimkan tautan login ke {target}. Jika tidak diterima, harap kirim ulang.",
+  "v2.page.page-not-found.default.title": "Halaman tidak ditemukan",
   "v2.page.prompt-create-passkey.default.description": "Dengan Passkey, Anda kini dapat menggunakan sidik jari, wajah, atau kunci layar untuk memverifikasi bahwa itu benar-benar Anda.",
   "v2.page.prompt-create-passkey.default.skip": "Tidak sekarang",
   "v2.page.prompt-create-passkey.default.title": "Permudah login Anda",

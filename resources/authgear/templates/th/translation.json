@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "ส่งลิงก์แล้ว",
   "v2.page.oob-otp-link.initial-reauth.description": "เพื่อความปลอดภัยของคุณ เราต้องยืนยันว่าเป็นคุณจริง เราได้ส่งลิงก์เข้าสู่ระบบไปที่ {target} แล้ว หากไม่ได้รับ โปรดส่งอีกครั้ง",
   "v2.page.oob-otp-link.initial.description": "เราได้ส่งลิงก์เข้าสู่ระบบไปที่ {target} แล้ว หากไม่ได้รับ โปรดส่งอีกครั้ง",
+  "v2.page.page-not-found.default.title": "ไม่พบหน้า",
   "v2.page.prompt-create-passkey.default.description": "ด้วย Passkeys คุณสามารถใช้ลายนิ้วมือ ใบหน้า หรือหน้าจอล็อกเพื่อยืนยันว่าเป็นคุณจริง",
   "v2.page.prompt-create-passkey.default.skip": "ไม่ใช่ตอนนี้",
   "v2.page.prompt-create-passkey.default.title": "ทำให้การเข้าสู่ระบบง่ายขึ้น",

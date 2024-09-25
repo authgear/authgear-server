@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "Pautan Dihantar",
   "v2.page.oob-otp-link.initial-reauth.description": "Untuk keselamatan anda, kami perlu mengesahkan ia anda. Kami baru sahaja menghantar pautan log masuk ke {target}. Jika tidak diterima, sila hantar semula.",
   "v2.page.oob-otp-link.initial.description": "Kami baru sahaja menghantar pautan log masuk ke {target}. Jika tidak diterima, sila hantar semula.",
+  "v2.page.page-not-found.default.title": "Halaman tidak dijumpai",
   "v2.page.prompt-create-passkey.default.description": "Dengan Passkeys, anda kini boleh menggunakan cap jari, wajah, atau kunci skrin anda untuk mengesahkan ia benar-benar anda.",
   "v2.page.prompt-create-passkey.default.skip": "Bukan sekarang",
   "v2.page.prompt-create-passkey.default.title": "Mudahkan log masuk anda",

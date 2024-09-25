@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "Ipinadala ang Link",
   "v2.page.oob-otp-link.initial-reauth.description": "Para sa iyong seguridad, kailangan naming i-verify na ikaw ito. Ipinadala lang namin ang login link sa {target}. Kung hindi mo natanggap, mangyaring ipadala ulit.",
   "v2.page.oob-otp-link.initial.description": "Ipinadala lang namin ang login link sa {target}. Kung hindi mo natanggap, mangyaring ipadala ulit.",
+  "v2.page.page-not-found.default.title": "Hindi natagpuan ang pahina",
   "v2.page.prompt-create-passkey.default.description": "Gamit ang Passkeys, maaari mo nang gamitin ang iyong fingerprint, mukha, o screen lock upang i-verify na ikaw talaga ito.",
   "v2.page.prompt-create-passkey.default.skip": "Hindi ngayon",
   "v2.page.prompt-create-passkey.default.title": "Padaliin ang pag-sign in",
