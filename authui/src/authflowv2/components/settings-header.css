@@ -8,20 +8,11 @@
   }
 
   .settings-header {
-    @apply hidden;
+    @apply hidden; /* NOTE(DEV-2123): Hide setting header for now */
     @apply items-center;
     @apply w-full;
     @apply h-25;
     @apply py-5;
     background-color: var(--settings-header__bg-color);
-  }
-
-  /* The light logo is visible only in light mode and src is non-empty. */
-  :root:not(.dark) .shadow-logo.light:not([data-src=""]) .settings-header {
-    @apply tablet:flex tablet:flex-col;
-  }
-  /* The dark logo is visible only in dark mode and src is non-empty. */
-  :root.dark .shadow-logo.dark:not([data-src=""]) .settings-header {
-    @apply tablet:flex tablet:flex-col;
   }
 }
