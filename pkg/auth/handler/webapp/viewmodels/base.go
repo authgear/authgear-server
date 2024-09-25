@@ -40,6 +40,7 @@ type TranslationService interface {
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
 	RequestURI                  string
+	HasXStep                    bool
 	ColorScheme                 string
 	CSPNonce                    string
 	CSRFField                   htmltemplate.HTML
@@ -239,9 +240,12 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		bpLang = intl.ResolveRecaptchaV2(resolvedLanguageTag)
 	}
 
+	requestURI := r.URL.RequestURI()
+	hasXStep := strings.Contains(requestURI, webapp.AuthflowQueryKey)
 	model := BaseViewModel{
 		ColorScheme:  webapp.GetColorScheme(r.Context()),
 		RequestURI:   r.URL.RequestURI(),
+		HasXStep:     hasXStep,
 		CSPNonce:     cspNonce,
 		CSRFField:    csrf.TemplateField(r),
 		Translations: m.Translations,
