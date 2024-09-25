@@ -120,7 +120,7 @@ export interface LinkStyle {
   textDecoration: TextDecorationType;
 }
 
-export interface LogoStyte {
+export interface LogoStyle {
   height: string;
 }
 
@@ -136,7 +136,7 @@ export interface CustomisableTheme {
   phoneInputField: PhoneInputFieldStyle;
   icon: IconStyle;
   link: LinkStyle;
-  logo: LogoStyte;
+  logo: LogoStyle;
 }
 
 export interface PartialCustomisableTheme {
@@ -148,7 +148,7 @@ export interface PartialCustomisableTheme {
   phoneInputField: Partial<PhoneInputFieldStyle>;
   icon: Partial<IconStyle>;
   link: Partial<LinkStyle>;
-  logo: Partial<LogoStyte>;
+  logo: Partial<LogoStyle>;
 }
 
 export const EMPTY_THEME: PartialCustomisableTheme = {
