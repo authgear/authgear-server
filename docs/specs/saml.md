@@ -233,10 +233,10 @@ sequenceDiagram
 ```
 
 - The logout endpoint `https://example.authgear.cloud/saml2/logout/EXAMPLE_ID` is from the metadata.
-- The logout callback URL `https://app1.example.com/logout` MUST be configured in the application config. Config name `logout_callback_url`.
+- The logout callback URL `https://app1.example.com/logout` MUST be configured in the application config. Config name `slo_callback_url`.
 - Step [4] and [5] will be repeated for all other `service_providers` configured with `slo_enabled: true`, if the current logging out application has `slo_enabled: true` configured.
 - If any errors occurs during step [4] and [5], the errors will be ignored. The loop will continue until logout callback URLs of all SPs who participated in the session is called.
-- The binding used in step [4] is configurable with the config name `logout_binding`.
+- The binding used in step [4] is configurable with the config name `slo_binding`.
 - After step [7], the SP can redirect the user to a fixed url. This is up to the SP implementation.
 
 ### <a id="2_1"></a> Configs
@@ -245,14 +245,14 @@ sequenceDiagram
 saml:
   service_providers:
     - client_id: EXAMPLE_ID
-      logout_callback_url: https://app1.example.com/logout
+      slo_callback_url: https://app1.example.com/logout
       slo_enabled: true
-      logout_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+      slo_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
 ```
 
-- `logout_callback_url`: Required if `slo_enabled` is `true`. The URL where the `<LogoutRequest>` should be sent to.
+- `slo_callback_url`: Required if `slo_enabled` is `true`. The URL where the `<LogoutRequest>` should be sent to.
 - `slo_enabled`: Optional. Whether the application participate in Single Logout. Default `false`.
-- `logout_binding`: The binding used to send a `<LogoutRequest>` to the `logout_callback_url`. See the below Bindings section for supported bindings. Default `urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect`.
+- `slo_binding`: The binding used to send a `<LogoutRequest>` to the `slo_callback_url`. See the below Bindings section for supported bindings. Default `urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect`.
 
 ### <a id="2_2"></a> Supported Parameters in `<LogoutRequest>`
 
@@ -673,9 +673,9 @@ saml:
       acs_urls: 
         - https://example.com/acs
       assertion_valid_duration: 1h
-      logout_callback_url: https://app1.example.com/logout
+      slo_callback_url: https://app1.example.com/logout
       slo_enabled: true
-      logout_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+      slo_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
       nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
       nameid_attribute_pointer: /preferred_username
       attributes:
