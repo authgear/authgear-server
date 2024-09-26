@@ -15,8 +15,8 @@ services:
       - "5432:5432"
 
   redis:
-    # redis:6.0 crashed randomly when I run k6 load test.
-    image: redis:6.2.6
+    # Azure cache for Redis supports 6.0 only
+    image: redis:6.0.20
     volumes:
       - redis_data:/data
     ports:
