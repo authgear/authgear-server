@@ -2,6 +2,7 @@ package saml
 
 import (
 	"bytes"
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -20,9 +21,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
+	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/setutil"
@@ -42,10 +44,25 @@ var x509SignatureAlgorithmByIdentifier = map[string]x509.SignatureAlgorithm{
 
 type SAMLEndpoints interface {
 	SAMLLoginURL(serviceProviderId string) *url.URL
+	SAMLLogoutURL(serviceProviderId string) *url.URL
 }
 
 type SAMLUserInfoProvider interface {
 	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
+}
+
+type IDPSessionProvider interface {
+	AddSAMLServiceProviderParticipant(
+		session *idpsession.IDPSession,
+		serviceProviderID string,
+	) (*idpsession.IDPSession, error)
+}
+
+type OfflineGrantService interface {
+	AddSAMLServiceProviderParticipant(
+		grant *oauth.OfflineGrant,
+		serviceProviderID string,
+	) (*oauth.OfflineGrant, error)
 }
 
 type Service struct {
@@ -57,6 +74,9 @@ type Service struct {
 	SAMLSpSigningMaterials  *config.SAMLSpSigningMaterials
 	Endpoints               SAMLEndpoints
 	UserInfoProvider        SAMLUserInfoProvider
+
+	IDPSessionProvider          IDPSessionProvider
+	OfflineGrantSessionProvider OfflineGrantService
 }
 
 func (s *Service) IdpEntityID() string {
@@ -78,7 +98,7 @@ func (s *Service) IdpEntityID() string {
 func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata, error) {
 	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
-		return nil, samlerror.ErrServiceProviderNotFound
+		return nil, samlprotocol.ErrServiceProviderNotFound
 	}
 
 	keyDescriptors := []crewjamsaml.KeyDescriptor{}
@@ -105,6 +125,17 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 		})
 	}
 
+	sloServices := []crewjamsaml.Endpoint{}
+
+	if sp.SLOEnabled {
+		for _, binding := range samlprotocol.SLOSupportedBindings {
+			sloServices = append(sloServices, crewjamsaml.Endpoint{
+				Binding:  string(binding),
+				Location: s.Endpoints.SAMLLogoutURL(sp.GetID()).String(),
+			})
+		}
+	}
+
 	descriptor := samlprotocol.EntityDescriptor{
 		EntityID: s.IdpEntityID(),
 		IDPSSODescriptors: []crewjamsaml.IDPSSODescriptor{
@@ -117,6 +148,7 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 					NameIDFormats: []crewjamsaml.NameIDFormat{
 						crewjamsaml.NameIDFormat(sp.NameIDFormat),
 					},
+					SingleLogoutServices: sloServices,
 				},
 				SingleSignOnServices: ssoServices,
 			},
@@ -142,7 +174,7 @@ func (s *Service) validateDestination(sp *config.SAMLServiceProviderConfig, dest
 			return nil
 		}
 	}
-	return &samlerror.InvalidRequestError{
+	return &samlprotocol.InvalidRequestError{
 		Field:    "Destination",
 		Actual:   destination,
 		Expected: allowedDestinations,
@@ -157,7 +189,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	now := s.Clock.NowUTC()
 	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
-		return samlerror.ErrServiceProviderNotFound
+		return samlprotocol.ErrServiceProviderNotFound
 	}
 
 	if authnRequest.Destination != "" {
@@ -168,7 +200,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	}
 
 	if !authnRequest.GetProtocolBinding().IsACSSupported() {
-		return &samlerror.InvalidRequestError{
+		return &samlprotocol.InvalidRequestError{
 			Field:    "ProtocolBinding",
 			Actual:   authnRequest.ProtocolBinding,
 			Expected: slice.Map(samlprotocol.ACSSupportedBindings, func(b samlprotocol.SAMLBinding) string { return string(b) }),
@@ -177,7 +209,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	}
 
 	if authnRequest.IssueInstant.Add(MaxAuthnRequestValidDuration).Before(now) {
-		return &samlerror.InvalidRequestError{
+		return &samlprotocol.InvalidRequestError{
 			Field:  "IssueInstant",
 			Actual: authnRequest.IssueInstant.Format(time.RFC3339),
 			Reason: "request expired",
@@ -185,7 +217,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	}
 
 	if authnRequest.Version != samlprotocol.SAMLVersion2 {
-		return &samlerror.InvalidRequestError{
+		return &samlprotocol.InvalidRequestError{
 			Field:    "Version",
 			Actual:   authnRequest.Version,
 			Expected: []string{samlprotocol.SAMLVersion2},
@@ -205,7 +237,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 
 	for _, aud := range authnRequest.CollectAudiences() {
 		if !allowedAudiences.Has(aud) {
-			return &samlerror.InvalidRequestError{
+			return &samlprotocol.InvalidRequestError{
 				Field:    "Conditions/AudienceRestrictions",
 				Actual:   aud,
 				Expected: allowedAudiences.Keys(),
@@ -216,14 +248,14 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 
 	// unspecified is always allowed
 	allowedNameFormats := setutil.Set[string]{
-		string(config.SAMLNameIDFormatUnspecified): {},
+		string(samlprotocol.SAMLNameIDFormatUnspecified): {},
 	}
 	allowedNameFormats.Add(string(sp.NameIDFormat))
 
 	if authnRequest.NameIDPolicy != nil && authnRequest.NameIDPolicy.Format != nil {
 		reqNameIDFormat := *authnRequest.NameIDPolicy.Format
 		if _, ok := allowedNameFormats[reqNameIDFormat]; !ok {
-			return &samlerror.InvalidRequestError{
+			return &samlprotocol.InvalidRequestError{
 				Field:    "NameIDPolicy/Format",
 				Actual:   reqNameIDFormat,
 				Expected: allowedNameFormats.Keys(),
@@ -240,7 +272,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 			}
 		}
 		if allowed == false {
-			return &samlerror.InvalidRequestError{
+			return &samlprotocol.InvalidRequestError{
 				Field:  "AssertionConsumerServiceURL",
 				Actual: authnRequest.AssertionConsumerServiceURL,
 				Reason: "AssertionConsumerServiceURL not allowed",
@@ -257,7 +289,7 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	case authnRequest.GetIsPassive() == true && authnRequest.GetForceAuthn() == false:
 		// allow as prompt=none
 	case authnRequest.GetIsPassive() == true && authnRequest.GetForceAuthn() == true:
-		return &samlerror.InvalidRequestError{
+		return &samlprotocol.InvalidRequestError{
 			Reason: "IsPassive=true with ForceAuthn=true is not allowed",
 		}
 	}
@@ -265,7 +297,8 @@ func (s *Service) ValidateAuthnRequest(serviceProviderId string, authnRequest *s
 	return nil
 }
 
-func (s *Service) IssueSuccessResponse(
+func (s *Service) IssueLoginSuccessResponse(
+	ctx context.Context,
 	callbackURL string,
 	serviceProviderId string,
 	authInfo authenticationinfo.T,
@@ -273,7 +306,7 @@ func (s *Service) IssueSuccessResponse(
 ) (*samlprotocol.Response, error) {
 	sp, ok := s.SAMLConfig.ResolveProvider(serviceProviderId)
 	if !ok {
-		return nil, samlerror.ErrServiceProviderNotFound
+		return nil, samlprotocol.ErrServiceProviderNotFound
 	}
 	authenticatedUserId := authInfo.UserID
 	sid := oidc.EncodeSIDByRawValues(
@@ -436,12 +469,103 @@ func (s *Service) IssueSuccessResponse(
 		return nil, err
 	}
 
+	err = s.recordSessionParticipant(ctx, sp)
+	if err != nil {
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (s *Service) IssueLogoutRequest(
+	sp *config.SAMLServiceProviderConfig,
+	sloSession *samlslosession.SAMLSLOSession,
+) (*samlprotocol.LogoutRequest, error) {
+	userID := sloSession.Entry.UserID
+	sessionIndex := sloSession.Entry.SID
+	now := s.Clock.NowUTC()
+	notOnOrAfter := now.Add(duration.UserInteraction)
+
+	clientLike := spToClientLike(sp)
+	userInfo, err := s.UserInfoProvider.GetUserInfo(userID, clientLike)
+	if err != nil {
+		return nil, err
+	}
+	nameIDFormat := sp.NameIDFormat
+	nameID, err := s.getUserNameID(nameIDFormat, sp, userInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	logoutRequest := &samlprotocol.LogoutRequest{
+		ID:           samlprotocol.GenerateLogoutRequestID(),
+		Version:      samlprotocol.SAMLVersion2,
+		IssueInstant: s.Clock.NowUTC(),
+		NotOnOrAfter: &notOnOrAfter,
+		Destination:  sp.SLOCallbackURL,
+		Issuer: &samlprotocol.Issuer{
+			Format: samlprotocol.SAMLIssertFormatEntity,
+			Value:  s.IdpEntityID(),
+		},
+		NameID: &samlprotocol.NameID{
+			Format: string(nameIDFormat),
+			Value:  nameID,
+		},
+		SessionIndex: &samlprotocol.SessionIndex{
+			Value: sessionIndex,
+		},
+	}
+
+	err = s.signLogoutRequest(logoutRequest)
+	if err != nil {
+		return nil, err
+	}
+
+	return logoutRequest, nil
+}
+
+func (s *Service) IssueLogoutResponse(
+	callbackURL string,
+	inResponseToLogoutRequest *samlprotocol.LogoutRequest,
+	isPartialLogout bool,
+) (*samlprotocol.LogoutResponse, error) {
+
+	now := s.Clock.NowUTC()
+
+	response := &samlprotocol.LogoutResponse{
+		ID:           samlprotocol.GenerateResponseID(),
+		InResponseTo: inResponseToLogoutRequest.ID,
+		IssueInstant: now,
+		Destination:  callbackURL,
+		Version:      samlprotocol.SAMLVersion2,
+		Status: samlprotocol.Status{
+			StatusCode: samlprotocol.StatusCode{
+				Value: samlprotocol.StatusSuccess,
+			},
+		},
+		Issuer: &samlprotocol.Issuer{
+			Format: samlprotocol.SAMLIssertFormatEntity,
+			Value:  s.IdpEntityID(),
+		},
+	}
+
+	if isPartialLogout {
+		response.Status.StatusCode.StatusCode = &samlprotocol.StatusCode{
+			Value: samlprotocol.StatusPartialLogout,
+		}
+	}
+
+	err := s.signLogoutResponse(response)
+	if err != nil {
+		return nil, err
+	}
+
 	return response, nil
 }
 
 func (s *Service) VerifyEmbeddedSignature(
 	sp *config.SAMLServiceProviderConfig,
-	authnRequestXML string) error {
+	samlElementXML string) error {
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
 	if !ok {
 		// Signing cert not configured, nothing to verify
@@ -455,23 +579,28 @@ func (s *Service) VerifyEmbeddedSignature(
 	validationCtx := dsig.NewDefaultValidationContext(certificateStore)
 
 	doc := etree.NewDocument()
-	err := doc.ReadFromString(authnRequestXML)
+	err := doc.ReadFromString(samlElementXML)
 	if err != nil {
 		return err
 	}
 
 	_, err = validationCtx.Validate(doc.Root())
 	if err != nil {
-		return &samlerror.InvalidSignatureError{
+		return &samlprotocol.InvalidSignatureError{
 			Cause: err,
 		}
 	}
 	return nil
 }
 
+type SAMLElementSigned struct {
+	SAMLResponse string
+	SAMLRequest  string
+}
+
 func (s *Service) VerifyExternalSignature(
 	sp *config.SAMLServiceProviderConfig,
-	samlRequest string,
+	el *SAMLElementSigned,
 	sigAlg string,
 	relayState string,
 	signature string) error {
@@ -481,32 +610,32 @@ func (s *Service) VerifyExternalSignature(
 		return nil
 	}
 
-	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf 3.4.4.1
-	signedValues := []string{}
-	signedValues = append(signedValues, fmt.Sprintf("SAMLRequest=%s", url.QueryEscape(samlRequest)))
-	if relayState != "" {
-		signedValues = append(signedValues, fmt.Sprintf("RelayState=%s", url.QueryEscape(relayState)))
+	q := url.Values{}
+	if el.SAMLRequest != "" {
+		q.Set("SAMLRequest", el.SAMLRequest)
+	} else if el.SAMLResponse != "" {
+		q.Set("SAMLResponse", el.SAMLResponse)
+	} else {
+		panic("no signed element")
 	}
-	if sigAlg != "" {
-		signedValues = append(signedValues, fmt.Sprintf("SigAlg=%s", url.QueryEscape(sigAlg)))
+	q.Set("RelayState", relayState)
+	q.Set("SigAlg", sigAlg)
 
-	}
-
-	signedValue := strings.Join(signedValues, "&")
+	signedValue := s.constructSigningValue(q)
 
 	verified := false
 	for _, cert := range certs.Certificates {
 		x509cert := cert.X509Certificate()
 		algo, ok := x509SignatureAlgorithmByIdentifier[sigAlg]
 		if !ok {
-			return &samlerror.InvalidSignatureError{
+			return &samlprotocol.InvalidSignatureError{
 				Cause: fmt.Errorf("unknown algorithm"),
 			}
 		}
 
 		decodedSignature, err := base64.StdEncoding.DecodeString(signature)
 		if err != nil {
-			return &samlerror.InvalidSignatureError{
+			return &samlprotocol.InvalidSignatureError{
 				Cause: fmt.Errorf("invalid signature"),
 			}
 		}
@@ -519,36 +648,115 @@ func (s *Service) VerifyExternalSignature(
 	}
 
 	if !verified {
-		return &samlerror.InvalidSignatureError{
+		return &samlprotocol.InvalidSignatureError{
 			Cause: fmt.Errorf("incorrect signature"),
 		}
 	}
 	return nil
 }
 
+type SAMLElementToSign struct {
+	SAMLResponse string
+	SAMLRequest  string
+}
+
+func (s *Service) ConstructSignedQueryParameters(
+	relayState string,
+	el *SAMLElementToSign,
+) (url.Values, error) {
+	signingCtx, err := s.idpSigningContext()
+	if err != nil {
+		return nil, err
+	}
+
+	q := url.Values{}
+	if el.SAMLResponse != "" {
+		q.Set("SAMLResponse", el.SAMLResponse)
+	} else if el.SAMLRequest != "" {
+		q.Set("SAMLRequest", el.SAMLRequest)
+	} else {
+		panic("nothing to sign: SAMLResponse and SAMLRequest are both empty")
+	}
+	q.Set("RelayState", relayState)
+	q.Set("SigAlg", string(s.SAMLConfig.Signing.SignatureMethod))
+
+	signingValue := s.constructSigningValue(q)
+
+	hash := signingCtx.Hash.New()
+	_, err = hash.Write([]byte(signingValue))
+	if err != nil {
+		return nil, err
+	}
+
+	digest := hash.Sum(nil)
+
+	key, _, err := signingCtx.KeyStore.GetKeyPair()
+	if err != nil {
+		return nil, err
+	}
+
+	rawSignature, err := rsa.SignPKCS1v15(nil, key, signingCtx.Hash, digest)
+	if err != nil {
+		return nil, err
+	}
+	signature := base64.StdEncoding.EncodeToString(rawSignature)
+
+	q.Set("Signature", signature)
+
+	return q, err
+}
+
+func (s *Service) constructSigningValue(
+	query url.Values,
+) string {
+	// https://docs.oasis-open.org/security/saml/v2.0/saml-bindings-2.0-os.pdf 3.4.4.1
+	signedValues := []string{}
+
+	samlRequest := query.Get("SAMLRequest")
+	if samlRequest != "" {
+		signedValues = append(signedValues, fmt.Sprintf("SAMLRequest=%s", url.QueryEscape(samlRequest)))
+	}
+	samlResponse := query.Get("SAMLResponse")
+	if samlResponse != "" {
+		signedValues = append(signedValues, fmt.Sprintf("SAMLResponse=%s", url.QueryEscape(samlResponse)))
+	}
+	relayState := query.Get("RelayState")
+	if relayState != "" {
+		signedValues = append(signedValues, fmt.Sprintf("RelayState=%s", url.QueryEscape(relayState)))
+	}
+	sigAlg := query.Get("SigAlg")
+	if sigAlg != "" {
+		signedValues = append(signedValues, fmt.Sprintf("SigAlg=%s", url.QueryEscape(sigAlg)))
+
+	}
+
+	signedValue := strings.Join(signedValues, "&")
+	return signedValue
+}
+
 func (s *Service) getUserNameID(
-	format config.SAMLNameIDFormat,
+	format samlprotocol.SAMLNameIDFormat,
 	sp *config.SAMLServiceProviderConfig,
 	userInfo map[string]interface{},
 ) (string, error) {
 	switch format {
-	case config.SAMLNameIDFormatEmailAddress:
+	case samlprotocol.SAMLNameIDFormatEmailAddress:
 		{
 			email, ok := userInfo["email"].(string)
 			if !ok {
-				return "", &samlerror.MissingNameIDError{
-					ExpectedNameIDFormat: string(config.SAMLNameIDFormatEmailAddress),
+				return "", &samlprotocol.MissingNameIDError{
+					ExpectedNameIDFormat: string(samlprotocol.SAMLNameIDFormatEmailAddress),
 				}
 			}
 			return email, nil
 		}
-	case config.SAMLNameIDFormatUnspecified:
+	case samlprotocol.SAMLNameIDFormatUnspecified:
 		{
 			jsonPointer := sp.NameIDAttributePointer.MustGetJSONPointer()
 			nameID, err := jsonPointer.Traverse(userInfo)
 			if err != nil {
-				return "", &samlerror.MissingNameIDError{
-					ExpectedNameIDFormat:   string(config.SAMLNameIDFormatUnspecified),
+				return "", &samlprotocol.MissingNameIDError{
+					ExpectedNameIDFormat:   string(samlprotocol.SAMLNameIDFormatUnspecified),
 					NameIDAttributePointer: jsonPointer.String(),
 				}
 			}
@@ -560,8 +768,8 @@ func (s *Service) getUserNameID(
 			case bool:
 				return fmt.Sprintf("%v", nameID), nil
 			default:
-				return "", &samlerror.MissingNameIDError{
-					ExpectedNameIDFormat:   string(config.SAMLNameIDFormatUnspecified),
+				return "", &samlprotocol.MissingNameIDError{
+					ExpectedNameIDFormat:   string(samlprotocol.SAMLNameIDFormatUnspecified),
 					NameIDAttributePointer: jsonPointer.String(),
 				}
 			}
@@ -589,6 +797,28 @@ func (s *Service) signResponse(response *samlprotocol.Response) error {
 		return err
 	}
 	response.Signature = responseSigEl
+
+	return nil
+}
+
+func (s *Service) signLogoutResponse(response *samlprotocol.LogoutResponse) error {
+	responseEl := response.Element()
+	responseSigEl, err := s.constructSignature(responseEl)
+	if err != nil {
+		return err
+	}
+	response.Signature = responseSigEl
+
+	return nil
+}
+
+func (s *Service) signLogoutRequest(request *samlprotocol.LogoutRequest) error {
+	el := request.Element()
+	sigEl, err := s.constructSignature(el)
+	if err != nil {
+		return err
+	}
+	request.Signature = sigEl
 
 	return nil
 }
@@ -634,6 +864,31 @@ func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
 	}
 
 	return signingContext, nil
+}
+
+func (s Service) recordSessionParticipant(
+	ctx context.Context,
+	sp *config.SAMLServiceProviderConfig) error {
+	resolvedSession := session.GetSession(ctx)
+	if resolvedSession == nil {
+		return fmt.Errorf("failed to record session participant as no session in context")
+	}
+
+	switch resolvedSession := resolvedSession.(type) {
+	case *oauth.OfflineGrantSession:
+		_, err := s.OfflineGrantSessionProvider.AddSAMLServiceProviderParticipant(resolvedSession.OfflineGrant, sp.GetID())
+		if err != nil {
+			return err
+		}
+	case *idpsession.IDPSession:
+		_, err := s.IDPSessionProvider.AddSAMLServiceProviderParticipant(resolvedSession, sp.GetID())
+		if err != nil {
+			return err
+		}
+	default:
+		panic("unexpected session type")
+	}
+	return nil
 }
 
 func spToClientLike(sp *config.SAMLServiceProviderConfig) *oauth.ClientLike {

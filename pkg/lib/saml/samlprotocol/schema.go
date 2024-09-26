@@ -114,21 +114,6 @@ func (r *LogoutRequest) Element() *etree.Element {
 	return el
 }
 
-// MarshalXML implements xml.Marshaler
-func (r *LogoutRequest) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
-	type Alias LogoutRequest
-	aux := &struct {
-		IssueInstant RelaxedTime  `xml:",attr"`
-		NotOnOrAfter *RelaxedTime `xml:",attr"`
-		*Alias
-	}{
-		IssueInstant: RelaxedTime(r.IssueInstant),
-		NotOnOrAfter: (*RelaxedTime)(r.NotOnOrAfter),
-		Alias:        (*Alias)(r),
-	}
-	return e.Encode(aux)
-}
-
 // UnmarshalXML implements xml.Unmarshaler
 func (r *LogoutRequest) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	type Alias LogoutRequest
@@ -504,6 +489,8 @@ type Response struct {
 	// TODO(ross): more than one Assertion is allowed
 	Assertion *Assertion `xml:"urn:oasis:names:tc:SAML:2.0:assertion Assertion"`
 }
+
+var _ Respondable = &Response{}
 
 // Element returns an etree.Element representing the object in XML form.
 func (r *Response) Element() *etree.Element {
@@ -1271,6 +1258,8 @@ type LogoutResponse struct {
 	Signature    *etree.Element
 	Status       Status `xml:"urn:oasis:names:tc:SAML:2.0:protocol Status"`
 }
+
+var _ Respondable = &LogoutResponse{}
 
 // Element returns an etree.Element representing the object in XML form.
 func (r *LogoutResponse) Element() *etree.Element {

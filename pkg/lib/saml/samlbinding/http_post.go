@@ -7,27 +7,25 @@ import (
 
 	"github.com/beevik/etree"
 
-	"github.com/authgear/authgear-server/pkg/lib/saml/samlerror"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
 )
 
-type SAMLBindingHTTPPostParseResult struct {
-	AuthnRequestXML string
-	AuthnRequest    *samlprotocol.AuthnRequest
-	RelayState      string
+type SAMLBindingHTTPPostParseRequestResult struct {
+	SAMLRequestXML string
+	RelayState     string
 }
 
-var _ SAMLBindingParseResult = &SAMLBindingHTTPPostParseResult{}
+var _ SAMLBindingParseReqeustResult = &SAMLBindingHTTPPostParseRequestResult{}
 
-func (*SAMLBindingHTTPPostParseResult) samlBindingParseResult() {}
+func (*SAMLBindingHTTPPostParseRequestResult) samlBindingParseRequestResult() {}
 
-func SAMLBindingHTTPPostParse(r *http.Request) (
-	result *SAMLBindingHTTPPostParseResult,
+func SAMLBindingHTTPPostParseRequest(r *http.Request) (
+	result *SAMLBindingHTTPPostParseRequestResult,
 	err error,
 ) {
-	result = &SAMLBindingHTTPPostParseResult{}
+	result = &SAMLBindingHTTPPostParseRequestResult{}
 	if err := r.ParseForm(); err != nil {
-		return result, &samlerror.ParseRequestFailedError{
+		return result, &samlprotocol.ParseRequestFailedError{
 			Reason: "failed to parse request body as a application/x-www-form-urlencoded form",
 			Cause:  err,
 		}
@@ -35,37 +33,72 @@ func SAMLBindingHTTPPostParse(r *http.Request) (
 	relayState := r.PostForm.Get("RelayState")
 	result.RelayState = relayState
 
+	if r.PostForm.Get("SAMLRequest") == "" {
+		return nil, ErrNoRequest
+	}
+
 	requestBuffer, err := base64.StdEncoding.DecodeString(r.PostForm.Get("SAMLRequest"))
 	if err != nil {
-		return result, &samlerror.ParseRequestFailedError{
+		return result, &samlprotocol.ParseRequestFailedError{
 			Reason: "base64 decode failed",
 			Cause:  err,
 		}
 	}
 
-	result.AuthnRequestXML = string(requestBuffer)
+	result.SAMLRequestXML = string(requestBuffer)
 
-	authnRequest, err := samlprotocol.ParseAuthnRequest(requestBuffer)
-	if err != nil {
-		return result, &samlerror.ParseRequestFailedError{
-			Reason: "malformed AuthnRequest",
+	return result, nil
+}
+
+type SAMLBindingHTTPPostParseResponseResult struct {
+	SAMLResponseXML string
+	RelayState      string
+}
+
+var _ SAMLBindingParseResponseResult = &SAMLBindingHTTPPostParseResponseResult{}
+
+func (*SAMLBindingHTTPPostParseResponseResult) samlBindingParseResponseResult() {}
+
+func SAMLBindingHTTPPostParseResponse(r *http.Request) (
+	result *SAMLBindingHTTPPostParseResponseResult,
+	err error,
+) {
+	result = &SAMLBindingHTTPPostParseResponseResult{}
+	if err := r.ParseForm(); err != nil {
+		return result, &samlprotocol.ParseRequestFailedError{
+			Reason: "failed to parse response body as a application/x-www-form-urlencoded form",
 			Cause:  err,
 		}
 	}
-	result.AuthnRequest = authnRequest
+	relayState := r.PostForm.Get("RelayState")
+	result.RelayState = relayState
+
+	if r.PostForm.Get("SAMLResponse") == "" {
+		return nil, ErrNoResponse
+	}
+
+	responseBuffer, err := base64.StdEncoding.DecodeString(r.PostForm.Get("SAMLResponse"))
+	if err != nil {
+		return result, &samlprotocol.ParseRequestFailedError{
+			Reason: "base64 decode failed",
+			Cause:  err,
+		}
+	}
+
+	result.SAMLResponseXML = string(responseBuffer)
 
 	return result, nil
 }
 
 type SAMLBindingHTTPPostWriter struct{}
 
-type postFormData struct {
+type responsePostFormData struct {
 	CallbackURL  string
 	SAMLResponse string
 	RelayState   string
 }
 
-const postForm = `
+const responsePostForm = `
 <html>
 	<body onload="document.getElementById('f').submit();">
 		<form method="POST" action="{{.CallbackURL}}" id="f">
@@ -79,13 +112,32 @@ const postForm = `
 </html>
 `
 
-func (*SAMLBindingHTTPPostWriter) Write(
-	rw http.ResponseWriter,
-	callbackURL string,
-	response *samlprotocol.Response,
-	relayState string) error {
+type requestPostFormData struct {
+	CallbackURL string
+	SAMLRequest string
+	RelayState  string
+}
 
-	responseEl := response.Element()
+const requestPostForm = `
+<html>
+	<body onload="document.getElementById('f').submit();">
+		<form method="POST" action="{{.CallbackURL}}" id="f">
+			<input type="hidden" name="SAMLRequest" value="{{.SAMLRequest}}" />
+			<input type="hidden" name="RelayState" value="{{.RelayState}}" />
+			<noscript>
+				<button type="submit">Continue</button>
+			</noscript>
+		</form>
+	</body>
+</html>
+`
+
+func (*SAMLBindingHTTPPostWriter) WriteResponse(
+	rw http.ResponseWriter,
+	r *http.Request,
+	callbackURL string,
+	responseEl *etree.Element,
+	relayState string) error {
 
 	doc := etree.NewDocument()
 	doc.SetRoot(responseEl)
@@ -96,13 +148,42 @@ func (*SAMLBindingHTTPPostWriter) Write(
 
 	encodedResponse := base64.StdEncoding.EncodeToString(responseBuf)
 
-	data := postFormData{
+	data := responsePostFormData{
 		CallbackURL:  callbackURL,
 		SAMLResponse: encodedResponse,
 		RelayState:   relayState,
 	}
 
-	tpl := template.Must(template.New("").Parse(postForm))
+	tpl := template.Must(template.New("").Parse(responsePostForm))
+	if err := tpl.Execute(rw, data); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (*SAMLBindingHTTPPostWriter) WriteRequest(
+	rw http.ResponseWriter,
+	r *http.Request,
+	callbackURL string,
+	requestEl *etree.Element,
+	relayState string) error {
+
+	doc := etree.NewDocument()
+	doc.SetRoot(requestEl)
+	requestBuf, err := doc.WriteToBytes()
+	if err != nil {
+		return err
+	}
+
+	encodedRequest := base64.StdEncoding.EncodeToString(requestBuf)
+
+	data := requestPostFormData{
+		CallbackURL: callbackURL,
+		SAMLRequest: encodedRequest,
+		RelayState:  relayState,
+	}
+
+	tpl := template.Must(template.New("").Parse(requestPostForm))
 	if err := tpl.Execute(rw, data); err != nil {
 		return err
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type IDPSession struct {
@@ -24,6 +25,8 @@ type IDPSession struct {
 	AccessInfo access.Info `json:"access_info"`
 
 	TokenHash string `json:"token_hash"`
+
+	ParticipatedSAMLServiceProviderIDs []string `json:"participated_saml_service_provider_ids,omitempty"`
 
 	// ExpireAtForResolvedSession is a transient field that tells when the session will exire at, computed now.
 	// Note that ExpireAtForResolvedSession will keep changing if idle timeout is enabled.
@@ -119,4 +122,8 @@ func (s *IDPSession) IsSameSSOGroup(ss session.SessionBase) bool {
 
 func (s *IDPSession) EqualSession(ss session.SessionBase) bool {
 	return s.SessionID() == ss.SessionID() && s.SessionType() == ss.SessionType()
+}
+
+func (s *IDPSession) GetParticipatedSAMLServiceProviderIDsSet() setutil.Set[string] {
+	return setutil.NewSetFromSlice(s.ParticipatedSAMLServiceProviderIDs, setutil.Identity)
 }

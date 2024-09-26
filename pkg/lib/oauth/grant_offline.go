@@ -11,6 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/util/deviceinfo"
 	"github.com/authgear/authgear-server/pkg/util/geoip"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type OfflineGrantRefreshToken struct {
@@ -47,6 +48,8 @@ type OfflineGrant struct {
 	DeviceSecretDPoPJKT     string `json:"device_secret_dpop_jkt"`
 
 	RefreshTokens []OfflineGrantRefreshToken `json:"refresh_tokens,omitempty"`
+
+	ParticipatedSAMLServiceProviderIDs []string `json:"participated_saml_service_provider_ids,omitempty"`
 
 	// Readonly fields for backward compatibility.
 	// Write these fields in OfflineGrantRefreshToken
@@ -403,4 +406,8 @@ func (g *OfflineGrant) IsOnlyUsedInClientIDs(clientIDs []string) bool {
 		}
 	}
 	return result
+}
+
+func (s *OfflineGrant) GetParticipatedSAMLServiceProviderIDsSet() setutil.Set[string] {
+	return setutil.NewSetFromSlice(s.ParticipatedSAMLServiceProviderIDs, setutil.Identity)
 }

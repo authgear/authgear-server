@@ -131,3 +131,22 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	}
 	return result, newGrant, nil
 }
+
+func (s *OfflineGrantService) AddSAMLServiceProviderParticipant(
+	grant *OfflineGrant,
+	serviceProviderID string,
+) (*OfflineGrant, error) {
+	expiry, err := s.ComputeOfflineGrantExpiry(grant)
+	if err != nil {
+		return nil, err
+	}
+	newGrant, err := s.OfflineGrants.AddOfflineGrantSAMLServiceProviderParticipant(
+		grant.ID,
+		serviceProviderID,
+		expiry,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return newGrant, nil
+}

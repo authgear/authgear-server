@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 )
 
 type Type string
@@ -45,6 +46,8 @@ type ListableSession interface {
 	// IsSameSSOGroup indicates whether the session is in the same SSO group
 	IsSameSSOGroup(s SessionBase) bool
 	EqualSession(s SessionBase) bool
+
+	GetParticipatedSAMLServiceProviderIDsSet() setutil.Set[string]
 }
 
 type CreateReason string
