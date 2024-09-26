@@ -40,7 +40,8 @@ local allow_at = new_tat - dvt
 local is_conforming = now_timestamp >= allow_at
 local time_to_act = allow_at
 if is_conforming then
-	redis.call("SET", rate_limit_key, new_tat, "PXAT", new_tat)
+	redis.call("SET", rate_limit_key, new_tat)
+	redis.call("EXPIREAT", rate_limit_key, new_tat)
 	time_to_act = allow_at + math.max(1, n) * emission_interval
 end
 
