@@ -90,7 +90,8 @@ redis.call("HSET", record_key, contributor, contributor_total)
 redis.call("EXPIREAT", record_key, expire_at)
 
 if locked_until_epoch then
-	redis.call("SET", lock_key, locked_until_epoch, "EXAT", locked_until_epoch)
+	redis.call("SET", lock_key, locked_until_epoch)
+	redis.call("EXPIREAT", lock_key, locked_until_epoch)
 end
 
 return {is_success, locked_until_epoch}
