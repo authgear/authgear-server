@@ -108,7 +108,6 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	}
 
 	session := session.GetSession(r.Context())
-	webSession := webapp.GetSession(r.Context())
 
 	oauthSessionID := ""
 	samlSessionID := ""
@@ -119,23 +118,6 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	oauthProviderAlias := ""
 	var loginHint *oauth.LoginHint
 
-	if webSession != nil {
-		oauthSessionID = webSession.OAuthSessionID
-		samlSessionID = webSession.SAMLSessionID
-		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
-		userIDHint = webSession.UserIDHint
-		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
-		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
-		oauthProviderAlias = webSession.OAuthProviderAlias
-		if webSession.LoginHint != "" {
-			l, err := oauth.ParseLoginHint(webSession.LoginHint)
-			// Ignore the login_hint if it is not something we understand
-			if err == nil {
-				loginHint = l
-			}
-		}
-	}
-
 	// When x_suppress_idp_session_cookie is true, ignore IDP session cookie.
 	if suppressIDPSessionCookie {
 		session = nil
@@ -144,8 +126,34 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	if !oauth.ContainsAllScopes(oauth.SessionScopes(session), []string{oauth.PreAuthenticatedURLScope}) {
 		session = nil
 	}
-	// Ignore any session that does not match login_hint
+
+	var webSession *webapp.Session
 	ctrl.BeforeHandle(func() error {
+
+		// Ensure webapp session exist
+		ws, err := ctrl.InteractionSession()
+		if err != nil {
+			return err
+		}
+		webSession = ws
+
+		oauthSessionID = webSession.OAuthSessionID
+		samlSessionID = webSession.SAMLSessionID
+		loginPrompt = slice.ContainsString(webSession.Prompt, "login")
+		userIDHint = webSession.UserIDHint
+		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
+		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
+		oauthProviderAlias = webSession.OAuthProviderAlias
+
+		// Ignore any session that does not match login_hint
+		if webSession.LoginHint != "" {
+			l, err := oauth.ParseLoginHint(webSession.LoginHint)
+			// Ignore the login_hint if it is not something we understand
+			if err == nil {
+				loginHint = l
+			}
+		}
+
 		if loginHint != nil && session != nil {
 			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
 			if err != nil {
