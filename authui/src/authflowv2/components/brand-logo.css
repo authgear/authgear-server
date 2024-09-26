@@ -6,7 +6,6 @@
   }
 
   .brand-logo__container {
-    @apply mb-10; /* This should corresponds to .widget top padding */
     @apply hidden items-center; /* flex is applied in data-src selector */
 
     :root[alignment-logo="start"] & {
