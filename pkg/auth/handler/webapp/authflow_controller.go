@@ -10,13 +10,11 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
-	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
@@ -94,7 +92,6 @@ type AuthflowControllerOAuthClientResolver interface {
 
 type AuthflowNavigator interface {
 	Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result)
-	NavigateNonRecoverableError(r *http.Request, u *url.URL, e error)
 	NavigateSelectAccount(result *webapp.Result)
 	NavigateResetPasswordSuccessPage() string
 	NavigateVerifyBotProtection(result *webapp.Result)
@@ -119,7 +116,6 @@ type AuthflowOAuthCallbackResponse struct {
 type AuthflowController struct {
 	Logger                  AuthflowControllerLogger
 	TesterEndpointsProvider tester.EndpointsProvider
-	ErrorService            *webapp.ErrorService
 	TrustProxy              config.TrustProxy
 	Clock                   clock.Clock
 
@@ -137,7 +133,8 @@ type AuthflowController struct {
 	UIConfig            *config.UIConfig
 	OAuthClientResolver AuthflowControllerOAuthClientResolver
 
-	Navigator AuthflowNavigator
+	Navigator     AuthflowNavigator
+	ErrorRenderer *ErrorRenderer
 }
 
 func (c *AuthflowController) HandleStartOfFlow(
@@ -231,7 +228,7 @@ func (c *AuthflowController) HandleOAuthCallback(w http.ResponseWriter, r *http.
 			panic(parseURLErr)
 		}
 
-		c.makeErrorResult(w, r, *u, err).WriteResponse(w, r)
+		c.ErrorRenderer.MakeAuthflowErrorResult(w, r, *u, err).WriteResponse(w, r)
 		return
 	}
 
@@ -1060,59 +1057,8 @@ func (c *AuthflowController) takeBranch(w http.ResponseWriter, r *http.Request, 
 	return nil
 }
 
-func (c *AuthflowController) makeErrorResult(w http.ResponseWriter, r *http.Request, u url.URL, err error) *webapp.Result {
-	apierror := apierrors.AsAPIError(err)
-
-	recoverable := func() *webapp.Result {
-		cookie, err := c.ErrorService.SetRecoverableError(r, apierror)
-		if err != nil {
-			panic(err)
-		}
-
-		result := &webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-			Cookies:          []*http.Cookie{cookie},
-		}
-
-		return result
-	}
-
-	nonRecoverable := func() *webapp.Result {
-		result := &webapp.Result{
-			RedirectURI:      u.String(),
-			NavigationAction: "replace",
-		}
-		err := c.ErrorService.SetNonRecoverableError(result, apierror)
-		if err != nil {
-			panic(err)
-		}
-
-		return result
-	}
-
-	switch {
-	case apierror.Reason == "AuthenticationFlowNoPublicSignup":
-		fallthrough
-	case errors.Is(err, authflow.ErrFlowNotFound):
-		fallthrough
-	case user.IsAccountStatusError(err):
-		fallthrough
-	case errors.Is(err, api.ErrNoAuthenticator):
-		fallthrough
-	case apierrors.IsKind(err, webapp.WebUIInvalidSession):
-		fallthrough
-	case r.Method == http.MethodGet && u.Path == r.URL.Path:
-		// Infinite loop might occur if it is a GET request with the same route
-		c.Navigator.NavigateNonRecoverableError(r, &u, err)
-		return nonRecoverable()
-	default:
-		return recoverable()
-	}
-}
-
 func (c *AuthflowController) renderError(w http.ResponseWriter, r *http.Request, err error) {
-	c.makeErrorResult(w, r, *r.URL, err).WriteResponse(w, r)
+	c.ErrorRenderer.RenderError(w, r, err)
 }
 
 func (c *AuthflowController) checkPath(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {

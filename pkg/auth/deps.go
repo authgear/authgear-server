@@ -126,6 +126,7 @@ var DependencySet = wire.NewSet(
 
 	webapp.DependencySet,
 	wire.Bind(new(handlerwebapp.AnonymousUserPromotionService), new(*webapp.AnonymousUserPromotionService)),
+	wire.Bind(new(handlerwebapp.ErrorRendererAuthflowV1Navigator), new(*webapp.AuthflowNavigator)),
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
@@ -233,6 +234,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2WechatHandlerOAuthStateStore), new(*webappoauth.Store)),
 
 	handlerwebappauthflowv2.DependencySet,
+	wire.Bind(new(handlerwebapp.ErrorRendererAuthflowV2Navigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
 
 	handlersiwe.DependencySet,
 	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),
@@ -247,6 +249,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.CSRFMiddlewareUIImplementationService), new(*web.UIImplementationService)),
 	wire.Bind(new(handlerwebapp.ImplementationSwitcherMiddlewareUIImplementationService), new(*web.UIImplementationService)),
 	wire.Bind(new(handlerwebapp.SettingsImplementationSwitcherMiddlewareUIImplementationService), new(*web.UIImplementationService)),
+	wire.Bind(new(handlerwebapp.ErrorRendererUIImplementationService), new(*web.UIImplementationService)),
 )
 
 func ProvideOAuthConfig() *config.OAuthConfig {
@@ -377,12 +380,12 @@ func RequestMiddleware(p *deps.RootProvider, configSource *configsource.ConfigSo
 }
 
 var AuthflowUIHandlerDependencySet = wire.NewSet(
-	wire.Struct(new(webapp.AuthflowNavigator), "*"),
+	DependencySet,
 	wire.Bind(new(handlerwebapp.AuthflowNavigator), new(*webapp.AuthflowNavigator)),
 )
 
 var AuthflowV2UIHandlerDependencySet = wire.NewSet(
-	wire.Struct(new(handlerwebappauthflowv2.AuthflowV2Navigator), "*"),
+	DependencySet,
 	wire.Bind(new(handlerwebapp.AuthflowNavigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2ChangePasswordNavigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
 )

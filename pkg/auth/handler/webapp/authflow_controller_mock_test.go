@@ -7,7 +7,6 @@ package webapp
 import (
 	json "encoding/json"
 	http "net/http"
-	url "net/url"
 	reflect "reflect"
 
 	webapp "github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -419,18 +418,6 @@ func (m *MockAuthflowNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowRe
 func (mr *MockAuthflowNavigatorMockRecorder) Navigate(screen, r, webSessionID, result interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigator)(nil).Navigate), screen, r, webSessionID, result)
-}
-
-// NavigateNonRecoverableError mocks base method.
-func (m *MockAuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.URL, e error) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "NavigateNonRecoverableError", r, u, e)
-}
-
-// NavigateNonRecoverableError indicates an expected call of NavigateNonRecoverableError.
-func (mr *MockAuthflowNavigatorMockRecorder) NavigateNonRecoverableError(r, u, e interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NavigateNonRecoverableError", reflect.TypeOf((*MockAuthflowNavigator)(nil).NavigateNonRecoverableError), r, u, e)
 }
 
 // NavigateResetPasswordSuccessPage mocks base method.
