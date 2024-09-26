@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "連結已發送",
   "v2.page.oob-otp-link.initial-reauth.description": "我們需要驗證您的身份。我們剛向 {target} 發送了登入連結。如果沒有收到，請重新發送。",
   "v2.page.oob-otp-link.initial.description": "我們剛向 {target} 發送了登入連結。如果沒有收到，請重新發送。",
+  "v2.page.page-not-found.default.title": "找不到頁面",
   "v2.page.prompt-create-passkey.default.description": "透過通行密匙，您現在可以使用指紋、臉孔或螢幕解鎖機制來驗證您的身份。",
   "v2.page.prompt-create-passkey.default.skip": "現在不要",
   "v2.page.prompt-create-passkey.default.title": "簡化您的登入",

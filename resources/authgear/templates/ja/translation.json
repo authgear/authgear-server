@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "リンクを送信しました",
   "v2.page.oob-otp-link.initial-reauth.description": "セキュリティのため、本人確認が必要です。{target}にログインリンクを送信しました。受け取れない場合は再送信してください。",
   "v2.page.oob-otp-link.initial.description": "{target}にログインリンクを送信しました。受け取れない場合は再送信してください。",
+  "v2.page.page-not-found.default.title": "ページが見つかりません",
   "v2.page.prompt-create-passkey.default.description": "Passkeyを使えば、指紋、顔認証、画面ロックで本人確認できます。",
   "v2.page.prompt-create-passkey.default.skip": "後で",
   "v2.page.prompt-create-passkey.default.title": "ログインを簡単に",

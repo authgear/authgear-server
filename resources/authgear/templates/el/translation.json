@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "Ο Σύνδεσμος Στάλθηκε",
   "v2.page.oob-otp-link.initial-reauth.description": "Για την ασφάλειά σας, πρέπει να επαληθεύσουμε ότι είστε εσείς. Μόλις στείλαμε έναν σύνδεσμο σύνδεσης στο {target}. Αν δεν το λάβατε, παρακαλούμε στείλτε το ξανά.",
   "v2.page.oob-otp-link.initial.description": "Μόλις στείλαμε έναν σύνδεσμο σύνδεσης στο {target}. Αν δεν το λάβατε, παρακαλούμε στείλτε το ξανά.",
+  "v2.page.page-not-found.default.title": "Η σελίδα δεν βρέθηκε",
   "v2.page.prompt-create-passkey.default.description": "Με τα Passkeys μπορείτε τώρα να χρησιμοποιήσετε το δακτυλικό σας αποτύπωμα, το πρόσωπό σας ή την οθόνη κλειδώματος για να επιβεβαιώσετε ότι είστε εσείς.",
   "v2.page.prompt-create-passkey.default.skip": "Όχι τώρα",
   "v2.page.prompt-create-passkey.default.title": "Απλοποιήστε τη σύνδεσή σας",

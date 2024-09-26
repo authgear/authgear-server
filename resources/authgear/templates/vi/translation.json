@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "Liên kết đã được gửi",
   "v2.page.oob-otp-link.initial-reauth.description": "Vì lý do bảo mật, chúng tôi cần xác minh rằng đó thực sự là bạn. Chúng tôi vừa gửi một liên kết đăng nhập đến {target}. Nếu không nhận được, vui lòng gửi lại.",
   "v2.page.oob-otp-link.initial.description": "Chúng tôi vừa gửi một liên kết đăng nhập đến {target}. Nếu không nhận được, vui lòng gửi lại.",
+  "v2.page.page-not-found.default.title": "Không tìm thấy trang",
   "v2.page.prompt-create-passkey.default.description": "Với Passkeys, bạn có thể sử dụng vân tay, khuôn mặt hoặc khóa màn hình của mình để xác minh rằng đó thực sự là bạn.",
   "v2.page.prompt-create-passkey.default.skip": "Không phải bây giờ",
   "v2.page.prompt-create-passkey.default.title": "Đơn giản hóa việc đăng nhập của bạn",

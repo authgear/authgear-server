@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "Link wysłany",
   "v2.page.oob-otp-link.initial-reauth.description": "Ze względów bezpieczeństwa musimy zweryfikować, że to Ty. Właśnie wysłaliśmy link logowania na {target}. Jeśli nie został odebrany, prześlij go ponownie.",
   "v2.page.oob-otp-link.initial.description": "Właśnie wysłaliśmy link logowania na {target}. Jeśli nie został odebrany, prześlij go ponownie.",
+  "v2.page.page-not-found.default.title": "Strona nie znaleziona",
   "v2.page.prompt-create-passkey.default.description": "Dzięki Passkeys możesz teraz używać odcisku palca, twarzy lub blokady ekranu, aby potwierdzić, że to naprawdę Ty.",
   "v2.page.prompt-create-passkey.default.skip": "Nie teraz",
   "v2.page.prompt-create-passkey.default.title": "Uproszczenie logowania",

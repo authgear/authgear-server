@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "링크 전송됨",
   "v2.page.oob-otp-link.initial-reauth.description": "보안을 위해 본인 확인이 필요합니다. {target}으로 로그인 링크를 보냈습니다. 받지 못한 경우 다시 보내주세요.",
   "v2.page.oob-otp-link.initial.description": "{target}으로 로그인 링크를 보냈습니다. 받지 못한 경우 다시 보내주세요.",
+  "v2.page.page-not-found.default.title": "페이지를 찾을 수 없습니다",
   "v2.page.prompt-create-passkey.default.description": "Passkey를 사용하면 지문, 얼굴 또는 화면 잠금을 사용하여 본인 확인을 할 수 있습니다.",
   "v2.page.prompt-create-passkey.default.skip": "나중에",
   "v2.page.prompt-create-passkey.default.title": "로그인을 간소화하세요",

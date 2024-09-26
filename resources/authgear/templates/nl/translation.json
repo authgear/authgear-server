@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "Link verzonden",
   "v2.page.oob-otp-link.initial-reauth.description": "Voor je veiligheid moeten we verifiëren dat het jij bent. We hebben zojuist een inloglink naar {target} gestuurd. Als je deze niet hebt ontvangen, stuur deze dan opnieuw.",
   "v2.page.oob-otp-link.initial.description": "We hebben zojuist een inloglink naar {target} gestuurd. Als je deze niet hebt ontvangen, stuur deze dan opnieuw.",
+  "v2.page.page-not-found.default.title": "Pagina niet gevonden",
   "v2.page.prompt-create-passkey.default.description": "Met Passkeys kun je nu je vingerafdruk, gezicht of schermvergrendeling gebruiken om te verifiëren dat het echt jij bent.",
   "v2.page.prompt-create-passkey.default.skip": "Niet nu",
   "v2.page.prompt-create-passkey.default.title": "Vereenvoudig je inloggen",

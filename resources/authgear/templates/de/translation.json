@@ -1104,6 +1104,7 @@
   "v2.page.oob-otp-link.default.title": "Link gesendet",
   "v2.page.oob-otp-link.initial-reauth.description": "Zu Ihrer Sicherheit müssen wir überprüfen, dass Sie es sind. Wir haben Ihnen gerade einen Anmeldelink an {target} gesendet. Wenn Sie ihn nicht erhalten haben, senden Sie ihn bitte erneut.",
   "v2.page.oob-otp-link.initial.description": "Wir haben Ihnen gerade einen Anmeldelink an {target} gesendet. Wenn Sie ihn nicht erhalten haben, senden Sie ihn bitte erneut.",
+  "v2.page.page-not-found.default.title": "Seite nicht gefunden",
   "v2.page.prompt-create-passkey.default.description": "Mit Passkeys können Sie jetzt Ihren Fingerabdruck, Ihr Gesicht oder Ihren Bildschirmschutz verwenden, um zu überprüfen, dass Sie es wirklich sind.",
   "v2.page.prompt-create-passkey.default.skip": "Nicht jetzt",
   "v2.page.prompt-create-passkey.default.title": "Vereinfachen Sie Ihre Anmeldung",
