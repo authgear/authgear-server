@@ -296,7 +296,7 @@ func TestRequest(t *testing.T) {
 }
 		`
 		var recordJson interface{}
-		json.Unmarshal([]byte(record), &recordJson)
+		_ = json.Unmarshal([]byte(record), &recordJson)
 
 		stringValue, _ := TraverseRecordValue(recordJson, "/sub")
 		So(stringValue == "opaque_user_id", ShouldBeTrue)

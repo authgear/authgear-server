@@ -248,6 +248,7 @@ func (s *UserExportService) ExportToNDJson(tmpResult *os.File, request *Request,
 	return nil
 }
 
+//nolint:gocognit
 func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
 	csvWriter := csv.NewWriter(tmpResult)
 
@@ -255,7 +256,7 @@ func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, ta
 	// Use default CSV field set if no field specified in request
 	if exportFields == nil || len(exportFields) == 0 {
 		defaultHeader := CSVField{}
-		json.Unmarshal([]byte(DefaultCSVExportField), &defaultHeader)
+		_ = json.Unmarshal([]byte(DefaultCSVExportField), &defaultHeader)
 		exportFields = defaultHeader.Fields
 
 		// Append custom_attributes to default pointer set
@@ -271,7 +272,10 @@ func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, ta
 		return err
 	}
 
-	csvWriter.Write(headerField.FieldNames)
+	err = csvWriter.Write(headerField.FieldNames)
+	if err != nil {
+		return err
+	}
 
 	var offset uint64 = uint64(0)
 	for {
@@ -294,14 +298,14 @@ func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, ta
 		s.Logger.Infof("Found number of users: %v", len(page))
 
 		for _, user := range page {
-			record, convertErr := s.convertDBUserToRecord(user)
-			if convertErr != nil {
-				return convertErr
+			record, err := s.convertDBUserToRecord(user)
+			if err != nil {
+				return err
 			}
 
-			recordJson, jsonErr := json.Marshal(record)
-			if jsonErr != nil {
-				return jsonErr
+			recordJson, err := json.Marshal(record)
+			if err != nil {
+				return err
 			}
 
 			var recordMap interface{}
@@ -315,7 +319,10 @@ func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, ta
 				value, _ := TraverseRecordValue(recordMap, field.Pointer)
 				outputLine = append(outputLine, value)
 			}
-			csvWriter.Write(outputLine)
+			err = csvWriter.Write(outputLine)
+			if err != nil {
+				return err
+			}
 		}
 
 		// Exit export loop early when no more record to read
