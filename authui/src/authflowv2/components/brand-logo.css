@@ -1,7 +1,6 @@
 @layer components {
   :root {
     --brand-logo__height: 2.5rem;
-    --brand-logo__height--settings: 3.75rem;
   }
 
   .brand-logo__container {
@@ -31,10 +30,6 @@
 
   .brand-logo--default {
     height: var(--brand-logo__height);
-  }
-
-  .brand-logo--settings {
-    height: var(--brand-logo__height--settings);
   }
 
   /* Below data-src selector is a workaround until css :has() is widely-supported */
