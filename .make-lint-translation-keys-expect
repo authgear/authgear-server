@@ -1,4 +1,4 @@
-resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:43:12: template translation is forbidden: `page-frame-content`
+resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:41:12: template translation is forbidden: `page-frame-content`
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:5:27: translation key not defined: "dialog-controller-str"
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:6:21: translation key not defined: "dialog-content"
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:19:14: template translation is forbidden: `dialog-close-btn`
