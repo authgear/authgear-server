@@ -6,7 +6,7 @@
   }
 
   .brand-logo__container {
-    @apply hidden items-center; /* flex is applied in data-src selector */
+    @apply hidden; /* flex is applied in data-src selector */
 
     :root[alignment-logo="start"] & {
       @apply justify-start;
