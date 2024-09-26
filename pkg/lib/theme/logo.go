@@ -10,7 +10,7 @@ import (
 )
 
 // MigrateSetDefaultLogoHeight set default logo heights for existing projects that does not have it set yet
-func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, err error) {
+func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, alreadySet bool, err error) {
 	p := css.NewParser(parse.NewInput(r), false)
 
 	var elements []element
@@ -27,7 +27,10 @@ func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, err error) {
 		elements = append(elements, el)
 	}
 
-	elements = setDefaultHeight(elements)
+	elements, alreadySet = setDefaultHeight(elements)
+	if alreadySet {
+		return nil, alreadySet, nil
+	}
 	var buf bytes.Buffer
 	stringify(&buf, elements)
 
@@ -38,13 +41,16 @@ func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, err error) {
 var LogoHeightPropertyKey string = "--brand-logo__height"
 var DefaultLogoHeight string = "40px"
 
-func setDefaultHeight(elements []element) (out []element) {
+func setDefaultHeight(elements []element) (out []element, alreadySet bool) {
 	for _, el := range elements {
 		switch v := el.(type) {
 		case *ruleset:
-			if isLogoHeightSet(v) {
+			if v.Selector != ":root" && v.Selector != ":root.dark" {
 				out = append(out, el)
 				continue
+			}
+			if isLogoHeightSet(v) {
+				return nil, true
 			}
 
 			d := newLogoHeightDeclaration(DefaultLogoHeight)

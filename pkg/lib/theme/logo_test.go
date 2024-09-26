@@ -9,15 +9,16 @@ import (
 
 func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 	Convey("MigrateSetDefaultLogoHeight", t, func() {
-		test := func(input string, expected string) {
+		test := func(input string, expected string, expectedAlreadySet bool) {
 			r := strings.NewReader(input)
-			result, err := MigrateSetDefaultLogoHeight(r)
+			result, alreadySet, err := MigrateSetDefaultLogoHeight(r)
 			So(err, ShouldBeNil)
+			So(alreadySet, ShouldEqual, expectedAlreadySet)
 			So(string(result), ShouldEqual, expected)
 		}
 
 		Convey("Handle empty string", func() {
-			test("", "")
+			test("", "", false)
 		})
 
 		Convey("Set dark logo height if not set", func() {
@@ -28,7 +29,7 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
   --layout__bg-color: #0047AB;
   --brand-logo__height: 40px;
 }
-`) // appended
+`, false) // appended
 		})
 
 		Convey("Do nothing if dark logo height set", func() {
@@ -37,11 +38,7 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
   --layout__bg-color: #0047AB;
   --brand-logo__height: 40px;
 }
-`, `:root.dark {
-  --layout__bg-color: #0047AB;
-  --brand-logo__height: 40px;
-}
-`) // unchanged
+`, ``, true) // unchanged
 			})
 		})
 
@@ -53,7 +50,7 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
   --layout__bg-color: #F0FFFF;
   --brand-logo__height: 40px;
 }
-`) // appended
+`, false) // appended
 		})
 
 		Convey("Do nothing if light logo height set", func() {
@@ -61,11 +58,7 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
   --layout__bg-color: #F0FFFF;
   --brand-logo__height: 40px;
 }
-`, `:root {
-  --layout__bg-color: #F0FFFF;
-  --brand-logo__height: 40px;
-}
-`) // appended
+`, ``, true) // appended
 		})
 	})
 }
