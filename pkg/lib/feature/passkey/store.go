@@ -11,6 +11,7 @@ import (
 	"github.com/go-webauthn/webauthn/protocol"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -28,7 +29,7 @@ func (s *Store) CreateSession(session *Session) error {
 		return err
 	}
 	key := redisSessionKey(s.AppID, encodedChallenge)
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ttl := duration.PerHour
 		_, err = conn.SetNX(s.Context, key, bytes, ttl).Result()
 		if err != nil {
@@ -43,19 +44,17 @@ func (s *Store) ConsumeSession(challenge protocol.URLEncodedBase64) (*Session, e
 	key := redisSessionKey(s.AppID, encodedChallenge)
 
 	var bytes []byte
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
-		pipeliner := conn.Pipeline()
-		getResult := pipeliner.Get(s.Context, key)
-		delResult := pipeliner.Del(s.Context, key)
-		_, err := pipeliner.Exec(s.Context)
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+		var err error
+		bytes, err = conn.Get(s.Context, key).Bytes()
+		if errors.Is(err, goredis.Nil) {
+			return ErrSessionNotFound
+		}
 		if err != nil {
 			return err
 		}
-		bytes, err = getResult.Bytes()
-		if err != nil {
-			return err
-		}
-		err = delResult.Err()
+
+		_, err = conn.Del(s.Context, key).Result()
 		if err != nil {
 			return err
 		}
@@ -80,7 +79,7 @@ func (s *Store) PeekSession(challenge protocol.URLEncodedBase64) (*Session, erro
 	key := redisSessionKey(s.AppID, encodedChallenge)
 
 	var bytes []byte
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		var err error
 		bytes, err = conn.Get(s.Context, key).Bytes()
 		if errors.Is(err, goredis.Nil) {

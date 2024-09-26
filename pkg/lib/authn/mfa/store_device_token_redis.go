@@ -10,6 +10,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -22,7 +23,7 @@ type StoreDeviceTokenRedis struct {
 
 func (s *StoreDeviceTokenRedis) Get(userID string, token string) (*DeviceToken, error) {
 	var deviceToken *DeviceToken
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ctx := context.Background()
 		key := redisDeviceTokensKey(s.AppID, userID)
 
@@ -63,7 +64,7 @@ func (s *StoreDeviceTokenRedis) Get(userID string, token string) (*DeviceToken, 
 }
 
 func (s *StoreDeviceTokenRedis) Create(token *DeviceToken) error {
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ctx := context.Background()
 		key := redisDeviceTokensKey(s.AppID, token.UserID)
 
@@ -96,7 +97,7 @@ func (s *StoreDeviceTokenRedis) Create(token *DeviceToken) error {
 }
 
 func (s *StoreDeviceTokenRedis) DeleteAll(userID string) error {
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		key := redisDeviceTokensKey(s.AppID, userID)
 		ctx := context.Background()
 		_, err := conn.Del(ctx, key).Result()
@@ -109,7 +110,7 @@ func (s *StoreDeviceTokenRedis) DeleteAll(userID string) error {
 func (s *StoreDeviceTokenRedis) HasTokens(userID string) (bool, error) {
 	hasTokens := false
 
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ctx := context.Background()
 		key := redisDeviceTokensKey(s.AppID, userID)
 		_, err := conn.Get(ctx, key).Bytes()
@@ -127,7 +128,7 @@ func (s *StoreDeviceTokenRedis) HasTokens(userID string) (bool, error) {
 	return hasTokens, err
 }
 
-func (s *StoreDeviceTokenRedis) saveTokens(conn *goredis.Conn, key string, tokens map[string]*DeviceToken, ttl time.Duration) error {
+func (s *StoreDeviceTokenRedis) saveTokens(conn redis.Redis_6_0_Cmdable, key string, tokens map[string]*DeviceToken, ttl time.Duration) error {
 	ctx := context.Background()
 
 	if len(tokens) > 0 {

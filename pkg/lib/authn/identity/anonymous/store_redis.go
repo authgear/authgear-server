@@ -10,6 +10,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -25,7 +26,7 @@ type StoreRedis struct {
 
 func (s *StoreRedis) GetPromotionCode(codeHash string) (*PromotionCode, error) {
 	c := &PromotionCode{}
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := s.get(conn, promotionCodeKey(string(s.AppID), codeHash))
 		if err != nil {
 			return err
@@ -43,18 +44,18 @@ func (s *StoreRedis) GetPromotionCode(codeHash string) (*PromotionCode, error) {
 }
 
 func (s *StoreRedis) CreatePromotionCode(code *PromotionCode) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.save(conn, promotionCodeKey(code.AppID, code.CodeHash), code, code.ExpireAt)
 	})
 }
 
 func (s *StoreRedis) DeletePromotionCode(code *PromotionCode) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.del(conn, promotionCodeKey(code.AppID, code.CodeHash))
 	})
 }
 
-func (s *StoreRedis) get(conn *goredis.Conn, key string) ([]byte, error) {
+func (s *StoreRedis) get(conn redis.Redis_6_0_Cmdable, key string) ([]byte, error) {
 	ctx := context.Background()
 	data, err := conn.Get(ctx, key).Bytes()
 	if errors.Is(err, goredis.Nil) {
@@ -65,7 +66,7 @@ func (s *StoreRedis) get(conn *goredis.Conn, key string) ([]byte, error) {
 	return data, nil
 }
 
-func (s *StoreRedis) save(conn *goredis.Conn, key string, value interface{}, expireAt time.Time) error {
+func (s *StoreRedis) save(conn redis.Redis_6_0_Cmdable, key string, value interface{}, expireAt time.Time) error {
 	ctx := context.Background()
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -82,7 +83,7 @@ func (s *StoreRedis) save(conn *goredis.Conn, key string, value interface{}, exp
 	return nil
 }
 
-func (s *StoreRedis) del(conn *goredis.Conn, key string) error {
+func (s *StoreRedis) del(conn redis.Redis_6_0_Cmdable, key string) error {
 	ctx := context.Background()
 	_, err := conn.Del(ctx, key).Result()
 	return err

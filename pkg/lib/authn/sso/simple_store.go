@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 )
 
@@ -42,7 +43,7 @@ type SimpleStoreRedis struct {
 
 func (s *SimpleStoreRedis) GetDel(key string) (data string, err error) {
 	storeKey := storageKey(s.appID, s.providerType, s.providerAlias, key)
-	err = s.redis.WithConnContext(s.context, func(conn *goredis.Conn) error {
+	err = s.redis.WithConnContext(s.context, func(conn redis.Redis_6_0_Cmdable) error {
 		data, err = conn.Get(s.context, storeKey).Result()
 		if err != nil {
 			if errors.Is(err, goredis.Nil) {
@@ -62,7 +63,7 @@ func (s *SimpleStoreRedis) GetDel(key string) (data string, err error) {
 
 func (s *SimpleStoreRedis) SetWithTTL(key string, value string, ttl time.Duration) error {
 	storeKey := storageKey(s.appID, s.providerType, s.providerAlias, key)
-	err := s.redis.WithConnContext(s.context, func(conn *goredis.Conn) error {
+	err := s.redis.WithConnContext(s.context, func(conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.SetEX(s.context, storeKey, []byte(value), ttl).Result()
 		if err != nil {
 			return err

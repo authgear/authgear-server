@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -26,7 +27,7 @@ func (s *TokenStore) Set(token *UserToken) error {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		key := redisTokenKey(s.AppID, token.Endpoint, token.Username)
 		ttl := token.ExpireAt.Sub(s.Clock.NowUTC())
 
@@ -43,7 +44,7 @@ func (s *TokenStore) Get(endpoint string, username string) (*UserToken, error) {
 	ctx := context.Background()
 	key := redisTokenKey(s.AppID, endpoint, username)
 	var token *UserToken
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return nil

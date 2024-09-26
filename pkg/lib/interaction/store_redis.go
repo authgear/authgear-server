@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 )
 
@@ -32,7 +33,7 @@ func (s *StoreRedis) create(graph *Graph, ifNotExists bool) error {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		graphKey := redisGraphKey(s.AppID, graph.GraphID)
 		instanceKey := redisInstanceKey(s.AppID, graph.InstanceID)
 		ttl := GraphLifetime
@@ -64,7 +65,7 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 	ctx := context.Background()
 	instanceKey := redisInstanceKey(s.AppID, instanceID)
 	var graph Graph
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, instanceKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrGraphNotFound
@@ -92,7 +93,7 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 
 func (s *StoreRedis) DeleteGraph(graph *Graph) error {
 	ctx := context.Background()
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		graphKey := redisGraphKey(s.AppID, graph.GraphID)
 		_, err := conn.Del(ctx, graphKey).Result()
 		if err != nil {

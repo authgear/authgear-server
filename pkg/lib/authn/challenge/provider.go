@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -36,7 +37,7 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 		return nil, err
 	}
 
-	err = p.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = p.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.SetNX(ctx, key, data, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			return errors.New("fail to create new challenge")
@@ -59,7 +60,7 @@ func (p *Provider) Get(token string) (*Challenge, error) {
 
 	c := &Challenge{}
 
-	err := p.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := p.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrInvalidChallenge
@@ -87,7 +88,7 @@ func (p *Provider) Consume(token string) (*Purpose, error) {
 
 	c := &Challenge{}
 
-	err := p.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := p.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrInvalidChallenge

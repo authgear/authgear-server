@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/backoff"
@@ -117,7 +118,7 @@ func (c *Consumer) dequeue(ctx context.Context) (*redisqueue.Task, *deps.AppProv
 	var task redisqueue.Task
 	var appProvider *deps.AppProvider
 
-	err := c.redis.WithConnContext(ctx, func(conn *goredis.Conn) error {
+	err := c.redis.WithConnContext(ctx, func(conn redis.Redis_6_0_Cmdable) error {
 		queueKey := redisqueue.RedisKeyForQueue(c.QueueName)
 
 		strs, err := conn.BRPop(ctx, timeout, queueKey).Result()
@@ -239,7 +240,7 @@ func (c *Consumer) work(ctx context.Context) {
 		return
 	}
 
-	err = c.redis.WithConnContext(ctx, func(conn *goredis.Conn) error {
+	err = c.redis.WithConnContext(ctx, func(conn redis.Redis_6_0_Cmdable) error {
 		key := task.RedisKey()
 		_, err := conn.Set(ctx, key, taskBytes, redisqueue.TTL).Result()
 		if err != nil {

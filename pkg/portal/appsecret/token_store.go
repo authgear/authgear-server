@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -34,7 +35,7 @@ func (s *AppSecretVisitTokenStoreImpl) CreateToken(
 		return nil, err
 	}
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		key := redisTokenKey(appID, token.TokenID)
 		ttl := Lifetime
 
@@ -58,7 +59,7 @@ func (s *AppSecretVisitTokenStoreImpl) GetTokenByID(
 ) (*AppSecretVisitToken, error) {
 	key := redisTokenKey(appID, tokenID)
 	var token AppSecretVisitToken
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		bytes, err := conn.Get(s.Context, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrTokenNotFound

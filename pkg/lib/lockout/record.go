@@ -5,6 +5,8 @@ import (
 	"time"
 
 	goredis "github.com/go-redis/redis/v8"
+
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 )
 
 type attemptResult struct {
@@ -144,7 +146,7 @@ return 1
 `)
 
 func makeAttempts(
-	ctx context.Context, conn *goredis.Conn,
+	ctx context.Context, conn redis.Redis_6_0_Cmdable,
 	key string,
 	historyDuration time.Duration,
 	maxAttempts int,
@@ -188,7 +190,7 @@ func makeAttempts(
 }
 
 func clearAttempts(
-	ctx context.Context, conn *goredis.Conn,
+	ctx context.Context, conn redis.Redis_6_0_Cmdable,
 	key string,
 	historyDuration time.Duration,
 	contributor string) error {

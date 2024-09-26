@@ -7,10 +7,9 @@ import (
 	"net/http"
 	"net/url"
 
-	goredis "github.com/go-redis/redis/v8"
-
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -76,7 +75,7 @@ func (c *ErrorService) GetRecoverableError(r *http.Request) (*ErrorState, bool) 
 
 	var redisValue string
 	var err error
-	err = c.RedisHandle.WithConnContext(r.Context(), func(conn *goredis.Conn) error {
+	err = c.RedisHandle.WithConnContext(r.Context(), func(conn redis.Redis_6_0_Cmdable) error {
 		redisValue, err = conn.Get(r.Context(), redisKey).Result()
 		return err
 	})
@@ -109,7 +108,7 @@ func (c *ErrorService) GetDelRecoverableError(w http.ResponseWriter, r *http.Req
 
 	var redisValue string
 	var err error
-	err = c.RedisHandle.WithConnContext(r.Context(), func(conn *goredis.Conn) error {
+	err = c.RedisHandle.WithConnContext(r.Context(), func(conn redis.Redis_6_0_Cmdable) error {
 		redisValue, err = conn.Get(r.Context(), redisKey).Result()
 		if err != nil {
 			return err
@@ -174,7 +173,7 @@ func (c *ErrorService) SetRecoverableError(r *http.Request, value *apierrors.API
 	}
 
 	redisValue := string(dataBytes)
-	err = c.RedisHandle.WithConnContext(r.Context(), func(conn *goredis.Conn) error {
+	err = c.RedisHandle.WithConnContext(r.Context(), func(conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Set(r.Context(), redisKey, redisValue, duration.WebError).Result()
 		return err
 	})

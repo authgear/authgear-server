@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/duration"
@@ -54,7 +55,7 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 
 	tokenKey := tokenKey(token.AppID, token.TokenHash)
 
-	err = s.Redis.WithConnContext(s.Context, func(conn *goredis.Conn) error {
+	err = s.Redis.WithConnContext(s.Context, func(conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.SetNX(s.Context, tokenKey, tokenBytes, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			return errors.New("account management token collision")
@@ -76,7 +77,7 @@ func (s *RedisStore) ConsumeToken(tokenStr string) (*Token, error) {
 	tokenKey := tokenKey(string(s.AppID), tokenHash)
 
 	var tokenBytes []byte
-	err := s.Redis.WithConnContext(s.Context, func(conn *goredis.Conn) error {
+	err := s.Redis.WithConnContext(s.Context, func(conn redis.Redis_6_0_Cmdable) error {
 		var err error
 		tokenBytes, err = conn.Get(s.Context, tokenKey).Bytes()
 		if errors.Is(err, goredis.Nil) {

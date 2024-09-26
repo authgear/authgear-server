@@ -8,6 +8,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -22,7 +23,7 @@ func (s *AttemptTrackerRedis) ResetFailedAttempts(kind Kind, target string) erro
 	ctx := context.Background()
 	purpose := kind.Purpose()
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, redisFailedAttemptsKey(s.AppID, purpose, target)).Result()
 		return err
 	})
@@ -33,7 +34,7 @@ func (s *AttemptTrackerRedis) GetFailedAttempts(kind Kind, target string) (int, 
 	purpose := kind.Purpose()
 
 	var failedAttempts int
-	err := s.Redis.WithConn(func(conn *goredis.Conn) (err error) {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) (err error) {
 		failedAttempts, err = conn.Get(ctx, redisFailedAttemptsKey(s.AppID, purpose, target)).Int()
 		if errors.Is(err, goredis.Nil) {
 			failedAttempts = 0
@@ -58,7 +59,7 @@ func (s *AttemptTrackerRedis) IncrementFailedAttempts(kind Kind, target string) 
 	expiration := kind.ValidPeriod()
 
 	var failedAttempts int64
-	err := s.Redis.WithConn(func(conn *goredis.Conn) (err error) {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) (err error) {
 		failedAttempts, err = conn.Incr(ctx, key).Result()
 		if err != nil {
 			return err

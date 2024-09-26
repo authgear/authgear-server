@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -26,7 +27,7 @@ func (s *StoreRedis) Create(nonce *Nonce) error {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		nonceKey := redisNonceKey(s.AppID, nonce)
 		ttl := nonce.ExpireAt.Sub(s.Clock.NowUTC())
 		_, err := conn.SetNX(s.Context, nonceKey, data, ttl).Result()
@@ -44,7 +45,7 @@ func (s *StoreRedis) Get(nonce *Nonce) (*Nonce, error) {
 	ctx := context.Background()
 	key := redisNonceKey(s.AppID, nonce)
 	var nonceModel *Nonce
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrNonceNotFound
@@ -68,7 +69,7 @@ func (s *StoreRedis) Get(nonce *Nonce) (*Nonce, error) {
 
 func (s *StoreRedis) Delete(codeKey *Nonce) error {
 	ctx := context.Background()
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		key := redisNonceKey(s.AppID, codeKey)
 		_, err := conn.Del(ctx, key).Result()
 		if err != nil {

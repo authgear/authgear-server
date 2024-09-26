@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 )
 
@@ -40,7 +41,7 @@ func (s *EventStoreRedis) AppendEvent(sessionID string, expiry time.Time, event 
 		args.Approx = true
 	}
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ctx := context.Background()
 		_, err = conn.XAdd(ctx, args).Result()
 		if err != nil {
@@ -59,7 +60,7 @@ func (s *EventStoreRedis) AppendEvent(sessionID string, expiry time.Time, event 
 func (s *EventStoreRedis) ResetEventStream(sessionID string) error {
 	streamKey := accessEventStreamKey(s.AppID, sessionID)
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ctx := context.Background()
 		_, err := conn.Del(ctx, streamKey).Result()
 		if err != nil {
