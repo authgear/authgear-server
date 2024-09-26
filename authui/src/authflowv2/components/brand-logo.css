@@ -26,6 +26,8 @@
   }
 
   .brand-logo {
+    /* Use object-contain to maintain aspect ratio. */
+    @apply object-contain;
     max-width: var(--brand-logo__max-width);
   }
 
