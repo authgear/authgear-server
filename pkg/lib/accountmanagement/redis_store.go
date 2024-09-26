@@ -78,13 +78,19 @@ func (s *RedisStore) ConsumeToken(tokenStr string) (*Token, error) {
 	var tokenBytes []byte
 	err := s.Redis.WithConnContext(s.Context, func(conn *goredis.Conn) error {
 		var err error
-		tokenBytes, err = conn.GetDel(s.Context, tokenKey).Bytes()
+		tokenBytes, err = conn.Get(s.Context, tokenKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			// Token Invalid
 			return ErrOAuthTokenInvalid
 		} else if err != nil {
 			return err
 		}
+
+		_, err = conn.Del(s.Context, tokenKey).Result()
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 	if err != nil {

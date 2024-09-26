@@ -65,13 +65,19 @@ func (s *Store) PopAndRecoverState(stateToken string) (state *WebappOAuthState, 
 	var data []byte
 	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
 		var err error
-		data, err = conn.GetDel(s.Context, key).Bytes()
+		data, err = conn.Get(s.Context, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			err = ErrOAuthStateInvalid
 			return err
 		} else if err != nil {
 			return err
 		}
+
+		_, err = conn.Del(s.Context, key).Result()
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 	if err != nil {

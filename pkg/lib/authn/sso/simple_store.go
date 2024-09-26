@@ -43,13 +43,18 @@ type SimpleStoreRedis struct {
 func (s *SimpleStoreRedis) GetDel(key string) (data string, err error) {
 	storeKey := storageKey(s.appID, s.providerType, s.providerAlias, key)
 	err = s.redis.WithConnContext(s.context, func(conn *goredis.Conn) error {
-		data, err = conn.GetDel(s.context, storeKey).Result()
+		data, err = conn.Get(s.context, storeKey).Result()
 		if err != nil {
 			if errors.Is(err, goredis.Nil) {
 				return nil
 			}
 			return err
 		}
+		_, err = conn.Del(s.context, storeKey).Result()
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 	return

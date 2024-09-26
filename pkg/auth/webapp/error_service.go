@@ -110,8 +110,17 @@ func (c *ErrorService) GetDelRecoverableError(w http.ResponseWriter, r *http.Req
 	var redisValue string
 	var err error
 	err = c.RedisHandle.WithConnContext(r.Context(), func(conn *goredis.Conn) error {
-		redisValue, err = conn.GetDel(r.Context(), redisKey).Result()
-		return err
+		redisValue, err = conn.Get(r.Context(), redisKey).Result()
+		if err != nil {
+			return err
+		}
+
+		_, err = conn.Del(r.Context(), redisKey).Result()
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 	if err != nil {
 		return nil, false
