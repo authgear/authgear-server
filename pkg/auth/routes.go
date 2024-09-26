@@ -227,7 +227,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappSelectAccountChain := httproute.Chain(
 		newWebappPageChain(),
-		p.Middleware(newAuthEntryPointMiddleware),
 	)
 	webappVerifyBotProtectionChain := httproute.Chain(
 		webappPageChain,
