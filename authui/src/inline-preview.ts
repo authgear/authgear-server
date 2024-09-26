@@ -72,23 +72,22 @@ export class InlinePreviewController extends Controller {
       }
     }
 
-    const keyToPreviewableResourceController: Partial<
-      Record<string, PreviewableResourceController>
-    > = {};
-    this.previewableResourceOutlets.forEach((outlet) => {
-      keyToPreviewableResourceController[outlet.keyValue] = outlet;
-    });
-
     for (const [key, value] of Object.entries(
       customisationMessage.translations
     )) {
-      const outlet = keyToPreviewableResourceController[key];
-      outlet?.setValue(value);
+      for (const outlet of this.previewableResourceOutlets) {
+        if (outlet.keyValue === key) {
+          outlet?.setValue(value);
+        }
+      }
     }
 
     for (const [key, value] of Object.entries(customisationMessage.images)) {
-      const outlet = keyToPreviewableResourceController[key];
-      outlet?.setValue(value);
+      for (const outlet of this.previewableResourceOutlets) {
+        if (outlet.keyValue === key) {
+          outlet?.setValue(value);
+        }
+      }
     }
 
     el.classList.remove("dark");

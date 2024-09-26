@@ -1,4 +1,4 @@
-resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:43:12: template translation is forbidden: `page-frame-content`
+resources/authgear/templates/en/web/authflowv2/__base_page_frame.html:41:12: template translation is forbidden: `page-frame-content`
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:5:27: translation key not defined: "dialog-controller-str"
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:6:21: translation key not defined: "dialog-content"
 resources/authgear/templates/en/web/authflowv2/__bot_protection_dialog.html:19:14: template translation is forbidden: `dialog-close-btn`
@@ -6,7 +6,7 @@ resources/authgear/templates/en/web/authflowv2/__country_input.html:6:16: invali
 resources/authgear/templates/en/web/authflowv2/__country_input.html:10:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/__csrf_error_page_layout.html:28:18: template translation is forbidden: `page-content`
 resources/authgear/templates/en/web/authflowv2/__dialog.html:27:14: template translation is forbidden: `dialog-attr`
-resources/authgear/templates/en/web/authflowv2/__direct_access_disable_page_frame.html:47:18: template translation is forbidden: `page-content`
+resources/authgear/templates/en/web/authflowv2/__direct_access_disable_page_frame.html:7:16: template translation is forbidden: `page-content`
 resources/authgear/templates/en/web/authflowv2/__error.html:134:18: template translation is forbidden: `authflowv2/__error_account`
 resources/authgear/templates/en/web/authflowv2/__error.html:166:20: template translation is forbidden: `authflowv2/__error_account`
 resources/authgear/templates/en/web/authflowv2/__locale_input.html:6:16: invalid translation key: "$labelKey"
@@ -20,7 +20,7 @@ resources/authgear/templates/en/web/authflowv2/__settings_page_frame.html:48:18:
 resources/authgear/templates/en/web/authflowv2/__settings_radio.html:16:16: translation key not defined: "radio-%s-%s"
 resources/authgear/templates/en/web/authflowv2/__timezone_input.html:8:21: translation key not defined: "%s %s"
 resources/authgear/templates/en/web/authflowv2/account_linking.html:90:33: translation key not defined: "%s-icon"
-resources/authgear/templates/en/web/authflowv2/direct_access_disabled.html:16:37: invalid translation key: "configure-direct-access-description"
+resources/authgear/templates/en/web/authflowv2/direct_access_disabled.html:26:39: invalid translation key: "configure-direct-access-description"
 resources/authgear/templates/en/web/authflowv2/forgot_password.html:103:30: template translation is forbidden: `__forgot_password_alternative`
 resources/authgear/templates/en/web/authflowv2/forgot_password.html:159:26: template translation is forbidden: `__forgot_password_alternative`
 resources/authgear/templates/en/web/authflowv2/layout.html:5:14: template translation is forbidden: `widget`

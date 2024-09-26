@@ -3,7 +3,7 @@
     @apply flex flex-col flex-1-0-auto;
     @apply items-center justify-center tablet:justify-start;
 
-    @apply px-4;
+    @apply px-6 py-10;
 
     @apply bg-[var(--color-surface-primary)];
   }

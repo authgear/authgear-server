@@ -6,7 +6,7 @@
   }
 
   .brand-logo__container {
-    @apply flex;
+    @apply hidden; /* flex is applied in data-src selector */
 
     :root[alignment-logo="start"] & {
       @apply justify-start;
@@ -26,12 +26,12 @@
   }
 
   .brand-logo {
-    @apply hidden;
+    /* Use object-contain to maintain aspect ratio. */
+    @apply object-contain;
     max-width: var(--brand-logo__max-width);
   }
 
   .brand-logo--default {
-    @apply mb-8;
     height: var(--brand-logo__height);
   }
 
@@ -39,12 +39,13 @@
     height: var(--brand-logo__height--settings);
   }
 
+  /* Below data-src selector is a workaround until css :has() is widely-supported */
   /* The light logo is visible only in light mode and src is non-empty. */
-  :root:not(.dark) .brand-logo.light:not([src=""]) {
-    display: initial;
+  :root:not(.dark) .brand-logo__container.light:not([data-src=""]) {
+    @apply flex;
   }
   /* The dark logo is visible only in dark mode and src is non-empty. */
-  :root.dark .brand-logo.dark:not([src=""]) {
-    display: initial;
+  :root.dark .brand-logo__container.dark:not([data-src=""]) {
+    @apply flex;
   }
 }
