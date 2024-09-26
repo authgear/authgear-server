@@ -2,7 +2,6 @@
   :root {
     --brand-logo__height: 2.5rem;
     --brand-logo__height--settings: 3.75rem;
-    --brand-logo__max-width: 350px;
   }
 
   .brand-logo__container {
@@ -28,7 +27,6 @@
   .brand-logo {
     /* Use object-contain to maintain aspect ratio. */
     @apply object-contain;
-    max-width: var(--brand-logo__max-width);
   }
 
   .brand-logo--default {

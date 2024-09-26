@@ -1,10 +1,10 @@
 @layer components {
   :root {
-    --screen-logo-layout__gap-y: 40px;
+    --screen-logo-layout__spacing: 40px;
   }
 
   .screen-logo-layout {
     @apply flex flex-col;
-    row-gap: var(--screen-logo-layout__gap-y);
+    row-gap: var(--screen-logo-layout__spacing);
   }
 }
