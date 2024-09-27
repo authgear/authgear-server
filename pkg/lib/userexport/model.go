@@ -299,8 +299,10 @@ func TraverseRecordValue(jsonMap interface{}, pointer string) (fieldValue string
 		fieldValue = strconv.FormatFloat(v, 'f', -1, 64)
 	case nil:
 		fieldValue = ""
+	case string:
+		fieldValue = v
 	default:
-		fieldValue = v.(string)
+		panic(fmt.Sprintf("Unsupported JSON value in user export: %T, %v\n", v, v))
 	}
 
 	return fieldValue, nil
