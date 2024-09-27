@@ -44,9 +44,8 @@ type ControllerDeps struct {
 	Renderer                Renderer
 	Publisher               *Publisher
 	Clock                   clock.Clock
-	UIConfig                *config.UIConfig
-	ErrorService            *webapp.ErrorService
 	TesterEndpointsProvider tester.EndpointsProvider
+	ErrorRenderer           *ErrorRenderer
 
 	TrustProxy config.TrustProxy
 }
@@ -197,29 +196,7 @@ func (c *Controller) Serve() {
 }
 
 func (c *Controller) renderError(err error) {
-	apierror := apierrors.AsAPIError(err)
-
-	// Show WebUIInvalidSession error in different page.
-	u := *c.request.URL
-	// If the request method is Get, avoid redirect back to the same path
-	// which causes infinite redirect loop
-	if c.request.Method == http.MethodGet {
-		u.Path = "/errors/error"
-	}
-	if apierror.Reason == webapp.WebUIInvalidSession.Reason {
-		u.Path = "/errors/error"
-	}
-
-	cookie, err := c.ErrorService.SetRecoverableError(c.request, apierror)
-	if err != nil {
-		panic(err)
-	}
-	result := webapp.Result{
-		RedirectURI:      u.String(),
-		NavigationAction: "replace",
-		Cookies:          []*http.Cookie{cookie},
-	}
-	result.WriteResponse(c.response, c.request)
+	c.ErrorRenderer.RenderError(c.response, c.request, err)
 }
 
 func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Session {

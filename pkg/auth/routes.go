@@ -225,9 +225,12 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.Middleware(newRequireAuthenticationEnabledMiddleware),
 		p.Middleware(newAuthEntryPointMiddleware),
 	)
-	webappSelectAccountChain := httproute.Chain(
+	webappReauthChain := httproute.Chain(
 		newWebappPageChain(),
 		p.Middleware(newAuthEntryPointMiddleware),
+	)
+	webappSelectAccountChain := httproute.Chain(
+		newWebappPageChain(),
 	)
 	webappVerifyBotProtectionChain := httproute.Chain(
 		webappPageChain,
@@ -294,6 +297,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
 	webappRequireAuthEnabledAuthEntrypointRoute := httproute.Route{Middleware: webappRequireAuthEnabledAuthEntrypointChain}
 	webappSelectAccountRoute := httproute.Route{Middleware: webappSelectAccountChain}
+	webappReauthRoute := httproute.Route{Middleware: webappReauthChain}
 	webappVerifyBotProtectionRoute := httproute.Route{Middleware: webappVerifyBotProtectionChain}
 	webappConsentPageRoute := httproute.Route{Middleware: webappConsentPageChain}
 	webappAuthenticatedRoute := httproute.Route{Middleware: webappAuthenticatedChain}
@@ -323,7 +327,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		Authflow:    p.Handler(newWebAppAuthflowPromoteHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2PromoteHandler),
 	})
-	router.Add(webapphandler.ConfigureAuthflowReauthRoute(webappSelectAccountRoute), &webapphandler.ImplementationSwitcherHandler{
+	router.Add(webapphandler.ConfigureAuthflowReauthRoute(webappReauthRoute), &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppReauthHandler),
 		Authflow:    p.Handler(newWebAppAuthflowReauthHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2ReauthHandler),
