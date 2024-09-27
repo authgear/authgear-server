@@ -228,14 +228,6 @@ func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 	return response, nil
 }
 
-func jsonPointerToCSVFieldName(pointer string) (fieldName string) {
-	splitFn := func(c rune) bool {
-		return c == '/'
-	}
-	fields := strings.FieldsFunc(pointer, splitFn)
-	return strings.Join(fields, ".")
-}
-
 func ExtractCSVHeaderField(fieldPointer []*FieldPointer) (headerFields []string, err error) {
 	isDuplicated := false
 	fields := make([]string, 0)
@@ -243,7 +235,11 @@ func ExtractCSVHeaderField(fieldPointer []*FieldPointer) (headerFields []string,
 	for _, pointer := range fieldPointer {
 		var fieldName string
 		if pointer.FieldName == "" {
-			fieldName = jsonPointerToCSVFieldName((pointer.Pointer))
+			ptr, err := jsonpointer.Parse(pointer.Pointer)
+			if err != nil {
+				return nil, err
+			}
+			fieldName = strings.Join(ptr, ".")
 		} else {
 			fieldName = pointer.FieldName
 		}
