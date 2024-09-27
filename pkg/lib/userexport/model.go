@@ -35,6 +35,7 @@ var RequestSchema = validation.NewSimpleSchema(`
 			"properties": {
 				"fields": {
 					"type": "array",
+					"minItems": 1,
 					"items": {
 						"type": "object",
 						"properties": {
@@ -97,17 +98,17 @@ const DefaultCSVExportField = `
 `
 
 type FieldPointer struct {
-	Pointer   string `json:"pointer"`
-	FieldName string `json:"field_name"`
+	Pointer   string `json:"pointer,omitempty"`
+	FieldName string `json:"field_name,omitempty"`
 }
 
 type CSVField struct {
-	Fields []*FieldPointer `json:"fields"`
+	Fields []*FieldPointer `json:"fields,omitempty"`
 }
 
 type Request struct {
-	Format string   `json:"format"`
-	CSV    CSVField `json:"csv"`
+	Format string    `json:"format,omitempty"`
+	CSV    *CSVField `json:"csv,omitempty"`
 }
 
 type Response struct {
@@ -144,8 +145,8 @@ type Identity struct {
 }
 
 type MFATOTP struct {
-	Secret string `json:"secret"`
-	URI    string `json:"uri"`
+	Secret string `json:"secret,omitempty"`
+	URI    string `json:"uri,omitempty"`
 }
 
 type MFA struct {

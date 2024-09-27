@@ -27,7 +27,7 @@ func TestRequest(t *testing.T) {
 		serialized, err := json.Marshal(request)
 		So(err, ShouldBeNil)
 
-		So(string(serialized), ShouldEqualJSON, `{"csv":{"fields":null},"format":"ndjson"}`)
+		So(string(serialized), ShouldEqualJSON, `{"format":"ndjson"}`)
 	})
 
 	Convey("Request JSON Schema", t, func() {
@@ -74,7 +74,9 @@ func TestRequest(t *testing.T) {
 		"fields": []
 	}
 }
-		`, "")
+		`, `invalid request body:
+/csv/fields: minItems
+  map[actual:0 expected:1]`)
 		test(`
 {
 	"format": "csv",

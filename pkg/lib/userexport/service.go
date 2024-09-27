@@ -252,7 +252,10 @@ func (s *UserExportService) ExportToNDJson(tmpResult *os.File, request *Request,
 func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
 	csvWriter := csv.NewWriter(tmpResult)
 
-	exportFields := request.CSV.Fields
+	var exportFields []*FieldPointer
+	if request.CSV != nil {
+		exportFields = request.CSV.Fields
+	}
 	// Use default CSV field set if no field specified in request
 	if exportFields == nil || len(exportFields) == 0 {
 		defaultHeader := CSVField{}
