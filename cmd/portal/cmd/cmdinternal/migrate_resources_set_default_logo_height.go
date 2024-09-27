@@ -5,13 +5,14 @@ import (
 	"encoding/base64"
 	"fmt"
 	"log"
-	"strings"
+	"regexp"
 
 	"github.com/spf13/cobra"
 
 	portalcmd "github.com/authgear/authgear-server/cmd/portal/cmd"
 	"github.com/authgear/authgear-server/cmd/portal/internal"
 	"github.com/authgear/authgear-server/pkg/lib/theme"
+	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 )
 
 var cmdInternalMigrateSetDefaultLogoHeight = &cobra.Command{
@@ -122,11 +123,13 @@ func handleExistingCSS(cssResource *ResourceConfigDecoded) (migratedCSS []byte, 
 
 type ResourceConfig struct {
 	OriginalPath string
+	EscapedPath  string
 	EncodedData  string
 }
 
 type ResourceConfigDecoded struct {
 	OriginalPath string
+	EscapedPath  string
 	EncodedData  string
 	DecodedData  []byte
 }
@@ -137,27 +140,34 @@ type MigrateLogoHeightConfig struct {
 	DarkThemeCSS  *ResourceConfigDecoded
 }
 
+var LightLogoPathRegex = `^static/([a-zA-Z-]+)/app_logo\.([a-zA-Z-]+)$`
+var DarkLogoPathRegex = `^static/([a-zA-Z-]+)/app_logo_dark\.([a-zA-Z-]+)$`
+var LightThemeCSSPath = "static/authgear-authflowv2-light-theme.css"
+var DarkThemeCSSPath = "static/authgear-authflowv2-dark-theme.css"
+
 func parseLogoHeightConfigSource(configSourceData map[string]string) (*MigrateLogoHeightConfig, error) {
 	out := &MigrateLogoHeightConfig{}
 
 	for k, v := range configSourceData {
-		if strings.Contains(k, "logo") {
-			// found logo asset
-			if strings.Contains(k, "dark") {
-				out.DarkLogo = newResourceConfig(k, v)
-			} else {
-				out.LightLogo = newResourceConfig(k, v)
-			}
+		p, err := filepathutil.UnescapePath(k)
+		if err != nil {
+			return nil, err
 		}
-		if strings.HasSuffix(k, "light-theme.css") {
-			rcd, err := newResourceConfigDecoded(k, v)
+		if ok, _ := regexp.MatchString(LightLogoPathRegex, p); ok {
+			out.LightLogo = newResourceConfig(p, k, v)
+		}
+		if ok, _ := regexp.MatchString(DarkLogoPathRegex, p); ok {
+			out.DarkLogo = newResourceConfig(p, k, v)
+		}
+		if p == LightThemeCSSPath {
+			rcd, err := newResourceConfigDecoded(p, k, v)
 			if err != nil {
 				return nil, err
 			}
 			out.LightThemeCSS = rcd
 		}
-		if strings.HasSuffix(k, "dark-theme.css") {
-			rcd, err := newResourceConfigDecoded(k, v)
+		if p == DarkThemeCSSPath {
+			rcd, err := newResourceConfigDecoded(p, k, v)
 			if err != nil {
 				return nil, err
 			}
@@ -168,20 +178,22 @@ func parseLogoHeightConfigSource(configSourceData map[string]string) (*MigrateLo
 	return out, nil
 }
 
-func newResourceConfig(path string, encoded string) *ResourceConfig {
+func newResourceConfig(originalPath string, escapedPath string, encoded string) *ResourceConfig {
 	return &ResourceConfig{
-		OriginalPath: path,
+		OriginalPath: originalPath,
+		EscapedPath:  escapedPath,
 		EncodedData:  encoded,
 	}
 }
 
-func newResourceConfigDecoded(path string, encoded string) (*ResourceConfigDecoded, error) {
+func newResourceConfigDecoded(originalPath string, escapedPath string, encoded string) (*ResourceConfigDecoded, error) {
 	decoded, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
-		return nil, fmt.Errorf("failed to decode %v: %w", path, err)
+		return nil, fmt.Errorf("failed to decode %v: %w", originalPath, err)
 	}
 	return &ResourceConfigDecoded{
-		OriginalPath: path,
+		OriginalPath: originalPath,
+		EscapedPath:  escapedPath,
 		EncodedData:  encoded,
 		DecodedData:  decoded,
 	}, nil
