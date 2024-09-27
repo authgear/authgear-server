@@ -53,72 +53,48 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 	hasLightThemeCSS := cfg.LightThemeCSS != nil
 	hasDarkThemeCSS := cfg.DarkThemeCSS != nil
 
-	if !hasLightLogo && !hasDarkLogo {
-		log.Printf("Skipping app (%s) because it does not have logo set", appID)
-		return nil
-	}
-
 	if dryRun {
 		log.Printf("Converting app (%s)", appID)
 	}
 
-	var lightThemeCSSMigrated []byte
-	var darkThemeCSSMigrated []byte
-	var lightThemeCSSAlreadySet bool
-	var darkThemeCSSAlreadySet bool
-	if hasLightLogo {
-		if hasLightThemeCSS {
-			lightThemeCSSMigrated, lightThemeCSSAlreadySet, err = handleExistingCSS(cfg.LightThemeCSS)
-			if lightThemeCSSAlreadySet {
-				log.Printf("Skipping light theme css of app (%s) because it already has logo height set", appID)
-			}
-			if err != nil {
-				return err
-			}
+	switch {
+	case !hasLightLogo && !hasDarkLogo:
+		log.Printf("Skipping app (%s) because it does not have logo set", appID)
+		return nil
+	case hasLightLogo && hasLightThemeCSS:
+		err = handleExistingCSS(appID, configSourceData, cfg.LightThemeCSS, dryRun)
+		if err != nil {
+			return err
 		}
-	}
-
-	if hasDarkLogo {
-		if hasDarkThemeCSS {
-			darkThemeCSSMigrated, darkThemeCSSAlreadySet, err = handleExistingCSS(cfg.DarkThemeCSS)
-			if darkThemeCSSAlreadySet {
-				log.Printf("Skipping dark theme css of app (%s) because it already has logo height set", appID)
-			}
-			if err != nil {
-				return err
-			}
-		}
-
-	}
-
-	if !lightThemeCSSAlreadySet {
-		configSourceData[cfg.LightThemeCSS.OriginalPath] = base64.StdEncoding.EncodeToString(lightThemeCSSMigrated)
-		if dryRun {
-			log.Printf("Before light-theme.css updated:")
-			log.Printf("%s:\n%s\n", cfg.LightThemeCSS.OriginalPath, string(cfg.LightThemeCSS.DecodedData))
-			log.Printf("After light-theme.css updated:")
-			log.Printf("%s:\n%s\n", cfg.LightThemeCSS.OriginalPath, string(lightThemeCSSMigrated))
-		}
-	}
-
-	if !darkThemeCSSAlreadySet {
-		configSourceData[cfg.DarkThemeCSS.OriginalPath] = base64.StdEncoding.EncodeToString(darkThemeCSSMigrated)
-		if dryRun {
-			log.Printf("Before dark-theme.css updated:")
-			log.Printf("%s:\n%s\n", cfg.DarkThemeCSS.OriginalPath, string(cfg.DarkThemeCSS.DecodedData))
-			log.Printf("After dark-theme.css updated:")
-			log.Printf("%s:\n%s\n", cfg.DarkThemeCSS.OriginalPath, string(darkThemeCSSMigrated))
+	case hasDarkLogo && hasDarkThemeCSS:
+		err = handleExistingCSS(appID, configSourceData, cfg.DarkThemeCSS, dryRun)
+		if err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
-func handleExistingCSS(cssResource *ResourceConfigDecoded) (migratedCSS []byte, alreadySet bool, err error) {
+func handleExistingCSS(appID string, configSourceData map[string]string, cssResource *ResourceConfigDecoded, dryRun bool) (err error) {
 	r := bytes.NewReader(cssResource.DecodedData)
-	migratedCSS, alreadySet, err = theme.MigrateSetDefaultLogoHeight(r)
-	richErr := fmt.Errorf("failed to migrate %v: %w", cssResource.OriginalPath, err)
-	return migratedCSS, alreadySet, richErr
+	migratedCSS, alreadySet, err := theme.MigrateSetDefaultLogoHeight(r)
+	if err != nil {
+		return fmt.Errorf("failed to migrate %v: %w", cssResource.OriginalPath, err)
+	}
+	if alreadySet {
+		log.Printf("Skipping %s of app (%s) because it already has logo height set", cssResource.OriginalPath, appID)
+	} else {
+		configSourceData[cssResource.EscapedPath] = base64.StdEncoding.EncodeToString(migratedCSS)
+		if dryRun {
+			log.Printf("Before %s updated:", cssResource.OriginalPath)
+			log.Printf("\n%s\n", string(cssResource.DecodedData))
+			log.Printf("After %s updated:", cssResource.OriginalPath)
+			log.Printf("\n%s\n", string(migratedCSS))
+		}
+	}
+
+	return nil
 }
 
 type ResourceConfig struct {
