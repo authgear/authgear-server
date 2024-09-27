@@ -110,10 +110,6 @@ type Request struct {
 	CSV    CSVField `json:"csv"`
 }
 
-type CSVHeaderFieldNames struct {
-	FieldNames []string `json:"field_names"`
-}
-
 type Response struct {
 	ID          string                `json:"id,omitempty"`
 	CreatedAt   *time.Time            `json:"created_at,omitempty"`
@@ -240,7 +236,7 @@ func jsonPointerToCSVFieldName(pointer string) (fieldName string) {
 	return strings.Join(fields, ".")
 }
 
-func ExtractCSVHeaderField(fieldPointer []*FieldPointer) (headerFields *CSVHeaderFieldNames, err error) {
+func ExtractCSVHeaderField(fieldPointer []*FieldPointer) (headerFields []string, err error) {
 	isDuplicated := false
 	fields := make([]string, 0)
 	fieldsMap := map[string]bool{}
@@ -260,16 +256,14 @@ func ExtractCSVHeaderField(fieldPointer []*FieldPointer) (headerFields *CSVHeade
 		fields = append(fields, fieldName)
 	}
 
-	headerFields = &CSVHeaderFieldNames{
-		FieldNames: fields,
-	}
-
 	if isDuplicated {
-		headerFieldsString, _ := json.Marshal(headerFields)
-		return nil, ErrUserExportDuplicateField.New(fmt.Sprintf("%s", headerFieldsString))
+		info := apierrors.Details{
+			"field_names": fields,
+		}
+		return nil, ErrUserExportDuplicateField.NewWithInfo("field names are not unique", info)
 	}
 
-	return headerFields, nil
+	return fields, nil
 }
 
 func TraverseRecordValue(jsonMap interface{}, pointer string) (fieldValue string, err error) {

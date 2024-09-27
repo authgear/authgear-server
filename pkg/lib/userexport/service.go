@@ -267,12 +267,12 @@ func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, ta
 		}
 	}
 
-	headerField, err := ExtractCSVHeaderField(exportFields)
+	headerFields, err := ExtractCSVHeaderField(exportFields)
 	if err != nil {
 		return err
 	}
 
-	err = csvWriter.Write(headerField.FieldNames)
+	err = csvWriter.Write(headerFields)
 	if err != nil {
 		return err
 	}

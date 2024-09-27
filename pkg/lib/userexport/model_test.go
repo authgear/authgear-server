@@ -9,6 +9,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -121,12 +122,12 @@ func TestRequest(t *testing.T) {
 		extractedFields, err := ExtractCSVHeaderField(fields)
 
 		So(err, ShouldBeNil)
-		So(len(fields) == len(extractedFields.FieldNames), ShouldBeTrue)
+		So(len(fields) == len(extractedFields), ShouldBeTrue)
 
-		So(extractedFields.FieldNames[0] == "sub", ShouldBeTrue)
-		So(extractedFields.FieldNames[1] == "address.country", ShouldBeTrue)
-		So(extractedFields.FieldNames[2] == "claims.0.email", ShouldBeTrue)
-		So(extractedFields.FieldNames[3] == "my name", ShouldBeTrue)
+		So(extractedFields[0] == "sub", ShouldBeTrue)
+		So(extractedFields[1] == "address.country", ShouldBeTrue)
+		So(extractedFields[2] == "claims.0.email", ShouldBeTrue)
+		So(extractedFields[3] == "my name", ShouldBeTrue)
 	})
 
 	Convey("CSV fields duplicated error", t, func() {
@@ -139,8 +140,10 @@ func TestRequest(t *testing.T) {
 			Pointer: "/sub",
 		})
 		_, err := ExtractCSVHeaderField(fields)
-
-		So(err, ShouldBeError, `{"field_names":["sub","sub"]}`)
+		apiErr := apierrors.AsAPIError(err)
+		infoJson, _ := json.Marshal(apiErr.Info)
+		So(err, ShouldBeError, "field names are not unique")
+		So(string(infoJson), ShouldEqualJSON, `{"field_names":["sub","sub"]}`)
 
 		fields = make([]*FieldPointer, 0)
 		fields = append(fields, &FieldPointer{
@@ -151,8 +154,10 @@ func TestRequest(t *testing.T) {
 			FieldName: "sub",
 		})
 		_, err = ExtractCSVHeaderField(fields)
-
-		So(err, ShouldBeError, `{"field_names":["sub","sub"]}`)
+		apiErr = apierrors.AsAPIError(err)
+		infoJson, _ = json.Marshal(apiErr.Info)
+		So(err, ShouldBeError, "field names are not unique")
+		So(string(infoJson), ShouldEqualJSON, `{"field_names":["sub","sub"]}`)
 
 		fields = make([]*FieldPointer, 0)
 		fields = append(fields, &FieldPointer{
@@ -166,8 +171,10 @@ func TestRequest(t *testing.T) {
 			FieldName: "claims.0.email",
 		})
 		_, err = ExtractCSVHeaderField(fields)
-
-		So(err, ShouldBeError, `{"field_names":["claims.0.email","sub","claims.0.email"]}`)
+		apiErr = apierrors.AsAPIError(err)
+		infoJson, _ = json.Marshal(apiErr.Info)
+		So(err, ShouldBeError, "field names are not unique")
+		So(string(infoJson), ShouldEqualJSON, `{"field_names":["claims.0.email","sub","claims.0.email"]}`)
 	})
 
 	Convey("Traverse record json with pointers", t, func() {
@@ -321,6 +328,9 @@ func TestRequest(t *testing.T) {
 
 		notFoundValue, _ := TraverseRecordValue(recordJson, "/dummy_cursor")
 		So(notFoundValue == "", ShouldBeTrue)
+
+		notFoundMoreLevelValue, _ := TraverseRecordValue(recordJson, "/identities/99/type")
+		So(notFoundMoreLevelValue == "", ShouldBeTrue)
 	})
 
 }
