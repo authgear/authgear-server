@@ -12,6 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -44,7 +45,7 @@ func (s *StoreRedis) Create(sess *IDPSession, expireAt time.Time) (err error) {
 	listKey := sessionListKey(s.AppID, sess.Attrs.UserID)
 	key := sessionKey(s.AppID, sess.ID)
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ctx := context.Background()
 
 		_, err = conn.HSet(ctx, listKey, key, expiry).Result()
@@ -86,7 +87,7 @@ func (s *StoreRedis) Update(sess *IDPSession, expireAt time.Time) (err error) {
 	listKey := sessionListKey(s.AppID, sess.Attrs.UserID)
 	key := sessionKey(s.AppID, sess.ID)
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.HSet(ctx, listKey, key, expiry).Result()
 		if err != nil {
 			return fmt.Errorf("failed to update session list: %w", err)
@@ -128,7 +129,7 @@ func (s *StoreRedis) Get(id string) (*IDPSession, error) {
 	key := sessionKey(s.AppID, id)
 
 	var sess *IDPSession
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrSessionNotFound
@@ -151,7 +152,7 @@ func (s *StoreRedis) Delete(session *IDPSession) (err error) {
 	key := sessionKey(s.AppID, session.ID)
 	listKey := sessionListKey(s.AppID, session.Attrs.UserID)
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, key).Result()
 		if err == nil {
 			_, err = conn.HDel(ctx, listKey, key).Result()
@@ -172,7 +173,7 @@ func (s *StoreRedis) Delete(session *IDPSession) (err error) {
 func (s *StoreRedis) CleanUpForDeletingUserID(userID string) (err error) {
 	ctx := context.Background()
 	listKey := sessionListKey(s.AppID, userID)
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, listKey).Result()
 		if err != nil {
 			return err
@@ -188,7 +189,7 @@ func (s *StoreRedis) List(userID string) (sessions []*IDPSession, err error) {
 	now := s.Clock.NowUTC()
 	listKey := sessionListKey(s.AppID, userID)
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		sessionList, err := conn.HGetAll(ctx, listKey).Result()
 		if err != nil {
 			return err

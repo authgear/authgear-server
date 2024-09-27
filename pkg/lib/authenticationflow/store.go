@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -27,7 +28,7 @@ func (s *StoreImpl) CreateFlow(flow *Flow) error {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		flowKey := redisFlowKey(s.AppID, flow.FlowID)
 		stateKey := redisFlowStateKey(s.AppID, flow.StateToken)
 		ttl := Lifetime
@@ -49,7 +50,7 @@ func (s *StoreImpl) CreateFlow(flow *Flow) error {
 func (s *StoreImpl) GetFlowByStateToken(stateToken string) (*Flow, error) {
 	stateKey := redisFlowStateKey(s.AppID, stateToken)
 	var flow Flow
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		bytes, err := conn.Get(s.Context, stateKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrFlowNotFound
@@ -80,7 +81,7 @@ func (s *StoreImpl) GetFlowByStateToken(stateToken string) (*Flow, error) {
 func (s *StoreImpl) DeleteFlow(flow *Flow) error {
 	// We do not delete the states because there are many of them.
 	// Deleting the flowID is enough to make GetFlowByStateToken to return ErrFlowNotFound.
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		flowKey := redisFlowKey(s.AppID, flow.FlowID)
 
 		_, err := conn.Del(s.Context, flowKey).Result()
@@ -98,7 +99,7 @@ func (s *StoreImpl) CreateSession(session *Session) error {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		sessionKey := redisFlowSessionKey(s.AppID, session.FlowID)
 		ttl := Lifetime
 
@@ -114,7 +115,7 @@ func (s *StoreImpl) CreateSession(session *Session) error {
 func (s *StoreImpl) GetSession(flowID string) (*Session, error) {
 	sessionKey := redisFlowSessionKey(s.AppID, flowID)
 	var session Session
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		bytes, err := conn.Get(s.Context, sessionKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrFlowNotFound
@@ -139,7 +140,7 @@ func (s *StoreImpl) UpdateSession(session *Session) error {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		sessionKey := redisFlowSessionKey(s.AppID, session.FlowID)
 
 		ttl := Lifetime
@@ -153,7 +154,7 @@ func (s *StoreImpl) UpdateSession(session *Session) error {
 }
 
 func (s *StoreImpl) DeleteSession(session *Session) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		sessionKey := redisFlowSessionKey(s.AppID, session.FlowID)
 
 		_, err := conn.Del(s.Context, sessionKey).Result()

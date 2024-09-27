@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	goredis "github.com/go-redis/redis/v8"
-
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -48,7 +47,7 @@ func (l *Limiter) Reserve(name LimitName, config *config.UsageLimitConfig) (*Res
 	key := redisLimitKey(l.AppID, name)
 
 	tokens := int64(0)
-	err := l.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := l.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ctx := context.Background()
 		usage, err := conn.IncrBy(ctx, key, 1).Result()
 		if err != nil {
@@ -88,7 +87,7 @@ func (l *Limiter) Cancel(r *Reservation) {
 
 	key := redisLimitKey(l.AppID, r.name)
 
-	err := l.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := l.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ctx := context.Background()
 		_, err := conn.IncrBy(ctx, key, -1).Result()
 		if err != nil {

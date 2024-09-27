@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
@@ -41,7 +42,7 @@ func (s *Store) GenerateState(state *WebappOAuthState) (stateToken string, err e
 	stateToken, stateTokenHash := NewStateToken()
 	key := stateKey(string(s.AppID), stateTokenHash)
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.SetNX(s.Context, key, data, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			err = fmt.Errorf("state string already exist: %w", err)
@@ -63,15 +64,21 @@ func (s *Store) PopAndRecoverState(stateToken string) (state *WebappOAuthState, 
 	key := stateKey(string(s.AppID), stateTokenHash)
 
 	var data []byte
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		var err error
-		data, err = conn.GetDel(s.Context, key).Bytes()
+		data, err = conn.Get(s.Context, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			err = ErrOAuthStateInvalid
 			return err
 		} else if err != nil {
 			return err
 		}
+
+		_, err = conn.Del(s.Context, key).Result()
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
 	if err != nil {

@@ -11,11 +11,11 @@ import (
 	"time"
 
 	relay "github.com/authgear/graphql-go-relay"
-	goredis "github.com/go-redis/redis/v8"
 	"github.com/stripe/stripe-go/v72"
 	"github.com/stripe/stripe-go/v72/client"
 	"github.com/stripe/stripe-go/v72/webhook"
 
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -75,7 +75,7 @@ func (s *Service) FetchSubscriptionPlans() (subscriptionPlans []*model.Subscript
 		Do:         s.fetchSubscriptionPlans,
 	}
 
-	err = s.GlobalRedisHandle.WithConn(func(conn *goredis.Conn) error {
+	err = s.GlobalRedisHandle.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		bytes, err := s.Cache.Get(s.Context, conn, item)
 		if err != nil {
 			return err

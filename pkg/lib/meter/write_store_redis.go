@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	goredis "github.com/go-redis/redis/v8"
-
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -47,7 +46,7 @@ func (s *WriteStoreRedis) TrackActiveUser(userID string) (err error) {
 		weeklyActiveUserCount(s.AppID, year, week),
 		dailyActiveUserCount(s.AppID, &now),
 	}
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		for _, key := range keys {
 			_, err := conn.PFAdd(s.Context, key, userID).Result()
 			if err != nil {
@@ -65,7 +64,7 @@ func (s *WriteStoreRedis) TrackPageView(visitorID string, pageType PageType) (er
 		return nil
 	}
 	now := s.Clock.NowUTC()
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		uniquePageViewKey := dailyUniquePageView(s.AppID, pageType, &now)
 		_, err := conn.PFAdd(s.Context, uniquePageViewKey, visitorID).Result()
 		if err != nil {

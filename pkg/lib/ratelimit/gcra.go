@@ -5,6 +5,8 @@ import (
 	"time"
 
 	goredis "github.com/go-redis/redis/v8"
+
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 )
 
 // ref: https://en.wikipedia.org/wiki/Generic_cell_rate_algorithm
@@ -40,7 +42,8 @@ local allow_at = new_tat - dvt
 local is_conforming = now_timestamp >= allow_at
 local time_to_act = allow_at
 if is_conforming then
-	redis.call("SET", rate_limit_key, new_tat, "PXAT", new_tat)
+	redis.call("SET", rate_limit_key, new_tat)
+	redis.call("EXPIREAT", rate_limit_key, new_tat)
 	time_to_act = allow_at + math.max(1, n) * emission_interval
 end
 
@@ -52,7 +55,7 @@ type gcraResult struct {
 	TimeToAct    time.Time
 }
 
-func gcra(ctx context.Context, conn *goredis.Conn, key string, period time.Duration, burst int, n int) (*gcraResult, error) {
+func gcra(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, period time.Duration, burst int, n int) (*gcraResult, error) {
 	result, err := gcraLuaScript.Run(ctx, conn,
 		[]string{key},
 		period.Milliseconds(), burst, n,

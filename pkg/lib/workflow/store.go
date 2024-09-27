@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/duration"
 )
@@ -27,7 +28,7 @@ func (s *StoreImpl) CreateWorkflow(workflow *Workflow) error {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		workflowKey := redisWorkflowKey(s.AppID, workflow.WorkflowID)
 		instanceKey := redisWorkflowInstanceKey(s.AppID, workflow.InstanceID)
 		ttl := Lifetime
@@ -49,7 +50,7 @@ func (s *StoreImpl) CreateWorkflow(workflow *Workflow) error {
 func (s *StoreImpl) GetWorkflowByInstanceID(instanceID string) (*Workflow, error) {
 	instanceKey := redisWorkflowInstanceKey(s.AppID, instanceID)
 	var workflow Workflow
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		bytes, err := conn.Get(s.Context, instanceKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrWorkflowNotFound
@@ -80,7 +81,7 @@ func (s *StoreImpl) GetWorkflowByInstanceID(instanceID string) (*Workflow, error
 func (s *StoreImpl) DeleteWorkflow(workflow *Workflow) error {
 	// We do not delete the instances because there are many of them.
 	// Deleting the workflowID is enough to make GetWorkflowByInstanceID to return ErrWorkflowNotFound.
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		workflowKey := redisWorkflowKey(s.AppID, workflow.WorkflowID)
 
 		_, err := conn.Del(s.Context, workflowKey).Result()
@@ -98,7 +99,7 @@ func (s *StoreImpl) CreateSession(session *Session) error {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		sessionKey := redisWorkflowSessionKey(s.AppID, session.WorkflowID)
 		ttl := Lifetime
 
@@ -114,7 +115,7 @@ func (s *StoreImpl) CreateSession(session *Session) error {
 func (s *StoreImpl) GetSession(workflowID string) (*Session, error) {
 	sessionKey := redisWorkflowSessionKey(s.AppID, workflowID)
 	var session Session
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		bytes, err := conn.Get(s.Context, sessionKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrWorkflowNotFound
@@ -134,7 +135,7 @@ func (s *StoreImpl) GetSession(workflowID string) (*Session, error) {
 }
 
 func (s *StoreImpl) DeleteSession(session *Session) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		sessionKey := redisWorkflowSessionKey(s.AppID, session.WorkflowID)
 
 		_, err := conn.Del(s.Context, sessionKey).Result()

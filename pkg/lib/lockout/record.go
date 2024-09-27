@@ -5,6 +5,8 @@ import (
 	"time"
 
 	goredis "github.com/go-redis/redis/v8"
+
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 )
 
 type attemptResult struct {
@@ -90,7 +92,8 @@ redis.call("HSET", record_key, contributor, contributor_total)
 redis.call("EXPIREAT", record_key, expire_at)
 
 if locked_until_epoch then
-	redis.call("SET", lock_key, locked_until_epoch, "EXAT", locked_until_epoch)
+	redis.call("SET", lock_key, locked_until_epoch)
+	redis.call("EXPIREAT", lock_key, locked_until_epoch)
 end
 
 return {is_success, locked_until_epoch}
@@ -143,7 +146,7 @@ return 1
 `)
 
 func makeAttempts(
-	ctx context.Context, conn *goredis.Conn,
+	ctx context.Context, conn redis.Redis_6_0_Cmdable,
 	key string,
 	historyDuration time.Duration,
 	maxAttempts int,
@@ -187,7 +190,7 @@ func makeAttempts(
 }
 
 func clearAttempts(
-	ctx context.Context, conn *goredis.Conn,
+	ctx context.Context, conn redis.Redis_6_0_Cmdable,
 	key string,
 	historyDuration time.Duration,
 	contributor string) error {

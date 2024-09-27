@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 )
 
@@ -28,7 +29,7 @@ func (s *ReadStoreRedis) GetDailyPageViewCount(
 		err = ErrMeterRedisIsNotConfigured
 		return
 	}
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		pageViewKey := dailyPageView(appID, pageType, date)
 		pageView, err = s.getCount(conn, pageViewKey)
 		if err != nil {
@@ -75,7 +76,7 @@ func (s *ReadStoreRedis) SetKeysExpire(keys []string, expiration time.Duration) 
 	if len(keys) == 0 {
 		return nil
 	}
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		for _, key := range keys {
 			_, err := conn.Expire(s.Context, key, expiration).Result()
 			if err != nil {
@@ -90,7 +91,7 @@ func (s *ReadStoreRedis) SetKeysExpire(keys []string, expiration time.Duration) 
 	return nil
 }
 
-func (s *ReadStoreRedis) getPFCountWithConn(conn *goredis.Conn, key string) (count int, err error) {
+func (s *ReadStoreRedis) getPFCountWithConn(conn redis.Redis_6_0_Cmdable, key string) (count int, err error) {
 	result, err := conn.PFCount(s.Context, key).Result()
 	if err != nil {
 		err = fmt.Errorf("failed to get pfcount: %w", err)
@@ -105,7 +106,7 @@ func (s *ReadStoreRedis) getPFCount(key string) (count int, err error) {
 		err = ErrMeterRedisIsNotConfigured
 		return
 	}
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		count, err = s.getPFCountWithConn(conn, key)
 		if err != nil {
 			return err
@@ -115,7 +116,7 @@ func (s *ReadStoreRedis) getPFCount(key string) (count int, err error) {
 	return
 }
 
-func (s *ReadStoreRedis) getCount(conn *goredis.Conn, key string) (count int, err error) {
+func (s *ReadStoreRedis) getCount(conn redis.Redis_6_0_Cmdable, key string) (count int, err error) {
 	countStr, err := conn.Get(s.Context, key).Result()
 	if err != nil {
 		if err == goredis.Nil {

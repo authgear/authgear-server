@@ -12,6 +12,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -35,7 +36,7 @@ type Store struct {
 	Clock       clock.Clock
 }
 
-func (s *Store) loadData(conn *goredis.Conn, key string) ([]byte, error) {
+func (s *Store) loadData(conn redis.Redis_6_0_Cmdable, key string) ([]byte, error) {
 	ctx := context.Background()
 	data, err := conn.Get(ctx, key).Bytes()
 	if errors.Is(err, goredis.Nil) {
@@ -112,7 +113,7 @@ func (s *Store) unmarshalPreAuthenticatedURLToken(data []byte) (*oauth.PreAuthen
 	return &t, nil
 }
 
-func (s *Store) save(conn *goredis.Conn, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
+func (s *Store) save(conn redis.Redis_6_0_Cmdable, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
 	ctx := context.Background()
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -137,7 +138,7 @@ func (s *Store) save(conn *goredis.Conn, key string, value interface{}, expireAt
 	return nil
 }
 
-func (s *Store) del(conn *goredis.Conn, key string) error {
+func (s *Store) del(conn redis.Redis_6_0_Cmdable, key string) error {
 	ctx := context.Background()
 	_, err := conn.Del(ctx, key).Result()
 	return err
@@ -145,7 +146,7 @@ func (s *Store) del(conn *goredis.Conn, key string) error {
 
 func (s *Store) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 	var g *oauth.CodeGrant
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := s.loadData(conn, codeGrantKey(string(s.AppID), codeHash))
 		if err != nil {
 			return err
@@ -164,20 +165,20 @@ func (s *Store) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 }
 
 func (s *Store) CreateCodeGrant(grant *oauth.CodeGrant) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.save(conn, codeGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
 	})
 }
 
 func (s *Store) DeleteCodeGrant(grant *oauth.CodeGrant) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.del(conn, codeGrantKey(grant.AppID, grant.CodeHash))
 	})
 }
 
 func (s *Store) GetSettingsActionGrant(codeHash string) (*oauth.SettingsActionGrant, error) {
 	var g *oauth.SettingsActionGrant
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := s.loadData(conn, settingsActionGrantKey(string(s.AppID), codeHash))
 		if err != nil {
 			return err
@@ -196,20 +197,20 @@ func (s *Store) GetSettingsActionGrant(codeHash string) (*oauth.SettingsActionGr
 }
 
 func (s *Store) CreateSettingsActionGrant(grant *oauth.SettingsActionGrant) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.save(conn, settingsActionGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
 	})
 }
 
 func (s *Store) DeleteSettingsActionGrant(grant *oauth.SettingsActionGrant) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.del(conn, settingsActionGrantKey(grant.AppID, grant.CodeHash))
 	})
 }
 
 func (s *Store) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
 	var g *oauth.AccessGrant
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := s.loadData(conn, accessGrantKey(string(s.AppID), tokenHash))
 		if err != nil {
 			return err
@@ -230,20 +231,20 @@ func (s *Store) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
 }
 
 func (s *Store) CreateAccessGrant(grant *oauth.AccessGrant) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.save(conn, accessGrantKey(grant.AppID, grant.TokenHash), grant, grant.ExpireAt, true)
 	})
 }
 
 func (s *Store) DeleteAccessGrant(grant *oauth.AccessGrant) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.del(conn, accessGrantKey(grant.AppID, grant.TokenHash))
 	})
 }
 
 func (s *Store) GetOfflineGrantWithoutExpireAt(id string) (*oauth.OfflineGrant, error) {
 	var g *oauth.OfflineGrant
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := s.loadData(conn, offlineGrantKey(string(s.AppID), id))
 		if err != nil {
 			return err
@@ -269,7 +270,7 @@ func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 		return err
 	}
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.HSet(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry).Result()
 		if err != nil {
 			return fmt.Errorf("failed to update session list: %w", err)
@@ -553,7 +554,7 @@ func (s *Store) updateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time
 		return err
 	}
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.HSet(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry).Result()
 		if err != nil {
 			return fmt.Errorf("failed to update session list: %w", err)
@@ -575,7 +576,7 @@ func (s *Store) updateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time
 
 func (s *Store) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
 	ctx := context.Background()
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		err := s.del(conn, offlineGrantKey(grant.AppID, grant.ID))
 		if err != nil {
 			return err
@@ -600,7 +601,7 @@ func (s *Store) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) 
 	listKey := offlineGrantListKey(string(s.AppID), userID)
 
 	var grants []*oauth.OfflineGrant
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		sessionList, err := conn.HGetAll(ctx, listKey).Result()
 		if err != nil {
 			return err
@@ -662,7 +663,7 @@ func (s *Store) ListClientOfflineGrants(clientID string, userID string) ([]*oaut
 func (s *Store) GetAppSessionToken(tokenHash string) (*oauth.AppSessionToken, error) {
 	t := &oauth.AppSessionToken{}
 
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := s.loadData(conn, appSessionTokenKey(string(s.AppID), tokenHash))
 		if err != nil {
 			return err
@@ -683,13 +684,13 @@ func (s *Store) GetAppSessionToken(tokenHash string) (*oauth.AppSessionToken, er
 }
 
 func (s *Store) CreateAppSessionToken(token *oauth.AppSessionToken) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.save(conn, appSessionTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
 	})
 }
 
 func (s *Store) DeleteAppSessionToken(token *oauth.AppSessionToken) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.del(conn, appSessionTokenKey(token.AppID, token.TokenHash))
 	})
 }
@@ -697,7 +698,7 @@ func (s *Store) DeleteAppSessionToken(token *oauth.AppSessionToken) error {
 func (s *Store) GetAppSession(tokenHash string) (*oauth.AppSession, error) {
 	var t *oauth.AppSession
 
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := s.loadData(conn, appSessionKey(string(s.AppID), tokenHash))
 		if err != nil {
 			return err
@@ -718,19 +719,19 @@ func (s *Store) GetAppSession(tokenHash string) (*oauth.AppSession, error) {
 }
 
 func (s *Store) CreateAppSession(session *oauth.AppSession) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.save(conn, appSessionKey(session.AppID, session.TokenHash), session, session.ExpireAt, true)
 	})
 }
 
 func (s *Store) DeleteAppSession(session *oauth.AppSession) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.del(conn, appSessionKey(session.AppID, session.TokenHash))
 	})
 }
 
 func (s *Store) CreatePreAuthenticatedURLToken(token *oauth.PreAuthenticatedURLToken) error {
-	return s.Redis.WithConn(func(conn *goredis.Conn) error {
+	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		return s.save(conn, preAuthenticatedURLTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
 	})
 }
@@ -738,7 +739,7 @@ func (s *Store) CreatePreAuthenticatedURLToken(token *oauth.PreAuthenticatedURLT
 func (s *Store) ConsumePreAuthenticatedURLToken(tokenHash string) (*oauth.PreAuthenticatedURLToken, error) {
 	t := &oauth.PreAuthenticatedURLToken{}
 
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		key := preAuthenticatedURLTokenKey(string(s.AppID), tokenHash)
 		data, err := s.loadData(conn, key)
 		if err != nil {
@@ -763,7 +764,7 @@ func (s *Store) CleanUpForDeletingUserID(userID string) (err error) {
 	ctx := context.Background()
 	listKey := offlineGrantListKey(string(s.AppID), userID)
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, listKey).Result()
 		if err != nil {
 			return err

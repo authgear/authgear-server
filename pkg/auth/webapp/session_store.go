@@ -9,6 +9,7 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -28,7 +29,7 @@ func (s *SessionStoreRedis) Create(session *Session) (err error) {
 		return
 	}
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ttl := SessionExpiryDuration
 		_, err = conn.SetNX(ctx, key, bytes, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
@@ -50,7 +51,7 @@ func (s *SessionStoreRedis) Update(session *Session) (err error) {
 		return
 	}
 
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ttl := SessionExpiryDuration
 		_, err = conn.SetXX(ctx, key, bytes, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
@@ -67,7 +68,7 @@ func (s *SessionStoreRedis) Update(session *Session) (err error) {
 func (s *SessionStoreRedis) Get(id string) (session *Session, err error) {
 	ctx := context.Background()
 	key := sessionKey(string(s.AppID), id)
-	err = s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			err = ErrInvalidSession
@@ -90,7 +91,7 @@ func (s *SessionStoreRedis) Get(id string) (session *Session, err error) {
 func (s *SessionStoreRedis) Delete(id string) error {
 	ctx := context.Background()
 	key := sessionKey(string(s.AppID), id)
-	err := s.Redis.WithConn(func(conn *goredis.Conn) error {
+	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, key).Result()
 		return err
 	})
