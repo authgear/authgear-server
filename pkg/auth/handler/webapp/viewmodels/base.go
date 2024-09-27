@@ -240,8 +240,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		bpLang = intl.ResolveRecaptchaV2(resolvedLanguageTag)
 	}
 
-	requestURI := r.URL.RequestURI()
-	hasXStep := strings.Contains(requestURI, webapp.AuthflowQueryKey)
+	hasXStep := r.URL.Query().Has(webapp.AuthflowQueryKey)
 	model := BaseViewModel{
 		ColorScheme:  webapp.GetColorScheme(r.Context()),
 		RequestURI:   r.URL.RequestURI(),
