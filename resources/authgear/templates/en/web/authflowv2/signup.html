@@ -15,6 +15,9 @@
   {{ $has_alternatives := false }}
   {{ $show_captcha_phone := false }}
   {{ $show_captcha_text := false }} {{/* both email & username */}}
+
+  {{ $login_id_type := "" }}
+              
   {{ range $.IdentityCandidates }}
     {{ if eq .type "oauth" }}
       {{ $has_alternatives = true }}
@@ -25,15 +28,24 @@
         {{ $has_alternatives = true }}
       {{ end }}
       {{ if eq .login_id_key $.LoginIDKey }}
-        {{if eq .login_id_type "phone" }}{{ if $.PhoneLoginIDBotProtectionRequired }}
-          {{ $show_captcha_phone = true  }}
-        {{ end }}{{ end }}
-        {{if eq .login_id_type "username" }}{{ if $.UsernameLoginIDBotProtectionRequired }}
-          {{ $show_captcha_text = true  }}
-        {{ end }}{{ end }}
-        {{if eq .login_id_type "email" }}{{ if $.EmailLoginIDBotProtectionRequired }}
-          {{ $show_captcha_text = true  }}
-        {{ end }}{{ end }}
+        {{if eq .login_id_type "phone" }}
+          {{ $login_id_type = "phone" }}
+          {{ if $.PhoneLoginIDBotProtectionRequired }}
+            {{ $show_captcha_phone = true  }}    
+          {{ end }}
+        {{ end }}
+        {{if eq .login_id_type "username" }}
+          {{ $login_id_type = "username" }}
+          {{ if $.UsernameLoginIDBotProtectionRequired }}
+            {{ $show_captcha_text = true  }}
+          {{ end }}
+        {{ end }}
+        {{if eq .login_id_type "email" }}
+          {{ $login_id_type = "email" }}
+          {{ if $.EmailLoginIDBotProtectionRequired }}
+            {{ $show_captcha_text = true  }}
+          {{ end }}
+        {{ end }}
       {{ end }}
     {{ end }}
   {{ end }}
@@ -72,10 +84,14 @@
               "ClientName" $clientName)
             }}
           {{ else }}
-            {{ include "v2.page.signup.default.subtitle" (dict
-              "AppName" $appName
-              "ClientName" $clientName)
-            }}
+            {{ if and $isContinue $has_login_id }}
+              {{ include (printf "v2.page.signup.continue.subtitle-%v" $login_id_type) nil }}
+            {{ else }}
+              {{ include "v2.page.signup.default.subtitle" (dict
+                "AppName" $appName
+                "ClientName" $clientName)
+              }}
+            {{ end }}
           {{ end }}
         </h2>
         {{ template "authflowv2/__alert_message.html"
