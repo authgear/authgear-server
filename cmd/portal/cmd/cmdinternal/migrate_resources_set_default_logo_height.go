@@ -116,8 +116,8 @@ type MigrateLogoHeightConfig struct {
 	DarkThemeCSS  *ResourceConfigDecoded
 }
 
-var LightLogoPathRegex = `^static/([a-zA-Z-]+)/app_logo\.([a-zA-Z-]+)$`
-var DarkLogoPathRegex = `^static/([a-zA-Z-]+)/app_logo_dark\.([a-zA-Z-]+)$`
+var lightLogoPathRegex = `^static/([a-zA-Z-]+)/app_logo\.(png|jpe|jpeg|jpg|gif)$`
+var darkLogoPathRegex = `^static/([a-zA-Z-]+)/app_logo_dark\.(png|jpe|jpeg|jpg|gif)$`
 var LightThemeCSSPath = "static/authgear-authflowv2-light-theme.css"
 var DarkThemeCSSPath = "static/authgear-authflowv2-dark-theme.css"
 
@@ -129,10 +129,10 @@ func parseLogoHeightConfigSource(configSourceData map[string]string) (*MigrateLo
 		if err != nil {
 			return nil, err
 		}
-		if ok, _ := regexp.MatchString(LightLogoPathRegex, p); ok {
+		if ok, _ := regexp.MatchString(lightLogoPathRegex, p); ok {
 			out.LightLogo = newResourceConfig(p, k, v)
 		}
-		if ok, _ := regexp.MatchString(DarkLogoPathRegex, p); ok {
+		if ok, _ := regexp.MatchString(darkLogoPathRegex, p); ok {
 			out.DarkLogo = newResourceConfig(p, k, v)
 		}
 		if p == LightThemeCSSPath {
