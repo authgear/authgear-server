@@ -83,10 +83,7 @@ async function loadSystemConfig(): Promise<SystemConfig> {
 }
 
 function isPosthogResetGroupsException(ex: SentryException) {
-  return (
-    ex.type === "TypeError" &&
-    ex.value === "posthog.resetGroups is not a function"
-  );
+  return ex.type === "TypeError" && ex.value?.includes("posthog.resetGroups");
 }
 function isPosthogResetGroupsEvent(event: SentryEvent) {
   return event.exception?.values?.some(isPosthogResetGroupsException) ?? false;
