@@ -175,3 +175,18 @@ verification:
         enabled: false
     sms:
       trigger_cooldown: 60s
+saml:
+  signing:
+    key_id: "-jeTn3EEV5bJUOMDQU04zLlkWFZK3BDODkfh40FX8K0"
+  service_providers:
+    - client_id: e2e
+      nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+      nameid_attribute_pointer: /preferred_username
+      acs_urls:
+        - https://samlsp.localhost/acs
+      destination: http://samlsp.localhost/destination
+      recipient: http://samlsp.localhost/recipient
+      audience: https://samlsp.localhost
+      assertion_valid_duration: 1h
+      slo_enabled: true
+      slo_callback_url: https://samlsp.localhost/sls
