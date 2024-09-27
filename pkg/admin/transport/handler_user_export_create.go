@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -29,11 +30,21 @@ type UserExportCreateProducer interface {
 	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
 }
 
+const (
+	usageLimitUserExport usage.LimitName = "UserExport"
+)
+
+type UserExportUsageLimiter interface {
+	Reserve(name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
+}
+
 type UserExportCreateHandler struct {
-	AppID        config.AppID
-	JSON         JSONResponseWriter
-	UserExports  UserExportCreateProducer
-	CloudStorage UserExportCreateHandlerCloudStorage
+	AppID                 config.AppID
+	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
+	JSON                  JSONResponseWriter
+	UserExports           UserExportCreateProducer
+	UsageLimiter          UserExportUsageLimiter
+	CloudStorage          UserExportCreateHandlerCloudStorage
 }
 
 func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -56,6 +67,14 @@ func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 	}
 
 	rawMessage, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.UsageLimiter.Reserve(
+		usageLimitUserExport,
+		h.AdminAPIFeatureConfig.UserExportUsage,
+	)
 	if err != nil {
 		return err
 	}

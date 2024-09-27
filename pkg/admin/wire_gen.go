@@ -1237,6 +1237,8 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
+	featureConfig := configConfig.FeatureConfig
+	adminAPIFeatureConfig := featureConfig.AdminAPI
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
@@ -1245,10 +1247,19 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userImportProducer := redisqueue.NewUserImportProducer(handle, clockClock)
+	logger := usage.NewLogger(factory)
+	limiter := &usage.Limiter{
+		Logger: logger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  handle,
+	}
 	userImportCreateHandler := &transport.UserImportCreateHandler{
-		AppID:       appID,
-		JSON:        jsonResponseWriter,
-		UserImports: userImportProducer,
+		AppID:                 appID,
+		AdminAPIFeatureConfig: adminAPIFeatureConfig,
+		JSON:                  jsonResponseWriter,
+		UserImports:           userImportProducer,
+		UsageLimiter:          limiter,
 	}
 	return userImportCreateHandler
 }
@@ -1281,6 +1292,8 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	configConfig := appContext.Config
 	appConfig := configConfig.AppConfig
 	appID := appConfig.ID
+	featureConfig := configConfig.FeatureConfig
+	adminAPIFeatureConfig := featureConfig.AdminAPI
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
@@ -1289,15 +1302,24 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
 	userExportProducer := redisqueue.NewUserExportProducer(handle, clockClock)
+	logger := usage.NewLogger(factory)
+	limiter := &usage.Limiter{
+		Logger: logger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  handle,
+	}
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
 	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
 	userExportCreateHandler := &transport.UserExportCreateHandler{
-		AppID:        appID,
-		JSON:         jsonResponseWriter,
-		UserExports:  userExportProducer,
-		CloudStorage: userExportCloudStorage,
+		AppID:                 appID,
+		AdminAPIFeatureConfig: adminAPIFeatureConfig,
+		JSON:                  jsonResponseWriter,
+		UserExports:           userExportProducer,
+		UsageLimiter:          limiter,
+		CloudStorage:          userExportCloudStorage,
 	}
 	return userExportCreateHandler
 }
