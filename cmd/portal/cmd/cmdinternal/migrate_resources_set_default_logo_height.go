@@ -49,6 +49,8 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 
 	hasLightLogo := cfg.LightLogo != nil
 	hasDarkLogo := cfg.DarkLogo != nil
+	hasLightThemeCSS := cfg.LightThemeCSS != nil
+	hasDarkThemeCSS := cfg.DarkThemeCSS != nil
 
 	if !hasLightLogo && !hasDarkLogo {
 		log.Printf("Skipping app (%s) because it does not have logo set", appID)
@@ -64,25 +66,28 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 	var lightThemeCSSAlreadySet bool
 	var darkThemeCSSAlreadySet bool
 	if hasLightLogo {
-		r := bytes.NewReader(cfg.LightThemeCSS.DecodedData)
-		lightThemeCSSMigrated, lightThemeCSSAlreadySet, err = theme.MigrateSetDefaultLogoHeight(r)
-		if lightThemeCSSAlreadySet {
-			log.Printf("Skipping light theme css of app (%s) because it already has logo height set", appID)
-		}
-		if err != nil {
-			return fmt.Errorf("failed to migrate %v: %w", cfg.LightThemeCSS.OriginalPath, err)
+		if hasLightThemeCSS {
+			lightThemeCSSMigrated, lightThemeCSSAlreadySet, err = handleExistingCSS(cfg.LightThemeCSS)
+			if lightThemeCSSAlreadySet {
+				log.Printf("Skipping light theme css of app (%s) because it already has logo height set", appID)
+			}
+			if err != nil {
+				return err
+			}
 		}
 	}
 
 	if hasDarkLogo {
-		r := bytes.NewReader(cfg.DarkThemeCSS.DecodedData)
-		darkThemeCSSMigrated, darkThemeCSSAlreadySet, err = theme.MigrateSetDefaultLogoHeight(r)
-		if darkThemeCSSAlreadySet {
-			log.Printf("Skipping dark theme css of app (%s) because it already has logo height set", appID)
+		if hasDarkThemeCSS {
+			darkThemeCSSMigrated, darkThemeCSSAlreadySet, err = handleExistingCSS(cfg.DarkThemeCSS)
+			if darkThemeCSSAlreadySet {
+				log.Printf("Skipping dark theme css of app (%s) because it already has logo height set", appID)
+			}
+			if err != nil {
+				return err
+			}
 		}
-		if err != nil {
-			return fmt.Errorf("failed to migrate %v: %w", cfg.DarkThemeCSS.OriginalPath, err)
-		}
+
 	}
 
 	if !lightThemeCSSAlreadySet {
@@ -106,6 +111,13 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 	}
 
 	return nil
+}
+
+func handleExistingCSS(cssResource *ResourceConfigDecoded) (migratedCSS []byte, alreadySet bool, err error) {
+	r := bytes.NewReader(cssResource.DecodedData)
+	migratedCSS, alreadySet, err = theme.MigrateSetDefaultLogoHeight(r)
+	richErr := fmt.Errorf("failed to migrate %v: %w", cssResource.OriginalPath, err)
+	return migratedCSS, alreadySet, richErr
 }
 
 type ResourceConfig struct {
