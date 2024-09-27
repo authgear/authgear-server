@@ -57,20 +57,44 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 		log.Printf("Converting app (%s)", appID)
 	}
 
+	// invariant check
 	switch {
 	case !hasLightLogo && !hasDarkLogo:
 		log.Printf("Skipping app (%s) because it does not have logo set", appID)
 		return nil
+	}
+
+	// handle light theme
+	switch {
 	case hasLightLogo && hasLightThemeCSS:
 		err = handleExistingCSS(appID, configSourceData, cfg.LightThemeCSS, dryRun)
 		if err != nil {
 			return err
 		}
+	case hasLightLogo && !hasLightThemeCSS:
+		err = handleMissingLightThemeCSS(appID, configSourceData, dryRun)
+		if err != nil {
+			return err
+		}
+	case !hasLightLogo && !hasLightThemeCSS:
+		log.Printf("Skipping light theme css creation of app (%s) because it does not have light theme logo set", appID)
+	}
+
+	// handle dark theme
+	switch {
 	case hasDarkLogo && hasDarkThemeCSS:
 		err = handleExistingCSS(appID, configSourceData, cfg.DarkThemeCSS, dryRun)
 		if err != nil {
 			return err
 		}
+	case hasDarkLogo && !hasDarkThemeCSS:
+		err = handleMissingDarkThemeCSS(appID, configSourceData, dryRun)
+		if err != nil {
+			return err
+		}
+
+	case !hasDarkLogo && !hasDarkThemeCSS:
+		log.Printf("Skipping dark theme css creation of app (%s) because it does not have dark theme logo set", appID)
 	}
 
 	return nil
@@ -92,6 +116,43 @@ func handleExistingCSS(appID string, configSourceData map[string]string, cssReso
 			log.Printf("After %s updated:", cssResource.OriginalPath)
 			log.Printf("\n%s\n", string(migratedCSS))
 		}
+	}
+
+	return nil
+}
+
+var lightThemeSelector = ":root"
+var darkThemeSelector = ":root.dark"
+
+func handleMissingLightThemeCSS(appID string, configSourceData map[string]string, dryRun bool) (err error) {
+	migratedCSS, err := theme.MigrateCreateCSSWithDefaultLogoHeight(lightThemeSelector)
+	escapedLightThemeCSSPath := filepathutil.EscapePath(LightThemeCSSPath)
+	if err != nil {
+		return fmt.Errorf("failed to migrate %s: %w", escapedLightThemeCSSPath, err)
+	}
+	log.Printf("Creating light theme css at %s for app (%s) because it was not customized before", LightThemeCSSPath, appID)
+	configSourceData[escapedLightThemeCSSPath] = base64.StdEncoding.EncodeToString(migratedCSS)
+	if dryRun {
+		log.Println("Before updated: no file")
+		log.Printf("After %s updated:", LightThemeCSSPath)
+		log.Printf("\n%s\n", string(migratedCSS))
+	}
+
+	return nil
+}
+
+func handleMissingDarkThemeCSS(appID string, configSourceData map[string]string, dryRun bool) (err error) {
+	migratedCSS, err := theme.MigrateCreateCSSWithDefaultLogoHeight(darkThemeSelector)
+	escapedDarkThemeCSSPath := filepathutil.EscapePath(DarkThemeCSSPath)
+	if err != nil {
+		return fmt.Errorf("failed to migrate %s: %w", escapedDarkThemeCSSPath, err)
+	}
+	log.Printf("Creating dark theme css at %s for app (%s) because it was not customized before", DarkThemeCSSPath, appID)
+	configSourceData[escapedDarkThemeCSSPath] = base64.StdEncoding.EncodeToString(migratedCSS)
+	if dryRun {
+		log.Println("Before updated: no file")
+		log.Printf("After %s updated:", DarkThemeCSSPath)
+		log.Printf("\n%s\n", string(migratedCSS))
 	}
 
 	return nil
