@@ -61,4 +61,30 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 `, ``, true) // appended
 		})
 	})
+
+	Convey("MigrateCreateCSSWithDefaultLogoHeight", t, func() {
+		test := func(input string, expected string) {
+			result, err := MigrateCreateCSSWithDefaultLogoHeight(input)
+			So(err, ShouldBeNil)
+			So(string(result), ShouldEqual, expected)
+		}
+
+		Convey("Given valid selector, should set brand logo height for light theme css", func() {
+			test(":root", `:root {
+  --brand-logo__height: 40px;
+}
+`)
+		})
+		Convey("Given valid selector, should set brand logo height for dark theme css", func() {
+			test(":root.dark", `:root.dark {
+  --brand-logo__height: 40px;
+}
+`)
+		})
+		Convey("Given random selector, should do nothing ", func() {
+			test(".randomSelector", `.randomSelector {
+}
+`)
+		})
+	})
 }

@@ -3,11 +3,21 @@ package theme
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 
 	"github.com/tdewolff/parse/v2"
 	"github.com/tdewolff/parse/v2/css"
 )
+
+// MigrateCreateCSSWithDefaultLogoHeight create a css file with default logo height for existing projects that does not have theme customization at all
+func MigrateCreateCSSWithDefaultLogoHeight(selector string) (result []byte, err error) {
+	cssRawStr := fmt.Sprintf("%v {}", selector)
+	b := []byte(cssRawStr)
+	r := bytes.NewReader(b)
+	result, _, err = MigrateSetDefaultLogoHeight(r)
+	return
+}
 
 // MigrateSetDefaultLogoHeight set default logo heights for existing projects that does not have it set yet
 func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, alreadySet bool, err error) {
