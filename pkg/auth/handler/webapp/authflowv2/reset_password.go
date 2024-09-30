@@ -168,6 +168,9 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 		if err != nil {
 			return err
 		}
+		// reset success
+		result := webapp.Result{RedirectURI: AuthflowV2RouteResetPasswordSuccess}
+		result.WriteResponse(w, r)
 		return nil
 	})
 
