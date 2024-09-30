@@ -79,12 +79,16 @@ const (
 
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 
-	AuthflowV2RouteSettingsProfile = "/settings/v2/profile"
-	AuthflowV2RouteSettingsMFA     = "/settings/mfa"
+	AuthflowV2RouteSettingsProfile             = "/settings/v2/profile"
+	AuthflowV2RouteSettingsMFA                 = "/settings/mfa"
+	AuthflowV2RouteSettingsMFAViewRecoveryCode = "/settings/mfa/view_recovery_code"
+
 	// nolint: gosec
 	AuthflowV2RouteSettingsMFACreatePassword = "/settings/mfa/create_password"
 	// nolint: gosec
-	AuthflowV2RouteSettingsMFAPassword = "/settings/mfa/password"
+	AuthflowV2RouteSettingsMFAPassword   = "/settings/mfa/password"
+	AuthflowV2RouteSettingsMFACreateTOTP = "/settings/mfa/create_totp"
+	AuthflowV2RouteSettingsMFAEnterTOTP  = "/settings/mfa/enter_totp"
 
 	AuthflowV2RouteSettingsIdentityListEmail          = "/settings/identity/email"
 	AuthflowV2RouteSettingsIdentityAddEmail           = "/settings/identity/add_email"
