@@ -1,0 +1,81 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/mfa/totp")
+        "Title" (translate "v2.page.settings-mfa-view-recovery-code.default.title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+
+<div class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0">
+  <div class="screen-title-description">
+    <h2 class="screen-description">
+      {{ include "v2.page.settings-mfa-view-recovery-code.default.storage-description" nil }}
+    </h2>
+
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Classname" "mt-4"
+        "Message" (include "authflowv2/__error.html" .)
+      )
+    }}
+  </div>
+
+  <div class="my-6 code-block">
+    <p class="code-block__text">{{ range $.RecoveryCodes }}{{ . }}
+{{ end }}</p>
+
+    <code id="copy-button-source" class="hidden">{{ template "__recovery_code.html" . }}</code>
+    <div class="mt-5 w-full grid gap-4 {{ if not .IsNativePlatform }}grid-cols-2{{ else }}grid-cols-1{{ end }}">
+      {{ if not .IsNativePlatform }}
+      {{/* Form with disabled turbo drive */}}
+      <form
+        id="download-form"
+        method="post"
+        novalidate
+        target="_blank"
+        data-turbo="false"
+      >
+        {{ $.CSRFField }}
+        <button
+          form="download-form"
+          class="tertiary-btn w-full"
+          type="submit"
+          name="x_action"
+          value="download"
+        >
+          {{ include "v2.component.button.default.download" nil }}
+        </button>
+      </form>
+      {{ end }}
+      <button
+        class="tertiary-btn w-full"
+        type="button"
+        data-controller="copy-button"
+        data-copy-button-source-value="#copy-button-source"
+        data-action="copy-button#copy"
+      >
+        {{ include "v2.component.button.default.copy" nil }}
+      </button>
+    </div>
+  </div>
+
+  <form
+    method="post"
+    novalidate
+    data-controller="turbo-form"
+    data-action="submit->turbo-form#submitForm"
+  >
+    {{ $.CSRFField }}
+    <button class="btn primary-btn w-full" type="submit" name="x_action" value="proceed">
+    {{ include "v2.component.button.default.label-continue" nil }}
+    </button>
+  </form>
+</div>
+{{ end }}

@@ -52,6 +52,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowV2SettingsAdvancedSettingsHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsDeleteAccountHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsDeleteAccountSuccessHandler), "*"),
+	wire.Struct(new(AuthflowV2SettingsMFAViewRecoveryCodeHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsMFACreatePasswordHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsMFAPasswordHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsTOTPHandler), "*"),
