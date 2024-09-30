@@ -43,7 +43,7 @@ type AuthflowV2ResetPasswordHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2ResetPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2ResetPasswordHandler) GetAuthflowData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -64,7 +64,7 @@ func (h *AuthflowV2ResetPasswordHandler) GetData(w http.ResponseWriter, r *http.
 	return data, nil
 }
 
-func (h *AuthflowV2ResetPasswordHandler) GetErrorData(w http.ResponseWriter, r *http.Request, err error) (map[string]interface{}, error) {
+func (h *AuthflowV2ResetPasswordHandler) GetAuthflowErrorData(w http.ResponseWriter, r *http.Request, err error) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -75,10 +75,22 @@ func (h *AuthflowV2ResetPasswordHandler) GetErrorData(w http.ResponseWriter, r *
 }
 
 func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if isURLFromAdminAPI(r) {
+		h.serveHTTPNonAuthflow(w, r)
+	} else {
+		h.serveHTTPAuthflow(w, r)
+	}
+}
+
+func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWriter, r *http.Request) {
+	// TODO: implement non authflow reset password handler
+}
+
+func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
-		data, err := h.GetData(w, r, screen)
+		data, err := h.GetAuthflowData(w, r, screen)
 		if err != nil {
 			return err
 		}
@@ -115,7 +127,7 @@ func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		if !apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
 			return err
 		}
-		data, err := h.GetErrorData(w, r, err)
+		data, err := h.GetAuthflowErrorData(w, r, err)
 		if err != nil {
 			return err
 		}
@@ -132,4 +144,10 @@ func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	} else {
 		h.Controller.HandleStep(w, r, &handlers)
 	}
+}
+
+var fromAdminAPIQueryKey = "x_from_admin_api"
+
+func isURLFromAdminAPI(r *http.Request) bool {
+	return r.URL.Query().Get(fromAdminAPIQueryKey) == "true"
 }
