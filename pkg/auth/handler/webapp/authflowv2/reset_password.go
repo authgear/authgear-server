@@ -43,6 +43,16 @@ type AuthflowV2ResetPasswordHandler struct {
 	Renderer      handlerwebapp.Renderer
 }
 
+func (h *AuthflowV2ResetPasswordHandler) GetNonAuthflowData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	// TODO: embed password policy view model without authflow
+
+	return data, nil
+}
 func (h *AuthflowV2ResetPasswordHandler) GetAuthflowData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
@@ -83,7 +93,56 @@ func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 }
 
 func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWriter, r *http.Request) {
-	// TODO: implement non authflow reset password handler
+	makeHTTPHandler := func(handler func(w http.ResponseWriter, r *http.Request) error) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			err := handler(w, r)
+			if err != nil {
+				if apierrors.IsAPIError(err) {
+					// TODO: render error
+					// renderError(w, r, err)
+				} else {
+					panic(err)
+				}
+			}
+		})
+	}
+
+	getHandler := makeHTTPHandler(func(w http.ResponseWriter, r *http.Request) error {
+		data, err := h.GetNonAuthflowData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowResetPasswordHTML, data)
+		return nil
+	})
+
+	postHandler := makeHTTPHandler(func(w http.ResponseWriter, r *http.Request) error {
+		err := AuthflowResetPasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+		newPassword := r.Form.Get("x_password")
+		confirmPassword := r.Form.Get("x_confirm_password")
+		err = pwd.ConfirmPassword(newPassword, confirmPassword)
+		if err != nil {
+			return err
+		}
+
+		// TODO: update password without authflow
+
+		return nil
+	})
+
+	switch r.Method {
+	case "GET":
+		getHandler.ServeHTTP(w, r)
+	case "POST":
+		postHandler.ServeHTTP(w, r)
+	default:
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 }
 
 func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter, r *http.Request) {
