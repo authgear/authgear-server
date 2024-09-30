@@ -130,8 +130,8 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 			}
 			if err != nil {
 				if apierrors.IsAPIError(err) {
-					// TODO: render error
-					// renderError(w, r, err)
+					// Still uses AuthflowController to render error because of same logic
+					h.Controller.ErrorRenderer.RenderError(w, r, err)
 				} else {
 					panic(err)
 				}
