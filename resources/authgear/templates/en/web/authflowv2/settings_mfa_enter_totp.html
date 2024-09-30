@@ -1,0 +1,79 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/mfa")
+        "Title" (translate "v2.page.settings-mfa-enter-totp.default.navbar-title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+
+  {{ $err_map := (resolveError $.RawError (dict
+    "otpInput" (dict
+      "by_reason"                    (list "InvalidCredentials")
+    )
+  )) }}
+
+  {{ $otp_err := index $err_map "otpInput" }}
+  {{ $unknown_err := index $err_map "unknown" }}
+  {{ $has_otp_err := not (isNil $otp_err) }}
+  {{ $has_unknown_err := not (isNil $unknown_err )}}
+
+  {{ $otp_error_message := "" }}
+  {{ if $has_otp_err }}
+    {{ $otp_error_message = include "authflowv2/__error.html" (merge (dict "Error" $otp_err) $) }}
+  {{ end }}
+
+  {{ $unknown_error_message := "" }}
+  {{ if $has_unknown_err }}
+    {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
+  {{ end }}
+
+<div
+  class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
+>
+  <div class="screen-title-description">
+    <h2 class="screen-description">
+      {{ include "v2.page.settings-mfa-enter-totp.default.description" nil }}
+    </h2>
+
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Classname" "mt-4"
+        "Message" (ternary (include "authflowv2/__error.html" .) nil (not $.display_otp_input_error))
+      )
+    }}
+  </div>
+
+  <div>
+    <form
+      id="main-form"
+      method="post"
+      novalidate
+      data-restore-form="false"
+      data-controller="turbo-form"
+      data-action="submit->turbo-form#submitForm"
+    >
+      {{ $.CSRFField }}
+    </form>
+
+    {{ template "authflowv2/__otp_input.html"
+      (dict
+        "CSRFField" $.CSRFField
+        "FormName" "main-form"
+        "CodeLength" 6
+        "AutoFocus" $.ShouldFocusInput
+        "Disabled" $.FailedAttemptRateLimitExceeded
+        "SubmitEvent" "authgear.button.setup_totp"
+        "ErrorMessage" $otp_error_message
+        "ResendButtonHidden" true
+      )
+    }}
+  </div>
+</div>
+{{ end }}
