@@ -381,6 +381,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.ForgotPasswordService), new(*forgotpassword.Service)),
 		wire.Bind(new(workflow.ResetPasswordService), new(*forgotpassword.Service)),
 		wire.Bind(new(authenticationflow.ResetPasswordService), new(*forgotpassword.Service)),
+		wire.Bind(new(handlerwebappauthflowv2.ResetPasswordHandlerResetPasswordService), new(*forgotpassword.Service)),
 		wire.Bind(new(facade.SendPasswordService), new(*forgotpassword.Sender)),
 	),
 

@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -43,11 +44,21 @@ type ResetPasswordHandlerPasswordPolicy interface {
 	PasswordRules() string
 }
 
+type ResetPasswordHandlerResetPasswordService interface {
+	ResetPasswordByEndUser(code string, newPassword string) error
+}
+
+type ResetPasswordHandlerDatabase interface {
+	WithTx(do func() error) (err error)
+}
+
 type AuthflowV2ResetPasswordHandler struct {
 	Controller                  *handlerwebapp.AuthflowController
 	BaseViewModel               *viewmodels.BaseViewModeler
 	Renderer                    handlerwebapp.Renderer
 	AdminAPIResetPasswordPolicy ResetPasswordHandlerPasswordPolicy
+	ResetPassword               ResetPasswordHandlerResetPasswordService
+	Database                    ResetPasswordHandlerDatabase
 }
 
 func (h *AuthflowV2ResetPasswordHandler) GetNonAuthflowData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
@@ -107,9 +118,16 @@ func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 }
 
 func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWriter, r *http.Request) {
+	code := r.URL.Query().Get("code")
 	makeHTTPHandler := func(handler func(w http.ResponseWriter, r *http.Request) error) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			err := handler(w, r)
+			var err error
+			if code == "" {
+				// TODO: make this an api error
+				err = fmt.Errorf("code is required in admin api reset password page")
+			} else {
+				err = handler(w, r)
+			}
 			if err != nil {
 				if apierrors.IsAPIError(err) {
 					// TODO: render error
@@ -142,8 +160,15 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 			return err
 		}
 
-		// TODO: update password without authflow
-
+		err = h.Database.WithTx(func() error {
+			return h.ResetPassword.ResetPasswordByEndUser(
+				code,
+				newPassword,
+			)
+		})
+		if err != nil {
+			return err
+		}
 		return nil
 	})
 

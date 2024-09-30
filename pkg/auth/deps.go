@@ -35,6 +35,7 @@ import (
 	featuresiwe "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/meter"
@@ -123,6 +124,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.AuthflowSignupEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.AuthflowPromoteEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
+
+	wire.Bind(new(handlerwebappauthflowv2.ResetPasswordHandlerDatabase), new(*appdb.Handle)),
 
 	webapp.DependencySet,
 	wire.Bind(new(handlerwebapp.AnonymousUserPromotionService), new(*webapp.AnonymousUserPromotionService)),
