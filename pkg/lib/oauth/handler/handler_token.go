@@ -628,6 +628,15 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
+	// refresh success, log to user track
+	userID := offlineGrant.GetUserID()
+	err = h.MeterService.TrackActiveUser(userID)
+	if err != nil {
+		// we silence this error because we do not want to break flow just because a tracking code failed
+		h.Logger.WithError(err).Errorf("failed to track active user (%s) after refreshed access token", userID)
+		err = nil
+	}
+
 	return resp, nil
 }
 
