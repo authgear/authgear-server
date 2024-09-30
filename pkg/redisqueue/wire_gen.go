@@ -802,9 +802,10 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	handle := p.AppDatabase
 	appContext := p.AppContext
 	config := appContext.Config
+	appConfig := config.AppConfig
+	userProfileConfig := appConfig.UserProfile
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
-	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
@@ -1126,7 +1127,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		Lockout:        serviceLockout,
 	}
 	verificationConfig := appConfig.Verification
-	userProfileConfig := appConfig.UserProfile
 	storePQ := &verification.StorePQ{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1185,6 +1185,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
 	userExportService := &userexport.UserExportService{
 		AppDatabase:  handle,
+		Config:       userProfileConfig,
 		UserQueries:  userQueries,
 		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
