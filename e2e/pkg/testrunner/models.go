@@ -1,5 +1,7 @@
 package testrunner
 
+import "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
+
 type BeforeHook struct {
 	Type       BeforeHookType      `json:"type"`
 	UserImport string              `json:"user_import"`
@@ -77,14 +79,22 @@ var _ = TestCaseSchema.Add("Step", `
 	"additionalProperties": false,
 	"properties": {
 		"name": { "type": "string" },
-		"action": { "type": "string", "enum": ["create", "input", "oauth_redirect", "generate_totp_code", "query"] },
+		"action": { "type": "string", "enum": [
+			"create",
+			"input",
+			"oauth_redirect",
+			"generate_totp_code",
+			"query",
+			"saml_request"
+		]},
 		"input": { "type": "string" },
 		"to": { "type": "string" },
 		"redirect_uri": { "type": "string" },
 		"totp_secret": { "type": "string" },
 		"output": { "$ref": "#/$defs/Output" },
 		"query": { "type": "string" },
-		"query_output": { "$ref": "#/$defs/QueryOutput" }
+		"query_output": { "$ref": "#/$defs/QueryOutput" },
+		"saml_output": { "$ref": "#/$defs/SAMLOutput" }
 	},
 	"allOf": [
         {
@@ -136,6 +146,19 @@ var _ = TestCaseSchema.Add("Step", `
 					"then": {
 							"required": ["query"]
 					}
+				},
+				{
+				  "if": {
+							"properties": {
+									"action": { "const": "saml_request" }
+							}
+					},
+					"then": {
+							"required": [
+								"saml_request_destination",
+								"saml_request_binding"
+							]
+					}
 				}
     ]
 }
@@ -161,6 +184,12 @@ type Step struct {
 	// `action` == "query"
 	Query       string       `json:"query"`
 	QueryOutput *QueryOutput `json:"query_output"`
+
+	// `action` == "saml_request"
+	SAMLRequest            string                `json:"saml_request"`
+	SAMLRequestDestination string                `json:"saml_request_destination"`
+	SAMLRequestBinding     e2eclient.SAMLBinding `json:"saml_request_binding"`
+	SAMLOutput             *SAMLOutput           `json:"saml_output"`
 }
 
 type StepAction string
@@ -171,7 +200,26 @@ const (
 	StepActionOAuthRedirect    StepAction = "oauth_redirect"
 	StepActionGenerateTOTPCode StepAction = "generate_totp_code"
 	StepActionQuery            StepAction = "query"
+	StepActionSAMLRequest      StepAction = "saml_request"
 )
+
+var _ = TestCaseSchema.Add("SAMLOutput", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"http_status": { "type": "integer" },
+		"redirect_location_without_query": { "type": "string" },
+		"status": { "type": "string" }
+	}
+}
+`)
+
+type SAMLOutput struct {
+	HttpStatus                   *float64 `json:"http_status"`
+	RedirectLocationWithoutQuery *string  `json:"redirect_location_without_query"`
+	Status                       *string  `json:"status"`
+}
 
 var _ = TestCaseSchema.Add("QueryOutput", `
 {

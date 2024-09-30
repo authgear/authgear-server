@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"strings"
 	"testing"
@@ -11,6 +13,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig"
+	"github.com/beevik/etree"
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
@@ -230,7 +233,26 @@ func (tc *TestCase) executeStep(
 		}
 
 		nextState = state
-
+	case StepActionSAMLRequest:
+		u, err := url.Parse(step.SAMLRequestDestination)
+		if err != nil {
+			t.Errorf("failed to parse saml_request_destination as url: %v", err)
+			return
+		}
+		var samlOutputOk bool = true
+		err = client.SendSAMLRequest(step.SAMLRequest, u, step.SAMLRequestBinding, func(r *http.Response) error {
+			if step.SAMLOutput != nil {
+				samlOutputOk = validateSAMLResponse(t, step, r)
+			}
+			return nil
+		})
+		if err != nil {
+			t.Errorf("failed to send saml request: %v", err)
+			return
+		}
+		if !samlOutputOk {
+			return nil, state, false
+		}
 	case StepActionInput:
 		fallthrough
 	case "":
@@ -419,6 +441,94 @@ func validateQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) 
 
 	return true
 
+}
+
+func validateRedirectLocation(t *testing.T, expectedLocation string, actualLocation string) (ok bool) {
+	ok = true
+	expectedLocationURL, err := url.Parse(expectedLocation)
+	if err != nil {
+		ok = false
+		t.Errorf("redirect_location is not a valid url")
+	}
+	actualLocationURL, err := url.Parse(actualLocation)
+	if err != nil {
+		ok = false
+		t.Errorf("Location header is not a valid url")
+	}
+	if !ok {
+		return ok
+	}
+	// We only compare the url without query parameters
+	expectedLocationURL.RawQuery = url.Values{}.Encode()
+	actualLocationURL.RawQuery = url.Values{}.Encode()
+	if expectedLocationURL.String() != actualLocationURL.String() {
+		ok = false
+		t.Errorf("redirect location unmatch")
+	}
+	return ok
+}
+
+func validateSAMLStatus(t *testing.T, expectedStatus string, responseBody []byte) (ok bool) {
+	ok = true
+	doc := etree.NewDocument()
+	err := doc.ReadFromString(string(responseBody))
+	if err != nil {
+		ok = false
+		t.Errorf("failed to read parse body as xml")
+		return
+	}
+	statusCodeEl := doc.FindElement("./Status/StatusCode")
+	if statusCodeEl == nil {
+		ok = false
+		t.Errorf("no StatusCode element found")
+		return
+	}
+	statusCodeValue := statusCodeEl.SelectAttr("Value")
+	if statusCodeValue == nil {
+		ok = false
+		t.Errorf("no Value in StatusCode")
+		return
+	}
+	if statusCodeValue.Value != expectedStatus {
+		ok = false
+		t.Errorf("unexpected SAML status")
+		return
+	}
+	return ok
+}
+
+func validateSAMLResponse(t *testing.T, step Step, response *http.Response) (ok bool) {
+	ok = true
+	if step.SAMLOutput.HttpStatus != nil {
+		if response.StatusCode != int(*step.SAMLOutput.HttpStatus) {
+			t.Errorf("http response status code unmatch")
+			ok = false
+		}
+	}
+	if step.SAMLOutput.RedirectLocationWithoutQuery != nil {
+		redirectLocationOk := validateRedirectLocation(t,
+			*step.SAMLOutput.RedirectLocationWithoutQuery,
+			response.Header.Get("Location"),
+		)
+		if !redirectLocationOk {
+			ok = false
+		}
+	}
+	if step.SAMLOutput.Status != nil {
+		responseData, err := io.ReadAll(response.Body)
+		if err != nil {
+			ok = false
+			t.Errorf("failed to read response body")
+		}
+		statusOk := validateSAMLStatus(t,
+			*step.SAMLOutput.Status,
+			responseData,
+		)
+		if !statusOk {
+			ok = false
+		}
+	}
+	return ok
 }
 
 func toMap(data interface{}) (map[string]interface{}, error) {

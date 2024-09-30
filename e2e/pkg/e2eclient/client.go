@@ -27,6 +27,8 @@ type Client struct {
 	MainEndpoint  *url.URL
 	AdminEndpoint *url.URL
 	HTTPHost      httputil.HTTPHost
+
+	SAMLClient *SAMLClient
 }
 
 func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr string, httpHost httputil.HTTPHost) *Client {
@@ -90,6 +92,11 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 		return http.ErrUseLastResponse
 	}
 
+	samlClient := &SAMLClient{
+		Context:    ctx,
+		HTTPClient: httpClient,
+	}
+
 	return &Client{
 		Context:       ctx,
 		HTTPClient:    httpClient,
@@ -97,6 +104,7 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 		MainEndpoint:  mainEndpointURL,
 		AdminEndpoint: adminEndpointURL,
 		HTTPHost:      httpHost,
+		SAMLClient:    samlClient,
 	}
 }
 
@@ -187,6 +195,20 @@ func (c *Client) InputFlow(w http.ResponseWriter, r *http.Request, stateToken st
 	}
 
 	return c.doFlowRequest(w, req)
+}
+
+func (c *Client) SendSAMLRequest(
+	samlRequestXML string, destination *url.URL, binding SAMLBinding,
+	fn func(r *http.Response) error) error {
+	switch binding {
+	case SAMLBindingHTTPPost:
+		// TODO
+		return nil
+	case SAMLBindingHTTPRedirect:
+		return c.SAMLClient.SendSAMLRequestWithHTTPRedirect(samlRequestXML, destination, fn)
+	default:
+		return fmt.Errorf("unknown saml binding %s", binding)
+	}
 }
 
 func (c *Client) makeRequest(maybeOriginalRequest *http.Request, endpoint *url.URL, body interface{}) (*http.Request, error) {
