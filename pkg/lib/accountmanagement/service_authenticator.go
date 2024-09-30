@@ -150,6 +150,85 @@ func (s *Service) StartAddTOTPAuthenticator(resolvedSession session.ResolvedSess
 	}, nil
 }
 
+type ResumeAddTOTPAuthenticatorInput struct {
+	DisplayName string
+	Code        string
+}
+type ResumeAddTOTPAuthenticatorOutput struct {
+	Token string
+}
+
+func (s *Service) ResumeAddTOTPAuthenticator(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddTOTPAuthenticatorInput) (output *ResumeAddTOTPAuthenticatorOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	token, err := s.Store.GetToken(tokenString)
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(tokenString)
+		}
+	}()
+
+	if err != nil {
+		return
+	}
+
+	err = token.CheckUser(userID)
+	if err != nil {
+		return
+	}
+
+	info, err := s.Authenticators.New(
+		&authenticator.Spec{
+			UserID:    userID,
+			IsDefault: false,
+			Kind:      model.AuthenticatorKindSecondary,
+			Type:      model.AuthenticatorTypeTOTP,
+			TOTP: &authenticator.TOTPSpec{
+				DisplayName: input.DisplayName,
+				Secret:      token.Authenticator.TOTPSecret,
+			},
+		},
+	)
+	if err != nil {
+		return
+	}
+	_, err = s.Authenticators.VerifyWithSpec(
+		info,
+		&authenticator.Spec{
+			UserID:    userID,
+			IsDefault: false,
+			Kind:      model.AuthenticatorKindSecondary,
+			Type:      model.AuthenticatorTypeTOTP,
+			TOTP: &authenticator.TOTPSpec{
+				DisplayName: input.DisplayName,
+				Code:        input.Code,
+			},
+		},
+		nil,
+	)
+
+	if err != nil {
+		return
+	}
+
+	recoveryCodes := s.MFA.GenerateRecoveryCodes()
+
+	newToken, err := s.Store.GenerateToken(GenerateTokenOptions{
+		UserID:                       userID,
+		AuthenticatorTOTPDisplayName: input.DisplayName,
+		AuthenticatorTOTPSecret:      token.Authenticator.TOTPSecret,
+		AuthenticatorTOTPVerified:    true,
+		AuthenticatorRecoveryCodes:   recoveryCodes,
+	})
+	if err != nil {
+		return
+	}
+
+	output = &ResumeAddTOTPAuthenticatorOutput{
+		Token: newToken,
+	}
+	return
+}
+
 
 type changePasswordInput struct {
 	Kind        authenticator.Kind
