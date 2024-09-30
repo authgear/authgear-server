@@ -15,6 +15,9 @@
   {{ $has_alternatives := false }}
   {{ $show_captcha_phone := false }}
   {{ $show_captcha_text := false }} {{/* both email & username */}}
+
+  {{ $login_id_type := "" }}
+              
   {{ range $.IdentityCandidates }}
     {{ if eq .type "oauth" }}
       {{ $has_alternatives = true }}
@@ -25,21 +28,30 @@
         {{ $has_alternatives = true }}
       {{ end }}
       {{ if eq .login_id_key $.LoginIDKey }}
-        {{if eq .login_id_type "phone" }}{{ if $.PhoneLoginIDBotProtectionRequired }}
-          {{ $show_captcha_phone = true  }}
-        {{ end }}{{ end }}
-        {{if eq .login_id_type "username" }}{{ if $.UsernameLoginIDBotProtectionRequired }}
-          {{ $show_captcha_text = true  }}
-        {{ end }}{{ end }}
-        {{if eq .login_id_type "email" }}{{ if $.EmailLoginIDBotProtectionRequired }}
-          {{ $show_captcha_text = true  }}
-        {{ end }}{{ end }}
+        {{if eq .login_id_type "phone" }}
+          {{ $login_id_type = "phone" }}
+          {{ if $.PhoneLoginIDBotProtectionRequired }}
+            {{ $show_captcha_phone = true  }}    
+          {{ end }}
+        {{ end }}
+        {{if eq .login_id_type "username" }}
+          {{ $login_id_type = "username" }}
+          {{ if $.UsernameLoginIDBotProtectionRequired }}
+            {{ $show_captcha_text = true  }}
+          {{ end }}
+        {{ end }}
+        {{if eq .login_id_type "email" }}
+          {{ $login_id_type = "email" }}
+          {{ if $.EmailLoginIDBotProtectionRequired }}
+            {{ $show_captcha_text = true  }}
+          {{ end }}
+        {{ end }}
       {{ end }}
     {{ end }}
   {{ end }}
   {{ $appName := (translate "app.name" nil) }}
   {{ $clientName := or $.ClientName "null" }}
-
+  {{ $isContinue := $.HasXStep }}
   <div class="flex-1-0-auto">
     <div class="screen-logo-layout">
       {{ template "authflowv2/__header.html" . }}
@@ -51,10 +63,18 @@
               "ClientName" $clientName)
             }}
           {{ else }}
-            {{ include "v2.page.signup.default.title" (dict
-              "AppName" $appName
-              "ClientName" $clientName)
-            }}
+            {{ if $isContinue }}
+              {{ include "v2.page.signup.continue.title" (dict
+                "AppName" $appName
+                "ClientName" $clientName)
+              }}
+            {{ else }}
+              {{ include "v2.page.signup.default.title" (dict
+                "AppName" $appName
+                "ClientName" $clientName)
+              }}
+            {{ end }}
+            
           {{ end }}
         </h1>
         <h2 class="screen-description">
@@ -64,10 +84,14 @@
               "ClientName" $clientName)
             }}
           {{ else }}
-            {{ include "v2.page.signup.default.subtitle" (dict
-              "AppName" $appName
-              "ClientName" $clientName)
-            }}
+            {{ if and $isContinue $has_login_id }}
+              {{ include (printf "v2.page.signup.continue.subtitle-%v" $login_id_type) nil }}
+            {{ else }}
+              {{ include "v2.page.signup.default.subtitle" (dict
+                "AppName" $appName
+                "ClientName" $clientName)
+              }}
+            {{ end }}
           {{ end }}
         </h2>
         {{ template "authflowv2/__alert_message.html"
@@ -173,7 +197,7 @@
     {{ end }}
   </form>
 
-  {{ if $.CanSwitchToLogin }}
+  {{ if and $.CanSwitchToLogin (not $isContinue) }}
     <p class="body-text--md mt-4">
       {{ $loginHref := call $.MakeURL "/login" "q_login_id_input_type" $.LoginIDInputType "x_step" "" }}
       {{ include "v2.page.signup.default.switch-to-login" (dict "href" $loginHref )}}

@@ -37,6 +37,7 @@ resources/authgear/templates/en/web/authflowv2/settings_profile.html:123:23: tra
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:125:18: template translation is forbidden: `__settings_profile_item`
 resources/authgear/templates/en/web/authflowv2/settings_profile.html:174:22: invalid translation key: "$label"
 resources/authgear/templates/en/web/authflowv2/settings_profile_edit_gender.html:57:33: translation key not defined: "__settings_gender_edit_custom_gender_input"
-resources/authgear/templates/en/web/authflowv2/signup.html:237:35: translation key not defined: "%s-icon"
-40 errors found
+resources/authgear/templates/en/web/authflowv2/signup.html:88:26: translation key not defined: "v2.page.signup.continue.subtitle-%v"
+resources/authgear/templates/en/web/authflowv2/signup.html:261:35: translation key not defined: "%s-icon"
+41 errors found
 exit status 1
