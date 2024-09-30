@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
@@ -24,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type UserService interface {
@@ -60,6 +62,7 @@ type EventService interface {
 }
 
 type AuthenticatorService interface {
+	New(spec *authenticator.Spec) (*authenticator.Info, error)
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
@@ -70,6 +73,11 @@ type AuthenticatorService interface {
 
 type AuthenticationInfoService interface {
 	Save(entry *authenticationinfo.Entry) error
+}
+
+type MFAService interface {
+	GenerateRecoveryCodes() []string
+	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
 }
 
 type PasskeyService interface {
@@ -99,6 +107,7 @@ type VerificationService interface {
 type Service struct {
 	Database                  *appdb.Handle
 	Config                    *config.AppConfig
+	HTTPOrigin                httputil.HTTPOrigin
 	Users                     UserService
 	Store                     Store
 	OAuthProvider             OAuthProvider
@@ -108,6 +117,7 @@ type Service struct {
 	OTPCodeService            OTPCodeService
 	Authenticators            AuthenticatorService
 	AuthenticationInfoService AuthenticationInfoService
+	MFA                       MFAService
 	PasskeyService            PasskeyService
 	Verification              VerificationService
 	UIInfoResolver            UIInfoResolver
