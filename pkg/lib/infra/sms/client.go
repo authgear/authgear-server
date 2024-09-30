@@ -15,7 +15,6 @@ type SendOptions struct {
 	To                string
 	Body              string
 	AppID             string
-	MessageType       string
 	TemplateName      string
 	LanguageTag       string
 	TemplateVariables *TemplateVariables
@@ -59,7 +58,6 @@ func (c *Client) Send(opts SendOptions) error {
 			WithField("sender", opts.Sender).
 			WithField("body", opts.Body).
 			WithField("app_id", opts.AppID).
-			WithField("message_type", opts.MessageType).
 			WithField("template_name", opts.TemplateName).
 			WithField("language_tag", opts.LanguageTag).
 			WithField("template_variables", opts.TemplateVariables).
