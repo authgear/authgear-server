@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -37,10 +38,16 @@ func ConfigureAuthflowV2ResetPasswordRoute(route httproute.Route) httproute.Rout
 		WithPathPattern(AuthflowV2RouteResetPassword)
 }
 
+type ResetPasswordHandlerPasswordPolicy interface {
+	PasswordPolicy() []password.Policy
+	PasswordRules() string
+}
+
 type AuthflowV2ResetPasswordHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+	Controller                  *handlerwebapp.AuthflowController
+	BaseViewModel               *viewmodels.BaseViewModeler
+	Renderer                    handlerwebapp.Renderer
+	AdminAPIResetPasswordPolicy ResetPasswordHandlerPasswordPolicy
 }
 
 func (h *AuthflowV2ResetPasswordHandler) GetNonAuthflowData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
@@ -49,7 +56,14 @@ func (h *AuthflowV2ResetPasswordHandler) GetNonAuthflowData(w http.ResponseWrite
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	// TODO: embed password policy view model without authflow
+	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
+		h.AdminAPIResetPasswordPolicy.PasswordPolicy(),
+		h.AdminAPIResetPasswordPolicy.PasswordRules(),
+		baseViewModel.RawError,
+		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
+	)
+
+	viewmodels.Embed(data, passwordPolicyViewModel)
 
 	return data, nil
 }
