@@ -18,8 +18,9 @@ type AdditionalContext struct {
 }
 
 type SendOptions struct {
-	OTP               string
-	AdditionalContext *AdditionalContext
+	OTP                     string
+	AdditionalContext       *AdditionalContext
+	IsAdminAPIResetPassword bool
 }
 
 type EndpointsProvider interface {
@@ -105,6 +106,9 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 			linkURL = s.Endpoints.ResetPasswordEndpointURL()
 			query := linkURL.Query()
 			query.Set("code", opts.OTP)
+			if opts.IsAdminAPIResetPassword {
+				query.Set("x_from_admin_api", "true")
+			}
 			linkURL.RawQuery = query.Encode()
 
 		default:

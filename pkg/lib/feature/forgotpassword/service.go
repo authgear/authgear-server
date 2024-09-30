@@ -89,6 +89,7 @@ type CodeOptions struct {
 	AuthenticationFlowJSONPointer jsonpointer.T
 	Kind                          CodeKind
 	Channel                       CodeChannel
+	IsAdminAPIResetPassword       bool
 }
 
 // SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
@@ -221,8 +222,9 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 	}
 
 	err = s.OTPSender.Send(msg, otp.SendOptions{
-		OTP:               code,
-		AdditionalContext: &ctx,
+		OTP:                     code,
+		AdditionalContext:       &ctx,
+		IsAdminAPIResetPassword: options.IsAdminAPIResetPassword,
 	})
 	if err != nil {
 		return err

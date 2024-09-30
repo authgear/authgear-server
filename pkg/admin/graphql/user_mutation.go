@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
+	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -388,7 +389,9 @@ var _ = registerMutationField(
 
 			gqlCtx := GQLContext(p.Context)
 
-			err := gqlCtx.ForgotPassword.SendCode(loginID, nil)
+			err := gqlCtx.ForgotPassword.SendCode(loginID, &forgotpassword.CodeOptions{
+				IsAdminAPIResetPassword: true,
+			})
 			if err != nil {
 				return nil, err
 			}
