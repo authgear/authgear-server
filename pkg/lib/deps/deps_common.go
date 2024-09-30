@@ -522,6 +522,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		meter.DependencySet,
 		wire.Bind(new(session.MeterService), new(*meter.Service)),
+		wire.Bind(new(oauthhandler.TokenHandlerMeterService), new(*meter.Service)),
 	),
 
 	wire.NewSet(

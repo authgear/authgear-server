@@ -109,6 +109,10 @@ type App2AppService interface {
 	ParseToken(requestJWT string, key jwk.Key) (*app2app.Request, error)
 }
 
+type TokenHandlerMeterService interface {
+	TrackActiveUser(userID string) error
+}
+
 type ChallengeProvider interface {
 	Consume(token string) (*challenge.Purpose, error)
 }
@@ -220,6 +224,7 @@ type TokenHandler struct {
 	CodeGrantService                CodeGrantService
 	ClientResolver                  OAuthClientResolver
 	UIInfoResolver                  UIInfoResolver
+	MeterService                    TokenHandlerMeterService
 
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
