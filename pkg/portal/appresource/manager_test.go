@@ -25,12 +25,12 @@ func TestManager(t *testing.T) {
 		defer ctrl.Finish()
 
 		appID := "app-id"
+		// This config is supposed to be not effective because it is a fixture
 		cfg := &config.Config{
 			AppConfig:     configtest.FixtureAppConfig("app-id"),
 			SecretConfig:  configtest.FixtureSecretConfig(0),
 			FeatureConfig: configtest.FixtureFeatureConfig(configtest.FixtureLimitedPlanName),
 		}
-		config.PopulateDefaultValues(cfg.AppConfig)
 
 		baseFs := afero.NewMemMapFs()
 		appFs := afero.NewMemMapFs()
