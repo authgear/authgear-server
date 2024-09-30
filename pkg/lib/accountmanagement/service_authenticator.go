@@ -7,7 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/session"
-	"github.com/authgear/authgear-server/pkg/util/uuid"
+	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
 type ChangePrimaryPasswordInput struct {
@@ -103,6 +103,53 @@ func (s *Service) ChangeSecondaryPassword(resolvedSession session.ResolvedSessio
 
 	return &ChangeSecondaryPasswordOutput{}, nil
 }
+
+type StartAddTOTPAuthenticatorInput struct{}
+type StartAddTOTPAuthenticatorOutput struct {
+	Token                   string
+	EndUserAccountID        string
+	AuthenticatorTOTPIssuer string
+	AuthenticatorTOTPSecret string
+}
+
+func (s *Service) StartAddTOTPAuthenticator(resolvedSession session.ResolvedSession, input *StartAddTOTPAuthenticatorInput) (*StartAddTOTPAuthenticatorOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	var endUserAccountID string
+	err := s.Database.WithTx(func() error {
+		user, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
+		if err != nil {
+			return err
+		}
+		endUserAccountID = user.EndUserAccountID
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	totp, err := secretcode.NewTOTPFromRNG()
+	if err != nil {
+		return nil, err
+	}
+	token, err := s.Store.GenerateToken(GenerateTokenOptions{
+		UserID:                            userID,
+		AuthenticatorTOTPIssuer:           string(s.HTTPOrigin),
+		AuthenticatorTOTPEndUserAccountID: endUserAccountID,
+		AuthenticatorTOTPSecret:           totp.Secret,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &StartAddTOTPAuthenticatorOutput{
+		Token:                   token,
+		EndUserAccountID:        endUserAccountID,
+		AuthenticatorTOTPIssuer: string(s.HTTPOrigin),
+		AuthenticatorTOTPSecret: totp.Secret,
+	}, nil
+}
+
 
 type changePasswordInput struct {
 	Kind        authenticator.Kind

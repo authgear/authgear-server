@@ -34,8 +34,13 @@ type TokenIdentity struct {
 }
 
 type TokenAuthenticator struct {
-	AuthenticatorID string `json:"authenticator_id,omitempty"`
-	TOTPSecret      string `json:"totp_secret,omitempty"`
+	AuthenticatorID      string   `json:"authenticator_id,omitempty"`
+	TOTPIssuer           string   `json:"totp_issuer,omitempty"`
+	TOTPDisplayName      string   `json:"totp_display_name,omitempty"`
+	TOTPEndUserAccountID string   `json:"end_user_account_id,omitempty"`
+	TOTPSecret           string   `json:"totp_secret,omitempty"`
+	TOTPVerified         bool     `json:"totp_verified,omitempty"`
+	RecoveryCodes        []string `json:"recovery_codes,omitempty"`
 }
 
 func (t *Token) CheckUser(userID string) error {

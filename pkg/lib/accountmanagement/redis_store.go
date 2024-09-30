@@ -37,9 +37,14 @@ type GenerateTokenOptions struct {
 	// IdentityID for updating identity
 	IdentityID string
 
-	// AuthenticatorID for updating identity
-	AuthenticatorID         string
-	AuthenticatorTOTPSecret string
+	// AuthenticatorID for updating authenticator
+	AuthenticatorID                   string
+	AuthenticatorRecoveryCodes        []string
+	AuthenticatorTOTPIssuer           string
+	AuthenticatorTOTPEndUserAccountID string
+	AuthenticatorTOTPDisplayName      string
+	AuthenticatorTOTPSecret           string
+	AuthenticatorTOTPVerified         bool
 }
 
 func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error) {
@@ -60,10 +65,15 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 	}
 
 	var tokenAuthenticator *TokenAuthenticator
-	if options.AuthenticatorID != "" || options.AuthenticatorTOTPSecret != "" {
+	if options.AuthenticatorID != "" || options.AuthenticatorTOTPSecret != "" || options.AuthenticatorTOTPVerified || len(options.AuthenticatorRecoveryCodes) > 0 {
 		tokenAuthenticator = &TokenAuthenticator{
-			AuthenticatorID: options.AuthenticatorID,
-			TOTPSecret:      options.AuthenticatorTOTPSecret,
+			AuthenticatorID:      options.AuthenticatorID,
+			TOTPIssuer:           options.AuthenticatorTOTPIssuer,
+			TOTPDisplayName:      options.AuthenticatorTOTPDisplayName,
+			TOTPEndUserAccountID: options.AuthenticatorTOTPEndUserAccountID,
+			TOTPSecret:           options.AuthenticatorTOTPSecret,
+			TOTPVerified:         options.AuthenticatorTOTPVerified,
+			RecoveryCodes:        options.AuthenticatorRecoveryCodes,
 		}
 	}
 
