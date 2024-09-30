@@ -15,7 +15,7 @@
 {{ if $.ShowMFA }}
 <div>
   {{ if $.ShowSecondaryTOTP }}
-    {{ $href := (call $.MakeURL "/settings/mfa/new_totp") }}
+    {{ $href := (call $.MakeURL "/settings/mfa/create_totp") }}
     {{ if $.SecondaryPassword }}
       {{ $href = (call $.MakeURL "/settings/mfa/totp") }}
     {{ end }}

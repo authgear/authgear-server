@@ -28,13 +28,17 @@
     </ul>
   {{ end }}
 
-  {{ $href := (call $.MakeURL "/settings/mfa/new_totp") }}
-  <a
-    class="settings-link-btn mt-6 block"
-    href="{{ $href }}"
-  >
+  <form method="post" novalidate>
+    {{ $.CSRFField }}
+    <button
+      class="settings-link-btn mx-auto mt-6 block"
+      type="submit"
+      name="x_action"
+      value="create_totp"
+    >
     {{ translate "v2.page.settings-totp.default.button-add-authenticator-label" nil }}
-  </a>
+    </button>
+  </form>
 </div>
 {{ end }}
 
