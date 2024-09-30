@@ -123,8 +123,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			var err error
 			if code == "" {
-				// TODO: make this an api error
-				err = fmt.Errorf("code is required in admin api reset password page")
+				err = newCodeRequiredErr()
 			} else {
 				err = handler(w, r)
 			}
@@ -248,4 +247,10 @@ var fromAdminAPIQueryKey = "x_from_admin_api"
 
 func isURLFromAdminAPI(r *http.Request) bool {
 	return r.URL.Query().Get(fromAdminAPIQueryKey) == "true"
+}
+
+func newCodeRequiredErr() *apierrors.APIError {
+	apiErr := apierrors.AsAPIError(fmt.Errorf("code required in admin_api reset password page"))
+	apiErr.Reason = "CodeRequiredInAdminAPIResetPasswordPage"
+	return apiErr
 }
