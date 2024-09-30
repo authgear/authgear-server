@@ -491,6 +491,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsTOTPHandler),
 	})
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFACreateTOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFACreateTOTPHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAEnterTOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAEnterTOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsPasskeyRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV1: p.Handler(newWebAppSettingsPasskeyHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsChangePasskeyHandler),
