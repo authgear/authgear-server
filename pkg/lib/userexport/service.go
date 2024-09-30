@@ -258,9 +258,7 @@ func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, ta
 	}
 	// Use default CSV field set if no field specified in request
 	if exportFields == nil || len(exportFields) == 0 {
-		defaultHeader := CSVField{}
-		_ = json.Unmarshal([]byte(DefaultCSVExportField), &defaultHeader)
-		exportFields = defaultHeader.Fields
+		exportFields = defaultCSVExportFields
 
 		// Append custom_attributes to default pointer set
 		for _, attribute := range s.Config.CustomAttributes.Attributes {

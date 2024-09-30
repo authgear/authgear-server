@@ -58,44 +58,40 @@ var RequestSchema = validation.NewSimpleSchema(`
 }
 `)
 
-const DefaultCSVExportField = `
-{
-  "fields": [
-		{"pointer": "/sub"},
-		{"pointer": "/preferred_username"},
-		{"pointer": "/email"},
-		{"pointer": "/phone_number"},
-		{"pointer": "/email_verified"},
-		{"pointer": "/phone_number_verified"},
-		{"pointer": "/name"},
-		{"pointer": "/given_name"},
-		{"pointer": "/middle_name"},
-		{"pointer": "/nickname"},
-		{"pointer": "/profile"},
-		{"pointer": "/picture"},
-		{"pointer": "/website"},
-		{"pointer": "/gender"},
-		{"pointer": "/birthdate"},
-		{"pointer": "/zoneinfo"},
-		{"pointer": "/locale"},
-		{"pointer": "/address/formatted"},
-		{"pointer": "/address/street_address"},
-		{"pointer": "/address/locality"},
-		{"pointer": "/address/region"},
-		{"pointer": "/address/postal_code"},
-		{"pointer": "/address/country"},
-		{"pointer": "/roles"},
-		{"pointer": "/groups"},
-		{"pointer": "/disabled"},
-		{"pointer": "/identities"},
-		{"pointer": "/mfa/emails"},
-		{"pointer": "/mfa/phone_numbers"},
-		{"pointer": "/mfa/totps"},
-		{"pointer": "/biometric_count"},
-		{"pointer": "/passkey_count"}
-	]
+var defaultCSVExportFields = []*FieldPointer{
+	&FieldPointer{Pointer: "/sub"},
+	&FieldPointer{Pointer: "/preferred_username"},
+	&FieldPointer{Pointer: "/email"},
+	&FieldPointer{Pointer: "/phone_number"},
+	&FieldPointer{Pointer: "/email_verified"},
+	&FieldPointer{Pointer: "/phone_number_verified"},
+	&FieldPointer{Pointer: "/name"},
+	&FieldPointer{Pointer: "/given_name"},
+	&FieldPointer{Pointer: "/middle_name"},
+	&FieldPointer{Pointer: "/nickname"},
+	&FieldPointer{Pointer: "/profile"},
+	&FieldPointer{Pointer: "/picture"},
+	&FieldPointer{Pointer: "/website"},
+	&FieldPointer{Pointer: "/gender"},
+	&FieldPointer{Pointer: "/birthdate"},
+	&FieldPointer{Pointer: "/zoneinfo"},
+	&FieldPointer{Pointer: "/locale"},
+	&FieldPointer{Pointer: "/address/formatted"},
+	&FieldPointer{Pointer: "/address/street_address"},
+	&FieldPointer{Pointer: "/address/locality"},
+	&FieldPointer{Pointer: "/address/region"},
+	&FieldPointer{Pointer: "/address/postal_code"},
+	&FieldPointer{Pointer: "/address/country"},
+	&FieldPointer{Pointer: "/roles"},
+	&FieldPointer{Pointer: "/groups"},
+	&FieldPointer{Pointer: "/disabled"},
+	&FieldPointer{Pointer: "/identities"},
+	&FieldPointer{Pointer: "/mfa/emails"},
+	&FieldPointer{Pointer: "/mfa/phone_numbers"},
+	&FieldPointer{Pointer: "/mfa/totps"},
+	&FieldPointer{Pointer: "/biometric_count"},
+	&FieldPointer{Pointer: "/passkey_count"},
 }
-`
 
 type FieldPointer struct {
 	Pointer   string `json:"pointer,omitempty"`
