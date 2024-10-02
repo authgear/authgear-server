@@ -76,6 +76,8 @@ type MessageSender struct {
 	WhatsappService WhatsappService
 }
 
+var FromAdminAPIQueryKey = "x_from_admin_api"
+
 func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOptions) (*translation.PartialTemplateVariables, error) {
 	email := ""
 	if msg.email != nil {
@@ -107,7 +109,7 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 			query := linkURL.Query()
 			query.Set("code", opts.OTP)
 			if opts.IsAdminAPIResetPassword {
-				query.Set("x_from_admin_api", "true")
+				query.Set(FromAdminAPIQueryKey, "true")
 			}
 			linkURL.RawQuery = query.Encode()
 

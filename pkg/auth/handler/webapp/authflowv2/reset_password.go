@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -224,8 +225,6 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter
 	}
 }
 
-var fromAdminAPIQueryKey = "x_from_admin_api"
-
 func isURLFromAdminAPI(r *http.Request) bool {
-	return r.URL.Query().Get(fromAdminAPIQueryKey) == "true"
+	return r.URL.Query().Get(otp.FromAdminAPIQueryKey) == "true"
 }
