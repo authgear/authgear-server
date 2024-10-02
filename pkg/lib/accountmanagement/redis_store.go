@@ -8,6 +8,7 @@ import (
 
 	goredis "github.com/go-redis/redis/v8"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -38,13 +39,20 @@ type GenerateTokenOptions struct {
 	IdentityID string
 
 	// AuthenticatorID for updating authenticator
-	AuthenticatorID                   string
-	AuthenticatorRecoveryCodes        []string
+	AuthenticatorID            string
+	AuthenticatorRecoveryCodes []string
+
+	// TOTP
 	AuthenticatorTOTPIssuer           string
 	AuthenticatorTOTPEndUserAccountID string
 	AuthenticatorTOTPDisplayName      string
 	AuthenticatorTOTPSecret           string
 	AuthenticatorTOTPVerified         bool
+
+	// OOB OTP
+	AuthenticatorOOBOTPChannel  model.AuthenticatorOOBChannel
+	AuthenticatorOOBOTPTarget   string
+	AuthenticatorOOBOTPVerified bool
 }
 
 func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error) {
@@ -65,15 +73,18 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 	}
 
 	var tokenAuthenticator *TokenAuthenticator
-	if options.AuthenticatorID != "" || options.AuthenticatorTOTPSecret != "" || options.AuthenticatorTOTPVerified || len(options.AuthenticatorRecoveryCodes) > 0 {
+	if options.AuthenticatorID != "" || len(options.AuthenticatorRecoveryCodes) > 0 || options.AuthenticatorTOTPSecret != "" || options.AuthenticatorTOTPVerified || options.AuthenticatorOOBOTPChannel != "" || options.AuthenticatorOOBOTPTarget != "" || options.AuthenticatorOOBOTPVerified {
 		tokenAuthenticator = &TokenAuthenticator{
 			AuthenticatorID:      options.AuthenticatorID,
+			RecoveryCodes:        options.AuthenticatorRecoveryCodes,
 			TOTPIssuer:           options.AuthenticatorTOTPIssuer,
 			TOTPDisplayName:      options.AuthenticatorTOTPDisplayName,
 			TOTPEndUserAccountID: options.AuthenticatorTOTPEndUserAccountID,
 			TOTPSecret:           options.AuthenticatorTOTPSecret,
 			TOTPVerified:         options.AuthenticatorTOTPVerified,
-			RecoveryCodes:        options.AuthenticatorRecoveryCodes,
+			OOBOTPChannel:        options.AuthenticatorOOBOTPChannel,
+			OOBOTPTarget:         options.AuthenticatorOOBOTPTarget,
+			OOBOTPVerified:       options.AuthenticatorOOBOTPVerified,
 		}
 	}
 
