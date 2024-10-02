@@ -107,7 +107,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(authenticationflow.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(oauthhandler.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
-		wire.Bind(new(accountmanagement.AuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 		wire.Bind(new(handlersaml.SAMLAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 
 		wire.Bind(new(oauthhandler.AuthenticationInfoResolver), new(*authenticationinfo.UIService)),
@@ -116,7 +115,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
 		wire.Bind(new(webapp.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
 		wire.Bind(new(handlerwebappauthflowv2.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
-		wire.Bind(new(accountmanagement.UIInfoResolver), new(*authenticationinfo.UIService)),
 	),
 
 	wire.NewSet(
@@ -316,7 +314,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(workflow.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(authenticationflow.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(forgotpassword.AuthenticatorService), new(facade.AuthenticatorFacade)),
-		wire.Bind(new(accountmanagement.AuthenticatorService), new(facade.AuthenticatorFacade)),
 		wire.Bind(new(workflow.IdentityService), new(facade.IdentityFacade)),
 		wire.Bind(new(workflow.VerificationService), new(facade.WorkflowVerificationFacade)),
 		wire.Bind(new(workflow.MFAService), new(*facade.MFAFacade)),
@@ -338,7 +335,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(workflow.UserService), new(*user.Provider)),
 		wire.Bind(new(authenticationflow.UserService), new(*user.Provider)),
-		wire.Bind(new(accountmanagement.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(featurestdattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),
@@ -461,7 +457,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(user.VerificationService), new(*verification.Service)),
 		wire.Bind(new(facade.VerificationService), new(*verification.Service)),
 		wire.Bind(new(interaction.VerificationService), new(*verification.Service)),
-		wire.Bind(new(accountmanagement.VerificationService), new(*verification.Service)),
 		wire.Bind(new(userimport.VerifiedClaimService), new(*verification.Service)),
 	),
 
@@ -473,12 +468,10 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(webapp.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(forgotpassword.OTPCodeService), new(*otp.Service)),
-		wire.Bind(new(accountmanagement.OTPCodeService), new(*otp.Service)),
 		wire.Bind(new(interaction.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(workflow.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(authenticationflow.OTPSender), new(*otp.MessageSender)),
 		wire.Bind(new(forgotpassword.OTPSender), new(*otp.MessageSender)),
-		wire.Bind(new(accountmanagement.OTPSender), new(*otp.MessageSender)),
 	),
 
 	wire.NewSet(
@@ -567,7 +560,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
 		wire.Bind(new(authenticationflow.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 		wire.Bind(new(authenticationflow.PasskeyService), new(*featurepasskey.Service)),
-		wire.Bind(new(accountmanagement.PasskeyService), new(*featurepasskey.Service)),
 	),
 
 	wire.NewSet(
