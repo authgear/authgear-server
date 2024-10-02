@@ -290,7 +290,8 @@ func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 	return nil
 }
 
-func (s *Store) AccessWithID(grantID string, accessEvent access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
+// UpdateOfflineGrantLastAccess updates the last access event for an offline grant
+func (s *Store) UpdateOfflineGrantLastAccess(grantID string, accessEvent access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(s.Context)

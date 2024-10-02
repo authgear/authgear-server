@@ -26,7 +26,7 @@ type OfflineGrantStore interface {
 	CreateOfflineGrant(offlineGrant *OfflineGrant) error
 	DeleteOfflineGrant(*OfflineGrant) error
 
-	AccessWithID(id string, accessEvent access.Event, expireAt time.Time) (*OfflineGrant, error)
+	UpdateOfflineGrantLastAccess(id string, accessEvent access.Event, expireAt time.Time) (*OfflineGrant, error)
 	AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*OfflineGrant, error)
 	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*OfflineGrant, error)
 	UpdateOfflineGrantApp2AppDeviceKey(id string, newKey string, expireAt time.Time) (*OfflineGrant, error)

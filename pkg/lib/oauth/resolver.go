@@ -224,7 +224,7 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 		}
 	}
 
-	offlineGrant, err := re.OfflineGrants.AccessWithID(offlineGrant.ID, accessEvent, offlineGrant.ExpireAtForResolvedSession)
+	offlineGrant, err := re.OfflineGrants.UpdateOfflineGrantLastAccess(offlineGrant.ID, accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}
