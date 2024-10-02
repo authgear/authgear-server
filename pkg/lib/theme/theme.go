@@ -2,8 +2,11 @@ package theme
 
 import (
 	"bytes"
+	"errors"
+	"io"
 	"strings"
 
+	"github.com/tdewolff/parse/v2"
 	"github.com/tdewolff/parse/v2/css"
 )
 
@@ -173,4 +176,23 @@ func stringify(buf *bytes.Buffer, elements []element) {
 		var indent indentation
 		element.Stringify(buf, indent)
 	}
+}
+
+func parseCSSRawString(cssStr string) ([]element, error) {
+	b := []byte(cssStr)
+	r := bytes.NewReader(b)
+	p := css.NewParser(parse.NewInput(r), false)
+	var elements []element
+	for {
+		var el element
+		el, err := parseElement(p)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		elements = append(elements, el)
+	}
+	return elements, nil
 }
