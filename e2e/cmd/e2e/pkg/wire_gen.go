@@ -282,13 +282,13 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
 		Redis: appredisHandle,
 	}
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
+		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)

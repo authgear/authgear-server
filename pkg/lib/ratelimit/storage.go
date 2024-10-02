@@ -5,5 +5,5 @@ import (
 )
 
 type Storage interface {
-	Update(spec BucketSpec, delta int) (ok bool, timeToAct time.Time, err error)
+	Update(key string, period time.Duration, burst int, delta int) (ok bool, timeToAct time.Time, err error)
 }
