@@ -364,3 +364,40 @@ func (s *Service) createAuthenticator(authenticatorInfo *authenticator.Info) err
 
 	return nil
 }
+
+type StartAddOOBOTPAuthenticatorInput struct {
+	Channel model.AuthenticatorOOBChannel
+	Target  string
+}
+type StartAddOOBOTPAuthenticatorOutput struct {
+	Token string
+}
+
+func (s *Service) StartAddOOBOTPAuthenticator(resolvedSession session.ResolvedSession, input *StartAddOOBOTPAuthenticatorInput) (*StartAddOOBOTPAuthenticatorOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	err := s.Database.WithTx(func() error {
+		err := s.sendOTPCode(userID, input.Channel, input.Target, false)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := s.Store.GenerateToken(GenerateTokenOptions{
+		UserID:                     userID,
+		AuthenticatorOOBOTPChannel: input.Channel,
+		AuthenticatorOOBOTPTarget:  input.Target,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &StartAddOOBOTPAuthenticatorOutput{
+		Token: token,
+	}, nil
+}
+
