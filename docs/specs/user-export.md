@@ -559,7 +559,7 @@ Here is an example of the record
 
 > Future work: Support exporting the password hash.
 
-## Ceveats
+## Caveats
 
 Since we do not export the password hash,
 The exported JSON record cannot be imported into another Authgear project directly.
