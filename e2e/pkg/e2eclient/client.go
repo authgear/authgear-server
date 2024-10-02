@@ -198,8 +198,11 @@ func (c *Client) InputFlow(w http.ResponseWriter, r *http.Request, stateToken st
 }
 
 func (c *Client) SendSAMLRequest(
-	samlRequestXML string, destination *url.URL, binding SAMLBinding,
+	path string,
+	samlRequestXML string,
+	binding SAMLBinding,
 	fn func(r *http.Response) error) error {
+	destination := c.MainEndpoint.JoinPath(path)
 	switch binding {
 	case SAMLBindingHTTPPost:
 		// TODO

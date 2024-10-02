@@ -1,0 +1,9 @@
+---
+name: SAML SSO
+focus: true
+steps:
+  - action: "saml_request"
+    saml_request_destination: "/saml2/login/e2e"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+    saml_output:
+      http_status: 302

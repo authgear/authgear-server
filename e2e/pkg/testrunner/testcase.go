@@ -234,18 +234,16 @@ func (tc *TestCase) executeStep(
 
 		nextState = state
 	case StepActionSAMLRequest:
-		u, err := url.Parse(step.SAMLRequestDestination)
-		if err != nil {
-			t.Errorf("failed to parse saml_request_destination as url: %v", err)
-			return
-		}
 		var samlOutputOk bool = true
-		err = client.SendSAMLRequest(step.SAMLRequest, u, step.SAMLRequestBinding, func(r *http.Response) error {
-			if step.SAMLOutput != nil {
-				samlOutputOk = validateSAMLResponse(t, step, r)
-			}
-			return nil
-		})
+		err := client.SendSAMLRequest(
+			step.SAMLRequestDestination,
+			step.SAMLRequest,
+			step.SAMLRequestBinding, func(r *http.Response) error {
+				if step.SAMLOutput != nil {
+					samlOutputOk = validateSAMLResponse(t, step, r)
+				}
+				return nil
+			})
 		if err != nil {
 			t.Errorf("failed to send saml request: %v", err)
 			return
