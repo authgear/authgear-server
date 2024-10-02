@@ -9,7 +9,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
-	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type ChangePrimaryPasswordInput struct {
@@ -28,10 +27,14 @@ type ChangePrimaryPasswordOutput struct {
 func (s *Service) ChangePrimaryPassword(resolvedSession session.ResolvedSession, input *ChangePrimaryPasswordInput) (*ChangePrimaryPasswordOutput, error) {
 	redirectURI := input.RedirectURI
 
-	_, err := s.changePassword(resolvedSession, &changePasswordInput{
-		Kind:        authenticator.KindPrimary,
-		OldPassword: input.OldPassword,
-		NewPassword: input.NewPassword,
+	var err error
+	err = s.Database.WithTx(func() error {
+		_, err = s.changePassword(resolvedSession, &changePasswordInput{
+			Kind:        authenticator.KindPrimary,
+			OldPassword: input.OldPassword,
+			NewPassword: input.NewPassword,
+		})
+		return err
 	})
 
 	if err != nil {
@@ -73,11 +76,13 @@ func (s *Service) CreateSecondaryPassword(resolvedSession session.ResolvedSessio
 			PlainPassword: input.PlainPassword,
 		},
 	}
-	info, err := s.Authenticators.NewWithAuthenticatorID(uuid.New(), spec)
+	info, err := s.Authenticators.New(spec)
 	if err != nil {
 		return nil, err
 	}
-	err = s.createAuthenticator(info)
+	err = s.Database.WithTx(func() error {
+		return s.createAuthenticator(info)
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -93,10 +98,13 @@ type ChangeSecondaryPasswordOutput struct {
 }
 
 func (s *Service) ChangeSecondaryPassword(resolvedSession session.ResolvedSession, input *ChangeSecondaryPasswordInput) (*ChangeSecondaryPasswordOutput, error) {
-	_, err := s.changePassword(resolvedSession, &changePasswordInput{
-		Kind:        authenticator.KindSecondary,
-		OldPassword: input.OldPassword,
-		NewPassword: input.NewPassword,
+	err := s.Database.WithTx(func() error {
+		_, err := s.changePassword(resolvedSession, &changePasswordInput{
+			Kind:        authenticator.KindSecondary,
+			OldPassword: input.OldPassword,
+			NewPassword: input.NewPassword,
+		})
+		return err
 	})
 
 	if err != nil {
