@@ -401,3 +401,57 @@ func (s *Service) StartAddOOBOTPAuthenticator(resolvedSession session.ResolvedSe
 	}, nil
 }
 
+type ResumeAddOOBOTPAuthenticatorInput struct {
+	Code string
+}
+type ResumeAddOOBOTPAuthenticatorOutput struct {
+	Token string
+}
+
+func (s *Service) ResumeAddOOBOTPAuthenticator(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddOOBOTPAuthenticatorInput) (output *ResumeAddOOBOTPAuthenticatorOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	token, err := s.Store.GetToken(tokenString)
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(tokenString)
+		}
+	}()
+
+	if err != nil {
+		return
+	}
+
+	err = token.CheckUser(userID)
+	if err != nil {
+		return
+	}
+
+	err = s.VerifyOTP(
+		userID,
+		token.Authenticator.OOBOTPChannel,
+		token.Authenticator.OOBOTPTarget,
+		input.Code,
+		false,
+	)
+	if err != nil {
+		return
+	}
+
+	recoveryCodes := s.MFA.GenerateRecoveryCodes()
+
+	newToken, err := s.Store.GenerateToken(GenerateTokenOptions{
+		UserID:                      userID,
+		AuthenticatorRecoveryCodes:  recoveryCodes,
+		AuthenticatorOOBOTPChannel:  token.Authenticator.OOBOTPChannel,
+		AuthenticatorOOBOTPTarget:   token.Authenticator.OOBOTPTarget,
+		AuthenticatorOOBOTPVerified: true,
+	})
+	if err != nil {
+		return
+	}
+
+	output = &ResumeAddOOBOTPAuthenticatorOutput{
+		Token: newToken,
+	}
+	return
+}
