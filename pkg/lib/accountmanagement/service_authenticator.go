@@ -455,3 +455,73 @@ func (s *Service) ResumeAddOOBOTPAuthenticator(resolvedSession session.ResolvedS
 	}
 	return
 }
+
+type FinishAddOOBOTPAuthenticatorInput struct {
+}
+
+type FinishAddOOBOTPAuthenticatorOutput struct {
+	Info *authenticator.Info
+}
+
+func (s *Service) FinishAddOOBOTPAuthenticator(resolvedSession session.ResolvedSession, tokenString string, input *FinishAddOOBOTPAuthenticatorInput) (output *FinishAddOOBOTPAuthenticatorOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	token, err := s.Store.GetToken(tokenString)
+	defer func() {
+		if err == nil {
+			_, err = s.Store.ConsumeToken(tokenString)
+		}
+	}()
+
+	if err != nil {
+		return
+	}
+
+	err = token.CheckUser(userID)
+	if err != nil {
+		return
+	}
+
+	spec := &authenticator.Spec{
+		UserID:    userID,
+		IsDefault: false,
+		Kind:      model.AuthenticatorKindSecondary,
+		OOBOTP:    &authenticator.OOBOTPSpec{},
+	}
+
+	switch token.Authenticator.OOBOTPChannel {
+	case model.AuthenticatorOOBChannelEmail:
+		spec.Type = model.AuthenticatorTypeOOBEmail
+		spec.OOBOTP.Email = token.Authenticator.OOBOTPTarget
+	case model.AuthenticatorOOBChannelWhatsapp:
+		fallthrough
+	case model.AuthenticatorOOBChannelSMS:
+		spec.Type = model.AuthenticatorTypeOOBSMS
+		spec.OOBOTP.Phone = token.Authenticator.OOBOTPTarget
+	default:
+		panic("unexpected channel")
+	}
+
+	info, err := s.Authenticators.New(spec)
+	if err != nil {
+		return
+	}
+
+	err = s.Database.WithTx(func() error {
+		err = s.createAuthenticator(info)
+		if err != nil {
+			return err
+		}
+
+		_, err = s.MFA.ReplaceRecoveryCodes(userID, token.Authenticator.RecoveryCodes)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	output = &FinishAddOOBOTPAuthenticatorOutput{
+		Info: info,
+	}
+	return
+}
