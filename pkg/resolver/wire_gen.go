@@ -847,19 +847,27 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Events:        eventService,
 		Identities:    identityFacade,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clock,
+		IDPSessions:    provider,
+		ClientResolver: oauthclientResolver,
+		AccessEvents:   eventProvider,
+		MeterService:   meterService,
+		OfflineGrants:  store,
+	}
 	oauthResolver := &oauth2.Resolver{
 		RemoteIP:            remoteIP,
 		UserAgentString:     userAgentString,
 		OAuthConfig:         oAuthConfig,
 		Authorizations:      authorizationStore,
 		AccessGrants:        store,
-		OfflineGrants:       store,
 		AppSessions:         store,
 		AccessTokenDecoder:  accessTokenEncoding,
 		Sessions:            provider,
 		Cookies:             cookieManager,
 		Clock:               clock,
-		OfflineGrantService: offlineGrantService,
+		OfflineGrantService: oauthOfflineGrantService,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
 	sessionMiddleware := &session.Middleware{
