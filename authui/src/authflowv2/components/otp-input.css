@@ -80,6 +80,7 @@
     @apply items-stretch;
     @apply gap-x-[var(--otp-input\_\_spacing)];
     @apply pointer-events-none;
+    @apply justify-center;
   }
 
   .otp-input__digit {

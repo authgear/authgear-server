@@ -63,7 +63,7 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	webSession := webapp.GetSession(r.Context())
 
@@ -78,7 +78,7 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 	})
 
 	ctrl.PostAction("", func() error {
-		redirectURI := ""
+		redirectURI := "/login"
 		if webSession != nil && webSession.RedirectURI != "" {
 			// delete account triggered by sdk via settings action
 			// redirect to oauth callback

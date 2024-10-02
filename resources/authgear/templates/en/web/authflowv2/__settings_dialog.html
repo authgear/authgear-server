@@ -1,0 +1,90 @@
+{{/* Example usage:
+  <button
+    data-controller="settings-dialog"
+    data-action="click->settings-dialog#open"
+    data-settings-dialog-dialogid-param="remove-male-dialog"
+    >
+    Open
+  </button>
+  {{ template "authflowv2/__settings_dialog.html" (dict
+    "Ctx" .
+    "DialogID" "remove-male-dialog"
+    "Title" "Dialog Title"
+    "Description" "Dialog description"
+    "FormContent" (include "inputs" (dict "value" "male"))
+    "Buttons" (list
+      (dict
+        "Type" "Destructive"
+        "Label" (include "v2.component.button.default.label-remove" nil)
+        "Value" "remove"
+        "Event" "authgear.button.sign_in"
+      )
+      (dict
+        "Type" "Cancel"
+        "Label" (include "v2.component.button.default.label-cancel" nil)
+      )
+    )
+  )}}
+*/}}
+
+{{ define "authflowv2/__settings_dialog.html" }}
+{{ template "authflowv2/__dialog.html"
+  (dict
+    "Ctx" $.Ctx
+    "DialogID" $.DialogID
+    "ClassName" "settings-dialog"
+    "DialogContent" (include "authflowv2/__settings_dialog_content.html"
+      (dict
+        "Ctx" $.Ctx
+        "Title" $.Title
+        "Description" $.Description
+        "FormContent" $.FormContent
+        "Buttons" $.Buttons
+      )
+    )
+  )
+}}
+{{ end }}
+
+{{ define "authflowv2/__settings_dialog_content.html" }}
+<form
+  method="post"
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm">
+  <div class="flex flex-col gap-y-8 flex-1-0-auto">
+    <div class="dialog-title-description">
+      <h1 class="dialog-title">
+        {{ $.Title }}
+      </h1>
+      <p class="dialog-description">
+        {{ $.Description }}
+      </p>
+    </div>
+    <div class="flex flex-col gap-y-4">
+      {{ $.FormContent }}
+      {{ range $.Buttons }}
+        <button
+          {{ if (eq .Type "Cancel") }}
+            type="button"
+            class="secondary-btn"
+            data-dialog-id-param="{{ $.DialogID }}"
+            data-action="click->dialog#closeOnCrossBtnClick"
+          {{ else if (eq .Type "Destructive") }}
+            type="submit"
+            class="primary-btn--destructive"
+            name="x_action"
+          {{ else }}
+            type="submit"
+          {{ end }}
+          value="{{ .Value }}"
+          {{ if $.Event }}
+            data-authgear-event="{{ $.Event }}"
+          {{ end }}
+        >
+          {{ .Label }}
+        </button>
+      {{ end }}
+    </div>
+  </div>
+</form>
+{{ end }}

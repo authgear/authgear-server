@@ -58,7 +58,7 @@ func (h *SettingsChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	ctrl.Get(func() error {
 		data, err := h.GetData(r, w)
