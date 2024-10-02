@@ -1,0 +1,605 @@
+name: test-no-env-no-secrets-defined
+authgear.yaml:
+authgear.secrets.yaml:
+environment_variables:
+result:
+error: no available SMS client
+
+---
+name: test-no-env-messaging-not-specified
+authgear.yaml:
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+result:
+error: ambiguous SMS client
+
+---
+name: test-no-env-only-1-secret-defined
+authgear.yaml:
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+result:
+  api_key: "my-api-key"
+  api_secret: "my-api-secret"
+
+---
+name: test-no-env-multiple-secret-with-messaging
+authgear.yaml:
+  messaging:
+    sms_provider: twilio
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables:
+result:
+  account_sid: "my-account-sid"
+  auth_token: "my-auth-token"
+  message_service_sid: "my-message-service-sid"
+
+---
+name: test-no-env-messaging-with-no-secret
+authgear.yaml:
+  messaging:
+    sms_provider: twilio
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+environment_variables:
+result:
+error: no available SMS client
+
+---
+name: test-table-2-1-env-no-use-config-from-no-authgear-secret-ambiguous
+authgear.yaml:
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: provider will be determined from application logic. Read config from sms.{provider} from authgear.secrets.yaml
+result: null
+error: ambiguous SMS client
+
+---
+name: test-table-2-1-env-no-use-config-from-no-authgear-secret
+authgear.yaml:
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: provider will be determined from application logic. Read config from sms.{provider} from authgear.secrets.yaml
+result: 
+  api_key: "my-api-key"
+  api_secret: "my-api-secret"
+
+---
+name: test-table-2-1-env-no-use-config-from-no-authgear-secret-with-messaging-sms-provider
+authgear.yaml:
+  messaging:
+    sms_provider: nexmo
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: provider will be determined from application logic. Read config from sms.{provider} from authgear.secrets.yaml
+result:
+  api_key: "my-api-key"
+  api_secret: "my-api-secret"
+error:
+
+---
+name: test-table-2-1-env-no-use-config-from-authgear-secret-yaml
+authgear.yaml:
+  messaging:
+    sms_provider: nexmo
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: provider will be determined from application logic. Read config from sms.{provider} from authgear.secrets.yaml
+result:
+  api_key: "my-api-key"
+  api_secret: "my-api-secret"
+
+---
+name: test-table-2-2-env-no-use-config-from-environment-variable-ambiguous
+authgear.yaml:
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=environment_variable
+  SMS_GATEWAY_DEFAULT_PROVIDER=
+should: provider will be determined from application logic. Read config from SMS_GATEWAY_{provider}_* from environment variables
+error: ambiguous SMS client
+result: null
+
+---
+name: test-table-2-2-env-no-use-config-from-environment-variable
+authgear.yaml:
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=
+  SMS_GATEWAY_NEXMO_API_SECRET=
+
+  SMS_GATEWAY_CUSTOM_URL=
+  SMS_GATEWAY_CUSTOM_TIMEOUT=
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=environment_variable
+  SMS_GATEWAY_DEFAULT_PROVIDER=
+should: provider will be determined from application logic. Read config from SMS_GATEWAY_{provider}_* from environment variables
+error:
+result:
+  account_sid: "my-env-account-sid"
+  auth_token: "my-env-auth-token"
+  message_service_sid: "my-env-messaging-service-sid"
+
+---
+name: test-table-2-3-env-no-use-config-from-environment-variable-with-default-provider
+authgear.yaml:
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=environment_variable
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: Use SMS_GATEWAY_DEFAULT_PROVIDER as provider. Will read config from SMS_GATEWAY_{SMS_GATEWAY_DEFAULT_PROVIDER}_* environment variables
+result:
+  api_key: "my-env-api-key"
+  api_secret: "my-env-api-secret"
+
+---
+name: test-table-2-4-env-use-config-from-authgear-secret-yaml-ambiguous
+authgear.yaml:
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=authgear.secrets.yaml
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: provider will be determined from application logic. Read config from sms.{provider} from authgear.secrets.yaml
+error: ambiguous SMS client
+result: null
+
+---
+name: test-table-2-4-env-use-config-from-authgear-secret-yaml
+authgear.yaml:
+authgear.secrets.yaml:
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=authgear.secrets.yaml
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: provider will be determined from application logic. Read config from sms.{provider} from authgear.secrets.yaml
+result:
+  url: "http://www.example.com"
+  timeout: 10
+
+---
+name: test-table-3-1-authgear-secrets-use-config-from-env-no-provider-no-default-provider-ambiguous
+authgear.yaml:
+  messaging:
+    sms_gateway:
+      use_config_from: environment_variable
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=authgear.secrets.yaml
+  SMS_GATEWAY_DEFAULT_PROVIDER=
+should: provider will be determined from application logic. Read config from SMS_GATEWAY_{provider}_* from environment variables
+result: null
+error: ambiguous SMS client
+
+---
+name: test-table-3-1-authgear-secrets-use-config-from-env-no-provider-no-default-provider
+authgear.yaml:
+  messaging:
+    sms_gateway:
+      use_config_from: environment_variable
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=
+
+  SMS_GATEWAY_NEXMO_API_KEY=
+  SMS_GATEWAY_NEXMO_API_SECRET=
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=authgear.secrets.yaml
+  SMS_GATEWAY_DEFAULT_PROVIDER=
+should: provider will be determined from application logic. Read config from SMS_GATEWAY_{provider}_* from environment variables
+error:
+result:
+  url: "http://my.env.example.com"
+  timeout: 5
+
+---
+name: test-table-3-2-authgear-secrets-use-config-from-env-no-provider-with-default-provider
+authgear.yaml:
+  messaging:
+    sms_gateway:
+      use_config_from: environment_variable
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=authgear.secrets.yaml
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: Use `SMS_GATEWAY_DEFAULT_PROVIDER` as provider. Will read config from `SMS_GATEWAY_{SMS_GATEWAY_DEFAULT_PROVIDER}_*` environment variables
+result:
+  api_key: "my-env-api-key"
+  api_secret: "my-env-api-secret"
+
+---
+name: test-table-3-3-authgear-secrets-use-config-from-env-with-provider-with-default-provider
+authgear.yaml:
+  messaging:
+    sms_gateway:
+      use_config_from: environment_variable
+      provider: custom
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=authgear.secrets.yaml
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: Use `sms_gateway.provider` as provider. Will read config from `SMS_GATEWAY_{sms_gateway.provider}_*` environment variables
+result:
+  url: "http://my.env.example.com"
+  timeout: 5
+
+---
+name: test-table-3-5-authgear-secrets-use-config-from-authgear-secrets-with-provider
+authgear.yaml:
+  messaging:
+    sms_gateway:
+      use_config_from: authgear.secrets.yaml
+      provider: custom
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=authgear.secrets.yaml
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: Use provider configs from `authgear.secrets.yaml`. Will read config from `sms.{sms_gateway.provider}` from `authgear.secrets.yaml`
+result:
+  url: "http://www.example.com"
+  timeout: 10
+
+---
+name: test-table-1-3-authgear-secrets-sms-provider
+authgear.yaml:
+  messaging:
+    sms_provider: custom
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables: |-
+  SMS_GATEWAY_TWILIO_ACCOUNT_SID=my-env-account-sid
+  SMS_GATEWAY_TWILIO_AUTH_TOKEN=my-env-auth-token
+  SMS_GATEWAY_TWILIO_MESSAGING_SERVICE_SID=my-env-messaging-service-sid
+
+  SMS_GATEWAY_NEXMO_API_KEY=my-env-api-key
+  SMS_GATEWAY_NEXMO_API_SECRET=my-env-api-secret
+
+  SMS_GATEWAY_CUSTOM_URL=http://my.env.example.com
+  SMS_GATEWAY_CUSTOM_TIMEOUT=5
+
+  SMS_GATEWAY_DEFAULT_USE_CONFIG_FROM=authgear.secrets.yaml
+  SMS_GATEWAY_DEFAULT_PROVIDER=nexmo
+should: Use `messaging.sms_provider` from `authgear.secrets.yaml`. Read config from `sms.{messaging.sms_provider}` from `authgear.secrets.yaml`
+result:
+  url: "http://www.example.com"
+  timeout: 10
+
+---
+name: test-only-defined-in-authgear-secrets-yaml-use-gateway-config-from-authgear.secrets.yaml
+authgear.yaml:
+  messaging:
+    sms_provider: twilio
+    sms_gateway:
+      use_config_from: authgear.secrets.yaml
+      provider: custom
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables:
+result:
+  url: "http://www.example.com"
+  timeout: 10
+
+---
+name: test-missing-env-when-attempt-to-use-env
+authgear.yaml:
+  messaging:
+    sms_provider: twilio
+    sms_gateway:
+      use_config_from: environment_variable
+      provider: twilio
+authgear.secrets.yaml:
+  nexmo:
+    api_key: "my-api-key"
+    api_secret: "my-api-secret"
+  twilio:
+    account_sid: "my-account-sid"
+    auth_token: "my-auth-token"
+    message_service_sid: "my-message-service-sid"
+  custom:
+    url: "http://www.example.com"
+    timeout: 10
+environment_variables:
+result:
+error: no available SMS client

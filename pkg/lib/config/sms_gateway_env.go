@@ -12,8 +12,8 @@ type SMSGatewayEnvironmentNexmoCredentials struct {
 }
 
 type SMSGatewayEnvironmentCustomSMSProviderConfig struct {
-	URL     string          `envconfig:"URL"`
-	Timeout DurationSeconds `envconfig:"TIMEOUT"`
+	URL     string `envconfig:"URL"`
+	Timeout string `envconfig:"TIMEOUT"`
 }
 
 type SMSGatewayEnvironmentDefaultUseConfigFrom string

@@ -31,6 +31,7 @@ pkg/lib/config/messaging_sms_gateway_test.go cannot import gopkg.in/yaml.v2
 pkg/lib/config/schema_test.go cannot import gopkg.in/yaml.v2
 pkg/lib/config/secret_test.go cannot import gopkg.in/yaml.v2
 pkg/lib/config/secret_update_instruction_test.go cannot import gopkg.in/yaml.v2
+pkg/lib/infra/sms/client_resolver_test.go cannot import gopkg.in/yaml.v2
 pkg/portal/service/kubernetes.go cannot import gopkg.in/yaml.v2
 pkg/util/libmagic/magic.go cannot import github.com/vimeo/go-magic/magic
 pkg/util/messageformat/messageformat.go cannot import github.com/iawaknahc/gomessageformat

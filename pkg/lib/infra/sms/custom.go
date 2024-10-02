@@ -11,6 +11,13 @@ import (
 
 var ErrMissingCustomSMSProviderConfiguration = errors.New("sms: custom provider configuration is missing")
 
+type CustomClientCredentials struct {
+	URL     string
+	Timeout *config.DurationSeconds
+}
+
+func (CustomClientCredentials) smsClientCredentials() {}
+
 type CustomClient struct {
 	Config      *config.CustomSMSProviderConfig
 	SMSDenoHook SMSDenoHook
