@@ -156,29 +156,16 @@ func (p *Provider) AccessWithToken(token string, accessEvent access.Event) (*IDP
 		return nil, err
 	}
 
-	mutexName := sessionMutexName(p.AppID, s.ID)
-	mutex := p.Redis.NewMutex(mutexName)
-	err = mutex.LockContext(p.Context)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		_, _ = mutex.UnlockContext(p.Context)
-	}()
+	ss, err := p.accessWithID(s.ID, accessEvent)
 
-	s.AccessInfo.LastAccess = accessEvent
-	setSessionExpireAtForResolvedSession(s, p.Config)
-
-	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
-	if err != nil {
-		err = fmt.Errorf("failed to update session: %w", err)
-		return nil, err
-	}
-
-	return s, nil
+	return ss, err
 }
 
 func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSession, error) {
+	return p.accessWithID(id, accessEvent)
+}
+
+func (p *Provider) accessWithID(id string, accessEvent access.Event) (*IDPSession, error) {
 	mutexName := sessionMutexName(p.AppID, id)
 	mutex := p.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(p.Context)
@@ -195,6 +182,7 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 	}
 
 	s.AccessInfo.LastAccess = accessEvent
+
 	setSessionExpireAtForResolvedSession(s, p.Config)
 
 	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
