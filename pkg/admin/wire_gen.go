@@ -320,9 +320,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:   clockClock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		Redis: appredisHandle,
-	}
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,

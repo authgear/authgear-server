@@ -281,9 +281,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Clock:   clockClock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		Redis: appredisHandle,
-	}
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,

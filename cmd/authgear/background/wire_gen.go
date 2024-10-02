@@ -309,9 +309,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Clock:   clockClock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		Redis: appredisHandle,
-	}
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,

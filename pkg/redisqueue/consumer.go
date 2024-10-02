@@ -10,11 +10,13 @@ import (
 	goredis "github.com/go-redis/redis/v8"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/backoff"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -29,6 +31,8 @@ var timeout = 10 * time.Second
 
 var errNoTask = errors.New("no task in queue")
 
+const taskQueueBucket ratelimit.BucketName = "TaskQueue"
+
 type TaskProcessor func(ctx context.Context, appProvider *deps.AppProvider, task *redisqueue.Task) (output json.RawMessage, err error)
 
 type Consumer struct {
@@ -41,6 +45,8 @@ type Consumer struct {
 	logger                 *log.Logger
 
 	dequeueBackoff *backoff.Counter
+	limitBucket    ratelimit.BucketSpec
+	limiter        *ratelimit.LimiterGlobal
 
 	// shutdown is for breaking the loop.
 	shutdown chan struct{}
@@ -52,23 +58,30 @@ type Consumer struct {
 
 var _ signalutil.Daemon = &Consumer{}
 
-func NewConsumer(queueName string, rootProvider *deps.RootProvider, configSourceController *configsource.Controller, taskProcessor TaskProcessor) *Consumer {
+func NewConsumer(queueName string, rateLimitConfig config.RateLimitsEnvironmentConfigEntry, rootProvider *deps.RootProvider, configSourceController *configsource.Controller, taskProcessor TaskProcessor) *Consumer {
+	redis := globalredis.NewHandle(
+		rootProvider.RedisPool,
+		&rootProvider.EnvironmentConfig.RedisConfig,
+		&rootProvider.EnvironmentConfig.GlobalRedis,
+		rootProvider.LoggerFactory,
+	)
+
 	return &Consumer{
 		QueueName:              queueName,
 		clock:                  clock.NewSystemClock(),
 		rootProvider:           rootProvider,
 		configSourceController: configSourceController,
 		taskProcessor:          taskProcessor,
-		redis: globalredis.NewHandle(
-			rootProvider.RedisPool,
-			&rootProvider.EnvironmentConfig.RedisConfig,
-			&rootProvider.EnvironmentConfig.GlobalRedis,
-			rootProvider.LoggerFactory,
-		),
-		logger: rootProvider.LoggerFactory.New("redis-queue-consumer"),
+		redis:                  redis,
+		logger:                 rootProvider.LoggerFactory.New("redis-queue-consumer"),
 		dequeueBackoff: &backoff.Counter{
 			Interval:    time.Millisecond * 500,
 			MaxInterval: time.Second * 10,
+		},
+		limitBucket: ratelimit.NewGlobalBucketSpec(rateLimitConfig, taskQueueBucket, queueName),
+		limiter: &ratelimit.LimiterGlobal{
+			Logger:  ratelimit.NewLogger(rootProvider.LoggerFactory),
+			Storage: ratelimit.NewGlobalStorageRedis(redis),
 		},
 		shutdown:     make(chan struct{}),
 		shutdownDone: make(chan struct{}),
@@ -218,6 +231,16 @@ func (c *Consumer) work(ctx context.Context) {
 	}
 
 	c.dequeueBackoff.Reset()
+
+	if r := c.limiter.Reserve(c.limitBucket); r.Error() != nil {
+		c.logger.WithField("tat", r.GetTimeToAct()).Debug("task rate limited")
+		select {
+		case <-c.shutdown:
+			return
+		case <-time.After(r.GetTimeToAct().Sub(c.clock.NowMonotonic())):
+			break
+		}
+	}
 
 	output, err := c.process(ctx, task, appProvider)
 

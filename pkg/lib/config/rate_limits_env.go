@@ -49,10 +49,13 @@ func (e *RateLimitsEnvironmentConfigEntry) Set(value string) error {
 }
 
 type RateLimitsEnvironmentConfig struct {
-	SMS            RateLimitsEnvironmentConfigEntry `envconfig:"SMS"`
-	SMSPerIP       RateLimitsEnvironmentConfigEntry `envconfig:"SMS_PER_IP"`
-	SMSPerTarget   RateLimitsEnvironmentConfigEntry `envconfig:"SMS_PER_TARGET" default:"50/24h"`
-	Email          RateLimitsEnvironmentConfigEntry `envconfig:"EMAIL"`
-	EmailPerIP     RateLimitsEnvironmentConfigEntry `envconfig:"EMAIL_PER_IP"`
-	EmailPerTarget RateLimitsEnvironmentConfigEntry `envconfig:"EMAIL_PER_TARGET" default:"50/24h"`
+	SMS             RateLimitsEnvironmentConfigEntry `envconfig:"SMS"`
+	SMSPerIP        RateLimitsEnvironmentConfigEntry `envconfig:"SMS_PER_IP"`
+	SMSPerTarget    RateLimitsEnvironmentConfigEntry `envconfig:"SMS_PER_TARGET" default:"50/24h"`
+	Email           RateLimitsEnvironmentConfigEntry `envconfig:"EMAIL"`
+	EmailPerIP      RateLimitsEnvironmentConfigEntry `envconfig:"EMAIL_PER_IP"`
+	EmailPerTarget  RateLimitsEnvironmentConfigEntry `envconfig:"EMAIL_PER_TARGET" default:"50/24h"`
+	TaskUserImport  RateLimitsEnvironmentConfigEntry `envconfig:"TASK_USER_IMPORT"`
+	TaskUserExport  RateLimitsEnvironmentConfigEntry `envconfig:"TASK_USER_EXPORT"`
+	TaskUserReindex RateLimitsEnvironmentConfigEntry `envconfig:"TASK_USER_REINDEX"`
 }
