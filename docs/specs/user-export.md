@@ -1,6 +1,7 @@
 - [User Export](#user-export)
   * [About User Export](#about-user-export)
   * [Create an export](#create-an-export)
+    + [The usage limit](#the-usage-limit)
     + [The request body of Create an export](#the-request-body-of-create-an-export)
       - [Default CSV fields](#default-csv-fields)
       - [The field name](#the-field-name)
@@ -16,7 +17,7 @@
     + [The storage of the export file](#the-storage-of-the-export-file)
     + [The content of the export file](#the-content-of-the-export-file)
     + [The record format](#the-record-format)
-  * [Ceveats](#ceveats)
+  * [Caveats](#caveats)
 
 # User Export
 
