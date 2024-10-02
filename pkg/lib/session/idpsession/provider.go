@@ -29,6 +29,11 @@ const (
 
 type AccessEventProvider interface {
 	InitStream(sessionID string, expiry time.Time, event *access.Event) error
+	RecordAccess(sessionID string, expiry time.Time, event *access.Event) error
+}
+
+type ProviderMeterService interface {
+	TrackActiveUser(userID string) error
 }
 
 type Rand *rand.Rand
@@ -41,6 +46,7 @@ type Provider struct {
 	Redis           *appredis.Handle
 	Store           Store
 	AccessEvents    AccessEventProvider
+	MeterService    ProviderMeterService
 	TrustProxy      config.TrustProxy
 	Config          *config.SessionConfig
 	Clock           clock.Clock
@@ -165,10 +171,10 @@ func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSessio
 	return p.accessWithID(id, accessEvent)
 }
 
-func (p *Provider) accessWithID(id string, accessEvent access.Event) (*IDPSession, error) {
+func (p *Provider) accessWithID(id string, accessEvent access.Event) (s *IDPSession, err error) {
 	mutexName := sessionMutexName(p.AppID, id)
 	mutex := p.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(p.Context)
+	err = mutex.LockContext(p.Context)
 	if err != nil {
 		return nil, err
 	}
@@ -176,12 +182,15 @@ func (p *Provider) accessWithID(id string, accessEvent access.Event) (*IDPSessio
 		_, _ = mutex.UnlockContext(p.Context)
 	}()
 
-	s, err := p.Get(id)
+	s, err = p.Get(id)
 	if err != nil {
 		return nil, err
 	}
 
 	s.AccessInfo.LastAccess = accessEvent
+	defer func() {
+		err = p.accessSideEffects(s, accessEvent)
+	}()
 
 	setSessionExpireAtForResolvedSession(s, p.Config)
 
@@ -192,6 +201,21 @@ func (p *Provider) accessWithID(id string, accessEvent access.Event) (*IDPSessio
 	}
 
 	return s, nil
+}
+
+func (p *Provider) accessSideEffects(session *IDPSession, accessEvent access.Event) error {
+
+	err := p.AccessEvents.RecordAccess(session.SessionID(), session.GetExpireAt(), &accessEvent)
+	if err != nil {
+		return err
+	}
+
+	err = p.MeterService.TrackActiveUser(session.GetAuthenticationInfo().UserID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *Provider) AddSAMLServiceProviderParticipant(session *IDPSession, serviceProviderID string) (*IDPSession, error) {

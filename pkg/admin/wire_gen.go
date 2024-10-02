@@ -814,6 +814,18 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+		Logger:  meterStoreRedisLogger,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
 		Context:         contextContext,
@@ -823,6 +835,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Redis:           appredisHandle,
 		Store:           idpsessionStoreRedis,
 		AccessEvents:    eventProvider,
+		MeterService:    meterService,
 		TrustProxy:      trustProxy,
 		Config:          sessionConfig,
 		Clock:           clockClock,
@@ -843,18 +856,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
-	}
-	analyticredisHandle := appProvider.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
-	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: contextContext,
-		Redis:   analyticredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
-		Logger:  meterStoreRedisLogger,
-	}
-	meterService := &meter.Service{
-		Counter: writeStoreRedis,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,

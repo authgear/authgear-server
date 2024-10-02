@@ -681,6 +681,18 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
+	analyticredisHandle := p.AnalyticRedis
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Context: ctx,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clock,
+		Logger:  meterStoreRedisLogger,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
 		Context:         ctx,
@@ -690,6 +702,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Redis:           appredisHandle,
 		Store:           idpsessionStoreRedis,
 		AccessEvents:    eventProvider,
+		MeterService:    meterService,
 		TrustProxy:      trustProxy,
 		Config:          sessionConfig,
 		Clock:           clock,
@@ -710,18 +723,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
-	}
-	analyticredisHandle := p.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
-	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: ctx,
-		Redis:   analyticredisHandle,
-		AppID:   appID,
-		Clock:   clock,
-		Logger:  meterStoreRedisLogger,
-	}
-	meterService := &meter.Service{
-		Counter: writeStoreRedis,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,

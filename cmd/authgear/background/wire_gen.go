@@ -766,6 +766,19 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
+	analyticRedisCredentials := deps.ProvideAnalyticRedisCredentials(secretConfig)
+	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, analyticRedisCredentials, factory)
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Context: ctx,
+		Redis:   analyticredisHandle,
+		AppID:   configAppID,
+		Clock:   clockClock,
+		Logger:  meterStoreRedisLogger,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
 		Context:         ctx,
@@ -775,6 +788,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Redis:           appredisHandle,
 		Store:           idpsessionStoreRedis,
 		AccessEvents:    eventProvider,
+		MeterService:    meterService,
 		TrustProxy:      trustProxy,
 		Config:          sessionConfig,
 		Clock:           clockClock,
@@ -795,19 +809,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
-	}
-	analyticRedisCredentials := deps.ProvideAnalyticRedisCredentials(secretConfig)
-	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, analyticRedisCredentials, factory)
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
-	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: ctx,
-		Redis:   analyticredisHandle,
-		AppID:   configAppID,
-		Clock:   clockClock,
-		Logger:  meterStoreRedisLogger,
-	}
-	meterService := &meter.Service{
-		Counter: writeStoreRedis,
 	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
