@@ -15,12 +15,12 @@ func MigrateCreateCSSWithDefaultLogoHeight(selector string) (result []byte, err 
 	cssRawStr := fmt.Sprintf("%v {}", selector)
 	b := []byte(cssRawStr)
 	r := bytes.NewReader(b)
-	result, _, err = MigrateSetDefaultLogoHeight(r)
+	result, err = MigrateSetDefaultLogoHeight(r)
 	return
 }
 
 // MigrateSetDefaultLogoHeight set default logo heights for existing projects that does not have it set yet
-func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, alreadySet bool, err error) {
+func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, err error) {
 	p := css.NewParser(parse.NewInput(r), false)
 
 	var elements []element
@@ -37,10 +37,7 @@ func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, alreadySet bool, e
 		elements = append(elements, el)
 	}
 
-	elements, alreadySet = setDefaultHeight(elements)
-	if alreadySet {
-		return nil, alreadySet, nil
-	}
+	elements = setDefaultHeight(elements)
 	var buf bytes.Buffer
 	stringify(&buf, elements)
 
@@ -48,19 +45,31 @@ func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, alreadySet bool, e
 	return
 }
 
+func CheckLogoHeightDeclarationInSelector(cssString string, selector string) (bool, error) {
+	return CheckDeclarationInSelector(cssString, selector, LogoHeightPropertyKey)
+}
+
+func CheckLogoHeightDeclarationInDarkThemeCSS(cssString string, selector string) (bool, error) {
+	return CheckDeclarationInSelector(cssString, selector, LogoHeightPropertyKey)
+}
+
+var LightThemeCSSSelector string = ":root"
+var DarkThemeCSSSelector string = ":root.dark"
 var LogoHeightPropertyKey string = "--brand-logo__height"
 var DefaultLogoHeight string = "40px"
 
-func setDefaultHeight(elements []element) (out []element, alreadySet bool) {
+func setDefaultHeight(elements []element) (out []element) {
 	for _, el := range elements {
 		switch v := el.(type) {
 		case *ruleset:
-			if v.Selector != ":root" && v.Selector != ":root.dark" {
+			if v.Selector != LightThemeCSSSelector && v.Selector != DarkThemeCSSSelector {
 				out = append(out, el)
 				continue
 			}
+			// inside light/dark theme css selector
 			if isLogoHeightSet(v) {
-				return nil, true
+				out = append(out, el)
+				continue
 			}
 
 			d := newLogoHeightDeclaration(DefaultLogoHeight)
