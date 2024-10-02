@@ -76,7 +76,7 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 		if err != nil {
 			return err
 		}
-	case !hasLightLogo && !hasLightThemeCSS:
+	case !hasLightLogo:
 		log.Printf("Skipping light theme css creation of app (%s) because it does not have light theme logo set", appID)
 	}
 
@@ -92,8 +92,7 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 		if err != nil {
 			return err
 		}
-
-	case !hasDarkLogo && !hasDarkThemeCSS:
+	case !hasDarkLogo:
 		log.Printf("Skipping dark theme css creation of app (%s) because it does not have dark theme logo set", appID)
 	}
 
