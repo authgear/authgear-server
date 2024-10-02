@@ -247,7 +247,7 @@ func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -403,7 +403,7 @@ func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSess
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -635,7 +635,7 @@ func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -788,7 +788,7 @@ func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSess
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
 	if err != nil {
 		return
 	}

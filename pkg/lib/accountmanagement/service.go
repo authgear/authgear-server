@@ -305,6 +305,9 @@ func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, tokenSt
 			target = token.Identity.PhoneNumber
 			channel = model.AuthenticatorOOBChannelSMS
 		}
+	} else if token.Authenticator != nil {
+		target = token.Authenticator.OOBOTPTarget
+		channel = token.Authenticator.OOBOTPChannel
 	} else {
 		panic(fmt.Errorf("accountmanagement: unexpected token in resend otp code"))
 	}
@@ -368,13 +371,14 @@ func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChann
 	return nil
 }
 
-func (s *Service) verifyOTP(userID string, channel model.AuthenticatorOOBChannel, target string, code string) error {
+func (s *Service) VerifyOTP(userID string, channel model.AuthenticatorOOBChannel, target string, code string, skipConsume bool) error {
 	err := s.OTPCodeService.VerifyOTP(
 		otp.KindVerification(s.Config, channel),
 		target,
 		code,
 		&otp.VerifyOptions{
-			UserID: userID,
+			UserID:      userID,
+			SkipConsume: skipConsume,
 		},
 	)
 	if apierrors.IsKind(err, otp.InvalidOTPCode) {
