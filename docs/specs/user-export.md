@@ -40,7 +40,8 @@ The endpoint is `POST /_api/admin/users/export`.
 
 ### The usage limit
 
-The usage limit is specified in `authgear.features.yaml`
+The usage limit is specified in `authgear.features.yaml`.
+The following example shows the default usage limit.
 
 ```yaml
 admin_api:
