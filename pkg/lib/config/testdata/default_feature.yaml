@@ -112,13 +112,9 @@ web3:
 admin_api:
   create_session_enabled: false
   user_import_usage:
-    enabled: true
-    period: day
-    quota: 10000
+    enabled: false
   user_export_usage:
-    enabled: true
-    period: day
-    quota: 24
+    enabled: false
 test_mode:
   fixed_oob_otp:
     enabled: false

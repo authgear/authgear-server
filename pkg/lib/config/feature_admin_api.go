@@ -26,16 +26,12 @@ func (c *AdminAPIFeatureConfig) SetDefaults() {
 	}
 	if c.UserImportUsage.Enabled == nil {
 		c.UserImportUsage = &UsageLimitConfig{
-			Enabled: newBool(true),
-			Period:  UsageLimitPeriodDay,
-			Quota:   10000,
+			Enabled: newBool(false),
 		}
 	}
 	if c.UserExportUsage.Enabled == nil {
 		c.UserExportUsage = &UsageLimitConfig{
-			Enabled: newBool(true),
-			Period:  UsageLimitPeriodDay,
-			Quota:   24,
+			Enabled: newBool(false),
 		}
 	}
 }
