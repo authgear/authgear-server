@@ -1,7 +1,6 @@
 package authflowv2
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -53,12 +52,13 @@ type ResetPasswordHandlerDatabase interface {
 }
 
 type AuthflowV2ResetPasswordHandler struct {
-	Controller                  *handlerwebapp.AuthflowController
-	BaseViewModel               *viewmodels.BaseViewModeler
-	Renderer                    handlerwebapp.Renderer
-	AdminAPIResetPasswordPolicy ResetPasswordHandlerPasswordPolicy
-	ResetPassword               ResetPasswordHandlerResetPasswordService
-	Database                    ResetPasswordHandlerDatabase
+	NonAuthflowControllerFactory handlerwebapp.ControllerFactory
+	Controller                   *handlerwebapp.AuthflowController
+	BaseViewModel                *viewmodels.BaseViewModeler
+	Renderer                     handlerwebapp.Renderer
+	AdminAPIResetPasswordPolicy  ResetPasswordHandlerPasswordPolicy
+	ResetPassword                ResetPasswordHandlerResetPasswordService
+	Database                     ResetPasswordHandlerDatabase
 }
 
 func (h *AuthflowV2ResetPasswordHandler) GetNonAuthflowData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
@@ -118,27 +118,15 @@ func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 }
 
 func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
-	makeHTTPHandler := func(handler func(w http.ResponseWriter, r *http.Request) error) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			var err error
-			if code == "" {
-				err = newCodeRequiredErr()
-			} else {
-				err = handler(w, r)
-			}
-			if err != nil {
-				if apierrors.IsAPIError(err) {
-					// Still uses AuthflowController to render error because of same logic
-					h.Controller.ErrorRenderer.RenderError(w, r, err)
-				} else {
-					panic(err)
-				}
-			}
-		})
+	ctrl, err := h.NonAuthflowControllerFactory.New(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
-	getHandler := makeHTTPHandler(func(w http.ResponseWriter, r *http.Request) error {
+	defer ctrl.Serve()
+
+	ctrl.Get(func() error {
 		data, err := h.GetNonAuthflowData(w, r)
 		if err != nil {
 			return err
@@ -147,7 +135,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 		return nil
 	})
 
-	postHandler := makeHTTPHandler(func(w http.ResponseWriter, r *http.Request) error {
+	ctrl.PostAction("", func() error {
 		err := AuthflowResetPasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -159,6 +147,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 			return err
 		}
 
+		code := r.URL.Query().Get("code")
 		err = h.Database.WithTx(func() error {
 			return h.ResetPassword.ResetPasswordByEndUser(
 				code,
@@ -173,17 +162,6 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 		result.WriteResponse(w, r)
 		return nil
 	})
-
-	switch r.Method {
-	case "GET":
-		getHandler.ServeHTTP(w, r)
-	case "POST":
-		postHandler.ServeHTTP(w, r)
-	default:
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
 }
 
 func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter, r *http.Request) {
@@ -250,10 +228,4 @@ var fromAdminAPIQueryKey = "x_from_admin_api"
 
 func isURLFromAdminAPI(r *http.Request) bool {
 	return r.URL.Query().Get(fromAdminAPIQueryKey) == "true"
-}
-
-func newCodeRequiredErr() *apierrors.APIError {
-	apiErr := apierrors.AsAPIError(fmt.Errorf("code required in admin_api reset password page"))
-	apiErr.Reason = "CodeRequiredInAdminAPIResetPasswordPage"
-	return apiErr
 }
