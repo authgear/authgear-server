@@ -177,39 +177,58 @@ type MigrateLogoHeightConfig struct {
 	DarkThemeCSS  *ResourceConfigDecoded
 }
 
-var lightLogoPathRegex = `^static/([a-zA-Z-]+)/app_logo\.(png|jpe|jpeg|jpg|gif)$`
-var darkLogoPathRegex = `^static/([a-zA-Z-]+)/app_logo_dark\.(png|jpe|jpeg|jpg|gif)$`
+var lightLogoPathRegex = regexp.MustCompile(`^static/([a-zA-Z-]+)/app_logo\.(png|jpe|jpeg|jpg|gif)$`)
+var darkLogoPathRegex = regexp.MustCompile(`^static/([a-zA-Z-]+)/app_logo_dark\.(png|jpe|jpeg|jpg|gif)$`)
 var LightThemeCSSPath = "static/authgear-authflowv2-light-theme.css"
 var DarkThemeCSSPath = "static/authgear-authflowv2-dark-theme.css"
+var LightThemeCSSPathRegex = regexp.MustCompile(fmt.Sprintf(`^%v$`, LightThemeCSSPath))
+var DarkThemeCSSPathRegex = regexp.MustCompile(fmt.Sprintf(`^%v$`, DarkThemeCSSPath))
 
 func parseLogoHeightConfigSource(configSourceData map[string]string) (*MigrateLogoHeightConfig, error) {
 	out := &MigrateLogoHeightConfig{}
 
-	for k, v := range configSourceData {
-		p, err := filepathutil.UnescapePath(k)
+	if lightLogoMatched, ok := getMatchingConfigSourcePaths(lightLogoPathRegex, configSourceData); ok {
+		firstLogo := lightLogoMatched[0]
+		unescapedPath, err := filepathutil.UnescapePath(firstLogo)
 		if err != nil {
 			return nil, err
 		}
-		if ok, _ := regexp.MatchString(lightLogoPathRegex, p); ok {
-			out.LightLogo = newResourceConfig(p, k, v)
+		out.LightLogo = newResourceConfig(unescapedPath, firstLogo, configSourceData[firstLogo])
+	}
+
+	if darkLogoMatched, ok := getMatchingConfigSourcePaths(darkLogoPathRegex, configSourceData); ok {
+		firstLogo := darkLogoMatched[0]
+		unescapedPath, err := filepathutil.UnescapePath(firstLogo)
+		if err != nil {
+			return nil, err
 		}
-		if ok, _ := regexp.MatchString(darkLogoPathRegex, p); ok {
-			out.DarkLogo = newResourceConfig(p, k, v)
+		out.DarkLogo = newResourceConfig(unescapedPath, firstLogo, configSourceData[firstLogo])
+	}
+
+	if lightThemeCSSMatch, ok := getMatchingConfigSourcePaths(LightThemeCSSPathRegex, configSourceData); ok {
+		firstThemeCSS := lightThemeCSSMatch[0]
+		unescapedPath, err := filepathutil.UnescapePath(firstThemeCSS)
+		if err != nil {
+			return nil, err
 		}
-		if p == LightThemeCSSPath {
-			rcd, err := newResourceConfigDecoded(p, k, v)
-			if err != nil {
-				return nil, err
-			}
-			out.LightThemeCSS = rcd
+		rcd, err := newResourceConfigDecoded(unescapedPath, firstThemeCSS, configSourceData[firstThemeCSS])
+		if err != nil {
+			return nil, err
 		}
-		if p == DarkThemeCSSPath {
-			rcd, err := newResourceConfigDecoded(p, k, v)
-			if err != nil {
-				return nil, err
-			}
-			out.DarkThemeCSS = rcd
+		out.LightThemeCSS = rcd
+	}
+
+	if darkThemeCSSMatch, ok := getMatchingConfigSourcePaths(DarkThemeCSSPathRegex, configSourceData); ok {
+		firstThemeCSS := darkThemeCSSMatch[0]
+		unescapedPath, err := filepathutil.UnescapePath(firstThemeCSS)
+		if err != nil {
+			return nil, err
 		}
+		rcd, err := newResourceConfigDecoded(unescapedPath, firstThemeCSS, configSourceData[firstThemeCSS])
+		if err != nil {
+			return nil, err
+		}
+		out.DarkThemeCSS = rcd
 	}
 
 	return out, nil
@@ -234,6 +253,24 @@ func newResourceConfigDecoded(originalPath string, escapedPath string, encoded s
 		EncodedData:  encoded,
 		DecodedData:  decoded,
 	}, nil
+}
+
+// getMatchingConfigSourcePaths get all paths in configSourceData that match the input pattern
+//
+// It returns a string-slice of path that matches the regexp. If the slice is non-empty, then 2nd return value is true, otherwise it is false.
+func getMatchingConfigSourcePaths(pattern *regexp.Regexp, configSourceData map[string]string) (matched []string, ok bool) {
+	for p := range configSourceData {
+		ep, err := filepathutil.UnescapePath(p)
+		if err != nil {
+			log.Fatalf("failed to unescape path: %s", err)
+			return nil, false
+		}
+		if ok, _ := regexp.MatchString(pattern.String(), ep); ok {
+			matched = append(matched, p) // output escaped path
+		}
+	}
+
+	return matched, len(matched) > 0
 }
 
 func init() {
