@@ -778,11 +778,25 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clock,
+		Logger:  meterStoreRedisLogger,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
 		Clock:          clock,
 		IDPSessions:    provider,
 		ClientResolver: oauthclientResolver,
+		AccessEvents:   eventProvider,
+		MeterService:   meterService,
 		OfflineGrants:  store,
 	}
 	sessionManager := &oauth2.SessionManager{
@@ -848,18 +862,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		OfflineGrantService: offlineGrantService,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
-	analyticredisHandle := appProvider.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
-	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: contextContext,
-		Redis:   analyticredisHandle,
-		AppID:   appID,
-		Clock:   clock,
-		Logger:  meterStoreRedisLogger,
-	}
-	meterService := &meter.Service{
-		Counter: writeStoreRedis,
-	}
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
 		Cookies:                    cookieManager,

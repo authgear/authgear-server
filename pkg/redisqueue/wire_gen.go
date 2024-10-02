@@ -45,6 +45,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
@@ -710,11 +711,25 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	analyticredisHandle := p.AnalyticRedis
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Context: ctx,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clock,
+		Logger:  meterStoreRedisLogger,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
 		Clock:          clock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		AccessEvents:   eventProvider,
+		MeterService:   meterService,
 		OfflineGrants:  redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{

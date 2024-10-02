@@ -59,6 +59,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	"github.com/authgear/authgear-server/pkg/lib/nonce"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/handler"
@@ -843,11 +844,25 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+		Logger:  meterStoreRedisLogger,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		AccessEvents:   eventProvider,
+		MeterService:   meterService,
 		OfflineGrants:  redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{
@@ -1082,6 +1097,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		AccessEvents:   eventProvider,
+		MeterService:   meterService,
 		OfflineGrants:  redisStore,
 	}
 	authorizationService := &oauth2.AuthorizationService{

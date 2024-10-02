@@ -219,6 +219,7 @@ var CommonDependencySet = wire.NewSet(
 		access.DependencySet,
 		session.DependencySet,
 		wire.Bind(new(idpsession.AccessEventProvider), new(*access.EventProvider)),
+		wire.Bind(new(oauth.OfflineGrantServiceAccessEventProvider), new(*access.EventProvider)),
 		wire.Bind(new(oidchandler.LogoutSessionManager), new(*session.Manager)),
 		wire.Bind(new(oauthhandler.SessionManager), new(*session.Manager)),
 		wire.Bind(new(interaction.SessionManager), new(*session.Manager)),
@@ -523,6 +524,7 @@ var CommonDependencySet = wire.NewSet(
 		meter.DependencySet,
 		wire.Bind(new(session.MeterService), new(*meter.Service)),
 		wire.Bind(new(oauthhandler.TokenHandlerMeterService), new(*meter.Service)),
+		wire.Bind(new(oauth.OfflineGrantServiceMeterService), new(*meter.Service)),
 	),
 
 	wire.NewSet(
