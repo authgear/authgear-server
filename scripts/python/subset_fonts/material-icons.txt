@@ -1,11 +1,13 @@
 360
 account_circle
 account_circle_off
+add
 android
 animation
 api
 arrow_back_ios
 arrow_forward_ios
+auto_delete
 block
 border_color
 box
@@ -20,6 +22,7 @@ code
 colors
 create
 css
+delete
 description
 details
 devices
@@ -43,6 +46,7 @@ function
 functions
 height
 hide
+highlight
 home
 html
 http
@@ -71,6 +75,7 @@ merge
 message
 mode
 more
+note
 opacity
 outlet
 padding
@@ -80,6 +85,8 @@ password
 pattern
 pending
 person
+person_check
+person_remove
 phone
 phone_iphone
 photo
@@ -94,6 +101,7 @@ public
 qr_code
 radio
 refresh
+remove
 repeat
 restore
 rule
@@ -137,6 +145,7 @@ try
 update
 upload
 uppercase
+verified
 verified_user
 visibility
 visibility_off
