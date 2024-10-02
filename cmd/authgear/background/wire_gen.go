@@ -46,11 +46,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
@@ -794,11 +796,26 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		OAuthConfig:     oAuthConfig,
 		TesterEndpoints: endpointsEndpoints,
 	}
+	analyticRedisCredentials := deps.ProvideAnalyticRedisCredentials(secretConfig)
+	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, analyticRedisCredentials, factory)
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Context: ctx,
+		Redis:   analyticredisHandle,
+		AppID:   configAppID,
+		Clock:   clockClock,
+		Logger:  meterStoreRedisLogger,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
 	offlineGrantService := oauth2.OfflineGrantService{
 		OAuthConfig:    oAuthConfig,
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		AccessEvents:   eventProvider,
+		MeterService:   meterService,
 		OfflineGrants:  redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{
