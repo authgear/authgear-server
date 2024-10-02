@@ -317,7 +317,7 @@ func (s *Store) UpdateOfflineGrantLastAccess(grantID string, accessEvent access.
 	return grant, nil
 }
 
-func (s *Store) AccessOfflineGrantAndUpdateDeviceInfo(grantID string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) UpdateOfflineGrantDeviceInfo(grantID string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
 	err := mutex.LockContext(s.Context)
@@ -333,7 +333,6 @@ func (s *Store) AccessOfflineGrantAndUpdateDeviceInfo(grantID string, accessEven
 		return nil, err
 	}
 
-	grant.AccessInfo.LastAccess = accessEvent
 	grant.DeviceInfo = deviceInfo
 
 	err = s.updateOfflineGrant(grant, expireAt)

@@ -169,21 +169,6 @@ func (m *MockOfflineGrantStore) EXPECT() *MockOfflineGrantStoreMockRecorder {
 	return m.recorder
 }
 
-// AccessOfflineGrantAndUpdateDeviceInfo mocks base method.
-func (m *MockOfflineGrantStore) AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*OfflineGrant, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AccessOfflineGrantAndUpdateDeviceInfo", id, accessEvent, deviceInfo, expireAt)
-	ret0, _ := ret[0].(*OfflineGrant)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AccessOfflineGrantAndUpdateDeviceInfo indicates an expected call of AccessOfflineGrantAndUpdateDeviceInfo.
-func (mr *MockOfflineGrantStoreMockRecorder) AccessOfflineGrantAndUpdateDeviceInfo(id, accessEvent, deviceInfo, expireAt interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccessOfflineGrantAndUpdateDeviceInfo", reflect.TypeOf((*MockOfflineGrantStore)(nil).AccessOfflineGrantAndUpdateDeviceInfo), id, accessEvent, deviceInfo, expireAt)
-}
-
 // AddOfflineGrantRefreshToken mocks base method.
 func (m *MockOfflineGrantStore) AddOfflineGrantRefreshToken(grantID string, expireAt time.Time, tokenHash, clientID string, scopes []string, authorizationID, dpopJKT string) (*OfflineGrant, error) {
 	m.ctrl.T.Helper()
@@ -344,6 +329,21 @@ func (m *MockOfflineGrantStore) UpdateOfflineGrantAuthenticatedAt(id string, aut
 func (mr *MockOfflineGrantStoreMockRecorder) UpdateOfflineGrantAuthenticatedAt(id, authenticatedAt, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantAuthenticatedAt", reflect.TypeOf((*MockOfflineGrantStore)(nil).UpdateOfflineGrantAuthenticatedAt), id, authenticatedAt, expireAt)
+}
+
+// UpdateOfflineGrantDeviceInfo mocks base method.
+func (m *MockOfflineGrantStore) UpdateOfflineGrantDeviceInfo(id string, deviceInfo map[string]interface{}, expireAt time.Time) (*OfflineGrant, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateOfflineGrantDeviceInfo", id, deviceInfo, expireAt)
+	ret0, _ := ret[0].(*OfflineGrant)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdateOfflineGrantDeviceInfo indicates an expected call of UpdateOfflineGrantDeviceInfo.
+func (mr *MockOfflineGrantStoreMockRecorder) UpdateOfflineGrantDeviceInfo(id, deviceInfo, expireAt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantDeviceInfo", reflect.TypeOf((*MockOfflineGrantStore)(nil).UpdateOfflineGrantDeviceInfo), id, deviceInfo, expireAt)
 }
 
 // UpdateOfflineGrantDeviceSecretHash mocks base method.
