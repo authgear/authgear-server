@@ -76,7 +76,7 @@ type PasskeyService interface {
 	ConsumeAttestationResponse(attestationResponse []byte) (err error)
 }
 
-type SettingsDeleteAccountSuccessUIInfoResolver interface {
+type UIInfoResolver interface {
 	SetAuthenticationInfoInQuery(redirectURI string, e *authenticationinfo.Entry) string
 }
 
@@ -110,7 +110,7 @@ type Service struct {
 	AuthenticationInfoService AuthenticationInfoService
 	PasskeyService            PasskeyService
 	Verification              VerificationService
-	UIInfoResolver            SettingsDeleteAccountSuccessUIInfoResolver
+	UIInfoResolver            UIInfoResolver
 }
 
 type StartAddingInput struct {
