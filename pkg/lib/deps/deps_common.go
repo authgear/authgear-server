@@ -116,7 +116,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.ServiceUIInfoResolver), new(*authenticationinfo.UIService)),
 		wire.Bind(new(webapp.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
 		wire.Bind(new(handlerwebappauthflowv2.SelectAccountUIInfoResolver), new(*authenticationinfo.UIService)),
-		wire.Bind(new(accountmanagement.UIInfoResolver), new(*authenticationinfo.UIService)),
 	),
 
 	wire.NewSet(
@@ -285,6 +284,7 @@ var CommonDependencySet = wire.NewSet(
 
 		identitybiometric.DependencySet,
 		wire.Bind(new(interaction.BiometricIdentityProvider), new(*identitybiometric.Provider)),
+		wire.Bind(new(handlerwebappauthflowv2.BiometricIdentityProvider), new(*identitybiometric.Provider)),
 
 		identitysiwe.DependencySet,
 
@@ -338,8 +338,8 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(session.UserQuery), new(*user.Queries)),
 		wire.Bind(new(interaction.UserService), new(*user.Provider)),
 		wire.Bind(new(workflow.UserService), new(*user.Provider)),
-		wire.Bind(new(authenticationflow.UserService), new(*user.Provider)),
 		wire.Bind(new(accountmanagement.UserService), new(*user.Provider)),
+		wire.Bind(new(authenticationflow.UserService), new(*user.Provider)),
 		wire.Bind(new(oidc.UserProvider), new(*user.Queries)),
 		wire.Bind(new(featurestdattrs.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(featurestdattrs.UserStore), new(*user.Store)),

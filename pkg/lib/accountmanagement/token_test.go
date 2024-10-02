@@ -14,7 +14,10 @@ func TestTokenCheckUser(t *testing.T) {
 		err := token.CheckUser("")
 		So(errors.Is(err, ErrAccountManagementTokenNotBoundToUser), ShouldBeTrue)
 
-		err = token.CheckUser("user")
+		err = token.CheckUser_OAuth("")
+		So(errors.Is(err, ErrOAuthTokenNotBoundToUser), ShouldBeTrue)
+
+		err = token.CheckUser_OAuth("user")
 		So(err, ShouldBeNil)
 	})
 }
