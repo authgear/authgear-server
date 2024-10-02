@@ -196,3 +196,25 @@ func parseCSSRawString(cssStr string) ([]element, error) {
 	}
 	return elements, nil
 }
+
+// CheckDeclarationInSelector checks if the declaration is in the selector of provided css
+func CheckDeclarationInSelector(cssString string, selector string, declarationProperty string) (bool, error) {
+	elements, err := parseCSSRawString(cssString)
+	if err != nil {
+		return false, err
+	}
+
+	for _, el := range elements {
+		switch v := el.(type) {
+		case *ruleset:
+			if v.Selector == selector {
+				for _, d := range v.Declarations {
+					if d.Property == declarationProperty {
+						return true, nil
+					}
+				}
+			}
+		}
+	}
+	return false, nil
+}
