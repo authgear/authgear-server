@@ -240,9 +240,9 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		h.continueFlow(w, r, "/reauth")
 	}
 
-	// ctrl.Serve() always write response.
+	// ctrl.ServeWithDBTx() always write response.
 	// So we have to put http.Redirect before it.
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	ctrl.Get(func() error {
 		// When promote anonymous user, the end-user should not see this page.

@@ -457,10 +457,38 @@ func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsBiometricHandler)),
+	))
+}
+
 func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsMFAHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsMFAHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsMFAHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsMFACreatePasswordHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsMFACreatePasswordHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsMFAPasswordHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsMFAPasswordHandler)),
 	))
 }
 
@@ -471,10 +499,31 @@ func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppAuthflowV2SettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsTOTPHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsOOBOTPHandler)),
+	))
+}
+
 func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsPasskeyHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsChangePasskeyHandler)),
 	))
 }
 
@@ -499,6 +548,13 @@ func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
+func newWebAppAuthflowV2SettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsSessionsHandler)),
+	))
+}
+
 func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
@@ -510,6 +566,13 @@ func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handle
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsChangePasswordHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsChangePasswordHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsChangePasswordHandler)),
 	))
 }
 
@@ -534,10 +597,31 @@ func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler
 	))
 }
 
+func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsDeleteAccountHandler)),
+	))
+}
+
 func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsDeleteAccountSuccessHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsDeleteAccountSuccessHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsAdvancedSettingsHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsAdvancedSettingsHandler)),
 	))
 }
 
@@ -1161,5 +1245,117 @@ func newWebAppAuthflowV2SettingsProfile(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsProfileHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityAddEmailHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityAddEmailHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityEditEmailHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityEditEmailHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityListEmailHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityListEmailHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityVerifyEmailHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityVerifyEmailHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityViewEmailHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityViewEmailHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityChangePrimaryEmailHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityAddPhoneHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityAddPhoneHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityEditPhoneHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityEditPhoneHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityListPhoneHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityListPhoneHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityViewPhoneHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityViewPhoneHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityChangePrimaryPhoneHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityChangePrimaryPhoneHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityVerifyPhoneHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityVerifyPhoneHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityListUsernameHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityListUsernameHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityNewUsernameHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityNewUsernameHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityViewUsernameHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityViewUsernameHandler)),
+	))
+}
+
+func newWebAppAuthflowV2SettingsIdentityEditUsernameHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		DependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsIdentityEditUsernameHandler)),
 	))
 }

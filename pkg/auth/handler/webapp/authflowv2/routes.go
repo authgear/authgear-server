@@ -71,6 +71,8 @@ const (
 
 	SettingsV2RouteSettingsProfileGenderEdit = "/settings/profile/gender/edit"
 
+	SettingsV2RouteAdvancedSettings = "/settings/advanced_settings"
+
 	// The following routes are dead ends.
 	AuthflowV2RouteAccountStatus   = "/authflow/v2/account_status"
 	AuthflowV2RouteNoAuthenticator = "/authflow/v2/no_authenticator"
@@ -78,6 +80,30 @@ const (
 	AuthflowV2RouteFinishFlow = "/authflow/v2/finish"
 
 	AuthflowV2RouteSettingsProfile = "/settings/v2/profile"
+	AuthflowV2RouteSettingsMFA     = "/settings/mfa"
+	// nolint: gosec
+	AuthflowV2RouteSettingsMFACreatePassword = "/settings/mfa/create_password"
+	// nolint: gosec
+	AuthflowV2RouteSettingsMFAPassword = "/settings/mfa/password"
+
+	AuthflowV2RouteSettingsIdentityListEmail          = "/settings/identity/email"
+	AuthflowV2RouteSettingsIdentityAddEmail           = "/settings/identity/add_email"
+	AuthflowV2RouteSettingsIdentityEditEmail          = "/settings/identity/edit_email"
+	AuthflowV2RouteSettingsIdentityViewEmail          = "/settings/identity/view_email"
+	AuthflowV2RouteSettingsIdentityChangePrimaryEmail = "/settings/identity/change_primary_email"
+	AuthflowV2RouteSettingsIdentityVerifyEmail        = "/settings/identity/verify_email"
+
+	AuthflowV2RouteSettingsIdentityListPhone          = "/settings/identity/phone"
+	AuthflowV2RouteSettingsIdentityAddPhone           = "/settings/identity/add_phone"
+	AuthflowV2RouteSettingsIdentityEditPhone          = "/settings/identity/edit_phone"
+	AuthflowV2RouteSettingsIdentityViewPhone          = "/settings/identity/view_phone"
+	AuthflowV2RouteSettingsIdentityChangePrimaryPhone = "/settings/identity/change_primary_phone"
+	AuthflowV2RouteSettingsIdentityVerifyPhone        = "/settings/identity/verify_phone"
+
+	AuthflowV2RouteSettingsIdentityListUsername = "/settings/identity/username"
+	AuthflowV2RouteSettingsIdentityNewUsername  = "/settings/identity/new_username"
+	AuthflowV2RouteSettingsIdentityViewUsername = "/settings/identity/view_username"
+	AuthflowV2RouteSettingsIdentityEditUsername = "/settings/identity/edit_username"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {

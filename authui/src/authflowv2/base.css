@@ -51,6 +51,10 @@
     /* --color-primary-theme-lighter: #d8e6fd; */
     /* --color-primary-theme-lighter-alt: #f5f9fe; */
 
+    /* secondary */
+    --color-secondary-theme-primary: #ff295b;
+    --color-secondary-theme-dark: #c4003d;
+
     /* Neutral colors is tonal palette */
     /* https://m3.material.io/styles/color/system/how-the-system-works#395813c8-b314-48d1-bb55-266f421eb3a4 */
     /* neutral */

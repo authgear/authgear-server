@@ -1,0 +1,76 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/identity/phone" "q_login_id_key" $.LoginIDKey)
+        "Title" (translate "v2.page.settings-identity-verify-phone.default.title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+
+<div class="settings-content flex flex-col gap-y-8 flex-1-0-auto">
+    <div class="screen-title-description">
+      <h2 class="screen-description">
+        {{ include "v2.page.enter-oob-otp.auth-email-or-sms.subtitle"
+          (dict
+            "CodeLength" $.CodeLength
+            "MaskedClaimValue" (include "__settings_identity_verify_phone_inline_breakable" $.MaskedClaimValue)
+          )
+        }}
+      </h2>
+
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+          "Message" (ternary (include "authflowv2/__error.html" .) nil (not $.display_otp_input_error))
+        )
+      }}
+    </div>
+    <div>
+      {{ $otp_error_message := "" }}
+      {{ if $.Error  }}
+        {{ if $.display_otp_input_error }}
+          {{ $otp_error_message = include "authflowv2/__error.html" .  }}
+        {{ end }}
+      {{ end }}
+
+      <form
+        id="main-form"
+        method="post"
+        novalidate
+        data-restore-form="false"
+        data-controller="turbo-form"
+        data-action="submit->turbo-form#submitForm"
+      >
+        {{ $.CSRFField }}
+        <input type="hidden" name="x_login_id_key" value="{{ $.LoginIDKey }}">
+      </form>
+
+      {{ template "authflowv2/__otp_input.html"
+        (dict
+          "CSRFField" $.CSRFField
+          "FormName" "main-form"
+          "CodeLength" $.CodeLength
+          "AutoFocus" true
+          "Disabled" $.FailedAttemptRateLimitExceeded
+          "ResendButtonLabel" (include "v2.component.oob-otp-resend-button.default.label" nil)
+          "ResendButtonLabelWithValue" (include "v2.component.oob-otp-resend-button.default.countdown-unit" nil)
+          "ResendButtonCooldown" $.ResendCooldown
+          "SubmitEvent" "authgear.button.submit_verification_code"
+          "ResendEvent" "authgear.button.resend_verification_code"
+          "ErrorMessage" $otp_error_message
+        )
+      }}
+    </div>
+</div>
+
+{{ end }}
+
+{{ define "__settings_identity_verify_phone_inline_breakable" }}
+  <span class="break-all"><b>{{ . }}</b></span>
+{{ end }}

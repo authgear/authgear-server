@@ -1,0 +1,35 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-content"}}
+<form
+  class="flex flex-col gap-y-2 w-full tablet:max-w-86 mx-auto"
+  method="post"
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+  novalidate
+  data-controller="turbo-form"
+
+>
+  {{ $.CSRFField }}
+  <div class="flex flex-col gap-y-2 settings-headline text-center">
+    <i class="material-icons text-5xl">auto_delete</i>
+    <h1>
+      {{ translate "v2.page.settings-delete-account-success.default.title" nil }}
+    </h1>
+  </div>
+
+  <div class="flex flex-col gap-y-8">
+    <p class="settings-description text-center">
+      {{ translate "v2.page.settings-delete-account-success.default.description" (dict "date" $.ExpectedAccountDeletionTime "rfc3339" (rfc3339 $.ExpectedAccountDeletionTime)) }}
+    </p>
+    <button
+      class="primary-btn w-full"
+      type="submit"
+      name="x_action"
+      value=""
+    >
+      {{ translate "v2.page.settings-delete-account-success.default.button-label" nil }}
+    </button>
+  </div>
+</form>
+{{ end }}

@@ -9,6 +9,7 @@ import (
 
 type SettingsViewModel struct {
 	Authenticators           []*authenticator.Info
+	NumberOfDeviceTokens     int
 	HasDeviceTokens          bool
 	ListRecoveryCodesAllowed bool
 	ShowBiometric            bool
@@ -38,7 +39,7 @@ type SettingsAuthenticatorService interface {
 }
 
 type SettingsMFAService interface {
-	HasDeviceTokens(userID string) (bool, error)
+	CountDeviceTokens(userID string) (int, error)
 }
 
 type SettingsViewModeler struct {
@@ -60,10 +61,11 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		authenticator.KeepPrimaryAuthenticatorCanHaveMFA,
 	)) > 0
 
-	hasDeviceTokens, err := m.MFA.HasDeviceTokens(userID)
+	numberOfDeviceTokens, err := m.MFA.CountDeviceTokens(userID)
 	if err != nil {
 		return nil, err
 	}
+	hasDeviceTokens := numberOfDeviceTokens > 0
 
 	hasSecondaryTOTP := false
 	hasSecondaryOOBOTPEmail := false
@@ -148,6 +150,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 
 	viewModel := &SettingsViewModel{
 		Authenticators:           authenticators,
+		NumberOfDeviceTokens:     numberOfDeviceTokens,
 		HasDeviceTokens:          hasDeviceTokens,
 		ListRecoveryCodesAllowed: !*m.Authentication.RecoveryCode.Disabled && m.Authentication.RecoveryCode.ListEnabled,
 		ShowBiometric:            showBiometric,

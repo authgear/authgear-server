@@ -1,0 +1,64 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/identity/email" "q_login_id_key" $.LoginIDKey)
+        "Title" (translate "v2.page.settings-identity-edit-email.default.title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+
+<form
+  class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
+  method="post"
+  novalidate
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm">
+
+  {{ template "authflowv2/__alert_message.html"
+    (dict
+      "Type" "error"
+      "Message" (include "authflowv2/__error.html" .)
+    )
+  }}
+
+  {{ $.CSRFField }}
+
+  <span class="screen-description">
+    {{ include "v2.page.settings-identity-edit-email.default.description"
+      (dict "target" (include "__settings_identity_edit_email_inline_breakable" .Target.OriginalLoginID))
+    }}
+  </span>
+
+  <input
+    class="input"
+    name="x_login_id"
+    placeholder="{{ include "v2.page.settings-identity-edit-email.default.email-input-placeholder" nil }}"
+    autocapitalize="none"
+  />
+
+  <input
+    type="hidden"
+    name="x_identity_id"
+    value="{{ .Target.ID }}"
+  />
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    data-authgear-event="authgear.button.change_login_id"
+  >
+    {{ translate "v2.component.button.default.label-continue" nil }}
+  </button>
+</form>
+
+{{ end }}
+
+{{ define "__settings_identity_edit_email_inline_breakable" }}
+  <span class="break-all"><b>{{ . }}</b></span>
+{{ end }}
