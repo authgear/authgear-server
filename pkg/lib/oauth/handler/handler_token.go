@@ -608,7 +608,6 @@ func (h *TokenHandler) handleRefreshToken(
 	}
 
 	accessEvent := access.NewEvent(h.Clock.NowUTC(), h.RemoteIP, h.UserAgentString)
-	offlineGrant.AccessInfo.LastAccess = accessEvent
 	offlineGrantSession, ok := offlineGrant.ToSession(refreshTokenHash)
 	if !ok {
 		return nil, ErrInvalidRefreshToken
