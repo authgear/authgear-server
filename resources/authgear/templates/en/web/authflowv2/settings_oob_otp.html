@@ -1,9 +1,9 @@
 {{ template "authflowv2/__settings_page_frame.html" . }}
 
 {{ define "page-navbar" }}
-  {{ $title := (translate "v2.page.settings-oob-otp-sms.default.navbar-title" nil) }}
+  {{ $title := (translate "v2.page.settings-oob-otp-sms.default.title" nil) }}
   {{ if eq $.OOBOTPType "email" }}
-    {{ $title = (translate "v2.page.settings-oob-otp-email.default.navbar-title" nil) }}
+    {{ $title = (translate "v2.page.settings-oob-otp-email.default.title" nil) }}
   {{ end }}
   {{ template "authflowv2/__navbar.html"
      (dict
