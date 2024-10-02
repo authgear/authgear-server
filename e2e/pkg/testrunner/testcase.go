@@ -246,10 +246,15 @@ func (tc *TestCase) executeStep(
 			})
 		if err != nil {
 			t.Errorf("failed to send saml request: %v", err)
-			return
+			return nil, state, false
 		}
 		if !samlOutputOk {
 			return nil, state, false
+		}
+		result = &StepResult{
+			// TODO: Put the response here
+			Result: nil,
+			Error:  nil,
 		}
 	case StepActionInput:
 		fallthrough
@@ -441,13 +446,8 @@ func validateQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) 
 
 }
 
-func validateRedirectLocation(t *testing.T, expectedLocation string, actualLocation string) (ok bool) {
+func validateRedirectLocation(t *testing.T, expectedPath string, actualLocation string) (ok bool) {
 	ok = true
-	expectedLocationURL, err := url.Parse(expectedLocation)
-	if err != nil {
-		ok = false
-		t.Errorf("redirect_location is not a valid url")
-	}
 	actualLocationURL, err := url.Parse(actualLocation)
 	if err != nil {
 		ok = false
@@ -457,11 +457,12 @@ func validateRedirectLocation(t *testing.T, expectedLocation string, actualLocat
 		return ok
 	}
 	// We only compare the url without query parameters
-	expectedLocationURL.RawQuery = url.Values{}.Encode()
-	actualLocationURL.RawQuery = url.Values{}.Encode()
-	if expectedLocationURL.String() != actualLocationURL.String() {
+	if expectedPath != actualLocationURL.EscapedPath() {
 		ok = false
-		t.Errorf("redirect location unmatch")
+		t.Errorf("redirect path unmatch. expected: %s, actual: %s",
+			expectedPath,
+			actualLocationURL.EscapedPath(),
+		)
 	}
 	return ok
 }
@@ -489,7 +490,10 @@ func validateSAMLStatus(t *testing.T, expectedStatus string, responseBody []byte
 	}
 	if statusCodeValue.Value != expectedStatus {
 		ok = false
-		t.Errorf("unexpected SAML status")
+		t.Errorf("unexpected SAML status. expected: %s, actual: %s",
+			expectedStatus,
+			statusCodeValue.Value,
+		)
 		return
 	}
 	return ok
@@ -499,13 +503,16 @@ func validateSAMLResponse(t *testing.T, step Step, response *http.Response) (ok 
 	ok = true
 	if step.SAMLOutput.HttpStatus != nil {
 		if response.StatusCode != int(*step.SAMLOutput.HttpStatus) {
-			t.Errorf("http response status code unmatch")
+			t.Errorf("http response status code unmatch. expected: %d, actual: %d",
+				int(*step.SAMLOutput.HttpStatus),
+				response.StatusCode,
+			)
 			ok = false
 		}
 	}
-	if step.SAMLOutput.RedirectLocationWithoutQuery != nil {
+	if step.SAMLOutput.RedirectPath != nil {
 		redirectLocationOk := validateRedirectLocation(t,
-			*step.SAMLOutput.RedirectLocationWithoutQuery,
+			*step.SAMLOutput.RedirectPath,
 			response.Header.Get("Location"),
 		)
 		if !redirectLocationOk {

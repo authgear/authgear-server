@@ -7,11 +7,14 @@ import (
 	"encoding/base64"
 	"net/http"
 	"net/url"
+
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type SAMLClient struct {
 	Context    context.Context
 	HTTPClient *http.Client
+	HTTPHost   httputil.HTTPHost
 }
 
 func (c *SAMLClient) SendSAMLRequestWithHTTPRedirect(
@@ -41,6 +44,7 @@ func (c *SAMLClient) SendSAMLRequestWithHTTPRedirect(
 	if err != nil {
 		return err
 	}
+	req.Host = string(c.HTTPHost)
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return err

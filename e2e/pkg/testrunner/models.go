@@ -73,6 +73,16 @@ var _ = TestCaseSchema.Add("BeforeHook", `
 }
 `)
 
+var _ = TestCaseSchema.Add("SAMLBinding", `
+{
+	"type": "string",
+	"enum": [
+		"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+		"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+	]
+}
+`)
+
 var _ = TestCaseSchema.Add("Step", `
 {
 	"type": "object",
@@ -94,7 +104,10 @@ var _ = TestCaseSchema.Add("Step", `
 		"output": { "$ref": "#/$defs/Output" },
 		"query": { "type": "string" },
 		"query_output": { "$ref": "#/$defs/QueryOutput" },
-		"saml_output": { "$ref": "#/$defs/SAMLOutput" }
+		"saml_output": { "$ref": "#/$defs/SAMLOutput" },
+		"saml_request": { "type": "string" },
+		"saml_request_destination": { "type": "string" },
+		"saml_request_binding": { "$ref": "#/$defs/SAMLBinding" }
 	},
 	"allOf": [
         {
@@ -209,16 +222,16 @@ var _ = TestCaseSchema.Add("SAMLOutput", `
 	"additionalProperties": false,
 	"properties": {
 		"http_status": { "type": "integer" },
-		"redirect_location_without_query": { "type": "string" },
+		"redirect_path": { "type": "string" },
 		"status": { "type": "string" }
 	}
 }
 `)
 
 type SAMLOutput struct {
-	HttpStatus                   *float64 `json:"http_status"`
-	RedirectLocationWithoutQuery *string  `json:"redirect_location_without_query"`
-	Status                       *string  `json:"status"`
+	HttpStatus   *float64 `json:"http_status"`
+	RedirectPath *string  `json:"redirect_path"`
+	Status       *string  `json:"status"`
 }
 
 var _ = TestCaseSchema.Add("QueryOutput", `

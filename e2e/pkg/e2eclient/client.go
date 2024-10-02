@@ -56,6 +56,12 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 	var httpClient = &http.Client{
 		Jar: customJar,
 	}
+	var noRedirectClient = &http.Client{
+		Jar: customJar,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+	}
 	var oauthClient = &http.Client{}
 
 	// Use go test -timeout instead of setting timeout here.
@@ -94,7 +100,8 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 
 	samlClient := &SAMLClient{
 		Context:    ctx,
-		HTTPClient: httpClient,
+		HTTPClient: noRedirectClient,
+		HTTPHost:   httpHost,
 	}
 
 	return &Client{
