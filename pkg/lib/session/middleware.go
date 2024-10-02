@@ -89,17 +89,6 @@ func (m *Middleware) resolve(rw http.ResponseWriter, r *http.Request) (s Resolve
 			return
 		}
 
-		event := s.GetAccessInfo().LastAccess
-		err = m.AccessEvents.RecordAccess(s.SessionID(), s.GetExpireAt(), &event)
-		if err != nil {
-			return
-		}
-
-		err = m.MeterService.TrackActiveUser(u.ID)
-		if err != nil {
-			return
-		}
-
 		return
 	})
 	return
