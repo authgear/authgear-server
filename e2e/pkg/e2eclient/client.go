@@ -20,6 +20,20 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
+type ProjectHostRewriteTransport struct {
+	HTTPHost     httputil.HTTPHost
+	MainEndpoint *url.URL
+}
+
+func (t *ProjectHostRewriteTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if httputil.GetHost(req, true) == string(t.HTTPHost) {
+		// Send the request to main endpoint if it is to the project specific host
+		req.Host = string(t.HTTPHost)
+		req.URL.Host = t.MainEndpoint.Host
+	}
+	return http.DefaultTransport.RoundTrip(req)
+}
+
 type Client struct {
 	Context       context.Context
 	HTTPClient    *http.Client
@@ -53,14 +67,21 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 		Jar:           jar,
 		CorrectedHost: string(httpHost),
 	}
+	var transport = &ProjectHostRewriteTransport{
+		MainEndpoint: mainEndpointURL,
+		HTTPHost:     httpHost,
+	}
+
 	var httpClient = &http.Client{
-		Jar: customJar,
+		Jar:       customJar,
+		Transport: transport,
 	}
 	var noRedirectClient = &http.Client{
 		Jar: customJar,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+		Transport: transport,
 	}
 	var oauthClient = &http.Client{}
 
@@ -219,6 +240,23 @@ func (c *Client) SendSAMLRequest(
 	default:
 		return fmt.Errorf("unknown saml binding %s", binding)
 	}
+}
+
+func (c *Client) MakeHTTPRequest(
+	method string,
+	toURL string,
+	fn func(r *http.Response) error) error {
+	req, err := http.NewRequestWithContext(c.Context, method, toURL, nil)
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return fn(resp)
 }
 
 func (c *Client) makeRequest(maybeOriginalRequest *http.Request, endpoint *url.URL, body interface{}) (*http.Request, error) {

@@ -233,12 +233,49 @@ func (tc *TestCase) executeStep(
 		}
 
 		nextState = state
+	case StepActionHTTPRequest:
+		var lastStep *StepResult
+		if len(prevSteps) != 0 {
+			lastStep = &prevSteps[len(prevSteps)-1]
+		}
+
+		var outputOk bool = true
+		var httpResult interface{} = nil
+		url, ok := prepareHTTPRequestURL(t, cmd, lastStep, step.HTTPRequestURL)
+		if !ok {
+			return nil, state, false
+		}
+		err := client.MakeHTTPRequest(step.HTTPRequestMethod, url, func(r *http.Response) error {
+			if r != nil {
+				httpResult = NewResultHTTPResponse(r)
+			}
+			if step.SAMLOutput != nil {
+				outputOk = validateHTTPResponse(t, step, r)
+			}
+			return nil
+		})
+		if err != nil {
+			t.Errorf("failed to send http request: %v", err)
+			return nil, state, false
+		}
+		if !outputOk {
+			return nil, state, false
+		}
+		result = &StepResult{
+			Result: httpResult,
+			Error:  nil,
+		}
+
 	case StepActionSAMLRequest:
 		var samlOutputOk bool = true
+		var httpResult interface{} = nil
 		err := client.SendSAMLRequest(
 			step.SAMLRequestDestination,
 			step.SAMLRequest,
 			step.SAMLRequestBinding, func(r *http.Response) error {
+				if r != nil {
+					httpResult = NewResultHTTPResponse(r)
+				}
 				if step.SAMLOutput != nil {
 					samlOutputOk = validateSAMLResponse(t, step, r)
 				}
@@ -252,8 +289,7 @@ func (tc *TestCase) executeStep(
 			return nil, state, false
 		}
 		result = &StepResult{
-			// TODO: Put the response here
-			Result: nil,
+			Result: httpResult,
 			Error:  nil,
 		}
 	case StepActionInput:
@@ -331,6 +367,16 @@ func prepareTo(t *testing.T, cmd *End2EndCmd, prev *StepResult, to string) (prep
 	}
 
 	return parsedTo, true
+}
+
+func prepareHTTPRequestURL(t *testing.T, cmd *End2EndCmd, prev *StepResult, url string) (prepared string, ok bool) {
+	url, err := execTemplate(cmd, prev, url)
+	if err != nil {
+		t.Errorf("failed to parse http_request_url: %v\n", err)
+		return "", false
+	}
+
+	return url, true
 }
 
 func execTemplate(cmd *End2EndCmd, prev *StepResult, content string) (string, error) {
@@ -446,9 +492,9 @@ func validateQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) 
 
 }
 
-func validateRedirectLocation(t *testing.T, expectedPath string, actualLocation string) (ok bool) {
+func validateRedirectLocation(t *testing.T, expectedPath string, response *http.Response) (ok bool) {
 	ok = true
-	actualLocationURL, err := url.Parse(actualLocation)
+	actualLocationURL, err := url.Parse(response.Header.Get("Location"))
 	if err != nil {
 		ok = false
 		t.Errorf("Location header is not a valid url")
@@ -499,34 +545,68 @@ func validateSAMLStatus(t *testing.T, expectedStatus string, responseBody []byte
 	return ok
 }
 
+func validateHTTPResponseStatus(t *testing.T, expectedStatus int, response *http.Response) (ok bool) {
+	if response.StatusCode != expectedStatus {
+		t.Errorf("http response status code unmatch. expected: %d, actual: %d",
+			expectedStatus,
+			response.StatusCode,
+		)
+		return false
+	}
+	return true
+}
+
+func validateHTTPResponse(t *testing.T, step Step, response *http.Response) (ok bool) {
+	ok = true
+	if response == nil {
+		t.Errorf("expected http response but got nil")
+		ok = false
+		return
+	}
+	if step.HTTPOutput.HTTPStatus != nil {
+		if !validateHTTPResponseStatus(t, int(*step.HTTPOutput.HTTPStatus), response) {
+			ok = false
+		}
+	}
+	if step.HTTPOutput.RedirectPath != nil {
+		if !validateRedirectLocation(t,
+			*step.HTTPOutput.RedirectPath,
+			response,
+		) {
+			ok = false
+		}
+	}
+	return ok
+}
+
 func validateSAMLResponse(t *testing.T, step Step, response *http.Response) (ok bool) {
 	ok = true
-	if step.SAMLOutput.HttpStatus != nil {
-		if response.StatusCode != int(*step.SAMLOutput.HttpStatus) {
-			t.Errorf("http response status code unmatch. expected: %d, actual: %d",
-				int(*step.SAMLOutput.HttpStatus),
-				response.StatusCode,
-			)
+	if response == nil {
+		t.Errorf("expected http response but got nil")
+		ok = false
+		return
+	}
+	if step.SAMLOutput.HTTPStatus != nil {
+		if !validateHTTPResponseStatus(t, int(*step.SAMLOutput.HTTPStatus), response) {
 			ok = false
 		}
 	}
 	if step.SAMLOutput.RedirectPath != nil {
-		redirectLocationOk := validateRedirectLocation(t,
+		if !validateRedirectLocation(t,
 			*step.SAMLOutput.RedirectPath,
-			response.Header.Get("Location"),
-		)
-		if !redirectLocationOk {
+			response,
+		) {
 			ok = false
 		}
 	}
-	if step.SAMLOutput.Status != nil {
+	if step.SAMLOutput.SAMLStatus != nil {
 		responseData, err := io.ReadAll(response.Body)
 		if err != nil {
 			ok = false
 			t.Errorf("failed to read response body")
 		}
 		statusOk := validateSAMLStatus(t,
-			*step.SAMLOutput.Status,
+			*step.SAMLOutput.SAMLStatus,
 			responseData,
 		)
 		if !statusOk {

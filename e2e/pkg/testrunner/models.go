@@ -1,6 +1,11 @@
 package testrunner
 
-import "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
+import (
+	"net/http"
+	"strings"
+
+	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
+)
 
 type BeforeHook struct {
 	Type       BeforeHookType      `json:"type"`
@@ -95,7 +100,8 @@ var _ = TestCaseSchema.Add("Step", `
 			"oauth_redirect",
 			"generate_totp_code",
 			"query",
-			"saml_request"
+			"saml_request",
+			"http_request"
 		]},
 		"input": { "type": "string" },
 		"to": { "type": "string" },
@@ -107,7 +113,10 @@ var _ = TestCaseSchema.Add("Step", `
 		"saml_output": { "$ref": "#/$defs/SAMLOutput" },
 		"saml_request": { "type": "string" },
 		"saml_request_destination": { "type": "string" },
-		"saml_request_binding": { "$ref": "#/$defs/SAMLBinding" }
+		"saml_request_binding": { "$ref": "#/$defs/SAMLBinding" },
+		"http_request_method": { "type": "string" },
+		"http_request_url": { "type": "string" },
+		"http_output": { "$ref": "#/$defs/HTTPOutput" }
 	},
 	"allOf": [
         {
@@ -172,6 +181,19 @@ var _ = TestCaseSchema.Add("Step", `
 								"saml_request_binding"
 							]
 					}
+				},
+				{
+				  "if": {
+							"properties": {
+									"action": { "const": "http_request" }
+							}
+					},
+					"then": {
+							"required": [
+								"http_request_method",
+								"http_request_url"
+							]
+					}
 				}
     ]
 }
@@ -203,6 +225,11 @@ type Step struct {
 	SAMLRequestDestination string                `json:"saml_request_destination"`
 	SAMLRequestBinding     e2eclient.SAMLBinding `json:"saml_request_binding"`
 	SAMLOutput             *SAMLOutput           `json:"saml_output"`
+
+	// `action` == "http_request"
+	HTTPRequestMethod string      `json:"http_request_method"`
+	HTTPRequestURL    string      `json:"http_request_url"`
+	HTTPOutput        *HTTPOutput `json:"http_output"`
 }
 
 type StepAction string
@@ -214,6 +241,7 @@ const (
 	StepActionGenerateTOTPCode StepAction = "generate_totp_code"
 	StepActionQuery            StepAction = "query"
 	StepActionSAMLRequest      StepAction = "saml_request"
+	StepActionHTTPRequest      StepAction = "http_request"
 )
 
 var _ = TestCaseSchema.Add("SAMLOutput", `
@@ -229,9 +257,25 @@ var _ = TestCaseSchema.Add("SAMLOutput", `
 `)
 
 type SAMLOutput struct {
-	HttpStatus   *float64 `json:"http_status"`
+	HTTPStatus   *float64 `json:"http_status"`
 	RedirectPath *string  `json:"redirect_path"`
-	Status       *string  `json:"status"`
+	SAMLStatus   *string  `json:"status"`
+}
+
+var _ = TestCaseSchema.Add("HTTPOutput", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"http_status": { "type": "integer" },
+		"redirect_path": { "type": "string" }
+	}
+}
+`)
+
+type HTTPOutput struct {
+	HTTPStatus   *float64 `json:"http_status"`
+	RedirectPath *string  `json:"redirect_path"`
 }
 
 var _ = TestCaseSchema.Add("QueryOutput", `
@@ -278,4 +322,18 @@ var _ = TestCaseSchema.Add("StepResult", `
 type StepResult struct {
 	Result interface{} `json:"result"`
 	Error  error       `json:"error"`
+}
+
+type ResultHTTPResponse struct {
+	HTTPResponseHeaders map[string]string `json:"http_response_headers"`
+}
+
+func NewResultHTTPResponse(r *http.Response) *ResultHTTPResponse {
+	headers := map[string]string{}
+	for key, _ := range r.Header {
+		headers[strings.ToLower(key)] = r.Header.Get(key)
+	}
+	return &ResultHTTPResponse{
+		HTTPResponseHeaders: headers,
+	}
 }

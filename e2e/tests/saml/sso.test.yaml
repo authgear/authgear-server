@@ -41,3 +41,8 @@ steps:
     saml_output:
       http_status: 302
       redirect_path: /_internals/oauth_entrypoint
+  - action: "http_request"
+    http_request_method: GET
+    http_request_url: "{{ .prev.result.http_response_headers.location }}"
+    http_output:
+      http_status: 200
