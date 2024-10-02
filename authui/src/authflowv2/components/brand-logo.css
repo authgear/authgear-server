@@ -29,7 +29,10 @@
   }
 
   .brand-logo--default {
-    height: var(--brand-logo__height);
+    /* use max-height as variable to ensure the object-contain width won't outgrow max-width */
+    max-height: var(--brand-logo__height);
+    max-width: 100%;
+    height: 100%;
   }
 
   /* Below data-src selector is a workaround until css :has() is widely-supported */
