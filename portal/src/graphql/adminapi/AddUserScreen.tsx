@@ -380,21 +380,22 @@ const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
               </div>
             ) : null}
             <div className={styles.widget}>
-              <PasswordField
-                label={renderToString("AddUserScreen.password.label")}
-                value={password}
-                canRevealPassword={true}
-                canGeneratePassword={true}
-                onChange={onPasswordChange}
-                passwordPolicy={passwordPolicy}
-                parentJSONPointer=""
-                fieldName="password"
-                disabled={
-                  !passwordFieldNeeded ||
-                  state.passwordCreationType ===
+              {passwordFieldNeeded ? (
+                <PasswordField
+                  label={renderToString("AddUserScreen.password.label")}
+                  value={password}
+                  canRevealPassword={true}
+                  canGeneratePassword={true}
+                  onChange={onPasswordChange}
+                  passwordPolicy={passwordPolicy}
+                  parentJSONPointer=""
+                  fieldName="password"
+                  disabled={
+                    state.passwordCreationType ===
                     PasswordCreationType.AutoGenerate
-                }
-              />
+                  }
+                />
+              ) : null}
               {passwordFieldNeeded && selectedLoginIDType === "email" ? (
                 <Checkbox
                   className={styles.checkbox}
