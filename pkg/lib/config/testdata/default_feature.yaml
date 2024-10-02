@@ -111,6 +111,10 @@ web3:
     maximum: 3
 admin_api:
   create_session_enabled: false
+  user_import_usage:
+    enabled: false
+  user_export_usage:
+    enabled: false
 test_mode:
   fixed_oob_otp:
     enabled: false

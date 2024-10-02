@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -23,10 +24,20 @@ type UserImportCreateProducer interface {
 	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
 }
 
+const (
+	usageLimitUserImport usage.LimitName = "UserImport"
+)
+
+type UserImportUsageLimiter interface {
+	ReserveN(name usage.LimitName, n int, config *config.UsageLimitConfig) (*usage.Reservation, error)
+}
+
 type UserImportCreateHandler struct {
-	AppID       config.AppID
-	JSON        JSONResponseWriter
-	UserImports UserImportCreateProducer
+	AppID                 config.AppID
+	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
+	JSON                  JSONResponseWriter
+	UserImports           UserImportCreateProducer
+	UsageLimiter          UserImportUsageLimiter
 }
 
 func (h *UserImportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -45,6 +56,15 @@ func (h *UserImportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 	}
 
 	rawMessage, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	_, err = h.UsageLimiter.ReserveN(
+		usageLimitUserImport,
+		len(request.Records),
+		h.AdminAPIFeatureConfig.UserImportUsage,
+	)
 	if err != nil {
 		return err
 	}
