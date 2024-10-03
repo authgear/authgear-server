@@ -10,6 +10,11 @@ import (
 	"github.com/tdewolff/parse/v2/css"
 )
 
+const LightThemeCSSSelector string = ":root"
+const DarkThemeCSSSelector string = ":root.dark"
+const LogoHeightPropertyKey string = "--brand-logo__height"
+const DefaultLogoHeight string = "40px"
+
 // MigrateCreateCSSWithDefaultLogoHeight create a css file with default logo height for existing projects that does not have theme customization at all
 func MigrateCreateCSSWithDefaultLogoHeight(selector string) (result []byte, err error) {
 	cssRawStr := fmt.Sprintf("%v {}", selector)
@@ -44,11 +49,6 @@ func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, err error) {
 	result = buf.Bytes()
 	return
 }
-
-var LightThemeCSSSelector string = ":root"
-var DarkThemeCSSSelector string = ":root.dark"
-var LogoHeightPropertyKey string = "--brand-logo__height"
-var DefaultLogoHeight string = "40px"
 
 func setDefaultHeight(elements []element) (out []element) {
 	for _, el := range elements {

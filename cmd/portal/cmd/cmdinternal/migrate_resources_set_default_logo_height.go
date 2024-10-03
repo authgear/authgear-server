@@ -15,6 +15,16 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/filepathutil"
 )
 
+const lightThemeSelector = ":root"
+const darkThemeSelector = ":root.dark"
+const LightThemeCSSPath = "static/authgear-authflowv2-light-theme.css"
+const DarkThemeCSSPath = "static/authgear-authflowv2-dark-theme.css"
+
+var lightLogoPathRegex = regexp.MustCompile(`^static/([a-zA-Z-]+)/app_logo\.(png|jpe|jpeg|jpg|gif)$`)
+var darkLogoPathRegex = regexp.MustCompile(`^static/([a-zA-Z-]+)/app_logo_dark\.(png|jpe|jpeg|jpg|gif)$`)
+var LightThemeCSSPathRegex = regexp.MustCompile(fmt.Sprintf(`^%v$`, LightThemeCSSPath))
+var DarkThemeCSSPathRegex = regexp.MustCompile(fmt.Sprintf(`^%v$`, DarkThemeCSSPath))
+
 var cmdInternalMigrateSetDefaultLogoHeight = &cobra.Command{
 	Use:   "migrate-set-default-logo-height",
 	Short: "Set default logo height for apps which have logos and do not have logo height customized", // more context in DEV-2126
@@ -151,9 +161,6 @@ func handleExistingDarkThemeCSS(appID string, configSourceData map[string]string
 	return nil
 }
 
-var lightThemeSelector = ":root"
-var darkThemeSelector = ":root.dark"
-
 func handleMissingLightThemeCSS(appID string, configSourceData map[string]string, dryRun bool) (err error) {
 	migratedCSS, err := theme.MigrateCreateCSSWithDefaultLogoHeight(lightThemeSelector)
 	escapedLightThemeCSSPath := filepathutil.EscapePath(LightThemeCSSPath)
@@ -206,13 +213,6 @@ type MigrateLogoHeightConfig struct {
 	LightThemeCSS *ResourceConfigDecoded
 	DarkThemeCSS  *ResourceConfigDecoded
 }
-
-var lightLogoPathRegex = regexp.MustCompile(`^static/([a-zA-Z-]+)/app_logo\.(png|jpe|jpeg|jpg|gif)$`)
-var darkLogoPathRegex = regexp.MustCompile(`^static/([a-zA-Z-]+)/app_logo_dark\.(png|jpe|jpeg|jpg|gif)$`)
-var LightThemeCSSPath = "static/authgear-authflowv2-light-theme.css"
-var DarkThemeCSSPath = "static/authgear-authflowv2-dark-theme.css"
-var LightThemeCSSPathRegex = regexp.MustCompile(fmt.Sprintf(`^%v$`, LightThemeCSSPath))
-var DarkThemeCSSPathRegex = regexp.MustCompile(fmt.Sprintf(`^%v$`, DarkThemeCSSPath))
 
 func parseLogoHeightConfigSource(configSourceData map[string]string) (*MigrateLogoHeightConfig, error) {
 	out := &MigrateLogoHeightConfig{}
