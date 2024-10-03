@@ -574,26 +574,46 @@ func validateSAMLResponse(t *testing.T, expected *OuputSAMLResponse, httpRespons
 		return
 	}
 
-	statusCodeEl := responseDoc.Root().FindElement("./Status/StatusCode")
-	if statusCodeEl == nil {
+	expectedDoc := etree.NewDocument()
+	err := expectedDoc.ReadFromString(string(expected.Match))
+	if err != nil {
 		ok = false
-		t.Errorf("no StatusCode element found")
+		t.Errorf("failed to parse match as xml")
 		return
 	}
-	statusCodeValue := statusCodeEl.SelectAttr("Value")
-	if statusCodeValue == nil {
-		ok = false
-		t.Errorf("no Value in StatusCode")
-		return
+
+	var assertElements func(expectedEls []*etree.Element)
+
+	assertElements = func(expectedEls []*etree.Element) {
+		for _, el := range expectedEls {
+			expectedEl := el
+			path := expectedEl.GetPath()
+			fmt.Println("path", path)
+			actualEl := responseDoc.FindElement(path)
+			if actualEl == nil {
+				ok = false
+				t.Errorf("element not found in path: %v", path)
+				continue
+			}
+			for _, expectedAttr := range expectedEl.Attr {
+				actualValue := actualEl.SelectAttrValue(expectedAttr.Key, "")
+				if actualValue != expectedAttr.Value {
+					ok = false
+					t.Errorf("element %v has unmatched attribute. key: %v, expected: %v, actual: %v",
+						path,
+						expectedAttr.Key,
+						expectedAttr.Value,
+						actualValue,
+					)
+				}
+			}
+			if len(expectedEl.ChildElements()) > 0 {
+				assertElements(expectedEl.ChildElements())
+			}
+		}
 	}
-	if statusCodeValue.Value != expected.Status {
-		ok = false
-		t.Errorf("unexpected SAML status. expected: %s, actual: %s",
-			expected.Status,
-			statusCodeValue.Value,
-		)
-		return
-	}
+
+	assertElements(expectedDoc.ChildElements())
 	return ok
 }
 

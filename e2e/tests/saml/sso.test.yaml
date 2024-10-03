@@ -70,4 +70,9 @@ steps:
       http_status: 200
       saml_response:
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
-        status: urn:oasis:names:tc:SAML:2.0:status:Success
+        match: |
+          <samlp:Response>
+            <samlp:Status>
+              <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success">
+            </samlp:Status>
+          </samlp:Response>

@@ -290,14 +290,14 @@ var _ = TestCaseSchema.Add("OuputSAMLResponse", `
 	"additionalProperties": false,
 	"properties": {
 		"binding": { "$ref": "#/$defs/SAMLBinding" },
-		"status": { "type": "string" }
+		"match": { "type": "string" }
 	}
 }
 `)
 
 type OuputSAMLResponse struct {
 	Binding e2eclient.SAMLBinding `json:"binding"`
-	Status  string                `json:"status"`
+	Match   string                `json:"match"`
 }
 
 var _ = TestCaseSchema.Add("QueryOutput", `
