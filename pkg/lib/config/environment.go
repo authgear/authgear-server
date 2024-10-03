@@ -100,6 +100,8 @@ type EnvironmentConfig struct {
 	End2EndTLSCACertFile string `envconfig:"E2E_TLS_CA_CERT_FILE"`
 	// End2EndBotProtection sets mocked endpoints for bot protection providers verification
 	End2EndBotProtection End2EndBotProtectionEnvironmentConfig `envconfig:"E2E_BOT_PROTECTION"`
+	// End2EndCSRFProtectionDisabled turns off csrf protection
+	End2EndCSRFProtectionDisabled bool `envconfig:"E2E_CSRF_PROTECTION_DISABLED"`
 
 	UIImplementation GlobalUIImplementation `envconfig:"UI_IMPLEMENTATION"`
 

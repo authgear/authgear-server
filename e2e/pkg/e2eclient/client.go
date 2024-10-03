@@ -26,11 +26,17 @@ type ProjectHostRewriteTransport struct {
 }
 
 func (t *ProjectHostRewriteTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	if httputil.GetHost(req, true) == string(t.HTTPHost) {
+	if req.URL.Host == string(t.HTTPHost) {
 		// Send the request to main endpoint if it is to the project specific host
 		req.Host = string(t.HTTPHost)
 		req.URL.Host = t.MainEndpoint.Host
 	}
+
+	if req.Host == string(t.MainEndpoint.Host) {
+		// Set the host header so that authgear server can map the request to the correct project
+		req.Host = string(t.HTTPHost)
+	}
+
 	return http.DefaultTransport.RoundTrip(req)
 }
 
@@ -245,11 +251,25 @@ func (c *Client) SendSAMLRequest(
 func (c *Client) MakeHTTPRequest(
 	method string,
 	toURL string,
+	headers map[string]string,
+	body string,
 	fn func(r *http.Response) error) error {
-	req, err := http.NewRequestWithContext(c.Context, method, toURL, nil)
+	var buf *bytes.Buffer = bytes.NewBuffer([]byte(body))
+
+	if body != "" {
+		buf = bytes.NewBuffer([]byte(body))
+	}
+
+	req, err := http.NewRequestWithContext(c.Context, method, toURL, buf)
 	if err != nil {
 		return err
 	}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	req.Header.Set("Content-Length", strconv.Itoa(buf.Len()))
 
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {

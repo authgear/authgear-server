@@ -245,15 +245,20 @@ func (tc *TestCase) executeStep(
 		if !ok {
 			return nil, state, false
 		}
-		err := client.MakeHTTPRequest(step.HTTPRequestMethod, url, func(r *http.Response) error {
-			if r != nil {
-				httpResult = NewResultHTTPResponse(r)
-			}
-			if step.SAMLOutput != nil {
-				outputOk = validateHTTPResponse(t, step, r)
-			}
-			return nil
-		})
+		err := client.MakeHTTPRequest(
+			step.HTTPRequestMethod,
+			url,
+			step.HTTPRequestHeaders,
+			step.HTTPRequestBody,
+			func(r *http.Response) error {
+				if r != nil {
+					httpResult = NewResultHTTPResponse(r)
+				}
+				if step.HTTPOutput != nil {
+					outputOk = validateHTTPResponse(t, step.HTTPOutput, r)
+				}
+				return nil
+			})
 		if err != nil {
 			t.Errorf("failed to send http request: %v", err)
 			return nil, state, false
@@ -277,7 +282,7 @@ func (tc *TestCase) executeStep(
 					httpResult = NewResultHTTPResponse(r)
 				}
 				if step.SAMLOutput != nil {
-					samlOutputOk = validateSAMLResponse(t, step, r)
+					samlOutputOk = validateSAMLResponse(t, step.SAMLOutput, r)
 				}
 				return nil
 			})
@@ -556,21 +561,21 @@ func validateHTTPResponseStatus(t *testing.T, expectedStatus int, response *http
 	return true
 }
 
-func validateHTTPResponse(t *testing.T, step Step, response *http.Response) (ok bool) {
+func validateHTTPResponse(t *testing.T, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
 	ok = true
 	if response == nil {
 		t.Errorf("expected http response but got nil")
 		ok = false
 		return
 	}
-	if step.HTTPOutput.HTTPStatus != nil {
-		if !validateHTTPResponseStatus(t, int(*step.HTTPOutput.HTTPStatus), response) {
+	if httpOutput.HTTPStatus != nil {
+		if !validateHTTPResponseStatus(t, int(*httpOutput.HTTPStatus), response) {
 			ok = false
 		}
 	}
-	if step.HTTPOutput.RedirectPath != nil {
+	if httpOutput.RedirectPath != nil {
 		if !validateRedirectLocation(t,
-			*step.HTTPOutput.RedirectPath,
+			*httpOutput.RedirectPath,
 			response,
 		) {
 			ok = false
@@ -579,34 +584,34 @@ func validateHTTPResponse(t *testing.T, step Step, response *http.Response) (ok 
 	return ok
 }
 
-func validateSAMLResponse(t *testing.T, step Step, response *http.Response) (ok bool) {
+func validateSAMLResponse(t *testing.T, samlOutput *SAMLOutput, response *http.Response) (ok bool) {
 	ok = true
 	if response == nil {
 		t.Errorf("expected http response but got nil")
 		ok = false
 		return
 	}
-	if step.SAMLOutput.HTTPStatus != nil {
-		if !validateHTTPResponseStatus(t, int(*step.SAMLOutput.HTTPStatus), response) {
+	if samlOutput.HTTPStatus != nil {
+		if !validateHTTPResponseStatus(t, int(*samlOutput.HTTPStatus), response) {
 			ok = false
 		}
 	}
-	if step.SAMLOutput.RedirectPath != nil {
+	if samlOutput.RedirectPath != nil {
 		if !validateRedirectLocation(t,
-			*step.SAMLOutput.RedirectPath,
+			*samlOutput.RedirectPath,
 			response,
 		) {
 			ok = false
 		}
 	}
-	if step.SAMLOutput.SAMLStatus != nil {
+	if samlOutput.SAMLStatus != nil {
 		responseData, err := io.ReadAll(response.Body)
 		if err != nil {
 			ok = false
 			t.Errorf("failed to read response body")
 		}
 		statusOk := validateSAMLStatus(t,
-			*step.SAMLOutput.SAMLStatus,
+			*samlOutput.SAMLStatus,
 			responseData,
 		)
 		if !statusOk {

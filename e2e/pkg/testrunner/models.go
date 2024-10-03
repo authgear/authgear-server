@@ -116,6 +116,8 @@ var _ = TestCaseSchema.Add("Step", `
 		"saml_request_binding": { "$ref": "#/$defs/SAMLBinding" },
 		"http_request_method": { "type": "string" },
 		"http_request_url": { "type": "string" },
+		"http_request_headers": { "type": "object" },
+		"http_request_body": { "type": "string" },
 		"http_output": { "$ref": "#/$defs/HTTPOutput" }
 	},
 	"allOf": [
@@ -227,9 +229,11 @@ type Step struct {
 	SAMLOutput             *SAMLOutput           `json:"saml_output"`
 
 	// `action` == "http_request"
-	HTTPRequestMethod string      `json:"http_request_method"`
-	HTTPRequestURL    string      `json:"http_request_url"`
-	HTTPOutput        *HTTPOutput `json:"http_output"`
+	HTTPRequestMethod  string            `json:"http_request_method"`
+	HTTPRequestURL     string            `json:"http_request_url"`
+	HTTPRequestHeaders map[string]string `json:"http_request_headers"`
+	HTTPRequestBody    string            `json:"http_request_body"`
+	HTTPOutput         *HTTPOutput       `json:"http_output"`
 }
 
 type StepAction string
