@@ -10,25 +10,25 @@ import (
 	"github.com/tdewolff/parse/v2/css"
 )
 
-type indentation string
+type Indentation string
 
-func (i indentation) Next() indentation {
+func (i Indentation) Next() Indentation {
 	if i == "" {
-		return indentation("  ")
+		return Indentation("  ")
 	}
-	return indentation(string(i) + string(i))
+	return Indentation(string(i) + string(i))
 }
 
 type element interface {
-	Stringify(buf *bytes.Buffer, indent indentation)
+	Stringify(buf *bytes.Buffer, indent Indentation)
 }
 
-type declaration struct {
+type Declaration struct {
 	Property string
 	Value    string
 }
 
-func (d *declaration) Stringify(buf *bytes.Buffer, indent indentation) {
+func (d *Declaration) Stringify(buf *bytes.Buffer, indent Indentation) {
 	buf.Write([]byte(indent))
 	buf.Write([]byte(d.Property))
 	buf.Write([]byte(": "))
@@ -36,12 +36,12 @@ func (d *declaration) Stringify(buf *bytes.Buffer, indent indentation) {
 	buf.Write([]byte(";\n"))
 }
 
-type ruleset struct {
+type Ruleset struct {
 	Selector     string
-	Declarations []*declaration
+	Declarations []*Declaration
 }
 
-func (r *ruleset) Stringify(buf *bytes.Buffer, indent indentation) {
+func (r *Ruleset) Stringify(buf *bytes.Buffer, indent Indentation) {
 	buf.Write([]byte(indent))
 	buf.Write([]byte(r.Selector))
 	buf.Write([]byte(" {\n"))
@@ -56,10 +56,10 @@ func (r *ruleset) Stringify(buf *bytes.Buffer, indent indentation) {
 type atrule struct {
 	Identifier string
 	Value      string
-	Rulesets   []*ruleset
+	Rulesets   []*Ruleset
 }
 
-func (r *atrule) Stringify(buf *bytes.Buffer, indent indentation) {
+func (r *atrule) Stringify(buf *bytes.Buffer, indent Indentation) {
 	buf.Write([]byte(indent))
 	buf.Write([]byte(r.Identifier))
 	buf.Write([]byte(" "))
@@ -73,32 +73,6 @@ func (r *atrule) Stringify(buf *bytes.Buffer, indent indentation) {
 	buf.Write([]byte("}\n"))
 }
 
-// MigrateMediaQueryToClassBased migrates media query dark theme to class-based dark theme.
-func MigrateMediaQueryToClassBased(r io.Reader) (result []byte, err error) {
-	p := css.NewParser(parse.NewInput(r), false)
-
-	var elements []element
-	for {
-		var el element
-		el, err = parseElement(p)
-		if errors.Is(err, io.EOF) {
-			err = nil
-			break
-		}
-		if err != nil {
-			return
-		}
-		elements = append(elements, el)
-	}
-
-	elements = transform(elements)
-	var buf bytes.Buffer
-	stringify(&buf, elements)
-
-	result = buf.Bytes()
-	return
-}
-
 func parseAtrule(p *css.Parser, a *atrule) (err error) {
 	for {
 		gt, _, _ := p.Next()
@@ -109,7 +83,7 @@ func parseAtrule(p *css.Parser, a *atrule) (err error) {
 		case css.EndAtRuleGrammar:
 			return
 		case css.BeginRulesetGrammar:
-			r := &ruleset{
+			r := &Ruleset{
 				Selector: collectTokensAsString(p.Values()),
 			}
 			err = parseRuleset(p, r)
@@ -124,7 +98,7 @@ func parseAtrule(p *css.Parser, a *atrule) (err error) {
 	}
 }
 
-func parseRuleset(p *css.Parser, r *ruleset) (err error) {
+func parseRuleset(p *css.Parser, r *Ruleset) (err error) {
 	for {
 		gt, _, data := p.Next()
 		switch gt {
@@ -134,7 +108,7 @@ func parseRuleset(p *css.Parser, r *ruleset) (err error) {
 		case css.EndRulesetGrammar:
 			return
 		case css.DeclarationGrammar:
-			decl := &declaration{
+			decl := &Declaration{
 				Property: string(data),
 				Value:    collectTokensAsString(p.Values()),
 			}
@@ -142,7 +116,7 @@ func parseRuleset(p *css.Parser, r *ruleset) (err error) {
 		case css.CustomPropertyGrammar:
 			// The tokens looks like [CustomPropertyValue(" value")]
 			// So we have to trim the spaces.
-			decl := &declaration{
+			decl := &Declaration{
 				Property: string(data),
 				Value:    strings.TrimSpace(collectTokensAsString(p.Values())),
 			}
@@ -173,7 +147,7 @@ func parseElement(p *css.Parser) (element element, err error) {
 			element = a
 			return
 		case css.BeginRulesetGrammar:
-			r := &ruleset{
+			r := &Ruleset{
 				Selector: collectTokensAsString(p.Values()),
 			}
 			err = parseRuleset(p, r)
@@ -197,30 +171,94 @@ func collectTokensAsString(tokens []css.Token) string {
 	return buf.String()
 }
 
-func transform(elements []element) (out []element) {
+func stringify(buf *bytes.Buffer, elements []element) {
+	for _, element := range elements {
+		var indent Indentation
+		element.Stringify(buf, indent)
+	}
+}
+
+func parseCSSRawString(cssStr string) ([]element, error) {
+	b := []byte(cssStr)
+	r := bytes.NewReader(b)
+	p := css.NewParser(parse.NewInput(r), false)
+	var elements []element
+	for {
+		var el element
+		el, err := parseElement(p)
+		if errors.Is(err, io.EOF) {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		elements = append(elements, el)
+	}
+	return elements, nil
+}
+
+// CheckDeclarationInSelector checks if the declaration is in the selector of provided css
+func CheckDeclarationInSelector(cssString string, selector string, declarationProperty string) (bool, error) {
+	elements, err := parseCSSRawString(cssString)
+	if err != nil {
+		return false, err
+	}
+
 	for _, el := range elements {
 		switch v := el.(type) {
-		case *atrule:
-			if v.Identifier == "@media" && v.Value == "(prefers-color-scheme:dark)" {
-				// Remove this at rule
-				for _, ruleset := range v.Rulesets {
-					if ruleset.Selector == ":root" {
-						ruleset.Selector = ":root.dark"
+		case *Ruleset:
+			if v.Selector == selector {
+				for _, d := range v.Declarations {
+					if d.Property == declarationProperty {
+						return true, nil
 					}
-					out = append(out, ruleset)
 				}
 			}
+		}
+	}
+	return false, nil
+}
+
+// Add declaration in selector if not present already. If added, then added is true.
+func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector string, declaration Declaration) (newCSS string, added bool, err error) {
+	alreadyPresent, err := CheckDeclarationInSelector(cssString, selector, declaration.Property)
+	if err != nil {
+		return "", false, err
+	}
+	if alreadyPresent {
+		return cssString, false, nil
+	}
+
+	elements, err := parseCSSRawString(cssString)
+	if err != nil {
+		return "", false, err
+	}
+
+	var out []element
+	for _, el := range elements {
+		switch v := el.(type) {
+		case *Ruleset:
+			if v.Selector != selector {
+				out = append(out, el)
+				continue
+			}
+			// inside target selector
+
+			// we know that this ruleset does not have target Declaration set yet
+			// so we just add it
+			d := &declaration
+			newEl := &Ruleset{
+				Selector:     v.Selector,
+				Declarations: append(v.Declarations, d),
+			}
+			out = append(out, newEl)
 		default:
 			out = append(out, el)
 		}
 	}
 
-	return
-}
+	var buf bytes.Buffer
+	stringify(&buf, out)
 
-func stringify(buf *bytes.Buffer, elements []element) {
-	for _, element := range elements {
-		var indent indentation
-		element.Stringify(buf, indent)
-	}
+	return buf.String(), true, nil
 }
