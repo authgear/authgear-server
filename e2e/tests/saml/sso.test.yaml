@@ -1,6 +1,5 @@
 ---
-name: SAML SSO
-focus: true
+name: SAML SSO - SP Initiated with Redirect Binding
 authgear.yaml:
   override: |
     saml:
@@ -161,3 +160,45 @@ steps:
               <any/>
             </saml:Assertion>
           </samlp:Response>
+---
+name: SAML SSO - SP Initiated with Post Binding
+authgear.yaml:
+  override: |
+    saml:
+      signing:
+        key_id: "-jeTn3EEV5bJUOMDQU04zLlkWFZK3BDODkfh40FX8K0"
+      service_providers:
+        - client_id: e2e
+          nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+          nameid_attribute_pointer: /preferred_username
+          acs_urls:
+            - https://samlsp.localhost/acs
+          destination: http://samlsp.localhost/destination
+          recipient: http://samlsp.localhost/recipient
+          audience: https://samlsp.localhost
+          assertion_valid_duration: 1h
+          slo_enabled: true
+          slo_callback_url: https://samlsp.localhost/sls
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # Send a valid saml request to the login endpoint with Post Binding
+  - action: "saml_request"
+    saml_request: |
+      <samlp:AuthnRequest
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        ForceAuthn="false"
+        ID="a506045340df4e2290640daf189f4b5177f691823"
+        IssueInstant="3000-10-02T08:25:59Z"
+        AssertionConsumerServiceURL="https://samlsp.localhost/acs"
+        ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Version="2.0"
+        ><saml:Issuer>urn:e2e.localhost</saml:Issuer></samlp:AuthnRequest
+      >
+    saml_request_destination: "/saml2/login/e2e"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+    saml_output:
+      http_status: 302
+      redirect_path: /_internals/oauth_entrypoint

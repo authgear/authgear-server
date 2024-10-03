@@ -239,8 +239,7 @@ func (c *Client) SendSAMLRequest(
 	destination := c.MainEndpoint.JoinPath(path)
 	switch binding {
 	case SAMLBindingHTTPPost:
-		// TODO
-		return nil
+		return c.SAMLClient.SendSAMLRequestWithHTTPPost(samlRequestXML, destination, fn)
 	case SAMLBindingHTTPRedirect:
 		return c.SAMLClient.SendSAMLRequestWithHTTPRedirect(samlRequestXML, destination, fn)
 	default:

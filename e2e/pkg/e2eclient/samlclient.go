@@ -52,3 +52,27 @@ func (c *SAMLClient) SendSAMLRequestWithHTTPRedirect(
 	defer resp.Body.Close()
 	return onResponse(resp)
 }
+
+func (c *SAMLClient) SendSAMLRequestWithHTTPPost(
+	samlRequestXML string,
+	destination *url.URL,
+	onResponse func(r *http.Response) error) error {
+	base64EncodedRequest := base64.StdEncoding.EncodeToString([]byte(samlRequestXML))
+	body := &url.Values{
+		"SAMLRequest": []string{base64EncodedRequest},
+	}
+	bodyBuffer := bytes.NewBuffer([]byte(body.Encode()))
+	u := destination
+	req, err := http.NewRequestWithContext(c.Context, "POST", u.String(), bodyBuffer)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Host = string(c.HTTPHost)
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return onResponse(resp)
+}
