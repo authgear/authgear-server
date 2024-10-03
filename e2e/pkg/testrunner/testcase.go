@@ -582,19 +582,44 @@ func validateSAMLResponse(t *testing.T, expected *OuputSAMLResponse, httpRespons
 		return
 	}
 
-	var assertElements func(expectedEls []*etree.Element)
+	var assertElements func(parentPath string, expectedEls []*etree.Element)
 
-	assertElements = func(expectedEls []*etree.Element) {
-		for _, el := range expectedEls {
+	assertElements = func(parentPath string, expectedEls []*etree.Element) {
+		for idx, el := range expectedEls {
 			expectedEl := el
-			path := expectedEl.GetPath()
-			fmt.Println("path", path)
+			// Do not use GetPath to get the path because it does not handle duplicated elements of the same Tag
+			path := parentPath + fmt.Sprintf("/*[%d]", idx+1)
+			// Check existence
 			actualEl := responseDoc.FindElement(path)
 			if actualEl == nil {
 				ok = false
 				t.Errorf("element not found in path: %v", path)
 				continue
 			}
+
+			// Check Tag
+			if expectedEl.Tag != actualEl.Tag {
+				ok = false
+				t.Errorf("element %v has unmatched tag: expected: %v, actual: %v",
+					path,
+					expectedEl.Tag,
+					actualEl.Tag,
+				)
+				continue
+			}
+
+			// Check Space
+			if expectedEl.Space != actualEl.Space {
+				ok = false
+				t.Errorf("element %v has unmatched space: expected: %v, actual: %v",
+					path,
+					expectedEl.Space,
+					actualEl.Space,
+				)
+				continue
+			}
+
+			// Check attributes
 			for _, expectedAttr := range expectedEl.Attr {
 				actualValue := actualEl.SelectAttrValue(expectedAttr.Key, "")
 				if actualValue != expectedAttr.Value {
@@ -607,13 +632,25 @@ func validateSAMLResponse(t *testing.T, expected *OuputSAMLResponse, httpRespons
 					)
 				}
 			}
+			// Check text
+			expectedText := strings.Trim(expectedEl.Text(), "\n ")
+			actualText := strings.Trim(actualEl.Text(), "\n ")
+			if expectedText != "" && expectedText != actualText {
+				ok = false
+				t.Errorf("element %v has unmatched text. expected: %v, actual: %v",
+					path,
+					expectedEl.Text(),
+					actualEl.Text(),
+				)
+			}
+			// Check children
 			if len(expectedEl.ChildElements()) > 0 {
-				assertElements(expectedEl.ChildElements())
+				assertElements(path, expectedEl.ChildElements())
 			}
 		}
 	}
 
-	assertElements(expectedDoc.ChildElements())
+	assertElements("", expectedDoc.ChildElements())
 	return ok
 }
 

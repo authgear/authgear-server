@@ -71,8 +71,46 @@ steps:
       saml_response:
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
-          <samlp:Response>
+          <samlp:Response
+            xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+            InResponseTo="a506045340df4e2290640daf189f4b5177f691823"
+            Version="2.0"
+            Destination="http://samlsp.localhost/destination">
+            <saml:Issuer/>
+            <ds:Signature/>
             <samlp:Status>
-              <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success">
+              <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
             </samlp:Status>
+            <saml:Assertion>
+              <saml:Issuer/>
+              <ds:Signature/>
+              <saml:Subject>
+                <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+                >samltest01</saml:NameID>
+                <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+                  <saml:SubjectConfirmationData
+                    InResponseTo="a506045340df4e2290640daf189f4b5177f691823"
+                    Recipient="http://samlsp.localhost/recipient" />
+                </saml:SubjectConfirmation>
+              </saml:Subject>
+              <saml:Conditions>
+                <saml:AudienceRestriction>
+                  <saml:Audience>https://samlsp.localhost</saml:Audience>
+                  <saml:Audience>https://samlsp.localhost/acs</saml:Audience>
+                </saml:AudienceRestriction>
+              </saml:Conditions>
+              <saml:AuthnStatement>
+                <saml:AuthnContext>
+                  <saml:AuthnContextClassRef />
+                </saml:AuthnContext>
+              </saml:AuthnStatement>
+              <saml:AttributeStatement>
+                <saml:Attribute FriendlyName="User ID" Name="sub"
+                  NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+                  <saml:AttributeValue
+                    xsi:type="xs:string"/>
+                </saml:Attribute>
+              </saml:AttributeStatement>
+            </saml:Assertion>
           </samlp:Response>
+
