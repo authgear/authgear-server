@@ -36,12 +36,12 @@ func (d *Declaration) Stringify(buf *bytes.Buffer, indent indentation) {
 	buf.Write([]byte(";\n"))
 }
 
-type ruleset struct {
+type Ruleset struct {
 	Selector     string
 	Declarations []*Declaration
 }
 
-func (r *ruleset) Stringify(buf *bytes.Buffer, indent indentation) {
+func (r *Ruleset) Stringify(buf *bytes.Buffer, indent indentation) {
 	buf.Write([]byte(indent))
 	buf.Write([]byte(r.Selector))
 	buf.Write([]byte(" {\n"))
@@ -56,7 +56,7 @@ func (r *ruleset) Stringify(buf *bytes.Buffer, indent indentation) {
 type atrule struct {
 	Identifier string
 	Value      string
-	Rulesets   []*ruleset
+	Rulesets   []*Ruleset
 }
 
 func (r *atrule) Stringify(buf *bytes.Buffer, indent indentation) {
@@ -83,7 +83,7 @@ func parseAtrule(p *css.Parser, a *atrule) (err error) {
 		case css.EndAtRuleGrammar:
 			return
 		case css.BeginRulesetGrammar:
-			r := &ruleset{
+			r := &Ruleset{
 				Selector: collectTokensAsString(p.Values()),
 			}
 			err = parseRuleset(p, r)
@@ -98,7 +98,7 @@ func parseAtrule(p *css.Parser, a *atrule) (err error) {
 	}
 }
 
-func parseRuleset(p *css.Parser, r *ruleset) (err error) {
+func parseRuleset(p *css.Parser, r *Ruleset) (err error) {
 	for {
 		gt, _, data := p.Next()
 		switch gt {
@@ -147,7 +147,7 @@ func parseElement(p *css.Parser) (element element, err error) {
 			element = a
 			return
 		case css.BeginRulesetGrammar:
-			r := &ruleset{
+			r := &Ruleset{
 				Selector: collectTokensAsString(p.Values()),
 			}
 			err = parseRuleset(p, r)
@@ -206,7 +206,7 @@ func CheckDeclarationInSelector(cssString string, selector string, declarationPr
 
 	for _, el := range elements {
 		switch v := el.(type) {
-		case *ruleset:
+		case *Ruleset:
 			if v.Selector == selector {
 				for _, d := range v.Declarations {
 					if d.Property == declarationProperty {
@@ -237,7 +237,7 @@ func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector stri
 	var out []element
 	for _, el := range elements {
 		switch v := el.(type) {
-		case *ruleset:
+		case *Ruleset:
 			if v.Selector != selector {
 				out = append(out, el)
 				continue
@@ -247,7 +247,7 @@ func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector stri
 			// we know that this ruleset does not have target Declaration set yet
 			// so we just add it
 			d := &declaration
-			newEl := &ruleset{
+			newEl := &Ruleset{
 				Selector:     v.Selector,
 				Declarations: append(v.Declarations, d),
 			}
