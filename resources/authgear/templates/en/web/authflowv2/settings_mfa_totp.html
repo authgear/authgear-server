@@ -13,15 +13,38 @@
 <div>
   {{ if $.TOTPAuthenticators }}
     <ul>
+      {{ $ctx := .}}
       {{ range $.TOTPAuthenticators }}
         <li>
           {{ template "authflowv2/__settings_action_item.html"
               (dict
                 "Label" .DisplayName
                 "Description" (include "__settings_totp_item_added_at.html" .)
-                "ActionButton" (include "__settings_totp_item_delete_button.html" nil)
+                "ActionButton" (include "__settings_totp_item_delete_button.html" (dict "DialogID" .ID))
               )
           }}
+
+          {{ template "authflowv2/__settings_dialog.html"
+            (dict
+              "Ctx" $ctx
+              "DialogID" .ID
+              "Title" (include "v2.page.settings-totp.default.remove-totp-dialog-title" nil)
+              "Description" (include "v2.page.settings-totp.default.remove-totp-dialog-description" nil)
+              "FormContent" (include "__settings_totp_dialog_remove_input.html" (dict "AuthenticatorID" .ID "CSRFField" $.CSRFField))
+              "Buttons"
+                (list
+                  (dict
+                    "Type" "Destructive"
+                    "Label" (include "v2.component.button.default.label-remove" nil)
+                    "Value" "remove"
+                    "Event" "authgear.button.remove_biometric"
+                  )
+                  (dict
+                    "Type" "Cancel"
+                    "Label" (include "v2.component.button.default.label-cancel" nil)
+                  )
+                )
+          )}}
         </li>
       {{ end }}
     </ul>
@@ -54,7 +77,17 @@
 {{ end }}
 
 {{ define "__settings_totp_item_delete_button.html" }}
-<button type="button">
+<button
+  type="button"
+  data-controller="settings-dialog"
+  data-action="click->settings-dialog#open"
+  data-settings-dialog-dialogid-param="{{ .DialogID }}"
+>
   <i class="material-icons text-[1.5rem] text-[var(--color-neutral-200)]">close</i>
 </button>
+{{ end }}
+
+{{ define "__settings_totp_dialog_remove_input.html" }}
+  {{ $.CSRFField }}
+  <input type="hidden" name="x_authenticator_id" value="{{ $.AuthenticatorID }}">
 {{ end }}

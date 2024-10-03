@@ -13,6 +13,7 @@ import (
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -104,6 +105,26 @@ func (h *AuthflowV2SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http
 		redirectURI.RawQuery = q.Encode()
 
 		result := webapp.Result{RedirectURI: redirectURI.String()}
+		result.WriteResponse(w, r)
+
+		return nil
+	})
+
+	ctrl.PostAction("remove", func() error {
+		authenticatorID := r.Form.Get("x_authenticator_id")
+
+		s := session.GetSession(r.Context())
+
+		input := &accountmanagement.DeleteTOTPAuthenticatorInput{
+			AuthenticatorID: authenticatorID,
+		}
+		_, err = h.AccountManagement.DeleteTOTPAuthenticator(s, input)
+		if err != nil {
+			return err
+		}
+
+		redirectURI := httputil.HostRelative(r.URL).String()
+		result := webapp.Result{RedirectURI: redirectURI}
 		result.WriteResponse(w, r)
 
 		return nil
