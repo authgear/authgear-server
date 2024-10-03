@@ -10,17 +10,17 @@ import (
 	"github.com/tdewolff/parse/v2/css"
 )
 
-type indentation string
+type Indentation string
 
-func (i indentation) Next() indentation {
+func (i Indentation) Next() Indentation {
 	if i == "" {
-		return indentation("  ")
+		return Indentation("  ")
 	}
-	return indentation(string(i) + string(i))
+	return Indentation(string(i) + string(i))
 }
 
 type element interface {
-	Stringify(buf *bytes.Buffer, indent indentation)
+	Stringify(buf *bytes.Buffer, indent Indentation)
 }
 
 type Declaration struct {
@@ -28,7 +28,7 @@ type Declaration struct {
 	Value    string
 }
 
-func (d *Declaration) Stringify(buf *bytes.Buffer, indent indentation) {
+func (d *Declaration) Stringify(buf *bytes.Buffer, indent Indentation) {
 	buf.Write([]byte(indent))
 	buf.Write([]byte(d.Property))
 	buf.Write([]byte(": "))
@@ -41,7 +41,7 @@ type Ruleset struct {
 	Declarations []*Declaration
 }
 
-func (r *Ruleset) Stringify(buf *bytes.Buffer, indent indentation) {
+func (r *Ruleset) Stringify(buf *bytes.Buffer, indent Indentation) {
 	buf.Write([]byte(indent))
 	buf.Write([]byte(r.Selector))
 	buf.Write([]byte(" {\n"))
@@ -59,7 +59,7 @@ type atrule struct {
 	Rulesets   []*Ruleset
 }
 
-func (r *atrule) Stringify(buf *bytes.Buffer, indent indentation) {
+func (r *atrule) Stringify(buf *bytes.Buffer, indent Indentation) {
 	buf.Write([]byte(indent))
 	buf.Write([]byte(r.Identifier))
 	buf.Write([]byte(" "))
@@ -173,7 +173,7 @@ func collectTokensAsString(tokens []css.Token) string {
 
 func stringify(buf *bytes.Buffer, elements []element) {
 	for _, element := range elements {
-		var indent indentation
+		var indent Indentation
 		element.Stringify(buf, indent)
 	}
 }
