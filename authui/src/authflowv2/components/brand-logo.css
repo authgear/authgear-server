@@ -29,10 +29,16 @@
   }
 
   .brand-logo--default {
-    /* use max-height as variable to ensure the object-contain width won't outgrow max-width */
+    /* In preflight.css, image has been given max-width: 100% and height: auto */
+    /* See https://tailwindcss.com/docs/preflight#images-are-constrained-to-the-parent-width */
+
+    /* In here, we try to be more explicit */
+    /* 1. Tell the browser to set the image dimension according to its aspect ratio. */
+    @apply w-auto h-auto;
+    /* 2. But the max-width cannot be larger than the parent */
+    @apply max-w-full;
+    /* 3. Apply the variable to max-height so that the used height is clipped when width == max-width (100%) */
     max-height: var(--brand-logo__height);
-    max-width: 100%;
-    height: 100%;
   }
 
   /* Below data-src selector is a workaround until css :has() is widely-supported */
