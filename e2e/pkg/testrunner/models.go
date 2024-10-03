@@ -255,15 +255,15 @@ var _ = TestCaseSchema.Add("SAMLOutput", `
 	"properties": {
 		"http_status": { "type": "integer" },
 		"redirect_path": { "type": "string" },
-		"status": { "type": "string" }
+		"saml_response": { "$ref": "#/$defs/OuputSAMLResponse" }
 	}
 }
 `)
 
 type SAMLOutput struct {
-	HTTPStatus   *float64 `json:"http_status"`
-	RedirectPath *string  `json:"redirect_path"`
-	SAMLStatus   *string  `json:"status"`
+	HTTPStatus   *float64           `json:"http_status"`
+	RedirectPath *string            `json:"redirect_path"`
+	SAMLResponse *OuputSAMLResponse `json:"saml_response"`
 }
 
 var _ = TestCaseSchema.Add("HTTPOutput", `
@@ -272,14 +272,32 @@ var _ = TestCaseSchema.Add("HTTPOutput", `
 	"additionalProperties": false,
 	"properties": {
 		"http_status": { "type": "integer" },
-		"redirect_path": { "type": "string" }
+		"redirect_path": { "type": "string" },
+		"saml_response": { "$ref": "#/$defs/OuputSAMLResponse" }
 	}
 }
 `)
 
 type HTTPOutput struct {
-	HTTPStatus   *float64 `json:"http_status"`
-	RedirectPath *string  `json:"redirect_path"`
+	HTTPStatus   *float64           `json:"http_status"`
+	RedirectPath *string            `json:"redirect_path"`
+	SAMLResponse *OuputSAMLResponse `json:"saml_response"`
+}
+
+var _ = TestCaseSchema.Add("OuputSAMLResponse", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"binding": { "$ref": "#/$defs/SAMLBinding" },
+		"status": { "type": "string" }
+	}
+}
+`)
+
+type OuputSAMLResponse struct {
+	Binding e2eclient.SAMLBinding `json:"binding"`
+	Status  string                `json:"status"`
 }
 
 var _ = TestCaseSchema.Add("QueryOutput", `

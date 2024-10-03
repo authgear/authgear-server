@@ -68,3 +68,6 @@ steps:
     http_request_body: "x_login_id_input_type=text&x_login_id=samltest01&x_action=login_id"
     http_output:
       http_status: 200
+      saml_response:
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        status: urn:oasis:names:tc:SAML:2.0:status:Success

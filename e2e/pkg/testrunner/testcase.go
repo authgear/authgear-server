@@ -1,6 +1,7 @@
 package testrunner
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -255,7 +256,7 @@ func (tc *TestCase) executeStep(
 					httpResult = NewResultHTTPResponse(r)
 				}
 				if step.HTTPOutput != nil {
-					outputOk = validateHTTPResponse(t, step.HTTPOutput, r)
+					outputOk = validateHTTPOutput(t, step.HTTPOutput, r)
 				}
 				return nil
 			})
@@ -282,7 +283,7 @@ func (tc *TestCase) executeStep(
 					httpResult = NewResultHTTPResponse(r)
 				}
 				if step.SAMLOutput != nil {
-					samlOutputOk = validateSAMLResponse(t, step.SAMLOutput, r)
+					samlOutputOk = validateSAMLOutput(t, step.SAMLOutput, r)
 				}
 				return nil
 			})
@@ -518,16 +519,62 @@ func validateRedirectLocation(t *testing.T, expectedPath string, response *http.
 	return ok
 }
 
-func validateSAMLStatus(t *testing.T, expectedStatus string, responseBody []byte) (ok bool) {
+func validateSAMLResponse(t *testing.T, expected *OuputSAMLResponse, httpResponse *http.Response) (ok bool) {
 	ok = true
-	doc := etree.NewDocument()
-	err := doc.ReadFromString(string(responseBody))
-	if err != nil {
+
+	var responseDoc *etree.Document
+	switch expected.Binding {
+	case authflowclient.SAMLBindingHTTPPost:
+		// For post binding, read the SAMLResponse from the response body
+		body, err := io.ReadAll(httpResponse.Body)
+		if err != nil {
+			t.Errorf("failed to read response body: %v", err)
+			ok = false
+			return
+		}
+		doc := etree.NewDocument()
+		err = doc.ReadFromString(string(body))
+		if err != nil {
+			ok = false
+			t.Errorf("failed to parse response body as html")
+			return
+		}
+		samlResponseEl := doc.FindElement("./html/body/form/input[@name='SAMLResponse']")
+		if samlResponseEl == nil {
+			ok = false
+			t.Errorf("no SAMLResponse input found in html")
+			return
+		}
+		samlResponseAttr := samlResponseEl.SelectAttr("value")
+		if samlResponseAttr == nil {
+			ok = false
+			t.Errorf("SAMLResponse input has no value")
+			return
+		}
+		decodedXML, err := base64.StdEncoding.DecodeString(samlResponseAttr.Value)
+		if err != nil {
+			ok = false
+			t.Errorf("decode SAMLResponse failed: %v", err)
+			return
+		}
+		responseDoc = etree.NewDocument()
+		err = responseDoc.ReadFromString(string(decodedXML))
+		if err != nil {
+			ok = false
+			t.Errorf("failed to parse SAMLResponse as xml")
+			return
+		}
+
+	case authflowclient.SAMLBindingHTTPRedirect:
+		// TODO
+		fallthrough
+	default:
+		t.Errorf("not implemented")
 		ok = false
-		t.Errorf("failed to read parse body as xml")
 		return
 	}
-	statusCodeEl := doc.FindElement("./Status/StatusCode")
+
+	statusCodeEl := responseDoc.Root().FindElement("./Status/StatusCode")
 	if statusCodeEl == nil {
 		ok = false
 		t.Errorf("no StatusCode element found")
@@ -539,10 +586,10 @@ func validateSAMLStatus(t *testing.T, expectedStatus string, responseBody []byte
 		t.Errorf("no Value in StatusCode")
 		return
 	}
-	if statusCodeValue.Value != expectedStatus {
+	if statusCodeValue.Value != expected.Status {
 		ok = false
 		t.Errorf("unexpected SAML status. expected: %s, actual: %s",
-			expectedStatus,
+			expected.Status,
 			statusCodeValue.Value,
 		)
 		return
@@ -561,7 +608,7 @@ func validateHTTPResponseStatus(t *testing.T, expectedStatus int, response *http
 	return true
 }
 
-func validateHTTPResponse(t *testing.T, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
+func validateHTTPOutput(t *testing.T, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
 	ok = true
 	if response == nil {
 		t.Errorf("expected http response but got nil")
@@ -581,10 +628,19 @@ func validateHTTPResponse(t *testing.T, httpOutput *HTTPOutput, response *http.R
 			ok = false
 		}
 	}
+	if httpOutput.SAMLResponse != nil {
+		statusOk := validateSAMLResponse(t,
+			httpOutput.SAMLResponse,
+			response,
+		)
+		if !statusOk {
+			ok = false
+		}
+	}
 	return ok
 }
 
-func validateSAMLResponse(t *testing.T, samlOutput *SAMLOutput, response *http.Response) (ok bool) {
+func validateSAMLOutput(t *testing.T, samlOutput *SAMLOutput, response *http.Response) (ok bool) {
 	ok = true
 	if response == nil {
 		t.Errorf("expected http response but got nil")
@@ -604,15 +660,10 @@ func validateSAMLResponse(t *testing.T, samlOutput *SAMLOutput, response *http.R
 			ok = false
 		}
 	}
-	if samlOutput.SAMLStatus != nil {
-		responseData, err := io.ReadAll(response.Body)
-		if err != nil {
-			ok = false
-			t.Errorf("failed to read response body")
-		}
-		statusOk := validateSAMLStatus(t,
-			*samlOutput.SAMLStatus,
-			responseData,
+	if samlOutput.SAMLResponse != nil {
+		statusOk := validateSAMLResponse(t,
+			samlOutput.SAMLResponse,
+			response,
 		)
 		if !statusOk {
 			ok = false
