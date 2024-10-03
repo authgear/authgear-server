@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
+	"github.com/tdewolff/parse/v2"
 )
 
 func TestTheme(t *testing.T) {
@@ -33,18 +34,19 @@ func TestTheme(t *testing.T) {
 	})
 
 	Convey("AddDeclarationInSelectorIfNotPresentAlready", t, func() {
-		test := func(cssString string, selector string, declaration declaration, expectedCSS string, expectedAdded bool) {
-			newCSS, added := AddDeclarationInSelectorIfNotPresentAlready(cssString, selector, declaration)
+		test := func(cssString string, selector string, declaration Declaration, expectedCSS string, expectedAdded bool, expectedErr error) {
+			newCSS, added, err := AddDeclarationInSelectorIfNotPresentAlready(cssString, selector, declaration)
 			So(newCSS, ShouldEqual, expectedCSS)
 			So(added, ShouldEqual, expectedAdded)
+			So(err, ShouldResemble, expectedErr)
 		}
 
-		var defaultBrandLogoHeight = declaration{Property: "--brand-logo__height", Value: "40px"}
+		var defaultBrandLogoHeight = Declaration{Property: "--brand-logo__height", Value: "40px"}
 
-		Convey("bad css input should do nothing", func() {
-			test("abcdefg", ":root", declaration{}, "abcdefg", false)
-			test("iambad", ":root", declaration{}, "iambad", false)
-			test("!@#$%@)#$*", ":root", declaration{}, "!@#$%@)#$*", false)
+		Convey("bad css input should return empty string and error", func() {
+			test("abcdefg", ":root", Declaration{}, "", false, &parse.Error{Message: "unexpected ending in qualified rule", Line: 1, Column: 8, Context: "    1: abcdefg\n              ^"})
+			test("iambad", ":root", Declaration{}, "", false, &parse.Error{Message: "unexpected ending in qualified rule", Line: 1, Column: 7, Context: "    1: iambad\n             ^"})
+			test("!@#$%@)#$*", ":root", Declaration{}, "", false, &parse.Error{Message: "unexpected ending in qualified rule", Line: 1, Column: 8, Context: "    1: !@#$%@)#$*\n              ^"})
 		})
 
 		Convey("Set dark logo height if not set", func() {
@@ -59,7 +61,8 @@ func TestTheme(t *testing.T) {
   --brand-logo__height: 40px;
 }
 `,
-				true) // appended
+				true,
+				nil) // appended
 		})
 
 		Convey("Do nothing if dark logo height set", func() {
@@ -75,7 +78,8 @@ func TestTheme(t *testing.T) {
   --brand-logo__height: 137px;
 }
 `,
-				false) // unchanged
+				false,
+				nil) // unchanged
 		})
 
 		Convey("Set light logo height if not set", func() {
@@ -90,7 +94,8 @@ func TestTheme(t *testing.T) {
   --brand-logo__height: 40px;
 }
 `,
-				true) // appended
+				true,
+				nil) // appended
 		})
 
 		Convey("Do nothing if light logo height set", func() {
@@ -106,7 +111,8 @@ func TestTheme(t *testing.T) {
   --brand-logo__height: 137px;
 }
 `,
-				false) // unchanged
+				false,
+				nil) // unchanged
 		})
 	})
 }

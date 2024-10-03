@@ -220,18 +220,18 @@ func CheckDeclarationInSelector(cssString string, selector string, declarationPr
 }
 
 // Add declaration in selector if not present already. If added, then added is true.
-func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector string, declaration Declaration) (newCSS string, added bool) {
+func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector string, declaration Declaration) (newCSS string, added bool, err error) {
 	alreadyPresent, err := CheckDeclarationInSelector(cssString, selector, declaration.Property)
 	if err != nil {
-		return cssString, false
+		return "", false, err
 	}
 	if alreadyPresent {
-		return cssString, false
+		return cssString, false, nil
 	}
 
 	elements, err := parseCSSRawString(cssString)
 	if err != nil {
-		return cssString, false
+		return "", false, err
 	}
 
 	var out []element
@@ -244,7 +244,7 @@ func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector stri
 			}
 			// inside target selector
 
-			// we know that this ruleset does not have target declaration set yet
+			// we know that this ruleset does not have target Declaration set yet
 			// so we just add it
 			d := &declaration
 			newEl := &ruleset{
@@ -260,5 +260,5 @@ func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector stri
 	var buf bytes.Buffer
 	stringify(&buf, out)
 
-	return buf.String(), true
+	return buf.String(), true, nil
 }
