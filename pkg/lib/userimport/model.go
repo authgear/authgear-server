@@ -481,6 +481,16 @@ type Response struct {
 	Details     []Detail              `json:"details,omitempty"`
 }
 
+func NewResponseFromJob(job *Job) *Response {
+	return &Response{
+		ID:          job.ID,
+		CreatedAt:   &job.CreatedAt,
+		CompletedAt: &job.CreatedAt,
+		Status:      redisqueue.TaskStatusCompleted,
+		Summary:     &Summary{},
+	}
+}
+
 func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 	response := &Response{
 		ID:          task.ID,
@@ -502,4 +512,49 @@ func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 	}
 
 	return response, nil
+}
+
+func (r *Response) AggregateTaskResult(task *redisqueue.Task) error {
+	if task.CompletedAt == nil {
+		// Any task not yet complete => Job not yet complete
+		r.CompletedAt = nil
+		r.Status = redisqueue.TaskStatusPending
+
+		// Clear details to avoid out-of-ordered records.
+		r.Details = nil
+	} else if r.CompletedAt != nil && task.CompletedAt.After(*r.CompletedAt) {
+		// Use the latest completion timestamp of tasks.
+		r.CompletedAt = task.CompletedAt
+	}
+
+	if task.Error != nil {
+		// TODO: merge errors from tasks?
+		r.Error = task.Error
+	}
+
+	if task.Output != nil {
+		var result Result
+		err := json.Unmarshal(task.Output, &result)
+		if err != nil {
+			return err
+		}
+
+		r.Summary.Total += result.Summary.Total
+		r.Summary.Inserted += result.Summary.Inserted
+		r.Summary.Updated += result.Summary.Updated
+		r.Summary.Skipped += result.Summary.Skipped
+		r.Summary.Failed += result.Summary.Failed
+
+		if r.CompletedAt != nil {
+			r.Details = append(r.Details, result.Details...)
+		}
+	}
+
+	return nil
+}
+
+type Job struct {
+	ID        string    `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	TaskIDs   []string  `json:"task_ids"`
 }
