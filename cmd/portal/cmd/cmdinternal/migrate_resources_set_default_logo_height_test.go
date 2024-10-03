@@ -1,7 +1,9 @@
 package cmdinternal
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"sort"
 	"testing"
@@ -26,6 +28,21 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 			So(err, ShouldResemble, expectedErr)
 			So(src, ShouldResemble, expectedOutput) // src was modified in-place
 		}
+
+		toB64 := func(str string) string {
+			return base64.StdEncoding.EncodeToString([]byte(str))
+		}
+
+		lightThemeCSSWithLogoHeightOnly := `:root {
+  --brand-logo__height: 40px;
+}
+`
+		darkThemeCSSWithLogoHeightOnly := `:root.dark {
+  --brand-logo__height: 40px;
+}
+`
+		b64LightCSS := toB64(lightThemeCSSWithLogoHeightOnly)
+		b64DarkCSS := toB64(darkThemeCSSWithLogoHeightOnly)
 		Convey("!hasLightLogo && !hasLightThemeCSS && !hasDarkLogo && !hasDarkThemeCSS", func() {
 			Convey("should do nothing", func() {
 				test(
@@ -36,7 +53,20 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 			})
 		})
 
-		Convey("hasLightLogo && !hasLightThemeCSS", func() {})
+		Convey("hasLightLogo && !hasLightThemeCSS", func() {
+			Convey("should create light-theme.css", func() {
+				test(
+					`{
+  "static_2f_zh-HK_2f_app_5f_logo.png": "base64-encoded-img"
+}`,
+					fmt.Sprintf(`{
+	"static_2f_zh-HK_2f_app_5f_logo.png": "base64-encoded-img",
+	"static_2f_authgear-authflowv_32_-light-theme.css": "%v"
+}`, b64LightCSS),
+					nil,
+				)
+			})
+		})
 		Convey("hasLightLogo && hasLightThemeCSS && alreadySet", func() {})
 		Convey("hasLightLogo && hasLightThemeCSS && notAlreadySet", func() {})
 		Convey("!hasLightLogo && hasLightThemeCSS", func() {})
