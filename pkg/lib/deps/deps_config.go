@@ -46,6 +46,8 @@ var ConfigDeps = wire.NewSet(
 		"LDAP",
 	),
 	wire.FieldsOf(new(*config.MessagingConfig),
+		"SMSProvider",
+		"SMSGateway",
 		"Whatsapp",
 		"RateLimits",
 	),

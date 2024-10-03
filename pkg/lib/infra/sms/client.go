@@ -34,9 +34,7 @@ type Client struct {
 	MessagingConfig              *config.MessagingConfig
 	FeatureTestModeSMSSuppressed config.FeatureTestModeSMSSuppressed
 	TestModeSMSConfig            *config.TestModeSMSConfig
-	TwilioClient                 *TwilioClient
-	NexmoClient                  *NexmoClient
-	CustomClient                 *CustomClient
+	ClientResolver               *ClientResolver
 }
 
 func (c *Client) Send(opts SendOptions) error {
@@ -65,41 +63,10 @@ func (c *Client) Send(opts SendOptions) error {
 		return nil
 	}
 
-	var client RawClient
-	switch c.MessagingConfig.SMSProvider {
-	case config.SMSProviderNexmo:
-		if c.NexmoClient == nil {
-			return ErrNoAvailableClient
-		}
-		client = c.NexmoClient
-	case config.SMSProviderTwilio:
-		if c.TwilioClient == nil {
-			return ErrNoAvailableClient
-		}
-		client = c.TwilioClient
-	case config.SMSProviderCustom:
-		if c.CustomClient == nil {
-			return ErrNoAvailableClient
-		}
-		client = c.CustomClient
-	default:
-		var availableClients []RawClient = []RawClient{}
-		if c.NexmoClient != nil {
-			availableClients = append(availableClients, c.NexmoClient)
-		}
-		if c.TwilioClient != nil {
-			availableClients = append(availableClients, c.TwilioClient)
-		}
-		if c.CustomClient != nil {
-			availableClients = append(availableClients, c.CustomClient)
-		}
-		if len(availableClients) == 0 {
-			return ErrNoAvailableClient
-		}
-		if len(availableClients) > 1 {
-			return ErrAmbiguousClient
-		}
-		client = availableClients[0]
+	client, _, err := c.ClientResolver.ResolveClient()
+
+	if err != nil {
+		return err
 	}
 
 	return client.Send(opts)

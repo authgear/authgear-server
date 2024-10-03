@@ -60,11 +60,18 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	messagingConfig := appConfig.Messaging
 	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
 	testModeSMSConfig := testModeConfig.SMS
-	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
-	twilioClient := sms.NewTwilioClient(twilioCredentials)
+	smsProvider := messagingConfig.SMSProvider
+	smsGatewayConfig := messagingConfig.SMSGateway
 	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
-	nexmoClient := sms.NewNexmoClient(nexmoCredentials)
+	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
 	customSMSProviderConfig := deps.ProvideCustomSMSProviderConfig(secretConfig)
+	smsGatewayEnvironmentConfig := &environmentConfig.SMSGatewayConfig
+	smsGatewayEnvironmentDefaultConfig := &smsGatewayEnvironmentConfig.Default
+	smsGatewayEnvironmentDefaultProvider := smsGatewayEnvironmentDefaultConfig.Provider
+	smsGatewayEnvironmentDefaultUseConfigFrom := smsGatewayEnvironmentDefaultConfig.UseConfigFrom
+	smsGatewayEnvironmentNexmoCredentials := smsGatewayEnvironmentConfig.Nexmo
+	smsGatewayEnvironmentTwilioCredentials := smsGatewayEnvironmentConfig.Twilio
+	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
 	context := p.Context
 	manager := appContext.Resources
 	denoHookLogger := hook.NewDenoHookLogger(factory)
@@ -92,16 +99,27 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		WebHook: webHookImpl,
 		Client:  hookHTTPClient,
 	}
-	customClient := sms.NewCustomClient(customSMSProviderConfig, smsDenoHook, smsWebHook)
+	clientResolver := &sms.ClientResolver{
+		AuthgearYAMLSMSProvider:                    smsProvider,
+		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
+		AuthgearSecretsYAMLNexmoCredentials:        nexmoCredentials,
+		AuthgearSecretsYAMLTwilioCredentials:       twilioCredentials,
+		AuthgearSecretsYAMLCustomSMSProviderConfig: customSMSProviderConfig,
+		EnvironmentDefaultProvider:                 smsGatewayEnvironmentDefaultProvider,
+		EnvironmentDefaultUseConfigFrom:            smsGatewayEnvironmentDefaultUseConfigFrom,
+		EnvironmentNexmoCredentials:                smsGatewayEnvironmentNexmoCredentials,
+		EnvironmentTwilioCredentials:               smsGatewayEnvironmentTwilioCredentials,
+		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
+		SMSDenoHook:                                smsDenoHook,
+		SMSWebHook:                                 smsWebHook,
+	}
 	client := &sms.Client{
 		Logger:                       smsLogger,
 		DevMode:                      devMode,
 		MessagingConfig:              messagingConfig,
 		FeatureTestModeSMSSuppressed: featureTestModeSMSSuppressed,
 		TestModeSMSConfig:            testModeSMSConfig,
-		TwilioClient:                 twilioClient,
-		NexmoClient:                  nexmoClient,
-		CustomClient:                 customClient,
+		ClientResolver:               clientResolver,
 	}
 	serviceLogger := whatsapp.NewServiceLogger(factory)
 	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
