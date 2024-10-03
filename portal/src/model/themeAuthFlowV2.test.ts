@@ -58,7 +58,7 @@ describe("StyleCssVisitor", () => {
     --color-link--active: #1151b8;
     --color-link--hover: #1151b8;
     --body-text__link-text-decoration: underline;
-    --brand-logo__height: 40px
+    --brand-logo__height: 100px
 }`;
     const customisableThemeStyleGroup = new CustomisableThemeStyleGroup(
       DEFAULT_LIGHT_THEME
@@ -113,7 +113,7 @@ describe("StyleCssVisitor", () => {
         textDecoration: "underline",
       },
       logo: {
-        height: "40px",
+        height: "100px",
       },
     });
   });
@@ -199,7 +199,7 @@ describe("CssAstVisitor", () => {
     --color-link--active: #235dba;
     --color-link--hover: #235dba;
     --body-text__link-text-decoration: underline;
-    --brand-logo__height: 40px
+    --brand-logo__height: 100px
 }`;
     const styleVisitor = new CssAstVisitor(ThemeTargetSelector.Light);
     customisableThemeStyleGroup.acceptCssAstVisitor(styleVisitor);
