@@ -113,4 +113,68 @@ steps:
               </saml:AttributeStatement>
             </saml:Assertion>
           </samlp:Response>
-
+  # Try again with IsPassive=true
+  # It should return a SAMLResponse immediately
+  - action: "saml_request"
+    saml_request: |
+      <samlp:AuthnRequest
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        ForceAuthn="false"
+        IsPassive="true"
+        ID="b506045340df4e2290640daf189f4b5177f691823"
+        IssueInstant="3000-10-02T08:25:59Z"
+        AssertionConsumerServiceURL="https://samlsp.localhost/acs"
+        ProtocolBinding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        Version="2.0"
+        ><saml:Issuer>urn:e2e.localhost</saml:Issuer></samlp:AuthnRequest
+      >
+    saml_request_destination: "/saml2/login/e2e"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+    saml_output:
+      http_status: 200
+      saml_response:
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        match: |
+          <samlp:Response
+            xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+            InResponseTo="b506045340df4e2290640daf189f4b5177f691823"
+            Version="2.0"
+            Destination="http://samlsp.localhost/destination">
+            <saml:Issuer/>
+            <ds:Signature/>
+            <samlp:Status>
+              <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+            </samlp:Status>
+            <saml:Assertion>
+              <saml:Issuer/>
+              <ds:Signature/>
+              <saml:Subject>
+                <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+                >samltest01</saml:NameID>
+                <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+                  <saml:SubjectConfirmationData
+                    InResponseTo="b506045340df4e2290640daf189f4b5177f691823"
+                    Recipient="http://samlsp.localhost/recipient" />
+                </saml:SubjectConfirmation>
+              </saml:Subject>
+              <saml:Conditions>
+                <saml:AudienceRestriction>
+                  <saml:Audience>https://samlsp.localhost</saml:Audience>
+                  <saml:Audience>https://samlsp.localhost/acs</saml:Audience>
+                </saml:AudienceRestriction>
+              </saml:Conditions>
+              <saml:AuthnStatement>
+                <saml:AuthnContext>
+                  <saml:AuthnContextClassRef />
+                </saml:AuthnContext>
+              </saml:AuthnStatement>
+              <saml:AttributeStatement>
+                <saml:Attribute FriendlyName="User ID" Name="sub"
+                  NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
+                  <saml:AttributeValue
+                    xsi:type="xs:string"/>
+                </saml:Attribute>
+              </saml:AttributeStatement>
+            </saml:Assertion>
+          </samlp:Response>
