@@ -44,6 +44,17 @@ var envConfigDeps = wire.NewSet(
 		"UIImplementation",
 		"UISettingsImplementation",
 		"UserExportObjectStore",
+		"SMSGatewayConfig",
+	),
+	wire.FieldsOf(new(*config.SMSGatewayEnvironmentConfig),
+		"Default",
+		"Twilio",
+		"Custom",
+		"Nexmo",
+	),
+	wire.FieldsOf(new(*config.SMSGatewayEnvironmentDefaultConfig),
+		"UseConfigFrom",
+		"Provider",
 	),
 )
 

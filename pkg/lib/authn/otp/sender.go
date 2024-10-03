@@ -290,7 +290,6 @@ func (s *MessageSender) sendSMS(msg *PreparedMessage, opts SendOptions) error {
 
 	msg.sms.Sender = data.Sender
 	msg.sms.Body = data.Body.String
-	msg.sms.MessageType = string(msg.spec.MessageType)
 	msg.sms.TemplateName = filepath.Base(msg.spec.SMSTemplate.Name)
 	msg.sms.LanguageTag = data.Body.LanguageTag
 	msg.sms.TemplateVariables = sms.NewTemplateVariablesFromPreparedTemplateVariables(data.PreparedTemplateVariables)

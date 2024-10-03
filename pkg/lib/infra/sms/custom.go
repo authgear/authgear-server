@@ -11,6 +11,13 @@ import (
 
 var ErrMissingCustomSMSProviderConfiguration = errors.New("sms: custom provider configuration is missing")
 
+type CustomClientCredentials struct {
+	URL     string
+	Timeout *config.DurationSeconds
+}
+
+func (CustomClientCredentials) smsClientCredentials() {}
+
 type CustomClient struct {
 	Config      *config.CustomSMSProviderConfig
 	SMSDenoHook SMSDenoHook
@@ -33,7 +40,6 @@ type SendSMSPayload struct {
 	To                string             `json:"to"`
 	Body              string             `json:"body"`
 	AppID             string             `json:"app_id"`
-	MessageType       string             `json:"message_type"`
 	TemplateName      string             `json:"template_name"`
 	LanguageTag       string             `json:"language_tag"`
 	TemplateVariables *TemplateVariables `json:"template_variables"`
@@ -51,7 +57,6 @@ func (c *CustomClient) Send(opts SendOptions) error {
 		To:                opts.To,
 		Body:              opts.Body,
 		AppID:             opts.AppID,
-		MessageType:       opts.MessageType,
 		TemplateName:      opts.TemplateName,
 		LanguageTag:       opts.LanguageTag,
 		TemplateVariables: opts.TemplateVariables,

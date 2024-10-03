@@ -1,0 +1,25 @@
+name: failed-missing-use-config-from
+error: |-
+  invalid value:
+  <root>: required
+    map[actual:<nil> expected:[use_config_from] missing:[use_config_from]]
+config: {}
+---
+name: success-environment-variable
+error: null
+config:
+  use_config_from: "environment_variable"
+---
+name: failed-authgear.secrets.yaml-no-provider
+error: |-
+  invalid value:
+  <root>: required
+    map[actual:[use_config_from] expected:[provider] missing:[provider]]
+config:
+  use_config_from: "authgear.secrets.yaml"
+---
+name: success-authgear.secrets.yaml-with-provider
+error: null
+config:
+  use_config_from: "authgear.secrets.yaml"
+  provider: "twilio"

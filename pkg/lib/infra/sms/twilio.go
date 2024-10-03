@@ -12,6 +12,14 @@ import (
 
 var ErrMissingTwilioConfiguration = errors.New("twilio: configuration is missing")
 
+type TwilioClientCredentials struct {
+	AccountSID          string
+	AuthToken           string
+	MessagingServiceSID string
+}
+
+func (TwilioClientCredentials) smsClientCredentials() {}
+
 type TwilioClient struct {
 	TwilioClient        *twilio.RestClient
 	MessagingServiceSID string

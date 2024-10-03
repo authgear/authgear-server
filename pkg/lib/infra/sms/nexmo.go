@@ -11,6 +11,13 @@ import (
 
 var ErrMissingNexmoConfiguration = errors.New("nexmo: configuration is missing")
 
+type NexmoClientCredentials struct {
+	APIKey    string
+	APISecret string
+}
+
+func (NexmoClientCredentials) smsClientCredentials() {}
+
 type NexmoClient struct {
 	NexmoClient *nexmo.Client
 }
