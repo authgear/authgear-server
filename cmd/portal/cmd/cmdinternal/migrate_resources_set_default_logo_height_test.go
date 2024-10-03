@@ -67,7 +67,21 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 				)
 			})
 		})
-		Convey("hasLightLogo && hasLightThemeCSS && alreadySet", func() {})
+		Convey("hasLightLogo && hasLightThemeCSS && alreadySet", func() {
+			Convey("should do nothing", func() {
+				test(
+					fmt.Sprintf(`{
+  "static_2f_zh-HK_2f_app_5f_logo.png": "base64-encoded-img",
+	"static_2f_authgear-authflowv_32_-light-theme.css": "%v"
+}`, b64LightCSS),
+					fmt.Sprintf(`{
+	"static_2f_zh-HK_2f_app_5f_logo.png": "base64-encoded-img",
+	"static_2f_authgear-authflowv_32_-light-theme.css": "%v"
+}`, b64LightCSS),
+					nil,
+				)
+			})
+		})
 		Convey("hasLightLogo && hasLightThemeCSS && notAlreadySet", func() {})
 		Convey("!hasLightLogo && hasLightThemeCSS", func() {})
 
