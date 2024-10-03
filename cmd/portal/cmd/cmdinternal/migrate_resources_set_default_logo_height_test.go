@@ -154,7 +154,30 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 				)
 			})
 		})
-		Convey("hasDarkLogo && hasDarkThemeCSS && notAlreadySet", func() {})
+		Convey("hasDarkLogo && hasDarkThemeCSS && notAlreadySet", func() {
+			Convey("should add logo height property", func() {
+				originalCSS := toB64(`:root.dark {
+  --layout__bg-color: #0047AB;
+}
+`)
+				outputCSS := toB64(`:root.dark {
+  --layout__bg-color: #0047AB;
+  --brand-logo__height: 40px;
+}
+`)
+				test(
+					fmt.Sprintf(`{
+	"static_2f_zh-HK_2f_app_5f_logo_dark.png": "base64-encoded-img",
+	"static_2f_authgear-authflowv_32_-dark-theme.css": "%v"
+}`, originalCSS),
+					fmt.Sprintf(`{
+	"static_2f_zh-HK_2f_app_5f_logo_dark.png": "base64-encoded-img",
+	"static_2f_authgear-authflowv_32_-dark-theme.css": "%v"
+}`, outputCSS),
+					nil,
+				)
+			})
+		})
 		Convey("!hasDarkLogo && hasDarkThemeCSS", func() {})
 
 		Convey("hasLightLogo && hasLightThemeCSS && notAlreadySet && hasDarkLogo && hasDarkThemeCSS && alreadySet", func() {})
