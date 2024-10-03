@@ -218,3 +218,47 @@ func CheckDeclarationInSelector(cssString string, selector string, declarationPr
 	}
 	return false, nil
 }
+
+// Add declaration in selector if not present already. If added, then added is true.
+func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector string, declaration declaration) (newCSS string, added bool) {
+	alreadyPresent, err := CheckDeclarationInSelector(cssString, selector, declaration.Property)
+	if err != nil {
+		return cssString, false
+	}
+	if alreadyPresent {
+		return cssString, false
+	}
+
+	elements, err := parseCSSRawString(cssString)
+	if err != nil {
+		return cssString, false
+	}
+
+	var out []element
+	for _, el := range elements {
+		switch v := el.(type) {
+		case *ruleset:
+			if v.Selector != selector {
+				out = append(out, el)
+				continue
+			}
+			// inside target selector
+
+			// we know that this ruleset does not have target declaration set yet
+			// so we just add it
+			d := &declaration
+			newEl := &ruleset{
+				Selector:     v.Selector,
+				Declarations: append(v.Declarations, d),
+			}
+			out = append(out, newEl)
+		default:
+			out = append(out, el)
+		}
+	}
+
+	var buf bytes.Buffer
+	stringify(&buf, out)
+
+	return buf.String(), true
+}
