@@ -36,7 +36,7 @@
     </ul>
   {{ end }}
 
-  {{ $href := (call $.MakeURL (printf "/settings/mfa/new_oob_otp_%s" $.OOBOTPType)) }}
+  {{ $href := (call $.MakeURL (printf "/settings/mfa/create_oob_otp_%s" $.OOBOTPType)) }}
   <a
     class="settings-link-btn mt-6 block"
     href="{{ $href }}"
