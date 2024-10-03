@@ -101,7 +101,7 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 
 func handleExistingLightThemeCSS(appID string, configSourceData map[string]string, cssResource *ResourceConfigDecoded, dryRun bool) (err error) {
 	r := bytes.NewReader(cssResource.DecodedData)
-	alreadySet, err := theme.CheckLogoHeightDeclarationInSelector(string(cssResource.DecodedData), lightThemeSelector)
+	alreadySet, err := theme.CheckDeclarationInSelector(string(cssResource.DecodedData), lightThemeSelector, theme.LogoHeightPropertyKey)
 	if err != nil {
 		return err
 	}
@@ -128,7 +128,7 @@ func handleExistingLightThemeCSS(appID string, configSourceData map[string]strin
 
 func handleExistingDarkThemeCSS(appID string, configSourceData map[string]string, cssResource *ResourceConfigDecoded, dryRun bool) (err error) {
 	r := bytes.NewReader(cssResource.DecodedData)
-	alreadySet, err := theme.CheckLogoHeightDeclarationInSelector(string(cssResource.DecodedData), darkThemeSelector)
+	alreadySet, err := theme.CheckDeclarationInSelector(string(cssResource.DecodedData), darkThemeSelector, theme.LogoHeightPropertyKey)
 	if err != nil {
 		return err
 	}

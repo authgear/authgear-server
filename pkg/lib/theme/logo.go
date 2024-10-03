@@ -45,14 +45,6 @@ func MigrateSetDefaultLogoHeight(r io.Reader) (result []byte, err error) {
 	return
 }
 
-func CheckLogoHeightDeclarationInSelector(cssString string, selector string) (bool, error) {
-	return CheckDeclarationInSelector(cssString, selector, LogoHeightPropertyKey)
-}
-
-func CheckLogoHeightDeclarationInDarkThemeCSS(cssString string, selector string) (bool, error) {
-	return CheckDeclarationInSelector(cssString, selector, LogoHeightPropertyKey)
-}
-
 var LightThemeCSSSelector string = ":root"
 var DarkThemeCSSSelector string = ":root.dark"
 var LogoHeightPropertyKey string = "--brand-logo__height"
