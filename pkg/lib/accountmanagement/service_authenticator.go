@@ -114,6 +114,50 @@ func (s *Service) ChangeSecondaryPassword(resolvedSession session.ResolvedSessio
 	return &ChangeSecondaryPasswordOutput{}, nil
 }
 
+type DeleteSecondaryPasswordInput struct {
+}
+
+type DeleteSecondaryPasswordOutput struct {
+}
+
+func (s *Service) DeleteSecondaryPassword(resolvedSession session.ResolvedSession, input *DeleteSecondaryPasswordInput) (*DeleteSecondaryPasswordOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	err := s.Database.WithTx(func() error {
+		info, err := s.prepareDeleteSecondaryPassword(userID)
+		if err != nil {
+			return err
+		}
+
+		err = s.Authenticators.Delete(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &DeleteSecondaryPasswordOutput{}, nil
+}
+
+func (s *Service) prepareDeleteSecondaryPassword(userID string) (*authenticator.Info, error) {
+	ais, err := s.Authenticators.List(
+		userID,
+		authenticator.KeepType(model.AuthenticatorTypePassword),
+		authenticator.KeepKind(authenticator.KindSecondary),
+	)
+	if err != nil {
+		return nil, err
+	}
+	if len(ais) == 0 {
+		return nil, api.ErrNoPassword
+	}
+	return ais[0], nil
+}
+
 type StartAddTOTPAuthenticatorInput struct{}
 type StartAddTOTPAuthenticatorOutput struct {
 	Token                   string
@@ -395,7 +439,6 @@ func (s *Service) changePassword(resolvedSession session.ResolvedSession, input 
 		}
 	}
 	return &changePasswordOutput{}, nil
-
 }
 
 func (s *Service) createAuthenticator(authenticatorInfo *authenticator.Info) error {
