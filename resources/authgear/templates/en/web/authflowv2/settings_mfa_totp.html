@@ -79,9 +79,9 @@
 {{ define "__settings_totp_item_delete_button.html" }}
 <button
   type="button"
-  data-controller="settings-dialog"
-  data-action="click->settings-dialog#open"
-  data-settings-dialog-dialogid-param="{{ .DialogID }}"
+  data-controller="dialog"
+  data-action="click->dialog#open"
+  id="{{ .DialogID }}"
 >
   <i class="material-icons text-[1.5rem] text-[var(--color-neutral-200)]">close</i>
 </button>
