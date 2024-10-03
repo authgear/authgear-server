@@ -1,6 +1,7 @@
 package cmdinternal
 
 import (
+	"encoding/json"
 	"regexp"
 	"sort"
 	"testing"
@@ -10,6 +11,21 @@ import (
 
 func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 	Convey("migrateSetDefaultLogoHeight", t, func() {
+		test := func(srcJSON string, expectedOutputJSON string, expectedErr error) {
+			src := make(map[string]string)
+			err := json.Unmarshal([]byte(srcJSON), &src)
+			if err != nil {
+				panic(err)
+			}
+			expectedOutput := make(map[string]string)
+			err = json.Unmarshal([]byte(expectedOutputJSON), &expectedOutput)
+			if err != nil {
+				panic(err)
+			}
+			err = migrateSetDefaultLogoHeight("dummy-app-id", src, false)
+			So(err, ShouldResemble, expectedErr)
+			So(src, ShouldResemble, expectedOutput) // src was modified in-place
+		}
 		Convey("!hasLightLogo && !hasLightThemeCSS && !hasDarkLogo && !hasDarkThemeCSS", func() {})
 
 		Convey("hasLightLogo && !hasLightThemeCSS", func() {})
