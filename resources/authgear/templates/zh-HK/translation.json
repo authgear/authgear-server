@@ -1180,6 +1180,7 @@
   "v2.page.settings-identity-view-username.default.title": "用戶名稱",
   "v2.page.settings-identity.default.verification-status-unverified-label": "未驗證",
   "v2.page.settings-identity.default.verification-status-verified-label": "已驗證",
+  "v2.page.settings-mfa-change-password.default.title": "更改密碼",
   "v2.page.settings-mfa-create-oob-otp.default.title": "雙重驗證",
   "v2.page.settings-mfa-create-oob-otp.email.subtitle": "您可以在此電子郵件地址接收驗證碼。",
   "v2.page.settings-mfa-create-oob-otp.sms.subtitle": "您可以在此號碼接收驗證碼。",
