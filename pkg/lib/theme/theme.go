@@ -23,12 +23,12 @@ type element interface {
 	Stringify(buf *bytes.Buffer, indent indentation)
 }
 
-type declaration struct {
+type Declaration struct {
 	Property string
 	Value    string
 }
 
-func (d *declaration) Stringify(buf *bytes.Buffer, indent indentation) {
+func (d *Declaration) Stringify(buf *bytes.Buffer, indent indentation) {
 	buf.Write([]byte(indent))
 	buf.Write([]byte(d.Property))
 	buf.Write([]byte(": "))
@@ -38,7 +38,7 @@ func (d *declaration) Stringify(buf *bytes.Buffer, indent indentation) {
 
 type ruleset struct {
 	Selector     string
-	Declarations []*declaration
+	Declarations []*Declaration
 }
 
 func (r *ruleset) Stringify(buf *bytes.Buffer, indent indentation) {
@@ -108,7 +108,7 @@ func parseRuleset(p *css.Parser, r *ruleset) (err error) {
 		case css.EndRulesetGrammar:
 			return
 		case css.DeclarationGrammar:
-			decl := &declaration{
+			decl := &Declaration{
 				Property: string(data),
 				Value:    collectTokensAsString(p.Values()),
 			}
@@ -116,7 +116,7 @@ func parseRuleset(p *css.Parser, r *ruleset) (err error) {
 		case css.CustomPropertyGrammar:
 			// The tokens looks like [CustomPropertyValue(" value")]
 			// So we have to trim the spaces.
-			decl := &declaration{
+			decl := &Declaration{
 				Property: string(data),
 				Value:    strings.TrimSpace(collectTokensAsString(p.Values())),
 			}
@@ -220,7 +220,7 @@ func CheckDeclarationInSelector(cssString string, selector string, declarationPr
 }
 
 // Add declaration in selector if not present already. If added, then added is true.
-func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector string, declaration declaration) (newCSS string, added bool) {
+func AddDeclarationInSelectorIfNotPresentAlready(cssString string, selector string, declaration Declaration) (newCSS string, added bool) {
 	alreadyPresent, err := CheckDeclarationInSelector(cssString, selector, declaration.Property)
 	if err != nil {
 		return cssString, false
