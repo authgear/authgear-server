@@ -54,7 +54,10 @@
   {{ $isContinue := $.HasXStep }}
   <div class="flex-1-0-auto">
     <div class="screen-logo-layout">
-      {{ template "authflowv2/__header.html" . }}
+      {{/* Hide logo if not first screen */}}
+      {{ if not $isContinue }}
+        {{ template "authflowv2/__header.html" . }}
+      {{ end }}
       <div class="screen-title-description">
         <h1 class="screen-title">
           {{ if eq $.UIVariant "signup_login" }}
