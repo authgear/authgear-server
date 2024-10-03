@@ -26,7 +26,15 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 			So(err, ShouldResemble, expectedErr)
 			So(src, ShouldResemble, expectedOutput) // src was modified in-place
 		}
-		Convey("!hasLightLogo && !hasLightThemeCSS && !hasDarkLogo && !hasDarkThemeCSS", func() {})
+		Convey("!hasLightLogo && !hasLightThemeCSS && !hasDarkLogo && !hasDarkThemeCSS", func() {
+			Convey("should do nothing", func() {
+				test(
+					`{}`,
+					`{}`,
+					nil,
+				)
+			})
+		})
 
 		Convey("hasLightLogo && !hasLightThemeCSS", func() {})
 		Convey("hasLightLogo && hasLightThemeCSS && alreadySet", func() {})
