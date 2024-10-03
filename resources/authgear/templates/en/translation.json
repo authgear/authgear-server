@@ -1180,6 +1180,7 @@
   "v2.page.settings-identity-view-username.default.title": "Username",
   "v2.page.settings-identity.default.verification-status-unverified-label": "Not Verified",
   "v2.page.settings-identity.default.verification-status-verified-label": "Verified",
+  "v2.page.settings-mfa-change-password.default.title": "Change Password",
   "v2.page.settings-mfa-create-oob-otp.default.title": "2-Step Verification",
   "v2.page.settings-mfa-create-oob-otp.email.subtitle": "You can receive verification codes at this email.",
   "v2.page.settings-mfa-create-oob-otp.sms.subtitle": "You can receive verification codes at this number.",
