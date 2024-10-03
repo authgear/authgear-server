@@ -1271,6 +1271,8 @@
   "v2.page.settings-sessions.default.title": "已登录设备",
   "v2.page.settings-totp.default.add-authenticator-button-label": "+ 添加身份验证器应用/设备",
   "v2.page.settings-totp.default.added-at-label": "添加于 <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long>{time, datetime, short} UTC</span>",
+  "v2.page.settings-totp.default.remove-totp-dialog-description": "您确定要移除身份验证器应用程序/设备吗?",
+  "v2.page.settings-totp.default.remove-totp-dialog-title": "移除身份验证器应用程序/设备",
   "v2.page.settings-totp.default.title": "身份验证器应用/设备",
   "v2.page.settings.default.account-deletion-button-label": "删除账户",
   "v2.page.settings.default.advanced-settings-button-label": "高级设置",

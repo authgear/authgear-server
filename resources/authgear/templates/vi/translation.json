@@ -1271,6 +1271,8 @@
   "v2.page.settings-sessions.default.title": "Thiết bị đã đăng nhập",
   "v2.page.settings-totp.default.add-authenticator-button-label": "+ Thêm ứng dụng/thiết bị xác thực",
   "v2.page.settings-totp.default.added-at-label": "Đã thêm vào <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long>{time, datetime, short} UTC</span>",
+  "v2.page.settings-totp.default.remove-totp-dialog-description": "Bạn có chắc chắn muốn gỡ ứng dụng/thiết bị xác thực không?",
+  "v2.page.settings-totp.default.remove-totp-dialog-title": "Gỡ ứng dụng/thiết bị xác thực",
   "v2.page.settings-totp.default.title": "Ứng dụng/thiết bị xác thực",
   "v2.page.settings.default.account-deletion-button-label": "Xóa Tài khoản",
   "v2.page.settings.default.advanced-settings-button-label": "Cài đặt Nâng cao",

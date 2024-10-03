@@ -1271,6 +1271,8 @@
   "v2.page.settings-sessions.default.title": "Perangkat yang Masuk",
   "v2.page.settings-totp.default.add-authenticator-button-label": "+ Tambahkan aplikasi/perangkat autentikator",
   "v2.page.settings-totp.default.added-at-label": "Ditambahkan pada <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long>{time, datetime, short} UTC</span>",
+  "v2.page.settings-totp.default.remove-totp-dialog-description": "Apakah Anda yakin ingin menghapus aplikasi/perangkat pengautentikasi?",
+  "v2.page.settings-totp.default.remove-totp-dialog-title": "Hapus aplikasi/perangkat pengautentikasi",
   "v2.page.settings-totp.default.title": "Aplikasi/perangkat autentikator",
   "v2.page.settings.default.account-deletion-button-label": "Hapus Akun",
   "v2.page.settings.default.advanced-settings-button-label": "Pengaturan Lanjutan",
