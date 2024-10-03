@@ -196,3 +196,68 @@ steps:
     saml_output:
       http_status: 302
       redirect_path: /_internals/oauth_entrypoint
+---
+name: SAML SSO - IdP Initiated
+authgear.yaml:
+  override: |
+    saml:
+      signing:
+        key_id: "-jeTn3EEV5bJUOMDQU04zLlkWFZK3BDODkfh40FX8K0"
+      service_providers:
+        - client_id: e2e
+          nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+          nameid_attribute_pointer: /preferred_username
+          acs_urls:
+            - https://samlsp.localhost/acs
+          destination: http://samlsp.localhost/destination
+          recipient: http://samlsp.localhost/recipient
+          audience: https://samlsp.localhost
+    authentication_flow:
+      # We don't want a complicated login flow for this test, only one identify step is enough.
+      login_flows:
+        - name: default
+          steps:
+          - name: identify
+            type: identify
+            one_of:
+            - identification: username
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  # Trigger IdP-Initated SSO by sending a GET request to saml login endpoint without SAMLRequest
+  - action: "http_request"
+    http_request_method: GET
+    http_request_url: "http://127.0.0.1:4000/saml2/login/e2e"
+    http_output:
+      http_status: 200
+  # Login with username
+  - action: "http_request"
+    http_request_method: POST
+    http_request_url: "http://127.0.0.1:4000/login"
+    http_request_headers:
+      "Content-Type": "application/x-www-form-urlencoded"
+    http_request_body: "x_login_id_input_type=text&x_login_id=samltest01&x_action=login_id"
+    http_output:
+      http_status: 200
+      saml_response:
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        match: |
+          <samlp:Response>
+            <any/>
+            <any/>
+            <samlp:Status>
+              <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+            </samlp:Status>
+            <saml:Assertion>
+              <any/>
+              <any/>
+              <saml:Subject>
+                <saml:NameID>samltest01</saml:NameID>
+                <any/>
+              </saml:Subject>
+              <any/>
+              <any/>
+              <any/>
+            </saml:Assertion>
+          </samlp:Response>
