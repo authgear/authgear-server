@@ -6,13 +6,13 @@ import TextField from "../../TextField";
 const PIXEL_HEIGHT_REGEX = /^[0-9]+px$/;
 const REM_HEIGHT_REGEX = /^[0-9]+rem$/;
 
-const FALLBACK_HEIGHT_PX = 40;
+const FALLBACK_HEIGHT_PX = 100;
 
 /**
  * parseHeightString handles all css units
  * 1 rem -> 16 px
  * 1 px  ->  1 px
- * unidentified units -> 40 px
+ * unidentified units -> 100 px
  *
  * @param {string} height
  * @param {?string} [defaultValue]
