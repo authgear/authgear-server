@@ -18,8 +18,9 @@ type AdditionalContext struct {
 }
 
 type SendOptions struct {
-	OTP               string
-	AdditionalContext *AdditionalContext
+	OTP                     string
+	AdditionalContext       *AdditionalContext
+	IsAdminAPIResetPassword bool
 }
 
 type EndpointsProvider interface {
@@ -75,6 +76,8 @@ type MessageSender struct {
 	WhatsappService WhatsappService
 }
 
+var FromAdminAPIQueryKey = "x_from_admin_api"
+
 func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOptions) (*translation.PartialTemplateVariables, error) {
 	email := ""
 	if msg.email != nil {
@@ -105,6 +108,9 @@ func (s *MessageSender) setupTemplateContext(msg *PreparedMessage, opts SendOpti
 			linkURL = s.Endpoints.ResetPasswordEndpointURL()
 			query := linkURL.Query()
 			query.Set("code", opts.OTP)
+			if opts.IsAdminAPIResetPassword {
+				query.Set(FromAdminAPIQueryKey, "true")
+			}
 			linkURL.RawQuery = query.Encode()
 
 		default:

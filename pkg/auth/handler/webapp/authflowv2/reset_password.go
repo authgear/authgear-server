@@ -8,6 +8,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow/declarative"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
+	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	pwd "github.com/authgear/authgear-server/pkg/util/password"
@@ -37,13 +39,47 @@ func ConfigureAuthflowV2ResetPasswordRoute(route httproute.Route) httproute.Rout
 		WithPathPattern(AuthflowV2RouteResetPassword)
 }
 
-type AuthflowV2ResetPasswordHandler struct {
-	Controller    *handlerwebapp.AuthflowController
-	BaseViewModel *viewmodels.BaseViewModeler
-	Renderer      handlerwebapp.Renderer
+type ResetPasswordHandlerPasswordPolicy interface {
+	PasswordPolicy() []password.Policy
+	PasswordRules() string
 }
 
-func (h *AuthflowV2ResetPasswordHandler) GetData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+type ResetPasswordHandlerResetPasswordService interface {
+	ResetPasswordByEndUser(code string, newPassword string) error
+}
+
+type ResetPasswordHandlerDatabase interface {
+	WithTx(do func() error) (err error)
+}
+
+type AuthflowV2ResetPasswordHandler struct {
+	NonAuthflowControllerFactory handlerwebapp.ControllerFactory
+	Controller                   *handlerwebapp.AuthflowController
+	BaseViewModel                *viewmodels.BaseViewModeler
+	Renderer                     handlerwebapp.Renderer
+	AdminAPIResetPasswordPolicy  ResetPasswordHandlerPasswordPolicy
+	ResetPassword                ResetPasswordHandlerResetPasswordService
+	Database                     ResetPasswordHandlerDatabase
+}
+
+func (h *AuthflowV2ResetPasswordHandler) GetNonAuthflowData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+	data := make(map[string]interface{})
+
+	baseViewModel := h.BaseViewModel.ViewModel(r, w)
+	viewmodels.Embed(data, baseViewModel)
+
+	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
+		h.AdminAPIResetPasswordPolicy.PasswordPolicy(),
+		h.AdminAPIResetPasswordPolicy.PasswordRules(),
+		baseViewModel.RawError,
+		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
+	)
+
+	viewmodels.Embed(data, passwordPolicyViewModel)
+
+	return data, nil
+}
+func (h *AuthflowV2ResetPasswordHandler) GetAuthflowData(w http.ResponseWriter, r *http.Request, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -64,7 +100,7 @@ func (h *AuthflowV2ResetPasswordHandler) GetData(w http.ResponseWriter, r *http.
 	return data, nil
 }
 
-func (h *AuthflowV2ResetPasswordHandler) GetErrorData(w http.ResponseWriter, r *http.Request, err error) (map[string]interface{}, error) {
+func (h *AuthflowV2ResetPasswordHandler) GetAuthflowErrorData(w http.ResponseWriter, r *http.Request, err error) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -75,10 +111,65 @@ func (h *AuthflowV2ResetPasswordHandler) GetErrorData(w http.ResponseWriter, r *
 }
 
 func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if isURLFromAdminAPI(r) {
+		h.serveHTTPNonAuthflow(w, r)
+	} else {
+		h.serveHTTPAuthflow(w, r)
+	}
+}
+
+func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWriter, r *http.Request) {
+	ctrl, err := h.NonAuthflowControllerFactory.New(r, w)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	defer ctrl.Serve()
+
+	ctrl.Get(func() error {
+		data, err := h.GetNonAuthflowData(w, r)
+		if err != nil {
+			return err
+		}
+		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowResetPasswordHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("", func() error {
+		err := AuthflowResetPasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
+		if err != nil {
+			return err
+		}
+		newPassword := r.Form.Get("x_password")
+		confirmPassword := r.Form.Get("x_confirm_password")
+		err = pwd.ConfirmPassword(newPassword, confirmPassword)
+		if err != nil {
+			return err
+		}
+
+		code := r.URL.Query().Get("code")
+		err = h.Database.WithTx(func() error {
+			return h.ResetPassword.ResetPasswordByEndUser(
+				code,
+				newPassword,
+			)
+		})
+		if err != nil {
+			return err
+		}
+		// reset success
+		result := webapp.Result{RedirectURI: AuthflowV2RouteResetPasswordSuccess}
+		result.WriteResponse(w, r)
+		return nil
+	})
+}
+
+func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
 	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
-		data, err := h.GetData(w, r, screen)
+		data, err := h.GetAuthflowData(w, r, screen)
 		if err != nil {
 			return err
 		}
@@ -115,7 +206,7 @@ func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		if !apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
 			return err
 		}
-		data, err := h.GetErrorData(w, r, err)
+		data, err := h.GetAuthflowErrorData(w, r, err)
 		if err != nil {
 			return err
 		}
@@ -132,4 +223,8 @@ func (h *AuthflowV2ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	} else {
 		h.Controller.HandleStep(w, r, &handlers)
 	}
+}
+
+func isURLFromAdminAPI(r *http.Request) bool {
+	return r.URL.Query().Get(otp.FromAdminAPIQueryKey) == "true"
 }
