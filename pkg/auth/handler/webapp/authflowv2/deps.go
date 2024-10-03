@@ -60,6 +60,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(AuthflowV2SettingsMFAEnterTOTPHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsOOBOTPHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsMFACreateOOBOTPHandler), "*"),
+	wire.Struct(new(AuthflowV2SettingsMFAEnterOOBOTPHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsIdentityAddEmailHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsIdentityEditEmailHandler), "*"),
 	wire.Struct(new(AuthflowV2SettingsIdentityVerifyEmailHandler), "*"),

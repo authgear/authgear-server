@@ -41,6 +41,7 @@ type GenerateTokenOptions struct {
 	// AuthenticatorID for updating authenticator
 	AuthenticatorID            string
 	AuthenticatorRecoveryCodes []string
+	AuthenticatorType          model.AuthenticatorType
 
 	// TOTP
 	AuthenticatorTOTPIssuer           string
@@ -76,6 +77,7 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 	if options.AuthenticatorID != "" || len(options.AuthenticatorRecoveryCodes) > 0 || options.AuthenticatorTOTPSecret != "" || options.AuthenticatorTOTPVerified || options.AuthenticatorOOBOTPChannel != "" || options.AuthenticatorOOBOTPTarget != "" || options.AuthenticatorOOBOTPVerified {
 		tokenAuthenticator = &TokenAuthenticator{
 			AuthenticatorID:      options.AuthenticatorID,
+			AuthenticatorType:    string(options.AuthenticatorType),
 			RecoveryCodes:        options.AuthenticatorRecoveryCodes,
 			TOTPIssuer:           options.AuthenticatorTOTPIssuer,
 			TOTPDisplayName:      options.AuthenticatorTOTPDisplayName,
