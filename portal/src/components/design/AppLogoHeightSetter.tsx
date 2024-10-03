@@ -2,6 +2,7 @@ import React, { FormEvent, useCallback, useEffect, useState } from "react";
 import cn from "classnames";
 import { Label, Slider } from "@fluentui/react";
 import TextField from "../../TextField";
+import Configuration from "./Configuration";
 
 const PIXEL_HEIGHT_REGEX = /^[0-9]+px$/;
 const REM_HEIGHT_REGEX = /^[0-9]+rem$/;
@@ -41,10 +42,10 @@ interface AppLogoHeightSetterProps {
   value: string;
   defaultValue?: string;
   onChange: (value: string) => void;
+  labelKey: string;
   minHeight?: number;
   maxHeight?: number;
   sliderAriaLabel?: string;
-  className?: string;
 }
 
 const APP_LOGO_MIN_HEIGHT = 24;
@@ -61,7 +62,7 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
       sliderAriaLabel,
       minHeight,
       maxHeight,
-      className,
+      labelKey,
     } = props;
 
     const [heightPX, setHeightPX] = useState(
@@ -91,23 +92,25 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
     );
 
     return (
-      <div className={cn(className, "flex items-center gap-x-2")}>
-        <Slider
-          className={cn("flex-1")}
-          aria-label={sliderAriaLabel}
-          showValue={false}
-          value={heightPX}
-          onChange={setHeightPX}
-          min={minHeight ?? APP_LOGO_MIN_HEIGHT}
-          max={maxHeight ?? APP_LOGO_MAX_HEIGHT}
-        />
-        <TextField
-          className={cn("w-12.5")}
-          onChange={onChangeInput}
-          value={heightPX.toString()}
-        />
-        <Label>px</Label>
-      </div>
+      <Configuration labelKey={labelKey}>
+        <div className={cn("flex", "items-center", "gap-x-2")}>
+          <Slider
+            className={cn("flex-1")}
+            aria-label={sliderAriaLabel}
+            showValue={false}
+            value={heightPX}
+            onChange={setHeightPX}
+            min={minHeight ?? APP_LOGO_MIN_HEIGHT}
+            max={maxHeight ?? APP_LOGO_MAX_HEIGHT}
+          />
+          <TextField
+            className={cn("w-12.5")}
+            onChange={onChangeInput}
+            value={heightPX.toString()}
+          />
+          <Label>px</Label>
+        </div>
+      </Configuration>
     );
   };
 
