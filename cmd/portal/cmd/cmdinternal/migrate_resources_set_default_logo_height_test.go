@@ -9,6 +9,22 @@ import (
 )
 
 func TestMigrateSetDefaultLogoHeight(t *testing.T) {
+	Convey("migrateSetDefaultLogoHeight", t, func() {
+		Convey("!hasLightLogo && !hasLightThemeCSS && !hasDarkLogo && !hasDarkThemeCSS", func() {})
+
+		Convey("hasLightLogo && !hasLightThemeCSS", func() {})
+		Convey("hasLightLogo && hasLightThemeCSS && alreadySet", func() {})
+		Convey("hasLightLogo && hasLightThemeCSS && notAlreadySet", func() {})
+		Convey("!hasLightLogo && hasLightThemeCSS", func() {})
+
+		Convey("hasDarkLogo && !hasDarkThemeCSS", func() {})
+		Convey("hasDarkLogo && hasDarkThemeCSS && alreadySet", func() {})
+		Convey("hasDarkLogo && hasDarkThemeCSS && notAlreadySet", func() {})
+		Convey("!hasDarkLogo && hasDarkThemeCSS", func() {})
+
+		Convey("hasLightLogo && hasLightThemeCSS && notAlreadySet && hasDarkLogo && hasDarkThemeCSS && alreadySet", func() {})
+
+	})
 
 	Convey("getMatchingConfigSourcePaths", t, func() {
 		test := func(regex *regexp.Regexp, configSourceData map[string]string, expectedMatched []string, expectedOK bool) {
