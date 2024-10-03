@@ -50,7 +50,7 @@
   {{ end }}
 
   {{ if $.ShowSecondaryOOBOTPEmail }}
-    {{ $href := (call $.MakeURL "/settings/mfa/new_oob_otp_email") }}
+    {{ $href := (call $.MakeURL "/settings/mfa/create_oob_otp_email") }}
     {{ if $.HasSecondaryOOBOTPEmail }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_email") }}
     {{ end }}
@@ -65,7 +65,7 @@
   {{ end }}
 
   {{ if $.ShowSecondaryOOBOTPSMS }}
-    {{ $href := (call $.MakeURL "/settings/mfa/new_oob_otp_sms") }}
+    {{ $href := (call $.MakeURL "/settings/mfa/create_oob_otp_sms") }}
     {{ if $.HasSecondaryOOBOTPSMS }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
     {{ end }}
