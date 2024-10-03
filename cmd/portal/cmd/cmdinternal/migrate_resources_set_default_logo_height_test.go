@@ -139,7 +139,21 @@ func TestMigrateSetDefaultLogoHeight(t *testing.T) {
 				)
 			})
 		})
-		Convey("hasDarkLogo && hasDarkThemeCSS && alreadySet", func() {})
+		Convey("hasDarkLogo && hasDarkThemeCSS && alreadySet", func() {
+			Convey("should do nothing", func() {
+				test(
+					fmt.Sprintf(`{
+  "static_2f_zh-HK_2f_app_5f_logo_dark.png": "base64-encoded-img",
+	"static_2f_authgear-authflowv_32_-dark-theme.css": "%v"
+}`, b64DarkCSS),
+					fmt.Sprintf(`{
+	"static_2f_zh-HK_2f_app_5f_logo_dark.png": "base64-encoded-img",
+	"static_2f_authgear-authflowv_32_-dark-theme.css": "%v"
+}`, b64DarkCSS),
+					nil,
+				)
+			})
+		})
 		Convey("hasDarkLogo && hasDarkThemeCSS && notAlreadySet", func() {})
 		Convey("!hasDarkLogo && hasDarkThemeCSS", func() {})
 
