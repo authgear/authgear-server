@@ -164,7 +164,7 @@ func handleMissingLightThemeCSS(appID string, configSourceData map[string]string
 		},
 	}
 	var migratedCSSBuf bytes.Buffer
-	newLightThemeCSS.Stringify(&migratedCSSBuf, theme.Indentation("  "))
+	newLightThemeCSS.Stringify(&migratedCSSBuf, theme.Indentation(""))
 	migratedCSS := migratedCSSBuf.Bytes()
 
 	escapedLightThemeCSSPath := filepathutil.EscapePath(LightThemeCSSPath)
@@ -188,7 +188,7 @@ func handleMissingDarkThemeCSS(appID string, configSourceData map[string]string,
 		},
 	}
 	var migratedCSSBuf bytes.Buffer
-	newDarkThemeCSS.Stringify(&migratedCSSBuf, theme.Indentation("  "))
+	newDarkThemeCSS.Stringify(&migratedCSSBuf, theme.Indentation(""))
 	migratedCSS := migratedCSSBuf.Bytes()
 
 	escapedDarkThemeCSSPath := filepathutil.EscapePath(DarkThemeCSSPath)
