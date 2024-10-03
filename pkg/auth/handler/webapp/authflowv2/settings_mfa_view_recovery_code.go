@@ -24,7 +24,9 @@ func ConfigureAuthflowV2SettingsMFAViewRecoveryCodeRoute(route httproute.Route) 
 }
 
 type AuthflowV2SettingsMFAViewRecoveryCodeViewModel struct {
-	RecoveryCodes []string
+	AuthenticatorType string
+	Channel           string
+	RecoveryCodes     []string
 }
 
 type AuthflowV2SettingsMFAViewRecoveryCodeHandler struct {
@@ -35,14 +37,16 @@ type AuthflowV2SettingsMFAViewRecoveryCodeHandler struct {
 	AccountManagement *accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter, recoveryCodes []string) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter, tokenAuthenticator *accountmanagement.TokenAuthenticator) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	screenViewModel := AuthflowV2SettingsMFAViewRecoveryCodeViewModel{
-		RecoveryCodes: handlerwebapp.FormatRecoveryCodes(recoveryCodes),
+		AuthenticatorType: tokenAuthenticator.AuthenticatorType,
+		Channel:           string(tokenAuthenticator.OOBOTPChannel),
+		RecoveryCodes:     handlerwebapp.FormatRecoveryCodes(tokenAuthenticator.RecoveryCodes),
 	}
 	viewmodels.Embed(data, screenViewModel)
 
@@ -66,7 +70,7 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 			return err
 		}
 
-		data, err := h.GetData(r, w, token.Authenticator.RecoveryCodes)
+		data, err := h.GetData(r, w, token.Authenticator)
 		if err != nil {
 			return err
 		}
@@ -84,7 +88,7 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 			return err
 		}
 
-		data, err := h.GetData(r, w, token.Authenticator.RecoveryCodes)
+		data, err := h.GetData(r, w, token.Authenticator)
 		if err != nil {
 			return err
 		}
@@ -98,14 +102,23 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 		s := session.GetSession(r.Context())
 
 		tokenString := r.Form.Get("q_token")
-		_, err := h.AccountManagement.GetToken(s, tokenString)
+		token, err := h.AccountManagement.GetToken(s, tokenString)
 		if err != nil {
 			return err
 		}
 
-		_, err = h.AccountManagement.FinishAddTOTPAuthenticator(s, tokenString, &accountmanagement.FinishAddTOTPAuthenticatorInput{})
-		if err != nil {
-			return err
+		if token.Authenticator.TOTPVerified {
+			_, err = h.AccountManagement.FinishAddTOTPAuthenticator(s, tokenString, &accountmanagement.FinishAddTOTPAuthenticatorInput{})
+			if err != nil {
+				return err
+			}
+		} else if token.Authenticator.OOBOTPVerified {
+			_, err = h.AccountManagement.FinishAddOOBOTPAuthenticator(s, tokenString, &accountmanagement.FinishAddOOBOTPAuthenticatorInput{})
+			if err != nil {
+				return err
+			}
+		} else {
+			panic("authflowv2: unexpected authenticator type")
 		}
 
 		result := webapp.Result{RedirectURI: AuthflowV2RouteSettingsMFA}

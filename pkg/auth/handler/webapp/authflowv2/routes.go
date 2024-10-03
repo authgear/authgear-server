@@ -86,6 +86,7 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteSettingsMFACreatePassword = "/settings/mfa/create_password"
 	AuthflowV2RouteSettingsMFACreateOOBOTP   = "/settings/mfa/create_oob_otp_:channel"
+	AuthflowV2RouteSettingsMFAEnterOOBOTP    = "/settings/mfa/enter_oob_otp"
 	// nolint: gosec
 	AuthflowV2RouteSettingsMFAPassword   = "/settings/mfa/password"
 	AuthflowV2RouteSettingsMFACreateTOTP = "/settings/mfa/create_totp"

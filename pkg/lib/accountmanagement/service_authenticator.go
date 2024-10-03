@@ -144,6 +144,7 @@ func (s *Service) StartAddTOTPAuthenticator(resolvedSession session.ResolvedSess
 	}
 	token, err := s.Store.GenerateToken(GenerateTokenOptions{
 		UserID:                            userID,
+		AuthenticatorType:                 model.AuthenticatorTypeTOTP,
 		AuthenticatorTOTPIssuer:           string(s.HTTPOrigin),
 		AuthenticatorTOTPEndUserAccountID: endUserAccountID,
 		AuthenticatorTOTPSecret:           totp.Secret,
@@ -224,6 +225,7 @@ func (s *Service) ResumeAddTOTPAuthenticator(resolvedSession session.ResolvedSes
 
 	newToken, err := s.Store.GenerateToken(GenerateTokenOptions{
 		UserID:                       userID,
+		AuthenticatorType:            model.AuthenticatorType(token.Authenticator.AuthenticatorType),
 		AuthenticatorTOTPDisplayName: input.DisplayName,
 		AuthenticatorTOTPSecret:      token.Authenticator.TOTPSecret,
 		AuthenticatorTOTPVerified:    true,
@@ -387,9 +389,29 @@ func (s *Service) StartAddOOBOTPAuthenticator(resolvedSession session.ResolvedSe
 		return nil, err
 	}
 
+	var channel model.AuthenticatorOOBChannel
+	if s.Config.Authenticator.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() && input.Channel == model.AuthenticatorOOBChannelSMS {
+		channel = model.AuthenticatorOOBChannelWhatsapp
+	} else {
+		channel = input.Channel
+	}
+
+	var authenticatorType model.AuthenticatorType
+	switch channel {
+	case model.AuthenticatorOOBChannelWhatsapp:
+		fallthrough
+	case model.AuthenticatorOOBChannelSMS:
+		authenticatorType = model.AuthenticatorTypeOOBSMS
+	case model.AuthenticatorOOBChannelEmail:
+		authenticatorType = model.AuthenticatorTypeOOBEmail
+	default:
+		panic("unexpected channel")
+	}
+
 	token, err := s.Store.GenerateToken(GenerateTokenOptions{
 		UserID:                     userID,
-		AuthenticatorOOBOTPChannel: input.Channel,
+		AuthenticatorType:          authenticatorType,
+		AuthenticatorOOBOTPChannel: channel,
 		AuthenticatorOOBOTPTarget:  input.Target,
 	})
 	if err != nil {
@@ -442,6 +464,7 @@ func (s *Service) ResumeAddOOBOTPAuthenticator(resolvedSession session.ResolvedS
 	newToken, err := s.Store.GenerateToken(GenerateTokenOptions{
 		UserID:                      userID,
 		AuthenticatorRecoveryCodes:  recoveryCodes,
+		AuthenticatorType:           model.AuthenticatorType(token.Authenticator.AuthenticatorType),
 		AuthenticatorOOBOTPChannel:  token.Authenticator.OOBOTPChannel,
 		AuthenticatorOOBOTPTarget:   token.Authenticator.OOBOTPTarget,
 		AuthenticatorOOBOTPVerified: true,
