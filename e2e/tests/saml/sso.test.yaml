@@ -14,9 +14,6 @@ authgear.yaml:
           destination: http://samlsp.localhost/destination
           recipient: http://samlsp.localhost/recipient
           audience: https://samlsp.localhost
-          assertion_valid_duration: 1h
-          slo_enabled: true
-          slo_callback_url: https://samlsp.localhost/sls
     authentication_flow:
       # We don't want a complicated login flow for this test, only one identify step is enough.
       login_flows:
@@ -176,9 +173,6 @@ authgear.yaml:
           destination: http://samlsp.localhost/destination
           recipient: http://samlsp.localhost/recipient
           audience: https://samlsp.localhost
-          assertion_valid_duration: 1h
-          slo_enabled: true
-          slo_callback_url: https://samlsp.localhost/sls
 before:
   - type: user_import
     user_import: users.json
