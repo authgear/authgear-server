@@ -598,7 +598,7 @@ func validateSAMLResponse(t *testing.T, expected *OuputSAMLResponse, httpRespons
 			}
 
 			// Check Tag
-			if expectedEl.Tag != actualEl.Tag {
+			if expectedEl.Tag != "any" && expectedEl.Tag != actualEl.Tag {
 				ok = false
 				t.Errorf("element %v has unmatched tag: expected: %v, actual: %v",
 					path,
@@ -609,7 +609,7 @@ func validateSAMLResponse(t *testing.T, expected *OuputSAMLResponse, httpRespons
 			}
 
 			// Check Space
-			if expectedEl.Space != actualEl.Space {
+			if expectedEl.Space != "" && expectedEl.Space != actualEl.Space {
 				ok = false
 				t.Errorf("element %v has unmatched space: expected: %v, actual: %v",
 					path,

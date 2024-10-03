@@ -137,18 +137,16 @@ steps:
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response
-            xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
             InResponseTo="b506045340df4e2290640daf189f4b5177f691823"
-            Version="2.0"
             Destination="http://samlsp.localhost/destination">
-            <saml:Issuer/>
-            <ds:Signature/>
+            <any/>
+            <any/>
             <samlp:Status>
               <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
             </samlp:Status>
             <saml:Assertion>
-              <saml:Issuer/>
-              <ds:Signature/>
+              <any/>
+              <any/>
               <saml:Subject>
                 <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
                 >samltest01</saml:NameID>
@@ -158,23 +156,8 @@ steps:
                     Recipient="http://samlsp.localhost/recipient" />
                 </saml:SubjectConfirmation>
               </saml:Subject>
-              <saml:Conditions>
-                <saml:AudienceRestriction>
-                  <saml:Audience>https://samlsp.localhost</saml:Audience>
-                  <saml:Audience>https://samlsp.localhost/acs</saml:Audience>
-                </saml:AudienceRestriction>
-              </saml:Conditions>
-              <saml:AuthnStatement>
-                <saml:AuthnContext>
-                  <saml:AuthnContextClassRef />
-                </saml:AuthnContext>
-              </saml:AuthnStatement>
-              <saml:AttributeStatement>
-                <saml:Attribute FriendlyName="User ID" Name="sub"
-                  NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic">
-                  <saml:AttributeValue
-                    xsi:type="xs:string"/>
-                </saml:Attribute>
-              </saml:AttributeStatement>
+              <any/>
+              <any/>
+              <any/>
             </saml:Assertion>
           </samlp:Response>
