@@ -64,10 +64,12 @@ type EventService interface {
 type AuthenticatorService interface {
 	New(spec *authenticator.Spec) (*authenticator.Info, error)
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	Get(authenticatorID string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
 	Update(authenticatorInfo *authenticator.Info) error
 	UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
+	Delete(authenticatorInfo *authenticator.Info) error
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
 }
 

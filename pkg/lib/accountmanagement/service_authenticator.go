@@ -301,6 +301,52 @@ func (s *Service) FinishAddTOTPAuthenticator(resolvedSession session.ResolvedSes
 	return
 }
 
+type DeleteTOTPAuthenticatorInput struct {
+	AuthenticatorID string
+}
+
+type DeleteTOTPAuthenticatorOutput struct {
+	Info *authenticator.Info
+}
+
+func (s *Service) DeleteTOTPAuthenticator(resolvedSession session.ResolvedSession, input *DeleteTOTPAuthenticatorInput) (output *DeleteTOTPAuthenticatorOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	authenticatorID := input.AuthenticatorID
+
+	var info *authenticator.Info
+	err = s.Database.WithTx(func() error {
+		info, err = s.prepareDeleteAuthenticator(userID, authenticatorID)
+		if err != nil {
+			return err
+		}
+
+		err = s.Authenticators.Delete(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	output = &DeleteTOTPAuthenticatorOutput{
+		Info: info,
+	}
+	return
+}
+
+func (s *Service) prepareDeleteAuthenticator(userID string, authenticatorID string) (*authenticator.Info, error) {
+	info, err := s.Authenticators.Get(authenticatorID)
+	if err != nil {
+		return nil, err
+	}
+
+	if info.UserID != userID {
+		return nil, ErrAccountManagementAuthenticatorNotOwnedbyToUser
+	}
+
+	return info, nil
+}
+
 type changePasswordInput struct {
 	Kind        authenticator.Kind
 	OldPassword string
