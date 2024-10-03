@@ -594,3 +594,36 @@ func (s *Service) FinishAddOOBOTPAuthenticator(resolvedSession session.ResolvedS
 	}
 	return
 }
+
+type DeleteOOBOTPAuthenticatorInput struct {
+	AuthenticatorID string
+}
+
+type DeleteOOBOTPAuthenticatorOutput struct {
+	Info *authenticator.Info
+}
+
+func (s *Service) DeleteOOBOTPAuthenticator(resolvedSession session.ResolvedSession, input *DeleteOOBOTPAuthenticatorInput) (output *DeleteOOBOTPAuthenticatorOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	authenticatorID := input.AuthenticatorID
+
+	var info *authenticator.Info
+	err = s.Database.WithTx(func() error {
+		info, err = s.prepareDeleteAuthenticator(userID, authenticatorID)
+		if err != nil {
+			return err
+		}
+
+		err = s.Authenticators.Delete(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	output = &DeleteOOBOTPAuthenticatorOutput{
+		Info: info,
+	}
+	return
+}
