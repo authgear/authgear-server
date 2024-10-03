@@ -70,7 +70,7 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 	hasDarkThemeCSS := cfg.DarkThemeCSS != nil
 
 	if dryRun {
-		log.Printf("Converting app (%s)", appID)
+		log.Printf("\n================== Converting app (%s) ==================", appID)
 	}
 
 	// invariant check
