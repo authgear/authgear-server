@@ -17,6 +17,12 @@ import (
 
 const lightThemeSelector = ":root"
 const darkThemeSelector = ":root.dark"
+
+var defaultLogoHeightDeclaration = theme.Declaration{
+	Property: "--brand-logo__height",
+	Value:    "40px",
+}
+
 const LightThemeCSSPath = "static/authgear-authflowv2-light-theme.css"
 const DarkThemeCSSPath = "static/authgear-authflowv2-dark-theme.css"
 
@@ -110,22 +116,15 @@ func migrateSetDefaultLogoHeight(appID string, configSourceData map[string]strin
 }
 
 func handleExistingLightThemeCSS(appID string, configSourceData map[string]string, cssResource *ResourceConfigDecoded, dryRun bool) (err error) {
-	r := bytes.NewReader(cssResource.DecodedData)
-	alreadySet, err := theme.CheckDeclarationInSelector(string(cssResource.DecodedData), lightThemeSelector, theme.LogoHeightPropertyKey)
-	if err != nil {
-		return err
-	}
-	if alreadySet {
-		log.Printf("Skipping %s of app (%s) because it already has logo height set", cssResource.OriginalPath, appID)
-		return nil
-	}
-
-	migratedCSS, err := theme.MigrateSetDefaultLogoHeight(r)
+	migratedCSS, added, err := theme.AddDeclarationInSelectorIfNotPresentAlready(string(cssResource.DecodedData), lightThemeSelector, defaultLogoHeightDeclaration)
 	if err != nil {
 		return fmt.Errorf("failed to migrate %v: %w", cssResource.OriginalPath, err)
 	}
-
-	configSourceData[cssResource.EscapedPath] = base64.StdEncoding.EncodeToString(migratedCSS)
+	if !added {
+		log.Printf("Skipping %s of app (%s) because it already has logo height set", cssResource.OriginalPath, appID)
+		return nil
+	}
+	configSourceData[cssResource.EscapedPath] = base64.StdEncoding.EncodeToString([]byte(migratedCSS))
 	if dryRun {
 		log.Printf("Before %s updated:", cssResource.OriginalPath)
 		log.Printf("\n%s\n", string(cssResource.DecodedData))
@@ -137,20 +136,15 @@ func handleExistingLightThemeCSS(appID string, configSourceData map[string]strin
 }
 
 func handleExistingDarkThemeCSS(appID string, configSourceData map[string]string, cssResource *ResourceConfigDecoded, dryRun bool) (err error) {
-	r := bytes.NewReader(cssResource.DecodedData)
-	alreadySet, err := theme.CheckDeclarationInSelector(string(cssResource.DecodedData), darkThemeSelector, theme.LogoHeightPropertyKey)
-	if err != nil {
-		return err
-	}
-	if alreadySet {
-		log.Printf("Skipping %s of app (%s) because it already has logo height set", cssResource.OriginalPath, appID)
-		return nil
-	}
-	migratedCSS, err := theme.MigrateSetDefaultLogoHeight(r)
+	migratedCSS, added, err := theme.AddDeclarationInSelectorIfNotPresentAlready(string(cssResource.DecodedData), darkThemeSelector, defaultLogoHeightDeclaration)
 	if err != nil {
 		return fmt.Errorf("failed to migrate %v: %w", cssResource.OriginalPath, err)
 	}
-	configSourceData[cssResource.EscapedPath] = base64.StdEncoding.EncodeToString(migratedCSS)
+	if !added {
+		log.Printf("Skipping %s of app (%s) because it already has logo height set", cssResource.OriginalPath, appID)
+		return nil
+	}
+	configSourceData[cssResource.EscapedPath] = base64.StdEncoding.EncodeToString([]byte(migratedCSS))
 	if dryRun {
 		log.Printf("Before %s updated:", cssResource.OriginalPath)
 		log.Printf("\n%s\n", string(cssResource.DecodedData))
@@ -162,12 +156,19 @@ func handleExistingDarkThemeCSS(appID string, configSourceData map[string]string
 }
 
 func handleMissingLightThemeCSS(appID string, configSourceData map[string]string, dryRun bool) (err error) {
-	migratedCSS, err := theme.MigrateCreateCSSWithDefaultLogoHeight(lightThemeSelector)
-	escapedLightThemeCSSPath := filepathutil.EscapePath(LightThemeCSSPath)
-	if err != nil {
-		return fmt.Errorf("failed to migrate %s: %w", escapedLightThemeCSSPath, err)
-	}
 	log.Printf("Creating light theme css at %s for app (%s) because it was not customized before", LightThemeCSSPath, appID)
+	newLightThemeCSS := theme.Ruleset{
+		Selector: lightThemeSelector,
+		Declarations: []*theme.Declaration{
+			&defaultLogoHeightDeclaration,
+		},
+	}
+	var migratedCSSBuf bytes.Buffer
+	newLightThemeCSS.Stringify(&migratedCSSBuf, theme.Indentation("  "))
+	migratedCSS := migratedCSSBuf.Bytes()
+
+	escapedLightThemeCSSPath := filepathutil.EscapePath(LightThemeCSSPath)
+
 	configSourceData[escapedLightThemeCSSPath] = base64.StdEncoding.EncodeToString(migratedCSS)
 	if dryRun {
 		log.Println("Before updated: no file")
@@ -179,12 +180,19 @@ func handleMissingLightThemeCSS(appID string, configSourceData map[string]string
 }
 
 func handleMissingDarkThemeCSS(appID string, configSourceData map[string]string, dryRun bool) (err error) {
-	migratedCSS, err := theme.MigrateCreateCSSWithDefaultLogoHeight(darkThemeSelector)
-	escapedDarkThemeCSSPath := filepathutil.EscapePath(DarkThemeCSSPath)
-	if err != nil {
-		return fmt.Errorf("failed to migrate %s: %w", escapedDarkThemeCSSPath, err)
+	log.Printf("Creating dark theme css at %s for app (%s) because it was not customized before", LightThemeCSSPath, appID)
+	newDarkThemeCSS := theme.Ruleset{
+		Selector: darkThemeSelector,
+		Declarations: []*theme.Declaration{
+			&defaultLogoHeightDeclaration,
+		},
 	}
-	log.Printf("Creating dark theme css at %s for app (%s) because it was not customized before", DarkThemeCSSPath, appID)
+	var migratedCSSBuf bytes.Buffer
+	newDarkThemeCSS.Stringify(&migratedCSSBuf, theme.Indentation("  "))
+	migratedCSS := migratedCSSBuf.Bytes()
+
+	escapedDarkThemeCSSPath := filepathutil.EscapePath(DarkThemeCSSPath)
+
 	configSourceData[escapedDarkThemeCSSPath] = base64.StdEncoding.EncodeToString(migratedCSS)
 	if dryRun {
 		log.Println("Before updated: no file")
