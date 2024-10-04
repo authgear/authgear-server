@@ -10,6 +10,7 @@ import (
 
 	goredis "github.com/go-redis/redis/v8"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/util/base32"
@@ -84,7 +85,7 @@ func (p *Producer) GetTask(ctx context.Context, item *QueueItem) (*Task, error) 
 	err := p.Redis.WithConnContext(ctx, func(conn redis.Redis_6_0_Cmdable) error {
 		taskBytes, err := conn.Get(ctx, item.RedisKey()).Bytes()
 		if errors.Is(err, goredis.Nil) {
-			return ErrTaskNotFound
+			return api.ErrTaskNotFound
 		}
 		if err != nil {
 			return err
