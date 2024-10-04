@@ -132,7 +132,7 @@ type TokenHandlerSettingsActionGrantStore interface {
 type TokenHandlerOfflineGrantStore interface {
 	DeleteOfflineGrant(*oauth.OfflineGrant) error
 
-	AccessOfflineGrantAndUpdateDeviceInfo(id string, accessEvent access.Event, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
+	UpdateOfflineGrantDeviceInfo(id string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantApp2AppDeviceKey(id string, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantDeviceSecretHash(
@@ -150,6 +150,7 @@ type TokenHandlerAppSessionTokenStore interface {
 }
 
 type TokenHandlerOfflineGrantService interface {
+	AccessOfflineGrant(id string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error)
 	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
 }
 
@@ -603,7 +604,6 @@ func (h *TokenHandler) handleRefreshToken(
 	}
 
 	accessEvent := access.NewEvent(h.Clock.NowUTC(), h.RemoteIP, h.UserAgentString)
-	offlineGrant.AccessInfo.LastAccess = accessEvent
 	offlineGrantSession, ok := offlineGrant.ToSession(refreshTokenHash)
 	if !ok {
 		return nil, ErrInvalidRefreshToken
@@ -618,7 +618,12 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
 	}
 
-	_, err = h.OfflineGrants.AccessOfflineGrantAndUpdateDeviceInfo(offlineGrant.ID, accessEvent, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
+	_, err = h.OfflineGrantService.AccessOfflineGrant(offlineGrant.ID, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(offlineGrant.ID, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}

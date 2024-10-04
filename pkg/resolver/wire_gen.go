@@ -150,6 +150,18 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
+	analyticredisHandle := appProvider.AnalyticRedis
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Context: contextContext,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clock,
+		Logger:  meterStoreRedisLogger,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
 	rand := _wireRandValue
 	provider := &idpsession.Provider{
 		Context:         contextContext,
@@ -159,6 +171,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Redis:           handle,
 		Store:           storeRedis,
 		AccessEvents:    eventProvider,
+		MeterService:    meterService,
 		TrustProxy:      trustProxy,
 		Config:          sessionConfig,
 		Clock:           clock,
@@ -783,6 +796,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:          clock,
 		IDPSessions:    provider,
 		ClientResolver: oauthclientResolver,
+		AccessEvents:   eventProvider,
+		MeterService:   meterService,
 		OfflineGrants:  store,
 	}
 	sessionManager := &oauth2.SessionManager{
@@ -833,33 +848,29 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Events:        eventService,
 		Identities:    identityFacade,
 	}
+	oauthOfflineGrantService := &oauth2.OfflineGrantService{
+		OAuthConfig:    oAuthConfig,
+		Clock:          clock,
+		IDPSessions:    provider,
+		ClientResolver: oauthclientResolver,
+		AccessEvents:   eventProvider,
+		MeterService:   meterService,
+		OfflineGrants:  store,
+	}
 	oauthResolver := &oauth2.Resolver{
 		RemoteIP:            remoteIP,
 		UserAgentString:     userAgentString,
 		OAuthConfig:         oAuthConfig,
 		Authorizations:      authorizationStore,
 		AccessGrants:        store,
-		OfflineGrants:       store,
 		AppSessions:         store,
 		AccessTokenDecoder:  accessTokenEncoding,
 		Sessions:            provider,
 		Cookies:             cookieManager,
 		Clock:               clock,
-		OfflineGrantService: offlineGrantService,
+		OfflineGrantService: oauthOfflineGrantService,
 	}
 	middlewareLogger := session.NewMiddlewareLogger(factory)
-	analyticredisHandle := appProvider.AnalyticRedis
-	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
-	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: contextContext,
-		Redis:   analyticredisHandle,
-		AppID:   appID,
-		Clock:   clock,
-		Logger:  meterStoreRedisLogger,
-	}
-	meterService := &meter.Service{
-		Counter: writeStoreRedis,
-	}
 	sessionMiddleware := &session.Middleware{
 		SessionCookie:              cookieDef,
 		Cookies:                    cookieManager,

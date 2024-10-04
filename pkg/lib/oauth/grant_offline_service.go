@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -13,12 +14,21 @@ type ServiceIDPSessionProvider interface {
 	Get(id string) (*idpsession.IDPSession, error)
 	CheckSessionExpired(session *idpsession.IDPSession) (expired bool)
 }
+type OfflineGrantServiceAccessEventProvider interface {
+	RecordAccess(sessionID string, expiry time.Time, event *access.Event) error
+}
+
+type OfflineGrantServiceMeterService interface {
+	TrackActiveUser(userID string) error
+}
 
 type OfflineGrantService struct {
 	OAuthConfig    *config.OAuthConfig
 	Clock          clock.Clock
 	IDPSessions    ServiceIDPSessionProvider
 	ClientResolver OAuthClientResolver
+	AccessEvents   OfflineGrantServiceAccessEventProvider
+	MeterService   OfflineGrantServiceMeterService
 
 	OfflineGrants OfflineGrantStore
 }
@@ -26,6 +36,29 @@ type OfflineGrantService struct {
 type CreateNewRefreshTokenResult struct {
 	Token     string
 	TokenHash string
+}
+
+// AccessOfflineGrant accesses oauth offline grant with 3 targeted side effects
+// 1. set grant.AccessInfo.LastAccess to new accessEvent (inside UpdateOfflineGrantLastAccess)
+// 2. call RecordAccess
+// 3. call TrackActiveUser
+func (s *OfflineGrantService) AccessOfflineGrant(grantID string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
+	grant, err := s.OfflineGrants.UpdateOfflineGrantLastAccess(grantID, *accessEvent, expireAt)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.AccessEvents.RecordAccess(grant.ID, grant.ExpireAtForResolvedSession, accessEvent)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.MeterService.TrackActiveUser(grant.Attrs.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return grant, nil
 }
 
 func (s *OfflineGrantService) GetOfflineGrant(id string) (*OfflineGrant, error) {

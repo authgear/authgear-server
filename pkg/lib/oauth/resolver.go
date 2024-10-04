@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -25,19 +26,23 @@ type ResolverCookieManager interface {
 	GetCookie(r *http.Request, def *httputil.CookieDef) (*http.Cookie, error)
 }
 
+type ResolverOfflineGrantService interface {
+	AccessOfflineGrant(grantID string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error)
+	GetOfflineGrant(id string) (*OfflineGrant, error)
+}
+
 type Resolver struct {
 	RemoteIP            httputil.RemoteIP
 	UserAgentString     httputil.UserAgentString
 	OAuthConfig         *config.OAuthConfig
 	Authorizations      AuthorizationStore
 	AccessGrants        AccessGrantStore
-	OfflineGrants       OfflineGrantStore
 	AppSessions         AppSessionStore
 	AccessTokenDecoder  AccessTokenDecoder
 	Sessions            ResolverSessionProvider
 	Cookies             ResolverCookieManager
 	Clock               clock.Clock
-	OfflineGrantService OfflineGrantService
+	OfflineGrantService ResolverOfflineGrantService
 }
 
 func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.ResolvedSession, error) {
@@ -224,7 +229,7 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 		}
 	}
 
-	offlineGrant, err := re.OfflineGrants.AccessWithID(offlineGrant.ID, accessEvent, offlineGrant.ExpireAtForResolvedSession)
+	offlineGrant, err := re.OfflineGrantService.AccessOfflineGrant(offlineGrant.ID, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}

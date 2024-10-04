@@ -48,3 +48,54 @@ func (mr *MockAccessEventProviderMockRecorder) InitStream(sessionID, expiry, eve
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitStream", reflect.TypeOf((*MockAccessEventProvider)(nil).InitStream), sessionID, expiry, event)
 }
+
+// RecordAccess mocks base method.
+func (m *MockAccessEventProvider) RecordAccess(sessionID string, expiry time.Time, event *access.Event) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecordAccess", sessionID, expiry, event)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RecordAccess indicates an expected call of RecordAccess.
+func (mr *MockAccessEventProviderMockRecorder) RecordAccess(sessionID, expiry, event interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordAccess", reflect.TypeOf((*MockAccessEventProvider)(nil).RecordAccess), sessionID, expiry, event)
+}
+
+// MockProviderMeterService is a mock of ProviderMeterService interface.
+type MockProviderMeterService struct {
+	ctrl     *gomock.Controller
+	recorder *MockProviderMeterServiceMockRecorder
+}
+
+// MockProviderMeterServiceMockRecorder is the mock recorder for MockProviderMeterService.
+type MockProviderMeterServiceMockRecorder struct {
+	mock *MockProviderMeterService
+}
+
+// NewMockProviderMeterService creates a new mock instance.
+func NewMockProviderMeterService(ctrl *gomock.Controller) *MockProviderMeterService {
+	mock := &MockProviderMeterService{ctrl: ctrl}
+	mock.recorder = &MockProviderMeterServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockProviderMeterService) EXPECT() *MockProviderMeterServiceMockRecorder {
+	return m.recorder
+}
+
+// TrackActiveUser mocks base method.
+func (m *MockProviderMeterService) TrackActiveUser(userID string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TrackActiveUser", userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// TrackActiveUser indicates an expected call of TrackActiveUser.
+func (mr *MockProviderMeterServiceMockRecorder) TrackActiveUser(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackActiveUser", reflect.TypeOf((*MockProviderMeterService)(nil).TrackActiveUser), userID)
+}

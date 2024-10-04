@@ -219,6 +219,7 @@ var CommonDependencySet = wire.NewSet(
 		access.DependencySet,
 		session.DependencySet,
 		wire.Bind(new(idpsession.AccessEventProvider), new(*access.EventProvider)),
+		wire.Bind(new(oauth.OfflineGrantServiceAccessEventProvider), new(*access.EventProvider)),
 		wire.Bind(new(oidchandler.LogoutSessionManager), new(*session.Manager)),
 		wire.Bind(new(oauthhandler.SessionManager), new(*session.Manager)),
 		wire.Bind(new(interaction.SessionManager), new(*session.Manager)),
@@ -426,6 +427,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(oauthhandler.AppSessionTokenService), new(*oauth.AppSessionTokenService)),
 		wire.Bind(new(sessionlisting.OfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Bind(new(handler.TokenHandlerOfflineGrantService), new(*oauth.OfflineGrantService)),
+		wire.Bind(new(oauth.ResolverOfflineGrantService), new(*oauth.OfflineGrantService)),
 		wire.Value(oauthhandler.TokenGenerator(oauth.GenerateToken)),
 		wire.Bind(new(oauthhandler.AuthorizationService), new(*oauth.AuthorizationService)),
 		wire.Bind(new(interaction.OfflineGrantStore), new(*oauthredis.Store)),
@@ -522,6 +524,8 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		meter.DependencySet,
 		wire.Bind(new(session.MeterService), new(*meter.Service)),
+		wire.Bind(new(oauth.OfflineGrantServiceMeterService), new(*meter.Service)),
+		wire.Bind(new(idpsession.ProviderMeterService), new(*meter.Service)),
 	),
 
 	wire.NewSet(

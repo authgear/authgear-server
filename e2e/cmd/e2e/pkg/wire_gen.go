@@ -49,6 +49,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
+	"github.com/authgear/authgear-server/pkg/lib/meter"
 	oauth2 "github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
@@ -737,6 +738,18 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	eventProvider := &access.EventProvider{
 		Store: eventStoreRedis,
 	}
+	analyticredisHandle := p.AnalyticRedis
+	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
+	writeStoreRedis := &meter.WriteStoreRedis{
+		Context: c,
+		Redis:   analyticredisHandle,
+		AppID:   appID,
+		Clock:   clockClock,
+		Logger:  meterStoreRedisLogger,
+	}
+	meterService := &meter.Service{
+		Counter: writeStoreRedis,
+	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
 		Context:         c,
@@ -746,6 +759,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Redis:           appredisHandle,
 		Store:           idpsessionStoreRedis,
 		AccessEvents:    eventProvider,
+		MeterService:    meterService,
 		TrustProxy:      trustProxy,
 		Config:          sessionConfig,
 		Clock:           clockClock,
@@ -772,6 +786,8 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Clock:          clockClock,
 		IDPSessions:    idpsessionProvider,
 		ClientResolver: oauthclientResolver,
+		AccessEvents:   eventProvider,
+		MeterService:   meterService,
 		OfflineGrants:  redisStore,
 	}
 	sessionManager := &oauth2.SessionManager{
