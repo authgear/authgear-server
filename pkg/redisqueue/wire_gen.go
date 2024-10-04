@@ -224,14 +224,12 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Clock:   clock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
+		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
@@ -967,14 +965,12 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	}
 	factory := p.LoggerFactory
 	logger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
+		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
@@ -1366,14 +1362,12 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		Clock:   clockClock,
 	}
 	logger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
+		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)

@@ -1,6 +1,8 @@
 package ratelimit
 
 import (
+	"fmt"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -17,6 +19,7 @@ func NewLogger(lf *log.Factory) Logger {
 type Limiter struct {
 	Logger  Logger
 	Storage Storage
+	AppID   config.AppID
 	Config  *config.RateLimitsFeatureConfig
 }
 
@@ -34,7 +37,14 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 		return &Reservation{spec: spec, ok: true}
 	}
 
-	ok, timeToAct, err := l.Storage.Update(spec, n)
+	var key string
+	if spec.IsGlobal {
+		key = bucketKeyGlobal(spec)
+	} else {
+		key = bucketKeyApp(l.AppID, spec)
+	}
+
+	ok, timeToAct, err := l.Storage.Update(key, spec.Period, spec.Burst, n)
 	if err != nil {
 		return &Reservation{
 			spec: spec,
@@ -52,6 +62,7 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 
 	return &Reservation{
 		spec:       spec,
+		key:        key,
 		ok:         ok,
 		err:        err,
 		tokenTaken: n,
@@ -64,7 +75,7 @@ func (l *Limiter) Cancel(r *Reservation) {
 		return
 	}
 
-	_, _, err := l.Storage.Update(r.spec, -r.tokenTaken)
+	_, _, err := l.Storage.Update(r.key, r.spec.Period, r.spec.Burst, -r.tokenTaken)
 	if err != nil {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
@@ -73,4 +84,12 @@ func (l *Limiter) Cancel(r *Reservation) {
 			WithField("key", r.spec.Key()).
 			Warn("failed to cancel reservation")
 	}
+}
+
+func bucketKeyGlobal(spec BucketSpec) string {
+	return fmt.Sprintf("rate-limit:%s", spec.Key())
+}
+
+func bucketKeyApp(appID config.AppID, spec BucketSpec) string {
+	return fmt.Sprintf("app:%s:rate-limit:%s", appID, spec.Key())
 }

@@ -353,14 +353,12 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:   clock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: handle,
-	}
+	storageRedis := ratelimit.NewAppStorageRedis(handle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  ratelimitLogger,
 		Storage: storageRedis,
+		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)
@@ -1036,14 +1034,12 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	factory := appProvider.LoggerFactory
 	logger := ratelimit.NewLogger(factory)
-	storageRedis := &ratelimit.StorageRedis{
-		AppID: appID,
-		Redis: appredisHandle,
-	}
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
 	rateLimitsFeatureConfig := featureConfig.RateLimits
 	limiter := &ratelimit.Limiter{
 		Logger:  logger,
 		Storage: storageRedis,
+		AppID:   appID,
 		Config:  rateLimitsFeatureConfig,
 	}
 	siweLogger := siwe2.NewLogger(factory)

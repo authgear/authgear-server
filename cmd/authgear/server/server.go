@@ -104,6 +104,7 @@ func (c *Controller) Start() {
 
 		specs = append(specs, redisqueue.NewConsumer(
 			infraredisqueue.QueueUserReindex,
+			cfg.RateLimits.TaskUserReindex,
 			p,
 			configSrcController,
 			redisqueue.UserReindex,
@@ -164,6 +165,7 @@ func (c *Controller) Start() {
 
 		specs = append(specs, redisqueue.NewConsumer(
 			infraredisqueue.QueueUserImport,
+			cfg.RateLimits.TaskUserImport,
 			p,
 			configSrcController,
 			redisqueue.UserImport,
@@ -171,6 +173,7 @@ func (c *Controller) Start() {
 
 		specs = append(specs, redisqueue.NewConsumer(
 			infraredisqueue.QueueUserExport,
+			cfg.RateLimits.TaskUserExport,
 			p,
 			configSrcController,
 			redisqueue.UserExport,

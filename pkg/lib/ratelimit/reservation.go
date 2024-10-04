@@ -5,6 +5,7 @@ import (
 )
 
 type Reservation struct {
+	key        string
 	spec       BucketSpec
 	ok         bool
 	err        error
