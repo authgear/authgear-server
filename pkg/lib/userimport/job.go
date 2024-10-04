@@ -14,7 +14,8 @@ import (
 )
 
 const recordsPerTask = 100
-const jobIDPrefix = "jobimport_"
+const jobIDPrefix = "userimport_"
+const taskIDPrefix = "userimporttask_"
 
 func newJobID() string {
 	return jobIDPrefix + rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
@@ -68,7 +69,7 @@ func (m *JobManager) EnqueueJob(ctx context.Context, request *Request) (*Respons
 			return nil, err
 		}
 
-		task := m.TaskProducer.NewTask(string(m.AppID), rawRequest, "task")
+		task := m.TaskProducer.NewTask(string(m.AppID), rawRequest, taskIDPrefix)
 		err = m.TaskProducer.EnqueueTask(ctx, task)
 		if err != nil {
 			return nil, err
