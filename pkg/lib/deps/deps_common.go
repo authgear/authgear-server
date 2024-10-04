@@ -548,6 +548,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		usage.DependencySet,
 		wire.Bind(new(messaging.UsageLimiter), new(*usage.Limiter)),
+		wire.Bind(new(userimport.UsageLimiter), new(*usage.Limiter)),
 	),
 
 	wire.NewSet(
@@ -645,6 +646,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		redisqueue.ProducerDependencySet,
 		wire.Bind(new(libes.UserReindexCreateProducer), new(*redisqueue.UserReindexProducer)),
+		wire.Bind(new(userimport.TaskProducer), new(*redisqueue.UserImportProducer)),
 	),
 
 	wire.NewSet(

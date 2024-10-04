@@ -78,6 +78,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
+	"github.com/authgear/authgear-server/pkg/lib/userimport"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -1249,19 +1250,19 @@ func newPresignImagesUploadHandler(p *deps.RequestProvider) http.Handler {
 
 func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 	appProvider := p.AppProvider
-	appContext := appProvider.AppContext
-	configConfig := appContext.Config
-	appConfig := configConfig.AppConfig
-	appID := appConfig.ID
-	featureConfig := configConfig.FeatureConfig
-	adminAPIFeatureConfig := featureConfig.AdminAPI
 	factory := appProvider.LoggerFactory
 	jsonResponseWriterLogger := httputil.NewJSONResponseWriterLogger(factory)
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
 	}
-	handle := appProvider.Redis
+	appContext := appProvider.AppContext
+	configConfig := appContext.Config
+	appConfig := configConfig.AppConfig
+	appID := appConfig.ID
 	clockClock := _wireSystemClockValue
+	featureConfig := configConfig.FeatureConfig
+	adminAPIFeatureConfig := featureConfig.AdminAPI
+	handle := appProvider.Redis
 	userImportProducer := redisqueue.NewUserImportProducer(handle, clockClock)
 	logger := usage.NewLogger(factory)
 	limiter := &usage.Limiter{
@@ -1270,12 +1271,21 @@ func newUserImportCreateHandler(p *deps.RequestProvider) http.Handler {
 		AppID:  appID,
 		Redis:  handle,
 	}
-	userImportCreateHandler := &transport.UserImportCreateHandler{
+	storeRedis := &userimport.StoreRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	jobManager := &userimport.JobManager{
 		AppID:                 appID,
+		Clock:                 clockClock,
 		AdminAPIFeatureConfig: adminAPIFeatureConfig,
-		JSON:                  jsonResponseWriter,
-		UserImports:           userImportProducer,
+		TaskProducer:          userImportProducer,
 		UsageLimiter:          limiter,
+		Store:                 storeRedis,
+	}
+	userImportCreateHandler := &transport.UserImportCreateHandler{
+		JSON:        jsonResponseWriter,
+		UserImports: jobManager,
 	}
 	return userImportCreateHandler
 }
@@ -1291,13 +1301,34 @@ func newUserImportGetHandler(p *deps.RequestProvider) http.Handler {
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
 	}
-	handle := appProvider.Redis
 	clockClock := _wireSystemClockValue
+	featureConfig := configConfig.FeatureConfig
+	adminAPIFeatureConfig := featureConfig.AdminAPI
+	handle := appProvider.Redis
 	userImportProducer := redisqueue.NewUserImportProducer(handle, clockClock)
+	logger := usage.NewLogger(factory)
+	limiter := &usage.Limiter{
+		Logger: logger,
+		Clock:  clockClock,
+		AppID:  appID,
+		Redis:  handle,
+	}
+	storeRedis := &userimport.StoreRedis{
+		AppID: appID,
+		Redis: handle,
+	}
+	jobManager := &userimport.JobManager{
+		AppID:                 appID,
+		Clock:                 clockClock,
+		AdminAPIFeatureConfig: adminAPIFeatureConfig,
+		TaskProducer:          userImportProducer,
+		UsageLimiter:          limiter,
+		Store:                 storeRedis,
+	}
 	userImportGetHandler := &transport.UserImportGetHandler{
 		AppID:       appID,
 		JSON:        jsonResponseWriter,
-		UserImports: userImportProducer,
+		UserImports: jobManager,
 	}
 	return userImportGetHandler
 }

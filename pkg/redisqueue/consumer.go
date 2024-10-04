@@ -221,8 +221,46 @@ func (c *Consumer) work(ctx context.Context) {
 		}
 	}
 
+	// Reserve before dequeue.
+	// If we do it in reverse order, we could dequeue the job, but rate limited.
+	// And the server shuts down, the job will be gone forever.
+	//
+	// However, reserve-before-dequeue has its own problem.
+	// Assume the rate limit is 10/3m, and there are 3 workers.
+	//
+	// At t=0, the queue is empty.
+	// Since the burst (10) is larger than the number of workers (3),
+	// All workers can reserve().
+	// And then they all dequeue().
+	// Since the queue is empty, they are blocked by BRPOP.
+	// When the are unblocked by BRPOP after timeout,
+	// they cancel the reservation.
+	// And the progress repeats.
+	// Once the queue becomes non-empty,
+	// the workers will dequeue at the same time.
+	reservation := c.limiter.Reserve(c.limitBucket)
+	if reservation.Error() != nil {
+		c.logger.
+			WithField("tat", reservation.GetTimeToAct()).
+			WithField("bucket_key", c.limitBucket.Key()).
+			Debug("task rate limited")
+		select {
+		case <-c.shutdown:
+			return
+		case <-time.After(reservation.GetTimeToAct().Sub(c.clock.NowMonotonic())):
+			break
+		}
+	}
+
 	task, appProvider, err := c.dequeue(ctx)
 	if errors.Is(err, errNoTask) {
+		// There is actually no task.
+		// Cancel the reservation
+		c.logger.
+			WithField("tat", reservation.GetTimeToAct()).
+			WithField("bucket_key", c.limitBucket.Key()).
+			Debug("cancel reservation due to no task")
+		c.limiter.Cancel(reservation)
 		return
 	} else if err != nil {
 		c.logger.WithError(err).Error("failed to dequeue task")
@@ -230,17 +268,13 @@ func (c *Consumer) work(ctx context.Context) {
 		return
 	}
 
-	c.dequeueBackoff.Reset()
+	c.logger.
+		WithField("tat", reservation.GetTimeToAct()).
+		WithField("bucket_key", c.limitBucket.Key()).
+		Debug("consume reservation")
 
-	if r := c.limiter.Reserve(c.limitBucket); r.Error() != nil {
-		c.logger.WithField("tat", r.GetTimeToAct()).Debug("task rate limited")
-		select {
-		case <-c.shutdown:
-			return
-		case <-time.After(r.GetTimeToAct().Sub(c.clock.NowMonotonic())):
-			break
-		}
-	}
+	// Reset backoff when we can dequeue.
+	c.dequeueBackoff.Reset()
 
 	output, err := c.process(ctx, task, appProvider)
 

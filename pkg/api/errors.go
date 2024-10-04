@@ -45,3 +45,5 @@ var ErrLDAPEndUserSearchMultipleResult = LDAPConnectionTestFailed.NewWithCause("
 var ErrLDAPMissingUniqueAttribute = LDAPConnectionTestFailed.NewWithCause("missing ID attribute", apierrors.StringCause("TestingEndUserMissingUserIDAttribute"))
 
 var ErrGetUsersInvalidArgument = apierrors.Invalid.WithReason("GetUsersInvalidArgument")
+
+var ErrTaskNotFound = apierrors.NotFound.WithReason("TaskNotFound").New("task not found")
