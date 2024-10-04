@@ -7,15 +7,17 @@ var _ = Schema.Add("AuthenticatorConfig", `
 	"properties": {
 		"password": { "$ref": "#/$defs/AuthenticatorPasswordConfig" },
 		"totp": { "$ref": "#/$defs/AuthenticatorTOTPConfig" },
-		"oob_otp": { "$ref": "#/$defs/AuthenticatorOOBConfig" }
+		"oob_otp": { "$ref": "#/$defs/AuthenticatorOOBConfig" },
+		"face_recognition": { "$ref": "#/$defs/AuthenticatorFaceRecognitionConfig" }
 	}
 }
 `)
 
 type AuthenticatorConfig struct {
-	Password *AuthenticatorPasswordConfig `json:"password,omitempty"`
-	TOTP     *AuthenticatorTOTPConfig     `json:"totp,omitempty"`
-	OOB      *AuthenticatorOOBConfig      `json:"oob_otp,omitempty"`
+	Password        *AuthenticatorPasswordConfig        `json:"password,omitempty"`
+	TOTP            *AuthenticatorTOTPConfig            `json:"totp,omitempty"`
+	OOB             *AuthenticatorOOBConfig             `json:"oob_otp,omitempty"`
+	FaceRecognition *AuthenticatorFaceRecognitionConfig `json:"face_recognition,omitempty" nullable:"true"`
 }
 
 var _ = Schema.Add("AuthenticatorPasswordConfig", `
@@ -393,4 +395,18 @@ func (c *AuthenticatorOOBEmailConfig) SetDefaults() {
 	// See https://github.com/authgear/authgear-server/issues/3524
 	// Remove deprecated fields
 	c.Deprecated_CodeValidPeriod = ""
+}
+
+var _ = Schema.Add("AuthenticatorFaceRecognitionConfig", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+    "liveness_check": { "type": "boolean" }
+	}
+}
+`)
+
+type AuthenticatorFaceRecognitionConfig struct {
+	LivenessCheck *bool `json:"liveness_check,omitempty"`
 }
