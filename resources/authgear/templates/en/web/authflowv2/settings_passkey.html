@@ -89,9 +89,9 @@
 {{ define "__settings_passkey_item_remove_btn" }}
 <button
   class="settings-action-item__icon--pale"
-  data-controller="settings-dialog"
-  data-action="click->settings-dialog#open"
-  data-settings-dialog-dialogid-param="{{ .DialogID }}"
+  data-controller="dialog"
+  data-action="click->dialog#open"
+  id="{{ .DialogID }}"
 >
   <i class="material-icons">close</i>
 </button>

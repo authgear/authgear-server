@@ -49,7 +49,6 @@ import { DialogController } from "./authflowv2/dialog";
 import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
 import { ImagePickerController } from "./imagepicker";
 import { SelectInputController } from "./authflowv2/selectInput";
-import { SettingsDialogController } from "./authflowv2/settingsDialog";
 import { AccountDeletionController } from "./accountdeletion";
 
 axios.defaults.withCredentials = true;
@@ -97,7 +96,6 @@ Stimulus.register("image-picker", ImagePickerController);
 
 Stimulus.register("text-field", TextFieldController);
 Stimulus.register("dialog", DialogController);
-Stimulus.register("settings-dialog", SettingsDialogController);
 Stimulus.register("overlay", OverlayController);
 Stimulus.register("loading", LoadingController);
 Stimulus.register("new-password-field", NewPasswordFieldController);

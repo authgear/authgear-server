@@ -51,9 +51,9 @@
   {{ if gt (len .Sessions) 1 }}
     <button
       class="settings-link-btn--destructive py-6"
-      data-controller="settings-dialog"
-      data-action="click->settings-dialog#open"
-      data-settings-dialog-dialogid-param="revoke-all"
+      data-controller="dialog"
+      data-action="click->dialog#open"
+      id="revoke-all"
     >
       {{ include "v2.page.settings-sessions.default.revoke-all-label" nil }}
     </button>
@@ -93,9 +93,9 @@
 {{ define "__settings_session_item_remove_btn" }}
 <button
   class="settings-action-item__icon--pale"
-  data-controller="settings-dialog"
-  data-action="click->settings-dialog#open"
-  data-settings-dialog-dialogid-param="{{ .DialogID }}"
+  data-controller="dialog"
+  data-action="click->dialog#open"
+  id="{{ .DialogID }}"
 >
   <i class="material-icons">close</i>
 </button>

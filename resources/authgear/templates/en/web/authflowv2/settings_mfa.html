@@ -79,9 +79,9 @@
       <button
         type="button"
         class="block w-full"
-        data-controller="settings-dialog"
-        data-action="click->settings-dialog#open"
-        data-settings-dialog-dialogid-param="settings-mfa-revoke-device"
+        id="settings-mfa-revoke-device"
+        data-controller="dialog"
+        data-action="click->dialog#open"
       >
         {{ template "authflowv2/__settings_action_item.html"
             (dict

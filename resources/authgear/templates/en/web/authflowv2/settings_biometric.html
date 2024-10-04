@@ -63,9 +63,9 @@
 {{ define "__settings_biometric_item_remove_btn" }}
 <button
   class="settings-link-btn--destructive"
-  data-controller="settings-dialog"
-  data-action="click->settings-dialog#open"
-  data-settings-dialog-dialogid-param="{{ .DialogID }}"
+  data-controller="dialog"
+  data-action="click->dialog#open"
+  id="{{ .DialogID }}"
 >
   {{ translate "v2.page.settings-biometric.default.disconnect-button-label" nil }}
 </button>

@@ -58,7 +58,15 @@ function dispatchDialogCloseEnd(dialogID: string) {
  *     new CustomEvent("dialog:closed", {detail: {id: "foobar"}})
  */
 export class DialogController extends Controller {
-  open = (e: Event) => {
+  open() {
+    dispatchDialogOpen(this.element.id);
+  }
+
+  close() {
+    dispatchDialogClose(this.element.id);
+  }
+
+  private openFromEvent = (e: Event) => {
     if (!(e instanceof CustomEvent)) {
       return;
     }
@@ -69,7 +77,7 @@ export class DialogController extends Controller {
     this.element.classList.add("open");
   };
 
-  close = (e: Event) => {
+  private closeFromEvent = (e: Event) => {
     if (!(e instanceof CustomEvent)) {
       return;
     }
@@ -118,15 +126,15 @@ export class DialogController extends Controller {
   };
 
   connect() {
-    document.addEventListener(`dialog:open`, this.open);
-    document.addEventListener(`dialog:close`, this.close);
+    document.addEventListener(`dialog:open`, this.openFromEvent);
+    document.addEventListener(`dialog:close`, this.closeFromEvent);
     this.element.addEventListener("transitionstart", this.openStart);
     this.element.addEventListener("transitionend", this.closeEnd);
   }
 
   disconnect() {
-    document.removeEventListener(`dialog:open`, this.open);
-    document.removeEventListener(`dialog:close`, this.close);
+    document.removeEventListener(`dialog:open`, this.openFromEvent);
+    document.removeEventListener(`dialog:close`, this.closeFromEvent);
     this.element.removeEventListener("transitionstart", this.openStart);
     this.element.removeEventListener("transitionend", this.closeEnd);
   }

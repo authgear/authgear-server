@@ -78,9 +78,9 @@
 
     <button
       class="settings-link-btn--destructive"
-      data-controller="settings-dialog"
-      data-settings-dialog-dialogid-param="{{ $RemoveDialogID }}"
-      data-action="click->settings-dialog#open">
+      data-controller="dialog"
+      id="{{ $RemoveDialogID }}"
+      data-action="click->dialog#open">
       {{ translate "v2.page.settings-identity-view-phone.default.button-remove-phone-label" nil }}
     </button>
 
