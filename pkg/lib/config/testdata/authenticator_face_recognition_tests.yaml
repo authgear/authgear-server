@@ -1,0 +1,27 @@
+part: AuthenticatorFaceRecognitionConfig
+name: valid-config-1
+error: null
+value:
+  liveness_check: false
+---
+part: AuthenticatorFaceRecognitionConfig
+name: valid-config-2
+error: null
+value:
+  liveness_check: true
+---
+part: AuthenticatorFaceRecognitionConfig
+name: valid-config-empty
+error: null
+value: {}
+---
+part: AuthenticatorFaceRecognitionConfig
+name: invalid-config-extra-properties
+error: |-
+  invalid value:
+  /baz: 
+  /foo: 
+value:
+  foo: bar
+  baz: qux
+
