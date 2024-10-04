@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import {
   Exception as SentryException,
-  Event as SentryEvent,
+  ErrorEvent as SentryErrorEvent,
   init as sentryInit,
 } from "@sentry/react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -85,12 +85,12 @@ async function loadSystemConfig(): Promise<SystemConfig> {
 function isPosthogResetGroupsException(ex: SentryException) {
   return ex.type === "TypeError" && ex.value?.includes("posthog.resetGroups");
 }
-function isPosthogResetGroupsEvent(event: SentryEvent) {
+function isPosthogResetGroupsEvent(event: SentryErrorEvent) {
   return event.exception?.values?.some(isPosthogResetGroupsException) ?? false;
 }
 
 // DEV-1767: Unknown cause on posthog error, silence for now
-function sentryBeforeSend(event: SentryEvent) {
+function sentryBeforeSend(event: SentryErrorEvent) {
   if (isPosthogResetGroupsEvent(event)) {
     return null;
   }
