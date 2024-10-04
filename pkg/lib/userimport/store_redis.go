@@ -9,6 +9,7 @@ import (
 
 	goredis "github.com/go-redis/redis/v8"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -45,7 +46,7 @@ func (s *StoreRedis) GetJob(ctx context.Context, jobID string) (*Job, error) {
 	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		bytes, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
-			return ErrJobNotFound
+			return api.ErrTaskNotFound
 		}
 		if err != nil {
 			return err
