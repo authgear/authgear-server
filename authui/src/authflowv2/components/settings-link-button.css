@@ -88,8 +88,8 @@
 
   .settings-link-btn--destructive {
     @apply settings-link-btn;
-    --settings-link-btn-text-color: var(--color-secondary-theme-primary);
-    --settings-link-btn-text-color--hover: var(--color-secondary-theme-dark);
-    --settings-link-btn-text-color--active: var(--color-secondary-theme-dark);
+    --settings-link-btn-text-color: var(--color-destructive-primary);
+    --settings-link-btn-text-color--hover: var(--color-destructive-dark);
+    --settings-link-btn-text-color--active: var(--color-destructive-dark);
   }
 }

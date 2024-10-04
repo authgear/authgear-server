@@ -107,8 +107,8 @@
 
   .primary-btn--destructive {
     @apply primary-btn;
-    --primary-btn__bg-color: var(--color-secondary-theme-primary);
-    --primary-btn__bg-color--hover: var(--color-secondary-theme-dark);
-    --primary-btn__bg-color--active: var(--color-secondary-theme-dark);
+    --primary-btn__bg-color: var(--color-destructive-primary);
+    --primary-btn__bg-color--hover: var(--color-destructive-dark);
+    --primary-btn__bg-color--active: var(--color-destructive-dark);
   }
 }
