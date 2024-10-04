@@ -25,7 +25,7 @@
     {{ range .PhoneIdentities }}
       <li>
         {{ template "authflowv2/__settings_radio.html" (dict
-            "Label" (include "__settgins_identity_change_primary_phone_item_label" .OriginalLoginID)
+            "Label" (include "__settings_identity_change_primary_phone_item_label.html" .OriginalLoginID)
             "Name" "/phone_number"
             "Value" .LoginID
             "ShowInput" false
@@ -51,6 +51,6 @@
 
 {{ end }}
 
-{{ define "__settgins_identity_change_primary_phone_item_label" }}
+{{ define "__settings_identity_change_primary_phone_item_label.html" }}
   <span class="break-all">{{ . }}</span>
 {{ end }}

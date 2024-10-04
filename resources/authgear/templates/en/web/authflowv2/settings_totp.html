@@ -19,8 +19,8 @@
           {{ template "authflowv2/__settings_action_item.html"
               (dict
                 "Label" .DisplayName
-                "Description" (include "__settings_totp_item_added_at" .)
-                "ActionButton" (include "__settings_totp_item_delete_button" nil)
+                "Description" (include "__settings_totp_item_added_at.html" .)
+                "ActionButton" (include "__settings_totp_item_delete_button.html" nil)
               )
           }}
         </li>
@@ -38,7 +38,7 @@
 </div>
 {{ end }}
 
-{{ define "__settings_totp_item_added_at" }}
+{{ define "__settings_totp_item_added_at.html" }}
 <span>
   {{
     translate "v2.page.settings-totp.default.added-at-label"
@@ -50,7 +50,7 @@
 </span>
 {{ end }}
 
-{{ define "__settings_totp_item_delete_button" }}
+{{ define "__settings_totp_item_delete_button.html" }}
 <button type="button">
   <i class="material-icons text-[1.5rem] text-[var(--color-neutral-200)]">close</i>
 </button>

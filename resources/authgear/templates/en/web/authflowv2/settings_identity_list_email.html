@@ -10,7 +10,7 @@
   }}
 {{ end }}
 
-{{ define "settings_identity_email_verification_label" }}
+{{ define "__settings_identity_email_verification_label.html" }}
   {{ if $.Verified }}
     <div class="body-text--md settings-text-color-success">
       {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
@@ -37,7 +37,7 @@
               (dict
                 "IconName" "email"
                 "Label" .OriginalLoginID
-                "Description" (include "settings_identity_email_verification_label"
+                "Description" (include "__settings_identity_email_verification_label.html"
                   (dict "Verified" $claim.Verified)
                 )
                 "RedirectURL" $href
@@ -68,7 +68,7 @@
         (dict
           "IconName" "email"
           "Label" .PrimaryEmail.OriginalLoginID
-          "ActionButton" (include "settings_identity_email_change_button"
+          "ActionButton" (include "__settings_identity_email_change_button.html"
             (dict "Href" (call $.MakeURL "/settings/identity/change_primary_email" "q_login_id_key" $.LoginIDKey))
           )
         )
@@ -79,7 +79,7 @@
 
 {{ end }}
 
-{{ define "settings_identity_email_change_button" }}
+{{ define "__settings_identity_email_change_button.html" }}
   <a class="settings-link-btn" href="{{ $.Href }}">
     {{ translate "v2.page.settings-identity-list-email.default.button-change-primary-email-label" . }}
   </a>

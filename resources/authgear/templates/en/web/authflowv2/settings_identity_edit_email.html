@@ -30,7 +30,7 @@
 
   <span class="screen-description">
     {{ include "v2.page.settings-identity-edit-email.default.description"
-      (dict "target" (include "__settings_identity_edit_email_inline_breakable" .Target.OriginalLoginID))
+      (dict "target" (include "__settings_identity_edit_email_inline_breakable.html" .Target.OriginalLoginID))
     }}
   </span>
 
@@ -59,6 +59,6 @@
 
 {{ end }}
 
-{{ define "__settings_identity_edit_email_inline_breakable" }}
+{{ define "__settings_identity_edit_email_inline_breakable.html" }}
   <span class="break-all"><b>{{ . }}</b></span>
 {{ end }}

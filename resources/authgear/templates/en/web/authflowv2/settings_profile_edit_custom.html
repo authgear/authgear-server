@@ -67,7 +67,7 @@
         name="{{ $ca.Pointer }}"
         value="{{ showAttributeValue $Value }}"
       >
-      {{ include "__settings_profile_edit_custom_numerical_range_label"
+      {{ include "__settings_profile_edit_custom_numerical_range_label.html"
         (dict "Minimum" $ca.Minimum "Maximum" $ca.Maximum)
       }}
     {{ end }}
@@ -80,7 +80,7 @@
         name="{{ $ca.Pointer }}"
         value="{{ showAttributeValue $Value }}"
       >
-      {{ include "__settings_profile_edit_custom_numerical_range_label"
+      {{ include "__settings_profile_edit_custom_numerical_range_label.html"
         (dict "Minimum" $ca.Minimum "Maximum" $ca.Maximum)
       }}
     {{ end }}
@@ -165,7 +165,7 @@
 
 {{ end }}
 
-{{ define "__settings_profile_edit_custom_numerical_range_label" }}
+{{ define "__settings_profile_edit_custom_numerical_range_label.html" }}
   {{ if (and (isNil .Minimum) (isNil .Maximum)) }}
   {{ else if (and (not (isNil .Minimum)) (isNil .Maximum)) }}
     <span class="body-text--md">

@@ -18,7 +18,7 @@
       {{ include "v2.page.enter-oob-otp.auth-email-or-sms.subtitle"
         (dict
           "CodeLength" $.CodeLength
-          "MaskedClaimValue" (include "__settings_identity_verify_mask_claim" $.MaskedClaimValue)
+          "MaskedClaimValue" (include "__settings_identity_verify_mask_claim.html" $.MaskedClaimValue)
         )
       }}
     </h2>
@@ -71,6 +71,6 @@
 
 {{ end }}
 
-{{ define "__settings_identity_verify_mask_claim" }}
+{{ define "__settings_identity_verify_mask_claim.html" }}
   <b>{{ . }}</b>
 {{ end }}

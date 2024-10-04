@@ -19,7 +19,7 @@
     {{ if $.SecondaryPassword }}
       {{ $href = (call $.MakeURL "/settings/mfa/totp") }}
     {{ end }}
-    {{ template "__settings_mfa_item"
+    {{ template "__settings_mfa_item.html"
         (dict
           "MaterialIconName" "phone_iphone"
           "Label" (translate "v2.page.settings-mfa.default.secondary-totp-label" nil)
@@ -34,7 +34,7 @@
     {{ if $.SecondaryPassword }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_email") }}
     {{ end }}
-    {{ template "__settings_mfa_item"
+    {{ template "__settings_mfa_item.html"
         (dict
           "MaterialIconName" "mail"
           "Label" (translate "v2.page.settings-mfa.default.secondary-oob-otp-email-label" nil)
@@ -49,7 +49,7 @@
     {{ if $.SecondaryPassword }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
     {{ end }}
-    {{ template "__settings_mfa_item"
+    {{ template "__settings_mfa_item.html"
         (dict
           "MaterialIconName" "phone_iphone"
           "Label" (translate "v2.page.settings-mfa.default.secondary-oob-otp-sms-label" nil)
@@ -64,7 +64,7 @@
     {{ if $.SecondaryPassword }}
       {{ $href = (call $.MakeURL "/settings/mfa/password") }}
     {{ end }}
-    {{ template "__settings_mfa_item"
+    {{ template "__settings_mfa_item.html"
         (dict
           "MaterialIconName" "lock"
           "Label" (translate "v2.page.settings-mfa.default.additional-password-label" nil)
@@ -127,13 +127,13 @@
 
 {{ end }}
 
-{{ define "__settings_mfa_item" }}
+{{ define "__settings_mfa_item.html" }}
   {{ template "authflowv2/__settings_action_item.html"
       (dict
         "IconName" $.MaterialIconName
         "Label" $.Label
         "RedirectURL" $.Href
-        "Description" (include "__settings_mfa_item_status"
+        "Description" (include "__settings_mfa_item_status.html"
           (dict
             "IsActive" $.IsActive
           )
@@ -142,7 +142,7 @@
   }}
 {{ end }}
 
-{{ define "__settings_mfa_item_status" }}
+{{ define "__settings_mfa_item_status.html" }}
   {{ if $.IsActive }}
     <span class="text-[color:var(--color-success)]">{{ translate "v2.page.settings-mfa.default.activated-label" nil}}</span>
   {{ else }}

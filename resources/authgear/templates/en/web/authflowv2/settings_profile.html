@@ -26,7 +26,7 @@
   <div class="mt-8">
     {{ $anyReadableName := or (call $.IsReadable "/name") (call $.IsReadable "/given_name") (call $.IsReadable "/family_name") (call $.IsReadable "/middle_name") (call $.IsReadable "/nickname") }}
     {{ if $anyReadableName }}
-      {{ template "__settings_profile_item"
+      {{ template "__settings_profile_item.html"
           (merge
             (dict
               "Title" (translate "v2.page.settings-profile.default.name-title" nil)
@@ -48,7 +48,7 @@
       {{ else if (eq $.Gender "") }}
         {{ $content = (translate "v2.page.settings-profile.default.attribute-value-unspecified-label" nil) }}
       {{ end }}
-      {{ template "__settings_profile_item"
+      {{ template "__settings_profile_item.html"
           (merge
             (dict
               "Title" (translate "v2.page.settings-profile.default.gender-title" nil)
@@ -65,9 +65,9 @@
     {{ if (call $.IsReadable "/birthdate") }}
       {{ $content := "" }}
       {{ if $.Birthdate }}
-        {{ $content = include "__settings_profile_date_item" $.Birthdate }}
+        {{ $content = include "__settings_profile_date_item.html" $.Birthdate }}
       {{ end }}
-      {{ template "__settings_profile_item"
+      {{ template "__settings_profile_item.html"
           (merge
             (dict
               "Title" (translate "v2.page.settings-profile.default.birthdate-title" nil)
@@ -84,9 +84,9 @@
       {{ $content := "" }}
       {{ $anyAddressComponents := (or $.AddressStreetAddress $.AddressLocality $.AddressRegion $.AddressPostalCode $.AddressCountry) }}
       {{ if $anyAddressComponents }}
-        {{ $content = include "__settings_profile_address_item" . }}
+        {{ $content = include "__settings_profile_address_item.html" . }}
       {{ end }}
-      {{ template "__settings_profile_item"
+      {{ template "__settings_profile_item.html"
           (merge
             (dict
               "Title" (translate "v2.page.settings-profile.default.address-title" nil)
@@ -104,7 +104,7 @@
       {{ if $.Zoneinfo }}
         {{ $content = $.ZoneinfoTimezone.DisplayLabel }}
       {{ end }}
-      {{ template "__settings_profile_item"
+      {{ template "__settings_profile_item.html"
           (merge
             (dict
               "Title" (translate "v2.page.settings-profile.default.zoneinfo-title" nil)
@@ -120,9 +120,9 @@
     {{ if (call $.IsReadable "/locale") }}
       {{ $content := "" }}
       {{ if $.Locale }}
-        {{ $content = (include "__settings_profile_locale_item" .) }}
+        {{ $content = (include "__settings_profile_locale_item.html" .) }}
       {{ end }}
-      {{ template "__settings_profile_item"
+      {{ template "__settings_profile_item.html"
           (merge
             (dict
               "Title" (translate "v2.page.settings-profile.default.language-title" nil)
@@ -144,7 +144,7 @@
         {{ $label = (translate $labelKey nil) }}
       {{ end }}
 
-      {{ template "__settings_profile_item"
+      {{ template "__settings_profile_item.html"
         (merge
           (dict
             "Title" $label
@@ -161,7 +161,7 @@
 
 {{ end }}
 
-{{ define "__settings_profile_item" }}
+{{ define "__settings_profile_item.html" }}
   {{ $url := "" }}
   {{ if $.Editable }}
     {{ $url = $.EditURL }}
@@ -181,7 +181,7 @@
   }}
 {{ end }}
 
-{{ define "__settings_profile_date_item" }}
+{{ define "__settings_profile_date_item.html" }}
 <span
   data-controller="format-input-date"
   data-format-input-date-date-value="{{ . }}"
@@ -190,7 +190,7 @@
 </span>
 {{ end }}
 
-{{ define "__settings_profile_locale_item" }}
+{{ define "__settings_profile_locale_item.html" }}
 {{ $label := (printf "language-%s" $.Locale) }}
 <span>
   {{ $.Locale }} - {{ translate $label nil}}
@@ -198,7 +198,7 @@
 {{ end }}
 
 
-{{ define "__settings_profile_address_item" }}
+{{ define "__settings_profile_address_item.html" }}
 <span>
 {{- if $.AddressStreetAddress }}<span class="whitespace-pre-wrap">{{ $.AddressStreetAddress }}</span><br>{{ end }}
 {{- if $.AddressLocality }}{{ $.AddressLocality }}<br>{{ end }}

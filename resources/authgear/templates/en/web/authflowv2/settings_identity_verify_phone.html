@@ -18,7 +18,7 @@
         {{ include "v2.page.enter-oob-otp.auth-email-or-sms.subtitle"
           (dict
             "CodeLength" $.CodeLength
-            "MaskedClaimValue" (include "__settings_identity_verify_phone_inline_breakable" $.MaskedClaimValue)
+            "MaskedClaimValue" (include "__settings_identity_verify_phone_inline_breakable.html" $.MaskedClaimValue)
           )
         }}
       </h2>
@@ -71,6 +71,6 @@
 
 {{ end }}
 
-{{ define "__settings_identity_verify_phone_inline_breakable" }}
+{{ define "__settings_identity_verify_phone_inline_breakable.html" }}
   <span class="break-all"><b>{{ . }}</b></span>
 {{ end }}

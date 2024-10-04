@@ -10,7 +10,7 @@
   }}
 {{ end }}
 
-{{ define "settings_identity_phone_verification_label" }}
+{{ define "__settings_identity_phone_verification_label.html" }}
   {{ if $.Verified }}
     <div class="body-text--md settings-text-color-success">
       {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
@@ -22,13 +22,13 @@
   {{ end }}
 {{ end }}
 
-{{ define "settings_identity_phone_edit_button" }}
+{{ define "__settings_identity_phone_edit_button.html" }}
   <a class="settings-link-btn" href="{{ $.Href }}">
     {{ translate "v2.page.settings-identity-view-phone.default.button-edit-phone-label" . }}
   </a>
 {{ end }}
 
-{{ define "settings_identity_phone_verification_button" }}
+{{ define "__settings_identity_phone_verification_button.html" }}
   <form
     method="post"
     novalidate
@@ -50,7 +50,7 @@
 <div class="flex flex-col gap-y-6">
   {{ $extraContent := "" }}
   {{ if not $.Verified }}
-    {{ $extraContent = (include "settings_identity_phone_verification_button" (dict
+    {{ $extraContent = (include "__settings_identity_phone_verification_button.html" (dict
         "CSRFField" $.CSRFField
         "Verified" false
         "LoginID" $.PhoneIdentity.LoginID
@@ -63,10 +63,10 @@
       (dict
         "IconName" "phone_iphone"
         "Label" $.PhoneIdentity.OriginalLoginID
-        "Description" (include "settings_identity_phone_verification_label"
+        "Description" (include "__settings_identity_phone_verification_label.html"
           (dict "Verified" $.Verified)
         )
-        "ActionButton" (include "settings_identity_phone_edit_button"
+        "ActionButton" (include "__settings_identity_phone_edit_button.html"
           (dict "Href" (call $.MakeURL "/settings/identity/edit_phone" "q_identity_id" $.PhoneIdentity.ID "q_login_id_key" $.LoginIDKey))
         )
         "ExtraContent" $extraContent
@@ -91,10 +91,10 @@
         "Title" (include "v2.page.settings-identity-view-phone.default.remove-identity-dialog-title" nil)
         "Description" (include "v2.page.settings-identity-view-phone.default.remove-identity-dialog-description"
           (dict
-            "target" (include "__settings_identity_view_phone_inline_breakable" $.PhoneIdentity.OriginalLoginID )
+            "target" (include "__settings_identity_view_phone_inline_breakable.html" $.PhoneIdentity.OriginalLoginID )
           )
         )
-        "FormContent" (include "__settings_identity_view_phone_remove_dialog_form_content" .)
+        "FormContent" (include "__settings_identity_view_phone_remove_dialog_form_content.html" .)
         "Buttons" (list
           (dict
             "Type" "Destructive"
@@ -113,11 +113,11 @@
 
 {{ end }}
 
-{{ define "__settings_identity_view_phone_remove_dialog_form_content" }}
+{{ define "__settings_identity_view_phone_remove_dialog_form_content.html" }}
   {{ $.CSRFField }}
   <input type="hidden" name="x_identity_id" value="{{ $.PhoneIdentity.ID }}">
 {{ end }}
 
-{{ define "__settings_identity_view_phone_inline_breakable" }}
+{{ define "__settings_identity_view_phone_inline_breakable.html" }}
   <b class="break-all">{{ . }}</b>
 {{ end }}
