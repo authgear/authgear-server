@@ -1,3 +1,20 @@
+- [User Import](#user-import)
+  * [About User Import](#about-user-import)
+  * [The usage limit](#the-usage-limit)
+  * [POST /_api/admin/users/import](#post-_apiadminusersimport)
+  * [GET /_api/admin/users/import/ID](#get-_apiadminusersimportid)
+  * [The input format](#the-input-format)
+    + [Update behavior](#update-behavior)
+    + [Update behavior of each field](#update-behavior-of-each-field)
+  * [Supported password format](#supported-password-format)
+    + [Bcrypt password](#bcrypt-password)
+  * [The response](#the-response)
+  * [Known issues](#known-issues)
+  * [Use cases](#use-cases)
+    + [One-off import](#one-off-import)
+    + [Correct a previous one-off import](#correct-a-previous-one-off-import)
+    + [Syncing with my HR system](#syncing-with-my-hr-system)
+
 # User Import
 
 User Import allows the developer to bulk import users from an existing system to Authgear.
@@ -6,6 +23,20 @@ User Import allows the developer to bulk import users from an existing system to
 
 - It is not a synchronous operation. The import is created and runs in the background. The developer can query the status of it.
 - It DOES NOT fire existing hooks, namely `user.pre_create` and `user.created`.
+- There is a usage limit of user import. See [the usage limit](#the-usage-limit).
+
+## The usage limit
+
+The usage limit is specified in `authgear.features.yaml`.
+The following example shows the default usage limit.
+
+```yaml
+admin_api:
+  user_import_usage:
+    enabled: true
+    period: day
+    quota: 10000
+```
 
 ## POST /_api/admin/users/import
 
