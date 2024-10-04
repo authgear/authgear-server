@@ -7,12 +7,6 @@ import (
 	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 )
 
-type BeforeHook struct {
-	Type       BeforeHookType      `json:"type"`
-	UserImport string              `json:"user_import"`
-	CustomSQL  BeforeHookCustomSQL `json:"custom_sql"`
-}
-
 var _ = TestCaseSchema.Add("AuthgearYAMLSource", `
 {
 	"type": "object",
@@ -32,8 +26,9 @@ type AuthgearYAMLSource struct {
 type BeforeHookType string
 
 const (
-	BeforeHookTypeUserImport BeforeHookType = "user_import"
-	BeforeHookTypeCustomSQL  BeforeHookType = "custom_sql"
+	BeforeHookTypeUserImport    BeforeHookType = "user_import"
+	BeforeHookTypeCustomSQL     BeforeHookType = "custom_sql"
+	BeforeHookTypeCreateSession BeforeHookType = "create_session"
 )
 
 var _ = TestCaseSchema.Add("BeforeHookCustomSQL", `
@@ -51,14 +46,36 @@ type BeforeHookCustomSQL struct {
 	Path string `json:"path"`
 }
 
+var _ = TestCaseSchema.Add("BeforeHookCreateSession", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"session_type": { "type": "string", "enum": ["idp"], "description": "Session Type" },
+		"session_id": { "type": "string", "description": "Session ID" },
+		"token": { "type": "string", "description": "Token to access the session" },
+		"select_user_id_sql":  { "type": "string", "description": "SQL to select an user id for the session" }
+	},
+	"required": ["session_type", "session_id", "token", "select_user_id_sql"]
+}
+`)
+
+type BeforeHookCreateSession struct {
+	SessionType     string `json:"session_type"`
+	SessionID       string `json:"session_id"`
+	Token           string `json:"token"`
+	SelectUserIDSQL string `json:"select_user_id_sql"`
+}
+
 var _ = TestCaseSchema.Add("BeforeHook", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"type": { "type": "string", "enum": ["user_import", "custom_sql"] },
+		"type": { "type": "string", "enum": ["user_import", "custom_sql", "create_session"] },
 		"user_import": { "type": "string" },
-		"custom_sql": { "$ref": "#/$defs/BeforeHookCustomSQL" }
+		"custom_sql": { "$ref": "#/$defs/BeforeHookCustomSQL" },
+		"create_session": { "$ref": "#/$defs/BeforeHookCreateSession" }
 	},
 	"required": ["type"],
 	"allOf": [
@@ -73,10 +90,23 @@ var _ = TestCaseSchema.Add("BeforeHook", `
 				"then": {
 					"required": ["custom_sql"]
 				}
+			},
+			{
+				"if": { "properties": { "type": { "const": "create_session" } } },
+				"then": {
+					"required": ["create_session"]
+				}
 			}
 		]
 }
 `)
+
+type BeforeHook struct {
+	Type          BeforeHookType           `json:"type"`
+	UserImport    string                   `json:"user_import"`
+	CustomSQL     *BeforeHookCustomSQL     `json:"custom_sql"`
+	CreateSession *BeforeHookCreateSession `json:"create_session"`
+}
 
 var _ = TestCaseSchema.Add("SAMLBinding", `
 {

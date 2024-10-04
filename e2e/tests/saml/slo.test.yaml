@@ -1,0 +1,29 @@
+---
+name: SAML SLO
+focus: true
+authgear.yaml:
+  override: |
+    saml:
+      signing:
+        key_id: "-jeTn3EEV5bJUOMDQU04zLlkWFZK3BDODkfh40FX8K0"
+      service_providers:
+        - client_id: e2e
+          nameid_format: urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+          nameid_attribute_pointer: /preferred_username
+          acs_urls:
+            - https://samlsp.localhost/acs
+          slo_enabled: true
+          slo_callback_url: https://samlsp.localhost/slo
+before:
+  - type: user_import
+    user_import: users.json
+  - type: create_session
+    create_session:
+      session_type: idp
+      session_id: e2e-idp-session-1
+      token: e2eidpsessiontoken1
+      select_user_id_sql: |
+        SELECT id FROM _auth_user u
+          WHERE u.app_id = '{{ .AppID }}' AND
+          u.standard_attributes ->> 'preferred_username' = 'samltest01';
+steps: []

@@ -70,3 +70,23 @@ var ArgRawSQL = &cobraviper.StringArgument{
 	ArgumentName: "raw-sql",
 	Usage:        "Custom raw SQL statements",
 }
+
+var ArgSelectUserIDSQL = &cobraviper.StringArgument{
+	ArgumentName: "select-user-id-sql",
+	Usage:        "A SQL to select a user id. The result of the SQL must be one single row with one single column, which is the user ID.",
+}
+
+var ArgSessionType = &cobraviper.StringArgument{
+	ArgumentName: "session-type",
+	Usage:        "The session type. idp or offline_grant.",
+}
+
+var ArgSessionID = &cobraviper.StringArgument{
+	ArgumentName: "session-id",
+	Usage:        "The session id.",
+}
+
+var ArgToken = &cobraviper.StringArgument{
+	ArgumentName: "token",
+	Usage:        "The token for accessing a session.",
+}

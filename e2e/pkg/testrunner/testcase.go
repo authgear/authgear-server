@@ -98,6 +98,11 @@ func (tc *TestCase) executeBeforeAll(cmd *End2EndCmd) (err error) {
 			if err != nil {
 				return fmt.Errorf("failed to execute custom SQL: %w", err)
 			}
+		case BeforeHookTypeCreateSession:
+			err = cmd.ExecuteCreateSession(beforeHook.CreateSession)
+			if err != nil {
+				return fmt.Errorf("failed to create session: %w", err)
+			}
 		default:
 			errStr := fmt.Sprintf("unknown before hook type: %s", beforeHook.Type)
 			return errors.New(errStr)
