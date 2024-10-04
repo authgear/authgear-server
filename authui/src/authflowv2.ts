@@ -2,8 +2,7 @@ import "cropperjs/dist/cropper.min.css";
 import { start } from "@hotwired/turbo";
 import { Application } from "@hotwired/stimulus";
 import axios from "axios";
-import { init as SentryInit } from "@sentry/browser";
-import { BrowserTracing } from "@sentry/tracing";
+import { init as SentryInit, browserTracingIntegration } from "@sentry/browser";
 import {
   RestoreFormController,
   RetainFormFormController,
@@ -59,9 +58,9 @@ const sentryDSN = document
 if (sentryDSN != null && sentryDSN !== "") {
   SentryInit({
     dsn: sentryDSN,
-    integrations: [new BrowserTracing()],
+    integrations: [browserTracingIntegration()],
     // Do not enable performance monitoring.
-    // tracesSampleRate: 0,
+    tracesSampleRate: 0,
   });
 }
 start();

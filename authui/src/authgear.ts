@@ -42,8 +42,7 @@ import {
   AuthflowPasskeyErrorController,
 } from "./passkey";
 import { WalletConfirmationController, WalletIconController } from "./web3";
-import { init as SentryInit } from "@sentry/browser";
-import { BrowserTracing } from "@sentry/tracing";
+import { init as SentryInit, browserTracingIntegration } from "@sentry/browser";
 import { LockoutController } from "./lockout";
 import { MirrorButtonController } from "./mirrorbutton";
 // FIXME(css): Build CSS files one by one with another tool
@@ -57,9 +56,9 @@ const sentryDSN = document
 if (sentryDSN != null && sentryDSN !== "") {
   SentryInit({
     dsn: sentryDSN,
-    integrations: [new BrowserTracing()],
+    integrations: [browserTracingIntegration()],
     // Do not enable performance monitoring.
-    // tracesSampleRate: 0,
+    tracesSampleRate: 0,
   });
 }
 
