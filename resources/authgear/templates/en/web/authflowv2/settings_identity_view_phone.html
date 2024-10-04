@@ -24,7 +24,7 @@
 
 {{ define "__settings_identity_phone_edit_button.html" }}
   <a class="settings-link-btn" href="{{ $.Href }}">
-    {{ translate "v2.page.settings-identity-view-phone.default.button-edit-phone-label" . }}
+    {{ translate "v2.page.settings-identity-view-phone.default.edit-phone-button-label" . }}
   </a>
 {{ end }}
 
@@ -40,7 +40,7 @@
     <input type="hidden" name="x_login_id" value="{{ .LoginID }}">
     <input type="hidden" name="x_identity_id" value="{{ .IdentityID }}">
     <button type="submit" class="secondary-btn" name="x_action" value="verify">
-      {{ translate "v2.page.settings-identity-view-phone.default.button-verify-phone-label" . }}
+      {{ translate "v2.page.settings-identity-view-phone.default.verify-phone-button-label" . }}
     </button>
   </form>
 {{ end }}
@@ -81,7 +81,7 @@
       data-controller="dialog"
       id="{{ $RemoveDialogID }}"
       data-action="click->dialog#open">
-      {{ translate "v2.page.settings-identity-view-phone.default.button-remove-phone-label" nil }}
+      {{ translate "v2.page.settings-identity-view-phone.default.remove-phone-button-label" nil }}
     </button>
 
     {{ template "authflowv2/__settings_dialog.html"

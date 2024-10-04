@@ -95,8 +95,8 @@
       {{ template "authflowv2/__settings_dialog.html" (dict
         "Ctx" .
         "DialogID" "settings-mfa-revoke-device"
-        "Title" (translate "v2.page.settings-mfa.default.dialog-revoke-device-title" nil)
-        "Description" (translate "v2.page.settings-mfa.default.dialog-revoke-device-description" (dict
+        "Title" (translate "v2.page.settings-mfa.default.revoke-device-dialog-title" nil)
+        "Description" (translate "v2.page.settings-mfa.default.revoke-device-dialog-description" (dict
           "NumberOfDeviceTokens" $.NumberOfDeviceTokens
         ))
         "FormContent" $.CSRFField

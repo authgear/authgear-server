@@ -41,9 +41,9 @@
     class="settings-link-btn mt-6 block"
     href="{{ $href }}"
   >
-    {{ $label := (translate "v2.page.settings-oob-otp.default.button-oob-otp-sms-label" nil)}}
+    {{ $label := (translate "v2.page.settings-oob-otp.default.oob-otp-sms-button-label" nil)}}
     {{ if eq $.OOBOTPType "email" }}
-      {{ $label = (translate "v2.page.settings-oob-otp.default.button-oob-otp-email-label" nil) }}
+      {{ $label = (translate "v2.page.settings-oob-otp.default.oob-otp-email-button-label" nil) }}
     {{ end }}
     {{ $label }}
   </a>

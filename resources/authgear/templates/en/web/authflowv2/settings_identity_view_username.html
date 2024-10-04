@@ -34,14 +34,14 @@
       data-action="click->dialog#open"
       id="settings-identity-delete-username"
     >
-      {{ translate "v2.page.settings-identity-view-username.default.button-remove-label" nil}}
+      {{ translate "v2.page.settings-identity-view-username.default.remove-button-label" nil}}
     </button>
 
     {{ template "authflowv2/__settings_dialog.html" (dict
       "Ctx" .
       "DialogID" "settings-identity-delete-username"
-      "Title" (translate "v2.page.settings-identity-view-username.default.dialog-delete-username-title" nil)
-      "Description" (translate "v2.page.settings-identity-view-username.default.dialog-delete-username-description" (dict "Username" $.Identity.OriginalLoginID))
+      "Title" (translate "v2.page.settings-identity-view-username.default.delete-username-dialog-title" nil)
+      "Description" (translate "v2.page.settings-identity-view-username.default.delete-username-dialog-description" (dict "Username" $.Identity.OriginalLoginID))
       "FormContent" (include "__settings_identity_view_username_delete_username_form_content.html" .)
       "Buttons" (list
         (dict

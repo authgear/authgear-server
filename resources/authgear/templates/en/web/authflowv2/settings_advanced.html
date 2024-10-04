@@ -15,7 +15,7 @@
   {{ $url := call $.MakeURL "/settings/delete_account" }}
   {{ template "authflowv2/__settings_item.html"
     (dict
-      "Label" ( include "v2.page.settings.default.button-label-account-deletion" nil )
+      "Label" ( include "v2.page.settings.default.account-deletion-button-label" nil )
       "Href" $url
       "MaterialIconName" "person_remove"
     )

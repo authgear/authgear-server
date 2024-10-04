@@ -50,20 +50,20 @@
       {{ end }}
 
       {{/* If is Email */}}
-      {{ $label := ( include "v2.page.settings.default.button-label-email" nil ) }}{{ $icon := "email" }}
+      {{ $label := ( include "v2.page.settings.default.email-button-label" nil ) }}{{ $icon := "email" }}
       {{ $identityArr := $.Emails }}{{ $identity := $.Email }}
       {{ $url := call $.MakeURL "/settings/identity/email" "q_login_id_key" .login_id_key }}
 
       {{/* If is Phone */}}
       {{ if eq .login_id_type "phone" }}
-        {{ $label = ( include "v2.page.settings.default.button-label-phone" nil ) }}{{ $icon = "phone_iphone" }}
+        {{ $label = ( include "v2.page.settings.default.phone-button-label" nil ) }}{{ $icon = "phone_iphone" }}
         {{ $identityArr = $.PhoneNumbers }}{{ $identity = $.PhoneNumber }}
         {{ $url = call $.MakeURL "/settings/identity/phone" "q_login_id_key" .login_id_key }}
       {{ end }}
 
       {{/* If is Username */}}
       {{ if eq .login_id_type "username" }}
-        {{ $label = ( include "v2.page.settings.default.button-label-username" nil ) }}{{ $icon = "account_circle" }}
+        {{ $label = ( include "v2.page.settings.default.username-button-label" nil ) }}{{ $icon = "account_circle" }}
         {{ $identityArr = $.PreferredUsernames }}{{ $identity = $.PreferredUsername }}
         {{ $url = call $.MakeURL "/settings/identity/username" "q_login_id_key" .login_id_key }}
       {{ end }}
@@ -84,7 +84,7 @@
     {{ $url := call $.MakeURL "/settings/identity" }}
     {{ template "authflowv2/__settings_item.html"
       (dict
-        "Label" ( include "v2.page.settings.default.button-label-social-accounts" nil )
+        "Label" ( include "v2.page.settings.default.social-accounts-button-label" nil )
         "Href" $url
         "MaterialIconName" "link"
       )
@@ -109,7 +109,7 @@
           {{ $url = call $.MakeURL "/settings/change_password" }}
           {{ template "authflowv2/__settings_item.html"
             (dict
-              "Label" ( include "v2.page.settings.default.button-label-password" nil )
+              "Label" ( include "v2.page.settings.default.password-button-label" nil )
               "Href" $url
               "MaterialIconName" "key"
             )
@@ -121,7 +121,7 @@
         {{ $url = call $.MakeURL "/settings/passkey" }}
         {{ template "authflowv2/__settings_item.html"
           (dict
-            "Label" ( include "v2.page.settings.default.button-label-passkey" nil )
+            "Label" ( include "v2.page.settings.default.passkey-button-label" nil )
             "Href" $url
             "MaterialIconName" "passkey"
           )
@@ -132,7 +132,7 @@
         {{ $url = call $.MakeURL "/settings/mfa" }}
         {{ template "authflowv2/__settings_item.html"
           (dict
-            "Label" ( include "v2.page.settings.default.button-label-mfa" nil )
+            "Label" ( include "v2.page.settings.default.mfa-button-label" nil )
             "Href" $url
             "MaterialIconName" "encrypted"
           )
@@ -143,7 +143,7 @@
         {{ $url = call $.MakeURL "/settings/biometric" }}
         {{ template "authflowv2/__settings_item.html"
           (dict
-            "Label" ( include "v2.page.settings.default.button-label-biometric-login" nil )
+            "Label" ( include "v2.page.settings.default.biometric-login-button-label" nil )
             "Href" $url
             "MaterialIconName" "fingerprint"
           )
@@ -153,7 +153,7 @@
       {{ $url = call $.MakeURL "/settings/sessions" }}
       {{ template "authflowv2/__settings_item.html"
         (dict
-          "Label" ( include "v2.page.settings.default.button-label-signed-in-devices" nil )
+          "Label" ( include "v2.page.settings.default.signed-in-devices-button-label" nil )
           "Href" $url
           "MaterialIconName" "verified_user"
         )
@@ -169,7 +169,7 @@
         {{ $url = call $.MakeURL "/settings/advanced_settings" }}
         {{ template "authflowv2/__settings_item.html"
           (dict
-            "Label" ( include "v2.page.settings.default.button-label-advanced-settings" nil )
+            "Label" ( include "v2.page.settings.default.advanced-settings-button-label" nil )
             "Href" $url
             "MaterialIconName" "settings_alert"
           )
@@ -188,7 +188,7 @@
         <i class="alternative-icon material-icons">
           home
         </i>
-        {{ include "v2.page.settings.default.button-label-back-to-app" . }}
+        {{ include "v2.page.settings.default.back-to-app-button-label" . }}
       </div>
     </a>
   </div>

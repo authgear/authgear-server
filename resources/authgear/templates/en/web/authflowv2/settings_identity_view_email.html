@@ -25,7 +25,7 @@
 {{ define "__settings_identity_email_edit_button.html" }}
   {{ if not $.Verified }}
     <a class="settings-link-btn" href="{{ $.Href }}">
-      {{ translate "v2.page.settings-identity-view-email.default.button-edit-email-label" . }}
+      {{ translate "v2.page.settings-identity-view-email.default.edit-email-button-label" . }}
     </a>
   {{ end }}
 {{ end }}
@@ -41,7 +41,7 @@
     <input type="hidden" name="x_login_id" value="{{ .LoginID }}">
     <input type="hidden" name="x_identity_id" value="{{ .IdentityID }}">
     <button type="submit" class="secondary-btn" name="x_action" value="verify">
-      {{ translate "v2.page.settings-identity-view-email.default.button-verify-email-label" . }}
+      {{ translate "v2.page.settings-identity-view-email.default.verify-email-button-label" . }}
     </button>
   </form>
 {{ end }}
@@ -84,7 +84,7 @@
       data-controller="dialog"
       id="{{ $RemoveDialogID }}"
       data-action="click->dialog#open">
-      {{ translate "v2.page.settings-identity-view-email.default.button-remove-email-label" nil }}
+      {{ translate "v2.page.settings-identity-view-email.default.remove-email-button-label" nil }}
     </button>
 
     {{ template "authflowv2/__settings_dialog.html"

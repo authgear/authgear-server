@@ -38,8 +38,8 @@
       (dict
         "Ctx" $ctx
         "DialogID" .ID
-        "Title" (include "v2.page.settings-biometric.default.dialog-title" nil)
-        "Description" (include "v2.page.settings-biometric.default.dialog-description" nil)
+        "Title" (include "v2.page.settings-biometric.default.remove-biometric-dialog-title" nil)
+        "Description" (include "v2.page.settings-biometric.default.remove-biometric-dialog-description" nil)
         "FormContent" (include "__settings_biometric_dialog_remove_input.html" (dict "BiometricID" .ID "CSRFField" $.CSRFField))
         "Buttons"
           (list
@@ -67,7 +67,7 @@
   data-action="click->dialog#open"
   id="{{ .DialogID }}"
 >
-  {{ translate "v2.page.settings-biometric.default.disconnect-button-label" nil }}
+  {{ translate "v2.page.settings-biometric.default.remove-biometric-button-label" nil }}
 </button>
 {{ end }}
 
