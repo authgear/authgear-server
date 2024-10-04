@@ -144,7 +144,7 @@ var _ = Schema.Add("PrimaryAuthenticatorType", `
 var _ = Schema.Add("SecondaryAuthenticatorType", `
 {
 	"type": "string",
-	"enum": ["password", "oob_otp_email", "oob_otp_sms", "totp"]
+	"enum": ["password", "oob_otp_email", "oob_otp_sms", "totp", "face_recognition"]
 }
 `)
 
