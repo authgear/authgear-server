@@ -14,6 +14,7 @@ authgear.yaml:
             - https://samlsp.localhost/acs
           slo_enabled: true
           slo_callback_url: https://samlsp.localhost/slo
+          slo_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
 before:
   - type: user_import
     user_import: users.json
@@ -26,4 +27,45 @@ before:
         SELECT id FROM _auth_user u
           WHERE u.app_id = '{{ .AppID }}' AND
           u.standard_attributes ->> 'preferred_username' = 'samltest01';
-steps: []
+steps:
+  # Send a valid saml logout request to the logout endpoint
+  # Expect:
+  #  1. The server should be able to parse the request
+  #  2. Return a valid logout response
+  - action: "saml_request"
+    # Note: SessionIndex is computed by encoding idp:e2e-idp-session-1 with base64 url
+    # This is same as the encoding of sid in oidc
+    saml_request: |
+      <samlp:LogoutRequest
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        ID="logoutrequest_00000001"
+        Version="2.0"
+        IssueInstant="3014-07-18T01:13:06Z">
+        <saml:Issuer>urn:e2e.localhost</saml:Issuer>
+        <saml:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:unspecified"
+        >samltest01</saml:NameID>
+        <samlp:SessionIndex>aWRwOmUyZS1pZHAtc2Vzc2lvbi0x</samlp:SessionIndex>
+      </samlp:LogoutRequest>
+    saml_request_destination: "/saml2/logout/e2e"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+    saml_output:
+      http_status: 200
+      saml_response:
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        match: |
+          <samlp:LogoutResponse
+            xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+            xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+            InResponseTo="logoutrequest_00000001"
+            Version="2.0"
+            Destination="https://samlsp.localhost/slo"
+            >
+            <saml:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity"/>
+            <ds:Signature/>
+            <samlp:Status>
+              <samlp:StatusCode
+                Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+              </samlp:Status>
+          </samlp:LogoutResponse>
+

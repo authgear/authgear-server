@@ -101,7 +101,7 @@ var _ = Schema.Add("SAMLSLOBinding", `
 	"type": "string",
 	"enum": [
 		"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
-		"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Post"
+		"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 	]
 }
 `)
