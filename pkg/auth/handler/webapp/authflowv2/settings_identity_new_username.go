@@ -34,7 +34,7 @@ var AuthflowV2SettingsIdentityNewUsernameSchema = validation.NewSimpleSchema(`
 func ConfigureAuthflowV2SettingsIdentityNewUsername(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern(AuthflowV2RouteSettingsIdentityNewUsername)
+		WithPathPattern(AuthflowV2RouteSettingsIdentityAddUsername)
 }
 
 type AuthflowV2SettingsIdentityNewUsernameViewModel struct {

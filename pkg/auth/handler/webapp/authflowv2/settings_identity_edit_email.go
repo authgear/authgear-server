@@ -36,7 +36,7 @@ var AuthflowV2SettingsIdentityEditEmailSchema = validation.NewSimpleSchema(`
 func ConfigureAuthflowV2SettingsIdentityEditEmailRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern(AuthflowV2RouteSettingsIdentityEditEmail)
+		WithPathPattern(AuthflowV2RouteSettingsIdentityChangeEmail)
 }
 
 type AuthflowV2SettingsIdentityEditEmailViewModel struct {

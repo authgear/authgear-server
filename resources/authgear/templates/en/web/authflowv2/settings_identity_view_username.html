@@ -62,7 +62,7 @@
 {{ end }}
 
 {{ define "__settings_identity_view_username_edit_button.html" }}
-{{ $editURL := (call $.MakeURL "/settings/identity/edit_username" "q_login_id" $.Identity.ID) }}
+{{ $editURL := (call $.MakeURL "/settings/identity/change_username" "q_login_id" $.Identity.ID) }}
 <a
   class="settings-link-btn"
   href="{{ $editURL }}"

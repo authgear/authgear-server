@@ -37,7 +37,7 @@ var AuthflowV2SettingsIdentityEditPhoneSchema = validation.NewSimpleSchema(`
 func ConfigureAuthflowV2SettingsIdentityEditPhoneRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "POST", "GET").
-		WithPathPattern(AuthflowV2RouteSettingsIdentityEditPhone)
+		WithPathPattern(AuthflowV2RouteSettingsIdentityChangePhone)
 }
 
 type AuthflowV2SettingsIdentityEditPhoneViewModel struct {

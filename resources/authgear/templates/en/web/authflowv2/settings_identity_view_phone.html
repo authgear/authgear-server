@@ -67,7 +67,7 @@
           (dict "Verified" $.Verified)
         )
         "ActionButton" (include "__settings_identity_phone_edit_button.html"
-          (dict "Href" (call $.MakeURL "/settings/identity/edit_phone" "q_identity_id" $.PhoneIdentity.ID "q_login_id_key" $.LoginIDKey))
+          (dict "Href" (call $.MakeURL "/settings/identity/change_phone" "q_identity_id" $.PhoneIdentity.ID "q_login_id_key" $.LoginIDKey))
         )
         "ExtraContent" $extraContent
       )

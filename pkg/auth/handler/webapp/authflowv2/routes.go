@@ -88,22 +88,22 @@ const (
 
 	AuthflowV2RouteSettingsIdentityListEmail          = "/settings/identity/email"
 	AuthflowV2RouteSettingsIdentityAddEmail           = "/settings/identity/add_email"
-	AuthflowV2RouteSettingsIdentityEditEmail          = "/settings/identity/edit_email"
+	AuthflowV2RouteSettingsIdentityChangeEmail        = "/settings/identity/change_email"
 	AuthflowV2RouteSettingsIdentityViewEmail          = "/settings/identity/view_email"
 	AuthflowV2RouteSettingsIdentityChangePrimaryEmail = "/settings/identity/change_primary_email"
 	AuthflowV2RouteSettingsIdentityVerifyEmail        = "/settings/identity/verify_email"
 
 	AuthflowV2RouteSettingsIdentityListPhone          = "/settings/identity/phone"
 	AuthflowV2RouteSettingsIdentityAddPhone           = "/settings/identity/add_phone"
-	AuthflowV2RouteSettingsIdentityEditPhone          = "/settings/identity/edit_phone"
+	AuthflowV2RouteSettingsIdentityChangePhone        = "/settings/identity/change_phone"
 	AuthflowV2RouteSettingsIdentityViewPhone          = "/settings/identity/view_phone"
 	AuthflowV2RouteSettingsIdentityChangePrimaryPhone = "/settings/identity/change_primary_phone"
 	AuthflowV2RouteSettingsIdentityVerifyPhone        = "/settings/identity/verify_phone"
 
-	AuthflowV2RouteSettingsIdentityListUsername = "/settings/identity/username"
-	AuthflowV2RouteSettingsIdentityNewUsername  = "/settings/identity/new_username"
-	AuthflowV2RouteSettingsIdentityViewUsername = "/settings/identity/view_username"
-	AuthflowV2RouteSettingsIdentityEditUsername = "/settings/identity/edit_username"
+	AuthflowV2RouteSettingsIdentityListUsername   = "/settings/identity/username"
+	AuthflowV2RouteSettingsIdentityAddUsername    = "/settings/identity/add_username"
+	AuthflowV2RouteSettingsIdentityViewUsername   = "/settings/identity/view_username"
+	AuthflowV2RouteSettingsIdentityChangeUsername = "/settings/identity/change_username"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {
