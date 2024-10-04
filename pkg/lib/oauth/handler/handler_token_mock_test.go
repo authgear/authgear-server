@@ -257,43 +257,6 @@ func (mr *MockApp2AppServiceMockRecorder) ParseTokenUnverified(requestJWT interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseTokenUnverified", reflect.TypeOf((*MockApp2AppService)(nil).ParseTokenUnverified), requestJWT)
 }
 
-// MockTokenHandlerMeterService is a mock of TokenHandlerMeterService interface.
-type MockTokenHandlerMeterService struct {
-	ctrl     *gomock.Controller
-	recorder *MockTokenHandlerMeterServiceMockRecorder
-}
-
-// MockTokenHandlerMeterServiceMockRecorder is the mock recorder for MockTokenHandlerMeterService.
-type MockTokenHandlerMeterServiceMockRecorder struct {
-	mock *MockTokenHandlerMeterService
-}
-
-// NewMockTokenHandlerMeterService creates a new mock instance.
-func NewMockTokenHandlerMeterService(ctrl *gomock.Controller) *MockTokenHandlerMeterService {
-	mock := &MockTokenHandlerMeterService{ctrl: ctrl}
-	mock.recorder = &MockTokenHandlerMeterServiceMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockTokenHandlerMeterService) EXPECT() *MockTokenHandlerMeterServiceMockRecorder {
-	return m.recorder
-}
-
-// TrackActiveUser mocks base method.
-func (m *MockTokenHandlerMeterService) TrackActiveUser(userID string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TrackActiveUser", userID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// TrackActiveUser indicates an expected call of TrackActiveUser.
-func (mr *MockTokenHandlerMeterServiceMockRecorder) TrackActiveUser(userID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackActiveUser", reflect.TypeOf((*MockTokenHandlerMeterService)(nil).TrackActiveUser), userID)
-}
-
 // MockChallengeProvider is a mock of ChallengeProvider interface.
 type MockChallengeProvider struct {
 	ctrl     *gomock.Controller

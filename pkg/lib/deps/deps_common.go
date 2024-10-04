@@ -524,7 +524,6 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		meter.DependencySet,
 		wire.Bind(new(session.MeterService), new(*meter.Service)),
-		wire.Bind(new(oauthhandler.TokenHandlerMeterService), new(*meter.Service)),
 		wire.Bind(new(oauth.OfflineGrantServiceMeterService), new(*meter.Service)),
 		wire.Bind(new(idpsession.ProviderMeterService), new(*meter.Service)),
 	),
