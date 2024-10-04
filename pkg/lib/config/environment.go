@@ -108,4 +108,6 @@ type EnvironmentConfig struct {
 	UserExportObjectStore *UserExportObjectStoreConfig `envconfig:"USEREXPORT_OBJECT_STORE"`
 
 	SMSGatewayConfig SMSGatewayEnvironmentConfig `envconfig:"SMS_GATEWAY"`
+
+	OpenCVFRConfig OpenCVFREnvironmentConfig `envconfig:"OPENCV_FR"`
 }
