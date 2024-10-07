@@ -115,3 +115,14 @@ func (cs *CollectionService) LinkPerson(reqBody *openapi.LinkSchema) (l *openapi
 
 	return l, nil
 }
+
+func (cs *CollectionService) UnlinkPerson(reqBody *openapi.LinkSchema) (err error) {
+	path := "/collection/person/" + reqBody.CollectionId
+
+	err = cs.HTTPClient.Delete(path, reqBody.PersonId)
+	if err != nil {
+		return fmt.Errorf("failed to remove person from collection - req: %v, err: %w", reqBody, err)
+	}
+
+	return nil
+}
