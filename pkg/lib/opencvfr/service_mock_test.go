@@ -78,6 +78,36 @@ func (mr *MockPersonServiceMockRecorder) Get(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockPersonService)(nil).Get), id)
 }
 
+// List mocks base method.
+func (m *MockPersonService) List(params *openapi.ListPersonsQuery) (*openapi.ListPersonsSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "List", params)
+	ret0, _ := ret[0].(*openapi.ListPersonsSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// List indicates an expected call of List.
+func (mr *MockPersonServiceMockRecorder) List(params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockPersonService)(nil).List), params)
+}
+
+// ListByCollection mocks base method.
+func (m *MockPersonService) ListByCollection(collectionID string, params *openapi.ListPersonsQuery) (*openapi.ListPersonsSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListByCollection", collectionID, params)
+	ret0, _ := ret[0].(*openapi.ListPersonsSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListByCollection indicates an expected call of ListByCollection.
+func (mr *MockPersonServiceMockRecorder) ListByCollection(collectionID, params interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByCollection", reflect.TypeOf((*MockPersonService)(nil).ListByCollection), collectionID, params)
+}
+
 // Update mocks base method.
 func (m *MockPersonService) Update(reqBody *openapi.UpdatePersonSchema) (*openapi.PersonSchema, error) {
 	m.ctrl.T.Helper()
@@ -91,4 +121,221 @@ func (m *MockPersonService) Update(reqBody *openapi.UpdatePersonSchema) (*openap
 func (mr *MockPersonServiceMockRecorder) Update(reqBody interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockPersonService)(nil).Update), reqBody)
+}
+
+// MockCollectionService is a mock of CollectionService interface.
+type MockCollectionService struct {
+	ctrl     *gomock.Controller
+	recorder *MockCollectionServiceMockRecorder
+}
+
+// MockCollectionServiceMockRecorder is the mock recorder for MockCollectionService.
+type MockCollectionServiceMockRecorder struct {
+	mock *MockCollectionService
+}
+
+// NewMockCollectionService creates a new mock instance.
+func NewMockCollectionService(ctrl *gomock.Controller) *MockCollectionService {
+	mock := &MockCollectionService{ctrl: ctrl}
+	mock.recorder = &MockCollectionServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockCollectionService) EXPECT() *MockCollectionServiceMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m *MockCollectionService) Create(reqBody *openapi.CreateCollectionSchema) (*openapi.CollectionSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Create", reqBody)
+	ret0, _ := ret[0].(*openapi.CollectionSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockCollectionServiceMockRecorder) Create(reqBody interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCollectionService)(nil).Create), reqBody)
+}
+
+// Delete mocks base method.
+func (m *MockCollectionService) Delete(id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockCollectionServiceMockRecorder) Delete(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockCollectionService)(nil).Delete), id)
+}
+
+// Get mocks base method.
+func (m *MockCollectionService) Get(id string) (*openapi.CollectionSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", id)
+	ret0, _ := ret[0].(*openapi.CollectionSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockCollectionServiceMockRecorder) Get(id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockCollectionService)(nil).Get), id)
+}
+
+// LinkPerson mocks base method.
+func (m *MockCollectionService) LinkPerson(reqBody *openapi.LinkSchema) (*openapi.LinkSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "LinkPerson", reqBody)
+	ret0, _ := ret[0].(*openapi.LinkSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LinkPerson indicates an expected call of LinkPerson.
+func (mr *MockCollectionServiceMockRecorder) LinkPerson(reqBody interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LinkPerson", reflect.TypeOf((*MockCollectionService)(nil).LinkPerson), reqBody)
+}
+
+// UnlinkPerson mocks base method.
+func (m *MockCollectionService) UnlinkPerson(reqBody *openapi.LinkSchema) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UnlinkPerson", reqBody)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UnlinkPerson indicates an expected call of UnlinkPerson.
+func (mr *MockCollectionServiceMockRecorder) UnlinkPerson(reqBody interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnlinkPerson", reflect.TypeOf((*MockCollectionService)(nil).UnlinkPerson), reqBody)
+}
+
+// Update mocks base method.
+func (m *MockCollectionService) Update(reqBody *openapi.UpdateCollectionSchema) (*openapi.CollectionSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", reqBody)
+	ret0, _ := ret[0].(*openapi.CollectionSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockCollectionServiceMockRecorder) Update(reqBody interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockCollectionService)(nil).Update), reqBody)
+}
+
+// MockSearchService is a mock of SearchService interface.
+type MockSearchService struct {
+	ctrl     *gomock.Controller
+	recorder *MockSearchServiceMockRecorder
+}
+
+// MockSearchServiceMockRecorder is the mock recorder for MockSearchService.
+type MockSearchServiceMockRecorder struct {
+	mock *MockSearchService
+}
+
+// NewMockSearchService creates a new mock instance.
+func NewMockSearchService(ctrl *gomock.Controller) *MockSearchService {
+	mock := &MockSearchService{ctrl: ctrl}
+	mock.recorder = &MockSearchServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockSearchService) EXPECT() *MockSearchServiceMockRecorder {
+	return m.recorder
+}
+
+// Search mocks base method.
+func (m *MockSearchService) Search(reqBody *openapi.SearchPersonSchema) ([]*openapi.SearchPersonResultSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Search", reqBody)
+	ret0, _ := ret[0].([]*openapi.SearchPersonResultSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Search indicates an expected call of Search.
+func (mr *MockSearchServiceMockRecorder) Search(reqBody interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Search", reflect.TypeOf((*MockSearchService)(nil).Search), reqBody)
+}
+
+// SearchLiveFace mocks base method.
+func (m *MockSearchService) SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (*openapi.NullableSearchPersonResultSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchLiveFace", reqBody)
+	ret0, _ := ret[0].(*openapi.NullableSearchPersonResultSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchLiveFace indicates an expected call of SearchLiveFace.
+func (mr *MockSearchServiceMockRecorder) SearchLiveFace(reqBody interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchLiveFace", reflect.TypeOf((*MockSearchService)(nil).SearchLiveFace), reqBody)
+}
+
+// Verify mocks base method.
+func (m *MockSearchService) Verify(reqBody *openapi.VerifyPersonSchema) (*openapi.NullableVerifyPersonResultSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Verify", reqBody)
+	ret0, _ := ret[0].(*openapi.NullableVerifyPersonResultSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Verify indicates an expected call of Verify.
+func (mr *MockSearchServiceMockRecorder) Verify(reqBody interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Verify", reflect.TypeOf((*MockSearchService)(nil).Verify), reqBody)
+}
+
+// MockLivenessService is a mock of LivenessService interface.
+type MockLivenessService struct {
+	ctrl     *gomock.Controller
+	recorder *MockLivenessServiceMockRecorder
+}
+
+// MockLivenessServiceMockRecorder is the mock recorder for MockLivenessService.
+type MockLivenessServiceMockRecorder struct {
+	mock *MockLivenessService
+}
+
+// NewMockLivenessService creates a new mock instance.
+func NewMockLivenessService(ctrl *gomock.Controller) *MockLivenessService {
+	mock := &MockLivenessService{ctrl: ctrl}
+	mock.recorder = &MockLivenessServiceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockLivenessService) EXPECT() *MockLivenessServiceMockRecorder {
+	return m.recorder
+}
+
+// Check mocks base method.
+func (m *MockLivenessService) Check(reqBody *openapi.LivenessSchema) (*openapi.LivenessResultSchema, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Check", reqBody)
+	ret0, _ := ret[0].(*openapi.LivenessResultSchema)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Check indicates an expected call of Check.
+func (mr *MockLivenessServiceMockRecorder) Check(reqBody interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockLivenessService)(nil).Check), reqBody)
 }
