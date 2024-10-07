@@ -48,6 +48,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
+	"github.com/authgear/authgear-server/pkg/lib/opencvfr"
+	opencvfrapi "github.com/authgear/authgear-server/pkg/lib/opencvfr/api"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
@@ -400,6 +402,16 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		ldap.DependencySet,
 		wire.Bind(new(authenticationflow.LDAPClientFactory), new(*ldap.ClientFactory)),
+	),
+
+	wire.NewSet(
+		opencvfr.DependencySet,
+		wire.Bind(new(authenticationflow.OpenCVFRService), new(*opencvfr.Service)),
+	),
+
+	wire.NewSet(
+		opencvfrapi.DependencySet,
+		wire.Bind(new(opencvfr.PersonService), new(*opencvfrapi.PersonService)),
 	),
 
 	wire.NewSet(
