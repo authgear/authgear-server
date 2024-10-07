@@ -68,6 +68,10 @@ var iosMachineMapping = map[string]string{
 	"iPhone15,5": "iPhone 15 Plus",
 	"iPhone16,1": "iPhone 15 Pro",
 	"iPhone16,2": "iPhone 15 Pro Max",
+	"iPhone17,1": "iPhone 16 Pro",
+	"iPhone17,2": "iPhone 16 Pro Max",
+	"iPhone17,3": "iPhone 16",
+	"iPhone17,4": "iPhone 16 Plus",
 
 	"iPad1,1":   "iPad",                                // (Original)
 	"iPad1,2":   "iPad 3G",                             //
@@ -151,6 +155,14 @@ var iosMachineMapping = map[string]string{
 	"iPad14,4":  "iPad Pro 11 inch 4th Gen",
 	"iPad14,5":  "iPad Pro 12.9 inch 6th Gen",
 	"iPad14,6":  "iPad Pro 12.9 inch 6th Gen",
+	"iPad14,8":  "iPad Air (6th generation)",
+	"iPad14,9":  "iPad Air (6th generation)",
+	"iPad14,10": "iPad Air (7th generation)",
+	"iPad14,11": "iPad Air (7th generation)",
+	"iPad16,3":  "iPad Pro 11-inch (5th generation)",
+	"iPad16,4":  "iPad Pro 11-inch (5th generation)",
+	"iPad16,5":  "iPad Pro 12.9-inch (7th generation)",
+	"iPad16,6":  "iPad Pro 12.9-inch (7th generation)",
 }
 
 type Platform string
