@@ -29,6 +29,7 @@ type CollectionService interface {
 type SearchService interface {
 	Verify(reqBody *openapi.VerifyPersonSchema) (r *openapi.NullableVerifyPersonResultSchema, err error)
 	Search(reqBody *openapi.SearchPersonSchema) (r []*openapi.SearchPersonResultSchema, err error)
+	SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (r *openapi.NullableSearchPersonResultSchema, err error)
 }
 
 type Service struct {
