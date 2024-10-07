@@ -21,7 +21,10 @@ export default [
     files: [js, ts],
     ...oursky.configs.eslint,
   },
-  compat.configs["flat/recommended"],
+  {
+    files: [js, ts],
+    ...compat.configs["flat/recommended"],
+  },
   {
     files: [ts],
     ...oursky.configs.typescript,
