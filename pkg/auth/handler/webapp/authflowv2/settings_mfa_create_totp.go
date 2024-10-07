@@ -71,8 +71,9 @@ func (h *AuthflowV2SettingsMFACreateTOTPHandler) GetData(r *http.Request, rw htt
 	}
 
 	screenViewModel := AuthflowV2SettingsMFACreateTOTPViewModel{
-		Token:    tokenString,
-		Secret:   totpSecret,
+		Token:  tokenString,
+		Secret: totpSecret,
+		// nolint: gosec
 		ImageURI: htmltemplate.URL(dataURI),
 	}
 	viewmodels.Embed(data, screenViewModel)

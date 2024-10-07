@@ -105,6 +105,9 @@ func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) ServeHTTP(w http.ResponseWrit
 			Channel: channel,
 			Target:  target,
 		})
+		if err != nil {
+			return err
+		}
 
 		redirectURI, err := url.Parse(AuthflowV2RouteSettingsMFAEnterOOBOTP)
 		if err != nil {
