@@ -7,8 +7,9 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/beevik/etree"
+
+	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 )
 
 var _ = TestCaseSchema.Add("AuthgearYAMLSource", `
