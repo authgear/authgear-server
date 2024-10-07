@@ -143,7 +143,6 @@ export class PasswordPolicyController extends Controller {
     void this.check();
   }
 
-  // eslint-disable-next-line complexity
   async check() {
     const value = this.inputTarget.value;
     if (value === "") {
@@ -157,7 +156,7 @@ export class PasswordPolicyController extends Controller {
       return;
     }
     const violatedPolicies: PasswordPolicyName[] = [];
-    // eslint-disable-next-line complexity
+    // eslint-disable-next-line sonarjs/cognitive-complexity,complexity
     this.policyTargets.forEach((e) => {
       switch (e.getAttribute("data-password-policy-name")) {
         case PasswordPolicyName.Strength:
