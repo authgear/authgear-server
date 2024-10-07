@@ -71,3 +71,25 @@ func (ps *PersonService) Delete(id string) (err error) {
 
 	return nil
 }
+
+func (ps *PersonService) Update(reqBody *openapi.UpdatePersonSchema) (p *openapi.PersonSchema, err error) {
+	path := "/person"
+
+	rbb, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ps.HTTPClient.Patch(path, bytes.NewBuffer(rbb))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update person - req: %v, err: %w", reqBody, err)
+	}
+
+	p = &openapi.PersonSchema{}
+	err = p.UnmarshalJSON(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse PATCH %v response body: %w", path, err)
+	}
+
+	return p, nil
+}
