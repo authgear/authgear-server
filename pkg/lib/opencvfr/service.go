@@ -17,9 +17,14 @@ type PersonService interface {
 	ListByCollection(collectionID string, params *openapi.ListPersonsQuery) (p *openapi.ListPersonsSchema, err error)
 }
 
+type CollectionService interface {
+	Create(reqBody *openapi.CreateCollectionSchema) (c *openapi.CollectionSchema, err error)
+}
+
 type Service struct {
 	Clock               clock.Clock
 	AppID               config.AppID
 	AuthenticatorConfig *config.AuthenticationConfig
 	Person              PersonService
+	Collection          CollectionService
 }

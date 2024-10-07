@@ -412,6 +412,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		opencvfrapi.DependencySet,
 		wire.Bind(new(opencvfr.PersonService), new(*opencvfrapi.PersonService)),
+		wire.Bind(new(opencvfr.CollectionService), new(*opencvfrapi.CollectionService)),
 	),
 
 	wire.NewSet(
