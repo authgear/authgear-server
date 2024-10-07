@@ -43,3 +43,20 @@ func (cs *CollectionService) Create(reqBody *openapi.CreateCollectionSchema) (c 
 
 	return c, nil
 }
+
+func (cs *CollectionService) Get(id string) (c *openapi.CollectionSchema, err error) {
+	path := "/collection/" + id
+
+	body, err := cs.HTTPClient.Get(path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get collection - id=%s, err: %w", id, err)
+	}
+
+	c = &openapi.CollectionSchema{}
+	err = c.UnmarshalJSON(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse GET %v response body: %w", path, err)
+	}
+
+	return c, nil
+}
