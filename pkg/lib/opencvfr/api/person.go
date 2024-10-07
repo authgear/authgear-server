@@ -127,3 +127,37 @@ func (ps *PersonService) List(params *openapi.ListPersonsQuery) (p *openapi.List
 
 	return p, nil
 }
+
+// ListByCollection list person by collection and search these persons by id or name.
+//
+// Behavior was not documented, but experimenting shows
+// 1. skip/take does not affect count
+// 2. it is case-insensitive substring match by ID/Name
+//
+// For example, for "Alice S"
+//
+// matches - "Alice S", "Alice", "S", "A", "Al", "li", "ce", " ", " S", "alice", "alice s"
+//
+// non-matches - "e S", "AliceS"
+func (ps *PersonService) ListByCollection(collectionID string, params *openapi.ListPersonsQuery) (p *openapi.ListPersonsSchema, err error) {
+	path := "/persons/" + collectionID
+
+	if params == nil {
+		params = &openapi.ListPersonsQuery{}
+	}
+
+	query := params.ToQuery()
+
+	body, err := ps.HTTPClient.Get(path, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list person by collection - params: %v, err: %w", params, err)
+	}
+
+	p = &openapi.ListPersonsSchema{}
+	err = p.UnmarshalJSON(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse GET %v response body: %w", path, err)
+	}
+
+	return p, nil
+}

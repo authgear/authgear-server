@@ -14,6 +14,7 @@ type PersonService interface {
 	Delete(id string) (err error)
 	Update(reqBody *openapi.UpdatePersonSchema) (p *openapi.PersonSchema, err error)
 	List(params *openapi.ListPersonsQuery) (p *openapi.ListPersonsSchema, err error)
+	ListByCollection(collectionID string, params *openapi.ListPersonsQuery) (p *openapi.ListPersonsSchema, err error)
 }
 
 type Service struct {
