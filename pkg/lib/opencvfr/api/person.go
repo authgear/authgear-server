@@ -60,3 +60,14 @@ func (ps *PersonService) Get(id string) (p *openapi.PersonSchema, err error) {
 
 	return p, nil
 }
+
+func (ps *PersonService) Delete(id string) (err error) {
+	path := "/person"
+
+	err = ps.HTTPClient.Delete(path, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete person (id=%s), err: %w", id, err)
+	}
+
+	return nil
+}
