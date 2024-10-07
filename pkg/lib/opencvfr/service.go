@@ -26,10 +26,15 @@ type CollectionService interface {
 	UnlinkPerson(reqBody *openapi.LinkSchema) (err error)
 }
 
+type SearchService interface {
+	Verify(reqBody *openapi.VerifyPersonSchema) (r *openapi.NullableVerifyPersonResultSchema, err error)
+}
+
 type Service struct {
 	Clock               clock.Clock
 	AppID               config.AppID
 	AuthenticatorConfig *config.AuthenticationConfig
 	Person              PersonService
 	Collection          CollectionService
+	Search              SearchService
 }
