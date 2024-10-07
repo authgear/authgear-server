@@ -32,7 +32,8 @@ steps:
   #  1. The server should be able to parse the request
   #  2. Redirect to the authui to continue sign in
   - action: "saml_request"
-    saml_request: |
+    saml_element_name: SAMLRequest
+    saml_element: |
       <samlp:AuthnRequest
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
@@ -112,7 +113,8 @@ steps:
   # Try again with IsPassive=true
   # It should return a SAMLResponse immediately
   - action: "saml_request"
-    saml_request: |
+    saml_element_name: SAMLRequest
+    saml_element: |
       <samlp:AuthnRequest
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
@@ -179,7 +181,8 @@ before:
 steps:
   # Send a valid saml request to the login endpoint with Post Binding
   - action: "saml_request"
-    saml_request: |
+    saml_element_name: SAMLRequest
+    saml_element: |
       <samlp:AuthnRequest
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"

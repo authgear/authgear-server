@@ -35,7 +35,8 @@ steps:
   - action: "saml_request"
     # Note: SessionIndex is computed by encoding idp:e2e-idp-session-1 with base64 url
     # This is same as the encoding of sid in oidc
-    saml_request: |
+    saml_element_name: SAMLRequest
+    saml_element: |
       <samlp:LogoutRequest
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"

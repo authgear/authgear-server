@@ -141,7 +141,8 @@ var _ = TestCaseSchema.Add("Step", `
 		"query": { "type": "string" },
 		"query_output": { "$ref": "#/$defs/QueryOutput" },
 		"saml_output": { "$ref": "#/$defs/SAMLOutput" },
-		"saml_request": { "type": "string" },
+		"saml_element": { "type": "string" },
+		"saml_element_name": { "type": "string", "enum": ["SAMLRequest", "SAMLResponse"] },
 		"saml_request_destination": { "type": "string" },
 		"saml_request_binding": { "$ref": "#/$defs/SAMLBinding" },
 		"http_request_method": { "type": "string" },
@@ -209,6 +210,8 @@ var _ = TestCaseSchema.Add("Step", `
 					},
 					"then": {
 							"required": [
+								"saml_element",
+								"saml_element_name",
 								"saml_request_destination",
 								"saml_request_binding"
 							]
@@ -253,7 +256,8 @@ type Step struct {
 	QueryOutput *QueryOutput `json:"query_output"`
 
 	// `action` == "saml_request"
-	SAMLRequest            string                `json:"saml_request"`
+	SAMLElement            string                `json:"saml_element"`
+	SAMLElementName        string                `json:"saml_element_name"`
 	SAMLRequestDestination string                `json:"saml_request_destination"`
 	SAMLRequestBinding     e2eclient.SAMLBinding `json:"saml_request_binding"`
 	SAMLOutput             *SAMLOutput           `json:"saml_output"`

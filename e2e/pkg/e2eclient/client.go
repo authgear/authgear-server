@@ -233,15 +233,26 @@ func (c *Client) InputFlow(w http.ResponseWriter, r *http.Request, stateToken st
 
 func (c *Client) SendSAMLRequest(
 	path string,
-	samlRequestXML string,
+	samlElementName string,
+	samlElementXML string,
 	binding SAMLBinding,
 	fn func(r *http.Response) error) error {
 	destination := c.MainEndpoint.JoinPath(path)
 	switch binding {
 	case SAMLBindingHTTPPost:
-		return c.SAMLClient.SendSAMLRequestWithHTTPPost(samlRequestXML, destination, fn)
+		return c.SAMLClient.SendSAMLRequestWithHTTPPost(
+			samlElementName,
+			samlElementXML,
+			destination,
+			fn,
+		)
 	case SAMLBindingHTTPRedirect:
-		return c.SAMLClient.SendSAMLRequestWithHTTPRedirect(samlRequestXML, destination, fn)
+		return c.SAMLClient.SendSAMLRequestWithHTTPRedirect(
+			samlElementName,
+			samlElementXML,
+			destination,
+			fn,
+		)
 	default:
 		return fmt.Errorf("unknown saml binding %s", binding)
 	}

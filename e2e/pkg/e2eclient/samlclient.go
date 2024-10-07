@@ -18,7 +18,8 @@ type SAMLClient struct {
 }
 
 func (c *SAMLClient) SendSAMLRequestWithHTTPRedirect(
-	samlRequestXML string,
+	samlElementName string,
+	samlElementXML string,
 	destination *url.URL,
 	onResponse func(r *http.Response) error) error {
 	compressedRequestBuffer := &bytes.Buffer{}
@@ -26,7 +27,7 @@ func (c *SAMLClient) SendSAMLRequestWithHTTPRedirect(
 	if err != nil {
 		return err
 	}
-	_, err = writer.Write([]byte(samlRequestXML))
+	_, err = writer.Write([]byte(samlElementXML))
 	if err != nil {
 		return err
 	}
@@ -36,7 +37,7 @@ func (c *SAMLClient) SendSAMLRequestWithHTTPRedirect(
 	}
 	base64EncodedRequest := base64.StdEncoding.EncodeToString(compressedRequestBuffer.Bytes())
 	q := &url.Values{
-		"SAMLRequest": []string{base64EncodedRequest},
+		samlElementName: []string{base64EncodedRequest},
 	}
 	u := destination
 	u.RawQuery = q.Encode()
@@ -54,12 +55,13 @@ func (c *SAMLClient) SendSAMLRequestWithHTTPRedirect(
 }
 
 func (c *SAMLClient) SendSAMLRequestWithHTTPPost(
-	samlRequestXML string,
+	samlElementName string,
+	samlElementXML string,
 	destination *url.URL,
 	onResponse func(r *http.Response) error) error {
-	base64EncodedRequest := base64.StdEncoding.EncodeToString([]byte(samlRequestXML))
+	base64EncodedRequest := base64.StdEncoding.EncodeToString([]byte(samlElementXML))
 	body := &url.Values{
-		"SAMLRequest": []string{base64EncodedRequest},
+		samlElementName: []string{base64EncodedRequest},
 	}
 	bodyBuffer := bytes.NewBuffer([]byte(body.Encode()))
 	u := destination

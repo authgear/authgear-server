@@ -282,7 +282,8 @@ func (tc *TestCase) executeStep(
 		var httpResult interface{} = nil
 		err := client.SendSAMLRequest(
 			step.SAMLRequestDestination,
-			step.SAMLRequest,
+			step.SAMLElementName,
+			step.SAMLElement,
 			step.SAMLRequestBinding, func(r *http.Response) error {
 				if r != nil {
 					httpResult = NewResultHTTPResponse(r)
