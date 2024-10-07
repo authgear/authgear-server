@@ -23,6 +23,7 @@ type CollectionService interface {
 	Delete(id string) (err error)
 	Update(reqBody *openapi.UpdateCollectionSchema) (c *openapi.CollectionSchema, err error)
 	LinkPerson(reqBody *openapi.LinkSchema) (l *openapi.LinkSchema, err error)
+	UnlinkPerson(reqBody *openapi.LinkSchema) (err error)
 }
 
 type Service struct {
