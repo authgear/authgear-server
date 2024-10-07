@@ -43,3 +43,20 @@ func (ps *PersonService) Create(reqBody *openapi.CreatePersonSchema) (p *openapi
 
 	return p, nil
 }
+
+func (ps *PersonService) Get(id string) (p *openapi.PersonSchema, err error) {
+	path := "/person/" + id
+
+	body, err := ps.HTTPClient.Get(path, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get person - id=%s, err: %w", id, err)
+	}
+
+	p = &openapi.PersonSchema{}
+	err = p.UnmarshalJSON(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse GET %v response body: %w", path, err)
+	}
+
+	return p, nil
+}
