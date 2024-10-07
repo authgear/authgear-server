@@ -137,7 +137,7 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	identityID := r.Form.Get("q_identity_id")

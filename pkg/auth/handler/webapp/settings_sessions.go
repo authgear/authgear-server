@@ -106,7 +106,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	currentSession := session.GetSession(r.Context())
 	redirectURI := httputil.HostRelative(r.URL).String()

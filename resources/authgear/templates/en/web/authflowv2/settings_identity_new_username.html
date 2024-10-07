@@ -1,0 +1,52 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/identity/username" "q_login_id_key" $.LoginIDKey)
+        "Title" (translate "v2.page.settings-identity-new-username.default.title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+<form
+  class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
+  method="post"
+  novalidate
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+>
+  {{ template "authflowv2/__alert_message.html"
+    (dict
+      "Type" "error"
+      "Message" (include "authflowv2/__error.html" .)
+    )
+  }}
+
+  {{ $.CSRFField }}
+
+  <input
+    class="input"
+    name="x_login_id"
+    autocomplete="username webauthn"
+    autocapitalize="none"
+  />
+
+  <input
+    name="x_login_id_key"
+    type="hidden"
+    value="{{ $.LoginIDKey }}"
+  />
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    data-authgear-event="authgear.button.change_login_id"
+  >
+    {{ translate "v2.component.button.default.label-save" nil }}
+  </button>
+</form>
+{{ end }}

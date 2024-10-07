@@ -1,0 +1,196 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ $ca := (call $.GetCustomAttributeByPointer $.Pointer) }}
+
+  {{ $labelKey := printf "custom-attribute-label-%s" $ca.Pointer }}
+  {{ $hasKey := $.Translations.HasKey $labelKey }}
+
+  {{ $label := $ca.Label }}
+  {{ if $hasKey }}
+    {{ $label = (translate $labelKey nil) }}
+  {{ end }}
+
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/profile")
+        "Title" $label
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+
+<form
+  class="settings-content flex flex-col gap-y-8"
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+  method="post"
+>
+  {{ $.CSRFField }}
+
+  {{ $ca := (call $.GetCustomAttributeByPointer $.Pointer) }}
+  {{ $Value := $ca.Value }}
+
+  {{ $err_map := (resolveError $.RawError (dict)) }}
+  {{ $unknown_err := index $err_map "unknown" }}
+  {{ $unknown_error_message := "" }}
+  {{ $has_unknown_err := not (empty $unknown_err) }}
+  {{ if $has_unknown_err }}
+    {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
+  {{ end }}
+  {{ template "authflowv2/__alert_message.html"
+    (dict
+    "Type" "error"
+    "Message" $unknown_error_message
+    )
+  }}
+
+  <label class="flex flex-col gap-y-2">
+    {{/* The control */}}
+
+    {{ if (eq $ca.Type "string") }}
+      {{ template "authflowv2/__settings_text_input.html"
+          (dict
+            "Name" $.Pointer
+            "Value" $Value
+          )
+      }}
+    {{ end }}
+
+    {{ if (eq $ca.Type "number") }}
+      <input
+        type="number"
+        inputmode="decimal"
+        class="input"
+        name="{{ $ca.Pointer }}"
+        value="{{ showAttributeValue $Value }}"
+      >
+      {{ include "__settings_profile_edit_custom_numerical_range_label.html"
+        (dict "Minimum" $ca.Minimum "Maximum" $ca.Maximum)
+      }}
+    {{ end }}
+
+    {{ if (eq $ca.Type "integer") }}
+      <input
+        type="number"
+        inputmode="numeric"
+        class="input"
+        name="{{ $ca.Pointer }}"
+        value="{{ showAttributeValue $Value }}"
+      >
+      {{ include "__settings_profile_edit_custom_numerical_range_label.html"
+        (dict "Minimum" $ca.Minimum "Maximum" $ca.Maximum)
+      }}
+    {{ end }}
+
+    {{ if (eq $ca.Type "enum") }}
+      {{ range $ca.Enum }}
+
+        {{ $enum_label_key := printf "custom-attribute-enum-label-%s-%s" $ca.Pointer $Value }}
+        {{ $enum_has_key := $.Translations.HasKey $enum_label_key }}
+        {{ $enum_label := .Label}}
+        {{ if $enum_has_key }}
+          {{ $enum_label = (translate $enum_label_key nil) }}
+        {{ end }}
+
+        {{ template "authflowv2/__settings_radio.html"
+          (dict
+            "Label" $enum_label
+            "Name" "gender-select"
+            "Value" .Value
+            "DefaultChecked" ( eq $Value .Value )
+          )
+        }}
+      {{ end }}
+    {{ end }}
+
+    {{ if (eq $ca.Type "phone_number") }}
+      {{ template "authflowv2/__phone_input.html"
+        (dict
+          "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
+          "InputName" $.Pointer
+          "AutoFocus" true
+          "Value" $Value
+        )
+      }}
+    {{ end }}
+
+    {{ if (eq $ca.Type "email") }}
+      <input
+        class="block input"
+        type="text"
+        inputmode="email"
+        name="{{ $.Pointer }}"
+        value="{{ $Value }}"
+        placeholder="{{ default (include "v2.component.input.default.placeholder-email" nil) .Placeholder }}"
+        autocomplete="{{ .Autocomplete }}"
+        autocapitalize="none"
+      />
+    {{ end }}
+
+    {{ if (eq $ca.Type "url") }}
+      <input
+        class="block input"
+        type="url"
+        inputmode="url"
+        name="{{ $.Pointer }}"
+        value="{{ $Value }}"
+        autocapitalize="none"
+      />
+    {{ end }}
+
+    {{ if (eq $ca.Type "country_code") }}
+      {{ template "authflowv2/__country_input.html"
+        (dict
+          "Alpha2" $.Alpha2
+          "Name" $.Pointer
+          "Value" $Value
+        )
+      }}
+    {{ end }}
+  </label>
+
+  <button
+    class="primary-btn"
+    type="submit"
+    name="x_action"
+    value="save"
+    data-authgear-event="authgear.button.update_profile"
+  >
+    {{ translate "v2.component.button.default.label-save" . }}
+  </button>
+</form>
+
+{{ end }}
+
+{{ define "__settings_profile_edit_custom_numerical_range_label.html" }}
+  {{ if (and (isNil .Minimum) (isNil .Maximum)) }}
+  {{ else if (and (not (isNil .Minimum)) (isNil .Maximum)) }}
+    <span class="body-text--md">
+      {{ translate "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum"
+          (dict
+            "minimum" (showAttributeValue .Minimum)
+          )
+      }}
+    </span>
+  {{ else if (and (isNil .Minimum) (not (isNil .Maximum))) }}
+    <span class="body-text--md">
+      {{ translate "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-maximum"
+          (dict
+            "maximum" (showAttributeValue .Maximum)
+          )
+      }}
+    </span>
+  {{ else }}
+    <span class="body-text--md">
+      {{ translate "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum-maximum"
+          (dict
+            "minimum" (showAttributeValue .Minimum)
+            "maximum" (showAttributeValue .Maximum)
+          )
+      }}
+    </span>
+  {{ end }}
+{{ end }}

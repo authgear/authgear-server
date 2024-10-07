@@ -21,6 +21,8 @@ type StoreDeviceTokenRedis struct {
 	Clock clock.Clock
 }
 
+var _ StoreDeviceToken = &StoreDeviceTokenRedis{}
+
 func (s *StoreDeviceTokenRedis) Get(userID string, token string) (*DeviceToken, error) {
 	var deviceToken *DeviceToken
 	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
@@ -108,24 +110,38 @@ func (s *StoreDeviceTokenRedis) DeleteAll(userID string) error {
 }
 
 func (s *StoreDeviceTokenRedis) HasTokens(userID string) (bool, error) {
-	hasTokens := false
+	count, err := s.Count(userID)
+	if err != nil {
+		return false, err
+	}
+	hasTokens := count > 0
+	return hasTokens, nil
+}
+
+func (s *StoreDeviceTokenRedis) Count(userID string) (int, error) {
+	count := 0
 
 	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		ctx := context.Background()
 		key := redisDeviceTokensKey(s.AppID, userID)
-		_, err := conn.Get(ctx, key).Bytes()
+		data, err := conn.Get(ctx, key).Bytes()
 		if err != nil {
 			if errors.Is(err, goredis.Nil) {
-				hasTokens = false
 				return nil
 			}
 			return err
 		}
-		hasTokens = true
+
+		tokens := map[string]*DeviceToken{}
+		if err := json.Unmarshal(data, &tokens); err != nil {
+			return err
+		}
+
+		count = len(tokens)
 		return nil
 	})
 
-	return hasTokens, err
+	return count, err
 }
 
 func (s *StoreDeviceTokenRedis) saveTokens(conn redis.Redis_6_0_Cmdable, key string, tokens map[string]*DeviceToken, ttl time.Duration) error {

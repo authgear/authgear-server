@@ -1,0 +1,123 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/identity/phone" "q_login_id_key" $.LoginIDKey)
+        "Title" (translate "v2.page.settings-identity-phone.default.title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "__settings_identity_phone_verification_label.html" }}
+  {{ if $.Verified }}
+    <div class="body-text--md settings-text-color-success">
+      {{ translate "v2.page.settings-identity.default.verification-status-verified-label" . }}
+    </div>
+  {{ else }}
+    <div class="body-text--md settings-text-color-failure">
+      {{ translate "v2.page.settings-identity.default.verification-status-unverified-label" . }}
+    </div>
+  {{ end }}
+{{ end }}
+
+{{ define "__settings_identity_phone_edit_button.html" }}
+  <a class="settings-link-btn" href="{{ $.Href }}">
+    {{ translate "v2.page.settings-identity-view-phone.default.edit-phone-button-label" . }}
+  </a>
+{{ end }}
+
+{{ define "__settings_identity_phone_verification_button.html" }}
+  <form
+    method="post"
+    novalidate
+    data-restore-form="false"
+    data-controller="turbo-form"
+    data-action="submit->turbo-form#submitForm"
+  >
+    {{ .CSRFField }}
+    <input type="hidden" name="x_login_id" value="{{ .LoginID }}">
+    <input type="hidden" name="x_identity_id" value="{{ .IdentityID }}">
+    <button type="submit" class="secondary-btn" name="x_action" value="verify">
+      {{ translate "v2.page.settings-identity-view-phone.default.verify-phone-button-label" . }}
+    </button>
+  </form>
+{{ end }}
+
+{{ define "page-content" }}
+
+<div class="flex flex-col gap-y-6">
+  {{ $extraContent := "" }}
+  {{ if not $.Verified }}
+    {{ $extraContent = (include "__settings_identity_phone_verification_button.html" (dict
+        "CSRFField" $.CSRFField
+        "Verified" false
+        "LoginID" $.PhoneIdentity.LoginID
+        "IdentityID" $.PhoneIdentity.ID
+      ))
+    }}
+  {{ end }}
+
+  {{ template "authflowv2/__settings_action_item.html"
+      (dict
+        "IconName" "phone_iphone"
+        "Label" $.PhoneIdentity.OriginalLoginID
+        "Description" (include "__settings_identity_phone_verification_label.html"
+          (dict "Verified" $.Verified)
+        )
+        "ActionButton" (include "__settings_identity_phone_edit_button.html"
+          (dict "Href" (call $.MakeURL "/settings/identity/change_phone" "q_identity_id" $.PhoneIdentity.ID "q_login_id_key" $.LoginIDKey))
+        )
+        "ExtraContent" $extraContent
+      )
+  }}
+
+  {{ if not $.DeleteDisabled}}
+    {{ $RemoveDialogID := "remove-phone-identity-dialog" }}
+
+    <button
+      class="settings-link-btn--destructive"
+      data-controller="dialog"
+      id="{{ $RemoveDialogID }}"
+      data-action="click->dialog#open">
+      {{ translate "v2.page.settings-identity-view-phone.default.remove-phone-button-label" nil }}
+    </button>
+
+    {{ template "authflowv2/__settings_dialog.html"
+      (dict
+        "Ctx" .
+        "DialogID" $RemoveDialogID
+        "Title" (include "v2.page.settings-identity-view-phone.default.remove-identity-dialog-title" nil)
+        "Description" (include "v2.page.settings-identity-view-phone.default.remove-identity-dialog-description"
+          (dict
+            "target" (include "__settings_identity_view_phone_inline_breakable.html" $.PhoneIdentity.OriginalLoginID )
+          )
+        )
+        "FormContent" (include "__settings_identity_view_phone_remove_dialog_form_content.html" .)
+        "Buttons" (list
+          (dict
+            "Type" "Destructive"
+            "Label" (include "v2.component.button.default.label-remove" nil)
+            "Value" "remove"
+          )
+          (dict
+            "Type" "Cancel"
+            "Label" (include "v2.component.button.default.label-cancel" nil)
+          )
+        )
+      )
+    }}
+  {{ end }}
+</div>
+
+{{ end }}
+
+{{ define "__settings_identity_view_phone_remove_dialog_form_content.html" }}
+  {{ $.CSRFField }}
+  <input type="hidden" name="x_identity_id" value="{{ $.PhoneIdentity.ID }}">
+{{ end }}
+
+{{ define "__settings_identity_view_phone_inline_breakable.html" }}
+  <b class="break-all">{{ . }}</b>
+{{ end }}

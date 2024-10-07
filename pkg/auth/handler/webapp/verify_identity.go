@@ -157,7 +157,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	inputFn := func() (input interface{}, err error) {
 		err = VerifyIdentitySchema.Validator().ValidateValue(FormToJSON(r.Form))

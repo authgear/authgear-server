@@ -70,7 +70,7 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	userID := ctrl.RequireUserID()

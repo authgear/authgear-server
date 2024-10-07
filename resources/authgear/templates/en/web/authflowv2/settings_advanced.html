@@ -1,0 +1,24 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+    (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings")
+        "Title" (translate "v2.page.settings-advanced-settings.default.title" nil)
+    )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+<div>
+  {{ $url := call $.MakeURL "/settings/delete_account" }}
+  {{ template "authflowv2/__settings_item.html"
+    (dict
+      "Label" ( include "v2.page.settings.default.account-deletion-button-label" nil )
+      "Href" $url
+      "MaterialIconName" "person_remove"
+    )
+  }}
+</div>
+{{ end }}

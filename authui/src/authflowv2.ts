@@ -49,6 +49,7 @@ import { DialogController } from "./authflowv2/dialog";
 import { BotProtectionStandalonePageController } from "./authflowv2/botprotection/botProtectionStandalonePage";
 import { ImagePickerController } from "./imagepicker";
 import { SelectInputController } from "./authflowv2/selectInput";
+import { AccountDeletionController } from "./accountdeletion";
 
 axios.defaults.withCredentials = true;
 
@@ -133,5 +134,7 @@ Stimulus.register("recaptcha-v2", RecaptchaV2Controller);
 Stimulus.register("bot-protection", BotProtectionController);
 Stimulus.register("bot-protection-dialog", BotProtectionDialogController);
 Stimulus.register("select-input", SelectInputController);
+
+Stimulus.register("account-deletion", AccountDeletionController);
 
 injectCSSAttrs(document.documentElement);

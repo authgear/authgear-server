@@ -25,7 +25,7 @@ func (h *ReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer ctrl.Serve()
+	defer ctrl.ServeWithDBTx()
 
 	webSession := webapp.GetSession(r.Context())
 	userIDHint := ""

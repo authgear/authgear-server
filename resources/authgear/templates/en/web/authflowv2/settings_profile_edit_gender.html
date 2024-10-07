@@ -54,7 +54,7 @@
         "Label" (include "v2.page.settings-profile-edit-gender.default.gender-label-custom" nil)
         "Name" "gender-select"
         "Value" "other"
-        "ExtraContentOnChecked" (include "__settings_gender_edit_custom_gender_input" .)
+        "ExtraContentOnChecked" (include "__settings_gender_edit_custom_gender_input.html" .)
         "DefaultChecked" $defaultChecked
       )
     }}
@@ -74,7 +74,7 @@
 
 {{ end }}
 
-{{ define "__settings_gender_edit_custom_gender_input" }}
+{{ define "__settings_gender_edit_custom_gender_input.html" }}
 {{ $value := $.Gender }}
 {{ if (or (eq $.Gender "male") (eq $.Gender "female")) }}
   {{ $value = "" }}

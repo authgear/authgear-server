@@ -259,6 +259,19 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	return &FinishAddingOutput{}, nil
 }
 
+func (s *Service) GetToken(resolvedSession session.ResolvedSession, tokenString string) (*Token, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	token, err := s.Store.GetToken(tokenString)
+	if err != nil {
+		return nil, err
+	}
+	err = token.CheckUser(userID)
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
+}
+
 func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, tokenString string) (err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 
@@ -286,12 +299,14 @@ func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, tokenSt
 		panic(fmt.Errorf("accountmanagement: unexpected token in resend otp code"))
 	}
 
-	err = s.sendOTPCode(
-		userID,
-		channel,
-		target,
-		true,
-	)
+	err = s.Database.WithTx(func() error {
+		return s.sendOTPCode(
+			userID,
+			channel,
+			target,
+			true,
+		)
+	})
 	if err != nil {
 		return err
 	}
