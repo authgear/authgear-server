@@ -19,7 +19,6 @@ export interface PaginationRenderData {
 // 44 45 46 47 48 49 50 should be shown.
 const ADDITIONAL_PAGE_TO_SHOW = 3;
 
-// eslint-disable-next-line complexity
 export function getPaginationRenderData(
   input: GetPaginationRenderDataInput
 ): PaginationRenderData {
@@ -112,6 +111,7 @@ export function getPaginationRenderData(
 }
 
 export function encodeOffsetToCursor(offset: number): string {
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   return btoa("offset:" + String(offset))
     .replace(/\+/g, "-")
     .replace(/\//g, "_")

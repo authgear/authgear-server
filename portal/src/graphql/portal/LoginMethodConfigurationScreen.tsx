@@ -554,7 +554,6 @@ function shouldShowFreePlanWarning(formState: FormState): boolean {
   return loginIDEnabled && phoneEnabled && oobOTPSMSEnabled;
 }
 
-// eslint-disable-next-line complexity
 function loginMethodFromFormState(formState: FormState): LoginMethod {
   const {
     identitiesControl,
@@ -685,7 +684,6 @@ function setLoginMethodToFormState(
   }
 }
 
-// eslint-disable-next-line complexity
 function correctInitialFormState(state: ConfigFormState): void {
   // Uncheck "login_id" identity if no login ID is checked.
   const allLoginIDUnchecked = state.loginIDKeyConfigsControl.every(
@@ -719,7 +717,6 @@ function correctInitialFormState(state: ConfigFormState): void {
   }
 }
 
-// eslint-disable-next-line complexity
 function correctCurrentFormState(state: FormState): void {
   // Check or uncheck "login_id" identity.
   const allLoginIDUnchecked = state.loginIDKeyConfigsControl.every(
@@ -875,7 +872,6 @@ function getConsistentValue<T>(...values: T[]): T | undefined {
   return value;
 }
 
-// eslint-disable-next-line complexity
 function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const identities = config.authentication?.identities ?? [];
   const primaryAuthenticators =
@@ -1147,7 +1143,6 @@ function constructConfig(
   currentState: ConfigFormState,
   _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
-  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.authentication ??= {};
     config.authentication.rate_limits ??= {};
@@ -2702,7 +2697,6 @@ interface VerificationSettingsProps {
   setState: FormModel["setState"];
 }
 
-// eslint-disable-next-line complexity
 function VerificationSettings(props: VerificationSettingsProps) {
   const {
     isPasswordlessEnabled,
@@ -3107,7 +3101,6 @@ interface LoginMethodConfigurationContentProps {
 }
 
 const LoginMethodConfigurationContent: React.VFC<LoginMethodConfigurationContentProps> =
-  // eslint-disable-next-line complexity
   function LoginMethodConfigurationContent(props) {
     const { appID } = props;
     const { state, setState } = props.form;

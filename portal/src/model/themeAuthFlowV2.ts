@@ -551,7 +551,6 @@ export class StyleGroup<T extends object> extends AbstractStyle<T> {
 }
 
 export class CustomisableThemeStyleGroup extends StyleGroup<PartialCustomisableTheme> {
-  // eslint-disable-next-line complexity
   constructor(value: PartialCustomisableTheme = EMPTY_THEME) {
     super({
       page: new StyleGroup({

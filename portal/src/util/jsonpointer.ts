@@ -17,7 +17,6 @@ class StringBuilder {
   }
 }
 
-// eslint-disable-next-line complexity
 export function parseJSONPointer(pointer: string): string[] {
   const output = [];
   let state: State = State.SLASH;

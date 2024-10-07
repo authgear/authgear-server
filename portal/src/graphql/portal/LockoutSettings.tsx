@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-parameters */
+
 import React, { ReactElement, useMemo, useContext, useCallback } from "react";
 import {
   FormattedMessage,

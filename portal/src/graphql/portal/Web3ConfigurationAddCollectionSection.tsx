@@ -109,7 +109,7 @@ const Web3ConfigurationAddCollectionForm: React.VFC<AddCollectionSectionProps> =
         setValidationErrorId(null);
         dismissDialogs();
 
-        let contractID = "";
+        let contractID: string;
         try {
           contractID = buildContractID(values.contractAddress);
         } catch (_: unknown) {

@@ -56,7 +56,6 @@ export function useAppTemplatesQuery(
     },
   });
 
-  // eslint-disable-next-line complexity
   const resources = useMemo(() => {
     const appNode = data?.node?.__typename === "App" ? data.node : null;
     const resources: Resource[] = [];

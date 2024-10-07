@@ -682,7 +682,6 @@ interface CodeEditorState {
 }
 
 const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentProps> =
-  // eslint-disable-next-line complexity
   function HookConfigurationScreenContent(props) {
     const { appID } = useParams() as { appID: string };
     const { renderToString } = useContext(Context);
@@ -783,7 +782,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
           }
 
           setState((prev) =>
-            // eslint-disable-next-line complexity
             produce(prev, (prev) => {
               switch (eventKind) {
                 case "blocking": {
@@ -875,7 +873,6 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       [setState]
     );
 
-    // eslint-disable-next-line complexity
     const code = useMemo(() => {
       if (codeEditorState == null) {
         return "";
@@ -1074,6 +1071,7 @@ const HookConfigurationScreenContent: React.VFC<HookConfigurationScreenContentPr
       [navigate, state.secret]
     );
 
+    // eslint-disable-next-line no-useless-assignment
     const { copyButtonProps, Feedback } = useCopyFeedback({
       textToCopy: state.secret ?? "",
     });

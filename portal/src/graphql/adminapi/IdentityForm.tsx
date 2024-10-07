@@ -32,7 +32,6 @@ interface User {
   primaryAuthenticators: AuthenticatorType[];
 }
 
-// eslint-disable-next-line complexity
 function isPasswordRequiredForNewIdentity(
   config: PortalAPIAppConfig | null,
   user: User | null,
@@ -107,6 +106,7 @@ const IdentityForm: React.VFC<IdentityFormProps> = function IdentityForm(
     rawUser,
     loginIDType,
     title,
+    // eslint-disable-next-line no-useless-assignment
     loginIDField: LoginIDField,
     onReset,
   } = props;

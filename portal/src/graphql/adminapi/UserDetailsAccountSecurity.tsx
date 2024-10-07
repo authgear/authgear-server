@@ -726,7 +726,6 @@ const OOBOTPAuthenticatorCell: React.VFC<OOBOTPAuthenticatorCellProps> =
   };
 
 const UserDetailsAccountSecurity: React.VFC<UserDetailsAccountSecurityProps> =
-  // eslint-disable-next-line complexity
   function UserDetailsAccountSecurity(props: UserDetailsAccountSecurityProps) {
     const {
       userID,

@@ -171,7 +171,6 @@ interface AddUserContentProps {
   isPasskeyOnly: boolean;
 }
 
-// eslint-disable-next-line complexity
 const AddUserContent: React.VFC<AddUserContentProps> = function AddUserContent(
   props: AddUserContentProps
 ) {

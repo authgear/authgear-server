@@ -83,7 +83,6 @@ function constructConfig(
   _initialState: FormState,
   currentState: FormState
 ): PortalAPIAppConfig {
-  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     config.authentication ??= {};
     config.authentication.primary_authenticators ??= [];
@@ -105,7 +104,7 @@ function constructConfig(
 
     const selectedNetwork = createNetworkIDURL(currentState.network);
 
-    let collections: CollectionItem[] = [];
+    let collections: CollectionItem[];
 
     if (!currentState.siweChecked) {
       // Clear collection list if SIWE is disabled
@@ -178,7 +177,6 @@ type Web3ConfigurationContentDialogs =
   | null;
 
 const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
-  // eslint-disable-next-line complexity
   function Web3ConfigurationContent(props) {
     const { state, setState } = props.form;
     const { themes } = useSystemConfig();
@@ -272,7 +270,7 @@ const Web3ConfigurationContent: React.VFC<Web3ConfigurationContentProps> =
               c.contractAddress === collection.contractAddress
           ) !== -1
         ) {
-          // eslint-disable-next-line @typescript-eslint/no-throw-literal
+          // eslint-disable-next-line @typescript-eslint/only-throw-error
           throw DuplicatedContractError;
         }
 

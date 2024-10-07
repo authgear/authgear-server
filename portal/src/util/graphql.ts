@@ -1,4 +1,5 @@
 export function extractRawID(id: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   const decoded = atob(id);
   const parts = decoded.split(":");
   if (parts.length !== 2) {
@@ -8,6 +9,7 @@ export function extractRawID(id: string): string {
 }
 
 export function toTypedID(typename: string, rawID: string): string {
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   return btoa(`${typename}:${rawID}`)
     .replace(/\+/g, "-")
     .replace(/\//g, "_")

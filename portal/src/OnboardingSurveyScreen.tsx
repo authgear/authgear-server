@@ -307,9 +307,8 @@ function getFromLocalStorage(
   prop: keyof LocallyStoredData
 ): string | UseCase[] | PhoneTextFieldValues | undefined {
   const locallyStoredData = localStorage.getItem(localStorageKey);
-  let localJson: LocallyStoredData = {};
   if (locallyStoredData === null) return undefined;
-  localJson = JSON.parse(locallyStoredData);
+  const localJson: LocallyStoredData = JSON.parse(locallyStoredData);
   return localJson[prop];
 }
 

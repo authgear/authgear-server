@@ -216,7 +216,6 @@ interface DomainListActionButtonsProps {
 }
 
 const DomainListActionButtons: React.VFC<DomainListActionButtonsProps> =
-  // eslint-disable-next-line complexity
   function DomainListActionButtons(props) {
     const {
       domainID,

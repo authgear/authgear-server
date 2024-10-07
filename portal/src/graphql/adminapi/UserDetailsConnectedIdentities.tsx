@@ -84,6 +84,7 @@ interface UserDetailsConnectedIdentitiesProps {
   web3Claims: Web3Claims;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const loginIdIdentityTypes = ["email", "phone", "username"] as const;
 type LoginIDIdentityType = (typeof loginIdIdentityTypes)[number];
 type IdentityType =
@@ -212,7 +213,6 @@ const removeButtonTextId: Record<IdentityType, "remove" | "disconnect" | ""> = {
   ldap: "",
 };
 
-// eslint-disable-next-line complexity
 function getIdentityName(
   item: IdentityListItem,
   renderToString: (id: string) => string
@@ -913,7 +913,6 @@ const LDAPIdentityListCell: React.VFC<LDAPIdentityListCellProps> = (props) => {
 };
 
 const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesProps> =
-  // eslint-disable-next-line complexity
   function UserDetailsConnectedIdentities(
     props: UserDetailsConnectedIdentitiesProps
   ) {
@@ -960,7 +959,6 @@ const UserDetailsConnectedIdentities: React.VFC<UserDetailsConnectedIdentitiesPr
         identityName: "",
       });
 
-    // eslint-disable-next-line complexity
     const identityLists: IdentityLists = useMemo(() => {
       const oauthIdentityList: OAuthIdentityListItem[] = [];
       const emailIdentityList: LoginIDIdentityListItem[] = [];

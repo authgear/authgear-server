@@ -241,7 +241,6 @@ export function mergeSystemConfig(
   };
 }
 
-// eslint-disable-next-line complexity
 export function instantiateSystemConfig(
   config: PartialSystemConfig
 ): SystemConfig {

@@ -110,7 +110,6 @@ export function getShades(colorStr: string): string[] {
   ];
 }
 
-// eslint-disable-next-line complexity
 export function getLightTheme(nodes: Node[]): LightTheme | null {
   let primaryColor;
   let textColor;
@@ -148,7 +147,6 @@ export function getLightTheme(nodes: Node[]): LightTheme | null {
   return null;
 }
 
-// eslint-disable-next-line complexity
 export function getLightBannerConfiguration(
   nodes: Node[]
 ): BannerConfiguration | null {
@@ -221,7 +219,6 @@ export function getLightBannerConfiguration(
   return null;
 }
 
-// eslint-disable-next-line complexity
 export function getDarkTheme(nodes: Node[]): DarkTheme | null {
   let primaryColor;
   let textColor;
@@ -260,7 +257,6 @@ export function getDarkTheme(nodes: Node[]): DarkTheme | null {
   return null;
 }
 
-// eslint-disable-next-line complexity
 export function getDarkBannerConfiguration(
   nodes: Node[]
 ): BannerConfiguration | null {

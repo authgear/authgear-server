@@ -123,7 +123,6 @@ function constructForgotpasswordValidPeriods(config: PortalAPIAppConfig) {
   };
 }
 
-// eslint-disable-next-line complexity
 function constructFormState(config: PortalAPIAppConfig): ConfigFormState {
   const secondary: AuthenticatorTypeFormState<SecondaryAuthenticatorType>[] = (
     config.authentication?.secondary_authenticators ?? []
@@ -209,7 +208,6 @@ function constructConfig(
   currentState: ConfigFormState,
   _effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
-  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     function filterEnabled<T extends string>(
       s: AuthenticatorTypeFormState<T>[]

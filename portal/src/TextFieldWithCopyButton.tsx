@@ -11,6 +11,7 @@ const TextFieldWithCopyButton: React.VFC<TextFieldWithCopyButtonProps> =
   function TextFieldWithCopyButton(props: TextFieldWithCopyButtonProps) {
     const { ...rest } = props;
     const { themes } = useSystemConfig();
+    // eslint-disable-next-line no-useless-assignment
     const { copyButtonProps, Feedback } = useCopyFeedback({
       textToCopy: props.value ?? "",
     });

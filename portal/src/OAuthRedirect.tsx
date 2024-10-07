@@ -3,6 +3,7 @@ import authgear from "@authgear/web";
 import { useNavigate } from "react-router-dom";
 
 function decodeOAuthState(oauthState: string): Record<string, unknown> {
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   return JSON.parse(atob(oauthState));
 }
 

@@ -95,6 +95,7 @@ const DNSRecordListValueCell: React.VFC<DNSRecordListValueCellProps> =
   function DNSRecordListValueCell(props: DNSRecordListValueCellProps) {
     const { value } = props;
 
+    // eslint-disable-next-line no-useless-assignment
     const { copyButtonProps, Feedback } = useCopyFeedback({
       textToCopy: value,
     });

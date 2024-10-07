@@ -17,7 +17,6 @@ type NavigationContextWithBlock = ContextType<typeof NavigationContext> & {
  * @source https://github.com/remix-run/react-router/commit/256cad70d3fd4500b1abcfea66f3ee622fb90874
  */
 export function useBlocker(blocker: Blocker, when = true): void {
-  // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style, @typescript-eslint/no-unnecessary-type-assertion
   const { navigator } = useContext(
     NavigationContext
   ) as NavigationContextWithBlock;

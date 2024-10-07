@@ -28,7 +28,7 @@ export function getCountryName(code: string, locale: string): string {
     }
   }
 
-  return `${code}`;
+  return code;
 }
 
 export function useGetTelecomCountryName(): {

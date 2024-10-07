@@ -182,7 +182,6 @@ function parseResourceTooLargeError(
   };
 }
 
-// eslint-disable-next-line complexity
 function parseError(error: APIError): ParsedAPIError[] {
   const errors: ParsedAPIError[] = [];
   switch (error.reason) {
