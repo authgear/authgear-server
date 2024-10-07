@@ -13,6 +13,7 @@ type PersonService interface {
 	Get(id string) (p *openapi.PersonSchema, err error)
 	Delete(id string) (err error)
 	Update(reqBody *openapi.UpdatePersonSchema) (p *openapi.PersonSchema, err error)
+	List(params *openapi.ListPersonsQuery) (p *openapi.ListPersonsSchema, err error)
 }
 
 type Service struct {
