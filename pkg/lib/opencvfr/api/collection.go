@@ -93,3 +93,25 @@ func (cs *CollectionService) Update(reqBody *openapi.UpdateCollectionSchema) (c 
 
 	return c, nil
 }
+
+func (cs *CollectionService) LinkPerson(reqBody *openapi.LinkSchema) (l *openapi.LinkSchema, err error) {
+	path := "/collection/person"
+
+	rbb, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := cs.HTTPClient.Post(path, bytes.NewBuffer(rbb), http.StatusCreated)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add person to collection - req: %v, err: %w", reqBody, err)
+	}
+
+	l = &openapi.LinkSchema{}
+	err = l.UnmarshalJSON(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse POST %v response body: %w", path, err)
+	}
+
+	return l, nil
+}
