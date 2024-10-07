@@ -1,5 +1,12 @@
 package testrunner
 
+import (
+	"net/http"
+	"strings"
+
+	"github.com/authgear/authgear-server/e2e/pkg/e2eclient"
+)
+
 type BeforeHook struct {
 	Type       BeforeHookType      `json:"type"`
 	UserImport string              `json:"user_import"`
@@ -71,20 +78,47 @@ var _ = TestCaseSchema.Add("BeforeHook", `
 }
 `)
 
+var _ = TestCaseSchema.Add("SAMLBinding", `
+{
+	"type": "string",
+	"enum": [
+		"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+		"urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+	]
+}
+`)
+
 var _ = TestCaseSchema.Add("Step", `
 {
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
 		"name": { "type": "string" },
-		"action": { "type": "string", "enum": ["create", "input", "oauth_redirect", "generate_totp_code", "query"] },
+		"action": { "type": "string", "enum": [
+			"create",
+			"input",
+			"oauth_redirect",
+			"generate_totp_code",
+			"query",
+			"saml_request",
+			"http_request"
+		]},
 		"input": { "type": "string" },
 		"to": { "type": "string" },
 		"redirect_uri": { "type": "string" },
 		"totp_secret": { "type": "string" },
 		"output": { "$ref": "#/$defs/Output" },
 		"query": { "type": "string" },
-		"query_output": { "$ref": "#/$defs/QueryOutput" }
+		"query_output": { "$ref": "#/$defs/QueryOutput" },
+		"saml_output": { "$ref": "#/$defs/SAMLOutput" },
+		"saml_request": { "type": "string" },
+		"saml_request_destination": { "type": "string" },
+		"saml_request_binding": { "$ref": "#/$defs/SAMLBinding" },
+		"http_request_method": { "type": "string" },
+		"http_request_url": { "type": "string" },
+		"http_request_headers": { "type": "object" },
+		"http_request_body": { "type": "string" },
+		"http_output": { "$ref": "#/$defs/HTTPOutput" }
 	},
 	"allOf": [
         {
@@ -136,6 +170,32 @@ var _ = TestCaseSchema.Add("Step", `
 					"then": {
 							"required": ["query"]
 					}
+				},
+				{
+				  "if": {
+							"properties": {
+									"action": { "const": "saml_request" }
+							}
+					},
+					"then": {
+							"required": [
+								"saml_request_destination",
+								"saml_request_binding"
+							]
+					}
+				},
+				{
+				  "if": {
+							"properties": {
+									"action": { "const": "http_request" }
+							}
+					},
+					"then": {
+							"required": [
+								"http_request_method",
+								"http_request_url"
+							]
+					}
 				}
     ]
 }
@@ -161,6 +221,19 @@ type Step struct {
 	// `action` == "query"
 	Query       string       `json:"query"`
 	QueryOutput *QueryOutput `json:"query_output"`
+
+	// `action` == "saml_request"
+	SAMLRequest            string                `json:"saml_request"`
+	SAMLRequestDestination string                `json:"saml_request_destination"`
+	SAMLRequestBinding     e2eclient.SAMLBinding `json:"saml_request_binding"`
+	SAMLOutput             *SAMLOutput           `json:"saml_output"`
+
+	// `action` == "http_request"
+	HTTPRequestMethod  string            `json:"http_request_method"`
+	HTTPRequestURL     string            `json:"http_request_url"`
+	HTTPRequestHeaders map[string]string `json:"http_request_headers"`
+	HTTPRequestBody    string            `json:"http_request_body"`
+	HTTPOutput         *HTTPOutput       `json:"http_output"`
 }
 
 type StepAction string
@@ -171,7 +244,61 @@ const (
 	StepActionOAuthRedirect    StepAction = "oauth_redirect"
 	StepActionGenerateTOTPCode StepAction = "generate_totp_code"
 	StepActionQuery            StepAction = "query"
+	StepActionSAMLRequest      StepAction = "saml_request"
+	StepActionHTTPRequest      StepAction = "http_request"
 )
+
+var _ = TestCaseSchema.Add("SAMLOutput", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"http_status": { "type": "integer" },
+		"redirect_path": { "type": "string" },
+		"saml_response": { "$ref": "#/$defs/OuputSAMLResponse" }
+	}
+}
+`)
+
+type SAMLOutput struct {
+	HTTPStatus   *float64           `json:"http_status"`
+	RedirectPath *string            `json:"redirect_path"`
+	SAMLResponse *OuputSAMLResponse `json:"saml_response"`
+}
+
+var _ = TestCaseSchema.Add("HTTPOutput", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"http_status": { "type": "integer" },
+		"redirect_path": { "type": "string" },
+		"saml_response": { "$ref": "#/$defs/OuputSAMLResponse" }
+	}
+}
+`)
+
+type HTTPOutput struct {
+	HTTPStatus   *float64           `json:"http_status"`
+	RedirectPath *string            `json:"redirect_path"`
+	SAMLResponse *OuputSAMLResponse `json:"saml_response"`
+}
+
+var _ = TestCaseSchema.Add("OuputSAMLResponse", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"binding": { "$ref": "#/$defs/SAMLBinding" },
+		"match": { "type": "string" }
+	}
+}
+`)
+
+type OuputSAMLResponse struct {
+	Binding e2eclient.SAMLBinding `json:"binding"`
+	Match   string                `json:"match"`
+}
 
 var _ = TestCaseSchema.Add("QueryOutput", `
 {
@@ -217,4 +344,18 @@ var _ = TestCaseSchema.Add("StepResult", `
 type StepResult struct {
 	Result interface{} `json:"result"`
 	Error  error       `json:"error"`
+}
+
+type ResultHTTPResponse struct {
+	HTTPResponseHeaders map[string]string `json:"http_response_headers"`
+}
+
+func NewResultHTTPResponse(r *http.Response) *ResultHTTPResponse {
+	headers := map[string]string{}
+	for key, _ := range r.Header {
+		headers[strings.ToLower(key)] = r.Header.Get(key)
+	}
+	return &ResultHTTPResponse{
+		HTTPResponseHeaders: headers,
+	}
 }

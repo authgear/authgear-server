@@ -20,6 +20,26 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
+type ProjectHostRewriteTransport struct {
+	HTTPHost     httputil.HTTPHost
+	MainEndpoint *url.URL
+}
+
+func (t *ProjectHostRewriteTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.URL.Host == string(t.HTTPHost) {
+		// Send the request to main endpoint if it is to the project specific host
+		req.Host = string(t.HTTPHost)
+		req.URL.Host = t.MainEndpoint.Host
+	}
+
+	if req.Host == string(t.MainEndpoint.Host) {
+		// Set the host header so that authgear server can map the request to the correct project
+		req.Host = string(t.HTTPHost)
+	}
+
+	return http.DefaultTransport.RoundTrip(req)
+}
+
 type Client struct {
 	Context       context.Context
 	HTTPClient    *http.Client
@@ -27,6 +47,8 @@ type Client struct {
 	MainEndpoint  *url.URL
 	AdminEndpoint *url.URL
 	HTTPHost      httputil.HTTPHost
+
+	SAMLClient *SAMLClient
 }
 
 func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr string, httpHost httputil.HTTPHost) *Client {
@@ -51,8 +73,21 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 		Jar:           jar,
 		CorrectedHost: string(httpHost),
 	}
+	var transport = &ProjectHostRewriteTransport{
+		MainEndpoint: mainEndpointURL,
+		HTTPHost:     httpHost,
+	}
+
 	var httpClient = &http.Client{
+		Jar:       customJar,
+		Transport: transport,
+	}
+	var noRedirectClient = &http.Client{
 		Jar: customJar,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		Transport: transport,
 	}
 	var oauthClient = &http.Client{}
 
@@ -90,6 +125,12 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 		return http.ErrUseLastResponse
 	}
 
+	samlClient := &SAMLClient{
+		Context:    ctx,
+		HTTPClient: noRedirectClient,
+		HTTPHost:   httpHost,
+	}
+
 	return &Client{
 		Context:       ctx,
 		HTTPClient:    httpClient,
@@ -97,6 +138,7 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 		MainEndpoint:  mainEndpointURL,
 		AdminEndpoint: adminEndpointURL,
 		HTTPHost:      httpHost,
+		SAMLClient:    samlClient,
 	}
 }
 
@@ -187,6 +229,53 @@ func (c *Client) InputFlow(w http.ResponseWriter, r *http.Request, stateToken st
 	}
 
 	return c.doFlowRequest(w, req)
+}
+
+func (c *Client) SendSAMLRequest(
+	path string,
+	samlRequestXML string,
+	binding SAMLBinding,
+	fn func(r *http.Response) error) error {
+	destination := c.MainEndpoint.JoinPath(path)
+	switch binding {
+	case SAMLBindingHTTPPost:
+		return c.SAMLClient.SendSAMLRequestWithHTTPPost(samlRequestXML, destination, fn)
+	case SAMLBindingHTTPRedirect:
+		return c.SAMLClient.SendSAMLRequestWithHTTPRedirect(samlRequestXML, destination, fn)
+	default:
+		return fmt.Errorf("unknown saml binding %s", binding)
+	}
+}
+
+func (c *Client) MakeHTTPRequest(
+	method string,
+	toURL string,
+	headers map[string]string,
+	body string,
+	fn func(r *http.Response) error) error {
+	var buf *bytes.Buffer = bytes.NewBuffer([]byte(body))
+
+	if body != "" {
+		buf = bytes.NewBuffer([]byte(body))
+	}
+
+	req, err := http.NewRequestWithContext(c.Context, method, toURL, buf)
+	if err != nil {
+		return err
+	}
+
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	req.Header.Set("Content-Length", strconv.Itoa(buf.Len()))
+
+	resp, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	return fn(resp)
 }
 
 func (c *Client) makeRequest(maybeOriginalRequest *http.Request, endpoint *url.URL, body interface{}) (*http.Request, error) {

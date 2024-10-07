@@ -36,9 +36,13 @@ type CSRFMiddleware struct {
 	BaseViewModel           *viewmodels.BaseViewModeler
 	Renderer                Renderer
 	UIImplementationService CSRFMiddlewareUIImplementationService
+	EnvironmentConfig       *config.EnvironmentConfig
 }
 
 func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
+	if m.EnvironmentConfig.End2EndCSRFProtectionDisabled {
+		return next
+	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookieThatWouldBeWrittenByOurCookieManager := m.Cookies.ValueCookie(webapp.CSRFCookieDef, "unimportant")
 		options := []csrf.Option{

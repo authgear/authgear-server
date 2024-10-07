@@ -1,9 +1,12 @@
 package testrunner
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"net/url"
 	"strings"
 	"testing"
@@ -11,6 +14,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig"
+	"github.com/beevik/etree"
 
 	authflowclient "github.com/authgear/authgear-server/e2e/pkg/e2eclient"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
@@ -230,7 +234,70 @@ func (tc *TestCase) executeStep(
 		}
 
 		nextState = state
+	case StepActionHTTPRequest:
+		var lastStep *StepResult
+		if len(prevSteps) != 0 {
+			lastStep = &prevSteps[len(prevSteps)-1]
+		}
 
+		var outputOk bool = true
+		var httpResult interface{} = nil
+		url, ok := prepareHTTPRequestURL(t, cmd, lastStep, step.HTTPRequestURL)
+		if !ok {
+			return nil, state, false
+		}
+		err := client.MakeHTTPRequest(
+			step.HTTPRequestMethod,
+			url,
+			step.HTTPRequestHeaders,
+			step.HTTPRequestBody,
+			func(r *http.Response) error {
+				if r != nil {
+					httpResult = NewResultHTTPResponse(r)
+				}
+				if step.HTTPOutput != nil {
+					outputOk = validateHTTPOutput(t, step.HTTPOutput, r)
+				}
+				return nil
+			})
+		if err != nil {
+			t.Errorf("failed to send http request: %v", err)
+			return nil, state, false
+		}
+		if !outputOk {
+			return nil, state, false
+		}
+		result = &StepResult{
+			Result: httpResult,
+			Error:  nil,
+		}
+
+	case StepActionSAMLRequest:
+		var samlOutputOk bool = true
+		var httpResult interface{} = nil
+		err := client.SendSAMLRequest(
+			step.SAMLRequestDestination,
+			step.SAMLRequest,
+			step.SAMLRequestBinding, func(r *http.Response) error {
+				if r != nil {
+					httpResult = NewResultHTTPResponse(r)
+				}
+				if step.SAMLOutput != nil {
+					samlOutputOk = validateSAMLOutput(t, step.SAMLOutput, r)
+				}
+				return nil
+			})
+		if err != nil {
+			t.Errorf("failed to send saml request: %v", err)
+			return nil, state, false
+		}
+		if !samlOutputOk {
+			return nil, state, false
+		}
+		result = &StepResult{
+			Result: httpResult,
+			Error:  nil,
+		}
 	case StepActionInput:
 		fallthrough
 	case "":
@@ -306,6 +373,16 @@ func prepareTo(t *testing.T, cmd *End2EndCmd, prev *StepResult, to string) (prep
 	}
 
 	return parsedTo, true
+}
+
+func prepareHTTPRequestURL(t *testing.T, cmd *End2EndCmd, prev *StepResult, url string) (prepared string, ok bool) {
+	url, err := execTemplate(cmd, prev, url)
+	if err != nil {
+		t.Errorf("failed to parse http_request_url: %v\n", err)
+		return "", false
+	}
+
+	return url, true
 }
 
 func execTemplate(cmd *End2EndCmd, prev *StepResult, content string) (string, error) {
@@ -419,6 +496,237 @@ func validateQueryResult(t *testing.T, step Step, rows []interface{}) (ok bool) 
 
 	return true
 
+}
+
+func validateRedirectLocation(t *testing.T, expectedPath string, response *http.Response) (ok bool) {
+	ok = true
+	actualLocationURL, err := url.Parse(response.Header.Get("Location"))
+	if err != nil {
+		ok = false
+		t.Errorf("Location header is not a valid url")
+	}
+	if !ok {
+		return ok
+	}
+	// We only compare the url without query parameters
+	if expectedPath != actualLocationURL.EscapedPath() {
+		ok = false
+		t.Errorf("redirect path unmatch. expected: %s, actual: %s",
+			expectedPath,
+			actualLocationURL.EscapedPath(),
+		)
+	}
+	return ok
+}
+
+func validateSAMLResponse(t *testing.T, expected *OuputSAMLResponse, httpResponse *http.Response) (ok bool) {
+	ok = true
+
+	var responseDoc *etree.Document
+	switch expected.Binding {
+	case authflowclient.SAMLBindingHTTPPost:
+		// For post binding, read the SAMLResponse from the response body
+		body, err := io.ReadAll(httpResponse.Body)
+		if err != nil {
+			t.Errorf("failed to read response body: %v", err)
+			ok = false
+			return
+		}
+		doc := etree.NewDocument()
+		err = doc.ReadFromString(string(body))
+		if err != nil {
+			ok = false
+			t.Errorf("failed to parse response body as html")
+			return
+		}
+		samlResponseEl := doc.FindElement("./html/body/form/input[@name='SAMLResponse']")
+		if samlResponseEl == nil {
+			ok = false
+			t.Errorf("no SAMLResponse input found in html")
+			return
+		}
+		samlResponseAttr := samlResponseEl.SelectAttr("value")
+		if samlResponseAttr == nil {
+			ok = false
+			t.Errorf("SAMLResponse input has no value")
+			return
+		}
+		decodedXML, err := base64.StdEncoding.DecodeString(samlResponseAttr.Value)
+		if err != nil {
+			ok = false
+			t.Errorf("decode SAMLResponse failed: %v", err)
+			return
+		}
+		responseDoc = etree.NewDocument()
+		err = responseDoc.ReadFromString(string(decodedXML))
+		if err != nil {
+			ok = false
+			t.Errorf("failed to parse SAMLResponse as xml")
+			return
+		}
+
+	case authflowclient.SAMLBindingHTTPRedirect:
+		// TODO
+		fallthrough
+	default:
+		t.Errorf("not implemented")
+		ok = false
+		return
+	}
+
+	expectedDoc := etree.NewDocument()
+	err := expectedDoc.ReadFromString(string(expected.Match))
+	if err != nil {
+		ok = false
+		t.Errorf("failed to parse match as xml")
+		return
+	}
+
+	var assertElements func(parentPath string, expectedEls []*etree.Element)
+
+	assertElements = func(parentPath string, expectedEls []*etree.Element) {
+		for idx, el := range expectedEls {
+			expectedEl := el
+			// Do not use GetPath to get the path because it does not handle duplicated elements of the same Tag
+			path := parentPath + fmt.Sprintf("/*[%d]", idx+1)
+			// Check existence
+			actualEl := responseDoc.FindElement(path)
+			if actualEl == nil {
+				ok = false
+				t.Errorf("element not found in path: %v", path)
+				continue
+			}
+
+			// Check Tag
+			if expectedEl.Tag != "any" && expectedEl.Tag != actualEl.Tag {
+				ok = false
+				t.Errorf("element %v has unmatched tag: expected: %v, actual: %v",
+					path,
+					expectedEl.Tag,
+					actualEl.Tag,
+				)
+				continue
+			}
+
+			// Check Space
+			if expectedEl.Space != "" && expectedEl.Space != actualEl.Space {
+				ok = false
+				t.Errorf("element %v has unmatched space: expected: %v, actual: %v",
+					path,
+					expectedEl.Space,
+					actualEl.Space,
+				)
+				continue
+			}
+
+			// Check attributes
+			for _, expectedAttr := range expectedEl.Attr {
+				actualValue := actualEl.SelectAttrValue(expectedAttr.Key, "")
+				if actualValue != expectedAttr.Value {
+					ok = false
+					t.Errorf("element %v has unmatched attribute. key: %v, expected: %v, actual: %v",
+						path,
+						expectedAttr.Key,
+						expectedAttr.Value,
+						actualValue,
+					)
+				}
+			}
+			// Check text
+			expectedText := strings.Trim(expectedEl.Text(), "\n ")
+			actualText := strings.Trim(actualEl.Text(), "\n ")
+			if expectedText != "" && expectedText != actualText {
+				ok = false
+				t.Errorf("element %v has unmatched text. expected: %v, actual: %v",
+					path,
+					expectedEl.Text(),
+					actualEl.Text(),
+				)
+			}
+			// Check children
+			if len(expectedEl.ChildElements()) > 0 {
+				assertElements(path, expectedEl.ChildElements())
+			}
+		}
+	}
+
+	assertElements("", expectedDoc.ChildElements())
+	return ok
+}
+
+func validateHTTPResponseStatus(t *testing.T, expectedStatus int, response *http.Response) (ok bool) {
+	if response.StatusCode != expectedStatus {
+		t.Errorf("http response status code unmatch. expected: %d, actual: %d",
+			expectedStatus,
+			response.StatusCode,
+		)
+		return false
+	}
+	return true
+}
+
+func validateHTTPOutput(t *testing.T, httpOutput *HTTPOutput, response *http.Response) (ok bool) {
+	ok = true
+	if response == nil {
+		t.Errorf("expected http response but got nil")
+		ok = false
+		return
+	}
+	if httpOutput.HTTPStatus != nil {
+		if !validateHTTPResponseStatus(t, int(*httpOutput.HTTPStatus), response) {
+			ok = false
+		}
+	}
+	if httpOutput.RedirectPath != nil {
+		if !validateRedirectLocation(t,
+			*httpOutput.RedirectPath,
+			response,
+		) {
+			ok = false
+		}
+	}
+	if httpOutput.SAMLResponse != nil {
+		statusOk := validateSAMLResponse(t,
+			httpOutput.SAMLResponse,
+			response,
+		)
+		if !statusOk {
+			ok = false
+		}
+	}
+	return ok
+}
+
+func validateSAMLOutput(t *testing.T, samlOutput *SAMLOutput, response *http.Response) (ok bool) {
+	ok = true
+	if response == nil {
+		t.Errorf("expected http response but got nil")
+		ok = false
+		return
+	}
+	if samlOutput.HTTPStatus != nil {
+		if !validateHTTPResponseStatus(t, int(*samlOutput.HTTPStatus), response) {
+			ok = false
+		}
+	}
+	if samlOutput.RedirectPath != nil {
+		if !validateRedirectLocation(t,
+			*samlOutput.RedirectPath,
+			response,
+		) {
+			ok = false
+		}
+	}
+	if samlOutput.SAMLResponse != nil {
+		statusOk := validateSAMLResponse(t,
+			samlOutput.SAMLResponse,
+			response,
+		)
+		if !statusOk {
+			ok = false
+		}
+	}
+	return ok
 }
 
 func toMap(data interface{}) (map[string]interface{}, error) {

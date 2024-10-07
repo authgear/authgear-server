@@ -28,3 +28,10 @@ type HTTPResponse struct {
 	Result *FlowResponse       `json:"result,omitempty"`
 	Error  *apierrors.APIError `json:"error,omitempty"`
 }
+
+type SAMLBinding string
+
+const (
+	SAMLBindingHTTPRedirect SAMLBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+	SAMLBindingHTTPPost     SAMLBinding = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+)
