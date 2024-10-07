@@ -21,6 +21,7 @@ func (c *SAMLClient) SendSAMLRequestWithHTTPRedirect(
 	samlElementName string,
 	samlElementXML string,
 	destination *url.URL,
+	relayState string,
 	onResponse func(r *http.Response) error) error {
 	compressedRequestBuffer := &bytes.Buffer{}
 	writer, err := flate.NewWriter(compressedRequestBuffer, 9)
@@ -38,6 +39,7 @@ func (c *SAMLClient) SendSAMLRequestWithHTTPRedirect(
 	base64EncodedRequest := base64.StdEncoding.EncodeToString(compressedRequestBuffer.Bytes())
 	q := &url.Values{
 		samlElementName: []string{base64EncodedRequest},
+		"RelayState":    []string{relayState},
 	}
 	u := destination
 	u.RawQuery = q.Encode()
@@ -58,10 +60,12 @@ func (c *SAMLClient) SendSAMLRequestWithHTTPPost(
 	samlElementName string,
 	samlElementXML string,
 	destination *url.URL,
+	relayState string,
 	onResponse func(r *http.Response) error) error {
 	base64EncodedRequest := base64.StdEncoding.EncodeToString([]byte(samlElementXML))
 	body := &url.Values{
 		samlElementName: []string{base64EncodedRequest},
+		"RelayState":    []string{relayState},
 	}
 	bodyBuffer := bytes.NewBuffer([]byte(body.Encode()))
 	u := destination

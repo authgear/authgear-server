@@ -248,6 +248,7 @@ func (c *Client) SendSAMLRequest(
 	samlElementName string,
 	samlElementXML string,
 	binding SAMLBinding,
+	relayState string,
 	fn func(r *http.Response) error) error {
 	destination := c.MainEndpoint.JoinPath(path)
 	switch binding {
@@ -256,6 +257,7 @@ func (c *Client) SendSAMLRequest(
 			samlElementName,
 			samlElementXML,
 			destination,
+			relayState,
 			fn,
 		)
 	case SAMLBindingHTTPRedirect:
@@ -263,6 +265,7 @@ func (c *Client) SendSAMLRequest(
 			samlElementName,
 			samlElementXML,
 			destination,
+			relayState,
 			fn,
 		)
 	default:

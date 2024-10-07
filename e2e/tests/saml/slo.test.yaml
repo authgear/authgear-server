@@ -51,7 +51,8 @@ steps:
     saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
     saml_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:LogoutResponse
@@ -155,7 +156,8 @@ steps:
       idp_session_token: e2eidpsessiontoken1
     saml_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response>
@@ -187,7 +189,8 @@ steps:
       idp_session_token: e2eidpsessiontoken1
     saml_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response>
@@ -219,7 +222,8 @@ steps:
       idp_session_token: e2eidpsessiontoken1
     saml_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response>
@@ -229,3 +233,113 @@ steps:
               <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
             </samlp:Status>
           </samlp:Response>
+
+  # Trigger logout from one sp, expect all SPs should receive logout request
+  - action: "saml_request"
+    # Note: SessionIndex is computed by encoding idp:e2e-idp-session-1 with base64 url
+    # This is same as the encoding of sid in oidc
+    saml_element_name: SAMLRequest
+    saml_element: |
+      <samlp:LogoutRequest
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        ID="logoutrequest_00000001"
+        Version="2.0"
+        IssueInstant="3014-07-18T01:13:06Z">
+        <saml:Issuer>urn:e2e.localhost</saml:Issuer>
+        <saml:NameID Format="urn:oasis:names:tc:SAML:2.0:nameid-format:unspecified"
+        >samltest01</saml:NameID>
+        <samlp:SessionIndex>aWRwOmUyZS1pZHAtc2Vzc2lvbi0x</samlp:SessionIndex>
+      </samlp:LogoutRequest>
+    saml_request_destination: "/saml2/logout/e2e1"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+    saml_request_relay_state: "{{ .prev.result.saml_relay_state }}"
+    saml_output:
+      http_status: 200
+      saml_element:
+        element_name: SAMLRequest
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        match: |
+          <samlp:LogoutRequest
+            xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+            xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+            Destination="https://samlsp2.localhost/slo">
+            <saml:Issuer/>
+            <ds:Signature />
+            <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">samltest01</saml:NameID>
+            <samlp:SessionIndex xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
+              aWRwOmUyZS1pZHAtc2Vzc2lvbi0x</samlp:SessionIndex>
+          </samlp:LogoutRequest>
+  - action: "saml_request"
+    saml_element_name: SAMLResponse
+    saml_element: |
+      <samlp:LogoutResponse
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        Version="2.0"
+        >
+        <saml:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity"
+        >urn:e2e2</saml:Issuer>
+        <samlp:Status>
+          <samlp:StatusCode
+            Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+          </samlp:Status>
+      </samlp:LogoutResponse>
+    saml_request_destination: "/saml2/logout/e2e2"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+    saml_request_relay_state: "{{ .prev.result.saml_relay_state }}"
+    saml_output:
+      http_status: 200
+      saml_element:
+        element_name: SAMLRequest
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        match: |
+          <samlp:LogoutRequest
+            xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+            xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+            Destination="https://samlsp3.localhost/slo">
+            <saml:Issuer/>
+            <ds:Signature />
+            <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">samltest01</saml:NameID>
+            <samlp:SessionIndex xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
+              aWRwOmUyZS1pZHAtc2Vzc2lvbi0x</samlp:SessionIndex>
+          </samlp:LogoutRequest>
+  - action: "saml_request"
+    saml_element_name: SAMLResponse
+    saml_element: |
+      <samlp:LogoutResponse
+        xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+        xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+        Version="2.0"
+        >
+        <saml:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity"
+        >urn:e2e3</saml:Issuer>
+        <samlp:Status>
+          <samlp:StatusCode
+            Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+          </samlp:Status>
+      </samlp:LogoutResponse>
+    saml_request_destination: "/saml2/logout/e2e3"
+    saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+    saml_request_relay_state: "{{ .prev.result.saml_relay_state }}"
+    # After all SPs responsed with a LogoutResponse, return to the initial SP with a LogoutResponse
+    saml_output:
+      http_status: 200
+      saml_element:
+        element_name: SAMLResponse
+        binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+        match: |
+          <samlp:LogoutResponse
+            xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+            xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+            InResponseTo="logoutrequest_00000001"
+            Version="2.0"
+            Destination="https://samlsp1.localhost/slo"
+            >
+            <saml:Issuer Format="urn:oasis:names:tc:SAML:2.0:nameid-format:entity"/>
+            <ds:Signature/>
+            <samlp:Status>
+              <samlp:StatusCode
+                Value="urn:oasis:names:tc:SAML:2.0:status:Success" />
+              </samlp:Status>
+          </samlp:LogoutResponse>

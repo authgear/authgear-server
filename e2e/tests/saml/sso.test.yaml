@@ -65,7 +65,8 @@ steps:
     http_request_body: "x_login_id_input_type=text&x_login_id=samltest01&x_action=login_id"
     http_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response
@@ -131,7 +132,8 @@ steps:
     saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
     saml_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response
@@ -243,7 +245,8 @@ steps:
     http_request_body: "x_login_id_input_type=text&x_login_id=samltest01&x_action=login_id"
     http_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response>
