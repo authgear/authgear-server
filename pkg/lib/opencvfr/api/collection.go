@@ -71,3 +71,25 @@ func (cs *CollectionService) Delete(id string) (err error) {
 
 	return nil
 }
+
+func (cs *CollectionService) Update(reqBody *openapi.UpdateCollectionSchema) (c *openapi.CollectionSchema, err error) {
+	path := "/collection"
+
+	rbb, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := cs.HTTPClient.Patch(path, bytes.NewBuffer(rbb))
+	if err != nil {
+		return nil, fmt.Errorf("failed to update collection - req: %v, err: %w", reqBody, err)
+	}
+
+	c = &openapi.CollectionSchema{}
+	err = c.UnmarshalJSON(body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse PATCH %v response body: %w", path, err)
+	}
+
+	return c, nil
+}

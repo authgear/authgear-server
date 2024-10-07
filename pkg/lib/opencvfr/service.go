@@ -21,6 +21,7 @@ type CollectionService interface {
 	Create(reqBody *openapi.CreateCollectionSchema) (c *openapi.CollectionSchema, err error)
 	Get(id string) (c *openapi.CollectionSchema, err error)
 	Delete(id string) (err error)
+	Update(reqBody *openapi.UpdateCollectionSchema) (c *openapi.CollectionSchema, err error)
 }
 
 type Service struct {
