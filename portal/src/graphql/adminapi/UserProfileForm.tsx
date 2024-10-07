@@ -127,7 +127,7 @@ function HorizontalDivider() {
   return (
     <div
       style={{
-        backgroundColor: `${theme.palette.neutralTertiaryAlt}`,
+        backgroundColor: theme.palette.neutralTertiaryAlt,
         height: "1px",
       }}
     />
@@ -222,7 +222,6 @@ interface CustomAttributeControlProps {
   onChangeCustomAttributes?: (attrs: CustomAttributesState) => void;
 }
 
-// eslint-disable-next-line complexity
 function CustomAttributeControl(props: CustomAttributeControlProps) {
   const { attributeConfig, customAttributes, onChangeCustomAttributes } = props;
   const {
@@ -474,7 +473,6 @@ interface StandardAttributesFormProps {
 }
 
 const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
-  // eslint-disable-next-line complexity
   function StandardAttributesForm(props: StandardAttributesFormProps) {
     const {
       standardAttributes,
@@ -669,7 +667,6 @@ const StandardAttributesForm: React.VFC<StandardAttributesFormProps> =
       return options;
     }, [renderToString]);
     const onChangeGenderVariant = useCallback(
-      // eslint-disable-next-line complexity
       (
         _e: React.FormEvent<unknown>,
         option?: IDropdownOption,

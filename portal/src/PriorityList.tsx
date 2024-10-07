@@ -90,7 +90,7 @@ function PriorityList(props: PriorityListProps): ReactElement {
         name: keyColumnLabel,
         className: styles.cell,
         minWidth: 0,
-        // eslint-disable-next-line react/no-unstable-nested-components
+
         onRender: (item: PriorityListItem) => {
           return item.content;
         },

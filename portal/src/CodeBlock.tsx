@@ -20,6 +20,7 @@ interface CodeBlockCopyButtonProps {
 
 const CodeBlockCopyButton: React.VFC<CodeBlockCopyButtonProps> = (props) => {
   const { copyValue } = props;
+  // eslint-disable-next-line no-useless-assignment
   const { copyButtonProps, Feedback } = useCopyFeedback({
     textToCopy: copyValue,
   });

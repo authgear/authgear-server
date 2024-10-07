@@ -15,6 +15,7 @@ export interface UseSaveOnboardingSurveyMutationReturnType {
 
 export function useSaveOnboardingSurveyMutation(): UseSaveOnboardingSurveyMutationReturnType {
   const client = usePortalClient();
+  // eslint-disable-next-line @typescript-eslint/unbound-method
   const [mutationFunction, { error, loading, reset }] =
     useMutation<SaveOnboardingSurveyMutationMutation>(
       SaveOnboardingSurveyMutationDocument,

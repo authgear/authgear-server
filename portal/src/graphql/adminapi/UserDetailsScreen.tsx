@@ -93,7 +93,6 @@ const ERROR_RULES = [
   ),
 ];
 
-// eslint-disable-next-line complexity
 function makeStandardAttributesState(
   attrs: StandardAttributes
 ): StandardAttributesState {
@@ -180,7 +179,6 @@ function makeStandardAttributesFromState(
   });
 }
 
-// eslint-disable-next-line complexity
 function makeCustomAttributesFromState(
   state: CustomAttributesState,
   config: CustomAttributesAttributeConfig[]
@@ -228,7 +226,6 @@ function makeCustomAttributesFromState(
   return out;
 }
 
-// eslint-disable-next-line complexity
 const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
   props: UserDetailsProps
 ) {
@@ -568,7 +565,6 @@ interface UserDetailsScreenContentProps {
 }
 
 const UserDetailsScreenContent: React.VFC<UserDetailsScreenContentProps> =
-  // eslint-disable-next-line complexity
   function UserDetailsScreenContent(props: UserDetailsScreenContentProps) {
     const { user, refreshUser, effectiveAppConfig } = props;
     const navigate = useNavigate();

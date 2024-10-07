@@ -56,7 +56,6 @@ export interface ThemeConfigurationWidgetProps {
 type DropdownKey = "fixed-height" | "fixed-width";
 
 const ThemeConfigurationWidget: React.VFC<ThemeConfigurationWidgetProps> =
-  // eslint-disable-next-line complexity
   function ThemeConfigurationWidget(props: ThemeConfigurationWidgetProps) {
     const { renderToString } = useContext(Context);
     const previewWidgetRef = useRef<HTMLElement | null>(null);

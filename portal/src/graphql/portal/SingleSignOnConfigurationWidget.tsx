@@ -348,7 +348,6 @@ export function useSingleSignOnConfigurationWidget(
 }
 
 const SingleSignOnConfigurationWidget: React.VFC<SingleSignOnConfigurationWidgetProps> =
-  // eslint-disable-next-line complexity
   function SingleSignOnConfigurationWidget(
     props: SingleSignOnConfigurationWidgetProps
   ) {

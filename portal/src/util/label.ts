@@ -26,7 +26,7 @@ function titlecase(word: string, index: number, length: number): string {
   // https://en.wikipedia.org/wiki/Title_case#Chicago_Manual_of_Style
   const lowercase = word.toLowerCase();
 
-  let shouldCapitalize = false;
+  let shouldCapitalize: boolean;
   if (index === 0 || index === length - 1) {
     shouldCapitalize = true;
   } else if (MINOR_WORDS.indexOf(lowercase) >= 0) {

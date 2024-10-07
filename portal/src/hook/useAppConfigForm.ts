@@ -105,7 +105,6 @@ export function useAppConfigForm<State>(
   }, [isUpdating]);
 
   const save = useCallback(
-    // eslint-disable-next-line complexity
     async (ignoreConflict: boolean = false) => {
       const allowSave = canSave !== undefined ? canSave : isDirty;
       if (!rawConfig || !initialState || secretConfig == null) {

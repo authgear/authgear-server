@@ -73,7 +73,6 @@ export function updateClientConfig<K extends keyof OAuthClientConfig>(
 const parentJSONPointer = /\/oauth\/clients\/\d+/;
 
 const EditOAuthClientForm: React.VFC<EditOAuthClientFormProps> =
-  // eslint-disable-next-line complexity
   function EditOAuthClientForm(props: EditOAuthClientFormProps) {
     const {
       className,

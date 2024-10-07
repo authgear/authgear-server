@@ -52,7 +52,6 @@ export function isStripePlan(planName: string): planName is Plan {
   return false;
 }
 
-// eslint-disable-next-line consistent-return
 export function getPreviousPlan(planName: string): Plan | null {
   const planNameIsPlan = isPlan(planName);
   if (!planNameIsPlan) {
@@ -101,7 +100,6 @@ export function getMAULimit(planName: string): number | undefined {
   return undefined;
 }
 
-// eslint-disable-next-line consistent-return
 function planToNumber(planName: Plan): number {
   switch (planName) {
     case "free":
@@ -139,7 +137,6 @@ export type CTAVariant =
   | "current"
   | "contact-us";
 
-// eslint-disable-next-line complexity
 export function getCTAVariant(opts: {
   cardPlanName: string;
   currentPlanName: string;

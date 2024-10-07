@@ -284,7 +284,6 @@ function EditPictureScreenContent(props: EditPictureScreenContentProps) {
         },
         () => {}
       );
-      // eslint-disable-next-line @typescript-eslint/no-implicit-any-catch
     } catch (e: any) {
       if (e?.response?.data?.error != null) {
         setUploadState((prev) => {

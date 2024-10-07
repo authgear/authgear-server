@@ -127,7 +127,7 @@ interface PlanDetailsLinesProps {
 
 function PlanDetailsLines(props: PlanDetailsLinesProps) {
   const { planName } = props;
-  let length = 0;
+  let length: number;
   switch (planName) {
     case "startups":
       length = 4;
@@ -159,7 +159,6 @@ interface SubscriptionPlanCardRenderProps {
   nextBillingDate?: Date;
 }
 
-// eslint-disable-next-line complexity
 function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
   const {
     currentPlanName,
@@ -539,7 +538,6 @@ function getMAUCost(
   return undefined;
 }
 
-// eslint-disable-next-line complexity
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const {
     appID,

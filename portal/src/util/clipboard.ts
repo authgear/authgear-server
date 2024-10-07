@@ -8,6 +8,7 @@ export function copyToClipboard(str: string): void {
   // Select text inside element
   el.select();
   el.setSelectionRange(0, el.value.length); // for mobile device
+  // eslint-disable-next-line @typescript-eslint/no-deprecated
   document.execCommand("copy");
   // Remove temporary element
   document.body.removeChild(el);

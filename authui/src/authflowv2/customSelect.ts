@@ -336,6 +336,8 @@ export class CustomSelectController extends Controller {
         scrollPosition =
           itemPosition + item.offsetHeight + padding - container.offsetHeight;
         break;
+      default:
+        break;
     }
 
     if (scrollPosition !== undefined) {
@@ -390,13 +392,16 @@ export class CustomSelectController extends Controller {
     this.optionsValue.forEach((item, index) => {
       const clone = document.importNode(template, true);
       const option = clone.querySelector("li");
+      if (option == null) {
+        return;
+      }
       const isVisible = visibleOptionsIndexByValue.get(item.value) != null;
       const selected =
         visibleOptionsIndexByValue.get(item.value) === this.highlightIndex;
-      const prefixEl = option!.querySelector<HTMLElement>(
+      const prefixEl = option.querySelector<HTMLElement>(
         '[data-label="prefix"]'
       );
-      const labelEl = option!.querySelector<HTMLElement>(
+      const labelEl = option.querySelector<HTMLElement>(
         '[data-label="content"]'
       );
       if (prefixEl) {
@@ -408,13 +413,13 @@ export class CustomSelectController extends Controller {
         labelEl.innerHTML = item.label;
       }
       if (!prefixEl && !labelEl) {
-        option!.innerHTML = item.label;
+        option.innerHTML = item.label;
       }
-      option!.dataset.index = index.toString();
-      option!.setAttribute("data-value", item.value);
-      option!.setAttribute("aria-selected", selected.toString());
+      option.dataset.index = index.toString();
+      option.setAttribute("data-value", item.value);
+      option.setAttribute("aria-selected", selected.toString());
       if (!isVisible) {
-        option!.classList.add("hidden");
+        option.classList.add("hidden");
       }
       fragment.appendChild(clone);
     });

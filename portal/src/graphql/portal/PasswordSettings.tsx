@@ -325,7 +325,6 @@ function usePasswordCheckboxOnChange<T extends State>(
   );
 }
 
-// eslint-disable-next-line complexity
 export default function PasswordSettings<T extends State>(
   props: PasswordSettingsProps<T>
 ): ReactElement {

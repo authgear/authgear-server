@@ -69,7 +69,6 @@ function constructConfig(
   currentState: FormState,
   effectiveConfig: PortalAPIAppConfig
 ): [PortalAPIAppConfig, PortalAPISecretConfig] {
-  // eslint-disable-next-line complexity
   return produce([config, secretConfig], ([config, secretConfig]) => {
     const configs: OAuthSSOProviderConfig[] = [];
     const clientSecrets: OAuthSSOProviderClientSecret[] = [];

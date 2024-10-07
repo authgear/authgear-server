@@ -204,7 +204,6 @@ const CURRENT_BUTTON_THEME: PartialTheme = {
   },
 };
 
-// eslint-disable-next-line complexity
 function CTA_(props: CTAProps): React.ReactElement {
   const {
     appID,

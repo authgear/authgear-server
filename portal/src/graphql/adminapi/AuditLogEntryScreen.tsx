@@ -51,7 +51,6 @@ function SummaryText(props: { children: React.ReactNode; light?: boolean }) {
   );
 }
 
-// eslint-disable-next-line complexity
 const AuditLogEntryScreen: React.VFC = function AuditLogEntryScreen() {
   const { logID, appID } = useParams() as { logID: string; appID: string };
   const location = useLocation();

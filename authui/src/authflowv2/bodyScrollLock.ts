@@ -26,7 +26,7 @@ export class BodyScrollLockController extends Controller {
 
     this.styleElement = document.createElement("style");
     document.head.appendChild(this.styleElement);
-    this.styleElement.sheet!.insertRule(this.style, 0);
+    this.styleElement.sheet?.insertRule(this.style, 0);
   }
 
   unlock() {

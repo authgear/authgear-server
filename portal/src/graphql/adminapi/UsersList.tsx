@@ -254,7 +254,6 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
   const [disableUserDialogData, setDisableUserDialogData] =
     useState<DisableUserDialogData | null>(null);
 
-  // eslint-disable-next-line complexity
   const items: UserListItem[] = useMemo(() => {
     const items = [];
     if (edges != null) {
@@ -336,7 +335,7 @@ const UsersList: React.VFC<UsersListProps> = function UsersList(props) {
   const renderActionCell = useCallback(
     (item: UserListItem) => {
       let variant: "destructive" | "default" | "no-action";
-      let text = "";
+      let text: string;
       if (item.deleteAt != null) {
         variant = "default";
         text = renderToString("UsersList.cancel-removal");

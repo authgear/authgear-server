@@ -47,7 +47,7 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
     localError,
     errorRules,
     fallbackErrorMessageID,
-    beforeSave = async () => Promise.resolve(),
+    beforeSave,
     afterSave,
   }) {
     const { updateError, isDirty, isUpdating, reset, save } = form;
@@ -56,7 +56,7 @@ export const FormContainerBase: React.VFC<FormContainerBaseProps> =
 
     const callSave = useCallback(
       (ignoreConflict: boolean = false) => {
-        beforeSave().then(
+        (beforeSave ?? (async () => Promise.resolve()))().then(
           () => {
             save(ignoreConflict).then(
               () => afterSave?.(),

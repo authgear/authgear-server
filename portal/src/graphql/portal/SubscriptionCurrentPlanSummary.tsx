@@ -159,7 +159,6 @@ interface UsageMeterProps {
   onClickUpgrade?: IButtonProps["onClick"];
 }
 
-// eslint-disable-next-line complexity
 function UsageMeter(props: UsageMeterProps) {
   const {
     title,

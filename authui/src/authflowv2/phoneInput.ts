@@ -257,6 +257,7 @@ export class PhoneInputController extends Controller {
     this.updateValue();
   }
 
+  // eslint-disable-next-line sonarjs/cognitive-complexity
   private async initPhoneCode() {
     const countryListSources = [
       compileDefaultCountryList,
@@ -291,6 +292,7 @@ export class PhoneInputController extends Controller {
             ?.getAttribute("content") as CountryCode | undefined) ?? null;
 
         let countryCode: CountryCode | null = null;
+        // eslint-disable-next-line no-useless-assignment
         let inputValue: string = this.phoneInputTarget.value;
 
         if (this.inputTarget.value !== "") {

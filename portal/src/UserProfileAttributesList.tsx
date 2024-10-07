@@ -116,7 +116,6 @@ function atMost(
   return undefined;
 }
 
-// eslint-disable-next-line complexity
 function makeUpdate<T extends UserProfileAttributesListItem>(
   prevItems: T[],
   index: number,

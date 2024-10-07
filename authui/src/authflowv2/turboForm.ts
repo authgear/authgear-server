@@ -26,6 +26,7 @@ import { handleAxiosError } from "./alert-message";
 export class TurboFormController extends Controller {
   forms: HTMLFormElement[] = [];
 
+  // eslint-disable-next-line complexity
   async submitForm(e: Event) {
     e.preventDefault();
     const form = e.currentTarget as HTMLFormElement;

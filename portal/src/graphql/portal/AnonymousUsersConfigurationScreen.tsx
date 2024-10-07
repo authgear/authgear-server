@@ -84,7 +84,6 @@ function constructConfig(
   currentState: FormState,
   effectiveConfig: PortalAPIAppConfig
 ): PortalAPIAppConfig {
-  // eslint-disable-next-line complexity
   return produce(config, (config) => {
     if (initialState.enabled !== currentState.enabled) {
       const identities = (

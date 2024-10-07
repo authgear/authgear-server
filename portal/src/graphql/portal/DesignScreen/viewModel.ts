@@ -41,7 +41,6 @@ const PreviewPage: Record<PreviewPageType, string> = {
   Error: "preview/v2/errors/error",
 };
 
-// eslint-disable-next-line complexity
 export function getSupportedPreviewPagesFromConfig(
   config: PortalAPIAppConfig
 ): PreviewPageOption[] {

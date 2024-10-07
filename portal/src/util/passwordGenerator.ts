@@ -92,7 +92,6 @@ export function internalGeneratePasswordWithSource(
   return [null, -1];
 }
 
-// eslint-disable-next-line complexity
 function generatePasswordOnce(
   source: RandSource,
   policy: PasswordPolicyConfig
@@ -142,7 +141,6 @@ function generatePasswordOnce(
   return null;
 }
 
-// eslint-disable-next-line complexity
 export function prepareCharList(passwordPolicy: PasswordPolicyConfig): string {
   const set = new Set<string>();
 

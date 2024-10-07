@@ -136,6 +136,7 @@ interface OAuthClientIdCopyButtonProps {
 const OAuthClientIdCopyButton: React.VFC<OAuthClientIdCopyButtonProps> =
   function OAuthClientIdCopyButton(props) {
     const { clientId } = props;
+    // eslint-disable-next-line no-useless-assignment
     const { copyButtonProps, Feedback } = useCopyFeedback({
       textToCopy: clientId,
     });

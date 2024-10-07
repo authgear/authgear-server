@@ -64,7 +64,6 @@ function isAuditLogKind(s: string): s is AuditLogKind {
   return Object.values(AuditLogKind).includes(s as AuditLogKind);
 }
 
-// eslint-disable-next-line complexity
 const AuditLogScreen: React.VFC = function AuditLogScreen() {
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -245,7 +244,7 @@ const AuditLogScreen: React.VFC = function AuditLogScreen() {
   }, []);
 
   // Sync state to searchParams.
-  // eslint-disable-next-line complexity
+
   useEffect(() => {
     const page = offset / pageSize + 1;
 

@@ -220,7 +220,7 @@ const ChangePasswordScreen: React.VFC = function ChangePasswordScreen() {
               "email"
           );
         })
-        ?.map((identity) => identity?.node) ?? [];
+        .map((identity) => identity?.node) ?? [];
     if (emailIdentities.length > 0) {
       return emailIdentities[0]?.claims.email ?? null;
     }
