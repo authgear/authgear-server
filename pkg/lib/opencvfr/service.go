@@ -32,6 +32,10 @@ type SearchService interface {
 	SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (r *openapi.NullableSearchPersonResultSchema, err error)
 }
 
+type LivenessService interface {
+	Check(reqBody *openapi.LivenessSchema) (r *openapi.LivenessResultSchema, err error)
+}
+
 type Service struct {
 	Clock               clock.Clock
 	AppID               config.AppID
@@ -39,4 +43,5 @@ type Service struct {
 	Person              PersonService
 	Collection          CollectionService
 	Search              SearchService
+	Liveness            LivenessService
 }
