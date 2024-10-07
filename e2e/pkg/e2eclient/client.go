@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
@@ -42,6 +43,7 @@ func (t *ProjectHostRewriteTransport) RoundTrip(req *http.Request) (*http.Respon
 
 type Client struct {
 	Context       context.Context
+	CookieJar     http.CookieJar
 	HTTPClient    *http.Client
 	OAuthClient   *http.Client
 	MainEndpoint  *url.URL
@@ -133,6 +135,7 @@ func NewClient(ctx context.Context, mainListenAddr string, adminListenAddr strin
 
 	return &Client{
 		Context:       ctx,
+		CookieJar:     customJar,
 		HTTPClient:    httpClient,
 		OAuthClient:   oauthClient,
 		MainEndpoint:  mainEndpointURL,
@@ -229,6 +232,15 @@ func (c *Client) InputFlow(w http.ResponseWriter, r *http.Request, stateToken st
 	}
 
 	return c.doFlowRequest(w, req)
+}
+
+func (c *Client) InjectSession(idpSessionID string, idpSessionToken string) {
+	encodedToken := idpsession.E2EEncodeToken(idpSessionID, idpSessionToken)
+	urlWithProjectHost := c.MainEndpoint.JoinPath("")
+	urlWithProjectHost.Host = string(c.HTTPHost)
+	c.CookieJar.SetCookies(urlWithProjectHost, []*http.Cookie{
+		{Name: "session", Value: encodedToken},
+	})
 }
 
 func (c *Client) SendSAMLRequest(

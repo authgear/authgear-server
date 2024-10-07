@@ -251,6 +251,12 @@ func (tc *TestCase) executeStep(
 		if !ok {
 			return nil, state, false
 		}
+		if step.HTTPRequestSessionCookie != nil {
+			client.InjectSession(
+				step.HTTPRequestSessionCookie.IDPSessionID,
+				step.HTTPRequestSessionCookie.IDPSessionToken,
+			)
+		}
 		err := client.MakeHTTPRequest(
 			step.HTTPRequestMethod,
 			url,
@@ -278,6 +284,13 @@ func (tc *TestCase) executeStep(
 		}
 
 	case StepActionSAMLRequest:
+		if step.SAMLRequestSessionCookie != nil {
+			client.InjectSession(
+				step.SAMLRequestSessionCookie.IDPSessionID,
+				step.SAMLRequestSessionCookie.IDPSessionToken,
+			)
+		}
+
 		var samlOutputOk bool = true
 		var httpResult interface{} = nil
 		err := client.SendSAMLRequest(

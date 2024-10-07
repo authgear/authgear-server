@@ -145,10 +145,12 @@ var _ = TestCaseSchema.Add("Step", `
 		"saml_element_name": { "type": "string", "enum": ["SAMLRequest", "SAMLResponse"] },
 		"saml_request_destination": { "type": "string" },
 		"saml_request_binding": { "$ref": "#/$defs/SAMLBinding" },
+		"saml_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_request_method": { "type": "string" },
 		"http_request_url": { "type": "string" },
 		"http_request_headers": { "type": "object" },
 		"http_request_body": { "type": "string" },
+		"http_request_session_cookie": { "$ref": "#/$defs/SessionCookie" },
 		"http_output": { "$ref": "#/$defs/HTTPOutput" }
 	},
 	"allOf": [
@@ -256,18 +258,20 @@ type Step struct {
 	QueryOutput *QueryOutput `json:"query_output"`
 
 	// `action` == "saml_request"
-	SAMLElement            string                `json:"saml_element"`
-	SAMLElementName        string                `json:"saml_element_name"`
-	SAMLRequestDestination string                `json:"saml_request_destination"`
-	SAMLRequestBinding     e2eclient.SAMLBinding `json:"saml_request_binding"`
-	SAMLOutput             *SAMLOutput           `json:"saml_output"`
+	SAMLElement              string                `json:"saml_element"`
+	SAMLElementName          string                `json:"saml_element_name"`
+	SAMLRequestDestination   string                `json:"saml_request_destination"`
+	SAMLRequestBinding       e2eclient.SAMLBinding `json:"saml_request_binding"`
+	SAMLRequestSessionCookie *SessionCookie        `json:"saml_request_session_cookie"`
+	SAMLOutput               *SAMLOutput           `json:"saml_output"`
 
 	// `action` == "http_request"
-	HTTPRequestMethod  string            `json:"http_request_method"`
-	HTTPRequestURL     string            `json:"http_request_url"`
-	HTTPRequestHeaders map[string]string `json:"http_request_headers"`
-	HTTPRequestBody    string            `json:"http_request_body"`
-	HTTPOutput         *HTTPOutput       `json:"http_output"`
+	HTTPRequestMethod        string            `json:"http_request_method"`
+	HTTPRequestURL           string            `json:"http_request_url"`
+	HTTPRequestHeaders       map[string]string `json:"http_request_headers"`
+	HTTPRequestBody          string            `json:"http_request_body"`
+	HTTPRequestSessionCookie *SessionCookie    `json:"http_request_session_cookie"`
+	HTTPOutput               *HTTPOutput       `json:"http_output"`
 }
 
 type StepAction string
@@ -281,6 +285,22 @@ const (
 	StepActionSAMLRequest      StepAction = "saml_request"
 	StepActionHTTPRequest      StepAction = "http_request"
 )
+
+var _ = TestCaseSchema.Add("SessionCookie", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"idp_session_id": { "type": "string" },
+		"idp_session_token": { "type": "string" }
+	}
+}
+`)
+
+type SessionCookie struct {
+	IDPSessionID    string `json:"idp_session_id"`
+	IDPSessionToken string `json:"idp_session_token"`
+}
 
 var _ = TestCaseSchema.Add("SAMLOutput", `
 {
