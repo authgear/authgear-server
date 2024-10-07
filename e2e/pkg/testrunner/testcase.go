@@ -1,6 +1,8 @@
 package testrunner
 
 import (
+	"bytes"
+	"compress/flate"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -577,26 +579,51 @@ func validateSAMLElement(t *testing.T, expected *OuputSAMLElement, httpResponse 
 		samlResponseAttr := samlResponseEl.SelectAttr("value")
 		if samlResponseAttr == nil {
 			ok = false
-			t.Errorf("SAMLResponse input has no value")
+			t.Errorf("%s input has no value", expected.ElementName)
 			return
 		}
 		decodedXML, err := base64.StdEncoding.DecodeString(samlResponseAttr.Value)
 		if err != nil {
 			ok = false
-			t.Errorf("decode SAMLResponse failed: %v", err)
+			t.Errorf("decode SAML element failed: %v", err)
 			return
 		}
 		responseDoc = etree.NewDocument()
 		err = responseDoc.ReadFromString(string(decodedXML))
 		if err != nil {
 			ok = false
-			t.Errorf("failed to parse SAMLResponse as xml")
+			t.Errorf("failed to parse SAML element as xml")
 			return
 		}
 
 	case authflowclient.SAMLBindingHTTPRedirect:
-		// TODO
-		fallthrough
+		redirectLocation, err := url.Parse(httpResponse.Header.Get("location"))
+		if err != nil {
+			ok = false
+			t.Errorf("invalid redirect location")
+			return
+		}
+		encodedSAMLElement := redirectLocation.Query().Get(expected.ElementName)
+		compressedSAMLElement, err := base64.StdEncoding.DecodeString(string(encodedSAMLElement))
+		if err != nil {
+			ok = false
+			t.Errorf("decode SAML element failed: %v", err)
+			return
+		}
+		flateReader := flate.NewReader(bytes.NewBuffer([]byte(compressedSAMLElement)))
+		elXML, err := io.ReadAll(flateReader)
+		if err != nil {
+			ok = false
+			t.Errorf("failed to decompress SAML element %v", err)
+			return
+		}
+		responseDoc = etree.NewDocument()
+		err = responseDoc.ReadFromString(string(elXML))
+		if err != nil {
+			ok = false
+			t.Errorf("failed to parse SAML element as xml")
+			return
+		}
 	default:
 		t.Errorf("not implemented")
 		ok = false
