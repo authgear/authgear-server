@@ -45,3 +45,25 @@ func (ss *SearchService) Verify(reqBody *openapi.VerifyPersonSchema) (r *openapi
 
 	return r, nil
 }
+
+func (ss *SearchService) Search(reqBody *openapi.SearchPersonSchema) (r []*openapi.SearchPersonResultSchema, err error) {
+	path := "/search"
+
+	rbb, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := ss.HTTPClient.Post(path, bytes.NewBuffer(rbb), http.StatusOK)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search person - req: %v, err: %w", reqBody, err)
+	}
+
+	sr := []*openapi.SearchPersonResultSchema{}
+	err = json.Unmarshal(body, &sr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse POST %v response body: %w", path, err)
+	}
+
+	return sr, nil
+}
