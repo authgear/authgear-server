@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	infraredis "github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
-	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -90,6 +89,8 @@ func (c *End2End) CreateSession(
 		accessEvent := access.NewEvent(
 			clk.NowUTC(), "127.0.0.1", "e2e",
 		)
+		encodedToken := idpsession.E2EEncodeToken(sessionID, token)
+		tokenHash := idpsession.E2EHashToken(encodedToken)
 		err = idpSessionStore.Create(&idpsession.IDPSession{
 			ID:              sessionID,
 			AppID:           appID,
@@ -100,7 +101,7 @@ func (c *End2End) CreateSession(
 				InitialAccess: accessEvent,
 				LastAccess:    accessEvent,
 			},
-			TokenHash: oauth.HashToken(token),
+			TokenHash: tokenHash,
 		}, expiry)
 		if err != nil {
 			return fmt.Errorf("Failed to create idp session: %w", err)
