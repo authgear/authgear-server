@@ -60,3 +60,14 @@ func (cs *CollectionService) Get(id string) (c *openapi.CollectionSchema, err er
 
 	return c, nil
 }
+
+func (cs *CollectionService) Delete(id string) (err error) {
+	path := "/collection"
+
+	err = cs.HTTPClient.Delete(path, id)
+	if err != nil {
+		return fmt.Errorf("failed to delete collection - id=%s, err: %w", id, err)
+	}
+
+	return nil
+}
