@@ -1,8 +1,0 @@
-*.generated.*
-jest.config.js
-codesplit.ts
-tailwind.config.js
-
-# Only include authflowv2 for now
-/src/*.ts
-/src/*.js
