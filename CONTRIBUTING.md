@@ -98,6 +98,7 @@ This project uses asdf, and there is a .tool-versions file at the project root.
    `authgear.yaml` must contain the following contents for the portal to work.
 
    ```yaml
+   # yaml-language-server: $schema=../tmp/app-config.schema.json # get this by running `make export-schemas`
    id: accounts # Make sure the ID matches AUTHGEAR_APP_ID environment variable.
    http:
       # Make sure this matches the host used to access main Authgear server.
