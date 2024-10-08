@@ -3,6 +3,7 @@ package validation
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -10,6 +11,16 @@ import (
 
 	"github.com/iawaknahc/jsonschema/pkg/jsonschema"
 )
+
+var errJSONSyntaxErrorOfEmptyInput error
+
+func init() {
+	var unimportant interface{}
+	// errJSONSyntaxErrorOfEmptyInput is a *json.SyntaxError with msg set.
+	// We have to do this because *json.SyntaxError.msg is private,
+	// we cannot initialize msg.
+	errJSONSyntaxErrorOfEmptyInput = json.Unmarshal(nil, &unimportant)
+}
 
 type SchemaValidator struct {
 	Schema    *jsonschema.Collection
@@ -62,6 +73,16 @@ func (v *SchemaValidator) Validate(r io.Reader) error {
 func (v *SchemaValidator) ValidateWithMessage(r io.Reader, msg string) error {
 	node, err := v.Schema.Apply(v.Reference, r)
 	if err != nil {
+		// It is observed that json.NewDecoder.Decode and json.Unmarshal
+		// returns different error with the input is empty.
+		// json.Unmarshal returns *json.SyntaxError while
+		// json.NewDecoder.Decode returns io.EOF
+		// https://go.dev/play/p/WHEtDYzJKTo
+		// So we convert the io.EOF here.
+		if errors.Is(err, io.EOF) {
+			return errJSONSyntaxErrorOfEmptyInput
+		}
+
 		return fmt.Errorf("%s: %w", msg, err)
 	}
 
