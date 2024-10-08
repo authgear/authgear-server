@@ -163,6 +163,11 @@ func AsAPIError(err error) *APIError {
 	details := errorutil.CollectDetails(err, nil)
 	info := errorutil.FilterDetails(details, APIErrorDetail)
 
+	var jsonSyntaxError *json.SyntaxError
+	if errors.As(err, &jsonSyntaxError) {
+		return newInvalidJSON(jsonSyntaxError)
+	}
+
 	var apiError *APIError
 	if errors.As(err, &apiError) {
 		apiError.Info = mergeInfo(apiError.Info, info)
@@ -238,4 +243,15 @@ func NewDataRace(msg string) error {
 
 func NewTooManyRequest(msg string) error {
 	return TooManyRequest.WithReason(string(TooManyRequest)).New(msg)
+}
+
+func newInvalidJSON(err *json.SyntaxError) *APIError {
+	return &APIError{
+		Kind:    Kind{BadRequest, "InvalidJSON"},
+		Message: err.Error(),
+		Code:    BadRequest.HTTPStatus(),
+		Info: map[string]interface{}{
+			"byte_offset": err.Offset,
+		},
+	}
 }

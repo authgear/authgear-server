@@ -136,6 +136,34 @@ func TestAPIError(t *testing.T) {
 				},
 			})
 		})
+		Convey("recognize JSON syntax error - case 1", func() {
+			var unimportant interface{}
+			err := json.Unmarshal([]byte(`{"a":}`), &unimportant)
+
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.BadRequest, Reason: "InvalidJSON"},
+				Message: "invalid character '}' looking for beginning of value",
+				Code:    400,
+				Info: map[string]interface{}{
+					"byte_offset": int64(6),
+				},
+			})
+		})
+		Convey("recognize JSON syntax error - case 2", func() {
+			var unimportant interface{}
+			err := json.Unmarshal([]byte(``), &unimportant)
+
+			apiErr := apierrors.AsAPIError(err)
+			So(apiErr, ShouldResemble, &apierrors.APIError{
+				Kind:    apierrors.Kind{Name: apierrors.BadRequest, Reason: "InvalidJSON"},
+				Message: "unexpected end of JSON input",
+				Code:    400,
+				Info: map[string]interface{}{
+					"byte_offset": int64(0),
+				},
+			})
+		})
 	})
 
 	Convey("APIError", t, func() {
