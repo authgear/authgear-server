@@ -101,34 +101,38 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (rec
 		case model.IdentityTypeLoginID:
 			record.Identities = append(record.Identities, &Identity{
 				Type: model.IdentityTypeLoginID,
-				LoginID: map[string]interface{}{
-					"key":            identity.LoginID.LoginIDKey,
-					"type":           identity.LoginID.LoginIDType,
-					"value":          identity.LoginID.LoginID,
-					"original_value": identity.LoginID.OriginalLoginID,
+				LoginID: &IdentityLoginID{
+					Key:           identity.LoginID.LoginIDKey,
+					Type:          string(identity.LoginID.LoginIDType),
+					Value:         identity.LoginID.LoginID,
+					OriginalValue: identity.LoginID.OriginalLoginID,
 				},
 				Claims: identity.LoginID.Claims,
 			})
 		case model.IdentityTypeLDAP:
+			lastLoginUsername := ""
+			if identity.LDAP.LastLoginUserName != nil {
+				lastLoginUsername = *identity.LDAP.LastLoginUserName
+			}
 			record.Identities = append(record.Identities, &Identity{
 				Type: model.IdentityTypeLDAP,
-				LoginID: map[string]interface{}{
-					"server_name":             identity.LDAP.ServerName,
-					"last_login_username":     identity.LDAP.LastLoginUserName,
-					"user_id_attribute_name":  identity.LDAP.UserIDAttributeName,
-					"user_id_attribute_value": identity.LDAP.UserIDAttributeValue,
-					"attributes":              identity.LDAP.RawEntryJSON,
+				LDAP: &IdentityLDAP{
+					ServerName:           identity.LDAP.ServerName,
+					LastLoginUsername:    lastLoginUsername,
+					UserIDAttributeName:  identity.LDAP.UserIDAttributeName,
+					UserIDAttributeValue: identity.LDAP.UserIDAttributeValueDisplayValue(),
+					Attributes:           identity.LDAP.RawEntryJSON,
 				},
 				Claims: identity.LDAP.Claims,
 			})
 		case model.IdentityTypeOAuth:
 			record.Identities = append(record.Identities, &Identity{
 				Type: model.IdentityTypeOAuth,
-				LoginID: map[string]interface{}{
-					"provider_alias":      identity.OAuth.ProviderAlias,
-					"provider_type":       identity.OAuth.ProviderID.Type,
-					"provider_subject_id": identity.OAuth.ProviderSubjectID,
-					"user_profile":        identity.OAuth.UserProfile,
+				OAuth: &IdentityOAuth{
+					ProviderAlias:     identity.OAuth.ProviderAlias,
+					ProviderType:      identity.OAuth.ProviderID.Type,
+					ProviderSubjectID: identity.OAuth.ProviderSubjectID,
+					UserProfile:       identity.OAuth.UserProfile,
 				},
 				Claims: identity.OAuth.Claims,
 			})

@@ -134,10 +134,32 @@ type Address struct {
 
 type Identity struct {
 	Type    model.IdentityType     `json:"type"`
-	LoginID map[string]interface{} `json:"login_id,omitempty"`
-	OAuth   map[string]interface{} `json:"oauth,omitempty"`
-	LDAP    map[string]interface{} `json:"ldap,omitempty"`
+	LoginID *IdentityLoginID       `json:"login_id,omitempty"`
+	OAuth   *IdentityOAuth         `json:"oauth,omitempty"`
+	LDAP    *IdentityLDAP          `json:"ldap,omitempty"`
 	Claims  map[string]interface{} `json:"claims,omitempty"`
+}
+
+type IdentityLoginID struct {
+	Key           string `json:"key,omitempty"`
+	Type          string `json:"type,omitempty"`
+	Value         string `json:"value,omitempty"`
+	OriginalValue string `json:"original_value,omitempty"`
+}
+
+type IdentityLDAP struct {
+	ServerName           string                 `json:"server_name,omitempty"`
+	LastLoginUsername    string                 `json:"last_login_username,omitempty"`
+	UserIDAttributeName  string                 `json:"user_id_attribute_name,omitempty"`
+	UserIDAttributeValue string                 `json:"user_id_attribute_value,omitempty"`
+	Attributes           map[string]interface{} `json:"attributes,omitempty"`
+}
+
+type IdentityOAuth struct {
+	ProviderAlias     string                 `json:"provider_alias,omitempty"`
+	ProviderType      string                 `json:"provider_type,omitempty"`
+	ProviderSubjectID string                 `json:"provider_subject_id,omitempty"`
+	UserProfile       map[string]interface{} `json:"user_profile,omitempty"`
 }
 
 type MFATOTP struct {
