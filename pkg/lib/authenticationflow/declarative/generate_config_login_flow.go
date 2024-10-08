@@ -341,6 +341,8 @@ func generateLoginFlowStepAuthenticateSecondary(cfg *config.AppConfig, identific
 			addOneOf(config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS, getBotProtectionRequirementsOOBOTPSMS)
 		case model.AuthenticatorTypeTOTP:
 			addOneOf(config.AuthenticationFlowAuthenticationSecondaryTOTP, nil)
+		case model.AuthenticatorTypeFaceRecognition:
+			addOneOf(config.AuthenticationFlowAuthenticationSecondaryFaceRecognition, nil)
 		}
 	}
 
