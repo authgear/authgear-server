@@ -7,13 +7,13 @@ import (
 // Credit to https://github.com/react-native-device-info/react-native-device-info/blob/master/ios/RNDeviceInfo/RNDeviceInfo.m
 // Credit to https://gist.github.com/adamawolf/3048717
 var iosMachineMapping = map[string]string{
-	"iPod1,1": "iPod Touch", // (Original)
-	"iPod2,1": "iPod Touch", // (Second Generation)
-	"iPod3,1": "iPod Touch", // (Third Generation)
-	"iPod4,1": "iPod Touch", // (Fourth Generation)
-	"iPod5,1": "iPod Touch", // (Fifth Generation)
-	"iPod7,1": "iPod Touch", // (Sixth Generation)
-	"iPod9,1": "iPod Touch", // (Seventh Generation)
+	"iPod1,1": "iPod Touch",                  // (Original)
+	"iPod2,1": "iPod Touch (2nd generation)", // (Second Generation)
+	"iPod3,1": "iPod Touch (3rd generation)", // (Third Generation)
+	"iPod4,1": "iPod Touch (4th generation)", // (Fourth Generation)
+	"iPod5,1": "iPod Touch (5th generation)", // (Fifth Generation)
+	"iPod7,1": "iPod Touch (6th generation)", // (Sixth Generation)
+	"iPod9,1": "iPod Touch (7th generation)", // (Seventh Generation)
 
 	"iPhone1,1":  "iPhone",         // (Original)
 	"iPhone1,2":  "iPhone 3G",      // (3G)
@@ -34,8 +34,8 @@ var iosMachineMapping = map[string]string{
 	"iPhone8,2":  "iPhone 6s Plus", //
 	"iPhone8,4":  "iPhone SE",      //
 	"iPhone9,1":  "iPhone 7",       // (model A1660 | CDMA)
-	"iPhone9,3":  "iPhone 7",       // (model A1778 | Global)
 	"iPhone9,2":  "iPhone 7 Plus",  // (model A1661 | CDMA)
+	"iPhone9,3":  "iPhone 7",       // (model A1778 | Global)
 	"iPhone9,4":  "iPhone 7 Plus",  // (model A1784 | Global)
 	"iPhone10,1": "iPhone 8",       // (model A1863, A1906, A1907)
 	"iPhone10,2": "iPhone 8 Plus",  // (model A1864, A1898, A1899)
@@ -50,7 +50,7 @@ var iosMachineMapping = map[string]string{
 	"iPhone12,1": "iPhone 11",
 	"iPhone12,3": "iPhone 11 Pro",
 	"iPhone12,5": "iPhone 11 Pro Max",
-	"iPhone12,8": "iPhone SE", // (2nd Generation iPhone SE)
+	"iPhone12,8": "iPhone SE (2nd generation)", // (2nd Generation iPhone SE)
 	"iPhone13,1": "iPhone 12 mini",
 	"iPhone13,2": "iPhone 12",
 	"iPhone13,3": "iPhone 12 Pro",
@@ -59,7 +59,7 @@ var iosMachineMapping = map[string]string{
 	"iPhone14,3": "iPhone 13 Pro Max",
 	"iPhone14,4": "iPhone 13 mini",
 	"iPhone14,5": "iPhone 13",
-	"iPhone14,6": "iPhone SE", // (3rd Generation iPhone SE)
+	"iPhone14,6": "iPhone SE (3rd generation)", // (3rd Generation iPhone SE)
 	"iPhone14,7": "iPhone 14",
 	"iPhone14,8": "iPhone 14 Plus",
 	"iPhone15,2": "iPhone 14 Pro",
@@ -68,71 +68,73 @@ var iosMachineMapping = map[string]string{
 	"iPhone15,5": "iPhone 15 Plus",
 	"iPhone16,1": "iPhone 15 Pro",
 	"iPhone16,2": "iPhone 15 Pro Max",
+	"iPhone17,1": "iPhone 16 Pro",
+	"iPhone17,2": "iPhone 16 Pro Max",
+	"iPhone17,3": "iPhone 16",
+	"iPhone17,4": "iPhone 16 Plus",
 
-	"iPad1,1":   "iPad",                                // (Original)
-	"iPad1,2":   "iPad 3G",                             //
-	"iPad2,1":   "iPad (2nd generation)",               //
-	"iPad2,2":   "iPad (2nd generation)",               //
-	"iPad2,3":   "iPad (2nd generation)",               //
-	"iPad2,4":   "iPad (2nd generation)",               //
-	"iPad2,5":   "iPad Mini",                           // (Original)
-	"iPad2,6":   "iPad Mini",                           // (Original)
-	"iPad2,7":   "iPad Mini",                           // (Original)
-	"iPad3,1":   "iPad (3rd generation)",               // (3rd Generation)
-	"iPad3,2":   "iPad (3rd generation)",               // (3rd Generation)
-	"iPad3,3":   "iPad (3rd generation)",               // (3rd Generation)
-	"iPad3,4":   "iPad (4th generation)",               // (4th Generation)
-	"iPad3,5":   "iPad (4th generation)",               // (4th Generation)
-	"iPad3,6":   "iPad (4th generation)",               // (4th Generation)
-	"iPad4,1":   "iPad Air",                            // 5th Generation iPad (iPad Air) - Wifi
-	"iPad4,2":   "iPad Air",                            // 5th Generation iPad (iPad Air) - Cellular
-	"iPad4,3":   "iPad Air",                            // 5th Generation iPad (iPad Air)
-	"iPad4,4":   "iPad Mini (2nd generation)",          // (2nd Generation iPad Mini - Wifi)
-	"iPad4,5":   "iPad Mini (2nd generation)",          // (2nd Generation iPad Mini - Cellular)
-	"iPad4,6":   "iPad Mini (2nd generation)",          // (2nd Generation iPad Mini)
-	"iPad4,7":   "iPad Mini (3rd generation)",          // (3rd Generation iPad Mini)
-	"iPad4,8":   "iPad Mini (3rd generation)",          // (3rd Generation iPad Mini)
-	"iPad4,9":   "iPad Mini (3rd generation)",          // (3rd Generation iPad Mini)
-	"iPad5,1":   "iPad Mini (4th generation)",          // (4th Generation iPad Mini)
-	"iPad5,2":   "iPad Mini (4th generation)",          // (4th Generation iPad Mini)
-	"iPad5,3":   "iPad Air (2nd generation)",           // 6th Generation iPad (iPad Air 2)
-	"iPad5,4":   "iPad Air (2nd generation)",           // 6th Generation iPad (iPad Air 2)
-	"iPad6,3":   "iPad Pro 9.7-inch",                   // iPad Pro 9.7-inch
-	"iPad6,4":   "iPad Pro 9.7-inch",                   // iPad Pro 9.7-inch
-	"iPad6,7":   "iPad Pro 12.9-inch",                  // iPad Pro 12.9-inch
-	"iPad6,8":   "iPad Pro 12.9-inch",                  // iPad Pro 12.9-inch
-	"iPad6,11":  "iPad (5th generation)",               // Apple iPad 9.7 inch (5th generation) - WiFi
-	"iPad6,12":  "iPad (5th generation)",               // Apple iPad 9.7 inch (5th generation) - WiFi + cellular
-	"iPad7,1":   "iPad Pro 12.9-inch (2nd generation)", // 2nd Generation iPad Pro 12.5-inch - Wifi
-	"iPad7,2":   "iPad Pro 12.9-inch (2nd generation)", // 2nd Generation iPad Pro 12.5-inch - Cellular
-	"iPad7,3":   "iPad Pro 10.5-inch (2nd generation)", // iPad Pro 10.5-inch - Wifi
-	"iPad7,4":   "iPad Pro 10.5-inch (2nd generation)", // iPad Pro 10.5-inch - Cellular
-	"iPad7,5":   "iPad (6th generation)",               // iPad (6th generation) - Wifi
-	"iPad7,6":   "iPad (6th generation)",               // iPad (6th generation) - Cellular
-	"iPad7,11":  "iPad (7th generation)",               // iPad 10.2 inch (7th generation) - Wifi
-	"iPad7,12":  "iPad (7th generation)",               // iPad 10.2 inch (7th generation) - Wifi + cellular
-	"iPad8,1":   "iPad Pro 11-inch (3rd generation)",   // iPad Pro 11 inch (3rd generation) - Wifi
-	"iPad8,2":   "iPad Pro 11-inch (3rd generation)",   // iPad Pro 11 inch (3rd generation) - 1TB - Wifi
-	"iPad8,3":   "iPad Pro 11-inch (3rd generation)",   // iPad Pro 11 inch (3rd generation) - Wifi + cellular
-	"iPad8,4":   "iPad Pro 11-inch (3rd generation)",   // iPad Pro 11 inch (3rd generation) - 1TB - Wifi + cellular
-	"iPad8,5":   "iPad Pro 12.9-inch (3rd generation)", // iPad Pro 12.9 inch (3rd generation) - Wifi
-	"iPad8,6":   "iPad Pro 12.9-inch (3rd generation)", // iPad Pro 12.9 inch (3rd generation) - 1TB - Wifi
-	"iPad8,7":   "iPad Pro 12.9-inch (3rd generation)", // iPad Pro 12.9 inch (3rd generation) - Wifi + cellular
-	"iPad8,8":   "iPad Pro 12.9-inch (3rd generation)", // iPad Pro 12.9 inch (3rd generation) - 1TB - Wifi + cellular
-	"iPad8,9":   "iPad Pro 11-inch (4th generation)",   // iPad Pro 11 inch (4th generation) - Wifi
-	"iPad8,10":  "iPad Pro 11-inch (4th generation)",   // iPad Pro 11 inch (4th generation) - Wifi + cellular
-	"iPad8,11":  "iPad Pro 12.9-inch (4th generation)", // iPad Pro 11 inch (4th generation) - Wifi
-	"iPad8,12":  "iPad Pro 12.9-inch (4th generation)", // iPad Pro 11 inch (4th generation) - Wifi + cellular
-	"iPad11,1":  "iPad Mini (5th generation)",          // iPad Mini (5th generation) Wifi
-	"iPad11,2":  "iPad Mini (5th generation)",          // iPad Mini (5th generation)
-	"iPad11,3":  "iPad Air (3rd generation)",           // iPad Air (3rd generation) Wifi
-	"iPad11,4":  "iPad Air (3rd generation)",           // iPad Air (3rd generation)
-	"iPad11,6":  "iPad (8th generation)",               // iPad (8th generation) Wifi
-	"iPad11,7":  "iPad (8th generation)",               // iPad (8th generation) Wifi + cellular
-	"iPad12,1":  "iPad (9th generation)",               // iPad (9th generation)
-	"iPad12,2":  "iPad (9th generation)",               // iPad (9th generation)
-	"iPad14,1":  "iPad mini (6th generation)",
-	"iPad14,2":  "iPad mini (6th generation)",
+	"iPad1,1":   "iPad",
+	"iPad1,2":   "iPad 3G",
+	"iPad2,1":   "iPad (2nd generation)",
+	"iPad2,2":   "iPad (2nd generation)",
+	"iPad2,3":   "iPad (2nd generation)",
+	"iPad2,4":   "iPad (2nd generation)",
+	"iPad2,5":   "iPad mini",
+	"iPad2,6":   "iPad mini",
+	"iPad2,7":   "iPad mini",
+	"iPad3,1":   "iPad (3rd generation)",
+	"iPad3,2":   "iPad (3rd generation)",
+	"iPad3,3":   "iPad (3rd generation)",
+	"iPad3,4":   "iPad (4th generation)",
+	"iPad3,5":   "iPad (4th generation)",
+	"iPad3,6":   "iPad (4th generation)",
+	"iPad4,1":   "iPad Air",
+	"iPad4,2":   "iPad Air",
+	"iPad4,3":   "iPad Air",
+	"iPad4,4":   "iPad Mini (2nd generation)",
+	"iPad4,5":   "iPad Mini (2nd generation)",
+	"iPad4,6":   "iPad Mini (2nd generation)",
+	"iPad4,7":   "iPad Mini (3rd generation)",
+	"iPad4,8":   "iPad Mini (3rd generation)",
+	"iPad4,9":   "iPad Mini (3rd generation)",
+	"iPad5,1":   "iPad Mini (4th generation)",
+	"iPad5,2":   "iPad Mini (4th generation)",
+	"iPad5,3":   "iPad Air (2nd generation)",
+	"iPad5,4":   "iPad Air (2nd generation)",
+	"iPad6,3":   "iPad Pro 9.7-inch",
+	"iPad6,4":   "iPad Pro 9.7-inch",
+	"iPad6,7":   "iPad Pro 12.9-inch",
+	"iPad6,8":   "iPad Pro 12.9-inch",
+	"iPad6,11":  "iPad (5th generation)",
+	"iPad6,12":  "iPad (5th generation)",
+	"iPad7,1":   "iPad Pro 12.9-inch (2nd generation)",
+	"iPad7,2":   "iPad Pro 12.9-inch (2nd generation)",
+	"iPad7,3":   "iPad Pro 10.5-inch (2nd generation)",
+	"iPad7,4":   "iPad Pro 10.5-inch (2nd generation)",
+	"iPad7,5":   "iPad (6th generation)",
+	"iPad7,6":   "iPad (6th generation)",
+	"iPad7,11":  "iPad (7th generation)",
+	"iPad7,12":  "iPad (7th generation)",
+	"iPad8,1":   "iPad Pro 11-inch (3rd generation)",
+	"iPad8,2":   "iPad Pro 11-inch (3rd generation)",
+	"iPad8,3":   "iPad Pro 11-inch (3rd generation)",
+	"iPad8,4":   "iPad Pro 11-inch (3rd generation)",
+	"iPad8,5":   "iPad Pro 12.9-inch (3rd generation)",
+	"iPad8,6":   "iPad Pro 12.9-inch (3rd generation)",
+	"iPad8,7":   "iPad Pro 12.9-inch (3rd generation)",
+	"iPad8,8":   "iPad Pro 12.9-inch (3rd generation)",
+	"iPad8,9":   "iPad Pro 11-inch (4th generation)",
+	"iPad8,10":  "iPad Pro 11-inch (4th generation)",
+	"iPad8,11":  "iPad Pro 12.9-inch (4th generation)",
+	"iPad8,12":  "iPad Pro 12.9-inch (4th generation)",
+	"iPad11,1":  "iPad Mini (5th generation)",
+	"iPad11,2":  "iPad Mini (5th generation)",
+	"iPad11,3":  "iPad Air (3rd generation)",
+	"iPad11,4":  "iPad Air (3rd generation)",
+	"iPad11,6":  "iPad Air (3rd generation)",
+	"iPad11,7":  "iPad (8th generation)",
+	"iPad12,1":  "iPad (9th generation)",
+	"iPad12,2":  "iPad (9th generation)",
 	"iPad13,1":  "iPad Air (4th generation)",
 	"iPad13,2":  "iPad Air (4th generation)",
 	"iPad13,4":  "iPad Pro 11-inch (5th generation)",
@@ -145,12 +147,22 @@ var iosMachineMapping = map[string]string{
 	"iPad13,11": "iPad Pro 12.9-inch (5th generation)",
 	"iPad13,16": "iPad Air (5th generation)",
 	"iPad13,17": "iPad Air (5th generation)",
-	"iPad13,18": "iPad 10th Gen",
-	"iPad13,19": "iPad 10th Gen",
-	"iPad14,3":  "iPad Pro 11 inch 4th Gen",
-	"iPad14,4":  "iPad Pro 11 inch 4th Gen",
-	"iPad14,5":  "iPad Pro 12.9 inch 6th Gen",
-	"iPad14,6":  "iPad Pro 12.9 inch 6th Gen",
+	"iPad13,18": "iPad (10th generation)",
+	"iPad13,19": "iPad (10th generation)",
+	"iPad14,1":  "iPad Mini (6th generation)",
+	"iPad14,2":  "iPad Mini (6th generation)",
+	"iPad14,3":  "iPad Pro 11-inch (4th generation)",
+	"iPad14,4":  "iPad Pro 11-inch (4th generation)",
+	"iPad14,5":  "iPad Pro 12.9-inch (6th generation)",
+	"iPad14,6":  "iPad Pro 12.9-inch (6th generation)",
+	"iPad14,8":  "iPad Air (6th generation)",
+	"iPad14,9":  "iPad Air (6th generation)",
+	"iPad14,10": "iPad Air (7th generation)",
+	"iPad14,11": "iPad Air (7th generation)",
+	"iPad16,3":  "iPad Pro 11-inch (5th generation)",
+	"iPad16,4":  "iPad Pro 11-inch (5th generation)",
+	"iPad16,5":  "iPad Pro 12.9-inch (7th generation)",
+	"iPad16,6":  "iPad Pro 12.9-inch (7th generation)",
 }
 
 type Platform string
