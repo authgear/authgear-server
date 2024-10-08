@@ -61,7 +61,7 @@
       <div class="screen-title-description">
         <h1 class="screen-title">
           {{ if eq $.UIVariant "signup_login" }}
-            {{ include "v2.page.signup.signup-login.title" (dict
+            {{ include "v2.page.signup-login.default.title" (dict
               "AppName" $appName
               "ClientName" $clientName)
             }}
@@ -82,7 +82,7 @@
         </h1>
         <h2 class="screen-description">
           {{ if eq $.UIVariant "signup_login" }}
-            {{ include "v2.page.signup.signup-login.subtitle" (dict
+            {{ include "v2.page.signup-login.default.subtitle" (dict
               "AppName" $appName
               "ClientName" $clientName)
             }}
