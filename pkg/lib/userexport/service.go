@@ -20,6 +20,7 @@ import (
 	libhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type UserQueries interface {
@@ -394,9 +395,55 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File, format
 	return response, nil
 }
 
+func (s *UserExportService) makeRequestSchema() validation.SchemaBuilder {
+	pointer := validation.SchemaBuilder{}.
+		Type(validation.TypeString).
+		Format("json-pointer")
+
+	field := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("pointer")
+	field.Properties().
+		Property(
+			"field_name",
+			validation.SchemaBuilder{}.
+				Type(validation.TypeString).
+				MinLength(1),
+		).
+		Property("pointer", pointer)
+
+	csv := validation.SchemaBuilder{}.
+		Type(validation.TypeObject)
+	csv.Properties().
+		Property(
+			"fields",
+			validation.SchemaBuilder{}.
+				Type(validation.TypeArray).
+				MinItems(1).
+				Items(field),
+		)
+
+	root := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		AdditionalPropertiesFalse().
+		Required("format")
+
+	root.Properties().
+		Property(
+			"format",
+			validation.SchemaBuilder{}.
+				Type(validation.TypeString).
+				Enum("ndjson", "csv"),
+		).
+		Property("csv", csv)
+
+	return root
+}
+
 func (s *UserExportService) ParseExportRequest(w http.ResponseWriter, r *http.Request) (*Request, error) {
 	var request Request
-	err := httputil.BindJSONBody(r, w, RequestSchema.Validator(), &request)
+	schema := s.makeRequestSchema().ToSimpleSchema()
+	err := httputil.BindJSONBody(r, w, schema.Validator(), &request)
 	if err != nil {
 		return nil, err
 	}

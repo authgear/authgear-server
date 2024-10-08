@@ -13,50 +13,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/duration"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 // PresignGetExpiresForUserExport is how long the presign GET request remains valid for user export.
 const PresignGetExpiresForUserExport time.Duration = 1 * duration.PerMinute
 
 const BatchSize = 1000
-
-var RequestSchema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"format": {
-			"type": "string",
-			"enum": ["ndjson", "csv"]
-		},
-		"csv": {
-			"type": "object",
-			"properties": {
-				"fields": {
-					"type": "array",
-					"minItems": 1,
-					"items": {
-						"type": "object",
-						"properties": {
-							"pointer": {
-								"type": "string"
-							},
-							"field_name": {
-								"type": "string"
-							}
-						},
-						"required": [
-							"pointer"
-						]
-					}
-				}
-			}
-		}
-	},
-	"required": ["format"]
-}
-`)
 
 var defaultCSVExportFields = []*FieldPointer{
 	&FieldPointer{Pointer: "/sub"},
