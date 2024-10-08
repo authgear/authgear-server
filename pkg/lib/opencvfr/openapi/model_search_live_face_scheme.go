@@ -1,7 +1,7 @@
 /*
 OpenCV Face Recognition
 
- OpenCV Face Recognition allows you to either **manually** (through our [Developer Portal](https://developer.opencv.fr) UI) or **programmatically** (through our SDKs or REST API) detect, recognize, and verify faces in images. It is based on state-of-the-art (SOTA) algorithms and uses deep learning face recognition models. The API is designed to be easy to use and integrate into your applications. It is available as this hosted service or you can deploy it yourself on your own servers.  There are four ways that you can use the product: - Using the [Face Recognition Developer Portal](https://developer.opencv.fr) User Interface to manage your **Developer** teams, **Persons** who are registered for the search API to recognize, and **Collections** - groups of persons. - Using the [Python Face Recognition SDK](https://docs.opencv.fr/python) to integrate the API into your Python applications. - Using the [C++ Face Recognition SDK](https://docs.opencv.fr/cpp) to integrate the API into your C++ applications. - Using the REST API (below) to integrate the API functionality into your applications in other languages.  To use the REST API described below, you will need to create an account and obtain an API key. You can do this by signing up for a free account at [Face Recognition Developer Portal](https://developer.opencv.fr).  Once you have signed up, you will see an **API Developer Key** in the Dashboard. This is the key that you will use to authenticate your requests to the API. You can also create additional Developers (each with their own key) for your applications.  To use the API, you will need to send the API key in the `X-API-Key` header of each request. For example, using `curl`: ``` curl -X GET \"https://<region>.opencv.fr/persons\" -H \"accept: application/json\" -H \"X-API-Key: <your API key>\" ```  `<region>` is the data storage region that you selected when you created your account. It can be `us`, `eu`, or `sg`.  To help you try out the functionality quickly, the below live docs include a **Try it out** button for each endpoint. This will allow you to send a request to the API and see the response. Before you can use this, you will need to grab your API key from the Dashboard and enter it into the field that shows up when you click the green **Authorize** button (below this line on the right). 
+ OpenCV Face Recognition allows you to either **manually** (through our [Developer Portal](https://developer.opencv.fr) UI) or **programmatically** (through our SDKs or REST API) detect, recognize, and verify faces in images. It is based on state-of-the-art (SOTA) algorithms and uses deep learning face recognition models. The API is designed to be easy to use and integrate into your applications. It is available as this hosted service or you can deploy it yourself on your own servers.  There are four ways that you can use the product: - Using the [Face Recognition Developer Portal](https://developer.opencv.fr) User Interface to manage your **Developer** teams, **Persons** who are registered for the search API to recognize, and **Collections** - groups of persons. - Using the [Python Face Recognition SDK](https://docs.opencv.fr/python) to integrate the API into your Python applications. - Using the [C++ Face Recognition SDK](https://docs.opencv.fr/cpp) to integrate the API into your C++ applications. - Using the REST API (below) to integrate the API functionality into your applications in other languages.  To use the REST API described below, you will need to create an account and obtain an API key. You can do this by signing up for a free account at [Face Recognition Developer Portal](https://developer.opencv.fr).  Once you have signed up, you will see an **API Developer Key** in the Dashboard. This is the key that you will use to authenticate your requests to the API. You can also create additional Developers (each with their own key) for your applications.  To use the API, you will need to send the API key in the `X-API-Key` header of each request. For example, using `curl`: ``` curl -X GET \"https://<region>.opencv.fr/persons\" -H \"accept: application/json\" -H \"X-API-Key: <your API key>\" ```  `<region>` is the data storage region that you selected when you created your account. It can be `us`, `eu`, or `sg`.  To help you try out the functionality quickly, the below live docs include a **Try it out** button for each endpoint. This will allow you to send a request to the API and see the response. Before you can use this, you will need to grab your API key from the Dashboard and enter it into the field that shows up when you click the green **Authorize** button (below this line on the right).
 
 API version: 2024.07.05.1135
 */
@@ -11,8 +11,8 @@ API version: 2024.07.05.1135
 package openapi
 
 import (
-	"encoding/json"
 	"bytes"
+	"encoding/json"
 	"fmt"
 )
 
@@ -21,12 +21,12 @@ var _ MappedNullable = &SearchLiveFaceScheme{}
 
 // SearchLiveFaceScheme struct for SearchLiveFaceScheme
 type SearchLiveFaceScheme struct {
-	Os NullableOSEnum `json:"os,omitempty"`
-	Image string `json:"image"`
-	CollectionId NullableString `json:"collection_id,omitempty"`
-	MinScore NullableFloat32 `json:"min_score,omitempty"`
-	MaxResults NullableInt32 `json:"max_results,omitempty"`
-	SearchMode NullableSearchModeEnum `json:"search_mode,omitempty"`
+	Os           NullableOSEnum         `json:"os,omitempty"`
+	Image        string                 `json:"image"`
+	CollectionId NullableString         `json:"collection_id,omitempty"`
+	MinScore     NullableFloat32        `json:"min_score,omitempty"`
+	MaxResults   NullableInt32          `json:"max_results,omitempty"`
+	SearchMode   NullableSearchModeEnum `json:"search_mode,omitempty"`
 }
 
 type _SearchLiveFaceScheme SearchLiveFaceScheme
@@ -87,6 +87,7 @@ func (o *SearchLiveFaceScheme) HasOs() bool {
 func (o *SearchLiveFaceScheme) SetOs(v OSEnum) {
 	o.Os.Set(&v)
 }
+
 // SetOsNil sets the value for Os to be an explicit nil
 func (o *SearchLiveFaceScheme) SetOsNil() {
 	o.Os.Set(nil)
@@ -153,6 +154,7 @@ func (o *SearchLiveFaceScheme) HasCollectionId() bool {
 func (o *SearchLiveFaceScheme) SetCollectionId(v string) {
 	o.CollectionId.Set(&v)
 }
+
 // SetCollectionIdNil sets the value for CollectionId to be an explicit nil
 func (o *SearchLiveFaceScheme) SetCollectionIdNil() {
 	o.CollectionId.Set(nil)
@@ -195,6 +197,7 @@ func (o *SearchLiveFaceScheme) HasMinScore() bool {
 func (o *SearchLiveFaceScheme) SetMinScore(v float32) {
 	o.MinScore.Set(&v)
 }
+
 // SetMinScoreNil sets the value for MinScore to be an explicit nil
 func (o *SearchLiveFaceScheme) SetMinScoreNil() {
 	o.MinScore.Set(nil)
@@ -237,6 +240,7 @@ func (o *SearchLiveFaceScheme) HasMaxResults() bool {
 func (o *SearchLiveFaceScheme) SetMaxResults(v int32) {
 	o.MaxResults.Set(&v)
 }
+
 // SetMaxResultsNil sets the value for MaxResults to be an explicit nil
 func (o *SearchLiveFaceScheme) SetMaxResultsNil() {
 	o.MaxResults.Set(nil)
@@ -279,6 +283,7 @@ func (o *SearchLiveFaceScheme) HasSearchMode() bool {
 func (o *SearchLiveFaceScheme) SetSearchMode(v SearchModeEnum) {
 	o.SearchMode.Set(&v)
 }
+
 // SetSearchModeNil sets the value for SearchMode to be an explicit nil
 func (o *SearchLiveFaceScheme) SetSearchModeNil() {
 	o.SearchMode.Set(nil)
@@ -290,7 +295,7 @@ func (o *SearchLiveFaceScheme) UnsetSearchMode() {
 }
 
 func (o SearchLiveFaceScheme) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -331,10 +336,10 @@ func (o *SearchLiveFaceScheme) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -390,5 +395,3 @@ func (v *NullableSearchLiveFaceScheme) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-

@@ -1,7 +1,7 @@
 /*
 OpenCV Face Recognition
 
- OpenCV Face Recognition allows you to either **manually** (through our [Developer Portal](https://developer.opencv.fr) UI) or **programmatically** (through our SDKs or REST API) detect, recognize, and verify faces in images. It is based on state-of-the-art (SOTA) algorithms and uses deep learning face recognition models. The API is designed to be easy to use and integrate into your applications. It is available as this hosted service or you can deploy it yourself on your own servers.  There are four ways that you can use the product: - Using the [Face Recognition Developer Portal](https://developer.opencv.fr) User Interface to manage your **Developer** teams, **Persons** who are registered for the search API to recognize, and **Collections** - groups of persons. - Using the [Python Face Recognition SDK](https://docs.opencv.fr/python) to integrate the API into your Python applications. - Using the [C++ Face Recognition SDK](https://docs.opencv.fr/cpp) to integrate the API into your C++ applications. - Using the REST API (below) to integrate the API functionality into your applications in other languages.  To use the REST API described below, you will need to create an account and obtain an API key. You can do this by signing up for a free account at [Face Recognition Developer Portal](https://developer.opencv.fr).  Once you have signed up, you will see an **API Developer Key** in the Dashboard. This is the key that you will use to authenticate your requests to the API. You can also create additional Developers (each with their own key) for your applications.  To use the API, you will need to send the API key in the `X-API-Key` header of each request. For example, using `curl`: ``` curl -X GET \"https://<region>.opencv.fr/persons\" -H \"accept: application/json\" -H \"X-API-Key: <your API key>\" ```  `<region>` is the data storage region that you selected when you created your account. It can be `us`, `eu`, or `sg`.  To help you try out the functionality quickly, the below live docs include a **Try it out** button for each endpoint. This will allow you to send a request to the API and see the response. Before you can use this, you will need to grab your API key from the Dashboard and enter it into the field that shows up when you click the green **Authorize** button (below this line on the right). 
+ OpenCV Face Recognition allows you to either **manually** (through our [Developer Portal](https://developer.opencv.fr) UI) or **programmatically** (through our SDKs or REST API) detect, recognize, and verify faces in images. It is based on state-of-the-art (SOTA) algorithms and uses deep learning face recognition models. The API is designed to be easy to use and integrate into your applications. It is available as this hosted service or you can deploy it yourself on your own servers.  There are four ways that you can use the product: - Using the [Face Recognition Developer Portal](https://developer.opencv.fr) User Interface to manage your **Developer** teams, **Persons** who are registered for the search API to recognize, and **Collections** - groups of persons. - Using the [Python Face Recognition SDK](https://docs.opencv.fr/python) to integrate the API into your Python applications. - Using the [C++ Face Recognition SDK](https://docs.opencv.fr/cpp) to integrate the API into your C++ applications. - Using the REST API (below) to integrate the API functionality into your applications in other languages.  To use the REST API described below, you will need to create an account and obtain an API key. You can do this by signing up for a free account at [Face Recognition Developer Portal](https://developer.opencv.fr).  Once you have signed up, you will see an **API Developer Key** in the Dashboard. This is the key that you will use to authenticate your requests to the API. You can also create additional Developers (each with their own key) for your applications.  To use the API, you will need to send the API key in the `X-API-Key` header of each request. For example, using `curl`: ``` curl -X GET \"https://<region>.opencv.fr/persons\" -H \"accept: application/json\" -H \"X-API-Key: <your API key>\" ```  `<region>` is the data storage region that you selected when you created your account. It can be `us`, `eu`, or `sg`.  To help you try out the functionality quickly, the below live docs include a **Try it out** button for each endpoint. This will allow you to send a request to the API and see the response. Before you can use this, you will need to grab your API key from the Dashboard and enter it into the field that shows up when you click the green **Authorize** button (below this line on the right).
 
 API version: 2024.07.05.1135
 */
@@ -11,8 +11,8 @@ API version: 2024.07.05.1135
 package openapi
 
 import (
-	"encoding/json"
 	"bytes"
+	"encoding/json"
 	"fmt"
 )
 
@@ -21,14 +21,14 @@ var _ MappedNullable = &UpdatePersonSchema{}
 
 // UpdatePersonSchema struct for UpdatePersonSchema
 type UpdatePersonSchema struct {
-	Id string `json:"id"`
-	Name NullableString `json:"name,omitempty"`
-	Images []string `json:"images,omitempty"`
-	Gender NullableGenderEnum `json:"gender,omitempty"`
-	DateOfBirth NullableString `json:"date_of_birth,omitempty"`
-	Nationality NullableString `json:"nationality,omitempty"`
-	Collections []string `json:"collections,omitempty"`
-	Notes NullableString `json:"notes,omitempty"`
+	Id          string             `json:"id"`
+	Name        NullableString     `json:"name,omitempty"`
+	Images      []string           `json:"images,omitempty"`
+	Gender      NullableGenderEnum `json:"gender,omitempty"`
+	DateOfBirth NullableString     `json:"date_of_birth,omitempty"`
+	Nationality NullableString     `json:"nationality,omitempty"`
+	Collections []string           `json:"collections,omitempty"`
+	Notes       NullableString     `json:"notes,omitempty"`
 }
 
 type _UpdatePersonSchema UpdatePersonSchema
@@ -107,6 +107,7 @@ func (o *UpdatePersonSchema) HasName() bool {
 func (o *UpdatePersonSchema) SetName(v string) {
 	o.Name.Set(&v)
 }
+
 // SetNameNil sets the value for Name to be an explicit nil
 func (o *UpdatePersonSchema) SetNameNil() {
 	o.Name.Set(nil)
@@ -182,6 +183,7 @@ func (o *UpdatePersonSchema) HasGender() bool {
 func (o *UpdatePersonSchema) SetGender(v GenderEnum) {
 	o.Gender.Set(&v)
 }
+
 // SetGenderNil sets the value for Gender to be an explicit nil
 func (o *UpdatePersonSchema) SetGenderNil() {
 	o.Gender.Set(nil)
@@ -224,6 +226,7 @@ func (o *UpdatePersonSchema) HasDateOfBirth() bool {
 func (o *UpdatePersonSchema) SetDateOfBirth(v string) {
 	o.DateOfBirth.Set(&v)
 }
+
 // SetDateOfBirthNil sets the value for DateOfBirth to be an explicit nil
 func (o *UpdatePersonSchema) SetDateOfBirthNil() {
 	o.DateOfBirth.Set(nil)
@@ -266,6 +269,7 @@ func (o *UpdatePersonSchema) HasNationality() bool {
 func (o *UpdatePersonSchema) SetNationality(v string) {
 	o.Nationality.Set(&v)
 }
+
 // SetNationalityNil sets the value for Nationality to be an explicit nil
 func (o *UpdatePersonSchema) SetNationalityNil() {
 	o.Nationality.Set(nil)
@@ -341,6 +345,7 @@ func (o *UpdatePersonSchema) HasNotes() bool {
 func (o *UpdatePersonSchema) SetNotes(v string) {
 	o.Notes.Set(&v)
 }
+
 // SetNotesNil sets the value for Notes to be an explicit nil
 func (o *UpdatePersonSchema) SetNotesNil() {
 	o.Notes.Set(nil)
@@ -352,7 +357,7 @@ func (o *UpdatePersonSchema) UnsetNotes() {
 }
 
 func (o UpdatePersonSchema) MarshalJSON() ([]byte, error) {
-	toSerialize,err := o.ToMap()
+	toSerialize, err := o.ToMap()
 	if err != nil {
 		return []byte{}, err
 	}
@@ -399,10 +404,10 @@ func (o *UpdatePersonSchema) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(data, &allProperties)
 
 	if err != nil {
-		return err;
+		return err
 	}
 
-	for _, requiredProperty := range(requiredProperties) {
+	for _, requiredProperty := range requiredProperties {
 		if _, exists := allProperties[requiredProperty]; !exists {
 			return fmt.Errorf("no value given for required property %v", requiredProperty)
 		}
@@ -458,5 +463,3 @@ func (v *NullableUpdatePersonSchema) UnmarshalJSON(src []byte) error {
 	v.isSet = true
 	return json.Unmarshal(src, &v.value)
 }
-
-
