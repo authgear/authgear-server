@@ -396,6 +396,10 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File, format
 }
 
 func (s *UserExportService) makeRequestSchema() validation.SchemaBuilder {
+	// Currently we only check the pointer is a valid JSON pointer.
+	// But we do not check whether the pointer can possibly point to something.
+	// For example, /nonsense points to nothing, and /identities/0/type can possibly points to something.
+	// But the set of valid pointers are infinite, so we do not attempt to valid them here.
 	pointer := validation.SchemaBuilder{}.
 		Type(validation.TypeString).
 		Format("json-pointer")
