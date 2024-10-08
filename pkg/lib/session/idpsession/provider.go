@@ -258,17 +258,21 @@ func (p *Provider) CheckSessionExpired(session *IDPSession) (expired bool) {
 
 func (p *Provider) generateToken(s *IDPSession) string {
 	token := encodeToken(s.ID, corerand.StringWithAlphabet(tokenLength, tokenAlphabet, p.Random))
-	s.TokenHash = crypto.SHA256String(token)
+	s.TokenHash = hashToken(token)
 	return token
 }
 
 func matchTokenHash(expectedHash, inputToken string) bool {
-	inputHash := crypto.SHA256String(inputToken)
+	inputHash := hashToken(inputToken)
 	return subtle.ConstantTimeCompare([]byte(expectedHash), []byte(inputHash)) == 1
 }
 
 func encodeToken(id string, token string) string {
 	return fmt.Sprintf("%s.%s", id, token)
+}
+
+func hashToken(token string) string {
+	return crypto.SHA256String(token)
 }
 
 func decodeTokenSessionID(token string) (id string, ok bool) {

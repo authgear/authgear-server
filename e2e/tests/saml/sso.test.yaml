@@ -32,7 +32,8 @@ steps:
   #  1. The server should be able to parse the request
   #  2. Redirect to the authui to continue sign in
   - action: "saml_request"
-    saml_request: |
+    saml_element_name: SAMLRequest
+    saml_element: |
       <samlp:AuthnRequest
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
@@ -64,7 +65,8 @@ steps:
     http_request_body: "x_login_id_input_type=text&x_login_id=samltest01&x_action=login_id"
     http_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response
@@ -112,7 +114,8 @@ steps:
   # Try again with IsPassive=true
   # It should return a SAMLResponse immediately
   - action: "saml_request"
-    saml_request: |
+    saml_element_name: SAMLRequest
+    saml_element: |
       <samlp:AuthnRequest
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
@@ -129,7 +132,8 @@ steps:
     saml_request_binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
     saml_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response
@@ -179,7 +183,8 @@ before:
 steps:
   # Send a valid saml request to the login endpoint with Post Binding
   - action: "saml_request"
-    saml_request: |
+    saml_element_name: SAMLRequest
+    saml_element: |
       <samlp:AuthnRequest
         xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
         xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
@@ -240,7 +245,8 @@ steps:
     http_request_body: "x_login_id_input_type=text&x_login_id=samltest01&x_action=login_id"
     http_output:
       http_status: 200
-      saml_response:
+      saml_element:
+        element_name: SAMLResponse
         binding: urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
         match: |
           <samlp:Response>

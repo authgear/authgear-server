@@ -88,6 +88,21 @@ func (e *End2EndCmd) ExecuteSQLInsertUpdateFile(sqlPath string) error {
 	return nil
 }
 
+func (e *End2EndCmd) ExecuteCreateSession(hook *BeforeHookCreateSession) error {
+	cmd := fmt.Sprintf(
+		"./dist/e2e create-session --app-id %s --session-type \"%s\" --session-id \"%s\" --token \"%s\" --select-user-id-sql \"%s\"",
+		e.AppID,
+		hook.SessionType,
+		hook.SessionID,
+		hook.Token,
+		hook.SelectUserIDSQL,
+	)
+	if _, err := e.execCmd(cmd); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (e *End2EndCmd) QuerySQLSelectRaw(rawSQL string) (jsonArrString string, err error) {
 	cmd := fmt.Sprintf(
 		"./dist/e2e query-sql-select --app-id %s --raw-sql \"%s\"",

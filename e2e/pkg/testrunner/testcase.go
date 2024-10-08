@@ -1,6 +1,8 @@
 package testrunner
 
 import (
+	"bytes"
+	"compress/flate"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -98,6 +100,11 @@ func (tc *TestCase) executeBeforeAll(cmd *End2EndCmd) (err error) {
 			if err != nil {
 				return fmt.Errorf("failed to execute custom SQL: %w", err)
 			}
+		case BeforeHookTypeCreateSession:
+			err = cmd.ExecuteCreateSession(beforeHook.CreateSession)
+			if err != nil {
+				return fmt.Errorf("failed to create session: %w", err)
+			}
 		default:
 			errStr := fmt.Sprintf("unknown before hook type: %s", beforeHook.Type)
 			return errors.New(errStr)
@@ -117,6 +124,11 @@ func (tc *TestCase) executeStep(
 ) (result *StepResult, nextState string, ok bool) {
 	var flowResponse *authflowclient.FlowResponse
 	var flowErr error
+
+	var lastStep *StepResult
+	if len(prevSteps) != 0 {
+		lastStep = &prevSteps[len(prevSteps)-1]
+	}
 
 	switch step.Action {
 	case StepActionCreate:
@@ -147,11 +159,6 @@ func (tc *TestCase) executeStep(
 		}
 
 	case StepActionGenerateTOTPCode:
-		var lastStep *StepResult
-		if len(prevSteps) != 0 {
-			lastStep = &prevSteps[len(prevSteps)-1]
-		}
-
 		var parsedTOTPSecret string
 		parsedTOTPSecret, ok = prepareTOTPSecret(t, cmd, lastStep, step.TOTPSecret)
 		if !ok {
@@ -173,12 +180,6 @@ func (tc *TestCase) executeStep(
 		}
 
 	case StepActionOAuthRedirect:
-		var lastStep *StepResult
-
-		if len(prevSteps) != 0 {
-			lastStep = &prevSteps[len(prevSteps)-1]
-		}
-
 		var parsedTo string
 		parsedTo, ok = prepareTo(t, cmd, lastStep, step.To)
 		if !ok {
@@ -235,16 +236,17 @@ func (tc *TestCase) executeStep(
 
 		nextState = state
 	case StepActionHTTPRequest:
-		var lastStep *StepResult
-		if len(prevSteps) != 0 {
-			lastStep = &prevSteps[len(prevSteps)-1]
-		}
-
 		var outputOk bool = true
 		var httpResult interface{} = nil
 		url, ok := prepareHTTPRequestURL(t, cmd, lastStep, step.HTTPRequestURL)
 		if !ok {
 			return nil, state, false
+		}
+		if step.HTTPRequestSessionCookie != nil {
+			client.InjectSession(
+				step.HTTPRequestSessionCookie.IDPSessionID,
+				step.HTTPRequestSessionCookie.IDPSessionToken,
+			)
 		}
 		err := client.MakeHTTPRequest(
 			step.HTTPRequestMethod,
@@ -273,12 +275,32 @@ func (tc *TestCase) executeStep(
 		}
 
 	case StepActionSAMLRequest:
+
+		if step.SAMLRequestSessionCookie != nil {
+			client.InjectSession(
+				step.SAMLRequestSessionCookie.IDPSessionID,
+				step.SAMLRequestSessionCookie.IDPSessionToken,
+			)
+		}
+
+		var relayState string
+		if step.SAMLRequestRelayState != "" {
+			rs, ok := prepareSAMLRelayState(t, cmd, lastStep, step.SAMLRequestRelayState)
+			if !ok {
+				return nil, state, false
+			}
+			relayState = rs
+		}
+
 		var samlOutputOk bool = true
 		var httpResult interface{} = nil
 		err := client.SendSAMLRequest(
 			step.SAMLRequestDestination,
-			step.SAMLRequest,
-			step.SAMLRequestBinding, func(r *http.Response) error {
+			step.SAMLElementName,
+			step.SAMLElement,
+			step.SAMLRequestBinding,
+			relayState,
+			func(r *http.Response) error {
 				if r != nil {
 					httpResult = NewResultHTTPResponse(r)
 				}
@@ -373,6 +395,15 @@ func prepareTo(t *testing.T, cmd *End2EndCmd, prev *StepResult, to string) (prep
 	}
 
 	return parsedTo, true
+}
+func prepareSAMLRelayState(t *testing.T, cmd *End2EndCmd, prev *StepResult, relayStateTpl string) (prepared string, ok bool) {
+	relayState, err := execTemplate(cmd, prev, relayStateTpl)
+	if err != nil {
+		t.Errorf("failed to parse saml_request_relay_state: %v\n", err)
+		return "", false
+	}
+
+	return relayState, true
 }
 
 func prepareHTTPRequestURL(t *testing.T, cmd *End2EndCmd, prev *StepResult, url string) (prepared string, ok bool) {
@@ -519,7 +550,7 @@ func validateRedirectLocation(t *testing.T, expectedPath string, response *http.
 	return ok
 }
 
-func validateSAMLResponse(t *testing.T, expected *OuputSAMLResponse, httpResponse *http.Response) (ok bool) {
+func validateSAMLElement(t *testing.T, expected *OuputSAMLElement, httpResponse *http.Response) (ok bool) {
 	ok = true
 
 	var responseDoc *etree.Document
@@ -539,35 +570,60 @@ func validateSAMLResponse(t *testing.T, expected *OuputSAMLResponse, httpRespons
 			t.Errorf("failed to parse response body as html")
 			return
 		}
-		samlResponseEl := doc.FindElement("./html/body/form/input[@name='SAMLResponse']")
+		samlResponseEl := doc.FindElement(fmt.Sprintf("./html/body/form/input[@name='%s']", expected.ElementName))
 		if samlResponseEl == nil {
 			ok = false
-			t.Errorf("no SAMLResponse input found in html")
+			t.Errorf("no %s input found in html", expected.ElementName)
 			return
 		}
 		samlResponseAttr := samlResponseEl.SelectAttr("value")
 		if samlResponseAttr == nil {
 			ok = false
-			t.Errorf("SAMLResponse input has no value")
+			t.Errorf("%s input has no value", expected.ElementName)
 			return
 		}
 		decodedXML, err := base64.StdEncoding.DecodeString(samlResponseAttr.Value)
 		if err != nil {
 			ok = false
-			t.Errorf("decode SAMLResponse failed: %v", err)
+			t.Errorf("decode SAML element failed: %v", err)
 			return
 		}
 		responseDoc = etree.NewDocument()
 		err = responseDoc.ReadFromString(string(decodedXML))
 		if err != nil {
 			ok = false
-			t.Errorf("failed to parse SAMLResponse as xml")
+			t.Errorf("failed to parse SAML element as xml")
 			return
 		}
 
 	case authflowclient.SAMLBindingHTTPRedirect:
-		// TODO
-		fallthrough
+		redirectLocation, err := url.Parse(httpResponse.Header.Get("location"))
+		if err != nil {
+			ok = false
+			t.Errorf("invalid redirect location")
+			return
+		}
+		encodedSAMLElement := redirectLocation.Query().Get(expected.ElementName)
+		compressedSAMLElement, err := base64.StdEncoding.DecodeString(string(encodedSAMLElement))
+		if err != nil {
+			ok = false
+			t.Errorf("decode SAML element failed: %v", err)
+			return
+		}
+		flateReader := flate.NewReader(bytes.NewBuffer([]byte(compressedSAMLElement)))
+		elXML, err := io.ReadAll(flateReader)
+		if err != nil {
+			ok = false
+			t.Errorf("failed to decompress SAML element %v", err)
+			return
+		}
+		responseDoc = etree.NewDocument()
+		err = responseDoc.ReadFromString(string(elXML))
+		if err != nil {
+			ok = false
+			t.Errorf("failed to parse SAML element as xml")
+			return
+		}
 	default:
 		t.Errorf("not implemented")
 		ok = false
@@ -685,9 +741,9 @@ func validateHTTPOutput(t *testing.T, httpOutput *HTTPOutput, response *http.Res
 			ok = false
 		}
 	}
-	if httpOutput.SAMLResponse != nil {
-		statusOk := validateSAMLResponse(t,
-			httpOutput.SAMLResponse,
+	if httpOutput.SAMLElement != nil {
+		statusOk := validateSAMLElement(t,
+			httpOutput.SAMLElement,
 			response,
 		)
 		if !statusOk {
@@ -717,9 +773,9 @@ func validateSAMLOutput(t *testing.T, samlOutput *SAMLOutput, response *http.Res
 			ok = false
 		}
 	}
-	if samlOutput.SAMLResponse != nil {
-		statusOk := validateSAMLResponse(t,
-			samlOutput.SAMLResponse,
+	if samlOutput.SAMLElement != nil {
+		statusOk := validateSAMLElement(t,
+			samlOutput.SAMLElement,
 			response,
 		)
 		if !statusOk {

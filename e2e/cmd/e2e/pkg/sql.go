@@ -16,8 +16,8 @@ func ParseSQLTemplate(name string, rawTemplateText string) (*template.Template, 
 }
 
 // copied from https://stackoverflow.com/a/60386531/19287186
-func ParseRows(rows *sql.Rows) (outputRows []interface{}, err error) {
-	outputRows = []interface{}{}
+func ParseRows(rows *sql.Rows) (outputRows []map[string]interface{}, err error) {
+	outputRows = []map[string]interface{}{}
 	columnTypes, err := rows.ColumnTypes()
 	if err != nil {
 		return
