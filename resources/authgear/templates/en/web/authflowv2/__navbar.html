@@ -2,13 +2,13 @@
 <nav class="navbar">
   <h1 class="navbar__title">{{ $.Title }}</h1>
 
-  <a
-    class="navbar__item inline-flex items-center justify-center gap-x-3"
+  <button
+    class="navbar__item hidden"
     title="{{ .BackTitle }}"
-    href="{{ .BackHref }}"
+    data-controller="back-button"
     data-turbo-action="replace"
   >
     <span class="hidden tablet:inline-block">{{ .BackTitle }}</span>
-  </a>
+  </button>
 </nav>
 {{ end }}

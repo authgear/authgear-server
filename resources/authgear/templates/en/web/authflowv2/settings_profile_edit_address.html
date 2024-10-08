@@ -3,7 +3,6 @@
 {{ define "page-navbar" }}
 {{ template "authflowv2/__navbar.html"
   (dict
-    "BackHref" (call $.MakeURL "/settings/profile")
     "Title" (translate "v2.page.settings-profile-edit-address.default.title" nil)
   )
 }}
