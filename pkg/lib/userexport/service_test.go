@@ -72,10 +72,30 @@ func TestParseExportRequest(t *testing.T) {
 {
 	"format": "csv",
 	"csv": {
+		"fields": [{ "pointer": "invalid" }]
+	}
+}
+		`, `invalid request body:
+/csv/fields/0/pointer: format
+  map[error:0: expecting / but found: "i" format:json-pointer]`)
+		test(`
+{
+	"format": "csv",
+	"csv": {
 		"fields": [{ "pointer": "/sub" }]
 	}
 }
 		`, "")
+		test(`
+{
+	"format": "csv",
+	"csv": {
+		"fields": [{ "pointer": "/sub", "field_name": "" }]
+	}
+}
+		`, `invalid request body:
+/csv/fields/0/field_name: minLength
+  map[actual:0 expected:1]`)
 		test(`
 {
 	"format": "csv",
