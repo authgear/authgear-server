@@ -31,7 +31,8 @@ type Client struct {
 
 // https://sg.opencv.fr/docs#/
 const (
-	openCVFREndpoint              string = "https://sg.opencv.fr"
+	openCVFREndpoint string = "https://sg.opencv.fr"
+	//nolint:gosec // linter mistook this as actual api key and raise security warning
 	openCVFRHeaderAPIKey          string = "X-API-Key"
 	openCVFRPostDefaultRespStatus int    = http.StatusCreated
 )
