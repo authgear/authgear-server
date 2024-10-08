@@ -61,10 +61,17 @@
       <div class="screen-title-description">
         <h1 class="screen-title">
           {{ if eq $.UIVariant "signup_login" }}
-            {{ include "v2.page.signup.signup-login.title" (dict
-              "AppName" $appName
-              "ClientName" $clientName)
-            }}
+            {{ if $isContinue }}
+              {{ include "v2.page.signup-login.continue.title" (dict
+                "AppName" $appName
+                "ClientName" $clientName)
+              }}
+            {{ else }}
+              {{ include "v2.page.signup-login.default.title" (dict
+                "AppName" $appName
+                "ClientName" $clientName)
+              }}
+            {{ end }}
           {{ else }}
             {{ if $isContinue }}
               {{ include "v2.page.signup.continue.title" (dict
@@ -82,10 +89,14 @@
         </h1>
         <h2 class="screen-description">
           {{ if eq $.UIVariant "signup_login" }}
-            {{ include "v2.page.signup.signup-login.subtitle" (dict
-              "AppName" $appName
-              "ClientName" $clientName)
-            }}
+            {{ if and $isContinue $has_login_id }}
+              {{ include (printf "v2.page.signup-login.continue.subtitle-%v" $login_id_type) nil }}
+            {{ else }}
+              {{ include "v2.page.signup-login.default.subtitle" (dict
+                "AppName" $appName
+                "ClientName" $clientName)
+              }}
+            {{ end }}
           {{ else }}
             {{ if and $isContinue $has_login_id }}
               {{ include (printf "v2.page.signup.continue.subtitle-%v" $login_id_type) nil }}
