@@ -114,15 +114,29 @@ func (h *AuthflowV2SettingsMFAEnterTOTPHandler) ServeHTTP(w http.ResponseWriter,
 			return err
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsMFAViewRecoveryCode)
-		if err != nil {
-			return err
+		var redirectURI *url.URL
+		if output.RecoveryCodesCreated {
+			redirectURI, err = url.Parse(AuthflowV2RouteSettingsMFAViewRecoveryCode)
+			if err != nil {
+				return err
+			}
+			q := redirectURI.Query()
+			q.Set("q_token", output.Token)
+			redirectURI.RawQuery = q.Encode()
+		} else {
+			_, err = h.AccountManagement.FinishAddTOTPAuthenticator(s, output.Token, &accountmanagement.FinishAddTOTPAuthenticatorInput{})
+			if err != nil {
+				return err
+			}
+
+			redirectURI, err = url.Parse(AuthflowV2RouteSettingsMFA)
+			if err != nil {
+				return err
+			}
+			q := redirectURI.Query()
+			q.Set("q_token", output.Token)
+			redirectURI.RawQuery = q.Encode()
 		}
-
-		q := redirectURI.Query()
-		q.Set("q_token", output.Token)
-
-		redirectURI.RawQuery = q.Encode()
 
 		result := webapp.Result{RedirectURI: redirectURI.String()}
 		result.WriteResponse(w, r)

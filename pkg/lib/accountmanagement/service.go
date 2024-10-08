@@ -80,6 +80,7 @@ type AuthenticationInfoService interface {
 type MFAService interface {
 	GenerateRecoveryCodes() []string
 	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
+	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 }
 
 type PasskeyService interface {

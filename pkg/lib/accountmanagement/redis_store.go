@@ -39,9 +39,10 @@ type GenerateTokenOptions struct {
 	IdentityID string
 
 	// AuthenticatorID for updating authenticator
-	AuthenticatorID            string
-	AuthenticatorRecoveryCodes []string
-	AuthenticatorType          model.AuthenticatorType
+	AuthenticatorID                   string
+	AuthenticatorRecoveryCodes        []string
+	AuthenticatorRecoveryCodesCreated bool
+	AuthenticatorType                 model.AuthenticatorType
 
 	// TOTP
 	AuthenticatorTOTPIssuer           string

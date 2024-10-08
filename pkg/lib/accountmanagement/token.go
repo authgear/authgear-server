@@ -35,9 +35,12 @@ type TokenIdentity struct {
 }
 
 type TokenAuthenticator struct {
-	AuthenticatorID   string   `json:"authenticator_id,omitempty"`
-	AuthenticatorType string   `json:"authenticator_type,omitempty"`
-	RecoveryCodes     []string `json:"recovery_codes,omitempty"`
+	AuthenticatorID   string `json:"authenticator_id,omitempty"`
+	AuthenticatorType string `json:"authenticator_type,omitempty"`
+
+	// Recovery Codes
+	RecoveryCodes        []string `json:"recovery_codes,omitempty"`
+	RecoveryCodesCreated bool     `json:"recovery_codes_created,omitempty"`
 
 	// TOTP
 	TOTPIssuer           string `json:"totp_issuer,omitempty"`

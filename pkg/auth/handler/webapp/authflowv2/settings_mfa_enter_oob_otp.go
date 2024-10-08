@@ -177,6 +177,8 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) ServeHTTP(w http.ResponseWrite
 			return err
 		}
 
+		s := session.GetSession(r.Context())
+
 		tokenString := r.Form.Get("q_token")
 		code := r.Form.Get("x_code")
 
@@ -187,13 +189,29 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) ServeHTTP(w http.ResponseWrite
 			return err
 		}
 
-		redirectURI, err := url.Parse(AuthflowV2RouteSettingsMFAViewRecoveryCode)
-		if err != nil {
-			return err
+		var redirectURI *url.URL
+		if output.RecoveryCodesCreated {
+			redirectURI, err = url.Parse(AuthflowV2RouteSettingsMFAViewRecoveryCode)
+			if err != nil {
+				return err
+			}
+			q := redirectURI.Query()
+			q.Set("q_token", output.Token)
+			redirectURI.RawQuery = q.Encode()
+		} else {
+			_, err = h.AccountManagement.FinishAddOOBOTPAuthenticator(s, output.Token, &accountmanagement.FinishAddOOBOTPAuthenticatorInput{})
+			if err != nil {
+				return err
+			}
+
+			redirectURI, err = url.Parse(AuthflowV2RouteSettingsMFA)
+			if err != nil {
+				return err
+			}
+			q := redirectURI.Query()
+			q.Set("q_token", output.Token)
+			redirectURI.RawQuery = q.Encode()
 		}
-		q := redirectURI.Query()
-		q.Set("q_token", output.Token)
-		redirectURI.RawQuery = q.Encode()
 
 		result := webapp.Result{RedirectURI: redirectURI.String()}
 		result.WriteResponse(w, r)

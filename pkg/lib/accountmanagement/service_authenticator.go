@@ -210,7 +210,8 @@ type ResumeAddTOTPAuthenticatorInput struct {
 	Code        string
 }
 type ResumeAddTOTPAuthenticatorOutput struct {
-	Token string
+	Token                string
+	RecoveryCodesCreated bool
 }
 
 func (s *Service) ResumeAddTOTPAuthenticator(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddTOTPAuthenticatorInput) (output *ResumeAddTOTPAuthenticatorOutput, err error) {
@@ -265,22 +266,24 @@ func (s *Service) ResumeAddTOTPAuthenticator(resolvedSession session.ResolvedSes
 		return
 	}
 
-	recoveryCodes := s.MFA.GenerateRecoveryCodes()
+	recoveryCodes, recoveryCodesCreated, err := s.generateRecoveryCodes(userID)
 
 	newToken, err := s.Store.GenerateToken(GenerateTokenOptions{
-		UserID:                       userID,
-		AuthenticatorType:            model.AuthenticatorType(token.Authenticator.AuthenticatorType),
-		AuthenticatorTOTPDisplayName: input.DisplayName,
-		AuthenticatorTOTPSecret:      token.Authenticator.TOTPSecret,
-		AuthenticatorTOTPVerified:    true,
-		AuthenticatorRecoveryCodes:   recoveryCodes,
+		UserID:                            userID,
+		AuthenticatorRecoveryCodes:        recoveryCodes,
+		AuthenticatorRecoveryCodesCreated: recoveryCodesCreated,
+		AuthenticatorType:                 model.AuthenticatorType(token.Authenticator.AuthenticatorType),
+		AuthenticatorTOTPDisplayName:      input.DisplayName,
+		AuthenticatorTOTPSecret:           token.Authenticator.TOTPSecret,
+		AuthenticatorTOTPVerified:         true,
 	})
 	if err != nil {
 		return
 	}
 
 	output = &ResumeAddTOTPAuthenticatorOutput{
-		Token: newToken,
+		Token:                newToken,
+		RecoveryCodesCreated: recoveryCodesCreated,
 	}
 	return
 }
@@ -331,9 +334,11 @@ func (s *Service) FinishAddTOTPAuthenticator(resolvedSession session.ResolvedSes
 			return err
 		}
 
-		_, err = s.MFA.ReplaceRecoveryCodes(userID, token.Authenticator.RecoveryCodes)
-		if err != nil {
-			return err
+		if token.Authenticator.RecoveryCodesCreated {
+			_, err = s.MFA.ReplaceRecoveryCodes(userID, token.Authenticator.RecoveryCodes)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -516,7 +521,8 @@ type ResumeAddOOBOTPAuthenticatorInput struct {
 	Code string
 }
 type ResumeAddOOBOTPAuthenticatorOutput struct {
-	Token string
+	Token                string
+	RecoveryCodesCreated bool
 }
 
 func (s *Service) ResumeAddOOBOTPAuthenticator(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddOOBOTPAuthenticatorInput) (output *ResumeAddOOBOTPAuthenticatorOutput, err error) {
@@ -548,22 +554,24 @@ func (s *Service) ResumeAddOOBOTPAuthenticator(resolvedSession session.ResolvedS
 		return
 	}
 
-	recoveryCodes := s.MFA.GenerateRecoveryCodes()
+	recoveryCodes, recoveryCodesCreated, err := s.generateRecoveryCodes(userID)
 
 	newToken, err := s.Store.GenerateToken(GenerateTokenOptions{
-		UserID:                      userID,
-		AuthenticatorRecoveryCodes:  recoveryCodes,
-		AuthenticatorType:           model.AuthenticatorType(token.Authenticator.AuthenticatorType),
-		AuthenticatorOOBOTPChannel:  token.Authenticator.OOBOTPChannel,
-		AuthenticatorOOBOTPTarget:   token.Authenticator.OOBOTPTarget,
-		AuthenticatorOOBOTPVerified: true,
+		UserID:                            userID,
+		AuthenticatorRecoveryCodes:        recoveryCodes,
+		AuthenticatorRecoveryCodesCreated: recoveryCodesCreated,
+		AuthenticatorType:                 model.AuthenticatorType(token.Authenticator.AuthenticatorType),
+		AuthenticatorOOBOTPChannel:        token.Authenticator.OOBOTPChannel,
+		AuthenticatorOOBOTPTarget:         token.Authenticator.OOBOTPTarget,
+		AuthenticatorOOBOTPVerified:       true,
 	})
 	if err != nil {
 		return
 	}
 
 	output = &ResumeAddOOBOTPAuthenticatorOutput{
-		Token: newToken,
+		Token:                newToken,
+		RecoveryCodesCreated: recoveryCodesCreated,
 	}
 	return
 }
@@ -624,9 +632,11 @@ func (s *Service) FinishAddOOBOTPAuthenticator(resolvedSession session.ResolvedS
 			return err
 		}
 
-		_, err = s.MFA.ReplaceRecoveryCodes(userID, token.Authenticator.RecoveryCodes)
-		if err != nil {
-			return err
+		if token.Authenticator.RecoveryCodesCreated {
+			_, err = s.MFA.ReplaceRecoveryCodes(userID, token.Authenticator.RecoveryCodes)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
@@ -669,4 +679,27 @@ func (s *Service) DeleteOOBOTPAuthenticator(resolvedSession session.ResolvedSess
 		Info: info,
 	}
 	return
+}
+
+func (s *Service) generateRecoveryCodes(userID string) (recoveryCodes []string, isCreated bool, err error) {
+	if *s.Config.Authentication.RecoveryCode.Disabled {
+		return nil, false, nil
+	}
+
+	err = s.Database.WithTx(func() error {
+		existing, err := s.MFA.ListRecoveryCodes(userID)
+		if err != nil {
+			return err
+		}
+
+		if len(existing) == 0 {
+			isCreated = true
+			recoveryCodes = s.MFA.GenerateRecoveryCodes()
+			return nil
+		}
+
+		return nil
+	})
+
+	return recoveryCodes, isCreated, err
 }
