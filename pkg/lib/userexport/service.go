@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	libhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
@@ -387,4 +388,23 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File, format
 	}
 
 	return response, nil
+}
+
+func (s *UserExportService) ParseExportRequest(w http.ResponseWriter, r *http.Request) (*Request, error) {
+	var request Request
+	err := httputil.BindJSONBody(r, w, RequestSchema.Validator(), &request)
+	if err != nil {
+		return nil, err
+	}
+
+	var fields []*FieldPointer
+	if request.CSV != nil {
+		fields = request.CSV.Fields
+	}
+	_, err = ExtractCSVHeaderField(fields)
+	if err != nil {
+		return nil, err
+	}
+
+	return &request, nil
 }

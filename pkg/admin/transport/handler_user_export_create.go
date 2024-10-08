@@ -13,7 +13,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func ConfigureUserExportCreateRoute(route httproute.Route) httproute.Route {
@@ -30,6 +29,10 @@ type UserExportCreateProducer interface {
 	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
 }
 
+type UserExportCreateHandlerUserExportService interface {
+	ParseExportRequest(w http.ResponseWriter, r *http.Request) (*userexport.Request, error)
+}
+
 const (
 	usageLimitUserExport usage.LimitName = "UserExport"
 )
@@ -42,9 +45,10 @@ type UserExportCreateHandler struct {
 	AppID                 config.AppID
 	AdminAPIFeatureConfig *config.AdminAPIFeatureConfig
 	JSON                  JSONResponseWriter
-	UserExports           UserExportCreateProducer
+	Producer              UserExportCreateProducer
 	UsageLimiter          UserExportUsageLimiter
 	CloudStorage          UserExportCreateHandlerCloudStorage
+	Service               UserExportCreateHandlerUserExportService
 }
 
 func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -60,17 +64,7 @@ func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 		return userexport.ErrUserExportDisabled
 	}
 
-	var request userexport.Request
-	err := httputil.BindJSONBody(r, w, userexport.RequestSchema.Validator(), &request)
-	if err != nil {
-		return err
-	}
-
-	var fields []*userexport.FieldPointer
-	if request.CSV != nil {
-		fields = request.CSV.Fields
-	}
-	_, err = userexport.ExtractCSVHeaderField(fields)
+	request, err := h.Service.ParseExportRequest(w, r)
 	if err != nil {
 		return err
 	}
@@ -88,8 +82,8 @@ func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 		return err
 	}
 
-	task := h.UserExports.NewTask(string(h.AppID), rawMessage, "userexport")
-	err = h.UserExports.EnqueueTask(r.Context(), task)
+	task := h.Producer.NewTask(string(h.AppID), rawMessage, "userexport")
+	err = h.Producer.EnqueueTask(r.Context(), task)
 	if err != nil {
 		return err
 	}
