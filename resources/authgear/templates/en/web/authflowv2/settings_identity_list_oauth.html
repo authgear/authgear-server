@@ -1,0 +1,127 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings")
+        "Title" (translate "v2.page.settings-identity-oauth.default.title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+
+<div class="flex flex-col gap-y-6">
+  <ol>
+    {{ $ctx := .}}
+    {{ range .OAuthCandidates }}
+
+      {{ $claim_verification_statuses := index $.Verifications .identity_id }}
+      {{ $verification_verified := false }}
+      {{ $verification_triggerable := false }}
+      {{ if ne (len $claim_verification_statuses) 0 }}
+        {{ $claim_verification_status := index $claim_verification_statuses 0 }}
+        {{ $verification_verified = $claim_verification_status.Verified }}
+        {{ $verification_triggerable = $claim_verification_status.EndUserTriggerable }}
+      {{ end }}
+
+
+      {{ $skip := false }}
+      {{ if eq .type "oauth" }}
+      {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "mobile") (not $.IsNativePlatform)) -}}
+      {{ $skip = true }}
+      {{ end }}
+      {{- if (and (eq .provider_type "wechat") (eq .provider_app_type "web") ($.IsNativePlatform)) -}}
+      {{ $skip = true }}
+      {{ end }}
+      {{ end }}
+
+      {{- if not $skip -}}
+      <li>
+        {{ template "authflowv2/__settings_action_item.html"
+            (dict
+              "CustomIcon" (include "__settings_action_item_sso_icon.html" (dict "ProviderType" .provider_type))
+              "Label" (translate (printf "v2.page.settings-identity-oauth.default.provider.%s" .provider_type) nil)
+              "Description" .display_id
+              "ActionButton" (include "__settings_action_item_connect.html" (dict
+                "Ctx" $ctx
+                "CSRFField" $.CSRFField
+                "ProviderAlias" .provider_alias
+                "IdentityID" .identity_id
+                "DeleteDisabled" .delete_disabled
+                "Verified" $verification_verified
+              ))
+            )
+        }}
+      </li>
+      {{ end }}
+
+    {{ end }}
+  </ol>
+</div>
+
+{{ end }}
+
+{{ define "__settings_action_item_sso_icon.html" }}
+<i class="settings-action-item__icon settings-sso-icon {{ .ProviderType }}-icon"></i>
+{{ end }}
+
+{{ define "__settings_action_item_connect.html" }}
+{{ if not .Verified }}
+  <form method="post" novalidate data-turbo="false">
+    {{ .CSRFField }}
+    <input type="hidden" name="x_provider_alias" value="{{ .ProviderAlias }}">
+    <button
+      class="settings-link-btn"
+      type="submit"
+      name="x_action"
+      value="add"
+    >
+      {{ translate "v2.page.settings-identity-oauth.default.create-oauth-button-label" nil }}
+    </button>
+  </form>
+{{ else if (gt .Ctx.IdentityCount 1) }}
+{{ if not .DeleteDisabled }}
+  <button
+    class="settings-link-btn--destructive"
+    data-controller="dialog"
+    data-action="click->dialog#open"
+    id="{{ .ProviderAlias }}"
+  >
+    {{ translate "v2.page.settings-identity-oauth.default.remove-oauth-button-label" nil }}
+  </button>
+
+  {{ $provider_name := (translate (printf "v2.page.settings-identity-oauth.default.provider.%s" .ProviderAlias) nil) }}
+
+  {{ template "authflowv2/__settings_dialog.html"
+    (dict
+      "Ctx" .Ctx
+      "DialogID" .ProviderAlias
+      "Title" (include "v2.page.settings-oauth.default.remove-oauth-dialog-title" (dict "ProviderName" $provider_name ))
+      "Description" (include "v2.page.settings-oauth.default.remove-oauth-dialog-description"  (dict "ProviderName" $provider_name ))
+      "FormContent" (include "__settings_oauth_dialog_remove_input.html" (dict "CSRFField" $.CSRFField "ProviderAlias" .ProviderAlias "IdentityID" .IdentityID))
+      "Buttons"
+        (list
+          (dict
+            "Type" "Destructive"
+            "Label" (include "v2.component.button.default.label-remove" nil)
+            "Value" "remove"
+            "Event" "authgear.button.remove_oauth"
+          )
+          (dict
+            "Type" "Cancel"
+            "Label" (include "v2.component.button.default.label-cancel" nil)
+          )
+        )
+  )}}
+{{ end }}
+
+{{ end }}
+{{ end }}
+
+{{ define "__settings_oauth_dialog_remove_input.html" }}
+  {{ $.CSRFField }}
+  <input type="hidden" name="x_provider_alias" value="{{ .ProviderAlias }}">
+  <input type="hidden" name="q_identity_id" value="{{ .IdentityID }}">
+{{ end }}
