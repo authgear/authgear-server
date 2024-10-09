@@ -1,0 +1,59 @@
+.settings-sso-icon {
+  @apply w-6 h-6 bg-no-repeat bg-center bg-contain;
+}
+
+.settings-sso-icon.google-icon {
+  background-image: url("./settings-sso-icons/icon-google.svg");
+}
+.settings-sso-icon.apple-icon {
+  background-image: url("./settings-sso-icons/icon-apple.svg");
+}
+.settings-sso-icon.linkedin-icon {
+  background-image: url("./settings-sso-icons/icon-linkedin.svg");
+}
+.settings-sso-icon.github-icon {
+  background-image: url("./settings-sso-icons/icon-github.svg");
+}
+.settings-sso-icon.azureadv2-icon,
+.settings-sso-icon.azureadb2c-icon,
+.settings-sso-icon.adfs-icon,
+.settings-sso-icon.microsoft-icon {
+  background-image: url("./settings-sso-icons/icon-microsoft.svg");
+}
+.settings-sso-icon.facebook-icon {
+  background-image: url("./settings-sso-icons/icon-facebook.svg");
+}
+.settings-sso-icon.wechat-icon {
+  background-image: url("./settings-sso-icons/icon-wechat.svg");
+}
+.settings-sso-icon.iamsmart-icon {
+  background-image: url("./settings-sso-icons/icon-iamsmart-light.png");
+}
+
+.dark .settings-sso-icon.google-icon {
+  background-image: url("./settings-sso-icons/icon-google-dark.svg");
+}
+.dark .settings-sso-icon.apple-icon {
+  background-image: url("./settings-sso-icons/icon-apple-dark.svg");
+}
+.dark .settings-sso-icon.linkedin-icon {
+  background-image: url("./settings-sso-icons/icon-linkedin-dark.svg");
+}
+.dark .settings-sso-icon.github-icon {
+  background-image: url("./settings-sso-icons/icon-github-dark.svg");
+}
+.dark .settings-sso-icon.azureadv2-icon,
+.dark .settings-sso-icon.azureadb2c-icon,
+.dark .settings-sso-icon.adfs-icon,
+.dark .settings-sso-icon.microsoft-icon {
+  background-image: url("./settings-sso-icons/icon-microsoft-dark.svg");
+}
+.dark .settings-sso-icon.facebook-icon {
+  background-image: url("./settings-sso-icons/icon-facebook-dark.svg");
+}
+.dark .settings-sso-icon.wechat-icon {
+  background-image: url("./settings-sso-icons/icon-wechat-dark.svg");
+}
+.dark .settings-sso-icon.iamsmart-icon {
+  background-image: url("./settings-sso-icons/icon-iamsmart-dark.png");
+}

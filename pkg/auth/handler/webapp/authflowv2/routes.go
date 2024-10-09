@@ -112,6 +112,9 @@ const (
 	AuthflowV2RouteSettingsIdentityAddUsername    = "/settings/identity/add_username"
 	AuthflowV2RouteSettingsIdentityViewUsername   = "/settings/identity/view_username"
 	AuthflowV2RouteSettingsIdentityChangeUsername = "/settings/identity/change_username"
+
+	AuthflowV2RouteSettingsIdentityListOAuth     = "/settings/identity/oauth"
+	AuthflowV2RouteSettingsIdentityOAuthCallback = "/settings/identity/oauth/callback"
 )
 
 type AuthflowV2NavigatorEndpointsProvider interface {
