@@ -66,6 +66,7 @@ import {
 } from "./viewModel";
 import PrimaryButton from "../../../PrimaryButton";
 import { useFormContainerBaseContext } from "../../../FormContainerBase";
+import AppLogoHeightSetter from "../../../components/design/AppLogoHeightSetter";
 
 interface OrganisationConfigurationProps {
   designForm: BranchDesignForm;
@@ -165,19 +166,6 @@ interface AppLogoConfigurationProps {
 const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
   function AppLogoConfiguration(props) {
     const { designForm } = props;
-    const { renderToString } = useContext(MFContext);
-    const onLogoHeightChangeLight = useCallback(
-      (_: React.FormEvent, value?: string) => {
-        designForm.lightThemeSetters.setLogoHeight(value);
-      },
-      [designForm]
-    );
-    const onLogoHeightChangeDark = useCallback(
-      (_: React.FormEvent, value?: string) => {
-        designForm.darkThemeSetters.setLogoHeight(value);
-      },
-      [designForm]
-    );
     return (
       <ConfigurationGroup labelKey="DesignScreen.configuration.logo.label">
         <ConfigurationDescription labelKey="DesignScreen.configuration.logo.description" />
@@ -195,13 +183,15 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
                 fallbackLanguage={designForm.state.fallbackLanguage}
               />
             ) : null}
-            <TextField
-              label={renderToString(
-                "DesignScreen.configuration.logo.height.label.light"
-              )}
-              placeholder={DEFAULT_LIGHT_THEME.logo.height}
-              value={designForm.state.customisableLightTheme.logo.height}
-              onChange={onLogoHeightChangeLight}
+            <AppLogoHeightSetter
+              sliderAriaLabel="light-logo-slider"
+              value={
+                designForm.state.customisableLightTheme.logo.height ??
+                DEFAULT_LIGHT_THEME.logo.height
+              }
+              defaultValue={DEFAULT_LIGHT_THEME.logo.height}
+              onChange={designForm.lightThemeSetters.setLogoHeight}
+              labelKey="DesignScreen.configuration.logo.height.label.light"
             />
           </>
         ) : null}
@@ -219,13 +209,15 @@ const AppLogoConfiguration: React.VFC<AppLogoConfigurationProps> =
                 fallbackLanguage={designForm.state.fallbackLanguage}
               />
             ) : null}
-            <TextField
-              label={renderToString(
-                "DesignScreen.configuration.logo.height.label.dark"
-              )}
-              placeholder={DEFAULT_DARK_THEME.logo.height}
-              value={designForm.state.customisableDarkTheme.logo.height}
-              onChange={onLogoHeightChangeDark}
+            <AppLogoHeightSetter
+              sliderAriaLabel="dark-logo-slider"
+              value={
+                designForm.state.customisableDarkTheme.logo.height ??
+                DEFAULT_DARK_THEME.logo.height
+              }
+              defaultValue={DEFAULT_DARK_THEME.logo.height}
+              onChange={designForm.darkThemeSetters.setLogoHeight}
+              labelKey="DesignScreen.configuration.logo.height.label.dark"
             />
           </>
         ) : null}
