@@ -343,6 +343,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowAuthenticate", `
 				"primary_oob_otp_sms",
 				"secondary_password",
 				"secondary_totp",
+				"secondary_face_recognition",
 				"secondary_oob_otp_email",
 				"secondary_oob_otp_sms",
 				"recovery_code",
@@ -814,6 +815,8 @@ func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.Authenticato
 	case AuthenticationFlowAuthenticationSecondaryPassword:
 		fallthrough
 	case AuthenticationFlowAuthenticationSecondaryTOTP:
+		fallthrough
+	case AuthenticationFlowAuthenticationSecondaryFaceRecognition:
 		fallthrough
 	case AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		fallthrough
