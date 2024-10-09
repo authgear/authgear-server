@@ -68,7 +68,7 @@ func (ss *SearchService) Search(reqBody *openapi.SearchPersonSchema) (r []*opena
 	return sr, nil
 }
 
-func (ss *SearchService) SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (r *openapi.NullableSearchPersonResultSchema, err error) {
+func (ss *SearchService) SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (r *openapi.NullableSearchLivePersonResultSchema, err error) {
 	path := "/search-live-face"
 
 	rbb, err := json.Marshal(reqBody)
@@ -81,13 +81,13 @@ func (ss *SearchService) SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (
 		return nil, fmt.Errorf("failed to search live face person - req: %v, err: %w", reqBody, err)
 	}
 
-	vr := &openapi.SearchPersonResultSchema{}
+	vr := &openapi.SearchLivePersonResultSchema{}
 	err = vr.UnmarshalJSON(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse POST %v response body: %w", path, err)
 	}
 
-	r = openapi.NewNullableSearchPersonResultSchema(vr)
+	r = openapi.NewNullableSearchLivePersonResultSchema(vr)
 	err = r.UnmarshalJSON(body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse POST %v response body: %w", path, err)
