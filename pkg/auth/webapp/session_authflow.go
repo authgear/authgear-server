@@ -482,6 +482,8 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchLoginAuthenticate(input *Take
 			fallthrough
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 			fallthrough
+		case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			// All these can take the branch simply by setting index.
 			return s.takeBranchResultSimple(input, false)
