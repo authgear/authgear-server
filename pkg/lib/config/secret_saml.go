@@ -65,7 +65,7 @@ func (m *SAMLSpSigningMaterials) Resolve(sp *SAMLServiceProviderConfig) (*SAMLSp
 	}
 	for _, item := range *m {
 		item := item
-		if item.ServiceProviderID == sp.Deprecated_ID || item.ServiceProviderID == sp.ClientID {
+		if item.ServiceProviderID == sp.ClientID {
 			return &item, true
 		}
 	}

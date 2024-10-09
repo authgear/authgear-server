@@ -162,9 +162,6 @@ func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata,
 
 func (s *Service) validateDestination(sp *config.SAMLServiceProviderConfig, destination string) error {
 	allowedDestinations := []string{}
-	if sp.Deprecated_ID != "" {
-		allowedDestinations = append(allowedDestinations, s.Endpoints.SAMLLoginURL(sp.Deprecated_ID).String())
-	}
 	if sp.ClientID != "" {
 		allowedDestinations = append(allowedDestinations, s.Endpoints.SAMLLoginURL(sp.ClientID).String())
 	}

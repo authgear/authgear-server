@@ -25,7 +25,6 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-		"id": { "type": "string" },
 		"client_id": { "type": "string" },
 		"nameid_format": { "$ref": "#/$defs/SAMLNameIDFormat" },
 		"nameid_attribute_pointer": { "$ref": "#/$defs/SAMLNameIDAttributePointer" },
@@ -42,15 +41,7 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"slo_callback_url": { "type": "string", "format": "uri" },
 		"slo_binding": { "$ref": "#/$defs/SAMLSLOBinding" }
 	},
-	"required": ["acs_urls"],
-	"anyOf": [
-		{
-			"required": ["id"]
-		},
-		{
-			"required": ["client_id"]
-		}
-	],
+	"required": ["client_id", "acs_urls"],
 	"allOf": [
 		{
 			"if": {
@@ -79,7 +70,7 @@ func (c *SAMLConfig) ResolveProvider(id string) (*SAMLServiceProviderConfig, boo
 		return nil, false
 	}
 	for _, sp := range c.ServiceProviders {
-		if sp.Deprecated_ID == id || sp.ClientID == id {
+		if sp.ClientID == id {
 			return sp, true
 		}
 	}
@@ -127,7 +118,6 @@ func (p SAMLNameIDAttributePointer) MustGetJSONPointer() jsonpointer.T {
 }
 
 type SAMLServiceProviderConfig struct {
-	Deprecated_ID          string                        `json:"id,omitempty"`
 	ClientID               string                        `json:"client_id,omitempty"`
 	NameIDFormat           samlprotocol.SAMLNameIDFormat `json:"nameid_format,omitempty"`
 	NameIDAttributePointer SAMLNameIDAttributePointer    `json:"nameid_attribute_pointer,omitempty"`
@@ -164,13 +154,7 @@ func (c *SAMLServiceProviderConfig) DefaultAcsURL() string {
 }
 
 func (c *SAMLServiceProviderConfig) GetID() string {
-	if c.ClientID != "" {
-		return c.ClientID
-	}
-	if c.Deprecated_ID != "" {
-		return c.Deprecated_ID
-	}
-	panic("unexpected: service provider does not have id nor client id")
+	return c.ClientID
 }
 
 var _ = Schema.Add("SAMLSigningConfig", `
