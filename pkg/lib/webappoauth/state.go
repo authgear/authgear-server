@@ -11,4 +11,7 @@ type WebappOAuthState struct {
 	// authflow, authflowv2 specific fields
 	XStep            string `json:"x_step"`
 	ErrorRedirectURI string `json:"error_redirect_uri"`
+
+	// account management specific fields
+	AccountManagementToken string `json:"account_management_token,omitempty"`
 }

@@ -1300,3 +1300,111 @@ func (s *Service) dispatchIdentityDeletedEvent(info *identity.Info) (err error) 
 
 	return nil
 }
+
+type StartAddIdentityOAuthInput struct {
+	Alias       string
+	RedirectURI string
+}
+
+type StartAddIdentityOAuthOutput struct {
+	Token            string
+	AuthorizationURL string
+}
+
+func (s *Service) StartAddIdentityOAuth(resolvedSession session.ResolvedSession, input *StartAddIdentityOAuthInput) (*StartAddIdentityOAuthOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	var err error
+	var token string
+	var authorizationURL string
+	err = s.Database.WithTx(func() error {
+		output, err := s.StartAdding(&StartAddingInput{
+			UserID:      userID,
+			Alias:       input.Alias,
+			RedirectURI: input.RedirectURI,
+			IncludeStateAuthorizationURLAndBindStateToToken: false,
+		})
+		if err != nil {
+			return err
+		}
+
+		token = output.Token
+		authorizationURL = output.AuthorizationURL
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &StartAddIdentityOAuthOutput{
+		Token:            token,
+		AuthorizationURL: authorizationURL,
+	}, nil
+}
+
+type FinishAddingIdentityOAuthInput struct {
+	Token string
+	Query string
+}
+
+type FinishAddingIdentityOAuthOutput struct {
+}
+
+func (s *Service) FinishAddingIdentityOAuth(resolvedSession session.ResolvedSession, input *FinishAddingIdentityOAuthInput) (*FinishAddingIdentityOAuthOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	err := s.Database.WithTx(func() error {
+		_, err := s.FinishAdding(&FinishAddingInput{
+			UserID: userID,
+			Token:  input.Token,
+			Query:  input.Query,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &FinishAddingIdentityOAuthOutput{}, nil
+}
+
+type DeleteIdentityOAuthInput struct {
+	IdentityID string
+}
+
+type DeleteIdentityOAuthOutput struct {
+	IdentityInfo *identity.Info
+}
+
+func (s *Service) DeleteIdentityOAuth(resolvedSession session.ResolvedSession, input *DeleteIdentityOAuthInput) (*DeleteIdentityOAuthOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	identityID := input.IdentityID
+
+	var info *identity.Info
+	err := s.Database.WithTx(func() (err error) {
+		info, err = s.prepareDeleteIdentity(userID, identityID)
+		if err != nil {
+			return err
+		}
+
+		err = s.deleteIdentity(info)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityDeletedEvent(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &DeleteIdentityOAuthOutput{IdentityInfo: info}, nil
+}
