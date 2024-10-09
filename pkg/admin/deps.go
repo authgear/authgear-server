@@ -110,6 +110,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(transport.UserExportUsageLimiter), new(*usage.Limiter)),
 	wire.Bind(new(transport.UserExportCreateHandlerCloudStorage), new(userexport.UserExportCloudStorage)),
 	wire.Bind(new(transport.UserExportGetHandlerCloudStorage), new(userexport.UserExportCloudStorage)),
+	wire.Bind(new(transport.UserExportCreateHandlerUserExportService), new(*userexport.UserExportService)),
 
 	adminauthz.DependencySet,
 )

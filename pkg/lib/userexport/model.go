@@ -13,50 +13,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/duration"
-	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 // PresignGetExpiresForUserExport is how long the presign GET request remains valid for user export.
 const PresignGetExpiresForUserExport time.Duration = 1 * duration.PerMinute
 
 const BatchSize = 1000
-
-var RequestSchema = validation.NewSimpleSchema(`
-{
-	"type": "object",
-	"additionalProperties": false,
-	"properties": {
-		"format": {
-			"type": "string",
-			"enum": ["ndjson", "csv"]
-		},
-		"csv": {
-			"type": "object",
-			"properties": {
-				"fields": {
-					"type": "array",
-					"minItems": 1,
-					"items": {
-						"type": "object",
-						"properties": {
-							"pointer": {
-								"type": "string"
-							},
-							"field_name": {
-								"type": "string"
-							}
-						},
-						"required": [
-							"pointer"
-						]
-					}
-				}
-			}
-		}
-	},
-	"required": ["format"]
-}
-`)
 
 var defaultCSVExportFields = []*FieldPointer{
 	&FieldPointer{Pointer: "/sub"},
@@ -134,10 +96,32 @@ type Address struct {
 
 type Identity struct {
 	Type    model.IdentityType     `json:"type"`
-	LoginID map[string]interface{} `json:"login_id,omitempty"`
-	OAuth   map[string]interface{} `json:"oauth,omitempty"`
-	LDAP    map[string]interface{} `json:"ldap,omitempty"`
+	LoginID *IdentityLoginID       `json:"login_id,omitempty"`
+	OAuth   *IdentityOAuth         `json:"oauth,omitempty"`
+	LDAP    *IdentityLDAP          `json:"ldap,omitempty"`
 	Claims  map[string]interface{} `json:"claims,omitempty"`
+}
+
+type IdentityLoginID struct {
+	Key           string `json:"key,omitempty"`
+	Type          string `json:"type,omitempty"`
+	Value         string `json:"value,omitempty"`
+	OriginalValue string `json:"original_value,omitempty"`
+}
+
+type IdentityLDAP struct {
+	ServerName           string                 `json:"server_name,omitempty"`
+	LastLoginUsername    string                 `json:"last_login_username,omitempty"`
+	UserIDAttributeName  string                 `json:"user_id_attribute_name,omitempty"`
+	UserIDAttributeValue string                 `json:"user_id_attribute_value,omitempty"`
+	Attributes           map[string]interface{} `json:"attributes,omitempty"`
+}
+
+type IdentityOAuth struct {
+	ProviderAlias     string                 `json:"provider_alias,omitempty"`
+	ProviderType      string                 `json:"provider_type,omitempty"`
+	ProviderSubjectID string                 `json:"provider_subject_id,omitempty"`
+	UserProfile       map[string]interface{} `json:"user_profile,omitempty"`
 }
 
 type MFATOTP struct {

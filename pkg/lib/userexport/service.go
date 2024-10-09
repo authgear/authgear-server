@@ -16,9 +16,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	libhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
+	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
 type UserQueries interface {
@@ -100,34 +102,38 @@ func (s *UserExportService) convertDBUserToRecord(user *user.UserForExport) (rec
 		case model.IdentityTypeLoginID:
 			record.Identities = append(record.Identities, &Identity{
 				Type: model.IdentityTypeLoginID,
-				LoginID: map[string]interface{}{
-					"key":            identity.LoginID.LoginIDKey,
-					"type":           identity.LoginID.LoginIDType,
-					"value":          identity.LoginID.LoginID,
-					"original_value": identity.LoginID.OriginalLoginID,
+				LoginID: &IdentityLoginID{
+					Key:           identity.LoginID.LoginIDKey,
+					Type:          string(identity.LoginID.LoginIDType),
+					Value:         identity.LoginID.LoginID,
+					OriginalValue: identity.LoginID.OriginalLoginID,
 				},
 				Claims: identity.LoginID.Claims,
 			})
 		case model.IdentityTypeLDAP:
+			lastLoginUsername := ""
+			if identity.LDAP.LastLoginUserName != nil {
+				lastLoginUsername = *identity.LDAP.LastLoginUserName
+			}
 			record.Identities = append(record.Identities, &Identity{
 				Type: model.IdentityTypeLDAP,
-				LoginID: map[string]interface{}{
-					"server_name":             identity.LDAP.ServerName,
-					"last_login_username":     identity.LDAP.LastLoginUserName,
-					"user_id_attribute_name":  identity.LDAP.UserIDAttributeName,
-					"user_id_attribute_value": identity.LDAP.UserIDAttributeValue,
-					"attributes":              identity.LDAP.RawEntryJSON,
+				LDAP: &IdentityLDAP{
+					ServerName:           identity.LDAP.ServerName,
+					LastLoginUsername:    lastLoginUsername,
+					UserIDAttributeName:  identity.LDAP.UserIDAttributeName,
+					UserIDAttributeValue: identity.LDAP.UserIDAttributeValueDisplayValue(),
+					Attributes:           identity.LDAP.RawEntryJSON,
 				},
 				Claims: identity.LDAP.Claims,
 			})
 		case model.IdentityTypeOAuth:
 			record.Identities = append(record.Identities, &Identity{
 				Type: model.IdentityTypeOAuth,
-				LoginID: map[string]interface{}{
-					"provider_alias":      identity.OAuth.ProviderAlias,
-					"provider_type":       identity.OAuth.ProviderID.Type,
-					"provider_subject_id": identity.OAuth.ProviderSubjectID,
-					"user_profile":        identity.OAuth.UserProfile,
+				OAuth: &IdentityOAuth{
+					ProviderAlias:     identity.OAuth.ProviderAlias,
+					ProviderType:      identity.OAuth.ProviderID.Type,
+					ProviderSubjectID: identity.OAuth.ProviderSubjectID,
+					UserProfile:       identity.OAuth.UserProfile,
 				},
 				Claims: identity.OAuth.Claims,
 			})
@@ -387,4 +393,73 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File, format
 	}
 
 	return response, nil
+}
+
+func (s *UserExportService) makeRequestSchema() validation.SchemaBuilder {
+	// Currently we only check the pointer is a valid JSON pointer.
+	// But we do not check whether the pointer can possibly point to something.
+	// For example, /nonsense points to nothing, and /identities/0/type can possibly points to something.
+	// But the set of valid pointers are infinite, so we do not attempt to valid them here.
+	pointer := validation.SchemaBuilder{}.
+		Type(validation.TypeString).
+		Format("json-pointer")
+
+	field := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		Required("pointer")
+	field.Properties().
+		Property(
+			"field_name",
+			validation.SchemaBuilder{}.
+				Type(validation.TypeString).
+				MinLength(1),
+		).
+		Property("pointer", pointer)
+
+	csv := validation.SchemaBuilder{}.
+		Type(validation.TypeObject)
+	csv.Properties().
+		Property(
+			"fields",
+			validation.SchemaBuilder{}.
+				Type(validation.TypeArray).
+				MinItems(1).
+				Items(field),
+		)
+
+	root := validation.SchemaBuilder{}.
+		Type(validation.TypeObject).
+		AdditionalPropertiesFalse().
+		Required("format")
+
+	root.Properties().
+		Property(
+			"format",
+			validation.SchemaBuilder{}.
+				Type(validation.TypeString).
+				Enum("ndjson", "csv"),
+		).
+		Property("csv", csv)
+
+	return root
+}
+
+func (s *UserExportService) ParseExportRequest(w http.ResponseWriter, r *http.Request) (*Request, error) {
+	var request Request
+	schema := s.makeRequestSchema().ToSimpleSchema()
+	err := httputil.BindJSONBody(r, w, schema.Validator(), &request)
+	if err != nil {
+		return nil, err
+	}
+
+	var fields []*FieldPointer
+	if request.CSV != nil {
+		fields = request.CSV.Fields
+	}
+	_, err = ExtractCSVHeaderField(fields)
+	if err != nil {
+		return nil, err
+	}
+
+	return &request, nil
 }

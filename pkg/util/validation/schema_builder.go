@@ -134,6 +134,11 @@ func (b SchemaBuilder) MaximumFloat64(maximum float64) SchemaBuilder {
 	return b
 }
 
+func (b SchemaBuilder) MinItems(n int) SchemaBuilder {
+	b["minItems"] = n
+	return b
+}
+
 func (b SchemaBuilder) AdditionalPropertiesFalse() SchemaBuilder {
 	b["additionalProperties"] = false
 	return b
