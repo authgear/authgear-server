@@ -250,6 +250,15 @@ func (c *SecretConfig) validateSAMLSigningKey(ctx *validation.Context, keyID str
 	ctx.EmitErrorMessage(fmt.Sprintf("saml idp signing key '%s' does not exist", keyID))
 }
 
+func (c *SecretConfig) validateSAMLServiceProviderCerts(ctx *validation.Context, sp *SAMLServiceProviderConfig) {
+	_, data, _ := c.LookupDataWithIndex(SAMLSpSigningMaterialsKey)
+	signingMaterials, _ := data.(*SAMLSpSigningMaterials)
+	certs, ok := signingMaterials.Resolve(sp)
+	if !ok || len(certs.Certificates) < 1 {
+		ctx.EmitErrorMessage(fmt.Sprintf("certificates of saml sp '%s' is not configured", sp.GetID()))
+	}
+}
+
 func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	ctx := &validation.Context{}
 
@@ -290,6 +299,11 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 
 	if len(appConfig.SAML.ServiceProviders) > 0 {
 		c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
+		for _, sp := range appConfig.SAML.ServiceProviders {
+			if sp.ShouldVerifySignature {
+				c.validateSAMLServiceProviderCerts(ctx, sp)
+			}
+		}
 	}
 	if appConfig.SAML.Signing.KeyID != "" {
 		c.validateSAMLSigningKey(ctx, appConfig.SAML.Signing.KeyID)

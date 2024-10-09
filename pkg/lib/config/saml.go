@@ -39,7 +39,8 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" },
 		"slo_enabled": { "type": "boolean" },
 		"slo_callback_url": { "type": "string", "format": "uri" },
-		"slo_binding": { "$ref": "#/$defs/SAMLSLOBinding" }
+		"slo_binding": { "$ref": "#/$defs/SAMLSLOBinding" },
+		"should_verify_signature": { "type": "boolean" }
 	},
 	"required": ["client_id", "acs_urls"],
 	"allOf": [
@@ -129,6 +130,7 @@ type SAMLServiceProviderConfig struct {
 	SLOEnabled             bool                          `json:"slo_enabled,omitempty"`
 	SLOCallbackURL         string                        `json:"slo_callback_url,omitempty"`
 	SLOBinding             samlprotocol.SAMLBinding      `json:"slo_binding,omitempty"`
+	ShouldVerifySignature  bool                          `json:"should_verify_signature,omitempty"`
 }
 
 func (c *SAMLServiceProviderConfig) SetDefaults() {
