@@ -1,0 +1,26 @@
+{{/* Example usage:
+  {{ template "authflowv2/__image_input.html"
+    (dict
+      "SubmitEvent" "authgear.button.enter_face_image"
+      "ErrorMessage" $img_error_message
+    )
+  }}
+ */}}
+
+{{ define "authflowv2/__image_input.html" }}
+<div
+  class="flex flex-col gap-4"
+>
+  {{/* TODO (identity-week-demo): Confirm how to display error message */}}
+  {{ if $.ErrorMessage }}{{ end }}
+  <button
+    class="primary-btn w-full"
+    type="button"
+    name="{{ or $.OpenCameraButtonName "x_action" }}"
+    value="{{ or $.OpenCameraButtonValue "button" }}"
+    
+  > 
+    {{ include "v2.component.button.default.label-open-camera" nil }}
+  </button>
+</div>
+{{ end }}

@@ -886,6 +886,7 @@
   "v2.component.button.default.label-continue-with-text-login-id": "Continue with {variant, select, email {Email} username {Username} other {Email / Username}}",
   "v2.component.button.default.label-edit": "Edit",
   "v2.component.button.default.label-login": "Login",
+  "v2.component.button.default.label-open-camera": "Open Camera",
   "v2.component.button.default.label-remove": "Remove",
   "v2.component.button.default.label-save": "Save",
   "v2.component.button.default.label-send": "Send",

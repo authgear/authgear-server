@@ -46,8 +46,14 @@
       >
         {{ $.CSRFField }}
       </form>
+      {{ template "authflowv2/__image_input.html"
+        (dict
+          "FormName" "main-form"
+          "SubmitEvent" "authgear.button.enter_face_image"
+          "ErrorMessage" $img_error_message
+        )
+      }}
 
-      {{/* TODO (identity-week-demo): Add image capturer here */}}
 
       {{ if $.DeviceTokenEnabled }}
         {{ template "authflowv2/__device_token_checkbox.html" (dict "Form" "main-form" "Classname" "mt-4") }}
