@@ -9,14 +9,15 @@ import (
 type AuthenticationType string
 
 const (
-	AuthenticationTypeNone         AuthenticationType = "none"
-	AuthenticationTypePassword     AuthenticationType = "password"
-	AuthenticationTypePasskey      AuthenticationType = "passkey"
-	AuthenticationTypeTOTP         AuthenticationType = "totp"
-	AuthenticationTypeOOBOTPEmail  AuthenticationType = "oob_otp_email"
-	AuthenticationTypeOOBOTPSMS    AuthenticationType = "oob_otp_sms"
-	AuthenticationTypeRecoveryCode AuthenticationType = "recovery_code"
-	AuthenticationTypeDeviceToken  AuthenticationType = "device_token"
+	AuthenticationTypeNone            AuthenticationType = "none"
+	AuthenticationTypePassword        AuthenticationType = "password"
+	AuthenticationTypePasskey         AuthenticationType = "passkey"
+	AuthenticationTypeTOTP            AuthenticationType = "totp"
+	AuthenticationTypeOOBOTPEmail     AuthenticationType = "oob_otp_email"
+	AuthenticationTypeOOBOTPSMS       AuthenticationType = "oob_otp_sms"
+	AuthenticationTypeFaceRecognition AuthenticationType = "face_recognition"
+	AuthenticationTypeRecoveryCode    AuthenticationType = "recovery_code"
+	AuthenticationTypeDeviceToken     AuthenticationType = "device_token"
 )
 
 type AuthenticationStage string
@@ -39,6 +40,8 @@ func AuthenticationStageFromAuthenticationMethod(am config.AuthenticationFlowAut
 	case config.AuthenticationFlowAuthenticationSecondaryPassword:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
+		fallthrough
+	case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
 		fallthrough
 	case config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		fallthrough
