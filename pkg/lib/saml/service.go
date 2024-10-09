@@ -563,10 +563,13 @@ func (s *Service) IssueLogoutResponse(
 func (s *Service) VerifyEmbeddedSignature(
 	sp *config.SAMLServiceProviderConfig,
 	samlElementXML string) error {
+	if !sp.ShouldVerifySignature {
+		return nil
+	}
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
 	if !ok || len(certs.Certificates) == 0 {
-		// Signing cert not configured, nothing to verify
-		return nil
+		// This should be prevented by config validation. Therefore it is a programming error.
+		panic("SP certificates not configured but signature verification is required")
 	}
 	certificateStore := &dsig.MemoryX509CertificateStore{
 		Roots: slice.Map(certs.Certificates, func(c config.X509Certificate) *x509.Certificate {
@@ -601,10 +604,13 @@ func (s *Service) VerifyExternalSignature(
 	sigAlg string,
 	relayState string,
 	signature string) error {
+	if !sp.ShouldVerifySignature {
+		return nil
+	}
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
 	if !ok || len(certs.Certificates) == 0 {
-		// Signing cert not configured, nothing to verify
-		return nil
+		// This should be prevented by config validation. Therefore it is a programming error.
+		panic("SP certificates not configured but signature verification is required")
 	}
 
 	q := url.Values{}
