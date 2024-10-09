@@ -9,6 +9,7 @@ package redisqueue
 import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/face_recognition"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
@@ -50,6 +51,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/opencvfr"
+	"github.com/authgear/authgear-server/pkg/lib/opencvfr/api"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -338,6 +341,38 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clock,
 	}
+	face_recognitionStore := &face_recognition.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	client := api.NewClient(environmentConfig)
+	personService := &api.PersonService{
+		HTTPClient: client,
+	}
+	collectionService := &api.CollectionService{
+		HTTPClient: client,
+	}
+	searchService := &api.SearchService{
+		HTTPClient: client,
+	}
+	livenessService := &api.LivenessService{
+		HTTPClient: client,
+	}
+	opencvfrService := &opencvfr.Service{
+		Clock:               clock,
+		AppID:               appID,
+		AuthenticatorConfig: authenticationConfig,
+		Person:              personService,
+		Collection:          collectionService,
+		Search:              searchService,
+		Liveness:            livenessService,
+	}
+	face_recognitionProvider := &face_recognition.Provider{
+		AppID:    appID,
+		Store:    face_recognitionStore,
+		OpenCVFR: opencvfrService,
+		Clock:    clock,
+	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -389,15 +424,16 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+		Store:           store3,
+		Config:          appConfig,
+		Password:        passwordProvider,
+		Passkey:         provider2,
+		TOTP:            totpProvider,
+		OOBOTP:          oobProvider,
+		FaceRecognition: face_recognitionProvider,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -516,7 +552,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchClient := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
 	elasticsearchService := elasticsearch.Service{
@@ -525,7 +561,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
-		Client:          client,
+		Client:          elasticsearchClient,
 		Users:           userQueries,
 		UserStore:       store,
 		IdentityService: serviceService,
@@ -782,7 +818,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
-		Client:          client,
+		Client:          elasticsearchClient,
 		Users:           userQueries,
 		UserStore:       store,
 		IdentityService: serviceService,
@@ -1081,6 +1117,38 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	face_recognitionStore := &face_recognition.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	client := api.NewClient(environmentConfig)
+	personService := &api.PersonService{
+		HTTPClient: client,
+	}
+	collectionService := &api.CollectionService{
+		HTTPClient: client,
+	}
+	searchService := &api.SearchService{
+		HTTPClient: client,
+	}
+	livenessService := &api.LivenessService{
+		HTTPClient: client,
+	}
+	opencvfrService := &opencvfr.Service{
+		Clock:               clockClock,
+		AppID:               appID,
+		AuthenticatorConfig: authenticationConfig,
+		Person:              personService,
+		Collection:          collectionService,
+		Search:              searchService,
+		Liveness:            livenessService,
+	}
+	face_recognitionProvider := &face_recognition.Provider{
+		AppID:    appID,
+		Store:    face_recognitionStore,
+		OpenCVFR: opencvfrService,
+		Clock:    clockClock,
+	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -1132,15 +1200,16 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+		Store:           store3,
+		Config:          appConfig,
+		Password:        passwordProvider,
+		Passkey:         provider2,
+		TOTP:            totpProvider,
+		OOBOTP:          oobProvider,
+		FaceRecognition: face_recognitionProvider,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
 	}
 	verificationConfig := appConfig.Verification
 	storePQ := &verification.StorePQ{
@@ -1480,6 +1549,38 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	face_recognitionStore := &face_recognition.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	apiClient := api.NewClient(environmentConfig)
+	personService := &api.PersonService{
+		HTTPClient: apiClient,
+	}
+	collectionService := &api.CollectionService{
+		HTTPClient: apiClient,
+	}
+	searchService := &api.SearchService{
+		HTTPClient: apiClient,
+	}
+	livenessService := &api.LivenessService{
+		HTTPClient: apiClient,
+	}
+	opencvfrService := &opencvfr.Service{
+		Clock:               clockClock,
+		AppID:               appID,
+		AuthenticatorConfig: authenticationConfig,
+		Person:              personService,
+		Collection:          collectionService,
+		Search:              searchService,
+		Liveness:            livenessService,
+	}
+	face_recognitionProvider := &face_recognition.Provider{
+		AppID:    appID,
+		Store:    face_recognitionStore,
+		OpenCVFR: opencvfrService,
+		Clock:    clockClock,
+	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -1531,15 +1632,16 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+		Store:           store3,
+		Config:          appConfig,
+		Password:        passwordProvider,
+		Passkey:         provider2,
+		TOTP:            totpProvider,
+		OOBOTP:          oobProvider,
+		FaceRecognition: face_recognitionProvider,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile

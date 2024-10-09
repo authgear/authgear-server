@@ -17,3 +17,7 @@ const (
 	// nolint: gosec
 	AuthenticatorClaimPasskeyCredentialID string = "https://authgear.com/claims/passkey/credential_id"
 )
+
+const (
+	AuthenticatorClaimFaceRecognition string = "https://authgear.com/claims/face_recognition"
+)

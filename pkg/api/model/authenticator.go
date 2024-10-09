@@ -7,11 +7,12 @@ import (
 type AuthenticatorType string
 
 const (
-	AuthenticatorTypePassword AuthenticatorType = "password"
-	AuthenticatorTypePasskey  AuthenticatorType = "passkey"
-	AuthenticatorTypeTOTP     AuthenticatorType = "totp"
-	AuthenticatorTypeOOBEmail AuthenticatorType = "oob_otp_email"
-	AuthenticatorTypeOOBSMS   AuthenticatorType = "oob_otp_sms"
+	AuthenticatorTypePassword        AuthenticatorType = "password"
+	AuthenticatorTypePasskey         AuthenticatorType = "passkey"
+	AuthenticatorTypeTOTP            AuthenticatorType = "totp"
+	AuthenticatorTypeOOBEmail        AuthenticatorType = "oob_otp_email"
+	AuthenticatorTypeOOBSMS          AuthenticatorType = "oob_otp_sms"
+	AuthenticatorTypeFaceRecognition AuthenticatorType = "face_recognition"
 )
 
 type AuthenticatorOOBChannel string
