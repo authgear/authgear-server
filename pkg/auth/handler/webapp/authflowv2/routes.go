@@ -43,6 +43,7 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteEnterPassword     = "/authflow/v2/enter_password"
 	AuthflowV2RouteEnterRecoveryCode = "/authflow/v2/enter_recovery_code"
+	AuthflowV2RouteEnterFaceImage    = "/authflow/v2/enter_face_image"
 	AuthflowV2RouteEnterOOBOTP       = "/authflow/v2/enter_oob_otp"
 	AuthflowV2RouteOOBOTPLink        = "/authflow/v2/oob_otp_link"
 	AuthflowV2RouteVerifyLink        = "/authflow/v2/verify_login_link"
@@ -376,6 +377,8 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 			panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowV2RouteEnterTOTP, result)
+		case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+			s.Advance(AuthflowV2RouteEnterFaceImage, result)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:

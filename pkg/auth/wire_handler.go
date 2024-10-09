@@ -940,6 +940,13 @@ func newWebAppAuthflowV2EnterRecoveryCodeHandler(p *deps.RequestProvider) http.H
 	))
 }
 
+func newWebappAuthflowV2EnterFaceImageHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2EnterFaceImageHandler)),
+	))
+}
+
 func newWebAppAuthflowSetupOOBOTPHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowUIHandlerDependencySet,
