@@ -91,7 +91,7 @@ func (l *RateLimits) specPerIP(authType model.AuthenticatorType) ratelimit.Bucke
 		)
 
 	case model.AuthenticatorTypeFaceRecognition:
-		config := l.Config.RateLimits.General.PerIP // TODO: support face-recognition specific rate limits
+		config := l.Config.RateLimits.General.PerIP // TODO (identity-week-demo): support face-recognition specific rate limits
 
 		return ratelimit.NewBucketSpec(
 			config, VerifyFaceRecognitionPerIP,
@@ -135,7 +135,7 @@ func (l *RateLimits) specPerUserPerIP(userID string, authType model.Authenticato
 		return ratelimit.BucketSpecDisabled
 
 	case model.AuthenticatorTypeFaceRecognition:
-		config := l.Config.RateLimits.General.PerUserPerIP // TODO: support face-recognition specific rate limits
+		config := l.Config.RateLimits.General.PerUserPerIP // TODO (identity-week-demo): support face-recognition specific rate limits
 		return ratelimit.NewBucketSpec(
 			config, VerifyFaceRecognitionPerIP,
 			userID, string(l.IP),

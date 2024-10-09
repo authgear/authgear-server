@@ -102,7 +102,7 @@ func (i *Info) Equal(that *Info) bool {
 
 		return i.OOBOTP.Phone == that.OOBOTP.Phone
 	case model.AuthenticatorTypeFaceRecognition:
-		// TODO: // If they are face recognition, they have the same ???
+		// TODO (identity-week-demo): // If they are face recognition, they have the same ???
 		return i.UserID == that.UserID
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
@@ -179,7 +179,7 @@ func (i *Info) CanHaveMFA() bool {
 		// In case we ever reach here, we treat the situation as no MFA.
 		return false
 	case model.AuthenticatorTypeFaceRecognition:
-		// TODO: confirm below
+		// TODO (identity-week-demo): confirm below
 		// face recognition is strong so it cannot have MFA.
 		return false
 	default:
@@ -225,7 +225,7 @@ func (i *Info) IsDependentOf(iden *identity.Info) bool {
 		}
 	}
 
-	// TODO: confirm if face recognition is "dependent" of anything? i.e. define "dependent"
+	// TODO (identity-week-demo): confirm if face recognition is "dependent" of anything? i.e. define "dependent"
 
 	return false
 }

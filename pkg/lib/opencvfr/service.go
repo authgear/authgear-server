@@ -58,7 +58,7 @@ func (s *Service) VerifyFace(appID string, personID string, b64FaceImage string,
 	if opts != nil && opts.OS != "" {
 		os = &opts.OS
 	}
-	// TODO: construct a mapping in db, appID <-> collectionID
+	// TODO (identity-week-demo): construct a mapping in db, appID <-> collectionID
 	// collectionID := s.Store.GetCollectionID(appID)
 	collectionID := "12edc48f-4b43-4240-90dd-213f3008932c"
 	r, err := s.Search.SearchLiveFace(&openapi.SearchLiveFaceScheme{
@@ -80,7 +80,7 @@ func (s *Service) VerifyFace(appID string, personID string, b64FaceImage string,
 		return ErrFaceNotFound
 	}
 
-	// TODO: specify min-liveness somewhere
+	// TODO (identity-week-demo): specify min-liveness somewhere
 	const minLivenessScore float32 = 0.00001
 	if livePersonResult.LivenessScore < minLivenessScore {
 		return ErrFaceLivenessLow
@@ -98,7 +98,7 @@ func (s *Service) VerifyFace(appID string, personID string, b64FaceImage string,
 		return ErrFaceNotMatch
 	}
 
-	// TODO: Handle opencvfr error codes, like
+	// TODO (identity-week-demo): Handle opencvfr error codes, like
 	// (ERR_INVALID_FACE_FOR_LIVENESS): Image is invalid for checking livenes
 	// (ERR_FACE_EDGES_NOT_VISIBLE): The face is not in the center
 
