@@ -130,6 +130,10 @@ type inputTakeTOTP interface {
 	GetCode() string
 }
 
+type inputTakeFaceRecognition interface {
+	GetB64Image() string
+}
+
 type inputTakeRecoveryCode interface {
 	GetRecoveryCode() string
 }
