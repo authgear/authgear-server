@@ -50,6 +50,7 @@ import { BotProtectionStandalonePageController } from "./authflowv2/botprotectio
 import { ImagePickerController } from "./imagepicker";
 import { SelectInputController } from "./authflowv2/selectInput";
 import { AccountDeletionController } from "./accountdeletion";
+import { BackController } from "./authflowv2/back";
 
 axios.defaults.withCredentials = true;
 
@@ -136,5 +137,6 @@ Stimulus.register("bot-protection-dialog", BotProtectionDialogController);
 Stimulus.register("select-input", SelectInputController);
 
 Stimulus.register("account-deletion", AccountDeletionController);
+Stimulus.register("back-button", BackController);
 
 injectCSSAttrs(document.documentElement);
