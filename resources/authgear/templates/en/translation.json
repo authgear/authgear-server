@@ -884,6 +884,7 @@
   "v2.component.button.default.label-continue-with-phone": "Continue with Phone Number",
   "v2.component.button.default.label-continue-with-text-login-id": "Continue with {variant, select, email {Email} username {Username} other {Email / Username}}",
   "v2.component.button.default.label-login": "Login",
+  "v2.component.button.default.label-open-camera": "Open Camera",
   "v2.component.button.default.label-save": "Save",
   "v2.component.button.default.label-send": "Send",
   "v2.component.device-token-checkbox.default.label": "Remember this device, and don’t ask again",
