@@ -18,10 +18,11 @@ type Info struct {
 	IsDefault bool                    `json:"is_default"`
 	Kind      Kind                    `json:"kind"`
 
-	Password *Password `json:"password,omitempty"`
-	Passkey  *Passkey  `json:"passkey,omitempty"`
-	TOTP     *TOTP     `json:"totp,omitempty"`
-	OOBOTP   *OOBOTP   `json:"oobotp,omitempty"`
+	Password        *Password        `json:"password,omitempty"`
+	Passkey         *Passkey         `json:"passkey,omitempty"`
+	TOTP            *TOTP            `json:"totp,omitempty"`
+	OOBOTP          *OOBOTP          `json:"oobotp,omitempty"`
+	FaceRecognition *FaceRecognition `json:"face_recognition,omitempty"`
 }
 
 func (i *Info) ToRef() *Ref {
@@ -56,6 +57,8 @@ func (i *Info) AMR() []string {
 		return []string{model.AMROTP}
 	case model.AuthenticatorTypeOOBSMS:
 		return []string{model.AMROTP, model.AMRSMS}
+	case model.AuthenticatorTypeFaceRecognition:
+		return []string{model.AMRFace}
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
 	}
@@ -98,6 +101,9 @@ func (i *Info) Equal(that *Info) bool {
 		}
 
 		return i.OOBOTP.Phone == that.OOBOTP.Phone
+	case model.AuthenticatorTypeFaceRecognition:
+		// TODO: // If they are face recognition, they have the same ???
+		return i.UserID == that.UserID
 	default:
 		panic("authenticator: unknown authenticator type: " + i.Type)
 	}
@@ -114,6 +120,8 @@ func (i *Info) ToPublicClaims() map[string]interface{} {
 		claims[AuthenticatorClaimOOBOTPPhone] = i.OOBOTP.Phone
 	case model.AuthenticatorTypePasskey:
 		claims[AuthenticatorClaimPasskeyCredentialID] = i.Passkey.CredentialID
+	case model.AuthenticatorTypeFaceRecognition:
+		claims[AuthenticatorClaimFaceRecognition] = i.FaceRecognition.ID
 	default:
 		// no claims to add
 		break
@@ -129,6 +137,8 @@ func (i *Info) StandardClaims() map[model.ClaimName]string {
 	case model.AuthenticatorTypePasskey:
 		break
 	case model.AuthenticatorTypeTOTP:
+		break
+	case model.AuthenticatorTypeFaceRecognition:
 		break
 	case model.AuthenticatorTypeOOBEmail:
 		claims[model.ClaimEmail] = i.OOBOTP.Email
@@ -167,6 +177,10 @@ func (i *Info) CanHaveMFA() bool {
 	case model.AuthenticatorTypeTOTP:
 		// TOTP was disqualified as primary authenticator very long ago.
 		// In case we ever reach here, we treat the situation as no MFA.
+		return false
+	case model.AuthenticatorTypeFaceRecognition:
+		// TODO: confirm below
+		// face recognition is strong so it cannot have MFA.
 		return false
 	default:
 		panic(fmt.Errorf("identity: unexpected identity type %v", i.Type))
@@ -211,6 +225,8 @@ func (i *Info) IsDependentOf(iden *identity.Info) bool {
 		}
 	}
 
+	// TODO: confirm if face recognition is "dependent" of anything? i.e. define "dependent"
+
 	return false
 }
 
@@ -241,6 +257,8 @@ func (i *Info) UpdateUserID(newUserID string) *Info {
 		fallthrough
 	case model.AuthenticatorTypeOOBSMS:
 		i.OOBOTP.UserID = newUserID
+	case model.AuthenticatorTypeFaceRecognition:
+		i.FaceRecognition.UserID = newUserID
 	default:
 		panic(fmt.Errorf("identity: identity type %v does not support updating user ID", i.Type))
 	}
