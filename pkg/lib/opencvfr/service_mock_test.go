@@ -273,10 +273,10 @@ func (mr *MockSearchServiceMockRecorder) Search(reqBody interface{}) *gomock.Cal
 }
 
 // SearchLiveFace mocks base method.
-func (m *MockSearchService) SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (*openapi.NullableSearchPersonResultSchema, error) {
+func (m *MockSearchService) SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (*openapi.NullableSearchLivePersonResultSchema, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SearchLiveFace", reqBody)
-	ret0, _ := ret[0].(*openapi.NullableSearchPersonResultSchema)
+	ret0, _ := ret[0].(*openapi.NullableSearchLivePersonResultSchema)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
