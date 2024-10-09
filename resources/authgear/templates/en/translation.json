@@ -1063,6 +1063,7 @@
   "v2.page.csrf-error.default.message": "An error occured. Make sure cookies are enabled and try again.",
   "v2.page.csrf-error.default.see-instructions": "See instructions.",
   "v2.page.csrf-error.default.title": "Oops!",
+  "v2.page.enter-face-image.default.title": "Face Recognition",
   "v2.page.enter-oob-otp.auth-email-or-sms.subtitle": "We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
   "v2.page.enter-oob-otp.auth-email-or-sms.subtitle-reauth": "For your security, we need to verify it''s you. We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
   "v2.page.enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp": "For your security, we need to verify it''s you. We''ve just sent a {CodeLength}-digit verification code to your WhatsApp number at {MaskedClaimValue}.",

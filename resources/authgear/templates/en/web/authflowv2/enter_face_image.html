@@ -1,0 +1,59 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+  {{ $err_map := (resolveError $.RawError (dict 
+    "imgInput" (dict
+      "by_reason"                    (list "InvalidCredentials")
+    )
+  )) }}
+
+  {{ $img_err := index $err_map "imgInput" }}
+  {{ $unknown_err := index $err_map "unknown" }}
+  {{ $has_img_err := not (isNil $img_err) }}
+  {{ $has_unknown_err := not (isNil $unknown_err )}}
+
+  {{ $img_error_message := "" }}
+  {{ if $has_img_err }}
+    {{ $img_error_message = include "authflowv2/__error.html" (merge (dict "Error" $img_err) $) }}
+  {{ end }}
+
+  {{ $unknown_error_message := "" }}
+  {{ if $has_unknown_err }}
+    {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
+  {{ end }}
+
+  <div class="flex flex-col gap-y-8 flex-1-0-auto">
+    <div class="screen-title-description">
+      <h1 class="screen-title">
+        {{ include "v2.page.enter-face-image.default.title" nil }}
+      </h1>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+          "Message" $unknown_error_message
+        )
+      }}
+    </div>
+    <div>
+      <form
+        id="main-form"
+        method="post"
+        novalidate
+        data-restore-form="false"
+        data-controller="turbo-form"
+        data-action="submit->turbo-form#submitForm"
+      >
+        {{ $.CSRFField }}
+      </form>
+
+      {{/* TODO (identity-week-demo): Add image capturer here */}}
+
+      {{ if $.DeviceTokenEnabled }}
+        {{ template "authflowv2/__device_token_checkbox.html" (dict "Form" "main-form" "Classname" "mt-4") }}
+      {{ end }}
+    </div>
+
+    {{ template "authflowv2/__authflow_branch.html" $ }}
+  </div>
+{{ end }}
