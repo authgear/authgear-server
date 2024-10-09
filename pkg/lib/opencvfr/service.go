@@ -29,7 +29,7 @@ type CollectionService interface {
 type SearchService interface {
 	Verify(reqBody *openapi.VerifyPersonSchema) (r *openapi.NullableVerifyPersonResultSchema, err error)
 	Search(reqBody *openapi.SearchPersonSchema) (r []*openapi.SearchPersonResultSchema, err error)
-	SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (r *openapi.NullableSearchPersonResultSchema, err error)
+	SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (r *openapi.NullableSearchLivePersonResultSchema, err error)
 }
 
 type LivenessService interface {
@@ -44,4 +44,63 @@ type Service struct {
 	Collection          CollectionService
 	Search              SearchService
 	Liveness            LivenessService
+}
+
+type VerifyFaceOption struct {
+	OS openapi.OSEnum
+}
+
+// VerifyFace verifies if a face matches the given person and collection.
+// If match, return nil.
+// Otherwise, return error.
+func (s *Service) VerifyFace(appID string, personID string, b64FaceImage string, opts *VerifyFaceOption) error {
+	var os *openapi.OSEnum
+	if opts != nil && opts.OS != "" {
+		os = &opts.OS
+	}
+	// TODO: construct a mapping in db, appID <-> collectionID
+	// collectionID := s.Store.GetCollectionID(appID)
+	collectionID := "12edc48f-4b43-4240-90dd-213f3008932c"
+	r, err := s.Search.SearchLiveFace(&openapi.SearchLiveFaceScheme{
+		Os:           *openapi.NewNullableOSEnum(os),
+		CollectionId: *openapi.NewNullableString(&collectionID),
+		Image:        b64FaceImage,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if r == nil {
+		return ErrFaceNotFound
+	}
+
+	livePersonResult := r.Get()
+	if livePersonResult == nil {
+		return ErrFaceNotFound
+	}
+
+	// TODO: specify min-liveness somewhere
+	const minLivenessScore float32 = 0.00001
+	if livePersonResult.LivenessScore < minLivenessScore {
+		return ErrFaceLivenessLow
+	}
+
+	var matched bool
+	for _, p := range livePersonResult.Persons {
+		if p.Id == personID {
+			matched = true
+			break
+		}
+	}
+
+	if !matched {
+		return ErrFaceNotMatch
+	}
+
+	// TODO: Handle opencvfr error codes, like
+	// (ERR_INVALID_FACE_FOR_LIVENESS): Image is invalid for checking livenes
+	// (ERR_FACE_EDGES_NOT_VISIBLE): The face is not in the center
+
+	return nil
 }
