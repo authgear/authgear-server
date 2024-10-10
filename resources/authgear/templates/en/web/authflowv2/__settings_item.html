@@ -65,6 +65,8 @@
     </ul>
   {{ end }}
 
-  <div class="settings-item__forward_arrow"></div>
+  {{ if $.Href }}
+    <div class="settings-item__forward_arrow"></div>
+  {{ end }}
 </a>
 {{ end}}

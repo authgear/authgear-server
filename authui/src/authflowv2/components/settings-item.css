@@ -99,7 +99,7 @@
       grid-template-columns: var(--settings-item__grid-col-icon-width) auto 1.125rem;
     }
 
-    &:hover {
+    &[href]:hover {
       background-color: var(--settings-item__bg-color--hover);
       color: var(--settings-item__text-color--hover);
       @apply ring-inset
