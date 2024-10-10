@@ -14,7 +14,7 @@
 <form
   class="settings-content flex flex-col gap-y-8"
   method="post"
-  data-controller="turbo-form"
+  data-controller="turbo-form form-state"
   data-action="submit->turbo-form#submitForm"
 >
   {{ $.CSRFField }}
@@ -24,6 +24,9 @@
         "Timezones" $.Timezones
         "Name" "/zoneinfo"
         "Value" $.Zoneinfo
+        "InputAttrs" `
+          data-form-state-target="input"
+        `
       )
   }}
 
@@ -33,6 +36,7 @@
     name="x_action"
     value="save"
     data-authgear-event="authgear.button.update_profile"
+    data-form-state-target="submit"
   >
     {{ translate "v2.component.button.default.label-save" . }}
   </button>

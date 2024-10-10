@@ -10,7 +10,7 @@
 
 {{ define "page-content" }}
 <form
-  data-controller="turbo-form"
+  data-controller="turbo-form form-state"
   data-action="submit->turbo-form#submitForm"
   class="flex flex-col settings-content gap-y-8"
   method="post"
@@ -22,6 +22,9 @@
       "Name" "/birthdate"
       "Value" .Birthdate
       "Max" .Today
+      "InputAttrs" `
+        data-form-state-target="input"
+      `
     )
   }}
 
@@ -30,6 +33,8 @@
     type="submit"
     name="x_action"
     value="save"
+    data-authgear-event="authgear.button.update_profile"
+    data-form-state-target="submit"
   >
   {{ translate "v2.component.button.default.label-save" . }}
   </button>

@@ -10,12 +10,14 @@
 
 {{ define "authflowv2/__date_input.html" }}
 
-<input 
-type="date"
-class="input date-input" 
-name="{{ .Name }}"
-value="{{ .Value }}"
-{{ if .Min }} max="{{ .Max }}" {{ end }}
-{{ if .Max }} max="{{ .Max }}" {{ end }}>
+<input
+  type="date"
+  class="input date-input"
+  name="{{ .Name }}"
+  value="{{ .Value }}"
+  {{ if .Min }} max="{{ .Max }}" {{ end }}
+  {{ if .Max }} max="{{ .Max }}" {{ end }}
+  {{ if .InputAttrs }}{{htmlattr .InputAttrs }}{{end}}
+>
 
 {{ end }}

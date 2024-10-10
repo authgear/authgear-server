@@ -13,7 +13,7 @@
 
 <form
   class="settings-content flex flex-col gap-y-8"
-  data-controller="turbo-form"
+  data-controller="turbo-form form-state"
   data-action="submit->turbo-form#submitForm"
   method="post"
 >
@@ -26,6 +26,9 @@
       "Locale" .Locale
       "Translations" .Translations
       "Name" "/locale"
+      "InputAttrs" `
+        data-form-state-target="input"
+      `
     )
   }}
   {{ end }}
@@ -35,6 +38,8 @@
     type="submit"
     name="x_action"
     value="save"
+    data-authgear-event="authgear.button.update_profile"
+    data-form-state-target="submit"
   >
     {{ translate "v2.component.button.default.label-save" nil }}
   </button>
