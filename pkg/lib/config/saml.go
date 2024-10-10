@@ -39,7 +39,8 @@ var _ = Schema.Add("SAMLServiceProviderConfig", `
 		"assertion_valid_duration":  { "$ref": "#/$defs/DurationString" },
 		"slo_enabled": { "type": "boolean" },
 		"slo_callback_url": { "type": "string", "format": "uri" },
-		"slo_binding": { "$ref": "#/$defs/SAMLSLOBinding" }
+		"slo_binding": { "$ref": "#/$defs/SAMLSLOBinding" },
+		"signature_verification_enabled": { "type": "boolean" }
 	},
 	"required": ["client_id", "acs_urls"],
 	"allOf": [
@@ -118,17 +119,18 @@ func (p SAMLNameIDAttributePointer) MustGetJSONPointer() jsonpointer.T {
 }
 
 type SAMLServiceProviderConfig struct {
-	ClientID               string                        `json:"client_id,omitempty"`
-	NameIDFormat           samlprotocol.SAMLNameIDFormat `json:"nameid_format,omitempty"`
-	NameIDAttributePointer SAMLNameIDAttributePointer    `json:"nameid_attribute_pointer,omitempty"`
-	AcsURLs                []string                      `json:"acs_urls,omitempty"`
-	Destination            string                        `json:"destination,omitempty"`
-	Recipient              string                        `json:"recipient,omitempty"`
-	Audience               string                        `json:"audience,omitempty"`
-	AssertionValidDuration DurationString                `json:"assertion_valid_duration,omitempty"`
-	SLOEnabled             bool                          `json:"slo_enabled,omitempty"`
-	SLOCallbackURL         string                        `json:"slo_callback_url,omitempty"`
-	SLOBinding             samlprotocol.SAMLBinding      `json:"slo_binding,omitempty"`
+	ClientID                     string                        `json:"client_id,omitempty"`
+	NameIDFormat                 samlprotocol.SAMLNameIDFormat `json:"nameid_format,omitempty"`
+	NameIDAttributePointer       SAMLNameIDAttributePointer    `json:"nameid_attribute_pointer,omitempty"`
+	AcsURLs                      []string                      `json:"acs_urls,omitempty"`
+	Destination                  string                        `json:"destination,omitempty"`
+	Recipient                    string                        `json:"recipient,omitempty"`
+	Audience                     string                        `json:"audience,omitempty"`
+	AssertionValidDuration       DurationString                `json:"assertion_valid_duration,omitempty"`
+	SLOEnabled                   bool                          `json:"slo_enabled,omitempty"`
+	SLOCallbackURL               string                        `json:"slo_callback_url,omitempty"`
+	SLOBinding                   samlprotocol.SAMLBinding      `json:"slo_binding,omitempty"`
+	SignatureVerificationEnabled bool                          `json:"signature_verification_enabled,omitempty"`
 }
 
 func (c *SAMLServiceProviderConfig) SetDefaults() {

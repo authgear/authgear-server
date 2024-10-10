@@ -563,10 +563,13 @@ func (s *Service) IssueLogoutResponse(
 func (s *Service) VerifyEmbeddedSignature(
 	sp *config.SAMLServiceProviderConfig,
 	samlElementXML string) error {
+	if !sp.SignatureVerificationEnabled {
+		return nil
+	}
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
 	if !ok || len(certs.Certificates) == 0 {
-		// Signing cert not configured, nothing to verify
-		return nil
+		// This should be prevented by config validation. Therefore it is a programming error.
+		panic(fmt.Errorf("SP certificates not configured but signature verification is required"))
 	}
 	certificateStore := &dsig.MemoryX509CertificateStore{
 		Roots: slice.Map(certs.Certificates, func(c config.X509Certificate) *x509.Certificate {
@@ -601,10 +604,13 @@ func (s *Service) VerifyExternalSignature(
 	sigAlg string,
 	relayState string,
 	signature string) error {
+	if !sp.SignatureVerificationEnabled {
+		return nil
+	}
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
 	if !ok || len(certs.Certificates) == 0 {
-		// Signing cert not configured, nothing to verify
-		return nil
+		// This should be prevented by config validation. Therefore it is a programming error.
+		panic(fmt.Errorf("SP certificates not configured but signature verification is required"))
 	}
 
 	q := url.Values{}
@@ -613,7 +619,7 @@ func (s *Service) VerifyExternalSignature(
 	} else if el.SAMLResponse != "" {
 		q.Set("SAMLResponse", el.SAMLResponse)
 	} else {
-		panic("no signed element")
+		panic(fmt.Errorf("no signed element"))
 	}
 	q.Set("RelayState", relayState)
 	q.Set("SigAlg", sigAlg)
@@ -672,7 +678,7 @@ func (s *Service) ConstructSignedQueryParameters(
 	} else if el.SAMLRequest != "" {
 		q.Set("SAMLRequest", el.SAMLRequest)
 	} else {
-		panic("nothing to sign: SAMLResponse and SAMLRequest are both empty")
+		panic(fmt.Errorf("nothing to sign: SAMLResponse and SAMLRequest are both empty"))
 	}
 	q.Set("RelayState", relayState)
 	q.Set("SigAlg", string(s.SAMLConfig.Signing.SignatureMethod))
@@ -836,7 +842,7 @@ func (s *Service) idpSigningContext() (*dsig.SigningContext, error) {
 	// Create a cert chain based off of the IDP cert and its intermediates.
 	activeCert, ok := s.SAMLIdpSigningMaterials.FindSigningCert(s.SAMLConfig.Signing.KeyID)
 	if !ok {
-		panic("unexpected: cannot find the corresponding idp key by id")
+		panic(fmt.Errorf("unexpected: cannot find the corresponding idp key by id"))
 	}
 
 	var signingContext *dsig.SigningContext
@@ -883,7 +889,7 @@ func (s Service) recordSessionParticipant(
 			return err
 		}
 	default:
-		panic("unexpected session type")
+		panic(fmt.Errorf("unexpected session type"))
 	}
 	return nil
 }
