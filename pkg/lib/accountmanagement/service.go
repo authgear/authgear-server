@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
@@ -24,6 +25,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type UserService interface {
@@ -60,16 +62,25 @@ type EventService interface {
 }
 
 type AuthenticatorService interface {
+	New(spec *authenticator.Spec) (*authenticator.Info, error)
 	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	Get(authenticatorID string) (*authenticator.Info, error)
 	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
 	Update(authenticatorInfo *authenticator.Info) error
 	UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
+	Delete(authenticatorInfo *authenticator.Info) error
 	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
 }
 
 type AuthenticationInfoService interface {
 	Save(entry *authenticationinfo.Entry) error
+}
+
+type MFAService interface {
+	GenerateRecoveryCodes() []string
+	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
+	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 }
 
 type PasskeyService interface {
@@ -99,6 +110,7 @@ type VerificationService interface {
 type Service struct {
 	Database                  *appdb.Handle
 	Config                    *config.AppConfig
+	HTTPOrigin                httputil.HTTPOrigin
 	Users                     UserService
 	Store                     Store
 	OAuthProvider             OAuthProvider
@@ -108,6 +120,7 @@ type Service struct {
 	OTPCodeService            OTPCodeService
 	Authenticators            AuthenticatorService
 	AuthenticationInfoService AuthenticationInfoService
+	MFA                       MFAService
 	PasskeyService            PasskeyService
 	Verification              VerificationService
 	UIInfoResolver            UIInfoResolver
@@ -295,6 +308,9 @@ func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, tokenSt
 			target = token.Identity.PhoneNumber
 			channel = model.AuthenticatorOOBChannelSMS
 		}
+	} else if token.Authenticator != nil {
+		target = token.Authenticator.OOBOTPTarget
+		channel = token.Authenticator.OOBOTPChannel
 	} else {
 		panic(fmt.Errorf("accountmanagement: unexpected token in resend otp code"))
 	}
@@ -358,13 +374,14 @@ func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChann
 	return nil
 }
 
-func (s *Service) verifyOTP(userID string, channel model.AuthenticatorOOBChannel, target string, code string) error {
+func (s *Service) VerifyOTP(userID string, channel model.AuthenticatorOOBChannel, target string, code string, skipConsume bool) error {
 	err := s.OTPCodeService.VerifyOTP(
 		otp.KindVerification(s.Config, channel),
 		target,
 		code,
 		&otp.VerifyOptions{
-			UserID: userID,
+			UserID:      userID,
+			SkipConsume: skipConsume,
 		},
 	)
 	if apierrors.IsKind(err, otp.InvalidOTPCode) {

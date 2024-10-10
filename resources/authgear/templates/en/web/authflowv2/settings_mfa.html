@@ -14,23 +14,44 @@
 {{ if $.ShowMFA }}
 <div>
   {{ if $.ShowSecondaryTOTP }}
-    {{ $href := (call $.MakeURL "/settings/mfa/new_totp") }}
-    {{ if $.SecondaryPassword }}
-      {{ $href = (call $.MakeURL "/settings/mfa/totp") }}
+    {{ if $.HasSecondaryTOTP }}
+      {{ template "__settings_mfa_item.html"
+          (dict
+            "MaterialIconName" "phone_iphone"
+            "Label" (translate "v2.page.settings-mfa.default.secondary-totp-label" nil)
+            "IsActive" $.HasSecondaryTOTP
+            "Href" (call $.MakeURL "/settings/mfa/totp")
+          )
+      }}
+    {{ else }}
+    <form action="/settings/mfa/totp" method="post" novalidate>
+      {{ $.CSRFField }}
+      <button
+        class="w-full"
+        type="submit"
+        name="x_action"
+        value="create_totp"
+      >
+        {{ template "authflowv2/__settings_action_item.html"
+            (dict
+              "IconName" "phone_iphone"
+              "Label" (translate "v2.page.settings-mfa.default.secondary-totp-label" nil)
+              "ActionButton" (include "__settings_mfa_item_action_button.html" nil)
+              "Description" (include "__settings_mfa_item_status.html"
+                (dict
+                  "IsActive" $.IsActive
+                )
+              )
+            )
+        }}
+      </button>
+    </form>
     {{ end }}
-    {{ template "__settings_mfa_item.html"
-        (dict
-          "MaterialIconName" "phone_iphone"
-          "Label" (translate "v2.page.settings-mfa.default.secondary-totp-label" nil)
-          "IsActive" $.HasSecondaryTOTP
-          "Href" $href
-        )
-    }}
   {{ end }}
 
   {{ if $.ShowSecondaryOOBOTPEmail }}
-    {{ $href := (call $.MakeURL "/settings/mfa/new_oob_otp_email") }}
-    {{ if $.SecondaryPassword }}
+    {{ $href := (call $.MakeURL "/settings/mfa/create_oob_otp_email") }}
+    {{ if $.HasSecondaryOOBOTPEmail }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_email") }}
     {{ end }}
     {{ template "__settings_mfa_item.html"
@@ -44,8 +65,8 @@
   {{ end }}
 
   {{ if $.ShowSecondaryOOBOTPSMS }}
-    {{ $href := (call $.MakeURL "/settings/mfa/new_oob_otp_sms") }}
-    {{ if $.SecondaryPassword }}
+    {{ $href := (call $.MakeURL "/settings/mfa/create_oob_otp_sms") }}
+    {{ if $.HasSecondaryOOBOTPSMS }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
     {{ end }}
     {{ template "__settings_mfa_item.html"
@@ -147,4 +168,8 @@
   {{ else }}
     <span class="text-[color:var(--color-warning)]">{{ translate "v2.page.settings-mfa.default.inactive-label" nil}}</span>
   {{ end }}
+{{ end }}
+
+{{ define "__settings_mfa_item_action_button.html" }}
+  <span class="settings-item__forward_arrow"></span>
 {{ end }}

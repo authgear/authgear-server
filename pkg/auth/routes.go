@@ -258,6 +258,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappSettingsSubRoutesChain := httproute.Chain(
 		webappAuthenticatedChain,
+		p.Middleware(newWebAppSessionMiddleware),
 		p.Middleware(newRequireSettingsEnabledMiddleware),
 		// SettingsSubRoutesMiddleware should be added to all the settings sub routes only
 		// but no /settings itself
@@ -475,6 +476,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityNewUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityNewUsernameHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityViewUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityViewUsernameHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityEditUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityEditUsernameHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityListOAuthRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityListOAuthHandler))
 	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsIdentityHandler))
 	router.Add(webapphandler.ConfigureSettingsBiometricRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV1: p.Handler(newWebAppSettingsBiometricHandler),
@@ -484,12 +486,16 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		SettingV1: p.Handler(newWebAppSettingsMFAHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsMFAHandler),
 	})
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAViewRecoveryCodeRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFACreatePassword(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFACreatePasswordHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAChangePassword(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAChangePasswordHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAPassword(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAPasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsTOTPRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV1: p.Handler(newWebAppSettingsTOTPHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsTOTPHandler),
 	})
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFACreateTOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFACreateTOTPHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAEnterTOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAEnterTOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsPasskeyRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV1: p.Handler(newWebAppSettingsPasskeyHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsChangePasskeyHandler),
@@ -498,6 +504,8 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		SettingV1: p.Handler(newWebAppSettingsOOBOTPHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsOOBOTPHandler),
 	})
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFACreateOOBOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAEnterOOBOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsRecoveryCodeRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsRecoveryCodeHandler))
 	router.Add(webapphandler.ConfigureSettingsSessionsRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV1: p.Handler(newWebAppSettingsSessionsHandler),

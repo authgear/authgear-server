@@ -2,19 +2,23 @@ package authflowv2
 
 import (
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 var TemplateWebSettingsTOTPHTML = template.RegisterHTML(
-	"web/authflowv2/settings_totp.html",
+	"web/authflowv2/settings_mfa_totp.html",
 	handlerwebapp.SettingsComponents...,
 )
 
@@ -27,6 +31,8 @@ type AuthflowV2SettingsTOTPHandler struct {
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
+
+	AccountManagement *accountmanagement.Service
 	Authenticators    authenticatorservice.Service
 }
 
@@ -78,6 +84,49 @@ func (h *AuthflowV2SettingsTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsTOTPHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("create_totp", func() error {
+		s := session.GetSession(r.Context())
+		output, err := h.AccountManagement.StartAddTOTPAuthenticator(s, &accountmanagement.StartAddTOTPAuthenticatorInput{})
+		if err != nil {
+			return err
+		}
+
+		redirectURI, err := url.Parse(AuthflowV2RouteSettingsMFACreateTOTP)
+		if err != nil {
+			return err
+		}
+
+		q := redirectURI.Query()
+		q.Set("q_token", output.Token)
+
+		redirectURI.RawQuery = q.Encode()
+
+		result := webapp.Result{RedirectURI: redirectURI.String()}
+		result.WriteResponse(w, r)
+
+		return nil
+	})
+
+	ctrl.PostAction("remove", func() error {
+		authenticatorID := r.Form.Get("x_authenticator_id")
+
+		s := session.GetSession(r.Context())
+
+		input := &accountmanagement.DeleteTOTPAuthenticatorInput{
+			AuthenticatorID: authenticatorID,
+		}
+		_, err = h.AccountManagement.DeleteTOTPAuthenticator(s, input)
+		if err != nil {
+			return err
+		}
+
+		redirectURI := httputil.HostRelative(r.URL).String()
+		result := webapp.Result{RedirectURI: redirectURI}
+		result.WriteResponse(w, r)
+
 		return nil
 	})
 }

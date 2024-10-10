@@ -201,6 +201,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SettingsProfileEditCustomAttrsService), new(*featurecustomattrs.Service)),
 	wire.Bind(new(handlerwebapp.SettingsDeleteAccountUserService), new(*facade.UserFacade)),
 	wire.Bind(new(handlerwebapp.SettingsDeleteAccountOAuthSessionService), new(*oauthsession.StoreRedis)),
+	wire.Bind(new(handlerwebapp.SettingsEndpointsProvider), new(*endpoints.Endpoints)),
+	wire.Bind(new(handlerwebapp.SettingsOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebapp.SettingsAuthorizationService), new(*oauth.AuthorizationService)),
 	wire.Bind(new(handlerwebapp.SettingsSessionListingService), new(*sessionlisting.SessionListingService)),
 	wire.Bind(new(handlerwebapp.EnterLoginIDService), new(*identityservice.Service)),
