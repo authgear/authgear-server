@@ -1,11 +1,14 @@
-FROM postgres:12.3
+FROM postgres:12.20-bookworm
 
-ENV PARTMAN_VERSION 4.5.1
+# Google Cloud SQL PostgreSQL 12 supports up to 4.7.4.
+# https://cloud.google.com/sql/docs/postgres/extensions#:~:text=Cloud%20SQL%20for%20PostgreSQL%20versions%2014%20and%20later%20support%20version%205.0.1%20while%20Cloud%20SQL%20for%20PostgreSQL%20versions%20that%20are%20earlier%20than%2014%20support%20only%20up%20to%20version%204.7.4.
+# So we use that version here.
+ENV PARTMAN_VERSION 4.7.4
 
 RUN apt-get update && apt-get install -y \
 	unzip \
 	build-essential \
-	postgresql-server-dev-11 \
+	postgresql-server-dev-all \
 	wget \
 	&& rm -rf /var/lib/apt/lists/*
 
