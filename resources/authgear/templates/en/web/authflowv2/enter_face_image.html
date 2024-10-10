@@ -1,21 +1,10 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
 
-  {{ $err_map := (resolveError $.RawError (dict 
-    "imgInput" (dict
-      "by_reason"                    (list "InvalidCredentials")
-    )
-  )) }}
+  {{ $err_map := (resolveError $.RawError (dict)) }}
 
-  {{ $img_err := index $err_map "imgInput" }}
   {{ $unknown_err := index $err_map "unknown" }}
-  {{ $has_img_err := not (isNil $img_err) }}
   {{ $has_unknown_err := not (isNil $unknown_err )}}
-
-  {{ $img_error_message := "" }}
-  {{ if $has_img_err }}
-    {{ $img_error_message = include "authflowv2/__error.html" (merge (dict "Error" $img_err) $) }}
-  {{ end }}
 
   {{ $unknown_error_message := "" }}
   {{ if $has_unknown_err }}
@@ -35,30 +24,23 @@
         )
       }}
     </div>
-    <div>
-      <form
-        id="main-form"
-        method="post"
-        novalidate
-        data-restore-form="false"
-        data-controller="turbo-form"
-        data-action="submit->turbo-form#submitForm"
-      >
-        {{ $.CSRFField }}
-      </form>
+    <form
+      id="main-form"
+      method="post"
+      novalidate
+      data-restore-form="false"
+      data-controller="turbo-form"
+      data-action="submit->turbo-form#submitForm"
+    >
+      {{ $.CSRFField }}
       {{ template "authflowv2/__image_input.html"
         (dict
-          "FormName" "main-form"
-          "SubmitEvent" "authgear.button.enter_face_image"
-          "ErrorMessage" $img_error_message
+          "FormName"     "main-form"
+          "SubmitEvent"  "authgear.button.enter_face_image"
         )
       }}
-
-
-      {{ if $.DeviceTokenEnabled }}
-        {{ template "authflowv2/__device_token_checkbox.html" (dict "Form" "main-form" "Classname" "mt-4") }}
-      {{ end }}
-    </div>
+    </form>
+    {{/* TODO(identity-week-demo): Add device token checkbox */}}
 
     {{ template "authflowv2/__authflow_branch.html" $ }}
   </div>
