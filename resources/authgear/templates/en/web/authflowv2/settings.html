@@ -81,7 +81,7 @@
     {{ end }}
     {{ end}}
 
-    {{ $url := call $.MakeURL "/settings/identity" }}
+    {{ $url := call $.MakeURL "/settings/identity/oauth" }}
     {{ template "authflowv2/__settings_item.html"
       (dict
         "Label" ( include "v2.page.settings.default.social-accounts-button-label" nil )

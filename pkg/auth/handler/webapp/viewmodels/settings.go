@@ -4,10 +4,15 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
+	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
 type SettingsViewModel struct {
+	Zoneinfo string
+
 	Authenticators           []*authenticator.Info
 	NumberOfDeviceTokens     int
 	HasDeviceTokens          bool
@@ -30,6 +35,10 @@ type SettingsViewModel struct {
 	ShowPrimaryPasskey   bool
 }
 
+type SettingsUserService interface {
+	Get(userID string, role accesscontrol.Role) (*model.User, error)
+}
+
 type SettingsIdentityService interface {
 	ListByUser(userID string) ([]*identity.Info, error)
 }
@@ -43,6 +52,8 @@ type SettingsMFAService interface {
 }
 
 type SettingsViewModeler struct {
+	Clock          clock.Clock
+	Users          SettingsUserService
 	Authenticators SettingsAuthenticatorService
 	MFA            SettingsMFAService
 	Authentication *config.AuthenticationConfig
@@ -51,6 +62,19 @@ type SettingsViewModeler struct {
 
 // nolint: gocognit
 func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, error) {
+	user, err := m.Users.Get(userID, config.RoleEndUser)
+	if err != nil {
+		return nil, err
+	}
+
+	stdAttrs := user.StandardAttributes
+	str := func(key string) string {
+		value, _ := stdAttrs[key].(string)
+		return value
+	}
+
+	zoneinfo := str(stdattrs.Zoneinfo)
+
 	authenticators, err := m.Authenticators.List(userID)
 	if err != nil {
 		return nil, err
@@ -149,6 +173,8 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 			showSecondaryPassword)
 
 	viewModel := &SettingsViewModel{
+		Zoneinfo: zoneinfo,
+
 		Authenticators:           authenticators,
 		NumberOfDeviceTokens:     numberOfDeviceTokens,
 		HasDeviceTokens:          hasDeviceTokens,

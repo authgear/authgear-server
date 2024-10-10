@@ -96,7 +96,7 @@ func (h *AuthflowV2SettingsMFACreatePasswordHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		s := session.GetSession(r.Context())
-		err = h.AccountManagementService.CreateAdditionalPassword(s, accountmanagement.CreateAdditionalPasswordInput{
+		_, err = h.AccountManagementService.CreateSecondaryPassword(s, accountmanagement.CreateSecondaryPasswordInput{
 			PlainPassword: newPassword,
 		})
 		if err != nil {

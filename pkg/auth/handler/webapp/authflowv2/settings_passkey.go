@@ -37,6 +37,7 @@ type AuthflowV2SettingsChangePasskeyHandler struct {
 	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
+	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
 	Identities        identityservice.Service
 	AccountManagement *accountmanagement.Service
@@ -55,6 +56,13 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(r *http.Request, rw htt
 	var passkeyIdentities []*identity.Info
 	var creationOptionsJSON string
 	err := h.Database.WithTx(func() (err error) {
+		// SettingsViewModel
+		settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+		if err != nil {
+			return err
+		}
+		viewmodels.Embed(data, *settingsViewModel)
+
 		identities, err := h.Identities.Passkey.List(*userID)
 		if err != nil {
 			return err

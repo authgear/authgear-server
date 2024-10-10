@@ -189,8 +189,8 @@ func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession,
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID: userID,
-				Email:  info.LoginID.LoginID,
+				UserID:        userID,
+				IdentityEmail: info.LoginID.LoginID,
 			})
 			if err != nil {
 				return err
@@ -247,7 +247,7 @@ func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -342,9 +342,9 @@ func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSessi
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID:     userID,
-				Email:      newInfo.LoginID.LoginID,
-				IdentityID: newInfo.ID,
+				UserID:        userID,
+				IdentityEmail: newInfo.LoginID.LoginID,
+				IdentityID:    newInfo.ID,
 			})
 			if err != nil {
 				return err
@@ -403,7 +403,7 @@ func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSess
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -577,8 +577,8 @@ func (s *Service) StartAddIdentityPhone(resolvedSession session.ResolvedSession,
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID:      userID,
-				PhoneNumber: info.LoginID.LoginID,
+				UserID:              userID,
+				IdentityPhoneNumber: info.LoginID.LoginID,
 			})
 			if err != nil {
 				return err
@@ -635,7 +635,7 @@ func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -728,9 +728,9 @@ func (s *Service) StartUpdateIdentityPhone(resolvedSession session.ResolvedSessi
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID:      userID,
-				PhoneNumber: info.LoginID.LoginID,
-				IdentityID:  info.ID,
+				UserID:              userID,
+				IdentityPhoneNumber: info.LoginID.LoginID,
+				IdentityID:          info.ID,
 			})
 			if err != nil {
 				return err
@@ -788,7 +788,7 @@ func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSess
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -1299,4 +1299,112 @@ func (s *Service) dispatchIdentityDeletedEvent(info *identity.Info) (err error) 
 	}
 
 	return nil
+}
+
+type StartAddIdentityOAuthInput struct {
+	Alias       string
+	RedirectURI string
+}
+
+type StartAddIdentityOAuthOutput struct {
+	Token            string
+	AuthorizationURL string
+}
+
+func (s *Service) StartAddIdentityOAuth(resolvedSession session.ResolvedSession, input *StartAddIdentityOAuthInput) (*StartAddIdentityOAuthOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	var err error
+	var token string
+	var authorizationURL string
+	err = s.Database.WithTx(func() error {
+		output, err := s.StartAdding(&StartAddingInput{
+			UserID:      userID,
+			Alias:       input.Alias,
+			RedirectURI: input.RedirectURI,
+			IncludeStateAuthorizationURLAndBindStateToToken: false,
+		})
+		if err != nil {
+			return err
+		}
+
+		token = output.Token
+		authorizationURL = output.AuthorizationURL
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &StartAddIdentityOAuthOutput{
+		Token:            token,
+		AuthorizationURL: authorizationURL,
+	}, nil
+}
+
+type FinishAddingIdentityOAuthInput struct {
+	Token string
+	Query string
+}
+
+type FinishAddingIdentityOAuthOutput struct {
+}
+
+func (s *Service) FinishAddingIdentityOAuth(resolvedSession session.ResolvedSession, input *FinishAddingIdentityOAuthInput) (*FinishAddingIdentityOAuthOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	err := s.Database.WithTx(func() error {
+		_, err := s.FinishAdding(&FinishAddingInput{
+			UserID: userID,
+			Token:  input.Token,
+			Query:  input.Query,
+		})
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &FinishAddingIdentityOAuthOutput{}, nil
+}
+
+type DeleteIdentityOAuthInput struct {
+	IdentityID string
+}
+
+type DeleteIdentityOAuthOutput struct {
+	IdentityInfo *identity.Info
+}
+
+func (s *Service) DeleteIdentityOAuth(resolvedSession session.ResolvedSession, input *DeleteIdentityOAuthInput) (*DeleteIdentityOAuthOutput, error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+	identityID := input.IdentityID
+
+	var info *identity.Info
+	err := s.Database.WithTx(func() (err error) {
+		info, err = s.prepareDeleteIdentity(userID, identityID)
+		if err != nil {
+			return err
+		}
+
+		err = s.deleteIdentity(info)
+		if err != nil {
+			return err
+		}
+
+		err = s.dispatchIdentityDeletedEvent(info)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &DeleteIdentityOAuthOutput{IdentityInfo: info}, nil
 }

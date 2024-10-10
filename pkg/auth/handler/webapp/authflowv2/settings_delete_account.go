@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/successpage"
@@ -27,8 +28,10 @@ type AuthflowV2SettingsDeleteAccountViewModel struct {
 }
 
 type AuthflowV2SettingsDeleteAccountHandler struct {
+	Database                  *appdb.Handle
 	ControllerFactory         handlerwebapp.ControllerFactory
 	BaseViewModel             *viewmodels.BaseViewModeler
+	SettingsViewModel         *viewmodels.SettingsViewModeler
 	Renderer                  handlerwebapp.Renderer
 	Clock                     clock.Clock
 	Cookies                   handlerwebapp.CookieManager
@@ -41,10 +44,18 @@ type AuthflowV2SettingsDeleteAccountHandler struct {
 
 func (h *AuthflowV2SettingsDeleteAccountHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
+	userID := session.GetUserID(r.Context())
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
+
+	// SettingsViewModel
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *settingsViewModel)
 
 	now := h.Clock.NowUTC()
 	deletionTime := now.Add(h.AccountDeletion.GracePeriod.Duration())
@@ -69,7 +80,11 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 	webSession := webapp.GetSession(r.Context())
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		var data map[string]interface{}
+		err := h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w)
+			return err
+		})
 		if err != nil {
 			return err
 		}

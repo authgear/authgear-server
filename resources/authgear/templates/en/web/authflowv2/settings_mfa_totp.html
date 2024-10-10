@@ -1,0 +1,93 @@
+{{ template "authflowv2/__settings_page_frame.html" . }}
+
+{{ define "page-navbar" }}
+  {{ template "authflowv2/__navbar.html"
+     (dict
+        "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "Title" (translate "v2.page.settings-totp.default.title" nil)
+     )
+  }}
+{{ end }}
+
+{{ define "page-content" }}
+<div>
+  {{ if $.TOTPAuthenticators }}
+    <ul>
+      {{ $ctx := .}}
+      {{ range $.TOTPAuthenticators }}
+        <li>
+          {{ template "authflowv2/__settings_action_item.html"
+              (dict
+                "Label" .DisplayName
+                "Description" (include "__settings_totp_item_added_at.html" .)
+                "ActionButton" (include "__settings_totp_item_delete_button.html" (dict "DialogID" .ID))
+              )
+          }}
+
+          {{ template "authflowv2/__settings_dialog.html"
+            (dict
+              "Ctx" $ctx
+              "DialogID" .ID
+              "Title" (include "v2.page.settings-totp.default.remove-totp-dialog-title" nil)
+              "Description" (include "v2.page.settings-totp.default.remove-totp-dialog-description" nil)
+              "FormContent" (include "__settings_totp_dialog_remove_input.html" (dict "AuthenticatorID" .ID "CSRFField" $.CSRFField))
+              "Buttons"
+                (list
+                  (dict
+                    "Type" "Destructive"
+                    "Label" (include "v2.component.button.default.label-remove" nil)
+                    "Value" "remove"
+                    "Event" "authgear.button.remove_biometric"
+                  )
+                  (dict
+                    "Type" "Cancel"
+                    "Label" (include "v2.component.button.default.label-cancel" nil)
+                  )
+                )
+          )}}
+        </li>
+      {{ end }}
+    </ul>
+  {{ end }}
+
+  <form method="post" novalidate>
+    {{ $.CSRFField }}
+    <button
+      class="settings-link-btn mx-auto mt-6 block"
+      type="submit"
+      name="x_action"
+      value="create_totp"
+    >
+    {{ translate "v2.page.settings-totp.default.add-authenticator-button-label" nil }}
+    </button>
+  </form>
+</div>
+{{ end }}
+
+{{ define "__settings_totp_item_added_at.html" }}
+<span>
+  {{
+    translate "v2.page.settings-totp.default.added-at-label"
+      (dict
+        "time" .CreatedAt
+        "rfc3339" (rfc3339 .CreatedAt)
+      )
+  }}
+</span>
+{{ end }}
+
+{{ define "__settings_totp_item_delete_button.html" }}
+<button
+  type="button"
+  data-controller="dialog"
+  data-action="click->dialog#open"
+  id="{{ .DialogID }}"
+>
+  <i class="material-icons text-[1.5rem] text-[var(--color-neutral-200)]">close</i>
+</button>
+{{ end }}
+
+{{ define "__settings_totp_dialog_remove_input.html" }}
+  {{ $.CSRFField }}
+  <input type="hidden" name="x_authenticator_id" value="{{ $.AuthenticatorID }}">
+{{ end }}

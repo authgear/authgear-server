@@ -1103,7 +1103,7 @@ func (s *Service) listOAuthCandidates(oauths []*identity.OAuth) []identity.Candi
 			}
 		}
 		canAppend := true
-		if providerConfig.DeleteDisabled() && !matched {
+		if providerConfig.CreateDisabled() && !matched {
 			canAppend = false
 		}
 		if canAppend {
@@ -1128,7 +1128,7 @@ func (s *Service) listLoginIDCandidates(loginIDs []*identity.LoginID) []identity
 			}
 		}
 		canAppend := true
-		if *loginIDKeyConfig.DeleteDisabled && *loginIDKeyConfig.UpdateDisabled && !matched {
+		if *loginIDKeyConfig.CreateDisabled && *loginIDKeyConfig.UpdateDisabled && !matched {
 			canAppend = false
 		}
 		if canAppend {

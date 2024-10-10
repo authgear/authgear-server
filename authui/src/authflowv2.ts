@@ -79,7 +79,6 @@ Stimulus.register("prevent-double-tap", PreventDoubleTapController);
 Stimulus.register("lockout", LockoutController);
 
 Stimulus.register("format-date-relative", FormatDateRelativeController);
-Stimulus.register("format-date-relative", FormatDateRelativeController);
 Stimulus.register(
   "password-visibility-toggle",
   PasswordVisibilityToggleController

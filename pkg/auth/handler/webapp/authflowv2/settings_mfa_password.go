@@ -5,6 +5,8 @@ import (
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -22,6 +24,7 @@ type AuthflowV2SettingsMFAPasswordHandler struct {
 	BaseViewModel     *viewmodels.BaseViewModeler
 	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
+	AccountManagement *accountmanagement.Service
 }
 
 func ConfigureAuthflowV2SettingsMFAPassword(route httproute.Route) httproute.Route {
@@ -67,6 +70,21 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) ServeHTTP(w http.ResponseWriter, 
 			return nil
 		}
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsMFAPasswordHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("remove", func() error {
+		s := session.GetSession(r.Context())
+
+		input := &accountmanagement.DeleteSecondaryPasswordInput{}
+		_, err = h.AccountManagement.DeleteSecondaryPassword(s, input)
+		if err != nil {
+			return err
+		}
+
+		result := webapp.Result{RedirectURI: AuthflowV2RouteSettingsMFA}
+		result.WriteResponse(w, r)
+
 		return nil
 	})
 }
