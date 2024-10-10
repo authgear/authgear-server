@@ -563,7 +563,7 @@ func (s *Service) IssueLogoutResponse(
 func (s *Service) VerifyEmbeddedSignature(
 	sp *config.SAMLServiceProviderConfig,
 	samlElementXML string) error {
-	if !sp.ShouldVerifySignature {
+	if !sp.SignatureVerificationEnabled {
 		return nil
 	}
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
@@ -604,7 +604,7 @@ func (s *Service) VerifyExternalSignature(
 	sigAlg string,
 	relayState string,
 	signature string) error {
-	if !sp.ShouldVerifySignature {
+	if !sp.SignatureVerificationEnabled {
 		return nil
 	}
 	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)

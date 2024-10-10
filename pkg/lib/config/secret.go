@@ -300,7 +300,7 @@ func (c *SecretConfig) Validate(appConfig *AppConfig) error {
 	if len(appConfig.SAML.ServiceProviders) > 0 {
 		c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
 		for _, sp := range appConfig.SAML.ServiceProviders {
-			if sp.ShouldVerifySignature {
+			if sp.SignatureVerificationEnabled {
 				c.validateSAMLServiceProviderCerts(ctx, sp)
 			}
 		}
