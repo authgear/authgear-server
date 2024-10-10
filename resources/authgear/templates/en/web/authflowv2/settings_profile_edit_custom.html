@@ -23,7 +23,7 @@
 
 <form
   class="settings-content flex flex-col gap-y-8"
-  data-controller="turbo-form"
+  data-controller="turbo-form form-state"
   data-action="submit->turbo-form#submitForm"
   method="post"
 >
@@ -65,6 +65,7 @@
         class="input"
         name="{{ $ca.Pointer }}"
         value="{{ showAttributeValue $Value }}"
+        data-form-state-target="input"
       >
       {{ include "__settings_profile_edit_custom_numerical_range_label.html"
         (dict "Minimum" $ca.Minimum "Maximum" $ca.Maximum)
@@ -78,6 +79,7 @@
         class="input"
         name="{{ $ca.Pointer }}"
         value="{{ showAttributeValue $Value }}"
+        data-form-state-target="input"
       >
       {{ include "__settings_profile_edit_custom_numerical_range_label.html"
         (dict "Minimum" $ca.Minimum "Maximum" $ca.Maximum)
@@ -100,6 +102,9 @@
             "Name" "gender-select"
             "Value" .Value
             "DefaultChecked" ( eq $Value .Value )
+            "InputAttrs" `
+              data-form-state-target="input"
+            `
           )
         }}
       {{ end }}
@@ -112,6 +117,9 @@
           "InputName" $.Pointer
           "AutoFocus" true
           "Value" $Value
+          "InputAttrs" `
+            data-form-state-target="input"
+          `
         )
       }}
     {{ end }}
@@ -126,6 +134,7 @@
         placeholder="{{ default (include "v2.component.input.default.placeholder-email" nil) .Placeholder }}"
         autocomplete="{{ .Autocomplete }}"
         autocapitalize="none"
+        data-form-state-target="input"
       />
     {{ end }}
 
@@ -137,6 +146,7 @@
         name="{{ $.Pointer }}"
         value="{{ $Value }}"
         autocapitalize="none"
+        data-form-state-target="input"
       />
     {{ end }}
 
@@ -146,6 +156,9 @@
           "Alpha2" $.Alpha2
           "Name" $.Pointer
           "Value" $Value
+          "InputAttrs" `
+            data-form-state-target="input"
+          `
         )
       }}
     {{ end }}
@@ -157,6 +170,7 @@
     name="x_action"
     value="save"
     data-authgear-event="authgear.button.update_profile"
+    data-form-state-target="submit"
   >
     {{ translate "v2.component.button.default.label-save" . }}
   </button>

@@ -181,6 +181,13 @@ export class PhoneInputController extends Controller {
 
   set value(newValue: string) {
     this.inputTarget.value = newValue;
+    this.inputTarget.dispatchEvent(
+      new InputEvent("input", {
+        bubbles: true,
+        inputType: "insertText",
+        data: newValue,
+      })
+    );
   }
 
   private isReady: boolean = false;

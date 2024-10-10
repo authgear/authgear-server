@@ -22,6 +22,7 @@
       name="{{ $.Name }}"
       value="{{ $.Value }}"
       data-custom-select-target="input"
+      {{ if $.InputAttrs }}{{htmlattr $.InputAttrs }}{{end}}
     />
 
     <button
