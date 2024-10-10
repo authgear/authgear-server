@@ -76,6 +76,19 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) GetData(w http.ResponseW
 		deleteDisabled = *loginIDConfig.DeleteDisabled
 	}
 
+	identities, err := h.Identities.ListByUser(*userID)
+	if err != nil {
+		return nil, err
+	}
+
+	remaining := identity.ApplyFilters(
+		identities,
+		identity.KeepIdentifiable,
+	)
+	if len(remaining) == 1 {
+		deleteDisabled = true
+	}
+
 	vm := AuthflowV2SettingsIdentityViewUsernameViewModel{
 		LoginIDKey:     usernameIdentity.LoginIDKey,
 		Identity:       usernameIdentity,
