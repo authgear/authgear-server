@@ -28,13 +28,15 @@
   {{ end }}
 
   {{ if not $.CreateDisabled}}
-    {{ $href := (call $.MakeURL "/settings/identity/add_username" "q_login_id_key" $.LoginIDKey ) }}
-    <a
-      class="settings-link-btn"
-      href="{{ $href }}"
-    >
-      {{ translate "v2.page.settings-identity-list-username.default.add-username-button-label" nil }}
-    </a>
+    {{ if not (ge (len $.UsernameIdentities) (1)) }}
+      {{ $href := (call $.MakeURL "/settings/identity/add_username" "q_login_id_key" $.LoginIDKey ) }}
+      <a
+        class="settings-link-btn"
+        href="{{ $href }}"
+      >
+        {{ translate "v2.page.settings-identity-list-username.default.add-username-button-label" nil }}
+      </a>
+    {{ end }}
   {{ end }}
 </div>
 {{ end }}
