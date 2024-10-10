@@ -8,7 +8,6 @@ ENV PARTMAN_VERSION 4.7.4
 RUN apt-get update && apt-get install -y \
 	unzip \
 	build-essential \
-	postgresql-server-dev-all \
 	wget \
 	&& rm -rf /var/lib/apt/lists/*
 
