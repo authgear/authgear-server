@@ -12,5 +12,6 @@ var ErrAccountManagementTokenInvalid = apierrors.Invalid.WithReason("AccountMana
 var ErrAccountManagementTokenNotBoundToUser = apierrors.Invalid.WithReason("AccountManagementTokenNotBoundToUser").New("token is not bound to the current user")
 
 var ErrAccountManagementIdentityNotOwnedbyToUser = apierrors.Invalid.WithReason("AccountManagementIdentityNotOwnedByUser").New("identity not owned by current user")
-
 var ErrAccountManagementDuplicatedIdentity = apierrors.AlreadyExists.WithReason("AccountManagementDuplicatedIdentity").New("identity already exists")
+
+var ErrAccountManagementAuthenticatorNotOwnedbyToUser = apierrors.Invalid.WithReason("AccountManagementAuthenticatorNotOwnedByUser").New("authenticator not owned by current user")
