@@ -13,7 +13,7 @@
   id="form"
   class="settings-content flex flex-col gap-8 items-center"
   method="post"
-  data-controller="turbo-form"
+  data-controller="turbo-form form-state"
   data-action="submit->turbo-form#submitForm"
   novalidate
 >
@@ -25,6 +25,9 @@
         "Name" "gender-select"
         "Value" ""
         "DefaultChecked" ( not $.Gender )
+        "InputAttrs" `
+          data-form-state-target="input"
+        `
       )
     }}
     {{ template "authflowv2/__settings_radio.html"
@@ -33,6 +36,9 @@
         "Name" "gender-select"
         "Value" "female"
         "DefaultChecked" ( eq $.Gender "female")
+        "InputAttrs" `
+          data-form-state-target="input"
+        `
       )
     }}
     {{ template "authflowv2/__settings_radio.html"
@@ -41,6 +47,9 @@
         "Name" "gender-select"
         "Value" "male"
         "DefaultChecked" ( eq $.Gender "male")
+        "InputAttrs" `
+          data-form-state-target="input"
+        `
       )
     }}
 
@@ -55,6 +64,9 @@
         "Value" "other"
         "ExtraContentOnChecked" (include "__settings_gender_edit_custom_gender_input.html" .)
         "DefaultChecked" $defaultChecked
+        "InputAttrs" `
+          data-form-state-target="input"
+        `
       )
     }}
   </div>
@@ -66,6 +78,7 @@
     name="x_action"
     value="save"
     data-authgear-event="authgear.button.update_profile"
+    data-form-state-target="submit"
   >
     {{ include "v2.component.button.default.label-save" nil }}
   </button>
@@ -83,6 +96,7 @@
     class="input w-full"
     name="gender-input"
     value="{{ $value }}"
+    data-form-state-target="input"
   >
 </div>
 {{ end }}
