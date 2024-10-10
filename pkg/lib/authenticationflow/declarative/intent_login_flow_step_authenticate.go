@@ -36,6 +36,9 @@ func init() {
 //   IntentUseAuthenticatorTOTP (MilestoneFlowAuthenticate)
 //     NodeDoUseAuthenticatorSimple (MilestoneDidAuthenticate)
 //
+//   IntentUseAuthenticatorFaceRecognition (MilestoneFlowAuthenticate)
+//     NodeDoUseAuthenticatorFaceRecognition (MilestoneDidAuthenticate)
+//
 //   IntentUseRecoveryCode (MilestoneFlowAuthenticate)
 //     NodeDoConsumeRecoveryCode (MilestoneDidAuthenticate)
 
@@ -277,6 +280,12 @@ func (i *IntentLoginFlowStepAuthenticate) ReactTo(ctx context.Context, deps *aut
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 				return authflow.NewSubFlow(&IntentUseAuthenticatorTOTP{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
+			case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+				return authflow.NewSubFlow(&IntentUseAuthenticatorFaceRecognition{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,

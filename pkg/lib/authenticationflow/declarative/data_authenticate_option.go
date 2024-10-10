@@ -101,6 +101,13 @@ func NewAuthenticateOptionTOTP(authflowBotProtectionCfg *config.AuthenticationFl
 	}
 }
 
+func NewAuthenticateOptionFaceRecognition(authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) AuthenticateOption {
+	return AuthenticateOption{
+		Authentication: config.AuthenticationFlowAuthenticationSecondaryFaceRecognition,
+		BotProtection:  GetBotProtectionData(authflowBotProtectionCfg, appBotProtectionConfig),
+	}
+}
+
 func NewAuthenticateOptionOOBOTPFromAuthenticator(oobConfig *config.AuthenticatorOOBConfig, i *authenticator.Info, authflowBotProtectionCfg *config.AuthenticationFlowBotProtection, appBotProtectionConfig *config.BotProtectionConfig) (*AuthenticateOption, bool) {
 	am := AuthenticationFromAuthenticator(i)
 	switch am {
@@ -196,6 +203,8 @@ func AuthenticationFromAuthenticator(i *authenticator.Info) config.Authenticatio
 			return config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS
 		case model.AuthenticatorTypeTOTP:
 			return config.AuthenticationFlowAuthenticationSecondaryTOTP
+		case model.AuthenticatorTypeFaceRecognition:
+			return config.AuthenticationFlowAuthenticationSecondaryFaceRecognition
 		}
 	}
 

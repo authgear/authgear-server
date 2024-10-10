@@ -17,6 +17,7 @@ import { FormatDateRelativeController } from "./date";
 import { injectCSSAttrs } from "./cssattrs";
 import { ResendButtonController } from "./resendButton";
 import { OtpInputController } from "./authflowv2/otpInput";
+import { ImageInputController } from "./authflowv2/imageInput";
 import { PasswordVisibilityToggleController } from "./passwordVisibility";
 import { PasswordPolicyController } from "./authflowv2/password-policy";
 import { PasswordStrengthMeterController } from "./authflowv2/password-strength-meter";
@@ -85,6 +86,7 @@ Stimulus.register(
 );
 
 Stimulus.register("otp-input", OtpInputController);
+Stimulus.register("image-input", ImageInputController);
 Stimulus.register("resend-button", ResendButtonController);
 Stimulus.register("password-policy", PasswordPolicyController);
 Stimulus.register("password-strength-meter", PasswordStrengthMeterController);

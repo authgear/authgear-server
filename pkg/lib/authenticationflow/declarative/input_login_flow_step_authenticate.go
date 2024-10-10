@@ -91,6 +91,9 @@ func (i *InputSchemaLoginFlowStepAuthenticate) SchemaBuilder() validation.Schema
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			requireString("code")
 			setRequiredAndAppendOneOf()
+		case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+			requireString("b64_image")
+			setRequiredAndAppendOneOf()
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			requireIndex()
 			mayRequireChannel()
@@ -146,6 +149,7 @@ type InputLoginFlowStepAuthenticate struct {
 	RequestDeviceToken bool                                    `json:"request_device_token,omitempty"`
 	Password           string                                  `json:"password,omitempty"`
 	Code               string                                  `json:"code,omitempty"`
+	B64Image           string                                  `json:"b64_image,omitempty"`
 	RecoveryCode       string                                  `json:"recovery_code,omitempty"`
 	Index              int                                     `json:"index,omitempty"`
 	Channel            model.AuthenticatorOOBChannel           `json:"channel,omitempty"`
@@ -157,6 +161,7 @@ var _ inputTakeAuthenticationMethod = &InputLoginFlowStepAuthenticate{}
 var _ inputDeviceTokenRequested = &InputLoginFlowStepAuthenticate{}
 var _ inputTakePassword = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeTOTP = &InputLoginFlowStepAuthenticate{}
+var _ inputTakeFaceRecognition = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeRecoveryCode = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeAuthenticationOptionIndex = &InputLoginFlowStepAuthenticate{}
 var _ inputTakeOOBOTPChannel = &InputLoginFlowStepAuthenticate{}
@@ -178,6 +183,10 @@ func (i *InputLoginFlowStepAuthenticate) GetPassword() string {
 
 func (i *InputLoginFlowStepAuthenticate) GetCode() string {
 	return i.Code
+}
+
+func (i *InputLoginFlowStepAuthenticate) GetB64Image() string {
+	return i.B64Image
 }
 
 func (i *InputLoginFlowStepAuthenticate) GetRecoveryCode() string {

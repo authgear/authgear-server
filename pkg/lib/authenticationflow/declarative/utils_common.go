@@ -230,11 +230,16 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		secondaryAuthenticators,
 		authenticator.KeepType(model.AuthenticatorTypeTOTP),
 	)
+	secondaryFaceRecognitionAuthenticators := authenticator.ApplyFilters(
+		secondaryAuthenticators,
+		authenticator.KeepType(model.AuthenticatorTypeFaceRecognition),
+	)
 
 	userHasRecoveryCode := len(userRecoveryCodes) > 0
 	userHasPasskey := len(passkeyAuthenticators) > 0
 	userHasSecondaryPassword := len(secondaryPasswordAuthenticators) > 0
 	userHasTOTP := len(secondaryTOTPAuthenticators) > 0
+	userHasFaceRecognition := len(secondaryFaceRecognitionAuthenticators) > 0
 
 	findIdentity := func(targetStepName string) (*identity.Info, error) {
 		// Find the target step from the root.
@@ -298,6 +303,17 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 
 		if userHasTOTP {
 			options = append(options, NewAuthenticateOptionTOTP(botProtection,
+				deps.Config.BotProtection))
+		}
+
+		return options
+	}
+
+	useAuthenticationOptionAddSecondaryFaceRecognition := func(options []AuthenticateOption, userHasFaceRecognition bool, botProtection *config.AuthenticationFlowBotProtection) []AuthenticateOption {
+		// We only add face_recognition if user has one,
+		// because user can do nothing if user didn't setup a face_recognition
+		if userHasFaceRecognition {
+			options = append(options, NewAuthenticateOptionFaceRecognition(botProtection,
 				deps.Config.BotProtection))
 		}
 
@@ -390,6 +406,8 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			options = useAuthenticationOptionAddSecondaryOOBOTP(options, deps, branch.Authentication, authenticators, branch.BotProtection)
+		case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+			options = useAuthenticationOptionAddSecondaryFaceRecognition(options, userHasFaceRecognition, branch.BotProtection)
 		}
 	}
 

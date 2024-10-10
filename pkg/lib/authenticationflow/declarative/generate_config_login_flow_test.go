@@ -296,6 +296,46 @@ steps:
 - type: terminate_other_sessions
 `)
 
+		// email,password, face_recognition, recovery_code
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+  secondary_authenticators:
+  - face_recognition
+  secondary_authentication_mode: required
+identity:
+  login_id:
+    keys:
+    - type: email
+`, `
+name: default
+steps:
+- name: login_identify
+  type: identify
+  one_of:
+  - identification: email
+    steps:
+    - name: authenticate_primary_email
+      type: authenticate
+      one_of:
+      - authentication: primary_password
+        steps:
+        - name: authenticate_secondary_email
+          type: authenticate
+          one_of:
+          - authentication: secondary_face_recognition
+          - authentication: recovery_code
+          - authentication: device_token
+        - type: change_password
+          target_step: authenticate_primary_email
+
+- type: check_account_status
+- type: terminate_other_sessions
+`)
+
 		// Disable device token recovery code.
 		test(`
 authentication:

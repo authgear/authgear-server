@@ -1,0 +1,47 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+
+  {{ $err_map := (resolveError $.RawError (dict)) }}
+
+  {{ $unknown_err := index $err_map "unknown" }}
+  {{ $has_unknown_err := not (isNil $unknown_err )}}
+
+  {{ $unknown_error_message := "" }}
+  {{ if $has_unknown_err }}
+    {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
+  {{ end }}
+
+  <div class="flex flex-col gap-y-8 flex-1-0-auto">
+    <div class="screen-title-description">
+      <h1 class="screen-title">
+        {{ include "v2.page.enter-face-image.default.title" nil }}
+      </h1>
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Classname" "mt-4"
+          "Message" $unknown_error_message
+        )
+      }}
+    </div>
+    <form
+      id="main-form"
+      method="post"
+      novalidate
+      data-restore-form="false"
+      data-controller="turbo-form"
+      data-action="submit->turbo-form#submitForm"
+    >
+      {{ $.CSRFField }}
+      {{ template "authflowv2/__image_input.html"
+        (dict
+          "FormName"     "main-form"
+          "SubmitEvent"  "authgear.button.enter_face_image"
+        )
+      }}
+    </form>
+    {{/* TODO(identity-week-demo): Add device token checkbox */}}
+
+    {{ template "authflowv2/__authflow_branch.html" $ }}
+  </div>
+{{ end }}
