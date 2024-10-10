@@ -30,6 +30,7 @@ type AuthflowV2SettingsTOTPHandler struct {
 	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
+	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
 
 	AccountManagement *accountmanagement.Service
@@ -38,10 +39,19 @@ type AuthflowV2SettingsTOTPHandler struct {
 
 func (h *AuthflowV2SettingsTOTPHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
+	userID := session.GetUserID(r.Context())
+
+	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	userID := session.GetUserID(r.Context())
+	// SettingsViewModel
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *settingsViewModel)
+
 	authenticators, err := h.Authenticators.List(
 		*userID,
 		authenticator.KeepKind(authenticator.KindSecondary),

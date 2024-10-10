@@ -75,6 +75,12 @@ function formatLuxonRelativeDuration(
   return duration.reconfigure({ locale: lang }).toHuman(opts);
 }
 
+function getTimezoneFromMetaTag(): string | undefined {
+  const metaTag = document.querySelector('meta[name="x-timezone"]');
+  console.log(metaTag);
+  return metaTag?.getAttribute("content") || undefined;
+}
+
 export class FormatDateRelativeController extends Controller {
   static targets = ["date"];
 
@@ -100,6 +106,8 @@ export class FormatDateRelativeController extends Controller {
 
   render = () => {
     const lang = document.documentElement.lang;
+    const timezone = getTimezoneFromMetaTag();
+    console.log(timezone);
 
     if (lang == null || lang === "") {
       return;
@@ -128,7 +136,7 @@ export class FormatDateRelativeController extends Controller {
       );
 
       if (typeof rfc3339 === "string") {
-        const luxonDatetime = DateTime.fromISO(rfc3339);
+        const luxonDatetime = DateTime.fromISO(rfc3339, { zone: timezone });
         const abs = hasAbs
           ? luxonDatetime.toLocaleString(
               {
