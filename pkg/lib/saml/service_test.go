@@ -63,14 +63,15 @@ func TestSAMLService(t *testing.T) {
 	spID := "testsp"
 	loginEndpoint, _ := url.Parse("http://idp.local/login")
 	endpoints.EXPECT().SAMLLoginURL(spID).AnyTimes().Return(loginEndpoint)
-	sp := &config.SAMLServiceProviderConfig{
-		ClientID:     spID,
-		NameIDFormat: samlprotocol.SAMLNameIDFormatEmailAddress,
-		AcsURLs: []string{
-			"http://localhost/saml-test",
-		},
-	}
+
 	createService := func() *saml.Service {
+		sp := &config.SAMLServiceProviderConfig{
+			ClientID:     spID,
+			NameIDFormat: samlprotocol.SAMLNameIDFormatEmailAddress,
+			AcsURLs: []string{
+				"http://localhost/saml-test",
+			},
+		}
 		return &saml.Service{
 			Clock: clk,
 			AppID: config.AppID("test"),
@@ -217,6 +218,8 @@ func TestSAMLService(t *testing.T) {
 					},
 				},
 			}
+			sp := svc.SAMLConfig.ServiceProviders[0]
+			sp.ShouldVerifySignature = true
 
 			err := svc.VerifyEmbeddedSignature(sp, requestXml)
 			So(err, ShouldBeNil)
@@ -234,6 +237,8 @@ func TestSAMLService(t *testing.T) {
 					},
 				},
 			}
+			sp := svc.SAMLConfig.ServiceProviders[0]
+			sp.ShouldVerifySignature = true
 
 			err := svc.VerifyEmbeddedSignature(sp, requestXml)
 			expectedErr := &samlprotocol.InvalidSignatureError{}
@@ -271,6 +276,8 @@ func TestSAMLService(t *testing.T) {
 					},
 				},
 			}
+			sp := svc.SAMLConfig.ServiceProviders[0]
+			sp.ShouldVerifySignature = true
 			err := svc.VerifyExternalSignature(
 				sp,
 				&saml.SAMLElementSigned{
@@ -294,6 +301,8 @@ func TestSAMLService(t *testing.T) {
 					},
 				},
 			}
+			sp := svc.SAMLConfig.ServiceProviders[0]
+			sp.ShouldVerifySignature = true
 
 			err := svc.VerifyExternalSignature(
 				sp,
