@@ -219,7 +219,7 @@ func TestSAMLService(t *testing.T) {
 				},
 			}
 			sp := svc.SAMLConfig.ServiceProviders[0]
-			sp.ShouldVerifySignature = true
+			sp.SignatureVerificationEnabled = true
 
 			err := svc.VerifyEmbeddedSignature(sp, requestXml)
 			So(err, ShouldBeNil)
@@ -238,7 +238,7 @@ func TestSAMLService(t *testing.T) {
 				},
 			}
 			sp := svc.SAMLConfig.ServiceProviders[0]
-			sp.ShouldVerifySignature = true
+			sp.SignatureVerificationEnabled = true
 
 			err := svc.VerifyEmbeddedSignature(sp, requestXml)
 			expectedErr := &samlprotocol.InvalidSignatureError{}
@@ -277,7 +277,7 @@ func TestSAMLService(t *testing.T) {
 				},
 			}
 			sp := svc.SAMLConfig.ServiceProviders[0]
-			sp.ShouldVerifySignature = true
+			sp.SignatureVerificationEnabled = true
 			err := svc.VerifyExternalSignature(
 				sp,
 				&saml.SAMLElementSigned{
@@ -302,7 +302,7 @@ func TestSAMLService(t *testing.T) {
 				},
 			}
 			sp := svc.SAMLConfig.ServiceProviders[0]
-			sp.ShouldVerifySignature = true
+			sp.SignatureVerificationEnabled = true
 
 			err := svc.VerifyExternalSignature(
 				sp,
