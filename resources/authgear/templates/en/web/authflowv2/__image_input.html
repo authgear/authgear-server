@@ -1,26 +1,58 @@
 {{/* Example usage:
-  {{ template "authflowv2/__image_input.html"
-    (dict
-      "SubmitEvent" "authgear.button.enter_face_image"
-      "ErrorMessage" $img_error_message
-    )
-  }}
+  <form
+    id="main-form"
+    method="post"
+    novalidate
+    data-restore-form="false"
+    data-controller="turbo-form"
+    data-action="submit->turbo-form#submitForm"
+  >
+    {{ template "authflowv2/__image_input.html"
+      (dict
+        "FormName"     "main-form"
+        "SubmitEvent"  "authgear.button.enter_face_image"
+      )
+    }}
+  </form>
  */}}
 
 {{ define "authflowv2/__image_input.html" }}
 <div
   class="flex flex-col gap-4"
+  data-controller="image-input"
 >
-  {{/* TODO (identity-week-demo): Confirm how to display error message */}}
-  {{ if $.ErrorMessage }}{{ end }}
   <button
     class="primary-btn w-full"
     type="button"
     name="{{ or $.OpenCameraButtonName "x_action" }}"
     value="{{ or $.OpenCameraButtonValue "button" }}"
-    
+    data-action="image-input#openCamera"
   > 
     {{ include "v2.component.button.default.label-open-camera" nil }}
   </button>
+
+  <button
+    class="hidden"
+    type="submit"
+    name="x_action"
+    value="submit"
+    data-authgear-event="authgear.button.enter_face_image"
+    data-image-input-target="formSubmitBtn"
+  ></button>
+
+  {{/* TODO: (identity-week-demo) Move this cameraContinaer to a root-level element, to prevent siblings absolute-positioned elements covering this*/}}
+  <div data-image-input-target="cameraContainer" class="camera">
+    <video data-image-input-target="cameraVideo">Video stream not available.</video>
+    <button type="button" data-action="image-input#takePhoto image-input#submitForm" class="takePhotoBtn primary-btn">Take photo</button>
+  </div>
+  <canvas data-image-input-target="canvas" class="hidden"></canvas>
+  <input 
+    class="hidden"
+    form="{{ $.FormName }}"
+    type="text"
+    name="x_b64_image"
+    required
+    data-image-input-target="input"
+  />
 </div>
 {{ end }}
