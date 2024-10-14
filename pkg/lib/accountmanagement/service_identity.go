@@ -1101,7 +1101,7 @@ func (s *Service) prepareNewIdentity(userID string, identitySpec *identity.Spec)
 
 	if _, err := s.Identities.CheckDuplicated(info); err != nil {
 		if identity.IsErrDuplicatedIdentity(err) {
-			return nil, ErrAccountManagementDuplicatedIdentity
+			return nil, NewErrAccountManagementDuplicatedIdentity(err)
 		}
 		return nil, err
 	}
@@ -1133,7 +1133,7 @@ func (s *Service) prepareUpdateIdentity(userID string, identityID string, identi
 
 	if _, err := s.Identities.CheckDuplicated(newInfo); err != nil {
 		if identity.IsErrDuplicatedIdentity(err) {
-			return nil, nil, ErrAccountManagementDuplicatedIdentity
+			return nil, nil, NewErrAccountManagementDuplicatedIdentity(err)
 		}
 		return nil, nil, err
 	}
@@ -1361,6 +1361,10 @@ func (s *Service) FinishAddingIdentityOAuth(resolvedSession session.ResolvedSess
 			Query:  input.Query,
 		})
 		if err != nil {
+			if identity.IsErrDuplicatedIdentity(err) {
+				return NewErrAccountManagementDuplicatedIdentity(err)
+			}
+
 			return err
 		}
 		return nil

@@ -156,8 +156,22 @@
         <span>{{ include "v2.error.developer-email-required" nil }}</span>
       {{ end }}
     {{ else if eq .Error.reason "AccountManagementDuplicatedIdentity" }}
-      {{ $dict := (dict "IdentityTypeIncoming" "other") }}
-      <span>{{ include "v2.error.account-conflict" $dict }}</span>
+      {{ $info := $.Error.info }}
+      {{ $dict :=
+        (dict
+          "IdentityTypeIncoming" $info.IdentityTypeIncoming
+          "LoginIDTypeIncoming" $info.LoginIDTypeIncoming
+          "OAuthProviderTypeIncoming" $info.OAuthProviderTypeIncoming
+          "IdentityTypeExisting" $info.IdentityTypeExisting
+          "LoginIDTypeExisting" $info.LoginIDTypeExisting
+          "OAuthProviderTypeExisting" $info.OAuthProviderTypeExisting
+          "OAuthProviderNameIncoming" (include "v2.error.error-account-not-found-oauth-provider-name" (dict "OAuthProviderType" $info.OAuthProviderTypeIncoming))
+          "OAuthProviderNameExisting" (include "v2.error.error-account-not-found-oauth-provider-name" (dict "OAuthProviderType" $info.OAuthProviderTypeExisting))
+          "LoginIDNameIncoming" (include "v2.error.error-account-not-found-login-id-name" (dict "LoginIDType" $info.LoginIDTypeIncoming "LoginIDKey" $.LoginIDKey))
+          "LoginIDNameExisting" (include "v2.error.error-account-not-found-login-id-name" (dict "LoginIDType" $info.LoginIDTypeExisting "LoginIDKey" $.LoginIDKey))
+        )
+      }}
+      <span>{{ include "v2.error.settings-account-conflict" $dict }}</span>
     {{ else if eq .Error.reason "InvariantViolated" }}
       {{ $cause := .Error.info.cause }}
       {{ if (eq $cause.kind "RemoveLastIdentity") }}

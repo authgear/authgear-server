@@ -941,6 +941,7 @@
   "v2.component.verify-bot-protection.default.description": "You will be redirected shortly after you completed the challenge",
   "v2.component.verify-bot-protection.default.title": "Checking your system...",
   "v2.error.account-conflict": "{ IdentityTypeIncoming, select, login_id {{FlowType, select, login {Looks like you used {OAuthProviderNameExisting} for login before.} other {This {LoginIDNameIncoming} is already registered.}}} oauth {Looks like you haven''t linked up with that {OAuthProviderNameIncoming} account yet.} other {This account is already registered} }",
+  "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {This {LoginIDNameIncoming} is already registered.} oauth {This {OAuthProviderNameIncoming} account is already registered.} other {This account is already registered.}} Please use another one.",
   "v2.error.account-not-found": "{ IdentityTypeIncoming, select, login_id {{ LoginIDTypeIncoming, select, email {This email} phone {This phone number} username {This username} other {This identity} }} oauth {This email} other {This identity} } cannot be found. Do you want to create an account?",
   "v2.error.bot-protection-cloudflare": "Something went wrong with Cloudflare Turnstile, please contact support.",
   "v2.error.bot-protection-recaptcha-v2": "Something went wrong with Google RecaptchaV2, please contact support.",

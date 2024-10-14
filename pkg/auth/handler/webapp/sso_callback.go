@@ -3,6 +3,7 @@ package webapp
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -24,6 +25,7 @@ type SSOCallbackHandlerOAuthStateStore interface {
 type SSOCallbackHandler struct {
 	AuthflowController *AuthflowController
 	ControllerFactory  ControllerFactory
+	ErrorRenderer      *ErrorRenderer
 	OAuthStateStore    SSOCallbackHandlerOAuthStateStore
 	AccountManagement  *accountmanagement.Service
 }
@@ -44,16 +46,21 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s := session.GetSession(r.Context())
 
 	if state.AccountManagementToken != "" {
+		redirectURL, err := url.Parse("/settings/identity/oauth")
+		if err != nil {
+			panic(err)
+		}
+
 		_, err = h.AccountManagement.FinishAddingIdentityOAuth(s, &accountmanagement.FinishAddingIdentityOAuthInput{
 			Token: state.AccountManagementToken,
 			Query: r.URL.Query().Encode(),
 		})
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			h.ErrorRenderer.MakeAuthflowErrorResult(w, r, *redirectURL, err).WriteResponse(w, r)
 			return
 		}
 
-		http.Redirect(w, r, "/settings/identity/oauth", http.StatusFound)
+		http.Redirect(w, r, redirectURL.String(), http.StatusFound)
 		return
 	}
 
