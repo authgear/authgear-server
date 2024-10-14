@@ -862,6 +862,9 @@ func (s *AuthflowScreenWithFlowResponse) takeBranchCreateAuthenticator(input *Ta
 			Index:   input.Index,
 			Channel: input.Channel,
 		}, false)
+	case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+		// TODO (identity-week-demo): confirm need result input?
+		return s.takeBranchResultSimple(input, false)
 	default:
 		panic(fmt.Errorf("unexpected authentication: %v", option.Authentication))
 	}
