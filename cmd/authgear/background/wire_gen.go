@@ -453,7 +453,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Liveness:            livenessService,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
-		AppID:    configAppID,
 		Store:    face_recognitionStore,
 		OpenCVFR: opencvfrService,
 		Clock:    clockClock,

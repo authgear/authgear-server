@@ -368,7 +368,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Liveness:            livenessService,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
-		AppID:    appID,
 		Store:    face_recognitionStore,
 		OpenCVFR: opencvfrService,
 		Clock:    clock,
@@ -1144,7 +1143,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		Liveness:            livenessService,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
-		AppID:    appID,
 		Store:    face_recognitionStore,
 		OpenCVFR: opencvfrService,
 		Clock:    clockClock,
@@ -1576,7 +1574,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		Liveness:            livenessService,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
-		AppID:    appID,
 		Store:    face_recognitionStore,
 		OpenCVFR: opencvfrService,
 		Clock:    clockClock,
