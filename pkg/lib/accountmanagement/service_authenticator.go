@@ -703,3 +703,33 @@ func (s *Service) generateRecoveryCodes(userID string) (recoveryCodes []string, 
 
 	return recoveryCodes, isCreated, err
 }
+
+type GenerateRecoveryCodesInput struct {
+}
+
+type GenerateRecoveryCodesOutput struct {
+	Info *authenticator.Info
+}
+
+func (s *Service) GenerateRecoveryCodes(resolvedSession session.ResolvedSession, input *GenerateRecoveryCodesInput) (output *GenerateRecoveryCodesOutput, err error) {
+	userID := resolvedSession.GetAuthenticationInfo().UserID
+
+	recoveryCodes := s.MFA.GenerateRecoveryCodes()
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Database.WithTx(func() error {
+		_, err = s.MFA.ReplaceRecoveryCodes(userID, recoveryCodes)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	output = &GenerateRecoveryCodesOutput{}
+	return output, nil
+}

@@ -80,6 +80,7 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 			AuthenticatorID:      options.AuthenticatorID,
 			AuthenticatorType:    string(options.AuthenticatorType),
 			RecoveryCodes:        options.AuthenticatorRecoveryCodes,
+			RecoveryCodesCreated: options.AuthenticatorRecoveryCodesCreated,
 			TOTPIssuer:           options.AuthenticatorTOTPIssuer,
 			TOTPDisplayName:      options.AuthenticatorTOTPDisplayName,
 			TOTPEndUserAccountID: options.AuthenticatorTOTPEndUserAccountID,

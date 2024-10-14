@@ -94,6 +94,17 @@
     }}
   {{ end }}
 
+  {{ if and $.ListRecoveryCodesAllowed $.HasRecoveryCodes }}
+    {{ template "authflowv2/__settings_action_item.html"
+        (dict
+          "IconName" "security"
+          "Label" (translate "v2.page.settings-mfa.default.recovery-code-label" nil)
+          "Description" (translate "v2.page.settings-mfa.default.recovery-code-description" nil)
+          "RedirectURL" (call $.MakeURL "/settings/mfa/view_recovery_code")
+        )
+    }}
+  {{ end }}
+
   {{ if $.HasMFA}}
     {{ if gt $.NumberOfDeviceTokens 0 }}
       <button

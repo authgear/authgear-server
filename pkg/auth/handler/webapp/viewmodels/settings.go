@@ -4,6 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
@@ -12,6 +13,7 @@ type SettingsViewModel struct {
 	NumberOfDeviceTokens     int
 	HasDeviceTokens          bool
 	ListRecoveryCodesAllowed bool
+	HasRecoveryCodes         bool
 	ShowBiometric            bool
 
 	HasSecondaryTOTP        bool
@@ -40,6 +42,7 @@ type SettingsAuthenticatorService interface {
 
 type SettingsMFAService interface {
 	CountDeviceTokens(userID string) (int, error)
+	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
 }
 
 type SettingsViewModeler struct {
@@ -51,6 +54,11 @@ type SettingsViewModeler struct {
 
 // nolint: gocognit
 func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, error) {
+	recoveryCodes, err := m.MFA.ListRecoveryCodes(userID)
+	if err != nil {
+		return nil, err
+	}
+
 	authenticators, err := m.Authenticators.List(userID)
 	if err != nil {
 		return nil, err
@@ -66,6 +74,9 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		return nil, err
 	}
 	hasDeviceTokens := numberOfDeviceTokens > 0
+
+	listRecoveryCodesAllowed := !*m.Authentication.RecoveryCode.Disabled && m.Authentication.RecoveryCode.ListEnabled
+	hasRecoveryCodes := len(recoveryCodes) > 0
 
 	hasSecondaryTOTP := false
 	hasSecondaryOOBOTPEmail := false
@@ -152,7 +163,8 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		Authenticators:           authenticators,
 		NumberOfDeviceTokens:     numberOfDeviceTokens,
 		HasDeviceTokens:          hasDeviceTokens,
-		ListRecoveryCodesAllowed: !*m.Authentication.RecoveryCode.Disabled && m.Authentication.RecoveryCode.ListEnabled,
+		ListRecoveryCodesAllowed: listRecoveryCodesAllowed,
+		HasRecoveryCodes:         hasRecoveryCodes,
 		ShowBiometric:            showBiometric,
 
 		HasSecondaryTOTP:        hasSecondaryTOTP,
