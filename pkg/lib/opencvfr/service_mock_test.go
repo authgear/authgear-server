@@ -7,6 +7,7 @@ package opencvfr_test
 import (
 	reflect "reflect"
 
+	opencvfr "github.com/authgear/authgear-server/pkg/lib/opencvfr"
 	openapi "github.com/authgear/authgear-server/pkg/lib/opencvfr/openapi"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -338,4 +339,56 @@ func (m *MockLivenessService) Check(reqBody *openapi.LivenessSchema) (*openapi.L
 func (mr *MockLivenessServiceMockRecorder) Check(reqBody interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Check", reflect.TypeOf((*MockLivenessService)(nil).Check), reqBody)
+}
+
+// MockOpenCVFRCollectionIDMapStore is a mock of OpenCVFRCollectionIDMapStore interface.
+type MockOpenCVFRCollectionIDMapStore struct {
+	ctrl     *gomock.Controller
+	recorder *MockOpenCVFRCollectionIDMapStoreMockRecorder
+}
+
+// MockOpenCVFRCollectionIDMapStoreMockRecorder is the mock recorder for MockOpenCVFRCollectionIDMapStore.
+type MockOpenCVFRCollectionIDMapStoreMockRecorder struct {
+	mock *MockOpenCVFRCollectionIDMapStore
+}
+
+// NewMockOpenCVFRCollectionIDMapStore creates a new mock instance.
+func NewMockOpenCVFRCollectionIDMapStore(ctrl *gomock.Controller) *MockOpenCVFRCollectionIDMapStore {
+	mock := &MockOpenCVFRCollectionIDMapStore{ctrl: ctrl}
+	mock.recorder = &MockOpenCVFRCollectionIDMapStoreMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockOpenCVFRCollectionIDMapStore) EXPECT() *MockOpenCVFRCollectionIDMapStoreMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method.
+func (m_2 *MockOpenCVFRCollectionIDMapStore) Create(m *opencvfr.AuthgearAppIDOpenCVFRCollectionIDMap) error {
+	m_2.ctrl.T.Helper()
+	ret := m_2.ctrl.Call(m_2, "Create", m)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create.
+func (mr *MockOpenCVFRCollectionIDMapStoreMockRecorder) Create(m interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOpenCVFRCollectionIDMapStore)(nil).Create), m)
+}
+
+// Get mocks base method.
+func (m *MockOpenCVFRCollectionIDMapStore) Get(appID string) (*opencvfr.AuthgearAppIDOpenCVFRCollectionIDMap, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", appID)
+	ret0, _ := ret[0].(*opencvfr.AuthgearAppIDOpenCVFRCollectionIDMap)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockOpenCVFRCollectionIDMapStoreMockRecorder) Get(appID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOpenCVFRCollectionIDMapStore)(nil).Get), appID)
 }

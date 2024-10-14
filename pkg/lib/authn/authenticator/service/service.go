@@ -128,6 +128,12 @@ func (s *Service) Get(id string) (*authenticator.Info, error) {
 			return nil, err
 		}
 		return o.ToInfo(), nil
+	case model.AuthenticatorTypeFaceRecognition:
+		f, err := s.FaceRecognition.Get(ref.UserID, id)
+		if err != nil {
+			return nil, err
+		}
+		return f.ToInfo(), nil
 	}
 
 	panic("authenticator: unknown authenticator type " + ref.Type)
@@ -139,7 +145,7 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 		return nil, err
 	}
 
-	var passwordIDs, passkeyIDs, totpIDs, oobIDs []string
+	var passwordIDs, passkeyIDs, totpIDs, oobIDs, faceRecognitionIDs []string
 	for _, ref := range refs {
 		switch ref.Type {
 		case model.AuthenticatorTypePassword:
@@ -150,6 +156,8 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 			totpIDs = append(totpIDs, ref.ID)
 		case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
 			oobIDs = append(oobIDs, ref.ID)
+		case model.AuthenticatorTypeFaceRecognition:
+			faceRecognitionIDs = append(faceRecognitionIDs, ref.ID)
 		default:
 			panic("authenticator: unknown authenticator type " + ref.Type)
 		}
@@ -192,6 +200,16 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 			return nil, err
 		}
 		for _, a := range o {
+			infos = append(infos, a.ToInfo())
+		}
+	}
+
+	{
+		f, err := s.FaceRecognition.GetMany(faceRecognitionIDs)
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range f {
 			infos = append(infos, a.ToInfo())
 		}
 	}
@@ -383,6 +401,12 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 		}
 		return o.ToInfo(), nil
 
+	case model.AuthenticatorTypeFaceRecognition:
+		f, err := s.FaceRecognition.New(authenticatorID, spec.UserID, spec.FaceRecognition, spec.IsDefault, string(spec.Kind))
+		if err != nil {
+			return nil, err
+		}
+		return f.ToInfo(), nil
 	}
 
 	panic("authenticator: unknown authenticator type " + spec.Type)
@@ -480,6 +504,12 @@ func (s *Service) Create(info *authenticator.Info) error {
 		}
 		*info = *a.ToInfo()
 
+	case model.AuthenticatorTypeFaceRecognition:
+		a := info.FaceRecognition
+		if err := s.FaceRecognition.Create(a); err != nil {
+			return err
+		}
+		*info = *a.ToInfo()
 	default:
 		panic("authenticator: unknown authenticator type " + info.Type)
 	}
@@ -550,6 +580,12 @@ func (s *Service) Delete(info *authenticator.Info) error {
 		}
 		*info = *a.ToInfo()
 
+	case model.AuthenticatorTypeFaceRecognition:
+		a := info.FaceRecognition
+		if err := s.FaceRecognition.Delete(a); err != nil {
+			return err
+		}
+		*info = *a.ToInfo()
 	default:
 		panic("authenticator: delete authenticator is not supported yet for type " + info.Type)
 	}
