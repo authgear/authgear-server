@@ -46,11 +46,11 @@ error: |-
     map[actual:[foobar] expected:[mode] missing:[mode]]
   /steps/0/one_of/0/bot_protection/foobar: 
   /steps/0/one_of/0/steps/0/one_of/0/authentication: enum
-    map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_oob_otp_email secondary_oob_otp_sms recovery_code device_token]]
+    map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_face_recognition secondary_oob_otp_email secondary_oob_otp_sms recovery_code device_token]]
   /steps/0/one_of/0/steps/0/one_of/0/target_step: type
     map[actual:[integer number] expected:[string]]
   /steps/0/one_of/0/steps/1/one_of/0/authentication: enum
-    map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_oob_otp_email secondary_oob_otp_sms recovery_code device_token]]
+    map[actual:foobar expected:[primary_password primary_passkey primary_oob_otp_email primary_oob_otp_sms secondary_password secondary_totp secondary_face_recognition secondary_oob_otp_email secondary_oob_otp_sms recovery_code device_token]]
   /steps/0/one_of/0/steps/1/optional: type
     map[actual:[string] expected:[boolean]]
   /steps/1/type: enum
