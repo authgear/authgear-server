@@ -198,7 +198,7 @@ func (s *Service) getCollection(appID string) (c *openapi.CollectionSchema, err 
 }
 
 func (s *Service) createCollection(appID string) (c *openapi.CollectionSchema, err error) {
-	des := "This collection is a one-to-one map towards authgear project " + appID
+	des := "This collection is a one-to-one map towards authgear project '" + appID + "'"
 	schema := &openapi.CreateCollectionSchema{
 		Name:        "authgear-" + appID,
 		Description: *openapi.NewNullableString(&des),
