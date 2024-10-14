@@ -1318,6 +1318,7 @@
   "v2.page.settings.default.title-my-account": "Akun Saya",
   "v2.page.settings.default.title-security": "Keamanan",
   "v2.page.settings.default.username-button-label": "Nama Pengguna",
+  "v2.page.setup-face-image.default.title": "Pengenalan Wajah",
   "v2.page.setup-oob-otp.default.title": "Verifikasi 2 Langkah",
   "v2.page.setup-oob-otp.email.subtitle": "Anda dapat menerima kode verifikasi di email ini.",
   "v2.page.setup-oob-otp.sms.subtitle": "Anda dapat menerima kode verifikasi di nomor ini.",

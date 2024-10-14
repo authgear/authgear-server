@@ -1318,6 +1318,7 @@
   "v2.page.settings.default.title-my-account": "Ο Λογαριασμός μου",
   "v2.page.settings.default.title-security": "Ασφάλεια",
   "v2.page.settings.default.username-button-label": "Όνομα Χρήστη",
+  "v2.page.setup-face-image.default.title": "Αναγνώριση Προσώπου",
   "v2.page.setup-oob-otp.default.title": "Επαλήθευση 2 βημάτων",
   "v2.page.setup-oob-otp.email.subtitle": "Μπορείτε να λάβετε κωδικούς επαλήθευσης σε αυτό το email.",
   "v2.page.setup-oob-otp.sms.subtitle": "Μπορείτε να λάβετε κωδικούς επαλήθευσης σε αυτόν τον αριθμό.",

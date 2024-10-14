@@ -1318,6 +1318,7 @@
   "v2.page.settings.default.title-my-account": "내 계정",
   "v2.page.settings.default.title-security": "보안",
   "v2.page.settings.default.username-button-label": "사용자 이름",
+  "v2.page.setup-face-image.default.title": "얼굴 인식",
   "v2.page.setup-oob-otp.default.title": "2단계 인증",
   "v2.page.setup-oob-otp.email.subtitle": "이 이메일로 인증 코드를 받을 수 있습니다.",
   "v2.page.setup-oob-otp.sms.subtitle": "이 번호로 인증 코드를 받을 수 있습니다.",
