@@ -28,6 +28,7 @@ type SecretConfigUpdateInstruction struct {
 	OAuthClientSecretsUpdateInstruction               *OAuthClientSecretsUpdateInstruction               `json:"oauthClientSecrets,omitempty"`
 	AdminAPIAuthKeyUpdateInstruction                  *AdminAPIAuthKeyUpdateInstruction                  `json:"adminAPIAuthKey,omitempty"`
 	BotProtectionProviderCredentialsUpdateInstruction *BotProtectionProviderCredentialsUpdateInstruction `json:"botProtectionProviderSecret,omitempty"`
+	SAMLIdpSigningSecretsUpdateInstruction            *SAMLIdpSigningSecretsUpdateInstruction            `json:"samlIDPSigningSecrets,omitempty"`
 }
 
 func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
@@ -64,6 +65,13 @@ func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructi
 
 	if i.BotProtectionProviderCredentialsUpdateInstruction != nil {
 		newConfig, err = i.BotProtectionProviderCredentialsUpdateInstruction.ApplyTo(ctx, newConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if i.SAMLIdpSigningSecretsUpdateInstruction != nil {
+		newConfig, err = i.SAMLIdpSigningSecretsUpdateInstruction.ApplyTo(ctx, newConfig)
 		if err != nil {
 			return nil, err
 		}
@@ -569,9 +577,66 @@ func (i *BotProtectionProviderCredentialsUpdateInstruction) unset(currentConfig 
 	return out, nil
 }
 
+type SAMLIdpSigningSecretsUpdateInstruction struct {
+	Action SecretUpdateInstructionAction `json:"action,omitempty"`
+}
+
+func (i *SAMLIdpSigningSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
+	switch i.Action {
+	case SecretUpdateInstructionActionGenerate:
+		return i.generate(currentConfig)
+	default:
+		return nil, fmt.Errorf("config: unexpected action for SAMLIDPSigningSecretsUpdateInstruction: %s", i.Action)
+	}
+}
+
+func (i *SAMLIdpSigningSecretsUpdateInstruction) generate(currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	var credentials *SAMLIdpSigningMaterials
+	for _, item := range currentConfig.Secrets {
+		if item.Key == SAMLIdpSigningMaterialsKey {
+			credentials = item.Data.(*SAMLIdpSigningMaterials)
+		}
+		out.Secrets = append(out.Secrets, item)
+	}
+
+	if credentials == nil {
+		credentials = &SAMLIdpSigningMaterials{
+			Certificates: []*SAMLIdpSigningCertificate{},
+		}
+	}
+
+	// FIXME: The common name is not important, but we might want to put the app id here.
+	newCert, err := GenerateSAMLIdpSigningCertificate("urn:authgear.com")
+	if err != nil {
+		return nil, err
+	}
+
+	credentials.Certificates = append(credentials.Certificates, newCert)
+
+	var data []byte
+	data, err = json.Marshal(credentials)
+	if err != nil {
+		return nil, err
+	}
+	newSecretItem := SecretItem{
+		Key:     SAMLIdpSigningMaterialsKey,
+		RawData: json.RawMessage(data),
+	}
+
+	idx, _, found := out.LookupDataWithIndex(SAMLIdpSigningMaterialsKey)
+	if found {
+		out.Secrets[idx] = newSecretItem
+	} else {
+		out.Secrets = append(out.Secrets, newSecretItem)
+	}
+	return out, nil
+}
+
 var _ SecretConfigUpdateInstructionInterface = &SecretConfigUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &OAuthSSOProviderCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &SMTPServerCredentialsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &OAuthClientSecretsUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &AdminAPIAuthKeyUpdateInstruction{}
 var _ SecretConfigUpdateInstructionInterface = &BotProtectionProviderCredentialsUpdateInstruction{}
+var _ SecretConfigUpdateInstructionInterface = &SAMLIdpSigningSecretsUpdateInstruction{}
