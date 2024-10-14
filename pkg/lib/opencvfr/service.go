@@ -68,12 +68,16 @@ func (s *Service) VerifyFace(personID string, b64FaceImage string, opts *VerifyF
 	if opts != nil && opts.OS != "" {
 		os = &opts.OS
 	}
-	// TODO (identity-week-demo): construct a mapping in db, appID <-> collectionID
-	// collectionID := s.Store.GetCollectionID(appID)
-	collectionID := "12edc48f-4b43-4240-90dd-213f3008932c"
+	collection, err := s.getCollection(string(s.AppID))
+	if err != nil {
+		return err
+	}
+	if collection == nil {
+		return fmt.Errorf("collection for app id (%s) not found", s.AppID)
+	}
 	r, err := s.Search.SearchLiveFace(&openapi.SearchLiveFaceScheme{
 		Os:           *openapi.NewNullableOSEnum(os),
-		CollectionId: *openapi.NewNullableString(&collectionID),
+		CollectionId: *openapi.NewNullableString(&collection.Id),
 		Image:        b64FaceImage,
 	})
 
