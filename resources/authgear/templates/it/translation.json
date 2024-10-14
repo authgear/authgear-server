@@ -1168,6 +1168,7 @@
   "v2.page.settings.default.link-label-edit-profile": "Modifica Profilo",
   "v2.page.settings.default.title-my-account": "Il Mio Account",
   "v2.page.settings.default.title-security": "Sicurezza",
+  "v2.page.setup-face-image.default.title": "Riconoscimento facciale",
   "v2.page.setup-oob-otp.default.title": "Verifica in 2 passaggi",
   "v2.page.setup-oob-otp.email.subtitle": "Puoi ricevere i codici di verifica a questa email.",
   "v2.page.setup-oob-otp.sms.subtitle": "Puoi ricevere i codici di verifica a questo numero.",

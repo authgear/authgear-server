@@ -1168,6 +1168,7 @@
   "v2.page.settings.default.link-label-edit-profile": "プロフィールを編集",
   "v2.page.settings.default.title-my-account": "マイアカウント",
   "v2.page.settings.default.title-security": "セキュリティ",
+  "v2.page.setup-face-image.default.title": "顔認証",
   "v2.page.setup-oob-otp.default.title": "2段階認証",
   "v2.page.setup-oob-otp.email.subtitle": "このメールアドレスで確認コードを受け取ることができます。",
   "v2.page.setup-oob-otp.sms.subtitle": "この番号で確認コードを受け取ることができます。",
