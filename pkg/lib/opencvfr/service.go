@@ -53,7 +53,7 @@ type VerifyFaceOption struct {
 // VerifyFace verifies if a face matches the given person and collection.
 // If match, return nil.
 // Otherwise, return error.
-func (s *Service) VerifyFace(appID string, personID string, b64FaceImage string, opts *VerifyFaceOption) error {
+func (s *Service) VerifyFace(personID string, b64FaceImage string, opts *VerifyFaceOption) error {
 	var os *openapi.OSEnum
 	if opts != nil && opts.OS != "" {
 		os = &opts.OS

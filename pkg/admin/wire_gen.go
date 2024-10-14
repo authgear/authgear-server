@@ -463,7 +463,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Liveness:            livenessService,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
-		AppID:    appID,
 		Store:    face_recognitionStore,
 		OpenCVFR: opencvfrService,
 		Clock:    clockClock,
