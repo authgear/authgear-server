@@ -200,6 +200,8 @@ func (i *IntentLoginFlowStepCreateAuthenticator) ReactTo(ctx context.Context, de
 					return nil, err
 				}
 				return authflow.NewSubFlow(intent), nil
+			case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+				// TODO (identity-week-demo): Handle login create face recognition
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput
