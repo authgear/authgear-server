@@ -1319,6 +1319,7 @@
   "v2.page.settings.default.title-my-account": "Minha Conta",
   "v2.page.settings.default.title-security": "Segurança",
   "v2.page.settings.default.username-button-label": "Nome de Usuário",
+  "v2.page.setup-face-image.default.title": "Reconhecimento Facial",
   "v2.page.setup-oob-otp.default.title": "Verificação em 2 Etapas",
   "v2.page.setup-oob-otp.email.subtitle": "Você pode receber códigos de verificação neste email.",
   "v2.page.setup-oob-otp.sms.subtitle": "Você pode receber códigos de verificação neste número.",
