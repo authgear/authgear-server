@@ -358,14 +358,19 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	livenessService := &api.LivenessService{
 		HTTPClient: client,
 	}
+	opencvfrStore := &opencvfr.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
 	opencvfrService := &opencvfr.Service{
-		Clock:               clock,
-		AppID:               appID,
-		AuthenticatorConfig: authenticationConfig,
-		Person:              personService,
-		Collection:          collectionService,
-		Search:              searchService,
-		Liveness:            livenessService,
+		Clock:                        clock,
+		AppID:                        appID,
+		AuthenticatorConfig:          authenticationConfig,
+		Person:                       personService,
+		Collection:                   collectionService,
+		Search:                       searchService,
+		Liveness:                     livenessService,
+		OpenCVFRCollectionIDMapStore: opencvfrStore,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
 		Store:    face_recognitionStore,
@@ -1133,14 +1138,19 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	livenessService := &api.LivenessService{
 		HTTPClient: client,
 	}
+	opencvfrStore := &opencvfr.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
 	opencvfrService := &opencvfr.Service{
-		Clock:               clockClock,
-		AppID:               appID,
-		AuthenticatorConfig: authenticationConfig,
-		Person:              personService,
-		Collection:          collectionService,
-		Search:              searchService,
-		Liveness:            livenessService,
+		Clock:                        clockClock,
+		AppID:                        appID,
+		AuthenticatorConfig:          authenticationConfig,
+		Person:                       personService,
+		Collection:                   collectionService,
+		Search:                       searchService,
+		Liveness:                     livenessService,
+		OpenCVFRCollectionIDMapStore: opencvfrStore,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
 		Store:    face_recognitionStore,
@@ -1564,14 +1574,19 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	livenessService := &api.LivenessService{
 		HTTPClient: apiClient,
 	}
+	opencvfrStore := &opencvfr.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
 	opencvfrService := &opencvfr.Service{
-		Clock:               clockClock,
-		AppID:               appID,
-		AuthenticatorConfig: authenticationConfig,
-		Person:              personService,
-		Collection:          collectionService,
-		Search:              searchService,
-		Liveness:            livenessService,
+		Clock:                        clockClock,
+		AppID:                        appID,
+		AuthenticatorConfig:          authenticationConfig,
+		Person:                       personService,
+		Collection:                   collectionService,
+		Search:                       searchService,
+		Liveness:                     livenessService,
+		OpenCVFRCollectionIDMapStore: opencvfrStore,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
 		Store:    face_recognitionStore,

@@ -1,6 +1,7 @@
 package face_recognition
 
 import (
+	"fmt"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -11,6 +12,7 @@ import (
 )
 
 type OpenCVFRService interface {
+	CreatePerson(opts *opencvfr.CreatePersonOptions) (p *opencvfr.CreatePersonOutput, err error)
 	VerifyFace(personID string, b64FaceImage string, opts *opencvfr.VerifyFaceOption) error
 }
 
@@ -47,10 +49,22 @@ func (p *Provider) New(id string, userID string, frSpec *authenticator.FaceRecog
 		id = uuid.New()
 	}
 
+	// TODO (identity-week-demo): Check if person face already exists in opencvfr database,  in other projects (collections) first, which is possible
+	person, err := p.OpenCVFR.CreatePerson(&opencvfr.CreatePersonOptions{
+		Name: "authgear-" + userID,
+		B64ImageList: []string{
+			frSpec.B64ImageString,
+		},
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to create new face_recognition authenticator for user (%s): %w", userID, err)
+	}
+
 	a := &authenticator.FaceRecognition{
 		ID:               id,
 		UserID:           userID,
-		OpenCVFRPersonID: frSpec.OpenCVFRPersonID,
+		OpenCVFRPersonID: person.OpenCVFRPersonID,
 		IsDefault:        isDefault,
 		Kind:             kind,
 	}
