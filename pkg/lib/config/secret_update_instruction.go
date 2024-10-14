@@ -577,14 +577,21 @@ func (i *BotProtectionProviderCredentialsUpdateInstruction) unset(currentConfig 
 	return out, nil
 }
 
+type SAMLIdpSigningSecretsUpdateInstructionDeleteData struct {
+	KeyID string `json:"keyID,omitempty"`
+}
+
 type SAMLIdpSigningSecretsUpdateInstruction struct {
-	Action SecretUpdateInstructionAction `json:"action,omitempty"`
+	Action     SecretUpdateInstructionAction                     `json:"action,omitempty"`
+	DeleteData *SAMLIdpSigningSecretsUpdateInstructionDeleteData `json:"deleteData,omitempty"`
 }
 
 func (i *SAMLIdpSigningSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
 	switch i.Action {
 	case SecretUpdateInstructionActionGenerate:
 		return i.generate(currentConfig)
+	case SecretUpdateInstructionActionDelete:
+		return i.delete(currentConfig)
 	default:
 		return nil, fmt.Errorf("config: unexpected action for SAMLIDPSigningSecretsUpdateInstruction: %s", i.Action)
 	}
@@ -629,6 +636,56 @@ func (i *SAMLIdpSigningSecretsUpdateInstruction) generate(currentConfig *SecretC
 		out.Secrets[idx] = newSecretItem
 	} else {
 		out.Secrets = append(out.Secrets, newSecretItem)
+	}
+	return out, nil
+}
+
+func (i *SAMLIdpSigningSecretsUpdateInstruction) delete(currentConfig *SecretConfig) (*SecretConfig, error) {
+	out := &SecretConfig{}
+	var credentials *SAMLIdpSigningMaterials
+	for _, item := range currentConfig.Secrets {
+		if item.Key == SAMLIdpSigningMaterialsKey {
+			credentials = item.Data.(*SAMLIdpSigningMaterials)
+		}
+		out.Secrets = append(out.Secrets, item)
+	}
+
+	if credentials == nil {
+		// No secret, no-op.
+		return currentConfig, nil
+	}
+
+	if i.DeleteData == nil || i.DeleteData.KeyID == "" {
+		return nil, fmt.Errorf("config: missing KeyID for SAMLIdpSigningSecretsUpdateInstruction")
+	}
+
+	newCertificates := []*SAMLIdpSigningCertificate{}
+
+	for _, cert := range credentials.Certificates {
+		cert := cert
+		if cert.Key.KeyID() == i.DeleteData.KeyID {
+			continue
+		}
+		newCertificates = append(newCertificates, cert)
+	}
+
+	credentials.Certificates = newCertificates
+
+	var data []byte
+	data, err := json.Marshal(credentials)
+	if err != nil {
+		return nil, err
+	}
+	newSecretItem := SecretItem{
+		Key:     SAMLIdpSigningMaterialsKey,
+		RawData: json.RawMessage(data),
+	}
+
+	idx, _, found := out.LookupDataWithIndex(SAMLIdpSigningMaterialsKey)
+	if found {
+		out.Secrets[idx] = newSecretItem
+	} else {
+		panic(fmt.Errorf("unexpected: cannot find the original SecretItem item during delete"))
 	}
 	return out, nil
 }
