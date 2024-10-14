@@ -495,7 +495,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Liveness:            livenessService,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
-		AppID:    appID,
 		Store:    face_recognitionStore,
 		OpenCVFR: opencvfrService,
 		Clock:    clock,
@@ -1231,7 +1230,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Liveness:            livenessService,
 	}
 	face_recognitionProvider := &face_recognition.Provider{
-		AppID:    appID,
 		Store:    face_recognitionStore,
 		OpenCVFR: opencvfrService,
 		Clock:    clockClock,
