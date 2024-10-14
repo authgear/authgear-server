@@ -99,6 +99,19 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(r *http.Request, rw
 		deleteDisabled = *loginIDConfig.DeleteDisabled
 	}
 
+	identities, err := h.Identities.ListByUser(*userID)
+	if err != nil {
+		return nil, err
+	}
+
+	remaining := identity.ApplyFilters(
+		identities,
+		identity.KeepIdentifiable,
+	)
+	if len(remaining) == 1 {
+		deleteDisabled = true
+	}
+
 	vm := AuthflowV2SettingsIdentityViewEmailViewModel{
 		LoginIDKey:     loginIDKey,
 		EmailIdentity:  emailIdentity,
