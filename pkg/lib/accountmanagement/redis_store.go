@@ -8,6 +8,7 @@ import (
 
 	goredis "github.com/go-redis/redis/v8"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -31,13 +32,29 @@ type GenerateTokenOptions struct {
 	RedirectURI string
 
 	// Phone
-	PhoneNumber string
-
+	IdentityPhoneNumber string
 	// Email
-	Email string
-
+	IdentityEmail string
 	// IdentityID for updating identity
 	IdentityID string
+
+	// AuthenticatorID for updating authenticator
+	AuthenticatorID                   string
+	AuthenticatorRecoveryCodes        []string
+	AuthenticatorRecoveryCodesCreated bool
+	AuthenticatorType                 model.AuthenticatorType
+
+	// TOTP
+	AuthenticatorTOTPIssuer           string
+	AuthenticatorTOTPEndUserAccountID string
+	AuthenticatorTOTPDisplayName      string
+	AuthenticatorTOTPSecret           string
+	AuthenticatorTOTPVerified         bool
+
+	// OOB OTP
+	AuthenticatorOOBOTPChannel  model.AuthenticatorOOBChannel
+	AuthenticatorOOBOTPTarget   string
+	AuthenticatorOOBOTPVerified bool
 }
 
 func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error) {
@@ -48,10 +65,30 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 	ttl := duration.UserInteraction
 	expireAt := now.Add(ttl)
 
-	tokenIdentity := &TokenIdentity{
-		IdentityID:  options.IdentityID,
-		PhoneNumber: options.PhoneNumber,
-		Email:       options.Email,
+	var tokenIdentity *TokenIdentity
+	if options.IdentityID != "" || options.IdentityPhoneNumber != "" || options.IdentityEmail != "" {
+		tokenIdentity = &TokenIdentity{
+			IdentityID:  options.IdentityID,
+			PhoneNumber: options.IdentityPhoneNumber,
+			Email:       options.IdentityEmail,
+		}
+	}
+
+	var tokenAuthenticator *TokenAuthenticator
+	if options.AuthenticatorID != "" || len(options.AuthenticatorRecoveryCodes) > 0 || options.AuthenticatorTOTPSecret != "" || options.AuthenticatorTOTPVerified || options.AuthenticatorOOBOTPChannel != "" || options.AuthenticatorOOBOTPTarget != "" || options.AuthenticatorOOBOTPVerified {
+		tokenAuthenticator = &TokenAuthenticator{
+			AuthenticatorID:      options.AuthenticatorID,
+			AuthenticatorType:    string(options.AuthenticatorType),
+			RecoveryCodes:        options.AuthenticatorRecoveryCodes,
+			TOTPIssuer:           options.AuthenticatorTOTPIssuer,
+			TOTPDisplayName:      options.AuthenticatorTOTPDisplayName,
+			TOTPEndUserAccountID: options.AuthenticatorTOTPEndUserAccountID,
+			TOTPSecret:           options.AuthenticatorTOTPSecret,
+			TOTPVerified:         options.AuthenticatorTOTPVerified,
+			OOBOTPChannel:        options.AuthenticatorOOBOTPChannel,
+			OOBOTPTarget:         options.AuthenticatorOOBOTPTarget,
+			OOBOTPVerified:       options.AuthenticatorOOBOTPVerified,
+		}
 	}
 
 	token := &Token{
@@ -68,6 +105,8 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 
 		// Identity
 		Identity: tokenIdentity,
+
+		Authenticator: tokenAuthenticator,
 	}
 
 	tokenBytes, err := json.Marshal(token)

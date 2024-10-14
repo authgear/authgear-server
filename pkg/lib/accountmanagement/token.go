@@ -4,6 +4,7 @@ import (
 	"crypto/subtle"
 	"time"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/crypto"
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
@@ -22,12 +23,36 @@ type Token struct {
 
 	// Adding Identity
 	Identity *TokenIdentity `json:"token_identity,omitempty"`
+
+	// Authenticator
+	Authenticator *TokenAuthenticator `json:"token_authenticator,omitempty"`
 }
 
 type TokenIdentity struct {
 	IdentityID  string `json:"identity_id,omitempty"`
 	PhoneNumber string `json:"phone_number,omitempty"`
 	Email       string `json:"email,omitempty"`
+}
+
+type TokenAuthenticator struct {
+	AuthenticatorID   string `json:"authenticator_id,omitempty"`
+	AuthenticatorType string `json:"authenticator_type,omitempty"`
+
+	// Recovery Codes
+	RecoveryCodes        []string `json:"recovery_codes,omitempty"`
+	RecoveryCodesCreated bool     `json:"recovery_codes_created,omitempty"`
+
+	// TOTP
+	TOTPIssuer           string `json:"totp_issuer,omitempty"`
+	TOTPDisplayName      string `json:"totp_display_name,omitempty"`
+	TOTPEndUserAccountID string `json:"end_user_account_id,omitempty"`
+	TOTPSecret           string `json:"totp_secret,omitempty"`
+	TOTPVerified         bool   `json:"totp_verified,omitempty"`
+
+	// OOB OTP
+	OOBOTPChannel  model.AuthenticatorOOBChannel `json:"oob_otp_channel,omitempty"`
+	OOBOTPTarget   string                        `json:"oob_otp_target,omitempty"`
+	OOBOTPVerified bool                          `json:"oob_otp_verified,omitempty"`
 }
 
 func (t *Token) CheckUser(userID string) error {

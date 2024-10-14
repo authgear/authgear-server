@@ -189,8 +189,8 @@ func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession,
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID: userID,
-				Email:  info.LoginID.LoginID,
+				UserID:        userID,
+				IdentityEmail: info.LoginID.LoginID,
 			})
 			if err != nil {
 				return err
@@ -247,7 +247,7 @@ func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -342,9 +342,9 @@ func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSessi
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID:     userID,
-				Email:      newInfo.LoginID.LoginID,
-				IdentityID: newInfo.ID,
+				UserID:        userID,
+				IdentityEmail: newInfo.LoginID.LoginID,
+				IdentityID:    newInfo.ID,
 			})
 			if err != nil {
 				return err
@@ -403,7 +403,7 @@ func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSess
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -577,8 +577,8 @@ func (s *Service) StartAddIdentityPhone(resolvedSession session.ResolvedSession,
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID:      userID,
-				PhoneNumber: info.LoginID.LoginID,
+				UserID:              userID,
+				IdentityPhoneNumber: info.LoginID.LoginID,
 			})
 			if err != nil {
 				return err
@@ -635,7 +635,7 @@ func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -728,9 +728,9 @@ func (s *Service) StartUpdateIdentityPhone(resolvedSession session.ResolvedSessi
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
-				UserID:      userID,
-				PhoneNumber: info.LoginID.LoginID,
-				IdentityID:  info.ID,
+				UserID:              userID,
+				IdentityPhoneNumber: info.LoginID.LoginID,
+				IdentityID:          info.ID,
 			})
 			if err != nil {
 				return err
@@ -788,7 +788,7 @@ func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSess
 		return
 	}
 
-	err = s.verifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code)
+	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
 	if err != nil {
 		return
 	}

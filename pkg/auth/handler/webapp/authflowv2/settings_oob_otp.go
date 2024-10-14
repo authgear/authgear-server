@@ -6,11 +6,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/auth/webapp"
+	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -29,6 +32,7 @@ type AuthflowV2SettingsOOBOTPHandler struct {
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
+	AccountManagement *accountmanagement.Service
 	Authenticators    authenticatorservice.Service
 }
 
@@ -85,6 +89,26 @@ func (h *AuthflowV2SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsOOBOTPHTML, data)
+		return nil
+	})
+
+	ctrl.PostAction("remove", func() error {
+		authenticatorID := r.Form.Get("x_authenticator_id")
+
+		s := session.GetSession(r.Context())
+
+		input := &accountmanagement.DeleteOOBOTPAuthenticatorInput{
+			AuthenticatorID: authenticatorID,
+		}
+		_, err = h.AccountManagement.DeleteOOBOTPAuthenticator(s, input)
+		if err != nil {
+			return err
+		}
+
+		redirectURI := httputil.HostRelative(r.URL).String()
+		result := webapp.Result{RedirectURI: redirectURI}
+		result.WriteResponse(w, r)
+
 		return nil
 	})
 }
