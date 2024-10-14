@@ -185,6 +185,12 @@ func NewCreateAuthenticationOptions(
 					BotProtection:  GetBotProtectionData(b.GetBotProtectionConfig(), deps.Config.BotProtection),
 				},
 			})
+		case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+			options = append(options, CreateAuthenticatorOptionInternal{
+				CreateAuthenticatorOption: CreateAuthenticatorOption{
+					Authentication: b.GetAuthentication(),
+				},
+			})
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 			// Recovery code is not created in this step.
 			break

@@ -69,3 +69,16 @@ func findTOTP(in []*authenticator.Info, kind model.AuthenticatorKind) *authentic
 	}
 	return nil
 }
+
+func findFaceRecognition(in []*authenticator.Info, kind model.AuthenticatorKind) *authenticator.Info {
+	for _, authn := range in {
+		authn := authn
+		if authn.Type != model.AuthenticatorTypeFaceRecognition {
+			continue
+		}
+		if authn.Kind == kind {
+			return authn
+		}
+	}
+	return nil
+}
