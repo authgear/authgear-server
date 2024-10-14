@@ -221,6 +221,42 @@ steps:
         - type: view_recovery_code
 `)
 
+		// email,password, face_recognition,recovery_code
+		test(`
+authentication:
+  identities:
+  - login_id
+  primary_authenticators:
+  - password
+  secondary_authenticators:
+  - face_recognition
+  secondary_authentication_mode: required
+identity:
+  login_id:
+    keys:
+    - type: email
+`, `
+name: default
+steps:
+- name: signup_identify
+  type: identify
+  one_of:
+  - identification: email
+    steps:
+    - target_step: signup_identify
+      type: verify
+    - name: authenticate_primary_email
+      type: create_authenticator
+      one_of:
+      - authentication: primary_password
+    - name: authenticate_secondary_email
+      type: create_authenticator
+      one_of:
+      - authentication: secondary_face_recognition
+        steps:
+        - type: view_recovery_code
+`)
+
 		// email,password, phone
 		test(`
 authentication:
