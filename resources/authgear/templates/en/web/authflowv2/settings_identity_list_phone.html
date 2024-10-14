@@ -49,16 +49,18 @@
   {{ end }}
 
   {{ if not $.CreateDisabled}}
-    {{ $href := (call $.MakeURL "/settings/identity/add_phone" "q_login_id_key" $.LoginIDKey ) }}
-    <a
-      class="settings-link-btn"
-      href="{{ $href }}"
-    >
-      {{ translate "v2.page.settings-identity-list-phone.default.add-phone-button-label" nil }}
-    </a>
+    {{ if not (ge (len $.PhoneIdentities) (1)) }}
+      {{ $href := (call $.MakeURL "/settings/identity/add_phone" "q_login_id_key" $.LoginIDKey ) }}
+      <a
+        class="settings-link-btn"
+        href="{{ $href }}"
+      >
+        {{ translate "v2.page.settings-identity-list-phone.default.add-phone-button-label" nil }}
+      </a>
+    {{ end }}
   {{ end }}
 
-  {{ if and ($.PrimaryEmail) (gt (len $.PhoneIdentities) (1)) }}
+  {{ if and ($.PrimaryPhone) (gt (len $.PhoneIdentities) (1)) }}
     <span>
       <div class="settings-title">
         {{ translate "v2.page.settings-identity-list-phone.default.primary-phone-label" . }}

@@ -49,13 +49,15 @@
   {{ end }}
 
   {{ if not $.CreateDisabled}}
-    {{ $href := (call $.MakeURL "/settings/identity/add_email" "q_login_id_key" $.LoginIDKey ) }}
-    <a
-      class="settings-link-btn"
-      href="{{ $href }}"
-    >
-      {{ translate "v2.page.settings-identity-list-email.default.add-email-button-label" nil }}
-    </a>
+    {{ if not (ge (len $.EmailIdentities) (1)) }}
+      {{ $href := (call $.MakeURL "/settings/identity/add_email" "q_login_id_key" $.LoginIDKey ) }}
+      <a
+        class="settings-link-btn"
+        href="{{ $href }}"
+      >
+        {{ translate "v2.page.settings-identity-list-email.default.add-email-button-label" nil }}
+      </a>
+    {{ end }}
   {{ end }}
 
   {{ if and ($.PrimaryEmail) (gt (len $.EmailIdentities) (1)) }}
