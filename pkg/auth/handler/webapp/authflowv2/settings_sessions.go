@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
@@ -37,8 +38,10 @@ type SettingsSessionsViewModel struct {
 }
 
 type AuthflowV2SettingsSessionsHandler struct {
+	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
+	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
 	Sessions          handlerwebapp.SettingsSessionManager
 	Authorizations    handlerwebapp.SettingsAuthorizationService
@@ -48,16 +51,23 @@ type AuthflowV2SettingsSessionsHandler struct {
 
 func (h *AuthflowV2SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
+	userID := session.GetUserID(r.Context())
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
+	// SettingsViewModel
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *settingsViewModel)
+
 	// SettingsSessionsViewModel
-	userID := s.GetAuthenticationInfo().UserID
 	settingsSessionsViewModel := SettingsSessionsViewModel{}
 
-	ss, err := h.Sessions.List(userID)
+	ss, err := h.Sessions.List(*userID)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +84,7 @@ func (h *AuthflowV2SettingsSessionsHandler) GetData(r *http.Request, rw http.Res
 		clientNameMap[c.ClientID] = c.ClientName
 	}
 	filter := oauth.NewKeepThirdPartyAuthorizationFilter(h.OAuthConfig)
-	authorizations, err := h.Authorizations.ListByUser(userID, filter)
+	authorizations, err := h.Authorizations.ListByUser(*userID, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +121,11 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 	redirectURI := httputil.HostRelative(r.URL).String()
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w, currentSession)
+		var data map[string]interface{}
+		err := h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w, currentSession)
+			return err
+		})
 		if err != nil {
 			return err
 		}

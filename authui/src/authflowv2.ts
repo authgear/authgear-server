@@ -51,7 +51,10 @@ import { SelectInputController } from "./authflowv2/selectInput";
 import { AccountDeletionController } from "./accountdeletion";
 import { BackController } from "./authflowv2/back";
 import { FormStateController } from "./authflowv2/formState";
-import { FormatDateRelativeController, FormatInputDateController } from './authflowv2/date';
+import {
+  FormatDateController,
+  FormatInputDateController,
+} from "./authflowv2/date";
 
 axios.defaults.withCredentials = true;
 
@@ -79,7 +82,7 @@ Stimulus.register("prevent-double-tap", PreventDoubleTapController);
 
 Stimulus.register("lockout", LockoutController);
 
-Stimulus.register("format-date-relative", FormatDateRelativeController);
+Stimulus.register("format-date", FormatDateController);
 Stimulus.register("format-input-date", FormatInputDateController);
 Stimulus.register(
   "password-visibility-toggle",

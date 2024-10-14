@@ -54,122 +54,137 @@ function parseTimeStyle(s: string | null): TimeStyle | undefined {
   return "short";
 }
 
-export class FormatDateRelativeController extends Controller {
+function formatLuxonRelativeDuration(
+  lang: string,
+  dt: DateTime,
+  base: DateTime
+): string {
+  let duration = dt.diff(base);
+  duration = Duration.fromMillis(
+    // Trim to seconds
+    Math.trunc(duration.toMillis() / 1000) * 1000,
+    {
+      locale: lang,
+    }
+  ).rescale();
+  const opts = {
+    unitDisplay: "narrow",
+    listStyle: "narrow",
+    type: "unit",
+  } as const;
+  return duration.reconfigure({ locale: lang }).toHuman(opts);
+}
+
+function getTimezoneFromMetaTag(): string | undefined {
+  const metaTag = document.querySelector('meta[name="x-timezone"]');
+  return metaTag?.getAttribute("content") ?? undefined;
+}
+
+export class FormatDateController extends Controller {
   static values = {
     relativeBase: String,
   };
 
   declare relativeBaseValue: string;
 
-  render: () => void = () => {};
+  private observer: MutationObserver | null = null;
 
-  private formatLuxonRelativeDuration(
-    lang: string,
-    dt: DateTime,
-    base: DateTime
-  ): string {
-    let duration = dt.diff(base);
-    duration = Duration.fromMillis(
-      // Trim to seconds
-      Math.trunc(duration.toMillis() / 1000) * 1000,
-      {
-        locale: lang,
-      }
-    ).rescale();
-    const opts = {
-      unitDisplay: "narrow",
-      listStyle: "narrow",
-      type: "unit",
-    } as const;
-    return duration.reconfigure({ locale: lang }).toHuman(opts);
+  connect(): void {
+    this.render();
+    this.observer = new MutationObserver(() => {
+      this.observer?.disconnect();
+      this.render();
+      this.observer?.observe(this.element, { childList: true, subtree: true });
+    });
+    this.observer.observe(this.element, { childList: true, subtree: true });
   }
 
-  connect() {
-    const dateSpans = document.documentElement.querySelectorAll("[data-date]");
-
-    const render = () => {
-      const lang = document.documentElement.lang;
-
-      if (lang == null || lang === "") {
-        return;
-      }
-
-      const hasAbs = intlDateTimeFormatIsSupported();
-      const hasRel = intlRelativeTimeFormatIsSupported();
-      let relativeBase = DateTime.now();
-      if (this.relativeBaseValue) {
-        relativeBase = DateTime.fromISO(this.relativeBaseValue);
-      }
-
-      for (let i = 0; i < dateSpans.length; i++) {
-        const dateSpan = dateSpans[i];
-        const rfc3339 = dateSpan.getAttribute("data-date");
-        const dateType = parseDateType(dateSpan.getAttribute("data-date-type"));
-        const dateStyle = parseDateStyle(
-          dateSpan.getAttribute("data-date-date-style")
-        );
-        const timeStyle = parseTimeStyle(
-          dateSpan.getAttribute("data-date-time-style")
-        );
-
-        if (typeof rfc3339 === "string") {
-          const luxonDatetime = DateTime.fromISO(rfc3339);
-          const abs = hasAbs
-            ? luxonDatetime.toLocaleString(
-                {
-                  dateStyle,
-                  timeStyle,
-                },
-                {
-                  locale: lang,
-                }
-              )
-            : null;
-          const rel = hasRel
-            ? luxonDatetime.toRelative({
-                locale: lang,
-                base: relativeBase,
-              })
-            : null;
-
-          if (dateSpan instanceof HTMLElement) {
-            // Display the absolute date time as title (tooltip).
-            // This is how GitHub shows date time.
-            if (abs != null) {
-              dateSpan.title = abs;
-            }
-          }
-
-          if (dateType === "relative") {
-            // Prefer showing relative date time,
-            // and fallback to absolute date time.
-            if (rel != null) {
-              dateSpan.textContent = rel;
-            } else if (abs != null) {
-              dateSpan.textContent = abs;
-            }
-          } else if (dateType === "luxon-relative-duration") {
-            dateSpan.textContent = this.formatLuxonRelativeDuration(
-              lang,
-              luxonDatetime,
-              relativeBase
-            );
-          } else {
-            if (abs != null) {
-              dateSpan.textContent = abs;
-            }
-          }
-        }
-      }
-    };
-
-    this.render = render.bind(this);
-    this.render();
+  disconnect(): void {
+    this.observer?.disconnect();
   }
 
   relativeBaseValueChanged() {
     this.render();
   }
+
+  // eslint-disable-next-line sonarjs/cognitive-complexity,complexity
+  render = () => {
+    const lang = document.documentElement.lang;
+    const timezone = getTimezoneFromMetaTag();
+
+    if (lang === "") {
+      return;
+    }
+
+    const hasAbs = intlDateTimeFormatIsSupported();
+    const hasRel = intlRelativeTimeFormatIsSupported();
+    let relativeBase = DateTime.now();
+    if (this.relativeBaseValue) {
+      relativeBase = DateTime.fromISO(this.relativeBaseValue);
+    }
+
+    const dateSpans = this.element.querySelectorAll("[data-date]");
+
+    for (const dateSpan of dateSpans) {
+      const rfc3339 = dateSpan.getAttribute("data-date");
+      const dateType = parseDateType(dateSpan.getAttribute("data-date-type"));
+      const dateStyle = parseDateStyle(
+        dateSpan.getAttribute("data-date-date-style")
+      );
+      const timeStyle = parseTimeStyle(
+        dateSpan.getAttribute("data-date-time-style")
+      );
+
+      if (typeof rfc3339 === "string") {
+        const luxonDatetime = DateTime.fromISO(rfc3339, { zone: timezone });
+        const abs = hasAbs
+          ? luxonDatetime.toLocaleString(
+              {
+                dateStyle,
+                timeStyle,
+              },
+              {
+                locale: lang,
+              }
+            )
+          : null;
+        const rel = hasRel
+          ? luxonDatetime.toRelative({
+              locale: lang,
+              base: relativeBase,
+            })
+          : null;
+
+        if (dateSpan instanceof HTMLElement) {
+          // Display the absolute date time as title (tooltip).
+          // This is how GitHub shows date time.
+          if (abs != null) {
+            dateSpan.title = abs;
+          }
+        }
+
+        if (dateType === "relative") {
+          // Prefer showing relative date time,
+          // and fallback to absolute date time.
+          if (rel != null) {
+            dateSpan.textContent = rel;
+          } else if (abs != null) {
+            dateSpan.textContent = abs;
+          }
+        } else if (dateType === "luxon-relative-duration") {
+          dateSpan.textContent = formatLuxonRelativeDuration(
+            lang,
+            luxonDatetime,
+            relativeBase
+          );
+        } else {
+          if (abs != null) {
+            dateSpan.textContent = abs;
+          }
+        }
+      }
+    }
+  };
 }
 
 // There is no way to change the display format of <input type="date">.
