@@ -98,8 +98,8 @@ var adminAPIAuthKeyDeleteDataInput = graphql.NewInputObject(graphql.InputObjectC
 	},
 })
 
-var samlIDPSigningSecretsDeleteDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "SAMLIDPSigningSecretsDeleteDataInput",
+var samlIdpSigningSecretsDeleteDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SAMLIdpSigningSecretsDeleteDataInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"keyID": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
@@ -146,14 +146,14 @@ var oauthClientSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.I
 	},
 })
 
-var samlIDPSigningSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
-	Name: "SAMLIDPSigningSecretsUpdateInstructionsInput",
+var samlIdpSigningSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SAMLIdpSigningSecretsUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
 		"action": &graphql.InputObjectFieldConfig{
 			Type: graphql.NewNonNull(graphql.String),
 		},
 		"deleteData": &graphql.InputObjectFieldConfig{
-			Type: samlIDPSigningSecretsDeleteDataInput,
+			Type: samlIdpSigningSecretsDeleteDataInput,
 		},
 	},
 })
@@ -212,8 +212,8 @@ var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputOb
 		"botProtectionProviderSecret": &graphql.InputObjectFieldConfig{
 			Type: botProtectionProviderSecretUpdateInstructionsInput,
 		},
-		"samlIDPSigningSecrets": &graphql.InputObjectFieldConfig{
-			Type: samlIDPSigningSecretsUpdateInstructionsInput,
+		"samlIdpSigningSecrets": &graphql.InputObjectFieldConfig{
+			Type: samlIdpSigningSecretsUpdateInstructionsInput,
 		},
 	},
 })

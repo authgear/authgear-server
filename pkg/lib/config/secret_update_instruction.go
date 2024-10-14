@@ -28,7 +28,7 @@ type SecretConfigUpdateInstruction struct {
 	OAuthClientSecretsUpdateInstruction               *OAuthClientSecretsUpdateInstruction               `json:"oauthClientSecrets,omitempty"`
 	AdminAPIAuthKeyUpdateInstruction                  *AdminAPIAuthKeyUpdateInstruction                  `json:"adminAPIAuthKey,omitempty"`
 	BotProtectionProviderCredentialsUpdateInstruction *BotProtectionProviderCredentialsUpdateInstruction `json:"botProtectionProviderSecret,omitempty"`
-	SAMLIdpSigningSecretsUpdateInstruction            *SAMLIdpSigningSecretsUpdateInstruction            `json:"samlIDPSigningSecrets,omitempty"`
+	SAMLIdpSigningSecretsUpdateInstruction            *SAMLIdpSigningSecretsUpdateInstruction            `json:"samlIdpSigningSecrets,omitempty"`
 }
 
 func (i *SecretConfigUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
@@ -593,7 +593,7 @@ func (i *SAMLIdpSigningSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdate
 	case SecretUpdateInstructionActionDelete:
 		return i.delete(currentConfig)
 	default:
-		return nil, fmt.Errorf("config: unexpected action for SAMLIDPSigningSecretsUpdateInstruction: %s", i.Action)
+		return nil, fmt.Errorf("config: unexpected action for SAMLIdpSigningSecretsUpdateInstruction: %s", i.Action)
 	}
 }
 
