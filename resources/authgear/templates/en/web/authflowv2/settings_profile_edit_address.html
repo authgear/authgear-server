@@ -10,7 +10,7 @@
 
 {{ define "page-content" }}
 <form
-  data-controller="turbo-form"
+  data-controller="turbo-form form-state"
   data-action="submit->turbo-form#submitForm"
   class="flex flex-col settings-content gap-y-8"
   method="post"
@@ -27,6 +27,9 @@
           "Alpha2" $.Alpha2
           "Name" "/address/country"
           "Value" $.AddressCountry
+          "InputAttrs" `
+            data-form-state-target="input"
+          `
         )
       }}
     </div>
@@ -36,6 +39,9 @@
           "Label" (translate "v2.page.settings-profile-edit-address.default.region-label" nil)
           "Name" "/address/region"
           "Value" $.AddressRegion
+          "InputAttrs" `
+            data-form-state-target="input"
+          `
         )
     }}
 
@@ -44,6 +50,9 @@
           "Label" (translate "v2.page.settings-profile-edit-address.default.postal-code-label" nil)
           "Name" "/address/postal_code"
           "Value" $.AddressPostalCode
+          "InputAttrs" `
+            data-form-state-target="input"
+          `
         )
     }}
 
@@ -52,6 +61,9 @@
           "Label" (translate "v2.page.settings-profile-edit-address.default.locality-label" nil)
           "Name" "/address/locality"
           "Value" $.AddressLocality
+          "InputAttrs" `
+            data-form-state-target="input"
+          `
         )
     }}
 
@@ -60,6 +72,9 @@
           "Label" (translate "v2.page.settings-profile-edit-address.default.street-label" nil)
           "Name" "/address/street_address"
           "Value" $.AddressStreetAddress
+          "InputAttrs" `
+            data-form-state-target="input"
+          `
         )
     }}
   </div>
@@ -69,6 +84,8 @@
     type="submit"
     name="x_action"
     value="save"
+    data-authgear-event="authgear.button.update_profile"
+    data-form-state-target="submit"
   >
   {{ translate "v2.component.button.default.label-save" . }}
   </button>

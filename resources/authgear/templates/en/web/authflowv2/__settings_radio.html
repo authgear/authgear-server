@@ -27,6 +27,7 @@
     name="{{ $.Name }}"
     value="{{ $.Value }}"
     {{ if $.DefaultChecked }}checked{{end}}
+    {{ if $.InputAttrs }}{{htmlattr $.InputAttrs }}{{end}}
   >
 
   {{ if $.ExtraContentOnChecked }}
