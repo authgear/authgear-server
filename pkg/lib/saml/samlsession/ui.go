@@ -33,7 +33,8 @@ type SAMLUIInfo struct {
 
 func (i *SAMLUIInfo) ToUIParam() uiparam.T {
 	return uiparam.T{
-		Prompt: i.Prompt,
+		ClientID: i.SAMLServiceProviderID,
+		Prompt:   i.Prompt,
 	}
 }
 
