@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -24,29 +25,58 @@ func ConfigureAuthflowV2SettingsMFAViewRecoveryCodeRoute(route httproute.Route) 
 }
 
 type AuthflowV2SettingsMFAViewRecoveryCodeViewModel struct {
-	AuthenticatorType string
-	Channel           string
-	RecoveryCodes     []string
+	RecoveryCodes []string
+	CanProceed    bool
+	CanRegenerate bool
 }
 
 type AuthflowV2SettingsMFAViewRecoveryCodeHandler struct {
+	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
 	Renderer          handlerwebapp.Renderer
 
 	AccountManagement *accountmanagement.Service
+	MFA               handlerwebapp.SettingsMFAService
 }
 
-func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter, tokenAuthenticator *accountmanagement.TokenAuthenticator) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	s := session.GetSession(r.Context())
+	userID := session.GetUserID(r.Context())
+
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
+	var tokenAuthenticator *accountmanagement.TokenAuthenticator
+	var recoveryCodesString []string
+
+	tokenString := r.Form.Get("q_token")
+	if tokenString != "" {
+		token, err := h.AccountManagement.GetToken(s, tokenString)
+		if err != nil {
+			return nil, err
+		}
+
+		tokenAuthenticator = token.Authenticator
+		recoveryCodesString = tokenAuthenticator.RecoveryCodes
+	} else {
+		recoveryCodes, err := h.MFA.ListRecoveryCodes(*userID)
+		if err != nil {
+			return nil, err
+		}
+
+		recoveryCodesString = make([]string, len(recoveryCodes))
+		for i, code := range recoveryCodes {
+			recoveryCodesString[i] = code.Code
+		}
+	}
+
 	screenViewModel := AuthflowV2SettingsMFAViewRecoveryCodeViewModel{
-		AuthenticatorType: tokenAuthenticator.AuthenticatorType,
-		Channel:           string(tokenAuthenticator.OOBOTPChannel),
-		RecoveryCodes:     handlerwebapp.FormatRecoveryCodes(tokenAuthenticator.RecoveryCodes),
+		RecoveryCodes: handlerwebapp.FormatRecoveryCodes(recoveryCodesString),
+		CanProceed:    tokenAuthenticator != nil,
+		CanRegenerate: tokenAuthenticator == nil,
 	}
 	viewmodels.Embed(data, screenViewModel)
 
@@ -62,15 +92,14 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
-		s := session.GetSession(r.Context())
-
-		tokenString := r.Form.Get("q_token")
-		token, err := h.AccountManagement.GetToken(s, tokenString)
-		if err != nil {
-			return err
-		}
-
-		data, err := h.GetData(r, w, token.Authenticator)
+		var data map[string]interface{}
+		err := h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
@@ -80,15 +109,14 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 	})
 
 	ctrl.PostAction("download", func() error {
-		s := session.GetSession(r.Context())
-
-		tokenString := r.Form.Get("q_token")
-		token, err := h.AccountManagement.GetToken(s, tokenString)
-		if err != nil {
-			return err
-		}
-
-		data, err := h.GetData(r, w, token.Authenticator)
+		var data map[string]interface{}
+		err := h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
@@ -122,6 +150,20 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 		}
 
 		result := webapp.Result{RedirectURI: AuthflowV2RouteSettingsMFA}
+		result.WriteResponse(w, r)
+
+		return nil
+	})
+
+	ctrl.PostAction("regenerate", func() error {
+		s := session.GetSession(r.Context())
+
+		_, err := h.AccountManagement.GenerateRecoveryCodes(s, &accountmanagement.GenerateRecoveryCodesInput{})
+		if err != nil {
+			return err
+		}
+
+		result := webapp.Result{RedirectURI: AuthflowV2RouteSettingsMFAViewRecoveryCode}
 		result.WriteResponse(w, r)
 
 		return nil
