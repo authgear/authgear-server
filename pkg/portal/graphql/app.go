@@ -147,7 +147,7 @@ var samlIdpSigningSecrets = graphql.NewObject(graphql.ObjectConfig{
 })
 
 var samlSpSigningCertificate = graphql.NewObject(graphql.ObjectConfig{
-	Name:        "SAMLIdpSigningCertificate",
+	Name:        "samlSpSigningCertificate",
 	Description: "SAML Identity Provider signing certificate",
 	Fields: graphql.Fields{
 		"certificateFingerprint": &graphql.Field{
