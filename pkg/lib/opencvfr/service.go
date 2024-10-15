@@ -57,17 +57,59 @@ type Service struct {
 }
 
 type VerifyFaceOption struct {
-	OS openapi.OSEnum
+	PersonID     string
+	B64FaceImage string
 }
 
 // VerifyFace verifies if a face matches the given person and collection.
 // If match, return nil.
 // Otherwise, return error.
-func (s *Service) VerifyFace(personID string, b64FaceImage string, opts *VerifyFaceOption) error {
-	var os *openapi.OSEnum
-	if opts != nil && opts.OS != "" {
-		os = &opts.OS
+func (s *Service) VerifyFace(opts *VerifyFaceOption) error {
+	collection, err := s.getCollection(string(s.AppID))
+	if err != nil {
+		return err
 	}
+	if collection == nil {
+		return fmt.Errorf("collection for app id (%s) not found", s.AppID)
+	}
+	ps, err := s.Search.Search(&openapi.SearchPersonSchema{
+		CollectionId: *openapi.NewNullableString(&collection.Id),
+		Images:       []string{opts.B64FaceImage},
+		SearchMode:   *openapi.NewNullableSearchModeEnum(openapi.FAST.Ptr()),
+	})
+
+	// TODO (identity-week-demo): Handle opencvfr error codes, like
+	// (ERR_INVALID_FACE_FOR_LIVENESS): Image is invalid for checking livenes
+	// (ERR_FACE_EDGES_NOT_VISIBLE): The face is not in the center
+	if err != nil {
+		return err
+	}
+
+	if len(ps) == 0 {
+		return ErrFaceNotFound
+	}
+
+	for _, p := range ps {
+		if p == nil {
+			continue
+		}
+		if p.GetId() == opts.PersonID {
+			return nil
+		}
+	}
+	return ErrFaceNotFound
+}
+
+type VerifyLiveFaceOption struct {
+	PersonID         string
+	B64FaceImage     string
+	MinLivenessScore float32
+}
+
+// VerifyLiveFace verifies if a face matches the given person and collection. It also check liveness of the image.
+// If match, return nil.
+// Otherwise, return error.
+func (s *Service) VerifyLiveFace(opts *VerifyLiveFaceOption) error {
 	collection, err := s.getCollection(string(s.AppID))
 	if err != nil {
 		return err
@@ -76,11 +118,13 @@ func (s *Service) VerifyFace(personID string, b64FaceImage string, opts *VerifyF
 		return fmt.Errorf("collection for app id (%s) not found", s.AppID)
 	}
 	r, err := s.Search.SearchLiveFace(&openapi.SearchLiveFaceScheme{
-		Os:           *openapi.NewNullableOSEnum(os),
 		CollectionId: *openapi.NewNullableString(&collection.Id),
-		Image:        b64FaceImage,
+		Image:        opts.B64FaceImage,
 	})
 
+	// TODO (identity-week-demo): Handle opencvfr error codes, like
+	// (ERR_INVALID_FACE_FOR_LIVENESS): Image is invalid for checking livenes
+	// (ERR_FACE_EDGES_NOT_VISIBLE): The face is not in the center
 	if err != nil {
 		return err
 	}
@@ -95,14 +139,13 @@ func (s *Service) VerifyFace(personID string, b64FaceImage string, opts *VerifyF
 	}
 
 	// TODO (identity-week-demo): specify min-liveness somewhere
-	const minLivenessScore float32 = 0.00001
-	if livePersonResult.LivenessScore < minLivenessScore {
+	if livePersonResult.LivenessScore < opts.MinLivenessScore {
 		return ErrFaceLivenessLow
 	}
 
 	var matched bool
 	for _, p := range livePersonResult.Persons {
-		if p.Id == personID {
+		if p.Id == opts.PersonID {
 			matched = true
 			break
 		}
@@ -111,10 +154,6 @@ func (s *Service) VerifyFace(personID string, b64FaceImage string, opts *VerifyF
 	if !matched {
 		return ErrFaceNotMatch
 	}
-
-	// TODO (identity-week-demo): Handle opencvfr error codes, like
-	// (ERR_INVALID_FACE_FOR_LIVENESS): Image is invalid for checking livenes
-	// (ERR_FACE_EDGES_NOT_VISIBLE): The face is not in the center
 
 	return nil
 }

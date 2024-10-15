@@ -6,14 +6,13 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/opencvfr"
-	opencvfropenapi "github.com/authgear/authgear-server/pkg/lib/opencvfr/openapi"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type OpenCVFRService interface {
 	CreatePerson(opts *opencvfr.CreatePersonOptions) (p *opencvfr.CreatePersonOutput, err error)
-	VerifyFace(personID string, b64FaceImage string, opts *opencvfr.VerifyFaceOption) error
+	VerifyLiveFace(opts *opencvfr.VerifyLiveFaceOption) error
 }
 
 type Provider struct {
@@ -79,8 +78,9 @@ func (p *Provider) Create(a *authenticator.FaceRecognition) error {
 }
 
 func (p *Provider) Authenticate(a *authenticator.FaceRecognition, b64Image string) error {
-	return p.OpenCVFR.VerifyFace(a.OpenCVFRPersonID, b64Image, &opencvfr.VerifyFaceOption{
-		OS: opencvfropenapi.DESKTOP, // TODO: check user os
+	return p.OpenCVFR.VerifyLiveFace(&opencvfr.VerifyLiveFaceOption{
+		PersonID:     a.OpenCVFRPersonID,
+		B64FaceImage: b64Image,
 	})
 }
 

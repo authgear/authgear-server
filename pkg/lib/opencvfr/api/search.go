@@ -51,18 +51,18 @@ func (ss *SearchService) Search(reqBody *openapi.SearchPersonSchema) (r []*opena
 
 	rbb, err := json.Marshal(reqBody)
 	if err != nil {
-		return nil, err
+		return r, err
 	}
 
 	body, err := ss.HTTPClient.Post(path, bytes.NewBuffer(rbb), http.StatusOK)
 	if err != nil {
-		return nil, fmt.Errorf("failed to search person - req: %v, err: %w", reqBody, err)
+		return r, fmt.Errorf("failed to search person - req: %v, err: %w", reqBody, err)
 	}
 
 	sr := []*openapi.SearchPersonResultSchema{}
 	err = json.Unmarshal(body, &sr)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse POST %v response body: %w", path, err)
+		return r, fmt.Errorf("failed to parse POST %v response body: %w", path, err)
 	}
 
 	return sr, nil
