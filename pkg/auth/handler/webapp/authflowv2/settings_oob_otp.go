@@ -31,6 +31,7 @@ type AuthflowV2SettingsOOBOTPHandler struct {
 	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
+	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
 	AccountManagement *accountmanagement.Service
 	Authenticators    authenticatorservice.Service
@@ -38,12 +39,21 @@ type AuthflowV2SettingsOOBOTPHandler struct {
 
 func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
+	userID := session.GetUserID(r.Context())
+
+	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
+	// SettingsViewModel
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *settingsViewModel)
+
 	oc := httproute.GetParam(r, "channel")
 
-	userID := session.GetUserID(r.Context())
 	t, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
 	if err != nil {
 		return nil, err

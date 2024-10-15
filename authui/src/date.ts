@@ -54,6 +54,16 @@ function parseTimeStyle(s: string | null): TimeStyle | undefined {
   return "short";
 }
 
+/**
+ * @deprecated
+ *
+ * Use authflowv2/date.ts instead.
+ *
+ * Issues with this controller:
+ * - It does not handle the case where new date elements are added to the DOM.
+ * - It does not handle user timezone.
+ *
+ */
 export class FormatDateRelativeController extends Controller {
   static values = {
     relativeBase: String,

@@ -38,6 +38,7 @@ type AuthflowV2SettingsBiometricHandler struct {
 	Database                 *appdb.Handle
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
+	SettingsViewModel        *viewmodels.SettingsViewModeler
 	Renderer                 handlerwebapp.Renderer
 	Identities               handlerwebapp.SettingsIdentityService
 	BiometricProvider        BiometricIdentityProvider
@@ -52,20 +53,21 @@ func (h *AuthflowV2SettingsBiometricHandler) GetData(r *http.Request, rw http.Re
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	// BiometricViewModel
-	var biometricIdentityInfos []*identity.Biometric
-	err := h.Database.WithTx(func() (err error) {
-		biometricIdentityInfos, err = h.BiometricProvider.List(*userID)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	// SettingsViewModel
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
 	if err != nil {
 		return nil, err
 	}
+	viewmodels.Embed(data, *settingsViewModel)
 
+	// BiometricViewModel
 	biometricViewModel := SettingsBiometricViewModel{}
+
+	var biometricIdentityInfos []*identity.Biometric
+	biometricIdentityInfos, err = h.BiometricProvider.List(*userID)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, biometricInfo := range biometricIdentityInfos {
 		displayName := biometricInfo.FormattedDeviceInfo()
@@ -90,7 +92,11 @@ func (h *AuthflowV2SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r 
 	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		var data map[string]interface{}
+		err := h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w)
+			return err
+		})
 		if err != nil {
 			return err
 		}

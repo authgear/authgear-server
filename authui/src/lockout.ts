@@ -1,9 +1,7 @@
 import { Controller } from "@hotwired/stimulus";
 import { DateTime } from "luxon";
-import { FormatDateRelativeController } from "./date";
 
 export class LockoutController extends Controller {
-  static outlets = ["format-date-relative"];
   static targets = ["locked", "unlocked"];
   static values = {
     lockUntil: String,
@@ -13,7 +11,6 @@ export class LockoutController extends Controller {
   declare intervalHandle: number | null;
   declare lockUntilValue: string;
   declare actionButtonSelectorValue: string;
-  declare formatDateRelativeOutlets: FormatDateRelativeController[];
   declare lockedTargets: HTMLElement[];
   declare unlockedTargets: HTMLElement[];
 
@@ -40,9 +37,6 @@ export class LockoutController extends Controller {
     const tick = () => {
       const actionButtonEl = el.querySelector(this.actionButtonSelectorValue);
       const now = DateTime.now();
-      this.formatDateRelativeOutlets.forEach(
-        (outlet) => (outlet.relativeBaseValue = now.toISO() as string)
-      );
 
       const newIsLocked = now < lockUntil;
       if (newIsLocked === this.isLocked) {
