@@ -182,7 +182,7 @@ func (c *Client) handle422Response(resp *http.Response) error {
 	return &OpenCVFRValidationError{Details: string(body)}
 }
 
-// handle200Response handles api-err response from opencv-fr
+// handleUnexpectedResponse handles api-err response from opencv-fr
 // it returns OpenCVFRAPIError
 func (c *Client) handleUnexpectedResponse(resp *http.Response) error {
 	body, err := io.ReadAll(resp.Body)
@@ -192,7 +192,7 @@ func (c *Client) handleUnexpectedResponse(resp *http.Response) error {
 	var parsedBody *openapi.APIErrorResponse
 	err = json.Unmarshal(body, &parsedBody)
 	if err != nil {
-		return fmt.Errorf("failed to parse non-200 resp body: %w", err)
+		return fmt.Errorf("failed to parse unexpected resp body: %w", err)
 	}
 
 	apiErr := &OpenCVFRAPIError{
