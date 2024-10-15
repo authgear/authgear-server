@@ -1208,6 +1208,8 @@
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth": "เพื่อความปลอดภัยของคุณ เราต้องยืนยันว่าเป็นคุณ เราเพิ่งส่งรหัสยืนยัน {CodeLength} หลักไปที่ {MaskedClaimValue}",
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp": "เพื่อความปลอดภัยของคุณ เราต้องยืนยันว่าเป็นคุณ เราเพิ่งส่งรหัสยืนยัน {CodeLength} หลักไปที่หมายเลขWhatsApp ของคุณที่ {MaskedClaimValue}",
   "v2.page.settings-mfa-enter-oob-otp.auth-whatsapp.subtitle": "เราเพิ่งส่งรหัสยืนยัน {CodeLength} หลักไปที่หมายเลขWhatsApp ของคุณที่ {MaskedClaimValue}",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-sms-instead": "ตั้งค่าโทรศัพท์",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-whatsapp-instead": "ตั้งค่า WhatsApp",
   "v2.page.settings-mfa-enter-oob-otp.default.title": "รหัสยืนยัน",
   "v2.page.settings-mfa-enter-totp.default.description": "ป้อนรหัส 6 หลักที่คุณเห็นในอุปกรณ์/แอปรับรองความถูกต้อง",
   "v2.page.settings-mfa-enter-totp.default.rescan-button-label": "สแกนรหัส QR ใหม่",

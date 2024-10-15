@@ -1208,6 +1208,8 @@
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth": "Ze względów bezpieczeństwa musimy zweryfikować, że to Ty. Właśnie wysłaliśmy {CodeLength}-cyfrowy kod weryfikacyjny na {MaskedClaimValue}.",
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp": "Ze względów bezpieczeństwa musimy zweryfikować, że to Ty. Właśnie wysłaliśmy {CodeLength}-cyfrowy kod weryfikacyjny na Twój numer WhatsApp {MaskedClaimValue}.",
   "v2.page.settings-mfa-enter-oob-otp.auth-whatsapp.subtitle": "Właśnie wysłaliśmy {CodeLength}-cyfrowy kod weryfikacyjny na Twój numer WhatsApp {MaskedClaimValue}.",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-sms-instead": "Skonfiguruj telefon",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-whatsapp-instead": "Skonfiguruj WhatsApp''a",
   "v2.page.settings-mfa-enter-oob-otp.default.title": "Kod weryfikacyjny",
   "v2.page.settings-mfa-enter-totp.default.description": "Wprowadź 6-cyfrowy kod, który widzisz w urządzeniu/aplikacji uwierzytelniającej.",
   "v2.page.settings-mfa-enter-totp.default.rescan-button-label": "Zeskanuj ponownie kod QR",

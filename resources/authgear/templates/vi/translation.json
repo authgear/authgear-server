@@ -1208,6 +1208,8 @@
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth": "Để đảm bảo an toàn, chúng tôi cần xác minh đó là bạn. Chúng tôi vừa gửi một mã xác minh {CodeLength} chữ số đến {MaskedClaimValue}.",
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp": "Để đảm bảo an toàn, chúng tôi cần xác minh đó là bạn. Chúng tôi vừa gửi một mã xác minh {CodeLength} chữ số đến số WhatsApp của bạn tại {MaskedClaimValue}.",
   "v2.page.settings-mfa-enter-oob-otp.auth-whatsapp.subtitle": "Chúng tôi vừa gửi một mã xác minh {CodeLength} chữ số đến số WhatsApp của bạn tại {MaskedClaimValue}.",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-sms-instead": "Thiết lập điện thoại",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-whatsapp-instead": "Thiết lập WhatsApp",
   "v2.page.settings-mfa-enter-oob-otp.default.title": "Mã xác minh",
   "v2.page.settings-mfa-enter-totp.default.description": "Nhập mã 6 chữ số bạn thấy trong thiết bị/ứng dụng xác thực.",
   "v2.page.settings-mfa-enter-totp.default.rescan-button-label": "Quét lại mã QR",
