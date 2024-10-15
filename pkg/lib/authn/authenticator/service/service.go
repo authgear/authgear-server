@@ -75,6 +75,7 @@ type FaceRecognitionAuthenticatorProvider interface {
 	Create(*authenticator.FaceRecognition) error
 	Delete(*authenticator.FaceRecognition) error
 	Authenticate(a *authenticator.FaceRecognition, code string) error
+	ParseError(apiErr *opencvfr.APIError) error
 }
 
 type OTPCodeService interface {
@@ -404,6 +405,10 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 	case model.AuthenticatorTypeFaceRecognition:
 		f, err := s.FaceRecognition.New(authenticatorID, spec.UserID, spec.FaceRecognition, spec.IsDefault, string(spec.Kind))
 		if err != nil {
+			apiErr := opencvfr.AsAPIError(err)
+			if apiErr != nil {
+				err = s.FaceRecognition.ParseError(apiErr)
+			}
 			return nil, err
 		}
 		return f.ToInfo(), nil
@@ -668,9 +673,9 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 		a := info.FaceRecognition
 		err = s.FaceRecognition.Authenticate(a, image)
 		if err != nil {
-			if errors.Is(err, opencvfr.ErrFaceNotFound) || errors.Is(err, opencvfr.ErrFaceNotMatch) {
-				err = api.ErrInvalidCredentials
-				return nil, err
+			apiErr := opencvfr.AsAPIError(err)
+			if apiErr != nil {
+				err = s.FaceRecognition.ParseError(apiErr)
 			}
 			return nil, err
 		}

@@ -16,7 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/admin/authz"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/face_recognition"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/facerecognition"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
@@ -436,7 +436,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
-	face_recognitionStore := &face_recognition.Store{
+	facerecognitionStore := &facerecognition.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -467,8 +467,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Liveness:                     livenessService,
 		OpenCVFRCollectionIDMapStore: opencvfrStore,
 	}
-	face_recognitionProvider := &face_recognition.Provider{
-		Store:    face_recognitionStore,
+	facerecognitionProvider := &facerecognition.Provider{
+		Store:    facerecognitionStore,
 		OpenCVFR: opencvfrService,
 		Clock:    clockClock,
 	}
@@ -529,7 +529,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Passkey:         provider2,
 		TOTP:            totpProvider,
 		OOBOTP:          oobProvider,
-		FaceRecognition: face_recognitionProvider,
+		FaceRecognition: facerecognitionProvider,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
 		Lockout:         serviceLockout,

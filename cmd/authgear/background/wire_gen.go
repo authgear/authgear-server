@@ -9,7 +9,7 @@ package background
 import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
-	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/face_recognition"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/facerecognition"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
@@ -424,7 +424,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
-	face_recognitionStore := &face_recognition.Store{
+	facerecognitionStore := &facerecognition.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
@@ -455,8 +455,8 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Liveness:                     livenessService,
 		OpenCVFRCollectionIDMapStore: opencvfrStore,
 	}
-	face_recognitionProvider := &face_recognition.Provider{
-		Store:    face_recognitionStore,
+	facerecognitionProvider := &facerecognition.Provider{
+		Store:    facerecognitionStore,
 		OpenCVFR: opencvfrService,
 		Clock:    clockClock,
 	}
@@ -517,7 +517,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Passkey:         provider2,
 		TOTP:            totpProvider,
 		OOBOTP:          oobProvider,
-		FaceRecognition: face_recognitionProvider,
+		FaceRecognition: facerecognitionProvider,
 		OTPCodeService:  otpService,
 		RateLimits:      rateLimits,
 		Lockout:         serviceLockout,

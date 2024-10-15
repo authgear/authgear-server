@@ -12,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
-	authenticatorfacerecognition "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/face_recognition"
+	authenticatorfacerecognition "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/facerecognition"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	authenticatorpasskey "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
