@@ -151,3 +151,16 @@ config:
           disabled: true
         history:
           disabled: true
+---
+name: usage-limit-quota-can-be-zero
+error: null
+config:
+  admin_api:
+    user_import_usage:
+      enabled: true
+      quota: 0
+      period: month
+    user_export_usage:
+      enabled: true
+      quota: 0
+      period: month

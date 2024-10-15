@@ -31,5 +31,5 @@ const (
 type UsageLimitConfig struct {
 	Enabled *bool            `json:"enabled,omitempty"`
 	Period  UsageLimitPeriod `json:"period,omitempty"`
-	Quota   int              `json:"quota,omitempty"`
+	Quota   *int             `json:"quota,omitempty"`
 }
