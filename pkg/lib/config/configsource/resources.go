@@ -538,6 +538,10 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 		// Since the key neither use for sig nor enc
 		GenerateClientSecretOctetKeyFunc: secrets.GenerateOctetKey,
 		GenerateAdminAPIAuthKeyFunc:      secrets.GenerateRSAKey,
+		GenerateSAMLIdpSigningCertificate: func() (*config.SAMLIdpSigningCertificate, error) {
+			// FIXME: The common name is not important, but we might want to put the app id here.
+			return config.GenerateSAMLIdpSigningCertificate("urn:authgear.com")
+		},
 	}
 	updatedConfig, err := updateInstruction.ApplyTo(updateInstructionContext, original)
 	if err != nil {

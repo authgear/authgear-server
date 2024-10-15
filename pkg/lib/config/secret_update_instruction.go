@@ -597,7 +597,7 @@ type SAMLIdpSigningSecretsUpdateInstruction struct {
 func (i *SAMLIdpSigningSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
 	switch i.Action {
 	case SecretUpdateInstructionActionGenerate:
-		return i.generate(currentConfig)
+		return i.generate(ctx, currentConfig)
 	case SecretUpdateInstructionActionDelete:
 		return i.delete(currentConfig)
 	default:
@@ -605,7 +605,7 @@ func (i *SAMLIdpSigningSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdate
 	}
 }
 
-func (i *SAMLIdpSigningSecretsUpdateInstruction) generate(currentConfig *SecretConfig) (*SecretConfig, error) {
+func (i *SAMLIdpSigningSecretsUpdateInstruction) generate(ctx *SecretConfigUpdateInstructionContext, currentConfig *SecretConfig) (*SecretConfig, error) {
 	out := &SecretConfig{}
 	var credentials *SAMLIdpSigningMaterials
 	for _, item := range currentConfig.Secrets {
@@ -621,8 +621,7 @@ func (i *SAMLIdpSigningSecretsUpdateInstruction) generate(currentConfig *SecretC
 		}
 	}
 
-	// FIXME: The common name is not important, but we might want to put the app id here.
-	newCert, err := GenerateSAMLIdpSigningCertificate("urn:authgear.com")
+	newCert, err := ctx.GenerateSAMLIdpSigningCertificate()
 	if err != nil {
 		return nil, err
 	}
