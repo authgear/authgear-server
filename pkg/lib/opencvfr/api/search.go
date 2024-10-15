@@ -28,7 +28,7 @@ func (ss *SearchService) Verify(reqBody *openapi.VerifyPersonSchema) (r *openapi
 
 	body, err := ss.HTTPClient.Post(path, bytes.NewBuffer(rbb), http.StatusOK)
 	if err != nil {
-		return nil, fmt.Errorf("failed to verify person - req: %v, err: %w", reqBody, err)
+		return nil, fmt.Errorf("failed to verify person - req: %v, err: %w", reqBody.ToLoggingFormat(), err)
 	}
 
 	vr := &openapi.VerifyPersonResultSchema{}
@@ -56,7 +56,7 @@ func (ss *SearchService) Search(reqBody *openapi.SearchPersonSchema) (r []*opena
 
 	body, err := ss.HTTPClient.Post(path, bytes.NewBuffer(rbb), http.StatusOK)
 	if err != nil {
-		return r, fmt.Errorf("failed to search person - req: %v, err: %w", reqBody, err)
+		return r, fmt.Errorf("failed to search person - req: %v, err: %w", reqBody.ToLoggingFormat(), err)
 	}
 
 	sr := []*openapi.SearchPersonResultSchema{}
@@ -78,7 +78,7 @@ func (ss *SearchService) SearchLiveFace(reqBody *openapi.SearchLiveFaceScheme) (
 
 	body, err := ss.HTTPClient.Post(path, bytes.NewBuffer(rbb), http.StatusOK)
 	if err != nil {
-		return nil, fmt.Errorf("failed to search live face person - req: %v, err: %w", reqBody, err)
+		return nil, fmt.Errorf("failed to search live face person - req: %v, err: %w", reqBody.ToLoggingFormat(), err)
 	}
 
 	vr := &openapi.SearchLivePersonResultSchema{}

@@ -28,7 +28,7 @@ func (ss *LivenessService) Check(reqBody *openapi.LivenessSchema) (r *openapi.Li
 
 	body, err := ss.HTTPClient.Post(path, bytes.NewBuffer(rbb), http.StatusOK)
 	if err != nil {
-		return nil, fmt.Errorf("failed to check liveness - req: %v, err: %w", reqBody, err)
+		return nil, fmt.Errorf("failed to check liveness - req: %v, err: %w", reqBody.ToLoggingFormat(), err)
 	}
 
 	r = &openapi.LivenessResultSchema{}

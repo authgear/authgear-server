@@ -360,6 +360,25 @@ func (o *SearchLiveFaceScheme) UnmarshalJSON(data []byte) (err error) {
 	return err
 }
 
+func (o *SearchLiveFaceScheme) ToLoggingFormat() string {
+	if o == nil {
+		return ""
+	}
+
+	truncatedImage := truncateImageString(o.Image)
+
+	oo := &SearchLiveFaceScheme{
+		Os:           o.Os,
+		Image:        truncatedImage,
+		CollectionId: o.CollectionId,
+		MinScore:     o.MinScore,
+		MaxResults:   o.MaxResults,
+		SearchMode:   o.SearchMode,
+	}
+	b, _ := oo.MarshalJSON()
+	return string(b)
+}
+
 type NullableSearchLiveFaceScheme struct {
 	value *SearchLiveFaceScheme
 	isSet bool

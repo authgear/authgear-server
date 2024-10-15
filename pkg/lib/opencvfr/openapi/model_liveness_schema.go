@@ -167,6 +167,19 @@ func (o *LivenessSchema) UnmarshalJSON(data []byte) (err error) {
 	return err
 }
 
+func (o *LivenessSchema) ToLoggingFormat() string {
+	if o == nil {
+		return ""
+	}
+	truncatedImage := truncateImageString(o.Image)
+	oo := &LivenessSchema{
+		Os:    o.Os,
+		Image: truncatedImage,
+	}
+	b, _ := oo.MarshalJSON()
+	return string(b)
+}
+
 type NullableLivenessSchema struct {
 	value *LivenessSchema
 	isSet bool
