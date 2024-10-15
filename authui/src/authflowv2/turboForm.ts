@@ -80,6 +80,7 @@ export class TurboFormController extends Controller {
         data: params,
         onUploadProgress: progressEventHandler,
         onDownloadProgress: progressEventHandler,
+        maxBodyLength: Infinity,
       });
 
       const { redirect_uri, action } = resp.data;
