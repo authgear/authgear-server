@@ -82,12 +82,12 @@ func (l *Limiter) Reserve(name LimitName, config *config.UsageLimitConfig) (*Res
 }
 
 func (l *Limiter) ReserveN(name LimitName, n int, config *config.UsageLimitConfig) (*Reservation, error) {
-	enabled := config.Enabled != nil && *config.Enabled
+	enabled := config.IsEnabled()
 	if !enabled {
 		return &Reservation{taken: 0, name: name, config: config}, nil
 	}
 
-	quota := *config.Quota
+	quota := config.GetQuota()
 	key := redisLimitKey(l.AppID, name)
 
 	pass := false
