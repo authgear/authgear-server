@@ -1208,6 +1208,8 @@
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth": "Voor je veiligheid moeten we verifiëren dat het jij bent. We hebben zojuist een {CodeLength}-cijferige verificatiecode naar {MaskedClaimValue} gestuurd.",
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp": "Voor je veiligheid moeten we verifiëren dat het jij bent. We hebben zojuist een {CodeLength}-cijferige verificatiecode naar je WhatsApp-nummer op {MaskedClaimValue} gestuurd.",
   "v2.page.settings-mfa-enter-oob-otp.auth-whatsapp.subtitle": "We hebben zojuist een {CodeLength}-cijferige verificatiecode naar je WhatsApp-nummer op {MaskedClaimValue} gestuurd.",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-sms-instead": "Stel telefoon in",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-whatsapp-instead": "Stel WhatsApp in",
   "v2.page.settings-mfa-enter-oob-otp.default.title": "Verificatiecode",
   "v2.page.settings-mfa-enter-totp.default.description": "Voer de 6-cijferige code in die u ziet in de authenticator-app.",
   "v2.page.settings-mfa-enter-totp.default.rescan-button-label": "QR-code opnieuw scannen",

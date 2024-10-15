@@ -1208,6 +1208,8 @@
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth": "Untuk keselamatan anda, kami perlu mengesahkan bahawa itu anda. Kami baru sahaja menghantar kod pengesahan {CodeLength}-digit ke {MaskedClaimValue}.",
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp": "Untuk keselamatan anda, kami perlu mengesahkan bahawa itu anda. Kami baru sahaja menghantar kod pengesahan {CodeLength}-digit ke nombor WhatsApp anda di {MaskedClaimValue}.",
   "v2.page.settings-mfa-enter-oob-otp.auth-whatsapp.subtitle": "Kami baru sahaja menghantar kod pengesahan {CodeLength}-digit ke nombor WhatsApp anda di {MaskedClaimValue}.",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-sms-instead": "Sediakan telefon",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-whatsapp-instead": "Sediakan WhatsApp",
   "v2.page.settings-mfa-enter-oob-otp.default.title": "Kod Pengesahan",
   "v2.page.settings-mfa-enter-totp.default.description": "Masukkan kod 6 digit yang anda lihat dalam peranti/aplikasi pengaut sah.",
   "v2.page.settings-mfa-enter-totp.default.rescan-button-label": "Imbas semula kod QR",
