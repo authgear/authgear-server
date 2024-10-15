@@ -179,7 +179,7 @@ func makeAttempts(
 	var lockedUntil *time.Time = nil
 
 	if len(result) > 1 {
-		lockedUntilT := time.Unix(result[1].(int64), 0)
+		lockedUntilT := time.Unix(result[1].(int64), 0).UTC()
 		lockedUntil = &lockedUntilT
 	}
 

@@ -44,7 +44,7 @@ func TestGCRA(t *testing.T) {
 			period, _ := time.ParseDuration(sch.period)
 			burst := sch.burst
 
-			now := time.UnixMilli(epoch)
+			now := time.UnixMilli(epoch).UTC()
 			for _, e := range sch.entries {
 				if e.fn != nil {
 					e.fn()
@@ -52,7 +52,7 @@ func TestGCRA(t *testing.T) {
 				}
 
 				t, _ := time.ParseDuration(e.time)
-				newNow := time.UnixMilli(epoch).Add(t)
+				newNow := time.UnixMilli(epoch).UTC().Add(t)
 				s.SetTime(newNow)
 				s.FastForward(newNow.Sub(now))
 				now = newNow
