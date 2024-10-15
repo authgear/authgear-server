@@ -181,8 +181,8 @@ const (
 	AppSecretKeySmtpSecret                    AppSecretKey = "smtpSecret"
 	AppSecretKeyOauthClientSecrets            AppSecretKey = "oauthClientSecrets" // nolint:gosec
 	AppSecretKeyBotProtectionProviderSecret   AppSecretKey = "botProtectionProviderSecret"
-	AppSecretKeySAMLIdpSigningSecrets         AppSecretKey = "samlIdpSigningSecrets"
-	AppSecretKeySAMLSpSigningSecrets          AppSecretKey = "samlSpSigningSecrets"
+	AppSecretKeySAMLIdpSigningSecrets         AppSecretKey = "samlIdpSigningSecrets" // nolint:gosec
+	AppSecretKeySAMLSpSigningSecrets          AppSecretKey = "samlSpSigningSecrets"  // nolint:gosec
 )
 
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{

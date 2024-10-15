@@ -1,6 +1,7 @@
 package config
 
 import (
+	// nolint:gosec
 	"crypto/sha1"
 	"crypto/x509"
 	"encoding/base64"
@@ -36,6 +37,7 @@ func (c *X509Certificate) Base64Data() string {
 }
 
 func (c *X509Certificate) Fingerprint() string {
+	// nolint:gosec
 	fingerprintBytes := sha1.Sum(c.X509Certificate().Raw)
 	fingerprintHex := []string{}
 	for _, b := range fingerprintBytes {
