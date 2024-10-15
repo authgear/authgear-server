@@ -132,7 +132,12 @@ func (s *Service) VerifyLiveFace(opts *VerifyLiveFaceOption) error {
 		return newNoMatchingFaceFoundError()
 	}
 
-	if livePersonResult.LivenessScore < opts.MinLivenessScore {
+	minLivenessScore := float32(0.5)
+	if opts.MinLivenessScore > 0 {
+		minLivenessScore = opts.MinLivenessScore
+	}
+	if livePersonResult.LivenessScore < minLivenessScore {
+		fmt.Printf("liveness score (%f) is less than the min liveness score (%f)\n", livePersonResult.LivenessScore, minLivenessScore)
 		return newSpoofedImageDetectedError()
 	}
 
