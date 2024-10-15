@@ -10,6 +10,7 @@ services:
       - "15432:5432"
 
   redis:
-    image: redis:6.2.6
+    # Azure cache for Redis supports 6.0 only
+    image: redis:6.0.20
     ports:
       - "16379:6379"
