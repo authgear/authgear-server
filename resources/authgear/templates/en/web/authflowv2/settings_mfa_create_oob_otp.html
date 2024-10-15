@@ -41,15 +41,16 @@
   <div class="settings-content flex flex-col gap-y-8">
     <div class="screen-title-description">
       <h2 class="screen-description">
-        {{- if eq $.OOBAuthenticatorType "oob_otp_sms" }}
-          {{- if eq .Channel "whatsapp" }}
-            {{ include "v2.page.settings-mfa-create-oob-otp.whatsapp.subtitle" nil }}
-          {{ else if eq .Channel "sms" }}
-            {{ include "v2.page.settings-mfa-create-oob-otp.sms.subtitle" nil }}
-          {{- end }}
-        {{- end }}
-        {{- if eq $.OOBAuthenticatorType "oob_otp_email" }}
+        {{- if eq $.Channel "email" }}
           {{ include "v2.page.settings-mfa-create-oob-otp.email.subtitle" nil }}
+        {{- else }}
+          {{- if eq $.Channel "oob_otp_sms" }}
+            {{- if eq .Channel "whatsapp" }}
+              {{ include "v2.page.settings-mfa-create-oob-otp.whatsapp.subtitle" nil }}
+            {{ else if eq .Channel "sms" }}
+              {{ include "v2.page.settings-mfa-create-oob-otp.sms.subtitle" nil }}
+            {{- end }}
+          {{- end }}
         {{ end }}
       </h2>
 
@@ -70,28 +71,28 @@
     >
       {{ $.CSRFField }}
 
-      {{- if eq $.OOBAuthenticatorType "oob_otp_sms" }}
-      {{ template "authflowv2/__phone_input.html"
-        (dict
-          "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
-          "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
-          "IsError" $has_otp_err
-          "AutoFocus" $.ShouldFocusInput
-          "InputName" "x_target"
-        )
-      }}
-      {{- end }}
+      <input type="hidden" name="x_channel" value="{{ $.Channel }}">
 
-      {{- if eq $.OOBAuthenticatorType "oob_otp_email" }}
-      <input
-        {{ if $.ShouldFocusInput }}autofocus{{ end }}
-        class="input w-full{{ if $has_otp_err }} input--error{{end}}"
-        type="email"
-        name="x_target"
-        autocomplete="email"
-        autocapitalize="none"
-        placeholder="{{ include "v2.component.input.default.placeholder-email" nil }}"
-      >
+      {{- if eq $.Channel "email" }}
+        <input
+          {{ if $.ShouldFocusInput }}autofocus{{ end }}
+          class="input w-full{{ if $has_otp_err }} input--error{{end}}"
+          type="email"
+          name="x_target"
+          autocomplete="email"
+          autocapitalize="none"
+          placeholder="{{ include "v2.component.input.default.placeholder-email" nil }}"
+        >
+      {{- else }}
+        {{ template "authflowv2/__phone_input.html"
+          (dict
+            "Placeholder" (include "v2.component.input.default.placeholder-phone" nil)
+            "PlaceholderWithExample" (include "v2.component.input.default.placeholder-phone-with-example" nil)
+            "IsError" $has_otp_err
+            "AutoFocus" $.ShouldFocusInput
+            "InputName" "x_target"
+          )
+        }}
       {{- end }}
 
       {{ if $has_otp_err }}

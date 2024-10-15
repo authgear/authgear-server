@@ -1208,6 +1208,8 @@
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth": "For your security, we need to verify it''s you. We''ve just sent a {CodeLength}-digit verification code to {MaskedClaimValue}.",
   "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle-reauth--whatsapp": "For your security, we need to verify it''s you. We''ve just sent a {CodeLength}-digit verification code to your WhatsApp number at {MaskedClaimValue}.",
   "v2.page.settings-mfa-enter-oob-otp.auth-whatsapp.subtitle": "We''ve just sent a {CodeLength}-digit verification code to your WhatsApp number at {MaskedClaimValue}.",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-sms-instead": "Set up phone",
+  "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-whatsapp-instead": "Set up WhatsApp",
   "v2.page.settings-mfa-enter-oob-otp.default.title": "Verification Code",
   "v2.page.settings-mfa-enter-totp.default.description": "Enter the 6-digit code you see in the authenticator device/app.",
   "v2.page.settings-mfa-enter-totp.default.rescan-button-label": "Rescan QR code",
