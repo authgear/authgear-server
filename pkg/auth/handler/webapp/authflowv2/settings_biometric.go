@@ -53,27 +53,21 @@ func (h *AuthflowV2SettingsBiometricHandler) GetData(r *http.Request, rw http.Re
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	// BiometricViewModel
-	var biometricIdentityInfos []*identity.Biometric
-	err := h.Database.WithTx(func() (err error) {
-		// SettingsViewModel
-		settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
-		if err != nil {
-			return err
-		}
-		viewmodels.Embed(data, *settingsViewModel)
-
-		biometricIdentityInfos, err = h.BiometricProvider.List(*userID)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	// SettingsViewModel
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
 	if err != nil {
 		return nil, err
 	}
+	viewmodels.Embed(data, *settingsViewModel)
 
+	// BiometricViewModel
 	biometricViewModel := SettingsBiometricViewModel{}
+
+	var biometricIdentityInfos []*identity.Biometric
+	biometricIdentityInfos, err = h.BiometricProvider.List(*userID)
+	if err != nil {
+		return nil, err
+	}
 
 	for _, biometricInfo := range biometricIdentityInfos {
 		displayName := biometricInfo.FormattedDeviceInfo()

@@ -37,20 +37,16 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) GetData(r *http.Request, w http.R
 	userID := session.GetUserID(r.Context())
 	data := map[string]interface{}{}
 
+	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	err := h.Database.WithTx(func() error {
-		viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
-		if err != nil {
-			return err
-		}
-		viewmodels.Embed(data, *viewModelPtr)
-		return nil
-	})
+	// SettingsViewModel
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
 	if err != nil {
 		return nil, err
 	}
+	viewmodels.Embed(data, *settingsViewModel)
 
 	return data, nil
 
@@ -65,10 +61,18 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) ServeHTTP(w http.ResponseWriter, 
 	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
-		if err != nil {
+		var data map[string]interface{}
+		err := h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w)
+			if err != nil {
+				return err
+			}
 			return nil
+		})
+		if err != nil {
+			return err
 		}
+
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsMFAPasswordHTML, data)
 		return nil
 	})

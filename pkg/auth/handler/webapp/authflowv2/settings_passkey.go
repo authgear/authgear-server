@@ -52,40 +52,33 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(r *http.Request, rw htt
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	// PasskeyViewModel
-	var passkeyIdentities []*identity.Info
-	var creationOptionsJSON string
-	err := h.Database.WithTx(func() (err error) {
-		// SettingsViewModel
-		settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
-		if err != nil {
-			return err
-		}
-		viewmodels.Embed(data, *settingsViewModel)
-
-		identities, err := h.Identities.Passkey.List(*userID)
-		if err != nil {
-			return err
-		}
-		for _, i := range identities {
-			passkeyIdentities = append(passkeyIdentities, i.ToInfo())
-		}
-
-		creationOptions, err := h.Passkey.MakeCreationOptions(*userID)
-		if err != nil {
-			return err
-		}
-		creationOptionsJSONBytes, err := json.Marshal(creationOptions)
-		if err != nil {
-			return err
-		}
-		creationOptionsJSON = string(creationOptionsJSONBytes)
-		return nil
-	})
-
+	// SettingsViewModel
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
 	if err != nil {
 		return nil, err
 	}
+	viewmodels.Embed(data, *settingsViewModel)
+
+	// PasskeyViewModel
+	var passkeyIdentities []*identity.Info
+	var creationOptionsJSON string
+	identities, err := h.Identities.Passkey.List(*userID)
+	if err != nil {
+		return nil, err
+	}
+	for _, i := range identities {
+		passkeyIdentities = append(passkeyIdentities, i.ToInfo())
+	}
+
+	creationOptions, err := h.Passkey.MakeCreationOptions(*userID)
+	if err != nil {
+		return nil, err
+	}
+	creationOptionsJSONBytes, err := json.Marshal(creationOptions)
+	if err != nil {
+		return nil, err
+	}
+	creationOptionsJSON = string(creationOptionsJSONBytes)
 
 	passkeyViewModel := AuthflowV2SettingsPasskeyViewModel{
 		PasskeyIdentities:   passkeyIdentities,
@@ -105,10 +98,18 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		var data map[string]interface{}
+		err := h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
+
 		h.Renderer.RenderHTML(w, r, TemplateSettingsV2PasskeyHTML, data)
 
 		return nil
