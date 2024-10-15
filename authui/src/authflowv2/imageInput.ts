@@ -50,7 +50,13 @@ export class ImageInputController extends Controller {
       console.error("Canvas context not available");
       return;
     }
-    context.drawImage(this.cameraVideoTarget, 0, 0);
+    context.drawImage(
+      this.cameraVideoTarget,
+      0,
+      0,
+      this.canvasTarget.width,
+      this.canvasTarget.height
+    );
     const dataURL = this.canvasTarget.toDataURL("image/png");
     this.inputTarget.value = getB64StringFromDataURL(dataURL);
   };
@@ -67,6 +73,7 @@ export class ImageInputController extends Controller {
 
     this.cameraVideoTarget.setAttribute("width", w.toString());
     this.cameraVideoTarget.setAttribute("height", h.toString());
+
     this.canvasTarget.setAttribute("width", w.toString());
     this.canvasTarget.setAttribute("height", h.toString());
   };
