@@ -76,7 +76,7 @@ function formatLuxonRelativeDuration(
 }
 
 function getTimezoneFromMetaTag(): string | undefined {
-  const metaTag = document.querySelector('meta[name="x-timezone"]');
+  const metaTag = document.querySelector('meta[name="x-zoneinfo"]');
   return metaTag?.getAttribute("content") ?? undefined;
 }
 
