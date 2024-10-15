@@ -45,7 +45,7 @@ func TestLimitReserve(t *testing.T) {
 		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
 		conn := cli.Conn(ctx)
 
-		now := time.UnixMilli(epoch)
+		now := time.UnixMilli(epoch).UTC()
 		s.SetTime(now)
 
 		forward := func(period time.Duration) {
@@ -56,7 +56,7 @@ func TestLimitReserve(t *testing.T) {
 		}
 
 		quota := 10
-		resetTime := time.UnixMilli(epoch).Add(12 * time.Hour)
+		resetTime := time.UnixMilli(epoch).UTC().Add(12 * time.Hour)
 
 		pass, tokens, err := reserve(ctx, conn, testKey, 1, quota, resetTime)
 		So(err, ShouldBeNil)

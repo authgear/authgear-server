@@ -53,7 +53,7 @@ func TestLockout(t *testing.T) {
 			backoffFactor := cfg.backoffFactor
 			isGlobal := cfg.isGlobal
 
-			now := time.Unix(epoch, 0)
+			now := time.Unix(epoch, 0).UTC()
 			for _, e := range cfg.entries {
 				if e.fn != nil {
 					e.fn(ctx, conn)
@@ -61,7 +61,7 @@ func TestLockout(t *testing.T) {
 				}
 
 				t, _ := time.ParseDuration(e.time)
-				newNow := time.Unix(epoch, 0).Add(t)
+				newNow := time.Unix(epoch, 0).UTC().Add(t)
 				s.SetTime(newNow)
 				s.FastForward(newNow.Sub(now))
 				now = newNow
@@ -237,6 +237,6 @@ func TestLockoutClearAttempts(t *testing.T) {
 }
 
 func makeUnixTime(s int64) *time.Time {
-	t := time.Unix(s, 0)
+	t := time.Unix(s, 0).UTC()
 	return &t
 }
