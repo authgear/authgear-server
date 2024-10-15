@@ -19,6 +19,10 @@ import (
 	"time"
 )
 
+const (
+	MAX_TRUNCATED_IMAGE_STRING_LEN = 20
+)
+
 // PtrBool is a helper routine that returns a pointer to given boolean value.
 func PtrBool(v bool) *bool { return &v }
 
@@ -382,4 +386,11 @@ func (a APITime) MarshalJSON() ([]byte, error) {
 
 func (a APITime) ToTime() time.Time {
 	return time.Time(a)
+}
+
+func truncateImageString(image string) string {
+	if len(image) < MAX_TRUNCATED_IMAGE_STRING_LEN {
+		return image
+	}
+	return image[:MAX_TRUNCATED_IMAGE_STRING_LEN] + "...(Truncated)"
 }

@@ -14,6 +14,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 // checks if the UpdatePersonSchema type satisfies the MappedNullable interface at compile time
@@ -426,6 +428,26 @@ func (o *UpdatePersonSchema) UnmarshalJSON(data []byte) (err error) {
 	*o = UpdatePersonSchema(varUpdatePersonSchema)
 
 	return err
+}
+
+func (o *UpdatePersonSchema) ToLoggingFormat() string {
+	if o == nil {
+		return ""
+	}
+	truncatedImages := slice.Map(o.Images, truncateImageString)
+
+	oo := &UpdatePersonSchema{
+		Id:          o.Id,
+		Name:        o.Name,
+		Images:      truncatedImages,
+		Gender:      o.Gender,
+		DateOfBirth: o.DateOfBirth,
+		Nationality: o.Nationality,
+		Collections: o.Collections,
+		Notes:       o.Notes,
+	}
+	b, _ := oo.MarshalJSON()
+	return string(b)
 }
 
 type NullableUpdatePersonSchema struct {

@@ -14,6 +14,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 // checks if the SearchPersonSchema type satisfies the MappedNullable interface at compile time
@@ -307,6 +309,24 @@ func (o *SearchPersonSchema) UnmarshalJSON(data []byte) (err error) {
 	*o = SearchPersonSchema(varSearchPersonSchema)
 
 	return err
+}
+
+func (o *SearchPersonSchema) ToLoggingFormat() string {
+	if o == nil {
+		return ""
+	}
+
+	truncatedImages := slice.Map(o.Images, truncateImageString)
+
+	oo := &SearchPersonSchema{
+		CollectionId: o.CollectionId,
+		Images:       truncatedImages,
+		MaxResults:   o.MaxResults,
+		MinScore:     o.MinScore,
+		SearchMode:   o.SearchMode,
+	}
+	b, _ := oo.MarshalJSON()
+	return string(b)
 }
 
 type NullableSearchPersonSchema struct {

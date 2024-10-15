@@ -14,6 +14,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 const DefaultMinScore float32 = 0.7
@@ -243,6 +245,23 @@ func (o *VerifyPersonSchema) UnmarshalJSON(data []byte) (err error) {
 	*o = VerifyPersonSchema(varVerifyPersonSchema)
 
 	return err
+}
+
+func (o *VerifyPersonSchema) ToLoggingFormat() string {
+	if o == nil {
+		return ""
+	}
+
+	truncatedImages := slice.Map(o.Images, truncateImageString)
+
+	oo := &VerifyPersonSchema{
+		Id:               o.Id,
+		Images:           truncatedImages,
+		MinScore:         o.MinScore,
+		VerificationMode: o.VerificationMode,
+	}
+	b, _ := oo.MarshalJSON()
+	return string(b)
 }
 
 type NullableVerifyPersonSchema struct {
