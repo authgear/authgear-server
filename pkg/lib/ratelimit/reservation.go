@@ -29,7 +29,7 @@ func (r *Reservation) Error() error {
 
 func (r *Reservation) GetTimeToAct() time.Time {
 	if r == nil || r.timeToAct == nil {
-		return time.Unix(0, 0)
+		return time.Unix(0, 0).UTC()
 	}
 	return *r.timeToAct
 }

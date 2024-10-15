@@ -247,7 +247,7 @@ func (c *Consumer) work(ctx context.Context) {
 		select {
 		case <-c.shutdown:
 			return
-		case <-time.After(reservation.GetTimeToAct().Sub(c.clock.NowMonotonic())):
+		case <-time.After(reservation.GetTimeToAct().Sub(c.clock.NowUTC())):
 			break
 		}
 	}

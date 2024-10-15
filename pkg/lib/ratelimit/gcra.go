@@ -66,6 +66,6 @@ func gcra(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, period 
 
 	return &gcraResult{
 		IsConforming: result[0].(int64) == 1,
-		TimeToAct:    time.UnixMilli(result[1].(int64)),
+		TimeToAct:    time.UnixMilli(result[1].(int64)).UTC(),
 	}, nil
 }
