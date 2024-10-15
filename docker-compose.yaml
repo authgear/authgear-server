@@ -32,7 +32,9 @@ services:
       - elasticsearch_data:/usr/share/elasticsearch/data
 
   proxy:
-    image: nginx:1.18
+    # nginx has mainline (1.odd_minor_version) and stable (1.even_minor_version) release.
+    # We use stable here.
+    image: nginx:stable
     volumes:
     - ./nginx.conf:/etc/nginx/nginx.conf
     - ./tls-key.pem:/etc/nginx/tls-key.pem
