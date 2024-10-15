@@ -20,7 +20,7 @@
   {{ $.CSRFField }}
 
   <div class="flex flex-col gap-y-4">
-    {{ if (call $.IsEditable "/name") }}
+    {{ if (call $.IsReadable "/name") }}
       {{ template "authflowv2/__settings_text_input.html"
           (dict
             "Label" (translate "v2.page.settings-profile-edit-name.default.fullname-input-label" nil)
@@ -29,11 +29,12 @@
             "InputAttrs" `
               data-form-state-target="input"
             `
+            "Disabled" (not (call $.IsEditable "/name"))
           )
       }}
     {{ end }}
 
-    {{ if (call $.IsEditable "/given_name") }}
+    {{ if (call $.IsReadable "/given_name") }}
       {{ template "authflowv2/__settings_text_input.html"
           (dict
             "Label" (translate "v2.page.settings-profile-edit-name.default.given-name-input-label" nil)
@@ -42,11 +43,12 @@
             "InputAttrs" `
               data-form-state-target="input"
             `
+            "Disabled" (not (call $.IsEditable "/given_name"))
           )
       }}
     {{ end }}
 
-    {{ if (call $.IsEditable "/middle_name") }}
+    {{ if (call $.IsReadable "/middle_name") }}
       {{ template "authflowv2/__settings_text_input.html"
           (dict
             "Label" (translate "v2.page.settings-profile-edit-name.default.middle-name-input-label" nil)
@@ -55,11 +57,12 @@
             "InputAttrs" `
               data-form-state-target="input"
             `
+            "Disabled" (not (call $.IsEditable "/middle_name"))
           )
       }}
     {{ end }}
 
-    {{ if (call $.IsEditable "/family_name") }}
+    {{ if (call $.IsReadable "/family_name") }}
       {{ template "authflowv2/__settings_text_input.html"
           (dict
             "Label" (translate "v2.page.settings-profile-edit-name.default.family-name-input-label" nil)
@@ -68,11 +71,12 @@
             "InputAttrs" `
               data-form-state-target="input"
             `
+            "Disabled" (not (call $.IsEditable "/family_name"))
           )
       }}
     {{ end }}
 
-    {{ if (call $.IsEditable "/nickname") }}
+    {{ if (call $.IsReadable "/nickname") }}
       {{ template "authflowv2/__settings_text_input.html"
           (dict
             "Label" (translate "v2.page.settings-profile-edit-name.default.nickname-input-label" nil)
@@ -81,21 +85,23 @@
             "InputAttrs" `
               data-form-state-target="input"
             `
+            "Disabled" (not (call $.IsEditable "/nickname"))
           )
       }}
     {{ end }}
-  </div>
 
-  <button
-    class="primary-btn"
-    type="submit"
-    name="x_action"
-    value="save"
-    data-authgear-event="authgear.button.update_profile"
-    data-form-state-target="submit"
-  >
-    {{ translate "v2.component.button.default.label-save" . }}
-  </button>
+  {{ if or (call $.IsEditable "/name") (call $.IsEditable "/given_name") (call $.IsEditable "/family_name") (call $.IsEditable "/middle_name") (call $.IsEditable "/nickname") }}
+    <button
+      class="primary-btn"
+      type="submit"
+      name="x_action"
+      value="save"
+      data-authgear-event="authgear.button.update_profile"
+      data-form-state-target="submit"
+    >
+      {{ translate "v2.component.button.default.label-save" . }}
+    </button>
+  {{ end }}
 </form>
 
 {{ end }}

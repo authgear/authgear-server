@@ -9,6 +9,7 @@
     --input__border-radius: var(--border-radius-rounded-square);
     --input__placeholder-color: var(--color-neutral-200);
     --input__text-color: var(--color-neutral-700);
+    --input__text-color--disabled: var(--color-neutral-300);
     --input__font-family: var(--typography-body-large__font-family);
     --input__font-size: var(--typography-body-large__font-size);
     --input__line-height: var(--typography-body-large__line-height);
@@ -41,6 +42,7 @@
   --input__ring-color: var(--color-neutral-500);
   --input__placeholder-color: var(--color-neutral-400);
   --input__text-color: var(--color-neutral-100);
+  --input__text-color--disabled: var(--color-neutral-500);
   --input__password-visibility-icon-color: var(--color-neutral-300);
 }
 
@@ -56,18 +58,22 @@
   letter-spacing: var(--input__letter-spacing);
   font-weight: var(--input__font-weight);
   caret-color: var(--input__ring-color--focus);
-  @apply ring-inset	
+  @apply ring-inset
       ring-[length:var(--input\_\_ring-width)]
       ring-[color:var(--input\_\_ring-color)];
 
   &:focus {
-    @apply ring-inset	
+    @apply ring-inset
       ring-[length:var(--input\_\_ring-width--focus)]
       ring-[color:var(--input\_\_ring-color--focus)];
   }
 
+  &:disabled {
+    color: var(--input__text-color--disabled);
+  }
+
   &.input--error {
-    @apply ring-inset	
+    @apply ring-inset
       ring-[color:var(--input\_\_ring-color--error)];
   }
 }
