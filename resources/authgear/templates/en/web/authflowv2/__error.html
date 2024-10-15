@@ -36,6 +36,28 @@
           {{ end }}
         {{ end }}
       {{ end }}
+    {{ else if eq .Error.reason "NoMatchingFaceFound" }}
+      <span>{{ include "v2.error.no-matching-face-found" nil }}</span>
+    {{ else if eq .Error.reason "SpoofedImageDetected" }}
+      <span>{{ include "v2.error.spoofed-image-detected" nil }}</span>
+    {{ else if eq .Error.reason "FaceTooSmall" }}
+      <span>{{ include "v2.error.face-too-small" nil }}</span>
+    {{ else if eq .Error.reason "FaceRotated" }}
+      <span>{{ include "v2.error.face-rotated" nil }}</span>
+    {{ else if eq .Error.reason "FaceEdgesNotVisible" }}
+      <span>{{ include "v2.error.face-edges-not-visible" nil }}</span>
+    {{ else if eq .Error.reason "FaceCovered" }}
+      <span>{{ include "v2.error.face-covered" nil }}</span>
+    {{ else if eq .Error.reason "FaceTooClose" }}
+      <span>{{ include "v2.error.face-too-close" nil }}</span>
+    {{ else if eq .Error.reason "FaceCropped" }}
+      <span>{{ include "v2.error.face-cropped" nil }}</span>
+    {{ else if eq .Error.reason "LowImageQuality" }}
+      <span>{{ include "v2.error.low-image-quality" nil }}</span>
+    {{ else if eq .Error.reason "MultipleFaces" }}
+      <span>{{ include "v2.error.multiple-faces" nil }}</span>
+    {{ else if eq .Error.reason "NoFaceDetected" }}
+      <span>{{ include "v2.error.no-face-detected" nil }}</span>
     {{ else if eq .Error.reason "ValidationFailed" }}
       {{ range .Error.info.causes }}
         {{ $details := .details }}
