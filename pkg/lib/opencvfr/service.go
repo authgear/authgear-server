@@ -78,15 +78,12 @@ func (s *Service) VerifyFace(opts *VerifyFaceOption) error {
 		SearchMode:   *openapi.NewNullableSearchModeEnum(openapi.FAST.Ptr()),
 	})
 
-	// TODO (identity-week-demo): Handle opencvfr error codes, like
-	// (ERR_INVALID_FACE_FOR_LIVENESS): Image is invalid for checking livenes
-	// (ERR_FACE_EDGES_NOT_VISIBLE): The face is not in the center
 	if err != nil {
-		return err
+		return s.parseOpenCVFRError(err)
 	}
 
 	if len(ps) == 0 {
-		return ErrFaceNotFound
+		return newNoMatchingFaceFoundError()
 	}
 
 	for _, p := range ps {
@@ -97,7 +94,7 @@ func (s *Service) VerifyFace(opts *VerifyFaceOption) error {
 			return nil
 		}
 	}
-	return ErrFaceNotFound
+	return newNoMatchingFaceFoundError()
 }
 
 type VerifyLiveFaceOption struct {
@@ -122,25 +119,21 @@ func (s *Service) VerifyLiveFace(opts *VerifyLiveFaceOption) error {
 		Image:        opts.B64FaceImage,
 	})
 
-	// TODO (identity-week-demo): Handle opencvfr error codes, like
-	// (ERR_INVALID_FACE_FOR_LIVENESS): Image is invalid for checking livenes
-	// (ERR_FACE_EDGES_NOT_VISIBLE): The face is not in the center
 	if err != nil {
-		return err
+		return s.parseOpenCVFRError(err)
 	}
 
 	if r == nil {
-		return ErrFaceNotFound
+		return newNoMatchingFaceFoundError()
 	}
 
 	livePersonResult := r.Get()
 	if livePersonResult == nil {
-		return ErrFaceNotFound
+		return newNoMatchingFaceFoundError()
 	}
 
-	// TODO (identity-week-demo): specify min-liveness somewhere
 	if livePersonResult.LivenessScore < opts.MinLivenessScore {
-		return ErrFaceLivenessLow
+		return newSpoofedImageDetectedError()
 	}
 
 	var matched bool
@@ -152,7 +145,7 @@ func (s *Service) VerifyLiveFace(opts *VerifyLiveFaceOption) error {
 	}
 
 	if !matched {
-		return ErrFaceNotMatch
+		return newNoMatchingFaceFoundError()
 	}
 
 	return nil
@@ -206,7 +199,7 @@ func (s *Service) CreatePerson(opts *CreatePersonOptions) (p *CreatePersonOutput
 	resp, err := s.Person.Create(schema)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to create person: %w", err)
+		return nil, s.parseOpenCVFRError(err)
 	}
 
 	output := &CreatePersonOutput{
@@ -223,6 +216,7 @@ func (s *Service) CreatePerson(opts *CreatePersonOptions) (p *CreatePersonOutput
 func (s *Service) getCollection(appID string) (c *openapi.CollectionSchema, err error) {
 	m, err := s.OpenCVFRCollectionIDMapStore.Get(appID)
 	if err != nil {
+		err = s.parseOpenCVFRError(err)
 		return nil, fmt.Errorf("failed to get collection id of app id (%s): %w", appID, err)
 	}
 	if m == nil {
@@ -249,6 +243,7 @@ func (s *Service) createCollection(appID string) (c *openapi.CollectionSchema, e
 	c, err = s.Collection.Create(schema)
 
 	if err != nil {
+		err = s.parseOpenCVFRError(err)
 		return nil, err
 	}
 
@@ -263,4 +258,11 @@ func (s *Service) createCollection(appID string) (c *openapi.CollectionSchema, e
 		return nil, err
 	}
 	return c, nil
+}
+
+func (s *Service) parseOpenCVFRError(err error) error {
+	if apiErr := getAPIError(err); apiErr != nil {
+		return apiErr
+	}
+	return err
 }
