@@ -73,16 +73,25 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) GetData(r *http.Request, rw
 		}
 	}
 
-	identities, err := h.Identities.OAuth.List(*userID)
+	identities, err := h.Identities.ListByUser(*userID)
 	if err != nil {
 		return nil, err
 	}
 
+	remaining := identity.ApplyFilters(
+		identities,
+		identity.KeepIdentifiable,
+	)
+
 	var oauthIdentities []*identity.OAuth
 	var oauthInfos []*identity.Info
 	for _, identity := range identities {
-		oauthIdentities = append(oauthIdentities, identity)
-		oauthInfos = append(oauthInfos, identity.ToInfo())
+		if identity.Type != model.IdentityTypeOAuth {
+			continue
+		}
+
+		oauthIdentities = append(oauthIdentities, identity.OAuth)
+		oauthInfos = append(oauthInfos, identity.OAuth.ToInfo())
 	}
 
 	sort.Slice(oauthIdentities, func(i, j int) bool {
@@ -97,7 +106,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) GetData(r *http.Request, rw
 		OAuthCandidates: oauthCandidates,
 		OAuthIdentities: oauthIdentities,
 		Verifications:   verifications,
-		IdentityCount:   len(identities),
+		IdentityCount:   len(remaining),
 	}
 	viewmodels.Embed(data, vm)
 
