@@ -45,10 +45,34 @@ services:
     - "3100:3100"
     - "443:443"
 
+  ldap:
+    image: bitnami/openldap:2.6
+    ports:
+    - "1389:1389"
+    - "1636:1636"
+    volumes:
+    - openldap_data:/bitnami/openldap
+    environment:
+      LDAP_ADMIN_USERNAME: "admin"
+      LDAP_ADMIN_PASSWORD: "adminpassword"
+      LDAP_ADMIN_DN: "cn=admin,dc=example,dc=org"
+      LDAP_ROOT: "dc=example,dc=org"
+
+  phpldapadmin:
+    image: osixia/phpldapadmin:stable
+    ports:
+    - "18080:80"
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: "#PYTHON2BASH:[{'ldap': [{'server': [{'tls': False}, {'port': 1389}]},{'login': [{'bind_id': 'cn=admin,dc=example,dc=org'},{'bind_pass': 'adminpassword'}]}]}]"
+      PHPLDAPADMIN_HTTPS: "false"
+      PHPLDAPADMIN_LDAP_CLIENT_TLS: "false"
+
 volumes:
   redis_data:
     driver: local
   db_data:
     driver: local
   elasticsearch_data:
+    driver: local
+  openldap_data:
     driver: local
