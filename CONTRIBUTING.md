@@ -362,3 +362,51 @@ python -m venv venv
 2024-07-12 16:34:45,071 - INFO - ja | Finished translation for ja (Japanese)
 ...
 ```
+
+## Set up LDAP for local development
+
+An openldap server and phpldapadmin has been set up in docker-compose.yaml for you already.
+
+In case you need to do some LDAP related development, you need
+
+### Create a LDAP user
+
+- Go to http://localhost:18080. This is phpldapadmin
+- You should see the login page. You need to sign in with the admin account.
+  - The username is the environment variable `LDAP_ADMIN_DN`.
+  - The password is the environment variable `LDAP_ADMIN_PASSWORD`.
+- And then you need to create a group.
+  - You create a group under the tree, indicated by `LDAP_ROOT`.
+- And then you need to create a user.
+  - You create a user under the tree, indicated by `LDAP_ROOT`. Assign the user to belong to the group you just created.
+
+### Configure Authgear
+
+In `authgear.yaml`, you add
+
+```
+authentication:
+  identities:
+  # Add this.
+  - ldap
+identity:
+  # Add this.
+  ldap:
+    servers:
+    - name: myldap
+      url: ldap://localhost:1389
+      base_dn: "dc=example,dc=org"
+      user_id_attribute_name: "uid"
+      search_filter_template: "(uid={{ $.Username }})"
+```
+
+In `authgear.secrets.yaml`, you add
+
+```
+- data:
+    items:
+    - name: myldap
+      dn: "cn=admin,dc=example,dc=org"
+      password: "adminpassword"
+  key: ldap
+```
