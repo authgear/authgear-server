@@ -16,6 +16,8 @@
   }
 
   .settings-title {
+    @apply text-center;
+
     font-family: var(--settings-title__font-family);
     font-size: var(--settings-title__font-size);
     line-height: var(--settings-title__line-height);
