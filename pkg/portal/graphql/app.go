@@ -159,7 +159,7 @@ var samlSpSigningCertificate = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
-var samlSpSigningSecretItem = graphql.NewObject(graphql.ObjectConfig{
+var samlSpSigningSecret = graphql.NewObject(graphql.ObjectConfig{
 	Name:        "SAMLSpSigningSecrets",
 	Description: "SAML Service Provider signing secrets",
 	Fields: graphql.Fields{
@@ -168,16 +168,6 @@ var samlSpSigningSecretItem = graphql.NewObject(graphql.ObjectConfig{
 		},
 		"certificates": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(samlSpSigningCertificate))),
-		},
-	},
-})
-
-var samlSpSigningSecret = graphql.NewObject(graphql.ObjectConfig{
-	Name:        "SAMLSpSigningSecrets",
-	Description: "SAML Service Provider signing secrets",
-	Fields: graphql.Fields{
-		"items": &graphql.Field{
-			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(samlSpSigningSecretItem))),
 		},
 	},
 })
@@ -221,7 +211,7 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 			Type: samlIdpSigningSecrets,
 		},
 		string(AppSecretKeySAMLSpSigningSecrets): &graphql.Field{
-			Type: samlSpSigningSecret,
+			Type: graphql.NewList(graphql.NewNonNull(samlSpSigningSecret)),
 		},
 	},
 })

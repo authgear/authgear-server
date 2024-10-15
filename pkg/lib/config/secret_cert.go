@@ -1,10 +1,12 @@
 package config
 
 import (
+	"crypto/sha1"
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
 	"fmt"
+	"strings"
 )
 
 var _ = SecretConfigSchema.Add("X509Certificate", `
@@ -31,6 +33,16 @@ func (c *X509Certificate) Data() []byte {
 
 func (c *X509Certificate) Base64Data() string {
 	return base64.StdEncoding.EncodeToString(c.Data())
+}
+
+func (c *X509Certificate) Fingerprint() string {
+	fingerprintBytes := sha1.Sum(c.X509Certificate().Raw)
+	fingerprintHex := []string{}
+	for _, b := range fingerprintBytes {
+		fingerprintHex = append(fingerprintHex, fmt.Sprintf("%02X", b))
+	}
+
+	return strings.Join(fingerprintHex, ":")
 }
 
 func (c *X509Certificate) X509Certificate() *x509.Certificate {
