@@ -4,8 +4,8 @@ import (
 	"io"
 )
 
-// MaxTemplateSize is 1MiB.
-const MaxTemplateSize = 1024 * 1024 * 1
+// MaxTemplateSize is 10MiB.
+const MaxTemplateSize = 1024 * 1024 * 10
 
 type LimitWriter struct {
 	// Writer is the underlying writer.
