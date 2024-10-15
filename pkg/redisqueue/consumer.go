@@ -212,7 +212,7 @@ func (c *Consumer) work(ctx context.Context) {
 	}()
 
 	if backoff := c.dequeueBackoff.BackoffDuration(); backoff != 0 {
-		c.logger.WithField("delay", backoff).Debug("backoff from dequeue")
+		c.logger.WithField("delay", backoff).Info("backoff from dequeue")
 		select {
 		case <-c.shutdown:
 			return
@@ -243,7 +243,7 @@ func (c *Consumer) work(ctx context.Context) {
 		c.logger.
 			WithField("tat", reservation.GetTimeToAct()).
 			WithField("bucket_key", c.limitBucket.Key()).
-			Debug("task rate limited")
+			Info("task rate limited")
 		select {
 		case <-c.shutdown:
 			return
@@ -259,6 +259,7 @@ func (c *Consumer) work(ctx context.Context) {
 		c.logger.
 			WithField("tat", reservation.GetTimeToAct()).
 			WithField("bucket_key", c.limitBucket.Key()).
+			// This is Debug instead of Info because it prints periodically.
 			Debug("cancel reservation due to no task")
 		c.limiter.Cancel(reservation)
 		return
@@ -271,7 +272,7 @@ func (c *Consumer) work(ctx context.Context) {
 	c.logger.
 		WithField("tat", reservation.GetTimeToAct()).
 		WithField("bucket_key", c.limitBucket.Key()).
-		Debug("consume reservation")
+		Info("consume reservation")
 
 	// Reset backoff when we can dequeue.
 	c.dequeueBackoff.Reset()
