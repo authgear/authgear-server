@@ -410,3 +410,12 @@ In `authgear.secrets.yaml`, you add
       password: "adminpassword"
   key: ldap
 ```
+
+### Start with the profile `ldap`
+
+The ldap related services in `docker-compose.yaml` belong to the profile `ldap`.
+To start them, you need to add `--profile ldap` to `docker compose up -d`, like
+
+```
+docker compose --profile ldap up -d
+```

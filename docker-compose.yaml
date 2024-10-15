@@ -46,6 +46,7 @@ services:
     - "443:443"
 
   ldap:
+    profiles: ["ldap"]
     image: bitnami/openldap:2.6
     ports:
     - "1389:1389"
@@ -59,6 +60,7 @@ services:
       LDAP_ROOT: "dc=example,dc=org"
 
   phpldapadmin:
+    profiles: ["ldap"]
     image: osixia/phpldapadmin:stable
     ports:
     - "18080:80"
