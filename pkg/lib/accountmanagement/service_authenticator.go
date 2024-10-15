@@ -483,15 +483,8 @@ func (s *Service) StartAddOOBOTPAuthenticator(resolvedSession session.ResolvedSe
 		return nil, err
 	}
 
-	var channel model.AuthenticatorOOBChannel
-	if s.Config.Authenticator.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() && input.Channel == model.AuthenticatorOOBChannelSMS {
-		channel = model.AuthenticatorOOBChannelWhatsapp
-	} else {
-		channel = input.Channel
-	}
-
 	var authenticatorType model.AuthenticatorType
-	switch channel {
+	switch input.Channel {
 	case model.AuthenticatorOOBChannelWhatsapp:
 		fallthrough
 	case model.AuthenticatorOOBChannelSMS:
@@ -505,7 +498,7 @@ func (s *Service) StartAddOOBOTPAuthenticator(resolvedSession session.ResolvedSe
 	token, err := s.Store.GenerateToken(GenerateTokenOptions{
 		UserID:                     userID,
 		AuthenticatorType:          authenticatorType,
-		AuthenticatorOOBOTPChannel: channel,
+		AuthenticatorOOBOTPChannel: input.Channel,
 		AuthenticatorOOBOTPTarget:  input.Target,
 	})
 	if err != nil {

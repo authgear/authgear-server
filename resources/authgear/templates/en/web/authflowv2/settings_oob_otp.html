@@ -2,7 +2,7 @@
 
 {{ define "page-navbar" }}
   {{ $title := (translate "v2.page.settings-oob-otp-sms.default.title" nil) }}
-  {{ if eq $.OOBOTPType "email" }}
+  {{ if eq $.OOBOTPType "oob_otp_email" }}
     {{ $title = (translate "v2.page.settings-oob-otp-email.default.title" nil) }}
   {{ end }}
   {{ template "authflowv2/__navbar.html"
@@ -21,7 +21,7 @@
       {{ range $.OOBOTPAuthenticators }}
         <li>
           {{ $label := .Phone }}
-          {{ if eq $.OOBOTPType "email" }}
+          {{ if eq $.OOBOTPType "oob_otp_email" }}
             {{ $label = .Email }}
           {{ end }}
           {{ template "authflowv2/__settings_action_item.html"
@@ -34,7 +34,7 @@
 
           {{ $remove_dialog_title := (translate "v2.page.settings-oob-otp-sms.default.remove-oob-otp-dialog-title" nil) }}
           {{ $remove_dialog_description := (translate "v2.page.settings-oob-otp-sms.default.remove-oob-otp-dialog-description" nil) }}
-          {{ if eq $.OOBOTPType "email" }}
+          {{ if eq $.OOBOTPType "oob_otp_email" }}
             {{ $remove_dialog_title = (translate "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-title" nil) }}
             {{ $remove_dialog_description = (translate "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description" nil) }}
           {{ end }}
@@ -65,7 +65,7 @@
     </ul>
   {{ end }}
 
-  {{ $href := (call $.MakeURL (printf "/settings/mfa/create_oob_otp_%s" $.OOBOTPType)) }}
+  {{ $href := (call $.MakeURL (printf "/settings/mfa/create_oob_otp_%s" $.OOBOTPChannel)) }}
   <a
     class="settings-link-btn mt-6 block"
     href="{{ $href }}"
