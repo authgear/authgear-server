@@ -31,5 +31,25 @@ const (
 type UsageLimitConfig struct {
 	Enabled *bool            `json:"enabled,omitempty"`
 	Period  UsageLimitPeriod `json:"period,omitempty"`
-	Quota   int              `json:"quota,omitempty"`
+	Quota   *int             `json:"quota,omitempty"`
+}
+
+func (c *UsageLimitConfig) IsEnabled() bool {
+	if c == nil {
+		return false
+	}
+	if c.Enabled == nil {
+		return false
+	}
+	return *c.Enabled
+}
+
+func (c *UsageLimitConfig) GetQuota() int {
+	if c == nil {
+		return 0
+	}
+	if c.Quota == nil {
+		return 0
+	}
+	return *c.Quota
 }
