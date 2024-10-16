@@ -9,6 +9,7 @@ package e2e
 import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/facerecognition"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
@@ -54,6 +55,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/opencvfr"
+	"github.com/authgear/authgear-server/pkg/lib/opencvfr/api"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -393,6 +396,42 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	facerecognitionStore := &facerecognition.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	client := api.NewClient(environmentConfig)
+	personService := &api.PersonService{
+		HTTPClient: client,
+	}
+	collectionService := &api.CollectionService{
+		HTTPClient: client,
+	}
+	searchService := &api.SearchService{
+		HTTPClient: client,
+	}
+	livenessService := &api.LivenessService{
+		HTTPClient: client,
+	}
+	opencvfrStore := &opencvfr.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	opencvfrService := &opencvfr.Service{
+		Clock:                        clockClock,
+		AppID:                        appID,
+		AuthenticatorConfig:          authenticationConfig,
+		Person:                       personService,
+		Collection:                   collectionService,
+		Search:                       searchService,
+		Liveness:                     livenessService,
+		OpenCVFRCollectionIDMapStore: opencvfrStore,
+	}
+	facerecognitionProvider := &facerecognition.Provider{
+		Store:    facerecognitionStore,
+		OpenCVFR: opencvfrService,
+		Clock:    clockClock,
+	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -444,15 +483,16 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+		Store:           store3,
+		Config:          appConfig,
+		Password:        passwordProvider,
+		Passkey:         provider2,
+		TOTP:            totpProvider,
+		OOBOTP:          oobProvider,
+		FaceRecognition: facerecognitionProvider,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -571,7 +611,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchClient := elasticsearch.NewClient(elasticsearchCredentials)
 	taskQueue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
@@ -580,7 +620,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
-		Client:          client,
+		Client:          elasticsearchClient,
 		Users:           userQueries,
 		UserStore:       store,
 		IdentityService: serviceService,
@@ -837,7 +877,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
-		Client:          client,
+		Client:          elasticsearchClient,
 		Users:           userQueries,
 		UserStore:       store,
 		IdentityService: serviceService,

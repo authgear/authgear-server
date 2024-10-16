@@ -1655,6 +1655,42 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	facerecognitionStore := &facerecognition.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	client := api.NewClient(environmentConfig)
+	personService := &api.PersonService{
+		HTTPClient: client,
+	}
+	collectionService := &api.CollectionService{
+		HTTPClient: client,
+	}
+	searchService := &api.SearchService{
+		HTTPClient: client,
+	}
+	livenessService := &api.LivenessService{
+		HTTPClient: client,
+	}
+	opencvfrStore := &opencvfr.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	opencvfrService := &opencvfr.Service{
+		Clock:                        clockClock,
+		AppID:                        appID,
+		AuthenticatorConfig:          authenticationConfig,
+		Person:                       personService,
+		Collection:                   collectionService,
+		Search:                       searchService,
+		Liveness:                     livenessService,
+		OpenCVFRCollectionIDMapStore: opencvfrStore,
+	}
+	facerecognitionProvider := &facerecognition.Provider{
+		Store:    facerecognitionStore,
+		OpenCVFR: opencvfrService,
+		Clock:    clockClock,
+	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -1706,15 +1742,16 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Provider: lockoutService,
 	}
 	service4 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+		Store:           store3,
+		Config:          appConfig,
+		Password:        passwordProvider,
+		Passkey:         provider2,
+		TOTP:            totpProvider,
+		OOBOTP:          oobProvider,
+		FaceRecognition: facerecognitionProvider,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
 	}
 	verificationConfig := appConfig.Verification
 	storePQ := &verification.StorePQ{
