@@ -58,6 +58,8 @@
       <span>{{ include "v2.error.multiple-faces" nil }}</span>
     {{ else if eq .Error.reason "NoFaceDetected" }}
       <span>{{ include "v2.error.no-face-detected" nil }}</span>
+    {{ else if eq .Error.reason "OpenCVFRConnectionFailed" }}
+      <span>{{ include "v2.error.opencvfr-connection-failed" nil }}</span>
     {{ else if eq .Error.reason "ValidationFailed" }}
       {{ range .Error.info.causes }}
         {{ $details := .details }}

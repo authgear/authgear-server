@@ -993,6 +993,7 @@
   "v2.error.oob-otp-code-required": "Please enter the one-time password you just received.",
   "v2.error.oob-otp-sms-not-supported": "Sending SMS is not supported. Please contact administrator.",
   "v2.error.oob-otp-sms-not-supported-with-customer-support": "Sending SMS is not supported. Please contact <a class=\"link\" target=\"_blank\" href={customerSupportLink}>customer support</a>.",
+  "v2.error.opencvfr-connection-failed": "Something went wrong with face recognition service, please contact support.",
   "v2.error.page-not-found": "The page cannot be found",
   "v2.error.passkey-duplicate": "You have a passkey on this device already.",
   "v2.error.passkey-not-supported": "Passkey is not supported in your browser. Please select another authentication method.",
