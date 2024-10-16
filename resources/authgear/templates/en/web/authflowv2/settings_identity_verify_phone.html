@@ -66,7 +66,7 @@
       }}
     </div>
 
-    {{- if (len $.Channels) }}
+    {{- if gt (len $.Channels) 1 }}
     {{ template "authflowv2/__divider.html" . }}
     {{- end }}
 

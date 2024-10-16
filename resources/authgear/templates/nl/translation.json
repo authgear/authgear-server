@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "Sociaal account",
   "v2.page.settings-identity-phone.default.title": "Telefoon",
   "v2.page.settings-identity-verify-email.default.title": "Verificatie",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Stel telefoon in",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "Stel WhatsApp in",
   "v2.page.settings-identity-verify-phone.default.title": "Verificatie",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "Bewerken",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "Verwijder deze e-mail",

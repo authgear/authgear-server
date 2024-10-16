@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "ソーシャルアカウント",
   "v2.page.settings-identity-phone.default.title": "電話番号",
   "v2.page.settings-identity-verify-email.default.title": "確認",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "電話番号を設定する",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "WhatsAppを設定する",
   "v2.page.settings-identity-verify-phone.default.title": "認証",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "編集",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "このメールアドレスを削除",
