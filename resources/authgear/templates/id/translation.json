@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Masalah yang Tidak Terduga",
   "v2.error.server": "Server mengalami kesalahan internal.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Ini {LoginIDNameIncoming} sudah terdaftar.} oauth {Akun {OAuthProviderNameIncoming} ini sudah terdaftar.} other {Akun ini sudah terdaftar.}} Silakan gunakan yang lain.",
+  "v2.error.settings-token-invalid": "<p>Halaman ini tidak valid atau telah kedaluwarsa.</p><p>Silakan kembali dan coba lagi permintaan Anda.</p>",
   "v2.error.sms-send-limit-exceeded": "Anda telah melampaui batas pengiriman kata sandi satu kali. Silakan coba lagi nanti.",
   "v2.error.suggestion-account-conflict-login-id": "Apakah Anda ingin login?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Anda dapat mencoba login dengan {OAuthProviderNameExisting} atau menggunakan {LoginIDNameIncoming} lain di bawah.} oauth {Anda dapat mencoba akun {OAuthProviderNameIncoming} lain{ IdentityTypeExisting, select, login_id { atau menggunakan {LoginIDNameExisting} Anda di bawah.} other {atau menggunakan metode lain di bawah.} }} other {Anda dapat mencoba akun lain.} }",

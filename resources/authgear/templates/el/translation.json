@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Απροσδόκητα Προβλήματα",
   "v2.error.server": "Ο διακομιστής αντιμετώπισε ένα εσωτερικό σφάλμα.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Αυτό το {LoginIDNameIncoming} είναι ήδη καταχωρημένο.} oauth {Αυτός ο λογαριασμός {OAuthProviderNameIncoming} είναι ήδη καταχωρημένος.} other {Αυτός ο λογαριασμός είναι ήδη καταχωρημένος.}} Παρακαλώ χρησιμοποιήστε κάποιον άλλον.",
+  "v2.error.settings-token-invalid": "<p>Αυτή η σελίδα δεν είναι έγκυρη ή έχει λήξει.</p><p>Παρακαλούμε επιστρέψτε και δοκιμάστε ξανά το αίτημά σας.</p>",
   "v2.error.sms-send-limit-exceeded": "Έχετε υπερβεί το όριο αποστολής κωδικών μίας χρήσης. Παρακαλούμε προσπαθήστε ξανά αργότερα.",
   "v2.error.suggestion-account-conflict-login-id": "Θέλετε να συνδεθείτε;",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Μπορείτε να δοκιμάσετε σύνδεση με {OAuthProviderNameExisting} ή να χρησιμοποιήσετε άλλο {LoginIDNameIncoming} παρακάτω.} oauth {Μπορείτε να δοκιμάσετε άλλον λογαριασμό {OAuthProviderNameIncoming}{ IdentityTypeExisting, select, login_id { ή να χρησιμοποιήσετε το {LoginIDNameExisting} σας παρακάτω.} other {ή να χρησιμοποιήσετε άλλη μέθοδο παρακάτω.} }} other {Μπορείτε να δοκιμάσετε άλλον λογαριασμό.} }",

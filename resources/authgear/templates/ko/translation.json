@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "예기치 않은 문제",
   "v2.error.server": "서버에 내부 오류가 발생했습니다.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {이 {LoginIDNameIncoming}은(는) 이미 등록되어 있습니다.} oauth {이 {OAuthProviderNameIncoming} 계정은 이미 등록되어 있습니다.} other {이 계정은 이미 등록되어 있습니다.}} 다른 것을 사용하세요.",
+  "v2.error.settings-token-invalid": "<p>이 페이지가 유효하지 않거나 만료되었습니다.</p><p>다시 시도해 주세요.</p>",
   "v2.error.sms-send-limit-exceeded": "일회성 비밀번호 전송 한도를 초과했습니다. 나중에 다시 시도해 주세요.",
   "v2.error.suggestion-account-conflict-login-id": "로그인하시겠습니까?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {{OAuthProviderNameExisting}로 로그인하거나 다른 {LoginIDNameIncoming}를 사용해 보세요.} oauth {{IdentityTypeExisting, select, login_id {다른 {OAuthProviderNameIncoming} 계정이나 {LoginIDNameExisting}를 사용해 보세요.} other {다른 방법을 사용해 보세요.}} } other {다른 계정을 사용해 보세요.} }",

@@ -6,6 +6,8 @@
       {{ $error_message = include "v2.error.web-ui-invalid-session-return" nil }}
     {{ else if eq .Error.reason "AuthenticationFlowNoPublicSignup" nil }}
       {{ $error_message = include "v2.error.no-public-signup" nil }}
+    {{ else if eq .Error.reason "AccountManagementTokenInvalid" }}
+      {{ $error_message = include "v2.error.settings-token-invalid" nil }}
     {{ end }}
   {{ end }}
   {{ template "authflowv2/__error_page_layout.html"

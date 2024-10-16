@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Nieoczekiwane problemy",
   "v2.error.server": "Serwer napotkał wewnętrzny błąd.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Ten {LoginIDNameIncoming} jest już zarejestrowany.} oauth {To konto {OAuthProviderNameIncoming} jest już zarejestrowane.} other {To konto jest już zarejestrowane.}} Użyj innego.",
+  "v2.error.settings-token-invalid": "<p>Ta strona jest nieprawidłowa lub wygasła.</p><p>Proszę wrócić i spróbować ponownie.</p>",
   "v2.error.sms-send-limit-exceeded": "Przekroczyłeś limit wysyłania jednorazowych haseł. Spróbuj ponownie później.",
   "v2.error.suggestion-account-conflict-login-id": "Czy chcesz się zalogować?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Możesz spróbować zalogować się za pomocą {OAuthProviderNameExisting} lub użyć innego {LoginIDNameIncoming} poniżej.} oauth {Możesz spróbować innego konta {OAuthProviderNameIncoming}{ IdentityTypeExisting, select, login_id { lub użyć swojego {LoginIDNameExisting} poniżej.} other {lub użyć innej metody poniżej.} }} other {Możesz spróbować innego konta.} }",

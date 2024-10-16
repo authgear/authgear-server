@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Unerwartete Probleme",
   "v2.error.server": "Der Server hat einen internen Fehler festgestellt.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Diese {LoginIDNameIncoming} ist bereits registriert.} oauth {Dieses {OAuthProviderNameIncoming}-Konto ist bereits registriert.} other {Dieses Konto ist bereits registriert.}} Bitte verwenden Sie ein anderes.",
+  "v2.error.settings-token-invalid": "<p>Diese Seite ist ungültig oder abgelaufen.</p><p>Bitte kehren Sie zurück und versuchen Sie Ihre Anfrage erneut.</p>",
   "v2.error.sms-send-limit-exceeded": "Sie haben das Limit für das Senden von Einmalpasswörtern überschritten. Bitte versuchen Sie es später erneut.",
   "v2.error.suggestion-account-conflict-login-id": "Möchten Sie sich anmelden?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Sie können versuchen, sich mit {OAuthProviderNameExisting} anzumelden oder unten ein anderes {LoginIDNameIncoming} verwenden.} oauth {Sie können ein anderes {OAuthProviderNameIncoming}-Konto{ IdentityTypeExisting, select, login_id { oder unten Ihr {LoginIDNameExisting} verwenden.} other {oder eine andere Methode unten verwenden.} }} other {Sie können ein anderes Konto versuchen.} }",

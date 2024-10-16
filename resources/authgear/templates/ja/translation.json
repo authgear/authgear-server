@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "予期せぬ問題",
   "v2.error.server": "サーバーで内部エラーが発生しました。",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {この{LoginIDNameIncoming}は既に登録されています。} oauth {この{OAuthProviderNameIncoming}アカウントは既に登録されています。} other {このアカウントは既に登録されています。}}別のものを使用してください。",
+  "v2.error.settings-token-invalid": "<p>このページは無効か期限切れです。</p><p>戻って再試行してください。</p>",
   "v2.error.sms-send-limit-exceeded": "ワンタイムパスワードの送信回数の上限を超えました。後でもう一度お試しください。",
   "v2.error.suggestion-account-conflict-login-id": "ログインしますか?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {{OAuthProviderNameExisting}でログインするか、下の別の{LoginIDNameIncoming}を使ってください。} oauth {別の{OAuthProviderNameIncoming}アカウントを{ IdentityTypeExisting, select, login_id {使うか、下の{LoginIDNameExisting}を使ってください。} other {使うか、別の方法を使ってください。}} } other {別のアカウントを試してください。} }",

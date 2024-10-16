@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Problèmes inattendus",
   "v2.error.server": "Le serveur a rencontré une erreur interne.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Cette {LoginIDNameIncoming} est déjà enregistrée.} oauth {Ce compte {OAuthProviderNameIncoming} est déjà enregistré.} other {Ce compte est déjà enregistré.}} Veuillez en utiliser un autre.",
+  "v2.error.settings-token-invalid": "<p>Cette page est invalide ou a expiré.</p><p>Veuillez revenir et réessayer votre demande.</p>",
   "v2.error.sms-send-limit-exceeded": "Vous avez dépassé la limite d''envoi de mots de passe à usage unique. Veuillez réessayer plus tard.",
   "v2.error.suggestion-account-conflict-login-id": "Voulez-vous vous connecter ?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Vous pouvez essayer de vous connecter avec {OAuthProviderNameExisting} ou utiliser un autre {LoginIDNameIncoming} ci-dessous.} oauth {Vous pouvez essayer un autre compte {OAuthProviderNameIncoming}{ IdentityTypeExisting, select, login_id { ou utiliser votre {LoginIDNameExisting} ci-dessous.} other {ou utiliser une autre méthode ci-dessous.} }} other {Vous pouvez essayer un autre compte.} }",

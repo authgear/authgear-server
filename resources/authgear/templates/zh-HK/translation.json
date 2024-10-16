@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "系統錯誤",
   "v2.error.server": "伺服器內部錯誤。",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {這個 {LoginIDNameIncoming} 已經註冊。} oauth {這個 {OAuthProviderNameIncoming} 帳戶已經註冊。} other {這個帳戶已經註冊。}} 請使用另一個。",
+  "v2.error.settings-token-invalid": "<p>此頁面已失效或已過期，</p><p>請返回並重試。</p>",
   "v2.error.sms-send-limit-exceeded": "您已超過發送一次性密碼的次數限制。請稍侯片刻後重試。",
   "v2.error.suggestion-account-conflict-login-id": "您想改為登入嗎？",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {您可以嘗試以{OAuthProviderNameExisting} 登入或使用下面的另一個{LoginIDNameIncoming}。} oauth {您可以嘗試使用其他{OAuthProviderNameIncoming}帳戶{ IdentityTypeExisting, select, login_id {或使用下面的 {LoginIDNameExisting}。} other {或使用其他登入方式。} }} other {您可以嘗試其他帳戶。} }",
