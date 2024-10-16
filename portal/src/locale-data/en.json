@@ -923,7 +923,7 @@
   "oauth-client.application-type.spa": "Single Page Application",
   "oauth-client.application-type.traditional-webapp": "Traditional Web Application",
   "oauth-client.application-type.native": "Native App",
-  "oauth-client.application-type.confidential": "OIDC Client Application",
+  "oauth-client.application-type.confidential": "OIDC/SAML Client Application",
   "oauth-client.application-type.third-party-app": "OIDC Client Application (Legacy)",
 
   "CustomDomainListScreen.title": "Custom Domains",
