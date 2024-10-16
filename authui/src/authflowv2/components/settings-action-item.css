@@ -51,7 +51,7 @@
   }
 
   .settings-action-item__label-container {
-    @apply flex gap-x-2;
+    @apply flex gap-x-2 items-center;
   }
 
   .settings-action-item__description-container {

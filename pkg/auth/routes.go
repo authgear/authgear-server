@@ -258,6 +258,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	)
 	webappSettingsSubRoutesChain := httproute.Chain(
 		webappAuthenticatedChain,
+		p.Middleware(newWebAppSessionMiddleware),
 		p.Middleware(newRequireSettingsEnabledMiddleware),
 		// SettingsSubRoutesMiddleware should be added to all the settings sub routes only
 		// but no /settings itself
@@ -475,6 +476,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityNewUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityNewUsernameHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityViewUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityViewUsernameHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityEditUsername(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityEditUsernameHandler))
+	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityListOAuthRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityListOAuthHandler))
 	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsIdentityHandler))
 	router.Add(webapphandler.ConfigureSettingsBiometricRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
 		SettingV1: p.Handler(newWebAppSettingsBiometricHandler),

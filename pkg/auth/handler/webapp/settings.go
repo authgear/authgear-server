@@ -3,6 +3,7 @@ package webapp
 import (
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -15,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/sessionlisting"
+	"github.com/authgear/authgear-server/pkg/lib/webappoauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -34,6 +36,14 @@ func ConfigureSettingsRoute(route httproute.Route) httproute.Route {
 	return route.
 		WithMethods("OPTIONS", "GET", "POST").
 		WithPathPattern("/settings")
+}
+
+type SettingsEndpointsProvider interface {
+	SSOCallbackURL(provider string) *url.URL
+}
+
+type SettingsOAuthStateStore interface {
+	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
 }
 
 type SettingsAuthenticatorService interface {

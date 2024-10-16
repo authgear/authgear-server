@@ -12,7 +12,7 @@
 <div
   class="
     settings-action-item__container
-    {{ if .IconName }}settings-action-item__container-with-icon{{ end }}
+    {{ if or .IconName .CustomIcon }}settings-action-item__container-with-icon{{ end }}
     {{ if .ExtraContent }}settings-action-item__container-with-extra-content{{ end }}
   "
 >
@@ -50,6 +50,9 @@
 <div class="settings-action-item__label-container">
   {{ if .IconName }}
   <i class="settings-action-item__icon material-icons">{{ .IconName }}</i>
+  {{ end }}
+  {{ if .CustomIcon }}
+    {{ .CustomIcon }}
   {{ end }}
   <p class="settings-action-item__label">{{ .Label }}</p>
 </div>
