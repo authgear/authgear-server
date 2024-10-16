@@ -44,6 +44,8 @@ var ErrLDAPEndUserSearchNotFound = LDAPConnectionTestFailed.NewWithCause("end us
 var ErrLDAPEndUserSearchMultipleResult = LDAPConnectionTestFailed.NewWithCause("multiple end users found", apierrors.StringCause("MoreThanOneEntryInSearchResult"))
 var ErrLDAPMissingUniqueAttribute = LDAPConnectionTestFailed.NewWithCause("missing ID attribute", apierrors.StringCause("TestingEndUserMissingUserIDAttribute"))
 
+var OpenCVFRConnectionFailed = apierrors.ServiceUnavailable.WithReason("OpenCVFRConnectionFailed")
+
 var ErrGetUsersInvalidArgument = apierrors.Invalid.WithReason("GetUsersInvalidArgument")
 
 var ErrTaskNotFound = apierrors.NotFound.WithReason("TaskNotFound").New("task not found")

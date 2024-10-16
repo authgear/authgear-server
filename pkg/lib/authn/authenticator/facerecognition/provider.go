@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 
+	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/opencvfr"
 	opencvfrapi "github.com/authgear/authgear-server/pkg/lib/opencvfr/api"
@@ -127,7 +128,7 @@ func (p *Provider) ParseError(apiErr *opencvfr.APIError) error {
 	case opencvfr.UnexpectedError:
 		fallthrough
 	default:
-		return apiErr
+		return api.OpenCVFRConnectionFailed.New(apiErr.Message)
 	}
 }
 
