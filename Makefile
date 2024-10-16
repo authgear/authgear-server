@@ -191,7 +191,12 @@ clean:
 	# Otherwise the watcher is stopped.
 	rm -rf ./resources/authgear/generated/*
 	git checkout -- ./resources/authgear/generated/*
-	rm -rf ./portal/.parcel-cache
+	rm -rf ./portal/dist
+	git checkout -- ./portal/dist
+	rm -rf ./e2e/logs
+	git checkout -- ./e2e/logs
+	find . -name '.parcel-cache' -exec rm -rf '{}' \;
+	find . -name '.stylelintcache' -exec rm -rf '{}' \;
 
 .PHONY: export-schemas
 export-schemas:
