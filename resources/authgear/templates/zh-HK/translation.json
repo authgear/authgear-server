@@ -868,6 +868,7 @@
   "v2.component.authflow-branch.default.enter-totp-instead": "使用驗證器",
   "v2.component.authflow-branch.default.setup-email-otp-code-instead": "設定電郵",
   "v2.component.authflow-branch.default.setup-email-otp-link-instead": "設定電郵",
+  "v2.component.authflow-branch.default.setup-face-recognition-instead": "設置面部識別",
   "v2.component.authflow-branch.default.setup-oob-otp-without-verification": "下次透過 {target} 使用一次性密碼登入",
   "v2.component.authflow-branch.default.setup-password-instead": "設定密碼",
   "v2.component.authflow-branch.default.setup-phone-otp-sms-instead": "設定電話",

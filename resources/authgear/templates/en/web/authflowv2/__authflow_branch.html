@@ -59,6 +59,10 @@
         <span class="material-icons secondary-btn__icon">qr_code</span>
         {{ include "v2.component.authflow-branch.default.setup-totp-instead" nil }}
       {{- end }}
+      {{- if eq .Authentication "secondary_face_recognition" }}
+        <span class="material-icons secondary-btn__icon">photo_camera</span>
+        {{ include "v2.component.authflow-branch.default.setup-face-recognition-instead" nil }}
+      {{- end }}
       {{- if eq .Authentication "primary_oob_otp_email" }}
         <span class="material-icons secondary-btn__icon">mail</span>
         {{- if .VerificationSkippable }}
