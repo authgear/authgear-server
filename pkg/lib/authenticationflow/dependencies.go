@@ -231,6 +231,10 @@ type LDAPClientFactory interface {
 	MakeClient(serverConfig *config.LDAPServerConfig) *ldap.Client
 }
 
+type OpenCVFRService interface {
+	// TODO: Add service methods here
+}
+
 type UserFacade interface {
 	GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error)
 }
@@ -269,6 +273,7 @@ type Dependencies struct {
 	LoginIDs                        LoginIDService
 	LDAP                            LDAPService
 	LDAPClientFactory               LDAPClientFactory
+	OpenCVFR                        OpenCVFRService
 
 	IDPSessions          IDPSessionService
 	Sessions             SessionService

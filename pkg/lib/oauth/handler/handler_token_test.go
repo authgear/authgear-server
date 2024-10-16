@@ -34,7 +34,7 @@ func TestTokenHandler(t *testing.T) {
 		idTokenIssuer := NewMockIDTokenIssuer(ctrl)
 		idTokenIssuer.EXPECT().Iss().Return(origin).AnyTimes()
 
-		offlineGrants := oauth.NewMockOfflineGrantStore(ctrl)
+		offlineGrants := NewMockTokenHandlerOfflineGrantStore(ctrl)
 
 		authorizations := NewMockAuthorizationService(ctrl)
 

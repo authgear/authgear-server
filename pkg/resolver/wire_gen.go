@@ -9,6 +9,7 @@ package resolver
 import (
 	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
+	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/facerecognition"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
@@ -54,6 +55,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/pq"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/redis"
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
+	"github.com/authgear/authgear-server/pkg/lib/opencvfr"
+	"github.com/authgear/authgear-server/pkg/lib/opencvfr/api"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/session"
@@ -465,6 +468,42 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clock,
 	}
+	facerecognitionStore := &facerecognition.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	client := api.NewClient(environmentConfig)
+	personService := &api.PersonService{
+		HTTPClient: client,
+	}
+	collectionService := &api.CollectionService{
+		HTTPClient: client,
+	}
+	searchService := &api.SearchService{
+		HTTPClient: client,
+	}
+	livenessService := &api.LivenessService{
+		HTTPClient: client,
+	}
+	opencvfrStore := &opencvfr.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	opencvfrService := &opencvfr.Service{
+		Clock:                        clock,
+		AppID:                        appID,
+		AuthenticatorConfig:          authenticationConfig,
+		Person:                       personService,
+		Collection:                   collectionService,
+		Search:                       searchService,
+		Liveness:                     livenessService,
+		OpenCVFRCollectionIDMapStore: opencvfrStore,
+	}
+	facerecognitionProvider := &facerecognition.Provider{
+		Store:    facerecognitionStore,
+		OpenCVFR: opencvfrService,
+		Clock:    clock,
+	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -516,15 +555,16 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
-		Store:          store3,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+		Store:           store3,
+		Config:          appConfig,
+		Password:        passwordProvider,
+		Passkey:         provider2,
+		TOTP:            totpProvider,
+		OOBOTP:          oobProvider,
+		FaceRecognition: facerecognitionProvider,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
 	}
 	verificationConfig := appConfig.Verification
 	userProfileConfig := appConfig.UserProfile
@@ -653,7 +693,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
+	elasticsearchClient := elasticsearch.NewClient(elasticsearchCredentials)
 	queue := appProvider.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clock)
 	elasticsearchService := elasticsearch.Service{
@@ -662,7 +702,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Database:        appdbHandle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
-		Client:          client,
+		Client:          elasticsearchClient,
 		Users:           userQueries,
 		UserStore:       userStore,
 		IdentityService: serviceService,
@@ -1168,6 +1208,42 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		LoginIDNormalizerFactory: normalizerFactory,
 		Clock:                    clockClock,
 	}
+	facerecognitionStore := &facerecognition.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	client := api.NewClient(environmentConfig)
+	personService := &api.PersonService{
+		HTTPClient: client,
+	}
+	collectionService := &api.CollectionService{
+		HTTPClient: client,
+	}
+	searchService := &api.SearchService{
+		HTTPClient: client,
+	}
+	livenessService := &api.LivenessService{
+		HTTPClient: client,
+	}
+	opencvfrStore := &opencvfr.Store{
+		SQLBuilder:  sqlBuilderApp,
+		SQLExecutor: sqlExecutor,
+	}
+	opencvfrService := &opencvfr.Service{
+		Clock:                        clockClock,
+		AppID:                        appID,
+		AuthenticatorConfig:          authenticationConfig,
+		Person:                       personService,
+		Collection:                   collectionService,
+		Search:                       searchService,
+		Liveness:                     livenessService,
+		OpenCVFRCollectionIDMapStore: opencvfrStore,
+	}
+	facerecognitionProvider := &facerecognition.Provider{
+		Store:    facerecognitionStore,
+		OpenCVFR: opencvfrService,
+		Clock:    clockClock,
+	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
 	codeStoreRedis := &otp.CodeStoreRedis{
@@ -1219,15 +1295,16 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Provider: lockoutService,
 	}
 	service3 := &service2.Service{
-		Store:          serviceStore,
-		Config:         appConfig,
-		Password:       passwordProvider,
-		Passkey:        provider2,
-		TOTP:           totpProvider,
-		OOBOTP:         oobProvider,
-		OTPCodeService: otpService,
-		RateLimits:     rateLimits,
-		Lockout:        serviceLockout,
+		Store:           serviceStore,
+		Config:          appConfig,
+		Password:        passwordProvider,
+		Passkey:         provider2,
+		TOTP:            totpProvider,
+		OOBOTP:          oobProvider,
+		FaceRecognition: facerecognitionProvider,
+		OTPCodeService:  otpService,
+		RateLimits:      rateLimits,
+		Lockout:         serviceLockout,
 	}
 	imagesCDNHost := environmentConfig.ImagesCDNHost
 	pictureTransformer := &stdattrs2.PictureTransformer{

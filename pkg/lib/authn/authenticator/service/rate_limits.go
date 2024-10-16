@@ -13,6 +13,7 @@ const (
 	VerifyTOTPPerIP            ratelimit.BucketName = "VerifyTOTPPerIP"
 	VerifyTOTPPerUserPerIP     ratelimit.BucketName = "VerifyTOTPPerUserPerIP"
 	VerifyPasskeyPerIP         ratelimit.BucketName = "VerifyPasskeyPerIP"
+	VerifyFaceRecognitionPerIP ratelimit.BucketName = "VerifyFaceRecognitionPerIP"
 )
 
 type RateLimiter interface {
@@ -89,6 +90,14 @@ func (l *RateLimits) specPerIP(authType model.AuthenticatorType) ratelimit.Bucke
 			string(l.IP),
 		)
 
+	case model.AuthenticatorTypeFaceRecognition:
+		config := l.Config.RateLimits.General.PerIP // TODO (identity-week-demo): support face-recognition specific rate limits
+
+		return ratelimit.NewBucketSpec(
+			config, VerifyFaceRecognitionPerIP,
+			string(l.IP),
+		)
+
 	default:
 		panic("authenticator: unknown type: " + authType)
 	}
@@ -124,6 +133,13 @@ func (l *RateLimits) specPerUserPerIP(userID string, authType model.Authenticato
 		// Per-user rate limit for passkey is handled as account enumeration rate limit,
 		// since we lookup user by passkey credential ID.
 		return ratelimit.BucketSpecDisabled
+
+	case model.AuthenticatorTypeFaceRecognition:
+		config := l.Config.RateLimits.General.PerUserPerIP // TODO (identity-week-demo): support face-recognition specific rate limits
+		return ratelimit.NewBucketSpec(
+			config, VerifyFaceRecognitionPerIP,
+			userID, string(l.IP),
+		)
 
 	default:
 		panic("authenticator: unknown type: " + authType)

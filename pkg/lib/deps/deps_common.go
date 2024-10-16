@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
+	authenticatorfacerecognition "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/facerecognition"
 	authenticatoroob "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	authenticatorpasskey "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
 	authenticatorpassword "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/password"
@@ -48,6 +49,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
+	"github.com/authgear/authgear-server/pkg/lib/opencvfr"
+	opencvfrapi "github.com/authgear/authgear-server/pkg/lib/opencvfr/api"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
@@ -233,12 +236,14 @@ var CommonDependencySet = wire.NewSet(
 		authenticatoroob.DependencySet,
 		authenticatortotp.DependencySet,
 		authenticatorpasskey.DependencySet,
+		authenticatorfacerecognition.DependencySet,
 
 		authenticatorservice.DependencySet,
 		wire.Bind(new(authenticatorservice.PasswordAuthenticatorProvider), new(*authenticatorpassword.Provider)),
 		wire.Bind(new(authenticatorservice.PasskeyAuthenticatorProvider), new(*authenticatorpasskey.Provider)),
 		wire.Bind(new(authenticatorservice.OOBOTPAuthenticatorProvider), new(*authenticatoroob.Provider)),
 		wire.Bind(new(authenticatorservice.TOTPAuthenticatorProvider), new(*authenticatortotp.Provider)),
+		wire.Bind(new(authenticatorservice.FaceRecognitionAuthenticatorProvider), new(*authenticatorfacerecognition.Provider)),
 
 		wire.Bind(new(facade.AuthenticatorService), new(*authenticatorservice.Service)),
 		wire.Bind(new(user.AuthenticatorService), new(*authenticatorservice.Service)),
@@ -401,6 +406,20 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		ldap.DependencySet,
 		wire.Bind(new(authenticationflow.LDAPClientFactory), new(*ldap.ClientFactory)),
+	),
+
+	wire.NewSet(
+		opencvfr.DependencySet,
+		wire.Bind(new(authenticationflow.OpenCVFRService), new(*opencvfr.Service)),
+		wire.Bind(new(authenticatorfacerecognition.OpenCVFRService), new(*opencvfr.Service)),
+	),
+
+	wire.NewSet(
+		opencvfrapi.DependencySet,
+		wire.Bind(new(opencvfr.PersonService), new(*opencvfrapi.PersonService)),
+		wire.Bind(new(opencvfr.CollectionService), new(*opencvfrapi.CollectionService)),
+		wire.Bind(new(opencvfr.SearchService), new(*opencvfrapi.SearchService)),
+		wire.Bind(new(opencvfr.LivenessService), new(*opencvfrapi.LivenessService)),
 	),
 
 	wire.NewSet(

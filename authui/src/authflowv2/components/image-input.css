@@ -1,0 +1,34 @@
+@layer components {
+  :root {
+    --overlay__bg-color: var(--color-surface-primary);
+  }
+
+  .camera {
+    @apply fixed inset-0;
+    @apply hidden;
+    @apply w-[100vw] h-[100vh];
+    background-color: var(--overlay__bg-color);
+
+    &.open {
+      @apply flex;
+      @apply items-center;
+    }
+
+    /* actual camera interface */
+    video {
+      @apply w-full h-full;
+      object-fit: cover;
+    }
+
+    /* button overlay */
+    .take-photo-btn {
+      @apply fixed;
+      @apply bottom-[10%];
+      @apply left-1/2;
+      @apply w-24 h-24;
+      @apply translate-x-[-50%] translate-y-[-50%];
+      @apply rounded-full;
+      @apply flex items-center justify-center; /* center content */
+    }
+  }
+}

@@ -58,6 +58,9 @@ func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
 					Authentication: config.AuthenticationFlowAuthenticationSecondaryTOTP,
 				},
 				{
+					Authentication: config.AuthenticationFlowAuthenticationSecondaryFaceRecognition,
+				},
+				{
 					Authentication: config.AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
 				},
 				{
@@ -150,6 +153,20 @@ func TestInputSchemaSignupFlowStepCreateAuthenticator(t *testing.T) {
             },
             "required": [
                 "authentication"
+            ]
+        },
+        {
+            "properties": {
+                "authentication": {
+                    "const": "secondary_face_recognition"
+                },
+                "b64_image": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "authentication",
+                "b64_image"
             ]
         },
         {

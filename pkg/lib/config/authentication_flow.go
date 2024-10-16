@@ -199,6 +199,7 @@ var _ = Schema.Add("AuthenticationFlowSignupFlowAuthenticate", `
 				"primary_oob_otp_sms",
 				"secondary_password",
 				"secondary_totp",
+				"secondary_face_recognition",
 				"secondary_oob_otp_email",
 				"secondary_oob_otp_sms"
 			]
@@ -343,6 +344,7 @@ var _ = Schema.Add("AuthenticationFlowLoginFlowAuthenticate", `
 				"primary_oob_otp_sms",
 				"secondary_password",
 				"secondary_totp",
+				"secondary_face_recognition",
 				"secondary_oob_otp_email",
 				"secondary_oob_otp_sms",
 				"recovery_code",
@@ -763,6 +765,7 @@ func (m AuthenticationFlowIdentification) SecondaryAuthentications() []Authentic
 		AuthenticationFlowAuthenticationSecondaryTOTP,
 		AuthenticationFlowAuthenticationSecondaryOOBOTPEmail,
 		AuthenticationFlowAuthenticationSecondaryOOBOTPSMS,
+		AuthenticationFlowAuthenticationSecondaryFaceRecognition,
 	}
 	switch m {
 	case AuthenticationFlowIdentificationEmail:
@@ -787,16 +790,17 @@ func (m AuthenticationFlowIdentification) SecondaryAuthentications() []Authentic
 type AuthenticationFlowAuthentication string
 
 const (
-	AuthenticationFlowAuthenticationPrimaryPassword      AuthenticationFlowAuthentication = "primary_password"
-	AuthenticationFlowAuthenticationPrimaryPasskey       AuthenticationFlowAuthentication = "primary_passkey"
-	AuthenticationFlowAuthenticationPrimaryOOBOTPEmail   AuthenticationFlowAuthentication = "primary_oob_otp_email"
-	AuthenticationFlowAuthenticationPrimaryOOBOTPSMS     AuthenticationFlowAuthentication = "primary_oob_otp_sms"
-	AuthenticationFlowAuthenticationSecondaryPassword    AuthenticationFlowAuthentication = "secondary_password"
-	AuthenticationFlowAuthenticationSecondaryTOTP        AuthenticationFlowAuthentication = "secondary_totp"
-	AuthenticationFlowAuthenticationSecondaryOOBOTPEmail AuthenticationFlowAuthentication = "secondary_oob_otp_email"
-	AuthenticationFlowAuthenticationSecondaryOOBOTPSMS   AuthenticationFlowAuthentication = "secondary_oob_otp_sms"
-	AuthenticationFlowAuthenticationRecoveryCode         AuthenticationFlowAuthentication = "recovery_code"
-	AuthenticationFlowAuthenticationDeviceToken          AuthenticationFlowAuthentication = "device_token"
+	AuthenticationFlowAuthenticationPrimaryPassword          AuthenticationFlowAuthentication = "primary_password"
+	AuthenticationFlowAuthenticationPrimaryPasskey           AuthenticationFlowAuthentication = "primary_passkey"
+	AuthenticationFlowAuthenticationPrimaryOOBOTPEmail       AuthenticationFlowAuthentication = "primary_oob_otp_email"
+	AuthenticationFlowAuthenticationPrimaryOOBOTPSMS         AuthenticationFlowAuthentication = "primary_oob_otp_sms"
+	AuthenticationFlowAuthenticationSecondaryPassword        AuthenticationFlowAuthentication = "secondary_password"
+	AuthenticationFlowAuthenticationSecondaryTOTP            AuthenticationFlowAuthentication = "secondary_totp"
+	AuthenticationFlowAuthenticationSecondaryOOBOTPEmail     AuthenticationFlowAuthentication = "secondary_oob_otp_email"
+	AuthenticationFlowAuthenticationSecondaryOOBOTPSMS       AuthenticationFlowAuthentication = "secondary_oob_otp_sms"
+	AuthenticationFlowAuthenticationSecondaryFaceRecognition AuthenticationFlowAuthentication = "secondary_face_recognition"
+	AuthenticationFlowAuthenticationRecoveryCode             AuthenticationFlowAuthentication = "recovery_code"
+	AuthenticationFlowAuthenticationDeviceToken              AuthenticationFlowAuthentication = "device_token"
 )
 
 func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.AuthenticatorKind {
@@ -812,6 +816,8 @@ func (m AuthenticationFlowAuthentication) AuthenticatorKind() model.Authenticato
 	case AuthenticationFlowAuthenticationSecondaryPassword:
 		fallthrough
 	case AuthenticationFlowAuthenticationSecondaryTOTP:
+		fallthrough
+	case AuthenticationFlowAuthenticationSecondaryFaceRecognition:
 		fallthrough
 	case AuthenticationFlowAuthenticationSecondaryOOBOTPEmail:
 		fallthrough

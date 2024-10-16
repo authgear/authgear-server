@@ -4,8 +4,8 @@ import (
 	"net/http"
 )
 
-// MaxBodySize is the maximum size of HTTP request body: 1MB.
-const MaxBodySize = 1 * 1024 * 1024
+// MaxBodySize is the maximum size of HTTP request body: 3MB.
+const MaxBodySize = 10 * 1024 * 1024
 
 type BodyLimitMiddleware struct {
 }

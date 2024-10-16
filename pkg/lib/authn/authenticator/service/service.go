@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/opencvfr"
 )
 
 type PasswordAuthenticatorProvider interface {
@@ -66,20 +67,32 @@ type OOBOTPAuthenticatorProvider interface {
 	Delete(*authenticator.OOBOTP) error
 }
 
+type FaceRecognitionAuthenticatorProvider interface {
+	Get(userID, id string) (*authenticator.FaceRecognition, error)
+	GetMany(ids []string) ([]*authenticator.FaceRecognition, error)
+	List(userID string) ([]*authenticator.FaceRecognition, error)
+	New(id string, userID string, frSpec *authenticator.FaceRecognitionSpec, isDefault bool, kind string) (*authenticator.FaceRecognition, error)
+	Create(*authenticator.FaceRecognition) error
+	Delete(*authenticator.FaceRecognition) error
+	Authenticate(a *authenticator.FaceRecognition, code string) error
+	ParseError(apiErr *opencvfr.APIError) error
+}
+
 type OTPCodeService interface {
 	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 }
 
 type Service struct {
-	Store          *Store
-	Config         *config.AppConfig
-	Password       PasswordAuthenticatorProvider
-	Passkey        PasskeyAuthenticatorProvider
-	TOTP           TOTPAuthenticatorProvider
-	OOBOTP         OOBOTPAuthenticatorProvider
-	OTPCodeService OTPCodeService
-	RateLimits     RateLimits
-	Lockout        Lockout
+	Store           *Store
+	Config          *config.AppConfig
+	Password        PasswordAuthenticatorProvider
+	Passkey         PasskeyAuthenticatorProvider
+	TOTP            TOTPAuthenticatorProvider
+	OOBOTP          OOBOTPAuthenticatorProvider
+	FaceRecognition FaceRecognitionAuthenticatorProvider
+	OTPCodeService  OTPCodeService
+	RateLimits      RateLimits
+	Lockout         Lockout
 }
 
 func (s *Service) Get(id string) (*authenticator.Info, error) {
@@ -116,6 +129,12 @@ func (s *Service) Get(id string) (*authenticator.Info, error) {
 			return nil, err
 		}
 		return o.ToInfo(), nil
+	case model.AuthenticatorTypeFaceRecognition:
+		f, err := s.FaceRecognition.Get(ref.UserID, id)
+		if err != nil {
+			return nil, err
+		}
+		return f.ToInfo(), nil
 	}
 
 	panic("authenticator: unknown authenticator type " + ref.Type)
@@ -127,7 +146,7 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 		return nil, err
 	}
 
-	var passwordIDs, passkeyIDs, totpIDs, oobIDs []string
+	var passwordIDs, passkeyIDs, totpIDs, oobIDs, faceRecognitionIDs []string
 	for _, ref := range refs {
 		switch ref.Type {
 		case model.AuthenticatorTypePassword:
@@ -138,6 +157,8 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 			totpIDs = append(totpIDs, ref.ID)
 		case model.AuthenticatorTypeOOBEmail, model.AuthenticatorTypeOOBSMS:
 			oobIDs = append(oobIDs, ref.ID)
+		case model.AuthenticatorTypeFaceRecognition:
+			faceRecognitionIDs = append(faceRecognitionIDs, ref.ID)
 		default:
 			panic("authenticator: unknown authenticator type " + ref.Type)
 		}
@@ -180,6 +201,16 @@ func (s *Service) GetMany(ids []string) ([]*authenticator.Info, error) {
 			return nil, err
 		}
 		for _, a := range o {
+			infos = append(infos, a.ToInfo())
+		}
+	}
+
+	{
+		f, err := s.FaceRecognition.GetMany(faceRecognitionIDs)
+		if err != nil {
+			return nil, err
+		}
+		for _, a := range f {
 			infos = append(infos, a.ToInfo())
 		}
 	}
@@ -258,6 +289,17 @@ func (s *Service) ListByUserIDs(userIDs []string, filters ...authenticator.Filte
 			return nil, err
 		}
 		for _, i := range oobotps {
+			infos = append(infos, i.ToInfo())
+		}
+	}
+
+	// face recognition
+	if faceRecognitionRefs, ok := refsByType[model.AuthenticatorTypeFaceRecognition]; ok && len(faceRecognitionRefs) > 0 {
+		frs, err := s.FaceRecognition.GetMany(extractIDs(faceRecognitionRefs))
+		if err != nil {
+			return nil, err
+		}
+		for _, i := range frs {
 			infos = append(infos, i.ToInfo())
 		}
 	}
@@ -360,6 +402,16 @@ func (s *Service) NewWithAuthenticatorID(authenticatorID string, spec *authentic
 		}
 		return o.ToInfo(), nil
 
+	case model.AuthenticatorTypeFaceRecognition:
+		f, err := s.FaceRecognition.New(authenticatorID, spec.UserID, spec.FaceRecognition, spec.IsDefault, string(spec.Kind))
+		if err != nil {
+			apiErr := opencvfr.AsAPIError(err)
+			if apiErr != nil {
+				err = s.FaceRecognition.ParseError(apiErr)
+			}
+			return nil, err
+		}
+		return f.ToInfo(), nil
 	}
 
 	panic("authenticator: unknown authenticator type " + spec.Type)
@@ -457,6 +509,12 @@ func (s *Service) Create(info *authenticator.Info) error {
 		}
 		*info = *a.ToInfo()
 
+	case model.AuthenticatorTypeFaceRecognition:
+		a := info.FaceRecognition
+		if err := s.FaceRecognition.Create(a); err != nil {
+			return err
+		}
+		*info = *a.ToInfo()
 	default:
 		panic("authenticator: unknown authenticator type " + info.Type)
 	}
@@ -527,6 +585,12 @@ func (s *Service) Delete(info *authenticator.Info) error {
 		}
 		*info = *a.ToInfo()
 
+	case model.AuthenticatorTypeFaceRecognition:
+		a := info.FaceRecognition
+		if err := s.FaceRecognition.Delete(a); err != nil {
+			return err
+		}
+		*info = *a.ToInfo()
 	default:
 		panic("authenticator: delete authenticator is not supported yet for type " + info.Type)
 	}
@@ -602,6 +666,20 @@ func (s *Service) verifyWithSpec(info *authenticator.Info, spec *authenticator.S
 			return nil, err
 		}
 		// Do not update info because by definition OOBOTP does not update itself during verification.
+
+		return verifyResult, nil
+	case model.AuthenticatorTypeFaceRecognition:
+		image := spec.FaceRecognition.B64ImageString
+		a := info.FaceRecognition
+		err = s.FaceRecognition.Authenticate(a, image)
+		if err != nil {
+			apiErr := opencvfr.AsAPIError(err)
+			if apiErr != nil {
+				err = s.FaceRecognition.ParseError(apiErr)
+			}
+			return nil, err
+		}
+		*info = *a.ToInfo()
 
 		return verifyResult, nil
 	}

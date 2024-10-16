@@ -200,6 +200,12 @@ func (i *IntentLoginFlowStepCreateAuthenticator) ReactTo(ctx context.Context, de
 					return nil, err
 				}
 				return authflow.NewSubFlow(intent), nil
+			case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+				return authflow.NewSubFlow(&IntentCreateAuthenticatorFaceRecognition{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput

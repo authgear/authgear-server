@@ -49,6 +49,11 @@ func (i *InputSchemaSignupFlowStepCreateAuthenticator) SchemaBuilder() validatio
 			// No other property is required.
 			b.Required(required...)
 			oneOf = append(oneOf, b)
+		case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+			required = append(required, "b64_image")
+			b.Properties().Property("b64_image", validation.SchemaBuilder{}.Type(validation.TypeString))
+			b.Required(required...)
+			oneOf = append(oneOf, b)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPEmail:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:

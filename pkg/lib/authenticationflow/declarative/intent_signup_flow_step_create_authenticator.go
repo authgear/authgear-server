@@ -35,6 +35,9 @@ func init() {
 //
 //   IntentCreateAuthenticatorTOTP (MilestoneFlowCreateAuthenticator, MilestoneFlowSelectAuthenticationMethod, MilestoneFlowDidSelectAuthenticationMethod)
 //     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
+//
+//   IntentCreateAuthenticatorFaceRecognition (MilestoneFlowCreateAuthenticator, MilestoneFlowSelectAuthenticationMethod, MilestoneFlowDidSelectAuthenticationMethod)
+//     NodeDoCreateAuthenticator (MilestoneDoCreateAuthenticator)
 
 type IntentSignupFlowStepCreateAuthenticator struct {
 	FlowReference          authflow.FlowReference `json:"flow_reference,omitempty"`
@@ -205,6 +208,12 @@ func (i *IntentSignupFlowStepCreateAuthenticator) ReactTo(ctx context.Context, d
 					return nil, err
 				}
 				return authflow.NewSubFlow(intent), nil
+			case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+				return authflow.NewSubFlow(&IntentCreateAuthenticatorFaceRecognition{
+					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
+					UserID:         i.UserID,
+					Authentication: authentication,
+				}), nil
 			}
 		}
 		return nil, authflow.ErrIncompatibleInput
@@ -425,6 +434,8 @@ func (i *IntentSignupFlowStepCreateAuthenticator) findAuthenticatorByOption(in [
 		return findSMSOOB(in, authenticator.KindSecondary, option.UnmaskedTarget)
 	case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 		return findTOTP(in, authenticator.KindSecondary)
+	case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+		return findFaceRecognition(in, authenticator.KindSecondary)
 	}
 	return nil
 }

@@ -43,11 +43,13 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteEnterPassword     = "/authflow/v2/enter_password"
 	AuthflowV2RouteEnterRecoveryCode = "/authflow/v2/enter_recovery_code"
+	AuthflowV2RouteEnterFaceImage    = "/authflow/v2/enter_face_image"
 	AuthflowV2RouteEnterOOBOTP       = "/authflow/v2/enter_oob_otp"
 	AuthflowV2RouteOOBOTPLink        = "/authflow/v2/oob_otp_link"
 	AuthflowV2RouteVerifyLink        = "/authflow/v2/verify_login_link"
 	AuthflowV2RouteEnterTOTP         = "/authflow/v2/enter_totp"
 	AuthflowV2RouteSetupTOTP         = "/authflow/v2/setup_totp"
+	AuthflowV2RouteSetupFaceImage    = "/authflow/v2/setup_face_image"
 	AuthflowV2RouteSetupOOBOTP       = "/authflow/v2/setup_oob_otp"
 
 	AuthflowV2RouteLDAPLogin = "/authflow/v2/ldap_login"
@@ -268,6 +270,8 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 			default:
 				panic(fmt.Errorf("unexpected data: %T", s.StateTokenFlowResponse.Action.Data))
 			}
+		case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+			s.Advance(AuthflowV2RouteSetupFaceImage, result)
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", s.StateTokenFlowResponse.Action.Authentication))
 		}
@@ -394,6 +398,8 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
 			s.Advance(AuthflowV2RouteSetupOOBOTP, result)
+		case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+			s.Advance(AuthflowV2RouteSetupFaceImage, result)
 		default:
 			panic(fmt.Errorf("unexpected authentication: %v", s.StateTokenFlowResponse.Action.Authentication))
 		}
@@ -413,6 +419,8 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 			panic(fmt.Errorf("unexpected data type: %T", s.StateTokenFlowResponse.Action.Data))
 		case config.AuthenticationFlowAuthenticationSecondaryTOTP:
 			s.Advance(AuthflowV2RouteEnterTOTP, result)
+		case config.AuthenticationFlowAuthenticationSecondaryFaceRecognition:
+			s.Advance(AuthflowV2RouteEnterFaceImage, result)
 		case config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS:
 			fallthrough
 		case config.AuthenticationFlowAuthenticationSecondaryOOBOTPSMS:
