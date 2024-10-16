@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Hindi inaasahang Mga Isyu",
   "v2.error.server": "Nakatagpo ang server ng isang panloob na error.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Ang {LoginIDNameIncoming} na ito ay nakarehistro na.} oauth {Ang {OAuthProviderNameIncoming} account na ito ay nakarehistro na.} other {Ang account na ito ay nakarehistro na.}} Mangyaring gumamit ng iba.",
+  "v2.error.settings-token-invalid": "<p>Ang pahinang ito ay hindi balido o nag-expire na.</p><p>Mangyaring bumalik at subukang muli ang iyong kahilingan.</p>",
   "v2.error.sms-send-limit-exceeded": "Lumampas ka na sa limitasyon sa pagpapadala ng mga one-time password. Pakisubukang muli mamaya.",
   "v2.error.suggestion-account-conflict-login-id": "Gusto mo bang mag-login?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Maaari mong subukan mag-login gamit ang {OAuthProviderNameExisting} o gumamit ng ibang {LoginIDNameIncoming} sa ibaba.} oauth {Maaari mong subukan ang ibang {OAuthProviderNameIncoming} account{ IdentityTypeExisting, select, login_id { o gumamit ng iyong {LoginIDNameExisting} sa ibaba.} other {o gumamit ng ibang paraan sa ibaba.} }} other {Maaari mong subukan ang ibang account.} }",

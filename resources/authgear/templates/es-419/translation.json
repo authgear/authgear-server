@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Problemas inesperados",
   "v2.error.server": "El servidor encontró un error interno.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Este {LoginIDNameIncoming} ya está registrado.} oauth {Esta cuenta de {OAuthProviderNameIncoming} ya está registrada.} other {Esta cuenta ya está registrada.}} Por favor, utiliza otra.",
+  "v2.error.settings-token-invalid": "<p>Esta página no es válida o ha caducado.</p><p>Por favor, vuelve a intentarlo.</p>",
   "v2.error.sms-send-limit-exceeded": "Ha superado el límite de envío de contraseñas de un solo uso. Inténtelo de nuevo más tarde.",
   "v2.error.suggestion-account-conflict-login-id": "¿Quieres iniciar sesión?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Puedes intentar iniciar sesión con {OAuthProviderNameExisting} o usar otro {LoginIDNameIncoming} a continuación.} oauth {Puedes intentar otra cuenta {OAuthProviderNameIncoming}{ IdentityTypeExisting, select, login_id { o usar tu {LoginIDNameExisting} a continuación.} other {o usar otro método a continuación.} }} other {Puedes intentar otra cuenta.} }",

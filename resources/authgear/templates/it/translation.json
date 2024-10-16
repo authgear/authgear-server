@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Problemi imprevisti",
   "v2.error.server": "Il server ha riscontrato un errore interno.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Questo {LoginIDNameIncoming} è già registrato.} oauth {Questo account {OAuthProviderNameIncoming} è già registrato.} other {Questo account è già registrato.}} Utilizza un''altro account.",
+  "v2.error.settings-token-invalid": "<p>Questa pagina non è valida o è scaduta.</p><p>Si prega di tornare indietro e riprovare la richiesta.</p>",
   "v2.error.sms-send-limit-exceeded": "Hai superato il limite di invio di password monouso. Per favore, riprova più tardi.",
   "v2.error.suggestion-account-conflict-login-id": "Vuoi accedere?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Puoi provare ad accedere con {OAuthProviderNameExisting} o utilizzare un altro {LoginIDNameIncoming} di seguito.} oauth {Puoi provare un altro account {OAuthProviderNameIncoming}{ IdentityTypeExisting, select, login_id { o utilizzare il tuo {LoginIDNameExisting} di seguito.} other {o utilizzare un altro metodo di seguito.} }} other {Puoi provare un altro account.} }",

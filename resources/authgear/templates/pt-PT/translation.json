@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Problemas Inesperados",
   "v2.error.server": "O servidor encontrou um erro interno.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Este {LoginIDNameIncoming} já está registado.} oauth {Esta conta {OAuthProviderNameIncoming} já está registada.} other {Esta conta já está registada.}} Por favor utilize outra.",
+  "v2.error.settings-token-invalid": "<p>Esta página é inválida ou expirou.</p><p>Por favor, volte e tente novamente o seu pedido.</p>",
   "v2.error.sms-send-limit-exceeded": "Você excedeu o limite de envio de senhas de uso único. Por favor, tente novamente mais tarde.",
   "v2.error.suggestion-account-conflict-login-id": "Você quer fazer login?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Você pode tentar login com {OAuthProviderNameExisting} ou usar outro {LoginIDNameIncoming} abaixo.} oauth {Você pode tentar outra conta {OAuthProviderNameIncoming}{ IdentityTypeExisting, select, login_id { ou usar seu {LoginIDNameExisting} abaixo.} other {ou usar outro método abaixo.} }} other {Você pode tentar outra conta.} }",
