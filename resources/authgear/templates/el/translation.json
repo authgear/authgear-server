@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "Κοινωνικός Λογαριασμός",
   "v2.page.settings-identity-phone.default.title": "Τηλέφωνο",
   "v2.page.settings-identity-verify-email.default.title": "Επαλήθευση",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Ρύθμιση τηλεφώνου",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "Ρύθμιση WhatsApp",
   "v2.page.settings-identity-verify-phone.default.title": "Επαλήθευση",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "Επεξεργασία",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "Αφαίρεση αυτού του email",

@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "บัญชีสังคม",
   "v2.page.settings-identity-phone.default.title": "โทรศัพท์",
   "v2.page.settings-identity-verify-email.default.title": "การยืนยัน",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "ตั้งค่าโทรศัพท์",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "ตั้งค่า WhatsApp",
   "v2.page.settings-identity-verify-phone.default.title": "การยืนยัน",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "แก้ไข",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "นำอีเมลนี้ออก",

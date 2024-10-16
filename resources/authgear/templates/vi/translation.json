@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "Tài khoản mạng xã hội",
   "v2.page.settings-identity-phone.default.title": "Điện thoại",
   "v2.page.settings-identity-verify-email.default.title": "Xác minh",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Thiết lập điện thoại",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "Thiết lập WhatsApp",
   "v2.page.settings-identity-verify-phone.default.title": "Xác Minh",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "Chỉnh sửa",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "Xóa email này",

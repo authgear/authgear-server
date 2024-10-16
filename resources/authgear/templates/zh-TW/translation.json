@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "社交帳戶",
   "v2.page.settings-identity-phone.default.title": "電話",
   "v2.page.settings-identity-verify-email.default.title": "驗證",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "設置手機",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "設置 WhatsApp",
   "v2.page.settings-identity-verify-phone.default.title": "驗證",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "編輯",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "刪除電子郵件",

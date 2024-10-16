@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "소셜 계정",
   "v2.page.settings-identity-phone.default.title": "전화번호",
   "v2.page.settings-identity-verify-email.default.title": "인증",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "전화번호 설정",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "WhatsApp 설정",
   "v2.page.settings-identity-verify-phone.default.title": "인증",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "편집",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "이 이메일 제거",

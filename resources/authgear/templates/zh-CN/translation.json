@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "社交账户",
   "v2.page.settings-identity-phone.default.title": "电话",
   "v2.page.settings-identity-verify-email.default.title": "验证",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "设置手机",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "设置 WhatsApp",
   "v2.page.settings-identity-verify-phone.default.title": "验证",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "编辑",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "移除此电子邮件",

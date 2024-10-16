@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "Account sa Sosyal",
   "v2.page.settings-identity-phone.default.title": "Telepono",
   "v2.page.settings-identity-verify-email.default.title": "Pagpapatunay",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Mag-set up ng telepono",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "Mag-set up ng WhatsApp",
   "v2.page.settings-identity-verify-phone.default.title": "Pagpapatunay",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "I-edit",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "Alisin ang email na ito",

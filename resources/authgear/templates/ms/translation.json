@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "Akaun Sosial",
   "v2.page.settings-identity-phone.default.title": "Telefon",
   "v2.page.settings-identity-verify-email.default.title": "Pengesahan",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Sediakan telefon",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "Sediakan WhatsApp",
   "v2.page.settings-identity-verify-phone.default.title": "Pengesahan",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "Edit",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "Buang emel ini",
