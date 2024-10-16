@@ -868,6 +868,7 @@
   "v2.component.authflow-branch.default.enter-totp-instead": "Use Authenticator",
   "v2.component.authflow-branch.default.setup-email-otp-code-instead": "Set up email",
   "v2.component.authflow-branch.default.setup-email-otp-link-instead": "Set up email",
+  "v2.component.authflow-branch.default.setup-face-recognition-instead": "Set up face recognition",
   "v2.component.authflow-branch.default.setup-oob-otp-without-verification": "Sign in with one-time password via {target} next time",
   "v2.component.authflow-branch.default.setup-password-instead": "Set up password",
   "v2.component.authflow-branch.default.setup-phone-otp-sms-instead": "Set up phone",

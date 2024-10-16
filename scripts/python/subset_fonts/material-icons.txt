@@ -12,6 +12,7 @@ block
 border_color
 box
 call
+camera
 cancel
 check
 check_circle
@@ -90,6 +91,7 @@ person_remove
 phone
 phone_iphone
 photo
+photo_camera
 place
 policy
 post
@@ -131,6 +133,7 @@ start
 step
 storage
 store
+stream
 style
 support
 switch
