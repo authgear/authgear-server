@@ -112,3 +112,7 @@
     --primary-btn__bg-color--active: var(--color-destructive-dark);
   }
 }
+
+.primary-btn__icon {
+  font-size: calc(1.5 * var(--primary-btn__font-size)) /* 24 / 16 = 1.5 */;
+}

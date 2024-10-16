@@ -43,7 +43,9 @@
   {{/* TODO: (identity-week-demo) Move this cameraContinaer to a root-level element, to prevent siblings absolute-positioned elements covering this*/}}
   <div data-image-input-target="cameraContainer" class="camera">
     <video data-image-input-target="cameraVideo">Video stream not available.</video>
-    <button type="button" data-action="image-input#takePhoto image-input#submitForm" class="takePhotoBtn primary-btn">Take photo</button>
+    <button type="button" data-action="image-input#takePhoto image-input#submitForm" class="take-photo-btn primary-btn">
+      <span class="material-icons primary-btn__icon">photo_camera</span>
+    </button>
   </div>
   <canvas data-image-input-target="canvas" class="hidden"></canvas>
   <input 

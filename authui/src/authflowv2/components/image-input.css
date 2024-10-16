@@ -21,7 +21,7 @@
     }
 
     /* button overlay */
-    .takePhotoBtn {
+    .take-photo-btn {
       @apply fixed;
       @apply bottom-[10%];
       @apply left-1/2;
