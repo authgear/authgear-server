@@ -1136,6 +1136,7 @@
   "v2.page.settings-delete-account.default.description": "アカウントを削除すると、すべてのデータが永久に削除され、復元することはできません。続行すると、アカウントは<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>に削除されます",
   "v2.page.settings-delete-account.default.input-placeholder": "<b>{input}</b>と入力して確認してください",
   "v2.page.settings-delete-account.default.title": "アカウントを削除",
+  "v2.page.settings-edit-custom-attribute.default.custom-attribute-enum-label-unspecified": "指定されていません",
   "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-maximum": "{maximum}以下の数値を入力してください",
   "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum": "{minimum}以上の数値を入力してください",
   "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum-maximum": "{minimum}から{maximum}の間の数値を入力してください",

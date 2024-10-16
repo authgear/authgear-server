@@ -1136,6 +1136,7 @@
   "v2.page.settings-delete-account.default.description": "Al eliminar la cuenta, todos los datos se eliminarán permanentemente y no podremos recuperarlos. Si continúas, tu cuenta se eliminará el <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.page.settings-delete-account.default.input-placeholder": "Escribe <b>{input}</b> para confirmar",
   "v2.page.settings-delete-account.default.title": "Eliminar cuenta",
+  "v2.page.settings-edit-custom-attribute.default.custom-attribute-enum-label-unspecified": "No proporcionado",
   "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-maximum": "Por favor, introduzca un número menor o igual a {maximum}",
   "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum": "Por favor, introduzca un número mayor o igual a {minimum}",
   "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum-maximum": "Por favor, introduzca un número entre {minimum} y {maximum}",

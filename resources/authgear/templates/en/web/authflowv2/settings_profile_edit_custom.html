@@ -54,6 +54,9 @@
           (dict
             "Name" $.Pointer
             "Value" $Value
+            "InputAttrs" `
+              data-form-state-target="input"
+            `
           )
       }}
     {{ end }}
@@ -62,6 +65,7 @@
       <input
         type="number"
         inputmode="decimal"
+        step="any"
         class="input"
         name="{{ $ca.Pointer }}"
         value="{{ showAttributeValue $Value }}"
@@ -87,6 +91,18 @@
     {{ end }}
 
     {{ if (eq $ca.Type "enum") }}
+      {{ template "authflowv2/__settings_radio.html"
+        (dict
+          "Label" (translate "v2.page.settings-edit-custom-attribute.default.custom-attribute-enum-label-unspecified" nil)
+          "Name" $ca.Pointer
+          "Value" .Value
+          "DefaultChecked" ( eq $Value .Value )
+          "InputAttrs" `
+            data-form-state-target="input"
+          `
+        )
+      }}
+
       {{ range $ca.Enum }}
 
         {{ $enum_label_key := printf "custom-attribute-enum-label-%s-%s" $ca.Pointer $Value }}
@@ -99,7 +115,7 @@
         {{ template "authflowv2/__settings_radio.html"
           (dict
             "Label" $enum_label
-            "Name" "gender-select"
+            "Name" $ca.Pointer
             "Value" .Value
             "DefaultChecked" ( eq $Value .Value )
             "InputAttrs" `

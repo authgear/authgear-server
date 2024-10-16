@@ -1136,6 +1136,7 @@
   "v2.page.settings-delete-account.default.description": "Dengan memadamkan akaun, semua data akan dipadamkan secara kekal dan kami tidak akan dapat mendapatkannya semula. Jika anda meneruskan, akaun anda akan dipadamkan pada <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.page.settings-delete-account.default.input-placeholder": "Taip <b>{input}</b> untuk mengesahkan",
   "v2.page.settings-delete-account.default.title": "Padam Akaun",
+  "v2.page.settings-edit-custom-attribute.default.custom-attribute-enum-label-unspecified": "Tidak diberikan",
   "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-maximum": "Sila masukkan nombor yang kurang atau sama dengan {maximum}",
   "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum": "Sila masukkan nombor yang lebih besar atau sama dengan {minimum}",
   "v2.page.settings-edit-custom-attribute.default.custom-attribute-numeric-hint-minimum-maximum": "Sila masukkan nombor antara {minimum} dan {maximum}",
