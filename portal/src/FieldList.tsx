@@ -38,6 +38,7 @@ export interface FieldListProps<T> {
   description?: string;
   addDisabled?: boolean;
   deleteDisabled?: boolean;
+  minItem?: number;
 }
 
 const FieldList = function FieldList<T>(
@@ -61,6 +62,7 @@ const FieldList = function FieldList<T>(
     addDisabled,
     deleteDisabled,
     description,
+    minItem,
   } = props;
 
   const { themes } = useSystemConfig();
@@ -100,6 +102,8 @@ const FieldList = function FieldList<T>(
     [onListItemDelete, list]
   );
 
+  const isMinItemReached = minItem != null && list.length <= minItem;
+
   return (
     <div className={className}>
       {label ?? null}
@@ -114,7 +118,7 @@ const FieldList = function FieldList<T>(
             onItemChange={onItemChange}
             onItemDelete={onItemDelete}
             ListItemComponent={ListItemComponent}
-            deleteDisabled={deleteDisabled}
+            deleteDisabled={deleteDisabled || isMinItemReached}
           />
         ))}
       </div>
@@ -175,7 +179,7 @@ function FieldListItem<T>(props: FieldListItemProps<T>) {
     <div className={cn(styles.listItem, className)} style={style}>
       <ListItemComponent index={index} value={value} onChange={onChange} />
       <IconButton
-        className={styles.deleteButton}
+        className={cn(styles.deleteButton, deleteDisabled && "invisible")}
         onClick={onDelete}
         iconProps={{ iconName: "Delete" }}
         theme={themes.destructive}

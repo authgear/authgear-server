@@ -8,13 +8,20 @@ import {
 import HorizontalDivider from "../../HorizontalDivider";
 import WidgetTitle from "../../WidgetTitle";
 import ScreenTitle from "../../ScreenTitle";
-import { IChoiceGroupOption, ChoiceGroup } from "@fluentui/react";
+import { IChoiceGroupOption, ChoiceGroup, Label } from "@fluentui/react";
 import { SAMLNameIDFormat, SAMLNameIDAttributePointer } from "../../types";
+import FormTextFieldList from "../../FormTextFieldList";
+import FormTextField from "../../FormTextField";
 
 export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
   nameIDFormat: SAMLNameIDFormat;
   nameIDAttributePointer: SAMLNameIDAttributePointer | undefined;
+  acsURLs: string[] | undefined;
+  destination: string | undefined;
+  recipient: string | undefined;
+  audience: string | undefined;
+  assertionValidDurationSeconds: number | undefined;
 }
 
 export interface OAuthClientSAMLFormProps {
@@ -93,6 +100,56 @@ export function OAuthClientSAMLForm({
     [formState, onFormStateChange]
   );
 
+  const onAcsUrlsChange = useCallback(
+    (newList: string[]) => {
+      onFormStateChange({
+        ...formState,
+        acsURLs: newList,
+      });
+    },
+    [formState, onFormStateChange]
+  );
+
+  const onTextfieldChange = useMemo(() => {
+    const makeOnChangeCallback = (key: keyof OAuthClientSAMLFormState) => {
+      return (_: unknown, newValue?: string) => {
+        onFormStateChange({
+          ...formState,
+          [key]: newValue,
+        });
+      };
+    };
+    return {
+      destination: makeOnChangeCallback("destination"),
+      recipient: makeOnChangeCallback("recipient"),
+      audience: makeOnChangeCallback("audience"),
+    };
+  }, [formState, onFormStateChange]);
+
+  const onAssertionValidDurationSecondsChange = useCallback(
+    (_: unknown, newValue?: string) => {
+      if (newValue == null) {
+        return;
+      }
+      if (newValue.trim() === "") {
+        onFormStateChange({
+          ...formState,
+          assertionValidDurationSeconds: undefined,
+        });
+        return;
+      }
+      const newValueInt = parseInt(newValue, 10);
+      if (isNaN(newValueInt)) {
+        return;
+      }
+      onFormStateChange({
+        ...formState,
+        assertionValidDurationSeconds: newValueInt,
+      });
+    },
+    [formState, onFormStateChange]
+  );
+
   const nameIDAttributePointerOptions = useMemo(
     () => makeNameIDAttributePointerOptions(renderToString),
     [renderToString]
@@ -113,7 +170,7 @@ export function OAuthClientSAMLForm({
             <ScreenTitle>
               <FormattedMessage id="OAuthClientSAMLForm.screen.title" />
             </ScreenTitle>
-            <div className="grid gap-y-3 grid-cols-1">
+            <div>
               <WidgetTitle className="mb-3" id="basic">
                 <FormattedMessage id="OAuthClientSAMLForm.basic.title" />
               </WidgetTitle>
@@ -140,6 +197,76 @@ export function OAuthClientSAMLForm({
                       : formState.nameIDAttributePointer
                   }
                   onChange={onNameIDAttributePointerChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <WidgetTitle className="mb-3" id="basic">
+                <FormattedMessage id="OAuthClientSAMLForm.sso.title" />
+              </WidgetTitle>
+              <div className="grid gap-y-4 grid-cols-1">
+                <FormTextFieldList
+                  parentJSONPointer=""
+                  fieldName="acs_urls"
+                  list={formState.acsURLs ?? []}
+                  onListItemAdd={onAcsUrlsChange}
+                  onListItemChange={onAcsUrlsChange}
+                  onListItemDelete={onAcsUrlsChange}
+                  addButtonLabelMessageID="OAuthClientSAMLForm.sso.acsUrls.add"
+                  label={
+                    <Label>
+                      <FormattedMessage id="OAuthClientSAMLForm.sso.acsUrls.title" />
+                    </Label>
+                  }
+                  minItem={1}
+                />
+                <FormTextField
+                  parentJSONPointer=""
+                  fieldName="destination"
+                  label={renderToString(
+                    "OAuthClientSAMLForm.sso.destination.label"
+                  )}
+                  description={renderToString(
+                    "OAuthClientSAMLForm.sso.destination.description"
+                  )}
+                  value={formState.destination}
+                  onChange={onTextfieldChange.destination}
+                />
+                <FormTextField
+                  parentJSONPointer=""
+                  fieldName="recipient"
+                  label={renderToString(
+                    "OAuthClientSAMLForm.sso.recipient.label"
+                  )}
+                  description={renderToString(
+                    "OAuthClientSAMLForm.sso.recipient.description"
+                  )}
+                  value={formState.recipient}
+                  onChange={onTextfieldChange.recipient}
+                />
+                <FormTextField
+                  parentJSONPointer=""
+                  fieldName="audience"
+                  label={renderToString(
+                    "OAuthClientSAMLForm.sso.audience.label"
+                  )}
+                  description={renderToString(
+                    "OAuthClientSAMLForm.sso.audience.description"
+                  )}
+                  value={formState.audience}
+                  onChange={onTextfieldChange.audience}
+                />
+                <FormTextField
+                  parentJSONPointer=""
+                  fieldName="assertion_valid_duration"
+                  label={renderToString(
+                    "OAuthClientSAMLForm.sso.assertionValidDuration.label"
+                  )}
+                  value={
+                    formState.assertionValidDurationSeconds?.toFixed(0) ?? ""
+                  }
+                  onChange={onAssertionValidDurationSecondsChange}
                 />
               </div>
             </div>

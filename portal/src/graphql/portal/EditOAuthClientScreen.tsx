@@ -55,8 +55,13 @@ interface FormState {
   removeClientByID?: string;
   clientSecretMap: Partial<Record<string, string>>;
   isSAMLEnabled: boolean;
-  nameIDFormat: SAMLNameIDFormat;
-  nameIDAttributePointer?: SAMLNameIDAttributePointer;
+  samlNameIDFormat?: SAMLNameIDFormat;
+  samlNameIDAttributePointer?: SAMLNameIDAttributePointer;
+  samlAcsURLs?: string[];
+  samlDesitination?: string;
+  samlRecipient?: string;
+  samlAudience?: string;
+  samlAssertionValidDurationSeconds?: number;
 }
 
 interface LocationState {
@@ -495,8 +500,13 @@ function OAuthClientSAML2Content({
   const formState = useMemo<OAuthClientSAMLFormState>(() => {
     return {
       isSAMLEnabled: state.isSAMLEnabled,
-      nameIDFormat: state.nameIDFormat,
-      nameIDAttributePointer: state.nameIDAttributePointer,
+      nameIDFormat: state.samlNameIDFormat ?? SAMLNameIDFormat.Unspecified,
+      nameIDAttributePointer: state.samlNameIDAttributePointer,
+      acsURLs: state.samlAcsURLs,
+      destination: state.samlDesitination,
+      recipient: state.samlRecipient,
+      audience: state.samlAudience,
+      assertionValidDurationSeconds: state.samlAssertionValidDurationSeconds,
     };
   }, [state]);
 
@@ -506,8 +516,16 @@ function OAuthClientSAML2Content({
         return {
           ...prevState,
           isSAMLEnabled: newState.isSAMLEnabled,
-          nameIDFormat: newState.nameIDFormat,
-          nameIDAttributePointer: newState.nameIDAttributePointer,
+          samlNameIDFormat: newState.nameIDFormat,
+          samlNameIDAttributePointer: newState.nameIDAttributePointer,
+          samlAcsURLs: newState.acsURLs,
+          samlDesitination: newState.destination
+            ? newState.destination
+            : undefined,
+          samlRecipient: newState.recipient ? newState.recipient : undefined,
+          samlAudience: newState.audience ? newState.audience : undefined,
+          samlAssertionValidDurationSeconds:
+            newState.assertionValidDurationSeconds,
         };
       });
     },

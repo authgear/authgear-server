@@ -20,8 +20,13 @@ interface FormState {
   removeClientByID?: string;
   clientSecretMap: Partial<Record<string, string>>;
   isSAMLEnabled: boolean;
-  nameIDFormat: SAMLNameIDFormat;
-  nameIDAttributePointer?: SAMLNameIDAttributePointer;
+  samlNameIDFormat?: SAMLNameIDFormat;
+  samlNameIDAttributePointer?: SAMLNameIDAttributePointer;
+  samlAcsURLs?: string[];
+  samlDesitination?: string;
+  samlRecipient?: string;
+  samlAudience?: string;
+  samlAssertionValidDurationSeconds?: number;
 }
 
 function constructFormState(
@@ -46,8 +51,13 @@ function constructFormState(
     clientSecretMap,
     // TODO(tung)
     isSAMLEnabled: false,
-    nameIDFormat: SAMLNameIDFormat.Unspecified,
-    nameIDAttributePointer: undefined,
+    samlNameIDFormat: SAMLNameIDFormat.Unspecified,
+    samlNameIDAttributePointer: undefined,
+    samlAcsURLs: undefined,
+    samlDesitination: undefined,
+    samlRecipient: undefined,
+    samlAudience: undefined,
+    samlAssertionValidDurationSeconds: undefined,
   };
 }
 

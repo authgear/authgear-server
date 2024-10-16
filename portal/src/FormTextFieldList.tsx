@@ -78,6 +78,7 @@ export interface FormTextFieldListProps {
   onListItemDelete: (list: string[], index: number, item: string) => void;
   addButtonLabelMessageID?: string;
   disabled?: boolean;
+  minItem?: number;
 }
 
 const FormTextFieldList: React.VFC<FormTextFieldListProps> =
@@ -89,12 +90,13 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
       parentJSONPointer,
       fieldName,
       inputProps,
-      list,
+      list: propList,
       onListItemAdd,
       onListItemChange,
       onListItemDelete,
       addButtonLabelMessageID,
       disabled,
+      minItem,
     } = props;
     const makeDefaultItem = useCallback(() => "", []);
 
@@ -115,6 +117,17 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
       [inputProps, parentJSONPointer, fieldName, disabled]
     );
 
+    const list = useMemo(() => {
+      // If number if items is less than minItem, fill the list with empty items
+      if (minItem == null || minItem === 0) {
+        return propList;
+      }
+      if (propList.length === 0) {
+        return new Array(minItem).fill("");
+      }
+      return propList;
+    }, [minItem, propList]);
+
     return (
       <FieldList
         className={className}
@@ -131,6 +144,7 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
         addButtonLabelMessageID={addButtonLabelMessageID}
         addDisabled={disabled}
         deleteDisabled={disabled}
+        minItem={minItem}
       />
     );
   };
