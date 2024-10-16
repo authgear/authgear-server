@@ -195,20 +195,25 @@ jobs:
       continue-on-error: true
       env:
         SEGMENT_DOWNLOAD_TIMEOUT_MINS: 5
-    - if: ${{ steps.cache-docker-images.outputs.cache-hit == 'true' }}
+    - name: Load docker image cache
+      if: ${{ steps.cache-docker-images.outputs.cache-hit == 'true' }}
       run: |
-        docker load -i ~/.cache/images/db.tar || true
-        docker load -i ~/.cache/images/redis.tar || true
-
+        set -x
+        for image in $(grep 'image: ' ./e2e/docker-compose.yaml | awk '{ print  $2 }'); do
+          safe_image_name=$(echo -n "$image" | tr '/:' '_')
+          docker load -i ~/.cache/images/"$safe_image_name".tar || true
+        done
     - run: make -C e2e ci
       if: ${{ !cancelled() }}
       env:
         COMPOSE_INTERACTIVE_NO_CLI: 1
-
-    - run: |
-        docker save postgres-pg-partman:latest -o ~/.cache/images/db.tar
-        docker save redis:6.2.6 -o ~/.cache/images/redis.tar
-
+    - name: Save docker image cache
+      run: |
+        set -x
+        for image in $(grep 'image: ' ./e2e/docker-compose.yaml | awk '{ print  $2 }'); do
+          safe_image_name=$(echo -n "$image" | tr '/:' '_')
+          docker save "$image" -o ~/.cache/images/"$safe_image_name".tar
+        done
   authgear-image:
     if: ${{ github.repository != 'oursky/authgear-server' }}
     runs-on: ubuntu-24.04
