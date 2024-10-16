@@ -31,6 +31,8 @@ interface FormState {
   samlIsSLOEnabled?: boolean;
   samlSloCallbackURL?: string;
   samlSloCallbackBinding?: SAMLBinding;
+  samlSignatureVerificationEnabled?: boolean;
+  samlCertificates?: string[];
 }
 
 function constructFormState(
@@ -65,6 +67,8 @@ function constructFormState(
     samlIsSLOEnabled: undefined,
     samlSloCallbackURL: undefined,
     samlSloCallbackBinding: undefined,
+    samlSignatureVerificationEnabled: undefined,
+    samlCertificates: undefined,
   };
 }
 

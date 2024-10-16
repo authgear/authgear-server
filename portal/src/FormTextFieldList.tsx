@@ -14,6 +14,7 @@ interface TextFieldListItemProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  multiline?: boolean;
 }
 
 const TextFieldListItem: React.VFC<TextFieldListItemProps> =
@@ -25,6 +26,7 @@ const TextFieldListItem: React.VFC<TextFieldListItemProps> =
       value,
       onChange,
       disabled,
+      multiline,
     } = props;
     const {
       value: _value,
@@ -55,12 +57,18 @@ const TextFieldListItem: React.VFC<TextFieldListItemProps> =
       <TextField
         {...reducedTextFieldProps}
         className={cn(styles.inputField, inputClassName)}
+        styles={{
+          field: {
+            resize: "vertical",
+          },
+        }}
         value={value}
         onChange={_onChange}
         errorMessage={
           errors.length > 0 ? <ErrorRenderer errors={errors} /> : undefined
         }
         disabled={disabled}
+        multiline={multiline}
       />
     );
   };
@@ -79,6 +87,7 @@ export interface FormTextFieldListProps {
   addButtonLabelMessageID?: string;
   disabled?: boolean;
   minItem?: number;
+  multiline?: boolean;
 }
 
 const FormTextFieldList: React.VFC<FormTextFieldListProps> =
@@ -97,6 +106,7 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
       addButtonLabelMessageID,
       disabled,
       minItem,
+      multiline,
     } = props;
     const makeDefaultItem = useCallback(() => "", []);
 
@@ -111,10 +121,11 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
             value={value}
             onChange={onChange}
             disabled={disabled}
+            multiline={multiline}
           />
         );
       },
-      [inputProps, parentJSONPointer, fieldName, disabled]
+      [inputProps, parentJSONPointer, fieldName, disabled, multiline]
     );
 
     const list = useMemo(() => {

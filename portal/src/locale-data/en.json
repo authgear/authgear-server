@@ -948,6 +948,11 @@
   "OAuthClientSAMLForm.logout.callbackBinding.label": "Callback Binding",
   "OAuthClientSAMLForm.logout.callbackBinding.options.httpRedirect": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect (Default)",
   "OAuthClientSAMLForm.logout.callbackBinding.options.httpPost": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+  "OAuthClientSAMLForm.signature.title": "Service Provider Signature",
+  "OAuthClientSAMLForm.signature.checkSignature.label": "Check message signature",
+  "OAuthClientSAMLForm.signature.checkSignature.description": "If enabled, Authgear will check signatures in the service provider's messages",
+  "OAuthClientSAMLForm.signature.certificates.label": "Service Provider Certificates",
+  "OAuthClientSAMLForm.signature.certificates.add": "Add certificate",
 
   "oauth-client.application-type.unspecified": "Unspecified (Legacy)",
   "oauth-client.application-type.spa": "Single Page Application",

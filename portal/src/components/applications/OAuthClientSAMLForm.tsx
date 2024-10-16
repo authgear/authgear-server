@@ -32,6 +32,9 @@ export interface OAuthClientSAMLFormState {
   isSLOEnabled: boolean | undefined;
   sloCallbackURL: string | undefined;
   sloCallbackBinding: SAMLBinding | undefined;
+  // Signature
+  signatureVerificationEnabled: boolean | undefined;
+  signingCertificates: string[] | undefined;
 }
 
 export interface OAuthClientSAMLFormProps {
@@ -200,6 +203,26 @@ export function OAuthClientSAMLForm({
     [formState, onFormStateChange]
   );
 
+  const onSignatureVerificationEnabledChange = useCallback(
+    (_, checked?: boolean) => {
+      onFormStateChange({
+        ...formState,
+        signatureVerificationEnabled: Boolean(checked),
+      });
+    },
+    [formState, onFormStateChange]
+  );
+
+  const onSigningCertificatesChange = useCallback(
+    (newList: string[]) => {
+      onFormStateChange({
+        ...formState,
+        signingCertificates: newList,
+      });
+    },
+    [formState, onFormStateChange]
+  );
+
   const nameIDAttributePointerOptions = useMemo(
     () => makeNameIDAttributePointerOptions(renderToString),
     [renderToString]
@@ -340,7 +363,7 @@ export function OAuthClientSAMLForm({
                 />
                 <FormTextField
                   parentJSONPointer=""
-                  fieldName="audience"
+                  fieldName="slo_callback_url"
                   label={renderToString(
                     "OAuthClientSAMLForm.logout.callbackURL.label"
                   )}
@@ -361,6 +384,39 @@ export function OAuthClientSAMLForm({
                     formState.isSLOEnabled ? formState.sloCallbackBinding : null
                   }
                   onChange={onSLOCallbackBindingChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <WidgetTitle className="mb-3" id="basic">
+                <FormattedMessage id="OAuthClientSAMLForm.signature.title" />
+              </WidgetTitle>
+              <div className="grid gap-y-4 grid-cols-1">
+                <Toggle
+                  label={renderToString(
+                    "OAuthClientSAMLForm.signature.checkSignature.label"
+                  )}
+                  description={renderToString(
+                    "OAuthClientSAMLForm.signature.checkSignature.description"
+                  )}
+                  checked={formState.signatureVerificationEnabled}
+                  onChange={onSignatureVerificationEnabledChange}
+                />
+                <FormTextFieldList
+                  parentJSONPointer=""
+                  fieldName="signingCertificates"
+                  list={formState.signingCertificates ?? []}
+                  onListItemAdd={onSigningCertificatesChange}
+                  onListItemChange={onSigningCertificatesChange}
+                  onListItemDelete={onSigningCertificatesChange}
+                  addButtonLabelMessageID="OAuthClientSAMLForm.signature.certificates.add"
+                  label={
+                    <Label>
+                      <FormattedMessage id="OAuthClientSAMLForm.signature.certificates.label" />
+                    </Label>
+                  }
+                  multiline={true}
                 />
               </div>
             </div>

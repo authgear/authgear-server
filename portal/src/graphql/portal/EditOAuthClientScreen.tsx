@@ -66,6 +66,8 @@ interface FormState {
   samlIsSLOEnabled?: boolean;
   samlSloCallbackURL?: string;
   samlSloCallbackBinding?: SAMLBinding;
+  samlSignatureVerificationEnabled?: boolean;
+  samlCertificates?: string[];
 }
 
 interface LocationState {
@@ -514,6 +516,8 @@ function OAuthClientSAML2Content({
       isSLOEnabled: state.samlIsSLOEnabled,
       sloCallbackURL: state.samlSloCallbackURL,
       sloCallbackBinding: state.samlSloCallbackBinding,
+      signatureVerificationEnabled: state.samlSignatureVerificationEnabled,
+      signingCertificates: state.samlCertificates,
     };
   }, [state]);
 
@@ -540,6 +544,9 @@ function OAuthClientSAML2Content({
           samlSloCallbackBinding: newState.sloCallbackBinding
             ? newState.sloCallbackBinding
             : undefined,
+          samlSignatureVerificationEnabled:
+            newState.signatureVerificationEnabled,
+          samlCertificates: newState.signingCertificates,
         };
       });
     },
