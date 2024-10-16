@@ -1071,3 +1071,8 @@ export enum SAMLNameIDAttributePointer {
   Email = "/email",
   PhoneNumber = "/phone_number",
 }
+
+export enum SAMLBinding {
+  HTTPRedirect = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+  HTTPPOST = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+}

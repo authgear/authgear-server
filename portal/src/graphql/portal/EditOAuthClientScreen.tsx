@@ -25,6 +25,7 @@ import EditOAuthClientForm from "./EditOAuthClientForm";
 import {
   ApplicationType,
   OAuthClientConfig,
+  SAMLBinding,
   SAMLNameIDAttributePointer,
   SAMLNameIDFormat,
 } from "../../types";
@@ -62,6 +63,9 @@ interface FormState {
   samlRecipient?: string;
   samlAudience?: string;
   samlAssertionValidDurationSeconds?: number;
+  samlIsSLOEnabled?: boolean;
+  samlSloCallbackURL?: string;
+  samlSloCallbackBinding?: SAMLBinding;
 }
 
 interface LocationState {
@@ -507,6 +511,9 @@ function OAuthClientSAML2Content({
       recipient: state.samlRecipient,
       audience: state.samlAudience,
       assertionValidDurationSeconds: state.samlAssertionValidDurationSeconds,
+      isSLOEnabled: state.samlIsSLOEnabled,
+      sloCallbackURL: state.samlSloCallbackURL,
+      sloCallbackBinding: state.samlSloCallbackBinding,
     };
   }, [state]);
 
@@ -526,6 +533,13 @@ function OAuthClientSAML2Content({
           samlAudience: newState.audience ? newState.audience : undefined,
           samlAssertionValidDurationSeconds:
             newState.assertionValidDurationSeconds,
+          samlIsSLOEnabled: newState.isSLOEnabled,
+          samlSloCallbackURL: newState.sloCallbackURL
+            ? newState.sloCallbackURL
+            : undefined,
+          samlSloCallbackBinding: newState.sloCallbackBinding
+            ? newState.sloCallbackBinding
+            : undefined,
         };
       });
     },

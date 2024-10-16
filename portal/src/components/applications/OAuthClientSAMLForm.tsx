@@ -9,19 +9,29 @@ import HorizontalDivider from "../../HorizontalDivider";
 import WidgetTitle from "../../WidgetTitle";
 import ScreenTitle from "../../ScreenTitle";
 import { IChoiceGroupOption, ChoiceGroup, Label } from "@fluentui/react";
-import { SAMLNameIDFormat, SAMLNameIDAttributePointer } from "../../types";
+import {
+  SAMLNameIDFormat,
+  SAMLNameIDAttributePointer,
+  SAMLBinding,
+} from "../../types";
 import FormTextFieldList from "../../FormTextFieldList";
 import FormTextField from "../../FormTextField";
 
 export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
+  // Basic
   nameIDFormat: SAMLNameIDFormat;
   nameIDAttributePointer: SAMLNameIDAttributePointer | undefined;
+  // SSO
   acsURLs: string[] | undefined;
   destination: string | undefined;
   recipient: string | undefined;
   audience: string | undefined;
   assertionValidDurationSeconds: number | undefined;
+  // Logout
+  isSLOEnabled: boolean | undefined;
+  sloCallbackURL: string | undefined;
+  sloCallbackBinding: SAMLBinding | undefined;
 }
 
 export interface OAuthClientSAMLFormProps {
@@ -56,6 +66,25 @@ function makeNameIDAttributePointerOptions(
       key: SAMLNameIDAttributePointer.PreferredUsername,
       text: renderToString(
         "OAuthClientSAMLForm.nameIDAttribute.options.username"
+      ),
+    },
+  ];
+}
+
+function makeSLOCallbackBindingOptions(
+  renderToString: MessageFormatContextValue["renderToString"]
+): IChoiceGroupOption[] {
+  return [
+    {
+      key: SAMLBinding.HTTPRedirect,
+      text: renderToString(
+        "OAuthClientSAMLForm.logout.callbackBinding.options.httpRedirect"
+      ),
+    },
+    {
+      key: SAMLBinding.HTTPPOST,
+      text: renderToString(
+        "OAuthClientSAMLForm.logout.callbackBinding.options.httpPost"
       ),
     },
   ];
@@ -123,6 +152,7 @@ export function OAuthClientSAMLForm({
       destination: makeOnChangeCallback("destination"),
       recipient: makeOnChangeCallback("recipient"),
       audience: makeOnChangeCallback("audience"),
+      sloCallbackURL: makeOnChangeCallback("sloCallbackURL"),
     };
   }, [formState, onFormStateChange]);
 
@@ -150,8 +180,33 @@ export function OAuthClientSAMLForm({
     [formState, onFormStateChange]
   );
 
+  const onIsSLOEnabledChange = useCallback(
+    (_, checked?: boolean) => {
+      onFormStateChange({ ...formState, isSLOEnabled: Boolean(checked) });
+    },
+    [formState, onFormStateChange]
+  );
+
+  const onSLOCallbackBindingChange = useCallback(
+    (_, option?: IChoiceGroupOption) => {
+      if (option == null) {
+        return;
+      }
+      onFormStateChange({
+        ...formState,
+        sloCallbackBinding: option.key as SAMLBinding,
+      });
+    },
+    [formState, onFormStateChange]
+  );
+
   const nameIDAttributePointerOptions = useMemo(
     () => makeNameIDAttributePointerOptions(renderToString),
+    [renderToString]
+  );
+
+  const sloBindingOptions = useMemo(
+    () => makeSLOCallbackBindingOptions(renderToString),
     [renderToString]
   );
 
@@ -267,6 +322,45 @@ export function OAuthClientSAMLForm({
                     formState.assertionValidDurationSeconds?.toFixed(0) ?? ""
                   }
                   onChange={onAssertionValidDurationSecondsChange}
+                />
+              </div>
+            </div>
+
+            <div>
+              <WidgetTitle className="mb-3" id="basic">
+                <FormattedMessage id="OAuthClientSAMLForm.logout.title" />
+              </WidgetTitle>
+              <div className="grid gap-y-4 grid-cols-1">
+                <Toggle
+                  label={renderToString(
+                    "OAuthClientSAMLForm.logout.enable.label"
+                  )}
+                  checked={formState.isSLOEnabled}
+                  onChange={onIsSLOEnabledChange}
+                />
+                <FormTextField
+                  parentJSONPointer=""
+                  fieldName="audience"
+                  label={renderToString(
+                    "OAuthClientSAMLForm.logout.callbackURL.label"
+                  )}
+                  description={renderToString(
+                    "OAuthClientSAMLForm.logout.callbackURL.description"
+                  )}
+                  value={formState.isSLOEnabled ? formState.sloCallbackURL : ""}
+                  onChange={onTextfieldChange.sloCallbackURL}
+                  disabled={!formState.isSLOEnabled}
+                />
+                <ChoiceGroup
+                  label={renderToString(
+                    "OAuthClientSAMLForm.logout.callbackBinding.label"
+                  )}
+                  disabled={!formState.isSLOEnabled}
+                  options={sloBindingOptions}
+                  selectedKey={
+                    formState.isSLOEnabled ? formState.sloCallbackBinding : null
+                  }
+                  onChange={onSLOCallbackBindingChange}
                 />
               </div>
             </div>

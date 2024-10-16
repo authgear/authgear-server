@@ -7,6 +7,7 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
+  SAMLBinding,
   SAMLNameIDAttributePointer,
   SAMLNameIDFormat,
 } from "../types";
@@ -27,6 +28,9 @@ interface FormState {
   samlRecipient?: string;
   samlAudience?: string;
   samlAssertionValidDurationSeconds?: number;
+  samlIsSLOEnabled?: boolean;
+  samlSloCallbackURL?: string;
+  samlSloCallbackBinding?: SAMLBinding;
 }
 
 function constructFormState(
@@ -58,6 +62,9 @@ function constructFormState(
     samlRecipient: undefined,
     samlAudience: undefined,
     samlAssertionValidDurationSeconds: undefined,
+    samlIsSLOEnabled: undefined,
+    samlSloCallbackURL: undefined,
+    samlSloCallbackBinding: undefined,
   };
 }
 

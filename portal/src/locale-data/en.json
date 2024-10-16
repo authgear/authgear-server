@@ -941,6 +941,13 @@
   "OAuthClientSAMLForm.sso.audience.label": "Response Destination",
   "OAuthClientSAMLForm.sso.audience.description": "If empty, the ACS URL will be used.",
   "OAuthClientSAMLForm.sso.assertionValidDuration.label": "Assertion Valid Duration (seconds)",
+  "OAuthClientSAMLForm.logout.title": "Logout Settings",
+  "OAuthClientSAMLForm.logout.enable.label": "Single Logout",
+  "OAuthClientSAMLForm.logout.callbackURL.label": "Callback URL",
+  "OAuthClientSAMLForm.logout.callbackURL.description": "The URL of the SP to receive Logout requests and responses from Authgear",
+  "OAuthClientSAMLForm.logout.callbackBinding.label": "Callback Binding",
+  "OAuthClientSAMLForm.logout.callbackBinding.options.httpRedirect": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect (Default)",
+  "OAuthClientSAMLForm.logout.callbackBinding.options.httpPost": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
 
   "oauth-client.application-type.unspecified": "Unspecified (Legacy)",
   "oauth-client.application-type.spa": "Single Page Application",
