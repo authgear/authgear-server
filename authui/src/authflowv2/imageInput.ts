@@ -33,9 +33,11 @@ export class ImageInputController extends Controller {
       })
       .then((stream) => {
         this.cameraVideoTarget.srcObject = stream;
-        this.cameraVideoTarget.play().catch(console.error); //TODO (identity-week-demo): Handle play error
+        this.cameraVideoTarget
+          .play()
+          .catch((err: unknown) => console.error(err)); //TODO (identity-week-demo): Handle play error
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         console.error(err);
         if (isNotAllowedErr(err)) {
           //TODO (identity-week-demo): Show error to user
