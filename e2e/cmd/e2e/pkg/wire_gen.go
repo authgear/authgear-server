@@ -420,7 +420,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	opencvfrService := &opencvfr.Service{
 		Clock:                        clockClock,
 		AppID:                        appID,
-		AuthenticatorConfig:          authenticationConfig,
+		AuthenticatorConfig:          authenticatorConfig,
 		Person:                       personService,
 		Collection:                   collectionService,
 		Search:                       searchService,
