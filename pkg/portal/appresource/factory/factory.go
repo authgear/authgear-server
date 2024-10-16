@@ -25,15 +25,16 @@ type ManagerFactory struct {
 
 func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager {
 	return &appresource.Manager{
-		Context:            f.Context,
-		AppResourceManager: appContext.Resources,
-		AppFS:              appContext.AppFs,
-		AppFeatureConfig:   appContext.Config.FeatureConfig,
-		AppHostSuffixes:    &f.EnvironmentConfig.AppHostSuffixes,
-		DomainService:      f.DomainService,
-		Tutorials:          f.Tutorials,
-		DenoClient:         f.DenoClient,
-		Clock:              f.Clock,
+		Context:               f.Context,
+		AppResourceManager:    appContext.Resources,
+		AppFS:                 appContext.AppFs,
+		AppFeatureConfig:      appContext.Config.FeatureConfig,
+		AppHostSuffixes:       &f.EnvironmentConfig.AppHostSuffixes,
+		DomainService:         f.DomainService,
+		Tutorials:             f.Tutorials,
+		DenoClient:            f.DenoClient,
+		Clock:                 f.Clock,
+		SAMLEnvironmentConfig: f.EnvironmentConfig.SAML,
 	}
 }
 
@@ -45,11 +46,12 @@ func (f *ManagerFactory) NewManagerWithNewAppFS(appFs resource.Fs) *appresource.
 		AppFS:              appFs,
 		// The newly generated config should not violate any app plan
 		// use default unlimited feature config for the app creation
-		AppFeatureConfig: config.NewEffectiveDefaultFeatureConfig(),
-		AppHostSuffixes:  &f.EnvironmentConfig.AppHostSuffixes,
-		DomainService:    f.DomainService,
-		Tutorials:        f.Tutorials,
-		DenoClient:       f.DenoClient,
-		Clock:            f.Clock,
+		AppFeatureConfig:      config.NewEffectiveDefaultFeatureConfig(),
+		AppHostSuffixes:       &f.EnvironmentConfig.AppHostSuffixes,
+		DomainService:         f.DomainService,
+		Tutorials:             f.Tutorials,
+		DenoClient:            f.DenoClient,
+		Clock:                 f.Clock,
+		SAMLEnvironmentConfig: f.EnvironmentConfig.SAML,
 	}
 }
