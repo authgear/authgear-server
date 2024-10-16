@@ -48,7 +48,7 @@ type OpenCVFRCollectionIDMapStore interface {
 type Service struct {
 	Clock                        clock.Clock
 	AppID                        config.AppID
-	AuthenticatorConfig          *config.AuthenticationConfig
+	AuthenticatorConfig          *config.AuthenticatorConfig
 	Person                       PersonService
 	Collection                   CollectionService
 	Search                       SearchService
@@ -72,10 +72,14 @@ func (s *Service) VerifyFace(opts *VerifyFaceOption) error {
 	if collection == nil {
 		return fmt.Errorf("collection for app id (%s) not found", s.AppID)
 	}
+	sm := s.AuthenticatorConfig.FaceRecognition.GetSearchMode()
+	smm := s.mapSearchMode(sm)
+	minSearchScore := s.AuthenticatorConfig.FaceRecognition.GetMinSearchScore()
 	ps, err := s.Search.Search(&openapi.SearchPersonSchema{
 		CollectionId: *openapi.NewNullableString(&collection.Id),
 		Images:       []string{opts.B64FaceImage},
-		SearchMode:   *openapi.NewNullableSearchModeEnum(openapi.FAST.Ptr()),
+		SearchMode:   *openapi.NewNullableSearchModeEnum(smm.Ptr()),
+		MinScore:     *openapi.NewNullableFloat32(openapi.PtrFloat32(float32(minSearchScore))),
 	})
 
 	if err != nil {
@@ -98,9 +102,8 @@ func (s *Service) VerifyFace(opts *VerifyFaceOption) error {
 }
 
 type VerifyLiveFaceOption struct {
-	PersonID         string
-	B64FaceImage     string
-	MinLivenessScore float32
+	PersonID     string
+	B64FaceImage string
 }
 
 // VerifyLiveFace verifies if a face matches the given person and collection. It also check liveness of the image.
@@ -114,9 +117,14 @@ func (s *Service) VerifyLiveFace(opts *VerifyLiveFaceOption) error {
 	if collection == nil {
 		return fmt.Errorf("collection for app id (%s) not found", s.AppID)
 	}
+	sm := s.AuthenticatorConfig.FaceRecognition.GetSearchMode()
+	smm := s.mapSearchMode(sm)
+	minSearchScore := s.AuthenticatorConfig.FaceRecognition.GetMinSearchScore()
 	r, err := s.Search.SearchLiveFace(&openapi.SearchLiveFaceScheme{
 		CollectionId: *openapi.NewNullableString(&collection.Id),
 		Image:        opts.B64FaceImage,
+		SearchMode:   *openapi.NewNullableSearchModeEnum(smm.Ptr()),
+		MinScore:     *openapi.NewNullableFloat32(openapi.PtrFloat32(float32(minSearchScore))),
 	})
 
 	if err != nil {
@@ -132,11 +140,8 @@ func (s *Service) VerifyLiveFace(opts *VerifyLiveFaceOption) error {
 		return newNoMatchingFaceFoundError()
 	}
 
-	minLivenessScore := float32(0.5)
-	if opts.MinLivenessScore > 0 {
-		minLivenessScore = opts.MinLivenessScore
-	}
-	if livePersonResult.LivenessScore < minLivenessScore {
+	minLivenessScore := s.AuthenticatorConfig.FaceRecognition.GetMinLivenessScore()
+	if livePersonResult.LivenessScore < float32(minLivenessScore) {
 		fmt.Printf("liveness score (%f) is less than the min liveness score (%f)\n", livePersonResult.LivenessScore, minLivenessScore)
 		return newSpoofedImageDetectedError()
 	}
@@ -270,4 +275,15 @@ func (s *Service) parseOpenCVFRError(err error) error {
 		return apiErr
 	}
 	return err
+}
+
+func (s *Service) mapSearchMode(searchMode config.AuthenticatorFaceRecognitionConfigSearchMode) openapi.SearchModeEnum {
+	switch searchMode {
+	case config.AuthenticatorFaceRecognitionConfigSearchModeFast:
+		return openapi.FAST
+	case config.AuthenticatorFaceRecognitionConfigSearchModeAccurate:
+		return openapi.ACCURATE
+	default:
+		panic("unexpected search mode: " + searchMode)
+	}
 }

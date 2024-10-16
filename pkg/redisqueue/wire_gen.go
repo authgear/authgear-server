@@ -363,7 +363,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	opencvfrService := &opencvfr.Service{
 		Clock:                        clock,
 		AppID:                        appID,
-		AuthenticatorConfig:          authenticationConfig,
+		AuthenticatorConfig:          authenticatorConfig,
 		Person:                       personService,
 		Collection:                   collectionService,
 		Search:                       searchService,
@@ -1141,7 +1141,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	opencvfrService := &opencvfr.Service{
 		Clock:                        clockClock,
 		AppID:                        appID,
-		AuthenticatorConfig:          authenticationConfig,
+		AuthenticatorConfig:          authenticatorConfig,
 		Person:                       personService,
 		Collection:                   collectionService,
 		Search:                       searchService,
@@ -1575,7 +1575,7 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	opencvfrService := &opencvfr.Service{
 		Clock:                        clockClock,
 		AppID:                        appID,
-		AuthenticatorConfig:          authenticationConfig,
+		AuthenticatorConfig:          authenticatorConfig,
 		Person:                       personService,
 		Collection:                   collectionService,
 		Search:                       searchService,

@@ -448,7 +448,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	opencvfrService := &opencvfr.Service{
 		Clock:                        clockClock,
 		AppID:                        configAppID,
-		AuthenticatorConfig:          authenticationConfig,
+		AuthenticatorConfig:          authenticatorConfig,
 		Person:                       personService,
 		Collection:                   collectionService,
 		Search:                       searchService,

@@ -402,11 +402,66 @@ var _ = Schema.Add("AuthenticatorFaceRecognitionConfig", `
 	"type": "object",
 	"additionalProperties": false,
 	"properties": {
-    "liveness_check": { "type": "boolean" }
+		"min_liveness_score": {
+			"type": "number",
+			"minimum": 0,
+			"maximum": 1,
+			"description": "Minimum liveness score to pass liveness check"
+		},
+		"min_search_score": {
+			"type": "number",
+			"minimum": 0.7,
+			"maximum": 1,
+			"description": "Minimum search score to count as matching face"
+		},
+		"search_mode": {
+			"type": "string",
+			"enum": [
+				"fast",
+				"accurate"
+			],
+			"description": "Search mode for face recognition, 'fast' or 'accurate'"
+		}
 	}
 }
 `)
 
+type AuthenticatorFaceRecognitionConfigSearchMode string
+
+const (
+	AuthenticatorFaceRecognitionConfigSearchModeFast     AuthenticatorFaceRecognitionConfigSearchMode = "fast"
+	AuthenticatorFaceRecognitionConfigSearchModeAccurate AuthenticatorFaceRecognitionConfigSearchMode = "accurate"
+)
+
 type AuthenticatorFaceRecognitionConfig struct {
-	LivenessCheck *bool `json:"liveness_check,omitempty"`
+	SearchMode       string   `json:"search_mode,omitempty"`        // Search mode for face recognition, "fast" or "accurate", default "fast"
+	MinLivenessScore *float64 `json:"min_liveness_score,omitempty"` // Minimum liveness score to pass liveness check, [0, 1], default 0.5
+	MinSearchScore   *float64 `json:"min_search_score,omitempty"`   // Minimum search score to count as matching face, [0.7, 1], default 0.7
+}
+
+const (
+	defaultMinLivenessScore float64                                      = 0.5
+	defaultMinSearchScore   float64                                      = 0.7
+	defaultSearchMode       AuthenticatorFaceRecognitionConfigSearchMode = AuthenticatorFaceRecognitionConfigSearchModeFast
+)
+
+func (c *AuthenticatorFaceRecognitionConfig) GetSearchMode() AuthenticatorFaceRecognitionConfigSearchMode {
+	if c.SearchMode == "" {
+		return defaultSearchMode
+	}
+	return AuthenticatorFaceRecognitionConfigSearchMode(c.SearchMode)
+}
+
+func (c *AuthenticatorFaceRecognitionConfig) GetMinLivenessScore() float64 {
+	if c.MinLivenessScore == nil {
+		return defaultMinLivenessScore
+	}
+	return *c.MinLivenessScore
+}
+
+func (c *AuthenticatorFaceRecognitionConfig) GetMinSearchScore() float64 {
+	if c.MinSearchScore == nil {
+		return defaultMinSearchScore
+	}
+	return *c.MinSearchScore
 }

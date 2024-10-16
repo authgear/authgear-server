@@ -2,13 +2,17 @@ part: AuthenticatorFaceRecognitionConfig
 name: valid-config-1
 error: null
 value:
-  liveness_check: false
+  min_liveness_score: 0.5
+  min_search_score: 0.8
+  search_mode: fast
 ---
 part: AuthenticatorFaceRecognitionConfig
 name: valid-config-2
 error: null
 value:
-  liveness_check: true
+  min_liveness_score: 0.1
+  min_search_score: 0.9
+  search_mode: accurate
 ---
 part: AuthenticatorFaceRecognitionConfig
 name: valid-config-empty
