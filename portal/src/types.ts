@@ -1059,3 +1059,15 @@ export type BotProtectionProviderType =
   (typeof botProtectionProviderTypes)[number];
 
 export type UIImplementation = "interaction" | "authflow" | "authflowv2";
+
+export enum SAMLNameIDFormat {
+  Unspecified = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+  EmailAddress = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+}
+
+export enum SAMLNameIDAttributePointer {
+  Sub = "/sub",
+  PreferredUsername = "/preferred_username",
+  Email = "/email",
+  PhoneNumber = "/phone_number",
+}

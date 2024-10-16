@@ -22,7 +22,12 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
-import { ApplicationType, OAuthClientConfig } from "../../types";
+import {
+  ApplicationType,
+  OAuthClientConfig,
+  SAMLNameIDAttributePointer,
+  SAMLNameIDFormat,
+} from "../../types";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import FormContainer from "../../FormContainer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
@@ -38,6 +43,10 @@ import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
 import { useOAuthClientForm } from "../../hook/useOAuthClientForm";
+import {
+  OAuthClientSAMLForm,
+  OAuthClientSAMLFormState,
+} from "../../components/applications/OAuthClientSAMLForm";
 
 interface FormState {
   publicOrigin: string;
@@ -45,6 +54,9 @@ interface FormState {
   editedClient: OAuthClientConfig | null;
   removeClientByID?: string;
   clientSecretMap: Partial<Record<string, string>>;
+  isSAMLEnabled: boolean;
+  nameIDFormat: SAMLNameIDFormat;
+  nameIDAttributePointer?: SAMLNameIDAttributePointer;
 }
 
 interface LocationState {
@@ -402,7 +414,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             onRevealSecret={onRevealSecret}
           />
         ) : (
-          <OAuthClientSAML2Form />
+          <OAuthClientSAML2Content state={state} setState={setState} />
         )}
       </ScreenContent>
     );
@@ -471,12 +483,45 @@ function OAuthClientSettingsForm({
   );
 }
 
-interface OAuthClientSAML2FormProps {}
+interface OAuthClientSAML2ContentProps {
+  state: FormState;
+  setState: (fn: (state: FormState) => FormState) => void;
+}
 
-function OAuthClientSAML2Form(
-  _: OAuthClientSAML2FormProps
-): React.ReactElement {
-  return <></>;
+function OAuthClientSAML2Content({
+  state,
+  setState,
+}: OAuthClientSAML2ContentProps): React.ReactElement {
+  const formState = useMemo<OAuthClientSAMLFormState>(() => {
+    return {
+      isSAMLEnabled: state.isSAMLEnabled,
+      nameIDFormat: state.nameIDFormat,
+      nameIDAttributePointer: state.nameIDAttributePointer,
+    };
+  }, [state]);
+
+  const onFormStateChange = useCallback(
+    (newState: OAuthClientSAMLFormState) => {
+      setState((prevState): FormState => {
+        return {
+          ...prevState,
+          isSAMLEnabled: newState.isSAMLEnabled,
+          nameIDFormat: newState.nameIDFormat,
+          nameIDAttributePointer: newState.nameIDAttributePointer,
+        };
+      });
+    },
+    [setState]
+  );
+
+  return (
+    <div className={cn(styles.widget)}>
+      <OAuthClientSAMLForm
+        formState={formState}
+        onFormStateChange={onFormStateChange}
+      />
+    </div>
+  );
 }
 
 interface OAuthQuickStartScreenContentProps {

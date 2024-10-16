@@ -7,6 +7,8 @@ import {
   PortalAPIAppConfig,
   PortalAPISecretConfig,
   PortalAPISecretConfigUpdateInstruction,
+  SAMLNameIDAttributePointer,
+  SAMLNameIDFormat,
 } from "../types";
 import { clearEmptyObject } from "../util/misc";
 import { useAppSecretConfigForm } from "./useAppSecretConfigForm";
@@ -17,6 +19,9 @@ interface FormState {
   editedClient: OAuthClientConfig | null;
   removeClientByID?: string;
   clientSecretMap: Partial<Record<string, string>>;
+  isSAMLEnabled: boolean;
+  nameIDFormat: SAMLNameIDFormat;
+  nameIDAttributePointer?: SAMLNameIDAttributePointer;
 }
 
 function constructFormState(
@@ -39,6 +44,10 @@ function constructFormState(
     editedClient: null,
     removeClientByID: undefined,
     clientSecretMap,
+    // TODO(tung)
+    isSAMLEnabled: false,
+    nameIDFormat: SAMLNameIDFormat.Unspecified,
+    nameIDAttributePointer: undefined,
   };
 }
 

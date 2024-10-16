@@ -921,6 +921,17 @@
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
 
+  "OAuthClientSAMLForm.enable.label": "SAML 2.0 Support",
+  "OAuthClientSAMLForm.enable.description": "Set up SAML-based SSO with this application",
+  "OAuthClientSAMLForm.screen.title": "SAML Settings",
+  "OAuthClientSAMLForm.basic.title": "Basic Settings",
+  "OAuthClientSAMLForm.nameIDFormat.label": "NameID Format",
+  "OAuthClientSAMLForm.nameIDAttribute.label": "User attribute for NameID",
+  "OAuthClientSAMLForm.nameIDAttribute.options.userID": "User ID (Default)",
+  "OAuthClientSAMLForm.nameIDAttribute.options.email": "Email",
+  "OAuthClientSAMLForm.nameIDAttribute.options.phone": "Phone",
+  "OAuthClientSAMLForm.nameIDAttribute.options.username": "Username",
+
   "oauth-client.application-type.unspecified": "Unspecified (Legacy)",
   "oauth-client.application-type.spa": "Single Page Application",
   "oauth-client.application-type.traditional-webapp": "Traditional Web Application",
