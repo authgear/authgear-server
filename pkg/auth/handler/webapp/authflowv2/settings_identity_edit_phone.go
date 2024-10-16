@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -27,10 +28,11 @@ var AuthflowV2SettingsIdentityEditPhoneSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
+			"x_channel": { "type": "string" },
 			"x_login_id": { "type": "string" },
 			"x_identity_id": { "type": "string" }
 		},
-		"required": ["x_login_id", "x_identity_id"]
+		"required": ["x_channel", "x_login_id", "x_identity_id"]
 	}
 `)
 
@@ -42,6 +44,7 @@ func ConfigureAuthflowV2SettingsIdentityEditPhoneRoute(route httproute.Route) ht
 
 type AuthflowV2SettingsIdentityEditPhoneViewModel struct {
 	LoginIDKey string
+	Channel    model.AuthenticatorOOBChannel
 	Target     *identity.LoginID
 }
 
@@ -66,6 +69,11 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(r *http.Request, rw
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
+	channel := model.AuthenticatorOOBChannelSMS
+	if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+		channel = model.AuthenticatorOOBChannelWhatsapp
+	}
+
 	target, err := h.Identities.LoginID.Get(*userID, identityID)
 	if err != nil {
 		return nil, err
@@ -73,6 +81,7 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(r *http.Request, rw
 
 	vm := AuthflowV2SettingsIdentityEditPhoneViewModel{
 		LoginIDKey: loginIDKey,
+		Channel:    channel,
 		Target:     target,
 	}
 	viewmodels.Embed(data, vm)
@@ -114,11 +123,13 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 			return err
 		}
 
+		channel := model.AuthenticatorOOBChannel(r.Form.Get("x_channel"))
 		loginID := r.Form.Get("x_login_id")
 		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(r.Context())
 		output, err := h.AccountManagement.StartUpdateIdentityPhone(s, &accountmanagement.StartUpdateIdentityPhoneInput{
+			Channel:    channel,
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
 			IdentityID: identityID,
