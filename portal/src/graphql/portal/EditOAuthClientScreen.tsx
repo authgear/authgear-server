@@ -6,7 +6,15 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { Icon, Text, useTheme, Image, ImageFit } from "@fluentui/react";
+import {
+  Icon,
+  Text,
+  useTheme,
+  Image,
+  ImageFit,
+  Pivot,
+  PivotItem,
+} from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ScreenContent from "../../ScreenContent";
@@ -300,6 +308,11 @@ interface EditOAuthClientContentProps {
   app2appEnabled: boolean;
 }
 
+enum FormTab {
+  SETTINGS = "settings",
+  SAML2 = "saml2",
+}
+
 const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
   function EditOAuthClientContent(props) {
     const {
@@ -308,7 +321,9 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       customUIEnabled,
       app2appEnabled,
     } = props;
-    const theme = useTheme();
+    const { renderToString } = useContext(Context);
+
+    const [formTab, setFormTab] = useState<FormTab>(FormTab.SETTINGS);
 
     const navigate = useNavigate();
 
@@ -320,6 +335,14 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         ? state.clientSecretMap[client.client_id]
         : undefined;
     }, [client, state.clientSecretMap]);
+
+    const onFormTabChange = useCallback((item?: PivotItem) => {
+      if (item == null) {
+        return;
+      }
+      const { itemKey } = item.props;
+      setFormTab(itemKey as FormTab);
+    }, []);
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -352,46 +375,109 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     return (
       <ScreenContent>
         <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
-        <div className={cn(styles.widget, styles.widgetColumn)}>
-          <EditOAuthClientForm
-            publicOrigin={state.publicOrigin}
-            clientConfig={client}
+        <Pivot
+          className={styles.widget}
+          selectedKey={formTab}
+          onLinkClick={onFormTabChange}
+        >
+          <PivotItem
+            itemKey={FormTab.SETTINGS}
+            headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
+          />
+          {client.x_application_type === "confidential" ? (
+            <PivotItem
+              itemKey={FormTab.SAML2}
+              headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
+            />
+          ) : null}
+        </Pivot>
+        {formTab === FormTab.SETTINGS ? (
+          <OAuthClientSettingsForm
+            client={client}
+            state={state}
+            app2appEnabled={app2appEnabled}
             clientSecret={clientSecret}
             customUIEnabled={customUIEnabled}
-            app2appEnabled={app2appEnabled}
             onClientConfigChange={onClientConfigChange}
             onRevealSecret={onRevealSecret}
           />
-        </div>
-        <div className={styles.quickStartColumn}>
-          <Widget>
-            <div className={styles.quickStartWidget}>
-              <Text className={styles.quickStartWidgetTitle}>
-                <Icon
-                  className={styles.quickStartWidgetTitleIcon}
-                  styles={{ root: { color: theme.palette.themePrimary } }}
-                  iconName="Lightbulb"
-                />
-                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
-              </Text>
-              <Text>
-                <FormattedMessage
-                  id="EditOAuthClientScreen.quick-start-widget.question"
-                  values={{
-                    applicationType: client.x_application_type ?? "",
-                  }}
-                />
-              </Text>
-              <QuickStartFrameworkList
-                applicationType={client.x_application_type}
-                showOpenTutorialLabelWhenHover={false}
-              />
-            </div>
-          </Widget>
-        </div>
+        ) : (
+          <OAuthClientSAML2Form />
+        )}
       </ScreenContent>
     );
   };
+
+interface OAuthClientSettingsFormProps {
+  client: OAuthClientConfig;
+  state: FormState;
+  app2appEnabled: boolean;
+  clientSecret: string | undefined;
+  customUIEnabled: boolean;
+  onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
+  onRevealSecret: () => void;
+}
+
+function OAuthClientSettingsForm({
+  client,
+  state,
+  app2appEnabled,
+  clientSecret,
+  customUIEnabled,
+  onClientConfigChange,
+  onRevealSecret,
+}: OAuthClientSettingsFormProps): React.ReactElement {
+  const theme = useTheme();
+  return (
+    <>
+      <div className={cn(styles.widget, styles.widgetColumn)}>
+        <EditOAuthClientForm
+          publicOrigin={state.publicOrigin}
+          clientConfig={client}
+          clientSecret={clientSecret}
+          customUIEnabled={customUIEnabled}
+          app2appEnabled={app2appEnabled}
+          onClientConfigChange={onClientConfigChange}
+          onRevealSecret={onRevealSecret}
+        />
+      </div>
+      <div className={styles.quickStartColumn}>
+        <Widget>
+          <div className={styles.quickStartWidget}>
+            <Text className={styles.quickStartWidgetTitle}>
+              <Icon
+                className={styles.quickStartWidgetTitleIcon}
+                styles={{ root: { color: theme.palette.themePrimary } }}
+                iconName="Lightbulb"
+              />
+              <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
+            </Text>
+            <Text>
+              <FormattedMessage
+                id="EditOAuthClientScreen.quick-start-widget.question"
+                values={{
+                  applicationType: client.x_application_type ?? "",
+                }}
+              />
+            </Text>
+            <QuickStartFrameworkList
+              applicationType={client.x_application_type}
+              showOpenTutorialLabelWhenHover={false}
+            />
+          </div>
+        </Widget>
+      </div>
+    </>
+  );
+}
+
+interface OAuthClientSAML2FormProps {}
+
+function OAuthClientSAML2Form(
+  _: OAuthClientSAML2FormProps
+): React.ReactElement {
+  return <></>;
+}
 
 interface OAuthQuickStartScreenContentProps {
   form: AppSecretConfigFormModel<FormState>;
