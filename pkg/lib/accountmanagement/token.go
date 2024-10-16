@@ -30,6 +30,7 @@ type Token struct {
 
 type TokenIdentity struct {
 	IdentityID  string `json:"identity_id,omitempty"`
+	Channel     string `json:"channel,omitempty"`
 	PhoneNumber string `json:"phone_number,omitempty"`
 	Email       string `json:"email,omitempty"`
 }

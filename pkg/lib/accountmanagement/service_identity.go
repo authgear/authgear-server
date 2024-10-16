@@ -181,7 +181,7 @@ func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession,
 		if err != nil {
 			return err
 		}
-		needVerification = !verified
+		needVerification = !verified && *s.Config.Verification.Claims.Email.Enabled && *s.Config.Verification.Claims.Email.Required
 		if needVerification {
 			channel, target := info.LoginID.ToChannelTarget()
 			err = s.sendOTPCode(userID, channel, target, false)
@@ -333,7 +333,7 @@ func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSessi
 		if err != nil {
 			return err
 		}
-		needVerification = !verified
+		needVerification = !verified && *s.Config.Verification.Claims.Email.Enabled && *s.Config.Verification.Claims.Email.Required
 
 		if needVerification {
 			channel, target := newInfo.LoginID.ToChannelTarget()
@@ -535,6 +535,7 @@ func (s *Service) DeleteIdentityEmail(resolvedSession session.ResolvedSession, i
 }
 
 type StartAddIdentityPhoneInput struct {
+	Channel    model.AuthenticatorOOBChannel
 	LoginID    string
 	LoginIDKey string
 }
@@ -568,16 +569,17 @@ func (s *Service) StartAddIdentityPhone(resolvedSession session.ResolvedSession,
 		if err != nil {
 			return err
 		}
-		needVerification = !verified
+		needVerification = !verified && *s.Config.Verification.Claims.PhoneNumber.Enabled && *s.Config.Verification.Claims.PhoneNumber.Required
 
 		if needVerification {
-			channel, target := info.LoginID.ToChannelTarget()
-			err = s.sendOTPCode(userID, channel, target, false)
+			_, target := info.LoginID.ToChannelTarget()
+			err = s.sendOTPCode(userID, input.Channel, target, false)
 			if err != nil {
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
 				UserID:              userID,
+				IdentityChannel:     input.Channel,
 				IdentityPhoneNumber: info.LoginID.LoginID,
 			})
 			if err != nil {
@@ -685,6 +687,7 @@ func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession
 }
 
 type StartUpdateIdentityPhoneInput struct {
+	Channel    model.AuthenticatorOOBChannel
 	IdentityID string
 	LoginID    string
 	LoginIDKey string
@@ -720,15 +723,16 @@ func (s *Service) StartUpdateIdentityPhone(resolvedSession session.ResolvedSessi
 		if err != nil {
 			return err
 		}
-		needVerification = !verified
+		needVerification = !verified && *s.Config.Verification.Claims.PhoneNumber.Enabled && *s.Config.Verification.Claims.PhoneNumber.Required
 		if needVerification {
-			channel, target := info.LoginID.ToChannelTarget()
-			err = s.sendOTPCode(userID, channel, target, false)
+			_, target := info.LoginID.ToChannelTarget()
+			err = s.sendOTPCode(userID, input.Channel, target, false)
 			if err != nil {
 				return err
 			}
 			token, err = s.Store.GenerateToken(GenerateTokenOptions{
 				UserID:              userID,
+				IdentityChannel:     input.Channel,
 				IdentityPhoneNumber: info.LoginID.LoginID,
 				IdentityID:          info.ID,
 			})

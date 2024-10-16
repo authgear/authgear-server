@@ -14,12 +14,11 @@
 <div class="settings-content flex flex-col gap-y-8 flex-1-0-auto">
     <div class="screen-title-description">
       <h2 class="screen-description">
-        {{ include "v2.page.enter-oob-otp.auth-email-or-sms.subtitle"
-          (dict
-            "CodeLength" $.CodeLength
-            "MaskedClaimValue" (include "__settings_identity_verify_phone_inline_breakable.html" $.MaskedClaimValue)
-          )
-        }}
+        {{ if eq $.Channel "whatsapp" }}
+          {{ include "v2.page.settings-mfa-enter-oob-otp.auth-whatsapp.subtitle" . }}
+        {{ else }}
+          {{ include "v2.page.settings-mfa-enter-oob-otp.auth-email-or-sms.subtitle" . }}
+        {{ end }}
       </h2>
 
       {{ template "authflowv2/__alert_message.html"
@@ -65,6 +64,55 @@
           "ErrorMessage" $otp_error_message
         )
       }}
+    </div>
+
+    {{- if (len $.Channels) }}
+    {{ template "authflowv2/__divider.html" . }}
+    {{- end }}
+
+    <div class="flex flex-col gap-y-4">
+      {{ range $.Channels }}
+        {{ if eq . $.Channel }}
+          {{ continue }}
+        {{ end }}
+
+        {{ $actionUrl := "/settings/identity/add_phone?q_login_id_key=phone" }}
+        {{ if $.IdentityID }}
+          {{ $actionUrl = "/settings/identity/change_phone?q_login_id_key=phone" }}
+        {{ end }}
+
+        <form
+          action="{{ $actionUrl }}"
+          method="post"
+          novalidate
+          data-restore-form="false"
+          data-turbo="false"
+          data-controller="turbo-form"
+          data-action="submit->turbo-form#submitForm"
+        >
+          {{ $.CSRFField }}
+
+          <input type="hidden" name="x_login_id" value="{{ $.LoginID }}">
+          <input type="hidden" name="x_identity_id" value="{{ $.IdentityID }}">
+          <input type="hidden" name="x_channel" value="{{ . }}">
+
+          <button
+            class="secondary-btn w-full flex gap-x-2"
+            type="submit"
+            name="x_action"
+            value=""
+          >
+            {{- if eq . "sms" }}
+              <span class="material-icons secondary-btn__icon">phone_iphone</span>
+              {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead" nil }}
+            {{- end }}
+            {{- if eq . "whatsapp" }}
+              <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
+              {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead" nil }}
+            {{- end }}
+          </button>
+        </form>
+      {{ end }}
     </div>
 </div>
 

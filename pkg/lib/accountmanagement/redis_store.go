@@ -32,6 +32,7 @@ type GenerateTokenOptions struct {
 	RedirectURI string
 
 	// Phone
+	IdentityChannel     model.AuthenticatorOOBChannel
 	IdentityPhoneNumber string
 	// Email
 	IdentityEmail string
@@ -69,6 +70,7 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 	if options.IdentityID != "" || options.IdentityPhoneNumber != "" || options.IdentityEmail != "" {
 		tokenIdentity = &TokenIdentity{
 			IdentityID:  options.IdentityID,
+			Channel:     string(options.IdentityChannel),
 			PhoneNumber: options.IdentityPhoneNumber,
 			Email:       options.IdentityEmail,
 		}

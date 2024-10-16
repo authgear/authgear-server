@@ -1178,6 +1178,8 @@
   "v2.page.settings-identity-oauth.default.title": "Social Account",
   "v2.page.settings-identity-phone.default.title": "Phone",
   "v2.page.settings-identity-verify-email.default.title": "Verification",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead": "Set up phone",
+  "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead": "Set up WhatsApp",
   "v2.page.settings-identity-verify-phone.default.title": "Verification",
   "v2.page.settings-identity-view-email.default.edit-email-button-label": "Edit",
   "v2.page.settings-identity-view-email.default.remove-email-button-label": "Remove this email",
