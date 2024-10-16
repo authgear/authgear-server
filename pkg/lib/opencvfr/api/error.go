@@ -11,11 +11,11 @@ const (
 	// common
 	MaintenanceMode       ErrCode = "ERR_MAINTENANCE_MODE"
 	RateLimitExceeded     ErrCode = "ERR_RATE_LIMIT_EXCEEDED"
-	InvalidAPIKey         ErrCode = "ERR_INVALID_API_KEY"
-	InvalidToken          ErrCode = "ERR_INVALID_TOKEN"
+	InvalidAPIKey         ErrCode = "ERR_INVALID_API_KEY" // nolint:gosec
+	InvalidToken          ErrCode = "ERR_INVALID_TOKEN"   // nolint:gosec
 	ExpiredSubscription   ErrCode = "ERR_EXPIRED_SUBSCRIPTION"
 	MasterKeyCannotBeUsed ErrCode = "ERR_MASTER_KEY_CANNOT_BE_USED"
-	DisabledAPIKey        ErrCode = "ERR_DISABLED_API_KEY"
+	DisabledAPIKey        ErrCode = "ERR_DISABLED_API_KEY" // nolint:gosec
 	RestrictedAPI         ErrCode = "ERR_RESTRICTED_API"
 
 	// liveness, search, compare, person
@@ -36,7 +36,7 @@ const (
 
 	// create/update/delete collection, create/update/delete person
 	DuplicateEntity ErrCode = "ERR_DUPLICATE_ENTITY"
-	ReadOnlyAPIKey  ErrCode = "ERR_READ_ONLY_API_KEY"
+	ReadOnlyAPIKey  ErrCode = "ERR_READ_ONLY_API_KEY" // nolint:gosec
 
 	// create person
 	PersonLimitExceeded ErrCode = "ERR_PERSON_LIMIT_EXCEEDED"
