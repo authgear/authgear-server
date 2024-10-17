@@ -485,7 +485,9 @@ function OAuthClientSAML2Content({
 }: OAuthClientSAML2ContentProps): React.ReactElement {
   const formState =
     useMemo<OAuthClientSAMLFormState>((): OAuthClientSAMLFormState => {
-      const samlConfig = state.samlServiceProviderByClientID[clientID];
+      const samlConfig = state.samlServiceProviders.find(
+        (sp) => sp.clientID === clientID
+      );
       const defaults = getDefaultOAuthClientSAMLFormState();
       if (samlConfig == null) {
         return defaults;
@@ -512,34 +514,39 @@ function OAuthClientSAML2Content({
         signingCertificates:
           samlConfig.certificates ?? defaults.signingCertificates,
       };
-    }, [clientID, state.samlServiceProviderByClientID]);
+    }, [clientID, state.samlServiceProviders]);
 
   const onFormStateChange = useCallback(
     (newState: OAuthClientSAMLFormState) => {
       setState((prevState): FormState => {
-        const newSAMLConfig: (typeof state.samlServiceProviderByClientID)[string] =
-          {
-            isEnabled: newState.isSAMLEnabled,
-            nameIDFormat: newState.nameIDFormat,
-            nameIDAttributePointer: newState.nameIDAttributePointer,
-            acsURLs: newState.acsURLs,
-            desitination: newState.destination,
-            recipient: newState.recipient,
-            audience: newState.audience,
-            assertionValidDurationSeconds:
-              newState.assertionValidDurationSeconds,
-            isSLOEnabled: newState.isSLOEnabled,
-            sloCallbackURL: newState.sloCallbackURL,
-            sloCallbackBinding: newState.sloCallbackBinding,
-            signatureVerificationEnabled: newState.signatureVerificationEnabled,
-            certificates: newState.signingCertificates,
-          };
+        const newSAMLConfig: (typeof state.samlServiceProviders)[number] = {
+          clientID: clientID,
+          isEnabled: newState.isSAMLEnabled,
+          nameIDFormat: newState.nameIDFormat,
+          nameIDAttributePointer: newState.nameIDAttributePointer,
+          acsURLs: newState.acsURLs,
+          desitination: newState.destination,
+          recipient: newState.recipient,
+          audience: newState.audience,
+          assertionValidDurationSeconds: newState.assertionValidDurationSeconds,
+          isSLOEnabled: newState.isSLOEnabled,
+          sloCallbackURL: newState.sloCallbackURL,
+          sloCallbackBinding: newState.sloCallbackBinding,
+          signatureVerificationEnabled: newState.signatureVerificationEnabled,
+          certificates: newState.signingCertificates,
+        };
+        const newServiceProviders = [...prevState.samlServiceProviders];
+        const existingConfigIndex = state.samlServiceProviders.findIndex(
+          (sp) => sp.clientID === clientID
+        );
+        if (existingConfigIndex === -1) {
+          newServiceProviders.push(newSAMLConfig);
+        } else {
+          newServiceProviders[existingConfigIndex] = newSAMLConfig;
+        }
         return {
           ...prevState,
-          samlServiceProviderByClientID: {
-            ...prevState.samlServiceProviderByClientID,
-            [clientID]: newSAMLConfig,
-          },
+          samlServiceProviders: newServiceProviders,
         };
       });
     },

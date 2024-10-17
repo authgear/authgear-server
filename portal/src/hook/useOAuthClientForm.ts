@@ -17,6 +17,7 @@ import { useAppSecretConfigForm } from "./useAppSecretConfigForm";
 import { formatDuration, parseDuration } from "../util/duration";
 
 interface FormStateSAMLServiceProviderConfig {
+  clientID: string;
   isEnabled: boolean;
   nameIDFormat: SAMLNameIDFormat;
   nameIDAttributePointer?: SAMLNameIDAttributePointer;
@@ -38,9 +39,7 @@ export interface FormState {
   editedClient: OAuthClientConfig | null;
   removeClientByID?: string;
   clientSecretMap: Partial<Record<string, string>>;
-  samlServiceProviderByClientID: Partial<
-    Record<string, FormStateSAMLServiceProviderConfig>
-  >;
+  samlServiceProviders: FormStateSAMLServiceProviderConfig[];
 }
 
 function constructFormState(
@@ -58,12 +57,10 @@ function constructFormState(
       {}
     ) ?? {};
 
-  const samlServiceProviderByClientID: Record<
-    string,
-    FormStateSAMLServiceProviderConfig
-  > = {};
+  const samlServiceProviders: FormStateSAMLServiceProviderConfig[] = [];
   for (const sp of config.saml?.service_providers ?? []) {
-    samlServiceProviderByClientID[sp.client_id] = {
+    samlServiceProviders.push({
+      clientID: sp.client_id,
       isEnabled: true, // When there is a service provider exist, it means saml enabled for this client
       nameIDFormat: sp.nameid_format,
       nameIDAttributePointer: sp.nameid_attribute_pointer,
@@ -82,7 +79,7 @@ function constructFormState(
         secrets.samlSpSigningSecrets
           ?.find((secret) => secret.clientID === sp.client_id)
           ?.certificates.map((cert) => cert.certificatePEM) ?? [],
-    };
+    });
   }
   return {
     publicOrigin: config.http?.public_origin ?? "",
@@ -90,7 +87,7 @@ function constructFormState(
     editedClient: null,
     removeClientByID: undefined,
     clientSecretMap,
-    samlServiceProviderByClientID,
+    samlServiceProviders,
   };
 }
 
@@ -98,52 +95,41 @@ function updateSAMLServiceProviders(
   config: Draft<PortalAPIAppConfig>,
   currentState: Draft<FormState>
 ) {
-  let samlSPs = config.saml?.service_providers ?? [];
-  for (const [clientID, editedSP] of Object.entries(
-    currentState.samlServiceProviderByClientID
-  )) {
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-    if (editedSP == null || !editedSP.isEnabled) {
-      samlSPs = samlSPs.filter((sp) => sp.client_id !== clientID);
+  const existingSPs = config.saml?.service_providers ?? [];
+  const updatedSPs: SAMLServiceProviderConfig[] = [];
+  for (const editedSP of currentState.samlServiceProviders) {
+    if (!editedSP.isEnabled) {
       continue;
     }
 
-    const existingSPIndex = samlSPs.findIndex(
-      (existingSP) => existingSP.client_id === clientID
-    );
+    const updatedSP = existingSPs.find(
+      (sp) => sp.client_id === editedSP.clientID
+    ) ?? {
+      client_id: editedSP.clientID,
+      acs_urls: [],
+      nameid_format: SAMLNameIDFormat.Unspecified,
+    };
 
-    const sp: SAMLServiceProviderConfig =
-      existingSPIndex === -1
-        ? {
-            client_id: clientID,
-            acs_urls: [],
-            nameid_format: SAMLNameIDFormat.Unspecified,
-          }
-        : samlSPs[existingSPIndex];
-
-    sp.nameid_format = editedSP.nameIDFormat;
-    sp.nameid_attribute_pointer = editedSP.nameIDAttributePointer;
-    sp.acs_urls = editedSP.acsURLs;
-    sp.destination = editedSP.desitination;
-    sp.recipient = editedSP.recipient;
-    sp.audience = editedSP.audience;
-    sp.assertion_valid_duration = editedSP.assertionValidDurationSeconds
+    updatedSP.nameid_format = editedSP.nameIDFormat;
+    updatedSP.nameid_attribute_pointer = editedSP.nameIDAttributePointer;
+    updatedSP.acs_urls = editedSP.acsURLs;
+    updatedSP.destination = editedSP.desitination;
+    updatedSP.recipient = editedSP.recipient;
+    updatedSP.audience = editedSP.audience;
+    updatedSP.assertion_valid_duration = editedSP.assertionValidDurationSeconds
       ? formatDuration(editedSP.assertionValidDurationSeconds, "s")
       : undefined;
-    sp.slo_enabled = editedSP.isSLOEnabled;
-    sp.slo_callback_url = editedSP.sloCallbackURL;
-    sp.slo_binding = editedSP.sloCallbackBinding;
-    sp.signature_verification_enabled = editedSP.signatureVerificationEnabled;
+    updatedSP.slo_enabled = editedSP.isSLOEnabled;
+    updatedSP.slo_callback_url = editedSP.sloCallbackURL;
+    updatedSP.slo_binding = editedSP.sloCallbackBinding;
+    updatedSP.signature_verification_enabled =
+      editedSP.signatureVerificationEnabled;
 
-    if (existingSPIndex === -1) {
-      samlSPs.push(sp);
-    } else {
-      samlSPs[existingSPIndex] = sp;
-    }
+    updatedSPs.push(updatedSP);
   }
 
   config.saml ??= {};
-  config.saml.service_providers = samlSPs;
+  config.saml.service_providers = updatedSPs;
 }
 
 function constructConfig(
