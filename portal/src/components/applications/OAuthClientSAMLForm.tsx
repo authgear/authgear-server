@@ -55,6 +55,7 @@ export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
   };
 }
 export interface OAuthClientSAMLFormProps {
+  parentJSONPointer: string | RegExp;
   formState: OAuthClientSAMLFormState;
   onFormStateChange: (newState: OAuthClientSAMLFormState) => void;
 }
@@ -111,6 +112,7 @@ function makeSLOCallbackBindingOptions(
 }
 
 export function OAuthClientSAMLForm({
+  parentJSONPointer,
   formState,
   onFormStateChange,
 }: OAuthClientSAMLFormProps): React.ReactElement {
@@ -303,7 +305,7 @@ export function OAuthClientSAMLForm({
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
                 <FormTextFieldList
-                  parentJSONPointer=""
+                  parentJSONPointer={parentJSONPointer}
                   fieldName="acs_urls"
                   list={formState.acsURLs}
                   onListItemAdd={onAcsUrlsChange}
@@ -318,7 +320,7 @@ export function OAuthClientSAMLForm({
                   minItem={1}
                 />
                 <FormTextField
-                  parentJSONPointer=""
+                  parentJSONPointer={parentJSONPointer}
                   fieldName="destination"
                   label={renderToString(
                     "OAuthClientSAMLForm.sso.destination.label"
@@ -330,7 +332,7 @@ export function OAuthClientSAMLForm({
                   onChange={onTextfieldChange.destination}
                 />
                 <FormTextField
-                  parentJSONPointer=""
+                  parentJSONPointer={parentJSONPointer}
                   fieldName="recipient"
                   label={renderToString(
                     "OAuthClientSAMLForm.sso.recipient.label"
@@ -342,7 +344,7 @@ export function OAuthClientSAMLForm({
                   onChange={onTextfieldChange.recipient}
                 />
                 <FormTextField
-                  parentJSONPointer=""
+                  parentJSONPointer={parentJSONPointer}
                   fieldName="audience"
                   label={renderToString(
                     "OAuthClientSAMLForm.sso.audience.label"
@@ -354,7 +356,7 @@ export function OAuthClientSAMLForm({
                   onChange={onTextfieldChange.audience}
                 />
                 <FormTextField
-                  parentJSONPointer=""
+                  parentJSONPointer={parentJSONPointer}
                   fieldName="assertion_valid_duration"
                   label={renderToString(
                     "OAuthClientSAMLForm.sso.assertionValidDuration.label"
@@ -378,7 +380,7 @@ export function OAuthClientSAMLForm({
                   onChange={onIsSLOEnabledChange}
                 />
                 <FormTextField
-                  parentJSONPointer=""
+                  parentJSONPointer={parentJSONPointer}
                   fieldName="slo_callback_url"
                   label={renderToString(
                     "OAuthClientSAMLForm.logout.callbackURL.label"
@@ -420,7 +422,7 @@ export function OAuthClientSAMLForm({
                   onChange={onSignatureVerificationEnabledChange}
                 />
                 <FormTextFieldList
-                  parentJSONPointer=""
+                  parentJSONPointer={parentJSONPointer}
                   fieldName="signingCertificates"
                   list={formState.signingCertificates}
                   onListItemAdd={onSigningCertificatesChange}
