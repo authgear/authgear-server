@@ -6,7 +6,15 @@ import {
   useParams,
   useSearchParams,
 } from "react-router-dom";
-import { Icon, Text, useTheme, Image, ImageFit } from "@fluentui/react";
+import {
+  Icon,
+  Text,
+  useTheme,
+  Image,
+  ImageFit,
+  Pivot,
+  PivotItem,
+} from "@fluentui/react";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
 
 import ScreenContent from "../../ScreenContent";
@@ -29,15 +37,12 @@ import { AppSecretKey } from "./globalTypes.generated";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
-import { useOAuthClientForm } from "../../hook/useOAuthClientForm";
-
-interface FormState {
-  publicOrigin: string;
-  clients: OAuthClientConfig[];
-  editedClient: OAuthClientConfig | null;
-  removeClientByID?: string;
-  clientSecretMap: Partial<Record<string, string>>;
-}
+import { useOAuthClientForm, FormState } from "../../hook/useOAuthClientForm";
+import {
+  OAuthClientSAMLForm,
+  OAuthClientSAMLFormState,
+  getDefaultOAuthClientSAMLFormState,
+} from "../../components/applications/OAuthClientSAMLForm";
 
 interface LocationState {
   isClientSecretRevealed: boolean;
@@ -300,6 +305,11 @@ interface EditOAuthClientContentProps {
   app2appEnabled: boolean;
 }
 
+enum FormTab {
+  SETTINGS = "settings",
+  SAML2 = "saml2",
+}
+
 const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
   function EditOAuthClientContent(props) {
     const {
@@ -308,7 +318,9 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
       customUIEnabled,
       app2appEnabled,
     } = props;
-    const theme = useTheme();
+    const { renderToString } = useContext(Context);
+
+    const [formTab, setFormTab] = useState<FormTab>(FormTab.SETTINGS);
 
     const navigate = useNavigate();
 
@@ -320,6 +332,14 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         ? state.clientSecretMap[client.client_id]
         : undefined;
     }, [client, state.clientSecretMap]);
+
+    const onFormTabChange = useCallback((item?: PivotItem) => {
+      if (item == null) {
+        return;
+      }
+      const { itemKey } = item.props;
+      setFormTab(itemKey as FormTab);
+    }, []);
 
     const onClientConfigChange = useCallback(
       (editedClient: OAuthClientConfig) => {
@@ -352,46 +372,205 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
     return (
       <ScreenContent>
         <EditOAuthClientNavBreadcrumb clientName={client.name ?? ""} />
-        <div className={cn(styles.widget, styles.widgetColumn)}>
-          <EditOAuthClientForm
-            publicOrigin={state.publicOrigin}
-            clientConfig={client}
+        <Pivot
+          className={styles.widget}
+          selectedKey={formTab}
+          onLinkClick={onFormTabChange}
+        >
+          <PivotItem
+            itemKey={FormTab.SETTINGS}
+            headerText={renderToString("EditOAuthClientScreen.tabs.settings")}
+          />
+          {client.x_application_type === "confidential" ? (
+            <PivotItem
+              itemKey={FormTab.SAML2}
+              headerText={renderToString("EditOAuthClientScreen.tabs.saml2")}
+            />
+          ) : null}
+        </Pivot>
+        {formTab === FormTab.SETTINGS ? (
+          <OAuthClientSettingsForm
+            client={client}
+            state={state}
+            app2appEnabled={app2appEnabled}
             clientSecret={clientSecret}
             customUIEnabled={customUIEnabled}
-            app2appEnabled={app2appEnabled}
             onClientConfigChange={onClientConfigChange}
             onRevealSecret={onRevealSecret}
           />
-        </div>
-        <div className={styles.quickStartColumn}>
-          <Widget>
-            <div className={styles.quickStartWidget}>
-              <Text className={styles.quickStartWidgetTitle}>
-                <Icon
-                  className={styles.quickStartWidgetTitleIcon}
-                  styles={{ root: { color: theme.palette.themePrimary } }}
-                  iconName="Lightbulb"
-                />
-                <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
-              </Text>
-              <Text>
-                <FormattedMessage
-                  id="EditOAuthClientScreen.quick-start-widget.question"
-                  values={{
-                    applicationType: client.x_application_type ?? "",
-                  }}
-                />
-              </Text>
-              <QuickStartFrameworkList
-                applicationType={client.x_application_type}
-                showOpenTutorialLabelWhenHover={false}
-              />
-            </div>
-          </Widget>
-        </div>
+        ) : (
+          <OAuthClientSAML2Content
+            clientID={client.client_id}
+            state={state}
+            setState={setState}
+          />
+        )}
       </ScreenContent>
     );
   };
+
+interface OAuthClientSettingsFormProps {
+  client: OAuthClientConfig;
+  state: FormState;
+  app2appEnabled: boolean;
+  clientSecret: string | undefined;
+  customUIEnabled: boolean;
+  onClientConfigChange: (newClientConfig: OAuthClientConfig) => void;
+  onRevealSecret: () => void;
+}
+
+function OAuthClientSettingsForm({
+  client,
+  state,
+  app2appEnabled,
+  clientSecret,
+  customUIEnabled,
+  onClientConfigChange,
+  onRevealSecret,
+}: OAuthClientSettingsFormProps): React.ReactElement {
+  const theme = useTheme();
+  return (
+    <>
+      <div className={cn(styles.widget, styles.widgetColumn)}>
+        <EditOAuthClientForm
+          publicOrigin={state.publicOrigin}
+          clientConfig={client}
+          clientSecret={clientSecret}
+          customUIEnabled={customUIEnabled}
+          app2appEnabled={app2appEnabled}
+          onClientConfigChange={onClientConfigChange}
+          onRevealSecret={onRevealSecret}
+        />
+      </div>
+      <div className={styles.quickStartColumn}>
+        <Widget>
+          <div className={styles.quickStartWidget}>
+            <Text className={styles.quickStartWidgetTitle}>
+              <Icon
+                className={styles.quickStartWidgetTitleIcon}
+                styles={{ root: { color: theme.palette.themePrimary } }}
+                iconName="Lightbulb"
+              />
+              <FormattedMessage id="EditOAuthClientScreen.quick-start-widget.title" />
+            </Text>
+            <Text>
+              <FormattedMessage
+                id="EditOAuthClientScreen.quick-start-widget.question"
+                values={{
+                  applicationType: client.x_application_type ?? "",
+                }}
+              />
+            </Text>
+            <QuickStartFrameworkList
+              applicationType={client.x_application_type}
+              showOpenTutorialLabelWhenHover={false}
+            />
+          </div>
+        </Widget>
+      </div>
+    </>
+  );
+}
+
+interface OAuthClientSAML2ContentProps {
+  clientID: string;
+  state: FormState;
+  setState: (fn: (state: FormState) => FormState) => void;
+}
+
+function OAuthClientSAML2Content({
+  clientID,
+  state,
+  setState,
+}: OAuthClientSAML2ContentProps): React.ReactElement {
+  const formState =
+    useMemo<OAuthClientSAMLFormState>((): OAuthClientSAMLFormState => {
+      const samlConfig = state.samlServiceProviders.find(
+        (sp) => sp.clientID === clientID
+      );
+      const defaults = getDefaultOAuthClientSAMLFormState();
+      if (samlConfig == null) {
+        return defaults;
+      }
+      return {
+        isSAMLEnabled: samlConfig.isEnabled,
+        nameIDFormat: samlConfig.nameIDFormat,
+        nameIDAttributePointer:
+          samlConfig.nameIDAttributePointer ?? defaults.nameIDAttributePointer,
+        acsURLs: samlConfig.acsURLs,
+        destination: samlConfig.desitination ?? defaults.destination,
+        recipient: samlConfig.recipient ?? defaults.recipient,
+        audience: samlConfig.audience ?? defaults.audience,
+        assertionValidDurationSeconds:
+          samlConfig.assertionValidDurationSeconds ??
+          defaults.assertionValidDurationSeconds,
+        isSLOEnabled: samlConfig.isSLOEnabled ?? defaults.isSLOEnabled,
+        sloCallbackURL: samlConfig.sloCallbackURL ?? defaults.sloCallbackURL,
+        sloCallbackBinding:
+          samlConfig.sloCallbackBinding ?? defaults.sloCallbackBinding,
+        signatureVerificationEnabled:
+          samlConfig.signatureVerificationEnabled ??
+          defaults.signatureVerificationEnabled,
+        signingCertificates:
+          samlConfig.certificates ?? defaults.signingCertificates,
+      };
+    }, [clientID, state.samlServiceProviders]);
+
+  const onFormStateChange = useCallback(
+    (newState: OAuthClientSAMLFormState) => {
+      setState((prevState): FormState => {
+        const newSAMLConfig: (typeof state.samlServiceProviders)[number] = {
+          clientID: clientID,
+          isEnabled: newState.isSAMLEnabled,
+          nameIDFormat: newState.nameIDFormat,
+          nameIDAttributePointer: newState.nameIDAttributePointer,
+          acsURLs: newState.acsURLs,
+          desitination: newState.destination,
+          recipient: newState.recipient,
+          audience: newState.audience,
+          assertionValidDurationSeconds: newState.assertionValidDurationSeconds,
+          isSLOEnabled: newState.isSLOEnabled,
+          sloCallbackURL: newState.sloCallbackURL,
+          sloCallbackBinding: newState.sloCallbackBinding,
+          signatureVerificationEnabled: newState.signatureVerificationEnabled,
+          certificates: newState.signingCertificates,
+        };
+        const newServiceProviders = [...prevState.samlServiceProviders];
+        const existingConfigIndex = state.samlServiceProviders.findIndex(
+          (sp) => sp.clientID === clientID
+        );
+        if (existingConfigIndex === -1) {
+          newServiceProviders.push(newSAMLConfig);
+        } else {
+          newServiceProviders[existingConfigIndex] = newSAMLConfig;
+        }
+        return {
+          ...prevState,
+          samlServiceProviders: newServiceProviders,
+        };
+      });
+    },
+    [clientID, setState, state]
+  );
+
+  const jsonPointer = useMemo(() => {
+    const idx = state.samlServiceProviders.findIndex(
+      (sp) => sp.clientID === clientID
+    );
+
+    return `/saml/service_providers/${idx}`;
+  }, [clientID, state.samlServiceProviders]);
+
+  return (
+    <div className={cn(styles.widget)}>
+      <OAuthClientSAMLForm
+        formState={formState}
+        onFormStateChange={onFormStateChange}
+        parentJSONPointer={jsonPointer}
+      />
+    </div>
+  );
+}
 
 interface OAuthQuickStartScreenContentProps {
   form: AppSecretConfigFormModel<FormState>;

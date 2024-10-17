@@ -193,7 +193,10 @@ export function useAppSecretConfigForm<State>(
   const state = currentState ?? initialState;
   const setState = useCallback(
     (fn: (state: State) => State) => {
-      setCurrentState((s) => fn(s ?? initialState));
+      setCurrentState((s) => {
+        const newState = fn(s ?? initialState);
+        return newState;
+      });
     },
     [initialState]
   );
