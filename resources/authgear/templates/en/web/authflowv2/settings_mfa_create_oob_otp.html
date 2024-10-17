@@ -44,12 +44,10 @@
         {{- if eq $.Channel "email" }}
           {{ include "v2.page.settings-mfa-create-oob-otp.email.subtitle" nil }}
         {{- else }}
-          {{- if eq $.Channel "oob_otp_sms" }}
-            {{- if eq .Channel "whatsapp" }}
-              {{ include "v2.page.settings-mfa-create-oob-otp.whatsapp.subtitle" nil }}
-            {{ else if eq .Channel "sms" }}
-              {{ include "v2.page.settings-mfa-create-oob-otp.sms.subtitle" nil }}
-            {{- end }}
+          {{- if eq .Channel "whatsapp" }}
+            {{ include "v2.page.settings-mfa-create-oob-otp.whatsapp.subtitle" nil }}
+          {{ else if eq .Channel "sms" }}
+            {{ include "v2.page.settings-mfa-create-oob-otp.sms.subtitle" nil }}
           {{- end }}
         {{ end }}
       </h2>
