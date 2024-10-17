@@ -894,7 +894,7 @@
   "v2.component.device-token-checkbox.default.label": "Remember this device, and don’t ask again",
   "v2.component.divider.default.or-label": "or",
   "v2.component.image-input.default.btn-label-open-camera": "Open Camera",
-  "v2.component.image-input.default.btn-label-submit-photo": "Upload",
+  "v2.component.image-input.default.btn-label-submit-photo": "Confirm",
   "v2.component.image-input.default.btn-label-take-photo": "Capture",
   "v2.component.image-input.default.idle-description-avoid-smile": "Maintain neutral expression and avoid smiling",
   "v2.component.image-input.default.idle-description-not-profile-pic": "It won''t be your profile picture",
