@@ -120,6 +120,58 @@ var botProtectionProviderSecret = graphql.NewObject(graphql.ObjectConfig{
 	},
 })
 
+var samlIdpSigningCertificate = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SAMLIdpSigningCertificate",
+	Description: "SAML Identity Provider signing certificate",
+	Fields: graphql.Fields{
+		"keyID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"certificateFingerprint": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"certificatePEM": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var samlIdpSigningSecrets = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SAMLIdpSigningSecrets",
+	Description: "SAML Identity Provider signing secrets",
+	Fields: graphql.Fields{
+		"certificates": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(samlIdpSigningCertificate))),
+		},
+	},
+})
+
+var samlSpSigningCertificate = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "samlSpSigningCertificate",
+	Description: "SAML Identity Provider signing certificate",
+	Fields: graphql.Fields{
+		"certificateFingerprint": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"certificatePEM": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var samlSpSigningSecret = graphql.NewObject(graphql.ObjectConfig{
+	Name:        "SAMLSpSigningSecrets",
+	Description: "SAML Service Provider signing secrets",
+	Fields: graphql.Fields{
+		"clientID": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"certificates": &graphql.Field{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(samlSpSigningCertificate))),
+		},
+	},
+})
+
 type AppSecretKey string
 
 const (
@@ -129,6 +181,8 @@ const (
 	AppSecretKeySmtpSecret                    AppSecretKey = "smtpSecret"
 	AppSecretKeyOauthClientSecrets            AppSecretKey = "oauthClientSecrets" // nolint:gosec
 	AppSecretKeyBotProtectionProviderSecret   AppSecretKey = "botProtectionProviderSecret"
+	AppSecretKeySAMLIdpSigningSecrets         AppSecretKey = "samlIdpSigningSecrets" // nolint:gosec
+	AppSecretKeySAMLSpSigningSecrets          AppSecretKey = "samlSpSigningSecrets"  // nolint:gosec
 )
 
 var secretConfig = graphql.NewObject(graphql.ObjectConfig{
@@ -153,6 +207,12 @@ var secretConfig = graphql.NewObject(graphql.ObjectConfig{
 		string(AppSecretKeyBotProtectionProviderSecret): &graphql.Field{
 			Type: botProtectionProviderSecret,
 		},
+		string(AppSecretKeySAMLIdpSigningSecrets): &graphql.Field{
+			Type: samlIdpSigningSecrets,
+		},
+		string(AppSecretKeySAMLSpSigningSecrets): &graphql.Field{
+			Type: graphql.NewList(graphql.NewNonNull(samlSpSigningSecret)),
+		},
 	},
 })
 
@@ -176,6 +236,12 @@ var appSecretKey = graphql.NewEnum(graphql.EnumConfig{
 		},
 		"BOT_PROTECTION_PROVIDER_SECRET": &graphql.EnumValueConfig{
 			Value: AppSecretKeyBotProtectionProviderSecret,
+		},
+		"SAML_IDP_SIGNING_SECRETS": &graphql.EnumValueConfig{
+			Value: AppSecretKeySAMLIdpSigningSecrets,
+		},
+		"SAML_SP_SIGNING_SECRETS": &graphql.EnumValueConfig{
+			Value: AppSecretKeySAMLSpSigningSecrets,
 		},
 	},
 })

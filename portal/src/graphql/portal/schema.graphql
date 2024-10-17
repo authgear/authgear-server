@@ -161,6 +161,12 @@ enum AppSecretKey {
   OAUTH_SSO_PROVIDER_CLIENT_SECRETS
 
   """"""
+  SAML_IDP_SIGNING_SECRETS
+
+  """"""
+  SAML_SP_SIGNING_SECRETS
+
+  """"""
   SMTP_SECRET
 
   """"""
@@ -731,6 +737,72 @@ type Query {
   viewer: Viewer
 }
 
+"""SAML Identity Provider signing certificate"""
+type SAMLIdpSigningCertificate {
+  """"""
+  certificateFingerprint: String!
+
+  """"""
+  certificatePEM: String!
+
+  """"""
+  keyID: String!
+}
+
+"""SAML Identity Provider signing secrets"""
+type SAMLIdpSigningSecrets {
+  """"""
+  certificates: [SAMLIdpSigningCertificate!]!
+}
+
+""""""
+input SAMLIdpSigningSecretsDeleteDataInput {
+  """"""
+  keyID: String!
+}
+
+""""""
+input SAMLIdpSigningSecretsUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  deleteData: SAMLIdpSigningSecretsDeleteDataInput
+}
+
+"""SAML Service Provider signing secrets"""
+type SAMLSpSigningSecrets {
+  """"""
+  certificates: [samlSpSigningCertificate!]!
+
+  """"""
+  clientID: String!
+}
+
+""""""
+input SAMLSpSigningSecretsSetDataInput {
+  """"""
+  items: [SAMLSpSigningSecretsSetDataInputItem!]!
+}
+
+""""""
+input SAMLSpSigningSecretsSetDataInputItem {
+  """"""
+  certificates: [String!]!
+
+  """"""
+  clientID: String!
+}
+
+""""""
+input SAMLSpSigningSecretsUpdateInstructionsInput {
+  """"""
+  action: String!
+
+  """"""
+  setData: SAMLSpSigningSecretsSetDataInput
+}
+
 """SMTP secret"""
 type SMTPSecret {
   """"""
@@ -782,6 +854,12 @@ type SecretConfig {
   oauthSSOProviderClientSecrets: [OAuthSSOProviderClientSecret!]
 
   """"""
+  samlIdpSigningSecrets: SAMLIdpSigningSecrets
+
+  """"""
+  samlSpSigningSecrets: [SAMLSpSigningSecrets!]
+
+  """"""
   smtpSecret: SMTPSecret
 
   """"""
@@ -801,6 +879,12 @@ input SecretConfigUpdateInstructionsInput {
 
   """"""
   oauthSSOProviderClientSecrets: OAuthSSOProviderClientSecretsUpdateInstructionsInput
+
+  """"""
+  samlIdpSigningSecrets: SAMLIdpSigningSecretsUpdateInstructionsInput
+
+  """"""
+  samlSpSigningSecrets: SAMLSpSigningSecretsUpdateInstructionsInput
 
   """"""
   smtpSecret: SmtpSecretUpdateInstructionsInput
@@ -1189,6 +1273,15 @@ input reconcileCheckoutSession {
 type reconcileCheckoutSessionPayload {
   """"""
   app: App!
+}
+
+"""SAML Identity Provider signing certificate"""
+type samlSpSigningCertificate {
+  """"""
+  certificateFingerprint: String!
+
+  """"""
+  certificatePEM: String!
 }
 
 """"""

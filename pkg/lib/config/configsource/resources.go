@@ -50,6 +50,10 @@ type clockContextKeyType struct{}
 
 var ContextKeyClock = clockContextKeyType{}
 
+type samlEntityIDKeyType struct{}
+
+var ContextKeySAMLEntityID = samlEntityIDKeyType{}
+
 type AuthgearYAMLDescriptor struct{}
 
 var _ resource.Descriptor = AuthgearYAMLDescriptor{}
@@ -532,12 +536,17 @@ func (d AuthgearSecretYAMLDescriptor) UpdateResource(ctx context.Context, _ []re
 		return nil, fmt.Errorf("missing clock in context")
 	}
 
+	commonName := ctx.Value(ContextKeySAMLEntityID).(string)
+
 	updateInstructionContext := &config.SecretConfigUpdateInstructionContext{
 		Clock: c,
 		// The key generated for client secret doesn't have use usage key
 		// Since the key neither use for sig nor enc
 		GenerateClientSecretOctetKeyFunc: secrets.GenerateOctetKey,
 		GenerateAdminAPIAuthKeyFunc:      secrets.GenerateRSAKey,
+		GenerateSAMLIdpSigningCertificate: func() (*config.SAMLIdpSigningCertificate, error) {
+			return config.GenerateSAMLIdpSigningCertificate(commonName)
+		},
 	}
 	updatedConfig, err := updateInstruction.ApplyTo(updateInstructionContext, original)
 	if err != nil {

@@ -253,7 +253,7 @@ func (c *SecretConfig) validateSAMLSigningKey(ctx *validation.Context, keyID str
 func (c *SecretConfig) validateSAMLServiceProviderCerts(ctx *validation.Context, sp *SAMLServiceProviderConfig) {
 	_, data, _ := c.LookupDataWithIndex(SAMLSpSigningMaterialsKey)
 	signingMaterials, _ := data.(*SAMLSpSigningMaterials)
-	certs, ok := signingMaterials.Resolve(sp)
+	certs, _, ok := signingMaterials.Resolve(sp.GetID())
 	if !ok || len(certs.Certificates) < 1 {
 		ctx.EmitErrorMessage(fmt.Sprintf("certificates of saml sp '%s' is not configured", sp.GetID()))
 	}

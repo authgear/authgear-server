@@ -98,6 +98,40 @@ var adminAPIAuthKeyDeleteDataInput = graphql.NewInputObject(graphql.InputObjectC
 	},
 })
 
+var samlIdpSigningSecretsDeleteDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SAMLIdpSigningSecretsDeleteDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"keyID": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+	},
+})
+
+var samlSpSigningSecretsSetDataInputItem = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SAMLSpSigningSecretsSetDataInputItem",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"clientID": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"certificates": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.NewList(
+				graphql.NewNonNull(graphql.String),
+			)),
+		},
+	},
+})
+
+var samlSpSigningSecretsSetDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SAMLSpSigningSecretsSetDataInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"items": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.NewList(
+				graphql.NewNonNull(samlSpSigningSecretsSetDataInputItem),
+			)),
+		},
+	},
+})
+
 var smtpSecretUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SmtpSecretUpdateInstructionsInput",
 	Fields: graphql.InputObjectConfigFieldMap{
@@ -133,6 +167,30 @@ var oauthClientSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.I
 		},
 		"cleanupData": &graphql.InputObjectFieldConfig{
 			Type: oauthClientSecretsCleanupDataInput,
+		},
+	},
+})
+
+var samlIdpSigningSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SAMLIdpSigningSecretsUpdateInstructionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"action": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"deleteData": &graphql.InputObjectFieldConfig{
+			Type: samlIdpSigningSecretsDeleteDataInput,
+		},
+	},
+})
+
+var samlSpSigningSecretsUpdateInstructionsInput = graphql.NewInputObject(graphql.InputObjectConfig{
+	Name: "SAMLSpSigningSecretsUpdateInstructionsInput",
+	Fields: graphql.InputObjectConfigFieldMap{
+		"action": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.String),
+		},
+		"setData": &graphql.InputObjectFieldConfig{
+			Type: samlSpSigningSecretsSetDataInput,
 		},
 	},
 })
@@ -190,6 +248,12 @@ var secretConfigUpdateInstructionsInput = graphql.NewInputObject(graphql.InputOb
 		},
 		"botProtectionProviderSecret": &graphql.InputObjectFieldConfig{
 			Type: botProtectionProviderSecretUpdateInstructionsInput,
+		},
+		"samlIdpSigningSecrets": &graphql.InputObjectFieldConfig{
+			Type: samlIdpSigningSecretsUpdateInstructionsInput,
+		},
+		"samlSpSigningSecrets": &graphql.InputObjectFieldConfig{
+			Type: samlSpSigningSecretsUpdateInstructionsInput,
 		},
 	},
 })

@@ -1,6 +1,7 @@
 package appresource
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"path"
 	"sort"
 	"strings"
+	"text/template"
 
 	"github.com/spf13/afero"
 
@@ -40,15 +42,16 @@ type DomainService interface {
 }
 
 type Manager struct {
-	Context            context.Context
-	AppResourceManager *resource.Manager
-	AppFS              resource.Fs
-	AppFeatureConfig   *config.FeatureConfig
-	AppHostSuffixes    *config.AppHostSuffixes
-	DomainService      DomainService
-	Tutorials          TutorialService
-	DenoClient         DenoClient
-	Clock              clock.Clock
+	Context               context.Context
+	AppResourceManager    *resource.Manager
+	AppFS                 resource.Fs
+	AppFeatureConfig      *config.FeatureConfig
+	AppHostSuffixes       *config.AppHostSuffixes
+	DomainService         DomainService
+	Tutorials             TutorialService
+	DenoClient            DenoClient
+	Clock                 clock.Clock
+	SAMLEnvironmentConfig config.SAMLEnvironmentConfig
 }
 
 func (m *Manager) List() ([]string, error) {
@@ -331,6 +334,7 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		ctx = context.WithValue(ctx, configsource.ContextKeyClock, m.Clock)
 		ctx = context.WithValue(ctx, configsource.ContextKeyAppHostSuffixes, m.AppHostSuffixes)
 		ctx = context.WithValue(ctx, configsource.ContextKeyDomainService, m.DomainService)
+		ctx = context.WithValue(ctx, configsource.ContextKeySAMLEntityID, m.renderSAMLEntityID(appID))
 		ctx = context.WithValue(ctx, hook.ContextKeyDenoClient, m.DenoClient)
 
 		err = m.Tutorials.OnUpdateResource(ctx, appID, all, resrc, u.Data)
@@ -362,4 +366,20 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		}
 	}
 	return resource.NewManager(manager.Registry, newResFs), files, nil
+}
+
+func (m *Manager) renderSAMLEntityID(appID string) string {
+	idpEntityIdTemplate, err := template.New("").Parse(m.SAMLEnvironmentConfig.IdPEntityIDTemplate)
+	if err != nil {
+		panic(err)
+	}
+	var idpEntityIDBytes bytes.Buffer
+	err = idpEntityIdTemplate.Execute(&idpEntityIDBytes, map[string]interface{}{
+		"app_id": appID,
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	return idpEntityIDBytes.String()
 }

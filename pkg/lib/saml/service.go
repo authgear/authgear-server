@@ -566,7 +566,7 @@ func (s *Service) VerifyEmbeddedSignature(
 	if !sp.SignatureVerificationEnabled {
 		return nil
 	}
-	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
+	certs, _, ok := s.SAMLSpSigningMaterials.Resolve(sp.GetID())
 	if !ok || len(certs.Certificates) == 0 {
 		// This should be prevented by config validation. Therefore it is a programming error.
 		panic(fmt.Errorf("SP certificates not configured but signature verification is required"))
@@ -607,7 +607,7 @@ func (s *Service) VerifyExternalSignature(
 	if !sp.SignatureVerificationEnabled {
 		return nil
 	}
-	certs, ok := s.SAMLSpSigningMaterials.Resolve(sp)
+	certs, _, ok := s.SAMLSpSigningMaterials.Resolve(sp.GetID())
 	if !ok || len(certs.Certificates) == 0 {
 		// This should be prevented by config validation. Therefore it is a programming error.
 		panic(fmt.Errorf("SP certificates not configured but signature verification is required"))

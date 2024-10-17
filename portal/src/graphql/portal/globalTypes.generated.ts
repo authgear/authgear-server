@@ -129,6 +129,8 @@ export enum AppSecretKey {
   BotProtectionProviderSecret = 'BOT_PROTECTION_PROVIDER_SECRET',
   OauthClientSecrets = 'OAUTH_CLIENT_SECRETS',
   OauthSsoProviderClientSecrets = 'OAUTH_SSO_PROVIDER_CLIENT_SECRETS',
+  SamlIdpSigningSecrets = 'SAML_IDP_SIGNING_SECRETS',
+  SamlSpSigningSecrets = 'SAML_SP_SIGNING_SECRETS',
   SmtpSecret = 'SMTP_SECRET',
   WebhookSecret = 'WEBHOOK_SECRET'
 }
@@ -649,6 +651,50 @@ export type QueryTotalUserCountChartArgs = {
   rangeTo: Scalars['Date']['input'];
 };
 
+/** SAML Identity Provider signing certificate */
+export type SamlIdpSigningCertificate = {
+  __typename?: 'SAMLIdpSigningCertificate';
+  certificateFingerprint: Scalars['String']['output'];
+  certificatePEM: Scalars['String']['output'];
+  keyID: Scalars['String']['output'];
+};
+
+/** SAML Identity Provider signing secrets */
+export type SamlIdpSigningSecrets = {
+  __typename?: 'SAMLIdpSigningSecrets';
+  certificates: Array<SamlIdpSigningCertificate>;
+};
+
+export type SamlIdpSigningSecretsDeleteDataInput = {
+  keyID: Scalars['String']['input'];
+};
+
+export type SamlIdpSigningSecretsUpdateInstructionsInput = {
+  action: Scalars['String']['input'];
+  deleteData?: InputMaybe<SamlIdpSigningSecretsDeleteDataInput>;
+};
+
+/** SAML Service Provider signing secrets */
+export type SamlSpSigningSecrets = {
+  __typename?: 'SAMLSpSigningSecrets';
+  certificates: Array<SamlSpSigningCertificate>;
+  clientID: Scalars['String']['output'];
+};
+
+export type SamlSpSigningSecretsSetDataInput = {
+  items: Array<SamlSpSigningSecretsSetDataInputItem>;
+};
+
+export type SamlSpSigningSecretsSetDataInputItem = {
+  certificates: Array<Scalars['String']['input']>;
+  clientID: Scalars['String']['input'];
+};
+
+export type SamlSpSigningSecretsUpdateInstructionsInput = {
+  action: Scalars['String']['input'];
+  setData?: InputMaybe<SamlSpSigningSecretsSetDataInput>;
+};
+
 /** SMTP secret */
 export type SmtpSecret = {
   __typename?: 'SMTPSecret';
@@ -677,6 +723,8 @@ export type SecretConfig = {
   botProtectionProviderSecret?: Maybe<BotProtectionProviderSecret>;
   oauthClientSecrets?: Maybe<Array<OauthClientSecretItem>>;
   oauthSSOProviderClientSecrets?: Maybe<Array<OAuthSsoProviderClientSecret>>;
+  samlIdpSigningSecrets?: Maybe<SamlIdpSigningSecrets>;
+  samlSpSigningSecrets?: Maybe<Array<SamlSpSigningSecrets>>;
   smtpSecret?: Maybe<SmtpSecret>;
   webhookSecret?: Maybe<WebhookSecret>;
 };
@@ -686,6 +734,8 @@ export type SecretConfigUpdateInstructionsInput = {
   botProtectionProviderSecret?: InputMaybe<BotProtectionProviderSecretUpdateInstructionsInput>;
   oauthClientSecrets?: InputMaybe<OAuthClientSecretsUpdateInstructionsInput>;
   oauthSSOProviderClientSecrets?: InputMaybe<OAuthSsoProviderClientSecretsUpdateInstructionsInput>;
+  samlIdpSigningSecrets?: InputMaybe<SamlIdpSigningSecretsUpdateInstructionsInput>;
+  samlSpSigningSecrets?: InputMaybe<SamlSpSigningSecretsUpdateInstructionsInput>;
   smtpSecret?: InputMaybe<SmtpSecretUpdateInstructionsInput>;
 };
 
@@ -924,6 +974,13 @@ export type ReconcileCheckoutSession = {
 export type ReconcileCheckoutSessionPayload = {
   __typename?: 'reconcileCheckoutSessionPayload';
   app: App;
+};
+
+/** SAML Identity Provider signing certificate */
+export type SamlSpSigningCertificate = {
+  __typename?: 'samlSpSigningCertificate';
+  certificateFingerprint: Scalars['String']['output'];
+  certificatePEM: Scalars['String']['output'];
 };
 
 export type SendDenoHookInput = {
