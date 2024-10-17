@@ -63,8 +63,17 @@
     name="{{ or $.OpenCameraButtonName "x_action" }}"
     value="{{ or $.OpenCameraButtonValue "button" }}"
     data-action="image-input#openCamera"
+    data-image-input-target="openCameraBtn"
   > 
-    {{ include "v2.component.button.default.label-open-camera" nil }}
+    {{ include "v2.component.image-input.default.btn-label-open-camera" nil }}
+  </button>
+  <button
+    class="primary-btn w-full hidden"
+    type="button"
+    data-action="image-input#takePhoto"
+    data-image-input-target="takePhotoBtn"
+  > 
+    {{ include "v2.component.image-input.default.btn-label-take-photo" nil }}
   </button>
 
   <button

@@ -2,18 +2,39 @@ import { Controller } from "@hotwired/stimulus";
 
 export class ImageInputController extends Controller {
   static targets = [
+    // container
     "cameraContainer",
+
+    // states
+    "cameraInitial",
     "cameraVideo",
+
+    // buttons
+    "openCameraBtn",
+    "takePhotoBtn",
+    "formSubmitBtn",
+    // image capture helper
     "canvas",
     "input",
-    "formSubmitBtn",
   ];
 
   declare readonly cameraContainerTarget: HTMLDivElement;
+  declare readonly cameraInitialTarget: HTMLDivElement;
   declare readonly cameraVideoTarget: HTMLVideoElement;
+
+  declare readonly openCameraBtnTarget: HTMLButtonElement;
+  declare readonly takePhotoBtnTarget: HTMLButtonElement;
+
   declare readonly canvasTarget: HTMLCanvasElement;
   declare readonly inputTarget: HTMLInputElement;
   declare readonly formSubmitBtnTarget: HTMLButtonElement;
+
+  onCameraOpen = () => {
+    this.cameraContainerTarget.classList.add("open");
+    this.cameraInitialTarget.classList.add("hidden");
+    this.openCameraBtnTarget.classList.add("hidden");
+    this.takePhotoBtnTarget.classList.remove("hidden");
+  };
 
   openCamera = () => {
     const cameraSupported = "mediaDevices" in navigator;
@@ -21,8 +42,6 @@ export class ImageInputController extends Controller {
       //TODO (identity-week-demo): Show error to user
       throw new Error("Camera not supported");
     }
-
-    this.cameraContainerTarget.classList.add("open");
 
     navigator.mediaDevices
       .getUserMedia({
@@ -36,6 +55,7 @@ export class ImageInputController extends Controller {
         this.cameraVideoTarget
           .play()
           .catch((err: unknown) => console.error(err)); //TODO (identity-week-demo): Handle play error
+        this.onCameraOpen();
       })
       .catch((err: unknown) => {
         console.error(err);

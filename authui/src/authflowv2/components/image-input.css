@@ -68,7 +68,6 @@
     @apply ring-inset
       ring-[length:var(--camera-box\_\_ring-width)]
       ring-[color:var(--camera-box\_\_ring-color)];
-    padding: var(--camera-box__py) var(--camera-box__px);
 
     width: var(--camera-box__width);
     aspect-ratio: var(--camera-box__aspect-ratio);
@@ -80,11 +79,16 @@
     }
 
     .camera-initial {
+      padding: var(--camera-box__py) var(--camera-box__px);
       @apply w-full h-full;
       @apply flex flex-col justify-evenly items-center gap-y-4;
       div {
         @apply w-full;
         @apply flex items-center gap-x-2;
+      }
+
+      &.hidden {
+        display: none;
       }
     }
   }
