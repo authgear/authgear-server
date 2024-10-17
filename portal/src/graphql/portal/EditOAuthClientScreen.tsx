@@ -22,13 +22,7 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
-import {
-  ApplicationType,
-  OAuthClientConfig,
-  SAMLBinding,
-  SAMLNameIDAttributePointer,
-  SAMLNameIDFormat,
-} from "../../types";
+import { ApplicationType, OAuthClientConfig } from "../../types";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import FormContainer from "../../FormContainer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
@@ -43,32 +37,12 @@ import { AppSecretKey } from "./globalTypes.generated";
 import { startReauthentication } from "./Authenticated";
 import { useLocationEffect } from "../../hook/useLocationEffect";
 import { useAppSecretVisitToken } from "./mutations/generateAppSecretVisitTokenMutation";
-import { useOAuthClientForm } from "../../hook/useOAuthClientForm";
+import { useOAuthClientForm, FormState } from "../../hook/useOAuthClientForm";
 import {
   OAuthClientSAMLForm,
   OAuthClientSAMLFormState,
+  getDefaultOAuthClientSAMLFormState,
 } from "../../components/applications/OAuthClientSAMLForm";
-
-interface FormState {
-  publicOrigin: string;
-  clients: OAuthClientConfig[];
-  editedClient: OAuthClientConfig | null;
-  removeClientByID?: string;
-  clientSecretMap: Partial<Record<string, string>>;
-  isSAMLEnabled: boolean;
-  samlNameIDFormat?: SAMLNameIDFormat;
-  samlNameIDAttributePointer?: SAMLNameIDAttributePointer;
-  samlAcsURLs?: string[];
-  samlDesitination?: string;
-  samlRecipient?: string;
-  samlAudience?: string;
-  samlAssertionValidDurationSeconds?: number;
-  samlIsSLOEnabled?: boolean;
-  samlSloCallbackURL?: string;
-  samlSloCallbackBinding?: SAMLBinding;
-  samlSignatureVerificationEnabled?: boolean;
-  samlCertificates?: string[];
-}
 
 interface LocationState {
   isClientSecretRevealed: boolean;
@@ -425,7 +399,11 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
             onRevealSecret={onRevealSecret}
           />
         ) : (
-          <OAuthClientSAML2Content state={state} setState={setState} />
+          <OAuthClientSAML2Content
+            clientID={client.client_id}
+            state={state}
+            setState={setState}
+          />
         )}
       </ScreenContent>
     );
@@ -495,62 +473,77 @@ function OAuthClientSettingsForm({
 }
 
 interface OAuthClientSAML2ContentProps {
+  clientID: string;
   state: FormState;
   setState: (fn: (state: FormState) => FormState) => void;
 }
 
 function OAuthClientSAML2Content({
+  clientID,
   state,
   setState,
 }: OAuthClientSAML2ContentProps): React.ReactElement {
-  const formState = useMemo<OAuthClientSAMLFormState>(() => {
-    return {
-      isSAMLEnabled: state.isSAMLEnabled,
-      nameIDFormat: state.samlNameIDFormat ?? SAMLNameIDFormat.Unspecified,
-      nameIDAttributePointer: state.samlNameIDAttributePointer,
-      acsURLs: state.samlAcsURLs,
-      destination: state.samlDesitination,
-      recipient: state.samlRecipient,
-      audience: state.samlAudience,
-      assertionValidDurationSeconds: state.samlAssertionValidDurationSeconds,
-      isSLOEnabled: state.samlIsSLOEnabled,
-      sloCallbackURL: state.samlSloCallbackURL,
-      sloCallbackBinding: state.samlSloCallbackBinding,
-      signatureVerificationEnabled: state.samlSignatureVerificationEnabled,
-      signingCertificates: state.samlCertificates,
-    };
-  }, [state]);
+  const formState =
+    useMemo<OAuthClientSAMLFormState>((): OAuthClientSAMLFormState => {
+      const samlConfig = state.samlServiceProviderByClientID[clientID];
+      const defaults = getDefaultOAuthClientSAMLFormState();
+      if (samlConfig == null) {
+        return defaults;
+      }
+      return {
+        isSAMLEnabled: samlConfig.isEnabled,
+        nameIDFormat: samlConfig.nameIDFormat,
+        nameIDAttributePointer:
+          samlConfig.nameIDAttributePointer ?? defaults.nameIDAttributePointer,
+        acsURLs: samlConfig.acsURLs,
+        destination: samlConfig.desitination ?? defaults.destination,
+        recipient: samlConfig.recipient ?? defaults.recipient,
+        audience: samlConfig.audience ?? defaults.audience,
+        assertionValidDurationSeconds:
+          samlConfig.assertionValidDurationSeconds ??
+          defaults.assertionValidDurationSeconds,
+        isSLOEnabled: samlConfig.isSLOEnabled ?? defaults.isSLOEnabled,
+        sloCallbackURL: samlConfig.sloCallbackURL ?? defaults.sloCallbackURL,
+        sloCallbackBinding:
+          samlConfig.sloCallbackBinding ?? defaults.sloCallbackBinding,
+        signatureVerificationEnabled:
+          samlConfig.signatureVerificationEnabled ??
+          defaults.signatureVerificationEnabled,
+        signingCertificates:
+          samlConfig.certificates ?? defaults.signingCertificates,
+      };
+    }, [clientID, state.samlServiceProviderByClientID]);
 
   const onFormStateChange = useCallback(
     (newState: OAuthClientSAMLFormState) => {
       setState((prevState): FormState => {
+        const newSAMLConfig: (typeof state.samlServiceProviderByClientID)[string] =
+          {
+            isEnabled: newState.isSAMLEnabled,
+            nameIDFormat: newState.nameIDFormat,
+            nameIDAttributePointer: newState.nameIDAttributePointer,
+            acsURLs: newState.acsURLs,
+            desitination: newState.destination,
+            recipient: newState.recipient,
+            audience: newState.audience,
+            assertionValidDurationSeconds:
+              newState.assertionValidDurationSeconds,
+            isSLOEnabled: newState.isSLOEnabled,
+            sloCallbackURL: newState.sloCallbackURL,
+            sloCallbackBinding: newState.sloCallbackBinding,
+            signatureVerificationEnabled: newState.signatureVerificationEnabled,
+            certificates: newState.signingCertificates,
+          };
         return {
           ...prevState,
-          isSAMLEnabled: newState.isSAMLEnabled,
-          samlNameIDFormat: newState.nameIDFormat,
-          samlNameIDAttributePointer: newState.nameIDAttributePointer,
-          samlAcsURLs: newState.acsURLs,
-          samlDesitination: newState.destination
-            ? newState.destination
-            : undefined,
-          samlRecipient: newState.recipient ? newState.recipient : undefined,
-          samlAudience: newState.audience ? newState.audience : undefined,
-          samlAssertionValidDurationSeconds:
-            newState.assertionValidDurationSeconds,
-          samlIsSLOEnabled: newState.isSLOEnabled,
-          samlSloCallbackURL: newState.sloCallbackURL
-            ? newState.sloCallbackURL
-            : undefined,
-          samlSloCallbackBinding: newState.sloCallbackBinding
-            ? newState.sloCallbackBinding
-            : undefined,
-          samlSignatureVerificationEnabled:
-            newState.signatureVerificationEnabled,
-          samlCertificates: newState.signingCertificates,
+          samlServiceProviderByClientID: {
+            ...prevState.samlServiceProviderByClientID,
+            [clientID]: newSAMLConfig,
+          },
         };
       });
     },
-    [setState]
+    [clientID, setState, state]
   );
 
   return (

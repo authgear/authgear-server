@@ -45,13 +45,3 @@ export function parseDuration(s: string): number {
 export function formatDuration(quantity: number, unit: DurationUnit): string {
   return quantity.toString() + unit;
 }
-
-export function formatOptionalDuration(
-  quantity: number | undefined,
-  unit: DurationUnit
-): string | undefined {
-  if (quantity == null) {
-    return undefined;
-  }
-  return formatDuration(quantity, unit);
-}
