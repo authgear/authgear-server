@@ -472,7 +472,12 @@ type StartAddOOBOTPAuthenticatorOutput struct {
 func (s *Service) StartAddOOBOTPAuthenticator(resolvedSession session.ResolvedSession, input *StartAddOOBOTPAuthenticatorInput) (*StartAddOOBOTPAuthenticatorOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 
-	err := s.Database.WithTx(func() error {
+	_, err := s.prepareNewAuthenticator(userID, input.Channel, input.Target)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Database.WithTx(func() error {
 		err := s.sendOTPCode(userID, input.Channel, input.Target, false)
 		if err != nil {
 			return err
@@ -601,27 +606,7 @@ func (s *Service) FinishAddOOBOTPAuthenticator(resolvedSession session.ResolvedS
 		return
 	}
 
-	spec := &authenticator.Spec{
-		UserID:    userID,
-		IsDefault: false,
-		Kind:      model.AuthenticatorKindSecondary,
-		OOBOTP:    &authenticator.OOBOTPSpec{},
-	}
-
-	switch token.Authenticator.OOBOTPChannel {
-	case model.AuthenticatorOOBChannelEmail:
-		spec.Type = model.AuthenticatorTypeOOBEmail
-		spec.OOBOTP.Email = token.Authenticator.OOBOTPTarget
-	case model.AuthenticatorOOBChannelWhatsapp:
-		fallthrough
-	case model.AuthenticatorOOBChannelSMS:
-		spec.Type = model.AuthenticatorTypeOOBSMS
-		spec.OOBOTP.Phone = token.Authenticator.OOBOTPTarget
-	default:
-		panic("unexpected channel")
-	}
-
-	info, err := s.Authenticators.New(spec)
+	info, err := s.prepareNewAuthenticator(userID, token.Authenticator.OOBOTPChannel, token.Authenticator.OOBOTPTarget)
 	if err != nil {
 		return
 	}
@@ -646,6 +631,35 @@ func (s *Service) FinishAddOOBOTPAuthenticator(resolvedSession session.ResolvedS
 		Info: info,
 	}
 	return
+}
+
+func (s *Service) prepareNewAuthenticator(userID string, channel model.AuthenticatorOOBChannel, target string) (*authenticator.Info, error) {
+	spec := &authenticator.Spec{
+		UserID:    userID,
+		IsDefault: false,
+		Kind:      model.AuthenticatorKindSecondary,
+		OOBOTP:    &authenticator.OOBOTPSpec{},
+	}
+
+	switch channel {
+	case model.AuthenticatorOOBChannelEmail:
+		spec.Type = model.AuthenticatorTypeOOBEmail
+		spec.OOBOTP.Email = target
+	case model.AuthenticatorOOBChannelWhatsapp:
+		fallthrough
+	case model.AuthenticatorOOBChannelSMS:
+		spec.Type = model.AuthenticatorTypeOOBSMS
+		spec.OOBOTP.Phone = target
+	default:
+		panic("unexpected channel")
+	}
+
+	info, err := s.Authenticators.New(spec)
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
 }
 
 type DeleteOOBOTPAuthenticatorInput struct {

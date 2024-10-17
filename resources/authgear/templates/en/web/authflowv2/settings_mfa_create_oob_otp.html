@@ -33,11 +33,6 @@
     {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
   {{ end }}
 
-  {{ $show_captcha := false}}
-  {{ if $.IsBotProtectionRequired }}
-    {{ $show_captcha = true }}
-  {{ end }}
-
   <div class="settings-content flex flex-col gap-y-8">
     <div class="screen-title-description">
       <h2 class="screen-description">
