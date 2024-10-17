@@ -24,6 +24,7 @@ Example usage:
   data-controller="dialog {{ $.DialogControllerStr }}"
   aria-modal="true"
   data-action="click->dialog#closeOnBackgroundClick"
+  data-turbo-temporary
   {{ template "dialog-attr" $.Ctx }}
 >
   <div class="dialog {{ $.ClassName }}">
