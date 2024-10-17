@@ -77,6 +77,7 @@ merge
 message
 mode
 more
+no_photography
 note
 opacity
 outlet
@@ -92,7 +93,6 @@ person_remove
 phone
 phone_iphone
 photo
-photo_camera
 place
 policy
 post
