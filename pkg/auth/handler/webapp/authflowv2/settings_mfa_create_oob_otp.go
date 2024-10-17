@@ -37,8 +37,8 @@ func ConfigureAuthflowV2SettingsMFACreateOOBOTPRoute(route httproute.Route) http
 }
 
 type SettingsMFACreateOOBOTPViewModel struct {
-	OOBAuthenticatorType model.AuthenticatorType
-	Channel              model.AuthenticatorOOBChannel
+	AuthenticatorType model.AuthenticatorType
+	Channel           model.AuthenticatorOOBChannel
 }
 
 type AuthflowV2SettingsMFACreateOOBOTPHandler struct {
@@ -51,8 +51,8 @@ type AuthflowV2SettingsMFACreateOOBOTPHandler struct {
 
 func NewSettingsMFACreateOOBOTPViewModel(channel model.AuthenticatorOOBChannel, authenticatorType model.AuthenticatorType) SettingsMFACreateOOBOTPViewModel {
 	return SettingsMFACreateOOBOTPViewModel{
-		OOBAuthenticatorType: authenticatorType,
-		Channel:              channel,
+		AuthenticatorType: authenticatorType,
+		Channel:           channel,
 	}
 }
 

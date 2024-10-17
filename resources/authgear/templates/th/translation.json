@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "ปัญหาที่ไม่คาดคิด",
   "v2.error.server": "เซิร์ฟเวอร์พบข้อผิดพลาดภายใน",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {รหัสผ่าน {LoginIDNameIncoming} นี้ได้ถูกลงทะเบียนไปแล้ว} oauth {บัญชี {OAuthProviderNameIncoming} นี้ได้ถูกลงทะเบียนไปแล้ว} other {บัญชีนี้ได้ถูกลงทะเบียนไปแล้ว}} โปรดใช้อีกรหัสหนึ่ง",
+  "v2.error.settings-token-invalid": "<p>หน้านี้ไม่ถูกต้องหรือหมดอายุแล้ว</p><p>โปรดกลับไปและลองอีกครั้ง</p>",
   "v2.error.sms-send-limit-exceeded": "คุณส่งรหัสผ่านแบบใช้ครั้งเดียวเกินจำนวนที่กำหนด กรุณาลองใหม่ในภายหลัง",
   "v2.error.suggestion-account-conflict-login-id": "คุณต้องการเข้าสู่ระบบหรือไม่?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {คุณสามารถลองเข้าสู่ระบบด้วย {OAuthProviderNameExisting} หรือใช้ {LoginIDNameIncoming} อื่นด้านล่าง.} oauth {คุณสามารถลองใช้ {OAuthProviderNameIncoming} บัญชีอื่น{ IdentityTypeExisting, select, login_id { หรือใช้ {LoginIDNameExisting} ของคุณด้านล่าง.} other {หรือใช้วิธีการอื่นด้านล่าง.} }} other {คุณสามารถลองใช้บัญชีอื่น.} }",

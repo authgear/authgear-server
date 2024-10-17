@@ -14,6 +14,7 @@
   {{ template "authflowv2/__navbar.html"
      (dict
         "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
+        "BackHref" (call $.MakeURL "/settings/profile")
         "Title" $label
      )
   }}

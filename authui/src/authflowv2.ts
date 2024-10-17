@@ -49,7 +49,6 @@ import { BotProtectionStandalonePageController } from "./authflowv2/botprotectio
 import { ImagePickerController } from "./imagepicker";
 import { SelectInputController } from "./authflowv2/selectInput";
 import { AccountDeletionController } from "./accountdeletion";
-import { BackController } from "./authflowv2/back";
 import { FormStateController } from "./authflowv2/formState";
 import {
   FormatDateController,
@@ -141,7 +140,6 @@ Stimulus.register("bot-protection-dialog", BotProtectionDialogController);
 Stimulus.register("select-input", SelectInputController);
 
 Stimulus.register("account-deletion", AccountDeletionController);
-Stimulus.register("back-button", BackController);
 Stimulus.register("form-state", FormStateController);
 
 injectCSSAttrs(document.documentElement);

@@ -1006,6 +1006,7 @@
   "v2.error.screen-title": "Isu Tidak Dijangka",
   "v2.error.server": "Server menghadapi ralat dalaman.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Ini {LoginIDNameIncoming} sudah didaftarkan.} oauth {Akaun {OAuthProviderNameIncoming} ini sudah didaftarkan.} other {Akaun ini sudah didaftarkan.}} Sila gunakan yang lain.",
+  "v2.error.settings-token-invalid": "<p>Halaman ini tidak sah atau telah tamat tempoh.</p><p>Sila kembali dan cuba semula permintaan anda.</p>",
   "v2.error.sms-send-limit-exceeded": "Anda telah melebihi had penghantaran kata laluan sekali guna. Sila cuba lagi nanti.",
   "v2.error.suggestion-account-conflict-login-id": "Adakah anda mahu log masuk?",
   "v2.error.suggestion-account-conflict-oauth": "{ IdentityTypeIncoming, select, login_id {Anda boleh cuba log masuk dengan {OAuthProviderNameExisting} atau gunakan {LoginIDNameIncoming} lain di bawah.} oauth {Anda boleh cuba akaun {OAuthProviderNameIncoming} lain{ IdentityTypeExisting, select, login_id { atau gunakan {LoginIDNameExisting} anda di bawah.} other {atau gunakan kaedah lain di bawah.} }} other {Anda boleh cuba akaun lain.} }",

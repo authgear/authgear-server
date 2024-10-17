@@ -56,6 +56,7 @@ func ConfigureAuthflowV2SettingsIdentityVerifyPhoneRoute(route httproute.Route) 
 type AuthflowV2SettingsIdentityVerifyPhoneViewModel struct {
 	LoginIDKey string
 	LoginID    string
+	IdentityID string
 	Token      string
 
 	CodeLength                     int
@@ -101,6 +102,7 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(r *http.Request, 
 	vm := AuthflowV2SettingsIdentityVerifyPhoneViewModel{
 		LoginIDKey: loginIDKey,
 		LoginID:    token.Identity.PhoneNumber,
+		IdentityID: token.Identity.IdentityID,
 		Token:      tokenString,
 
 		CodeLength:       6,
