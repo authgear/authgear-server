@@ -36,12 +36,10 @@ func (s *Store) Create(m *AuthgearAppIDOpenCVFRCollectionIDMap) (err error) {
 		Insert(s.SQLBuilder.TableName("_auth_authenticator_face_recognition_opencvfr_collection_map")).
 		Columns(
 			"id",
-			"app_id",
 			"opencv_fr_collection_id",
 		).
 		Values(
 			m.ID,
-			m.AppID,
 			m.OpenCVFRCollectionID,
 		)
 

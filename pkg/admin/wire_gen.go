@@ -460,7 +460,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	opencvfrService := &opencvfr.Service{
 		Clock:                        clockClock,
 		AppID:                        appID,
-		AuthenticatorConfig:          authenticationConfig,
+		AuthenticatorConfig:          authenticatorConfig,
 		Person:                       personService,
 		Collection:                   collectionService,
 		Search:                       searchService,
@@ -1679,7 +1679,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	opencvfrService := &opencvfr.Service{
 		Clock:                        clockClock,
 		AppID:                        appID,
-		AuthenticatorConfig:          authenticationConfig,
+		AuthenticatorConfig:          authenticatorConfig,
 		Person:                       personService,
 		Collection:                   collectionService,
 		Search:                       searchService,

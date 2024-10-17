@@ -70,6 +70,7 @@ type PermissionsPolicyPolicy struct {
  * - fullscreen=*
  * - publickey-credentials-create=(self) (for WebAuthn)
  * - publickey-credentials-get=(self) (for WebAuthn)
+ * - camera=(self) (for IdentityWeekDemo_FaceRecognition_2FA)
  */
 var DefaultPermissionsPolicy = []PermissionsPolicyPolicy{
 	{PermissionsPolicyDirectiveAccelerometer, PermissionsPolicyAllowlistNone},
@@ -78,7 +79,7 @@ var DefaultPermissionsPolicy = []PermissionsPolicyPolicy{
 	{PermissionsPolicyDirectiveBattery, PermissionsPolicyAllowlistNone},
 	{PermissionsPolicyDirectiveBluetooth, PermissionsPolicyAllowlistNone},
 	{PermissionsPolicyDirectiveBrowsingTopics, PermissionsPolicyAllowlistNone},
-	{PermissionsPolicyDirectiveCamera, PermissionsPolicyAllowlistNone},
+	{PermissionsPolicyDirectiveCamera, PermissionsPolicyAllowlistSelf},
 	{PermissionsPolicyDirectiveDisplayCapture, PermissionsPolicyAllowlistNone},
 	{PermissionsPolicyDirectiveDocumentDomain, PermissionsPolicyAllowlistNone},
 	{PermissionsPolicyDirectiveEncryptedMedia, PermissionsPolicyAllowlistNone},

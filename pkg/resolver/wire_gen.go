@@ -492,7 +492,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	opencvfrService := &opencvfr.Service{
 		Clock:                        clock,
 		AppID:                        appID,
-		AuthenticatorConfig:          authenticationConfig,
+		AuthenticatorConfig:          authenticatorConfig,
 		Person:                       personService,
 		Collection:                   collectionService,
 		Search:                       searchService,
@@ -1232,7 +1232,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	opencvfrService := &opencvfr.Service{
 		Clock:                        clockClock,
 		AppID:                        appID,
-		AuthenticatorConfig:          authenticationConfig,
+		AuthenticatorConfig:          authenticatorConfig,
 		Person:                       personService,
 		Collection:                   collectionService,
 		Search:                       searchService,

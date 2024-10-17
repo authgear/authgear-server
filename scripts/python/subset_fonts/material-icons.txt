@@ -5,6 +5,7 @@ add
 android
 animation
 api
+ar_on_you
 arrow_back_ios
 arrow_forward_ios
 auto_delete
