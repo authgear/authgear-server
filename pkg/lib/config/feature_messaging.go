@@ -31,27 +31,18 @@ type MessagingFeatureConfig struct {
 
 func (c *MessagingFeatureConfig) SetDefaults() {
 	if c.SMSUsage.Enabled == nil {
-		quota := 100000
 		c.SMSUsage = &UsageLimitConfig{
-			Enabled: newBool(true),
-			Period:  UsageLimitPeriodMonth,
-			Quota:   &quota,
+			Enabled: newBool(false),
 		}
 	}
 	if c.EmailUsage.Enabled == nil {
-		quota := 100000
 		c.EmailUsage = &UsageLimitConfig{
-			Enabled: newBool(true),
-			Period:  UsageLimitPeriodMonth,
-			Quota:   &quota,
+			Enabled: newBool(false),
 		}
 	}
 	if c.WhatsappUsage.Enabled == nil {
-		quota := 100000
 		c.WhatsappUsage = &UsageLimitConfig{
-			Enabled: newBool(true),
-			Period:  UsageLimitPeriodMonth,
-			Quota:   &quota,
+			Enabled: newBool(false),
 		}
 	}
 }
