@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus";
 
+const CANVAS_WIDTH = 1280;
 export class ImageInputController extends Controller {
   static targets = [
     // container
@@ -125,8 +126,10 @@ export class ImageInputController extends Controller {
     this.cameraVideoTarget.setAttribute("width", w.toString());
     this.cameraVideoTarget.setAttribute("height", h.toString());
 
-    this.canvasTarget.setAttribute("width", w.toString());
-    this.canvasTarget.setAttribute("height", h.toString());
+    const cW = CANVAS_WIDTH;
+    const cH = (vH / vW) * cW;
+    this.canvasTarget.setAttribute("width", cW.toString());
+    this.canvasTarget.setAttribute("height", cH.toString());
   };
 
   connect(): void {
