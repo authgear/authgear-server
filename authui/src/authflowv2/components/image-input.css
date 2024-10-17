@@ -73,23 +73,29 @@
     aspect-ratio: var(--camera-box__aspect-ratio);
     @apply overflow-hidden;
 
-    video {
+    .camera-initial {
+      @apply w-full h-full;
+      .camera-initial-content {
+        @apply w-full h-full;
+        padding: var(--camera-box__py) var(--camera-box__px);
+        @apply flex flex-col justify-evenly items-center gap-y-4;
+        div {
+          @apply w-full;
+          @apply flex items-center gap-x-2;
+        }
+      }
+    }
+
+    .camera-video {
+      /* @apply hidden; */
       @apply w-full h-full;
       object-fit: cover;
     }
 
-    .camera-initial {
-      padding: var(--camera-box__py) var(--camera-box__px);
+    .camera-output {
+      /* @apply hidden; */
       @apply w-full h-full;
-      @apply flex flex-col justify-evenly items-center gap-y-4;
-      div {
-        @apply w-full;
-        @apply flex items-center gap-x-2;
-      }
-
-      &.hidden {
-        display: none;
-      }
+      object-fit: cover;
     }
   }
 }

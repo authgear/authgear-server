@@ -5,14 +5,17 @@ export class ImageInputController extends Controller {
     // container
     "cameraContainer",
 
-    // states
+    // camera interface states
     "cameraInitial",
     "cameraVideo",
+    "cameraOutput",
 
     // buttons
     "openCameraBtn",
     "takePhotoBtn",
+    "submitPhotoBtn",
     "formSubmitBtn",
+
     // image capture helper
     "canvas",
     "input",
@@ -21,22 +24,26 @@ export class ImageInputController extends Controller {
   declare readonly cameraContainerTarget: HTMLDivElement;
   declare readonly cameraInitialTarget: HTMLDivElement;
   declare readonly cameraVideoTarget: HTMLVideoElement;
+  declare readonly cameraOutputTarget: HTMLImageElement;
 
   declare readonly openCameraBtnTarget: HTMLButtonElement;
   declare readonly takePhotoBtnTarget: HTMLButtonElement;
+  declare readonly submitPhotoBtnTarget: HTMLButtonElement;
 
   declare readonly canvasTarget: HTMLCanvasElement;
   declare readonly inputTarget: HTMLInputElement;
   declare readonly formSubmitBtnTarget: HTMLButtonElement;
 
   onCameraOpen = () => {
-    this.cameraContainerTarget.classList.add("open");
+    // orders matter here, otherwise UI might flash
+    this.cameraVideoTarget.classList.remove("hidden");
     this.cameraInitialTarget.classList.add("hidden");
     this.openCameraBtnTarget.classList.add("hidden");
     this.takePhotoBtnTarget.classList.remove("hidden");
   };
 
   openCamera = () => {
+    this.openCameraBtnTarget.disabled = true;
     const cameraSupported = "mediaDevices" in navigator;
     if (!cameraSupported) {
       //TODO (identity-week-demo): Show error to user
@@ -63,10 +70,26 @@ export class ImageInputController extends Controller {
           //TODO (identity-week-demo): Show error to user
           alert("Please allow camera access to proceed");
         }
+      })
+      .finally(() => {
+        this.openCameraBtnTarget.disabled = false;
       });
   };
 
+  onPhotoTaken = () => {
+    this.cameraOutputTarget.classList.remove("hidden");
+
+    // wait for image process finish, hard-code as 1 second for now
+    setTimeout(() => {
+      this.cameraVideoTarget.classList.add("hidden");
+      this.cameraVideoTarget.pause();
+      this.takePhotoBtnTarget.classList.add("hidden");
+      this.takePhotoBtnTarget.disabled = false;
+      this.submitPhotoBtnTarget.classList.remove("hidden");
+    }, 1000);
+  };
   takePhoto = () => {
+    this.takePhotoBtnTarget.disabled = true;
     const context = this.canvasTarget.getContext("2d");
     if (context == null) {
       console.error("Canvas context not available");
@@ -80,7 +103,13 @@ export class ImageInputController extends Controller {
       this.canvasTarget.height
     );
     const dataURL = this.canvasTarget.toDataURL("image/png");
+    this.cameraOutputTarget.src = dataURL;
     this.inputTarget.value = getB64StringFromDataURL(dataURL);
+    this.onPhotoTaken();
+  };
+
+  submitPhoto = () => {
+    this.submitForm();
   };
 
   submitForm = () => {
