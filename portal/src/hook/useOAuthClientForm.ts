@@ -1,5 +1,5 @@
 import deepEqual from "deep-equal";
-import { produce, createDraft } from "immer";
+import { produce, createDraft, Draft } from "immer";
 import { getReducedClientConfig } from "../graphql/portal/EditOAuthClientForm";
 import {
   OAuthClientConfig,
@@ -94,6 +94,58 @@ function constructFormState(
   };
 }
 
+function updateSAMLServiceProviders(
+  config: Draft<PortalAPIAppConfig>,
+  currentState: Draft<FormState>
+) {
+  let samlSPs = config.saml?.service_providers ?? [];
+  for (const [clientID, editedSP] of Object.entries(
+    currentState.samlServiceProviderByClientID
+  )) {
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    if (editedSP == null || !editedSP.isEnabled) {
+      samlSPs = samlSPs.filter((sp) => sp.client_id !== clientID);
+      continue;
+    }
+
+    const existingSPIndex = samlSPs.findIndex(
+      (existingSP) => existingSP.client_id === clientID
+    );
+
+    const sp: SAMLServiceProviderConfig =
+      existingSPIndex === -1
+        ? {
+            client_id: clientID,
+            acs_urls: [],
+            nameid_format: SAMLNameIDFormat.Unspecified,
+          }
+        : samlSPs[existingSPIndex];
+
+    sp.nameid_format = editedSP.nameIDFormat;
+    sp.nameid_attribute_pointer = editedSP.nameIDAttributePointer;
+    sp.acs_urls = editedSP.acsURLs;
+    sp.destination = editedSP.desitination;
+    sp.recipient = editedSP.recipient;
+    sp.audience = editedSP.audience;
+    sp.assertion_valid_duration = editedSP.assertionValidDurationSeconds
+      ? formatDuration(editedSP.assertionValidDurationSeconds, "s")
+      : undefined;
+    sp.slo_enabled = editedSP.isSLOEnabled;
+    sp.slo_callback_url = editedSP.sloCallbackURL;
+    sp.slo_binding = editedSP.sloCallbackBinding;
+    sp.signature_verification_enabled = editedSP.signatureVerificationEnabled;
+
+    if (existingSPIndex === -1) {
+      samlSPs.push(sp);
+    } else {
+      samlSPs[existingSPIndex] = sp;
+    }
+  }
+
+  config.saml ??= {};
+  config.saml.service_providers = samlSPs;
+}
+
 function constructConfig(
   config: PortalAPIAppConfig,
   secrets: PortalAPISecretConfig,
@@ -133,53 +185,7 @@ function constructConfig(
       }
       clearEmptyObject(config);
 
-      let samlSPs = config.saml?.service_providers ?? [];
-      for (const [clientID, editedSP] of Object.entries(
-        currentState.samlServiceProviderByClientID
-      )) {
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
-        if (editedSP == null || !editedSP.isEnabled) {
-          samlSPs = samlSPs.filter((sp) => sp.client_id !== clientID);
-          continue;
-        }
-
-        const existingSPIndex = samlSPs.findIndex(
-          (existingSP) => existingSP.client_id === clientID
-        );
-
-        const sp: SAMLServiceProviderConfig =
-          existingSPIndex === -1
-            ? {
-                client_id: clientID,
-                acs_urls: [],
-                nameid_format: SAMLNameIDFormat.Unspecified,
-              }
-            : samlSPs[existingSPIndex];
-
-        sp.nameid_format = editedSP.nameIDFormat;
-        sp.nameid_attribute_pointer = editedSP.nameIDAttributePointer;
-        sp.acs_urls = editedSP.acsURLs;
-        sp.destination = editedSP.desitination;
-        sp.recipient = editedSP.recipient;
-        sp.audience = editedSP.audience;
-        sp.assertion_valid_duration = editedSP.assertionValidDurationSeconds
-          ? formatDuration(editedSP.assertionValidDurationSeconds, "s")
-          : undefined;
-        sp.slo_enabled = editedSP.isSLOEnabled;
-        sp.slo_callback_url = editedSP.sloCallbackURL;
-        sp.slo_binding = editedSP.sloCallbackBinding;
-        sp.signature_verification_enabled =
-          editedSP.signatureVerificationEnabled;
-
-        if (existingSPIndex === -1) {
-          samlSPs.push(sp);
-        } else {
-          samlSPs[existingSPIndex] = sp;
-        }
-      }
-
-      config.saml ??= {};
-      config.saml.service_providers = samlSPs;
+      updateSAMLServiceProviders(config, currentState);
     }
   );
   return [newConfig, secrets];
