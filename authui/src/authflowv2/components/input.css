@@ -1,6 +1,7 @@
 @layer components {
   :root {
     --input__bg-color: transparent;
+    --input__bg-color--disabled: var(--color-neutral-100);
     --input__ring-color: var(--color-neutral-100);
     --input__ring-color--focus: var(--color-primary-theme-primary);
     --input__ring-color--error: var(--color-error);
@@ -39,10 +40,11 @@
 }
 
 :root.dark {
+  --input__bg-color--disabled: var(--color-neutral-500);
   --input__ring-color: var(--color-neutral-500);
   --input__placeholder-color: var(--color-neutral-400);
   --input__text-color: var(--color-neutral-100);
-  --input__text-color--disabled: var(--color-neutral-500);
+  --input__text-color--disabled: var(--color-neutral-300);
   --input__password-visibility-icon-color: var(--color-neutral-300);
 }
 
@@ -69,6 +71,7 @@
   }
 
   &:disabled {
+    background-color: var(--input__bg-color--disabled);
     color: var(--input__text-color--disabled);
   }
 
