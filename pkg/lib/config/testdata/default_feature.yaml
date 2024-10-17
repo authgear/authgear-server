@@ -94,17 +94,11 @@ messaging:
       period: 24h
       burst: 50
   sms_usage:
-    enabled: true
-    period: month
-    quota: 100000
+    enabled: false
   email_usage:
-    enabled: true
-    period: month
-    quota: 100000
+    enabled: false
   whatsapp_usage:
-    enabled: true
-    period: month
-    quota: 100000
+    enabled: false
 collaborator: {}
 web3:
   nft:
