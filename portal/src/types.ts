@@ -753,12 +753,27 @@ export interface AdminApiAuthKeyUpdateInstruction {
   deleteData?: AdminAPIAuthKeyDeleteDataInput | null;
 }
 
+export interface SAMLSpSigningSecretsSetDataInputItem {
+  clientID: string;
+  certificates: string[];
+}
+
+export interface SAMLSpSigningSecretsSetDataInput {
+  items: SAMLSpSigningSecretsSetDataInputItem[];
+}
+
+export interface SAMLSpSigningSecretsUpdateInstruction {
+  action: string;
+  setData: SAMLSpSigningSecretsSetDataInput | null;
+}
+
 export interface PortalAPISecretConfigUpdateInstruction {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecretUpdateInstruction | null;
   smtpSecret?: SMTPSecretUpdateInstruction | null;
   oauthClientSecrets?: OAuthClientSecretsUpdateInstruction | null;
   adminAPIAuthKey?: AdminApiAuthKeyUpdateInstruction | null;
   botProtectionProviderSecret?: BotProtectionProviderSecretUpdateInstruction | null;
+  samlSpSigningSecrets?: SAMLSpSigningSecretsUpdateInstruction | null;
 }
 
 export interface PortalAPIApp {

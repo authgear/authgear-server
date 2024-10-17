@@ -11,6 +11,7 @@ import {
   SAMLNameIDAttributePointer,
   SAMLNameIDFormat,
   SAMLServiceProviderConfig,
+  SAMLSpSigningSecretsUpdateInstruction,
 } from "../types";
 import { clearEmptyObject } from "../util/misc";
 import { useAppSecretConfigForm } from "./useAppSecretConfigForm";
@@ -183,20 +184,44 @@ function constructSecretUpdateInstruction(
   _secrets: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
+  let instruction: PortalAPISecretConfigUpdateInstruction | undefined;
   if (currentState.removeClientByID) {
-    return {
-      oauthClientSecrets: {
-        action: "cleanup",
-        cleanupData: {
-          keepClientIDs: currentState.clients
-            .filter((c) => c.client_id !== currentState.removeClientByID)
-            .map((c) => c.client_id),
-        },
+    instruction ??= {};
+    instruction.oauthClientSecrets = {
+      action: "cleanup",
+      cleanupData: {
+        keepClientIDs: currentState.clients
+          .filter((c) => c.client_id !== currentState.removeClientByID)
+          .map((c) => c.client_id),
       },
     };
   }
 
-  return undefined;
+  let samlSpSigningSecretsUpdateInstruction:
+    | SAMLSpSigningSecretsUpdateInstruction
+    | undefined;
+
+  for (const sp of currentState.samlServiceProviders) {
+    if ((sp.certificates?.length ?? 0) === 0) {
+      continue;
+    }
+    samlSpSigningSecretsUpdateInstruction ??= {
+      action: "set",
+      setData: {
+        items: [],
+      },
+    };
+    samlSpSigningSecretsUpdateInstruction.setData!.items.push({
+      clientID: sp.clientID,
+      certificates: sp.certificates ?? [],
+    });
+  }
+  if (samlSpSigningSecretsUpdateInstruction) {
+    instruction ??= {};
+    instruction.samlSpSigningSecrets = samlSpSigningSecretsUpdateInstruction;
+  }
+
+  return instruction;
 }
 
 export function useOAuthClientForm(
