@@ -77,7 +77,8 @@ function formatLuxonRelativeDuration(
 
 function getTimezoneFromMetaTag(): string | undefined {
   const metaTag = document.querySelector('meta[name="x-zoneinfo"]');
-  return metaTag?.getAttribute("content") ?? undefined;
+  const timezone = metaTag?.getAttribute("content");
+  return !!timezone ? timezone : undefined;
 }
 
 export class FormatDateController extends Controller {
