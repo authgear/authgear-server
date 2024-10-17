@@ -76,7 +76,7 @@ func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http
 	}
 
 	channel := model.AuthenticatorOOBChannel(oc)
-	if h.Authenticators.Config.Authenticator.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+	if h.Authenticators.Config.Authenticator.OOB.SMS.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
 		channel = model.AuthenticatorOOBChannelWhatsapp
 	}
 

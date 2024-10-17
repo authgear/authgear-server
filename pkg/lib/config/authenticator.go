@@ -1,5 +1,7 @@
 package config
 
+import "github.com/authgear/authgear-server/pkg/api/model"
+
 var _ = Schema.Add("AuthenticatorConfig", `
 {
 	"type": "object",
@@ -250,14 +252,40 @@ const (
 	AuthenticatorPhoneOTPModeWhatsappOnly AuthenticatorPhoneOTPMode = "whatsapp"
 )
 
-func (m *AuthenticatorPhoneOTPMode) IsWhatsappEnabled() bool {
+func (m *AuthenticatorPhoneOTPMode) Deprecated_IsWhatsappEnabled() bool {
 	return *m == AuthenticatorPhoneOTPModeWhatsappSMS ||
 		*m == AuthenticatorPhoneOTPModeWhatsappOnly
 }
 
-func (m *AuthenticatorPhoneOTPMode) IsSMSEnabled() bool {
+func (m *AuthenticatorPhoneOTPMode) Deprecated_IsSMSEnabled() bool {
 	return *m == AuthenticatorPhoneOTPModeWhatsappSMS ||
 		*m == AuthenticatorPhoneOTPModeSMSOnly
+}
+
+func (m AuthenticatorPhoneOTPMode) GetDefaultChannel() model.AuthenticatorOOBChannel {
+	switch m {
+	case AuthenticatorPhoneOTPModeSMSOnly:
+		return model.AuthenticatorOOBChannelSMS
+	case AuthenticatorPhoneOTPModeWhatsappSMS:
+		return model.AuthenticatorOOBChannelWhatsapp
+	case AuthenticatorPhoneOTPModeWhatsappOnly:
+		return model.AuthenticatorOOBChannelWhatsapp
+	default:
+		panic("unknown phone otp mode")
+	}
+}
+
+func (m AuthenticatorPhoneOTPMode) GetAvailableChannels() []model.AuthenticatorOOBChannel {
+	switch m {
+	case AuthenticatorPhoneOTPModeSMSOnly:
+		return []model.AuthenticatorOOBChannel{model.AuthenticatorOOBChannelSMS}
+	case AuthenticatorPhoneOTPModeWhatsappSMS:
+		return []model.AuthenticatorOOBChannel{model.AuthenticatorOOBChannelWhatsapp, model.AuthenticatorOOBChannelSMS}
+	case AuthenticatorPhoneOTPModeWhatsappOnly:
+		return []model.AuthenticatorOOBChannel{model.AuthenticatorOOBChannelWhatsapp}
+	default:
+		panic("unknown phone otp mode")
+	}
 }
 
 var _ = Schema.Add("AuthenticatorOOBValidPeriods", `
