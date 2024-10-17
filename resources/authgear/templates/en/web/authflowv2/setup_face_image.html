@@ -13,10 +13,13 @@
   {{ end }}
 
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
-    <div class="space-y-4">
+    <div class="space-y-8">
       <h1 class="screen-title">
         {{ include "v2.page.setup-face-image.default.title" nil }}
       </h1>
+      <h2 class="screen-description">
+        {{ include "v2.page.setup-face-image.default.subtitle" nil }}
+      </h2>
       {{ template "authflowv2/__alert_message.html"
         (dict
           "Type" "error"

@@ -1,34 +1,101 @@
 @layer components {
   :root {
-    --overlay__bg-color: var(--color-surface-primary);
+    /* camera-box styles mimic that of secondary-btn */
+    --camera-box__bg-color: var(--color-surface-primary);
+    --camera-box__text-color: var(--color-neutral-700);
+    --camera-box__border-radius: var(--border-radius-rounded-square);
+    --camera-box__font-family: var(--typography-label-large__font-family);
+    --camera-box__font-size: var(--typography-label-large__font-size);
+    --camera-box__line-height: var(--typography-label-large__line-height);
+    --camera-box__letter-spacing: var(--typography-label-large__letter-spacing);
+    --camera-box__font-weight: var(--typography-label-large__font-weight);
+    --camera-box__ring-width: 1.5px;
+    --camera-box__ring-color: var(--color-neutral-100);
+    --camera-box__py: var(--camera-box__font-size);
+
+    --camera-box__px: calc(
+      (var(--camera-box__py) * 2 + var(--camera-box__line-height)) / 2
+    ); /* = Height / 2 */
+    --camera-box__width: 100%;
+    --camera-box__aspect-ratio: 4/3;
+
+    --camera-initial__description__font-family: var(
+      --typography-label-large__font-family
+    );
+    --camera-initial__description__font-size: var(
+      --typography-label-large__font-size
+    );
+    --camera-initial__description__line-height: var(
+      --typography-label-large__line-height
+    );
+    --camera-initial__description__letter-spacing: var(
+      --typography-label-large__letter-spacing
+    );
+    --camera-initial__description__font-weight: var(
+      --typography-label-large__font-weight
+    );
+    --camera-initial__description__text-color: var(--color-neutral-700);
   }
 
-  .camera {
-    @apply fixed inset-0;
-    @apply hidden;
-    @apply w-[100vw] h-[100vh];
-    background-color: var(--overlay__bg-color);
+  :root.dark {
+    --camera-box__text-color: var(--color-neutral-100);
+    --camera-box__ring-color: var(--color-neutral-500);
+    --camera-box__bg-color--hover: var(--color-neutral-500);
+    --camera-box__bg-color--active: var(--color-neutral-500);
+  }
+  /** 
+   * camera-box refers to the camera interface inside widget. 
+   * It has 7 states (6 in fact, since upload-failed = idle for camera-box)
+   * 
+   * 1.               initial - camera not opened. It will show some description text.
+   * 2.                  open - camera opened. It will show the camera preview.
+   * 3. camera-failed-to-open - camera failed to open. It will show error message.
+   * 4.              captured - photo taken. It will show the captured photo.
+   * 5.             uploading - photo upload in progress.
+   * 6.         upload-failed - same as idle
+   * 7.        upload-success - photo upload success
+   * 
+   * */
+  .camera-container {
+    background-color: var(--camera-box__bg-color);
+    color: var(--camera-box__text-color);
+    border-radius: var(--camera-box__border-radius);
+    font-family: var(--camera-box__font-family);
+    font-size: var(--camera-box__font-size);
+    line-height: var(--camera-box__line-height);
+    letter-spacing: var(--camera-box__letter-spacing);
+    font-weight: var(--camera-box__font-weight);
+    @apply ring-inset
+      ring-[length:var(--camera-box\_\_ring-width)]
+      ring-[color:var(--camera-box\_\_ring-color)];
 
-    &.open {
-      @apply flex;
-      @apply items-center;
+    width: var(--camera-box__width);
+    aspect-ratio: var(--camera-box__aspect-ratio);
+    @apply overflow-hidden;
+
+    .camera-initial {
+      @apply w-full h-full;
+      .camera-initial-content {
+        @apply w-full h-full;
+        padding: var(--camera-box__py) var(--camera-box__px);
+        @apply flex flex-col justify-evenly items-center gap-y-4;
+        div {
+          @apply w-full;
+          @apply flex items-center gap-x-2;
+        }
+      }
     }
 
-    /* actual camera interface */
-    video {
+    .camera-video {
+      /* @apply hidden; */
       @apply w-full h-full;
       object-fit: cover;
     }
 
-    /* button overlay */
-    .take-photo-btn {
-      @apply fixed;
-      @apply bottom-[10%];
-      @apply left-1/2;
-      @apply w-24 h-24;
-      @apply translate-x-[-50%] translate-y-[-50%];
-      @apply rounded-full;
-      @apply flex items-center justify-center; /* center content */
+    .camera-output {
+      /* @apply hidden; */
+      @apply w-full h-full;
+      object-fit: cover;
     }
   }
 }

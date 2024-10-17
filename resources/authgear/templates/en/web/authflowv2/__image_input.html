@@ -21,14 +21,70 @@
   class="flex flex-col gap-4"
   data-controller="image-input"
 >
+  <noscript>
+    {{ $noscript_alert_msg := (include "v2.component.image-input.default.noscript" nil) }}
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Classname" "mt-4"
+        "Message" $noscript_alert_msg
+      )
+    }}
+  </noscript>
+  <div data-image-input-target="cameraContainer" class="camera-container">
+    <div data-image-input-target="cameraInitial" class="camera-initial">
+      <div class="camera-initial-content">
+        <div>
+          <span class="material-icons secondary-btn__icon">person</span>
+          <span>{{ include "v2.component.image-input.default.idle-description-avoid-smile" nil }}</span>
+        </div>
+        <div>
+          <span class="material-icons secondary-btn__icon">no_photography</span>
+          <span>{{ include "v2.component.image-input.default.idle-description-not-profile-pic" nil }}</span>
+        </div>
+        <div>
+          <span class="material-icons secondary-btn__icon">security</span>
+          <span>{{ include "v2.component.image-input.default.idle-description-secure-photo" nil }}</span>
+        </div>  
+      </div>
+    </div>
+    <video data-image-input-target="cameraVideo" class="camera-video hidden">Video stream not available.</video>
+    <img data-image-input-target="cameraOutput" class="camera-output hidden" alt="The image capture will appear in this box." />
+  </div>
+  <canvas data-image-input-target="canvas" class="hidden"></canvas>
+  <input 
+    class="hidden"
+    form="{{ $.FormName }}"
+    type="text"
+    name="x_b64_image"
+    required
+    data-image-input-target="input"
+  />
   <button
     class="primary-btn w-full"
     type="button"
     name="{{ or $.OpenCameraButtonName "x_action" }}"
     value="{{ or $.OpenCameraButtonValue "button" }}"
     data-action="image-input#openCamera"
+    data-image-input-target="openCameraBtn"
   > 
-    {{ include "v2.component.button.default.label-open-camera" nil }}
+    {{ include "v2.component.image-input.default.btn-label-open-camera" nil }}
+  </button>
+  <button
+    class="primary-btn w-full hidden"
+    type="button"
+    data-action="image-input#takePhoto"
+    data-image-input-target="takePhotoBtn"
+  > 
+    {{ include "v2.component.image-input.default.btn-label-take-photo" nil }}
+  </button>
+  <button
+    class="primary-btn w-full hidden"
+    type="button"
+    data-action="image-input#submitPhoto"
+    data-image-input-target="submitPhotoBtn"
+  > 
+    {{ include "v2.component.image-input.default.btn-label-submit-photo" nil }}
   </button>
 
   <button
@@ -40,22 +96,5 @@
     data-image-input-target="formSubmitBtn"
     tabindex="-1"
   ></button>
-
-  {{/* TODO: (identity-week-demo) Move this cameraContinaer to a root-level element, to prevent siblings absolute-positioned elements covering this*/}}
-  <div data-image-input-target="cameraContainer" class="camera">
-    <video data-image-input-target="cameraVideo">Video stream not available.</video>
-    <button type="button" data-action="image-input#takePhoto image-input#submitForm" class="take-photo-btn primary-btn">
-      <span class="material-icons primary-btn__icon">photo_camera</span>
-    </button>
-  </div>
-  <canvas data-image-input-target="canvas" class="hidden"></canvas>
-  <input 
-    class="hidden"
-    form="{{ $.FormName }}"
-    type="text"
-    name="x_b64_image"
-    required
-    data-image-input-target="input"
-  />
 </div>
 {{ end }}
