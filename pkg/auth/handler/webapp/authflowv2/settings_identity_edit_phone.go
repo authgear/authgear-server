@@ -69,10 +69,7 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(r *http.Request, rw
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	channel := model.AuthenticatorOOBChannelSMS
-	if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
-		channel = model.AuthenticatorOOBChannelWhatsapp
-	}
+	channel := h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 
 	target, err := h.Identities.LoginID.Get(*userID, identityID)
 	if err != nil {
