@@ -103,7 +103,7 @@ func NewInlinePreviewAuthflowEnterOOBOTPViewModel(
 		channelForPreview = model.AuthenticatorOOBChannelEmail
 		maskedClaimValue = viewmodels.PreviewDummyEmailMasked
 	case model.LoginIDKeyTypePhone:
-		if authenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+		if authenticatorConfig.OOB.SMS.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
 			channelForPreview = model.AuthenticatorOOBChannelWhatsapp
 		} else {
 			channelForPreview = model.AuthenticatorOOBChannelSMS

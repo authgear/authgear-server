@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -27,10 +28,11 @@ var AuthflowV2SettingsUpdateIdentityVerificationPhoneSchema = validation.NewSimp
 	{
 		"type": "object",
 		"properties": {
+			"x_channel": { "type": "string" },
 			"x_login_id": { "type": "string" },
 			"x_identity_id": { "type": "string" }
 		},
-		"required": ["x_login_id", "x_identity_id"]
+		"required": ["x_channel", "x_login_id", "x_identity_id"]
 	}
 `)
 
@@ -52,6 +54,7 @@ func ConfigureAuthflowV2SettingsIdentityViewPhoneRoute(route httproute.Route) ht
 
 type AuthflowV2SettingsIdentityViewPhoneViewModel struct {
 	LoginIDKey     string
+	Channel        string
 	PhoneIdentity  *identity.LoginID
 	Verified       bool
 	UpdateDisabled bool
@@ -80,6 +83,8 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(r *http.Request, rw
 	viewmodels.Embed(data, baseViewModel)
 
 	userID := session.GetUserID(r.Context())
+
+	channel := h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 
 	phoneIdentity, err := h.Identities.LoginID.Get(*userID, identityID)
 	if err != nil {
@@ -113,6 +118,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(r *http.Request, rw
 
 	vm := AuthflowV2SettingsIdentityViewPhoneViewModel{
 		LoginIDKey:     loginIDKey,
+		Channel:        string(channel),
 		PhoneIdentity:  phoneIdentity,
 		Verified:       verified,
 		UpdateDisabled: updateDisabled,
@@ -183,11 +189,13 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 			return err
 		}
 
+		channel := model.AuthenticatorOOBChannel(r.Form.Get("x_channel"))
 		loginID := r.Form.Get("x_login_id")
 		identityID := r.Form.Get("x_identity_id")
 
 		s := session.GetSession(r.Context())
 		output, err := h.AccountManagement.StartUpdateIdentityPhone(s, &accountmanagement.StartUpdateIdentityPhoneInput{
+			Channel:    channel,
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
 			IdentityID: identityID,

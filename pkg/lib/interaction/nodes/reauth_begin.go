@@ -176,14 +176,14 @@ func (n *NodeReauthenticationBegin) GetAuthenticationEdges() ([]interaction.Edge
 				OOBAuthenticatorType: model.AuthenticatorTypeOOBEmail,
 			})
 		case model.AuthenticatorTypeOOBSMS:
-			if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+			if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
 				edges = append(edges, &EdgeAuthenticationWhatsappTrigger{
 					Stage:          n.Stage,
 					Authenticators: []*authenticator.Info{a},
 				})
 			}
 
-			if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
+			if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.Deprecated_IsSMSEnabled() {
 				edges = append(edges, &EdgeAuthenticationOOBTrigger{
 					Stage:                n.Stage,
 					Authenticators:       []*authenticator.Info{a},

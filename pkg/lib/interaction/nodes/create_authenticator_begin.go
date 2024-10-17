@@ -230,7 +230,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 			// check if identity login id type match oob type
 			if n.Identity.LoginID != nil {
 				if n.Identity.LoginID.LoginIDType == model.LoginIDKeyTypePhone {
-					if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+					if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
 						edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
 							NewAuthenticatorID: n.NewAuthenticatorID,
 							Stage:              n.Stage,
@@ -238,7 +238,7 @@ func (n *NodeCreateAuthenticatorBegin) derivePrimary() ([]interaction.Edge, erro
 						})
 					}
 
-					if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
+					if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.Deprecated_IsSMSEnabled() {
 						edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 							NewAuthenticatorID:   n.NewAuthenticatorID,
 							Stage:                n.Stage,
@@ -411,7 +411,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 		case model.AuthenticatorTypeOOBSMS:
 			// Condition B and C.
 			if oobSMSCount < *n.AuthenticatorConfig.OOB.SMS.Maximum {
-				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
+				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
 					edges = append(edges, &EdgeCreateAuthenticatorWhatsappOTPSetup{
 						NewAuthenticatorID: n.NewAuthenticatorID,
 						Stage:              n.Stage,
@@ -419,7 +419,7 @@ func (n *NodeCreateAuthenticatorBegin) deriveSecondary() (edges []interaction.Ed
 					})
 				}
 
-				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsSMSEnabled() {
+				if n.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.Deprecated_IsSMSEnabled() {
 					edges = append(edges, &EdgeCreateAuthenticatorOOBSetup{
 						NewAuthenticatorID:   n.NewAuthenticatorID,
 						Stage:                n.Stage,
