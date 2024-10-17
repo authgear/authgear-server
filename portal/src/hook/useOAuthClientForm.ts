@@ -15,6 +15,7 @@ import {
 import { clearEmptyObject } from "../util/misc";
 import { useAppSecretConfigForm } from "./useAppSecretConfigForm";
 import { formatDuration, parseDuration } from "../util/duration";
+import { toOptionalText } from "../util/form";
 
 interface FormStateSAMLServiceProviderConfig {
   clientID: string;
@@ -113,14 +114,14 @@ function updateSAMLServiceProviders(
     updatedSP.nameid_format = editedSP.nameIDFormat;
     updatedSP.nameid_attribute_pointer = editedSP.nameIDAttributePointer;
     updatedSP.acs_urls = editedSP.acsURLs;
-    updatedSP.destination = editedSP.desitination;
-    updatedSP.recipient = editedSP.recipient;
-    updatedSP.audience = editedSP.audience;
+    updatedSP.destination = toOptionalText(editedSP.desitination);
+    updatedSP.recipient = toOptionalText(editedSP.recipient);
+    updatedSP.audience = toOptionalText(editedSP.audience);
     updatedSP.assertion_valid_duration = editedSP.assertionValidDurationSeconds
       ? formatDuration(editedSP.assertionValidDurationSeconds, "s")
       : undefined;
     updatedSP.slo_enabled = editedSP.isSLOEnabled;
-    updatedSP.slo_callback_url = editedSP.sloCallbackURL;
+    updatedSP.slo_callback_url = toOptionalText(editedSP.sloCallbackURL);
     updatedSP.slo_binding = editedSP.sloCallbackBinding;
     updatedSP.signature_verification_enabled =
       editedSP.signatureVerificationEnabled;

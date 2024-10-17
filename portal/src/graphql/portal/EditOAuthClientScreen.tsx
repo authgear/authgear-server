@@ -553,11 +553,20 @@ function OAuthClientSAML2Content({
     [clientID, setState, state]
   );
 
+  const jsonPointer = useMemo(() => {
+    const idx = state.samlServiceProviders.findIndex(
+      (sp) => sp.clientID === clientID
+    );
+
+    return `/saml/service_providers/${idx}`;
+  }, [clientID, state.samlServiceProviders]);
+
   return (
     <div className={cn(styles.widget)}>
       <OAuthClientSAMLForm
         formState={formState}
         onFormStateChange={onFormStateChange}
+        parentJSONPointer={jsonPointer}
       />
     </div>
   );
