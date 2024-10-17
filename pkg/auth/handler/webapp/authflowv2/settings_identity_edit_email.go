@@ -41,6 +41,7 @@ func ConfigureAuthflowV2SettingsIdentityEditEmailRoute(route httproute.Route) ht
 
 type AuthflowV2SettingsIdentityEditEmailViewModel struct {
 	LoginIDKey string
+	IdentityID string
 	Target     *identity.LoginID
 }
 
@@ -71,6 +72,7 @@ func (h *AuthflowV2SettingsIdentityEditEmailHandler) GetData(r *http.Request, rw
 
 	vm := AuthflowV2SettingsIdentityEditEmailViewModel{
 		LoginIDKey: loginIDKey,
+		IdentityID: identityID,
 		Target:     target,
 	}
 	viewmodels.Embed(data, vm)

@@ -45,6 +45,7 @@ func ConfigureAuthflowV2SettingsIdentityEditPhoneRoute(route httproute.Route) ht
 type AuthflowV2SettingsIdentityEditPhoneViewModel struct {
 	LoginIDKey string
 	Channel    model.AuthenticatorOOBChannel
+	IdentityID string
 	Target     *identity.LoginID
 }
 
@@ -79,6 +80,7 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(r *http.Request, rw
 	vm := AuthflowV2SettingsIdentityEditPhoneViewModel{
 		LoginIDKey: loginIDKey,
 		Channel:    channel,
+		IdentityID: identityID,
 		Target:     target,
 	}
 	viewmodels.Embed(data, vm)
