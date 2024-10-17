@@ -21,22 +21,39 @@ export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
   // Basic
   nameIDFormat: SAMLNameIDFormat;
-  nameIDAttributePointer: SAMLNameIDAttributePointer | undefined;
+  nameIDAttributePointer: SAMLNameIDAttributePointer;
   // SSO
-  acsURLs: string[] | undefined;
-  destination: string | undefined;
-  recipient: string | undefined;
-  audience: string | undefined;
-  assertionValidDurationSeconds: number | undefined;
+  acsURLs: string[];
+  destination: string;
+  recipient: string;
+  audience: string;
+  assertionValidDurationSeconds: number;
   // Logout
-  isSLOEnabled: boolean | undefined;
-  sloCallbackURL: string | undefined;
-  sloCallbackBinding: SAMLBinding | undefined;
+  isSLOEnabled: boolean;
+  sloCallbackURL: string;
+  sloCallbackBinding: SAMLBinding;
   // Signature
-  signatureVerificationEnabled: boolean | undefined;
-  signingCertificates: string[] | undefined;
+  signatureVerificationEnabled: boolean;
+  signingCertificates: string[];
 }
 
+export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
+  return {
+    isSAMLEnabled: false,
+    nameIDFormat: SAMLNameIDFormat.Unspecified,
+    nameIDAttributePointer: SAMLNameIDAttributePointer.Sub,
+    acsURLs: [],
+    destination: "",
+    recipient: "",
+    audience: "",
+    assertionValidDurationSeconds: 1200,
+    isSLOEnabled: false,
+    sloCallbackURL: "",
+    sloCallbackBinding: SAMLBinding.HTTPRedirect,
+    signatureVerificationEnabled: false,
+    signingCertificates: [],
+  };
+}
 export interface OAuthClientSAMLFormProps {
   formState: OAuthClientSAMLFormState;
   onFormStateChange: (newState: OAuthClientSAMLFormState) => void;
@@ -167,7 +184,8 @@ export function OAuthClientSAMLForm({
       if (newValue.trim() === "") {
         onFormStateChange({
           ...formState,
-          assertionValidDurationSeconds: undefined,
+          assertionValidDurationSeconds:
+            getDefaultOAuthClientSAMLFormState().assertionValidDurationSeconds,
         });
         return;
       }
@@ -287,7 +305,7 @@ export function OAuthClientSAMLForm({
                 <FormTextFieldList
                   parentJSONPointer=""
                   fieldName="acs_urls"
-                  list={formState.acsURLs ?? []}
+                  list={formState.acsURLs}
                   onListItemAdd={onAcsUrlsChange}
                   onListItemChange={onAcsUrlsChange}
                   onListItemDelete={onAcsUrlsChange}
@@ -341,9 +359,7 @@ export function OAuthClientSAMLForm({
                   label={renderToString(
                     "OAuthClientSAMLForm.sso.assertionValidDuration.label"
                   )}
-                  value={
-                    formState.assertionValidDurationSeconds?.toFixed(0) ?? ""
-                  }
+                  value={formState.assertionValidDurationSeconds.toFixed(0)}
                   onChange={onAssertionValidDurationSecondsChange}
                 />
               </div>
@@ -406,7 +422,7 @@ export function OAuthClientSAMLForm({
                 <FormTextFieldList
                   parentJSONPointer=""
                   fieldName="signingCertificates"
-                  list={formState.signingCertificates ?? []}
+                  list={formState.signingCertificates}
                   onListItemAdd={onSigningCertificatesChange}
                   onListItemChange={onSigningCertificatesChange}
                   onListItemDelete={onSigningCertificatesChange}
