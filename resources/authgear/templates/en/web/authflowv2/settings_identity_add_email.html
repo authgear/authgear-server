@@ -11,6 +11,27 @@
 
 {{ define "page-content" }}
 
+{{ $err_map := (resolveError $.RawError (dict
+  "emailInput" (dict
+    "by_reason"                    (list "ValidationFailed")
+  )
+)) }}
+
+{{ $email_err := index $err_map "emailInput" }}
+{{ $unknown_err := index $err_map "unknown" }}
+{{ $has_email_err := not (isNil $email_err) }}
+{{ $has_unknown_err := not (isNil $unknown_err )}}
+
+{{ $email_error_message := "" }}
+{{ if $has_email_err }}
+  {{ $email_error_message = include "authflowv2/__error.html" (merge (dict "Error" $email_err) $) }}
+{{ end }}
+
+{{ $unknown_error_message := "" }}
+{{ if $has_unknown_err }}
+  {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
+{{ end }}
+
 <form
   class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
   method="post"
@@ -21,7 +42,7 @@
   {{ template "authflowv2/__alert_message.html"
     (dict
       "Type" "error"
-      "Message" (include "authflowv2/__error.html" .)
+      "Message" $unknown_error_message
     )
   }}
 
@@ -34,6 +55,12 @@
     autocomplete="username webauthn"
     autocapitalize="none"
   />
+
+  {{ if $has_email_err }}
+  <p class="input__error-message mt-2">
+    {{ $email_error_message }}
+  </p>
+  {{ end }}
 
   <button
     class="primary-btn"

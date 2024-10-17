@@ -11,6 +11,27 @@
 
 {{ define "page-content" }}
 
+{{ $err_map := (resolveError $.RawError (dict
+  "otpInput" (dict
+    "by_reason"                    (list "ValidationFailed")
+  )
+)) }}
+
+{{ $otp_err := index $err_map "otpInput" }}
+{{ $unknown_err := index $err_map "unknown" }}
+{{ $has_otp_err := not (isNil $otp_err) }}
+{{ $has_unknown_err := not (isNil $unknown_err )}}
+
+{{ $otp_error_message := "" }}
+{{ if $has_otp_err }}
+  {{ $otp_error_message = include "authflowv2/__error.html" (merge (dict "Error" $otp_err) $) }}
+{{ end }}
+
+{{ $unknown_error_message := "" }}
+{{ if $has_unknown_err }}
+  {{ $unknown_error_message = (include "authflowv2/__error.html" (merge (dict "Error" $unknown_err) $)) }}
+{{ end }}
+
 <form
   class="settings-content flex flex-col gap-y-4 py-5 tablet:py-0"
   method="post"
@@ -18,15 +39,10 @@
   data-controller="turbo-form"
   data-action="submit->turbo-form#submitForm">
 
-  {{ $display_error := false }}
-  {{ if $.Error }}
-    {{ $display_error = true }}
-  {{ end }}
-
   {{ template "authflowv2/__alert_message.html"
     (dict
       "Type" "error"
-      "Message" (include "authflowv2/__error.html" .)
+      "Message" $unknown_error_message
     )
   }}
 
@@ -41,7 +57,7 @@
   {{ template "authflowv2/__phone_input.html"
     (dict
       "Placeholder" (include "v2.page.settings-identity-edit-phone.default.phone-input-placeholder" nil)
-      "IsError" $display_error
+      "IsError" $has_otp_err
       "AutoFocus" $.ShouldFocusInput
       "PhoneInputAttrs" `
         data-text-field-target="input"
@@ -49,6 +65,12 @@
       "InputName" "x_login_id"
     )
   }}
+
+  {{ if $has_otp_err }}
+  <p class="input__error-message mt-2">
+    {{ $otp_error_message }}
+  </p>
+  {{ end }}
 
   <input
     type="hidden"
