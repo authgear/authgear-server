@@ -422,8 +422,10 @@ export function OAuthClientSAMLForm({
                   onChange={onSignatureVerificationEnabledChange}
                 />
                 <FormTextFieldList
-                  parentJSONPointer={parentJSONPointer}
-                  fieldName="signingCertificates"
+                  parentJSONPointer={
+                    /\/secrets\/(\d*)\/data\/(\d*)\/certificates\/(\d*)/
+                  }
+                  fieldName="pem"
                   list={formState.signingCertificates}
                   onListItemAdd={onSigningCertificatesChange}
                   onListItemChange={onSigningCertificatesChange}
