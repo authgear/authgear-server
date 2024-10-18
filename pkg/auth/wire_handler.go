@@ -1073,10 +1073,24 @@ func newWebappAuthflowV2SetupFaceImageHandler(p *deps.RequestProvider) http.Hand
 	))
 }
 
+func newWebappAuthflowV2SetupFaceImageSuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SetupFaceImageSuccessHandler)),
+	))
+}
+
 func newWebappAuthflowV2EnterFaceImageHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2EnterFaceImageHandler)),
+	))
+}
+
+func newWebappAuthflowV2EnterFaceImageSuccessHandler(p *deps.RequestProvider) http.Handler {
+	panic(wire.Build(
+		AuthflowV2UIHandlerDependencySet,
+		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2EnterFaceImageSuccessHandler)),
 	))
 }
 

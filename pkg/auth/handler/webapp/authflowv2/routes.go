@@ -41,16 +41,18 @@ const (
 	// nolint: gosec
 	AuthflowV2RouteChangePasswordSuccess = "/authflow/v2/change_password/success"
 	// nolint: gosec
-	AuthflowV2RouteEnterPassword     = "/authflow/v2/enter_password"
-	AuthflowV2RouteEnterRecoveryCode = "/authflow/v2/enter_recovery_code"
-	AuthflowV2RouteEnterFaceImage    = "/authflow/v2/enter_face_image"
-	AuthflowV2RouteEnterOOBOTP       = "/authflow/v2/enter_oob_otp"
-	AuthflowV2RouteOOBOTPLink        = "/authflow/v2/oob_otp_link"
-	AuthflowV2RouteVerifyLink        = "/authflow/v2/verify_login_link"
-	AuthflowV2RouteEnterTOTP         = "/authflow/v2/enter_totp"
-	AuthflowV2RouteSetupTOTP         = "/authflow/v2/setup_totp"
-	AuthflowV2RouteSetupFaceImage    = "/authflow/v2/setup_face_image"
-	AuthflowV2RouteSetupOOBOTP       = "/authflow/v2/setup_oob_otp"
+	AuthflowV2RouteEnterPassword         = "/authflow/v2/enter_password"
+	AuthflowV2RouteEnterRecoveryCode     = "/authflow/v2/enter_recovery_code"
+	AuthflowV2RouteEnterFaceImageSuccess = "/authflow/v2/enter_face_image/success"
+	AuthflowV2RouteEnterFaceImage        = "/authflow/v2/enter_face_image"
+	AuthflowV2RouteEnterOOBOTP           = "/authflow/v2/enter_oob_otp"
+	AuthflowV2RouteOOBOTPLink            = "/authflow/v2/oob_otp_link"
+	AuthflowV2RouteVerifyLink            = "/authflow/v2/verify_login_link"
+	AuthflowV2RouteEnterTOTP             = "/authflow/v2/enter_totp"
+	AuthflowV2RouteSetupTOTP             = "/authflow/v2/setup_totp"
+	AuthflowV2RouteSetupFaceImageSuccess = "/authflow/v2/setup_face_image/success"
+	AuthflowV2RouteSetupFaceImage        = "/authflow/v2/setup_face_image"
+	AuthflowV2RouteSetupOOBOTP           = "/authflow/v2/setup_oob_otp"
 
 	AuthflowV2RouteLDAPLogin = "/authflow/v2/ldap_login"
 	// nolint: gosec
@@ -177,6 +179,46 @@ func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.Authfl
 	}
 
 	return navigate(AuthflowV2RouteChangePasswordSuccess, &url.Values{})
+}
+
+func (n *AuthflowV2Navigator) NavigateSetupFaceImageSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result) {
+	navigate := func(path string, query *url.Values) (result *webapp.Result) {
+		u := *r.URL
+		u.Path = path
+		q := u.Query()
+		q.Set(webapp.AuthflowQueryKey, s.StateToken.XStep)
+		for k, param := range *query {
+			for _, p := range param {
+				q.Add(k, p)
+			}
+		}
+		u.RawQuery = q.Encode()
+		result = &webapp.Result{}
+		result.NavigationAction = "advance"
+		result.RedirectURI = u.String()
+		return result
+	}
+	return navigate(AuthflowV2RouteSetupFaceImageSuccess, &url.Values{})
+}
+
+func (n *AuthflowV2Navigator) NavigateEnterFaceImageSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result) {
+	navigate := func(path string, query *url.Values) (result *webapp.Result) {
+		u := *r.URL
+		u.Path = path
+		q := u.Query()
+		q.Set(webapp.AuthflowQueryKey, s.StateToken.XStep)
+		for k, param := range *query {
+			for _, p := range param {
+				q.Add(k, p)
+			}
+		}
+		u.RawQuery = q.Encode()
+		result = &webapp.Result{}
+		result.NavigationAction = "advance"
+		result.RedirectURI = u.String()
+		return result
+	}
+	return navigate(AuthflowV2RouteEnterFaceImageSuccess, &url.Values{})
 }
 
 func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
