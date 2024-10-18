@@ -955,6 +955,13 @@
   "OAuthClientSAMLForm.signature.certificates.label": "Service Provider Certificates",
   "OAuthClientSAMLForm.signature.certificates.description": "Certificates in PEM format. Authgear verifies messages from service provider using the following certificates. The signature is considered valid if it matches any one of the certificates entered.",
   "OAuthClientSAMLForm.signature.certificates.add": "Add certificate",
+  "OAuthClientSAMLForm.configurationParameters.title": "Configuration Parameters",
+  "OAuthClientSAMLForm.configurationParameters.metadata.label": "Identity Provider Metadata",
+  "OAuthClientSAMLForm.configurationParameters.metadata.saveBeforeDownload.hint": "Please save your changes before downloading the metadata file to ensure it's up-to-date.",
+  "OAuthClientSAMLForm.configurationParameters.issuer.label": "Issuer",
+  "OAuthClientSAMLForm.configurationParameters.loginURL.label": "Login URL",
+  "OAuthClientSAMLForm.configurationParameters.logoutURL.label": "Logout URL",
+  "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available": "Not available because Single Logout is off",
 
   "oauth-client.application-type.unspecified": "Unspecified (Legacy)",
   "oauth-client.application-type.spa": "Single Page Application",

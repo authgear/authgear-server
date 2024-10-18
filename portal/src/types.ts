@@ -685,6 +685,16 @@ export interface SAMLSpSigningSecrets {
   certificates: SAMLSpSigningCertificate[];
 }
 
+export interface SAMLIdpSigningCertificate {
+  certificateFingerprint: string;
+  certificatePEM: string;
+  keyID: string;
+}
+
+export interface SAMLIdpSigningSecrets {
+  certificates: SAMLIdpSigningCertificate[];
+}
+
 export interface PortalAPISecretConfig {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
@@ -692,6 +702,7 @@ export interface PortalAPISecretConfig {
   smtpSecret?: SMTPSecret | null;
   oauthClientSecrets?: OAuthClientSecret[] | null;
   botProtectionProviderSecret?: BotProtectionProviderSecret | null;
+  samlIdpSigningSecrets?: SAMLIdpSigningSecrets | null;
   samlSpSigningSecrets?: SAMLSpSigningSecrets[] | null;
 }
 

@@ -23,6 +23,12 @@ import {
 } from "../../types";
 import FormTextFieldList from "../../FormTextFieldList";
 import FormTextField from "../../FormTextField";
+import TextField from "../../TextField";
+
+interface OAuthClientSAMLFormIdpSigningCertificate {
+  certificateFingerprint: string;
+  certificatePEM: string;
+}
 
 export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
@@ -60,13 +66,6 @@ export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
     signatureVerificationEnabled: false,
     signingCertificates: [],
   };
-}
-export interface OAuthClientSAMLFormProps {
-  parentJSONPointer: string | RegExp;
-  samlIdpEntityID: string;
-  publicOrigin: string;
-  formState: OAuthClientSAMLFormState;
-  onFormStateChange: (newState: OAuthClientSAMLFormState) => void;
 }
 
 const nameIDFormatOptions: IChoiceGroupOption[] = [
@@ -120,8 +119,21 @@ function makeSLOCallbackBindingOptions(
   ];
 }
 
+export interface OAuthClientSAMLFormProps {
+  parentJSONPointer: string | RegExp;
+  clientID: string;
+  publicOrigin: string;
+  samlIdpEntityID: string;
+  samlIdpSigningCertificate: OAuthClientSAMLFormIdpSigningCertificate | null;
+  formState: OAuthClientSAMLFormState;
+  onFormStateChange: (newState: OAuthClientSAMLFormState) => void;
+}
+
 export function OAuthClientSAMLForm({
   parentJSONPointer,
+  clientID,
+  publicOrigin,
+  samlIdpEntityID,
   formState,
   onFormStateChange,
 }: OAuthClientSAMLFormProps): React.ReactElement {
@@ -251,6 +263,14 @@ export function OAuthClientSAMLForm({
     },
     [formState, onFormStateChange]
   );
+
+  const endpoints = useMemo(() => {
+    return {
+      metadata: `${publicOrigin}/saml2/metadata/${clientID}`,
+      login: `${publicOrigin}/saml2/login/${clientID}`,
+      logout: `${publicOrigin}/saml2/logout/${clientID}`,
+    };
+  }, [clientID, publicOrigin]);
 
   const nameIDAttributePointerOptions = useMemo(
     () => makeNameIDAttributePointerOptions(renderToString),
@@ -459,6 +479,57 @@ export function OAuthClientSAMLForm({
                     "OAuthClientSAMLForm.signature.certificates.description"
                   )}
                   multiline={true}
+                />
+              </div>
+            </div>
+
+            <HorizontalDivider />
+
+            <div>
+              <WidgetTitle className="mb-6" id="basic">
+                <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.title" />
+              </WidgetTitle>
+
+              <div className="grid gap-y-4 grid-cols-1">
+                <div className="grid gap-y-2 grid-cols-1">
+                  <TextField
+                    label={renderToString(
+                      "OAuthClientSAMLForm.configurationParameters.metadata.label"
+                    )}
+                    value={endpoints.metadata}
+                    readOnly={true}
+                  />
+                  <MessageBar messageBarType={MessageBarType.warning}>
+                    <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.metadata.saveBeforeDownload.hint" />
+                  </MessageBar>
+                </div>
+                <TextField
+                  label={renderToString(
+                    "OAuthClientSAMLForm.configurationParameters.issuer.label"
+                  )}
+                  value={samlIdpEntityID}
+                  readOnly={true}
+                />
+                <TextField
+                  label={renderToString(
+                    "OAuthClientSAMLForm.configurationParameters.loginURL.label"
+                  )}
+                  value={endpoints.login}
+                  readOnly={true}
+                />
+                <TextField
+                  label={renderToString(
+                    "OAuthClientSAMLForm.configurationParameters.logoutURL.label"
+                  )}
+                  value={
+                    formState.isSLOEnabled
+                      ? endpoints.logout
+                      : renderToString(
+                          "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
+                        )
+                  }
+                  disabled={!formState.isSLOEnabled}
+                  readOnly={true}
                 />
               </div>
             </div>

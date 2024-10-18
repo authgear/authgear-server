@@ -570,7 +570,9 @@ function OAuthClientSAML2Content({
   return (
     <div className={cn(styles.widget)}>
       <OAuthClientSAMLForm
+        clientID={clientID}
         samlIdpEntityID={samlIdpEntityID}
+        samlIdpSigningCertificate={state.samlIdpSigningCertificate}
         publicOrigin={state.publicOrigin}
         parentJSONPointer={jsonPointer}
         formState={formState}
