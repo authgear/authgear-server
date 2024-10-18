@@ -962,6 +962,10 @@
   "OAuthClientSAMLForm.configurationParameters.loginURL.label": "Login URL",
   "OAuthClientSAMLForm.configurationParameters.logoutURL.label": "Logout URL",
   "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available": "Not available because Single Logout is off",
+  "OAuthClientSAMLForm.idpCertificate.title": "Identity Provider Certificates",
+  "OAuthClientSAMLForm.idpCertificate.download": "Download Certificate",
+  "OAuthClientSAMLForm.idpCertificate.fingerprint": "SHA-1 Fingerprint: {fingerprint}",
+  "OAuthClientSAMLForm.idpCertificate.rotateHint": "To rotate identity provider certificate, please go to {ReactRouterLink, react, to{{href}} children{SAML Certificate}}",
 
   "oauth-client.application-type.unspecified": "Unspecified (Legacy)",
   "oauth-client.application-type.spa": "Single Page Application",

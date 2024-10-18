@@ -15,6 +15,7 @@ import {
   Label,
   MessageBar,
   MessageBarType,
+  Text,
 } from "@fluentui/react";
 import {
   SAMLNameIDFormat,
@@ -25,6 +26,8 @@ import FormTextFieldList from "../../FormTextFieldList";
 import FormTextField from "../../FormTextField";
 import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
+import DefaultButton from "../../DefaultButton";
+import { downloadStringAsFile } from "../../util/download";
 
 interface OAuthClientSAMLFormIdpSigningCertificate {
   certificateFingerprint: string;
@@ -135,6 +138,7 @@ export function OAuthClientSAMLForm({
   clientID,
   publicOrigin,
   samlIdpEntityID,
+  samlIdpSigningCertificate,
   formState,
   onFormStateChange,
 }: OAuthClientSAMLFormProps): React.ReactElement {
@@ -280,6 +284,17 @@ export function OAuthClientSAMLForm({
     link.target = "_blank";
     link.click();
   }, [endpoints.metadata]);
+
+  const onDownloadIdpCertificate = useCallback(() => {
+    if (!samlIdpSigningCertificate) {
+      throw new Error("Idp certificate missing");
+    }
+    downloadStringAsFile({
+      content: samlIdpSigningCertificate.certificatePEM,
+      filename: `${samlIdpSigningCertificate.certificateFingerprint}.pem`,
+      mimeType: "application/x-pem-file",
+    });
+  }, [samlIdpSigningCertificate]);
 
   const nameIDAttributePointerOptions = useMemo(
     () => makeNameIDAttributePointerOptions(renderToString),
@@ -552,6 +567,41 @@ export function OAuthClientSAMLForm({
                   disabled={!formState.isSLOEnabled}
                   readOnly={true}
                 />
+              </div>
+            </div>
+
+            <div>
+              <WidgetTitle className="mb-3" id="basic">
+                <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.title" />
+              </WidgetTitle>
+              <div className="grid gap-y-4 grid-cols-1">
+                <div>
+                  <DefaultButton
+                    onClick={onDownloadIdpCertificate}
+                    text={
+                      <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.download" />
+                    }
+                  />
+                  <Text block={true} className={"mt-1"}>
+                    <FormattedMessage
+                      id="OAuthClientSAMLForm.idpCertificate.fingerprint"
+                      values={{
+                        fingerprint:
+                          samlIdpSigningCertificate?.certificateFingerprint ??
+                          "",
+                      }}
+                    />
+                  </Text>
+                </div>
+
+                <MessageBar messageBarType={MessageBarType.info}>
+                  <FormattedMessage
+                    id="OAuthClientSAMLForm.idpCertificate.rotateHint"
+                    values={{
+                      href: "#todo",
+                    }}
+                  />
+                </MessageBar>
               </div>
             </div>
           </div>
