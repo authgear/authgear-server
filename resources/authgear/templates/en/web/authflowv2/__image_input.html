@@ -11,6 +11,7 @@
       (dict
         "FormName"     "main-form"
         "SubmitEvent"  "authgear.button.enter_face_image"
+        "IsRetry"      $has_unknown_err
       )
     }}
   </form>
@@ -71,8 +72,12 @@
     value="{{ or $.OpenCameraButtonValue "button" }}"
     data-action="image-input#openCamera"
     data-image-input-target="openCameraBtn"
-  > 
-    {{ include "v2.component.image-input.default.btn-label-open-camera" nil }}
+  >  
+    {{ if $.IsRetry }}
+      {{ include "v2.component.image-input.default.btn-label-try-again" nil }}
+    {{ else }}
+      {{ include "v2.component.image-input.default.btn-label-open-camera" nil }}
+    {{ end }}
   </button>
   <button
     class="primary-btn w-full hidden"
