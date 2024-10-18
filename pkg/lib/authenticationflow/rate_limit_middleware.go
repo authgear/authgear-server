@@ -28,14 +28,15 @@ const (
 func (m *RateLimitMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		spec := ratelimit.NewBucketSpec(m.Config.AuthenticationFlow.RateLimits.PerIP, AuthowAPIPerIP, string(m.RemoteIP))
-		err := m.RateLimiter.Allow(spec)
-		if ratelimit.IsRateLimitErrorWithBucketName(err, spec.Name) {
+		failedReservation, err := m.RateLimiter.Allow(spec)
+		if err != nil {
+			panic(err)
+		} else if ratelimitErr := failedReservation.Error(); ratelimitErr != nil && ratelimit.IsRateLimitErrorWithBucketName(ratelimitErr, spec.Name) {
 			m.JSON.WriteResponse(w, &api.Response{
 				Error: apierrors.NewTooManyRequest("Reach Rate Limit"),
 			})
-		} else if err != nil {
-			panic(err)
 		} else {
+
 			next.ServeHTTP(w, r)
 		}
 	})

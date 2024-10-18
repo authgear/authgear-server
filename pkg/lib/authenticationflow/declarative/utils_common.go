@@ -641,9 +641,11 @@ func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) 
 		string(deps.RemoteIP),
 	)
 
-	reservation := deps.RateLimiter.Reserve(bucketSpec)
-	err := reservation.Error()
+	reservation, failedReservation, err := deps.RateLimiter.Reserve(bucketSpec)
 	if err != nil {
+		return nil, err
+	}
+	if err := failedReservation.Error(); err != nil {
 		return nil, err
 	}
 	defer deps.RateLimiter.Cancel(reservation)

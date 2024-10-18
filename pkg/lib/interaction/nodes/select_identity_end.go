@@ -29,8 +29,13 @@ func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *int
 	var reservation *ratelimit.Reservation
 	if !bypassRateLimit {
 		spec := interaction.AccountEnumerationPerIPRateLimitBucketSpec(ctx.Config.Authentication, string(ctx.RemoteIP))
-		reservation = ctx.RateLimiter.Reserve(spec)
-		if err := reservation.Error(); err != nil {
+		var failedReservation *ratelimit.FailedReservation
+		var err error
+		reservation, failedReservation, err = ctx.RateLimiter.Reserve(spec)
+		if err != nil {
+			return nil, err
+		}
+		if err := failedReservation.Error(); err != nil {
 			return nil, err
 		}
 	}

@@ -620,12 +620,11 @@ func (s *Service) VerifyOneWithSpec(
 		options = &VerifyOptions{}
 	}
 
-	r := s.RateLimits.Reserve(userID, authenticatorType)
-	defer s.RateLimits.Cancel(r)
-
-	if err = r.Error(); err != nil {
+	r, err := s.RateLimits.Reserve(userID, authenticatorType)
+	if err != nil {
 		return
 	}
+	defer s.RateLimits.Cancel(r)
 
 	// Check if it is already locked
 	err = s.Lockout.Check(userID)

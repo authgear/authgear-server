@@ -50,9 +50,9 @@ type AttemptTracker interface {
 }
 
 type RateLimiter interface {
-	Allow(spec ratelimit.BucketSpec) error
-	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
-	ReserveN(spec ratelimit.BucketSpec, n int) *ratelimit.Reservation
+	Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
+	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
+	ReserveN(spec ratelimit.BucketSpec, n int) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
 	Cancel(r *ratelimit.Reservation)
 }
 
@@ -131,16 +131,28 @@ func (s *Service) checkFailedAttemptsRevocation(kind Kind, target string) error 
 
 func (s *Service) GenerateOTP(kind Kind, target string, form Form, opts *GenerateOptions) (string, error) {
 	if !opts.SkipRateLimits {
-		if err := s.RateLimiter.Allow(kind.RateLimitTriggerCooldown(target)); err != nil {
+		failed, err := s.RateLimiter.Allow(kind.RateLimitTriggerCooldown(target))
+		if err != nil {
+			return "", err
+		}
+		if err := failed.Error(); err != nil {
 			return "", err
 		}
 
-		if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerIP(string(s.RemoteIP))); err != nil {
+		failed, err = s.RateLimiter.Allow(kind.RateLimitTriggerPerIP(string(s.RemoteIP)))
+		if err != nil {
+			return "", err
+		}
+		if err := failed.Error(); err != nil {
 			return "", err
 		}
 
 		if opts.UserID != "" {
-			if err := s.RateLimiter.Allow(kind.RateLimitTriggerPerUser(opts.UserID)); err != nil {
+			failed, err := s.RateLimiter.Allow(kind.RateLimitTriggerPerUser(opts.UserID))
+			if err != nil {
+				return "", err
+			}
+			if err := failed.Error(); err != nil {
 				return "", err
 			}
 		}
@@ -198,15 +210,21 @@ func (s *Service) VerifyOTP(kind Kind, target string, otp string, opts *VerifyOp
 		}
 	}()
 
-	r1 := s.RateLimiter.Reserve(kind.RateLimitValidatePerIP(string(s.RemoteIP)))
-	if err := r1.Error(); err != nil {
+	r1, failedR1, err := s.RateLimiter.Reserve(kind.RateLimitValidatePerIP(string(s.RemoteIP)))
+	if err != nil {
+		return err
+	}
+	if err := failedR1.Error(); err != nil {
 		return err
 	}
 	reservations = append(reservations, r1)
 
 	if opts.UserID != "" {
-		r2 := s.RateLimiter.Reserve(kind.RateLimitValidatePerUserPerIP(opts.UserID, string(s.RemoteIP)))
-		if err := r2.Error(); err != nil {
+		r2, failedR2, err := s.RateLimiter.Reserve(kind.RateLimitValidatePerUserPerIP(opts.UserID, string(s.RemoteIP)))
+		if err != nil {
+			return err
+		}
+		if err := failedR2.Error(); err != nil {
 			return err
 		}
 		reservations = append(reservations, r2)
@@ -303,11 +321,22 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 		return nil, ferr
 	}
 
+	// This is intentionally zero.
+	var canResendAt time.Time
+
 	// Inspect rate limit state by reserving no tokens.
-	reservation := s.RateLimiter.ReserveN(kind.RateLimitTriggerCooldown(target), 0)
+	reservation, failedReservation, err := s.RateLimiter.ReserveN(kind.RateLimitTriggerCooldown(target), 0)
+	if err != nil {
+		return nil, err
+	}
+	if failedReservation != nil {
+		canResendAt = failedReservation.GetTimeToAct()
+	}
+	if reservation != nil {
+		s.RateLimiter.Cancel(reservation)
+	}
+
 	now := s.Clock.NowUTC()
-	canResendAt := reservation.GetTimeToAct()
-	s.RateLimiter.Cancel(reservation)
 
 	state := &State{
 		ExpireAt:        now,

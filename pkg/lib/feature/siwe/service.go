@@ -40,8 +40,8 @@ type NonceStore interface {
 }
 
 type RateLimiter interface {
-	Allow(spec ratelimit.BucketSpec) error
-	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
+	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
 	Cancel(r *ratelimit.Reservation)
 }
 
@@ -84,8 +84,11 @@ func (s *Service) CreateNewNonce() (*Nonce, error) {
 		ExpireAt: s.Clock.NowUTC().Add(duration.Short),
 	}
 
-	err := s.RateLimiter.Allow(s.rateLimitGenerateNonce())
+	failed, err := s.RateLimiter.Allow(s.rateLimitGenerateNonce())
 	if err != nil {
+		return nil, err
+	}
+	if err := failed.Error(); err != nil {
 		return nil, err
 	}
 
@@ -124,11 +127,14 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 		return nil, nil, InvalidNetwork.NewWithInfo("network does not match expected network", apierrors.Details{"expected_chain_id": fmt.Sprintf("_%s", expectedNetworkID.Network)})
 	}
 
-	reservation := s.RateLimiter.Reserve(s.rateLimitVerifyMessage())
-	defer s.RateLimiter.Cancel(reservation)
-	if err := reservation.Error(); err != nil {
+	reservation, failed, err := s.RateLimiter.Reserve(s.rateLimitVerifyMessage())
+	if err != nil {
 		return nil, nil, err
 	}
+	if err := failed.Error(); err != nil {
+		return nil, nil, err
+	}
+	defer s.RateLimiter.Cancel(reservation)
 
 	messageNonce := message.GetNonce()
 	existingNonce, err := s.NonceStore.Get(&Nonce{

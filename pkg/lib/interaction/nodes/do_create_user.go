@@ -84,8 +84,12 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 
 				// check the rate limit only before running the effects
 				bucket := interaction.SignupPerIPRateLimitBucketSpec(ctx.Config.Authentication, isAnonymous, ip)
-				reservation = ctx.RateLimiter.Reserve(bucket)
-				if err := reservation.Error(); err != nil {
+				var failedReservation *ratelimit.FailedReservation
+				reservation, failedReservation, err = ctx.RateLimiter.Reserve(bucket)
+				if err != nil {
+					return err
+				}
+				if err := failedReservation.Error(); err != nil {
 					return err
 				}
 			}

@@ -7,36 +7,32 @@ type LimiterGlobal struct {
 	Storage Storage
 }
 
-func (l *LimiterGlobal) Allow(spec BucketSpec) error {
-	r := l.Reserve(spec)
-	return r.Error()
+func (l *LimiterGlobal) Allow(spec BucketSpec) (*FailedReservation, error) {
+	_, failedReservation, err := l.Reserve(spec)
+	return failedReservation, err
 }
 
-func (l *LimiterGlobal) Reserve(spec BucketSpec) *Reservation {
+func (l *LimiterGlobal) Reserve(spec BucketSpec) (*Reservation, *FailedReservation, error) {
 	return l.ReserveN(spec, 1)
 }
 
-func (l *LimiterGlobal) ReserveN(spec BucketSpec, n int) *Reservation {
+func (l *LimiterGlobal) ReserveN(spec BucketSpec, n int) (*Reservation, *FailedReservation, error) {
+	key := bucketKeyGlobal(spec)
+
 	if !spec.IsGlobal {
-		return &Reservation{
-			spec: spec,
-			ok:   false,
-			err:  errors.New("ratelimit: must be global limit"),
-		}
+		panic(errors.New("ratelimit: must be global limit"))
 	}
 
 	if !spec.Enabled {
-		return &Reservation{spec: spec, ok: true}
+		return &Reservation{
+			key:  key,
+			spec: spec,
+		}, nil, nil
 	}
 
-	key := bucketKeyGlobal(spec)
 	ok, timeToAct, err := l.Storage.Update(key, spec.Period, spec.Burst, n)
 	if err != nil {
-		return &Reservation{
-			spec: spec,
-			ok:   false,
-			err:  err,
-		}
+		return nil, nil, nil
 	}
 
 	l.Logger.
@@ -45,14 +41,19 @@ func (l *LimiterGlobal) ReserveN(spec BucketSpec, n int) *Reservation {
 		WithField("timeToAct", timeToAct).
 		Debug("check global rate limit")
 
-	return &Reservation{
-		spec:       spec,
-		key:        key,
-		ok:         ok,
-		err:        err,
-		tokenTaken: n,
-		timeToAct:  &timeToAct,
+	if ok {
+		return &Reservation{
+			spec:       spec,
+			key:        key,
+			tokenTaken: n,
+		}, nil, nil
 	}
+
+	return nil, &FailedReservation{
+		spec:      spec,
+		key:       key,
+		timeToAct: timeToAct,
+	}, nil
 }
 
 func (l *LimiterGlobal) Cancel(r *Reservation) {

@@ -35,7 +35,7 @@ type StoreRecoveryCode interface {
 }
 
 type RateLimiter interface {
-	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
 	Cancel(r *ratelimit.Reservation)
 }
 
@@ -67,19 +67,27 @@ func (s *Service) reserveRateLimit(
 		perIP = s.Config.RateLimits.General.PerIP
 	}
 
-	rPerUserPerIP = s.RateLimiter.Reserve(ratelimit.NewBucketSpec(
+	rPerUserPerIP, failedPerUserPerIP, err := s.RateLimiter.Reserve(ratelimit.NewBucketSpec(
 		perUserPerIP, namePerUserPerIP,
 		userID, string(s.IP),
 	))
-	if err = rPerUserPerIP.Error(); err != nil {
+	if err != nil {
+		return
+	}
+	if ratelimitErr := failedPerUserPerIP.Error(); ratelimitErr != nil {
+		err = ratelimitErr
 		return
 	}
 
-	rPerIP = s.RateLimiter.Reserve(ratelimit.NewBucketSpec(
+	rPerIP, failedPerIP, err := s.RateLimiter.Reserve(ratelimit.NewBucketSpec(
 		perIP, namePerIP,
 		string(s.IP),
 	))
-	if err = rPerIP.Error(); err != nil {
+	if err != nil {
+		return
+	}
+	if ratelimitErr := failedPerIP.Error(); ratelimitErr != nil {
+		err = ratelimitErr
 		return
 	}
 
@@ -109,12 +117,12 @@ func (s *Service) VerifyDeviceToken(userID string, token string) error {
 		s.Config.RateLimits.DeviceToken.PerIP,
 		userID,
 	)
-	defer s.RateLimiter.Cancel(perUserPerIP)
-	defer s.RateLimiter.Cancel(perIP)
-
 	if err != nil {
 		return err
 	}
+
+	defer s.RateLimiter.Cancel(perUserPerIP)
+	defer s.RateLimiter.Cancel(perIP)
 
 	_, err = s.DeviceTokens.Get(userID, token)
 	if errors.Is(err, ErrDeviceTokenNotFound) {
@@ -180,12 +188,12 @@ func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode,
 		s.Config.RateLimits.RecoveryCode.PerIP,
 		userID,
 	)
-	defer s.RateLimiter.Cancel(perUserPerIP)
-	defer s.RateLimiter.Cancel(perIP)
-
 	if err != nil {
 		return nil, err
 	}
+
+	defer s.RateLimiter.Cancel(perUserPerIP)
+	defer s.RateLimiter.Cancel(perIP)
 
 	err = s.Lockout.Check(userID)
 	if err != nil {

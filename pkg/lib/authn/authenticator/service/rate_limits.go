@@ -16,26 +16,13 @@ const (
 )
 
 type RateLimiter interface {
-	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
 	Cancel(r *ratelimit.Reservation)
 }
 
 type Reservation struct {
 	perUserPerIP *ratelimit.Reservation
 	perIP        *ratelimit.Reservation
-}
-
-func (r *Reservation) Error() error {
-	if r == nil {
-		return nil
-	}
-	if err := r.perUserPerIP.Error(); err != nil {
-		return err
-	}
-	if err := r.perIP.Error(); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (r *Reservation) PreventCancel() {
@@ -135,12 +122,28 @@ func (l *RateLimits) Cancel(r *Reservation) {
 	l.RateLimiter.Cancel(r.perUserPerIP)
 }
 
-func (l *RateLimits) Reserve(userID string, authType model.AuthenticatorType) *Reservation {
+func (l *RateLimits) Reserve(userID string, authType model.AuthenticatorType) (*Reservation, error) {
 	specPerUserPerIP := l.specPerUserPerIP(userID, authType)
 	specPerIP := l.specPerIP(authType)
 
-	return &Reservation{
-		perUserPerIP: l.RateLimiter.Reserve(specPerUserPerIP),
-		perIP:        l.RateLimiter.Reserve(specPerIP),
+	rPerUserPerIP, failedPerUserPerIP, err := l.RateLimiter.Reserve(specPerUserPerIP)
+	if err != nil {
+		return nil, err
 	}
+	if err := failedPerUserPerIP.Error(); err != nil {
+		return nil, err
+	}
+
+	rPerIP, failedPerIP, err := l.RateLimiter.Reserve(specPerIP)
+	if err != nil {
+		return nil, err
+	}
+	if err := failedPerIP.Error(); err != nil {
+		return nil, err
+	}
+
+	return &Reservation{
+		perUserPerIP: rPerUserPerIP,
+		perIP:        rPerIP,
+	}, nil
 }

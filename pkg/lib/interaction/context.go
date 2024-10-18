@@ -185,8 +185,8 @@ type CookieManager interface {
 }
 
 type RateLimiter interface {
-	Allow(spec ratelimit.BucketSpec) error
-	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
+	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
 	Cancel(r *ratelimit.Reservation)
 }
 
