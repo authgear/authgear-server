@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import {
   useSAMLCertificateForm,
@@ -11,6 +11,13 @@ import { FormContainerBase } from "../../FormContainerBase";
 import { PortalAPIAppConfig, SAMLIdpSigningCertificate } from "../../types";
 import { useUpdateAppAndSecretConfigMutation } from "./mutations/updateAppAndSecretMutation";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
+import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
+import ScreenContent from "../../ScreenContent";
+import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
+import ScreenDescription from "../../ScreenDescription";
+import { FormattedMessage } from "@oursky/react-messageformat";
+import styles from "./SAMLCertificateScreen.module.css";
+import { EditSAMLCertificateForm } from "../../components/saml/EditSAMLCertificateForm";
 
 function AutoGenerateFirstCertificate({
   appID,
@@ -72,11 +79,35 @@ function AutoGenerateFirstCertificate({
   return <ShowLoading />;
 }
 
-function EditSAMLCertificateForm({}: {
+function EditSAMLCertificateContent({
+  form,
+  certificates,
+}: {
   form: AppSecretConfigFormModel<FormState>;
   certificates: SAMLIdpSigningCertificate[];
 }) {
-  return <></>;
+  const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
+    return [
+      {
+        to: ".",
+        label: <FormattedMessage id="SAMLCertificateScreen.title" />,
+      },
+    ];
+  }, []);
+
+  return (
+    <ScreenLayoutScrollView>
+      <ScreenContent>
+        <NavBreadcrumb className={styles.widget} items={navBreadcrumbItems} />
+        <ScreenDescription className={styles.widget}>
+          <FormattedMessage id="SAMLCertificateScreen.desc" />
+        </ScreenDescription>
+        <div className={styles.widget}>
+          <EditSAMLCertificateForm form={form} certificates={certificates} />
+        </div>
+      </ScreenContent>
+    </ScreenLayoutScrollView>
+  );
 }
 
 function EditSAMLCertificateFormContainer({
@@ -98,7 +129,7 @@ function EditSAMLCertificateFormContainer({
 
   return (
     <FormContainerBase form={form} canSave={true}>
-      <EditSAMLCertificateForm certificates={certificates} form={form} />
+      <EditSAMLCertificateContent certificates={certificates} form={form} />
     </FormContainerBase>
   );
 }

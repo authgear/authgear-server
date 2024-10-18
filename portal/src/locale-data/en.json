@@ -1013,6 +1013,15 @@
   "EndpointDirectAccessScreen.redirect-url-section.input.post-logout-url.label": "Post-logout link",
   "EndpointDirectAccessScreen.redirect-url-section.input.post-logout-url.description": "If the user access the logout page directly instead of OAuth flow, they will be redirected to this URL after logout",
 
+  "SAMLCertificateScreen.title": "SAML Certificate",
+  "SAMLCertificateScreen.desc": "Authgear uses the active certificate to sign all messages for security. When you need to rotate the certificate, generate a new one and configure it in your system before activating it.",
+  "EditSAMLCertificateForm.certificates.title": "Identity Provider Certificates",
+  "EditSAMLCertificateForm.certificates.column.fingerprint": "Certificate (SHA-1 Fingerprint)",
+  "EditSAMLCertificateForm.certificates.column.status": "Status",
+  "EditSAMLCertificateForm.certificates.column.status.active": "Active",
+  "EditSAMLCertificateForm.certificates.download": "Download",
+  "EditSAMLCertificateForm.certificates.generate": "Generate certificate",
+
   "VerifyDomainScreen.title": "Verify Domain",
   "VerifyDomainScreen.desc-main": "Setup CNAME and add TXT record below to your DNS provider to verify your own {b, react, children{{domain}}}",
   "VerifyDomainScreen.error.domain-not-found": "Requested domain is not found",
