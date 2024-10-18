@@ -23,6 +23,7 @@ export interface AppAndSecretConfigQueryResult
   secretConfig: PortalAPISecretConfig | null;
   secretConfigChecksum?: string;
   viewer: Collaborator | null;
+  samlIdpEntityID?: string;
 }
 export const useAppAndSecretConfigQuery = (
   appID: string,
@@ -49,6 +50,7 @@ export const useAppAndSecretConfigQuery = (
       secretConfig: appConfigNode?.secretConfig ?? null,
       secretConfigChecksum: appConfigNode?.secretConfigChecksum ?? undefined,
       viewer: appConfigNode?.viewer ?? null,
+      samlIdpEntityID: appConfigNode?.samlIdpEntityID ?? undefined,
     };
   }, [data]);
 

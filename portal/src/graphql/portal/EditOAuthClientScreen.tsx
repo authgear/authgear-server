@@ -43,6 +43,7 @@ import {
   OAuthClientSAMLFormState,
   getDefaultOAuthClientSAMLFormState,
 } from "../../components/applications/OAuthClientSAMLForm";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 
 interface LocationState {
   isClientSecretRevealed: boolean;
@@ -301,6 +302,7 @@ const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps>
 interface EditOAuthClientContentProps {
   form: AppSecretConfigFormModel<FormState>;
   clientID: string;
+  samlIdpEntityID: string;
   customUIEnabled: boolean;
   app2appEnabled: boolean;
 }
@@ -314,6 +316,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
   function EditOAuthClientContent(props) {
     const {
       clientID,
+      samlIdpEntityID,
       form: { state, setState },
       customUIEnabled,
       app2appEnabled,
@@ -401,6 +404,7 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         ) : (
           <OAuthClientSAML2Content
             clientID={client.client_id}
+            samlIdpEntityID={samlIdpEntityID}
             state={state}
             setState={setState}
           />
@@ -474,12 +478,14 @@ function OAuthClientSettingsForm({
 
 interface OAuthClientSAML2ContentProps {
   clientID: string;
+  samlIdpEntityID: string;
   state: FormState;
   setState: (fn: (state: FormState) => FormState) => void;
 }
 
 function OAuthClientSAML2Content({
   clientID,
+  samlIdpEntityID,
   state,
   setState,
 }: OAuthClientSAML2ContentProps): React.ReactElement {
@@ -564,9 +570,11 @@ function OAuthClientSAML2Content({
   return (
     <div className={cn(styles.widget)}>
       <OAuthClientSAMLForm
+        samlIdpEntityID={samlIdpEntityID}
+        publicOrigin={state.publicOrigin}
+        parentJSONPointer={jsonPointer}
         formState={formState}
         onFormStateChange={onFormStateChange}
-        parentJSONPointer={jsonPointer}
       />
     </div>
   );
@@ -640,6 +648,8 @@ const EditOAuthClientScreen1: React.VFC<{
   secretToken: string | null;
 }> = function EditOAuthClientScreen1({ appID, clientID, secretToken }) {
   const form = useOAuthClientForm(appID, secretToken);
+  const { loading: appQueryLoading, samlIdpEntityID } =
+    useAppAndSecretConfigQuery(appID, secretToken);
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 
@@ -667,7 +677,7 @@ const EditOAuthClientScreen1: React.VFC<{
     return featureConfig.effectiveFeatureConfig?.oauth?.client?.app2app_enabled;
   }, [featureConfig]);
 
-  if (form.isLoading) {
+  if (form.isLoading || appQueryLoading) {
     return <ShowLoading />;
   }
 
@@ -688,6 +698,7 @@ const EditOAuthClientScreen1: React.VFC<{
       <EditOAuthClientContent
         form={form}
         clientID={clientID}
+        samlIdpEntityID={samlIdpEntityID ?? ""}
         customUIEnabled={customUIEnabled}
         app2appEnabled={app2appEnabled}
       />

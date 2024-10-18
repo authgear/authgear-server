@@ -82,6 +82,9 @@ type App implements Node {
   resources(paths: [String!]): [AppResource!]!
 
   """"""
+  samlIdpEntityID: String!
+
+  """"""
   secretConfig(token: String): SecretConfig!
 
   """"""

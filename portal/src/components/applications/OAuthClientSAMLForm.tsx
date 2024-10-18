@@ -63,6 +63,8 @@ export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
 }
 export interface OAuthClientSAMLFormProps {
   parentJSONPointer: string | RegExp;
+  samlIdpEntityID: string;
+  publicOrigin: string;
   formState: OAuthClientSAMLFormState;
   onFormStateChange: (newState: OAuthClientSAMLFormState) => void;
 }
