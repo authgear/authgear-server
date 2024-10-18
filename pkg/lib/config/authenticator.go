@@ -1,6 +1,10 @@
 package config
 
-import "github.com/authgear/authgear-server/pkg/api/model"
+import (
+	"fmt"
+
+	"github.com/authgear/authgear-server/pkg/api/model"
+)
 
 var _ = Schema.Add("AuthenticatorConfig", `
 {
@@ -235,6 +239,17 @@ var _ = Schema.Add("AuthenticatorOOBConfig", `
 type AuthenticatorOOBConfig struct {
 	SMS   *AuthenticatorOOBSMSConfig   `json:"sms,omitempty"`
 	Email *AuthenticatorOOBEmailConfig `json:"email,omitempty"`
+}
+
+func (c *AuthenticatorOOBConfig) GetDefaultChannelFor(typ model.AuthenticatorType) model.AuthenticatorOOBChannel {
+	switch typ {
+	case model.AuthenticatorTypeOOBEmail:
+		return model.AuthenticatorOOBChannelEmail
+	case model.AuthenticatorTypeOOBSMS:
+		return c.SMS.PhoneOTPMode.GetDefaultChannel()
+	default:
+		panic(fmt.Errorf("AuthenticatorOOBConfig.GetDefaultChannelFor called with non-OOB authenticator type"))
+	}
 }
 
 var _ = Schema.Add("AuthenticatorPhoneOTPMode", `

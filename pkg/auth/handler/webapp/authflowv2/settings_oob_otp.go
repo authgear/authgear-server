@@ -55,9 +55,9 @@ func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http
 	}
 	viewmodels.Embed(data, *settingsViewModel)
 
-	oc := httproute.GetParam(r, "channel")
+	email_or_sms := httproute.GetParam(r, "channel")
 
-	t, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
+	t, err := model.ParseOOBAuthenticatorType(email_or_sms)
 	if err != nil {
 		return nil, err
 	}
@@ -75,10 +75,7 @@ func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http
 		OOBOTPAuthenticators = append(OOBOTPAuthenticators, a.OOBOTP)
 	}
 
-	channel := model.AuthenticatorOOBChannel(oc)
-	if h.Authenticators.Config.Authenticator.OOB.SMS.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
-		channel = model.AuthenticatorOOBChannelWhatsapp
-	}
+	channel := h.Authenticators.Config.Authenticator.OOB.GetDefaultChannelFor(t)
 
 	vm := AuthflowV2SettingsOOBOTPViewModel{
 		OOBOTPType:           t,

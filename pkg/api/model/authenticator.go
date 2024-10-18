@@ -40,6 +40,17 @@ func GetOOBAuthenticatorType(channel AuthenticatorOOBChannel) (AuthenticatorType
 	}
 }
 
+func ParseOOBAuthenticatorType(email_or_sms string) (AuthenticatorType, error) {
+	switch email_or_sms {
+	case "sms":
+		return AuthenticatorTypeOOBSMS, nil
+	case "email":
+		return AuthenticatorTypeOOBEmail, nil
+	default:
+		return "", errors.New("invalid oob channel")
+	}
+}
+
 func (t AuthenticatorType) ToClaimName() ClaimName {
 	switch t {
 	case AuthenticatorTypeOOBSMS:
