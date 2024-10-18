@@ -992,7 +992,7 @@
   "v2.error.no-available-authenticator": "Two-factor authentication (2FA) is required to log in, but you haven''t set it up yet. Please contact system admin for assistance.",
   "v2.error.no-available-whatsapp-client": "WhatsApp API configuration is missing, please contact system admin.",
   "v2.error.no-face-detected": "No face was detected in the image. Please ensure the photo contains a clearly visible face and try again.",
-  "v2.error.no-matching-face-found": "No matching face found in our database. Please ensure you are registered or try again with a clearer image.",
+  "v2.error.no-matching-face-found": "No matching face found. Please try again.",
   "v2.error.no-passkey": "Passkey is not found on your device. Please select another authentication method.",
   "v2.error.no-public-signup": "<p>Sign up is disabled.</p><p>Please contact system admin.</p>",
   "v2.error.old-password-required": "Please enter your old password.",

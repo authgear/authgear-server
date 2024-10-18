@@ -992,7 +992,7 @@
   "v2.error.no-available-authenticator": "登入需要雙重認證 (2FA)，但您尚未設定。請聯絡系統管理員尋求協助。",
   "v2.error.no-available-whatsapp-client": "缺少WhatsApp API配置,請聯繫系統管理員。",
   "v2.error.no-face-detected": "圖像中未檢測到面孔。請確保照片包含清晰可見的面孔，然後重試。",
-  "v2.error.no-matching-face-found": "在我們的數據庫中未找到匹配的面孔。請確保您已註冊或嘗試使用更清晰的圖像重試。",
+  "v2.error.no-matching-face-found": "找不到匹配的面孔。請再試一次。",
   "v2.error.no-passkey": "您的裝置上未找到通行密匙。請選擇其他身份驗證方法。",
   "v2.error.no-public-signup": "<p>註冊已停用，</p><p>請聯絡系統管理員。</p>",
   "v2.error.old-password-required": "請輸入舊密碼",
