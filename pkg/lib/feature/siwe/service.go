@@ -135,7 +135,7 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 		Nonce: messageNonce,
 	})
 	if errors.Is(err, ErrNonceNotFound) {
-		reservation.Consume()
+		reservation.PreventCancel()
 		return nil, nil, err
 	} else if err != nil {
 		return nil, nil, err
@@ -149,7 +149,7 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 	now := s.Clock.NowUTC()
 	pubKey, err := message.Verify(signature, &publicOrigin.Host, &existingNonce.Nonce, &now)
 	if err != nil {
-		reservation.Consume()
+		reservation.PreventCancel()
 		return nil, nil, err
 	}
 

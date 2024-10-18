@@ -71,7 +71,7 @@ func (l *Limiter) ReserveN(spec BucketSpec, n int) *Reservation {
 }
 
 func (l *Limiter) Cancel(r *Reservation) {
-	if r == nil || r.isConsumed || r.tokenTaken == 0 {
+	if r == nil || r.wasCancelPrevented || r.tokenTaken == 0 {
 		return
 	}
 

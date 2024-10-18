@@ -5,13 +5,13 @@ import (
 )
 
 type Reservation struct {
-	key        string
-	spec       BucketSpec
-	ok         bool
-	err        error
-	tokenTaken int
-	timeToAct  *time.Time
-	isConsumed bool
+	key                string
+	spec               BucketSpec
+	ok                 bool
+	err                error
+	tokenTaken         int
+	timeToAct          *time.Time
+	wasCancelPrevented bool
 }
 
 func (r *Reservation) Error() error {
@@ -34,9 +34,16 @@ func (r *Reservation) GetTimeToAct() time.Time {
 	return *r.timeToAct
 }
 
-func (r *Reservation) Consume() {
+// PreventCancel prevents r from being Cancel().
+// The typical usage is like
+// r := ...
+// defer Cancel(r)
+// ...
+// Discover a situation that r must not be canceled.
+// r.PreventCancel()
+func (r *Reservation) PreventCancel() {
 	if r == nil {
 		return
 	}
-	r.isConsumed = true
+	r.wasCancelPrevented = true
 }

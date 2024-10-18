@@ -668,9 +668,9 @@ func (s *Service) VerifyOneWithSpec(
 		panic(fmt.Errorf("unexpected post condition: info != nil && err != nil"))
 	}
 
-	// If error is ErrInvalidCredentials, consume rate limit token and increment lockout attempt
+	// If error is ErrInvalidCredentials, prevent canceling rate limit reservation and increment lockout attempt
 	if errors.Is(err, api.ErrInvalidCredentials) {
-		r.Consume()
+		r.PreventCancel()
 		lockErr := s.Lockout.MakeAttempt(userID, authenticatorType)
 		if lockErr != nil {
 			err = errors.Join(lockErr, err)

@@ -118,8 +118,8 @@ func (s *Service) VerifyDeviceToken(userID string, token string) error {
 
 	_, err = s.DeviceTokens.Get(userID, token)
 	if errors.Is(err, ErrDeviceTokenNotFound) {
-		perUserPerIP.Consume()
-		perIP.Consume()
+		perUserPerIP.PreventCancel()
+		perIP.PreventCancel()
 	}
 	return err
 }
@@ -199,8 +199,8 @@ func (s *Service) VerifyRecoveryCode(userID string, code string) (*RecoveryCode,
 
 	rc, err := s.RecoveryCodes.Get(userID, code)
 	if errors.Is(err, ErrRecoveryCodeNotFound) {
-		perUserPerIP.Consume()
-		perIP.Consume()
+		perUserPerIP.PreventCancel()
+		perIP.PreventCancel()
 		aerr := s.Lockout.MakeRecoveryCodeAttempt(userID, 1)
 		if aerr != nil {
 			return nil, aerr

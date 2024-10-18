@@ -654,8 +654,8 @@ func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) 
 	}
 
 	if exactMatch == nil {
-		// Consume the reservation if exact match is not found.
-		reservation.Consume()
+		// Prevent canceling the reservation if exact match is not found.
+		reservation.PreventCancel()
 
 		var otherSpec *identity.Spec
 		if len(otherMatches) > 0 {

@@ -38,12 +38,12 @@ func (r *Reservation) Error() error {
 	return nil
 }
 
-func (r *Reservation) Consume() {
+func (r *Reservation) PreventCancel() {
 	if r == nil {
 		return
 	}
-	r.perUserPerIP.Consume()
-	r.perIP.Consume()
+	r.perUserPerIP.PreventCancel()
+	r.perIP.PreventCancel()
 }
 
 type RateLimits struct {
