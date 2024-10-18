@@ -397,4 +397,6 @@ var AuthflowV2UIHandlerDependencySet = wire.NewSet(
 	DependencySet,
 	wire.Bind(new(handlerwebapp.AuthflowNavigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2ChangePasswordNavigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
+	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2SetupFaceImageNavigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
+	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2EnterFaceImageNavigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
 )

@@ -33,8 +33,13 @@ func ConfigureAuthflowV2SetupFaceImageRoute(route httproute.Route) httproute.Rou
 		WithPathPattern(AuthflowV2RouteSetupFaceImage)
 }
 
+type AuthflowV2SetupFaceImageNavigator interface {
+	NavigateSetupFaceImageSuccessPage(s *webapp.AuthflowScreen, r *http.Request, webSessionID string) (result *webapp.Result)
+}
+
 type AuthflowV2SetupFaceImageHandler struct {
 	Controller    *handlerwebapp.AuthflowController
+	Navigator     AuthflowV2SetupFaceImageNavigator
 	BaseViewModel *viewmodels.BaseViewModeler
 	Renderer      handlerwebapp.Renderer
 }
@@ -88,7 +93,13 @@ func (h *AuthflowV2SetupFaceImageHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			return err
 		}
 
-		result.WriteResponse(w, r)
+		newScreen, err := h.Controller.DelayScreen(r, s, screen.Screen, result)
+		if err != nil {
+			return err
+		}
+
+		newResult := h.Navigator.NavigateSetupFaceImageSuccessPage(newScreen, r, s.ID)
+		newResult.WriteResponse(w, r)
 		return nil
 	})
 	h.Controller.HandleStep(w, r, &handlers)
