@@ -129,13 +129,11 @@ export function useAppConfigForm<State>(
       setIsUpdating(true);
       setUpdateError(null);
       try {
-        await updateConfig(
-          newConfig,
-          rawAppConfigChecksum,
-          undefined,
-          undefined,
-          ignoreConflict
-        );
+        await updateConfig({
+          appConfig: newConfig,
+          appConfigChecksum: rawAppConfigChecksum,
+          ignoreConflict: ignoreConflict,
+        });
         setCurrentState(null);
         setIsSubmitted(true);
       } catch (e: unknown) {

@@ -775,7 +775,16 @@ export interface SAMLSpSigningSecretsSetDataInput {
 
 export interface SAMLSpSigningSecretsUpdateInstruction {
   action: string;
-  setData: SAMLSpSigningSecretsSetDataInput | null;
+  setData?: SAMLSpSigningSecretsSetDataInput | null;
+}
+
+export interface SAMLIdpSigningSecretsDeleteDataInput {
+  keyID: string;
+}
+
+export interface SAMLIdpSigningSecretsUpdateInstruction {
+  action: string;
+  deleteData?: SAMLIdpSigningSecretsDeleteDataInput | null;
 }
 
 export interface PortalAPISecretConfigUpdateInstruction {
@@ -784,6 +793,7 @@ export interface PortalAPISecretConfigUpdateInstruction {
   oauthClientSecrets?: OAuthClientSecretsUpdateInstruction | null;
   adminAPIAuthKey?: AdminApiAuthKeyUpdateInstruction | null;
   botProtectionProviderSecret?: BotProtectionProviderSecretUpdateInstruction | null;
+  samlIdpSigningSecrets?: SAMLIdpSigningSecretsUpdateInstruction | null;
   samlSpSigningSecrets?: SAMLSpSigningSecretsUpdateInstruction | null;
 }
 
@@ -976,8 +986,8 @@ export interface SAMLConfig {
 }
 
 export interface SAMLSigningConfig {
-  key_id: string;
-  signature_method: SAMLSigningSignatureMethod;
+  key_id?: string;
+  signature_method?: SAMLSigningSignatureMethod;
 }
 
 export interface SAMLServiceProviderConfig {

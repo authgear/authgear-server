@@ -177,6 +177,7 @@
   "ScreenNav.session": "Cookie Lifetime",
   "ScreenNav.integrations": "Integrations",
   "ScreenNav.endpoint-direct-access": "Endpoint Direct Access",
+  "ScreenNav.saml-certificate": "SAML Certificate",
 
   "NavBreadcrumb.label": "Nested navigation",
 

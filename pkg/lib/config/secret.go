@@ -239,12 +239,14 @@ func (c *SecretConfig) validateLDAPServerUserSecrets(ctx *validation.Context, ld
 
 func (c *SecretConfig) validateSAMLSigningKey(ctx *validation.Context, keyID string) {
 	c.validateRequire(ctx, SAMLIdpSigningMaterialsKey, "saml idp signing key materials")
-	_, data, _ := c.LookupDataWithIndex(SAMLIdpSigningMaterialsKey)
-	signingMaterials, _ := data.(*SAMLIdpSigningMaterials)
+	_, data, ok := c.LookupDataWithIndex(SAMLIdpSigningMaterialsKey)
+	if ok {
+		signingMaterials, _ := data.(*SAMLIdpSigningMaterials)
 
-	for _, m := range signingMaterials.Certificates {
-		if m.Key.Key.KeyID() == keyID {
-			return
+		for _, m := range signingMaterials.Certificates {
+			if m.Key.Key.KeyID() == keyID {
+				return
+			}
 		}
 	}
 	ctx.EmitErrorMessage(fmt.Sprintf("saml idp signing key '%s' does not exist", keyID))

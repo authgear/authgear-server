@@ -14,13 +14,13 @@ import {
 import { useGraphqlMutation } from "../../../hook/graphql";
 
 export function useUpdateAppAndSecretConfigMutation(appID: string): {
-  updateAppAndSecretConfig: (
-    appConfig: PortalAPIAppConfig,
-    appConfigChecksum?: string,
-    secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction,
-    secretConfigUpdateInstructionsChecksum?: string,
-    ignoreConflict?: boolean
-  ) => Promise<PortalAPIApp | null>;
+  updateAppAndSecretConfig: (options: {
+    appConfig?: PortalAPIAppConfig;
+    appConfigChecksum?: string;
+    secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction;
+    secretConfigUpdateInstructionsChecksum?: string;
+    ignoreConflict?: boolean;
+  }) => Promise<PortalAPIApp | null>;
   loading: boolean;
   error: unknown;
   resetError: () => void;
@@ -31,17 +31,23 @@ export function useUpdateAppAndSecretConfigMutation(appID: string): {
     UpdateAppAndSecretConfigMutationMutationVariables
   >(UpdateAppAndSecretConfigMutationDocument, { client });
   const updateAppAndSecretConfig = React.useCallback(
-    async (
-      appConfig: PortalAPIAppConfig,
-      appConfigChecksum?: string,
-      secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction,
-      secretConfigUpdateInstructionsChecksum?: string,
-      ignoreConflict: boolean = false
-    ) => {
+    async ({
+      appConfig,
+      appConfigChecksum,
+      secretConfigUpdateInstructions,
+      secretConfigUpdateInstructionsChecksum,
+      ignoreConflict = false,
+    }: {
+      appConfig?: PortalAPIAppConfig;
+      appConfigChecksum?: string;
+      secretConfigUpdateInstructions?: PortalAPISecretConfigUpdateInstruction;
+      secretConfigUpdateInstructionsChecksum?: string;
+      ignoreConflict?: boolean;
+    }) => {
       const result = await mutationFunction({
         variables: {
           appID,
-          appConfig: appConfig,
+          appConfig: appConfig ? appConfig : undefined,
           appConfigChecksum: !ignoreConflict ? appConfigChecksum : undefined,
           secretConfigUpdateInstructions: secretConfigUpdateInstructions,
           secretConfigUpdateInstructionsChecksum: !ignoreConflict

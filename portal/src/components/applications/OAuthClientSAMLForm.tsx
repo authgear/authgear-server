@@ -28,6 +28,7 @@ import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
 import { useFormContainerBaseContext } from "../../FormContainerBase";
 import DefaultButton from "../../DefaultButton";
 import { downloadStringAsFile } from "../../util/download";
+import { useParams } from "react-router-dom";
 
 interface OAuthClientSAMLFormIdpSigningCertificate {
   certificateFingerprint: string;
@@ -144,6 +145,7 @@ export function OAuthClientSAMLForm({
 }: OAuthClientSAMLFormProps): React.ReactElement {
   const { renderToString } = useContext(MessageFormatContext);
   const { isDirty: isFormDirty } = useFormContainerBaseContext();
+  const { appID } = useParams() as { appID: string };
 
   const onIsSAMLEnabledChange = useCallback(
     (_, checked?: boolean) => {
@@ -598,7 +600,7 @@ export function OAuthClientSAMLForm({
                   <FormattedMessage
                     id="OAuthClientSAMLForm.idpCertificate.rotateHint"
                     values={{
-                      href: "#todo",
+                      href: `/project/${appID}/advanced/saml-certificate`,
                     }}
                   />
                 </MessageBar>

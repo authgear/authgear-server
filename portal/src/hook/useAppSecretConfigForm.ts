@@ -160,13 +160,13 @@ export function useAppSecretConfigForm<State>(
 
       setIsUpdating(true);
       try {
-        await updateConfig(
-          newConfig[0],
-          rawAppConfigChecksum,
-          secretUpdateInstruction,
-          secretConfigChecksum,
-          ignoreConflict
-        );
+        await updateConfig({
+          appConfig: newConfig[0],
+          appConfigChecksum: rawAppConfigChecksum,
+          secretConfigUpdateInstructions: secretUpdateInstruction,
+          secretConfigUpdateInstructionsChecksum: secretConfigChecksum,
+          ignoreConflict,
+        });
         await reload();
         setCurrentState(null);
       } finally {
