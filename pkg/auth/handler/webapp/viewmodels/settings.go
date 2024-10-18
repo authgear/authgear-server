@@ -24,6 +24,7 @@ type SettingsViewModel struct {
 	HasSecondaryTOTP        bool
 	HasSecondaryOOBOTPEmail bool
 	HasSecondaryOOBOTPSMS   bool
+	OOBOTPSMSDefaultChannel string
 	SecondaryPassword       *authenticator.Info
 	HasMFA                  bool
 
@@ -55,12 +56,13 @@ type SettingsMFAService interface {
 }
 
 type SettingsViewModeler struct {
-	Clock          clock.Clock
-	Users          SettingsUserService
-	Authenticators SettingsAuthenticatorService
-	MFA            SettingsMFAService
-	Authentication *config.AuthenticationConfig
-	Biometric      *config.BiometricConfig
+	Clock               clock.Clock
+	Users               SettingsUserService
+	Authenticators      SettingsAuthenticatorService
+	MFA                 SettingsMFAService
+	AuthenticatorConfig *config.AuthenticatorConfig
+	Authentication      *config.AuthenticationConfig
+	Biometric           *config.BiometricConfig
 }
 
 // nolint: gocognit
@@ -106,6 +108,8 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 	hasSecondaryOOBOTPEmail := false
 	hasSecondaryOOBOTPSMS := false
 	var secondaryPassword *authenticator.Info
+
+	oobotpSMSDefaultChannel := m.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 
 	totpAllowed := false
 	oobotpEmailAllowed := false
@@ -196,6 +200,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		HasSecondaryTOTP:        hasSecondaryTOTP,
 		HasSecondaryOOBOTPEmail: hasSecondaryOOBOTPEmail,
 		HasSecondaryOOBOTPSMS:   hasSecondaryOOBOTPSMS,
+		OOBOTPSMSDefaultChannel: string(oobotpSMSDefaultChannel),
 		SecondaryPassword:       secondaryPassword,
 		HasMFA:                  hasMFA,
 
