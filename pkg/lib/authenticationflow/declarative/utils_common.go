@@ -641,9 +641,11 @@ func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) 
 		string(deps.RemoteIP),
 	)
 
-	reservation := deps.RateLimiter.Reserve(bucketSpec)
-	err := reservation.Error()
+	reservation, failedReservation, err := deps.RateLimiter.Reserve(bucketSpec)
 	if err != nil {
+		return nil, err
+	}
+	if err := failedReservation.Error(); err != nil {
 		return nil, err
 	}
 	defer deps.RateLimiter.Cancel(reservation)
@@ -654,8 +656,8 @@ func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) 
 	}
 
 	if exactMatch == nil {
-		// Consume the reservation if exact match is not found.
-		reservation.Consume()
+		// Prevent canceling the reservation if exact match is not found.
+		reservation.PreventCancel()
 
 		var otherSpec *identity.Spec
 		if len(otherMatches) > 0 {

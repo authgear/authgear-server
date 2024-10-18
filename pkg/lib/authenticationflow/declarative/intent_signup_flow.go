@@ -109,8 +109,11 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			// Apply rate limit on sign up.
 			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, false, string(deps.RemoteIP))
-			err := deps.RateLimiter.Allow(spec)
+			failed, err := deps.RateLimiter.Allow(spec)
 			if err != nil {
+				return err
+			}
+			if err := failed.Error(); err != nil {
 				return err
 			}
 			return nil

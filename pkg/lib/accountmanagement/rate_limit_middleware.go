@@ -15,7 +15,7 @@ type RateLimitMiddlewareJSONResponseWriter interface {
 }
 
 type RateLimitMiddlewareRateLimiter interface {
-	Allow(spec ratelimit.BucketSpec) error
+	Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
 }
 
 type RateLimitMiddleware struct {
@@ -38,13 +38,13 @@ var accountManagementAPIPerIPConfig *config.RateLimitConfig = &config.RateLimitC
 func (m *RateLimitMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		spec := ratelimit.NewBucketSpec(accountManagementAPIPerIPConfig, AccountManagementAPIPerIP, string(m.RemoteIP))
-		err := m.RateLimiter.Allow(spec)
-		if ratelimit.IsRateLimitErrorWithBucketName(err, spec.Name) {
+		failed, err := m.RateLimiter.Allow(spec)
+		if err != nil {
+			panic(err)
+		} else if ratelimitErr := failed.Error(); ratelimitErr != nil && ratelimit.IsRateLimitErrorWithBucketName(err, spec.Name) {
 			m.JSON.WriteResponse(w, &api.Response{
 				Error: apierrors.NewTooManyRequest("Reach Rate Limit"),
 			})
-		} else if err != nil {
-			panic(err)
 		} else {
 			next.ServeHTTP(w, r)
 		}

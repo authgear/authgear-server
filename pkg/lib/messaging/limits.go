@@ -28,7 +28,7 @@ type UsageLimiter interface {
 }
 
 type RateLimiter interface {
-	Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation
+	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
 	Cancel(r *ratelimit.Reservation)
 }
 
@@ -54,8 +54,13 @@ func (l *Limits) check(
 	re = reservations
 
 	globalLimit := ratelimit.NewGlobalBucketSpec(global, name, args...)
-	r := l.RateLimiter.Reserve(globalLimit)
-	if err = r.Error(); err != nil {
+
+	r, failed, err := l.RateLimiter.Reserve(globalLimit)
+	if err != nil {
+		return
+	}
+	if ratelimitErr := failed.Error(); ratelimitErr != nil {
+		err = ratelimitErr
 		return
 	}
 	re = append(re, r)
@@ -65,8 +70,13 @@ func (l *Limits) check(
 		localLimitConfig = feature
 	}
 	localLimit := ratelimit.NewBucketSpec(localLimitConfig, name, args...)
-	r = l.RateLimiter.Reserve(localLimit)
-	if err = r.Error(); err != nil {
+
+	r, failed, err = l.RateLimiter.Reserve(localLimit)
+	if err != nil {
+		return
+	}
+	if ratelimitErr := failed.Error(); ratelimitErr != nil {
+		err = ratelimitErr
 		return
 	}
 	re = append(re, r)

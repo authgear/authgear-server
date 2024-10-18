@@ -93,8 +93,11 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 			isAnonymous := true
 			// Apply rate limit on sign up.
 			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, isAnonymous, string(deps.RemoteIP))
-			err := deps.RateLimiter.Allow(spec)
+			failed, err := deps.RateLimiter.Allow(spec)
 			if err != nil {
+				return err
+			}
+			if err := failed.Error(); err != nil {
 				return err
 			}
 			return nil

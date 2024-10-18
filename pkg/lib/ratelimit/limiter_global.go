@@ -1,42 +1,64 @@
 package ratelimit
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 type LimiterGlobal struct {
 	Logger  Logger
 	Storage Storage
 }
 
-func (l *LimiterGlobal) Allow(spec BucketSpec) error {
-	r := l.Reserve(spec)
-	return r.Error()
+// GetTimeToAct allows you to check what is the earliest time you can retry.
+func (l *LimiterGlobal) GetTimeToAct(spec BucketSpec) (*time.Time, error) {
+	_, _, timeToAct, err := l.reserveN(spec, 0)
+	if err != nil {
+		return nil, err
+	}
+	if timeToAct != nil {
+		return timeToAct, nil
+	}
+
+	zero := time.Unix(0, 0).UTC()
+	return &zero, nil
 }
 
-func (l *LimiterGlobal) Reserve(spec BucketSpec) *Reservation {
+// Allow is a shortcut of Reserve, when you do not plan to cancel the reservation.
+func (l *LimiterGlobal) Allow(spec BucketSpec) (*FailedReservation, error) {
+	_, failedReservation, err := l.Reserve(spec)
+	return failedReservation, err
+}
+
+// Reserve is a shortcut of ReserveN(1).
+func (l *LimiterGlobal) Reserve(spec BucketSpec) (*Reservation, *FailedReservation, error) {
 	return l.ReserveN(spec, 1)
 }
 
-func (l *LimiterGlobal) ReserveN(spec BucketSpec, n int) *Reservation {
+// ReserveN is the general entry point.
+// If you ever need to pass n=0, you should use GetTimeToAct() instead.
+func (l *LimiterGlobal) ReserveN(spec BucketSpec, n int) (*Reservation, *FailedReservation, error) {
+	reservation, failedReservation, _, err := l.reserveN(spec, n)
+	return reservation, failedReservation, err
+}
+
+func (l *LimiterGlobal) reserveN(spec BucketSpec, n int) (*Reservation, *FailedReservation, *time.Time, error) {
+	key := bucketKeyGlobal(spec)
+
 	if !spec.IsGlobal {
-		return &Reservation{
-			spec: spec,
-			ok:   false,
-			err:  errors.New("ratelimit: must be global limit"),
-		}
+		panic(errors.New("ratelimit: must be global limit"))
 	}
 
 	if !spec.Enabled {
-		return &Reservation{spec: spec, ok: true}
+		return &Reservation{
+			key:  key,
+			spec: spec,
+		}, nil, nil, nil
 	}
 
-	key := bucketKeyGlobal(spec)
 	ok, timeToAct, err := l.Storage.Update(key, spec.Period, spec.Burst, n)
 	if err != nil {
-		return &Reservation{
-			spec: spec,
-			ok:   false,
-			err:  err,
-		}
+		return nil, nil, nil, nil
 	}
 
 	l.Logger.
@@ -45,18 +67,24 @@ func (l *LimiterGlobal) ReserveN(spec BucketSpec, n int) *Reservation {
 		WithField("timeToAct", timeToAct).
 		Debug("check global rate limit")
 
-	return &Reservation{
-		spec:       spec,
-		key:        key,
-		ok:         ok,
-		err:        err,
-		tokenTaken: n,
-		timeToAct:  &timeToAct,
+	if ok {
+		return &Reservation{
+			spec:       spec,
+			key:        key,
+			tokenTaken: n,
+		}, nil, &timeToAct, nil
 	}
+
+	return nil, &FailedReservation{
+		spec:      spec,
+		key:       key,
+		timeToAct: timeToAct,
+	}, &timeToAct, nil
 }
 
+// Cancel cancels a reservation.
 func (l *LimiterGlobal) Cancel(r *Reservation) {
-	if r == nil || r.isConsumed || r.tokenTaken == 0 {
+	if r == nil || r.wasCancelPrevented || r.tokenTaken == 0 {
 		return
 	}
 
