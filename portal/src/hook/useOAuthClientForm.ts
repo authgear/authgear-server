@@ -35,11 +35,6 @@ interface FormStateSAMLServiceProviderConfig {
   certificates?: string[];
 }
 
-interface FormStateSAMLIdpSigningCertificate {
-  certificateFingerprint: string;
-  certificatePEM: string;
-}
-
 export interface FormState {
   publicOrigin: string;
   clients: OAuthClientConfig[];
@@ -47,7 +42,6 @@ export interface FormState {
   removeClientByID?: string;
   clientSecretMap: Partial<Record<string, string>>;
   samlServiceProviders: FormStateSAMLServiceProviderConfig[];
-  samlIdpSigningCertificate: FormStateSAMLIdpSigningCertificate | null;
 }
 
 function constructFormState(
@@ -89,14 +83,6 @@ function constructFormState(
           ?.certificates.map((cert) => cert.certificatePEM) ?? [],
     });
   }
-  let samlIdpSigningCertificate: FormStateSAMLIdpSigningCertificate | null =
-    null;
-  if (config.saml?.signing?.key_id != null) {
-    samlIdpSigningCertificate =
-      secrets.samlIdpSigningSecrets?.certificates.find(
-        (c) => c.keyID === config.saml?.signing?.key_id
-      ) ?? null;
-  }
   return {
     publicOrigin: config.http?.public_origin ?? "",
     clients: config.oauth?.clients ?? [],
@@ -104,7 +90,6 @@ function constructFormState(
     removeClientByID: undefined,
     clientSecretMap,
     samlServiceProviders,
-    samlIdpSigningCertificate: samlIdpSigningCertificate,
   };
 }
 

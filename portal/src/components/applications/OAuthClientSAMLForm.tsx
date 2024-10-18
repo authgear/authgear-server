@@ -21,6 +21,8 @@ import {
   SAMLNameIDFormat,
   SAMLNameIDAttributePointer,
   SAMLBinding,
+  PortalAPIAppConfig,
+  SAMLIdpSigningCertificate,
 } from "../../types";
 import FormTextFieldList from "../../FormTextFieldList";
 import FormTextField from "../../FormTextField";
@@ -29,11 +31,7 @@ import { useFormContainerBaseContext } from "../../FormContainerBase";
 import DefaultButton from "../../DefaultButton";
 import { downloadStringAsFile } from "../../util/download";
 import { useParams } from "react-router-dom";
-
-interface OAuthClientSAMLFormIdpSigningCertificate {
-  certificateFingerprint: string;
-  certificatePEM: string;
-}
+import { AutoGenerateFirstCertificate } from "../saml/AutoGenerateFirstCertificate";
 
 export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
@@ -124,24 +122,79 @@ function makeSLOCallbackBindingOptions(
   ];
 }
 
+function IdpCertificateSection({
+  appID,
+  samlIdpSigningCertificate,
+}: {
+  appID: string;
+  samlIdpSigningCertificate: SAMLIdpSigningCertificate;
+}) {
+  const onDownloadIdpCertificate = useCallback(() => {
+    downloadStringAsFile({
+      content: samlIdpSigningCertificate.certificatePEM,
+      filename: `${samlIdpSigningCertificate.certificateFingerprint}.pem`,
+      mimeType: "application/x-pem-file",
+    });
+  }, [samlIdpSigningCertificate]);
+
+  return (
+    <div>
+      <WidgetTitle className="mb-3" id="basic">
+        <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.title" />
+      </WidgetTitle>
+      <div className="grid gap-y-4 grid-cols-1">
+        <div>
+          <DefaultButton
+            onClick={onDownloadIdpCertificate}
+            text={
+              <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.download" />
+            }
+          />
+          <Text block={true} className={"mt-1"}>
+            <FormattedMessage
+              id="OAuthClientSAMLForm.idpCertificate.fingerprint"
+              values={{
+                fingerprint: samlIdpSigningCertificate.certificateFingerprint,
+              }}
+            />
+          </Text>
+        </div>
+
+        <MessageBar messageBarType={MessageBarType.info}>
+          <FormattedMessage
+            id="OAuthClientSAMLForm.idpCertificate.rotateHint"
+            values={{
+              href: `/project/${appID}/advanced/saml-certificate`,
+            }}
+          />
+        </MessageBar>
+      </div>
+    </div>
+  );
+}
+
 export interface OAuthClientSAMLFormProps {
   parentJSONPointer: string | RegExp;
   clientID: string;
+  rawAppConfig: PortalAPIAppConfig;
   publicOrigin: string;
   samlIdpEntityID: string;
-  samlIdpSigningCertificate: OAuthClientSAMLFormIdpSigningCertificate | null;
+  samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
   formState: OAuthClientSAMLFormState;
   onFormStateChange: (newState: OAuthClientSAMLFormState) => void;
+  onGeneratedNewIdpSigningCertificate: () => void;
 }
 
 export function OAuthClientSAMLForm({
   parentJSONPointer,
   clientID,
+  rawAppConfig,
   publicOrigin,
   samlIdpEntityID,
-  samlIdpSigningCertificate,
+  samlIdpSigningCertificates,
   formState,
   onFormStateChange,
+  onGeneratedNewIdpSigningCertificate,
 }: OAuthClientSAMLFormProps): React.ReactElement {
   const { renderToString } = useContext(MessageFormatContext);
   const { isDirty: isFormDirty } = useFormContainerBaseContext();
@@ -287,17 +340,6 @@ export function OAuthClientSAMLForm({
     link.click();
   }, [endpoints.metadata]);
 
-  const onDownloadIdpCertificate = useCallback(() => {
-    if (!samlIdpSigningCertificate) {
-      throw new Error("Idp certificate missing");
-    }
-    downloadStringAsFile({
-      content: samlIdpSigningCertificate.certificatePEM,
-      filename: `${samlIdpSigningCertificate.certificateFingerprint}.pem`,
-      mimeType: "application/x-pem-file",
-    });
-  }, [samlIdpSigningCertificate]);
-
   const nameIDAttributePointerOptions = useMemo(
     () => makeNameIDAttributePointerOptions(renderToString),
     [renderToString]
@@ -307,6 +349,17 @@ export function OAuthClientSAMLForm({
     () => makeSLOCallbackBindingOptions(renderToString),
     [renderToString]
   );
+
+  const activeIdpCertificate = useMemo(() => {
+    if (rawAppConfig.saml?.signing?.key_id == null) {
+      return null;
+    }
+    return (
+      samlIdpSigningCertificates.find(
+        (cert) => cert.keyID === rawAppConfig.saml?.signing?.key_id
+      ) ?? null
+    );
+  }, [rawAppConfig, samlIdpSigningCertificates]);
 
   return (
     <div>
@@ -572,40 +625,19 @@ export function OAuthClientSAMLForm({
               </div>
             </div>
 
-            <div>
-              <WidgetTitle className="mb-3" id="basic">
-                <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.title" />
-              </WidgetTitle>
-              <div className="grid gap-y-4 grid-cols-1">
-                <div>
-                  <DefaultButton
-                    onClick={onDownloadIdpCertificate}
-                    text={
-                      <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.download" />
-                    }
-                  />
-                  <Text block={true} className={"mt-1"}>
-                    <FormattedMessage
-                      id="OAuthClientSAMLForm.idpCertificate.fingerprint"
-                      values={{
-                        fingerprint:
-                          samlIdpSigningCertificate?.certificateFingerprint ??
-                          "",
-                      }}
-                    />
-                  </Text>
-                </div>
-
-                <MessageBar messageBarType={MessageBarType.info}>
-                  <FormattedMessage
-                    id="OAuthClientSAMLForm.idpCertificate.rotateHint"
-                    values={{
-                      href: `/project/${appID}/advanced/saml-certificate`,
-                    }}
-                  />
-                </MessageBar>
-              </div>
-            </div>
+            {activeIdpCertificate != null ? (
+              <IdpCertificateSection
+                appID={appID}
+                samlIdpSigningCertificate={activeIdpCertificate}
+              />
+            ) : (
+              <AutoGenerateFirstCertificate
+                appID={appID}
+                rawAppConfig={rawAppConfig}
+                certificates={samlIdpSigningCertificates}
+                onComplete={onGeneratedNewIdpSigningCertificate}
+              />
+            )}
           </div>
         </>
       ) : null}
