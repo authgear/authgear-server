@@ -41,7 +41,8 @@ func (i *LoginID) IdentityAwareStandardClaims() map[model.ClaimName]string {
 	return claims
 }
 
-func (i *LoginID) ToChannelTarget() (model.AuthenticatorOOBChannel, string) {
+// Deprecated_ToChannelTarget is deprecated because it does not support model.AuthenticatorOOBChannelWhatsapp.
+func (i *LoginID) Deprecated_ToChannelTarget() (model.AuthenticatorOOBChannel, string) {
 	switch i.LoginIDType {
 	case model.LoginIDKeyTypePhone:
 		return model.AuthenticatorOOBChannelSMS, i.LoginID

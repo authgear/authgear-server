@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -23,18 +24,20 @@ var TemplateWebSettingsOOBOTPHTML = template.RegisterHTML(
 )
 
 type AuthflowV2SettingsOOBOTPViewModel struct {
-	OOBOTPType           string
+	OOBOTPType           model.AuthenticatorType
 	OOBOTPAuthenticators []*authenticator.OOBOTP
+	OOBOTPChannel        model.AuthenticatorOOBChannel
 }
 
 type AuthflowV2SettingsOOBOTPHandler struct {
-	Database          *appdb.Handle
-	ControllerFactory handlerwebapp.ControllerFactory
-	BaseViewModel     *viewmodels.BaseViewModeler
-	SettingsViewModel *viewmodels.SettingsViewModeler
-	Renderer          handlerwebapp.Renderer
-	AccountManagement *accountmanagement.Service
-	Authenticators    authenticatorservice.Service
+	Database             *appdb.Handle
+	ControllerFactory    handlerwebapp.ControllerFactory
+	BaseViewModel        *viewmodels.BaseViewModeler
+	SettingsViewModel    *viewmodels.SettingsViewModeler
+	Renderer             handlerwebapp.Renderer
+	AuthenticatiorConfig *config.AuthenticatorConfig
+	AccountManagement    *accountmanagement.Service
+	Authenticators       authenticatorservice.Service
 }
 
 func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
@@ -52,9 +55,9 @@ func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http
 	}
 	viewmodels.Embed(data, *settingsViewModel)
 
-	oc := httproute.GetParam(r, "channel")
+	email_or_sms := httproute.GetParam(r, "channel")
 
-	t, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
+	t, err := model.ParseOOBAuthenticatorType(email_or_sms)
 	if err != nil {
 		return nil, err
 	}
@@ -71,9 +74,13 @@ func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http
 	for _, a := range authenticators {
 		OOBOTPAuthenticators = append(OOBOTPAuthenticators, a.OOBOTP)
 	}
+
+	channel := h.Authenticators.Config.Authenticator.OOB.GetDefaultChannelFor(t)
+
 	vm := AuthflowV2SettingsOOBOTPViewModel{
-		OOBOTPType:           oc,
+		OOBOTPType:           t,
 		OOBOTPAuthenticators: OOBOTPAuthenticators,
+		OOBOTPChannel:        channel,
 	}
 	viewmodels.Embed(data, vm)
 

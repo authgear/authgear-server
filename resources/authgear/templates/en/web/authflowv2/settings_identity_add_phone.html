@@ -48,6 +48,8 @@
 
   {{ $.CSRFField }}
 
+  <input type="hidden" name="x_channel" value="{{ $.Channel }}">
+
   {{ template "authflowv2/__phone_input.html"
     (dict
       "Placeholder" (include "v2.page.settings-identity-add-phone.default.phone-input-placeholder" nil)

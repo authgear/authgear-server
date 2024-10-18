@@ -116,7 +116,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	oc := httproute.GetParam(r, "channel")
-	oobAuthenticatorType, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
+	oobAuthenticatorType, err := model.Deprecated_GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
 	if err != nil {
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return

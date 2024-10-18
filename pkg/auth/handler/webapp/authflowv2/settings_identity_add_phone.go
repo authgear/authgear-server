@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -24,9 +25,10 @@ var AuthflowV2SettingsIdentityAddPhoneSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
+			"x_channel": { "type": "string" },
 			"x_login_id": { "type": "string" }
 		},
-		"required": ["x_login_id"]
+		"required": ["x_channel", "x_login_id"]
 	}
 `)
 
@@ -38,6 +40,7 @@ func ConfigureAuthflowV2SettingsIdentityAddPhoneRoute(route httproute.Route) htt
 
 type AuthflowV2SettingsIdentityAddPhoneViewModel struct {
 	LoginIDKey string
+	Channel    model.AuthenticatorOOBChannel
 }
 
 type AuthflowV2SettingsIdentityAddPhoneHandler struct {
@@ -56,8 +59,11 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) GetData(r *http.Request, rw 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
+	channel := h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
+
 	vm := AuthflowV2SettingsIdentityAddPhoneViewModel{
 		LoginIDKey: loginIDKey,
+		Channel:    channel,
 	}
 	viewmodels.Embed(data, vm)
 
@@ -90,10 +96,12 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 			return err
 		}
 
+		channel := model.AuthenticatorOOBChannel(r.Form.Get("x_channel"))
 		loginID := r.Form.Get("x_login_id")
 
 		s := session.GetSession(r.Context())
 		output, err := h.AccountManagement.StartAddIdentityPhone(s, &accountmanagement.StartAddIdentityPhoneInput{
+			Channel:    channel,
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
 		})

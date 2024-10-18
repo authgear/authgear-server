@@ -72,14 +72,14 @@ func (n *NodeEnsureVerificationBegin) deriveEdges() ([]interaction.Edge, error) 
 	isPhoneIdentity := ensurePhoneLoginIDIdentity(n.Identity) == nil
 	verifyIdentityEdges := func() (edges []interaction.Edge) {
 		if isPhoneIdentity {
-			if n.PhoneOTPMode.IsWhatsappEnabled() {
+			if n.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
 				edges = append(edges, &EdgeVerifyIdentityViaWhatsapp{
 					Identity:        n.Identity,
 					RequestedByUser: n.RequestedByUser,
 				})
 			}
 
-			if n.PhoneOTPMode.IsSMSEnabled() {
+			if n.PhoneOTPMode.Deprecated_IsSMSEnabled() {
 				edges = append(edges, &EdgeVerifyIdentity{
 					Identity:        n.Identity,
 					RequestedByUser: n.RequestedByUser,
