@@ -23,7 +23,8 @@ import {
 } from "../../types";
 import FormTextFieldList from "../../FormTextFieldList";
 import FormTextField from "../../FormTextField";
-import TextField from "../../TextField";
+import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
 
 interface OAuthClientSAMLFormIdpSigningCertificate {
   certificateFingerprint: string;
@@ -138,6 +139,7 @@ export function OAuthClientSAMLForm({
   onFormStateChange,
 }: OAuthClientSAMLFormProps): React.ReactElement {
   const { renderToString } = useContext(MessageFormatContext);
+  const { isDirty: isFormDirty } = useFormContainerBaseContext();
 
   const onIsSAMLEnabledChange = useCallback(
     (_, checked?: boolean) => {
@@ -271,6 +273,13 @@ export function OAuthClientSAMLForm({
       logout: `${publicOrigin}/saml2/logout/${clientID}`,
     };
   }, [clientID, publicOrigin]);
+
+  const onClickDownloadMetadata = useCallback(() => {
+    const link = document.createElement("a");
+    link.href = endpoints.metadata;
+    link.target = "_blank";
+    link.click();
+  }, [endpoints.metadata]);
 
   const nameIDAttributePointerOptions = useMemo(
     () => makeNameIDAttributePointerOptions(renderToString),
@@ -492,32 +501,44 @@ export function OAuthClientSAMLForm({
 
               <div className="grid gap-y-4 grid-cols-1">
                 <div className="grid gap-y-2 grid-cols-1">
-                  <TextField
+                  <TextFieldWithCopyButton
                     label={renderToString(
                       "OAuthClientSAMLForm.configurationParameters.metadata.label"
                     )}
                     value={endpoints.metadata}
                     readOnly={true}
+                    additionalIconButtons={[
+                      {
+                        iconProps: {
+                          iconName: "Download",
+                        },
+                        onClick: onClickDownloadMetadata,
+                        disabled: isFormDirty,
+                      },
+                    ]}
                   />
-                  <MessageBar messageBarType={MessageBarType.warning}>
+                  <MessageBar
+                    className={cn(isFormDirty ? null : "hidden")}
+                    messageBarType={MessageBarType.warning}
+                  >
                     <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.metadata.saveBeforeDownload.hint" />
                   </MessageBar>
                 </div>
-                <TextField
+                <TextFieldWithCopyButton
                   label={renderToString(
                     "OAuthClientSAMLForm.configurationParameters.issuer.label"
                   )}
                   value={samlIdpEntityID}
                   readOnly={true}
                 />
-                <TextField
+                <TextFieldWithCopyButton
                   label={renderToString(
                     "OAuthClientSAMLForm.configurationParameters.loginURL.label"
                   )}
                   value={endpoints.login}
                   readOnly={true}
                 />
-                <TextField
+                <TextFieldWithCopyButton
                   label={renderToString(
                     "OAuthClientSAMLForm.configurationParameters.logoutURL.label"
                   )}
