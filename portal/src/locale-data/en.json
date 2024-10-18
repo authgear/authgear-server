@@ -922,7 +922,7 @@
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
 
   "OAuthClientSAMLForm.enable.label": "SAML 2.0 Support",
-  "OAuthClientSAMLForm.enable.description": "Set up SAML-based SSO with this application",
+  "OAuthClientSAMLForm.enable.description": "Set up SAML-based SSO with this application as a Service Provider",
   "OAuthClientSAMLForm.screen.title": "SAML Settings",
   "OAuthClientSAMLForm.basic.title": "Basic Settings",
   "OAuthClientSAMLForm.nameIDFormat.label": "NameID Format",
@@ -951,7 +951,9 @@
   "OAuthClientSAMLForm.signature.title": "Service Provider Signature",
   "OAuthClientSAMLForm.signature.checkSignature.label": "Check message signature",
   "OAuthClientSAMLForm.signature.checkSignature.description": "If enabled, Authgear will check signatures in the service provider's messages",
+  "OAuthClientSAMLForm.signature.checkSignature.hint": "If “Check message signatures” is enabled, at least one certificate must be provided.",
   "OAuthClientSAMLForm.signature.certificates.label": "Service Provider Certificates",
+  "OAuthClientSAMLForm.signature.certificates.description": "Certificates in PEM format. Authgear verifies messages from service provider using the following certificates. The signature is considered valid if it matches any one of the certificates entered.",
   "OAuthClientSAMLForm.signature.certificates.add": "Add certificate",
 
   "oauth-client.application-type.unspecified": "Unspecified (Legacy)",

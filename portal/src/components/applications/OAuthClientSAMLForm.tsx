@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo } from "react";
+import cn from "classnames";
 import Toggle from "../../Toggle";
 import {
   FormattedMessage,
@@ -8,7 +9,13 @@ import {
 import HorizontalDivider from "../../HorizontalDivider";
 import WidgetTitle from "../../WidgetTitle";
 import ScreenTitle from "../../ScreenTitle";
-import { IChoiceGroupOption, ChoiceGroup, Label } from "@fluentui/react";
+import {
+  IChoiceGroupOption,
+  ChoiceGroup,
+  Label,
+  MessageBar,
+  MessageBarType,
+} from "@fluentui/react";
 import {
   SAMLNameIDFormat,
   SAMLNameIDAttributePointer,
@@ -411,16 +418,26 @@ export function OAuthClientSAMLForm({
                 <FormattedMessage id="OAuthClientSAMLForm.signature.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
-                <Toggle
-                  label={renderToString(
-                    "OAuthClientSAMLForm.signature.checkSignature.label"
-                  )}
-                  description={renderToString(
-                    "OAuthClientSAMLForm.signature.checkSignature.description"
-                  )}
-                  checked={formState.signatureVerificationEnabled}
-                  onChange={onSignatureVerificationEnabledChange}
-                />
+                <div className="grid gap-y-2 grid-cols-1">
+                  <Toggle
+                    label={renderToString(
+                      "OAuthClientSAMLForm.signature.checkSignature.label"
+                    )}
+                    description={renderToString(
+                      "OAuthClientSAMLForm.signature.checkSignature.description"
+                    )}
+                    checked={formState.signatureVerificationEnabled}
+                    onChange={onSignatureVerificationEnabledChange}
+                  />
+                  <MessageBar
+                    className={cn(
+                      formState.signatureVerificationEnabled ? null : "hidden"
+                    )}
+                    messageBarType={MessageBarType.warning}
+                  >
+                    <FormattedMessage id="OAuthClientSAMLForm.signature.checkSignature.hint" />
+                  </MessageBar>
+                </div>
                 <FormTextFieldList
                   parentJSONPointer={
                     /\/secrets\/(\d*)\/data\/(\d*)\/certificates\/(\d*)/
@@ -436,6 +453,9 @@ export function OAuthClientSAMLForm({
                       <FormattedMessage id="OAuthClientSAMLForm.signature.certificates.label" />
                     </Label>
                   }
+                  description={renderToString(
+                    "OAuthClientSAMLForm.signature.certificates.description"
+                  )}
                   multiline={true}
                 />
               </div>
