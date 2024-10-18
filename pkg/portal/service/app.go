@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
 	"github.com/authgear/authgear-server/pkg/portal/appsecret"
@@ -113,6 +114,7 @@ type AppService struct {
 	Clock                    clock.Clock
 	AppSecretVisitTokenStore AppSecretVisitTokenStore
 	AppTesterTokenStore      AppTesterTokenStore
+	SAMLEnvironmentConfig    config.SAMLEnvironmentConfig
 }
 
 func (s *AppService) Get(id string) (*model.App, error) {
@@ -482,4 +484,8 @@ func (s *AppService) validateAppID(appID string) error {
 	}
 
 	return nil
+}
+
+func (s *AppService) RenderSAMLEntityID(appID string) string {
+	return saml.RenderSAMLEntityID(s.SAMLEnvironmentConfig, appID)
 }

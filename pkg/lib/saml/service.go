@@ -1,7 +1,6 @@
 package saml
 
 import (
-	"bytes"
 	"context"
 	"crypto/rsa"
 	"crypto/x509"
@@ -9,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/beevik/etree"
@@ -80,19 +78,7 @@ type Service struct {
 }
 
 func (s *Service) IdpEntityID() string {
-	idpEntityIdTemplate, err := template.New("").Parse(s.SAMLEnvironmentConfig.IdPEntityIDTemplate)
-	if err != nil {
-		panic(err)
-	}
-	var idpEntityIDBytes bytes.Buffer
-	err = idpEntityIdTemplate.Execute(&idpEntityIDBytes, map[string]interface{}{
-		"app_id": s.AppID,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	return idpEntityIDBytes.String()
+	return RenderSAMLEntityID(s.SAMLEnvironmentConfig, string(s.AppID))
 }
 
 func (s *Service) IdpMetadata(serviceProviderId string) (*samlprotocol.Metadata, error) {

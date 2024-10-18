@@ -1,7 +1,6 @@
 package appresource
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -11,7 +10,6 @@ import (
 	"path"
 	"sort"
 	"strings"
-	"text/template"
 
 	"github.com/spf13/afero"
 
@@ -20,6 +18,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/util/checksum"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/resource"
@@ -369,17 +368,5 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 }
 
 func (m *Manager) renderSAMLEntityID(appID string) string {
-	idpEntityIdTemplate, err := template.New("").Parse(m.SAMLEnvironmentConfig.IdPEntityIDTemplate)
-	if err != nil {
-		panic(err)
-	}
-	var idpEntityIDBytes bytes.Buffer
-	err = idpEntityIdTemplate.Execute(&idpEntityIDBytes, map[string]interface{}{
-		"app_id": appID,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	return idpEntityIDBytes.String()
+	return saml.RenderSAMLEntityID(m.SAMLEnvironmentConfig, appID)
 }
