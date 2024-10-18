@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import { SAMLIdpSigningCertificate } from "../../types";
 import { FormState } from "../../hook/useSAMLCertificateForm";
@@ -18,18 +18,36 @@ import {
 } from "@fluentui/react";
 import LinkButton from "../../LinkButton";
 import { downloadStringAsFile } from "../../util/download";
+import { useSystemConfig } from "../../context/SystemConfigContext";
+import styles from "./EditSAMLCertificateForm.module.css";
+import ActionButton from "../../ActionButton";
+import PrimaryButton from "../../PrimaryButton";
 
 interface EditSAMLCertificateFormProps {
   form: AppSecretConfigFormModel<FormState>;
   certificates: SAMLIdpSigningCertificate[];
+  onGenerateNewCertitificate: () => Promise<void>;
 }
 
 export function EditSAMLCertificateForm({
   form,
   certificates,
+  onGenerateNewCertitificate,
 }: EditSAMLCertificateFormProps): React.ReactElement {
-  const { onSubmit } = useFormContainerBaseContext();
+  const { canSave, onSubmit } = useFormContainerBaseContext();
   const { renderToString } = useContext(MessageContext);
+  const { themes } = useSystemConfig();
+
+  const [isLoading, setIsLoading] = useState(false);
+
+  const generateNewCert = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await onGenerateNewCertitificate();
+    } finally {
+      setIsLoading(false);
+    }
+  }, [onGenerateNewCertitificate]);
 
   const onClickDownloadCert = useMemo(() => {
     const callbacks: Record<string, () => void> = {};
@@ -141,11 +159,37 @@ export function EditSAMLCertificateForm({
       <WidgetTitle>
         <FormattedMessage id="EditSAMLCertificateForm.certificates.title" />
       </WidgetTitle>
-      <DetailsList
-        items={certificates}
-        columns={columns}
-        selectionMode={SelectionMode.none}
-      />
+
+      <div className="grid grid-cols-1 gap-y-12">
+        <div>
+          <DetailsList
+            items={certificates}
+            columns={columns}
+            selectionMode={SelectionMode.none}
+          />
+          <ActionButton
+            className="mt-4"
+            theme={themes.actionButton}
+            iconProps={{
+              iconName: "CirclePlus",
+              className: styles.addButtonIcon,
+            }}
+            onClick={generateNewCert}
+            text={
+              <FormattedMessage
+                id={"EditSAMLCertificateForm.certificates.generate"}
+              />
+            }
+            disabled={certificates.length >= 2 || isLoading}
+          />
+        </div>
+        <PrimaryButton
+          className="justify-self-start"
+          type="submit"
+          disabled={!canSave}
+          text={<FormattedMessage id="save" />}
+        />
+      </div>
     </form>
   );
 }

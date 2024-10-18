@@ -82,9 +82,11 @@ function AutoGenerateFirstCertificate({
 function EditSAMLCertificateContent({
   form,
   certificates,
+  generateNewCertificate,
 }: {
   form: AppSecretConfigFormModel<FormState>;
   certificates: SAMLIdpSigningCertificate[];
+  generateNewCertificate: () => Promise<void>;
 }) {
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
@@ -103,7 +105,11 @@ function EditSAMLCertificateContent({
           <FormattedMessage id="SAMLCertificateScreen.desc" />
         </ScreenDescription>
         <div className={styles.widget}>
-          <EditSAMLCertificateForm form={form} certificates={certificates} />
+          <EditSAMLCertificateForm
+            form={form}
+            certificates={certificates}
+            onGenerateNewCertitificate={generateNewCertificate}
+          />
         </div>
       </ScreenContent>
     </ScreenLayoutScrollView>
@@ -118,6 +124,19 @@ function EditSAMLCertificateFormContainer({
   certificates: SAMLIdpSigningCertificate[];
 }) {
   const form = useSAMLCertificateForm(appID);
+  const { updateAppAndSecretConfig } =
+    useUpdateAppAndSecretConfigMutation(appID);
+
+  const generateNewCertificate = useCallback(async () => {
+    await updateAppAndSecretConfig({
+      secretConfigUpdateInstructions: {
+        samlIdpSigningSecrets: {
+          action: "generate",
+        },
+      },
+    });
+    form.reload();
+  }, [form, updateAppAndSecretConfig]);
 
   if (form.loadError) {
     return <ShowError error={form.loadError} onRetry={form.reload} />;
@@ -129,7 +148,11 @@ function EditSAMLCertificateFormContainer({
 
   return (
     <FormContainerBase form={form} canSave={true}>
-      <EditSAMLCertificateContent certificates={certificates} form={form} />
+      <EditSAMLCertificateContent
+        certificates={certificates}
+        form={form}
+        generateNewCertificate={generateNewCertificate}
+      />
     </FormContainerBase>
   );
 }
