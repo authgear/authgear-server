@@ -40,7 +40,7 @@ func (*IntentCreateOOBOTPAuthenticatorForLoginID) CanReactTo(ctx context.Context
 }
 
 func (i *IntentCreateOOBOTPAuthenticatorForLoginID) ReactTo(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows, input workflow.Input) (*workflow.Node, error) {
-	channel, target := i.Identity.LoginID.ToChannelTarget()
+	channel, target := i.Identity.LoginID.Deprecated_ToChannelTarget()
 
 	authenticatorType, err := model.Deprecated_GetOOBAuthenticatorType(channel)
 	if err != nil {

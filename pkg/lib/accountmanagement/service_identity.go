@@ -183,7 +183,8 @@ func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession,
 		}
 		needVerification = !verified && *s.Config.Verification.Claims.Email.Enabled && *s.Config.Verification.Claims.Email.Required
 		if needVerification {
-			channel, target := info.LoginID.ToChannelTarget()
+			target := info.LoginID.LoginID
+			channel := model.AuthenticatorOOBChannelEmail
 			err = s.sendOTPCode(userID, channel, target, false)
 			if err != nil {
 				return err
@@ -336,7 +337,8 @@ func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSessi
 		needVerification = !verified && *s.Config.Verification.Claims.Email.Enabled && *s.Config.Verification.Claims.Email.Required
 
 		if needVerification {
-			channel, target := newInfo.LoginID.ToChannelTarget()
+			target := newInfo.LoginID.LoginID
+			channel := model.AuthenticatorOOBChannelEmail
 			err = s.sendOTPCode(userID, channel, target, false)
 			if err != nil {
 				return err
@@ -572,7 +574,7 @@ func (s *Service) StartAddIdentityPhone(resolvedSession session.ResolvedSession,
 		needVerification = !verified && *s.Config.Verification.Claims.PhoneNumber.Enabled && *s.Config.Verification.Claims.PhoneNumber.Required
 
 		if needVerification {
-			_, target := info.LoginID.ToChannelTarget()
+			target := info.LoginID.LoginID
 			err = s.sendOTPCode(userID, input.Channel, target, false)
 			if err != nil {
 				return err
@@ -725,7 +727,7 @@ func (s *Service) StartUpdateIdentityPhone(resolvedSession session.ResolvedSessi
 		}
 		needVerification = !verified && *s.Config.Verification.Claims.PhoneNumber.Enabled && *s.Config.Verification.Claims.PhoneNumber.Required
 		if needVerification {
-			_, target := info.LoginID.ToChannelTarget()
+			target := info.LoginID.LoginID
 			err = s.sendOTPCode(userID, input.Channel, target, false)
 			if err != nil {
 				return err
