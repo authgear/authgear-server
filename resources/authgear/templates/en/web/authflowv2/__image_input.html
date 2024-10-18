@@ -20,6 +20,10 @@
 <div
   class="flex flex-col gap-4"
   data-controller="image-input"
+  data-image-input-toast1-msg-value="{{ include "v2.component.image-input.default.toast-1-msg" nil }}"
+  data-image-input-toast2-msg-value="{{ include "v2.component.image-input.default.toast-2-msg" nil }}"
+  data-image-input-toast3-msg-value="{{ include "v2.component.image-input.default.toast-3-msg" nil }}"
+  data-image-input-toast4-msg-value="{{ include "v2.component.image-input.default.toast-4-msg" nil }}"
 >
   <noscript>
     {{ $noscript_alert_msg := (include "v2.component.image-input.default.noscript" nil) }}

@@ -4,6 +4,18 @@ import Toastify, { ToastifyInstance, ToastifyOptions } from "toastify-js";
 const CANVAS_WIDTH = 1280;
 const TOAST_DISPLAY_INTERVAL = 3500;
 export class ImageInputController extends Controller {
+  static values = {
+    toast1Msg: { type: String },
+    toast2Msg: { type: String },
+    toast3Msg: { type: String },
+    toast4Msg: { type: String },
+  };
+
+  declare toast1MsgValue: string;
+  declare toast2MsgValue: string;
+  declare toast3MsgValue: string;
+  declare toast4MsgValue: string;
+
   static targets = [
     // container
     "cameraContainer",
@@ -162,24 +174,24 @@ export class ImageInputController extends Controller {
     };
 
     const t1 = Toastify({
-      text: "Uploading... ", // TODO handle translation
+      text: this.toast1MsgValue,
       ...commonOpts,
     });
 
     const t2 = Toastify({
-      text: "Processing image... ", // TODO handle translation
+      text: this.toast2MsgValue,
       ...commonOpts,
     });
 
     const t3 = Toastify({
-      text: "Analyzing results... ", // TODO handle translation
+      text: this.toast3MsgValue,
       ...commonOpts,
     });
 
     const t4 = Toastify({
-      text: "Finalizing... ", // TODO handle translation
+      text: this.toast4MsgValue,
       ...commonOpts,
-      duration: 10000,
+      duration: 10000, // we expect API to return within 21.5 seconds = (3.5 + 3.5 + 3.5 + 10)
     });
 
     return [t1, t2, t3, t4];
@@ -189,7 +201,7 @@ export class ImageInputController extends Controller {
     this.cleanupToastTimer();
     this.toasts?.forEach((t) => {
       try {
-        t?.hideToast();
+        t.hideToast();
       } catch (_: unknown) {
         // slience expected error - toast elements might not be in DOM already
       }
@@ -204,7 +216,7 @@ export class ImageInputController extends Controller {
     }
     this.toasts.forEach((t, i) => {
       const timer = setTimeout(() => {
-        t?.showToast();
+        t.showToast();
       }, TOAST_DISPLAY_INTERVAL * i);
       this.pushToastTimer(timer);
     });
