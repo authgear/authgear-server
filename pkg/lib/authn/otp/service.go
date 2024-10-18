@@ -50,9 +50,9 @@ type AttemptTracker interface {
 }
 
 type RateLimiter interface {
+	GetTimeToAct(spec ratelimit.BucketSpec) (*time.Time, error)
 	Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
 	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
-	ReserveN(spec ratelimit.BucketSpec, n int) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
 	Cancel(r *ratelimit.Reservation)
 }
 
@@ -323,18 +323,11 @@ func (s *Service) InspectState(kind Kind, target string) (*State, error) {
 
 	// This is intentionally zero.
 	var canResendAt time.Time
-
-	// Inspect rate limit state by reserving no tokens.
-	reservation, failedReservation, err := s.RateLimiter.ReserveN(kind.RateLimitTriggerCooldown(target), 0)
+	timeToAct, err := s.RateLimiter.GetTimeToAct(kind.RateLimitTriggerCooldown(target))
 	if err != nil {
 		return nil, err
 	}
-	if failedReservation != nil {
-		canResendAt = failedReservation.GetTimeToAct()
-	}
-	if reservation != nil {
-		s.RateLimiter.Cancel(reservation)
-	}
+	canResendAt = *timeToAct
 
 	now := s.Clock.NowUTC()
 
