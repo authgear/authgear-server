@@ -101,11 +101,12 @@ func (m *MockRateLimiter) EXPECT() *MockRateLimiterMockRecorder {
 }
 
 // Allow mocks base method.
-func (m *MockRateLimiter) Allow(spec ratelimit.BucketSpec) error {
+func (m *MockRateLimiter) Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Allow", spec)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(*ratelimit.FailedReservation)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // Allow indicates an expected call of Allow.
@@ -127,11 +128,13 @@ func (mr *MockRateLimiterMockRecorder) Cancel(r interface{}) *gomock.Call {
 }
 
 // Reserve mocks base method.
-func (m *MockRateLimiter) Reserve(spec ratelimit.BucketSpec) *ratelimit.Reservation {
+func (m *MockRateLimiter) Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Reserve", spec)
 	ret0, _ := ret[0].(*ratelimit.Reservation)
-	return ret0
+	ret1, _ := ret[1].(*ratelimit.FailedReservation)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // Reserve indicates an expected call of Reserve.

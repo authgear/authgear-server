@@ -238,17 +238,40 @@ func (c *Consumer) work(ctx context.Context) {
 	// And the progress repeats.
 	// Once the queue becomes non-empty,
 	// the workers will dequeue at the same time.
-	reservation := c.limiter.Reserve(c.limitBucket)
-	if reservation.Error() != nil {
+	var reservation *ratelimit.Reservation
+	for {
+		// This loop breaks until we can have a reservation without error.
+		// This usage is different from HTTP request rate limit.
+		// 1. In processing HTTP request, when we encounter rate limit error, we immediately terminate the request.
+		// 2. So we rely on the caller of the HTTP request to retry.
+		// 3. As the caller retries before time-to-act, they are rate limited again.
+		// However, in here, we need to retry ourselves.
+		// So we need a forever loop to retry until we are told we can proceed.
+
+		var failedReservation *ratelimit.FailedReservation
+		var err error
+		reservation, failedReservation, err = c.limiter.Reserve(c.limitBucket)
+		if err != nil {
+			c.logger.WithError(err).Error("failed to check rate limit")
+			c.dequeueBackoff.Increment()
+			return
+		}
+
+		if reservation != nil {
+			// The loop breaks here.
+			break
+		}
+
+		// Otherwise, we are rate limited.
 		c.logger.
-			WithField("tat", reservation.GetTimeToAct()).
+			WithField("tat", failedReservation.GetTimeToAct()).
 			WithField("bucket_key", c.limitBucket.Key()).
 			Info("task rate limited")
 		select {
 		case <-c.shutdown:
 			return
-		case <-time.After(reservation.GetTimeToAct().Sub(c.clock.NowUTC())):
-			break
+		case <-time.After(failedReservation.GetTimeToAct().Sub(c.clock.NowUTC())):
+			// We wait until time-to-act and retry.
 		}
 	}
 
@@ -257,7 +280,6 @@ func (c *Consumer) work(ctx context.Context) {
 		// There is actually no task.
 		// Cancel the reservation
 		c.logger.
-			WithField("tat", reservation.GetTimeToAct()).
 			WithField("bucket_key", c.limitBucket.Key()).
 			// This is Debug instead of Info because it prints periodically.
 			Debug("cancel reservation due to no task")
@@ -270,7 +292,6 @@ func (c *Consumer) work(ctx context.Context) {
 	}
 
 	c.logger.
-		WithField("tat", reservation.GetTimeToAct()).
 		WithField("bucket_key", c.limitBucket.Key()).
 		Info("consume reservation")
 
