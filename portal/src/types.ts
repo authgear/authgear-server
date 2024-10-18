@@ -633,6 +633,7 @@ export interface PortalAPIAppConfig {
   account_anonymization?: AccountAnonymizationConfig;
   google_tag_manager?: GoogleTagManagerConfig;
   bot_protection?: BotProtectionConfig;
+  saml?: SAMLConfig;
 }
 
 export interface OAuthSSOProviderClientSecret {
@@ -674,6 +675,16 @@ export interface BotProtectionProviderSecret {
   type: string;
 }
 
+export interface SAMLSpSigningCertificate {
+  certificateFingerprint: string;
+  certificatePEM: string;
+}
+
+export interface SAMLSpSigningSecrets {
+  clientID: string;
+  certificates: SAMLSpSigningCertificate[];
+}
+
 export interface PortalAPISecretConfig {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecret[] | null;
   webhookSecret?: WebhookSecret | null;
@@ -681,6 +692,7 @@ export interface PortalAPISecretConfig {
   smtpSecret?: SMTPSecret | null;
   oauthClientSecrets?: OAuthClientSecret[] | null;
   botProtectionProviderSecret?: BotProtectionProviderSecret | null;
+  samlSpSigningSecrets?: SAMLSpSigningSecrets[] | null;
 }
 
 export interface OAuthSSOProviderClientSecretUpdateInstructionDataItem
@@ -741,12 +753,27 @@ export interface AdminApiAuthKeyUpdateInstruction {
   deleteData?: AdminAPIAuthKeyDeleteDataInput | null;
 }
 
+export interface SAMLSpSigningSecretsSetDataInputItem {
+  clientID: string;
+  certificates: string[];
+}
+
+export interface SAMLSpSigningSecretsSetDataInput {
+  items: SAMLSpSigningSecretsSetDataInputItem[];
+}
+
+export interface SAMLSpSigningSecretsUpdateInstruction {
+  action: string;
+  setData: SAMLSpSigningSecretsSetDataInput | null;
+}
+
 export interface PortalAPISecretConfigUpdateInstruction {
   oauthSSOProviderClientSecrets?: OAuthSSOProviderClientSecretUpdateInstruction | null;
   smtpSecret?: SMTPSecretUpdateInstruction | null;
   oauthClientSecrets?: OAuthClientSecretsUpdateInstruction | null;
   adminAPIAuthKey?: AdminApiAuthKeyUpdateInstruction | null;
   botProtectionProviderSecret?: BotProtectionProviderSecretUpdateInstruction | null;
+  samlSpSigningSecrets?: SAMLSpSigningSecretsUpdateInstruction | null;
 }
 
 export interface PortalAPIApp {
@@ -932,6 +959,31 @@ export interface BotProtectionConfig {
   requirements?: BotProtectionRequirements;
 }
 
+export interface SAMLConfig {
+  signing?: SAMLSigningConfig;
+  service_providers?: SAMLServiceProviderConfig[];
+}
+
+export interface SAMLSigningConfig {
+  key_id: string;
+  signature_method: SAMLSigningSignatureMethod;
+}
+
+export interface SAMLServiceProviderConfig {
+  client_id: string;
+  nameid_format: SAMLNameIDFormat;
+  nameid_attribute_pointer?: SAMLNameIDAttributePointer;
+  acs_urls: string[];
+  destination?: string;
+  recipient?: string;
+  audience?: string;
+  assertion_valid_duration?: DurationString;
+  slo_enabled?: boolean;
+  slo_callback_url?: string;
+  slo_binding?: SAMLBinding;
+  signature_verification_enabled?: boolean;
+}
+
 export interface StandardAttributes {
   email?: string;
   email_verified?: boolean;
@@ -1059,3 +1111,24 @@ export type BotProtectionProviderType =
   (typeof botProtectionProviderTypes)[number];
 
 export type UIImplementation = "interaction" | "authflow" | "authflowv2";
+
+export enum SAMLNameIDFormat {
+  Unspecified = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified",
+  EmailAddress = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress",
+}
+
+export enum SAMLNameIDAttributePointer {
+  Sub = "/sub",
+  PreferredUsername = "/preferred_username",
+  Email = "/email",
+  PhoneNumber = "/phone_number",
+}
+
+export enum SAMLBinding {
+  HTTPRedirect = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect",
+  HTTPPOST = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+}
+
+export enum SAMLSigningSignatureMethod {
+  RSASHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256",
+}
