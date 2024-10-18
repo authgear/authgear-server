@@ -1,6 +1,8 @@
 import { Controller } from "@hotwired/stimulus";
+import Toastify, { ToastifyInstance, ToastifyOptions } from "toastify-js";
 
 const CANVAS_WIDTH = 1280;
+const TOAST_DISPLAY_INTERVAL = 3500;
 export class ImageInputController extends Controller {
   static targets = [
     // container
@@ -34,6 +36,9 @@ export class ImageInputController extends Controller {
   declare readonly canvasTarget: HTMLCanvasElement;
   declare readonly inputTarget: HTMLInputElement;
   declare readonly formSubmitBtnTarget: HTMLButtonElement;
+
+  declare toasts: ToastifyInstance[] | undefined;
+  declare toastTimers: NodeJS.Timeout[] | undefined;
 
   onCameraOpen = () => {
     // orders matter here, otherwise UI might flash
@@ -85,12 +90,21 @@ export class ImageInputController extends Controller {
       this.cameraVideoTarget.classList.add("hidden");
       this.cameraVideoTarget.pause();
       this.takePhotoBtnTarget.classList.add("hidden");
-      this.takePhotoBtnTarget.disabled = false;
+      this.unsetPhotoLoading();
       this.submitPhotoBtnTarget.classList.remove("hidden");
     }, 1000);
   };
-  takePhoto = () => {
+
+  setPhotoLoading = () => {
     this.takePhotoBtnTarget.disabled = true;
+  };
+
+  unsetPhotoLoading = () => {
+    this.takePhotoBtnTarget.disabled = false;
+  };
+
+  takePhoto = () => {
+    this.setPhotoLoading();
     const context = this.canvasTarget.getContext("2d");
     if (context == null) {
       console.error("Canvas context not available");
@@ -109,7 +123,12 @@ export class ImageInputController extends Controller {
     this.onPhotoTaken();
   };
 
+  setSubmitLoading = () => {
+    this.displayToasts();
+  };
+
   submitPhoto = () => {
+    this.setSubmitLoading();
     this.submitForm();
   };
 
@@ -132,8 +151,84 @@ export class ImageInputController extends Controller {
     this.canvasTarget.setAttribute("height", cH.toString());
   };
 
+  buildToasts = (): ToastifyInstance[] => {
+    const commonOpts: Partial<ToastifyOptions> = {
+      duration: TOAST_DISPLAY_INTERVAL,
+      close: false,
+      gravity: "bottom",
+      position: "center",
+      stopOnFocus: true,
+      selector: this.cameraContainerTarget,
+    };
+
+    const t1 = Toastify({
+      text: "Uploading... ", // TODO handle translation
+      ...commonOpts,
+    });
+
+    const t2 = Toastify({
+      text: "Processing image... ", // TODO handle translation
+      ...commonOpts,
+    });
+
+    const t3 = Toastify({
+      text: "Analyzing results... ", // TODO handle translation
+      ...commonOpts,
+    });
+
+    const t4 = Toastify({
+      text: "Finalizing... ", // TODO handle translation
+      ...commonOpts,
+      duration: 10000,
+    });
+
+    return [t1, t2, t3, t4];
+  };
+
+  cleanupToasts = () => {
+    this.cleanupToastTimer();
+    this.toasts?.forEach((t) => {
+      try {
+        t?.hideToast();
+      } catch (_: unknown) {
+        // slience expected error - toast elements might not be in DOM already
+      }
+    });
+    this.toasts = undefined;
+  };
+
+  displayToasts = () => {
+    if (this.toasts == null) {
+      console.error("toasts not initialized");
+      return;
+    }
+    this.toasts.forEach((t, i) => {
+      const timer = setTimeout(() => {
+        t?.showToast();
+      }, TOAST_DISPLAY_INTERVAL * i);
+      this.pushToastTimer(timer);
+    });
+  };
+
+  pushToastTimer = (timer: NodeJS.Timeout) => {
+    if (this.toastTimers == null) {
+      this.toastTimers = [];
+    }
+
+    this.toastTimers.push(timer);
+  };
+
+  cleanupToastTimer = () => {
+    if (this.toastTimers == null) {
+      return;
+    }
+    this.toastTimers.forEach((t) => clearTimeout(t));
+    this.toastTimers = [];
+  };
+
   connect(): void {
     this.cameraVideoTarget.addEventListener("canplay", this.handleVideoCanplay);
+    this.toasts = this.buildToasts();
   }
 
   disconnect(): void {
@@ -141,6 +236,7 @@ export class ImageInputController extends Controller {
       "canplay",
       this.handleVideoCanplay
     );
+    this.cleanupToasts();
   }
 }
 

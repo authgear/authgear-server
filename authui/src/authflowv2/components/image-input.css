@@ -72,6 +72,7 @@
     width: var(--camera-box__width);
     aspect-ratio: var(--camera-box__aspect-ratio);
     @apply overflow-hidden;
+    @apply relative; /* for absolute positioning of loading toasts */
 
     .camera-initial {
       @apply w-full h-full;
