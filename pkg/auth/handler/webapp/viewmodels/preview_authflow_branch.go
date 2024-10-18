@@ -217,12 +217,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthentic
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateSignupFlowStepAuthenticatePrimaryOOBSMS() []AuthflowBranch {
-	var channel model.AuthenticatorOOBChannel
-	if m.AppConfig.Authenticator.OOB.SMS.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
-		channel = model.AuthenticatorOOBChannelWhatsapp
-	} else {
-		channel = model.AuthenticatorOOBChannelSMS
-	}
+	channel := m.AppConfig.Authenticator.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 	return []AuthflowBranch{
 		{
 			Authentication:        config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
@@ -402,12 +397,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthenticatePrimaryOOBSMS() []AuthflowBranch {
-	var channel model.AuthenticatorOOBChannel
-	if m.AppConfig.Authenticator.OOB.SMS.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
-		channel = model.AuthenticatorOOBChannelWhatsapp
-	} else {
-		channel = model.AuthenticatorOOBChannelSMS
-	}
+	channel := m.AppConfig.Authenticator.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 	return []AuthflowBranch{
 		{
 			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
@@ -493,12 +483,7 @@ func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthentica
 }
 
 func (m *InlinePreviewAuthflowBranchViewModeler) generateLoginFlowStepAuthenticateSecondaryOOBSMS() []AuthflowBranch {
-	var channel model.AuthenticatorOOBChannel
-	if m.AppConfig.Authenticator.OOB.SMS.PhoneOTPMode.Deprecated_IsWhatsappEnabled() {
-		channel = model.AuthenticatorOOBChannelWhatsapp
-	} else {
-		channel = model.AuthenticatorOOBChannelSMS
-	}
+	channel := m.AppConfig.Authenticator.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 	return []AuthflowBranch{
 		{
 			Authentication:   config.AuthenticationFlowAuthenticationPrimaryOOBOTPSMS,
