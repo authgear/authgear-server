@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "Mở Máy Ảnh",
   "v2.component.image-input.default.btn-label-submit-photo": "Xác nhận",
   "v2.component.image-input.default.btn-label-take-photo": "Chụp ảnh",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "Chụp và Tải lên",
   "v2.component.image-input.default.btn-label-try-again": "Thử lại",
   "v2.component.image-input.default.idle-description-avoid-smile": "Giữ vẻ mặt trung tính và tránh cười",
   "v2.component.image-input.default.idle-description-not-profile-pic": "Nó sẽ không phải là ảnh hồ sơ của bạn",

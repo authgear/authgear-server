@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "카메라 열기",
   "v2.component.image-input.default.btn-label-submit-photo": "확인",
   "v2.component.image-input.default.btn-label-take-photo": "캡처",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "촬영하고 업로드하기",
   "v2.component.image-input.default.btn-label-try-again": "다시 시도하세요",
   "v2.component.image-input.default.idle-description-avoid-smile": "중립적인 표정을 유지하고 웃지 마세요",
   "v2.component.image-input.default.idle-description-not-profile-pic": "프로필 사진이 되지 않습니다",

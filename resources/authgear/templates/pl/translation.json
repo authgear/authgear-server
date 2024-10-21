@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "Otwórz kamerę",
   "v2.component.image-input.default.btn-label-submit-photo": "Potwierdź",
   "v2.component.image-input.default.btn-label-take-photo": "Zrób zdjęcie",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "Zrób zdjęcie i wyślij",
   "v2.component.image-input.default.btn-label-try-again": "Spróbuj ponownie",
   "v2.component.image-input.default.idle-description-avoid-smile": "Zachowaj neutralny wyraz twarzy i unikaj uśmiechu",
   "v2.component.image-input.default.idle-description-not-profile-pic": "To nie będzie Twoim zdjęciem profilowym",
