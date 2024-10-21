@@ -723,16 +723,9 @@ func (i *SAMLSpSigningSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateI
 
 func (i *SAMLSpSigningSecretsUpdateInstruction) set(currentConfig *SecretConfig) (*SecretConfig, error) {
 	out := &SecretConfig{}
-	var credentials SAMLSpSigningMaterials
+	credentials := SAMLSpSigningMaterials{}
 	for _, item := range currentConfig.Secrets {
-		if item.Key == SAMLSpSigningMaterialsKey {
-			credentials = *item.Data.(*SAMLSpSigningMaterials)
-		}
 		out.Secrets = append(out.Secrets, item)
-	}
-
-	if credentials == nil {
-		credentials = SAMLSpSigningMaterials{}
 	}
 
 	if i.SetData == nil {
@@ -752,13 +745,7 @@ func (i *SAMLSpSigningSecretsUpdateInstruction) set(currentConfig *SecretConfig)
 			})
 		}
 
-		_, idx, exist := credentials.Resolve(item.ClientID)
-
-		if exist {
-			credentials[idx] = *certs
-		} else {
-			credentials = append(credentials, *certs)
-		}
+		credentials = append(credentials, *certs)
 	}
 
 	var data []byte

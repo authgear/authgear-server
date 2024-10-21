@@ -151,6 +151,11 @@ function constructConfig(
         config.oauth.clients = config.oauth.clients.filter(
           (c) => c.client_id !== currentState.removeClientByID
         );
+        if (config.saml?.service_providers) {
+          config.saml.service_providers = config.saml.service_providers.filter(
+            (sp) => sp.client_id !== currentState.removeClientByID
+          );
+        }
         clearEmptyObject(config);
         return;
       }
@@ -180,7 +185,7 @@ function constructConfig(
 }
 
 function constructSecretUpdateInstruction(
-  _config: PortalAPIAppConfig,
+  config: PortalAPIAppConfig,
   _secrets: PortalAPISecretConfig,
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
@@ -203,6 +208,14 @@ function constructSecretUpdateInstruction(
 
   for (const sp of currentState.samlServiceProviders) {
     if ((sp.certificates?.length ?? 0) === 0) {
+      continue;
+    }
+    if (
+      config.saml?.service_providers?.findIndex(
+        (configSP) => sp.clientID === configSP.client_id
+      ) === -1
+    ) {
+      // Cleanup certificates of deleted client
       continue;
     }
     samlSpSigningSecretsUpdateInstruction ??= {
