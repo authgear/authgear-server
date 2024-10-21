@@ -92,6 +92,9 @@
       @apply w-full h-full;
       object-fit: cover;
     }
+    video {
+      transform: scaleX(-1); /* mirror camera */
+    }
 
     .camera-output {
       /* @apply hidden; */
