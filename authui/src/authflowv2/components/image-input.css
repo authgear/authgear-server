@@ -96,6 +96,9 @@
       transform: scaleX(-1); /* mirror camera */
     }
 
+    img {
+      transform: scaleX(-1); /* mirror camera output */
+    }
     .camera-output {
       /* @apply hidden; */
       @apply w-full h-full;
