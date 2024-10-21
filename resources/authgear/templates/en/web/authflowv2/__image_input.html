@@ -11,6 +11,7 @@
       (dict
         "FormName"     "main-form"
         "SubmitEvent"  "authgear.button.enter_face_image"
+        "IsRetry"      $has_unknown_err
       )
     }}
   </form>
@@ -20,6 +21,10 @@
 <div
   class="flex flex-col gap-4"
   data-controller="image-input"
+  data-image-input-toast1-msg-value="{{ include "v2.component.image-input.default.toast-1-msg" nil }}"
+  data-image-input-toast2-msg-value="{{ include "v2.component.image-input.default.toast-2-msg" nil }}"
+  data-image-input-toast3-msg-value="{{ include "v2.component.image-input.default.toast-3-msg" nil }}"
+  data-image-input-toast4-msg-value="{{ include "v2.component.image-input.default.toast-4-msg" nil }}"
 >
   <noscript>
     {{ $noscript_alert_msg := (include "v2.component.image-input.default.noscript" nil) }}
@@ -67,8 +72,12 @@
     value="{{ or $.OpenCameraButtonValue "button" }}"
     data-action="image-input#openCamera"
     data-image-input-target="openCameraBtn"
-  > 
-    {{ include "v2.component.image-input.default.btn-label-open-camera" nil }}
+  >  
+    {{ if $.IsRetry }}
+      {{ include "v2.component.image-input.default.btn-label-try-again" nil }}
+    {{ else }}
+      {{ include "v2.component.image-input.default.btn-label-open-camera" nil }}
+    {{ end }}
   </button>
   <button
     class="primary-btn w-full hidden"

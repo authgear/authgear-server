@@ -1,0 +1,38 @@
+{{ template "authflowv2/__page_frame.html" . }}
+{{ define "page-content" }}
+<form
+  method="post"
+  novalidate
+  class="flex-1-0-auto screen-icon-layout tablet:flex-none"
+  data-controller="turbo-form"
+  data-action="submit->turbo-form#submitForm"
+>
+  {{ $.CSRFField }}
+  <i class="material-icons screen-icon">check_circle</i>
+  <header class="screen-title-description">
+    <h1 class="screen-title">
+      {{ include "v2.page.setup-face-image-success.default.title" nil }}
+    </h1>
+    <p class="screen-description">
+      {{ include "v2.page.setup-face-image-success.default.description" nil }}
+    </p>
+    {{ template "authflowv2/__alert_message.html"
+      (dict
+        "Type" "error"
+        "Classname" "mt-4"
+        "Message" (include "authflowv2/__error.html" .)
+      )
+    }}
+  </header>
+  <footer>
+    <button
+      class="primary-btn w-full"
+      type="submit"
+      name="x_action"
+      value=""
+    >
+      {{ include "v2.component.button.default.label-continue" nil }}
+    </button>
+  </footer>
+</form>
+{{ end }}

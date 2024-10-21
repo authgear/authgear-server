@@ -1,3 +1,4 @@
+@import "toastify-js/src/toastify.css";
 @import "./components/layout.css";
 @import "./components/widget.css";
 @import "./components/screen-title.css";
@@ -19,6 +20,7 @@
 @import "./components/alert-message.css";
 @import "./components/otp-input.css";
 @import "./components/image-input.css";
+@import "./components/toastify-override.css";
 @import "./components/password-strength-meter.css";
 @import "./components/select.css";
 @import "./components/phone-input.css";

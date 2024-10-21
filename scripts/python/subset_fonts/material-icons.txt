@@ -141,6 +141,7 @@ switch
 tablet
 target
 title
+toast
 toc
 token
 transform
