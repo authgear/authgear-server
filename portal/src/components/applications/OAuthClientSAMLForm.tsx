@@ -32,6 +32,7 @@ import DefaultButton from "../../DefaultButton";
 import { downloadStringAsFile } from "../../util/download";
 import { useParams } from "react-router-dom";
 import { AutoGenerateFirstCertificate } from "../saml/AutoGenerateFirstCertificate";
+import { parseServiceProviderMetadata } from "../../model/saml";
 
 export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
@@ -340,6 +341,56 @@ export function OAuthClientSAMLForm({
     link.click();
   }, [endpoints.metadata]);
 
+  const updateFormStateByMetadata = useCallback(
+    (xmlData: string) => {
+      const parseResult = parseServiceProviderMetadata(xmlData);
+      const newState = {
+        ...formState,
+      };
+      if (parseResult.acsURL != null) {
+        newState.acsURLs = [parseResult.acsURL];
+      }
+      if (parseResult.sloEnabled != null) {
+        newState.isSLOEnabled = parseResult.sloEnabled;
+      }
+      if (parseResult.sloCallbackURL != null) {
+        newState.sloCallbackURL = parseResult.sloCallbackURL;
+      }
+      if (parseResult.sloCallbackBinding != null) {
+        newState.sloCallbackBinding = parseResult.sloCallbackBinding;
+      }
+      if (parseResult.authnRequestsSigned != null) {
+        newState.signatureVerificationEnabled = parseResult.authnRequestsSigned;
+      }
+      if (parseResult.certificate != null) {
+        newState.signingCertificates = [parseResult.certificate];
+      }
+      onFormStateChange(newState);
+    },
+    [formState, onFormStateChange]
+  );
+
+  const onUploadMetadata = useCallback(() => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "application/xml,text/xml,.xml";
+    const onChange = () => {
+      fileInput.removeEventListener("change", onChange);
+      if (fileInput.files && fileInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          if (typeof reader.result === "string") {
+            updateFormStateByMetadata(reader.result);
+          }
+        });
+        reader.readAsText(fileInput.files[0]);
+      }
+      fileInput.remove();
+    };
+    fileInput.addEventListener("change", onChange);
+    fileInput.click();
+  }, [updateFormStateByMetadata]);
+
   const nameIDAttributePointerOptions = useMemo(
     () => makeNameIDAttributePointerOptions(renderToString),
     [renderToString]
@@ -386,6 +437,7 @@ export function OAuthClientSAMLForm({
                   text={renderToString(
                     "OAuthClientSAMLForm.metadataUpload.label"
                   )}
+                  onClick={onUploadMetadata}
                 />
               </div>
             </div>
