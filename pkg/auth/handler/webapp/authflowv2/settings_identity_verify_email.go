@@ -57,6 +57,7 @@ func ConfigureAuthflowV2SettingsIdentityVerifyEmailRoute(route httproute.Route) 
 type AuthflowV2SettingsIdentityVerifyEmailViewModel struct {
 	LoginIDKey string
 	LoginID    string
+	IdentityID string
 	Token      string
 
 	CodeLength                     int
@@ -95,6 +96,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(r *http.Request, 
 	vm := AuthflowV2SettingsIdentityVerifyEmailViewModel{
 		LoginIDKey: loginIDKey,
 		LoginID:    token.Identity.Email,
+		IdentityID: token.Identity.IdentityID,
 		Token:      tokenString,
 
 		CodeLength:       6,

@@ -1,4 +1,4 @@
-import { visit, clearCache } from "@hotwired/turbo";
+import { visit, cache } from "@hotwired/turbo";
 import { Controller } from "@hotwired/stimulus";
 import axios, { Method } from "axios";
 import { progressEventHandler } from "../loading";
@@ -84,7 +84,13 @@ export class TurboFormController extends Controller {
 
       const { redirect_uri, action } = resp.data;
 
-      clearCache();
+      // Without excempting current page from cache, it will still be cached
+      // right after cache.clear() is called and before the redirect is performed.
+      //
+      // see https://github.com/hotwired/turbo/issues/193
+      cache.exemptPageFromCache();
+      cache.clear();
+
       switch (action) {
         case "redirect":
           // Perform full redirect.

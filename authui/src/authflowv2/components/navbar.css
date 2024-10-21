@@ -62,10 +62,6 @@
 
   .navbar__item {
     @apply relative;
-    @apply inline-flex;
-    @apply items-center;
-    @apply justify-center;
-    @apply gap-x-3;
 
     color: var(--navbar__item-text-color);
     font-family: var(--navbar__item-font-family);
