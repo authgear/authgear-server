@@ -97,7 +97,7 @@ func (n *NodeVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interactio
 
 func (n *NodeVerifyIdentity) SendCode(ctx *interaction.Context, ignoreRatelimitError bool) (*SendOOBCodeResult, error) {
 	loginIDType := n.Identity.LoginID.LoginIDType
-	channel, target := n.Identity.LoginID.ToChannelTarget()
+	channel, target := n.Identity.LoginID.Deprecated_ToChannelTarget()
 
 	result := &SendOOBCodeResult{
 		Channel:    string(channel),
@@ -157,7 +157,7 @@ func (e *EdgeVerifyIdentityCheckCode) Instantiate(ctx *interaction.Context, grap
 		return nil, interaction.ErrIncompatibleInput
 	}
 	loginIDModel := e.Identity.LoginID
-	channel, target := loginIDModel.ToChannelTarget()
+	channel, target := loginIDModel.Deprecated_ToChannelTarget()
 
 	err := ctx.OTPCodeService.VerifyOTP(
 		otp.KindVerification(ctx.Config, channel),

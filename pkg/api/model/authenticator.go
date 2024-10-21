@@ -29,8 +29,20 @@ const (
 	AuthenticatorKindSecondary AuthenticatorKind = "secondary"
 )
 
-func GetOOBAuthenticatorType(channel AuthenticatorOOBChannel) (AuthenticatorType, error) {
+// Deprecated_GetOOBAuthenticatorType is deprecated because it does not handle AuthenticatorOOBChannelWhatsapp.
+func Deprecated_GetOOBAuthenticatorType(channel AuthenticatorOOBChannel) (AuthenticatorType, error) {
 	switch channel {
+	case "sms":
+		return AuthenticatorTypeOOBSMS, nil
+	case "email":
+		return AuthenticatorTypeOOBEmail, nil
+	default:
+		return "", errors.New("invalid oob channel")
+	}
+}
+
+func ParseOOBAuthenticatorType(email_or_sms string) (AuthenticatorType, error) {
+	switch email_or_sms {
 	case "sms":
 		return AuthenticatorTypeOOBSMS, nil
 	case "email":

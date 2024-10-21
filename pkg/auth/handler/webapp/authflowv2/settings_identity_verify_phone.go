@@ -54,8 +54,11 @@ func ConfigureAuthflowV2SettingsIdentityVerifyPhoneRoute(route httproute.Route) 
 }
 
 type AuthflowV2SettingsIdentityVerifyPhoneViewModel struct {
+	Channels   []model.AuthenticatorOOBChannel
+	Channel    model.AuthenticatorOOBChannel
 	LoginIDKey string
 	LoginID    string
+	IdentityID string
 	Token      string
 
 	CodeLength                     int
@@ -91,16 +94,26 @@ func (h *AuthflowV2SettingsIdentityVerifyPhoneHandler) GetData(r *http.Request, 
 		return nil, err
 	}
 
-	var channel model.AuthenticatorOOBChannel
-	if h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.IsWhatsappEnabled() {
-		channel = model.AuthenticatorOOBChannelWhatsapp
-	} else {
-		channel = model.AuthenticatorOOBChannelSMS
+	oobConfig := h.AuthenticatorConfig.OOB
+	channel := model.AuthenticatorOOBChannel(token.Identity.Channel)
+
+	var channels []model.AuthenticatorOOBChannel
+	switch oobConfig.SMS.PhoneOTPMode {
+	case config.AuthenticatorPhoneOTPModeSMSOnly:
+		channels = append(channels, model.AuthenticatorOOBChannelSMS)
+	case config.AuthenticatorPhoneOTPModeWhatsappOnly:
+		channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
+	case config.AuthenticatorPhoneOTPModeWhatsappSMS:
+		channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
+		channels = append(channels, model.AuthenticatorOOBChannelSMS)
 	}
 
 	vm := AuthflowV2SettingsIdentityVerifyPhoneViewModel{
+		Channels:   channels,
+		Channel:    channel,
 		LoginIDKey: loginIDKey,
 		LoginID:    token.Identity.PhoneNumber,
+		IdentityID: token.Identity.IdentityID,
 		Token:      tokenString,
 
 		CodeLength:       6,

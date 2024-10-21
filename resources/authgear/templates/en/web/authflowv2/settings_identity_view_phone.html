@@ -38,6 +38,7 @@
     {{ .CSRFField }}
     <input type="hidden" name="x_login_id" value="{{ .LoginID }}">
     <input type="hidden" name="x_identity_id" value="{{ .IdentityID }}">
+    <input type="hidden" name="x_channel" value={{ .Channel }}>
     <button type="submit" class="secondary-btn" name="x_action" value="verify">
       {{ translate "v2.page.settings-identity-view-phone.default.verify-phone-button-label" . }}
     </button>
@@ -52,6 +53,7 @@
     {{ $extraContent = (include "__settings_identity_phone_verification_button.html" (dict
         "CSRFField" $.CSRFField
         "Verified" false
+        "Channel" $.Channel
         "LoginID" $.PhoneIdentity.LoginID
         "IdentityID" $.PhoneIdentity.ID
       ))

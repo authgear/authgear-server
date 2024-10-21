@@ -24,9 +24,10 @@ var AuthflowV2SettingsMFACreateOOBOTPSchema = validation.NewSimpleSchema(`
 	{
 		"type": "object",
 		"properties": {
+			"x_channel": { "type": "string" },
 			"x_target": { "type": "string" }
 		},
-		"required": ["x_target"]
+		"required": ["x_channel", "x_target"]
 	}
 `)
 
@@ -37,8 +38,7 @@ func ConfigureAuthflowV2SettingsMFACreateOOBOTPRoute(route httproute.Route) http
 }
 
 type SettingsMFACreateOOBOTPViewModel struct {
-	OOBAuthenticatorType model.AuthenticatorType
-	Channel              model.AuthenticatorOOBChannel
+	Channel model.AuthenticatorOOBChannel
 }
 
 type AuthflowV2SettingsMFACreateOOBOTPHandler struct {
@@ -49,25 +49,19 @@ type AuthflowV2SettingsMFACreateOOBOTPHandler struct {
 	AccountManagementService *accountmanagement.Service
 }
 
-func NewSettingsMFACreateOOBOTPViewModel(channel model.AuthenticatorOOBChannel, authenticatorType model.AuthenticatorType) SettingsMFACreateOOBOTPViewModel {
+func NewSettingsMFACreateOOBOTPViewModel(channel model.AuthenticatorOOBChannel) SettingsMFACreateOOBOTPViewModel {
 	return SettingsMFACreateOOBOTPViewModel{
-		OOBAuthenticatorType: authenticatorType,
-		Channel:              channel,
+		Channel: channel,
 	}
 }
 
 func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) GetData(r *http.Request, w http.ResponseWriter, channel model.AuthenticatorOOBChannel) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
-	authenticatorType, err := model.GetOOBAuthenticatorType(channel)
-	if err != nil {
-		return nil, err
-	}
-
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	settingsViewModel := NewSettingsMFACreateOOBOTPViewModel(channel, authenticatorType)
+	settingsViewModel := NewSettingsMFACreateOOBOTPViewModel(channel)
 	viewmodels.Embed(data, settingsViewModel)
 
 	return data, nil
@@ -81,9 +75,8 @@ func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) ServeHTTP(w http.ResponseWrit
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	channel := model.AuthenticatorOOBChannel(httproute.GetParam(r, "channel"))
-
 	ctrl.Get(func() error {
+		channel := model.AuthenticatorOOBChannel(httproute.GetParam(r, "channel"))
 		data, err := h.GetData(r, w, channel)
 		if err != nil {
 			return err
@@ -98,6 +91,7 @@ func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) ServeHTTP(w http.ResponseWrit
 			return err
 		}
 
+		channel := model.AuthenticatorOOBChannel(r.Form.Get("x_channel"))
 		target := r.Form.Get("x_target")
 
 		s := session.GetSession(r.Context())

@@ -44,7 +44,7 @@ func (h *SettingsOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter)
 	userID := session.GetUserID(r.Context())
 	viewModel := SettingsOOBOTPViewModel{}
 	oc := httproute.GetParam(r, "channel")
-	t, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
+	t, err := model.Deprecated_GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +71,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 	oc := httproute.GetParam(r, "channel")
-	oobAuthenticatorType, err := model.GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
+	oobAuthenticatorType, err := model.Deprecated_GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
 	if err != nil {
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return

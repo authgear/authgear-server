@@ -48,6 +48,8 @@
 
   {{ $.CSRFField }}
 
+  <input type="hidden" name="x_channel" value="{{ $.Channel }}">
+
   <span class="screen-description">
     {{ include "v2.page.settings-identity-edit-phone.default.description"
       (dict "target" (include "__settings_identity_edit_phone_inline_bold.html" .Target.OriginalLoginID))

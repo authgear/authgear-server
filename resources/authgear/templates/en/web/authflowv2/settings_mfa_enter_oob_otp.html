@@ -87,5 +87,41 @@
         )
       }}
     </div>
+
+    {{- if gt (len $.Channels) 1 }}
+    {{ template "authflowv2/__divider.html" . }}
+    {{- end }}
+
+    <div class="flex flex-col gap-y-4">
+      {{ range $.Channels }}
+        {{ if eq . $.Channel }}
+          {{ continue }}
+        {{ end }}
+
+        <form
+          action="/settings/mfa/create_oob_otp_sms"
+          method="post"
+          novalidate
+          data-controller="turbo-form"
+          data-action="submit->turbo-form#submitForm"
+        >
+          {{ $.CSRFField }}
+
+          <input type="hidden" name="x_channel" value="{{ . }}">
+          <input type="hidden" name="x_target" value="{{ $.Target }}">
+
+          <button class="secondary-btn w-full flex gap-x-2" type="submit">
+            {{- if eq . "sms" }}
+              <span class="material-icons secondary-btn__icon">phone_iphone</span>
+              {{ include "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-sms-instead" nil }}
+            {{- end }}
+            {{- if eq . "whatsapp" }}
+              <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
+              {{ include "v2.page.settings-mfa-enter-oob-otp.default.setup-phone-otp-whatsapp-instead" nil }}
+            {{- end }}
+          </button>
+        </form>
+      {{ end }}
+    </div>
   </div>
 {{ end }}

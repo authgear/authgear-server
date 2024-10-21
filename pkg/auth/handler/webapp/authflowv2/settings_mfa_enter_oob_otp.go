@@ -58,24 +58,39 @@ func ConfigureAuthflowV2SettingsMFAEnterOOBOTPRoute(route httproute.Route) httpr
 
 type SettingsMFAEnterOOBOTPViewModel struct {
 	AuthenticatorType              string
-	Channel                        string
+	Channels                       []model.AuthenticatorOOBChannel
+	Channel                        model.AuthenticatorOOBChannel
+	Target                         string
 	MaskedClaimValue               string
 	CodeLength                     int
 	FailedAttemptRateLimitExceeded bool
 	ResendCooldown                 int
 }
 
-func NewSettingsMFAEnterOOBOTPViewModel(tokenAuthenticator *accountmanagement.TokenAuthenticator, now time.Time, state *otp.State) SettingsMFAEnterOOBOTPViewModel {
+func NewSettingsMFAEnterOOBOTPViewModel(oobConfig *config.AuthenticatorOOBConfig, tokenAuthenticator *accountmanagement.TokenAuthenticator, now time.Time, state *otp.State) SettingsMFAEnterOOBOTPViewModel {
+	var target string
 	var maskedClaimValue string
 	var resendCooldown int
 	var failedAttemptRateLimitExceeded bool
+	var channels []model.AuthenticatorOOBChannel
 
 	switch tokenAuthenticator.OOBOTPChannel {
 	case model.AuthenticatorOOBChannelWhatsapp:
 		fallthrough
 	case model.AuthenticatorOOBChannelSMS:
+		target = tokenAuthenticator.OOBOTPTarget
 		maskedClaimValue = phone.Mask(tokenAuthenticator.OOBOTPTarget)
+		switch oobConfig.SMS.PhoneOTPMode {
+		case config.AuthenticatorPhoneOTPModeSMSOnly:
+			channels = append(channels, model.AuthenticatorOOBChannelSMS)
+		case config.AuthenticatorPhoneOTPModeWhatsappOnly:
+			channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
+		case config.AuthenticatorPhoneOTPModeWhatsappSMS:
+			channels = append(channels, model.AuthenticatorOOBChannelWhatsapp)
+			channels = append(channels, model.AuthenticatorOOBChannelSMS)
+		}
 	case model.AuthenticatorOOBChannelEmail:
+		target = tokenAuthenticator.OOBOTPTarget
 		maskedClaimValue = mail.MaskAddress(tokenAuthenticator.OOBOTPTarget)
 	}
 
@@ -88,7 +103,9 @@ func NewSettingsMFAEnterOOBOTPViewModel(tokenAuthenticator *accountmanagement.To
 
 	return SettingsMFAEnterOOBOTPViewModel{
 		AuthenticatorType:              tokenAuthenticator.AuthenticatorType,
-		Channel:                        string(tokenAuthenticator.OOBOTPChannel),
+		Channels:                       channels,
+		Channel:                        tokenAuthenticator.OOBOTPChannel,
+		Target:                         target,
 		MaskedClaimValue:               maskedClaimValue,
 		CodeLength:                     6,
 		FailedAttemptRateLimitExceeded: failedAttemptRateLimitExceeded,
@@ -122,7 +139,9 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) GetData(r *http.Request, w htt
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	screenViewModel := NewSettingsMFAEnterOOBOTPViewModel(tokenAuthenticator, now, state)
+	oobConfig := h.Config.Authenticator.OOB
+
+	screenViewModel := NewSettingsMFAEnterOOBOTPViewModel(oobConfig, tokenAuthenticator, now, state)
 	viewmodels.Embed(data, screenViewModel)
 
 	return data, nil

@@ -65,7 +65,7 @@
   {{ end }}
 
   {{ if $.ShowSecondaryOOBOTPSMS }}
-    {{ $href := (call $.MakeURL "/settings/mfa/create_oob_otp_sms") }}
+    {{ $href := (call $.MakeURL (printf "/settings/mfa/create_oob_otp_%s" $.OOBOTPSMSDefaultChannel)) }}
     {{ if $.HasSecondaryOOBOTPSMS }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
     {{ end }}
