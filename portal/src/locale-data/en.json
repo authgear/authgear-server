@@ -922,6 +922,9 @@
   "EditOAuthClientScreen.tabs.settings": "Settings",
   "EditOAuthClientScreen.tabs.saml2": "SAML 2.0",
 
+  "OAuthClientSAMLForm.title": "SAML Settings",
+  "OAuthClientSAMLForm.metadataUpload.description": "Upload the Service Provider Metadata (XML) to fill the form below automatically",
+  "OAuthClientSAMLForm.metadataUpload.label": "Upload XML",
   "OAuthClientSAMLForm.enable.label": "SAML 2.0 Support",
   "OAuthClientSAMLForm.enable.description": "Set up SAML-based SSO with this application as a Service Provider",
   "OAuthClientSAMLForm.screen.title": "SAML Settings",

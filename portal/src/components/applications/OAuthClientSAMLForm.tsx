@@ -139,7 +139,7 @@ function IdpCertificateSection({
 
   return (
     <div>
-      <WidgetTitle className="mb-3" id="basic">
+      <WidgetTitle className="mb-3" id="identity-provider-certificates">
         <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.title" />
       </WidgetTitle>
       <div className="grid gap-y-4 grid-cols-1">
@@ -373,9 +373,22 @@ export function OAuthClientSAMLForm({
         <>
           <HorizontalDivider className="my-12" />
           <div className="grid gap-y-12 grid-cols-1">
-            <ScreenTitle>
-              <FormattedMessage id="OAuthClientSAMLForm.screen.title" />
-            </ScreenTitle>
+            <div>
+              <ScreenTitle>
+                <FormattedMessage id="OAuthClientSAMLForm.title" />
+              </ScreenTitle>
+              <div className="mt-3 grid gap-y-2 grid-cols-1 items-start">
+                <Text block={true}>
+                  <FormattedMessage id="OAuthClientSAMLForm.metadataUpload.description" />
+                </Text>
+                <DefaultButton
+                  className="w-fit"
+                  text={renderToString(
+                    "OAuthClientSAMLForm.metadataUpload.label"
+                  )}
+                />
+              </div>
+            </div>
             <div>
               <WidgetTitle className="mb-3" id="basic">
                 <FormattedMessage id="OAuthClientSAMLForm.basic.title" />
@@ -408,7 +421,7 @@ export function OAuthClientSAMLForm({
             </div>
 
             <div>
-              <WidgetTitle className="mb-3" id="basic">
+              <WidgetTitle className="mb-3" id="sso">
                 <FormattedMessage id="OAuthClientSAMLForm.sso.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
@@ -476,7 +489,7 @@ export function OAuthClientSAMLForm({
             </div>
 
             <div>
-              <WidgetTitle className="mb-3" id="basic">
+              <WidgetTitle className="mb-3" id="logout">
                 <FormattedMessage id="OAuthClientSAMLForm.logout.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
@@ -515,7 +528,7 @@ export function OAuthClientSAMLForm({
             </div>
 
             <div>
-              <WidgetTitle className="mb-3" id="basic">
+              <WidgetTitle className="mb-3" id="signature">
                 <FormattedMessage id="OAuthClientSAMLForm.signature.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
@@ -565,7 +578,7 @@ export function OAuthClientSAMLForm({
             <HorizontalDivider />
 
             <div>
-              <WidgetTitle className="mb-6" id="basic">
+              <WidgetTitle className="mb-6" id="configuration-parameters">
                 <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.title" />
               </WidgetTitle>
 
