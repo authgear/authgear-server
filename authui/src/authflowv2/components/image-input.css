@@ -17,7 +17,8 @@
       (var(--camera-box__py) * 2 + var(--camera-box__line-height)) / 2
     ); /* = Height / 2 */
     --camera-box__width: 100%;
-    --camera-box__aspect-ratio: 4/3;
+    --camera-box__aspect-ratio__desktop: 4/3;
+    --camera-box__aspect-ratio__mobile: 3/4;
 
     --camera-initial__description__font-family: var(
       --typography-label-large__font-family
@@ -70,7 +71,10 @@
       ring-[color:var(--camera-box\_\_ring-color)];
 
     width: var(--camera-box__width);
-    aspect-ratio: var(--camera-box__aspect-ratio);
+    aspect-ratio: var(--camera-box__aspect-ratio__mobile);
+    @media (min-width: theme("screens.tablet")) {
+      aspect-ratio: var(--camera-box__aspect-ratio__desktop);
+    }
     @apply overflow-hidden;
     @apply relative; /* for absolute positioning of loading toasts */
 
