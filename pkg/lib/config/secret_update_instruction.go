@@ -586,7 +586,7 @@ func (i *BotProtectionProviderCredentialsUpdateInstruction) unset(currentConfig 
 }
 
 type SAMLIdpSigningSecretsUpdateInstructionDeleteData struct {
-	KeyID string `json:"keyID,omitempty"`
+	KeyIDs []string `json:"keyIDs,omitempty"`
 }
 
 type SAMLIdpSigningSecretsUpdateInstruction struct {
@@ -662,15 +662,16 @@ func (i *SAMLIdpSigningSecretsUpdateInstruction) delete(currentConfig *SecretCon
 		return currentConfig, nil
 	}
 
-	if i.DeleteData == nil || i.DeleteData.KeyID == "" {
-		return nil, fmt.Errorf("config: missing KeyID for SAMLIdpSigningSecretsUpdateInstruction")
+	if i.DeleteData == nil || i.DeleteData.KeyIDs == nil {
+		return nil, fmt.Errorf("config: missing KeyIDs for SAMLIdpSigningSecretsUpdateInstruction")
 	}
 
 	newCertificates := []*SAMLIdpSigningCertificate{}
+	deletingKeyIDsSet := setutil.NewSetFromSlice(i.DeleteData.KeyIDs, setutil.Identity)
 
 	for _, cert := range credentials.Certificates {
 		cert := cert
-		if cert.Key.KeyID() == i.DeleteData.KeyID {
+		if deletingKeyIDsSet.Has(cert.Key.KeyID()) {
 			continue
 		}
 		newCertificates = append(newCertificates, cert)

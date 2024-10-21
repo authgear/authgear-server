@@ -761,7 +761,7 @@ type SAMLIdpSigningSecrets {
 """"""
 input SAMLIdpSigningSecretsDeleteDataInput {
   """"""
-  keyID: String!
+  keyIDs: [String!]!
 }
 
 """"""

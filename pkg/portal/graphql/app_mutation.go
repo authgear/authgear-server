@@ -101,8 +101,8 @@ var adminAPIAuthKeyDeleteDataInput = graphql.NewInputObject(graphql.InputObjectC
 var samlIdpSigningSecretsDeleteDataInput = graphql.NewInputObject(graphql.InputObjectConfig{
 	Name: "SAMLIdpSigningSecretsDeleteDataInput",
 	Fields: graphql.InputObjectConfigFieldMap{
-		"keyID": &graphql.InputObjectFieldConfig{
-			Type: graphql.NewNonNull(graphql.String),
+		"keyIDs": &graphql.InputObjectFieldConfig{
+			Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(graphql.String))),
 		},
 	},
 })

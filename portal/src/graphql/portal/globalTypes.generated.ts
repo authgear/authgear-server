@@ -667,7 +667,7 @@ export type SamlIdpSigningSecrets = {
 };
 
 export type SamlIdpSigningSecretsDeleteDataInput = {
-  keyID: Scalars['String']['input'];
+  keyIDs: Array<Scalars['String']['input']>;
 };
 
 export type SamlIdpSigningSecretsUpdateInstructionsInput = {

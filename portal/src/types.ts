@@ -779,7 +779,7 @@ export interface SAMLSpSigningSecretsUpdateInstruction {
 }
 
 export interface SAMLIdpSigningSecretsDeleteDataInput {
-  keyID: string;
+  keyIDs: string[];
 }
 
 export interface SAMLIdpSigningSecretsUpdateInstruction {

@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
+import cn from "classnames";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import { SAMLIdpSigningCertificate } from "../../types";
 import { FormState } from "../../hook/useSAMLCertificateForm";
@@ -15,6 +16,7 @@ import {
   Text,
   ChoiceGroup,
   IChoiceGroupOption,
+  ILinkStyles,
 } from "@fluentui/react";
 import LinkButton from "../../LinkButton";
 import { downloadStringAsFile } from "../../util/download";
@@ -28,6 +30,8 @@ interface EditSAMLCertificateFormProps {
   certificates: SAMLIdpSigningCertificate[];
   onGenerateNewCertitificate: () => Promise<void>;
 }
+
+const actionLinkButtonStyle: ILinkStyles = { root: { fontSize: 14 } };
 
 export function EditSAMLCertificateForm({
   form,
@@ -63,6 +67,23 @@ export function EditSAMLCertificateForm({
     return callbacks;
   }, [certificates]);
 
+  const onClickRemoveCert = useMemo(() => {
+    const callbacks: Record<string, () => void> = {};
+    for (const cert of certificates) {
+      callbacks[cert.keyID] = () => {
+        form.setState((prevState) => {
+          const newKeyIDs = new Set(prevState.removingCertificateKeyIDs);
+          newKeyIDs.add(cert.keyID);
+          return {
+            ...prevState,
+            removingCertificateKeyIDs: Array.from(newKeyIDs),
+          };
+        });
+      };
+    }
+    return callbacks;
+  }, [certificates, form]);
+
   const choiceGroupOptionsByKeyID = useMemo(() => {
     const optionsByKeyID: Record<string, IChoiceGroupOption[]> = {};
     for (const cert of certificates) {
@@ -77,6 +98,10 @@ export function EditSAMLCertificateForm({
     }
     return optionsByKeyID;
   }, [certificates, renderToString]);
+
+  const removingCertificateKeyIDsSet = useMemo(() => {
+    return new Set(form.state.removingCertificateKeyIDs);
+  }, [form.state.removingCertificateKeyIDs]);
 
   const onChangeActiveKey = useCallback(
     (_: unknown, option?: IChoiceGroupOption) => {
@@ -99,15 +124,36 @@ export function EditSAMLCertificateForm({
       }
       return (
         <div className="grid grid-cols-1 gap-y-2">
-          <Text className="text-neutral-secondary" block={true}>
+          <Text
+            className={cn(
+              "text-neutral-secondary",
+              removingCertificateKeyIDsSet.has(item.keyID)
+                ? "line-through"
+                : null
+            )}
+            block={true}
+          >
             {item.certificateFingerprint}
           </Text>
-          <LinkButton
-            styles={{ root: { fontSize: 14 } }}
-            onClick={onClickDownloadCert[item.keyID]}
-          >
-            <FormattedMessage id="EditSAMLCertificateForm.certificates.download" />
-          </LinkButton>
+          <div className="grid grid-rows-1 grid-flow-col gap-x-4 justify-start">
+            <LinkButton
+              styles={actionLinkButtonStyle}
+              onClick={onClickDownloadCert[item.keyID]}
+              disabled={removingCertificateKeyIDsSet.has(item.keyID)}
+            >
+              <FormattedMessage id="EditSAMLCertificateForm.certificates.download" />
+            </LinkButton>
+            {form.state.activeKeyID !== item.keyID ? (
+              <LinkButton
+                styles={actionLinkButtonStyle}
+                onClick={onClickRemoveCert[item.keyID]}
+                theme={themes.destructive}
+                disabled={removingCertificateKeyIDsSet.has(item.keyID)}
+              >
+                <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
+              </LinkButton>
+            ) : null}
+          </div>
         </div>
       );
     };
@@ -124,6 +170,7 @@ export function EditSAMLCertificateForm({
           options={choiceGroupOptionsByKeyID[item.keyID]}
           selectedKey={form.state.activeKeyID}
           onChange={onChangeActiveKey}
+          disabled={removingCertificateKeyIDsSet.has(item.keyID)}
         />
       );
     };
@@ -149,8 +196,11 @@ export function EditSAMLCertificateForm({
   }, [
     renderToString,
     onClickDownloadCert,
-    choiceGroupOptionsByKeyID,
+    removingCertificateKeyIDsSet,
     form.state.activeKeyID,
+    onClickRemoveCert,
+    themes.destructive,
+    choiceGroupOptionsByKeyID,
     onChangeActiveKey,
   ]);
 
