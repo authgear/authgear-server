@@ -117,7 +117,17 @@ export class ImageInputController extends Controller {
     this.takePhotoBtnTarget.disabled = false;
   };
 
+  takePhotoAndSubmit = () => {
+    this._takePhoto();
+    this.submitPhoto();
+  };
+
   takePhoto = () => {
+    this._takePhoto();
+    this.onPhotoTaken();
+  };
+
+  _takePhoto = () => {
     this.setPhotoLoading();
     const context = this.canvasTarget.getContext("2d");
     if (context == null) {
@@ -134,7 +144,6 @@ export class ImageInputController extends Controller {
     const dataURL = this.canvasTarget.toDataURL("image/png");
     this.cameraOutputTarget.src = dataURL;
     this.inputTarget.value = getB64StringFromDataURL(dataURL);
-    this.onPhotoTaken();
   };
 
   setSubmitLoading = () => {
