@@ -30,3 +30,7 @@
 .description {
   line-height: 20px;
 }
+
+.description--top {
+  @apply mb-2;
+}

@@ -59,7 +59,8 @@ const TextFieldListItem: React.VFC<TextFieldListItemProps> =
         className={cn(styles.inputField, inputClassName)}
         styles={{
           field: {
-            resize: "vertical",
+            resize: multiline ? "vertical" : undefined,
+            height: multiline ? "160px" : undefined,
           },
         }}
         value={value}
@@ -144,6 +145,7 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
         className={className}
         label={label}
         description={description}
+        descriptionPosition={multiline ? "top" : "bottom"}
         parentJSONPointer={parentJSONPointer}
         fieldName={fieldName}
         list={list}

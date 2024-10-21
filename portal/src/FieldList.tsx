@@ -36,6 +36,7 @@ export interface FieldListProps<T> {
   ListItemComponent: ComponentType<ListItemProps<T>>;
   addButtonLabelMessageID?: string;
   description?: string;
+  descriptionPosition?: "top" | "bottom";
   addDisabled?: boolean;
   deleteDisabled?: boolean;
   minItem?: number;
@@ -62,6 +63,7 @@ const FieldList = function FieldList<T>(
     addDisabled,
     deleteDisabled,
     description,
+    descriptionPosition = "bottom",
     minItem,
   } = props;
 
@@ -102,11 +104,29 @@ const FieldList = function FieldList<T>(
     [onListItemDelete, list]
   );
 
+  const descriptionEl = useMemo(() => {
+    if (description) {
+      return (
+        <Text
+          block={true}
+          className={cn(
+            styles.description,
+            descriptionPosition === "top" ? styles["description--top"] : null
+          )}
+        >
+          {description}
+        </Text>
+      );
+    }
+    return null;
+  }, [description, descriptionPosition]);
+
   const isMinItemReached = minItem != null && list.length <= minItem;
 
   return (
     <div className={className}>
       {label ?? null}
+      {descriptionPosition === "top" && descriptionEl ? descriptionEl : null}
       <div className={cn(styles.list, listClassName)}>
         {list.map((value, index) => (
           <FieldListItem
@@ -133,11 +153,7 @@ const FieldList = function FieldList<T>(
         text={<FormattedMessage id={addButtonLabelMessageID ?? "add"} />}
         disabled={addDisabled}
       />
-      {description ? (
-        <Text block={true} className={styles.description}>
-          {description}
-        </Text>
-      ) : null}
+      {descriptionPosition === "bottom" && descriptionEl ? descriptionEl : null}
     </div>
   );
 };
