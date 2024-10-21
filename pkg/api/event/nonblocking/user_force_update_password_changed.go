@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	// nolint:gosec // false-positive of lint
 	UserForceUpdatePasswordChanged event.Type = "user.force_update.password_changed"
 )
 
