@@ -2,7 +2,7 @@ import { Controller } from "@hotwired/stimulus";
 import Toastify, { ToastifyInstance, ToastifyOptions } from "toastify-js";
 
 const DESKTOP_CANVAS_WIDTH = 960;
-const MOBILE_CANVAS_WIDTH = 320;
+const MOBILE_CANVAS_WIDTH = 400;
 
 const TOAST_DISPLAY_INTERVAL = 3500;
 export class ImageInputController extends Controller {
