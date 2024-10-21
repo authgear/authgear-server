@@ -1021,6 +1021,7 @@
   "EditSAMLCertificateForm.certificates.column.status.active": "Active",
   "EditSAMLCertificateForm.certificates.download": "Download",
   "EditSAMLCertificateForm.certificates.remove": "Remove",
+  "EditSAMLCertificateForm.certificates.restore": "Restore",
   "EditSAMLCertificateForm.certificates.generate": "Generate certificate",
 
   "VerifyDomainScreen.title": "Verify Domain",

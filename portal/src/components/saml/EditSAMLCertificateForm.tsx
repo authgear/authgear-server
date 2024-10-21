@@ -67,13 +67,17 @@ export function EditSAMLCertificateForm({
     return callbacks;
   }, [certificates]);
 
-  const onClickRemoveCert = useMemo(() => {
+  const onToggleRemoveCert = useMemo(() => {
     const callbacks: Record<string, () => void> = {};
     for (const cert of certificates) {
       callbacks[cert.keyID] = () => {
         form.setState((prevState) => {
           const newKeyIDs = new Set(prevState.removingCertificateKeyIDs);
-          newKeyIDs.add(cert.keyID);
+          if (newKeyIDs.has(cert.keyID)) {
+            newKeyIDs.delete(cert.keyID);
+          } else {
+            newKeyIDs.add(cert.keyID);
+          }
           return {
             ...prevState,
             removingCertificateKeyIDs: Array.from(newKeyIDs),
@@ -146,11 +150,18 @@ export function EditSAMLCertificateForm({
             {form.state.activeKeyID !== item.keyID ? (
               <LinkButton
                 styles={actionLinkButtonStyle}
-                onClick={onClickRemoveCert[item.keyID]}
-                theme={themes.destructive}
-                disabled={removingCertificateKeyIDsSet.has(item.keyID)}
+                onClick={onToggleRemoveCert[item.keyID]}
+                theme={
+                  removingCertificateKeyIDsSet.has(item.keyID)
+                    ? themes.actionButton
+                    : themes.destructive
+                }
               >
-                <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
+                {removingCertificateKeyIDsSet.has(item.keyID) ? (
+                  <FormattedMessage id="EditSAMLCertificateForm.certificates.restore" />
+                ) : (
+                  <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
+                )}
               </LinkButton>
             ) : null}
           </div>
@@ -195,10 +206,11 @@ export function EditSAMLCertificateForm({
     ];
   }, [
     renderToString,
-    onClickDownloadCert,
     removingCertificateKeyIDsSet,
+    onClickDownloadCert,
     form.state.activeKeyID,
-    onClickRemoveCert,
+    onToggleRemoveCert,
+    themes.actionButton,
     themes.destructive,
     choiceGroupOptionsByKeyID,
     onChangeActiveKey,
