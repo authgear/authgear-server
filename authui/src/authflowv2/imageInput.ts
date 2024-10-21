@@ -2,7 +2,9 @@ import { Controller } from "@hotwired/stimulus";
 import Toastify, { ToastifyInstance, ToastifyOptions } from "toastify-js";
 
 const DESKTOP_CANVAS_WIDTH = 960;
-const MOBILE_CANVAS_WIDTH = 320;
+const MOBILE_CANVAS_WIDTH = 400;
+
+const MAX_MOBILE_SCREEN_WIDTH = 675;
 
 const TOAST_DISPLAY_INTERVAL = 3500;
 export class ImageInputController extends Controller {
@@ -70,6 +72,12 @@ export class ImageInputController extends Controller {
       throw new Error("Camera not supported");
     }
 
+    // Hard code, fix me late
+    if (window.innerWidth < MAX_MOBILE_SCREEN_WIDTH) {
+      this.cameraInitialTarget.classList.add("hidden");
+      this.cameraContainerTarget.style.aspectRatio = "3/4";
+    }
+
     navigator.mediaDevices
       .getUserMedia({
         video: {
@@ -96,17 +104,21 @@ export class ImageInputController extends Controller {
       });
   };
 
-  onPhotoTaken = () => {
+  hideCameraAndShowImage = () => {
     this.cameraOutputTarget.classList.remove("hidden");
 
     // wait for image process finish, hard-code as 1 second for now
     setTimeout(() => {
       this.cameraVideoTarget.classList.add("hidden");
       this.cameraVideoTarget.pause();
-      this.takePhotoBtnTarget.classList.add("hidden");
-      this.unsetPhotoLoading();
-      this.submitPhotoBtnTarget.classList.remove("hidden");
     }, 1000);
+  };
+
+  onPhotoTaken = () => {
+    this.hideCameraAndShowImage();
+    this.takePhotoBtnTarget.classList.add("hidden");
+    this.unsetPhotoLoading();
+    this.submitPhotoBtnTarget.classList.remove("hidden");
   };
 
   setPhotoLoading = () => {
@@ -119,6 +131,7 @@ export class ImageInputController extends Controller {
 
   takePhotoAndSubmit = () => {
     this._takePhoto();
+    this.hideCameraAndShowImage();
     this.submitPhoto();
   };
 
