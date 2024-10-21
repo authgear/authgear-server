@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "Buksan ang Camera",
   "v2.component.image-input.default.btn-label-submit-photo": "Kumpirmahin",
   "v2.component.image-input.default.btn-label-take-photo": "Kumuha",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "Kumuha at Mag-upload",
   "v2.component.image-input.default.btn-label-try-again": "Subukan muli",
   "v2.component.image-input.default.idle-description-avoid-smile": "Panatilihin ang neutral na ekspresyon at iwasan ang ngumiti",
   "v2.component.image-input.default.idle-description-not-profile-pic": "Hindi ito magiging iyong larawan ng profile",

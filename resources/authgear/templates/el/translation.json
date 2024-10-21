@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "Άνοιγμα Κάμερας",
   "v2.component.image-input.default.btn-label-submit-photo": "Επιβεβαίωση",
   "v2.component.image-input.default.btn-label-take-photo": "Λήψη",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "Λήψη και Μεταφόρτωση",
   "v2.component.image-input.default.btn-label-try-again": "Δοκιμάστε ξανά",
   "v2.component.image-input.default.idle-description-avoid-smile": "Διατηρήστε ουδέτερη έκφραση και αποφύγετε το χαμόγελο",
   "v2.component.image-input.default.idle-description-not-profile-pic": "Δεν θα είναι η φωτογραφία προφίλ σας",

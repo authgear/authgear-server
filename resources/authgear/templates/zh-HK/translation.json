@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "開啟相機",
   "v2.component.image-input.default.btn-label-submit-photo": "確認",
   "v2.component.image-input.default.btn-label-take-photo": "拍攝",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "拍攝並上傳",
   "v2.component.image-input.default.btn-label-try-again": "請重試",
   "v2.component.image-input.default.idle-description-avoid-smile": "保持中性表情，避免微笑",
   "v2.component.image-input.default.idle-description-not-profile-pic": "這不會成為您的個人資料圖片",

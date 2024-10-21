@@ -9,9 +9,10 @@
   >
     {{ template "authflowv2/__image_input.html"
       (dict
-        "FormName"     "main-form"
-        "SubmitEvent"  "authgear.button.enter_face_image"
-        "IsRetry"      $has_unknown_err
+        "FormName"                     "main-form"
+        "SubmitEvent"                  "authgear.button.enter_face_image"
+        "IsRetry"                      $has_unknown_err
+        "ShouldMergeCaptureAndUpload"  true
       )
     }}
   </form>
@@ -53,7 +54,15 @@
         </div>  
       </div>
     </div>
-    <video data-image-input-target="cameraVideo" class="camera-video hidden">Video stream not available.</video>
+    <video 
+      {{/* These 3 attritbutes are to disable normal video controls */}}
+      controlslist="nodownloads nofullscreen noremoteplayback"
+      playsinline
+      disablepictureinpicture
+      disableremoteplayback
+      data-image-input-target="cameraVideo"
+      class="camera-video hidden"
+    >Video stream not available.</video>
     <img data-image-input-target="cameraOutput" class="camera-output hidden" alt="The image capture will appear in this box." />
   </div>
   <canvas data-image-input-target="canvas" class="hidden"></canvas>
@@ -82,10 +91,18 @@
   <button
     class="primary-btn w-full hidden"
     type="button"
-    data-action="image-input#takePhoto"
+    {{ if and (not (isNil $.ShouldMergeCaptureAndUpload)) $.ShouldMergeCaptureAndUpload }}
+      data-action="image-input#takePhotoAndSubmit"
+    {{ else }}
+      data-action="image-input#takePhoto"
+    {{ end }}
     data-image-input-target="takePhotoBtn"
   > 
-    {{ include "v2.component.image-input.default.btn-label-take-photo" nil }}
+    {{ if and (not (isNil $.ShouldMergeCaptureAndUpload)) $.ShouldMergeCaptureAndUpload }}
+      {{ include "v2.component.image-input.default.btn-label-take-photo-and-submit" nil }}
+    {{ else }}
+      {{ include "v2.component.image-input.default.btn-label-take-photo" nil }}
+    {{ end }}
   </button>
   <button
     class="primary-btn w-full hidden"

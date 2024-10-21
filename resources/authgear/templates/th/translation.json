@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "เปิดกล้อง",
   "v2.component.image-input.default.btn-label-submit-photo": "ยืนยัน",
   "v2.component.image-input.default.btn-label-take-photo": "จับภาพ",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "จับภาพและอัปโหลด",
   "v2.component.image-input.default.btn-label-try-again": "ลองอีกครั้ง",
   "v2.component.image-input.default.idle-description-avoid-smile": "รักษาสีหน้าเป็นกลางและหลีกเลี่ยงการยิ้ม",
   "v2.component.image-input.default.idle-description-not-profile-pic": "มันจะไม่ใช่รูปโปรไฟล์ของคุณ",

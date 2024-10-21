@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "Open Camera",
   "v2.component.image-input.default.btn-label-submit-photo": "Bevestigen",
   "v2.component.image-input.default.btn-label-take-photo": "Vastleggen",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "Vastleggen en uploaden",
   "v2.component.image-input.default.btn-label-try-again": "Probeer opnieuw",
   "v2.component.image-input.default.idle-description-avoid-smile": "Houd een neutrale uitdrukking en glimlach niet",
   "v2.component.image-input.default.idle-description-not-profile-pic": "Het zal niet uw profielfoto zijn",

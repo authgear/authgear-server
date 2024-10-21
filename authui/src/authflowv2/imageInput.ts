@@ -1,7 +1,9 @@
 import { Controller } from "@hotwired/stimulus";
 import Toastify, { ToastifyInstance, ToastifyOptions } from "toastify-js";
 
-const CANVAS_WIDTH = 1280;
+const DESKTOP_CANVAS_WIDTH = 960;
+const MOBILE_CANVAS_WIDTH = 320;
+
 const TOAST_DISPLAY_INTERVAL = 3500;
 export class ImageInputController extends Controller {
   static values = {
@@ -115,7 +117,17 @@ export class ImageInputController extends Controller {
     this.takePhotoBtnTarget.disabled = false;
   };
 
+  takePhotoAndSubmit = () => {
+    this._takePhoto();
+    this.submitPhoto();
+  };
+
   takePhoto = () => {
+    this._takePhoto();
+    this.onPhotoTaken();
+  };
+
+  _takePhoto = () => {
     this.setPhotoLoading();
     const context = this.canvasTarget.getContext("2d");
     if (context == null) {
@@ -132,7 +144,6 @@ export class ImageInputController extends Controller {
     const dataURL = this.canvasTarget.toDataURL("image/png");
     this.cameraOutputTarget.src = dataURL;
     this.inputTarget.value = getB64StringFromDataURL(dataURL);
-    this.onPhotoTaken();
   };
 
   setSubmitLoading = () => {
@@ -154,10 +165,14 @@ export class ImageInputController extends Controller {
     const vH = this.cameraVideoTarget.videoHeight;
     const h = (vH / vW) * w;
 
+    // FIXME: Hard code for now, fix later
+    let cW = MOBILE_CANVAS_WIDTH;
+    if (w > h) {
+      cW = DESKTOP_CANVAS_WIDTH;
+    }
     this.cameraVideoTarget.setAttribute("width", w.toString());
     this.cameraVideoTarget.setAttribute("height", h.toString());
 
-    const cW = CANVAS_WIDTH;
     const cH = (vH / vW) * cW;
     this.canvasTarget.setAttribute("width", cW.toString());
     this.canvasTarget.setAttribute("height", cH.toString());

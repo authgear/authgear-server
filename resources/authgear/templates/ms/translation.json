@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "Buka Kamera",
   "v2.component.image-input.default.btn-label-submit-photo": "Sahkan",
   "v2.component.image-input.default.btn-label-take-photo": "Ambil",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "Ambil dan Muat Naik",
   "v2.component.image-input.default.btn-label-try-again": "Cuba lagi",
   "v2.component.image-input.default.idle-description-avoid-smile": "Kekalkan ekspresi neutral dan elakkan senyuman",
   "v2.component.image-input.default.idle-description-not-profile-pic": "Ia tidak akan menjadi gambar profil anda",

@@ -896,6 +896,7 @@
   "v2.component.image-input.default.btn-label-open-camera": "カメラを開く",
   "v2.component.image-input.default.btn-label-submit-photo": "確認",
   "v2.component.image-input.default.btn-label-take-photo": "キャプチャ",
+  "v2.component.image-input.default.btn-label-take-photo-and-submit": "写真を撮影してアップロード",
   "v2.component.image-input.default.btn-label-try-again": "再試行",
   "v2.component.image-input.default.idle-description-avoid-smile": "無表情を保ち、笑顔を避けてください",
   "v2.component.image-input.default.idle-description-not-profile-pic": "これはプロフィール写真にはなりません",
