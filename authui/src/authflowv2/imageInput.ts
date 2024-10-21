@@ -96,17 +96,21 @@ export class ImageInputController extends Controller {
       });
   };
 
-  onPhotoTaken = () => {
+  hideCameraAndShowImage = () => {
     this.cameraOutputTarget.classList.remove("hidden");
 
     // wait for image process finish, hard-code as 1 second for now
     setTimeout(() => {
       this.cameraVideoTarget.classList.add("hidden");
       this.cameraVideoTarget.pause();
-      this.takePhotoBtnTarget.classList.add("hidden");
-      this.unsetPhotoLoading();
-      this.submitPhotoBtnTarget.classList.remove("hidden");
     }, 1000);
+  };
+
+  onPhotoTaken = () => {
+    this.hideCameraAndShowImage();
+    this.takePhotoBtnTarget.classList.add("hidden");
+    this.unsetPhotoLoading();
+    this.submitPhotoBtnTarget.classList.remove("hidden");
   };
 
   setPhotoLoading = () => {
@@ -119,6 +123,7 @@ export class ImageInputController extends Controller {
 
   takePhotoAndSubmit = () => {
     this._takePhoto();
+    this.hideCameraAndShowImage();
     this.submitPhoto();
   };
 
