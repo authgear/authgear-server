@@ -1,6 +1,6 @@
 {{ template "authflowv2/__page_frame.html" . }}
 {{ define "page-content" }}
-  {{ $title := include "v2.error.screen-title" nil }}
+  {{ $title := include "v2.page.fatal-error.default.title" nil }}
   {{ if .Error }}
     {{ if eq .Error.reason "WebUIInvalidSession" }}
       {{ $title = include "v2.page.fatal-error.token-invalid.title" nil }}
