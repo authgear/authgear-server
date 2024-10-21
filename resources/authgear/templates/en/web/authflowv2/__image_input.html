@@ -53,7 +53,15 @@
         </div>  
       </div>
     </div>
-    <video data-image-input-target="cameraVideo" class="camera-video hidden">Video stream not available.</video>
+    <video 
+      {{/* These 3 attritbutes are to disable normal video controls */}}
+      controlslist="nodownloads nofullscreen noremoteplayback"
+      playsinline
+      disablepictureinpicture
+      disableremoteplayback
+      data-image-input-target="cameraVideo"
+      class="camera-video hidden"
+    >Video stream not available.</video>
     <img data-image-input-target="cameraOutput" class="camera-output hidden" alt="The image capture will appear in this box." />
   </div>
   <canvas data-image-input-target="canvas" class="hidden"></canvas>
