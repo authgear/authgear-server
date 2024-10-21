@@ -88,7 +88,6 @@
     }
 
     .camera-video {
-      /* @apply hidden; */
       @apply w-full h-full;
       object-fit: cover;
     }
@@ -100,7 +99,6 @@
       transform: scaleX(-1); /* mirror camera output */
     }
     .camera-output {
-      /* @apply hidden; */
       @apply w-full h-full;
       object-fit: cover;
     }
