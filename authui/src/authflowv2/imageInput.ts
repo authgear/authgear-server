@@ -4,6 +4,8 @@ import Toastify, { ToastifyInstance, ToastifyOptions } from "toastify-js";
 const DESKTOP_CANVAS_WIDTH = 960;
 const MOBILE_CANVAS_WIDTH = 400;
 
+const MAX_MOBILE_SCREEN_WIDTH = 675;
+
 const TOAST_DISPLAY_INTERVAL = 3500;
 export class ImageInputController extends Controller {
   static values = {
@@ -68,6 +70,12 @@ export class ImageInputController extends Controller {
     if (!cameraSupported) {
       //TODO (identity-week-demo): Show error to user
       throw new Error("Camera not supported");
+    }
+
+    // Hard code, fix me late
+    if (window.innerWidth < MAX_MOBILE_SCREEN_WIDTH) {
+      this.cameraInitialTarget.classList.add("hidden");
+      this.cameraContainerTarget.style.aspectRatio = "3/4";
     }
 
     navigator.mediaDevices
