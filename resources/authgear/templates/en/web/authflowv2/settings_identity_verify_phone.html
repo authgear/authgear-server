@@ -78,46 +78,44 @@
 
     <div class="flex flex-col gap-y-4">
       {{ range $.Channels }}
-        {{ if eq . $.Channel }}
-          {{ continue }}
-        {{ end }}
+        {{ if not (eq . $.Channel) }}
+          {{ $actionUrl := "/settings/identity/add_phone?q_login_id_key=phone" }}
+          {{ if $.IdentityID }}
+            {{ $actionUrl = "/settings/identity/change_phone?q_login_id_key=phone" }}
+          {{ end }}
 
-        {{ $actionUrl := "/settings/identity/add_phone?q_login_id_key=phone" }}
-        {{ if $.IdentityID }}
-          {{ $actionUrl = "/settings/identity/change_phone?q_login_id_key=phone" }}
-        {{ end }}
-
-        <form
-          action="{{ $actionUrl }}"
-          method="post"
-          novalidate
-          data-restore-form="false"
-          data-turbo="false"
-          data-controller="turbo-form"
-          data-action="submit->turbo-form#submitForm"
-        >
-          {{ $.CSRFField }}
-
-          <input type="hidden" name="x_login_id" value="{{ $.LoginID }}">
-          <input type="hidden" name="x_identity_id" value="{{ $.IdentityID }}">
-          <input type="hidden" name="x_channel" value="{{ . }}">
-
-          <button
-            class="secondary-btn w-full flex gap-x-2"
-            type="submit"
-            name="x_action"
-            value=""
+          <form
+            action="{{ $actionUrl }}"
+            method="post"
+            novalidate
+            data-restore-form="false"
+            data-turbo="false"
+            data-controller="turbo-form"
+            data-action="submit->turbo-form#submitForm"
           >
-            {{- if eq . "sms" }}
-              <span class="material-icons secondary-btn__icon">phone_iphone</span>
-              {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead" nil }}
-            {{- end }}
-            {{- if eq . "whatsapp" }}
-              <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
-              {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead" nil }}
-            {{- end }}
-          </button>
-        </form>
+            {{ $.CSRFField }}
+
+            <input type="hidden" name="x_login_id" value="{{ $.LoginID }}">
+            <input type="hidden" name="x_identity_id" value="{{ $.IdentityID }}">
+            <input type="hidden" name="x_channel" value="{{ . }}">
+
+            <button
+              class="secondary-btn w-full flex gap-x-2"
+              type="submit"
+              name="x_action"
+              value=""
+            >
+              {{- if eq . "sms" }}
+                <span class="material-icons secondary-btn__icon">phone_iphone</span>
+                {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-sms-instead" nil }}
+              {{- end }}
+              {{- if eq . "whatsapp" }}
+                <span class="sso-icon whatsapp-icon secondary-btn__icon"></span>
+                {{ include "v2.page.settings-identity-verify-phone.default.setup-phone-otp-whatsapp-instead" nil }}
+              {{- end }}
+            </button>
+          </form>
+        {{ end }}
       {{ end }}
     </div>
 </div>

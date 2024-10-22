@@ -74,11 +74,13 @@ func (t *MessageHTML) FindResources(fs resource.Fs) ([]resource.Location, error)
 }
 
 func (t *HTML) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
-	return viewHTMLTemplates(t.Name, resources, view)
+	skipValidate := true
+	return viewHTMLTemplates(t.Name, resources, view, skipValidate)
 }
 
 func (t *MessageHTML) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
-	return viewHTMLTemplates(t.Name, resources, view)
+	skipValidate := false
+	return viewHTMLTemplates(t.Name, resources, view, skipValidate)
 }
 
 func (t *HTML) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
@@ -132,11 +134,13 @@ func (t *MessagePlainText) FindResources(fs resource.Fs) ([]resource.Location, e
 }
 
 func (t *PlainText) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
-	return viewTextTemplates(t.Name, resources, view)
+	skipValidate := true
+	return viewTextTemplates(t.Name, resources, view, skipValidate)
 }
 
 func (t *MessagePlainText) ViewResources(resources []resource.ResourceFile, view resource.View) (interface{}, error) {
-	return viewTextTemplates(t.Name, resources, view)
+	skipValidate := false
+	return viewTextTemplates(t.Name, resources, view, skipValidate)
 }
 
 func (t *PlainText) UpdateResource(_ context.Context, _ []resource.ResourceFile, resrc *resource.ResourceFile, data []byte) (*resource.ResourceFile, error) {
@@ -341,8 +345,7 @@ func viewTemplatesEffectiveResource(resources []resource.ResourceFile, view reso
 	return &tagger, nil
 }
 
-func viewHTMLTemplates(name string, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
-
+func viewHTMLTemplates(name string, resources []resource.ResourceFile, rawView resource.View, skipValidate bool) (interface{}, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		bytes, err := viewTemplatesAppFile(resources, view)
@@ -374,6 +377,10 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, rawView r
 			Template:    tpl,
 		}, nil
 	case resource.ValidateResourceView:
+		if skipValidate {
+			return nil, nil
+		}
+
 		for _, resrc := range resources {
 			tpl := htmltemplate.New(name)
 			funcMap := MakeTemplateFuncMap(tpl)
@@ -394,8 +401,7 @@ func viewHTMLTemplates(name string, resources []resource.ResourceFile, rawView r
 
 }
 
-func viewTextTemplates(name string, resources []resource.ResourceFile, rawView resource.View) (interface{}, error) {
-
+func viewTextTemplates(name string, resources []resource.ResourceFile, rawView resource.View, skipValidate bool) (interface{}, error) {
 	switch view := rawView.(type) {
 	case resource.AppFileView:
 		bytes, err := viewTemplatesAppFile(resources, view)
@@ -427,6 +433,10 @@ func viewTextTemplates(name string, resources []resource.ResourceFile, rawView r
 			Template:    tpl,
 		}, nil
 	case resource.ValidateResourceView:
+		if skipValidate {
+			return nil, nil
+		}
+
 		for _, resrc := range resources {
 			tpl := texttemplate.New(name)
 			funcMap := MakeTemplateFuncMap(tpl)
