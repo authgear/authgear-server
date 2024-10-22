@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import { SAMLIdpSigningCertificate } from "../../types";
 import { FormState } from "../../hook/useSAMLCertificateForm";
@@ -45,6 +51,7 @@ export function EditSAMLCertificateForm({
   certificates,
   onGenerateNewCertitificate,
 }: EditSAMLCertificateFormProps): React.ReactElement {
+  const submitElRef = useRef<HTMLButtonElement | null>(null);
   const { onSubmit } = useFormContainerBaseContext();
   const { renderToString } = useContext(MessageContext);
   const { themes } = useSystemConfig();
@@ -96,16 +103,15 @@ export function EditSAMLCertificateForm({
     const callbacks: Record<string, () => Promise<void>> = {};
     for (const cert of certificates) {
       callbacks[cert.keyID] = async () => {
-        form
-          .setStateAsync((prevState) => ({
-            ...prevState,
-            isUpdatingActiveKeyID: true,
-            activeKeyID: cert.keyID,
-          }))
-          .then(async () => form.save())
-          .then(() => {
-            form.reload();
-          });
+        form.setState((prevState) => ({
+          ...prevState,
+          isUpdatingActiveKeyID: true,
+          activeKeyID: cert.keyID,
+        }));
+        // Submit the form after the state is updated and all rerendering completed, i.e. next tick.
+        setTimeout(() => {
+          submitElRef.current?.click();
+        }, 0);
       };
     }
     return callbacks;
@@ -237,6 +243,7 @@ export function EditSAMLCertificateForm({
 
   return (
     <form onSubmit={onSubmit}>
+      <button className="hidden" type="submit" ref={submitElRef} />
       <WidgetTitle>
         <FormattedMessage id="EditSAMLCertificateForm.certificates.title" />
       </WidgetTitle>
