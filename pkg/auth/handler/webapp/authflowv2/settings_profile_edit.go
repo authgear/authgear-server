@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -59,6 +60,7 @@ var TemplateSettingsProfileNoPermission = template.RegisterHTML(
 )
 
 type AuthflowV2SettingsProfileEditHandler struct {
+	Database                 *appdb.Handle
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
@@ -122,21 +124,29 @@ func (h *AuthflowV2SettingsProfileEditHandler) isAttributeEditable(attributeVari
 	}
 }
 
+// nolint: gocognit
 func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+		variant := httproute.GetParam(r, "variant")
+
+		var data map[string]interface{}
+		err := h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}
-
-		variant := httproute.GetParam(r, "variant")
 
 		settingsTemplate, ok := settingsProfileEditVariantToTemplate[variant]
 		if !ok {
@@ -162,31 +172,39 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 	})
 
 	ctrl.PostAction("save", func() error {
+		variant := httproute.GetParam(r, "variant")
+
 		userID := *session.GetUserID(r.Context())
 		PatchGenderForm(r.Form)
 		m := handlerwebapp.JSONPointerFormToMap(r.Form)
 
-		u, err := h.Users.GetRaw(userID)
+		err := h.Database.WithTx(func() error {
+			u, err := h.Users.GetRaw(userID)
+			if err != nil {
+				return err
+			}
+
+			if variant == "custom_attributes" {
+				err = h.CustomAttrs.UpdateCustomAttributesWithForm(config.RoleEndUser, userID, m)
+				if err != nil {
+					return err
+				}
+			} else {
+				attrs, err := stdattrs.T(u.StandardAttributes).MergedWithForm(m)
+				if err != nil {
+					return err
+				}
+
+				err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
+				if err != nil {
+					return err
+				}
+			}
+
+			return nil
+		})
 		if err != nil {
 			return err
-		}
-
-		variant := httproute.GetParam(r, "variant")
-		if variant == "custom_attributes" {
-			err = h.CustomAttrs.UpdateCustomAttributesWithForm(config.RoleEndUser, userID, m)
-			if err != nil {
-				return err
-			}
-		} else {
-			attrs, err := stdattrs.T(u.StandardAttributes).MergedWithForm(m)
-			if err != nil {
-				return err
-			}
-
-			err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
-			if err != nil {
-				return err
-			}
 		}
 
 		result := webapp.Result{RedirectURI: "/settings/profile"}
