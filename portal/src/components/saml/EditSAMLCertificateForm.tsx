@@ -28,8 +28,10 @@ import styles from "./EditSAMLCertificateForm.module.css";
 import ActionButton from "../../ActionButton";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import DefaultButton from "../../DefaultButton";
+import { formatCertificateFilename } from "../../model/saml";
 
 interface EditSAMLCertificateFormProps {
+  configAppID: string;
   form: AppSecretConfigFormModel<FormState>;
   certificates: SAMLIdpSigningCertificate[];
   onGenerateNewCertitificate: () => Promise<void>;
@@ -38,6 +40,7 @@ interface EditSAMLCertificateFormProps {
 const actionLinkButtonStyle: ILinkStyles = { root: { fontSize: 14 } };
 
 export function EditSAMLCertificateForm({
+  configAppID,
   form,
   certificates,
   onGenerateNewCertitificate,
@@ -64,12 +67,15 @@ export function EditSAMLCertificateForm({
         downloadStringAsFile({
           content: cert.certificatePEM,
           mimeType: "application/x-pem-file",
-          filename: `${cert.certificateFingerprint}.pem`,
+          filename: formatCertificateFilename(
+            configAppID,
+            cert.certificateFingerprint
+          ),
         });
       };
     }
     return callbacks;
-  }, [certificates]);
+  }, [configAppID, certificates]);
 
   const onRemoveCert = useMemo(() => {
     const callbacks: Record<string, () => void> = {};

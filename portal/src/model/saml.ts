@@ -170,3 +170,10 @@ function toPem(data: string): string {
   pem = pem + "-----END CERTIFICATE-----";
   return pem;
 }
+
+export function formatCertificateFilename(
+  configAppID: string,
+  fingerprint: string
+): string {
+  return `${configAppID}-${fingerprint.replace(/:/g, "")}.pem`;
+}

@@ -32,7 +32,10 @@ import DefaultButton from "../../DefaultButton";
 import { downloadStringAsFile } from "../../util/download";
 import { useParams } from "react-router-dom";
 import { AutoGenerateFirstCertificate } from "../saml/AutoGenerateFirstCertificate";
-import { parseServiceProviderMetadata } from "../../model/saml";
+import {
+  formatCertificateFilename,
+  parseServiceProviderMetadata,
+} from "../../model/saml";
 
 export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
@@ -125,18 +128,23 @@ function makeSLOCallbackBindingOptions(
 
 function IdpCertificateSection({
   appID,
+  configAppID,
   samlIdpSigningCertificate,
 }: {
   appID: string;
+  configAppID: string;
   samlIdpSigningCertificate: SAMLIdpSigningCertificate;
 }) {
   const onDownloadIdpCertificate = useCallback(() => {
     downloadStringAsFile({
       content: samlIdpSigningCertificate.certificatePEM,
-      filename: `${samlIdpSigningCertificate.certificateFingerprint}.pem`,
+      filename: formatCertificateFilename(
+        configAppID,
+        samlIdpSigningCertificate.certificateFingerprint
+      ),
       mimeType: "application/x-pem-file",
     });
-  }, [samlIdpSigningCertificate]);
+  }, [samlIdpSigningCertificate, configAppID]);
 
   return (
     <div>
@@ -693,6 +701,7 @@ export function OAuthClientSAMLForm({
             {activeIdpCertificate != null ? (
               <IdpCertificateSection
                 appID={appID}
+                configAppID={rawAppConfig.id}
                 samlIdpSigningCertificate={activeIdpCertificate}
               />
             ) : (

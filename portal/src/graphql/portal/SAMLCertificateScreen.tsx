@@ -21,10 +21,12 @@ import { EditSAMLCertificateForm } from "../../components/saml/EditSAMLCertifica
 import { AutoGenerateFirstCertificate } from "../../components/saml/AutoGenerateFirstCertificate";
 
 function EditSAMLCertificateContent({
+  configAppID,
   form,
   certificates,
   generateNewCertificate,
 }: {
+  configAppID: string;
   form: AppSecretConfigFormModel<FormState>;
   certificates: SAMLIdpSigningCertificate[];
   generateNewCertificate: () => Promise<void>;
@@ -47,6 +49,7 @@ function EditSAMLCertificateContent({
         </ScreenDescription>
         <div className={styles.widget}>
           <EditSAMLCertificateForm
+            configAppID={configAppID}
             form={form}
             certificates={certificates}
             onGenerateNewCertitificate={generateNewCertificate}
@@ -59,9 +62,11 @@ function EditSAMLCertificateContent({
 
 function EditSAMLCertificateFormContainer({
   appID,
+  configAppID,
   certificates,
 }: {
   appID: string;
+  configAppID: string;
   certificates: SAMLIdpSigningCertificate[];
 }) {
   const form = useSAMLCertificateForm(appID);
@@ -90,6 +95,7 @@ function EditSAMLCertificateFormContainer({
   return (
     <FormContainerBase form={form} canSave={true}>
       <EditSAMLCertificateContent
+        configAppID={configAppID}
         certificates={certificates}
         form={form}
         generateNewCertificate={generateNewCertificate}
@@ -134,6 +140,7 @@ export default function SAMLCertificateScreen(): React.ReactElement {
   return (
     <EditSAMLCertificateFormContainer
       appID={appID}
+      configAppID={rawAppConfig.id}
       certificates={secretConfig!.samlIdpSigningSecrets!.certificates}
     />
   );
