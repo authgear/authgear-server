@@ -8,12 +8,14 @@ import { useAppSecretConfigForm } from "./useAppSecretConfigForm";
 
 export interface FormState {
   activeKeyID?: string;
+  isUpdatingActiveKeyID: boolean;
   removingCertificateKeyID: string | null;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     activeKeyID: config.saml?.signing?.key_id,
+    isUpdatingActiveKeyID: false,
     removingCertificateKeyID: null,
   };
 }

@@ -17,7 +17,10 @@ import {
   Dialog,
   IDialogContentProps,
   DialogFooter,
+  Spinner,
+  SpinnerSize,
 } from "@fluentui/react";
+import cn from "classnames";
 import LinkButton from "../../LinkButton";
 import { downloadStringAsFile } from "../../util/download";
 import { useSystemConfig } from "../../context/SystemConfigContext";
@@ -84,13 +87,19 @@ export function EditSAMLCertificateForm({
   }, [certificates, form]);
 
   const onChangeActiveKey = useMemo(() => {
-    const callbacks: Record<string, () => void> = {};
+    const callbacks: Record<string, () => Promise<void>> = {};
     for (const cert of certificates) {
-      callbacks[cert.keyID] = () => {
-        form.setState((prevState) => ({
-          ...prevState,
-          activeKeyID: cert.keyID,
-        }));
+      callbacks[cert.keyID] = async () => {
+        form
+          .setStateAsync((prevState) => ({
+            ...prevState,
+            isUpdatingActiveKeyID: true,
+            activeKeyID: cert.keyID,
+          }))
+          .then(async () => form.save())
+          .then(() => {
+            form.reload();
+          });
       };
     }
     return callbacks;
@@ -122,6 +131,7 @@ export function EditSAMLCertificateForm({
                 styles={actionLinkButtonStyle}
                 onClick={onRemoveCert[item.keyID]}
                 theme={themes.destructive}
+                disabled={form.isLoading || form.isUpdating}
               >
                 <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
               </LinkButton>
@@ -140,9 +150,9 @@ export function EditSAMLCertificateForm({
       }
       if (form.state.activeKeyID === item.keyID) {
         return (
-          <Text className="text-status-green">
-            <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.active" />
-          </Text>
+          <CertificateActiveStatus
+            isLoading={form.state.isUpdatingActiveKeyID}
+          />
         );
       }
       return (
@@ -178,6 +188,7 @@ export function EditSAMLCertificateForm({
     renderToString,
     onClickDownloadCert,
     form.state.activeKeyID,
+    form.state.isUpdatingActiveKeyID,
     form.isLoading,
     form.isUpdating,
     onRemoveCert,
@@ -271,5 +282,22 @@ export function EditSAMLCertificateForm({
         </DialogFooter>
       </Dialog>
     </form>
+  );
+}
+function CertificateActiveStatus({ isLoading }: { isLoading: boolean }) {
+  return (
+    <div className="w-fit relative">
+      <Text className={cn("text-status-green", isLoading ? "invisible" : null)}>
+        <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.active" />
+      </Text>
+      <Spinner
+        className={cn(
+          "absolute top-0 left-0 bottom-0 right-0",
+          isLoading ? null : "hidden"
+        )}
+        size={SpinnerSize.xSmall}
+        ariaLive="assertive"
+      />
+    </div>
   );
 }

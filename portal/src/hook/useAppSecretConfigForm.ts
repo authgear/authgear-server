@@ -7,6 +7,8 @@ import {
 } from "../types";
 import { useAppAndSecretConfigQuery } from "../graphql/portal/query/appAndSecretConfigQuery";
 import { useUpdateAppAndSecretConfigMutation } from "../graphql/portal/mutations/updateAppAndSecretMutation";
+import { useEvent } from "./useEvent";
+import { useAsyncSetState } from "./useAsyncSetState";
 
 export interface AppSecretConfigFormModel<State> {
   isLoading: boolean;
@@ -16,6 +18,7 @@ export interface AppSecretConfigFormModel<State> {
   updateError: unknown;
   state: State;
   setState: (fn: (state: State) => State) => void;
+  setStateAsync: (fn: (state: State) => State) => Promise<void>;
   reload: () => void;
   reset: () => void;
   save: (ignoreConflict?: boolean) => Promise<void>;
@@ -149,63 +152,47 @@ export function useAppSecretConfigForm<State>(
     setCurrentState(null);
   }, [isUpdating, resetError]);
 
-  const save = useCallback(
-    async (ignoreConflict: boolean = false) => {
-      if (!rawAppConfig || !currentState) {
-        return;
-      } else if (!isDirty || isUpdating) {
-        return;
-      }
+  // Use useEvent to ensure save() is always referencing latest states
+  const save = useEvent(async (ignoreConflict: boolean = false) => {
+    if (!rawAppConfig || !currentState) {
+      return;
+    } else if (!isDirty || isUpdating) {
+      return;
+    }
 
-      const newConfig = constructConfig(
-        rawAppConfig,
-        secrets,
-        initialState,
-        currentState,
-        effectiveConfig
-      );
-
-      // The app and secret config that pass to constructSecretUpdateInstruction
-      // are the updated config that we are going to send to the server
-      const secretUpdateInstruction = constructSecretUpdateInstruction
-        ? constructSecretUpdateInstruction(
-            newConfig[0],
-            newConfig[1],
-            currentState
-          )
-        : undefined;
-
-      setIsUpdating(true);
-      try {
-        await updateConfig({
-          appConfig: newConfig[0],
-          appConfigChecksum: rawAppConfigChecksum,
-          secretConfigUpdateInstructions: secretUpdateInstruction,
-          secretConfigUpdateInstructionsChecksum: secretConfigChecksum,
-          ignoreConflict,
-        });
-        await reload();
-        setCurrentState(null);
-      } finally {
-        setIsUpdating(false);
-      }
-    },
-    [
+    const newConfig = constructConfig(
       rawAppConfig,
-      rawAppConfigChecksum,
-      currentState,
-      isDirty,
-      isUpdating,
-      constructConfig,
       secrets,
-      secretConfigChecksum,
       initialState,
-      effectiveConfig,
-      constructSecretUpdateInstruction,
-      updateConfig,
-      reload,
-    ]
-  );
+      currentState,
+      effectiveConfig
+    );
+
+    // The app and secret config that pass to constructSecretUpdateInstruction
+    // are the updated config that we are going to send to the server
+    const secretUpdateInstruction = constructSecretUpdateInstruction
+      ? constructSecretUpdateInstruction(
+          newConfig[0],
+          newConfig[1],
+          currentState
+        )
+      : undefined;
+
+    setIsUpdating(true);
+    try {
+      await updateConfig({
+        appConfig: newConfig[0],
+        appConfigChecksum: rawAppConfigChecksum,
+        secretConfigUpdateInstructions: secretUpdateInstruction,
+        secretConfigUpdateInstructionsChecksum: secretConfigChecksum,
+        ignoreConflict,
+      });
+      await reload();
+      setCurrentState(null);
+    } finally {
+      setIsUpdating(false);
+    }
+  });
 
   const state = currentState ?? initialState;
   const setState = useCallback(
@@ -217,6 +204,7 @@ export function useAppSecretConfigForm<State>(
     },
     [initialState]
   );
+  const setStateAsync = useAsyncSetState(setState);
 
   return {
     isLoading,
@@ -226,6 +214,7 @@ export function useAppSecretConfigForm<State>(
     updateError,
     state,
     setState,
+    setStateAsync,
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     reload,
     reset,
