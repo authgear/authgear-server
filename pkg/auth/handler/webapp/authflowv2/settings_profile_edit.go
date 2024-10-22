@@ -124,6 +124,7 @@ func (h *AuthflowV2SettingsProfileEditHandler) isAttributeEditable(attributeVari
 	}
 }
 
+// nolint: gocognit
 func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl, err := h.ControllerFactory.New(r, w)
 	if err != nil {
