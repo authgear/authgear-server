@@ -115,7 +115,7 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithoutDBTx()
 
 	currentSession := session.GetSession(r.Context())
 	redirectURI := httputil.HostRelative(r.URL).String()
@@ -141,12 +141,19 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 			return apierrors.NewInvalid("cannot revoke current session")
 		}
 
-		s, err := h.Sessions.Get(sessionID)
-		if err != nil {
-			return err
-		}
+		err := h.Database.WithTx(func() error {
+			s, err := h.Sessions.Get(sessionID)
+			if err != nil {
+				return err
+			}
 
-		err = h.Sessions.RevokeWithEvent(s, true, false)
+			err = h.Sessions.RevokeWithEvent(s, true, false)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 		if err != nil {
 			return err
 		}
@@ -158,7 +165,9 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 
 	ctrl.PostAction("revoke_all", func() error {
 		userID := currentSession.GetAuthenticationInfo().UserID
-		err := h.Sessions.TerminateAllExcept(userID, currentSession, false)
+		err := h.Database.WithTx(func() error {
+			return h.Sessions.TerminateAllExcept(userID, currentSession, false)
+		})
 		if err != nil {
 			return err
 		}
@@ -170,16 +179,23 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 
 	ctrl.PostAction("remove_authorization", func() error {
 		authorizationID := r.Form.Get("x_authorization_id")
-		authz, err := h.Authorizations.GetByID(authorizationID)
-		if err != nil {
-			return err
-		}
+		err := h.Database.WithTx(func() error {
+			authz, err := h.Authorizations.GetByID(authorizationID)
+			if err != nil {
+				return err
+			}
 
-		if authz.UserID != currentSession.GetAuthenticationInfo().UserID {
-			return apierrors.NewForbidden("cannot remove authorization")
-		}
+			if authz.UserID != currentSession.GetAuthenticationInfo().UserID {
+				return apierrors.NewForbidden("cannot remove authorization")
+			}
 
-		err = h.Authorizations.Delete(authz)
+			err = h.Authorizations.Delete(authz)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
 		if err != nil {
 			return err
 		}
