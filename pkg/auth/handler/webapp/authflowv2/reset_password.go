@@ -125,13 +125,18 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 		return
 	}
 
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
-		data, err := h.GetNonAuthflowData(w, r)
-		if err != nil {
-			return err
-		}
+		var data map[string]interface{}
+		err = h.Database.WithTx(func() error {
+			data, err = h.GetNonAuthflowData(w, r)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
+
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowResetPasswordHTML, data)
 		return nil
 	})
