@@ -5,6 +5,7 @@ import (
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
@@ -15,6 +16,7 @@ var TemplateWebSettingsProfileHTML = template.RegisterHTML(
 )
 
 type AuthflowV2SettingsProfileHandler struct {
+	Database                 *appdb.Handle
 	ControllerFactory        handlerwebapp.ControllerFactory
 	BaseViewModel            *viewmodels.BaseViewModeler
 	SettingsProfileViewModel *viewmodels.SettingsProfileViewModeler
@@ -27,21 +29,29 @@ func (h *AuthflowV2SettingsProfileHandler) ServeHTTP(w http.ResponseWriter, r *h
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithoutDBTx()
 
 	ctrl.Get(func() error {
-		userID := session.GetUserID(r.Context())
-
 		data := map[string]interface{}{}
+		var viewModelPtr *viewmodels.SettingsProfileViewModel
 
-		baseViewModel := h.BaseViewModel.ViewModel(r, w)
-		viewmodels.Embed(data, baseViewModel)
+		err := h.Database.WithTx(func() error {
+			userID := session.GetUserID(r.Context())
 
-		viewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
+			baseViewModel := h.BaseViewModel.ViewModel(r, w)
+			viewmodels.Embed(data, baseViewModel)
+
+			viewModelPtr, err = h.SettingsProfileViewModel.ViewModel(*userID)
+			if err != nil {
+				return err
+			}
+			viewmodels.Embed(data, *viewModelPtr)
+
+			return nil
+		})
 		if err != nil {
 			return err
 		}
-		viewmodels.Embed(data, *viewModelPtr)
 
 		if viewModelPtr.IsStandardAttributesAllHidden {
 			http.Redirect(w, r, "/settings", http.StatusFound)
@@ -49,7 +59,6 @@ func (h *AuthflowV2SettingsProfileHandler) ServeHTTP(w http.ResponseWriter, r *h
 		}
 
 		h.Renderer.RenderHTML(w, r, TemplateWebSettingsProfileHTML, data)
-
 		return nil
 	})
 }
