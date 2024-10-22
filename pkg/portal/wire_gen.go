@@ -368,7 +368,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DevMode:        devMode,
 		GraphQLContext: graphqlContext,
 		Database:       handle,
-		AuditDatabase:  readHandle,
 	}
 	return graphQLHandler
 }
