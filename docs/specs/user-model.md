@@ -3,6 +3,7 @@
   * [Identity](#identity)
     + [Identity Claims](#identity-claims)
     + [OAuth Identity](#oauth-identity)
+    + [LDAP Identity](#ldap-identity)
     + [WebAuthn Identity](#webauthn-identity)
     + [Anonymous Identity](#anonymous-identity)
       - [Anonymous Identity JWT](#anonymous-identity-jwt)
@@ -38,8 +39,7 @@
       - [WebAuthn Authenticator](#webauthn-authenticator)
       - [TOTP Authenticator](#totp-authenticator)
       - [OOB-OTP Authenticator](#oob-otp-authenticator)
-        - [Login Link](#login-link)
-    + [Skip verification](#skip-verification)
+        * [Login Link](#login-link)
     + [Device Token](#device-token)
     + [Recovery Code](#recovery-code)
   * [Deleting a user](#deleting-a-user)
@@ -50,6 +50,7 @@
     + [Deactivated user](#deactivated-user)
     + [Scheduled account deletion or anonymization](#scheduled-account-deletion-or-anonymization)
     + [Sessions](#sessions)
+    + [Configuration](#configuration)
 
 # User Model
 
@@ -61,10 +62,11 @@ A user has many identities. A user has many authenticators.
 
 An identity is used to look up a user.
 
-5 types of identity are supported.
+6 types of identity are supported.
 
 - Login ID
 - OAuth
+- LDAP
 - WebAuthn
 - Anonymous
 - Biometric
@@ -72,7 +74,7 @@ An identity is used to look up a user.
 A user either has no anonymous identity, or have exactly one anonymous identity.
 A user with anonymous identity is considered as anonymous user.
 
-A user must have at least 1 Login ID identity or 1 OAuth identity.
+A user must have at least 1 Login ID identity, or at least 1 OAuth identity, or at least 1 LDAP identity.
 
 ### Identity Claims
 
@@ -84,9 +86,19 @@ The claims are used to detect duplicate identity. For example, an Email Login ID
 
 ### OAuth Identity
 
-OAuth identity is external identity from supported OAuth 2 IdPs. Only authorization code flow is supported. If the provider supports OIDC, OIDC is preferred over provider-specific OAuth 2 protocol.
+OAuth identity is an external identity from supported OAuth 2 IdPs. Only authorization code flow is supported. If the provider supports OIDC, OIDC is preferred over provider-specific OAuth 2 protocol.
 
-OAuth identity does not require primary authentication.
+An OAuth identity does not require primary authentication, nor secondary authentication.
+
+### LDAP Identity
+
+LDAP identity is an external identity from a LDAPv3 server.
+A LDAP identity is internally identified in Authgear with the URL to the LDAP server, and the DN of the entry.
+
+A LDAP identity does not require primary authentication, the LDAP server is responsible for authenticating with the Bind operation.
+If the project has configured secondary authentication, then a LDAP identity requires secondary authentication.
+
+For the details of LDAP, please see [./ldap.md](./ldap.md)
 
 ### WebAuthn Identity
 
