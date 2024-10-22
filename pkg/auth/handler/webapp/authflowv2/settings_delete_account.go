@@ -73,7 +73,7 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithoutDBTx()
 
 	currentSession := session.GetSession(r.Context())
 	redirectURI := "/settings/delete_account/success"
@@ -101,7 +101,9 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 			return apierrors.NewInvalid("confirmation is required to delete account")
 		}
 
-		err := h.Users.ScheduleDeletionByEndUser(currentSession.GetAuthenticationInfo().UserID)
+		err := h.Database.WithTx(func() error {
+			return h.Users.ScheduleDeletionByEndUser(currentSession.GetAuthenticationInfo().UserID)
+		})
 		if err != nil {
 			return err
 		}
