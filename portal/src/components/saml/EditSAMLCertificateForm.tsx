@@ -1,5 +1,4 @@
 import React, { useCallback, useContext, useMemo, useState } from "react";
-import cn from "classnames";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import { SAMLIdpSigningCertificate } from "../../types";
 import { FormState } from "../../hook/useSAMLCertificateForm";
@@ -14,16 +13,18 @@ import {
   IColumn,
   SelectionMode,
   Text,
-  ChoiceGroup,
-  IChoiceGroupOption,
   ILinkStyles,
+  Dialog,
+  IDialogContentProps,
+  DialogFooter,
 } from "@fluentui/react";
 import LinkButton from "../../LinkButton";
 import { downloadStringAsFile } from "../../util/download";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import styles from "./EditSAMLCertificateForm.module.css";
 import ActionButton from "../../ActionButton";
-import PrimaryButton from "../../PrimaryButton";
+import ButtonWithLoading from "../../ButtonWithLoading";
+import DefaultButton from "../../DefaultButton";
 
 interface EditSAMLCertificateFormProps {
   form: AppSecretConfigFormModel<FormState>;
@@ -38,7 +39,7 @@ export function EditSAMLCertificateForm({
   certificates,
   onGenerateNewCertitificate,
 }: EditSAMLCertificateFormProps): React.ReactElement {
-  const { canSave, onSubmit } = useFormContainerBaseContext();
+  const { onSubmit } = useFormContainerBaseContext();
   const { renderToString } = useContext(MessageContext);
   const { themes } = useSystemConfig();
 
@@ -67,20 +68,14 @@ export function EditSAMLCertificateForm({
     return callbacks;
   }, [certificates]);
 
-  const onToggleRemoveCert = useMemo(() => {
+  const onRemoveCert = useMemo(() => {
     const callbacks: Record<string, () => void> = {};
     for (const cert of certificates) {
       callbacks[cert.keyID] = () => {
         form.setState((prevState) => {
-          const newKeyIDs = new Set(prevState.removingCertificateKeyIDs);
-          if (newKeyIDs.has(cert.keyID)) {
-            newKeyIDs.delete(cert.keyID);
-          } else {
-            newKeyIDs.add(cert.keyID);
-          }
           return {
             ...prevState,
-            removingCertificateKeyIDs: Array.from(newKeyIDs),
+            removingCertificateKeyID: cert.keyID,
           };
         });
       };
@@ -88,34 +83,18 @@ export function EditSAMLCertificateForm({
     return callbacks;
   }, [certificates, form]);
 
-  const choiceGroupOptionsByKeyID = useMemo(() => {
-    const optionsByKeyID: Record<string, IChoiceGroupOption[]> = {};
+  const onChangeActiveKey = useMemo(() => {
+    const callbacks: Record<string, () => void> = {};
     for (const cert of certificates) {
-      optionsByKeyID[cert.keyID] = [
-        {
-          key: cert.keyID,
-          text: renderToString(
-            "EditSAMLCertificateForm.certificates.column.status.active"
-          ),
-        },
-      ];
+      callbacks[cert.keyID] = () => {
+        form.setState((prevState) => ({
+          ...prevState,
+          activeKeyID: cert.keyID,
+        }));
+      };
     }
-    return optionsByKeyID;
-  }, [certificates, renderToString]);
-
-  const removingCertificateKeyIDsSet = useMemo(() => {
-    return new Set(form.state.removingCertificateKeyIDs);
-  }, [form.state.removingCertificateKeyIDs]);
-
-  const onChangeActiveKey = useCallback(
-    (_: unknown, option?: IChoiceGroupOption) => {
-      if (!option) {
-        return;
-      }
-      form.setState((prevState) => ({ ...prevState, activeKeyID: option.key }));
-    },
-    [form]
-  );
+    return callbacks;
+  }, [certificates, form]);
 
   const columns: IColumn[] = useMemo(() => {
     const renderFingerprint = (
@@ -128,40 +107,23 @@ export function EditSAMLCertificateForm({
       }
       return (
         <div className="grid grid-cols-1 gap-y-2">
-          <Text
-            className={cn(
-              "text-neutral-secondary",
-              removingCertificateKeyIDsSet.has(item.keyID)
-                ? "line-through"
-                : null
-            )}
-            block={true}
-          >
+          <Text className={"text-neutral-secondary"} block={true}>
             {item.certificateFingerprint}
           </Text>
           <div className="grid grid-rows-1 grid-flow-col gap-x-4 justify-start">
             <LinkButton
               styles={actionLinkButtonStyle}
               onClick={onClickDownloadCert[item.keyID]}
-              disabled={removingCertificateKeyIDsSet.has(item.keyID)}
             >
               <FormattedMessage id="EditSAMLCertificateForm.certificates.download" />
             </LinkButton>
             {form.state.activeKeyID !== item.keyID ? (
               <LinkButton
                 styles={actionLinkButtonStyle}
-                onClick={onToggleRemoveCert[item.keyID]}
-                theme={
-                  removingCertificateKeyIDsSet.has(item.keyID)
-                    ? themes.actionButton
-                    : themes.destructive
-                }
+                onClick={onRemoveCert[item.keyID]}
+                theme={themes.destructive}
               >
-                {removingCertificateKeyIDsSet.has(item.keyID) ? (
-                  <FormattedMessage id="EditSAMLCertificateForm.certificates.restore" />
-                ) : (
-                  <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
-                )}
+                <FormattedMessage id="EditSAMLCertificateForm.certificates.remove" />
               </LinkButton>
             ) : null}
           </div>
@@ -176,13 +138,21 @@ export function EditSAMLCertificateForm({
       if (!item) {
         return null;
       }
+      if (form.state.activeKeyID === item.keyID) {
+        return (
+          <Text className="text-status-green">
+            <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.active" />
+          </Text>
+        );
+      }
       return (
-        <ChoiceGroup
-          options={choiceGroupOptionsByKeyID[item.keyID]}
-          selectedKey={form.state.activeKeyID}
-          onChange={onChangeActiveKey}
-          disabled={removingCertificateKeyIDsSet.has(item.keyID)}
-        />
+        <LinkButton
+          styles={actionLinkButtonStyle}
+          onClick={onChangeActiveKey[item.keyID]}
+          disabled={form.isLoading || form.isUpdating}
+        >
+          <FormattedMessage id="EditSAMLCertificateForm.certificates.column.status.activate" />
+        </LinkButton>
       );
     };
     return [
@@ -206,15 +176,47 @@ export function EditSAMLCertificateForm({
     ];
   }, [
     renderToString,
-    removingCertificateKeyIDsSet,
     onClickDownloadCert,
     form.state.activeKeyID,
-    onToggleRemoveCert,
-    themes.actionButton,
+    form.isLoading,
+    form.isUpdating,
+    onRemoveCert,
     themes.destructive,
-    choiceGroupOptionsByKeyID,
     onChangeActiveKey,
   ]);
+
+  const dismissRemoveCertificateDialog = useCallback(() => {
+    form.setState((state) => ({
+      ...state,
+      removingCertificateKeyID: null,
+    }));
+  }, [form]);
+
+  const onConfirmRemoveCertificate = useCallback(() => {
+    form.save().then(
+      () => {
+        dismissRemoveCertificateDialog();
+        form.reload();
+      },
+      () => {
+        dismissRemoveCertificateDialog();
+      }
+    );
+  }, [form, dismissRemoveCertificateDialog]);
+
+  const removeCertDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      title: renderToString(
+        "EditSAMLCertificateForm.removeCertificateDialog.title"
+      ),
+      subText: renderToString(
+        "EditSAMLCertificateForm.removeCertificateDialog.description"
+      ),
+    };
+  }, [renderToString]);
+
+  const isRemoveCertificateDialogVisible =
+    form.state.removingCertificateKeyID != null;
 
   return (
     <form onSubmit={onSubmit}>
@@ -245,13 +247,29 @@ export function EditSAMLCertificateForm({
             disabled={certificates.length >= 2 || isLoading}
           />
         </div>
-        <PrimaryButton
-          className="justify-self-start"
-          type="submit"
-          disabled={!canSave}
-          text={<FormattedMessage id="save" />}
-        />
       </div>
+
+      <Dialog
+        hidden={!isRemoveCertificateDialogVisible}
+        dialogContentProps={removeCertDialogContentProps}
+        modalProps={{ isBlocking: form.isUpdating }}
+        onDismiss={dismissRemoveCertificateDialog}
+      >
+        <DialogFooter>
+          <ButtonWithLoading
+            theme={themes.actionButton}
+            loading={form.isUpdating}
+            onClick={onConfirmRemoveCertificate}
+            disabled={!isRemoveCertificateDialogVisible}
+            labelId="confirm"
+          />
+          <DefaultButton
+            onClick={dismissRemoveCertificateDialog}
+            disabled={form.isUpdating || !isRemoveCertificateDialogVisible}
+            text={<FormattedMessage id="cancel" />}
+          />
+        </DialogFooter>
+      </Dialog>
     </form>
   );
 }

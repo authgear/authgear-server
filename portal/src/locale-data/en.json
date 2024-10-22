@@ -1022,10 +1022,12 @@
   "EditSAMLCertificateForm.certificates.column.fingerprint": "Certificate (SHA-1 Fingerprint)",
   "EditSAMLCertificateForm.certificates.column.status": "Status",
   "EditSAMLCertificateForm.certificates.column.status.active": "Active",
+  "EditSAMLCertificateForm.certificates.column.status.activate": "Activate",
   "EditSAMLCertificateForm.certificates.download": "Download",
   "EditSAMLCertificateForm.certificates.remove": "Remove",
-  "EditSAMLCertificateForm.certificates.restore": "Restore",
   "EditSAMLCertificateForm.certificates.generate": "Generate certificate",
+  "EditSAMLCertificateForm.removeCertificateDialog.title": "Remove Certificate",
+  "EditSAMLCertificateForm.removeCertificateDialog.description": "Are you sure you want to delete the certificate?",
 
   "VerifyDomainScreen.title": "Verify Domain",
   "VerifyDomainScreen.desc-main": "Setup CNAME and add TXT record below to your DNS provider to verify your own {b, react, children{{domain}}}",

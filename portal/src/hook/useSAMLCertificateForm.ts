@@ -8,13 +8,13 @@ import { useAppSecretConfigForm } from "./useAppSecretConfigForm";
 
 export interface FormState {
   activeKeyID?: string;
-  removingCertificateKeyIDs: string[];
+  removingCertificateKeyID: string | null;
 }
 
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     activeKeyID: config.saml?.signing?.key_id,
-    removingCertificateKeyIDs: [],
+    removingCertificateKeyID: null,
   };
 }
 
@@ -44,11 +44,11 @@ function constructSecretUpdateInstruction(
   currentState: FormState
 ): PortalAPISecretConfigUpdateInstruction | undefined {
   let instruction: PortalAPISecretConfigUpdateInstruction | undefined;
-  if (currentState.removingCertificateKeyIDs.length > 0) {
+  if (currentState.removingCertificateKeyID != null) {
     instruction ??= {};
     instruction.samlIdpSigningSecrets = {
       action: "delete",
-      deleteData: { keyIDs: currentState.removingCertificateKeyIDs },
+      deleteData: { keyIDs: [currentState.removingCertificateKeyID] },
     };
   }
   return instruction;
