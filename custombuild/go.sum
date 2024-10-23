@@ -441,8 +441,8 @@ github.com/njern/gonexmo v2.0.0+incompatible h1:LSCDbbdttDqrAYvgIp9aVPwHsQkWg0sR
 github.com/njern/gonexmo v2.0.0+incompatible/go.mod h1:JCPIYf4DYSY4fxFKU79wPEH5H6i7Xzlxwae57fWiRT0=
 github.com/nxadm/tail v1.4.8 h1:nPr65rt6Y5JFSKQO7qToXr7pePgD6Gwiw05lkbyAQTE=
 github.com/nxadm/tail v1.4.8/go.mod h1:+ncqLTQzXmGhMZNUePPaPqPvBxHAIsmXswZKocGu+AU=
-github.com/nyaruka/phonenumbers v1.4.0 h1:ddhWiHnHCIX3n6ETDA58Zq5dkxkjlvgrDWM2OHHPCzU=
-github.com/nyaruka/phonenumbers v1.4.0/go.mod h1:gv+CtldaFz+G3vHHnasBSirAi3O2XLqZzVWz4V1pl2E=
+github.com/nyaruka/phonenumbers v1.4.1 h1:dNsiYGirahC2lMRz3p2dxmmyLbzD3arCgmj/hPEVRPY=
+github.com/nyaruka/phonenumbers v1.4.1/go.mod h1:gv+CtldaFz+G3vHHnasBSirAi3O2XLqZzVWz4V1pl2E=
 github.com/onsi/ginkgo v1.16.5 h1:8xi0RTUf59SOSfEtZMvwTvXYMzG4gV23XVHOZiXNtnE=
 github.com/onsi/ginkgo v1.16.5/go.mod h1:+E8gABHa3K6zRBolWtd+ROzc/U5bkGt0FwiG042wbpU=
 github.com/onsi/ginkgo/v2 v2.15.0 h1:79HwNRBAZHOEwrczrgSOPy+eFTTlIGELKy5as+ClttY=
