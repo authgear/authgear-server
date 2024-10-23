@@ -368,7 +368,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	graphQLHandler := &transport.GraphQLHandler{
 		GraphQLContext: graphqlContext,
-		Database:       handle,
 	}
 	return graphQLHandler
 }
