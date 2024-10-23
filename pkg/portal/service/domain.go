@@ -48,13 +48,15 @@ type DomainConfigService interface {
 }
 
 type DomainService struct {
-	Context      context.Context
-	Clock        clock.Clock
-	DomainConfig DomainConfigService
-	SQLBuilder   *globaldb.SQLBuilder
-	SQLExecutor  *globaldb.SQLExecutor
+	Context        context.Context
+	Clock          clock.Clock
+	DomainConfig   DomainConfigService
+	SQLBuilder     *globaldb.SQLBuilder
+	SQLExecutor    *globaldb.SQLExecutor
+	GlobalDatabase *globaldb.Handle
 }
 
+// GetMany acquires connection.
 func (s *DomainService) GetMany(ids []string) ([]*apimodel.Domain, error) {
 	var rawIDs []string
 	for _, id := range ids {
@@ -64,11 +66,20 @@ func (s *DomainService) GetMany(ids []string) ([]*apimodel.Domain, error) {
 		}
 	}
 
-	pendingDomains, err := s.listDomains(rawIDs, false)
-	if err != nil {
-		return nil, err
-	}
-	domains, err := s.listDomains(rawIDs, true)
+	var pendingDomains []*apimodel.Domain
+	var domains []*apimodel.Domain
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		pendingDomains, err = s.listDomains(rawIDs, false)
+		if err != nil {
+			return err
+		}
+		domains, err = s.listDomains(rawIDs, true)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -79,13 +90,24 @@ func (s *DomainService) GetMany(ids []string) ([]*apimodel.Domain, error) {
 	return out, nil
 }
 
+// ListDomains acquires connection.
 func (s *DomainService) ListDomains(appID string) ([]*apimodel.Domain, error) {
-	pendingDomains, err := s.listDomainsByAppID(appID, false)
-	if err != nil {
-		return nil, err
-	}
+	var pendingDomains []*apimodel.Domain
+	var domains []*apimodel.Domain
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		pendingDomains, err = s.listDomainsByAppID(appID, false)
+		if err != nil {
+			return err
+		}
 
-	domains, err := s.listDomainsByAppID(appID, true)
+		domains, err = s.listDomainsByAppID(appID, true)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -98,10 +120,25 @@ func (s *DomainService) ListDomains(appID string) ([]*apimodel.Domain, error) {
 	return result, nil
 }
 
+// CreateCustomDomain acquires connection.
 func (s *DomainService) CreateCustomDomain(appID string, domain string) (*apimodel.Domain, error) {
-	return s.CreateDomain(appID, domain, false, true)
+	var out *apimodel.Domain
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		out, err = s.CreateDomain(appID, domain, false, true)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
+// CreateDomain assumes acquired connection.
 func (s *DomainService) CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*apimodel.Domain, error) {
 	d, err := newDomain(appID, domain, s.Clock.NowUTC(), isCustom)
 	if err != nil {
@@ -130,6 +167,7 @@ func (s *DomainService) CreateDomain(appID string, domain string, isVerified boo
 	return domainModel, nil
 }
 
+// DeleteDomain assumes acquired connection.
 func (s *DomainService) DeleteDomain(appID string, id string) error {
 	isVerified, id, ok := parseDomainID(id)
 	if !ok {
@@ -202,6 +240,7 @@ func (s *DomainService) listDomainsByAppID(appID string, isVerified bool) ([]*ap
 	return domains, nil
 }
 
+// VerifyDomain acquires connection.
 func (s *DomainService) VerifyDomain(appID string, id string) (*apimodel.Domain, error) {
 	isVerified, id, ok := parseDomainID(id)
 	if !ok {
@@ -212,24 +251,36 @@ func (s *DomainService) VerifyDomain(appID string, id string) (*apimodel.Domain,
 		return nil, ErrDomainVerified
 	}
 
-	d, err := s.getDomain(appID, id, false)
-	if err != nil {
-		return nil, err
-	}
+	var d *domain
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		d, err = s.getDomain(appID, id, false)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 
 	err = s.verifyDomain(d)
 	if err != nil {
 		return nil, DomainVerificationFailed.Errorf("domain verification failed: %w", err)
 	}
 
-	// Migrate the domain from pending domains to domains
-	err = s.deleteDomain(d, false)
-	if err != nil {
-		return nil, err
-	}
+	err = s.GlobalDatabase.WithTx(func() error {
+		// Migrate the domain from pending domains to domains
+		err = s.deleteDomain(d, false)
+		if err != nil {
+			return err
+		}
 
-	d.CreatedAt = s.Clock.NowUTC()
-	err = s.createDomain(d, true)
+		d.CreatedAt = s.Clock.NowUTC()
+		err = s.createDomain(d, true)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}

@@ -408,7 +408,23 @@ func (s *AppService) UpdateResources(app *model.App, updates []appresource.Updat
 		return err
 	}
 
-	return err
+	return nil
+}
+
+// UpdateResources0 assumes acquired connection.
+func (s *AppService) UpdateResources0(app *model.App, updates []appresource.Update) error {
+	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	files, err := appResMgr.ApplyUpdates(app.ID, updates)
+	if err != nil {
+		return err
+	}
+
+	err = s.AppConfigs.UpdateResources(app.ID, files)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *AppService) generateResources(appHost string, appID string, featureConfig *config.FeatureConfig) (map[string][]byte, error) {
