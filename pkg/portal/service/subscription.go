@@ -54,6 +54,7 @@ type UsageStore interface {
 type SubscriptionService struct {
 	SQLBuilder        *globaldb.SQLBuilder
 	SQLExecutor       *globaldb.SQLExecutor
+	GlobalDatabase    *globaldb.Handle
 	ConfigSourceStore SubscriptionConfigSourceStore
 	PlanStore         SubscriptionPlanStore
 	UsageStore        UsageStore
@@ -61,7 +62,8 @@ type SubscriptionService struct {
 	AppConfig         *portalconfig.AppConfig
 }
 
-func (s *SubscriptionService) UpsertSubscription(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error) {
+// UpsertSubscription0 assumes acquired connection.
+func (s *SubscriptionService) UpsertSubscription0(appID string, stripeSubscriptionID string, stripeCustomerID string) (*model.Subscription, error) {
 	now := s.Clock.NowUTC()
 	if err := s.upsertSubscription(&model.Subscription{
 		ID:                   uuid.New(),
@@ -73,9 +75,10 @@ func (s *SubscriptionService) UpsertSubscription(appID string, stripeSubscriptio
 	}); err != nil {
 		return nil, err
 	}
-	return s.GetSubscription(appID)
+	return s.GetSubscription0(appID)
 }
 
+// CreateSubscriptionCheckout acquires connection.
 func (s *SubscriptionService) CreateSubscriptionCheckout(checkoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error) {
 	now := s.Clock.NowUTC()
 	cs := &model.SubscriptionCheckout{
@@ -87,13 +90,41 @@ func (s *SubscriptionService) CreateSubscriptionCheckout(checkoutSession *libstr
 		UpdatedAt:               now,
 		ExpireAt:                time.Unix(checkoutSession.ExpiresAt, 0).UTC(),
 	}
-	if err := s.createSubscriptionCheckout(cs); err != nil {
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		err = s.createSubscriptionCheckout(cs)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
+
 	return cs, nil
 }
 
+// GetSubscription acquires connection.
 func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription, error) {
+	var sub *model.Subscription
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		sub, err = s.GetSubscription0(appID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
+// GetSubscription0 assumes acquired connection.
+func (s *SubscriptionService) GetSubscription0(appID string) (*model.Subscription, error) {
 	q := s.SQLBuilder.Select(
 		"id",
 		"app_id",
@@ -136,24 +167,39 @@ func (s *SubscriptionService) GetSubscription(appID string) (*model.Subscription
 	return &subscription, nil
 }
 
+// MarkCheckoutCompleted acquires connection.
 // MarkCheckoutCompleted marks subscription checkout as completed.
 // It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
 // or the checkout status is already subscribed.
 func (s *SubscriptionService) MarkCheckoutCompleted(appID string, stripCheckoutSessionID string, customerID string) error {
-	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
-		return b.Set("status", model.SubscriptionCheckoutStatusCompleted).
-			Set("stripe_customer_id", customerID).
-			Where("stripe_checkout_session_id = ?", stripCheckoutSessionID).
-			Where("app_id = ?", appID).
-			// Only allow updating status if it is not subscribed
-			Where("status != ?", model.SubscriptionCheckoutStatusSubscribed)
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		err = s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
+			return b.Set("status", model.SubscriptionCheckoutStatusCompleted).
+				Set("stripe_customer_id", customerID).
+				Where("stripe_checkout_session_id = ?", stripCheckoutSessionID).
+				Where("app_id = ?", appID).
+				// Only allow updating status if it is not subscribed
+				Where("status != ?", model.SubscriptionCheckoutStatusSubscribed)
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
-// MarkCheckoutSubscribed marks subscription checkout as subscribed.
+// MarkCheckoutSubscribed0 assumes acquired connection.
+// MarkCheckoutSubscribed0 marks subscription checkout as subscribed.
 // It returns ErrSubscriptionCheckoutNotFound when the checkout is not found
 // or the checkout status is already subscribed.
-func (s *SubscriptionService) MarkCheckoutSubscribed(appID string, customerID string) error {
+func (s *SubscriptionService) MarkCheckoutSubscribed0(appID string, customerID string) error {
 	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
 		return b.Set("status", model.SubscriptionCheckoutStatusSubscribed).
 			Where("app_id = ?", appID).
@@ -163,7 +209,8 @@ func (s *SubscriptionService) MarkCheckoutSubscribed(appID string, customerID st
 	})
 }
 
-func (s *SubscriptionService) MarkCheckoutCancelled(appID string, customerID string) error {
+// MarkCheckoutCancelled0 assumes acquired connection.
+func (s *SubscriptionService) MarkCheckoutCancelled0(appID string, customerID string) error {
 	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
 		return b.Set("status", model.SubscriptionCheckoutStatusCancelled).
 			Where("app_id = ?", appID).
@@ -171,15 +218,47 @@ func (s *SubscriptionService) MarkCheckoutCancelled(appID string, customerID str
 	})
 }
 
+// MarkCheckoutExpired acquires connection.
 func (s *SubscriptionService) MarkCheckoutExpired(appID string, customerID string) error {
-	return s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
-		return b.Set("status", model.SubscriptionCheckoutStatusExpired).
-			Where("app_id = ?", appID).
-			Where("stripe_customer_id = ?", customerID)
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		err = s.updateSubscriptionCheckoutStatus(func(b squirrel.UpdateBuilder) squirrel.UpdateBuilder {
+			return b.Set("status", model.SubscriptionCheckoutStatusExpired).
+				Where("app_id = ?", appID).
+				Where("stripe_customer_id = ?", customerID)
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
+// UpdateAppPlan acquires connection.
 func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error {
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		err = s.UpdateAppPlan0(appID, planName)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateAppPlan0 assumes acquired connection.
+func (s *SubscriptionService) UpdateAppPlan0(appID string, planName string) error {
 	consrc, err := s.ConfigSourceStore.GetDatabaseSourceByAppID(appID)
 	if err != nil {
 		return err
@@ -207,28 +286,45 @@ func (s *SubscriptionService) UpdateAppPlan(appID string, planName string) error
 	return nil
 }
 
-func (s *SubscriptionService) UpdateAppPlanToDefault(appID string) error {
+// UpdateAppPlanToDefault0 assumes acquired connection.
+func (s *SubscriptionService) UpdateAppPlanToDefault0(appID string) error {
 	defaultPlan := s.AppConfig.DefaultPlan
-	return s.UpdateAppPlan(appID, defaultPlan)
+	return s.UpdateAppPlan0(appID, defaultPlan)
 }
 
+// GetLastProcessingCustomerID acquires connection.
 func (s *SubscriptionService) GetLastProcessingCustomerID(appID string) (*string, error) {
-	hasSubscription := true
-	_, err := s.GetSubscription(appID)
-	if errors.Is(err, ErrSubscriptionNotFound) {
-		hasSubscription = false
-	} else if err != nil {
+	var customerID *string
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		hasSubscription := true
+		_, err := s.GetSubscription0(appID)
+		if errors.Is(err, ErrSubscriptionNotFound) {
+			hasSubscription = false
+		} else if err != nil {
+			return err
+		}
+
+		// If the app has an active subscription, we ignore any processing checkout session.
+		if hasSubscription {
+			return nil
+		}
+
+		customerID, err = s.getLastCompletedSubscriptionCheckoutCustomerID(appID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
 		return nil, err
 	}
 
-	// If the app has an active subscription, we ignore any processing checkout session.
-	if hasSubscription {
-		return nil, nil
-	}
-
-	return s.getLastCompletedSubscriptionCheckoutCustomerID(appID)
+	return customerID, nil
 }
 
+// SetSubscriptionCancelledStatus acquires connection.
 func (s *SubscriptionService) SetSubscriptionCancelledStatus(id string, cancelled bool, endedAt *time.Time) error {
 	now := s.Clock.NowUTC()
 	var subCancelledAt *time.Time
@@ -248,24 +344,33 @@ func (s *SubscriptionService) SetSubscriptionCancelledStatus(id string, cancelle
 		Set("updated_at", now).
 		Where("id = ?", id)
 
-	result, err := s.SQLExecutor.ExecWith(q)
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		result, err := s.SQLExecutor.ExecWith(q)
+		if err != nil {
+			return err
+		}
+
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			return err
+		}
+
+		if rowsAffected == 0 {
+			return ErrSubscriptionCheckoutNotFound
+		}
+
+		return nil
+	})
 	if err != nil {
 		return err
-	}
-
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return ErrSubscriptionCheckoutNotFound
 	}
 
 	return nil
 }
 
-func (s *SubscriptionService) ArchiveSubscription(sub *model.Subscription) error {
+// ArchiveSubscription0 assumes acquired connection.
+func (s *SubscriptionService) ArchiveSubscription0(sub *model.Subscription) error {
 	now := s.Clock.NowUTC()
 	_, err := s.SQLExecutor.ExecWith(s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_historical_subscription")).
@@ -417,10 +522,34 @@ func (s *SubscriptionService) updateSubscriptionCheckoutStatus(
 	return nil
 }
 
+// GetSubscriptionUsage acquires connection.
 // GetSubscriptionUsage uses the current plan to estimate the usage and the cost.
 // However, if we ever adjust the prices, the estimation will become inaccurate.
 // A accurate estimation should use the Prices in the Stripe Subscription to perform calculation.
 func (s *SubscriptionService) GetSubscriptionUsage(
+	appID string,
+	planName string,
+	date time.Time,
+	subscriptionPlans []*model.SubscriptionPlan,
+) (*model.SubscriptionUsage, error) {
+	var usage *model.SubscriptionUsage
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		usage, err = s.getSubscriptionUsage(appID, planName, date, subscriptionPlans)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return usage, nil
+}
+
+func (s *SubscriptionService) getSubscriptionUsage(
 	appID string,
 	planName string,
 	date time.Time,
