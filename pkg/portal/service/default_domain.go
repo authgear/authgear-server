@@ -24,6 +24,7 @@ type DefaultDomainService struct {
 	Domains         DefaultDomainDomainService
 }
 
+// GetLatestAppHost does not need connection.
 func (s *DefaultDomainService) GetLatestAppHost(appID string) (string, error) {
 	if s.AppConfig.HostSuffix == "" {
 		return "", ErrHostSuffixNotConfigured
@@ -43,6 +44,7 @@ func (s *DefaultDomainService) hostToDomain(host string) string {
 	return host
 }
 
+// CreateAllDefaultDomains assume acquired connection.
 func (s *DefaultDomainService) CreateAllDefaultDomains(appID string) error {
 	if s.AppConfig.HostSuffix == "" {
 		return ErrHostSuffixNotConfigured
