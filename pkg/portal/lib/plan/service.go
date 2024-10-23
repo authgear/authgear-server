@@ -1,13 +1,15 @@
 package plan
 
 import (
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
 type Service struct {
-	PlanStore *Store
-	AppConfig *portalconfig.AppConfig
+	GlobalDatabase *globaldb.Handle
+	PlanStore      *Store
+	AppConfig      *portalconfig.AppConfig
 }
 
 func (s *Service) GetDefaultPlan() (*model.Plan, error) {
@@ -16,13 +18,36 @@ func (s *Service) GetDefaultPlan() (*model.Plan, error) {
 		// no default plan is configured
 		return nil, nil
 	}
-	plan, err := s.PlanStore.GetPlan(defaultPlanName)
+
+	var plan *model.Plan
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		plan, err = s.PlanStore.GetPlan(defaultPlanName)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
+
 	return plan, nil
 }
 
 func (s *Service) ListPlans() ([]*model.Plan, error) {
-	return s.PlanStore.List()
+	var plans []*model.Plan
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		plans, err = s.PlanStore.List()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return plans, nil
 }
