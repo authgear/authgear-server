@@ -618,15 +618,11 @@ export function OAuthClientSAMLForm({
                     description={renderToString(
                       "OAuthClientSAMLForm.signature.checkSignature.description"
                     )}
+                    disabled={formState.signingCertificates.length < 1}
                     checked={formState.signatureVerificationEnabled}
                     onChange={onSignatureVerificationEnabledChange}
                   />
-                  <MessageBar
-                    className={cn(
-                      formState.signatureVerificationEnabled ? null : "hidden"
-                    )}
-                    messageBarType={MessageBarType.warning}
-                  >
+                  <MessageBar messageBarType={MessageBarType.warning}>
                     <FormattedMessage id="OAuthClientSAMLForm.signature.checkSignature.hint" />
                   </MessageBar>
                 </div>
@@ -649,6 +645,8 @@ export function OAuthClientSAMLForm({
                     "OAuthClientSAMLForm.signature.certificates.description"
                   )}
                   multiline={true}
+                  maxItem={2}
+                  minItem={formState.signatureVerificationEnabled ? 1 : 0}
                 />
               </div>
             </div>

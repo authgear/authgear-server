@@ -40,6 +40,7 @@ export interface FieldListProps<T> {
   addDisabled?: boolean;
   deleteDisabled?: boolean;
   minItem?: number;
+  maxItem?: number;
 }
 
 const FieldList = function FieldList<T>(
@@ -65,6 +66,7 @@ const FieldList = function FieldList<T>(
     description,
     descriptionPosition = "bottom",
     minItem,
+    maxItem,
   } = props;
 
   const { themes } = useSystemConfig();
@@ -122,6 +124,7 @@ const FieldList = function FieldList<T>(
   }, [description, descriptionPosition]);
 
   const isMinItemReached = minItem != null && list.length <= minItem;
+  const isMaxItemReached = maxItem != null && list.length >= maxItem;
 
   return (
     <div className={className}>
@@ -151,7 +154,7 @@ const FieldList = function FieldList<T>(
         iconProps={{ iconName: "CirclePlus", className: styles.addButtonIcon }}
         onClick={onItemAdd}
         text={<FormattedMessage id={addButtonLabelMessageID ?? "add"} />}
-        disabled={addDisabled}
+        disabled={addDisabled || isMaxItemReached}
       />
       {descriptionPosition === "bottom" && descriptionEl ? descriptionEl : null}
     </div>

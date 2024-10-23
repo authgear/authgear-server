@@ -88,6 +88,7 @@ export interface FormTextFieldListProps {
   addButtonLabelMessageID?: string;
   disabled?: boolean;
   minItem?: number;
+  maxItem?: number;
   multiline?: boolean;
 }
 
@@ -107,6 +108,7 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
       addButtonLabelMessageID,
       disabled,
       minItem,
+      maxItem,
       multiline,
     } = props;
     const makeDefaultItem = useCallback(() => "", []);
@@ -158,6 +160,7 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
         addDisabled={disabled}
         deleteDisabled={disabled}
         minItem={minItem}
+        maxItem={maxItem}
       />
     );
   };
