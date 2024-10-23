@@ -21,7 +21,9 @@ type SessionCookieDef struct {
 
 func NewSessionCookieDef() SessionCookieDef {
 	def := &httputil.CookieDef{
-		NameSuffix:        "web_session",
+		// NOTE: We plan to add `authgear_` prefix for the cookies we write.
+		// See DEV-2227
+		NameSuffix:        "authgear_web_session",
 		Path:              "/",
 		AllowScriptAccess: false,
 		SameSite:          http.SameSiteNoneMode, // For resumption after redirecting from OAuth providers
