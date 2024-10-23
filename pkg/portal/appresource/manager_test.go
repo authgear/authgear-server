@@ -41,7 +41,7 @@ func TestManager(t *testing.T) {
 			appResourceFs,
 		})
 		tutorialService := NewMockTutorialService(ctrl)
-		tutorialService.EXPECT().OnUpdateResource(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+		tutorialService.EXPECT().OnUpdateResource(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 		denoClient := NewMockDenoClient(ctrl)
 		denoClient.EXPECT().Check(gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 		domainService := NewMockDomainService(ctrl)

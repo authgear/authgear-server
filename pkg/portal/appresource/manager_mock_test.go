@@ -74,17 +74,17 @@ func (m *MockTutorialService) EXPECT() *MockTutorialServiceMockRecorder {
 }
 
 // OnUpdateResource mocks base method.
-func (m *MockTutorialService) OnUpdateResource(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) error {
+func (m *MockTutorialService) OnUpdateResource(appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "OnUpdateResource", ctx, appID, resourcesInAllFss, resourceInTargetFs, data)
+	ret := m.ctrl.Call(m, "OnUpdateResource", appID, resourcesInAllFss, resourceInTargetFs, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // OnUpdateResource indicates an expected call of OnUpdateResource.
-func (mr *MockTutorialServiceMockRecorder) OnUpdateResource(ctx, appID, resourcesInAllFss, resourceInTargetFs, data interface{}) *gomock.Call {
+func (mr *MockTutorialServiceMockRecorder) OnUpdateResource(appID, resourcesInAllFss, resourceInTargetFs, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnUpdateResource", reflect.TypeOf((*MockTutorialService)(nil).OnUpdateResource), ctx, appID, resourcesInAllFss, resourceInTargetFs, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnUpdateResource", reflect.TypeOf((*MockTutorialService)(nil).OnUpdateResource), appID, resourcesInAllFss, resourceInTargetFs, data)
 }
 
 // MockDomainService is a mock of DomainService interface.
