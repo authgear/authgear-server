@@ -33,6 +33,7 @@ interface FormStateSAMLServiceProviderConfig {
   sloCallbackBinding?: SAMLBinding;
   signatureVerificationEnabled?: boolean;
   certificates?: string[];
+  isMetadataUploaded: boolean;
 }
 
 export interface FormState {
@@ -81,6 +82,7 @@ function constructFormState(
         secrets.samlSpSigningSecrets
           ?.find((secret) => secret.clientID === sp.client_id)
           ?.certificates.map((cert) => cert.certificatePEM) ?? [],
+      isMetadataUploaded: false,
     });
   }
   return {

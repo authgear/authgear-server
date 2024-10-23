@@ -16,6 +16,7 @@ import {
   MessageBar,
   MessageBarType,
   Text,
+  FontIcon,
 } from "@fluentui/react";
 import {
   SAMLNameIDFormat,
@@ -55,6 +56,8 @@ export interface OAuthClientSAMLFormState {
   // Signature
   signatureVerificationEnabled: boolean;
   signingCertificates: string[];
+
+  isMetadataUploaded: boolean;
 }
 
 export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
@@ -72,6 +75,7 @@ export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
     sloCallbackBinding: SAMLBinding.HTTPRedirect,
     signatureVerificationEnabled: false,
     signingCertificates: [],
+    isMetadataUploaded: false,
   };
 }
 
@@ -354,6 +358,7 @@ export function OAuthClientSAMLForm({
       const parseResult = parseServiceProviderMetadata(xmlData);
       const newState = {
         ...formState,
+        isMetadataUploaded: true,
       };
       if (parseResult.acsURL != null) {
         newState.acsURLs = [parseResult.acsURL];
@@ -436,17 +441,30 @@ export function OAuthClientSAMLForm({
               <ScreenTitle>
                 <FormattedMessage id="OAuthClientSAMLForm.title" />
               </ScreenTitle>
-              <div className="mt-3 grid gap-y-2 grid-cols-1 items-start">
+              <div className="mt-3 grid gap-y-2 grid-cols-1 items-start justify-items-start">
                 <Text block={true}>
                   <FormattedMessage id="OAuthClientSAMLForm.metadataUpload.description" />
                 </Text>
-                <DefaultButton
-                  className="w-fit"
-                  text={renderToString(
-                    "OAuthClientSAMLForm.metadataUpload.label"
-                  )}
-                  onClick={onUploadMetadata}
-                />
+                <div className="grid grid-flow-col items-center gap-x-2">
+                  <DefaultButton
+                    className="w-fit"
+                    text={renderToString(
+                      "OAuthClientSAMLForm.metadataUpload.label"
+                    )}
+                    onClick={onUploadMetadata}
+                  />
+                  {formState.isMetadataUploaded ? (
+                    <div className="flex flex-row items-center">
+                      <FontIcon
+                        iconName="Accept"
+                        className="text-text-disabled mr-1"
+                      />
+                      <Text className="text-text-disabled">
+                        <FormattedMessage id="OAuthClientSAMLForm.metadataUpload.success" />
+                      </Text>
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
             <div>

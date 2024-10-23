@@ -541,6 +541,7 @@ function OAuthClientSAML2Content({
           defaults.signatureVerificationEnabled,
         signingCertificates:
           samlConfig.certificates ?? defaults.signingCertificates,
+        isMetadataUploaded: samlConfig.isMetadataUploaded,
       };
     }, [clientID, state.samlServiceProviders]);
 
@@ -562,6 +563,7 @@ function OAuthClientSAML2Content({
           sloCallbackBinding: newState.sloCallbackBinding,
           signatureVerificationEnabled: newState.signatureVerificationEnabled,
           certificates: newState.signingCertificates,
+          isMetadataUploaded: newState.isMetadataUploaded,
         };
         const newServiceProviders = [...prevState.samlServiceProviders];
         const existingConfigIndex = state.samlServiceProviders.findIndex(
