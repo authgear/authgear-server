@@ -30,6 +30,8 @@ services:
       POSTGRESQL_PORT: "5432"
       POSTGRESQL_USERNAME: "postgres"
       POSTGRESQL_PASSWORD: "postgres"
+      PGBOUNCER_DSN_0: "app=host=db port=5432 dbname=postgres"
+      PGBOUNCER_DSN_1: "audit=host=db port=5432 dbname=postgres"
 
   redis:
     # Azure cache for Redis supports 6.0 only
