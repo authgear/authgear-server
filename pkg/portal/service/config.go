@@ -53,10 +53,12 @@ type ConfigService struct {
 	Kubernetes           *Kubernetes
 }
 
+// ResolveContext calls other services that acquires connection themselves.
 func (s *ConfigService) ResolveContext(appID string) (*config.AppContext, error) {
 	return s.ConfigSource.ContextResolver.ResolveContext(appID)
 }
 
+// GetStaticAppIDs does not need connection.
 func (s *ConfigService) GetStaticAppIDs() ([]string, error) {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Database:
@@ -68,6 +70,7 @@ func (s *ConfigService) GetStaticAppIDs() ([]string, error) {
 	}
 }
 
+// Create assumes acquired connection.
 func (s *ConfigService) Create(opts *CreateAppOptions) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Database:
@@ -84,6 +87,7 @@ func (s *ConfigService) Create(opts *CreateAppOptions) error {
 	return nil
 }
 
+// UpdateResources assumes acquired connection.
 func (s *ConfigService) UpdateResources(appID string, files []*resource.ResourceFile) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Database:
@@ -105,6 +109,7 @@ func (s *ConfigService) UpdateResources(appID string, files []*resource.Resource
 	return nil
 }
 
+// CreateDomain does not need connection.
 func (s *ConfigService) CreateDomain(appID string, domainID string, domain string, isCustom bool) error {
 	if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
 		err := s.Kubernetes.CreateResourcesForDomain(appID, domainID, domain, isCustom)
@@ -115,6 +120,7 @@ func (s *ConfigService) CreateDomain(appID string, domainID string, domain strin
 	return nil
 }
 
+// DeleteDomain does not need connection.
 func (s *ConfigService) DeleteDomain(domain *apimodel.Domain) error {
 	if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
 		err := s.Kubernetes.DeleteResourcesForDomain(domain.ID)
