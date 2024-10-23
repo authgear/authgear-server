@@ -45,10 +45,12 @@ function stringifyHTMLAttributes(attributes) {
  * @returns {string}
  */
 function elementsToHTMLString(elements) {
+  // We want turbo to perform full reload if any script or css files changed.
+  // Add data-turbo-track="reload" to all css and script elements.
   const textArray = [];
   for (const element of elements) {
     if (element.type === "css") {
-      const htmlLine = `<link rel="stylesheet" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`;
+      const htmlLine = `<link rel="stylesheet" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}" data-turbo-track="reload">`;
       if (element.name === "tailwind-dark-theme.css") {
         textArray.push(`{{ if $.DarkThemeEnabled }}`);
         textArray.push(htmlLine);
@@ -62,7 +64,7 @@ function elementsToHTMLString(elements) {
       textArray.push(htmlLine);
     }
     if (element.type === "modulepreload") {
-      const htmlLine = `<link rel="modulepreload" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}">`;
+      const htmlLine = `<link rel="modulepreload" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}" data-turbo-track="reload">`;
       textArray.push(htmlLine);
     }
     if (element.type === "js") {
@@ -72,7 +74,7 @@ function elementsToHTMLString(elements) {
         )
       );
       const attributesString = stringifyHTMLAttributes(attributes);
-      const htmlLine = `<script ${attributesString} nonce="{{ $.CSPNonce }}" src="{{ call $.GeneratedStaticAssetURL "${element.name}" }}"></script>`;
+      const htmlLine = `<script ${attributesString} nonce="{{ $.CSPNonce }}" src="{{ call $.GeneratedStaticAssetURL "${element.name}" }}" data-turbo-track="reload"></script>`;
       textArray.push(htmlLine);
     }
   }
