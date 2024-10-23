@@ -87,7 +87,12 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	logFactory := rootProvider.LoggerFactory
 	logger := graphql.NewLogger(logFactory)
+	context := deps.ProvideRequestContext(request)
+	pool := rootProvider.Database
 	environmentConfig := rootProvider.EnvironmentConfig
+	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
+	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
+	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	trustProxy := environmentConfig.TrustProxy
 	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
@@ -99,7 +104,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	appConfig := rootProvider.AppConfig
-	context := deps.ProvideRequestContext(request)
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	domainImplementationType := rootProvider.DomainImplementation
 	kubernetesConfig := rootProvider.KubernetesConfig
@@ -118,11 +122,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DomainImplementation: domainImplementationType,
 		Kubernetes:           kubernetes,
 	}
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	pool := rootProvider.Database
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
 	domainService := &service.DomainService{
 		Context:      context,
@@ -345,6 +345,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	graphqlContext := &graphql.Context{
 		Request:                 request,
 		GQLLogger:               logger,
+		GlobalDatabase:          handle,
 		TrustProxy:              trustProxy,
 		Users:                   userLoader,
 		Apps:                    appLoader,

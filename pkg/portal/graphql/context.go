@@ -11,6 +11,7 @@ import (
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/analytic"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/tester"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/portal/appresource"
@@ -168,6 +169,8 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("portal-graphql")}
 type Context struct {
 	Request   *http.Request
 	GQLLogger Logger
+
+	GlobalDatabase *globaldb.Handle
 
 	TrustProxy              config.TrustProxy
 	Users                   UserLoader
