@@ -11,7 +11,25 @@ services:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
     ports:
-      - "5432:5432"
+    # In case you need to use psql or other GUI client to connect to the database,
+    # you need to connect via the 6432 port.
+    # Otherwise, psql or other GUI client will consume the connection count.
+    - "6432:5432"
+
+  pgbouncer:
+    image: bitnami/pgbouncer:1.23.1
+    ports:
+    - "5432:5432"
+    environment:
+      PGBOUNCER_PORT: "5432"
+      # 120 is the default value.
+      PGBOUNCER_MAX_CLIENT_CONN: "120"
+      PGBOUNCER_DATABASE: "*"
+      POSTGRESQL_DATABASE: "postgres"
+      POSTGRESQL_HOST: "db"
+      POSTGRESQL_PORT: "5432"
+      POSTGRESQL_USERNAME: "postgres"
+      POSTGRESQL_PASSWORD: "postgres"
 
   redis:
     # Azure cache for Redis supports 6.0 only
