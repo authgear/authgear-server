@@ -8,7 +8,6 @@ import (
 	gographql "github.com/graphql-go/graphql"
 	graphqlgohandler "github.com/graphql-go/handler"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -22,7 +21,6 @@ func ConfigureGraphQLRoute(route httproute.Route) httproute.Route {
 }
 
 type GraphQLHandler struct {
-	DevMode        config.DevMode
 	GraphQLContext *graphql.Context
 	Database       *globaldb.Handle
 }

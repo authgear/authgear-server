@@ -83,12 +83,11 @@ func newSessionRequiredMiddleware(p *deps.RequestProvider) httproute.Middleware 
 }
 
 func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
-	rootProvider := p.RootProvider
-	environmentConfig := rootProvider.EnvironmentConfig
-	devMode := environmentConfig.DevMode
 	request := p.Request
+	rootProvider := p.RootProvider
 	logFactory := rootProvider.LoggerFactory
 	logger := graphql.NewLogger(logFactory)
+	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
 	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
@@ -148,6 +147,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
 	mailLogger := mail.NewLogger(logFactory)
+	devMode := environmentConfig.DevMode
 	smtpConfig := rootProvider.SMTPConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
@@ -367,7 +367,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OnboardService:          onboardService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
-		DevMode:        devMode,
 		GraphQLContext: graphqlContext,
 		Database:       handle,
 	}
