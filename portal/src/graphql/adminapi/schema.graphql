@@ -415,6 +415,12 @@ enum AuditLogActivityType {
   USER_DISABLED
 
   """"""
+  USER_FORCE_UPDATE_PASSWORD_CHANGED
+
+  """"""
+  USER_FORGOT_PASSWORD_PASSWORD_CHANGED
+
+  """"""
   USER_PROFILE_UPDATED
 
   """"""
@@ -422,6 +428,12 @@ enum AuditLogActivityType {
 
   """"""
   USER_SESSION_TERMINATED
+
+  """"""
+  USER_SETTINGS_PRIMARY_PASSWORD_CHANGED
+
+  """"""
+  USER_SETTINGS_SECONDARY_PASSWORD_CHANGED
 
   """"""
   USER_SIGNED_OUT

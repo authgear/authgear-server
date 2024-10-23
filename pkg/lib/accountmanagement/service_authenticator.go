@@ -2,6 +2,7 @@ package accountmanagement
 
 import (
 	"github.com/authgear/authgear-server/pkg/api"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -33,6 +34,18 @@ func (s *Service) ChangePrimaryPassword(resolvedSession session.ResolvedSession,
 			Kind:        authenticator.KindPrimary,
 			OldPassword: input.OldPassword,
 			NewPassword: input.NewPassword,
+		})
+		if err != nil {
+			return err
+		}
+		// Changed password successfully
+		userID := resolvedSession.GetAuthenticationInfo().UserID
+		err = s.Events.DispatchEventOnCommit(&nonblocking.UserSettingsPrimaryPasswordChangedEventPayload{
+			UserRef: model.UserRef{
+				Meta: model.Meta{
+					ID: userID,
+				},
+			},
 		})
 		return err
 	})
@@ -103,6 +116,18 @@ func (s *Service) ChangeSecondaryPassword(resolvedSession session.ResolvedSessio
 			Kind:        authenticator.KindSecondary,
 			OldPassword: input.OldPassword,
 			NewPassword: input.NewPassword,
+		})
+		if err != nil {
+			return err
+		}
+		// Changed password successfully
+		userID := resolvedSession.GetAuthenticationInfo().UserID
+		err = s.Events.DispatchEventOnCommit(&nonblocking.UserSettingsSecondaryPasswordChangedEventPayload{
+			UserRef: model.UserRef{
+				Meta: model.Meta{
+					ID: userID,
+				},
+			},
 		})
 		return err
 	})
