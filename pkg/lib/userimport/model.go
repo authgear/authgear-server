@@ -519,6 +519,8 @@ func (r *Response) AggregateTaskResult(task *redisqueue.Task) error {
 		// Any task not yet complete => Job not yet complete
 		r.CompletedAt = nil
 		r.Status = redisqueue.TaskStatusPending
+		// No summary if job is still pending
+		r.Summary = nil
 
 		// Clear details to avoid out-of-ordered records.
 		r.Details = nil
@@ -539,12 +541,13 @@ func (r *Response) AggregateTaskResult(task *redisqueue.Task) error {
 			return err
 		}
 
-		r.Summary.Total += result.Summary.Total
-		r.Summary.Inserted += result.Summary.Inserted
-		r.Summary.Updated += result.Summary.Updated
-		r.Summary.Skipped += result.Summary.Skipped
-		r.Summary.Failed += result.Summary.Failed
-
+		if r.Summary != nil {
+			r.Summary.Total += result.Summary.Total
+			r.Summary.Inserted += result.Summary.Inserted
+			r.Summary.Updated += result.Summary.Updated
+			r.Summary.Skipped += result.Summary.Skipped
+			r.Summary.Failed += result.Summary.Failed
+		}
 		if r.CompletedAt != nil {
 			r.Details = append(r.Details, result.Details...)
 		}
