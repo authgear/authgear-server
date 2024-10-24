@@ -60,6 +60,7 @@ type AppService interface {
 		app *model.App,
 		returnURI string,
 	) (*tester.TesterToken, error)
+	RenderSAMLEntityID(appID string) string
 }
 
 type DomainService interface {

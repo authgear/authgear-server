@@ -14,6 +14,7 @@ interface TextFieldListItemProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  multiline?: boolean;
 }
 
 const TextFieldListItem: React.VFC<TextFieldListItemProps> =
@@ -25,6 +26,7 @@ const TextFieldListItem: React.VFC<TextFieldListItemProps> =
       value,
       onChange,
       disabled,
+      multiline,
     } = props;
     const {
       value: _value,
@@ -55,12 +57,19 @@ const TextFieldListItem: React.VFC<TextFieldListItemProps> =
       <TextField
         {...reducedTextFieldProps}
         className={cn(styles.inputField, inputClassName)}
+        styles={{
+          field: {
+            resize: multiline ? "vertical" : undefined,
+            height: multiline ? "160px" : undefined,
+          },
+        }}
         value={value}
         onChange={_onChange}
         errorMessage={
           errors.length > 0 ? <ErrorRenderer errors={errors} /> : undefined
         }
         disabled={disabled}
+        multiline={multiline}
       />
     );
   };
@@ -78,6 +87,9 @@ export interface FormTextFieldListProps {
   onListItemDelete: (list: string[], index: number, item: string) => void;
   addButtonLabelMessageID?: string;
   disabled?: boolean;
+  minItem?: number;
+  maxItem?: number;
+  multiline?: boolean;
 }
 
 const FormTextFieldList: React.VFC<FormTextFieldListProps> =
@@ -89,12 +101,15 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
       parentJSONPointer,
       fieldName,
       inputProps,
-      list,
+      list: propList,
       onListItemAdd,
       onListItemChange,
       onListItemDelete,
       addButtonLabelMessageID,
       disabled,
+      minItem,
+      maxItem,
+      multiline,
     } = props;
     const makeDefaultItem = useCallback(() => "", []);
 
@@ -109,17 +124,30 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
             value={value}
             onChange={onChange}
             disabled={disabled}
+            multiline={multiline}
           />
         );
       },
-      [inputProps, parentJSONPointer, fieldName, disabled]
+      [inputProps, parentJSONPointer, fieldName, disabled, multiline]
     );
+
+    const list = useMemo(() => {
+      // If number if items is less than minItem, fill the list with empty items
+      if (minItem == null || minItem === 0) {
+        return propList;
+      }
+      if (propList.length === 0) {
+        return new Array(minItem).fill("");
+      }
+      return propList;
+    }, [minItem, propList]);
 
     return (
       <FieldList
         className={className}
         label={label}
         description={description}
+        descriptionPosition={multiline ? "top" : "bottom"}
         parentJSONPointer={parentJSONPointer}
         fieldName={fieldName}
         list={list}
@@ -131,6 +159,8 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
         addButtonLabelMessageID={addButtonLabelMessageID}
         addDisabled={disabled}
         deleteDisabled={disabled}
+        minItem={minItem}
+        maxItem={maxItem}
       />
     );
   };

@@ -16,6 +16,9 @@ module.exports = {
         "1-0-auto": "1 0 auto",
       },
       colors: {
+        text: {
+          disabled: "#C8C8C8",
+        },
         grey: {
           500: "#D0D0D0",
           grey110: "#8A8886",

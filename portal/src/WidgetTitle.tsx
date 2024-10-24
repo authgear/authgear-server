@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import cn from "classnames";
 import { Text } from "@fluentui/react";
 import { useLocation } from "react-router-dom";
 
@@ -47,7 +48,12 @@ const WidgetTitle: React.VFC<WidgetTitleProps> = function WidgetTitle(
 
   if (id != null) {
     return (
-      <a id={id} href={"#" + id} className={className} ref={anchorRef}>
+      <a
+        id={id}
+        href={"#" + id}
+        className={cn(className, "block")}
+        ref={anchorRef}
+      >
         {element}
       </a>
     );

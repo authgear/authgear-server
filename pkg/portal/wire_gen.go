@@ -245,6 +245,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Context: context,
 		Redis:   globalredisHandle,
 	}
+	samlEnvironmentConfig := environmentConfig.SAML
 	appService := &service.AppService{
 		Logger:                   appServiceLogger,
 		SQLBuilder:               sqlBuilder,
@@ -259,6 +260,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:                    clock,
 		AppSecretVisitTokenStore: appSecretVisitTokenStoreImpl,
 		AppTesterTokenStore:      testerStore,
+		SAMLEnvironmentConfig:    samlEnvironmentConfig,
 	}
 	userLoader := loader.NewUserLoader(adminAPIService, appService, collaboratorService)
 	appLoader := loader.NewAppLoader(appService, authzService)

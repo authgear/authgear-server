@@ -7,7 +7,11 @@
   flex-grow: 1;
 }
 
-.copyButton {
+.actionButton {
   margin-left: 5px;
   align-self: end;
+}
+
+.actionButton--hide {
+  @apply hidden;
 }

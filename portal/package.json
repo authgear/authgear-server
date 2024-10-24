@@ -75,6 +75,7 @@
     "cldr-localenames-full": "44.0.1",
     "cropperjs": "1.6.1",
     "deep-equal": "2.2.3",
+    "fast-xml-parser": "^4.5.0",
     "history": "5.3.0",
     "immer": "10.0.3",
     "intl-tel-input": "18.5.3",

@@ -601,6 +601,17 @@ var nodeApp = node(
 					return collections, nil
 				},
 			},
+			"samlIdpEntityID": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.String),
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := GQLContext(p.Context)
+					app := p.Source.(*model.App)
+
+					samlIdpEntityID := ctx.AppService.RenderSAMLEntityID(app.ID)
+
+					return samlIdpEntityID, nil
+				},
+			},
 		},
 	}),
 	&model.App{},

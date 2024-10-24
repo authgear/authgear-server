@@ -9,7 +9,7 @@
 }
 
 .deleteButton {
-  align-self: center;
+  align-self: start;
 }
 
 .errorMessage {
@@ -29,4 +29,8 @@
 
 .description {
   line-height: 20px;
+}
+
+.description--top {
+  @apply mb-2;
 }
