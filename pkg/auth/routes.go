@@ -45,6 +45,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		PathPattern: "/healthz",
 	}, p.RootHandler(newHealthzHandler))
 
+	router.Add(httproute.Route{
+		Methods:     []string{"GET"},
+		PathPattern: "/robots.txt",
+	}, p.RootHandler(newRobotsTXTHandler))
+
 	rootChain := httproute.Chain(
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
