@@ -64,19 +64,7 @@ func (s *Service) Skip(appID string) (err error) {
 // RecordProgresses acquires connection.
 func (s *Service) RecordProgresses(appID string, ps []Progress) (err error) {
 	err = s.GlobalDatabase.WithTx(func() error {
-		entry, err := s.Store.Get(appID)
-		if err != nil {
-			return err
-		}
-
-		entry.AddProgress(ps)
-
-		err = s.Store.Save(entry)
-		if err != nil {
-			return err
-		}
-
-		return nil
+		return s.recordProgresses(appID, ps)
 	})
 	if err != nil {
 		return
@@ -85,13 +73,30 @@ func (s *Service) RecordProgresses(appID string, ps []Progress) (err error) {
 	return
 }
 
-func (s *Service) OnUpdateResource(appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error) {
+// OnUpdateResource0 assumes acquired connection.
+func (s *Service) OnUpdateResource0(appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error) {
 	ps, err := s.detectProgresses(resourceInTargetFs, data)
 	if err != nil {
 		return
 	}
 
-	return s.RecordProgresses(appID, ps)
+	return s.recordProgresses(appID, ps)
+}
+
+func (s *Service) recordProgresses(appID string, ps []Progress) (err error) {
+	entry, err := s.Store.Get(appID)
+	if err != nil {
+		return
+	}
+
+	entry.AddProgress(ps)
+
+	err = s.Store.Save(entry)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func (s *Service) detectProgresses(resourceInTargetFs *resource.ResourceFile, data []byte) (out []Progress, err error) {

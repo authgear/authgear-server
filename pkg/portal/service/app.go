@@ -356,12 +356,11 @@ func (s *AppService) Create(userID string, id string) (*model.App, error) {
 		return nil, err
 	}
 
-	createAppOpts, err := s.generateConfig(appHost, id, defaultAppPlan)
-	if err != nil {
-		return nil, err
-	}
-
 	err = s.GlobalDatabase.WithTx(func() error {
+		createAppOpts, err := s.generateConfig(appHost, id, defaultAppPlan)
+		if err != nil {
+			return err
+		}
 		err = s.AppConfigs.Create(createAppOpts)
 		if err != nil {
 			// TODO(portal): cleanup orphaned resources created from failed app creation
@@ -396,12 +395,12 @@ func (s *AppService) Create(userID string, id string) (*model.App, error) {
 // UpdateResources acquires connection.
 func (s *AppService) UpdateResources(app *model.App, updates []appresource.Update) error {
 	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-	files, err := appResMgr.ApplyUpdates(app.ID, updates)
-	if err != nil {
-		return err
-	}
-
+	var err error
 	err = s.GlobalDatabase.WithTx(func() error {
+		files, err := appResMgr.ApplyUpdates0(app.ID, updates)
+		if err != nil {
+			return err
+		}
 		return s.AppConfigs.UpdateResources(app.ID, files)
 	})
 	if err != nil {
@@ -414,7 +413,7 @@ func (s *AppService) UpdateResources(app *model.App, updates []appresource.Updat
 // UpdateResources0 assumes acquired connection.
 func (s *AppService) UpdateResources0(app *model.App, updates []appresource.Update) error {
 	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-	files, err := appResMgr.ApplyUpdates(app.ID, updates)
+	files, err := appResMgr.ApplyUpdates0(app.ID, updates)
 	if err != nil {
 		return err
 	}
@@ -509,7 +508,7 @@ func (s *AppService) generateConfig(appHost string, appID string, appPlan *model
 
 	appFs := resource.LeveledAferoFs{Fs: fs, FsLevel: resource.FsLevelApp}
 	appResMgr := s.AppResMgrFactory.NewManagerWithNewAppFS(appFs)
-	_, err = appResMgr.ApplyUpdates(appID, nil)
+	_, err = appResMgr.ApplyUpdates0(appID, nil)
 	if err != nil {
 		return
 	}

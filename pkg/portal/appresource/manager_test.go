@@ -20,7 +20,7 @@ import (
 )
 
 func TestManager(t *testing.T) {
-	Convey("ApplyUpdates", t, func() {
+	Convey("ApplyUpdates0", t, func() {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
@@ -41,7 +41,7 @@ func TestManager(t *testing.T) {
 			appResourceFs,
 		})
 		tutorialService := NewMockTutorialService(ctrl)
-		tutorialService.EXPECT().OnUpdateResource(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+		tutorialService.EXPECT().OnUpdateResource0(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 		denoClient := NewMockDenoClient(ctrl)
 		denoClient.EXPECT().Check(gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 		domainService := NewMockDomainService(ctrl)
@@ -62,7 +62,7 @@ func TestManager(t *testing.T) {
 		}
 
 		applyUpdates := func(updates []appresource.Update) ([]*resource.ResourceFile, error) {
-			return portalResMgr.ApplyUpdates(appID, updates)
+			return portalResMgr.ApplyUpdates0(appID, updates)
 		}
 
 		func() {
@@ -123,7 +123,7 @@ func TestManager(t *testing.T) {
 				fc := configtest.FixtureFeatureConfig(planName)
 				config.PopulateFeatureConfigDefaultValues(fc)
 				portalResMgr.AppFeatureConfig = fc
-				_, err := portalResMgr.ApplyUpdates(appID, updates)
+				_, err := portalResMgr.ApplyUpdates0(appID, updates)
 				return err
 			}
 
