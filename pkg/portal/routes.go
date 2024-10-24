@@ -21,6 +21,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	securityMiddleware := httproute.Chain(
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.XFrameOptionsDeny),
+		httproute.MiddlewareFunc(httputil.XRobotsTag),
 		httputil.StaticCSPHeader{
 			CSPDirectives: []string{
 				// FIXME(regeneratorRuntime)
