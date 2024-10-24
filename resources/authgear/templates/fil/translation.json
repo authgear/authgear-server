@@ -1019,7 +1019,7 @@
   "v2.error.verification-code-format": "Ang verification code na iyong ipinasok ay hindi nasa tamang format. Mangyaring tiyakin na ito ay isang 6-digit code.",
   "v2.error.verification-code-invalid": "Mali ang verification code.",
   "v2.error.verification-code-required": "Mangyaring ipasok ang verification code na iyong natanggap.",
-  "v2.error.web-ui-invalid-session-return": "<p>Ang pahinang ito ay hindi balido o nag-expire na.</p><p>Mangyaring bumalik at subukang muli ang iyong kahilingan.</p>",
+  "v2.error.web-ui-invalid-session-return": "Maaaring pinindot mo ang back button, o may isyu sa mga cookies. Subukan: <ol><li>Gawin muli ang aksyon mula sa aplikasyon.</li><li>Muling subukin pagkatapos mag-clear ng mga cookies.</li><li>Kung patuloy ang problema, mangyaring makipag-ugnayan sa administrator.</li></ol>",
   "v2.error.webhook-delivery-timeout": "Hindi pinapayagan ang operasyon dahil ang paghahatid ng webhook ay nag-timeout.",
   "v2.error.webhook-disallowed": "Hindi pinapayagan ang operasyon",
   "v2.error.webhook-invalid-response": "[To Developer] Ang iyong webhook handler ay HINDI nagbalik ng wastong tugon. Mangyaring bisitahin ang <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/webhooks/webhooks\">https://docs.authgear.com/webhooks/webhooks</a>",

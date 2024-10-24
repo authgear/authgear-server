@@ -1019,7 +1019,7 @@
   "v2.error.verification-code-format": "El código de verificación que ingresaste no tiene el formato correcto. Asegúrate de que sea un código de 6 dígitos.",
   "v2.error.verification-code-invalid": "El código de verificación es incorrecto.",
   "v2.error.verification-code-required": "Por favor ingresa el código de verificación que acabas de recibir.",
-  "v2.error.web-ui-invalid-session-return": "<p>Esta página no es válida o ha caducado.</p><p>Por favor, vuelve a intentarlo.</p>",
+  "v2.error.web-ui-invalid-session-return": "Es posible que hayas presionado el botón de retroceso, o que haya algún problema con las cookies. Intenta: <ol><li>Realizar la acción nuevamente desde la aplicación.</li><li>Volver a intentarlo después de borrar las cookies.</li><li>Si el problema persiste, comunícate con el administrador.</li></ol>",
   "v2.error.webhook-delivery-timeout": "Operación no permitida porque la entrega del webhook resultó en un tiempo de espera.",
   "v2.error.webhook-disallowed": "Operación no permitida",
   "v2.error.webhook-invalid-response": "[Para el desarrollador] Su controlador de webhook NO devolvió una respuesta válida. Visite <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/webhooks/webhooks\">https://docs.authgear.com/webhooks/webhooks</a>",

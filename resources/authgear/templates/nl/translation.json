@@ -1019,7 +1019,7 @@
   "v2.error.verification-code-format": "De verificatiecode die u heeft ingevoerd, heeft niet het juiste formaat. Zorg ervoor dat het een 6-cijferige code is.",
   "v2.error.verification-code-invalid": "Verificatiecode is onjuist.",
   "v2.error.verification-code-required": "Voer de verificatiecode in die u zojuist heeft ontvangen.",
-  "v2.error.web-ui-invalid-session-return": "<p>Deze pagina is ongeldig of is verlopen.</p><p>Ga terug en probeer het opnieuw.</p>",
+  "v2.error.web-ui-invalid-session-return": "Mogelijk heb je op de terugknop gedrukt, of er is een probleem met cookies. Probeer: <ol><li>De actie opnieuw uit te voeren vanuit de applicatie.</li><li>Het opnieuw te proberen na het wissen van cookies.</li><li>Neem contact op met de beheerder als het probleem aanhoudt.</li></ol>",
   "v2.error.webhook-delivery-timeout": "Bewerking is niet toegestaan omdat de webhook-levering resulteerde in time-out.",
   "v2.error.webhook-disallowed": "Bewerking is niet toegestaan",
   "v2.error.webhook-invalid-response": "[Voor ontwikkelaar] Uw webhook-handler heeft GEEN geldig antwoord geretourneerd. Bezoek <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/webhooks/webhooks\">https://docs.authgear.com/webhooks/webhooks</a>",
