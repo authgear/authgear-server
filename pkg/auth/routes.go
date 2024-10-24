@@ -1,8 +1,6 @@
 package auth
 
 import (
-	"net/http"
-
 	apihandler "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	samlhandler "github.com/authgear/authgear-server/pkg/auth/handler/saml"
@@ -46,11 +44,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		Methods:     []string{"GET"},
 		PathPattern: "/healthz",
 	}, p.RootHandler(newHealthzHandler))
-
-	router.Add(httproute.Route{
-		Methods:     []string{"GET"},
-		PathPattern: "/robots.txt",
-	}, http.HandlerFunc(httputil.RobotsTXTHandler))
 
 	rootChain := httproute.Chain(
 		p.RootMiddleware(newPanicMiddleware),
