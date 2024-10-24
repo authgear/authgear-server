@@ -22,6 +22,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		p.RootMiddleware(newSentryMiddleware),
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
+		httproute.MiddlewareFunc(httputil.XRobotsTag),
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
