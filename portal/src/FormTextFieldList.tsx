@@ -59,7 +59,8 @@ const TextFieldListItem: React.VFC<TextFieldListItemProps> =
         className={cn(styles.inputField, inputClassName)}
         styles={{
           field: {
-            resize: "vertical",
+            resize: multiline ? "vertical" : undefined,
+            height: multiline ? "160px" : undefined,
           },
         }}
         value={value}
@@ -87,6 +88,7 @@ export interface FormTextFieldListProps {
   addButtonLabelMessageID?: string;
   disabled?: boolean;
   minItem?: number;
+  maxItem?: number;
   multiline?: boolean;
 }
 
@@ -106,6 +108,7 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
       addButtonLabelMessageID,
       disabled,
       minItem,
+      maxItem,
       multiline,
     } = props;
     const makeDefaultItem = useCallback(() => "", []);
@@ -144,6 +147,7 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
         className={className}
         label={label}
         description={description}
+        descriptionPosition={multiline ? "top" : "bottom"}
         parentJSONPointer={parentJSONPointer}
         fieldName={fieldName}
         list={list}
@@ -156,6 +160,7 @@ const FormTextFieldList: React.VFC<FormTextFieldListProps> =
         addDisabled={disabled}
         deleteDisabled={disabled}
         minItem={minItem}
+        maxItem={maxItem}
       />
     );
   };

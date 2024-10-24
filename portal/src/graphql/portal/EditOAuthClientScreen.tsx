@@ -22,7 +22,12 @@ import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import ShowError from "../../ShowError";
 import ShowLoading from "../../ShowLoading";
 import EditOAuthClientForm from "./EditOAuthClientForm";
-import { ApplicationType, OAuthClientConfig } from "../../types";
+import {
+  ApplicationType,
+  OAuthClientConfig,
+  PortalAPIAppConfig,
+  SAMLIdpSigningCertificate,
+} from "../../types";
 import { AppSecretConfigFormModel } from "../../hook/useAppSecretConfigForm";
 import FormContainer from "../../FormContainer";
 import ScreenLayoutScrollView from "../../ScreenLayoutScrollView";
@@ -43,6 +48,7 @@ import {
   OAuthClientSAMLFormState,
   getDefaultOAuthClientSAMLFormState,
 } from "../../components/applications/OAuthClientSAMLForm";
+import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
 
 interface LocationState {
   isClientSecretRevealed: boolean;
@@ -300,9 +306,13 @@ const EditOAuthClientNavBreadcrumb: React.VFC<EditOAuthClientNavBreadcrumbProps>
 
 interface EditOAuthClientContentProps {
   form: AppSecretConfigFormModel<FormState>;
+  rawAppConfig: PortalAPIAppConfig;
   clientID: string;
+  samlIdpEntityID: string;
+  samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
   customUIEnabled: boolean;
   app2appEnabled: boolean;
+  onGeneratedNewIdpSigningCertificate: () => void;
 }
 
 enum FormTab {
@@ -314,9 +324,13 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
   function EditOAuthClientContent(props) {
     const {
       clientID,
+      samlIdpEntityID,
+      rawAppConfig,
+      samlIdpSigningCertificates,
       form: { state, setState },
       customUIEnabled,
       app2appEnabled,
+      onGeneratedNewIdpSigningCertificate,
     } = props;
     const { renderToString } = useContext(Context);
 
@@ -401,8 +415,14 @@ const EditOAuthClientContent: React.VFC<EditOAuthClientContentProps> =
         ) : (
           <OAuthClientSAML2Content
             clientID={client.client_id}
+            samlIdpEntityID={samlIdpEntityID}
+            rawAppConfig={rawAppConfig}
+            samlIdpSigningCertificates={samlIdpSigningCertificates}
             state={state}
             setState={setState}
+            onGeneratedNewIdpSigningCertificate={
+              onGeneratedNewIdpSigningCertificate
+            }
           />
         )}
       </ScreenContent>
@@ -474,14 +494,22 @@ function OAuthClientSettingsForm({
 
 interface OAuthClientSAML2ContentProps {
   clientID: string;
+  rawAppConfig: PortalAPIAppConfig;
+  samlIdpEntityID: string;
+  samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
   state: FormState;
   setState: (fn: (state: FormState) => FormState) => void;
+  onGeneratedNewIdpSigningCertificate: () => void;
 }
 
 function OAuthClientSAML2Content({
   clientID,
+  rawAppConfig,
+  samlIdpEntityID,
+  samlIdpSigningCertificates,
   state,
   setState,
+  onGeneratedNewIdpSigningCertificate,
 }: OAuthClientSAML2ContentProps): React.ReactElement {
   const formState =
     useMemo<OAuthClientSAMLFormState>((): OAuthClientSAMLFormState => {
@@ -513,6 +541,7 @@ function OAuthClientSAML2Content({
           defaults.signatureVerificationEnabled,
         signingCertificates:
           samlConfig.certificates ?? defaults.signingCertificates,
+        isMetadataUploaded: samlConfig.isMetadataUploaded,
       };
     }, [clientID, state.samlServiceProviders]);
 
@@ -534,6 +563,7 @@ function OAuthClientSAML2Content({
           sloCallbackBinding: newState.sloCallbackBinding,
           signatureVerificationEnabled: newState.signatureVerificationEnabled,
           certificates: newState.signingCertificates,
+          isMetadataUploaded: newState.isMetadataUploaded,
         };
         const newServiceProviders = [...prevState.samlServiceProviders];
         const existingConfigIndex = state.samlServiceProviders.findIndex(
@@ -564,9 +594,17 @@ function OAuthClientSAML2Content({
   return (
     <div className={cn(styles.widget)}>
       <OAuthClientSAMLForm
+        clientID={clientID}
+        rawAppConfig={rawAppConfig}
+        samlIdpEntityID={samlIdpEntityID}
+        samlIdpSigningCertificates={samlIdpSigningCertificates}
+        publicOrigin={state.publicOrigin}
+        parentJSONPointer={jsonPointer}
         formState={formState}
         onFormStateChange={onFormStateChange}
-        parentJSONPointer={jsonPointer}
+        onGeneratedNewIdpSigningCertificate={
+          onGeneratedNewIdpSigningCertificate
+        }
       />
     </div>
   );
@@ -640,6 +678,13 @@ const EditOAuthClientScreen1: React.VFC<{
   secretToken: string | null;
 }> = function EditOAuthClientScreen1({ appID, clientID, secretToken }) {
   const form = useOAuthClientForm(appID, secretToken);
+  const {
+    loading: appQueryLoading,
+    samlIdpEntityID,
+    secretConfig,
+    rawAppConfig,
+    refetch: refetchAppAndSecretConfig,
+  } = useAppAndSecretConfigQuery(appID, secretToken);
 
   const featureConfig = useAppFeatureConfigQuery(appID);
 
@@ -667,7 +712,11 @@ const EditOAuthClientScreen1: React.VFC<{
     return featureConfig.effectiveFeatureConfig?.oauth?.client?.app2app_enabled;
   }, [featureConfig]);
 
-  if (form.isLoading) {
+  const samlIdPSigningCertificates = useMemo(() => {
+    return secretConfig?.samlIdpSigningSecrets?.certificates ?? [];
+  }, [secretConfig]);
+
+  if (form.isLoading || appQueryLoading || !rawAppConfig) {
     return <ShowLoading />;
   }
 
@@ -687,9 +736,13 @@ const EditOAuthClientScreen1: React.VFC<{
     >
       <EditOAuthClientContent
         form={form}
+        rawAppConfig={rawAppConfig}
         clientID={clientID}
+        samlIdpEntityID={samlIdpEntityID ?? ""}
+        samlIdpSigningCertificates={samlIdPSigningCertificates}
         customUIEnabled={customUIEnabled}
         app2appEnabled={app2appEnabled}
+        onGeneratedNewIdpSigningCertificate={refetchAppAndSecretConfig}
       />
     </FormContainer>
   );

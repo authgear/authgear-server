@@ -586,7 +586,7 @@ func (i *BotProtectionProviderCredentialsUpdateInstruction) unset(currentConfig 
 }
 
 type SAMLIdpSigningSecretsUpdateInstructionDeleteData struct {
-	KeyID string `json:"keyID,omitempty"`
+	KeyIDs []string `json:"keyIDs,omitempty"`
 }
 
 type SAMLIdpSigningSecretsUpdateInstruction struct {
@@ -662,15 +662,16 @@ func (i *SAMLIdpSigningSecretsUpdateInstruction) delete(currentConfig *SecretCon
 		return currentConfig, nil
 	}
 
-	if i.DeleteData == nil || i.DeleteData.KeyID == "" {
-		return nil, fmt.Errorf("config: missing KeyID for SAMLIdpSigningSecretsUpdateInstruction")
+	if i.DeleteData == nil || i.DeleteData.KeyIDs == nil {
+		return nil, fmt.Errorf("config: missing KeyIDs for SAMLIdpSigningSecretsUpdateInstruction")
 	}
 
 	newCertificates := []*SAMLIdpSigningCertificate{}
+	deletingKeyIDsSet := setutil.NewSetFromSlice(i.DeleteData.KeyIDs, setutil.Identity)
 
 	for _, cert := range credentials.Certificates {
 		cert := cert
-		if cert.Key.KeyID() == i.DeleteData.KeyID {
+		if deletingKeyIDsSet.Has(cert.Key.KeyID()) {
 			continue
 		}
 		newCertificates = append(newCertificates, cert)
@@ -722,16 +723,9 @@ func (i *SAMLSpSigningSecretsUpdateInstruction) ApplyTo(ctx *SecretConfigUpdateI
 
 func (i *SAMLSpSigningSecretsUpdateInstruction) set(currentConfig *SecretConfig) (*SecretConfig, error) {
 	out := &SecretConfig{}
-	var credentials SAMLSpSigningMaterials
+	credentials := SAMLSpSigningMaterials{}
 	for _, item := range currentConfig.Secrets {
-		if item.Key == SAMLSpSigningMaterialsKey {
-			credentials = *item.Data.(*SAMLSpSigningMaterials)
-		}
 		out.Secrets = append(out.Secrets, item)
-	}
-
-	if credentials == nil {
-		credentials = SAMLSpSigningMaterials{}
 	}
 
 	if i.SetData == nil {
@@ -751,13 +745,7 @@ func (i *SAMLSpSigningSecretsUpdateInstruction) set(currentConfig *SecretConfig)
 			})
 		}
 
-		_, idx, exist := credentials.Resolve(item.ClientID)
-
-		if exist {
-			credentials[idx] = *certs
-		} else {
-			credentials = append(credentials, *certs)
-		}
+		credentials = append(credentials, *certs)
 	}
 
 	var data []byte

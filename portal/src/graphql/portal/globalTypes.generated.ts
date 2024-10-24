@@ -71,6 +71,7 @@ export type App = Node & {
   rawAppConfig: Scalars['AppConfig']['output'];
   rawAppConfigChecksum: Scalars['AppConfig']['output'];
   resources: Array<AppResource>;
+  samlIdpEntityID: Scalars['String']['output'];
   secretConfig: SecretConfig;
   secretConfigChecksum: Scalars['AppConfig']['output'];
   subscription?: Maybe<Subscription>;
@@ -666,7 +667,7 @@ export type SamlIdpSigningSecrets = {
 };
 
 export type SamlIdpSigningSecretsDeleteDataInput = {
-  keyID: Scalars['String']['input'];
+  keyIDs: Array<Scalars['String']['input']>;
 };
 
 export type SamlIdpSigningSecretsUpdateInstructionsInput = {

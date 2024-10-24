@@ -36,9 +36,11 @@ export interface FieldListProps<T> {
   ListItemComponent: ComponentType<ListItemProps<T>>;
   addButtonLabelMessageID?: string;
   description?: string;
+  descriptionPosition?: "top" | "bottom";
   addDisabled?: boolean;
   deleteDisabled?: boolean;
   minItem?: number;
+  maxItem?: number;
 }
 
 const FieldList = function FieldList<T>(
@@ -62,7 +64,9 @@ const FieldList = function FieldList<T>(
     addDisabled,
     deleteDisabled,
     description,
+    descriptionPosition = "bottom",
     minItem,
+    maxItem,
   } = props;
 
   const { themes } = useSystemConfig();
@@ -102,11 +106,30 @@ const FieldList = function FieldList<T>(
     [onListItemDelete, list]
   );
 
+  const descriptionEl = useMemo(() => {
+    if (description) {
+      return (
+        <Text
+          block={true}
+          className={cn(
+            styles.description,
+            descriptionPosition === "top" ? styles["description--top"] : null
+          )}
+        >
+          {description}
+        </Text>
+      );
+    }
+    return null;
+  }, [description, descriptionPosition]);
+
   const isMinItemReached = minItem != null && list.length <= minItem;
+  const isMaxItemReached = maxItem != null && list.length >= maxItem;
 
   return (
     <div className={className}>
       {label ?? null}
+      {descriptionPosition === "top" && descriptionEl ? descriptionEl : null}
       <div className={cn(styles.list, listClassName)}>
         {list.map((value, index) => (
           <FieldListItem
@@ -131,13 +154,9 @@ const FieldList = function FieldList<T>(
         iconProps={{ iconName: "CirclePlus", className: styles.addButtonIcon }}
         onClick={onItemAdd}
         text={<FormattedMessage id={addButtonLabelMessageID ?? "add"} />}
-        disabled={addDisabled}
+        disabled={addDisabled || isMaxItemReached}
       />
-      {description ? (
-        <Text block={true} className={styles.description}>
-          {description}
-        </Text>
-      ) : null}
+      {descriptionPosition === "bottom" && descriptionEl ? descriptionEl : null}
     </div>
   );
 };

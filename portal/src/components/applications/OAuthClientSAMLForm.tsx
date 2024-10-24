@@ -15,14 +15,28 @@ import {
   Label,
   MessageBar,
   MessageBarType,
+  Text,
+  FontIcon,
 } from "@fluentui/react";
 import {
   SAMLNameIDFormat,
   SAMLNameIDAttributePointer,
   SAMLBinding,
+  PortalAPIAppConfig,
+  SAMLIdpSigningCertificate,
 } from "../../types";
 import FormTextFieldList from "../../FormTextFieldList";
 import FormTextField from "../../FormTextField";
+import TextFieldWithCopyButton from "../../TextFieldWithCopyButton";
+import { useFormContainerBaseContext } from "../../FormContainerBase";
+import DefaultButton from "../../DefaultButton";
+import { downloadStringAsFile } from "../../util/download";
+import { useParams } from "react-router-dom";
+import { AutoGenerateFirstCertificate } from "../saml/AutoGenerateFirstCertificate";
+import {
+  formatCertificateFilename,
+  parseServiceProviderMetadata,
+} from "../../model/saml";
 
 export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
@@ -42,6 +56,8 @@ export interface OAuthClientSAMLFormState {
   // Signature
   signatureVerificationEnabled: boolean;
   signingCertificates: string[];
+
+  isMetadataUploaded: boolean;
 }
 
 export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
@@ -59,12 +75,8 @@ export function getDefaultOAuthClientSAMLFormState(): OAuthClientSAMLFormState {
     sloCallbackBinding: SAMLBinding.HTTPRedirect,
     signatureVerificationEnabled: false,
     signingCertificates: [],
+    isMetadataUploaded: false,
   };
-}
-export interface OAuthClientSAMLFormProps {
-  parentJSONPointer: string | RegExp;
-  formState: OAuthClientSAMLFormState;
-  onFormStateChange: (newState: OAuthClientSAMLFormState) => void;
 }
 
 const nameIDFormatOptions: IChoiceGroupOption[] = [
@@ -118,12 +130,88 @@ function makeSLOCallbackBindingOptions(
   ];
 }
 
+function IdpCertificateSection({
+  appID,
+  configAppID,
+  samlIdpSigningCertificate,
+}: {
+  appID: string;
+  configAppID: string;
+  samlIdpSigningCertificate: SAMLIdpSigningCertificate;
+}) {
+  const onDownloadIdpCertificate = useCallback(() => {
+    downloadStringAsFile({
+      content: samlIdpSigningCertificate.certificatePEM,
+      filename: formatCertificateFilename(
+        configAppID,
+        samlIdpSigningCertificate.certificateFingerprint
+      ),
+      mimeType: "application/x-pem-file",
+    });
+  }, [samlIdpSigningCertificate, configAppID]);
+
+  return (
+    <div>
+      <WidgetTitle className="mb-3" id="identity-provider-certificates">
+        <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.title" />
+      </WidgetTitle>
+      <div className="grid gap-y-4 grid-cols-1">
+        <div>
+          <DefaultButton
+            onClick={onDownloadIdpCertificate}
+            text={
+              <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.download" />
+            }
+          />
+          <Text block={true} className={"mt-1"}>
+            <FormattedMessage
+              id="OAuthClientSAMLForm.idpCertificate.fingerprint"
+              values={{
+                fingerprint: samlIdpSigningCertificate.certificateFingerprint,
+              }}
+            />
+          </Text>
+        </div>
+
+        <MessageBar messageBarType={MessageBarType.info}>
+          <FormattedMessage
+            id="OAuthClientSAMLForm.idpCertificate.rotateHint"
+            values={{
+              href: `/project/${appID}/advanced/saml-certificate`,
+            }}
+          />
+        </MessageBar>
+      </div>
+    </div>
+  );
+}
+
+export interface OAuthClientSAMLFormProps {
+  parentJSONPointer: string | RegExp;
+  clientID: string;
+  rawAppConfig: PortalAPIAppConfig;
+  publicOrigin: string;
+  samlIdpEntityID: string;
+  samlIdpSigningCertificates: SAMLIdpSigningCertificate[];
+  formState: OAuthClientSAMLFormState;
+  onFormStateChange: (newState: OAuthClientSAMLFormState) => void;
+  onGeneratedNewIdpSigningCertificate: () => void;
+}
+
 export function OAuthClientSAMLForm({
   parentJSONPointer,
+  clientID,
+  rawAppConfig,
+  publicOrigin,
+  samlIdpEntityID,
+  samlIdpSigningCertificates,
   formState,
   onFormStateChange,
+  onGeneratedNewIdpSigningCertificate,
 }: OAuthClientSAMLFormProps): React.ReactElement {
   const { renderToString } = useContext(MessageFormatContext);
+  const { isDirty: isFormDirty } = useFormContainerBaseContext();
+  const { appID } = useParams() as { appID: string };
 
   const onIsSAMLEnabledChange = useCallback(
     (_, checked?: boolean) => {
@@ -250,6 +338,72 @@ export function OAuthClientSAMLForm({
     [formState, onFormStateChange]
   );
 
+  const endpoints = useMemo(() => {
+    return {
+      metadata: `${publicOrigin}/saml2/metadata/${clientID}`,
+      login: `${publicOrigin}/saml2/login/${clientID}`,
+      logout: `${publicOrigin}/saml2/logout/${clientID}`,
+    };
+  }, [clientID, publicOrigin]);
+
+  const onClickDownloadMetadata = useCallback(() => {
+    const link = document.createElement("a");
+    link.href = endpoints.metadata;
+    link.target = "_blank";
+    link.click();
+  }, [endpoints.metadata]);
+
+  const updateFormStateByMetadata = useCallback(
+    (xmlData: string) => {
+      const parseResult = parseServiceProviderMetadata(xmlData);
+      const newState = {
+        ...formState,
+        isMetadataUploaded: true,
+      };
+      if (parseResult.acsURL != null) {
+        newState.acsURLs = [parseResult.acsURL];
+      }
+      if (parseResult.sloEnabled != null) {
+        newState.isSLOEnabled = parseResult.sloEnabled;
+      }
+      if (parseResult.sloCallbackURL != null) {
+        newState.sloCallbackURL = parseResult.sloCallbackURL;
+      }
+      if (parseResult.sloCallbackBinding != null) {
+        newState.sloCallbackBinding = parseResult.sloCallbackBinding;
+      }
+      if (parseResult.authnRequestsSigned != null) {
+        newState.signatureVerificationEnabled = parseResult.authnRequestsSigned;
+      }
+      if (parseResult.certificate != null) {
+        newState.signingCertificates = [parseResult.certificate];
+      }
+      onFormStateChange(newState);
+    },
+    [formState, onFormStateChange]
+  );
+
+  const onUploadMetadata = useCallback(() => {
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "application/xml,text/xml,.xml";
+    const onChange = () => {
+      fileInput.removeEventListener("change", onChange);
+      if (fileInput.files && fileInput.files.length > 0) {
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          if (typeof reader.result === "string") {
+            updateFormStateByMetadata(reader.result);
+          }
+        });
+        reader.readAsText(fileInput.files[0]);
+      }
+      fileInput.remove();
+    };
+    fileInput.addEventListener("change", onChange);
+    fileInput.click();
+  }, [updateFormStateByMetadata]);
+
   const nameIDAttributePointerOptions = useMemo(
     () => makeNameIDAttributePointerOptions(renderToString),
     [renderToString]
@@ -259,6 +413,17 @@ export function OAuthClientSAMLForm({
     () => makeSLOCallbackBindingOptions(renderToString),
     [renderToString]
   );
+
+  const activeIdpCertificate = useMemo(() => {
+    if (rawAppConfig.saml?.signing?.key_id == null) {
+      return null;
+    }
+    return (
+      samlIdpSigningCertificates.find(
+        (cert) => cert.keyID === rawAppConfig.saml?.signing?.key_id
+      ) ?? null
+    );
+  }, [rawAppConfig, samlIdpSigningCertificates]);
 
   return (
     <div>
@@ -272,9 +437,36 @@ export function OAuthClientSAMLForm({
         <>
           <HorizontalDivider className="my-12" />
           <div className="grid gap-y-12 grid-cols-1">
-            <ScreenTitle>
-              <FormattedMessage id="OAuthClientSAMLForm.screen.title" />
-            </ScreenTitle>
+            <div>
+              <ScreenTitle>
+                <FormattedMessage id="OAuthClientSAMLForm.title" />
+              </ScreenTitle>
+              <div className="mt-3 grid gap-y-2 grid-cols-1 items-start justify-items-start">
+                <Text block={true}>
+                  <FormattedMessage id="OAuthClientSAMLForm.metadataUpload.description" />
+                </Text>
+                <div className="grid grid-flow-col items-center gap-x-2">
+                  <DefaultButton
+                    className="w-fit"
+                    text={renderToString(
+                      "OAuthClientSAMLForm.metadataUpload.label"
+                    )}
+                    onClick={onUploadMetadata}
+                  />
+                  {formState.isMetadataUploaded ? (
+                    <div className="flex flex-row items-center">
+                      <FontIcon
+                        iconName="Accept"
+                        className="text-text-disabled mr-1"
+                      />
+                      <Text className="text-text-disabled">
+                        <FormattedMessage id="OAuthClientSAMLForm.metadataUpload.success" />
+                      </Text>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
             <div>
               <WidgetTitle className="mb-3" id="basic">
                 <FormattedMessage id="OAuthClientSAMLForm.basic.title" />
@@ -307,7 +499,7 @@ export function OAuthClientSAMLForm({
             </div>
 
             <div>
-              <WidgetTitle className="mb-3" id="basic">
+              <WidgetTitle className="mb-3" id="sso">
                 <FormattedMessage id="OAuthClientSAMLForm.sso.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
@@ -375,7 +567,7 @@ export function OAuthClientSAMLForm({
             </div>
 
             <div>
-              <WidgetTitle className="mb-3" id="basic">
+              <WidgetTitle className="mb-3" id="logout">
                 <FormattedMessage id="OAuthClientSAMLForm.logout.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
@@ -414,7 +606,7 @@ export function OAuthClientSAMLForm({
             </div>
 
             <div>
-              <WidgetTitle className="mb-3" id="basic">
+              <WidgetTitle className="mb-3" id="signature">
                 <FormattedMessage id="OAuthClientSAMLForm.signature.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
@@ -426,15 +618,11 @@ export function OAuthClientSAMLForm({
                     description={renderToString(
                       "OAuthClientSAMLForm.signature.checkSignature.description"
                     )}
+                    disabled={formState.signingCertificates.length < 1}
                     checked={formState.signatureVerificationEnabled}
                     onChange={onSignatureVerificationEnabledChange}
                   />
-                  <MessageBar
-                    className={cn(
-                      formState.signatureVerificationEnabled ? null : "hidden"
-                    )}
-                    messageBarType={MessageBarType.warning}
-                  >
+                  <MessageBar messageBarType={MessageBarType.warning}>
                     <FormattedMessage id="OAuthClientSAMLForm.signature.checkSignature.hint" />
                   </MessageBar>
                 </div>
@@ -457,9 +645,89 @@ export function OAuthClientSAMLForm({
                     "OAuthClientSAMLForm.signature.certificates.description"
                   )}
                   multiline={true}
+                  maxItem={2}
+                  minItem={formState.signatureVerificationEnabled ? 1 : 0}
                 />
               </div>
             </div>
+
+            <HorizontalDivider />
+
+            <div>
+              <WidgetTitle className="mb-6" id="configuration-parameters">
+                <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.title" />
+              </WidgetTitle>
+
+              <div className="grid gap-y-4 grid-cols-1">
+                <div className="grid gap-y-2 grid-cols-1">
+                  <TextFieldWithCopyButton
+                    label={renderToString(
+                      "OAuthClientSAMLForm.configurationParameters.metadata.label"
+                    )}
+                    value={endpoints.metadata}
+                    readOnly={true}
+                    additionalIconButtons={[
+                      {
+                        iconProps: {
+                          iconName: "Download",
+                        },
+                        onClick: onClickDownloadMetadata,
+                        disabled: isFormDirty,
+                      },
+                    ]}
+                  />
+                  <MessageBar
+                    className={cn(isFormDirty ? null : "hidden")}
+                    messageBarType={MessageBarType.warning}
+                  >
+                    <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.metadata.saveBeforeDownload.hint" />
+                  </MessageBar>
+                </div>
+                <TextFieldWithCopyButton
+                  label={renderToString(
+                    "OAuthClientSAMLForm.configurationParameters.issuer.label"
+                  )}
+                  value={samlIdpEntityID}
+                  readOnly={true}
+                />
+                <TextFieldWithCopyButton
+                  label={renderToString(
+                    "OAuthClientSAMLForm.configurationParameters.loginURL.label"
+                  )}
+                  value={endpoints.login}
+                  readOnly={true}
+                />
+                <TextFieldWithCopyButton
+                  label={renderToString(
+                    "OAuthClientSAMLForm.configurationParameters.logoutURL.label"
+                  )}
+                  value={
+                    formState.isSLOEnabled
+                      ? endpoints.logout
+                      : renderToString(
+                          "OAuthClientSAMLForm.configurationParameters.logoutURL.not-available"
+                        )
+                  }
+                  disabled={!formState.isSLOEnabled}
+                  readOnly={true}
+                />
+              </div>
+            </div>
+
+            {activeIdpCertificate != null ? (
+              <IdpCertificateSection
+                appID={appID}
+                configAppID={rawAppConfig.id}
+                samlIdpSigningCertificate={activeIdpCertificate}
+              />
+            ) : (
+              <AutoGenerateFirstCertificate
+                appID={appID}
+                rawAppConfig={rawAppConfig}
+                certificates={samlIdpSigningCertificates}
+                onComplete={onGeneratedNewIdpSigningCertificate}
+              />
+            )}
           </div>
         </>
       ) : null}

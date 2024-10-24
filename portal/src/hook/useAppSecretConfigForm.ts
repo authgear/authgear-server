@@ -98,30 +98,47 @@ export function useAppSecretConfigForm<State>(
     if (!rawAppConfig || !currentState) {
       return false;
     }
-    return !deepEqual(
-      constructConfig(
-        rawAppConfig,
-        secrets,
-        initialState,
-        initialState,
-        effectiveConfig
-      ),
-      constructConfig(
-        rawAppConfig,
-        secrets,
-        initialState,
-        currentState,
-        effectiveConfig
-      ),
-      { strict: true }
+    const originalConfig = constructConfig(
+      rawAppConfig,
+      secrets,
+      initialState,
+      initialState,
+      effectiveConfig
     );
+    const newConfig = constructConfig(
+      rawAppConfig,
+      secrets,
+      initialState,
+      currentState,
+      effectiveConfig
+    );
+    const isConfigDirty = !deepEqual(originalConfig, newConfig, {
+      strict: true,
+    });
+    if (isConfigDirty) {
+      return true;
+    }
+    const secretUpdateInstruction = constructSecretUpdateInstruction
+      ? constructSecretUpdateInstruction(
+          newConfig[0],
+          newConfig[1],
+          currentState
+        )
+      : undefined;
+    const isSecretDirty =
+      secretUpdateInstruction != null &&
+      Object.entries(secretUpdateInstruction).some(
+        ([_, instruction]) => instruction != null
+      );
+    return isSecretDirty;
   }, [
-    constructConfig,
     rawAppConfig,
-    secrets,
-    effectiveConfig,
-    initialState,
     currentState,
+    constructConfig,
+    secrets,
+    initialState,
+    effectiveConfig,
+    constructSecretUpdateInstruction,
   ]);
 
   const reset = useCallback(() => {
@@ -160,13 +177,13 @@ export function useAppSecretConfigForm<State>(
 
       setIsUpdating(true);
       try {
-        await updateConfig(
-          newConfig[0],
-          rawAppConfigChecksum,
-          secretUpdateInstruction,
-          secretConfigChecksum,
-          ignoreConflict
-        );
+        await updateConfig({
+          appConfig: newConfig[0],
+          appConfigChecksum: rawAppConfigChecksum,
+          secretConfigUpdateInstructions: secretUpdateInstruction,
+          secretConfigUpdateInstructionsChecksum: secretConfigChecksum,
+          ignoreConflict,
+        });
         await reload();
         setCurrentState(null);
       } finally {

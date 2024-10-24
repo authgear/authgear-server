@@ -174,6 +174,9 @@ const SubscriptionRedirect = lazy(
 const EndpointDirectAccessScreen = lazy(
   async () => import("./graphql/portal/EndpointDirectAccessScreen")
 );
+const SAMLCertificateScreen = lazy(
+  async () => import("./graphql/portal/SAMLCertificateScreen")
+);
 
 const AppRoot: React.VFC = function AppRoot() {
   const { appID } = useParams() as { appID: string };
@@ -783,6 +786,14 @@ const AppRoot: React.VFC = function AppRoot() {
               element={
                 <Suspense fallback={<ShowLoading />}>
                   <EndpointDirectAccessScreen />
+                </Suspense>
+              }
+            />
+            <Route
+              path="saml-certificate"
+              element={
+                <Suspense fallback={<ShowLoading />}>
+                  <SAMLCertificateScreen />
                 </Suspense>
               }
             />

@@ -82,6 +82,9 @@ type App implements Node {
   resources(paths: [String!]): [AppResource!]!
 
   """"""
+  samlIdpEntityID: String!
+
+  """"""
   secretConfig(token: String): SecretConfig!
 
   """"""
@@ -758,7 +761,7 @@ type SAMLIdpSigningSecrets {
 """"""
 input SAMLIdpSigningSecretsDeleteDataInput {
   """"""
-  keyID: String!
+  keyIDs: [String!]!
 }
 
 """"""
