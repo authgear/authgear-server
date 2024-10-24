@@ -22,6 +22,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	securityMiddleware := httproute.Chain(
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.XFrameOptionsDeny),
+		httproute.MiddlewareFunc(httputil.XRobotsTag),
 		httputil.StaticCSPHeader{
 			CSPDirectives: []string{
 				"script-src 'self' 'unsafe-inline' unpkg.com",
