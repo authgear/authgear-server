@@ -21,6 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/util/checksum"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
 
@@ -33,7 +34,7 @@ type DenoClient interface {
 }
 
 type TutorialService interface {
-	OnUpdateResource(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error)
+	OnUpdateResource0(appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error)
 }
 
 type DomainService interface {
@@ -41,6 +42,7 @@ type DomainService interface {
 }
 
 type Manager struct {
+	Logger                *log.Logger
 	Context               context.Context
 	AppResourceManager    *resource.Manager
 	AppFS                 resource.Fs
@@ -120,7 +122,8 @@ func (m *Manager) ReadAppFile(desc resource.Descriptor, view resource.AppFileVie
 	return m.AppResourceManager.Read(desc, view)
 }
 
-func (m *Manager) ApplyUpdates(appID string, updates []Update) ([]*resource.ResourceFile, error) {
+// ApplyUpdates0 assume acquired connection.
+func (m *Manager) ApplyUpdates0(appID string, updates []Update) ([]*resource.ResourceFile, error) {
 	// Construct new resource manager.
 	newManager, files, err := m.applyUpdates(appID, m.AppFS, updates)
 	if err != nil {
@@ -336,7 +339,7 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		ctx = context.WithValue(ctx, configsource.ContextKeySAMLEntityID, m.renderSAMLEntityID(appID))
 		ctx = context.WithValue(ctx, hook.ContextKeyDenoClient, m.DenoClient)
 
-		err = m.Tutorials.OnUpdateResource(ctx, appID, all, resrc, u.Data)
+		err = m.Tutorials.OnUpdateResource0(appID, all, resrc, u.Data)
 		if err != nil {
 			return nil, nil, err
 		}

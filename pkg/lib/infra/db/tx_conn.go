@@ -13,11 +13,11 @@ type txConn struct {
 	doPrepare bool
 	logger    *log.Logger
 	tx        *sqlx.Tx
-	db        *PoolDB
+	conn      *sqlx.Conn
 }
 
 func (t *txConn) prepare(ctx context.Context, query string) (*sqlx.Stmt, error) {
-	stmt, err := t.db.Prepare(ctx, query)
+	stmt, err := t.conn.PreparexContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}

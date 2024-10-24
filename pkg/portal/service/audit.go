@@ -37,8 +37,9 @@ type AuditService struct {
 
 	DenoEndpoint config.DenoEndpoint
 
-	SQLBuilder  *globaldb.SQLBuilder
-	SQLExecutor *globaldb.SQLExecutor
+	GlobalSQLBuilder  *globaldb.SQLBuilder
+	GlobalSQLExecutor *globaldb.SQLExecutor
+	GlobalDatabase    *globaldb.Handle
 
 	AuditDatabase *auditdb.WriteHandle
 
@@ -93,9 +94,9 @@ func (s *AuditService) Log(app *model.App, payload event.NonBlockingPayload) (er
 }
 
 func (s *AuditService) nextSeq() (seq int64, err error) {
-	builder := s.SQLBuilder.
-		Select(fmt.Sprintf("nextval('%s')", s.SQLBuilder.TableName("_auth_event_sequence")))
-	row, err := s.SQLExecutor.QueryRowWith(builder)
+	builder := s.GlobalSQLBuilder.
+		Select(fmt.Sprintf("nextval('%s')", s.GlobalSQLBuilder.TableName("_auth_event_sequence")))
+	row, err := s.GlobalSQLExecutor.QueryRowWith(builder)
 	if err != nil {
 		return
 	}
@@ -148,7 +149,16 @@ func (s *AuditService) makeContext(appID string, payload event.Payload) event.Co
 
 func (s *AuditService) resolveNonBlockingEvent(appID string, payload event.NonBlockingPayload) (*event.Event, error) {
 	eventContext := s.makeContext(appID, payload)
-	seq, err := s.nextSeq()
+	var seq int64
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		seq, err = s.nextSeq()
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}

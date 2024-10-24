@@ -38,11 +38,14 @@ type WriterHook struct {
 }
 
 func NewWriterHook(w io.Writer) *WriterHook {
-	colored := checkIfTerminal(w)
+	isTerminal := checkIfTerminal(w)
 	return &WriterHook{
 		Writer: w,
 		Formatter: &logrus.TextFormatter{
-			ForceColors: colored,
+			ForceColors: isTerminal,
+			// Disable quote when it is terminal so that newlines are printed without being escaped.
+			// See https://github.com/sirupsen/logrus/issues/608#issuecomment-745137306
+			DisableQuote: isTerminal,
 		},
 	}
 }

@@ -1,10 +1,9 @@
 package tutorial
 
 import (
-	"context"
-
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -16,22 +15,45 @@ type Store interface {
 }
 
 type Service struct {
-	Store Store
+	GlobalDatabase *globaldb.Handle
+	Store          Store
 }
 
+// Get acquires connection.
 func (s *Service) Get(appID string) (*Entry, error) {
-	return s.Store.Get(appID)
-}
-
-func (s *Service) Skip(appID string) (err error) {
-	entry, err := s.Store.Get(appID)
+	var entry *Entry
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		entry, err = s.Store.Get(appID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	entry.Skip()
+	return entry, nil
+}
 
-	err = s.Store.Save(entry)
+// Skip acquires connection.
+func (s *Service) Skip(appID string) (err error) {
+	err = s.GlobalDatabase.WithTx(func() error {
+		entry, err := s.Store.Get(appID)
+		if err != nil {
+			return err
+		}
+
+		entry.Skip()
+
+		err = s.Store.Save(entry)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return
 	}
@@ -39,7 +61,29 @@ func (s *Service) Skip(appID string) (err error) {
 	return
 }
 
+// RecordProgresses acquires connection.
 func (s *Service) RecordProgresses(appID string, ps []Progress) (err error) {
+	err = s.GlobalDatabase.WithTx(func() error {
+		return s.recordProgresses(appID, ps)
+	})
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+// OnUpdateResource0 assumes acquired connection.
+func (s *Service) OnUpdateResource0(appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error) {
+	ps, err := s.detectProgresses(resourceInTargetFs, data)
+	if err != nil {
+		return
+	}
+
+	return s.recordProgresses(appID, ps)
+}
+
+func (s *Service) recordProgresses(appID string, ps []Progress) (err error) {
 	entry, err := s.Store.Get(appID)
 	if err != nil {
 		return
@@ -55,16 +99,7 @@ func (s *Service) RecordProgresses(appID string, ps []Progress) (err error) {
 	return
 }
 
-func (s *Service) OnUpdateResource(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error) {
-	ps, err := s.DetectProgresses(resourceInTargetFs, data)
-	if err != nil {
-		return
-	}
-
-	return s.RecordProgresses(appID, ps)
-}
-
-func (s *Service) DetectProgresses(resourceInTargetFs *resource.ResourceFile, data []byte) (out []Progress, err error) {
+func (s *Service) detectProgresses(resourceInTargetFs *resource.ResourceFile, data []byte) (out []Progress, err error) {
 	ps, err := s.detectAuthgearYAML(resourceInTargetFs, data)
 	if err != nil {
 		return

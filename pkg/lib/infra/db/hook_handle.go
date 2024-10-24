@@ -3,10 +3,14 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
+
+	"github.com/jmoiron/sqlx"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
 type HookHandle struct {
@@ -42,7 +46,21 @@ func (h *HookHandle) UseHook(hook TransactionHook) {
 
 // WithTx commits if do finishes without error and rolls back otherwise.
 func (h *HookHandle) WithTx(do func() error) (err error) {
-	tx, err := h.beginTx()
+	id := uuid.New()
+	logger := h.Logger.WithField("debug_id", id)
+	db, err := h.openDB()
+	if err != nil {
+		return
+	}
+
+	conn, err := db.db.Connx(h.Context)
+	if err != nil {
+		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
+		return
+	}
+	logger.Debug("acquire connection")
+
+	tx, err := h.beginTx(logger, conn)
 	if err != nil {
 		return
 	}
@@ -56,9 +74,11 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 	h.tx = tx
 	defer func() {
 		shouldRunDidCommitHooks := false
-		// WillCommitTx of hook is allowed to access the database.
-		// So the assignment to nil should happen last.
+
+		// This defer block is run second.
 		defer func() {
+			// WillCommitTx of hook is allowed to access the database.
+			// So the assignment to nil should happen last.
 			h.tx = nil
 
 			if shouldRunDidCommitHooks {
@@ -68,6 +88,16 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 				for _, hook := range h.hooks {
 					hook.DidCommitTx()
 				}
+			}
+		}()
+
+		// This defer block is run first.
+		defer func() {
+			closeErr := conn.Close()
+			if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
+				logger.WithError(closeErr).Error("failed to close connection")
+			} else {
+				logger.Debug("close connection")
 			}
 		}()
 
@@ -90,7 +120,21 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 
 // ReadOnly runs do in a transaction and rolls back always.
 func (h *HookHandle) ReadOnly(do func() error) (err error) {
-	tx, err := h.beginTx()
+	id := uuid.New()
+	logger := h.Logger.WithField("debug_id", id)
+	db, err := h.openDB()
+	if err != nil {
+		return
+	}
+
+	conn, err := db.db.Connx(h.Context)
+	if err != nil {
+		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
+		return
+	}
+	logger.Debug("acquire connection")
+
+	tx, err := h.beginTx(logger, conn)
 	if err != nil {
 		return
 	}
@@ -105,9 +149,9 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	defer func() {
 		shouldRunDidCommitHooks := false
 
-		// WillCommitTx of hook is allowed to access the database.
-		// So the assignment to nil should happen last.
 		defer func() {
+			// WillCommitTx of hook is allowed to access the database.
+			// So the assignment to nil should happen last.
 			h.tx = nil
 
 			if shouldRunDidCommitHooks {
@@ -117,6 +161,16 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 				for _, hook := range h.hooks {
 					hook.DidCommitTx()
 				}
+			}
+		}()
+
+		// This defer block is run first.
+		defer func() {
+			closeErr := conn.Close()
+			if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
+				logger.WithError(closeErr).Error("failed to close connection")
+			} else {
+				logger.Debug("close connection")
 			}
 		}()
 
@@ -137,23 +191,20 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	return
 }
 
-func (h *HookHandle) beginTx() (*txConn, error) {
-	db, err := h.openDB()
-	if err != nil {
-		return nil, err
-	}
-
+func (h *HookHandle) beginTx(logger *log.Logger, conn *sqlx.Conn) (*txConn, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
-	tx, err := db.BeginTx(h.Context, txOptions)
+	tx, err := conn.BeginTxx(h.Context, txOptions)
 	if err != nil {
 		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
 
+	logger.Debug("begin")
+
 	return &txConn{
-		db:        db,
+		conn:      conn,
 		tx:        tx,
-		logger:    h.Logger,
+		logger:    logger,
 		doPrepare: h.ConnectionOptions.UsePreparedStatements,
 	}, nil
 }
@@ -173,6 +224,7 @@ func commitTx(conn *txConn, hooks []TransactionHook) error {
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to commit transaction: %w", err)
 	}
+	conn.logger.Debug("commit")
 
 	return nil
 }
@@ -182,6 +234,7 @@ func rollbackTx(conn *txConn) error {
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to rollback transaction: %w", err)
 	}
+	conn.logger.Debug("rollback")
 
 	return nil
 }

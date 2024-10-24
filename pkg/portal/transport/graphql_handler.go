@@ -1,15 +1,10 @@
 package transport
 
 import (
-	"context"
-	"errors"
 	"net/http"
 
-	gographql "github.com/graphql-go/graphql"
 	graphqlgohandler "github.com/graphql-go/handler"
 
-	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/portal/graphql"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -22,9 +17,7 @@ func ConfigureGraphQLRoute(route httproute.Route) httproute.Route {
 }
 
 type GraphQLHandler struct {
-	DevMode        config.DevMode
 	GraphQLContext *graphql.Context
-	Database       *globaldb.Handle
 }
 
 func (h *GraphQLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -42,28 +35,12 @@ func (h *GraphQLHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r.URL.RawQuery = q.Encode()
 	}
 
-	err := h.Database.WithTx(func() error {
-		doRollback := false
-		graphqlHandler := graphqlgohandler.New(&graphqlgohandler.Config{
-			Schema:   graphql.Schema,
-			Pretty:   false,
-			GraphiQL: false,
-			ResultCallbackFn: func(ctx context.Context, params *gographql.Params, result *gographql.Result, responseBody []byte) {
-				if result.HasErrors() {
-					doRollback = true
-				}
-			},
-		})
-
-		ctx := graphql.WithContext(r.Context(), h.GraphQLContext)
-		graphqlHandler.ContextHandler(ctx, w, r)
-
-		if doRollback {
-			return errRollback
-		}
-		return nil
+	graphqlHandler := graphqlgohandler.New(&graphqlgohandler.Config{
+		Schema:   graphql.Schema,
+		Pretty:   false,
+		GraphiQL: false,
 	})
-	if err != nil && !errors.Is(err, errRollback) {
-		panic(err)
-	}
+
+	ctx := graphql.WithContext(r.Context(), h.GraphQLContext)
+	graphqlHandler.ContextHandler(ctx, w, r)
 }

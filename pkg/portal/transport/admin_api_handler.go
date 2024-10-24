@@ -57,11 +57,7 @@ func (h *AdminAPIHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var appIDs []string
-	err := h.Database.ReadOnly(func() (err error) {
-		appIDs, err = h.Authz.ListAuthorizedApps(sessionInfo.UserID)
-		return
-	})
+	appIDs, err := h.Authz.ListAuthorizedApps(sessionInfo.UserID)
 	if err != nil {
 		h.Logger.WithError(err).Errorf("failed to list authorized apps")
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -104,6 +104,8 @@ type AppService struct {
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
 
+	GlobalDatabase *globaldb.Handle
+
 	AppConfig                *portalconfig.AppConfig
 	AppConfigs               AppConfigService
 	AppAuthz                 AppAuthzService
@@ -117,6 +119,7 @@ type AppService struct {
 	SAMLEnvironmentConfig    config.SAMLEnvironmentConfig
 }
 
+// Get calls other services that acquires connection themselves.
 func (s *AppService) Get(id string) (*model.App, error) {
 	appCtx, err := s.AppConfigs.ResolveContext(id)
 	if err != nil {
@@ -129,6 +132,7 @@ func (s *AppService) Get(id string) (*model.App, error) {
 	}, nil
 }
 
+// GetMany just uses Get.
 func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
 	for _, id := range ids {
 		app, err := s.Get(id)
@@ -141,6 +145,7 @@ func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
 	return
 }
 
+// GetAppList calls other services that acquires connection themselves.
 func (s *AppService) GetAppList(userID string) ([]*model.AppListItem, error) {
 	appIDs, err := s.AppAuthz.ListAuthorizedApps(userID)
 	if err != nil {
@@ -162,27 +167,37 @@ func (s *AppService) GetAppList(userID string) ([]*model.AppListItem, error) {
 	return appList, nil
 }
 
+// GetProjectQuota acquires connection.
 func (s *AppService) GetProjectQuota(userID string) (int, error) {
 	q := s.SQLBuilder.Select("max_own_apps").
 		From(s.SQLBuilder.TableName("_portal_user_app_quota")).
 		Where("user_id = ?", userID)
-	row, err := s.SQLExecutor.QueryRowWith(q)
-	if err != nil {
-		return 0, err
-	}
 
 	var quota int
-	err = row.Scan(&quota)
-	// Use the default quota if this user has no specific quota.
-	if errors.Is(err, sql.ErrNoRows) {
-		return s.AppConfig.MaxOwnedApps, nil
-	} else if err != nil {
+	err := s.GlobalDatabase.WithTx(func() error {
+		row, err := s.SQLExecutor.QueryRowWith(q)
+		if err != nil {
+			return err
+		}
+		err = row.Scan(&quota)
+		// Use the default quota if this user has no specific quota.
+		if errors.Is(err, sql.ErrNoRows) {
+			quota = s.AppConfig.MaxOwnedApps
+			return nil
+		} else if err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
 		return 0, err
 	}
 
 	return quota, nil
 }
 
+// GetManyProjectQuota acquires connection.
 func (s *AppService) GetManyProjectQuota(userIDs []string) ([]int, error) {
 	q := s.SQLBuilder.Select(
 		"user_id",
@@ -191,21 +206,28 @@ func (s *AppService) GetManyProjectQuota(userIDs []string) ([]int, error) {
 		From(s.SQLBuilder.TableName("_portal_user_app_quota")).
 		Where("user_id = ANY (?)", pq.Array(userIDs))
 
-	rows, err := s.SQLExecutor.QueryWith(q)
+	m := make(map[string]int)
+	err := s.GlobalDatabase.WithTx(func() error {
+		rows, err := s.SQLExecutor.QueryWith(q)
+		if err != nil {
+			return err
+		}
+		defer rows.Close()
+
+		for rows.Next() {
+			var userID string
+			var count int
+			err = rows.Scan(&userID, &count)
+			if err != nil {
+				return err
+			}
+			m[userID] = count
+		}
+
+		return nil
+	})
 	if err != nil {
 		return nil, err
-	}
-	defer rows.Close()
-
-	m := make(map[string]int)
-	for rows.Next() {
-		var userID string
-		var count int
-		err = rows.Scan(&userID, &count)
-		if err != nil {
-			return nil, err
-		}
-		m[userID] = count
 	}
 
 	out := make([]int, len(userIDs))
@@ -220,6 +242,7 @@ func (s *AppService) GetManyProjectQuota(userIDs []string) ([]int, error) {
 	return out, nil
 }
 
+// LoadRawAppConfig does not need connection.
 func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, string, error) {
 	resMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 	result, err := resMgr.ReadAppFile(configsource.AppConfig,
@@ -239,6 +262,7 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, string
 	return cfg, checksum, nil
 }
 
+// LoadAppSecretConfig does not need connection.
 func (s *AppService) LoadAppSecretConfig(
 	app *model.App,
 	sessionInfo *apimodel.SessionInfo,
@@ -278,6 +302,7 @@ func (s *AppService) LoadAppSecretConfig(
 	return secretConfig, checksum, nil
 }
 
+// GenerateSecretVisitToken does not need connection.
 func (s *AppService) GenerateSecretVisitToken(
 	app *model.App,
 	sessionInfo *apimodel.SessionInfo,
@@ -302,6 +327,7 @@ func (s *AppService) GenerateSecretVisitToken(
 	return token, nil
 }
 
+// GenerateTesterToken does not need connection.
 func (s *AppService) GenerateTesterToken(
 	app *model.App,
 	returnURI string,
@@ -309,6 +335,7 @@ func (s *AppService) GenerateTesterToken(
 	return s.AppTesterTokenStore.CreateToken(config.AppID(app.ID), returnURI)
 }
 
+// Create calls other services that acquires connection themselves, and acquires connection.
 func (s *AppService) Create(userID string, id string) (*model.App, error) {
 	if err := s.validateAppID(id); err != nil {
 		return nil, err
@@ -329,24 +356,30 @@ func (s *AppService) Create(userID string, id string) (*model.App, error) {
 		return nil, err
 	}
 
-	createAppOpts, err := s.generateConfig(appHost, id, defaultAppPlan)
-	if err != nil {
-		return nil, err
-	}
+	err = s.GlobalDatabase.WithTx(func() error {
+		createAppOpts, err := s.generateConfig(appHost, id, defaultAppPlan)
+		if err != nil {
+			return err
+		}
+		err = s.AppConfigs.Create(createAppOpts)
+		if err != nil {
+			// TODO(portal): cleanup orphaned resources created from failed app creation
+			s.Logger.WithError(err).WithField("app_id", id).Error("failed to create app")
+			return err
+		}
 
-	err = s.AppConfigs.Create(createAppOpts)
-	if err != nil {
-		// TODO(portal): cleanup orphaned resources created from failed app creation
-		s.Logger.WithError(err).WithField("app_id", id).Error("failed to create app")
-		return nil, err
-	}
+		err = s.DefaultDomains.CreateAllDefaultDomains(id)
+		if err != nil {
+			return err
+		}
 
-	err = s.DefaultDomains.CreateAllDefaultDomains(id)
-	if err != nil {
-		return nil, err
-	}
+		err = s.AppAuthz.AddAuthorizedUser(id, userID, model.CollaboratorRoleOwner)
+		if err != nil {
+			return err
+		}
 
-	err = s.AppAuthz.AddAuthorizedUser(id, userID, model.CollaboratorRoleOwner)
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -359,16 +392,38 @@ func (s *AppService) Create(userID string, id string) (*model.App, error) {
 	return app, nil
 }
 
+// UpdateResources acquires connection.
 func (s *AppService) UpdateResources(app *model.App, updates []appresource.Update) error {
 	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-	files, err := appResMgr.ApplyUpdates(app.ID, updates)
+	var err error
+	err = s.GlobalDatabase.WithTx(func() error {
+		files, err := appResMgr.ApplyUpdates0(app.ID, updates)
+		if err != nil {
+			return err
+		}
+		return s.AppConfigs.UpdateResources(app.ID, files)
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateResources0 assumes acquired connection.
+func (s *AppService) UpdateResources0(app *model.App, updates []appresource.Update) error {
+	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+	files, err := appResMgr.ApplyUpdates0(app.ID, updates)
 	if err != nil {
 		return err
 	}
 
 	err = s.AppConfigs.UpdateResources(app.ID, files)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return nil
 }
 
 func (s *AppService) generateResources(appHost string, appID string, featureConfig *config.FeatureConfig) (map[string][]byte, error) {
@@ -453,7 +508,7 @@ func (s *AppService) generateConfig(appHost string, appID string, appPlan *model
 
 	appFs := resource.LeveledAferoFs{Fs: fs, FsLevel: resource.FsLevelApp}
 	appResMgr := s.AppResMgrFactory.NewManagerWithNewAppFS(appFs)
-	_, err = appResMgr.ApplyUpdates(appID, nil)
+	_, err = appResMgr.ApplyUpdates0(appID, nil)
 	if err != nil {
 		return
 	}

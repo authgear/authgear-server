@@ -92,8 +92,24 @@ This project uses asdf, and there is a .tool-versions file at the project root.
 2. Generate config files
 
    ```sh
-   go run ./cmd/authgear init -o ./var
+   $ go run ./cmd/authgear init -o ./testing
+   App ID (default 'my-app'): accounts
+   HTTP origin of authgear (default 'http://localhost:3000'): http://localhost:3100
+   HTTP origin of portal (default 'http://portal.localhost:8000'):
+   Phone OTP Mode (sms, whatsapp, whatsapp_sms) (default 'sms'): sms
+   Would you like to turn off email verification? (In case you don't have SMTP credentials in your initial setup) [Y/N] (default 'false'):
+   Database URL (default 'postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable'): postgres://postgres:postgres@127.0.0.1:5432/app?sslmode=disable
+   Database schema (default 'public'):
+   Audit Database URL (default 'postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable'): postgres://postgres:postgres@127.0.0.1:5432/audit?sslmode=disable
+   Audit Database schema (default 'public'):
+   Elasticsearch URL (default 'http://localhost:9200'):
+   Redis URL (default 'redis://localhost'):
+   Redis URL for analytic (default 'redis://localhost/1'):
+   config written to testing/authgear.yaml
+   config written to testing/authgear.secrets.yaml
    ```
+
+   You need to make changes according to the example shown above.
 
    `authgear.yaml` must contain the following contents for the portal to work.
 

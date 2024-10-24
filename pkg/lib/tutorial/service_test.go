@@ -10,11 +10,11 @@ import (
 )
 
 func TestServiceDetectProgresses(t *testing.T) {
-	Convey("Service DetectProgresses", t, func() {
+	Convey("Service detectProgresses", t, func() {
 		s := &Service{}
 
 		test := func(r *resource.ResourceFile, data []byte, expected []Progress) {
-			actual, err := s.DetectProgresses(r, data)
+			actual, err := s.detectProgresses(r, data)
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, expected)
 		}

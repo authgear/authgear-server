@@ -29,6 +29,7 @@ type AuthzService struct {
 	Collaborators AuthzCollaboratorService
 }
 
+// ListAuthorizedApps calls other services that acquires connection themselves.
 func (s *AuthzService) ListAuthorizedApps(userID string) ([]string, error) {
 	appIDs, err := s.Configs.GetStaticAppIDs()
 	if errors.Is(err, ErrGetStaticAppIDsNotSupported) {
@@ -50,11 +51,13 @@ func (s *AuthzService) ListAuthorizedApps(userID string) ([]string, error) {
 	return appIDs, nil
 }
 
+// AddAuthorizedUser assume acquired connection.
 func (s *AuthzService) AddAuthorizedUser(appID string, userID string, role model.CollaboratorRole) error {
 	c := s.Collaborators.NewCollaborator(appID, userID, role)
 	return s.Collaborators.CreateCollaborator(c)
 }
 
+// CheckAccessOfViewer calls other services that acquires connection themselves.
 func (s *AuthzService) CheckAccessOfViewer(appID string) (userID string, err error) {
 	sessionInfo := session.GetValidSessionInfo(s.Context)
 	if sessionInfo == nil {

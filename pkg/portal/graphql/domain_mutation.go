@@ -171,27 +171,31 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.DomainService.DeleteDomain(appID, domainID)
-			if err != nil {
-				return nil, err
-			}
-
-			// Update public origin if matches the deleted domain.
 			var deletedDomain string
 			var defaultDomain string
-			for _, d := range domains {
-				if d.ID == domainID {
-					deletedDomain = d.Domain
-				} else if !d.IsCustom {
-					defaultDomain = d.Domain
-				}
-			}
-			if deletedDomain != "" && defaultDomain != "" {
-				err = deleteDomainUpdatePublicOrigin(gqlCtx, app, deletedDomain, defaultDomain)
+			err = gqlCtx.GlobalDatabase.WithTx(func() error {
+				err = gqlCtx.DomainService.DeleteDomain(appID, domainID)
 				if err != nil {
-					return nil, err
+					return err
 				}
-			}
+
+				// Update public origin if matches the deleted domain.
+				for _, d := range domains {
+					if d.ID == domainID {
+						deletedDomain = d.Domain
+					} else if !d.IsCustom {
+						defaultDomain = d.Domain
+					}
+				}
+				if deletedDomain != "" && defaultDomain != "" {
+					err = deleteDomainUpdatePublicOrigin(gqlCtx, app, deletedDomain, defaultDomain)
+					if err != nil {
+						return err
+					}
+				}
+
+				return nil
+			})
 
 			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectDomainDeletedEventPayload{
 				Domain:   deletedDomain,
@@ -241,7 +245,7 @@ func deleteDomainUpdatePublicOrigin(ctx *Context, app *model.App, deletedDomain 
 		return err
 	}
 
-	err = ctx.AppService.UpdateResources(app, []appresource.Update{{
+	err = ctx.AppService.UpdateResources0(app, []appresource.Update{{
 		Path: configsource.AuthgearYAML,
 		Data: data,
 	}})
