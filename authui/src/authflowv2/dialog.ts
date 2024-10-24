@@ -75,6 +75,7 @@ export class DialogController extends Controller {
       return;
     }
     this.element.classList.add("open");
+    (document.activeElement as HTMLElement | null)?.blur();
   };
 
   private closeFromEvent = (e: Event) => {
