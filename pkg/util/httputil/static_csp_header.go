@@ -10,12 +10,12 @@ func CSPJoin(directives []string) string {
 }
 
 type StaticCSPHeader struct {
-	CSPDirectives []string
+	CSPDirectives CSPDirectives
 }
 
 func (m StaticCSPHeader) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Security-Policy", CSPJoin(m.CSPDirectives))
+		w.Header().Set("Content-Security-Policy", m.CSPDirectives.String())
 		next.ServeHTTP(w, r)
 	})
 }

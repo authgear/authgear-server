@@ -24,13 +24,13 @@ func TestStaticCSPHeader(t *testing.T) {
 		}
 
 		Convey("csp directives", func() {
-			middleware.CSPDirectives = []string{
-				"default-src 'self'",
-				"object-src 'none'",
-				"base-uri 'none'",
-				"script-src 'self'",
-				"block-all-mixed-content",
-				"frame-ancestors 'none'",
+			middleware.CSPDirectives = CSPDirectives{
+				CSPDirective{CSPDirectiveNameDefaultSrc, CSPSources{CSPSourceSelf}},
+				CSPDirective{CSPDirectiveNameObjectSrc, CSPSources{CSPSourceNone}},
+				CSPDirective{CSPDirectiveNameBaseURI, CSPSources{CSPSourceNone}},
+				CSPDirective{CSPDirectiveNameScriptSrc, CSPSources{CSPSourceSelf}},
+				CSPDirective{CSPDirectiveNameBlockAllMixedContent, CSPSources{}},
+				CSPDirective{CSPDirectiveNameFrameAncestors, CSPSources{CSPSourceNone}},
 			}
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)

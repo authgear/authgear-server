@@ -36,6 +36,7 @@ const (
 	CSPSourceNone         CSPKeywordSourceLevel1 = "'none'"
 	CSPSourceSelf         CSPKeywordSourceLevel1 = "'self'"
 	CSPSourceUnsafeInline CSPKeywordSourceLevel1 = "'unsafe-inline'"
+	CSPSourceUnsafeEval   CSPKeywordSourceLevel1 = "'unsafe-eval'"
 )
 
 func (_ CSPKeywordSourceLevel1) CSPLevel() int {
@@ -142,4 +143,40 @@ func GetCSPNonce(ctx context.Context) string {
 		return v.Nonce
 	}
 	return ""
+}
+
+type CSPDirectiveName string
+
+const (
+	CSPDirectiveNameDefaultSrc           CSPDirectiveName = "default-src"
+	CSPDirectiveNameScriptSrc            CSPDirectiveName = "script-src"
+	CSPDirectiveNameWorkerSrc            CSPDirectiveName = "worker-src"
+	CSPDirectiveNameObjectSrc            CSPDirectiveName = "object-src"
+	CSPDirectiveNameBaseURI              CSPDirectiveName = "base-uri"
+	CSPDirectiveNameBlockAllMixedContent CSPDirectiveName = "block-all-mixed-content"
+	CSPDirectiveNameFrameAncestors       CSPDirectiveName = "frame-ancestors"
+)
+
+type CSPDirective struct {
+	Name  CSPDirectiveName
+	Value CSPSources
+}
+
+func (d CSPDirective) String() string {
+	name := string(d.Name)
+	if len(d.Value) <= 0 {
+		return name
+	}
+	v := d.Value.String()
+	return fmt.Sprintf("%v %v", name, v)
+}
+
+type CSPDirectives []CSPDirective
+
+func (d CSPDirectives) String() string {
+	var strs []string
+	for _, directive := range d {
+		strs = append(strs, directive.String())
+	}
+	return strings.Join(strs, "; ")
 }

@@ -24,13 +24,39 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		httproute.MiddlewareFunc(httputil.XFrameOptionsDeny),
 		httproute.MiddlewareFunc(httputil.XRobotsTag),
 		httputil.StaticCSPHeader{
-			CSPDirectives: []string{
-				"script-src 'self' 'unsafe-inline' unpkg.com",
-				"object-src 'none'",
-				"base-uri 'none'",
-				"block-all-mixed-content",
+			CSPDirectives: httputil.CSPDirectives{
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameScriptSrc,
+					Value: httputil.CSPSources{
+						httputil.CSPSourceSelf,
+						httputil.CSPSourceUnsafeInline,
+						httputil.CSPHostSource{
+							Host: "unpkg.com",
+						},
+					},
+				},
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameObjectSrc,
+					Value: httputil.CSPSources{
+						httputil.CSPSourceNone,
+					},
+				},
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameBaseURI,
+					Value: httputil.CSPSources{
+						httputil.CSPSourceNone,
+					},
+				},
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameBlockAllMixedContent,
+				},
 				// This must be kept in sync with httputil.XFrameOptionsDeny
-				"frame-ancestors 'none'",
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameFrameAncestors,
+					Value: httputil.CSPSources{
+						httputil.CSPSourceNone,
+					},
+				},
 			},
 		},
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),

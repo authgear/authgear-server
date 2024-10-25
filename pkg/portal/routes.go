@@ -23,20 +23,77 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 		httproute.MiddlewareFunc(httputil.XFrameOptionsDeny),
 		httproute.MiddlewareFunc(httputil.XRobotsTag),
 		httputil.StaticCSPHeader{
-			CSPDirectives: []string{
+			CSPDirectives: httputil.CSPDirectives{
 				// FIXME(regeneratorRuntime)
 				// parcel-2.0.0-rc.0 requires us to use ES6 module when the browser supports it.
 				// ES6 module assumes strict mode.
 				// regeneratorRuntime is not compatible with strict mode because
 				// it uses Function to generate function, which is considered as eval.
-				"script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net unpkg.com www.googletagmanager.com cdn.mxpnl.com eu.posthog.com eu-assets.i.posthog.com cmp.osano.com",
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameScriptSrc,
+					Value: httputil.CSPSources{
+						httputil.CSPSourceSelf,
+						httputil.CSPSourceUnsafeEval,
+						httputil.CSPSourceUnsafeInline,
+						httputil.CSPHostSource{
+							Host: "cdn.jsdelivr.net",
+						},
+						httputil.CSPHostSource{
+							Host: "unpkg.com",
+						},
+						httputil.CSPHostSource{
+							Host: "www.googletagmanager.com",
+						},
+						httputil.CSPHostSource{
+							Host: "cdn.mxpnl.com",
+						},
+						httputil.CSPHostSource{
+							Host: "eu.posthog.com",
+						},
+						httputil.CSPHostSource{
+							Host: "eu-assets.i.posthog.com",
+						},
+						httputil.CSPHostSource{
+							Host: "cmp.osano.com",
+						},
+					},
+				},
 				// monaco editor create worker with blob:
-				"worker-src 'self' 'unsafe-inline' cdn.jsdelivr.net blob:",
-				"object-src 'none'",
-				"base-uri 'none'",
-				"block-all-mixed-content",
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameWorkerSrc,
+					Value: httputil.CSPSources{
+						httputil.CSPSourceSelf,
+						httputil.CSPSourceUnsafeInline,
+						httputil.CSPHostSource{
+							Host: "cdn.jsdelivr.net",
+						},
+						httputil.CSPSchemeSource{
+							Scheme: "blob",
+						},
+					},
+				},
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameObjectSrc,
+					Value: httputil.CSPSources{
+						httputil.CSPSourceNone,
+					},
+				},
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameBaseURI,
+					Value: httputil.CSPSources{
+						httputil.CSPSourceNone,
+					},
+				},
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameBlockAllMixedContent,
+				},
 				// This must be kept in sync with httputil.XFrameOptionsDeny
-				"frame-ancestors 'none'",
+				httputil.CSPDirective{
+					Name: httputil.CSPDirectiveNameFrameAncestors,
+					Value: httputil.CSPSources{
+						httputil.CSPSourceNone,
+					},
+				},
 			},
 		},
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
