@@ -27,6 +27,7 @@ type SettingsViewModel struct {
 	OOBOTPSMSDefaultChannel string
 	SecondaryPassword       *authenticator.Info
 	HasMFA                  bool
+	PhoneOTPMode            string
 
 	ShowSecondaryTOTP        bool
 	ShowSecondaryOOBOTPEmail bool
@@ -110,6 +111,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 	var secondaryPassword *authenticator.Info
 
 	oobotpSMSDefaultChannel := m.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
+	phoneOTPMode := string(m.AuthenticatorConfig.OOB.SMS.PhoneOTPMode)
 
 	totpAllowed := false
 	oobotpEmailAllowed := false
@@ -203,6 +205,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		OOBOTPSMSDefaultChannel: string(oobotpSMSDefaultChannel),
 		SecondaryPassword:       secondaryPassword,
 		HasMFA:                  hasMFA,
+		PhoneOTPMode:            phoneOTPMode,
 
 		ShowSecondaryTOTP:        showSecondaryTOTP,
 		ShowSecondaryOOBOTPEmail: showSecondaryOOBOTPEmail,

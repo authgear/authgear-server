@@ -73,7 +73,9 @@
     {{ template "__settings_mfa_item.html"
         (dict
           "MaterialIconName" "phone_iphone"
-          "Label" (translate "v2.page.settings-mfa.default.secondary-oob-otp-sms-label" nil)
+          "Label" (translate "v2.page.settings-mfa.default.secondary-oob-otp-sms-label" (dict
+            "PhoneOTPMode" $.PhoneOTPMode
+          ))
           "IsActive" $.HasSecondaryOOBOTPSMS
           "Href" $href
         )
