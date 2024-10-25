@@ -101,8 +101,10 @@ func (s CSPSources) Len() int {
 }
 
 func (s CSPSources) Less(i, j int) bool {
-	// Higher level source must appear before lower level source.
-	return s[i].CSPLevel() > s[j].CSPLevel()
+	// Previously, higher level source appears before lower level source.
+	// But the spec https://www.w3.org/TR/CSP3/#strict-dynamic-usage says the opposite.
+	// To deploy new directive in a compatible way, lower level source must appear before higher level source.
+	return s[i].CSPLevel() < s[j].CSPLevel()
 }
 
 func (s CSPSources) Swap(i, j int) {
