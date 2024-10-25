@@ -47,10 +47,7 @@
     ol {
       @apply text-start list-decimal;
       @apply py-6 ps-8;
-
-      li + li {
-        @apply mt-5;
-      }
+      @apply space-y-5;
     }
   }
 }
