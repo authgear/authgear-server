@@ -8,7 +8,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func TestWriteResponse(t *testing.T) {
@@ -16,7 +16,7 @@ func TestWriteResponse(t *testing.T) {
 		test := func(responseMode string, expected string) {
 			w := httptest.NewRecorder()
 			r, _ := http.NewRequest("GET", "/", nil)
-			r = r.WithContext(web.WithCSPNonce(r.Context(), "nonce"))
+			r = r.WithContext(httputil.WithCSPNonce(r.Context(), "nonce"))
 			redirectURI, _ := url.Parse("https://example.com")
 			response := map[string]string{
 				"code":  "this_is_the_code",

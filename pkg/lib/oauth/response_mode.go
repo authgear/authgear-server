@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/authgear/authgear-server/pkg/lib/web"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
@@ -102,7 +102,7 @@ func HTMLRedirect(rw http.ResponseWriter, r *http.Request, redirectURI string) {
 	// When an iframe is used to load the response, the iframe must have allow-top-navigation set.
 	// Then the window.location.href will navigate the top-level frame.
 	err := htmlRedirectTemplate.Execute(rw, map[string]string{
-		"CSPNonce":     web.GetCSPNonce(r.Context()),
+		"CSPNonce":     httputil.GetCSPNonce(r.Context()),
 		"redirect_uri": redirectURI,
 	})
 	if err != nil {
@@ -114,7 +114,7 @@ func FormPost(w http.ResponseWriter, r *http.Request, redirectURI *url.URL, resp
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 
 	err := formPostTemplate.Execute(w, map[string]interface{}{
-		"CSPNonce":     web.GetCSPNonce(r.Context()),
+		"CSPNonce":     httputil.GetCSPNonce(r.Context()),
 		"redirect_uri": redirectURI.String(),
 		"response":     response,
 	})
