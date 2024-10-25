@@ -32,7 +32,6 @@ function getHostname(publicOrigin: string): string {
 
 interface FormState {
   publicOrigin: string;
-  persistentCookie: boolean;
   sessionLifetimeSeconds: number | undefined;
   idleTimeoutEnabled: boolean;
   idleTimeoutSeconds: number | undefined;
@@ -41,7 +40,6 @@ interface FormState {
 function constructFormState(config: PortalAPIAppConfig): FormState {
   return {
     publicOrigin: config.http?.public_origin ?? "",
-    persistentCookie: !(config.session?.cookie_non_persistent ?? false),
     sessionLifetimeSeconds: config.session?.lifetime_seconds,
     idleTimeoutEnabled: config.session?.idle_timeout_enabled ?? false,
     idleTimeoutSeconds: config.session?.idle_timeout_seconds,
@@ -55,7 +53,6 @@ function constructConfig(
 ): PortalAPIAppConfig {
   return produce(config, (config) => {
     config.session = config.session ?? {};
-    config.session.cookie_non_persistent = !currentState.persistentCookie;
     config.session.lifetime_seconds = currentState.sessionLifetimeSeconds;
     config.session.idle_timeout_enabled = currentState.idleTimeoutEnabled;
     config.session.idle_timeout_seconds = currentState.idleTimeoutSeconds;
@@ -76,16 +73,6 @@ const SessionConfigurationWidget: React.VFC<SessionConfigurationWidgetProps> =
     const hostname = useMemo(
       () => getHostname(state.publicOrigin),
       [state.publicOrigin]
-    );
-
-    const onPersistentCookieChange = useCallback(
-      (_, value?: boolean) => {
-        setState((state) => ({
-          ...state,
-          persistentCookie: value ?? false,
-        }));
-      },
-      [setState]
     );
 
     const onSessionLifetimeSecondsChange = useCallback(
@@ -120,16 +107,6 @@ const SessionConfigurationWidget: React.VFC<SessionConfigurationWidgetProps> =
 
     return (
       <Widget className={styles.widget}>
-        <Toggle
-          label={renderToString(
-            "CookieLifetimeConfigurationScreen.persistent-cookie.label"
-          )}
-          description={renderToString(
-            "CookieLifetimeConfigurationScreen.persistent-cookie.description"
-          )}
-          checked={state.persistentCookie}
-          onChange={onPersistentCookieChange}
-        />
         <TextField
           type="text"
           label={renderToString(

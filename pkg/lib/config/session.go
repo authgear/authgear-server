@@ -35,10 +35,10 @@ const (
 )
 
 type SessionConfig struct {
-	Lifetime            DurationSeconds `json:"lifetime_seconds,omitempty"`
-	IdleTimeoutEnabled  *bool           `json:"idle_timeout_enabled,omitempty"`
-	IdleTimeout         DurationSeconds `json:"idle_timeout_seconds,omitempty"`
-	CookieNonPersistent bool            `json:"cookie_non_persistent,omitempty"`
+	Lifetime                       DurationSeconds `json:"lifetime_seconds,omitempty"`
+	IdleTimeoutEnabled             *bool           `json:"idle_timeout_enabled,omitempty"`
+	IdleTimeout                    DurationSeconds `json:"idle_timeout_seconds,omitempty"`
+	Deprecated_CookieNonPersistent bool            `json:"cookie_non_persistent,omitempty"`
 }
 
 func (c *SessionConfig) SetDefaults() {
