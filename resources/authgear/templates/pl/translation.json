@@ -1252,7 +1252,7 @@
   "v2.page.settings-oob-otp-sms.default.title": "{PhoneOTPMode, select, whatsapp {WhatsApp} whatsapp_sms {WhatsApp/SMS} other {SMS} } wiadomość",
   "v2.page.settings-oob-otp.default.added-at-label": "Dodano o <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long>{time, datetime, short} UTC</span>",
   "v2.page.settings-oob-otp.default.oob-otp-email-button-label": "+ Dodaj email",
-  "v2.page.settings-oob-otp.default.oob-otp-sms-button-label": "+ Dodaj numer telefonu {PhoneOTPMode, select, whatsapp {WhatsApp} whatsapp_sms {WhatsApp/SMS} other {SMS} } Passkey",
+  "v2.page.settings-oob-otp.default.oob-otp-sms-button-label": "+ Dodaj numer telefonu {PhoneOTPMode, select, whatsapp {WhatsApp} whatsapp_sms {WhatsApp/SMS} other {SMS} }",
   "v2.page.settings-passkey.default.add-passkey-button-label": "+ Dodaj Passkey",
   "v2.page.settings-passkey.default.item-description": "Dodano o <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=short data-date-time-style=short>{time, datetime, short} UTC</span>",
   "v2.page.settings-passkey.default.remove-passkey-dialog-description": "Czy na pewno chcesz usunąć ten klucz dostępu?",
