@@ -1020,7 +1020,7 @@
   "v2.error.verification-code-format": "รหัสยืนยันที่คุณป้อนไม่อยู่ในรูปแบบที่ถูกต้อง โปรดตรวจสอบให้แน่ใจว่าเป็นรหัส 6 หลัก",
   "v2.error.verification-code-invalid": "รหัสยืนยันไม่ถูกต้อง.",
   "v2.error.verification-code-required": "โปรดป้อนรหัสยืนยันที่คุณได้รับเมื่อสักครู่",
-  "v2.error.web-ui-invalid-session-return": "คุณอาจกดปุ่มกลับ หรือมีปัญหาบางอย่างกับคุกกี้<br>ลองทำการกระทำนั้นอีกครั้งจากแอปพลิเคชัน และหากปัญหายังคงอยู่ โปรดติดต่อผู้ดูแลระบบ",
+  "v2.error.web-ui-invalid-session-return": "คุณอาจกดปุ่มกลับ หรือมีปัญหาบางอย้างกับคุกกี้ ลองทำดังนี้: <ol><li>ทำการกระทำนั้นอีกครั้งจากแอปพลิเคชัน</li><li>ลองใหม่หลังจากล้างคุกกี้</li><li>หากปัญหายังคงอยู่ โปรดติดต่อผู้ดูแลระบบ</li></ol>",
   "v2.error.webhook-delivery-timeout": "ไม่อนุญาตให้ดำเนินการเนื่องจากการส่งมอบ Webhook หมดเวลา",
   "v2.error.webhook-disallowed": "ไม่อนุญาตให้ดำเนินการ",
   "v2.error.webhook-invalid-response": "[To Developer] ตัวจัดการ Webhook ของคุณไม่ได้ส่งคืนการตอบสนองที่ถูกต้อง กรุณาเยี่ยมชม <a class=\"link\" target=\"_blank\" href=\"https://docs.authgear.com/webhooks/webhooks\">https://docs.authgear.com/webhooks/webhooks</a>",
