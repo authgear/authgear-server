@@ -1,6 +1,7 @@
 package portal
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -8,6 +9,11 @@ import (
 
 func PortalCSPMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		nonce, r := httputil.CSPNoncePerRequest(r)
+		data := map[string]interface{}{
+			"CSPNonce": nonce,
+		}
+		r = r.WithContext(context.WithValue(r.Context(), httputil.FileServerIndexHTMLtemplateDataKey, data))
 		cspDirectives := httputil.CSPDirectives{
 			httputil.CSPDirective{
 				Name: httputil.CSPDirectiveNameScriptSrc,
@@ -20,7 +26,6 @@ func PortalCSPMiddleware(next http.Handler) http.Handler {
 					// But the two issues have been addressed since regenerator-runtime@0.13.8 (https://github.com/facebook/regenerator/commit/cc0cde9d90f975e5876df16c4b852c97f35da436)
 					// If you run `rg regenerator-runtime` in ./portal you will see we are on regenerator-runtime@0.13.9
 					// So we no longer need unsafe-eval anymore.
-					httputil.CSPSourceUnsafeInline,
 					httputil.CSPHostSource{
 						Host: "cdn.jsdelivr.net",
 					},
@@ -42,6 +47,10 @@ func PortalCSPMiddleware(next http.Handler) http.Handler {
 					httputil.CSPHostSource{
 						Host: "cmp.osano.com",
 					},
+					httputil.CSPNonceSource{
+						Nonce: nonce,
+					},
+					httputil.CSPSourceStrictDynamic,
 				},
 			},
 			// monaco editor create worker with blob:
@@ -49,7 +58,6 @@ func PortalCSPMiddleware(next http.Handler) http.Handler {
 				Name: httputil.CSPDirectiveNameWorkerSrc,
 				Value: httputil.CSPSources{
 					httputil.CSPSourceSelf,
-					httputil.CSPSourceUnsafeInline,
 					httputil.CSPHostSource{
 						Host: "cdn.jsdelivr.net",
 					},

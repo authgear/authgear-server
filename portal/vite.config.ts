@@ -1,8 +1,9 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { viteAuthgearPortal } from "vite-plugin-authgear-portal";
 
 export default defineConfig(() => ({
-  plugins: [react()],
+  plugins: [react(), viteAuthgearPortal()],
   // The index.html is under the "./src" directory
   root: "./src",
   server: {

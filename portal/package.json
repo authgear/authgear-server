@@ -1,6 +1,9 @@
 {
   "name": "authgear-portal",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "type": "module",
   "scripts": {
     "test": "jest",
