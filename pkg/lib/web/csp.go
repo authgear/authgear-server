@@ -3,7 +3,6 @@ package web
 import (
 	"fmt"
 	"net/url"
-	"sort"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -56,22 +55,16 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 		return nil, err
 	}
 
-	baseSrc := httputil.CSPSources{httputil.CSPSourceSelf}
+	cdnHostSrc := httputil.CSPSources{}
 	if opts.CDNHost != "" {
-		baseSrc = append(baseSrc, httputil.CSPHostSource{
+		cdnHostSrc = append(cdnHostSrc, httputil.CSPHostSource{
 			Host: opts.CDNHost,
 		})
 	}
 
-	scriptSrc := httputil.CSPSources{
-		httputil.CSPSourceStrictDynamic,
-		httputil.CSPNonceSource{
-			Nonce: opts.Nonce,
-		},
-	}
-
-	scriptSrc = append(
-		scriptSrc,
+	var scriptSrc httputil.CSPSources
+	scriptSrc = append(scriptSrc,
+		httputil.CSPSourceSelf,
 		wwwgoogletagmanagercom,
 		euassetsiposthogcom,
 		challengescloudflarecom,
@@ -81,29 +74,39 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 			Host:   "browser.sentry-cdn.com",
 		},
 	)
-	scriptSrc = append(scriptSrc, baseSrc...)
-	sort.Sort(scriptSrc)
+	scriptSrc = append(scriptSrc, cdnHostSrc...)
+	scriptSrc = append(scriptSrc,
+		httputil.CSPNonceSource{
+			Nonce: opts.Nonce,
+		},
+		httputil.CSPSourceStrictDynamic,
+	)
 
 	frameSrc := httputil.CSPSources{
+		httputil.CSPSourceSelf,
 		wwwgoogletagmanagercom,
 		challengescloudflarecom,
 		wwwgooglecom,
-		httputil.CSPSourceSelf,
 	}
 
 	fontSrc := httputil.CSPSources{
+		httputil.CSPSourceSelf,
 		cdnjscloudflarecom,
 		static2sharepointonlinecom,
 		fontsgoogleapiscom,
 		fontsgstaticcom,
 	}
-	fontSrc = append(fontSrc, baseSrc...)
-	sort.Sort(fontSrc)
+	fontSrc = append(fontSrc, cdnHostSrc...)
 
-	styleSrc := httputil.CSPSources{
+	var styleSrc httputil.CSPSources
+	styleSrc = append(styleSrc,
+		httputil.CSPSourceSelf,
 		cdnjscloudflarecom,
 		wwwgoogletagmanagercom,
 		fontsgoogleapiscom,
+	)
+	styleSrc = append(styleSrc, cdnHostSrc...)
+	styleSrc = append(styleSrc,
 		httputil.CSPHashSource{
 			// https://github.com/hotwired/turbo/issues/809
 			// Turbo is known to write a stylesheet for ".turbo-progress-bar".
@@ -118,11 +121,10 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 		httputil.CSPNonceSource{
 			Nonce: opts.Nonce,
 		},
-	}
-	styleSrc = append(styleSrc, baseSrc...)
-	sort.Sort(styleSrc)
+	)
 
 	imgSrc := httputil.CSPSources{
+		httputil.CSPSourceSelf,
 		httputil.CSPSchemeSource{
 			Scheme: "http",
 		},
@@ -135,8 +137,7 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 			Scheme: "data",
 		},
 	}
-	imgSrc = append(imgSrc, baseSrc...)
-	sort.Sort(imgSrc)
+	imgSrc = append(imgSrc, cdnHostSrc...)
 
 	// 'self' does not include websocket in Safari :(
 	// https://github.com/w3c/webappsec-csp/issues/7
@@ -169,7 +170,6 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 			Host: sentryDSNHost,
 		})
 	}
-	sort.Sort(connectSrc)
 
 	var frameAncestors httputil.CSPSources
 	if len(opts.FrameAncestors) > 0 {
