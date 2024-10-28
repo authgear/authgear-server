@@ -13,53 +13,34 @@ func AdminCSPMiddleware(next http.Handler) http.Handler {
 			httputil.CSPDirective{
 				Name: httputil.CSPDirectiveNameScriptSrc,
 				Value: httputil.CSPSources{
-					httputil.CSPSourceSelf,
-					// CSP 1.
-					httputil.CSPHostSource{
-						Host: "unpkg.com",
-					},
-					// CSP 2.
-					httputil.CSPNonceSource{
-						Nonce: nonce,
-					},
-					// CSP 3.
-					httputil.CSPSourceStrictDynamic,
+					httputil.CSPSourceSelf,                // CSP1,CSP2
+					httputil.CSPSchemeSourceHTTPS,         // CSP1,CSP2
+					httputil.CSPNonceSource{Nonce: nonce}, // CSP2,CSP3
+					httputil.CSPSourceStrictDynamic,       // CSP3
 				},
 			},
 			httputil.CSPDirective{
 				Name: httputil.CSPDirectiveNameStyleSrc,
 				Value: httputil.CSPSources{
-					httputil.CSPSourceSelf,
-					// CSP 1.
-					httputil.CSPHostSource{
-						Host: "unpkg.com",
-					},
-					// CSP 2.
-					httputil.CSPNonceSource{
-						Nonce: nonce,
-					},
+					httputil.CSPSourceSelf,                // CSP1
+					httputil.CSPSchemeSourceHTTPS,         // CSP1,CSP2
+					httputil.CSPNonceSource{Nonce: nonce}, // CSP2,CSP3
 				},
 			},
 			httputil.CSPDirective{
-				Name: httputil.CSPDirectiveNameObjectSrc,
-				Value: httputil.CSPSources{
-					httputil.CSPSourceNone,
-				},
+				Name:  httputil.CSPDirectiveNameObjectSrc,
+				Value: httputil.CSPSources{httputil.CSPSourceNone}, // CSP1,CSP2,CSP3
 			},
 			httputil.CSPDirective{
-				Name: httputil.CSPDirectiveNameBaseURI,
-				Value: httputil.CSPSources{
-					httputil.CSPSourceNone,
-				},
+				Name:  httputil.CSPDirectiveNameBaseURI,
+				Value: httputil.CSPSources{httputil.CSPSourceNone}, // CSP1,CSP2,CSP3
 			},
 			httputil.CSPDirective{
-				Name: httputil.CSPDirectiveNameBlockAllMixedContent,
+				Name: httputil.CSPDirectiveNameBlockAllMixedContent, // This is deprecated
 			},
 			httputil.CSPDirective{
-				Name: httputil.CSPDirectiveNameFrameAncestors,
-				Value: httputil.CSPSources{
-					httputil.CSPSourceNone,
-				},
+				Name:  httputil.CSPDirectiveNameFrameAncestors,
+				Value: httputil.CSPSources{httputil.CSPSourceNone}, // CSP2,CSP3
 			},
 		}
 		w.Header().Set("Content-Security-Policy", cspDirectives.String())
