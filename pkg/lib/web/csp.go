@@ -188,9 +188,6 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 			Value: connectSrc,
 		},
 		httputil.CSPDirective{
-			Name: httputil.CSPDirectiveNameBlockAllMixedContent,
-		},
-		httputil.CSPDirective{
 			Name:  httputil.CSPDirectiveNameFrameAncestors,
 			Value: frameAncestors,
 		},

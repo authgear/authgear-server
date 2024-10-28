@@ -36,9 +36,6 @@ func AdminCSPMiddleware(next http.Handler) http.Handler {
 				Value: httputil.CSPSources{httputil.CSPSourceNone}, // CSP1,CSP2,CSP3
 			},
 			httputil.CSPDirective{
-				Name: httputil.CSPDirectiveNameBlockAllMixedContent, // This is deprecated
-			},
-			httputil.CSPDirective{
 				Name:  httputil.CSPDirectiveNameFrameAncestors,
 				Value: httputil.CSPSources{httputil.CSPSourceNone}, // CSP2,CSP3
 			},

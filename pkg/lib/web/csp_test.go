@@ -31,7 +31,6 @@ func TestCSPDirectives(t *testing.T) {
 			"object-src 'none'",
 			"base-uri 'none'",
 			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
-			"block-all-mixed-content",
 			"frame-ancestors 'none'",
 		})
 
@@ -48,7 +47,6 @@ func TestCSPDirectives(t *testing.T) {
 			"object-src 'none'",
 			"base-uri 'none'",
 			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
-			"block-all-mixed-content",
 			"frame-ancestors 'none'",
 		})
 
@@ -65,7 +63,6 @@ func TestCSPDirectives(t *testing.T) {
 			"object-src 'none'",
 			"base-uri 'none'",
 			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
-			"block-all-mixed-content",
 			"frame-ancestors 'none'",
 		})
 
@@ -83,7 +80,6 @@ func TestCSPDirectives(t *testing.T) {
 			"object-src 'none'",
 			"base-uri 'none'",
 			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
-			"block-all-mixed-content",
 			"frame-ancestors http://remote.localhost",
 		})
 
@@ -100,7 +96,6 @@ func TestCSPDirectives(t *testing.T) {
 			"object-src 'none'",
 			"base-uri 'none'",
 			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
-			"block-all-mixed-content",
 			"frame-ancestors 'none'",
 		})
 	})

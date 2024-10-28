@@ -222,9 +222,11 @@ const (
 	CSPDirectiveNameStyleSrc   CSPDirectiveName = "style-src"
 	CSPDirectiveNameWorkerSrc  CSPDirectiveName = "worker-src"
 
-	CSPDirectiveNameBaseURI              CSPDirectiveName = "base-uri"
-	CSPDirectiveNameBlockAllMixedContent CSPDirectiveName = "block-all-mixed-content"
-	CSPDirectiveNameFrameAncestors       CSPDirectiveName = "frame-ancestors"
+	CSPDirectiveNameBaseURI CSPDirectiveName = "base-uri"
+	// CSPDirectiveNameBlockAllMixedContent is deprecated.
+	// See https://www.w3.org/TR/mixed-content/#strict-checking
+	// CSPDirectiveNameBlockAllMixedContent CSPDirectiveName = "block-all-mixed-content"
+	CSPDirectiveNameFrameAncestors CSPDirectiveName = "frame-ancestors"
 )
 
 type CSPDirective struct {

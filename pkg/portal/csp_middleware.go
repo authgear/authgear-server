@@ -66,9 +66,6 @@ func PortalCSPMiddleware(next http.Handler) http.Handler {
 					httputil.CSPSourceNone, // CSP1,CSP2,CSP3
 				},
 			},
-			httputil.CSPDirective{
-				Name: httputil.CSPDirectiveNameBlockAllMixedContent, // This is deprecated.
-			},
 			// This must be kept in sync with httputil.XFrameOptionsDeny
 			httputil.CSPDirective{
 				Name: httputil.CSPDirectiveNameFrameAncestors,
