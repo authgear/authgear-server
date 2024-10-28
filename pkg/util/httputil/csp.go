@@ -82,8 +82,8 @@ const (
 	CSPSourceNone         CSPKeywordSourceLevel1 = "'none'"
 	CSPSourceSelf         CSPKeywordSourceLevel1 = "'self'"
 	CSPSourceUnsafeInline CSPKeywordSourceLevel1 = "'unsafe-inline'"
-	// CSPSourceUnsafeEval is intentionally undefined so that you cannot use it.
-	// CSPSourceUnsafeEval   CSPKeywordSourceLevel1 = "'unsafe-eval'"
+	// CSPSourceUnsafeEval is only intended for style-src only.
+	CSPSourceUnsafeEval CSPKeywordSourceLevel1 = "'unsafe-eval'"
 )
 
 func (_ CSPKeywordSourceLevel1) CSPLevel() int {

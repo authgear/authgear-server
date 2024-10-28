@@ -43,7 +43,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com http://customui.com",
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com http://customui.com",
 						},
 					},
 				},
@@ -60,7 +60,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com",
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com",
 						},
 					},
 				},
@@ -77,7 +77,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://customui.com",
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://customui.com",
 						},
 					},
 				},
@@ -94,7 +94,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},
@@ -112,7 +112,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com http://customui.com",
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com http://customui.com",
 						},
 					},
 				},
@@ -129,7 +129,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com",
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com",
 						},
 					},
 				},
@@ -146,7 +146,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://customui.com",
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://customui.com",
 						},
 					},
 				},
@@ -163,19 +163,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
-						},
-						"X-Frame-Options": {"DENY"},
-					},
-				},
-				{
-					AllowedFrameAncestorsFromEnv:    config.AllowedFrameAncestors{},
-					OAuthConfig:                     &config.OAuthConfig{},
-					AllowFrameAncestorsFromEnv:      true,
-					AllowFrameAncestorsFromCustomUI: true,
-					ExpectedHeaders: map[string][]string{
-						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},
@@ -183,11 +171,23 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 				{
 					AllowedFrameAncestorsFromEnv:    config.AllowedFrameAncestors{},
 					OAuthConfig:                     &config.OAuthConfig{},
+					AllowFrameAncestorsFromEnv:      true,
+					AllowFrameAncestorsFromCustomUI: true,
+					ExpectedHeaders: map[string][]string{
+						"Content-Security-Policy": {
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
+						},
+						"X-Frame-Options": {"DENY"},
+					},
+				},
+				{
+					AllowedFrameAncestorsFromEnv:    config.AllowedFrameAncestors{},
+					OAuthConfig:                     &config.OAuthConfig{},
 					AllowFrameAncestorsFromEnv:      false,
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' https: 'sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=' 'sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=' 'sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=' 'sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=' 'unsafe-hashes' 'nonce-'; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
+							"default-src 'self'; script-src 'self' https: 'nonce-' 'strict-dynamic'; frame-src 'self' https:; font-src 'self' https:; style-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' http: https: data:; object-src 'none'; base-uri 'none'; connect-src 'self' https: ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},

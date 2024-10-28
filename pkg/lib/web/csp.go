@@ -62,41 +62,47 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 		httputil.CSPSchemeSourceHTTPS,
 	}
 
-	var styleSrc httputil.CSPSources
-	styleSrc = append(styleSrc,
+	// style-src is also complicated.
+	// Let me list out some notable cases here first.
+	//
+	// Turbo is known to write a stylesheet for ".turbo-progress-bar".
+	// See https://github.com/hotwired/turbo/issues/809
+	// To allow that to happen, we have two options.
+	// 1. 'unsafe-eval'
+	//   https://www.w3.org/TR/CSP2/#directive-style-src
+	//   CSP2 says when 'unsafe-eval' is used, insertRule() can be used.
+	// 2. Use hash-source, to explicitly allow the rule that Turbo is going to insert.
+	//
+	// We have some legit use cases of the style attribute that we cannot remove.
+	// They are
+	//   echo -n "position:absolute;width:0;height:0;" | openssl dgst -sha256 -binary | openssl enc -base64
+	//   sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=
+	//
+	//   echo -n "display:none;" | openssl dgst -sha256 -binary | openssl enc -base64
+	//   sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=
+	//
+	//   echo -n "display:none;visibility:hidden;" | openssl dgst -sha256 -binary | openssl enc -base64
+	//   sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=
+	//
+	// To allow them, we have two options.
+	// 1. 'unsafe-inline'. This works in CSP1, CSP2, and CSP3.
+	//    https://www.w3.org/TR/CSP2/#directive-style-src
+	//    CSP2 says 'unsafe-inline' allows the application of the style attribute.
+	// 2. Use hash-source and 'unsafe-hashes'. But this only works in CSP3.
+	//
+	// We cannot use 1 and 2 at the same time because using a hash-source will make 'unsafe-inline' be ignored.
+	// So using 2 implies we cannot use 1.
+	// So to make things work in CSP1, CSP2, CSP3, we can only use 1.
+	//
+	// So the conclusion is that if we want to make things work in CSP1, CSP2, and CSP3, we need to have
+	// style-src: unsafe-inline and unsafe-eval.
+
+	styleSrc := httputil.CSPSources{
 		httputil.CSPSourceSelf,
+		httputil.CSPSourceUnsafeInline,
+		httputil.CSPSourceUnsafeEval,
 		httputil.CSPSchemeSourceHTTPS,
-	)
-	styleSrc = append(styleSrc,
-		httputil.CSPHashSource{
-			// https://github.com/hotwired/turbo/issues/809
-			// Turbo is known to write a stylesheet for ".turbo-progress-bar".
-			// Since we no longer allow unsafe-inline, we need another way to allow this.
-			// The simplest way is to use hash source.
-			// If turbo is upgraded, this hash is likely to change.
-			// The way I obtained the hash is by trial-and-error.
-			// I first omitted this hash source, then Chrome will complain about this,
-			// and print the expected hash to console.
-			Hash: "sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=",
-		},
-		// We have some legit use cases of inline style that we cannot remove.
-		httputil.CSPHashSource{
-			// echo -n "position:absolute;width:0;height:0;" | openssl dgst -sha256 -binary | openssl enc -base64
-			Hash: "sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=",
-		},
-		httputil.CSPHashSource{
-			// echo -n "display:none;" | openssl dgst -sha256 -binary | openssl enc -base64
-			Hash: "sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=",
-		},
-		httputil.CSPHashSource{
-			// echo -n "display:none;visibility:hidden;" | openssl dgst -sha256 -binary | openssl enc -base64
-			Hash: "sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=",
-		},
-		httputil.CSPSourceUnsafeHashes,
-		httputil.CSPNonceSource{
-			Nonce: opts.Nonce,
-		},
-	)
+	}
 
 	imgSrc := httputil.CSPSources{
 		httputil.CSPSourceSelf,
