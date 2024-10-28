@@ -9,6 +9,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 func TestDynamicCSPMiddleware(t *testing.T) {
@@ -17,7 +18,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 		defer ctrl.Finish()
 
 		cookieManager := NewMockCookieManager(ctrl)
-		cookieManager.EXPECT().GetCookie(gomock.Any(), CSPNonceCookieDef).Return(&http.Cookie{}, nil).AnyTimes()
+		cookieManager.EXPECT().GetCookie(gomock.Any(), httputil.CSPNonceCookieDef).Return(&http.Cookie{}, nil).AnyTimes()
 
 		type TestCase struct {
 			AllowedFrameAncestorsFromEnv    config.AllowedFrameAncestors

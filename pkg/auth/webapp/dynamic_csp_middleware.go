@@ -14,17 +14,6 @@ import (
 
 //go:generate mockgen -source=dynamic_csp_middleware.go -destination=dynamic_csp_middleware_mock_test.go -package webapp
 
-// CSPNonceCookieDef is a HTTP session cookie.
-// The nonce has to be stable within a browsing session because
-// Turbo uses XHR to load new pages.
-// If nonce changes on every page load, the script in the new page
-// cannot be run in the current page due to different nonce.
-var CSPNonceCookieDef = &httputil.CookieDef{
-	NameSuffix: "csp_nonce",
-	Path:       "/",
-	SameSite:   http.SameSiteNoneMode,
-}
-
 type AllowInlineScript bool
 
 type AllowFrameAncestorsFromEnv bool
@@ -46,12 +35,12 @@ type DynamicCSPMiddleware struct {
 func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var nonce string
-		cookie, err := m.Cookies.GetCookie(r, CSPNonceCookieDef)
+		cookie, err := m.Cookies.GetCookie(r, httputil.CSPNonceCookieDef)
 		if err == nil {
 			nonce = cookie.Value
 		} else {
 			nonce = rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
-			cookie := m.Cookies.ValueCookie(CSPNonceCookieDef, nonce)
+			cookie := m.Cookies.ValueCookie(httputil.CSPNonceCookieDef, nonce)
 			httputil.UpdateCookie(w, cookie)
 		}
 

@@ -3,9 +3,21 @@ package httputil
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"sort"
 	"strings"
 )
+
+// CSPNonceCookieDef is a HTTP session cookie.
+// The nonce has to be stable within a browsing session because
+// Turbo uses XHR to load new pages.
+// If nonce changes on every page load, the script in the new page
+// cannot be run in the current page due to different nonce.
+var CSPNonceCookieDef = &CookieDef{
+	NameSuffix: "csp_nonce",
+	Path:       "/",
+	SameSite:   http.SameSiteNoneMode,
+}
 
 type CSPSource interface {
 	CSPLevel() int
