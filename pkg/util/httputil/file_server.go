@@ -96,20 +96,36 @@ func (s *FileServer) serveNameHashed(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *FileServer) serveOther(w http.ResponseWriter, r *http.Request) {
-	indexHTML := "/index.html"
-
 	file, stat, err := s.open(r.URL.Path)
-	if s.FallbackToIndexHTML && errors.Is(err, fs.ErrNotExist) {
-		r.URL.Path = indexHTML
-		file, stat, err = s.open(r.URL.Path)
-	}
-
 	if err != nil {
-		s.writeError(w, err)
+		// The error is not file not found. Just report the error.
+		if !errors.Is(err, fs.ErrNotExist) {
+			s.writeError(w, err)
+			return
+		}
+
+		// Otherwise the file is not found.
+		// Just report the error if fallback to index.html is disabled.
+		if !s.FallbackToIndexHTML {
+			s.writeError(w, err)
+			return
+		}
+
+		r.URL.Path = "/index.html"
+		indexHTMLFile, indexHTMLStat, err := s.open(r.URL.Path)
+		// No idea how to handle, just report the error.
+		if err != nil {
+			s.writeError(w, err)
+			return
+		}
+		// Serve index.html
+		defer indexHTMLFile.Close()
+		http.ServeContent(w, r, indexHTMLStat.Name(), indexHTMLStat.ModTime(), indexHTMLFile)
 		return
 	}
-	defer file.Close()
 
+	// Serve the original file.
+	defer file.Close()
 	http.ServeContent(w, r, stat.Name(), stat.ModTime(), file)
 }
 
