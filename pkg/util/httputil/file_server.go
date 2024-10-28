@@ -1,13 +1,21 @@
 package httputil
 
 import (
+	"bytes"
 	"errors"
+	htmltemplate "html/template"
+	"io"
 	"io/fs"
 	"net/http"
 	"path"
 	"regexp"
 	"strings"
+	"time"
 )
+
+type FileServerIndexHTMLTemplateDataKeyType struct{}
+
+var FileServerIndexHTMLtemplateDataKey = FileServerIndexHTMLTemplateDataKeyType{}
 
 var hashRegexp = regexp.MustCompile(`^[0-9a-fA-F]{8,}$`)
 
@@ -42,7 +50,9 @@ func IsNameHashed(p string) bool {
 
 // FileServer is a specialized version of http.FileServer
 // that assumes files rooted at FileSystem are name-hashed.
-// cache-control are written specifically for index.html and name-hashed files.
+// Cache-control are written specifically for index.html and name-hashed files.
+// When serving index.html, index.html is assumed to be a Go template.
+// FileServer will use the context value FileServerIndexHTMLTemplateDataKey to render.
 type FileServer struct {
 	FileSystem          http.FileSystem
 	FallbackToIndexHTML bool
@@ -118,9 +128,33 @@ func (s *FileServer) serveOther(w http.ResponseWriter, r *http.Request) {
 			s.writeError(w, err)
 			return
 		}
-		// Serve index.html
 		defer indexHTMLFile.Close()
-		http.ServeContent(w, r, indexHTMLStat.Name(), indexHTMLStat.ModTime(), indexHTMLFile)
+		// Serve index.html
+
+		indexHTMLBytes, err := io.ReadAll(indexHTMLFile)
+		if err != nil {
+			// index.html exists but not readable.
+			panic(err)
+		}
+
+		tpl, err := htmltemplate.New("").Parse(string(indexHTMLBytes))
+		if err != nil {
+			// We panic because this prints a stack trace to tell what is wrong with index.html.
+			// This is more useful than just return 500.
+			panic(err)
+		}
+
+		data := r.Context().Value(FileServerIndexHTMLtemplateDataKey)
+		var buf bytes.Buffer
+		err = tpl.Execute(&buf, data)
+		if err != nil {
+			panic(err)
+		}
+
+		// Use a zero modtime to ask http.ServeContent NOT to write Last-Modified.
+		var modtime time.Time
+		readSeeker := bytes.NewReader(buf.Bytes())
+		http.ServeContent(w, r, indexHTMLStat.Name(), modtime, readSeeker)
 		return
 	}
 
