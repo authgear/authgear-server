@@ -118,6 +118,20 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 			// and print the expected hash to console.
 			Hash: "sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=",
 		},
+		// We have some legit use cases of inline style that we cannot remove.
+		httputil.CSPHashSource{
+			// echo -n "position:absolute;width:0;height:0;" | openssl dgst -sha256 -binary | openssl enc -base64
+			Hash: "sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=",
+		},
+		httputil.CSPHashSource{
+			// echo -n "display:none;" | openssl dgst -sha256 -binary | openssl enc -base64
+			Hash: "sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=",
+		},
+		httputil.CSPHashSource{
+			// echo -n "display:none;visibility:hidden;" | openssl dgst -sha256 -binary | openssl enc -base64
+			Hash: "sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=",
+		},
+		httputil.CSPSourceUnsafeHashes,
 		httputil.CSPNonceSource{
 			Nonce: opts.Nonce,
 		},

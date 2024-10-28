@@ -62,6 +62,7 @@ type CSPKeywordSourceLevel3 string
 var _ CSPSource = CSPKeywordSourceLevel3("")
 
 const (
+	CSPSourceUnsafeHashes  CSPKeywordSourceLevel3 = "'unsafe-hashes'"
 	CSPSourceStrictDynamic CSPKeywordSourceLevel3 = "'strict-dynamic'"
 )
 
