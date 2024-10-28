@@ -28,7 +28,7 @@
 
 {{ $appBackgroundImage := call $.StaticAssetURL "app-background-image" }}
 {{ $appBackgroundImageDark := call $.StaticAssetURL "app-background-image-dark" }}
-<style>
+<style nonce="{{ $.CSPNonce }}">
 :root {
 {{ if $appBackgroundImage }}
   --layout__bg-image: url("{{ $appBackgroundImage }}");
@@ -43,16 +43,16 @@
 {{ end }}
 </style>
 {{ if call $.HasAppSpecificAsset "authgear-authflowv2-light-theme.css" }}
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-light-theme.css" }}">
+<link nonce="{{ $.CSPNonce }}" rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-light-theme.css" }}">
 {{ end }}
 {{ if call $.HasAppSpecificAsset "authgear-authflowv2-dark-theme.css" }}
 {{ if $.DarkThemeEnabled }}
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-dark-theme.css" }}">
+<link nonce="{{ $.CSPNonce }}" rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-authflowv2-dark-theme.css" }}">
 {{ end }}
 {{ end }}
 {{/* This element reverts the visibility in widget.css */}}
 <noscript>
-  <style>
+  <style nonce="{{ $.CSPNonce }}">
     :root:not([alignment-content]) .widget {
       visibility: visible;
     }

@@ -12,8 +12,6 @@ import (
 
 //go:generate mockgen -source=dynamic_csp_middleware.go -destination=dynamic_csp_middleware_mock_test.go -package webapp
 
-type AllowInlineScript bool
-
 type AllowFrameAncestorsFromEnv bool
 
 type AllowFrameAncestorsFromCustomUI bool
@@ -25,7 +23,6 @@ type DynamicCSPMiddleware struct {
 	WebAppCDNHost                   config.WebAppCDNHost
 	AuthUISentryDSN                 config.AuthUISentryDSN
 	AllowedFrameAncestorsFromEnv    config.AllowedFrameAncestors
-	AllowInlineScript               AllowInlineScript
 	AllowFrameAncestorsFromEnv      AllowFrameAncestorsFromEnv
 	AllowFrameAncestorsFromCustomUI AllowFrameAncestorsFromCustomUI
 }
@@ -53,12 +50,11 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		cspDirectives, err := web.CSPDirectives(web.CSPDirectivesOptions{
-			PublicOrigin:      string(m.HTTPOrigin),
-			Nonce:             nonce,
-			CDNHost:           string(m.WebAppCDNHost),
-			AuthUISentryDSN:   string(m.AuthUISentryDSN),
-			AllowInlineScript: bool(m.AllowInlineScript),
-			FrameAncestors:    frameAncestors,
+			PublicOrigin:    string(m.HTTPOrigin),
+			Nonce:           nonce,
+			CDNHost:         string(m.WebAppCDNHost),
+			AuthUISentryDSN: string(m.AuthUISentryDSN),
+			FrameAncestors:  frameAncestors,
 		})
 		if err != nil {
 			panic(err)

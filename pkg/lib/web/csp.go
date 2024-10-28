@@ -15,8 +15,7 @@ type CSPDirectivesOptions struct {
 	AuthUISentryDSN string
 	// FrameAncestors supports the redirect approach used by the custom UI.
 	// The custom UI loads the redirect URI with an iframe.
-	FrameAncestors    []string
-	AllowInlineScript bool
+	FrameAncestors []string
 }
 
 var wwwgoogletagmanagercom = httputil.CSPHostSource{
@@ -64,21 +63,13 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 		})
 	}
 
-	// Unsafe-inline gets ignored if nonce is provided
-	// https://w3c.github.io/webappsec-csp/#allow-all-inline
-	var scriptSrc httputil.CSPSources
-	if opts.AllowInlineScript {
-		scriptSrc = httputil.CSPSources{
-			httputil.CSPSourceUnsafeInline,
-		}
-	} else {
-		scriptSrc = httputil.CSPSources{
-			httputil.CSPSourceStrictDynamic,
-			httputil.CSPNonceSource{
-				Nonce: opts.Nonce,
-			},
-		}
+	scriptSrc := httputil.CSPSources{
+		httputil.CSPSourceStrictDynamic,
+		httputil.CSPNonceSource{
+			Nonce: opts.Nonce,
+		},
 	}
+
 	scriptSrc = append(
 		scriptSrc,
 		wwwgoogletagmanagercom,
@@ -110,10 +101,12 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 	sort.Sort(fontSrc)
 
 	styleSrc := httputil.CSPSources{
-		httputil.CSPSourceUnsafeInline,
 		cdnjscloudflarecom,
 		wwwgoogletagmanagercom,
 		fontsgoogleapiscom,
+		httputil.CSPNonceSource{
+			Nonce: opts.Nonce,
+		},
 	}
 	styleSrc = append(styleSrc, baseSrc...)
 	sort.Sort(styleSrc)

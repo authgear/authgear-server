@@ -23,7 +23,6 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 		type TestCase struct {
 			AllowedFrameAncestorsFromEnv    config.AllowedFrameAncestors
 			OAuthConfig                     *config.OAuthConfig
-			AllowInlineScript               bool
 			AllowFrameAncestorsFromEnv      bool
 			AllowFrameAncestorsFromCustomUI bool
 			ExpectedHeaders                 map[string][]string
@@ -40,12 +39,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:               true,
 					AllowFrameAncestorsFromEnv:      true,
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com http://customui.com",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com http://customui.com",
 						},
 					},
 				},
@@ -58,12 +56,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:               true,
 					AllowFrameAncestorsFromEnv:      true,
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com",
 						},
 					},
 				},
@@ -76,12 +73,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:               true,
 					AllowFrameAncestorsFromEnv:      false,
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://customui.com",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://customui.com",
 						},
 					},
 				},
@@ -94,12 +90,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:               true,
 					AllowFrameAncestorsFromEnv:      false,
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},
@@ -113,12 +108,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:               false,
 					AllowFrameAncestorsFromEnv:      true,
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com 'nonce-' 'strict-dynamic'; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com http://customui.com",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com 'nonce-' 'strict-dynamic'; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com http://customui.com",
 						},
 					},
 				},
@@ -131,12 +125,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:               false,
 					AllowFrameAncestorsFromEnv:      true,
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com 'nonce-' 'strict-dynamic'; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com 'nonce-' 'strict-dynamic'; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://authgearportal.com",
 						},
 					},
 				},
@@ -149,12 +142,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:               false,
 					AllowFrameAncestorsFromEnv:      false,
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com 'nonce-' 'strict-dynamic'; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://customui.com",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com 'nonce-' 'strict-dynamic'; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors http://customui.com",
 						},
 					},
 				},
@@ -167,12 +159,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 							},
 						},
 					},
-					AllowInlineScript:               false,
 					AllowFrameAncestorsFromEnv:      false,
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com 'nonce-' 'strict-dynamic'; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com 'nonce-' 'strict-dynamic'; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},
@@ -180,12 +171,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 				{
 					AllowedFrameAncestorsFromEnv:    config.AllowedFrameAncestors{},
 					OAuthConfig:                     &config.OAuthConfig{},
-					AllowInlineScript:               true,
 					AllowFrameAncestorsFromEnv:      true,
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},
@@ -193,12 +183,11 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 				{
 					AllowedFrameAncestorsFromEnv:    config.AllowedFrameAncestors{},
 					OAuthConfig:                     &config.OAuthConfig{},
-					AllowInlineScript:               true,
 					AllowFrameAncestorsFromEnv:      false,
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"default-src 'self'; script-src 'unsafe-inline' www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src 'unsafe-inline' cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
+							"default-src 'self'; script-src www.googletagmanager.com eu-assets.i.posthog.com challenges.cloudflare.com www.google.com https://browser.sentry-cdn.com 'self' http://cdn.authgear.com; frame-src www.googletagmanager.com challenges.cloudflare.com www.google.com 'self'; font-src cdnjs.cloudflare.com static2.sharepointonline.com fonts.googleapis.com fonts.gstatic.com 'self' http://cdn.authgear.com; style-src cdnjs.cloudflare.com www.googletagmanager.com fonts.googleapis.com 'self' http://cdn.authgear.com; img-src http: https: data: 'self' http://cdn.authgear.com; object-src 'none'; base-uri 'none'; connect-src 'self' https://www.google-analytics.com ws://authgear.com wss://authgear.com; block-all-mixed-content; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},
@@ -212,7 +201,6 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					WebAppCDNHost:                   "http://cdn.authgear.com",
 					AllowedFrameAncestorsFromEnv:    testcase.AllowedFrameAncestorsFromEnv,
 					OAuthConfig:                     testcase.OAuthConfig,
-					AllowInlineScript:               AllowInlineScript(testcase.AllowInlineScript),
 					AllowFrameAncestorsFromEnv:      AllowFrameAncestorsFromEnv(testcase.AllowFrameAncestorsFromEnv),
 					AllowFrameAncestorsFromCustomUI: AllowFrameAncestorsFromCustomUI(testcase.AllowFrameAncestorsFromCustomUI),
 				}
