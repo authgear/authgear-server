@@ -104,6 +104,17 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 		cdnjscloudflarecom,
 		wwwgoogletagmanagercom,
 		fontsgoogleapiscom,
+		httputil.CSPHashSource{
+			// https://github.com/hotwired/turbo/issues/809
+			// Turbo is known to write a stylesheet for ".turbo-progress-bar".
+			// Since we no longer allow unsafe-inline, we need another way to allow this.
+			// The simplest way is to use hash source.
+			// If turbo is upgraded, this hash is likely to change.
+			// The way I obtained the hash is by trial-and-error.
+			// I first omitted this hash source, then Chrome will complain about this,
+			// and print the expected hash to console.
+			Hash: "sha256-WAyOw4V+FqDc35lQPyRADLBWbuNK8ahvYEaQIYF1+Ps=",
+		},
 		httputil.CSPNonceSource{
 			Nonce: opts.Nonce,
 		},

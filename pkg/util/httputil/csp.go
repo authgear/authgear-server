@@ -93,6 +93,20 @@ func (s CSPKeywordSourceLevel1) String() string {
 	return string(s)
 }
 
+type CSPHashSource struct {
+	Hash string
+}
+
+var _ CSPSource = CSPHashSource{}
+
+func (s CSPHashSource) String() string {
+	return fmt.Sprintf("'%v'", s.Hash)
+}
+
+func (s CSPHashSource) CSPLevel() int {
+	return 2
+}
+
 type CSPNonceSource struct {
 	Nonce string
 }
