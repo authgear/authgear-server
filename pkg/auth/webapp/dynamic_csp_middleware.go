@@ -20,8 +20,6 @@ type DynamicCSPMiddleware struct {
 	Cookies                         CookieManager
 	HTTPOrigin                      httputil.HTTPOrigin
 	OAuthConfig                     *config.OAuthConfig
-	WebAppCDNHost                   config.WebAppCDNHost
-	AuthUISentryDSN                 config.AuthUISentryDSN
 	AllowedFrameAncestorsFromEnv    config.AllowedFrameAncestors
 	AllowFrameAncestorsFromEnv      AllowFrameAncestorsFromEnv
 	AllowFrameAncestorsFromCustomUI AllowFrameAncestorsFromCustomUI
@@ -50,11 +48,9 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		cspDirectives, err := web.CSPDirectives(web.CSPDirectivesOptions{
-			PublicOrigin:    string(m.HTTPOrigin),
-			Nonce:           nonce,
-			CDNHost:         string(m.WebAppCDNHost),
-			AuthUISentryDSN: string(m.AuthUISentryDSN),
-			FrameAncestors:  frameAncestors,
+			PublicOrigin:   string(m.HTTPOrigin),
+			Nonce:          nonce,
+			FrameAncestors: frameAncestors,
 		})
 		if err != nil {
 			panic(err)

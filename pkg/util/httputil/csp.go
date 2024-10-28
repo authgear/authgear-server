@@ -122,6 +122,8 @@ func (s CSPNonceSource) CSPLevel() int {
 	return 2
 }
 
+var CSPSchemeSourceHTTPS = CSPSchemeSource{Scheme: "https"}
+
 type CSPSchemeSource struct {
 	Scheme string
 }

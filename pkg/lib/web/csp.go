@@ -1,52 +1,17 @@
 package web
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type CSPDirectivesOptions struct {
-	PublicOrigin    string
-	Nonce           string
-	CDNHost         string
-	AuthUISentryDSN string
+	PublicOrigin string
+	Nonce        string
 	// FrameAncestors supports the redirect approach used by the custom UI.
 	// The custom UI loads the redirect URI with an iframe.
 	FrameAncestors []string
-}
-
-var wwwgoogletagmanagercom = httputil.CSPHostSource{
-	Host: "www.googletagmanager.com",
-}
-
-var euassetsiposthogcom = httputil.CSPHostSource{
-	Host: "eu-assets.i.posthog.com",
-}
-
-var cdnjscloudflarecom = httputil.CSPHostSource{
-	Host: "cdnjs.cloudflare.com",
-}
-
-var static2sharepointonlinecom = httputil.CSPHostSource{
-	Host: "static2.sharepointonline.com",
-}
-
-var fontsgoogleapiscom = httputil.CSPHostSource{
-	Host: "fonts.googleapis.com",
-}
-
-var fontsgstaticcom = httputil.CSPHostSource{
-	Host: "fonts.gstatic.com",
-}
-
-var challengescloudflarecom = httputil.CSPHostSource{
-	Host: "challenges.cloudflare.com",
-}
-
-var wwwgooglecom = httputil.CSPHostSource{
-	Host: "www.google.com",
 }
 
 func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
@@ -55,57 +20,53 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 		return nil, err
 	}
 
-	cdnHostSrc := httputil.CSPSources{}
-	if opts.CDNHost != "" {
-		cdnHostSrc = append(cdnHostSrc, httputil.CSPHostSource{
-			Host: opts.CDNHost,
-		})
-	}
+	// We used to specify many host sources that we actually connect to.
+	// But maintaining that list is troublesome.
+	// So we now use the scheme source https: instead.
+	//
+	// Security mostly depends on the scripts that is allowed to run.
+	// So getting script-src right is the most important.
+	//
+	// There are 3 CSP versions, namely CSP1, CSP2, and CSP3.
+	// We want to make CSP3 browsers the most secure, while keeping
+	// CSP1 browsers and CSP2 browsers still be able to function.
+	//
+	// The directives that will be effective in a CSP1 browser are
+	// 'self' 'unsafe-inline' https:
+	// That is CSP1 browser is vulnerable to XSS attack.
+	//
+	// The directives that will be effective in a CSP2 browser are
+	// 'self' https: nonce- hash-
+	// That is, 'unsafe-inline' will be ignored.
+	//
+	// The directives that will be effective in a CSP3 browser are
+	// nonce- hash- 'strict-dynamic'
+	// That is, 'unsafe-inline', host-sources, and scheme-sources will be ignored.
 
-	var scriptSrc httputil.CSPSources
-	scriptSrc = append(scriptSrc,
+	scriptSrc := httputil.CSPSources{
 		httputil.CSPSourceSelf,
-		wwwgoogletagmanagercom,
-		euassetsiposthogcom,
-		challengescloudflarecom,
-		wwwgooglecom,
-		httputil.CSPHostSource{
-			Scheme: "https",
-			Host:   "browser.sentry-cdn.com",
-		},
-	)
-	scriptSrc = append(scriptSrc, cdnHostSrc...)
-	scriptSrc = append(scriptSrc,
+		httputil.CSPSchemeSourceHTTPS,
 		httputil.CSPNonceSource{
 			Nonce: opts.Nonce,
 		},
 		httputil.CSPSourceStrictDynamic,
-	)
+	}
 
 	frameSrc := httputil.CSPSources{
 		httputil.CSPSourceSelf,
-		wwwgoogletagmanagercom,
-		challengescloudflarecom,
-		wwwgooglecom,
+		httputil.CSPSchemeSourceHTTPS,
 	}
 
 	fontSrc := httputil.CSPSources{
 		httputil.CSPSourceSelf,
-		cdnjscloudflarecom,
-		static2sharepointonlinecom,
-		fontsgoogleapiscom,
-		fontsgstaticcom,
+		httputil.CSPSchemeSourceHTTPS,
 	}
-	fontSrc = append(fontSrc, cdnHostSrc...)
 
 	var styleSrc httputil.CSPSources
 	styleSrc = append(styleSrc,
 		httputil.CSPSourceSelf,
-		cdnjscloudflarecom,
-		wwwgoogletagmanagercom,
-		fontsgoogleapiscom,
+		httputil.CSPSchemeSourceHTTPS,
 	)
-	styleSrc = append(styleSrc, cdnHostSrc...)
 	styleSrc = append(styleSrc,
 		httputil.CSPHashSource{
 			// https://github.com/hotwired/turbo/issues/809
@@ -139,28 +100,18 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 
 	imgSrc := httputil.CSPSources{
 		httputil.CSPSourceSelf,
-		httputil.CSPSchemeSource{
-			Scheme: "http",
-		},
-		httputil.CSPSchemeSource{
-			Scheme: "https",
-		},
+		httputil.CSPSchemeSource{Scheme: "http"},
+		httputil.CSPSchemeSourceHTTPS,
 		// We use data URI to show QR image.
 		// We can display external profile picture.
-		httputil.CSPSchemeSource{
-			Scheme: "data",
-		},
+		httputil.CSPSchemeSource{Scheme: "data"},
 	}
-	imgSrc = append(imgSrc, cdnHostSrc...)
 
 	// 'self' does not include websocket in Safari :(
 	// https://github.com/w3c/webappsec-csp/issues/7
 	connectSrc := httputil.CSPSources{
 		httputil.CSPSourceSelf,
-		httputil.CSPHostSource{
-			Scheme: "https",
-			Host:   "www.google-analytics.com",
-		},
+		httputil.CSPSchemeSourceHTTPS,
 		httputil.CSPHostSource{
 			Scheme: "ws",
 			Host:   u.Host,
@@ -169,20 +120,9 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 			Scheme: "wss",
 			Host:   u.Host,
 		},
-	}
-	// https://docs.sentry.io/platforms/javascript/install/cdn/#content-security-policy
-	sentryDSNHost := ""
-	if len(opts.AuthUISentryDSN) > 0 {
-		u, err := url.Parse(opts.AuthUISentryDSN)
-		if err != nil {
-			return nil, fmt.Errorf("invalid AuthUISentryDSN %w", err)
-		}
-		sentryDSNHost = u.Host
-	}
-	if sentryDSNHost != "" {
-		connectSrc = append(connectSrc, httputil.CSPHostSource{
-			Host: sentryDSNHost,
-		})
+		// https://docs.sentry.io/platforms/javascript/install/cdn/#content-security-policy
+		// The above doc says we need to specify `connect-src: *.sentry.io`,
+		// But we already have `https:`, so that is no longer needed.
 	}
 
 	var frameAncestors httputil.CSPSources
