@@ -6,9 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/web"
-	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/urlutil"
 )
 
@@ -34,17 +32,7 @@ type DynamicCSPMiddleware struct {
 
 func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var nonce string
-		cookie, err := m.Cookies.GetCookie(r, httputil.CSPNonceCookieDef)
-		if err == nil {
-			nonce = cookie.Value
-		} else {
-			nonce = rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
-			cookie := m.Cookies.ValueCookie(httputil.CSPNonceCookieDef, nonce)
-			httputil.UpdateCookie(w, cookie)
-		}
-
-		r = r.WithContext(httputil.WithCSPNonce(r.Context(), nonce))
+		nonce, r := httputil.CSPNoncePerSession(m.Cookies, w, r)
 
 		var frameAncestors []string
 		if m.AllowFrameAncestorsFromEnv {

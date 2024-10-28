@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+
+	"github.com/authgear/authgear-server/pkg/util/base32"
+	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
 // CSPNonceCookieDef is a HTTP session cookie.
@@ -17,6 +20,36 @@ var CSPNonceCookieDef = &CookieDef{
 	NameSuffix: "csp_nonce",
 	Path:       "/",
 	SameSite:   http.SameSiteNoneMode,
+}
+
+func makeCSPNonce() string {
+	nonce := rand.StringWithAlphabet(32, base32.Alphabet, rand.SecureRand)
+	return nonce
+}
+
+type CSPNoncePerSessionCookieManager interface {
+	GetCookie(r *http.Request, def *CookieDef) (*http.Cookie, error)
+	ValueCookie(def *CookieDef, value string) *http.Cookie
+}
+
+func CSPNoncePerSession(cookieManager CSPNoncePerSessionCookieManager, w http.ResponseWriter, r *http.Request) (nonce string, rWithNonce *http.Request) {
+	cookie, err := cookieManager.GetCookie(r, CSPNonceCookieDef)
+	if err == nil {
+		nonce = cookie.Value
+	} else {
+		nonce = makeCSPNonce()
+		cookie := cookieManager.ValueCookie(CSPNonceCookieDef, nonce)
+		UpdateCookie(w, cookie)
+	}
+
+	rWithNonce = r.WithContext(WithCSPNonce(r.Context(), nonce))
+	return
+}
+
+func CSPNoncePerRequest(r *http.Request) (nonce string, rWithNonce *http.Request) {
+	nonce = makeCSPNonce()
+	rWithNonce = r.WithContext(WithCSPNonce(r.Context(), nonce))
+	return
 }
 
 type CSPSource interface {
