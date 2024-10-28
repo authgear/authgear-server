@@ -104,7 +104,10 @@ const AppLogoHeightSetter: React.VFC<AppLogoHeightSetterProps> =
             max={maxHeight ?? APP_LOGO_MAX_HEIGHT}
           />
           <TextField
-            className={cn("w-12.5")}
+            type="number"
+            min={minHeight ?? APP_LOGO_MIN_HEIGHT}
+            max={maxHeight ?? APP_LOGO_MAX_HEIGHT}
+            step={1}
             onChange={onChangeInput}
             value={heightPX.toString()}
           />
