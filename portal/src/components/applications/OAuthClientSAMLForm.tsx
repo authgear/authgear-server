@@ -610,22 +610,6 @@ export function OAuthClientSAMLForm({
                 <FormattedMessage id="OAuthClientSAMLForm.signature.title" />
               </WidgetTitle>
               <div className="grid gap-y-4 grid-cols-1">
-                <div className="grid gap-y-2 grid-cols-1">
-                  <Toggle
-                    label={renderToString(
-                      "OAuthClientSAMLForm.signature.checkSignature.label"
-                    )}
-                    description={renderToString(
-                      "OAuthClientSAMLForm.signature.checkSignature.description"
-                    )}
-                    disabled={formState.signingCertificates.length < 1}
-                    checked={formState.signatureVerificationEnabled}
-                    onChange={onSignatureVerificationEnabledChange}
-                  />
-                  <MessageBar messageBarType={MessageBarType.warning}>
-                    <FormattedMessage id="OAuthClientSAMLForm.signature.checkSignature.hint" />
-                  </MessageBar>
-                </div>
                 <FormTextFieldList
                   parentJSONPointer={
                     /\/secrets\/(\d*)\/data\/(\d*)\/certificates\/(\d*)/
@@ -648,6 +632,24 @@ export function OAuthClientSAMLForm({
                   maxItem={2}
                   minItem={formState.signatureVerificationEnabled ? 1 : 0}
                 />
+                <div className="grid gap-y-2 grid-cols-1">
+                  <Toggle
+                    label={renderToString(
+                      "OAuthClientSAMLForm.signature.checkSignature.label"
+                    )}
+                    description={renderToString(
+                      "OAuthClientSAMLForm.signature.checkSignature.description"
+                    )}
+                    disabled={formState.signingCertificates.length < 1}
+                    checked={formState.signatureVerificationEnabled}
+                    onChange={onSignatureVerificationEnabledChange}
+                  />
+                  {formState.signingCertificates.length < 1 ? (
+                    <MessageBar messageBarType={MessageBarType.warning}>
+                      <FormattedMessage id="OAuthClientSAMLForm.signature.checkSignature.hint" />
+                    </MessageBar>
+                  ) : null}
+                </div>
               </div>
             </div>
 
