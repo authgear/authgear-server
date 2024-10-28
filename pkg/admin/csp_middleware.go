@@ -20,14 +20,6 @@ func AdminCSPMiddleware(next http.Handler) http.Handler {
 				},
 			},
 			httputil.CSPDirective{
-				Name: httputil.CSPDirectiveNameStyleSrc,
-				Value: httputil.CSPSources{
-					httputil.CSPSourceSelf,                // CSP1
-					httputil.CSPSchemeSourceHTTPS,         // CSP1,CSP2
-					httputil.CSPNonceSource{Nonce: nonce}, // CSP2,CSP3
-				},
-			},
-			httputil.CSPDirective{
 				Name:  httputil.CSPDirectiveNameObjectSrc,
 				Value: httputil.CSPSources{httputil.CSPSourceNone}, // CSP1,CSP2,CSP3
 			},

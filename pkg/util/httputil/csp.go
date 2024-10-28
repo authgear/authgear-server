@@ -62,7 +62,9 @@ type CSPKeywordSourceLevel3 string
 var _ CSPSource = CSPKeywordSourceLevel3("")
 
 const (
-	CSPSourceUnsafeHashes  CSPKeywordSourceLevel3 = "'unsafe-hashes'"
+	// 'unsafe-hashes' is not needed when we no longer specify style-src.
+	// If you want it to allow inline event handler, you should migrate from inline event handler instead.
+	// CSPSourceUnsafeHashes  CSPKeywordSourceLevel3 = "'unsafe-hashes'"
 	CSPSourceStrictDynamic CSPKeywordSourceLevel3 = "'strict-dynamic'"
 )
 
@@ -82,8 +84,8 @@ const (
 	CSPSourceNone         CSPKeywordSourceLevel1 = "'none'"
 	CSPSourceSelf         CSPKeywordSourceLevel1 = "'self'"
 	CSPSourceUnsafeInline CSPKeywordSourceLevel1 = "'unsafe-inline'"
-	// CSPSourceUnsafeEval is only intended for style-src only.
-	CSPSourceUnsafeEval CSPKeywordSourceLevel1 = "'unsafe-eval'"
+	// 'unsafe-eval' is not needed when we no longer specify style-src.
+	// CSPSourceUnsafeEval CSPKeywordSourceLevel1 = "'unsafe-eval'"
 )
 
 func (_ CSPKeywordSourceLevel1) CSPLevel() int {
@@ -211,16 +213,24 @@ func GetCSPNonce(ctx context.Context) string {
 type CSPDirectiveName string
 
 const (
-	CSPDirectiveNameDefaultSrc CSPDirectiveName = "default-src"
+	// default-src is not needed in building a strict CSP
+	// See https://web.dev/articles/strict-csp#structure
+	// CSPDirectiveNameDefaultSrc CSPDirectiveName = "default-src"
 
-	CSPDirectiveNameConnectSrc CSPDirectiveName = "connect-src"
-	CSPDirectiveNameFontSrc    CSPDirectiveName = "font-src"
-	CSPDirectiveNameFrameSrc   CSPDirectiveName = "frame-src"
-	CSPDirectiveNameImgSrc     CSPDirectiveName = "img-src"
-	CSPDirectiveNameObjectSrc  CSPDirectiveName = "object-src"
-	CSPDirectiveNameScriptSrc  CSPDirectiveName = "script-src"
-	CSPDirectiveNameStyleSrc   CSPDirectiveName = "style-src"
-	CSPDirectiveNameWorkerSrc  CSPDirectiveName = "worker-src"
+	// connect-src is not needed when there is no default-src.
+	// CSPDirectiveNameConnectSrc CSPDirectiveName = "connect-src"
+	// font-src is not needed when there is no default-src.
+	// CSPDirectiveNameFontSrc    CSPDirectiveName = "font-src"
+	// frame-src is not needed when there is no default-src.
+	// CSPDirectiveNameFrameSrc   CSPDirectiveName = "frame-src"
+	// img-src is not needed when there is no default-src.
+	// CSPDirectiveNameImgSrc     CSPDirectiveName = "img-src"
+	CSPDirectiveNameObjectSrc CSPDirectiveName = "object-src"
+	CSPDirectiveNameScriptSrc CSPDirectiveName = "script-src"
+	// style-src is not needed when there is no default-src.
+	// CSPDirectiveNameStyleSrc   CSPDirectiveName = "style-src"
+	// worker-src is not needed when there is no default-src.
+	// CSPDirectiveNameWorkerSrc  CSPDirectiveName = "worker-src"
 
 	CSPDirectiveNameBaseURI CSPDirectiveName = "base-uri"
 	// CSPDirectiveNameBlockAllMixedContent is deprecated.

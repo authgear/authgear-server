@@ -31,29 +31,6 @@ func PortalCSPMiddleware(next http.Handler) http.Handler {
 					httputil.CSPSourceStrictDynamic,       // CSP3
 				},
 			},
-			// We did not specify style-src in the past.
-			// And not specify style-src means no restriction at all.
-			// So now we become more explicit, and specify it here.
-			// 'unsafe-inline': Allow fluent-ui to set the style attribute.
-			// 'unsafe-eval': Allow fluent-ui to call insertRule().
-			httputil.CSPDirective{
-				Name: httputil.CSPDirectiveNameStyleSrc,
-				Value: httputil.CSPSources{
-					httputil.CSPSourceSelf,         // CSP1,CSP2,CSP3
-					httputil.CSPSourceUnsafeInline, // CSP1,CSP2,CSP3
-					httputil.CSPSourceUnsafeEval,   // CSP1,CSP2,CSP3
-					httputil.CSPSchemeSourceHTTPS,  // CSP1,CSP2,CSP3
-				},
-			},
-			// monaco editor create worker with blob:
-			httputil.CSPDirective{
-				Name: httputil.CSPDirectiveNameWorkerSrc,
-				Value: httputil.CSPSources{
-					httputil.CSPSourceSelf,                   // CSP1,CSP2,CSP3
-					httputil.CSPSchemeSourceHTTPS,            // CSP1,CSP2,CSP3
-					httputil.CSPSchemeSource{Scheme: "blob"}, // CSP1,CSP2,CSP3
-				},
-			},
 			httputil.CSPDirective{
 				Name: httputil.CSPDirectiveNameObjectSrc,
 				Value: httputil.CSPSources{

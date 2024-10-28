@@ -19,83 +19,48 @@ func TestCSPDirectives(t *testing.T) {
 		}
 
 		test(CSPDirectivesOptions{
-			PublicOrigin: "http://localhost:3000",
-			Nonce:        "N0NC5",
+			Nonce: "N0NC5",
 		}, []string{
-			"default-src 'self'",
 			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
-			"frame-src 'self' https:",
-			"font-src 'self' https:",
-			"style-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-			"img-src 'self' http: https: data:",
 			"object-src 'none'",
 			"base-uri 'none'",
-			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
 			"frame-ancestors 'none'",
 		})
 
 		test(CSPDirectivesOptions{
-			PublicOrigin: "http://localhost:3000",
-			Nonce:        "N0NC5",
+			Nonce: "N0NC5",
 		}, []string{
-			"default-src 'self'",
 			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
-			"frame-src 'self' https:",
-			"font-src 'self' https:",
-			"style-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-			"img-src 'self' http: https: data:",
 			"object-src 'none'",
 			"base-uri 'none'",
-			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
 			"frame-ancestors 'none'",
 		})
 
 		test(CSPDirectivesOptions{
-			PublicOrigin: "http://localhost:3000",
-			Nonce:        "N0NC5",
+			Nonce: "N0NC5",
 		}, []string{
-			"default-src 'self'",
 			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
-			"frame-src 'self' https:",
-			"font-src 'self' https:",
-			"style-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-			"img-src 'self' http: https: data:",
 			"object-src 'none'",
 			"base-uri 'none'",
-			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
 			"frame-ancestors 'none'",
 		})
 
 		test(CSPDirectivesOptions{
-			PublicOrigin:   "http://localhost:3000",
 			Nonce:          "N0NC5",
 			FrameAncestors: []string{"http://remote.localhost"},
 		}, []string{
-			"default-src 'self'",
 			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
-			"frame-src 'self' https:",
-			"font-src 'self' https:",
-			"style-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-			"img-src 'self' http: https: data:",
 			"object-src 'none'",
 			"base-uri 'none'",
-			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
 			"frame-ancestors http://remote.localhost",
 		})
 
 		test(CSPDirectivesOptions{
-			PublicOrigin: "http://localhost:3000",
-			Nonce:        "N0NC5",
+			Nonce: "N0NC5",
 		}, []string{
-			"default-src 'self'",
 			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
-			"frame-src 'self' https:",
-			"font-src 'self' https:",
-			"style-src 'self' 'unsafe-inline' 'unsafe-eval' https:",
-			"img-src 'self' http: https: data:",
 			"object-src 'none'",
 			"base-uri 'none'",
-			"connect-src 'self' https: ws://localhost:3000 wss://localhost:3000",
 			"frame-ancestors 'none'",
 		})
 	})
