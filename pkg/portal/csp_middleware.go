@@ -25,6 +25,7 @@ func PortalCSPMiddleware(next http.Handler) http.Handler {
 					// But the two issues have been addressed since regenerator-runtime@0.13.8 (https://github.com/facebook/regenerator/commit/cc0cde9d90f975e5876df16c4b852c97f35da436)
 					// If you run `rg regenerator-runtime` in ./portal you will see we are on regenerator-runtime@0.13.9
 					// So we no longer need unsafe-eval anymore.
+					httputil.CSPSourceUnsafeInline,        // CSP1
 					httputil.CSPSourceSelf,                // CSP1,CSP2
 					httputil.CSPSchemeSourceHTTPS,         // CSP1,CSP2
 					httputil.CSPNonceSource{Nonce: nonce}, // CSP2,CSP3

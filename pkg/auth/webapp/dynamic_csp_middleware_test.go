@@ -43,7 +43,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://authgearportal.com http://customui.com",
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://authgearportal.com http://customui.com",
 						},
 					},
 				},
@@ -60,7 +60,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://authgearportal.com",
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://authgearportal.com",
 						},
 					},
 				},
@@ -77,7 +77,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://customui.com",
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://customui.com",
 						},
 					},
 				},
@@ -94,7 +94,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},
@@ -112,7 +112,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://authgearportal.com http://customui.com",
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://authgearportal.com http://customui.com",
 						},
 					},
 				},
@@ -129,7 +129,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://authgearportal.com",
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://authgearportal.com",
 						},
 					},
 				},
@@ -146,7 +146,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: true,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://customui.com",
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors http://customui.com",
 						},
 					},
 				},
@@ -163,19 +163,7 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
-						},
-						"X-Frame-Options": {"DENY"},
-					},
-				},
-				{
-					AllowedFrameAncestorsFromEnv:    config.AllowedFrameAncestors{},
-					OAuthConfig:                     &config.OAuthConfig{},
-					AllowFrameAncestorsFromEnv:      true,
-					AllowFrameAncestorsFromCustomUI: true,
-					ExpectedHeaders: map[string][]string{
-						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},
@@ -183,11 +171,23 @@ func TestDynamicCSPMiddleware(t *testing.T) {
 				{
 					AllowedFrameAncestorsFromEnv:    config.AllowedFrameAncestors{},
 					OAuthConfig:                     &config.OAuthConfig{},
+					AllowFrameAncestorsFromEnv:      true,
+					AllowFrameAncestorsFromCustomUI: true,
+					ExpectedHeaders: map[string][]string{
+						"Content-Security-Policy": {
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+						},
+						"X-Frame-Options": {"DENY"},
+					},
+				},
+				{
+					AllowedFrameAncestorsFromEnv:    config.AllowedFrameAncestors{},
+					OAuthConfig:                     &config.OAuthConfig{},
 					AllowFrameAncestorsFromEnv:      false,
 					AllowFrameAncestorsFromCustomUI: false,
 					ExpectedHeaders: map[string][]string{
 						"Content-Security-Policy": {
-							"script-src 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
+							"script-src 'unsafe-inline' 'self' https: 'nonce-' 'strict-dynamic'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'",
 						},
 						"X-Frame-Options": {"DENY"},
 					},

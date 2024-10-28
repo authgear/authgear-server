@@ -81,8 +81,10 @@ type CSPKeywordSourceLevel1 string
 var _ CSPSource = CSPKeywordSourceLevel1("")
 
 const (
-	CSPSourceNone         CSPKeywordSourceLevel1 = "'none'"
-	CSPSourceSelf         CSPKeywordSourceLevel1 = "'self'"
+	CSPSourceNone CSPKeywordSourceLevel1 = "'none'"
+	CSPSourceSelf CSPKeywordSourceLevel1 = "'self'"
+	// 'unsafe-inline' must be used with hash-source or nonce-source, and 'strict-dynamic'.
+	// So that it will be ignored by CSP2 browsers and CSP3 browsers.
 	CSPSourceUnsafeInline CSPKeywordSourceLevel1 = "'unsafe-inline'"
 	// 'unsafe-eval' is not needed when we no longer specify style-src.
 	// CSPSourceUnsafeEval CSPKeywordSourceLevel1 = "'unsafe-eval'"

@@ -34,14 +34,14 @@ func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 	// The directives that will be effective in a CSP3 browser are
 	// nonce- hash- 'strict-dynamic'
 	// That is, 'unsafe-inline', host-sources, and scheme-sources will be ignored.
+	// GTM only works in CSP3 browser, because we need 'strict-dynamic' to propagate the trust to GTM custom HTML tags.
 
 	scriptSrc := httputil.CSPSources{
-		httputil.CSPSourceSelf,
-		httputil.CSPSchemeSourceHTTPS,
-		httputil.CSPNonceSource{
-			Nonce: opts.Nonce,
-		},
-		httputil.CSPSourceStrictDynamic,
+		httputil.CSPSourceUnsafeInline,             // CSP1
+		httputil.CSPSourceSelf,                     // CSP1,CSP2
+		httputil.CSPSchemeSourceHTTPS,              // CSP1,CSP2
+		httputil.CSPNonceSource{Nonce: opts.Nonce}, // CSP2,CSP3
+		httputil.CSPSourceStrictDynamic,            // CSP3
 	}
 
 	// frame-src is no longer needed because we do not output default-src anymore.
