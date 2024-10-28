@@ -19,63 +19,33 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 		PathPattern: "/healthz",
 	}, p.RootHandler(newHealthzHandler))
 
-	securityMiddleware := httproute.Chain(
-		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
-		httproute.MiddlewareFunc(httputil.XFrameOptionsDeny),
-		httproute.MiddlewareFunc(httputil.XRobotsTag),
-		httputil.StaticCSPHeader{
-			CSPDirectives: httputil.CSPDirectives{
-				httputil.CSPDirective{
-					Name: httputil.CSPDirectiveNameScriptSrc,
-					Value: httputil.CSPSources{
-						httputil.CSPSourceSelf,
-						httputil.CSPSourceUnsafeInline,
-						httputil.CSPHostSource{
-							Host: "unpkg.com",
-						},
-					},
-				},
-				httputil.CSPDirective{
-					Name: httputil.CSPDirectiveNameObjectSrc,
-					Value: httputil.CSPSources{
-						httputil.CSPSourceNone,
-					},
-				},
-				httputil.CSPDirective{
-					Name: httputil.CSPDirectiveNameBaseURI,
-					Value: httputil.CSPSources{
-						httputil.CSPSourceNone,
-					},
-				},
-				httputil.CSPDirective{
-					Name: httputil.CSPDirectiveNameBlockAllMixedContent,
-				},
-				// This must be kept in sync with httputil.XFrameOptionsDeny
-				httputil.CSPDirective{
-					Name: httputil.CSPDirectiveNameFrameAncestors,
-					Value: httputil.CSPSources{
-						httputil.CSPSourceNone,
-					},
-				},
-			},
-		},
-		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
-	)
-
 	chain := httproute.Chain(
 		p.RootMiddleware(newPanicMiddleware),
 		p.RootMiddleware(newBodyLimitMiddleware),
 		p.RootMiddleware(newSentryMiddleware),
-		securityMiddleware,
+
 		httproute.MiddlewareFunc(httputil.NoStore),
+		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
+		httproute.MiddlewareFunc(httputil.XRobotsTag),
+		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
+		// x-frame-options: deny must be kept in sync of content-security-policy.
+		httproute.MiddlewareFunc(httputil.XFrameOptionsDeny),
+		// content-security-policy must be kept in sync of x-frame-options.
+		httproute.MiddlewareFunc(AdminCSPMiddleware),
+
 		&deps.RequestMiddleware{
 			RootProvider: p,
 			ConfigSource: configSource,
 		},
+		// The following middlewares are project-specific.
 		p.Middleware(func(p *deps.RequestProvider) httproute.Middleware {
 			return newAuthorizationMiddleware(p, auth)
 		}),
 		p.Middleware(newUIParamMiddleware),
+
+		// The following middlewares may terminate the request,
+		// so they are ordered just before the handler, to make sure
+		// the middlewares above always write their headers.
 		httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
 			graphqlhandler.ContentTypeGraphQL,
