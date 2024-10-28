@@ -51,7 +51,7 @@ var wwwgooglecom = httputil.CSPHostSource{
 	Host: "www.google.com",
 }
 
-func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
+func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 	u, err := url.Parse(opts.PublicOrigin)
 	if err != nil {
 		return nil, err
@@ -180,17 +180,55 @@ func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
 		}
 	}
 
-	return []string{
-		"default-src 'self'",
-		fmt.Sprintf("script-src %v", scriptSrc),
-		fmt.Sprintf("frame-src %v", frameSrc),
-		fmt.Sprintf("font-src %v", fontSrc),
-		fmt.Sprintf("style-src %v", styleSrc),
-		fmt.Sprintf("img-src %v", imgSrc),
-		"object-src 'none'",
-		"base-uri 'none'",
-		fmt.Sprintf("connect-src %v", connectSrc),
-		"block-all-mixed-content",
-		fmt.Sprintf("frame-ancestors %v", frameAncestors),
+	return httputil.CSPDirectives{
+		httputil.CSPDirective{
+			Name: httputil.CSPDirectiveNameDefaultSrc,
+			Value: httputil.CSPSources{
+				httputil.CSPSourceSelf,
+			},
+		},
+		httputil.CSPDirective{
+			Name:  httputil.CSPDirectiveNameScriptSrc,
+			Value: scriptSrc,
+		},
+		httputil.CSPDirective{
+			Name:  httputil.CSPDirectiveNameFrameSrc,
+			Value: frameSrc,
+		},
+		httputil.CSPDirective{
+			Name:  httputil.CSPDirectiveNameFontSrc,
+			Value: fontSrc,
+		},
+		httputil.CSPDirective{
+			Name:  httputil.CSPDirectiveNameStyleSrc,
+			Value: styleSrc,
+		},
+		httputil.CSPDirective{
+			Name:  httputil.CSPDirectiveNameImgSrc,
+			Value: imgSrc,
+		},
+		httputil.CSPDirective{
+			Name: httputil.CSPDirectiveNameObjectSrc,
+			Value: httputil.CSPSources{
+				httputil.CSPSourceNone,
+			},
+		},
+		httputil.CSPDirective{
+			Name: httputil.CSPDirectiveNameBaseURI,
+			Value: httputil.CSPSources{
+				httputil.CSPSourceNone,
+			},
+		},
+		httputil.CSPDirective{
+			Name:  httputil.CSPDirectiveNameConnectSrc,
+			Value: connectSrc,
+		},
+		httputil.CSPDirective{
+			Name: httputil.CSPDirectiveNameBlockAllMixedContent,
+		},
+		httputil.CSPDirective{
+			Name:  httputil.CSPDirectiveNameFrameAncestors,
+			Value: frameAncestors,
+		},
 	}, nil
 }

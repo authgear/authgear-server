@@ -91,7 +91,7 @@ func (m *DynamicCSPMiddleware) Handle(next http.Handler) http.Handler {
 			w.Header().Set("X-Frame-Options", "DENY")
 		}
 
-		w.Header().Set("Content-Security-Policy", httputil.CSPJoin(cspDirectives))
+		w.Header().Set("Content-Security-Policy", cspDirectives.String())
 		next.ServeHTTP(w, r)
 	})
 }

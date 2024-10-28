@@ -148,10 +148,17 @@ func GetCSPNonce(ctx context.Context) string {
 type CSPDirectiveName string
 
 const (
-	CSPDirectiveNameDefaultSrc           CSPDirectiveName = "default-src"
-	CSPDirectiveNameScriptSrc            CSPDirectiveName = "script-src"
-	CSPDirectiveNameWorkerSrc            CSPDirectiveName = "worker-src"
-	CSPDirectiveNameObjectSrc            CSPDirectiveName = "object-src"
+	CSPDirectiveNameDefaultSrc CSPDirectiveName = "default-src"
+
+	CSPDirectiveNameConnectSrc CSPDirectiveName = "connect-src"
+	CSPDirectiveNameFontSrc    CSPDirectiveName = "font-src"
+	CSPDirectiveNameFrameSrc   CSPDirectiveName = "frame-src"
+	CSPDirectiveNameImgSrc     CSPDirectiveName = "img-src"
+	CSPDirectiveNameObjectSrc  CSPDirectiveName = "object-src"
+	CSPDirectiveNameScriptSrc  CSPDirectiveName = "script-src"
+	CSPDirectiveNameStyleSrc   CSPDirectiveName = "style-src"
+	CSPDirectiveNameWorkerSrc  CSPDirectiveName = "worker-src"
+
 	CSPDirectiveNameBaseURI              CSPDirectiveName = "base-uri"
 	CSPDirectiveNameBlockAllMixedContent CSPDirectiveName = "block-all-mixed-content"
 	CSPDirectiveNameFrameAncestors       CSPDirectiveName = "frame-ancestors"

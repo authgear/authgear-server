@@ -11,7 +11,11 @@ func TestCSPDirectives(t *testing.T) {
 		test := func(opts CSPDirectivesOptions, expected []string) {
 			actual, err := CSPDirectives(opts)
 			So(err, ShouldBeNil)
-			So(actual, ShouldResemble, expected)
+			var strs []string
+			for _, directive := range actual {
+				strs = append(strs, directive.String())
+			}
+			So(strs, ShouldResemble, expected)
 		}
 
 		test(CSPDirectivesOptions{

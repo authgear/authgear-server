@@ -2,12 +2,7 @@ package httputil
 
 import (
 	"net/http"
-	"strings"
 )
-
-func CSPJoin(directives []string) string {
-	return strings.Join(directives, "; ")
-}
 
 type StaticCSPHeader struct {
 	CSPDirectives CSPDirectives

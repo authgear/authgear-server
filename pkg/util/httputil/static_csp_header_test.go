@@ -8,12 +8,6 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestCSPJoin(t *testing.T) {
-	Convey("CSPJoin", t, func() {
-		So(CSPJoin([]string{"a", "b"}), ShouldResemble, "a; b")
-	})
-}
-
 func TestStaticCSPHeader(t *testing.T) {
 	Convey("StaticCSPHeader", t, func() {
 		middleware := StaticCSPHeader{}
