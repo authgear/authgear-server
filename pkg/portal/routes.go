@@ -24,16 +24,17 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 		httproute.MiddlewareFunc(httputil.XRobotsTag),
 		httputil.StaticCSPHeader{
 			CSPDirectives: httputil.CSPDirectives{
-				// FIXME(regeneratorRuntime)
-				// parcel-2.0.0-rc.0 requires us to use ES6 module when the browser supports it.
-				// ES6 module assumes strict mode.
-				// regeneratorRuntime is not compatible with strict mode because
-				// it uses Function to generate function, which is considered as eval.
 				httputil.CSPDirective{
 					Name: httputil.CSPDirectiveNameScriptSrc,
 					Value: httputil.CSPSources{
 						httputil.CSPSourceSelf,
-						httputil.CSPSourceUnsafeEval,
+						// We used to include unsafe-eval here due to
+						// https://github.com/facebook/regenerator/issues/336
+						// and
+						// https://github.com/facebook/regenerator/issues/450
+						// But the two issues have been addressed since regenerator-runtime@0.13.8 (https://github.com/facebook/regenerator/commit/cc0cde9d90f975e5876df16c4b852c97f35da436)
+						// If you run `rg regenerator-runtime` in ./portal you will see we are on regenerator-runtime@0.13.9
+						// So we no longer need unsafe-eval anymore.
 						httputil.CSPSourceUnsafeInline,
 						httputil.CSPHostSource{
 							Host: "cdn.jsdelivr.net",
