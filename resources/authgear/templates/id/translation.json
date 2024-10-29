@@ -1242,6 +1242,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Anda memiliki {NumberOfDeviceTokens, plural, one{# perangkat terpercaya} other{# perangkat terpercaya}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Perangkat terpercaya",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Anda tidak memiliki perangkat terpercaya yang dapat melewati verifikasi 2-langkah.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Hapus",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Anda tidak akan dapat masuk dengan akun {ProviderName} Anda.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Nonaktifkan akun {ProviderName} sebagai metode masuk",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Apakah Anda yakin ingin menghapus email ini?",

@@ -1242,6 +1242,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Anda mempunyai {NumberOfDeviceTokens, plural, one{# peranti yang dipercayai} other{# peranti yang dipercayai}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Peranti yang dipercayai",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Anda tidak mempunyai sebarang peranti yang dipercayai yang boleh melangkau pengesahan 2-langkah.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Buang",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Anda tidak akan dapat log masuk dengan akaun {ProviderName} anda.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Lumpuhkan akaun {ProviderName} sebagai kaedah log masuk",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Adakah anda pasti ingin mengalih keluar emel ini?",

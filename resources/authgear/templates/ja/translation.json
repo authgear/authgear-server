@@ -1242,6 +1242,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "あなたは{NumberOfDeviceTokens, plural, one{# 信頼済みデバイス} other{# 信頼済みデバイス}}を持っています",
   "v2.page.settings-mfa.default.trusted-devices-label": "信頼済みデバイス",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "2段階認証をスキップできる信頼済みデバイスはありません。",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "削除",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "{ProviderName}アカウントでログインできなくなります。",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "{ProviderName}アカウントをログイン方法から無効化する",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "このメールアドレスを削除してもよろしいですか?",

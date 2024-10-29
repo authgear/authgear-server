@@ -1242,6 +1242,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Você tem {NumberOfDeviceTokens, plural, one{# dispositivo confiável} other{# dispositivos confiáveis}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Dispositivos confiáveis",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Você não tem nenhum dispositivo confiável que possa ignorar a verificação de 2 etapas.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Remover",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Você não poderá mais fazer login com sua conta {ProviderName}.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Desabilitar conta {ProviderName} como método de login",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Tem certeza de que deseja remover este e-mail?",

@@ -1242,6 +1242,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Masz {NumberOfDeviceTokens, plural, one{# zaufane urządzenie} other{# zaufane urządzenia}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Zaufane urządzenia",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Nie masz żadnych zaufanych urządzeń, które mogą pominąć weryfikację dwuetapową.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Usuń",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Nie będziesz mógł zalogować się za pomocą swojego konta {ProviderName}.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Wyłącz konto {ProviderName} jako metodę logowania",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Czy na pewno chcesz usunąć ten adres e-mail?",

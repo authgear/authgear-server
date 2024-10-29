@@ -1242,6 +1242,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "您有{NumberOfDeviceTokens}個受信任裝置",
   "v2.page.settings-mfa.default.trusted-devices-label": "受信任裝置",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "您沒有任何可以跳過兩個步驟驗證的受信任裝置。",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "移除",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "您將無法使用您的 {ProviderName} 帳戶登錄。",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "停用 {ProviderName} 帳戶作為登錄方式",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "你確定要移除這個電子郵件地址嗎?",

@@ -1242,6 +1242,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Vous avez {NumberOfDeviceTokens, plural, one{# appareil de confiance} other{# appareils de confiance}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Appareils de confiance",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Vous n''avez aucun appareil de confiance qui peut ignorer la vérification en 2 étapes.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Supprimer",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Vous ne pourrez plus vous connecter avec votre compte {ProviderName}.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Désactiver le compte {ProviderName} comme méthode de connexion",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Êtes-vous sûr de vouloir supprimer cet e-mail ?",
