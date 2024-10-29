@@ -70,18 +70,18 @@
     {{ if $.HasSecondaryOOBOTPSMS }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
     {{ end }}
-    {{ $labelTranslationId := "" }}
+    {{ $label := "" }}
     {{ if eq $.PhoneOTPMode "whatsapp" }}
-      {{ $labelTranslationId = "v2.page.settings-mfa.default.secondary-oob-otp-sms-label--whatsapp" }}
+      {{ $label = translate "v2.page.settings-mfa.default.secondary-oob-otp-sms-label--whatsapp" nil }}
     {{ else if eq $.PhoneOTPMode "sms" }}
-      {{ $labelTranslationId = "v2.page.settings-mfa.default.secondary-oob-otp-sms-label--sms" }}
+      {{ $label = translate "v2.page.settings-mfa.default.secondary-oob-otp-sms-label--sms" nil }}
     {{ else }}
-      {{ $labelTranslationId = "v2.page.settings-mfa.default.secondary-oob-otp-sms-label--whatsapp-or-sms" }}
+      {{ $label = translate "v2.page.settings-mfa.default.secondary-oob-otp-sms-label--whatsapp-or-sms" nil }}
     {{ end }}
     {{ template "__settings_mfa_item.html"
         (dict
           "MaterialIconName" "phone_iphone"
-          "Label" (translate $labelTranslationId nil)
+          "Label" $label
           "IsActive" $.HasSecondaryOOBOTPSMS
           "Href" $href
         )
