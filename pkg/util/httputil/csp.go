@@ -11,6 +11,117 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/rand"
 )
 
+// The spec of CSP1 is https://www.w3.org/TR/2012/CR-CSP-20121115/
+// The spec of CSP2 is https://www.w3.org/TR/CSP2/
+// The spec of CSP3 is https://www.w3.org/TR/CSP3/
+//
+//
+// TL;DR: To implement strict CSP, follow this article.
+// https://web.dev/articles/strict-csp#structure
+//
+//
+// In CSP1, to protect against XSS, script-src and object-src is required.
+// This is officially documented in https://www.w3.org/TR/2012/CR-CSP-20121115/#directives
+// In CSP1, when default-src is present, then the user agent will enforce ALL directives defined in CSP1.
+// This behavior is documented in https://www.w3.org/TR/2012/CR-CSP-20121115/#default-src
+// Therefore, if default-src is present, that will bring a unwanted effect of restricting
+// resources that are not essential to XSS protection.
+// So when default-src is NOT present, it is unnecessary to specify
+// - frame-src
+// - font-src
+// - style-src
+// - img-src
+// - connect-src
+//
+//
+// If we specify style-src, we will get into the following troubles.
+//
+// Turbo is known to write a stylesheet for ".turbo-progress-bar".
+// See https://github.com/hotwired/turbo/issues/809
+// To allow that to happen, we have two options.
+// 1. 'unsafe-eval'
+//   https://www.w3.org/TR/CSP2/#directive-style-src
+//   CSP2 says when 'unsafe-eval' is used, insertRule() can be used.
+// 2. Use hash-source, to explicitly allow the rule that Turbo is going to insert.
+// We have some legit use cases of the style attribute that we cannot remove.
+// They are
+//   echo -n "position:absolute;width:0;height:0;" | openssl dgst -sha256 -binary | openssl enc -base64
+//   sha256-fOghyYcDMsLl/lf7piKeVgEljdV7IgqwGymlDo5oDhU=
+//
+//   echo -n "display:none;" | openssl dgst -sha256 -binary | openssl enc -base64
+//   sha256-0EZqoz+oBhx7gF4nvY2bSqoGyy4zLjNF+SDQXGp/ZrY=
+//
+//   echo -n "display:none;visibility:hidden;" | openssl dgst -sha256 -binary | openssl enc -base64
+//   sha256-ZLjZaRfcYelvFE+8S7ynGAe0XPN7SLX6dirEzdvD5Mk=
+// To allow them, we have two options.
+// 1. 'unsafe-inline'. This works in CSP1, CSP2, and CSP3.
+//    https://www.w3.org/TR/CSP2/#directive-style-src
+//    CSP2 says 'unsafe-inline' allows the application of the style attribute.
+// 2. Use hash-source and 'unsafe-hashes'. But this only works in CSP3.
+//
+// We cannot use 1 and 2 at the same time because using a hash-source will make 'unsafe-inline' be ignored.
+// So using 2 implies we cannot use 1.
+// So to make things work in CSP1, CSP2, CSP3, we can only use 1.
+//
+// So the conclusion is that if we want to make things work in CSP1, CSP2, and CSP3, we need to have
+// style-src: unsafe-inline and unsafe-eval.
+//
+//
+// If we specify connect-src, we will get into the following troubles.
+//
+// 'self' in some previous versions of Safari is known to NOT include ws: and wss:
+// See https://github.com/w3c/webappsec-csp/issues/7
+//
+//
+// In CSP2, most changes are compatible with CSP1.
+// The changes can be found in https://www.w3.org/TR/CSP2/#changes-from-level-1
+// Our usage of CSP are not covered in the incompatible changes.
+// In CSP2, frame-ancestors, nonce source, and hash source were introduced.
+// frame-ancestors replaces X-Frame-Options.
+// nonce source and hash source is mutually exclusive with 'unsafe-inline',
+// meaning that if nonce source or hash source is present, then 'unsafe-inline' will be ignored
+// by a CSP2 browser.
+// Therefore, it is okay to have 'unsafe-inline' as long as either nonce source or hash source is present.
+//
+//
+// In CSP3, the changes are compatible with CSP2.
+// The changes can be found in https://www.w3.org/TR/CSP3/#changes-from-level-2
+// In CSP3, 'strict-dynamic' was introduced.
+// When 'strict-dynamic' is present, 'self', 'unsafe-inline', host source, and scheme source will be ignored, hash source and nonce source will be honored as usual.
+// Therefore, it is okay to have 'self' and https: as long as 'strict-dynamic' is present.
+//
+// Given
+//   script-src: 'unsafe-inline' 'self' https: nonce-NONCE 'strict-dynamic'
+//
+// In a CSP1 browser, it is interpreted as
+//   script-src: 'unsafe-inline' 'self' https:
+// Therefore, in a CSP1 browser, it is vulnerable to XSS attack.
+// According to https://caniuse.com/contentsecuritypolicy2
+// The following browsers support CSP2 (that is, they are not CSP1 browsers).
+// - Chrome >= 40 (2015)
+// - Edge >= 79 (2020)
+// - Safari >= 10 (2016)
+// - Firefox >= 46 (2016)
+//
+// In a CSP2 browser, it is interpreted as
+//   script-src: 'self' https: nonce-NONCE
+// Therefore, in a CSP2 browser, it is vulnerable to XSS attack if the attack is able to
+// inject a https: script into the HTML document.
+// The attacker DOES NOT need to know the nonce to launch this attack due to the presence of https: scheme source.
+// But the attacker CANNOT do this by injecting a inline script, because inline script is blocked, due to the absence of 'unsafe-inline'.
+// Therefore, we can say, the attack is possible if the attacker can load a https: script in a nonced script.
+// In other words, the attacker launches the attack in a trusted (nonced) script.
+// This is not something that CSP can pretect.
+//
+// In a CSP3 browser, it is interpreted as
+//   script-src: nonce-NONCE 'strict-dynamic'
+// Therefore, in a CSP3 browser, it is not vulnerable to XSS attack.
+// All scripts must be nonced in order to be executed by the browser.
+// And the trust is propagated to the scripts further loaded by the nonced scripts.
+// This behavior particularly useful in situation like Google Tag Manager,
+// where you can define Custom HTML (which may contain a script tag).
+// In CSP3, the custom HTML defined in GTM will be executed by the CSP3 browser.
+
 // CSPNonceCookieDef is a HTTP session cookie.
 // The nonce has to be stable within a browsing session because
 // Turbo uses XHR to load new pages.
@@ -84,7 +195,7 @@ const (
 	CSPSourceNone CSPKeywordSourceLevel1 = "'none'"
 	CSPSourceSelf CSPKeywordSourceLevel1 = "'self'"
 	// 'unsafe-inline' must be used with hash-source or nonce-source, and 'strict-dynamic'.
-	// So that it will be ignored by CSP2 browsers and CSP3 browsers.
+	// See the comment at the beginning of this file for details.
 	CSPSourceUnsafeInline CSPKeywordSourceLevel1 = "'unsafe-inline'"
 	// 'unsafe-eval' is not needed when we no longer specify style-src.
 	// CSPSourceUnsafeEval CSPKeywordSourceLevel1 = "'unsafe-eval'"
@@ -215,8 +326,9 @@ func GetCSPNonce(ctx context.Context) string {
 type CSPDirectiveName string
 
 const (
-	// default-src is not needed in building a strict CSP
-	// See https://web.dev/articles/strict-csp#structure
+	// default-src is not needed in implementing a strict CSP, and
+	// it brings troubles.
+	// See the comment at the beginning of this file for details.
 	// CSPDirectiveNameDefaultSrc CSPDirectiveName = "default-src"
 
 	// connect-src is not needed when there is no default-src.
