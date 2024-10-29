@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/labelutil"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/territoryutil"
 	"github.com/authgear/authgear-server/pkg/util/tzutil"
 )
@@ -92,7 +93,7 @@ type SettingsProfileViewModeler struct {
 
 // nolint: gocognit
 func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileViewModel, error) {
-	var emails []string
+	var emails setutil.Set[string]
 	var phoneNumbers []string
 	var preferredUsernames []string
 	identities, err := m.Identities.ListByUser(userID)
@@ -103,7 +104,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 	for _, iden := range identities {
 		standardClaims := iden.IdentityAwareStandardClaims()
 		if email, ok := standardClaims[model.ClaimEmail]; ok && email != "" {
-			emails = append(emails, email)
+			emails.Add(email)
 		}
 		if phoneNumber, ok := standardClaims[model.ClaimPhoneNumber]; ok && phoneNumber != "" {
 			phoneNumbers = append(phoneNumbers, phoneNumber)
@@ -236,7 +237,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		Timezones:          timezones,
 		Alpha2:             territoryutil.Alpha2,
 		Languages:          m.Localization.SupportedLanguages,
-		Emails:             emails,
+		Emails:             emails.Keys(),
 		PhoneNumbers:       phoneNumbers,
 		PreferredUsernames: preferredUsernames,
 
