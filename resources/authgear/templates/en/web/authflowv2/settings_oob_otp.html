@@ -1,7 +1,14 @@
 {{ template "authflowv2/__settings_page_frame.html" . }}
 
 {{ define "page-navbar" }}
-  {{ $title := (translate "v2.page.settings-oob-otp-sms.default.title" nil) }}
+  {{ $title := "" }}
+  {{ if eq $.PhoneOTPMode "whatsapp" }}
+    {{ $title = translate "v2.page.settings-oob-otp-sms.default.title--whatsapp" nil }}
+  {{ else if eq $.PhoneOTPMode "sms" }}
+    {{ $title = translate "v2.page.settings-oob-otp-sms.default.title--sms" nil }}
+  {{ else }}
+    {{ $title = translate "v2.page.settings-oob-otp-sms.default.title--whatsapp-or-sms" nil }}
+  {{ end }}
   {{ if eq $.OOBOTPType "oob_otp_email" }}
     {{ $title = (translate "v2.page.settings-oob-otp-email.default.title" nil) }}
   {{ end }}
@@ -71,7 +78,14 @@
     class="settings-link-btn mt-6 block"
     href="{{ $href }}"
   >
-    {{ $label := (translate "v2.page.settings-oob-otp.default.oob-otp-sms-button-label" nil)}}
+    {{ $label := "" }}
+    {{ if eq $.PhoneOTPMode "whatsapp" }}
+      {{ $label = translate "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--whatsapp" nil }}
+    {{ else if eq $.PhoneOTPMode "sms" }}
+      {{ $label = translate "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--sms" nil }}
+    {{ else }}
+      {{ $label = translate "v2.page.settings-oob-otp.default.oob-otp-sms-button-label--whatsapp-or-sms" nil }}
+    {{ end }}
     {{ if eq $.OOBOTPType "email" }}
       {{ $label = (translate "v2.page.settings-oob-otp.default.oob-otp-email-button-label" nil) }}
     {{ end }}
