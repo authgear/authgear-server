@@ -2,19 +2,23 @@
 
 {{ define "page-navbar" }}
   {{ $back_url := (call $.MakeURL "/settings/mfa") }}
+  {{ $title := "" }}
   {{- if eq $.Channel "email" }}
     {{ $back_url = (call $.MakeURL "/settings/mfa/oob_otp_email") }}
+    {{ $title = translate "v2.page.settings-mfa-create-oob-otp.default.title--email" nil }}
   {{- else if eq $.Channel "whatsapp" }}
     {{ $back_url = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
+    {{ $title = translate "v2.page.settings-mfa-create-oob-otp.default.title--phone" nil }}
   {{- else if eq $.Channel "sms" }}
     {{ $back_url = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
+    {{ $title = translate "v2.page.settings-mfa-create-oob-otp.default.title--phone" nil }}
   {{- end }}
 
   {{ template "authflowv2/__navbar.html"
      (dict
         "BackTitle" (translate "v2.component.navbar.default.item-back-button-label" nil)
         "BackHref" $back_url
-        "Title" (translate "v2.page.settings-mfa-create-oob-otp.default.title" nil)
+        "Title" $title
      )
   }}
 {{ end }}
