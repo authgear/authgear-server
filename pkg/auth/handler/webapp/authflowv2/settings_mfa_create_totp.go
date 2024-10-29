@@ -57,6 +57,7 @@ type AuthflowV2SettingsMFACreateTOTPHandler struct {
 
 func (h *AuthflowV2SettingsMFACreateTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, tokenString string, totpSecret string, otpauthURI string) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
+	userID := session.GetUserID(r.Context())
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
@@ -69,6 +70,13 @@ func (h *AuthflowV2SettingsMFACreateTOTPHandler) GetData(r *http.Request, rw htt
 	if err != nil {
 		return nil, err
 	}
+
+	// SettingsViewModel
+	viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *viewModelPtr)
 
 	screenViewModel := AuthflowV2SettingsMFACreateTOTPViewModel{
 		Token:  tokenString,
@@ -108,7 +116,11 @@ func (h *AuthflowV2SettingsMFACreateTOTPHandler) ServeHTTP(w http.ResponseWriter
 		}
 		totpauthURI := totp.GetURI(opts).String()
 
-		data, err := h.GetData(r, w, tokenString, totp.Secret, totpauthURI)
+		var data map[string]interface{}
+		err = h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w, tokenString, totp.Secret, totpauthURI)
+			return err
+		})
 		if err != nil {
 			return err
 		}
