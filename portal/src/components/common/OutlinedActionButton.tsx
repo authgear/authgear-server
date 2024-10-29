@@ -7,13 +7,13 @@ import {
 } from "@fluentui/react";
 import { useMergedStylesPlain } from "../../util/mergeStyles";
 
-export interface AdminActionButtonProps
+export interface OutlinedActionButtonProps
   extends Omit<IButtonProps, "children" | "text"> {
   text?: React.ReactNode;
   theme: ITheme;
 }
-const AdminActionButton: React.VFC<AdminActionButtonProps> =
-  function AdminActionButton(props: AdminActionButtonProps) {
+const OutlinedActionButton: React.VFC<OutlinedActionButtonProps> =
+  function OutlinedActionButton(props: OutlinedActionButtonProps) {
     const { theme: themeProp, styles: stylesProp, ...rest } = props;
 
     const borderColor = themeProp.palette.themePrimary;
@@ -35,4 +35,4 @@ const AdminActionButton: React.VFC<AdminActionButtonProps> =
     );
   };
 
-export default AdminActionButton;
+export default OutlinedActionButton;

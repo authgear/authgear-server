@@ -37,6 +37,8 @@ import {
   formatCertificateFilename,
   parseServiceProviderMetadata,
 } from "../../model/saml";
+import OutlinedActionButton from "../common/OutlinedActionButton";
+import { useSystemConfig } from "../../context/SystemConfigContext";
 
 export interface OAuthClientSAMLFormState {
   isSAMLEnabled: boolean;
@@ -139,6 +141,8 @@ function IdpCertificateSection({
   configAppID: string;
   samlIdpSigningCertificate: SAMLIdpSigningCertificate;
 }) {
+  const { themes } = useSystemConfig();
+
   const onDownloadIdpCertificate = useCallback(() => {
     downloadStringAsFile({
       content: samlIdpSigningCertificate.certificatePEM,
@@ -157,7 +161,10 @@ function IdpCertificateSection({
       </WidgetTitle>
       <div className="grid gap-y-4 grid-cols-1">
         <div>
-          <DefaultButton
+          <OutlinedActionButton
+            theme={themes.actionButton}
+            className="justify-self-start"
+            iconProps={{ iconName: "Download" }}
             onClick={onDownloadIdpCertificate}
             text={
               <FormattedMessage id="OAuthClientSAMLForm.idpCertificate.download" />
@@ -212,6 +219,7 @@ export function OAuthClientSAMLForm({
   const { renderToString } = useContext(MessageFormatContext);
   const { isDirty: isFormDirty } = useFormContainerBaseContext();
   const { appID } = useParams() as { appID: string };
+  const { themes } = useSystemConfig();
 
   const onIsSAMLEnabledChange = useCallback(
     (_, checked?: boolean) => {
@@ -668,15 +676,16 @@ export function OAuthClientSAMLForm({
                     )}
                     value={endpoints.metadata}
                     readOnly={true}
-                    additionalIconButtons={[
-                      {
-                        iconProps: {
-                          iconName: "Download",
-                        },
-                        onClick: onClickDownloadMetadata,
-                        disabled: isFormDirty,
-                      },
-                    ]}
+                  />
+                  <OutlinedActionButton
+                    theme={themes.actionButton}
+                    className="justify-self-start"
+                    iconProps={{ iconName: "Download" }}
+                    text={
+                      <FormattedMessage id="OAuthClientSAMLForm.configurationParameters.metadata.download" />
+                    }
+                    onClick={onClickDownloadMetadata}
+                    disabled={isFormDirty}
                   />
                   <MessageBar
                     className={cn(isFormDirty ? null : "hidden")}
