@@ -108,21 +108,19 @@
 
   {{ if $.HasMFA}}
     {{ if gt $.NumberOfDeviceTokens 0 }}
-      <button
+      <div
         type="button"
         class="block w-full"
-        id="settings-mfa-revoke-device"
-        data-controller="dialog"
-        data-action="click->dialog#open"
       >
         {{ template "authflowv2/__settings_action_item.html"
             (dict
               "IconName" "person_check"
               "Label" (translate "v2.page.settings-mfa.default.trusted-devices-label" nil)
               "Description" (translate "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message" (dict "NumberOfDeviceTokens" $.NumberOfDeviceTokens))
+              "ActionButton"  (include "__settings_trusted_device_remove_btn.html" nil)
             )
         }}
-      </button>
+      </div>
 
       {{ template "authflowv2/__settings_dialog.html" (dict
         "Ctx" .
@@ -184,4 +182,15 @@
 
 {{ define "__settings_mfa_item_action_button.html" }}
   <span class="settings-item__forward_arrow"></span>
+{{ end }}
+
+{{ define "__settings_trusted_device_remove_btn.html" }}
+  <button
+  class="settings-link-btn--destructive"
+  data-controller="dialog"
+  data-action="click->dialog#open"
+  id="settings-mfa-revoke-device"
+  >
+    {{ translate "v2.page.settings-mfa.default.trusted-devices-remove-label" nil }}
+  </button>
 {{ end }}
