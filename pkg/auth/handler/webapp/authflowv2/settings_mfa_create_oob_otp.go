@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -42,8 +43,10 @@ type SettingsMFACreateOOBOTPViewModel struct {
 }
 
 type AuthflowV2SettingsMFACreateOOBOTPHandler struct {
+	Database          *appdb.Handle
 	ControllerFactory handlerwebapp.ControllerFactory
 	BaseViewModel     *viewmodels.BaseViewModeler
+	SettingsViewModel *viewmodels.SettingsViewModeler
 	Renderer          handlerwebapp.Renderer
 
 	AccountManagementService *accountmanagement.Service
@@ -57,9 +60,17 @@ func NewSettingsMFACreateOOBOTPViewModel(channel model.AuthenticatorOOBChannel) 
 
 func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) GetData(r *http.Request, w http.ResponseWriter, channel model.AuthenticatorOOBChannel) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
+	userID := session.GetUserID(r.Context())
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
+
+	// SettingsViewModel
+	viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+	if err != nil {
+		return nil, err
+	}
+	viewmodels.Embed(data, *viewModelPtr)
 
 	settingsViewModel := NewSettingsMFACreateOOBOTPViewModel(channel)
 	viewmodels.Embed(data, settingsViewModel)
@@ -77,7 +88,14 @@ func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) ServeHTTP(w http.ResponseWrit
 
 	ctrl.Get(func() error {
 		channel := model.AuthenticatorOOBChannel(httproute.GetParam(r, "channel"))
-		data, err := h.GetData(r, w, channel)
+		var data map[string]interface{}
+		err := h.Database.WithTx(func() error {
+			data, err = h.GetData(r, w, channel)
+			if err != nil {
+				return err
+			}
+			return nil
+		})
 		if err != nil {
 			return err
 		}

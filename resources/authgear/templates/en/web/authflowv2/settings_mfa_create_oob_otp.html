@@ -6,12 +6,21 @@
   {{- if eq $.Channel "email" }}
     {{ $back_url = (call $.MakeURL "/settings/mfa/oob_otp_email") }}
     {{ $title = translate "v2.page.settings-mfa-create-oob-otp.default.title--email" nil }}
+    {{ if not $.HasSecondaryOOBOTPEmail }}
+      {{ $back_url = (call $.MakeURL "/settings/mfa") }}
+    {{ end }}
   {{- else if eq $.Channel "whatsapp" }}
     {{ $back_url = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
     {{ $title = translate "v2.page.settings-mfa-create-oob-otp.default.title--phone" nil }}
+    {{ if not $.HasSecondaryOOBOTPSMS }}
+      {{ $back_url = (call $.MakeURL "/settings/mfa") }}
+    {{ end }}
   {{- else if eq $.Channel "sms" }}
     {{ $back_url = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
     {{ $title = translate "v2.page.settings-mfa-create-oob-otp.default.title--phone" nil }}
+    {{ if not $.HasSecondaryOOBOTPSMS }}
+      {{ $back_url = (call $.MakeURL "/settings/mfa") }}
+    {{ end }}
   {{- end }}
 
   {{ template "authflowv2/__navbar.html"
