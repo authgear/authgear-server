@@ -94,8 +94,8 @@ type SettingsProfileViewModeler struct {
 // nolint: gocognit
 func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileViewModel, error) {
 	var emails setutil.Set[string]
-	var phoneNumbers []string
-	var preferredUsernames []string
+	var phoneNumbers setutil.Set[string]
+	var preferredUsernames setutil.Set[string]
 	identities, err := m.Identities.ListByUser(userID)
 	if err != nil {
 		return nil, err
@@ -107,10 +107,10 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 			emails.Add(email)
 		}
 		if phoneNumber, ok := standardClaims[model.ClaimPhoneNumber]; ok && phoneNumber != "" {
-			phoneNumbers = append(phoneNumbers, phoneNumber)
+			phoneNumbers.Add(phoneNumber)
 		}
 		if preferredUsername, ok := standardClaims[model.ClaimPreferredUsername]; ok && preferredUsername != "" {
-			preferredUsernames = append(preferredUsernames, preferredUsername)
+			preferredUsernames.Add(preferredUsername)
 		}
 	}
 
@@ -238,8 +238,8 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		Alpha2:             territoryutil.Alpha2,
 		Languages:          m.Localization.SupportedLanguages,
 		Emails:             emails.Keys(),
-		PhoneNumbers:       phoneNumbers,
-		PreferredUsernames: preferredUsernames,
+		PhoneNumbers:       phoneNumbers.Keys(),
+		PreferredUsernames: preferredUsernames.Keys(),
 
 		IsReadable:                    isReadable,
 		IsEditable:                    isEditable,
