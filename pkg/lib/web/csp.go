@@ -1,331 +1,111 @@
 package web
 
 import (
-	"context"
-	"fmt"
-	"net/url"
-	"sort"
-	"strings"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
-
-type CSPSource interface {
-	CSPLevel() int
-	String() string
-}
-
-type CSPKeywordSourceLevel3 string
-
-var _ CSPSource = CSPKeywordSourceLevel3("")
-
-const (
-	CSPSourceStrictDynamic CSPKeywordSourceLevel3 = "'strict-dynamic'"
-)
-
-func (_ CSPKeywordSourceLevel3) CSPLevel() int {
-	return 3
-}
-
-func (s CSPKeywordSourceLevel3) String() string {
-	return string(s)
-}
-
-type CSPNonceSource struct {
-	Nonce string
-}
-
-var _ CSPSource = CSPNonceSource{}
-
-func (s CSPNonceSource) String() string {
-	return fmt.Sprintf("'nonce-%v'", s.Nonce)
-}
-
-func (s CSPNonceSource) CSPLevel() int {
-	return 2
-}
-
-type CSPSchemeSource struct {
-	Scheme string
-}
-
-var _ CSPSource = CSPSchemeSource{}
-
-func (s CSPSchemeSource) String() string {
-	return fmt.Sprintf("%v:", s.Scheme)
-}
-
-func (s CSPSchemeSource) CSPLevel() int {
-	return 1
-}
-
-type CSPHostSource struct {
-	Scheme string
-	Host   string
-}
-
-var _ CSPSource = CSPHostSource{}
-
-func (s CSPHostSource) String() string {
-	if s.Scheme != "" {
-		return fmt.Sprintf("%v://%v", s.Scheme, s.Host)
-	}
-	return fmt.Sprintf("%v", s.Host)
-}
-
-func (s CSPHostSource) CSPLevel() int {
-	return 1
-}
-
-type CSPKeywordSourceLevel1 string
-
-var _ CSPSource = CSPKeywordSourceLevel1("")
-
-const (
-	CSPSourceNone         CSPKeywordSourceLevel1 = "'none'"
-	CSPSourceSelf         CSPKeywordSourceLevel1 = "'self'"
-	CSPSourceUnsafeInline CSPKeywordSourceLevel1 = "'unsafe-inline'"
-)
-
-func (_ CSPKeywordSourceLevel1) CSPLevel() int {
-	return 1
-}
-
-func (s CSPKeywordSourceLevel1) String() string {
-	return string(s)
-}
-
-type CSPSources []CSPSource
-
-var _ sort.Interface = CSPSources{}
-
-func (s CSPSources) Len() int {
-	return len(s)
-}
-
-func (s CSPSources) Less(i, j int) bool {
-	// Higher level source must appear before lower level source.
-	return s[i].CSPLevel() > s[j].CSPLevel()
-}
-
-func (s CSPSources) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-
-func (s CSPSources) String() string {
-	var strs []string
-	for _, source := range s {
-		strs = append(strs, source.String())
-	}
-	return strings.Join(strs, " ")
-}
-
-type dynamicCSPContextKeyType struct{}
-
-var dynamicCSPContextKey = dynamicCSPContextKeyType{}
-
-type cspNonceContextValue struct {
-	Nonce string
-}
-
-func WithCSPNonce(ctx context.Context, nonce string) context.Context {
-	v, ok := ctx.Value(dynamicCSPContextKey).(*cspNonceContextValue)
-	if ok {
-		v.Nonce = nonce
-		return ctx
-	}
-	return context.WithValue(ctx, dynamicCSPContextKey, &cspNonceContextValue{Nonce: nonce})
-}
-
-func GetCSPNonce(ctx context.Context) string {
-	v, ok := ctx.Value(dynamicCSPContextKey).(*cspNonceContextValue)
-	if ok {
-		return v.Nonce
-	}
-	return ""
-}
 
 type CSPDirectivesOptions struct {
-	PublicOrigin    string
-	Nonce           string
-	CDNHost         string
-	AuthUISentryDSN string
+	Nonce string
 	// FrameAncestors supports the redirect approach used by the custom UI.
 	// The custom UI loads the redirect URI with an iframe.
-	FrameAncestors    []string
-	AllowInlineScript bool
+	FrameAncestors []string
 }
 
-var wwwgoogletagmanagercom = CSPHostSource{
-	Host: "www.googletagmanager.com",
-}
-
-var euassetsiposthogcom = CSPHostSource{
-	Host: "eu-assets.i.posthog.com",
-}
-
-var cdnjscloudflarecom = CSPHostSource{
-	Host: "cdnjs.cloudflare.com",
-}
-
-var static2sharepointonlinecom = CSPHostSource{
-	Host: "static2.sharepointonline.com",
-}
-
-var fontsgoogleapiscom = CSPHostSource{
-	Host: "fonts.googleapis.com",
-}
-
-var fontsgstaticcom = CSPHostSource{
-	Host: "fonts.gstatic.com",
-}
-
-var challengescloudflarecom = CSPHostSource{
-	Host: "challenges.cloudflare.com",
-}
-
-var wwwgooglecom = CSPHostSource{
-	Host: "www.google.com",
-}
-
-func CSPDirectives(opts CSPDirectivesOptions) ([]string, error) {
-	u, err := url.Parse(opts.PublicOrigin)
-	if err != nil {
-		return nil, err
+func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
+	scriptSrc := httputil.CSPSources{
+		httputil.CSPSourceUnsafeInline,             // CSP1
+		httputil.CSPSourceSelf,                     // CSP1,CSP2
+		httputil.CSPSchemeSourceHTTPS,              // CSP1,CSP2
+		httputil.CSPNonceSource{Nonce: opts.Nonce}, // CSP2,CSP3
+		httputil.CSPSourceStrictDynamic,            // CSP3
 	}
 
-	baseSrc := CSPSources{CSPSourceSelf}
-	if opts.CDNHost != "" {
-		baseSrc = append(baseSrc, CSPHostSource{
-			Host: opts.CDNHost,
-		})
-	}
+	// frame-src is no longer needed because we do not output default-src anymore.
+	// Preivously, we output default-src so we have to specify frame-src to negate the effect of default-src.
+	// frameSrc := httputil.CSPSources{
+	// 	httputil.CSPSourceSelf,
+	// 	httputil.CSPSchemeSourceHTTPS,
+	// }
 
-	// Unsafe-inline gets ignored if nonce is provided
-	// https://w3c.github.io/webappsec-csp/#allow-all-inline
-	var scriptSrc CSPSources
-	if opts.AllowInlineScript {
-		scriptSrc = CSPSources{
-			CSPSourceUnsafeInline,
-		}
-	} else {
-		scriptSrc = CSPSources{
-			CSPSourceStrictDynamic,
-			CSPNonceSource{
-				Nonce: opts.Nonce,
-			},
-		}
-	}
-	scriptSrc = append(
-		scriptSrc,
-		wwwgoogletagmanagercom,
-		euassetsiposthogcom,
-		challengescloudflarecom,
-		wwwgooglecom,
-		CSPHostSource{
-			Scheme: "https",
-			Host:   "browser.sentry-cdn.com",
-		},
-	)
-	scriptSrc = append(scriptSrc, baseSrc...)
-	sort.Sort(scriptSrc)
+	// font-src is no longer needed because we do not output default-src anymore.
+	// Preivously, we output default-src so we have to specify font-src to negate the effect of default-src.
+	// fontSrc := httputil.CSPSources{
+	// 	httputil.CSPSourceSelf,
+	// 	httputil.CSPSchemeSourceHTTPS,
+	// }
 
-	frameSrc := CSPSources{
-		wwwgoogletagmanagercom,
-		challengescloudflarecom,
-		wwwgooglecom,
-		CSPSourceSelf,
-	}
+	// style-src is no longer needed because we do not output default-src anymore.
+	// Preivously, we output default-src so we have to specify style-src to negate the effect of default-src.
+	// styleSrc := httputil.CSPSources{
+	// 	httputil.CSPSourceSelf,
+	// 	httputil.CSPSourceUnsafeInline,
+	// 	httputil.CSPSourceUnsafeEval,
+	// 	httputil.CSPSchemeSourceHTTPS,
+	// }
 
-	fontSrc := CSPSources{
-		cdnjscloudflarecom,
-		static2sharepointonlinecom,
-		fontsgoogleapiscom,
-		fontsgstaticcom,
-	}
-	fontSrc = append(fontSrc, baseSrc...)
-	sort.Sort(fontSrc)
+	// img-src is no longer needed because we do not output default-src anymore.
+	// Preivously, we output default-src so we have to specify img-src to negate the effect of default-src.
+	// imgSrc := httputil.CSPSources{
+	// 	httputil.CSPSourceSelf,
+	// 	httputil.CSPSchemeSource{Scheme: "http"},
+	// 	httputil.CSPSchemeSourceHTTPS,
+	// 	// We use data URI to show QR image.
+	// 	// We can display external profile picture.
+	// 	httputil.CSPSchemeSource{Scheme: "data"},
+	// }
 
-	styleSrc := CSPSources{
-		CSPSourceUnsafeInline,
-		cdnjscloudflarecom,
-		wwwgoogletagmanagercom,
-		fontsgoogleapiscom,
-	}
-	styleSrc = append(styleSrc, baseSrc...)
-	sort.Sort(styleSrc)
+	// connect-src is no longer needed because we do not output default-src anymore.
+	// Preivously, we output default-src so we have to specify connect-src to negate the effect of default-src.
+	// connectSrc := httputil.CSPSources{
+	// 	httputil.CSPSourceSelf,
+	// 	httputil.CSPSchemeSourceHTTPS,
+	// 	httputil.CSPHostSource{
+	// 		Scheme: "ws",
+	// 		Host:   u.Host,
+	// 	},
+	// 	httputil.CSPHostSource{
+	// 		Scheme: "wss",
+	// 		Host:   u.Host,
+	// 	},
+	// 	// https://docs.sentry.io/platforms/javascript/install/cdn/#content-security-policy
+	// 	// The above doc says we need to specify `connect-src: *.sentry.io`,
+	// 	// But we already have `https:`, so that is no longer needed.
+	// }
 
-	imgSrc := CSPSources{
-		CSPSchemeSource{
-			Scheme: "http",
-		},
-		CSPSchemeSource{
-			Scheme: "https",
-		},
-		// We use data URI to show QR image.
-		// We can display external profile picture.
-		CSPSchemeSource{
-			Scheme: "data",
-		},
-	}
-	imgSrc = append(imgSrc, baseSrc...)
-	sort.Sort(imgSrc)
-
-	// 'self' does not include websocket in Safari :(
-	// https://github.com/w3c/webappsec-csp/issues/7
-	connectSrc := CSPSources{
-		CSPSourceSelf,
-		CSPHostSource{
-			Scheme: "https",
-			Host:   "www.google-analytics.com",
-		},
-		CSPHostSource{
-			Scheme: "ws",
-			Host:   u.Host,
-		},
-		CSPHostSource{
-			Scheme: "wss",
-			Host:   u.Host,
-		},
-	}
-	// https://docs.sentry.io/platforms/javascript/install/cdn/#content-security-policy
-	sentryDSNHost := ""
-	if len(opts.AuthUISentryDSN) > 0 {
-		u, err := url.Parse(opts.AuthUISentryDSN)
-		if err != nil {
-			return nil, fmt.Errorf("invalid AuthUISentryDSN %w", err)
-		}
-		sentryDSNHost = u.Host
-	}
-	if sentryDSNHost != "" {
-		connectSrc = append(connectSrc, CSPHostSource{
-			Host: sentryDSNHost,
-		})
-	}
-	sort.Sort(connectSrc)
-
-	var frameAncestors CSPSources
+	var frameAncestors httputil.CSPSources
 	if len(opts.FrameAncestors) > 0 {
 		for _, host := range opts.FrameAncestors {
-			frameAncestors = append(frameAncestors, CSPHostSource{
+			frameAncestors = append(frameAncestors, httputil.CSPHostSource{
 				Host: host,
 			})
 		}
 	} else {
-		frameAncestors = CSPSources{
-			CSPSourceNone,
+		frameAncestors = httputil.CSPSources{
+			httputil.CSPSourceNone,
 		}
 	}
 
-	return []string{
-		"default-src 'self'",
-		fmt.Sprintf("script-src %v", scriptSrc),
-		fmt.Sprintf("frame-src %v", frameSrc),
-		fmt.Sprintf("font-src %v", fontSrc),
-		fmt.Sprintf("style-src %v", styleSrc),
-		fmt.Sprintf("img-src %v", imgSrc),
-		"object-src 'none'",
-		"base-uri 'none'",
-		fmt.Sprintf("connect-src %v", connectSrc),
-		"block-all-mixed-content",
-		fmt.Sprintf("frame-ancestors %v", frameAncestors),
+	return httputil.CSPDirectives{
+		httputil.CSPDirective{
+			Name:  httputil.CSPDirectiveNameScriptSrc,
+			Value: scriptSrc,
+		},
+		httputil.CSPDirective{
+			Name: httputil.CSPDirectiveNameObjectSrc,
+			Value: httputil.CSPSources{
+				httputil.CSPSourceNone,
+			},
+		},
+		httputil.CSPDirective{
+			Name: httputil.CSPDirectiveNameBaseURI,
+			Value: httputil.CSPSources{
+				httputil.CSPSourceNone,
+			},
+		},
+		// frame-ancestors is still needed to prevent from being iframed.
+		httputil.CSPDirective{
+			Name:  httputil.CSPDirectiveNameFrameAncestors,
+			Value: frameAncestors,
+		},
 	}, nil
 }

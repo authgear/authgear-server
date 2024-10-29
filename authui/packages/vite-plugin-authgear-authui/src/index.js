@@ -50,7 +50,7 @@ function elementsToHTMLString(elements) {
   const textArray = [];
   for (const element of elements) {
     if (element.type === "css") {
-      const htmlLine = `<link rel="stylesheet" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}" data-turbo-track="reload">`;
+      const htmlLine = `<link nonce="{{ $.CSPNonce }}" rel="stylesheet" href="{{ call $.GeneratedStaticAssetURL "${element.name}" }}" data-turbo-track="reload">`;
       if (element.name === "tailwind-dark-theme.css") {
         textArray.push(`{{ if $.DarkThemeEnabled }}`);
         textArray.push(htmlLine);

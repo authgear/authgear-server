@@ -24,11 +24,11 @@
 <!-- Our CSS have to override the tailwind.css in __generated_asset.html -->
 {{ template "__generated_asset.html" . }}
 {{ if call $.HasAppSpecificAsset "authgear-light-theme.css" }}
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-light-theme.css" }}">
+<link nonce="{{ $.CSPNonce }}" rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-light-theme.css" }}">
 {{ end }}
 {{ if call $.HasAppSpecificAsset "authgear-dark-theme.css" }}
 {{ if $.DarkThemeEnabled }}
-<link rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-dark-theme.css" }}">
+<link nonce="{{ $.CSPNonce }}" rel="stylesheet" href="{{ call $.StaticAssetURL "authgear-dark-theme.css" }}">
 {{ end }}
 {{ end }}
 

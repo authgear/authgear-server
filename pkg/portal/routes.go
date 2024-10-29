@@ -22,23 +22,7 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 		httproute.MiddlewareFunc(httputil.XContentTypeOptionsNosniff),
 		httproute.MiddlewareFunc(httputil.XFrameOptionsDeny),
 		httproute.MiddlewareFunc(httputil.XRobotsTag),
-		httputil.StaticCSPHeader{
-			CSPDirectives: []string{
-				// FIXME(regeneratorRuntime)
-				// parcel-2.0.0-rc.0 requires us to use ES6 module when the browser supports it.
-				// ES6 module assumes strict mode.
-				// regeneratorRuntime is not compatible with strict mode because
-				// it uses Function to generate function, which is considered as eval.
-				"script-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net unpkg.com www.googletagmanager.com cdn.mxpnl.com eu.posthog.com eu-assets.i.posthog.com cmp.osano.com",
-				// monaco editor create worker with blob:
-				"worker-src 'self' 'unsafe-inline' cdn.jsdelivr.net blob:",
-				"object-src 'none'",
-				"base-uri 'none'",
-				"block-all-mixed-content",
-				// This must be kept in sync with httputil.XFrameOptionsDeny
-				"frame-ancestors 'none'",
-			},
-		},
+		httproute.MiddlewareFunc(PortalCSPMiddleware),
 		httproute.MiddlewareFunc(httputil.PermissionsPolicyHeader),
 	)
 

@@ -82,7 +82,6 @@ func newContextHolderMiddleware(p *deps.RequestProvider) httproute.Middleware {
 
 func newDynamicCSPMiddleware(
 	p *deps.RequestProvider,
-	allowInlineScript webapp.AllowInlineScript,
 	allowFrameAncestorsFromEnv webapp.AllowFrameAncestorsFromEnv,
 	allowFrameAncestorsFromCustomUI webapp.AllowFrameAncestorsFromCustomUI,
 ) httproute.Middleware {
