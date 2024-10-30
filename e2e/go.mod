@@ -23,7 +23,7 @@ require (
 	github.com/otiai10/copy v1.14.0
 	github.com/phires/go-guerrilla v1.6.6
 	github.com/smartystreets/goconvey v1.8.1
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/vjeantet/ldapserver v1.0.1
 	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/crypto v0.28.0
