@@ -8,11 +8,11 @@ import (
 	"slices"
 	"time"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 func ListNonExpiringKeys(ctx context.Context, redisClient *goredis.Client, stdout io.Writer, logger *log.Logger) (err error) {
-	conn := redisClient.Conn(ctx)
+	conn := redisClient.Conn()
 	defer conn.Close()
 
 	// We start with a cursor of 0.

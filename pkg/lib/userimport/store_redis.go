@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -31,7 +31,7 @@ func (s *StoreRedis) CreateJob(ctx context.Context, job *Job) error {
 	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
 		key := redisJobKey(s.AppID, job.ID)
 		ttl := JobTTL
-		_, err := conn.SetEX(ctx, key, data, ttl).Result()
+		_, err := conn.SetEx(ctx, key, data, ttl).Result()
 		if err != nil {
 			return err
 		}

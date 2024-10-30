@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 type Redis_6_0_Cmdable interface {
@@ -13,7 +13,7 @@ type Redis_6_0_Cmdable interface {
 	Get(ctx context.Context, key string) *goredis.StringCmd
 
 	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *goredis.StatusCmd
-	SetEX(ctx context.Context, key string, value interface{}, expiration time.Duration) *goredis.StatusCmd
+	SetEx(ctx context.Context, key string, value interface{}, expiration time.Duration) *goredis.StatusCmd
 	SetNX(ctx context.Context, key string, value interface{}, expiration time.Duration) *goredis.BoolCmd
 	SetXX(ctx context.Context, key string, value interface{}, expiration time.Duration) *goredis.BoolCmd
 
@@ -29,7 +29,7 @@ type Redis_6_0_Cmdable interface {
 
 	HDel(ctx context.Context, key string, fields ...string) *goredis.IntCmd
 	HSet(ctx context.Context, key string, values ...interface{}) *goredis.IntCmd
-	HGetAll(ctx context.Context, key string) *goredis.StringStringMapCmd
+	HGetAll(ctx context.Context, key string) *goredis.MapStringStringCmd
 
 	LPush(ctx context.Context, key string, values ...interface{}) *goredis.IntCmd
 	BRPop(ctx context.Context, timeout time.Duration, keys ...string) *goredis.StringSliceCmd
@@ -41,6 +41,8 @@ type Redis_6_0_Cmdable interface {
 	// For lua script
 	Eval(ctx context.Context, script string, keys []string, args ...interface{}) *goredis.Cmd
 	EvalSha(ctx context.Context, sha1 string, keys []string, args ...interface{}) *goredis.Cmd
+	EvalRO(ctx context.Context, script string, keys []string, args ...interface{}) *goredis.Cmd
+	EvalShaRO(ctx context.Context, sha1 string, keys []string, args ...interface{}) *goredis.Cmd
 	ScriptExists(ctx context.Context, hashes ...string) *goredis.BoolSliceCmd
 	ScriptLoad(ctx context.Context, script string) *goredis.StringCmd
 }

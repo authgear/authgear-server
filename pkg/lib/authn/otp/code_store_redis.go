@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -31,7 +31,7 @@ func (s *CodeStoreRedis) set(purpose Purpose, code *Code) error {
 		codeKey := redisCodeKey(s.AppID, purpose, code.Target)
 		ttl := code.ExpireAt.Sub(s.Clock.NowUTC())
 
-		_, err := conn.SetEX(ctx, codeKey, data, ttl).Result()
+		_, err := conn.SetEx(ctx, codeKey, data, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			return errors.New("duplicated code")
 		} else if err != nil {

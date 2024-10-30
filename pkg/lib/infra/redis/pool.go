@@ -3,9 +3,9 @@ package redis
 import (
 	"sync"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/go-redsync/redsync/v4"
-	redsyncgoredis "github.com/go-redsync/redsync/v4/redis/goredis/v8"
+	redsyncgoredis "github.com/go-redsync/redsync/v4/redis/goredis/v9"
+	"github.com/redis/go-redis/v9"
 )
 
 type redisInstance struct {
@@ -79,8 +79,8 @@ func (p *Pool) openInstance(connectionOptions *ConnectionOptions) *redisInstance
 	}
 	// FIXME(redis): MaxIdleConnection is not supported.
 	opts.PoolSize = *connectionOptions.MaxOpenConnection
-	opts.IdleTimeout = connectionOptions.IdleConnectionTimeout.Duration()
-	opts.MaxConnAge = connectionOptions.MaxConnectionLifetime.Duration()
+	opts.ConnMaxIdleTime = connectionOptions.IdleConnectionTimeout.Duration()
+	opts.ConnMaxLifetime = connectionOptions.MaxConnectionLifetime.Duration()
 	client := redis.NewClient(opts)
 	redsyncPool := redsyncgoredis.NewPool(client)
 	redsyncInstance := redsync.New(redsyncPool)

@@ -8,7 +8,7 @@ import (
 	"slices"
 	"strings"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 func accessEventsToSession(key string) string {
@@ -20,7 +20,7 @@ func accessEventsToOfflineGrant(key string) string {
 }
 
 func CleanUpNonExpiringKeysAccessEvents(ctx context.Context, redisClient *goredis.Client, dryRun bool, stdout io.Writer, logger *log.Logger) (err error) {
-	conn := redisClient.Conn(ctx)
+	conn := redisClient.Conn()
 	defer conn.Close()
 
 	// We first scan the key pattern "app:*:access-events:*"
@@ -170,7 +170,7 @@ func findUpNonExpiringKeysSessionHashesOfKeyPattern(ctx context.Context, conn *g
 }
 
 func CleanUpNonExpiringKeysSessionHashes(ctx context.Context, redisClient *goredis.Client, dryRun bool, stdout io.Writer, logger *log.Logger) (err error) {
-	conn := redisClient.Conn(ctx)
+	conn := redisClient.Conn()
 	defer conn.Close()
 
 	sessionListKeys, err := findUpNonExpiringKeysSessionHashesOfKeyPattern(ctx, conn, "app:*:session-list:*", stdout, logger)

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -31,7 +31,7 @@ func (s *TokenStore) Set(token *UserToken) error {
 		key := redisTokenKey(s.AppID, token.Endpoint, token.Username)
 		ttl := token.ExpireAt.Sub(s.Clock.NowUTC())
 
-		_, err := conn.SetEX(ctx, key, data, ttl).Result()
+		_, err := conn.SetEx(ctx, key, data, ttl).Result()
 		if err != nil {
 			return err
 		}

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -39,7 +39,7 @@ func (s *AppSecretVisitTokenStoreImpl) CreateToken(
 		key := redisTokenKey(appID, token.TokenID)
 		ttl := Lifetime
 
-		_, err := conn.SetEX(s.Context, key, bytes, ttl).Result()
+		_, err := conn.SetEx(s.Context, key, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}

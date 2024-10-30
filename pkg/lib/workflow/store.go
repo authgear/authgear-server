@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -33,12 +33,12 @@ func (s *StoreImpl) CreateWorkflow(workflow *Workflow) error {
 		instanceKey := redisWorkflowInstanceKey(s.AppID, workflow.InstanceID)
 		ttl := Lifetime
 
-		_, err := conn.SetEX(s.Context, workflowKey, []byte(workflowKey), ttl).Result()
+		_, err := conn.SetEx(s.Context, workflowKey, []byte(workflowKey), ttl).Result()
 		if err != nil {
 			return err
 		}
 
-		_, err = conn.SetEX(s.Context, instanceKey, bytes, ttl).Result()
+		_, err = conn.SetEx(s.Context, instanceKey, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func (s *StoreImpl) CreateSession(session *Session) error {
 		sessionKey := redisWorkflowSessionKey(s.AppID, session.WorkflowID)
 		ttl := Lifetime
 
-		_, err := conn.SetEX(s.Context, sessionKey, bytes, ttl).Result()
+		_, err := conn.SetEx(s.Context, sessionKey, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
