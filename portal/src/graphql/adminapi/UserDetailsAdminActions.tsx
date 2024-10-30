@@ -6,7 +6,7 @@ import styles from "./UserDetailsAdminActions.module.css";
 import ListCellLayout from "../../ListCellLayout";
 import { useSystemConfig } from "../../context/SystemConfigContext";
 import { UserQueryNodeFragment } from "./query/userQuery.generated";
-import AdminActionButton from "./AdminActionButton";
+import OutlinedActionButton from "../../components/common/OutlinedActionButton";
 
 const labelTextStyle: IStyle = {
   lineHeight: "20px",
@@ -60,7 +60,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
           <FormattedMessage id="UserDetailsAdminActions.disable-user.body" />
         </Text>
         {isDisabled ? (
-          <AdminActionButton
+          <OutlinedActionButton
             theme={themes.actionButton}
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Play" }}
@@ -70,7 +70,7 @@ const DisableUserCell: React.VFC<DisableUserCellProps> =
             onClick={onDisableData}
           />
         ) : (
-          <AdminActionButton
+          <OutlinedActionButton
             theme={themes.destructive}
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Blocked" }}
@@ -111,7 +111,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
           <FormattedMessage id="UserDetailsAdminActions.anonymize-user.body" />
         </Text>
         {isScheduledAnonymization ? (
-          <AdminActionButton
+          <OutlinedActionButton
             theme={themes.actionButton}
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Undo" }}
@@ -121,7 +121,7 @@ const AnonymizeUserCell: React.VFC<AnonymizeUserCellProps> =
             onClick={onCancelAnonymizeData}
           />
         ) : (
-          <AdminActionButton
+          <OutlinedActionButton
             theme={themes.destructive}
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Archive" }}
@@ -167,7 +167,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
       </Text>
       {isScheduledRemoval ? (
         <div className={cn(styles.actionCellActionButtonContainer)}>
-          <AdminActionButton
+          <OutlinedActionButton
             theme={themes.actionButton}
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Undo" }}
@@ -176,7 +176,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
             }
             onClick={onCancelRemoveData}
           />
-          <AdminActionButton
+          <OutlinedActionButton
             theme={themes.destructive}
             className={cn(styles.actionCellActionButton)}
             iconProps={{ iconName: "Delete" }}
@@ -187,7 +187,7 @@ const RemoveUserCell: React.VFC<RemoveUserCellProps> = function RemoveUserCell(
           />
         </div>
       ) : (
-        <AdminActionButton
+        <OutlinedActionButton
           theme={themes.destructive}
           className={cn(styles.actionCellActionButton)}
           iconProps={{ iconName: "Delete" }}

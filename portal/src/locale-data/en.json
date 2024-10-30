@@ -962,6 +962,7 @@
   "OAuthClientSAMLForm.signature.certificates.add": "Add certificate",
   "OAuthClientSAMLForm.configurationParameters.title": "Configuration Parameters",
   "OAuthClientSAMLForm.configurationParameters.metadata.label": "Identity Provider Metadata",
+  "OAuthClientSAMLForm.configurationParameters.metadata.download": "Download Metadata",
   "OAuthClientSAMLForm.configurationParameters.metadata.saveBeforeDownload.hint": "Please save your changes before downloading the metadata file to ensure it's up-to-date.",
   "OAuthClientSAMLForm.configurationParameters.issuer.label": "Issuer",
   "OAuthClientSAMLForm.configurationParameters.loginURL.label": "Login URL",
