@@ -10,9 +10,6 @@ require (
 	github.com/abadojack/whatlanggo v1.0.1
 	github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba
 	github.com/boombuler/barcode v1.0.2
-	// We do not actually use btcd, but it is a dependency of go-ethereum.
-	// But if we do not add this, we will run into dependency resolution issue.
-	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.2
 	// https://github.com/elastic/go-elasticsearch#compatibility
 	// The client should have equal or less minor version.
 	github.com/elastic/go-elasticsearch/v7 v7.17.10
@@ -69,7 +66,7 @@ require (
 	github.com/Azure/azure-storage-blob-go v0.15.0
 	github.com/aws/aws-sdk-go v1.55.5
 	github.com/davidbyttow/govips/v2 v2.15.0
-	github.com/ethereum/go-ethereum v1.13.15
+	github.com/ethereum/go-ethereum v1.14.11
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/stripe/stripe-go/v72 v72.122.0
 	github.com/tdewolff/parse/v2 v2.7.19
@@ -141,7 +138,7 @@ require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20230218143504-906a9b012302 // indirect
-	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
+	github.com/btcsuite/btcd/btcec/v2 v2.3.4 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cockroachdb/apd/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
@@ -178,7 +175,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
-	github.com/holiman/uint256 v1.2.4 // indirect
+	github.com/holiman/uint256 v1.3.1 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/imdario/mergo v0.3.13 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
