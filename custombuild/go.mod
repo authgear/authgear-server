@@ -9,7 +9,7 @@ require (
 	github.com/authgear/iamsmart v0.0.0-20240527095947-f47aa4fc0702
 	github.com/joho/godotenv v1.5.1
 	go.uber.org/automaxprocs v1.6.0
-	k8s.io/client-go v0.30.1
+	k8s.io/client-go v0.30.6
 )
 
 require (
@@ -197,9 +197,9 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.30.1 // indirect
+	k8s.io/api v0.30.6 // indirect
 	k8s.io/apiextensions-apiserver v0.28.1 // indirect
-	k8s.io/apimachinery v0.30.1 // indirect
+	k8s.io/apimachinery v0.30.6 // indirect
 	k8s.io/klog/v2 v2.120.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20240228011516-70dd3763d340 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
