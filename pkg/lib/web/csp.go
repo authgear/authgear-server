@@ -13,7 +13,8 @@ type CSPDirectivesOptions struct {
 
 func CSPDirectives(opts CSPDirectivesOptions) (httputil.CSPDirectives, error) {
 	scriptSrc := httputil.CSPSources{
-		httputil.CSPSourceUnsafeInline,             // CSP1
+		// We intentionally do not support CSP1 browsers.
+		// httputil.CSPSourceUnsafeInline,
 		httputil.CSPSourceSelf,                     // CSP1,CSP2
 		httputil.CSPSchemeSourceHTTPS,              // CSP1,CSP2
 		httputil.CSPNonceSource{Nonce: opts.Nonce}, // CSP2,CSP3

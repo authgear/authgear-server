@@ -13,7 +13,8 @@ func AdminCSPMiddleware(next http.Handler) http.Handler {
 			httputil.CSPDirective{
 				Name: httputil.CSPDirectiveNameScriptSrc,
 				Value: httputil.CSPSources{
-					httputil.CSPSourceUnsafeInline,        // CSP1
+					// We intentionally do not support CSP1 browsers.
+					// httputil.CSPSourceUnsafeInline,
 					httputil.CSPSourceSelf,                // CSP1,CSP2
 					httputil.CSPSchemeSourceHTTPS,         // CSP1,CSP2
 					httputil.CSPNonceSource{Nonce: nonce}, // CSP2,CSP3

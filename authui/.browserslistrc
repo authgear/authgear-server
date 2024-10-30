@@ -1,3 +1,4 @@
+# The browsers covered by this browserslist are all CSP2 browsers.
 iOS >= 14
 Safari >= 14
 Android >= 5.0

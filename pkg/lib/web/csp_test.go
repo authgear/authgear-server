@@ -21,7 +21,7 @@ func TestCSPDirectives(t *testing.T) {
 		test(CSPDirectivesOptions{
 			Nonce: "N0NC5",
 		}, []string{
-			"script-src 'unsafe-inline' 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
+			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
 			"object-src 'none'",
 			"base-uri 'none'",
 			"frame-ancestors 'none'",
@@ -30,7 +30,7 @@ func TestCSPDirectives(t *testing.T) {
 		test(CSPDirectivesOptions{
 			Nonce: "N0NC5",
 		}, []string{
-			"script-src 'unsafe-inline' 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
+			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
 			"object-src 'none'",
 			"base-uri 'none'",
 			"frame-ancestors 'none'",
@@ -39,7 +39,7 @@ func TestCSPDirectives(t *testing.T) {
 		test(CSPDirectivesOptions{
 			Nonce: "N0NC5",
 		}, []string{
-			"script-src 'unsafe-inline' 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
+			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
 			"object-src 'none'",
 			"base-uri 'none'",
 			"frame-ancestors 'none'",
@@ -49,7 +49,7 @@ func TestCSPDirectives(t *testing.T) {
 			Nonce:          "N0NC5",
 			FrameAncestors: []string{"http://remote.localhost"},
 		}, []string{
-			"script-src 'unsafe-inline' 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
+			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
 			"object-src 'none'",
 			"base-uri 'none'",
 			"frame-ancestors http://remote.localhost",
@@ -58,7 +58,7 @@ func TestCSPDirectives(t *testing.T) {
 		test(CSPDirectivesOptions{
 			Nonce: "N0NC5",
 		}, []string{
-			"script-src 'unsafe-inline' 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
+			"script-src 'self' https: 'nonce-N0NC5' 'strict-dynamic'",
 			"object-src 'none'",
 			"base-uri 'none'",
 			"frame-ancestors 'none'",
