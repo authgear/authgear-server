@@ -2,9 +2,9 @@ package siwe
 
 import (
 	"database/sql"
+	"encoding/json"
 	"errors"
 
-	"github.com/goccy/go-json"
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api"
