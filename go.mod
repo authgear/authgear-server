@@ -101,7 +101,7 @@ require (
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
-	github.com/beevik/etree v1.1.0
+	github.com/beevik/etree v1.4.1
 	github.com/crewjam/saml v0.4.14
 	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
 	github.com/mattermost/xml-roundtrip-validator v0.1.0
