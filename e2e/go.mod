@@ -141,7 +141,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/trustelem/zxcvbn v1.0.1 // indirect
 	github.com/twilio/twilio-go v1.23.5 // indirect
-	github.com/ua-parser/uap-go v0.0.0-20230823213814-f77b3e91e9dc // indirect
+	github.com/ua-parser/uap-go v0.0.0-20241012191800-bbb40edc15aa // indirect
 	github.com/vimeo/go-magic v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/yudai/gojsondiff v1.0.0 // indirect

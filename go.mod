@@ -48,7 +48,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	github.com/trustelem/zxcvbn v1.0.1
-	github.com/ua-parser/uap-go v0.0.0-20230823213814-f77b3e91e9dc
+	github.com/ua-parser/uap-go v0.0.0-20241012191800-bbb40edc15aa
 	golang.org/x/crypto v0.28.0
 	golang.org/x/net v0.26.0
 	golang.org/x/oauth2 v0.21.0

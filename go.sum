@@ -466,8 +466,8 @@ github.com/trustelem/zxcvbn v1.0.1 h1:mp4JFtzdDYGj9WYSD3KQSkwwUumWNFzXaAjckaTYps
 github.com/trustelem/zxcvbn v1.0.1/go.mod h1:zonUyKeh7sw6psPf/e3DtRqkRyZvAbOfjNz/aO7YQ5s=
 github.com/twilio/twilio-go v1.23.5 h1:5ksHynnYhjKf1vG7KK7+jujEj/DhQ1knwQAhNuDExW4=
 github.com/twilio/twilio-go v1.23.5/go.mod h1:zRkMjudW7v7MqQ3cWNZmSoZJ7EBjPZ4OpNh2zm7Q6ko=
-github.com/ua-parser/uap-go v0.0.0-20230823213814-f77b3e91e9dc h1:iT5lwxf894PiMq7cnMMQg/7VOD1pxmu//gQuHWAFy4s=
-github.com/ua-parser/uap-go v0.0.0-20230823213814-f77b3e91e9dc/go.mod h1:BUbeWZiieNxAuuADTBNb3/aeje6on3DhU3rpWsQSB1E=
+github.com/ua-parser/uap-go v0.0.0-20241012191800-bbb40edc15aa h1:VzPR4xFM7HARqNocjdHg75ZL9SAgFtaF3P57ZdDcG6I=
+github.com/ua-parser/uap-go v0.0.0-20241012191800-bbb40edc15aa/go.mod h1:BUbeWZiieNxAuuADTBNb3/aeje6on3DhU3rpWsQSB1E=
 github.com/vimeo/go-magic v1.0.0 h1:1GGtwzLJwSd7i24Ie7LSNLF0T/w1NiZn5iELjgWcAy4=
 github.com/vimeo/go-magic v1.0.0/go.mod h1:xvu4I7AcaioNKakZMURKiJPAlHCTFwIr+qQhOOQQfBk=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
