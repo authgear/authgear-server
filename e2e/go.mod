@@ -8,7 +8,7 @@ require (
 	dario.cat/mergo v1.0.0
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/authgear/authgear-server v0.0.0
-	github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892
+	github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba
 	github.com/beevik/etree v1.1.0
 	github.com/go-jose/go-jose/v3 v3.0.3
 	github.com/golang-jwt/jwt/v5 v5.2.0

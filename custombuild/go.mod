@@ -26,7 +26,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.4 // indirect
 	github.com/NYTimes/gziphandler v1.1.1 // indirect
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
-	github.com/authgear/graphql-go-relay v0.0.0-20201016065100-df672205b892 // indirect
+	github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba // indirect
 	github.com/authgear/oauthrelyingparty v1.4.0 // indirect
 	github.com/aws/aws-sdk-go v1.47.9 // indirect
 	github.com/beevik/etree v1.1.0 // indirect
