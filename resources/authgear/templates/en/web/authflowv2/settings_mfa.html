@@ -109,7 +109,6 @@
   {{ if $.HasMFA}}
     {{ if gt $.NumberOfDeviceTokens 0 }}
       <div
-        type="button"
         class="block w-full"
       >
         {{ template "authflowv2/__settings_action_item.html"
@@ -186,10 +185,11 @@
 
 {{ define "__settings_trusted_device_remove_btn.html" }}
   <button
-  class="settings-link-btn--destructive"
-  data-controller="dialog"
-  data-action="click->dialog#open"
-  id="settings-mfa-revoke-device"
+    type="button"
+    class="settings-link-btn--destructive"
+    data-controller="dialog"
+    data-action="click->dialog#open"
+    id="settings-mfa-revoke-device"
   >
     {{ translate "v2.page.settings-mfa.default.trusted-devices-remove-label" nil }}
   </button>
