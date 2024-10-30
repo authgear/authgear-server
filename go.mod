@@ -61,7 +61,6 @@ require (
 	k8s.io/api v0.28.3
 	k8s.io/apimachinery v0.28.3
 	k8s.io/client-go v0.28.3
-	nhooyr.io/websocket v1.8.10
 	sigs.k8s.io/yaml v1.4.0
 )
 
@@ -95,6 +94,7 @@ require (
 
 require (
 	github.com/authgear/oauthrelyingparty v1.4.0
+	github.com/coder/websocket v1.8.12
 	github.com/go-ldap/ldap/v3 v3.4.8
 	github.com/russellhaering/goxmldsig v1.4.0
 )
