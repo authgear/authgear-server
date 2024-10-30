@@ -96,7 +96,7 @@ require (
 require (
 	github.com/authgear/oauthrelyingparty v1.4.0
 	github.com/go-ldap/ldap/v3 v3.4.8
-	github.com/russellhaering/goxmldsig v1.3.0
+	github.com/russellhaering/goxmldsig v1.4.0
 )
 
 require (
