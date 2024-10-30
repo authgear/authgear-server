@@ -51,7 +51,7 @@ require (
 	github.com/ua-parser/uap-go v0.0.0-20241012191800-bbb40edc15aa
 	golang.org/x/crypto v0.28.0
 	golang.org/x/net v0.30.0
-	golang.org/x/oauth2 v0.21.0
+	golang.org/x/oauth2 v0.23.0
 	golang.org/x/text v0.19.0
 	google.golang.org/api v0.171.0
 	gopkg.in/fsnotify.v1 v1.4.7
