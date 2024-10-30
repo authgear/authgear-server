@@ -142,7 +142,7 @@ require (
 	github.com/spruceid/siwe-go v0.2.1 // indirect
 	github.com/stripe/stripe-go/v72 v72.122.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/tdewolff/parse/v2 v2.7.4 // indirect
+	github.com/tdewolff/parse/v2 v2.7.19 // indirect
 	github.com/trustelem/zxcvbn v1.0.1 // indirect
 	github.com/twilio/twilio-go v1.15.1 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20230823213814-f77b3e91e9dc // indirect

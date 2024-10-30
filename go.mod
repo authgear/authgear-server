@@ -73,7 +73,7 @@ require (
 	github.com/ethereum/go-ethereum v1.13.15
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/stripe/stripe-go/v72 v72.122.0
-	github.com/tdewolff/parse/v2 v2.7.4
+	github.com/tdewolff/parse/v2 v2.7.19
 	github.com/vimeo/go-magic v1.0.0
 	golang.org/x/term v0.25.0
 )
