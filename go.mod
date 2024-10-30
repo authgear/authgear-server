@@ -86,7 +86,7 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.1.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/spruceid/siwe-go v0.2.1
-	github.com/twilio/twilio-go v1.15.1
+	github.com/twilio/twilio-go v1.23.5
 	github.com/yudai/gojsondiff v1.0.0
 	go.uber.org/automaxprocs v1.5.3
 	golang.org/x/exp v0.0.0-20240525044651-4c93da0ed11d
