@@ -45,6 +45,11 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// Propagate q_from
+	if req.URL.Query().Get(QueryFrom) != "" {
+		q.Set(QueryFrom, req.URL.Query().Get(QueryFrom))
+	}
+
 	redirectURI.RawQuery = q.Encode()
 
 	for _, cookie := range r.Cookies {

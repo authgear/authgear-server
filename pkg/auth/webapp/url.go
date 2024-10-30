@@ -7,6 +7,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+const (
+	QueryFrom = "q_from"
+)
+
 func MakeURL(u *url.URL, path string, inQuery url.Values) *url.URL {
 	uu := httputil.HostRelative(u)
 	uu.RawQuery = inQuery.Encode()

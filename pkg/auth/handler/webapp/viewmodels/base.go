@@ -36,10 +36,6 @@ type TranslationService interface {
 	RenderText(key string, args interface{}) (string, error)
 }
 
-const (
-	queryFrom = "q_from"
-)
-
 // BaseViewModel contains data that are common to all pages.
 type BaseViewModel struct {
 	RequestURI                  string
@@ -309,16 +305,16 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			// Only preserve path and query,
 			// so that we won't redirect user outside of authgear
 			backURL := webapp.MakeRelativeURL(r.URL.Path, r.URL.Query())
-			q.Set(queryFrom, backURL.String())
+			q.Set(webapp.QueryFrom, backURL.String())
 			u.RawQuery = q.Encode()
 			return u.String()
 		},
 		MakeBackURL: func(path string, pairs ...string) string {
 			defaultBackURL := makeURL(path, pairs...)
-			if r.URL.Query().Get(queryFrom) == "" {
+			if r.URL.Query().Get(webapp.QueryFrom) == "" {
 				return defaultBackURL.String()
 			}
-			backURL := r.URL.Query().Get(queryFrom)
+			backURL := r.URL.Query().Get(webapp.QueryFrom)
 			u, err := url.Parse(backURL)
 			if err != nil {
 				return defaultBackURL.String()
