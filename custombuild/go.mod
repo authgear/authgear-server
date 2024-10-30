@@ -8,7 +8,7 @@ require (
 	github.com/authgear/authgear-server v0.0.0
 	github.com/authgear/iamsmart v0.0.0-20240527095947-f47aa4fc0702
 	github.com/joho/godotenv v1.5.1
-	go.uber.org/automaxprocs v1.5.3
+	go.uber.org/automaxprocs v1.6.0
 	k8s.io/client-go v0.30.1
 )
 

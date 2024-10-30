@@ -88,7 +88,7 @@ require (
 	github.com/spruceid/siwe-go v0.2.1
 	github.com/twilio/twilio-go v1.23.5
 	github.com/yudai/gojsondiff v1.0.0
-	go.uber.org/automaxprocs v1.5.3
+	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20240525044651-4c93da0ed11d
 	gopkg.in/yaml.v3 v3.0.1
 )

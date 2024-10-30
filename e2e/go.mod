@@ -25,7 +25,7 @@ require (
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/spf13/cobra v1.8.1
 	github.com/vjeantet/ldapserver v1.0.1
-	go.uber.org/automaxprocs v1.5.3
+	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/crypto v0.28.0
 	gopkg.in/h2non/gock.v1 v1.1.2
 	sigs.k8s.io/yaml v1.4.0
