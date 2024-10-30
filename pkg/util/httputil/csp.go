@@ -102,6 +102,8 @@ import (
 // - Edge >= 79 (2020)
 // - Safari >= 10 (2016)
 // - Firefox >= 46 (2016)
+// - Android WebView >= 5.0 (2015)
+// These browsers are covered the browserslist at ./authui/.browserslistrc.
 //
 // In a CSP2 browser, it is interpreted as
 //   script-src: 'self' https: nonce-NONCE
@@ -196,7 +198,7 @@ const (
 	CSPSourceSelf CSPKeywordSourceLevel1 = "'self'"
 	// 'unsafe-inline' must be used with hash-source or nonce-source, and 'strict-dynamic'.
 	// See the comment at the beginning of this file for details.
-	CSPSourceUnsafeInline CSPKeywordSourceLevel1 = "'unsafe-inline'"
+	// CSPSourceUnsafeInline CSPKeywordSourceLevel1 = "'unsafe-inline'"
 	// 'unsafe-eval' is not needed when we no longer specify style-src.
 	// CSPSourceUnsafeEval CSPKeywordSourceLevel1 = "'unsafe-eval'"
 )
