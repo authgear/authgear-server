@@ -31,14 +31,15 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 		p.Middleware(newBodyLimitMiddleware),
 		p.Middleware(newSentryMiddleware),
 		p.Middleware(newSessionInfoMiddleware),
-		securityMiddleware,
 	)
 	systemConfigJSONChain := httproute.Chain(
 		rootChain,
+		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoCache),
 	)
 	graphqlChain := httproute.Chain(
 		rootChain,
+		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoStore),
 		httputil.CheckContentType([]string{
 			graphqlhandler.ContentTypeJSON,
@@ -47,15 +48,14 @@ func NewRouter(p *deps.RootProvider) *httproute.Router {
 	)
 	adminAPIChain := httproute.Chain(
 		rootChain,
-		httproute.MiddlewareFunc(httputil.NoStore),
+		// Middlewares that write headers are intentionally left out for this chain.
+		// It is because the handler of this chain is a httputil.ReverseProxy.
+		// We assume the proxied response has correct headers.
 		p.Middleware(newSessionRequiredMiddleware),
-		httputil.CheckContentType([]string{
-			graphqlhandler.ContentTypeJSON,
-			graphqlhandler.ContentTypeGraphQL,
-		}),
 	)
 	incomingWebhookChain := httproute.Chain(
 		rootChain,
+		securityMiddleware,
 		httproute.MiddlewareFunc(httputil.NoStore),
 	)
 	notFoundChain := httproute.Chain(
