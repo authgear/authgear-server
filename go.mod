@@ -68,7 +68,7 @@ require (
 require (
 	cloud.google.com/go/storage v1.35.1
 	github.com/Azure/azure-storage-blob-go v0.15.0
-	github.com/aws/aws-sdk-go v1.47.9
+	github.com/aws/aws-sdk-go v1.55.5
 	github.com/davidbyttow/govips/v2 v2.14.0
 	github.com/ethereum/go-ethereum v1.13.15
 	github.com/goccy/go-json v0.10.2

@@ -28,7 +28,7 @@ require (
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
 	github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba // indirect
 	github.com/authgear/oauthrelyingparty v1.4.0 // indirect
-	github.com/aws/aws-sdk-go v1.47.9 // indirect
+	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/beevik/etree v1.1.0 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
