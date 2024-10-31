@@ -8,7 +8,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/alicebob/miniredis/v2"
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 )
 
 type testEntry struct {
@@ -44,7 +44,7 @@ func TestLockout(t *testing.T) {
 			s.FlushAll()
 
 			cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
-			conn := cli.Conn(ctx)
+			conn := cli.Conn()
 
 			historyDuration, _ := time.ParseDuration(cfg.historyDuration)
 			maxAttempts := cfg.maxAttempts
@@ -202,7 +202,7 @@ func TestLockoutClearAttempts(t *testing.T) {
 	Convey("clearAttempts should set ttl if the key originally has no ttl set", t, func() {
 		ctx := context.Background()
 		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
-		conn := cli.Conn(ctx)
+		conn := cli.Conn()
 
 		err := clearAttempts(ctx, conn, testKey, 300*time.Second, "127.0.0.1")
 		So(err, ShouldBeNil)
@@ -216,7 +216,7 @@ func TestLockoutClearAttempts(t *testing.T) {
 	Convey("clearAttempts should not set ttl if the key originally has ttl set", t, func() {
 		ctx := context.Background()
 		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
-		conn := cli.Conn(ctx)
+		conn := cli.Conn()
 
 		_, err := conn.HSet(ctx, testKey, "127.0.0.1", "1").Result()
 		So(err, ShouldBeNil)

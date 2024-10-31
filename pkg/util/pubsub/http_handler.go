@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/util/log"
 )

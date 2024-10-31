@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 	. "github.com/smartystreets/goconvey/convey"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -43,7 +43,7 @@ func TestLimitReserve(t *testing.T) {
 		s.FlushAll()
 
 		cli := goredis.NewClient(&goredis.Options{Addr: s.Addr()})
-		conn := cli.Conn(ctx)
+		conn := cli.Conn()
 
 		now := time.UnixMilli(epoch).UTC()
 		s.SetTime(now)

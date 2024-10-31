@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	goredis "github.com/go-redis/redis/v8"
+	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
@@ -33,12 +33,12 @@ func (s *StoreImpl) CreateFlow(flow *Flow) error {
 		stateKey := redisFlowStateKey(s.AppID, flow.StateToken)
 		ttl := Lifetime
 
-		_, err := conn.SetEX(s.Context, flowKey, []byte(flowKey), ttl).Result()
+		_, err := conn.SetEx(s.Context, flowKey, []byte(flowKey), ttl).Result()
 		if err != nil {
 			return err
 		}
 
-		_, err = conn.SetEX(s.Context, stateKey, bytes, ttl).Result()
+		_, err = conn.SetEx(s.Context, stateKey, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
@@ -103,7 +103,7 @@ func (s *StoreImpl) CreateSession(session *Session) error {
 		sessionKey := redisFlowSessionKey(s.AppID, session.FlowID)
 		ttl := Lifetime
 
-		_, err := conn.SetEX(s.Context, sessionKey, bytes, ttl).Result()
+		_, err := conn.SetEx(s.Context, sessionKey, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}

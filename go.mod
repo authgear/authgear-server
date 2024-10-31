@@ -15,7 +15,6 @@ require (
 	github.com/elastic/go-elasticsearch/v7 v7.17.10
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/getsentry/sentry-go v0.29.1
-	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-redsync/redsync/v4 v4.13.0
 	github.com/golang/mock v1.6.0
 	github.com/google/uuid v1.6.0
@@ -36,6 +35,7 @@ require (
 	github.com/nyaruka/phonenumbers v1.4.1
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/pquerna/otp v1.4.0
+	github.com/redis/go-redis/v9 v9.7.0
 	github.com/rubenv/sql-migrate v1.7.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/skygeario/go-confusable-homoglyphs v0.0.0-20191212061114-e2b2a60df110
@@ -118,6 +118,7 @@ require (
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
+	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	go.opentelemetry.io/contrib/detectors/gcp v1.29.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.54.0 // indirect

@@ -5,12 +5,12 @@ import (
 	"errors"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 )
 
 // SimpleCmdable is a simplified version of redis.Cmdable.
 type SimpleCmdable interface {
-	SetEX(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
+	SetEx(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
 	Get(ctx context.Context, key string) *redis.StringCmd
 }
 
@@ -39,7 +39,7 @@ func (c *Cache) Get(ctx context.Context, cmdable SimpleCmdable, item Item) ([]by
 		return nil, err
 	}
 
-	_, err = cmdable.SetEX(ctx, item.Key, bytes, item.Expiration).Result()
+	_, err = cmdable.SetEx(ctx, item.Key, bytes, item.Expiration).Result()
 	if err != nil {
 		return nil, err
 	}
