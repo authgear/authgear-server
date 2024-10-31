@@ -492,7 +492,7 @@ func (s *Service) resetPassword(target string, otpState *otp.State, newPassword 
 		return err
 	}
 
-	err = s.Events.DispatchEventOnCommit(&nonblocking.UserForgotPasswordPasswordChangedEventPayload{
+	err = s.Events.DispatchEventOnCommit(&nonblocking.PasswordPrimaryResetEventPayload{
 		UserRef: model.UserRef{
 			Meta: model.Meta{
 				ID: otpState.UserID,
