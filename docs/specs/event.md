@@ -50,6 +50,11 @@
       - [identity.oauth.disconnected](#identityoauthdisconnected)
       - [identity.biometric.enabled](#identitybiometricenabled)
       - [identity.biometric.disabled](#identitybiometricdisabled)
+      - [password.primary.reset](#passwordprimaryreset)
+      - [password.primary.changed](#passwordprimarychanged)
+      - [password.secondary.changed](#passwordsecondarychanged)
+      - [password.primary.force_changed](#passwordprimaryforce_changed)
+      - [password.secondary.force_changed](#passwordsecondaryforce_changed)
 
 # Event
 
@@ -712,20 +717,84 @@ Occurs when user disconnected from an OAuth provider. It can be done by user dis
 
 Occurs when user enabled biometric login.
 
+```json5
 {
   "payload": {
     "user": { /* ... */ },
     "identity": { /* ... */ }
   }
 }
+```
 
 #### identity.biometric.disabled
 
 Occurs when biometric login is disabled. It will be triggered only when the user disabled it from the settings page or the admin disabled it from the admin api or portal.
 
+```json5
 {
   "payload": {
     "user": { /* ... */ },
     "identity": { /* ... */ }
   }
 }
+```
+
+#### password.primary.reset
+
+Occurs when the user reset their primary password via the forgot password flow.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### password.primary.changed
+
+Occurs when the user changed their primary password in the settings page.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### password.secondary.changed
+
+Occurs when the user changed their secondary password in the settings page.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### password.primary.force_changed
+
+Occurs when the user is forced to change their primary password during login.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
+
+#### password.secondary.force_changed
+
+Occurs when the user is forced to change their secondary password during login.
+
+```json5
+{
+  "payload": {
+    "user": { /* ... */ }
+  }
+}
+```
