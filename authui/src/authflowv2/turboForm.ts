@@ -108,6 +108,7 @@ export class TurboFormController extends Controller {
       onLoadingError?.();
     } finally {
       onLoadingFinally?.();
+      form.dispatchEvent(new CustomEvent(`turbo-form:submit-end`, {}));
     }
   }
 }
