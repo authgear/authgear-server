@@ -454,7 +454,7 @@ func (s *Service) changePassword(resolvedSession session.ResolvedSession, input 
 
 		switch input.Kind {
 		case authenticator.KindPrimary:
-			err = s.Events.DispatchEventOnCommit(&nonblocking.UserSettingsPrimaryPasswordChangedEventPayload{
+			err = s.Events.DispatchEventOnCommit(&nonblocking.PasswordPrimaryChangedEventPayload{
 				UserRef: model.UserRef{
 					Meta: model.Meta{
 						ID: userID,
@@ -465,7 +465,7 @@ func (s *Service) changePassword(resolvedSession session.ResolvedSession, input 
 				return nil, err
 			}
 		case authenticator.KindSecondary:
-			err = s.Events.DispatchEventOnCommit(&nonblocking.UserSettingsSecondaryPasswordChangedEventPayload{
+			err = s.Events.DispatchEventOnCommit(&nonblocking.PasswordSecondaryChangedEventPayload{
 				UserRef: model.UserRef{
 					Meta: model.Meta{
 						ID: userID,
