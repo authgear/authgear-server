@@ -30,8 +30,9 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type EventService interface {
-	DispatchEventImmediately(payload event.NonBlockingPayload) error
+	DispatchEventOnCommit(payload event.Payload) error
 }
+
 type IdentityService interface {
 	ListByClaim(name string, value string) ([]*identity.Info, error)
 	ListByUser(userID string) ([]*identity.Info, error)
@@ -455,10 +456,6 @@ func (s *Service) ResetPasswordByEndUser(code string, newPassword string) error 
 	if err != nil {
 		return err
 	}
-	err = s.persistAuditLog(state.UserID)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -477,10 +474,6 @@ func (s *Service) ResetPasswordWithTarget(target string, code string, newPasswor
 	if err != nil {
 		return err
 	}
-	err = s.persistAuditLog(state.UserID)
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -495,6 +488,17 @@ func (s *Service) resetPassword(target string, otpState *otp.State, newPassword 
 	}
 
 	err = s.OTPCodes.ConsumeCode(otp.PurposeForgotPassword, target)
+	if err != nil {
+		return err
+	}
+
+	err = s.Events.DispatchEventOnCommit(&nonblocking.UserForgotPasswordPasswordChangedEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: otpState.UserID,
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}
@@ -596,15 +600,4 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 
 func (s *Service) ChangePasswordByAdmin(options *SetPasswordOptions) error {
 	return s.setPassword(options)
-}
-
-func (s *Service) persistAuditLog(userID string) (err error) {
-	err = s.Events.DispatchEventImmediately(&nonblocking.UserForgotPasswordPasswordChangedEventPayload{
-		UserRef: model.UserRef{
-			Meta: model.Meta{
-				ID: userID,
-			},
-		},
-	})
-	return
 }
