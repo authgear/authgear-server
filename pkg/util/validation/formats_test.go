@@ -144,7 +144,11 @@ func TestFormatLDAPDN(t *testing.T) {
 		So(f(1), ShouldBeNil)
 		So(f("dc=example,dc=com"), ShouldBeNil)
 		So(f("cn=admin,dc=example,dc=org"), ShouldBeNil)
-		So(f("ou="), ShouldBeError, "invalid DN")
+		// AttributeValue can be empty according to the spec.
+		// https://datatracker.ietf.org/doc/html/rfc4514#section-3
+		// go-ldap v3.4.5 used to return parse error in case of empty value.
+		// That behavior was changed since v3.4.8
+		So(f("ou="), ShouldBeNil)
 		So(f("asbbalskjedkbwk"), ShouldBeError, "invalid DN")
 		So(f(""), ShouldBeError, "expect non-empty base DN")
 	})

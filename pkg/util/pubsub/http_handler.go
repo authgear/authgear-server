@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/coder/websocket"
 	"github.com/go-redis/redis/v8"
-	"nhooyr.io/websocket"
 
 	"github.com/authgear/authgear-server/pkg/util/log"
 )

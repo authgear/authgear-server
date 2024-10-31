@@ -40,7 +40,8 @@ func TestListNonExpiringKeys(t *testing.T) {
 		err := ListNonExpiringKeys(ctx, redisClient, stdout, logger)
 		So(err, ShouldBeNil)
 
-		So(stderr.String(), ShouldEqual, `SCAN with cursor 0: 200
+		So(stderr.String(), ShouldEqual, `SCAN with cursor 0: 100
+SCAN with cursor 100: 200
 done SCAN: 200
 `)
 		So(stdout.String(), ShouldEqual, `non-expiring-00
