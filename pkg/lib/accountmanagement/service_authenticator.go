@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	authenticatorservice "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
@@ -125,6 +126,10 @@ func (s *Service) DeleteSecondaryPassword(resolvedSession session.ResolvedSessio
 
 	err := s.Database.WithTx(func() error {
 		info, err := s.prepareDeleteSecondaryPassword(userID)
+		if err != nil {
+			return err
+		}
+		info, err = s.prepareDeleteAuthenticator(userID, info.ID)
 		if err != nil {
 			return err
 		}
@@ -391,6 +396,24 @@ func (s *Service) prepareDeleteAuthenticator(userID string, authenticatorID stri
 
 	if info.UserID != userID {
 		return nil, ErrAccountManagementAuthenticatorNotOwnedbyToUser
+	}
+
+	// Return error if secondary authentication is required,
+	// and this is the only secondary authenticator the user has
+	if s.Config.Authentication.SecondaryAuthenticationMode == config.SecondaryAuthenticationModeRequired {
+		otherSecondaryAuthns, err := s.Authenticators.List(
+			userID,
+			authenticator.KeepKind(authenticator.KindSecondary),
+			authenticator.FilterFunc(func(ai *authenticator.Info) bool {
+				return ai.ID != info.ID
+			}),
+		)
+		if err != nil {
+			return nil, err
+		}
+		if len(otherSecondaryAuthns) == 0 {
+			return nil, ErrAccountManagementSecondaryAuthenticatorIsRequired
+		}
 	}
 
 	return info, nil
