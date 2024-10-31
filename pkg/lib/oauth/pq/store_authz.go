@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/jmoiron/sqlx"
-
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -75,7 +73,7 @@ func (s *AuthorizationStore) ListByUserID(userID string) ([]*oauth.Authorization
 	return as, nil
 }
 
-func (s *AuthorizationStore) scanAuthz(scn sqlx.ColScanner) (*oauth.Authorization, error) {
+func (s *AuthorizationStore) scanAuthz(scn db.Scanner) (*oauth.Authorization, error) {
 	authz := &oauth.Authorization{}
 
 	var scopeBytes []byte

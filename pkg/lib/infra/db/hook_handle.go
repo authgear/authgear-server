@@ -6,8 +6,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/jmoiron/sqlx"
-
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
@@ -53,7 +51,7 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 		return
 	}
 
-	conn, err := db.db.Connx(h.Context)
+	conn, err := db.db.Conn(h.Context)
 	if err != nil {
 		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
 		return
@@ -127,7 +125,7 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 		return
 	}
 
-	conn, err := db.db.Connx(h.Context)
+	conn, err := db.db.Conn(h.Context)
 	if err != nil {
 		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
 		return
@@ -191,10 +189,10 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	return
 }
 
-func (h *HookHandle) beginTx(logger *log.Logger, conn *sqlx.Conn) (*txConn, error) {
+func (h *HookHandle) beginTx(logger *log.Logger, conn *sql.Conn) (*txConn, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
-	tx, err := conn.BeginTxx(h.Context, txOptions)
+	tx, err := conn.BeginTx(h.Context, txOptions)
 	if err != nil {
 		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
