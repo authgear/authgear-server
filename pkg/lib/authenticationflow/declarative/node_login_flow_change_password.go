@@ -70,8 +70,9 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflo
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
 
-		return authflow.NewNodeSimple(&NodeDoUpdateAuthenticator{
+		return authflow.NewNodeSimple(&NodeDoForceChangePassword{
 			Authenticator: newInfo,
+			Reason:        n.Reason,
 		}), nil
 	}
 

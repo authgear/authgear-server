@@ -8,6 +8,8 @@ import (
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
+	"github.com/authgear/authgear-server/pkg/api/event"
+	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -25,6 +27,10 @@ type Logger struct{ *log.Logger }
 
 func NewLogger(lf *log.Factory) Logger {
 	return Logger{lf.New("forgot-password")}
+}
+
+type EventService interface {
+	DispatchEventOnCommit(payload event.Payload) error
 }
 
 type IdentityService interface {
@@ -64,6 +70,8 @@ type Service struct {
 	OTPCodes       OTPCodeService
 	OTPSender      OTPSender
 	PasswordSender Sender
+
+	Events EventService
 }
 
 type CodeKind string
@@ -444,7 +452,11 @@ func (s *Service) ResetPasswordByEndUser(code string, newPassword string) error 
 		return err
 	}
 
-	return s.resetPassword(target, state, newPassword, CodeChannelUnknown)
+	err = s.resetPassword(target, state, newPassword, CodeChannelUnknown)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // ResetPasswordWithTarget is same as ResetPassword, except target is passed by caller.
@@ -458,7 +470,11 @@ func (s *Service) ResetPasswordWithTarget(target string, code string, newPasswor
 		return err
 	}
 
-	return s.resetPassword(target, state, newPassword, channel)
+	err = s.resetPassword(target, state, newPassword, channel)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *Service) resetPassword(target string, otpState *otp.State, newPassword string, channel CodeChannel) error {
@@ -472,6 +488,17 @@ func (s *Service) resetPassword(target string, otpState *otp.State, newPassword 
 	}
 
 	err = s.OTPCodes.ConsumeCode(otp.PurposeForgotPassword, target)
+	if err != nil {
+		return err
+	}
+
+	err = s.Events.DispatchEventOnCommit(&nonblocking.PasswordPrimaryResetEventPayload{
+		UserRef: model.UserRef{
+			Meta: model.Meta{
+				ID: otpState.UserID,
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}
