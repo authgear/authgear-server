@@ -53,18 +53,6 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"USER_ANONYMIZED": &graphql.EnumValueConfig{
 			Value: "user.anonymized",
 		},
-		"USER_FORGOT_PASSWORD_PASSWORD_CHANGED": &graphql.EnumValueConfig{
-			Value: "user.forgot_password.password_changed",
-		},
-		"USER_SETTINGS_PRIMARY_PASSWORD_CHANGED": &graphql.EnumValueConfig{
-			Value: "user.settings.primary_password_changed",
-		},
-		"USER_SETTINGS_SECONDARY_PASSWORD_CHANGED": &graphql.EnumValueConfig{
-			Value: "user.settings.secondary_password_changed",
-		},
-		"USER_FORCE_UPDATE_PASSWORD_CHANGED": &graphql.EnumValueConfig{
-			Value: "user.force_update.password_changed",
-		},
 		"BOT_PROTECTION_VERIFICATION_FAILED": &graphql.EnumValueConfig{
 			Value: "bot_protection.verification.failed",
 		},
@@ -151,6 +139,21 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		},
 		"IDENTITY_BIOMETRIC_DISABLED": &graphql.EnumValueConfig{
 			Value: "identity.biometric.disabled",
+		},
+		"PASSWORD_PRIMARY_RESET": &graphql.EnumValueConfig{
+			Value: "password.primary.reset",
+		},
+		"PASSWORD_PRIMARY_CHANGED": &graphql.EnumValueConfig{
+			Value: "password.primary.changed",
+		},
+		"PASSWORD_SECONDARY_CHANGED": &graphql.EnumValueConfig{
+			Value: "password.secondary.changed",
+		},
+		"PASSWORD_PRIMARY_FORCE_CHANGED": &graphql.EnumValueConfig{
+			Value: "password.primary.force_changed",
+		},
+		"PASSWORD_SECONDARY_FORCE_CHANGED": &graphql.EnumValueConfig{
+			Value: "password.secondary.force_changed",
 		},
 		"EMAIL_SENT": &graphql.EnumValueConfig{
 			Value: "email.sent",
