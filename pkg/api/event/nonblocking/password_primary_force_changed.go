@@ -13,6 +13,7 @@ const (
 type PasswordPrimaryForceChangedEventPayload struct {
 	UserRef   model.UserRef `json:"-" resolve:"user"`
 	UserModel model.User    `json:"user"`
+	Reason    string        `json:"reason,omitempty"`
 }
 
 func (e *PasswordPrimaryForceChangedEventPayload) NonBlockingEventType() event.Type {

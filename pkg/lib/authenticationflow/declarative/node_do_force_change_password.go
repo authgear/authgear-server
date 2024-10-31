@@ -15,7 +15,8 @@ func init() {
 }
 
 type NodeDoForceChangePassword struct {
-	Authenticator *authenticator.Info `json:"authenticator,omitempty"`
+	Authenticator *authenticator.Info   `json:"authenticator,omitempty"`
+	Reason        *PasswordChangeReason `json:"reason,omitempty"`
 }
 
 var _ authflow.NodeSimple = &NodeDoForceChangePassword{}
@@ -31,6 +32,11 @@ func (n *NodeDoForceChangePassword) GetEffects(ctx context.Context, deps *authfl
 			return deps.Authenticators.Update(n.Authenticator)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
+			reason := ""
+			if n.Reason != nil {
+				reason = string(*n.Reason)
+			}
+
 			switch n.Authenticator.Kind {
 			case authenticator.KindPrimary:
 				err := deps.Events.DispatchEventOnCommit(&nonblocking.PasswordPrimaryForceChangedEventPayload{
@@ -39,6 +45,7 @@ func (n *NodeDoForceChangePassword) GetEffects(ctx context.Context, deps *authfl
 							ID: n.Authenticator.UserID,
 						},
 					},
+					Reason: reason,
 				})
 				if err != nil {
 					return err
@@ -51,6 +58,7 @@ func (n *NodeDoForceChangePassword) GetEffects(ctx context.Context, deps *authfl
 							ID: n.Authenticator.UserID,
 						},
 					},
+					Reason: reason,
 				})
 				if err != nil {
 					return err

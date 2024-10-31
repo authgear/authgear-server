@@ -779,10 +779,13 @@ Occurs when the user changed their secondary password in the settings page.
 
 Occurs when the user is forced to change their primary password during login.
 
+`reason`: either `policy` or `expiry`.
+
 ```json5
 {
   "payload": {
-    "user": { /* ... */ }
+    "user": { /* ... */ },
+    "reason": "policy"
   }
 }
 ```
@@ -791,10 +794,13 @@ Occurs when the user is forced to change their primary password during login.
 
 Occurs when the user is forced to change their secondary password during login.
 
+`reason`: either `policy` or `expiry`.
+
 ```json5
 {
   "payload": {
-    "user": { /* ... */ }
+    "user": { /* ... */ },
+    "reason": "policy"
   }
 }
 ```
