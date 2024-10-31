@@ -10,9 +10,8 @@ const (
 )
 
 type UserSettingsPrimaryPasswordChangedEventPayload struct {
-	UserRef   model.UserRef   `json:"-" resolve:"user"`
-	UserModel model.User      `json:"user"`
-	Sessions  []model.Session `json:"sessions"`
+	UserRef   model.UserRef `json:"-" resolve:"user"`
+	UserModel model.User    `json:"user"`
 }
 
 func (e *UserSettingsPrimaryPasswordChangedEventPayload) NonBlockingEventType() event.Type {
