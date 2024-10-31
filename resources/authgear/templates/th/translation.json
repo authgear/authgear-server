@@ -1003,6 +1003,7 @@
   "v2.error.remove-last-secondary-authenticator": "คุณไม่สามารถลบตัวรับรองความถูกต้องรองสุดท้าย คุณต้องเก็บตัวรับรองความถูกต้องรองอย่างน้อย 1 ตัวเพื่อให้การยืนยันสองขั้นตอนยังคงเปิดใช้งานอยู่",
   "v2.error.scheduled-deletion-by-admin": "ผู้ดูแลระบบได้ปิดใช้งานบัญชีของคุณ และบัญชีของคุณจะถูกลบในวันที่ <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "คุณได้ปิดใช้งานบัญชีของคุณ และบัญชีของคุณจะถูกลบในวันที่ <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+  "v2.error.secondary-authenticator-required": "จำเป็นต้องมีวิธีการตรวจสอบสองปัจจัยอย่างน้อยหนึ่งวิธี โปรดเพิ่มวิธีการอื่นก่อนที่จะลบวิธีนี้",
   "v2.error.server": "เซิร์ฟเวอร์พบข้อผิดพลาดภายใน",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {รหัสผ่าน {LoginIDNameIncoming} นี้ได้ถูกลงทะเบียนไปแล้ว} oauth {บัญชี {OAuthProviderNameIncoming} นี้ได้ถูกลงทะเบียนไปแล้ว} other {บัญชีนี้ได้ถูกลงทะเบียนไปแล้ว}} โปรดใช้อีกรหัสหนึ่ง",
   "v2.error.settings-token-invalid": "คุณอาจกดปุ่มกลับ หรือมีปัญหาบางอย่างกับคุกกี้<br>ลองทำการกระทำนั้นอีกครั้งจากแอปพลิเคชัน และหากปัญหายังคงอยู่ โปรดติดต่อผู้ดูแลระบบ",

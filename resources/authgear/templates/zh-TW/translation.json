@@ -1003,6 +1003,7 @@
   "v2.error.remove-last-secondary-authenticator": "你不能移除最後一個次要驗證方法。你需要保留最少一個次要驗證方法令多重驗證生效",
   "v2.error.scheduled-deletion-by-admin": "您的帳號已被管理員停用，而您的帳號將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
   "v2.error.scheduled-deletion-by-end-user": "您已停用您的帳號，而您的帳號將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
+  "v2.error.secondary-authenticator-required": "至少需要一種雙重身份驗證方法,請在移除此方法之前新增另一種方法。",
   "v2.error.server": "伺服器內部錯誤。",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {這個 {LoginIDNameIncoming} 已經註冊過了。} oauth {這個 {OAuthProviderNameIncoming} 帳號已經註冊過了。} other {這個帳號已經註冊過了。}} 請使用另一個。",
   "v2.error.settings-token-invalid": "您可能按了返回按鈕,或者與cookies有一些問題。<br>請嘗試從應用程式中再次執行該操作,如果問題仍然存在,請聯繫管理員。",

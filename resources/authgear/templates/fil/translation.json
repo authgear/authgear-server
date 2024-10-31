@@ -1003,6 +1003,7 @@
   "v2.error.remove-last-secondary-authenticator": "Hindi mo maaaring alisin ang huling secondary authenticator. Kailangan mong manatili na may hindi bababa sa 1 secondary authenticator upang mapanatili ang 2-step verification.",
   "v2.error.scheduled-deletion-by-admin": "Dinisable ng administrator ang iyong account at ang iyong account ay ide-delete sa <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "Naka-deactivate mo na ang iyong account at ang iyong account ay ide-delete sa <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+  "v2.error.secondary-authenticator-required": "Kinakailangan ng hindi bababa sa isang pamamaraan ng pag-authenticate ng 2-factor, mangyaring magdagdag ng isa pang pamamaraan bago alisin ito.",
   "v2.error.server": "Nakatagpo ang server ng isang panloob na error.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Ang {LoginIDNameIncoming} na ito ay nakarehistro na.} oauth {Ang {OAuthProviderNameIncoming} account na ito ay nakarehistro na.} other {Ang account na ito ay nakarehistro na.}} Mangyaring gumamit ng iba.",
   "v2.error.settings-token-invalid": "Maaaring pinindot mo ang back button, o may isyu sa mga cookies.<br>Subukang muling gawin ang aksyon mula sa aplikasyon, at kung magpapatuloy ang problema mangyaring makipag-ugnayan sa administrator.",

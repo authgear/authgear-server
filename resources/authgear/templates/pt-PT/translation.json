@@ -1003,6 +1003,7 @@
   "v2.error.remove-last-secondary-authenticator": "Você não pode remover o último autenticador secundário. Você precisa manter pelo menos 1 autenticador secundário para manter a verificação em duas etapas ativada.",
   "v2.error.scheduled-deletion-by-admin": "O administrador desativou a tua conta e a tua conta será eliminada em <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "Desativaste a tua conta e a tua conta será eliminada em <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+  "v2.error.secondary-authenticator-required": "É necessário pelo menos um método de autenticação de 2 fatores, adicione outro método antes de remover este.",
   "v2.error.server": "O servidor encontrou um erro interno.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Este {LoginIDNameIncoming} já está registado.} oauth {Esta conta {OAuthProviderNameIncoming} já está registada.} other {Esta conta já está registada.}} Por favor utilize outra.",
   "v2.error.settings-token-invalid": "Pode ter premido o botão de retroceder ou há algum problema com os cookies.<br>Tente realizar a ação novamente a partir da aplicação e, se o problema persistir, contacte o administrador.",

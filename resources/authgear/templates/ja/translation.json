@@ -1003,6 +1003,7 @@
   "v2.error.remove-last-secondary-authenticator": "最後のセカンダリー認証方法を削除することはできません。2段階認証を有効にするには、少なくとも1つのセカンダリー認証方法を残す必要があります。",
   "v2.error.scheduled-deletion-by-admin": "管理者によりアカウントが無効化され、<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>に削除されます",
   "v2.error.scheduled-deletion-by-end-user": "アカウントを無効化し、<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>に削除されます",
+  "v2.error.secondary-authenticator-required": "少なくとも1つの2要素認証方式が必要です。この方式を削除する前に、別の方式を追加してください。",
   "v2.error.server": "サーバーで内部エラーが発生しました。",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {この{LoginIDNameIncoming}は既に登録されています。} oauth {この{OAuthProviderNameIncoming}アカウントは既に登録されています。} other {このアカウントは既に登録されています。}}別のものを使用してください。",
   "v2.error.settings-token-invalid": "戻るボタンを押した可能性があるか、クッキーに問題がある可能性があります。<br>アプリケーションから操作を再度行ってください。問題が解決しない場合は、管理者に連絡してください。",

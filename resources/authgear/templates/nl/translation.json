@@ -1003,6 +1003,7 @@
   "v2.error.remove-last-secondary-authenticator": "U kunt de laatste secundaire authenticator niet verwijderen. U moet ten minste 1 secundaire authenticator behouden om 2-staps verificatie ingeschakeld te houden.",
   "v2.error.scheduled-deletion-by-admin": "De beheerder heeft uw account uitgeschakeld en uw account zal worden verwijderd op <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "U heeft uw account gedeactiveerd en uw account zal worden verwijderd op <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
+  "v2.error.secondary-authenticator-required": "Er is minstens één 2-factor-authenticatiemethode vereist, voeg een andere methode toe voordat u deze verwijdert.",
   "v2.error.server": "De server heeft een interne fout aangetroffen.",
   "v2.error.settings-account-conflict": "{IdentityTypeIncoming, select, login_id {Deze {LoginIDNameIncoming} is al geregistreerd.} oauth {Deze {OAuthProviderNameIncoming} account is al geregistreerd.} other {Deze account is al geregistreerd.}} Gebruik een andere.",
   "v2.error.settings-token-invalid": "Mogelijk heb je op de knop Terug gedrukt, of er is een probleem met cookies.<br>Probeer de actie opnieuw uit te voeren vanuit de toepassing en neem contact op met de beheerder als het probleem aanhoudt.",
