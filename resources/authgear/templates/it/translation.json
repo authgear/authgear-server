@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Hai {NumberOfDeviceTokens, plural, one{# dispositivo attendibile} other{# dispositivi attendibili}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Dispositivi attendibili",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Non hai dispositivi attendibili che possano saltare la verifica in due passaggi.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Rimuovi",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Non potrai più accedere con il tuo account {ProviderName}.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Disabilita l''account {ProviderName} come metodo di accesso",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Sei sicuro di voler rimuovere questa email?",

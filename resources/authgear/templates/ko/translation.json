@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "신뢰할 수 있는 기기가 {NumberOfDeviceTokens, plural, one{# 개} other{# 개}} 있습니다.",
   "v2.page.settings-mfa.default.trusted-devices-label": "신뢰할 수 있는 기기",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "2단계 인증을 건너뛸 수 있는 신뢰할 수 있는 기기가 없습니다.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "제거",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "{ProviderName} 계정으로 로그인할 수 없게 됩니다.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "{ProviderName} 계정을 로그인 방식으로 사용 중지",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "이 이메일을 제거하시겠습니까?",

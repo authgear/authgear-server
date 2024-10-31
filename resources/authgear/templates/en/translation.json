@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "You have {NumberOfDeviceTokens, plural, one{# trusted device} other{# trusted devices}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Trusted devices",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "You do not have any trusted devices that can skip 2-step verification.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Remove",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "You won''t be able to log in with your {ProviderName} account.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Disable {ProviderName} account as a login method",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Are you sure you want to remove this email?",

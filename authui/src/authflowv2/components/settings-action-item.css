@@ -88,7 +88,7 @@
   }
 
   .settings-action-item__action-button-container {
-    @apply flex flex-none items-center;
+    @apply flex flex-none items-start;
     @apply py-[var(--settings-action-item-padding-y)];
   }
 

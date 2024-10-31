@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "คุณมี {NumberOfDeviceTokens, plural, one{# อุปกรณ์ที่เชื่อถือได้} other{# อุปกรณ์ที่เชื่อถือได้}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "อุปกรณ์ที่เชื่อถือได้",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "คุณไม่มีอุปกรณ์ที่เชื่อถือได้ที่สามารถข้ามการตรวจสอบสิทธิ์ 2 ขั้นตอน",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "เอาออก",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "คุณจะไม่สามารถเข้าสู่ระบบด้วยบัญชี {ProviderName} ของคุณได้อีก",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "ปิดการใช้บัญชี {ProviderName} เป็นวิธีการเข้าสู่ระบบ",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "คุณแน่ใจหรือไม่ว่าต้องการลบอีเมลนี้?",

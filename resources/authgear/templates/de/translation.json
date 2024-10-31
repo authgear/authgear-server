@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Sie haben {NumberOfDeviceTokens, plural, one{# vertrauenswürdiges Gerät} other{# vertrauenswürdige Geräte}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Vertrauenswürdige Geräte",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Sie haben keine vertrauenswürdigen Geräte, die die 2-Stufen-Verifizierung überspringen können.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Entfernen",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Sie können sich nicht mehr mit Ihrem {ProviderName}-Konto anmelden.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "{ProviderName}-Konto als Anmeldemethode deaktivieren",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Sind Sie sicher, dass Sie diese E-Mail-Adresse entfernen möchten?",

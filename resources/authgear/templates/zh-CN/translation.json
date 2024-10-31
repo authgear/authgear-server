@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "您有 {NumberOfDeviceTokens, plural, one{#个受信任的设备} other{#个受信任的设备}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "受信任的设备",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "您没有任何可以跳过双重验证的受信任设备。",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "移除",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "您将无法使用您的{ProviderName}账户登录。",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "禁用{ProviderName}账户作为登录方式",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "您确定要删除此电子邮件吗?",

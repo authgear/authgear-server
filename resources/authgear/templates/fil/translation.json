@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Mayroon kang {NumberOfDeviceTokens, plural, one{# pinagkakatiwalaan na device} other{# pinagkakatiwalaan na mga device}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Pinagkakatiwalaan na mga device",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Wala kang anumang pinagkakatiwalaan na device na maaaring laktawan ang 2-step na pag-verify.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Alisin",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Hindi ka na makakayong mag-log in gamit ang iyong {ProviderName} account.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Huwag nang gamitin ang {ProviderName} account bilang paraan ng pag-log in",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Sigurado ka bang gusto mong alisin ang email na ito?",

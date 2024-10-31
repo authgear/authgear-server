@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Έχετε {NumberOfDeviceTokens, plural, one{# έμπιστη συσκευή} other{# έμπιστες συσκευές}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Έμπιστες συσκευές",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Δεν έχετε καμία έμπιστη συσκευή που μπορεί να παρακάμψει την επαλήθευση ταυτότητας δύο παραγόντων (2-step verification).",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Αφαίρεση",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Δεν θα μπορείτε να συνδεθείτε με τον λογαριασμό {ProviderName}.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Απενεργοποίηση του λογαριασμού {ProviderName} ως μέθοδος σύνδεσης",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Είστε σίγουροι ότι θέλετε να αφαιρέσετε αυτό το email;",

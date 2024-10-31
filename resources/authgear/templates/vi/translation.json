@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Bạn có {NumberOfDeviceTokens, plural, one{# thiết bị đáng tin cậy} other{# thiết bị đáng tin cậy}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Thiết bị đáng tin cậy",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Bạn không có bất kỳ thiết bị đáng tin cậy nào có thể bỏ qua xác thực 2 bước.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Xóa bỏ",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Bạn sẽ không thể đăng nhập bằng tài khoản {ProviderName} của mình.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Vô hiệu hóa tài khoản {ProviderName} làm phương thức đăng nhập",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Bạn có chắc chắn muốn xóa email này?",

@@ -1245,6 +1245,7 @@
   "v2.page.settings-mfa.default.trusted-devices-has-device-tokens-message": "Je hebt {NumberOfDeviceTokens, plural, one{# vertrouwd apparaat} other{# vertrouwde apparaten}}",
   "v2.page.settings-mfa.default.trusted-devices-label": "Vertrouwde apparaten",
   "v2.page.settings-mfa.default.trusted-devices-no-device-tokens-message": "Je hebt geen vertrouwde apparaten die de 2-stapsverificatie kunnen overslaan.",
+  "v2.page.settings-mfa.default.trusted-devices-remove-label": "Verwijderen",
   "v2.page.settings-oauth.default.remove-oauth-dialog-description": "Je kunt niet meer inloggen met je {ProviderName} account.",
   "v2.page.settings-oauth.default.remove-oauth-dialog-title": "Uitschakelen {ProviderName} account als inlogmethode",
   "v2.page.settings-oob-otp-email.default.remove-oob-otp-dialog-description": "Weet je zeker dat je dit e-mailadres wilt verwijderen?",
