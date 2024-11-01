@@ -60,7 +60,7 @@ type BaseViewModel struct {
 	ClientName            string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
-	MakeBackableURL       func(path string, pairs ...string) string
+	MakeURLWithBackURL    func(path string, pairs ...string) string
 	MakeBackURL           func(path string, pairs ...string) string
 	MakeCurrentStepURL    func(pairs ...string) string
 	RawError              *apierrors.APIError
@@ -299,7 +299,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		MakeURL: func(path string, pairs ...string) string {
 			return makeURL(path, pairs...).String()
 		},
-		MakeBackableURL: func(path string, pairs ...string) string {
+		MakeURLWithBackURL: func(path string, pairs ...string) string {
 			u := makeURL(path, pairs...)
 			q := u.Query()
 			// Only preserve path and query,
