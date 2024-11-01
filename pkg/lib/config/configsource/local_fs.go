@@ -1,6 +1,7 @@
 package configsource
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"path"
@@ -34,7 +35,7 @@ type LocalFS struct {
 	done    chan<- struct{}   `wire:"-"`
 }
 
-func (s *LocalFS) Open() error {
+func (s *LocalFS) Open(ctx context.Context) error {
 	dir, err := filepath.Abs(s.Config.Directory)
 	if err != nil {
 		return err
@@ -154,15 +155,15 @@ func (s *LocalFS) AllAppIDs() ([]string, error) {
 	return []string{appID}, nil
 }
 
-func (s *LocalFS) ResolveAppID(r *http.Request) (appID string, err error) {
+func (s *LocalFS) ResolveAppID(ctx context.Context, r *http.Request) (appID string, err error) {
 	// In single mode, appID is ignored.
 	return
 }
 
-func (s *LocalFS) ResolveContext(_appID string) (*config.AppContext, error) {
+func (s *LocalFS) ResolveContext(ctx context.Context, _appID string) (*config.AppContext, error) {
 	// In single mode, appID is ignored.
-	ctx := s.config.Load().(*config.AppContext)
-	return ctx, nil
+	appCtx := s.config.Load().(*config.AppContext)
+	return appCtx, nil
 }
 
 func (s *LocalFS) ReloadApp(appID string) {

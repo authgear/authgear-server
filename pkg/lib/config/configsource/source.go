@@ -1,21 +1,22 @@
 package configsource
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 )
 
 type AppIDResolver interface {
-	ResolveAppID(r *http.Request) (appID string, err error)
+	ResolveAppID(ctx context.Context, r *http.Request) (appID string, err error)
 }
 
 type ContextResolver interface {
-	ResolveContext(appID string) (*config.AppContext, error)
+	ResolveContext(ctx context.Context, appID string) (*config.AppContext, error)
 }
 
 type Handle interface {
-	Open() error
+	Open(ctx context.Context) error
 	Close() error
 	ReloadApp(appID string)
 }
@@ -25,12 +26,12 @@ type ConfigSource struct {
 	ContextResolver ContextResolver
 }
 
-func (s *ConfigSource) ProvideContext(r *http.Request) (*config.AppContext, error) {
-	appID, err := s.AppIDResolver.ResolveAppID(r)
+func (s *ConfigSource) ProvideContext(ctx context.Context, r *http.Request) (*config.AppContext, error) {
+	appID, err := s.AppIDResolver.ResolveAppID(ctx, r)
 	if err != nil {
 		return nil, err
 	}
-	return s.ContextResolver.ResolveContext(appID)
+	return s.ContextResolver.ResolveContext(ctx, appID)
 }
 
 type Controller struct {
@@ -62,8 +63,8 @@ func NewController(
 	}
 }
 
-func (c *Controller) Open() error {
-	return c.Handle.Open()
+func (c *Controller) Open(ctx context.Context) error {
+	return c.Handle.Open(ctx)
 }
 
 func (c *Controller) Close() error {
@@ -83,6 +84,6 @@ func (c *Controller) GetConfigSource() *ConfigSource {
 
 // ResolveContext allows direct resolution from appID.
 // It is useful when you get appID somewhere else, rather than from a HTTP request.
-func (c *Controller) ResolveContext(appID string) (*config.AppContext, error) {
-	return c.ContextResolver.ResolveContext(appID)
+func (c *Controller) ResolveContext(ctx context.Context, appID string) (*config.AppContext, error) {
+	return c.ContextResolver.ResolveContext(ctx, appID)
 }

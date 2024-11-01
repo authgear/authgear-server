@@ -29,7 +29,7 @@ const (
 )
 
 type DomainService interface {
-	ListDomains(appID string) ([]*apimodel.Domain, error)
+	ListDomains(ctx context.Context, appID string) ([]*apimodel.Domain, error)
 }
 
 var ErrEffectiveSecretConfig = apierrors.NewForbidden("cannot view effective secret config")
@@ -152,7 +152,7 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 		return nil, fmt.Errorf("cannot parse incoming app config: %w", err)
 	}
 
-	err = d.validate(original, incoming, fc, *appHostSuffixes, domainService)
+	err = d.validate(ctx, original, incoming, fc, *appHostSuffixes, domainService)
 	if err != nil {
 		return nil, err
 	}
@@ -163,12 +163,12 @@ func (d AuthgearYAMLDescriptor) UpdateResource(ctx context.Context, _ []resource
 	}, nil
 }
 
-func (d AuthgearYAMLDescriptor) validate(original *config.AppConfig, incoming *config.AppConfig, fc *config.FeatureConfig, appHostSuffixes []string, domainService DomainService) error {
+func (d AuthgearYAMLDescriptor) validate(ctx context.Context, original *config.AppConfig, incoming *config.AppConfig, fc *config.FeatureConfig, appHostSuffixes []string, domainService DomainService) error {
 	validationCtx := &validation.Context{}
 
 	d.validateCustomAttributes(validationCtx, original, incoming)
 	d.validateFeatureConfig(validationCtx, incoming, original, fc)
-	err := d.validatePublicOrigin(validationCtx, incoming, original, appHostSuffixes, domainService)
+	err := d.validatePublicOrigin(ctx, validationCtx, incoming, original, appHostSuffixes, domainService)
 	if err != nil {
 		return err
 	}
@@ -234,7 +234,7 @@ func (d AuthgearYAMLDescriptor) validateFeatureConfig(validationCtx *validation.
 }
 
 // Check public origin.
-func (d AuthgearYAMLDescriptor) validatePublicOrigin(validationCtx *validation.Context, incoming *config.AppConfig, original *config.AppConfig, appHostSuffixes []string, domainService DomainService) error {
+func (d AuthgearYAMLDescriptor) validatePublicOrigin(ctx context.Context, validationCtx *validation.Context, incoming *config.AppConfig, original *config.AppConfig, appHostSuffixes []string, domainService DomainService) error {
 	if incoming.HTTP.PublicOrigin != original.HTTP.PublicOrigin {
 		validOrigin := false
 
@@ -251,7 +251,7 @@ func (d AuthgearYAMLDescriptor) validatePublicOrigin(validationCtx *validation.C
 			}
 		}
 
-		availableDomains, err := domainService.ListDomains(string(incoming.ID))
+		availableDomains, err := domainService.ListDomains(ctx, string(incoming.ID))
 		if err != nil {
 			return err
 		}

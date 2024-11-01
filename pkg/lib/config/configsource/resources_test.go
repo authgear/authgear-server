@@ -21,7 +21,7 @@ func TestAuthgearYAML(t *testing.T) {
 		defer ctrl.Finish()
 
 		domainService := NewMockDomainService(ctrl)
-		domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+		domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
 
 		path := "authgear.yaml"
 		featureConfig := config.NewEffectiveDefaultFeatureConfig()
@@ -219,7 +219,7 @@ user_profile:
 			defer ctrl.Finish()
 
 			domainService := NewMockDomainService(ctrl)
-			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
 
 			featureConfig := config.NewEffectiveDefaultFeatureConfig()
 
@@ -255,7 +255,7 @@ http:
 			defer ctrl.Finish()
 
 			domainService := NewMockDomainService(ctrl)
-			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{
 				{
 					ID:     "domain-id",
 					AppID:  "test",
@@ -297,7 +297,7 @@ http:
 			defer ctrl.Finish()
 
 			domainService := NewMockDomainService(ctrl)
-			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{
 				{
 					ID:     "domain-id",
 					AppID:  "test",
@@ -345,7 +345,7 @@ http:
 			defer ctrl.Finish()
 
 			domainService := NewMockDomainService(ctrl)
-			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
 
 			featureConfig := configtest.FixtureFeatureConfig(configtest.FixtureUnlimitedPlanName)
 			ctx := context.Background()
@@ -434,7 +434,7 @@ oauth:
 			defer ctrl.Finish()
 
 			domainService := NewMockDomainService(ctrl)
-			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
 
 			featureConfig := configtest.FixtureFeatureConfig(configtest.FixtureLimitedPlanName)
 			ctx := context.Background()
@@ -781,7 +781,7 @@ authentication:
 			defer ctrl.Finish()
 
 			domainService := NewMockDomainService(ctrl)
-			domainService.EXPECT().ListDomains("test").Return([]*apimodel.Domain{}, nil).AnyTimes()
+			domainService.EXPECT().ListDomains(gomock.Any(), "test").Return([]*apimodel.Domain{}, nil).AnyTimes()
 
 			featureConfig := configtest.FixtureFeatureConfig(configtest.FixtureUnlimitedPlanName)
 			ctx := context.Background()
