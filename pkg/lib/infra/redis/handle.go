@@ -25,11 +25,6 @@ func NewHandle(pool *Pool, connectionOptions ConnectionOptions, logger *log.Logg
 	}
 }
 
-func (h *Handle) WithConn(f func(conn Redis_6_0_Cmdable) error) error {
-	ctx := context.Background()
-	return h.WithConnContext(ctx, f)
-}
-
 func (h *Handle) WithConnContext(ctx context.Context, f func(conn Redis_6_0_Cmdable) error) error {
 	h.logger.WithFields(map[string]interface{}{
 		"max_open_connection":             *h.ConnectionOptions.MaxOpenConnection,
