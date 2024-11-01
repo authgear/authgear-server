@@ -305,16 +305,16 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 			// Only preserve path and query,
 			// so that we won't redirect user outside of authgear
 			backURL := webapp.MakeRelativeURL(r.URL.Path, r.URL.Query())
-			q.Set(webapp.QueryFrom, backURL.String())
+			q.Set(webapp.QueryBackURL, backURL.String())
 			u.RawQuery = q.Encode()
 			return u.String()
 		},
 		MakeBackURL: func(path string, pairs ...string) string {
 			defaultBackURL := makeURL(path, pairs...)
-			if r.URL.Query().Get(webapp.QueryFrom) == "" {
+			if r.URL.Query().Get(webapp.QueryBackURL) == "" {
 				return defaultBackURL.String()
 			}
-			backURL := r.URL.Query().Get(webapp.QueryFrom)
+			backURL := r.URL.Query().Get(webapp.QueryBackURL)
 			u, err := url.Parse(backURL)
 			if err != nil {
 				return defaultBackURL.String()

@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	QueryFrom = "q_from"
+	QueryBackURL = "q_back_url"
 )
 
 func MakeURL(u *url.URL, path string, inQuery url.Values) *url.URL {
