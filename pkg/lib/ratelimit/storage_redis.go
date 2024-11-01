@@ -21,9 +21,9 @@ func NewGlobalStorageRedis(redis *globalredis.Handle) *StorageRedis {
 	return &StorageRedis{Redis: redis.Handle}
 }
 
-func (s *StorageRedis) Update(key string, period time.Duration, burst int, delta int) (ok bool, timeToAct time.Time, err error) {
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		result, err := gcra(context.Background(), conn,
+func (s *StorageRedis) Update(ctx context.Context, key string, period time.Duration, burst int, delta int) (ok bool, timeToAct time.Time, err error) {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		result, err := gcra(ctx, conn,
 			key, period, burst, delta,
 		)
 		if err != nil {

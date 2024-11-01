@@ -1,6 +1,7 @@
 package ratelimit
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -25,8 +26,8 @@ type Limiter struct {
 }
 
 // GetTimeToAct allows you to check what is the earliest time you can retry.
-func (l *Limiter) GetTimeToAct(spec BucketSpec) (*time.Time, error) {
-	_, _, timeToAct, err := l.reserveN(spec, 0)
+func (l *Limiter) GetTimeToAct(ctx context.Context, spec BucketSpec) (*time.Time, error) {
+	_, _, timeToAct, err := l.reserveN(ctx, spec, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -39,24 +40,24 @@ func (l *Limiter) GetTimeToAct(spec BucketSpec) (*time.Time, error) {
 }
 
 // Allow is a shortcut of Reserve, when you do not plan to cancel the reservation.
-func (l *Limiter) Allow(spec BucketSpec) (*FailedReservation, error) {
-	_, failedReservation, err := l.Reserve(spec)
+func (l *Limiter) Allow(ctx context.Context, spec BucketSpec) (*FailedReservation, error) {
+	_, failedReservation, err := l.Reserve(ctx, spec)
 	return failedReservation, err
 }
 
 // Reserve is a shortcut of ReserveN(1).
-func (l *Limiter) Reserve(spec BucketSpec) (*Reservation, *FailedReservation, error) {
-	return l.ReserveN(spec, 1)
+func (l *Limiter) Reserve(ctx context.Context, spec BucketSpec) (*Reservation, *FailedReservation, error) {
+	return l.ReserveN(ctx, spec, 1)
 }
 
 // ReserveN is the general entry point.
 // If you ever need to pass n=0, you should use GetTimeToAct() instead.
-func (l *Limiter) ReserveN(spec BucketSpec, n int) (*Reservation, *FailedReservation, error) {
-	reservation, failedReservation, _, err := l.reserveN(spec, n)
+func (l *Limiter) ReserveN(ctx context.Context, spec BucketSpec, n int) (*Reservation, *FailedReservation, error) {
+	reservation, failedReservation, _, err := l.reserveN(ctx, spec, n)
 	return reservation, failedReservation, err
 }
 
-func (l *Limiter) reserveN(spec BucketSpec, n int) (*Reservation, *FailedReservation, *time.Time, error) {
+func (l *Limiter) reserveN(ctx context.Context, spec BucketSpec, n int) (*Reservation, *FailedReservation, *time.Time, error) {
 	var key string
 	if spec.IsGlobal {
 		key = bucketKeyGlobal(spec)
@@ -71,7 +72,7 @@ func (l *Limiter) reserveN(spec BucketSpec, n int) (*Reservation, *FailedReserva
 		}, nil, nil, nil
 	}
 
-	ok, timeToAct, err := l.Storage.Update(key, spec.Period, spec.Burst, n)
+	ok, timeToAct, err := l.Storage.Update(ctx, key, spec.Period, spec.Burst, n)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -99,12 +100,12 @@ func (l *Limiter) reserveN(spec BucketSpec, n int) (*Reservation, *FailedReserva
 }
 
 // Cancel cancels a reservation.
-func (l *Limiter) Cancel(r *Reservation) {
+func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
 	if r == nil || r.wasCancelPrevented || r.tokenTaken == 0 {
 		return
 	}
 
-	_, _, err := l.Storage.Update(r.key, r.spec.Period, r.spec.Burst, -r.tokenTaken)
+	_, _, err := l.Storage.Update(ctx, r.key, r.spec.Period, r.spec.Burst, -r.tokenTaken)
 	if err != nil {
 		// Errors here are non-critical and non-recoverable;
 		// log and continue.
