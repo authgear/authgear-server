@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -30,74 +31,76 @@ import (
 )
 
 type IdentityService interface {
-	Get(id string) (*identity.Info, error)
-	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
-	ListByClaim(name string, value string) ([]*identity.Info, error)
-	ListByUser(userID string) ([]*identity.Info, error)
-	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
-	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
-	CheckDuplicated(info *identity.Info) (*identity.Info, error)
-	Create(is *identity.Info) error
-	Update(oldIs *identity.Info, newIs *identity.Info) error
+	New(ctx context.Context, userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	UpdateWithSpec(ctx context.Context, is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+
+	Get(ctx context.Context, id string) (*identity.Info, error)
+	SearchBySpec(ctx context.Context, spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
+	ListByClaim(ctx context.Context, name string, value string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
+	CheckDuplicated(ctx context.Context, info *identity.Info) (*identity.Info, error)
+	Create(ctx context.Context, is *identity.Info) error
+	Update(ctx context.Context, oldIs *identity.Info, newIs *identity.Info) error
 }
 
 type AuthenticatorService interface {
-	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
-	Get(authenticatorID string) (*authenticator.Info, error)
-	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
-	Update(authenticatorInfo *authenticator.Info) error
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
-	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
-	VerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, verifyResult *service.VerifyResult, err error)
-	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
+	NewWithAuthenticatorID(ctx context.Context, authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	UpdatePassword(ctx context.Context, authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
+
+	Get(ctx context.Context, authenticatorID string) (*authenticator.Info, error)
+	Create(ctx context.Context, authenticatorInfo *authenticator.Info, markVerified bool) error
+	Update(ctx context.Context, authenticatorInfo *authenticator.Info) error
+	List(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	VerifyWithSpec(ctx context.Context, info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
+	VerifyOneWithSpec(ctx context.Context, userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (info *authenticator.Info, verifyResult *service.VerifyResult, err error)
+	ClearLockoutAttempts(ctx context.Context, userID string, usedMethods []config.AuthenticationLockoutMethod) error
 }
 
 type OTPCodeService interface {
-	GenerateOTP(kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
-	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
-	InspectState(kind otp.Kind, target string) (*otp.State, error)
-
-	LookupCode(purpose otp.Purpose, code string) (target string, err error)
-	SetSubmittedCode(kind otp.Kind, target string, code string) (*otp.State, error)
+	GenerateOTP(ctx context.Context, kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
+	VerifyOTP(ctx context.Context, kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
+	InspectState(ctx context.Context, kind otp.Kind, target string) (*otp.State, error)
+	LookupCode(ctx context.Context, purpose otp.Purpose, code string) (target string, err error)
+	SetSubmittedCode(ctx context.Context, kind otp.Kind, target string, code string) (*otp.State, error)
 }
 
 type OTPSender interface {
-	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
-	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
+	Prepare(ctx context.Context, channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
+	Send(ctx context.Context, msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
 type VerificationService interface {
-	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
-	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
-	MarkClaimVerified(claim *verification.Claim) error
+	NewVerifiedClaim(ctx context.Context, userID string, claimName string, claimValue string) *verification.Claim
+	GetIdentityVerificationStatus(ctx context.Context, i *identity.Info) ([]verification.ClaimStatus, error)
+	MarkClaimVerified(ctx context.Context, claim *verification.Claim) error
 }
 
 type ForgotPasswordService interface {
-	SendCode(loginID string, options *forgotpassword.CodeOptions) error
+	SendCode(ctx context.Context, loginID string, options *forgotpassword.CodeOptions) error
 }
 
 type ResetPasswordService interface {
-	VerifyCode(code string) (state *otp.State, err error)
-	ResetPasswordByEndUser(code string, newPassword string) error
+	VerifyCode(ctx context.Context, code string) (state *otp.State, err error)
+	ResetPasswordByEndUser(ctx context.Context, code string, newPassword string) error
 }
 
 type RateLimiter interface {
-	Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
-	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
-	Cancel(r *ratelimit.Reservation)
+	Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
+	Reserve(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
+	Cancel(ctx context.Context, r *ratelimit.Reservation)
 }
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
-	DispatchEventImmediately(payload event.NonBlockingPayload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
+	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
 }
 
 type UserService interface {
-	GetRaw(id string) (*user.User, error)
-	Create(userID string) (*user.User, error)
-	UpdateLoginTime(userID string, t time.Time) error
+	GetRaw(ctx context.Context, id string) (*user.User, error)
+	Create(ctx context.Context, userID string) (*user.User, error)
+	UpdateLoginTime(ctx context.Context, userID string, t time.Time) error
 	AfterCreate(
+		ctx context.Context,
 		user *user.User,
 		identities []*identity.Info,
 		authenticators []*authenticator.Info,
@@ -107,25 +110,25 @@ type UserService interface {
 
 type IDPSessionService interface {
 	MakeSession(*session.Attrs) (*idpsession.IDPSession, string)
-	Create(*idpsession.IDPSession) error
-	Reauthenticate(idpSessionID string, amr []string) error
+	Create(ctx context.Context, s *idpsession.IDPSession) error
+	Reauthenticate(ctx context.Context, idpSessionID string, amr []string) error
 }
 
 type SessionService interface {
-	RevokeWithoutEvent(session.SessionBase) error
+	RevokeWithoutEvent(ctx context.Context, s session.SessionBase) error
 }
 
 type StdAttrsService interface {
-	PopulateStandardAttributes(userID string, iden *identity.Info) error
-	UpdateStandardAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error
+	PopulateStandardAttributes(ctx context.Context, userID string, iden *identity.Info) error
+	UpdateStandardAttributesWithList(ctx context.Context, role accesscontrol.Role, userID string, attrs attrs.List) error
 }
 
 type CustomAttrsService interface {
-	UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error
+	UpdateCustomAttributesWithList(ctx context.Context, role accesscontrol.Role, userID string, attrs attrs.List) error
 }
 
 type AuthenticationInfoService interface {
-	Save(entry *authenticationinfo.Entry) error
+	Save(ctx context.Context, entry *authenticationinfo.Entry) error
 }
 
 type CookieManager interface {
@@ -135,11 +138,11 @@ type CookieManager interface {
 }
 
 type EventStore interface {
-	Publish(workflowID string, e Event) error
+	Publish(ctx context.Context, workflowID string, e Event) error
 }
 
 type AccountMigrationService interface {
-	Run(migrationTokenString string) (*accountmigration.HookResponse, error)
+	Run(ctx context.Context, migrationTokenString string) (*accountmigration.HookResponse, error)
 }
 
 type CaptchaService interface {
@@ -147,18 +150,18 @@ type CaptchaService interface {
 }
 
 type MFAService interface {
-	GenerateRecoveryCodes() []string
-	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
-	VerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error)
-	ConsumeRecoveryCode(c *mfa.RecoveryCode) error
+	GenerateRecoveryCodes(ctx context.Context) []string
+	ReplaceRecoveryCodes(ctx context.Context, userID string, codes []string) ([]*mfa.RecoveryCode, error)
+	VerifyRecoveryCode(ctx context.Context, userID string, code string) (*mfa.RecoveryCode, error)
+	ConsumeRecoveryCode(ctx context.Context, c *mfa.RecoveryCode) error
 
-	GenerateDeviceToken() string
-	CreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error)
-	VerifyDeviceToken(userID string, deviceToken string) error
+	GenerateDeviceToken(ctx context.Context) string
+	CreateDeviceToken(ctx context.Context, userID string, token string) (*mfa.DeviceToken, error)
+	VerifyDeviceToken(ctx context.Context, userID string, deviceToken string) error
 }
 
 type OfflineGrantStore interface {
-	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
+	ListClientOfflineGrants(ctx context.Context, clientID string, userID string) ([]*oauth.OfflineGrant, error)
 }
 
 type Dependencies struct {
