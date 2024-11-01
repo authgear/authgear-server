@@ -43,19 +43,19 @@ func NewServiceLogger(lf *log.Factory) ServiceLogger {
 }
 
 type Store interface {
-	CreateSession(session *Session) error
-	GetSession(flowID string) (*Session, error)
-	DeleteSession(session *Session) error
-	UpdateSession(session *Session) error
+	CreateSession(ctx context.Context, session *Session) error
+	GetSession(ctx context.Context, flowID string) (*Session, error)
+	DeleteSession(ctx context.Context, session *Session) error
+	UpdateSession(ctx context.Context, session *Session) error
 
-	CreateFlow(flow *Flow) error
-	GetFlowByStateToken(stateToken string) (*Flow, error)
-	DeleteFlow(flow *Flow) error
+	CreateFlow(ctx context.Context, flow *Flow) error
+	GetFlowByStateToken(ctx context.Context, stateToken string) (*Flow, error)
+	DeleteFlow(ctx context.Context, flow *Flow) error
 }
 
 type ServiceDatabase interface {
-	WithTx(do func() error) (err error)
-	ReadOnly(do func() error) (err error)
+	WithTx(ctx context.Context, do func(ctx context.Context) error) (err error)
+	ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error)
 }
 
 type ServiceUIInfoResolver interface {
@@ -67,29 +67,28 @@ type OAuthClientResolver interface {
 }
 
 type Service struct {
-	ContextDoNotUseDirectly context.Context
-	Deps                    *Dependencies
-	Logger                  ServiceLogger
-	Store                   Store
-	Database                ServiceDatabase
-	UIConfig                *config.UIConfig
-	UIInfoResolver          ServiceUIInfoResolver
-	OAuthClientResolver     OAuthClientResolver
+	Deps                *Dependencies
+	Logger              ServiceLogger
+	Store               Store
+	Database            ServiceDatabase
+	UIConfig            *config.UIConfig
+	UIInfoResolver      ServiceUIInfoResolver
+	OAuthClientResolver OAuthClientResolver
 }
 
-func (s *Service) CreateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
+func (s *Service) CreateNewFlow(ctx context.Context, publicFlow PublicFlow, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
 	err = s.validateNewFlow(publicFlow, sessionOptions)
 	if err != nil {
 		return
 	}
 
 	session := NewSession(sessionOptions)
-	err = s.Store.CreateSession(session)
+	err = s.Store.CreateSession(ctx, session)
 	if err != nil {
 		return
 	}
 
-	return s.createNewFlowWithSession(publicFlow, session)
+	return s.createNewFlowWithSession(ctx, publicFlow, session)
 }
 
 func (s *Service) validateNewFlow(publicFlow PublicFlow, sessionOptions *SessionOptions) (err error) {
@@ -108,9 +107,9 @@ func (s *Service) validateNewFlow(publicFlow PublicFlow, sessionOptions *Session
 	return err
 }
 
-func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Session) (output *ServiceOutput, err error) {
-	makeCtx := func() (context.Context, error) {
-		ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
+func (s *Service) createNewFlowWithSession(ctx context.Context, publicFlow PublicFlow, session *Session) (output *ServiceOutput, err error) {
+	makeCtx := func(ctx context.Context) (context.Context, error) {
+		ctx, err := session.MakeContext(ctx, s.Deps)
 		if err != nil {
 			return nil, err
 		}
@@ -118,8 +117,8 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 	}
 	var flow *Flow
 	var flowAction *FlowAction
-	err = s.Database.ReadOnly(func() error {
-		flow, flowAction, err = s.createNewFlow(makeCtx, session, publicFlow)
+	err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		flow, flowAction, err = s.createNewFlow(ctx, makeCtx, session, publicFlow)
 		return err
 	})
 	isEOF := errors.Is(err, ErrEOF)
@@ -131,20 +130,20 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 
 	var cookies []*http.Cookie
 	if isEOF {
-		err = s.Database.WithTx(func() error {
-			cookies, err = s.finishFlow(makeCtx, flow)
+		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+			cookies, err = s.finishFlow(ctx, makeCtx, flow)
 			return err
 		})
 		if err != nil {
 			return
 		}
 
-		err = s.Store.DeleteSession(session)
+		err = s.Store.DeleteSession(ctx, session)
 		if err != nil {
 			return
 		}
 
-		err = s.Store.DeleteFlow(flow)
+		err = s.Store.DeleteFlow(ctx, flow)
 		if err != nil {
 			return
 		}
@@ -166,7 +165,7 @@ func (s *Service) createNewFlowWithSession(publicFlow PublicFlow, session *Sessi
 	return
 }
 
-func (s *Service) createNewFlow(makeCtx func() (context.Context, error), session *Session, publicFlow PublicFlow) (flow *Flow, flowAction *FlowAction, err error) {
+func (s *Service) createNewFlow(ctx context.Context, makeCtx func(ctx context.Context) (context.Context, error), session *Session, publicFlow PublicFlow) (flow *Flow, flowAction *FlowAction, err error) {
 	flow = NewFlow(session.FlowID, publicFlow)
 
 	// A new flow does not have any nodes.
@@ -175,10 +174,10 @@ func (s *Service) createNewFlow(makeCtx func() (context.Context, error), session
 
 	// Feed an nil input to the flow to let it proceed.
 	var rawMessage json.RawMessage
-	acceptResult, err := Accept(makeCtx, s.Deps, NewFlows(flow), rawMessage)
+	acceptResult, err := Accept(ctx, makeCtx, s.Deps, NewFlows(flow), rawMessage)
 	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
 		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
-		updateSessionErr := s.Store.UpdateSession(session)
+		updateSessionErr := s.Store.UpdateSession(ctx, session)
 		if updateSessionErr != nil {
 			return nil, nil, updateSessionErr
 		}
@@ -195,11 +194,11 @@ func (s *Service) createNewFlow(makeCtx func() (context.Context, error), session
 
 	// err is nil or err is ErrEOF.
 	// We persist the flow state.
-	err = s.Store.CreateFlow(flow)
+	err = s.Store.CreateFlow(ctx, flow)
 	if err != nil {
 		return
 	}
-	flowAction, err = s.getFlowAction(makeCtx, session, flow)
+	flowAction, err = s.getFlowAction(ctx, makeCtx, session, flow)
 	if err != nil {
 		return
 	}
@@ -210,34 +209,34 @@ func (s *Service) createNewFlow(makeCtx func() (context.Context, error), session
 	return
 }
 
-func (s *Service) Get(stateToken string) (output *ServiceOutput, err error) {
-	w, err := s.Store.GetFlowByStateToken(stateToken)
+func (s *Service) Get(ctx context.Context, stateToken string) (output *ServiceOutput, err error) {
+	w, err := s.Store.GetFlowByStateToken(ctx, stateToken)
 	if err != nil {
 		return
 	}
 
-	session, err := s.Store.GetSession(w.FlowID)
+	session, err := s.Store.GetSession(ctx, w.FlowID)
 	if err != nil {
 		return
 	}
 
-	makeCtx := func() (context.Context, error) {
-		ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
+	makeCtx := func(ctx context.Context) (context.Context, error) {
+		ctx, err := session.MakeContext(ctx, s.Deps)
 		if err != nil {
 			return nil, err
 		}
 		return ctx, err
 	}
 
-	err = s.Database.ReadOnly(func() error {
-		output, err = s.get(makeCtx, session, w)
+	err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		output, err = s.get(ctx, makeCtx, session, w)
 		return err
 	})
 	return
 }
 
-func (s *Service) get(makeCtx func() (context.Context, error), session *Session, w *Flow) (output *ServiceOutput, err error) {
-	ctx, err := makeCtx()
+func (s *Service) get(ctx context.Context, makeCtx func(ctx context.Context) (context.Context, error), session *Session, w *Flow) (output *ServiceOutput, err error) {
+	ctx, err = makeCtx(ctx)
 	if err != nil {
 		return
 	}
@@ -247,7 +246,7 @@ func (s *Service) get(makeCtx func() (context.Context, error), session *Session,
 		return
 	}
 
-	flowAction, err := s.getFlowAction(makeCtx, session, w)
+	flowAction, err := s.getFlowAction(ctx, makeCtx, session, w)
 	if err != nil {
 		return
 	}
@@ -265,26 +264,26 @@ func (s *Service) get(makeCtx func() (context.Context, error), session *Session,
 	return
 }
 
-func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
+func (s *Service) FeedInput(ctx context.Context, stateToken string, rawMessage json.RawMessage) (output *ServiceOutput, err error) {
 	if stateToken == "" {
-		stateToken, err = s.resolveStateTokenFromInput(rawMessage)
+		stateToken, err = s.resolveStateTokenFromInput(ctx, rawMessage)
 		if err != nil {
 			return
 		}
 	}
 
-	flow, err := s.Store.GetFlowByStateToken(stateToken)
+	flow, err := s.Store.GetFlowByStateToken(ctx, stateToken)
 	if err != nil {
 		return
 	}
 
-	session, err := s.Store.GetSession(flow.FlowID)
+	session, err := s.Store.GetSession(ctx, flow.FlowID)
 	if err != nil {
 		return
 	}
 
-	makeCtx := func() (context.Context, error) {
-		ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
+	makeCtx := func(ctx context.Context) (context.Context, error) {
+		ctx, err := session.MakeContext(ctx, s.Deps)
 		if err != nil {
 			return nil, err
 		}
@@ -292,8 +291,8 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 	}
 
 	var flowAction *FlowAction
-	err = s.Database.ReadOnly(func() error {
-		flow, flowAction, err = s.feedInput(makeCtx, session, stateToken, rawMessage)
+	err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		flow, flowAction, err = s.feedInput(ctx, makeCtx, session, stateToken, rawMessage)
 		return err
 	})
 
@@ -303,11 +302,11 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 	for errors.As(err, &errSwitchFlow) || errors.As(err, &errRewriteFlow) {
 		isSpecialError = true
 		if errors.As(err, &errSwitchFlow) {
-			output, err = s.switchFlow(session, errSwitchFlow)
+			output, err = s.switchFlow(ctx, session, errSwitchFlow)
 		}
 
 		if errors.As(err, &errRewriteFlow) {
-			output, err = s.rewriteFlow(session, errRewriteFlow)
+			output, err = s.rewriteFlow(ctx, session, errRewriteFlow)
 		}
 	}
 
@@ -324,20 +323,20 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 
 	var cookies []*http.Cookie
 	if isEOF {
-		err = s.Database.WithTx(func() error {
-			cookies, err = s.finishFlow(makeCtx, flow)
+		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+			cookies, err = s.finishFlow(ctx, makeCtx, flow)
 			return err
 		})
 		if err != nil {
 			return
 		}
 
-		err = s.Store.DeleteSession(session)
+		err = s.Store.DeleteSession(ctx, session)
 		if err != nil {
 			return
 		}
 
-		err = s.Store.DeleteFlow(flow)
+		err = s.Store.DeleteFlow(ctx, flow)
 		if err != nil {
 			return
 		}
@@ -359,19 +358,19 @@ func (s *Service) FeedInput(stateToken string, rawMessage json.RawMessage) (outp
 	return
 }
 
-func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (output *ServiceOutput, err error) {
-	flow, err := s.Store.GetFlowByStateToken(stateToken)
+func (s *Service) FeedSyntheticInput(ctx context.Context, stateToken string, syntheticInput Input) (output *ServiceOutput, err error) {
+	flow, err := s.Store.GetFlowByStateToken(ctx, stateToken)
 	if err != nil {
 		return
 	}
 
-	session, err := s.Store.GetSession(flow.FlowID)
+	session, err := s.Store.GetSession(ctx, flow.FlowID)
 	if err != nil {
 		return
 	}
 
-	makeCtx := func() (context.Context, error) {
-		ctx, err := session.MakeContext(s.ContextDoNotUseDirectly, s.Deps)
+	makeCtx := func(ctx context.Context) (context.Context, error) {
+		ctx, err := session.MakeContext(ctx, s.Deps)
 		if err != nil {
 			return nil, err
 		}
@@ -379,8 +378,8 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 	}
 
 	var flowAction *FlowAction
-	err = s.Database.ReadOnly(func() error {
-		flow, flowAction, err = s.feedSyntheticInput(makeCtx, session, stateToken, syntheticInput)
+	err = s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		flow, flowAction, err = s.feedSyntheticInput(ctx, makeCtx, session, stateToken, syntheticInput)
 		return err
 	})
 
@@ -393,20 +392,20 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 
 	var cookies []*http.Cookie
 	if isEOF {
-		err = s.Database.WithTx(func() error {
-			cookies, err = s.finishFlow(makeCtx, flow)
+		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+			cookies, err = s.finishFlow(ctx, makeCtx, flow)
 			return err
 		})
 		if err != nil {
 			return
 		}
 
-		err = s.Store.DeleteSession(session)
+		err = s.Store.DeleteSession(ctx, session)
 		if err != nil {
 			return
 		}
 
-		err = s.Store.DeleteFlow(flow)
+		err = s.Store.DeleteFlow(ctx, flow)
 		if err != nil {
 			return
 		}
@@ -428,18 +427,18 @@ func (s *Service) FeedSyntheticInput(stateToken string, syntheticInput Input) (o
 	return
 }
 
-func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (output *ServiceOutput, err error) {
+func (s *Service) switchFlow(ctx context.Context, session *Session, errSwitchFlow *ErrorSwitchFlow) (output *ServiceOutput, err error) {
 	publicFlow, err := InstantiateFlow(errSwitchFlow.FlowReference, jsonpointer.T{})
 	if err != nil {
 		return
 	}
 
-	createOutput, err := s.createNewFlowWithSession(publicFlow, session)
+	createOutput, err := s.createNewFlowWithSession(ctx, publicFlow, session)
 	if err != nil {
 		return
 	}
 
-	output, err = s.FeedSyntheticInput(createOutput.Flow.StateToken, errSwitchFlow.SyntheticInput)
+	output, err = s.FeedSyntheticInput(ctx, createOutput.Flow.StateToken, errSwitchFlow.SyntheticInput)
 	if err != nil {
 		return
 	}
@@ -456,23 +455,23 @@ func (s *Service) switchFlow(session *Session, errSwitchFlow *ErrorSwitchFlow) (
 	return
 }
 
-func (s *Service) rewriteFlow(session *Session, errRewriteFlow *ErrorRewriteFlow) (output *ServiceOutput, err error) {
+func (s *Service) rewriteFlow(ctx context.Context, session *Session, errRewriteFlow *ErrorRewriteFlow) (output *ServiceOutput, err error) {
 	newFlow := NewFlow(session.FlowID, errRewriteFlow.Intent)
 	newFlow.Nodes = errRewriteFlow.Nodes
-	err = s.Store.CreateFlow(newFlow)
+	err = s.Store.CreateFlow(ctx, newFlow)
 	if err != nil {
 		return
 	}
-	return s.FeedSyntheticInput(newFlow.StateToken, errRewriteFlow.SyntheticInput)
+	return s.FeedSyntheticInput(ctx, newFlow.StateToken, errRewriteFlow.SyntheticInput)
 }
 
-func (s *Service) feedInput(makeCtx func() (context.Context, error), session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, flowAction *FlowAction, err error) {
-	flow, err = s.Store.GetFlowByStateToken(stateToken)
+func (s *Service) feedInput(ctx context.Context, makeCtx func(ctx context.Context) (context.Context, error), session *Session, stateToken string, rawMessage json.RawMessage) (flow *Flow, flowAction *FlowAction, err error) {
+	flow, err = s.Store.GetFlowByStateToken(ctx, stateToken)
 	if err != nil {
 		return
 	}
 
-	ctx, err := makeCtx()
+	ctx, err = makeCtx(ctx)
 	if err != nil {
 		return
 	}
@@ -482,10 +481,10 @@ func (s *Service) feedInput(makeCtx func() (context.Context, error), session *Se
 		return
 	}
 
-	acceptResult, err := Accept(makeCtx, s.Deps, NewFlows(flow), rawMessage)
+	acceptResult, err := Accept(ctx, makeCtx, s.Deps, NewFlows(flow), rawMessage)
 	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
 		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
-		updateSessionErr := s.Store.UpdateSession(session)
+		updateSessionErr := s.Store.UpdateSession(ctx, session)
 		if updateSessionErr != nil {
 			return nil, nil, updateSessionErr
 		}
@@ -497,12 +496,12 @@ func (s *Service) feedInput(makeCtx func() (context.Context, error), session *Se
 
 	// err is nil or err is ErrEOF.
 	// We persist the flow state.
-	err = s.Store.CreateFlow(flow)
+	err = s.Store.CreateFlow(ctx, flow)
 	if err != nil {
 		return
 	}
 
-	flowAction, err = s.getFlowAction(makeCtx, session, flow)
+	flowAction, err = s.getFlowAction(ctx, makeCtx, session, flow)
 	if err != nil {
 		return
 	}
@@ -513,12 +512,12 @@ func (s *Service) feedInput(makeCtx func() (context.Context, error), session *Se
 	return
 }
 
-func (s *Service) feedSyntheticInput(makeCtx func() (context.Context, error), session *Session, stateToken string, syntheticInput Input) (flow *Flow, flowAction *FlowAction, err error) {
-	flow, err = s.Store.GetFlowByStateToken(stateToken)
+func (s *Service) feedSyntheticInput(ctx context.Context, makeCtx func(ctx context.Context) (context.Context, error), session *Session, stateToken string, syntheticInput Input) (flow *Flow, flowAction *FlowAction, err error) {
+	flow, err = s.Store.GetFlowByStateToken(ctx, stateToken)
 	if err != nil {
 		return
 	}
-	ctx, err := makeCtx()
+	ctx, err = makeCtx(ctx)
 	if err != nil {
 		return
 	}
@@ -528,10 +527,10 @@ func (s *Service) feedSyntheticInput(makeCtx func() (context.Context, error), se
 		return
 	}
 
-	acceptResult, err := AcceptSyntheticInput(makeCtx, s.Deps, NewFlows(flow), syntheticInput)
+	acceptResult, err := AcceptSyntheticInput(ctx, makeCtx, s.Deps, NewFlows(flow), syntheticInput)
 	if acceptResult != nil && acceptResult.BotProtectionVerificationResult != nil {
 		session.SetBotProtectionVerificationResult(acceptResult.BotProtectionVerificationResult)
-		updateSessionErr := s.Store.UpdateSession(session)
+		updateSessionErr := s.Store.UpdateSession(ctx, session)
 		if updateSessionErr != nil {
 			return nil, nil, updateSessionErr
 		}
@@ -543,12 +542,12 @@ func (s *Service) feedSyntheticInput(makeCtx func() (context.Context, error), se
 
 	// err is nil or err is ErrEOF.
 	// We persist the flow state.
-	err = s.Store.CreateFlow(flow)
+	err = s.Store.CreateFlow(ctx, flow)
 	if err != nil {
 		return
 	}
 
-	flowAction, err = s.getFlowAction(makeCtx, session, flow)
+	flowAction, err = s.getFlowAction(ctx, makeCtx, session, flow)
 	if err != nil {
 		return
 	}
@@ -559,8 +558,8 @@ func (s *Service) feedSyntheticInput(makeCtx func() (context.Context, error), se
 	return
 }
 
-func (s *Service) finishFlow(makeCtx func() (context.Context, error), flow *Flow) (cookies []*http.Cookie, err error) {
-	ctx, err := makeCtx()
+func (s *Service) finishFlow(ctx context.Context, makeCtx func(ctx context.Context) (context.Context, error), flow *Flow) (cookies []*http.Cookie, err error) {
+	ctx, err = makeCtx(ctx)
 	if err != nil {
 		return
 	}
@@ -580,8 +579,8 @@ func (s *Service) finishFlow(makeCtx func() (context.Context, error), flow *Flow
 	return
 }
 
-func (s *Service) getFlowAction(makeCtx func() (context.Context, error), session *Session, flow *Flow) (flowAction *FlowAction, err error) {
-	ctx, err := makeCtx()
+func (s *Service) getFlowAction(ctx context.Context, makeCtx func(ctx context.Context) (context.Context, error), session *Session, flow *Flow) (flowAction *FlowAction, err error) {
+	ctx, err = makeCtx(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -641,9 +640,9 @@ func (s *Service) getFlowAction(makeCtx func() (context.Context, error), session
 	return
 }
 
-func (s *Service) resolveStateTokenFromInput(inputRawMessage json.RawMessage) (string, error) {
+func (s *Service) resolveStateTokenFromInput(ctx context.Context, inputRawMessage json.RawMessage) (string, error) {
 	if input, ok := MakeInputTakeAccountRecoveryCode(inputRawMessage); ok {
-		state, err := s.Deps.ResetPassword.VerifyCode(input.AccountRecoveryCode)
+		state, err := s.Deps.ResetPassword.VerifyCode(ctx, input.AccountRecoveryCode)
 		if err != nil {
 			return "", err
 		}
@@ -655,7 +654,7 @@ func (s *Service) resolveStateTokenFromInput(inputRawMessage json.RawMessage) (s
 			return "", err
 		}
 		// In account recovery flow, session options are not important
-		newFlowOutput, err := s.CreateNewFlow(flow, &SessionOptions{})
+		newFlowOutput, err := s.CreateNewFlow(ctx, flow, &SessionOptions{})
 		if err != nil {
 			return "", err
 		}
