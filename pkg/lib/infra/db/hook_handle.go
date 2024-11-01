@@ -41,7 +41,7 @@ func (h *HookHandle) UseHook(hook TransactionHook) {
 }
 
 // WithTx commits if do finishes without error and rolls back otherwise.
-func (h *HookHandle) WithTx(ctx context.Context, do func() error) (err error) {
+func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
 	db, err := h.openDB()
@@ -110,12 +110,12 @@ func (h *HookHandle) WithTx(ctx context.Context, do func() error) (err error) {
 		}
 	}()
 
-	err = do()
+	err = do(ctx)
 	return
 }
 
 // ReadOnly runs do in a transaction and rolls back always.
-func (h *HookHandle) ReadOnly(ctx context.Context, do func() error) (err error) {
+func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
 	db, err := h.openDB()
@@ -183,7 +183,7 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func() error) (err error) 
 		}
 	}()
 
-	err = do()
+	err = do(ctx)
 	return
 }
 

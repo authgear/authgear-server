@@ -119,7 +119,7 @@ func NewReadHandle(
 	}
 }
 
-func (h *ReadHandle) ReadOnly(ctx context.Context, do func() error) (err error) {
+func (h *ReadHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	return h.HookHandle.ReadOnly(ctx, do)
 }
 
@@ -149,6 +149,6 @@ func NewWriteHandle(
 	}
 }
 
-func (h *WriteHandle) WithTx(ctx context.Context, do func() error) (err error) {
+func (h *WriteHandle) WithTx(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	return h.HookHandle.WithTx(ctx, do)
 }
