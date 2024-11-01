@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
@@ -16,8 +18,8 @@ const (
 )
 
 type RateLimiter interface {
-	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
-	Cancel(r *ratelimit.Reservation)
+	Reserve(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
+	Cancel(ctx context.Context, r *ratelimit.Reservation)
 }
 
 type Reservation struct {
@@ -117,16 +119,16 @@ func (l *RateLimits) specPerUserPerIP(userID string, authType model.Authenticato
 	}
 }
 
-func (l *RateLimits) Cancel(r *Reservation) {
-	l.RateLimiter.Cancel(r.perIP)
-	l.RateLimiter.Cancel(r.perUserPerIP)
+func (l *RateLimits) Cancel(ctx context.Context, r *Reservation) {
+	l.RateLimiter.Cancel(ctx, r.perIP)
+	l.RateLimiter.Cancel(ctx, r.perUserPerIP)
 }
 
-func (l *RateLimits) Reserve(userID string, authType model.AuthenticatorType) (*Reservation, error) {
+func (l *RateLimits) Reserve(ctx context.Context, userID string, authType model.AuthenticatorType) (*Reservation, error) {
 	specPerUserPerIP := l.specPerUserPerIP(userID, authType)
 	specPerIP := l.specPerIP(authType)
 
-	rPerUserPerIP, failedPerUserPerIP, err := l.RateLimiter.Reserve(specPerUserPerIP)
+	rPerUserPerIP, failedPerUserPerIP, err := l.RateLimiter.Reserve(ctx, specPerUserPerIP)
 	if err != nil {
 		return nil, err
 	}
@@ -134,7 +136,7 @@ func (l *RateLimits) Reserve(userID string, authType model.AuthenticatorType) (*
 		return nil, err
 	}
 
-	rPerIP, failedPerIP, err := l.RateLimiter.Reserve(specPerIP)
+	rPerIP, failedPerIP, err := l.RateLimiter.Reserve(ctx, specPerIP)
 	if err != nil {
 		return nil, err
 	}
