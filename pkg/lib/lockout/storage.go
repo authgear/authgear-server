@@ -1,10 +1,11 @@
 package lockout
 
 import (
+	"context"
 	"time"
 )
 
 type Storage interface {
-	Update(spec LockoutSpec, contributor string, delta int) (isSuccess bool, lockedUntil *time.Time, err error)
-	Clear(spec LockoutSpec, contributor string) error
+	Update(ctx context.Context, spec LockoutSpec, contributor string, delta int) (isSuccess bool, lockedUntil *time.Time, err error)
+	Clear(ctx context.Context, spec LockoutSpec, contributor string) error
 }

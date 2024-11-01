@@ -1,6 +1,8 @@
 package lockout
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -15,7 +17,7 @@ type Service struct {
 	Storage Storage
 }
 
-func (s *Service) MakeAttempts(spec LockoutSpec, contributor string, attempts int) (result *MakeAttemptResult, err error) {
+func (s *Service) MakeAttempts(ctx context.Context, spec LockoutSpec, contributor string, attempts int) (result *MakeAttemptResult, err error) {
 	if !spec.Enabled {
 		return &MakeAttemptResult{
 			spec:        spec,
@@ -26,7 +28,7 @@ func (s *Service) MakeAttempts(spec LockoutSpec, contributor string, attempts in
 	logger := s.Logger.
 		WithField("key", spec.Key())
 
-	isSuccess, lockedUntil, err := s.Storage.Update(spec, contributor, attempts)
+	isSuccess, lockedUntil, err := s.Storage.Update(ctx, spec, contributor, attempts)
 	if err != nil {
 		return nil, err
 	}
@@ -50,10 +52,10 @@ func (s *Service) MakeAttempts(spec LockoutSpec, contributor string, attempts in
 	return result, nil
 }
 
-func (s *Service) ClearAttempts(spec LockoutSpec, contributor string) error {
+func (s *Service) ClearAttempts(ctx context.Context, spec LockoutSpec, contributor string) error {
 	if !spec.Enabled {
 		return nil
 	}
 
-	return s.Storage.Clear(spec, contributor)
+	return s.Storage.Clear(ctx, spec, contributor)
 }
