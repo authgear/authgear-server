@@ -2,6 +2,7 @@ package whatsapp
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -40,12 +41,13 @@ func NewWhatsappOnPremisesClient(
 }
 
 func (c *OnPremisesClient) SendTemplate(
+	ctx context.Context,
 	to string,
 	templateName string,
 	templateLanguage string,
 	templateComponents []TemplateComponent,
 	namespace string) error {
-	token, err := c.TokenStore.Get(c.Credentials.APIEndpoint, c.Credentials.Username)
+	token, err := c.TokenStore.Get(ctx, c.Credentials.APIEndpoint, c.Credentials.Username)
 	if err != nil {
 		return err
 	}
@@ -54,7 +56,7 @@ func (c *OnPremisesClient) SendTemplate(
 		if err != nil {
 			return err
 		}
-		return c.TokenStore.Set(token)
+		return c.TokenStore.Set(ctx, token)
 	}
 	if token == nil {
 		err := refreshToken()

@@ -20,7 +20,6 @@ func NewServiceLogger(lf *log.Factory) ServiceLogger {
 }
 
 type Service struct {
-	Context                           context.Context
 	Logger                            ServiceLogger
 	DevMode                           config.DevMode
 	FeatureTestModeWhatsappSuppressed config.FeatureTestModeWhatsappSuppressed
@@ -28,7 +27,6 @@ type Service struct {
 	WhatsappConfig                    *config.WhatsappConfig
 	LocalizationConfig                *config.LocalizationConfig
 	OnPremisesClient                  *OnPremisesClient
-	TokenStore                        *TokenStore
 }
 
 func (c *Service) logMessage(
@@ -43,11 +41,11 @@ func (c *Service) logMessage(
 		WithField("namespace", opts.Namespace)
 }
 
-func (s *Service) resolveTemplateLanguage(supportedLanguages []string) string {
+func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguages []string) string {
 	if len(supportedLanguages) < 1 {
 		panic("whatsapp: template has no supported language")
 	}
-	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
+	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
 	configSupportedLanguageTags := intl.Supported(
 		s.LocalizationConfig.SupportedLanguages,
 		intl.Fallback(*s.LocalizationConfig.FallbackLanguage),
@@ -105,12 +103,12 @@ func (s *Service) getOTPTemplate() (*config.WhatsappTemplateConfig, error) {
 	}
 }
 
-func (s *Service) ResolveOTPTemplateLanguage() (lang string, err error) {
+func (s *Service) ResolveOTPTemplateLanguage(ctx context.Context) (lang string, err error) {
 	template, err := s.getOTPTemplate()
 	if err != nil {
 		return "", err
 	}
-	lang = s.resolveTemplateLanguage(template.Languages)
+	lang = s.resolveTemplateLanguage(ctx, template.Languages)
 	return
 }
 
@@ -142,7 +140,7 @@ func (s *Service) PrepareOTPTemplate(language string, text string, code string) 
 	}, nil
 }
 
-func (s *Service) SendTemplate(opts *SendTemplateOptions) error {
+func (s *Service) SendTemplate(ctx context.Context, opts *SendTemplateOptions) error {
 
 	if s.FeatureTestModeWhatsappSuppressed {
 		s.testModeSendTemplate(opts)
@@ -168,6 +166,7 @@ func (s *Service) SendTemplate(opts *SendTemplateOptions) error {
 			return ErrNoAvailableClient
 		}
 		return s.OnPremisesClient.SendTemplate(
+			ctx,
 			opts.To,
 			opts.TemplateName,
 			opts.Language,
