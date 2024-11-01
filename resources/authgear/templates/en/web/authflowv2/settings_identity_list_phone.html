@@ -63,7 +63,7 @@
 
   {{ if and ($.PrimaryPhone) (gt (len $.PhoneIdentities) (1)) }}
     <span>
-      <div class="settings-title">
+      <div class="settings-title text-start">
         {{ translate "v2.page.settings-identity-list-phone.default.primary-phone-label" . }}
       </div>
       {{ template "authflowv2/__settings_action_item.html"

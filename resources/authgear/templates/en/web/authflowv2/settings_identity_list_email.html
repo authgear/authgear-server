@@ -73,7 +73,7 @@
 
   {{ if and ($.PrimaryEmail) (gt (len $.AllEmails) (1)) }}
     <div class="mt-5">
-      <div class="settings-title">
+      <div class="settings-title text-start">
         {{ translate "v2.page.settings-identity-list-email.default.primary-email-label" . }}
       </div>
       {{ template "authflowv2/__settings_action_item.html"
