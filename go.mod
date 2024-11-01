@@ -89,7 +89,7 @@ require (
 )
 
 require (
-	github.com/authgear/oauthrelyingparty v1.4.0
+	github.com/authgear/oauthrelyingparty v1.5.0
 	github.com/coder/websocket v1.8.12
 	github.com/go-ldap/ldap/v3 v3.4.8
 	github.com/russellhaering/goxmldsig v1.4.0

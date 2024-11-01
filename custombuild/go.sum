@@ -71,8 +71,8 @@ github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba h1:3KVNe
 github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba/go.mod h1:Nmot+3hWButYXa8FfWIfTaoaVOmCNUUa/eyrLnMSzYc=
 github.com/authgear/iamsmart v0.0.0-20240527095947-f47aa4fc0702 h1:PdeCJ2RKO1IjWshx+LiGYSFqT1CqCKoS637BY4Qr3R4=
 github.com/authgear/iamsmart v0.0.0-20240527095947-f47aa4fc0702/go.mod h1:Wm0yxpOHcTAHk/iyuMC5+BDUeU0qtGwg2dsXUB8EX7o=
-github.com/authgear/oauthrelyingparty v1.4.0 h1:D3h4YbNmrNow4IE5aVYGOB2ogVsOTT7fIZtur+gyY8g=
-github.com/authgear/oauthrelyingparty v1.4.0/go.mod h1:0UcO0p5eS9BPLulX6K7TvkXkuPeTn3QhAJ/UQg4fmiQ=
+github.com/authgear/oauthrelyingparty v1.5.0 h1:Gysu4Y+XfOy/WKPieIOZ4d1iIHsC4Hek2o1kSAtDW2k=
+github.com/authgear/oauthrelyingparty v1.5.0/go.mod h1:0UcO0p5eS9BPLulX6K7TvkXkuPeTn3QhAJ/UQg4fmiQ=
 github.com/aws/aws-sdk-go v1.55.5 h1:KKUZBfBoyqy5d3swXyiC7Q76ic40rYcbqH7qjh59kzU=
 github.com/aws/aws-sdk-go v1.55.5/go.mod h1:eRwEWoyTWFMVYVQzKMNHWP5/RV4xIUGMQfXQHfHkpNU=
 github.com/beevik/etree v1.1.0/go.mod h1:r8Aw8JqVegEf0w2fDnATrX9VpkMcyFeM0FhwO62wh+A=
