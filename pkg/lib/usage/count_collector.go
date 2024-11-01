@@ -1,6 +1,7 @@
 package usage
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -21,14 +22,14 @@ import (
 )
 
 type ReadCounterStore interface {
-	GetDailyActiveUserCount(appID config.AppID, date *time.Time) (count int, redisKey string, err error)
-	GetWeeklyActiveUserCount(appID config.AppID, year int, week int) (count int, redisKey string, err error)
-	GetMonthlyActiveUserCount(appID config.AppID, year int, month int) (count int, redisKey string, err error)
+	GetDailyActiveUserCount(ctx context.Context, appID config.AppID, date *time.Time) (count int, redisKey string, err error)
+	GetWeeklyActiveUserCount(ctx context.Context, appID config.AppID, year int, week int) (count int, redisKey string, err error)
+	GetMonthlyActiveUserCount(ctx context.Context, appID config.AppID, year int, month int) (count int, redisKey string, err error)
 }
 
 type MeterAuditDBStore interface {
-	QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
-	GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error)
+	QueryPage(ctx context.Context, appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
+	GetCountByActivityType(ctx context.Context, appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error)
 }
 
 type smsCountResult struct {
@@ -51,10 +52,10 @@ type CountCollector struct {
 	Meters        MeterAuditDBStore
 }
 
-func (c *CountCollector) CollectMonthlyActiveUser(startTime *time.Time) (int, error) {
+func (c *CountCollector) CollectMonthlyActiveUser(ctx context.Context, startTime *time.Time) (int, error) {
 	startT := timeutil.FirstDayOfTheMonth(*startTime)
 	endT := startTime.AddDate(0, 1, 0)
-	appIDs, err := c.getAppIDs()
+	appIDs, err := c.getAppIDs(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -62,6 +63,7 @@ func (c *CountCollector) CollectMonthlyActiveUser(startTime *time.Time) (int, er
 	usageRecords := []*UsageRecord{}
 	for _, appID := range appIDs {
 		count, _, err := c.ReadCounter.GetMonthlyActiveUserCount(
+			ctx,
 			config.AppID(appID),
 			startTime.Year(),
 			int(startTime.Month()),
@@ -81,13 +83,13 @@ func (c *CountCollector) CollectMonthlyActiveUser(startTime *time.Time) (int, er
 		}
 	}
 
-	return c.upsertUsageRecords(usageRecords)
+	return c.upsertUsageRecords(ctx, usageRecords)
 }
 
-func (c *CountCollector) CollectWeeklyActiveUser(startTime *time.Time) (int, error) {
+func (c *CountCollector) CollectWeeklyActiveUser(ctx context.Context, startTime *time.Time) (int, error) {
 	startT := timeutil.MondayOfTheWeek(*startTime)
 	endT := startT.AddDate(0, 0, 7)
-	appIDs, err := c.getAppIDs()
+	appIDs, err := c.getAppIDs(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -95,6 +97,7 @@ func (c *CountCollector) CollectWeeklyActiveUser(startTime *time.Time) (int, err
 	for _, appID := range appIDs {
 		y, w := startTime.ISOWeek()
 		count, _, err := c.ReadCounter.GetWeeklyActiveUserCount(
+			ctx,
 			config.AppID(appID),
 			y,
 			w,
@@ -114,19 +117,20 @@ func (c *CountCollector) CollectWeeklyActiveUser(startTime *time.Time) (int, err
 		}
 	}
 
-	return c.upsertUsageRecords(usageRecords)
+	return c.upsertUsageRecords(ctx, usageRecords)
 }
 
-func (c *CountCollector) CollectDailyActiveUser(startTime *time.Time) (int, error) {
+func (c *CountCollector) CollectDailyActiveUser(ctx context.Context, startTime *time.Time) (int, error) {
 	startT := timeutil.TruncateToDate(*startTime)
 	endT := startT.AddDate(0, 0, 1)
-	appIDs, err := c.getAppIDs()
+	appIDs, err := c.getAppIDs(ctx)
 	if err != nil {
 		return 0, err
 	}
 	usageRecords := []*UsageRecord{}
 	for _, appID := range appIDs {
 		count, _, err := c.ReadCounter.GetDailyActiveUserCount(
+			ctx,
 			config.AppID(appID),
 			&startT,
 		)
@@ -145,13 +149,13 @@ func (c *CountCollector) CollectDailyActiveUser(startTime *time.Time) (int, erro
 		}
 	}
 
-	return c.upsertUsageRecords(usageRecords)
+	return c.upsertUsageRecords(ctx, usageRecords)
 }
 
-func (c *CountCollector) CollectDailySMSSent(startTime *time.Time) (int, error) {
+func (c *CountCollector) CollectDailySMSSent(ctx context.Context, startTime *time.Time) (int, error) {
 	startT := timeutil.TruncateToDate(*startTime)
 	endT := startT.AddDate(0, 0, 1)
-	appIDs, err := c.getAppIDs()
+	appIDs, err := c.getAppIDs(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -159,7 +163,7 @@ func (c *CountCollector) CollectDailySMSSent(startTime *time.Time) (int, error) 
 	usageRecords := []*UsageRecord{}
 	for _, appID := range appIDs {
 
-		result, err := c.querySMSCount(appID, &startT, &endT)
+		result, err := c.querySMSCount(ctx, appID, &startT, &endT)
 		if err != nil {
 			return 0, err
 		}
@@ -177,21 +181,21 @@ func (c *CountCollector) CollectDailySMSSent(startTime *time.Time) (int, error) 
 		}
 	}
 
-	return c.upsertUsageRecords(usageRecords)
+	return c.upsertUsageRecords(ctx, usageRecords)
 }
 
-func (c *CountCollector) CollectDailyEmailSent(startTime *time.Time) (int, error) {
+func (c *CountCollector) CollectDailyEmailSent(ctx context.Context, startTime *time.Time) (int, error) {
 	startT := timeutil.TruncateToDate(*startTime)
 	endT := startT.AddDate(0, 0, 1)
-	appIDs, err := c.getAppIDs()
+	appIDs, err := c.getAppIDs(ctx)
 	if err != nil {
 		return 0, err
 	}
 
 	usageRecords := []*UsageRecord{}
 	for _, appID := range appIDs {
-		err := c.AuditHandle.ReadOnly(func() (e error) {
-			count, err := c.Meters.GetCountByActivityType(appID, string(nonblocking.EmailSent), &startT, &endT)
+		err := c.AuditHandle.ReadOnly(ctx, func(ctx context.Context) (e error) {
+			count, err := c.Meters.GetCountByActivityType(ctx, appID, string(nonblocking.EmailSent), &startT, &endT)
 			if err != nil {
 				return err
 			}
@@ -212,20 +216,20 @@ func (c *CountCollector) CollectDailyEmailSent(startTime *time.Time) (int, error
 		}
 	}
 
-	return c.upsertUsageRecords(usageRecords)
+	return c.upsertUsageRecords(ctx, usageRecords)
 }
 
-func (c *CountCollector) CollectDailyWhatsappSent(startTime *time.Time) (int, error) {
+func (c *CountCollector) CollectDailyWhatsappSent(ctx context.Context, startTime *time.Time) (int, error) {
 	startT := timeutil.TruncateToDate(*startTime)
 	endT := startT.AddDate(0, 0, 1)
-	appIDs, err := c.getAppIDs()
+	appIDs, err := c.getAppIDs(ctx)
 	if err != nil {
 		return 0, err
 	}
 
 	usageRecords := []*UsageRecord{}
 	for _, appID := range appIDs {
-		result, err := c.queryWhatsappCount(appID, &startT, &endT)
+		result, err := c.queryWhatsappCount(ctx, appID, &startT, &endT)
 		if err != nil {
 			return 0, err
 		}
@@ -243,12 +247,12 @@ func (c *CountCollector) CollectDailyWhatsappSent(startTime *time.Time) (int, er
 		}
 	}
 
-	return c.upsertUsageRecords(usageRecords)
+	return c.upsertUsageRecords(ctx, usageRecords)
 }
 
-func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
-	err = c.GlobalHandle.WithTx(func() error {
-		appIDs, err = c.GlobalDBStore.GetAppIDs()
+func (c *CountCollector) getAppIDs(ctx context.Context) (appIDs []string, err error) {
+	err = c.GlobalHandle.WithTx(ctx, func(ctx context.Context) error {
+		appIDs, err = c.GlobalDBStore.GetAppIDs(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to fetch app ids: %w", err)
 		}
@@ -257,10 +261,10 @@ func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
 	return
 }
 
-func (c *CountCollector) upsertUsageRecords(usageRecords []*UsageRecord) (int, error) {
+func (c *CountCollector) upsertUsageRecords(ctx context.Context, usageRecords []*UsageRecord) (int, error) {
 	if len(usageRecords) > 0 {
-		if err := c.GlobalHandle.WithTx(func() error {
-			return c.GlobalDBStore.UpsertUsageRecords(usageRecords)
+		if err := c.GlobalHandle.WithTx(ctx, func(ctx context.Context) error {
+			return c.GlobalDBStore.UpsertUsageRecords(ctx, usageRecords)
 		}); err != nil {
 			return 0, err
 		}
@@ -269,15 +273,16 @@ func (c *CountCollector) upsertUsageRecords(usageRecords []*UsageRecord) (int, e
 	return 0, nil
 }
 
-func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, rangeTo *time.Time) (*smsCountResult, error) {
+func (c *CountCollector) querySMSCount(ctx context.Context, appID string, rangeFrom *time.Time, rangeTo *time.Time) (*smsCountResult, error) {
 	result := &smsCountResult{}
 	var first uint64 = 100
 	var after model.PageCursor = ""
 	for {
 		var err error
 		var events []*event.Event
-		err = c.AuditHandle.ReadOnly(func() error {
+		err = c.AuditHandle.ReadOnly(ctx, func(ctx context.Context) error {
 			events, after, err = c.queryEvents(
+				ctx,
 				nonblocking.SMSSent,
 				func() event.Payload { return &nonblocking.SMSSentEventPayload{} },
 				appID, rangeFrom, rangeTo, first, after)
@@ -319,15 +324,16 @@ func (c *CountCollector) querySMSCount(appID string, rangeFrom *time.Time, range
 	}
 }
 
-func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, rangeTo *time.Time) (*whatsappCountResult, error) {
+func (c *CountCollector) queryWhatsappCount(ctx context.Context, appID string, rangeFrom *time.Time, rangeTo *time.Time) (*whatsappCountResult, error) {
 	result := &whatsappCountResult{}
 	var first uint64 = 100
 	var after model.PageCursor = ""
 	for {
 		var err error
 		var events []*event.Event
-		err = c.AuditHandle.ReadOnly(func() error {
+		err = c.AuditHandle.ReadOnly(ctx, func(ctx context.Context) error {
 			events, after, err = c.queryEvents(
+				ctx,
 				nonblocking.WhatsappSent,
 				func() event.Payload { return &nonblocking.WhatsappSentEventPayload{} },
 				appID, rangeFrom, rangeTo, first, after)
@@ -370,6 +376,7 @@ func (c *CountCollector) queryWhatsappCount(appID string, rangeFrom *time.Time, 
 }
 
 func (c *CountCollector) queryEvents(
+	ctx context.Context,
 	eventType event.Type,
 	payloadFactory func() event.Payload,
 	appID string,
@@ -383,7 +390,7 @@ func (c *CountCollector) queryEvents(
 		ActivityTypes: []string{string(eventType)},
 	}
 
-	logs, offset, err := c.Meters.QueryPage(appID, options, graphqlutil.PageArgs{
+	logs, offset, err := c.Meters.QueryPage(ctx, appID, options, graphqlutil.PageArgs{
 		First: &first,
 		After: graphqlutil.Cursor(after),
 	})

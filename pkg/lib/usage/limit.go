@@ -77,11 +77,11 @@ func (l *Limiter) getResetTime(c *config.UsageLimitConfig) time.Time {
 	return ComputeResetTime(l.Clock.NowUTC(), c.Period)
 }
 
-func (l *Limiter) Reserve(name LimitName, config *config.UsageLimitConfig) (*Reservation, error) {
-	return l.ReserveN(name, 1, config)
+func (l *Limiter) Reserve(ctx context.Context, name LimitName, config *config.UsageLimitConfig) (*Reservation, error) {
+	return l.ReserveN(ctx, name, 1, config)
 }
 
-func (l *Limiter) ReserveN(name LimitName, n int, config *config.UsageLimitConfig) (*Reservation, error) {
+func (l *Limiter) ReserveN(ctx context.Context, name LimitName, n int, config *config.UsageLimitConfig) (*Reservation, error) {
 	enabled := config.IsEnabled()
 	if !enabled {
 		return &Reservation{taken: 0, name: name, config: config}, nil
@@ -92,9 +92,7 @@ func (l *Limiter) ReserveN(name LimitName, n int, config *config.UsageLimitConfi
 
 	pass := false
 	tokens := int64(0)
-	err := l.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		ctx := context.Background()
-
+	err := l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		var err error
 		pass, tokens, err = reserve(ctx, conn, key, n, quota, l.getResetTime(config))
 		return err
@@ -116,15 +114,14 @@ func (l *Limiter) ReserveN(name LimitName, n int, config *config.UsageLimitConfi
 	return &Reservation{taken: n, name: name, config: config}, nil
 }
 
-func (l *Limiter) Cancel(r *Reservation) {
+func (l *Limiter) Cancel(ctx context.Context, r *Reservation) {
 	if r.taken == 0 {
 		return
 	}
 
 	key := redisLimitKey(l.AppID, r.name)
 
-	err := l.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		ctx := context.Background()
+	err := l.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.IncrBy(ctx, key, -int64(r.taken)).Result()
 		if err != nil {
 			return err
