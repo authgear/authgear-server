@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "請輸入你先前儲存過的任何一個未使用的10位備用碼",
   "v2.error.remove-last-identity": "你不能移除最後一個登入方式。你需要保留最少一個可用的登入方式",
   "v2.error.remove-last-primary-authenticator": "你不能移除最後一個主要驗證方法。你需要保留最少一個主要驗證方法",
-  "v2.error.remove-last-secondary-authenticator": "你不能移除最後一個次要驗證方法。你需要保留最少一個次要驗證方法令多重驗證生效",
+  "v2.error.remove-last-secondary-authenticator": "至少需要一種雙重身份驗證方法,請在移除此方法前新增另一種方法。",
   "v2.error.scheduled-deletion-by-admin": "您的帳戶已被管理員停用，而您的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
   "v2.error.scheduled-deletion-by-end-user": "您已停用您的帳戶，而您的帳戶將在<span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>被刪除。",
   "v2.error.server": "伺服器內部錯誤。",

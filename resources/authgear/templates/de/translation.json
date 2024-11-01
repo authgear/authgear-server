@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "Bitte geben Sie einen unverbrauchten 10-stelligen Wiederherstellungscode ein, den Sie zuvor gespeichert haben.",
   "v2.error.remove-last-identity": "Sie können die letzte Identität nicht trennen. Sie müssen mindestens 1 Identität behalten.",
   "v2.error.remove-last-primary-authenticator": "Sie können den letzten primären Authentifikator nicht entfernen. Sie müssen mindestens 1 primären Authentifikator für eine Identität behalten.",
-  "v2.error.remove-last-secondary-authenticator": "Sie können den letzten sekundären Authentifikator nicht entfernen. Sie müssen mindestens 1 sekundären Authentifikator behalten, um die 2-Faktor-Authentifizierung aktiviert zu lassen.",
+  "v2.error.remove-last-secondary-authenticator": "Mindestens eine 2-Faktor-Authentifizierungsmethode ist erforderlich. Bitte fügen Sie eine weitere Methode hinzu, bevor Sie diese entfernen.",
   "v2.error.scheduled-deletion-by-admin": "Der Administrator hat Ihr Konto deaktiviert und Ihr Konto wird am <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span> gelöscht",
   "v2.error.scheduled-deletion-by-end-user": "Sie haben Ihr Konto deaktiviert und Ihr Konto wird am <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span> gelöscht",
   "v2.error.server": "Der Server hat einen internen Fehler festgestellt.",

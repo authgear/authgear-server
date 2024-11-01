@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "Voer een ongebruikte 10-letterige herstelde code in die u eerder heeft opgeslagen.",
   "v2.error.remove-last-identity": "U kunt de laatste identiteit niet loskoppelen. U moet ten minste 1 identiteit behouden.",
   "v2.error.remove-last-primary-authenticator": "U kunt de laatste primaire authenticator niet verwijderen. U moet ten minste 1 primaire authenticator voor een identiteit behouden.",
-  "v2.error.remove-last-secondary-authenticator": "U kunt de laatste secundaire authenticator niet verwijderen. U moet ten minste 1 secundaire authenticator behouden om 2-staps verificatie ingeschakeld te houden.",
+  "v2.error.remove-last-secondary-authenticator": "Er is minimaal één 2-factor authenticatiemethode vereist, voeg een andere methode toe voordat u deze verwijdert.",
   "v2.error.scheduled-deletion-by-admin": "De beheerder heeft uw account uitgeschakeld en uw account zal worden verwijderd op <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "U heeft uw account gedeactiveerd en uw account zal worden verwijderd op <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.server": "De server heeft een interne fout aangetroffen.",

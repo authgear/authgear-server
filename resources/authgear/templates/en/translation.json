@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "Please enter any unused 10-letter recovery code you stored previously.",
   "v2.error.remove-last-identity": "You cannot disconnect the last identity. You need to keep at least 1 identity.",
   "v2.error.remove-last-primary-authenticator": "You cannot remove the last primary authenticator. You need to keep at least 1 primary authenticator for an identity.",
-  "v2.error.remove-last-secondary-authenticator": "You cannot remove the last secondary authenticator. You need to keep at least 1 secondary authenticator to keep 2-step verification enabled.",
+  "v2.error.remove-last-secondary-authenticator": "At least one 2-factor authentication method is required, please add another method before removing this one.",
   "v2.error.scheduled-deletion-by-admin": "Administrator has disabled your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "You have deactivated your account and your account will be deleted on <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.server": "Server encountered an internal error.",

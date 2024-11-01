@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "Vui lòng nhập bất kỳ mã phục hồi 10 chữ cái chưa sử dụng bạn đã lưu trước đó.",
   "v2.error.remove-last-identity": "Bạn không thể ngắt kết nối danh tính cuối cùng. Bạn cần giữ ít nhất 1 danh tính.",
   "v2.error.remove-last-primary-authenticator": "Bạn không thể xóa bộ xác thực chính cuối cùng. Bạn cần giữ ít nhất 1 bộ xác thực chính cho một danh tính.",
-  "v2.error.remove-last-secondary-authenticator": "Bạn không thể xóa bộ xác thực phụ cuối cùng. Bạn cần giữ ít nhất 1 bộ xác thực phụ để giữ bật xác thực 2 bước.",
+  "v2.error.remove-last-secondary-authenticator": "Ít nhất một phương thức xác thực hai yếu tố là bắt buộc, vui lòng thêm phương thức khác trước khi gỡ bỏ phương thức này.",
   "v2.error.scheduled-deletion-by-admin": "Quản trị viên đã vô hiệu hóa tài khoản của bạn và tài khoản của bạn sẽ bị xóa vào <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "Bạn đã hủy kích hoạt tài khoản của mình và tài khoản của bạn sẽ bị xóa vào <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.server": "Máy chủ gặp lỗi nội bộ.",

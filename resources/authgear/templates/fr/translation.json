@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "Veuillez saisir l''un des codes de récupération de 10 lettres que vous avez stockés précédemment.",
   "v2.error.remove-last-identity": "Vous ne pouvez pas déconnecter la dernière identité. Vous devez en conserver au moins 1.",
   "v2.error.remove-last-primary-authenticator": "Vous ne pouvez pas supprimer le dernier authentificateur principal. Vous devez en conserver au moins 1 pour une identité.",
-  "v2.error.remove-last-secondary-authenticator": "Vous ne pouvez pas supprimer le dernier authentificateur secondaire. Vous devez en conserver au moins 1 pour garder l''authentification à deux facteurs activée.",
+  "v2.error.remove-last-secondary-authenticator": "Au moins une méthode d''authentification à 2 facteurs est requise, veuillez en ajouter une autre avant de supprimer celle-ci.",
   "v2.error.scheduled-deletion-by-admin": "L''administrateur a désactivé votre compte et celui-ci sera supprimé le <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "Vous avez désactivé votre compte et celui-ci sera supprimé le <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.server": "Le serveur a rencontré une erreur interne.",

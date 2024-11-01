@@ -259,6 +259,8 @@
       <span>{{ include "v2.error.unexpected-user" nil }}</span>
     {{ else if eq .Error.reason "BotProtectionVerificationFailed" }}
       <span>{{ include "v2.error.bot-protection-verification-failed" nil }}</span>
+    {{ else if eq .Error.reason "AccountManagementSecondaryAuthenticatorIsRequired" }}
+      <span>{{ include "v2.error.remove-last-secondary-authenticator" nil }}</span>
     {{ else }}
       <span>{{ include "v2.error.unknown" nil }}{{ call $.LogUnknownError .Error }}</span>
     {{ end }}

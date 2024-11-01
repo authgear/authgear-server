@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "โปรดป้อนรหัสกู้คืนที่ไม่ได้ใช้งานแล้วที่คุณเก็บไว้ก่อนหน้านี้",
   "v2.error.remove-last-identity": "คุณไม่สามารถยกเลิกการเชื่อมโยงข้อมูลตัวตนสุดท้าย คุณต้องเก็บข้อมูลตัวตนอย่างน้อย 1 รายการ",
   "v2.error.remove-last-primary-authenticator": "คุณไม่สามารถลบตัวรับรองความถูกต้องหลักสุดท้าย คุณต้องเก็บตัวรับรองความถูกต้องหลักอย่างน้อย 1 ตัวสำหรับข้อมูลตัวตน",
-  "v2.error.remove-last-secondary-authenticator": "คุณไม่สามารถลบตัวรับรองความถูกต้องรองสุดท้าย คุณต้องเก็บตัวรับรองความถูกต้องรองอย่างน้อย 1 ตัวเพื่อให้การยืนยันสองขั้นตอนยังคงเปิดใช้งานอยู่",
+  "v2.error.remove-last-secondary-authenticator": "จำเป็นต้องมีวิธีการตรวจสอบสิทธิ์ 2 ขั้นตอนอย่างน้อยหนึ่งวิธี โปรดเพิ่มวิธีการอื่นก่อนที่จะลบวิธีนี้",
   "v2.error.scheduled-deletion-by-admin": "ผู้ดูแลระบบได้ปิดใช้งานบัญชีของคุณ และบัญชีของคุณจะถูกลบในวันที่ <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "คุณได้ปิดใช้งานบัญชีของคุณ และบัญชีของคุณจะถูกลบในวันที่ <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.server": "เซิร์ฟเวอร์พบข้อผิดพลาดภายใน",

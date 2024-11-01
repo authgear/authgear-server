@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "Wprowadź dowolny nieużywany 10-literowy kod odzyskiwania, który wcześniej zapisałeś.",
   "v2.error.remove-last-identity": "Nie możesz odłączyć ostatniej tożsamości. Musisz zachować co najmniej 1 tożsamość.",
   "v2.error.remove-last-primary-authenticator": "Nie możesz usunąć ostatniego podstawowego uwierzytelniania. Musisz zachować co najmniej 1 podstawowy uwierzytelniacz dla tożsamości.",
-  "v2.error.remove-last-secondary-authenticator": "Nie możesz usunąć ostatniego dodatkowego uwierzytelniania. Musisz zachować co najmniej 1 dodatkowy uwierzytelniacz, aby zachować włączoną weryfikację dwuetapową.",
+  "v2.error.remove-last-secondary-authenticator": "Wymagana jest co najmniej jedna metoda uwierzytelniania dwuskładnikowego. Przed usunięciem tej metody dodaj inną.",
   "v2.error.scheduled-deletion-by-admin": "Administrator zablokował Twoje konto i zostanie ono usunięte <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "Dezaktywowałeś swoje konto i zostanie ono usunięte <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.server": "Serwer napotkał wewnętrzny błąd.",

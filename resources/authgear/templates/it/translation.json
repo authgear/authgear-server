@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "Inserisci uno dei codici di recupero di 10 lettere inutilizzati che hai salvato in precedenza.",
   "v2.error.remove-last-identity": "Non puoi disconnettere l''ultima identità. Devi mantenere almeno 1 identità.",
   "v2.error.remove-last-primary-authenticator": "Non puoi rimuovere l''ultimo autenticatore primario. Devi mantenere almeno 1 autenticatore primario per un''identità.",
-  "v2.error.remove-last-secondary-authenticator": "Non puoi rimuovere l''ultimo autenticatore secondario. Devi mantenere almeno 1 autenticatore secondario per mantenere abilitata la verifica in 2 passaggi.",
+  "v2.error.remove-last-secondary-authenticator": "È richiesto almeno un metodo di autenticazione a 2 fattori, aggiungi un altro metodo prima di rimuovere questo.",
   "v2.error.scheduled-deletion-by-admin": "L''amministratore ha disabilitato il tuo account e il tuo account verrà eliminato il <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "Hai disattivato il tuo account e il tuo account verrà eliminato il <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.server": "Il server ha riscontrato un errore interno.",

@@ -50,7 +50,7 @@
 <form
   method="post"
   data-controller="turbo-form"
-  data-action="submit->turbo-form#submitForm">
+  data-action="submit->turbo-form#submitForm turbo-form:submit-end->dialog#close">
   <div class="flex flex-col gap-y-8 flex-1-0-auto">
     <div class="dialog-title-description">
       <h1 class="dialog-title">

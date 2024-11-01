@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "Por favor, insira qualquer código de recuperação de 10 letras não utilizado que você armazenou anteriormente.",
   "v2.error.remove-last-identity": "Você não pode desconectar a última identidade. Você precisa manter pelo menos 1 identidade.",
   "v2.error.remove-last-primary-authenticator": "Você não pode remover o último autenticador primário. Você precisa manter pelo menos 1 autenticador primário para uma identidade.",
-  "v2.error.remove-last-secondary-authenticator": "Você não pode remover o último autenticador secundário. Você precisa manter pelo menos 1 autenticador secundário para manter a verificação em 2 etapas ativada.",
+  "v2.error.remove-last-secondary-authenticator": "Pelo menos um método de autenticação de 2 fatores é necessário, adicione outro método antes de remover este.",
   "v2.error.scheduled-deletion-by-admin": "O administrador desativou sua conta e sua conta será excluída em <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.scheduled-deletion-by-end-user": "Você desativou sua conta e sua conta será excluída em <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>",
   "v2.error.server": "O servidor encontrou um erro interno.",

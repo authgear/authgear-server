@@ -16,6 +16,12 @@
     <div class="widget-content widget-content--settings">
       {{ block "page-navbar" . }}
       {{ end }}
+      {{ template "authflowv2/__alert_message.html"
+        (dict
+          "Type" "error"
+          "Message" (include "authflowv2/__error.html" .)
+        )
+      }}
       {{ template "page-content" . }}
       {{ template "authflowv2/__lockout.html" . }}
     </div>

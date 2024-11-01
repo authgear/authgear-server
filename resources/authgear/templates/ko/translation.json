@@ -1000,7 +1000,7 @@
   "v2.error.recovery-code-required": "이전에 저장한 10자리 복구 코드를 입력해 주세요.",
   "v2.error.remove-last-identity": "마지막 정보를 삭제할 수 없습니다. 최소 1개의 정보는 유지해야 합니다.",
   "v2.error.remove-last-primary-authenticator": "마지막 기본 인증 방법을 삭제할 수 없습니다. 최소 1개의 기본 인증 방법은 유지해야 합니다.",
-  "v2.error.remove-last-secondary-authenticator": "마지막 보조 인증 방법을 삭제할 수 없습니다. 최소 1개의 보조 인증 방법은 유지해야 2단계 인증이 활성화됩니다.",
+  "v2.error.remove-last-secondary-authenticator": "최소 하나의 2단계 인증 방법이 필요합니다. 이 방법을 제거하기 전에 다른 방법을 추가해 주세요.",
   "v2.error.scheduled-deletion-by-admin": "관리자가 귀하의 계정을 비활성화했으며 계정은 <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>에 삭제될 예정입니다.",
   "v2.error.scheduled-deletion-by-end-user": "귀하가 계정을 비활성화했으며 계정은 <span data-date=\"{rfc3339}\" data-date-type=absolute data-date-date-style=long data-date-time-style>{date, date, long}</span>에 삭제될 예정입니다.",
   "v2.error.server": "서버에 내부 오류가 발생했습니다.",
