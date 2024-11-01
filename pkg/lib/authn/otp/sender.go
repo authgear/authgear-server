@@ -1,6 +1,7 @@
 package otp
 
 import (
+	"context"
 	"errors"
 	neturl "net/url"
 	"path/filepath"
@@ -30,21 +31,21 @@ type EndpointsProvider interface {
 }
 
 type TranslationService interface {
-	EmailMessageData(msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.EmailMessageData, error)
-	SMSMessageData(msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.SMSMessageData, error)
-	WhatsappMessageData(language string, msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.WhatsappMessageData, error)
+	EmailMessageData(ctx context.Context, msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.EmailMessageData, error)
+	SMSMessageData(ctx context.Context, msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.SMSMessageData, error)
+	WhatsappMessageData(ctx context.Context, language string, msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.WhatsappMessageData, error)
 }
 
 type Sender interface {
-	PrepareEmail(email string, msgType translation.MessageType) (*messaging.EmailMessage, error)
-	PrepareSMS(phoneNumber string, msgType translation.MessageType) (*messaging.SMSMessage, error)
-	PrepareWhatsapp(phoneNumber string, msgType translation.MessageType) (*messaging.WhatsappMessage, error)
+	PrepareEmail(ctx context.Context, email string, msgType translation.MessageType) (*messaging.EmailMessage, error)
+	PrepareSMS(ctx context.Context, phoneNumber string, msgType translation.MessageType) (*messaging.SMSMessage, error)
+	PrepareWhatsapp(ctx context.Context, phoneNumber string, msgType translation.MessageType) (*messaging.WhatsappMessage, error)
 }
 
 type WhatsappService interface {
-	ResolveOTPTemplateLanguage() (string, error)
+	ResolveOTPTemplateLanguage(ctx context.Context) (string, error)
 	PrepareOTPTemplate(language string, text string, code string) (*whatsapp.PreparedOTPTemplate, error)
-	SendTemplate(opts *whatsapp.SendTemplateOptions) error
+	SendTemplate(ctx context.Context, opts *whatsapp.SendTemplateOptions) error
 }
 
 type PreparedMessage struct {
@@ -56,15 +57,15 @@ type PreparedMessage struct {
 	msgType  translation.MessageType
 }
 
-func (m *PreparedMessage) Close() {
+func (m *PreparedMessage) Close(ctx context.Context) {
 	if m.email != nil {
-		m.email.Close()
+		m.email.Close(ctx)
 	}
 	if m.sms != nil {
-		m.sms.Close()
+		m.sms.Close(ctx)
 	}
 	if m.whatsapp != nil {
-		m.whatsapp.Close()
+		m.whatsapp.Close(ctx)
 	}
 }
 
@@ -180,24 +181,24 @@ func (s *MessageSender) selectMessage(form Form, typ translation.MessageType) *t
 	return spec
 }
 
-func (s *MessageSender) Prepare(channel model.AuthenticatorOOBChannel, target string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
+func (s *MessageSender) Prepare(ctx context.Context, channel model.AuthenticatorOOBChannel, target string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
 	switch channel {
 	case model.AuthenticatorOOBChannelEmail:
-		return s.prepareEmail(target, form, typ)
+		return s.prepareEmail(ctx, target, form, typ)
 	case model.AuthenticatorOOBChannelSMS:
-		return s.prepareSMS(target, form, typ)
+		return s.prepareSMS(ctx, target, form, typ)
 	case model.AuthenticatorOOBChannelWhatsapp:
-		return s.prepareWhatsapp(target, form, typ)
+		return s.prepareWhatsapp(ctx, target, form, typ)
 	default:
 		panic("otp: unknown channel: " + channel)
 	}
 }
 
-func (s *MessageSender) prepareEmail(email string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
+func (s *MessageSender) prepareEmail(ctx context.Context, email string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
 	spec := s.selectMessage(form, typ)
 	msgType := spec.MessageType
 
-	msg, err := s.Sender.PrepareEmail(email, msgType)
+	msg, err := s.Sender.PrepareEmail(ctx, email, msgType)
 	if err != nil {
 		return nil, err
 	}
@@ -210,11 +211,11 @@ func (s *MessageSender) prepareEmail(email string, form Form, typ translation.Me
 	}, nil
 }
 
-func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
+func (s *MessageSender) prepareSMS(ctx context.Context, phoneNumber string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
 	spec := s.selectMessage(form, typ)
 	msgType := spec.MessageType
 
-	msg, err := s.Sender.PrepareSMS(phoneNumber, msgType)
+	msg, err := s.Sender.PrepareSMS(ctx, phoneNumber, msgType)
 	if err != nil {
 		return nil, err
 	}
@@ -227,11 +228,11 @@ func (s *MessageSender) prepareSMS(phoneNumber string, form Form, typ translatio
 	}, nil
 }
 
-func (s *MessageSender) prepareWhatsapp(phoneNumber string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
+func (s *MessageSender) prepareWhatsapp(ctx context.Context, phoneNumber string, form Form, typ translation.MessageType) (*PreparedMessage, error) {
 	spec := s.selectMessage(form, typ)
 	msgType := spec.MessageType
 
-	msg, err := s.Sender.PrepareWhatsapp(phoneNumber, msgType)
+	msg, err := s.Sender.PrepareWhatsapp(ctx, phoneNumber, msgType)
 	if err != nil {
 		return nil, err
 	}
@@ -244,26 +245,26 @@ func (s *MessageSender) prepareWhatsapp(phoneNumber string, form Form, typ trans
 	}, nil
 }
 
-func (s *MessageSender) Send(msg *PreparedMessage, opts SendOptions) error {
+func (s *MessageSender) Send(ctx context.Context, msg *PreparedMessage, opts SendOptions) error {
 	if msg.email != nil {
-		return s.sendEmail(msg, opts)
+		return s.sendEmail(ctx, msg, opts)
 	}
 	if msg.sms != nil {
-		return s.sendSMS(msg, opts)
+		return s.sendSMS(ctx, msg, opts)
 	}
 	if msg.whatsapp != nil {
-		return s.sendWhatsapp(msg, opts)
+		return s.sendWhatsapp(ctx, msg, opts)
 	}
 	return nil
 }
 
-func (s *MessageSender) sendEmail(msg *PreparedMessage, opts SendOptions) error {
-	ctx, err := s.setupTemplateContext(msg, opts)
+func (s *MessageSender) sendEmail(ctx context.Context, msg *PreparedMessage, opts SendOptions) error {
+	variables, err := s.setupTemplateContext(msg, opts)
 	if err != nil {
 		return err
 	}
 
-	data, err := s.Translation.EmailMessageData(msg.spec, ctx)
+	data, err := s.Translation.EmailMessageData(ctx, msg.spec, variables)
 	if err != nil {
 		return err
 	}
@@ -274,16 +275,16 @@ func (s *MessageSender) sendEmail(msg *PreparedMessage, opts SendOptions) error 
 	msg.email.TextBody = data.TextBody.String
 	msg.email.HTMLBody = data.HTMLBody.String
 
-	return msg.email.Send()
+	return msg.email.Send(ctx)
 }
 
-func (s *MessageSender) sendSMS(msg *PreparedMessage, opts SendOptions) error {
-	ctx, err := s.setupTemplateContext(msg, opts)
+func (s *MessageSender) sendSMS(ctx context.Context, msg *PreparedMessage, opts SendOptions) error {
+	variables, err := s.setupTemplateContext(msg, opts)
 	if err != nil {
 		return err
 	}
 
-	data, err := s.Translation.SMSMessageData(msg.spec, ctx)
+	data, err := s.Translation.SMSMessageData(ctx, msg.spec, variables)
 	if err != nil {
 		return err
 	}
@@ -295,10 +296,10 @@ func (s *MessageSender) sendSMS(msg *PreparedMessage, opts SendOptions) error {
 	msg.sms.TemplateVariables = sms.NewTemplateVariablesFromPreparedTemplateVariables(data.PreparedTemplateVariables)
 	msg.sms.AppID = string(s.AppID)
 
-	return msg.sms.Send()
+	return msg.sms.Send(ctx)
 }
 
-func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) (err error) {
+func (s *MessageSender) sendWhatsapp(ctx context.Context, msg *PreparedMessage, opts SendOptions) (err error) {
 	// Rewrite the error to be APIError.
 	defer func() {
 		if err != nil {
@@ -310,17 +311,17 @@ func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) (er
 		}
 	}()
 
-	ctx, err := s.setupTemplateContext(msg, opts)
+	variables, err := s.setupTemplateContext(msg, opts)
 	if err != nil {
 		return
 	}
 
-	language, err := s.WhatsappService.ResolveOTPTemplateLanguage()
+	language, err := s.WhatsappService.ResolveOTPTemplateLanguage(ctx)
 	if err != nil {
 		return
 	}
 
-	data, err := s.Translation.WhatsappMessageData(language, msg.spec, ctx)
+	data, err := s.Translation.WhatsappMessageData(ctx, language, msg.spec, variables)
 	if err != nil {
 		return
 	}
@@ -336,7 +337,7 @@ func (s *MessageSender) sendWhatsapp(msg *PreparedMessage, opts SendOptions) (er
 	msg.whatsapp.Options.Components = prepared.Components
 	msg.whatsapp.Options.Namespace = prepared.Namespace
 
-	err = msg.whatsapp.Send(s.WhatsappService)
+	err = msg.whatsapp.Send(ctx, s.WhatsappService)
 	if err != nil {
 		return
 	}
