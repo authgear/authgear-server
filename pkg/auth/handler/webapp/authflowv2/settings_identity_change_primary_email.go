@@ -3,19 +3,18 @@ package authflowv2
 import (
 	"net/http"
 	"net/url"
-	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -31,8 +30,8 @@ func ConfigureAuthflowV2SettingsIdentityChangePrimaryEmailRoute(route httproute.
 }
 
 type AuthflowV2SettingsIdentityChangePrimaryEmailViewModel struct {
-	LoginIDKey      string
-	EmailIdentities []*identity.LoginID
+	LoginIDKey string
+	Emails     []string
 }
 
 type AuthflowV2SettingsIdentityChangePrimaryEmailHandler struct {
@@ -56,7 +55,12 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) GetData(r *http.Re
 
 	userID := session.GetUserID(r.Context())
 
-	identities, err := h.Identities.LoginID.List(*userID)
+	loginIDIdentities, err := h.Identities.LoginID.List(*userID)
+	if err != nil {
+		return nil, err
+	}
+
+	oauthIdentities, err := h.Identities.OAuth.List(*userID)
 	if err != nil {
 		return nil, err
 	}
@@ -67,20 +71,23 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) GetData(r *http.Re
 	}
 	viewmodels.Embed(data, *settingsProfileViewModel)
 
-	var emailIdentities []*identity.LoginID
-	for _, identity := range identities {
+	emails := setutil.Set[string]{}
+	for _, identity := range loginIDIdentities {
 		if identity.LoginIDType == model.LoginIDKeyTypeEmail {
-			emailIdentities = append(emailIdentities, identity)
+			emails.Add(identity.LoginID)
 		}
 	}
 
-	sort.Slice(emailIdentities, func(i, j int) bool {
-		return emailIdentities[i].UpdatedAt.Before(emailIdentities[j].UpdatedAt)
-	})
+	for _, identity := range oauthIdentities {
+		email, ok := identity.Claims[stdattrs.Email].(string)
+		if ok && email != "" {
+			emails.Add(email)
+		}
+	}
 
-	vm := AuthflowV2SettingsIdentityListEmailViewModel{
-		LoginIDKey:      loginIDKey,
-		EmailIdentities: emailIdentities,
+	vm := AuthflowV2SettingsIdentityChangePrimaryEmailViewModel{
+		LoginIDKey: loginIDKey,
+		Emails:     emails.Keys(),
 	}
 	viewmodels.Embed(data, vm)
 

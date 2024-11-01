@@ -22,15 +22,15 @@
   {{ $.CSRFField }}
   <ul>
     {{ $currentEmail := .Email }}
-    {{ range .EmailIdentities }}
+    {{ range .Emails }}
       <li>
         {{ template "authflowv2/__settings_radio.html"
         (dict
-          "Label" (include "__settings_identity_change_primary_email_item_label.html" .OriginalLoginID)
+          "Label" (include "__settings_identity_change_primary_email_item_label.html" .)
           "Name" "/email"
-          "Value" .LoginID
+          "Value" .
           "ShowInput" false
-          "DefaultChecked" (eq .LoginID $currentEmail)
+          "DefaultChecked" (eq . $currentEmail)
         )
         }}
       </li>
