@@ -14,14 +14,12 @@ import (
 )
 
 type SimpleStoreRedisFactory struct {
-	Context context.Context
-	AppID   config.AppID
-	Redis   *appredis.Handle
+	AppID config.AppID
+	Redis *appredis.Handle
 }
 
 func (f *SimpleStoreRedisFactory) GetStoreByProvider(providerType string, providerAlias string) *SimpleStoreRedis {
 	return &SimpleStoreRedis{
-		context:       f.Context,
 		redis:         f.Redis,
 		appID:         string(f.AppID),
 		providerType:  providerType,
@@ -34,24 +32,23 @@ func storageKey(appID string, providerType string, providerAlias string, key str
 }
 
 type SimpleStoreRedis struct {
-	context       context.Context
 	redis         *appredis.Handle
 	appID         string
 	providerType  string
 	providerAlias string
 }
 
-func (s *SimpleStoreRedis) GetDel(key string) (data string, err error) {
+func (s *SimpleStoreRedis) GetDel(ctx context.Context, key string) (data string, err error) {
 	storeKey := storageKey(s.appID, s.providerType, s.providerAlias, key)
-	err = s.redis.WithConnContext(s.context, func(conn redis.Redis_6_0_Cmdable) error {
-		data, err = conn.Get(s.context, storeKey).Result()
+	err = s.redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		data, err = conn.Get(ctx, storeKey).Result()
 		if err != nil {
 			if errors.Is(err, goredis.Nil) {
 				return nil
 			}
 			return err
 		}
-		_, err = conn.Del(s.context, storeKey).Result()
+		_, err = conn.Del(ctx, storeKey).Result()
 		if err != nil {
 			return err
 		}
@@ -61,10 +58,10 @@ func (s *SimpleStoreRedis) GetDel(key string) (data string, err error) {
 	return
 }
 
-func (s *SimpleStoreRedis) SetWithTTL(key string, value string, ttl time.Duration) error {
+func (s *SimpleStoreRedis) SetWithTTL(ctx context.Context, key string, value string, ttl time.Duration) error {
 	storeKey := storageKey(s.appID, s.providerType, s.providerAlias, key)
-	err := s.redis.WithConnContext(s.context, func(conn redis.Redis_6_0_Cmdable) error {
-		_, err := conn.SetEx(s.context, storeKey, []byte(value), ttl).Result()
+	err := s.redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err := conn.SetEx(ctx, storeKey, []byte(value), ttl).Result()
 		if err != nil {
 			return err
 		}
