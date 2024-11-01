@@ -1,6 +1,7 @@
 package passkey
 
 import (
+	"context"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -11,8 +12,8 @@ import (
 
 // nolint: golint
 type PasskeyService interface {
-	PeekAttestationResponse(attestationResponse []byte) (creationOptions *model.WebAuthnCreationOptions, credentialID string, signCount int64, err error)
-	PeekAssertionResponse(assertionResponse []byte, attestationResponse []byte) (signCount int64, err error)
+	PeekAttestationResponse(ctx context.Context, attestationResponse []byte) (creationOptions *model.WebAuthnCreationOptions, credentialID string, signCount int64, err error)
+	PeekAssertionResponse(ctx context.Context, assertionResponse []byte, attestationResponse []byte) (signCount int64, err error)
 }
 
 type Provider struct {
@@ -21,30 +22,30 @@ type Provider struct {
 	Passkey PasskeyService
 }
 
-func (p *Provider) Get(userID string, id string) (*authenticator.Passkey, error) {
-	return p.Store.Get(userID, id)
+func (p *Provider) Get(ctx context.Context, userID string, id string) (*authenticator.Passkey, error) {
+	return p.Store.Get(ctx, userID, id)
 }
 
-func (p *Provider) GetMany(ids []string) ([]*authenticator.Passkey, error) {
-	return p.Store.GetMany(ids)
+func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*authenticator.Passkey, error) {
+	return p.Store.GetMany(ctx, ids)
 }
 
-func (p *Provider) Delete(a *authenticator.Passkey) error {
-	return p.Store.Delete(a.ID)
+func (p *Provider) Delete(ctx context.Context, a *authenticator.Passkey) error {
+	return p.Store.Delete(ctx, a.ID)
 }
 
-func (p *Provider) Create(a *authenticator.Passkey) error {
+func (p *Provider) Create(ctx context.Context, a *authenticator.Passkey) error {
 	now := p.Clock.NowUTC()
 	a.CreatedAt = now
 	a.UpdatedAt = now
-	return p.Store.Create(a)
+	return p.Store.Create(ctx, a)
 }
 
-func (p *Provider) Update(a *authenticator.Passkey) error {
+func (p *Provider) Update(ctx context.Context, a *authenticator.Passkey) error {
 	now := p.Clock.NowUTC()
 	a.UpdatedAt = now
 
-	err := p.Store.UpdateSignCount(a)
+	err := p.Store.UpdateSignCount(ctx, a)
 	if err != nil {
 		return err
 	}
@@ -52,8 +53,8 @@ func (p *Provider) Update(a *authenticator.Passkey) error {
 	return nil
 }
 
-func (p *Provider) List(userID string) ([]*authenticator.Passkey, error) {
-	authenticators, err := p.Store.List(userID)
+func (p *Provider) List(ctx context.Context, userID string) ([]*authenticator.Passkey, error) {
+	authenticators, err := p.Store.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -63,13 +64,14 @@ func (p *Provider) List(userID string) ([]*authenticator.Passkey, error) {
 }
 
 func (p *Provider) New(
+	ctx context.Context,
 	id string,
 	userID string,
 	attestationResponse []byte,
 	isDefault bool,
 	kind string,
 ) (*authenticator.Passkey, error) {
-	creationOptions, credentialID, signCount, err := p.Passkey.PeekAttestationResponse(attestationResponse)
+	creationOptions, credentialID, signCount, err := p.Passkey.PeekAttestationResponse(ctx, attestationResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -89,8 +91,8 @@ func (p *Provider) New(
 	return a, nil
 }
 
-func (p *Provider) Authenticate(a *authenticator.Passkey, assertionResponse []byte) (requireUpdate bool, err error) {
-	signCount, err := p.Passkey.PeekAssertionResponse(assertionResponse, a.AttestationResponse)
+func (p *Provider) Authenticate(ctx context.Context, a *authenticator.Passkey, assertionResponse []byte) (requireUpdate bool, err error) {
+	signCount, err := p.Passkey.PeekAssertionResponse(ctx, assertionResponse, a.AttestationResponse)
 	if err != nil {
 		return
 	}
