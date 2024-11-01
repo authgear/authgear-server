@@ -96,8 +96,6 @@ type BaseViewModel struct {
 	BotProtectionProviderType     string
 	BotProtectionProviderSiteKey  string
 	ResolvedBotProtectionLanguage string
-
-	BackableToPath string
 }
 
 func (m *BaseViewModel) SetError(err error) {
