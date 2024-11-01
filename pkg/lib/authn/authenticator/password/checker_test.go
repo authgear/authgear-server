@@ -1,6 +1,7 @@
 package password
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
 	"time"
@@ -100,7 +101,8 @@ func TestValidateNewPassword(t *testing.T) {
 	}
 
 	test := func(pc *Checker, userID string, password string, expected string) {
-		err := pc.ValidateNewPassword(userID, password)
+		ctx := context.Background()
+		err := pc.ValidateNewPassword(ctx, userID, password)
 		if err != nil {
 			e := apierrors.AsAPIError(err)
 			b, _ := json.Marshal(e)
@@ -299,8 +301,9 @@ func TestValidateNewPassword(t *testing.T) {
 			PwMinGuessableLevel: 5,
 			PwExcludedKeywords:  []string{"user", "admin"},
 		}
+		ctx := context.Background()
 		So(
-			pc.ValidateNewPassword("", password),
+			pc.ValidateNewPassword(ctx, "", password),
 			ShouldBeNil,
 		)
 	})

@@ -15,6 +15,8 @@
 package password
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
@@ -33,13 +35,13 @@ type Housekeeper struct {
 	Config *config.AuthenticatorPasswordConfig
 }
 
-func (p *Housekeeper) Housekeep(authID string) (err error) {
+func (p *Housekeeper) Housekeep(ctx context.Context, authID string) (err error) {
 	if !p.Config.Policy.IsEnabled() {
 		return
 	}
 
 	p.Logger.Debug("remove password history")
-	err = p.Store.RemovePasswordHistory(authID, p.Config.Policy.HistorySize, p.Config.Policy.HistoryDays)
+	err = p.Store.RemovePasswordHistory(ctx, authID, p.Config.Policy.HistorySize, p.Config.Policy.HistoryDays)
 	if err != nil {
 		p.Logger.WithError(err).Error("unable to housekeep password history")
 	}

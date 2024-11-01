@@ -1,6 +1,7 @@
 package password
 
 import (
+	"context"
 	"sort"
 	"time"
 
@@ -30,7 +31,7 @@ func (m *mockPasswordHistoryStoreImpl) CreatePasswordHistory(userID string, hash
 	return nil
 }
 
-func (m *mockPasswordHistoryStoreImpl) GetPasswordHistory(userID string, historySize int, historyDays config.DurationDays) ([]History, error) {
+func (m *mockPasswordHistoryStoreImpl) GetPasswordHistory(ctx context.Context, userID string, historySize int, historyDays config.DurationDays) ([]History, error) {
 	uph, ok := m.Data[userID]
 	if !ok || len(uph) <= 0 {
 		return []History{}, nil
@@ -51,8 +52,8 @@ func (m *mockPasswordHistoryStoreImpl) GetPasswordHistory(userID string, history
 	return uph[:index+1], nil
 }
 
-func (m *mockPasswordHistoryStoreImpl) RemovePasswordHistory(userID string, historySize int, historyDays config.DurationDays) error {
-	uph, err := m.GetPasswordHistory(userID, historySize, historyDays)
+func (m *mockPasswordHistoryStoreImpl) RemovePasswordHistory(ctx context.Context, userID string, historySize int, historyDays config.DurationDays) error {
+	uph, err := m.GetPasswordHistory(ctx, userID, historySize, historyDays)
 	if err != nil {
 		return err
 	}
