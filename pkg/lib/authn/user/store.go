@@ -1,6 +1,7 @@
 package user
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -18,19 +19,19 @@ import (
 )
 
 type store interface {
-	Create(u *User) error
-	Get(userID string) (*User, error)
-	GetByIDs(userIDs []string) ([]*User, error)
-	Count() (uint64, error)
-	QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
-	QueryForExport(offset uint64, limit uint64) ([]*User, error)
-	UpdateLoginTime(userID string, loginAt time.Time) error
-	UpdateMFAEnrollment(userID string, endAt *time.Time) error
-	UpdateAccountStatus(userID string, status AccountStatus) error
-	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
-	UpdateCustomAttributes(userID string, customAttrs map[string]interface{}) error
-	Delete(userID string) error
-	Anonymize(userID string) error
+	Create(ctx context.Context, u *User) error
+	Get(ctx context.Context, userID string) (*User, error)
+	GetByIDs(ctx context.Context, userIDs []string) ([]*User, error)
+	Count(ctx context.Context) (uint64, error)
+	QueryPage(ctx context.Context, listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error)
+	QueryForExport(ctx context.Context, offset uint64, limit uint64) ([]*User, error)
+	UpdateLoginTime(ctx context.Context, userID string, loginAt time.Time) error
+	UpdateMFAEnrollment(ctx context.Context, userID string, endAt *time.Time) error
+	UpdateAccountStatus(ctx context.Context, userID string, status AccountStatus) error
+	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error
+	UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error
+	Delete(ctx context.Context, userID string) error
+	Anonymize(ctx context.Context, userID string) error
 }
 
 type Store struct {
@@ -40,7 +41,7 @@ type Store struct {
 	AppID       config.AppID
 }
 
-func (s *Store) Create(u *User) (err error) {
+func (s *Store) Create(ctx context.Context, u *User) (err error) {
 	stdAttrs := u.StandardAttributes
 	if stdAttrs == nil {
 		stdAttrs = make(map[string]interface{})
@@ -98,7 +99,7 @@ func (s *Store) Create(u *User) (err error) {
 			u.MFAGracePeriodtEndAt,
 		)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -203,9 +204,9 @@ func (s *Store) scan(scn db.Scanner) (*User, error) {
 	return u, nil
 }
 
-func (s *Store) Get(userID string) (*User, error) {
+func (s *Store) Get(ctx context.Context, userID string) (*User, error) {
 	builder := s.selectQuery("").Where("id = ?", userID)
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -220,10 +221,10 @@ func (s *Store) Get(userID string) (*User, error) {
 	return u, nil
 }
 
-func (s *Store) GetByIDs(userIDs []string) ([]*User, error) {
+func (s *Store) GetByIDs(ctx context.Context, userIDs []string) ([]*User, error) {
 	builder := s.selectQuery("").Where("id = ANY (?)", pq.Array(userIDs))
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -241,11 +242,11 @@ func (s *Store) GetByIDs(userIDs []string) ([]*User, error) {
 	return users, nil
 }
 
-func (s *Store) Count() (uint64, error) {
+func (s *Store) Count(ctx context.Context) (uint64, error) {
 	builder := s.SQLBuilder.
 		Select("count(*)").
 		From(s.SQLBuilder.TableName("_auth_user"))
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return 0, err
 	}
@@ -258,7 +259,7 @@ func (s *Store) Count() (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
+func (s *Store) QueryPage(ctx context.Context, listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
 	query := s.selectQuery("u")
 
 	query = listOption.SortOption.Apply(query)
@@ -268,7 +269,7 @@ func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs)
 		return nil, 0, err
 	}
 
-	rows, err := s.SQLExecutor.QueryWith(query)
+	rows, err := s.SQLExecutor.QueryWith(ctx, query)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -286,11 +287,11 @@ func (s *Store) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs)
 	return users, offset, nil
 }
 
-func (s *Store) QueryForExport(offset uint64, limit uint64) ([]*User, error) {
+func (s *Store) QueryForExport(ctx context.Context, offset uint64, limit uint64) ([]*User, error) {
 	// created_at indexed as DESC NULLS LAST, to re use the index but in invented direction, need to use ASC NULLS FIRST
 	query := s.selectQuery("u").Offset(offset).Limit(limit).OrderBy("created_at ASC NULLS FIRST")
 
-	rows, err := s.SQLExecutor.QueryWith(query)
+	rows, err := s.SQLExecutor.QueryWith(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -308,14 +309,14 @@ func (s *Store) QueryForExport(offset uint64, limit uint64) ([]*User, error) {
 	return users, nil
 }
 
-func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
+func (s *Store) UpdateLoginTime(ctx context.Context, userID string, loginAt time.Time) error {
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("last_login_at", sq.Expr("login_at")).
 		Set("login_at", loginAt).
 		Where("id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -323,13 +324,13 @@ func (s *Store) UpdateLoginTime(userID string, loginAt time.Time) error {
 	return nil
 }
 
-func (s *Store) UpdateMFAEnrollment(userID string, endAt *time.Time) error {
+func (s *Store) UpdateMFAEnrollment(ctx context.Context, userID string, endAt *time.Time) error {
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("mfa_grace_period_end_at", endAt).
 		Where("id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -337,7 +338,7 @@ func (s *Store) UpdateMFAEnrollment(userID string, endAt *time.Time) error {
 	return nil
 }
 
-func (s *Store) UpdateAccountStatus(userID string, accountStatus AccountStatus) error {
+func (s *Store) UpdateAccountStatus(ctx context.Context, userID string, accountStatus AccountStatus) error {
 	now := s.Clock.NowUTC()
 
 	builder := s.SQLBuilder.
@@ -351,7 +352,7 @@ func (s *Store) UpdateAccountStatus(userID string, accountStatus AccountStatus) 
 		Set("updated_at", now).
 		Where("id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -359,7 +360,7 @@ func (s *Store) UpdateAccountStatus(userID string, accountStatus AccountStatus) 
 	return nil
 }
 
-func (s *Store) UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error {
+func (s *Store) UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error {
 	now := s.Clock.NowUTC()
 
 	if stdAttrs == nil {
@@ -377,7 +378,7 @@ func (s *Store) UpdateStandardAttributes(userID string, stdAttrs map[string]inte
 		Set("updated_at", now).
 		Where("id = ?", userID)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -385,7 +386,7 @@ func (s *Store) UpdateStandardAttributes(userID string, stdAttrs map[string]inte
 	return nil
 }
 
-func (s *Store) UpdateCustomAttributes(userID string, customAttrs map[string]interface{}) error {
+func (s *Store) UpdateCustomAttributes(ctx context.Context, userID string, customAttrs map[string]interface{}) error {
 	now := s.Clock.NowUTC()
 
 	if customAttrs == nil {
@@ -403,7 +404,7 @@ func (s *Store) UpdateCustomAttributes(userID string, customAttrs map[string]int
 		Set("updated_at", now).
 		Where("id = ?", userID)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -411,12 +412,12 @@ func (s *Store) UpdateCustomAttributes(userID string, customAttrs map[string]int
 	return nil
 }
 
-func (s *Store) Delete(userID string) error {
+func (s *Store) Delete(ctx context.Context, userID string) error {
 	builder := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_user")).
 		Where("id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -424,7 +425,7 @@ func (s *Store) Delete(userID string) error {
 	return nil
 }
 
-func (s *Store) Anonymize(userID string) error {
+func (s *Store) Anonymize(ctx context.Context, userID string) error {
 	now := s.Clock.NowUTC()
 
 	builder := s.SQLBuilder.
@@ -437,7 +438,7 @@ func (s *Store) Anonymize(userID string) error {
 		Set("updated_at", now).
 		Where("id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -445,14 +446,14 @@ func (s *Store) Anonymize(userID string) error {
 	return nil
 }
 
-func (s *Store) MarkAsReindexRequired(userIDs []string) error {
+func (s *Store) MarkAsReindexRequired(ctx context.Context, userIDs []string) error {
 	now := s.Clock.NowUTC()
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("require_reindex_after", now).
 		Where("id = ANY (?)", pq.Array(userIDs))
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -460,13 +461,13 @@ func (s *Store) MarkAsReindexRequired(userIDs []string) error {
 	return nil
 }
 
-func (s *Store) UpdateLastIndexedAt(userIDs []string, at time.Time) error {
+func (s *Store) UpdateLastIndexedAt(ctx context.Context, userIDs []string, at time.Time) error {
 	builder := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_user")).
 		Set("last_indexed_at", at).
 		Where("id = ANY (?)", pq.Array(userIDs))
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}

@@ -1,6 +1,8 @@
 package user
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -10,20 +12,20 @@ type RawQueries struct {
 	Store store
 }
 
-func (p *RawQueries) GetRaw(id string) (*User, error) {
-	return p.Store.Get(id)
+func (p *RawQueries) GetRaw(ctx context.Context, id string) (*User, error) {
+	return p.Store.Get(ctx, id)
 }
 
-func (p *RawQueries) GetManyRaw(ids []string) ([]*User, error) {
-	return p.Store.GetByIDs(ids)
+func (p *RawQueries) GetManyRaw(ctx context.Context, ids []string) ([]*User, error) {
+	return p.Store.GetByIDs(ctx, ids)
 }
 
-func (p *RawQueries) Count() (uint64, error) {
-	return p.Store.Count()
+func (p *RawQueries) Count(ctx context.Context) (uint64, error) {
+	return p.Store.Count(ctx)
 }
 
-func (p *RawQueries) QueryPage(listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
-	users, offset, err := p.Store.QueryPage(listOption, pageArgs)
+func (p *RawQueries) QueryPage(ctx context.Context, listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error) {
+	users, offset, err := p.Store.QueryPage(ctx, listOption, pageArgs)
 	if err != nil {
 		return nil, err
 	}
