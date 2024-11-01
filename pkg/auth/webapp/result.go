@@ -45,7 +45,9 @@ func (r *Result) WriteResponse(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	// Propagate q_from
+	// Propagate q_back_url
+	// When user POST something to an endpoint, and that endpoint returned a redirect response,
+	// from the user's perspective the user is reaching the redirected uri from the page he POST the request.
 	if req.URL.Query().Get(QueryBackURL) != "" {
 		q.Set(QueryBackURL, req.URL.Query().Get(QueryBackURL))
 	}
