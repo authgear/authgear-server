@@ -9,11 +9,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -28,12 +30,19 @@ func ConfigureAuthflowV2SettingsIdentityListEmailRoute(route httproute.Route) ht
 		WithPathPattern(AuthflowV2RouteSettingsIdentityListEmail)
 }
 
+type AuthflowV2SettingsIdentityListEmailViewModelOAuthIdentity struct {
+	Email        string
+	ProviderType string
+}
+
 type AuthflowV2SettingsIdentityListEmailViewModel struct {
-	LoginIDKey      string
-	PrimaryEmail    *identity.LoginID
-	EmailIdentities []*identity.LoginID
-	Verifications   map[string][]verification.ClaimStatus
-	CreateDisabled  bool
+	LoginIDKey           string
+	PrimaryEmail         string
+	AllEmails            []string
+	EmailIdentities      []*identity.LoginID
+	OAuthEmailIdentities []*AuthflowV2SettingsIdentityListEmailViewModelOAuthIdentity
+	Verifications        map[string][]verification.ClaimStatus
+	CreateDisabled       bool
 }
 
 type AuthflowV2SettingsIdentityListEmailHandler struct {
@@ -57,7 +66,14 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(r *http.Request, rw
 
 	userID := session.GetUserID(r.Context())
 
-	identities, err := h.Identities.LoginID.List(*userID)
+	emails := setutil.Set[string]{}
+
+	loginIDIdentities, err := h.Identities.LoginID.List(*userID)
+	if err != nil {
+		return nil, err
+	}
+
+	oauthIdentities, err := h.Identities.OAuth.List(*userID)
 	if err != nil {
 		return nil, err
 	}
@@ -67,17 +83,33 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(r *http.Request, rw
 		return nil, err
 	}
 
-	var primary *identity.LoginID
-	var emailIdentities []*identity.LoginID
-	var emailInfos []*identity.Info
-	for _, identity := range identities {
+	var primary string
+	var emailIdentities []*identity.LoginID = []*identity.LoginID{}
+	var oauthEmailIdentities []*AuthflowV2SettingsIdentityListEmailViewModelOAuthIdentity = []*AuthflowV2SettingsIdentityListEmailViewModelOAuthIdentity{}
+	var emailInfos []*identity.Info = []*identity.Info{}
+	for _, identity := range loginIDIdentities {
 		if identity.LoginIDType == model.LoginIDKeyTypeEmail {
-			if loginIDKey == "" || identity.LoginIDKey == loginIDKey {
-				emailIdentities = append(emailIdentities, identity)
-				emailInfos = append(emailInfos, identity.ToInfo())
-				if identity.LoginID == settingsProfileViewModel.Email {
-					primary = identity
-				}
+			emails.Add(identity.LoginID)
+			emailIdentities = append(emailIdentities, identity)
+			emailInfos = append(emailInfos, identity.ToInfo())
+			if identity.LoginID == settingsProfileViewModel.Email {
+				primary = identity.LoginID
+			}
+		}
+	}
+
+	for _, identity := range oauthIdentities {
+		email, ok := identity.Claims[stdattrs.Email].(string)
+		if ok && email != "" {
+			emails.Add(email)
+			oauthEmailIdentities = append(oauthEmailIdentities,
+				&AuthflowV2SettingsIdentityListEmailViewModelOAuthIdentity{
+					Email:        email,
+					ProviderType: identity.ProviderID.Type,
+				},
+			)
+			if email == settingsProfileViewModel.Email {
+				primary = email
 			}
 		}
 	}
@@ -97,11 +129,13 @@ func (h *AuthflowV2SettingsIdentityListEmailHandler) GetData(r *http.Request, rw
 	}
 
 	vm := AuthflowV2SettingsIdentityListEmailViewModel{
-		LoginIDKey:      loginIDKey,
-		EmailIdentities: emailIdentities,
-		Verifications:   verifications,
-		CreateDisabled:  createDisabled,
-		PrimaryEmail:    primary,
+		LoginIDKey:           loginIDKey,
+		EmailIdentities:      emailIdentities,
+		OAuthEmailIdentities: oauthEmailIdentities,
+		Verifications:        verifications,
+		CreateDisabled:       createDisabled,
+		PrimaryEmail:         primary,
+		AllEmails:            emails.Keys(),
 	}
 	viewmodels.Embed(data, vm)
 
