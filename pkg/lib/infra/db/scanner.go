@@ -1,6 +1,6 @@
 package db
 
-// Scanner is sqlx.Row or sqlx.Rows.
+// Scanner is *sql.Row or *sql.Rows.
 type Scanner interface {
 	Scan(dest ...interface{}) error
 }
