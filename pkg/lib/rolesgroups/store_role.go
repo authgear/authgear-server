@@ -1,6 +1,7 @@
 package rolesgroups
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -23,7 +24,7 @@ func (s *Store) NewRole(options *NewRoleOptions) *Role {
 	}
 }
 
-func (s *Store) CreateRole(r *Role) error {
+func (s *Store) CreateRole(ctx context.Context, r *Role) error {
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_role")).
 		Columns(
@@ -43,7 +44,7 @@ func (s *Store) CreateRole(r *Role) error {
 			r.Description,
 		)
 
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		var pqError *pq.Error
 		if errors.As(err, &pqError) {
@@ -59,7 +60,7 @@ func (s *Store) CreateRole(r *Role) error {
 	return nil
 }
 
-func (s *Store) UpdateRole(options *UpdateRoleOptions) error {
+func (s *Store) UpdateRole(ctx context.Context, options *UpdateRoleOptions) error {
 	now := s.Clock.NowUTC()
 
 	q := s.SQLBuilder.Update(s.SQLBuilder.TableName("_auth_role")).
@@ -86,7 +87,7 @@ func (s *Store) UpdateRole(options *UpdateRoleOptions) error {
 		}
 	}
 
-	result, err := s.SQLExecutor.ExecWith(q)
+	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		var pqError *pq.Error
 		if errors.As(err, &pqError) {
@@ -111,11 +112,11 @@ func (s *Store) UpdateRole(options *UpdateRoleOptions) error {
 	return nil
 }
 
-func (s *Store) DeleteRole(id string) error {
+func (s *Store) DeleteRole(ctx context.Context, id string) error {
 	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_group_role")).
 		Where("role_id = ?", id)
 
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -123,7 +124,7 @@ func (s *Store) DeleteRole(id string) error {
 	q = s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_role")).
 		Where("role_id = ?", id)
 
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -131,7 +132,7 @@ func (s *Store) DeleteRole(id string) error {
 	q = s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_role")).
 		Where("id = ?", id)
 
-	result, err := s.SQLExecutor.ExecWith(q)
+	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -148,10 +149,10 @@ func (s *Store) DeleteRole(id string) error {
 	return nil
 }
 
-func (s *Store) GetRoleByID(id string) (*Role, error) {
+func (s *Store) GetRoleByID(ctx context.Context, id string) (*Role, error) {
 	q := s.selectRoleQuery().Where("id = ?", id)
 
-	row, err := s.SQLExecutor.QueryRowWith(q)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -167,10 +168,10 @@ func (s *Store) GetRoleByID(id string) (*Role, error) {
 	return r, nil
 }
 
-func (s *Store) GetRoleByKey(key string) (*Role, error) {
+func (s *Store) GetRoleByKey(ctx context.Context, key string) (*Role, error) {
 	q := s.selectRoleQuery().Where("key = ?", key)
 
-	row, err := s.SQLExecutor.QueryRowWith(q)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -186,11 +187,11 @@ func (s *Store) GetRoleByKey(key string) (*Role, error) {
 	return r, nil
 }
 
-func (s *Store) CountRoles() (uint64, error) {
+func (s *Store) CountRoles(ctx context.Context) (uint64, error) {
 	builder := s.SQLBuilder.
 		Select("count(*)").
 		From(s.SQLBuilder.TableName("_auth_role"))
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return 0, err
 	}
@@ -203,7 +204,7 @@ func (s *Store) CountRoles() (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) ListRoles(options *ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]*Role, uint64, error) {
+func (s *Store) ListRoles(ctx context.Context, options *ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]*Role, uint64, error) {
 	q := s.selectRoleQuery().
 		// Sort by key to ensure we have a stable order.
 		OrderBy("key ASC")
@@ -221,7 +222,7 @@ func (s *Store) ListRoles(options *ListRolesOptions, pageArgs graphqlutil.PageAr
 		return nil, 0, err
 	}
 
-	roles, err := s.queryRoles(q)
+	roles, err := s.queryRoles(ctx, q)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -280,18 +281,18 @@ func (s *Store) scanRoleWithUserID(scanner db.Scanner) (string, *Role, error) {
 	return u, r, nil
 }
 
-func (s *Store) GetManyRoles(ids []string) ([]*Role, error) {
+func (s *Store) GetManyRoles(ctx context.Context, ids []string) ([]*Role, error) {
 	q := s.selectRoleQuery().Where("id = ANY (?)", pq.Array(ids))
-	return s.queryRoles(q)
+	return s.queryRoles(ctx, q)
 }
 
-func (s *Store) GetManyRolesByKeys(keys []string) ([]*Role, error) {
+func (s *Store) GetManyRolesByKeys(ctx context.Context, keys []string) ([]*Role, error) {
 	q := s.selectRoleQuery().Where("key = ANY (?)", pq.Array(keys))
-	return s.queryRoles(q)
+	return s.queryRoles(ctx, q)
 }
 
-func (s *Store) queryRoles(q db.SelectBuilder) ([]*Role, error) {
-	rows, err := s.SQLExecutor.QueryWith(q)
+func (s *Store) queryRoles(ctx context.Context, q db.SelectBuilder) ([]*Role, error) {
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -309,8 +310,8 @@ func (s *Store) queryRoles(q db.SelectBuilder) ([]*Role, error) {
 	return roles, nil
 }
 
-func (s *Store) queryRolesWithUserID(q db.SelectBuilder) (map[string][]*Role, error) {
-	rows, err := s.SQLExecutor.QueryWith(q)
+func (s *Store) queryRolesWithUserID(ctx context.Context, q db.SelectBuilder) (map[string][]*Role, error) {
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}

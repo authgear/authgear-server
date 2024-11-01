@@ -1,6 +1,7 @@
 package rolesgroups
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -24,9 +25,9 @@ func (s *Store) selectUserIDQuery() db.SelectBuilder {
 	return s.SQLBuilder.Select("id").From(s.SQLBuilder.TableName("_auth_user"))
 }
 
-func (s *Store) GetUserByID(id string) (string, error) {
+func (s *Store) GetUserByID(ctx context.Context, id string) (string, error) {
 	q := s.selectUserIDQuery().Where("id = ?", id)
-	row, err := s.SQLExecutor.QueryRowWith(q)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return "", err
 	}
@@ -42,13 +43,13 @@ func (s *Store) GetUserByID(id string) (string, error) {
 	return r, nil
 }
 
-func (s *Store) GetManyUsersByIds(ids []string) ([]string, error) {
+func (s *Store) GetManyUsersByIds(ctx context.Context, ids []string) ([]string, error) {
 	q := s.selectUserIDQuery().Where("id = ANY (?)", pq.Array(ids))
-	return s.queryUserIDs(q)
+	return s.queryUserIDs(ctx, q)
 }
 
-func (s *Store) queryUserIDs(q db.SelectBuilder) ([]string, error) {
-	rows, err := s.SQLExecutor.QueryWith(q)
+func (s *Store) queryUserIDs(ctx context.Context, q db.SelectBuilder) ([]string, error) {
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}

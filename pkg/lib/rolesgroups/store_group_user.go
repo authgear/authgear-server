@@ -1,6 +1,8 @@
 package rolesgroups
 
 import (
+	"context"
+
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -10,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-func (s *Store) ListGroupsByUserIDs(userIDs []string) (map[string][]*Group, error) {
+func (s *Store) ListGroupsByUserIDs(ctx context.Context, userIDs []string) (map[string][]*Group, error) {
 	q := s.SQLBuilder.Select(
 		"ug.user_id",
 		"g.id",
@@ -25,11 +27,11 @@ func (s *Store) ListGroupsByUserIDs(userIDs []string) (map[string][]*Group, erro
 		Where("ug.user_id = ANY (?)", pq.Array(userIDs)).
 		OrderBy("ug.created_at")
 
-	return s.queryGroupsWithUserID(q)
+	return s.queryGroupsWithUserID(ctx, q)
 }
 
-func (s *Store) ListGroupsByUserID(userID string) ([]*Group, error) {
-	userGroups, err := s.ListGroupsByUserIDs([]string{userID})
+func (s *Store) ListGroupsByUserID(ctx context.Context, userID string) ([]*Group, error) {
+	userGroups, err := s.ListGroupsByUserIDs(ctx, []string{userID})
 	if err != nil {
 		return nil, err
 	}
@@ -46,10 +48,10 @@ func (s *Store) queryUserIDsByGroupIDs(groupIDs []string) db.SelectBuilder {
 		Where("ug.group_id = ANY (?)", pq.Array(groupIDs))
 }
 
-func (s *Store) ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error) {
+func (s *Store) ListAllUserIDsByGroupIDs(ctx context.Context, groupIDs []string) ([]string, error) {
 	q := s.queryUserIDsByGroupIDs(groupIDs)
 
-	userIDs, err := s.queryUserIDs(q)
+	userIDs, err := s.queryUserIDs(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +59,7 @@ func (s *Store) ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error) {
 	return userIDs, nil
 }
 
-func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {
+func (s *Store) ListUserIDsByGroupID(ctx context.Context, groupID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {
 	q := s.queryUserIDsByGroupIDs([]string{groupID})
 
 	q, offset, err := db.ApplyPageArgs(q, pageArgs)
@@ -65,7 +67,7 @@ func (s *Store) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageAr
 		return nil, 0, err
 	}
 
-	userIDs, err := s.queryUserIDs(q)
+	userIDs, err := s.queryUserIDs(ctx, q)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -78,8 +80,8 @@ type ResetUserGroupOptions struct {
 	GroupKeys []string
 }
 
-func (s *Store) ResetUserGroup(options *ResetUserGroupOptions) error {
-	currentGroups, err := s.ListGroupsByUserID(options.UserID)
+func (s *Store) ResetUserGroup(ctx context.Context, options *ResetUserGroupOptions) error {
+	currentGroups, err := s.ListGroupsByUserID(ctx, options.UserID)
 	if err != nil {
 		return err
 	}
@@ -91,7 +93,7 @@ func (s *Store) ResetUserGroup(options *ResetUserGroupOptions) error {
 	keysToAdd, keysToRemove := computeKeyDifference(originalKeys, options.GroupKeys)
 
 	if len(keysToRemove) != 0 {
-		err := s.RemoveUserFromGroups(&RemoveUserFromGroupsOptions{
+		err := s.RemoveUserFromGroups(ctx, &RemoveUserFromGroupsOptions{
 			UserID:    options.UserID,
 			GroupKeys: keysToRemove,
 		})
@@ -101,7 +103,7 @@ func (s *Store) ResetUserGroup(options *ResetUserGroupOptions) error {
 	}
 
 	if len(keysToAdd) != 0 {
-		err := s.AddUserToGroups(&AddUserToGroupsOptions{
+		err := s.AddUserToGroups(ctx, &AddUserToGroupsOptions{
 			UserID:    options.UserID,
 			GroupKeys: keysToAdd,
 		})
@@ -113,11 +115,11 @@ func (s *Store) ResetUserGroup(options *ResetUserGroupOptions) error {
 	return nil
 }
 
-func (s *Store) DeleteUserGroup(userID string) error {
+func (s *Store) DeleteUserGroup(ctx context.Context, userID string) error {
 	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_group")).
 		Where("user_id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -131,13 +133,13 @@ type AddGroupToUsersOptions struct {
 	UserIDs  []string
 }
 
-func (s *Store) AddGroupToUsers(options *AddGroupToUsersOptions) (*Group, error) {
-	g, err := s.GetGroupByKey(options.GroupKey)
+func (s *Store) AddGroupToUsers(ctx context.Context, options *AddGroupToUsersOptions) (*Group, error) {
+	g, err := s.GetGroupByKey(ctx, options.GroupKey)
 	if err != nil {
 		return nil, err
 	}
 
-	userIds, err := s.GetManyUsersByIds(options.UserIDs)
+	userIds, err := s.GetManyUsersByIds(ctx, options.UserIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +165,7 @@ func (s *Store) AddGroupToUsers(options *AddGroupToUsersOptions) (*Group, error)
 				g.ID,
 			).Suffix("ON CONFLICT DO NOTHING")
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return nil, err
 		}
@@ -185,13 +187,13 @@ type RemoveGroupFromUsersOptions struct {
 	UserIDs  []string
 }
 
-func (s *Store) RemoveGroupFromUsers(options *RemoveGroupFromUsersOptions) (*Group, error) {
-	r, err := s.GetGroupByKey(options.GroupKey)
+func (s *Store) RemoveGroupFromUsers(ctx context.Context, options *RemoveGroupFromUsersOptions) (*Group, error) {
+	r, err := s.GetGroupByKey(ctx, options.GroupKey)
 	if err != nil {
 		return nil, err
 	}
 
-	users, err := s.GetManyUsersByIds(options.UserIDs)
+	users, err := s.GetManyUsersByIds(ctx, options.UserIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +203,7 @@ func (s *Store) RemoveGroupFromUsers(options *RemoveGroupFromUsersOptions) (*Gro
 		q := s.SQLBuilder.
 			Delete(s.SQLBuilder.TableName("_auth_user_group")).
 			Where("group_id = ? AND user_id = ?", r.ID, u)
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return nil, err
 		}
@@ -223,13 +225,13 @@ type AddUserToGroupsOptions struct {
 	GroupKeys []string
 }
 
-func (s *Store) AddUserToGroups(options *AddUserToGroupsOptions) error {
-	u, err := s.GetUserByID(options.UserID)
+func (s *Store) AddUserToGroups(ctx context.Context, options *AddUserToGroupsOptions) error {
+	u, err := s.GetUserByID(ctx, options.UserID)
 	if err != nil {
 		return err
 	}
 
-	gs, err := s.GetManyGroupsByKeys(options.GroupKeys)
+	gs, err := s.GetManyGroupsByKeys(ctx, options.GroupKeys)
 	if err != nil {
 		return err
 	}
@@ -255,7 +257,7 @@ func (s *Store) AddUserToGroups(options *AddUserToGroupsOptions) error {
 				g.ID,
 			).Suffix("ON CONFLICT DO NOTHING")
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return err
 		}
@@ -277,13 +279,13 @@ type RemoveUserFromGroupsOptions struct {
 	GroupKeys []string
 }
 
-func (s *Store) RemoveUserFromGroups(options *RemoveUserFromGroupsOptions) error {
-	u, err := s.GetUserByID(options.UserID)
+func (s *Store) RemoveUserFromGroups(ctx context.Context, options *RemoveUserFromGroupsOptions) error {
+	u, err := s.GetUserByID(ctx, options.UserID)
 	if err != nil {
 		return err
 	}
 
-	gs, err := s.GetManyGroupsByKeys(options.GroupKeys)
+	gs, err := s.GetManyGroupsByKeys(ctx, options.GroupKeys)
 	if err != nil {
 		return err
 	}
@@ -294,7 +296,7 @@ func (s *Store) RemoveUserFromGroups(options *RemoveUserFromGroupsOptions) error
 			Delete(s.SQLBuilder.TableName("_auth_user_group")).
 			Where("group_id = ? AND user_id = ?", g.ID, u)
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return err
 		}

@@ -1,12 +1,14 @@
 package rolesgroups
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/slice"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-func (s *Store) ListGroupsByRoleID(roleID string) ([]*Group, error) {
+func (s *Store) ListGroupsByRoleID(ctx context.Context, roleID string) ([]*Group, error) {
 	q := s.SQLBuilder.
 		Select(
 			"g.id",
@@ -20,10 +22,10 @@ func (s *Store) ListGroupsByRoleID(roleID string) ([]*Group, error) {
 		Join(s.SQLBuilder.TableName("_auth_group"), "g", "gr.group_id = g.id").
 		Where("gr.role_id = ?", roleID)
 
-	return s.queryGroups(q)
+	return s.queryGroups(ctx, q)
 }
 
-func (s *Store) ListRolesByGroupID(groupID string) ([]*Role, error) {
+func (s *Store) ListRolesByGroupID(ctx context.Context, groupID string) ([]*Role, error) {
 	q := s.SQLBuilder.
 		Select(
 			"r.id",
@@ -37,7 +39,7 @@ func (s *Store) ListRolesByGroupID(groupID string) ([]*Role, error) {
 		Join(s.SQLBuilder.TableName("_auth_role"), "r", "gr.role_id = r.id").
 		Where("gr.group_id = ?", groupID)
 
-	return s.queryRoles(q)
+	return s.queryRoles(ctx, q)
 }
 
 type AddRoleToGroupsOptions struct {
@@ -45,13 +47,13 @@ type AddRoleToGroupsOptions struct {
 	GroupKeys []string
 }
 
-func (s *Store) AddRoleToGroups(options *AddRoleToGroupsOptions) (*Role, error) {
-	r, err := s.GetRoleByKey(options.RoleKey)
+func (s *Store) AddRoleToGroups(ctx context.Context, options *AddRoleToGroupsOptions) (*Role, error) {
+	r, err := s.GetRoleByKey(ctx, options.RoleKey)
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := s.GetManyGroupsByKeys(options.GroupKeys)
+	gs, err := s.GetManyGroupsByKeys(ctx, options.GroupKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +79,7 @@ func (s *Store) AddRoleToGroups(options *AddRoleToGroupsOptions) (*Role, error) 
 				r.ID,
 			).Suffix("ON CONFLICT DO NOTHING")
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return nil, err
 		}
@@ -99,13 +101,13 @@ type RemoveRoleFromGroupsOptions struct {
 	GroupKeys []string
 }
 
-func (s *Store) RemoveRoleFromGroups(options *RemoveRoleFromGroupsOptions) (*Role, error) {
-	r, err := s.GetRoleByKey(options.RoleKey)
+func (s *Store) RemoveRoleFromGroups(ctx context.Context, options *RemoveRoleFromGroupsOptions) (*Role, error) {
+	r, err := s.GetRoleByKey(ctx, options.RoleKey)
 	if err != nil {
 		return nil, err
 	}
 
-	gs, err := s.GetManyGroupsByKeys(options.GroupKeys)
+	gs, err := s.GetManyGroupsByKeys(ctx, options.GroupKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +117,7 @@ func (s *Store) RemoveRoleFromGroups(options *RemoveRoleFromGroupsOptions) (*Rol
 		q := s.SQLBuilder.
 			Delete(s.SQLBuilder.TableName("_auth_group_role")).
 			Where("role_id = ? AND group_id = ?", r.ID, g.ID)
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return nil, err
 		}
@@ -137,13 +139,13 @@ type AddGroupToRolesOptions struct {
 	RoleKeys []string
 }
 
-func (s *Store) AddGroupToRoles(options *AddGroupToRolesOptions) (*Group, error) {
-	g, err := s.GetGroupByKey(options.GroupKey)
+func (s *Store) AddGroupToRoles(ctx context.Context, options *AddGroupToRolesOptions) (*Group, error) {
+	g, err := s.GetGroupByKey(ctx, options.GroupKey)
 	if err != nil {
 		return nil, err
 	}
 
-	rs, err := s.GetManyRolesByKeys(options.RoleKeys)
+	rs, err := s.GetManyRolesByKeys(ctx, options.RoleKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +171,7 @@ func (s *Store) AddGroupToRoles(options *AddGroupToRolesOptions) (*Group, error)
 				r.ID,
 			).Suffix("ON CONFLICT DO NOTHING")
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return nil, err
 		}
@@ -191,13 +193,13 @@ type RemoveGroupFromRolesOptions struct {
 	RoleKeys []string
 }
 
-func (s *Store) RemoveGroupFromRoles(options *RemoveGroupFromRolesOptions) (*Group, error) {
-	g, err := s.GetGroupByKey(options.GroupKey)
+func (s *Store) RemoveGroupFromRoles(ctx context.Context, options *RemoveGroupFromRolesOptions) (*Group, error) {
+	g, err := s.GetGroupByKey(ctx, options.GroupKey)
 	if err != nil {
 		return nil, err
 	}
 
-	rs, err := s.GetManyRolesByKeys(options.RoleKeys)
+	rs, err := s.GetManyRolesByKeys(ctx, options.RoleKeys)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +210,7 @@ func (s *Store) RemoveGroupFromRoles(options *RemoveGroupFromRolesOptions) (*Gro
 			Delete(s.SQLBuilder.TableName("_auth_group_role")).
 			Where("role_id = ? AND group_id = ?", r.ID, g.ID)
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return nil, err
 		}
