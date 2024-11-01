@@ -1,6 +1,7 @@
 package github
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -18,7 +19,8 @@ func TestGithub(t *testing.T) {
 		}
 		g := Github{}
 
-		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
+		ctx := context.Background()
+		u, err := g.GetAuthorizationURL(ctx, deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI: "https://localhost/",
 			Nonce:       "nonce",
 			State:       "state",

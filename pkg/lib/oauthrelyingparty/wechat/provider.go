@@ -2,6 +2,7 @@ package wechat
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -120,7 +121,7 @@ func (Wechat) scope() []string {
 	return []string{"snsapi_userinfo"}
 }
 
-func (p Wechat) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Wechat) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(wechatAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		// ClientID is not used by wechat.
 		WechatAppID:  deps.ProviderConfig.ClientID(),
@@ -136,7 +137,7 @@ func (p Wechat) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param o
 	}.Query()), nil
 }
 
-func (Wechat) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (Wechat) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	code, err := oauthrelyingpartyutil.GetCode(param.Query)
 	if err != nil {
 		return

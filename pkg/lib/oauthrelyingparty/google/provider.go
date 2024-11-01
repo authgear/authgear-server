@@ -87,7 +87,7 @@ func (Google) scope() []string {
 	return []string{"openid", "profile", "email"}
 }
 
-func (p Google) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Google) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return "", err
@@ -104,7 +104,7 @@ func (p Google) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param o
 	}), nil
 }
 
-func (Google) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (Google) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	code, err := oauthrelyingpartyutil.GetCode(param.Query)
 	if err != nil {
 		return

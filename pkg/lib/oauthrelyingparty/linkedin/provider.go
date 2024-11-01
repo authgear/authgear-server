@@ -65,7 +65,7 @@ func (Linkedin) scope() []string {
 	return []string{"openid", "profile", "email"}
 }
 
-func (p Linkedin) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Linkedin) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, linkedinOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return "", err
@@ -85,7 +85,7 @@ func (p Linkedin) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param
 	}), nil
 }
 
-func (Linkedin) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (Linkedin) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	code, err := oauthrelyingpartyutil.GetCode(param.Query)
 	if err != nil {
 		return
