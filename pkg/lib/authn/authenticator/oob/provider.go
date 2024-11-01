@@ -1,6 +1,7 @@
 package oob
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -22,20 +23,20 @@ type Provider struct {
 	Clock                    clock.Clock
 }
 
-func (p *Provider) Get(userID string, id string) (*authenticator.OOBOTP, error) {
-	return p.Store.Get(userID, id)
+func (p *Provider) Get(ctx context.Context, userID string, id string) (*authenticator.OOBOTP, error) {
+	return p.Store.Get(ctx, userID, id)
 }
 
-func (p *Provider) GetMany(ids []string) ([]*authenticator.OOBOTP, error) {
-	return p.Store.GetMany(ids)
+func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*authenticator.OOBOTP, error) {
+	return p.Store.GetMany(ctx, ids)
 }
 
-func (p *Provider) Delete(a *authenticator.OOBOTP) error {
-	return p.Store.Delete(a.ID)
+func (p *Provider) Delete(ctx context.Context, a *authenticator.OOBOTP) error {
+	return p.Store.Delete(ctx, a.ID)
 }
 
-func (p *Provider) List(userID string) ([]*authenticator.OOBOTP, error) {
-	authenticators, err := p.Store.List(userID)
+func (p *Provider) List(ctx context.Context, userID string) ([]*authenticator.OOBOTP, error) {
+	authenticators, err := p.Store.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -126,17 +127,17 @@ func (p *Provider) UpdateTarget(a *authenticator.OOBOTP, option UpdateTargetOpti
 	}
 }
 
-func (p *Provider) Create(a *authenticator.OOBOTP) error {
+func (p *Provider) Create(ctx context.Context, a *authenticator.OOBOTP) error {
 	now := p.Clock.NowUTC()
 	a.CreatedAt = now
 	a.UpdatedAt = now
-	return p.Store.Create(a)
+	return p.Store.Create(ctx, a)
 }
 
-func (p *Provider) Update(a *authenticator.OOBOTP) error {
+func (p *Provider) Update(ctx context.Context, a *authenticator.OOBOTP) error {
 	now := p.Clock.NowUTC()
 	a.UpdatedAt = now
-	return p.Store.Update(a)
+	return p.Store.Update(ctx, a)
 }
 
 func sortAuthenticators(as []*authenticator.OOBOTP) {

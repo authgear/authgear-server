@@ -1,6 +1,7 @@
 package oob
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -58,10 +59,10 @@ func (s *Store) scan(scn db.Scanner) (*authenticator.OOBOTP, error) {
 	return a, nil
 }
 
-func (s *Store) Get(userID string, id string) (*authenticator.OOBOTP, error) {
+func (s *Store) Get(ctx context.Context, userID string, id string) (*authenticator.OOBOTP, error) {
 	q := s.selectQuery().Where("a.user_id = ? AND a.id = ?", userID, id)
 
-	row, err := s.SQLExecutor.QueryRowWith(q)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -69,10 +70,10 @@ func (s *Store) Get(userID string, id string) (*authenticator.OOBOTP, error) {
 	return s.scan(row)
 }
 
-func (s *Store) GetMany(ids []string) ([]*authenticator.OOBOTP, error) {
+func (s *Store) GetMany(ctx context.Context, ids []string) ([]*authenticator.OOBOTP, error) {
 	builder := s.selectQuery().Where("a.id = ANY (?)", pq.Array(ids))
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -90,10 +91,10 @@ func (s *Store) GetMany(ids []string) ([]*authenticator.OOBOTP, error) {
 	return as, nil
 }
 
-func (s *Store) List(userID string) ([]*authenticator.OOBOTP, error) {
+func (s *Store) List(ctx context.Context, userID string) ([]*authenticator.OOBOTP, error) {
 	q := s.selectQuery().Where("a.user_id = ?", userID)
 
-	rows, err := s.SQLExecutor.QueryWith(q)
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -111,11 +112,11 @@ func (s *Store) List(userID string) ([]*authenticator.OOBOTP, error) {
 	return authenticators, nil
 }
 
-func (s *Store) Delete(id string) error {
+func (s *Store) Delete(ctx context.Context, id string) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_authenticator_oob")).
 		Where("id = ?", id)
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -123,7 +124,7 @@ func (s *Store) Delete(id string) error {
 	q = s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_authenticator")).
 		Where("id = ?", id)
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -131,7 +132,7 @@ func (s *Store) Delete(id string) error {
 	return nil
 }
 
-func (s *Store) Create(a *authenticator.OOBOTP) (err error) {
+func (s *Store) Create(ctx context.Context, a *authenticator.OOBOTP) (err error) {
 	if a.OOBAuthenticatorType != model.AuthenticatorTypeOOBEmail &&
 		a.OOBAuthenticatorType != model.AuthenticatorTypeOOBSMS {
 		return errors.New("invalid oob authenticator type")
@@ -157,7 +158,7 @@ func (s *Store) Create(a *authenticator.OOBOTP) (err error) {
 			a.IsDefault,
 			a.Kind,
 		)
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -174,7 +175,7 @@ func (s *Store) Create(a *authenticator.OOBOTP) (err error) {
 			a.Phone,
 			a.Email,
 		)
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -182,7 +183,7 @@ func (s *Store) Create(a *authenticator.OOBOTP) (err error) {
 	return nil
 }
 
-func (s *Store) Update(a *authenticator.OOBOTP) (err error) {
+func (s *Store) Update(ctx context.Context, a *authenticator.OOBOTP) (err error) {
 	if a.OOBAuthenticatorType != model.AuthenticatorTypeOOBEmail &&
 		a.OOBAuthenticatorType != model.AuthenticatorTypeOOBSMS {
 		return errors.New("invalid oob authenticator type")
@@ -192,7 +193,7 @@ func (s *Store) Update(a *authenticator.OOBOTP) (err error) {
 		Update(s.SQLBuilder.TableName("_auth_authenticator")).
 		Set("updated_at", a.UpdatedAt).
 		Where("id = ?", a.ID)
-	result, err := s.SQLExecutor.ExecWith(q)
+	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -211,7 +212,7 @@ func (s *Store) Update(a *authenticator.OOBOTP) (err error) {
 		Set("phone", a.Phone).
 		Set("email", a.Email).
 		Where("id = ?", a.ID)
-	result, err = s.SQLExecutor.ExecWith(q)
+	result, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
