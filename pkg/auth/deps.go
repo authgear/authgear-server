@@ -341,7 +341,6 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 
 	ProvideCookieManager,
 
-	deps.ProvideRequestContext,
 	deps.ProvideRemoteIP,
 	deps.ProvideUserAgentString,
 	deps.ProvideHTTPHost,

@@ -1,7 +1,6 @@
 package deps
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/google/wire"
@@ -13,8 +12,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
-
-func ProvideRequestContext(r *http.Request) context.Context { return r.Context() }
 
 func ProvideRemoteIP(r *http.Request, trustProxy config.TrustProxy) httputil.RemoteIP {
 	return httputil.RemoteIP(httputil.GetIP(r, bool(trustProxy)))
@@ -91,7 +88,6 @@ var DependencySet = wire.NewSet(
 		"RootProvider",
 		"Request",
 	),
-	ProvideRequestContext,
 	ProvideRemoteIP,
 	ProvideUserAgentString,
 	ProvideHTTPHost,
