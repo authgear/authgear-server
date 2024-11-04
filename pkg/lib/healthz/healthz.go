@@ -18,14 +18,13 @@ func NewHandlerLogger(lf *log.Factory) HandlerLogger {
 }
 
 type Handler struct {
-	Context        context.Context
 	GlobalDatabase *globaldb.Handle
 	GlobalExecutor *globaldb.SQLExecutor
 	Logger         HandlerLogger
 }
 
 func (h *Handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	err := h.CheckHealth()
+	err := h.CheckHealth(r.Context())
 	if err != nil {
 		h.Logger.WithError(err).Errorf("health check failed")
 		http.Error(rw, "Service Unavailable", http.StatusServiceUnavailable)
@@ -39,9 +38,9 @@ func (h *Handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	_, _ = rw.Write(body)
 }
 
-func (h *Handler) CheckHealth() (err error) {
-	err = h.GlobalDatabase.ReadOnly(func() error {
-		_, err := h.GlobalExecutor.QueryRowWith(sq.Select("42"))
+func (h *Handler) CheckHealth(ctx context.Context) (err error) {
+	err = h.GlobalDatabase.ReadOnly(ctx, func(ctx context.Context) error {
+		_, err := h.GlobalExecutor.QueryRowWith(ctx, sq.Select("42"))
 		if err != nil {
 			return err
 		}
