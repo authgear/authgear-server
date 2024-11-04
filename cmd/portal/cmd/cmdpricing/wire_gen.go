@@ -7,7 +7,6 @@
 package cmdpricing
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -20,15 +19,15 @@ import (
 
 // Injectors from wire.go:
 
-func NewStripeService(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, stripeConfig *config2.StripeConfig, hub *sentry.Hub) *StripeService {
+func NewStripeService(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, stripeConfig *config2.StripeConfig, hub *sentry.Hub) *StripeService {
 	factory := cobrasentry.NewLoggerFactory(hub)
 	logger := NewLogger(factory)
 	api := NewClientAPI(stripeConfig, logger)
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
-	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
