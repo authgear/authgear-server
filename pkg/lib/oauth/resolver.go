@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"strings"
@@ -15,7 +16,7 @@ import (
 )
 
 type ResolverSessionProvider interface {
-	AccessWithID(id string, accessEvent access.Event) (*idpsession.IDPSession, error)
+	AccessWithID(ctx context.Context, id string, accessEvent access.Event) (*idpsession.IDPSession, error)
 }
 
 type AccessTokenDecoder interface {
@@ -27,8 +28,8 @@ type ResolverCookieManager interface {
 }
 
 type ResolverOfflineGrantService interface {
-	AccessOfflineGrant(grantID string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error)
-	GetOfflineGrant(id string) (*OfflineGrant, error)
+	AccessOfflineGrant(ctx context.Context, grantID string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error)
+	GetOfflineGrant(ctx context.Context, id string) (*OfflineGrant, error)
 }
 
 type Resolver struct {
@@ -45,7 +46,7 @@ type Resolver struct {
 	OfflineGrantService ResolverOfflineGrantService
 }
 
-func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.ResolvedSession, error) {
+func (re *Resolver) Resolve(ctx context.Context, rw http.ResponseWriter, r *http.Request) (session.ResolvedSession, error) {
 	// The resolve function has the following outcomes:
 	// - (nil, nil) which means no session was found and no error.
 	// - (nil, err) in which err is ErrInvalidSession, which means the session was found but was invalid.
@@ -53,14 +54,14 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Re
 	// - (s, nil)  which means a session was resolved successfully.
 	//
 	// Here we want to try the next resolve function iff the outcome is (nil, nil).
-	funcs := []func(*http.Request) (session.ResolvedSession, error){
+	funcs := []func(context.Context, *http.Request) (session.ResolvedSession, error){
 		re.resolveHeader,
 		re.resolveAppSessionCookie,
 		re.resolveAccessTokenCookie,
 	}
 
 	for _, f := range funcs {
-		s, err := f(r)
+		s, err := f(ctx, r)
 		if err != nil {
 			if errors.Is(err, session.ErrInvalidSession) {
 				continue
@@ -76,7 +77,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Re
 	return nil, nil
 }
 
-func (re *Resolver) resolveAccessToken(token string) (session.ResolvedSession, error) {
+func (re *Resolver) resolveAccessToken(ctx context.Context, token string) (session.ResolvedSession, error) {
 	tok, isHash, err := re.AccessTokenDecoder.DecodeAccessToken(token)
 	if err != nil {
 		return nil, session.ErrInvalidSession
@@ -89,14 +90,14 @@ func (re *Resolver) resolveAccessToken(token string) (session.ResolvedSession, e
 		tokenHash = HashToken(token)
 	}
 
-	grant, err := re.AccessGrants.GetAccessGrant(tokenHash)
+	grant, err := re.AccessGrants.GetAccessGrant(ctx, tokenHash)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
 	} else if err != nil {
 		return nil, err
 	}
 
-	_, err = re.Authorizations.GetByID(grant.AuthorizationID)
+	_, err = re.Authorizations.GetByID(ctx, grant.AuthorizationID)
 	if errors.Is(err, ErrAuthorizationNotFound) {
 		// Authorization does not exists (e.g. revoked)
 		return nil, session.ErrInvalidSession
@@ -109,7 +110,7 @@ func (re *Resolver) resolveAccessToken(token string) (session.ResolvedSession, e
 
 	switch grant.SessionKind {
 	case GrantSessionKindSession:
-		s, err := re.Sessions.AccessWithID(grant.SessionID, event)
+		s, err := re.Sessions.AccessWithID(ctx, grant.SessionID, event)
 		if errors.Is(err, idpsession.ErrSessionNotFound) {
 			return nil, session.ErrInvalidSession
 		} else if err != nil {
@@ -118,14 +119,14 @@ func (re *Resolver) resolveAccessToken(token string) (session.ResolvedSession, e
 		authSession = s
 
 	case GrantSessionKindOffline:
-		g, err := re.OfflineGrantService.GetOfflineGrant(grant.SessionID)
+		g, err := re.OfflineGrantService.GetOfflineGrant(ctx, grant.SessionID)
 		if errors.Is(err, ErrGrantNotFound) {
 			return nil, session.ErrInvalidSession
 		} else if err != nil {
 			return nil, err
 		}
 
-		g, err = re.accessOfflineGrant(g, event)
+		g, err = re.accessOfflineGrant(ctx, g, event)
 		if err != nil {
 			return nil, err
 		}
@@ -142,41 +143,41 @@ func (re *Resolver) resolveAccessToken(token string) (session.ResolvedSession, e
 	return authSession, nil
 }
 
-func (re *Resolver) resolveHeader(r *http.Request) (session.ResolvedSession, error) {
+func (re *Resolver) resolveHeader(ctx context.Context, r *http.Request) (session.ResolvedSession, error) {
 	token := parseAuthorizationHeader(r)
 	if token == "" {
 		// No bearer token in Authorization header. Simply proceed.
 		return nil, nil
 	}
 
-	return re.resolveAccessToken(token)
+	return re.resolveAccessToken(ctx, token)
 }
 
-func (re *Resolver) resolveAccessTokenCookie(r *http.Request) (session.ResolvedSession, error) {
+func (re *Resolver) resolveAccessTokenCookie(ctx context.Context, r *http.Request) (session.ResolvedSession, error) {
 	cookie, err := re.Cookies.GetCookie(r, session.AppAccessTokenCookieDef)
 	if err != nil {
 		// No access token cookie. Simply proceed.
 		return nil, nil
 	}
 
-	return re.resolveAccessToken(cookie.Value)
+	return re.resolveAccessToken(ctx, cookie.Value)
 }
 
-func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSession, error) {
+func (re *Resolver) resolveAppSessionCookie(ctx context.Context, r *http.Request) (session.ResolvedSession, error) {
 	cookie, err := re.Cookies.GetCookie(r, session.AppSessionTokenCookieDef)
 	if err != nil {
 		// No session cookie. Simply proceed.
 		return nil, nil
 	}
 
-	aSession, err := re.AppSessions.GetAppSession(HashToken(cookie.Value))
+	aSession, err := re.AppSessions.GetAppSession(ctx, HashToken(cookie.Value))
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
 	} else if err != nil {
 		return nil, err
 	}
 
-	offlineGrant, err := re.OfflineGrantService.GetOfflineGrant(aSession.OfflineGrantID)
+	offlineGrant, err := re.OfflineGrantService.GetOfflineGrant(ctx, aSession.OfflineGrantID)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrInvalidSession
 	} else if err != nil {
@@ -188,7 +189,7 @@ func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSe
 		return nil, session.ErrInvalidSession
 	}
 
-	authz, err := re.Authorizations.GetByID(offlineGrantSession.AuthorizationID)
+	authz, err := re.Authorizations.GetByID(ctx, offlineGrantSession.AuthorizationID)
 	if errors.Is(err, ErrAuthorizationNotFound) {
 		// Authorization does not exists (e.g. revoked)
 		return nil, session.ErrInvalidSession
@@ -200,7 +201,7 @@ func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSe
 	}
 
 	event := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
-	offlineGrant, err = re.accessOfflineGrant(offlineGrant, event)
+	offlineGrant, err = re.accessOfflineGrant(ctx, offlineGrant, event)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +214,7 @@ func (re *Resolver) resolveAppSessionCookie(r *http.Request) (session.ResolvedSe
 	return offlineGrantSession, nil
 }
 
-func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent access.Event) (*OfflineGrant, error) {
+func (re *Resolver) accessOfflineGrant(ctx context.Context, offlineGrant *OfflineGrant, accessEvent access.Event) (*OfflineGrant, error) {
 	// When accessing the offline grant, also access its idp session
 	// Access the idp session first, since the idp session expiry will be updated
 	// sso enabled offline grant expiry depends on its idp session
@@ -221,7 +222,7 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 		if offlineGrant.IDPSessionID == "" {
 			return nil, session.ErrInvalidSession
 		}
-		_, err := re.Sessions.AccessWithID(offlineGrant.IDPSessionID, accessEvent)
+		_, err := re.Sessions.AccessWithID(ctx, offlineGrant.IDPSessionID, accessEvent)
 		if errors.Is(err, idpsession.ErrSessionNotFound) {
 			return nil, session.ErrInvalidSession
 		} else if err != nil {
@@ -229,7 +230,7 @@ func (re *Resolver) accessOfflineGrant(offlineGrant *OfflineGrant, accessEvent a
 		}
 	}
 
-	offlineGrant, err := re.OfflineGrantService.AccessOfflineGrant(offlineGrant.ID, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
+	offlineGrant, err := re.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}

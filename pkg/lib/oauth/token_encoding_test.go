@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -91,12 +92,13 @@ func TestAccessToken(t *testing.T) {
 			TokenHash: "token-hash",
 		}
 
-		mockEventService.EXPECT().DispatchEventOnCommit(gomock.Any()).Return(nil)
+		mockEventService.EXPECT().DispatchEventOnCommit(gomock.Any(), gomock.Any()).Return(nil)
 		mockIDTokenIssuer.EXPECT().Iss().Return("http://test1.authgear.com")
-		mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), "user-id", clientLike).Return(nil)
-		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes("user-id").Return(nil, nil)
+		mockIDTokenIssuer.EXPECT().PopulateUserClaimsInIDToken(gomock.Any(), gomock.Any(), "user-id", clientLike).Return(nil)
+		mockIdentityService.EXPECT().ListIdentitiesThatHaveStandardAttributes(gomock.Any(), "user-id").Return(nil, nil)
 
-		accessToken, err := encoding.EncodeAccessToken(client, clientLike, accessGrant, "user-id", "token")
+		ctx := context.Background()
+		accessToken, err := encoding.EncodeAccessToken(ctx, client, clientLike, accessGrant, "user-id", "token")
 		So(err, ShouldBeNil)
 
 		_, _, err = encoding.DecodeAccessToken(accessToken)

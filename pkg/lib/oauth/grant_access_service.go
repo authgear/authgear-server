@@ -1,6 +1,8 @@
 package oauth
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -20,6 +22,7 @@ type IssueAccessGrantResult struct {
 }
 
 func (s *AccessGrantService) IssueAccessGrant(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	scopes []string,
 	authzID string,
@@ -42,13 +45,13 @@ func (s *AccessGrantService) IssueAccessGrant(
 		TokenHash:        HashToken(token),
 		RefreshTokenHash: refreshTokenHash,
 	}
-	err := s.AccessGrants.CreateAccessGrant(accessGrant)
+	err := s.AccessGrants.CreateAccessGrant(ctx, accessGrant)
 	if err != nil {
 		return nil, err
 	}
 
 	clientLike := ClientClientLike(client, scopes)
-	at, err := s.AccessTokenIssuer.EncodeAccessToken(client, clientLike, accessGrant, userID, token)
+	at, err := s.AccessTokenIssuer.EncodeAccessToken(ctx, client, clientLike, accessGrant, userID, token)
 	if err != nil {
 		return nil, err
 	}

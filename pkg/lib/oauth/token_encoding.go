@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -25,7 +26,7 @@ import (
 
 type IDTokenIssuer interface {
 	Iss() string
-	PopulateUserClaimsInIDToken(token jwt.Token, userID string, clientLike *ClientLike) error
+	PopulateUserClaimsInIDToken(ctx context.Context, token jwt.Token, userID string, clientLike *ClientLike) error
 }
 
 type BaseURLProvider interface {
@@ -33,11 +34,11 @@ type BaseURLProvider interface {
 }
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type AccessTokenEncodingIdentityService interface {
-	ListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error)
+	ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type AccessTokenEncoding struct {
@@ -49,14 +50,14 @@ type AccessTokenEncoding struct {
 	Identities    AccessTokenEncodingIdentityService
 }
 
-func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig, clientLike *ClientLike, grant *AccessGrant, userID string, token string) (string, error) {
+func (e *AccessTokenEncoding) EncodeAccessToken(ctx context.Context, client *config.OAuthClientConfig, clientLike *ClientLike, grant *AccessGrant, userID string, token string) (string, error) {
 	if !client.IssueJWTAccessToken {
 		return token, nil
 	}
 
 	claims := jwt.New()
 
-	err := e.IDTokenIssuer.PopulateUserClaimsInIDToken(claims, userID, clientLike)
+	err := e.IDTokenIssuer.PopulateUserClaimsInIDToken(ctx, claims, userID, clientLike)
 	if err != nil {
 		return "", err
 	}
@@ -76,7 +77,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		return "", err
 	}
 
-	identities, err := e.Identities.ListIdentitiesThatHaveStandardAttributes(userID)
+	identities, err := e.Identities.ListIdentitiesThatHaveStandardAttributes(ctx, userID)
 	if err != nil {
 		return "", err
 	}
@@ -98,7 +99,7 @@ func (e *AccessTokenEncoding) EncodeAccessToken(client *config.OAuthClientConfig
 		},
 	}
 
-	err = e.Events.DispatchEventOnCommit(eventPayload)
+	err = e.Events.DispatchEventOnCommit(ctx, eventPayload)
 	if err != nil {
 		return "", err
 	}
