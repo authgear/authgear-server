@@ -49,16 +49,30 @@
       {{ $url = call $.MakeURL "/settings/enter_login_id" "q_login_id_key" .login_id_key "q_login_id_type" .login_id_type "q_login_id_input_type" .login_id_input_type "q_identity_id" .identity_id }}
       {{ end }}
 
+      {{ $label := "" }}
+      {{ $identityArr := "" }}
+      {{ $identity := "" }}
+      {{ $url := "" }}
+      {{ $icon := "" }}
+
       {{/* If is Email */}}
-      {{ $label := ( include "v2.page.settings.default.email-button-label" nil ) }}{{ $icon := "email" }}
-      {{ $identityArr := $.Emails }}{{ $identity := $.Email }}
-      {{ $url := call $.MakeURL "/settings/identity/email" "q_login_id_key" .login_id_key }}
+        {{ if eq .login_id_type "email" }}
+        {{ $label = ( include "v2.page.settings.default.email-button-label" nil ) }}{{ $icon = "email" }}
+        {{ $identityArr = $.Emails }}{{ $identity := $.Email }}
+        {{ $url = call $.MakeURL "/settings/identity/email" "q_login_id_key" .login_id_key }}
+        {{ if and (eq (len $.Emails) 1) (eq (len $.EmailIdentityIDs) 1) }}
+          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/change_email" "q_login_id_key" .login_id_key "q_identity_id" (index $.EmailIdentityIDs 0)) }}
+        {{ end }}
+      {{ end }}
 
       {{/* If is Phone */}}
       {{ if eq .login_id_type "phone" }}
         {{ $label = ( include "v2.page.settings.default.phone-button-label" nil ) }}{{ $icon = "phone_iphone" }}
         {{ $identityArr = $.PhoneNumbers }}{{ $identity = $.PhoneNumber }}
         {{ $url = call $.MakeURL "/settings/identity/phone" "q_login_id_key" .login_id_key }}
+        {{ if and (eq (len $.PhoneNumbers) 1) (eq (len $.PhoneIdentityIDs) 1) }}
+          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/change_phone" "q_login_id_key" .login_id_key "q_identity_id" (index $.PhoneIdentityIDs 0)) }}
+        {{ end }}
       {{ end }}
 
       {{/* If is Username */}}
@@ -66,6 +80,9 @@
         {{ $label = ( include "v2.page.settings.default.username-button-label" nil ) }}{{ $icon = "account_circle" }}
         {{ $identityArr = $.PreferredUsernames }}{{ $identity = $.PreferredUsername }}
         {{ $url = call $.MakeURL "/settings/identity/username" "q_login_id_key" .login_id_key }}
+        {{ if and (eq (len $.PreferredUsernames) 1) (eq (len $.UsernameIdentityIDs) 1) }}
+          {{ $url = (call $.MakeURLWithBackURL "/settings/identity/change_username" "q_login_id_key" .login_id_key "q_login_id" (index $.UsernameIdentityIDs 0)) }}
+        {{ end }}
       {{ end }}
 
       {{/* Render with given variable */}}

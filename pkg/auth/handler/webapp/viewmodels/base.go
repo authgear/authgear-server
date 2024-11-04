@@ -60,6 +60,8 @@ type BaseViewModel struct {
 	ClientName            string
 	SliceContains         func([]interface{}, interface{}) bool
 	MakeURL               func(path string, pairs ...string) string
+	MakeURLWithBackURL    func(path string, pairs ...string) string
+	MakeBackURL           func(path string, pairs ...string) string
 	MakeCurrentStepURL    func(pairs ...string) string
 	RawError              *apierrors.APIError
 	Error                 interface{}
@@ -239,6 +241,21 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		bpLang = intl.ResolveRecaptchaV2(resolvedLanguageTag)
 	}
 
+	makeURL := func(path string, pairs ...string) *url.URL {
+		u := r.URL
+		outQuery := webapp.PreserveQuery(u.Query())
+		for i := 0; i < len(pairs); i += 2 {
+			key := pairs[i]
+			val := pairs[i+1]
+			if val != "" {
+				outQuery.Set(key, val)
+			} else {
+				outQuery.Del(key)
+			}
+		}
+		return webapp.MakeURL(u, path, outQuery)
+	}
+
 	hasXStep := r.URL.Query().Has(webapp.AuthflowQueryKey)
 	model := BaseViewModel{
 		ColorScheme:  webapp.GetColorScheme(r.Context()),
@@ -278,18 +295,29 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		ClientName:                  clientName,
 		SliceContains:               SliceContains,
 		MakeURL: func(path string, pairs ...string) string {
-			u := r.URL
-			outQuery := webapp.PreserveQuery(u.Query())
-			for i := 0; i < len(pairs); i += 2 {
-				key := pairs[i]
-				val := pairs[i+1]
-				if val != "" {
-					outQuery.Set(key, val)
-				} else {
-					outQuery.Del(key)
-				}
+			return makeURL(path, pairs...).String()
+		},
+		MakeURLWithBackURL: func(path string, pairs ...string) string {
+			u := makeURL(path, pairs...)
+			q := u.Query()
+			// Only preserve path and query,
+			// so that we won't redirect user outside of authgear
+			backURL := webapp.MakeRelativeURL(r.URL.Path, r.URL.Query())
+			q.Set(webapp.QueryBackURL, backURL.String())
+			u.RawQuery = q.Encode()
+			return u.String()
+		},
+		MakeBackURL: func(path string, pairs ...string) string {
+			defaultBackURL := makeURL(path, pairs...)
+			if r.URL.Query().Get(webapp.QueryBackURL) == "" {
+				return defaultBackURL.String()
 			}
-			return webapp.MakeURL(u, path, outQuery).String()
+			backURL := r.URL.Query().Get(webapp.QueryBackURL)
+			u, err := url.Parse(backURL)
+			if err != nil {
+				return defaultBackURL.String()
+			}
+			return webapp.MakeRelativeURL(u.Path, u.Query()).String()
 		},
 		ForgotPasswordEnabled:         *m.ForgotPassword.Enabled,
 		PublicSignupDisabled:          m.Authentication.PublicSignupDisabled,

@@ -25,7 +25,7 @@
           )
       }}
     {{ else }}
-    <form action="/settings/mfa/totp" method="post" novalidate>
+    <form action='{{ call $.MakeURLWithBackURL "/settings/mfa/totp" }}' method="post" novalidate>
       {{ $.CSRFField }}
       <button
         class="w-full"
@@ -51,7 +51,7 @@
   {{ end }}
 
   {{ if $.ShowSecondaryOOBOTPEmail }}
-    {{ $href := (call $.MakeURL "/settings/mfa/create_oob_otp_email") }}
+    {{ $href := (call $.MakeURLWithBackURL "/settings/mfa/create_oob_otp_email") }}
     {{ if $.HasSecondaryOOBOTPEmail }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_email") }}
     {{ end }}
@@ -66,7 +66,7 @@
   {{ end }}
 
   {{ if $.ShowSecondaryOOBOTPSMS }}
-    {{ $href := (call $.MakeURL (printf "/settings/mfa/create_oob_otp_%s" $.OOBOTPSMSDefaultChannel)) }}
+    {{ $href := (call $.MakeURLWithBackURL (printf "/settings/mfa/create_oob_otp_%s" $.OOBOTPSMSDefaultChannel)) }}
     {{ if $.HasSecondaryOOBOTPSMS }}
       {{ $href = (call $.MakeURL "/settings/mfa/oob_otp_sms") }}
     {{ end }}
@@ -89,7 +89,7 @@
   {{ end }}
 
   {{ if $.ShowSecondaryPassword }}
-    {{ $href := (call $.MakeURL "/settings/mfa/create_password") }}
+    {{ $href := (call $.MakeURLWithBackURL "/settings/mfa/create_password") }}
     {{ if $.SecondaryPassword }}
       {{ $href = (call $.MakeURL "/settings/mfa/password") }}
     {{ end }}

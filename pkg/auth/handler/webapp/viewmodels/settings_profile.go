@@ -73,6 +73,10 @@ type SettingsProfileViewModel struct {
 	AddressCountry       string
 
 	CustomAttributes []CustomAttribute
+
+	EmailIdentityIDs    []string
+	UsernameIdentityIDs []string
+	PhoneIdentityIDs    []string
 }
 
 type SettingsProfileUserService interface {
@@ -93,6 +97,10 @@ type SettingsProfileViewModeler struct {
 
 // nolint: gocognit
 func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileViewModel, error) {
+	var emailIdentityIDs []string = []string{}
+	var usernameIdentityIDs []string = []string{}
+	var phoneIdentityIDs []string = []string{}
+
 	var emails setutil.Set[string]
 	var phoneNumbers setutil.Set[string]
 	var preferredUsernames setutil.Set[string]
@@ -111,6 +119,17 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		}
 		if preferredUsername, ok := standardClaims[model.ClaimPreferredUsername]; ok && preferredUsername != "" {
 			preferredUsernames.Add(preferredUsername)
+		}
+
+		if iden.Type == model.IdentityTypeLoginID {
+			switch iden.LoginID.LoginIDType {
+			case model.LoginIDKeyTypeEmail:
+				emailIdentityIDs = append(emailIdentityIDs, iden.ID)
+			case model.LoginIDKeyTypePhone:
+				phoneIdentityIDs = append(phoneIdentityIDs, iden.ID)
+			case model.LoginIDKeyTypeUsername:
+				usernameIdentityIDs = append(usernameIdentityIDs, iden.ID)
+			}
 		}
 	}
 
@@ -269,6 +288,10 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		AddressCountry:       addressStr(stdattrs.Country),
 
 		CustomAttributes: customAttrs,
+
+		EmailIdentityIDs:    emailIdentityIDs,
+		UsernameIdentityIDs: usernameIdentityIDs,
+		PhoneIdentityIDs:    phoneIdentityIDs,
 	}
 
 	return viewModel, nil
