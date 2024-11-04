@@ -1,6 +1,7 @@
 package plan
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -20,16 +21,16 @@ type Store struct {
 	SQLExecutor *globaldb.SQLExecutor
 }
 
-func (s *Store) GetPlan(name string) (*model.Plan, error) {
+func (s *Store) GetPlan(ctx context.Context, name string) (*model.Plan, error) {
 	q := s.selectQuery().Where("name = ?", name)
-	row, err := s.SQLExecutor.QueryRowWith(q)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 	return s.scan(row)
 }
 
-func (s *Store) Create(plan *model.Plan) error {
+func (s *Store) Create(ctx context.Context, plan *model.Plan) error {
 	configData, err := json.Marshal(plan.RawFeatureConfig)
 	if err != nil {
 		return err
@@ -50,14 +51,14 @@ func (s *Store) Create(plan *model.Plan) error {
 			s.Clock.NowUTC(),
 			s.Clock.NowUTC(),
 		)
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Store) Update(plan *model.Plan) error {
+func (s *Store) Update(ctx context.Context, plan *model.Plan) error {
 	configData, err := json.Marshal(plan.RawFeatureConfig)
 	if err != nil {
 		return err
@@ -68,7 +69,7 @@ func (s *Store) Update(plan *model.Plan) error {
 		Set("updated_at", s.Clock.NowUTC()).
 		Where("id = ?", plan.ID)
 
-	result, err := s.SQLExecutor.ExecWith(q)
+	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -87,10 +88,10 @@ func (s *Store) Update(plan *model.Plan) error {
 	return nil
 }
 
-func (s *Store) List() ([]*model.Plan, error) {
+func (s *Store) List(ctx context.Context) ([]*model.Plan, error) {
 	var out []*model.Plan
 	q := s.selectQuery()
-	rows, err := s.SQLExecutor.QueryWith(q)
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}

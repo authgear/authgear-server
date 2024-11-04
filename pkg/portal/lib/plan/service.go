@@ -1,6 +1,8 @@
 package plan
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
@@ -12,7 +14,7 @@ type Service struct {
 	AppConfig      *portalconfig.AppConfig
 }
 
-func (s *Service) GetDefaultPlan() (*model.Plan, error) {
+func (s *Service) GetDefaultPlan(ctx context.Context) (*model.Plan, error) {
 	defaultPlanName := s.AppConfig.DefaultPlan
 	if defaultPlanName == "" {
 		// no default plan is configured
@@ -21,8 +23,8 @@ func (s *Service) GetDefaultPlan() (*model.Plan, error) {
 
 	var plan *model.Plan
 	var err error
-	err = s.GlobalDatabase.WithTx(func() error {
-		plan, err = s.PlanStore.GetPlan(defaultPlanName)
+	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		plan, err = s.PlanStore.GetPlan(ctx, defaultPlanName)
 		if err != nil {
 			return err
 		}
@@ -35,11 +37,11 @@ func (s *Service) GetDefaultPlan() (*model.Plan, error) {
 	return plan, nil
 }
 
-func (s *Service) ListPlans() ([]*model.Plan, error) {
+func (s *Service) ListPlans(ctx context.Context) ([]*model.Plan, error) {
 	var plans []*model.Plan
 	var err error
-	err = s.GlobalDatabase.WithTx(func() error {
-		plans, err = s.PlanStore.List()
+	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		plans, err = s.PlanStore.List(ctx)
 		if err != nil {
 			return err
 		}
