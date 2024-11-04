@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -21,12 +22,12 @@ type ProjectMonthlyReport struct {
 	AuditDBStore  *AuditDBReadStore
 }
 
-func (r *ProjectMonthlyReport) Run(options *ProjectMonthlyReportOptions) (data *ReportData, err error) {
+func (r *ProjectMonthlyReport) Run(ctx context.Context, options *ProjectMonthlyReportOptions) (data *ReportData, err error) {
 	firstDayOfMonth := time.Date(options.Year, time.Month(options.Month), 1, 0, 0, 0, 0, time.UTC)
 
 	var appIDs []string
-	if err = r.GlobalHandle.WithTx(func() error {
-		appIDs, err = r.GlobalDBStore.GetAppIDs()
+	if err = r.GlobalHandle.WithTx(ctx, func(ctx context.Context) error {
+		appIDs, err = r.GlobalDBStore.GetAppIDs(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to fetch app ids: %w", err)
 		}
@@ -38,8 +39,9 @@ func (r *ProjectMonthlyReport) Run(options *ProjectMonthlyReportOptions) (data *
 	values := make([][]interface{}, len(appIDs))
 	for i, appID := range appIDs {
 		monthlyActiveUserCount := 0
-		err = r.AuditDBHandle.ReadOnly(func() (e error) {
+		err = r.AuditDBHandle.ReadOnly(ctx, func(ctx context.Context) (e error) {
 			c, err := r.AuditDBStore.GetAnalyticCountByType(
+				ctx,
 				appID,
 				MonthlyActiveUserCountType,
 				&firstDayOfMonth,

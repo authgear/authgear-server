@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -22,8 +23,8 @@ import (
 )
 
 type MeterAuditDBReadStore interface {
-	GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error)
-	QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
+	GetCountByActivityType(ctx context.Context, appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error)
+	QueryPage(ctx context.Context, appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error)
 }
 
 type SignupCountResult struct {
@@ -46,12 +47,12 @@ type CountCollector struct {
 	AnalyticService    *Service
 }
 
-func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err error) {
+func (c *CountCollector) CollectDaily(ctx context.Context, date *time.Time) (updatedCount int, err error) {
 	utc := date.UTC()
 	rangeFrom := timeutil.TruncateToDate(utc)
 	rangeTo := rangeFrom.AddDate(0, 0, 1)
 
-	appIDs, err := c.getAppIDs()
+	appIDs, err := c.getAppIDs(ctx)
 	if err != nil {
 		return
 	}
@@ -59,7 +60,7 @@ func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err er
 	var counts []*Count
 	var redisKeys []string
 	for _, appID := range appIDs {
-		appCounts, keys, e := c.CollectDailyCountForApp(appID, rangeFrom, rangeTo)
+		appCounts, keys, e := c.CollectDailyCountForApp(ctx, appID, rangeFrom, rangeTo)
 		if e != nil {
 			err = e
 			return
@@ -68,17 +69,17 @@ func (c *CountCollector) CollectDaily(date *time.Time) (updatedCount int, err er
 		redisKeys = append(redisKeys, keys...)
 	}
 
-	updatedCount, err = c.saveCounts(counts)
+	updatedCount, err = c.saveCounts(ctx, counts)
 	if err != nil {
 		return
 	}
 
-	err = c.setRedisKeyExpiry(redisKeys)
+	err = c.setRedisKeyExpiry(ctx, redisKeys)
 	return
 }
 
-func (c *CountCollector) CollectWeekly(date *time.Time) (updatedCount int, err error) {
-	appIDs, err := c.getAppIDs()
+func (c *CountCollector) CollectWeekly(ctx context.Context, date *time.Time) (updatedCount int, err error) {
+	appIDs, err := c.getAppIDs(ctx)
 	if err != nil {
 		return
 	}
@@ -86,7 +87,7 @@ func (c *CountCollector) CollectWeekly(date *time.Time) (updatedCount int, err e
 	var counts []*Count
 	var redisKeys []string
 	for _, appID := range appIDs {
-		appCounts, keys, e := c.CollectWeeklyForApp(appID, date)
+		appCounts, keys, e := c.CollectWeeklyForApp(ctx, appID, date)
 		if e != nil {
 			err = e
 			return
@@ -95,17 +96,17 @@ func (c *CountCollector) CollectWeekly(date *time.Time) (updatedCount int, err e
 		redisKeys = append(redisKeys, keys...)
 	}
 
-	updatedCount, err = c.saveCounts(counts)
+	updatedCount, err = c.saveCounts(ctx, counts)
 	if err != nil {
 		return
 	}
 
-	err = c.setRedisKeyExpiry(redisKeys)
+	err = c.setRedisKeyExpiry(ctx, redisKeys)
 	return
 }
 
-func (c *CountCollector) CollectMonthly(date *time.Time) (updatedCount int, err error) {
-	appIDs, err := c.getAppIDs()
+func (c *CountCollector) CollectMonthly(ctx context.Context, date *time.Time) (updatedCount int, err error) {
+	appIDs, err := c.getAppIDs(ctx)
 	if err != nil {
 		return
 	}
@@ -113,7 +114,7 @@ func (c *CountCollector) CollectMonthly(date *time.Time) (updatedCount int, err 
 	var counts []*Count
 	var redisKeys []string
 	for _, appID := range appIDs {
-		appCounts, keys, e := c.CollectMonthlyForApp(appID, date)
+		appCounts, keys, e := c.CollectMonthlyForApp(ctx, appID, date)
 		if e != nil {
 			err = e
 			return
@@ -122,19 +123,19 @@ func (c *CountCollector) CollectMonthly(date *time.Time) (updatedCount int, err 
 		redisKeys = append(redisKeys, keys...)
 	}
 
-	updatedCount, err = c.saveCounts(counts)
+	updatedCount, err = c.saveCounts(ctx, counts)
 	if err != nil {
 		return
 	}
 
-	err = c.setRedisKeyExpiry(redisKeys)
+	err = c.setRedisKeyExpiry(ctx, redisKeys)
 	return
 }
 
-func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, nextDay time.Time) (counts []*Count, redisKey []string, err error) {
+func (c *CountCollector) CollectDailyCountForApp(ctx context.Context, appID string, date time.Time, nextDay time.Time) (counts []*Count, redisKey []string, err error) {
 	// Cumulative number of user count
-	err = c.AppDBHandle.WithTx(func() error {
-		userCount, err := c.AppDBStore.GetUserCountBeforeTime(appID, &nextDay)
+	err = c.AppDBHandle.WithTx(ctx, func(ctx context.Context) error {
+		userCount, err := c.AppDBStore.GetUserCountBeforeTime(ctx, appID, &nextDay)
 		if err != nil {
 			return err
 		}
@@ -156,8 +157,8 @@ func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, n
 	}
 
 	// Signup count
-	err = c.AuditDBReadHandle.ReadOnly(func() error {
-		signupCountResult, err := c.querySignupCount(appID, &date, &nextDay)
+	err = c.AuditDBReadHandle.ReadOnly(ctx, func(ctx context.Context) error {
+		signupCountResult, err := c.querySignupCount(ctx, appID, &date, &nextDay)
 		if err != nil {
 			err = fmt.Errorf("failed to calculate signup count: %w", err)
 			return err
@@ -207,7 +208,7 @@ func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, n
 	}
 
 	// Collect counts from redis
-	dailyCount, err := c.AnalyticService.GetDailyCountResult(config.AppID(appID), &date)
+	dailyCount, err := c.AnalyticService.GetDailyCountResult(ctx, config.AppID(appID), &date)
 	if err != nil {
 		return
 	}
@@ -261,14 +262,14 @@ func (c *CountCollector) CollectDailyCountForApp(appID string, date time.Time, n
 	return
 }
 
-func (c *CountCollector) CollectWeeklyForApp(appID string, date *time.Time) (counts []*Count, redisKeys []string, err error) {
+func (c *CountCollector) CollectWeeklyForApp(ctx context.Context, appID string, date *time.Time) (counts []*Count, redisKeys []string, err error) {
 	utc := date.UTC()
 	year, week := utc.ISOWeek()
 	monday, err := timeutil.FirstDayOfISOWeek(year, week, time.UTC)
 	if err != nil {
 		return
 	}
-	weeklyCount, err := c.AnalyticService.GetWeeklyCountResult(config.AppID(appID), year, week)
+	weeklyCount, err := c.AnalyticService.GetWeeklyCountResult(ctx, config.AppID(appID), year, week)
 	if err != nil {
 		return
 	}
@@ -280,10 +281,10 @@ func (c *CountCollector) CollectWeeklyForApp(appID string, date *time.Time) (cou
 	return counts, weeklyCount.RedisKeys, nil
 }
 
-func (c *CountCollector) CollectMonthlyForApp(appID string, date *time.Time) (counts []*Count, redisKeys []string, err error) {
+func (c *CountCollector) CollectMonthlyForApp(ctx context.Context, appID string, date *time.Time) (counts []*Count, redisKeys []string, err error) {
 	utc := date.UTC()
 	firstDayOfTheMonth := timeutil.FirstDayOfTheMonth(utc)
-	monthlyCount, err := c.AnalyticService.GetMonthlyCountResult(config.AppID(appID), firstDayOfTheMonth.Year(), int(firstDayOfTheMonth.Month()))
+	monthlyCount, err := c.AnalyticService.GetMonthlyCountResult(ctx, config.AppID(appID), firstDayOfTheMonth.Year(), int(firstDayOfTheMonth.Month()))
 	if err != nil {
 		return
 	}
@@ -295,7 +296,7 @@ func (c *CountCollector) CollectMonthlyForApp(appID string, date *time.Time) (co
 	return counts, monthlyCount.RedisKeys, nil
 }
 
-func (c *CountCollector) querySignupCount(appID string, rangeFrom *time.Time, rangeTo *time.Time) (*SignupCountResult, error) {
+func (c *CountCollector) querySignupCount(ctx context.Context, appID string, rangeFrom *time.Time, rangeTo *time.Time) (*SignupCountResult, error) {
 	var first uint64 = 100
 	var after model.PageCursor = ""
 
@@ -304,7 +305,7 @@ func (c *CountCollector) querySignupCount(appID string, rangeFrom *time.Time, ra
 		CountByOAuthProvider: map[string]int{},
 	}
 	for {
-		events, lastCursor, err := c.queryUserCreatedEvents(appID, rangeFrom, rangeTo, first, after)
+		events, lastCursor, err := c.queryUserCreatedEvents(ctx, appID, rangeFrom, rangeTo, first, after)
 		if err != nil {
 			return nil, err
 		}
@@ -342,14 +343,14 @@ func (c *CountCollector) querySignupCount(appID string, rangeFrom *time.Time, ra
 	}
 }
 
-func (c *CountCollector) queryUserCreatedEvents(appID string, rangeFrom *time.Time, rangeTo *time.Time, first uint64, after model.PageCursor) (events []*event.Event, lastCursor model.PageCursor, err error) {
+func (c *CountCollector) queryUserCreatedEvents(ctx context.Context, appID string, rangeFrom *time.Time, rangeTo *time.Time, first uint64, after model.PageCursor) (events []*event.Event, lastCursor model.PageCursor, err error) {
 	options := audit.QueryPageOptions{
 		RangeFrom:     rangeFrom,
 		RangeTo:       rangeTo,
 		ActivityTypes: []string{string(nonblocking.UserCreated)},
 	}
 
-	logs, offset, err := c.MeterAuditDBStore.QueryPage(appID, options, graphqlutil.PageArgs{
+	logs, offset, err := c.MeterAuditDBStore.QueryPage(ctx, appID, options, graphqlutil.PageArgs{
 		First: &first,
 		After: graphqlutil.Cursor(after),
 	})
@@ -384,9 +385,9 @@ func (c *CountCollector) queryUserCreatedEvents(appID string, rangeFrom *time.Ti
 	return events, after, nil
 }
 
-func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
-	err = c.GlobalHandle.WithTx(func() error {
-		appIDs, err = c.GlobalDBStore.GetAppIDs()
+func (c *CountCollector) getAppIDs(ctx context.Context) (appIDs []string, err error) {
+	err = c.GlobalHandle.WithTx(ctx, func(ctx context.Context) error {
+		appIDs, err = c.GlobalDBStore.GetAppIDs(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to fetch app ids: %w", err)
 		}
@@ -395,11 +396,11 @@ func (c *CountCollector) getAppIDs() (appIDs []string, err error) {
 	return
 }
 
-func (c *CountCollector) saveCounts(counts []*Count) (updatedCount int, err error) {
+func (c *CountCollector) saveCounts(ctx context.Context, counts []*Count) (updatedCount int, err error) {
 	if len(counts) > 0 {
-		err = c.AuditDBWriteHandle.WithTx(func() error {
+		err = c.AuditDBWriteHandle.WithTx(ctx, func(ctx context.Context) error {
 			// Store the counts to audit db
-			err = c.AuditDBWriteStore.UpsertCounts(counts)
+			err = c.AuditDBWriteStore.UpsertCounts(ctx, counts)
 			if err != nil {
 				return err
 			}
@@ -414,6 +415,6 @@ func (c *CountCollector) saveCounts(counts []*Count) (updatedCount int, err erro
 	return
 }
 
-func (c *CountCollector) setRedisKeyExpiry(redisKeys []string) error {
-	return c.AnalyticService.SetKeysExpire(redisKeys, duration.AnalyticRedisKeyExpiration)
+func (c *CountCollector) setRedisKeyExpiry(ctx context.Context, redisKeys []string) error {
+	return c.AnalyticService.SetKeysExpire(ctx, redisKeys, duration.AnalyticRedisKeyExpiration)
 }

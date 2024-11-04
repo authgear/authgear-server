@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"context"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -34,35 +35,36 @@ type MonthlyCountResult struct {
 
 type ReadCounterStore interface {
 	GetDailyPageViewCount(
+		ctx context.Context,
 		appID config.AppID,
 		pageType meter.PageType,
 		date *time.Time,
 	) (pageView int, uniquePageView int, redisKeys []string, err error)
-	GetDailyActiveUserCount(appID config.AppID, date *time.Time) (count int, redisKey string, err error)
-	GetWeeklyActiveUserCount(appID config.AppID, year int, week int) (count int, redisKey string, err error)
-	GetMonthlyActiveUserCount(appID config.AppID, year int, month int) (count int, redisKey string, err error)
-	SetKeysExpire(keys []string, expiration time.Duration) error
+	GetDailyActiveUserCount(ctx context.Context, appID config.AppID, date *time.Time) (count int, redisKey string, err error)
+	GetWeeklyActiveUserCount(ctx context.Context, appID config.AppID, year int, week int) (count int, redisKey string, err error)
+	GetMonthlyActiveUserCount(ctx context.Context, appID config.AppID, year int, month int) (count int, redisKey string, err error)
+	SetKeysExpire(ctx context.Context, keys []string, expiration time.Duration) error
 }
 
 type Service struct {
 	ReadCounter ReadCounterStore
 }
 
-func (s *Service) GetDailyCountResult(appID config.AppID, date *time.Time) (*DailyCountResult, error) {
+func (s *Service) GetDailyCountResult(ctx context.Context, appID config.AppID, date *time.Time) (*DailyCountResult, error) {
 	redisKeys := []string{}
-	signupPageView, signupUniquePageView, keys, err := s.ReadCounter.GetDailyPageViewCount(appID, meter.PageTypeSignup, date)
+	signupPageView, signupUniquePageView, keys, err := s.ReadCounter.GetDailyPageViewCount(ctx, appID, meter.PageTypeSignup, date)
 	if err != nil {
 		return nil, err
 	}
 	redisKeys = append(redisKeys, keys...)
 
-	loginPageView, loginUniquePageView, keys, err := s.ReadCounter.GetDailyPageViewCount(appID, meter.PageTypeLogin, date)
+	loginPageView, loginUniquePageView, keys, err := s.ReadCounter.GetDailyPageViewCount(ctx, appID, meter.PageTypeLogin, date)
 	if err != nil {
 		return nil, err
 	}
 	redisKeys = append(redisKeys, keys...)
 
-	activeUserCount, dailyActiveUserKey, err := s.ReadCounter.GetDailyActiveUserCount(appID, date)
+	activeUserCount, dailyActiveUserKey, err := s.ReadCounter.GetDailyActiveUserCount(ctx, appID, date)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +82,8 @@ func (s *Service) GetDailyCountResult(appID config.AppID, date *time.Time) (*Dai
 	}, nil
 }
 
-func (s *Service) GetWeeklyCountResult(appID config.AppID, year int, week int) (*WeeklyCountResult, error) {
-	activeUserCount, weeklyActiveUserKey, err := s.ReadCounter.GetWeeklyActiveUserCount(appID, year, week)
+func (s *Service) GetWeeklyCountResult(ctx context.Context, appID config.AppID, year int, week int) (*WeeklyCountResult, error) {
+	activeUserCount, weeklyActiveUserKey, err := s.ReadCounter.GetWeeklyActiveUserCount(ctx, appID, year, week)
 	if err != nil {
 		return nil, err
 	}
@@ -93,8 +95,8 @@ func (s *Service) GetWeeklyCountResult(appID config.AppID, year int, week int) (
 	}, nil
 }
 
-func (s *Service) GetMonthlyCountResult(appID config.AppID, year int, month int) (*MonthlyCountResult, error) {
-	activeUserCount, monthlyActiveUserKey, err := s.ReadCounter.GetMonthlyActiveUserCount(appID, year, month)
+func (s *Service) GetMonthlyCountResult(ctx context.Context, appID config.AppID, year int, month int) (*MonthlyCountResult, error) {
+	activeUserCount, monthlyActiveUserKey, err := s.ReadCounter.GetMonthlyActiveUserCount(ctx, appID, year, month)
 	if err != nil {
 		return nil, err
 	}
@@ -106,6 +108,6 @@ func (s *Service) GetMonthlyCountResult(appID config.AppID, year int, month int)
 	}, nil
 }
 
-func (s *Service) SetKeysExpire(keys []string, expiration time.Duration) error {
-	return s.ReadCounter.SetKeysExpire(keys, expiration)
+func (s *Service) SetKeysExpire(ctx context.Context, keys []string, expiration time.Duration) error {
+	return s.ReadCounter.SetKeysExpire(ctx, keys, expiration)
 }

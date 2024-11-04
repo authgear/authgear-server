@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -22,7 +23,7 @@ type UserWeeklyReport struct {
 	AppDBStore    *AppDBStore
 }
 
-func (r *UserWeeklyReport) Run(options *UserWeeklyReportOptions) (data *ReportData, err error) {
+func (r *UserWeeklyReport) Run(ctx context.Context, options *UserWeeklyReportOptions) (data *ReportData, err error) {
 	rangeFormPtr, err := timeutil.FirstDayOfISOWeek(options.Year, options.Week, time.UTC)
 	if err != nil {
 		err = fmt.Errorf("invalid year or week number: %w", err)
@@ -32,8 +33,8 @@ func (r *UserWeeklyReport) Run(options *UserWeeklyReportOptions) (data *ReportDa
 	rangeTo := rangeFrom.AddDate(0, 0, 7)
 
 	var appOwners []*AppCollaborator
-	if err = r.GlobalHandle.WithTx(func() (e error) {
-		appOwners, err = r.GlobalDBStore.GetAppOwners(&rangeFrom, &rangeTo)
+	if err = r.GlobalHandle.WithTx(ctx, func(ctx context.Context) (e error) {
+		appOwners, err = r.GlobalDBStore.GetAppOwners(ctx, &rangeFrom, &rangeTo)
 		return err
 	}); err != nil {
 		err = fmt.Errorf("failed to fetch new apps: %w", err)
@@ -41,8 +42,8 @@ func (r *UserWeeklyReport) Run(options *UserWeeklyReportOptions) (data *ReportDa
 	}
 
 	var newUserIDs []string
-	if err = r.AppDBHandle.WithTx(func() (e error) {
-		newUserIDs, err = r.AppDBStore.GetNewUserIDs(options.PortalAppID, &rangeFrom, &rangeTo)
+	if err = r.AppDBHandle.WithTx(ctx, func(ctx context.Context) (e error) {
+		newUserIDs, err = r.AppDBStore.GetNewUserIDs(ctx, options.PortalAppID, &rangeFrom, &rangeTo)
 		return err
 	}); err != nil {
 		err = fmt.Errorf("failed to fetch new apps: %w", err)
