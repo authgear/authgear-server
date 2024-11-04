@@ -24,8 +24,8 @@ import (
 )
 
 type UserQueries interface {
-	GetPageForExport(page uint64, limit uint64) (users []*user.UserForExport, err error)
-	CountAll() (count uint64, err error)
+	GetPageForExport(ctx context.Context, page uint64, limit uint64) (users []*user.UserForExport, err error)
+	CountAll(ctx context.Context) (count uint64, err error)
 }
 
 type UserExportService struct {
@@ -180,9 +180,9 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 	defer os.Remove(resultFile.Name())
 
 	if request.Format == "csv" {
-		err = s.ExportToCSV(resultFile, request, task)
+		err = s.ExportToCSV(ctx, resultFile, request, task)
 	} else {
-		err = s.ExportToNDJson(resultFile, request, task)
+		err = s.ExportToNDJson(ctx, resultFile, request, task)
 	}
 	if err != nil {
 		return "", err
@@ -198,14 +198,14 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 	return key, nil
 }
 
-func (s *UserExportService) ExportToNDJson(tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
+func (s *UserExportService) ExportToNDJson(ctx context.Context, tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
 	var offset uint64 = uint64(0)
 	for {
 		s.Logger.Infof("Export ndjson user page offset %v", offset)
 		var page []*user.UserForExport = nil
 
-		err = s.AppDatabase.WithTx(func() (e error) {
-			result, pageErr := s.UserQueries.GetPageForExport(offset, BatchSize)
+		err = s.AppDatabase.WithTx(ctx, func(ctx context.Context) (e error) {
+			result, pageErr := s.UserQueries.GetPageForExport(ctx, offset, BatchSize)
 			if pageErr != nil {
 				return pageErr
 			}
@@ -255,7 +255,7 @@ func (s *UserExportService) ExportToNDJson(tmpResult *os.File, request *Request,
 }
 
 //nolint:gocognit
-func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
+func (s *UserExportService) ExportToCSV(ctx context.Context, tmpResult *os.File, request *Request, task *redisqueue.Task) (err error) {
 	csvWriter := csv.NewWriter(tmpResult)
 
 	var exportFields []*FieldPointer
@@ -289,8 +289,8 @@ func (s *UserExportService) ExportToCSV(tmpResult *os.File, request *Request, ta
 		s.Logger.Infof("Export csv user page offset %v", offset)
 		var page []*user.UserForExport = nil
 
-		err = s.AppDatabase.WithTx(func() (e error) {
-			result, pageErr := s.UserQueries.GetPageForExport(offset, BatchSize)
+		err = s.AppDatabase.WithTx(ctx, func(ctx context.Context) (e error) {
+			result, pageErr := s.UserQueries.GetPageForExport(ctx, offset, BatchSize)
 			if pageErr != nil {
 				return pageErr
 			}
