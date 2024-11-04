@@ -5,6 +5,7 @@
 package verification
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,103 +35,103 @@ func (m *MockClaimStore) EXPECT() *MockClaimStoreMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockClaimStore) Create(claim *Claim) error {
+func (m *MockClaimStore) Create(ctx context.Context, claim *Claim) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", claim)
+	ret := m.ctrl.Call(m, "Create", ctx, claim)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockClaimStoreMockRecorder) Create(claim interface{}) *gomock.Call {
+func (mr *MockClaimStoreMockRecorder) Create(ctx, claim interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClaimStore)(nil).Create), claim)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockClaimStore)(nil).Create), ctx, claim)
 }
 
 // Delete mocks base method.
-func (m *MockClaimStore) Delete(id string) error {
+func (m *MockClaimStore) Delete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", id)
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockClaimStoreMockRecorder) Delete(id interface{}) *gomock.Call {
+func (mr *MockClaimStoreMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockClaimStore)(nil).Delete), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockClaimStore)(nil).Delete), ctx, id)
 }
 
 // DeleteAll mocks base method.
-func (m *MockClaimStore) DeleteAll(userID string) error {
+func (m *MockClaimStore) DeleteAll(ctx context.Context, userID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteAll", userID)
+	ret := m.ctrl.Call(m, "DeleteAll", ctx, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteAll indicates an expected call of DeleteAll.
-func (mr *MockClaimStoreMockRecorder) DeleteAll(userID interface{}) *gomock.Call {
+func (mr *MockClaimStoreMockRecorder) DeleteAll(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockClaimStore)(nil).DeleteAll), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteAll", reflect.TypeOf((*MockClaimStore)(nil).DeleteAll), ctx, userID)
 }
 
 // Get mocks base method.
-func (m *MockClaimStore) Get(userID, claimName, claimValue string) (*Claim, error) {
+func (m *MockClaimStore) Get(ctx context.Context, userID, claimName, claimValue string) (*Claim, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userID, claimName, claimValue)
+	ret := m.ctrl.Call(m, "Get", ctx, userID, claimName, claimValue)
 	ret0, _ := ret[0].(*Claim)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockClaimStoreMockRecorder) Get(userID, claimName, claimValue interface{}) *gomock.Call {
+func (mr *MockClaimStoreMockRecorder) Get(ctx, userID, claimName, claimValue interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClaimStore)(nil).Get), userID, claimName, claimValue)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockClaimStore)(nil).Get), ctx, userID, claimName, claimValue)
 }
 
 // ListByClaimName mocks base method.
-func (m *MockClaimStore) ListByClaimName(userID, claimName string) ([]*Claim, error) {
+func (m *MockClaimStore) ListByClaimName(ctx context.Context, userID, claimName string) ([]*Claim, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaimName", userID, claimName)
+	ret := m.ctrl.Call(m, "ListByClaimName", ctx, userID, claimName)
 	ret0, _ := ret[0].([]*Claim)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListByClaimName indicates an expected call of ListByClaimName.
-func (mr *MockClaimStoreMockRecorder) ListByClaimName(userID, claimName interface{}) *gomock.Call {
+func (mr *MockClaimStoreMockRecorder) ListByClaimName(ctx, userID, claimName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaimName", reflect.TypeOf((*MockClaimStore)(nil).ListByClaimName), userID, claimName)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaimName", reflect.TypeOf((*MockClaimStore)(nil).ListByClaimName), ctx, userID, claimName)
 }
 
 // ListByUser mocks base method.
-func (m *MockClaimStore) ListByUser(userID string) ([]*Claim, error) {
+func (m *MockClaimStore) ListByUser(ctx context.Context, userID string) ([]*Claim, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByUser", userID)
+	ret := m.ctrl.Call(m, "ListByUser", ctx, userID)
 	ret0, _ := ret[0].([]*Claim)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListByUser indicates an expected call of ListByUser.
-func (mr *MockClaimStoreMockRecorder) ListByUser(userID interface{}) *gomock.Call {
+func (mr *MockClaimStoreMockRecorder) ListByUser(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockClaimStore)(nil).ListByUser), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockClaimStore)(nil).ListByUser), ctx, userID)
 }
 
 // ListByUserIDs mocks base method.
-func (m *MockClaimStore) ListByUserIDs(userIDs []string) ([]*Claim, error) {
+func (m *MockClaimStore) ListByUserIDs(ctx context.Context, userIDs []string) ([]*Claim, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByUserIDs", userIDs)
+	ret := m.ctrl.Call(m, "ListByUserIDs", ctx, userIDs)
 	ret0, _ := ret[0].([]*Claim)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListByUserIDs indicates an expected call of ListByUserIDs.
-func (mr *MockClaimStoreMockRecorder) ListByUserIDs(userIDs interface{}) *gomock.Call {
+func (mr *MockClaimStoreMockRecorder) ListByUserIDs(ctx, userIDs interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUserIDs", reflect.TypeOf((*MockClaimStore)(nil).ListByUserIDs), userIDs)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUserIDs", reflect.TypeOf((*MockClaimStore)(nil).ListByUserIDs), ctx, userIDs)
 }
