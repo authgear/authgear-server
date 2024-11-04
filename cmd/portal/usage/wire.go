@@ -4,8 +4,6 @@
 package usage
 
 import (
-	"context"
-
 	"github.com/getsentry/sentry-go"
 
 	"github.com/google/wire"
@@ -17,7 +15,6 @@ import (
 )
 
 func NewCountCollector(
-	ctx context.Context,
 	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 	auditDatabaseCredentials *config.AuditDatabaseCredentials,
