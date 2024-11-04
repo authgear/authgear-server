@@ -1,6 +1,7 @@
 package anonymous
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -34,8 +35,8 @@ type Provider struct {
 	Clock clock.Clock
 }
 
-func (p *Provider) List(userID string) ([]*identity.Anonymous, error) {
-	is, err := p.Store.List(userID)
+func (p *Provider) List(ctx context.Context, userID string) ([]*identity.Anonymous, error) {
+	is, err := p.Store.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,16 +45,16 @@ func (p *Provider) List(userID string) ([]*identity.Anonymous, error) {
 	return is, nil
 }
 
-func (p *Provider) Get(userID, id string) (*identity.Anonymous, error) {
-	return p.Store.Get(userID, id)
+func (p *Provider) Get(ctx context.Context, userID, id string) (*identity.Anonymous, error) {
+	return p.Store.Get(ctx, userID, id)
 }
 
-func (p *Provider) GetByKeyID(keyID string) (*identity.Anonymous, error) {
-	return p.Store.GetByKeyID(keyID)
+func (p *Provider) GetByKeyID(ctx context.Context, keyID string) (*identity.Anonymous, error) {
+	return p.Store.GetByKeyID(ctx, keyID)
 }
 
-func (p *Provider) GetMany(ids []string) ([]*identity.Anonymous, error) {
-	return p.Store.GetMany(ids)
+func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*identity.Anonymous, error) {
+	return p.Store.GetMany(ctx, ids)
 }
 
 func (p *Provider) New(
@@ -70,15 +71,15 @@ func (p *Provider) New(
 	return i
 }
 
-func (p *Provider) Create(i *identity.Anonymous) error {
+func (p *Provider) Create(ctx context.Context, i *identity.Anonymous) error {
 	now := p.Clock.NowUTC()
 	i.CreatedAt = now
 	i.UpdatedAt = now
-	return p.Store.Create(i)
+	return p.Store.Create(ctx, i)
 }
 
-func (p *Provider) Delete(i *identity.Anonymous) error {
-	return p.Store.Delete(i)
+func (p *Provider) Delete(ctx context.Context, i *identity.Anonymous) error {
+	return p.Store.Delete(ctx, i)
 }
 
 func (p *Provider) ParseRequestUnverified(requestJWT string) (r *Request, err error) {
