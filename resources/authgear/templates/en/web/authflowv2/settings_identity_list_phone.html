@@ -25,7 +25,6 @@
 {{ define "page-content" }}
 
 <div class="flex flex-col gap-y-6">
-  {{ if $.PhoneIdentities }}
   <ol>
     {{ range $.PhoneIdentities }}
       <li>
@@ -46,8 +45,19 @@
         {{ end }}
       </li>
     {{ end }}
+
+    {{ range $.OAuthPhoneIdentities }}
+      <li>
+        {{ template "authflowv2/__settings_action_item.html"
+            (dict
+              "IconName" "phone_iphone"
+              "Label" .Phone
+              "Description" (translate (printf "v2.page.settings-identity-list-phone.default.provider.%s" .ProviderType) nil)
+            )
+        }}
+      </li>
+    {{ end }}
   </ol>
-  {{ end }}
 
   {{ if not $.CreateDisabled}}
     {{ if not (ge (len $.PhoneIdentities) (1)) }}
@@ -61,7 +71,7 @@
     {{ end }}
   {{ end }}
 
-  {{ if and ($.PrimaryPhone) (gt (len $.PhoneIdentities) (1)) }}
+  {{ if and ($.PrimaryPhone) (gt (len $.AllPhones) (1)) }}
     <span>
       <div class="settings-title text-start">
         {{ translate "v2.page.settings-identity-list-phone.default.primary-phone-label" . }}
@@ -69,9 +79,9 @@
       {{ template "authflowv2/__settings_action_item.html"
         (dict
           "IconName" "phone_iphone"
-          "Label" .PrimaryPhone.OriginalLoginID
+          "Label" .PrimaryPhone
           "ActionButton" (include "__settings_identity_phone_change_button.html"
-            (dict "Href" (call $.MakeURL "/settings/identity/change_primary_phone" "q_login_id_key" $.LoginIDKey "q_identity_id" .PrimaryPhone.ID))
+            (dict "Href" (call $.MakeURL "/settings/identity/change_primary_phone" "q_login_id_key" $.LoginIDKey))
           )
         )
       }}
