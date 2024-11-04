@@ -1,7 +1,6 @@
 package cmdinternal
 
 import (
-	"context"
 	"log"
 	"os"
 
@@ -51,8 +50,7 @@ var cmdInternalRedisListNonExpiringKeys = &cobra.Command{
 			return err
 		}
 
-		ctx := context.Background()
-		err = cmdredis.ListNonExpiringKeys(ctx, redisClient, os.Stdout, log.Default())
+		err = cmdredis.ListNonExpiringKeys(cmd.Context(), redisClient, os.Stdout, log.Default())
 		if err != nil {
 			return err
 		}
@@ -100,9 +98,8 @@ var cmdInternalRedisCleanUpNonExpiringKeysAccessEvents = &cobra.Command{
 			return err
 		}
 
-		ctx := context.Background()
 		dryRun := cmd.Flags().Lookup("dry-run").Value.String() == "true"
-		err = cmdredis.CleanUpNonExpiringKeysAccessEvents(ctx, redisClient, dryRun, os.Stdout, log.Default())
+		err = cmdredis.CleanUpNonExpiringKeysAccessEvents(cmd.Context(), redisClient, dryRun, os.Stdout, log.Default())
 		if err != nil {
 			return err
 		}
@@ -127,9 +124,8 @@ var cmdInternalRedisCleanUpNonExpiringKeysSessionHashes = &cobra.Command{
 			return err
 		}
 
-		ctx := context.Background()
 		dryRun := cmd.Flags().Lookup("dry-run").Value.String() == "true"
-		err = cmdredis.CleanUpNonExpiringKeysSessionHashes(ctx, redisClient, dryRun, os.Stdout, log.Default())
+		err = cmdredis.CleanUpNonExpiringKeysSessionHashes(cmd.Context(), redisClient, dryRun, os.Stdout, log.Default())
 		if err != nil {
 			return err
 		}

@@ -1,7 +1,6 @@
 package cmdinternal
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -155,8 +154,8 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 
 		reindexApp := func(appID string) error {
 			log.Printf("App (%s): reindexing\n", appID)
-			reindexer := cmdes.NewReindexer(context.Background(), dbPool, dbCredentials, config.AppID(appID))
-			err = reindexer.Reindex(client)
+			reindexer := cmdes.NewReindexer(dbPool, dbCredentials, config.AppID(appID))
+			err = reindexer.Reindex(cmd.Context(), client)
 			if err != nil {
 				return err
 			}
@@ -165,8 +164,8 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 		}
 
 		if all, err := cmd.Flags().GetBool("all"); err == nil && all {
-			appLister := cmdes.NewAppLister(context.Background(), dbPool, dbCredentials)
-			appIDs, err := appLister.ListApps()
+			appLister := cmdes.NewAppLister(dbPool, dbCredentials)
+			appIDs, err := appLister.ListApps(cmd.Context())
 			if err != nil {
 				return err
 			}
