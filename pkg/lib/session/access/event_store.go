@@ -1,12 +1,13 @@
 package access
 
 import (
+	"context"
 	"time"
 )
 
 type EventStore interface {
 	// AppendEvent appends an access event to the session event stream
-	AppendEvent(sessionID string, expiry time.Time, e *Event) error
+	AppendEvent(ctx context.Context, sessionID string, expiry time.Time, e *Event) error
 	// ResetEventStream resets a session event stream
-	ResetEventStream(sessionID string) error
+	ResetEventStream(ctx context.Context, sessionID string) error
 }
