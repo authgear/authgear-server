@@ -31,7 +31,7 @@ type StoreRedis struct {
 	Logger StoreRedisLogger
 }
 
-func (s *StoreRedis) Create(sess *IDPSession, expireAt time.Time) (err error) {
+func (s *StoreRedis) Create(ctx context.Context, sess *IDPSession, expireAt time.Time) (err error) {
 	json, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -45,9 +45,7 @@ func (s *StoreRedis) Create(sess *IDPSession, expireAt time.Time) (err error) {
 	listKey := sessionListKey(s.AppID, sess.Attrs.UserID)
 	key := sessionKey(s.AppID, sess.ID)
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		ctx := context.Background()
-
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.HSet(ctx, listKey, key, expiry).Result()
 		if err != nil {
 			return fmt.Errorf("failed to update session list: %w", err)
@@ -72,8 +70,7 @@ func (s *StoreRedis) Create(sess *IDPSession, expireAt time.Time) (err error) {
 	return
 }
 
-func (s *StoreRedis) Update(sess *IDPSession, expireAt time.Time) (err error) {
-	ctx := context.Background()
+func (s *StoreRedis) Update(ctx context.Context, sess *IDPSession, expireAt time.Time) (err error) {
 	data, err := json.Marshal(sess)
 	if err != nil {
 		return
@@ -87,7 +84,7 @@ func (s *StoreRedis) Update(sess *IDPSession, expireAt time.Time) (err error) {
 	listKey := sessionListKey(s.AppID, sess.Attrs.UserID)
 	key := sessionKey(s.AppID, sess.ID)
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.HSet(ctx, listKey, key, expiry).Result()
 		if err != nil {
 			return fmt.Errorf("failed to update session list: %w", err)
@@ -124,12 +121,11 @@ func (s *StoreRedis) Unmarshal(data []byte) (*IDPSession, error) {
 	return &sess, nil
 }
 
-func (s *StoreRedis) Get(id string) (*IDPSession, error) {
-	ctx := context.Background()
+func (s *StoreRedis) Get(ctx context.Context, id string) (*IDPSession, error) {
 	key := sessionKey(s.AppID, id)
 
 	var sess *IDPSession
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrSessionNotFound
@@ -147,12 +143,11 @@ func (s *StoreRedis) Get(id string) (*IDPSession, error) {
 	return sess, nil
 }
 
-func (s *StoreRedis) Delete(session *IDPSession) (err error) {
-	ctx := context.Background()
+func (s *StoreRedis) Delete(ctx context.Context, session *IDPSession) (err error) {
 	key := sessionKey(s.AppID, session.ID)
 	listKey := sessionListKey(s.AppID, session.Attrs.UserID)
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, key).Result()
 		if err == nil {
 			_, err = conn.HDel(ctx, listKey, key).Result()
@@ -170,10 +165,9 @@ func (s *StoreRedis) Delete(session *IDPSession) (err error) {
 	return
 }
 
-func (s *StoreRedis) CleanUpForDeletingUserID(userID string) (err error) {
-	ctx := context.Background()
+func (s *StoreRedis) CleanUpForDeletingUserID(ctx context.Context, userID string) (err error) {
 	listKey := sessionListKey(s.AppID, userID)
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, listKey).Result()
 		if err != nil {
 			return err
@@ -184,12 +178,11 @@ func (s *StoreRedis) CleanUpForDeletingUserID(userID string) (err error) {
 }
 
 //nolint:gocognit
-func (s *StoreRedis) List(userID string) (sessions []*IDPSession, err error) {
-	ctx := context.Background()
+func (s *StoreRedis) List(ctx context.Context, userID string) (sessions []*IDPSession, err error) {
 	now := s.Clock.NowUTC()
 	listKey := sessionListKey(s.AppID, userID)
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		sessionList, err := conn.HGetAll(ctx, listKey).Result()
 		if err != nil {
 			return err
