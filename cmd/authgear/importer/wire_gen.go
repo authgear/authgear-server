@@ -7,7 +7,6 @@
 package importer
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -15,12 +14,12 @@ import (
 
 // Injectors from wire.go:
 
-func NewImporter(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID, loginIDEmailConfig *config.LoginIDEmailConfig) *Importer {
+func NewImporter(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID, loginIDEmailConfig *config.LoginIDEmailConfig) *Importer {
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	importer := &Importer{
 		AppID:         appID,
 		Handle:        handle,
