@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -16,28 +17,23 @@ import (
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package service
 
 type LoginIDIdentityProvider interface {
-	Get(userID, id string) (*identity.LoginID, error)
-	GetMany(ids []string) ([]*identity.LoginID, error)
-	List(userID string) ([]*identity.LoginID, error)
-	GetByValue(loginIDValue string) ([]*identity.LoginID, error)
-	GetByKeyAndValue(loginIDKey string, loginIDValue string) (*identity.LoginID, error)
-	GetByUniqueKey(uniqueKey string) (*identity.LoginID, error)
-	ListByClaim(name string, value string) ([]*identity.LoginID, error)
 	New(userID string, loginID identity.LoginIDSpec, options loginid.CheckerOptions) (*identity.LoginID, error)
 	WithValue(iden *identity.LoginID, value string, options loginid.CheckerOptions) (*identity.LoginID, error)
-	Create(i *identity.LoginID) error
-	Update(i *identity.LoginID) error
-	Delete(i *identity.LoginID) error
 	Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
+
+	Get(ctx context.Context, userID, id string) (*identity.LoginID, error)
+	GetMany(ctx context.Context, ids []string) ([]*identity.LoginID, error)
+	List(ctx context.Context, userID string) ([]*identity.LoginID, error)
+	GetByValue(ctx context.Context, loginIDValue string) ([]*identity.LoginID, error)
+	GetByKeyAndValue(ctx context.Context, loginIDKey string, loginIDValue string) (*identity.LoginID, error)
+	GetByUniqueKey(ctx context.Context, uniqueKey string) (*identity.LoginID, error)
+	ListByClaim(ctx context.Context, name string, value string) ([]*identity.LoginID, error)
+	Create(ctx context.Context, i *identity.LoginID) error
+	Update(ctx context.Context, i *identity.LoginID) error
+	Delete(ctx context.Context, i *identity.LoginID) error
 }
 
 type OAuthIdentityProvider interface {
-	Get(userID, id string) (*identity.OAuth, error)
-	GetMany(ids []string) ([]*identity.OAuth, error)
-	List(userID string) ([]*identity.OAuth, error)
-	GetByProviderSubject(providerID oauthrelyingparty.ProviderID, subjectID string) (*identity.OAuth, error)
-	GetByUserProvider(userID string, providerID oauthrelyingparty.ProviderID) (*identity.OAuth, error)
-	ListByClaim(name string, value string) ([]*identity.OAuth, error)
 	New(
 		userID string,
 		providerID oauthrelyingparty.ProviderID,
@@ -46,57 +42,62 @@ type OAuthIdentityProvider interface {
 		claims map[string]interface{},
 	) *identity.OAuth
 	WithUpdate(iden *identity.OAuth, rawProfile map[string]interface{}, claims map[string]interface{}) *identity.OAuth
-	Create(i *identity.OAuth) error
-	Update(i *identity.OAuth) error
-	Delete(i *identity.OAuth) error
+
+	Get(ctx context.Context, userID, id string) (*identity.OAuth, error)
+	GetMany(ctx context.Context, ids []string) ([]*identity.OAuth, error)
+	List(ctx context.Context, userID string) ([]*identity.OAuth, error)
+	GetByProviderSubject(ctx context.Context, providerID oauthrelyingparty.ProviderID, subjectID string) (*identity.OAuth, error)
+	GetByUserProvider(ctx context.Context, userID string, providerID oauthrelyingparty.ProviderID) (*identity.OAuth, error)
+	ListByClaim(ctx context.Context, name string, value string) ([]*identity.OAuth, error)
+	Create(ctx context.Context, i *identity.OAuth) error
+	Update(ctx context.Context, i *identity.OAuth) error
+	Delete(ctx context.Context, i *identity.OAuth) error
 }
 
 type AnonymousIdentityProvider interface {
-	Get(userID, id string) (*identity.Anonymous, error)
-	GetMany(ids []string) ([]*identity.Anonymous, error)
-	GetByKeyID(keyID string) (*identity.Anonymous, error)
-	List(userID string) ([]*identity.Anonymous, error)
 	New(userID string, keyID string, key []byte) *identity.Anonymous
-	Create(i *identity.Anonymous) error
-	Delete(i *identity.Anonymous) error
+
+	Get(ctx context.Context, userID, id string) (*identity.Anonymous, error)
+	GetMany(ctx context.Context, ids []string) ([]*identity.Anonymous, error)
+	GetByKeyID(ctx context.Context, keyID string) (*identity.Anonymous, error)
+	List(ctx context.Context, userID string) ([]*identity.Anonymous, error)
+	Create(ctx context.Context, i *identity.Anonymous) error
+	Delete(ctx context.Context, i *identity.Anonymous) error
 }
 
 type BiometricIdentityProvider interface {
-	Get(userID, id string) (*identity.Biometric, error)
-	GetMany(ids []string) ([]*identity.Biometric, error)
-	GetByKeyID(keyID string) (*identity.Biometric, error)
-	List(userID string) ([]*identity.Biometric, error)
 	New(userID string, keyID string, key []byte, deviceInfo map[string]interface{}) *identity.Biometric
-	Create(i *identity.Biometric) error
-	Delete(i *identity.Biometric) error
+
+	Get(ctx context.Context, userID, id string) (*identity.Biometric, error)
+	GetMany(ctx context.Context, ids []string) ([]*identity.Biometric, error)
+	GetByKeyID(ctx context.Context, keyID string) (*identity.Biometric, error)
+	List(ctx context.Context, userID string) ([]*identity.Biometric, error)
+	Create(ctx context.Context, i *identity.Biometric) error
+	Delete(ctx context.Context, i *identity.Biometric) error
 }
 
 type PasskeyIdentityProvider interface {
-	Get(userID, id string) (*identity.Passkey, error)
-	GetMany(ids []string) ([]*identity.Passkey, error)
-	GetBySpec(spec *identity.PasskeySpec) (*identity.Passkey, error)
-	List(userID string) ([]*identity.Passkey, error)
-	New(userID string, attestationResponse []byte) (*identity.Passkey, error)
-	Create(i *identity.Passkey) error
-	Delete(i *identity.Passkey) error
+	New(ctx context.Context, userID string, attestationResponse []byte) (*identity.Passkey, error)
+	Get(ctx context.Context, userID, id string) (*identity.Passkey, error)
+	GetMany(ctx context.Context, ids []string) ([]*identity.Passkey, error)
+	GetBySpec(ctx context.Context, spec *identity.PasskeySpec) (*identity.Passkey, error)
+	List(ctx context.Context, userID string) ([]*identity.Passkey, error)
+	Create(ctx context.Context, i *identity.Passkey) error
+	Delete(ctx context.Context, i *identity.Passkey) error
 }
 
 type SIWEIdentityProvider interface {
-	Get(userID, id string) (*identity.SIWE, error)
-	GetMany(ids []string) ([]*identity.SIWE, error)
-	GetByMessage(msg string, signature string) (*identity.SIWE, error)
-	List(userID string) ([]*identity.SIWE, error)
-	New(userID string, msg string, signature string) (*identity.SIWE, error)
-	Create(i *identity.SIWE) error
-	Delete(i *identity.SIWE) error
+	New(ctx context.Context, userID string, msg string, signature string) (*identity.SIWE, error)
+
+	Get(ctx context.Context, userID, id string) (*identity.SIWE, error)
+	GetMany(ctx context.Context, ids []string) ([]*identity.SIWE, error)
+	GetByMessage(ctx context.Context, msg string, signature string) (*identity.SIWE, error)
+	List(ctx context.Context, userID string) ([]*identity.SIWE, error)
+	Create(ctx context.Context, i *identity.SIWE) error
+	Delete(ctx context.Context, i *identity.SIWE) error
 }
 
 type LDAPIdentityProvider interface {
-	Get(userID, id string) (*identity.LDAP, error)
-	GetMany(ids []string) ([]*identity.LDAP, error)
-	List(userID string) ([]*identity.LDAP, error)
-	GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error)
-	ListByClaim(name string, value string) ([]*identity.LDAP, error)
 	New(
 		userID string,
 		serverName string,
@@ -107,9 +108,15 @@ type LDAPIdentityProvider interface {
 		rawEntryJSON map[string]interface{},
 	) *identity.LDAP
 	WithUpdate(iden *identity.LDAP, loginUserName *string, claims map[string]interface{}, rawEntryJSON map[string]interface{}) *identity.LDAP
-	Create(i *identity.LDAP) error
-	Update(i *identity.LDAP) error
-	Delete(i *identity.LDAP) error
+
+	Get(ctx context.Context, userID, id string) (*identity.LDAP, error)
+	GetMany(ctx context.Context, ids []string) ([]*identity.LDAP, error)
+	List(ctx context.Context, userID string) ([]*identity.LDAP, error)
+	GetByServerUserID(ctx context.Context, serverName string, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error)
+	ListByClaim(ctx context.Context, name string, value string) ([]*identity.LDAP, error)
+	Create(ctx context.Context, i *identity.LDAP) error
+	Update(ctx context.Context, i *identity.LDAP) error
+	Delete(ctx context.Context, i *identity.LDAP) error
 }
 
 type Service struct {
@@ -126,50 +133,50 @@ type Service struct {
 	LDAP                  LDAPIdentityProvider
 }
 
-func (s *Service) Get(id string) (*identity.Info, error) {
-	ref, err := s.Store.GetRefByID(id)
+func (s *Service) Get(ctx context.Context, id string) (*identity.Info, error) {
+	ref, err := s.Store.GetRefByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	switch ref.Type {
 	case model.IdentityTypeLoginID:
-		l, err := s.LoginID.Get(ref.UserID, id)
+		l, err := s.LoginID.Get(ctx, ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return l.ToInfo(), nil
 	case model.IdentityTypeOAuth:
-		o, err := s.OAuth.Get(ref.UserID, id)
+		o, err := s.OAuth.Get(ctx, ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return o.ToInfo(), nil
 	case model.IdentityTypeAnonymous:
-		a, err := s.Anonymous.Get(ref.UserID, id)
+		a, err := s.Anonymous.Get(ctx, ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return a.ToInfo(), nil
 	case model.IdentityTypeBiometric:
-		b, err := s.Biometric.Get(ref.UserID, id)
+		b, err := s.Biometric.Get(ctx, ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return b.ToInfo(), nil
 	case model.IdentityTypePasskey:
-		p, err := s.Passkey.Get(ref.UserID, id)
+		p, err := s.Passkey.Get(ctx, ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return p.ToInfo(), nil
 	case model.IdentityTypeSIWE:
-		s, err := s.SIWE.Get(ref.UserID, id)
+		s, err := s.SIWE.Get(ctx, ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
 		return s.ToInfo(), nil
 	case model.IdentityTypeLDAP:
-		s, err := s.LDAP.Get(ref.UserID, id)
+		s, err := s.LDAP.Get(ctx, ref.UserID, id)
 		if err != nil {
 			return nil, err
 		}
@@ -179,8 +186,8 @@ func (s *Service) Get(id string) (*identity.Info, error) {
 	panic("identity: unknown identity type " + ref.Type)
 }
 
-func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
-	refs, err := s.Store.ListRefsByIDs(ids)
+func (s *Service) GetMany(ctx context.Context, ids []string) ([]*identity.Info, error) {
+	refs, err := s.Store.ListRefsByIDs(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +216,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 
 	var infos []*identity.Info
 
-	l, err := s.LoginID.GetMany(loginIDs)
+	l, err := s.LoginID.GetMany(ctx, loginIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -217,7 +224,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		infos = append(infos, i.ToInfo())
 	}
 
-	o, err := s.OAuth.GetMany(oauthIDs)
+	o, err := s.OAuth.GetMany(ctx, oauthIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -225,7 +232,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		infos = append(infos, i.ToInfo())
 	}
 
-	a, err := s.Anonymous.GetMany(anonymousIDs)
+	a, err := s.Anonymous.GetMany(ctx, anonymousIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +240,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		infos = append(infos, i.ToInfo())
 	}
 
-	b, err := s.Biometric.GetMany(biometricIDs)
+	b, err := s.Biometric.GetMany(ctx, biometricIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +248,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		infos = append(infos, i.ToInfo())
 	}
 
-	p, err := s.Passkey.GetMany(passkeyIDs)
+	p, err := s.Passkey.GetMany(ctx, passkeyIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +256,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		infos = append(infos, i.ToInfo())
 	}
 
-	e, err := s.SIWE.GetMany(siweIDs)
+	e, err := s.SIWE.GetMany(ctx, siweIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -257,7 +264,7 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 		infos = append(infos, i.ToInfo())
 	}
 
-	ldapIdentities, err := s.LDAP.GetMany(ldapIDs)
+	ldapIdentities, err := s.LDAP.GetMany(ctx, ldapIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -268,11 +275,11 @@ func (s *Service) GetMany(ids []string) ([]*identity.Info, error) {
 	return infos, nil
 }
 
-func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
+func (s *Service) getBySpec(ctx context.Context, spec *identity.Spec) (*identity.Info, error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
 		loginID := spec.LoginID.Value
-		l, err := s.LoginID.GetByValue(loginID)
+		l, err := s.LoginID.GetByValue(ctx, loginID)
 		if err != nil {
 			return nil, err
 		} else if len(l) != 1 {
@@ -280,7 +287,7 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		}
 		return l[0].ToInfo(), nil
 	case model.IdentityTypeOAuth:
-		o, err := s.OAuth.GetByProviderSubject(spec.OAuth.ProviderID, spec.OAuth.SubjectID)
+		o, err := s.OAuth.GetByProviderSubject(ctx, spec.OAuth.ProviderID, spec.OAuth.SubjectID)
 		if err != nil {
 			return nil, err
 		}
@@ -288,7 +295,7 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 	case model.IdentityTypeAnonymous:
 		keyID := spec.Anonymous.KeyID
 		if keyID != "" {
-			a, err := s.Anonymous.GetByKeyID(keyID)
+			a, err := s.Anonymous.GetByKeyID(ctx, keyID)
 			if err != nil {
 				return nil, err
 			}
@@ -300,7 +307,7 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		if userID == "" {
 			return nil, api.ErrIdentityNotFound
 		}
-		a, err := s.Anonymous.Get(userID, identityID)
+		a, err := s.Anonymous.Get(ctx, userID, identityID)
 		// identity must be found with existing user and identity id
 		if err != nil {
 			panic(fmt.Errorf("identity: failed to fetch anonymous identity: %s, %s, %w", userID, identityID, err))
@@ -308,13 +315,13 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		return a.ToInfo(), nil
 	case model.IdentityTypeBiometric:
 		keyID := spec.Biometric.KeyID
-		b, err := s.Biometric.GetByKeyID(keyID)
+		b, err := s.Biometric.GetByKeyID(ctx, keyID)
 		if err != nil {
 			return nil, err
 		}
 		return b.ToInfo(), nil
 	case model.IdentityTypePasskey:
-		p, err := s.Passkey.GetBySpec(spec.Passkey)
+		p, err := s.Passkey.GetBySpec(ctx, spec.Passkey)
 		if err != nil {
 			return nil, err
 		}
@@ -322,7 +329,7 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 	case model.IdentityTypeSIWE:
 		message := spec.SIWE.Message
 		signature := spec.SIWE.Signature
-		e, err := s.SIWE.GetByMessage(message, signature)
+		e, err := s.SIWE.GetByMessage(ctx, message, signature)
 		if err != nil {
 			return nil, err
 		}
@@ -331,7 +338,7 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 		serverName := spec.LDAP.ServerName
 		userIDAttributeName := spec.LDAP.UserIDAttributeName
 		userIDAttributeValue := spec.LDAP.UserIDAttributeValue
-		l, err := s.LDAP.GetByServerUserID(serverName, userIDAttributeName, userIDAttributeValue)
+		l, err := s.LDAP.GetByServerUserID(ctx, serverName, userIDAttributeName, userIDAttributeValue)
 		if err != nil {
 			return nil, err
 		}
@@ -342,8 +349,8 @@ func (s *Service) getBySpec(spec *identity.Spec) (*identity.Info, error) {
 }
 
 // SearchBySpec does not return api.ErrIdentityNotFound.
-func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
-	exactMatch, err = s.getBySpec(spec)
+func (s *Service) SearchBySpec(ctx context.Context, spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
+	exactMatch, err = s.getBySpec(ctx, spec)
 	// The simplest case is the exact match case.
 	if err == nil {
 		return
@@ -390,7 +397,7 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 			string(model.ClaimPreferredUsername):
 
 			var loginIDs []*identity.LoginID
-			loginIDs, err = s.LoginID.ListByClaim(name, str)
+			loginIDs, err = s.LoginID.ListByClaim(ctx, name, str)
 			if err != nil {
 				return
 			}
@@ -400,7 +407,7 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 			}
 
 			var oauths []*identity.OAuth
-			oauths, err = s.OAuth.ListByClaim(name, str)
+			oauths, err = s.OAuth.ListByClaim(ctx, name, str)
 			if err != nil {
 				return
 			}
@@ -410,7 +417,7 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 			}
 
 			var ldaps []*identity.LDAP
-			ldaps, err = s.LDAP.ListByClaim(name, str)
+			ldaps, err = s.LDAP.ListByClaim(ctx, name, str)
 			if err != nil {
 				return
 			}
@@ -426,8 +433,8 @@ func (s *Service) SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, 
 
 // nolint:gocognit
 // This method is actually simple
-func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, error) {
-	refs, err := s.Store.ListRefsByUsers(userIDs, nil)
+func (s *Service) ListByUserIDs(ctx context.Context, userIDs []string) (map[string][]*identity.Info, error) {
+	refs, err := s.Store.ListRefsByUsers(ctx, userIDs, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -450,7 +457,7 @@ func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, 
 
 	// login id
 	if loginIDRefs, ok := refsByType[model.IdentityTypeLoginID]; ok && len(loginIDRefs) > 0 {
-		loginIDs, err := s.LoginID.GetMany(extractIDs(loginIDRefs))
+		loginIDs, err := s.LoginID.GetMany(ctx, extractIDs(loginIDRefs))
 		if err != nil {
 			return nil, err
 		}
@@ -461,7 +468,7 @@ func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, 
 
 	// oauth
 	if oauthRefs, ok := refsByType[model.IdentityTypeOAuth]; ok && len(oauthRefs) > 0 {
-		oauthIdens, err := s.OAuth.GetMany(extractIDs(oauthRefs))
+		oauthIdens, err := s.OAuth.GetMany(ctx, extractIDs(oauthRefs))
 		if err != nil {
 			return nil, err
 		}
@@ -472,7 +479,7 @@ func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, 
 
 	// anonymous
 	if anonymousRefs, ok := refsByType[model.IdentityTypeAnonymous]; ok && len(anonymousRefs) > 0 {
-		anonymousIdens, err := s.Anonymous.GetMany(extractIDs(anonymousRefs))
+		anonymousIdens, err := s.Anonymous.GetMany(ctx, extractIDs(anonymousRefs))
 		if err != nil {
 			return nil, err
 		}
@@ -483,7 +490,7 @@ func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, 
 
 	// biometric
 	if biometricRefs, ok := refsByType[model.IdentityTypeBiometric]; ok && len(biometricRefs) > 0 {
-		biometricIdens, err := s.Biometric.GetMany(extractIDs(biometricRefs))
+		biometricIdens, err := s.Biometric.GetMany(ctx, extractIDs(biometricRefs))
 		if err != nil {
 			return nil, err
 		}
@@ -494,7 +501,7 @@ func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, 
 
 	// passkey
 	if passkeyRefs, ok := refsByType[model.IdentityTypePasskey]; ok && len(passkeyRefs) > 0 {
-		passkeyIdens, err := s.Passkey.GetMany(extractIDs(passkeyRefs))
+		passkeyIdens, err := s.Passkey.GetMany(ctx, extractIDs(passkeyRefs))
 		if err != nil {
 			return nil, err
 		}
@@ -505,7 +512,7 @@ func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, 
 
 	// siwe
 	if siweRefs, ok := refsByType[model.IdentityTypeSIWE]; ok && len(siweRefs) > 0 {
-		siweIdens, err := s.SIWE.GetMany(extractIDs(siweRefs))
+		siweIdens, err := s.SIWE.GetMany(ctx, extractIDs(siweRefs))
 		if err != nil {
 			return nil, err
 		}
@@ -516,7 +523,7 @@ func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, 
 
 	// ldap
 	if ldapRefs, ok := refsByType[model.IdentityTypeLDAP]; ok && len(ldapRefs) > 0 {
-		ldapIdens, err := s.LDAP.GetMany(extractIDs(ldapRefs))
+		ldapIdens, err := s.LDAP.GetMany(ctx, extractIDs(ldapRefs))
 		if err != nil {
 			return nil, err
 		}
@@ -535,8 +542,8 @@ func (s *Service) ListByUserIDs(userIDs []string) (map[string][]*identity.Info, 
 	return infosByUserID, nil
 }
 
-func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
-	infosByUserID, err := s.ListByUserIDs([]string{userID})
+func (s *Service) ListByUser(ctx context.Context, userID string) ([]*identity.Info, error) {
+	infosByUserID, err := s.ListByUserIDs(ctx, []string{userID})
 	if err != nil {
 		return nil, err
 	}
@@ -551,7 +558,7 @@ func (s *Service) ListByUser(userID string) ([]*identity.Info, error) {
 
 }
 
-func (s *Service) ListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error) {
+func (s *Service) ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error) {
 	userIDs := []string{userID}
 
 	extractIDs := func(idRefs []*model.IdentityRef) []string {
@@ -566,13 +573,13 @@ func (s *Service) ListIdentitiesThatHaveStandardAttributes(userID string) ([]*id
 
 	{
 		typeLoginID := model.IdentityTypeLoginID
-		loginIDRefs, err := s.Store.ListRefsByUsers(userIDs, &typeLoginID)
+		loginIDRefs, err := s.Store.ListRefsByUsers(ctx, userIDs, &typeLoginID)
 		if err != nil {
 			return nil, err
 		}
 
 		if len(loginIDRefs) > 0 {
-			loginIDs, err := s.LoginID.GetMany(extractIDs(loginIDRefs))
+			loginIDs, err := s.LoginID.GetMany(ctx, extractIDs(loginIDRefs))
 			if err != nil {
 				return nil, err
 			}
@@ -584,13 +591,13 @@ func (s *Service) ListIdentitiesThatHaveStandardAttributes(userID string) ([]*id
 
 	{
 		typeOAuth := model.IdentityTypeOAuth
-		oauthRefs, err := s.Store.ListRefsByUsers(userIDs, &typeOAuth)
+		oauthRefs, err := s.Store.ListRefsByUsers(ctx, userIDs, &typeOAuth)
 		if err != nil {
 			return nil, err
 		}
 
 		if len(oauthRefs) > 0 {
-			oauths, err := s.OAuth.GetMany(extractIDs(oauthRefs))
+			oauths, err := s.OAuth.GetMany(ctx, extractIDs(oauthRefs))
 			if err != nil {
 				return nil, err
 			}
@@ -602,13 +609,13 @@ func (s *Service) ListIdentitiesThatHaveStandardAttributes(userID string) ([]*id
 
 	{
 		typeLDAP := model.IdentityTypeLDAP
-		ldapRefs, err := s.Store.ListRefsByUsers(userIDs, &typeLDAP)
+		ldapRefs, err := s.Store.ListRefsByUsers(ctx, userIDs, &typeLDAP)
 		if err != nil {
 			return nil, err
 		}
 
 		if len(ldapRefs) > 0 {
-			ldaps, err := s.LDAP.GetMany(extractIDs(ldapRefs))
+			ldaps, err := s.LDAP.GetMany(ctx, extractIDs(ldapRefs))
 			if err != nil {
 				return nil, err
 			}
@@ -621,19 +628,19 @@ func (s *Service) ListIdentitiesThatHaveStandardAttributes(userID string) ([]*id
 	return infos, nil
 }
 
-func (s *Service) Count(userID string) (uint64, error) {
-	return s.Store.Count(userID)
+func (s *Service) Count(ctx context.Context, userID string) (uint64, error) {
+	return s.Store.Count(ctx, userID)
 }
 
-func (s *Service) ListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
-	return s.Store.ListRefsByUsers(userIDs, identityType)
+func (s *Service) ListRefsByUsers(ctx context.Context, userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
+	return s.Store.ListRefsByUsers(ctx, userIDs, identityType)
 }
 
-func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, error) {
+func (s *Service) ListByClaim(ctx context.Context, name string, value string) ([]*identity.Info, error) {
 	var infos []*identity.Info
 
 	// login id
-	lis, err := s.LoginID.ListByClaim(name, value)
+	lis, err := s.LoginID.ListByClaim(ctx, name, value)
 	if err != nil {
 		return nil, err
 	}
@@ -642,7 +649,7 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 	}
 
 	// oauth
-	ois, err := s.OAuth.ListByClaim(name, value)
+	ois, err := s.OAuth.ListByClaim(ctx, name, value)
 	if err != nil {
 		return nil, err
 	}
@@ -651,7 +658,7 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 	}
 
 	// ldaps
-	ldapIdentities, err := s.LDAP.ListByClaim(name, value)
+	ldapIdentities, err := s.LDAP.ListByClaim(ctx, name, value)
 	if err != nil {
 		return nil, err
 	}
@@ -662,7 +669,7 @@ func (s *Service) ListByClaim(name string, value string) ([]*identity.Info, erro
 	return infos, nil
 }
 
-func (s *Service) New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
+func (s *Service) New(ctx context.Context, userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
 		l, err := s.LoginID.New(userID, *spec.LoginID, loginid.CheckerOptions{
@@ -692,7 +699,7 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 		return b.ToInfo(), nil
 	case model.IdentityTypePasskey:
 		attestationResponse := spec.Passkey.AttestationResponse
-		p, err := s.Passkey.New(userID, attestationResponse)
+		p, err := s.Passkey.New(ctx, userID, attestationResponse)
 		if err != nil {
 			return nil, err
 		}
@@ -700,7 +707,7 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 	case model.IdentityTypeSIWE:
 		message := spec.SIWE.Message
 		signature := spec.SIWE.Signature
-		e, err := s.SIWE.New(userID, message, signature)
+		e, err := s.SIWE.New(ctx, userID, message, signature)
 		if err != nil {
 			return nil, err
 		}
@@ -719,7 +726,7 @@ func (s *Service) New(userID string, spec *identity.Spec, options identity.NewId
 	panic("identity: unknown identity type " + spec.Type)
 }
 
-func (s *Service) Create(info *identity.Info) error {
+func (s *Service) Create(ctx context.Context, info *identity.Info) error {
 	// DEV-1613: In https://github.com/authgear/authgear-server/pull/4462
 	// We add checking of duplicated identity in Create().
 	// The way we check duplicate is by turning a identity.Info into a identity.Spec
@@ -730,7 +737,7 @@ func (s *Service) Create(info *identity.Info) error {
 	// A anonymous identity spec with all fields set being passed to getBySpec() will confuse getBySpec() to panic.
 	if info.Type != model.IdentityTypeAnonymous {
 		incoming := info.ToSpec()
-		exactMatch, err := s.getBySpec(&incoming)
+		exactMatch, err := s.getBySpec(ctx, &incoming)
 		if errors.Is(err, api.ErrIdentityNotFound) {
 			// nolint: ineffassign
 			err = nil
@@ -746,7 +753,7 @@ func (s *Service) Create(info *identity.Info) error {
 	// DEV-1664: For OAuth Identity, we additionally disallow
 	// a user to have more than one identity of the same provider.
 	if info.Type == model.IdentityTypeOAuth {
-		sameProvider, err := s.OAuth.GetByUserProvider(info.UserID, info.OAuth.ProviderID)
+		sameProvider, err := s.OAuth.GetByUserProvider(ctx, info.UserID, info.OAuth.ProviderID)
 		// Other errors
 		if errors.Is(err, api.ErrIdentityNotFound) {
 			// nolint: ineffassign
@@ -764,46 +771,46 @@ func (s *Service) Create(info *identity.Info) error {
 	switch info.Type {
 	case model.IdentityTypeLoginID:
 		i := info.LoginID
-		if err := s.LoginID.Create(i); err != nil {
+		if err := s.LoginID.Create(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
 
 	case model.IdentityTypeOAuth:
 		i := info.OAuth
-		if err := s.OAuth.Create(i); err != nil {
+		if err := s.OAuth.Create(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
 
 	case model.IdentityTypeAnonymous:
 		i := info.Anonymous
-		if err := s.Anonymous.Create(i); err != nil {
+		if err := s.Anonymous.Create(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
 
 	case model.IdentityTypeBiometric:
 		i := info.Biometric
-		if err := s.Biometric.Create(i); err != nil {
+		if err := s.Biometric.Create(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
 	case model.IdentityTypePasskey:
 		i := info.Passkey
-		if err := s.Passkey.Create(i); err != nil {
+		if err := s.Passkey.Create(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
 	case model.IdentityTypeSIWE:
 		i := info.SIWE
-		if err := s.SIWE.Create(i); err != nil {
+		if err := s.SIWE.Create(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
 	case model.IdentityTypeLDAP:
 		i := info.LDAP
-		if err := s.LDAP.Create(i); err != nil {
+		if err := s.LDAP.Create(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
@@ -813,7 +820,7 @@ func (s *Service) Create(info *identity.Info) error {
 	return nil
 }
 
-func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
+func (s *Service) UpdateWithSpec(ctx context.Context, info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	switch info.Type {
 	case model.IdentityTypeLoginID:
 		i, err := s.LoginID.WithValue(info.LoginID, spec.LoginID.Value, loginid.CheckerOptions{
@@ -840,18 +847,18 @@ func (s *Service) UpdateWithSpec(info *identity.Info, spec *identity.Spec, optio
 	}
 }
 
-func (s *Service) Update(info *identity.Info) error {
+func (s *Service) Update(ctx context.Context, info *identity.Info) error {
 	switch info.Type {
 	case model.IdentityTypeLoginID:
 		i := info.LoginID
-		if err := s.LoginID.Update(i); err != nil {
+		if err := s.LoginID.Update(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
 
 	case model.IdentityTypeOAuth:
 		i := info.OAuth
-		if err := s.OAuth.Update(i); err != nil {
+		if err := s.OAuth.Update(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
@@ -866,7 +873,7 @@ func (s *Service) Update(info *identity.Info) error {
 		panic("identity: update no support for identity type " + info.Type)
 	case model.IdentityTypeLDAP:
 		i := info.LDAP
-		if err := s.LDAP.Update(i); err != nil {
+		if err := s.LDAP.Update(ctx, i); err != nil {
 			return err
 		}
 		*info = *i.ToInfo()
@@ -877,41 +884,41 @@ func (s *Service) Update(info *identity.Info) error {
 	return nil
 }
 
-func (s *Service) Delete(info *identity.Info) error {
+func (s *Service) Delete(ctx context.Context, info *identity.Info) error {
 	switch info.Type {
 	case model.IdentityTypeLoginID:
 		i := info.LoginID
-		if err := s.LoginID.Delete(i); err != nil {
+		if err := s.LoginID.Delete(ctx, i); err != nil {
 			return err
 		}
 	case model.IdentityTypeOAuth:
 		i := info.OAuth
-		if err := s.OAuth.Delete(i); err != nil {
+		if err := s.OAuth.Delete(ctx, i); err != nil {
 			return err
 		}
 	case model.IdentityTypeAnonymous:
 		i := info.Anonymous
-		if err := s.Anonymous.Delete(i); err != nil {
+		if err := s.Anonymous.Delete(ctx, i); err != nil {
 			return err
 		}
 	case model.IdentityTypeBiometric:
 		i := info.Biometric
-		if err := s.Biometric.Delete(i); err != nil {
+		if err := s.Biometric.Delete(ctx, i); err != nil {
 			return err
 		}
 	case model.IdentityTypePasskey:
 		i := info.Passkey
-		if err := s.Passkey.Delete(i); err != nil {
+		if err := s.Passkey.Delete(ctx, i); err != nil {
 			return err
 		}
 	case model.IdentityTypeSIWE:
 		i := info.SIWE
-		if err := s.SIWE.Delete(i); err != nil {
+		if err := s.SIWE.Delete(ctx, i); err != nil {
 			return err
 		}
 	case model.IdentityTypeLDAP:
 		i := info.LDAP
-		if err := s.LDAP.Delete(i); err != nil {
+		if err := s.LDAP.Delete(ctx, i); err != nil {
 			return err
 		}
 	default:
@@ -921,7 +928,7 @@ func (s *Service) Delete(info *identity.Info) error {
 	return nil
 }
 
-func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.Info, err error) {
+func (s *Service) CheckDuplicated(ctx context.Context, info *identity.Info) (dupeIdentity *identity.Info, err error) {
 	// There are two ways to check duplicate.
 	// 1. Check duplicate by considering standard attributes.
 	// 2. Check duplicate by considering type-specific unique key.
@@ -931,7 +938,7 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 	claims := info.IdentityAwareStandardClaims()
 	for name, value := range claims {
 		var loginIDs []*identity.LoginID
-		loginIDs, err = s.LoginID.ListByClaim(string(name), value)
+		loginIDs, err = s.LoginID.ListByClaim(ctx, string(name), value)
 		if err != nil {
 			return nil, err
 		}
@@ -949,7 +956,7 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 		}
 
 		var oauths []*identity.OAuth
-		oauths, err = s.OAuth.ListByClaim(string(name), value)
+		oauths, err = s.OAuth.ListByClaim(ctx, string(name), value)
 		if err != nil {
 			return nil, err
 		}
@@ -967,7 +974,7 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 		}
 
 		var ldapIdentities []*identity.LDAP
-		ldapIdentities, err = s.LDAP.ListByClaim(string(name), value)
+		ldapIdentities, err = s.LDAP.ListByClaim(ctx, string(name), value)
 		if err != nil {
 			return nil, err
 		}
@@ -986,15 +993,15 @@ func (s *Service) CheckDuplicated(info *identity.Info) (dupeIdentity *identity.I
 	}
 
 	// 2. Check duplicate by considering type-specific unique key.
-	return s.CheckDuplicatedByUniqueKey(info)
+	return s.CheckDuplicatedByUniqueKey(ctx, info)
 }
 
-func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity *identity.Info, err error) {
+func (s *Service) CheckDuplicatedByUniqueKey(ctx context.Context, info *identity.Info) (dupeIdentity *identity.Info, err error) {
 	// Check duplicate by considering type-specific unique key.
 	switch info.Type {
 	case model.IdentityTypeLoginID:
 		var i *identity.LoginID
-		i, err = s.LoginID.GetByUniqueKey(info.LoginID.UniqueKey)
+		i, err = s.LoginID.GetByUniqueKey(ctx, info.LoginID.UniqueKey)
 		if err != nil {
 			if !errors.Is(err, api.ErrIdentityNotFound) {
 				return
@@ -1009,7 +1016,7 @@ func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity 
 		}
 	case model.IdentityTypeOAuth:
 		var o *identity.OAuth
-		o, err = s.OAuth.GetByProviderSubject(info.OAuth.ProviderID, info.OAuth.ProviderSubjectID)
+		o, err = s.OAuth.GetByProviderSubject(ctx, info.OAuth.ProviderID, info.OAuth.ProviderSubjectID)
 		if err != nil {
 			if !errors.Is(err, api.ErrIdentityNotFound) {
 				return
@@ -1024,7 +1031,7 @@ func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity 
 		}
 	case model.IdentityTypeLDAP:
 		var l *identity.LDAP
-		l, err = s.LDAP.GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue)
+		l, err = s.LDAP.GetByServerUserID(ctx, info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue)
 		if err != nil {
 			if !errors.Is(err, api.ErrIdentityNotFound) {
 				return
@@ -1042,17 +1049,17 @@ func (s *Service) CheckDuplicatedByUniqueKey(info *identity.Info) (dupeIdentity 
 	return
 }
 
-func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err error) {
+func (s *Service) ListCandidates(ctx context.Context, userID string) (out []identity.Candidate, err error) {
 	var loginIDs []*identity.LoginID
 	var oauths []*identity.OAuth
 	var siwes []*identity.SIWE
 
 	if userID != "" {
-		loginIDs, err = s.LoginID.List(userID)
+		loginIDs, err = s.LoginID.List(ctx, userID)
 		if err != nil {
 			return
 		}
-		oauths, err = s.OAuth.List(userID)
+		oauths, err = s.OAuth.List(ctx, userID)
 		if err != nil {
 			return
 		}
@@ -1060,7 +1067,7 @@ func (s *Service) ListCandidates(userID string) (out []identity.Candidate, err e
 		// No need to consider biometric identity
 		// No need to consider passkey identity
 
-		siwes, err = s.SIWE.List(userID)
+		siwes, err = s.SIWE.List(ctx, userID)
 		if err != nil {
 			return
 		}
@@ -1151,25 +1158,25 @@ func (s *Service) listSIWECandidates(siwes []*identity.SIWE) []identity.Candidat
 	return out
 }
 
-func (s *Service) Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
+func (s *Service) Normalize(ctx context.Context, typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error) {
 	return s.LoginID.Normalize(typ, value)
 }
 
-func (s *Service) AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey string, loginIDValue string) (*identity.Info, error) {
-	loginID, err := s.LoginID.GetByKeyAndValue(loginIDKey, loginIDValue)
+func (s *Service) AdminAPIGetByLoginIDKeyAndLoginIDValue(ctx context.Context, loginIDKey string, loginIDValue string) (*identity.Info, error) {
+	loginID, err := s.LoginID.GetByKeyAndValue(ctx, loginIDKey, loginIDValue)
 	if err != nil {
 		return nil, err
 	}
 	return loginID.ToInfo(), nil
 }
 
-func (s *Service) AdminAPIGetByOAuthAliasAndSubject(alias string, subjectID string) (*identity.Info, error) {
+func (s *Service) AdminAPIGetByOAuthAliasAndSubject(ctx context.Context, alias string, subjectID string) (*identity.Info, error) {
 	cfg, ok := s.Identity.OAuth.GetProviderConfig(alias)
 	if !ok {
 		return nil, api.ErrGetUsersInvalidArgument.New("invalid OAuth provider alias")
 	}
 
-	oauth, err := s.OAuth.GetByProviderSubject(cfg.ProviderID(), subjectID)
+	oauth, err := s.OAuth.GetByProviderSubject(ctx, cfg.ProviderID(), subjectID)
 	if err != nil {
 		return nil, err
 	}
