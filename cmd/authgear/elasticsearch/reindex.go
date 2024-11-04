@@ -73,13 +73,14 @@ func (r *ReindexedTimestamps) Append(userID string, timestamp time.Time) {
 }
 
 func (r *ReindexedTimestamps) Flush(
+	ctx context.Context,
 	dbHandle *appdb.Handle,
 	userStore *user.Store) error {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	for _, t := range r.timestamps {
-		err := dbHandle.WithTx(func() error {
-			return userStore.UpdateLastIndexedAt([]string{t.UserID}, t.ReindexedAt)
+		err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
+			return userStore.UpdateLastIndexedAt(ctx, []string{t.UserID}, t.ReindexedAt)
 		})
 		if err != nil {
 			return err
@@ -100,8 +101,8 @@ type Reindexer struct {
 	ReindexedTimestamps *ReindexedTimestamps
 }
 
-func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, error) {
-	users, offset, err := q.Users.QueryPage(user.ListOptions{}, graphqlutil.PageArgs{
+func (q *Reindexer) QueryPage(ctx context.Context, after model.PageCursor, first uint64) ([]Item, error) {
+	users, offset, err := q.Users.QueryPage(ctx, user.ListOptions{}, graphqlutil.PageArgs{
 		First: &first,
 		After: graphqlutil.Cursor(after),
 	})
@@ -116,21 +117,21 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 		if err != nil {
 			return nil, err
 		}
-		oauthIdentities, err := q.OAuth.List(u.ID)
+		oauthIdentities, err := q.OAuth.List(ctx, u.ID)
 		if err != nil {
 			return nil, err
 		}
-		loginIDIdentities, err := q.LoginID.List(u.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		effectiveRoles, err := q.RolesGroups.ListEffectiveRolesByUserID(u.ID)
+		loginIDIdentities, err := q.LoginID.List(ctx, u.ID)
 		if err != nil {
 			return nil, err
 		}
 
-		groups, err := q.RolesGroups.ListGroupsByUserID(u.ID)
+		effectiveRoles, err := q.RolesGroups.ListEffectiveRolesByUserID(ctx, u.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		groups, err := q.RolesGroups.ListGroupsByUserID(ctx, u.ID)
 		if err != nil {
 			return nil, err
 		}
@@ -180,8 +181,7 @@ func (q *Reindexer) QueryPage(after model.PageCursor, first uint64) ([]Item, err
 	return models, nil
 }
 
-func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
-	ctx := context.Background()
+func (q *Reindexer) Reindex(ctx context.Context, es *elasticsearch.Client) (err error) {
 	bulkIndexer, err := esutil.NewBulkIndexer(esutil.BulkIndexerConfig{
 		Client:     es,
 		Index:      libes.IndexNameUser,
@@ -207,7 +207,7 @@ func (q *Reindexer) Reindex(es *elasticsearch.Client) (err error) {
 	}
 
 	// Flush timestamps once after closed bulkindexer to ensure all rows are updated
-	err = q.ReindexedTimestamps.Flush(q.Handle, q.Users)
+	err = q.ReindexedTimestamps.Flush(ctx, q.Handle, q.Users)
 	if err != nil {
 		return
 	}
@@ -226,8 +226,8 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 	startAt := q.Clock.NowUTC()
 
 	for {
-		err = q.Handle.WithTx(func() (err error) {
-			items, err = q.QueryPage(after, first)
+		err = q.Handle.WithTx(ctx, func(ctx context.Context) (err error) {
+			items, err = q.QueryPage(ctx, after, first)
 			if err != nil {
 				return
 			}
@@ -288,7 +288,7 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 			}
 		}
 
-		err = q.ReindexedTimestamps.Flush(q.Handle, q.Users)
+		err = q.ReindexedTimestamps.Flush(ctx, q.Handle, q.Users)
 		if err != nil {
 			return
 		}

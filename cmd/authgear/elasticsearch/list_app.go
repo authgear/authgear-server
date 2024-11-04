@@ -1,6 +1,8 @@
 package elasticsearch
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 )
@@ -10,9 +12,9 @@ type AppLister struct {
 	Store  *configsource.Store
 }
 
-func (l *AppLister) ListApps() (appIDs []string, err error) {
-	err = l.Handle.ReadOnly(func() error {
-		srcs, err := l.Store.ListAll()
+func (l *AppLister) ListApps(ctx context.Context) (appIDs []string, err error) {
+	err = l.Handle.ReadOnly(ctx, func(ctx context.Context) error {
+		srcs, err := l.Store.ListAll(ctx)
 		if err != nil {
 			return err
 		}
