@@ -29,7 +29,7 @@ import (
 )
 
 type UserQueries interface {
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
+	Get(ctx context.Context, userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type ElasticsearchServiceLogger struct{ *log.Logger }
@@ -45,7 +45,6 @@ type UserReindexCreateProducer interface {
 
 type Service struct {
 	Clock           clock.Clock
-	Context         context.Context
 	Database        *appdb.Handle
 	Logger          *ElasticsearchServiceLogger
 	AppID           config.AppID
@@ -78,7 +77,7 @@ const (
 	actionSkip    action = "skip"
 )
 
-func (s *Service) EnqueueReindexUserTask(userID string) error {
+func (s *Service) EnqueueReindexUserTask(ctx context.Context, userID string) error {
 	request := ReindexRequest{UserID: userID}
 
 	rawMessage, err := json.Marshal(request)
@@ -87,7 +86,7 @@ func (s *Service) EnqueueReindexUserTask(userID string) error {
 	}
 
 	task := s.Producer.NewTask(string(s.AppID), rawMessage, "task")
-	err = s.Producer.EnqueueTask(s.Context, task)
+	err = s.Producer.EnqueueTask(ctx, task)
 	if err != nil {
 		return err
 	}
@@ -95,8 +94,8 @@ func (s *Service) EnqueueReindexUserTask(userID string) error {
 	return nil
 }
 
-func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, action, error) {
-	rawUser, err := s.UserStore.Get(userID)
+func (s *Service) getSource(ctx context.Context, userID string) (*model.ElasticsearchUserSource, action, error) {
+	rawUser, err := s.UserStore.Get(ctx, userID)
 	if errors.Is(err, libuser.ErrUserNotFound) {
 		return nil, actionDelete, nil
 	}
@@ -105,7 +104,7 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, acti
 		return nil, actionSkip, nil
 	}
 
-	u, err := s.Users.Get(userID, accesscontrol.RoleGreatest)
+	u, err := s.Users.Get(ctx, userID, accesscontrol.RoleGreatest)
 	if errors.Is(err, libuser.ErrUserNotFound) {
 		return nil, actionDelete, nil
 	}
@@ -113,12 +112,12 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, acti
 		return nil, "", err
 	}
 
-	effectiveRoles, err := s.RolesGroups.ListEffectiveRolesByUserID(u.ID)
+	effectiveRoles, err := s.RolesGroups.ListEffectiveRolesByUserID(ctx, u.ID)
 	if err != nil {
 		return nil, "", err
 	}
 
-	groups, err := s.RolesGroups.ListGroupsByUserID(u.ID)
+	groups, err := s.RolesGroups.ListGroupsByUserID(ctx, u.ID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -135,7 +134,7 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, acti
 		Groups:             slice.Map(groups, func(g *rolesgroups.Group) *model.Group { return g.ToModel() }),
 	}
 
-	arrIdentityInfo, err := s.IdentityService.ListByUser(u.ID)
+	arrIdentityInfo, err := s.IdentityService.ListByUser(ctx, u.ID)
 	if err != nil {
 		return nil, "", err
 	}
@@ -173,7 +172,7 @@ func (s *Service) getSource(userID string) (*model.ElasticsearchUserSource, acti
 	return RawToSource(raw), actionReindex, nil
 }
 
-func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult) {
+func (s *Service) ExecReindexUser(ctx context.Context, request ReindexRequest) (result ReindexResult) {
 	failure := func(err error) ReindexResult {
 		s.Logger.WithFields(map[string]interface{}{"user_id": request.UserID}).
 			WithError(err).
@@ -188,8 +187,8 @@ func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult)
 	startedAt := s.Clock.NowUTC()
 	var source *model.ElasticsearchUserSource = nil
 	var actionToExec action
-	err := s.Database.ReadOnly(func() error {
-		s, a, err := s.getSource(request.UserID)
+	err := s.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		s, a, err := s.getSource(ctx, request.UserID)
 		if err != nil {
 			return err
 		}
@@ -214,8 +213,8 @@ func (s *Service) ExecReindexUser(request ReindexRequest) (result ReindexResult)
 		if err != nil {
 			return failure(err)
 		}
-		err = s.Database.WithTx(func() error {
-			return s.UserStore.UpdateLastIndexedAt([]string{request.UserID}, startedAt)
+		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+			return s.UserStore.UpdateLastIndexedAt(ctx, []string{request.UserID}, startedAt)
 		})
 		if err != nil {
 			return failure(err)
@@ -369,6 +368,6 @@ func (s *Service) deleteUser(userID string) error {
 	return nil
 }
 
-func (s *Service) MarkUsersAsReindexRequired(userIDs []string) error {
-	return s.UserStore.MarkAsReindexRequired(userIDs)
+func (s *Service) MarkUsersAsReindexRequired(ctx context.Context, userIDs []string) error {
+	return s.UserStore.MarkAsReindexRequired(ctx, userIDs)
 }
