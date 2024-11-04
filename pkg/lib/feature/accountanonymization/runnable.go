@@ -8,15 +8,15 @@ import (
 )
 
 type AppContextResolver interface {
-	ResolveContext(appID string) (*config.AppContext, error)
+	ResolveContext(ctx context.Context, appID string) (*config.AppContext, error)
 }
 
 type UserService interface {
-	AnonymizeFromScheduledAnonymization(userID string) error
+	AnonymizeFromScheduledAnonymization(ctx context.Context, userID string) error
 }
 
 type UserServiceFactory interface {
-	MakeUserService(ctx context.Context, appID string, appContext *config.AppContext) UserService
+	MakeUserService(appID string, appContext *config.AppContext) UserService
 }
 
 type RunnableLogger struct{ *log.Logger }
@@ -26,25 +26,24 @@ func NewRunnableLogger(lf *log.Factory) RunnableLogger {
 }
 
 type Runnable struct {
-	Context            context.Context
 	Store              *Store
 	AppContextResolver AppContextResolver
 	UserServiceFactory UserServiceFactory
 	Logger             RunnableLogger
 }
 
-func (r *Runnable) Run() error {
-	appUsers, err := r.Store.ListAppUsers()
+func (r *Runnable) Run(ctx context.Context) error {
+	appUsers, err := r.Store.ListAppUsers(ctx)
 	if err != nil {
 		return err
 	}
 	for _, appUser := range appUsers {
-		appContext, err := r.AppContextResolver.ResolveContext(appUser.AppID)
+		appContext, err := r.AppContextResolver.ResolveContext(ctx, appUser.AppID)
 		if err != nil {
 			return err
 		}
-		userService := r.UserServiceFactory.MakeUserService(r.Context, appUser.AppID, appContext)
-		err = userService.AnonymizeFromScheduledAnonymization(appUser.UserID)
+		userService := r.UserServiceFactory.MakeUserService(appUser.AppID, appContext)
+		err = userService.AnonymizeFromScheduledAnonymization(ctx, appUser.UserID)
 		if err != nil {
 			return err
 		}
