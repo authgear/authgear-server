@@ -1,21 +1,17 @@
 package ldap
 
 import (
+	"context"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	"github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
-	"github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
-
-var _ service.LDAPIdentityProvider = &Provider{}
-var _ authenticationflow.LDAPService = &Provider{}
 
 type StandardAttributesNormalizer interface {
 	Normalize(stdattrs.T) error
@@ -27,16 +23,16 @@ type Provider struct {
 	StandardAttributesNormalizer StandardAttributesNormalizer
 }
 
-func (p *Provider) Get(userID string, id string) (*identity.LDAP, error) {
-	return p.Store.Get(userID, id)
+func (p *Provider) Get(ctx context.Context, userID string, id string) (*identity.LDAP, error) {
+	return p.Store.Get(ctx, userID, id)
 }
 
-func (p *Provider) GetMany(ids []string) ([]*identity.LDAP, error) {
-	return p.Store.GetMany(ids)
+func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*identity.LDAP, error) {
+	return p.Store.GetMany(ctx, ids)
 }
 
-func (p *Provider) List(userID string) ([]*identity.LDAP, error) {
-	is, err := p.Store.List(userID)
+func (p *Provider) List(ctx context.Context, userID string) ([]*identity.LDAP, error) {
+	is, err := p.Store.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -44,12 +40,12 @@ func (p *Provider) List(userID string) ([]*identity.LDAP, error) {
 	return is, nil
 }
 
-func (p *Provider) GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error) {
-	return p.Store.GetByServerUserID(serverName, userIDAttributeName, userIDAttributeValue)
+func (p *Provider) GetByServerUserID(ctx context.Context, serverName string, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error) {
+	return p.Store.GetByServerUserID(ctx, serverName, userIDAttributeName, userIDAttributeValue)
 }
 
-func (p *Provider) ListByClaim(name string, value string) ([]*identity.LDAP, error) {
-	is, err := p.Store.ListByClaim(name, value)
+func (p *Provider) ListByClaim(ctx context.Context, name string, value string) ([]*identity.LDAP, error) {
+	is, err := p.Store.ListByClaim(ctx, name, value)
 	if err != nil {
 		return nil, err
 	}
@@ -92,21 +88,21 @@ func (p *Provider) WithUpdate(iden *identity.LDAP, loginUserName *string, claims
 	return &newIden
 }
 
-func (p *Provider) Create(i *identity.LDAP) error {
+func (p *Provider) Create(ctx context.Context, i *identity.LDAP) error {
 	now := p.Clock.NowUTC()
 	i.CreatedAt = now
 	i.UpdatedAt = now
-	return p.Store.Create(i)
+	return p.Store.Create(ctx, i)
 }
 
-func (p *Provider) Update(i *identity.LDAP) error {
+func (p *Provider) Update(ctx context.Context, i *identity.LDAP) error {
 	now := p.Clock.NowUTC()
 	i.UpdatedAt = now
-	return p.Store.Update(i)
+	return p.Store.Update(ctx, i)
 }
 
-func (p *Provider) Delete(i *identity.LDAP) error {
-	return p.Store.Delete(i)
+func (p *Provider) Delete(ctx context.Context, i *identity.LDAP) error {
+	return p.Store.Delete(ctx, i)
 }
 
 func sortIdentities(is []*identity.LDAP) {

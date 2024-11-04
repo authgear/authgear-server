@@ -1,6 +1,7 @@
 package ldap
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -76,19 +77,19 @@ func (s *Store) scan(scn db.Scanner) (*identity.LDAP, error) {
 	return i, nil
 }
 
-func (s *Store) Get(userID string, id string) (*identity.LDAP, error) {
+func (s *Store) Get(ctx context.Context, userID string, id string) (*identity.LDAP, error) {
 	q := s.selectQuery().Where("p.user_id = ? AND p.id = ?", userID, id)
-	rows, err := s.SQLExecutor.QueryRowWith(q)
+	rows, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 	return s.scan(rows)
 }
 
-func (s *Store) GetMany(ids []string) ([]*identity.LDAP, error) {
+func (s *Store) GetMany(ctx context.Context, ids []string) ([]*identity.LDAP, error) {
 	builder := s.selectQuery().Where("p.id = ANY (?)", pq.Array(ids))
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -106,10 +107,10 @@ func (s *Store) GetMany(ids []string) ([]*identity.LDAP, error) {
 	return is, nil
 }
 
-func (s *Store) List(userID string) ([]*identity.LDAP, error) {
+func (s *Store) List(ctx context.Context, userID string) ([]*identity.LDAP, error) {
 	builder := s.selectQuery().Where("p.user_id = ?", userID)
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -127,11 +128,11 @@ func (s *Store) List(userID string) ([]*identity.LDAP, error) {
 	return is, nil
 }
 
-func (s *Store) ListByClaim(name string, value string) ([]*identity.LDAP, error) {
+func (s *Store) ListByClaim(ctx context.Context, name string, value string) ([]*identity.LDAP, error) {
 	q := s.selectQuery().
 		Where("(l.claims ->> ?) = ?", name, value)
 
-	rows, err := s.SQLExecutor.QueryWith(q)
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +150,7 @@ func (s *Store) ListByClaim(name string, value string) ([]*identity.LDAP, error)
 	return is, nil
 }
 
-func (s *Store) GetByServerUserID(serverName string, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error) {
+func (s *Store) GetByServerUserID(ctx context.Context, serverName string, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error) {
 	q := s.selectQuery().
 		Where(
 			"l.server_name = ? AND l.user_id_attribute_name = ? AND l.user_id_attribute_value = ?",
@@ -157,14 +158,14 @@ func (s *Store) GetByServerUserID(serverName string, userIDAttributeName string,
 			userIDAttributeName,
 			userIDAttributeValue,
 		)
-	rows, err := s.SQLExecutor.QueryRowWith(q)
+	rows, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
 	return s.scan(rows)
 }
 
-func (s *Store) Create(i *identity.LDAP) (err error) {
+func (s *Store) Create(ctx context.Context, i *identity.LDAP) (err error) {
 	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_identity")).
 		Columns(
@@ -182,7 +183,7 @@ func (s *Store) Create(i *identity.LDAP) (err error) {
 			i.UpdatedAt,
 		)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -217,7 +218,7 @@ func (s *Store) Create(i *identity.LDAP) (err error) {
 			i.LastLoginUserName,
 		)
 
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -225,7 +226,7 @@ func (s *Store) Create(i *identity.LDAP) (err error) {
 	return nil
 }
 
-func (s *Store) Update(i *identity.LDAP) error {
+func (s *Store) Update(ctx context.Context, i *identity.LDAP) error {
 	claims, err := json.Marshal(i.Claims)
 	if err != nil {
 		return err
@@ -242,7 +243,7 @@ func (s *Store) Update(i *identity.LDAP) error {
 		Set("last_login_username", i.LastLoginUserName).
 		Where("id = ?", i.ID)
 
-	result, err := s.SQLExecutor.ExecWith(q)
+	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -263,7 +264,7 @@ func (s *Store) Update(i *identity.LDAP) error {
 		Set("updated_at", i.UpdatedAt).
 		Where("id = ?", i.ID)
 
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -271,12 +272,12 @@ func (s *Store) Update(i *identity.LDAP) error {
 	return nil
 }
 
-func (s *Store) Delete(i *identity.LDAP) error {
+func (s *Store) Delete(ctx context.Context, i *identity.LDAP) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName(tableNameAuthIdentityLDAP)).
 		Where("id = ?", i.ID)
 
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -285,7 +286,7 @@ func (s *Store) Delete(i *identity.LDAP) error {
 		Delete(s.SQLBuilder.TableName("_auth_identity")).
 		Where("id = ?", i.ID)
 
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
