@@ -51,7 +51,7 @@ func (p *Producer) NewTask(appID string, input json.RawMessage, taskIDPrefix str
 }
 
 func (p *Producer) EnqueueTask(ctx context.Context, task *Task) error {
-	return p.Redis.WithConnContext(ctx, func(conn redis.Redis_6_0_Cmdable) error {
+	return p.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		taskBytes, err := json.Marshal(task)
 		if err != nil {
 			return err
@@ -82,7 +82,7 @@ func (p *Producer) EnqueueTask(ctx context.Context, task *Task) error {
 
 func (p *Producer) GetTask(ctx context.Context, item *QueueItem) (*Task, error) {
 	var task Task
-	err := p.Redis.WithConnContext(ctx, func(conn redis.Redis_6_0_Cmdable) error {
+	err := p.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		taskBytes, err := conn.Get(ctx, item.RedisKey()).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return api.ErrTaskNotFound
