@@ -1,6 +1,7 @@
 package pq
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -28,11 +29,11 @@ func (s *AuthorizationStore) selectQuery() db.SelectBuilder {
 		From(s.SQLBuilder.TableName("_auth_oauth_authorization"))
 }
 
-func (s *AuthorizationStore) Get(userID, clientID string) (*oauth.Authorization, error) {
+func (s *AuthorizationStore) Get(ctx context.Context, userID, clientID string) (*oauth.Authorization, error) {
 	builder := s.selectQuery().
 		Where("user_id = ? AND client_id = ?", userID, clientID)
 
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -40,11 +41,11 @@ func (s *AuthorizationStore) Get(userID, clientID string) (*oauth.Authorization,
 	return s.scanAuthz(scanner)
 }
 
-func (s *AuthorizationStore) GetByID(id string) (*oauth.Authorization, error) {
+func (s *AuthorizationStore) GetByID(ctx context.Context, id string) (*oauth.Authorization, error) {
 	builder := s.selectQuery().
 		Where("id = ?", id)
 
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -52,11 +53,11 @@ func (s *AuthorizationStore) GetByID(id string) (*oauth.Authorization, error) {
 	return s.scanAuthz(scanner)
 }
 
-func (s *AuthorizationStore) ListByUserID(userID string) ([]*oauth.Authorization, error) {
+func (s *AuthorizationStore) ListByUserID(ctx context.Context, userID string) ([]*oauth.Authorization, error) {
 	builder := s.selectQuery().
 		Where("user_id = ?", userID)
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +102,7 @@ func (s *AuthorizationStore) scanAuthz(scn db.Scanner) (*oauth.Authorization, er
 	return authz, nil
 }
 
-func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
+func (s *AuthorizationStore) Create(ctx context.Context, authz *oauth.Authorization) error {
 	scopeBytes, err := json.Marshal(authz.Scopes)
 	if err != nil {
 		return err
@@ -126,7 +127,7 @@ func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
 			scopeBytes,
 		)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -134,12 +135,12 @@ func (s *AuthorizationStore) Create(authz *oauth.Authorization) error {
 	return nil
 }
 
-func (s *AuthorizationStore) Delete(authz *oauth.Authorization) error {
+func (s *AuthorizationStore) Delete(ctx context.Context, authz *oauth.Authorization) error {
 	builder := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Where("id = ?", authz.ID)
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -147,12 +148,12 @@ func (s *AuthorizationStore) Delete(authz *oauth.Authorization) error {
 	return nil
 }
 
-func (s *AuthorizationStore) ResetAll(userID string) error {
+func (s *AuthorizationStore) ResetAll(ctx context.Context, userID string) error {
 	builder := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_oauth_authorization")).
 		Where("user_id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -160,7 +161,7 @@ func (s *AuthorizationStore) ResetAll(userID string) error {
 	return nil
 }
 
-func (s *AuthorizationStore) UpdateScopes(authz *oauth.Authorization) error {
+func (s *AuthorizationStore) UpdateScopes(ctx context.Context, authz *oauth.Authorization) error {
 	scopeBytes, err := json.Marshal(authz.Scopes)
 	if err != nil {
 		return err
@@ -172,7 +173,7 @@ func (s *AuthorizationStore) UpdateScopes(authz *oauth.Authorization) error {
 		Set("scopes", scopeBytes).
 		Where("id = ?", authz.ID)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
