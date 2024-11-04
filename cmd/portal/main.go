@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"log"
 	"os"
@@ -36,7 +37,7 @@ func main() {
 		log.Printf("failed to load .env file: %s", err)
 	}
 
-	err = cmd.Root.Execute()
+	err = cmd.Root.ExecuteContext(context.Background())
 	if err != nil {
 		os.Exit(1)
 	} else {
