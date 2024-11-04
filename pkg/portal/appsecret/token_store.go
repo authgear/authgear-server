@@ -15,13 +15,13 @@ import (
 )
 
 type AppSecretVisitTokenStoreImpl struct {
-	Context context.Context
-	Redis   *globalredis.Handle
+	Redis *globalredis.Handle
 }
 
 const Lifetime = duration.Short
 
 func (s *AppSecretVisitTokenStoreImpl) CreateToken(
+	ctx context.Context,
 	appID config.AppID,
 	userID string,
 	secrets []config.SecretKey,
@@ -35,11 +35,11 @@ func (s *AppSecretVisitTokenStoreImpl) CreateToken(
 		return nil, err
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		key := redisTokenKey(appID, token.TokenID)
 		ttl := Lifetime
 
-		_, err := conn.SetEx(s.Context, key, bytes, ttl).Result()
+		_, err := conn.SetEx(ctx, key, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
@@ -54,13 +54,14 @@ func (s *AppSecretVisitTokenStoreImpl) CreateToken(
 }
 
 func (s *AppSecretVisitTokenStoreImpl) GetTokenByID(
+	ctx context.Context,
 	appID config.AppID,
 	tokenID string,
 ) (*AppSecretVisitToken, error) {
 	key := redisTokenKey(appID, tokenID)
 	var token AppSecretVisitToken
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		bytes, err := conn.Get(s.Context, key).Bytes()
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		bytes, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrTokenNotFound
 		}
