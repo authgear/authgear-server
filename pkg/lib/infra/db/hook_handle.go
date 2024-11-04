@@ -82,7 +82,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 				// before running the DidCommitTx hook
 				// so new tx can be opened inside the DidCommitTx hook
 				for _, hook := range h.hooks {
-					hook.DidCommitTx()
+					hook.DidCommitTx(ctx)
 				}
 			}
 		}()
@@ -103,7 +103,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		} else if err != nil {
 			_ = rollbackTx(tx)
 		} else {
-			err = commitTx(tx, h.hooks)
+			err = commitTx(ctx, tx, h.hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
@@ -155,7 +155,7 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 				// before running the DidCommitTx hook
 				// so new tx can be opened inside the DidCommitTx hook
 				for _, hook := range h.hooks {
-					hook.DidCommitTx()
+					hook.DidCommitTx(ctx)
 				}
 			}
 		}()
@@ -205,9 +205,9 @@ func (h *HookHandle) beginTx(ctx context.Context, logger *log.Logger, conn *sql.
 	}, nil
 }
 
-func commitTx(conn *txConn, hooks []TransactionHook) error {
+func commitTx(ctx context.Context, conn *txConn, hooks []TransactionHook) error {
 	for _, hook := range hooks {
-		err := hook.WillCommitTx()
+		err := hook.WillCommitTx(ctx)
 		if err != nil {
 			if rbErr := conn.tx.Rollback(); rbErr != nil {
 				err = errorutil.WithSecondaryError(err, rbErr)
