@@ -190,7 +190,6 @@ var cmdDump = &cobra.Command{
 		}
 
 		dumper := dbutil.NewDumper(
-			cmd.Context(),
 			dbURL,
 			dbSchema,
 			outputDir,
@@ -198,7 +197,7 @@ var cmdDump = &cobra.Command{
 			tableNames,
 		)
 
-		return dumper.Dump()
+		return dumper.Dump(cmd.Context())
 	},
 }
 
@@ -221,7 +220,6 @@ var cmdRestore = &cobra.Command{
 		}
 
 		restorer := dbutil.NewRestorer(
-			cmd.Context(),
 			dbURL,
 			dbSchema,
 			inputDir,
@@ -229,6 +227,6 @@ var cmdRestore = &cobra.Command{
 			tableNames,
 		)
 
-		return restorer.Restore()
+		return restorer.Restore(cmd.Context())
 	},
 }
