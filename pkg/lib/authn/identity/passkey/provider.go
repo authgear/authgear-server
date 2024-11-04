@@ -1,6 +1,7 @@
 package passkey
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -12,8 +13,8 @@ import (
 
 // nolint: golint
 type PasskeyService interface {
-	PeekAttestationResponse(attestationResponse []byte) (creationOptions *model.WebAuthnCreationOptions, credentialID string, signCount int64, err error)
-	GetCredentialIDFromAssertionResponse(assertionResponse []byte) (credentialID string, err error)
+	PeekAttestationResponse(ctx context.Context, attestationResponse []byte) (creationOptions *model.WebAuthnCreationOptions, credentialID string, signCount int64, err error)
+	GetCredentialIDFromAssertionResponse(ctx context.Context, assertionResponse []byte) (credentialID string, err error)
 }
 
 type Provider struct {
@@ -22,8 +23,8 @@ type Provider struct {
 	Passkey PasskeyService
 }
 
-func (p *Provider) List(userID string) ([]*identity.Passkey, error) {
-	is, err := p.Store.List(userID)
+func (p *Provider) List(ctx context.Context, userID string) ([]*identity.Passkey, error) {
+	is, err := p.Store.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -32,38 +33,39 @@ func (p *Provider) List(userID string) ([]*identity.Passkey, error) {
 	return is, nil
 }
 
-func (p *Provider) Get(userID, id string) (*identity.Passkey, error) {
-	return p.Store.Get(userID, id)
+func (p *Provider) Get(ctx context.Context, userID, id string) (*identity.Passkey, error) {
+	return p.Store.Get(ctx, userID, id)
 }
 
-func (p *Provider) GetBySpec(spec *identity.PasskeySpec) (*identity.Passkey, error) {
+func (p *Provider) GetBySpec(ctx context.Context, spec *identity.PasskeySpec) (*identity.Passkey, error) {
 	switch {
 	case spec.AttestationResponse != nil:
-		_, credentialID, _, err := p.Passkey.PeekAttestationResponse(spec.AttestationResponse)
+		_, credentialID, _, err := p.Passkey.PeekAttestationResponse(ctx, spec.AttestationResponse)
 		if err != nil {
 			return nil, err
 		}
-		return p.Store.GetByCredentialID(credentialID)
+		return p.Store.GetByCredentialID(ctx, credentialID)
 	case spec.AssertionResponse != nil:
-		credentialID, err := p.Passkey.GetCredentialIDFromAssertionResponse(spec.AssertionResponse)
+		credentialID, err := p.Passkey.GetCredentialIDFromAssertionResponse(ctx, spec.AssertionResponse)
 		if err != nil {
 			return nil, err
 		}
-		return p.Store.GetByCredentialID(credentialID)
+		return p.Store.GetByCredentialID(ctx, credentialID)
 	default:
 		panic(fmt.Errorf("passkey: expect either attestation response or assert response in passkey spec"))
 	}
 }
 
-func (p *Provider) GetMany(ids []string) ([]*identity.Passkey, error) {
-	return p.Store.GetMany(ids)
+func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*identity.Passkey, error) {
+	return p.Store.GetMany(ctx, ids)
 }
 
 func (p *Provider) New(
+	ctx context.Context,
 	userID string,
 	attestationResponse []byte,
 ) (*identity.Passkey, error) {
-	creationOptions, credentialID, _, err := p.Passkey.PeekAttestationResponse(attestationResponse)
+	creationOptions, credentialID, _, err := p.Passkey.PeekAttestationResponse(ctx, attestationResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -78,15 +80,15 @@ func (p *Provider) New(
 	return i, nil
 }
 
-func (p *Provider) Create(i *identity.Passkey) error {
+func (p *Provider) Create(ctx context.Context, i *identity.Passkey) error {
 	now := p.Clock.NowUTC()
 	i.CreatedAt = now
 	i.UpdatedAt = now
-	return p.Store.Create(i)
+	return p.Store.Create(ctx, i)
 }
 
-func (p *Provider) Delete(i *identity.Passkey) error {
-	return p.Store.Delete(i)
+func (p *Provider) Delete(ctx context.Context, i *identity.Passkey) error {
+	return p.Store.Delete(ctx, i)
 }
 
 func sortIdentities(is []*identity.Passkey) {
