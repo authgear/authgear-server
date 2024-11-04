@@ -1,6 +1,7 @@
 package hook
 
 import (
+	"context"
 	"net/url"
 	"testing"
 
@@ -111,12 +112,14 @@ func TestSink(t *testing.T) {
 					},
 				}
 
+				ctx := context.Background()
+
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(mustURL(cfg.BlockingHandlers[0].URL), &e).Times(1).Return(&event.HookResponse{
 					IsAllowed: true,
 				}, nil)
 
-				err := s.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(ctx, &e)
 
 				So(err, ShouldBeNil)
 			})
@@ -159,6 +162,8 @@ func TestSink(t *testing.T) {
 						},
 					},
 				}
+
+				ctx := context.Background()
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(
@@ -204,6 +209,7 @@ func TestSink(t *testing.T) {
 				)
 
 				stdAttrsService.EXPECT().UpdateStandardAttributes(
+					ctx,
 					accesscontrol.RoleGreatest,
 					gomock.Any(),
 					map[string]interface{}{
@@ -212,6 +218,7 @@ func TestSink(t *testing.T) {
 				).Times(1).Return(nil)
 
 				customAttrsService.EXPECT().UpdateAllCustomAttributes(
+					ctx,
 					accesscontrol.RoleGreatest,
 					gomock.Any(),
 					map[string]interface{}{
@@ -219,7 +226,7 @@ func TestSink(t *testing.T) {
 					},
 				).Times(1).Return(nil)
 
-				err := s.DeliverBlockingEvent(originalEvent)
+				err := s.DeliverBlockingEvent(ctx, originalEvent)
 
 				So(err, ShouldBeNil)
 			})
@@ -235,6 +242,8 @@ func TestSink(t *testing.T) {
 						URL:   "https://example.com/b",
 					},
 				}
+
+				ctx := context.Background()
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(
@@ -259,7 +268,7 @@ func TestSink(t *testing.T) {
 					nil,
 				)
 
-				err := s.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(ctx, &e)
 
 				So(err, ShouldBeError, "disallowed by web-hook event handler")
 			})
@@ -284,6 +293,8 @@ func TestSink(t *testing.T) {
 					},
 				}
 
+				ctx := context.Background()
+
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(
 					mustURL(cfg.BlockingHandlers[0].URL),
@@ -295,7 +306,7 @@ func TestSink(t *testing.T) {
 					}, nil
 				})
 
-				err := s.DeliverBlockingEvent(&e)
+				err := s.DeliverBlockingEvent(ctx, &e)
 
 				So(err, ShouldBeError, "webhook delivery timeout")
 			})
@@ -326,7 +337,8 @@ func TestSink(t *testing.T) {
 					&e,
 				).Times(1).Return(nil)
 
-				err := s.DeliverNonBlockingEvent(&e)
+				ctx := context.Background()
+				err := s.DeliverNonBlockingEvent(ctx, &e)
 
 				So(err, ShouldBeNil)
 			})

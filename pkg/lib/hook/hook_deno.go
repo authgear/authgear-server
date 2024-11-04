@@ -18,7 +18,6 @@ type DenoHookLogger struct{ *log.Logger }
 func NewDenoHookLogger(lf *log.Factory) DenoHookLogger { return DenoHookLogger{lf.New("deno-hook")} }
 
 type DenoHook struct {
-	Context         context.Context
 	ResourceManager ResourceManager
 	Logger          DenoHookLogger
 }
@@ -38,7 +37,7 @@ func (h *DenoHook) loadScript(u *url.URL) ([]byte, error) {
 	return out.([]byte), nil
 }
 
-func (h *DenoHook) RunSync(client DenoClient, u *url.URL, input interface{}) (out interface{}, err error) {
+func (h *DenoHook) RunSync(ctx context.Context, client DenoClient, u *url.URL, input interface{}) (out interface{}, err error) {
 	var script []byte
 	script, err = h.loadScript(u)
 	if err != nil {
@@ -46,17 +45,17 @@ func (h *DenoHook) RunSync(client DenoClient, u *url.URL, input interface{}) (ou
 	}
 
 	// Propagate the request context.
-	out, err = client.Run(h.Context, string(script), input)
+	out, err = client.Run(ctx, string(script), input)
 	if err != nil {
 		return nil, err
 	}
 	return
 }
 
-func (h *DenoHook) RunAsync(client DenoClient, u *url.URL, input interface{}) (err error) {
+func (h *DenoHook) RunAsync(ctx context.Context, client DenoClient, u *url.URL, input interface{}) (err error) {
 	// Remove cancel from the the context.
 	// This is because the hook may finish after the current request finishes.
-	ctx := context.WithoutCancel(h.Context)
+	ctx = context.WithoutCancel(ctx)
 
 	var script []byte
 	script, err = h.loadScript(u)
@@ -89,8 +88,8 @@ type EventDenoHookImpl struct {
 
 var _ EventDenoHook = &EventDenoHookImpl{}
 
-func (h *EventDenoHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
-	out, err := h.RunSync(h.SyncDenoClient, u, e)
+func (h *EventDenoHookImpl) DeliverBlockingEvent(ctx context.Context, u *url.URL, e *event.Event) (*event.HookResponse, error) {
+	out, err := h.RunSync(ctx, h.SyncDenoClient, u, e)
 	if err != nil {
 		return nil, err
 	}
@@ -110,6 +109,6 @@ func (h *EventDenoHookImpl) DeliverBlockingEvent(u *url.URL, e *event.Event) (*e
 	return hookResp, nil
 }
 
-func (h *EventDenoHookImpl) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error {
-	return h.RunAsync(h.AsyncDenoClient, u, e)
+func (h *EventDenoHookImpl) DeliverNonBlockingEvent(ctx context.Context, u *url.URL, e *event.Event) error {
+	return h.RunAsync(ctx, h.AsyncDenoClient, u, e)
 }
