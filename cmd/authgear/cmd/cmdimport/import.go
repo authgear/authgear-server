@@ -1,8 +1,6 @@
 package cmdimport
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 
 	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
@@ -55,7 +53,6 @@ var cmdImport = &cobra.Command{
 		dbPool := db.NewPool()
 
 		importer := cmdimporter.NewImporter(
-			context.Background(),
 			dbPool,
 			dbCredentials,
 			config.AppID(appID),
@@ -66,7 +63,7 @@ var cmdImport = &cobra.Command{
 			EmailMarkAsVerified: emailMarkAsVerified,
 		}
 
-		return importer.ImportFromCSV(csvPath, opts)
+		return importer.ImportFromCSV(cmd.Context(), csvPath, opts)
 	},
 }
 
