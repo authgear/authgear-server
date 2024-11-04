@@ -27,7 +27,6 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type Store struct {
-	Context     context.Context
 	Redis       *appredis.Handle
 	AppID       config.AppID
 	Logger      Logger
@@ -36,8 +35,7 @@ type Store struct {
 	Clock       clock.Clock
 }
 
-func (s *Store) loadData(conn redis.Redis_6_0_Cmdable, key string) ([]byte, error) {
-	ctx := context.Background()
+func (s *Store) loadData(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string) ([]byte, error) {
 	data, err := conn.Get(ctx, key).Bytes()
 	if errors.Is(err, goredis.Nil) {
 		return nil, oauth.ErrGrantNotFound
@@ -113,8 +111,7 @@ func (s *Store) unmarshalPreAuthenticatedURLToken(data []byte) (*oauth.PreAuthen
 	return &t, nil
 }
 
-func (s *Store) save(conn redis.Redis_6_0_Cmdable, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
-	ctx := context.Background()
+func (s *Store) save(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string, value interface{}, expireAt time.Time, ifNotExists bool) error {
 	data, err := json.Marshal(value)
 	if err != nil {
 		return err
@@ -138,16 +135,15 @@ func (s *Store) save(conn redis.Redis_6_0_Cmdable, key string, value interface{}
 	return nil
 }
 
-func (s *Store) del(conn redis.Redis_6_0_Cmdable, key string) error {
-	ctx := context.Background()
+func (s *Store) del(ctx context.Context, conn redis.Redis_6_0_Cmdable, key string) error {
 	_, err := conn.Del(ctx, key).Result()
 	return err
 }
 
-func (s *Store) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
+func (s *Store) GetCodeGrant(ctx context.Context, codeHash string) (*oauth.CodeGrant, error) {
 	var g *oauth.CodeGrant
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		data, err := s.loadData(conn, codeGrantKey(string(s.AppID), codeHash))
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		data, err := s.loadData(ctx, conn, codeGrantKey(string(s.AppID), codeHash))
 		if err != nil {
 			return err
 		}
@@ -164,22 +160,22 @@ func (s *Store) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
 	return g, nil
 }
 
-func (s *Store) CreateCodeGrant(grant *oauth.CodeGrant) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.save(conn, codeGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
+func (s *Store) CreateCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.save(ctx, conn, codeGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
 	})
 }
 
-func (s *Store) DeleteCodeGrant(grant *oauth.CodeGrant) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.del(conn, codeGrantKey(grant.AppID, grant.CodeHash))
+func (s *Store) DeleteCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.del(ctx, conn, codeGrantKey(grant.AppID, grant.CodeHash))
 	})
 }
 
-func (s *Store) GetSettingsActionGrant(codeHash string) (*oauth.SettingsActionGrant, error) {
+func (s *Store) GetSettingsActionGrant(ctx context.Context, codeHash string) (*oauth.SettingsActionGrant, error) {
 	var g *oauth.SettingsActionGrant
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		data, err := s.loadData(conn, settingsActionGrantKey(string(s.AppID), codeHash))
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		data, err := s.loadData(ctx, conn, settingsActionGrantKey(string(s.AppID), codeHash))
 		if err != nil {
 			return err
 		}
@@ -196,22 +192,22 @@ func (s *Store) GetSettingsActionGrant(codeHash string) (*oauth.SettingsActionGr
 	return g, nil
 }
 
-func (s *Store) CreateSettingsActionGrant(grant *oauth.SettingsActionGrant) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.save(conn, settingsActionGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
+func (s *Store) CreateSettingsActionGrant(ctx context.Context, grant *oauth.SettingsActionGrant) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.save(ctx, conn, settingsActionGrantKey(grant.AppID, grant.CodeHash), grant, grant.ExpireAt, true)
 	})
 }
 
-func (s *Store) DeleteSettingsActionGrant(grant *oauth.SettingsActionGrant) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.del(conn, settingsActionGrantKey(grant.AppID, grant.CodeHash))
+func (s *Store) DeleteSettingsActionGrant(ctx context.Context, grant *oauth.SettingsActionGrant) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.del(ctx, conn, settingsActionGrantKey(grant.AppID, grant.CodeHash))
 	})
 }
 
-func (s *Store) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
+func (s *Store) GetAccessGrant(ctx context.Context, tokenHash string) (*oauth.AccessGrant, error) {
 	var g *oauth.AccessGrant
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		data, err := s.loadData(conn, accessGrantKey(string(s.AppID), tokenHash))
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		data, err := s.loadData(ctx, conn, accessGrantKey(string(s.AppID), tokenHash))
 		if err != nil {
 			return err
 		}
@@ -230,22 +226,22 @@ func (s *Store) GetAccessGrant(tokenHash string) (*oauth.AccessGrant, error) {
 	return g, nil
 }
 
-func (s *Store) CreateAccessGrant(grant *oauth.AccessGrant) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.save(conn, accessGrantKey(grant.AppID, grant.TokenHash), grant, grant.ExpireAt, true)
+func (s *Store) CreateAccessGrant(ctx context.Context, grant *oauth.AccessGrant) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.save(ctx, conn, accessGrantKey(grant.AppID, grant.TokenHash), grant, grant.ExpireAt, true)
 	})
 }
 
-func (s *Store) DeleteAccessGrant(grant *oauth.AccessGrant) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.del(conn, accessGrantKey(grant.AppID, grant.TokenHash))
+func (s *Store) DeleteAccessGrant(ctx context.Context, grant *oauth.AccessGrant) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.del(ctx, conn, accessGrantKey(grant.AppID, grant.TokenHash))
 	})
 }
 
-func (s *Store) GetOfflineGrantWithoutExpireAt(id string) (*oauth.OfflineGrant, error) {
+func (s *Store) GetOfflineGrantWithoutExpireAt(ctx context.Context, id string) (*oauth.OfflineGrant, error) {
 	var g *oauth.OfflineGrant
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		data, err := s.loadData(conn, offlineGrantKey(string(s.AppID), id))
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		data, err := s.loadData(ctx, conn, offlineGrantKey(string(s.AppID), id))
 		if err != nil {
 			return err
 		}
@@ -263,20 +259,19 @@ func (s *Store) GetOfflineGrantWithoutExpireAt(id string) (*oauth.OfflineGrant, 
 	return g, nil
 }
 
-func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
-	ctx := context.Background()
+func (s *Store) CreateOfflineGrant(ctx context.Context, grant *oauth.OfflineGrant) error {
 	expiry, err := grant.ExpireAtForResolvedSession.MarshalText()
 	if err != nil {
 		return err
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.HSet(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry).Result()
 		if err != nil {
 			return fmt.Errorf("failed to update session list: %w", err)
 		}
 
-		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, grant.ExpireAtForResolvedSession, true)
+		err = s.save(ctx, conn, offlineGrantKey(grant.AppID, grant.ID), grant, grant.ExpireAtForResolvedSession, true)
 		if err != nil {
 			return err
 		}
@@ -291,25 +286,25 @@ func (s *Store) CreateOfflineGrant(grant *oauth.OfflineGrant) error {
 }
 
 // UpdateOfflineGrantLastAccess updates the last access event for an offline grant
-func (s *Store) UpdateOfflineGrantLastAccess(grantID string, accessEvent access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) UpdateOfflineGrantLastAccess(ctx context.Context, grantID string, accessEvent access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(s.Context)
+	err := mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(s.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, grantID)
 	if err != nil {
 		return nil, err
 	}
 
 	grant.AccessInfo.LastAccess = accessEvent
 
-	err = s.updateOfflineGrant(grant, expireAt)
+	err = s.updateOfflineGrant(ctx, grant, expireAt)
 	if err != nil {
 		return nil, err
 	}
@@ -317,25 +312,25 @@ func (s *Store) UpdateOfflineGrantLastAccess(grantID string, accessEvent access.
 	return grant, nil
 }
 
-func (s *Store) UpdateOfflineGrantDeviceInfo(grantID string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) UpdateOfflineGrantDeviceInfo(ctx context.Context, grantID string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(s.Context)
+	err := mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(s.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, grantID)
 	if err != nil {
 		return nil, err
 	}
 
 	grant.DeviceInfo = deviceInfo
 
-	err = s.updateOfflineGrant(grant, expireAt)
+	err = s.updateOfflineGrant(ctx, grant, expireAt)
 	if err != nil {
 		return nil, err
 	}
@@ -343,25 +338,25 @@ func (s *Store) UpdateOfflineGrantDeviceInfo(grantID string, deviceInfo map[stri
 	return grant, nil
 }
 
-func (s *Store) UpdateOfflineGrantAuthenticatedAt(grantID string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) UpdateOfflineGrantAuthenticatedAt(ctx context.Context, grantID string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(s.Context)
+	err := mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(s.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, grantID)
 	if err != nil {
 		return nil, err
 	}
 
 	grant.AuthenticatedAt = authenticatedAt
 
-	err = s.updateOfflineGrant(grant, expireAt)
+	err = s.updateOfflineGrant(ctx, grant, expireAt)
 	if err != nil {
 		return nil, err
 	}
@@ -369,25 +364,25 @@ func (s *Store) UpdateOfflineGrantAuthenticatedAt(grantID string, authenticatedA
 	return grant, nil
 }
 
-func (s *Store) UpdateOfflineGrantApp2AppDeviceKey(grantID string, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) UpdateOfflineGrantApp2AppDeviceKey(ctx context.Context, grantID string, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(s.Context)
+	err := mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(s.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, grantID)
 	if err != nil {
 		return nil, err
 	}
 
 	grant.App2AppDeviceKeyJWKJSON = newKey
 
-	err = s.updateOfflineGrant(grant, expireAt)
+	err = s.updateOfflineGrant(ctx, grant, expireAt)
 	if err != nil {
 		return nil, err
 	}
@@ -396,21 +391,22 @@ func (s *Store) UpdateOfflineGrantApp2AppDeviceKey(grantID string, newKey string
 }
 
 func (s *Store) UpdateOfflineGrantDeviceSecretHash(
+	ctx context.Context,
 	grantID string,
 	newDeviceSecretHash string,
 	dpopJKT string,
 	expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(s.Context)
+	err := mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(s.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -418,7 +414,7 @@ func (s *Store) UpdateOfflineGrantDeviceSecretHash(
 	grant.DeviceSecretHash = newDeviceSecretHash
 	grant.DeviceSecretDPoPJKT = dpopJKT
 
-	err = s.updateOfflineGrant(grant, expireAt)
+	err = s.updateOfflineGrant(ctx, grant, expireAt)
 	if err != nil {
 		return nil, err
 	}
@@ -427,20 +423,21 @@ func (s *Store) UpdateOfflineGrantDeviceSecretHash(
 }
 
 func (s *Store) AddOfflineGrantSAMLServiceProviderParticipant(
+	ctx context.Context,
 	grantID string,
 	newServiceProviderID string,
 	expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(s.Context)
+	err := mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(s.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -448,7 +445,7 @@ func (s *Store) AddOfflineGrantSAMLServiceProviderParticipant(
 	newParticipatedSAMLServiceProviderIDs := grant.GetParticipatedSAMLServiceProviderIDsSet()
 	newParticipatedSAMLServiceProviderIDs.Add(newServiceProviderID)
 	grant.ParticipatedSAMLServiceProviderIDs = newParticipatedSAMLServiceProviderIDs.Keys()
-	err = s.updateOfflineGrant(grant, expireAt)
+	err = s.updateOfflineGrant(ctx, grant, expireAt)
 	if err != nil {
 		return nil, err
 	}
@@ -457,6 +454,7 @@ func (s *Store) AddOfflineGrantSAMLServiceProviderParticipant(
 }
 
 func (s *Store) AddOfflineGrantRefreshToken(
+	ctx context.Context,
 	grantID string,
 	expireAt time.Time,
 	tokenHash string,
@@ -467,15 +465,15 @@ func (s *Store) AddOfflineGrantRefreshToken(
 ) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(s.Context)
+	err := mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(s.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -491,7 +489,7 @@ func (s *Store) AddOfflineGrantRefreshToken(
 	}
 
 	grant.RefreshTokens = append(grant.RefreshTokens, newRefreshToken)
-	err = s.updateOfflineGrant(grant, expireAt)
+	err = s.updateOfflineGrant(ctx, grant, expireAt)
 	if err != nil {
 		return nil, err
 	}
@@ -499,15 +497,15 @@ func (s *Store) AddOfflineGrantRefreshToken(
 	return grant, nil
 }
 
-func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (s *Store) RemoveOfflineGrantRefreshTokens(ctx context.Context, grantID string, tokenHashes []string, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	mutexName := offlineGrantMutexName(string(s.AppID), grantID)
 	mutex := s.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(s.Context)
+	err := mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(s.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
 	tokenHashesSet := map[string]interface{}{}
@@ -515,7 +513,7 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []st
 		tokenHashesSet[hash] = hash
 	}
 
-	grant, err := s.GetOfflineGrantWithoutExpireAt(grantID)
+	grant, err := s.GetOfflineGrantWithoutExpireAt(ctx, grantID)
 	if err != nil {
 		return nil, err
 	}
@@ -530,13 +528,13 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []st
 
 	grant.RefreshTokens = newRefreshTokens
 	if grant.HasValidTokens() {
-		err = s.updateOfflineGrant(grant, expireAt)
+		err = s.updateOfflineGrant(ctx, grant, expireAt)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		// Remove the offline grant if it has no valid tokens
-		err = s.DeleteOfflineGrant(grant)
+		err = s.DeleteOfflineGrant(ctx, grant)
 		if err != nil {
 			return nil, err
 		}
@@ -546,21 +544,20 @@ func (s *Store) RemoveOfflineGrantRefreshTokens(grantID string, tokenHashes []st
 	return grant, nil
 }
 
-func (s *Store) updateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time) error {
+func (s *Store) updateOfflineGrant(ctx context.Context, grant *oauth.OfflineGrant, expireAt time.Time) error {
 	grant.ExpireAtForResolvedSession = expireAt
-	ctx := context.Background()
 	expiry, err := expireAt.MarshalText()
 	if err != nil {
 		return err
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.HSet(ctx, offlineGrantListKey(grant.AppID, grant.Attrs.UserID), grant.ID, expiry).Result()
 		if err != nil {
 			return fmt.Errorf("failed to update session list: %w", err)
 		}
 
-		err = s.save(conn, offlineGrantKey(grant.AppID, grant.ID), grant, expireAt, false)
+		err = s.save(ctx, conn, offlineGrantKey(grant.AppID, grant.ID), grant, expireAt, false)
 		if err != nil {
 			return err
 		}
@@ -574,10 +571,9 @@ func (s *Store) updateOfflineGrant(grant *oauth.OfflineGrant, expireAt time.Time
 	return nil
 }
 
-func (s *Store) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
-	ctx := context.Background()
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		err := s.del(conn, offlineGrantKey(grant.AppID, grant.ID))
+func (s *Store) DeleteOfflineGrant(ctx context.Context, grant *oauth.OfflineGrant) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		err := s.del(ctx, conn, offlineGrantKey(grant.AppID, grant.ID))
 		if err != nil {
 			return err
 		}
@@ -596,12 +592,11 @@ func (s *Store) DeleteOfflineGrant(grant *oauth.OfflineGrant) error {
 	return nil
 }
 
-func (s *Store) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) {
-	ctx := context.Background()
+func (s *Store) ListOfflineGrants(ctx context.Context, userID string) ([]*oauth.OfflineGrant, error) {
 	listKey := offlineGrantListKey(string(s.AppID), userID)
 
 	var grants []*oauth.OfflineGrant
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		sessionList, err := conn.HGetAll(ctx, listKey).Result()
 		if err != nil {
 			return err
@@ -609,7 +604,7 @@ func (s *Store) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) 
 
 		for id := range sessionList {
 			var data []byte
-			data, err = s.loadData(conn, offlineGrantKey(string(s.AppID), id))
+			data, err = s.loadData(ctx, conn, offlineGrantKey(string(s.AppID), id))
 			if errors.Is(err, oauth.ErrGrantNotFound) {
 				_, err = conn.HDel(ctx, listKey, id).Result()
 				if err != nil {
@@ -639,8 +634,8 @@ func (s *Store) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) 
 	return grants, nil
 }
 
-func (s *Store) ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error) {
-	offlineGrants, err := s.ListOfflineGrants(userID)
+func (s *Store) ListClientOfflineGrants(ctx context.Context, clientID string, userID string) ([]*oauth.OfflineGrant, error) {
+	offlineGrants, err := s.ListOfflineGrants(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -660,11 +655,11 @@ func (s *Store) ListClientOfflineGrants(clientID string, userID string) ([]*oaut
 	return result, nil
 }
 
-func (s *Store) GetAppSessionToken(tokenHash string) (*oauth.AppSessionToken, error) {
+func (s *Store) GetAppSessionToken(ctx context.Context, tokenHash string) (*oauth.AppSessionToken, error) {
 	t := &oauth.AppSessionToken{}
 
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		data, err := s.loadData(conn, appSessionTokenKey(string(s.AppID), tokenHash))
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		data, err := s.loadData(ctx, conn, appSessionTokenKey(string(s.AppID), tokenHash))
 		if err != nil {
 			return err
 		}
@@ -683,23 +678,23 @@ func (s *Store) GetAppSessionToken(tokenHash string) (*oauth.AppSessionToken, er
 	return t, nil
 }
 
-func (s *Store) CreateAppSessionToken(token *oauth.AppSessionToken) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.save(conn, appSessionTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
+func (s *Store) CreateAppSessionToken(ctx context.Context, token *oauth.AppSessionToken) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.save(ctx, conn, appSessionTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
 	})
 }
 
-func (s *Store) DeleteAppSessionToken(token *oauth.AppSessionToken) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.del(conn, appSessionTokenKey(token.AppID, token.TokenHash))
+func (s *Store) DeleteAppSessionToken(ctx context.Context, token *oauth.AppSessionToken) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.del(ctx, conn, appSessionTokenKey(token.AppID, token.TokenHash))
 	})
 }
 
-func (s *Store) GetAppSession(tokenHash string) (*oauth.AppSession, error) {
+func (s *Store) GetAppSession(ctx context.Context, tokenHash string) (*oauth.AppSession, error) {
 	var t *oauth.AppSession
 
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		data, err := s.loadData(conn, appSessionKey(string(s.AppID), tokenHash))
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		data, err := s.loadData(ctx, conn, appSessionKey(string(s.AppID), tokenHash))
 		if err != nil {
 			return err
 		}
@@ -718,30 +713,30 @@ func (s *Store) GetAppSession(tokenHash string) (*oauth.AppSession, error) {
 	return t, nil
 }
 
-func (s *Store) CreateAppSession(session *oauth.AppSession) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.save(conn, appSessionKey(session.AppID, session.TokenHash), session, session.ExpireAt, true)
+func (s *Store) CreateAppSession(ctx context.Context, session *oauth.AppSession) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.save(ctx, conn, appSessionKey(session.AppID, session.TokenHash), session, session.ExpireAt, true)
 	})
 }
 
-func (s *Store) DeleteAppSession(session *oauth.AppSession) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.del(conn, appSessionKey(session.AppID, session.TokenHash))
+func (s *Store) DeleteAppSession(ctx context.Context, session *oauth.AppSession) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.del(ctx, conn, appSessionKey(session.AppID, session.TokenHash))
 	})
 }
 
-func (s *Store) CreatePreAuthenticatedURLToken(token *oauth.PreAuthenticatedURLToken) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		return s.save(conn, preAuthenticatedURLTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
+func (s *Store) CreatePreAuthenticatedURLToken(ctx context.Context, token *oauth.PreAuthenticatedURLToken) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		return s.save(ctx, conn, preAuthenticatedURLTokenKey(token.AppID, token.TokenHash), token, token.ExpireAt, true)
 	})
 }
 
-func (s *Store) ConsumePreAuthenticatedURLToken(tokenHash string) (*oauth.PreAuthenticatedURLToken, error) {
+func (s *Store) ConsumePreAuthenticatedURLToken(ctx context.Context, tokenHash string) (*oauth.PreAuthenticatedURLToken, error) {
 	t := &oauth.PreAuthenticatedURLToken{}
 
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		key := preAuthenticatedURLTokenKey(string(s.AppID), tokenHash)
-		data, err := s.loadData(conn, key)
+		data, err := s.loadData(ctx, conn, key)
 		if err != nil {
 			return err
 		}
@@ -751,7 +746,7 @@ func (s *Store) ConsumePreAuthenticatedURLToken(tokenHash string) (*oauth.PreAut
 			return err
 		}
 
-		return s.del(conn, key)
+		return s.del(ctx, conn, key)
 	})
 	if err != nil {
 		return nil, err
@@ -760,11 +755,10 @@ func (s *Store) ConsumePreAuthenticatedURLToken(tokenHash string) (*oauth.PreAut
 	return t, nil
 }
 
-func (s *Store) CleanUpForDeletingUserID(userID string) (err error) {
-	ctx := context.Background()
+func (s *Store) CleanUpForDeletingUserID(ctx context.Context, userID string) (err error) {
 	listKey := offlineGrantListKey(string(s.AppID), userID)
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, listKey).Result()
 		if err != nil {
 			return err
