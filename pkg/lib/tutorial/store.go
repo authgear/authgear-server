@@ -1,6 +1,7 @@
 package tutorial
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -13,7 +14,7 @@ type StoreImpl struct {
 	SQLExecutor *globaldb.SQLExecutor
 }
 
-func (s *StoreImpl) Get(appID string) (*Entry, error) {
+func (s *StoreImpl) Get(ctx context.Context, appID string) (*Entry, error) {
 	builder := s.SQLBuilder.
 		Select(
 			"data",
@@ -21,7 +22,7 @@ func (s *StoreImpl) Get(appID string) (*Entry, error) {
 		From(s.SQLBuilder.TableName("_portal_tutorial_progress")).
 		Where("app_id = ?", appID)
 
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +47,7 @@ func (s *StoreImpl) Get(appID string) (*Entry, error) {
 	return entry, nil
 }
 
-func (s *StoreImpl) Save(entry *Entry) error {
+func (s *StoreImpl) Save(ctx context.Context, entry *Entry) error {
 	data, err := json.Marshal(entry.Data)
 	if err != nil {
 		return err
@@ -64,7 +65,7 @@ func (s *StoreImpl) Save(entry *Entry) error {
 		).
 		Suffix("ON CONFLICT (app_id) DO UPDATE SET data = excluded.data")
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
