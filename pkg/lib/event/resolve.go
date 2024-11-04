@@ -1,6 +1,7 @@
 package event
 
 import (
+	"context"
 	"errors"
 	"reflect"
 
@@ -10,14 +11,14 @@ import (
 )
 
 type ResolverUserQueries interface {
-	Get(id string, role accesscontrol.Role) (*model.User, error)
+	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
 }
 
 type ResolverImpl struct {
 	Users ResolverUserQueries
 }
 
-func (r *ResolverImpl) Resolve(anything interface{}) (err error) {
+func (r *ResolverImpl) Resolve(ctx context.Context, anything interface{}) (err error) {
 	struc := reflect.ValueOf(anything).Elem()
 	typ := struc.Type()
 
@@ -30,7 +31,7 @@ func (r *ResolverImpl) Resolve(anything interface{}) (err error) {
 						userRef := struc.Field(i).Interface().(model.UserRef)
 
 						var u *model.User
-						u, err = r.Users.Get(userRef.ID, accesscontrol.RoleGreatest)
+						u, err = r.Users.Get(ctx, userRef.ID, accesscontrol.RoleGreatest)
 						if errors.Is(err, user.ErrUserNotFound) {
 							continue
 						}

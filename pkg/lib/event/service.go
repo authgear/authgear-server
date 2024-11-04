@@ -23,16 +23,16 @@ type Database interface {
 }
 
 type Sink interface {
-	ReceiveBlockingEvent(e *event.Event) error
-	ReceiveNonBlockingEvent(e *event.Event) error
+	ReceiveBlockingEvent(ctx context.Context, e *event.Event) error
+	ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) error
 }
 
 type Store interface {
-	NextSequenceNumber() (int64, error)
+	NextSequenceNumber(ctx context.Context) (int64, error)
 }
 
 type Resolver interface {
-	Resolve(anything interface{}) (err error)
+	Resolve(ctx context.Context, anything interface{}) (err error)
 }
 
 type Logger struct{ *log.Logger }
@@ -40,7 +40,6 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("event")} }
 
 type Service struct {
-	Context         context.Context
 	AppID           config.AppID
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
@@ -59,7 +58,7 @@ type Service struct {
 }
 
 // DispatchEventOnCommit dispatches the event according to the tranaction lifecycle.
-func (s *Service) DispatchEventOnCommit(payload event.Payload) (err error) {
+func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Payload) (err error) {
 	defer func() {
 		if err != nil {
 			s.IsDispatchEventErr = true
@@ -74,22 +73,22 @@ func (s *Service) DispatchEventOnCommit(payload event.Payload) (err error) {
 	// Resolve refs once here
 	// If the event is about entity deletion,
 	// then it is not possible to resolve the entity in DidCommitTx.
-	err = s.Resolver.Resolve(payload)
+	err = s.Resolver.Resolve(ctx, payload)
 	if err != nil {
 		return
 	}
 
 	switch typedPayload := payload.(type) {
 	case event.BlockingPayload:
-		eventContext := s.makeContext(payload)
+		eventContext := s.makeContext(ctx, payload)
 		var seq int64
-		seq, err = s.nextSeq()
+		seq, err = s.nextSeq(ctx)
 		if err != nil {
 			return
 		}
 		e := newBlockingEvent(seq, typedPayload, eventContext)
 		for _, sink := range s.Sinks {
-			err = sink.ReceiveBlockingEvent(e)
+			err = sink.ReceiveBlockingEvent(ctx, e)
 			if err != nil {
 				return
 			}
@@ -104,22 +103,22 @@ func (s *Service) DispatchEventOnCommit(payload event.Payload) (err error) {
 }
 
 // DispatchEventImmediately dispatches the event immediately.
-func (s *Service) DispatchEventImmediately(payload event.NonBlockingPayload) (err error) {
+func (s *Service) DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) (err error) {
 	// Resolve refs once here
 	// If the event is about entity deletion,
 	// then it is not possible to resolve the entity in DidRollbackTx.
-	err = s.Resolver.Resolve(payload)
+	err = s.Resolver.Resolve(ctx, payload)
 	if err != nil {
 		return
 	}
 
-	e, err := s.resolveNonBlockingEvent(payload)
+	e, err := s.resolveNonBlockingEvent(ctx, payload)
 	if err != nil {
 		return err
 	}
 
 	for _, sink := range s.Sinks {
-		err = sink.ReceiveNonBlockingEvent(e)
+		err = sink.ReceiveNonBlockingEvent(ctx, e)
 		if err != nil {
 			s.Logger.WithError(err).Error("failed to dispatch nonblocking error event")
 		}
@@ -128,7 +127,7 @@ func (s *Service) DispatchEventImmediately(payload event.NonBlockingPayload) (er
 	return
 }
 
-func (s *Service) WillCommitTx() (err error) {
+func (s *Service) WillCommitTx(ctx context.Context) (err error) {
 	defer func() {
 		s.NonBlockingPayloads = nil
 	}()
@@ -141,7 +140,7 @@ func (s *Service) WillCommitTx() (err error) {
 	// We have to prepare the event here because we need an ongoing transaction
 	// to get the seq number, as well as resolving refs.
 	for _, payload := range s.NonBlockingPayloads {
-		e, err := s.resolveNonBlockingEvent(payload)
+		e, err := s.resolveNonBlockingEvent(ctx, payload)
 		if err != nil {
 			return err
 		}
@@ -151,7 +150,7 @@ func (s *Service) WillCommitTx() (err error) {
 	return
 }
 
-func (s *Service) DidCommitTx() {
+func (s *Service) DidCommitTx(ctx context.Context) {
 	// To avoid triggering the events multiple times
 	// reset s.NonBlockingEvents when we start processing the events
 	nonBlockingEvents := s.NonBlockingEvents
@@ -159,7 +158,7 @@ func (s *Service) DidCommitTx() {
 
 	for _, e := range nonBlockingEvents {
 		for _, sink := range s.Sinks {
-			err := sink.ReceiveNonBlockingEvent(e)
+			err := sink.ReceiveNonBlockingEvent(ctx, e)
 			if err != nil {
 				s.Logger.WithError(err).Error("failed to dispatch nonblocking event")
 			}
@@ -167,16 +166,16 @@ func (s *Service) DidCommitTx() {
 	}
 }
 
-func (s *Service) nextSeq() (seq int64, err error) {
-	seq, err = s.Store.NextSequenceNumber()
+func (s *Service) nextSeq(ctx context.Context) (seq int64, err error) {
+	seq, err = s.Store.NextSequenceNumber(ctx)
 	if err != nil {
 		return
 	}
 	return
 }
 
-func (s *Service) makeContext(payload event.Payload) event.Context {
-	userID := session.GetUserID(s.Context)
+func (s *Service) makeContext(ctx context.Context, payload event.Payload) event.Context {
+	userID := session.GetUserID(ctx)
 
 	if userID == nil {
 		uid := payload.UserID()
@@ -185,7 +184,7 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 		}
 	}
 
-	preferredLanguageTags := intl.GetPreferredLanguageTags(s.Context)
+	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
 	// Initialize this to an empty slice so that it is always present in the JSON.
 	if preferredLanguageTags == nil {
 		preferredLanguageTags = []string{}
@@ -203,8 +202,8 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 
 	triggeredBy := payload.GetTriggeredBy()
 
-	uiParam := uiparam.GetUIParam(s.Context)
-	auditCtx := adminauthz.GetAdminAuthzAudit(s.Context)
+	uiParam := uiparam.GetUIParam(ctx)
+	auditCtx := adminauthz.GetAdminAuthzAudit(ctx)
 	clientID := uiParam.ClientID
 
 	var oauthContext *event.OAuthContext
@@ -215,7 +214,7 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 		}
 	}
 
-	ctx := &event.Context{
+	eventCtx := &event.Context{
 		Timestamp:          s.Clock.NowUTC().Unix(),
 		UserID:             userID,
 		TriggeredBy:        triggeredBy,
@@ -229,18 +228,18 @@ func (s *Service) makeContext(payload event.Payload) event.Context {
 		OAuth:              oauthContext,
 	}
 
-	payload.FillContext(ctx)
+	payload.FillContext(eventCtx)
 
-	return *ctx
+	return *eventCtx
 }
 
-func (s *Service) resolveNonBlockingEvent(payload event.NonBlockingPayload) (*event.Event, error) {
-	eventContext := s.makeContext(payload)
-	seq, err := s.nextSeq()
+func (s *Service) resolveNonBlockingEvent(ctx context.Context, payload event.NonBlockingPayload) (*event.Event, error) {
+	eventContext := s.makeContext(ctx, payload)
+	seq, err := s.nextSeq(ctx)
 	if err != nil {
 		return nil, err
 	}
-	err = s.Resolver.Resolve(payload)
+	err = s.Resolver.Resolve(ctx, payload)
 	if err != nil {
 		return nil, err
 	}

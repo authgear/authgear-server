@@ -5,6 +5,7 @@
 package event
 
 import (
+	context "context"
 	reflect "reflect"
 
 	event "github.com/authgear/authgear-server/pkg/api/event"
@@ -71,31 +72,31 @@ func (m *MockSink) EXPECT() *MockSinkMockRecorder {
 }
 
 // ReceiveBlockingEvent mocks base method.
-func (m *MockSink) ReceiveBlockingEvent(e *event.Event) error {
+func (m *MockSink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReceiveBlockingEvent", e)
+	ret := m.ctrl.Call(m, "ReceiveBlockingEvent", ctx, e)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ReceiveBlockingEvent indicates an expected call of ReceiveBlockingEvent.
-func (mr *MockSinkMockRecorder) ReceiveBlockingEvent(e interface{}) *gomock.Call {
+func (mr *MockSinkMockRecorder) ReceiveBlockingEvent(ctx, e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveBlockingEvent", reflect.TypeOf((*MockSink)(nil).ReceiveBlockingEvent), e)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveBlockingEvent", reflect.TypeOf((*MockSink)(nil).ReceiveBlockingEvent), ctx, e)
 }
 
 // ReceiveNonBlockingEvent mocks base method.
-func (m *MockSink) ReceiveNonBlockingEvent(e *event.Event) error {
+func (m *MockSink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReceiveNonBlockingEvent", e)
+	ret := m.ctrl.Call(m, "ReceiveNonBlockingEvent", ctx, e)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ReceiveNonBlockingEvent indicates an expected call of ReceiveNonBlockingEvent.
-func (mr *MockSinkMockRecorder) ReceiveNonBlockingEvent(e interface{}) *gomock.Call {
+func (mr *MockSinkMockRecorder) ReceiveNonBlockingEvent(ctx, e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveNonBlockingEvent", reflect.TypeOf((*MockSink)(nil).ReceiveNonBlockingEvent), e)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReceiveNonBlockingEvent", reflect.TypeOf((*MockSink)(nil).ReceiveNonBlockingEvent), ctx, e)
 }
 
 // MockStore is a mock of Store interface.
@@ -122,18 +123,18 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // NextSequenceNumber mocks base method.
-func (m *MockStore) NextSequenceNumber() (int64, error) {
+func (m *MockStore) NextSequenceNumber(ctx context.Context) (int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "NextSequenceNumber")
+	ret := m.ctrl.Call(m, "NextSequenceNumber", ctx)
 	ret0, _ := ret[0].(int64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // NextSequenceNumber indicates an expected call of NextSequenceNumber.
-func (mr *MockStoreMockRecorder) NextSequenceNumber() *gomock.Call {
+func (mr *MockStoreMockRecorder) NextSequenceNumber(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NextSequenceNumber", reflect.TypeOf((*MockStore)(nil).NextSequenceNumber))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NextSequenceNumber", reflect.TypeOf((*MockStore)(nil).NextSequenceNumber), ctx)
 }
 
 // MockResolver is a mock of Resolver interface.
@@ -160,15 +161,15 @@ func (m *MockResolver) EXPECT() *MockResolverMockRecorder {
 }
 
 // Resolve mocks base method.
-func (m *MockResolver) Resolve(anything interface{}) error {
+func (m *MockResolver) Resolve(ctx context.Context, anything interface{}) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Resolve", anything)
+	ret := m.ctrl.Call(m, "Resolve", ctx, anything)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Resolve indicates an expected call of Resolve.
-func (mr *MockResolverMockRecorder) Resolve(anything interface{}) *gomock.Call {
+func (mr *MockResolverMockRecorder) Resolve(ctx, anything interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockResolver)(nil).Resolve), anything)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Resolve", reflect.TypeOf((*MockResolver)(nil).Resolve), ctx, anything)
 }

@@ -23,7 +23,6 @@ func TestServiceDispatchEvent(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		ctx := context.Background()
 		clock := clock.NewMockClockAt("2006-01-02T15:04:05Z")
 		database := NewMockDatabase(ctrl)
 		sink := NewMockSink(ctrl)
@@ -38,7 +37,6 @@ func TestServiceDispatchEvent(t *testing.T) {
 		}
 
 		service := &Service{
-			Context:      ctx,
 			Logger:       logger,
 			Database:     database,
 			Clock:        clock,
@@ -49,8 +47,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 		}
 
 		var seq0 int64
-		store.EXPECT().NextSequenceNumber().AnyTimes().Return(seq0, nil)
-		resolver.EXPECT().Resolve(gomock.Any()).AnyTimes().Return(nil)
+		resolver.EXPECT().Resolve(gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 
 		Convey("only use database hook once", func() {
 			user := model.User{
@@ -60,13 +57,16 @@ func TestServiceDispatchEvent(t *testing.T) {
 				MockUserEventBase: MockUserEventBase{user},
 			}
 
-			database.EXPECT().UseHook(service).Times(1)
-			sink.EXPECT().ReceiveBlockingEvent(gomock.Any()).Times(2).Return(nil)
+			ctx := context.Background()
 
-			err := service.DispatchEventOnCommit(payload)
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
+			database.EXPECT().UseHook(service).Times(1)
+			sink.EXPECT().ReceiveBlockingEvent(ctx, gomock.Any()).Times(2).Return(nil)
+
+			err := service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeNil)
 
-			err = service.DispatchEventOnCommit(payload)
+			err = service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeNil)
 		})
 
@@ -79,8 +79,11 @@ func TestServiceDispatchEvent(t *testing.T) {
 				MockUserEventBase: MockUserEventBase{user},
 			}
 
+			ctx := context.Background()
+
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
 			database.EXPECT().UseHook(service).AnyTimes()
-			sink.EXPECT().ReceiveBlockingEvent(&event.Event{
+			sink.EXPECT().ReceiveBlockingEvent(ctx, &event.Event{
 				ID:      "0000000000000000",
 				Type:    MockBlockingEventType1,
 				Seq:     0,
@@ -94,7 +97,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 				},
 			}).Times(1).Return(nil)
 
-			err := service.DispatchEventOnCommit(payload)
+			err := service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeNil)
 			So(service.NonBlockingPayloads, ShouldBeEmpty)
 		})
@@ -107,8 +110,9 @@ func TestServiceDispatchEvent(t *testing.T) {
 			payload := &MockBlockingEvent1{
 				MockUserEventBase: MockUserEventBase{user},
 			}
-			service.Context = session.WithSession(
-				service.Context,
+
+			ctx := session.WithSession(
+				context.Background(),
 				&idpsession.IDPSession{
 					ID: "user-id-principal-id",
 					Attrs: session.Attrs{
@@ -117,8 +121,10 @@ func TestServiceDispatchEvent(t *testing.T) {
 				},
 			)
 
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
 			database.EXPECT().UseHook(service).AnyTimes()
 			sink.EXPECT().ReceiveBlockingEvent(
+				ctx,
 				&event.Event{
 					ID:      "0000000000000000",
 					Type:    MockBlockingEventType1,
@@ -134,7 +140,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 				},
 			).Return(nil)
 
-			err := service.DispatchEventOnCommit(payload)
+			err := service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeNil)
 		})
 
@@ -147,10 +153,13 @@ func TestServiceDispatchEvent(t *testing.T) {
 				MockUserEventBase: MockUserEventBase{user},
 			}
 
-			database.EXPECT().UseHook(service).AnyTimes()
-			sink.EXPECT().ReceiveBlockingEvent(gomock.Any()).Return(fmt.Errorf("e"))
+			ctx := context.Background()
 
-			err := service.DispatchEventOnCommit(payload)
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
+			database.EXPECT().UseHook(service).AnyTimes()
+			sink.EXPECT().ReceiveBlockingEvent(ctx, gomock.Any()).Return(fmt.Errorf("e"))
+
+			err := service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeError, "e")
 		})
 
@@ -163,8 +172,11 @@ func TestServiceDispatchEvent(t *testing.T) {
 				MockUserEventBase: MockUserEventBase{user},
 			}
 
+			ctx := context.Background()
+
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
 			database.EXPECT().UseHook(service).AnyTimes()
-			err := service.DispatchEventOnCommit(payload)
+			err := service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeNil)
 			So(service.NonBlockingPayloads, ShouldResemble, []event.NonBlockingPayload{
 				payload,
@@ -182,7 +194,10 @@ func TestServiceDispatchEvent(t *testing.T) {
 				payload,
 			}
 
-			sink.EXPECT().ReceiveNonBlockingEvent(&event.Event{
+			ctx := context.Background()
+
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
+			sink.EXPECT().ReceiveNonBlockingEvent(ctx, &event.Event{
 				ID:      "0000000000000000",
 				Type:    payload.NonBlockingEventType(),
 				Seq:     0,
@@ -197,10 +212,10 @@ func TestServiceDispatchEvent(t *testing.T) {
 				IsNonBlocking: true,
 			})
 
-			err := service.WillCommitTx()
+			err := service.WillCommitTx(ctx)
 			So(err, ShouldBeNil)
 
-			service.DidCommitTx()
+			service.DidCommitTx(ctx)
 		})
 
 		Convey("skip non-blocking events if blocking event has error", func() {
@@ -215,8 +230,11 @@ func TestServiceDispatchEvent(t *testing.T) {
 				MockUserEventBase: MockUserEventBase{user},
 			}
 
+			ctx := context.Background()
+
+			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
 			database.EXPECT().UseHook(service).AnyTimes()
-			sink.EXPECT().ReceiveBlockingEvent(&event.Event{
+			sink.EXPECT().ReceiveBlockingEvent(ctx, &event.Event{
 				ID:      "0000000000000000",
 				Type:    MockBlockingEventType1,
 				Seq:     0,
@@ -229,18 +247,18 @@ func TestServiceDispatchEvent(t *testing.T) {
 					TriggeredBy:        event.TriggeredByTypeUser,
 				},
 			}).Return(fmt.Errorf("e"))
-			sink.EXPECT().ReceiveNonBlockingEvent(gomock.Any()).Times(0)
+			sink.EXPECT().ReceiveNonBlockingEvent(ctx, gomock.Any()).Times(0)
 
-			err := service.DispatchEventOnCommit(nonBlocking)
+			err := service.DispatchEventOnCommit(ctx, nonBlocking)
 			So(err, ShouldBeNil)
 
-			err = service.DispatchEventOnCommit(blocking)
+			err = service.DispatchEventOnCommit(ctx, blocking)
 			So(err, ShouldBeError, "e")
 
-			err = service.WillCommitTx()
+			err = service.WillCommitTx(ctx)
 			So(err, ShouldBeNil)
 
-			service.DidCommitTx()
+			service.DidCommitTx(ctx)
 		})
 	})
 }

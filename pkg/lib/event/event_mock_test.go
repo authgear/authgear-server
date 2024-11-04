@@ -1,6 +1,8 @@
 package event
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -147,7 +149,7 @@ func (e *MockBlockingEvent1) BlockingEventType() event.Type {
 func (e *MockBlockingEvent1) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) bool {
+func (e *MockBlockingEvent1) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
 	if mutations.User.StandardAttributes != nil {
 		e.User.StandardAttributes = mutations.User.StandardAttributes
 		return true
@@ -157,10 +159,10 @@ func (e *MockBlockingEvent1) ApplyMutations(mutations event.Mutations) bool {
 	return false
 }
 
-func (e *MockBlockingEvent1) PerformEffects(ctx event.MutationsEffectContext) error {
+func (e *MockBlockingEvent1) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
 	userID := e.UserID()
 	userMutations := blocking.MakeUserMutations(e.User)
-	return blocking.PerformEffectsOnUser(ctx, userID, userMutations)
+	return blocking.PerformEffectsOnUser(ctx, effectCtx, userID, userMutations)
 }
 
 type MockBlockingEvent2 struct {
@@ -174,7 +176,7 @@ func (e *MockBlockingEvent2) BlockingEventType() event.Type {
 func (e *MockBlockingEvent2) FillContext(ctx *event.Context) {
 }
 
-func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) bool {
+func (e *MockBlockingEvent2) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
 	if mutations.User.StandardAttributes != nil {
 		e.User.StandardAttributes = mutations.User.StandardAttributes
 		return true
@@ -183,10 +185,10 @@ func (e *MockBlockingEvent2) ApplyMutations(mutations event.Mutations) bool {
 	return false
 }
 
-func (e *MockBlockingEvent2) PerformEffects(ctx event.MutationsEffectContext) error {
+func (e *MockBlockingEvent2) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
 	userID := e.UserID()
 	userMutations := blocking.MakeUserMutations(e.User)
-	return blocking.PerformEffectsOnUser(ctx, userID, userMutations)
+	return blocking.PerformEffectsOnUser(ctx, effectCtx, userID, userMutations)
 }
 
 var _ event.NonBlockingPayload = &MockNonBlockingEvent1{}
