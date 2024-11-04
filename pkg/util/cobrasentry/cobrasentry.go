@@ -26,7 +26,7 @@ type OutputRunEFunc func(cmd *cobra.Command, args []string) error
 
 var RunEWrap = func(binderGetter BinderGetter, do InputRunEFunc) OutputRunEFunc {
 	return func(cmd *cobra.Command, args []string) (err error) {
-		ctx := context.Background()
+		ctx := cmd.Context()
 
 		binder := binderGetter()
 		sentryDSN := binder.GetString(cmd, ArgSentryDSN)
