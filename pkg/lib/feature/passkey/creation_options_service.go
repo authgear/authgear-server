@@ -1,6 +1,7 @@
 package passkey
 
 import (
+	"context"
 	"encoding/base64"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -12,11 +13,11 @@ import (
 )
 
 type UserService interface {
-	Get(id string, role accesscontrol.Role) (*model.User, error)
+	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
 }
 
 type IdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type CreationOptionsService struct {
@@ -27,18 +28,18 @@ type CreationOptionsService struct {
 }
 
 // MakeCreationOptions makes creation options which is ready for use.
-func (s *CreationOptionsService) MakeCreationOptions(userID string) (*model.WebAuthnCreationOptions, error) {
+func (s *CreationOptionsService) MakeCreationOptions(ctx context.Context, userID string) (*model.WebAuthnCreationOptions, error) {
 	challenge, err := protocol.CreateChallenge()
 	if err != nil {
 		return nil, err
 	}
 
-	config, err := s.ConfigService.MakeConfig()
+	config, err := s.ConfigService.MakeConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := s.UserService.Get(userID, accesscontrol.RoleGreatest)
+	user, err := s.UserService.Get(ctx, userID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +47,7 @@ func (s *CreationOptionsService) MakeCreationOptions(userID string) (*model.WebA
 	endUserAccountID := user.EndUserAccountID
 
 	var exclude []model.PublicKeyCredentialDescriptor
-	identities, err := s.IdentityService.ListByUser(userID)
+	identities, err := s.IdentityService.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +109,7 @@ func (s *CreationOptionsService) MakeCreationOptions(userID string) (*model.WebA
 		CreationOptions: options,
 	}
 
-	err = s.Store.CreateSession(session)
+	err = s.Store.CreateSession(ctx, session)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package passkey
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 
@@ -12,7 +13,7 @@ import (
 )
 
 type TranslationService interface {
-	RenderText(key string, args interface{}) (string, error)
+	RenderText(ctx context.Context, key string, args interface{}) (string, error)
 }
 
 type ConfigService struct {
@@ -21,13 +22,13 @@ type ConfigService struct {
 	TranslationService TranslationService
 }
 
-func (s *ConfigService) MakeConfig() (*Config, error) {
+func (s *ConfigService) MakeConfig(ctx context.Context) (*Config, error) {
 	origin := url.URL{
 		Scheme: httputil.GetProto(s.Request, bool(s.TrustProxy)),
 		Host:   httputil.GetHost(s.Request, bool(s.TrustProxy)),
 	}
 
-	appName, err := s.TranslationService.RenderText("app.name", nil)
+	appName, err := s.TranslationService.RenderText(ctx, "app.name", nil)
 	if err != nil {
 		return nil, err
 	}
