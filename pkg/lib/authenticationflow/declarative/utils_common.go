@@ -200,23 +200,26 @@ func findFlowRootObjectInFlow(deps *authflow.Dependencies, flows authflow.Flows)
 }
 
 // nolint: gocognit
-func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) ([]AuthenticateOption, error) {
-	options := []AuthenticateOption{}
+func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) (
+	options []AuthenticateOption,
+	deviceTokenEnabled bool,
+	err error) {
+	options = []AuthenticateOption{}
 
 	identities, err := deps.Identities.ListByUser(userID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	authenticators, err := deps.Authenticators.List(userID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	secondaryAuthenticators := authenticator.ApplyFilters(authenticators, authenticator.KeepKind(model.AuthenticatorKindSecondary))
 	userRecoveryCodes, err := deps.MFA.ListRecoveryCodes(userID)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	passkeyAuthenticators := authenticator.ApplyFilters(
 		authenticators,
@@ -358,8 +361,9 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	for _, branch := range step.OneOf {
 		switch branch.Authentication {
 		case config.AuthenticationFlowAuthenticationDeviceToken:
-			// Device token is handled transparently.
-			break
+			if len(secondaryAuthenticators) > 0 {
+				deviceTokenEnabled = true
+			}
 		case config.AuthenticationFlowAuthenticationRecoveryCode:
 			options = useAuthenticationOptionAddRecoveryCodes(options, userHasRecoveryCode, branch.BotProtection)
 		case config.AuthenticationFlowAuthenticationPrimaryPassword:
@@ -367,7 +371,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		case config.AuthenticationFlowAuthenticationPrimaryPasskey:
 			options, err = useAuthenticationOptionAddPasskey(options, deps, userHasPasskey, userID, branch.BotProtection)
 			if err != nil {
-				return nil, err
+				return nil, false, err
 			}
 		case config.AuthenticationFlowAuthenticationSecondaryPassword:
 			options = useAuthenticationOptionAddSecondaryPassword(options, userHasSecondaryPassword, branch.BotProtection)
@@ -379,7 +383,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 			if targetStepName := branch.TargetStep; targetStepName != "" {
 				info, err := findIdentity(targetStepName)
 				if err != nil {
-					return nil, err
+					return nil, false, err
 				}
 
 				options = useAuthenticationOptionAddPrimaryOOBOTPOfIdentity(options, deps, branch.Authentication, info, branch.BotProtection)
@@ -393,7 +397,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 		}
 	}
 
-	return options, nil
+	return options, deviceTokenEnabled, nil
 }
 
 // nolint:gocognit
