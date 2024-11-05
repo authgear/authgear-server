@@ -14,6 +14,7 @@ export function useViewerQuery(): UseViewerQueryReturnType {
     ViewerQueryDocument,
     {
       client,
+      fetchPolicy: "network-only",
     }
   );
 
