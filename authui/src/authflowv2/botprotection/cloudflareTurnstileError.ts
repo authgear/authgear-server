@@ -30,7 +30,7 @@ const CLOUDFLARE_TURNSTILE_ERROR_DOMAIN_NOT_ALLOWED: CloudflareTurnstileErrorCod
 const CLOUDFLARE_TURNSTILE_ERROR_UNUSUAL_VISITOR_BEHAVIOR: CloudflareTurnstileErrorCodeParseResult =
   {
     error: CloudflareTurnstileError.UnusualVisitorBehavior,
-    shouldRetry: true,
+    shouldRetry: false,
     shouldDisplayErrMsg: false,
   };
 const CLOUDFLARE_TURNSTILE_ERROR_UNSUPPORTED_BROWSER: CloudflareTurnstileErrorCodeParseResult =
