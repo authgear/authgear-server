@@ -32,55 +32,57 @@ type claim struct {
 }
 
 type UserQueries interface {
-	GetRaw(userID string) (*user.User, error)
+	GetRaw(ctx context.Context, userID string) (*user.User, error)
 }
 
 type UserCommands interface {
-	Create(userID string) (*user.User, error)
-	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
+	Create(ctx context.Context, userID string) (*user.User, error)
+	UpdateAccountStatus(ctx context.Context, userID string, accountStatus user.AccountStatus) error
 }
 
 type IdentityService interface {
-	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
-	Create(info *identity.Info) error
-	Delete(info *identity.Info) error
-	Update(oldInfo *identity.Info, newInfo *identity.Info) error
-	UpdateWithSpec(info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
-	CheckDuplicated(info *identity.Info) (dup *identity.Info, err error)
-	ListByClaim(name string, value string) ([]*identity.Info, error)
-	ListByUser(userID string) ([]*identity.Info, error)
+	New(ctx context.Context, userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	UpdateWithSpec(ctx context.Context, info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+
+	Create(ctx context.Context, info *identity.Info) error
+	Delete(ctx context.Context, info *identity.Info) error
+	Update(ctx context.Context, oldInfo *identity.Info, newInfo *identity.Info) error
+	CheckDuplicated(ctx context.Context, info *identity.Info) (dup *identity.Info, err error)
+	ListByClaim(ctx context.Context, name string, value string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type AuthenticatorService interface {
-	New(spec *authenticator.Spec) (*authenticator.Info, error)
-	Create(info *authenticator.Info, markVerified bool) error
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	Delete(info *authenticator.Info) error
+	New(ctx context.Context, spec *authenticator.Spec) (*authenticator.Info, error)
+	Create(ctx context.Context, info *authenticator.Info, markVerified bool) error
+	List(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	Delete(ctx context.Context, info *authenticator.Info) error
 }
 
 type VerifiedClaimService interface {
-	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
-	MarkClaimVerified(claim *verification.Claim) error
-	GetClaims(userID string) ([]*verification.Claim, error)
-	DeleteClaim(claim *verification.Claim) error
+	NewVerifiedClaim(ctx context.Context, userID string, claimName string, claimValue string) *verification.Claim
+
+	MarkClaimVerified(ctx context.Context, claim *verification.Claim) error
+	GetClaims(ctx context.Context, userID string) ([]*verification.Claim, error)
+	DeleteClaim(ctx context.Context, claim *verification.Claim) error
 }
 
 type StandardAttributesService interface {
-	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
 type CustomAttributesService interface {
-	UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, l attrs.List) error
+	UpdateCustomAttributesWithList(ctx context.Context, role accesscontrol.Role, userID string, l attrs.List) error
 }
 
 type RolesGroupsCommands interface {
-	ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error
-	ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error
+	ResetUserGroup(ctx context.Context, options *rolesgroups.ResetUserGroupOptions) error
+	ResetUserRole(ctx context.Context, options *rolesgroups.ResetUserRoleOptions) error
 }
 
 type ElasticsearchService interface {
-	MarkUsersAsReindexRequired(userIDs []string) error
-	EnqueueReindexUserTask(userID string) error
+	MarkUsersAsReindexRequired(ctx context.Context, userIDs []string) error
+	EnqueueReindexUserTask(ctx context.Context, userID string) error
 }
 
 type UserImportService struct {
@@ -126,7 +128,7 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 
 		var record Record
 		shouldReindexUser := false
-		err := s.AppDatabase.WithTx(func() error {
+		err := s.AppDatabase.WithTx(ctx, func(ctx context.Context) error {
 			var err error
 			record, err = s.ImportRecordInTxn(ctx, &detail, options, rawMessage)
 			if err != nil {
@@ -137,7 +139,7 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 				fallthrough
 			case OutcomeUpdated:
 				shouldReindexUser = true
-				err = s.Elasticsearch.MarkUsersAsReindexRequired([]string{detail.UserID})
+				err = s.Elasticsearch.MarkUsersAsReindexRequired(ctx, []string{detail.UserID})
 				if err != nil {
 					return err
 				}
@@ -177,7 +179,7 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 
 		if shouldReindexUser {
 			// Do it after the transaction has committed to ensure the user can be queried
-			err = s.Elasticsearch.EnqueueReindexUserTask(detail.UserID)
+			err = s.Elasticsearch.EnqueueReindexUserTask(ctx, detail.UserID)
 			if err != nil {
 				s.Logger.WithError(err).Error("failed to enqueue reindex user task")
 				return nil
@@ -198,13 +200,13 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detai
 	switch options.Identifier {
 	case IdentifierEmail:
 		emailPtr, _ := record.Email()
-		infos, err = s.Identities.ListByClaim(IdentifierEmail, *emailPtr)
+		infos, err = s.Identities.ListByClaim(ctx, IdentifierEmail, *emailPtr)
 	case IdentifierPhoneNumber:
 		phoneNumberPtr, _ := record.PhoneNumber()
-		infos, err = s.Identities.ListByClaim(IdentifierPhoneNumber, *phoneNumberPtr)
+		infos, err = s.Identities.ListByClaim(ctx, IdentifierPhoneNumber, *phoneNumberPtr)
 	case IdentifierPreferredUsername:
 		preferredUsernamePtr, _ := record.PreferredUsername()
-		infos, err = s.Identities.ListByClaim(IdentifierPreferredUsername, *preferredUsernamePtr)
+		infos, err = s.Identities.ListByClaim(ctx, IdentifierPreferredUsername, *preferredUsernamePtr)
 	default:
 		err = fmt.Errorf("unknown identifier: %v", options.Identifier)
 	}
@@ -242,7 +244,7 @@ func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detai
 }
 
 func (s *UserImportService) checkIdentityDuplicate(ctx context.Context, info *identity.Info) (err error) {
-	_, err = s.Identities.CheckDuplicated(info)
+	_, err = s.Identities.CheckDuplicated(ctx, info)
 	if err != nil {
 		return
 	}
@@ -251,7 +253,7 @@ func (s *UserImportService) checkIdentityDuplicate(ctx context.Context, info *id
 
 func (s *UserImportService) insertRecordInTxn(ctx context.Context, detail *Detail, record Record) (err error) {
 	userID := uuid.New()
-	u, err := s.UserCommands.Create(userID)
+	u, err := s.UserCommands.Create(ctx, userID)
 	if err != nil {
 		return
 	}
@@ -402,7 +404,7 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, detail *D
 
 	for _, spec := range specs {
 		var info *identity.Info
-		info, err = s.Identities.New(userID, spec, identity.NewIdentityOptions{
+		info, err = s.Identities.New(ctx, userID, spec, identity.NewIdentityOptions{
 			// Allow the developer to bypass blocklist.
 			LoginIDEmailByPassBlocklistAllowlist: true,
 		})
@@ -418,7 +420,7 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, detail *D
 			return
 		}
 
-		err = s.Identities.Create(info)
+		err = s.Identities.Create(ctx, info)
 		if err != nil {
 			return
 		}
@@ -449,8 +451,8 @@ func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, detai
 					Message: "email_verified = true has no effect when email is absent.",
 				})
 			} else {
-				claim := s.VerifiedClaims.NewVerifiedClaim(userID, "email", email)
-				err = s.VerifiedClaims.MarkClaimVerified(claim)
+				claim := s.VerifiedClaims.NewVerifiedClaim(ctx, userID, "email", email)
+				err = s.VerifiedClaims.MarkClaimVerified(ctx, claim)
 				if err != nil {
 					return
 				}
@@ -479,8 +481,8 @@ func (s *UserImportService) insertVerifiedClaimsInTxn(ctx context.Context, detai
 					Message: "phone_number_verified = true has no effect when phone_number is absent.",
 				})
 			} else {
-				claim := s.VerifiedClaims.NewVerifiedClaim(userID, "phone_number", phoneNumber)
-				err = s.VerifiedClaims.MarkClaimVerified(claim)
+				claim := s.VerifiedClaims.NewVerifiedClaim(ctx, userID, "phone_number", phoneNumber)
+				err = s.VerifiedClaims.MarkClaimVerified(ctx, claim)
 				if err != nil {
 					return
 				}
@@ -499,7 +501,7 @@ func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, d
 		return
 	}
 
-	err = s.StandardAttributes.UpdateStandardAttributes(accesscontrol.RoleGreatest, u.ID, stdAttrs)
+	err = s.StandardAttributes.UpdateStandardAttributes(ctx, accesscontrol.RoleGreatest, u.ID, stdAttrs)
 	if err != nil {
 		return
 	}
@@ -509,7 +511,7 @@ func (s *UserImportService) insertStandardAttributesInTxn(ctx context.Context, d
 
 func (s *UserImportService) insertCustomAttributesInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
 	customAttrsList := record.CustomAttributesList()
-	err = s.CustomAttributes.UpdateCustomAttributesWithList(accesscontrol.RoleGreatest, userID, customAttrsList)
+	err = s.CustomAttributes.UpdateCustomAttributesWithList(ctx, accesscontrol.RoleGreatest, userID, customAttrsList)
 	if err != nil {
 		return
 	}
@@ -535,7 +537,7 @@ func (s *UserImportService) insertDisabledInTxn(ctx context.Context, detail *Det
 		return
 	}
 
-	err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
+	err = s.UserCommands.UpdateAccountStatus(ctx, u.ID, *accountStatus)
 	if err != nil {
 		return
 	}
@@ -549,7 +551,7 @@ func (s *UserImportService) insertRolesInTxn(ctx context.Context, detail *Detail
 		return
 	}
 
-	err = s.RolesGroupsCommands.ResetUserRole(&rolesgroups.ResetUserRoleOptions{
+	err = s.RolesGroupsCommands.ResetUserRole(ctx, &rolesgroups.ResetUserRoleOptions{
 		UserID:   userID,
 		RoleKeys: roleKeys,
 	})
@@ -566,7 +568,7 @@ func (s *UserImportService) insertGroupsInTxn(ctx context.Context, detail *Detai
 		return
 	}
 
-	err = s.RolesGroupsCommands.ResetUserGroup(&rolesgroups.ResetUserGroupOptions{
+	err = s.RolesGroupsCommands.ResetUserGroup(ctx, &rolesgroups.ResetUserGroupOptions{
 		UserID:    userID,
 		GroupKeys: groupKeys,
 	})
@@ -597,12 +599,12 @@ func (s *UserImportService) insertPasswordInTxn(ctx context.Context, detail *Det
 		},
 	}
 
-	info, err := s.Authenticators.New(spec)
+	info, err := s.Authenticators.New(ctx, spec)
 	if err != nil {
 		return
 	}
 
-	err = s.Authenticators.Create(info, false)
+	err = s.Authenticators.Create(ctx, info, false)
 	if err != nil {
 		return
 	}
@@ -637,12 +639,12 @@ func (s *UserImportService) insertMFAPasswordInTxn(ctx context.Context, detail *
 		},
 	}
 
-	info, err := s.Authenticators.New(spec)
+	info, err := s.Authenticators.New(ctx, spec)
 	if err != nil {
 		return
 	}
 
-	err = s.Authenticators.Create(info, false)
+	err = s.Authenticators.Create(ctx, info, false)
 	if err != nil {
 		return
 	}
@@ -678,12 +680,12 @@ func (s *UserImportService) insertMFAOOBOTPEmailInTxn(ctx context.Context, detai
 		},
 	}
 
-	info, err := s.Authenticators.New(spec)
+	info, err := s.Authenticators.New(ctx, spec)
 	if err != nil {
 		return
 	}
 
-	err = s.Authenticators.Create(info, false)
+	err = s.Authenticators.Create(ctx, info, false)
 	if err != nil {
 		return
 	}
@@ -719,12 +721,12 @@ func (s *UserImportService) insertMFAOOBOTPPhoneInTxn(ctx context.Context, detai
 		},
 	}
 
-	info, err := s.Authenticators.New(spec)
+	info, err := s.Authenticators.New(ctx, spec)
 	if err != nil {
 		return
 	}
 
-	err = s.Authenticators.Create(info, false)
+	err = s.Authenticators.Create(ctx, info, false)
 	if err != nil {
 		return
 	}
@@ -756,12 +758,12 @@ func (s *UserImportService) insertMFATOTPInTxn(ctx context.Context, detail *Deta
 		},
 	}
 
-	info, err := s.Authenticators.New(spec)
+	info, err := s.Authenticators.New(ctx, spec)
 	if err != nil {
 		return
 	}
 
-	err = s.Authenticators.Create(info, false)
+	err = s.Authenticators.Create(ctx, info, false)
 	if err != nil {
 		return
 	}
@@ -850,7 +852,7 @@ func (s *UserImportService) upsertIdentitiesInTxnHelper(ctx context.Context, det
 // nolint: gocognit
 func (s *UserImportService) upsertIdentitiesInTxn(ctx context.Context, detail *Detail, options *Options, record Record, info *identity.Info) (err error) {
 	userID := info.UserID
-	infos, err := s.Identities.ListByUser(userID)
+	infos, err := s.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return
 	}
@@ -915,7 +917,7 @@ func (s *UserImportService) removeIdentityInTxn(ctx context.Context, detail *Det
 	}
 
 	for _, info := range toBeRemoved {
-		err := s.Identities.Delete(info)
+		err := s.Identities.Delete(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -934,7 +936,7 @@ func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, detail *Det
 
 		if info.Type == model.IdentityTypeLoginID && info.LoginID.LoginIDType == spec.LoginID.Type && info.LoginID.LoginIDKey == spec.LoginID.Key {
 			isUpdated = true
-			updatedInfo, err := s.Identities.UpdateWithSpec(info, spec, identity.NewIdentityOptions{
+			updatedInfo, err := s.Identities.UpdateWithSpec(ctx, info, spec, identity.NewIdentityOptions{
 				// Allow the developer to bypass blocklist.
 				LoginIDEmailByPassBlocklistAllowlist: true,
 			})
@@ -948,7 +950,7 @@ func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, detail *Det
 		}
 	}
 	if !isUpdated {
-		info, err := s.Identities.New(userID, spec, identity.NewIdentityOptions{
+		info, err := s.Identities.New(ctx, userID, spec, identity.NewIdentityOptions{
 			// Allow the developer to bypass blocklist.
 			LoginIDEmailByPassBlocklistAllowlist: true,
 		})
@@ -964,7 +966,7 @@ func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, detail *Det
 			return err
 		}
 
-		err = s.Identities.Update(identityUpdate.OldInfo, identityUpdate.NewInfo)
+		err = s.Identities.Update(ctx, identityUpdate.OldInfo, identityUpdate.NewInfo)
 		if err != nil {
 			return err
 		}
@@ -976,7 +978,7 @@ func (s *UserImportService) upsertIdentityInTxn(ctx context.Context, detail *Det
 			return err
 		}
 
-		err = s.Identities.Create(info)
+		err = s.Identities.Create(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -994,8 +996,8 @@ func (s *UserImportService) setVerifiedInTxn(ctx context.Context, userID string,
 			}
 		}
 
-		verifiedClaim := s.VerifiedClaims.NewVerifiedClaim(userID, c.Name, c.Value)
-		err := s.VerifiedClaims.MarkClaimVerified(verifiedClaim)
+		verifiedClaim := s.VerifiedClaims.NewVerifiedClaim(ctx, userID, c.Name, c.Value)
+		err := s.VerifiedClaims.MarkClaimVerified(ctx, verifiedClaim)
 		if err != nil {
 			return err
 		}
@@ -1010,7 +1012,7 @@ func (s *UserImportService) setVerifiedInTxn(ctx context.Context, userID string,
 			return nil
 		}
 
-		err := s.VerifiedClaims.DeleteClaim(toBeDeleted)
+		err := s.VerifiedClaims.DeleteClaim(ctx, toBeDeleted)
 		if err != nil {
 			return err
 		}
@@ -1090,12 +1092,12 @@ func (s *UserImportService) upsertPhoneNumberVerifiedInTxn(ctx context.Context, 
 }
 
 func (s *UserImportService) upsertVerifiedClaimsInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
-	infos, err := s.Identities.ListByUser(userID)
+	infos, err := s.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return
 	}
 
-	verifiedClaims, err := s.VerifiedClaims.GetClaims(userID)
+	verifiedClaims, err := s.VerifiedClaims.GetClaims(ctx, userID)
 	if err != nil {
 		return
 	}
@@ -1114,7 +1116,7 @@ func (s *UserImportService) upsertVerifiedClaimsInTxn(ctx context.Context, detai
 }
 
 func (s *UserImportService) upsertStandardAttributesInTxn(ctx context.Context, detail *Detail, record Record, userID string) (err error) {
-	u, err := s.UserQueries.GetRaw(userID)
+	u, err := s.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return
 	}
@@ -1137,7 +1139,7 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Det
 		return
 	}
 
-	u, err := s.UserQueries.GetRaw(userID)
+	u, err := s.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return
 	}
@@ -1151,7 +1153,7 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Det
 				Message: accountStatusErr.Error(),
 			})
 		} else {
-			err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
+			err = s.UserCommands.UpdateAccountStatus(ctx, u.ID, *accountStatus)
 			if err != nil {
 				return
 			}
@@ -1165,7 +1167,7 @@ func (s *UserImportService) upsertDisabledInTxn(ctx context.Context, detail *Det
 				Message: accountStatusErr.Error(),
 			})
 		} else {
-			err = s.UserCommands.UpdateAccountStatus(u.ID, *accountStatus)
+			err = s.UserCommands.UpdateAccountStatus(ctx, u.ID, *accountStatus)
 			if err != nil {
 				return
 			}
@@ -1196,6 +1198,7 @@ func (s *UserImportService) upsertMFAOOBOTPEmailInTxn(ctx context.Context, detai
 	}
 
 	infos, err := s.Authenticators.List(
+		ctx,
 		userID,
 		authenticator.KeepKind(authenticator.KindSecondary),
 		authenticator.KeepType(model.AuthenticatorTypeOOBEmail),
@@ -1206,7 +1209,7 @@ func (s *UserImportService) upsertMFAOOBOTPEmailInTxn(ctx context.Context, detai
 
 	if emailPtr == nil {
 		for _, info := range infos {
-			err = s.Authenticators.Delete(info)
+			err = s.Authenticators.Delete(ctx, info)
 			if err != nil {
 				return
 			}
@@ -1222,7 +1225,7 @@ func (s *UserImportService) upsertMFAOOBOTPEmailInTxn(ctx context.Context, detai
 		}
 
 		var expected *authenticator.Info
-		expected, err = s.Authenticators.New(spec)
+		expected, err = s.Authenticators.New(ctx, spec)
 		if err != nil {
 			return
 		}
@@ -1237,13 +1240,13 @@ func (s *UserImportService) upsertMFAOOBOTPEmailInTxn(ctx context.Context, detai
 		// Not found. We delete all and create again.
 		if found == nil {
 			for _, info := range infos {
-				err = s.Authenticators.Delete(info)
+				err = s.Authenticators.Delete(ctx, info)
 				if err != nil {
 					return
 				}
 			}
 
-			err = s.Authenticators.Create(expected, false)
+			err = s.Authenticators.Create(ctx, expected, false)
 			if err != nil {
 				return
 			}
@@ -1268,6 +1271,7 @@ func (s *UserImportService) upsertMFAOOBOTPPhoneInTxn(ctx context.Context, detai
 	}
 
 	infos, err := s.Authenticators.List(
+		ctx,
 		userID,
 		authenticator.KeepKind(authenticator.KindSecondary),
 		authenticator.KeepType(model.AuthenticatorTypeOOBSMS),
@@ -1278,7 +1282,7 @@ func (s *UserImportService) upsertMFAOOBOTPPhoneInTxn(ctx context.Context, detai
 
 	if phoneNumberPtr == nil {
 		for _, info := range infos {
-			err = s.Authenticators.Delete(info)
+			err = s.Authenticators.Delete(ctx, info)
 			if err != nil {
 				return
 			}
@@ -1294,7 +1298,7 @@ func (s *UserImportService) upsertMFAOOBOTPPhoneInTxn(ctx context.Context, detai
 		}
 
 		var expected *authenticator.Info
-		expected, err = s.Authenticators.New(spec)
+		expected, err = s.Authenticators.New(ctx, spec)
 		if err != nil {
 			return
 		}
@@ -1309,13 +1313,13 @@ func (s *UserImportService) upsertMFAOOBOTPPhoneInTxn(ctx context.Context, detai
 		// Not found. We delete all and create again.
 		if found == nil {
 			for _, info := range infos {
-				err = s.Authenticators.Delete(info)
+				err = s.Authenticators.Delete(ctx, info)
 				if err != nil {
 					return
 				}
 			}
 
-			err = s.Authenticators.Create(expected, false)
+			err = s.Authenticators.Create(ctx, expected, false)
 			if err != nil {
 				return
 			}

@@ -28,7 +28,7 @@ func (s *StoreRedis) CreateJob(ctx context.Context, job *Job) error {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		key := redisJobKey(s.AppID, job.ID)
 		ttl := JobTTL
 		_, err := conn.SetEx(ctx, key, data, ttl).Result()
@@ -43,7 +43,7 @@ func (s *StoreRedis) CreateJob(ctx context.Context, job *Job) error {
 func (s *StoreRedis) GetJob(ctx context.Context, jobID string) (*Job, error) {
 	key := redisJobKey(s.AppID, jobID)
 	var job Job
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		bytes, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return api.ErrTaskNotFound
