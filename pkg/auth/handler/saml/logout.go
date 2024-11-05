@@ -1,6 +1,7 @@
 package saml
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -82,8 +83,9 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.Database.WithTx(func() error {
-		h.handle(rw, r, sp)
+	ctx := r.Context()
+	err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+		h.handle(ctx, rw, r, sp)
 		return nil
 	})
 	if err != nil {
@@ -92,6 +94,7 @@ func (h *LogoutHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (h *LogoutHandler) handle(
+	ctx context.Context,
 	rw http.ResponseWriter,
 	r *http.Request,
 	sp *config.SAMLServiceProviderConfig) {
@@ -109,11 +112,11 @@ func (h *LogoutHandler) handle(
 
 	var result logoutResult
 	var err error
-	relayState, result, err = h.handleSLORequest(rw, r, sp, responseBinding, callbackURL)
+	relayState, result, err = h.handleSLORequest(ctx, rw, r, sp, responseBinding, callbackURL)
 	if err != nil {
 		if errors.Is(err, samlbinding.ErrNoRequest) {
 			// No request found, try to parse it as response
-			result, err = h.handleSLOResponse(rw, r, sp)
+			result, err = h.handleSLOResponse(ctx, rw, r, sp)
 			if err != nil {
 				if errors.Is(err, samlbinding.ErrNoResponse) {
 					// No request nor response, Redirect to /logout for IdP-initiated logout
@@ -136,12 +139,13 @@ func (h *LogoutHandler) handle(
 		return
 	case *logoutRemainingSPsResult:
 		// Logout all remaining participants before finish
-		h.doLogoutRemainingSPs(rw, r, result)
+		h.doLogoutRemainingSPs(ctx, rw, r, result)
 		return
 	}
 }
 
 func (h *LogoutHandler) doLogoutRemainingSPs(
+	ctx context.Context,
 	rw http.ResponseWriter,
 	r *http.Request,
 	result *logoutRemainingSPsResult,
@@ -152,6 +156,7 @@ func (h *LogoutHandler) doLogoutRemainingSPs(
 		sp, ok := h.SAMLConfig.ResolveProvider(spID)
 		if ok && sp.SLOEnabled {
 			err = h.SAMLSLOService.SendSLORequest(
+				ctx,
 				rw, r,
 				result.sloSession,
 				sp,
@@ -161,7 +166,7 @@ func (h *LogoutHandler) doLogoutRemainingSPs(
 				// Skip this SP and send request to the next one
 				h.Logger.WithError(err).Error("failed to send logout request")
 				sloSession.Entry.IsPartialLogout = true
-				err = h.SAMLSLOSessionService.Save(sloSession)
+				err = h.SAMLSLOSessionService.Save(ctx, sloSession)
 				if err != nil {
 					h.handleError(rw, r,
 						result.sloSession.Entry.ResponseBinding,
@@ -391,6 +396,7 @@ func (h *LogoutHandler) verifyResponseSignature(
 }
 
 func (h *LogoutHandler) invalidateSession(
+	ctx context.Context,
 	rw http.ResponseWriter,
 	sp *config.SAMLServiceProviderConfig,
 	sid string,
@@ -401,7 +407,7 @@ func (h *LogoutHandler) invalidateSession(
 ) {
 	_, sessionID, ok := oidc.DecodeSID(sid)
 	if ok {
-		s, err := h.SessionManager.Get(sessionID)
+		s, err := h.SessionManager.Get(ctx, sessionID)
 		if err != nil {
 			if errors.Is(err, session.ErrSessionNotFound) {
 				// If the session does not exist, simply ignore it
@@ -411,7 +417,7 @@ func (h *LogoutHandler) invalidateSession(
 			}
 		}
 		userID := s.GetAuthenticationInfo().UserID
-		invalidatedSessions, err := h.SessionManager.Logout(s, rw)
+		invalidatedSessions, err := h.SessionManager.Logout(ctx, s, rw)
 		if err != nil {
 			return "", nil, err
 		}
@@ -426,6 +432,7 @@ func (h *LogoutHandler) invalidateSession(
 }
 
 func (h *LogoutHandler) handleSLOResponse(
+	ctx context.Context,
 	rw http.ResponseWriter,
 	r *http.Request,
 	sp *config.SAMLServiceProviderConfig,
@@ -446,7 +453,7 @@ func (h *LogoutHandler) handleSLOResponse(
 		return nil, err
 	}
 	sloSessionID := relayState
-	sloSession, err := h.SAMLSLOSessionService.Get(sloSessionID)
+	sloSession, err := h.SAMLSLOSessionService.Get(ctx, sloSessionID)
 	if err != nil {
 		// We do not check if it is ErrNotFound,
 		// because it is unexpected that we receive an logout response without a slo session
@@ -461,7 +468,7 @@ func (h *LogoutHandler) handleSLOResponse(
 	newPendingLogoutServiceProviderIDsSet.Delete(sp.GetID())
 	sloSession.Entry.PendingLogoutServiceProviderIDs = newPendingLogoutServiceProviderIDsSet.Keys()
 
-	err = h.SAMLSLOSessionService.Save(sloSession)
+	err = h.SAMLSLOSessionService.Save(ctx, sloSession)
 	if err != nil {
 		return nil, err
 	}
@@ -472,6 +479,7 @@ func (h *LogoutHandler) handleSLOResponse(
 }
 
 func (h *LogoutHandler) handleSLORequest(
+	ctx context.Context,
 	rw http.ResponseWriter,
 	r *http.Request,
 	sp *config.SAMLServiceProviderConfig,
@@ -498,7 +506,7 @@ func (h *LogoutHandler) handleSLORequest(
 	var userID string
 	if logoutRequest.SessionIndex != nil {
 		sid = logoutRequest.SessionIndex.Value
-		userID, affectedServiceProviderIDs, err = h.invalidateSession(rw, sp, sid)
+		userID, affectedServiceProviderIDs, err = h.invalidateSession(ctx, rw, sp, sid)
 		if err != nil {
 			return relayState, nil, err
 		}
@@ -508,6 +516,7 @@ func (h *LogoutHandler) handleSLORequest(
 
 	if userID != "" && len(affectedServiceProviderIDs.Keys()) > 0 {
 		sloSession, err := h.createSLOSession(
+			ctx,
 			sid,
 			userID,
 			logoutRequest,
@@ -540,6 +549,7 @@ func (h *LogoutHandler) handleSLORequest(
 }
 
 func (s *LogoutHandler) createSLOSession(
+	ctx context.Context,
 	sid string,
 	userID string,
 	request *samlprotocol.LogoutRequest,
@@ -560,7 +570,7 @@ func (s *LogoutHandler) createSLOSession(
 		IsPartialLogout:                 false,
 	}
 	sloSession := samlslosession.NewSAMLSLOSession(sloSessionEntry)
-	err := s.SAMLSLOSessionService.Save(sloSession)
+	err := s.SAMLSLOSessionService.Save(ctx, sloSession)
 	if err != nil {
 		return nil, err
 	}

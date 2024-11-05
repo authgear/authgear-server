@@ -38,6 +38,8 @@ type LoginFinishHandler struct {
 }
 
 func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	authInfoID, ok := h.AuthenticationInfoResolver.GetAuthenticationInfoID(r)
 	if !ok {
 		h.Logger.Warningln("authentication info id is missing")
@@ -46,7 +48,7 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	authInfo, err := h.AuthenticationInfoService.Get(authInfoID)
+	authInfo, err := h.AuthenticationInfoService.Get(ctx, authInfoID)
 	if err != nil {
 		// It is unexpected that we've set the code in query, but turns out it does not exist.
 		// We have no idea how to return the error response to user yet,
@@ -54,7 +56,7 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 		panic(err)
 	}
 
-	samlSession, err := h.SAMLSessionService.Get(authInfo.SAMLSessionID)
+	samlSession, err := h.SAMLSessionService.Get(ctx, authInfo.SAMLSessionID)
 	if err != nil {
 		// It is unexpected that we've set the session id in auth info, but turns out it does not exist.
 		// We have no idea how to return the error response to user yet,

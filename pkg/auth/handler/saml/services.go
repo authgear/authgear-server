@@ -43,15 +43,16 @@ type HandlerSAMLService interface {
 		isPartialLogout bool,
 	) (*samlprotocol.LogoutResponse, error)
 	IssueLogoutRequest(
+		ctx context.Context,
 		sp *config.SAMLServiceProviderConfig,
 		sloSession *samlslosession.SAMLSLOSession,
 	) (*samlprotocol.LogoutRequest, error)
 }
 
 type SAMLSessionService interface {
-	Save(entry *samlsession.SAMLSession) (err error)
-	Get(entryID string) (*samlsession.SAMLSession, error)
-	Delete(entryID string) error
+	Save(ctx context.Context, entry *samlsession.SAMLSession) (err error)
+	Get(ctx context.Context, entryID string) (*samlsession.SAMLSession, error)
+	Delete(ctx context.Context, entryID string) error
 }
 
 type SAMLUIService interface {
@@ -67,12 +68,12 @@ type SAMLAuthenticationInfoResolver interface {
 }
 
 type SAMLAuthenticationInfoService interface {
-	Get(entryID string) (*authenticationinfo.Entry, error)
-	Delete(entryID string) error
+	Get(ctx context.Context, entryID string) (*authenticationinfo.Entry, error)
+	Delete(ctx context.Context, entryID string) error
 }
 
 type SAMLUserFacade interface {
-	GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error)
+	GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
 }
 
 type BindingHTTPPostWriter interface {
@@ -106,17 +107,18 @@ type BindingHTTPRedirectWriter interface {
 }
 
 type SessionManager interface {
-	Get(id string) (session.ListableSession, error)
-	Logout(session.SessionBase, http.ResponseWriter) ([]session.ListableSession, error)
+	Get(ctx context.Context, id string) (session.ListableSession, error)
+	Logout(ctx context.Context, sessionBase session.SessionBase, w http.ResponseWriter) ([]session.ListableSession, error)
 }
 
 type SAMLSLOSessionService interface {
-	Get(sessionID string) (entry *samlslosession.SAMLSLOSession, err error)
-	Save(session *samlslosession.SAMLSLOSession) (err error)
+	Get(ctx context.Context, sessionID string) (entry *samlslosession.SAMLSLOSession, err error)
+	Save(ctx context.Context, session *samlslosession.SAMLSLOSession) (err error)
 }
 
 type SAMLSLOService interface {
 	SendSLORequest(
+		ctx context.Context,
 		rw http.ResponseWriter,
 		r *http.Request,
 		sloSession *samlslosession.SAMLSLOSession,

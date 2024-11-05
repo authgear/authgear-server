@@ -25,7 +25,7 @@ func (h *LoginResultHandler) handleLoginResult(
 	now := h.Clock.NowUTC()
 	callbackURL := samlSessionEntry.CallbackURL
 
-	err = h.Database.WithTx(func() error {
+	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		authnRequest, _ := samlSessionEntry.AuthnRequest()
 
 		resp, err := h.SAMLService.IssueLoginSuccessResponse(
