@@ -31,5 +31,5 @@ func (h *NotFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	h.Renderer.RenderHTML(w, r, TemplateWebNotFoundHTML, data)
+	h.Renderer.RenderHTMLStatus(w, r, http.StatusNotFound, TemplateWebNotFoundHTML, data)
 }

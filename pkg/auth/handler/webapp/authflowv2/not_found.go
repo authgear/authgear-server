@@ -32,5 +32,5 @@ func (h *AuthflowV2NotFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		panic(err)
 	}
 
-	h.Renderer.RenderHTML(w, r, TemplateWebNotFoundHTML, data)
+	h.Renderer.RenderHTMLStatus(w, r, http.StatusNotFound, TemplateWebNotFoundHTML, data)
 }
