@@ -27,20 +27,10 @@ func (h *AuthflowV2NotFoundHandler) GetData(r *http.Request, w http.ResponseWrit
 }
 
 func (h *AuthflowV2NotFoundHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	ctrl, err := h.ControllerFactory.New(r, w)
+	data, err := h.GetData(r, w)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		panic(err)
 	}
-	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
-		if err != nil {
-			return err
-		}
-
-		h.Renderer.RenderHTML(w, r, TemplateWebNotFoundHTML, data)
-		return nil
-	})
+	h.Renderer.RenderHTML(w, r, TemplateWebNotFoundHTML, data)
 }
