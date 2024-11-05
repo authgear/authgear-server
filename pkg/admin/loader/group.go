@@ -1,12 +1,14 @@
 package loader
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type GroupLoaderGroups interface {
-	GetManyGroups(ids []string) ([]*model.Group, error)
+	GetManyGroups(ctx context.Context, ids []string) ([]*model.Group, error)
 }
 
 type GroupLoader struct {
@@ -23,7 +25,7 @@ func NewGroupLoader(groups GroupLoaderGroups) *GroupLoader {
 	return l
 }
 
-func (l *GroupLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+func (l *GroupLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -31,7 +33,7 @@ func (l *GroupLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	}
 
 	// Get entities.
-	entities, err := l.Groups.GetManyGroups(ids)
+	entities, err := l.Groups.GetManyGroups(ctx, ids)
 	if err != nil {
 		return nil, err
 	}

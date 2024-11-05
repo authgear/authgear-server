@@ -1,13 +1,15 @@
 package loader
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type UserLoaderUserService interface {
-	GetMany(ids []string, role accesscontrol.Role) ([]*model.User, error)
+	GetMany(ctx context.Context, ids []string, role accesscontrol.Role) ([]*model.User, error)
 }
 
 type UserLoader struct {
@@ -24,7 +26,7 @@ func NewUserLoader(users UserLoaderUserService) *UserLoader {
 	return l
 }
 
-func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+func (l *UserLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -32,7 +34,7 @@ func (l *UserLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	}
 
 	// Get entities.
-	entities, err := l.Users.GetMany(ids, accesscontrol.RoleGreatest)
+	entities, err := l.Users.GetMany(ctx, ids, accesscontrol.RoleGreatest)
 	if err != nil {
 		return nil, err
 	}
