@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -37,7 +38,7 @@ type PresignProvider interface {
 }
 
 type ImagesStore interface {
-	Create(file *images.File) error
+	Create(ctx context.Context, file *images.File) error
 }
 
 type PostHandlerLogger struct{ *log.Logger }
@@ -146,10 +147,10 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	saveImagesFileRecord := func() error {
+	saveImagesFileRecord := func(ctx context.Context) error {
 		objectID := httproute.GetParam(r, "objectid")
-		return h.Database.WithTx(func() error {
-			return h.ImagesStore.Create(&images.File{
+		return h.Database.WithTx(ctx, func(ctx context.Context) error {
+			return h.ImagesStore.Create(ctx, &images.File{
 				ID:        objectID,
 				Metadata:  metadata,
 				Size:      fileHeader.Size,
@@ -189,7 +190,8 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 
-		err := saveImagesFileRecord()
+		ctx := r.Context()
+		err := saveImagesFileRecord(ctx)
 		if err != nil {
 			h.Logger.WithError(err).Error("failed to save image file record")
 			return err
