@@ -189,6 +189,11 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		webappChain,
 	)
 
+	webappNotFoundChain := httproute.Chain(
+		newWebappChain(),
+		p.Middleware(newWebPageDynamicCSPMiddleware),
+	)
+
 	newWebappPageChain := func() httproute.Middleware {
 		return httproute.Chain(
 			newWebappChain(),
@@ -294,6 +299,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	accountManagementRoute := httproute.Route{Middleware: accountManagementChain}
 	oauthAPIScopedRoute := httproute.Route{Middleware: oauthAPIScopedChain}
 	webappPageRoute := httproute.Route{Middleware: webappPageChain}
+	webappNotFoundRoute := httproute.Route{Middleware: webappNotFoundChain}
 	webappPromoteRoute := httproute.Route{Middleware: webappPromoteChain}
 	webappSIWERoute := httproute.Route{Middleware: webappSIWEChain}
 	webappAuthEntrypointRoute := httproute.Route{Middleware: webappAuthEntrypointChain}
@@ -582,7 +588,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 	router.Add(apihandler.ConfigureAccountManagementV1IdentificationRoute(accountManagementRoute), p.Handler(newAPIAccountManagementV1IdentificationHandler))
 	router.Add(apihandler.ConfigureAccountManagementV1IdentificationOAuthRoute(accountManagementRoute), p.Handler(newAPIAccountManagementV1IdentificationOAuthHandler))
 
-	router.NotFound(webappPageRoute, &webapphandler.ImplementationSwitcherHandler{
+	router.NotFound(webappNotFoundRoute, &webapphandler.ImplementationSwitcherHandler{
 		Interaction: p.Handler(newWebAppNotFoundHandler),
 		Authflow:    p.Handler(newWebAppNotFoundHandler),
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2NotFoundHandler),
