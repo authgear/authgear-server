@@ -34,14 +34,15 @@ type UserExportGetHandler struct {
 }
 
 func (h *UserExportGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := h.handle(w, r)
+	ctx := r.Context()
+	err := h.handle(ctx, w, r)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
 	}
 }
 
-func (h *UserExportGetHandler) handle(w http.ResponseWriter, r *http.Request) error {
+func (h *UserExportGetHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	if h.CloudStorage == nil {
 		return userexport.ErrUserExportDisabled
 	}
@@ -52,7 +53,7 @@ func (h *UserExportGetHandler) handle(w http.ResponseWriter, r *http.Request) er
 		TaskID: taskID,
 	}
 
-	task, err := h.UserExports.GetTask(r.Context(), queueItem)
+	task, err := h.UserExports.GetTask(ctx, queueItem)
 	if err != nil {
 		return err
 	}

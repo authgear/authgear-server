@@ -26,17 +26,18 @@ type UserImportGetHandler struct {
 }
 
 func (h *UserImportGetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := h.handle(w, r)
+	ctx := r.Context()
+	err := h.handle(ctx, w, r)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
 	}
 }
 
-func (h *UserImportGetHandler) handle(w http.ResponseWriter, r *http.Request) error {
+func (h *UserImportGetHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	jobID := httproute.GetParam(r, "id")
 
-	resp, err := h.UserImports.GetJob(r.Context(), jobID)
+	resp, err := h.UserImports.GetJob(ctx, jobID)
 	if err != nil {
 		return err
 	}
