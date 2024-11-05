@@ -5,6 +5,7 @@
 package handler
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
@@ -37,18 +38,18 @@ func (m *MockIdentityService) EXPECT() *MockIdentityServiceMockRecorder {
 }
 
 // ListByUser mocks base method.
-func (m *MockIdentityService) ListByUser(userID string) ([]*identity.Info, error) {
+func (m *MockIdentityService) ListByUser(ctx context.Context, userID string) ([]*identity.Info, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByUser", userID)
+	ret := m.ctrl.Call(m, "ListByUser", ctx, userID)
 	ret0, _ := ret[0].([]*identity.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListByUser indicates an expected call of ListByUser.
-func (mr *MockIdentityServiceMockRecorder) ListByUser(userID interface{}) *gomock.Call {
+func (mr *MockIdentityServiceMockRecorder) ListByUser(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockIdentityService)(nil).ListByUser), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByUser", reflect.TypeOf((*MockIdentityService)(nil).ListByUser), ctx, userID)
 }
 
 // MockVerificationService is a mock of VerificationService interface.
@@ -75,18 +76,18 @@ func (m *MockVerificationService) EXPECT() *MockVerificationServiceMockRecorder 
 }
 
 // IsUserVerified mocks base method.
-func (m *MockVerificationService) IsUserVerified(identities []*identity.Info) (bool, error) {
+func (m *MockVerificationService) IsUserVerified(ctx context.Context, identities []*identity.Info) (bool, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsUserVerified", identities)
+	ret := m.ctrl.Call(m, "IsUserVerified", ctx, identities)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IsUserVerified indicates an expected call of IsUserVerified.
-func (mr *MockVerificationServiceMockRecorder) IsUserVerified(identities interface{}) *gomock.Call {
+func (mr *MockVerificationServiceMockRecorder) IsUserVerified(ctx, identities interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserVerified", reflect.TypeOf((*MockVerificationService)(nil).IsUserVerified), identities)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserVerified", reflect.TypeOf((*MockVerificationService)(nil).IsUserVerified), ctx, identities)
 }
 
 // MockDatabase is a mock of Database interface.
@@ -113,17 +114,17 @@ func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 }
 
 // ReadOnly mocks base method.
-func (m *MockDatabase) ReadOnly(arg0 func() error) error {
+func (m *MockDatabase) ReadOnly(ctx context.Context, do func(context.Context) error) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadOnly", arg0)
+	ret := m.ctrl.Call(m, "ReadOnly", ctx, do)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ReadOnly indicates an expected call of ReadOnly.
-func (mr *MockDatabaseMockRecorder) ReadOnly(arg0 interface{}) *gomock.Call {
+func (mr *MockDatabaseMockRecorder) ReadOnly(ctx, do interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOnly", reflect.TypeOf((*MockDatabase)(nil).ReadOnly), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOnly", reflect.TypeOf((*MockDatabase)(nil).ReadOnly), ctx, do)
 }
 
 // MockUserProvider is a mock of UserProvider interface.
@@ -150,18 +151,18 @@ func (m *MockUserProvider) EXPECT() *MockUserProviderMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockUserProvider) Get(id string, role accesscontrol.Role) (*model.User, error) {
+func (m *MockUserProvider) Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id, role)
+	ret := m.ctrl.Call(m, "Get", ctx, id, role)
 	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockUserProviderMockRecorder) Get(id, role interface{}) *gomock.Call {
+func (mr *MockUserProviderMockRecorder) Get(ctx, id, role interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserProvider)(nil).Get), id, role)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserProvider)(nil).Get), ctx, id, role)
 }
 
 // MockRolesAndGroupsProvider is a mock of RolesAndGroupsProvider interface.
@@ -188,16 +189,16 @@ func (m *MockRolesAndGroupsProvider) EXPECT() *MockRolesAndGroupsProviderMockRec
 }
 
 // ListEffectiveRolesByUserID mocks base method.
-func (m *MockRolesAndGroupsProvider) ListEffectiveRolesByUserID(userID string) ([]*model.Role, error) {
+func (m *MockRolesAndGroupsProvider) ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListEffectiveRolesByUserID", userID)
+	ret := m.ctrl.Call(m, "ListEffectiveRolesByUserID", ctx, userID)
 	ret0, _ := ret[0].([]*model.Role)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListEffectiveRolesByUserID indicates an expected call of ListEffectiveRolesByUserID.
-func (mr *MockRolesAndGroupsProviderMockRecorder) ListEffectiveRolesByUserID(userID interface{}) *gomock.Call {
+func (mr *MockRolesAndGroupsProviderMockRecorder) ListEffectiveRolesByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectiveRolesByUserID", reflect.TypeOf((*MockRolesAndGroupsProvider)(nil).ListEffectiveRolesByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectiveRolesByUserID", reflect.TypeOf((*MockRolesAndGroupsProvider)(nil).ListEffectiveRolesByUserID), ctx, userID)
 }

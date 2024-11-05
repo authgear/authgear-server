@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -22,15 +23,15 @@ func ConfigureResolveRoute(route httproute.Route) []httproute.Route {
 //go:generate mockgen -source=resolve.go -destination=resolve_mock_test.go -package handler
 
 type IdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type VerificationService interface {
-	IsUserVerified(identities []*identity.Info) (bool, error)
+	IsUserVerified(ctx context.Context, identities []*identity.Info) (bool, error)
 }
 
 type Database interface {
-	ReadOnly(func() error) error
+	ReadOnly(ctx context.Context, do func(ctx context.Context) error) error
 }
 
 type ResolveHandlerLogger struct{ *log.Logger }
@@ -40,11 +41,11 @@ func NewResolveHandlerLogger(lf *log.Factory) ResolveHandlerLogger {
 }
 
 type UserProvider interface {
-	Get(id string, role accesscontrol.Role) (*model.User, error)
+	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
 }
 
 type RolesAndGroupsProvider interface {
-	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
+	ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error)
 }
 
 type ResolveHandler struct {
@@ -57,13 +58,14 @@ type ResolveHandler struct {
 }
 
 func (h *ResolveHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	_ = h.Database.ReadOnly(func() error {
-		return h.Handle(rw, r)
+	ctx := r.Context()
+	_ = h.Database.ReadOnly(ctx, func(ctx context.Context) error {
+		return h.Handle(ctx, rw, r)
 	})
 }
 
-func (h *ResolveHandler) Handle(rw http.ResponseWriter, r *http.Request) (err error) {
-	info, err := h.resolve(r)
+func (h *ResolveHandler) Handle(ctx context.Context, rw http.ResponseWriter, r *http.Request) (err error) {
+	info, err := h.resolve(ctx, r)
 	if err != nil {
 		h.Logger.WithError(err).Error("failed to resolve user")
 
@@ -77,14 +79,14 @@ func (h *ResolveHandler) Handle(rw http.ResponseWriter, r *http.Request) (err er
 	return
 }
 
-func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {
-	valid := session.HasValidSession(r.Context())
-	userID := session.GetUserID(r.Context())
-	s := session.GetSession(r.Context())
+func (h *ResolveHandler) resolve(ctx context.Context, r *http.Request) (*model.SessionInfo, error) {
+	valid := session.HasValidSession(ctx)
+	userID := session.GetUserID(ctx)
+	s := session.GetSession(ctx)
 
 	var info *model.SessionInfo
 	if valid && userID != nil && s != nil {
-		identities, err := h.Identities.ListByUser(*userID)
+		identities, err := h.Identities.ListByUser(ctx, *userID)
 		if err != nil {
 			return nil, err
 		}
@@ -97,19 +99,19 @@ func (h *ResolveHandler) resolve(r *http.Request) (*model.SessionInfo, error) {
 			}
 		}
 
-		isVerified, err := h.Verification.IsUserVerified(identities)
+		isVerified, err := h.Verification.IsUserVerified(ctx, identities)
 		if err != nil {
 			return nil, err
 		}
 
-		user, err := h.Users.Get(*userID, accesscontrol.RoleGreatest)
+		user, err := h.Users.Get(ctx, *userID, accesscontrol.RoleGreatest)
 		if err != nil {
 			return nil, err
 		}
 
 		userCanReauthenticate := user.CanReauthenticate
 
-		roles, err := h.RolesAndGroups.ListEffectiveRolesByUserID(*userID)
+		roles, err := h.RolesAndGroups.ListEffectiveRolesByUserID(ctx, *userID)
 		roleKeys := make([]string, len(roles))
 		for i := range roles {
 			roleKeys[i] = roles[i].Key

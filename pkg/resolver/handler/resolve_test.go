@@ -48,14 +48,14 @@ func TestResolveHandler(t *testing.T) {
 				userIdentities := []*identity.Info{
 					{Type: model.IdentityTypeLoginID},
 				}
-				identities.EXPECT().ListByUser("user-id").Return(userIdentities, nil)
-				verificationService.EXPECT().IsUserVerified(userIdentities).Return(true, nil)
+				identities.EXPECT().ListByUser(r.Context(), "user-id").Return(userIdentities, nil)
+				verificationService.EXPECT().IsUserVerified(r.Context(), userIdentities).Return(true, nil)
 				userInfo := model.User{
 					CanReauthenticate: true,
 				}
-				user.EXPECT().Get("user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
+				user.EXPECT().Get(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
 				roles := []*model.Role{}
-				roleAndGroup.EXPECT().ListEffectiveRolesByUserID("user-id").Return(roles, nil)
+				roleAndGroup.EXPECT().ListEffectiveRolesByUserID(r.Context(), "user-id").Return(roles, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
@@ -76,14 +76,14 @@ func TestResolveHandler(t *testing.T) {
 					{Type: model.IdentityTypeAnonymous},
 					{Type: model.IdentityTypeLoginID},
 				}
-				identities.EXPECT().ListByUser("user-id").Return(userIdentities, nil)
-				verificationService.EXPECT().IsUserVerified(userIdentities).Return(false, nil)
+				identities.EXPECT().ListByUser(r.Context(), "user-id").Return(userIdentities, nil)
+				verificationService.EXPECT().IsUserVerified(r.Context(), userIdentities).Return(false, nil)
 				userInfo := model.User{
 					CanReauthenticate: false,
 				}
-				user.EXPECT().Get("user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
+				user.EXPECT().Get(r.Context(), "user-id", accesscontrol.RoleGreatest).Return(&userInfo, nil)
 				roles := []*model.Role{}
-				roleAndGroup.EXPECT().ListEffectiveRolesByUserID("user-id").Return(roles, nil)
+				roleAndGroup.EXPECT().ListEffectiveRolesByUserID(r.Context(), "user-id").Return(roles, nil)
 				rw := httptest.NewRecorder()
 				h.ServeHTTP(rw, r)
 
