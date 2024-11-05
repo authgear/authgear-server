@@ -1,6 +1,8 @@
 package facade
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -13,6 +15,7 @@ import (
 
 type OAuthAuthorizationService interface {
 	CheckAndGrant(
+		ctx context.Context,
 		clientID string,
 		userID string,
 		scopes []string,
@@ -21,11 +24,13 @@ type OAuthAuthorizationService interface {
 
 type OAuthTokenService interface {
 	IssueOfflineGrant(
+		ctx context.Context,
 		client *config.OAuthClientConfig,
 		opts handler.IssueOfflineGrantOptions,
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueAccessGrant(
+		ctx context.Context,
 		client *config.OAuthClientConfig,
 		scopes []string,
 		authzID string,
@@ -50,7 +55,7 @@ type OAuthFacade struct {
 	OAuthClientResolver OAuthClientResolver
 }
 
-func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.ListableSession, protocol.TokenResponse, error) {
+func (f *OAuthFacade) CreateSession(ctx context.Context, clientID string, userID string) (session.ListableSession, protocol.TokenResponse, error) {
 	scopes := []string{
 		"openid",
 		oauth.OfflineAccess,
@@ -71,12 +76,13 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Lis
 	}
 
 	// Check user existence.
-	_, err := f.Users.GetRaw(userID)
+	_, err := f.Users.GetRaw(ctx, userID)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	authz, err := f.Authorizations.CheckAndGrant(
+		ctx,
 		clientID,
 		userID,
 		scopes,
@@ -95,12 +101,13 @@ func (f *OAuthFacade) CreateSession(clientID string, userID string) (session.Lis
 	}
 
 	resp := protocol.TokenResponse{}
-	offlineGrant, tokenHash, err := f.Tokens.IssueOfflineGrant(client, offlineGrantOpts, resp)
+	offlineGrant, tokenHash, err := f.Tokens.IssueOfflineGrant(ctx, client, offlineGrantOpts, resp)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	err = f.Tokens.IssueAccessGrant(
+		ctx,
 		client,
 		scopes,
 		authz.ID,

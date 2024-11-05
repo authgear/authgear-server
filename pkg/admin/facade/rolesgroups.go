@@ -1,59 +1,61 @@
 package facade
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type RolesGroupsCommands interface {
-	CreateRole(options *rolesgroups.NewRoleOptions) (*model.Role, error)
-	UpdateRole(options *rolesgroups.UpdateRoleOptions) (*model.Role, error)
-	DeleteRole(id string) error
+	CreateRole(ctx context.Context, options *rolesgroups.NewRoleOptions) (*model.Role, error)
+	UpdateRole(ctx context.Context, options *rolesgroups.UpdateRoleOptions) (*model.Role, error)
+	DeleteRole(ctx context.Context, id string) error
 
-	CreateGroup(options *rolesgroups.NewGroupOptions) (*model.Group, error)
-	UpdateGroup(options *rolesgroups.UpdateGroupOptions) (*model.Group, error)
-	DeleteGroup(id string) error
+	CreateGroup(ctx context.Context, options *rolesgroups.NewGroupOptions) (*model.Group, error)
+	UpdateGroup(ctx context.Context, options *rolesgroups.UpdateGroupOptions) (*model.Group, error)
+	DeleteGroup(ctx context.Context, id string) error
 
-	AddRoleToGroups(options *rolesgroups.AddRoleToGroupsOptions) (*model.Role, error)
-	RemoveRoleFromGroups(options *rolesgroups.RemoveRoleFromGroupsOptions) (*model.Role, error)
+	AddRoleToGroups(ctx context.Context, options *rolesgroups.AddRoleToGroupsOptions) (*model.Role, error)
+	RemoveRoleFromGroups(ctx context.Context, options *rolesgroups.RemoveRoleFromGroupsOptions) (*model.Role, error)
 
-	AddRoleToUsers(options *rolesgroups.AddRoleToUsersOptions) (*model.Role, error)
-	RemoveRoleFromUsers(options *rolesgroups.RemoveRoleFromUsersOptions) (*model.Role, error)
+	AddRoleToUsers(ctx context.Context, options *rolesgroups.AddRoleToUsersOptions) (*model.Role, error)
+	RemoveRoleFromUsers(ctx context.Context, options *rolesgroups.RemoveRoleFromUsersOptions) (*model.Role, error)
 
-	AddGroupToUsers(options *rolesgroups.AddGroupToUsersOptions) (*model.Group, error)
-	RemoveGroupFromUsers(options *rolesgroups.RemoveGroupFromUsersOptions) (*model.Group, error)
+	AddGroupToUsers(ctx context.Context, options *rolesgroups.AddGroupToUsersOptions) (*model.Group, error)
+	RemoveGroupFromUsers(ctx context.Context, options *rolesgroups.RemoveGroupFromUsersOptions) (*model.Group, error)
 
-	AddGroupToRoles(options *rolesgroups.AddGroupToRolesOptions) (*model.Group, error)
-	RemoveGroupFromRoles(options *rolesgroups.RemoveGroupFromRolesOptions) (*model.Group, error)
+	AddGroupToRoles(ctx context.Context, options *rolesgroups.AddGroupToRolesOptions) (*model.Group, error)
+	RemoveGroupFromRoles(ctx context.Context, options *rolesgroups.RemoveGroupFromRolesOptions) (*model.Group, error)
 
-	AddUserToRoles(options *rolesgroups.AddUserToRolesOptions) error
-	RemoveUserFromRoles(options *rolesgroups.RemoveUserFromRolesOptions) error
+	AddUserToRoles(ctx context.Context, options *rolesgroups.AddUserToRolesOptions) error
+	RemoveUserFromRoles(ctx context.Context, options *rolesgroups.RemoveUserFromRolesOptions) error
 
-	AddUserToGroups(options *rolesgroups.AddUserToGroupsOptions) error
-	RemoveUserFromGroups(options *rolesgroups.RemoveUserFromGroupsOptions) error
+	AddUserToGroups(ctx context.Context, options *rolesgroups.AddUserToGroupsOptions) error
+	RemoveUserFromGroups(ctx context.Context, options *rolesgroups.RemoveUserFromGroupsOptions) error
 }
 
 type RolesGroupsQueries interface {
-	GetRole(id string) (*model.Role, error)
-	GetGroup(id string) (*model.Group, error)
-	ListRoles(options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
-	ListGroups(options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
-	ListGroupsByRoleID(roleID string) ([]*model.Group, error)
-	ListRolesByGroupID(groupID string) ([]*model.Role, error)
-	ListRolesByUserID(userID string) ([]*model.Role, error)
-	ListGroupsByUserID(userID string) ([]*model.Group, error)
-	ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
-	ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
-	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
-	ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error)
-	ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error)
-	ListAllUserIDsByRoleIDs(roleIDs []string) ([]string, error)
-	ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error)
-	ListAllRolesByKeys(keys []string) ([]*model.Role, error)
-	ListAllGroupsByKeys(keys []string) ([]*model.Group, error)
-	CountRoles() (uint64, error)
-	CountGroups() (uint64, error)
+	GetRole(ctx context.Context, id string) (*model.Role, error)
+	GetGroup(ctx context.Context, id string) (*model.Group, error)
+	ListRoles(ctx context.Context, options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
+	ListGroups(ctx context.Context, options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
+	ListGroupsByRoleID(ctx context.Context, roleID string) ([]*model.Group, error)
+	ListRolesByGroupID(ctx context.Context, groupID string) ([]*model.Role, error)
+	ListRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error)
+	ListGroupsByUserID(ctx context.Context, userID string) ([]*model.Group, error)
+	ListUserIDsByRoleID(ctx context.Context, roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
+	ListUserIDsByGroupID(ctx context.Context, groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
+	ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error)
+	ListAllUserIDsByGroupIDs(ctx context.Context, groupIDs []string) ([]string, error)
+	ListAllUserIDsByGroupKeys(ctx context.Context, groupKeys []string) ([]string, error)
+	ListAllUserIDsByRoleIDs(ctx context.Context, roleIDs []string) ([]string, error)
+	ListAllUserIDsByEffectiveRoleIDs(ctx context.Context, roleIDs []string) ([]string, error)
+	ListAllRolesByKeys(ctx context.Context, keys []string) ([]*model.Role, error)
+	ListAllGroupsByKeys(ctx context.Context, keys []string) ([]*model.Group, error)
+	CountRoles(ctx context.Context) (uint64, error)
+	CountGroups(ctx context.Context) (uint64, error)
 }
 
 type RolesGroupsFacade struct {
@@ -61,8 +63,8 @@ type RolesGroupsFacade struct {
 	RolesGroupsQueries  RolesGroupsQueries
 }
 
-func (f *RolesGroupsFacade) CreateRole(options *rolesgroups.NewRoleOptions) (roleID string, err error) {
-	r, err := f.RolesGroupsCommands.CreateRole(options)
+func (f *RolesGroupsFacade) CreateRole(ctx context.Context, options *rolesgroups.NewRoleOptions) (roleID string, err error) {
+	r, err := f.RolesGroupsCommands.CreateRole(ctx, options)
 	if err != nil {
 		return
 	}
@@ -71,8 +73,8 @@ func (f *RolesGroupsFacade) CreateRole(options *rolesgroups.NewRoleOptions) (rol
 	return
 }
 
-func (f *RolesGroupsFacade) UpdateRole(options *rolesgroups.UpdateRoleOptions) (err error) {
-	_, err = f.RolesGroupsCommands.UpdateRole(options)
+func (f *RolesGroupsFacade) UpdateRole(ctx context.Context, options *rolesgroups.UpdateRoleOptions) (err error) {
+	_, err = f.RolesGroupsCommands.UpdateRole(ctx, options)
 	if err != nil {
 		return
 	}
@@ -80,17 +82,17 @@ func (f *RolesGroupsFacade) UpdateRole(options *rolesgroups.UpdateRoleOptions) (
 	return
 }
 
-func (f *RolesGroupsFacade) DeleteRole(id string) (err error) {
-	return f.RolesGroupsCommands.DeleteRole(id)
+func (f *RolesGroupsFacade) DeleteRole(ctx context.Context, id string) (err error) {
+	return f.RolesGroupsCommands.DeleteRole(ctx, id)
 }
 
-func (f *RolesGroupsFacade) ListRoles(options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
-	refs, err := f.RolesGroupsQueries.ListRoles(options, pageArgs)
+func (f *RolesGroupsFacade) ListRoles(ctx context.Context, options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, err := f.RolesGroupsQueries.ListRoles(ctx, options, pageArgs)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	count, err := f.RolesGroupsQueries.CountRoles()
+	count, err := f.RolesGroupsQueries.CountRoles(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -100,12 +102,12 @@ func (f *RolesGroupsFacade) ListRoles(options *rolesgroups.ListRolesOptions, pag
 	})), nil
 }
 
-func (f *RolesGroupsFacade) ListGroupsByRoleID(roleID string) ([]*model.Group, error) {
-	return f.RolesGroupsQueries.ListGroupsByRoleID(roleID)
+func (f *RolesGroupsFacade) ListGroupsByRoleID(ctx context.Context, roleID string) ([]*model.Group, error) {
+	return f.RolesGroupsQueries.ListGroupsByRoleID(ctx, roleID)
 }
 
-func (f *RolesGroupsFacade) CreateGroup(options *rolesgroups.NewGroupOptions) (groupID string, err error) {
-	g, err := f.RolesGroupsCommands.CreateGroup(options)
+func (f *RolesGroupsFacade) CreateGroup(ctx context.Context, options *rolesgroups.NewGroupOptions) (groupID string, err error) {
+	g, err := f.RolesGroupsCommands.CreateGroup(ctx, options)
 	if err != nil {
 		return
 	}
@@ -114,8 +116,8 @@ func (f *RolesGroupsFacade) CreateGroup(options *rolesgroups.NewGroupOptions) (g
 	return
 }
 
-func (f *RolesGroupsFacade) UpdateGroup(options *rolesgroups.UpdateGroupOptions) (err error) {
-	_, err = f.RolesGroupsCommands.UpdateGroup(options)
+func (f *RolesGroupsFacade) UpdateGroup(ctx context.Context, options *rolesgroups.UpdateGroupOptions) (err error) {
+	_, err = f.RolesGroupsCommands.UpdateGroup(ctx, options)
 	if err != nil {
 		return
 	}
@@ -123,17 +125,17 @@ func (f *RolesGroupsFacade) UpdateGroup(options *rolesgroups.UpdateGroupOptions)
 	return
 }
 
-func (f *RolesGroupsFacade) DeleteGroup(id string) (err error) {
-	return f.RolesGroupsCommands.DeleteGroup(id)
+func (f *RolesGroupsFacade) DeleteGroup(ctx context.Context, id string) (err error) {
+	return f.RolesGroupsCommands.DeleteGroup(ctx, id)
 }
 
-func (f *RolesGroupsFacade) ListGroups(options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
-	refs, err := f.RolesGroupsQueries.ListGroups(options, pageArgs)
+func (f *RolesGroupsFacade) ListGroups(ctx context.Context, options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, err := f.RolesGroupsQueries.ListGroups(ctx, options, pageArgs)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	count, err := f.RolesGroupsQueries.CountGroups()
+	count, err := f.RolesGroupsQueries.CountGroups(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -143,12 +145,12 @@ func (f *RolesGroupsFacade) ListGroups(options *rolesgroups.ListGroupsOptions, p
 	})), nil
 }
 
-func (f *RolesGroupsFacade) ListRolesByGroupID(groupID string) ([]*model.Role, error) {
-	return f.RolesGroupsQueries.ListRolesByGroupID(groupID)
+func (f *RolesGroupsFacade) ListRolesByGroupID(ctx context.Context, groupID string) ([]*model.Role, error) {
+	return f.RolesGroupsQueries.ListRolesByGroupID(ctx, groupID)
 }
 
-func (f *RolesGroupsFacade) AddRoleToGroups(options *rolesgroups.AddRoleToGroupsOptions) (roleID string, err error) {
-	r, err := f.RolesGroupsCommands.AddRoleToGroups(options)
+func (f *RolesGroupsFacade) AddRoleToGroups(ctx context.Context, options *rolesgroups.AddRoleToGroupsOptions) (roleID string, err error) {
+	r, err := f.RolesGroupsCommands.AddRoleToGroups(ctx, options)
 	if err != nil {
 		return
 	}
@@ -157,8 +159,8 @@ func (f *RolesGroupsFacade) AddRoleToGroups(options *rolesgroups.AddRoleToGroups
 	return
 }
 
-func (f *RolesGroupsFacade) RemoveRoleFromGroups(options *rolesgroups.RemoveRoleFromGroupsOptions) (roleID string, err error) {
-	r, err := f.RolesGroupsCommands.RemoveRoleFromGroups(options)
+func (f *RolesGroupsFacade) RemoveRoleFromGroups(ctx context.Context, options *rolesgroups.RemoveRoleFromGroupsOptions) (roleID string, err error) {
+	r, err := f.RolesGroupsCommands.RemoveRoleFromGroups(ctx, options)
 	if err != nil {
 		return
 	}
@@ -167,8 +169,8 @@ func (f *RolesGroupsFacade) RemoveRoleFromGroups(options *rolesgroups.RemoveRole
 	return
 }
 
-func (f *RolesGroupsFacade) AddRoleToUsers(options *rolesgroups.AddRoleToUsersOptions) (roleID string, err error) {
-	r, err := f.RolesGroupsCommands.AddRoleToUsers(options)
+func (f *RolesGroupsFacade) AddRoleToUsers(ctx context.Context, options *rolesgroups.AddRoleToUsersOptions) (roleID string, err error) {
+	r, err := f.RolesGroupsCommands.AddRoleToUsers(ctx, options)
 	if err != nil {
 		return
 	}
@@ -177,8 +179,8 @@ func (f *RolesGroupsFacade) AddRoleToUsers(options *rolesgroups.AddRoleToUsersOp
 	return
 }
 
-func (f *RolesGroupsFacade) RemoveRoleFromUsers(options *rolesgroups.RemoveRoleFromUsersOptions) (roleID string, err error) {
-	r, err := f.RolesGroupsCommands.RemoveRoleFromUsers(options)
+func (f *RolesGroupsFacade) RemoveRoleFromUsers(ctx context.Context, options *rolesgroups.RemoveRoleFromUsersOptions) (roleID string, err error) {
+	r, err := f.RolesGroupsCommands.RemoveRoleFromUsers(ctx, options)
 	if err != nil {
 		return
 	}
@@ -187,8 +189,8 @@ func (f *RolesGroupsFacade) RemoveRoleFromUsers(options *rolesgroups.RemoveRoleF
 	return
 }
 
-func (f *RolesGroupsFacade) AddGroupToUsers(options *rolesgroups.AddGroupToUsersOptions) (groupID string, err error) {
-	r, err := f.RolesGroupsCommands.AddGroupToUsers(options)
+func (f *RolesGroupsFacade) AddGroupToUsers(ctx context.Context, options *rolesgroups.AddGroupToUsersOptions) (groupID string, err error) {
+	r, err := f.RolesGroupsCommands.AddGroupToUsers(ctx, options)
 	if err != nil {
 		return
 	}
@@ -197,8 +199,8 @@ func (f *RolesGroupsFacade) AddGroupToUsers(options *rolesgroups.AddGroupToUsers
 	return
 }
 
-func (f *RolesGroupsFacade) RemoveGroupFromUsers(options *rolesgroups.RemoveGroupFromUsersOptions) (groupID string, err error) {
-	r, err := f.RolesGroupsCommands.RemoveGroupFromUsers(options)
+func (f *RolesGroupsFacade) RemoveGroupFromUsers(ctx context.Context, options *rolesgroups.RemoveGroupFromUsersOptions) (groupID string, err error) {
+	r, err := f.RolesGroupsCommands.RemoveGroupFromUsers(ctx, options)
 	if err != nil {
 		return
 	}
@@ -207,8 +209,8 @@ func (f *RolesGroupsFacade) RemoveGroupFromUsers(options *rolesgroups.RemoveGrou
 	return
 }
 
-func (f *RolesGroupsFacade) AddGroupToRoles(options *rolesgroups.AddGroupToRolesOptions) (groupID string, err error) {
-	r, err := f.RolesGroupsCommands.AddGroupToRoles(options)
+func (f *RolesGroupsFacade) AddGroupToRoles(ctx context.Context, options *rolesgroups.AddGroupToRolesOptions) (groupID string, err error) {
+	r, err := f.RolesGroupsCommands.AddGroupToRoles(ctx, options)
 	if err != nil {
 		return
 	}
@@ -217,8 +219,8 @@ func (f *RolesGroupsFacade) AddGroupToRoles(options *rolesgroups.AddGroupToRoles
 	return
 }
 
-func (f *RolesGroupsFacade) RemoveGroupFromRoles(options *rolesgroups.RemoveGroupFromRolesOptions) (groupID string, err error) {
-	r, err := f.RolesGroupsCommands.RemoveGroupFromRoles(options)
+func (f *RolesGroupsFacade) RemoveGroupFromRoles(ctx context.Context, options *rolesgroups.RemoveGroupFromRolesOptions) (groupID string, err error) {
+	r, err := f.RolesGroupsCommands.RemoveGroupFromRoles(ctx, options)
 	if err != nil {
 		return
 	}
@@ -227,8 +229,8 @@ func (f *RolesGroupsFacade) RemoveGroupFromRoles(options *rolesgroups.RemoveGrou
 	return
 }
 
-func (f *RolesGroupsFacade) AddUserToRoles(options *rolesgroups.AddUserToRolesOptions) (err error) {
-	err = f.RolesGroupsCommands.AddUserToRoles(options)
+func (f *RolesGroupsFacade) AddUserToRoles(ctx context.Context, options *rolesgroups.AddUserToRolesOptions) (err error) {
+	err = f.RolesGroupsCommands.AddUserToRoles(ctx, options)
 	if err != nil {
 		return
 	}
@@ -236,8 +238,8 @@ func (f *RolesGroupsFacade) AddUserToRoles(options *rolesgroups.AddUserToRolesOp
 	return
 }
 
-func (f *RolesGroupsFacade) RemoveUserFromRoles(options *rolesgroups.RemoveUserFromRolesOptions) (err error) {
-	err = f.RolesGroupsCommands.RemoveUserFromRoles(options)
+func (f *RolesGroupsFacade) RemoveUserFromRoles(ctx context.Context, options *rolesgroups.RemoveUserFromRolesOptions) (err error) {
+	err = f.RolesGroupsCommands.RemoveUserFromRoles(ctx, options)
 	if err != nil {
 		return
 	}
@@ -245,8 +247,8 @@ func (f *RolesGroupsFacade) RemoveUserFromRoles(options *rolesgroups.RemoveUserF
 	return
 }
 
-func (f *RolesGroupsFacade) AddUserToGroups(options *rolesgroups.AddUserToGroupsOptions) (err error) {
-	err = f.RolesGroupsCommands.AddUserToGroups(options)
+func (f *RolesGroupsFacade) AddUserToGroups(ctx context.Context, options *rolesgroups.AddUserToGroupsOptions) (err error) {
+	err = f.RolesGroupsCommands.AddUserToGroups(ctx, options)
 	if err != nil {
 		return
 	}
@@ -254,8 +256,8 @@ func (f *RolesGroupsFacade) AddUserToGroups(options *rolesgroups.AddUserToGroups
 	return
 }
 
-func (f *RolesGroupsFacade) RemoveUserFromGroups(options *rolesgroups.RemoveUserFromGroupsOptions) (err error) {
-	err = f.RolesGroupsCommands.RemoveUserFromGroups(options)
+func (f *RolesGroupsFacade) RemoveUserFromGroups(ctx context.Context, options *rolesgroups.RemoveUserFromGroupsOptions) (err error) {
+	err = f.RolesGroupsCommands.RemoveUserFromGroups(ctx, options)
 	if err != nil {
 		return
 	}
@@ -263,16 +265,16 @@ func (f *RolesGroupsFacade) RemoveUserFromGroups(options *rolesgroups.RemoveUser
 	return
 }
 
-func (f *RolesGroupsFacade) ListRolesByUserID(userID string) ([]*model.Role, error) {
-	return f.RolesGroupsQueries.ListRolesByUserID(userID)
+func (f *RolesGroupsFacade) ListRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error) {
+	return f.RolesGroupsQueries.ListRolesByUserID(ctx, userID)
 }
 
-func (f *RolesGroupsFacade) ListGroupsByUserID(userID string) ([]*model.Group, error) {
-	return f.RolesGroupsQueries.ListGroupsByUserID(userID)
+func (f *RolesGroupsFacade) ListGroupsByUserID(ctx context.Context, userID string) ([]*model.Group, error) {
+	return f.RolesGroupsQueries.ListGroupsByUserID(ctx, userID)
 }
 
-func (f *RolesGroupsFacade) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
-	refs, err := f.RolesGroupsQueries.ListUserIDsByRoleID(roleID, pageArgs)
+func (f *RolesGroupsFacade) ListUserIDsByRoleID(ctx context.Context, roleID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, err := f.RolesGroupsQueries.ListUserIDsByRoleID(ctx, roleID, pageArgs)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -283,16 +285,16 @@ func (f *RolesGroupsFacade) ListUserIDsByRoleID(roleID string, pageArgs graphqlu
 	})), nil
 }
 
-func (f *RolesGroupsFacade) ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error) {
-	return f.RolesGroupsQueries.ListAllUserIDsByGroupIDs(groupIDs)
+func (f *RolesGroupsFacade) ListAllUserIDsByGroupIDs(ctx context.Context, groupIDs []string) ([]string, error) {
+	return f.RolesGroupsQueries.ListAllUserIDsByGroupIDs(ctx, groupIDs)
 }
 
-func (f *RolesGroupsFacade) ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error) {
-	return f.RolesGroupsQueries.ListAllUserIDsByGroupKeys(groupKeys)
+func (f *RolesGroupsFacade) ListAllUserIDsByGroupKeys(ctx context.Context, groupKeys []string) ([]string, error) {
+	return f.RolesGroupsQueries.ListAllUserIDsByGroupKeys(ctx, groupKeys)
 }
 
-func (f *RolesGroupsFacade) ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
-	refs, err := f.RolesGroupsQueries.ListUserIDsByGroupID(groupID, pageArgs)
+func (f *RolesGroupsFacade) ListUserIDsByGroupID(ctx context.Context, groupID string, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+	refs, err := f.RolesGroupsQueries.ListUserIDsByGroupID(ctx, groupID, pageArgs)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -303,30 +305,30 @@ func (f *RolesGroupsFacade) ListUserIDsByGroupID(groupID string, pageArgs graphq
 	})), nil
 }
 
-func (f *RolesGroupsFacade) ListEffectiveRolesByUserID(userID string) ([]*model.Role, error) {
-	return f.RolesGroupsQueries.ListEffectiveRolesByUserID(userID)
+func (f *RolesGroupsFacade) ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error) {
+	return f.RolesGroupsQueries.ListEffectiveRolesByUserID(ctx, userID)
 }
 
-func (f *RolesGroupsFacade) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error) {
-	return f.RolesGroupsQueries.ListAllUserIDsByEffectiveRoleIDs(roleIDs)
+func (f *RolesGroupsFacade) ListAllUserIDsByEffectiveRoleIDs(ctx context.Context, roleIDs []string) ([]string, error) {
+	return f.RolesGroupsQueries.ListAllUserIDsByEffectiveRoleIDs(ctx, roleIDs)
 }
 
-func (f *RolesGroupsFacade) ListAllUserIDsByRoleIDs(roleIDs []string) ([]string, error) {
-	return f.RolesGroupsQueries.ListAllUserIDsByRoleIDs(roleIDs)
+func (f *RolesGroupsFacade) ListAllUserIDsByRoleIDs(ctx context.Context, roleIDs []string) ([]string, error) {
+	return f.RolesGroupsQueries.ListAllUserIDsByRoleIDs(ctx, roleIDs)
 }
 
-func (f *RolesGroupsFacade) ListAllRolesByKeys(keys []string) ([]*model.Role, error) {
-	return f.RolesGroupsQueries.ListAllRolesByKeys(keys)
+func (f *RolesGroupsFacade) ListAllRolesByKeys(ctx context.Context, keys []string) ([]*model.Role, error) {
+	return f.RolesGroupsQueries.ListAllRolesByKeys(ctx, keys)
 }
 
-func (f *RolesGroupsFacade) ListAllGroupsByKeys(keys []string) ([]*model.Group, error) {
-	return f.RolesGroupsQueries.ListAllGroupsByKeys(keys)
+func (f *RolesGroupsFacade) ListAllGroupsByKeys(ctx context.Context, keys []string) ([]*model.Group, error) {
+	return f.RolesGroupsQueries.ListAllGroupsByKeys(ctx, keys)
 }
 
-func (f *RolesGroupsFacade) GetRole(roleID string) (*model.Role, error) {
-	return f.RolesGroupsQueries.GetRole(roleID)
+func (f *RolesGroupsFacade) GetRole(ctx context.Context, roleID string) (*model.Role, error) {
+	return f.RolesGroupsQueries.GetRole(ctx, roleID)
 }
 
-func (f *RolesGroupsFacade) GetGroup(groupID string) (*model.Group, error) {
-	return f.RolesGroupsQueries.GetGroup(groupID)
+func (f *RolesGroupsFacade) GetGroup(ctx context.Context, groupID string) (*model.Group, error) {
+	return f.RolesGroupsQueries.GetGroup(ctx, groupID)
 }

@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"context"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -11,17 +12,17 @@ import (
 )
 
 type StandardAttributesService interface {
-	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
-	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+	DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
 }
 
 type CustomAttributesService interface {
-	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
-	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, customAttrs map[string]interface{}) error
+	ReadCustomAttributesInStorageForm(ctx context.Context, role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
+	UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, customAttrs map[string]interface{}) error
 }
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type UserProfileFacade struct {
@@ -31,33 +32,33 @@ type UserProfileFacade struct {
 	Events             EventService
 }
 
-func (f *UserProfileFacade) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
-	return f.StandardAttributes.DeriveStandardAttributes(role, userID, updatedAt, attrs)
+func (f *UserProfileFacade) DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
+	return f.StandardAttributes.DeriveStandardAttributes(ctx, role, userID, updatedAt, attrs)
 }
 
-func (f *UserProfileFacade) ReadCustomAttributesInStorageForm(
+func (f *UserProfileFacade) ReadCustomAttributesInStorageForm(ctx context.Context,
 	role accesscontrol.Role,
 	userID string,
 	storageForm map[string]interface{},
 ) (map[string]interface{}, error) {
-	return f.CustomAttributes.ReadCustomAttributesInStorageForm(role, userID, storageForm)
+	return f.CustomAttributes.ReadCustomAttributesInStorageForm(ctx, role, userID, storageForm)
 }
 
-func (f *UserProfileFacade) UpdateUserProfile(
+func (f *UserProfileFacade) UpdateUserProfile(ctx context.Context,
 	role accesscontrol.Role,
 	userID string,
 	stdAttrs map[string]interface{},
 	customAttrs map[string]interface{},
 ) (err error) {
 	updated := false
-	err = f.User.CheckUserAnonymized(userID)
+	err = f.User.CheckUserAnonymized(ctx, userID)
 	if err != nil {
 		return err
 	}
 
 	if stdAttrs != nil {
 		updated = true
-		err = f.StandardAttributes.UpdateStandardAttributes(role, userID, stdAttrs)
+		err = f.StandardAttributes.UpdateStandardAttributes(ctx, role, userID, stdAttrs)
 		if err != nil {
 			return
 		}
@@ -65,7 +66,7 @@ func (f *UserProfileFacade) UpdateUserProfile(
 
 	if customAttrs != nil {
 		updated = true
-		err = f.CustomAttributes.UpdateAllCustomAttributes(role, userID, customAttrs)
+		err = f.CustomAttributes.UpdateAllCustomAttributes(ctx, role, userID, customAttrs)
 		if err != nil {
 			return
 		}
@@ -92,7 +93,7 @@ func (f *UserProfileFacade) UpdateUserProfile(
 		}
 
 		for _, eventPayload := range eventPayloads {
-			err = f.Events.DispatchEventOnCommit(eventPayload)
+			err = f.Events.DispatchEventOnCommit(ctx, eventPayload)
 			if err != nil {
 				return
 			}

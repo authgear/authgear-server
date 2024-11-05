@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"context"
 	"sort"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
@@ -10,13 +11,14 @@ import (
 )
 
 type AuthenticatorService interface {
-	New(spec *authenticator.Spec) (*authenticator.Info, error)
-	UpdatePassword(ai *authenticator.Info, options *service.UpdatePasswordOptions) (bool, *authenticator.Info, error)
-	Create(info *authenticator.Info) error
-	Update(info *authenticator.Info) error
-	Get(id string) (*authenticator.Info, error)
-	Count(userID string) (uint64, error)
-	ListRefsByUsers(userIDs []string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error)
+	New(ctx context.Context, spec *authenticator.Spec) (*authenticator.Info, error)
+	UpdatePassword(ctx context.Context, ai *authenticator.Info, options *service.UpdatePasswordOptions) (bool, *authenticator.Info, error)
+
+	Create(ctx context.Context, info *authenticator.Info) error
+	Update(ctx context.Context, info *authenticator.Info) error
+	Get(ctx context.Context, id string) (*authenticator.Info, error)
+	Count(ctx context.Context, userID string) (uint64, error)
+	ListRefsByUsers(ctx context.Context, userIDs []string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error)
 }
 
 type AuthenticatorFacade struct {
@@ -24,12 +26,12 @@ type AuthenticatorFacade struct {
 	Interaction    InteractionService
 }
 
-func (f *AuthenticatorFacade) Get(id string) (*authenticator.Info, error) {
-	return f.Authenticators.Get(id)
+func (f *AuthenticatorFacade) Get(ctx context.Context, id string) (*authenticator.Info, error) {
+	return f.Authenticators.Get(ctx, id)
 }
 
-func (f *AuthenticatorFacade) List(userID string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error) {
-	refs, err := f.Authenticators.ListRefsByUsers([]string{userID}, authenticatorType, authenticatorKind)
+func (f *AuthenticatorFacade) List(ctx context.Context, userID string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error) {
+	refs, err := f.Authenticators.ListRefsByUsers(ctx, []string{userID}, authenticatorType, authenticatorKind)
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +46,9 @@ func (f *AuthenticatorFacade) List(userID string, authenticatorType *apimodel.Au
 	return refs, nil
 }
 
-func (f *AuthenticatorFacade) Remove(authenticatorInfo *authenticator.Info) error {
+func (f *AuthenticatorFacade) Remove(ctx context.Context, authenticatorInfo *authenticator.Info) error {
 	_, err := f.Interaction.Perform(
+		ctx,
 		interactionintents.NewIntentRemoveAuthenticator(authenticatorInfo.UserID),
 		&removeAuthenticatorInput{authenticatorInfo: authenticatorInfo},
 	)
@@ -56,12 +59,12 @@ func (f *AuthenticatorFacade) Remove(authenticatorInfo *authenticator.Info) erro
 	return nil
 }
 
-func (f *AuthenticatorFacade) CreateBySpec(spec *authenticator.Spec) (*authenticator.Info, error) {
-	info, err := f.Authenticators.New(spec)
+func (f *AuthenticatorFacade) CreateBySpec(ctx context.Context, spec *authenticator.Spec) (*authenticator.Info, error) {
+	info, err := f.Authenticators.New(ctx, spec)
 	if err != nil {
 		return nil, err
 	}
-	err = f.Authenticators.Create(info)
+	err = f.Authenticators.Create(ctx, info)
 
 	if err != nil {
 		return nil, err

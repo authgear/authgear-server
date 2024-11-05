@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"context"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
@@ -18,23 +19,23 @@ import (
 )
 
 type UserService interface {
-	CreateByAdmin(identitySpec *identity.Spec, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (*user.User, error)
-	GetRaw(id string) (*user.User, error)
-	Count() (uint64, error)
-	QueryPage(listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
-	Delete(userID string) error
-	Disable(userID string, reason *string) error
-	Reenable(userID string) error
-	ScheduleDeletionByAdmin(userID string) error
-	UnscheduleDeletionByAdmin(userID string) error
-	Anonymize(userID string) error
-	ScheduleAnonymizationByAdmin(userID string) error
-	UnscheduleAnonymizationByAdmin(userID string) error
-	CheckUserAnonymized(userID string) error
-	UpdateMFAEnrollment(userID string, endAt *time.Time) error
-	GetUsersByStandardAttribute(attributeName string, attributeValue string) ([]string, error)
-	GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error)
-	GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error)
+	CreateByAdmin(ctx context.Context, identitySpec *identity.Spec, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (*user.User, error)
+	GetRaw(ctx context.Context, id string) (*user.User, error)
+	Count(ctx context.Context) (uint64, error)
+	QueryPage(ctx context.Context, listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
+	Delete(ctx context.Context, userID string) error
+	Disable(ctx context.Context, userID string, reason *string) error
+	Reenable(ctx context.Context, userID string) error
+	ScheduleDeletionByAdmin(ctx context.Context, userID string) error
+	UnscheduleDeletionByAdmin(ctx context.Context, userID string) error
+	Anonymize(ctx context.Context, userID string) error
+	ScheduleAnonymizationByAdmin(ctx context.Context, userID string) error
+	UnscheduleAnonymizationByAdmin(ctx context.Context, userID string) error
+	CheckUserAnonymized(ctx context.Context, userID string) error
+	UpdateMFAEnrollment(ctx context.Context, userID string, endAt *time.Time) error
+	GetUsersByStandardAttribute(ctx context.Context, attributeName string, attributeValue string) ([]string, error)
+	GetUserByLoginID(ctx context.Context, loginIDKey string, loginIDValue string) (string, error)
+	GetUserByOAuth(ctx context.Context, oauthProviderAlias string, oauthProviderUserID string) (string, error)
 }
 
 type UserSearchService interface {
@@ -54,18 +55,19 @@ type UserFacade struct {
 	Interaction        InteractionService
 }
 
-func (f *UserFacade) ListPage(listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
-	values, err := f.Users.QueryPage(listOption, pageArgs)
+func (f *UserFacade) ListPage(ctx context.Context, listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
+	values, err := f.Users.QueryPage(ctx, listOption, pageArgs)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	return values, graphqlutil.NewPageResult(pageArgs, len(values), graphqlutil.NewLazy(func() (interface{}, error) {
-		return f.Users.Count()
+		return f.Users.Count(ctx)
 	})), nil
 }
 
 func (f *UserFacade) SearchPage(
+	ctx context.Context,
 	searchKeyword string,
 	filterOptions user.FilterOptions,
 	sortOption user.SortOption,
@@ -79,7 +81,7 @@ func (f *UserFacade) SearchPage(
 	})), nil
 }
 
-func (f *UserFacade) Create(identityDef model.IdentityDef, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (userID string, err error) {
+func (f *UserFacade) Create(ctx context.Context, identityDef model.IdentityDef, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (userID string, err error) {
 	// NOTE: identityDef is assumed to be a login ID since portal only supports login ID
 	loginIDInput := identityDef.(*model.IdentityDefLoginID)
 	loginIDKeyCofig, ok := f.LoginIDConfig.GetKeyConfig(loginIDInput.Key)
@@ -96,7 +98,7 @@ func (f *UserFacade) Create(identityDef model.IdentityDef, password string, gene
 		},
 	}
 
-	user, err := f.Users.CreateByAdmin(
+	user, err := f.Users.CreateByAdmin(ctx,
 		identitySpec,
 		password,
 		generatePassword,
@@ -110,13 +112,14 @@ func (f *UserFacade) Create(identityDef model.IdentityDef, password string, gene
 	return user.ID, nil
 }
 
-func (f *UserFacade) ResetPassword(id string, password string, generatePassword bool, sendPassword bool, changeOnLogin bool) (err error) {
-	err = f.Users.CheckUserAnonymized(id)
+func (f *UserFacade) ResetPassword(ctx context.Context, id string, password string, generatePassword bool, sendPassword bool, changeOnLogin bool) (err error) {
+	err = f.Users.CheckUserAnonymized(ctx, id)
 	if err != nil {
 		return err
 	}
 
 	_, err = f.Interaction.Perform(
+		ctx,
 		interactionintents.NewIntentResetPassword(),
 		&resetPasswordInput{userID: id, password: password, generatePassword: generatePassword, sendPassword: sendPassword, changeOnLogin: changeOnLogin},
 	)
@@ -126,8 +129,8 @@ func (f *UserFacade) ResetPassword(id string, password string, generatePassword 
 	return nil
 }
 
-func (f *UserFacade) SetPasswordExpired(id string, isExpired bool) error {
-	err := f.Users.CheckUserAnonymized(id)
+func (f *UserFacade) SetPasswordExpired(ctx context.Context, id string, isExpired bool) error {
+	err := f.Users.CheckUserAnonymized(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -135,6 +138,7 @@ func (f *UserFacade) SetPasswordExpired(id string, isExpired bool) error {
 	passwordType := apimodel.AuthenticatorTypePassword
 	primaryKind := authenticator.KindPrimary
 	ars, err := f.Authenticators.ListRefsByUsers(
+		ctx,
 		[]string{id},
 		&passwordType,
 		&primaryKind,
@@ -148,7 +152,7 @@ func (f *UserFacade) SetPasswordExpired(id string, isExpired bool) error {
 	}
 
 	for _, ai := range ars {
-		a, err := f.Authenticators.Get(ai.ID)
+		a, err := f.Authenticators.Get(ctx, ai.ID)
 		if err != nil {
 			return err
 		}
@@ -163,7 +167,7 @@ func (f *UserFacade) SetPasswordExpired(id string, isExpired bool) error {
 			expireAfter = &now
 		}
 
-		_, a, err = f.Authenticators.UpdatePassword(a, &service.UpdatePasswordOptions{
+		_, a, err = f.Authenticators.UpdatePassword(ctx, a, &service.UpdatePasswordOptions{
 			SetExpireAfter: true,
 			ExpireAfter:    expireAfter,
 		})
@@ -171,7 +175,7 @@ func (f *UserFacade) SetPasswordExpired(id string, isExpired bool) error {
 			return err
 		}
 
-		err = f.Authenticators.Update(a)
+		err = f.Authenticators.Update(ctx, a)
 		if err != nil {
 			return err
 		}
@@ -180,12 +184,12 @@ func (f *UserFacade) SetPasswordExpired(id string, isExpired bool) error {
 	return nil
 }
 
-func (f *UserFacade) SetDisabled(id string, isDisabled bool, reason *string) error {
+func (f *UserFacade) SetDisabled(ctx context.Context, id string, isDisabled bool, reason *string) error {
 	var err error
 	if isDisabled {
-		err = f.Users.Disable(id, reason)
+		err = f.Users.Disable(ctx, id, reason)
 	} else {
-		err = f.Users.Reenable(id)
+		err = f.Users.Reenable(ctx, id)
 	}
 	if err != nil {
 		return err
@@ -193,76 +197,76 @@ func (f *UserFacade) SetDisabled(id string, isDisabled bool, reason *string) err
 	return nil
 }
 
-func (f *UserFacade) ScheduleDeletion(id string) error {
-	err := f.Users.ScheduleDeletionByAdmin(id)
+func (f *UserFacade) ScheduleDeletion(ctx context.Context, id string) error {
+	err := f.Users.ScheduleDeletionByAdmin(ctx, id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (f *UserFacade) UnscheduleDeletion(id string) error {
-	err := f.Users.UnscheduleDeletionByAdmin(id)
+func (f *UserFacade) UnscheduleDeletion(ctx context.Context, id string) error {
+	err := f.Users.UnscheduleDeletionByAdmin(ctx, id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (f *UserFacade) Delete(id string) error {
-	err := f.Users.Delete(id)
+func (f *UserFacade) Delete(ctx context.Context, id string) error {
+	err := f.Users.Delete(ctx, id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (f *UserFacade) ScheduleAnonymization(id string) (err error) {
-	err = f.Users.CheckUserAnonymized(id)
+func (f *UserFacade) ScheduleAnonymization(ctx context.Context, id string) (err error) {
+	err = f.Users.CheckUserAnonymized(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	err = f.Users.ScheduleAnonymizationByAdmin(id)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (f *UserFacade) UnscheduleAnonymization(id string) (err error) {
-	err = f.Users.CheckUserAnonymized(id)
-	if err != nil {
-		return err
-	}
-
-	err = f.Users.UnscheduleAnonymizationByAdmin(id)
+	err = f.Users.ScheduleAnonymizationByAdmin(ctx, id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (f *UserFacade) Anonymize(id string) (err error) {
-	err = f.Users.CheckUserAnonymized(id)
+func (f *UserFacade) UnscheduleAnonymization(ctx context.Context, id string) (err error) {
+	err = f.Users.CheckUserAnonymized(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	err = f.Users.Anonymize(id)
+	err = f.Users.UnscheduleAnonymizationByAdmin(ctx, id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (f *UserFacade) SetMFAGracePeriod(id string, endAt *time.Time) error {
-	err := f.Users.CheckUserAnonymized(id)
+func (f *UserFacade) Anonymize(ctx context.Context, id string) (err error) {
+	err = f.Users.CheckUserAnonymized(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	err = f.Users.UpdateMFAEnrollment(id, endAt)
+	err = f.Users.Anonymize(ctx, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (f *UserFacade) SetMFAGracePeriod(ctx context.Context, id string, endAt *time.Time) error {
+	err := f.Users.CheckUserAnonymized(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	err = f.Users.UpdateMFAEnrollment(ctx, id, endAt)
 	if err != nil {
 		return err
 	}
@@ -270,8 +274,8 @@ func (f *UserFacade) SetMFAGracePeriod(id string, endAt *time.Time) error {
 	return nil
 }
 
-func (f *UserFacade) GetUsersByStandardAttribute(attributeKey string, attributeValue string) ([]string, error) {
-	values, err := f.Users.GetUsersByStandardAttribute(attributeKey, attributeValue)
+func (f *UserFacade) GetUsersByStandardAttribute(ctx context.Context, attributeKey string, attributeValue string) ([]string, error) {
+	values, err := f.Users.GetUsersByStandardAttribute(ctx, attributeKey, attributeValue)
 	if err != nil {
 		return make([]string, 0), err
 	}
@@ -279,8 +283,8 @@ func (f *UserFacade) GetUsersByStandardAttribute(attributeKey string, attributeV
 	return values, nil
 }
 
-func (f *UserFacade) GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error) {
-	value, err := f.Users.GetUserByLoginID(loginIDKey, loginIDValue)
+func (f *UserFacade) GetUserByLoginID(ctx context.Context, loginIDKey string, loginIDValue string) (string, error) {
+	value, err := f.Users.GetUserByLoginID(ctx, loginIDKey, loginIDValue)
 	if err != nil {
 		return "", err
 	}
@@ -288,8 +292,8 @@ func (f *UserFacade) GetUserByLoginID(loginIDKey string, loginIDValue string) (s
 	return value, nil
 }
 
-func (f *UserFacade) GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error) {
-	value, err := f.Users.GetUserByOAuth(oauthProviderAlias, oauthProviderUserID)
+func (f *UserFacade) GetUserByOAuth(ctx context.Context, oauthProviderAlias string, oauthProviderUserID string) (string, error) {
+	value, err := f.Users.GetUserByOAuth(ctx, oauthProviderAlias, oauthProviderUserID)
 	if err != nil {
 		return "", err
 	}
