@@ -84,7 +84,7 @@ function ProjectQuotaMessageBar(
 
 interface AppListProps {
   apps: AppListItem[] | null;
-  viewer: Viewer | null;
+  viewer: Viewer;
 }
 
 const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
@@ -95,7 +95,7 @@ const AppList: React.VFC<AppListProps> = function AppList(props: AppListProps) {
   useEffect(() => {
     if (
       (apps === null || apps.length === 0) &&
-      !viewer?.isOnboardingSurveyCompleted
+      !viewer.isOnboardingSurveyCompleted
     ) {
       navigate("/onboarding-survey");
     }
@@ -167,7 +167,8 @@ const AppsScreen: React.VFC = function AppsScreen() {
     refetch: refetchAppList,
   } = useAppListQuery();
 
-  if (loadingViewer || loadingAppList) {
+  // If viewer is null, <Authenticated> will redirect to login screen.
+  if (loadingViewer || loadingAppList || viewer == null) {
     return <ShowLoading />;
   }
 
@@ -179,7 +180,7 @@ const AppsScreen: React.VFC = function AppsScreen() {
     return <ShowError error={errorAppList} onRetry={refetchAppList} />;
   }
 
-  return <AppList apps={apps ?? null} viewer={viewer ?? null} />;
+  return <AppList apps={apps ?? null} viewer={viewer} />;
 };
 
 export default AppsScreen;
