@@ -1,5 +1,9 @@
 package graphqlutil
 
+import (
+	"context"
+)
+
 // LoadFunc must satisfy the following conditions.
 //
 // 1. The length of the result must match that of keys.
@@ -8,7 +12,7 @@ package graphqlutil
 //
 // So it is the responsibility of LoadFunc to satisfy these conditions.
 // The underlying implementation used by LoadFunc may not satisfy the conditions.
-type LoadFunc func(keys []interface{}) ([]interface{}, error)
+type LoadFunc func(ctx context.Context, keys []interface{}) ([]interface{}, error)
 
 type dataLoaderTask struct {
 	key    interface{}
@@ -16,8 +20,8 @@ type dataLoaderTask struct {
 }
 
 type DataLoaderInterface interface {
-	Load(key interface{}) *Lazy
-	LoadMany(keys []interface{}) *Lazy
+	Load(ctx context.Context, key interface{}) *Lazy
+	LoadMany(ctx context.Context, keys []interface{}) *Lazy
 	Clear(key interface{})
 	ClearAll()
 	Prime(key interface{}, value interface{})
@@ -38,12 +42,12 @@ func NewDataLoader(loadFn LoadFunc) *DataLoader {
 	}
 }
 
-func (l *DataLoader) run() {
+func (l *DataLoader) run(ctx context.Context) {
 	keys := make([]interface{}, len(l.queue))
 	for i, p := range l.queue {
 		keys[i] = p.key
 	}
-	values, err := l.loadFn(keys)
+	values, err := l.loadFn(ctx, keys)
 	for i, p := range l.queue {
 		if err != nil {
 			p.settle(nil, err)
@@ -54,11 +58,11 @@ func (l *DataLoader) run() {
 	l.queue = nil
 }
 
-func (l *DataLoader) Load(key interface{}) *Lazy {
+func (l *DataLoader) Load(ctx context.Context, key interface{}) *Lazy {
 	p, ok := l.cache[key]
 	if !ok {
 		if len(l.queue) >= l.MaxBatch {
-			l.run()
+			l.run(ctx)
 		}
 
 		settled := false
@@ -66,7 +70,7 @@ func (l *DataLoader) Load(key interface{}) *Lazy {
 		var err error
 		p = NewLazy(func() (interface{}, error) {
 			if !settled {
-				l.run()
+				l.run(ctx)
 			}
 			return value, err
 		})
@@ -83,10 +87,10 @@ func (l *DataLoader) Load(key interface{}) *Lazy {
 	return p
 }
 
-func (l *DataLoader) LoadMany(keys []interface{}) *Lazy {
+func (l *DataLoader) LoadMany(ctx context.Context, keys []interface{}) *Lazy {
 	values := make([]interface{}, len(keys))
 	for idx, key := range keys {
-		value := l.Load(key)
+		value := l.Load(ctx, key)
 		values[idx] = value
 	}
 	return NewLazyValue(values)
