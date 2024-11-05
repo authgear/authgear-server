@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -49,7 +50,7 @@ type AccountManagementV1IdentificationRequest struct {
 }
 
 type AccountManagementV1IdentificationHandlerService interface {
-	StartAdding(input *accountmanagement.StartAddingInput) (*accountmanagement.StartAddingOutput, error)
+	StartAdding(ctx context.Context, input *accountmanagement.StartAddingInput) (*accountmanagement.StartAddingOutput, error)
 }
 
 type AccountManagementV1IdentificationHandler struct {
@@ -65,16 +66,17 @@ func (h *AccountManagementV1IdentificationHandler) ServeHTTP(w http.ResponseWrit
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
 	}
-	h.handle(w, r, request)
+	ctx := r.Context()
+	h.handle(ctx, w, r, request)
 }
 
-func (h *AccountManagementV1IdentificationHandler) handle(w http.ResponseWriter, r *http.Request, request AccountManagementV1IdentificationRequest) {
+func (h *AccountManagementV1IdentificationHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request, request AccountManagementV1IdentificationRequest) {
 	userID := session.GetUserID(r.Context())
 	includeAndBindState := true
 	if request.ExcludeStateInAuthorizationURL != nil && *request.ExcludeStateInAuthorizationURL {
 		includeAndBindState = false
 	}
-	output, err := h.Service.StartAdding(&accountmanagement.StartAddingInput{
+	output, err := h.Service.StartAdding(ctx, &accountmanagement.StartAddingInput{
 		UserID:      *userID,
 		Alias:       request.Alias,
 		RedirectURI: request.RedirectURI,

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"path"
@@ -17,7 +18,7 @@ import (
 )
 
 type RateLimiter interface {
-	Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
+	Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
 }
 
 func ConfigurePresignImagesUploadRoute(route httproute.Route) httproute.Route {
@@ -55,8 +56,9 @@ type PresignImagesUploadHandler struct {
 }
 
 func (h *PresignImagesUploadHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
-	userID := session.GetUserID(req.Context())
-	failed, err := h.RateLimiter.Allow(PresignImageUploadRequestBucketSpec(*userID))
+	ctx := req.Context()
+	userID := session.GetUserID(ctx)
+	failed, err := h.RateLimiter.Allow(ctx, PresignImageUploadRequestBucketSpec(*userID))
 	if err != nil {
 		h.Turbo.WriteResponse(resp, req, &api.Response{Error: err})
 		return

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -73,19 +74,20 @@ func (h *AuthenticationFlowV1InputHandler) ServeHTTP(w http.ResponseWriter, r *h
 		return
 	}
 
+	ctx := r.Context()
 	if request.Input != nil {
-		h.input(w, r, request)
+		h.input(ctx, w, r, request)
 	} else {
-		h.batchInput(w, r, request)
+		h.batchInput(ctx, w, r, request)
 	}
 }
 
-func (h *AuthenticationFlowV1InputHandler) input(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulInputRequest) {
+func (h *AuthenticationFlowV1InputHandler) input(ctx context.Context, w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulInputRequest) {
 	stateToken := request.StateToken
 
-	output, err := h.input0(w, r, stateToken, request)
+	output, err := h.input0(ctx, w, r, stateToken, request)
 	if err != nil {
-		apiResp, apiRespErr := prepareErrorResponse(h.Workflows, stateToken, err)
+		apiResp, apiRespErr := prepareErrorResponse(ctx, h.Workflows, stateToken, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
 			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -104,12 +106,13 @@ func (h *AuthenticationFlowV1InputHandler) input(w http.ResponseWriter, r *http.
 }
 
 func (h *AuthenticationFlowV1InputHandler) input0(
+	ctx context.Context,
 	w http.ResponseWriter,
 	r *http.Request,
 	stateToken string,
 	request AuthenticationFlowV1NonRestfulInputRequest,
 ) (*authflow.ServiceOutput, error) {
-	output, err := h.Workflows.FeedInput(stateToken, request.Input)
+	output, err := h.Workflows.FeedInput(ctx, stateToken, request.Input)
 	if err != nil && !errors.Is(err, authflow.ErrEOF) {
 		return nil, err
 	}
@@ -117,12 +120,12 @@ func (h *AuthenticationFlowV1InputHandler) input0(
 	return output, nil
 }
 
-func (h *AuthenticationFlowV1InputHandler) batchInput(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulInputRequest) {
+func (h *AuthenticationFlowV1InputHandler) batchInput(ctx context.Context, w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulInputRequest) {
 	stateToken := request.StateToken
 
-	output, err := batchInput0(h.Workflows, w, r, stateToken, request.BatchInput)
+	output, err := batchInput0(ctx, h.Workflows, w, r, stateToken, request.BatchInput)
 	if err != nil {
-		apiResp, apiRespErr := prepareErrorResponse(h.Workflows, stateToken, err)
+		apiResp, apiRespErr := prepareErrorResponse(ctx, h.Workflows, stateToken, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
 			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -58,13 +59,13 @@ func (r *AuthenticationFlowV1NonRestfulCreateRequest) GetFlowReference() *authfl
 }
 
 type AuthenticationFlowV1OAuthSessionService interface {
-	Get(entryID string) (*oauthsession.Entry, error)
+	Get(ctx context.Context, entryID string) (*oauthsession.Entry, error)
 }
 
 type AuthenticationFlowV1UIInfoResolver interface {
 	GetOAuthSessionID(req *http.Request, urlQuery string) (string, bool)
 	RemoveOAuthSessionID(w http.ResponseWriter, r *http.Request)
-	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
+	ResolveForUI(ctx context.Context, r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
 
 type AuthenticationFlowV1CreateHandler struct {
@@ -86,11 +87,12 @@ func (h *AuthenticationFlowV1CreateHandler) ServeHTTP(w http.ResponseWriter, r *
 		return
 	}
 
-	h.create(w, r, request)
+	ctx := r.Context()
+	h.create(ctx, w, r, request)
 }
 
-func (h *AuthenticationFlowV1CreateHandler) create(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) {
-	output, err := h.create0(w, r, request)
+func (h *AuthenticationFlowV1CreateHandler) create(ctx context.Context, w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) {
+	output, err := h.create0(ctx, w, r, request)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
@@ -99,9 +101,9 @@ func (h *AuthenticationFlowV1CreateHandler) create(w http.ResponseWriter, r *htt
 	if len(request.BatchInput) > 0 {
 		stateToken := output.Flow.StateToken
 
-		output, err = batchInput0(h.Workflows, w, r, stateToken, request.BatchInput)
+		output, err = batchInput0(ctx, h.Workflows, w, r, stateToken, request.BatchInput)
 		if err != nil {
-			apiResp, apiRespErr := prepareErrorResponse(h.Workflows, stateToken, err)
+			apiResp, apiRespErr := prepareErrorResponse(ctx, h.Workflows, stateToken, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
 				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -120,7 +122,7 @@ func (h *AuthenticationFlowV1CreateHandler) create(w http.ResponseWriter, r *htt
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
-func (h *AuthenticationFlowV1CreateHandler) create0(w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) (*authflow.ServiceOutput, error) {
+func (h *AuthenticationFlowV1CreateHandler) create0(ctx context.Context, w http.ResponseWriter, r *http.Request, request AuthenticationFlowV1NonRestfulCreateRequest) (*authflow.ServiceOutput, error) {
 	flow, err := authflow.InstantiateFlow(*request.GetFlowReference(), jsonpointer.T{})
 	if err != nil {
 		return nil, err
@@ -128,7 +130,7 @@ func (h *AuthenticationFlowV1CreateHandler) create0(w http.ResponseWriter, r *ht
 
 	var sessionOptionsFromOAuth *authflow.SessionOptions
 	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionID(r, request.URLQuery); ok {
-		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(oauthSessionID)
+		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(ctx, oauthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			// Clear the oauth session if it invalid or expired
 			h.UIInfoResolver.RemoveOAuthSessionID(w, r)
@@ -147,7 +149,7 @@ func (h *AuthenticationFlowV1CreateHandler) create0(w http.ResponseWriter, r *ht
 	// The query overrides the cookie.
 	sessionOptions := sessionOptionsFromOAuth.PartiallyMergeFrom(sessionOptionsFromQuery)
 
-	output, err := h.Workflows.CreateNewFlow(flow, sessionOptions)
+	output, err := h.Workflows.CreateNewFlow(ctx, flow, sessionOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -165,14 +167,14 @@ func (h *AuthenticationFlowV1CreateHandler) makeSessionOptionsFromQuery(urlQuery
 	}
 }
 
-func (h *AuthenticationFlowV1CreateHandler) makeSessionOptionsFromOAuth(oauthSessionID string) (*authflow.SessionOptions, error) {
-	entry, err := h.OAuthSessions.Get(oauthSessionID)
+func (h *AuthenticationFlowV1CreateHandler) makeSessionOptionsFromOAuth(ctx context.Context, oauthSessionID string) (*authflow.SessionOptions, error) {
+	entry, err := h.OAuthSessions.Get(ctx, oauthSessionID)
 	if err != nil {
 		return nil, err
 	}
 	req := entry.T.AuthorizationRequest
 
-	uiInfo, err := h.UIInfoResolver.ResolveForUI(req)
+	uiInfo, err := h.UIInfoResolver.ResolveForUI(ctx, req)
 	if err != nil {
 		return nil, err
 	}

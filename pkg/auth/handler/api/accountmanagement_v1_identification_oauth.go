@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -40,7 +41,7 @@ type AccountManagementV1IdentificationOAuthRequest struct {
 }
 
 type AccountManagementV1IdentificationOAuthHandlerService interface {
-	FinishAdding(input *accountmanagement.FinishAddingInput) (*accountmanagement.FinishAddingOutput, error)
+	FinishAdding(ctx context.Context, input *accountmanagement.FinishAddingInput) (*accountmanagement.FinishAddingOutput, error)
 }
 
 type AccountManagementV1IdentificationOAuthHandler struct {
@@ -56,12 +57,13 @@ func (h *AccountManagementV1IdentificationOAuthHandler) ServeHTTP(w http.Respons
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
 	}
-	h.handle(w, r, request)
+	ctx := r.Context()
+	h.handle(ctx, w, r, request)
 }
 
-func (h *AccountManagementV1IdentificationOAuthHandler) handle(w http.ResponseWriter, r *http.Request, request AccountManagementV1IdentificationOAuthRequest) {
-	userID := *session.GetUserID(r.Context())
-	output, err := h.Service.FinishAdding(&accountmanagement.FinishAddingInput{
+func (h *AccountManagementV1IdentificationOAuthHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request, request AccountManagementV1IdentificationOAuthRequest) {
+	userID := *session.GetUserID(ctx)
+	output, err := h.Service.FinishAdding(ctx, &accountmanagement.FinishAddingInput{
 		UserID: userID,
 		Token:  request.Token,
 		Query:  request.Query,

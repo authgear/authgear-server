@@ -5,6 +5,7 @@
 package api
 
 import (
+	context "context"
 	reflect "reflect"
 
 	accountmanagement "github.com/authgear/authgear-server/pkg/lib/accountmanagement"
@@ -35,16 +36,16 @@ func (m *MockAccountManagementV1IdentificationOAuthHandlerService) EXPECT() *Moc
 }
 
 // FinishAdding mocks base method.
-func (m *MockAccountManagementV1IdentificationOAuthHandlerService) FinishAdding(input *accountmanagement.FinishAddingInput) (*accountmanagement.FinishAddingOutput, error) {
+func (m *MockAccountManagementV1IdentificationOAuthHandlerService) FinishAdding(ctx context.Context, input *accountmanagement.FinishAddingInput) (*accountmanagement.FinishAddingOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FinishAdding", input)
+	ret := m.ctrl.Call(m, "FinishAdding", ctx, input)
 	ret0, _ := ret[0].(*accountmanagement.FinishAddingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FinishAdding indicates an expected call of FinishAdding.
-func (mr *MockAccountManagementV1IdentificationOAuthHandlerServiceMockRecorder) FinishAdding(input interface{}) *gomock.Call {
+func (mr *MockAccountManagementV1IdentificationOAuthHandlerServiceMockRecorder) FinishAdding(ctx, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishAdding", reflect.TypeOf((*MockAccountManagementV1IdentificationOAuthHandlerService)(nil).FinishAdding), input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FinishAdding", reflect.TypeOf((*MockAccountManagementV1IdentificationOAuthHandlerService)(nil).FinishAdding), ctx, input)
 }

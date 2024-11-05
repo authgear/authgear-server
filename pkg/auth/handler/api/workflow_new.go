@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -52,7 +53,7 @@ func (c *WorkflowNewRequest) SetDefaults() {
 }
 
 type WorkflowNewWorkflowService interface {
-	CreateNewWorkflow(intent workflow.Intent, sessionOptions *workflow.SessionOptions) (*workflow.ServiceOutput, error)
+	CreateNewWorkflow(ctx context.Context, intent workflow.Intent, sessionOptions *workflow.SessionOptions) (*workflow.ServiceOutput, error)
 }
 
 type WorkflowNewCookieManager interface {
@@ -62,13 +63,13 @@ type WorkflowNewCookieManager interface {
 }
 
 type WorkflowNewOAuthSessionService interface {
-	Get(entryID string) (*oauthsession.Entry, error)
+	Get(ctx context.Context, entryID string) (*oauthsession.Entry, error)
 }
 
 type WorkflowNewUIInfoResolver interface {
 	GetOAuthSessionIDLegacy(req *http.Request, urlQuery string) (string, bool)
 	RemoveOAuthSessionID(w http.ResponseWriter, r *http.Request)
-	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
+	ResolveForUI(ctx context.Context, r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
 
 type WorkflowNewHandler struct {
@@ -88,7 +89,8 @@ func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	output, err := h.handle(w, r, request)
+	ctx := r.Context()
+	output, err := h.handle(ctx, w, r, request)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
@@ -101,7 +103,7 @@ func (h *WorkflowNewHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
-func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, request WorkflowNewRequest) (*workflow.ServiceOutput, error) {
+func (h *WorkflowNewHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowNewRequest) (*workflow.ServiceOutput, error) {
 	intent, err := workflow.InstantiateIntentFromPublicRegistry(request.Intent)
 	if err != nil {
 		return nil, err
@@ -111,7 +113,7 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 
 	var sessionOptionsFromOAuth *workflow.SessionOptions
 	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionIDLegacy(r, ""); ok {
-		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(oauthSessionID)
+		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(ctx, oauthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			// Clear the oauth session if it invalid or expired
 			h.UIInfoResolver.RemoveOAuthSessionID(w, r)
@@ -134,7 +136,7 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 		sessionOptions.UserAgentID = userAgentID
 	}
 
-	output, err := h.Workflows.CreateNewWorkflow(intent, sessionOptions)
+	output, err := h.Workflows.CreateNewWorkflow(ctx, intent, sessionOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -142,14 +144,14 @@ func (h *WorkflowNewHandler) handle(w http.ResponseWriter, r *http.Request, requ
 	return output, nil
 }
 
-func (h *WorkflowNewHandler) makeSessionOptionsFromOAuth(oauthSessionID string) (*workflow.SessionOptions, error) {
-	entry, err := h.OAuthSessions.Get(oauthSessionID)
+func (h *WorkflowNewHandler) makeSessionOptionsFromOAuth(ctx context.Context, oauthSessionID string) (*workflow.SessionOptions, error) {
+	entry, err := h.OAuthSessions.Get(ctx, oauthSessionID)
 	if err != nil {
 		return nil, err
 	}
 	req := entry.T.AuthorizationRequest
 
-	uiInfo, err := h.UIInfoResolver.ResolveForUI(req)
+	uiInfo, err := h.UIInfoResolver.ResolveForUI(ctx, req)
 	if err != nil {
 		return nil, err
 	}

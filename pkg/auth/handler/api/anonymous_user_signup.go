@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -21,6 +22,7 @@ func ConfigureAnonymousUserSignupRoute(route httproute.Route) httproute.Route {
 
 type AnonymousUserHandler interface {
 	SignupAnonymousUser(
+		ctx context.Context,
 		req *http.Request,
 		clientID string,
 		sessionType oauthhandler.WebSessionType,
@@ -96,9 +98,11 @@ func (h *AnonymousUserSignupAPIHandler) ServeHTTP(resp http.ResponseWriter, req 
 		return
 	}
 
+	ctx := req.Context()
 	var result *oauthhandler.SignupAnonymousUserResult
-	err = h.Database.WithTx(func() error {
+	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		result, err = h.AnonymousUserHandler.SignupAnonymousUser(
+			ctx,
 			req,
 			payload.ClientID,
 			payload.SessionType,
