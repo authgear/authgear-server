@@ -25,7 +25,6 @@
 {{ define "page-content" }}
 
 <div class="flex flex-col gap-y-6">
-  {{ if $.EmailIdentities }}
   <ol>
     {{ range $.EmailIdentities }}
       <li>
@@ -46,8 +45,19 @@
         {{ end }}
       </li>
     {{ end }}
+
+    {{ range $.OAuthEmailIdentities }}
+      <li>
+        {{ template "authflowv2/__settings_action_item.html"
+            (dict
+              "IconName" "email"
+              "Label" .Email
+              "Description" (translate (printf "v2.page.settings-identity-list-email.default.provider.%s" .ProviderType) nil)
+            )
+        }}
+      </li>
+    {{ end }}
   </ol>
-  {{ end }}
 
   {{ if not $.CreateDisabled}}
     {{ if not (ge (len $.EmailIdentities) (1)) }}
@@ -61,15 +71,15 @@
     {{ end }}
   {{ end }}
 
-  {{ if and ($.PrimaryEmail) (gt (len $.EmailIdentities) (1)) }}
+  {{ if and ($.PrimaryEmail) (gt (len $.AllEmails) (1)) }}
     <div class="mt-5">
-      <div class="settings-title">
+      <div class="settings-title text-start">
         {{ translate "v2.page.settings-identity-list-email.default.primary-email-label" . }}
       </div>
       {{ template "authflowv2/__settings_action_item.html"
         (dict
           "IconName" "email"
-          "Label" .PrimaryEmail.OriginalLoginID
+          "Label" .PrimaryEmail
           "ActionButton" (include "__settings_identity_email_change_button.html"
             (dict "Href" (call $.MakeURL "/settings/identity/change_primary_email" "q_login_id_key" $.LoginIDKey))
           )

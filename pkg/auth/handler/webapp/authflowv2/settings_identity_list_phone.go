@@ -9,11 +9,13 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	identityservice "github.com/authgear/authgear-server/pkg/lib/authn/identity/service"
+	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/setutil"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
@@ -28,12 +30,19 @@ func ConfigureAuthflowV2SettingsIdentityListPhoneRoute(route httproute.Route) ht
 		WithPathPattern(AuthflowV2RouteSettingsIdentityListPhone)
 }
 
+type AuthflowV2SettingsIdentityListPhoneViewModelOAuthIdentity struct {
+	Phone        string
+	ProviderType string
+}
+
 type AuthflowV2SettingsIdentityListPhoneViewModel struct {
-	LoginIDKey      string
-	PrimaryPhone    *identity.LoginID
-	PhoneIdentities []*identity.LoginID
-	Verifications   map[string][]verification.ClaimStatus
-	CreateDisabled  bool
+	LoginIDKey           string
+	PrimaryPhone         string
+	AllPhones            []string
+	PhoneIdentities      []*identity.LoginID
+	OAuthPhoneIdentities []*AuthflowV2SettingsIdentityListPhoneViewModelOAuthIdentity
+	Verifications        map[string][]verification.ClaimStatus
+	CreateDisabled       bool
 }
 
 type AuthflowV2SettingsIdentityListPhoneHandler struct {
@@ -57,7 +66,14 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(r *http.Request, rw
 
 	userID := session.GetUserID(r.Context())
 
-	identities, err := h.Identities.LoginID.List(*userID)
+	phones := setutil.Set[string]{}
+
+	loginIDIdentities, err := h.Identities.LoginID.List(*userID)
+	if err != nil {
+		return nil, err
+	}
+
+	oauthIdentities, err := h.Identities.OAuth.List(*userID)
 	if err != nil {
 		return nil, err
 	}
@@ -67,17 +83,33 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(r *http.Request, rw
 		return nil, err
 	}
 
-	var primary *identity.LoginID
-	var phoneIdentities []*identity.LoginID
-	var phoneInfos []*identity.Info
-	for _, identity := range identities {
+	var primary string
+	var phoneIdentities []*identity.LoginID = []*identity.LoginID{}
+	oauthPhoneIdentities := []*AuthflowV2SettingsIdentityListPhoneViewModelOAuthIdentity{}
+	var phoneInfos []*identity.Info = []*identity.Info{}
+	for _, identity := range loginIDIdentities {
 		if identity.LoginIDType == model.LoginIDKeyTypePhone {
-			if loginIDKey == "" || identity.LoginIDKey == loginIDKey {
-				phoneIdentities = append(phoneIdentities, identity)
-				phoneInfos = append(phoneInfos, identity.ToInfo())
-				if identity.LoginID == settingsProfileViewModel.PhoneNumber {
-					primary = identity
-				}
+			phones.Add(identity.LoginID)
+			phoneIdentities = append(phoneIdentities, identity)
+			phoneInfos = append(phoneInfos, identity.ToInfo())
+			if identity.LoginID == settingsProfileViewModel.PhoneNumber {
+				primary = identity.LoginID
+			}
+		}
+	}
+
+	for _, identity := range oauthIdentities {
+		phone, ok := identity.Claims[stdattrs.PhoneNumber].(string)
+		if ok && phone != "" {
+			phones.Add(phone)
+			oauthPhoneIdentities = append(oauthPhoneIdentities,
+				&AuthflowV2SettingsIdentityListPhoneViewModelOAuthIdentity{
+					Phone:        phone,
+					ProviderType: identity.ProviderID.Type,
+				},
+			)
+			if phone == settingsProfileViewModel.PhoneNumber {
+				primary = phone
 			}
 		}
 	}
@@ -97,11 +129,13 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(r *http.Request, rw
 	}
 
 	vm := AuthflowV2SettingsIdentityListPhoneViewModel{
-		LoginIDKey:      loginIDKey,
-		PhoneIdentities: phoneIdentities,
-		Verifications:   verifications,
-		CreateDisabled:  createDisabled,
-		PrimaryPhone:    primary,
+		LoginIDKey:           loginIDKey,
+		PhoneIdentities:      phoneIdentities,
+		OAuthPhoneIdentities: oauthPhoneIdentities,
+		Verifications:        verifications,
+		CreateDisabled:       createDisabled,
+		PrimaryPhone:         primary,
+		AllPhones:            phones.Keys(),
 	}
 	viewmodels.Embed(data, vm)
 

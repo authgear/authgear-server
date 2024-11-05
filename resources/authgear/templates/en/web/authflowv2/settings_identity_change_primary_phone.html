@@ -22,14 +22,14 @@
   {{ $.CSRFField }}
   <ul>
     {{ $currentPhone := .PhoneNumber }}
-    {{ range .PhoneIdentities }}
+    {{ range .Phones }}
       <li>
         {{ template "authflowv2/__settings_radio.html" (dict
-            "Label" (include "__settings_identity_change_primary_phone_item_label.html" .OriginalLoginID)
+            "Label" (include "__settings_identity_change_primary_phone_item_label.html" .)
             "Name" "/phone_number"
-            "Value" .LoginID
+            "Value" .
             "ShowInput" false
-            "DefaultChecked" (eq .LoginID $currentPhone)
+            "DefaultChecked" (eq . $currentPhone)
           )
         }}
       </li>
