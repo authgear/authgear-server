@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
@@ -28,7 +30,7 @@ type CreateCodeGrantOptions struct {
 	DPoPJKT              string
 }
 
-func (s *CodeGrantService) CreateCodeGrant(opts *CreateCodeGrantOptions) (code string, grant *oauth.CodeGrant, err error) {
+func (s *CodeGrantService) CreateCodeGrant(ctx context.Context, opts *CreateCodeGrantOptions) (code string, grant *oauth.CodeGrant, err error) {
 	code = s.CodeGenerator()
 	codeHash := oauth.HashToken(code)
 
@@ -47,7 +49,7 @@ func (s *CodeGrantService) CreateCodeGrant(opts *CreateCodeGrantOptions) (code s
 		AuthorizationRequest: opts.AuthorizationRequest,
 	}
 
-	err = s.CodeGrants.CreateCodeGrant(codeGrant)
+	err = s.CodeGrants.CreateCodeGrant(ctx, codeGrant)
 	if err != nil {
 		return "", nil, err
 	}

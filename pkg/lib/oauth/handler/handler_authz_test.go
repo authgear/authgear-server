@@ -71,7 +71,6 @@ func TestAuthorizationHandler(t *testing.T) {
 
 		appID := config.AppID("app-id")
 		h := &handler.AuthorizationHandler{
-			Context:    context.Background(),
 			AppID:      appID,
 			Config:     &config.OAuthConfig{},
 			HTTPOrigin: "http://accounts.example.com",
@@ -94,8 +93,8 @@ func TestAuthorizationHandler(t *testing.T) {
 			PreAuthenticatedURLTokenService: preAuthenticatedURLTokenService,
 			IDTokenIssuer:                   idTokenIssuer,
 		}
-		handle := func(r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
-			result := h.Handle(r)
+		handle := func(ctx context.Context, r protocol.AuthorizationRequest) *httptest.ResponseRecorder {
+			result := h.Handle(ctx, r)
 			req, _ := http.NewRequest("GET", "/authorize", nil)
 			resp := httptest.NewRecorder()
 			result.WriteResponse(resp, req)
@@ -112,7 +111,8 @@ func TestAuthorizationHandler(t *testing.T) {
 				CustomUIURI: "https://ui.custom.com",
 			}
 			Convey("missing client ID", func() {
-				resp := handle(protocol.AuthorizationRequest{})
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{})
 				So(resp.Result().StatusCode, ShouldEqual, 400)
 				So(resp.Body.String(), ShouldEqual,
 					"Invalid OAuth authorization request:\n"+
@@ -120,7 +120,8 @@ func TestAuthorizationHandler(t *testing.T) {
 						"error_description: invalid client ID\n")
 			})
 			Convey("disallowed redirect URI", func() {
-				resp := handle(protocol.AuthorizationRequest{
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
 					"client_id":    "client-id",
 					"redirect_uri": "https://example.com",
 				})
@@ -131,7 +132,8 @@ func TestAuthorizationHandler(t *testing.T) {
 						"error_description: redirect URI is not allowed\n")
 			})
 			Convey("implicitly allowed redirect URI on AS", func() {
-				resp := handle(protocol.AuthorizationRequest{
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
 					"client_id":    "client-id",
 					"redirect_uri": "http://accounts.example.com/settings",
 				})
@@ -148,7 +150,8 @@ func TestAuthorizationHandler(t *testing.T) {
 				RedirectURIs: []string{"https://example.com/cb?from=sso"},
 				CustomUIURI:  "https://ui.custom.com",
 			}
-			resp := handle(protocol.AuthorizationRequest{
+			ctx := context.Background()
+			resp := handle(ctx, protocol.AuthorizationRequest{
 				"client_id":     "client-id",
 				"response_type": "code",
 			})
@@ -167,7 +170,8 @@ func TestAuthorizationHandler(t *testing.T) {
 			clientResolver.ClientConfig = mockedClient
 			Convey("request validation", func() {
 				Convey("missing scope", func() {
-					resp := handle(protocol.AuthorizationRequest{
+					ctx := context.Background()
+					resp := handle(ctx, protocol.AuthorizationRequest{
 						"client_id":     "client-id",
 						"response_type": "code",
 					})
@@ -177,7 +181,8 @@ func TestAuthorizationHandler(t *testing.T) {
 					))
 				})
 				Convey("missing PKCE code challenge", func() {
-					resp := handle(protocol.AuthorizationRequest{
+					ctx := context.Background()
+					resp := handle(ctx, protocol.AuthorizationRequest{
 						"client_id":     "client-id",
 						"response_type": "code",
 						"scope":         "openid",
@@ -188,7 +193,8 @@ func TestAuthorizationHandler(t *testing.T) {
 					))
 				})
 				Convey("unsupported PKCE transform", func() {
-					resp := handle(protocol.AuthorizationRequest{
+					ctx := context.Background()
+					resp := handle(ctx, protocol.AuthorizationRequest{
 						"client_id":             "client-id",
 						"response_type":         "code",
 						"scope":                 "openid",
@@ -211,7 +217,8 @@ func TestAuthorizationHandler(t *testing.T) {
 					return nil
 				}
 
-				resp := handle(protocol.AuthorizationRequest{
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
 					"client_id":             "client-id",
 					"response_type":         "code",
 					"scope":                 "email",
@@ -234,6 +241,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					"ui_locales":            "ja",
 				}
 				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+					gomock.Any(),
 					mockedClient,
 					req,
 				).Times(1).Return(&oidc.UIInfo{}, &oidc.UIInfoByProduct{}, nil)
@@ -242,12 +250,13 @@ func TestAuthorizationHandler(t *testing.T) {
 					Host:   "auth",
 					Path:   "/authenticate",
 				}, nil)
-				resp := handle(req)
+				ctx := context.Background()
+				resp := handle(ctx, req)
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
 			})
 			Convey("return authorization code", func() {
-				h.Context = sessiontest.NewMockSession().
+				ctx := sessiontest.NewMockSession().
 					SetUserID("user-id").
 					SetSessionID("session-id").
 					ToContext(context.Background())
@@ -273,18 +282,20 @@ func TestAuthorizationHandler(t *testing.T) {
 						Scopes:    []string{"openid"},
 					}
 					uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+						gomock.Any(),
 						mockedClient,
 						req,
 					).Times(1).Return(&oidc.UIInfo{
 						Prompt: []string{"none"},
 					}, &oidc.UIInfoByProduct{}, nil)
 					authzService.EXPECT().CheckAndGrant(
+						gomock.Any(),
 						"client-id",
 						"user-id",
 						[]string{"openid"},
 					).Times(1).Return(authorization, nil)
 
-					resp := handle(req)
+					resp := handle(ctx, req)
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?code=authz-code&state=my-state",
@@ -318,6 +329,7 @@ func TestAuthorizationHandler(t *testing.T) {
 						Scopes:    []string{"openid", "offline_access"},
 					}
 					authzService.EXPECT().CheckAndGrant(
+						gomock.Any(),
 						"client-id",
 						"user-id",
 						[]string{"openid", "offline_access"},
@@ -331,13 +343,14 @@ func TestAuthorizationHandler(t *testing.T) {
 						"prompt":                "none",
 					}
 					uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+						gomock.Any(),
 						mockedClient,
 						req,
 					).Times(1).Return(&oidc.UIInfo{
 						Prompt: []string{"none"},
 					}, &oidc.UIInfoByProduct{}, nil)
 
-					resp := handle(req)
+					resp := handle(ctx, req)
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?code=authz-code",
@@ -379,7 +392,8 @@ func TestAuthorizationHandler(t *testing.T) {
 					return nil
 				}
 
-				resp := handle(protocol.AuthorizationRequest{
+				ctx := context.Background()
+				resp := handle(ctx, protocol.AuthorizationRequest{
 					"client_id":     "client-id",
 					"response_type": "none",
 					"scope":         "email",
@@ -397,6 +411,7 @@ func TestAuthorizationHandler(t *testing.T) {
 					"scope":         "openid",
 				}
 				uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+					gomock.Any(),
 					mockedClient,
 					req,
 				).Times(1).Return(&oidc.UIInfo{}, &oidc.UIInfoByProduct{}, nil)
@@ -405,12 +420,13 @@ func TestAuthorizationHandler(t *testing.T) {
 					Host:   "auth",
 					Path:   "/authenticate",
 				}, nil)
-				resp := handle(req)
+				ctx := context.Background()
+				resp := handle(ctx, req)
 				So(resp.Result().StatusCode, ShouldEqual, 302)
 				So(redirection(resp), ShouldEqual, "https://auth/authenticate")
 			})
 			Convey("redirect to URI", func() {
-				h.Context = sessiontest.NewMockSession().
+				ctx := sessiontest.NewMockSession().
 					SetUserID("user-id").
 					SetSessionID("session-id").
 					ToContext(context.Background())
@@ -433,18 +449,20 @@ func TestAuthorizationHandler(t *testing.T) {
 						"prompt":        "none",
 					}
 					authzService.EXPECT().CheckAndGrant(
+						gomock.Any(),
 						"client-id",
 						"user-id",
 						[]string{"openid"},
 					).Times(1).Return(authorization, nil)
 					uiInfoResolver.EXPECT().ResolveForAuthorizationEndpoint(
+						gomock.Any(),
 						mockedClient,
 						req,
 					).Times(1).Return(&oidc.UIInfo{
 						Prompt: []string{"none"},
 					}, &oidc.UIInfoByProduct{}, nil)
 
-					resp := handle(req)
+					resp := handle(ctx, req)
 					So(resp.Result().StatusCode, ShouldEqual, 200)
 					So(resp.Body.String(), ShouldEqual, redirectHTML(
 						"https://example.com/?state=my-state",
@@ -484,6 +502,7 @@ func TestAuthorizationHandler(t *testing.T) {
 				testAccessToken := "TEST_ACCESS_TOKEN"
 
 				preAuthenticatedURLTokenService.EXPECT().ExchangeForAccessToken(
+					gomock.Any(),
 					mockedClient,
 					testOfflineGrantID,
 					testPreAuthenticatedURLToken,
@@ -502,7 +521,8 @@ func TestAuthorizationHandler(t *testing.T) {
 					"id_token_hint":                 testIDToken,
 				}
 
-				resp := handle(req)
+				ctx := context.Background()
+				resp := handle(ctx, req)
 				So(resp.Result().StatusCode, ShouldEqual, 200)
 				So(resp.Body.String(), ShouldEqual, redirectHTML(
 					"https://example.com/?state=my-state",

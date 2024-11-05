@@ -19,6 +19,7 @@ import (
 	oidc "github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	protocol "github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
 	access "github.com/authgear/authgear-server/pkg/lib/session/access"
+	idpsession "github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 	gomock "github.com/golang/mock/gomock"
 	jwk "github.com/lestrrat-go/jwx/v2/jwk"
 	jwt "github.com/lestrrat-go/jwx/v2/jwt"
@@ -62,18 +63,18 @@ func (mr *MockIDTokenIssuerMockRecorder) Iss() *gomock.Call {
 }
 
 // IssueIDToken mocks base method.
-func (m *MockIDTokenIssuer) IssueIDToken(opts oidc.IssueIDTokenOptions) (string, error) {
+func (m *MockIDTokenIssuer) IssueIDToken(ctx context.Context, opts oidc.IssueIDTokenOptions) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueIDToken", opts)
+	ret := m.ctrl.Call(m, "IssueIDToken", ctx, opts)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IssueIDToken indicates an expected call of IssueIDToken.
-func (mr *MockIDTokenIssuerMockRecorder) IssueIDToken(opts interface{}) *gomock.Call {
+func (mr *MockIDTokenIssuerMockRecorder) IssueIDToken(ctx, opts interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).IssueIDToken), opts)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).IssueIDToken), ctx, opts)
 }
 
 // VerifyIDToken mocks base method.
@@ -115,18 +116,18 @@ func (m *MockAccessTokenIssuer) EXPECT() *MockAccessTokenIssuerMockRecorder {
 }
 
 // EncodeAccessToken mocks base method.
-func (m *MockAccessTokenIssuer) EncodeAccessToken(client *config.OAuthClientConfig, clientLike *oauth.ClientLike, grant *oauth.AccessGrant, userID, token string) (string, error) {
+func (m *MockAccessTokenIssuer) EncodeAccessToken(ctx context.Context, client *config.OAuthClientConfig, clientLike *oauth.ClientLike, grant *oauth.AccessGrant, userID, token string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "EncodeAccessToken", client, clientLike, grant, userID, token)
+	ret := m.ctrl.Call(m, "EncodeAccessToken", ctx, client, clientLike, grant, userID, token)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // EncodeAccessToken indicates an expected call of EncodeAccessToken.
-func (mr *MockAccessTokenIssuerMockRecorder) EncodeAccessToken(client, clientLike, grant, userID, token interface{}) *gomock.Call {
+func (mr *MockAccessTokenIssuerMockRecorder) EncodeAccessToken(ctx, client, clientLike, grant, userID, token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeAccessToken", reflect.TypeOf((*MockAccessTokenIssuer)(nil).EncodeAccessToken), client, clientLike, grant, userID, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EncodeAccessToken", reflect.TypeOf((*MockAccessTokenIssuer)(nil).EncodeAccessToken), ctx, client, clientLike, grant, userID, token)
 }
 
 // MockEventService is a mock of EventService interface.
@@ -153,17 +154,17 @@ func (m *MockEventService) EXPECT() *MockEventServiceMockRecorder {
 }
 
 // DispatchEventOnCommit mocks base method.
-func (m *MockEventService) DispatchEventOnCommit(payload event.Payload) error {
+func (m *MockEventService) DispatchEventOnCommit(ctx context.Context, payload event.Payload) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DispatchEventOnCommit", payload)
+	ret := m.ctrl.Call(m, "DispatchEventOnCommit", ctx, payload)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DispatchEventOnCommit indicates an expected call of DispatchEventOnCommit.
-func (mr *MockEventServiceMockRecorder) DispatchEventOnCommit(payload interface{}) *gomock.Call {
+func (mr *MockEventServiceMockRecorder) DispatchEventOnCommit(ctx, payload interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventOnCommit", reflect.TypeOf((*MockEventService)(nil).DispatchEventOnCommit), payload)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventOnCommit", reflect.TypeOf((*MockEventService)(nil).DispatchEventOnCommit), ctx, payload)
 }
 
 // MockTokenHandlerUserFacade is a mock of TokenHandlerUserFacade interface.
@@ -190,18 +191,18 @@ func (m *MockTokenHandlerUserFacade) EXPECT() *MockTokenHandlerUserFacadeMockRec
 }
 
 // GetRaw mocks base method.
-func (m *MockTokenHandlerUserFacade) GetRaw(id string) (*user.User, error) {
+func (m *MockTokenHandlerUserFacade) GetRaw(ctx context.Context, id string) (*user.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetRaw", id)
+	ret := m.ctrl.Call(m, "GetRaw", ctx, id)
 	ret0, _ := ret[0].(*user.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetRaw indicates an expected call of GetRaw.
-func (mr *MockTokenHandlerUserFacadeMockRecorder) GetRaw(id interface{}) *gomock.Call {
+func (mr *MockTokenHandlerUserFacadeMockRecorder) GetRaw(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRaw", reflect.TypeOf((*MockTokenHandlerUserFacade)(nil).GetRaw), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRaw", reflect.TypeOf((*MockTokenHandlerUserFacade)(nil).GetRaw), ctx, id)
 }
 
 // MockApp2AppService is a mock of App2AppService interface.
@@ -281,18 +282,18 @@ func (m *MockChallengeProvider) EXPECT() *MockChallengeProviderMockRecorder {
 }
 
 // Consume mocks base method.
-func (m *MockChallengeProvider) Consume(token string) (*challenge.Purpose, error) {
+func (m *MockChallengeProvider) Consume(ctx context.Context, token string) (*challenge.Purpose, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Consume", token)
+	ret := m.ctrl.Call(m, "Consume", ctx, token)
 	ret0, _ := ret[0].(*challenge.Purpose)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Consume indicates an expected call of Consume.
-func (mr *MockChallengeProviderMockRecorder) Consume(token interface{}) *gomock.Call {
+func (mr *MockChallengeProviderMockRecorder) Consume(ctx, token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Consume", reflect.TypeOf((*MockChallengeProvider)(nil).Consume), token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Consume", reflect.TypeOf((*MockChallengeProvider)(nil).Consume), ctx, token)
 }
 
 // MockTokenHandlerCodeGrantStore is a mock of TokenHandlerCodeGrantStore interface.
@@ -319,32 +320,32 @@ func (m *MockTokenHandlerCodeGrantStore) EXPECT() *MockTokenHandlerCodeGrantStor
 }
 
 // DeleteCodeGrant mocks base method.
-func (m *MockTokenHandlerCodeGrantStore) DeleteCodeGrant(arg0 *oauth.CodeGrant) error {
+func (m *MockTokenHandlerCodeGrantStore) DeleteCodeGrant(ctx context.Context, g *oauth.CodeGrant) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteCodeGrant", arg0)
+	ret := m.ctrl.Call(m, "DeleteCodeGrant", ctx, g)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteCodeGrant indicates an expected call of DeleteCodeGrant.
-func (mr *MockTokenHandlerCodeGrantStoreMockRecorder) DeleteCodeGrant(arg0 interface{}) *gomock.Call {
+func (mr *MockTokenHandlerCodeGrantStoreMockRecorder) DeleteCodeGrant(ctx, g interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCodeGrant", reflect.TypeOf((*MockTokenHandlerCodeGrantStore)(nil).DeleteCodeGrant), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteCodeGrant", reflect.TypeOf((*MockTokenHandlerCodeGrantStore)(nil).DeleteCodeGrant), ctx, g)
 }
 
 // GetCodeGrant mocks base method.
-func (m *MockTokenHandlerCodeGrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
+func (m *MockTokenHandlerCodeGrantStore) GetCodeGrant(ctx context.Context, codeHash string) (*oauth.CodeGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetCodeGrant", codeHash)
+	ret := m.ctrl.Call(m, "GetCodeGrant", ctx, codeHash)
 	ret0, _ := ret[0].(*oauth.CodeGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetCodeGrant indicates an expected call of GetCodeGrant.
-func (mr *MockTokenHandlerCodeGrantStoreMockRecorder) GetCodeGrant(codeHash interface{}) *gomock.Call {
+func (mr *MockTokenHandlerCodeGrantStoreMockRecorder) GetCodeGrant(ctx, codeHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeGrant", reflect.TypeOf((*MockTokenHandlerCodeGrantStore)(nil).GetCodeGrant), codeHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetCodeGrant", reflect.TypeOf((*MockTokenHandlerCodeGrantStore)(nil).GetCodeGrant), ctx, codeHash)
 }
 
 // MockTokenHandlerSettingsActionGrantStore is a mock of TokenHandlerSettingsActionGrantStore interface.
@@ -371,32 +372,32 @@ func (m *MockTokenHandlerSettingsActionGrantStore) EXPECT() *MockTokenHandlerSet
 }
 
 // DeleteSettingsActionGrant mocks base method.
-func (m *MockTokenHandlerSettingsActionGrantStore) DeleteSettingsActionGrant(arg0 *oauth.SettingsActionGrant) error {
+func (m *MockTokenHandlerSettingsActionGrantStore) DeleteSettingsActionGrant(ctx context.Context, g *oauth.SettingsActionGrant) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSettingsActionGrant", arg0)
+	ret := m.ctrl.Call(m, "DeleteSettingsActionGrant", ctx, g)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteSettingsActionGrant indicates an expected call of DeleteSettingsActionGrant.
-func (mr *MockTokenHandlerSettingsActionGrantStoreMockRecorder) DeleteSettingsActionGrant(arg0 interface{}) *gomock.Call {
+func (mr *MockTokenHandlerSettingsActionGrantStoreMockRecorder) DeleteSettingsActionGrant(ctx, g interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSettingsActionGrant", reflect.TypeOf((*MockTokenHandlerSettingsActionGrantStore)(nil).DeleteSettingsActionGrant), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSettingsActionGrant", reflect.TypeOf((*MockTokenHandlerSettingsActionGrantStore)(nil).DeleteSettingsActionGrant), ctx, g)
 }
 
 // GetSettingsActionGrant mocks base method.
-func (m *MockTokenHandlerSettingsActionGrantStore) GetSettingsActionGrant(codeHash string) (*oauth.SettingsActionGrant, error) {
+func (m *MockTokenHandlerSettingsActionGrantStore) GetSettingsActionGrant(ctx context.Context, codeHash string) (*oauth.SettingsActionGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSettingsActionGrant", codeHash)
+	ret := m.ctrl.Call(m, "GetSettingsActionGrant", ctx, codeHash)
 	ret0, _ := ret[0].(*oauth.SettingsActionGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSettingsActionGrant indicates an expected call of GetSettingsActionGrant.
-func (mr *MockTokenHandlerSettingsActionGrantStoreMockRecorder) GetSettingsActionGrant(codeHash interface{}) *gomock.Call {
+func (mr *MockTokenHandlerSettingsActionGrantStoreMockRecorder) GetSettingsActionGrant(ctx, codeHash interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSettingsActionGrant", reflect.TypeOf((*MockTokenHandlerSettingsActionGrantStore)(nil).GetSettingsActionGrant), codeHash)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSettingsActionGrant", reflect.TypeOf((*MockTokenHandlerSettingsActionGrantStore)(nil).GetSettingsActionGrant), ctx, codeHash)
 }
 
 // MockTokenHandlerOfflineGrantStore is a mock of TokenHandlerOfflineGrantStore interface.
@@ -423,107 +424,107 @@ func (m *MockTokenHandlerOfflineGrantStore) EXPECT() *MockTokenHandlerOfflineGra
 }
 
 // DeleteOfflineGrant mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) DeleteOfflineGrant(arg0 *oauth.OfflineGrant) error {
+func (m *MockTokenHandlerOfflineGrantStore) DeleteOfflineGrant(ctx context.Context, g *oauth.OfflineGrant) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteOfflineGrant", arg0)
+	ret := m.ctrl.Call(m, "DeleteOfflineGrant", ctx, g)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteOfflineGrant indicates an expected call of DeleteOfflineGrant.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) DeleteOfflineGrant(arg0 interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) DeleteOfflineGrant(ctx, g interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).DeleteOfflineGrant), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).DeleteOfflineGrant), ctx, g)
 }
 
 // ListClientOfflineGrants mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) ListClientOfflineGrants(clientID, userID string) ([]*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantStore) ListClientOfflineGrants(ctx context.Context, clientID, userID string) ([]*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListClientOfflineGrants", clientID, userID)
+	ret := m.ctrl.Call(m, "ListClientOfflineGrants", ctx, clientID, userID)
 	ret0, _ := ret[0].([]*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListClientOfflineGrants indicates an expected call of ListClientOfflineGrants.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) ListClientOfflineGrants(clientID, userID interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) ListClientOfflineGrants(ctx, clientID, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListClientOfflineGrants", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).ListClientOfflineGrants), clientID, userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListClientOfflineGrants", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).ListClientOfflineGrants), ctx, clientID, userID)
 }
 
 // ListOfflineGrants mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantStore) ListOfflineGrants(ctx context.Context, userID string) ([]*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListOfflineGrants", userID)
+	ret := m.ctrl.Call(m, "ListOfflineGrants", ctx, userID)
 	ret0, _ := ret[0].([]*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListOfflineGrants indicates an expected call of ListOfflineGrants.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) ListOfflineGrants(userID interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) ListOfflineGrants(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListOfflineGrants", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).ListOfflineGrants), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListOfflineGrants", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).ListOfflineGrants), ctx, userID)
 }
 
 // UpdateOfflineGrantApp2AppDeviceKey mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantApp2AppDeviceKey(id, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantApp2AppDeviceKey(ctx context.Context, id, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOfflineGrantApp2AppDeviceKey", id, newKey, expireAt)
+	ret := m.ctrl.Call(m, "UpdateOfflineGrantApp2AppDeviceKey", ctx, id, newKey, expireAt)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateOfflineGrantApp2AppDeviceKey indicates an expected call of UpdateOfflineGrantApp2AppDeviceKey.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantApp2AppDeviceKey(id, newKey, expireAt interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantApp2AppDeviceKey(ctx, id, newKey, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantApp2AppDeviceKey", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantApp2AppDeviceKey), id, newKey, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantApp2AppDeviceKey", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantApp2AppDeviceKey), ctx, id, newKey, expireAt)
 }
 
 // UpdateOfflineGrantAuthenticatedAt mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantAuthenticatedAt(ctx context.Context, id string, authenticatedAt, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOfflineGrantAuthenticatedAt", id, authenticatedAt, expireAt)
+	ret := m.ctrl.Call(m, "UpdateOfflineGrantAuthenticatedAt", ctx, id, authenticatedAt, expireAt)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateOfflineGrantAuthenticatedAt indicates an expected call of UpdateOfflineGrantAuthenticatedAt.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantAuthenticatedAt(id, authenticatedAt, expireAt interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantAuthenticatedAt(ctx, id, authenticatedAt, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantAuthenticatedAt", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantAuthenticatedAt), id, authenticatedAt, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantAuthenticatedAt", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantAuthenticatedAt), ctx, id, authenticatedAt, expireAt)
 }
 
 // UpdateOfflineGrantDeviceInfo mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantDeviceInfo(id string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantDeviceInfo(ctx context.Context, id string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOfflineGrantDeviceInfo", id, deviceInfo, expireAt)
+	ret := m.ctrl.Call(m, "UpdateOfflineGrantDeviceInfo", ctx, id, deviceInfo, expireAt)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateOfflineGrantDeviceInfo indicates an expected call of UpdateOfflineGrantDeviceInfo.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantDeviceInfo(id, deviceInfo, expireAt interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantDeviceInfo(ctx, id, deviceInfo, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantDeviceInfo", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantDeviceInfo), id, deviceInfo, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantDeviceInfo", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantDeviceInfo), ctx, id, deviceInfo, expireAt)
 }
 
 // UpdateOfflineGrantDeviceSecretHash mocks base method.
-func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantDeviceSecretHash(grantID, newDeviceSecretHash, dpopJKT string, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantStore) UpdateOfflineGrantDeviceSecretHash(ctx context.Context, grantID, newDeviceSecretHash, dpopJKT string, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateOfflineGrantDeviceSecretHash", grantID, newDeviceSecretHash, dpopJKT, expireAt)
+	ret := m.ctrl.Call(m, "UpdateOfflineGrantDeviceSecretHash", ctx, grantID, newDeviceSecretHash, dpopJKT, expireAt)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UpdateOfflineGrantDeviceSecretHash indicates an expected call of UpdateOfflineGrantDeviceSecretHash.
-func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantDeviceSecretHash(grantID, newDeviceSecretHash, dpopJKT, expireAt interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantStoreMockRecorder) UpdateOfflineGrantDeviceSecretHash(ctx, grantID, newDeviceSecretHash, dpopJKT, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantDeviceSecretHash", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantDeviceSecretHash), grantID, newDeviceSecretHash, dpopJKT, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOfflineGrantDeviceSecretHash", reflect.TypeOf((*MockTokenHandlerOfflineGrantStore)(nil).UpdateOfflineGrantDeviceSecretHash), ctx, grantID, newDeviceSecretHash, dpopJKT, expireAt)
 }
 
 // MockTokenHandlerAppSessionTokenStore is a mock of TokenHandlerAppSessionTokenStore interface.
@@ -550,17 +551,17 @@ func (m *MockTokenHandlerAppSessionTokenStore) EXPECT() *MockTokenHandlerAppSess
 }
 
 // CreateAppSessionToken mocks base method.
-func (m *MockTokenHandlerAppSessionTokenStore) CreateAppSessionToken(arg0 *oauth.AppSessionToken) error {
+func (m *MockTokenHandlerAppSessionTokenStore) CreateAppSessionToken(ctx context.Context, t *oauth.AppSessionToken) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateAppSessionToken", arg0)
+	ret := m.ctrl.Call(m, "CreateAppSessionToken", ctx, t)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateAppSessionToken indicates an expected call of CreateAppSessionToken.
-func (mr *MockTokenHandlerAppSessionTokenStoreMockRecorder) CreateAppSessionToken(arg0 interface{}) *gomock.Call {
+func (mr *MockTokenHandlerAppSessionTokenStoreMockRecorder) CreateAppSessionToken(ctx, t interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAppSessionToken", reflect.TypeOf((*MockTokenHandlerAppSessionTokenStore)(nil).CreateAppSessionToken), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAppSessionToken", reflect.TypeOf((*MockTokenHandlerAppSessionTokenStore)(nil).CreateAppSessionToken), ctx, t)
 }
 
 // MockTokenHandlerOfflineGrantService is a mock of TokenHandlerOfflineGrantService interface.
@@ -587,33 +588,33 @@ func (m *MockTokenHandlerOfflineGrantService) EXPECT() *MockTokenHandlerOfflineG
 }
 
 // AccessOfflineGrant mocks base method.
-func (m *MockTokenHandlerOfflineGrantService) AccessOfflineGrant(id string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantService) AccessOfflineGrant(ctx context.Context, id string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AccessOfflineGrant", id, accessEvent, expireAt)
+	ret := m.ctrl.Call(m, "AccessOfflineGrant", ctx, id, accessEvent, expireAt)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AccessOfflineGrant indicates an expected call of AccessOfflineGrant.
-func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) AccessOfflineGrant(id, accessEvent, expireAt interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) AccessOfflineGrant(ctx, id, accessEvent, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccessOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).AccessOfflineGrant), id, accessEvent, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AccessOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).AccessOfflineGrant), ctx, id, accessEvent, expireAt)
 }
 
 // GetOfflineGrant mocks base method.
-func (m *MockTokenHandlerOfflineGrantService) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
+func (m *MockTokenHandlerOfflineGrantService) GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOfflineGrant", id)
+	ret := m.ctrl.Call(m, "GetOfflineGrant", ctx, id)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOfflineGrant indicates an expected call of GetOfflineGrant.
-func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) GetOfflineGrant(id interface{}) *gomock.Call {
+func (mr *MockTokenHandlerOfflineGrantServiceMockRecorder) GetOfflineGrant(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).GetOfflineGrant), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockTokenHandlerOfflineGrantService)(nil).GetOfflineGrant), ctx, id)
 }
 
 // MockTokenHandlerTokenService is a mock of TokenHandlerTokenService interface.
@@ -640,37 +641,37 @@ func (m *MockTokenHandlerTokenService) EXPECT() *MockTokenHandlerTokenServiceMoc
 }
 
 // IssueAccessGrant mocks base method.
-func (m *MockTokenHandlerTokenService) IssueAccessGrant(client *config.OAuthClientConfig, scopes []string, authzID, userID, sessionID string, sessionKind oauth.GrantSessionKind, refreshTokenHash string, resp protocol.TokenResponse) error {
+func (m *MockTokenHandlerTokenService) IssueAccessGrant(ctx context.Context, client *config.OAuthClientConfig, scopes []string, authzID, userID, sessionID string, sessionKind oauth.GrantSessionKind, refreshTokenHash string, resp protocol.TokenResponse) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueAccessGrant", client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp)
+	ret := m.ctrl.Call(m, "IssueAccessGrant", ctx, client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // IssueAccessGrant indicates an expected call of IssueAccessGrant.
-func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrant(client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp interface{}) *gomock.Call {
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueAccessGrant(ctx, client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrant), client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueAccessGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueAccessGrant), ctx, client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash, resp)
 }
 
 // IssueDeviceSecret mocks base method.
-func (m *MockTokenHandlerTokenService) IssueDeviceSecret(resp protocol.TokenResponse) string {
+func (m *MockTokenHandlerTokenService) IssueDeviceSecret(ctx context.Context, resp protocol.TokenResponse) string {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueDeviceSecret", resp)
+	ret := m.ctrl.Call(m, "IssueDeviceSecret", ctx, resp)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
 // IssueDeviceSecret indicates an expected call of IssueDeviceSecret.
-func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueDeviceSecret(resp interface{}) *gomock.Call {
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueDeviceSecret(ctx, resp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueDeviceSecret", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueDeviceSecret), resp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueDeviceSecret", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueDeviceSecret), ctx, resp)
 }
 
 // IssueOfflineGrant mocks base method.
-func (m *MockTokenHandlerTokenService) IssueOfflineGrant(client *config.OAuthClientConfig, opts handler.IssueOfflineGrantOptions, resp protocol.TokenResponse) (*oauth.OfflineGrant, string, error) {
+func (m *MockTokenHandlerTokenService) IssueOfflineGrant(ctx context.Context, client *config.OAuthClientConfig, opts handler.IssueOfflineGrantOptions, resp protocol.TokenResponse) (*oauth.OfflineGrant, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueOfflineGrant", client, opts, resp)
+	ret := m.ctrl.Call(m, "IssueOfflineGrant", ctx, client, opts, resp)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -678,15 +679,15 @@ func (m *MockTokenHandlerTokenService) IssueOfflineGrant(client *config.OAuthCli
 }
 
 // IssueOfflineGrant indicates an expected call of IssueOfflineGrant.
-func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueOfflineGrant(client, opts, resp interface{}) *gomock.Call {
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueOfflineGrant(ctx, client, opts, resp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueOfflineGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueOfflineGrant), client, opts, resp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueOfflineGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueOfflineGrant), ctx, client, opts, resp)
 }
 
 // IssueRefreshTokenForOfflineGrant mocks base method.
-func (m *MockTokenHandlerTokenService) IssueRefreshTokenForOfflineGrant(offlineGrantID string, client *config.OAuthClientConfig, opts handler.IssueOfflineGrantRefreshTokenOptions, resp protocol.TokenResponse) (*oauth.OfflineGrant, string, error) {
+func (m *MockTokenHandlerTokenService) IssueRefreshTokenForOfflineGrant(ctx context.Context, offlineGrantID string, client *config.OAuthClientConfig, opts handler.IssueOfflineGrantRefreshTokenOptions, resp protocol.TokenResponse) (*oauth.OfflineGrant, string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssueRefreshTokenForOfflineGrant", offlineGrantID, client, opts, resp)
+	ret := m.ctrl.Call(m, "IssueRefreshTokenForOfflineGrant", ctx, offlineGrantID, client, opts, resp)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(string)
 	ret2, _ := ret[2].(error)
@@ -694,9 +695,9 @@ func (m *MockTokenHandlerTokenService) IssueRefreshTokenForOfflineGrant(offlineG
 }
 
 // IssueRefreshTokenForOfflineGrant indicates an expected call of IssueRefreshTokenForOfflineGrant.
-func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueRefreshTokenForOfflineGrant(offlineGrantID, client, opts, resp interface{}) *gomock.Call {
+func (mr *MockTokenHandlerTokenServiceMockRecorder) IssueRefreshTokenForOfflineGrant(ctx, offlineGrantID, client, opts, resp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueRefreshTokenForOfflineGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueRefreshTokenForOfflineGrant), offlineGrantID, client, opts, resp)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssueRefreshTokenForOfflineGrant", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).IssueRefreshTokenForOfflineGrant), ctx, offlineGrantID, client, opts, resp)
 }
 
 // ParseRefreshToken mocks base method.
@@ -714,6 +715,44 @@ func (m *MockTokenHandlerTokenService) ParseRefreshToken(ctx context.Context, to
 func (mr *MockTokenHandlerTokenServiceMockRecorder) ParseRefreshToken(ctx, token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ParseRefreshToken", reflect.TypeOf((*MockTokenHandlerTokenService)(nil).ParseRefreshToken), ctx, token)
+}
+
+// MockTokenHandlerIDPSessionProvider is a mock of TokenHandlerIDPSessionProvider interface.
+type MockTokenHandlerIDPSessionProvider struct {
+	ctrl     *gomock.Controller
+	recorder *MockTokenHandlerIDPSessionProviderMockRecorder
+}
+
+// MockTokenHandlerIDPSessionProviderMockRecorder is the mock recorder for MockTokenHandlerIDPSessionProvider.
+type MockTokenHandlerIDPSessionProviderMockRecorder struct {
+	mock *MockTokenHandlerIDPSessionProvider
+}
+
+// NewMockTokenHandlerIDPSessionProvider creates a new mock instance.
+func NewMockTokenHandlerIDPSessionProvider(ctrl *gomock.Controller) *MockTokenHandlerIDPSessionProvider {
+	mock := &MockTokenHandlerIDPSessionProvider{ctrl: ctrl}
+	mock.recorder = &MockTokenHandlerIDPSessionProviderMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockTokenHandlerIDPSessionProvider) EXPECT() *MockTokenHandlerIDPSessionProviderMockRecorder {
+	return m.recorder
+}
+
+// Get mocks base method.
+func (m *MockTokenHandlerIDPSessionProvider) Get(ctx context.Context, id string) (*idpsession.IDPSession, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Get", ctx, id)
+	ret0, _ := ret[0].(*idpsession.IDPSession)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Get indicates an expected call of Get.
+func (mr *MockTokenHandlerIDPSessionProviderMockRecorder) Get(ctx, id interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockTokenHandlerIDPSessionProvider)(nil).Get), ctx, id)
 }
 
 // MockPreAuthenticatedURLTokenService is a mock of PreAuthenticatedURLTokenService interface.
@@ -740,31 +779,31 @@ func (m *MockPreAuthenticatedURLTokenService) EXPECT() *MockPreAuthenticatedURLT
 }
 
 // ExchangeForAccessToken mocks base method.
-func (m *MockPreAuthenticatedURLTokenService) ExchangeForAccessToken(client *config.OAuthClientConfig, sessionID, token string) (string, error) {
+func (m *MockPreAuthenticatedURLTokenService) ExchangeForAccessToken(ctx context.Context, client *config.OAuthClientConfig, sessionID, token string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ExchangeForAccessToken", client, sessionID, token)
+	ret := m.ctrl.Call(m, "ExchangeForAccessToken", ctx, client, sessionID, token)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ExchangeForAccessToken indicates an expected call of ExchangeForAccessToken.
-func (mr *MockPreAuthenticatedURLTokenServiceMockRecorder) ExchangeForAccessToken(client, sessionID, token interface{}) *gomock.Call {
+func (mr *MockPreAuthenticatedURLTokenServiceMockRecorder) ExchangeForAccessToken(ctx, client, sessionID, token interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExchangeForAccessToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenService)(nil).ExchangeForAccessToken), client, sessionID, token)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExchangeForAccessToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenService)(nil).ExchangeForAccessToken), ctx, client, sessionID, token)
 }
 
 // IssuePreAuthenticatedURLToken mocks base method.
-func (m *MockPreAuthenticatedURLTokenService) IssuePreAuthenticatedURLToken(options *handler.IssuePreAuthenticatedURLTokenOptions) (*handler.IssuePreAuthenticatedURLTokenResult, error) {
+func (m *MockPreAuthenticatedURLTokenService) IssuePreAuthenticatedURLToken(ctx context.Context, options *handler.IssuePreAuthenticatedURLTokenOptions) (*handler.IssuePreAuthenticatedURLTokenResult, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IssuePreAuthenticatedURLToken", options)
+	ret := m.ctrl.Call(m, "IssuePreAuthenticatedURLToken", ctx, options)
 	ret0, _ := ret[0].(*handler.IssuePreAuthenticatedURLTokenResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // IssuePreAuthenticatedURLToken indicates an expected call of IssuePreAuthenticatedURLToken.
-func (mr *MockPreAuthenticatedURLTokenServiceMockRecorder) IssuePreAuthenticatedURLToken(options interface{}) *gomock.Call {
+func (mr *MockPreAuthenticatedURLTokenServiceMockRecorder) IssuePreAuthenticatedURLToken(ctx, options interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssuePreAuthenticatedURLToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenService)(nil).IssuePreAuthenticatedURLToken), options)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IssuePreAuthenticatedURLToken", reflect.TypeOf((*MockPreAuthenticatedURLTokenService)(nil).IssuePreAuthenticatedURLToken), ctx, options)
 }

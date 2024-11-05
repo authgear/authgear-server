@@ -62,6 +62,7 @@ type TokenService struct {
 }
 
 func (s *TokenService) IssueOfflineGrant(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	opts IssueOfflineGrantOptions,
 	resp protocol.TokenResponse,
@@ -105,7 +106,7 @@ func (s *TokenService) IssueOfflineGrant(
 	}
 
 	if opts.IssueDeviceSecret {
-		deviceSecretHash := s.IssueDeviceSecret(resp)
+		deviceSecretHash := s.IssueDeviceSecret(ctx, resp)
 		offlineGrant.DeviceSecretHash = deviceSecretHash
 		offlineGrant.DeviceSecretDPoPJKT = opts.DPoPJKT
 	}
@@ -124,12 +125,12 @@ func (s *TokenService) IssueOfflineGrant(
 	}
 	offlineGrant.ExpireAtForResolvedSession = expiry
 
-	err = s.OfflineGrants.CreateOfflineGrant(offlineGrant)
+	err = s.OfflineGrants.CreateOfflineGrant(ctx, offlineGrant)
 	if err != nil {
 		return nil, "", err
 	}
 
-	err = s.AccessEvents.InitStream(offlineGrant.ID, expiry, &offlineGrant.AccessInfo.InitialAccess)
+	err = s.AccessEvents.InitStream(ctx, offlineGrant.ID, expiry, &offlineGrant.AccessInfo.InitialAccess)
 	if err != nil {
 		return nil, "", err
 	}
@@ -141,18 +142,19 @@ func (s *TokenService) IssueOfflineGrant(
 }
 
 func (s *TokenService) IssueRefreshTokenForOfflineGrant(
+	ctx context.Context,
 	offlineGrantID string,
 	client *config.OAuthClientConfig,
 	opts IssueOfflineGrantRefreshTokenOptions,
 	resp protocol.TokenResponse,
 ) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error) {
-	offlineGrant, err = s.OfflineGrantService.GetOfflineGrant(offlineGrantID)
+	offlineGrant, err = s.OfflineGrantService.GetOfflineGrant(ctx, offlineGrantID)
 	if err != nil {
 		return nil, "", err
 	}
 
 	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(
-		offlineGrant, client.ClientID, opts.Scopes, opts.AuthorizationID, opts.DPoPJKT,
+		ctx, offlineGrant, client.ClientID, opts.Scopes, opts.AuthorizationID, opts.DPoPJKT,
 	)
 	if err != nil {
 		return nil, "", err
@@ -167,6 +169,7 @@ func (s *TokenService) IssueRefreshTokenForOfflineGrant(
 }
 
 func (s *TokenService) IssueAccessGrant(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	scopes []string,
 	authzID string,
@@ -177,7 +180,7 @@ func (s *TokenService) IssueAccessGrant(
 	resp protocol.TokenResponse,
 ) error {
 	result, err := s.AccessGrantService.IssueAccessGrant(
-		client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash,
+		ctx, client, scopes, authzID, userID, sessionID, sessionKind, refreshTokenHash,
 	)
 	if err != nil {
 		return err
@@ -199,7 +202,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidRefreshToken
 	}
 
-	offlineGrant, err = s.OfflineGrantService.GetOfflineGrant(grantID)
+	offlineGrant, err = s.OfflineGrantService.GetOfflineGrant(ctx, grantID)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
@@ -220,7 +223,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 		return nil, nil, "", ErrInvalidDPoPKeyBinding
 	}
 
-	authz, err = s.Authorizations.GetByID(offlineGrantSession.AuthorizationID)
+	authz, err = s.Authorizations.GetByID(ctx, offlineGrantSession.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 		return nil, nil, "", ErrInvalidRefreshToken
 	} else if err != nil {
@@ -228,7 +231,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	}
 
 	// Standard session checking consider ErrUserNotFound and disabled as invalid.
-	u, err := s.Users.GetRaw(offlineGrant.Attrs.UserID)
+	u, err := s.Users.GetRaw(ctx, offlineGrant.Attrs.UserID)
 	if err != nil {
 		if errors.Is(err, user.ErrUserNotFound) {
 			return nil, nil, "", ErrInvalidRefreshToken
@@ -243,7 +246,7 @@ func (s *TokenService) ParseRefreshToken(ctx context.Context, token string) (
 	return authz, offlineGrant, tokenHash, nil
 }
 
-func (s *TokenService) IssueDeviceSecret(resp protocol.TokenResponse) (deviceSecretHash string) {
+func (s *TokenService) IssueDeviceSecret(ctx context.Context, resp protocol.TokenResponse) (deviceSecretHash string) {
 	deviceSecret := s.GenerateToken()
 	deviceSecretHash = oauth.HashToken(deviceSecret)
 	resp.DeviceSecret(deviceSecret)

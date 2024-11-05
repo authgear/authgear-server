@@ -1,6 +1,7 @@
 package handler_test
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -14,7 +15,7 @@ type mockCodeGrantStore struct {
 	grants []oauth.CodeGrant
 }
 
-func (m *mockCodeGrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, error) {
+func (m *mockCodeGrantStore) GetCodeGrant(ctx context.Context, codeHash string) (*oauth.CodeGrant, error) {
 	for _, g := range m.grants {
 		if g.CodeHash == codeHash {
 			return &g, nil
@@ -23,12 +24,12 @@ func (m *mockCodeGrantStore) GetCodeGrant(codeHash string) (*oauth.CodeGrant, er
 	return nil, oauth.ErrGrantNotFound
 }
 
-func (m *mockCodeGrantStore) CreateCodeGrant(grant *oauth.CodeGrant) error {
+func (m *mockCodeGrantStore) CreateCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
 	m.grants = append(m.grants, *grant)
 	return nil
 }
 
-func (m *mockCodeGrantStore) DeleteCodeGrant(grant *oauth.CodeGrant) error {
+func (m *mockCodeGrantStore) DeleteCodeGrant(ctx context.Context, grant *oauth.CodeGrant) error {
 	n := 0
 	for _, g := range m.grants {
 		if g.CodeHash != grant.CodeHash {
@@ -44,7 +45,7 @@ type mockAuthenticationInfoService struct {
 	Entry *authenticationinfo.Entry
 }
 
-func (m *mockAuthenticationInfoService) Get(entryID string) (*authenticationinfo.Entry, error) {
+func (m *mockAuthenticationInfoService) Get(ctx context.Context, entryID string) (*authenticationinfo.Entry, error) {
 	if m.Entry == nil {
 		return nil, authenticationinfo.ErrNotFound
 	}
@@ -52,7 +53,7 @@ func (m *mockAuthenticationInfoService) Get(entryID string) (*authenticationinfo
 	return m.Entry, nil
 }
 
-func (m *mockAuthenticationInfoService) Delete(entryID string) error {
+func (m *mockAuthenticationInfoService) Delete(ctx context.Context, entryID string) error {
 	m.Entry = nil
 	return nil
 }
@@ -61,12 +62,12 @@ type mockOAuthSessionService struct {
 	Entry *oauthsession.Entry
 }
 
-func (m *mockOAuthSessionService) Save(entry *oauthsession.Entry) (err error) {
+func (m *mockOAuthSessionService) Save(ctx context.Context, entry *oauthsession.Entry) (err error) {
 	m.Entry = entry
 	return nil
 }
 
-func (m *mockOAuthSessionService) Get(entryID string) (*oauthsession.Entry, error) {
+func (m *mockOAuthSessionService) Get(ctx context.Context, entryID string) (*oauthsession.Entry, error) {
 	if m.Entry == nil {
 		return nil, oauthsession.ErrNotFound
 	}
@@ -74,7 +75,7 @@ func (m *mockOAuthSessionService) Get(entryID string) (*oauthsession.Entry, erro
 	return m.Entry, nil
 }
 
-func (m *mockOAuthSessionService) Delete(entryID string) error {
+func (m *mockOAuthSessionService) Delete(ctx context.Context, entryID string) error {
 	m.Entry = nil
 	return nil
 }

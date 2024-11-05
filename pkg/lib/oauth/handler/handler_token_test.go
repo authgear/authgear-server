@@ -49,7 +49,6 @@ func TestTokenHandler(t *testing.T) {
 		clock := clock.NewMockClockAt("2020-02-01T00:00:00Z")
 
 		h := handler.TokenHandler{
-			Context:                context.Background(),
 			AppID:                  config.AppID(appID),
 			AppDomains:             []string{},
 			HTTPProto:              "http",
@@ -71,8 +70,8 @@ func TestTokenHandler(t *testing.T) {
 			PreAuthenticatedURLTokenService: preAuthenticatedURLService,
 		}
 
-		handle := func(req *http.Request, r protocol.TokenRequest) *httptest.ResponseRecorder {
-			result := h.Handle(&httptest.ResponseRecorder{}, req, r)
+		handle := func(ctx context.Context, req *http.Request, r protocol.TokenRequest) *httptest.ResponseRecorder {
+			result := h.Handle(ctx, &httptest.ResponseRecorder{}, req, r)
 			resp := httptest.NewRecorder()
 			result.WriteResponse(resp, req)
 			return resp
@@ -103,12 +102,13 @@ func TestTokenHandler(t *testing.T) {
 					ExpireAtForResolvedSession: time.Date(2020, 02, 01, 1, 0, 0, 0, time.UTC),
 				}
 				tokenService.EXPECT().ParseRefreshToken(gomock.Any(), "asdf").Return(&oauth.Authorization{}, offlineGrant, refreshTokenHash, nil)
-				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any()).Return("id-token", nil)
-				tokenService.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+				idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Return("id-token", nil)
+				tokenService.EXPECT().IssueAccessGrant(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 				event := access.NewEvent(clock.NowUTC(), "1.2.3.4", "UA")
-				offlineGrantService.EXPECT().AccessOfflineGrant("offline-grant-id", &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
-				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo("offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
-				res := handle(req, r)
+				offlineGrantService.EXPECT().AccessOfflineGrant(gomock.Any(), "offline-grant-id", &event, offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				offlineGrants.EXPECT().UpdateOfflineGrantDeviceInfo(gomock.Any(), "offline-grant-id", gomock.Any(), offlineGrant.ExpireAtForResolvedSession).Return(offlineGrant, nil)
+				ctx := context.Background()
+				res := handle(ctx, req, r)
 				So(res.Result().StatusCode, ShouldEqual, 200)
 			})
 		})
@@ -146,7 +146,7 @@ func TestTokenHandler(t *testing.T) {
 					Scopes:   testScopes,
 				}},
 			}
-			offlineGrantService.EXPECT().GetOfflineGrant(testOfflineGrantID).
+			offlineGrantService.EXPECT().GetOfflineGrant(gomock.Any(), testOfflineGrantID).
 				AnyTimes().
 				Return(testOfflineGrant, nil)
 			sid := oidc.EncodeSID(testOfflineGrant)
@@ -163,7 +163,7 @@ func TestTokenHandler(t *testing.T) {
 				UserID:   testUserId,
 				Scopes:   testScopes,
 			}
-			authorizations.EXPECT().CheckAndGrant(clientID1, testUserId, gomock.InAnyOrder(testScopes)).
+			authorizations.EXPECT().CheckAndGrant(gomock.Any(), clientID1, testUserId, gomock.InAnyOrder(testScopes)).
 				AnyTimes().
 				Return(testAuthz, nil)
 
@@ -181,19 +181,19 @@ func TestTokenHandler(t *testing.T) {
 			}
 			preAuthenticatedURLService.EXPECT().
 				// TODO: Implement a stricter matcher
-				IssuePreAuthenticatedURLToken(gomock.AssignableToTypeOf((*handler.IssuePreAuthenticatedURLTokenOptions)(nil))).
+				IssuePreAuthenticatedURLToken(gomock.Any(), gomock.AssignableToTypeOf((*handler.IssuePreAuthenticatedURLTokenOptions)(nil))).
 				Times(1).
 				Return(issuePreAuthenticatedURLTokenResult, nil)
 
-			offlineGrants.EXPECT().UpdateOfflineGrantDeviceSecretHash(testOfflineGrantID, gomock.Any(), gomock.Any(), gomock.Any()).
+			offlineGrants.EXPECT().UpdateOfflineGrantDeviceSecretHash(gomock.Any(), testOfflineGrantID, gomock.Any(), gomock.Any(), gomock.Any()).
 				AnyTimes().
 				Return(testOfflineGrant, nil)
 
 			expectedNewIdToken := "NEW_ID_TOKEN"
-			idTokenIssuer.EXPECT().IssueIDToken(gomock.Any()).Times(1).Return(expectedNewIdToken, nil)
+			idTokenIssuer.EXPECT().IssueIDToken(gomock.Any(), gomock.Any()).Times(1).Return(expectedNewIdToken, nil)
 
 			newDeviceSecret := "newdevicesecret"
-			tokenService.EXPECT().IssueDeviceSecret(gomock.Any()).Times(1).Return("newdshash").Do(func(resp protocol.TokenResponse) {
+			tokenService.EXPECT().IssueDeviceSecret(gomock.Any(), gomock.Any()).Times(1).Return("newdshash").Do(func(ctx context.Context, resp protocol.TokenResponse) {
 				resp.DeviceSecret(newDeviceSecret)
 			})
 
@@ -207,7 +207,8 @@ func TestTokenHandler(t *testing.T) {
 				"actor_token_type":     "urn:x-oath:params:oauth:token-type:device-secret",
 				"actor_token":          testDeviceSecret,
 			}
-			resp := handle(req, request)
+			ctx := context.Background()
+			resp := handle(ctx, req, request)
 
 			So(resp.Result().StatusCode, ShouldEqual, 200)
 			var body map[string]interface{}

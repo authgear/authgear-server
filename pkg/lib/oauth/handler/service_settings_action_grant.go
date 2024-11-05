@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
@@ -20,7 +22,7 @@ type CreateSettingsActionGrantOptions struct {
 	AuthorizationRequest protocol.AuthorizationRequest
 }
 
-func (s *SettingsActionGrantService) CreateSettingsActionGrant(opts *CreateSettingsActionGrantOptions) (code string, grant *oauth.SettingsActionGrant, err error) {
+func (s *SettingsActionGrantService) CreateSettingsActionGrant(ctx context.Context, opts *CreateSettingsActionGrantOptions) (code string, grant *oauth.SettingsActionGrant, err error) {
 	code = s.CodeGenerator()
 	codeHash := oauth.HashToken(code)
 
@@ -35,7 +37,7 @@ func (s *SettingsActionGrantService) CreateSettingsActionGrant(opts *CreateSetti
 		AuthorizationRequest: opts.AuthorizationRequest,
 	}
 
-	err = s.SettingsActionGrants.CreateSettingsActionGrant(settingsActionGrant)
+	err = s.SettingsActionGrants.CreateSettingsActionGrant(ctx, settingsActionGrant)
 	if err != nil {
 		return "", nil, err
 	}

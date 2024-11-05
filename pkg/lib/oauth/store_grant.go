@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
-	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
 )
 
 //go:generate mockgen -source=store_grant.go -destination=store_grant_mock_test.go -package oauth
@@ -59,11 +58,6 @@ type OfflineGrantStore interface {
 	ListClientOfflineGrants(ctx context.Context, clientID string, userID string) ([]*OfflineGrant, error)
 
 	CleanUpForDeletingUserID(ctx context.Context, userID string) error
-}
-
-// FIXME(context): This interface is not actually used in this package. Remove it.
-type IDPSessionProvider interface {
-	Get(id string) (*idpsession.IDPSession, error)
 }
 
 type AccessGrantStore interface {
