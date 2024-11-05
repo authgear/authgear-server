@@ -9,7 +9,7 @@ import (
 	"github.com/graphql-go/graphql"
 )
 
-type Resolver func(ctx *Context, id string) (interface{}, error)
+type Resolver func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error)
 
 var resolvers = map[string]Resolver{}
 var typeMapping = map[reflect.Type]*graphql.Object{}
@@ -26,7 +26,7 @@ var nodeDefs = relay.NewNodeDefinitions(relay.NodeDefinitionsConfig{
 		if !ok {
 			return nil, nil
 		}
-		return resolver(GQLContext(ctx), resolvedID.ID)
+		return resolver(ctx, GQLContext(ctx), resolvedID.ID)
 	},
 	TypeResolve: func(params graphql.ResolveTypeParams) *graphql.Object {
 		objType, ok := typeMapping[reflect.TypeOf(params.Value)]

@@ -126,8 +126,8 @@ var nodeAuthenticator = node(
 		},
 	}),
 	&authenticator.Info{},
-	func(ctx *Context, id string) (interface{}, error) {
-		return ctx.Authenticators.Load(id).Value, nil
+	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+		return gqlCtx.Authenticators.Load(ctx, id).Value, nil
 	},
 )
 
@@ -138,7 +138,7 @@ func loadAuthenticator(ctx context.Context, obj interface{}) *graphqlutil.Lazy {
 	case *authenticator.Info:
 		return graphqlutil.NewLazyValue(obj)
 	case *authenticator.Ref:
-		return GQLContext(ctx).Authenticators.Load(obj.ID)
+		return GQLContext(ctx).Authenticators.Load(ctx, obj.ID)
 	default:
 		panic(fmt.Sprintf("graphql: unknown authenticator type: %T", obj))
 	}

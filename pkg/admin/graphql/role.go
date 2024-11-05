@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"context"
+
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
@@ -17,9 +19,10 @@ func init() {
 		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			source := p.Source.(*model.Role)
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			groups, err := gqlCtx.RolesGroupsFacade.ListGroupsByRoleID(source.ID)
+			groups, err := gqlCtx.RolesGroupsFacade.ListGroupsByRoleID(ctx, source.ID)
 			if err != nil {
 				return nil, err
 			}
@@ -40,10 +43,11 @@ func init() {
 		Args:        relay.NewConnectionArgs(graphql.FieldConfigArgument{}),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			source := p.Source.(*model.Role)
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 			pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
-			refs, result, err := gqlCtx.RolesGroupsFacade.ListUserIDsByRoleID(source.ID, pageArgs)
+			refs, result, err := gqlCtx.RolesGroupsFacade.ListUserIDsByRoleID(ctx, source.ID, pageArgs)
 			if err != nil {
 				return nil, err
 			}
@@ -51,7 +55,7 @@ func init() {
 			var lazyItems []graphqlutil.LazyItem
 			for _, ref := range refs {
 				lazyItems = append(lazyItems, graphqlutil.LazyItem{
-					Lazy:   gqlCtx.Users.Load(ref.ID),
+					Lazy:   gqlCtx.Users.Load(ctx, ref.ID),
 					Cursor: graphqlutil.Cursor(ref.Cursor),
 				})
 			}
@@ -90,8 +94,8 @@ var nodeRole = node(
 		},
 	}),
 	&model.Role{},
-	func(ctx *Context, id string) (interface{}, error) {
-		return ctx.Roles.Load(id).Value, nil
+	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+		return gqlCtx.Roles.Load(ctx, id).Value, nil
 	},
 )
 
