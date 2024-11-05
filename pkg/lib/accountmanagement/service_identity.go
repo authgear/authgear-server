@@ -1,6 +1,7 @@
 package accountmanagement
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -25,7 +26,7 @@ type AddIdentityUsernameOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) AddIdentityUsername(resolvedSession session.ResolvedSession, input *AddIdentityUsernameInput) (*AddIdentityUsernameOutput, error) {
+func (s *Service) AddIdentityUsername(ctx context.Context, resolvedSession session.ResolvedSession, input *AddIdentityUsernameInput) (*AddIdentityUsernameOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
@@ -36,18 +37,18 @@ func (s *Service) AddIdentityUsername(resolvedSession session.ResolvedSession, i
 	}
 
 	var info *identity.Info
-	err = s.Database.WithTx(func() error {
-		info, err = s.prepareNewIdentity(userID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		info, err = s.prepareNewIdentity(ctx, userID, spec)
 		if err != nil {
 			return err
 		}
 
-		err = s.createIdentity(info)
+		err = s.createIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityCreatedEvent(info)
+		err = s.dispatchIdentityCreatedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -71,7 +72,7 @@ type UpdateIdentityUsernameOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) UpdateIdentityUsername(resolvedSession session.ResolvedSession, input *UpdateIdentityUsernameInput) (*UpdateIdentityUsernameOutput, error) {
+func (s *Service) UpdateIdentityUsername(ctx context.Context, resolvedSession session.ResolvedSession, input *UpdateIdentityUsernameInput) (*UpdateIdentityUsernameOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
@@ -83,18 +84,18 @@ func (s *Service) UpdateIdentityUsername(resolvedSession session.ResolvedSession
 	}
 
 	var info *identity.Info
-	err = s.Database.WithTx(func() error {
-		oldInfo, newInfo, err := s.prepareUpdateIdentity(userID, identityID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		oldInfo, newInfo, err := s.prepareUpdateIdentity(ctx, userID, identityID, spec)
 		if err != nil {
 			return err
 		}
 
-		err = s.updateIdentity(oldInfo, newInfo)
+		err = s.updateIdentity(ctx, oldInfo, newInfo)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityUpdatedEvent(oldInfo, newInfo)
+		err = s.dispatchIdentityUpdatedEvent(ctx, oldInfo, newInfo)
 		if err != nil {
 			return err
 		}
@@ -117,23 +118,23 @@ type DeleteIdentityUsernameOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) DeleteIdentityUsername(resolvedSession session.ResolvedSession, input *DeleteIdentityUsernameInput) (*DeleteIdentityUsernameOutput, error) {
+func (s *Service) DeleteIdentityUsername(ctx context.Context, resolvedSession session.ResolvedSession, input *DeleteIdentityUsernameInput) (*DeleteIdentityUsernameOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
 	var info *identity.Info
-	err := s.Database.WithTx(func() (err error) {
-		info, err = s.prepareDeleteIdentity(userID, identityID)
+	err := s.Database.WithTx(ctx, func(ctx context.Context) (err error) {
+		info, err = s.prepareDeleteIdentity(ctx, userID, identityID)
 		if err != nil {
 			return err
 		}
 
-		err = s.deleteIdentity(info)
+		err = s.deleteIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityDeletedEvent(info)
+		err = s.dispatchIdentityDeletedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -158,7 +159,7 @@ type StartAddIdentityEmailOutput struct {
 	Token            string
 }
 
-func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession, input *StartAddIdentityEmailInput) (*StartAddIdentityEmailOutput, error) {
+func (s *Service) StartAddIdentityEmail(ctx context.Context, resolvedSession session.ResolvedSession, input *StartAddIdentityEmailInput) (*StartAddIdentityEmailOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
@@ -171,13 +172,13 @@ func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession,
 	var info *identity.Info
 	var token string
 	var needVerification bool
-	err = s.Database.WithTx(func() error {
-		info, err = s.prepareNewIdentity(userID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		info, err = s.prepareNewIdentity(ctx, userID, spec)
 		if err != nil {
 			return err
 		}
 
-		verified, err := s.CheckIdentityVerified(info)
+		verified, err := s.CheckIdentityVerified(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -185,11 +186,11 @@ func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession,
 		if needVerification {
 			target := info.LoginID.LoginID
 			channel := model.AuthenticatorOOBChannelEmail
-			err = s.sendOTPCode(userID, channel, target, false)
+			err = s.sendOTPCode(ctx, userID, channel, target, false)
 			if err != nil {
 				return err
 			}
-			token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			token, err = s.Store.GenerateToken(ctx, GenerateTokenOptions{
 				UserID:        userID,
 				IdentityEmail: info.LoginID.LoginID,
 			})
@@ -199,12 +200,12 @@ func (s *Service) StartAddIdentityEmail(resolvedSession session.ResolvedSession,
 			return nil
 		}
 
-		err = s.createIdentity(info)
+		err = s.createIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityCreatedEvent(info)
+		err = s.dispatchIdentityCreatedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -231,12 +232,12 @@ type ResumeAddIdentityEmailOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddIdentityEmailInput) (output *ResumeAddIdentityEmailOutput, err error) {
+func (s *Service) ResumeAddIdentityEmail(ctx context.Context, resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddIdentityEmailInput) (output *ResumeAddIdentityEmailOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(tokenString)
+	token, err := s.Store.GetToken(ctx, tokenString)
 	defer func() {
 		if err == nil {
-			_, err = s.Store.ConsumeToken(tokenString)
+			_, err = s.Store.ConsumeToken(ctx, tokenString)
 		}
 	}()
 
@@ -248,7 +249,7 @@ func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession
 		return
 	}
 
-	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
+	err = s.VerifyOTP(ctx, userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -259,13 +260,13 @@ func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession
 	}
 
 	var info *identity.Info
-	err = s.Database.WithTx(func() error {
-		info, err = s.prepareNewIdentity(userID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		info, err = s.prepareNewIdentity(ctx, userID, spec)
 		if err != nil {
 			return err
 		}
 
-		err = s.createIdentity(info)
+		err = s.createIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -274,12 +275,12 @@ func (s *Service) ResumeAddIdentityEmail(resolvedSession session.ResolvedSession
 		if !ok {
 			panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
 		}
-		err = s.markClaimVerified(userID, claimName, info.LoginID.LoginID)
+		err = s.markClaimVerified(ctx, userID, claimName, info.LoginID.LoginID)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityCreatedEvent(info)
+		err = s.dispatchIdentityCreatedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -310,7 +311,7 @@ type StartUpdateIdentityEmailOutput struct {
 	Token            string
 }
 
-func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSession, input *StartUpdateIdentityEmailInput) (*StartUpdateIdentityEmailOutput, error) {
+func (s *Service) StartUpdateIdentityEmail(ctx context.Context, resolvedSession session.ResolvedSession, input *StartUpdateIdentityEmailInput) (*StartUpdateIdentityEmailOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
@@ -324,13 +325,13 @@ func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSessi
 	var newInfo *identity.Info
 	var token string
 	var needVerification bool
-	err = s.Database.WithTx(func() error {
-		oldInfo, newInfo, err := s.prepareUpdateIdentity(userID, input.IdentityID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		oldInfo, newInfo, err := s.prepareUpdateIdentity(ctx, userID, input.IdentityID, spec)
 		if err != nil {
 			return err
 		}
 
-		verified, err := s.CheckIdentityVerified(newInfo)
+		verified, err := s.CheckIdentityVerified(ctx, newInfo)
 		if err != nil {
 			return err
 		}
@@ -339,11 +340,11 @@ func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSessi
 		if needVerification {
 			target := newInfo.LoginID.LoginID
 			channel := model.AuthenticatorOOBChannelEmail
-			err = s.sendOTPCode(userID, channel, target, false)
+			err = s.sendOTPCode(ctx, userID, channel, target, false)
 			if err != nil {
 				return err
 			}
-			token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			token, err = s.Store.GenerateToken(ctx, GenerateTokenOptions{
 				UserID:        userID,
 				IdentityEmail: newInfo.LoginID.LoginID,
 				IdentityID:    newInfo.ID,
@@ -354,12 +355,12 @@ func (s *Service) StartUpdateIdentityEmail(resolvedSession session.ResolvedSessi
 			return nil
 		}
 
-		err = s.updateIdentity(oldInfo, newInfo)
+		err = s.updateIdentity(ctx, oldInfo, newInfo)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityCreatedEvent(newInfo)
+		err = s.dispatchIdentityCreatedEvent(ctx, newInfo)
 		if err != nil {
 			return err
 		}
@@ -388,12 +389,12 @@ type ResumeUpdateIdentityEmailOutput struct {
 	NewInfo *identity.Info
 }
 
-func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSession, tokenString string, input *ResumeUpdateIdentityEmailInput) (output *ResumeUpdateIdentityEmailOutput, err error) {
+func (s *Service) ResumeUpdateIdentityEmail(ctx context.Context, resolvedSession session.ResolvedSession, tokenString string, input *ResumeUpdateIdentityEmailInput) (output *ResumeUpdateIdentityEmailOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(tokenString)
+	token, err := s.Store.GetToken(ctx, tokenString)
 	defer func() {
 		if err == nil {
-			_, err = s.Store.ConsumeToken(tokenString)
+			_, err = s.Store.ConsumeToken(ctx, tokenString)
 		}
 	}()
 
@@ -405,7 +406,7 @@ func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSess
 		return
 	}
 
-	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
+	err = s.VerifyOTP(ctx, userID, model.AuthenticatorOOBChannelEmail, token.Identity.Email, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -417,13 +418,13 @@ func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSess
 
 	var oldInfo *identity.Info
 	var newInfo *identity.Info
-	err = s.Database.WithTx(func() error {
-		oldInfo, newInfo, err = s.prepareUpdateIdentity(userID, token.Identity.IdentityID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		oldInfo, newInfo, err = s.prepareUpdateIdentity(ctx, userID, token.Identity.IdentityID, spec)
 		if err != nil {
 			return err
 		}
 
-		err = s.updateIdentity(oldInfo, newInfo)
+		err = s.updateIdentity(ctx, oldInfo, newInfo)
 		if err != nil {
 			return err
 		}
@@ -432,12 +433,12 @@ func (s *Service) ResumeUpdateIdentityEmail(resolvedSession session.ResolvedSess
 		if !ok {
 			panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
 		}
-		err = s.markClaimVerified(userID, claimName, newInfo.LoginID.LoginID)
+		err = s.markClaimVerified(ctx, userID, claimName, newInfo.LoginID.LoginID)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityUpdatedEvent(oldInfo, newInfo)
+		err = s.dispatchIdentityUpdatedEvent(ctx, oldInfo, newInfo)
 		if err != nil {
 			return err
 		}
@@ -466,14 +467,14 @@ type ResumeAddOrUpdateIdentityEmailOutput struct {
 	NewInfo *identity.Info
 }
 
-func (s *Service) ResumeAddOrUpdateIdentityEmail(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddOrUpdateIdentityEmailInput) (*ResumeAddOrUpdateIdentityEmailOutput, error) {
-	token, err := s.Store.GetToken(tokenString)
+func (s *Service) ResumeAddOrUpdateIdentityEmail(ctx context.Context, resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddOrUpdateIdentityEmailInput) (*ResumeAddOrUpdateIdentityEmailOutput, error) {
+	token, err := s.Store.GetToken(ctx, tokenString)
 	if err != nil {
 		return nil, err
 	}
 
 	if token.Identity.IdentityID == "" {
-		output, err := s.ResumeAddIdentityEmail(resolvedSession, tokenString, &ResumeAddIdentityEmailInput{
+		output, err := s.ResumeAddIdentityEmail(ctx, resolvedSession, tokenString, &ResumeAddIdentityEmailInput{
 			LoginIDKey: input.LoginIDKey,
 			Code:       input.Code,
 		})
@@ -485,7 +486,7 @@ func (s *Service) ResumeAddOrUpdateIdentityEmail(resolvedSession session.Resolve
 		}, nil
 	}
 
-	output, err := s.ResumeUpdateIdentityEmail(resolvedSession, tokenString, &ResumeUpdateIdentityEmailInput{
+	output, err := s.ResumeUpdateIdentityEmail(ctx, resolvedSession, tokenString, &ResumeUpdateIdentityEmailInput{
 		LoginIDKey: input.LoginIDKey,
 		Code:       input.Code,
 	})
@@ -506,23 +507,23 @@ type DeleteIdentityEmailOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) DeleteIdentityEmail(resolvedSession session.ResolvedSession, input *DeleteIdentityEmailInput) (*DeleteIdentityEmailOutput, error) {
+func (s *Service) DeleteIdentityEmail(ctx context.Context, resolvedSession session.ResolvedSession, input *DeleteIdentityEmailInput) (*DeleteIdentityEmailOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
 	var info *identity.Info
-	err := s.Database.WithTx(func() (err error) {
-		info, err = s.prepareDeleteIdentity(userID, identityID)
+	err := s.Database.WithTx(ctx, func(ctx context.Context) (err error) {
+		info, err = s.prepareDeleteIdentity(ctx, userID, identityID)
 		if err != nil {
 			return err
 		}
 
-		err = s.deleteIdentity(info)
+		err = s.deleteIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityDeletedEvent(info)
+		err = s.dispatchIdentityDeletedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -548,7 +549,7 @@ type StartAddIdentityPhoneOutput struct {
 	Token            string
 }
 
-func (s *Service) StartAddIdentityPhone(resolvedSession session.ResolvedSession, input *StartAddIdentityPhoneInput) (*StartAddIdentityPhoneOutput, error) {
+func (s *Service) StartAddIdentityPhone(ctx context.Context, resolvedSession session.ResolvedSession, input *StartAddIdentityPhoneInput) (*StartAddIdentityPhoneOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
@@ -561,13 +562,13 @@ func (s *Service) StartAddIdentityPhone(resolvedSession session.ResolvedSession,
 	var info *identity.Info
 	var token string
 	var needVerification bool
-	err = s.Database.WithTx(func() error {
-		info, err = s.prepareNewIdentity(userID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		info, err = s.prepareNewIdentity(ctx, userID, spec)
 		if err != nil {
 			return err
 		}
 
-		verified, err := s.CheckIdentityVerified(info)
+		verified, err := s.CheckIdentityVerified(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -575,11 +576,11 @@ func (s *Service) StartAddIdentityPhone(resolvedSession session.ResolvedSession,
 
 		if needVerification {
 			target := info.LoginID.LoginID
-			err = s.sendOTPCode(userID, input.Channel, target, false)
+			err = s.sendOTPCode(ctx, userID, input.Channel, target, false)
 			if err != nil {
 				return err
 			}
-			token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			token, err = s.Store.GenerateToken(ctx, GenerateTokenOptions{
 				UserID:              userID,
 				IdentityChannel:     input.Channel,
 				IdentityPhoneNumber: info.LoginID.LoginID,
@@ -590,12 +591,12 @@ func (s *Service) StartAddIdentityPhone(resolvedSession session.ResolvedSession,
 			return nil
 		}
 
-		err = s.createIdentity(info)
+		err = s.createIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityCreatedEvent(info)
+		err = s.dispatchIdentityCreatedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -622,12 +623,12 @@ type ResumeAddIdentityPhoneOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddIdentityPhoneInput) (output *ResumeAddIdentityPhoneOutput, err error) {
+func (s *Service) ResumeAddIdentityPhone(ctx context.Context, resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddIdentityPhoneInput) (output *ResumeAddIdentityPhoneOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(tokenString)
+	token, err := s.Store.GetToken(ctx, tokenString)
 	defer func() {
 		if err == nil {
-			_, err = s.Store.ConsumeToken(tokenString)
+			_, err = s.Store.ConsumeToken(ctx, tokenString)
 		}
 	}()
 
@@ -639,7 +640,7 @@ func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession
 		return
 	}
 
-	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
+	err = s.VerifyOTP(ctx, userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -650,13 +651,13 @@ func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession
 	}
 
 	var info *identity.Info
-	err = s.Database.WithTx(func() error {
-		info, err = s.prepareNewIdentity(userID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		info, err = s.prepareNewIdentity(ctx, userID, spec)
 		if err != nil {
 			return err
 		}
 
-		err = s.createIdentity(info)
+		err = s.createIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -665,12 +666,12 @@ func (s *Service) ResumeAddIdentityPhone(resolvedSession session.ResolvedSession
 		if !ok {
 			panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
 		}
-		err = s.markClaimVerified(userID, claimName, info.LoginID.LoginID)
+		err = s.markClaimVerified(ctx, userID, claimName, info.LoginID.LoginID)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityCreatedEvent(info)
+		err = s.dispatchIdentityCreatedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -701,7 +702,7 @@ type StartUpdateIdentityPhoneOutput struct {
 	Token            string
 }
 
-func (s *Service) StartUpdateIdentityPhone(resolvedSession session.ResolvedSession, input *StartUpdateIdentityPhoneInput) (*StartUpdateIdentityPhoneOutput, error) {
+func (s *Service) StartUpdateIdentityPhone(ctx context.Context, resolvedSession session.ResolvedSession, input *StartUpdateIdentityPhoneInput) (*StartUpdateIdentityPhoneOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	loginKey := input.LoginIDKey
 	loginID := input.LoginID
@@ -714,25 +715,25 @@ func (s *Service) StartUpdateIdentityPhone(resolvedSession session.ResolvedSessi
 	var info *identity.Info
 	var token string
 	var needVerification bool
-	err = s.Database.WithTx(func() error {
-		oldInfo, newInfo, err := s.prepareUpdateIdentity(userID, input.IdentityID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		oldInfo, newInfo, err := s.prepareUpdateIdentity(ctx, userID, input.IdentityID, spec)
 		if err != nil {
 			return err
 		}
 		info = newInfo
 
-		verified, err := s.CheckIdentityVerified(newInfo)
+		verified, err := s.CheckIdentityVerified(ctx, newInfo)
 		if err != nil {
 			return err
 		}
 		needVerification = !verified && *s.Config.Verification.Claims.PhoneNumber.Enabled && *s.Config.Verification.Claims.PhoneNumber.Required
 		if needVerification {
 			target := info.LoginID.LoginID
-			err = s.sendOTPCode(userID, input.Channel, target, false)
+			err = s.sendOTPCode(ctx, userID, input.Channel, target, false)
 			if err != nil {
 				return err
 			}
-			token, err = s.Store.GenerateToken(GenerateTokenOptions{
+			token, err = s.Store.GenerateToken(ctx, GenerateTokenOptions{
 				UserID:              userID,
 				IdentityChannel:     input.Channel,
 				IdentityPhoneNumber: info.LoginID.LoginID,
@@ -744,12 +745,12 @@ func (s *Service) StartUpdateIdentityPhone(resolvedSession session.ResolvedSessi
 			return nil
 		}
 
-		err = s.updateIdentity(oldInfo, newInfo)
+		err = s.updateIdentity(ctx, oldInfo, newInfo)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityCreatedEvent(newInfo)
+		err = s.dispatchIdentityCreatedEvent(ctx, newInfo)
 		if err != nil {
 			return err
 		}
@@ -777,12 +778,12 @@ type ResumeUpdateIdentityPhoneOutput struct {
 	NewInfo *identity.Info
 }
 
-func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSession, tokenString string, input *ResumeUpdateIdentityPhoneInput) (output *ResumeUpdateIdentityPhoneOutput, err error) {
+func (s *Service) ResumeUpdateIdentityPhone(ctx context.Context, resolvedSession session.ResolvedSession, tokenString string, input *ResumeUpdateIdentityPhoneInput) (output *ResumeUpdateIdentityPhoneOutput, err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(tokenString)
+	token, err := s.Store.GetToken(ctx, tokenString)
 	defer func() {
 		if err == nil {
-			_, err = s.Store.ConsumeToken(tokenString)
+			_, err = s.Store.ConsumeToken(ctx, tokenString)
 		}
 	}()
 
@@ -794,7 +795,7 @@ func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSess
 		return
 	}
 
-	err = s.VerifyOTP(userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
+	err = s.VerifyOTP(ctx, userID, model.AuthenticatorOOBChannelSMS, token.Identity.PhoneNumber, input.Code, false)
 	if err != nil {
 		return
 	}
@@ -806,13 +807,13 @@ func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSess
 
 	var oldInfo *identity.Info
 	var newInfo *identity.Info
-	err = s.Database.WithTx(func() error {
-		oldInfo, newInfo, err := s.prepareUpdateIdentity(userID, token.Identity.IdentityID, spec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		oldInfo, newInfo, err := s.prepareUpdateIdentity(ctx, userID, token.Identity.IdentityID, spec)
 		if err != nil {
 			return err
 		}
 
-		err = s.updateIdentity(oldInfo, newInfo)
+		err = s.updateIdentity(ctx, oldInfo, newInfo)
 		if err != nil {
 			return err
 		}
@@ -821,12 +822,12 @@ func (s *Service) ResumeUpdateIdentityPhone(resolvedSession session.ResolvedSess
 		if !ok {
 			panic(fmt.Errorf("accountmanagement: unexpected login ID key"))
 		}
-		err = s.markClaimVerified(userID, claimName, newInfo.LoginID.LoginID)
+		err = s.markClaimVerified(ctx, userID, claimName, newInfo.LoginID.LoginID)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityUpdatedEvent(oldInfo, newInfo)
+		err = s.dispatchIdentityUpdatedEvent(ctx, oldInfo, newInfo)
 		if err != nil {
 			return err
 		}
@@ -855,14 +856,14 @@ type ResumeAddOrUpdateIdentityPhoneOutput struct {
 	NewInfo *identity.Info
 }
 
-func (s *Service) ResumeAddOrUpdateIdentityPhone(resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddOrUpdateIdentityPhoneInput) (*ResumeAddOrUpdateIdentityPhoneOutput, error) {
-	token, err := s.Store.GetToken(tokenString)
+func (s *Service) ResumeAddOrUpdateIdentityPhone(ctx context.Context, resolvedSession session.ResolvedSession, tokenString string, input *ResumeAddOrUpdateIdentityPhoneInput) (*ResumeAddOrUpdateIdentityPhoneOutput, error) {
+	token, err := s.Store.GetToken(ctx, tokenString)
 	if err != nil {
 		return nil, err
 	}
 
 	if token.Identity.IdentityID == "" {
-		output, err := s.ResumeAddIdentityPhone(resolvedSession, tokenString, &ResumeAddIdentityPhoneInput{
+		output, err := s.ResumeAddIdentityPhone(ctx, resolvedSession, tokenString, &ResumeAddIdentityPhoneInput{
 			LoginIDKey: input.LoginIDKey,
 			Code:       input.Code,
 		})
@@ -874,7 +875,7 @@ func (s *Service) ResumeAddOrUpdateIdentityPhone(resolvedSession session.Resolve
 		}, nil
 	}
 
-	output, err := s.ResumeUpdateIdentityPhone(resolvedSession, tokenString, &ResumeUpdateIdentityPhoneInput{
+	output, err := s.ResumeUpdateIdentityPhone(ctx, resolvedSession, tokenString, &ResumeUpdateIdentityPhoneInput{
 		LoginIDKey: input.LoginIDKey,
 		Code:       input.Code,
 	})
@@ -895,23 +896,23 @@ type DeleteIdentityPhoneOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) DeleteIdentityPhone(resolvedSession session.ResolvedSession, input *DeleteIdentityPhoneInput) (*DeleteIdentityPhoneOutput, error) {
+func (s *Service) DeleteIdentityPhone(ctx context.Context, resolvedSession session.ResolvedSession, input *DeleteIdentityPhoneInput) (*DeleteIdentityPhoneOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
 	var info *identity.Info
-	err := s.Database.WithTx(func() (err error) {
-		info, err = s.prepareDeleteIdentity(userID, identityID)
+	err := s.Database.WithTx(ctx, func(ctx context.Context) (err error) {
+		info, err = s.prepareDeleteIdentity(ctx, userID, identityID)
 		if err != nil {
 			return err
 		}
 
-		err = s.deleteIdentity(info)
+		err = s.deleteIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityDeletedEvent(info)
+		err = s.dispatchIdentityDeletedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -933,7 +934,7 @@ type AddPasskeyOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) AddPasskey(resolvedSession session.ResolvedSession, input *AddPasskeyInput) (*AddPasskeyOutput, error) {
+func (s *Service) AddPasskey(ctx context.Context, resolvedSession session.ResolvedSession, input *AddPasskeyInput) (*AddPasskeyOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	creationResponse := input.CreationResponse
 	creationResponseBytes, err := json.Marshal(creationResponse)
@@ -951,7 +952,7 @@ func (s *Service) AddPasskey(resolvedSession session.ResolvedSession, input *Add
 	}
 
 	authenticatorID := uuid.New()
-	authenticatorInfo, err := s.Authenticators.NewWithAuthenticatorID(authenticatorID, authenticatorSpec)
+	authenticatorInfo, err := s.Authenticators.NewWithAuthenticatorID(ctx, authenticatorID, authenticatorSpec)
 	if err != nil {
 		return nil, err
 	}
@@ -964,27 +965,27 @@ func (s *Service) AddPasskey(resolvedSession session.ResolvedSession, input *Add
 	}
 
 	var identityInfo *identity.Info
-	err = s.Database.WithTx(func() error {
-		identityInfo, err = s.prepareNewIdentity(userID, identitySpec)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		identityInfo, err = s.prepareNewIdentity(ctx, userID, identitySpec)
 		if err != nil {
 			return err
 		}
 
-		err = s.createIdentity(identityInfo)
+		err = s.createIdentity(ctx, identityInfo)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityCreatedEvent(identityInfo)
+		err = s.dispatchIdentityCreatedEvent(ctx, identityInfo)
 		if err != nil {
 			return err
 		}
 
-		err = s.Authenticators.Create(authenticatorInfo, false)
+		err = s.Authenticators.Create(ctx, authenticatorInfo, false)
 		if err != nil {
 			return err
 		}
-		err = s.PasskeyService.ConsumeAttestationResponse(creationResponseBytes)
+		err = s.PasskeyService.ConsumeAttestationResponse(ctx, creationResponseBytes)
 		if err != nil {
 			return err
 		}
@@ -1005,23 +1006,23 @@ type DeletePasskeyOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) DeletePasskey(resolvedSession session.ResolvedSession, input *DeletePasskeyInput) (*DeletePasskeyOutput, error) {
+func (s *Service) DeletePasskey(ctx context.Context, resolvedSession session.ResolvedSession, input *DeletePasskeyInput) (*DeletePasskeyOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
 	var info *identity.Info
-	err := s.Database.WithTx(func() (err error) {
-		info, err = s.prepareDeleteIdentity(userID, identityID)
+	err := s.Database.WithTx(ctx, func(ctx context.Context) (err error) {
+		info, err = s.prepareDeleteIdentity(ctx, userID, identityID)
 		if err != nil {
 			return err
 		}
 
-		err = s.deleteIdentity(info)
+		err = s.deleteIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityDeletedEvent(info)
+		err = s.dispatchIdentityDeletedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -1043,23 +1044,23 @@ type DeleteIdentityBiometricOuput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) DeleteIdentityBiometric(resolvedSession session.ResolvedSession, input *DeleteIdentityBiometricInput) (*DeleteIdentityBiometricOuput, error) {
+func (s *Service) DeleteIdentityBiometric(ctx context.Context, resolvedSession session.ResolvedSession, input *DeleteIdentityBiometricInput) (*DeleteIdentityBiometricOuput, error) {
 	identityID := input.IdentityID
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 
 	var info *identity.Info
-	err := s.Database.WithTx(func() (err error) {
-		info, err = s.prepareDeleteIdentity(userID, identityID)
+	err := s.Database.WithTx(ctx, func(ctx context.Context) (err error) {
+		info, err = s.prepareDeleteIdentity(ctx, userID, identityID)
 		if err != nil {
 			return err
 		}
 
-		err = s.deleteIdentity(info)
+		err = s.deleteIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityDeletedEvent(info)
+		err = s.dispatchIdentityDeletedEvent(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -1094,8 +1095,8 @@ func (i *Service) makeLoginIDSpec(loginIDKey string, loginID string) (*identity.
 	return identitySpec, nil
 }
 
-func (s *Service) prepareNewIdentity(userID string, identitySpec *identity.Spec) (*identity.Info, error) {
-	info, err := s.Identities.New(userID, identitySpec, identity.NewIdentityOptions{LoginIDEmailByPassBlocklistAllowlist: false})
+func (s *Service) prepareNewIdentity(ctx context.Context, userID string, identitySpec *identity.Spec) (*identity.Info, error) {
+	info, err := s.Identities.New(ctx, userID, identitySpec, identity.NewIdentityOptions{LoginIDEmailByPassBlocklistAllowlist: false})
 	if err != nil {
 		return nil, err
 	}
@@ -1105,7 +1106,7 @@ func (s *Service) prepareNewIdentity(userID string, identitySpec *identity.Spec)
 		return nil, api.ErrIdentityModifyDisabled
 	}
 
-	if _, err := s.Identities.CheckDuplicated(info); err != nil {
+	if _, err := s.Identities.CheckDuplicated(ctx, info); err != nil {
 		if identity.IsErrDuplicatedIdentity(err) {
 			return nil, NewErrAccountManagementDuplicatedIdentity(err)
 		}
@@ -1115,8 +1116,8 @@ func (s *Service) prepareNewIdentity(userID string, identitySpec *identity.Spec)
 	return info, nil
 }
 
-func (s *Service) prepareUpdateIdentity(userID string, identityID string, identitySpec *identity.Spec) (*identity.Info, *identity.Info, error) {
-	oldInfo, err := s.Identities.Get(identityID)
+func (s *Service) prepareUpdateIdentity(ctx context.Context, userID string, identityID string, identitySpec *identity.Spec) (*identity.Info, *identity.Info, error) {
+	oldInfo, err := s.Identities.Get(ctx, identityID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1125,7 +1126,7 @@ func (s *Service) prepareUpdateIdentity(userID string, identityID string, identi
 		return nil, nil, ErrAccountManagementIdentityNotOwnedbyToUser
 	}
 
-	newInfo, err := s.Identities.UpdateWithSpec(oldInfo, identitySpec, identity.NewIdentityOptions{
+	newInfo, err := s.Identities.UpdateWithSpec(ctx, oldInfo, identitySpec, identity.NewIdentityOptions{
 		LoginIDEmailByPassBlocklistAllowlist: false,
 	})
 	if err != nil {
@@ -1137,7 +1138,7 @@ func (s *Service) prepareUpdateIdentity(userID string, identityID string, identi
 		return nil, nil, api.ErrIdentityModifyDisabled
 	}
 
-	if _, err := s.Identities.CheckDuplicated(newInfo); err != nil {
+	if _, err := s.Identities.CheckDuplicated(ctx, newInfo); err != nil {
 		if identity.IsErrDuplicatedIdentity(err) {
 			return nil, nil, NewErrAccountManagementDuplicatedIdentity(err)
 		}
@@ -1147,8 +1148,8 @@ func (s *Service) prepareUpdateIdentity(userID string, identityID string, identi
 	return oldInfo, newInfo, nil
 }
 
-func (s *Service) prepareDeleteIdentity(userID string, identityID string) (*identity.Info, error) {
-	info, err := s.Identities.Get(identityID)
+func (s *Service) prepareDeleteIdentity(ctx context.Context, userID string, identityID string) (*identity.Info, error) {
+	info, err := s.Identities.Get(ctx, identityID)
 	if err != nil {
 		return nil, err
 	}
@@ -1165,8 +1166,8 @@ func (s *Service) prepareDeleteIdentity(userID string, identityID string) (*iden
 	return info, nil
 }
 
-func (s *Service) CheckIdentityVerified(info *identity.Info) (bool, error) {
-	claims, err := s.Verification.GetIdentityVerificationStatus(info)
+func (s *Service) CheckIdentityVerified(ctx context.Context, info *identity.Info) (bool, error) {
+	claims, err := s.Verification.GetIdentityVerificationStatus(ctx, info)
 	if err != nil {
 		return false, err
 	}
@@ -1177,19 +1178,19 @@ func (s *Service) CheckIdentityVerified(info *identity.Info) (bool, error) {
 	return claim.Verified, nil
 }
 
-func (s *Service) createIdentity(info *identity.Info) error {
-	return s.Identities.Create(info)
+func (s *Service) createIdentity(ctx context.Context, info *identity.Info) error {
+	return s.Identities.Create(ctx, info)
 }
 
-func (s *Service) updateIdentity(oldInfo *identity.Info, newInfo *identity.Info) error {
-	return s.Identities.Update(oldInfo, newInfo)
+func (s *Service) updateIdentity(ctx context.Context, oldInfo *identity.Info, newInfo *identity.Info) error {
+	return s.Identities.Update(ctx, oldInfo, newInfo)
 }
 
-func (s *Service) deleteIdentity(info *identity.Info) error {
-	return s.Identities.Delete(info)
+func (s *Service) deleteIdentity(ctx context.Context, info *identity.Info) error {
+	return s.Identities.Delete(ctx, info)
 }
 
-func (s *Service) dispatchIdentityCreatedEvent(info *identity.Info) (err error) {
+func (s *Service) dispatchIdentityCreatedEvent(ctx context.Context, info *identity.Info) (err error) {
 	userRef := model.UserRef{
 		Meta: model.Meta{
 			ID: info.UserID,
@@ -1223,7 +1224,7 @@ func (s *Service) dispatchIdentityCreatedEvent(info *identity.Info) (err error) 
 	}
 
 	if e != nil {
-		err = s.Events.DispatchEventOnCommit(e)
+		err = s.Events.DispatchEventOnCommit(ctx, e)
 		if err != nil {
 			return err
 		}
@@ -1232,7 +1233,7 @@ func (s *Service) dispatchIdentityCreatedEvent(info *identity.Info) (err error) 
 	return nil
 }
 
-func (s *Service) dispatchIdentityUpdatedEvent(oldInfo *identity.Info, newInfo *identity.Info) (err error) {
+func (s *Service) dispatchIdentityUpdatedEvent(ctx context.Context, oldInfo *identity.Info, newInfo *identity.Info) (err error) {
 	userRef := model.UserRef{
 		Meta: model.Meta{
 			ID: newInfo.UserID,
@@ -1255,7 +1256,7 @@ func (s *Service) dispatchIdentityUpdatedEvent(oldInfo *identity.Info, newInfo *
 	}
 
 	if e != nil {
-		err = s.Events.DispatchEventOnCommit(e)
+		err = s.Events.DispatchEventOnCommit(ctx, e)
 		if err != nil {
 			return err
 		}
@@ -1264,7 +1265,7 @@ func (s *Service) dispatchIdentityUpdatedEvent(oldInfo *identity.Info, newInfo *
 	return nil
 }
 
-func (s *Service) dispatchIdentityDeletedEvent(info *identity.Info) (err error) {
+func (s *Service) dispatchIdentityDeletedEvent(ctx context.Context, info *identity.Info) (err error) {
 	userRef := model.UserRef{
 		Meta: model.Meta{
 			ID: info.UserID,
@@ -1298,7 +1299,7 @@ func (s *Service) dispatchIdentityDeletedEvent(info *identity.Info) (err error) 
 	}
 
 	if e != nil {
-		err = s.Events.DispatchEventOnCommit(e)
+		err = s.Events.DispatchEventOnCommit(ctx, e)
 		if err != nil {
 			return err
 		}
@@ -1317,14 +1318,14 @@ type StartAddIdentityOAuthOutput struct {
 	AuthorizationURL string
 }
 
-func (s *Service) StartAddIdentityOAuth(resolvedSession session.ResolvedSession, input *StartAddIdentityOAuthInput) (*StartAddIdentityOAuthOutput, error) {
+func (s *Service) StartAddIdentityOAuth(ctx context.Context, resolvedSession session.ResolvedSession, input *StartAddIdentityOAuthInput) (*StartAddIdentityOAuthOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 
 	var err error
 	var token string
 	var authorizationURL string
-	err = s.Database.WithTx(func() error {
-		output, err := s.StartAdding(&StartAddingInput{
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		output, err := s.StartAdding(ctx, &StartAddingInput{
 			UserID:      userID,
 			Alias:       input.Alias,
 			RedirectURI: input.RedirectURI,
@@ -1357,11 +1358,11 @@ type FinishAddingIdentityOAuthInput struct {
 type FinishAddingIdentityOAuthOutput struct {
 }
 
-func (s *Service) FinishAddingIdentityOAuth(resolvedSession session.ResolvedSession, input *FinishAddingIdentityOAuthInput) (*FinishAddingIdentityOAuthOutput, error) {
+func (s *Service) FinishAddingIdentityOAuth(ctx context.Context, resolvedSession session.ResolvedSession, input *FinishAddingIdentityOAuthInput) (*FinishAddingIdentityOAuthOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 
-	err := s.Database.WithTx(func() error {
-		_, err := s.FinishAdding(&FinishAddingInput{
+	err := s.Database.WithTx(ctx, func(ctx context.Context) error {
+		_, err := s.FinishAdding(ctx, &FinishAddingInput{
 			UserID: userID,
 			Token:  input.Token,
 			Query:  input.Query,
@@ -1389,23 +1390,23 @@ type DeleteIdentityOAuthOutput struct {
 	IdentityInfo *identity.Info
 }
 
-func (s *Service) DeleteIdentityOAuth(resolvedSession session.ResolvedSession, input *DeleteIdentityOAuthInput) (*DeleteIdentityOAuthOutput, error) {
+func (s *Service) DeleteIdentityOAuth(ctx context.Context, resolvedSession session.ResolvedSession, input *DeleteIdentityOAuthInput) (*DeleteIdentityOAuthOutput, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 	identityID := input.IdentityID
 
 	var info *identity.Info
-	err := s.Database.WithTx(func() (err error) {
-		info, err = s.prepareDeleteIdentity(userID, identityID)
+	err := s.Database.WithTx(ctx, func(ctx context.Context) (err error) {
+		info, err = s.prepareDeleteIdentity(ctx, userID, identityID)
 		if err != nil {
 			return err
 		}
 
-		err = s.deleteIdentity(info)
+		err = s.deleteIdentity(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.dispatchIdentityDeletedEvent(info)
+		err = s.dispatchIdentityDeletedEvent(ctx, info)
 		if err != nil {
 			return err
 		}

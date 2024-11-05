@@ -17,10 +17,9 @@ import (
 )
 
 type RedisStore struct {
-	Context context.Context
-	AppID   config.AppID
-	Redis   *appredis.Handle
-	Clock   clock.Clock
+	AppID config.AppID
+	Redis *appredis.Handle
+	Clock clock.Clock
 }
 
 type GenerateTokenOptions struct {
@@ -58,7 +57,7 @@ type GenerateTokenOptions struct {
 	AuthenticatorOOBOTPVerified bool
 }
 
-func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error) {
+func (s *RedisStore) GenerateToken(ctx context.Context, options GenerateTokenOptions) (string, error) {
 	tokenString := GenerateToken()
 	tokenHash := HashToken(tokenString)
 
@@ -119,8 +118,8 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 
 	tokenKey := tokenKey(token.AppID, token.TokenHash)
 
-	err = s.Redis.WithConnContext(s.Context, func(conn redis.Redis_6_0_Cmdable) error {
-		_, err = conn.SetNX(s.Context, tokenKey, tokenBytes, ttl).Result()
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err = conn.SetNX(ctx, tokenKey, tokenBytes, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			return errors.New("account management token collision")
 		} else if err != nil {
@@ -135,15 +134,15 @@ func (s *RedisStore) GenerateToken(options GenerateTokenOptions) (string, error)
 	return tokenString, nil
 }
 
-func (s *RedisStore) GetToken(tokenStr string) (*Token, error) {
+func (s *RedisStore) GetToken(ctx context.Context, tokenStr string) (*Token, error) {
 	tokenHash := HashToken(tokenStr)
 
 	tokenKey := tokenKey(string(s.AppID), tokenHash)
 
 	var tokenBytes []byte
-	err := s.Redis.WithConnContext(s.Context, func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		var err error
-		tokenBytes, err = conn.Get(s.Context, tokenKey).Bytes()
+		tokenBytes, err = conn.Get(ctx, tokenKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			// Token Invalid
 			return ErrAccountManagementTokenInvalid
@@ -165,15 +164,15 @@ func (s *RedisStore) GetToken(tokenStr string) (*Token, error) {
 	return &token, nil
 }
 
-func (s *RedisStore) ConsumeToken(tokenStr string) (*Token, error) {
+func (s *RedisStore) ConsumeToken(ctx context.Context, tokenStr string) (*Token, error) {
 	tokenHash := HashToken(tokenStr)
 
 	tokenKey := tokenKey(string(s.AppID), tokenHash)
 
 	var tokenBytes []byte
-	err := s.Redis.WithConnContext(s.Context, func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		var err error
-		tokenBytes, err = conn.Get(s.Context, tokenKey).Bytes()
+		tokenBytes, err = conn.Get(ctx, tokenKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			// Token Invalid
 			return ErrAccountManagementTokenInvalid
@@ -181,7 +180,7 @@ func (s *RedisStore) ConsumeToken(tokenStr string) (*Token, error) {
 			return err
 		}
 
-		_, err = conn.Del(s.Context, tokenKey).Result()
+		_, err = conn.Del(ctx, tokenKey).Result()
 		if err != nil {
 			return err
 		}
@@ -201,8 +200,8 @@ func (s *RedisStore) ConsumeToken(tokenStr string) (*Token, error) {
 	return &token, nil
 }
 
-func (s *RedisStore) ConsumeToken_OAuth(tokenStr string) (*Token, error) {
-	token, err := s.ConsumeToken(tokenStr)
+func (s *RedisStore) ConsumeToken_OAuth(ctx context.Context, tokenStr string) (*Token, error) {
+	token, err := s.ConsumeToken(ctx, tokenStr)
 	if errors.Is(err, ErrAccountManagementTokenInvalid) {
 		return token, ErrOAuthTokenInvalid
 	}

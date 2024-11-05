@@ -1,6 +1,7 @@
 package accountmanagement
 
 import (
+	"context"
 	"fmt"
 
 	"time"
@@ -29,62 +30,66 @@ import (
 )
 
 type UserService interface {
-	Get(id string, role accesscontrol.Role) (*model.User, error)
-	UpdateMFAEnrollment(userID string, t *time.Time) error
+	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
+	UpdateMFAEnrollment(ctx context.Context, userID string, t *time.Time) error
 }
 
 type Store interface {
-	GenerateToken(options GenerateTokenOptions) (string, error)
-	GetToken(tokenStr string) (*Token, error)
-	ConsumeToken(tokenStr string) (*Token, error)
-	ConsumeToken_OAuth(tokenStr string) (*Token, error)
+	GenerateToken(ctx context.Context, options GenerateTokenOptions) (string, error)
+	GetToken(ctx context.Context, tokenStr string) (*Token, error)
+	ConsumeToken(ctx context.Context, tokenStr string) (*Token, error)
+	ConsumeToken_OAuth(ctx context.Context, tokenStr string) (*Token, error)
 }
 
 type OAuthProvider interface {
 	GetProviderConfig(alias string) (oauthrelyingparty.ProviderConfig, error)
-	GetAuthorizationURL(alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (string, error)
-	GetUserProfile(alias string, options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
+
+	GetAuthorizationURL(ctx context.Context, alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (string, error)
+	GetUserProfile(ctx context.Context, alias string, options oauthrelyingparty.GetUserProfileOptions) (oauthrelyingparty.UserProfile, error)
 }
 
 type IdentityService interface {
-	Get(id string) (*identity.Info, error)
-	ListByUser(userID string) ([]*identity.Info, error)
-	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
-	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
-	CheckDuplicated(info *identity.Info) (dupe *identity.Info, err error)
-	Create(info *identity.Info) error
-	Update(oldInfo *identity.Info, newInfo *identity.Info) error
-	Delete(is *identity.Info) error
+	New(ctx context.Context, userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	UpdateWithSpec(ctx context.Context, is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+
+	Get(ctx context.Context, id string) (*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
+	CheckDuplicated(ctx context.Context, info *identity.Info) (dupe *identity.Info, err error)
+	Create(ctx context.Context, info *identity.Info) error
+	Update(ctx context.Context, oldInfo *identity.Info, newInfo *identity.Info) error
+	Delete(ctx context.Context, is *identity.Info) error
 }
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type AuthenticatorService interface {
-	New(spec *authenticator.Spec) (*authenticator.Info, error)
-	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
-	Get(authenticatorID string) (*authenticator.Info, error)
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
-	Update(authenticatorInfo *authenticator.Info) error
-	UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
-	Delete(authenticatorInfo *authenticator.Info) error
-	VerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
+	New(ctx context.Context, spec *authenticator.Spec) (*authenticator.Info, error)
+	NewWithAuthenticatorID(ctx context.Context, authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	UpdatePassword(ctx context.Context, authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
+
+	Get(ctx context.Context, authenticatorID string) (*authenticator.Info, error)
+	List(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	Create(ctx context.Context, authenticatorInfo *authenticator.Info, markVerified bool) error
+	Update(ctx context.Context, authenticatorInfo *authenticator.Info) error
+	Delete(ctx context.Context, authenticatorInfo *authenticator.Info) error
+	VerifyWithSpec(ctx context.Context, info *authenticator.Info, spec *authenticator.Spec, options *facade.VerifyOptions) (verifyResult *service.VerifyResult, err error)
 }
 
 type AuthenticationInfoService interface {
-	Save(entry *authenticationinfo.Entry) error
+	Save(ctx context.Context, entry *authenticationinfo.Entry) error
 }
 
 type MFAService interface {
-	GenerateRecoveryCodes() []string
-	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
-	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
+	GenerateRecoveryCodes(ctx context.Context) []string
+
+	ReplaceRecoveryCodes(ctx context.Context, userID string, codes []string) ([]*mfa.RecoveryCode, error)
+	ListRecoveryCodes(ctx context.Context, userID string) ([]*mfa.RecoveryCode, error)
 }
 
 type PasskeyService interface {
-	ConsumeAttestationResponse(attestationResponse []byte) (err error)
+	ConsumeAttestationResponse(ctx context.Context, attestationResponse []byte) (err error)
 }
 
 type UIInfoResolver interface {
@@ -92,19 +97,20 @@ type UIInfoResolver interface {
 }
 
 type OTPSender interface {
-	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
-	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
+	Prepare(ctx context.Context, channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
+	Send(ctx context.Context, msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
 type OTPCodeService interface {
-	GenerateOTP(kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
-	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
+	GenerateOTP(ctx context.Context, kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
+	VerifyOTP(ctx context.Context, kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
 }
 
 type VerificationService interface {
-	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
-	MarkClaimVerified(claim *verification.Claim) error
-	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
+	NewVerifiedClaim(ctx context.Context, userID string, claimName string, claimValue string) *verification.Claim
+
+	MarkClaimVerified(ctx context.Context, claim *verification.Claim) error
+	GetIdentityVerificationStatus(ctx context.Context, i *identity.Info) ([]verification.ClaimStatus, error)
 }
 
 type Service struct {
@@ -138,7 +144,7 @@ type StartAddingOutput struct {
 	AuthorizationURL string `json:"authorization_url,omitempty"`
 }
 
-func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, error) {
+func (s *Service) StartAdding(ctx context.Context, input *StartAddingInput) (*StartAddingOutput, error) {
 	state := ""
 	if input.IncludeStateAuthorizationURLAndBindStateToToken {
 		state = GenerateRandomState()
@@ -149,12 +155,12 @@ func (s *Service) StartAdding(input *StartAddingInput) (*StartAddingOutput, erro
 		State:       state,
 	}
 
-	authorizationURL, err := s.OAuthProvider.GetAuthorizationURL(input.Alias, param)
+	authorizationURL, err := s.OAuthProvider.GetAuthorizationURL(ctx, input.Alias, param)
 	if err != nil {
 		return nil, err
 	}
 
-	token, err := s.Store.GenerateToken(GenerateTokenOptions{
+	token, err := s.Store.GenerateToken(ctx, GenerateTokenOptions{
 		UserID:      input.UserID,
 		Alias:       input.Alias,
 		RedirectURI: input.RedirectURI,
@@ -180,8 +186,8 @@ type FinishAddingOutput struct {
 	// It is intentionally empty.
 }
 
-func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, error) {
-	token, err := s.Store.ConsumeToken_OAuth(input.Token)
+func (s *Service) FinishAdding(ctx context.Context, input *FinishAddingInput) (*FinishAddingOutput, error) {
+	token, err := s.Store.ConsumeToken_OAuth(ctx, input.Token)
 	if err != nil {
 		return nil, err
 	}
@@ -207,7 +213,7 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	}
 
 	emptyNonce := ""
-	userProfile, err := s.OAuthProvider.GetUserProfile(token.Alias, oauthrelyingparty.GetUserProfileOptions{
+	userProfile, err := s.OAuthProvider.GetUserProfile(ctx, token.Alias, oauthrelyingparty.GetUserProfileOptions{
 		Query:       input.Query,
 		RedirectURI: token.RedirectURI,
 		Nonce:       emptyNonce,
@@ -228,6 +234,7 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	}
 
 	info, err := s.Identities.New(
+		ctx,
 		token.UserID,
 		spec,
 		// We are not adding Login ID here so the options is irrelevant.
@@ -237,13 +244,13 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 		return nil, err
 	}
 
-	err = s.Database.WithTx(func() error {
-		_, err = s.Identities.CheckDuplicated(info)
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+		_, err = s.Identities.CheckDuplicated(ctx, info)
 		if err != nil {
 			return err
 		}
 
-		err = s.Identities.Create(info)
+		err = s.Identities.Create(ctx, info)
 		if err != nil {
 			return err
 		}
@@ -258,7 +265,7 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 			AdminAPI: false,
 		}
 
-		err = s.Events.DispatchEventOnCommit(evt)
+		err = s.Events.DispatchEventOnCommit(ctx, evt)
 		if err != nil {
 			return err
 		}
@@ -272,9 +279,9 @@ func (s *Service) FinishAdding(input *FinishAddingInput) (*FinishAddingOutput, e
 	return &FinishAddingOutput{}, nil
 }
 
-func (s *Service) GetToken(resolvedSession session.ResolvedSession, tokenString string) (*Token, error) {
+func (s *Service) GetToken(ctx context.Context, resolvedSession session.ResolvedSession, tokenString string) (*Token, error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
-	token, err := s.Store.GetToken(tokenString)
+	token, err := s.Store.GetToken(ctx, tokenString)
 	if err != nil {
 		return nil, err
 	}
@@ -285,10 +292,10 @@ func (s *Service) GetToken(resolvedSession session.ResolvedSession, tokenString 
 	return token, nil
 }
 
-func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, tokenString string) (err error) {
+func (s *Service) ResendOTPCode(ctx context.Context, resolvedSession session.ResolvedSession, tokenString string) (err error) {
 	userID := resolvedSession.GetAuthenticationInfo().UserID
 
-	token, err := s.Store.GetToken(tokenString)
+	token, err := s.Store.GetToken(ctx, tokenString)
 	if err != nil {
 		return err
 	}
@@ -315,8 +322,9 @@ func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, tokenSt
 		panic(fmt.Errorf("accountmanagement: unexpected token in resend otp code"))
 	}
 
-	err = s.Database.WithTx(func() error {
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
 		return s.sendOTPCode(
+			ctx,
 			userID,
 			channel,
 			target,
@@ -330,7 +338,7 @@ func (s *Service) ResendOTPCode(resolvedSession session.ResolvedSession, tokenSt
 	return nil
 }
 
-func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChannel, target string, isResend bool) error {
+func (s *Service) sendOTPCode(ctx context.Context, userID string, channel model.AuthenticatorOOBChannel, target string, isResend bool) error {
 	var msgType translation.MessageType
 	switch channel {
 	case model.AuthenticatorOOBChannelWhatsapp:
@@ -343,15 +351,16 @@ func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChann
 		panic(fmt.Errorf("accountmanagement: unknown channel"))
 	}
 
-	msg, err := s.OTPSender.Prepare(channel, target, otp.FormCode, msgType)
+	msg, err := s.OTPSender.Prepare(ctx, channel, target, otp.FormCode, msgType)
 	if !isResend && apierrors.IsKind(err, ratelimit.RateLimited) {
 		return nil
 	} else if err != nil {
 		return err
 	}
-	defer msg.Close()
+	defer msg.Close(ctx)
 
 	code, err := s.OTPCodeService.GenerateOTP(
+		ctx,
 		otp.KindVerification(s.Config, channel),
 		target,
 		otp.FormCode,
@@ -366,7 +375,7 @@ func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChann
 		return err
 	}
 
-	err = s.OTPSender.Send(msg, otp.SendOptions{OTP: code})
+	err = s.OTPSender.Send(ctx, msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return err
 	}
@@ -374,8 +383,9 @@ func (s *Service) sendOTPCode(userID string, channel model.AuthenticatorOOBChann
 	return nil
 }
 
-func (s *Service) VerifyOTP(userID string, channel model.AuthenticatorOOBChannel, target string, code string, skipConsume bool) error {
+func (s *Service) VerifyOTP(ctx context.Context, userID string, channel model.AuthenticatorOOBChannel, target string, code string, skipConsume bool) error {
 	err := s.OTPCodeService.VerifyOTP(
+		ctx,
 		otp.KindVerification(s.Config, channel),
 		target,
 		code,
@@ -392,10 +402,10 @@ func (s *Service) VerifyOTP(userID string, channel model.AuthenticatorOOBChannel
 	return nil
 }
 
-func (s *Service) markClaimVerified(userID string, claimName model.ClaimName, claimValue string) error {
-	verifiedClaim := s.Verification.NewVerifiedClaim(userID, string(claimName), claimValue)
+func (s *Service) markClaimVerified(ctx context.Context, userID string, claimName model.ClaimName, claimValue string) error {
+	verifiedClaim := s.Verification.NewVerifiedClaim(ctx, userID, string(claimName), claimValue)
 
-	err := s.Verification.MarkClaimVerified(verifiedClaim)
+	err := s.Verification.MarkClaimVerified(ctx, verifiedClaim)
 	if err != nil {
 		return err
 	}
