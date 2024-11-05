@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"context"
 	"testing"
 	"time"
 
@@ -107,8 +108,8 @@ func TestSID(t *testing.T) {
 		mockUserProvider := NewMockUserProvider(ctrl)
 		mockRolesAndGroupsProvider := NewMockRolesAndGroupsProvider(ctrl)
 
-		mockUserProvider.EXPECT().Get("user-id", gomock.Any()).DoAndReturn(
-			func(id string, role accesscontrol.Role) (*model.User, error) {
+		mockUserProvider.EXPECT().Get(gomock.Any(), "user-id", gomock.Any()).DoAndReturn(
+			func(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
 				return &model.User{
 					IsAnonymous:       false,
 					IsVerified:        true,
@@ -116,8 +117,8 @@ func TestSID(t *testing.T) {
 				}, nil
 			})
 
-		mockRolesAndGroupsProvider.EXPECT().ListEffectiveRolesByUserID("user-id").DoAndReturn(
-			func(userID string) ([]*model.Role, error) {
+		mockRolesAndGroupsProvider.EXPECT().ListEffectiveRolesByUserID(gomock.Any(), "user-id").DoAndReturn(
+			func(ctx context.Context, userID string) ([]*model.Role, error) {
 				return []*model.Role{
 					{
 						Key: "role-1",
@@ -159,7 +160,8 @@ func TestSID(t *testing.T) {
 			DeviceSecretHash: testDeviceSecretHash,
 		}
 
-		idToken, err := issuer.IssueIDToken(IssueIDTokenOptions{
+		ctx := context.Background()
+		idToken, err := issuer.IssueIDToken(ctx, IssueIDTokenOptions{
 			ClientID:           "client-id",
 			SID:                EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),

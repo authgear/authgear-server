@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -76,7 +77,7 @@ type UIInfoResolverPromptResolver interface {
 }
 
 type UIInfoResolverIDTokenHintResolver interface {
-	ResolveIDTokenHint(client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.ListableSession, err error)
+	ResolveIDTokenHint(ctx context.Context, client *config.OAuthClientConfig, r protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.ListableSession, err error)
 }
 
 type UIInfoResolverCookieManager interface {
@@ -144,17 +145,18 @@ func (r *UIInfoResolver) RemoveOAuthSessionID(w http.ResponseWriter, req *http.R
 	httputil.UpdateCookie(w, r.Cookies.ClearCookie(oauthsession.UICookieDef))
 }
 
-func (r *UIInfoResolver) ResolveForUI(req protocol.AuthorizationRequest) (*UIInfo, error) {
+func (r *UIInfoResolver) ResolveForUI(ctx context.Context, req protocol.AuthorizationRequest) (*UIInfo, error) {
 	client := r.ClientResolver.ResolveClient(req.ClientID())
 	if client == nil {
 		return nil, fmt.Errorf("client not found: %v", req.ClientID())
 	}
 
-	uiInfo, _, err := r.ResolveForAuthorizationEndpoint(client, req)
+	uiInfo, _, err := r.ResolveForAuthorizationEndpoint(ctx, client, req)
 	return uiInfo, err
 }
 
 func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	req protocol.AuthorizationRequest,
 ) (*UIInfo, *UIInfoByProduct, error) {
@@ -169,7 +171,7 @@ func (r *UIInfoResolver) ResolveForAuthorizationEndpoint(
 	}
 	redirectURI.RawQuery = q.Encode()
 
-	idToken, sidSession, err := r.IDTokenHintResolver.ResolveIDTokenHint(client, req)
+	idToken, sidSession, err := r.IDTokenHintResolver.ResolveIDTokenHint(ctx, client, req)
 	if err != nil {
 		return nil, nil, err
 	}

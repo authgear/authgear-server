@@ -1,6 +1,7 @@
 package oidc
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
 	"net/url"
@@ -28,11 +29,11 @@ import (
 //go:generate mockgen -source=id_token.go -destination=id_token_mock_test.go -package oidc
 
 type UserProvider interface {
-	Get(id string, role accesscontrol.Role) (*model.User, error)
+	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
 }
 
 type RolesAndGroupsProvider interface {
-	ListEffectiveRolesByUserID(userID string) ([]*model.Role, error)
+	ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error)
 }
 
 type BaseURLProvider interface {
@@ -129,7 +130,7 @@ type IssueIDTokenOptions struct {
 	DeviceSecretHash   string
 }
 
-func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) {
+func (ti *IDTokenIssuer) IssueIDToken(ctx context.Context, opts IssueIDTokenOptions) (string, error) {
 	claims := jwt.New()
 
 	info := opts.AuthenticationInfo
@@ -137,7 +138,7 @@ func (ti *IDTokenIssuer) IssueIDToken(opts IssueIDTokenOptions) (string, error) 
 	// Populate issuer.
 	_ = claims.Set(jwt.IssuerKey, ti.Iss())
 
-	err := ti.PopulateUserClaimsInIDToken(claims, info.UserID, opts.ClientLike)
+	err := ti.PopulateUserClaimsInIDToken(ctx, claims, info.UserID, opts.ClientLike)
 	if err != nil {
 		return "", err
 	}
@@ -202,13 +203,13 @@ func (ti *IDTokenIssuer) VerifyIDToken(idToken string) (token jwt.Token, err err
 	return
 }
 
-func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(token jwt.Token, userID string, clientLike *oauth.ClientLike) error {
-	user, err := ti.Users.Get(userID, config.RoleBearer)
+func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(ctx context.Context, token jwt.Token, userID string, clientLike *oauth.ClientLike) error {
+	user, err := ti.Users.Get(ctx, userID, config.RoleBearer)
 	if err != nil {
 		return err
 	}
 
-	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(userID)
+	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -242,13 +243,13 @@ func (ti *IDTokenIssuer) PopulateUserClaimsInIDToken(token jwt.Token, userID str
 	return nil
 }
 
-func (ti *IDTokenIssuer) GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
-	user, err := ti.Users.Get(userID, config.RoleBearer)
+func (ti *IDTokenIssuer) GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
+	user, err := ti.Users.Get(ctx, userID, config.RoleBearer)
 	if err != nil {
 		return nil, err
 	}
 
-	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(userID)
+	roles, err := ti.RolesAndGroups.ListEffectiveRolesByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -297,11 +298,11 @@ type IDTokenHintResolverIssuer interface {
 }
 
 type IDTokenHintResolverSessionProvider interface {
-	Get(id string) (*idpsession.IDPSession, error)
+	Get(ctx context.Context, id string) (*idpsession.IDPSession, error)
 }
 
 type IDTokenHintResolverOfflineGrantService interface {
-	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
+	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
 }
 
 type IDTokenHintResolver struct {
@@ -310,7 +311,7 @@ type IDTokenHintResolver struct {
 	OfflineGrantService IDTokenHintResolverOfflineGrantService
 }
 
-func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.ListableSession, err error) {
+func (r *IDTokenHintResolver) ResolveIDTokenHint(ctx context.Context, client *config.OAuthClientConfig, req protocol.AuthorizationRequest) (idToken jwt.Token, sidSession session.ListableSession, err error) {
 	idTokenHint, ok := req.IDTokenHint()
 	if !ok {
 		return
@@ -338,11 +339,11 @@ func (r *IDTokenHintResolver) ResolveIDTokenHint(client *config.OAuthClientConfi
 
 	switch typ {
 	case session.TypeIdentityProvider:
-		if sess, err := r.Sessions.Get(sessionID); err == nil {
+		if sess, err := r.Sessions.Get(ctx, sessionID); err == nil {
 			sidSession = sess
 		}
 	case session.TypeOfflineGrant:
-		if sess, err := r.OfflineGrantService.GetOfflineGrant(sessionID); err == nil {
+		if sess, err := r.OfflineGrantService.GetOfflineGrant(ctx, sessionID); err == nil {
 			sidSession = sess
 		}
 	default:
