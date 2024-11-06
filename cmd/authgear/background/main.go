@@ -32,16 +32,17 @@ func (c *Controller) Start() {
 	// From now, we should use c.logger to log.
 	c.logger = p.LoggerFactory.New("background")
 
-	configSrcController := newConfigSourceController(p, context.Background())
-	err = configSrcController.Open()
+	ctx := context.Background()
+	configSrcController := newConfigSourceController(p)
+	err = configSrcController.Open(ctx)
 	if err != nil {
 		c.logger.WithError(err).Fatal("cannot open configuration")
 	}
 	defer configSrcController.Close()
 
 	runners := []*backgroundjob.Runner{
-		newAccountDeletionRunner(p, context.Background(), configSrcController),
-		newAccountAnonymizationRunner(p, context.Background(), configSrcController),
+		newAccountDeletionRunner(p, configSrcController),
+		newAccountAnonymizationRunner(p, configSrcController),
 	}
 	backgroundjob.Main(c.logger, runners)
 }
