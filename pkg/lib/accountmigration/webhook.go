@@ -1,6 +1,7 @@
 package accountmigration
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 
@@ -23,7 +24,7 @@ type AccountMigrationWebHook struct {
 	Logger WebhookMiddlewareLogger
 }
 
-func (h *AccountMigrationWebHook) Call(u *url.URL, hookReq *HookRequest) (*HookResponse, error) {
+func (h *AccountMigrationWebHook) Call(ctx context.Context, u *url.URL, hookReq *HookRequest) (*HookResponse, error) {
 	req, err := h.PrepareRequest(u, hookReq)
 	if err != nil {
 		return nil, err

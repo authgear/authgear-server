@@ -1,7 +1,10 @@
 package accountmigration
 
-import "net/url"
+import (
+	"context"
+	"net/url"
+)
 
 type Hook interface {
-	Call(u *url.URL, hookReq *HookRequest) (*HookResponse, error)
+	Call(ctx context.Context, u *url.URL, hookReq *HookRequest) (*HookResponse, error)
 }
