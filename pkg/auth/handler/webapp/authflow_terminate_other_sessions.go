@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -37,7 +38,7 @@ func (h *AuthflowTerminateOtherSessionsHandler) GetData(w http.ResponseWriter, r
 
 func (h *AuthflowTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -46,12 +47,12 @@ func (h *AuthflowTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter,
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowTerminateOtherSessionsHTML, data)
 		return nil
 	})
-	handlers.PostAction("confirm", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("confirm", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"confirm_terminate_other_sessions": true,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -59,8 +60,8 @@ func (h *AuthflowTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter,
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.PostAction("cancel", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		result, err := h.Controller.Restart(s)
+	handlers.PostAction("cancel", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		result, err := h.Controller.Restart(ctx, s)
 		if err != nil {
 			return err
 		}
@@ -69,5 +70,5 @@ func (h *AuthflowTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter,
 		return nil
 
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

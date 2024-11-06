@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -62,7 +63,7 @@ func (h *SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -72,7 +73,7 @@ func (h *SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWriter, r *http
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		userID := ctrl.RequireUserID()
 		opts := webapp.SessionOptions{
 			RedirectURI: ctrl.RedirectURI(),

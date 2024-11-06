@@ -3,6 +3,7 @@ package webapp
 import (
 	"fmt"
 	"net/http"
+
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -76,7 +77,7 @@ func (h *WebsocketHandler) OnRedisSubscribe(r *http.Request) error {
 			Kind: WebsocketMessageKindRefresh,
 		}
 
-		err := h.Publisher.Publish(s, msg)
+		err := h.Publisher.Publish(r.Context(), s, msg)
 		if err != nil {
 			return err
 		}

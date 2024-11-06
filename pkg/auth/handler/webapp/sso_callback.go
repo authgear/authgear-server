@@ -1,8 +1,10 @@
 package webapp
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/accountmanagement"
@@ -19,7 +21,7 @@ func ConfigureSSOCallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type SSOCallbackHandlerOAuthStateStore interface {
-	PopAndRecoverState(stateToken string) (state *webappoauth.WebappOAuthState, err error)
+	PopAndRecoverState(ctx context.Context, stateToken string) (state *webappoauth.WebappOAuthState, err error)
 }
 
 type SSOCallbackHandler struct {
@@ -37,7 +39,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	stateToken := r.FormValue("state")
-	state, err := h.OAuthStateStore.PopAndRecoverState(stateToken)
+	state, err := h.OAuthStateStore.PopAndRecoverState(r.Context(), stateToken)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -51,12 +53,12 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 
-		_, err = h.AccountManagement.FinishAddingIdentityOAuth(s, &accountmanagement.FinishAddingIdentityOAuthInput{
+		_, err = h.AccountManagement.FinishAddingIdentityOAuth(r.Context(), s, &accountmanagement.FinishAddingIdentityOAuthInput{
 			Token: state.AccountManagementToken,
 			Query: r.URL.Query().Encode(),
 		})
 		if err != nil {
-			h.ErrorRenderer.MakeAuthflowErrorResult(w, r, *redirectURL, err).WriteResponse(w, r)
+			h.ErrorRenderer.MakeAuthflowErrorResult(r.Context(), w, r, *redirectURL, err).WriteResponse(w, r)
 			return
 		}
 
@@ -69,7 +71,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		fallthrough
 	case config.UIImplementationAuthflowV2:
 		// authflow
-		h.AuthflowController.HandleOAuthCallback(w, r, AuthflowOAuthCallbackResponse{
+		h.AuthflowController.HandleOAuthCallback(r.Context(), w, r, AuthflowOAuthCallbackResponse{
 			Query: r.Form.Encode(),
 			State: state,
 		})
@@ -87,7 +89,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Query:         r.Form.Encode(),
 		}
 
-		handler := func() error {
+		handler := func(ctx context.Context) error {
 			result, err := ctrl.InteractionOAuthCallback(data, state)
 			if err != nil {
 				return err

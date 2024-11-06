@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	htmltemplate "html/template"
 	"net/http"
 
@@ -78,7 +79,7 @@ func (h *AuthflowSetupTOTPHandler) GetData(w http.ResponseWriter, r *http.Reques
 
 func (h *AuthflowSetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -87,7 +88,7 @@ func (h *AuthflowSetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowSetupTOTPHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowSetupTOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -99,7 +100,7 @@ func (h *AuthflowSetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			"code": code,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -107,5 +108,5 @@ func (h *AuthflowSetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -25,7 +26,7 @@ func ConfigureWechatCallbackRoute(route httproute.Route) httproute.Route {
 }
 
 type WechatCallbackHandlerOAuthStateStore interface {
-	PopAndRecoverState(stateToken string) (state *webappoauth.WebappOAuthState, err error)
+	PopAndRecoverState(ctx context.Context, stateToken string) (state *webappoauth.WebappOAuthState, err error)
 }
 
 // WechatCallbackHandler receives WeChat authorization result (code or error)
@@ -65,8 +66,8 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	error_ := r.Form.Get("error")
 	errorDescription := r.Form.Get("error_description")
 
-	updateWebSession := func() error {
-		state, err := h.OAuthStateStore.PopAndRecoverState(stateToken)
+	updateWebSession := func(ctx context.Context) error {
+		state, err := h.OAuthStateStore.PopAndRecoverState(ctx, stateToken)
 		if err != nil {
 			return err
 		}
@@ -123,8 +124,8 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	handler := func() error {
-		err := updateWebSession()
+	handler := func(ctx context.Context) error {
+		err := updateWebSession(ctx)
 		// serve api
 		baseViewModel := h.BaseViewModel.ViewModel(r, w)
 		if baseViewModel.IsNativePlatform {

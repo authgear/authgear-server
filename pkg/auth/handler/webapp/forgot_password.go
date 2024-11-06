@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -81,7 +82,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	h.FormPrefiller.Prefill(r.Form)
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		graph, err := ctrl.EntryPointGet(opts, intent)
 		if err != nil {
 			return err
@@ -96,7 +97,7 @@ func (h *ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			err = ForgotPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {

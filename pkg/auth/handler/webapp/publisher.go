@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"encoding/json"
 
 	goredis "github.com/redis/go-redis/v9"
@@ -32,7 +33,7 @@ func (p *Publisher) Get() *goredis.Client {
 	return p.RedisHandle.Client()
 }
 
-func (p *Publisher) Publish(s *webapp.Session, msg *WebsocketMessage) error {
+func (p *Publisher) Publish(ctx context.Context, s *webapp.Session, msg *WebsocketMessage) error {
 	channelName := WebsocketChannelName(string(p.AppID), s.ID)
 
 	b, err := json.Marshal(msg)
@@ -40,7 +41,7 @@ func (p *Publisher) Publish(s *webapp.Session, msg *WebsocketMessage) error {
 		return err
 	}
 
-	err = p.Publisher.Publish(channelName, b)
+	err = p.Publisher.Publish(ctx, channelName, b)
 	if err != nil {
 		return err
 	}

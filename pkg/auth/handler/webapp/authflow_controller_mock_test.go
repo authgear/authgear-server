@@ -5,6 +5,7 @@
 package webapp
 
 import (
+	context "context"
 	json "encoding/json"
 	http "net/http"
 	reflect "reflect"
@@ -110,60 +111,60 @@ func (m *MockAuthflowControllerSessionStore) EXPECT() *MockAuthflowControllerSes
 }
 
 // Create mocks base method.
-func (m *MockAuthflowControllerSessionStore) Create(session *webapp.Session) error {
+func (m *MockAuthflowControllerSessionStore) Create(ctx context.Context, session *webapp.Session) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", session)
+	ret := m.ctrl.Call(m, "Create", ctx, session)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockAuthflowControllerSessionStoreMockRecorder) Create(session interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerSessionStoreMockRecorder) Create(ctx, session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAuthflowControllerSessionStore)(nil).Create), session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAuthflowControllerSessionStore)(nil).Create), ctx, session)
 }
 
 // Delete mocks base method.
-func (m *MockAuthflowControllerSessionStore) Delete(id string) error {
+func (m *MockAuthflowControllerSessionStore) Delete(ctx context.Context, id string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", id)
+	ret := m.ctrl.Call(m, "Delete", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockAuthflowControllerSessionStoreMockRecorder) Delete(id interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerSessionStoreMockRecorder) Delete(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAuthflowControllerSessionStore)(nil).Delete), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAuthflowControllerSessionStore)(nil).Delete), ctx, id)
 }
 
 // Get mocks base method.
-func (m *MockAuthflowControllerSessionStore) Get(id string) (*webapp.Session, error) {
+func (m *MockAuthflowControllerSessionStore) Get(ctx context.Context, id string) (*webapp.Session, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(*webapp.Session)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockAuthflowControllerSessionStoreMockRecorder) Get(id interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerSessionStoreMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerSessionStore)(nil).Get), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerSessionStore)(nil).Get), ctx, id)
 }
 
 // Update mocks base method.
-func (m *MockAuthflowControllerSessionStore) Update(session *webapp.Session) error {
+func (m *MockAuthflowControllerSessionStore) Update(ctx context.Context, session *webapp.Session) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", session)
+	ret := m.ctrl.Call(m, "Update", ctx, session)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockAuthflowControllerSessionStoreMockRecorder) Update(session interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerSessionStoreMockRecorder) Update(ctx, session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAuthflowControllerSessionStore)(nil).Update), session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockAuthflowControllerSessionStore)(nil).Update), ctx, session)
 }
 
 // MockAuthflowControllerAuthflowService is a mock of AuthflowControllerAuthflowService interface.
@@ -190,48 +191,48 @@ func (m *MockAuthflowControllerAuthflowService) EXPECT() *MockAuthflowController
 }
 
 // CreateNewFlow mocks base method.
-func (m *MockAuthflowControllerAuthflowService) CreateNewFlow(intent authenticationflow.PublicFlow, sessionOptions *authenticationflow.SessionOptions) (*authenticationflow.ServiceOutput, error) {
+func (m *MockAuthflowControllerAuthflowService) CreateNewFlow(ctx context.Context, intent authenticationflow.PublicFlow, sessionOptions *authenticationflow.SessionOptions) (*authenticationflow.ServiceOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateNewFlow", intent, sessionOptions)
+	ret := m.ctrl.Call(m, "CreateNewFlow", ctx, intent, sessionOptions)
 	ret0, _ := ret[0].(*authenticationflow.ServiceOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateNewFlow indicates an expected call of CreateNewFlow.
-func (mr *MockAuthflowControllerAuthflowServiceMockRecorder) CreateNewFlow(intent, sessionOptions interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerAuthflowServiceMockRecorder) CreateNewFlow(ctx, intent, sessionOptions interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNewFlow", reflect.TypeOf((*MockAuthflowControllerAuthflowService)(nil).CreateNewFlow), intent, sessionOptions)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateNewFlow", reflect.TypeOf((*MockAuthflowControllerAuthflowService)(nil).CreateNewFlow), ctx, intent, sessionOptions)
 }
 
 // FeedInput mocks base method.
-func (m *MockAuthflowControllerAuthflowService) FeedInput(stateToken string, rawMessage json.RawMessage) (*authenticationflow.ServiceOutput, error) {
+func (m *MockAuthflowControllerAuthflowService) FeedInput(ctx context.Context, stateToken string, rawMessage json.RawMessage) (*authenticationflow.ServiceOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "FeedInput", stateToken, rawMessage)
+	ret := m.ctrl.Call(m, "FeedInput", ctx, stateToken, rawMessage)
 	ret0, _ := ret[0].(*authenticationflow.ServiceOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // FeedInput indicates an expected call of FeedInput.
-func (mr *MockAuthflowControllerAuthflowServiceMockRecorder) FeedInput(stateToken, rawMessage interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerAuthflowServiceMockRecorder) FeedInput(ctx, stateToken, rawMessage interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FeedInput", reflect.TypeOf((*MockAuthflowControllerAuthflowService)(nil).FeedInput), stateToken, rawMessage)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FeedInput", reflect.TypeOf((*MockAuthflowControllerAuthflowService)(nil).FeedInput), ctx, stateToken, rawMessage)
 }
 
 // Get mocks base method.
-func (m *MockAuthflowControllerAuthflowService) Get(stateToken string) (*authenticationflow.ServiceOutput, error) {
+func (m *MockAuthflowControllerAuthflowService) Get(ctx context.Context, stateToken string) (*authenticationflow.ServiceOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", stateToken)
+	ret := m.ctrl.Call(m, "Get", ctx, stateToken)
 	ret0, _ := ret[0].(*authenticationflow.ServiceOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockAuthflowControllerAuthflowServiceMockRecorder) Get(stateToken interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerAuthflowServiceMockRecorder) Get(ctx, stateToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerAuthflowService)(nil).Get), stateToken)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerAuthflowService)(nil).Get), ctx, stateToken)
 }
 
 // MockAuthflowControllerOAuthSessionService is a mock of AuthflowControllerOAuthSessionService interface.
@@ -258,18 +259,18 @@ func (m *MockAuthflowControllerOAuthSessionService) EXPECT() *MockAuthflowContro
 }
 
 // Get mocks base method.
-func (m *MockAuthflowControllerOAuthSessionService) Get(entryID string) (*oauthsession.Entry, error) {
+func (m *MockAuthflowControllerOAuthSessionService) Get(ctx context.Context, entryID string) (*oauthsession.Entry, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", entryID)
+	ret := m.ctrl.Call(m, "Get", ctx, entryID)
 	ret0, _ := ret[0].(*oauthsession.Entry)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockAuthflowControllerOAuthSessionServiceMockRecorder) Get(entryID interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerOAuthSessionServiceMockRecorder) Get(ctx, entryID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerOAuthSessionService)(nil).Get), entryID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerOAuthSessionService)(nil).Get), ctx, entryID)
 }
 
 // MockAuthflowControllerSAMLSessionService is a mock of AuthflowControllerSAMLSessionService interface.
@@ -296,18 +297,18 @@ func (m *MockAuthflowControllerSAMLSessionService) EXPECT() *MockAuthflowControl
 }
 
 // Get mocks base method.
-func (m *MockAuthflowControllerSAMLSessionService) Get(entryID string) (*samlsession.SAMLSession, error) {
+func (m *MockAuthflowControllerSAMLSessionService) Get(ctx context.Context, entryID string) (*samlsession.SAMLSession, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", entryID)
+	ret := m.ctrl.Call(m, "Get", ctx, entryID)
 	ret0, _ := ret[0].(*samlsession.SAMLSession)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockAuthflowControllerSAMLSessionServiceMockRecorder) Get(entryID interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerSAMLSessionServiceMockRecorder) Get(ctx, entryID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerSAMLSessionService)(nil).Get), entryID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAuthflowControllerSAMLSessionService)(nil).Get), ctx, entryID)
 }
 
 // MockAuthflowControllerUIInfoResolver is a mock of AuthflowControllerUIInfoResolver interface.
@@ -334,18 +335,18 @@ func (m *MockAuthflowControllerUIInfoResolver) EXPECT() *MockAuthflowControllerU
 }
 
 // ResolveForUI mocks base method.
-func (m *MockAuthflowControllerUIInfoResolver) ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error) {
+func (m *MockAuthflowControllerUIInfoResolver) ResolveForUI(ctx context.Context, r protocol.AuthorizationRequest) (*oidc.UIInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ResolveForUI", r)
+	ret := m.ctrl.Call(m, "ResolveForUI", ctx, r)
 	ret0, _ := ret[0].(*oidc.UIInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ResolveForUI indicates an expected call of ResolveForUI.
-func (mr *MockAuthflowControllerUIInfoResolverMockRecorder) ResolveForUI(r interface{}) *gomock.Call {
+func (mr *MockAuthflowControllerUIInfoResolverMockRecorder) ResolveForUI(ctx, r interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveForUI", reflect.TypeOf((*MockAuthflowControllerUIInfoResolver)(nil).ResolveForUI), r)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResolveForUI", reflect.TypeOf((*MockAuthflowControllerUIInfoResolver)(nil).ResolveForUI), ctx, r)
 }
 
 // MockAuthflowControllerOAuthClientResolver is a mock of AuthflowControllerOAuthClientResolver interface.
@@ -409,15 +410,15 @@ func (m *MockAuthflowNavigator) EXPECT() *MockAuthflowNavigatorMockRecorder {
 }
 
 // Navigate mocks base method.
-func (m *MockAuthflowNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+func (m *MockAuthflowNavigator) Navigate(ctx context.Context, screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Navigate", screen, r, webSessionID, result)
+	m.ctrl.Call(m, "Navigate", ctx, screen, r, webSessionID, result)
 }
 
 // Navigate indicates an expected call of Navigate.
-func (mr *MockAuthflowNavigatorMockRecorder) Navigate(screen, r, webSessionID, result interface{}) *gomock.Call {
+func (mr *MockAuthflowNavigatorMockRecorder) Navigate(ctx, screen, r, webSessionID, result interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigator)(nil).Navigate), screen, r, webSessionID, result)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Navigate", reflect.TypeOf((*MockAuthflowNavigator)(nil).Navigate), ctx, screen, r, webSessionID, result)
 }
 
 // NavigateResetPasswordSuccessPage mocks base method.

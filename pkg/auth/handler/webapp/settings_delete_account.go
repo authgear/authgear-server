@@ -1,7 +1,9 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
+
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -33,22 +35,22 @@ type SettingsDeleteAccountViewModel struct {
 }
 
 type SettingsDeleteAccountUserService interface {
-	ScheduleDeletionByEndUser(userID string) error
+	ScheduleDeletionByEndUser(ctx context.Context, userID string) error
 }
 
 type SettingsDeleteAccountOAuthSessionService interface {
-	Get(entryID string) (*oauthsession.Entry, error)
-	Save(entry *oauthsession.Entry) error
+	Get(ctx context.Context, entryID string) (*oauthsession.Entry, error)
+	Save(ctx context.Context, entry *oauthsession.Entry) error
 }
 
 type SettingsDeleteAccountSessionStore interface {
-	Create(session *webapp.Session) (err error)
-	Delete(id string) (err error)
-	Update(session *webapp.Session) (err error)
+	Create(ctx context.Context, session *webapp.Session) (err error)
+	Delete(ctx context.Context, id string) (err error)
+	Update(ctx context.Context, session *webapp.Session) (err error)
 }
 
 type SettingsDeleteAccountAuthenticationInfoService interface {
-	Save(entry *authenticationinfo.Entry) (err error)
+	Save(ctx context.Context, entry *authenticationinfo.Entry) (err error)
 }
 
 type SettingsDeleteAccountHandler struct {
@@ -93,7 +95,7 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	redirectURI := "/settings/delete_account/success"
 	webSession := webapp.GetSession(r.Context())
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -107,14 +109,14 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return nil
 	})
 
-	ctrl.PostAction("delete", func() error {
+	ctrl.PostAction("delete", func(ctx context.Context) error {
 		confirmation := r.Form.Get("delete")
 		isConfirmed := confirmation == "DELETE"
 		if !isConfirmed {
 			return apierrors.NewInvalid("confirmation is required to delete account")
 		}
 
-		err := h.Users.ScheduleDeletionByEndUser(currentSession.GetAuthenticationInfo().UserID)
+		err := h.Users.ScheduleDeletionByEndUser(ctx, currentSession.GetAuthenticationInfo().UserID)
 		if err != nil {
 			return err
 		}
@@ -124,23 +126,23 @@ func (h *SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			// handle settings action result here
 
 			authInfoEntry := authenticationinfo.NewEntry(currentSession.CreateNewAuthenticationInfoByThisSession(), webSession.OAuthSessionID, "")
-			err := h.AuthenticationInfoService.Save(authInfoEntry)
+			err := h.AuthenticationInfoService.Save(ctx, authInfoEntry)
 			if err != nil {
 				return err
 			}
 			webSession.Extra["authentication_info_id"] = authInfoEntry.ID
-			err = h.Sessions.Update(webSession)
+			err = h.Sessions.Update(ctx, webSession)
 			if err != nil {
 				return err
 			}
 
-			entry, err := h.OAuthSessions.Get(webSession.OAuthSessionID)
+			entry, err := h.OAuthSessions.Get(ctx, webSession.OAuthSessionID)
 			if err != nil {
 				return err
 			}
 
 			entry.T.SettingsActionResult = oauthsession.NewSettingsActionResult()
-			err = h.OAuthSessions.Save(entry)
+			err = h.OAuthSessions.Save(ctx, entry)
 			if err != nil {
 				return err
 			}

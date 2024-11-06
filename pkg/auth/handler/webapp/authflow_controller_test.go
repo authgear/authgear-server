@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -25,7 +26,7 @@ import (
 type NoopNavigator struct {
 }
 
-func (*NoopNavigator) Navigate(screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+func (*NoopNavigator) Navigate(ctx context.Context, screen *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 }
 
 func (*NoopNavigator) NavigateResetPasswordSuccessPage() string {
@@ -74,10 +75,10 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 
 			opts := webapp.SessionOptions{}
 
-			mockSessionStore.EXPECT().Create(gomock.Any()).Times(1).Return(nil)
+			mockSessionStore.EXPECT().Create(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 			mockCookieManager.EXPECT().ValueCookie(c.SessionCookie.Def, gomock.Any()).Times(1).Return(&http.Cookie{})
 
-			s, err := c.getOrCreateWebSession(w, r, opts)
+			s, err := c.getOrCreateWebSession(ctx, w, r, opts)
 			So(err, ShouldBeNil)
 			So(s, ShouldNotBeNil)
 		})
@@ -94,7 +95,7 @@ func TestAuthflowControllerGetOrCreateWebSession(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			opts := webapp.SessionOptions{}
-			ss, err := c.getOrCreateWebSession(w, r, opts)
+			ss, err := c.getOrCreateWebSession(ctx, w, r, opts)
 			So(err, ShouldBeNil)
 			So(ss, ShouldEqual, s)
 		})
@@ -115,9 +116,10 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 		}
 
 		Convey("return ErrFlowNotFound if session has no authflow", func() {
+			ctx := context.Background()
 			s := &webapp.Session{}
 
-			_, err := c.GetScreen(s, "")
+			_, err := c.GetScreen(ctx, s, "")
 			So(err, ShouldBeError, authflow.ErrFlowNotFound)
 		})
 
@@ -148,7 +150,8 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}
 
-			_, err := c.GetScreen(s, "")
+			ctx := context.Background()
+			_, err := c.GetScreen(ctx, s, "")
 			So(errors.Is(err, authflow.ErrFlowNotFound), ShouldBeTrue)
 		})
 
@@ -175,7 +178,7 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}
 
-			mockAuthflows.EXPECT().Get("authflowstate_1").Times(1).Return(&authflow.ServiceOutput{
+			mockAuthflows.EXPECT().Get(gomock.Any(), "authflowstate_1").Times(1).Return(&authflow.ServiceOutput{
 				Flow: &authflow.Flow{
 					FlowID:     "authflow_id",
 					StateToken: "authflowstate_1",
@@ -186,7 +189,8 @@ func TestAuthflowControllerGetScreen(t *testing.T) {
 				},
 			}, nil)
 
-			actual, err := c.GetScreen(s, "step_1")
+			ctx := context.Background()
+			actual, err := c.GetScreen(ctx, s, "step_1")
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, &webapp.AuthflowScreenWithFlowResponse{
 				Screen: screen1,
@@ -230,7 +234,7 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 
 			r, _ := http.NewRequestWithContext(ctx, "GET", "/authflow/login", nil)
 
-			mockAuthflows.EXPECT().CreateNewFlow(gomock.Any(), gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
+			mockAuthflows.EXPECT().CreateNewFlow(gomock.Any(), gomock.Any(), gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
 				Flow: &authflow.Flow{
 					FlowID:     "authflow_id",
 					StateToken: "authflowstate_0",
@@ -243,9 +247,9 @@ func TestAuthflowControllerCreateScreen(t *testing.T) {
 					Type: authflow.FlowActionTypeFromStepType(config.AuthenticationFlowStepTypeIdentify),
 				},
 			}, nil)
-			mockSessionStore.EXPECT().Update(gomock.Any()).Times(1).Return(nil)
+			mockSessionStore.EXPECT().Update(gomock.Any(), gomock.Any()).Times(1).Return(nil)
 
-			screen, err := c.createScreen(r, s, authflow.FlowTypeLogin, nil)
+			screen, err := c.createScreen(ctx, r, s, authflow.FlowTypeLogin, nil)
 			So(err, ShouldBeNil)
 			So(screen, ShouldNotBeNil)
 			So(string(screen.BranchStateTokenFlowResponse.Type), ShouldEqual, "login")
@@ -305,7 +309,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				"login_id":       "johndoe@example.com",
 			}
 
-			mockAuthflows.EXPECT().FeedInput("authflowstate_0", gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
+			mockAuthflows.EXPECT().FeedInput(gomock.Any(), "authflowstate_0", gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
 				Flow: &authflow.Flow{
 					FlowID:     "authflow_id",
 					StateToken: "authflowstate_1",
@@ -325,9 +329,10 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 					},
 				},
 			}, nil)
-			mockSessionStore.EXPECT().Update(s).Times(1).Return(nil)
+			mockSessionStore.EXPECT().Update(gomock.Any(), s).Times(1).Return(nil)
 
-			result, err := c.AdvanceWithInput(r, s, screen, input, nil)
+			ctx := context.Background()
+			result, err := c.AdvanceWithInput(ctx, r, s, screen, input, nil)
 			So(err, ShouldBeNil)
 			So(strings.HasPrefix(result.RedirectURI, "/authflow/enter_password?x_step="), ShouldBeTrue)
 		})
@@ -367,7 +372,7 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				"login_id":       "johndoe@example.com",
 			}
 
-			mockAuthflows.EXPECT().FeedInput("authflowstate_0", gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
+			mockAuthflows.EXPECT().FeedInput(gomock.Any(), "authflowstate_0", gomock.Any()).Times(1).Return(&authflow.ServiceOutput{
 				Flow: &authflow.Flow{
 					FlowID:     "authflow_id",
 					StateToken: "authflowstate_1",
@@ -390,8 +395,8 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 					},
 				},
 			}, nil)
-			mockSessionStore.EXPECT().Update(s).Times(1).Return(nil)
-			mockAuthflows.EXPECT().FeedInput("authflowstate_1", json.RawMessage(`{"authentication":"primary_oob_otp_email","channel":"email","index":0}`)).Times(1).Return(&authflow.ServiceOutput{
+			mockSessionStore.EXPECT().Update(gomock.Any(), s).Times(1).Return(nil)
+			mockAuthflows.EXPECT().FeedInput(gomock.Any(), "authflowstate_1", json.RawMessage(`{"authentication":"primary_oob_otp_email","channel":"email","index":0}`)).Times(1).Return(&authflow.ServiceOutput{
 				Flow: &authflow.Flow{
 					FlowID:     "authflow_id",
 					StateToken: "authflowstate_2",
@@ -409,7 +414,8 @@ func TestAuthflowControllerFeedInput(t *testing.T) {
 				},
 			}, nil)
 
-			result, err := c.AdvanceWithInput(r, s, screen, input, nil)
+			ctx := context.Background()
+			result, err := c.AdvanceWithInput(ctx, r, s, screen, input, nil)
 			So(err, ShouldBeNil)
 			So(strings.HasPrefix(result.RedirectURI, "/authflow/enter_oob_otp?x_step="), ShouldBeTrue)
 		})

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -36,14 +37,14 @@ type SettingsRecoveryCodeHandler struct {
 	MFA               SettingsMFAService
 }
 
-func (h *SettingsRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *SettingsRecoveryCodeHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	userID := *session.GetUserID(r.Context())
+	userID := *session.GetUserID(ctx)
 
 	viewModel := SettingsRecoveryCodeViewModel{}
 	if h.Authentication.RecoveryCode.ListEnabled {
-		codes, err := h.MFA.ListRecoveryCodes(userID)
+		codes, err := h.MFA.ListRecoveryCodes(ctx, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -74,13 +75,13 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 
 	listEnabled := !*h.Authentication.RecoveryCode.Disabled && h.Authentication.RecoveryCode.ListEnabled
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		if !listEnabled {
 			http.Redirect(w, r, "/settings/mfa", http.StatusFound)
 			return nil
 		}
 
-		data, err := h.GetData(r, w)
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
@@ -89,13 +90,13 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return nil
 	})
 
-	ctrl.PostAction("download", func() error {
+	ctrl.PostAction("download", func(ctx context.Context) error {
 		if !h.Authentication.RecoveryCode.ListEnabled {
 			http.Error(w, "listing recovery code is disabled", http.StatusForbidden)
 			return nil
 		}
 
-		data, err := h.GetData(r, w)
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
@@ -105,7 +106,7 @@ func (h *SettingsRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return nil
 	})
 
-	ctrl.PostAction("regenerate", func() error {
+	ctrl.PostAction("regenerate", func(ctx context.Context) error {
 		if !h.Authentication.RecoveryCode.ListEnabled {
 			http.Error(w, "regenerate recovery code is disabled", http.StatusForbidden)
 			return nil

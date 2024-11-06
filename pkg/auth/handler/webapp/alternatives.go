@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -26,7 +27,7 @@ type CreateAuthenticatorPhoneOTPNode interface {
 
 // nolint: gocognit
 func handleAlternativeSteps(ctrl *Controller) {
-	ctrl.PostAction("choose_step", func() (err error) {
+	ctrl.PostAction("choose_step", func(ctx context.Context) (err error) {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -270,7 +271,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 				stepKind,
 				session.CurrentStep().GraphID,
 			))
-			if err = ctrl.Page.UpdateSession(session); err != nil {
+			if err = ctrl.Page.UpdateSession(ctx, session); err != nil {
 				return err
 			}
 			result = &webapp.Result{

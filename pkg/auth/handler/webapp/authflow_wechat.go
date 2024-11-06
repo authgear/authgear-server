@@ -1,8 +1,10 @@
 package webapp
 
 import (
+	"context"
 	htmltemplate "html/template"
 	"net/http"
+
 	"net/url"
 
 	"github.com/boombuler/barcode/qr"
@@ -37,7 +39,7 @@ type AuthflowWechatViewModel struct {
 }
 
 type AuthflowWechatHandlerOAuthStateStore interface {
-	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
+	GenerateState(ctx context.Context, state *webappoauth.WebappOAuthState) (stateToken string, err error)
 }
 
 type AuthflowWechatHandler struct {
@@ -47,7 +49,7 @@ type AuthflowWechatHandler struct {
 	OAuthStateStore AuthflowWechatHandlerOAuthStateStore
 }
 
-func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowWechatHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -63,7 +65,7 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 			RawQuery: r.URL.Query().Encode(),
 		}).String(),
 	}
-	stateToken, err := h.OAuthStateStore.GenerateState(state)
+	stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +113,7 @@ func (h *AuthflowWechatHandler) GetData(w http.ResponseWriter, r *http.Request, 
 func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
 
-	submit := func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	submit := func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data := screen.Screen.WechatCallbackData
 
 		input := map[string]interface{}{}
@@ -123,7 +125,7 @@ func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			input["error_description"] = data.ErrorDescription
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -132,13 +134,13 @@ func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return nil
 	}
 
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		if screen.Screen.WechatCallbackData != nil {
-			return submit(s, screen)
+			return submit(ctx, s, screen)
 		}
 
 		// Otherwise render the page.
-		data, err := h.GetData(w, r, s, screen)
+		data, err := h.GetData(ctx, w, r, s, screen)
 		if err != nil {
 			return err
 		}
@@ -146,9 +148,9 @@ func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowWechatHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		if screen.Screen.WechatCallbackData != nil {
-			return submit(s, screen)
+			return submit(ctx, s, screen)
 		}
 
 		// Otherwise redirect to the same page.
@@ -163,5 +165,5 @@ func (h *AuthflowWechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

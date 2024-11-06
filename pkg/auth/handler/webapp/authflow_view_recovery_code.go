@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -49,7 +50,7 @@ func (h *AuthflowViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *http
 
 func (h *AuthflowViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -58,7 +59,7 @@ func (h *AuthflowViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowViewRecoveryCodeHTML, data)
 		return nil
 	})
-	handlers.PostAction("download", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("download", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -68,12 +69,12 @@ func (h *AuthflowViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		h.Renderer.Render(w, r, TemplateWebDownloadRecoveryCodeTXT, data)
 		return nil
 	})
-	handlers.PostAction("proceed", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("proceed", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"confirm_recovery_code": true,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -81,5 +82,5 @@ func (h *AuthflowViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

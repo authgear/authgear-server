@@ -1,9 +1,11 @@
 package webapp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -33,21 +35,21 @@ type ErrorRenderer struct {
 	AuthflowV2Navigator ErrorRendererAuthflowV2Navigator
 }
 
-func (s *ErrorRenderer) RenderError(w http.ResponseWriter, r *http.Request, err error) {
+func (s *ErrorRenderer) RenderError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
 	uiImpl := s.UIImplementationService.GetUIImplementation()
 	switch uiImpl {
 	case config.UIImplementationInteraction:
-		s.renderInteractionError(w, r, err)
+		s.renderInteractionError(ctx, w, r, err)
 	case config.UIImplementationAuthflow:
 		fallthrough
 	case config.UIImplementationAuthflowV2:
-		s.renderAuthflowError(w, r, err)
+		s.renderAuthflowError(ctx, w, r, err)
 	default:
 		panic(fmt.Errorf("unknown ui implementation %s", uiImpl))
 	}
 }
 
-func (s *ErrorRenderer) renderInteractionError(w http.ResponseWriter, r *http.Request, err error) {
+func (s *ErrorRenderer) renderInteractionError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
 	apierror := apierrors.AsAPIError(err)
 
 	// Show WebUIInvalidSession error in different page.
@@ -61,7 +63,7 @@ func (s *ErrorRenderer) renderInteractionError(w http.ResponseWriter, r *http.Re
 		u.Path = "/errors/error"
 	}
 
-	cookie, err := s.ErrorService.SetRecoverableError(r, apierror)
+	cookie, err := s.ErrorService.SetRecoverableError(ctx, r, apierror)
 	if err != nil {
 		panic(err)
 	}
@@ -73,11 +75,11 @@ func (s *ErrorRenderer) renderInteractionError(w http.ResponseWriter, r *http.Re
 	result.WriteResponse(w, r)
 }
 
-func (s *ErrorRenderer) MakeAuthflowErrorResult(w http.ResponseWriter, r *http.Request, u url.URL, err error) *webapp.Result {
+func (s *ErrorRenderer) MakeAuthflowErrorResult(ctx context.Context, w http.ResponseWriter, r *http.Request, u url.URL, err error) *webapp.Result {
 	apierror := apierrors.AsAPIError(err)
 
 	recoverable := func() *webapp.Result {
-		cookie, err := s.ErrorService.SetRecoverableError(r, apierror)
+		cookie, err := s.ErrorService.SetRecoverableError(ctx, r, apierror)
 		if err != nil {
 			panic(err)
 		}
@@ -129,6 +131,6 @@ func (s *ErrorRenderer) MakeAuthflowErrorResult(w http.ResponseWriter, r *http.R
 	}
 }
 
-func (s *ErrorRenderer) renderAuthflowError(w http.ResponseWriter, r *http.Request, err error) {
-	s.MakeAuthflowErrorResult(w, r, *r.URL, err).WriteResponse(w, r)
+func (s *ErrorRenderer) renderAuthflowError(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) {
+	s.MakeAuthflowErrorResult(ctx, w, r, *r.URL, err).WriteResponse(w, r)
 }

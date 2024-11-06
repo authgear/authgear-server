@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -33,8 +34,8 @@ type EnterLoginIDViewModel struct {
 }
 
 type EnterLoginIDService interface {
-	Get(id string) (*identity.Info, error)
-	ListCandidates(userID string) ([]identity.Candidate, error)
+	Get(ctx context.Context, id string) (*identity.Info, error)
+	ListCandidates(ctx context.Context, userID string) ([]identity.Candidate, error)
 }
 
 func NewEnterLoginIDViewModel(r *http.Request, cfg *config.IdentityConfig, info *identity.Info) EnterLoginIDViewModel {
@@ -104,14 +105,14 @@ type EnterLoginIDHandler struct {
 	IdentityConfig          *config.IdentityConfig
 }
 
-func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *EnterLoginIDHandler) GetData(ctx context.Context, userID string, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	identityID := r.Form.Get("q_identity_id")
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	var enterLoginIDViewModel EnterLoginIDViewModel
 	if identityID != "" {
-		idnInfo, err := h.Identities.Get(identityID)
+		idnInfo, err := h.Identities.Get(ctx, identityID)
 		if errors.Is(err, api.ErrIdentityNotFound) {
 			return nil, webapp.ErrInvalidSession
 		} else if err != nil {
@@ -122,7 +123,7 @@ func (h *EnterLoginIDHandler) GetData(userID string, r *http.Request, rw http.Re
 		enterLoginIDViewModel = NewEnterLoginIDViewModel(r, h.IdentityConfig, nil)
 	}
 
-	candidates, err := h.Identities.ListCandidates(userID)
+	candidates, err := h.Identities.ListCandidates(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -144,8 +145,8 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	userID := ctrl.RequireUserID()
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(userID, r, w)
+	ctrl.Get(func(ctx context.Context) error {
+		data, err := h.GetData(ctx, userID, r, w)
 		if err != nil {
 			return err
 		}
@@ -154,7 +155,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		opts := webapp.SessionOptions{
 			RedirectURI: "/settings",
 		}
@@ -180,7 +181,7 @@ func (h *EnterLoginIDHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return nil
 	})
 
-	ctrl.PostAction("add_or_update", func() error {
+	ctrl.PostAction("add_or_update", func(ctx context.Context) error {
 		opts := webapp.SessionOptions{
 			RedirectURI: "/settings",
 		}

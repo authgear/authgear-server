@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -78,7 +79,7 @@ type VerifyIdentityNode interface {
 	GetRequestedByUser() bool
 }
 
-func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter, action string, maybeSession *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *VerifyIdentityHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, action string, maybeSession *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
@@ -113,7 +114,7 @@ func (h *VerifyIdentityHandler) GetData(r *http.Request, rw http.ResponseWriter,
 			panic("webapp: unknown verification channel")
 		}
 
-		state, err := h.OTPCodeService.InspectState(otp.KindVerification(h.Config, channel), target)
+		state, err := h.OTPCodeService.InspectState(ctx, otp.KindVerification(h.Config, channel), target)
 		if err != nil {
 			return nil, err
 		}
@@ -173,7 +174,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		// This page should be opened by the original user agent.
 		session, err := ctrl.InteractionSession()
 		if err != nil {
@@ -185,7 +186,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			return err
 		}
 
-		data, err := h.GetData(r, w, VerifyIdentityActionSubmit, session, graph)
+		data, err := h.GetData(ctx, r, w, VerifyIdentityActionSubmit, session, graph)
 		if err != nil {
 			return err
 		}
@@ -194,7 +195,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return nil
 	})
 
-	ctrl.PostAction("resend", func() error {
+	ctrl.PostAction("resend", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputResendCode{}
 			return
@@ -210,7 +211,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return nil
 	})
 
-	ctrl.PostAction(VerifyIdentityActionSubmit, func() error {
+	ctrl.PostAction(VerifyIdentityActionSubmit, func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(inputFn)
 		if err != nil {
 			return err

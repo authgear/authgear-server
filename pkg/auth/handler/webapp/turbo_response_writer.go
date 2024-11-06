@@ -3,6 +3,7 @@ package webapp
 import (
 	"encoding/json"
 	"net/http"
+
 	"strings"
 
 	"github.com/authgear/authgear-server/pkg/api"

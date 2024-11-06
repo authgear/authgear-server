@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
@@ -35,7 +36,7 @@ func (h *ReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
 	}
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		opts := webapp.SessionOptions{
 			RedirectURI: ctrl.RedirectURI(),
 		}

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"fmt"
 	"mime"
 	"net/http"
@@ -74,7 +75,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		graph, err := ctrl.InteractionGet()
 		if err != nil {
 			return err
@@ -89,7 +90,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return nil
 	})
 
-	ctrl.PostAction("download", func() error {
+	ctrl.PostAction("download", func(ctx context.Context) error {
 		graph, err := ctrl.InteractionGet()
 		if err != nil {
 			return err
@@ -105,7 +106,7 @@ func (h *SetupRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return nil
 	})
 
-	ctrl.PostAction("proceed", func() error {
+	ctrl.PostAction("proceed", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputSetupRecoveryCode{}
 			return

@@ -1,8 +1,10 @@
 package webapp
 
 import (
+	"context"
 	htmltemplate "html/template"
 	"net/http"
+
 	"net/url"
 
 	"github.com/boombuler/barcode/qr"
@@ -98,7 +100,7 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -146,7 +148,7 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err

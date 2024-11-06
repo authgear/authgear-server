@@ -1,7 +1,9 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -27,15 +29,15 @@ func ConfigureSettingsProfileEditRoute(route httproute.Route) httproute.Route {
 }
 
 type SettingsProfileEditUserService interface {
-	GetRaw(id string) (*user.User, error)
+	GetRaw(ctx context.Context, id string) (*user.User, error)
 }
 
 type SettingsProfileEditStdAttrsService interface {
-	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
 type SettingsProfileEditCustomAttrsService interface {
-	UpdateCustomAttributesWithForm(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error
+	UpdateCustomAttributesWithForm(ctx context.Context, role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error
 }
 
 type SettingsProfileEditHandler struct {
@@ -48,8 +50,8 @@ type SettingsProfileEditHandler struct {
 	CustomAttrs              SettingsProfileEditCustomAttrsService
 }
 
-func (h *SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	userID := session.GetUserID(r.Context())
+func (h *SettingsProfileEditHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	userID := session.GetUserID(ctx)
 
 	data := map[string]interface{}{}
 
@@ -60,7 +62,7 @@ func (h *SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWr
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	viewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
+	viewModelPtr, err := h.SettingsProfileViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +79,8 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+	ctrl.Get(func(ctx context.Context) error {
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
@@ -87,19 +89,19 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		return nil
 	})
 
-	ctrl.PostAction("save", func() error {
-		userID := *session.GetUserID(r.Context())
+	ctrl.PostAction("save", func(ctx context.Context) error {
+		userID := *session.GetUserID(ctx)
 		PatchGenderForm(r.Form)
 		m := JSONPointerFormToMap(r.Form)
 
-		u, err := h.Users.GetRaw(userID)
+		u, err := h.Users.GetRaw(ctx, userID)
 		if err != nil {
 			return err
 		}
 
 		variant := httproute.GetParam(r, "variant")
 		if variant == "custom_attributes" {
-			err = h.CustomAttrs.UpdateCustomAttributesWithForm(config.RoleEndUser, userID, m)
+			err = h.CustomAttrs.UpdateCustomAttributesWithForm(ctx, config.RoleEndUser, userID, m)
 			if err != nil {
 				return err
 			}
@@ -109,7 +111,7 @@ func (h *SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 				return err
 			}
 
-			err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
+			err = h.StdAttrs.UpdateStandardAttributes(ctx, config.RoleEndUser, userID, attrs)
 			if err != nil {
 				return err
 			}

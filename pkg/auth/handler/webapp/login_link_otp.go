@@ -1,8 +1,10 @@
 package webapp
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -54,7 +56,7 @@ type LoginLinkOTPHandler struct {
 	Config                    *config.AppConfig
 }
 
-func (h *LoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *LoginLinkOTPHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewModel := LoginLinkOTPViewModel{
@@ -68,6 +70,7 @@ func (h *LoginLinkOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, s
 		target := n.GetLoginLinkOTPTarget()
 
 		state, err := h.LoginLinkOTPCodeService.InspectState(
+			ctx,
 			otp.KindOOBOTPLink(h.Config, channel),
 			target,
 		)
@@ -117,7 +120,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -128,7 +131,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 			return err
 		}
 
-		data, err := h.GetData(r, w, session, graph)
+		data, err := h.GetData(ctx, r, w, session, graph)
 		if err != nil {
 			return err
 		}
@@ -137,7 +140,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return nil
 	})
 
-	ctrl.PostAction("resend", func() error {
+	ctrl.PostAction("resend", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputResendCode{}
 			return
@@ -169,7 +172,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return code, nil
 	}
 
-	ctrl.PostAction("dryrun_verify", func() error {
+	ctrl.PostAction("dryrun_verify", func(ctx context.Context) error {
 		var state LoginLinkOTPPageQueryState
 
 		email, err := getEmailFromGraph()
@@ -179,7 +182,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 		kind := otp.KindOOBOTPLink(h.Config, model.AuthenticatorOOBChannelEmail)
 		err = h.LoginLinkOTPCodeService.VerifyOTP(
-			kind, email, "", &otp.VerifyOptions{UseSubmittedCode: true, SkipConsume: true},
+			ctx, kind, email, "", &otp.VerifyOptions{UseSubmittedCode: true, SkipConsume: true},
 		)
 		if err == nil {
 			state = LoginLinkOTPPageQueryStateMatched
@@ -202,7 +205,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return nil
 	})
 
-	ctrl.PostAction("next", func() error {
+	ctrl.PostAction("next", func(ctx context.Context) error {
 		deviceToken := r.Form.Get("x_device_token") == "true"
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputVerifyLoginLinkOTP{

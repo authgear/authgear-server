@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -19,9 +20,9 @@ func ConfigurePasskeyRequestOptionsRoute(route httproute.Route) httproute.Route 
 }
 
 type PasskeyRequestOptionsService interface {
-	MakeConditionalRequestOptions() (*model.WebAuthnRequestOptions, error)
-	MakeModalRequestOptions() (*model.WebAuthnRequestOptions, error)
-	MakeModalRequestOptionsWithUser(userID string) (*model.WebAuthnRequestOptions, error)
+	MakeConditionalRequestOptions(ctx context.Context) (*model.WebAuthnRequestOptions, error)
+	MakeModalRequestOptions(ctx context.Context) (*model.WebAuthnRequestOptions, error)
+	MakeModalRequestOptionsWithUser(ctx context.Context, userID string) (*model.WebAuthnRequestOptions, error)
 }
 
 type PasskeyRequestOptionsHandler struct {
@@ -48,9 +49,9 @@ func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	allowCredentials := r.FormValue("allow_credentials") == "true"
 
 	var requestOptions *model.WebAuthnRequestOptions
-	err = h.Database.ReadOnly(func() error {
+	err = h.Database.ReadOnly(r.Context(), func(ctx context.Context) error {
 		if conditional {
-			requestOptions, err = h.Passkey.MakeConditionalRequestOptions()
+			requestOptions, err = h.Passkey.MakeConditionalRequestOptions(ctx)
 			if err != nil {
 				return err
 			}
@@ -58,15 +59,15 @@ func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		}
 
 		if allowCredentials {
-			session := webapp.GetSession(r.Context())
+			session := webapp.GetSession(ctx)
 			if session == nil {
 				err = apierrors.NewBadRequest("session not found")
 				return err
 			}
-			err := h.Page.PeekUncommittedChanges(session, func(graph *interaction.Graph) error {
+			err := h.Page.PeekUncommittedChanges(ctx, session, func(graph *interaction.Graph) error {
 				userID := graph.MustGetUserID()
 				var err error
-				requestOptions, err = h.Passkey.MakeModalRequestOptionsWithUser(userID)
+				requestOptions, err = h.Passkey.MakeModalRequestOptionsWithUser(ctx, userID)
 				if err != nil {
 					return err
 				}
@@ -79,7 +80,7 @@ func (h *PasskeyRequestOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			return nil
 		}
 
-		requestOptions, err = h.Passkey.MakeModalRequestOptions()
+		requestOptions, err = h.Passkey.MakeModalRequestOptions(ctx)
 		if err != nil {
 			return err
 		}

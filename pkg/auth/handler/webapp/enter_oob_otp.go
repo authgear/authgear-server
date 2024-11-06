@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -69,7 +70,7 @@ type EnterOOBOTPNode interface {
 	GetOOBOTPOOBType() interaction.OOBType
 }
 
-func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *EnterOOBOTPHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
@@ -87,7 +88,7 @@ func (h *EnterOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 			viewModel.OOBOTPTarget = phone.Mask(target)
 		}
 
-		state, err := h.OTPCodeService.InspectState(otp.KindOOBOTPCode(h.Config, channel), target)
+		state, err := h.OTPCodeService.InspectState(ctx, otp.KindOOBOTPCode(h.Config, channel), target)
 		if err != nil {
 			return nil, err
 		}
@@ -159,7 +160,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -170,7 +171,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		data, err := h.GetData(r, w, session, graph)
+		data, err := h.GetData(ctx, r, w, session, graph)
 		if err != nil {
 			return err
 		}
@@ -179,7 +180,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("resend", func() error {
+	ctrl.PostAction("resend", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputResendCode{}
 			return
@@ -195,7 +196,7 @@ func (h *EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("submit", func() error {
+	ctrl.PostAction("submit", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			err = EnterOOBOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {

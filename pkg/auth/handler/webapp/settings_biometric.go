@@ -1,7 +1,9 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
+
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -43,13 +45,13 @@ type SettingsBiometricHandler struct {
 	Identities        SettingsIdentityService
 }
 
-func (h *SettingsBiometricHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *SettingsBiometricHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
-	identityInfos, err := h.Identities.ListByUser(*userID)
+	identityInfos, err := h.Identities.ListByUser(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +87,8 @@ func (h *SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 	userID := ctrl.RequireUserID()
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+	ctrl.Get(func(ctx context.Context) error {
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
@@ -97,7 +99,7 @@ func (h *SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}

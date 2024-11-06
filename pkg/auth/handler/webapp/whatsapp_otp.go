@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -54,7 +55,7 @@ type WhatsappOTPHandler struct {
 	FlashMessage              FlashMessage
 }
 
-func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *WhatsappOTPHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	whatsappViewModel := WhatsappOTPViewModel{}
@@ -65,7 +66,7 @@ func (h *WhatsappOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, se
 		otpkind := n.GetOTPKindFactory()(h.Config, channel)
 		whatsappViewModel.WhatsappOTPTarget = phone.Mask(target)
 		whatsappViewModel.WhatsappOTPCodeLength = n.GetWhatsappOTPLength()
-		state, err := h.OTPCodeService.InspectState(otpkind, target)
+		state, err := h.OTPCodeService.InspectState(ctx, otpkind, target)
 		if err != nil {
 			return nil, err
 		}
@@ -127,7 +128,7 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -138,7 +139,7 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		data, err := h.GetData(r, w, session, graph)
+		data, err := h.GetData(ctx, r, w, session, graph)
 		if err != nil {
 			return err
 		}
@@ -147,7 +148,7 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("submit", func() error {
+	ctrl.PostAction("submit", func(ctx context.Context) error {
 		deviceToken := r.Form.Get("x_device_token") == "true"
 		otp := r.Form.Get("x_whatsapp_code")
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
@@ -165,7 +166,7 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("resend", func() error {
+	ctrl.PostAction("resend", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			input = &InputResendCode{}
 			return

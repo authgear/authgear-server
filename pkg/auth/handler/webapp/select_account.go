@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -30,19 +31,19 @@ func ConfigureSelectAccountRoute(route httproute.Route) httproute.Route {
 }
 
 type SelectAccountUserService interface {
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
+	Get(ctx context.Context, userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type SelectAccountUserFacade interface {
-	GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error)
+	GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error)
 }
 
 type SelectAccountIdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type SelectAccountAuthenticationInfoService interface {
-	Save(entry *authenticationinfo.Entry) error
+	Save(ctx context.Context, entry *authenticationinfo.Entry) error
 }
 
 type SelectAccountUIInfoResolver interface {
@@ -71,17 +72,17 @@ type SelectAccountHandler struct {
 	OAuthClientResolver       WebappOAuthClientResolver
 }
 
-func (h *SelectAccountHandler) GetData(r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
+func (h *SelectAccountHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, userID string) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	identities, err := h.Identities.ListByUser(userID)
+	identities, err := h.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := h.Users.Get(userID, accesscontrol.RoleGreatest)
+	user, err := h.Users.Get(ctx, userID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return nil, err
 	}
@@ -143,9 +144,9 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		session = nil
 	}
 	// Ignore any session that does not match login_hint
-	ctrl.BeforeHandle(func() error {
+	ctrl.BeforeHandle(func(ctx context.Context) error {
 		if loginHint != nil && session != nil {
-			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
+			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(ctx, loginHint)
 			if err != nil {
 				return err
 			}
@@ -157,7 +158,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 
-	continueWithCurrentAccount := func() error {
+	continueWithCurrentAccount := func(ctx context.Context) error {
 		redirectURI := ""
 
 		// Complete the web session and redirect to web session's RedirectURI
@@ -176,7 +177,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		if session != nil {
 			info := session.CreateNewAuthenticationInfoByThisSession()
 			entry := authenticationinfo.NewEntry(info, oauthSessionID, "")
-			err := h.AuthenticationInfoService.Save(entry)
+			err := h.AuthenticationInfoService.Save(ctx, entry)
 			if err != nil {
 				return err
 			}
@@ -228,7 +229,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	// So we have to put http.Redirect before it.
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		// When promote anonymous user, the end-user should not see this page.
 		if webSession != nil && webSession.LoginHint != "" {
 			loginHint, err := oauth.ParseLoginHint(webSession.LoginHint)
@@ -249,7 +250,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 				// 2. IDP session present and the same as UserIDHint
 				// 3. prompt!=login
 
-				err := continueWithCurrentAccount()
+				err := continueWithCurrentAccount(ctx)
 				if err != nil {
 					return err
 				}
@@ -277,7 +278,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return nil
 		}
 
-		data, err := h.GetData(r, w, session.GetAuthenticationInfo().UserID)
+		data, err := h.GetData(ctx, r, w, session.GetAuthenticationInfo().UserID)
 		if err != nil {
 			return err
 		}
@@ -286,11 +287,11 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 
-	ctrl.PostAction("continue", func() error {
-		return continueWithCurrentAccount()
+	ctrl.PostAction("continue", func(ctx context.Context) error {
+		return continueWithCurrentAccount(ctx)
 	})
 
-	ctrl.PostAction("login", func() error {
+	ctrl.PostAction("login", func(ctx context.Context) error {
 		gotoSignupOrLogin()
 		return nil
 	})

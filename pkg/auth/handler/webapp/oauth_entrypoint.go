@@ -2,6 +2,7 @@ package webapp
 
 import (
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
