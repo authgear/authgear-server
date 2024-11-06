@@ -1,8 +1,10 @@
 package authflowv2
 
 import (
+	"context"
 	"math"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -78,7 +80,7 @@ type AuthflowV2SettingsIdentityVerifyEmailHandler struct {
 	AuthenticatorConfig *config.AuthenticatorConfig
 }
 
-func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
@@ -87,8 +89,8 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(r *http.Request, 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	s := session.GetSession(r.Context())
-	token, err := h.AccountManagement.GetToken(s, tokenString)
+	s := session.GetSession(ctx)
+	token, err := h.AccountManagement.GetToken(ctx, s, tokenString)
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +105,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) GetData(r *http.Request, 
 		MaskedClaimValue: mail.MaskAddress(token.Identity.Email),
 	}
 
-	state, err := h.OTPCodeService.InspectState(otp.KindVerification(h.Config, model.AuthenticatorOOBChannelEmail), token.Identity.Email)
+	state, err := h.OTPCodeService.InspectState(ctx, otp.KindVerification(h.Config, model.AuthenticatorOOBChannelEmail), token.Identity.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -129,8 +131,8 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+	ctrl.Get(func(ctx context.Context) error {
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
@@ -139,7 +141,7 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 		return nil
 	})
 
-	ctrl.PostAction("submit", func() error {
+	ctrl.PostAction("submit", func(ctx context.Context) error {
 		err := AuthflowV2SettingsIdentityVerifyEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -150,8 +152,8 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 
 		code := r.Form.Get("x_code")
 
-		s := session.GetSession(r.Context())
-		_, err = h.AccountManagement.ResumeAddOrUpdateIdentityEmail(s, tokenString, &accountmanagement.ResumeAddOrUpdateIdentityEmailInput{
+		s := session.GetSession(ctx)
+		_, err = h.AccountManagement.ResumeAddOrUpdateIdentityEmail(ctx, s, tokenString, &accountmanagement.ResumeAddOrUpdateIdentityEmailInput{
 			LoginIDKey: loginIDKey,
 			Code:       code,
 		})
@@ -172,14 +174,14 @@ func (h *AuthflowV2SettingsIdentityVerifyEmailHandler) ServeHTTP(w http.Response
 		return nil
 	})
 
-	ctrl.PostAction("resend", func() error {
+	ctrl.PostAction("resend", func(ctx context.Context) error {
 		err := AuthflowV2SettingsIdentityResendEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
 		tokenString := r.Form.Get("q_token")
-		err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), tokenString)
+		err = h.AccountManagement.ResendOTPCode(ctx, session.GetSession(ctx), tokenString)
 		if err != nil {
 			return err
 		}

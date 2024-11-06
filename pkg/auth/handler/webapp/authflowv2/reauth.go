@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -27,16 +28,16 @@ func (h *AuthflowV2ReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	}
 
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		// HandleStartOfFlow used to redirect to the next screen for us.
 		// But that redirect was removed.
 		// So we need to redirect here.
 		// See https://github.com/authgear/authgear-server/issues/3470
 		result := &webapp.Result{}
-		screen.Navigate(h.AuthflowNavigator, r, s.ID, result)
+		screen.Navigate(ctx, h.AuthflowNavigator, r, s.ID, result)
 		result.WriteResponse(w, r)
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowTypeReauth, &handlers, nil)
+	h.Controller.HandleStartOfFlow(r.Context(), w, r, opts, authflow.FlowTypeReauth, &handlers, nil)
 }

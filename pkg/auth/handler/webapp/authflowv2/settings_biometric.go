@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"time"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -31,7 +33,7 @@ type SettingsBiometricViewModel struct {
 }
 
 type BiometricIdentityProvider interface {
-	List(userID string) ([]*identity.Biometric, error)
+	List(ctx context.Context, userID string) ([]*identity.Biometric, error)
 }
 
 type AuthflowV2SettingsBiometricHandler struct {
@@ -45,16 +47,16 @@ type AuthflowV2SettingsBiometricHandler struct {
 	AccountManagementService *accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsBiometricHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsBiometricHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel
-	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +66,7 @@ func (h *AuthflowV2SettingsBiometricHandler) GetData(r *http.Request, rw http.Re
 	biometricViewModel := SettingsBiometricViewModel{}
 
 	var biometricIdentityInfos []*identity.Biometric
-	biometricIdentityInfos, err = h.BiometricProvider.List(*userID)
+	biometricIdentityInfos, err = h.BiometricProvider.List(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -91,10 +93,10 @@ func (h *AuthflowV2SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r 
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			return err
 		})
 		if err != nil {
@@ -106,15 +108,15 @@ func (h *AuthflowV2SettingsBiometricHandler) ServeHTTP(w http.ResponseWriter, r 
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		identityID := r.Form.Get("x_identity_id")
 
-		s := session.GetSession(r.Context())
+		s := session.GetSession(ctx)
 
 		input := &accountmanagement.DeleteIdentityBiometricInput{
 			IdentityID: identityID,
 		}
-		_, err = h.AccountManagementService.DeleteIdentityBiometric(s, input)
+		_, err = h.AccountManagementService.DeleteIdentityBiometric(ctx, s, input)
 		if err != nil {
 			return err
 		}

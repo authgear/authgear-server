@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -42,16 +44,16 @@ type AuthflowV2SettingsDeleteAccountHandler struct {
 	AuthenticationInfoService handlerwebapp.SettingsDeleteAccountAuthenticationInfoService
 }
 
-func (h *AuthflowV2SettingsDeleteAccountHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsDeleteAccountHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel
-	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -79,10 +81,10 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 	redirectURI := "/settings/delete_account/success"
 	webSession := webapp.GetSession(r.Context())
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			return err
 		})
 		if err != nil {
@@ -94,15 +96,15 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 		return nil
 	})
 
-	ctrl.PostAction("delete", func() error {
+	ctrl.PostAction("delete", func(ctx context.Context) error {
 		confirmation := r.Form.Get("delete")
 		isConfirmed := confirmation == "DELETE"
 		if !isConfirmed {
 			return apierrors.NewInvalid("confirmation is required to delete account")
 		}
 
-		err := h.Database.WithTx(func() error {
-			return h.Users.ScheduleDeletionByEndUser(currentSession.GetAuthenticationInfo().UserID)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			return h.Users.ScheduleDeletionByEndUser(ctx, currentSession.GetAuthenticationInfo().UserID)
 		})
 		if err != nil {
 			return err
@@ -113,23 +115,23 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 			// handle settings action result here
 
 			authInfoEntry := authenticationinfo.NewEntry(currentSession.CreateNewAuthenticationInfoByThisSession(), webSession.OAuthSessionID, "")
-			err := h.AuthenticationInfoService.Save(authInfoEntry)
+			err := h.AuthenticationInfoService.Save(ctx, authInfoEntry)
 			if err != nil {
 				return err
 			}
 			webSession.Extra["authentication_info_id"] = authInfoEntry.ID
-			err = h.Sessions.Update(webSession)
+			err = h.Sessions.Update(ctx, webSession)
 			if err != nil {
 				return err
 			}
 
-			entry, err := h.OAuthSessions.Get(webSession.OAuthSessionID)
+			entry, err := h.OAuthSessions.Get(ctx, webSession.OAuthSessionID)
 			if err != nil {
 				return err
 			}
 
 			entry.T.SettingsActionResult = oauthsession.NewSettingsActionResult()
-			err = h.OAuthSessions.Save(entry)
+			err = h.OAuthSessions.Save(ctx, entry)
 			if err != nil {
 				return err
 			}

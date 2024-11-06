@@ -1,8 +1,10 @@
 package authflowv2
 
 import (
+	"context"
 	"errors"
 	"net/http"
+
 	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -217,7 +219,7 @@ func (h *AuthflowV2ForgotPasswordHandler) GetData(
 func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
 
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
 		var screenIdentify *webapp.AuthflowScreenWithFlowResponse
 		var screenSelectDestination *webapp.AuthflowScreenWithFlowResponse
@@ -229,7 +231,7 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		case config.AuthenticationFlowStepTypeSelectDestination:
 			screenSelectDestination = screen
 			var err error
-			screenIdentify, err = h.Controller.GetScreen(s, screen.Screen.PreviousXStep)
+			screenIdentify, err = h.Controller.GetScreen(ctx, s, screen.Screen.PreviousXStep)
 			if err != nil {
 				return err
 			}
@@ -244,7 +246,7 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return nil
 	})
 
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowV2ForgotPasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -262,12 +264,12 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			}
 		}
 
-		result, err := h.Controller.AdvanceWithInputs(r, s, screen, inputs, nil)
+		result, err := h.Controller.AdvanceWithInputs(ctx, r, s, screen, inputs, nil)
 		if errors.Is(err, otp.ErrInvalidWhatsappUser) {
 			// The code failed to send because it is not a valid whatsapp user
 			// Try again with sms if possible
 			var fallbackErr error
-			result, fallbackErr = h.fallbackToSMS(r, s, screen, identification, loginID)
+			result, fallbackErr = h.fallbackToSMS(ctx, r, s, screen, identification, loginID)
 			if errors.Is(fallbackErr, handlerwebapp.ErrNoFallbackAvailable) {
 				return err
 			} else if fallbackErr != nil {
@@ -281,10 +283,11 @@ func (h *AuthflowV2ForgotPasswordHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, webapp.SessionOptions{}, authflow.FlowTypeAccountRecovery, &handlers, nil)
+	h.Controller.HandleStartOfFlow(r.Context(), w, r, webapp.SessionOptions{}, authflow.FlowTypeAccountRecovery, &handlers, nil)
 }
 
 func (h *AuthflowV2ForgotPasswordHandler) fallbackToSMS(
+	ctx context.Context,
 	r *http.Request,
 	s *webapp.Session,
 	screen *webapp.AuthflowScreenWithFlowResponse,
@@ -298,7 +301,7 @@ func (h *AuthflowV2ForgotPasswordHandler) fallbackToSMS(
 			"identification": identification,
 			"login_id":       loginID,
 		}
-		output, err := h.Controller.FeedInputWithoutNavigate(screen.StateTokenFlowResponse.StateToken, input)
+		output, err := h.Controller.FeedInputWithoutNavigate(ctx, screen.StateTokenFlowResponse.StateToken, input)
 		if err != nil {
 			return nil, err
 		}
@@ -325,7 +328,7 @@ func (h *AuthflowV2ForgotPasswordHandler) fallbackToSMS(
 	}
 
 	inputs := h.makeInputs(screen, identification, loginID, smsOptionIdx)
-	return h.Controller.AdvanceWithInputs(r, s, screen, inputs, nil)
+	return h.Controller.AdvanceWithInputs(ctx, r, s, screen, inputs, nil)
 }
 
 func (h *AuthflowV2ForgotPasswordHandler) makeInputs(

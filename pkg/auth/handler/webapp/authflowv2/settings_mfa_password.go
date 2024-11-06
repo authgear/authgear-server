@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -33,8 +34,8 @@ func ConfigureAuthflowV2SettingsMFAPassword(route httproute.Route) httproute.Rou
 		WithPathPattern(AuthflowV2RouteSettingsMFAPassword)
 }
 
-func (h *AuthflowV2SettingsMFAPasswordHandler) GetData(r *http.Request, w http.ResponseWriter) (map[string]interface{}, error) {
-	userID := session.GetUserID(r.Context())
+func (h *AuthflowV2SettingsMFAPasswordHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter) (map[string]interface{}, error) {
+	userID := session.GetUserID(ctx)
 	data := map[string]interface{}{}
 
 	// BaseViewModel
@@ -42,7 +43,7 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) GetData(r *http.Request, w http.R
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel
-	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -60,10 +61,10 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) ServeHTTP(w http.ResponseWriter, 
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			if err != nil {
 				return err
 			}
@@ -77,11 +78,11 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		s := session.GetSession(r.Context())
 
 		input := &accountmanagement.DeleteSecondaryPasswordInput{}
-		_, err = h.AccountManagement.DeleteSecondaryPassword(s, input)
+		_, err = h.AccountManagement.DeleteSecondaryPassword(ctx, s, input)
 		if err != nil {
 			return err
 		}

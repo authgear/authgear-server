@@ -1,8 +1,10 @@
 package authflowv2
 
 import (
+	"context"
 	"math"
 	"net/http"
+
 	"net/url"
 	"time"
 
@@ -124,14 +126,14 @@ type AuthflowV2SettingsMFAEnterOOBOTPHandler struct {
 	AccountManagement *accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) GetData(r *http.Request, w http.ResponseWriter, tokenAuthenticator *accountmanagement.TokenAuthenticator) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter, tokenAuthenticator *accountmanagement.TokenAuthenticator) (map[string]interface{}, error) {
 	now := h.Clock.NowUTC()
 	data := make(map[string]interface{})
 
 	channel := tokenAuthenticator.OOBOTPChannel
 	target := tokenAuthenticator.OOBOTPTarget
 
-	state, err := h.OTPCode.InspectState(otp.KindVerification(h.Config, channel), target)
+	state, err := h.OTPCode.InspectState(ctx, otp.KindVerification(h.Config, channel), target)
 	if err != nil {
 		return nil, err
 	}
@@ -155,14 +157,14 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) ServeHTTP(w http.ResponseWrite
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		tokenString := r.Form.Get("q_token")
-		token, err := h.AccountManagement.GetToken(session.GetSession(r.Context()), tokenString)
+		token, err := h.AccountManagement.GetToken(ctx, session.GetSession(ctx), tokenString)
 		if err != nil {
 			return err
 		}
 
-		data, err := h.GetData(r, w, token.Authenticator)
+		data, err := h.GetData(ctx, r, w, token.Authenticator)
 		if err != nil {
 			return err
 		}
@@ -172,14 +174,14 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) ServeHTTP(w http.ResponseWrite
 		return nil
 	})
 
-	ctrl.PostAction("resend", func() error {
+	ctrl.PostAction("resend", func(ctx context.Context) error {
 		err := AuthflowV2SettingsIdentityResendOOBOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
 		tokenString := r.Form.Get("q_token")
-		err = h.AccountManagement.ResendOTPCode(session.GetSession(r.Context()), tokenString)
+		err = h.AccountManagement.ResendOTPCode(ctx, session.GetSession(ctx), tokenString)
 		if err != nil {
 			return err
 		}
@@ -190,18 +192,18 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) ServeHTTP(w http.ResponseWrite
 		return nil
 	})
 
-	ctrl.PostAction("submit", func() error {
+	ctrl.PostAction("submit", func(ctx context.Context) error {
 		err := AuthflowV2SettingsMFAEnterOOBOTP.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
-		s := session.GetSession(r.Context())
+		s := session.GetSession(ctx)
 
 		tokenString := r.Form.Get("q_token")
 		code := r.Form.Get("x_code")
 
-		output, err := h.AccountManagement.ResumeAddOOBOTPAuthenticator(session.GetSession(r.Context()), tokenString, &accountmanagement.ResumeAddOOBOTPAuthenticatorInput{
+		output, err := h.AccountManagement.ResumeAddOOBOTPAuthenticator(ctx, session.GetSession(ctx), tokenString, &accountmanagement.ResumeAddOOBOTPAuthenticatorInput{
 			Code: code,
 		})
 		if err != nil {
@@ -218,7 +220,7 @@ func (h *AuthflowV2SettingsMFAEnterOOBOTPHandler) ServeHTTP(w http.ResponseWrite
 			q.Set("q_token", output.Token)
 			redirectURI.RawQuery = q.Encode()
 		} else {
-			_, err = h.AccountManagement.FinishAddOOBOTPAuthenticator(s, output.Token, &accountmanagement.FinishAddOOBOTPAuthenticatorInput{})
+			_, err = h.AccountManagement.FinishAddOOBOTPAuthenticator(ctx, s, output.Token, &accountmanagement.FinishAddOOBOTPAuthenticatorInput{})
 			if err != nil {
 				return err
 			}

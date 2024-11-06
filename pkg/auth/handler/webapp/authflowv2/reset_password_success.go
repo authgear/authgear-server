@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -46,7 +47,7 @@ func (h *AuthflowV2ResetPasswordSuccessHandler) GetData(w http.ResponseWriter, r
 
 func (h *AuthflowV2ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, _ *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, _ *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r)
 		if err != nil {
 			return err
@@ -56,5 +57,5 @@ func (h *AuthflowV2ResetPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter,
 		return nil
 	})
 
-	h.Controller.HandleWithoutFlow(w, r, &handlers)
+	h.Controller.HandleWithoutFlow(r.Context(), w, r, &handlers)
 }

@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -72,7 +73,7 @@ func (h *AuthflowV2SettingsMFACreatePasswordHandler) ServeHTTP(w http.ResponseWr
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -81,7 +82,7 @@ func (h *AuthflowV2SettingsMFACreatePasswordHandler) ServeHTTP(w http.ResponseWr
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		err := AuthflowV2SettingsMFACreatePasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -96,7 +97,7 @@ func (h *AuthflowV2SettingsMFACreatePasswordHandler) ServeHTTP(w http.ResponseWr
 		}
 
 		s := session.GetSession(r.Context())
-		_, err = h.AccountManagementService.CreateSecondaryPassword(s, accountmanagement.CreateSecondaryPasswordInput{
+		_, err = h.AccountManagementService.CreateSecondaryPassword(ctx, s, accountmanagement.CreateSecondaryPasswordInput{
 			PlainPassword: newPassword,
 		})
 		if err != nil {

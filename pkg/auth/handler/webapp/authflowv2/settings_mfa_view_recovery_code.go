@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -40,9 +41,9 @@ type AuthflowV2SettingsMFAViewRecoveryCodeHandler struct {
 	MFA               handlerwebapp.SettingsMFAService
 }
 
-func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	s := session.GetSession(r.Context())
-	userID := session.GetUserID(r.Context())
+func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	s := session.GetSession(ctx)
+	userID := session.GetUserID(ctx)
 
 	data := map[string]interface{}{}
 
@@ -54,7 +55,7 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(r *http.Request, 
 
 	tokenString := r.Form.Get("q_token")
 	if tokenString != "" {
-		token, err := h.AccountManagement.GetToken(s, tokenString)
+		token, err := h.AccountManagement.GetToken(ctx, s, tokenString)
 		if err != nil {
 			return nil, err
 		}
@@ -62,7 +63,7 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) GetData(r *http.Request, 
 		tokenAuthenticator = token.Authenticator
 		recoveryCodesString = tokenAuthenticator.RecoveryCodes
 	} else {
-		recoveryCodes, err := h.MFA.ListRecoveryCodes(*userID)
+		recoveryCodes, err := h.MFA.ListRecoveryCodes(ctx, *userID)
 		if err != nil {
 			return nil, err
 		}
@@ -91,10 +92,10 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			if err != nil {
 				return err
 			}
@@ -108,10 +109,10 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 		return nil
 	})
 
-	ctrl.PostAction("download", func() error {
+	ctrl.PostAction("download", func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			if err != nil {
 				return err
 			}
@@ -126,22 +127,22 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 		return nil
 	})
 
-	ctrl.PostAction("proceed", func() error {
-		s := session.GetSession(r.Context())
+	ctrl.PostAction("proceed", func(ctx context.Context) error {
+		s := session.GetSession(ctx)
 
 		tokenString := r.Form.Get("q_token")
-		token, err := h.AccountManagement.GetToken(s, tokenString)
+		token, err := h.AccountManagement.GetToken(ctx, s, tokenString)
 		if err != nil {
 			return err
 		}
 
 		if token.Authenticator.TOTPVerified {
-			_, err = h.AccountManagement.FinishAddTOTPAuthenticator(s, tokenString, &accountmanagement.FinishAddTOTPAuthenticatorInput{})
+			_, err = h.AccountManagement.FinishAddTOTPAuthenticator(ctx, s, tokenString, &accountmanagement.FinishAddTOTPAuthenticatorInput{})
 			if err != nil {
 				return err
 			}
 		} else if token.Authenticator.OOBOTPVerified {
-			_, err = h.AccountManagement.FinishAddOOBOTPAuthenticator(s, tokenString, &accountmanagement.FinishAddOOBOTPAuthenticatorInput{})
+			_, err = h.AccountManagement.FinishAddOOBOTPAuthenticator(ctx, s, tokenString, &accountmanagement.FinishAddOOBOTPAuthenticatorInput{})
 			if err != nil {
 				return err
 			}
@@ -155,10 +156,10 @@ func (h *AuthflowV2SettingsMFAViewRecoveryCodeHandler) ServeHTTP(w http.Response
 		return nil
 	})
 
-	ctrl.PostAction("regenerate", func() error {
-		s := session.GetSession(r.Context())
+	ctrl.PostAction("regenerate", func(ctx context.Context) error {
+		s := session.GetSession(ctx)
 
-		_, err := h.AccountManagement.GenerateRecoveryCodes(s, &accountmanagement.GenerateRecoveryCodesInput{})
+		_, err := h.AccountManagement.GenerateRecoveryCodes(ctx, s, &accountmanagement.GenerateRecoveryCodesInput{})
 		if err != nil {
 			return err
 		}

@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -79,7 +81,7 @@ func NewVerifyLoginLinkOTPViewModel(r *http.Request) VerifyLoginLinkOTPViewModel
 }
 
 type AuthenticationFlowWebsocketEventStore interface {
-	Publish(websocketChannelName string, e authflow.Event) error
+	Publish(ctx context.Context, websocketChannelName string, e authflow.Event) error
 }
 
 type AuthflowV2VerifyLoginLinkOTPHandler struct {
@@ -124,7 +126,7 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 		result.WriteResponse(w, r)
 	}
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -134,7 +136,7 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 			code := r.URL.Query().Get("code")
 			kind := otp.KindOOBOTPLink(h.Config, model.AuthenticatorOOBChannelEmail)
 
-			target, err := h.LoginLinkOTPCodeService.LookupCode(kind.Purpose(), code)
+			target, err := h.LoginLinkOTPCodeService.LookupCode(ctx, kind.Purpose(), code)
 			if apierrors.IsKind(err, otp.InvalidOTPCode) {
 				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 				return nil
@@ -143,7 +145,7 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 			}
 
 			err = h.LoginLinkOTPCodeService.VerifyOTP(
-				kind, target, code, &otp.VerifyOptions{SkipConsume: true},
+				ctx, kind, target, code, &otp.VerifyOptions{SkipConsume: true},
 			)
 			if apierrors.IsKind(err, otp.InvalidOTPCode) {
 				finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
@@ -157,7 +159,7 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		err := VerifyLoginLinkOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -166,7 +168,7 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 		code := r.Form.Get("x_oob_otp_code")
 		kind := otp.KindOOBOTPLink(h.Config, model.AuthenticatorOOBChannelEmail)
 
-		target, err := h.LoginLinkOTPCodeService.LookupCode(kind.Purpose(), code)
+		target, err := h.LoginLinkOTPCodeService.LookupCode(ctx, kind.Purpose(), code)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 			return nil
@@ -174,7 +176,7 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 			return err
 		}
 
-		state, err := h.LoginLinkOTPCodeService.SetSubmittedCode(kind, target, code)
+		state, err := h.LoginLinkOTPCodeService.SetSubmittedCode(ctx, kind, target, code)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			finishWithState(LoginLinkOTPPageQueryStateInvalidCode)
 			return nil
@@ -187,11 +189,11 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 			webSessionProvider := h.GlobalSessionServiceFactory.NewGlobalSessionService(
 				h.Config.ID,
 			)
-			webSession, err := webSessionProvider.GetSession(state.WebSessionID)
+			webSession, err := webSessionProvider.GetSession(ctx, state.WebSessionID)
 			if err != nil {
 				return err
 			}
-			err = webSessionProvider.UpdateSession(webSession)
+			err = webSessionProvider.UpdateSession(ctx, webSession)
 			if err != nil {
 				return err
 			}
@@ -199,7 +201,7 @@ func (h *AuthflowV2VerifyLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r
 
 		// For authentication flow
 		if state.AuthenticationFlowWebsocketChannelName != "" {
-			err = h.AuthenticationFlowEvents.Publish(state.AuthenticationFlowWebsocketChannelName, authflow.NewEventRefresh())
+			err = h.AuthenticationFlowEvents.Publish(ctx, state.AuthenticationFlowWebsocketChannelName, authflow.NewEventRefresh())
 			if err != nil {
 				return err
 			}

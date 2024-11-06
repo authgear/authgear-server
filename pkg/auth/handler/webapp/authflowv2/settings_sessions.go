@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -49,16 +51,16 @@ type AuthflowV2SettingsSessionsHandler struct {
 	SessionListing    handlerwebapp.SettingsSessionListingService
 }
 
-func (h *AuthflowV2SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsSessionsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel
-	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -67,12 +69,12 @@ func (h *AuthflowV2SettingsSessionsHandler) GetData(r *http.Request, rw http.Res
 	// SettingsSessionsViewModel
 	settingsSessionsViewModel := SettingsSessionsViewModel{}
 
-	ss, err := h.Sessions.List(*userID)
+	ss, err := h.Sessions.List(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 
-	sessionModels, err := h.SessionListing.FilterForDisplay(ss, s)
+	sessionModels, err := h.SessionListing.FilterForDisplay(ctx, ss, s)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +86,7 @@ func (h *AuthflowV2SettingsSessionsHandler) GetData(r *http.Request, rw http.Res
 		clientNameMap[c.ClientID] = c.ClientName
 	}
 	filter := oauth.NewKeepThirdPartyAuthorizationFilter(h.OAuthConfig)
-	authorizations, err := h.Authorizations.ListByUser(*userID, filter)
+	authorizations, err := h.Authorizations.ListByUser(ctx, *userID, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -120,10 +122,10 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 	currentSession := session.GetSession(r.Context())
 	redirectURI := httputil.HostRelative(r.URL).String()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w, currentSession)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w, currentSession)
 			return err
 		})
 		if err != nil {
@@ -135,19 +137,19 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 		return nil
 	})
 
-	ctrl.PostAction("revoke", func() error {
+	ctrl.PostAction("revoke", func(ctx context.Context) error {
 		sessionID := r.Form.Get("x_session_id")
 		if sessionID == currentSession.SessionID() {
 			return apierrors.NewInvalid("cannot revoke current session")
 		}
 
-		err := h.Database.WithTx(func() error {
-			s, err := h.Sessions.Get(sessionID)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			s, err := h.Sessions.Get(ctx, sessionID)
 			if err != nil {
 				return err
 			}
 
-			err = h.Sessions.RevokeWithEvent(s, true, false)
+			err = h.Sessions.RevokeWithEvent(ctx, s, true, false)
 			if err != nil {
 				return err
 			}
@@ -163,10 +165,10 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 		return nil
 	})
 
-	ctrl.PostAction("revoke_all", func() error {
+	ctrl.PostAction("revoke_all", func(ctx context.Context) error {
 		userID := currentSession.GetAuthenticationInfo().UserID
-		err := h.Database.WithTx(func() error {
-			return h.Sessions.TerminateAllExcept(userID, currentSession, false)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			return h.Sessions.TerminateAllExcept(ctx, userID, currentSession, false)
 		})
 		if err != nil {
 			return err
@@ -177,10 +179,10 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 		return nil
 	})
 
-	ctrl.PostAction("remove_authorization", func() error {
+	ctrl.PostAction("remove_authorization", func(ctx context.Context) error {
 		authorizationID := r.Form.Get("x_authorization_id")
-		err := h.Database.WithTx(func() error {
-			authz, err := h.Authorizations.GetByID(authorizationID)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			authz, err := h.Authorizations.GetByID(ctx, authorizationID)
 			if err != nil {
 				return err
 			}
@@ -189,7 +191,7 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 				return apierrors.NewForbidden("cannot remove authorization")
 			}
 
-			err = h.Authorizations.Delete(authz)
+			err = h.Authorizations.Delete(ctx, authz)
 			if err != nil {
 				return err
 			}

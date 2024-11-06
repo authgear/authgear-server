@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -31,17 +32,17 @@ func (h *AuthflowV2SettingsProfileHandler) ServeHTTP(w http.ResponseWriter, r *h
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data := map[string]interface{}{}
 		var viewModelPtr *viewmodels.SettingsProfileViewModel
 
-		err := h.Database.WithTx(func() error {
-			userID := session.GetUserID(r.Context())
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			userID := session.GetUserID(ctx)
 
 			baseViewModel := h.BaseViewModel.ViewModel(r, w)
 			viewmodels.Embed(data, baseViewModel)
 
-			viewModelPtr, err = h.SettingsProfileViewModel.ViewModel(*userID)
+			viewModelPtr, err = h.SettingsProfileViewModel.ViewModel(ctx, *userID)
 			if err != nil {
 				return err
 			}

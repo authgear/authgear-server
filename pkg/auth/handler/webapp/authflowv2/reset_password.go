@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -45,11 +46,11 @@ type ResetPasswordHandlerPasswordPolicy interface {
 }
 
 type ResetPasswordHandlerResetPasswordService interface {
-	ResetPasswordByEndUser(code string, newPassword string) error
+	ResetPasswordByEndUser(ctx context.Context, code string, newPassword string) error
 }
 
 type ResetPasswordHandlerDatabase interface {
-	WithTx(do func() error) (err error)
+	WithTx(ctx context.Context, do func(ctx context.Context) error) (err error)
 }
 
 type AuthflowV2ResetPasswordHandler struct {
@@ -127,9 +128,9 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err = h.Database.WithTx(func() error {
+		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetNonAuthflowData(w, r)
 			if err != nil {
 				return err
@@ -141,7 +142,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		err := AuthflowResetPasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -154,8 +155,9 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 		}
 
 		code := r.URL.Query().Get("code")
-		err = h.Database.WithTx(func() error {
+		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 			return h.ResetPassword.ResetPasswordByEndUser(
+				ctx,
 				code,
 				newPassword,
 			)
@@ -172,7 +174,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 
 func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
 		data, err := h.GetAuthflowData(w, r, screen)
 		if err != nil {
@@ -182,7 +184,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowResetPasswordHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowResetPasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -195,7 +197,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, map[string]interface{}{
 			"new_password": newPassword,
 		}, nil)
 
@@ -207,7 +209,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter
 		return nil
 	})
 
-	errorHandler := handlerwebapp.AuthflowControllerErrorHandler(func(w http.ResponseWriter, r *http.Request, err error) error {
+	errorHandler := handlerwebapp.AuthflowControllerErrorHandler(func(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) error {
 		if !apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
 			return err
 		}
@@ -222,11 +224,11 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPAuthflow(w http.ResponseWriter
 
 	code := r.URL.Query().Get("code")
 	if code != "" {
-		h.Controller.HandleResumeOfFlow(w, r, webapp.SessionOptions{}, &handlers, map[string]interface{}{
+		h.Controller.HandleResumeOfFlow(r.Context(), w, r, webapp.SessionOptions{}, &handlers, map[string]interface{}{
 			"account_recovery_code": code,
 		}, &errorHandler)
 	} else {
-		h.Controller.HandleStep(w, r, &handlers)
+		h.Controller.HandleStep(r.Context(), w, r, &handlers)
 	}
 }
 

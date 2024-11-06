@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -59,7 +60,7 @@ func (h *AuthflowV2ForgotPasswordLinkSentHandler) GetData(w http.ResponseWriter,
 
 func (h *AuthflowV2ForgotPasswordLinkSentHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
@@ -70,8 +71,8 @@ func (h *AuthflowV2ForgotPasswordLinkSentHandler) ServeHTTP(w http.ResponseWrite
 		return nil
 	})
 
-	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
+	handlers.PostAction("resend", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, map[string]interface{}{
 			"resend": true,
 		}, nil)
 		if err != nil {
@@ -82,5 +83,5 @@ func (h *AuthflowV2ForgotPasswordLinkSentHandler) ServeHTTP(w http.ResponseWrite
 		return nil
 	})
 
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

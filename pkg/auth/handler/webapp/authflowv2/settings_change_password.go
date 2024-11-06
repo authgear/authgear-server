@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -68,7 +69,7 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -79,7 +80,7 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		err := AuthflowV2SettingsChangePasswordSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -94,8 +95,8 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 			return err
 		}
 
-		s := session.GetSession(r.Context())
-		webappSession := webapp.GetSession(r.Context())
+		s := session.GetSession(ctx)
+		webappSession := webapp.GetSession(ctx)
 		var oAuthSessionID string
 		redirectURI := SettingsV2RouteSettings
 		if webappSession != nil {
@@ -110,7 +111,7 @@ func (h *AuthflowV2SettingsChangePasswordHandler) ServeHTTP(w http.ResponseWrite
 			NewPassword:    newPassword,
 		}
 
-		changePasswordOutput, err := h.AccountManagementService.ChangePrimaryPassword(s, input)
+		changePasswordOutput, err := h.AccountManagementService.ChangePrimaryPassword(ctx, s, input)
 		if err != nil {
 			return err
 		}

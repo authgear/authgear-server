@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -56,7 +58,7 @@ type AuthflowV2SettingsIdentityListPhoneHandler struct {
 	Renderer                 handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
@@ -64,21 +66,21 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(r *http.Request, rw
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	phones := setutil.Set[string]{}
 
-	loginIDIdentities, err := h.Identities.LoginID.List(*userID)
+	loginIDIdentities, err := h.Identities.LoginID.List(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 
-	oauthIdentities, err := h.Identities.OAuth.List(*userID)
+	oauthIdentities, err := h.Identities.OAuth.List(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 
-	settingsProfileViewModel, err := h.SettingsProfileViewModel.ViewModel(*userID)
+	settingsProfileViewModel, err := h.SettingsProfileViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +120,7 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) GetData(r *http.Request, rw
 		return phoneIdentities[i].UpdatedAt.Before(phoneIdentities[j].UpdatedAt)
 	})
 
-	verifications, err := h.Verification.GetVerificationStatuses(phoneInfos)
+	verifications, err := h.Verification.GetVerificationStatuses(ctx, phoneInfos)
 	if err != nil {
 		return nil, err
 	}
@@ -150,10 +152,10 @@ func (h *AuthflowV2SettingsIdentityListPhoneHandler) ServeHTTP(w http.ResponseWr
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			return err
 		})
 		if err != nil {

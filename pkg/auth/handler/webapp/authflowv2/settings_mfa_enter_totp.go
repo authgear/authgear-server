@@ -1,9 +1,11 @@
 package authflowv2
 
 import (
+	"context"
 	"fmt"
 	htmltemplate "html/template"
 	"net/http"
+
 	"net/url"
 	"time"
 
@@ -74,11 +76,11 @@ func (h *AuthflowV2SettingsMFAEnterTOTPHandler) ServeHTTP(w http.ResponseWriter,
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
-		s := session.GetSession(r.Context())
+	ctrl.Get(func(ctx context.Context) error {
+		s := session.GetSession(ctx)
 
 		tokenString := r.Form.Get("q_token")
-		_, err := h.AccountManagement.GetToken(s, tokenString)
+		_, err := h.AccountManagement.GetToken(ctx, s, tokenString)
 		if err != nil {
 			return err
 		}
@@ -92,13 +94,13 @@ func (h *AuthflowV2SettingsMFAEnterTOTPHandler) ServeHTTP(w http.ResponseWriter,
 		return nil
 	})
 
-	ctrl.PostAction("submit", func() error {
+	ctrl.PostAction("submit", func(ctx context.Context) error {
 		err := AuthflowV2SettingsMFAEnterTOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
-		s := session.GetSession(r.Context())
+		s := session.GetSession(ctx)
 
 		tokenString := r.Form.Get("q_token")
 		code := r.Form.Get("x_code")
@@ -106,7 +108,7 @@ func (h *AuthflowV2SettingsMFAEnterTOTPHandler) ServeHTTP(w http.ResponseWriter,
 		now := h.Clock.NowUTC()
 		displayName := fmt.Sprintf("TOTP @ %s", now.Format(time.RFC3339))
 
-		output, err := h.AccountManagement.ResumeAddTOTPAuthenticator(s, tokenString, &accountmanagement.ResumeAddTOTPAuthenticatorInput{
+		output, err := h.AccountManagement.ResumeAddTOTPAuthenticator(ctx, s, tokenString, &accountmanagement.ResumeAddTOTPAuthenticatorInput{
 			DisplayName: displayName,
 			Code:        code,
 		})
@@ -124,7 +126,7 @@ func (h *AuthflowV2SettingsMFAEnterTOTPHandler) ServeHTTP(w http.ResponseWriter,
 			q.Set("q_token", output.Token)
 			redirectURI.RawQuery = q.Encode()
 		} else {
-			_, err = h.AccountManagement.FinishAddTOTPAuthenticator(s, output.Token, &accountmanagement.FinishAddTOTPAuthenticatorInput{})
+			_, err = h.AccountManagement.FinishAddTOTPAuthenticator(ctx, s, output.Token, &accountmanagement.FinishAddTOTPAuthenticatorInput{})
 			if err != nil {
 				return err
 			}

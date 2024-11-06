@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -53,14 +55,14 @@ type AuthflowV2SettingsIdentityEditUsernameHandler struct {
 	Renderer          handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SettingsIdentityEditUsernameHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityEditUsernameHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 	loginID := r.Form.Get("q_login_id")
-	usernameIdentity, err := h.Identities.LoginID.Get(*userID, loginID)
+	usernameIdentity, err := h.Identities.LoginID.Get(ctx, *userID, loginID)
 	if err != nil {
 		return nil, err
 	}
@@ -81,10 +83,10 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(w, r)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, w, r)
 			return err
 		})
 		if err != nil {
@@ -94,7 +96,7 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		err := AuthflowV2SettingsIdentityEditUsernameSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -102,8 +104,8 @@ func (h *AuthflowV2SettingsIdentityEditUsernameHandler) ServeHTTP(w http.Respons
 		identityID := r.Form.Get("x_identity_id")
 		loginIDKey := r.Form.Get("x_login_id_key")
 		loginID := r.Form.Get("x_login_id")
-		resolvedSession := session.GetSession(r.Context())
-		_, err = h.AccountManagement.UpdateIdentityUsername(resolvedSession, &accountmanagement.UpdateIdentityUsernameInput{
+		resolvedSession := session.GetSession(ctx)
+		_, err = h.AccountManagement.UpdateIdentityUsername(ctx, resolvedSession, &accountmanagement.UpdateIdentityUsernameInput{
 			IdentityID: identityID,
 			LoginIDKey: loginIDKey,
 			LoginID:    loginID,

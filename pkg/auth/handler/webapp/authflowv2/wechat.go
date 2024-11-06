@@ -1,8 +1,10 @@
 package authflowv2
 
 import (
+	"context"
 	htmltemplate "html/template"
 	"net/http"
+
 	"net/url"
 
 	"github.com/boombuler/barcode/qr"
@@ -38,7 +40,7 @@ type AuthflowWechatViewModel struct {
 }
 
 type AuthflowV2WechatHandlerOAuthStateStore interface {
-	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
+	GenerateState(ctx context.Context, state *webappoauth.WebappOAuthState) (stateToken string, err error)
 }
 
 type AuthflowV2WechatHandler struct {
@@ -48,7 +50,7 @@ type AuthflowV2WechatHandler struct {
 	OAuthStateStore AuthflowV2WechatHandlerOAuthStateStore
 }
 
-func (h *AuthflowV2WechatHandler) GetData(w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
+func (h *AuthflowV2WechatHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
@@ -64,7 +66,7 @@ func (h *AuthflowV2WechatHandler) GetData(w http.ResponseWriter, r *http.Request
 			RawQuery: r.URL.Query().Encode(),
 		}).String(),
 	}
-	stateToken, err := h.OAuthStateStore.GenerateState(state)
+	stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +90,7 @@ func (h *AuthflowV2WechatHandler) GetData(w http.ResponseWriter, r *http.Request
 		// nolint: gosec
 		ImageURI: htmltemplate.URL(dataURI),
 	}
-	wechatRedirectURI := wechat.GetWeChatRedirectURI(r.Context())
+	wechatRedirectURI := wechat.GetWeChatRedirectURI(ctx)
 	if wechatRedirectURI != "" {
 		u, err := url.Parse(wechatRedirectURI)
 		if err != nil {
@@ -112,7 +114,7 @@ func (h *AuthflowV2WechatHandler) GetData(w http.ResponseWriter, r *http.Request
 func (h *AuthflowV2WechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
 
-	submit := func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	submit := func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data := screen.Screen.WechatCallbackData
 
 		input := map[string]interface{}{}
@@ -124,7 +126,7 @@ func (h *AuthflowV2WechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			input["error_description"] = data.ErrorDescription
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -133,13 +135,13 @@ func (h *AuthflowV2WechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return nil
 	}
 
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		if screen.Screen.WechatCallbackData != nil {
-			return submit(s, screen)
+			return submit(ctx, s, screen)
 		}
 
 		// Otherwise render the page.
-		data, err := h.GetData(w, r, s, screen)
+		data, err := h.GetData(ctx, w, r, s, screen)
 		if err != nil {
 			return err
 		}
@@ -147,9 +149,9 @@ func (h *AuthflowV2WechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowWechatHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		if screen.Screen.WechatCallbackData != nil {
-			return submit(s, screen)
+			return submit(ctx, s, screen)
 		}
 
 		// Otherwise redirect to the same page.
@@ -164,5 +166,5 @@ func (h *AuthflowV2WechatHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -72,7 +73,7 @@ func (h *AuthflowV2EnterRecoveryCodeHandler) GetData(w http.ResponseWriter, r *h
 
 func (h *AuthflowV2EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -81,7 +82,7 @@ func (h *AuthflowV2EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r 
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowEnterRecoveryCodeHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowEnterRecoveryCodeSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -101,7 +102,7 @@ func (h *AuthflowV2EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r 
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -109,5 +110,5 @@ func (h *AuthflowV2EnterRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r 
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }
