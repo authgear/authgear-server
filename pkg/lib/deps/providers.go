@@ -104,7 +104,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	)
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 	appDatabase := appdb.NewHandle(
-		ctx,
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
@@ -115,14 +114,12 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		auditDatabaseCredentials = a.(*config.AuditDatabaseCredentials)
 	}
 	auditReadDatabase := auditdb.NewReadHandle(
-		ctx,
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		auditDatabaseCredentials,
 		loggerFactory,
 	)
 	auditWriteDatabase := auditdb.NewWriteHandle(
-		ctx,
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		auditDatabaseCredentials,
