@@ -1,6 +1,8 @@
 package messaging
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -17,8 +19,8 @@ type EmailMessage struct {
 	mail.SendOptions
 }
 
-func (m *EmailMessage) Send() error {
-	err := m.events.DispatchEventImmediately(&nonblocking.EmailSentEventPayload{
+func (m *EmailMessage) Send(ctx context.Context) error {
+	err := m.events.DispatchEventImmediately(ctx, &nonblocking.EmailSentEventPayload{
 		Sender:    m.Sender,
 		Recipient: m.Recipient,
 		Type:      string(m.Type),
