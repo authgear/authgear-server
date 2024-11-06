@@ -1,6 +1,8 @@
 package viewmodels
 
 import (
+	"context"
+
 	"github.com/iawaknahc/jsonschema/pkg/jsonpointer"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -80,11 +82,11 @@ type SettingsProfileViewModel struct {
 }
 
 type SettingsProfileUserService interface {
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
+	Get(ctx context.Context, userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type SettingsProfileIdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type SettingsProfileViewModeler struct {
@@ -96,7 +98,7 @@ type SettingsProfileViewModeler struct {
 }
 
 // nolint: gocognit
-func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileViewModel, error) {
+func (m *SettingsProfileViewModeler) ViewModel(ctx context.Context, userID string) (*SettingsProfileViewModel, error) {
 	var emailIdentityIDs []string = []string{}
 	var usernameIdentityIDs []string = []string{}
 	var phoneIdentityIDs []string = []string{}
@@ -104,7 +106,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 	var emails setutil.Set[string]
 	var phoneNumbers setutil.Set[string]
 	var preferredUsernames setutil.Set[string]
-	identities, err := m.Identities.ListByUser(userID)
+	identities, err := m.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +135,7 @@ func (m *SettingsProfileViewModeler) ViewModel(userID string) (*SettingsProfileV
 		}
 	}
 
-	user, err := m.Users.Get(userID, config.RoleEndUser)
+	user, err := m.Users.Get(ctx, userID, config.RoleEndUser)
 	if err != nil {
 		return nil, err
 	}
