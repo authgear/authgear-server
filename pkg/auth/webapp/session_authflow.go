@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -721,11 +722,11 @@ func (s *AuthflowScreenWithFlowResponse) makeScreenForTakenBranch(
 }
 
 type Navigator interface {
-	Navigate(screen *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result)
+	Navigate(ctx context.Context, screen *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result)
 }
 
-func (s *AuthflowScreenWithFlowResponse) Navigate(navigator Navigator, r *http.Request, webSessionID string, result *Result) {
-	navigator.Navigate(s, r, webSessionID, result)
+func (s *AuthflowScreenWithFlowResponse) Navigate(ctx context.Context, navigator Navigator, r *http.Request, webSessionID string, result *Result) {
+	navigator.Navigate(ctx, s, r, webSessionID, result)
 }
 
 // Advance is for advancing to another page to drive the authflow.

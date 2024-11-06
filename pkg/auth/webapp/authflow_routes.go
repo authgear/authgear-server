@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -71,7 +72,7 @@ type AuthflowNavigatorEndpointsProvider interface {
 }
 
 type AuthflowNavigatorOAuthStateStore interface {
-	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
+	GenerateState(ctx context.Context, state *webappoauth.WebappOAuthState) (stateToken string, err error)
 }
 
 type AuthflowNavigator struct {
@@ -97,7 +98,7 @@ func (n *AuthflowNavigator) NavigateNonRecoverableError(r *http.Request, u *url.
 	}
 }
 
-func (n *AuthflowNavigator) Navigate(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
+func (n *AuthflowNavigator) Navigate(ctx context.Context, s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
 	if s.HasBranchToTake() {
 		panic(fmt.Errorf("expected screen to have its branches taken"))
 	}
@@ -109,15 +110,15 @@ func (n *AuthflowNavigator) Navigate(s *AuthflowScreenWithFlowResponse, r *http.
 
 	switch s.StateTokenFlowResponse.Type {
 	case authflow.FlowTypeSignup:
-		n.navigateSignup(s, r, webSessionID, result)
+		n.navigateSignup(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypePromote:
-		n.navigatePromote(s, r, webSessionID, result)
+		n.navigatePromote(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypeLogin:
-		n.navigateLogin(s, r, webSessionID, result)
+		n.navigateLogin(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypeSignupLogin:
-		n.navigateSignupLogin(s, r, webSessionID, result)
+		n.navigateSignupLogin(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypeReauth:
-		n.navigateReauth(s, r, webSessionID, result)
+		n.navigateReauth(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypeAccountRecovery:
 		n.navigateAccountRecovery(s, r, webSessionID, result)
 	default:
@@ -133,19 +134,19 @@ func (n *AuthflowNavigator) NavigateResetPasswordSuccessPage() string {
 	return AuthflowRouteResetPasswordSuccess
 }
 
-func (n *AuthflowNavigator) navigateSignup(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
-	n.navigateSignupPromote(s, r, webSessionID, result, AuthflowRouteSignup)
+func (n *AuthflowNavigator) navigateSignup(ctx context.Context, s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
+	n.navigateSignupPromote(ctx, s, r, webSessionID, result, AuthflowRouteSignup)
 }
 
-func (n *AuthflowNavigator) navigatePromote(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
-	n.navigateSignupPromote(s, r, webSessionID, result, AuthflowRoutePromote)
+func (n *AuthflowNavigator) navigatePromote(ctx context.Context, s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
+	n.navigateSignupPromote(ctx, s, r, webSessionID, result, AuthflowRoutePromote)
 }
 
 //nolint:gocognit
-func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result, expectedPath string) {
+func (n *AuthflowNavigator) navigateSignupPromote(ctx context.Context, s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result, expectedPath string) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, expectedPath)
+		n.navigateStepIdentify(ctx, s, r, webSessionID, result, expectedPath)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		// If the current step already tells the authentication, use it
 		authentication := s.StateTokenFlowResponse.Action.Authentication
@@ -240,7 +241,7 @@ func (n *AuthflowNavigator) navigateSignupPromote(s *AuthflowScreenWithFlowRespo
 	}
 }
 
-func (n *AuthflowNavigator) navigateStepIdentify(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result, expectedPath string) {
+func (n *AuthflowNavigator) navigateStepIdentify(ctx context.Context, s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result, expectedPath string) {
 	identification := s.StateTokenFlowResponse.Action.Identification
 	switch identification {
 	case "":
@@ -280,7 +281,7 @@ func (n *AuthflowNavigator) navigateStepIdentify(s *AuthflowScreenWithFlowRespon
 				ErrorRedirectURI: expectedPath,
 			}
 
-			stateToken, err := n.OAuthStateStore.GenerateState(state)
+			stateToken, err := n.OAuthStateStore.GenerateState(ctx, state)
 			if err != nil {
 				panic(err)
 			}
@@ -297,10 +298,10 @@ func (n *AuthflowNavigator) navigateStepIdentify(s *AuthflowScreenWithFlowRespon
 	}
 }
 
-func (n *AuthflowNavigator) navigateLogin(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
+func (n *AuthflowNavigator) navigateLogin(ctx context.Context, s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowRouteLogin)
+		n.navigateStepIdentify(ctx, s, r, webSessionID, result, AuthflowRouteLogin)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
 		index := *s.Screen.TakenBranchIndex
@@ -360,10 +361,10 @@ func (n *AuthflowNavigator) navigateLogin(s *AuthflowScreenWithFlowResponse, r *
 	}
 }
 
-func (n *AuthflowNavigator) navigateReauth(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
+func (n *AuthflowNavigator) navigateReauth(ctx context.Context, s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowRouteReauth)
+		n.navigateStepIdentify(ctx, s, r, webSessionID, result, AuthflowRouteReauth)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
 		index := *s.Screen.TakenBranchIndex
@@ -413,10 +414,10 @@ func (n *AuthflowNavigator) navigateReauth(s *AuthflowScreenWithFlowResponse, r 
 	}
 }
 
-func (n *AuthflowNavigator) navigateSignupLogin(s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
+func (n *AuthflowNavigator) navigateSignupLogin(ctx context.Context, s *AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *Result) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowRouteSignupLogin)
+		n.navigateStepIdentify(ctx, s, r, webSessionID, result, AuthflowRouteSignupLogin)
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}

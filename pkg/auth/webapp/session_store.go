@@ -21,15 +21,14 @@ type SessionStoreRedis struct {
 	Redis *appredis.Handle
 }
 
-func (s *SessionStoreRedis) Create(session *Session) (err error) {
-	ctx := context.Background()
+func (s *SessionStoreRedis) Create(ctx context.Context, session *Session) (err error) {
 	key := sessionKey(string(s.AppID), session.ID)
 	bytes, err := json.Marshal(session)
 	if err != nil {
 		return
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		ttl := SessionExpiryDuration
 		_, err = conn.SetNX(ctx, key, bytes, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
@@ -43,15 +42,14 @@ func (s *SessionStoreRedis) Create(session *Session) (err error) {
 	return
 }
 
-func (s *SessionStoreRedis) Update(session *Session) (err error) {
-	ctx := context.Background()
+func (s *SessionStoreRedis) Update(ctx context.Context, session *Session) (err error) {
 	key := sessionKey(string(s.AppID), session.ID)
 	bytes, err := json.Marshal(session)
 	if err != nil {
 		return
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		ttl := SessionExpiryDuration
 		_, err = conn.SetXX(ctx, key, bytes, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
@@ -65,10 +63,9 @@ func (s *SessionStoreRedis) Update(session *Session) (err error) {
 	return
 }
 
-func (s *SessionStoreRedis) Get(id string) (session *Session, err error) {
-	ctx := context.Background()
+func (s *SessionStoreRedis) Get(ctx context.Context, id string) (session *Session, err error) {
 	key := sessionKey(string(s.AppID), id)
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			err = ErrInvalidSession
@@ -88,10 +85,9 @@ func (s *SessionStoreRedis) Get(id string) (session *Session, err error) {
 	return
 }
 
-func (s *SessionStoreRedis) Delete(id string) error {
-	ctx := context.Background()
+func (s *SessionStoreRedis) Delete(ctx context.Context, id string) error {
 	key := sessionKey(string(s.AppID), id)
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, key).Result()
 		return err
 	})
