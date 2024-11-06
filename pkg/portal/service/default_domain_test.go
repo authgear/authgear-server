@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -43,8 +44,9 @@ func TestDefaultDomainService(t *testing.T) {
 			Convey("HostSuffix only", func() {
 				s.AppConfig.HostSuffix = ".localhost"
 
-				domains.EXPECT().CreateDomain("myapp", "myapp.localhost", true, false).Times(1)
-				err := s.CreateAllDefaultDomains("myapp")
+				domains.EXPECT().CreateDomain(gomock.Any(), "myapp", "myapp.localhost", true, false).Times(1)
+				ctx := context.Background()
+				err := s.CreateAllDefaultDomains(ctx, "myapp")
 				So(err, ShouldBeNil)
 			})
 
@@ -52,8 +54,9 @@ func TestDefaultDomainService(t *testing.T) {
 				s.AppConfig.HostSuffix = ".localhost"
 				s.AppHostSuffixes = config.AppHostSuffixes([]string{".localhost"})
 
-				domains.EXPECT().CreateDomain("myapp", "myapp.localhost", true, false).Times(1)
-				err := s.CreateAllDefaultDomains("myapp")
+				domains.EXPECT().CreateDomain(gomock.Any(), "myapp", "myapp.localhost", true, false).Times(1)
+				ctx := context.Background()
+				err := s.CreateAllDefaultDomains(ctx, "myapp")
 				So(err, ShouldBeNil)
 			})
 
@@ -62,10 +65,11 @@ func TestDefaultDomainService(t *testing.T) {
 				s.AppHostSuffixes = config.AppHostSuffixes([]string{".local"})
 
 				gomock.InOrder(
-					domains.EXPECT().CreateDomain("myapp", "myapp.localhost", true, false).Times(1),
-					domains.EXPECT().CreateDomain("myapp", "myapp.local", true, false).Times(1),
+					domains.EXPECT().CreateDomain(gomock.Any(), "myapp", "myapp.localhost", true, false).Times(1),
+					domains.EXPECT().CreateDomain(gomock.Any(), "myapp", "myapp.local", true, false).Times(1),
 				)
-				err := s.CreateAllDefaultDomains("myapp")
+				ctx := context.Background()
+				err := s.CreateAllDefaultDomains(ctx, "myapp")
 				So(err, ShouldBeNil)
 			})
 		})

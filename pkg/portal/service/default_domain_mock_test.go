@@ -5,6 +5,7 @@
 package service
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
@@ -35,16 +36,16 @@ func (m *MockDefaultDomainDomainService) EXPECT() *MockDefaultDomainDomainServic
 }
 
 // CreateDomain mocks base method.
-func (m *MockDefaultDomainDomainService) CreateDomain(appID, domain string, isVerified, isCustom bool) (*model.Domain, error) {
+func (m *MockDefaultDomainDomainService) CreateDomain(ctx context.Context, appID, domain string, isVerified, isCustom bool) (*model.Domain, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateDomain", appID, domain, isVerified, isCustom)
+	ret := m.ctrl.Call(m, "CreateDomain", ctx, appID, domain, isVerified, isCustom)
 	ret0, _ := ret[0].(*model.Domain)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateDomain indicates an expected call of CreateDomain.
-func (mr *MockDefaultDomainDomainServiceMockRecorder) CreateDomain(appID, domain, isVerified, isCustom interface{}) *gomock.Call {
+func (mr *MockDefaultDomainDomainServiceMockRecorder) CreateDomain(ctx, appID, domain, isVerified, isCustom interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDomain", reflect.TypeOf((*MockDefaultDomainDomainService)(nil).CreateDomain), appID, domain, isVerified, isCustom)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDomain", reflect.TypeOf((*MockDefaultDomainDomainService)(nil).CreateDomain), ctx, appID, domain, isVerified, isCustom)
 }

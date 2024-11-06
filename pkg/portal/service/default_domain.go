@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"errors"
 	"net"
 
@@ -15,7 +16,7 @@ import (
 var ErrHostSuffixNotConfigured = errors.New("host suffix not configured")
 
 type DefaultDomainDomainService interface {
-	CreateDomain(appID string, domain string, isVerified bool, isCustom bool) (*apimodel.Domain, error)
+	CreateDomain(ctx context.Context, appID string, domain string, isVerified bool, isCustom bool) (*apimodel.Domain, error)
 }
 
 type DefaultDomainService struct {
@@ -45,7 +46,7 @@ func (s *DefaultDomainService) hostToDomain(host string) string {
 }
 
 // CreateAllDefaultDomains assume acquired connection.
-func (s *DefaultDomainService) CreateAllDefaultDomains(appID string) error {
+func (s *DefaultDomainService) CreateAllDefaultDomains(ctx context.Context, appID string) error {
 	if s.AppConfig.HostSuffix == "" {
 		return ErrHostSuffixNotConfigured
 	}
@@ -70,7 +71,7 @@ func (s *DefaultDomainService) CreateAllDefaultDomains(appID string) error {
 	}
 
 	for _, domain := range domains {
-		_, err := s.Domains.CreateDomain(appID, domain, true, false)
+		_, err := s.Domains.CreateDomain(ctx, appID, domain, true, false)
 		if err != nil {
 			return err
 		}

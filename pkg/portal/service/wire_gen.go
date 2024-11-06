@@ -7,7 +7,6 @@
 package service
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -20,7 +19,7 @@ import (
 
 // Injectors from wire.go:
 
-func newAuditSink(ctx context.Context, app *model.App, auditDatabase *auditdb.WriteHandle, loggerFactory *log.Factory) *audit.Sink {
+func newAuditSink(app *model.App, auditDatabase *auditdb.WriteHandle, loggerFactory *log.Factory) *audit.Sink {
 	logger := audit.NewLogger(loggerFactory)
 	appContext := app.Context
 	config := appContext.Config
@@ -29,7 +28,7 @@ func newAuditSink(ctx context.Context, app *model.App, auditDatabase *auditdb.Wr
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, auditDatabase)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(auditDatabase)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: writeSQLExecutor,
@@ -42,7 +41,7 @@ func newAuditSink(ctx context.Context, app *model.App, auditDatabase *auditdb.Wr
 	return sink
 }
 
-func newHookSink(ctx context.Context, app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory *log.Factory) *hook.Sink {
+func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory *log.Factory) *hook.Sink {
 	logger := hook.NewLogger(loggerFactory)
 	appContext := app.Context
 	configConfig := appContext.Config
@@ -66,7 +65,6 @@ func newHookSink(ctx context.Context, app *model.App, denoEndpoint config.DenoEn
 	manager := appContext.Resources
 	denoHookLogger := hook.NewDenoHookLogger(loggerFactory)
 	denoHook := hook.DenoHook{
-		Context:         ctx,
 		ResourceManager: manager,
 		Logger:          denoHookLogger,
 	}

@@ -4,8 +4,6 @@
 package service
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -16,10 +14,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-func newAuditSink(ctx context.Context, app *model.App, auditDatabase *auditdb.WriteHandle, loggerFactory *log.Factory) *audit.Sink {
+func newAuditSink(app *model.App, auditDatabase *auditdb.WriteHandle, loggerFactory *log.Factory) *audit.Sink {
 	panic(wire.Build(AuthgearDependencySet))
 }
 
-func newHookSink(ctx context.Context, app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory *log.Factory) *hook.Sink {
+func newHookSink(app *model.App, denoEndpoint config.DenoEndpoint, loggerFactory *log.Factory) *hook.Sink {
 	panic(wire.Build(AuthgearDependencySet))
 }

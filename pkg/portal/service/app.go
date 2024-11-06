@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -50,23 +51,23 @@ var ErrReauthRequrired = apierrors.Forbidden.WithReason("ReauthRequrired").
 	New("reauthentication required")
 
 type AppConfigService interface {
-	ResolveContext(appID string) (*config.AppContext, error)
-	UpdateResources(appID string, updates []*resource.ResourceFile) error
-	Create(opts *CreateAppOptions) error
+	ResolveContext(ctx context.Context, appID string) (*config.AppContext, error)
+	UpdateResources(ctx context.Context, appID string, updates []*resource.ResourceFile) error
+	Create(ctx context.Context, opts *CreateAppOptions) error
 }
 
 type AppAuthzService interface {
-	AddAuthorizedUser(appID string, userID string, role model.CollaboratorRole) error
-	ListAuthorizedApps(userID string) ([]string, error)
+	AddAuthorizedUser(ctx context.Context, appID string, userID string, role model.CollaboratorRole) error
+	ListAuthorizedApps(ctx context.Context, userID string) ([]string, error)
 }
 
 type AppDefaultDomainService interface {
 	GetLatestAppHost(appID string) (string, error)
-	CreateAllDefaultDomains(appID string) error
+	CreateAllDefaultDomains(ctx context.Context, appID string) error
 }
 
 type AppPlanService interface {
-	GetDefaultPlan() (*model.Plan, error)
+	GetDefaultPlan(ctx context.Context) (*model.Plan, error)
 }
 
 type AppServiceLogger struct{ *log.Logger }
@@ -82,11 +83,13 @@ type AppResourceManagerFactory interface {
 
 type AppSecretVisitTokenStore interface {
 	CreateToken(
+		ctx context.Context,
 		appID config.AppID,
 		userID string,
 		secrets []config.SecretKey,
 	) (*appsecret.AppSecretVisitToken, error)
 	GetTokenByID(
+		ctx context.Context,
 		appID config.AppID,
 		tokenID string,
 	) (*appsecret.AppSecretVisitToken, error)
@@ -94,6 +97,7 @@ type AppSecretVisitTokenStore interface {
 
 type AppTesterTokenStore interface {
 	CreateToken(
+		ctx context.Context,
 		appID config.AppID,
 		returnURI string,
 	) (*tester.TesterToken, error)
@@ -120,8 +124,8 @@ type AppService struct {
 }
 
 // Get calls other services that acquires connection themselves.
-func (s *AppService) Get(id string) (*model.App, error) {
-	appCtx, err := s.AppConfigs.ResolveContext(id)
+func (s *AppService) Get(ctx context.Context, id string) (*model.App, error) {
+	appCtx, err := s.AppConfigs.ResolveContext(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -133,9 +137,9 @@ func (s *AppService) Get(id string) (*model.App, error) {
 }
 
 // GetMany just uses Get.
-func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
+func (s *AppService) GetMany(ctx context.Context, ids []string) (out []*model.App, err error) {
 	for _, id := range ids {
-		app, err := s.Get(id)
+		app, err := s.Get(ctx, id)
 		if err != nil {
 			return nil, err
 		}
@@ -146,13 +150,13 @@ func (s *AppService) GetMany(ids []string) (out []*model.App, err error) {
 }
 
 // GetAppList calls other services that acquires connection themselves.
-func (s *AppService) GetAppList(userID string) ([]*model.AppListItem, error) {
-	appIDs, err := s.AppAuthz.ListAuthorizedApps(userID)
+func (s *AppService) GetAppList(ctx context.Context, userID string) ([]*model.AppListItem, error) {
+	appIDs, err := s.AppAuthz.ListAuthorizedApps(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	apps, err := s.GetMany(appIDs)
+	apps, err := s.GetMany(ctx, appIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -168,14 +172,14 @@ func (s *AppService) GetAppList(userID string) ([]*model.AppListItem, error) {
 }
 
 // GetProjectQuota acquires connection.
-func (s *AppService) GetProjectQuota(userID string) (int, error) {
+func (s *AppService) GetProjectQuota(ctx context.Context, userID string) (int, error) {
 	q := s.SQLBuilder.Select("max_own_apps").
 		From(s.SQLBuilder.TableName("_portal_user_app_quota")).
 		Where("user_id = ?", userID)
 
 	var quota int
-	err := s.GlobalDatabase.WithTx(func() error {
-		row, err := s.SQLExecutor.QueryRowWith(q)
+	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 		if err != nil {
 			return err
 		}
@@ -198,7 +202,7 @@ func (s *AppService) GetProjectQuota(userID string) (int, error) {
 }
 
 // GetManyProjectQuota acquires connection.
-func (s *AppService) GetManyProjectQuota(userIDs []string) ([]int, error) {
+func (s *AppService) GetManyProjectQuota(ctx context.Context, userIDs []string) ([]int, error) {
 	q := s.SQLBuilder.Select(
 		"user_id",
 		"max_own_apps",
@@ -207,8 +211,8 @@ func (s *AppService) GetManyProjectQuota(userIDs []string) ([]int, error) {
 		Where("user_id = ANY (?)", pq.Array(userIDs))
 
 	m := make(map[string]int)
-	err := s.GlobalDatabase.WithTx(func() error {
-		rows, err := s.SQLExecutor.QueryWith(q)
+	err := s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		rows, err := s.SQLExecutor.QueryWith(ctx, q)
 		if err != nil {
 			return err
 		}
@@ -264,6 +268,7 @@ func (s *AppService) LoadRawAppConfig(app *model.App) (*config.AppConfig, string
 
 // LoadAppSecretConfig does not need connection.
 func (s *AppService) LoadAppSecretConfig(
+	ctx context.Context,
 	app *model.App,
 	sessionInfo *apimodel.SessionInfo,
 	token string) (*model.SecretConfig, string, error) {
@@ -286,7 +291,7 @@ func (s *AppService) LoadAppSecretConfig(
 
 	now := s.Clock.NowUTC()
 	if token != "" {
-		tokenModel, err := s.AppSecretVisitTokenStore.GetTokenByID(app.Context.Config.AppConfig.ID, token)
+		tokenModel, err := s.AppSecretVisitTokenStore.GetTokenByID(ctx, app.Context.Config.AppConfig.ID, token)
 		if err != nil && !errors.Is(err, appsecret.ErrTokenNotFound) {
 			return nil, "", err
 		}
@@ -304,6 +309,7 @@ func (s *AppService) LoadAppSecretConfig(
 
 // GenerateSecretVisitToken does not need connection.
 func (s *AppService) GenerateSecretVisitToken(
+	ctx context.Context,
 	app *model.App,
 	sessionInfo *apimodel.SessionInfo,
 	visitingSecrets []config.SecretKey,
@@ -316,6 +322,7 @@ func (s *AppService) GenerateSecretVisitToken(
 	}
 
 	token, err := s.AppSecretVisitTokenStore.CreateToken(
+		ctx,
 		app.Context.Config.AppConfig.ID,
 		sessionInfo.UserID,
 		visitingSecrets,
@@ -329,14 +336,15 @@ func (s *AppService) GenerateSecretVisitToken(
 
 // GenerateTesterToken does not need connection.
 func (s *AppService) GenerateTesterToken(
+	ctx context.Context,
 	app *model.App,
 	returnURI string,
 ) (*tester.TesterToken, error) {
-	return s.AppTesterTokenStore.CreateToken(config.AppID(app.ID), returnURI)
+	return s.AppTesterTokenStore.CreateToken(ctx, config.AppID(app.ID), returnURI)
 }
 
 // Create calls other services that acquires connection themselves, and acquires connection.
-func (s *AppService) Create(userID string, id string) (*model.App, error) {
+func (s *AppService) Create(ctx context.Context, userID string, id string) (*model.App, error) {
 	if err := s.validateAppID(id); err != nil {
 		return nil, err
 	}
@@ -351,29 +359,29 @@ func (s *AppService) Create(userID string, id string) (*model.App, error) {
 		return nil, err
 	}
 
-	defaultAppPlan, err := s.Plan.GetDefaultPlan()
+	defaultAppPlan, err := s.Plan.GetDefaultPlan(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.GlobalDatabase.WithTx(func() error {
-		createAppOpts, err := s.generateConfig(appHost, id, defaultAppPlan)
+	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		createAppOpts, err := s.generateConfig(ctx, appHost, id, defaultAppPlan)
 		if err != nil {
 			return err
 		}
-		err = s.AppConfigs.Create(createAppOpts)
+		err = s.AppConfigs.Create(ctx, createAppOpts)
 		if err != nil {
 			// TODO(portal): cleanup orphaned resources created from failed app creation
 			s.Logger.WithError(err).WithField("app_id", id).Error("failed to create app")
 			return err
 		}
 
-		err = s.DefaultDomains.CreateAllDefaultDomains(id)
+		err = s.DefaultDomains.CreateAllDefaultDomains(ctx, id)
 		if err != nil {
 			return err
 		}
 
-		err = s.AppAuthz.AddAuthorizedUser(id, userID, model.CollaboratorRoleOwner)
+		err = s.AppAuthz.AddAuthorizedUser(ctx, id, userID, model.CollaboratorRoleOwner)
 		if err != nil {
 			return err
 		}
@@ -384,7 +392,7 @@ func (s *AppService) Create(userID string, id string) (*model.App, error) {
 		return nil, err
 	}
 
-	app, err := s.Get(id)
+	app, err := s.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -393,15 +401,15 @@ func (s *AppService) Create(userID string, id string) (*model.App, error) {
 }
 
 // UpdateResources acquires connection.
-func (s *AppService) UpdateResources(app *model.App, updates []appresource.Update) error {
+func (s *AppService) UpdateResources(ctx context.Context, app *model.App, updates []appresource.Update) error {
 	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 	var err error
-	err = s.GlobalDatabase.WithTx(func() error {
-		files, err := appResMgr.ApplyUpdates0(app.ID, updates)
+	err = s.GlobalDatabase.WithTx(ctx, func(ctx context.Context) error {
+		files, err := appResMgr.ApplyUpdates0(ctx, app.ID, updates)
 		if err != nil {
 			return err
 		}
-		return s.AppConfigs.UpdateResources(app.ID, files)
+		return s.AppConfigs.UpdateResources(ctx, app.ID, files)
 	})
 	if err != nil {
 		return err
@@ -411,14 +419,14 @@ func (s *AppService) UpdateResources(app *model.App, updates []appresource.Updat
 }
 
 // UpdateResources0 assumes acquired connection.
-func (s *AppService) UpdateResources0(app *model.App, updates []appresource.Update) error {
+func (s *AppService) UpdateResources0(ctx context.Context, app *model.App, updates []appresource.Update) error {
 	appResMgr := s.AppResMgrFactory.NewManagerWithAppContext(app.Context)
-	files, err := appResMgr.ApplyUpdates0(app.ID, updates)
+	files, err := appResMgr.ApplyUpdates0(ctx, app.ID, updates)
 	if err != nil {
 		return err
 	}
 
-	err = s.AppConfigs.UpdateResources(app.ID, files)
+	err = s.AppConfigs.UpdateResources(ctx, app.ID, files)
 	if err != nil {
 		return err
 	}
@@ -478,7 +486,7 @@ func (s *AppService) generateResources(appHost string, appID string, featureConf
 	return appResources, nil
 }
 
-func (s *AppService) generateConfig(appHost string, appID string, appPlan *model.Plan) (opts *CreateAppOptions, err error) {
+func (s *AppService) generateConfig(ctx context.Context, appHost string, appID string, appPlan *model.Plan) (opts *CreateAppOptions, err error) {
 	appIDRegex, err := regexp.Compile(s.AppConfig.IDPattern)
 	if err != nil {
 		err = fmt.Errorf("invalid app ID validation pattern: %w", err)
@@ -508,7 +516,7 @@ func (s *AppService) generateConfig(appHost string, appID string, appPlan *model
 
 	appFs := resource.LeveledAferoFs{Fs: fs, FsLevel: resource.FsLevelApp}
 	appResMgr := s.AppResMgrFactory.NewManagerWithNewAppFS(appFs)
-	_, err = appResMgr.ApplyUpdates0(appID, nil)
+	_, err = appResMgr.ApplyUpdates0(ctx, appID, nil)
 	if err != nil {
 		return
 	}

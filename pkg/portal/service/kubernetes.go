@@ -57,7 +57,6 @@ type Kubernetes struct {
 	AppConfig        *portalconfig.AppConfig
 	Logger           KubernetesLogger
 
-	Context             context.Context                `wire:"-"`
 	Namespace           string                         `wire:"-"`
 	KubeConfig          *rest.Config                   `wire:"-"`
 	Client              kubernetes.Interface           `wire:"-"`
@@ -106,6 +105,7 @@ func (k *Kubernetes) open() error {
 }
 
 func (k *Kubernetes) CreateResourcesForDomain(
+	ctx context.Context,
 	appID string,
 	domainID string,
 	domain string,
@@ -157,7 +157,7 @@ func (k *Kubernetes) CreateResourcesForDomain(
 		labels[LabelDomainID] = domainID
 		r.Object.SetLabels(labels)
 
-		_, err = dr.Create(context.Background(), r.Object, metav1.CreateOptions{})
+		_, err = dr.Create(ctx, r.Object, metav1.CreateOptions{})
 		if err != nil {
 			return fmt.Errorf("failed to create resources: %v %w", r.Object, err)
 		}
@@ -166,7 +166,7 @@ func (k *Kubernetes) CreateResourcesForDomain(
 	return nil
 }
 
-func (k *Kubernetes) DeleteResourcesForDomain(domainID string) error {
+func (k *Kubernetes) DeleteResourcesForDomain(ctx context.Context, domainID string) error {
 	if k.Client == nil || k.CertManagerClient == nil {
 		if err := k.open(); err != nil {
 			return fmt.Errorf("failed to init k8s client: %w", err)
@@ -183,7 +183,6 @@ func (k *Kubernetes) DeleteResourcesForDomain(domainID string) error {
 		LabelSelector: labelSelector.String(),
 	}
 
-	ctx := context.Background()
 	count, err := deleteExtensionsV1beta1Ingresses(ctx, k.Client, k.Namespace, listOptions)
 	if err != nil {
 		return fmt.Errorf("failed to delete extension v1beta1 ingress: %w", err)
