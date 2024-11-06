@@ -1,6 +1,7 @@
 package sms
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -39,7 +40,7 @@ func NewTwilioClient(c *config.TwilioCredentials) *TwilioClient {
 	}
 }
 
-func (t *TwilioClient) Send(opts SendOptions) error {
+func (t *TwilioClient) Send(ctx context.Context, opts SendOptions) error {
 	if t.TwilioClient == nil {
 		return ErrMissingTwilioConfiguration
 	}

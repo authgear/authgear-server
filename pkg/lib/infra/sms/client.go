@@ -1,6 +1,7 @@
 package sms
 
 import (
+	"context"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -21,7 +22,7 @@ type SendOptions struct {
 }
 
 type RawClient interface {
-	Send(opts SendOptions) error
+	Send(ctx context.Context, opts SendOptions) error
 }
 
 type Logger struct{ *log.Logger }
@@ -37,7 +38,7 @@ type Client struct {
 	ClientResolver               *ClientResolver
 }
 
-func (c *Client) Send(opts SendOptions) error {
+func (c *Client) Send(ctx context.Context, opts SendOptions) error {
 	if c.FeatureTestModeSMSSuppressed {
 		c.testModeSend(opts)
 		return nil
@@ -69,7 +70,7 @@ func (c *Client) Send(opts SendOptions) error {
 		return err
 	}
 
-	return client.Send(opts)
+	return client.Send(ctx, opts)
 }
 
 func (c *Client) testModeSend(opts SendOptions) {
