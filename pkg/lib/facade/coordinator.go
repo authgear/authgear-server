@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -34,84 +35,89 @@ import (
 )
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
-	DispatchEventImmediately(payload event.NonBlockingPayload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
+	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
 }
 
 type IdentityService interface {
-	Get(id string) (*identity.Info, error)
-	SearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
-	ListByUser(userID string) ([]*identity.Info, error)
-	ListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error)
-	ListByClaim(name string, value string) ([]*identity.Info, error)
-	ListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error)
-	New(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
-	UpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
-	Create(is *identity.Info) error
-	Update(info *identity.Info) error
-	Delete(is *identity.Info) error
-	CheckDuplicated(info *identity.Info) (*identity.Info, error)
-	CheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error)
-	Normalize(typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
-	AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey string, loginIDValue string) (*identity.Info, error)
-	AdminAPIGetByOAuthAliasAndSubject(alias string, subjectID string) (*identity.Info, error)
+	New(ctx context.Context, userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	UpdateWithSpec(ctx context.Context, is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error)
+	Normalize(ctx context.Context, typ model.LoginIDKeyType, value string) (normalized string, uniqueKey string, err error)
+
+	Get(ctx context.Context, id string) (*identity.Info, error)
+	SearchBySpec(ctx context.Context, spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
+	ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error)
+	ListByClaim(ctx context.Context, name string, value string) ([]*identity.Info, error)
+	ListRefsByUsers(ctx context.Context, userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error)
+	Create(ctx context.Context, is *identity.Info) error
+	Update(ctx context.Context, info *identity.Info) error
+	Delete(ctx context.Context, is *identity.Info) error
+	CheckDuplicated(ctx context.Context, info *identity.Info) (*identity.Info, error)
+	CheckDuplicatedByUniqueKey(ctx context.Context, info *identity.Info) (*identity.Info, error)
+	AdminAPIGetByLoginIDKeyAndLoginIDValue(ctx context.Context, loginIDKey string, loginIDValue string) (*identity.Info, error)
+	AdminAPIGetByOAuthAliasAndSubject(ctx context.Context, alias string, subjectID string) (*identity.Info, error)
 }
 
 type AuthenticatorService interface {
-	Get(id string) (*authenticator.Info, error)
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	New(spec *authenticator.Spec) (*authenticator.Info, error)
-	NewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
-	UpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
-	Create(authenticatorInfo *authenticator.Info) error
-	Update(authenticatorInfo *authenticator.Info) error
-	Delete(authenticatorInfo *authenticator.Info) error
-	VerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, verifyResult *service.VerifyResult, err error)
-	UpdateOrphans(oldInfo *identity.Info, newInfo *identity.Info) error
-	RemoveOrphans(identities []*identity.Info) error
-	ClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error
+	New(ctx context.Context, spec *authenticator.Spec) (*authenticator.Info, error)
+	NewWithAuthenticatorID(ctx context.Context, authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error)
+	UpdatePassword(ctx context.Context, authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error)
+
+	Get(ctx context.Context, id string) (*authenticator.Info, error)
+	List(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	Create(ctx context.Context, authenticatorInfo *authenticator.Info) error
+	Update(ctx context.Context, authenticatorInfo *authenticator.Info) error
+	Delete(ctx context.Context, authenticatorInfo *authenticator.Info) error
+	VerifyOneWithSpec(ctx context.Context, userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *service.VerifyOptions) (info *authenticator.Info, verifyResult *service.VerifyResult, err error)
+	UpdateOrphans(ctx context.Context, oldInfo *identity.Info, newInfo *identity.Info) error
+	RemoveOrphans(ctx context.Context, identities []*identity.Info) error
+	ClearLockoutAttempts(ctx context.Context, userID string, usedMethods []config.AuthenticationLockoutMethod) error
 }
 
 type VerificationService interface {
-	GetClaims(userID string) ([]*verification.Claim, error)
-	GetClaimStatus(userID string, claimName model.ClaimName, claimValue string) (*verification.ClaimStatus, error)
-	GetIdentityVerificationStatus(i *identity.Info) ([]verification.ClaimStatus, error)
-	NewVerifiedClaim(userID string, claimName string, claimValue string) *verification.Claim
-	MarkClaimVerified(claim *verification.Claim) error
-	DeleteClaim(claim *verification.Claim) error
-	RemoveOrphanedClaims(userID string, identities []*identity.Info, authenticators []*authenticator.Info) error
-	ResetVerificationStatus(userID string) error
+	NewVerifiedClaim(ctx context.Context, userID string, claimName string, claimValue string) *verification.Claim
+
+	GetClaims(ctx context.Context, userID string) ([]*verification.Claim, error)
+	GetClaimStatus(ctx context.Context, userID string, claimName model.ClaimName, claimValue string) (*verification.ClaimStatus, error)
+	GetIdentityVerificationStatus(ctx context.Context, i *identity.Info) ([]verification.ClaimStatus, error)
+	MarkClaimVerified(ctx context.Context, claim *verification.Claim) error
+	DeleteClaim(ctx context.Context, claim *verification.Claim) error
+	RemoveOrphanedClaims(ctx context.Context, userID string, identities []*identity.Info, authenticators []*authenticator.Info) error
+	ResetVerificationStatus(ctx context.Context, userID string) error
 }
 
 type MFAService interface {
-	InvalidateAllRecoveryCode(userID string) error
-	GenerateDeviceToken() string
-	CreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error)
-	VerifyDeviceToken(userID string, token string) error
-	InvalidateAllDeviceTokens(userID string) error
-	VerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error)
-	ConsumeRecoveryCode(rc *mfa.RecoveryCode) error
-	GenerateRecoveryCodes() []string
-	ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error)
-	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
+	GenerateDeviceToken(ctx context.Context) string
+	GenerateRecoveryCodes(ctx context.Context) []string
+
+	InvalidateAllRecoveryCode(ctx context.Context, userID string) error
+	CreateDeviceToken(ctx context.Context, userID string, token string) (*mfa.DeviceToken, error)
+	VerifyDeviceToken(ctx context.Context, userID string, token string) error
+	InvalidateAllDeviceTokens(ctx context.Context, userID string) error
+	VerifyRecoveryCode(ctx context.Context, userID string, code string) (*mfa.RecoveryCode, error)
+	ConsumeRecoveryCode(ctx context.Context, rc *mfa.RecoveryCode) error
+	ReplaceRecoveryCodes(ctx context.Context, userID string, codes []string) ([]*mfa.RecoveryCode, error)
+	ListRecoveryCodes(ctx context.Context, userID string) ([]*mfa.RecoveryCode, error)
 }
 
 type SendPasswordService interface {
-	Send(userID string, password string, msgType translation.MessageType) error
+	Send(ctx context.Context, userID string, password string, msgType translation.MessageType) error
 }
 
 type UserQueries interface {
-	GetRaw(userID string) (*user.User, error)
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
+	GetRaw(ctx context.Context, userID string) (*user.User, error)
+	Get(ctx context.Context, userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type UserCommands interface {
-	Create(userID string) (*user.User, error)
-	UpdateAccountStatus(userID string, accountStatus user.AccountStatus) error
-	UpdateMFAEnrollment(userID string, gracePeriodEndAt *time.Time) error
-	Delete(userID string) error
-	Anonymize(userID string) error
+	Create(ctx context.Context, userID string) (*user.User, error)
+	UpdateAccountStatus(ctx context.Context, userID string, accountStatus user.AccountStatus) error
+	UpdateMFAEnrollment(ctx context.Context, userID string, gracePeriodEndAt *time.Time) error
+	Delete(ctx context.Context, userID string) error
+	Anonymize(ctx context.Context, userID string) error
 	AfterCreate(
+		ctx context.Context,
 		user *user.User,
 		identities []*identity.Info,
 		authenticators []*authenticator.Info,
@@ -120,26 +126,26 @@ type UserCommands interface {
 }
 
 type RolesGroupsCommands interface {
-	DeleteUserGroup(userID string) error
-	DeleteUserRole(userID string) error
+	DeleteUserGroup(ctx context.Context, userID string) error
+	DeleteUserRole(ctx context.Context, userID string) error
 }
 
 type PasswordHistoryStore interface {
-	ResetPasswordHistory(userID string) error
+	ResetPasswordHistory(ctx context.Context, userID string) error
 }
 
 type OAuthService interface {
-	ResetAll(userID string) error
+	ResetAll(ctx context.Context, userID string) error
 }
 
 type SessionManager interface {
-	Delete(session session.ListableSession) error
-	List(userID string) ([]session.ListableSession, error)
-	CleanUpForDeletingUserID(userID string) error
+	Delete(ctx context.Context, session session.ListableSession) error
+	List(ctx context.Context, userID string) ([]session.ListableSession, error)
+	CleanUpForDeletingUserID(ctx context.Context, userID string) error
 }
 
 type StdAttrsService interface {
-	PopulateIdentityAwareStandardAttributes(userID string) error
+	PopulateIdentityAwareStandardAttributes(ctx context.Context, userID string) error
 }
 
 type IDPSessionManager SessionManager
@@ -179,50 +185,50 @@ type Coordinator struct {
 	PasswordGenerator          *password.Generator
 }
 
-func (c *Coordinator) IdentityGet(id string) (*identity.Info, error) {
-	return c.Identities.Get(id)
+func (c *Coordinator) IdentityGet(ctx context.Context, id string) (*identity.Info, error) {
+	return c.Identities.Get(ctx, id)
 }
 
-func (c *Coordinator) IdentitySearchBySpec(spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
-	return c.Identities.SearchBySpec(spec)
+func (c *Coordinator) IdentitySearchBySpec(ctx context.Context, spec *identity.Spec) (exactMatch *identity.Info, otherMatches []*identity.Info, err error) {
+	return c.Identities.SearchBySpec(ctx, spec)
 }
 
-func (c *Coordinator) IdentityListByUser(userID string) ([]*identity.Info, error) {
-	return c.Identities.ListByUser(userID)
+func (c *Coordinator) IdentityListByUser(ctx context.Context, userID string) ([]*identity.Info, error) {
+	return c.Identities.ListByUser(ctx, userID)
 }
 
-func (c *Coordinator) IdentityListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error) {
-	return c.Identities.ListIdentitiesThatHaveStandardAttributes(userID)
+func (c *Coordinator) IdentityListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error) {
+	return c.Identities.ListIdentitiesThatHaveStandardAttributes(ctx, userID)
 }
 
-func (c *Coordinator) IdentityListByClaim(name string, value string) ([]*identity.Info, error) {
-	return c.Identities.ListByClaim(name, value)
+func (c *Coordinator) IdentityListByClaim(ctx context.Context, name string, value string) ([]*identity.Info, error) {
+	return c.Identities.ListByClaim(ctx, name, value)
 }
 
-func (c *Coordinator) IdentityListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
-	return c.Identities.ListRefsByUsers(userIDs, identityType)
+func (c *Coordinator) IdentityListRefsByUsers(ctx context.Context, userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
+	return c.Identities.ListRefsByUsers(ctx, userIDs, identityType)
 }
 
-func (c *Coordinator) IdentityNew(userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
-	return c.Identities.New(userID, spec, options)
+func (c *Coordinator) IdentityNew(ctx context.Context, userID string, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
+	return c.Identities.New(ctx, userID, spec, options)
 }
 
-func (c *Coordinator) IdentityUpdateWithSpec(is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
-	return c.Identities.UpdateWithSpec(is, spec, options)
+func (c *Coordinator) IdentityUpdateWithSpec(ctx context.Context, is *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
+	return c.Identities.UpdateWithSpec(ctx, is, spec, options)
 }
 
-func (c *Coordinator) IdentityCreate(is *identity.Info) error {
-	err := c.Identities.Create(is)
+func (c *Coordinator) IdentityCreate(ctx context.Context, is *identity.Info) error {
+	err := c.Identities.Create(ctx, is)
 	if err != nil {
 		return err
 	}
 
-	err = c.markOAuthEmailAsVerified(is)
+	err = c.markOAuthEmailAsVerified(ctx, is)
 	if err != nil {
 		return err
 	}
 
-	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(is.UserID)
+	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(ctx, is.UserID)
 	if err != nil {
 		return err
 	}
@@ -230,30 +236,30 @@ func (c *Coordinator) IdentityCreate(is *identity.Info) error {
 	return nil
 }
 
-func (c *Coordinator) IdentityCreateByAdmin(userID string, spec *identity.Spec, password string) (*identity.Info, error) {
-	iden, err := c.Identities.New(userID, spec, identity.NewIdentityOptions{})
+func (c *Coordinator) IdentityCreateByAdmin(ctx context.Context, userID string, spec *identity.Spec, password string) (*identity.Info, error) {
+	iden, err := c.Identities.New(ctx, userID, spec, identity.NewIdentityOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err := c.Identities.CheckDuplicated(iden); err != nil {
+	if _, err := c.Identities.CheckDuplicated(ctx, iden); err != nil {
 		return nil, err
 	}
 
-	if err := c.Identities.Create(iden); err != nil {
+	if err := c.Identities.Create(ctx, iden); err != nil {
 		return nil, err
 	}
 
 	// Remove any anonymous identity this user has.
-	if err := c.removeAnonymousIdentitiesOfUser(userID); err != nil {
+	if err := c.removeAnonymousIdentitiesOfUser(ctx, userID); err != nil {
 		return nil, err
 	}
 
-	if err := c.StdAttrsService.PopulateIdentityAwareStandardAttributes(userID); err != nil {
+	if err := c.StdAttrsService.PopulateIdentityAwareStandardAttributes(ctx, userID); err != nil {
 		return nil, err
 	}
 
-	if err := c.createPrimaryAuthenticatorsForAdminAPICreateIdentity(iden, password); err != nil {
+	if err := c.createPrimaryAuthenticatorsForAdminAPICreateIdentity(ctx, iden, password); err != nil {
 		return nil, err
 	}
 
@@ -280,7 +286,7 @@ func (c *Coordinator) IdentityCreateByAdmin(userID string, spec *identity.Spec, 
 	}
 
 	if e != nil {
-		err = c.Events.DispatchEventOnCommit(e)
+		err = c.Events.DispatchEventOnCommit(ctx, e)
 		if err != nil {
 			return nil, err
 		}
@@ -289,8 +295,8 @@ func (c *Coordinator) IdentityCreateByAdmin(userID string, spec *identity.Spec, 
 	return iden, nil
 }
 
-func (c *Coordinator) removeAnonymousIdentitiesOfUser(userID string) (err error) {
-	idens, err := c.Identities.ListByUser(userID)
+func (c *Coordinator) removeAnonymousIdentitiesOfUser(ctx context.Context, userID string) (err error) {
+	idens, err := c.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return
 	}
@@ -300,7 +306,7 @@ func (c *Coordinator) removeAnonymousIdentitiesOfUser(userID string) (err error)
 		identity.KeepType(model.IdentityTypeAnonymous),
 	)
 	for _, iden := range anonymousIdentities {
-		err = c.Identities.Delete(iden)
+		err = c.Identities.Delete(ctx, iden)
 		if err != nil {
 			return
 		}
@@ -310,7 +316,7 @@ func (c *Coordinator) removeAnonymousIdentitiesOfUser(userID string) (err error)
 }
 
 // nolint: gocognit
-func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateIdentity(iden *identity.Info, password string) (err error) {
+func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateIdentity(ctx context.Context, iden *identity.Info, password string) (err error) {
 	authenticatorTypes := *c.AuthenticationConfig.PrimaryAuthenticators
 	var authenticatorSpecs []*authenticator.Spec
 	for _, t := range authenticatorTypes {
@@ -318,7 +324,7 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateIdentity(iden 
 		case model.AuthenticatorTypePassword:
 			if password != "" {
 				var passwords []*authenticator.Info
-				passwords, err = c.Authenticators.List(
+				passwords, err = c.Authenticators.List(ctx,
 					iden.UserID,
 					authenticator.KeepKind(authenticator.KindPrimary),
 					authenticator.KeepType(model.AuthenticatorTypePassword),
@@ -357,7 +363,7 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateIdentity(iden 
 		}
 	}
 
-	_, err = c.createAuthenticatorInfos(authenticatorSpecs)
+	_, err = c.createAuthenticatorInfos(ctx, authenticatorSpecs)
 	if err != nil {
 		return
 	}
@@ -365,28 +371,28 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateIdentity(iden 
 	return nil
 }
 
-func (c *Coordinator) IdentityUpdate(oldInfo *identity.Info, newInfo *identity.Info) error {
-	err := c.Identities.Update(newInfo)
+func (c *Coordinator) IdentityUpdate(ctx context.Context, oldInfo *identity.Info, newInfo *identity.Info) error {
+	err := c.Identities.Update(ctx, newInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.markOAuthEmailAsVerified(newInfo)
+	err = c.markOAuthEmailAsVerified(ctx, newInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.Authenticators.UpdateOrphans(oldInfo, newInfo)
+	err = c.Authenticators.UpdateOrphans(ctx, oldInfo, newInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.removeOrphans(newInfo.UserID)
+	err = c.removeOrphans(ctx, newInfo.UserID)
 	if err != nil {
 		return err
 	}
 
-	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(newInfo.UserID)
+	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(ctx, newInfo.UserID)
 	if err != nil {
 		return err
 	}
@@ -394,25 +400,25 @@ func (c *Coordinator) IdentityUpdate(oldInfo *identity.Info, newInfo *identity.I
 	return nil
 }
 
-func (c *Coordinator) IdentityDelete(is *identity.Info) error {
+func (c *Coordinator) IdentityDelete(ctx context.Context, is *identity.Info) error {
 	userID := is.UserID
 
-	err := c.Identities.Delete(is)
+	err := c.Identities.Delete(ctx, is)
 	if err != nil {
 		return err
 	}
 
-	err = c.removeOrphans(is.UserID)
+	err = c.removeOrphans(ctx, is.UserID)
 	if err != nil {
 		return err
 	}
 
-	identities, err := c.Identities.ListByUser(userID)
+	identities, err := c.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	authenticators, err := c.Authenticators.List(userID)
+	authenticators, err := c.Authenticators.List(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -460,7 +466,7 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 		}
 	}
 
-	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(is.UserID)
+	err = c.StdAttrsService.PopulateIdentityAwareStandardAttributes(ctx, is.UserID)
 	if err != nil {
 		return err
 	}
@@ -468,39 +474,39 @@ func (c *Coordinator) IdentityDelete(is *identity.Info) error {
 	return nil
 }
 
-func (c *Coordinator) IdentityCheckDuplicated(info *identity.Info) (*identity.Info, error) {
-	return c.Identities.CheckDuplicated(info)
+func (c *Coordinator) IdentityCheckDuplicated(ctx context.Context, info *identity.Info) (*identity.Info, error) {
+	return c.Identities.CheckDuplicated(ctx, info)
 }
 
-func (c *Coordinator) IdentityCheckDuplicatedByUniqueKey(info *identity.Info) (*identity.Info, error) {
-	return c.Identities.CheckDuplicatedByUniqueKey(info)
+func (c *Coordinator) IdentityCheckDuplicatedByUniqueKey(ctx context.Context, info *identity.Info) (*identity.Info, error) {
+	return c.Identities.CheckDuplicatedByUniqueKey(ctx, info)
 }
 
-func (c *Coordinator) AuthenticatorGet(id string) (*authenticator.Info, error) {
-	return c.Authenticators.Get(id)
+func (c *Coordinator) AuthenticatorGet(ctx context.Context, id string) (*authenticator.Info, error) {
+	return c.Authenticators.Get(ctx, id)
 }
 
-func (c *Coordinator) AuthenticatorList(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
-	return c.Authenticators.List(userID, filters...)
+func (c *Coordinator) AuthenticatorList(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error) {
+	return c.Authenticators.List(ctx, userID, filters...)
 }
 
-func (c *Coordinator) AuthenticatorNew(spec *authenticator.Spec) (*authenticator.Info, error) {
-	return c.Authenticators.New(spec)
+func (c *Coordinator) AuthenticatorNew(ctx context.Context, spec *authenticator.Spec) (*authenticator.Info, error) {
+	return c.Authenticators.New(ctx, spec)
 }
 
-func (c *Coordinator) AuthenticatorNewWithAuthenticatorID(authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error) {
-	return c.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)
+func (c *Coordinator) AuthenticatorNewWithAuthenticatorID(ctx context.Context, authenticatorID string, spec *authenticator.Spec) (*authenticator.Info, error) {
+	return c.Authenticators.NewWithAuthenticatorID(ctx, authenticatorID, spec)
 }
 
-func (c *Coordinator) AuthenticatorCreate(authenticatorInfo *authenticator.Info, markVerified bool) error {
-	err := c.Authenticators.Create(authenticatorInfo)
+func (c *Coordinator) AuthenticatorCreate(ctx context.Context, authenticatorInfo *authenticator.Info, markVerified bool) error {
+	err := c.Authenticators.Create(ctx, authenticatorInfo)
 	if err != nil {
 		return err
 	}
 
 	// Mark as verified for authenticators created by user.
 	if markVerified {
-		err = c.markVerified(authenticatorInfo.UserID, authenticatorInfo.StandardClaims())
+		err = c.markVerified(ctx, authenticatorInfo.UserID, authenticatorInfo.StandardClaims())
 		if err != nil {
 			return err
 		}
@@ -509,21 +515,21 @@ func (c *Coordinator) AuthenticatorCreate(authenticatorInfo *authenticator.Info,
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorUpdate(authenticatorInfo *authenticator.Info) error {
-	return c.Authenticators.Update(authenticatorInfo)
+func (c *Coordinator) AuthenticatorUpdate(ctx context.Context, authenticatorInfo *authenticator.Info) error {
+	return c.Authenticators.Update(ctx, authenticatorInfo)
 }
 
-func (c *Coordinator) AuthenticatorUpdatePassword(authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error) {
-	return c.Authenticators.UpdatePassword(authenticatorInfo, options)
+func (c *Coordinator) AuthenticatorUpdatePassword(ctx context.Context, authenticatorInfo *authenticator.Info, options *service.UpdatePasswordOptions) (changed bool, info *authenticator.Info, err error) {
+	return c.Authenticators.UpdatePassword(ctx, authenticatorInfo, options)
 }
 
-func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info) error {
-	err := c.Authenticators.Delete(authenticatorInfo)
+func (c *Coordinator) AuthenticatorDelete(ctx context.Context, authenticatorInfo *authenticator.Info) error {
+	err := c.Authenticators.Delete(ctx, authenticatorInfo)
 	if err != nil {
 		return err
 	}
 
-	err = c.removeOrphans(authenticatorInfo.UserID)
+	err = c.removeOrphans(ctx, authenticatorInfo.UserID)
 	if err != nil {
 		return err
 	}
@@ -531,8 +537,9 @@ func (c *Coordinator) AuthenticatorDelete(authenticatorInfo *authenticator.Info)
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (verifyResult *service.VerifyResult, err error) {
+func (c *Coordinator) AuthenticatorVerifyWithSpec(ctx context.Context, info *authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (verifyResult *service.VerifyResult, err error) {
 	_, verifyResult, err = c.AuthenticatorVerifyOneWithSpec(
+		ctx,
 		info.UserID,
 		info.Type,
 		[]*authenticator.Info{info},
@@ -542,10 +549,10 @@ func (c *Coordinator) AuthenticatorVerifyWithSpec(info *authenticator.Info, spec
 	return
 }
 
-func (c *Coordinator) dispatchAuthenticationFailedEvent(userID string,
+func (c *Coordinator) dispatchAuthenticationFailedEvent(ctx context.Context, userID string,
 	stage authn.AuthenticationStage,
 	authenticationType authn.AuthenticationType) error {
-	return c.Events.DispatchEventImmediately(&nonblocking.AuthenticationFailedEventPayload{
+	return c.Events.DispatchEventImmediately(ctx, &nonblocking.AuthenticationFailedEventPayload{
 		UserRef: model.UserRef{
 			Meta: model.Meta{
 				ID: userID,
@@ -564,13 +571,14 @@ func (c *Coordinator) addAuthenticationTypeToError(err error, authnType authn.Au
 	return newe
 }
 
-func (c *Coordinator) AuthenticatorVerifyOneWithSpec(userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, verifyResult *service.VerifyResult, err error) {
+func (c *Coordinator) AuthenticatorVerifyOneWithSpec(ctx context.Context, userID string, authenticatorType model.AuthenticatorType, infos []*authenticator.Info, spec *authenticator.Spec, options *VerifyOptions) (info *authenticator.Info, verifyResult *service.VerifyResult, err error) {
 	if options == nil {
 		options = &VerifyOptions{}
 	}
-	info, verifyResult, err = c.Authenticators.VerifyOneWithSpec(userID, authenticatorType, infos, spec, options.toServiceOptions())
+	info, verifyResult, err = c.Authenticators.VerifyOneWithSpec(ctx, userID, authenticatorType, infos, spec, options.toServiceOptions())
 	if err != nil && errors.Is(err, api.ErrInvalidCredentials) && options.AuthenticationDetails != nil {
 		eventerr := c.dispatchAuthenticationFailedEvent(
+			ctx,
 			options.AuthenticationDetails.UserID,
 			options.AuthenticationDetails.Stage,
 			options.AuthenticationDetails.AuthenticationType,
@@ -583,7 +591,7 @@ func (c *Coordinator) AuthenticatorVerifyOneWithSpec(userID string, authenticato
 	return
 }
 
-func (c *Coordinator) UserCreatebyAdmin(
+func (c *Coordinator) UserCreatebyAdmin(ctx context.Context,
 	identitySpec *identity.Spec,
 	password string,
 	generatePassword bool,
@@ -592,36 +600,36 @@ func (c *Coordinator) UserCreatebyAdmin(
 ) (*user.User, error) {
 	// 1. Create user
 	userID := uuid.New()
-	user, err := c.UserCommands.Create(userID)
+	user, err := c.UserCommands.Create(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	// 2. Create identity
-	identityInfo, err := c.Identities.New(userID, identitySpec, identity.NewIdentityOptions{})
+	identityInfo, err := c.Identities.New(ctx, userID, identitySpec, identity.NewIdentityOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	if _, err := c.Identities.CheckDuplicated(identityInfo); err != nil {
+	if _, err := c.Identities.CheckDuplicated(ctx, identityInfo); err != nil {
 		return nil, err
 	}
 
-	if err := c.Identities.Create(identityInfo); err != nil {
+	if err := c.Identities.Create(ctx, identityInfo); err != nil {
 		return nil, err
 	}
 
-	if err := c.StdAttrsService.PopulateIdentityAwareStandardAttributes(userID); err != nil {
+	if err := c.StdAttrsService.PopulateIdentityAwareStandardAttributes(ctx, userID); err != nil {
 		return nil, err
 	}
 
 	// 3. Create primary authenticators
-	authenticatorInfos, err := c.createPrimaryAuthenticatorsForAdminAPICreateUser(identityInfo, userID, password, generatePassword, sendPassword, setPasswordExpired)
+	authenticatorInfos, err := c.createPrimaryAuthenticatorsForAdminAPICreateUser(ctx, identityInfo, userID, password, generatePassword, sendPassword, setPasswordExpired)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := c.UserCommands.AfterCreate(
+	if err := c.UserCommands.AfterCreate(ctx,
 		user,
 		[]*identity.Info{identityInfo},
 		authenticatorInfos,
@@ -633,7 +641,7 @@ func (c *Coordinator) UserCreatebyAdmin(
 	return user, nil
 }
 
-func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(identityInfo *identity.Info, userID string, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) ([]*authenticator.Info, error) {
+func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(ctx context.Context, identityInfo *identity.Info, userID string, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) ([]*authenticator.Info, error) {
 	authenticatorTypes := *c.AuthenticationConfig.PrimaryAuthenticators
 	if len(authenticatorTypes) == 0 {
 		return nil, api.InvalidConfiguration.New("identity requires primary authenticator but none is enabled")
@@ -665,7 +673,7 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(identityI
 		}
 	}
 
-	authenticatorInfos, err := c.createAuthenticatorInfos(authenticatorSpecs)
+	authenticatorInfos, err := c.createAuthenticatorInfos(ctx, authenticatorSpecs)
 	if err != nil {
 		return nil, err
 	}
@@ -684,7 +692,7 @@ func (c *Coordinator) createPrimaryAuthenticatorsForAdminAPICreateUser(identityI
 	}
 
 	if passwordSpec != nil && sendPassword {
-		err := c.SendPassword.Send(userID, passwordSpec.Password.PlainPassword, translation.MessageTypeSendPasswordToNewUser)
+		err := c.SendPassword.Send(ctx, userID, passwordSpec.Password.PlainPassword, translation.MessageTypeSendPasswordToNewUser)
 		if err != nil {
 			return nil, err
 		}
@@ -756,16 +764,16 @@ func (c *Coordinator) createOOBEmailAuthenticatorSpec(identityInfo *identity.Inf
 	}, true
 }
 
-func (c *Coordinator) createAuthenticatorInfos(authenticatorSpecs []*authenticator.Spec) ([]*authenticator.Info, error) {
+func (c *Coordinator) createAuthenticatorInfos(ctx context.Context, authenticatorSpecs []*authenticator.Spec) ([]*authenticator.Info, error) {
 	var authenticatorInfos []*authenticator.Info
 	for _, authenticatorSpec := range authenticatorSpecs {
 		authenticatorID := uuid.New()
-		authenticatorInfo, err := c.Authenticators.NewWithAuthenticatorID(authenticatorID, authenticatorSpec)
+		authenticatorInfo, err := c.Authenticators.NewWithAuthenticatorID(ctx, authenticatorID, authenticatorSpec)
 		if err != nil {
 			return nil, err
 		}
 
-		if err := c.Authenticators.Create(authenticatorInfo); err != nil {
+		if err := c.Authenticators.Create(ctx, authenticatorInfo); err != nil {
 			return nil, err
 		}
 
@@ -774,78 +782,78 @@ func (c *Coordinator) createAuthenticatorInfos(authenticatorSpecs []*authenticat
 	return authenticatorInfos, nil
 }
 
-func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error {
+func (c *Coordinator) UserDelete(ctx context.Context, userID string, isScheduledDeletion bool) error {
 	// Delete dependents of user entity.
 
 	// Identities:
-	identities, err := c.Identities.ListByUser(userID)
+	identities, err := c.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
 	for _, i := range identities {
-		if err = c.Identities.Delete(i); err != nil {
+		if err = c.Identities.Delete(ctx, i); err != nil {
 			return err
 		}
 	}
 
 	// Authenticators:
-	authenticators, err := c.Authenticators.List(userID)
+	authenticators, err := c.Authenticators.List(ctx, userID)
 	if err != nil {
 		return err
 	}
 	for _, a := range authenticators {
-		if err = c.Authenticators.Delete(a); err != nil {
+		if err = c.Authenticators.Delete(ctx, a); err != nil {
 			return err
 		}
 	}
 
 	// MFA recovery codes:
-	if err = c.MFA.InvalidateAllRecoveryCode(userID); err != nil {
+	if err = c.MFA.InvalidateAllRecoveryCode(ctx, userID); err != nil {
 		return err
 	}
 
 	// OAuth authorizations:
-	if err = c.OAuth.ResetAll(userID); err != nil {
+	if err = c.OAuth.ResetAll(ctx, userID); err != nil {
 		return err
 	}
 
 	// Verified claims:
-	if err = c.Verification.ResetVerificationStatus(userID); err != nil {
+	if err = c.Verification.ResetVerificationStatus(ctx, userID); err != nil {
 		return err
 	}
 
 	// Password history:
-	if err = c.PasswordHistory.ResetPasswordHistory(userID); err != nil {
+	if err = c.PasswordHistory.ResetPasswordHistory(ctx, userID); err != nil {
 		return err
 	}
 
 	// Sessions:
-	if err = c.terminateAllSessionsAndCleanUp(userID); err != nil {
+	if err = c.terminateAllSessionsAndCleanUp(ctx, userID); err != nil {
 		return err
 	}
 
 	// Groups:
-	if err = c.RolesGroupsCommands.DeleteUserGroup(userID); err != nil {
+	if err = c.RolesGroupsCommands.DeleteUserGroup(ctx, userID); err != nil {
 		return err
 	}
 
 	// Roles:
-	if err = c.RolesGroupsCommands.DeleteUserRole(userID); err != nil {
+	if err = c.RolesGroupsCommands.DeleteUserRole(ctx, userID); err != nil {
 		return err
 	}
 
-	userModel, err := c.UserQueries.Get(userID, accesscontrol.RoleGreatest)
+	userModel, err := c.UserQueries.Get(ctx, userID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return err
 	}
 
 	// Finally, delete the user.
-	err = c.UserCommands.Delete(userID)
+	err = c.UserCommands.Delete(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	err = c.Events.DispatchEventOnCommit(&nonblocking.UserDeletedEventPayload{
+	err = c.Events.DispatchEventOnCommit(ctx, &nonblocking.UserDeletedEventPayload{
 		UserModel:           *userModel,
 		IsScheduledDeletion: isScheduledDeletion,
 	})
@@ -856,23 +864,23 @@ func (c *Coordinator) UserDelete(userID string, isScheduledDeletion bool) error 
 	return nil
 }
 
-func (c *Coordinator) removeOrphans(userID string) error {
-	identities, err := c.Identities.ListByUser(userID)
+func (c *Coordinator) removeOrphans(ctx context.Context, userID string) error {
+	identities, err := c.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	err = c.Authenticators.RemoveOrphans(identities)
+	err = c.Authenticators.RemoveOrphans(ctx, identities)
 	if err != nil {
 		return err
 	}
 
-	authenticators, err := c.Authenticators.List(userID)
+	authenticators, err := c.Authenticators.List(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	err = c.Verification.RemoveOrphanedClaims(userID, identities, authenticators)
+	err = c.Verification.RemoveOrphanedClaims(ctx, userID, identities, authenticators)
 	if err != nil {
 		return err
 	}
@@ -885,11 +893,11 @@ func (c *Coordinator) removeOrphans(userID string) error {
 		}
 	}
 	if !hasSecondaryAuth {
-		err = c.MFA.InvalidateAllRecoveryCode(userID)
+		err = c.MFA.InvalidateAllRecoveryCode(ctx, userID)
 		if err != nil {
 			return err
 		}
-		err = c.MFA.InvalidateAllDeviceTokens(userID)
+		err = c.MFA.InvalidateAllDeviceTokens(ctx, userID)
 		if err != nil {
 			return err
 		}
@@ -898,12 +906,12 @@ func (c *Coordinator) removeOrphans(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) markVerified(userID string, claims map[model.ClaimName]string) error {
+func (c *Coordinator) markVerified(ctx context.Context, userID string, claims map[model.ClaimName]string) error {
 	for name, value := range claims {
 		name := string(name)
 
-		claim := c.Verification.NewVerifiedClaim(userID, name, value)
-		err := c.Verification.MarkClaimVerified(claim)
+		claim := c.Verification.NewVerifiedClaim(ctx, userID, name, value)
+		err := c.Verification.MarkClaimVerified(ctx, claim)
 		if err != nil {
 			return err
 		}
@@ -911,11 +919,11 @@ func (c *Coordinator) markVerified(userID string, claims map[model.ClaimName]str
 	return nil
 }
 
-func (c *Coordinator) MarkOOBIdentityVerified(info *authenticator.Info) error {
+func (c *Coordinator) MarkOOBIdentityVerified(ctx context.Context, info *authenticator.Info) error {
 	claim := map[model.ClaimName]string{}
 	switch info.Type {
 	case model.AuthenticatorTypeOOBEmail:
-		identities, err := c.Identities.ListByClaim(string(model.ClaimEmail), info.OOBOTP.Email)
+		identities, err := c.Identities.ListByClaim(ctx, string(model.ClaimEmail), info.OOBOTP.Email)
 		if err != nil {
 			return err
 		}
@@ -924,7 +932,7 @@ func (c *Coordinator) MarkOOBIdentityVerified(info *authenticator.Info) error {
 		}
 		claim[model.ClaimEmail] = info.OOBOTP.Email
 	case model.AuthenticatorTypeOOBSMS:
-		identities, err := c.Identities.ListByClaim(string(model.ClaimPhoneNumber), info.OOBOTP.Phone)
+		identities, err := c.Identities.ListByClaim(ctx, string(model.ClaimPhoneNumber), info.OOBOTP.Phone)
 		if err != nil {
 			return err
 		}
@@ -936,7 +944,7 @@ func (c *Coordinator) MarkOOBIdentityVerified(info *authenticator.Info) error {
 		return nil
 	}
 
-	err := c.markVerified(info.UserID, claim)
+	err := c.markVerified(ctx, info.UserID, claim)
 	if err != nil {
 		return err
 	}
@@ -944,7 +952,7 @@ func (c *Coordinator) MarkOOBIdentityVerified(info *authenticator.Info) error {
 	return nil
 }
 
-func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
+func (c *Coordinator) markOAuthEmailAsVerified(ctx context.Context, info *identity.Info) error {
 	if info.Type != model.IdentityTypeOAuth {
 		return nil
 	}
@@ -967,7 +975,7 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 		assumedVerified := cfg.EmailClaimConfig().AssumeVerified()
 		if assumedVerified {
 			// Mark as verified if OAuth email is assumed to be verified
-			err := c.markVerified(info.UserID, map[model.ClaimName]string{
+			err := c.markVerified(ctx, info.UserID, map[model.ClaimName]string{
 				model.ClaimEmail: email,
 			})
 			if err != nil {
@@ -979,8 +987,8 @@ func (c *Coordinator) markOAuthEmailAsVerified(info *identity.Info) error {
 	return nil
 }
 
-func (c *Coordinator) terminateAllSessionsAndCleanUp(userID string) error {
-	err := c.terminateAllSessions(userID)
+func (c *Coordinator) terminateAllSessionsAndCleanUp(ctx context.Context, userID string) error {
+	err := c.terminateAllSessions(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -991,12 +999,12 @@ func (c *Coordinator) terminateAllSessionsAndCleanUp(userID string) error {
 	// However, List() does not actually return every key that the Redis hash has,
 	// so having CleanUpForDeletingUserID ensures we delete the hash.
 
-	err = c.IDPSessions.CleanUpForDeletingUserID(userID)
+	err = c.IDPSessions.CleanUpForDeletingUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	err = c.OAuthSessions.CleanUpForDeletingUserID(userID)
+	err = c.OAuthSessions.CleanUpForDeletingUserID(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1004,23 +1012,23 @@ func (c *Coordinator) terminateAllSessionsAndCleanUp(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) terminateAllSessions(userID string) error {
-	idpSessions, err := c.IDPSessions.List(userID)
+func (c *Coordinator) terminateAllSessions(ctx context.Context, userID string) error {
+	idpSessions, err := c.IDPSessions.List(ctx, userID)
 	if err != nil {
 		return err
 	}
 	for _, s := range idpSessions {
-		if err = c.IDPSessions.Delete(s); err != nil {
+		if err = c.IDPSessions.Delete(ctx, s); err != nil {
 			return err
 		}
 	}
 
-	oauthSessions, err := c.OAuthSessions.List(userID)
+	oauthSessions, err := c.OAuthSessions.List(ctx, userID)
 	if err != nil {
 		return err
 	}
 	for _, s := range oauthSessions {
-		if err = c.OAuthSessions.Delete(s); err != nil {
+		if err = c.OAuthSessions.Delete(ctx, s); err != nil {
 			return err
 		}
 	}
@@ -1028,8 +1036,8 @@ func (c *Coordinator) terminateAllSessions(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) UserReenable(userID string) error {
-	u, err := c.UserQueries.GetRaw(userID)
+func (c *Coordinator) UserReenable(ctx context.Context, userID string) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1039,7 +1047,7 @@ func (c *Coordinator) UserReenable(userID string) error {
 		return err
 	}
 
-	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
 	if err != nil {
 		return err
 	}
@@ -1052,7 +1060,7 @@ func (c *Coordinator) UserReenable(userID string) error {
 		},
 	}
 
-	err = c.Events.DispatchEventOnCommit(e)
+	err = c.Events.DispatchEventOnCommit(ctx, e)
 	if err != nil {
 		return err
 	}
@@ -1060,8 +1068,8 @@ func (c *Coordinator) UserReenable(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) UserDisable(userID string, reason *string) error {
-	u, err := c.UserQueries.GetRaw(userID)
+func (c *Coordinator) UserDisable(ctx context.Context, userID string, reason *string) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1071,12 +1079,12 @@ func (c *Coordinator) UserDisable(userID string, reason *string) error {
 		return err
 	}
 
-	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
 	if err != nil {
 		return err
 	}
 
-	err = c.terminateAllSessions(userID)
+	err = c.terminateAllSessions(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1089,7 +1097,7 @@ func (c *Coordinator) UserDisable(userID string, reason *string) error {
 		},
 	}
 
-	err = c.Events.DispatchEventOnCommit(e)
+	err = c.Events.DispatchEventOnCommit(ctx, e)
 	if err != nil {
 		return err
 	}
@@ -1097,16 +1105,16 @@ func (c *Coordinator) UserDisable(userID string, reason *string) error {
 	return nil
 }
 
-func (c *Coordinator) UserScheduleDeletionByAdmin(userID string) error {
-	return c.userScheduleDeletion(userID, true)
+func (c *Coordinator) UserScheduleDeletionByAdmin(ctx context.Context, userID string) error {
+	return c.userScheduleDeletion(ctx, userID, true)
 }
 
-func (c *Coordinator) UserScheduleDeletionByEndUser(userID string) error {
-	return c.userScheduleDeletion(userID, false)
+func (c *Coordinator) UserScheduleDeletionByEndUser(ctx context.Context, userID string) error {
+	return c.userScheduleDeletion(ctx, userID, false)
 }
 
-func (c *Coordinator) userScheduleDeletion(userID string, byAdmin bool) error {
-	u, err := c.UserQueries.GetRaw(userID)
+func (c *Coordinator) userScheduleDeletion(ctx context.Context, userID string, byAdmin bool) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1124,12 +1132,12 @@ func (c *Coordinator) userScheduleDeletion(userID string, byAdmin bool) error {
 		return err
 	}
 
-	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
 	if err != nil {
 		return err
 	}
 
-	err = c.terminateAllSessions(userID)
+	err = c.terminateAllSessions(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1152,7 +1160,7 @@ func (c *Coordinator) userScheduleDeletion(userID string, byAdmin bool) error {
 	}
 
 	for _, e := range events {
-		err := c.Events.DispatchEventOnCommit(e)
+		err := c.Events.DispatchEventOnCommit(ctx, e)
 		if err != nil {
 			return err
 		}
@@ -1161,8 +1169,8 @@ func (c *Coordinator) userScheduleDeletion(userID string, byAdmin bool) error {
 	return nil
 }
 
-func (c *Coordinator) UserUnscheduleDeletionByAdmin(userID string) error {
-	u, err := c.UserQueries.GetRaw(userID)
+func (c *Coordinator) UserUnscheduleDeletionByAdmin(ctx context.Context, userID string) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1172,7 +1180,7 @@ func (c *Coordinator) UserUnscheduleDeletionByAdmin(userID string) error {
 		return err
 	}
 
-	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
 	if err != nil {
 		return err
 	}
@@ -1186,7 +1194,7 @@ func (c *Coordinator) UserUnscheduleDeletionByAdmin(userID string) error {
 		AdminAPI: true,
 	}
 
-	err = c.Events.DispatchEventOnCommit(e)
+	err = c.Events.DispatchEventOnCommit(ctx, e)
 	if err != nil {
 		return err
 	}
@@ -1194,78 +1202,78 @@ func (c *Coordinator) UserUnscheduleDeletionByAdmin(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) UserAnonymize(userID string, IsScheduledAnonymization bool) error {
+func (c *Coordinator) UserAnonymize(ctx context.Context, userID string, IsScheduledAnonymization bool) error {
 	// Delete dependents of user entity.
 
 	// Identities:
-	identities, err := c.Identities.ListByUser(userID)
+	identities, err := c.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
 	for _, i := range identities {
-		if err = c.Identities.Delete(i); err != nil {
+		if err = c.Identities.Delete(ctx, i); err != nil {
 			return err
 		}
 	}
 
 	// Authenticators:
-	authenticators, err := c.Authenticators.List(userID)
+	authenticators, err := c.Authenticators.List(ctx, userID)
 	if err != nil {
 		return err
 	}
 	for _, a := range authenticators {
-		if err = c.Authenticators.Delete(a); err != nil {
+		if err = c.Authenticators.Delete(ctx, a); err != nil {
 			return err
 		}
 	}
 
 	// MFA recovery codes:
-	if err = c.MFA.InvalidateAllRecoveryCode(userID); err != nil {
+	if err = c.MFA.InvalidateAllRecoveryCode(ctx, userID); err != nil {
 		return err
 	}
 
 	// OAuth authorizations:
-	if err = c.OAuth.ResetAll(userID); err != nil {
+	if err = c.OAuth.ResetAll(ctx, userID); err != nil {
 		return err
 	}
 
 	// Verified claims:
-	if err = c.Verification.ResetVerificationStatus(userID); err != nil {
+	if err = c.Verification.ResetVerificationStatus(ctx, userID); err != nil {
 		return err
 	}
 
 	// Password history:
-	if err = c.PasswordHistory.ResetPasswordHistory(userID); err != nil {
+	if err = c.PasswordHistory.ResetPasswordHistory(ctx, userID); err != nil {
 		return err
 	}
 
 	// Sessions:
-	if err = c.terminateAllSessionsAndCleanUp(userID); err != nil {
+	if err = c.terminateAllSessionsAndCleanUp(ctx, userID); err != nil {
 		return err
 	}
 
 	// Groups:
-	if err = c.RolesGroupsCommands.DeleteUserGroup(userID); err != nil {
+	if err = c.RolesGroupsCommands.DeleteUserGroup(ctx, userID); err != nil {
 		return err
 	}
 
 	// Roles:
-	if err = c.RolesGroupsCommands.DeleteUserRole(userID); err != nil {
+	if err = c.RolesGroupsCommands.DeleteUserRole(ctx, userID); err != nil {
 		return err
 	}
 
-	userModel, err := c.UserQueries.Get(userID, accesscontrol.RoleGreatest)
+	userModel, err := c.UserQueries.Get(ctx, userID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return err
 	}
 
 	// Anonymize user record:
-	err = c.UserCommands.Anonymize(userID)
+	err = c.UserCommands.Anonymize(ctx, userID)
 	if err != nil {
 		return err
 	}
 
-	err = c.Events.DispatchEventOnCommit(&nonblocking.UserAnonymizedEventPayload{
+	err = c.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAnonymizedEventPayload{
 		UserModel:                *userModel,
 		IsScheduledAnonymization: IsScheduledAnonymization,
 	})
@@ -1276,12 +1284,12 @@ func (c *Coordinator) UserAnonymize(userID string, IsScheduledAnonymization bool
 	return nil
 }
 
-func (c *Coordinator) UserScheduleAnonymizationByAdmin(userID string) error {
-	return c.userScheduleAnonymization(userID, true)
+func (c *Coordinator) UserScheduleAnonymizationByAdmin(ctx context.Context, userID string) error {
+	return c.userScheduleAnonymization(ctx, userID, true)
 }
 
-func (c *Coordinator) userScheduleAnonymization(userID string, byAdmin bool) error {
-	u, err := c.UserQueries.GetRaw(userID)
+func (c *Coordinator) userScheduleAnonymization(ctx context.Context, userID string, byAdmin bool) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1299,12 +1307,12 @@ func (c *Coordinator) userScheduleAnonymization(userID string, byAdmin bool) err
 		return err
 	}
 
-	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
 	if err != nil {
 		return err
 	}
 
-	err = c.terminateAllSessions(userID)
+	err = c.terminateAllSessions(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1327,7 +1335,7 @@ func (c *Coordinator) userScheduleAnonymization(userID string, byAdmin bool) err
 	}
 
 	for _, e := range events {
-		err := c.Events.DispatchEventOnCommit(e)
+		err := c.Events.DispatchEventOnCommit(ctx, e)
 		if err != nil {
 			return err
 		}
@@ -1336,8 +1344,8 @@ func (c *Coordinator) userScheduleAnonymization(userID string, byAdmin bool) err
 	return nil
 }
 
-func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(userID string) error {
-	u, err := c.UserQueries.GetRaw(userID)
+func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(ctx context.Context, userID string) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1347,7 +1355,7 @@ func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(userID string) error {
 		return err
 	}
 
-	err = c.UserCommands.UpdateAccountStatus(userID, *accountStatus)
+	err = c.UserCommands.UpdateAccountStatus(ctx, userID, *accountStatus)
 	if err != nil {
 		return err
 	}
@@ -1361,7 +1369,7 @@ func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(userID string) error {
 		AdminAPI: true,
 	}
 
-	err = c.Events.DispatchEventOnCommit(e)
+	err = c.Events.DispatchEventOnCommit(ctx, e)
 	if err != nil {
 		return err
 	}
@@ -1369,8 +1377,8 @@ func (c *Coordinator) UserUnscheduleAnonymizationByAdmin(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) UserCheckAnonymized(userID string) error {
-	u, err := c.UserQueries.GetRaw(userID)
+func (c *Coordinator) UserCheckAnonymized(ctx context.Context, userID string) error {
+	u, err := c.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -1382,7 +1390,7 @@ func (c *Coordinator) UserCheckAnonymized(userID string) error {
 	return nil
 }
 
-func (c *Coordinator) UserUpdateMFAEnrollment(userID string, endAt *time.Time) error {
+func (c *Coordinator) UserUpdateMFAEnrollment(ctx context.Context, userID string, endAt *time.Time) error {
 	if endAt != nil {
 		// Cannot set grace period in the past or more than 90 days in the future.
 		if endAt.Before(c.Clock.NowUTC()) {
@@ -1395,7 +1403,7 @@ func (c *Coordinator) UserUpdateMFAEnrollment(userID string, endAt *time.Time) e
 		}
 	}
 
-	err := c.UserCommands.UpdateMFAEnrollment(userID, endAt)
+	err := c.UserCommands.UpdateMFAEnrollment(ctx, userID, endAt)
 	if err != nil {
 		return err
 	}
@@ -1403,8 +1411,8 @@ func (c *Coordinator) UserUpdateMFAEnrollment(userID string, endAt *time.Time) e
 	return nil
 }
 
-func (c *Coordinator) MarkClaimVerifiedByAdmin(claim *verification.Claim) error {
-	is, err := c.IdentityListByClaim(claim.Name, claim.Value)
+func (c *Coordinator) MarkClaimVerifiedByAdmin(ctx context.Context, claim *verification.Claim) error {
+	is, err := c.IdentityListByClaim(ctx, claim.Name, claim.Value)
 	if err != nil {
 		return err
 	}
@@ -1420,7 +1428,7 @@ func (c *Coordinator) MarkClaimVerifiedByAdmin(claim *verification.Claim) error 
 		return api.ErrIdentityNotFound
 	}
 
-	if err := c.Verification.MarkClaimVerified(claim); err != nil {
+	if err := c.Verification.MarkClaimVerified(ctx, claim); err != nil {
 		return err
 	}
 
@@ -1435,7 +1443,7 @@ func (c *Coordinator) MarkClaimVerifiedByAdmin(claim *verification.Claim) error 
 		claim.Name,
 		true,
 	); ok {
-		err = c.Events.DispatchEventOnCommit(e)
+		err = c.Events.DispatchEventOnCommit(ctx, e)
 		if err != nil {
 			return err
 		}
@@ -1444,8 +1452,8 @@ func (c *Coordinator) MarkClaimVerifiedByAdmin(claim *verification.Claim) error 
 	return nil
 }
 
-func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) error {
-	is, err := c.IdentityListByClaim(claim.Name, claim.Value)
+func (c *Coordinator) DeleteVerifiedClaimByAdmin(ctx context.Context, claim *verification.Claim) error {
+	is, err := c.IdentityListByClaim(ctx, claim.Name, claim.Value)
 	if err != nil {
 		return err
 	}
@@ -1461,7 +1469,7 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 		return api.ErrIdentityNotFound
 	}
 
-	if err := c.Verification.DeleteClaim(claim); err != nil {
+	if err := c.Verification.DeleteClaim(ctx, claim); err != nil {
 		return err
 	}
 
@@ -1476,7 +1484,7 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 		claim.Name,
 		true,
 	); ok {
-		err = c.Events.DispatchEventOnCommit(e)
+		err = c.Events.DispatchEventOnCommit(ctx, e)
 		if err != nil {
 			return err
 		}
@@ -1485,31 +1493,32 @@ func (c *Coordinator) DeleteVerifiedClaimByAdmin(claim *verification.Claim) erro
 	return nil
 }
 
-func (c *Coordinator) AuthenticatorClearLockoutAttempts(userID string, usedMethods []config.AuthenticationLockoutMethod) error {
-	return c.Authenticators.ClearLockoutAttempts(userID, usedMethods)
+func (c *Coordinator) AuthenticatorClearLockoutAttempts(ctx context.Context, userID string, usedMethods []config.AuthenticationLockoutMethod) error {
+	return c.Authenticators.ClearLockoutAttempts(ctx, userID, usedMethods)
 }
 
-func (c *Coordinator) MFAGenerateDeviceToken() string {
-	return c.MFA.GenerateDeviceToken()
+func (c *Coordinator) MFAGenerateDeviceToken(ctx context.Context) string {
+	return c.MFA.GenerateDeviceToken(ctx)
 }
 
-func (c *Coordinator) MFACreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error) {
-	return c.MFA.CreateDeviceToken(userID, token)
+func (c *Coordinator) MFACreateDeviceToken(ctx context.Context, userID string, token string) (*mfa.DeviceToken, error) {
+	return c.MFA.CreateDeviceToken(ctx, userID, token)
 }
 
-func (c *Coordinator) MFAVerifyDeviceToken(userID string, token string) error {
-	return c.MFA.VerifyDeviceToken(userID, token)
+func (c *Coordinator) MFAVerifyDeviceToken(ctx context.Context, userID string, token string) error {
+	return c.MFA.VerifyDeviceToken(ctx, userID, token)
 }
 
-func (c *Coordinator) MFAInvalidateAllDeviceTokens(userID string) error {
-	return c.MFA.InvalidateAllDeviceTokens(userID)
+func (c *Coordinator) MFAInvalidateAllDeviceTokens(ctx context.Context, userID string) error {
+	return c.MFA.InvalidateAllDeviceTokens(ctx, userID)
 }
 
-func (c *Coordinator) MFAVerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error) {
-	rc, err := c.MFA.VerifyRecoveryCode(userID, code)
+func (c *Coordinator) MFAVerifyRecoveryCode(ctx context.Context, userID string, code string) (*mfa.RecoveryCode, error) {
+	rc, err := c.MFA.VerifyRecoveryCode(ctx, userID, code)
 	authnType := authn.AuthenticationTypeRecoveryCode
 	if errors.Is(err, mfa.ErrRecoveryCodeNotFound) || errors.Is(err, mfa.ErrRecoveryCodeConsumed) {
 		err = c.dispatchAuthenticationFailedEvent(
+			ctx,
 			userID,
 			authn.AuthenticationStageSecondary,
 			authnType,
@@ -1522,23 +1531,23 @@ func (c *Coordinator) MFAVerifyRecoveryCode(userID string, code string) (*mfa.Re
 	return rc, err
 }
 
-func (c *Coordinator) MFAConsumeRecoveryCode(rc *mfa.RecoveryCode) error {
-	return c.MFA.ConsumeRecoveryCode(rc)
+func (c *Coordinator) MFAConsumeRecoveryCode(ctx context.Context, rc *mfa.RecoveryCode) error {
+	return c.MFA.ConsumeRecoveryCode(ctx, rc)
 }
 
-func (c *Coordinator) MFAGenerateRecoveryCodes() []string {
-	return c.MFA.GenerateRecoveryCodes()
+func (c *Coordinator) MFAGenerateRecoveryCodes(ctx context.Context) []string {
+	return c.MFA.GenerateRecoveryCodes(ctx)
 }
 
-func (c *Coordinator) MFAReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error) {
-	return c.MFA.ReplaceRecoveryCodes(userID, codes)
+func (c *Coordinator) MFAReplaceRecoveryCodes(ctx context.Context, userID string, codes []string) ([]*mfa.RecoveryCode, error) {
+	return c.MFA.ReplaceRecoveryCodes(ctx, userID, codes)
 }
 
-func (c *Coordinator) MFAListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error) {
-	return c.MFA.ListRecoveryCodes(userID)
+func (c *Coordinator) MFAListRecoveryCodes(ctx context.Context, userID string) ([]*mfa.RecoveryCode, error) {
+	return c.MFA.ListRecoveryCodes(ctx, userID)
 }
 
-func (c *Coordinator) GetUsersByStandardAttribute(attributeName string, attributeValue string) ([]string, error) {
+func (c *Coordinator) GetUsersByStandardAttribute(ctx context.Context, attributeName string, attributeValue string) ([]string, error) {
 	var loginIDKeyType model.LoginIDKeyType
 	switch attributeName {
 	case stdattrs.Email:
@@ -1551,12 +1560,12 @@ func (c *Coordinator) GetUsersByStandardAttribute(attributeName string, attribut
 		return nil, api.ErrGetUsersInvalidArgument.New("attributeName must be email, phone_number or preferred_username")
 	}
 
-	normalized, _, err := c.Identities.Normalize(loginIDKeyType, attributeValue)
+	normalized, _, err := c.Identities.Normalize(ctx, loginIDKeyType, attributeValue)
 	if err != nil {
 		return nil, api.ErrGetUsersInvalidArgument.New("invalid attributeValue")
 	}
 
-	identities, err := c.Identities.ListByClaim(attributeName, normalized)
+	identities, err := c.Identities.ListByClaim(ctx, attributeName, normalized)
 
 	if err != nil {
 		return nil, err
@@ -1576,8 +1585,8 @@ func (c *Coordinator) GetUsersByStandardAttribute(attributeName string, attribut
 	return uniqueUserIDs, nil
 }
 
-func (c *Coordinator) GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error) {
-	info, err := c.Identities.AdminAPIGetByLoginIDKeyAndLoginIDValue(loginIDKey, loginIDValue)
+func (c *Coordinator) GetUserByLoginID(ctx context.Context, loginIDKey string, loginIDValue string) (string, error) {
+	info, err := c.Identities.AdminAPIGetByLoginIDKeyAndLoginIDValue(ctx, loginIDKey, loginIDValue)
 
 	if errors.Is(err, api.ErrIdentityNotFound) {
 		return "", api.ErrUserNotFound
@@ -1588,8 +1597,8 @@ func (c *Coordinator) GetUserByLoginID(loginIDKey string, loginIDValue string) (
 	return info.UserID, nil
 }
 
-func (c *Coordinator) GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error) {
-	info, err := c.Identities.AdminAPIGetByOAuthAliasAndSubject(oauthProviderAlias, oauthProviderUserID)
+func (c *Coordinator) GetUserByOAuth(ctx context.Context, oauthProviderAlias string, oauthProviderUserID string) (string, error) {
+	info, err := c.Identities.AdminAPIGetByOAuthAliasAndSubject(ctx, oauthProviderAlias, oauthProviderUserID)
 
 	if errors.Is(err, api.ErrIdentityNotFound) {
 		return "", api.ErrUserNotFound
@@ -1600,7 +1609,7 @@ func (c *Coordinator) GetUserByOAuth(oauthProviderAlias string, oauthProviderUse
 	return info.UserID, nil
 }
 
-func (c *Coordinator) GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error) {
+func (c *Coordinator) GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error) {
 	if hint.Type != oauth.LoginHintTypeLoginID {
 		panic("Only login_hint with type login_id is supported")
 	}
@@ -1608,7 +1617,7 @@ func (c *Coordinator) GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, er
 	userIDs := setutil.Set[string]{}
 
 	findUserIDsByClaim := func(claimName string, value string) error {
-		ids, err := c.GetUsersByStandardAttribute(claimName, value)
+		ids, err := c.GetUsersByStandardAttribute(ctx, claimName, value)
 		if err != nil {
 			return err
 		}

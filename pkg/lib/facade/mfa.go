@@ -1,43 +1,47 @@
 package facade
 
-import "github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+import (
+	"context"
+
+	"github.com/authgear/authgear-server/pkg/lib/authn/mfa"
+)
 
 type MFAFacade struct {
 	Coordinator *Coordinator
 }
 
-func (f *MFAFacade) GenerateDeviceToken() string {
-	return f.Coordinator.MFAGenerateDeviceToken()
+func (f *MFAFacade) GenerateDeviceToken(ctx context.Context) string {
+	return f.Coordinator.MFAGenerateDeviceToken(ctx)
 }
 
-func (f *MFAFacade) CreateDeviceToken(userID string, token string) (*mfa.DeviceToken, error) {
-	return f.Coordinator.MFACreateDeviceToken(userID, token)
+func (f *MFAFacade) CreateDeviceToken(ctx context.Context, userID string, token string) (*mfa.DeviceToken, error) {
+	return f.Coordinator.MFACreateDeviceToken(ctx, userID, token)
 }
 
-func (f *MFAFacade) VerifyDeviceToken(userID string, token string) error {
-	return f.Coordinator.MFAVerifyDeviceToken(userID, token)
+func (f *MFAFacade) VerifyDeviceToken(ctx context.Context, userID string, token string) error {
+	return f.Coordinator.MFAVerifyDeviceToken(ctx, userID, token)
 }
 
-func (f *MFAFacade) InvalidateAllDeviceTokens(userID string) error {
-	return f.Coordinator.MFAInvalidateAllDeviceTokens(userID)
+func (f *MFAFacade) InvalidateAllDeviceTokens(ctx context.Context, userID string) error {
+	return f.Coordinator.MFAInvalidateAllDeviceTokens(ctx, userID)
 }
 
-func (f *MFAFacade) VerifyRecoveryCode(userID string, code string) (*mfa.RecoveryCode, error) {
-	return f.Coordinator.MFAVerifyRecoveryCode(userID, code)
+func (f *MFAFacade) VerifyRecoveryCode(ctx context.Context, userID string, code string) (*mfa.RecoveryCode, error) {
+	return f.Coordinator.MFAVerifyRecoveryCode(ctx, userID, code)
 }
 
-func (f *MFAFacade) ConsumeRecoveryCode(rc *mfa.RecoveryCode) error {
-	return f.Coordinator.MFAConsumeRecoveryCode(rc)
+func (f *MFAFacade) ConsumeRecoveryCode(ctx context.Context, rc *mfa.RecoveryCode) error {
+	return f.Coordinator.MFAConsumeRecoveryCode(ctx, rc)
 }
 
-func (f *MFAFacade) GenerateRecoveryCodes() []string {
-	return f.Coordinator.MFAGenerateRecoveryCodes()
+func (f *MFAFacade) GenerateRecoveryCodes(ctx context.Context) []string {
+	return f.Coordinator.MFAGenerateRecoveryCodes(ctx)
 }
 
-func (f *MFAFacade) ReplaceRecoveryCodes(userID string, codes []string) ([]*mfa.RecoveryCode, error) {
-	return f.Coordinator.MFAReplaceRecoveryCodes(userID, codes)
+func (f *MFAFacade) ReplaceRecoveryCodes(ctx context.Context, userID string, codes []string) ([]*mfa.RecoveryCode, error) {
+	return f.Coordinator.MFAReplaceRecoveryCodes(ctx, userID, codes)
 }
 
-func (f *MFAFacade) ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error) {
-	return f.Coordinator.MFAListRecoveryCodes(userID)
+func (f *MFAFacade) ListRecoveryCodes(ctx context.Context, userID string) ([]*mfa.RecoveryCode, error) {
+	return f.Coordinator.MFAListRecoveryCodes(ctx, userID)
 }
