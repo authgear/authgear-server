@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -56,7 +57,7 @@ type ChallengeResponse struct {
 }
 
 type ChallengeProvider interface {
-	Create(purpose challenge.Purpose) (*challenge.Challenge, error)
+	Create(ctx context.Context, purpose challenge.Purpose) (*challenge.Challenge, error)
 }
 
 type JSONResponseWriter interface {
@@ -87,8 +88,8 @@ type ChallengeHandler struct {
 
 func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var result *ChallengeResponse
-	err := h.Database.WithTx(func() (err error) {
-		result, err = h.Handle(resp, req)
+	err := h.Database.WithTx(req.Context(), func(ctx context.Context) (err error) {
+		result, err = h.Handle(ctx, resp, req)
 		return err
 	})
 	if err == nil {
@@ -98,13 +99,13 @@ func (h *ChallengeHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request
 	}
 }
 
-func (h *ChallengeHandler) Handle(resp http.ResponseWriter, req *http.Request) (*ChallengeResponse, error) {
+func (h *ChallengeHandler) Handle(ctx context.Context, resp http.ResponseWriter, req *http.Request) (*ChallengeResponse, error) {
 	var payload ChallengeRequest
 	if err := httputil.BindJSONBody(req, resp, ChallengeAPIRequestSchema.Validator(), &payload); err != nil {
 		return nil, err
 	}
 
-	c, err := h.Challenges.Create(payload.Purpose)
+	c, err := h.Challenges.Create(ctx, payload.Purpose)
 	if err != nil {
 		return nil, err
 	}

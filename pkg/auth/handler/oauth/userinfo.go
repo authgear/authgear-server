@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -19,7 +20,7 @@ func ConfigureUserInfoRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolUserInfoProvider interface {
-	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
+	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
 }
 
 type UserInfoHandlerLogger struct{ *log.Logger }
@@ -44,8 +45,8 @@ func (h *UserInfoHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	s := session.GetSession(r.Context())
 	clientLike := oauth.SessionClientLike(s, h.OAuthClientResolver)
 	var userInfo map[string]interface{}
-	err := h.Database.WithTx(func() (err error) {
-		userInfo, err = h.UserInfoProvider.GetUserInfo(s.GetAuthenticationInfo().UserID, clientLike)
+	err := h.Database.WithTx(r.Context(), func(ctx context.Context) (err error) {
+		userInfo, err = h.UserInfoProvider.GetUserInfo(ctx, s.GetAuthenticationInfo().UserID, clientLike)
 		return
 	})
 

@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -18,7 +19,7 @@ func ConfigureTokenRoute(route httproute.Route) httproute.Route {
 }
 
 type ProtocolTokenHandler interface {
-	Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result
+	Handle(ctx context.Context, rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result
 }
 
 type TokenHandlerLogger struct{ *log.Logger }
@@ -46,8 +47,8 @@ func (h *TokenHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var result httputil.Result
-	err = h.Database.WithTx(func() error {
-		result = h.TokenHandler.Handle(rw, r, req)
+	err = h.Database.WithTx(r.Context(), func(ctx context.Context) error {
+		result = h.TokenHandler.Handle(ctx, rw, r, req)
 		if result.IsInternalError() {
 			return errAuthzInternalError
 		}

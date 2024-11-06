@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -22,7 +23,7 @@ func NewRevokeHandlerLogger(lf *log.Factory) RevokeHandlerLogger {
 }
 
 type ProtocolRevokeHandler interface {
-	Handle(r protocol.RevokeRequest) error
+	Handle(ctx context.Context, r protocol.RevokeRequest) error
 }
 
 type RevokeHandler struct {
@@ -43,8 +44,8 @@ func (h *RevokeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	err = h.Database.WithTx(func() error {
-		return h.RevokeHandler.Handle(req)
+	err = h.Database.WithTx(r.Context(), func(ctx context.Context) error {
+		return h.RevokeHandler.Handle(ctx, req)
 	})
 
 	if err != nil {
