@@ -7,7 +7,6 @@
 package server
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/images/config"
 	"github.com/authgear/authgear-server/pkg/images/deps"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
@@ -18,7 +17,7 @@ import (
 
 // Injectors from wire.go:
 
-func newConfigSourceController(p *deps.RootProvider, c context.Context) *configsource.Controller {
+func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	environmentConfig := &p.EnvironmentConfig
 	config := environmentConfig.ConfigSource
 	factory := p.LoggerFactory
@@ -34,10 +33,10 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 	clock := _wireSystemClockValue
 	globalDatabaseCredentialsEnvironmentConfig := environmentConfig.GlobalDatabase
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	storeFactory := configsource.NewStoreFactory(c, sqlBuilder)
+	storeFactory := configsource.NewStoreFactory(sqlBuilder)
 	pool := p.DatabasePool
 	databaseEnvironmentConfig := environmentConfig.DatabaseConfig
-	databaseHandleFactory := configsource.NewDatabaseHandleFactory(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	resolveAppIDType := configsource.NewResolveAppIDTypePath()
 	database := &configsource.Database{
 		Logger:                databaseLogger,

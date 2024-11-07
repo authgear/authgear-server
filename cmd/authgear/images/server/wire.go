@@ -4,8 +4,6 @@
 package server
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
@@ -32,7 +30,7 @@ var configSourceConfigDependencySet = wire.NewSet(
 	),
 )
 
-func newConfigSourceController(p *deps.RootProvider, c context.Context) *configsource.Controller {
+func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	panic(wire.Build(
 		configSourceConfigDependencySet,
 		configsource.NewResolveAppIDTypePath,
