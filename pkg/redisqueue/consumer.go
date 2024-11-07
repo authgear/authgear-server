@@ -131,7 +131,7 @@ func (c *Consumer) dequeue(ctx context.Context) (*redisqueue.Task, *deps.AppProv
 	var task redisqueue.Task
 	var appProvider *deps.AppProvider
 
-	err := c.redis.WithConnContext(ctx, func(conn redis.Redis_6_0_Cmdable) error {
+	err := c.redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		queueKey := redisqueue.RedisKeyForQueue(c.QueueName)
 
 		strs, err := conn.BRPop(ctx, timeout, queueKey).Result()
@@ -167,7 +167,7 @@ func (c *Consumer) dequeue(ctx context.Context) (*redisqueue.Task, *deps.AppProv
 			return fmt.Errorf("unmarshal task: %w", err)
 		}
 
-		appCtx, err := c.configSourceController.ResolveContext(queueItem.AppID)
+		appCtx, err := c.configSourceController.ResolveContext(ctx, queueItem.AppID)
 		if err != nil {
 			return fmt.Errorf("resolve app context: %w", err)
 		}
@@ -250,7 +250,7 @@ func (c *Consumer) work(ctx context.Context) {
 
 		var failedReservation *ratelimit.FailedReservation
 		var err error
-		reservation, failedReservation, err = c.limiter.Reserve(c.limitBucket)
+		reservation, failedReservation, err = c.limiter.Reserve(ctx, c.limitBucket)
 		if err != nil {
 			c.logger.WithError(err).Error("failed to check rate limit")
 			c.dequeueBackoff.Increment()
@@ -283,7 +283,7 @@ func (c *Consumer) work(ctx context.Context) {
 			WithField("bucket_key", c.limitBucket.Key()).
 			// This is Debug instead of Info because it prints periodically.
 			Debug("cancel reservation due to no task")
-		c.limiter.Cancel(reservation)
+		c.limiter.Cancel(ctx, reservation)
 		return
 	} else if err != nil {
 		c.logger.WithError(err).Error("failed to dequeue task")
@@ -319,7 +319,7 @@ func (c *Consumer) work(ctx context.Context) {
 		return
 	}
 
-	err = c.redis.WithConnContext(ctx, func(conn redis.Redis_6_0_Cmdable) error {
+	err = c.redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		key := task.RedisKey()
 		_, err := conn.Set(ctx, key, taskBytes, redisqueue.TTL).Result()
 		if err != nil {
