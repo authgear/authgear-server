@@ -1,6 +1,7 @@
 package forgotpassword
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"time"
@@ -30,34 +31,35 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type IdentityService interface {
-	ListByClaim(name string, value string) ([]*identity.Info, error)
-	ListByUser(userID string) ([]*identity.Info, error)
+	ListByClaim(ctx context.Context, name string, value string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type AuthenticatorService interface {
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
-	New(spec *authenticator.Spec) (*authenticator.Info, error)
-	UpdatePassword(info *authenticator.Info, options *service.UpdatePasswordOptions) (bool, *authenticator.Info, error)
-	Update(info *authenticator.Info) error
-	Create(authenticatorInfo *authenticator.Info, markVerified bool) error
-	Delete(info *authenticator.Info) error
+	New(ctx context.Context, spec *authenticator.Spec) (*authenticator.Info, error)
+	UpdatePassword(ctx context.Context, info *authenticator.Info, options *service.UpdatePasswordOptions) (bool, *authenticator.Info, error)
+
+	List(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	Update(ctx context.Context, info *authenticator.Info) error
+	Create(ctx context.Context, authenticatorInfo *authenticator.Info, markVerified bool) error
+	Delete(ctx context.Context, info *authenticator.Info) error
 }
 
 type OTPCodeService interface {
-	GenerateOTP(kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
-	VerifyOTP(kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
-	InspectState(kind otp.Kind, target string) (*otp.State, error)
-	LookupCode(purpose otp.Purpose, code string) (target string, err error)
-	ConsumeCode(purpose otp.Purpose, target string) error
+	GenerateOTP(ctx context.Context, kind otp.Kind, target string, form otp.Form, opt *otp.GenerateOptions) (string, error)
+	VerifyOTP(ctx context.Context, kind otp.Kind, target string, otp string, opts *otp.VerifyOptions) error
+	InspectState(ctx context.Context, kind otp.Kind, target string) (*otp.State, error)
+	LookupCode(ctx context.Context, purpose otp.Purpose, code string) (target string, err error)
+	ConsumeCode(ctx context.Context, purpose otp.Purpose, target string) error
 }
 
 type OTPSender interface {
-	Prepare(channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
-	Send(msg *otp.PreparedMessage, opts otp.SendOptions) error
+	Prepare(ctx context.Context, channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
+	Send(ctx context.Context, msg *otp.PreparedMessage, opts otp.SendOptions) error
 }
 
 type Service struct {
@@ -102,7 +104,7 @@ type CodeOptions struct {
 
 // SendCode uses loginID to look up Email Login IDs and Phone Number Login IDs.
 // For each looked up login ID, a code is generated and delivered asynchronously.
-func (s *Service) SendCode(loginID string, options *CodeOptions) error {
+func (s *Service) SendCode(ctx context.Context, loginID string, options *CodeOptions) error {
 	if options == nil {
 		options = &CodeOptions{}
 	}
@@ -110,11 +112,11 @@ func (s *Service) SendCode(loginID string, options *CodeOptions) error {
 		return ErrFeatureDisabled
 	}
 
-	emailIdentities, err := s.Identities.ListByClaim(string(model.ClaimEmail), loginID)
+	emailIdentities, err := s.Identities.ListByClaim(ctx, string(model.ClaimEmail), loginID)
 	if err != nil {
 		return err
 	}
-	phoneIdentities, err := s.Identities.ListByClaim(string(model.ClaimPhoneNumber), loginID)
+	phoneIdentities, err := s.Identities.ListByClaim(ctx, string(model.ClaimPhoneNumber), loginID)
 	if err != nil {
 		return err
 	}
@@ -122,7 +124,7 @@ func (s *Service) SendCode(loginID string, options *CodeOptions) error {
 	allIdentities := append(emailIdentities, phoneIdentities...)
 	if len(allIdentities) == 0 {
 		// We still generate a dummy otp so that rate limits and cooldowns are still applied
-		err = s.generateDummyOTP(loginID, options)
+		err = s.generateDummyOTP(ctx, loginID, options)
 		if err != nil {
 			return err
 		}
@@ -136,7 +138,7 @@ func (s *Service) SendCode(loginID string, options *CodeOptions) error {
 
 		standardClaims := info.IdentityAwareStandardClaims()
 		email := standardClaims[model.ClaimEmail]
-		if err := s.sendEmail(email, info.UserID, options); err != nil {
+		if err := s.sendEmail(ctx, email, info.UserID, options); err != nil {
 			return err
 		}
 	}
@@ -148,7 +150,7 @@ func (s *Service) SendCode(loginID string, options *CodeOptions) error {
 
 		standardClaims := info.IdentityAwareStandardClaims()
 		phone := standardClaims[model.ClaimPhoneNumber]
-		if err := s.sendToPhone(phone, info.UserID, options); err != nil {
+		if err := s.sendToPhone(ctx, phone, info.UserID, options); err != nil {
 			return err
 		}
 	}
@@ -157,8 +159,9 @@ func (s *Service) SendCode(loginID string, options *CodeOptions) error {
 }
 
 // List out all primary password the user has.
-func (s *Service) getPrimaryPasswordList(userID string) ([]*authenticator.Info, error) {
+func (s *Service) getPrimaryPasswordList(ctx context.Context, userID string) ([]*authenticator.Info, error) {
 	return s.Authenticators.List(
+		ctx,
 		userID,
 		authenticator.KeepType(model.AuthenticatorTypePassword),
 		authenticator.KeepKind(authenticator.KindPrimary),
@@ -176,10 +179,11 @@ func (s *Service) getForgotPasswordOTP(channel model.AuthenticatorOOBChannel, co
 	}
 }
 
-func (s *Service) generateDummyOTP(target string, options *CodeOptions) error {
+func (s *Service) generateDummyOTP(ctx context.Context, target string, options *CodeOptions) error {
 	// Generate dummy otp for rate limiting
 	otpKind, otpForm := s.getForgotPasswordOTP(s.getChannel(target, options.Channel), options.Kind)
 	_, err := s.OTPCodes.GenerateOTP(
+		ctx,
 		otpKind,
 		target,
 		otpForm,
@@ -195,16 +199,17 @@ func (s *Service) generateDummyOTP(target string, options *CodeOptions) error {
 	return nil
 }
 
-func (s *Service) sendEmail(email string, userID string, options *CodeOptions) error {
-	ais, err := s.getPrimaryPasswordList(userID)
+func (s *Service) sendEmail(ctx context.Context, email string, userID string, options *CodeOptions) error {
+	ais, err := s.getPrimaryPasswordList(ctx, userID)
 	if err != nil {
 		return err
 	}
-	ctx := otp.AdditionalContext{HasPassword: len(ais) > 0}
+	otpCtx := otp.AdditionalContext{HasPassword: len(ais) > 0}
 
 	otpKind, otpForm := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelEmail, options.Kind)
 
 	msg, err := s.OTPSender.Prepare(
+		ctx,
 		model.AuthenticatorOOBChannelEmail,
 		email,
 		otpForm,
@@ -213,9 +218,10 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 	if err != nil {
 		return err
 	}
-	defer msg.Close()
+	defer msg.Close(ctx)
 
 	code, err := s.OTPCodes.GenerateOTP(
+		ctx,
 		otpKind,
 		email,
 		otpForm,
@@ -229,9 +235,9 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 		return err
 	}
 
-	err = s.OTPSender.Send(msg, otp.SendOptions{
+	err = s.OTPSender.Send(ctx, msg, otp.SendOptions{
 		OTP:                     code,
-		AdditionalContext:       &ctx,
+		AdditionalContext:       &otpCtx,
 		IsAdminAPIResetPassword: options.IsAdminAPIResetPassword,
 	})
 	if err != nil {
@@ -241,12 +247,12 @@ func (s *Service) sendEmail(email string, userID string, options *CodeOptions) e
 	return nil
 }
 
-func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions) (err error) {
-	ais, err := s.getPrimaryPasswordList(userID)
+func (s *Service) sendToPhone(ctx context.Context, phone string, userID string, options *CodeOptions) (err error) {
+	ais, err := s.getPrimaryPasswordList(ctx, userID)
 	if err != nil {
 		return err
 	}
-	ctx := otp.AdditionalContext{HasPassword: len(ais) > 0}
+	otpCtx := otp.AdditionalContext{HasPassword: len(ais) > 0}
 
 	if s.FeatureConfig.Identity.LoginID.Types.Phone.Disabled {
 		return feature.ErrFeatureDisabledSendingSMS
@@ -267,6 +273,7 @@ func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions)
 	otpKind, otpForm := s.getForgotPasswordOTP(otpChannel, options.Kind)
 
 	msg, err := s.OTPSender.Prepare(
+		ctx,
 		otpChannel,
 		phone,
 		otpForm,
@@ -275,9 +282,10 @@ func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions)
 	if err != nil {
 		return err
 	}
-	defer msg.Close()
+	defer msg.Close(ctx)
 
 	code, err := s.OTPCodes.GenerateOTP(
+		ctx,
 		otpKind,
 		phone,
 		otpForm,
@@ -291,9 +299,9 @@ func (s *Service) sendToPhone(phone string, userID string, options *CodeOptions)
 		return err
 	}
 
-	err = s.OTPSender.Send(msg, otp.SendOptions{
+	err = s.OTPSender.Send(ctx, msg, otp.SendOptions{
 		OTP:               code,
-		AdditionalContext: &ctx,
+		AdditionalContext: &otpCtx,
 	})
 	if err != nil {
 		return err
@@ -331,7 +339,7 @@ func (s *Service) getChannel(target string, codeChannel CodeChannel) model.Authe
 	}
 }
 
-func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel CodeChannel, codeKind CodeKind) (state *otp.State, err error) {
+func (s *Service) doVerifyCodeWithTarget(ctx context.Context, target string, code string, codeChannel CodeChannel, codeKind CodeKind) (state *otp.State, err error) {
 	channel := s.getChannel(target, codeChannel)
 
 	kind, otpForm := s.getForgotPasswordOTP(channel, codeKind)
@@ -351,7 +359,7 @@ func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel
 	//
 	// If test mode is enabled, the dummy code is not actually sent but a magic code can be used instead.
 	// The user ID associated with the magic code is empty, violating the assumption of this package.
-	state, err = s.OTPCodes.InspectState(kind, target)
+	state, err = s.OTPCodes.InspectState(ctx, kind, target)
 	if errors.Is(err, otp.ErrConsumedCode) {
 		err = ErrUsedCode
 		return
@@ -365,7 +373,7 @@ func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel
 		return
 	}
 
-	err = s.OTPCodes.VerifyOTP(kind, target, code, &otp.VerifyOptions{
+	err = s.OTPCodes.VerifyOTP(ctx, kind, target, code, &otp.VerifyOptions{
 		UserID:      state.UserID,
 		SkipConsume: true,
 	})
@@ -381,8 +389,8 @@ func (s *Service) doVerifyCodeWithTarget(target string, code string, codeChannel
 	return
 }
 
-func (s *Service) doVerifyCode(code string) (target string, state *otp.State, err error) {
-	target, err = s.OTPCodes.LookupCode(otp.PurposeForgotPassword, code)
+func (s *Service) doVerifyCode(ctx context.Context, code string) (target string, state *otp.State, err error) {
+	target, err = s.OTPCodes.LookupCode(ctx, otp.PurposeForgotPassword, code)
 	if apierrors.IsKind(err, otp.InvalidOTPCode) {
 		err = ErrInvalidCode
 		return
@@ -390,18 +398,18 @@ func (s *Service) doVerifyCode(code string) (target string, state *otp.State, er
 		return
 	}
 
-	state, err = s.doVerifyCodeWithTarget(target, code, CodeChannelUnknown, CodeKindUnknown)
+	state, err = s.doVerifyCodeWithTarget(ctx, target, code, CodeChannelUnknown, CodeKindUnknown)
 	if err != nil {
 		return
 	}
 	return target, state, err
 }
 
-func (s *Service) VerifyCodeWithTarget(target string, code string, codeChannel CodeChannel, kind CodeKind) (state *otp.State, err error) {
+func (s *Service) VerifyCodeWithTarget(ctx context.Context, target string, code string, codeChannel CodeChannel, kind CodeKind) (state *otp.State, err error) {
 	if !*s.Config.ForgotPassword.Enabled {
 		return nil, ErrFeatureDisabled
 	}
-	state, err = s.doVerifyCodeWithTarget(target, code, codeChannel, kind)
+	state, err = s.doVerifyCodeWithTarget(ctx, target, code, codeChannel, kind)
 	if err != nil {
 		return nil, err
 	}
@@ -409,12 +417,12 @@ func (s *Service) VerifyCodeWithTarget(target string, code string, codeChannel C
 	return state, nil
 }
 
-func (s *Service) VerifyCode(code string) (state *otp.State, err error) {
+func (s *Service) VerifyCode(ctx context.Context, code string) (state *otp.State, err error) {
 	if !*s.Config.ForgotPassword.Enabled {
 		return nil, ErrFeatureDisabled
 	}
 
-	_, state, err = s.doVerifyCode(code)
+	_, state, err = s.doVerifyCode(ctx, code)
 	if err != nil {
 		return nil, err
 	}
@@ -433,26 +441,26 @@ func (s *Service) IsRateLimitError(err error, target string, channel CodeChannel
 }
 
 // InspectState is for external use. It DOES NOT report dummy code as invalid.
-func (s *Service) InspectState(target string, channel CodeChannel, kind CodeKind) (*otp.State, error) {
+func (s *Service) InspectState(ctx context.Context, target string, channel CodeChannel, kind CodeKind) (*otp.State, error) {
 	otpKind, _ := s.getForgotPasswordOTP(s.getChannel(target, channel), kind)
-	return s.OTPCodes.InspectState(otpKind, target)
+	return s.OTPCodes.InspectState(ctx, otpKind, target)
 }
 
 // ResetPasswordByEndUser consumes code and reset password to newPassword.
 // If the code is valid, the password is reset to newPassword.
 // newPassword is checked against the password policy so
 // password policy error may also be returned.
-func (s *Service) ResetPasswordByEndUser(code string, newPassword string) error {
+func (s *Service) ResetPasswordByEndUser(ctx context.Context, code string, newPassword string) error {
 	if !*s.Config.ForgotPassword.Enabled {
 		return ErrFeatureDisabled
 	}
 
-	target, state, err := s.doVerifyCode(code)
+	target, state, err := s.doVerifyCode(ctx, code)
 	if err != nil {
 		return err
 	}
 
-	err = s.resetPassword(target, state, newPassword, CodeChannelUnknown)
+	err = s.resetPassword(ctx, target, state, newPassword, CodeChannelUnknown)
 	if err != nil {
 		return err
 	}
@@ -460,25 +468,25 @@ func (s *Service) ResetPasswordByEndUser(code string, newPassword string) error 
 }
 
 // ResetPasswordWithTarget is same as ResetPassword, except target is passed by caller.
-func (s *Service) ResetPasswordWithTarget(target string, code string, newPassword string, channel CodeChannel, kind CodeKind) error {
+func (s *Service) ResetPasswordWithTarget(ctx context.Context, target string, code string, newPassword string, channel CodeChannel, kind CodeKind) error {
 	if !*s.Config.ForgotPassword.Enabled {
 		return ErrFeatureDisabled
 	}
 
-	state, err := s.doVerifyCodeWithTarget(target, code, channel, kind)
+	state, err := s.doVerifyCodeWithTarget(ctx, target, code, channel, kind)
 	if err != nil {
 		return err
 	}
 
-	err = s.resetPassword(target, state, newPassword, channel)
+	err = s.resetPassword(ctx, target, state, newPassword, channel)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *Service) resetPassword(target string, otpState *otp.State, newPassword string, channel CodeChannel) error {
-	err := s.setPassword(&SetPasswordOptions{
+func (s *Service) resetPassword(ctx context.Context, target string, otpState *otp.State, newPassword string, channel CodeChannel) error {
+	err := s.setPassword(ctx, &SetPasswordOptions{
 		UserID:         otpState.UserID,
 		PlainPassword:  newPassword,
 		SetExpireAfter: true,
@@ -487,12 +495,12 @@ func (s *Service) resetPassword(target string, otpState *otp.State, newPassword 
 		return err
 	}
 
-	err = s.OTPCodes.ConsumeCode(otp.PurposeForgotPassword, target)
+	err = s.OTPCodes.ConsumeCode(ctx, otp.PurposeForgotPassword, target)
 	if err != nil {
 		return err
 	}
 
-	err = s.Events.DispatchEventOnCommit(&nonblocking.PasswordPrimaryResetEventPayload{
+	err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.PasswordPrimaryResetEventPayload{
 		UserRef: model.UserRef{
 			Meta: model.Meta{
 				ID: otpState.UserID,
@@ -516,8 +524,8 @@ type SetPasswordOptions struct {
 
 // SetPassword ensures the user identified by userID has the specified password.
 // It perform necessary mutation to make this happens.
-func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
-	ais, err := s.getPrimaryPasswordList(options.UserID)
+func (s *Service) setPassword(ctx context.Context, options *SetPasswordOptions) (err error) {
+	ais, err := s.getPrimaryPasswordList(ctx, options.UserID)
 	if err != nil {
 		return
 	}
@@ -528,7 +536,7 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 		// The user has 1 password. Reset it.
 		var changed bool
 		var ai *authenticator.Info
-		changed, ai, err = s.Authenticators.UpdatePassword(ais[0], &service.UpdatePasswordOptions{
+		changed, ai, err = s.Authenticators.UpdatePassword(ctx, ais[0], &service.UpdatePasswordOptions{
 			SetPassword:    true,
 			PlainPassword:  options.PlainPassword,
 			SetExpireAfter: options.SetExpireAfter,
@@ -538,13 +546,13 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 			return
 		}
 		if changed {
-			err = s.Authenticators.Update(ai)
+			err = s.Authenticators.Update(ctx, ai)
 			if err != nil {
 				return
 			}
 
 			if options.SendPassword {
-				err = s.PasswordSender.Send(options.UserID, options.PlainPassword, translation.MessageTypeSendPasswordToExistingUser)
+				err = s.PasswordSender.Send(ctx, options.UserID, options.PlainPassword, translation.MessageTypeSendPasswordToExistingUser)
 				if err != nil {
 					return
 				}
@@ -562,14 +570,14 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 				isDefault = true
 			}
 
-			err = s.Authenticators.Delete(ai)
+			err = s.Authenticators.Delete(ctx, ai)
 			if err != nil {
 				return
 			}
 		}
 
 		var newInfo *authenticator.Info
-		newInfo, err = s.Authenticators.New(&authenticator.Spec{
+		newInfo, err = s.Authenticators.New(ctx, &authenticator.Spec{
 			Type:      model.AuthenticatorTypePassword,
 			Kind:      authenticator.KindPrimary,
 			UserID:    options.UserID,
@@ -582,13 +590,13 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 			return
 		}
 
-		err = s.Authenticators.Create(newInfo, true)
+		err = s.Authenticators.Create(ctx, newInfo, true)
 		if err != nil {
 			return
 		}
 
 		if options.SendPassword {
-			err = s.PasswordSender.Send(options.UserID, options.PlainPassword, translation.MessageTypeSendPasswordToNewUser)
+			err = s.PasswordSender.Send(ctx, options.UserID, options.PlainPassword, translation.MessageTypeSendPasswordToNewUser)
 			if err != nil {
 				return
 			}
@@ -598,6 +606,6 @@ func (s *Service) setPassword(options *SetPasswordOptions) (err error) {
 	return
 }
 
-func (s *Service) ChangePasswordByAdmin(options *SetPasswordOptions) error {
-	return s.setPassword(options)
+func (s *Service) ChangePasswordByAdmin(ctx context.Context, options *SetPasswordOptions) error {
+	return s.setPassword(ctx, options)
 }

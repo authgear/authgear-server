@@ -1,6 +1,8 @@
 package forgotpassword
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
@@ -8,11 +10,11 @@ import (
 )
 
 type TranslationService interface {
-	EmailMessageData(msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.EmailMessageData, error)
+	EmailMessageData(ctx context.Context, msg *translation.MessageSpec, variables *translation.PartialTemplateVariables) (*translation.EmailMessageData, error)
 }
 
 type SenderService interface {
-	PrepareEmail(email string, msgType translation.MessageType) (*messaging.EmailMessage, error)
+	PrepareEmail(ctx context.Context, email string, msgType translation.MessageType) (*messaging.EmailMessage, error)
 }
 
 type Sender struct {
@@ -28,14 +30,14 @@ type PreparedMessage struct {
 	msgType translation.MessageType
 }
 
-func (m *PreparedMessage) Close() {
+func (m *PreparedMessage) Close(ctx context.Context) {
 	if m.email != nil {
-		m.email.Close()
+		m.email.Close(ctx)
 	}
 }
 
-func (s *Sender) getEmailList(userID string) ([]string, error) {
-	infos, err := s.Identities.ListByUser(userID)
+func (s *Sender) getEmailList(ctx context.Context, userID string) ([]string, error) {
+	infos, err := s.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +58,7 @@ func (s *Sender) getEmailList(userID string) ([]string, error) {
 	return emails, nil
 }
 
-func (s *Sender) prepareMessage(email string, msgType translation.MessageType) (*PreparedMessage, error) {
+func (s *Sender) prepareMessage(ctx context.Context, email string, msgType translation.MessageType) (*PreparedMessage, error) {
 	var spec *translation.MessageSpec
 
 	switch msgType {
@@ -68,7 +70,7 @@ func (s *Sender) prepareMessage(email string, msgType translation.MessageType) (
 		panic("forgotpassword: unknown message type: " + msgType)
 	}
 
-	msg, err := s.Sender.PrepareEmail(email, msgType)
+	msg, err := s.Sender.PrepareEmail(ctx, email, msgType)
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +82,8 @@ func (s *Sender) prepareMessage(email string, msgType translation.MessageType) (
 	}, nil
 }
 
-func (s *Sender) Send(userID string, password string, msgType translation.MessageType) error {
-	emails, err := s.getEmailList(userID)
+func (s *Sender) Send(ctx context.Context, userID string, password string, msgType translation.MessageType) error {
+	emails, err := s.getEmailList(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -91,18 +93,18 @@ func (s *Sender) Send(userID string, password string, msgType translation.Messag
 	}
 
 	for _, email := range emails {
-		msg, err := s.prepareMessage(email, msgType)
+		msg, err := s.prepareMessage(ctx, email, msgType)
 		if err != nil {
 			return err
 		}
-		defer msg.Close()
+		defer msg.Close(ctx)
 
 		partialTemplateVariables := &translation.PartialTemplateVariables{
 			Email:    email,
 			Password: password,
 		}
 
-		data, err := s.Translation.EmailMessageData(msg.spec, partialTemplateVariables)
+		data, err := s.Translation.EmailMessageData(ctx, msg.spec, partialTemplateVariables)
 		if err != nil {
 			return err
 		}
@@ -113,7 +115,7 @@ func (s *Sender) Send(userID string, password string, msgType translation.Messag
 		msg.email.TextBody = data.TextBody.String
 		msg.email.HTMLBody = data.HTMLBody.String
 
-		if err := msg.email.Send(); err != nil {
+		if err := msg.email.Send(ctx); err != nil {
 			return err
 		}
 	}
