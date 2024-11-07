@@ -112,7 +112,7 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			// Apply ratelimit on sign up.
 			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, false, string(deps.RemoteIP))
-			failed, err := deps.RateLimiter.Allow(spec)
+			failed, err := deps.RateLimiter.Allow(ctx, spec)
 			if err != nil {
 				return err
 			}
@@ -141,12 +141,12 @@ func (i *IntentSignup) GetEffects(ctx context.Context, deps *workflow.Dependenci
 			userID := i.userID(workflows.Nearest)
 			isAdminAPI := false
 
-			u, err := deps.Users.GetRaw(userID)
+			u, err := deps.Users.GetRaw(ctx, userID)
 			if err != nil {
 				return err
 			}
 
-			err = deps.Users.AfterCreate(
+			err = deps.Users.AfterCreate(ctx,
 				u,
 				identities,
 				authenticators,

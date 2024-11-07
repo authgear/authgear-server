@@ -60,7 +60,7 @@ func (i *IntentForgotPasswordV2) ReactTo(ctx context.Context, deps *workflow.Dep
 				},
 			}
 
-			exactMatch, _, err := deps.Identities.SearchBySpec(spec)
+			exactMatch, _, err := deps.Identities.SearchBySpec(ctx, spec)
 			if err != nil {
 				return nil, err
 			}
@@ -79,7 +79,7 @@ func (i *IntentForgotPasswordV2) ReactTo(ctx context.Context, deps *workflow.Dep
 		var inputTakeForgotPasswordChannel inputTakeForgotPasswordChannel
 		if workflow.AsInput(input, &inputTakeForgotPasswordChannel) {
 			channel := inputTakeForgotPasswordChannel.GetForgotPasswordChannel()
-			node, err := i.sendCodeForChannel(workflows.Nearest, deps, channel)
+			node, err := i.sendCodeForChannel(ctx, workflows.Nearest, deps, channel)
 			if err != nil {
 				return nil, err
 			}
@@ -98,6 +98,7 @@ func (*IntentForgotPasswordV2) OutputData(ctx context.Context, deps *workflow.De
 }
 
 func (*IntentForgotPasswordV2) sendCodeForChannel(
+	ctx context.Context,
 	w *workflow.Workflow,
 	deps *workflow.Dependencies,
 	channel ForgotPasswordChannel) (*NodeSendForgotPasswordCode, error) {
@@ -109,12 +110,12 @@ func (*IntentForgotPasswordV2) sendCodeForChannel(
 		return &NodeSendForgotPasswordCode{LoginID: prevnode.LoginID}, nil
 	}
 
-	targetLoginID, err := selectForgotPasswordLoginID(deps, *prevnode.UserID, channel)
+	targetLoginID, err := selectForgotPasswordLoginID(ctx, deps, *prevnode.UserID, channel)
 
 	if err == nil || errors.Is(err, ErrNoMatchingLoginIDForForgotPasswordChannel) {
 
 		if targetLoginID != "" {
-			err = deps.ForgotPassword.SendCode(targetLoginID, nil)
+			err = deps.ForgotPassword.SendCode(ctx, targetLoginID, nil)
 			if err != nil {
 				return nil, err
 			}

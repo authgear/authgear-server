@@ -28,7 +28,7 @@ func (n *NodeVerifiedIdentity) GetEffects(ctx context.Context, deps *workflow.De
 				return nil
 			}
 
-			if err := deps.Verification.MarkClaimVerified(n.NewVerifiedClaim); err != nil {
+			if err := deps.Verification.MarkClaimVerified(ctx, n.NewVerifiedClaim); err != nil {
 				return err
 			}
 			return nil

@@ -49,7 +49,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 	case workflow.AsInput(input, &inputTakeOOBOTPCode):
 		code := inputTakeOOBOTPCode.GetCode()
 
-		err := deps.OTPCodes.VerifyOTP(
+		err := deps.OTPCodes.VerifyOTP(ctx,
 			otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS),
 			n.PhoneNumber,
 			code,
@@ -61,7 +61,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 			return nil, err
 		}
 
-		verifiedClaim := deps.Verification.NewVerifiedClaim(n.UserID, string(model.ClaimPhoneNumber), n.PhoneNumber)
+		verifiedClaim := deps.Verification.NewVerifiedClaim(ctx, n.UserID, string(model.ClaimPhoneNumber), n.PhoneNumber)
 		return workflow.NewNodeSimple(&NodeVerifiedIdentity{
 			IdentityID:       n.IdentityID,
 			NewVerifiedClaim: verifiedClaim,
@@ -81,7 +81,7 @@ func (n *NodeVerifyPhoneSMS) ReactTo(ctx context.Context, deps *workflow.Depende
 
 func (n *NodeVerifyPhoneSMS) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.PhoneNumber
-	state, err := deps.OTPCodes.InspectState(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), target)
+	state, err := deps.OTPCodes.InspectState(ctx, otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelSMS), target)
 	if err != nil {
 		return nil, err
 	}
@@ -116,13 +116,13 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return feature.ErrFeatureDisabledSendingSMS
 	}
 
-	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelSMS, n.PhoneNumber, nodeVerifyPhoneSMSForm, translation.MessageTypeVerification)
+	msg, err := deps.OTPSender.Prepare(ctx, model.AuthenticatorOOBChannelSMS, n.PhoneNumber, nodeVerifyPhoneSMSForm, translation.MessageTypeVerification)
 	if err != nil {
 		return err
 	}
-	defer msg.Close()
+	defer msg.Close(ctx)
 
-	code, err := deps.OTPCodes.GenerateOTP(
+	code, err := deps.OTPCodes.GenerateOTP(ctx,
 		n.otpKind(deps),
 		n.PhoneNumber,
 		nodeVerifyPhoneSMSForm,
@@ -135,7 +135,7 @@ func (n *NodeVerifyPhoneSMS) sendCode(ctx context.Context, deps *workflow.Depend
 		return err
 	}
 
-	err = deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
+	err = deps.OTPSender.Send(ctx, msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return err
 	}

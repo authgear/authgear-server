@@ -48,7 +48,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 	case workflow.AsInput(input, &inputTakeOOBOTPCode):
 		code := inputTakeOOBOTPCode.GetCode()
 
-		err := deps.OTPCodes.VerifyOTP(
+		err := deps.OTPCodes.VerifyOTP(ctx,
 			otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail),
 			n.Email,
 			code,
@@ -60,7 +60,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 			return nil, err
 		}
 
-		verifiedClaim := deps.Verification.NewVerifiedClaim(n.UserID, string(model.ClaimEmail), n.Email)
+		verifiedClaim := deps.Verification.NewVerifiedClaim(ctx, n.UserID, string(model.ClaimEmail), n.Email)
 		return workflow.NewNodeSimple(&NodeVerifiedIdentity{
 			IdentityID:       n.IdentityID,
 			NewVerifiedClaim: verifiedClaim,
@@ -80,7 +80,7 @@ func (n *NodeVerifyEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 
 func (n *NodeVerifyEmail) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.Email
-	state, err := deps.OTPCodes.InspectState(otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), target)
+	state, err := deps.OTPCodes.InspectState(ctx, otp.KindVerification(deps.Config, model.AuthenticatorOOBChannelEmail), target)
 	if err != nil {
 		return nil, err
 	}
@@ -109,13 +109,13 @@ func (n *NodeVerifyEmail) otpTarget() string {
 }
 
 func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependencies) error {
-	msg, err := deps.OTPSender.Prepare(model.AuthenticatorOOBChannelEmail, n.Email, nodeVerifyEmailOTPForm, translation.MessageTypeVerification)
+	msg, err := deps.OTPSender.Prepare(ctx, model.AuthenticatorOOBChannelEmail, n.Email, nodeVerifyEmailOTPForm, translation.MessageTypeVerification)
 	if err != nil {
 		return err
 	}
-	defer msg.Close()
+	defer msg.Close(ctx)
 
-	code, err := deps.OTPCodes.GenerateOTP(
+	code, err := deps.OTPCodes.GenerateOTP(ctx,
 		n.otpKind(deps),
 		n.Email,
 		nodeVerifyEmailOTPForm,
@@ -128,7 +128,7 @@ func (n *NodeVerifyEmail) sendCode(ctx context.Context, deps *workflow.Dependenc
 		return err
 	}
 
-	err = deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
+	err = deps.OTPSender.Send(ctx, msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return err
 	}

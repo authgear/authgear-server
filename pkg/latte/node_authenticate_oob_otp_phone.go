@@ -50,7 +50,7 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 			AuthenticatorInfo: info,
 			OTPForm:           otp.FormCode,
 			IsResend:          true,
-		}).Do()
+		}).Do(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -58,7 +58,7 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 		return nil, workflow.ErrSameNode
 	case workflow.AsInput(input, &inputTakeOOBOTPCode):
 		info := n.Authenticator
-		_, err := deps.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
+		_, err := deps.Authenticators.VerifyWithSpec(ctx, info, &authenticator.Spec{
 			OOBOTP: &authenticator.OOBOTPSpec{
 				Code: inputTakeOOBOTPCode.GetCode(),
 			},
@@ -82,7 +82,7 @@ func (n *NodeAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workflo
 
 func (n *NodeAuthenticateOOBOTPPhone) OutputData(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (interface{}, error) {
 	target := n.Authenticator.OOBOTP.Phone
-	state, err := deps.OTPCodes.InspectState(
+	state, err := deps.OTPCodes.InspectState(ctx,
 		otp.KindOOBOTPCode(deps.Config, model.AuthenticatorOOBChannelSMS),
 		target,
 	)

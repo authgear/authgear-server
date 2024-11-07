@@ -69,7 +69,7 @@ func (i *IntentChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependen
 					Value: loginID,
 				},
 			}
-			exactMatch, _, err := deps.Identities.SearchBySpec(spec)
+			exactMatch, _, err := deps.Identities.SearchBySpec(ctx, spec)
 			if err != nil {
 				return nil, err
 			}

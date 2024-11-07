@@ -64,7 +64,7 @@ func (i *IntentCreateOOBOTPAuthenticatorForLoginID) ReactTo(ctx context.Context,
 
 	authenticatorID := uuid.New()
 
-	info, err := deps.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)
+	info, err := deps.Authenticators.NewWithAuthenticatorID(ctx, authenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}

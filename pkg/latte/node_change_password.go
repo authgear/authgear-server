@@ -38,7 +38,7 @@ func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 	var inputChangePassword inputChangePassword
 	switch {
 	case workflow.AsInput(input, &inputChangePassword):
-		info, err := n.getPasswordAuthenticator(deps)
+		info, err := n.getPasswordAuthenticator(ctx, deps)
 		// The user doesn't have the password authenticator
 		// always returns no password error
 		if errors.Is(err, api.ErrNoAuthenticator) {
@@ -46,7 +46,7 @@ func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 		} else if err != nil {
 			return nil, err
 		}
-		_, err = deps.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
+		_, err = deps.Authenticators.VerifyWithSpec(ctx, info, &authenticator.Spec{
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: inputChangePassword.GetOldPassword(),
 			},
@@ -55,7 +55,7 @@ func (n *NodeChangePassword) ReactTo(ctx context.Context, deps *workflow.Depende
 			return nil, api.ErrInvalidCredentials
 		}
 
-		changed, newInfo, err := deps.Authenticators.UpdatePassword(info, &service.UpdatePasswordOptions{
+		changed, newInfo, err := deps.Authenticators.UpdatePassword(ctx, info, &service.UpdatePasswordOptions{
 			SetPassword:    true,
 			PlainPassword:  inputChangePassword.GetNewPassword(),
 			SetExpireAfter: true,
@@ -78,8 +78,8 @@ func (n *NodeChangePassword) OutputData(ctx context.Context, deps *workflow.Depe
 	return map[string]interface{}{}, nil
 }
 
-func (n *NodeChangePassword) getPasswordAuthenticator(deps *workflow.Dependencies) (*authenticator.Info, error) {
-	ais, err := deps.Authenticators.List(
+func (n *NodeChangePassword) getPasswordAuthenticator(ctx context.Context, deps *workflow.Dependencies) (*authenticator.Info, error) {
+	ais, err := deps.Authenticators.List(ctx,
 		n.UserID,
 		authenticator.KeepKind(n.AuthenticatorKind),
 		authenticator.KeepType(model.AuthenticatorTypePassword),

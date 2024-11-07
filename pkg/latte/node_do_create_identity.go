@@ -22,7 +22,7 @@ func (n *NodeDoCreateIdentity) Kind() string {
 func (n *NodeDoCreateIdentity) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			err := deps.Identities.Create(n.Identity)
+			err := deps.Identities.Create(ctx, n.Identity)
 			if err != nil {
 				return err
 			}

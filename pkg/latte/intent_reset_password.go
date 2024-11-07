@@ -48,7 +48,7 @@ func (i *IntentResetPassword) ReactTo(ctx context.Context, deps *workflow.Depend
 	case 0:
 		var inputTakeCode inputTakeCode
 		if workflow.AsInput(input, &inputTakeCode) {
-			state, err := deps.ResetPassword.VerifyCode(inputTakeCode.GetCode())
+			state, err := deps.ResetPassword.VerifyCode(ctx, inputTakeCode.GetCode())
 			if err != nil {
 				return nil, err
 			}

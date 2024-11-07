@@ -39,7 +39,7 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 	var inputTakePassword inputTakePassword
 	switch {
 	case workflow.AsInput(input, &inputTakePassword):
-		info, err := n.getPasswordAuthenticator(deps)
+		info, err := n.getPasswordAuthenticator(ctx, deps)
 		// The user doesn't have the password authenticator
 		// always returns invalid credentials error
 		if errors.Is(err, api.ErrNoAuthenticator) {
@@ -47,7 +47,7 @@ func (n *NodeAuthenticatePassword) ReactTo(ctx context.Context, deps *workflow.D
 		} else if err != nil {
 			return nil, err
 		}
-		_, err = deps.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
+		_, err = deps.Authenticators.VerifyWithSpec(ctx, info, &authenticator.Spec{
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: inputTakePassword.GetPassword(),
 			},
@@ -72,8 +72,8 @@ func (n *NodeAuthenticatePassword) OutputData(ctx context.Context, deps *workflo
 	return map[string]interface{}{}, nil
 }
 
-func (n *NodeAuthenticatePassword) getPasswordAuthenticator(deps *workflow.Dependencies) (*authenticator.Info, error) {
-	ais, err := deps.Authenticators.List(
+func (n *NodeAuthenticatePassword) getPasswordAuthenticator(ctx context.Context, deps *workflow.Dependencies) (*authenticator.Info, error) {
+	ais, err := deps.Authenticators.List(ctx,
 		n.UserID,
 		authenticator.KeepKind(n.AuthenticatorKind),
 		authenticator.KeepType(model.AuthenticatorTypePassword),

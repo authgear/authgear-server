@@ -1,6 +1,8 @@
 package latte
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -21,7 +23,7 @@ type SendOOBCode struct {
 	IsResend          bool
 }
 
-func (p *SendOOBCode) Do() error {
+func (p *SendOOBCode) Do(ctx context.Context) error {
 	var messageType translation.MessageType
 	switch p.Stage {
 	case authn.AuthenticationStagePrimary:
@@ -68,14 +70,15 @@ func (p *SendOOBCode) Do() error {
 		}
 	}
 
-	msg, err := p.Deps.OTPSender.Prepare(channel, target, p.OTPForm, messageType)
+	msg, err := p.Deps.OTPSender.Prepare(ctx, channel, target, p.OTPForm, messageType)
 	if err != nil {
 		return err
 	}
-	defer msg.Close()
+	defer msg.Close(ctx)
 
 	kind := otp.KindOOBOTPCode(p.Deps.Config, channel)
 	code, err := p.Deps.OTPCodes.GenerateOTP(
+		ctx,
 		kind,
 		target,
 		p.OTPForm,
@@ -90,7 +93,7 @@ func (p *SendOOBCode) Do() error {
 		return err
 	}
 
-	err = p.Deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
+	err = p.Deps.OTPSender.Send(ctx, msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return err
 	}

@@ -70,14 +70,14 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 				},
 			}
 
-			info, err := deps.Identities.New(i.UserID, spec, identity.NewIdentityOptions{
+			info, err := deps.Identities.New(ctx, i.UserID, spec, identity.NewIdentityOptions{
 				LoginIDEmailByPassBlocklistAllowlist: false,
 			})
 			if err != nil {
 				return nil, err
 			}
 
-			_, err = deps.Identities.CheckDuplicated(info)
+			_, err = deps.Identities.CheckDuplicated(ctx, info)
 			if err != nil {
 				return nil, err
 			}
