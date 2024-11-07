@@ -1,13 +1,15 @@
 package loader
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type CollaboratorLoaderCollaboratorService interface {
-	GetManyCollaborators(ids []string) ([]*model.Collaborator, error)
-	GetManyInvitations(ids []string) ([]*model.CollaboratorInvitation, error)
+	GetManyCollaborators(ctx context.Context, ids []string) ([]*model.Collaborator, error)
+	GetManyInvitations(ctx context.Context, ids []string) ([]*model.CollaboratorInvitation, error)
 }
 
 type CollaboratorLoader struct {
@@ -28,7 +30,7 @@ func NewCollaboratorLoader(
 	return l
 }
 
-func (l *CollaboratorLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+func (l *CollaboratorLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -36,7 +38,7 @@ func (l *CollaboratorLoader) LoadFunc(keys []interface{}) ([]interface{}, error)
 	}
 
 	// Get entities.
-	collaborators, err := l.CollaboratorService.GetManyCollaborators(ids)
+	collaborators, err := l.CollaboratorService.GetManyCollaborators(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +53,7 @@ func (l *CollaboratorLoader) LoadFunc(keys []interface{}) ([]interface{}, error)
 	out := make([]interface{}, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
-		_, err := l.Authz.CheckAccessOfViewer(entity.AppID)
+		_, err := l.Authz.CheckAccessOfViewer(ctx, entity.AppID)
 		if err != nil {
 			out[i] = nil
 		} else {
@@ -79,7 +81,7 @@ func NewCollaboratorInvitationLoader(
 	return l
 }
 
-func (l *CollaboratorInvitationLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+func (l *CollaboratorInvitationLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -87,7 +89,7 @@ func (l *CollaboratorInvitationLoader) LoadFunc(keys []interface{}) ([]interface
 	}
 
 	// Get entities.
-	invitations, err := l.CollaboratorService.GetManyInvitations(ids)
+	invitations, err := l.CollaboratorService.GetManyInvitations(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +104,7 @@ func (l *CollaboratorInvitationLoader) LoadFunc(keys []interface{}) ([]interface
 	out := make([]interface{}, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
-		_, err := l.Authz.CheckAccessOfViewer(entity.AppID)
+		_, err := l.Authz.CheckAccessOfViewer(ctx, entity.AppID)
 		if err != nil {
 			out[i] = nil
 		} else {

@@ -1,12 +1,14 @@
 package loader
 
 import (
+	"context"
+
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type DomainLoaderDomainService interface {
-	GetMany(ids []string) ([]*apimodel.Domain, error)
+	GetMany(ctx context.Context, ids []string) ([]*apimodel.Domain, error)
 }
 
 type DomainLoader struct {
@@ -24,7 +26,7 @@ func NewDomainLoader(domainService DomainLoaderDomainService, authz AuthzService
 	return l
 }
 
-func (l *DomainLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+func (l *DomainLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -32,7 +34,7 @@ func (l *DomainLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	}
 
 	// Get entities.
-	domains, err := l.DomainService.GetMany(ids)
+	domains, err := l.DomainService.GetMany(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +49,7 @@ func (l *DomainLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
-		_, err := l.Authz.CheckAccessOfViewer(entity.AppID)
+		_, err := l.Authz.CheckAccessOfViewer(ctx, entity.AppID)
 		if err != nil {
 			out[i] = nil
 		} else {
