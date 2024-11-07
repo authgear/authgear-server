@@ -46,7 +46,6 @@ type EmbeddedResourceManager interface {
 }
 
 type StaticAssetResolver struct {
-	Context           context.Context
 	Localization      *config.LocalizationConfig
 	HTTPOrigin        httputil.HTTPOrigin
 	HTTPProto         httputil.HTTPProto
@@ -73,13 +72,13 @@ func (r *StaticAssetResolver) HasAppSpecificAsset(id string) bool {
 	return err == nil
 }
 
-func (r *StaticAssetResolver) StaticAssetURL(id string) (string, error) {
+func (r *StaticAssetResolver) StaticAssetURL(ctx context.Context, id string) (string, error) {
 	desc, ok := StaticAssetResources[id]
 	if !ok {
 		return "", fmt.Errorf("unknown static asset: %s", id)
 	}
 
-	preferredLanguageTags := intl.GetPreferredLanguageTags(r.Context)
+	preferredLanguageTags := intl.GetPreferredLanguageTags(ctx)
 	result, err := r.Resources.Read(desc, resource.EffectiveResource{
 		SupportedTags: r.Localization.SupportedLanguages,
 		DefaultTag:    *r.Localization.FallbackLanguage,
