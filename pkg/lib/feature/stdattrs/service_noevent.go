@@ -1,6 +1,7 @@
 package stdattrs
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -14,8 +15,8 @@ import (
 )
 
 type ClaimStore interface {
-	ListByClaimName(userID string, claimName string) ([]*verification.Claim, error)
-	ListByUserIDsAndClaimNames(userIDs []string, claimNames []string) ([]*verification.Claim, error)
+	ListByClaimName(ctx context.Context, userID string, claimName string) ([]*verification.Claim, error)
+	ListByUserIDsAndClaimNames(ctx context.Context, userIDs []string, claimNames []string) ([]*verification.Claim, error)
 }
 
 type ServiceNoEvent struct {
@@ -27,9 +28,9 @@ type ServiceNoEvent struct {
 	Transformer       Transformer
 }
 
-func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) (err error) {
+func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(ctx context.Context, userID string) (err error) {
 	// Get all the identities this user has.
-	identities, err := s.Identities.ListByUser(userID)
+	identities, err := s.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return
 	}
@@ -58,7 +59,7 @@ func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) 
 		}
 	}
 
-	user, err := s.UserQueries.GetRaw(userID)
+	user, err := s.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return
 	}
@@ -92,7 +93,7 @@ func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) 
 	populate(stdattrs.PreferredUsername, preferredUsernames)
 
 	if updated {
-		err = s.UserStore.UpdateStandardAttributes(userID, user.StandardAttributes)
+		err = s.UserStore.UpdateStandardAttributes(ctx, userID, user.StandardAttributes)
 		if err != nil {
 			return
 		}
@@ -101,7 +102,7 @@ func (s *ServiceNoEvent) PopulateIdentityAwareStandardAttributes(userID string) 
 	return
 }
 
-func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+func (s *ServiceNoEvent) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
 	// Remove derived attributes to avoid failing the validation.
 	stdAttrs = stdattrs.T(stdAttrs).WithDerivedAttributesRemoved()
 
@@ -119,7 +120,7 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 		return err
 	}
 
-	rawUser, err := s.UserQueries.GetRaw(userID)
+	rawUser, err := s.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -134,7 +135,7 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 		return err
 	}
 
-	identities, err := s.Identities.ListByUser(userID)
+	identities, err := s.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -180,13 +181,13 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 		return err
 	}
 
-	err = s.UserStore.UpdateStandardAttributes(userID, stdAttrs)
+	err = s.UserStore.UpdateStandardAttributes(ctx, userID, stdAttrs)
 	if err != nil {
 		return err
 	}
 
 	// In case email/phone_number/preferred_username was removed, we add them back.
-	err = s.PopulateIdentityAwareStandardAttributes(userID)
+	err = s.PopulateIdentityAwareStandardAttributes(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -198,6 +199,7 @@ func (s *ServiceNoEvent) UpdateStandardAttributes(role accesscontrol.Role, userI
 // TODO: Write some tests and simplify the implementation
 // nolint:gocognit
 func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
+	ctx context.Context,
 	role accesscontrol.Role,
 	userIDs []string,
 	updatedAts []time.Time,
@@ -209,7 +211,7 @@ func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 	}
 
 	allClaims, err := s.ClaimStore.ListByUserIDsAndClaimNames(
-		userIDs, []string{stdattrs.Email, stdattrs.PhoneNumber})
+		ctx, userIDs, []string{stdattrs.Email, stdattrs.PhoneNumber})
 	if err != nil {
 		return nil, err
 	}
@@ -286,12 +288,13 @@ func (s *ServiceNoEvent) DeriveStandardAttributesForUsers(
 // DeriveStandardAttributes populates email_verified and phone_number_verified,
 // if email or phone_number are found in attrs.
 func (s *ServiceNoEvent) DeriveStandardAttributes(
+	ctx context.Context,
 	role accesscontrol.Role,
 	userID string,
 	updatedAt time.Time,
 	attrs map[string]interface{},
 ) (map[string]interface{}, error) {
-	result, err := s.DeriveStandardAttributesForUsers(role,
+	result, err := s.DeriveStandardAttributesForUsers(ctx, role,
 		[]string{userID},
 		[]time.Time{updatedAt},
 		[]map[string]interface{}{attrs},
