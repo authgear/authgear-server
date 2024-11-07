@@ -11,7 +11,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 )
 
-func (c *End2End) GetLinkOTPCode(appID string, claimName string, claimValue string) (string, error) {
+func (c *End2End) GetLinkOTPCode(ctx context.Context, appID string, claimName string, claimValue string) (string, error) {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		return "", err
@@ -36,25 +36,25 @@ func (c *End2End) GetLinkOTPCode(appID string, claimName string, claimValue stri
 		return "", err
 	}
 
-	configSrcController := newConfigSourceController(p, context.Background())
-	err = configSrcController.Open()
+	configSrcController := newConfigSourceController(p)
+	err = configSrcController.Open(ctx)
 	if err != nil {
 		return "", err
 	}
 	defer configSrcController.Close()
 
-	appCtx, err := configSrcController.ResolveContext(appID)
+	appCtx, err := configSrcController.ResolveContext(ctx, appID)
 	if err != nil {
 		return "", err
 	}
 
-	appProvider := p.NewAppProvider(c.Context, appCtx)
+	appProvider := p.NewAppProvider(ctx, appCtx)
 
-	loginIDService := newLoginIDSerivce(appProvider, context.Background())
+	loginIDService := newLoginIDSerivce(appProvider)
 
 	var loginIDs []*identity.LoginID
-	err = appProvider.AppDatabase.ReadOnly(func() (err error) {
-		loginIDs, err = loginIDService.ListByClaim(claimName, claimValue)
+	err = appProvider.AppDatabase.ReadOnly(ctx, func(ctx context.Context) (err error) {
+		loginIDs, err = loginIDService.ListByClaim(ctx, claimName, claimValue)
 		if err != nil {
 			return err
 		}

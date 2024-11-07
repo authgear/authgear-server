@@ -25,11 +25,9 @@ var cmdInternalE2EGetLinkOTPCode = &cobra.Command{
 		claimName := args[0]
 		claimValue := args[1]
 
-		instance := e2e.End2End{
-			Context: cmd.Context(),
-		}
+		instance := e2e.End2End{}
 
-		otpCode, err := instance.GetLinkOTPCode(appID, claimName, claimValue)
+		otpCode, err := instance.GetLinkOTPCode(cmd.Context(), appID, claimName, claimValue)
 		if err != nil {
 			return err
 		}

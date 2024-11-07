@@ -12,16 +12,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
 )
 
-type End2End struct {
-	Context context.Context
-}
+type End2End struct{}
 
 type NoopTaskQueue struct{}
 
 func (q NoopTaskQueue) Enqueue(param task.Param) {
 }
 
-func (c *End2End) ImportUsers(appID string, jsonPath string) error {
+func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string) error {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		return err
@@ -46,21 +44,21 @@ func (c *End2End) ImportUsers(appID string, jsonPath string) error {
 		return err
 	}
 
-	configSrcController := newConfigSourceController(p, context.Background())
-	err = configSrcController.Open()
+	configSrcController := newConfigSourceController(p)
+	err = configSrcController.Open(ctx)
 	if err != nil {
 		return err
 	}
 	defer configSrcController.Close()
 
-	appCtx, err := configSrcController.ResolveContext(appID)
+	appCtx, err := configSrcController.ResolveContext(ctx, appID)
 	if err != nil {
 		return err
 	}
 
-	appProvider := p.NewAppProvider(c.Context, appCtx)
+	appProvider := p.NewAppProvider(ctx, appCtx)
 
-	userImport := newUserImport(appProvider, c.Context)
+	userImport := newUserImport(appProvider)
 
 	jsoFile, err := os.Open(jsonPath)
 	if err != nil {
@@ -74,7 +72,7 @@ func (c *End2End) ImportUsers(appID string, jsonPath string) error {
 		return err
 	}
 
-	res := userImport.ImportRecords(c.Context, &request)
+	res := userImport.ImportRecords(ctx, &request)
 	if res.Summary.Failed > 0 {
 		return fmt.Errorf("failed to import %d records due to %v", res.Summary.Failed, res.Details)
 	}
