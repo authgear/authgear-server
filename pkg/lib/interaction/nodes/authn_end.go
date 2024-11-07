@@ -51,7 +51,7 @@ func (n *NodeAuthenticationEnd) GetEffects(goCtx context.Context) ([]interaction
 			if n.VerifiedAuthenticator == nil {
 				return nil
 			}
-			return ctx.Authenticators.MarkOOBIdentityVerified(n.VerifiedAuthenticator)
+			return ctx.Authenticators.MarkOOBIdentityVerified(goCtx, n.VerifiedAuthenticator)
 		}),
 	}, nil
 }

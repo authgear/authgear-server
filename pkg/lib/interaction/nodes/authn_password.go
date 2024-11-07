@@ -57,7 +57,7 @@ func (e *EdgeAuthenticationPassword) Instantiate(goCtx context.Context, ctx *int
 		},
 	}
 
-	info, verifyResult, err := ctx.Authenticators.VerifyOneWithSpec(
+	info, verifyResult, err := ctx.Authenticators.VerifyOneWithSpec(goCtx,
 		graph.MustGetUserID(),
 		model.AuthenticatorTypePassword,
 		e.Authenticators,

@@ -32,7 +32,7 @@ func (e *EdgeAuthenticationLoginLink) Instantiate(goCtx context.Context, ctx *in
 	}
 
 	email := e.Authenticator.OOBOTP.Email
-	err := ctx.OTPCodeService.VerifyOTP(
+	err := ctx.OTPCodeService.VerifyOTP(goCtx,
 		otp.KindOOBOTPLink(ctx.Config, model.AuthenticatorOOBChannelEmail),
 		email,
 		"",

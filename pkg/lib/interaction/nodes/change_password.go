@@ -89,7 +89,7 @@ func (e *EdgeChangePassword) Instantiate(goCtx context.Context, ctx *interaction
 	newPassword := input.GetNewPassword()
 
 	userID := graph.MustGetUserID()
-	ais, err := ctx.Authenticators.List(
+	ais, err := ctx.Authenticators.List(goCtx,
 		userID,
 		authenticator.KeepType(model.AuthenticatorTypePassword),
 		authenticator.KeepKind(stageToAuthenticatorKind(e.Stage)),
@@ -113,7 +113,7 @@ func (e *EdgeChangePassword) Instantiate(goCtx context.Context, ctx *interaction
 		// The password authenticator we are changing has been verified in this interaction.
 		// We avoid asking the user to provide the password again.
 	} else {
-		_, err = ctx.Authenticators.VerifyWithSpec(oldInfo, &authenticator.Spec{
+		_, err = ctx.Authenticators.VerifyWithSpec(goCtx, oldInfo, &authenticator.Spec{
 			Password: &authenticator.PasswordSpec{
 				PlainPassword: oldPassword,
 			},
@@ -124,7 +124,7 @@ func (e *EdgeChangePassword) Instantiate(goCtx context.Context, ctx *interaction
 		}
 	}
 
-	changed, newInfo, err := ctx.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
+	changed, newInfo, err := ctx.Authenticators.UpdatePassword(goCtx, oldInfo, &service.UpdatePasswordOptions{
 		SetPassword:    true,
 		PlainPassword:  newPassword,
 		SetExpireAfter: true,

@@ -107,7 +107,7 @@ func (n *NodeResetPasswordEnd) GetEffects(goCtx context.Context) ([]interaction.
 					}
 				}
 
-				err = ctx.ResetPassword.ChangePasswordByAdmin(&forgotpassword.SetPasswordOptions{
+				err = ctx.ResetPassword.ChangePasswordByAdmin(goCtx, &forgotpassword.SetPasswordOptions{
 					UserID:         userID,
 					PlainPassword:  newPassword,
 					SendPassword:   sendPassword,
@@ -124,7 +124,7 @@ func (n *NodeResetPasswordEnd) GetEffects(goCtx context.Context) ([]interaction.
 				code := codeInput.GetCode()
 				newPassword := codeInput.GetNewPassword()
 
-				err := ctx.ResetPassword.ResetPasswordByEndUser(code, newPassword)
+				err := ctx.ResetPassword.ResetPasswordByEndUser(goCtx, code, newPassword)
 				if err != nil {
 					return err
 				}

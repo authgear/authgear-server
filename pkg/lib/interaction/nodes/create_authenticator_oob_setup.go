@@ -142,7 +142,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(goCtx context.Context, ctx
 		spec.OOBOTP.Email = target
 	}
 
-	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(goCtx, e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +154,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(goCtx context.Context, ctx
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(info)
+	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(goCtx, info)
 	if err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(goCtx context.Context, ctx
 		AuthenticatorInfo:    info,
 		IgnoreRatelimitError: true,
 		OTPForm:              otp.FormCode,
-	}).Do()
+	}).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}

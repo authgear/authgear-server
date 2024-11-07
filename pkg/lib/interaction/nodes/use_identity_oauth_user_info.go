@@ -63,7 +63,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(goCtx context.Context, ctx *i
 		return nil, err
 	}
 
-	userInfo, err := ctx.OAuthProviderFactory.GetUserProfile(
+	userInfo, err := ctx.OAuthProviderFactory.GetUserProfile(goCtx,
 		alias,
 		oauthrelyingparty.GetUserProfileOptions{
 			Query:       query,

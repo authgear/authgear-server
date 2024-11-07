@@ -27,7 +27,7 @@ func (n *NodeSettingsActionEnd) Prepare(goCtx context.Context, ctx *interaction.
 func (n *NodeSettingsActionEnd) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			entry, err := ctx.OAuthSessions.Get(ctx.OAuthSessionID)
+			entry, err := ctx.OAuthSessions.Get(goCtx, ctx.OAuthSessionID)
 			if errors.Is(err, oauthsession.ErrNotFound) {
 				return nil
 			} else if err != nil {
@@ -35,7 +35,7 @@ func (n *NodeSettingsActionEnd) GetEffects(goCtx context.Context) ([]interaction
 			}
 
 			entry.T.SettingsActionResult = oauthsession.NewSettingsActionResult()
-			err = ctx.OAuthSessions.Save(entry)
+			err = ctx.OAuthSessions.Save(goCtx, entry)
 			if err != nil {
 				return err
 			}

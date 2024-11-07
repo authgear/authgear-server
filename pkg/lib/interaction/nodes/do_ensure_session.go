@@ -130,7 +130,7 @@ func (n *NodeDoEnsureSession) Prepare(goCtx context.Context, ctx *interaction.Co
 func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			return ctx.AuthenticationInfoService.Save(n.AuthenticationInfoEntry)
+			return ctx.AuthenticationInfoService.Save(goCtx, n.AuthenticationInfoEntry)
 		}),
 		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.CreateReason != session.CreateReasonPromote {
@@ -160,7 +160,7 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 				identityModels = append(identityModels, info.ToModel())
 			}
 
-			err := ctx.Events.DispatchEventOnCommit(&nonblocking.UserAnonymousPromotedEventPayload{
+			err := ctx.Events.DispatchEventOnCommit(goCtx, &nonblocking.UserAnonymousPromotedEventPayload{
 				AnonymousUserRef: anonUserRef,
 				UserRef:          newUserRef,
 				Identities:       identityModels,
@@ -177,7 +177,7 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 
 			var err error
 			if !n.UpdateLoginTime.IsZero() {
-				err = ctx.Users.UpdateLoginTime(userID, n.UpdateLoginTime)
+				err = ctx.Users.UpdateLoginTime(goCtx, userID, n.UpdateLoginTime)
 				if err != nil {
 					return err
 				}
@@ -195,7 +195,7 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 					// For authentication that involves IDP session will dispatch user.authenticated event here
 					// For authentication that suppresses IDP session. e.g. biometric login
 					// They are handled in their own node.
-					err = ctx.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
+					err = ctx.Events.DispatchEventOnCommit(goCtx, &nonblocking.UserAuthenticatedEventPayload{
 						UserRef:  userRef,
 						Session:  *n.SessionToCreate.ToAPIModel(),
 						AdminAPI: n.IsAdminAPI,
@@ -207,7 +207,7 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 			}
 
 			if n.SessionToCreate != nil {
-				err = ctx.Sessions.Create(n.SessionToCreate)
+				err = ctx.Sessions.Create(goCtx, n.SessionToCreate)
 				if err != nil {
 					return err
 				}
@@ -215,7 +215,7 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 				// Clean up unreachable IdP Session.
 				s := session.GetSession(ctx.Request.Context())
 				if s != nil && s.SessionType() == session.TypeIdentityProvider {
-					err = ctx.SessionManager.RevokeWithoutEvent(s)
+					err = ctx.SessionManager.RevokeWithoutEvent(goCtx, s)
 					if err != nil {
 						return err
 					}
@@ -223,7 +223,7 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 			}
 
 			if n.UpdateSessionID != "" {
-				err = ctx.Sessions.Reauthenticate(n.UpdateSessionID, n.UpdateSessionAMR)
+				err = ctx.Sessions.Reauthenticate(goCtx, n.UpdateSessionID, n.UpdateSessionAMR)
 				if err != nil {
 					return err
 				}

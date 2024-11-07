@@ -68,7 +68,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(goCtx context.Cont
 		},
 	}
 
-	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(goCtx, e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(goCtx context.Cont
 
 	// Skip checking whatsapp otp if the phone number is verified
 	// Create OOB authenticator directly
-	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(info)
+	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(goCtx, info)
 	if err != nil {
 		return nil, err
 	}
@@ -90,7 +90,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(goCtx context.Cont
 		return &NodeCreateAuthenticatorOOB{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	result, err := NewSendWhatsappCode(ctx, otp.KindOOBOTPCode, phone, false).Do()
+	result, err := NewSendWhatsappCode(ctx, otp.KindOOBOTPCode, phone, false).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}

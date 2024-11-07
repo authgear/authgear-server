@@ -18,7 +18,7 @@ type EdgePromptCreatePasskeyBegin struct{}
 
 func (e *EdgePromptCreatePasskeyBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	userID := graph.MustGetUserID()
-	ais, err := ctx.Authenticators.List(
+	ais, err := ctx.Authenticators.List(goCtx,
 		userID,
 		authenticator.KeepKind(authenticator.KindPrimary),
 		authenticator.KeepType(model.AuthenticatorTypePasskey),
@@ -98,7 +98,7 @@ func (e *EdgePromptCreatePasskey) Instantiate(goCtx context.Context, ctx *intera
 			AttestationResponse: input.GetAttestationResponse(),
 		},
 	}
-	authenticatorInfo, err := ctx.Authenticators.New(authenticatorSpec)
+	authenticatorInfo, err := ctx.Authenticators.New(goCtx, authenticatorSpec)
 	if err != nil {
 		return nil, err
 	}
@@ -110,7 +110,7 @@ func (e *EdgePromptCreatePasskey) Instantiate(goCtx context.Context, ctx *intera
 			AttestationResponse: input.GetAttestationResponse(),
 		},
 	}
-	identityInfo, err := ctx.Identities.New(userID, identitySpec, identity.NewIdentityOptions{})
+	identityInfo, err := ctx.Identities.New(goCtx, userID, identitySpec, identity.NewIdentityOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -136,13 +136,13 @@ func (n *NodePromptCreatePasskeyEnd) GetEffects(goCtx context.Context) ([]intera
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.Authenticator != nil {
-				err := ctx.Authenticators.Create(n.Authenticator, true)
+				err := ctx.Authenticators.Create(goCtx, n.Authenticator, true)
 				if err != nil {
 					return err
 				}
 			}
 			if n.Identity != nil {
-				err := ctx.Identities.Create(n.Identity)
+				err := ctx.Identities.Create(goCtx, n.Identity)
 				if err != nil {
 					return err
 				}
@@ -153,7 +153,7 @@ func (n *NodePromptCreatePasskeyEnd) GetEffects(goCtx context.Context) ([]intera
 			if n.Authenticator != nil {
 				attestationResponse := n.Authenticator.Passkey.AttestationResponse
 
-				err := ctx.Passkey.ConsumeAttestationResponse(attestationResponse)
+				err := ctx.Passkey.ConsumeAttestationResponse(goCtx, attestationResponse)
 				if err != nil {
 					return err
 				}

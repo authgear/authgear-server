@@ -82,7 +82,7 @@ func (e *EdgeForgotPasswordSelectLoginID) Instantiate(goCtx context.Context, ctx
 
 	loginID := e.IdentityInfo.LoginID.LoginID
 
-	err := ctx.ForgotPassword.SendCode(loginID, nil)
+	err := ctx.ForgotPassword.SendCode(goCtx, loginID, nil)
 	if errors.Is(err, forgotpassword.ErrUserNotFound) {
 		return nil, forgotpasswordFillDetails(api.ErrUserNotFound)
 	} else if apierrors.IsKind(err, ratelimit.RateLimited) {

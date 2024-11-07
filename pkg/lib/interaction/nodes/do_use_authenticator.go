@@ -33,8 +33,8 @@ func (e *EdgeDoUseAuthenticator) Instantiate(goCtx context.Context, ctx *interac
 	var input InputCreateDeviceToken
 	if interaction.Input(rawInput, &input) {
 		if input.CreateDeviceToken() {
-			token := ctx.MFA.GenerateDeviceToken()
-			_, err := ctx.MFA.CreateDeviceToken(userID, token)
+			token := ctx.MFA.GenerateDeviceToken(goCtx)
+			_, err := ctx.MFA.CreateDeviceToken(goCtx, userID, token)
 			if err != nil {
 				return nil, err
 			}

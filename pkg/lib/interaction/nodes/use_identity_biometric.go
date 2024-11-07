@@ -56,7 +56,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(goCtx context.Context, ctx *inter
 		return nil, api.ErrInvalidCredentials
 	}
 
-	purpose, err := ctx.Challenges.Consume(request.Challenge)
+	purpose, err := ctx.Challenges.Consume(goCtx, request.Challenge)
 	if err != nil || *purpose != challenge.PurposeBiometricRequest {
 		return nil, api.ErrInvalidCredentials
 	}
@@ -72,7 +72,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(goCtx context.Context, ctx *inter
 			return nil, api.ErrInvalidCredentials
 		}
 	case identitybiometric.RequestActionAuthenticate:
-		iden, err = ctx.BiometricIdentities.GetByKeyID(request.KeyID)
+		iden, err = ctx.BiometricIdentities.GetByKeyID(goCtx, request.KeyID)
 		if err != nil {
 			return nil, api.ErrInvalidCredentials
 		}
@@ -85,7 +85,7 @@ func (e *EdgeUseIdentityBiometric) Instantiate(goCtx context.Context, ctx *inter
 						ID: userID,
 					},
 				}
-				err = ctx.Events.DispatchEventOnCommit(&nonblocking.AuthenticationFailedIdentityEventPayload{
+				err = ctx.Events.DispatchEventOnCommit(goCtx, &nonblocking.AuthenticationFailedIdentityEventPayload{
 					UserRef:      userRef,
 					IdentityType: string(model.IdentityTypeBiometric),
 				})

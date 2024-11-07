@@ -23,7 +23,7 @@ func (e *EdgeConfirmTerminateOtherSessionsEnd) Instantiate(goCtx context.Context
 	if client == nil || client.MaxConcurrentSession != 1 {
 		return &NodeConfirmTerminateOtherSessionsEnd{}, nil
 	}
-	existingGrants, err := ctx.OfflineGrants.ListClientOfflineGrants(client.ClientID, graph.MustGetUserID())
+	existingGrants, err := ctx.OfflineGrants.ListClientOfflineGrants(goCtx, client.ClientID, graph.MustGetUserID())
 	if err != nil {
 		return nil, err
 	}

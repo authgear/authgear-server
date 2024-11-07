@@ -19,7 +19,7 @@ type EdgeUpdateIdentityEnd struct {
 func (e *EdgeUpdateIdentityEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	identityID := graph.MustGetUpdateIdentityID()
 
-	oldInfo, err := ctx.Identities.Get(identityID)
+	oldInfo, err := ctx.Identities.Get(goCtx, identityID)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (e *EdgeUpdateIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 		)
 	}
 
-	newInfo, err := ctx.Identities.Get(identityID)
+	newInfo, err := ctx.Identities.Get(goCtx, identityID)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (e *EdgeUpdateIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 	// So LoginIDEmailByPassBlocklistAllowlist is hardcoded to be false
 	// we should update to get this config from input
 	// when update identity in admin portal is supported
-	newInfo, err = ctx.Identities.UpdateWithSpec(newInfo, e.IdentitySpec, identity.NewIdentityOptions{
+	newInfo, err = ctx.Identities.UpdateWithSpec(goCtx, newInfo, e.IdentitySpec, identity.NewIdentityOptions{
 		LoginIDEmailByPassBlocklistAllowlist: false,
 	})
 	if err != nil {

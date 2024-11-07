@@ -32,7 +32,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 		spec := interaction.AccountEnumerationPerIPRateLimitBucketSpec(ctx.Config.Authentication, string(ctx.RemoteIP))
 		var failedReservation *ratelimit.FailedReservation
 		var err error
-		reservation, failedReservation, err = ctx.RateLimiter.Reserve(spec)
+		reservation, failedReservation, err = ctx.RateLimiter.Reserve(goCtx, spec)
 		if err != nil {
 			return nil, err
 		}
@@ -40,10 +40,10 @@ func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 			return nil, err
 		}
 	}
-	defer ctx.RateLimiter.Cancel(reservation)
+	defer ctx.RateLimiter.Cancel(goCtx, reservation)
 
 	var otherMatch *identity.Info
-	exactMatch, otherMatches, err := ctx.Identities.SearchBySpec(e.IdentitySpec)
+	exactMatch, otherMatches, err := ctx.Identities.SearchBySpec(goCtx, e.IdentitySpec)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 				break
 			case model.IdentityTypeLoginID:
 				loginIDValue := e.IdentitySpec.LoginID.Value
-				err = ctx.Events.DispatchEventOnCommit(&nonblocking.AuthenticationFailedLoginIDEventPayload{
+				err = ctx.Events.DispatchEventOnCommit(goCtx, &nonblocking.AuthenticationFailedLoginIDEventPayload{
 					LoginID: loginIDValue,
 				})
 				if err != nil {
@@ -91,7 +91,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 	var oldIdentityInfo *identity.Info
 	if exactMatch != nil && exactMatch.Type == model.IdentityTypeOAuth {
 		oldIdentityInfo = exactMatch
-		exactMatch, err = ctx.Identities.UpdateWithSpec(exactMatch, e.IdentitySpec, identity.NewIdentityOptions{})
+		exactMatch, err = ctx.Identities.UpdateWithSpec(goCtx, exactMatch, e.IdentitySpec, identity.NewIdentityOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -120,7 +120,7 @@ func (n *NodeSelectIdentityEnd) GetEffects(goCtx context.Context) ([]interaction
 	// Update OAuth identity
 	eff := func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 		if n.OldIdentityInfo != nil && n.IdentityInfo != nil && n.IdentityInfo.Type == model.IdentityTypeOAuth {
-			_, err := ctx.Identities.CheckDuplicated(n.IdentityInfo)
+			_, err := ctx.Identities.CheckDuplicated(goCtx, n.IdentityInfo)
 			if err != nil {
 				if identity.IsErrDuplicatedIdentity(err) {
 					return n.FillDetails(identity.Deprecated_ErrDuplicatedIdentity)
@@ -128,7 +128,7 @@ func (n *NodeSelectIdentityEnd) GetEffects(goCtx context.Context) ([]interaction
 				return err
 			}
 
-			err = ctx.Identities.Update(n.OldIdentityInfo, n.IdentityInfo)
+			err = ctx.Identities.Update(goCtx, n.OldIdentityInfo, n.IdentityInfo)
 			if err != nil {
 				return err
 			}

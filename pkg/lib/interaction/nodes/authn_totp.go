@@ -44,7 +44,7 @@ func (e *EdgeAuthenticationTOTP) Instantiate(goCtx context.Context, ctx *interac
 		},
 	}
 
-	info, _, err := ctx.Authenticators.VerifyOneWithSpec(
+	info, _, err := ctx.Authenticators.VerifyOneWithSpec(goCtx,
 		graph.MustGetUserID(),
 		model.AuthenticatorTypeTOTP,
 		e.Authenticators,

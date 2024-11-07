@@ -31,7 +31,7 @@ func (n *NodeDoResetLockoutAttempts) GetEffects(goCtx context.Context) ([]intera
 		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			userID := graph.MustGetUserID()
 			methods := graph.GetUsedAuthenticationLockoutMethods()
-			err := ctx.Authenticators.ClearLockoutAttempts(userID, methods)
+			err := ctx.Authenticators.ClearLockoutAttempts(goCtx, userID, methods)
 
 			return err
 		}),

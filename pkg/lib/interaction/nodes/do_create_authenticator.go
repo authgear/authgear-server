@@ -40,7 +40,7 @@ func (n *NodeDoCreateAuthenticator) GetEffects(goCtx context.Context) ([]interac
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			for _, a := range n.Authenticators {
-				err := ctx.Authenticators.Create(a, !n.IsAdminAPI)
+				err := ctx.Authenticators.Create(goCtx, a, !n.IsAdminAPI)
 				if err != nil {
 					return err
 				}

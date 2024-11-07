@@ -39,7 +39,7 @@ func (n *NodeDoUpdateAuthenticator) Prepare(goCtx context.Context, ctx *interact
 func (n *NodeDoUpdateAuthenticator) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			return ctx.Authenticators.Update(n.AuthenticatorAfterUpdate)
+			return ctx.Authenticators.Update(goCtx, n.AuthenticatorAfterUpdate)
 		}),
 	}, nil
 }

@@ -17,7 +17,7 @@ type EdgeCheckIdentityConflict struct {
 }
 
 func (e *EdgeCheckIdentityConflict) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	dupeIdentity, err := ctx.Identities.CheckDuplicated(e.NewIdentity)
+	dupeIdentity, err := ctx.Identities.CheckDuplicated(goCtx, e.NewIdentity)
 	if err != nil && !identity.IsErrDuplicatedIdentity(err) {
 		return nil, err
 	}

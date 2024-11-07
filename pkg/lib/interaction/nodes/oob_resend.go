@@ -33,7 +33,7 @@ func (e *EdgeOOBResendCode) Instantiate(goCtx context.Context, ctx *interaction.
 		AuthenticatorInfo:    e.Authenticator,
 		IgnoreRatelimitError: false,
 		OTPForm:              e.OTPForm,
-	}).Do()
+	}).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}

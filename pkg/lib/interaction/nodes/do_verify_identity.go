@@ -48,7 +48,7 @@ func (n *NodeDoVerifyIdentity) GetEffects(goCtx context.Context) ([]interaction.
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.NewVerifiedClaim != nil {
-				if err := ctx.Verification.MarkClaimVerified(n.NewVerifiedClaim); err != nil {
+				if err := ctx.Verification.MarkClaimVerified(goCtx, n.NewVerifiedClaim); err != nil {
 					return err
 				}
 			}
@@ -77,7 +77,7 @@ func (n *NodeDoVerifyIdentity) GetEffects(goCtx context.Context) ([]interaction.
 			}
 
 			if e != nil {
-				err := ctx.Events.DispatchEventOnCommit(e)
+				err := ctx.Events.DispatchEventOnCommit(goCtx, e)
 				if err != nil {
 					return err
 				}

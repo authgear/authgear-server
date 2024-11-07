@@ -28,7 +28,7 @@ type NodeEnsureRemoveAnonymousIdentity struct {
 
 func (n *NodeEnsureRemoveAnonymousIdentity) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	userID := graph.MustGetUserID()
-	iis, err := ctx.Identities.ListByUser(graph.MustGetUserID())
+	iis, err := ctx.Identities.ListByUser(goCtx, graph.MustGetUserID())
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (n *NodeEnsureRemoveAnonymousIdentity) GetEffects(goCtx context.Context) ([
 			if n.AnonymousIdentity == nil {
 				return nil
 			}
-			err := ctx.Identities.Delete(n.AnonymousIdentity)
+			err := ctx.Identities.Delete(goCtx, n.AnonymousIdentity)
 			if err != nil {
 				return err
 			}
@@ -80,7 +80,7 @@ func (n *NodeEnsureRemoveAnonymousIdentity) GetEffects(goCtx context.Context) ([
 				identityModels = append(identityModels, info.ToModel())
 			}
 
-			err := ctx.Events.DispatchEventOnCommit(&nonblocking.UserAnonymousPromotedEventPayload{
+			err := ctx.Events.DispatchEventOnCommit(goCtx, &nonblocking.UserAnonymousPromotedEventPayload{
 				AnonymousUserRef: anonUserRef,
 				UserRef:          anonUserRef,
 				Identities:       identityModels,

@@ -30,7 +30,7 @@ func (e *EdgeCreateAuthenticatorTOTP) Instantiate(goCtx context.Context, ctx *in
 
 	info := e.Authenticator
 	info.TOTP.DisplayName = input.GetTOTPDisplayName()
-	_, err := ctx.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
+	_, err := ctx.Authenticators.VerifyWithSpec(goCtx, info, &authenticator.Spec{
 		TOTP: &authenticator.TOTPSpec{
 			Code: input.GetTOTP(),
 		},

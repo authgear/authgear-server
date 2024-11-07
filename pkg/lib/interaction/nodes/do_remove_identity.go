@@ -43,7 +43,7 @@ func (n *NodeDoRemoveIdentity) Prepare(goCtx context.Context, ctx *interaction.C
 func (n *NodeDoRemoveIdentity) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			err := ctx.Identities.Delete(n.Identity)
+			err := ctx.Identities.Delete(goCtx, n.Identity)
 			if err != nil {
 				return err
 			}
@@ -84,7 +84,7 @@ func (n *NodeDoRemoveIdentity) GetEffects(goCtx context.Context) ([]interaction.
 			}
 
 			if e != nil {
-				err := ctx.Events.DispatchEventOnCommit(e)
+				err := ctx.Events.DispatchEventOnCommit(goCtx, e)
 				if err != nil {
 					return err
 				}

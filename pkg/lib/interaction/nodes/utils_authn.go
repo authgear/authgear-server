@@ -29,7 +29,7 @@ type SendOOBCode struct {
 	OTPForm              otp.Form
 }
 
-func (p *SendOOBCode) Do() (*SendOOBCodeResult, error) {
+func (p *SendOOBCode) Do(goCtx context.Context) (*SendOOBCodeResult, error) {
 	var messageType translation.MessageType
 	switch p.Stage {
 	case authn.AuthenticationStagePrimary:
@@ -82,16 +82,17 @@ func (p *SendOOBCode) Do() (*SendOOBCodeResult, error) {
 		CodeLength: p.OTPForm.CodeLength(),
 	}
 
-	msg, err := p.Context.OTPSender.Prepare(channel, p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPForm, messageType)
+	msg, err := p.Context.OTPSender.Prepare(goCtx, channel, p.AuthenticatorInfo.OOBOTP.ToTarget(), p.OTPForm, messageType)
 	if p.IgnoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
 	} else if err != nil {
 		return nil, err
 	}
-	defer msg.Close()
+	defer msg.Close(goCtx)
 
 	code, err := p.Context.OTPCodeService.GenerateOTP(
+		goCtx,
 		otp.KindOOBOTPWithForm(p.Context.Config, channel, p.OTPForm),
 		p.AuthenticatorInfo.OOBOTP.ToTarget(),
 		p.OTPForm,
@@ -104,7 +105,7 @@ func (p *SendOOBCode) Do() (*SendOOBCodeResult, error) {
 		return nil, err
 	}
 
-	err = p.Context.OTPSender.Send(msg, otp.SendOptions{OTP: code})
+	err = p.Context.OTPSender.Send(goCtx, msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return nil, err
 	}

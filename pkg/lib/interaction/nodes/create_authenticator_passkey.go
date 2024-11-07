@@ -61,7 +61,7 @@ func (e *EdgeCreateAuthenticatorPasskey) Instantiate(goCtx context.Context, ctx 
 			AttestationResponse: input.GetAttestationResponse(),
 		},
 	}
-	authenticatorInfo, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, authenticatorSpec)
+	authenticatorInfo, err := ctx.Authenticators.NewWithAuthenticatorID(goCtx, e.NewAuthenticatorID, authenticatorSpec)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (e *EdgeCreateAuthenticatorPasskey) Instantiate(goCtx context.Context, ctx 
 				AttestationResponse: input.GetAttestationResponse(),
 			},
 		}
-		identityInfo, err := ctx.Identities.New(userID, identitySpec, identity.NewIdentityOptions{})
+		identityInfo, err := ctx.Identities.New(goCtx, userID, identitySpec, identity.NewIdentityOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func (n *NodeCreateAuthenticatorPasskey) GetEffects(goCtx context.Context) ([]in
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.Identity != nil {
-				err := ctx.Identities.Create(n.Identity)
+				err := ctx.Identities.Create(goCtx, n.Identity)
 				if err != nil {
 					return err
 				}
@@ -112,7 +112,7 @@ func (n *NodeCreateAuthenticatorPasskey) GetEffects(goCtx context.Context) ([]in
 		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			attestationResponse := n.Authenticator.Passkey.AttestationResponse
 
-			err := ctx.Passkey.ConsumeAttestationResponse(attestationResponse)
+			err := ctx.Passkey.ConsumeAttestationResponse(goCtx, attestationResponse)
 			if err != nil {
 				return err
 			}

@@ -41,7 +41,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects(goCtx context.Context) ([]interac
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			userID := graph.MustGetUserID()
 
-			as, err := ctx.Authenticators.List(userID)
+			as, err := ctx.Authenticators.List(goCtx, userID)
 			if err != nil {
 				return err
 			}
@@ -57,7 +57,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects(goCtx context.Context) ([]interac
 				}
 
 				// Ensure all identities have matching primary authenticator.
-				is, err := ctx.Identities.ListByUser(userID)
+				is, err := ctx.Identities.ListByUser(goCtx, userID)
 				if err != nil {
 					return err
 				}
@@ -95,7 +95,7 @@ func (n *NodeDoRemoveAuthenticator) GetEffects(goCtx context.Context) ([]interac
 				}
 			}
 
-			err = ctx.Authenticators.Delete(n.Authenticator)
+			err = ctx.Authenticators.Delete(goCtx, n.Authenticator)
 			if err != nil {
 				return err
 			}

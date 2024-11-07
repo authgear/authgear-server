@@ -25,7 +25,7 @@ func (e *EdgeUseDeviceToken) Instantiate(goCtx context.Context, ctx *interaction
 	userID := graph.MustGetUserID()
 	deviceToken := input.GetDeviceToken()
 
-	err := ctx.MFA.VerifyDeviceToken(userID, deviceToken)
+	err := ctx.MFA.VerifyDeviceToken(goCtx, userID, deviceToken)
 	if errors.Is(err, mfa.ErrDeviceTokenNotFound) {
 		cookie := ctx.CookieManager.ClearCookie(ctx.MFADeviceTokenCookie.Def)
 		return nil, &interaction.ErrClearCookie{

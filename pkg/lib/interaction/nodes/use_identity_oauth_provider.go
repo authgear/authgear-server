@@ -85,7 +85,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 		UIImplementation: config.UIImplementationInteraction,
 		WebSessionID:     ctx.WebSessionID,
 	}
-	stateToken, err := ctx.OAuthStateStore.GenerateState(state)
+	stateToken, err := ctx.OAuthStateStore.GenerateState(goCtx, state)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *i
 		Prompt:       input.GetPrompt(),
 		State:        stateToken,
 	}
-	redirectURI, err := ctx.OAuthProviderFactory.GetAuthorizationURL(alias, param)
+	redirectURI, err := ctx.OAuthProviderFactory.GetAuthorizationURL(goCtx, alias, param)
 	if err != nil {
 		return nil, err
 	}

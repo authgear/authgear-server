@@ -59,11 +59,11 @@ func (n *NodeDoCreateUser) Prepare(goCtx context.Context, ctx *interaction.Conte
 func (n *NodeDoCreateUser) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			_, err := ctx.Users.Create(n.CreateUserID)
+			_, err := ctx.Users.Create(goCtx, n.CreateUserID)
 			return err
 		}),
 		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			u, err := ctx.Users.GetRaw(n.CreateUserID)
+			u, err := ctx.Users.GetRaw(goCtx, n.CreateUserID)
 			if err != nil {
 				return err
 			}
@@ -87,7 +87,7 @@ func (n *NodeDoCreateUser) GetEffects(goCtx context.Context) ([]interaction.Effe
 				// check the rate limit only before running the effects
 				bucket := interaction.SignupPerIPRateLimitBucketSpec(ctx.Config.Authentication, isAnonymous, ip)
 				var failedReservation *ratelimit.FailedReservation
-				reservation, failedReservation, err = ctx.RateLimiter.Reserve(bucket)
+				reservation, failedReservation, err = ctx.RateLimiter.Reserve(goCtx, bucket)
 				if err != nil {
 					return err
 				}
@@ -95,10 +95,10 @@ func (n *NodeDoCreateUser) GetEffects(goCtx context.Context) ([]interaction.Effe
 					return err
 				}
 			}
-			defer ctx.RateLimiter.Cancel(reservation)
+			defer ctx.RateLimiter.Cancel(goCtx, reservation)
 
 			// run the effects
-			err = ctx.Users.AfterCreate(
+			err = ctx.Users.AfterCreate(goCtx,
 				u,
 				graph.GetUserNewIdentities(),
 				graph.GetUserNewAuthenticators(),

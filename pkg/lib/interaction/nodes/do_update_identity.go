@@ -46,7 +46,7 @@ func (n *NodeDoUpdateIdentity) Prepare(goCtx context.Context, ctx *interaction.C
 func (n *NodeDoUpdateIdentity) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			if _, err := ctx.Identities.CheckDuplicated(n.IdentityAfterUpdate); err != nil {
+			if _, err := ctx.Identities.CheckDuplicated(goCtx, n.IdentityAfterUpdate); err != nil {
 				if identity.IsErrDuplicatedIdentity(err) {
 					s1 := n.IdentityBeforeUpdate.ToSpec()
 					s2 := n.IdentityAfterUpdate.ToSpec()
@@ -55,7 +55,7 @@ func (n *NodeDoUpdateIdentity) GetEffects(goCtx context.Context) ([]interaction.
 				return err
 			}
 
-			if err := ctx.Identities.Update(n.IdentityBeforeUpdate, n.IdentityAfterUpdate); err != nil {
+			if err := ctx.Identities.Update(goCtx, n.IdentityBeforeUpdate, n.IdentityAfterUpdate); err != nil {
 				return err
 			}
 
@@ -84,7 +84,7 @@ func (n *NodeDoUpdateIdentity) GetEffects(goCtx context.Context) ([]interaction.
 			}
 
 			if e != nil {
-				err := ctx.Events.DispatchEventOnCommit(e)
+				err := ctx.Events.DispatchEventOnCommit(goCtx, e)
 				if err != nil {
 					return err
 				}

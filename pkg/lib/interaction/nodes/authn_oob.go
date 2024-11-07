@@ -33,7 +33,7 @@ func (e *EdgeAuthenticationOOB) Instantiate(goCtx context.Context, ctx *interact
 	}
 
 	info := e.Authenticator
-	_, err := ctx.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
+	_, err := ctx.Authenticators.VerifyWithSpec(goCtx, info, &authenticator.Spec{
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: input.GetOOBOTP(),
 		},

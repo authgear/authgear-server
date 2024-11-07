@@ -102,7 +102,7 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(goCtx context.Context, ctx *i
 		AuthenticatorInfo:    targetInfo,
 		IgnoreRatelimitError: true,
 		OTPForm:              otp.FormCode,
-	}).Do()
+	}).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}

@@ -22,7 +22,7 @@ func (e *EdgeCreateIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 		byPassBlocklistAllowlist = bypassInput.BypassLoginIDEmailBlocklistAllowlist()
 	}
 
-	info, err := ctx.Identities.New(graph.MustGetUserID(), e.IdentitySpec, identity.NewIdentityOptions{
+	info, err := ctx.Identities.New(goCtx, graph.MustGetUserID(), e.IdentitySpec, identity.NewIdentityOptions{
 		LoginIDEmailByPassBlocklistAllowlist: byPassBlocklistAllowlist,
 	})
 	if err != nil {

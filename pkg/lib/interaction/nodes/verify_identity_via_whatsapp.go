@@ -37,7 +37,7 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(goCtx context.Context, ctx *
 
 	phone := e.Identity.LoginID.LoginID
 
-	result, err := NewSendWhatsappCode(ctx, otp.KindVerification, phone, false).Do()
+	result, err := NewSendWhatsappCode(ctx, otp.KindVerification, phone, false).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +114,7 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(goCtx context.Conte
 	phone := e.Identity.LoginID.LoginID
 	userID := e.Identity.UserID
 	code := input.GetWhatsappOTP()
-	err := ctx.OTPCodeService.VerifyOTP(
+	err := ctx.OTPCodeService.VerifyOTP(goCtx,
 		otp.KindVerification(ctx.Config, model.AuthenticatorOOBChannelWhatsapp),
 		phone,
 		code,
@@ -129,7 +129,7 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(goCtx context.Conte
 		return nil, err
 	}
 
-	verifiedClaim := ctx.Verification.NewVerifiedClaim(
+	verifiedClaim := ctx.Verification.NewVerifiedClaim(goCtx,
 		e.Identity.UserID,
 		string(model.ClaimPhoneNumber),
 		phone,

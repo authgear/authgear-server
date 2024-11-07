@@ -36,7 +36,7 @@ func (e *EdgeDoCreateIdentity) Instantiate(goCtx context.Context, ctx *interacti
 		// not user signup
 		// determine if the flow is user promotion by checking user's identities
 		// this node need to be run before removing the anonymous identity
-		iis, err := ctx.Identities.ListByUser(graph.MustGetUserID())
+		iis, err := ctx.Identities.ListByUser(goCtx, graph.MustGetUserID())
 		if err != nil {
 			return nil, err
 		}
@@ -71,7 +71,7 @@ func (n *NodeDoCreateIdentity) Prepare(goCtx context.Context, ctx *interaction.C
 func (n *NodeDoCreateIdentity) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			user, err := ctx.Users.Get(n.Identity.UserID, accesscontrol.RoleGreatest)
+			user, err := ctx.Users.Get(goCtx, n.Identity.UserID, accesscontrol.RoleGreatest)
 			if err != nil {
 				return err
 			}
@@ -84,15 +84,15 @@ func (n *NodeDoCreateIdentity) GetEffects(goCtx context.Context) ([]interaction.
 				)
 			}
 
-			if _, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
+			if _, err := ctx.Identities.CheckDuplicated(goCtx, n.Identity); err != nil {
 				return err
 			}
-			if err := ctx.Identities.Create(n.Identity); err != nil {
+			if err := ctx.Identities.Create(goCtx, n.Identity); err != nil {
 				return err
 			}
 
 			if !n.IsAddition && ctx.Config.UserProfile.StandardAttributes.Population.Strategy == config.StandardAttributesPopulationStrategyOnSignup {
-				err := ctx.StdAttrsService.PopulateStandardAttributes(n.Identity.UserID, n.Identity)
+				err := ctx.StdAttrsService.PopulateStandardAttributes(goCtx, n.Identity.UserID, n.Identity)
 				if err != nil {
 					return err
 				}
@@ -144,7 +144,7 @@ func (n *NodeDoCreateIdentity) GetEffects(goCtx context.Context) ([]interaction.
 			}
 
 			if e != nil {
-				err := ctx.Events.DispatchEventOnCommit(e)
+				err := ctx.Events.DispatchEventOnCommit(goCtx, e)
 				if err != nil {
 					return err
 				}

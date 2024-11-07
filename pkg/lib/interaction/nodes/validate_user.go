@@ -15,7 +15,7 @@ type EdgeValidateUser struct {
 }
 
 func (e *EdgeValidateUser) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	u, err := ctx.Users.GetRaw(graph.MustGetUserID())
+	u, err := ctx.Users.GetRaw(goCtx, graph.MustGetUserID())
 	if err != nil {
 		return nil, err
 	}

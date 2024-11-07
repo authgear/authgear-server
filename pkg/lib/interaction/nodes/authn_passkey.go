@@ -55,7 +55,7 @@ func (e *EdgeAuthenticationPasskey) Instantiate(goCtx context.Context, ctx *inte
 		},
 	}
 
-	info, verifyResult, err := ctx.Authenticators.VerifyOneWithSpec(
+	info, verifyResult, err := ctx.Authenticators.VerifyOneWithSpec(goCtx,
 		graph.MustGetUserID(),
 		model.AuthenticatorTypePasskey,
 		e.Authenticators, spec,
@@ -95,7 +95,7 @@ func (n *NodeAuthenticationPasskey) GetEffects(goCtx context.Context) ([]interac
 		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			assertionResponse := n.Spec.Passkey.AssertionResponse
 
-			err := ctx.Passkey.ConsumeAssertionResponse(assertionResponse)
+			err := ctx.Passkey.ConsumeAssertionResponse(goCtx, assertionResponse)
 			if err != nil {
 				return err
 			}

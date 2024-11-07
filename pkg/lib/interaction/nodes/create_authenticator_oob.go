@@ -26,7 +26,7 @@ func (e *EdgeCreateAuthenticatorOOB) Instantiate(goCtx context.Context, ctx *int
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
 	}
-	_, err := ctx.Authenticators.VerifyWithSpec(e.Authenticator, &authenticator.Spec{
+	_, err := ctx.Authenticators.VerifyWithSpec(goCtx, e.Authenticator, &authenticator.Spec{
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: input.GetOOBOTP(),
 		},

@@ -66,7 +66,7 @@ func (e *EdgeAuthenticationLoginLinkTrigger) Instantiate(goCtx context.Context, 
 		AuthenticatorInfo:    targetInfo,
 		IgnoreRatelimitError: true,
 		OTPForm:              otp.FormLink,
-	}).Do()
+	}).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}

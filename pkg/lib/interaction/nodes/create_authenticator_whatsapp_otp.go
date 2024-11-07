@@ -31,7 +31,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTP) Instantiate(goCtx context.Context, 
 	}
 	code := input.GetWhatsappOTP()
 	channel := model.AuthenticatorOOBChannelWhatsapp
-	_, err := ctx.Authenticators.VerifyWithSpec(e.Authenticator, &authenticator.Spec{
+	_, err := ctx.Authenticators.VerifyWithSpec(goCtx, e.Authenticator, &authenticator.Spec{
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: code,
 		},

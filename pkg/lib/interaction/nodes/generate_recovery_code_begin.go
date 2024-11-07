@@ -24,7 +24,7 @@ func (e *EdgeGenerateRecoveryCode) Instantiate(goCtx context.Context, ctx *inter
 		// If all of them are new, the user just enrolled into secondary authentication, we need to (re)generate recovery code for them.
 
 		userID := graph.MustGetUserID()
-		ais, err := ctx.Authenticators.List(
+		ais, err := ctx.Authenticators.List(goCtx,
 			userID,
 			authenticator.KeepKind(authenticator.KindSecondary),
 		)
@@ -41,7 +41,7 @@ func (e *EdgeGenerateRecoveryCode) Instantiate(goCtx context.Context, ctx *inter
 	}
 
 	if doGenerate && !*ctx.Config.Authentication.RecoveryCode.Disabled {
-		recoveryCodes := ctx.MFA.GenerateRecoveryCodes()
+		recoveryCodes := ctx.MFA.GenerateRecoveryCodes(goCtx)
 		return &NodeGenerateRecoveryCodeBegin{
 			RecoveryCodes: recoveryCodes,
 		}, nil

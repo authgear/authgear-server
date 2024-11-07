@@ -29,7 +29,7 @@ func NewIntentVerifyIdentity(userID string, identityType model.IdentityType, ide
 }
 
 func (i *IntentVerifyIdentity) InstantiateRootNode(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
-	identityInfo, err := ctx.Identities.Get(i.IdentityID)
+	identityInfo, err := ctx.Identities.Get(goCtx, i.IdentityID)
 	if err != nil {
 		return nil, err
 	}

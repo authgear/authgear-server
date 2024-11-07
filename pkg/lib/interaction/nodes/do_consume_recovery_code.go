@@ -30,7 +30,7 @@ func (e *EdgeConsumeRecoveryCode) Instantiate(goCtx context.Context, ctx *intera
 	userID := graph.MustGetUserID()
 	recoveryCode := input.GetRecoveryCode()
 
-	rc, err := ctx.MFA.VerifyRecoveryCode(userID, recoveryCode)
+	rc, err := ctx.MFA.VerifyRecoveryCode(goCtx, userID, recoveryCode)
 	if errors.Is(err, api.ErrInvalidCredentials) {
 		return &NodeAuthenticationEnd{
 			Stage:              authn.AuthenticationStageSecondary,
@@ -54,7 +54,7 @@ func (n *NodeDoConsumeRecoveryCode) Prepare(goCtx context.Context, ctx *interact
 func (n *NodeDoConsumeRecoveryCode) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			return ctx.MFA.ConsumeRecoveryCode(n.RecoveryCode)
+			return ctx.MFA.ConsumeRecoveryCode(goCtx, n.RecoveryCode)
 		}),
 	}, nil
 }

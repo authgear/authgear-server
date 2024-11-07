@@ -60,7 +60,7 @@ type NodeCreateAuthenticatorBegin struct {
 }
 
 func (n *NodeCreateAuthenticatorBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
-	ais, err := ctx.Authenticators.List(graph.MustGetUserID())
+	ais, err := ctx.Authenticators.List(goCtx, graph.MustGetUserID())
 	if err != nil {
 		return err
 	}

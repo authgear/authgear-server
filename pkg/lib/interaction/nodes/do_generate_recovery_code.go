@@ -32,7 +32,7 @@ func (n *NodeDoGenerateRecoveryCode) GetEffects(goCtx context.Context) ([]intera
 	return []interaction.Effect{
 		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if len(n.RecoveryCodes) > 0 {
-				_, err := ctx.MFA.ReplaceRecoveryCodes(graph.MustGetUserID(), n.RecoveryCodes)
+				_, err := ctx.MFA.ReplaceRecoveryCodes(goCtx, graph.MustGetUserID(), n.RecoveryCodes)
 				return err
 			}
 

@@ -33,7 +33,7 @@ func (e *EdgeRemoveAuthenticator) Instantiate(goCtx context.Context, ctx *intera
 		bypassMFARequirement = bypassInput.BypassMFARequirement()
 	}
 
-	info, err := ctx.Authenticators.Get(authenticatorID)
+	info, err := ctx.Authenticators.Get(goCtx, authenticatorID)
 	if err != nil {
 		return nil, err
 	}

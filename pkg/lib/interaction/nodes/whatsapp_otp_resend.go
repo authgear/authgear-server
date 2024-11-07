@@ -22,7 +22,7 @@ func (e *EdgeWhatsappOTPResendCode) Instantiate(goCtx context.Context, ctx *inte
 		return nil, interaction.ErrIncompatibleInput
 	}
 
-	_, err := NewSendWhatsappCode(ctx, e.OTPKindFactory, e.Target, true).Do()
+	_, err := NewSendWhatsappCode(ctx, e.OTPKindFactory, e.Target, true).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}

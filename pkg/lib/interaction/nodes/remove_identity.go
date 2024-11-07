@@ -28,7 +28,7 @@ func (e *EdgeRemoveIdentity) Instantiate(goCtx context.Context, ctx *interaction
 
 	identityID := input.GetIdentityID()
 
-	info, err := ctx.Identities.Get(identityID)
+	info, err := ctx.Identities.Get(goCtx, identityID)
 	if err != nil {
 		return nil, err
 	}

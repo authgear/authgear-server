@@ -48,7 +48,7 @@ func (n *NodeEnsureVerificationBegin) GetVerifyIdentityEdges() ([]interaction.Ed
 }
 
 func (n *NodeEnsureVerificationBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
-	claims, err := ctx.Verification.GetIdentityVerificationStatus(n.Identity)
+	claims, err := ctx.Verification.GetIdentityVerificationStatus(goCtx, n.Identity)
 	if err != nil {
 		return err
 	}

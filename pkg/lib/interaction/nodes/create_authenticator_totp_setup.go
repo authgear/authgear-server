@@ -49,7 +49,7 @@ func (e *EdgeCreateAuthenticatorTOTPSetup) Instantiate(goCtx context.Context, ct
 		},
 	}
 
-	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(goCtx, e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}
