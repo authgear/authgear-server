@@ -59,8 +59,9 @@ func (c *Controller) Start() {
 		c.logger.Warn("development mode is ON - do not use in production")
 	}
 
-	configSrcController := newConfigSourceController(p, context.Background())
-	err = configSrcController.Open()
+	ctx := context.Background()
+	configSrcController := newConfigSourceController(p)
+	err = configSrcController.Open(ctx)
 	if err != nil {
 		c.logger.WithError(err).Fatal("cannot open configuration")
 	}
