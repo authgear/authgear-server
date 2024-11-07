@@ -1,8 +1,6 @@
 package factory
 
 import (
-	"context"
-
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
@@ -22,7 +20,6 @@ func NewManagerFactoryLogger(lf *log.Factory) ManagerFactoryLogger {
 
 type ManagerFactory struct {
 	Logger            ManagerFactoryLogger
-	Context           context.Context
 	AppBaseResources  deps.AppBaseResources
 	Tutorials         *tutorial.Service
 	DenoClient        *hook.DenoClientImpl
@@ -34,7 +31,6 @@ type ManagerFactory struct {
 func (f *ManagerFactory) NewManagerWithAppContext(appContext *config.AppContext) *appresource.Manager {
 	return &appresource.Manager{
 		Logger:                f.Logger.Logger,
-		Context:               f.Context,
 		AppResourceManager:    appContext.Resources,
 		AppFS:                 appContext.AppFs,
 		AppFeatureConfig:      appContext.Config.FeatureConfig,
@@ -51,7 +47,6 @@ func (f *ManagerFactory) NewManagerWithNewAppFS(appFs resource.Fs) *appresource.
 	resMgr := (*resource.Manager)(f.AppBaseResources).Overlay(appFs)
 	return &appresource.Manager{
 		Logger:             f.Logger.Logger,
-		Context:            f.Context,
 		AppResourceManager: resMgr,
 		AppFS:              appFs,
 		// The newly generated config should not violate any app plan
