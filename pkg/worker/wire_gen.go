@@ -72,11 +72,9 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	smsGatewayEnvironmentNexmoCredentials := smsGatewayEnvironmentConfig.Nexmo
 	smsGatewayEnvironmentTwilioCredentials := smsGatewayEnvironmentConfig.Twilio
 	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
-	context := p.Context
 	manager := appContext.Resources
 	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
-		Context:         context,
 		ResourceManager: manager,
 		Logger:          denoHookLogger,
 	}
@@ -137,7 +135,6 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	service := &whatsapp.Service{
-		Context:                           context,
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
@@ -145,7 +142,6 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		WhatsappConfig:                    whatsappConfig,
 		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
-		TokenStore:                        tokenStore,
 	}
 	sendMessagesLogger := tasks.NewSendMessagesLogger(factory)
 	sendMessagesTask := &tasks.SendMessagesTask{
