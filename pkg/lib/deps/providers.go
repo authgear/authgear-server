@@ -152,7 +152,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 
 	provider := &AppProvider{
 		RootProvider:       p,
-		Context:            ctx,
 		LoggerFactory:      loggerFactory,
 		AppDatabase:        appDatabase,
 		AuditReadDatabase:  auditReadDatabase,
@@ -207,7 +206,6 @@ func (p *RootProvider) Task(factory func(provider *TaskProvider) task.Task) task
 type AppProvider struct {
 	*RootProvider
 
-	Context            context.Context
 	LoggerFactory      *log.Factory
 	AppDatabase        *appdb.Handle
 	AuditReadDatabase  *auditdb.ReadHandle
