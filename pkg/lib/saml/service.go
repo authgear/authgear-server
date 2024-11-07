@@ -46,11 +46,12 @@ type SAMLEndpoints interface {
 }
 
 type SAMLUserInfoProvider interface {
-	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
+	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
 }
 
 type IDPSessionProvider interface {
 	AddSAMLServiceProviderParticipant(
+		ctx context.Context,
 		session *idpsession.IDPSession,
 		serviceProviderID string,
 	) (*idpsession.IDPSession, error)
@@ -58,6 +59,7 @@ type IDPSessionProvider interface {
 
 type OfflineGrantService interface {
 	AddSAMLServiceProviderParticipant(
+		ctx context.Context,
 		grant *oauth.OfflineGrant,
 		serviceProviderID string,
 	) (*oauth.OfflineGrant, error)
@@ -298,7 +300,7 @@ func (s *Service) IssueLoginSuccessResponse(
 	)
 
 	clientLike := spToClientLike(sp)
-	userInfo, err := s.UserInfoProvider.GetUserInfo(authenticatedUserId, clientLike)
+	userInfo, err := s.UserInfoProvider.GetUserInfo(ctx, authenticatedUserId, clientLike)
 	if err != nil {
 		return nil, err
 	}
@@ -461,6 +463,7 @@ func (s *Service) IssueLoginSuccessResponse(
 }
 
 func (s *Service) IssueLogoutRequest(
+	ctx context.Context,
 	sp *config.SAMLServiceProviderConfig,
 	sloSession *samlslosession.SAMLSLOSession,
 ) (*samlprotocol.LogoutRequest, error) {
@@ -470,7 +473,7 @@ func (s *Service) IssueLogoutRequest(
 	notOnOrAfter := now.Add(duration.UserInteraction)
 
 	clientLike := spToClientLike(sp)
-	userInfo, err := s.UserInfoProvider.GetUserInfo(userID, clientLike)
+	userInfo, err := s.UserInfoProvider.GetUserInfo(ctx, userID, clientLike)
 	if err != nil {
 		return nil, err
 	}
@@ -865,12 +868,12 @@ func (s Service) recordSessionParticipant(
 
 	switch resolvedSession := resolvedSession.(type) {
 	case *oauth.OfflineGrantSession:
-		_, err := s.OfflineGrantSessionProvider.AddSAMLServiceProviderParticipant(resolvedSession.OfflineGrant, sp.GetID())
+		_, err := s.OfflineGrantSessionProvider.AddSAMLServiceProviderParticipant(ctx, resolvedSession.OfflineGrant, sp.GetID())
 		if err != nil {
 			return err
 		}
 	case *idpsession.IDPSession:
-		_, err := s.IDPSessionProvider.AddSAMLServiceProviderParticipant(resolvedSession, sp.GetID())
+		_, err := s.IDPSessionProvider.AddSAMLServiceProviderParticipant(ctx, resolvedSession, sp.GetID())
 		if err != nil {
 			return err
 		}

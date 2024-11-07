@@ -5,6 +5,7 @@
 package saml_test
 
 import (
+	context "context"
 	url "net/url"
 	reflect "reflect"
 
@@ -88,18 +89,18 @@ func (m *MockSAMLUserInfoProvider) EXPECT() *MockSAMLUserInfoProviderMockRecorde
 }
 
 // GetUserInfo mocks base method.
-func (m *MockSAMLUserInfoProvider) GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
+func (m *MockSAMLUserInfoProvider) GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUserInfo", userID, clientLike)
+	ret := m.ctrl.Call(m, "GetUserInfo", ctx, userID, clientLike)
 	ret0, _ := ret[0].(map[string]interface{})
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetUserInfo indicates an expected call of GetUserInfo.
-func (mr *MockSAMLUserInfoProviderMockRecorder) GetUserInfo(userID, clientLike interface{}) *gomock.Call {
+func (mr *MockSAMLUserInfoProviderMockRecorder) GetUserInfo(ctx, userID, clientLike interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserInfo", reflect.TypeOf((*MockSAMLUserInfoProvider)(nil).GetUserInfo), userID, clientLike)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserInfo", reflect.TypeOf((*MockSAMLUserInfoProvider)(nil).GetUserInfo), ctx, userID, clientLike)
 }
 
 // MockIDPSessionProvider is a mock of IDPSessionProvider interface.
@@ -126,18 +127,18 @@ func (m *MockIDPSessionProvider) EXPECT() *MockIDPSessionProviderMockRecorder {
 }
 
 // AddSAMLServiceProviderParticipant mocks base method.
-func (m *MockIDPSessionProvider) AddSAMLServiceProviderParticipant(session *idpsession.IDPSession, serviceProviderID string) (*idpsession.IDPSession, error) {
+func (m *MockIDPSessionProvider) AddSAMLServiceProviderParticipant(ctx context.Context, session *idpsession.IDPSession, serviceProviderID string) (*idpsession.IDPSession, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddSAMLServiceProviderParticipant", session, serviceProviderID)
+	ret := m.ctrl.Call(m, "AddSAMLServiceProviderParticipant", ctx, session, serviceProviderID)
 	ret0, _ := ret[0].(*idpsession.IDPSession)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddSAMLServiceProviderParticipant indicates an expected call of AddSAMLServiceProviderParticipant.
-func (mr *MockIDPSessionProviderMockRecorder) AddSAMLServiceProviderParticipant(session, serviceProviderID interface{}) *gomock.Call {
+func (mr *MockIDPSessionProviderMockRecorder) AddSAMLServiceProviderParticipant(ctx, session, serviceProviderID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSAMLServiceProviderParticipant", reflect.TypeOf((*MockIDPSessionProvider)(nil).AddSAMLServiceProviderParticipant), session, serviceProviderID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSAMLServiceProviderParticipant", reflect.TypeOf((*MockIDPSessionProvider)(nil).AddSAMLServiceProviderParticipant), ctx, session, serviceProviderID)
 }
 
 // MockOfflineGrantService is a mock of OfflineGrantService interface.
@@ -164,16 +165,16 @@ func (m *MockOfflineGrantService) EXPECT() *MockOfflineGrantServiceMockRecorder 
 }
 
 // AddSAMLServiceProviderParticipant mocks base method.
-func (m *MockOfflineGrantService) AddSAMLServiceProviderParticipant(grant *oauth.OfflineGrant, serviceProviderID string) (*oauth.OfflineGrant, error) {
+func (m *MockOfflineGrantService) AddSAMLServiceProviderParticipant(ctx context.Context, grant *oauth.OfflineGrant, serviceProviderID string) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddSAMLServiceProviderParticipant", grant, serviceProviderID)
+	ret := m.ctrl.Call(m, "AddSAMLServiceProviderParticipant", ctx, grant, serviceProviderID)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // AddSAMLServiceProviderParticipant indicates an expected call of AddSAMLServiceProviderParticipant.
-func (mr *MockOfflineGrantServiceMockRecorder) AddSAMLServiceProviderParticipant(grant, serviceProviderID interface{}) *gomock.Call {
+func (mr *MockOfflineGrantServiceMockRecorder) AddSAMLServiceProviderParticipant(ctx, grant, serviceProviderID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSAMLServiceProviderParticipant", reflect.TypeOf((*MockOfflineGrantService)(nil).AddSAMLServiceProviderParticipant), grant, serviceProviderID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddSAMLServiceProviderParticipant", reflect.TypeOf((*MockOfflineGrantService)(nil).AddSAMLServiceProviderParticipant), ctx, grant, serviceProviderID)
 }
