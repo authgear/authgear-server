@@ -74,17 +74,17 @@ func (m *MockTutorialService) EXPECT() *MockTutorialServiceMockRecorder {
 }
 
 // OnUpdateResource0 mocks base method.
-func (m *MockTutorialService) OnUpdateResource0(appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) error {
+func (m *MockTutorialService) OnUpdateResource0(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "OnUpdateResource0", appID, resourcesInAllFss, resourceInTargetFs, data)
+	ret := m.ctrl.Call(m, "OnUpdateResource0", ctx, appID, resourcesInAllFss, resourceInTargetFs, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // OnUpdateResource0 indicates an expected call of OnUpdateResource0.
-func (mr *MockTutorialServiceMockRecorder) OnUpdateResource0(appID, resourcesInAllFss, resourceInTargetFs, data interface{}) *gomock.Call {
+func (mr *MockTutorialServiceMockRecorder) OnUpdateResource0(ctx, appID, resourcesInAllFss, resourceInTargetFs, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnUpdateResource0", reflect.TypeOf((*MockTutorialService)(nil).OnUpdateResource0), appID, resourcesInAllFss, resourceInTargetFs, data)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OnUpdateResource0", reflect.TypeOf((*MockTutorialService)(nil).OnUpdateResource0), ctx, appID, resourcesInAllFss, resourceInTargetFs, data)
 }
 
 // MockDomainService is a mock of DomainService interface.
@@ -111,16 +111,16 @@ func (m *MockDomainService) EXPECT() *MockDomainServiceMockRecorder {
 }
 
 // ListDomains mocks base method.
-func (m *MockDomainService) ListDomains(appID string) ([]*model.Domain, error) {
+func (m *MockDomainService) ListDomains(ctx context.Context, appID string) ([]*model.Domain, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListDomains", appID)
+	ret := m.ctrl.Call(m, "ListDomains", ctx, appID)
 	ret0, _ := ret[0].([]*model.Domain)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListDomains indicates an expected call of ListDomains.
-func (mr *MockDomainServiceMockRecorder) ListDomains(appID interface{}) *gomock.Call {
+func (mr *MockDomainServiceMockRecorder) ListDomains(ctx, appID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDomains", reflect.TypeOf((*MockDomainService)(nil).ListDomains), appID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDomains", reflect.TypeOf((*MockDomainService)(nil).ListDomains), ctx, appID)
 }

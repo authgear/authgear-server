@@ -7,7 +7,6 @@
 package background
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
@@ -74,7 +73,7 @@ import (
 
 // Injectors from wire.go:
 
-func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *configsource.Controller {
+func newConfigSourceController(p *deps.BackgroundProvider) *configsource.Controller {
 	config := p.ConfigSourceConfig
 	factory := p.LoggerFactory
 	localFSLogger := configsource.NewLocalFSLogger(factory)
@@ -90,10 +89,10 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 	clock := _wireSystemClockValue
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	storeFactory := configsource.NewStoreFactory(c, sqlBuilder)
+	storeFactory := configsource.NewStoreFactory(sqlBuilder)
 	pool := p.DatabasePool
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	databaseHandleFactory := configsource.NewDatabaseHandleFactory(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
 		Logger:                databaseLogger,
@@ -115,7 +114,7 @@ var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
 
-func newAccountAnonymizationRunner(p *deps.BackgroundProvider, c context.Context, ctrl *configsource.Controller) *backgroundjob.Runner {
+func newAccountAnonymizationRunner(p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
 	factory := p.LoggerFactory
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
@@ -130,7 +129,7 @@ func newAccountAnonymizationRunner(p *deps.BackgroundProvider, c context.Context
 	return runner
 }
 
-func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctrl *configsource.Controller) *backgroundjob.Runner {
+func newAccountDeletionRunner(p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
 	factory := p.LoggerFactory
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
@@ -145,7 +144,7 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctr
 	return runner
 }
 
-func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID string, appContext *config.AppContext) *UserService {
+func newUserService(p *deps.BackgroundProvider, appID string, appContext *config.AppContext) *UserService {
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
@@ -153,11 +152,11 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	factory := p.LoggerFactory
-	handle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	appConfig := configConfig.AppConfig
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, configAppID)
-	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -248,9 +247,8 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	redisCredentials := deps.ProvideRedisCredentials(secretConfig)
 	appredisHandle := appredis.NewHandle(redisPool, hub, redisEnvironmentConfig, redisCredentials, factory)
 	store2 := &passkey2.Store{
-		Context: ctx,
-		Redis:   appredisHandle,
-		AppID:   configAppID,
+		Redis: appredisHandle,
+		AppID: configAppID,
 	}
 	request := NewDummyHTTPRequest()
 	trustProxy := environmentConfig.TrustProxy
@@ -270,7 +268,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := p.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           ctx,
 		Localization:      localizationConfig,
 		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
@@ -279,7 +276,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
-		Context:        ctx,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -303,10 +299,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
-		Context: ctx,
-		Redis:   appredisHandle,
-		AppID:   configAppID,
-		Clock:   clockClock,
+		Redis: appredisHandle,
+		AppID: configAppID,
+		Clock: clockClock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
@@ -557,7 +552,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
-		Context:         ctx,
 		ResourceManager: manager,
 		Logger:          denoHookLogger,
 	}
@@ -584,9 +578,9 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	auditLogger := audit.NewLogger(factory)
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
-	writeHandle := auditdb.NewWriteHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, configAppID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
@@ -604,7 +598,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
 		Clock:           clockClock,
-		Context:         ctx,
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           configAppID,
@@ -621,7 +614,7 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(ctx, configAppID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(configAppID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -694,7 +687,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	whatsappService := &whatsapp.Service{
-		Context:                           ctx,
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
@@ -702,7 +694,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 		WhatsappConfig:                    whatsappConfig,
 		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
-		TokenStore:                        tokenStore,
 	}
 	sender := &messaging.Sender{
 		Limits:                 limits,
@@ -748,7 +739,6 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     ctx,
 		Redis:       appredisHandle,
 		AppID:       configAppID,
 		Logger:      redisLogger,
@@ -768,18 +758,16 @@ func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID strin
 	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, analyticRedisCredentials, factory)
 	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: ctx,
-		Redis:   analyticredisHandle,
-		AppID:   configAppID,
-		Clock:   clockClock,
-		Logger:  meterStoreRedisLogger,
+		Redis:  analyticredisHandle,
+		AppID:  configAppID,
+		Clock:  clockClock,
+		Logger: meterStoreRedisLogger,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:         ctx,
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
 		AppID:           configAppID,

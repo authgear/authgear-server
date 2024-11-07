@@ -128,15 +128,14 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 		Clock:  clockClock,
 		Host:   httpHost,
 	}
-	context := deps2.ProvideRequestContext(request)
 	pool := rootProvider.DatabasePool
 	databaseEnvironmentConfig := environmentConfig.DatabaseConfig
 	databaseCredentials := deps2.ProvideDatabaseCredentials(secretConfig)
-	handle := appdb.NewHandle(context, pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	appConfig := config.AppConfig
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(context, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	store := &images.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
