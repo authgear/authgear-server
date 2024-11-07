@@ -81,7 +81,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 	loggerFactory.DefaultFields["app"] = cfg.AppConfig.ID
 	provider := &AppProvider{
 		RootProvider:  p,
-		Context:       ctx,
 		Config:        cfg,
 		LoggerFactory: loggerFactory,
 	}
@@ -113,7 +112,6 @@ func (p *RootProvider) Handler(f func(*RequestProvider) http.Handler) http.Handl
 
 type AppProvider struct {
 	*RootProvider
-	Context       context.Context
 	Config        *config.Config
 	LoggerFactory *log.Factory
 }
