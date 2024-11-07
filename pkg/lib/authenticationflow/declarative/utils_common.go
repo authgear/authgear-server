@@ -203,7 +203,8 @@ func findFlowRootObjectInFlow(deps *authflow.Dependencies, flows authflow.Flows)
 func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowLoginFlowStep) (
 	options []AuthenticateOption,
 	deviceTokenEnabled bool,
-	err error) {
+	err error,
+) {
 	options = []AuthenticateOption{}
 
 	identities, err := deps.Identities.ListByUser(userID)
