@@ -1,6 +1,7 @@
 package graphql
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -306,8 +307,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can update app")
 			}
@@ -326,15 +328,15 @@ var _ = registerMutationField(
 			}
 			appID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
 			// Access control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			app, err := gqlCtx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
@@ -400,12 +402,12 @@ var _ = registerMutationField(
 				})
 			}
 
-			err = gqlCtx.AppService.UpdateResources(app, resourceUpdates)
+			err = gqlCtx.AppService.UpdateResources(ctx, app, resourceUpdates)
 			if err != nil {
 				return nil, err
 			}
 
-			newApp, err := gqlCtx.AppService.Get(appID)
+			newApp, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
@@ -423,7 +425,7 @@ var _ = registerMutationField(
 				}
 			}
 
-			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppUpdatedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectAppUpdatedEventPayload{
 				AppConfigOld:     originalAppConfig,
 				AppConfigNew:     newAppConfig,
 				AppConfigDiff:    appConfigDiff,
@@ -435,7 +437,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": gqlCtx.Apps.Load(appID),
+				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
 	},
@@ -474,27 +476,29 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 			appID := input["id"].(string)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+
+			gqlCtx := GQLContext(ctx)
 
 			// Access Control: authenicated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can create app")
 			}
 
 			actorID := sessionInfo.UserID
 
-			err := checkAppQuota(gqlCtx, actorID)
+			err := checkAppQuota(ctx, gqlCtx, actorID)
 			if err != nil {
 				return nil, err
 			}
 
-			app, err := gqlCtx.AppService.Create(actorID, appID)
+			app, err := gqlCtx.AppService.Create(ctx, actorID, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppCreatedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectAppCreatedEventPayload{
 				AppConfig: app.Context.Config.AppConfig,
 			})
 			if err != nil {
@@ -502,7 +506,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": gqlCtx.Apps.Load(appID),
+				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
 	},
@@ -538,8 +542,10 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
+
 			// Access Control: authenicated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can create app")
 			}
@@ -553,20 +559,20 @@ var _ = registerMutationField(
 			}
 			appID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
 			// Access control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.TutorialService.Skip(appID)
+			err = gqlCtx.TutorialService.Skip(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			appLazy := gqlCtx.Apps.Load(appID)
+			appLazy := gqlCtx.Apps.Load(ctx, appID)
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app": appLazy,
 			}).Value, nil
@@ -608,8 +614,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenicated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can create app")
 			}
@@ -624,10 +631,10 @@ var _ = registerMutationField(
 			}
 			appID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
 			// Access control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
@@ -637,12 +644,12 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid progress")
 			}
 
-			err = gqlCtx.TutorialService.RecordProgresses(appID, []tutorial.Progress{progress})
+			err = gqlCtx.TutorialService.RecordProgresses(ctx, appID, []tutorial.Progress{progress})
 			if err != nil {
 				return nil, err
 			}
 
-			appLazy := gqlCtx.Apps.Load(appID)
+			appLazy := gqlCtx.Apps.Load(ctx, appID)
 			return graphqlutil.NewLazyValue(map[string]interface{}{
 				"app": appLazy,
 			}).Value, nil
@@ -685,8 +692,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenicated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can visit secrets")
 			}
@@ -709,25 +717,25 @@ var _ = registerMutationField(
 			}
 			appID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
 			// Access control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			app, err := gqlCtx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			token, err := gqlCtx.AppService.GenerateSecretVisitToken(app, sessionInfo, secrets)
+			token, err := gqlCtx.AppService.GenerateSecretVisitToken(ctx, app, sessionInfo, secrets)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectAppSecretViewedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectAppSecretViewedEventPayload{
 				Secrets: appSecretKeys,
 			})
 			if err != nil {
@@ -776,8 +784,10 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
+
 			// Access Control: authenicated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can generate tester token")
 			}
@@ -791,20 +801,20 @@ var _ = registerMutationField(
 			}
 			appID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
 			// Access control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			app, err := gqlCtx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			token, err := gqlCtx.AppService.GenerateTesterToken(app, returnURI)
+			token, err := gqlCtx.AppService.GenerateTesterToken(ctx, app, returnURI)
 			if err != nil {
 				return nil, err
 			}
@@ -816,8 +826,8 @@ var _ = registerMutationField(
 	},
 )
 
-func checkAppQuota(ctx *Context, userID string) error {
-	quota, err := ctx.AppService.GetProjectQuota(userID)
+func checkAppQuota(ctx context.Context, gqlCtx *Context, userID string) error {
+	quota, err := gqlCtx.AppService.GetProjectQuota(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -827,7 +837,7 @@ func checkAppQuota(ctx *Context, userID string) error {
 		return nil
 	}
 
-	numOwnedApps, err := ctx.CollaboratorService.GetProjectOwnerCount(userID)
+	numOwnedApps, err := gqlCtx.CollaboratorService.GetProjectOwnerCount(ctx, userID)
 	if err != nil {
 		return err
 	}

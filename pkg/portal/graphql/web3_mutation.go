@@ -39,7 +39,8 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 			rawContractURL := input["contractID"].(string)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			contractID, err := web3.ParseContractID(rawContractURL)
 			if err != nil {

@@ -46,8 +46,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can subscribe to a plan")
 			}
@@ -61,22 +62,21 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 			// Access Control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
 			// fetch the subscription plan
-			ctx := GQLContext(p.Context)
-			plan, err := ctx.StripeService.GetSubscriptionPlan(planName)
+			plan, err := gqlCtx.StripeService.GetSubscriptionPlan(ctx, planName)
 			if err != nil {
 				return nil, apierrors.NewInvalid("invalid plan name")
 			}
 
 			// fetch the current user email
-			val, err := ctx.Users.Load(sessionInfo.UserID).Value()
+			val, err := gqlCtx.Users.Load(ctx, sessionInfo.UserID).Value()
 			if err != nil {
 				return nil, apierrors.NewInvalid("failed to load current user")
 			}
@@ -86,23 +86,23 @@ var _ = registerMutationField(
 			}
 
 			// Create the checkout session in stripe
-			cs, err := ctx.StripeService.CreateCheckoutSession(appID, user.Email, plan)
+			cs, err := gqlCtx.StripeService.CreateCheckoutSession(ctx, appID, user.Email, plan)
 			if err != nil {
 				return nil, err
 			}
 
 			// Insert subscription checkout record to the db
-			checkout, err := ctx.SubscriptionService.CreateSubscriptionCheckout(cs)
+			checkout, err := gqlCtx.SubscriptionService.CreateSubscriptionCheckout(ctx, cs)
 			if err != nil {
 				return nil, err
 			}
 
-			app, err := gqlCtx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectBillingCheckoutCreatedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectBillingCheckoutCreatedEventPayload{
 				SubscriptionCheckoutID: checkout.ID,
 				PlanName:               planName,
 			})
@@ -150,8 +150,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can preview update subscription")
 			}
@@ -165,28 +166,27 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 			// Access Control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
 			// Fetch the subscription plan
-			ctx := GQLContext(p.Context)
-			plan, err := ctx.StripeService.GetSubscriptionPlan(planName)
+			plan, err := gqlCtx.StripeService.GetSubscriptionPlan(ctx, planName)
 			if err != nil {
 				return nil, err
 			}
 
 			// Fetch the subscription
-			subscription, err := ctx.SubscriptionService.GetSubscription(appID)
+			subscription, err := gqlCtx.SubscriptionService.GetSubscription(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
 			// Fetch the app
-			app, err := ctx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
@@ -196,7 +196,8 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("changing to the same plan is disallowed")
 			}
 
-			preview, err := ctx.StripeService.PreviewUpdateSubscription(
+			preview, err := gqlCtx.StripeService.PreviewUpdateSubscription(
+				ctx,
 				subscription.StripeSubscriptionID,
 				plan,
 			)
@@ -241,8 +242,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can update subscription")
 			}
@@ -256,28 +258,27 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 			// Access Control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
 			// Fetch the subscription plan
-			ctx := GQLContext(p.Context)
-			plan, err := ctx.StripeService.GetSubscriptionPlan(planName)
+			plan, err := gqlCtx.StripeService.GetSubscriptionPlan(ctx, planName)
 			if err != nil {
 				return nil, err
 			}
 
 			// Fetch the subscription
-			subscription, err := ctx.SubscriptionService.GetSubscription(appID)
+			subscription, err := gqlCtx.SubscriptionService.GetSubscription(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
 			// Fetch the app
-			app, err := ctx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
@@ -287,7 +288,8 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("changing to the same plan is disallowed")
 			}
 
-			err = ctx.StripeService.UpdateSubscription(
+			err = gqlCtx.StripeService.UpdateSubscription(
+				ctx,
 				subscription.StripeSubscriptionID,
 				plan,
 			)
@@ -295,7 +297,8 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = ctx.SubscriptionService.UpdateAppPlan(
+			err = gqlCtx.SubscriptionService.UpdateAppPlan(
+				ctx,
 				appID,
 				planName,
 			)
@@ -303,7 +306,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectBillingSubscriptionUpdatedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectBillingSubscriptionUpdatedEventPayload{
 				SubscriptionID: subscription.ID,
 				PlanName:       planName,
 			})
@@ -312,7 +315,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": ctx.Apps.Load(appID),
+				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
 	},
@@ -350,8 +353,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can create domain")
 			}
@@ -365,16 +369,16 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
-			ctx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 			// Access Control: collaborator.
-			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
 			// Update checkout session customer id and change the status to completed only
 			// Subscription will be created in the webhook
-			cs, err := ctx.StripeService.FetchCheckoutSession(checkoutSessionID)
+			cs, err := gqlCtx.StripeService.FetchCheckoutSession(ctx, checkoutSessionID)
 			if err != nil {
 				return nil, err
 			}
@@ -384,7 +388,8 @@ var _ = registerMutationField(
 			if cs.StripeCustomerID == nil {
 				return nil, apierrors.NewInvalid("missing customer ID in the completed checkout session")
 			}
-			err = ctx.SubscriptionService.MarkCheckoutCompleted(
+			err = gqlCtx.SubscriptionService.MarkCheckoutCompleted(
+				ctx,
 				appID,
 				checkoutSessionID,
 				*cs.StripeCustomerID,
@@ -398,7 +403,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": ctx.Apps.Load(appID),
+				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 
 		},
@@ -433,8 +438,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can create domain")
 			}
@@ -448,20 +454,20 @@ var _ = registerMutationField(
 			}
 
 			appID := resolvedNodeID.ID
-			ctx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
 			// Access Control: collaborator.
-			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			sub, err := ctx.SubscriptionService.GetSubscription(appID)
+			sub, err := gqlCtx.SubscriptionService.GetSubscription(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			s, err := ctx.StripeService.GenerateCustomerPortalSession(appID, sub.StripeCustomerID)
+			s, err := gqlCtx.StripeService.GenerateCustomerPortalSession(appID, sub.StripeCustomerID)
 			if err != nil {
 				return nil, err
 			}
@@ -505,8 +511,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can set subscription cancelled status")
 			}
@@ -519,35 +526,35 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
-			ctx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
 			// Access Control: collaborator.
-			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			subscription, err := ctx.SubscriptionService.GetSubscription(appID)
+			subscription, err := gqlCtx.SubscriptionService.GetSubscription(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			periodEnd, err := ctx.StripeService.SetSubscriptionCancelAtPeriodEnd(subscription.StripeSubscriptionID, cancelled)
+			periodEnd, err := gqlCtx.StripeService.SetSubscriptionCancelAtPeriodEnd(subscription.StripeSubscriptionID, cancelled)
 			if err != nil {
 				return nil, err
 			}
 
-			err = ctx.SubscriptionService.SetSubscriptionCancelledStatus(subscription.ID, cancelled, periodEnd)
+			err = gqlCtx.SubscriptionService.SetSubscriptionCancelledStatus(ctx, subscription.ID, cancelled, periodEnd)
 			if err != nil {
 				return nil, err
 			}
 
-			app, err := ctx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = ctx.AuditService.Log(app, &nonblocking.ProjectBillingSubscriptionStatusUpdatedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectBillingSubscriptionStatusUpdatedEventPayload{
 				SubscriptionID: subscription.ID,
 				Cancelled:      cancelled,
 			})
@@ -556,7 +563,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": ctx.Apps.Load(appID),
+				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
 	},
@@ -590,8 +597,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can cancel failed subscription")
 			}
@@ -603,15 +611,15 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid app ID")
 			}
 			appID := resolvedNodeID.ID
-			ctx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
 			// Access Control: collaborator.
-			_, err := ctx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			customerID, err := ctx.SubscriptionService.GetLastProcessingCustomerID(appID)
+			customerID, err := gqlCtx.SubscriptionService.GetLastProcessingCustomerID(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
@@ -619,7 +627,7 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("last completed checkout session not found")
 			}
 
-			subscription, err := ctx.StripeService.GetSubscription(*customerID)
+			subscription, err := gqlCtx.StripeService.GetSubscription(ctx, *customerID)
 			if err != nil {
 				return nil, err
 			}
@@ -633,9 +641,9 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("subscription not found or the subscription doesn't have payment error")
 			}
 
-			err = ctx.StripeService.CancelSubscriptionImmediately(subscription.ID)
+			err = gqlCtx.StripeService.CancelSubscriptionImmediately(ctx, subscription.ID)
 			if err != nil {
-				ctx.Logger().WithError(err).Error("failed to cancel subscription")
+				gqlCtx.Logger().WithError(err).Error("failed to cancel subscription")
 				return nil, apierrors.NewInternalError("failed to cancel subscription")
 			}
 
@@ -645,18 +653,18 @@ var _ = registerMutationField(
 			//
 			// although the status will be changed by webhook
 			// we set it to expiry first to avoid ui inconsistent before the webhook come
-			err = ctx.SubscriptionService.MarkCheckoutExpired(appID, *customerID)
+			err = gqlCtx.SubscriptionService.MarkCheckoutExpired(ctx, appID, *customerID)
 			if err != nil {
-				ctx.Logger().WithError(err).Error("failed to update checkout session status")
+				gqlCtx.Logger().WithError(err).Error("failed to update checkout session status")
 				return nil, apierrors.NewInternalError("failed to update checkout session status")
 			}
 
-			app, err := ctx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = ctx.AuditService.Log(app, &nonblocking.ProjectBillingSubscriptionCancelledEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectBillingSubscriptionCancelledEventPayload{
 				SubscriptionID: subscription.ID,
 				CustomerID:     *customerID,
 			})
@@ -665,7 +673,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": ctx.Apps.Load(appID),
+				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
 	},

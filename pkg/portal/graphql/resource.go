@@ -36,9 +36,10 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 		"data": &graphql.Field{
 			Type: graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				ctx := GQLContext(p.Context)
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
 				r := p.Source.(*model.AppResource)
-				resMgr := ctx.AppResMgrFactory.NewManagerWithAppContext(r.Context)
+				resMgr := gqlCtx.AppResMgrFactory.NewManagerWithAppContext(r.Context)
 				result, err := resMgr.ReadAppFile(r.DescriptedPath.Descriptor,
 					&resource.AppFile{
 						Path: r.DescriptedPath.Path,
@@ -70,9 +71,10 @@ var appResource = graphql.NewObject(graphql.ObjectConfig{
 		"checksum": &graphql.Field{
 			Type: graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				ctx := GQLContext(p.Context)
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
 				r := p.Source.(*model.AppResource)
-				resMgr := ctx.AppResMgrFactory.NewManagerWithAppContext(r.Context)
+				resMgr := gqlCtx.AppResMgrFactory.NewManagerWithAppContext(r.Context)
 				result, err := resMgr.ReadAppFile(r.DescriptedPath.Descriptor,
 					&resource.AppFile{
 						Path: r.DescriptedPath.Path,

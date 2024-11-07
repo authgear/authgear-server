@@ -288,9 +288,10 @@ var nodeApp = node(
 						}
 					}
 
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
-					appResMgr := ctx.AppResMgrFactory.NewManagerWithAppContext(app.Context)
+					appResMgr := gqlCtx.AppResMgrFactory.NewManagerWithAppContext(app.Context)
 					if len(paths) == 0 {
 						return []*model.AppResource{}, nil
 					}
@@ -312,18 +313,20 @@ var nodeApp = node(
 			"rawAppConfig": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
-					config, _, err := ctx.AppService.LoadRawAppConfig(app)
+					config, _, err := gqlCtx.AppService.LoadRawAppConfig(app)
 					return config, err
 				},
 			},
 			"rawAppConfigChecksum": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
-					_, checksum, err := ctx.AppService.LoadRawAppConfig(app)
+					_, checksum, err := gqlCtx.AppService.LoadRawAppConfig(app)
 					return checksum, err
 				},
 			},
@@ -335,7 +338,8 @@ var nodeApp = node(
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					var token string
 					if tokenRaw, ok := p.Args["token"]; ok {
 						if t, ok := tokenRaw.(string); ok {
@@ -343,12 +347,12 @@ var nodeApp = node(
 						}
 					}
 					app := p.Source.(*model.App)
-					sessionInfo := session.GetValidSessionInfo(p.Context)
+					sessionInfo := session.GetValidSessionInfo(ctx)
 					if sessionInfo == nil {
 						return nil, Unauthenticated.New("only authenticated users can view app secret")
 					}
 
-					secretConfig, _, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, token)
+					secretConfig, _, err := gqlCtx.AppService.LoadAppSecretConfig(ctx, app, sessionInfo, token)
 					if err != nil {
 						return nil, err
 					}
@@ -359,7 +363,8 @@ var nodeApp = node(
 			"secretConfigChecksum": &graphql.Field{
 				Type: graphql.NewNonNull(AppConfig),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					var token string
 					if tokenRaw, ok := p.Args["token"]; ok {
 						if t, ok := tokenRaw.(string); ok {
@@ -367,12 +372,12 @@ var nodeApp = node(
 						}
 					}
 					app := p.Source.(*model.App)
-					sessionInfo := session.GetValidSessionInfo(p.Context)
+					sessionInfo := session.GetValidSessionInfo(ctx)
 					if sessionInfo == nil {
 						return nil, Unauthenticated.New("only authenticated users can view app secret checksum")
 					}
 
-					_, checksum, err := ctx.AppService.LoadAppSecretConfig(app, sessionInfo, token)
+					_, checksum, err := gqlCtx.AppService.LoadAppSecretConfig(ctx, app, sessionInfo, token)
 					if err != nil {
 						return nil, err
 					}
@@ -405,17 +410,18 @@ var nodeApp = node(
 					},
 				},
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					appID := p.Source.(*model.App).ID
 					planName := p.Source.(*model.App).Context.PlanName
 					date := p.Args["date"].(time.Time)
 
-					plans, err := ctx.StripeService.FetchSubscriptionPlans()
+					plans, err := gqlCtx.StripeService.FetchSubscriptionPlans(ctx)
 					if err != nil {
 						return nil, err
 					}
 
-					subscriptionUsage, err := ctx.SubscriptionService.GetSubscriptionUsage(appID, planName, date, plans)
+					subscriptionUsage, err := gqlCtx.SubscriptionService.GetSubscriptionUsage(ctx, appID, planName, date, plans)
 					if err != nil {
 						return nil, err
 					}
@@ -426,10 +432,11 @@ var nodeApp = node(
 			"subscription": &graphql.Field{
 				Type: subscription,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					appID := p.Source.(*model.App).ID
 
-					subscription, err := ctx.SubscriptionService.GetSubscription(appID)
+					subscription, err := gqlCtx.SubscriptionService.GetSubscription(ctx, appID)
 					if errors.Is(err, service.ErrSubscriptionNotFound) {
 						return nil, nil
 					} else if err != nil {
@@ -442,9 +449,10 @@ var nodeApp = node(
 			"isProcessingSubscription": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.Boolean),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					appID := p.Source.(*model.App).ID
-					customerID, err := ctx.SubscriptionService.GetLastProcessingCustomerID(appID)
+					customerID, err := gqlCtx.SubscriptionService.GetLastProcessingCustomerID(ctx, appID)
 					if err != nil {
 						return nil, err
 					}
@@ -455,9 +463,10 @@ var nodeApp = node(
 			"lastStripeError": &graphql.Field{
 				Type: StripeError,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					appID := p.Source.(*model.App).ID
-					customerID, err := ctx.SubscriptionService.GetLastProcessingCustomerID(appID)
+					customerID, err := gqlCtx.SubscriptionService.GetLastProcessingCustomerID(ctx, appID)
 					if err != nil {
 						return nil, err
 					}
@@ -465,7 +474,7 @@ var nodeApp = node(
 						return nil, err
 					}
 
-					stripeError, err := ctx.StripeService.GetLastPaymentError(*customerID)
+					stripeError, err := gqlCtx.StripeService.GetLastPaymentError(ctx, *customerID)
 					if err != nil {
 						return nil, err
 					}
@@ -476,9 +485,10 @@ var nodeApp = node(
 			"domains": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(domain))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
-					domains, err := ctx.DomainService.ListDomains(app.ID)
+					domains, err := gqlCtx.DomainService.ListDomains(ctx, app.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -487,18 +497,19 @@ var nodeApp = node(
 					for i, domain := range domains {
 						id := domain.ID
 						ids[i] = id
-						ctx.Domains.Prime(id, domain)
+						gqlCtx.Domains.Prime(id, domain)
 					}
 
-					return ctx.Domains.LoadMany(ids).Value, nil
+					return gqlCtx.Domains.LoadMany(ctx, ids).Value, nil
 				},
 			},
 			"collaborators": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(collaborator))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
-					collaborators, err := ctx.CollaboratorService.ListCollaborators(app.ID)
+					collaborators, err := gqlCtx.CollaboratorService.ListCollaborators(ctx, app.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -507,37 +518,39 @@ var nodeApp = node(
 					for i, collaborator := range collaborators {
 						id := collaborator.ID
 						ids[i] = id
-						ctx.Collaborators.Prime(id, collaborator)
+						gqlCtx.Collaborators.Prime(id, collaborator)
 					}
 
-					return ctx.Collaborators.LoadMany(ids).Value, nil
+					return gqlCtx.Collaborators.LoadMany(ctx, ids).Value, nil
 				},
 			},
 			"viewer": &graphql.Field{
 				Type: graphql.NewNonNull(collaborator),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 
-					sessionInfo := session.GetValidSessionInfo(p.Context)
+					sessionInfo := session.GetValidSessionInfo(ctx)
 					if sessionInfo == nil {
 						return nil, Unauthenticated.New("only authenticated users can query app viewer")
 					}
 
 					app := p.Source.(*model.App)
-					collaborator, err := ctx.CollaboratorService.GetCollaboratorByAppAndUser(app.ID, sessionInfo.UserID)
+					collaborator, err := gqlCtx.CollaboratorService.GetCollaboratorByAppAndUser(ctx, app.ID, sessionInfo.UserID)
 					if err != nil {
 						return nil, err
 					}
 
-					return ctx.Collaborators.Load(collaborator.ID).Value, nil
+					return gqlCtx.Collaborators.Load(ctx, collaborator.ID).Value, nil
 				},
 			},
 			"collaboratorInvitations": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(collaboratorInvitation))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
-					invitations, err := ctx.CollaboratorService.ListInvitations(app.ID)
+					invitations, err := gqlCtx.CollaboratorService.ListInvitations(ctx, app.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -546,19 +559,20 @@ var nodeApp = node(
 					for i, invitation := range invitations {
 						id := invitation.ID
 						ids[i] = id
-						ctx.CollaboratorInvitations.Prime(id, invitation)
+						gqlCtx.CollaboratorInvitations.Prime(id, invitation)
 					}
 
-					return ctx.CollaboratorInvitations.LoadMany(ids).Value, nil
+					return gqlCtx.CollaboratorInvitations.LoadMany(ctx, ids).Value, nil
 				},
 			},
 			"tutorialStatus": &graphql.Field{
 				Type: graphql.NewNonNull(tutorialStatus),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
 
-					entry, err := ctx.TutorialService.Get(app.ID)
+					entry, err := gqlCtx.TutorialService.Get(ctx, app.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -569,7 +583,8 @@ var nodeApp = node(
 			"nftCollections": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nftCollection))),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					config := p.Source.(*model.App).Context.Config.AppConfig
 					if config.Web3 == nil {
 						return []interface{}{}, nil
@@ -593,7 +608,7 @@ var nodeApp = node(
 						contractIDs = append(contractIDs, *contractID)
 					}
 
-					collections, err := ctx.NFTService.GetContractMetadata(contractIDs)
+					collections, err := gqlCtx.NFTService.GetContractMetadata(contractIDs)
 					if err != nil {
 						return nil, err
 					}
@@ -604,10 +619,11 @@ var nodeApp = node(
 			"samlIdpEntityID": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := GQLContext(p.Context)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
 					app := p.Source.(*model.App)
 
-					samlIdpEntityID := ctx.AppService.RenderSAMLEntityID(app.ID)
+					samlIdpEntityID := gqlCtx.AppService.RenderSAMLEntityID(app.ID)
 
 					return samlIdpEntityID, nil
 				},
@@ -618,10 +634,10 @@ var nodeApp = node(
 	func(ctx context.Context, id string) (interface{}, error) {
 		gqlCtx := GQLContext(ctx)
 		// return nil without error for both inaccessible / not found apps
-		_, err := gqlCtx.AuthzService.CheckAccessOfViewer(id)
+		_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, id)
 		if err != nil {
 			return nil, nil
 		}
-		return gqlCtx.Apps.Load(id).Value, nil
+		return gqlCtx.Apps.Load(ctx, id).Value, nil
 	},
 )
