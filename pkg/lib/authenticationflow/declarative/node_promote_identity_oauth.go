@@ -48,7 +48,7 @@ func (n *NodePromoteIdentityOAuth) CanReactTo(ctx context.Context, deps *authflo
 func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputOAuth inputTakeOAuthAuthorizationResponse
 	if authflow.AsInput(input, &inputOAuth) {
-		spec, err := handleOAuthAuthorizationResponse(deps, HandleOAuthAuthorizationResponseOptions{
+		spec, err := handleOAuthAuthorizationResponse(ctx, deps, HandleOAuthAuthorizationResponseOptions{
 			Alias:       n.Alias,
 			RedirectURI: n.RedirectURI,
 		}, inputOAuth)
@@ -64,7 +64,7 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 			IdentitySpec:   spec,
 		}
 
-		_, err = findExactOneIdentityInfo(deps, spec)
+		_, err = findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
 				conflicts, err := n.checkConflictByAccountLinkings(ctx, deps, flows, spec)
@@ -81,7 +81,7 @@ func (n *NodePromoteIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.D
 				}
 
 				// promote
-				info, err := newIdentityInfo(deps, n.UserID, spec)
+				info, err := newIdentityInfo(ctx, deps, n.UserID, spec)
 				if err != nil {
 					return nil, err
 				}

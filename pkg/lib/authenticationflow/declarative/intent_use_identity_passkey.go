@@ -87,7 +87,7 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 			},
 		}
 
-		exactMatch, err := findExactOneIdentityInfo(deps, identitySpec)
+		exactMatch, err := findExactOneIdentityInfo(ctx, deps, identitySpec)
 		if err != nil {
 			return nil, err
 		}
@@ -101,12 +101,12 @@ func (n *IntentUseIdentityPasskey) ReactTo(ctx context.Context, deps *authflow.D
 			},
 		}
 
-		authenticators, err := deps.Authenticators.List(userID, authenticator.KeepType(model.AuthenticatorTypePasskey))
+		authenticators, err := deps.Authenticators.List(ctx, userID, authenticator.KeepType(model.AuthenticatorTypePasskey))
 		if err != nil {
 			return nil, err
 		}
 
-		authenticatorInfo, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(
+		authenticatorInfo, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(ctx,
 			userID,
 			model.AuthenticatorTypePasskey,
 			authenticators,

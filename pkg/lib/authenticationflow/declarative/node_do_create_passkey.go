@@ -61,7 +61,7 @@ func (n *NodeDoCreatePasskey) GetEffects(ctx context.Context, deps *authflow.Dep
 
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			err := deps.Identities.Create(n.Identity)
+			err := deps.Identities.Create(ctx, n.Identity)
 			if err != nil {
 				return err
 			}
@@ -69,10 +69,10 @@ func (n *NodeDoCreatePasskey) GetEffects(ctx context.Context, deps *authflow.Dep
 			return nil
 		}),
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.Authenticators.Create(n.Authenticator, false)
+			return deps.Authenticators.Create(ctx, n.Authenticator, false)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.PasskeyService.ConsumeAttestationResponse(n.AttestationResponse)
+			return deps.PasskeyService.ConsumeAttestationResponse(ctx, n.AttestationResponse)
 		}),
 	}, nil
 }

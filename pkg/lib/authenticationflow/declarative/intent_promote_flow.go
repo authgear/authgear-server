@@ -93,7 +93,7 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 			isAnonymous := true
 			// Apply rate limit on sign up.
 			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, isAnonymous, string(deps.RemoteIP))
-			failed, err := deps.RateLimiter.Allow(spec)
+			failed, err := deps.RateLimiter.Allow(ctx, spec)
 			if err != nil {
 				return err
 			}
@@ -106,7 +106,7 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 			// Remove the anonymous identity
 			anonymousIden := i.anonymousIdentity(flows)
 
-			err := deps.Identities.Delete(anonymousIden)
+			err := deps.Identities.Delete(ctx, anonymousIden)
 			if err != nil {
 				return err
 			}
@@ -123,7 +123,7 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 
 			// We have remove the anonymous identity in the previous effect,
 			// so we can simply list the identities here.
-			identities, err := deps.Identities.ListByUser(userID)
+			identities, err := deps.Identities.ListByUser(ctx, userID)
 			if err != nil {
 				return err
 			}
@@ -134,7 +134,7 @@ func (i *IntentPromoteFlow) GetEffects(ctx context.Context, deps *authflow.Depen
 			}
 
 			isAdminAPI := false
-			err = deps.Events.DispatchEventOnCommit(&nonblocking.UserAnonymousPromotedEventPayload{
+			err = deps.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAnonymousPromotedEventPayload{
 				AnonymousUserRef: anonUserRef,
 				UserRef:          anonUserRef,
 				Identities:       identityModels,

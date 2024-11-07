@@ -65,7 +65,7 @@ func (i *IntentCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *a
 	if authflow.AsInput(input, &inputTakeNewPassword) {
 		authenticatorKind := i.Authentication.AuthenticatorKind()
 		newPassword := inputTakeNewPassword.GetNewPassword()
-		isDefault, err := authenticatorIsDefault(deps, i.UserID, authenticatorKind)
+		isDefault, err := authenticatorIsDefault(ctx, deps, i.UserID, authenticatorKind)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func (i *IntentCreateAuthenticatorPassword) ReactTo(ctx context.Context, deps *a
 		}
 
 		authenticatorID := uuid.New()
-		info, err := deps.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)
+		info, err := deps.Authenticators.NewWithAuthenticatorID(ctx, authenticatorID, spec)
 		if err != nil {
 			return nil, err
 		}

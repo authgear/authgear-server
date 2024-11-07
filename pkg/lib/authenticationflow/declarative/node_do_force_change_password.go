@@ -29,7 +29,7 @@ func (*NodeDoForceChangePassword) Kind() string {
 func (n *NodeDoForceChangePassword) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.Authenticators.Update(n.Authenticator)
+			return deps.Authenticators.Update(ctx, n.Authenticator)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			reason := ""
@@ -39,7 +39,7 @@ func (n *NodeDoForceChangePassword) GetEffects(ctx context.Context, deps *authfl
 
 			switch n.Authenticator.Kind {
 			case authenticator.KindPrimary:
-				err := deps.Events.DispatchEventOnCommit(&nonblocking.PasswordPrimaryForceChangedEventPayload{
+				err := deps.Events.DispatchEventOnCommit(ctx, &nonblocking.PasswordPrimaryForceChangedEventPayload{
 					UserRef: model.UserRef{
 						Meta: model.Meta{
 							ID: n.Authenticator.UserID,
@@ -52,7 +52,7 @@ func (n *NodeDoForceChangePassword) GetEffects(ctx context.Context, deps *authfl
 				}
 				return nil
 			case authenticator.KindSecondary:
-				err := deps.Events.DispatchEventOnCommit(&nonblocking.PasswordSecondaryForceChangedEventPayload{
+				err := deps.Events.DispatchEventOnCommit(ctx, &nonblocking.PasswordSecondaryForceChangedEventPayload{
 					UserRef: model.UserRef{
 						Meta: model.Meta{
 							ID: n.Authenticator.UserID,

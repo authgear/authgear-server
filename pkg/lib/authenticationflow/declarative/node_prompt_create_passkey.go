@@ -43,8 +43,8 @@ var _ authflow.DataOutputer = &NodePromptCreatePasskey{}
 var _ authflow.Milestone = &NodePromptCreatePasskey{}
 var _ MilestonePromptCreatePasskey = &NodePromptCreatePasskey{}
 
-func NewNodePromptCreatePasskey(deps *authflow.Dependencies, n *NodePromptCreatePasskey) (*NodePromptCreatePasskey, error) {
-	creationOptions, err := deps.PasskeyCreationOptionsService.MakeCreationOptions(n.UserID)
+func NewNodePromptCreatePasskey(ctx context.Context, deps *authflow.Dependencies, n *NodePromptCreatePasskey) (*NodePromptCreatePasskey, error) {
+	creationOptions, err := deps.PasskeyCreationOptionsService.MakeCreationOptions(ctx, n.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.De
 		}
 
 		authenticatorID := uuid.New()
-		authenticatorInfo, err := deps.Authenticators.NewWithAuthenticatorID(authenticatorID, authenticatorSpec)
+		authenticatorInfo, err := deps.Authenticators.NewWithAuthenticatorID(ctx, authenticatorID, authenticatorSpec)
 		if err != nil {
 			return nil, err
 		}
@@ -117,7 +117,7 @@ func (n *NodePromptCreatePasskey) ReactTo(ctx context.Context, deps *authflow.De
 				AttestationResponse: creationResponseBytes,
 			},
 		}
-		identityInfo, err := deps.Identities.New(n.UserID, identitySpec, identity.NewIdentityOptions{})
+		identityInfo, err := deps.Identities.New(ctx, n.UserID, identitySpec, identity.NewIdentityOptions{})
 		if err != nil {
 			return nil, err
 		}

@@ -84,7 +84,7 @@ func makeCreateAuthenticatorTarget(
 			return nil, "", isSkipped, nil
 		}
 		claimName := getOOBAuthenticatorType(oneOf.GetAuthentication()).ToClaimName()
-		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(deps, userID, claimName, claimValue)
+		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(ctx, deps, userID, claimName, claimValue)
 		if err != nil {
 			return nil, "", isSkipped, err
 		}

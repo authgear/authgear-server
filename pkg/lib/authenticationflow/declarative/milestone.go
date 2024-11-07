@@ -270,7 +270,7 @@ type MilestoneDidReauthenticate interface {
 
 type MilestoneSwitchToExistingUser interface {
 	authflow.Milestone
-	MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error
+	MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error
 }
 
 type MilestoneDoReplaceRecoveryCode interface {

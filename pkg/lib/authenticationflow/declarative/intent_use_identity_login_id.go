@@ -77,7 +77,7 @@ func (n *IntentUseIdentityLoginID) ReactTo(ctx context.Context, deps *authflow.D
 			},
 		}
 
-		exactMatch, err := findExactOneIdentityInfo(deps, spec)
+		exactMatch, err := findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {
 			return nil, err
 		}

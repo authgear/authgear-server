@@ -19,9 +19,9 @@ type NodeDoCreateDeviceToken struct {
 var _ authflow.NodeSimple = &NodeDoCreateDeviceToken{}
 var _ authflow.CookieGetter = &NodeDoCreateDeviceToken{}
 
-func NewNodeDoCreateDeviceToken(deps *authflow.Dependencies, n *NodeDoCreateDeviceToken) (*NodeDoCreateDeviceToken, error) {
-	token := deps.MFA.GenerateDeviceToken()
-	_, err := deps.MFA.CreateDeviceToken(n.UserID, token)
+func NewNodeDoCreateDeviceToken(ctx context.Context, deps *authflow.Dependencies, n *NodeDoCreateDeviceToken) (*NodeDoCreateDeviceToken, error) {
+	token := deps.MFA.GenerateDeviceToken(ctx)
+	_, err := deps.MFA.CreateDeviceToken(ctx, n.UserID, token)
 	if err != nil {
 		return nil, err
 	}

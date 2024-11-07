@@ -57,7 +57,7 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 
 	var inputOAuth inputTakeOAuthAuthorizationResponse
 	if authflow.AsInput(input, &inputOAuth) {
-		spec, err := handleOAuthAuthorizationResponse(deps, HandleOAuthAuthorizationResponseOptions{
+		spec, err := handleOAuthAuthorizationResponse(ctx, deps, HandleOAuthAuthorizationResponseOptions{
 			Alias:       n.Alias,
 			RedirectURI: n.RedirectURI,
 		}, inputOAuth)
@@ -74,7 +74,7 @@ func (n *NodeLookupIdentityOAuth) ReactTo(ctx context.Context, deps *authflow.De
 			BotProtection:  n.SyntheticInput.BotProtection,
 		}
 
-		_, err = findExactOneIdentityInfo(deps, spec)
+		_, err = findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
 				// signup

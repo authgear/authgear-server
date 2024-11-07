@@ -35,8 +35,8 @@ type IntentSignupFlowStepViewRecoveryCode struct {
 	RecoveryCodes []string `json:"recovery_codes,omitempty"`
 }
 
-func NewIntentSignupFlowStepViewRecoveryCode(deps *authflow.Dependencies, i *IntentSignupFlowStepViewRecoveryCode) *IntentSignupFlowStepViewRecoveryCode {
-	i.RecoveryCodes = deps.MFA.GenerateRecoveryCodes()
+func NewIntentSignupFlowStepViewRecoveryCode(ctx context.Context, deps *authflow.Dependencies, i *IntentSignupFlowStepViewRecoveryCode) *IntentSignupFlowStepViewRecoveryCode {
+	i.RecoveryCodes = deps.MFA.GenerateRecoveryCodes(ctx)
 	return i
 }
 
@@ -46,7 +46,7 @@ var _ authflow.Milestone = &IntentSignupFlowStepViewRecoveryCode{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepViewRecoveryCode{}
 
 func (*IntentSignupFlowStepViewRecoveryCode) Milestone() {}
-func (i *IntentSignupFlowStepViewRecoveryCode) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
+func (i *IntentSignupFlowStepViewRecoveryCode) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 

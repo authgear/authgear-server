@@ -32,7 +32,7 @@ func (*IntentSignupFlowSteps) Kind() string {
 
 func (*IntentSignupFlowSteps) Milestone()            {}
 func (*IntentSignupFlowSteps) MilestoneNestedSteps() {}
-func (i *IntentSignupFlowSteps) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
+func (i *IntentSignupFlowSteps) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 	return nil
@@ -90,7 +90,7 @@ func (i *IntentSignupFlowSteps) ReactTo(ctx context.Context, deps *authflow.Depe
 			IsUpdatingExistingUser: i.IsUpdatingExistingUser,
 		}), nil
 	case config.AuthenticationFlowSignupFlowStepTypeViewRecoveryCode:
-		return authflow.NewSubFlow(NewIntentSignupFlowStepViewRecoveryCode(deps, &IntentSignupFlowStepViewRecoveryCode{
+		return authflow.NewSubFlow(NewIntentSignupFlowStepViewRecoveryCode(ctx, deps, &IntentSignupFlowStepViewRecoveryCode{
 			StepName:               step.Name,
 			JSONPointer:            authflow.JSONPointerForStep(i.JSONPointer, nextStepIndex),
 			UserID:                 i.UserID,

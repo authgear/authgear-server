@@ -86,7 +86,7 @@ func (i *IntentLookupIdentityLDAP) ReactTo(ctx context.Context, deps *authflow.D
 				Password:   inputTakeLDAP.GetPassword(),
 			}
 
-			_, err = findExactOneIdentityInfo(deps, spec)
+			_, err = findExactOneIdentityInfo(ctx, deps, spec)
 			if err != nil {
 				if apierrors.IsKind(err, api.UserNotFound) {
 					// signup

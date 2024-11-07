@@ -37,7 +37,7 @@ func NewNodeDoUseIdentityWithUpdate(ctx context.Context, deps *authflow.Dependen
 		}
 	}
 
-	newIdentityInfo, err := deps.Identities.UpdateWithSpec(oldIdentityInfo, spec, identity.NewIdentityOptions{})
+	newIdentityInfo, err := deps.Identities.UpdateWithSpec(ctx, oldIdentityInfo, spec, identity.NewIdentityOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +70,7 @@ func (n *NodeDoUseIdentityWithUpdate) MilestoneDoUseIdentity() *identity.Info {
 func (n *NodeDoUseIdentityWithUpdate) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.Identities.Update(n.OldIdentityInfo, n.NewIdentityInfo)
+			return deps.Identities.Update(ctx, n.OldIdentityInfo, n.NewIdentityInfo)
 		}),
 	}, nil
 }

@@ -91,7 +91,7 @@ func (n *IntentLookupIdentityLoginID) ReactTo(ctx context.Context, deps *authflo
 			LoginID:        loginID,
 		}
 
-		_, err = findExactOneIdentityInfo(deps, spec)
+		_, err = findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {
 			if apierrors.IsKind(err, api.UserNotFound) {
 				// signup

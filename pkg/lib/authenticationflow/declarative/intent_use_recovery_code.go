@@ -75,7 +75,7 @@ func (n *IntentUseRecoveryCode) ReactTo(ctx context.Context, deps *authflow.Depe
 		}
 		recoveryCode := inputTakeRecoveryCode.GetRecoveryCode()
 
-		rc, err := deps.MFA.VerifyRecoveryCode(n.UserID, recoveryCode)
+		rc, err := deps.MFA.VerifyRecoveryCode(ctx, n.UserID, recoveryCode)
 		if err != nil {
 			return nil, err
 		}

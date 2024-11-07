@@ -81,7 +81,7 @@ func (i *IntentReauthFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 				return err
 			}
 
-			err = deps.Authenticators.ClearLockoutAttempts(userID, usedMethods)
+			err = deps.Authenticators.ClearLockoutAttempts(ctx, userID, usedMethods)
 			if err != nil {
 				return err
 			}

@@ -73,6 +73,7 @@ func NewIntentAccountRecoveryFlowStepSelectDestination(
 	step := i.step(current)
 
 	options, err := deriveAccountRecoveryDestinationOptions(
+		ctx,
 		step,
 		iden,
 		deps,
@@ -157,6 +158,7 @@ func (i *IntentAccountRecoveryFlowStepSelectDestination) getOptions() []AccountR
 }
 
 func deriveAccountRecoveryDestinationOptions(
+	ctx context.Context,
 	step *config.AuthenticationFlowAccountRecoveryFlowStep,
 	iden AccountRecoveryIdentity,
 	deps *authflow.Dependencies,
@@ -170,7 +172,7 @@ func deriveAccountRecoveryDestinationOptions(
 
 	if iden.MaybeIdentity != nil && step.EnumerateDestinations {
 		userID := iden.MaybeIdentity.UserID
-		userIdens, err := deps.Identities.ListByUser(userID)
+		userIdens, err := deps.Identities.ListByUser(ctx, userID)
 		if err != nil {
 			return nil, err
 		}

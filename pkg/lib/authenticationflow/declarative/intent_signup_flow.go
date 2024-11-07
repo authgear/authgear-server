@@ -47,7 +47,7 @@ func (i *IntentSignupFlow) FlowRootObject(deps *authflow.Dependencies) (config.A
 }
 
 func (*IntentSignupFlow) Milestone() {}
-func (i *IntentSignupFlow) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
+func (i *IntentSignupFlow) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	milestone, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateUser](flows)
 	if ok {
 		milestone.MilestoneDoCreateUserUseExisting(newUserID)
@@ -109,7 +109,7 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			// Apply rate limit on sign up.
 			spec := SignupPerIPRateLimitBucketSpec(deps.Config.Authentication, false, string(deps.RemoteIP))
-			failed, err := deps.RateLimiter.Allow(spec)
+			failed, err := deps.RateLimiter.Allow(ctx, spec)
 			if err != nil {
 				return err
 			}
@@ -126,22 +126,22 @@ func (i *IntentSignupFlow) GetEffects(ctx context.Context, deps *authflow.Depend
 			}
 			isAdminAPI := false
 
-			u, err := deps.Users.GetRaw(userID)
+			u, err := deps.Users.GetRaw(ctx, userID)
 			if err != nil {
 				return err
 			}
 
-			identities, err := deps.Identities.ListByUser(userID)
+			identities, err := deps.Identities.ListByUser(ctx, userID)
 			if err != nil {
 				return err
 			}
 
-			authenticators, err := deps.Authenticators.List(userID)
+			authenticators, err := deps.Authenticators.List(ctx, userID)
 			if err != nil {
 				return err
 			}
 
-			err = deps.Users.AfterCreate(
+			err = deps.Users.AfterCreate(ctx,
 				u,
 				identities,
 				authenticators,

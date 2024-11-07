@@ -53,7 +53,7 @@ func (n *NodeOAuth) ReactTo(ctx context.Context, deps *authflow.Dependencies, fl
 		spec := syntheticInputOAuth.GetIdentitySpec()
 		return n.reactTo(ctx, deps, flows, spec)
 	case authflow.AsInput(input, &inputOAuth):
-		spec, err := handleOAuthAuthorizationResponse(deps, HandleOAuthAuthorizationResponseOptions{
+		spec, err := handleOAuthAuthorizationResponse(ctx, deps, HandleOAuthAuthorizationResponseOptions{
 			Alias:       n.Alias,
 			RedirectURI: n.RedirectURI,
 		}, inputOAuth)
@@ -91,7 +91,7 @@ func (n *NodeOAuth) reactTo(ctx context.Context, deps *authflow.Dependencies, fl
 	}
 	// Else login
 
-	exactMatch, err := findExactOneIdentityInfo(deps, spec)
+	exactMatch, err := findExactOneIdentityInfo(ctx, deps, spec)
 	if err != nil {
 		return nil, err
 	}

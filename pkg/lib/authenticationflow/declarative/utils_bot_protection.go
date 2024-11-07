@@ -112,7 +112,7 @@ func handleExistingBotProtectionVerificationResult(ctx context.Context, deps *au
 
 }
 func verifyBotProtectionToken(ctx context.Context, deps *authflow.Dependencies, token string) (bpSpecialErr error, err error) {
-	err = deps.BotProtection.Verify(token)
+	err = deps.BotProtection.Verify(ctx, token)
 
 	switch {
 	case errors.Is(err, botprotection.ErrVerificationFailed):

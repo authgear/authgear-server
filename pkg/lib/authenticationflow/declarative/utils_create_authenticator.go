@@ -63,11 +63,12 @@ func getCreateAuthenticatorOOBOTPTargetFromTargetStep(
 }
 
 func getCreateAuthenticatorOOBOTPTargetVerified(
+	ctx context.Context,
 	deps *authflow.Dependencies,
 	userID string,
 	claimName model.ClaimName,
 	claimValue string) (bool, error) {
-	claimStatus, err := deps.Verification.GetClaimStatus(userID, claimName, claimValue)
+	claimStatus, err := deps.Verification.GetClaimStatus(ctx, userID, claimName, claimValue)
 	if err != nil {
 		return false, err
 	}

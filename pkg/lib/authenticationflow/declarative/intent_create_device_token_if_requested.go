@@ -59,7 +59,7 @@ func (i *IntentCreateDeviceTokenIfRequested) ReactTo(ctx context.Context, deps *
 			return authflow.NewNodeSimple(&NodeSentinel{}), nil
 		}
 
-		n, err := NewNodeDoCreateDeviceToken(deps, &NodeDoCreateDeviceToken{
+		n, err := NewNodeDoCreateDeviceToken(ctx, deps, &NodeDoCreateDeviceToken{
 			UserID: i.UserID,
 		})
 		if err != nil {

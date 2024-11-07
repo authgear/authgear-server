@@ -94,7 +94,7 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 				return nil, err
 			}
 			index := inputTakeAuthenticationOptionIndex.GetIndex()
-			info, isNew, err := n.pickAuthenticator(deps, n.Options, index)
+			info, isNew, err := n.pickAuthenticator(ctx, deps, n.Options, index)
 			if err != nil {
 				return nil, errors.Join(bpSpecialErr, err)
 			}
@@ -133,12 +133,12 @@ func (n *IntentUseAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *authfl
 }
 
 // nolint:gocognit
-func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependencies, options []AuthenticateOption, index int) (info *authenticator.Info, isNew bool, err error) {
+func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(ctx context.Context, deps *authflow.Dependencies, options []AuthenticateOption, index int) (info *authenticator.Info, isNew bool, err error) {
 	for idx, c := range options {
 		if idx == index {
 			switch {
 			case c.AuthenticatorID != "":
-				info, err = deps.Authenticators.Get(c.AuthenticatorID)
+				info, err = deps.Authenticators.Get(ctx, c.AuthenticatorID)
 				if err != nil {
 					return
 				}
@@ -146,19 +146,19 @@ func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependen
 				return
 			case c.IdentityID != "":
 				var identityInfo *identity.Info
-				identityInfo, err = deps.Identities.Get(c.IdentityID)
+				identityInfo, err = deps.Identities.Get(ctx, c.IdentityID)
 				if err != nil {
 					return
 				}
 
-				info, err = n.createAuthenticator(deps, identityInfo)
+				info, err = n.createAuthenticator(ctx, deps, identityInfo)
 				if err != nil {
 					return
 				}
 
 				// Check if the just-in-time authenticator is a duplicate.
 				var allAuthenticators []*authenticator.Info
-				allAuthenticators, err = deps.Authenticators.List(n.UserID)
+				allAuthenticators, err = deps.Authenticators.List(ctx, n.UserID)
 				if err != nil {
 					return
 				}
@@ -185,13 +185,13 @@ func (n *IntentUseAuthenticatorOOBOTP) pickAuthenticator(deps *authflow.Dependen
 	return
 }
 
-func (n *IntentUseAuthenticatorOOBOTP) createAuthenticator(deps *authflow.Dependencies, info *identity.Info) (*authenticator.Info, error) {
+func (n *IntentUseAuthenticatorOOBOTP) createAuthenticator(ctx context.Context, deps *authflow.Dependencies, info *identity.Info) (*authenticator.Info, error) {
 	if info.Type != model.IdentityTypeLoginID || info.LoginID == nil {
 		panic(fmt.Errorf("expected only Login ID identity can create OOB OTP authenticator just-in-time"))
 	}
 
 	target := info.LoginID.LoginID
-	authenticatorInfo, err := createAuthenticator(deps, n.UserID, n.Authentication, target)
+	authenticatorInfo, err := createAuthenticator(ctx, deps, n.UserID, n.Authentication, target)
 	if err != nil {
 		return nil, err
 	}

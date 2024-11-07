@@ -89,12 +89,12 @@ func (n *IntentUseAuthenticatorPasskey) ReactTo(ctx context.Context, deps *authf
 			},
 		}
 
-		authenticators, err := deps.Authenticators.List(n.UserID, authenticator.KeepType(model.AuthenticatorTypePasskey))
+		authenticators, err := deps.Authenticators.List(ctx, n.UserID, authenticator.KeepType(model.AuthenticatorTypePasskey))
 		if err != nil {
 			return nil, err
 		}
 
-		authenticatorInfo, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(
+		authenticatorInfo, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(ctx,
 			n.UserID,
 			model.AuthenticatorTypePasskey,
 			authenticators,

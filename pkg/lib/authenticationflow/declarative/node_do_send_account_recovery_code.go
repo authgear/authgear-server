@@ -49,10 +49,11 @@ func (*NodeDoSendAccountRecoveryCode) Kind() string {
 }
 
 func (n *NodeDoSendAccountRecoveryCode) Send(
+	ctx context.Context,
 	deps *authflow.Dependencies,
 	ignoreRateLimitError bool,
 ) error {
-	err := deps.ForgotPassword.SendCode(n.TargetLoginID, &forgotpassword.CodeOptions{
+	err := deps.ForgotPassword.SendCode(ctx, n.TargetLoginID, &forgotpassword.CodeOptions{
 		AuthenticationFlowType:        string(n.FlowReference.Type),
 		AuthenticationFlowName:        n.FlowReference.Name,
 		AuthenticationFlowJSONPointer: n.ParentJSONPointer,

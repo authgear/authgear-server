@@ -23,7 +23,7 @@ func NewNodeCheckLoginHint(ctx context.Context, deps *authflow.Dependencies, use
 		UserID:    userID,
 		LoginHint: loginHintStr,
 	}
-	err := node.check(deps)
+	err := node.check(ctx, deps)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (n *NodeCheckLoginHint) Kind() string {
 func (n *NodeCheckLoginHint) Milestone()               {}
 func (n *NodeCheckLoginHint) MilestoneCheckLoginHint() {}
 
-func (n *NodeCheckLoginHint) check(deps *authflow.Dependencies) error {
+func (n *NodeCheckLoginHint) check(ctx context.Context, deps *authflow.Dependencies) error {
 	loginHint, err := oauth.ParseLoginHint(n.LoginHint)
 	if err != nil {
 		// Not a valid login_hint, skip the check
@@ -53,14 +53,14 @@ func (n *NodeCheckLoginHint) check(deps *authflow.Dependencies) error {
 	}
 	switch loginHint.Type {
 	case oauth.LoginHintTypeLoginID:
-		return n.checkEnforcedLoginID(deps, loginHint)
+		return n.checkEnforcedLoginID(ctx, deps, loginHint)
 	default:
 		panic(fmt.Errorf("enforcing login_hint of type %s unsupported", loginHint.Type))
 	}
 }
 
-func (n *NodeCheckLoginHint) checkEnforcedLoginID(deps *authflow.Dependencies, hint *oauth.LoginHint) error {
-	userIDs, err := deps.UserFacade.GetUserIDsByLoginHint(hint)
+func (n *NodeCheckLoginHint) checkEnforcedLoginID(ctx context.Context, deps *authflow.Dependencies, hint *oauth.LoginHint) error {
+	userIDs, err := deps.UserFacade.GetUserIDsByLoginHint(ctx, hint)
 	if err != nil {
 		return err
 	}

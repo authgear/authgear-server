@@ -77,7 +77,7 @@ func (n *IntentUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow
 		if err != nil {
 			return nil, err
 		}
-		as, err := deps.Authenticators.List(
+		as, err := deps.Authenticators.List(ctx,
 			n.UserID,
 			authenticator.KeepKind(n.Authentication.AuthenticatorKind()),
 			authenticator.KeepType(model.AuthenticatorTypeTOTP),
@@ -93,7 +93,7 @@ func (n *IntentUseAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow
 			},
 		}
 
-		info, _, err := deps.Authenticators.VerifyOneWithSpec(
+		info, _, err := deps.Authenticators.VerifyOneWithSpec(ctx,
 			n.UserID,
 			model.AuthenticatorTypeTOTP,
 			as,

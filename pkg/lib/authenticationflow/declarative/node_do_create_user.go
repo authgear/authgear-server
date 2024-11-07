@@ -53,7 +53,7 @@ func (n *NodeDoCreateUser) GetEffects(ctx context.Context, deps *authflow.Depend
 			if n.SkipCreation {
 				return nil
 			}
-			_, err := deps.Users.Create(n.UserID)
+			_, err := deps.Users.Create(ctx, n.UserID)
 			return err
 		}),
 	}, nil

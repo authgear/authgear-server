@@ -30,7 +30,7 @@ func (*IntentSignupFlowStepPromptCreatePasskey) Kind() string {
 }
 
 func (i *IntentSignupFlowStepPromptCreatePasskey) Milestone() {}
-func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
+func (i *IntentSignupFlowStepPromptCreatePasskey) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 
 	milestoneDoCreateIdentity, _, ok := authflow.FindMilestoneInCurrentFlow[MilestoneDoCreateIdentity](flows)
@@ -77,7 +77,7 @@ func (i *IntentSignupFlowStepPromptCreatePasskey) ReactTo(ctx context.Context, d
 		return authflow.NewNodeSimple(&NodeSentinel{}), nil
 	}
 
-	ais, err := deps.Authenticators.List(
+	ais, err := deps.Authenticators.List(ctx,
 		i.UserID,
 		authenticator.KeepKind(authenticator.KindPrimary),
 		authenticator.KeepType(model.AuthenticatorTypePasskey),
@@ -92,7 +92,7 @@ func (i *IntentSignupFlowStepPromptCreatePasskey) ReactTo(ctx context.Context, d
 	}
 
 	// Otherwise it is OK to prompt.
-	n, err := NewNodePromptCreatePasskey(deps, &NodePromptCreatePasskey{
+	n, err := NewNodePromptCreatePasskey(ctx, deps, &NodePromptCreatePasskey{
 		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,
 	})
