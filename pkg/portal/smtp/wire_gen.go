@@ -7,7 +7,6 @@
 package smtp
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -15,7 +14,7 @@ import (
 
 // Injectors from wire.go:
 
-func NewTranslationService(ctx context.Context, app *model.App) *translation.Service {
+func NewTranslationService(app *model.App) *translation.Service {
 	manager := ProvideResourceManager(app)
 	defaultLanguageTag := ProvideDefaultLanguageTag(app)
 	supportedLanguageTags := ProvideSupportedLanguageTags(app)
@@ -29,7 +28,6 @@ func NewTranslationService(ctx context.Context, app *model.App) *translation.Ser
 	}
 	noopStaticAssetResolver := ProvideStaticAssetResolver()
 	service := &translation.Service{
-		Context:        ctx,
 		TemplateEngine: engine,
 		StaticAssets:   noopStaticAssetResolver,
 	}

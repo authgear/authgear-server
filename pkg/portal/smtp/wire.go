@@ -4,8 +4,6 @@
 package smtp
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -14,7 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-func NewTranslationService(ctx context.Context, app *model.App) *translation.Service {
+func NewTranslationService(app *model.App) *translation.Service {
 	panic(wire.Build(
 		ProvideStaticAssetResolver,
 		ProvideResourceManager,
