@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -16,15 +17,15 @@ func init() {
 
 type NodeResetPasswordBegin struct{}
 
-func (n *NodeResetPasswordBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeResetPasswordBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeResetPasswordBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeResetPasswordBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeResetPasswordBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeResetPasswordBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{&EdgeResetPassword{}}, nil
 }
 
@@ -43,7 +44,7 @@ type InputResetPasswordByCode interface {
 
 type EdgeResetPassword struct{}
 
-func (e *EdgeResetPassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeResetPassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var resetInput InputResetPassword
 	var codeInput InputResetPasswordByCode
 	successPageCookie := ctx.CookieManager.ValueCookie(successpage.PathCookieDef, "/flows/reset_password/success")
@@ -77,13 +78,13 @@ func (n *NodeResetPasswordEnd) GetCookies() []*http.Cookie {
 	return []*http.Cookie{n.SuccessPageCookie}
 }
 
-func (n *NodeResetPasswordEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeResetPasswordEnd) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeResetPasswordEnd) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.InputResetPassword != nil {
 				resetInput := n.InputResetPassword
 
@@ -134,6 +135,6 @@ func (n *NodeResetPasswordEnd) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeResetPasswordEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeResetPasswordEnd) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

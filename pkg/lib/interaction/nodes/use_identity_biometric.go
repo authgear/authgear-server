@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -26,7 +27,7 @@ type EdgeUseIdentityBiometric struct {
 	IsCreating       bool
 }
 
-func (e *EdgeUseIdentityBiometric) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUseIdentityBiometric) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityBiometric
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -127,15 +128,15 @@ type NodeUseIdentityBiometric struct {
 	IdentitySpec     *identity.Spec `json:"identity_spec"`
 }
 
-func (n *NodeUseIdentityBiometric) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeUseIdentityBiometric) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityBiometric) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeUseIdentityBiometric) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeUseIdentityBiometric) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeUseIdentityBiometric) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	if n.IsCreating {
 		return []interaction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	}

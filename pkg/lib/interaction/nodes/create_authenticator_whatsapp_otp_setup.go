@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -35,7 +37,7 @@ func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) AuthenticatorType() model.Auth
 	return model.AuthenticatorTypeOOBSMS
 }
 
-func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorWhatsappOTPSetup) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var userID string
 	var phone string
 	if e.Stage == authn.AuthenticationStagePrimary {
@@ -133,15 +135,15 @@ func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetSelectedPhoneNumberForPhone
 	return n.Phone
 }
 
-func (n *NodeCreateAuthenticatorWhatsappOTPSetup) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeCreateAuthenticatorWhatsappOTPSetup) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeCreateAuthenticatorWhatsappOTPSetup) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateAuthenticatorWhatsappOTPSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeCreateAuthenticatorWhatsappOTPSetup) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeWhatsappOTPResendCode{
 			Target:         n.Phone,

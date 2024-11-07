@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -14,7 +16,7 @@ type EdgeUpdateIdentityEnd struct {
 	IdentitySpec *identity.Spec
 }
 
-func (e *EdgeUpdateIdentityEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUpdateIdentityEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	identityID := graph.MustGetUpdateIdentityID()
 
 	oldInfo, err := ctx.Identities.Get(identityID)
@@ -57,14 +59,14 @@ type NodeUpdateIdentityEnd struct {
 	IdentityAfterUpdate  *identity.Info `json:"identity_after_update"`
 }
 
-func (n *NodeUpdateIdentityEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeUpdateIdentityEnd) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeUpdateIdentityEnd) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeUpdateIdentityEnd) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeUpdateIdentityEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeUpdateIdentityEnd) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

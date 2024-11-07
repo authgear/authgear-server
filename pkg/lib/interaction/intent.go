@@ -1,12 +1,13 @@
 package interaction
 
 import (
+	"context"
 	"reflect"
 )
 
 type Intent interface {
-	InstantiateRootNode(ctx *Context, graph *Graph) (Node, error)
-	DeriveEdgesForNode(graph *Graph, node Node) ([]Edge, error)
+	InstantiateRootNode(goCtx context.Context, ctx *Context, graph *Graph) (Node, error)
+	DeriveEdgesForNode(goCtx context.Context, graph *Graph, node Node) ([]Edge, error)
 }
 
 type IntentFactory func() Intent

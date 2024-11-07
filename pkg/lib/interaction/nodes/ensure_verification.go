@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
@@ -17,7 +19,7 @@ type EdgeEnsureVerificationBegin struct {
 	RequestedByUser bool
 }
 
-func (e *EdgeEnsureVerificationBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeEnsureVerificationBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	skipVerification := false
 	var skipInput interface{ SkipVerification() bool }
 	if interaction.Input(rawInput, &skipInput) && skipInput.SkipVerification() {
@@ -45,7 +47,7 @@ func (n *NodeEnsureVerificationBegin) GetVerifyIdentityEdges() ([]interaction.Ed
 	return n.deriveEdges()
 }
 
-func (n *NodeEnsureVerificationBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeEnsureVerificationBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	claims, err := ctx.Verification.GetIdentityVerificationStatus(n.Identity)
 	if err != nil {
 		return err
@@ -60,11 +62,11 @@ func (n *NodeEnsureVerificationBegin) Prepare(ctx *interaction.Context, graph *i
 	return nil
 }
 
-func (n *NodeEnsureVerificationBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeEnsureVerificationBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeEnsureVerificationBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeEnsureVerificationBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return n.deriveEdges()
 }
 
@@ -106,7 +108,7 @@ type EdgeEnsureVerificationEnd struct {
 	Identity *identity.Info
 }
 
-func (e *EdgeEnsureVerificationEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeEnsureVerificationEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeEnsureVerificationEnd{
 		Identity: e.Identity,
 	}, nil
@@ -117,14 +119,14 @@ type NodeEnsureVerificationEnd struct {
 	NewVerifiedClaim *verification.Claim `json:"new_verified_claim,omitempty"`
 }
 
-func (n *NodeEnsureVerificationEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeEnsureVerificationEnd) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeEnsureVerificationEnd) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeEnsureVerificationEnd) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeEnsureVerificationEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeEnsureVerificationEnd) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

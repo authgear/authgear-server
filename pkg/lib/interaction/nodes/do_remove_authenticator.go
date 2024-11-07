@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -17,7 +19,7 @@ type EdgeDoRemoveAuthenticator struct {
 	BypassMFARequirement bool
 }
 
-func (e *EdgeDoRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoRemoveAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeDoRemoveAuthenticator{
 		Authenticator:        e.Authenticator,
 		BypassMFARequirement: e.BypassMFARequirement,
@@ -29,14 +31,14 @@ type NodeDoRemoveAuthenticator struct {
 	BypassMFARequirement bool                `json:"bypass_mfa_requirement"`
 }
 
-func (n *NodeDoRemoveAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoRemoveAuthenticator) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
 // nolint:gocognit
-func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoRemoveAuthenticator) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			userID := graph.MustGetUserID()
 
 			as, err := ctx.Authenticators.List(userID)
@@ -103,6 +105,6 @@ func (n *NodeDoRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeDoRemoveAuthenticator) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeDoRemoveAuthenticator) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

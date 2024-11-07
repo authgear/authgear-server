@@ -42,22 +42,22 @@ func (s *Service) create(ctx context.Context, graph *Graph) error {
 
 func (s *Service) NewGraph(ctx context.Context, interactionCtx *Context, intent Intent) (*Graph, error) {
 	graph := newGraph(intent)
-	node, err := graph.Intent.InstantiateRootNode(interactionCtx, graph)
+	node, err := graph.Intent.InstantiateRootNode(ctx, interactionCtx, graph)
 	if err != nil {
 		return nil, err
 	}
 
 	graph = graph.appendingNode(node)
-	err = node.Prepare(interactionCtx, graph)
+	err = node.Prepare(ctx, interactionCtx, graph)
 	if err != nil {
 		return nil, err
 	}
-	effs, err := node.GetEffects()
+	effs, err := node.GetEffects(ctx)
 	if err != nil {
 		return nil, err
 	}
 	for _, eff := range effs {
-		err = eff.apply(interactionCtx, graph, 0)
+		err = eff.apply(ctx, interactionCtx, graph, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -127,13 +127,13 @@ func (s *Service) Run(ctx context.Context, contextValues ContextValues, graph *G
 	interactionCtx.IsCommitting = false
 	interactionCtx.WebSessionID = contextValues.WebSessionID
 	interactionCtx.OAuthSessionID = contextValues.OAuthSessionID
-	err = graph.Apply(interactionCtx)
+	err = graph.Apply(ctx, interactionCtx)
 	if err != nil {
 		return
 	}
 
 	interactionCtx.IsCommitting = true
-	err = graph.Apply(interactionCtx)
+	err = graph.Apply(ctx, interactionCtx)
 	if err != nil {
 		return
 	}
@@ -147,6 +147,6 @@ func (s *Service) Run(ctx context.Context, contextValues ContextValues, graph *G
 	return
 }
 
-func (s *Service) Accept(ctx *Context, graph *Graph, input interface{}) (*Graph, []Edge, error) {
-	return graph.accept(ctx, input)
+func (s *Service) Accept(goCtx context.Context, ctx *Context, graph *Graph, input interface{}) (*Graph, []Edge, error) {
+	return graph.accept(goCtx, ctx, input)
 }

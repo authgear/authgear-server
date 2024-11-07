@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -23,7 +25,7 @@ type EdgeCreateAuthenticatorLoginLinkOTP struct {
 	Authenticator *authenticator.Info
 }
 
-func (e *EdgeCreateAuthenticatorLoginLinkOTP) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorLoginLinkOTP) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputCreateAuthenticatorLoginLinkOTP
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -55,15 +57,15 @@ type NodeCreateAuthenticatorLoginLinkOTP struct {
 	Channel       string                    `json:"channel"`
 }
 
-func (n *NodeCreateAuthenticatorLoginLinkOTP) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeCreateAuthenticatorLoginLinkOTP) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorLoginLinkOTP) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeCreateAuthenticatorLoginLinkOTP) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateAuthenticatorLoginLinkOTP) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeCreateAuthenticatorLoginLinkOTP) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeCreateAuthenticatorEnd{
 			Stage:          n.Stage,

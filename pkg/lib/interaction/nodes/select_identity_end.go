@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -19,7 +20,7 @@ type EdgeSelectIdentityEnd struct {
 	IsAuthentication bool
 }
 
-func (e *EdgeSelectIdentityEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	bypassRateLimit := false
 	var bypassInput interface{ BypassInteractionIPRateLimit() bool }
 	if interaction.Input(input, &bypassInput) {
@@ -111,13 +112,13 @@ type NodeSelectIdentityEnd struct {
 	OtherMatch      *identity.Info `json:"other_match"`
 }
 
-func (n *NodeSelectIdentityEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeSelectIdentityEnd) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeSelectIdentityEnd) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	// Update OAuth identity
-	eff := func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+	eff := func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 		if n.OldIdentityInfo != nil && n.IdentityInfo != nil && n.IdentityInfo.Type == model.IdentityTypeOAuth {
 			_, err := ctx.Identities.CheckDuplicated(n.IdentityInfo)
 			if err != nil {
@@ -144,8 +145,8 @@ func (n *NodeSelectIdentityEnd) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeSelectIdentityEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeSelectIdentityEnd) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }
 
 func (n *NodeSelectIdentityEnd) FillDetails(err error) error {

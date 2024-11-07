@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -30,7 +31,7 @@ type EdgeDoEnsureSession struct {
 	Mode         EnsureSessionMode
 }
 
-func (e *EdgeDoEnsureSession) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeDoEnsureSession) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	amr := graph.GetAMR()
 	userID := graph.MustGetUserID()
 
@@ -121,17 +122,17 @@ func (n *NodeDoEnsureSession) GetAuthenticationInfoEntry() *authenticationinfo.E
 	return n.AuthenticationInfoEntry
 }
 
-func (n *NodeDoEnsureSession) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoEnsureSession) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
 // nolint:gocognit
-func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			return ctx.AuthenticationInfoService.Save(n.AuthenticationInfoEntry)
 		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.CreateReason != session.CreateReasonPromote {
 				return nil
 			}
@@ -171,7 +172,7 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 
 			return nil
 		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			userID := graph.MustGetUserID()
 
 			var err error
@@ -233,6 +234,6 @@ func (n *NodeDoEnsureSession) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeDoEnsureSession) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeDoEnsureSession) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

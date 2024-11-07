@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -23,7 +25,7 @@ func getIdentityConflictNode(graph *interaction.Graph) (*NodeCheckIdentityConfli
 // continue.
 type EdgeTerminal struct{}
 
-func (e *EdgeTerminal) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeTerminal) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	// Use ErrIncompatibleInput to 'stuck' the interaction at the current node.
 	return nil, interaction.ErrIncompatibleInput
 }

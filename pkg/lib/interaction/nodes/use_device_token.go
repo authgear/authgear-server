@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -15,7 +16,7 @@ type InputUseDeviceToken interface {
 
 type EdgeUseDeviceToken struct{}
 
-func (e *EdgeUseDeviceToken) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUseDeviceToken) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseDeviceToken
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput

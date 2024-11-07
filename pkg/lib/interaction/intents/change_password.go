@@ -1,6 +1,7 @@
 package intents
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -31,12 +32,12 @@ func NewIntentChangeSecondaryPassword(userID string) *IntentChangePassword {
 	}
 }
 
-func (i *IntentChangePassword) InstantiateRootNode(ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
+func (i *IntentChangePassword) InstantiateRootNode(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
 	edge := nodes.EdgeDoUseUser{UseUserID: i.UserID}
-	return edge.Instantiate(ctx, graph, i)
+	return edge.Instantiate(goCtx, ctx, graph, i)
 }
 
-func (i *IntentChangePassword) DeriveEdgesForNode(graph *interaction.Graph, node interaction.Node) ([]interaction.Edge, error) {
+func (i *IntentChangePassword) DeriveEdgesForNode(goCtx context.Context, graph *interaction.Graph, node interaction.Node) ([]interaction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeDoUseUser:
 		return []interaction.Edge{

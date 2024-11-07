@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -42,7 +43,7 @@ func (e *EdgeCreateAuthenticatorOOBSetup) IsDefaultAuthenticator() bool {
 }
 
 // nolint: gocognit
-func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorOOBSetup) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var target string
 	var channel model.AuthenticatorOOBChannel
 	if e.Stage == authn.AuthenticationStagePrimary {
@@ -231,15 +232,15 @@ func (n *NodeCreateAuthenticatorOOBSetup) GetSelectedPhoneNumberForPhoneOTP() st
 	return ""
 }
 
-func (n *NodeCreateAuthenticatorOOBSetup) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeCreateAuthenticatorOOBSetup) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorOOBSetup) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeCreateAuthenticatorOOBSetup) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateAuthenticatorOOBSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeCreateAuthenticatorOOBSetup) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeOOBResendCode{
 			Stage:            n.Stage,

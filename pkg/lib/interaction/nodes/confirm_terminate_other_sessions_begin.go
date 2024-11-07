@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
 
@@ -11,7 +13,7 @@ func init() {
 type EdgeConfirmTerminateOtherSessionsBegin struct {
 }
 
-func (e *EdgeConfirmTerminateOtherSessionsBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeConfirmTerminateOtherSessionsBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 
 	return &NodeConfirmTerminateOtherSessionsBegin{}, nil
 }
@@ -19,14 +21,14 @@ func (e *EdgeConfirmTerminateOtherSessionsBegin) Instantiate(ctx *interaction.Co
 type NodeConfirmTerminateOtherSessionsBegin struct {
 }
 
-func (n *NodeConfirmTerminateOtherSessionsBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeConfirmTerminateOtherSessionsBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeConfirmTerminateOtherSessionsBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeConfirmTerminateOtherSessionsBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeConfirmTerminateOtherSessionsBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeConfirmTerminateOtherSessionsBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{&EdgeConfirmTerminateOtherSessionsEnd{}}, nil
 }

@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -42,7 +43,7 @@ func (e *EdgeUseIdentityOAuthProvider) GetIdentityCandidates() []identity.Candid
 	return candidates
 }
 
-func (e *EdgeUseIdentityOAuthProvider) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUseIdentityOAuthProvider) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityOAuthProvider
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -138,15 +139,15 @@ func (n *NodeUseIdentityOAuthProvider) GetErrorRedirectURI() string {
 	return n.ErrorRedirectURI
 }
 
-func (n *NodeUseIdentityOAuthProvider) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeUseIdentityOAuthProvider) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityOAuthProvider) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeUseIdentityOAuthProvider) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeUseIdentityOAuthProvider) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeUseIdentityOAuthProvider) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeUseIdentityOAuthUserInfo{
 			IsAuthentication: n.IsAuthentication,

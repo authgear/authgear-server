@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -43,7 +44,7 @@ func (e *EdgeUseIdentityLoginID) GetIdentityCandidates() []identity.Candidate {
 	return candidates
 }
 
-func (e *EdgeUseIdentityLoginID) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUseIdentityLoginID) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityLoginID
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -94,15 +95,15 @@ type NodeUseIdentityLoginID struct {
 	IdentitySpec     *identity.Spec         `json:"identity_spec"`
 }
 
-func (n *NodeUseIdentityLoginID) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeUseIdentityLoginID) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityLoginID) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeUseIdentityLoginID) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeUseIdentityLoginID) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeUseIdentityLoginID) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	switch n.Mode {
 	case UseIdentityLoginIDModeCreate:
 		return []interaction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil

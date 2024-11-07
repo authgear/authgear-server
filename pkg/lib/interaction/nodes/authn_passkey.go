@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -30,7 +32,7 @@ func (e *EdgeAuthenticationPasskey) IsDefaultAuthenticator() bool {
 	return len(filtered) > 0
 }
 
-func (e *EdgeAuthenticationPasskey) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationPasskey) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var stageInput InputAuthenticationStage
 	if !interaction.Input(rawInput, &stageInput) {
 		return nil, interaction.ErrIncompatibleInput
@@ -84,13 +86,13 @@ type NodeAuthenticationPasskey struct {
 	RequireUpdate bool                      `json:"require_update"`
 }
 
-func (n *NodeAuthenticationPasskey) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeAuthenticationPasskey) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationPasskey) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeAuthenticationPasskey) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			assertionResponse := n.Spec.Passkey.AssertionResponse
 
 			err := ctx.Passkey.ConsumeAssertionResponse(assertionResponse)
@@ -103,7 +105,7 @@ func (n *NodeAuthenticationPasskey) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeAuthenticationPasskey) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeAuthenticationPasskey) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,

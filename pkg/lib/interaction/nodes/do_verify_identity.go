@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -19,7 +21,7 @@ type EdgeDoVerifyIdentity struct {
 	RequestedByUser  bool
 }
 
-func (e *EdgeDoVerifyIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoVerifyIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	skipVerificationEvent := !e.RequestedByUser
 
@@ -38,13 +40,13 @@ type NodeDoVerifyIdentity struct {
 	SkipVerificationEvent bool                `json:"skip_verification_event"`
 }
 
-func (n *NodeDoVerifyIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoVerifyIdentity) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeDoVerifyIdentity) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoVerifyIdentity) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.NewVerifiedClaim != nil {
 				if err := ctx.Verification.MarkClaimVerified(n.NewVerifiedClaim); err != nil {
 					return err
@@ -53,7 +55,7 @@ func (n *NodeDoVerifyIdentity) GetEffects() ([]interaction.Effect, error) {
 
 			return nil
 		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.SkipVerificationEvent {
 				return nil
 			}
@@ -86,6 +88,6 @@ func (n *NodeDoVerifyIdentity) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeDoVerifyIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeDoVerifyIdentity) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

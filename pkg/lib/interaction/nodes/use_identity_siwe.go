@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -25,7 +27,7 @@ func (e *EdgeUseIdentitySIWE) GetIdentityCandidates() []identity.Candidate {
 	}
 }
 
-func (e *EdgeUseIdentitySIWE) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUseIdentitySIWE) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentitySIWE
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -50,14 +52,14 @@ type NodeUseIdentitySIWE struct {
 	IdentitySpec     *identity.Spec `json:"identity_spec"`
 }
 
-func (n *NodeUseIdentitySIWE) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeUseIdentitySIWE) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentitySIWE) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeUseIdentitySIWE) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeUseIdentitySIWE) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeUseIdentitySIWE) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{&EdgeSelectIdentityEnd{IdentitySpec: n.IdentitySpec, IsAuthentication: n.IsAuthentication}}, nil
 }

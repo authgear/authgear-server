@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -18,7 +20,7 @@ type EdgeDoUpdateIdentity struct {
 	IdentityAfterUpdate  *identity.Info
 }
 
-func (e *EdgeDoUpdateIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoUpdateIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	updateDisabled := e.IdentityBeforeUpdate.UpdateDisabled(ctx.Config.Identity)
 	if !isAdminAPI && updateDisabled {
@@ -37,13 +39,13 @@ type NodeDoUpdateIdentity struct {
 	IsAdminAPI           bool           `json:"is_admin_api"`
 }
 
-func (n *NodeDoUpdateIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoUpdateIdentity) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoUpdateIdentity) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if _, err := ctx.Identities.CheckDuplicated(n.IdentityAfterUpdate); err != nil {
 				if identity.IsErrDuplicatedIdentity(err) {
 					s1 := n.IdentityBeforeUpdate.ToSpec()
@@ -59,7 +61,7 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 
 			return nil
 		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			userRef := model.UserRef{
 				Meta: model.Meta{
 					ID: n.IdentityAfterUpdate.UserID,
@@ -93,8 +95,8 @@ func (n *NodeDoUpdateIdentity) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeDoUpdateIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeDoUpdateIdentity) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }
 
 func (n *NodeDoUpdateIdentity) UserIdentity() *identity.Info {

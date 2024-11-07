@@ -1,6 +1,7 @@
 package intents
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -32,16 +33,16 @@ type IntentAuthenticate struct {
 	UserIDHint               string                 `json:"user_id_hint,omitempty"`
 }
 
-func (i *IntentAuthenticate) InstantiateRootNode(ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
+func (i *IntentAuthenticate) InstantiateRootNode(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
 	isAuthentication := i.Kind == IntentAuthenticateKindLogin
 	edge := nodes.EdgeSelectIdentityBegin{
 		IsAuthentication: isAuthentication,
 	}
-	return edge.Instantiate(ctx, graph, i)
+	return edge.Instantiate(goCtx, ctx, graph, i)
 }
 
 // nolint: gocognit
-func (i *IntentAuthenticate) DeriveEdgesForNode(graph *interaction.Graph, node interaction.Node) ([]interaction.Edge, error) {
+func (i *IntentAuthenticate) DeriveEdgesForNode(goCtx context.Context, graph *interaction.Graph, node interaction.Node) ([]interaction.Edge, error) {
 	ensureSession := func() ([]interaction.Edge, error) {
 		var reason session.CreateReason
 		_, creating := graph.GetNewUserID()

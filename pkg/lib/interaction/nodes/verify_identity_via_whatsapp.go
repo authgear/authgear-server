@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -24,7 +25,7 @@ type EdgeVerifyIdentityViaWhatsapp struct {
 	RequestedByUser bool
 }
 
-func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputVerifyIdentityViaWhatsapp
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -72,15 +73,15 @@ func (n *NodeVerifyIdentityViaWhatsapp) GetOTPKindFactory() otp.DeprecatedKindFa
 	return otp.KindVerification
 }
 
-func (n *NodeVerifyIdentityViaWhatsapp) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeVerifyIdentityViaWhatsapp) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeVerifyIdentityViaWhatsapp) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeVerifyIdentityViaWhatsapp) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeWhatsappOTPResendCode{
 			Target:         n.Phone,
@@ -100,7 +101,7 @@ type EdgeVerifyIdentityViaWhatsappCheckCode struct {
 	Identity *identity.Info `json:"identity"`
 }
 
-func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	if err := ensurePhoneLoginIDIdentity(e.Identity); err != nil {
 		panic(err)
 	}
