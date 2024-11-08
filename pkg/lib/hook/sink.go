@@ -35,8 +35,8 @@ type RolesAndGroupsServiceNoEvent interface {
 
 type EventWebHook interface {
 	SupportURL(u *url.URL) bool
-	DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error)
-	DeliverNonBlockingEvent(u *url.URL, e *event.Event) error
+	DeliverBlockingEvent(ctx context.Context, u *url.URL, e *event.Event) (*event.HookResponse, error)
+	DeliverNonBlockingEvent(ctx context.Context, u *url.URL, e *event.Event) error
 }
 
 type EventDenoHook interface {
@@ -203,7 +203,7 @@ func (s *Sink) deliverBlockingEvent(ctx context.Context, cfg config.BlockingHand
 	}
 	switch {
 	case s.EventWebHook.SupportURL(u):
-		return s.EventWebHook.DeliverBlockingEvent(u, e)
+		return s.EventWebHook.DeliverBlockingEvent(ctx, u, e)
 	case s.EventDenoHook.SupportURL(u):
 		return s.EventDenoHook.DeliverBlockingEvent(ctx, u, e)
 	default:
@@ -218,7 +218,7 @@ func (s *Sink) deliverNonBlockingEvent(ctx context.Context, cfg config.NonBlocki
 	}
 	switch {
 	case s.EventWebHook.SupportURL(u):
-		return s.EventWebHook.DeliverNonBlockingEvent(u, e)
+		return s.EventWebHook.DeliverNonBlockingEvent(ctx, u, e)
 	case s.EventDenoHook.SupportURL(u):
 		return s.EventDenoHook.DeliverNonBlockingEvent(ctx, u, e)
 	default:
