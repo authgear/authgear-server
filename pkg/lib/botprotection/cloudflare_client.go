@@ -1,6 +1,7 @@
 package botprotection
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -39,7 +40,7 @@ func NewCloudflareClient(c *config.BotProtectionProviderCredentials, e *config.E
 	}
 }
 
-func (c *CloudflareClient) Verify(token string, remoteip string) (*CloudflareTurnstileResponse, error) {
+func (c *CloudflareClient) Verify(ctx context.Context, token string, remoteip string) (*CloudflareTurnstileResponse, error) {
 	formValues := url.Values{}
 	formValues.Add("secret", c.Credentials.SecretKey)
 	formValues.Add("response", token)
@@ -48,8 +49,7 @@ func (c *CloudflareClient) Verify(token string, remoteip string) (*CloudflareTur
 		formValues.Add("remoteip", remoteip)
 	}
 
-	resp, err := c.HTTPClient.PostForm(c.VerifyEndpoint, formValues)
-
+	resp, err := httputil.PostFormWithContext(ctx, c.HTTPClient, c.VerifyEndpoint, formValues)
 	if err != nil {
 		return nil, errors.Join(ErrVerificationServiceUnavailable, err)
 	}

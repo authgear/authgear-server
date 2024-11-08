@@ -1,6 +1,7 @@
 package botprotection
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -38,7 +39,7 @@ func NewRecaptchaV2Client(c *config.BotProtectionProviderCredentials, e *config.
 	}
 }
 
-func (c *RecaptchaV2Client) Verify(token string, remoteip string) (*RecaptchaV2Response, error) {
+func (c *RecaptchaV2Client) Verify(ctx context.Context, token string, remoteip string) (*RecaptchaV2Response, error) {
 	formValues := url.Values{}
 	formValues.Add("secret", c.Credentials.SecretKey)
 	formValues.Add("response", token)
@@ -47,8 +48,7 @@ func (c *RecaptchaV2Client) Verify(token string, remoteip string) (*RecaptchaV2R
 		formValues.Add("remoteip", remoteip)
 	}
 
-	resp, err := c.HTTPClient.PostForm(c.VerifyEndpoint, formValues)
-
+	resp, err := httputil.PostFormWithContext(ctx, c.HTTPClient, c.VerifyEndpoint, formValues)
 	if err != nil {
 		return nil, errors.Join(ErrVerificationServiceUnavailable, err)
 	}
