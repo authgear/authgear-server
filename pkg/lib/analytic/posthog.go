@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -30,6 +31,16 @@ func NewPosthogLogger(lf *log.Factory) PosthogLogger {
 	return PosthogLogger{lf.New("posthog-integration")}
 }
 
+type PosthogHTTPClient struct {
+	*http.Client
+}
+
+func NewPosthogHTTPClient() PosthogHTTPClient {
+	return PosthogHTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
+
 type PosthogIntegration struct {
 	PosthogCredentials *PosthogCredentials
 	Clock              clock.Clock
@@ -37,6 +48,7 @@ type PosthogIntegration struct {
 	GlobalDBStore      *GlobalDBStore
 	AppDBHandle        *appdb.Handle
 	AppDBStore         *AppDBStore
+	HTTPClient         PosthogHTTPClient
 	Logger             PosthogLogger
 	ReadCounterStore   ReadCounterStore
 }
@@ -327,7 +339,7 @@ func (p *PosthogIntegration) Batch(endpoint *url.URL, events []json.RawMessage) 
 
 		r.Header.Set("Content-Type", "application/json")
 
-		resp, err := http.DefaultClient.Do(r)
+		resp, err := p.HTTPClient.Do(r)
 		if err != nil {
 			return err
 		}
