@@ -9,6 +9,7 @@ import (
 	authflow "github.com/authgear/authgear-server/pkg/lib/authenticationflow"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
 func init() {
@@ -68,7 +69,7 @@ func (n *IntentUseAccountRecoveryIdentity) ReactTo(ctx context.Context, deps *au
 		spec := &identity.Spec{
 			Type: model.IdentityTypeLoginID,
 			LoginID: &identity.LoginIDSpec{
-				Value: loginID,
+				Value: stringutil.NewUserInputString(loginID),
 			},
 		}
 

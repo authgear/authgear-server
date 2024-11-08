@@ -70,7 +70,7 @@ func (e *EdgeSelectIdentityEnd) Instantiate(goCtx context.Context, ctx *interact
 			case model.IdentityTypeLoginID:
 				loginIDValue := e.IdentitySpec.LoginID.Value
 				err = ctx.Events.DispatchEventOnCommit(goCtx, &nonblocking.AuthenticationFailedLoginIDEventPayload{
-					LoginID: loginIDValue,
+					LoginID: loginIDValue.TrimSpace(),
 				})
 				if err != nil {
 					return nil, err

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
 func newLoginIDKeyConfig(key string, t model.LoginIDKeyType, maxLength int) config.LoginIDKeyConfig {
@@ -70,22 +71,22 @@ func TestLoginIDChecker(t *testing.T) {
 			}
 			var loginID identity.LoginIDSpec
 
-			loginID = identity.LoginIDSpec{Key: "username", Type: model.LoginIDKeyTypeUsername, Value: "johndoe"}
+			loginID = identity.LoginIDSpec{Key: "username", Type: model.LoginIDKeyTypeUsername, Value: stringutil.NewUserInputString("johndoe")}
 
 			So(checker.ValidateOne(loginID, options), ShouldBeNil)
-			loginID = identity.LoginIDSpec{Key: "email", Type: model.LoginIDKeyTypeEmail, Value: "johndoe@example.com"}
+			loginID = identity.LoginIDSpec{Key: "email", Type: model.LoginIDKeyTypeEmail, Value: stringutil.NewUserInputString("johndoe@example.com")}
 			So(checker.ValidateOne(loginID, options), ShouldBeNil)
 
-			loginID = identity.LoginIDSpec{Key: "nickname", Type: "", Value: "johndoe"}
+			loginID = identity.LoginIDSpec{Key: "nickname", Type: "", Value: stringutil.NewUserInputString("johndoe")}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: login ID key is not allowed")
 
-			loginID = identity.LoginIDSpec{Key: "username", Type: model.LoginIDKeyTypeUsername, Value: "foobarexample"}
+			loginID = identity.LoginIDSpec{Key: "username", Type: model.LoginIDKeyTypeUsername, Value: stringutil.NewUserInputString("foobarexample")}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: maxLength\n  map[actual:13 expected:10]")
 
-			loginID = identity.LoginIDSpec{Key: "email", Type: model.LoginIDKeyTypeEmail, Value: ""}
+			loginID = identity.LoginIDSpec{Key: "email", Type: model.LoginIDKeyTypeEmail, Value: stringutil.NewUserInputString("")}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: required")
 
-			loginID = identity.LoginIDSpec{Key: "phone", Type: model.LoginIDKeyTypePhone, Value: "51234567"}
+			loginID = identity.LoginIDSpec{Key: "phone", Type: model.LoginIDKeyTypePhone, Value: stringutil.NewUserInputString("51234567")}
 			So(checker.ValidateOne(loginID, options), ShouldBeError, "invalid login ID:\n/login_id: format\n  map[format:phone]")
 		})
 	})

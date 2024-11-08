@@ -19,6 +19,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -364,7 +365,7 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, detail *D
 					LoginID: &identity.LoginIDSpec{
 						Type:  model.LoginIDKeyTypeEmail,
 						Key:   key,
-						Value: *emailPtr,
+						Value: stringutil.NewUserInputString(*emailPtr),
 					},
 				})
 			}
@@ -389,7 +390,7 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, detail *D
 					LoginID: &identity.LoginIDSpec{
 						Type:  model.LoginIDKeyTypePhone,
 						Key:   key,
-						Value: *phoneNumberPtr,
+						Value: stringutil.NewUserInputString(*phoneNumberPtr),
 					},
 				})
 			}
@@ -415,7 +416,7 @@ func (s *UserImportService) insertIdentitiesInTxn(ctx context.Context, detail *D
 					LoginID: &identity.LoginIDSpec{
 						Type:  model.LoginIDKeyTypeUsername,
 						Key:   key,
-						Value: *preferredUsernamePtr,
+						Value: stringutil.NewUserInputString(*preferredUsernamePtr),
 					},
 				})
 			}
@@ -858,7 +859,7 @@ func (s *UserImportService) upsertIdentitiesInTxnHelper(ctx context.Context, det
 			LoginID: &identity.LoginIDSpec{
 				Type:  typ,
 				Key:   string(typ),
-				Value: *ptr,
+				Value: stringutil.NewUserInputString(*ptr),
 			},
 		}
 		err := s.upsertIdentityInTxn(ctx, detail, userID, infos, spec)

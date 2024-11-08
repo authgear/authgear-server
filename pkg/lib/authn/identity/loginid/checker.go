@@ -28,10 +28,10 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID identity.LoginIDS
 	allowed := false
 	for _, keyConfig := range c.Config.Keys {
 		if keyConfig.Key == loginID.Key {
-			if len(loginID.Value) > *keyConfig.MaxLength {
+			if len(loginID.Value.TrimSpace()) > *keyConfig.MaxLength {
 				ctx.EmitError("maxLength", map[string]interface{}{
 					"expected": *keyConfig.MaxLength,
-					"actual":   len(loginID.Value),
+					"actual":   len(loginID.Value.TrimSpace()),
 				})
 				return
 			}
@@ -44,10 +44,10 @@ func (c *Checker) validateOne(ctx *validation.Context, loginID identity.LoginIDS
 		return
 	}
 
-	if loginID.Value == "" {
+	if loginID.Value.TrimSpace() == "" {
 		ctx.EmitError("required", nil)
 		return
 	}
 
-	c.TypeCheckerFactory.NewChecker(loginID.Type, options).Validate(originCtx, loginID.Value)
+	c.TypeCheckerFactory.NewChecker(loginID.Type, options).Validate(originCtx, loginID.Value.TrimSpace())
 }

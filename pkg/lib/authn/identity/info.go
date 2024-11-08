@@ -6,6 +6,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
 type Info struct {
@@ -32,7 +33,7 @@ func (i *Info) ToSpec() Spec {
 			LoginID: &LoginIDSpec{
 				Key:   i.LoginID.LoginIDKey,
 				Type:  i.LoginID.LoginIDType,
-				Value: i.LoginID.LoginID,
+				Value: stringutil.NewUserInputString(i.LoginID.LoginID),
 			},
 		}
 	case model.IdentityTypeOAuth:

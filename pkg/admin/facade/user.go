@@ -16,6 +16,7 @@ import (
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
 type UserService interface {
@@ -94,7 +95,7 @@ func (f *UserFacade) Create(ctx context.Context, identityDef model.IdentityDef, 
 		LoginID: &identity.LoginIDSpec{
 			Key:   loginIDInput.Key,
 			Type:  loginIDKeyCofig.Type,
-			Value: loginIDInput.Value,
+			Value: stringutil.NewUserInputString(loginIDInput.Value),
 		},
 	}
 

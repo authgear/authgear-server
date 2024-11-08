@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -66,7 +67,7 @@ func (i *IntentCreateLoginID) ReactTo(ctx context.Context, deps *workflow.Depend
 				LoginID: &identity.LoginIDSpec{
 					Type:  i.LoginIDType,
 					Key:   i.LoginIDKey,
-					Value: loginID,
+					Value: stringutil.NewUserInputString(loginID),
 				},
 			}
 

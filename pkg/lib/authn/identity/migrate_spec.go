@@ -2,6 +2,7 @@ package identity
 
 import (
 	"github.com/authgear/authgear-server/pkg/api/model"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
 type MigrateSpec struct {
@@ -16,7 +17,7 @@ func (s *MigrateSpec) GetSpec() *Spec {
 		LoginID: &LoginIDSpec{
 			Type:  s.LoginID.Type,
 			Key:   s.LoginID.Key,
-			Value: s.LoginID.Value,
+			Value: stringutil.NewUserInputString(s.LoginID.Value),
 		},
 	}
 }

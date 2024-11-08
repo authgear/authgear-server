@@ -278,7 +278,7 @@ func (s *Service) GetMany(ctx context.Context, ids []string) ([]*identity.Info, 
 func (s *Service) getBySpec(ctx context.Context, spec *identity.Spec) (*identity.Info, error) {
 	switch spec.Type {
 	case model.IdentityTypeLoginID:
-		loginID := spec.LoginID.Value
+		loginID := spec.LoginID.Value.TrimSpace()
 		l, err := s.LoginID.GetByValue(ctx, loginID)
 		if err != nil {
 			return nil, err
@@ -823,7 +823,7 @@ func (s *Service) Create(ctx context.Context, info *identity.Info) error {
 func (s *Service) UpdateWithSpec(ctx context.Context, info *identity.Info, spec *identity.Spec, options identity.NewIdentityOptions) (*identity.Info, error) {
 	switch info.Type {
 	case model.IdentityTypeLoginID:
-		i, err := s.LoginID.WithValue(info.LoginID, spec.LoginID.Value, loginid.CheckerOptions{
+		i, err := s.LoginID.WithValue(info.LoginID, spec.LoginID.Value.TrimSpace(), loginid.CheckerOptions{
 			EmailByPassBlocklistAllowlist: options.LoginIDEmailByPassBlocklistAllowlist,
 		})
 		if err != nil {

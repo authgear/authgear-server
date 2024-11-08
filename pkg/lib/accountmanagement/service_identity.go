@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/session"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -1089,7 +1090,7 @@ func (i *Service) makeLoginIDSpec(loginIDKey string, loginID string) (*identity.
 		LoginID: &identity.LoginIDSpec{
 			Key:   loginIDKey,
 			Type:  typ,
-			Value: loginID,
+			Value: stringutil.NewUserInputString(loginID),
 		},
 	}
 	return identitySpec, nil

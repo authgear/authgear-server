@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
 func init() {
@@ -78,7 +79,7 @@ func (e *EdgeUseIdentityLoginID) Instantiate(goCtx context.Context, ctx *interac
 		LoginID: &identity.LoginIDSpec{
 			Key:   loginIDKey,
 			Type:  typ,
-			Value: loginID,
+			Value: stringutil.NewUserInputString(loginID),
 		},
 	}
 
