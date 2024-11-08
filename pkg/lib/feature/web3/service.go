@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -17,6 +16,7 @@ import (
 type Service struct {
 	APIEndpoint config.NFTIndexerAPIEndpoint
 	Web3Config  *config.Web3Config
+	HTTPClient  HTTPClient
 }
 
 type ListOwnerNFTsResponse struct {
@@ -115,7 +115,7 @@ func (s *Service) ListOwnerNFTs(ownerID web3.ContractID, contractIDs []web3.Cont
 		return nil, err
 	}
 
-	res, err := http.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
+	res, err := s.HTTPClient.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
