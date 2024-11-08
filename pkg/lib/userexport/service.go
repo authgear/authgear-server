@@ -17,7 +17,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	libhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -33,7 +32,7 @@ type UserExportService struct {
 	Config       *config.UserProfileConfig
 	UserQueries  UserQueries
 	Logger       Logger
-	HTTPOrigin   libhttputil.HTTPOrigin
+	HTTPOrigin   httputil.HTTPOrigin
 	CloudStorage UserExportCloudStorage
 	Clock        clock.Clock
 }
