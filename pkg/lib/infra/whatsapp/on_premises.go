@@ -12,10 +12,21 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+type HTTPClient struct {
+	*http.Client
+}
+
+func NewHTTPClient() HTTPClient {
+	return HTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
+
 type OnPremisesClient struct {
-	HTTPClient  *http.Client
+	HTTPClient  HTTPClient
 	Endpoint    *url.URL
 	Credentials *config.WhatsappOnPremisesCredentials
 	TokenStore  *TokenStore
@@ -24,7 +35,9 @@ type OnPremisesClient struct {
 func NewWhatsappOnPremisesClient(
 	cfg *config.WhatsappConfig,
 	credentials *config.WhatsappOnPremisesCredentials,
-	tokenStore *TokenStore) *OnPremisesClient {
+	tokenStore *TokenStore,
+	httpClient HTTPClient,
+) *OnPremisesClient {
 	if cfg.APIType != config.WhatsappAPITypeOnPremises || credentials == nil {
 		return nil
 	}
@@ -33,7 +46,7 @@ func NewWhatsappOnPremisesClient(
 		panic(err)
 	}
 	return &OnPremisesClient{
-		HTTPClient:  http.DefaultClient,
+		HTTPClient:  httpClient,
 		Endpoint:    endpoint,
 		Credentials: credentials,
 		TokenStore:  tokenStore,
