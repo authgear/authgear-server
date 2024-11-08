@@ -889,6 +889,10 @@ func (c *Coordinator) removeOrphans(userID string) error {
 		if err != nil {
 			return err
 		}
+		err = c.MFA.InvalidateAllDeviceTokens(userID)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

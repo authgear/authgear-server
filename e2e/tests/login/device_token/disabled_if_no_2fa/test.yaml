@@ -1,0 +1,226 @@
+name: Login - Device Token - Disabled if no secondary authenticator
+authgear.yaml:
+  override: |
+    authentication:
+      identities:
+      - login_id
+      primary_authenticators:
+      - password
+      secondary_authenticators:
+      - password
+      secondary_authentication_mode: required
+    identity:
+      login_id:
+        keys:
+        - type: username
+before:
+  - type: user_import
+    user_import: users.json
+steps:
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+                "type": "identification_data",
+                "options": "[[array]]"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login_device_token"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": false,
+              "options": [
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": true,
+              "options": [
+                {
+                  "authentication": "secondary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "secondary_password",
+        "password": "password",
+        "request_device_token": true
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # Login again. Expect 2fa is skipped by using device token
+  - action: "create"
+    input: | 
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+              "type": "identify",
+              "data": {
+                  "type": "identification_data",
+                  "options": "[[array]]"
+              }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login_device_token"
+      }
+    output: 
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": false,
+              "options": [
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "finished"
+          }
+        }
+
+  # Remove the 2fa.
+  - action: query
+    query: |
+      WITH authenticator_ids AS (
+        SELECT id FROM _auth_authenticator
+        WHERE app_id = '{{ .AppID }}'
+        AND kind = 'secondary'
+      ), del_1 AS (
+          DELETE FROM _auth_authenticator_password
+          WHERE id IN (SELECT id FROM authenticator_ids)
+      )
+      DELETE FROM _auth_authenticator
+      WHERE id IN (SELECT id FROM authenticator_ids);
+  # Login again, should be blocked because 2fa is required.
+  - action: "create"
+    input: |
+      {
+        "type": "login",
+        "name": "default"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "identify",
+            "data": {
+                "type": "identification_data",
+                "options": "[[array]]"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "identification": "username",
+        "login_id": "e2e_login_device_token"
+      }
+    output:
+      result: |
+        {
+          "action": {
+            "type": "authenticate",
+            "data": {
+              "device_token_enabled": false,
+              "options": [
+                {
+                  "authentication": "primary_password"
+                }
+              ],
+              "type": "authentication_data"
+            }
+          }
+        }
+
+  - action: input
+    input: |
+      {
+        "authentication": "primary_password",
+        "password": "password"
+      }
+    output:
+      error: |
+       {
+          "name": "Invalid",
+          "reason": "InvariantViolated",
+          "message": "no authenticator",
+          "code": 400,
+          "info": {
+            "FlowType": "login",
+            "cause": {
+              "kind": "NoAuthenticator"
+            }
+          }
+        }
