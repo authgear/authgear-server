@@ -2,6 +2,7 @@ package timeunixutc
 
 import (
 	"go/ast"
+	"go/types"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -16,14 +17,18 @@ var Analyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{inspect.Analyzer},
 }
 
-func isTimeUnix(n ast.Node) (name string, ok bool) {
+func isTimeUnix(pass *analysis.Pass, n ast.Node) (name string, ok bool) {
 	if callExpr, ok := n.(*ast.CallExpr); ok {
 		if selectorExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
 			if ident, ok := selectorExpr.X.(*ast.Ident); ok {
-				if ident.Name == "time" {
-					name := selectorExpr.Sel.Name
-					if name == "Unix" || name == "UnixMicro" || name == "UnixMilli" {
-						return name, true
+				if pkgName, ok := pass.TypesInfo.Uses[ident].(*types.PkgName); ok {
+					imported := pkgName.Imported()
+					importedPath := imported.Path()
+					if importedPath == "time" {
+						name := selectorExpr.Sel.Name
+						if name == "Unix" || name == "UnixMicro" || name == "UnixMilli" {
+							return name, true
+						}
 					}
 				}
 			}
@@ -52,7 +57,7 @@ func run(pass *analysis.Pass) (interface{}, error) {
 			for i := len(stack) - 1; i >= 0; i -= 1 {
 				node := stack[i]
 				var ok bool
-				funcName, ok = isTimeUnix(node)
+				funcName, ok = isTimeUnix(pass, node)
 				if ok {
 					shouldCheck = true
 					idx = i
