@@ -7,6 +7,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 // PresignGetExpires is how long the presign GET request remains valid.
@@ -21,8 +22,19 @@ type ImagesCloudStorageServiceStorage interface {
 	MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request)
 }
 
+type ImagesCloudStorageServiceHTTPClient struct {
+	*http.Client
+}
+
+func NewImagesCloudStorageServiceHTTPClient() ImagesCloudStorageServiceHTTPClient {
+	return ImagesCloudStorageServiceHTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
+
 type ImagesCloudStorageService struct {
-	Storage ImagesCloudStorageServiceStorage
+	HTTPClient ImagesCloudStorageServiceHTTPClient
+	Storage    ImagesCloudStorageServiceStorage
 }
 
 func (p *ImagesCloudStorageService) PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error) {
@@ -55,7 +67,7 @@ func (p *ImagesCloudStorageService) checkDuplicate(key string) error {
 	if err != nil {
 		return err
 	}
-	resp, err := http.Head(u.String())
+	resp, err := p.HTTPClient.Head(u.String())
 	if err != nil {
 		return err
 	}

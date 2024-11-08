@@ -5,5 +5,6 @@ import (
 )
 
 var DependencySet = wire.NewSet(
+	NewImagesCloudStorageServiceHTTPClient,
 	wire.Struct(new(ImagesCloudStorageService), "*"),
 )
