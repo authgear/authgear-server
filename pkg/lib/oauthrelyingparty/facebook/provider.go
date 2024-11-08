@@ -96,6 +96,7 @@ func (Facebook) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 	}
 
 	accessTokenResp, err := oauthrelyingpartyutil.FetchAccessTokenResp(
+		ctx,
 		deps.HTTPClient,
 		code,
 		facebookTokenURL,
@@ -135,7 +136,7 @@ func (Facebook) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 	//   "short_name": "John"
 	// }
 
-	userProfile, err := oauthrelyingpartyutil.FetchUserProfile(deps.HTTPClient, accessTokenResp, userProfileURL.String())
+	userProfile, err := oauthrelyingpartyutil.FetchUserProfile(ctx, deps.HTTPClient, accessTokenResp, userProfileURL.String())
 	if err != nil {
 		return
 	}

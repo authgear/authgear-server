@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	liboauthrelyingparty "github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty"
 	"github.com/authgear/authgear-server/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -144,6 +145,7 @@ func (Wechat) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depende
 	}
 
 	accessTokenResp, err := wechatFetchAccessTokenResp(
+		ctx,
 		deps.HTTPClient,
 		code,
 		deps.ProviderConfig.ClientID(),
@@ -153,7 +155,7 @@ func (Wechat) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depende
 		return
 	}
 
-	rawProfile, err := wechatFetchUserProfile(deps.HTTPClient, accessTokenResp)
+	rawProfile, err := wechatFetchUserProfile(ctx, deps.HTTPClient, accessTokenResp)
 	if err != nil {
 		return
 	}
@@ -260,6 +262,7 @@ func (r wechatUserInfoResp) OpenID() string {
 }
 
 func wechatFetchAccessTokenResp(
+	ctx context.Context,
 	client *http.Client,
 	code string,
 	appid string,
@@ -271,7 +274,7 @@ func wechatFetchAccessTokenResp(
 	v.Add("appid", appid)
 	v.Add("secret", secret)
 
-	resp, err := client.PostForm(wechatAccessTokenURL, v)
+	resp, err := httputil.PostFormWithContext(ctx, client, wechatAccessTokenURL, v)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -310,6 +313,7 @@ func wechatFetchAccessTokenResp(
 }
 
 func wechatFetchUserProfile(
+	ctx context.Context,
 	client *http.Client,
 	accessTokenResp wechatAccessTokenResp,
 ) (userProfile wechatUserInfoResp, err error) {
@@ -318,7 +322,7 @@ func wechatFetchUserProfile(
 	v.Set("access_token", accessTokenResp.AccessToken())
 	v.Set("lang", "en")
 
-	resp, err := client.PostForm(wechatUserInfoURL, v)
+	resp, err := httputil.PostFormWithContext(ctx, client, wechatUserInfoURL, v)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

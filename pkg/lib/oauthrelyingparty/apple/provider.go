@@ -144,7 +144,7 @@ func (p Apple) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.D
 }
 
 func (p Apple) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	keySet, err := appleOIDCConfig.FetchJWKs(deps.HTTPClient)
+	keySet, err := appleOIDCConfig.FetchJWKs(ctx, deps.HTTPClient)
 	if err != nil {
 		return
 	}
@@ -161,6 +161,7 @@ func (p Apple) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depend
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := appleOIDCConfig.ExchangeCode(
+		ctx,
 		deps.HTTPClient,
 		deps.Clock,
 		code,
