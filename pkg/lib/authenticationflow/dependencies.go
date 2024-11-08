@@ -175,7 +175,7 @@ type BotProtectionService interface {
 }
 
 type CaptchaService interface {
-	VerifyToken(token string) error
+	VerifyToken(ctx context.Context, token string) error
 }
 
 type ChallengeService interface {

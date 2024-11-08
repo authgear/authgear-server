@@ -39,7 +39,7 @@ func (i *IntentVerifyCaptcha) ReactTo(ctx context.Context, deps *workflow.Depend
 	switch {
 	case workflow.AsInput(input, &inputTakeCaptchaToken):
 		token := inputTakeCaptchaToken.GetToken()
-		err := deps.Captcha.VerifyToken(token)
+		err := deps.Captcha.VerifyToken(ctx, token)
 		if err != nil {
 			return nil, err
 		}

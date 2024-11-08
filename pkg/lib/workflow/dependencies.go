@@ -146,7 +146,7 @@ type AccountMigrationService interface {
 }
 
 type CaptchaService interface {
-	VerifyToken(token string) error
+	VerifyToken(ctx context.Context, token string) error
 }
 
 type MFAService interface {

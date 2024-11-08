@@ -2,10 +2,12 @@
 package captcha
 
 import (
+	"context"
 	"encoding/json"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 const (
@@ -31,7 +33,7 @@ func NewCloudflareClient(c *config.Deprecated_CaptchaCloudflareCredentials, http
 	}
 }
 
-func (c *CloudflareClient) Verify(token string, remoteip string) (*CloudflareVerificationResponse, error) {
+func (c *CloudflareClient) Verify(ctx context.Context, token string, remoteip string) (*CloudflareVerificationResponse, error) {
 	formValues := url.Values{}
 	formValues.Add("secret", c.Credentials.Secret)
 	formValues.Add("response", token)
@@ -40,8 +42,7 @@ func (c *CloudflareClient) Verify(token string, remoteip string) (*CloudflareVer
 		formValues.Add("remoteip", remoteip)
 	}
 
-	resp, err := c.HTTPClient.PostForm(CloudflareVerifyEndpoint, formValues)
-
+	resp, err := httputil.PostFormWithContext(ctx, c.HTTPClient.Client, CloudflareVerifyEndpoint, formValues)
 	if err != nil {
 		return nil, err
 	}
