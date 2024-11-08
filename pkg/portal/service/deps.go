@@ -32,6 +32,7 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(CollaboratorService), "*"),
 	wire.Struct(new(SystemConfigProvider), "*"),
 	wire.Struct(new(SubscriptionService), "*"),
+	NewNFTServiceHTTPClient,
 	wire.Struct(new(NFTService), "*"),
 	wire.Struct(new(AuditService), "*"),
 	wire.Struct(new(OnboardService), "*"),

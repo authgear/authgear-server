@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
@@ -23,7 +25,18 @@ type GetContractMetadataResponse struct {
 	Error  *apierrors.APIError                `json:"error"`
 }
 
+type NFTServiceHTTPClient struct {
+	*http.Client
+}
+
+func NewNFTServiceHTTPClient() NFTServiceHTTPClient {
+	return NFTServiceHTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
+
 type NFTService struct {
+	HTTPClient  NFTServiceHTTPClient
 	APIEndpoint config.NFTIndexerAPIEndpoint
 }
 
@@ -49,7 +62,7 @@ func (s *NFTService) ProbeNFTCollection(contractID web3.ContractID) (*apimodel.P
 		return nil, err
 	}
 
-	res, err := http.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
+	res, err := s.HTTPClient.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
@@ -94,7 +107,7 @@ func (s *NFTService) GetContractMetadata(contracts []web3.ContractID) ([]apimode
 		return nil, err
 	}
 
-	res, err := http.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
+	res, err := s.HTTPClient.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
