@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -27,12 +28,23 @@ type UserQueries interface {
 	CountAll(ctx context.Context) (count uint64, err error)
 }
 
+type HTTPClient struct {
+	*http.Client
+}
+
+func NewHTTPClient() HTTPClient {
+	return HTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
+
 type UserExportService struct {
 	AppDatabase  *appdb.Handle
 	Config       *config.UserProfileConfig
 	UserQueries  UserQueries
 	Logger       Logger
 	HTTPOrigin   httputil.HTTPOrigin
+	HTTPClient   HTTPClient
 	CloudStorage UserExportCloudStorage
 	Clock        clock.Clock
 }
@@ -384,9 +396,7 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File, format
 			uploadRequest.Header.Add(key, value)
 		}
 	}
-	client := &http.Client{}
-	response, err = client.Do(uploadRequest)
-
+	response, err = s.HTTPClient.Do(uploadRequest)
 	if err != nil {
 		return nil, err
 	}
