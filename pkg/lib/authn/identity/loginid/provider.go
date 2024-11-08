@@ -50,11 +50,12 @@ func (p *Provider) GetByValue(ctx context.Context, value string) ([]*identity.Lo
 	im := map[string]*identity.LoginID{}
 	for _, config := range p.Config.Keys {
 		// Normalize expects loginID is in correct type so we have to validate it first.
-		invalid := p.Checker.ValidateOne(identity.LoginIDSpec{
+		spec := identity.LoginIDSpec{
 			Key:   config.Key,
 			Type:  config.Type,
 			Value: stringutil.NewUserInputString(value),
-		}, CheckerOptions{
+		}
+		invalid := p.Checker.ValidateOne(spec, CheckerOptions{
 			// Admin can create email login id which bypass domains blocklist allowlist
 			// it should not affect getting identity
 			// skip the checking when getting identity
@@ -65,7 +66,7 @@ func (p *Provider) GetByValue(ctx context.Context, value string) ([]*identity.Lo
 		}
 
 		normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(config.Type)
-		normalizedloginID, err := normalizer.Normalize(value)
+		normalizedloginID, err := normalizer.Normalize(spec.Value.TrimSpace())
 		if err != nil {
 			return nil, err
 		}
