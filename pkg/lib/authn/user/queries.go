@@ -45,7 +45,7 @@ type CustomAttributesService interface {
 }
 
 type Web3Service interface {
-	GetWeb3Info(identities []*identity.Info) (*model.UserWeb3Info, error)
+	GetWeb3Info(ctx context.Context, identities []*identity.Info) (*model.UserWeb3Info, error)
 }
 
 type RolesAndGroupsService interface {
@@ -153,7 +153,7 @@ func (p *Queries) GetMany(ctx context.Context, ids []string, role accesscontrol.
 			isVerified := isVerifiedByUserID[rawUser.ID]
 			stdAttrs := stdAttrsByUserID[rawUser.ID]
 			customAttrs := customAttrsByUserID[rawUser.ID]
-			web3Info, web3err := p.Web3.GetWeb3Info(identities)
+			web3Info, web3err := p.Web3.GetWeb3Info(ctx, identities)
 			if web3err != nil {
 				return nil, web3err
 			}
@@ -260,7 +260,7 @@ func (p *Queries) GetPageForExport(ctx context.Context, offset uint64, limit uin
 			isVerified := isVerifiedByUserID[rawUser.ID]
 			stdAttrs := stdAttrsByUserID[rawUser.ID]
 			customAttrs := customAttrsByUserID[rawUser.ID]
-			web3Info, web3err := p.Web3.GetWeb3Info(identities)
+			web3Info, web3err := p.Web3.GetWeb3Info(ctx, identities)
 			if web3err != nil {
 				return nil, web3err
 			}

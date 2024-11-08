@@ -51,7 +51,7 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	web3Info, err := c.Web3.GetWeb3Info(identities)
+	web3Info, err := c.Web3.GetWeb3Info(ctx, identities)
 	if err != nil {
 		return err
 	}
