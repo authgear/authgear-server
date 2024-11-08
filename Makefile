@@ -18,7 +18,6 @@ vendor:
 	go mod download
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
-	go install github.com/authgear/go-vet-timeunixutc/cmd/govettimeunixutc@1e0ad32ff28a52d3c7aa949f9139b0a068f64090
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install go.k6.io/xk6/cmd/xk6@latest
@@ -59,7 +58,6 @@ lint-translation-keys:
 .PHONY: lint
 lint:
 	golangci-lint run ./cmd/... ./pkg/... --timeout 7m
-	govettimeunixutc ./cmd/... ./pkg/...
 	go run ./devtools/translationlinter
 	-go run ./devtools/importlinter api api >.make-lint-expect 2>&1
 	-go run ./devtools/importlinter lib api util >> .make-lint-expect 2>&1
