@@ -49,7 +49,7 @@ generate:
 .PHONY: test
 test:
 	$(MAKE) -C ./k6 go-test
-	go test ./cmd/... ./pkg/... -timeout 1m30s
+	go test ./devtools/goanalysis/... ./cmd/... ./pkg/... -timeout 1m30s
 
 .PHONY: lint-translation-keys
 lint-translation-keys:
@@ -74,6 +74,7 @@ lint:
 	git diff --exit-code .make-lint-expect > /dev/null 2>&1
 	go run ./devtools/gotemplatelinter --ignore-rule translation-key ./resources/authgear/templates/en/web/authflowv2
 	$(MAKE) lint-translation-keys
+	go run ./devtools/goanalysis ./cmd/... ./pkg/...
 
 .PHONY: sort-translations
 sort-translations:
@@ -82,7 +83,7 @@ sort-translations:
 .PHONY: fmt
 fmt:
 	# Ignore generated files, such as wire_gen.go and *_mock_test.go
-	find ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
+	find ./devtools ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
 	$(MAKE) sort-translations
 
 .PHONY: govulncheck
