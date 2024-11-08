@@ -3,7 +3,6 @@ package captcha
 
 import (
 	"encoding/json"
-	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -18,16 +17,16 @@ type CloudflareVerificationResponse struct {
 }
 
 type CloudflareClient struct {
-	HTTPClient  *http.Client
+	HTTPClient  HTTPClient
 	Credentials *config.Deprecated_CaptchaCloudflareCredentials
 }
 
-func NewCloudflareClient(c *config.Deprecated_CaptchaCloudflareCredentials) *CloudflareClient {
+func NewCloudflareClient(c *config.Deprecated_CaptchaCloudflareCredentials, httpClient HTTPClient) *CloudflareClient {
 	if c == nil {
 		return nil
 	}
 	return &CloudflareClient{
-		HTTPClient:  http.DefaultClient,
+		HTTPClient:  httpClient,
 		Credentials: c,
 	}
 }
