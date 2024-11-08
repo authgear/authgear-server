@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"net/http"
+	"time"
 
 	"github.com/google/wire"
 
@@ -16,12 +18,24 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 )
+
+type HTTPClient struct {
+	*http.Client
+}
+
+func NewHTTPClient() HTTPClient {
+	return HTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
 
 var DependencySet = wire.NewSet(
 	appsecret.DependencySet,
 	tester.DependencySet,
+	NewHTTPClient,
 	wire.Struct(new(AppService), "*"),
 	wire.Struct(new(AdminAPIService), "*"),
 	wire.Struct(new(AuthzService), "*"),
@@ -32,7 +46,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(CollaboratorService), "*"),
 	wire.Struct(new(SystemConfigProvider), "*"),
 	wire.Struct(new(SubscriptionService), "*"),
-	NewNFTServiceHTTPClient,
 	wire.Struct(new(NFTService), "*"),
 	wire.Struct(new(AuditService), "*"),
 	wire.Struct(new(OnboardService), "*"),

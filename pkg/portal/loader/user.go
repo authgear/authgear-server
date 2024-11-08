@@ -30,13 +30,15 @@ type UserLoader struct {
 	AdminAPI      UserLoaderAdminAPIService
 	Apps          UserLoaderAppService
 	Collaborators UserLoaderCollaboratorService
+	HTTPClient    HTTPClient
 }
 
-func NewUserLoader(adminAPI UserLoaderAdminAPIService, apps UserLoaderAppService, collaborators UserLoaderCollaboratorService) *UserLoader {
+func NewUserLoader(adminAPI UserLoaderAdminAPIService, apps UserLoaderAppService, collaborators UserLoaderCollaboratorService, httpClient HTTPClient) *UserLoader {
 	l := &UserLoader{
 		AdminAPI:      adminAPI,
 		Apps:          apps,
 		Collaborators: collaborators,
+		HTTPClient:    httpClient,
 	}
 	l.DataLoader = graphqlutil.NewDataLoader(l.LoadFunc)
 	return l
@@ -81,7 +83,7 @@ func (l *UserLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interf
 
 	director(r)
 
-	result, err := graphqlutil.HTTPDo(r, params)
+	result, err := graphqlutil.HTTPDo(l.HTTPClient.Client, r, params)
 	if err != nil {
 		return nil, err
 	}

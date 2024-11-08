@@ -3,15 +3,12 @@ package service
 import (
 	"bytes"
 	"encoding/json"
-	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
@@ -25,18 +22,8 @@ type GetContractMetadataResponse struct {
 	Error  *apierrors.APIError                `json:"error"`
 }
 
-type NFTServiceHTTPClient struct {
-	*http.Client
-}
-
-func NewNFTServiceHTTPClient() NFTServiceHTTPClient {
-	return NFTServiceHTTPClient{
-		httputil.NewExternalClient(5 * time.Second),
-	}
-}
-
 type NFTService struct {
-	HTTPClient  NFTServiceHTTPClient
+	HTTPClient  HTTPClient
 	APIEndpoint config.NFTIndexerAPIEndpoint
 }
 

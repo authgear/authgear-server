@@ -18,6 +18,7 @@ type OnboardServiceAdminAPIService interface {
 }
 
 type OnboardService struct {
+	HTTPClient     HTTPClient
 	AuthgearConfig *portalconfig.AuthgearConfig
 	AdminAPI       OnboardServiceAdminAPIService
 }
@@ -34,7 +35,7 @@ func (s *OnboardService) graphqlDo(ctx context.Context, params graphqlutil.DoPar
 	}
 	director(r)
 
-	result, err := graphqlutil.HTTPDo(r, params)
+	result, err := graphqlutil.HTTPDo(s.HTTPClient.Client, r, params)
 	if err != nil {
 		return nil, err
 	}
