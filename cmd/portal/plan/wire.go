@@ -4,8 +4,6 @@
 package plan
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -13,7 +11,6 @@ import (
 )
 
 func NewService(
-	ctx context.Context,
 	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 ) *Service {

@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -29,7 +31,7 @@ func (e *EdgeCreateAuthenticatorPassword) IsDefaultAuthenticator() bool {
 	return false
 }
 
-func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorPassword) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var stageInput InputAuthenticationStage
 	if !interaction.Input(rawInput, &stageInput) {
 		return nil, interaction.ErrIncompatibleInput
@@ -55,7 +57,7 @@ func (e *EdgeCreateAuthenticatorPassword) Instantiate(ctx *interaction.Context, 
 		},
 	}
 
-	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(goCtx, e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}
@@ -68,15 +70,15 @@ type NodeCreateAuthenticatorPassword struct {
 	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
-func (n *NodeCreateAuthenticatorPassword) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeCreateAuthenticatorPassword) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorPassword) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeCreateAuthenticatorPassword) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateAuthenticatorPassword) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeCreateAuthenticatorPassword) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeCreateAuthenticatorEnd{
 			Stage:          n.Stage,

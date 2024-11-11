@@ -41,7 +41,7 @@ func (n *NodeDoPopulateStandardAttributesInSignup) GetEffects(ctx context.Contex
 				return nil
 			}
 			if deps.Config.UserProfile.StandardAttributes.Population.Strategy == config.StandardAttributesPopulationStrategyOnSignup {
-				err := deps.StdAttrsService.PopulateStandardAttributes(
+				err := deps.StdAttrsService.PopulateStandardAttributes(ctx,
 					n.Identity.UserID,
 					n.Identity,
 				)

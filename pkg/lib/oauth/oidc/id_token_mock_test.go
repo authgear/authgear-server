@@ -5,6 +5,7 @@
 package oidc
 
 import (
+	context "context"
 	url "net/url"
 	reflect "reflect"
 
@@ -41,18 +42,18 @@ func (m *MockUserProvider) EXPECT() *MockUserProviderMockRecorder {
 }
 
 // Get mocks base method.
-func (m *MockUserProvider) Get(id string, role accesscontrol.Role) (*model.User, error) {
+func (m *MockUserProvider) Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id, role)
+	ret := m.ctrl.Call(m, "Get", ctx, id, role)
 	ret0, _ := ret[0].(*model.User)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockUserProviderMockRecorder) Get(id, role interface{}) *gomock.Call {
+func (mr *MockUserProviderMockRecorder) Get(ctx, id, role interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserProvider)(nil).Get), id, role)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockUserProvider)(nil).Get), ctx, id, role)
 }
 
 // MockRolesAndGroupsProvider is a mock of RolesAndGroupsProvider interface.
@@ -79,18 +80,18 @@ func (m *MockRolesAndGroupsProvider) EXPECT() *MockRolesAndGroupsProviderMockRec
 }
 
 // ListEffectiveRolesByUserID mocks base method.
-func (m *MockRolesAndGroupsProvider) ListEffectiveRolesByUserID(userID string) ([]*model.Role, error) {
+func (m *MockRolesAndGroupsProvider) ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListEffectiveRolesByUserID", userID)
+	ret := m.ctrl.Call(m, "ListEffectiveRolesByUserID", ctx, userID)
 	ret0, _ := ret[0].([]*model.Role)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListEffectiveRolesByUserID indicates an expected call of ListEffectiveRolesByUserID.
-func (mr *MockRolesAndGroupsProviderMockRecorder) ListEffectiveRolesByUserID(userID interface{}) *gomock.Call {
+func (mr *MockRolesAndGroupsProviderMockRecorder) ListEffectiveRolesByUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectiveRolesByUserID", reflect.TypeOf((*MockRolesAndGroupsProvider)(nil).ListEffectiveRolesByUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListEffectiveRolesByUserID", reflect.TypeOf((*MockRolesAndGroupsProvider)(nil).ListEffectiveRolesByUserID), ctx, userID)
 }
 
 // MockBaseURLProvider is a mock of BaseURLProvider interface.
@@ -243,18 +244,18 @@ func (m *MockIDTokenHintResolverSessionProvider) EXPECT() *MockIDTokenHintResolv
 }
 
 // Get mocks base method.
-func (m *MockIDTokenHintResolverSessionProvider) Get(id string) (*idpsession.IDPSession, error) {
+func (m *MockIDTokenHintResolverSessionProvider) Get(ctx context.Context, id string) (*idpsession.IDPSession, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(*idpsession.IDPSession)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockIDTokenHintResolverSessionProviderMockRecorder) Get(id interface{}) *gomock.Call {
+func (mr *MockIDTokenHintResolverSessionProviderMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIDTokenHintResolverSessionProvider)(nil).Get), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockIDTokenHintResolverSessionProvider)(nil).Get), ctx, id)
 }
 
 // MockIDTokenHintResolverOfflineGrantService is a mock of IDTokenHintResolverOfflineGrantService interface.
@@ -281,16 +282,16 @@ func (m *MockIDTokenHintResolverOfflineGrantService) EXPECT() *MockIDTokenHintRe
 }
 
 // GetOfflineGrant mocks base method.
-func (m *MockIDTokenHintResolverOfflineGrantService) GetOfflineGrant(id string) (*oauth.OfflineGrant, error) {
+func (m *MockIDTokenHintResolverOfflineGrantService) GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetOfflineGrant", id)
+	ret := m.ctrl.Call(m, "GetOfflineGrant", ctx, id)
 	ret0, _ := ret[0].(*oauth.OfflineGrant)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetOfflineGrant indicates an expected call of GetOfflineGrant.
-func (mr *MockIDTokenHintResolverOfflineGrantServiceMockRecorder) GetOfflineGrant(id interface{}) *gomock.Call {
+func (mr *MockIDTokenHintResolverOfflineGrantServiceMockRecorder) GetOfflineGrant(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockIDTokenHintResolverOfflineGrantService)(nil).GetOfflineGrant), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOfflineGrant", reflect.TypeOf((*MockIDTokenHintResolverOfflineGrantService)(nil).GetOfflineGrant), ctx, id)
 }

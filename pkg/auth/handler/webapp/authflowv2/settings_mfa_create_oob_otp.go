@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -58,15 +60,15 @@ func NewSettingsMFACreateOOBOTPViewModel(channel model.AuthenticatorOOBChannel) 
 	}
 }
 
-func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) GetData(r *http.Request, w http.ResponseWriter, channel model.AuthenticatorOOBChannel) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter, channel model.AuthenticatorOOBChannel) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel
-	viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+	viewModelPtr, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,11 +88,11 @@ func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) ServeHTTP(w http.ResponseWrit
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		channel := model.AuthenticatorOOBChannel(httproute.GetParam(r, "channel"))
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w, channel)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w, channel)
 			if err != nil {
 				return err
 			}
@@ -103,7 +105,7 @@ func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) ServeHTTP(w http.ResponseWrit
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		err := AuthflowV2SettingsMFACreateOOBOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -112,8 +114,8 @@ func (h *AuthflowV2SettingsMFACreateOOBOTPHandler) ServeHTTP(w http.ResponseWrit
 		channel := model.AuthenticatorOOBChannel(r.Form.Get("x_channel"))
 		target := r.Form.Get("x_target")
 
-		s := session.GetSession(r.Context())
-		output, err := h.AccountManagementService.StartAddOOBOTPAuthenticator(s, &accountmanagement.StartAddOOBOTPAuthenticatorInput{
+		s := session.GetSession(ctx)
+		output, err := h.AccountManagementService.StartAddOOBOTPAuthenticator(ctx, s, &accountmanagement.StartAddOOBOTPAuthenticatorInput{
 			Channel: channel,
 			Target:  target,
 		})

@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	htmltemplate "html/template"
 	"net/http"
 
@@ -55,9 +56,9 @@ type AuthflowV2SettingsMFACreateTOTPHandler struct {
 	AccountManagement *accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsMFACreateTOTPHandler) GetData(r *http.Request, rw http.ResponseWriter, tokenString string, totpSecret string, otpauthURI string) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsMFACreateTOTPHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, tokenString string, totpSecret string, otpauthURI string) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
@@ -72,7 +73,7 @@ func (h *AuthflowV2SettingsMFACreateTOTPHandler) GetData(r *http.Request, rw htt
 	}
 
 	// SettingsViewModel
-	viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+	viewModelPtr, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,11 +98,11 @@ func (h *AuthflowV2SettingsMFACreateTOTPHandler) ServeHTTP(w http.ResponseWriter
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
-		s := session.GetSession(r.Context())
+	ctrl.Get(func(ctx context.Context) error {
+		s := session.GetSession(ctx)
 
 		tokenString := r.Form.Get("q_token")
-		token, err := h.AccountManagement.GetToken(s, tokenString)
+		token, err := h.AccountManagement.GetToken(ctx, s, tokenString)
 		if err != nil {
 			return err
 		}
@@ -117,8 +118,8 @@ func (h *AuthflowV2SettingsMFACreateTOTPHandler) ServeHTTP(w http.ResponseWriter
 		totpauthURI := totp.GetURI(opts).String()
 
 		var data map[string]interface{}
-		err = h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w, tokenString, totp.Secret, totpauthURI)
+		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w, tokenString, totp.Secret, totpauthURI)
 			return err
 		})
 		if err != nil {

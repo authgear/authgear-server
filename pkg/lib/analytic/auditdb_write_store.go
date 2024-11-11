@@ -1,6 +1,8 @@
 package analytic
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 )
 
@@ -10,7 +12,7 @@ type AuditDBWriteStore struct {
 }
 
 // UpsertCounts upsert counts in batches
-func (s *AuditDBWriteStore) UpsertCounts(counts []*Count) error {
+func (s *AuditDBWriteStore) UpsertCounts(ctx context.Context, counts []*Count) error {
 	batchSize := 100
 	for i := 0; i < len(counts); i += batchSize {
 		j := i + batchSize
@@ -19,7 +21,7 @@ func (s *AuditDBWriteStore) UpsertCounts(counts []*Count) error {
 		}
 		batch := counts[i:j]
 
-		err := s.upsertCounts(batch)
+		err := s.upsertCounts(ctx, batch)
 		if err != nil {
 			return err
 		}
@@ -28,7 +30,7 @@ func (s *AuditDBWriteStore) UpsertCounts(counts []*Count) error {
 	return nil
 }
 
-func (s *AuditDBWriteStore) upsertCounts(counts []*Count) error {
+func (s *AuditDBWriteStore) upsertCounts(ctx context.Context, counts []*Count) error {
 	builder := s.SQLBuilder.WithoutAppID().
 		Insert(s.SQLBuilder.TableName("_audit_analytic_count")).
 		Columns(
@@ -50,7 +52,7 @@ func (s *AuditDBWriteStore) upsertCounts(counts []*Count) error {
 	}
 
 	builder = builder.Suffix("ON CONFLICT (app_id, type, date) DO UPDATE SET count = excluded.count")
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}

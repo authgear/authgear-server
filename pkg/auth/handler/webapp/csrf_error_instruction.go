@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -36,7 +37,7 @@ func (h *CSRFErrorInstructionHandler) GetData(w http.ResponseWriter, r *http.Req
 
 func (h *CSRFErrorInstructionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -45,5 +46,5 @@ func (h *CSRFErrorInstructionHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		h.Renderer.RenderHTML(w, r, TemplateCSRFErrorInstructionHTML, data)
 		return nil
 	})
-	h.Controller.HandleWithoutFlow(w, r, &handlers)
+	h.Controller.HandleWithoutFlow(r.Context(), w, r, &handlers)
 }

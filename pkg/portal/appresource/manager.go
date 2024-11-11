@@ -34,16 +34,15 @@ type DenoClient interface {
 }
 
 type TutorialService interface {
-	OnUpdateResource0(appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error)
+	OnUpdateResource0(ctx context.Context, appID string, resourcesInAllFss []resource.ResourceFile, resourceInTargetFs *resource.ResourceFile, data []byte) (err error)
 }
 
 type DomainService interface {
-	ListDomains(appID string) ([]*apimodel.Domain, error)
+	ListDomains(ctx context.Context, appID string) ([]*apimodel.Domain, error)
 }
 
 type Manager struct {
 	Logger                *log.Logger
-	Context               context.Context
 	AppResourceManager    *resource.Manager
 	AppFS                 resource.Fs
 	AppFeatureConfig      *config.FeatureConfig
@@ -123,9 +122,9 @@ func (m *Manager) ReadAppFile(desc resource.Descriptor, view resource.AppFileVie
 }
 
 // ApplyUpdates0 assume acquired connection.
-func (m *Manager) ApplyUpdates0(appID string, updates []Update) ([]*resource.ResourceFile, error) {
+func (m *Manager) ApplyUpdates0(ctx context.Context, appID string, updates []Update) ([]*resource.ResourceFile, error) {
 	// Construct new resource manager.
-	newManager, files, err := m.applyUpdates(appID, m.AppFS, updates)
+	newManager, files, err := m.applyUpdates(ctx, appID, m.AppFS, updates)
 	if err != nil {
 		return nil, err
 	}
@@ -280,7 +279,7 @@ func (m *Manager) getFromAllFss(desc resource.Descriptor) ([]resource.ResourceFi
 	return files, nil
 }
 
-func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
+func (m *Manager) applyUpdates(ctx context.Context, appID string, appFs resource.Fs, updates []Update) (*resource.Manager, []*resource.ResourceFile, error) {
 	manager := m.AppResourceManager
 
 	newFs, err := cloneFS(appFs)
@@ -331,7 +330,6 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 			return nil, nil, err
 		}
 
-		ctx := m.Context
 		ctx = context.WithValue(ctx, configsource.ContextKeyFeatureConfig, m.AppFeatureConfig)
 		ctx = context.WithValue(ctx, configsource.ContextKeyClock, m.Clock)
 		ctx = context.WithValue(ctx, configsource.ContextKeyAppHostSuffixes, m.AppHostSuffixes)
@@ -339,7 +337,7 @@ func (m *Manager) applyUpdates(appID string, appFs resource.Fs, updates []Update
 		ctx = context.WithValue(ctx, configsource.ContextKeySAMLEntityID, m.renderSAMLEntityID(appID))
 		ctx = context.WithValue(ctx, hook.ContextKeyDenoClient, m.DenoClient)
 
-		err = m.Tutorials.OnUpdateResource0(appID, all, resrc, u.Data)
+		err = m.Tutorials.OnUpdateResource0(ctx, appID, all, resrc, u.Data)
 		if err != nil {
 			return nil, nil, err
 		}

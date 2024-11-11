@@ -21,7 +21,7 @@ func (n *NodeDoCreateUser) Kind() string {
 func (n *NodeDoCreateUser) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			_, err := deps.Users.Create(n.UserID)
+			_, err := deps.Users.Create(ctx, n.UserID)
 			return err
 		}),
 	}, nil

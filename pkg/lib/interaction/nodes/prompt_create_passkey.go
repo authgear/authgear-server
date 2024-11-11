@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -14,9 +16,9 @@ func init() {
 
 type EdgePromptCreatePasskeyBegin struct{}
 
-func (e *EdgePromptCreatePasskeyBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgePromptCreatePasskeyBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	userID := graph.MustGetUserID()
-	ais, err := ctx.Authenticators.List(
+	ais, err := ctx.Authenticators.List(goCtx,
 		userID,
 		authenticator.KeepKind(authenticator.KindPrimary),
 		authenticator.KeepType(model.AuthenticatorTypePasskey),
@@ -56,15 +58,15 @@ func (e *EdgePromptCreatePasskeyBegin) Instantiate(ctx *interaction.Context, gra
 
 type NodePromptCreatePasskeyBegin struct{}
 
-func (n *NodePromptCreatePasskeyBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodePromptCreatePasskeyBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodePromptCreatePasskeyBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodePromptCreatePasskeyBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodePromptCreatePasskeyBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodePromptCreatePasskeyBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{&EdgePromptCreatePasskey{}}, nil
 }
 
@@ -75,7 +77,7 @@ type InputPromptCreatePasskey interface {
 
 type EdgePromptCreatePasskey struct{}
 
-func (e *EdgePromptCreatePasskey) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgePromptCreatePasskey) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputPromptCreatePasskey
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -96,7 +98,7 @@ func (e *EdgePromptCreatePasskey) Instantiate(ctx *interaction.Context, graph *i
 			AttestationResponse: input.GetAttestationResponse(),
 		},
 	}
-	authenticatorInfo, err := ctx.Authenticators.New(authenticatorSpec)
+	authenticatorInfo, err := ctx.Authenticators.New(goCtx, authenticatorSpec)
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +110,7 @@ func (e *EdgePromptCreatePasskey) Instantiate(ctx *interaction.Context, graph *i
 			AttestationResponse: input.GetAttestationResponse(),
 		},
 	}
-	identityInfo, err := ctx.Identities.New(userID, identitySpec, identity.NewIdentityOptions{})
+	identityInfo, err := ctx.Identities.New(goCtx, userID, identitySpec, identity.NewIdentityOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -122,36 +124,36 @@ type NodePromptCreatePasskeyEnd struct {
 	Identity      *identity.Info      `json:"identity"`
 }
 
-func (n *NodePromptCreatePasskeyEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodePromptCreatePasskeyEnd) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodePromptCreatePasskeyEnd) GetEffects() ([]interaction.Effect, error) {
+func (n *NodePromptCreatePasskeyEnd) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	// If a primary passkey authenticator is being created,
 	// we create the passkey identity here instead of using the NodeDoCreateIdentity to do so.
 	// NodeDoCreateIdentity does a lot of things that is irrelevant to passkey identity,
 	// such as dispatching events.
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.Authenticator != nil {
-				err := ctx.Authenticators.Create(n.Authenticator, true)
+				err := ctx.Authenticators.Create(goCtx, n.Authenticator, true)
 				if err != nil {
 					return err
 				}
 			}
 			if n.Identity != nil {
-				err := ctx.Identities.Create(n.Identity)
+				err := ctx.Identities.Create(goCtx, n.Identity)
 				if err != nil {
 					return err
 				}
 			}
 			return nil
 		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.Authenticator != nil {
 				attestationResponse := n.Authenticator.Passkey.AttestationResponse
 
-				err := ctx.Passkey.ConsumeAttestationResponse(attestationResponse)
+				err := ctx.Passkey.ConsumeAttestationResponse(goCtx, attestationResponse)
 				if err != nil {
 					return err
 				}
@@ -162,6 +164,6 @@ func (n *NodePromptCreatePasskeyEnd) GetEffects() ([]interaction.Effect, error) 
 	}, nil
 }
 
-func (n *NodePromptCreatePasskeyEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodePromptCreatePasskeyEnd) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

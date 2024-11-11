@@ -1,6 +1,8 @@
 package customattrs
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -11,7 +13,7 @@ import (
 )
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type Service struct {
@@ -20,35 +22,13 @@ type Service struct {
 	Events         EventService
 }
 
-func (s *Service) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
-	err := s.ServiceNoEvent.UpdateAllCustomAttributes(role, userID, reprForm)
+func (s *Service) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
+	err := s.ServiceNoEvent.UpdateAllCustomAttributes(ctx, role, userID, reprForm)
 	if err != nil {
 		return err
 	}
 
-	err = s.dispatchEvents(role, userID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (s *Service) UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error {
-	err := s.ServiceNoEvent.UpdateCustomAttributesWithList(role, userID, attrs)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (s *Service) UpdateCustomAttributesWithForm(role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error {
-	err := s.ServiceNoEvent.UpdateCustomAttributesWithForm(role, userID, jsonPointerMap)
-	if err != nil {
-		return err
-	}
-
-	err = s.dispatchEvents(role, userID)
+	err = s.dispatchEvents(ctx, role, userID)
 	if err != nil {
 		return err
 	}
@@ -56,7 +36,29 @@ func (s *Service) UpdateCustomAttributesWithForm(role accesscontrol.Role, userID
 	return nil
 }
 
-func (s *Service) dispatchEvents(role accesscontrol.Role, userID string) (err error) {
+func (s *Service) UpdateCustomAttributesWithList(ctx context.Context, role accesscontrol.Role, userID string, attrs attrs.List) error {
+	err := s.ServiceNoEvent.UpdateCustomAttributesWithList(ctx, role, userID, attrs)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) UpdateCustomAttributesWithForm(ctx context.Context, role accesscontrol.Role, userID string, jsonPointerMap map[string]string) error {
+	err := s.ServiceNoEvent.UpdateCustomAttributesWithForm(ctx, role, userID, jsonPointerMap)
+	if err != nil {
+		return err
+	}
+
+	err = s.dispatchEvents(ctx, role, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Service) dispatchEvents(ctx context.Context, role accesscontrol.Role, userID string) (err error) {
 	eventPayloads := []event.Payload{
 		&blocking.UserProfilePreUpdateBlockingEventPayload{
 			UserRef: model.UserRef{
@@ -77,7 +79,7 @@ func (s *Service) dispatchEvents(role accesscontrol.Role, userID string) (err er
 	}
 
 	for _, eventPayload := range eventPayloads {
-		err = s.Events.DispatchEventOnCommit(eventPayload)
+		err = s.Events.DispatchEventOnCommit(ctx, eventPayload)
 		if err != nil {
 			return err
 		}
@@ -87,9 +89,10 @@ func (s *Service) dispatchEvents(role accesscontrol.Role, userID string) (err er
 }
 
 func (s *Service) ReadCustomAttributesInStorageForm(
+	ctx context.Context,
 	role accesscontrol.Role,
 	userID string,
 	storageForm map[string]interface{},
 ) (map[string]interface{}, error) {
-	return s.ServiceNoEvent.ReadCustomAttributesInStorageForm(role, userID, storageForm)
+	return s.ServiceNoEvent.ReadCustomAttributesInStorageForm(ctx, role, userID, storageForm)
 }

@@ -61,7 +61,7 @@ func (*IntentVerifyUser) GetEffects(ctx context.Context, deps *workflow.Dependen
 				return nil
 			}
 
-			iden, err := deps.Identities.Get(verified.IdentityID)
+			iden, err := deps.Identities.Get(ctx, verified.IdentityID)
 			if err != nil {
 				return err
 			}
@@ -72,7 +72,7 @@ func (*IntentVerifyUser) GetEffects(ctx context.Context, deps *workflow.Dependen
 				string(verified.NewVerifiedClaim.Name),
 				false,
 			); ok {
-				err := deps.Events.DispatchEventOnCommit(payload)
+				err := deps.Events.DispatchEventOnCommit(ctx, payload)
 				if err != nil {
 					return err
 				}

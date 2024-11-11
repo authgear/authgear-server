@@ -5,6 +5,7 @@
 package idpsession
 
 import (
+	context "context"
 	reflect "reflect"
 	time "time"
 
@@ -36,31 +37,31 @@ func (m *MockAccessEventProvider) EXPECT() *MockAccessEventProviderMockRecorder 
 }
 
 // InitStream mocks base method.
-func (m *MockAccessEventProvider) InitStream(sessionID string, expiry time.Time, event *access.Event) error {
+func (m *MockAccessEventProvider) InitStream(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "InitStream", sessionID, expiry, event)
+	ret := m.ctrl.Call(m, "InitStream", ctx, sessionID, expiry, event)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // InitStream indicates an expected call of InitStream.
-func (mr *MockAccessEventProviderMockRecorder) InitStream(sessionID, expiry, event interface{}) *gomock.Call {
+func (mr *MockAccessEventProviderMockRecorder) InitStream(ctx, sessionID, expiry, event interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitStream", reflect.TypeOf((*MockAccessEventProvider)(nil).InitStream), sessionID, expiry, event)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InitStream", reflect.TypeOf((*MockAccessEventProvider)(nil).InitStream), ctx, sessionID, expiry, event)
 }
 
 // RecordAccess mocks base method.
-func (m *MockAccessEventProvider) RecordAccess(sessionID string, expiry time.Time, event *access.Event) error {
+func (m *MockAccessEventProvider) RecordAccess(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RecordAccess", sessionID, expiry, event)
+	ret := m.ctrl.Call(m, "RecordAccess", ctx, sessionID, expiry, event)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // RecordAccess indicates an expected call of RecordAccess.
-func (mr *MockAccessEventProviderMockRecorder) RecordAccess(sessionID, expiry, event interface{}) *gomock.Call {
+func (mr *MockAccessEventProviderMockRecorder) RecordAccess(ctx, sessionID, expiry, event interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordAccess", reflect.TypeOf((*MockAccessEventProvider)(nil).RecordAccess), sessionID, expiry, event)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordAccess", reflect.TypeOf((*MockAccessEventProvider)(nil).RecordAccess), ctx, sessionID, expiry, event)
 }
 
 // MockProviderMeterService is a mock of ProviderMeterService interface.
@@ -87,15 +88,15 @@ func (m *MockProviderMeterService) EXPECT() *MockProviderMeterServiceMockRecorde
 }
 
 // TrackActiveUser mocks base method.
-func (m *MockProviderMeterService) TrackActiveUser(userID string) error {
+func (m *MockProviderMeterService) TrackActiveUser(ctx context.Context, userID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TrackActiveUser", userID)
+	ret := m.ctrl.Call(m, "TrackActiveUser", ctx, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // TrackActiveUser indicates an expected call of TrackActiveUser.
-func (mr *MockProviderMeterServiceMockRecorder) TrackActiveUser(userID interface{}) *gomock.Call {
+func (mr *MockProviderMeterServiceMockRecorder) TrackActiveUser(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackActiveUser", reflect.TypeOf((*MockProviderMeterService)(nil).TrackActiveUser), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrackActiveUser", reflect.TypeOf((*MockProviderMeterService)(nil).TrackActiveUser), ctx, userID)
 }

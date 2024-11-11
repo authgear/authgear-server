@@ -95,7 +95,7 @@ func (AzureADB2C) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*
 	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
 }
 
-func (p AzureADB2C) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p AzureADB2C) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	c, err := p.getOpenIDConfiguration(deps)
 	if err != nil {
 		return "", err
@@ -112,7 +112,7 @@ func (p AzureADB2C) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, par
 	}), nil
 }
 
-func (p AzureADB2C) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (p AzureADB2C) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	c, err := p.getOpenIDConfiguration(deps)
 	if err != nil {
 		return

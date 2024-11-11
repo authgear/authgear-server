@@ -5,6 +5,7 @@
 package oauth
 
 import (
+	context "context"
 	url "net/url"
 	reflect "reflect"
 
@@ -52,17 +53,17 @@ func (mr *MockIDTokenIssuerMockRecorder) Iss() *gomock.Call {
 }
 
 // PopulateUserClaimsInIDToken mocks base method.
-func (m *MockIDTokenIssuer) PopulateUserClaimsInIDToken(token jwt.Token, userID string, clientLike *ClientLike) error {
+func (m *MockIDTokenIssuer) PopulateUserClaimsInIDToken(ctx context.Context, token jwt.Token, userID string, clientLike *ClientLike) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PopulateUserClaimsInIDToken", token, userID, clientLike)
+	ret := m.ctrl.Call(m, "PopulateUserClaimsInIDToken", ctx, token, userID, clientLike)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PopulateUserClaimsInIDToken indicates an expected call of PopulateUserClaimsInIDToken.
-func (mr *MockIDTokenIssuerMockRecorder) PopulateUserClaimsInIDToken(token, userID, clientLike interface{}) *gomock.Call {
+func (mr *MockIDTokenIssuerMockRecorder) PopulateUserClaimsInIDToken(ctx, token, userID, clientLike interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PopulateUserClaimsInIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).PopulateUserClaimsInIDToken), token, userID, clientLike)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PopulateUserClaimsInIDToken", reflect.TypeOf((*MockIDTokenIssuer)(nil).PopulateUserClaimsInIDToken), ctx, token, userID, clientLike)
 }
 
 // MockBaseURLProvider is a mock of BaseURLProvider interface.
@@ -126,17 +127,17 @@ func (m *MockEventService) EXPECT() *MockEventServiceMockRecorder {
 }
 
 // DispatchEventOnCommit mocks base method.
-func (m *MockEventService) DispatchEventOnCommit(payload event.Payload) error {
+func (m *MockEventService) DispatchEventOnCommit(ctx context.Context, payload event.Payload) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DispatchEventOnCommit", payload)
+	ret := m.ctrl.Call(m, "DispatchEventOnCommit", ctx, payload)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DispatchEventOnCommit indicates an expected call of DispatchEventOnCommit.
-func (mr *MockEventServiceMockRecorder) DispatchEventOnCommit(payload interface{}) *gomock.Call {
+func (mr *MockEventServiceMockRecorder) DispatchEventOnCommit(ctx, payload interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventOnCommit", reflect.TypeOf((*MockEventService)(nil).DispatchEventOnCommit), payload)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DispatchEventOnCommit", reflect.TypeOf((*MockEventService)(nil).DispatchEventOnCommit), ctx, payload)
 }
 
 // MockAccessTokenEncodingIdentityService is a mock of AccessTokenEncodingIdentityService interface.
@@ -163,16 +164,16 @@ func (m *MockAccessTokenEncodingIdentityService) EXPECT() *MockAccessTokenEncodi
 }
 
 // ListIdentitiesThatHaveStandardAttributes mocks base method.
-func (m *MockAccessTokenEncodingIdentityService) ListIdentitiesThatHaveStandardAttributes(userID string) ([]*identity.Info, error) {
+func (m *MockAccessTokenEncodingIdentityService) ListIdentitiesThatHaveStandardAttributes(ctx context.Context, userID string) ([]*identity.Info, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListIdentitiesThatHaveStandardAttributes", userID)
+	ret := m.ctrl.Call(m, "ListIdentitiesThatHaveStandardAttributes", ctx, userID)
 	ret0, _ := ret[0].([]*identity.Info)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListIdentitiesThatHaveStandardAttributes indicates an expected call of ListIdentitiesThatHaveStandardAttributes.
-func (mr *MockAccessTokenEncodingIdentityServiceMockRecorder) ListIdentitiesThatHaveStandardAttributes(userID interface{}) *gomock.Call {
+func (mr *MockAccessTokenEncodingIdentityServiceMockRecorder) ListIdentitiesThatHaveStandardAttributes(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIdentitiesThatHaveStandardAttributes", reflect.TypeOf((*MockAccessTokenEncodingIdentityService)(nil).ListIdentitiesThatHaveStandardAttributes), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListIdentitiesThatHaveStandardAttributes", reflect.TypeOf((*MockAccessTokenEncodingIdentityService)(nil).ListIdentitiesThatHaveStandardAttributes), ctx, userID)
 }

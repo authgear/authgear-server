@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -12,8 +14,8 @@ func init() {
 type EdgeValidateUser struct {
 }
 
-func (e *EdgeValidateUser) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
-	u, err := ctx.Users.GetRaw(graph.MustGetUserID())
+func (e *EdgeValidateUser) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+	u, err := ctx.Users.GetRaw(goCtx, graph.MustGetUserID())
 	if err != nil {
 		return nil, err
 	}
@@ -32,14 +34,14 @@ type NodeValidateUser struct {
 	Error *apierrors.APIError `json:"error"`
 }
 
-func (n *NodeValidateUser) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeValidateUser) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeValidateUser) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeValidateUser) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeValidateUser) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeValidateUser) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

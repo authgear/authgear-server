@@ -30,16 +30,16 @@ func (n *NodeVerifiedAuthenticator) GetEffects(ctx context.Context, deps *workfl
 			var verifiedClaim *verification.Claim
 			switch n.Authenticator.Type {
 			case model.AuthenticatorTypeOOBEmail:
-				verifiedClaim = deps.Verification.NewVerifiedClaim(n.Authenticator.UserID, string(model.ClaimEmail), n.Authenticator.OOBOTP.Email)
+				verifiedClaim = deps.Verification.NewVerifiedClaim(ctx, n.Authenticator.UserID, string(model.ClaimEmail), n.Authenticator.OOBOTP.Email)
 			case model.AuthenticatorTypeOOBSMS:
-				verifiedClaim = deps.Verification.NewVerifiedClaim(n.Authenticator.UserID, string(model.ClaimPhoneNumber), n.Authenticator.OOBOTP.Phone)
+				verifiedClaim = deps.Verification.NewVerifiedClaim(ctx, n.Authenticator.UserID, string(model.ClaimPhoneNumber), n.Authenticator.OOBOTP.Phone)
 			}
 
 			if verifiedClaim == nil {
 				return nil
 			}
 
-			if err := deps.Verification.MarkClaimVerified(verifiedClaim); err != nil {
+			if err := deps.Verification.MarkClaimVerified(ctx, verifiedClaim); err != nil {
 				return err
 			}
 			return nil

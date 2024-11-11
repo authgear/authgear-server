@@ -1,6 +1,7 @@
 package verification
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -180,13 +181,14 @@ func TestService(t *testing.T) {
 
 			for i, c := range cases {
 				Convey(fmt.Sprintf("case %d", i), func() {
+					ctx := context.Background()
 					service.Config.Criteria = config.VerificationCriteriaAny
-					claimStore.EXPECT().ListByUserIDs([]string{"user-id"}).Return(c.Claims, nil).MaxTimes(1)
-					So(mustBool(service.IsUserVerified(c.Identities)), ShouldEqual, c.AnyResult)
+					claimStore.EXPECT().ListByUserIDs(ctx, []string{"user-id"}).Return(c.Claims, nil).MaxTimes(1)
+					So(mustBool(service.IsUserVerified(ctx, c.Identities)), ShouldEqual, c.AnyResult)
 
 					service.Config.Criteria = config.VerificationCriteriaAll
-					claimStore.EXPECT().ListByUserIDs([]string{"user-id"}).Return(c.Claims, nil).MaxTimes(1)
-					So(mustBool(service.IsUserVerified(c.Identities)), ShouldEqual, c.AllResult)
+					claimStore.EXPECT().ListByUserIDs(ctx, []string{"user-id"}).Return(c.Claims, nil).MaxTimes(1)
+					So(mustBool(service.IsUserVerified(ctx, c.Identities)), ShouldEqual, c.AllResult)
 				})
 			}
 		})

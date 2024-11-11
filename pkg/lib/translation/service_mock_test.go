@@ -5,6 +5,7 @@
 package translation_test
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,16 +35,16 @@ func (m *MockStaticAssetResolver) EXPECT() *MockStaticAssetResolverMockRecorder 
 }
 
 // StaticAssetURL mocks base method.
-func (m *MockStaticAssetResolver) StaticAssetURL(id string) (string, error) {
+func (m *MockStaticAssetResolver) StaticAssetURL(ctx context.Context, id string) (string, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StaticAssetURL", id)
+	ret := m.ctrl.Call(m, "StaticAssetURL", ctx, id)
 	ret0, _ := ret[0].(string)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // StaticAssetURL indicates an expected call of StaticAssetURL.
-func (mr *MockStaticAssetResolverMockRecorder) StaticAssetURL(id interface{}) *gomock.Call {
+func (mr *MockStaticAssetResolverMockRecorder) StaticAssetURL(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StaticAssetURL", reflect.TypeOf((*MockStaticAssetResolver)(nil).StaticAssetURL), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StaticAssetURL", reflect.TypeOf((*MockStaticAssetResolver)(nil).StaticAssetURL), ctx, id)
 }

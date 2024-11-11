@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -72,7 +74,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	}
 
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -82,7 +84,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return nil
 	})
 
-	handlers.PostAction("oauth", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("oauth", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
 		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
 		input := map[string]interface{}{
@@ -97,7 +99,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -106,7 +108,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return nil
 	})
 
-	handlers.PostAction("login_id", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("login_id", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowPromoteLoginIDSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -125,7 +127,7 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -134,5 +136,5 @@ func (h *AuthflowV2PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowTypePromote, &handlers, nil)
+	h.Controller.HandleStartOfFlow(r.Context(), w, r, opts, authflow.FlowTypePromote, &handlers, nil)
 }

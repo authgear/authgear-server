@@ -127,7 +127,7 @@ func (Apple) createClientSecret(deps oauthrelyingparty.Dependencies) (clientSecr
 	return
 }
 
-func (p Apple) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Apple) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return appleOIDCConfig.MakeOAuthURL(oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
@@ -143,7 +143,7 @@ func (p Apple) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oa
 	}), nil
 }
 
-func (p Apple) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (p Apple) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	keySet, err := appleOIDCConfig.FetchJWKs(deps.HTTPClient)
 	if err != nil {
 		return

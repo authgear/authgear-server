@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -45,12 +46,13 @@ func (h *AuthenticationFlowV1GetHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		return
 	}
 
+	ctx := r.Context()
 	stateToken := request.StateToken
-	h.get(w, r, stateToken)
+	h.get(ctx, w, r, stateToken)
 }
 
-func (h *AuthenticationFlowV1GetHandler) get(w http.ResponseWriter, r *http.Request, stateToken string) {
-	output, err := h.Workflows.Get(stateToken)
+func (h *AuthenticationFlowV1GetHandler) get(ctx context.Context, w http.ResponseWriter, r *http.Request, stateToken string) {
+	output, err := h.Workflows.Get(ctx, stateToken)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return

@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -13,7 +15,7 @@ func init() {
 
 type EdgeEnsureRemoveAnonymousIdentity struct{}
 
-func (e *EdgeEnsureRemoveAnonymousIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeEnsureRemoveAnonymousIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	return &NodeEnsureRemoveAnonymousIdentity{
 		IsAdminAPI: interaction.IsAdminAPI(input),
 	}, nil
@@ -24,9 +26,9 @@ type NodeEnsureRemoveAnonymousIdentity struct {
 	IsAdminAPI        bool           `json:"is_admin_api"`
 }
 
-func (n *NodeEnsureRemoveAnonymousIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeEnsureRemoveAnonymousIdentity) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	userID := graph.MustGetUserID()
-	iis, err := ctx.Identities.ListByUser(graph.MustGetUserID())
+	iis, err := ctx.Identities.ListByUser(goCtx, graph.MustGetUserID())
 	if err != nil {
 		return err
 	}
@@ -49,19 +51,19 @@ func (n *NodeEnsureRemoveAnonymousIdentity) Prepare(ctx *interaction.Context, gr
 	return nil
 }
 
-func (n *NodeEnsureRemoveAnonymousIdentity) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeEnsureRemoveAnonymousIdentity) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.AnonymousIdentity == nil {
 				return nil
 			}
-			err := ctx.Identities.Delete(n.AnonymousIdentity)
+			err := ctx.Identities.Delete(goCtx, n.AnonymousIdentity)
 			if err != nil {
 				return err
 			}
 			return nil
 		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.AnonymousIdentity == nil {
 				return nil
 			}
@@ -78,7 +80,7 @@ func (n *NodeEnsureRemoveAnonymousIdentity) GetEffects() ([]interaction.Effect, 
 				identityModels = append(identityModels, info.ToModel())
 			}
 
-			err := ctx.Events.DispatchEventOnCommit(&nonblocking.UserAnonymousPromotedEventPayload{
+			err := ctx.Events.DispatchEventOnCommit(goCtx, &nonblocking.UserAnonymousPromotedEventPayload{
 				AnonymousUserRef: anonUserRef,
 				UserRef:          anonUserRef,
 				Identities:       identityModels,
@@ -93,6 +95,6 @@ func (n *NodeEnsureRemoveAnonymousIdentity) GetEffects() ([]interaction.Effect, 
 	}, nil
 }
 
-func (n *NodeEnsureRemoveAnonymousIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeEnsureRemoveAnonymousIdentity) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

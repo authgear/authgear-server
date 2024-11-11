@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -25,6 +26,7 @@ type PreAuthenticatedURLToken struct {
 
 type PreAuthenticatedURLTokenAccessGrantService interface {
 	IssueAccessGrant(
+		ctx context.Context,
 		client *config.OAuthClientConfig,
 		scopes []string,
 		authzID string,
@@ -36,8 +38,9 @@ type PreAuthenticatedURLTokenAccessGrantService interface {
 }
 
 type PreAuthenticatedURLTokenOfflineGrantService interface {
-	GetOfflineGrant(id string) (*OfflineGrant, error)
+	GetOfflineGrant(ctx context.Context, id string) (*OfflineGrant, error)
 	CreateNewRefreshToken(
+		ctx context.Context,
 		grant *OfflineGrant,
 		clientID string,
 		scopes []string,

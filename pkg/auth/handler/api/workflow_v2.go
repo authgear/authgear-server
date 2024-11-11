@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"net/url"
@@ -170,9 +171,9 @@ func (r *WorkflowV2Request) SetDefaults() {
 }
 
 type WorkflowV2WorkflowService interface {
-	CreateNewWorkflow(intent workflow.Intent, sessionOptions *workflow.SessionOptions) (*workflow.ServiceOutput, error)
-	Get(workflowID string, instanceID string, userAgentID string) (*workflow.ServiceOutput, error)
-	FeedInput(workflowID string, instanceID string, userAgentID string, input workflow.Input) (*workflow.ServiceOutput, error)
+	CreateNewWorkflow(ctx context.Context, intent workflow.Intent, sessionOptions *workflow.SessionOptions) (*workflow.ServiceOutput, error)
+	Get(ctx context.Context, workflowID string, instanceID string, userAgentID string) (*workflow.ServiceOutput, error)
+	FeedInput(ctx context.Context, workflowID string, instanceID string, userAgentID string, input workflow.Input) (*workflow.ServiceOutput, error)
 }
 
 type WorkflowV2CookieManager interface {
@@ -182,13 +183,13 @@ type WorkflowV2CookieManager interface {
 }
 
 type WorkflowV2OAuthSessionService interface {
-	Get(entryID string) (*oauthsession.Entry, error)
+	Get(ctx context.Context, entryID string) (*oauthsession.Entry, error)
 }
 
 type WorkflowV2UIInfoResolver interface {
 	GetOAuthSessionIDLegacy(req *http.Request, urlQuery string) (string, bool)
 	RemoveOAuthSessionID(w http.ResponseWriter, r *http.Request)
-	ResolveForUI(r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
+	ResolveForUI(ctx context.Context, r protocol.AuthorizationRequest) (*oidc.UIInfo, error)
 }
 
 type WorkflowV2Handler struct {
@@ -208,24 +209,25 @@ func (h *WorkflowV2Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx := r.Context()
 	switch request.Action {
 	case WorkflowV2ActionCreate:
-		h.handleActionCreate(w, r, request)
+		h.handleActionCreate(ctx, w, r, request)
 		return
 	case WorkflowV2ActionInput:
-		h.handleActionInput(w, r, request)
+		h.handleActionInput(ctx, w, r, request)
 		return
 	case WorkflowV2ActionBatchInput:
-		h.handleActionBatchInput(w, r, request)
+		h.handleActionBatchInput(ctx, w, r, request)
 		return
 	case WorkflowV2ActionGet:
-		h.handleActionGet(w, r, request)
+		h.handleActionGet(ctx, w, r, request)
 		return
 	}
 }
 
-func (h *WorkflowV2Handler) handleActionCreate(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
-	output, err := h.create(w, r, request)
+func (h *WorkflowV2Handler) handleActionCreate(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
+	output, err := h.create(ctx, w, r, request)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
@@ -236,9 +238,9 @@ func (h *WorkflowV2Handler) handleActionCreate(w http.ResponseWriter, r *http.Re
 		instanceID := output.Workflow.InstanceID
 		userAgentID := output.Session.UserAgentID
 
-		output, err = h.batchInput(w, r, workflowID, instanceID, userAgentID, request)
+		output, err = h.batchInput(ctx, w, r, workflowID, instanceID, userAgentID, request)
 		if err != nil {
-			apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
+			apiResp, apiRespErr := h.prepareErrorResponse(ctx, workflowID, instanceID, userAgentID, err)
 			if apiRespErr != nil {
 				// failed to get the workflow when preparing the error response
 				h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -260,14 +262,14 @@ func (h *WorkflowV2Handler) handleActionCreate(w http.ResponseWriter, r *http.Re
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
-func (h *WorkflowV2Handler) handleActionInput(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
+func (h *WorkflowV2Handler) handleActionInput(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
 	workflowID := request.WorkflowID
 	instanceID := request.InstanceID
 	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
 
-	output, err := h.input(w, r, workflowID, instanceID, userAgentID, request)
+	output, err := h.input(ctx, w, r, workflowID, instanceID, userAgentID, request)
 	if err != nil {
-		apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
+		apiResp, apiRespErr := h.prepareErrorResponse(ctx, workflowID, instanceID, userAgentID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
 			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -288,14 +290,14 @@ func (h *WorkflowV2Handler) handleActionInput(w http.ResponseWriter, r *http.Req
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
-func (h *WorkflowV2Handler) handleActionBatchInput(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
+func (h *WorkflowV2Handler) handleActionBatchInput(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
 	workflowID := request.WorkflowID
 	instanceID := request.InstanceID
 	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
 
-	output, err := h.batchInput(w, r, workflowID, instanceID, userAgentID, request)
+	output, err := h.batchInput(ctx, w, r, workflowID, instanceID, userAgentID, request)
 	if err != nil {
-		apiResp, apiRespErr := h.prepareErrorResponse(workflowID, instanceID, userAgentID, err)
+		apiResp, apiRespErr := h.prepareErrorResponse(ctx, workflowID, instanceID, userAgentID, err)
 		if apiRespErr != nil {
 			// failed to get the workflow when preparing the error response
 			h.JSON.WriteResponse(w, &api.Response{Error: apiRespErr})
@@ -316,12 +318,12 @@ func (h *WorkflowV2Handler) handleActionBatchInput(w http.ResponseWriter, r *htt
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
-func (h *WorkflowV2Handler) handleActionGet(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
+func (h *WorkflowV2Handler) handleActionGet(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) {
 	workflowID := request.WorkflowID
 	instanceID := request.InstanceID
 	userAgentID := getOrCreateUserAgentID(h.Cookies, w, r)
 
-	output, err := h.Workflows.Get(workflowID, instanceID, userAgentID)
+	output, err := h.Workflows.Get(ctx, workflowID, instanceID, userAgentID)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
@@ -334,7 +336,7 @@ func (h *WorkflowV2Handler) handleActionGet(w http.ResponseWriter, r *http.Reque
 	h.JSON.WriteResponse(w, &api.Response{Result: result})
 }
 
-func (h *WorkflowV2Handler) create(w http.ResponseWriter, r *http.Request, request WorkflowV2Request) (*workflow.ServiceOutput, error) {
+func (h *WorkflowV2Handler) create(ctx context.Context, w http.ResponseWriter, r *http.Request, request WorkflowV2Request) (*workflow.ServiceOutput, error) {
 	intent, err := workflow.InstantiateIntentFromPublicRegistry(*request.Intent)
 	if err != nil {
 		return nil, err
@@ -344,7 +346,7 @@ func (h *WorkflowV2Handler) create(w http.ResponseWriter, r *http.Request, reque
 
 	var sessionOptionsFromOAuth *workflow.SessionOptions
 	if oauthSessionID, ok := h.UIInfoResolver.GetOAuthSessionIDLegacy(r, request.URLQuery); ok {
-		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(oauthSessionID)
+		sessionOptionsFromOAuth, err = h.makeSessionOptionsFromOAuth(ctx, oauthSessionID)
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			// Clear the oauth session if it invalid or expired
 			h.UIInfoResolver.RemoveOAuthSessionID(w, r)
@@ -367,7 +369,7 @@ func (h *WorkflowV2Handler) create(w http.ResponseWriter, r *http.Request, reque
 		sessionOptions.UserAgentID = userAgentID
 	}
 
-	output, err := h.Workflows.CreateNewWorkflow(intent, sessionOptions)
+	output, err := h.Workflows.CreateNewWorkflow(ctx, intent, sessionOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -375,14 +377,14 @@ func (h *WorkflowV2Handler) create(w http.ResponseWriter, r *http.Request, reque
 	return output, nil
 }
 
-func (h *WorkflowV2Handler) makeSessionOptionsFromOAuth(oauthSessionID string) (*workflow.SessionOptions, error) {
-	entry, err := h.OAuthSessions.Get(oauthSessionID)
+func (h *WorkflowV2Handler) makeSessionOptionsFromOAuth(ctx context.Context, oauthSessionID string) (*workflow.SessionOptions, error) {
+	entry, err := h.OAuthSessions.Get(ctx, oauthSessionID)
 	if err != nil {
 		return nil, err
 	}
 	req := entry.T.AuthorizationRequest
 
-	uiInfo, err := h.UIInfoResolver.ResolveForUI(req)
+	uiInfo, err := h.UIInfoResolver.ResolveForUI(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -412,6 +414,7 @@ func (h *WorkflowV2Handler) makeSessionOptionsFromQuery(urlQuery string) *workfl
 }
 
 func (h *WorkflowV2Handler) input(
+	ctx context.Context,
 	w http.ResponseWriter,
 	r *http.Request,
 	workflowID string,
@@ -424,7 +427,7 @@ func (h *WorkflowV2Handler) input(
 		return nil, err
 	}
 
-	output, err := h.Workflows.FeedInput(workflowID, instanceID, userAgentID, input)
+	output, err := h.Workflows.FeedInput(ctx, workflowID, instanceID, userAgentID, input)
 	if err != nil && errors.Is(err, workflow.ErrNoChange) {
 		err = workflow.ErrInvalidInputKind
 	}
@@ -436,6 +439,7 @@ func (h *WorkflowV2Handler) input(
 }
 
 func (h *WorkflowV2Handler) batchInput(
+	ctx context.Context,
 	w http.ResponseWriter,
 	r *http.Request,
 	workflowID string,
@@ -452,7 +456,7 @@ func (h *WorkflowV2Handler) batchInput(
 			return nil, err
 		}
 
-		output, err = h.Workflows.FeedInput(workflowID, instanceID, userAgentID, input)
+		output, err = h.Workflows.FeedInput(ctx, workflowID, instanceID, userAgentID, input)
 		if err != nil && errors.Is(err, workflow.ErrNoChange) {
 			err = workflow.ErrInvalidInputKind
 		}
@@ -477,12 +481,13 @@ func (h *WorkflowV2Handler) batchInput(
 }
 
 func (h *WorkflowV2Handler) prepareErrorResponse(
+	ctx context.Context,
 	workflowID string,
 	instanceID string,
 	userAgentID string,
 	workflowErr error,
 ) (*api.Response, error) {
-	output, err := h.Workflows.Get(workflowID, instanceID, userAgentID)
+	output, err := h.Workflows.Get(ctx, workflowID, instanceID, userAgentID)
 	if err != nil {
 		return nil, err
 	}

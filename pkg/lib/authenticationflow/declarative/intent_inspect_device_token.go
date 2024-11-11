@@ -56,7 +56,7 @@ func (i *IntentInspectDeviceToken) ReactTo(ctx context.Context, deps *authflow.D
 
 		deviceToken := deviceTokenCookie.Value
 
-		err = deps.MFA.VerifyDeviceToken(i.UserID, deviceToken)
+		err = deps.MFA.VerifyDeviceToken(ctx, i.UserID, deviceToken)
 		if errors.Is(err, mfa.ErrDeviceTokenNotFound) {
 			deviceTokenCookie = deps.Cookies.ClearCookie(deps.MFADeviceTokenCookie.Def)
 			return authflow.NewNodeSimple(&NodeDoClearDeviceTokenCookie{

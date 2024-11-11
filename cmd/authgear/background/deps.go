@@ -61,21 +61,21 @@ type AccountDeletionServiceFactory struct {
 	BackgroundProvider *deps.BackgroundProvider
 }
 
-func (f *AccountDeletionServiceFactory) MakeUserService(ctx context.Context, appID string, appContext *config.AppContext) accountdeletion.UserService {
-	return newUserService(ctx, f.BackgroundProvider, appID, appContext)
+func (f *AccountDeletionServiceFactory) MakeUserService(appID string, appContext *config.AppContext) accountdeletion.UserService {
+	return newUserService(f.BackgroundProvider, appID, appContext)
 }
 
 type AccountAnonymizationServiceFactory struct {
 	BackgroundProvider *deps.BackgroundProvider
 }
 
-func (f *AccountAnonymizationServiceFactory) MakeUserService(ctx context.Context, appID string, appContext *config.AppContext) accountanonymization.UserService {
-	return newUserService(ctx, f.BackgroundProvider, appID, appContext)
+func (f *AccountAnonymizationServiceFactory) MakeUserService(appID string, appContext *config.AppContext) accountanonymization.UserService {
+	return newUserService(f.BackgroundProvider, appID, appContext)
 }
 
 type UserFacade interface {
-	DeleteFromScheduledDeletion(userID string) error
-	AnonymizeFromScheduledAnonymization(userID string) error
+	DeleteFromScheduledDeletion(ctx context.Context, userID string) error
+	AnonymizeFromScheduledAnonymization(ctx context.Context, userID string) error
 }
 
 type UserService struct {
@@ -83,15 +83,15 @@ type UserService struct {
 	UserFacade  UserFacade
 }
 
-func (s *UserService) DeleteFromScheduledDeletion(userID string) (err error) {
-	return s.AppDBHandle.WithTx(func() error {
-		return s.UserFacade.DeleteFromScheduledDeletion(userID)
+func (s *UserService) DeleteFromScheduledDeletion(ctx context.Context, userID string) (err error) {
+	return s.AppDBHandle.WithTx(ctx, func(ctx context.Context) error {
+		return s.UserFacade.DeleteFromScheduledDeletion(ctx, userID)
 	})
 }
 
-func (s *UserService) AnonymizeFromScheduledAnonymization(userID string) (err error) {
-	return s.AppDBHandle.WithTx(func() error {
-		return s.UserFacade.AnonymizeFromScheduledAnonymization(userID)
+func (s *UserService) AnonymizeFromScheduledAnonymization(ctx context.Context, userID string) (err error) {
+	return s.AppDBHandle.WithTx(ctx, func(ctx context.Context) error {
+		return s.UserFacade.AnonymizeFromScheduledAnonymization(ctx, userID)
 	})
 }
 

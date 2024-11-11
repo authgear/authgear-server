@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -30,12 +32,13 @@ type IssuePreAuthenticatedURLTokenOptions struct {
 }
 
 func (s *PreAuthenticatedURLTokenServiceImpl) IssuePreAuthenticatedURLToken(
+	ctx context.Context,
 	options *IssuePreAuthenticatedURLTokenOptions,
 ) (*IssuePreAuthenticatedURLTokenResult, error) {
 	now := s.Clock.NowUTC()
 	token := oauth.GenerateToken()
 	tokenHash := oauth.HashToken(token)
-	err := s.PreAuthenticatedURLTokens.CreatePreAuthenticatedURLToken(&oauth.PreAuthenticatedURLToken{
+	err := s.PreAuthenticatedURLTokens.CreatePreAuthenticatedURLToken(ctx, &oauth.PreAuthenticatedURLToken{
 		AppID:           options.AppID,
 		AuthorizationID: options.AuthorizationID,
 		ClientID:        options.ClientID,
@@ -59,12 +62,13 @@ func (s *PreAuthenticatedURLTokenServiceImpl) IssuePreAuthenticatedURLToken(
 }
 
 func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	sessionID string,
 	token string,
 ) (string, error) {
 	tokenHash := oauth.HashToken(token)
-	tokenModel, err := s.PreAuthenticatedURLTokens.ConsumePreAuthenticatedURLToken(tokenHash)
+	tokenModel, err := s.PreAuthenticatedURLTokens.ConsumePreAuthenticatedURLToken(ctx, tokenHash)
 	if err != nil {
 		return "", err
 	}
@@ -75,7 +79,7 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 		return "", oauth.ErrUnmatchedSession
 	}
 
-	offlineGrant, err := s.OfflineGrantService.GetOfflineGrant(tokenModel.OfflineGrantID)
+	offlineGrant, err := s.OfflineGrantService.GetOfflineGrant(ctx, tokenModel.OfflineGrantID)
 	if err != nil {
 		return "", err
 	}
@@ -84,7 +88,7 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 	dpopJKT := ""
 
 	newRefreshTokenResult, newOfflineGrant, err := s.OfflineGrantService.CreateNewRefreshToken(
-		offlineGrant, tokenModel.ClientID, tokenModel.Scopes, tokenModel.AuthorizationID, dpopJKT,
+		ctx, offlineGrant, tokenModel.ClientID, tokenModel.Scopes, tokenModel.AuthorizationID, dpopJKT,
 	)
 	if err != nil {
 		return "", err
@@ -92,6 +96,7 @@ func (s *PreAuthenticatedURLTokenServiceImpl) ExchangeForAccessToken(
 	offlineGrant = newOfflineGrant
 
 	result, err := s.AccessGrantService.IssueAccessGrant(
+		ctx,
 		client,
 		tokenModel.Scopes,
 		tokenModel.AuthorizationID,

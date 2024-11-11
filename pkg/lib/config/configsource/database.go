@@ -61,7 +61,6 @@ type DatabaseHandleFactory func() *globaldb.Handle
 type StoreFactory func(handle *globaldb.Handle) *Store
 
 func NewDatabaseHandleFactory(
-	ctx context.Context,
 	pool *db.Pool,
 	credentials *config.GlobalDatabaseCredentialsEnvironmentConfig,
 	cfg *config.DatabaseEnvironmentConfig,
@@ -69,7 +68,6 @@ func NewDatabaseHandleFactory(
 ) DatabaseHandleFactory {
 	factory := func() *globaldb.Handle {
 		return globaldb.NewHandle(
-			ctx,
 			pool,
 			credentials,
 			cfg,
@@ -80,11 +78,10 @@ func NewDatabaseHandleFactory(
 }
 
 func NewStoreFactory(
-	ctx context.Context,
 	sqlbuilder *globaldb.SQLBuilder,
 ) StoreFactory {
 	factory := func(handle *globaldb.Handle) *Store {
-		sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+		sqlExecutor := globaldb.NewSQLExecutor(handle)
 		return &Store{
 			SQLBuilder:  sqlbuilder,
 			SQLExecutor: sqlExecutor,
@@ -113,7 +110,7 @@ type Database struct {
 	appMap  *sync.Map `wire:"-"`
 }
 
-func (d *Database) Open() error {
+func (d *Database) Open(ctx context.Context) error {
 	d.hostMap = &sync.Map{}
 	d.appMap = &sync.Map{}
 
@@ -132,7 +129,7 @@ func (d *Database) Open() error {
 			d.invalidateApp(extra)
 		case PGChannelDomainChange:
 			d.invalidateHost(extra)
-			d.invalidateAppByDomain(extra)
+			d.invalidateAppByDomain(ctx, extra)
 		default:
 			// unknown notification channel, just skip it
 			d.Logger.WithField("channel", channel).Info("unknown notification channel")
@@ -150,25 +147,25 @@ func (d *Database) Close() error {
 	return nil
 }
 
-func (d *Database) ResolveAppID(r *http.Request) (string, error) {
+func (d *Database) ResolveAppID(ctx context.Context, r *http.Request) (string, error) {
 	switch d.ResolveAppIDType {
 	case ResolveAppIDTypeDomain:
-		return d.resolveAppIDByDomain(r)
+		return d.resolveAppIDByDomain(ctx, r)
 	case ResolveAppIDTypePath:
-		return d.resolveAppIDByPath(r)
+		return d.resolveAppIDByPath(ctx, r)
 	default:
 		panic("invalid resolve app id type")
 	}
 }
 
-func (d *Database) resolveAppIDByPath(r *http.Request) (string, error) {
+func (d *Database) resolveAppIDByPath(ctx context.Context, r *http.Request) (string, error) {
 	appid := httproute.GetParam(r, "appid")
 	if appid == "" {
 		return "", ErrAppNotFound
 	}
 
 	// Try to resolve app to ensure the app exist
-	_, err := d.ResolveContext(appid)
+	_, err := d.ResolveContext(ctx, appid)
 	if err != nil {
 		return "", err
 	}
@@ -176,7 +173,7 @@ func (d *Database) resolveAppIDByPath(r *http.Request) (string, error) {
 	return appid, nil
 }
 
-func (d *Database) resolveAppIDByDomain(r *http.Request) (string, error) {
+func (d *Database) resolveAppIDByDomain(ctx context.Context, r *http.Request) (string, error) {
 	host := httputil.GetHost(r, bool(d.TrustProxy))
 	if h, _, err := net.SplitHostPort(host); err == nil {
 		host = h
@@ -190,9 +187,9 @@ func (d *Database) resolveAppIDByDomain(r *http.Request) (string, error) {
 	var appID string
 	dbHandle := d.DatabaseHandleFactory()
 	store := d.StoreFactory(dbHandle)
-	err := dbHandle.WithTx(func() error {
+	err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		d.Logger.WithField("host", host).Debug("resolve appid from db")
-		aid, err := store.GetAppIDByDomain(host)
+		aid, err := store.GetAppIDByDomain(ctx, host)
 		if err != nil {
 			return err
 		}
@@ -207,24 +204,24 @@ func (d *Database) resolveAppIDByDomain(r *http.Request) (string, error) {
 	return appID, nil
 }
 
-func (d *Database) ResolveContext(appID string) (*config.AppContext, error) {
+func (d *Database) ResolveContext(ctx context.Context, appID string) (*config.AppContext, error) {
 	value, _ := d.appMap.LoadOrStore(appID, &dbApp{
 		appID: appID,
 		load:  &sync.Once{},
 	})
 	app := value.(*dbApp)
-	return app.Load(d)
+	return app.Load(ctx, d)
 }
 
 func (d *Database) ReloadApp(appID string) {
 	d.invalidateApp(appID)
 }
 
-func (d *Database) CreateDatabaseSource(appID string, resources map[string][]byte, planName string) error {
+func (d *Database) CreateDatabaseSource(ctx context.Context, appID string, resources map[string][]byte, planName string) error {
 	dbHandle := d.DatabaseHandleFactory()
 	store := d.StoreFactory(dbHandle)
-	return dbHandle.WithTx(func() error {
-		_, err := store.GetDatabaseSourceByAppID(appID)
+	return dbHandle.WithTx(ctx, func(ctx context.Context) error {
+		_, err := store.GetDatabaseSourceByAppID(ctx, appID)
 		if err != nil && !errors.Is(err, ErrAppNotFound) {
 			return err
 		} else if err == nil {
@@ -244,15 +241,15 @@ func (d *Database) CreateDatabaseSource(appID string, resources map[string][]byt
 			CreatedAt: d.Clock.NowUTC(),
 			UpdatedAt: d.Clock.NowUTC(),
 		}
-		return store.CreateDatabaseSource(dbSource)
+		return store.CreateDatabaseSource(ctx, dbSource)
 	})
 }
 
-func (d *Database) UpdateDatabaseSource(appID string, updates []*resource.ResourceFile) error {
+func (d *Database) UpdateDatabaseSource(ctx context.Context, appID string, updates []*resource.ResourceFile) error {
 	dbHandle := d.DatabaseHandleFactory()
 	store := d.StoreFactory(dbHandle)
-	return dbHandle.WithTx(func() error {
-		dbs, err := store.GetDatabaseSourceByAppID(appID)
+	return dbHandle.WithTx(ctx, func(ctx context.Context) error {
+		dbs, err := store.GetDatabaseSourceByAppID(ctx, appID)
 		if err != nil {
 			return err
 		}
@@ -275,7 +272,7 @@ func (d *Database) UpdateDatabaseSource(appID string, updates []*resource.Resour
 
 		if updated {
 			dbs.UpdatedAt = d.Clock.NowUTC()
-			err = store.UpdateDatabaseSource(dbs)
+			err = store.UpdateDatabaseSource(ctx, dbs)
 			if err != nil {
 				return err
 			}
@@ -295,11 +292,11 @@ func (d *Database) invalidateApp(appID string) {
 	d.Logger.WithField("app_id", appID).Info("invalidated cached config")
 }
 
-func (d *Database) invalidateAppByDomain(domain string) {
+func (d *Database) invalidateAppByDomain(ctx context.Context, domain string) {
 	dbHandle := d.DatabaseHandleFactory()
 	store := d.StoreFactory(dbHandle)
-	err := dbHandle.WithTx(func() error {
-		aid, err := store.GetAppIDByDomain(domain)
+	err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
+		aid, err := store.GetAppIDByDomain(ctx, domain)
 		if err != nil {
 			return err
 		}
@@ -369,23 +366,23 @@ type dbApp struct {
 	Loaded     bool
 }
 
-func (a *dbApp) Load(d *Database) (*config.AppContext, error) {
+func (a *dbApp) Load(ctx context.Context, d *Database) (*config.AppContext, error) {
 	if a.load != nil {
 		a.load.Do(func() {
-			a.appCtx, a.err = a.doLoad(d)
+			a.appCtx, a.err = a.doLoad(ctx, d)
 		})
 	}
 	atomic.StoreInt64(&a.lastUsedAt, d.Clock.NowMonotonic().Unix())
 	return a.appCtx, a.err
 }
 
-func (a *dbApp) doLoad(d *Database) (*config.AppContext, error) {
+func (a *dbApp) doLoad(ctx context.Context, d *Database) (*config.AppContext, error) {
 	var appCtx *config.AppContext
 	dbHandle := d.DatabaseHandleFactory()
 	store := d.StoreFactory(dbHandle)
-	err := dbHandle.WithTx(func() error {
+	err := dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		d.Logger.WithField("app_id", a.appID).Info("load app config from db")
-		data, err := store.GetDatabaseSourceByAppID(a.appID)
+		data, err := store.GetDatabaseSourceByAppID(ctx, a.appID)
 		if err != nil {
 			return err
 		}
@@ -401,7 +398,7 @@ func (a *dbApp) doLoad(d *Database) (*config.AppContext, error) {
 			return err
 		}
 
-		domains, err := store.GetDomainsByAppID(a.appID)
+		domains, err := store.GetDomainsByAppID(ctx, a.appID)
 		if err != nil {
 			return err
 		}

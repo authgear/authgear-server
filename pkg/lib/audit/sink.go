@@ -1,6 +1,8 @@
 package audit
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -16,12 +18,12 @@ type Sink struct {
 	Store    *WriteStore
 }
 
-func (s *Sink) ReceiveBlockingEvent(e *event.Event) (err error) {
+func (s *Sink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) (err error) {
 	// We do not log blocking event.
 	return
 }
 
-func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) (err error) {
+func (s *Sink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) (err error) {
 	// Skip events that are not for audit.
 	payload := e.Payload.(event.NonBlockingPayload)
 	if !payload.ForAudit() {
@@ -39,12 +41,12 @@ func (s *Sink) ReceiveNonBlockingEvent(e *event.Event) (err error) {
 		"event": e,
 	}).Debug("persisting event")
 
-	err = s.Database.WithTx(func() error {
+	err = s.Database.WithTx(ctx, func(ctx context.Context) error {
 		logEntry, err := NewLog(e)
 		if err != nil {
 			return err
 		}
-		return s.Store.PersistLog(logEntry)
+		return s.Store.PersistLog(ctx, logEntry)
 	})
 	if err != nil {
 		return

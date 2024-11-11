@@ -32,7 +32,7 @@ const (
 )
 
 type UsageLimiter interface {
-	ReserveN(name usage.LimitName, n int, config *config.UsageLimitConfig) (*usage.Reservation, error)
+	ReserveN(ctx context.Context, name usage.LimitName, n int, config *config.UsageLimitConfig) (*usage.Reservation, error)
 }
 
 type JobManager struct {
@@ -47,6 +47,7 @@ type JobManager struct {
 
 func (m *JobManager) EnqueueJob(ctx context.Context, request *Request) (*Response, error) {
 	_, err := m.UsageLimiter.ReserveN(
+		ctx,
 		usageLimitUserImport,
 		len(request.Records),
 		m.AdminAPIFeatureConfig.UserImportUsage,

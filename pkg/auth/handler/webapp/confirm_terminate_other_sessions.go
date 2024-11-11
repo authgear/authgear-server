@@ -1,7 +1,9 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -63,7 +65,7 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -83,7 +85,7 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		err = ConfirmTerminateOtherSessionsSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -100,7 +102,7 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 		if !isConfirmed {
 			// If cancelled, forget all existing steps
 			session.Steps = []webapp.SessionStep{}
-			if err = ctrl.Page.UpdateSession(session); err != nil {
+			if err = ctrl.Page.UpdateSession(ctx, session); err != nil {
 				return err
 			}
 			u := h.Endpoints.SelectAccountEndpointURL()

@@ -87,7 +87,7 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 			LoginID:        loginID,
 		}
 
-		_, err = findExactOneIdentityInfo(deps, specForLookup)
+		_, err = findExactOneIdentityInfo(ctx, deps, specForLookup)
 		if err != nil {
 			// promote
 			if apierrors.IsKind(err, api.UserNotFound) {
@@ -106,7 +106,7 @@ func (n *IntentPromoteIdentityLoginID) ReactTo(ctx context.Context, deps *authfl
 					return nil, identity.NewErrDuplicatedIdentityMany(spec, conflictSpecs)
 				}
 
-				info, err := newIdentityInfo(deps, n.UserID, spec)
+				info, err := newIdentityInfo(ctx, deps, n.UserID, spec)
 				if err != nil {
 					return nil, err
 				}

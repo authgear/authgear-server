@@ -7,7 +7,6 @@
 package accountanonymization
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
@@ -18,10 +17,10 @@ import (
 
 // Injectors from wire.go:
 
-func newRunnable(context2 context.Context, pool *db.Pool, globalDBCredentials *config.GlobalDatabaseCredentialsEnvironmentConfig, databaseCfg *config.DatabaseEnvironmentConfig, logFactory *log.Factory, clock2 clock.Clock, appContextResolver AppContextResolver, userServiceFactory UserServiceFactory) backgroundjob.Runnable {
-	handle := globaldb.NewHandle(context2, pool, globalDBCredentials, databaseCfg, logFactory)
+func newRunnable(pool *db.Pool, globalDBCredentials *config.GlobalDatabaseCredentialsEnvironmentConfig, databaseCfg *config.DatabaseEnvironmentConfig, logFactory *log.Factory, clock2 clock.Clock, appContextResolver AppContextResolver, userServiceFactory UserServiceFactory) backgroundjob.Runnable {
+	handle := globaldb.NewHandle(pool, globalDBCredentials, databaseCfg, logFactory)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDBCredentials)
-	sqlExecutor := globaldb.NewSQLExecutor(context2, handle)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &Store{
 		Handle:      handle,
 		SQLBuilder:  sqlBuilder,
@@ -30,7 +29,6 @@ func newRunnable(context2 context.Context, pool *db.Pool, globalDBCredentials *c
 	}
 	runnableLogger := NewRunnableLogger(logFactory)
 	runnable := &Runnable{
-		Context:            context2,
 		Store:              store,
 		AppContextResolver: appContextResolver,
 		UserServiceFactory: userServiceFactory,

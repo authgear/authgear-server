@@ -62,7 +62,7 @@ func (i *IntentReauthForgotPassword) ReactTo(ctx context.Context, deps *workflow
 		var inputTakeForgotPasswordChannel inputTakeForgotPasswordChannel
 		if workflow.AsInput(input, &inputTakeForgotPasswordChannel) {
 			channel := inputTakeForgotPasswordChannel.GetForgotPasswordChannel()
-			node, err := i.selectLoginIDForChannel(workflows.Nearest, deps, channel)
+			node, err := i.selectLoginIDForChannel(ctx, workflows.Nearest, deps, channel)
 			if err != nil {
 				return nil, err
 			}
@@ -91,6 +91,7 @@ func (*IntentReauthForgotPassword) OutputData(ctx context.Context, deps *workflo
 }
 
 func (*IntentReauthForgotPassword) selectLoginIDForChannel(
+	ctx context.Context,
 	w *workflow.Workflow,
 	deps *workflow.Dependencies,
 	channel ForgotPasswordChannel) (*NodeForgotPasswordWithLoginID, error) {
@@ -102,7 +103,7 @@ func (*IntentReauthForgotPassword) selectLoginIDForChannel(
 		panic("UserID is nil in NodeForgotPasswordForUser but it must not be nil")
 	}
 
-	targetLoginID, err := selectForgotPasswordLoginID(deps, *prevnode.UserID, channel)
+	targetLoginID, err := selectForgotPasswordLoginID(ctx, deps, *prevnode.UserID, channel)
 
 	if err != nil {
 		return nil, err

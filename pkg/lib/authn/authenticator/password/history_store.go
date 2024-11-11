@@ -1,6 +1,7 @@
 package password
 
 import (
+	"context"
 	"time"
 
 	"github.com/lib/pq"
@@ -19,26 +20,26 @@ type HistoryStore struct {
 	SQLExecutor *appdb.SQLExecutor
 }
 
-func (p *HistoryStore) CreatePasswordHistory(userID string, hashedPassword []byte, createdAt time.Time) error {
+func (p *HistoryStore) CreatePasswordHistory(ctx context.Context, userID string, hashedPassword []byte, createdAt time.Time) error {
 	updateBuilder := p.insertPasswordHistoryBuilder(
 		userID,
 		hashedPassword,
 		createdAt,
 	)
-	if _, err := p.SQLExecutor.ExecWith(updateBuilder); err != nil {
+	if _, err := p.SQLExecutor.ExecWith(ctx, updateBuilder); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *HistoryStore) GetPasswordHistory(userID string, historySize int, historyDays config.DurationDays) ([]History, error) {
+func (p *HistoryStore) GetPasswordHistory(ctx context.Context, userID string, historySize int, historyDays config.DurationDays) ([]History, error) {
 	var err error
 	var sizeHistory, daysHistory []History
 	t := p.Clock.NowUTC()
 
 	if historySize > 0 {
 		sizeBuilder := p.basePasswordHistoryBuilder(userID).Limit(uint64(historySize))
-		sizeHistory, err = p.doQueryPasswordHistory(sizeBuilder)
+		sizeHistory, err = p.doQueryPasswordHistory(ctx, sizeBuilder)
 		if err != nil {
 			return nil, err
 		}
@@ -49,7 +50,7 @@ func (p *HistoryStore) GetPasswordHistory(userID string, historySize int, histor
 		since := startOfDay.Add(-historyDays.Duration())
 		daysBuilder := p.basePasswordHistoryBuilder(userID).
 			Where("created_at >= ?", since)
-		daysHistory, err = p.doQueryPasswordHistory(daysBuilder)
+		daysHistory, err = p.doQueryPasswordHistory(ctx, daysBuilder)
 		if err != nil {
 			return nil, err
 		}
@@ -62,8 +63,8 @@ func (p *HistoryStore) GetPasswordHistory(userID string, historySize int, histor
 	return daysHistory, nil
 }
 
-func (p *HistoryStore) RemovePasswordHistory(userID string, historySize int, historyDays config.DurationDays) error {
-	history, err := p.GetPasswordHistory(userID, historySize, historyDays)
+func (p *HistoryStore) RemovePasswordHistory(ctx context.Context, userID string, historySize int, historyDays config.DurationDays) error {
+	history, err := p.GetPasswordHistory(ctx, userID, historySize, historyDays)
 	if err != nil {
 		return err
 	}
@@ -84,16 +85,16 @@ func (p *HistoryStore) RemovePasswordHistory(userID string, historySize int, his
 		Where("id != ALL (?)", pq.Array(ids)).
 		Where("created_at < ?", oldestTime)
 
-	_, err = p.SQLExecutor.ExecWith(builder)
+	_, err = p.SQLExecutor.ExecWith(ctx, builder)
 	return err
 }
 
-func (p *HistoryStore) ResetPasswordHistory(userID string) error {
+func (p *HistoryStore) ResetPasswordHistory(ctx context.Context, userID string) error {
 	builder := p.SQLBuilder.
 		Delete(p.SQLBuilder.TableName("_auth_password_history")).
 		Where("user_id = ?", userID)
 
-	_, err := p.SQLExecutor.ExecWith(builder)
+	_, err := p.SQLExecutor.ExecWith(ctx, builder)
 	return err
 }
 
@@ -122,8 +123,8 @@ func (p *HistoryStore) insertPasswordHistoryBuilder(userID string, hashedPasswor
 		)
 }
 
-func (p *HistoryStore) doQueryPasswordHistory(builder db.SelectBuilder) ([]History, error) {
-	rows, err := p.SQLExecutor.QueryWith(builder)
+func (p *HistoryStore) doQueryPasswordHistory(ctx context.Context, builder db.SelectBuilder) ([]History, error) {
+	rows, err := p.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}

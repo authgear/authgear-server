@@ -17,12 +17,11 @@ import (
 const ttl = duration.UserInteraction
 
 type StoreRedis struct {
-	Context context.Context
-	Redis   *appredis.Handle
-	AppID   config.AppID
+	Redis *appredis.Handle
+	AppID config.AppID
 }
 
-func (s *StoreRedis) Save(session *SAMLSLOSession) (err error) {
+func (s *StoreRedis) Save(ctx context.Context, session *SAMLSLOSession) (err error) {
 	jsonBytes, err := json.Marshal(session)
 	if err != nil {
 		return
@@ -30,8 +29,8 @@ func (s *StoreRedis) Save(session *SAMLSLOSession) (err error) {
 
 	key := samlSLOSessionEntryKey(s.AppID, session.ID)
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		_, err := conn.Set(s.Context, key, jsonBytes, ttl).Result()
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err := conn.Set(ctx, key, jsonBytes, ttl).Result()
 		return err
 	})
 	if err != nil {
@@ -41,10 +40,10 @@ func (s *StoreRedis) Save(session *SAMLSLOSession) (err error) {
 	return
 }
 
-func (s *StoreRedis) Get(sessionID string) (entry *SAMLSLOSession, err error) {
+func (s *StoreRedis) Get(ctx context.Context, sessionID string) (entry *SAMLSLOSession, err error) {
 	key := samlSLOSessionEntryKey(s.AppID, sessionID)
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		data, err := conn.Get(s.Context, key).Bytes()
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrNotFound
 		} else if err != nil {
@@ -61,10 +60,10 @@ func (s *StoreRedis) Get(sessionID string) (entry *SAMLSLOSession, err error) {
 	return
 }
 
-func (s *StoreRedis) Delete(sessionID string) (err error) {
+func (s *StoreRedis) Delete(ctx context.Context, sessionID string) (err error) {
 	key := samlSLOSessionEntryKey(s.AppID, sessionID)
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		_, err := conn.Del(s.Context, key).Result()
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err := conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
 		}

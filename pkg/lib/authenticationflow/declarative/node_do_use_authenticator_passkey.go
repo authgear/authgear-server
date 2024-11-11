@@ -31,12 +31,12 @@ func (n *NodeDoUseAuthenticatorPasskey) GetEffects(ctx context.Context, deps *au
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			if n.RequireUpdate {
-				return deps.Authenticators.Update(n.Authenticator)
+				return deps.Authenticators.Update(ctx, n.Authenticator)
 			}
 			return nil
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.PasskeyService.ConsumeAssertionResponse(n.AssertionResponse)
+			return deps.PasskeyService.ConsumeAssertionResponse(ctx, n.AssertionResponse)
 		}),
 	}, nil
 }

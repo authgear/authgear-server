@@ -76,13 +76,13 @@ func (n *IntentUseAccountRecoveryIdentity) ReactTo(ctx context.Context, deps *au
 		switch n.OnFailure {
 		case config.AuthenticationFlowAccountRecoveryIdentificationOnFailureIgnore:
 			var err error
-			exactMatch, _, err = deps.Identities.SearchBySpec(spec)
+			exactMatch, _, err = deps.Identities.SearchBySpec(ctx, spec)
 			if err != nil {
 				return nil, err
 			}
 		case config.AuthenticationFlowAccountRecoveryIdentificationOnFailureError:
 			var err error
-			exactMatch, err = findExactOneIdentityInfo(deps, spec)
+			exactMatch, err = findExactOneIdentityInfo(ctx, deps, spec)
 			if err != nil {
 				return nil, err
 			}

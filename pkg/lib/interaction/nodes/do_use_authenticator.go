@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -22,7 +23,7 @@ type EdgeDoUseAuthenticator struct {
 	Authenticator *authenticator.Info
 }
 
-func (e *EdgeDoUseAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoUseAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	n := &NodeDoUseAuthenticator{
 		Stage:         e.Stage,
 		Authenticator: e.Authenticator,
@@ -32,8 +33,8 @@ func (e *EdgeDoUseAuthenticator) Instantiate(ctx *interaction.Context, graph *in
 	var input InputCreateDeviceToken
 	if interaction.Input(rawInput, &input) {
 		if input.CreateDeviceToken() {
-			token := ctx.MFA.GenerateDeviceToken()
-			_, err := ctx.MFA.CreateDeviceToken(userID, token)
+			token := ctx.MFA.GenerateDeviceToken(goCtx)
+			_, err := ctx.MFA.CreateDeviceToken(goCtx, userID, token)
 			if err != nil {
 				return nil, err
 			}
@@ -59,16 +60,16 @@ func (n *NodeDoUseAuthenticator) GetCookies() []*http.Cookie {
 	return []*http.Cookie{n.DeviceTokenCookie}
 }
 
-func (n *NodeDoUseAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoUseAuthenticator) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeDoUseAuthenticator) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoUseAuthenticator) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeDoUseAuthenticator) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeDoUseAuthenticator) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }
 
 func (n *NodeDoUseAuthenticator) UserAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool) {

@@ -17,13 +17,11 @@ type SendTestEmailOptions struct {
 	SMTPPassword string
 }
 
-type Service struct {
-	Context context.Context
-}
+type Service struct{}
 
-func (s *Service) SendTestEmail(app *model.App, options SendTestEmailOptions) (err error) {
-	translationService := NewTranslationService(s.Context, app)
-	sender, err := translationService.GetSenderForTestEmail()
+func (s *Service) SendTestEmail(ctx context.Context, app *model.App, options SendTestEmailOptions) (err error) {
+	translationService := NewTranslationService(app)
+	sender, err := translationService.GetSenderForTestEmail(ctx)
 	if err != nil {
 		return
 	}

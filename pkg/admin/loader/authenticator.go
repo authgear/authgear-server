@@ -1,12 +1,14 @@
 package loader
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type AuthenticatorLoaderAuthenticatorService interface {
-	GetMany(ids []string) ([]*authenticator.Info, error)
+	GetMany(ctx context.Context, ids []string) ([]*authenticator.Info, error)
 }
 
 type AuthenticatorLoader struct {
@@ -23,7 +25,7 @@ func NewAuthenticatorLoader(authenticators AuthenticatorLoaderAuthenticatorServi
 	return l
 }
 
-func (l *AuthenticatorLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+func (l *AuthenticatorLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -31,7 +33,7 @@ func (l *AuthenticatorLoader) LoadFunc(keys []interface{}) ([]interface{}, error
 	}
 
 	// Get entities.
-	entities, err := l.Authenticators.GetMany(ids)
+	entities, err := l.Authenticators.GetMany(ctx, ids)
 	if err != nil {
 		return nil, err
 	}

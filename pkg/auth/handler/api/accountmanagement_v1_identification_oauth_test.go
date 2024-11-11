@@ -76,7 +76,7 @@ func TestAccountManagementV1IdentificationOAuthHandlerRequestValidation(t *testi
 			r = mockSession.ToRequest(r)
 			w := httptest.NewRecorder()
 
-			svc.EXPECT().FinishAdding(gomock.Any()).Times(1).Return(&accountmanagement.FinishAddingOutput{}, nil)
+			svc.EXPECT().FinishAdding(gomock.Any(), gomock.Any()).Times(1).Return(&accountmanagement.FinishAddingOutput{}, nil)
 			h.ServeHTTP(w, r)
 			So(w.Result().StatusCode, ShouldEqual, 200)
 		})

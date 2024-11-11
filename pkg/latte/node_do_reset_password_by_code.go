@@ -22,7 +22,7 @@ func (n *NodeDoResetPasswordByCode) Kind() string {
 func (n *NodeDoResetPasswordByCode) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			err := deps.ResetPassword.ResetPasswordByEndUser(n.Code, n.NewPassword)
+			err := deps.ResetPassword.ResetPasswordByEndUser(ctx, n.Code, n.NewPassword)
 			return err
 		}),
 	}, nil

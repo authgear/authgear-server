@@ -16,7 +16,6 @@ import (
 )
 
 type Dumper struct {
-	Context        context.Context
 	DatabaseURL    string
 	DatabaseSchema string
 	OutputDir      string
@@ -30,7 +29,6 @@ type Dumper struct {
 }
 
 func NewDumper(
-	context context.Context,
 	databaseURL string,
 	databaseSchema string,
 	outputDir string,
@@ -43,7 +41,6 @@ func NewDumper(
 	logger := loggerFactory.New("dumper")
 	pool := db.NewPool()
 	handle := db.NewHookHandle(
-		context,
 		pool,
 		db.ConnectionOptions{
 			DatabaseURL:           databaseURL,
@@ -55,12 +52,10 @@ func NewDumper(
 		loggerFactory,
 	)
 	sqlExecutor := &db.SQLExecutor{
-		Context:  context,
 		Database: handle,
 	}
 	sqlBuilder := db.NewSQLBuilder(databaseSchema)
 	return &Dumper{
-		Context:        context,
 		DatabaseURL:    databaseURL,
 		DatabaseSchema: databaseSchema,
 		OutputDir:      outputDir,
@@ -74,8 +69,7 @@ func NewDumper(
 	}
 }
 
-func (d *Dumper) Dump() error {
-
+func (d *Dumper) Dump(ctx context.Context) error {
 	outputPathAbs, err := filepath.Abs(d.OutputDir)
 	if err != nil {
 		panic(err)
@@ -87,11 +81,11 @@ func (d *Dumper) Dump() error {
 		panic(err)
 	}
 
-	return d.dbHandle.ReadOnly(func() error {
+	return d.dbHandle.ReadOnly(ctx, func(ctx context.Context) error {
 		for _, tableName := range d.TableNames {
 			filePath := filepath.Join(d.OutputDir, fmt.Sprintf("%s.csv", tableName))
 			d.logger.Info(fmt.Sprintf("Dumping %s to %s", tableName, filePath))
-			columns, rows, err := d.queryTable(tableName)
+			columns, rows, err := d.queryTable(ctx, tableName)
 			if err != nil {
 				return err
 			}
@@ -114,12 +108,12 @@ func (d *Dumper) Dump() error {
 	})
 }
 
-func (d *Dumper) queryTable(tableName string) (columns []string, rows []map[string]string, err error) {
+func (d *Dumper) queryTable(ctx context.Context, tableName string) (columns []string, rows []map[string]string, err error) {
 	q := d.sqlBuilder.Select("*").
 		From(d.sqlBuilder.TableName(tableName)).
 		Where("app_id = ANY (?)", pq.Array(d.AppIDs))
 
-	qresult, err := d.sqlExecutor.QueryWith(q)
+	qresult, err := d.sqlExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return
 	}

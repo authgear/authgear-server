@@ -79,11 +79,10 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	factory := p.LoggerFactory
-	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	handlerLogger := healthz.NewHandlerLogger(factory)
 	handler := &healthz.Handler{
-		Context:        ctx,
 		GlobalDatabase: handle,
 		GlobalExecutor: sqlExecutor,
 		Logger:         handlerLogger,
@@ -129,7 +128,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	trustProxy := environmentConfig.TrustProxy
 	httpConfig := appConfig.HTTP
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
-	contextContext := deps.ProvideRequestContext(request)
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	appID := appConfig.ID
@@ -153,18 +151,16 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	analyticredisHandle := appProvider.AnalyticRedis
 	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: contextContext,
-		Redis:   analyticredisHandle,
-		AppID:   appID,
-		Clock:   clock,
-		Logger:  meterStoreRedisLogger,
+		Redis:  analyticredisHandle,
+		AppID:  appID,
+		Clock:  clock,
+		Logger: meterStoreRedisLogger,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	rand := _wireRandValue
 	provider := &idpsession.Provider{
-		Context:         contextContext,
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
 		AppID:           appID,
@@ -191,14 +187,13 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	appdbHandle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
 	authorizationStore := &pq.AuthorizationStore{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
 	logger := redis.NewLogger(factory)
 	store := &redis.Store{
-		Context:     contextContext,
 		Redis:       handle,
 		AppID:       appID,
 		Logger:      logger,
@@ -295,9 +290,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLExecutor: sqlExecutor,
 	}
 	store2 := &passkey2.Store{
-		Context: contextContext,
-		Redis:   handle,
-		AppID:   appID,
+		Redis: handle,
+		AppID: appID,
 	}
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(config)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(config)
@@ -314,7 +308,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
 		Localization:      localizationConfig,
 		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
@@ -323,7 +316,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
-		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -347,10 +339,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	web3Config := appConfig.Web3
 	siweStoreRedis := &siwe2.StoreRedis{
-		Context: contextContext,
-		Redis:   handle,
-		AppID:   appID,
-		Clock:   clock,
+		Redis: handle,
+		AppID: appID,
+		Clock: clock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(handle)
@@ -611,7 +602,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
-		Context:         contextContext,
 		ResourceManager: manager,
 		Logger:          denoHookLogger,
 	}
@@ -640,7 +630,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	writeHandle := appProvider.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
@@ -658,7 +648,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clock)
 	elasticsearchService := elasticsearch.Service{
 		Clock:           clock,
-		Context:         contextContext,
 		Database:        appdbHandle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
@@ -675,7 +664,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Service:  elasticsearchService,
 		Database: appdbHandle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, appdbHandle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: handle,
 		AppID: appID,
@@ -733,7 +722,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	whatsappService := &whatsapp.Service{
-		Context:                           contextContext,
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
@@ -741,7 +729,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		WhatsappConfig:                    whatsappConfig,
 		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
-		TokenStore:                        tokenStore,
 	}
 	sender := &messaging.Sender{
 		Limits:                 limits,
@@ -903,9 +890,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	request := p.Request
-	contextContext := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	store := &service.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -969,10 +954,10 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
+		Redis: appredisHandle,
+		AppID: appID,
 	}
+	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -993,7 +978,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
 		Localization:      localizationConfig,
 		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
@@ -1002,7 +986,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
-		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -1027,10 +1010,9 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	factory := appProvider.LoggerFactory
 	logger := ratelimit.NewLogger(factory)

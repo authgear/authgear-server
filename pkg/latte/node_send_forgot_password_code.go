@@ -35,6 +35,6 @@ func (n *NodeSendForgotPasswordCode) OutputData(ctx context.Context, deps *workf
 }
 
 func (n *NodeSendForgotPasswordCode) sendCode(ctx context.Context, deps *workflow.Dependencies) error {
-	return deps.ForgotPassword.SendCode(n.LoginID, nil)
+	return deps.ForgotPassword.SendCode(ctx, n.LoginID, nil)
 
 }

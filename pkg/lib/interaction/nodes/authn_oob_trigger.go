@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -73,7 +75,7 @@ func (e *EdgeAuthenticationOOBTrigger) GetOOBOTPChannel(idx int) model.Authentic
 	}
 }
 
-func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationOOBTrigger) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputAuthenticationOOBTrigger
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -100,7 +102,7 @@ func (e *EdgeAuthenticationOOBTrigger) Instantiate(ctx *interaction.Context, gra
 		AuthenticatorInfo:    targetInfo,
 		IgnoreRatelimitError: true,
 		OTPForm:              otp.FormCode,
-	}).Do()
+	}).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -157,15 +159,15 @@ func (n *NodeAuthenticationOOBTrigger) GetOOBOTPCodeLength() int {
 	return n.CodeLength
 }
 
-func (n *NodeAuthenticationOOBTrigger) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeAuthenticationOOBTrigger) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationOOBTrigger) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeAuthenticationOOBTrigger) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeAuthenticationOOBTrigger) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeAuthenticationOOBTrigger) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeOOBResendCode{
 			Stage:            n.Stage,

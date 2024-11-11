@@ -5,6 +5,7 @@
 package service
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
@@ -38,136 +39,136 @@ func (m *MockLoginIDIdentityProvider) EXPECT() *MockLoginIDIdentityProviderMockR
 }
 
 // Create mocks base method.
-func (m *MockLoginIDIdentityProvider) Create(i *identity.LoginID) error {
+func (m *MockLoginIDIdentityProvider) Create(ctx context.Context, i *identity.LoginID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", i)
+	ret := m.ctrl.Call(m, "Create", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockLoginIDIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) Create(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Create), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Create), ctx, i)
 }
 
 // Delete mocks base method.
-func (m *MockLoginIDIdentityProvider) Delete(i *identity.LoginID) error {
+func (m *MockLoginIDIdentityProvider) Delete(ctx context.Context, i *identity.LoginID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", i)
+	ret := m.ctrl.Call(m, "Delete", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockLoginIDIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) Delete(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Delete), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Delete), ctx, i)
 }
 
 // Get mocks base method.
-func (m *MockLoginIDIdentityProvider) Get(userID, id string) (*identity.LoginID, error) {
+func (m *MockLoginIDIdentityProvider) Get(ctx context.Context, userID, id string) (*identity.LoginID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret := m.ctrl.Call(m, "Get", ctx, userID, id)
 	ret0, _ := ret[0].(*identity.LoginID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockLoginIDIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) Get(ctx, userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Get), userID, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Get), ctx, userID, id)
 }
 
 // GetByKeyAndValue mocks base method.
-func (m *MockLoginIDIdentityProvider) GetByKeyAndValue(loginIDKey, loginIDValue string) (*identity.LoginID, error) {
+func (m *MockLoginIDIdentityProvider) GetByKeyAndValue(ctx context.Context, loginIDKey, loginIDValue string) (*identity.LoginID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByKeyAndValue", loginIDKey, loginIDValue)
+	ret := m.ctrl.Call(m, "GetByKeyAndValue", ctx, loginIDKey, loginIDValue)
 	ret0, _ := ret[0].(*identity.LoginID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByKeyAndValue indicates an expected call of GetByKeyAndValue.
-func (mr *MockLoginIDIdentityProviderMockRecorder) GetByKeyAndValue(loginIDKey, loginIDValue interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) GetByKeyAndValue(ctx, loginIDKey, loginIDValue interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByKeyAndValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByKeyAndValue), loginIDKey, loginIDValue)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByKeyAndValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByKeyAndValue), ctx, loginIDKey, loginIDValue)
 }
 
 // GetByUniqueKey mocks base method.
-func (m *MockLoginIDIdentityProvider) GetByUniqueKey(uniqueKey string) (*identity.LoginID, error) {
+func (m *MockLoginIDIdentityProvider) GetByUniqueKey(ctx context.Context, uniqueKey string) (*identity.LoginID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUniqueKey", uniqueKey)
+	ret := m.ctrl.Call(m, "GetByUniqueKey", ctx, uniqueKey)
 	ret0, _ := ret[0].(*identity.LoginID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByUniqueKey indicates an expected call of GetByUniqueKey.
-func (mr *MockLoginIDIdentityProviderMockRecorder) GetByUniqueKey(uniqueKey interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) GetByUniqueKey(ctx, uniqueKey interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUniqueKey", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByUniqueKey), uniqueKey)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUniqueKey", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByUniqueKey), ctx, uniqueKey)
 }
 
 // GetByValue mocks base method.
-func (m *MockLoginIDIdentityProvider) GetByValue(loginIDValue string) ([]*identity.LoginID, error) {
+func (m *MockLoginIDIdentityProvider) GetByValue(ctx context.Context, loginIDValue string) ([]*identity.LoginID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByValue", loginIDValue)
+	ret := m.ctrl.Call(m, "GetByValue", ctx, loginIDValue)
 	ret0, _ := ret[0].([]*identity.LoginID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByValue indicates an expected call of GetByValue.
-func (mr *MockLoginIDIdentityProviderMockRecorder) GetByValue(loginIDValue interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) GetByValue(ctx, loginIDValue interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByValue), loginIDValue)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByValue", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetByValue), ctx, loginIDValue)
 }
 
 // GetMany mocks base method.
-func (m *MockLoginIDIdentityProvider) GetMany(ids []string) ([]*identity.LoginID, error) {
+func (m *MockLoginIDIdentityProvider) GetMany(ctx context.Context, ids []string) ([]*identity.LoginID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret := m.ctrl.Call(m, "GetMany", ctx, ids)
 	ret0, _ := ret[0].([]*identity.LoginID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMany indicates an expected call of GetMany.
-func (mr *MockLoginIDIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) GetMany(ctx, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetMany), ids)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).GetMany), ctx, ids)
 }
 
 // List mocks base method.
-func (m *MockLoginIDIdentityProvider) List(userID string) ([]*identity.LoginID, error) {
+func (m *MockLoginIDIdentityProvider) List(ctx context.Context, userID string) ([]*identity.LoginID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID)
+	ret := m.ctrl.Call(m, "List", ctx, userID)
 	ret0, _ := ret[0].([]*identity.LoginID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockLoginIDIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) List(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).List), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).List), ctx, userID)
 }
 
 // ListByClaim mocks base method.
-func (m *MockLoginIDIdentityProvider) ListByClaim(name, value string) ([]*identity.LoginID, error) {
+func (m *MockLoginIDIdentityProvider) ListByClaim(ctx context.Context, name, value string) ([]*identity.LoginID, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
+	ret := m.ctrl.Call(m, "ListByClaim", ctx, name, value)
 	ret0, _ := ret[0].([]*identity.LoginID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockLoginIDIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) ListByClaim(ctx, name, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).ListByClaim), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).ListByClaim), ctx, name, value)
 }
 
 // New mocks base method.
@@ -202,17 +203,17 @@ func (mr *MockLoginIDIdentityProviderMockRecorder) Normalize(typ, value interfac
 }
 
 // Update mocks base method.
-func (m *MockLoginIDIdentityProvider) Update(i *identity.LoginID) error {
+func (m *MockLoginIDIdentityProvider) Update(ctx context.Context, i *identity.LoginID) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", i)
+	ret := m.ctrl.Call(m, "Update", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockLoginIDIdentityProviderMockRecorder) Update(i interface{}) *gomock.Call {
+func (mr *MockLoginIDIdentityProviderMockRecorder) Update(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Update), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockLoginIDIdentityProvider)(nil).Update), ctx, i)
 }
 
 // WithValue mocks base method.
@@ -254,121 +255,121 @@ func (m *MockOAuthIdentityProvider) EXPECT() *MockOAuthIdentityProviderMockRecor
 }
 
 // Create mocks base method.
-func (m *MockOAuthIdentityProvider) Create(i *identity.OAuth) error {
+func (m *MockOAuthIdentityProvider) Create(ctx context.Context, i *identity.OAuth) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", i)
+	ret := m.ctrl.Call(m, "Create", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockOAuthIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) Create(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Create), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Create), ctx, i)
 }
 
 // Delete mocks base method.
-func (m *MockOAuthIdentityProvider) Delete(i *identity.OAuth) error {
+func (m *MockOAuthIdentityProvider) Delete(ctx context.Context, i *identity.OAuth) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", i)
+	ret := m.ctrl.Call(m, "Delete", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockOAuthIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) Delete(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Delete), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Delete), ctx, i)
 }
 
 // Get mocks base method.
-func (m *MockOAuthIdentityProvider) Get(userID, id string) (*identity.OAuth, error) {
+func (m *MockOAuthIdentityProvider) Get(ctx context.Context, userID, id string) (*identity.OAuth, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret := m.ctrl.Call(m, "Get", ctx, userID, id)
 	ret0, _ := ret[0].(*identity.OAuth)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockOAuthIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) Get(ctx, userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Get), userID, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Get), ctx, userID, id)
 }
 
 // GetByProviderSubject mocks base method.
-func (m *MockOAuthIdentityProvider) GetByProviderSubject(providerID oauthrelyingparty.ProviderID, subjectID string) (*identity.OAuth, error) {
+func (m *MockOAuthIdentityProvider) GetByProviderSubject(ctx context.Context, providerID oauthrelyingparty.ProviderID, subjectID string) (*identity.OAuth, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByProviderSubject", providerID, subjectID)
+	ret := m.ctrl.Call(m, "GetByProviderSubject", ctx, providerID, subjectID)
 	ret0, _ := ret[0].(*identity.OAuth)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByProviderSubject indicates an expected call of GetByProviderSubject.
-func (mr *MockOAuthIdentityProviderMockRecorder) GetByProviderSubject(providerID, subjectID interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) GetByProviderSubject(ctx, providerID, subjectID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByProviderSubject", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetByProviderSubject), providerID, subjectID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByProviderSubject", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetByProviderSubject), ctx, providerID, subjectID)
 }
 
 // GetByUserProvider mocks base method.
-func (m *MockOAuthIdentityProvider) GetByUserProvider(userID string, providerID oauthrelyingparty.ProviderID) (*identity.OAuth, error) {
+func (m *MockOAuthIdentityProvider) GetByUserProvider(ctx context.Context, userID string, providerID oauthrelyingparty.ProviderID) (*identity.OAuth, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByUserProvider", userID, providerID)
+	ret := m.ctrl.Call(m, "GetByUserProvider", ctx, userID, providerID)
 	ret0, _ := ret[0].(*identity.OAuth)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByUserProvider indicates an expected call of GetByUserProvider.
-func (mr *MockOAuthIdentityProviderMockRecorder) GetByUserProvider(userID, providerID interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) GetByUserProvider(ctx, userID, providerID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserProvider", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetByUserProvider), userID, providerID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByUserProvider", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetByUserProvider), ctx, userID, providerID)
 }
 
 // GetMany mocks base method.
-func (m *MockOAuthIdentityProvider) GetMany(ids []string) ([]*identity.OAuth, error) {
+func (m *MockOAuthIdentityProvider) GetMany(ctx context.Context, ids []string) ([]*identity.OAuth, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret := m.ctrl.Call(m, "GetMany", ctx, ids)
 	ret0, _ := ret[0].([]*identity.OAuth)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMany indicates an expected call of GetMany.
-func (mr *MockOAuthIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) GetMany(ctx, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetMany), ids)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).GetMany), ctx, ids)
 }
 
 // List mocks base method.
-func (m *MockOAuthIdentityProvider) List(userID string) ([]*identity.OAuth, error) {
+func (m *MockOAuthIdentityProvider) List(ctx context.Context, userID string) ([]*identity.OAuth, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID)
+	ret := m.ctrl.Call(m, "List", ctx, userID)
 	ret0, _ := ret[0].([]*identity.OAuth)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockOAuthIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) List(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).List), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).List), ctx, userID)
 }
 
 // ListByClaim mocks base method.
-func (m *MockOAuthIdentityProvider) ListByClaim(name, value string) ([]*identity.OAuth, error) {
+func (m *MockOAuthIdentityProvider) ListByClaim(ctx context.Context, name, value string) ([]*identity.OAuth, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
+	ret := m.ctrl.Call(m, "ListByClaim", ctx, name, value)
 	ret0, _ := ret[0].([]*identity.OAuth)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockOAuthIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) ListByClaim(ctx, name, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).ListByClaim), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).ListByClaim), ctx, name, value)
 }
 
 // New mocks base method.
@@ -386,17 +387,17 @@ func (mr *MockOAuthIdentityProviderMockRecorder) New(userID, providerID, subject
 }
 
 // Update mocks base method.
-func (m *MockOAuthIdentityProvider) Update(i *identity.OAuth) error {
+func (m *MockOAuthIdentityProvider) Update(ctx context.Context, i *identity.OAuth) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", i)
+	ret := m.ctrl.Call(m, "Update", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockOAuthIdentityProviderMockRecorder) Update(i interface{}) *gomock.Call {
+func (mr *MockOAuthIdentityProviderMockRecorder) Update(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Update), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockOAuthIdentityProvider)(nil).Update), ctx, i)
 }
 
 // WithUpdate mocks base method.
@@ -437,91 +438,91 @@ func (m *MockAnonymousIdentityProvider) EXPECT() *MockAnonymousIdentityProviderM
 }
 
 // Create mocks base method.
-func (m *MockAnonymousIdentityProvider) Create(i *identity.Anonymous) error {
+func (m *MockAnonymousIdentityProvider) Create(ctx context.Context, i *identity.Anonymous) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", i)
+	ret := m.ctrl.Call(m, "Create", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockAnonymousIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+func (mr *MockAnonymousIdentityProviderMockRecorder) Create(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Create), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Create), ctx, i)
 }
 
 // Delete mocks base method.
-func (m *MockAnonymousIdentityProvider) Delete(i *identity.Anonymous) error {
+func (m *MockAnonymousIdentityProvider) Delete(ctx context.Context, i *identity.Anonymous) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", i)
+	ret := m.ctrl.Call(m, "Delete", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockAnonymousIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+func (mr *MockAnonymousIdentityProviderMockRecorder) Delete(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Delete), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Delete), ctx, i)
 }
 
 // Get mocks base method.
-func (m *MockAnonymousIdentityProvider) Get(userID, id string) (*identity.Anonymous, error) {
+func (m *MockAnonymousIdentityProvider) Get(ctx context.Context, userID, id string) (*identity.Anonymous, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret := m.ctrl.Call(m, "Get", ctx, userID, id)
 	ret0, _ := ret[0].(*identity.Anonymous)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockAnonymousIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+func (mr *MockAnonymousIdentityProviderMockRecorder) Get(ctx, userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Get), userID, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).Get), ctx, userID, id)
 }
 
 // GetByKeyID mocks base method.
-func (m *MockAnonymousIdentityProvider) GetByKeyID(keyID string) (*identity.Anonymous, error) {
+func (m *MockAnonymousIdentityProvider) GetByKeyID(ctx context.Context, keyID string) (*identity.Anonymous, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByKeyID", keyID)
+	ret := m.ctrl.Call(m, "GetByKeyID", ctx, keyID)
 	ret0, _ := ret[0].(*identity.Anonymous)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByKeyID indicates an expected call of GetByKeyID.
-func (mr *MockAnonymousIdentityProviderMockRecorder) GetByKeyID(keyID interface{}) *gomock.Call {
+func (mr *MockAnonymousIdentityProviderMockRecorder) GetByKeyID(ctx, keyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByKeyID", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).GetByKeyID), keyID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByKeyID", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).GetByKeyID), ctx, keyID)
 }
 
 // GetMany mocks base method.
-func (m *MockAnonymousIdentityProvider) GetMany(ids []string) ([]*identity.Anonymous, error) {
+func (m *MockAnonymousIdentityProvider) GetMany(ctx context.Context, ids []string) ([]*identity.Anonymous, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret := m.ctrl.Call(m, "GetMany", ctx, ids)
 	ret0, _ := ret[0].([]*identity.Anonymous)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMany indicates an expected call of GetMany.
-func (mr *MockAnonymousIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+func (mr *MockAnonymousIdentityProviderMockRecorder) GetMany(ctx, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).GetMany), ids)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).GetMany), ctx, ids)
 }
 
 // List mocks base method.
-func (m *MockAnonymousIdentityProvider) List(userID string) ([]*identity.Anonymous, error) {
+func (m *MockAnonymousIdentityProvider) List(ctx context.Context, userID string) ([]*identity.Anonymous, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID)
+	ret := m.ctrl.Call(m, "List", ctx, userID)
 	ret0, _ := ret[0].([]*identity.Anonymous)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockAnonymousIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+func (mr *MockAnonymousIdentityProviderMockRecorder) List(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).List), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAnonymousIdentityProvider)(nil).List), ctx, userID)
 }
 
 // New mocks base method.
@@ -562,91 +563,91 @@ func (m *MockBiometricIdentityProvider) EXPECT() *MockBiometricIdentityProviderM
 }
 
 // Create mocks base method.
-func (m *MockBiometricIdentityProvider) Create(i *identity.Biometric) error {
+func (m *MockBiometricIdentityProvider) Create(ctx context.Context, i *identity.Biometric) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", i)
+	ret := m.ctrl.Call(m, "Create", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockBiometricIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+func (mr *MockBiometricIdentityProviderMockRecorder) Create(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).Create), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).Create), ctx, i)
 }
 
 // Delete mocks base method.
-func (m *MockBiometricIdentityProvider) Delete(i *identity.Biometric) error {
+func (m *MockBiometricIdentityProvider) Delete(ctx context.Context, i *identity.Biometric) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", i)
+	ret := m.ctrl.Call(m, "Delete", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockBiometricIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+func (mr *MockBiometricIdentityProviderMockRecorder) Delete(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).Delete), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).Delete), ctx, i)
 }
 
 // Get mocks base method.
-func (m *MockBiometricIdentityProvider) Get(userID, id string) (*identity.Biometric, error) {
+func (m *MockBiometricIdentityProvider) Get(ctx context.Context, userID, id string) (*identity.Biometric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret := m.ctrl.Call(m, "Get", ctx, userID, id)
 	ret0, _ := ret[0].(*identity.Biometric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockBiometricIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+func (mr *MockBiometricIdentityProviderMockRecorder) Get(ctx, userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).Get), userID, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).Get), ctx, userID, id)
 }
 
 // GetByKeyID mocks base method.
-func (m *MockBiometricIdentityProvider) GetByKeyID(keyID string) (*identity.Biometric, error) {
+func (m *MockBiometricIdentityProvider) GetByKeyID(ctx context.Context, keyID string) (*identity.Biometric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByKeyID", keyID)
+	ret := m.ctrl.Call(m, "GetByKeyID", ctx, keyID)
 	ret0, _ := ret[0].(*identity.Biometric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByKeyID indicates an expected call of GetByKeyID.
-func (mr *MockBiometricIdentityProviderMockRecorder) GetByKeyID(keyID interface{}) *gomock.Call {
+func (mr *MockBiometricIdentityProviderMockRecorder) GetByKeyID(ctx, keyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByKeyID", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).GetByKeyID), keyID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByKeyID", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).GetByKeyID), ctx, keyID)
 }
 
 // GetMany mocks base method.
-func (m *MockBiometricIdentityProvider) GetMany(ids []string) ([]*identity.Biometric, error) {
+func (m *MockBiometricIdentityProvider) GetMany(ctx context.Context, ids []string) ([]*identity.Biometric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret := m.ctrl.Call(m, "GetMany", ctx, ids)
 	ret0, _ := ret[0].([]*identity.Biometric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMany indicates an expected call of GetMany.
-func (mr *MockBiometricIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+func (mr *MockBiometricIdentityProviderMockRecorder) GetMany(ctx, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).GetMany), ids)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).GetMany), ctx, ids)
 }
 
 // List mocks base method.
-func (m *MockBiometricIdentityProvider) List(userID string) ([]*identity.Biometric, error) {
+func (m *MockBiometricIdentityProvider) List(ctx context.Context, userID string) ([]*identity.Biometric, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID)
+	ret := m.ctrl.Call(m, "List", ctx, userID)
 	ret0, _ := ret[0].([]*identity.Biometric)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockBiometricIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+func (mr *MockBiometricIdentityProviderMockRecorder) List(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).List), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockBiometricIdentityProvider)(nil).List), ctx, userID)
 }
 
 // New mocks base method.
@@ -687,106 +688,106 @@ func (m *MockPasskeyIdentityProvider) EXPECT() *MockPasskeyIdentityProviderMockR
 }
 
 // Create mocks base method.
-func (m *MockPasskeyIdentityProvider) Create(i *identity.Passkey) error {
+func (m *MockPasskeyIdentityProvider) Create(ctx context.Context, i *identity.Passkey) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", i)
+	ret := m.ctrl.Call(m, "Create", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockPasskeyIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+func (mr *MockPasskeyIdentityProviderMockRecorder) Create(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).Create), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).Create), ctx, i)
 }
 
 // Delete mocks base method.
-func (m *MockPasskeyIdentityProvider) Delete(i *identity.Passkey) error {
+func (m *MockPasskeyIdentityProvider) Delete(ctx context.Context, i *identity.Passkey) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", i)
+	ret := m.ctrl.Call(m, "Delete", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockPasskeyIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+func (mr *MockPasskeyIdentityProviderMockRecorder) Delete(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).Delete), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).Delete), ctx, i)
 }
 
 // Get mocks base method.
-func (m *MockPasskeyIdentityProvider) Get(userID, id string) (*identity.Passkey, error) {
+func (m *MockPasskeyIdentityProvider) Get(ctx context.Context, userID, id string) (*identity.Passkey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret := m.ctrl.Call(m, "Get", ctx, userID, id)
 	ret0, _ := ret[0].(*identity.Passkey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockPasskeyIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+func (mr *MockPasskeyIdentityProviderMockRecorder) Get(ctx, userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).Get), userID, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).Get), ctx, userID, id)
 }
 
 // GetBySpec mocks base method.
-func (m *MockPasskeyIdentityProvider) GetBySpec(spec *identity.PasskeySpec) (*identity.Passkey, error) {
+func (m *MockPasskeyIdentityProvider) GetBySpec(ctx context.Context, spec *identity.PasskeySpec) (*identity.Passkey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetBySpec", spec)
+	ret := m.ctrl.Call(m, "GetBySpec", ctx, spec)
 	ret0, _ := ret[0].(*identity.Passkey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetBySpec indicates an expected call of GetBySpec.
-func (mr *MockPasskeyIdentityProviderMockRecorder) GetBySpec(spec interface{}) *gomock.Call {
+func (mr *MockPasskeyIdentityProviderMockRecorder) GetBySpec(ctx, spec interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySpec", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).GetBySpec), spec)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBySpec", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).GetBySpec), ctx, spec)
 }
 
 // GetMany mocks base method.
-func (m *MockPasskeyIdentityProvider) GetMany(ids []string) ([]*identity.Passkey, error) {
+func (m *MockPasskeyIdentityProvider) GetMany(ctx context.Context, ids []string) ([]*identity.Passkey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret := m.ctrl.Call(m, "GetMany", ctx, ids)
 	ret0, _ := ret[0].([]*identity.Passkey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMany indicates an expected call of GetMany.
-func (mr *MockPasskeyIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+func (mr *MockPasskeyIdentityProviderMockRecorder) GetMany(ctx, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).GetMany), ids)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).GetMany), ctx, ids)
 }
 
 // List mocks base method.
-func (m *MockPasskeyIdentityProvider) List(userID string) ([]*identity.Passkey, error) {
+func (m *MockPasskeyIdentityProvider) List(ctx context.Context, userID string) ([]*identity.Passkey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID)
+	ret := m.ctrl.Call(m, "List", ctx, userID)
 	ret0, _ := ret[0].([]*identity.Passkey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockPasskeyIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+func (mr *MockPasskeyIdentityProviderMockRecorder) List(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).List), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).List), ctx, userID)
 }
 
 // New mocks base method.
-func (m *MockPasskeyIdentityProvider) New(userID string, attestationResponse []byte) (*identity.Passkey, error) {
+func (m *MockPasskeyIdentityProvider) New(ctx context.Context, userID string, attestationResponse []byte) (*identity.Passkey, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, attestationResponse)
+	ret := m.ctrl.Call(m, "New", ctx, userID, attestationResponse)
 	ret0, _ := ret[0].(*identity.Passkey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // New indicates an expected call of New.
-func (mr *MockPasskeyIdentityProviderMockRecorder) New(userID, attestationResponse interface{}) *gomock.Call {
+func (mr *MockPasskeyIdentityProviderMockRecorder) New(ctx, userID, attestationResponse interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).New), userID, attestationResponse)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockPasskeyIdentityProvider)(nil).New), ctx, userID, attestationResponse)
 }
 
 // MockSIWEIdentityProvider is a mock of SIWEIdentityProvider interface.
@@ -813,106 +814,106 @@ func (m *MockSIWEIdentityProvider) EXPECT() *MockSIWEIdentityProviderMockRecorde
 }
 
 // Create mocks base method.
-func (m *MockSIWEIdentityProvider) Create(i *identity.SIWE) error {
+func (m *MockSIWEIdentityProvider) Create(ctx context.Context, i *identity.SIWE) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", i)
+	ret := m.ctrl.Call(m, "Create", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockSIWEIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) Create(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Create), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Create), ctx, i)
 }
 
 // Delete mocks base method.
-func (m *MockSIWEIdentityProvider) Delete(i *identity.SIWE) error {
+func (m *MockSIWEIdentityProvider) Delete(ctx context.Context, i *identity.SIWE) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", i)
+	ret := m.ctrl.Call(m, "Delete", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockSIWEIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) Delete(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Delete), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Delete), ctx, i)
 }
 
 // Get mocks base method.
-func (m *MockSIWEIdentityProvider) Get(userID, id string) (*identity.SIWE, error) {
+func (m *MockSIWEIdentityProvider) Get(ctx context.Context, userID, id string) (*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret := m.ctrl.Call(m, "Get", ctx, userID, id)
 	ret0, _ := ret[0].(*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockSIWEIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) Get(ctx, userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Get), userID, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).Get), ctx, userID, id)
 }
 
 // GetByMessage mocks base method.
-func (m *MockSIWEIdentityProvider) GetByMessage(msg, signature string) (*identity.SIWE, error) {
+func (m *MockSIWEIdentityProvider) GetByMessage(ctx context.Context, msg, signature string) (*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByMessage", msg, signature)
+	ret := m.ctrl.Call(m, "GetByMessage", ctx, msg, signature)
 	ret0, _ := ret[0].(*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByMessage indicates an expected call of GetByMessage.
-func (mr *MockSIWEIdentityProviderMockRecorder) GetByMessage(msg, signature interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) GetByMessage(ctx, msg, signature interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMessage", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetByMessage), msg, signature)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByMessage", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetByMessage), ctx, msg, signature)
 }
 
 // GetMany mocks base method.
-func (m *MockSIWEIdentityProvider) GetMany(ids []string) ([]*identity.SIWE, error) {
+func (m *MockSIWEIdentityProvider) GetMany(ctx context.Context, ids []string) ([]*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret := m.ctrl.Call(m, "GetMany", ctx, ids)
 	ret0, _ := ret[0].([]*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMany indicates an expected call of GetMany.
-func (mr *MockSIWEIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) GetMany(ctx, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetMany), ids)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).GetMany), ctx, ids)
 }
 
 // List mocks base method.
-func (m *MockSIWEIdentityProvider) List(userID string) ([]*identity.SIWE, error) {
+func (m *MockSIWEIdentityProvider) List(ctx context.Context, userID string) ([]*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID)
+	ret := m.ctrl.Call(m, "List", ctx, userID)
 	ret0, _ := ret[0].([]*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockSIWEIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) List(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).List), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).List), ctx, userID)
 }
 
 // New mocks base method.
-func (m *MockSIWEIdentityProvider) New(userID, msg, signature string) (*identity.SIWE, error) {
+func (m *MockSIWEIdentityProvider) New(ctx context.Context, userID, msg, signature string) (*identity.SIWE, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "New", userID, msg, signature)
+	ret := m.ctrl.Call(m, "New", ctx, userID, msg, signature)
 	ret0, _ := ret[0].(*identity.SIWE)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // New indicates an expected call of New.
-func (mr *MockSIWEIdentityProviderMockRecorder) New(userID, msg, signature interface{}) *gomock.Call {
+func (mr *MockSIWEIdentityProviderMockRecorder) New(ctx, userID, msg, signature interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).New), userID, msg, signature)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "New", reflect.TypeOf((*MockSIWEIdentityProvider)(nil).New), ctx, userID, msg, signature)
 }
 
 // MockLDAPIdentityProvider is a mock of LDAPIdentityProvider interface.
@@ -939,106 +940,106 @@ func (m *MockLDAPIdentityProvider) EXPECT() *MockLDAPIdentityProviderMockRecorde
 }
 
 // Create mocks base method.
-func (m *MockLDAPIdentityProvider) Create(i *identity.LDAP) error {
+func (m *MockLDAPIdentityProvider) Create(ctx context.Context, i *identity.LDAP) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", i)
+	ret := m.ctrl.Call(m, "Create", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockLDAPIdentityProviderMockRecorder) Create(i interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) Create(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Create), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Create), ctx, i)
 }
 
 // Delete mocks base method.
-func (m *MockLDAPIdentityProvider) Delete(i *identity.LDAP) error {
+func (m *MockLDAPIdentityProvider) Delete(ctx context.Context, i *identity.LDAP) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", i)
+	ret := m.ctrl.Call(m, "Delete", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockLDAPIdentityProviderMockRecorder) Delete(i interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) Delete(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Delete), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Delete), ctx, i)
 }
 
 // Get mocks base method.
-func (m *MockLDAPIdentityProvider) Get(userID, id string) (*identity.LDAP, error) {
+func (m *MockLDAPIdentityProvider) Get(ctx context.Context, userID, id string) (*identity.LDAP, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", userID, id)
+	ret := m.ctrl.Call(m, "Get", ctx, userID, id)
 	ret0, _ := ret[0].(*identity.LDAP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockLDAPIdentityProviderMockRecorder) Get(userID, id interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) Get(ctx, userID, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Get), userID, id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Get), ctx, userID, id)
 }
 
 // GetByServerUserID mocks base method.
-func (m *MockLDAPIdentityProvider) GetByServerUserID(serverName, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error) {
+func (m *MockLDAPIdentityProvider) GetByServerUserID(ctx context.Context, serverName, userIDAttributeName string, userIDAttributeValue []byte) (*identity.LDAP, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetByServerUserID", serverName, userIDAttributeName, userIDAttributeValue)
+	ret := m.ctrl.Call(m, "GetByServerUserID", ctx, serverName, userIDAttributeName, userIDAttributeValue)
 	ret0, _ := ret[0].(*identity.LDAP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetByServerUserID indicates an expected call of GetByServerUserID.
-func (mr *MockLDAPIdentityProviderMockRecorder) GetByServerUserID(serverName, userIDAttributeName, userIDAttributeValue interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) GetByServerUserID(ctx, serverName, userIDAttributeName, userIDAttributeValue interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByServerUserID", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).GetByServerUserID), serverName, userIDAttributeName, userIDAttributeValue)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByServerUserID", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).GetByServerUserID), ctx, serverName, userIDAttributeName, userIDAttributeValue)
 }
 
 // GetMany mocks base method.
-func (m *MockLDAPIdentityProvider) GetMany(ids []string) ([]*identity.LDAP, error) {
+func (m *MockLDAPIdentityProvider) GetMany(ctx context.Context, ids []string) ([]*identity.LDAP, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetMany", ids)
+	ret := m.ctrl.Call(m, "GetMany", ctx, ids)
 	ret0, _ := ret[0].([]*identity.LDAP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetMany indicates an expected call of GetMany.
-func (mr *MockLDAPIdentityProviderMockRecorder) GetMany(ids interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) GetMany(ctx, ids interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).GetMany), ids)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetMany", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).GetMany), ctx, ids)
 }
 
 // List mocks base method.
-func (m *MockLDAPIdentityProvider) List(userID string) ([]*identity.LDAP, error) {
+func (m *MockLDAPIdentityProvider) List(ctx context.Context, userID string) ([]*identity.LDAP, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID)
+	ret := m.ctrl.Call(m, "List", ctx, userID)
 	ret0, _ := ret[0].([]*identity.LDAP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockLDAPIdentityProviderMockRecorder) List(userID interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) List(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).List), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).List), ctx, userID)
 }
 
 // ListByClaim mocks base method.
-func (m *MockLDAPIdentityProvider) ListByClaim(name, value string) ([]*identity.LDAP, error) {
+func (m *MockLDAPIdentityProvider) ListByClaim(ctx context.Context, name, value string) ([]*identity.LDAP, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListByClaim", name, value)
+	ret := m.ctrl.Call(m, "ListByClaim", ctx, name, value)
 	ret0, _ := ret[0].([]*identity.LDAP)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListByClaim indicates an expected call of ListByClaim.
-func (mr *MockLDAPIdentityProviderMockRecorder) ListByClaim(name, value interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) ListByClaim(ctx, name, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).ListByClaim), name, value)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListByClaim", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).ListByClaim), ctx, name, value)
 }
 
 // New mocks base method.
@@ -1056,17 +1057,17 @@ func (mr *MockLDAPIdentityProviderMockRecorder) New(userID, serverName, loginUse
 }
 
 // Update mocks base method.
-func (m *MockLDAPIdentityProvider) Update(i *identity.LDAP) error {
+func (m *MockLDAPIdentityProvider) Update(ctx context.Context, i *identity.LDAP) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", i)
+	ret := m.ctrl.Call(m, "Update", ctx, i)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockLDAPIdentityProviderMockRecorder) Update(i interface{}) *gomock.Call {
+func (mr *MockLDAPIdentityProviderMockRecorder) Update(ctx, i interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Update), i)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockLDAPIdentityProvider)(nil).Update), ctx, i)
 }
 
 // WithUpdate mocks base method.

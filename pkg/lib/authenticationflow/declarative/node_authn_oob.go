@@ -75,7 +75,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 		authenticatorSpec := n.createAuthenticatorSpec(code)
 		authenticators := []*authenticator.Info{n.Info}
 
-		_, _, err := deps.Authenticators.VerifyOneWithSpec(
+		_, _, err := deps.Authenticators.VerifyOneWithSpec(ctx,
 			n.UserID,
 			n.Info.Type,
 			authenticators,
@@ -95,7 +95,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 			return nil, err
 		}
 
-		verifiedClaim := deps.Verification.NewVerifiedClaim(
+		verifiedClaim := deps.Verification.NewVerifiedClaim(ctx,
 			n.UserID,
 			string(claimName),
 			claimValue,
@@ -110,7 +110,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 		authenticatorSpec := n.createAuthenticatorSpec(emptyCode)
 		authenticators := []*authenticator.Info{n.Info}
 
-		_, _, err := deps.Authenticators.VerifyOneWithSpec(
+		_, _, err := deps.Authenticators.VerifyOneWithSpec(ctx,
 			n.UserID,
 			n.Info.Type,
 			authenticators,
@@ -131,7 +131,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 			return nil, err
 		}
 
-		verifiedClaim := deps.Verification.NewVerifiedClaim(
+		verifiedClaim := deps.Verification.NewVerifiedClaim(ctx,
 			n.UserID,
 			string(claimName),
 			claimValue,
@@ -152,7 +152,7 @@ func (n *NodeAuthenticationOOB) ReactTo(ctx context.Context, deps *authflow.Depe
 
 func (n *NodeAuthenticationOOB) OutputData(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (authflow.Data, error) {
 	claimName, claimValue := n.Info.OOBOTP.ToClaimPair()
-	state, err := deps.OTPCodes.InspectState(n.otpKind(deps), claimValue)
+	state, err := deps.OTPCodes.InspectState(ctx, n.otpKind(deps), claimValue)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dep
 	}
 	_, claimValue := n.Info.OOBOTP.ToClaimPair()
 
-	msg, err := deps.OTPSender.Prepare(
+	msg, err := deps.OTPSender.Prepare(ctx,
 		n.Channel,
 		claimValue,
 		n.Form,
@@ -247,9 +247,9 @@ func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dep
 	if err != nil {
 		return err
 	}
-	defer msg.Close()
+	defer msg.Close(ctx)
 
-	code, err := deps.OTPCodes.GenerateOTP(
+	code, err := deps.OTPCodes.GenerateOTP(ctx,
 		n.otpKind(deps),
 		claimValue,
 		n.Form,
@@ -262,7 +262,7 @@ func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dep
 		return err
 	}
 
-	err = deps.OTPSender.Send(msg, otp.SendOptions{OTP: code})
+	err = deps.OTPSender.Send(ctx, msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return err
 	}

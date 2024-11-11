@@ -2,6 +2,7 @@ package analytic
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -49,7 +50,7 @@ type PosthogGroup struct {
 	ProjectPlan       string
 }
 
-func (p *PosthogIntegration) SetGroupProperties() error {
+func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
 	endpoint, err := url.Parse(p.PosthogCredentials.Endpoint)
 	if err != nil {
 		return err
@@ -57,14 +58,14 @@ func (p *PosthogIntegration) SetGroupProperties() error {
 
 	now := p.Clock.NowUTC()
 
-	appIDs, err := p.getAppIDs()
+	appIDs, err := p.getAppIDs(ctx)
 	if err != nil {
 		return err
 	}
 
 	var groups []*PosthogGroup
 	for _, appID := range appIDs {
-		g, err := p.preparePosthogGroup(appID, now)
+		g, err := p.preparePosthogGroup(ctx, appID, now)
 		if err != nil {
 			return err
 		}
@@ -94,16 +95,16 @@ func (p *PosthogIntegration) SetGroupProperties() error {
 	return nil
 }
 
-func (p *PosthogIntegration) SetUserProperties(portalAppID string) error {
+func (p *PosthogIntegration) SetUserProperties(ctx context.Context, portalAppID string) error {
 	endpoint, err := url.Parse(p.PosthogCredentials.Endpoint)
 	if err != nil {
 		return err
 	}
 
 	var users []*User
-	err = p.AppDBHandle.WithTx(func() error {
+	err = p.AppDBHandle.WithTx(ctx, func(ctx context.Context) error {
 		var err error
-		users, err = p.AppDBStore.GetAllUsers(portalAppID)
+		users, err = p.AppDBStore.GetAllUsers(ctx, portalAppID)
 		if err != nil {
 			return err
 		}
@@ -127,9 +128,9 @@ func (p *PosthogIntegration) SetUserProperties(portalAppID string) error {
 	return nil
 }
 
-func (p *PosthogIntegration) getAppIDs() (appIDs []string, err error) {
-	err = p.GlobalHandle.WithTx(func() error {
-		appIDs, err = p.GlobalDBStore.GetAppIDs()
+func (p *PosthogIntegration) getAppIDs(ctx context.Context) (appIDs []string, err error) {
+	err = p.GlobalHandle.WithTx(ctx, func(ctx context.Context) error {
+		appIDs, err = p.GlobalDBStore.GetAppIDs(ctx)
 		if err != nil {
 			return err
 		}
@@ -138,18 +139,18 @@ func (p *PosthogIntegration) getAppIDs() (appIDs []string, err error) {
 	return
 }
 
-func (p *PosthogIntegration) preparePosthogGroup(appID string, now time.Time) (*PosthogGroup, error) {
+func (p *PosthogIntegration) preparePosthogGroup(ctx context.Context, appID string, now time.Time) (*PosthogGroup, error) {
 	year := now.Year()
 	month := now.Month()
 
-	mau, _, err := p.ReadCounterStore.GetMonthlyActiveUserCount(config.AppID(appID), year, int(month))
+	mau, _, err := p.ReadCounterStore.GetMonthlyActiveUserCount(ctx, config.AppID(appID), year, int(month))
 	if err != nil {
 		return nil, err
 	}
 
 	var userCount int
-	err = p.AppDBHandle.WithTx(func() error {
-		count, err := p.AppDBStore.GetUserCountBeforeTime(appID, &now)
+	err = p.AppDBHandle.WithTx(ctx, func(ctx context.Context) error {
+		count, err := p.AppDBStore.GetUserCountBeforeTime(ctx, appID, &now)
 		if err != nil {
 			return err
 		}
@@ -161,8 +162,8 @@ func (p *PosthogIntegration) preparePosthogGroup(appID string, now time.Time) (*
 	}
 
 	var collaboratorCount int
-	err = p.GlobalHandle.WithTx(func() error {
-		count, err := p.GlobalDBStore.GetCollaboratorCount(appID)
+	err = p.GlobalHandle.WithTx(ctx, func(ctx context.Context) error {
+		count, err := p.GlobalDBStore.GetCollaboratorCount(ctx, appID)
 		if err != nil {
 			return err
 		}
@@ -174,8 +175,8 @@ func (p *PosthogIntegration) preparePosthogGroup(appID string, now time.Time) (*
 	}
 
 	var appConfigSource *AppConfigSource
-	err = p.GlobalHandle.WithTx(func() error {
-		s, err := p.GlobalDBStore.GetAppConfigSource(appID)
+	err = p.GlobalHandle.WithTx(ctx, func(ctx context.Context) error {
+		s, err := p.GlobalDBStore.GetAppConfigSource(ctx, appID)
 		if err != nil {
 			return err
 		}

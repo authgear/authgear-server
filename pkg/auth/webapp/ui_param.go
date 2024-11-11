@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -54,14 +55,14 @@ func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 		webSession := GetSession(r.Context())
 		if webSession != nil {
 			if webSession.OAuthSessionID != "" {
-				p, ok := m.getUIParamFromOAuthSession(webSession.OAuthSessionID)
+				p, ok := m.getUIParamFromOAuthSession(r.Context(), webSession.OAuthSessionID)
 				if ok {
 					uiParam = p
 				}
 			}
 
 			if webSession.SAMLSessionID != "" {
-				p, ok := m.getUIParamFromSAMLSession(webSession.SAMLSessionID)
+				p, ok := m.getUIParamFromSAMLSession(r.Context(), webSession.SAMLSessionID)
 				if ok {
 					uiParam = p
 				}
@@ -94,15 +95,15 @@ func (m *UIParamMiddleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *UIParamMiddleware) getUIParamFromOAuthSession(oauthSessionID string) (
+func (m *UIParamMiddleware) getUIParamFromOAuthSession(ctx context.Context, oauthSessionID string) (
 	uiParam uiparam.T, ok bool) {
-	entry, err := m.OAuthSessions.Get(oauthSessionID)
+	entry, err := m.OAuthSessions.Get(ctx, oauthSessionID)
 	if err != nil && !errors.Is(err, oauthsession.ErrNotFound) {
 		panic(err)
 	}
 
 	if entry != nil {
-		uiInfo, err := m.OAuthUIInfoResolver.ResolveForUI(entry.T.AuthorizationRequest)
+		uiInfo, err := m.OAuthUIInfoResolver.ResolveForUI(ctx, entry.T.AuthorizationRequest)
 		if err != nil {
 			panic(err)
 		}
@@ -113,9 +114,9 @@ func (m *UIParamMiddleware) getUIParamFromOAuthSession(oauthSessionID string) (
 	return uiParam, false
 }
 
-func (m *UIParamMiddleware) getUIParamFromSAMLSession(samlSessionID string) (
+func (m *UIParamMiddleware) getUIParamFromSAMLSession(ctx context.Context, samlSessionID string) (
 	uiParam uiparam.T, ok bool) {
-	entry, err := m.SAMLSessions.Get(samlSessionID)
+	entry, err := m.SAMLSessions.Get(ctx, samlSessionID)
 	if err != nil && !errors.Is(err, samlsession.ErrNotFound) {
 		panic(err)
 	}

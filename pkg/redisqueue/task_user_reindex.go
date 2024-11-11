@@ -16,7 +16,7 @@ func UserReindex(ctx context.Context, appProvider *deps.AppProvider, task *redis
 	if err != nil {
 		return
 	}
-	result := esService.ExecReindexUser(request)
+	result := esService.ExecReindexUser(ctx, request)
 	resultBytes, err := json.Marshal(result)
 	if err != nil {
 		return

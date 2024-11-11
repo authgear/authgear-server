@@ -1,6 +1,8 @@
 package user
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/blocking"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -12,7 +14,7 @@ import (
 )
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type Commands struct {
@@ -28,22 +30,23 @@ type Commands struct {
 }
 
 func (c *Commands) AfterCreate(
+	ctx context.Context,
 	user *User,
 	identities []*identity.Info,
 	authenticators []*authenticator.Info,
 	isAdminAPI bool,
 ) error {
-	isVerified, err := c.Verification.IsUserVerified(identities)
+	isVerified, err := c.Verification.IsUserVerified(ctx, identities)
 	if err != nil {
 		return err
 	}
 
-	stdAttrs, err := c.StandardAttributes.DeriveStandardAttributes(accesscontrol.RoleGreatest, user.ID, user.UpdatedAt, user.StandardAttributes)
+	stdAttrs, err := c.StandardAttributes.DeriveStandardAttributes(ctx, accesscontrol.RoleGreatest, user.ID, user.UpdatedAt, user.StandardAttributes)
 	if err != nil {
 		return err
 	}
 
-	customAttrs, err := c.CustomAttributes.ReadCustomAttributesInStorageForm(accesscontrol.RoleGreatest, user.ID, user.CustomAttributes)
+	customAttrs, err := c.CustomAttributes.ReadCustomAttributesInStorageForm(ctx, accesscontrol.RoleGreatest, user.ID, user.CustomAttributes)
 	if err != nil {
 		return err
 	}
@@ -53,7 +56,7 @@ func (c *Commands) AfterCreate(
 		return err
 	}
 
-	roles, err := c.RolesAndGroups.ListRolesByUserID(user.ID)
+	roles, err := c.RolesAndGroups.ListRolesByUserID(ctx, user.ID)
 	if err != nil {
 		return err
 	}
@@ -62,7 +65,7 @@ func (c *Commands) AfterCreate(
 		roleKeys[i] = v.Key
 	}
 
-	groups, err := c.RolesAndGroups.ListGroupsByUserID(user.ID)
+	groups, err := c.RolesAndGroups.ListGroupsByUserID(ctx, user.ID)
 	if err != nil {
 		return err
 	}
@@ -91,7 +94,7 @@ func (c *Commands) AfterCreate(
 	}
 
 	for _, e := range events {
-		if err := c.Events.DispatchEventOnCommit(e); err != nil {
+		if err := c.Events.DispatchEventOnCommit(ctx, e); err != nil {
 			return err
 		}
 	}

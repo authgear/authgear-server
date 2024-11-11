@@ -1,6 +1,7 @@
 package sms
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -33,7 +34,7 @@ func NewNexmoClient(c *config.NexmoCredentials) *NexmoClient {
 	}
 }
 
-func (n *NexmoClient) Send(opts SendOptions) error {
+func (n *NexmoClient) Send(ctx context.Context, opts SendOptions) error {
 	if n.NexmoClient == nil {
 		return ErrMissingNexmoConfiguration
 	}

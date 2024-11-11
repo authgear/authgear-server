@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 	"sort"
 
@@ -52,15 +54,15 @@ type AuthflowV2SettingsIdentityListOAuthHandler struct {
 	AccountManagement accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsIdentityListOAuthHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityListOAuthHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
-	candidates, err := h.Identities.ListCandidates(*userID)
+	candidates, err := h.Identities.ListCandidates(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +75,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) GetData(r *http.Request, rw
 		}
 	}
 
-	identities, err := h.Identities.ListByUser(*userID)
+	identities, err := h.Identities.ListByUser(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +100,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) GetData(r *http.Request, rw
 		return oauthIdentities[i].UpdatedAt.Before(oauthIdentities[j].UpdatedAt)
 	})
 
-	verifications, err := h.Verification.GetVerificationStatuses(oauthInfos)
+	verifications, err := h.Verification.GetVerificationStatuses(ctx, oauthInfos)
 	if err != nil {
 		return nil, err
 	}
@@ -135,10 +137,10 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			return err
 		})
 		if err != nil {
@@ -149,13 +151,13 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 		return nil
 	})
 
-	ctrl.PostAction("add", func() error {
-		s := session.GetSession(r.Context())
+	ctrl.PostAction("add", func(ctx context.Context) error {
+		s := session.GetSession(ctx)
 
 		alias := r.Form.Get("x_provider_alias")
 		redirectURI := h.Endpoints.SSOCallbackURL(alias).String()
 
-		output, err := h.AccountManagement.StartAddIdentityOAuth(s, &accountmanagement.StartAddIdentityOAuthInput{
+		output, err := h.AccountManagement.StartAddIdentityOAuth(ctx, s, &accountmanagement.StartAddIdentityOAuthInput{
 			Alias:       alias,
 			RedirectURI: redirectURI,
 		})
@@ -166,7 +168,7 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 		state := &webappoauth.WebappOAuthState{
 			AccountManagementToken: output.Token,
 		}
-		stateToken, err := h.OAuthStateStore.GenerateState(state)
+		stateToken, err := h.OAuthStateStore.GenerateState(ctx, state)
 		if err != nil {
 			return err
 		}
@@ -181,12 +183,12 @@ func (h *AuthflowV2SettingsIdentityListOAuthHandler) ServeHTTP(w http.ResponseWr
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
-		s := session.GetSession(r.Context())
+	ctrl.PostAction("remove", func(ctx context.Context) error {
+		s := session.GetSession(ctx)
 
 		identityID := r.Form.Get("q_identity_id")
 
-		_, err := h.AccountManagement.DeleteIdentityOAuth(s, &accountmanagement.DeleteIdentityOAuthInput{
+		_, err := h.AccountManagement.DeleteIdentityOAuth(ctx, s, &accountmanagement.DeleteIdentityOAuthInput{
 			IdentityID: identityID,
 		})
 		if err != nil {

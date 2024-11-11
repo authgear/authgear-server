@@ -1,6 +1,8 @@
 package accountdeletion
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -19,14 +21,14 @@ type AppUser struct {
 
 // ListAppUsers returns a list of (appID, userID) pairs that
 // it is the time to execute the scheduled deletion.
-func (s *Store) ListAppUsers() (appUsers []AppUser, err error) {
+func (s *Store) ListAppUsers(ctx context.Context) (appUsers []AppUser, err error) {
 	now := s.Clock.NowUTC()
-	err = s.Handle.ReadOnly(func() (err error) {
+	err = s.Handle.ReadOnly(ctx, func(ctx context.Context) (err error) {
 		q := s.SQLBuilder.
 			Select("app_id", "id").
 			From(s.SQLBuilder.TableName("_auth_user")).
 			Where("delete_at < ?", now)
-		rows, err := s.SQLExecutor.QueryWith(q)
+		rows, err := s.SQLExecutor.QueryWith(ctx, q)
 		if err != nil {
 			return
 		}

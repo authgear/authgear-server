@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -73,8 +75,8 @@ type AuthflowV2SettingsProfileEditHandler struct {
 	CustomAttrs handlerwebapp.SettingsProfileEditCustomAttrsService
 }
 
-func (h *AuthflowV2SettingsProfileEditHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	userID := session.GetUserID(r.Context())
+func (h *AuthflowV2SettingsProfileEditHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	userID := session.GetUserID(ctx)
 
 	data := map[string]interface{}{}
 	data["Pointer"] = r.Form.Get("pointer")
@@ -82,7 +84,7 @@ func (h *AuthflowV2SettingsProfileEditHandler) GetData(r *http.Request, rw http.
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	viewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
+	viewModelPtr, err := h.SettingsProfileViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -133,12 +135,12 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		variant := httproute.GetParam(r, "variant")
 
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			if err != nil {
 				return err
 			}
@@ -171,21 +173,21 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 
-	ctrl.PostAction("save", func() error {
+	ctrl.PostAction("save", func(ctx context.Context) error {
 		variant := httproute.GetParam(r, "variant")
 
-		userID := *session.GetUserID(r.Context())
+		userID := *session.GetUserID(ctx)
 		PatchGenderForm(r.Form)
 		m := handlerwebapp.JSONPointerFormToMap(r.Form)
 
-		err := h.Database.WithTx(func() error {
-			u, err := h.Users.GetRaw(userID)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			u, err := h.Users.GetRaw(ctx, userID)
 			if err != nil {
 				return err
 			}
 
 			if variant == "custom_attributes" {
-				err = h.CustomAttrs.UpdateCustomAttributesWithForm(config.RoleEndUser, userID, m)
+				err = h.CustomAttrs.UpdateCustomAttributesWithForm(ctx, config.RoleEndUser, userID, m)
 				if err != nil {
 					return err
 				}
@@ -195,7 +197,7 @@ func (h *AuthflowV2SettingsProfileEditHandler) ServeHTTP(w http.ResponseWriter, 
 					return err
 				}
 
-				err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
+				err = h.StdAttrs.UpdateStandardAttributes(ctx, config.RoleEndUser, userID, attrs)
 				if err != nil {
 					return err
 				}

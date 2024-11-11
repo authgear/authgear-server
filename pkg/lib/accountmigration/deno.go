@@ -2,6 +2,7 @@ package accountmigration
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/url"
 
@@ -24,8 +25,8 @@ type AccountMigrationDenoHook struct {
 	Logger DenoMiddlewareLogger
 }
 
-func (h *AccountMigrationDenoHook) Call(u *url.URL, hookReq *HookRequest) (*HookResponse, error) {
-	out, err := h.RunSync(h.Client, u, hookReq)
+func (h *AccountMigrationDenoHook) Call(ctx context.Context, u *url.URL, hookReq *HookRequest) (*HookResponse, error) {
+	out, err := h.RunSync(ctx, h.Client, u, hookReq)
 	if err != nil {
 		return nil, err
 	}

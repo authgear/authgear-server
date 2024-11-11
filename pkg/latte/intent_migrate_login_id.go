@@ -50,14 +50,14 @@ func (i *IntentMigrateLoginID) ReactTo(ctx context.Context, deps *workflow.Depen
 	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		spec := i.MigrateSpec.GetSpec()
-		info, err := deps.Identities.New(i.UserID, spec, identity.NewIdentityOptions{
+		info, err := deps.Identities.New(ctx, i.UserID, spec, identity.NewIdentityOptions{
 			LoginIDEmailByPassBlocklistAllowlist: false,
 		})
 		if err != nil {
 			return nil, err
 		}
 
-		_, err = deps.Identities.CheckDuplicated(info)
+		_, err = deps.Identities.CheckDuplicated(ctx, info)
 		if err != nil {
 			return nil, err
 		}
@@ -75,9 +75,9 @@ func (i *IntentMigrateLoginID) ReactTo(ctx context.Context, deps *workflow.Depen
 		var verifiedClaim *verification.Claim
 		switch iden.LoginID.LoginIDType {
 		case model.LoginIDKeyTypeEmail:
-			verifiedClaim = deps.Verification.NewVerifiedClaim(i.UserID, string(model.ClaimEmail), iden.LoginID.LoginID)
+			verifiedClaim = deps.Verification.NewVerifiedClaim(ctx, i.UserID, string(model.ClaimEmail), iden.LoginID.LoginID)
 		case model.LoginIDKeyTypePhone:
-			verifiedClaim = deps.Verification.NewVerifiedClaim(i.UserID, string(model.ClaimPhoneNumber), iden.LoginID.LoginID)
+			verifiedClaim = deps.Verification.NewVerifiedClaim(ctx, i.UserID, string(model.ClaimPhoneNumber), iden.LoginID.LoginID)
 		}
 		return workflow.NewNodeSimple(&NodeVerifiedIdentity{
 			IdentityID:       iden.ID,

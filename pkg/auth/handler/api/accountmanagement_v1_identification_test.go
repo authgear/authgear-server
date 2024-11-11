@@ -79,7 +79,7 @@ func TestAccountManagementV1IdentificationHandlerRequestValidation(t *testing.T)
 			r = mockSession.ToRequest(r)
 			w := httptest.NewRecorder()
 
-			svc.EXPECT().StartAdding(gomock.Any()).Times(1).Return(&accountmanagement.StartAddingOutput{
+			svc.EXPECT().StartAdding(gomock.Any(), gomock.Any()).Times(1).Return(&accountmanagement.StartAddingOutput{
 				Token:            "token",
 				AuthorizationURL: "https://google.com",
 			}, nil)

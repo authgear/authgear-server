@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -22,8 +23,8 @@ type AuthflowFinishFlowHandler struct {
 
 func (h *AuthflowFinishFlowHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, _ *webapp.AuthflowScreenWithFlowResponse) error {
-		result, err := h.Controller.Finish(r, s)
+	handlers.Get(func(ctx context.Context, s *webapp.Session, _ *webapp.AuthflowScreenWithFlowResponse) error {
+		result, err := h.Controller.Finish(ctx, r, s)
 		if err != nil {
 			return err
 		}
@@ -31,5 +32,5 @@ func (h *AuthflowFinishFlowHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleWithoutFlow(w, r, &handlers)
+	h.Controller.HandleWithoutFlow(r.Context(), w, r, &handlers)
 }

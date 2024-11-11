@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -76,7 +77,7 @@ func (h *MissingWeb3WalletHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err

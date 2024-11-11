@@ -1,6 +1,7 @@
 package images
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -11,7 +12,7 @@ type Store struct {
 	SQLExecutor *appdb.SQLExecutor
 }
 
-func (s *Store) Create(i *File) error {
+func (s *Store) Create(ctx context.Context, i *File) error {
 	metadata, err := json.Marshal(i.Metadata)
 	if err != nil {
 		return err
@@ -32,7 +33,7 @@ func (s *Store) Create(i *File) error {
 			i.CreatedAt,
 		)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}

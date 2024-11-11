@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -10,8 +11,8 @@ import (
 )
 
 type OfflineGrantSessionManager interface {
-	List(userID string) ([]session.ListableSession, error)
-	Delete(session session.ListableSession) error
+	List(ctx context.Context, userID string) ([]session.ListableSession, error)
+	Delete(ctx context.Context, session session.ListableSession) error
 }
 
 type AuthorizationService struct {
@@ -23,12 +24,12 @@ type AuthorizationService struct {
 	OfflineGrantStore   OfflineGrantStore
 }
 
-func (s *AuthorizationService) GetByID(id string) (*Authorization, error) {
-	return s.Store.GetByID(id)
+func (s *AuthorizationService) GetByID(ctx context.Context, id string) (*Authorization, error) {
+	return s.Store.GetByID(ctx, id)
 }
 
-func (s *AuthorizationService) ListByUser(userID string, filters ...AuthorizationFilter) ([]*Authorization, error) {
-	as, err := s.Store.ListByUserID(userID)
+func (s *AuthorizationService) ListByUser(ctx context.Context, userID string, filters ...AuthorizationFilter) ([]*Authorization, error) {
+	as, err := s.Store.ListByUserID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +51,8 @@ func (s *AuthorizationService) ListByUser(userID string, filters ...Authorizatio
 	return filtered, nil
 }
 
-func (s *AuthorizationService) Delete(a *Authorization) error {
-	sessions, err := s.OAuthSessionManager.List(a.UserID)
+func (s *AuthorizationService) Delete(ctx context.Context, a *Authorization) error {
+	sessions, err := s.OAuthSessionManager.List(ctx, a.UserID)
 	if err != nil {
 		return err
 	}
@@ -61,7 +62,7 @@ func (s *AuthorizationService) Delete(a *Authorization) error {
 		if offlineGrant, ok := sess.(*OfflineGrant); ok {
 			tokenHashes, shouldRemoveOfflineGrant := offlineGrant.GetRemovableTokenHashesByAuthorizationID(a.ID)
 			if shouldRemoveOfflineGrant {
-				err := s.OAuthSessionManager.Delete(sess)
+				err := s.OAuthSessionManager.Delete(ctx, sess)
 				if err != nil {
 					return err
 				}
@@ -72,7 +73,7 @@ func (s *AuthorizationService) Delete(a *Authorization) error {
 				if err != nil {
 					return err
 				}
-				_, err = s.OfflineGrantStore.RemoveOfflineGrantRefreshTokens(offlineGrant.ID, tokenHashes, expiry)
+				_, err = s.OfflineGrantStore.RemoveOfflineGrantRefreshTokens(ctx, offlineGrant.ID, tokenHashes, expiry)
 				if err != nil {
 					return err
 				}
@@ -80,17 +81,18 @@ func (s *AuthorizationService) Delete(a *Authorization) error {
 		}
 	}
 
-	return s.Store.Delete(a)
+	return s.Store.Delete(ctx, a)
 }
 
 func (s *AuthorizationService) CheckAndGrant(
+	ctx context.Context,
 	clientID string,
 	userID string,
 	scopes []string,
 ) (*Authorization, error) {
 	timestamp := s.Clock.NowUTC()
 
-	authz, err := s.Store.Get(userID, clientID)
+	authz, err := s.Store.Get(ctx, userID, clientID)
 	if err == nil && authz.IsAuthorized(scopes) {
 		return authz, nil
 	} else if err != nil && !errors.Is(err, ErrAuthorizationNotFound) {
@@ -109,14 +111,14 @@ func (s *AuthorizationService) CheckAndGrant(
 			UpdatedAt: timestamp,
 			Scopes:    scopes,
 		}
-		err = s.Store.Create(authz)
+		err = s.Store.Create(ctx, authz)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		authz = authz.WithScopesAdded(scopes)
 		authz.UpdatedAt = timestamp
-		err = s.Store.UpdateScopes(authz)
+		err = s.Store.UpdateScopes(ctx, authz)
 		if err != nil {
 			return nil, err
 		}
@@ -126,11 +128,12 @@ func (s *AuthorizationService) CheckAndGrant(
 }
 
 func (s *AuthorizationService) Check(
+	ctx context.Context,
 	clientID string,
 	userID string,
 	scopes []string,
 ) (*Authorization, error) {
-	authz, err := s.Store.Get(userID, clientID)
+	authz, err := s.Store.Get(ctx, userID, clientID)
 
 	if err != nil {
 		return nil, err

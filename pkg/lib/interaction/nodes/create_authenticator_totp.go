@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -20,7 +22,7 @@ type EdgeCreateAuthenticatorTOTP struct {
 	Authenticator *authenticator.Info
 }
 
-func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorTOTP) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputCreateAuthenticatorTOTP
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -28,7 +30,7 @@ func (e *EdgeCreateAuthenticatorTOTP) Instantiate(ctx *interaction.Context, grap
 
 	info := e.Authenticator
 	info.TOTP.DisplayName = input.GetTOTPDisplayName()
-	_, err := ctx.Authenticators.VerifyWithSpec(info, &authenticator.Spec{
+	_, err := ctx.Authenticators.VerifyWithSpec(goCtx, info, &authenticator.Spec{
 		TOTP: &authenticator.TOTPSpec{
 			Code: input.GetTOTP(),
 		},
@@ -45,15 +47,15 @@ type NodeCreateAuthenticatorTOTP struct {
 	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
-func (n *NodeCreateAuthenticatorTOTP) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeCreateAuthenticatorTOTP) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorTOTP) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeCreateAuthenticatorTOTP) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateAuthenticatorTOTP) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeCreateAuthenticatorTOTP) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeCreateAuthenticatorEnd{
 			Stage:          n.Stage,

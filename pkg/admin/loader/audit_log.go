@@ -1,13 +1,15 @@
 package loader
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type AuditLogQuery interface {
-	GetByIDs(ids []string) ([]*audit.Log, error)
+	GetByIDs(ctx context.Context, ids []string) ([]*audit.Log, error)
 }
 
 type AuditLogLoader struct {
@@ -26,7 +28,7 @@ func NewAuditLogLoader(query AuditLogQuery, handle *auditdb.ReadHandle) *AuditLo
 	return l
 }
 
-func (l *AuditLogLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+func (l *AuditLogLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -35,8 +37,8 @@ func (l *AuditLogLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 
 	var entities []*audit.Log
 	// Get entities.
-	err := l.AuditDatabase.ReadOnly(func() (err error) {
-		entities, err = l.Query.GetByIDs(ids)
+	err := l.AuditDatabase.ReadOnly(ctx, func(ctx context.Context) (err error) {
+		entities, err = l.Query.GetByIDs(ctx, ids)
 		return
 	})
 	if err != nil {

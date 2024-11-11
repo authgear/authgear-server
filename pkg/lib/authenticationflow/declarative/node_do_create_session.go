@@ -91,18 +91,18 @@ func (n *NodeDoCreateSession) MilestoneDoCreateSession() (*idpsession.IDPSession
 func (n *NodeDoCreateSession) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
 	return []authflow.Effect{
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.AuthenticationInfos.Save(n.AuthenticationInfoEntry)
+			return deps.AuthenticationInfos.Save(ctx, n.AuthenticationInfoEntry)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			now := deps.Clock.NowUTC()
-			return deps.Users.UpdateLoginTime(n.UserID, now)
+			return deps.Users.UpdateLoginTime(ctx, n.UserID, now)
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			if n.Session == nil {
 				return nil
 			}
 
-			err := deps.IDPSessions.Create(n.Session)
+			err := deps.IDPSessions.Create(ctx, n.Session)
 			if err != nil {
 				return err
 			}
@@ -110,7 +110,7 @@ func (n *NodeDoCreateSession) GetEffects(ctx context.Context, deps *authflow.Dep
 			// Clean up unreachable IdP session
 			s := session.GetSession(ctx)
 			if s != nil && s.SessionType() == session.TypeIdentityProvider {
-				err = deps.Sessions.RevokeWithoutEvent(s)
+				err = deps.Sessions.RevokeWithoutEvent(ctx, s)
 				if err != nil {
 					return err
 				}

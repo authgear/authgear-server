@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -15,7 +17,7 @@ type EdgeDoCreateAuthenticator struct {
 	Authenticators []*authenticator.Info
 }
 
-func (e *EdgeDoCreateAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoCreateAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	return &NodeDoCreateAuthenticator{
 		Stage:          e.Stage,
@@ -30,15 +32,15 @@ type NodeDoCreateAuthenticator struct {
 	IsAdminAPI     bool                      `json:"is_admin_api"`
 }
 
-func (n *NodeDoCreateAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoCreateAuthenticator) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeDoCreateAuthenticator) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoCreateAuthenticator) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			for _, a := range n.Authenticators {
-				err := ctx.Authenticators.Create(a, !n.IsAdminAPI)
+				err := ctx.Authenticators.Create(goCtx, a, !n.IsAdminAPI)
 				if err != nil {
 					return err
 				}
@@ -49,8 +51,8 @@ func (n *NodeDoCreateAuthenticator) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeDoCreateAuthenticator) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeDoCreateAuthenticator) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }
 
 func (n *NodeDoCreateAuthenticator) UserAuthenticator(stage authn.AuthenticationStage) (*authenticator.Info, bool) {

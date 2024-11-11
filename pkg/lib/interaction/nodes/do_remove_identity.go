@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -17,7 +19,7 @@ type EdgeDoRemoveIdentity struct {
 	Identity *identity.Info
 }
 
-func (e *EdgeDoRemoveIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoRemoveIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	deleteDisabled := e.Identity.DeleteDisabled(ctx.Config.Identity)
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	if !isAdminAPI && deleteDisabled {
@@ -34,21 +36,21 @@ type NodeDoRemoveIdentity struct {
 	IsAdminAPI bool           `json:"is_admin_api"`
 }
 
-func (n *NodeDoRemoveIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoRemoveIdentity) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoRemoveIdentity) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			err := ctx.Identities.Delete(n.Identity)
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			err := ctx.Identities.Delete(goCtx, n.Identity)
 			if err != nil {
 				return err
 			}
 
 			return nil
 		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			userRef := model.UserRef{
 				Meta: model.Meta{
 					ID: n.Identity.UserID,
@@ -82,7 +84,7 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			if e != nil {
-				err := ctx.Events.DispatchEventOnCommit(e)
+				err := ctx.Events.DispatchEventOnCommit(goCtx, e)
 				if err != nil {
 					return err
 				}
@@ -93,6 +95,6 @@ func (n *NodeDoRemoveIdentity) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeDoRemoveIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeDoRemoveIdentity) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

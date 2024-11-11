@@ -43,7 +43,7 @@ func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Depe
 	case workflow.AsInput(input, &inputTakeLoginLinkCode):
 		code := inputTakeLoginLinkCode.GetCode()
 
-		err := i.setSubmittedCode(deps, code)
+		err := i.setSubmittedCode(ctx, deps, code)
 		if apierrors.IsKind(err, otp.InvalidOTPCode) {
 			return nil, otp.ErrInvalidCode
 		} else if err != nil {
@@ -58,15 +58,15 @@ func (i *IntentVerifyLoginLink) ReactTo(ctx context.Context, deps *workflow.Depe
 	}
 }
 
-func (i *IntentVerifyLoginLink) setSubmittedCode(deps *workflow.Dependencies, code string) error {
+func (i *IntentVerifyLoginLink) setSubmittedCode(ctx context.Context, deps *workflow.Dependencies, code string) error {
 	kind := otp.KindOOBOTPLink(deps.Config, model.AuthenticatorOOBChannelEmail)
 
-	target, err := deps.OTPCodes.LookupCode(kind.Purpose(), code)
+	target, err := deps.OTPCodes.LookupCode(ctx, kind.Purpose(), code)
 	if err != nil {
 		return err
 	}
 
-	err = deps.OTPCodes.VerifyOTP(kind, target, code, &otp.VerifyOptions{
+	err = deps.OTPCodes.VerifyOTP(ctx, kind, target, code, &otp.VerifyOptions{
 		// No need pass user ID (for rate limit checking),
 		// since able to lookup by code strongly implies valid request.
 		SkipConsume: true,
@@ -75,13 +75,13 @@ func (i *IntentVerifyLoginLink) setSubmittedCode(deps *workflow.Dependencies, co
 		return err
 	}
 
-	state, err := deps.OTPCodes.SetSubmittedCode(kind, target, code)
+	state, err := deps.OTPCodes.SetSubmittedCode(ctx, kind, target, code)
 	if err != nil {
 		return err
 	}
 
 	if state.WorkflowID != "" {
-		err = deps.WorkflowEvents.Publish(state.WorkflowID, workflow.NewEventRefresh())
+		err = deps.WorkflowEvents.Publish(ctx, state.WorkflowID, workflow.NewEventRefresh())
 		if err != nil {
 			return err
 		}

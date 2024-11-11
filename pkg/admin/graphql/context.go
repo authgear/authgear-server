@@ -49,103 +49,105 @@ type AuditLogLoader interface {
 }
 
 type AuditLogFacade interface {
-	QueryPage(opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 }
 
 type UserFacade interface {
-	ListPage(listOption libuser.ListOptions, args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	ListPage(ctx context.Context, listOption libuser.ListOptions, args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 	SearchPage(
+		ctx context.Context,
 		searchKeyword string,
 		filterOptions libuser.FilterOptions,
 		sortOption libuser.SortOption,
 		args graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
-	Create(identityDef model.IdentityDef, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (string, error)
-	ResetPassword(id string, password string, generatePassword bool, sendPassword bool, changeOnLogin bool) error
-	SetPasswordExpired(id string, isExpired bool) error
-	SetDisabled(id string, isDisabled bool, reason *string) error
-	ScheduleDeletion(id string) error
-	UnscheduleDeletion(id string) error
-	Delete(id string) error
-	ScheduleAnonymization(id string) error
-	UnscheduleAnonymization(id string) error
-	Anonymize(id string) error
-	SetMFAGracePeriod(id string, endAt *time.Time) error
-	GetUsersByStandardAttribute(attributeKey string, attributeValue string) ([]string, error)
-	GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error)
-	GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error)
+	Create(ctx context.Context, identityDef model.IdentityDef, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (string, error)
+	ResetPassword(ctx context.Context, id string, password string, generatePassword bool, sendPassword bool, changeOnLogin bool) error
+	SetPasswordExpired(ctx context.Context, id string, isExpired bool) error
+	SetDisabled(ctx context.Context, id string, isDisabled bool, reason *string) error
+	ScheduleDeletion(ctx context.Context, id string) error
+	UnscheduleDeletion(ctx context.Context, id string) error
+	Delete(ctx context.Context, id string) error
+	ScheduleAnonymization(ctx context.Context, id string) error
+	UnscheduleAnonymization(ctx context.Context, id string) error
+	Anonymize(ctx context.Context, id string) error
+	SetMFAGracePeriod(ctx context.Context, id string, endAt *time.Time) error
+	GetUsersByStandardAttribute(ctx context.Context, attributeKey string, attributeValue string) ([]string, error)
+	GetUserByLoginID(ctx context.Context, loginIDKey string, loginIDValue string) (string, error)
+	GetUserByOAuth(ctx context.Context, oauthProviderAlias string, oauthProviderUserID string) (string, error)
 }
 
 type RolesGroupsFacade interface {
-	CreateRole(options *rolesgroups.NewRoleOptions) (string, error)
-	UpdateRole(options *rolesgroups.UpdateRoleOptions) error
-	DeleteRole(id string) error
-	ListGroupsByRoleID(roleID string) ([]*apimodel.Group, error)
-	ListRoles(options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	CreateRole(ctx context.Context, options *rolesgroups.NewRoleOptions) (string, error)
+	UpdateRole(ctx context.Context, options *rolesgroups.UpdateRoleOptions) error
+	DeleteRole(ctx context.Context, id string) error
+	ListGroupsByRoleID(ctx context.Context, roleID string) ([]*apimodel.Group, error)
+	ListRoles(ctx context.Context, options *rolesgroups.ListRolesOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 
-	CreateGroup(options *rolesgroups.NewGroupOptions) (string, error)
-	UpdateGroup(options *rolesgroups.UpdateGroupOptions) error
-	DeleteGroup(id string) error
-	ListRolesByGroupID(groupID string) ([]*apimodel.Role, error)
-	ListGroups(options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	CreateGroup(ctx context.Context, options *rolesgroups.NewGroupOptions) (string, error)
+	UpdateGroup(ctx context.Context, options *rolesgroups.UpdateGroupOptions) error
+	DeleteGroup(ctx context.Context, id string) error
+	ListRolesByGroupID(ctx context.Context, groupID string) ([]*apimodel.Role, error)
+	ListGroups(ctx context.Context, options *rolesgroups.ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
 
-	AddRoleToGroups(options *rolesgroups.AddRoleToGroupsOptions) (string, error)
-	RemoveRoleFromGroups(options *rolesgroups.RemoveRoleFromGroupsOptions) (string, error)
+	AddRoleToGroups(ctx context.Context, options *rolesgroups.AddRoleToGroupsOptions) (string, error)
+	RemoveRoleFromGroups(ctx context.Context, options *rolesgroups.RemoveRoleFromGroupsOptions) (string, error)
 
-	AddRoleToUsers(options *rolesgroups.AddRoleToUsersOptions) (string, error)
-	RemoveRoleFromUsers(options *rolesgroups.RemoveRoleFromUsersOptions) (string, error)
+	AddRoleToUsers(ctx context.Context, options *rolesgroups.AddRoleToUsersOptions) (string, error)
+	RemoveRoleFromUsers(ctx context.Context, options *rolesgroups.RemoveRoleFromUsersOptions) (string, error)
 
-	AddGroupToUsers(options *rolesgroups.AddGroupToUsersOptions) (groupID string, err error)
-	RemoveGroupFromUsers(options *rolesgroups.RemoveGroupFromUsersOptions) (groupID string, err error)
+	AddGroupToUsers(ctx context.Context, options *rolesgroups.AddGroupToUsersOptions) (groupID string, err error)
+	RemoveGroupFromUsers(ctx context.Context, options *rolesgroups.RemoveGroupFromUsersOptions) (groupID string, err error)
 
-	AddGroupToRoles(options *rolesgroups.AddGroupToRolesOptions) (groupID string, err error)
-	RemoveGroupFromRoles(options *rolesgroups.RemoveGroupFromRolesOptions) (groupID string, err error)
+	AddGroupToRoles(ctx context.Context, options *rolesgroups.AddGroupToRolesOptions) (groupID string, err error)
+	RemoveGroupFromRoles(ctx context.Context, options *rolesgroups.RemoveGroupFromRolesOptions) (groupID string, err error)
 
-	AddUserToRoles(options *rolesgroups.AddUserToRolesOptions) (err error)
-	RemoveUserFromRoles(options *rolesgroups.RemoveUserFromRolesOptions) (err error)
+	AddUserToRoles(ctx context.Context, options *rolesgroups.AddUserToRolesOptions) (err error)
+	RemoveUserFromRoles(ctx context.Context, options *rolesgroups.RemoveUserFromRolesOptions) (err error)
 
-	AddUserToGroups(options *rolesgroups.AddUserToGroupsOptions) (err error)
-	RemoveUserFromGroups(options *rolesgroups.RemoveUserFromGroupsOptions) (err error)
+	AddUserToGroups(ctx context.Context, options *rolesgroups.AddUserToGroupsOptions) (err error)
+	RemoveUserFromGroups(ctx context.Context, options *rolesgroups.RemoveUserFromGroupsOptions) (err error)
 
-	ListRolesByUserID(userID string) ([]*apimodel.Role, error)
-	ListGroupsByUserID(userID string) ([]*apimodel.Group, error)
-	ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
-	ListUserIDsByGroupID(groupID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
-	ListEffectiveRolesByUserID(userID string) ([]*apimodel.Role, error)
-	ListAllUserIDsByGroupIDs(groupIDs []string) ([]string, error)
-	ListAllUserIDsByGroupKeys(groupKeys []string) ([]string, error)
-	ListAllUserIDsByRoleIDs(roleIDs []string) ([]string, error)
-	ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error)
-	ListAllRolesByKeys(keys []string) ([]*apimodel.Role, error)
-	ListAllGroupsByKeys(keys []string) ([]*apimodel.Group, error)
+	ListRolesByUserID(ctx context.Context, userID string) ([]*apimodel.Role, error)
+	ListGroupsByUserID(ctx context.Context, userID string) ([]*apimodel.Group, error)
+	ListUserIDsByRoleID(ctx context.Context, roleID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	ListUserIDsByGroupID(ctx context.Context, groupID string, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error)
+	ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*apimodel.Role, error)
+	ListAllUserIDsByGroupIDs(ctx context.Context, groupIDs []string) ([]string, error)
+	ListAllUserIDsByGroupKeys(ctx context.Context, groupKeys []string) ([]string, error)
+	ListAllUserIDsByRoleIDs(ctx context.Context, roleIDs []string) ([]string, error)
+	ListAllUserIDsByEffectiveRoleIDs(ctx context.Context, roleIDs []string) ([]string, error)
+	ListAllRolesByKeys(ctx context.Context, keys []string) ([]*apimodel.Role, error)
+	ListAllGroupsByKeys(ctx context.Context, keys []string) ([]*apimodel.Group, error)
 
-	GetRole(roleID string) (*apimodel.Role, error)
-	GetGroup(groupID string) (*apimodel.Group, error)
+	GetRole(ctx context.Context, roleID string) (*apimodel.Role, error)
+	GetGroup(ctx context.Context, groupID string) (*apimodel.Group, error)
 }
 
 type IdentityFacade interface {
-	Get(id string) (*identity.Info, error)
-	List(userID string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error)
-	Remove(identityInfo *identity.Info) error
-	Create(userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error)
-	Update(identityID string, userID string, identityDef model.IdentityDef) (*apimodel.IdentityRef, error)
+	Get(ctx context.Context, id string) (*identity.Info, error)
+	List(ctx context.Context, userID string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error)
+	Remove(ctx context.Context, identityInfo *identity.Info) error
+	Create(ctx context.Context, userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error)
+	Update(ctx context.Context, identityID string, userID string, identityDef model.IdentityDef) (*apimodel.IdentityRef, error)
 }
 
 type AuthenticatorFacade interface {
-	Get(id string) (*authenticator.Info, error)
-	List(userID string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error)
-	Remove(authenticatorInfo *authenticator.Info) error
-	CreateBySpec(spec *authenticator.Spec) (*authenticator.Info, error)
+	Get(ctx context.Context, id string) (*authenticator.Info, error)
+	List(ctx context.Context, userID string, authenticatorType *apimodel.AuthenticatorType, authenticatorKind *authenticator.Kind) ([]*authenticator.Ref, error)
+	Remove(ctx context.Context, authenticatorInfo *authenticator.Info) error
+	CreateBySpec(ctx context.Context, spec *authenticator.Spec) (*authenticator.Info, error)
 }
 
 type VerificationFacade interface {
-	Get(userID string) ([]model.Claim, error)
-	SetVerified(userID string, claimName string, claimValue string, isVerified bool) error
+	Get(ctx context.Context, userID string) ([]model.Claim, error)
+	SetVerified(ctx context.Context, userID string, claimName string, claimValue string, isVerified bool) error
 }
 
 type UserProfileFacade interface {
-	DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
-	ReadCustomAttributesInStorageForm(role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
+	DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error)
+	ReadCustomAttributesInStorageForm(ctx context.Context, role accesscontrol.Role, userID string, storageForm map[string]interface{}) (map[string]interface{}, error)
 	UpdateUserProfile(
+		ctx context.Context,
 		role accesscontrol.Role,
 		userID string,
 		stdAttrs map[string]interface{},
@@ -154,36 +156,36 @@ type UserProfileFacade interface {
 }
 
 type SessionFacade interface {
-	List(userID string) ([]session.ListableSession, error)
-	Get(id string) (session.ListableSession, error)
-	Revoke(id string) error
-	RevokeAll(userID string) error
+	List(ctx context.Context, userID string) ([]session.ListableSession, error)
+	Get(ctx context.Context, id string) (session.ListableSession, error)
+	Revoke(ctx context.Context, id string) error
+	RevokeAll(ctx context.Context, userID string) error
 }
 
 type AuthorizationFacade interface {
-	Get(id string) (*oauth.Authorization, error)
-	List(userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error)
-	Delete(a *oauth.Authorization) error
+	Get(ctx context.Context, id string) (*oauth.Authorization, error)
+	List(ctx context.Context, userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error)
+	Delete(ctx context.Context, a *oauth.Authorization) error
 }
 
 type OAuthFacade interface {
-	CreateSession(clientID string, userID string) (session.ListableSession, protocol.TokenResponse, error)
+	CreateSession(ctx context.Context, clientID string, userID string) (session.ListableSession, protocol.TokenResponse, error)
 }
 
 type SessionListingService interface {
-	FilterForDisplay(sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*sessionlisting.Session, error)
+	FilterForDisplay(ctx context.Context, sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*sessionlisting.Session, error)
 }
 
 type OTPCodeService interface {
-	GenerateOTP(kind otp.Kind, target string, form otp.Form, opts *otp.GenerateOptions) (string, error)
+	GenerateOTP(ctx context.Context, kind otp.Kind, target string, form otp.Form, opts *otp.GenerateOptions) (string, error)
 }
 
 type ForgotPasswordService interface {
-	SendCode(loginID string, options *forgotpassword.CodeOptions) error
+	SendCode(ctx context.Context, loginID string, options *forgotpassword.CodeOptions) error
 }
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type Logger struct{ *log.Logger }

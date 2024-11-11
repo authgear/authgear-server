@@ -1,7 +1,6 @@
 package cmdanalytic
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -121,8 +120,8 @@ var cmdAnalyticReport = &cobra.Command{
 				return fmt.Errorf("invalid period, it should be last-week or in the format YYYY-Www")
 			}
 			year, week := date.ISOWeek()
-			report := analytic.NewUserWeeklyReport(context.Background(), dbPool, dbCredentials)
-			data, err = report.Run(&analyticlib.UserWeeklyReportOptions{
+			report := analytic.NewUserWeeklyReport(dbPool, dbCredentials)
+			data, err = report.Run(cmd.Context(), &analyticlib.UserWeeklyReportOptions{
 				Year:        year,
 				Week:        week,
 				PortalAppID: portalAppID,
@@ -140,12 +139,11 @@ var cmdAnalyticReport = &cobra.Command{
 			case periodical.Hourly:
 				mode = analyticlib.OutputGoogleSpreadsheetModeOverwrite
 				report := analytic.NewProjectHourlyReport(
-					context.Background(),
 					dbPool,
 					dbCredentials,
 					auditDBCredentials,
 				)
-				data, err = report.Run(&analyticlib.ProjectHourlyReportOptions{
+				data, err = report.Run(cmd.Context(), &analyticlib.ProjectHourlyReportOptions{
 					Time: date,
 				})
 				if err != nil {
@@ -154,12 +152,11 @@ var cmdAnalyticReport = &cobra.Command{
 			case periodical.Weekly:
 				year, week := date.ISOWeek()
 				report := analytic.NewProjectWeeklyReport(
-					context.Background(),
 					dbPool,
 					dbCredentials,
 					auditDBCredentials,
 				)
-				data, err = report.Run(&analyticlib.ProjectWeeklyReportOptions{
+				data, err = report.Run(cmd.Context(), &analyticlib.ProjectWeeklyReportOptions{
 					Year:        year,
 					Week:        week,
 					PortalAppID: portalAppID,
@@ -169,12 +166,11 @@ var cmdAnalyticReport = &cobra.Command{
 				}
 			case periodical.Monthly:
 				report := analytic.NewProjectMonthlyReport(
-					context.Background(),
 					dbPool,
 					dbCredentials,
 					auditDBCredentials,
 				)
-				data, err = report.Run(&analyticlib.ProjectMonthlyReportOptions{
+				data, err = report.Run(cmd.Context(), &analyticlib.ProjectMonthlyReportOptions{
 					Year:  date.Year(),
 					Month: int(date.Month()),
 				})
@@ -189,7 +185,7 @@ var cmdAnalyticReport = &cobra.Command{
 		}
 
 		return analytic.OutputReport(
-			context.Background(),
+			cmd.Context(),
 			&analytic.OutputReportOptions{
 				OutputType:                               outputType,
 				CSVOutputFilePath:                        csvOutputFilePath,

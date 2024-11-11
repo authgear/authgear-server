@@ -1,6 +1,7 @@
 package stdattrs
 
 import (
+	"context"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -16,19 +17,19 @@ import (
 )
 
 type IdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type UserQueries interface {
-	GetRaw(userID string) (*user.User, error)
+	GetRaw(ctx context.Context, userID string) (*user.User, error)
 }
 
 type UserStore interface {
-	UpdateStandardAttributes(userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(ctx context.Context, userID string, stdAttrs map[string]interface{}) error
 }
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type Service struct {
@@ -40,8 +41,8 @@ type Service struct {
 	Events            EventService
 }
 
-func (s *Service) PopulateStandardAttributes(userID string, iden *identity.Info) error {
-	user, err := s.UserQueries.GetRaw(userID)
+func (s *Service) PopulateStandardAttributes(ctx context.Context, userID string, iden *identity.Info) error {
+	user, err := s.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -50,7 +51,7 @@ func (s *Service) PopulateStandardAttributes(userID string, iden *identity.Info)
 	originalStdAttrs := stdattrs.T(user.StandardAttributes)
 	stdAttrs := originalStdAttrs.MergedWith(stdAttrsFromIden)
 
-	err = s.UserStore.UpdateStandardAttributes(userID, stdAttrs.ToClaims())
+	err = s.UserStore.UpdateStandardAttributes(ctx, userID, stdAttrs.ToClaims())
 	if err != nil {
 		return err
 	}
@@ -58,8 +59,8 @@ func (s *Service) PopulateStandardAttributes(userID string, iden *identity.Info)
 	return nil
 }
 
-func (s *Service) UpdateStandardAttributesWithList(role accesscontrol.Role, userID string, attrs attrs.List) error {
-	user, err := s.UserQueries.GetRaw(userID)
+func (s *Service) UpdateStandardAttributesWithList(ctx context.Context, role accesscontrol.Role, userID string, attrs attrs.List) error {
+	user, err := s.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -70,7 +71,7 @@ func (s *Service) UpdateStandardAttributesWithList(role accesscontrol.Role, user
 		return err
 	}
 
-	err = s.ServiceNoEvent.UpdateStandardAttributes(role, userID, stdAttrs)
+	err = s.ServiceNoEvent.UpdateStandardAttributes(ctx, role, userID, stdAttrs)
 	if err != nil {
 		return err
 	}
@@ -78,12 +79,12 @@ func (s *Service) UpdateStandardAttributesWithList(role accesscontrol.Role, user
 	return nil
 }
 
-func (s *Service) PopulateIdentityAwareStandardAttributes(userID string) (err error) {
-	return s.ServiceNoEvent.PopulateIdentityAwareStandardAttributes(userID)
+func (s *Service) PopulateIdentityAwareStandardAttributes(ctx context.Context, userID string) (err error) {
+	return s.ServiceNoEvent.PopulateIdentityAwareStandardAttributes(ctx, userID)
 }
 
-func (s *Service) UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
-	err := s.ServiceNoEvent.UpdateStandardAttributes(role, userID, stdAttrs)
+func (s *Service) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+	err := s.ServiceNoEvent.UpdateStandardAttributes(ctx, role, userID, stdAttrs)
 	if err != nil {
 		return err
 	}
@@ -108,7 +109,7 @@ func (s *Service) UpdateStandardAttributes(role accesscontrol.Role, userID strin
 	}
 
 	for _, eventPayload := range eventPayloads {
-		err = s.Events.DispatchEventOnCommit(eventPayload)
+		err = s.Events.DispatchEventOnCommit(ctx, eventPayload)
 		if err != nil {
 			return err
 		}
@@ -117,6 +118,6 @@ func (s *Service) UpdateStandardAttributes(role accesscontrol.Role, userID strin
 	return nil
 }
 
-func (s *Service) DeriveStandardAttributes(role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
-	return s.ServiceNoEvent.DeriveStandardAttributes(role, userID, updatedAt, attrs)
+func (s *Service) DeriveStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, updatedAt time.Time, attrs map[string]interface{}) (map[string]interface{}, error) {
+	return s.ServiceNoEvent.DeriveStandardAttributes(ctx, role, userID, updatedAt, attrs)
 }

@@ -1,6 +1,7 @@
 package passkey
 
 import (
+	"context"
 	"encoding/base64"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -14,8 +15,8 @@ type RequestOptionsService struct {
 	Store           *Store
 }
 
-func (s *RequestOptionsService) MakeConditionalRequestOptions() (*model.WebAuthnRequestOptions, error) {
-	options, err := s.MakeModalRequestOptions()
+func (s *RequestOptionsService) MakeConditionalRequestOptions(ctx context.Context) (*model.WebAuthnRequestOptions, error) {
+	options, err := s.MakeModalRequestOptions(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -23,13 +24,13 @@ func (s *RequestOptionsService) MakeConditionalRequestOptions() (*model.WebAuthn
 	return options, nil
 }
 
-func (s *RequestOptionsService) MakeModalRequestOptions() (*model.WebAuthnRequestOptions, error) {
+func (s *RequestOptionsService) MakeModalRequestOptions(ctx context.Context) (*model.WebAuthnRequestOptions, error) {
 	challenge, err := protocol.CreateChallenge()
 	if err != nil {
 		return nil, err
 	}
 
-	config, err := s.ConfigService.MakeConfig()
+	config, err := s.ConfigService.MakeConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -54,7 +55,7 @@ func (s *RequestOptionsService) MakeModalRequestOptions() (*model.WebAuthnReques
 		Challenge:      challenge,
 		RequestOptions: options,
 	}
-	err = s.Store.CreateSession(session)
+	err = s.Store.CreateSession(ctx, session)
 	if err != nil {
 		return nil, err
 	}
@@ -62,13 +63,13 @@ func (s *RequestOptionsService) MakeModalRequestOptions() (*model.WebAuthnReques
 	return options, nil
 }
 
-func (s *RequestOptionsService) MakeModalRequestOptionsWithUser(userID string) (*model.WebAuthnRequestOptions, error) {
+func (s *RequestOptionsService) MakeModalRequestOptionsWithUser(ctx context.Context, userID string) (*model.WebAuthnRequestOptions, error) {
 	challenge, err := protocol.CreateChallenge()
 	if err != nil {
 		return nil, err
 	}
 
-	config, err := s.ConfigService.MakeConfig()
+	config, err := s.ConfigService.MakeConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func (s *RequestOptionsService) MakeModalRequestOptionsWithUser(userID string) (
 	// allowCredentials is an empty array.
 	// Thus the platform will disallow the user from selecting anything.
 	allow := []model.PublicKeyCredentialDescriptor{}
-	identities, err := s.IdentityService.ListByUser(userID)
+	identities, err := s.IdentityService.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +116,7 @@ func (s *RequestOptionsService) MakeModalRequestOptionsWithUser(userID string) (
 		Challenge:      challenge,
 		RequestOptions: options,
 	}
-	err = s.Store.CreateSession(session)
+	err = s.Store.CreateSession(ctx, session)
 	if err != nil {
 		return nil, err
 	}

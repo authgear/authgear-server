@@ -62,18 +62,19 @@ var _ = registerMutationField(
 				}
 				userIDs[i] = resolvedNodeID.ID
 			}
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			options := &rolesgroups.AddGroupToUsersOptions{
 				GroupKey: groupKey,
 				UserIDs:  userIDs,
 			}
-			groupID, err := gqlCtx.RolesGroupsFacade.AddGroupToUsers(options)
+			groupID, err := gqlCtx.RolesGroupsFacade.AddGroupToUsers(ctx, options)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddGroupToUsersExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationAddGroupToUsersExecutedEventPayload{
 				UserIDs: userIDs,
 				GroupID: groupID,
 			})
@@ -82,7 +83,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"group": gqlCtx.Groups.Load(groupID),
+				"group": gqlCtx.Groups.Load(ctx, groupID),
 			}).Value, nil
 
 		},
@@ -139,18 +140,19 @@ var _ = registerMutationField(
 				}
 				userIDs[i] = resolvedNodeID.ID
 			}
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			options := &rolesgroups.RemoveGroupFromUsersOptions{
 				GroupKey: groupKey,
 				UserIDs:  userIDs,
 			}
-			groupID, err := gqlCtx.RolesGroupsFacade.RemoveGroupFromUsers(options)
+			groupID, err := gqlCtx.RolesGroupsFacade.RemoveGroupFromUsers(ctx, options)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveGroupFromUsersExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationRemoveGroupFromUsersExecutedEventPayload{
 				UserIDs: userIDs,
 				GroupID: groupID,
 			})
@@ -159,7 +161,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"group": gqlCtx.Groups.Load(groupID),
+				"group": gqlCtx.Groups.Load(ctx, groupID),
 			}).Value, nil
 
 		},
@@ -213,9 +215,10 @@ var _ = registerMutationField(
 			for i, v := range groupKeyIfaces {
 				groupKeys[i] = v.(string)
 			}
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			groups, err := gqlCtx.RolesGroupsFacade.ListAllGroupsByKeys(groupKeys)
+			groups, err := gqlCtx.RolesGroupsFacade.ListAllGroupsByKeys(ctx, groupKeys)
 			if err != nil {
 				return nil, err
 			}
@@ -224,12 +227,12 @@ var _ = registerMutationField(
 				UserID:    userID,
 				GroupKeys: groupKeys,
 			}
-			err = gqlCtx.RolesGroupsFacade.AddUserToGroups(options)
+			err = gqlCtx.RolesGroupsFacade.AddUserToGroups(ctx, options)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddUserToGroupsExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationAddUserToGroupsExecutedEventPayload{
 				UserID_:  userID,
 				GroupIDs: slice.Map(groups, func(g *model.Group) string { return g.ID }),
 			})
@@ -238,7 +241,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 
 		},
@@ -292,9 +295,10 @@ var _ = registerMutationField(
 			for i, v := range groupKeyIfaces {
 				groupKeys[i] = v.(string)
 			}
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			groups, err := gqlCtx.RolesGroupsFacade.ListAllGroupsByKeys(groupKeys)
+			groups, err := gqlCtx.RolesGroupsFacade.ListAllGroupsByKeys(ctx, groupKeys)
 			if err != nil {
 				return nil, err
 			}
@@ -303,12 +307,12 @@ var _ = registerMutationField(
 				UserID:    userID,
 				GroupKeys: groupKeys,
 			}
-			err = gqlCtx.RolesGroupsFacade.RemoveUserFromGroups(options)
+			err = gqlCtx.RolesGroupsFacade.RemoveUserFromGroups(ctx, options)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveUserFromGroupsExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationRemoveUserFromGroupsExecutedEventPayload{
 				UserID_:  userID,
 				GroupIDs: slice.Map(groups, func(g *model.Group) string { return g.ID }),
 			})
@@ -317,7 +321,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 
 		},

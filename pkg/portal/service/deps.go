@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -53,21 +55,21 @@ var DependencySet = wire.NewSet(
 
 type NoopAttributesService struct{}
 
-func (*NoopAttributesService) UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+func (*NoopAttributesService) UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
 	return nil
 }
 
-func (*NoopAttributesService) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
+func (*NoopAttributesService) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error {
 	return nil
 }
 
 type NoopRolesAndGroupsService struct{}
 
-func (*NoopRolesAndGroupsService) ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error {
+func (*NoopRolesAndGroupsService) ResetUserRole(ctx context.Context, options *rolesgroups.ResetUserRoleOptions) error {
 	return nil
 }
 
-func (*NoopRolesAndGroupsService) ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error {
+func (*NoopRolesAndGroupsService) ResetUserGroup(ctx context.Context, options *rolesgroups.ResetUserGroupOptions) error {
 	return nil
 }
 

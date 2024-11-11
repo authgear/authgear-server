@@ -1,6 +1,10 @@
 package db
 
+import (
+	"context"
+)
+
 type TransactionHook interface {
-	WillCommitTx() error
-	DidCommitTx()
+	WillCommitTx(ctx context.Context) error
+	DidCommitTx(ctx context.Context)
 }

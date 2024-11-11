@@ -39,7 +39,7 @@ func (*IntentSignupFlowStepVerify) Kind() string {
 }
 
 func (i *IntentSignupFlowStepVerify) Milestone() {}
-func (i *IntentSignupFlowStepVerify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
+func (i *IntentSignupFlowStepVerify) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 
 	milestoneVerifyClaim, milestoneVerifyClaimFlows, ok := authflow.FindMilestoneInCurrentFlow[MilestoneVerifyClaim](flows)
@@ -121,7 +121,7 @@ func (i *IntentSignupFlowStepVerify) ReactTo(ctx context.Context, deps *authflow
 	claimValue := claims[claimName]
 
 	// Do not verify if the claim is verified already.
-	claimStatus, err := deps.Verification.GetClaimStatus(i.UserID, claimName, claimValue)
+	claimStatus, err := deps.Verification.GetClaimStatus(ctx, i.UserID, claimName, claimValue)
 	if err != nil {
 		return nil, err
 	}

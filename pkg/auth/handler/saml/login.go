@@ -330,9 +330,9 @@ func (h *LoginHandler) finishWithoutUI(
 	}
 
 	// Ignore any session that does not match login_hint
-	err = h.Database.WithTx(func() error {
+	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		if loginHint != nil && resolvedSession != nil {
-			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(loginHint)
+			hintUserIDs, err := h.UserFacade.GetUserIDsByLoginHint(ctx, loginHint)
 			if err != nil {
 				return err
 			}
@@ -420,7 +420,7 @@ func (h *LoginHandler) startSSOFlow(
 	}
 
 	samlSession := samlsession.NewSAMLSession(samlSessionEntry, uiInfo)
-	err = h.SAMLSessionService.Save(samlSession)
+	err = h.SAMLSessionService.Save(ctx, samlSession)
 	if err != nil {
 		return nil, err
 	}

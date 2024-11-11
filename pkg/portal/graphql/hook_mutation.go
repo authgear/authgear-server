@@ -42,15 +42,16 @@ var _ = registerMutationField(
 
 			content := input["content"].(string)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			// Access control: collaborator.
-			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.DenoService.Check(p.Context, content)
+			err = gqlCtx.DenoService.Check(ctx, content)
 			if err != nil {
 				return nil, err
 			}

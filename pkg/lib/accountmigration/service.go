@@ -1,6 +1,7 @@
 package accountmigration
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 
@@ -13,7 +14,7 @@ type Service struct {
 	WebHook  *AccountMigrationWebHook
 }
 
-func (s *Service) Run(migrationTokenString string) (*HookResponse, error) {
+func (s *Service) Run(ctx context.Context, migrationTokenString string) (*HookResponse, error) {
 	if s.Config.URL == "" {
 		return nil, InvalidConfiguration.New("missing account migration hook config")
 	}
@@ -29,9 +30,9 @@ func (s *Service) Run(migrationTokenString string) (*HookResponse, error) {
 
 	switch {
 	case s.DenoHook.SupportURL(u):
-		return s.DenoHook.Call(u, req)
+		return s.DenoHook.Call(ctx, u, req)
 	case s.WebHook.SupportURL(u):
-		return s.WebHook.Call(u, req)
+		return s.WebHook.Call(ctx, u, req)
 	default:
 		return nil, fmt.Errorf("unsupported hook URL: %v", u)
 	}

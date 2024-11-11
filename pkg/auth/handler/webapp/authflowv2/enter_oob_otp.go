@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -163,7 +165,7 @@ func (h *AuthflowV2EnterOOBOTPHandler) GetInlinePreviewData(w http.ResponseWrite
 
 func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -172,12 +174,12 @@ func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowEnterOOBOTPHTML, data)
 		return nil
 	})
-	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("resend", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"resend": true,
 		}
 
-		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
+		result, err := h.Controller.UpdateWithInput(ctx, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -186,7 +188,7 @@ func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.PostAction("submit", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("submit", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowEnterOOBOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -200,7 +202,7 @@ func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -208,7 +210,7 @@ func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+	handlers.InlinePreview(func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 		data, err := h.GetInlinePreviewData(w, r)
 		if err != nil {
 			return err
@@ -217,5 +219,5 @@ func (h *AuthflowV2EnterOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return nil
 	})
 
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

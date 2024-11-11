@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -24,7 +25,7 @@ type EdgeVerifyIdentityViaWhatsapp struct {
 	RequestedByUser bool
 }
 
-func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputVerifyIdentityViaWhatsapp
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -36,7 +37,7 @@ func (e *EdgeVerifyIdentityViaWhatsapp) Instantiate(ctx *interaction.Context, gr
 
 	phone := e.Identity.LoginID.LoginID
 
-	result, err := NewSendWhatsappCode(ctx, otp.KindVerification, phone, false).Do()
+	result, err := NewSendWhatsappCode(ctx, otp.KindVerification, phone, false).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -72,15 +73,15 @@ func (n *NodeVerifyIdentityViaWhatsapp) GetOTPKindFactory() otp.DeprecatedKindFa
 	return otp.KindVerification
 }
 
-func (n *NodeVerifyIdentityViaWhatsapp) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeVerifyIdentityViaWhatsapp) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeVerifyIdentityViaWhatsapp) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeVerifyIdentityViaWhatsapp) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeVerifyIdentityViaWhatsapp) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeWhatsappOTPResendCode{
 			Target:         n.Phone,
@@ -100,7 +101,7 @@ type EdgeVerifyIdentityViaWhatsappCheckCode struct {
 	Identity *identity.Info `json:"identity"`
 }
 
-func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	if err := ensurePhoneLoginIDIdentity(e.Identity); err != nil {
 		panic(err)
 	}
@@ -113,7 +114,7 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 	phone := e.Identity.LoginID.LoginID
 	userID := e.Identity.UserID
 	code := input.GetWhatsappOTP()
-	err := ctx.OTPCodeService.VerifyOTP(
+	err := ctx.OTPCodeService.VerifyOTP(goCtx,
 		otp.KindVerification(ctx.Config, model.AuthenticatorOOBChannelWhatsapp),
 		phone,
 		code,
@@ -128,7 +129,7 @@ func (e *EdgeVerifyIdentityViaWhatsappCheckCode) Instantiate(ctx *interaction.Co
 		return nil, err
 	}
 
-	verifiedClaim := ctx.Verification.NewVerifiedClaim(
+	verifiedClaim := ctx.Verification.NewVerifiedClaim(goCtx,
 		e.Identity.UserID,
 		string(model.ClaimPhoneNumber),
 		phone,

@@ -15,22 +15,21 @@ import (
 )
 
 type StoreRedis struct {
-	Context context.Context
-	Redis   *appredis.Handle
-	AppID   config.AppID
-	Clock   clock.Clock
+	Redis *appredis.Handle
+	AppID config.AppID
+	Clock clock.Clock
 }
 
-func (s *StoreRedis) Create(nonce *Nonce) error {
+func (s *StoreRedis) Create(ctx context.Context, nonce *Nonce) error {
 	data, err := json.Marshal(nonce)
 	if err != nil {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		nonceKey := redisNonceKey(s.AppID, nonce)
 		ttl := nonce.ExpireAt.Sub(s.Clock.NowUTC())
-		_, err := conn.SetNX(s.Context, nonceKey, data, ttl).Result()
+		_, err := conn.SetNX(ctx, nonceKey, data, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			return errors.New("duplicated nonce")
 		} else if err != nil {
@@ -41,11 +40,10 @@ func (s *StoreRedis) Create(nonce *Nonce) error {
 	})
 }
 
-func (s *StoreRedis) Get(nonce *Nonce) (*Nonce, error) {
-	ctx := context.Background()
+func (s *StoreRedis) Get(ctx context.Context, nonce *Nonce) (*Nonce, error) {
 	key := redisNonceKey(s.AppID, nonce)
 	var nonceModel *Nonce
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrNonceNotFound
@@ -67,9 +65,8 @@ func (s *StoreRedis) Get(nonce *Nonce) (*Nonce, error) {
 	return nonceModel, nil
 }
 
-func (s *StoreRedis) Delete(codeKey *Nonce) error {
-	ctx := context.Background()
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+func (s *StoreRedis) Delete(ctx context.Context, codeKey *Nonce) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		key := redisNonceKey(s.AppID, codeKey)
 		_, err := conn.Del(ctx, key).Result()
 		if err != nil {

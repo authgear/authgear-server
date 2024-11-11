@@ -1,7 +1,6 @@
 package deps
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/google/wire"
@@ -115,8 +114,6 @@ var RootDependencySet = wire.NewSet(
 	),
 )
 
-func ProvideRequestContext(r *http.Request) context.Context { return r.Context() }
-
 func ProvideRemoteIP(r *http.Request, trustProxy config.TrustProxy) httputil.RemoteIP {
 	return httputil.RemoteIP(httputil.GetIP(r, bool(trustProxy)))
 }
@@ -161,7 +158,6 @@ var RequestDependencySet = wire.NewSet(
 		"Request",
 		"ResponseWriter",
 	),
-	ProvideRequestContext,
 	ProvideRemoteIP,
 	ProvideUserAgentString,
 	ProvideHTTPHost,

@@ -1,6 +1,7 @@
 package accountmanagement
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -15,7 +16,7 @@ type RateLimitMiddlewareJSONResponseWriter interface {
 }
 
 type RateLimitMiddlewareRateLimiter interface {
-	Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
+	Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
 }
 
 type RateLimitMiddleware struct {
@@ -37,8 +38,9 @@ var accountManagementAPIPerIPConfig *config.RateLimitConfig = &config.RateLimitC
 
 func (m *RateLimitMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		spec := ratelimit.NewBucketSpec(accountManagementAPIPerIPConfig, AccountManagementAPIPerIP, string(m.RemoteIP))
-		failed, err := m.RateLimiter.Allow(spec)
+		failed, err := m.RateLimiter.Allow(ctx, spec)
 		if err != nil {
 			panic(err)
 		} else if ratelimitErr := failed.Error(); ratelimitErr != nil && ratelimit.IsRateLimitErrorWithBucketName(err, spec.Name) {

@@ -106,11 +106,10 @@ func newHealthzHandler(p *deps.RootProvider, w http.ResponseWriter, r *http.Requ
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	factory := p.LoggerFactory
-	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	handlerLogger := healthz.NewHandlerLogger(factory)
 	handler := &healthz.Handler{
-		Context:        ctx,
 		GlobalDatabase: handle,
 		GlobalExecutor: sqlExecutor,
 		Logger:         handlerLogger,
@@ -178,10 +177,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	request := p.Request
-	contextContext := deps.ProvideRequestContext(request)
 	handle := appProvider.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -257,10 +254,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appredisHandle := appProvider.Redis
 	store2 := &passkey2.Store{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
+		Redis: appredisHandle,
+		AppID: appID,
 	}
+	request := p.Request
 	rootProvider := appProvider.RootProvider
 	environmentConfig := rootProvider.EnvironmentConfig
 	trustProxy := environmentConfig.TrustProxy
@@ -281,7 +278,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
 		Localization:      localizationConfig,
 		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
@@ -290,7 +286,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
-		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -315,10 +310,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
@@ -557,7 +551,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	readHandle := appProvider.AuditReadDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	readSQLExecutor := auditdb.NewReadSQLExecutor(contextContext, readHandle)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
 	readStore := &audit.ReadStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: readSQLExecutor,
@@ -574,7 +568,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
-		Context:         contextContext,
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
@@ -614,7 +607,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
-		Context:         contextContext,
 		ResourceManager: manager,
 		Logger:          denoHookLogger,
 	}
@@ -641,7 +633,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	auditLogger := audit.NewLogger(factory)
 	writeHandle := appProvider.AuditWriteDatabase
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(contextContext, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
@@ -654,7 +646,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchLogger := elasticsearch.NewLogger(factory)
 	service5 := elasticsearch.Service{
 		Clock:           clockClock,
-		Context:         contextContext,
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
@@ -671,7 +662,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Service:  service5,
 		Database: handle,
 	}
-	eventService := event.NewService(contextContext, appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -744,7 +735,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	whatsappService := &whatsapp.Service{
-		Context:                           contextContext,
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
@@ -752,7 +742,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		WhatsappConfig:                    whatsappConfig,
 		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
-		TokenStore:                        tokenStore,
 	}
 	sender := &messaging.Sender{
 		Limits:                 limits,
@@ -798,7 +787,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     contextContext,
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -816,18 +804,16 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	analyticredisHandle := appProvider.AnalyticRedis
 	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: contextContext,
-		Redis:   analyticredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
-		Logger:  meterStoreRedisLogger,
+		Redis:  analyticredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: meterStoreRedisLogger,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:         contextContext,
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
 		AppID:           appID,
@@ -914,10 +900,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Coordinator: coordinator,
 	}
 	anonymousStoreRedis := &anonymous.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	messageSender := &otp.MessageSender{
 		AppID:           appID,
@@ -929,9 +914,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
 	simpleStoreRedisFactory := &sso.SimpleStoreRedisFactory{
-		Context: contextContext,
-		AppID:   appID,
-		Redis:   appredisHandle,
+		AppID: appID,
+		Redis: appredisHandle,
 	}
 	oAuthProviderFactory := &sso.OAuthProviderFactory{
 		IdentityConfig:               identityConfig,
@@ -942,9 +926,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SimpleStoreRedisFactory:      simpleStoreRedisFactory,
 	}
 	webappoauthStore := &webappoauth.Store{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
+		Redis: appredisHandle,
+		AppID: appID,
 	}
 	mfaFacade := &facade.MFAFacade{
 		Coordinator: coordinator,
@@ -979,9 +962,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	authenticationinfoStoreRedis := &authenticationinfo.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
+		Redis: appredisHandle,
+		AppID: appID,
 	}
 	manager2 := &session.Manager{
 		IDPSessions:         idpsessionManager,
@@ -989,9 +971,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Events:              eventService,
 	}
 	oauthsessionStoreRedis := &oauthsession.StoreRedis{
-		Context: contextContext,
-		Redis:   appredisHandle,
-		AppID:   appID,
+		Redis: appredisHandle,
+		AppID: appID,
 	}
 	mfaCookieDef := mfa.NewDeviceTokenCookieDef(authenticationConfig)
 	interactionContext := &interaction.Context{
@@ -1366,9 +1347,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	secretConfig := configConfig.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	request := p.Request
-	contextContext := deps.ProvideRequestContext(request)
-	sqlExecutor := appdb.NewSQLExecutor(contextContext, appdbHandle)
+	sqlExecutor := appdb.NewSQLExecutor(appdbHandle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1442,10 +1421,10 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	store2 := &passkey2.Store{
-		Context: contextContext,
-		Redis:   handle,
-		AppID:   appID,
+		Redis: handle,
+		AppID: appID,
 	}
+	request := p.Request
 	trustProxy := environmentConfig.TrustProxy
 	defaultLanguageTag := deps.ProvideDefaultLanguageTag(configConfig)
 	supportedLanguageTags := deps.ProvideSupportedLanguageTags(configConfig)
@@ -1464,7 +1443,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           contextContext,
 		Localization:      localizationConfig,
 		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
@@ -1473,7 +1451,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
-		Context:        contextContext,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -1498,10 +1475,9 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
-		Context: contextContext,
-		Redis:   handle,
-		AppID:   appID,
-		Clock:   clockClock,
+		Redis: handle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(handle)

@@ -17,12 +17,11 @@ import (
 const ttl = duration.Consent
 
 type StoreRedis struct {
-	Context context.Context
-	Redis   *appredis.Handle
-	AppID   config.AppID
+	Redis *appredis.Handle
+	AppID config.AppID
 }
 
-func (s *StoreRedis) Save(entry *Entry) (err error) {
+func (s *StoreRedis) Save(ctx context.Context, entry *Entry) (err error) {
 	jsonBytes, err := json.Marshal(entry)
 	if err != nil {
 		return
@@ -30,8 +29,8 @@ func (s *StoreRedis) Save(entry *Entry) (err error) {
 
 	key := authenticationInfoEntryKey(s.AppID, entry.ID)
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		_, err := conn.Set(s.Context, key, jsonBytes, ttl).Result()
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err := conn.Set(ctx, key, jsonBytes, ttl).Result()
 		return err
 	})
 	if err != nil {
@@ -41,10 +40,10 @@ func (s *StoreRedis) Save(entry *Entry) (err error) {
 	return
 }
 
-func (s *StoreRedis) Get(entryID string) (entry *Entry, err error) {
+func (s *StoreRedis) Get(ctx context.Context, entryID string) (entry *Entry, err error) {
 	key := authenticationInfoEntryKey(s.AppID, entryID)
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		data, err := conn.Get(s.Context, key).Bytes()
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrNotFound
 		} else if err != nil {
@@ -61,10 +60,10 @@ func (s *StoreRedis) Get(entryID string) (entry *Entry, err error) {
 	return
 }
 
-func (s *StoreRedis) Delete(entryID string) (err error) {
+func (s *StoreRedis) Delete(ctx context.Context, entryID string) (err error) {
 	key := authenticationInfoEntryKey(s.AppID, entryID)
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		_, err := conn.Del(s.Context, key).Result()
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err := conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
 		}

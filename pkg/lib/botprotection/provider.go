@@ -1,6 +1,7 @@
 package botprotection
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -18,7 +19,7 @@ func NewProviderLogger(lf *log.Factory) ProviderLogger {
 }
 
 type EventService interface {
-	DispatchEventImmediately(payload event.NonBlockingPayload) error
+	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
 }
 
 type Provider struct {
@@ -30,7 +31,7 @@ type Provider struct {
 	Events            EventService
 }
 
-func (p *Provider) Verify(token string) (err error) {
+func (p *Provider) Verify(ctx context.Context, token string) (err error) {
 	if !p.Config.Enabled || p.Config.Provider == nil {
 		return fmt.Errorf("bot_protection provider not configured")
 	}
@@ -48,7 +49,7 @@ func (p *Provider) Verify(token string) (err error) {
 	}
 
 	if errors.Is(err, ErrVerificationFailed) {
-		dispatchErr := p.Events.DispatchEventImmediately(&nonblocking.BotProtectionVerificationFailedEventPayload{
+		dispatchErr := p.Events.DispatchEventImmediately(ctx, &nonblocking.BotProtectionVerificationFailedEventPayload{
 			Token:        token,
 			ProviderType: string(p.Config.Provider.Type),
 		})

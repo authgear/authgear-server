@@ -1,6 +1,7 @@
 package wechat
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -19,7 +20,8 @@ func TestWechat(t *testing.T) {
 
 		g := Wechat{}
 
-		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
+		ctx := context.Background()
+		u, err := g.GetAuthorizationURL(ctx, deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			Nonce:  "nonce",
 			State:  "state",
 			Prompt: []string{"login"},

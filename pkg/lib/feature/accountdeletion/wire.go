@@ -4,8 +4,6 @@
 package accountdeletion
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -16,7 +14,6 @@ import (
 )
 
 func newRunnable(
-	context context.Context,
 	pool *db.Pool,
 	globalDBCredentials *config.GlobalDatabaseCredentialsEnvironmentConfig,
 	databaseCfg *config.DatabaseEnvironmentConfig,

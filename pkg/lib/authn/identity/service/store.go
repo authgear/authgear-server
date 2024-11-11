@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -13,12 +15,12 @@ type Store struct {
 	SQLExecutor *appdb.SQLExecutor
 }
 
-func (s *Store) Count(userID string) (uint64, error) {
+func (s *Store) Count(ctx context.Context, userID string) (uint64, error) {
 	builder := s.SQLBuilder.
 		Select("count(*)").
 		Where("user_id = ?", userID).
 		From(s.SQLBuilder.TableName("_auth_identity"))
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return 0, err
 	}
@@ -31,7 +33,7 @@ func (s *Store) Count(userID string) (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) ListRefsByUsers(userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
+func (s *Store) ListRefsByUsers(ctx context.Context, userIDs []string, identityType *model.IdentityType) ([]*model.IdentityRef, error) {
 	builder := s.SQLBuilder.
 		Select("id", "type", "user_id", "created_at", "updated_at").
 		Where("user_id = ANY (?)", pq.Array(userIDs))
@@ -42,25 +44,25 @@ func (s *Store) ListRefsByUsers(userIDs []string, identityType *model.IdentityTy
 
 	builder = builder.From(s.SQLBuilder.TableName("_auth_identity"))
 
-	return s.listRefs(builder)
+	return s.listRefs(ctx, builder)
 }
 
-func (s *Store) ListRefsByIDs(ids []string) ([]*model.IdentityRef, error) {
+func (s *Store) ListRefsByIDs(ctx context.Context, ids []string) ([]*model.IdentityRef, error) {
 	builder := s.SQLBuilder.
 		Select("id", "type", "user_id", "created_at", "updated_at").
 		Where("id = ANY (?)", pq.Array(ids)).
 		From(s.SQLBuilder.TableName("_auth_identity"))
 
-	return s.listRefs(builder)
+	return s.listRefs(ctx, builder)
 }
 
-func (s *Store) GetRefByID(id string) (*model.IdentityRef, error) {
+func (s *Store) GetRefByID(ctx context.Context, id string) (*model.IdentityRef, error) {
 	builder := s.SQLBuilder.
 		Select("id", "type", "user_id", "created_at", "updated_at").
 		Where("id = ?", id).
 		From(s.SQLBuilder.TableName("_auth_identity"))
 
-	row, err := s.SQLExecutor.QueryRowWith(builder)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -73,8 +75,8 @@ func (s *Store) GetRefByID(id string) (*model.IdentityRef, error) {
 	return ref, nil
 }
 
-func (s *Store) listRefs(builder db.SelectBuilder) ([]*model.IdentityRef, error) {
-	rows, err := s.SQLExecutor.QueryWith(builder)
+func (s *Store) listRefs(ctx context.Context, builder db.SelectBuilder) ([]*model.IdentityRef, error) {
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}

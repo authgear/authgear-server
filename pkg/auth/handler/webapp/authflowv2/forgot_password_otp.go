@@ -1,9 +1,11 @@
 package authflowv2
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
+
 	"strconv"
 	"time"
 
@@ -58,6 +60,7 @@ type AuthflowForgotPasswordOTPViewModel struct {
 }
 
 func NewAuthflowForgotPasswordOTPViewModel(
+	ctx context.Context,
 	c *handlerwebapp.AuthflowController,
 	s *webapp.Session,
 	screen *webapp.AuthflowScreenWithFlowResponse,
@@ -80,7 +83,7 @@ func NewAuthflowForgotPasswordOTPViewModel(
 		ResendCooldown:                 resendCooldown,
 	}
 
-	prevScreen, err := c.GetScreen(s, screen.Screen.PreviousXStep)
+	prevScreen, err := c.GetScreen(ctx, s, screen.Screen.PreviousXStep)
 	if err != nil && !errors.Is(err, authflow.ErrFlowNotFound) {
 		return nil, err
 	}
@@ -121,14 +124,14 @@ type AuthflowV2ForgotPasswordOTPHandler struct {
 
 func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		now := h.Clock.NowUTC()
 		data := make(map[string]interface{})
 
 		baseViewModel := h.BaseViewModel.ViewModelForAuthFlow(r, w)
 		viewmodels.Embed(data, baseViewModel)
 
-		screenViewModel, err := NewAuthflowForgotPasswordOTPViewModel(h.Controller, s, screen, now)
+		screenViewModel, err := NewAuthflowForgotPasswordOTPViewModel(ctx, h.Controller, s, screen, now)
 		if err != nil {
 			return err
 		}
@@ -137,12 +140,12 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowForgotPasswordOTPHTML, data)
 		return nil
 	})
-	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("resend", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"resend": true,
 		}
 
-		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
+		result, err := h.Controller.UpdateWithInput(ctx, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -151,7 +154,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.PostAction("select_channel", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("select_channel", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		xIndex, err := strconv.Atoi(r.Form.Get("x_index"))
 		if err != nil {
 			return err
@@ -162,7 +165,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 		}
 
 		// prevScreen should be select_destination
-		prevScreen, err := h.Controller.GetScreen(s, screen.Screen.PreviousXStep)
+		prevScreen, err := h.Controller.GetScreen(ctx, s, screen.Screen.PreviousXStep)
 		if err != nil {
 			return err
 		}
@@ -170,7 +173,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 			return fmt.Errorf("authflow webapp: unexpected previous step")
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, prevScreen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, prevScreen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -178,7 +181,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.PostAction("submit", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("submit", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowForgotPasswordOTPSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -190,7 +193,7 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 			"account_recovery_code": code,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -198,5 +201,5 @@ func (h *AuthflowV2ForgotPasswordOTPHandler) ServeHTTP(w http.ResponseWriter, r 
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

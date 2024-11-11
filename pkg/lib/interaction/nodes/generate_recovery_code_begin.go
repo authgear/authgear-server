@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 )
@@ -13,7 +15,7 @@ type EdgeGenerateRecoveryCode struct {
 	IsRegenerate bool
 }
 
-func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeGenerateRecoveryCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	// Regenerate recovery codes if explicitly requested
 	doGenerate := e.IsRegenerate
 
@@ -22,7 +24,7 @@ func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *interaction.Context, graph *
 		// If all of them are new, the user just enrolled into secondary authentication, we need to (re)generate recovery code for them.
 
 		userID := graph.MustGetUserID()
-		ais, err := ctx.Authenticators.List(
+		ais, err := ctx.Authenticators.List(goCtx,
 			userID,
 			authenticator.KeepKind(authenticator.KindSecondary),
 		)
@@ -39,7 +41,7 @@ func (e *EdgeGenerateRecoveryCode) Instantiate(ctx *interaction.Context, graph *
 	}
 
 	if doGenerate && !*ctx.Config.Authentication.RecoveryCode.Disabled {
-		recoveryCodes := ctx.MFA.GenerateRecoveryCodes()
+		recoveryCodes := ctx.MFA.GenerateRecoveryCodes(goCtx)
 		return &NodeGenerateRecoveryCodeBegin{
 			RecoveryCodes: recoveryCodes,
 		}, nil
@@ -53,15 +55,15 @@ type NodeGenerateRecoveryCodeBegin struct {
 	RecoveryCodes []string `json:"recovery_codes"`
 }
 
-func (n *NodeGenerateRecoveryCodeBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeGenerateRecoveryCodeBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeGenerateRecoveryCodeBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeGenerateRecoveryCodeBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeGenerateRecoveryCodeBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeGenerateRecoveryCodeBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeGenerateRecoveryCodeEnd{RecoveryCodes: n.RecoveryCodes},
 	}, nil

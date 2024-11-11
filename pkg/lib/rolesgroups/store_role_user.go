@@ -1,6 +1,7 @@
 package rolesgroups
 
 import (
+	"context"
 	"sort"
 
 	"github.com/lib/pq"
@@ -13,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-func (s *Store) ListRolesByUserIDs(userIDs []string) (map[string][]*Role, error) {
+func (s *Store) ListRolesByUserIDs(ctx context.Context, userIDs []string) (map[string][]*Role, error) {
 	q := s.SQLBuilder.Select(
 		"ur.user_id",
 		"r.id",
@@ -28,14 +29,14 @@ func (s *Store) ListRolesByUserIDs(userIDs []string) (map[string][]*Role, error)
 		Where("ur.user_id = ANY (?)", pq.Array(userIDs)).
 		OrderBy("ur.created_at")
 
-	return s.queryRolesWithUserID(q)
+	return s.queryRolesWithUserID(ctx, q)
 }
 
-func (s *Store) DeleteUserRole(userID string) error {
+func (s *Store) DeleteUserRole(ctx context.Context, userID string) error {
 	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_role")).
 		Where("user_id = ?", userID)
 
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -44,7 +45,7 @@ func (s *Store) DeleteUserRole(userID string) error {
 
 }
 
-func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
+func (s *Store) ListEffectiveRolesByUserID(ctx context.Context, userID string) ([]*Role, error) {
 	roleFromGroupsQuery := s.SQLBuilder.Select(
 		"r.id",
 		"r.created_at",
@@ -73,11 +74,11 @@ func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
 		Where("ur.user_id = ?", userID).
 		OrderBy("ur.created_at")
 
-	roleFromGroups, err := s.queryRoles(roleFromGroupsQuery)
+	roleFromGroups, err := s.queryRoles(ctx, roleFromGroupsQuery)
 	if err != nil {
 		return nil, err
 	}
-	roleFromUser, err := s.queryRoles(roleFromUserQuery)
+	roleFromUser, err := s.queryRoles(ctx, roleFromUserQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -98,8 +99,8 @@ func (s *Store) ListEffectiveRolesByUserID(userID string) ([]*Role, error) {
 	return deduplicatedList, nil
 }
 
-func (s *Store) ListRolesByUserID(userID string) ([]*Role, error) {
-	userRoles, err := s.ListRolesByUserIDs([]string{userID})
+func (s *Store) ListRolesByUserID(ctx context.Context, userID string) ([]*Role, error) {
+	userRoles, err := s.ListRolesByUserIDs(ctx, []string{userID})
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +108,7 @@ func (s *Store) ListRolesByUserID(userID string) ([]*Role, error) {
 	return userRoles[userID], nil
 }
 
-func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {
+func (s *Store) ListUserIDsByRoleID(ctx context.Context, roleID string, pageArgs graphqlutil.PageArgs) ([]string, uint64, error) {
 	q := s.SQLBuilder.Select(
 		"u.id",
 	).
@@ -120,7 +121,7 @@ func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs
 		return nil, 0, err
 	}
 
-	userIDs, err := s.queryUserIDs(q)
+	userIDs, err := s.queryUserIDs(ctx, q)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -128,7 +129,7 @@ func (s *Store) ListUserIDsByRoleID(roleID string, pageArgs graphqlutil.PageArgs
 	return userIDs, offset, nil
 }
 
-func (s *Store) ListAllUserIDsByRoleID(roleIDs []string) ([]string, error) {
+func (s *Store) ListAllUserIDsByRoleID(ctx context.Context, roleIDs []string) ([]string, error) {
 	q := s.SQLBuilder.Select(
 		"u.id",
 	).
@@ -136,7 +137,7 @@ func (s *Store) ListAllUserIDsByRoleID(roleIDs []string) ([]string, error) {
 		Join(s.SQLBuilder.TableName("_auth_user"), "u", "ur.user_id = u.id").
 		Where("ur.role_id = ANY (?)", pq.Array(roleIDs))
 
-	userIDs, err := s.queryUserIDs(q)
+	userIDs, err := s.queryUserIDs(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -144,14 +145,14 @@ func (s *Store) ListAllUserIDsByRoleID(roleIDs []string) ([]string, error) {
 	return userIDs, nil
 }
 
-func (s *Store) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, error) {
+func (s *Store) ListAllUserIDsByEffectiveRoleIDs(ctx context.Context, roleIDs []string) ([]string, error) {
 	userRoleUserIDsQuery := s.SQLBuilder.Select(
 		"ur.user_id",
 	).
 		From(s.SQLBuilder.TableName("_auth_user_role"), "ur").
 		Where("ur.role_id = ANY (?)", pq.Array(roleIDs))
 
-	userRoleUserIDs, err := s.queryUserIDs(userRoleUserIDsQuery)
+	userRoleUserIDs, err := s.queryUserIDs(ctx, userRoleUserIDsQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +164,7 @@ func (s *Store) ListAllUserIDsByEffectiveRoleIDs(roleIDs []string) ([]string, er
 		Join(s.SQLBuilder.TableName("_auth_group_role"), "gr", "ug.group_id = gr.group_id").
 		Where("gr.role_id = ANY (?)", pq.Array(roleIDs))
 
-	userGroupRoleUserIDs, err := s.queryUserIDs(userGroupRoleUserIDsQuery)
+	userGroupRoleUserIDs, err := s.queryUserIDs(ctx, userGroupRoleUserIDsQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -186,8 +187,8 @@ type ResetUserRoleOptions struct {
 	RoleKeys []string
 }
 
-func (s *Store) ResetUserRole(options *ResetUserRoleOptions) error {
-	currentRoles, err := s.ListRolesByUserID(options.UserID)
+func (s *Store) ResetUserRole(ctx context.Context, options *ResetUserRoleOptions) error {
+	currentRoles, err := s.ListRolesByUserID(ctx, options.UserID)
 	if err != nil {
 		return err
 	}
@@ -198,7 +199,7 @@ func (s *Store) ResetUserRole(options *ResetUserRoleOptions) error {
 	keysToAdd, keysToRemove := computeKeyDifference(originalKeys, options.RoleKeys)
 
 	if len(keysToRemove) != 0 {
-		err := s.RemoveUserFromRoles(&RemoveUserFromRolesOptions{
+		err := s.RemoveUserFromRoles(ctx, &RemoveUserFromRolesOptions{
 			UserID:   options.UserID,
 			RoleKeys: keysToRemove,
 		})
@@ -208,7 +209,7 @@ func (s *Store) ResetUserRole(options *ResetUserRoleOptions) error {
 	}
 
 	if len(keysToAdd) != 0 {
-		err := s.AddUserToRoles(&AddUserToRolesOptions{
+		err := s.AddUserToRoles(ctx, &AddUserToRolesOptions{
 			UserID:   options.UserID,
 			RoleKeys: keysToAdd,
 		})
@@ -220,13 +221,13 @@ func (s *Store) ResetUserRole(options *ResetUserRoleOptions) error {
 	return nil
 }
 
-func (s *Store) AddRoleToUsers(options *AddRoleToUsersOptions) (*Role, error) {
-	r, err := s.GetRoleByKey(options.RoleKey)
+func (s *Store) AddRoleToUsers(ctx context.Context, options *AddRoleToUsersOptions) (*Role, error) {
+	r, err := s.GetRoleByKey(ctx, options.RoleKey)
 	if err != nil {
 		return nil, err
 	}
 
-	userIds, err := s.GetManyUsersByIds(options.UserIDs)
+	userIds, err := s.GetManyUsersByIds(ctx, options.UserIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -252,7 +253,7 @@ func (s *Store) AddRoleToUsers(options *AddRoleToUsersOptions) (*Role, error) {
 				r.ID,
 			).Suffix("ON CONFLICT DO NOTHING")
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return nil, err
 		}
@@ -274,13 +275,13 @@ type RemoveRoleFromUsersOptions struct {
 	UserIDs []string
 }
 
-func (s *Store) RemoveRoleFromUsers(options *RemoveRoleFromUsersOptions) (*Role, error) {
-	r, err := s.GetRoleByKey(options.RoleKey)
+func (s *Store) RemoveRoleFromUsers(ctx context.Context, options *RemoveRoleFromUsersOptions) (*Role, error) {
+	r, err := s.GetRoleByKey(ctx, options.RoleKey)
 	if err != nil {
 		return nil, err
 	}
 
-	userIds, err := s.GetManyUsersByIds(options.UserIDs)
+	userIds, err := s.GetManyUsersByIds(ctx, options.UserIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -291,7 +292,7 @@ func (s *Store) RemoveRoleFromUsers(options *RemoveRoleFromUsersOptions) (*Role,
 			Delete(s.SQLBuilder.TableName("_auth_user_role")).
 			Where("role_id = ? AND user_id = ?", r.ID, u)
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return nil, err
 		}
@@ -313,13 +314,13 @@ type AddUserToRolesOptions struct {
 	RoleKeys []string
 }
 
-func (s *Store) AddUserToRoles(options *AddUserToRolesOptions) error {
-	u, err := s.GetUserByID(options.UserID)
+func (s *Store) AddUserToRoles(ctx context.Context, options *AddUserToRolesOptions) error {
+	u, err := s.GetUserByID(ctx, options.UserID)
 	if err != nil {
 		return err
 	}
 
-	rs, err := s.GetManyRolesByKeys(options.RoleKeys)
+	rs, err := s.GetManyRolesByKeys(ctx, options.RoleKeys)
 	if err != nil {
 		return err
 	}
@@ -345,7 +346,7 @@ func (s *Store) AddUserToRoles(options *AddUserToRolesOptions) error {
 				r.ID,
 			).Suffix("ON CONFLICT DO NOTHING")
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return err
 		}
@@ -367,13 +368,13 @@ type RemoveUserFromRolesOptions struct {
 	RoleKeys []string
 }
 
-func (s *Store) RemoveUserFromRoles(options *RemoveUserFromRolesOptions) error {
-	u, err := s.GetUserByID(options.UserID)
+func (s *Store) RemoveUserFromRoles(ctx context.Context, options *RemoveUserFromRolesOptions) error {
+	u, err := s.GetUserByID(ctx, options.UserID)
 	if err != nil {
 		return err
 	}
 
-	rs, err := s.GetManyRolesByKeys(options.RoleKeys)
+	rs, err := s.GetManyRolesByKeys(ctx, options.RoleKeys)
 	if err != nil {
 		return err
 	}
@@ -384,7 +385,7 @@ func (s *Store) RemoveUserFromRoles(options *RemoveUserFromRolesOptions) error {
 			Delete(s.SQLBuilder.TableName("_auth_user_role")).
 			Where("role_id = ? AND user_id = ?", r.ID, u)
 
-		_, err := s.SQLExecutor.ExecWith(q)
+		_, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return err
 		}

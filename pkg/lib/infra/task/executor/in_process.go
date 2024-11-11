@@ -30,7 +30,8 @@ func (e *InProcessExecutor) Register(name string, t task.Task) {
 }
 
 func (e *InProcessExecutor) Run(taskCtx *task.Context, param task.Param) {
-	ctx := e.RestoreContext(context.Background(), taskCtx)
+	ctx := context.Background()
+	ctx = e.RestoreContext(ctx, taskCtx)
 	task := e.tasks[param.TaskName()]
 
 	go func() {

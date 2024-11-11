@@ -59,7 +59,7 @@ func (i *IntentAuthenticateOOBOTPPhone) ReactTo(ctx context.Context, deps *workf
 			IsAuthenticating:  true,
 			AuthenticatorInfo: authenticator,
 			OTPForm:           otp.FormCode,
-		}).Do()
+		}).Do(ctx)
 		if err != nil {
 			return nil, err
 		}

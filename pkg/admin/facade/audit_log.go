@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"context"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -12,8 +13,8 @@ import (
 )
 
 type AuditLogQuery interface {
-	Count(opts audit.QueryPageOptions) (uint64, error)
-	QueryPage(opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
+	Count(ctx context.Context, opts audit.QueryPageOptions) (uint64, error)
+	QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, error)
 }
 
 type AuditLogFacade struct {
@@ -23,7 +24,7 @@ type AuditLogFacade struct {
 	AuditLogFeatureConfig *config.AuditLogFeatureConfig
 }
 
-func (f *AuditLogFacade) QueryPage(opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
+func (f *AuditLogFacade) QueryPage(ctx context.Context, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]model.PageItemRef, *graphqlutil.PageResult, error) {
 	// bounded the from time, if retrieve days of audit log is configured in the feature config
 	if *f.AuditLogFeatureConfig.RetrievalDays != -1 {
 		days := *f.AuditLogFeatureConfig.RetrievalDays
@@ -37,12 +38,12 @@ func (f *AuditLogFacade) QueryPage(opts audit.QueryPageOptions, pageArgs graphql
 	var count uint64
 	var err error
 
-	err = f.AuditDatabase.ReadOnly(func() error {
-		refs, err = f.AuditLogQuery.QueryPage(opts, pageArgs)
+	err = f.AuditDatabase.ReadOnly(ctx, func(ctx context.Context) error {
+		refs, err = f.AuditLogQuery.QueryPage(ctx, opts, pageArgs)
 		if err != nil {
 			return err
 		}
-		count, err = f.AuditLogQuery.Count(opts)
+		count, err = f.AuditLogQuery.Count(ctx, opts)
 		if err != nil {
 			return err
 		}

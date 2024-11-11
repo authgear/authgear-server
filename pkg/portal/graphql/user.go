@@ -28,6 +28,6 @@ var nodeUser = node(
 	&model.User{},
 	func(ctx context.Context, id string) (interface{}, error) {
 		gqlCtx := GQLContext(ctx)
-		return gqlCtx.Users.Load(id).Value, nil
+		return gqlCtx.Users.Load(ctx, id).Value, nil
 	},
 )

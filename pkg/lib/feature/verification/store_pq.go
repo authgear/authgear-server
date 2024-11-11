@@ -1,6 +1,7 @@
 package verification
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -45,10 +46,10 @@ func (s *StorePQ) scan(scn db.Scanner) (*Claim, error) {
 	return c, nil
 }
 
-func (s *StorePQ) ListByUserIDs(userIDs []string) ([]*Claim, error) {
+func (s *StorePQ) ListByUserIDs(ctx context.Context, userIDs []string) ([]*Claim, error) {
 	q := s.selectQuery().Where("user_id = ANY (?)", pq.Array(userIDs))
 
-	rows, err := s.SQLExecutor.QueryWith(q)
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -66,14 +67,14 @@ func (s *StorePQ) ListByUserIDs(userIDs []string) ([]*Claim, error) {
 	return claims, nil
 }
 
-func (s *StorePQ) ListByUser(userID string) ([]*Claim, error) {
-	return s.ListByUserIDs([]string{userID})
+func (s *StorePQ) ListByUser(ctx context.Context, userID string) ([]*Claim, error) {
+	return s.ListByUserIDs(ctx, []string{userID})
 }
 
-func (s *StorePQ) ListByUserIDsAndClaimNames(userIDs []string, claimNames []string) ([]*Claim, error) {
+func (s *StorePQ) ListByUserIDsAndClaimNames(ctx context.Context, userIDs []string, claimNames []string) ([]*Claim, error) {
 	q := s.selectQuery().Where("user_id = ANY (?) AND name = ANY (?)", pq.Array(userIDs), pq.Array(claimNames))
 
-	rows, err := s.SQLExecutor.QueryWith(q)
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -91,14 +92,14 @@ func (s *StorePQ) ListByUserIDsAndClaimNames(userIDs []string, claimNames []stri
 	return claims, nil
 }
 
-func (s *StorePQ) ListByClaimName(userID string, claimName string) ([]*Claim, error) {
-	return s.ListByUserIDsAndClaimNames([]string{userID}, []string{claimName})
+func (s *StorePQ) ListByClaimName(ctx context.Context, userID string, claimName string) ([]*Claim, error) {
+	return s.ListByUserIDsAndClaimNames(ctx, []string{userID}, []string{claimName})
 }
 
-func (s *StorePQ) Get(userID string, claimName string, claimValue string) (*Claim, error) {
+func (s *StorePQ) Get(ctx context.Context, userID string, claimName string, claimValue string) (*Claim, error) {
 	q := s.selectQuery().Where("user_id = ? AND name = ? AND value = ?", userID, claimName, claimValue)
 
-	row, err := s.SQLExecutor.QueryRowWith(q)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +107,7 @@ func (s *StorePQ) Get(userID string, claimName string, claimValue string) (*Clai
 	return s.scan(row)
 }
 
-func (s *StorePQ) Create(claim *Claim) error {
+func (s *StorePQ) Create(ctx context.Context, claim *Claim) error {
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Columns(
@@ -123,7 +124,7 @@ func (s *StorePQ) Create(claim *Claim) error {
 			claim.Value,
 			claim.CreatedAt,
 		)
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -131,11 +132,11 @@ func (s *StorePQ) Create(claim *Claim) error {
 	return nil
 }
 
-func (s *StorePQ) Delete(id string) error {
+func (s *StorePQ) Delete(ctx context.Context, id string) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Where("id = ?", id)
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -143,11 +144,11 @@ func (s *StorePQ) Delete(id string) error {
 	return nil
 }
 
-func (s *StorePQ) DeleteAll(userID string) error {
+func (s *StorePQ) DeleteAll(ctx context.Context, userID string) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_verified_claim")).
 		Where("user_id = ?", userID)
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}

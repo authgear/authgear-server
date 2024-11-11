@@ -1,6 +1,7 @@
 package meter
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -15,14 +16,14 @@ type AuditDBReadStore struct {
 	SQLExecutor *auditdb.ReadSQLExecutor
 }
 
-func (s *AuditDBReadStore) GetCountByActivityType(appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error) {
+func (s *AuditDBReadStore) GetCountByActivityType(ctx context.Context, appID string, activityType string, rangeFrom *time.Time, rangeTo *time.Time) (int, error) {
 	builder := s.SQLBuilder.WithAppID(appID).
 		Select("count(*)").
 		From(s.SQLBuilder.TableName("_audit_log")).
 		Where("activity_type = ?", activityType).
 		Where("created_at >= ?", rangeFrom).
 		Where("created_at < ?", rangeTo)
-	row, err := s.SQLExecutor.QueryRowWith(builder)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return 0, err
 	}
@@ -36,7 +37,7 @@ func (s *AuditDBReadStore) GetCountByActivityType(appID string, activityType str
 
 // QueryPage is copied from pkg/lib/audit/read_store.go
 // The ReadStore cannot be used here as it requires appID during initialization through injection
-func (s *AuditDBReadStore) QueryPage(appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error) {
+func (s *AuditDBReadStore) QueryPage(ctx context.Context, appID string, opts audit.QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*audit.Log, uint64, error) {
 	query := s.selectLogQuery(appID)
 
 	query = opts.Apply(query)
@@ -48,7 +49,7 @@ func (s *AuditDBReadStore) QueryPage(appID string, opts audit.QueryPageOptions, 
 		return nil, 0, err
 	}
 
-	rows, err := s.SQLExecutor.QueryWith(query)
+	rows, err := s.SQLExecutor.QueryWith(ctx, query)
 	if err != nil {
 		return nil, 0, err
 	}

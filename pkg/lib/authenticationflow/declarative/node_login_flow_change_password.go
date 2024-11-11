@@ -51,7 +51,7 @@ func (n *NodeLoginFlowChangePassword) ReactTo(ctx context.Context, deps *authflo
 		newPassword := inputTakeNewPassword.GetNewPassword()
 
 		oldInfo := n.Authenticator
-		changed, newInfo, err := deps.Authenticators.UpdatePassword(oldInfo, &service.UpdatePasswordOptions{
+		changed, newInfo, err := deps.Authenticators.UpdatePassword(ctx, oldInfo, &service.UpdatePasswordOptions{
 			SetPassword:    true,
 			PlainPassword:  newPassword,
 			SetExpireAfter: true,

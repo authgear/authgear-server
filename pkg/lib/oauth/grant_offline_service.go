@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -11,15 +12,15 @@ import (
 )
 
 type ServiceIDPSessionProvider interface {
-	Get(id string) (*idpsession.IDPSession, error)
+	Get(ctx context.Context, id string) (*idpsession.IDPSession, error)
 	CheckSessionExpired(session *idpsession.IDPSession) (expired bool)
 }
 type OfflineGrantServiceAccessEventProvider interface {
-	RecordAccess(sessionID string, expiry time.Time, event *access.Event) error
+	RecordAccess(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error
 }
 
 type OfflineGrantServiceMeterService interface {
-	TrackActiveUser(userID string) error
+	TrackActiveUser(ctx context.Context, userID string) error
 }
 
 type OfflineGrantService struct {
@@ -42,18 +43,18 @@ type CreateNewRefreshTokenResult struct {
 // 1. set grant.AccessInfo.LastAccess to new accessEvent (inside UpdateOfflineGrantLastAccess)
 // 2. call RecordAccess
 // 3. call TrackActiveUser
-func (s *OfflineGrantService) AccessOfflineGrant(grantID string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
-	grant, err := s.OfflineGrants.UpdateOfflineGrantLastAccess(grantID, *accessEvent, expireAt)
+func (s *OfflineGrantService) AccessOfflineGrant(ctx context.Context, grantID string, accessEvent *access.Event, expireAt time.Time) (*OfflineGrant, error) {
+	grant, err := s.OfflineGrants.UpdateOfflineGrantLastAccess(ctx, grantID, *accessEvent, expireAt)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.AccessEvents.RecordAccess(grant.ID, grant.ExpireAtForResolvedSession, accessEvent)
+	err = s.AccessEvents.RecordAccess(ctx, grant.ID, grant.ExpireAtForResolvedSession, accessEvent)
 	if err != nil {
 		return nil, err
 	}
 
-	err = s.MeterService.TrackActiveUser(grant.Attrs.UserID)
+	err = s.MeterService.TrackActiveUser(ctx, grant.Attrs.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,8 +62,8 @@ func (s *OfflineGrantService) AccessOfflineGrant(grantID string, accessEvent *ac
 	return grant, nil
 }
 
-func (s *OfflineGrantService) GetOfflineGrant(id string) (*OfflineGrant, error) {
-	g, err := s.OfflineGrants.GetOfflineGrantWithoutExpireAt(id)
+func (s *OfflineGrantService) GetOfflineGrant(ctx context.Context, id string) (*OfflineGrant, error) {
+	g, err := s.OfflineGrants.GetOfflineGrantWithoutExpireAt(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +81,7 @@ func (s *OfflineGrantService) GetOfflineGrant(id string) (*OfflineGrant, error) 
 
 	// Check IDP session is valid.
 	if g.SSOEnabled && g.IDPSessionID != "" {
-		idp, err := s.IDPSessions.Get(g.IDPSessionID)
+		idp, err := s.IDPSessions.Get(ctx, g.IDPSessionID)
 		if err != nil {
 			if errors.Is(err, idpsession.ErrSessionNotFound) {
 				return nil, ErrGrantNotFound
@@ -134,6 +135,7 @@ func (s *OfflineGrantService) computeOfflineGrantExpiryWithClient(session *Offli
 }
 
 func (s *OfflineGrantService) CreateNewRefreshToken(
+	ctx context.Context,
 	grant *OfflineGrant,
 	clientID string,
 	scopes []string,
@@ -147,6 +149,7 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 	newToken := GenerateToken()
 	newTokenHash := HashToken(newToken)
 	newGrant, err := s.OfflineGrants.AddOfflineGrantRefreshToken(
+		ctx,
 		grant.ID,
 		expiry,
 		newTokenHash,
@@ -166,6 +169,7 @@ func (s *OfflineGrantService) CreateNewRefreshToken(
 }
 
 func (s *OfflineGrantService) AddSAMLServiceProviderParticipant(
+	ctx context.Context,
 	grant *OfflineGrant,
 	serviceProviderID string,
 ) (*OfflineGrant, error) {
@@ -174,6 +178,7 @@ func (s *OfflineGrantService) AddSAMLServiceProviderParticipant(
 		return nil, err
 	}
 	newGrant, err := s.OfflineGrants.AddOfflineGrantSAMLServiceProviderParticipant(
+		ctx,
 		grant.ID,
 		serviceProviderID,
 		expiry,

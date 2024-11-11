@@ -1,6 +1,8 @@
 package messaging
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
@@ -23,13 +25,13 @@ const (
 )
 
 type UsageLimiter interface {
-	Reserve(name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
-	Cancel(r *usage.Reservation)
+	Reserve(ctx context.Context, name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
+	Cancel(ctx context.Context, r *usage.Reservation)
 }
 
 type RateLimiter interface {
-	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
-	Cancel(r *ratelimit.Reservation)
+	Reserve(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
+	Cancel(ctx context.Context, r *ratelimit.Reservation)
 }
 
 type Limits struct {
@@ -44,6 +46,7 @@ type Limits struct {
 }
 
 func (l *Limits) check(
+	ctx context.Context,
 	reservations []*ratelimit.Reservation,
 	global config.RateLimitsEnvironmentConfigEntry,
 	feature *config.RateLimitConfig,
@@ -55,7 +58,7 @@ func (l *Limits) check(
 
 	globalLimit := ratelimit.NewGlobalBucketSpec(global, name, args...)
 
-	r, failed, err := l.RateLimiter.Reserve(globalLimit)
+	r, failed, err := l.RateLimiter.Reserve(ctx, globalLimit)
 	if err != nil {
 		return
 	}
@@ -71,7 +74,7 @@ func (l *Limits) check(
 	}
 	localLimit := ratelimit.NewBucketSpec(localLimitConfig, name, args...)
 
-	r, failed, err = l.RateLimiter.Reserve(localLimit)
+	r, failed, err = l.RateLimiter.Reserve(ctx, localLimit)
 	if err != nil {
 		return
 	}
@@ -84,7 +87,7 @@ func (l *Limits) check(
 	return
 }
 
-func (l *Limits) checkEmail(email string) (msg *message, err error) {
+func (l *Limits) checkEmail(ctx context.Context, email string) (msg *message, err error) {
 	msg = &message{
 		logger:       l.Logger,
 		rateLimiter:  l.RateLimiter,
@@ -93,17 +96,17 @@ func (l *Limits) checkEmail(email string) (msg *message, err error) {
 	defer func() {
 		if err != nil {
 			// Return reserved tokens
-			msg.Close()
+			msg.Close(ctx)
 			msg = nil
 		}
 	}()
 
-	msg.usageLimit, err = l.UsageLimiter.Reserve(usageLimitEmail, l.FeatureConfig.EmailUsage)
+	msg.usageLimit, err = l.UsageLimiter.Reserve(ctx, usageLimitEmail, l.FeatureConfig.EmailUsage)
 	if err != nil {
 		return
 	}
 
-	msg.rateLimits, err = l.check(msg.rateLimits,
+	msg.rateLimits, err = l.check(ctx, msg.rateLimits,
 		l.EnvConfig.EmailPerIP, l.FeatureConfig.RateLimits.EmailPerIP, l.Config.EmailPerIP,
 		MessagingEmailPerIP, string(l.RemoteIP),
 	)
@@ -111,7 +114,7 @@ func (l *Limits) checkEmail(email string) (msg *message, err error) {
 		return
 	}
 
-	msg.rateLimits, err = l.check(msg.rateLimits,
+	msg.rateLimits, err = l.check(ctx, msg.rateLimits,
 		l.EnvConfig.EmailPerTarget, l.FeatureConfig.RateLimits.EmailPerTarget, l.Config.EmailPerTarget,
 		MessagingEmailPerTarget, email,
 	)
@@ -119,7 +122,7 @@ func (l *Limits) checkEmail(email string) (msg *message, err error) {
 		return
 	}
 
-	msg.rateLimits, err = l.check(msg.rateLimits,
+	msg.rateLimits, err = l.check(ctx, msg.rateLimits,
 		l.EnvConfig.Email, l.FeatureConfig.RateLimits.Email, l.Config.Email,
 		MessagingEmail,
 	)
@@ -130,7 +133,7 @@ func (l *Limits) checkEmail(email string) (msg *message, err error) {
 	return
 }
 
-func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
+func (l *Limits) checkSMS(ctx context.Context, phoneNumber string) (msg *message, err error) {
 	msg = &message{
 		logger:       l.Logger,
 		rateLimiter:  l.RateLimiter,
@@ -139,17 +142,17 @@ func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
 	defer func() {
 		if err != nil {
 			// Return reserved tokens
-			msg.Close()
+			msg.Close(ctx)
 			msg = nil
 		}
 	}()
 
-	msg.usageLimit, err = l.UsageLimiter.Reserve(usageLimitSMS, l.FeatureConfig.SMSUsage)
+	msg.usageLimit, err = l.UsageLimiter.Reserve(ctx, usageLimitSMS, l.FeatureConfig.SMSUsage)
 	if err != nil {
 		return
 	}
 
-	msg.rateLimits, err = l.check(msg.rateLimits,
+	msg.rateLimits, err = l.check(ctx, msg.rateLimits,
 		l.EnvConfig.SMSPerIP, l.FeatureConfig.RateLimits.SMSPerIP, l.Config.SMSPerIP,
 		MessagingSMSPerIP, string(l.RemoteIP),
 	)
@@ -157,7 +160,7 @@ func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
 		return
 	}
 
-	msg.rateLimits, err = l.check(msg.rateLimits,
+	msg.rateLimits, err = l.check(ctx, msg.rateLimits,
 		l.EnvConfig.SMSPerTarget, l.FeatureConfig.RateLimits.SMSPerTarget, l.Config.SMSPerTarget,
 		MessagingSMSPerTarget, phoneNumber,
 	)
@@ -165,7 +168,7 @@ func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
 		return
 	}
 
-	msg.rateLimits, err = l.check(msg.rateLimits,
+	msg.rateLimits, err = l.check(ctx, msg.rateLimits,
 		l.EnvConfig.SMS, l.FeatureConfig.RateLimits.SMS, l.Config.SMS,
 		MessagingSMS,
 	)
@@ -176,7 +179,7 @@ func (l *Limits) checkSMS(phoneNumber string) (msg *message, err error) {
 	return
 }
 
-func (l *Limits) checkWhatsapp(phoneNumber string) (msg *message, err error) {
+func (l *Limits) checkWhatsapp(ctx context.Context, phoneNumber string) (msg *message, err error) {
 	msg = &message{
 		logger:       l.Logger,
 		rateLimiter:  l.RateLimiter,
@@ -185,18 +188,18 @@ func (l *Limits) checkWhatsapp(phoneNumber string) (msg *message, err error) {
 	defer func() {
 		if err != nil {
 			// Return reserved tokens
-			msg.Close()
+			msg.Close(ctx)
 			msg = nil
 		}
 	}()
 
-	msg.usageLimit, err = l.UsageLimiter.Reserve(usageLimitWhatsapp, l.FeatureConfig.WhatsappUsage)
+	msg.usageLimit, err = l.UsageLimiter.Reserve(ctx, usageLimitWhatsapp, l.FeatureConfig.WhatsappUsage)
 	if err != nil {
 		return
 	}
 
 	// TODO: Use whatsapp specific rate limits
-	msg.rateLimits, err = l.check(msg.rateLimits,
+	msg.rateLimits, err = l.check(ctx, msg.rateLimits,
 		l.EnvConfig.SMSPerIP, l.FeatureConfig.RateLimits.SMSPerIP, l.Config.SMSPerIP,
 		MessagingSMSPerIP, string(l.RemoteIP),
 	)
@@ -205,7 +208,7 @@ func (l *Limits) checkWhatsapp(phoneNumber string) (msg *message, err error) {
 	}
 
 	// TODO: Use whatsapp specific rate limits
-	msg.rateLimits, err = l.check(msg.rateLimits,
+	msg.rateLimits, err = l.check(ctx, msg.rateLimits,
 		l.EnvConfig.SMSPerTarget, l.FeatureConfig.RateLimits.SMSPerTarget, l.Config.SMSPerTarget,
 		MessagingSMSPerTarget, phoneNumber,
 	)
@@ -214,7 +217,7 @@ func (l *Limits) checkWhatsapp(phoneNumber string) (msg *message, err error) {
 	}
 
 	// TODO: Use whatsapp specific rate limits
-	msg.rateLimits, err = l.check(msg.rateLimits,
+	msg.rateLimits, err = l.check(ctx, msg.rateLimits,
 		l.EnvConfig.SMS, l.FeatureConfig.RateLimits.SMS, l.Config.SMS,
 		MessagingSMS,
 	)

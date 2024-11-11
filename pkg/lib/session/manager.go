@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"sort"
@@ -21,23 +22,23 @@ type revokeEventOption struct {
 var ErrSessionNotFound = errors.New("session not found")
 
 type UserQuery interface {
-	Get(id string, role accesscontrol.Role) (*model.User, error)
-	GetRaw(id string) (*user.User, error)
+	Get(ctx context.Context, id string, role accesscontrol.Role) (*model.User, error)
+	GetRaw(ctx context.Context, id string) (*user.User, error)
 }
 
 type ManagementService interface {
 	ClearCookie() []*http.Cookie
-	Get(id string) (ListableSession, error)
-	Delete(ListableSession) error
-	List(userID string) ([]ListableSession, error)
-	TerminateAllExcept(userID string, currentSession ResolvedSession) ([]ListableSession, error)
+	Get(ctx context.Context, id string) (ListableSession, error)
+	Delete(ctx context.Context, s ListableSession) error
+	List(ctx context.Context, userID string) ([]ListableSession, error)
+	TerminateAllExcept(ctx context.Context, userID string, currentSession ResolvedSession) ([]ListableSession, error)
 }
 
 type IDPSessionManager ManagementService
 type AccessTokenSessionManager ManagementService
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type Manager struct {
@@ -57,12 +58,12 @@ func (m *Manager) resolveManagementProvider(session ListableSession) ManagementS
 	}
 }
 
-func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (
+func (m *Manager) invalidate(ctx context.Context, session SessionBase, option *revokeEventOption) (
 	[]ListableSession,
 	ManagementService,
 	error,
 ) {
-	sessions, err := m.List(session.GetAuthenticationInfo().UserID)
+	sessions, err := m.List(ctx, session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -88,7 +89,7 @@ func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (
 		// invalidate the sessions that are in the same sso group
 		if s.IsSameSSOGroup(session) {
 			invalidatedSessions = append(invalidatedSessions, s)
-			p, err := m.invalidateSession(s)
+			p, err := m.invalidateSession(ctx, s)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -105,7 +106,7 @@ func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (
 
 	if option != nil && len(sessionModels) > 0 {
 		if option.IsTermination {
-			err = m.Events.DispatchEventOnCommit(&nonblocking.UserSessionTerminatedEventPayload{
+			err = m.Events.DispatchEventOnCommit(ctx, &nonblocking.UserSessionTerminatedEventPayload{
 				UserRef: model.UserRef{
 					Meta: model.Meta{
 						ID: session.GetAuthenticationInfo().UserID,
@@ -116,7 +117,7 @@ func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (
 				TerminationType: nonblocking.UserSessionTerminationTypeIndividual,
 			})
 		} else {
-			err = m.Events.DispatchEventOnCommit(&nonblocking.UserSignedOutEventPayload{
+			err = m.Events.DispatchEventOnCommit(ctx, &nonblocking.UserSignedOutEventPayload{
 				UserRef: model.UserRef{
 					Meta: model.Meta{
 						ID: session.GetAuthenticationInfo().UserID,
@@ -137,17 +138,17 @@ func (m *Manager) invalidate(session SessionBase, option *revokeEventOption) (
 
 // invalidateSession should not be called directly
 // invalidate should be called instead
-func (m *Manager) invalidateSession(session ListableSession) (ManagementService, error) {
+func (m *Manager) invalidateSession(ctx context.Context, session ListableSession) (ManagementService, error) {
 	provider := m.resolveManagementProvider(session)
-	err := provider.Delete(session)
+	err := provider.Delete(ctx, session)
 	if err != nil {
 		return nil, err
 	}
 	return provider, nil
 }
 
-func (m *Manager) Logout(session SessionBase, rw http.ResponseWriter) ([]ListableSession, error) {
-	invalidatedSessions, provider, err := m.invalidate(session, &revokeEventOption{IsAdminAPI: false, IsTermination: false})
+func (m *Manager) Logout(ctx context.Context, session SessionBase, rw http.ResponseWriter) ([]ListableSession, error) {
+	invalidatedSessions, provider, err := m.invalidate(ctx, session, &revokeEventOption{IsAdminAPI: false, IsTermination: false})
 	if err != nil {
 		return nil, err
 	}
@@ -159,8 +160,8 @@ func (m *Manager) Logout(session SessionBase, rw http.ResponseWriter) ([]Listabl
 	return invalidatedSessions, nil
 }
 
-func (m *Manager) RevokeWithEvent(session SessionBase, isTermination bool, isAdminAPI bool) error {
-	_, _, err := m.invalidate(session, &revokeEventOption{
+func (m *Manager) RevokeWithEvent(ctx context.Context, session SessionBase, isTermination bool, isAdminAPI bool) error {
+	_, _, err := m.invalidate(ctx, session, &revokeEventOption{
 		IsAdminAPI:    isAdminAPI,
 		IsTermination: isTermination,
 	})
@@ -171,8 +172,8 @@ func (m *Manager) RevokeWithEvent(session SessionBase, isTermination bool, isAdm
 	return nil
 }
 
-func (m *Manager) RevokeWithoutEvent(session SessionBase) error {
-	_, _, err := m.invalidate(session, nil)
+func (m *Manager) RevokeWithoutEvent(ctx context.Context, session SessionBase) error {
+	_, _, err := m.invalidate(ctx, session, nil)
 	if err != nil {
 		return err
 	}
@@ -180,12 +181,12 @@ func (m *Manager) RevokeWithoutEvent(session SessionBase) error {
 	return nil
 }
 
-func (m *Manager) TerminateAllExcept(userID string, currentSession ResolvedSession, isAdminAPI bool) error {
-	idpSessions, err := m.IDPSessions.TerminateAllExcept(userID, currentSession)
+func (m *Manager) TerminateAllExcept(ctx context.Context, userID string, currentSession ResolvedSession, isAdminAPI bool) error {
+	idpSessions, err := m.IDPSessions.TerminateAllExcept(ctx, userID, currentSession)
 	if err != nil {
 		return err
 	}
-	accessGrantSessions, err := m.AccessTokenSessions.TerminateAllExcept(userID, currentSession)
+	accessGrantSessions, err := m.AccessTokenSessions.TerminateAllExcept(ctx, userID, currentSession)
 	if err != nil {
 		return err
 	}
@@ -208,7 +209,7 @@ func (m *Manager) TerminateAllExcept(userID string, currentSession ResolvedSessi
 	}
 
 	if len(sessionModels) > 0 {
-		err = m.Events.DispatchEventOnCommit(&nonblocking.UserSessionTerminatedEventPayload{
+		err = m.Events.DispatchEventOnCommit(ctx, &nonblocking.UserSessionTerminatedEventPayload{
 			UserRef: model.UserRef{
 				Meta: model.Meta{
 					ID: userID,
@@ -226,15 +227,15 @@ func (m *Manager) TerminateAllExcept(userID string, currentSession ResolvedSessi
 	return nil
 }
 
-func (m *Manager) Get(id string) (ListableSession, error) {
-	session, err := m.IDPSessions.Get(id)
+func (m *Manager) Get(ctx context.Context, id string) (ListableSession, error) {
+	session, err := m.IDPSessions.Get(ctx, id)
 	if err != nil && !errors.Is(err, ErrSessionNotFound) {
 		return nil, err
 	} else if err == nil {
 		return session, nil
 	}
 
-	session, err = m.AccessTokenSessions.Get(id)
+	session, err = m.AccessTokenSessions.Get(ctx, id)
 	if err != nil && !errors.Is(err, ErrSessionNotFound) {
 		return nil, err
 	} else if err == nil {
@@ -244,12 +245,12 @@ func (m *Manager) Get(id string) (ListableSession, error) {
 	return nil, ErrSessionNotFound
 }
 
-func (m *Manager) List(userID string) ([]ListableSession, error) {
-	idpSessions, err := m.IDPSessions.List(userID)
+func (m *Manager) List(ctx context.Context, userID string) ([]ListableSession, error) {
+	idpSessions, err := m.IDPSessions.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	accessGrantSessions, err := m.AccessTokenSessions.List(userID)
+	accessGrantSessions, err := m.AccessTokenSessions.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"context"
+
 	relay "github.com/authgear/graphql-go-relay"
 	"github.com/graphql-go/graphql"
 
@@ -353,8 +355,9 @@ var nodeAuditLog = node(
 				Type: nodeUser,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					source := p.Source.(*audit.Log)
-					gqlCtx := GQLContext(p.Context)
-					return gqlCtx.Users.Load(source.UserID).Value, nil
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
+					return gqlCtx.Users.Load(ctx, source.UserID).Value, nil
 				},
 			},
 			"ipAddress": &graphql.Field{
@@ -372,8 +375,8 @@ var nodeAuditLog = node(
 		},
 	}),
 	&audit.Log{},
-	func(ctx *Context, id string) (interface{}, error) {
-		return ctx.AuditLogs.Load(id).Value, nil
+	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+		return gqlCtx.AuditLogs.Load(ctx, id).Value, nil
 	},
 )
 

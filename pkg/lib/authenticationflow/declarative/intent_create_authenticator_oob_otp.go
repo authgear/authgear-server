@@ -29,6 +29,7 @@ var _ authflow.Milestone = &IntentCreateAuthenticatorOOBOTP{}
 var _ MilestoneFlowSelectAuthenticationMethod = &IntentCreateAuthenticatorOOBOTP{}
 var _ MilestoneDidSelectAuthenticationMethod = &IntentCreateAuthenticatorOOBOTP{}
 var _ MilestoneFlowCreateAuthenticator = &IntentCreateAuthenticatorOOBOTP{}
+var _ MilestoneSwitchToExistingUser = &IntentCreateAuthenticatorOOBOTP{}
 
 func (*IntentCreateAuthenticatorOOBOTP) Kind() string {
 	return "IntentCreateAuthenticatorOOBOTP"
@@ -46,7 +47,7 @@ func (i *IntentCreateAuthenticatorOOBOTP) MilestoneDidSelectAuthenticationMethod
 	return i.Authentication
 }
 
-func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
+func (i *IntentCreateAuthenticatorOOBOTP) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 
@@ -83,7 +84,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) CanReactTo(ctx context.Context, deps *
 	if authenticatorSelected {
 		info := m.MilestoneDidSelectAuthenticator()
 		claimName, claimValue := info.OOBOTP.ToClaimPair()
-		claimStatus, err := deps.Verification.GetClaimStatus(n.UserID, claimName, claimValue)
+		claimStatus, err := deps.Verification.GetClaimStatus(ctx, n.UserID, claimName, claimValue)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +144,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 	if authenticatorSelected {
 		info := m.MilestoneDidSelectAuthenticator()
 		claimName, claimValue := info.OOBOTP.ToClaimPair()
-		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(deps, n.UserID, claimName, claimValue)
+		verified, err := getCreateAuthenticatorOOBOTPTargetVerified(ctx, deps, n.UserID, claimName, claimValue)
 		if err != nil {
 			return nil, err
 		}
@@ -162,7 +163,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 			if oobOTPTarget == "" {
 				panic(fmt.Errorf("unexpected: oob otp target is empty"))
 			}
-			return n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
+			return n.newDidSelectAuthenticatorNode(ctx, deps, oobOTPTarget)
 		}
 
 		var inputTakeOOBOTPTarget inputTakeOOBOTPTarget
@@ -173,7 +174,7 @@ func (n *IntentCreateAuthenticatorOOBOTP) ReactTo(ctx context.Context, deps *aut
 				return nil, err
 			}
 			oobOTPTarget := inputTakeOOBOTPTarget.GetTarget()
-			node, err := n.newDidSelectAuthenticatorNode(deps, oobOTPTarget)
+			node, err := n.newDidSelectAuthenticatorNode(ctx, deps, oobOTPTarget)
 			return node, errors.Join(bpSpecialErr, err)
 		}
 	case shouldVerifyInThisFlow && !claimVerifiedInThisFlow:
@@ -224,8 +225,8 @@ func (i *IntentCreateAuthenticatorOOBOTP) otpMessageType() translation.MessageTy
 	}
 }
 
-func (n *IntentCreateAuthenticatorOOBOTP) newDidSelectAuthenticatorNode(deps *authflow.Dependencies, target string) (*authflow.Node, error) {
-	info, err := createAuthenticator(deps, n.UserID, n.Authentication, target)
+func (n *IntentCreateAuthenticatorOOBOTP) newDidSelectAuthenticatorNode(ctx context.Context, deps *authflow.Dependencies, target string) (*authflow.Node, error) {
+	info, err := createAuthenticator(ctx, deps, n.UserID, n.Authentication, target)
 	if err != nil {
 		return nil, err
 	}

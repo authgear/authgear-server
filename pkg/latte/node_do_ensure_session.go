@@ -35,25 +35,25 @@ func (n *NodeDoEnsureSession) Kind() string {
 func (n *NodeDoEnsureSession) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			return deps.AuthenticationInfos.Save(n.AuthenticationInfoEntry)
+			return deps.AuthenticationInfos.Save(ctx, n.AuthenticationInfoEntry)
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			now := deps.Clock.NowUTC()
-			return deps.Users.UpdateLoginTime(n.UserID, now)
+			return deps.Users.UpdateLoginTime(ctx, n.UserID, now)
 		}),
 		workflow.OnCommitEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			if n.SessionToCreate == nil {
 				return nil
 			}
 
-			err := deps.IDPSessions.Create(n.SessionToCreate)
+			err := deps.IDPSessions.Create(ctx, n.SessionToCreate)
 			if err != nil {
 				return err
 			}
 
 			s := session.GetSession(ctx)
 			if s != nil && s.SessionType() == session.TypeIdentityProvider {
-				err = deps.Sessions.RevokeWithoutEvent(s)
+				err = deps.Sessions.RevokeWithoutEvent(ctx, s)
 				if err != nil {
 					return err
 				}
@@ -65,7 +65,7 @@ func (n *NodeDoEnsureSession) GetEffects(ctx context.Context, deps *workflow.Dep
 			if n.UpdateSessionID == "" {
 				return nil
 			}
-			err = deps.IDPSessions.Reauthenticate(n.UpdateSessionID, n.UpdateSessionAMR)
+			err = deps.IDPSessions.Reauthenticate(ctx, n.UpdateSessionID, n.UpdateSessionAMR)
 			if err != nil {
 				return err
 			}

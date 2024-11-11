@@ -24,7 +24,7 @@ func (n *NodePopulateStandardAttributes) GetEffects(ctx context.Context, deps *w
 	return []workflow.Effect{
 		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
 			if deps.Config.UserProfile.StandardAttributes.Population.Strategy == config.StandardAttributesPopulationStrategyOnSignup {
-				err := deps.StdAttrsService.PopulateStandardAttributes(
+				err := deps.StdAttrsService.PopulateStandardAttributes(ctx,
 					n.Identity.UserID,
 					n.Identity,
 				)

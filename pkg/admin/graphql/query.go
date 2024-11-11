@@ -67,7 +67,8 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				gqlCtx := GQLContext(p.Context)
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
 
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
@@ -106,9 +107,9 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				var result *graphqlutil.PageResult
 				var err error
 				if searchKeyword == "" && !filterOptions.IsFilterEnabled() {
-					refs, result, err = gqlCtx.UserFacade.ListPage(listOption, pageArgs)
+					refs, result, err = gqlCtx.UserFacade.ListPage(ctx, listOption, pageArgs)
 				} else {
-					refs, result, err = gqlCtx.UserFacade.SearchPage(searchKeyword, filterOptions, sortOption, pageArgs)
+					refs, result, err = gqlCtx.UserFacade.SearchPage(ctx, searchKeyword, filterOptions, sortOption, pageArgs)
 				}
 				if err != nil {
 					return nil, err
@@ -117,7 +118,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				var lazyItems []graphqlutil.LazyItem
 				for _, ref := range refs {
 					lazyItems = append(lazyItems, graphqlutil.LazyItem{
-						Lazy:   gqlCtx.Users.Load(ref.ID),
+						Lazy:   gqlCtx.Users.Load(ctx, ref.ID),
 						Cursor: graphqlutil.Cursor(ref.Cursor),
 					})
 				}
@@ -137,7 +138,8 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				gqlCtx := GQLContext(p.Context)
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
 
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
@@ -163,7 +165,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					ExcludedIDs:   excludedIDs,
 				}
 
-				refs, result, err := gqlCtx.RolesGroupsFacade.ListRoles(options, pageArgs)
+				refs, result, err := gqlCtx.RolesGroupsFacade.ListRoles(ctx, options, pageArgs)
 				if err != nil {
 					return nil, err
 				}
@@ -171,7 +173,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				var lazyItems []graphqlutil.LazyItem
 				for _, ref := range refs {
 					lazyItems = append(lazyItems, graphqlutil.LazyItem{
-						Lazy:   gqlCtx.Roles.Load(ref.ID),
+						Lazy:   gqlCtx.Roles.Load(ctx, ref.ID),
 						Cursor: graphqlutil.Cursor(ref.Cursor),
 					})
 				}
@@ -191,7 +193,8 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				gqlCtx := GQLContext(p.Context)
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
 
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
@@ -217,7 +220,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					ExcludedIDs:   excludedIDs,
 				}
 
-				refs, result, err := gqlCtx.RolesGroupsFacade.ListGroups(options, pageArgs)
+				refs, result, err := gqlCtx.RolesGroupsFacade.ListGroups(ctx, options, pageArgs)
 				if err != nil {
 					return nil, err
 				}
@@ -225,7 +228,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				var lazyItems []graphqlutil.LazyItem
 				for _, ref := range refs {
 					lazyItems = append(lazyItems, graphqlutil.LazyItem{
-						Lazy:   gqlCtx.Groups.Load(ref.ID),
+						Lazy:   gqlCtx.Groups.Load(ctx, ref.ID),
 						Cursor: graphqlutil.Cursor(ref.Cursor),
 					})
 				}
@@ -260,7 +263,8 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			}),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				gqlCtx := GQLContext(p.Context)
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
 
 				pageArgs := graphqlutil.NewPageArgs(relay.NewConnectionArguments(p.Args))
 
@@ -326,7 +330,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					PhoneNumbers:   phoneNumbers,
 				}
 
-				refs, result, err := gqlCtx.AuditLogFacade.QueryPage(queryOptions, pageArgs)
+				refs, result, err := gqlCtx.AuditLogFacade.QueryPage(ctx, queryOptions, pageArgs)
 				if err != nil {
 					return nil, err
 				}
@@ -334,7 +338,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				var lazyItems []graphqlutil.LazyItem
 				for _, ref := range refs {
 					lazyItems = append(lazyItems, graphqlutil.LazyItem{
-						Lazy:   gqlCtx.AuditLogs.Load(ref.ID),
+						Lazy:   gqlCtx.AuditLogs.Load(ctx, ref.ID),
 						Cursor: graphqlutil.Cursor(ref.Cursor),
 					})
 				}
@@ -354,18 +358,19 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				gqlCtx := GQLContext(p.Context)
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
 
 				attributeName, _ := p.Args["attributeName"].(string)
 				attributeValue, _ := p.Args["attributeValue"].(string)
 
-				userIDs, err := gqlCtx.UserFacade.GetUsersByStandardAttribute(attributeName, attributeValue)
+				userIDs, err := gqlCtx.UserFacade.GetUsersByStandardAttribute(ctx, attributeName, attributeValue)
 				if err != nil {
 					return nil, err
 				}
 
 				return slice.Map(userIDs, func(userID string) interface{} {
-					lazyItem, _ := graphqlutil.NewLazyValue(gqlCtx.Users.Load(userID)).Value()
+					lazyItem, _ := graphqlutil.NewLazyValue(gqlCtx.Users.Load(ctx, userID)).Value()
 					return lazyItem
 				}), err
 			},
@@ -382,12 +387,13 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				gqlCtx := GQLContext(p.Context)
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
 
 				loginIDKey, _ := p.Args["loginIDKey"].(string)
 				loginIDValue, _ := p.Args["loginIDValue"].(string)
 
-				userID, err := gqlCtx.UserFacade.GetUserByLoginID(loginIDKey, loginIDValue)
+				userID, err := gqlCtx.UserFacade.GetUserByLoginID(ctx, loginIDKey, loginIDValue)
 				if errors.Is(err, api.ErrUserNotFound) {
 					// For user not found error, just return nil instead of return error
 					return nil, nil
@@ -395,7 +401,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				return gqlCtx.Users.Load(userID).Value()
+				return gqlCtx.Users.Load(ctx, userID).Value()
 			},
 		},
 		"getUserByOAuth": &graphql.Field{
@@ -410,12 +416,13 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 				},
 			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				gqlCtx := GQLContext(p.Context)
+				ctx := p.Context
+				gqlCtx := GQLContext(ctx)
 
 				oauthProviderAlias, _ := p.Args["oauthProviderAlias"].(string)
 				oauthProviderUserID, _ := p.Args["oauthProviderUserID"].(string)
 
-				userID, err := gqlCtx.UserFacade.GetUserByOAuth(oauthProviderAlias, oauthProviderUserID)
+				userID, err := gqlCtx.UserFacade.GetUserByOAuth(ctx, oauthProviderAlias, oauthProviderUserID)
 				if errors.Is(err, api.ErrUserNotFound) {
 					// For user not found error, just return nil instead of return error
 					return nil, nil
@@ -423,7 +430,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				return gqlCtx.Users.Load(userID).Value()
+				return gqlCtx.Users.Load(ctx, userID).Value()
 			},
 		},
 	},

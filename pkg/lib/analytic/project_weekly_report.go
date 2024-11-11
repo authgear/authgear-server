@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"time"
@@ -28,7 +29,7 @@ type ProjectWeeklyReport struct {
 	AuditDBStore      *AuditDBReadStore
 }
 
-func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *ReportData, err error) {
+func (r *ProjectWeeklyReport) Run(ctx context.Context, options *ProjectWeeklyReportOptions) (data *ReportData, err error) {
 	rangeFormPtr, err := timeutil.FirstDayOfISOWeek(options.Year, options.Week, time.UTC)
 	if err != nil {
 		err = fmt.Errorf("invalid year or week number: %w", err)
@@ -39,13 +40,13 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 
 	var appIDs []string
 	var appOwners []*AppCollaborator
-	if err = r.GlobalHandle.WithTx(func() error {
-		appIDs, err = r.GlobalDBStore.GetAppIDs()
+	if err = r.GlobalHandle.WithTx(ctx, func(ctx context.Context) error {
+		appIDs, err = r.GlobalDBStore.GetAppIDs(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to fetch app ids: %w", err)
 		}
 
-		appOwners, err = r.GlobalDBStore.GetAppOwners(nil, nil)
+		appOwners, err = r.GlobalDBStore.GetAppOwners(ctx, nil, nil)
 		if err != nil {
 			return fmt.Errorf("failed to fetch app owners: %w", err)
 		}
@@ -66,8 +67,8 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 	}
 
 	var userIDToEmailMap map[string]string
-	if err = r.AppDBHandle.WithTx(func() (e error) {
-		userIDToEmailMap, err = r.AppDBStore.GetUserVerifiedEmails(options.PortalAppID, userIDs)
+	if err = r.AppDBHandle.WithTx(ctx, func(ctx context.Context) (e error) {
+		userIDToEmailMap, err = r.AppDBStore.GetUserVerifiedEmails(ctx, options.PortalAppID, userIDs)
 		return err
 	}); err != nil {
 		err = fmt.Errorf("failed to fetch owner's email: %w", err)
@@ -87,10 +88,10 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 		}
 		weeklyActiveUserCount := 0
 
-		err = r.AuditDBHandle.ReadOnly(func() (e error) {
+		err = r.AuditDBHandle.ReadOnly(ctx, func(ctx context.Context) (e error) {
 			for activityType := range countMap {
 				countMap[activityType], err = r.MeterAuditDBStore.GetCountByActivityType(
-					appID, activityType, &rangeFrom, &rangeTo)
+					ctx, appID, activityType, &rangeFrom, &rangeTo)
 				if err != nil {
 					err = fmt.Errorf("failed to fetch count for activityType %s: %w", activityType, err)
 					return err
@@ -98,6 +99,7 @@ func (r *ProjectWeeklyReport) Run(options *ProjectWeeklyReportOptions) (data *Re
 			}
 
 			c, err := r.AuditDBStore.GetAnalyticCountByType(
+				ctx,
 				appID,
 				WeeklyActiveUserCountType,
 				&rangeFrom,

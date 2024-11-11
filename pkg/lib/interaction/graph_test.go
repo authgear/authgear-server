@@ -1,6 +1,7 @@
 package interaction
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -41,25 +42,25 @@ func TestGraph(t *testing.T) {
 		ctx := &Context{}
 		g := &Graph{Nodes: []Node{nodeA}}
 
-		nodeA.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
-		nodeA.EXPECT().DeriveEdges(any).AnyTimes().Return(
+		nodeA.EXPECT().Prepare(gomock.Any(), ctx, any).AnyTimes().Return(nil)
+		nodeA.EXPECT().DeriveEdges(gomock.Any(), any).AnyTimes().Return(
 			[]Edge{edgeB, edgeC}, nil,
 		)
-		nodeB.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
-		nodeB.EXPECT().DeriveEdges(any).AnyTimes().Return(
+		nodeB.EXPECT().Prepare(gomock.Any(), ctx, any).AnyTimes().Return(nil)
+		nodeB.EXPECT().DeriveEdges(gomock.Any(), any).AnyTimes().Return(
 			[]Edge{edgeD}, nil,
 		)
-		nodeC.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
-		nodeC.EXPECT().DeriveEdges(any).AnyTimes().Return(
+		nodeC.EXPECT().Prepare(gomock.Any(), ctx, any).AnyTimes().Return(nil)
+		nodeC.EXPECT().DeriveEdges(gomock.Any(), any).AnyTimes().Return(
 			[]Edge{edgeB, edgeE}, nil,
 		)
-		nodeD.EXPECT().Prepare(ctx, any).AnyTimes().Return(nil)
-		nodeD.EXPECT().DeriveEdges(any).AnyTimes().Return(
+		nodeD.EXPECT().Prepare(gomock.Any(), ctx, any).AnyTimes().Return(nil)
+		nodeD.EXPECT().DeriveEdges(gomock.Any(), any).AnyTimes().Return(
 			[]Edge{}, nil,
 		)
 
-		edgeB.EXPECT().Instantiate(ctx, any, any).AnyTimes().DoAndReturn(
-			func(ctx *Context, g *Graph, input interface{}) (Node, error) {
+		edgeB.EXPECT().Instantiate(gomock.Any(), ctx, any, any).AnyTimes().DoAndReturn(
+			func(goCtx context.Context, ctx *Context, g *Graph, input interface{}) (Node, error) {
 				if _, ok := input.(input1); ok {
 					return nodeB, nil
 				}
@@ -68,22 +69,22 @@ func TestGraph(t *testing.T) {
 				}
 				return nil, ErrIncompatibleInput
 			})
-		edgeC.EXPECT().Instantiate(ctx, any, any).AnyTimes().DoAndReturn(
-			func(ctx *Context, g *Graph, input interface{}) (Node, error) {
+		edgeC.EXPECT().Instantiate(gomock.Any(), ctx, any, any).AnyTimes().DoAndReturn(
+			func(goCtx context.Context, ctx *Context, g *Graph, input interface{}) (Node, error) {
 				if _, ok := input.(input3); ok {
 					return nodeC, nil
 				}
 				return nil, ErrIncompatibleInput
 			})
-		edgeD.EXPECT().Instantiate(ctx, any, any).AnyTimes().DoAndReturn(
-			func(ctx *Context, g *Graph, input interface{}) (Node, error) {
+		edgeD.EXPECT().Instantiate(gomock.Any(), ctx, any, any).AnyTimes().DoAndReturn(
+			func(goCtx context.Context, ctx *Context, g *Graph, input interface{}) (Node, error) {
 				if _, ok := input.(input2); ok {
 					return nodeD, nil
 				}
 				return nil, ErrIncompatibleInput
 			})
-		edgeE.EXPECT().Instantiate(ctx, any, any).AnyTimes().DoAndReturn(
-			func(ctx *Context, g *Graph, input interface{}) (Node, error) {
+		edgeE.EXPECT().Instantiate(gomock.Any(), ctx, any, any).AnyTimes().DoAndReturn(
+			func(goCtx context.Context, ctx *Context, g *Graph, input interface{}) (Node, error) {
 				if _, ok := input.(input4); ok {
 					return nil, ErrSameNode
 				}
@@ -93,28 +94,29 @@ func TestGraph(t *testing.T) {
 		Convey("should go to deepest node", func() {
 			var inputRequired *ErrInputRequired
 
-			nodeB.EXPECT().GetEffects()
-			graph, edges, err := g.accept(ctx, input1{})
+			goCtx := context.Background()
+			nodeB.EXPECT().GetEffects(gomock.Any())
+			graph, edges, err := g.accept(goCtx, ctx, input1{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeB})
 			So(edges, ShouldResemble, []Edge{edgeD})
 
-			nodeB.EXPECT().GetEffects()
-			nodeD.EXPECT().GetEffects()
-			graph, edges, err = g.accept(ctx, input2{})
+			nodeB.EXPECT().GetEffects(gomock.Any())
+			nodeD.EXPECT().GetEffects(gomock.Any())
+			graph, edges, err = g.accept(goCtx, ctx, input2{})
 			So(err, ShouldBeNil)
 			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeB, nodeD})
 			So(edges, ShouldResemble, []Edge{})
 
-			nodeC.EXPECT().GetEffects()
-			graph, edges, err = g.accept(ctx, input3{})
+			nodeC.EXPECT().GetEffects(gomock.Any())
+			graph, edges, err = g.accept(goCtx, ctx, input3{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []Edge{edgeB, edgeE})
 
-			nodeB.EXPECT().GetEffects()
-			nodeD.EXPECT().GetEffects()
-			graph, edges, err = graph.accept(ctx, input2{})
+			nodeB.EXPECT().GetEffects(gomock.Any())
+			nodeD.EXPECT().GetEffects(gomock.Any())
+			graph, edges, err = graph.accept(goCtx, ctx, input2{})
 			So(err, ShouldBeNil)
 			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC, nodeB, nodeD})
 			So(edges, ShouldResemble, []Edge{})
@@ -123,20 +125,21 @@ func TestGraph(t *testing.T) {
 		Convey("should process looping edge", func() {
 			var inputRequired *ErrInputRequired
 
-			nodeC.EXPECT().GetEffects()
-			graph, edges, err := g.accept(ctx, input3{})
+			goCtx := context.Background()
+			nodeC.EXPECT().GetEffects(gomock.Any())
+			graph, edges, err := g.accept(goCtx, ctx, input3{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []Edge{edgeB, edgeE})
 
-			graph, edges, err = graph.accept(ctx, input4{})
+			graph, edges, err = graph.accept(goCtx, ctx, input4{})
 			So(errors.As(err, &inputRequired), ShouldBeTrue)
 			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC})
 			So(edges, ShouldResemble, []Edge{edgeB, edgeE})
 
-			nodeB.EXPECT().GetEffects()
-			nodeD.EXPECT().GetEffects()
-			graph, edges, err = graph.accept(ctx, input2{})
+			nodeB.EXPECT().GetEffects(gomock.Any())
+			nodeD.EXPECT().GetEffects(gomock.Any())
+			graph, edges, err = graph.accept(goCtx, ctx, input2{})
 			So(err, ShouldBeNil)
 			So(graph.Nodes, ShouldResemble, []Node{nodeA, nodeC, nodeB, nodeD})
 			So(edges, ShouldResemble, []Edge{})
@@ -150,15 +153,15 @@ type testGraphGetAMRnode struct {
 	Authenticator *authenticator.Info
 }
 
-func (n *testGraphGetAMRnode) Prepare(ctx *Context, graph *Graph) error {
+func (n *testGraphGetAMRnode) Prepare(goCtx context.Context, ctx *Context, graph *Graph) error {
 	return nil
 }
 
-func (n *testGraphGetAMRnode) GetEffects() ([]Effect, error) {
+func (n *testGraphGetAMRnode) GetEffects(goCtx context.Context) ([]Effect, error) {
 	return nil, nil
 }
 
-func (n *testGraphGetAMRnode) DeriveEdges(graph *Graph) ([]Edge, error) {
+func (n *testGraphGetAMRnode) DeriveEdges(goCtx context.Context, graph *Graph) ([]Edge, error) {
 	return nil, nil
 }
 

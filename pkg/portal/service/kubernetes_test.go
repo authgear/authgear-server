@@ -297,7 +297,8 @@ spec:
 			kube, err := newKubernetesWithDynamicClient("testdata/ingress.tpl.yaml")
 			So(err, ShouldBeNil)
 
-			err = kube.CreateResourcesForDomain("app-id-1", "domain-id-1", "test.example.com", true)
+			ctx := context.Background()
+			err = kube.CreateResourcesForDomain(ctx, "app-id-1", "domain-id-1", "test.example.com", true)
 			So(err, ShouldBeNil)
 
 			ingresses, err := kube.DynamicClient.
@@ -334,7 +335,8 @@ spec:
 			kube, err := newKubernetesWithDynamicClient("testdata/invalid_template.tpl.yaml")
 			So(err, ShouldBeNil)
 
-			err = kube.CreateResourcesForDomain("app-id-1", "domain-id-1", "test.example.com", true)
+			ctx := context.Background()
+			err = kube.CreateResourcesForDomain(ctx, "app-id-1", "domain-id-1", "test.example.com", true)
 			So(err, ShouldBeError, "k8s gvk type is not supported: /v1, Kind=Pod")
 		})
 
@@ -401,7 +403,8 @@ spec:
 		)
 		So(err, ShouldBeNil)
 
-		err = kube.DeleteResourcesForDomain("domain-id-1")
+		ctx := context.Background()
+		err = kube.DeleteResourcesForDomain(ctx, "domain-id-1")
 		So(err, ShouldBeNil)
 
 		podList, err := kube.Client.CoreV1().Pods("test-namespace").List(context.TODO(), metav1.ListOptions{})

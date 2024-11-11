@@ -96,9 +96,9 @@ var cmdPricingPlanCreate = &cobra.Command{
 		}
 
 		dbPool := db.NewPool()
-		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
+		planService := plan.NewService(dbPool, dbCredentials)
 		planName := args[0]
-		err = planService.CreatePlan(planName)
+		err = planService.CreatePlan(cmd.Context(), planName)
 		return
 	},
 }
@@ -126,7 +126,7 @@ var cmdPricingPlanUpdate = &cobra.Command{
 		}
 
 		dbPool := db.NewPool()
-		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
+		planService := plan.NewService(dbPool, dbCredentials)
 
 		planName := args[0]
 		var featureConfigYAML []byte
@@ -139,7 +139,7 @@ var cmdPricingPlanUpdate = &cobra.Command{
 			}
 		} else {
 			// update feature code through editor
-			p, err := planService.GetPlan(planName)
+			p, err := planService.GetPlan(cmd.Context(), planName)
 			if err != nil {
 				return err
 			}
@@ -171,7 +171,7 @@ var cmdPricingPlanUpdate = &cobra.Command{
 		}
 
 		// update feature config in plan record
-		appIDs, err := planService.UpdatePlan(planName, featureConfigYAML)
+		appIDs, err := planService.UpdatePlan(cmd.Context(), planName, featureConfigYAML)
 		if err != nil {
 			return err
 		}
@@ -205,7 +205,7 @@ var cmdPricingAppSetPlan = &cobra.Command{
 		}
 
 		dbPool := db.NewPool()
-		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
+		planService := plan.NewService(dbPool, dbCredentials)
 
 		appID := args[0]
 		planName, err := binder.GetRequiredString(cmd, portalcmd.ArgPlanName)
@@ -213,7 +213,7 @@ var cmdPricingAppSetPlan = &cobra.Command{
 			return err
 		}
 
-		err = planService.UpdateAppPlan(appID, planName)
+		err = planService.UpdateAppPlan(cmd.Context(), appID, planName)
 		if err != nil {
 			return err
 		}
@@ -247,7 +247,7 @@ var cmdPricingAppUpdate = &cobra.Command{
 		}
 
 		dbPool := db.NewPool()
-		planService := plan.NewService(context.Background(), dbPool, dbCredentials)
+		planService := plan.NewService(dbPool, dbCredentials)
 
 		appID := args[0]
 		planName, err := binder.GetRequiredString(cmd, portalcmd.ArgPlanNameForAppUpdate)
@@ -265,7 +265,7 @@ var cmdPricingAppUpdate = &cobra.Command{
 			}
 		} else {
 			// update feature code through editor
-			consrc, err := planService.GetDatabaseSourceByAppID(appID)
+			consrc, err := planService.GetDatabaseSourceByAppID(cmd.Context(), appID)
 			if err != nil {
 				return err
 			}
@@ -293,7 +293,7 @@ var cmdPricingAppUpdate = &cobra.Command{
 			}
 		}
 
-		err = planService.UpdateAppFeatureConfig(appID, featureConfigYAML, planName)
+		err = planService.UpdateAppFeatureConfig(cmd.Context(), appID, featureConfigYAML, planName)
 		if err != nil {
 			return err
 		}
@@ -349,12 +349,12 @@ var cmdPricingUploadUsageToStripe = &cobra.Command{
 
 		hub := cobrasentry.GetHub(ctx)
 		dbPool := db.NewPool()
-		stripeService := NewStripeService(ctx, dbPool, dbCredentials, stripeConfig, hub)
+		stripeService := NewStripeService(dbPool, dbCredentials, stripeConfig, hub)
 
 		if len(args) == 0 {
 			var errorAppIDs []string
 			var appIDs []string
-			appIDs, err = stripeService.ListAppIDs()
+			appIDs, err = stripeService.ListAppIDs(ctx)
 			if err != nil {
 				return
 			}

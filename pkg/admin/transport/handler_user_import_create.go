@@ -25,21 +25,22 @@ type UserImportCreateHandler struct {
 }
 
 func (h *UserImportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := h.handle(w, r)
+	ctx := r.Context()
+	err := h.handle(ctx, w, r)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
 	}
 }
 
-func (h *UserImportCreateHandler) handle(w http.ResponseWriter, r *http.Request) error {
+func (h *UserImportCreateHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	var request userimport.Request
 	err := httputil.BindJSONBody(r, w, userimport.RequestSchema.Validator(), &request, httputil.WithBodyMaxSize(userimport.BodyMaxSize))
 	if err != nil {
 		return err
 	}
 
-	resp, err := h.UserImports.EnqueueJob(r.Context(), &request)
+	resp, err := h.UserImports.EnqueueJob(ctx, &request)
 	if err != nil {
 		return err
 	}

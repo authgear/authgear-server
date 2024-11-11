@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -22,7 +24,7 @@ type EdgeAuthenticationWhatsapp struct {
 	Authenticator *authenticator.Info
 }
 
-func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationWhatsapp) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputAuthenticationWhatsapp
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -30,7 +32,7 @@ func (e *EdgeAuthenticationWhatsapp) Instantiate(ctx *interaction.Context, graph
 	code := input.GetWhatsappOTP()
 	channel := model.AuthenticatorOOBChannelWhatsapp
 	info := e.Authenticator
-	_, err := ctx.Authenticators.VerifyWithSpec(e.Authenticator, &authenticator.Spec{
+	_, err := ctx.Authenticators.VerifyWithSpec(goCtx, e.Authenticator, &authenticator.Spec{
 		OOBOTP: &authenticator.OOBOTPSpec{
 			Code: code,
 		},
@@ -55,15 +57,15 @@ type NodeAuthenticationWhatsapp struct {
 	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
-func (n *NodeAuthenticationWhatsapp) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeAuthenticationWhatsapp) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationWhatsapp) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeAuthenticationWhatsapp) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeAuthenticationWhatsapp) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeAuthenticationWhatsapp) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,

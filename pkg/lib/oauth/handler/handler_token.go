@@ -88,20 +88,20 @@ var whitelistedGrantTypes = []string{
 
 type IDTokenIssuer interface {
 	Iss() string
-	IssueIDToken(opts oidc.IssueIDTokenOptions) (token string, err error)
+	IssueIDToken(ctx context.Context, opts oidc.IssueIDTokenOptions) (token string, err error)
 	VerifyIDToken(idToken string) (token jwt.Token, err error)
 }
 
 type AccessTokenIssuer interface {
-	EncodeAccessToken(client *config.OAuthClientConfig, clientLike *oauth.ClientLike, grant *oauth.AccessGrant, userID string, token string) (string, error)
+	EncodeAccessToken(ctx context.Context, client *config.OAuthClientConfig, clientLike *oauth.ClientLike, grant *oauth.AccessGrant, userID string, token string) (string, error)
 }
 
 type EventService interface {
-	DispatchEventOnCommit(payload event.Payload) error
+	DispatchEventOnCommit(ctx context.Context, payload event.Payload) error
 }
 
 type TokenHandlerUserFacade interface {
-	GetRaw(id string) (*user.User, error)
+	GetRaw(ctx context.Context, id string) (*user.User, error)
 }
 
 type App2AppService interface {
@@ -110,7 +110,7 @@ type App2AppService interface {
 }
 
 type ChallengeProvider interface {
-	Consume(token string) (*challenge.Purpose, error)
+	Consume(ctx context.Context, token string) (*challenge.Purpose, error)
 }
 
 type TokenHandlerLogger struct{ *log.Logger }
@@ -120,43 +120,45 @@ func NewTokenHandlerLogger(lf *log.Factory) TokenHandlerLogger {
 }
 
 type TokenHandlerCodeGrantStore interface {
-	GetCodeGrant(codeHash string) (*oauth.CodeGrant, error)
-	DeleteCodeGrant(*oauth.CodeGrant) error
+	GetCodeGrant(ctx context.Context, codeHash string) (*oauth.CodeGrant, error)
+	DeleteCodeGrant(ctx context.Context, g *oauth.CodeGrant) error
 }
 
 type TokenHandlerSettingsActionGrantStore interface {
-	GetSettingsActionGrant(codeHash string) (*oauth.SettingsActionGrant, error)
-	DeleteSettingsActionGrant(*oauth.SettingsActionGrant) error
+	GetSettingsActionGrant(ctx context.Context, codeHash string) (*oauth.SettingsActionGrant, error)
+	DeleteSettingsActionGrant(ctx context.Context, g *oauth.SettingsActionGrant) error
 }
 
 type TokenHandlerOfflineGrantStore interface {
-	DeleteOfflineGrant(*oauth.OfflineGrant) error
+	DeleteOfflineGrant(ctx context.Context, g *oauth.OfflineGrant) error
 
-	UpdateOfflineGrantDeviceInfo(id string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
-	UpdateOfflineGrantAuthenticatedAt(id string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error)
-	UpdateOfflineGrantApp2AppDeviceKey(id string, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error)
+	UpdateOfflineGrantDeviceInfo(ctx context.Context, id string, deviceInfo map[string]interface{}, expireAt time.Time) (*oauth.OfflineGrant, error)
+	UpdateOfflineGrantAuthenticatedAt(ctx context.Context, id string, authenticatedAt time.Time, expireAt time.Time) (*oauth.OfflineGrant, error)
+	UpdateOfflineGrantApp2AppDeviceKey(ctx context.Context, id string, newKey string, expireAt time.Time) (*oauth.OfflineGrant, error)
 	UpdateOfflineGrantDeviceSecretHash(
+		ctx context.Context,
 		grantID string,
 		newDeviceSecretHash string,
 		dpopJKT string,
 		expireAt time.Time) (*oauth.OfflineGrant, error)
 
-	ListOfflineGrants(userID string) ([]*oauth.OfflineGrant, error)
-	ListClientOfflineGrants(clientID string, userID string) ([]*oauth.OfflineGrant, error)
+	ListOfflineGrants(ctx context.Context, userID string) ([]*oauth.OfflineGrant, error)
+	ListClientOfflineGrants(ctx context.Context, clientID string, userID string) ([]*oauth.OfflineGrant, error)
 }
 
 type TokenHandlerAppSessionTokenStore interface {
-	CreateAppSessionToken(*oauth.AppSessionToken) error
+	CreateAppSessionToken(ctx context.Context, t *oauth.AppSessionToken) error
 }
 
 type TokenHandlerOfflineGrantService interface {
-	AccessOfflineGrant(id string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error)
-	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
+	AccessOfflineGrant(ctx context.Context, id string, accessEvent *access.Event, expireAt time.Time) (*oauth.OfflineGrant, error)
+	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
 }
 
 type TokenHandlerTokenService interface {
 	ParseRefreshToken(ctx context.Context, token string) (authz *oauth.Authorization, offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueAccessGrant(
+		ctx context.Context,
 		client *config.OAuthClientConfig,
 		scopes []string,
 		authzID string,
@@ -167,24 +169,34 @@ type TokenHandlerTokenService interface {
 		resp protocol.TokenResponse,
 	) error
 	IssueOfflineGrant(
+		ctx context.Context,
 		client *config.OAuthClientConfig,
 		opts IssueOfflineGrantOptions,
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
 	IssueRefreshTokenForOfflineGrant(
+		ctx context.Context,
 		offlineGrantID string,
 		client *config.OAuthClientConfig,
 		opts IssueOfflineGrantRefreshTokenOptions,
 		resp protocol.TokenResponse,
 	) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error)
-	IssueDeviceSecret(resp protocol.TokenResponse) (deviceSecretHash string)
+	IssueDeviceSecret(ctx context.Context, resp protocol.TokenResponse) (deviceSecretHash string)
+}
+
+var _ TokenHandlerTokenService = &TokenService{}
+
+type TokenHandlerIDPSessionProvider interface {
+	Get(ctx context.Context, id string) (*idpsession.IDPSession, error)
 }
 
 type PreAuthenticatedURLTokenService interface {
 	IssuePreAuthenticatedURLToken(
+		ctx context.Context,
 		options *IssuePreAuthenticatedURLTokenOptions,
 	) (*IssuePreAuthenticatedURLTokenResult, error)
 	ExchangeForAccessToken(
+		ctx context.Context,
 		client *config.OAuthClientConfig,
 		sessionID string,
 		token string,
@@ -192,7 +204,6 @@ type PreAuthenticatedURLTokenService interface {
 }
 
 type TokenHandler struct {
-	Context                context.Context
 	AppID                  config.AppID
 	AppDomains             config.AppDomains
 	HTTPProto              httputil.HTTPProto
@@ -205,7 +216,7 @@ type TokenHandler struct {
 	Authorizations                  AuthorizationService
 	CodeGrants                      TokenHandlerCodeGrantStore
 	SettingsActionGrantStore        TokenHandlerSettingsActionGrantStore
-	IDPSessions                     oauth.IDPSessionProvider
+	IDPSessions                     TokenHandlerIDPSessionProvider
 	OfflineGrants                   TokenHandlerOfflineGrantStore
 	AppSessionTokens                TokenHandlerAppSessionTokenStore
 	OfflineGrantService             TokenHandlerOfflineGrantService
@@ -227,7 +238,7 @@ type TokenHandler struct {
 	ValidateScopes  ScopesValidator
 }
 
-func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
+func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
 	client := resolveClient(h.ClientResolver, r)
 	if client == nil {
 		return tokenResultError{
@@ -235,7 +246,7 @@ func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r proto
 		}
 	}
 
-	result, err := h.doHandle(rw, req, client, r)
+	result, err := h.doHandle(ctx, rw, req, client, r)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
 		resultErr := tokenResultError{}
@@ -254,6 +265,7 @@ func (h *TokenHandler) Handle(rw http.ResponseWriter, req *http.Request, r proto
 }
 
 func (h *TokenHandler) doHandle(
+	ctx context.Context,
 	rw http.ResponseWriter,
 	req *http.Request,
 	client *config.OAuthClientConfig,
@@ -287,17 +299,17 @@ func (h *TokenHandler) doHandle(
 		}
 		return tokenResultOK{Response: resp}, nil
 	case TokenExchangeGrantType:
-		return h.handleTokenExchange(req.Context(), client, r)
+		return h.handleTokenExchange(ctx, client, r)
 	case AnonymousRequestGrantType:
-		return h.handleAnonymousRequest(req.Context(), client, r)
+		return h.handleAnonymousRequest(ctx, client, r)
 	case BiometricRequestGrantType:
-		return h.handleBiometricRequest(rw, req, client, r)
+		return h.handleBiometricRequest(ctx, rw, req, client, r)
 	case App2AppRequestGrantType:
-		return h.handleApp2AppRequest(rw, req, client, h.OAuthFeatureConfig, r)
+		return h.handleApp2AppRequest(ctx, rw, req, client, h.OAuthFeatureConfig, r)
 	case IDTokenGrantType:
-		return h.handleIDToken(rw, req, client, r)
+		return h.handleIDToken(ctx, rw, req, client, r)
 	case SettingsActionGrantType:
-		return h.handleSettingsActionCode(client, r)
+		return h.handleSettingsActionCode(ctx, client, r)
 	default:
 		panic("oauth: unexpected grant type")
 	}
@@ -365,13 +377,13 @@ func (h *TokenHandler) validateRequest(r protocol.TokenRequest, client *config.O
 
 var errInvalidAuthzCode = protocol.NewError("invalid_grant", "invalid authorization code")
 
-func (h *TokenHandler) app2appVerifyAndConsumeChallenge(jwt string) (*app2app.Request, error) {
+func (h *TokenHandler) app2appVerifyAndConsumeChallenge(ctx context.Context, jwt string) (*app2app.Request, error) {
 	app2appToken, err := h.App2App.ParseTokenUnverified(jwt)
 	if err != nil {
 		h.Logger.WithError(err).Debugln("invalid app2app jwt payload")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt payload")
 	}
-	purpose, err := h.Challenges.Consume(app2appToken.Challenge)
+	purpose, err := h.Challenges.Consume(ctx, app2appToken.Challenge)
 	if err != nil || *purpose != challenge.PurposeApp2AppRequest {
 		h.Logger.WithError(err).Debugln("invalid app2app jwt challenge")
 		return nil, protocol.NewError("invalid_request", "invalid app2app jwt challenge")
@@ -379,8 +391,8 @@ func (h *TokenHandler) app2appVerifyAndConsumeChallenge(jwt string) (*app2app.Re
 	return app2appToken, nil
 }
 
-func (h *TokenHandler) app2appGetDeviceKeyJWKVerified(jwt string) (jwk.Key, error) {
-	app2appToken, err := h.app2appVerifyAndConsumeChallenge(jwt)
+func (h *TokenHandler) app2appGetDeviceKeyJWKVerified(ctx context.Context, jwt string) (jwk.Key, error) {
+	app2appToken, err := h.app2appVerifyAndConsumeChallenge(ctx, jwt)
 	if err != nil {
 		return nil, err
 	}
@@ -399,8 +411,9 @@ func (h *TokenHandler) rotateDeviceSecret(
 	resp protocol.TokenResponse) (*oauth.OfflineGrant, error) {
 	dpopJKT, _ := dpop.GetDPoPProofJKT(ctx)
 
-	deviceSecretHash := h.TokenService.IssueDeviceSecret(resp)
+	deviceSecretHash := h.TokenService.IssueDeviceSecret(ctx, resp)
 	offlineGrant, err := h.OfflineGrants.UpdateOfflineGrantDeviceSecretHash(
+		ctx,
 		offlineGrant.ID,
 		deviceSecretHash,
 		dpopJKT,
@@ -450,6 +463,7 @@ func (h *TokenHandler) rotateDeviceSecretIfSufficientScope(
 }
 
 func (h *TokenHandler) app2appUpdateDeviceKeyIfNeeded(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	offlineGrant *oauth.OfflineGrant,
 	app2AppDeviceKey jwk.Key) (*oauth.OfflineGrant, error) {
@@ -468,7 +482,7 @@ func (h *TokenHandler) app2appUpdateDeviceKeyIfNeeded(
 			if offlineGrant.App2AppDeviceKeyJWKJSON != "" {
 				return nil, protocol.NewError("invalid_grant", "app2app device key cannot be changed")
 			}
-			newGrant, err := h.OfflineGrants.UpdateOfflineGrantApp2AppDeviceKey(offlineGrant.ID, string(newKeyJson), offlineGrant.ExpireAtForResolvedSession)
+			newGrant, err := h.OfflineGrants.UpdateOfflineGrantApp2AppDeviceKey(ctx, offlineGrant.ID, string(newKeyJson), offlineGrant.ExpireAtForResolvedSession)
 			if err != nil {
 				return nil, err
 			}
@@ -503,7 +517,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	}
 
 	codeHash := oauth.HashToken(r.Code())
-	codeGrant, err := h.CodeGrants.GetCodeGrant(codeHash)
+	codeGrant, err := h.CodeGrants.GetCodeGrant(ctx, codeHash)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil, errInvalidAuthzCode
 	} else if err != nil {
@@ -516,14 +530,14 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	}
 
 	// Restore uiparam
-	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, codeGrant.AuthorizationRequest)
+	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(ctx, client, codeGrant.AuthorizationRequest)
 	if err != nil {
 		return nil, err
 	}
 
 	uiParam := uiInfo.ToUIParam()
 	// Restore uiparam into context.
-	uiparam.WithUIParam(h.Context, &uiParam)
+	uiparam.WithUIParam(ctx, &uiParam)
 
 	if h.Clock.NowUTC().After(codeGrant.ExpireAt) {
 		return nil, errInvalidAuthzCode
@@ -568,7 +582,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		}
 	}
 
-	authz, err := h.Authorizations.GetByID(codeGrant.AuthorizationID)
+	authz, err := h.Authorizations.GetByID(ctx, codeGrant.AuthorizationID)
 	if errors.Is(err, oauth.ErrAuthorizationNotFound) {
 		return nil, errInvalidAuthzCode
 	} else if err != nil {
@@ -580,7 +594,7 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		return nil, err
 	}
 
-	err = h.CodeGrants.DeleteCodeGrant(codeGrant)
+	err = h.CodeGrants.DeleteCodeGrant(ctx, codeGrant)
 	if err != nil {
 		h.Logger.WithError(err).Error("failed to invalidate code grant")
 	}
@@ -618,12 +632,12 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, protocol.NewError("invalid_request", "client id doesn't match the refresh token")
 	}
 
-	_, err = h.OfflineGrantService.AccessOfflineGrant(offlineGrant.ID, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
+	_, err = h.OfflineGrantService.AccessOfflineGrant(ctx, offlineGrant.ID, &accessEvent, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(offlineGrant.ID, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
+	_, err = h.OfflineGrants.UpdateOfflineGrantDeviceInfo(ctx, offlineGrant.ID, deviceInfo, offlineGrant.ExpireAtForResolvedSession)
 	if err != nil {
 		return nil, err
 	}
@@ -650,7 +664,7 @@ func (h *TokenHandler) handleTokenExchange(
 	}
 }
 
-func (h *TokenHandler) resolveIDTokenSession(idToken jwt.Token) (sidSession session.ListableSession, ok bool, err error) {
+func (h *TokenHandler) resolveIDTokenSession(ctx context.Context, idToken jwt.Token) (sidSession session.ListableSession, ok bool, err error) {
 	sidInterface, ok := idToken.Get(string(model.ClaimSID))
 	if !ok {
 		return nil, false, nil
@@ -668,11 +682,11 @@ func (h *TokenHandler) resolveIDTokenSession(idToken jwt.Token) (sidSession sess
 
 	switch typ {
 	case session.TypeIdentityProvider:
-		if sess, err := h.IDPSessions.Get(sessionID); err == nil {
+		if sess, err := h.IDPSessions.Get(ctx, sessionID); err == nil {
 			sidSession = sess
 		}
 	case session.TypeOfflineGrant:
-		if sess, err := h.OfflineGrantService.GetOfflineGrant(sessionID); err == nil {
+		if sess, err := h.OfflineGrantService.GetOfflineGrant(ctx, sessionID); err == nil {
 			sidSession = sess
 		}
 	default:
@@ -733,7 +747,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	if r.Audience() != h.IDTokenIssuer.Iss() {
 		return nil, protocol.NewError("invalid_request", fmt.Sprintf("expected audience to be %v", h.IDTokenIssuer.Iss()))
 	}
-	session, ok, err := h.resolveIDTokenSession(idToken)
+	session, ok, err := h.resolveIDTokenSession(ctx, idToken)
 	if err != nil {
 		return nil, err
 	}
@@ -773,7 +787,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		scopes = requestedScopes
 	}
 
-	authz, err := h.Authorizations.CheckAndGrant(client.ClientID, offlineGrant.GetUserID(), scopes)
+	authz, err := h.Authorizations.CheckAndGrant(ctx, client.ClientID, offlineGrant.GetUserID(), scopes)
 	if err != nil {
 		return nil, err
 	}
@@ -785,7 +799,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 		OfflineGrantID:  offlineGrant.ID,
 		Scopes:          scopes,
 	}
-	result, err := h.PreAuthenticatedURLTokenService.IssuePreAuthenticatedURLToken(options)
+	result, err := h.PreAuthenticatedURLTokenService.IssuePreAuthenticatedURLToken(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -807,7 +821,7 @@ func (h *TokenHandler) handlePreAuthenticatedURLToken(
 	}
 
 	// Issue new id_token which associated to the new device_secret
-	newIDToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+	newIDToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,
 		SID:                oidc.EncodeSID(offlineGrant),
 		AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
@@ -860,19 +874,19 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	var graph *interaction.Graph
-	err = h.Graphs.DryRun(interaction.ContextValues{}, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = h.Graphs.DryRun(ctx, interaction.ContextValues{}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		intent := &interactionintents.IntentAuthenticate{
 			Kind:                     interactionintents.IntentAuthenticateKindLogin,
 			SuppressIDPSessionCookie: true,
 		}
-		graph, err = h.Graphs.NewGraph(ctx, intent)
+		graph, err = h.Graphs.NewGraph(ctx, interactionCtx, intent)
 		if err != nil {
 			return nil, err
 		}
 
 		var edges []interaction.Edge
-		graph, edges, err = h.Graphs.Accept(ctx, graph, &anonymousTokenInput{
+		graph, edges, err = h.Graphs.Accept(ctx, interactionCtx, graph, &anonymousTokenInput{
 			JWT: r.JWT(),
 		})
 		if len(edges) != 0 {
@@ -898,7 +912,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		AuthenticatedAt: h.Clock.NowUTC(),
 	}
 
-	err = h.Graphs.Run(interaction.ContextValues{}, graph)
+	err = h.Graphs.Run(ctx, interaction.ContextValues{}, graph)
 	if apierrors.IsAPIError(err) {
 		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {
@@ -909,6 +923,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	scopes := []string{"openid", oauth.OfflineAccess, oauth.FullAccessScope}
 
 	authz, err := h.Authorizations.CheckAndGrant(
+		ctx,
 		client.ClientID,
 		info.UserID,
 		scopes,
@@ -934,6 +949,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		DPoPJKT:            dpopJKT,
 	}
 	offlineGrant, tokenHash, err := h.issueOfflineGrant(
+		ctx,
 		client,
 		authz.UserID,
 		resp,
@@ -943,7 +959,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 		return nil, err
 	}
 
-	err = h.TokenService.IssueAccessGrant(client, scopes, authz.ID, authz.UserID,
+	err = h.TokenService.IssueAccessGrant(ctx, client, scopes, authz.ID, authz.UserID,
 		offlineGrant.ID, oauth.GrantSessionKindOffline, tokenHash, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
@@ -951,7 +967,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 	}
 
 	if slice.ContainsString(scopes, "openid") {
-		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                oidc.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
@@ -968,6 +984,7 @@ func (h *TokenHandler) handleAnonymousRequest(
 }
 
 func (h *TokenHandler) handleBiometricRequest(
+	ctx context.Context,
 	rw http.ResponseWriter,
 	req *http.Request,
 	client *config.OAuthClientConfig,
@@ -994,9 +1011,9 @@ func (h *TokenHandler) handleBiometricRequest(
 	action, _ := actionIface.(string)
 	switch action {
 	case string(identitybiometric.RequestActionSetup):
-		return h.handleBiometricSetup(req, client, r)
+		return h.handleBiometricSetup(ctx, req, client, r)
 	case string(identitybiometric.RequestActionAuthenticate):
-		return h.handleBiometricAuthenticate(req.Context(), client, r)
+		return h.handleBiometricAuthenticate(ctx, client, r)
 	default:
 		return nil, protocol.NewError("invalid_request", fmt.Sprintf("invalid action: %v", actionIface))
 	}
@@ -1011,6 +1028,7 @@ func (i *biometricInput) GetBiometricRequestToken() string {
 }
 
 func (h *TokenHandler) handleBiometricSetup(
+	ctx context.Context,
 	req *http.Request,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
@@ -1021,15 +1039,15 @@ func (h *TokenHandler) handleBiometricSetup(
 	}
 
 	var graph *interaction.Graph
-	err := h.Graphs.DryRun(interaction.ContextValues{}, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err := h.Graphs.DryRun(ctx, interaction.ContextValues{}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		var err error
-		graph, err = h.Graphs.NewGraph(ctx, interactionintents.NewIntentAddIdentity(s.GetAuthenticationInfo().UserID))
+		graph, err = h.Graphs.NewGraph(ctx, interactionCtx, interactionintents.NewIntentAddIdentity(s.GetAuthenticationInfo().UserID))
 		if err != nil {
 			return nil, err
 		}
 
 		var edges []interaction.Edge
-		graph, edges, err = h.Graphs.Accept(ctx, graph, &biometricInput{
+		graph, edges, err = h.Graphs.Accept(ctx, interactionCtx, graph, &biometricInput{
 			JWT: r.JWT(),
 		})
 		if len(edges) != 0 {
@@ -1053,7 +1071,7 @@ func (h *TokenHandler) handleBiometricSetup(
 		return nil, err
 	}
 
-	err = h.Graphs.Run(interaction.ContextValues{}, graph)
+	err = h.Graphs.Run(ctx, interaction.ContextValues{}, graph)
 	if apierrors.IsAPIError(err) {
 		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {
@@ -1074,19 +1092,19 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 
 	var graph *interaction.Graph
-	err = h.Graphs.DryRun(interaction.ContextValues{}, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	err = h.Graphs.DryRun(ctx, interaction.ContextValues{}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		var err error
 		intent := &interactionintents.IntentAuthenticate{
 			Kind:                     interactionintents.IntentAuthenticateKindLogin,
 			SuppressIDPSessionCookie: true,
 		}
-		graph, err = h.Graphs.NewGraph(ctx, intent)
+		graph, err = h.Graphs.NewGraph(ctx, interactionCtx, intent)
 		if err != nil {
 			return nil, err
 		}
 
 		var edges []interaction.Edge
-		graph, edges, err = h.Graphs.Accept(ctx, graph, &biometricInput{
+		graph, edges, err = h.Graphs.Accept(ctx, interactionCtx, graph, &biometricInput{
 			JWT: r.JWT(),
 		})
 		if len(edges) != 0 {
@@ -1114,7 +1132,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 	biometricIdentity := graph.MustGetUserLastIdentity()
 
-	err = h.Graphs.Run(interaction.ContextValues{}, graph)
+	err = h.Graphs.Run(ctx, interaction.ContextValues{}, graph)
 	if apierrors.IsAPIError(err) {
 		return nil, protocol.NewError("invalid_request", err.Error())
 	} else if err != nil {
@@ -1136,6 +1154,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 
 	authz, err := h.Authorizations.CheckAndGrant(
+		ctx,
 		client.ClientID,
 		info.UserID,
 		scopes,
@@ -1145,13 +1164,13 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 
 	// Clean up any offline grants that were issued with the same identity.
-	offlineGrants, err := h.OfflineGrants.ListOfflineGrants(authz.UserID)
+	offlineGrants, err := h.OfflineGrants.ListOfflineGrants(ctx, authz.UserID)
 	if err != nil {
 		return nil, err
 	}
 	for _, offlineGrant := range offlineGrants {
 		if offlineGrant.IdentityID == biometricIdentity.ID {
-			err := h.OfflineGrants.DeleteOfflineGrant(offlineGrant)
+			err := h.OfflineGrants.DeleteOfflineGrant(ctx, offlineGrant)
 			if err != nil {
 				return nil, err
 			}
@@ -1175,6 +1194,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		DPoPJKT:            dpopJKT,
 	}
 	offlineGrant, tokenHash, err := h.issueOfflineGrant(
+		ctx,
 		client,
 		authz.UserID,
 		resp,
@@ -1184,7 +1204,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 		return nil, err
 	}
 
-	err = h.TokenService.IssueAccessGrant(client, scopes, authz.ID, authz.UserID,
+	err = h.TokenService.IssueAccessGrant(ctx, client, scopes, authz.ID, authz.UserID,
 		offlineGrant.ID, oauth.GrantSessionKindOffline, tokenHash, resp)
 	if err != nil {
 		err = h.translateAccessTokenError(err)
@@ -1192,7 +1212,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 	}
 
 	if slice.ContainsString(scopes, "openid") {
-		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                oidc.EncodeSID(offlineGrant),
 			AuthenticationInfo: offlineGrant.GetAuthenticationInfo(),
@@ -1212,7 +1232,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 			ID: authz.UserID,
 		},
 	}
-	err = h.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
+	err = h.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
 		UserRef:  userRef,
 		Session:  *offlineGrant.ToAPIModel(),
 		AdminAPI: false,
@@ -1225,6 +1245,7 @@ func (h *TokenHandler) handleBiometricAuthenticate(
 }
 
 func (h *TokenHandler) handleApp2AppRequest(
+	ctx context.Context,
 	rw http.ResponseWriter,
 	req *http.Request,
 	client *config.OAuthClientConfig,
@@ -1269,7 +1290,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	}
 
 	app2appjwt := r.JWT()
-	verifiedToken, err := h.app2appVerifyAndConsumeChallenge(app2appjwt)
+	verifiedToken, err := h.app2appVerifyAndConsumeChallenge(ctx, app2appjwt)
 	if err != nil {
 		return nil, err
 	}
@@ -1279,7 +1300,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 			return nil, protocol.NewError("invalid_grant", "app2app is not allowed in current session")
 		}
 		// The challenge must be verified in previous steps
-		originalOfflineGrant, err = h.app2appUpdateDeviceKeyIfNeeded(originalClient, originalOfflineGrant, verifiedToken.Key)
+		originalOfflineGrant, err = h.app2appUpdateDeviceKeyIfNeeded(ctx, originalClient, originalOfflineGrant, verifiedToken.Key)
 		if err != nil {
 			return nil, err
 		}
@@ -1296,6 +1317,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 	}
 
 	authz, err := h.Authorizations.CheckAndGrant(
+		ctx,
 		client.ClientID,
 		originalOfflineGrant.GetUserID(),
 		scopes,
@@ -1323,7 +1345,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 		sessionType = session.TypeIdentityProvider
 	}
 
-	code, _, err := h.CodeGrantService.CreateCodeGrant(&CreateCodeGrantOptions{
+	code, _, err := h.CodeGrantService.CreateCodeGrant(ctx, &CreateCodeGrantOptions{
 		Authorization:        authz,
 		SessionType:          sessionType,
 		SessionID:            originalIDPSessionID,
@@ -1345,6 +1367,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 }
 
 func (h *TokenHandler) handleIDToken(
+	ctx context.Context,
 	w http.ResponseWriter,
 	req *http.Request,
 	client *config.OAuthClientConfig,
@@ -1379,7 +1402,7 @@ func (h *TokenHandler) handleIDToken(
 		}
 		deviceSecretHash = offlineGrant.DeviceSecretHash
 	}
-	idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+	idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 		ClientID:           client.ClientID,
 		SID:                oidc.EncodeSID(s),
 		AuthenticationInfo: s.GetAuthenticationInfo(),
@@ -1398,14 +1421,15 @@ func (h *TokenHandler) handleIDToken(
 }
 
 func (h *TokenHandler) revokeClientOfflineGrants(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	userID string) error {
-	offlineGrants, err := h.OfflineGrants.ListClientOfflineGrants(client.ClientID, userID)
+	offlineGrants, err := h.OfflineGrants.ListClientOfflineGrants(ctx, client.ClientID, userID)
 	if err != nil {
 		return err
 	}
 	for _, offlineGrant := range offlineGrants {
-		err := h.SessionManager.RevokeWithoutEvent(offlineGrant)
+		err := h.SessionManager.RevokeWithoutEvent(ctx, offlineGrant)
 		if err != nil {
 			return err
 		}
@@ -1414,6 +1438,7 @@ func (h *TokenHandler) revokeClientOfflineGrants(
 }
 
 func (h *TokenHandler) issueOfflineGrant(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	userID string,
 	resp protocol.TokenResponse,
@@ -1421,12 +1446,12 @@ func (h *TokenHandler) issueOfflineGrant(
 	revokeExistingGrants bool) (offlineGrant *oauth.OfflineGrant, tokenHash string, err error) {
 	// First revoke existing refresh tokens if MaxConcurrentSession == 1
 	if revokeExistingGrants && client.MaxConcurrentSession == 1 {
-		err := h.revokeClientOfflineGrants(client, userID)
+		err := h.revokeClientOfflineGrants(ctx, client, userID)
 		if err != nil {
 			return nil, "", err
 		}
 	}
-	offlineGrant, tokenHash, err = h.TokenService.IssueOfflineGrant(client, opts, resp)
+	offlineGrant, tokenHash, err = h.TokenService.IssueOfflineGrant(ctx, client, opts, resp)
 	if err != nil {
 		return nil, "", err
 	}
@@ -1472,7 +1497,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 
 	var app2appDevicePublicKey jwk.Key = nil
 	if app2appDeviceKeyJWT != "" && client.App2appEnabled {
-		k, err := h.app2appGetDeviceKeyJWKVerified(app2appDeviceKeyJWT)
+		k, err := h.app2appGetDeviceKeyJWKVerified(ctx, app2appDeviceKeyJWT)
 		if err != nil {
 			return nil, err
 		}
@@ -1487,11 +1512,11 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	// Update auth_time, app2app device key and device_secret of the offline grant if possible.
 	if sid := code.IDTokenHintSID; sid != "" {
 		if typ, sessionID, ok := oidc.DecodeSID(sid); ok && typ == session.TypeOfflineGrant {
-			offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(sessionID)
+			offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(ctx, sessionID)
 			if err == nil {
 				// Update auth_time
 				if info.AuthenticatedAt.After(offlineGrant.AuthenticatedAt) {
-					_, err = h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(offlineGrant.ID, info.AuthenticatedAt, offlineGrant.ExpireAtForResolvedSession)
+					_, err = h.OfflineGrants.UpdateOfflineGrantAuthenticatedAt(ctx, offlineGrant.ID, info.AuthenticatedAt, offlineGrant.ExpireAtForResolvedSession)
 					if err != nil {
 						return nil, err
 					}
@@ -1505,7 +1530,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 
 				// Update app2app device key
 				if app2appDevicePublicKey != nil {
-					_, err = h.app2appUpdateDeviceKeyIfNeeded(client, offlineGrant, app2appDevicePublicKey)
+					_, err = h.app2appUpdateDeviceKeyIfNeeded(ctx, client, offlineGrant, app2appDevicePublicKey)
 					if err != nil {
 						return nil, err
 					}
@@ -1552,6 +1577,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		switch session.Type(info.AuthenticatedBySessionType) {
 		case session.TypeOfflineGrant:
 			offlineGrant, tokenHash, err = h.TokenService.IssueRefreshTokenForOfflineGrant(
+				ctx,
 				info.AuthenticatedBySessionID,
 				client,
 				IssueOfflineGrantRefreshTokenOptions{
@@ -1566,6 +1592,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			fallthrough
 		default:
 			offlineGrant, tokenHash, err = h.issueOfflineGrant(
+				ctx,
 				client,
 				code.AuthenticationInfo.UserID,
 				resp,
@@ -1589,7 +1616,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 					ID: authz.UserID,
 				},
 			}
-			err = h.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
+			err = h.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
 				UserRef:  userRef,
 				Session:  *offlineGrant.ToAPIModel(),
 				AdminAPI: false,
@@ -1605,7 +1632,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 			switch typ {
 			case session.TypeOfflineGrant:
 				accessTokenSessionKind = oauth.GrantSessionKindOffline
-				offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(sessionID)
+				offlineGrant, err := h.OfflineGrantService.GetOfflineGrant(ctx, sessionID)
 				if err != nil {
 					return nil, err
 				}
@@ -1621,6 +1648,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		// allow issuing access tokens if scopes don't contain offline_access and the client is confidential
 		// fill the response with nil for not returning the refresh token
 		offlineGrant, _, err := h.issueOfflineGrant(
+			ctx,
 			client,
 			code.AuthenticationInfo.UserID,
 			nil,
@@ -1639,6 +1667,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 	}
 
 	err := h.TokenService.IssueAccessGrant(
+		ctx,
 		client,
 		code.AuthorizationRequest.Scope(),
 		authz.ID,
@@ -1656,7 +1685,7 @@ func (h *TokenHandler) doIssueTokensForAuthorizationCode(
 		if sid == "" {
 			return nil, protocol.NewError("invalid_request", "cannot issue ID token")
 		}
-		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                sid,
 			Nonce:              code.AuthorizationRequest.Nonce(),
@@ -1699,7 +1728,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 	}
 
 	if issueIDToken {
-		idToken, err := h.IDTokenIssuer.IssueIDToken(oidc.IssueIDTokenOptions{
+		idToken, err := h.IDTokenIssuer.IssueIDToken(ctx, oidc.IssueIDTokenOptions{
 			ClientID:           client.ClientID,
 			SID:                oidc.EncodeSID(offlineGrantSession.OfflineGrant),
 			AuthenticationInfo: offlineGrantSession.GetAuthenticationInfo(),
@@ -1712,7 +1741,7 @@ func (h *TokenHandler) issueTokensForRefreshToken(
 		resp.IDToken(idToken)
 	}
 
-	err = h.TokenService.IssueAccessGrant(client, offlineGrantSession.Scopes,
+	err = h.TokenService.IssueAccessGrant(ctx, client, offlineGrantSession.Scopes,
 		authz.ID, authz.UserID, offlineGrantSession.SessionID(),
 		oauth.GrantSessionKindOffline, offlineGrantSession.TokenHash, resp)
 	if err != nil {
@@ -1745,7 +1774,7 @@ func (h *TokenHandler) IssueAppSessionToken(ctx context.Context, refreshToken st
 		RefreshTokenHash: refreshTokenHash,
 	}
 
-	err = h.AppSessionTokens.CreateAppSessionToken(sToken)
+	err = h.AppSessionTokens.CreateAppSessionToken(ctx, sToken)
 	if err != nil {
 		return "", nil, err
 	}
@@ -1775,10 +1804,11 @@ func (h *TokenHandler) shouldIssueDeviceSecret(scopes []string) bool {
 }
 
 func (h *TokenHandler) handleSettingsActionCode(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	resp, err := h.IssueTokensForSettingsActionCode(client, r)
+	resp, err := h.IssueTokensForSettingsActionCode(ctx, client, r)
 	if err != nil {
 		return nil, err
 	}
@@ -1788,11 +1818,12 @@ func (h *TokenHandler) handleSettingsActionCode(
 
 // nolint:gocognit
 func (h *TokenHandler) IssueTokensForSettingsActionCode(
+	ctx context.Context,
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (protocol.TokenResponse, error) {
 	codeHash := oauth.HashToken(r.Code())
-	settingsActionGrant, err := h.SettingsActionGrantStore.GetSettingsActionGrant(codeHash)
+	settingsActionGrant, err := h.SettingsActionGrantStore.GetSettingsActionGrant(ctx, codeHash)
 	if errors.Is(err, oauth.ErrGrantNotFound) {
 		return nil, errInvalidAuthzCode
 	} else if err != nil {
@@ -1800,14 +1831,14 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 	}
 
 	// Restore uiparam
-	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(client, settingsActionGrant.AuthorizationRequest)
+	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(ctx, client, settingsActionGrant.AuthorizationRequest)
 	if err != nil {
 		return nil, err
 	}
 
 	uiParam := uiInfo.ToUIParam()
 	// Restore uiparam into context.
-	uiparam.WithUIParam(h.Context, &uiParam)
+	uiparam.WithUIParam(ctx, &uiParam)
 
 	if h.Clock.NowUTC().After(settingsActionGrant.ExpireAt) {
 		return nil, errInvalidAuthzCode
@@ -1852,7 +1883,7 @@ func (h *TokenHandler) IssueTokensForSettingsActionCode(
 		}
 	}
 
-	err = h.SettingsActionGrantStore.DeleteSettingsActionGrant(settingsActionGrant)
+	err = h.SettingsActionGrantStore.DeleteSettingsActionGrant(ctx, settingsActionGrant)
 	if err != nil {
 		h.Logger.WithError(err).Error("failed to invalidate settings action grant")
 	}

@@ -1,7 +1,6 @@
 package cmdanalytic
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -63,7 +62,6 @@ var cmdAnalyticCollectCount = &cobra.Command{
 		dbPool := db.NewPool()
 		redisPool := redis.NewPool()
 		countCollector := analytic.NewCountCollector(
-			context.Background(),
 			dbPool,
 			dbCredentials,
 			auditDBCredentials,
@@ -80,7 +78,7 @@ var cmdAnalyticCollectCount = &cobra.Command{
 		switch periodicalType {
 		case periodical.Daily:
 			log.Println("Start collecting daily analytic count", date.Format(timeutil.LayoutISODate))
-			updatedCount, err := countCollector.CollectDaily(date)
+			updatedCount, err := countCollector.CollectDaily(cmd.Context(), date)
 			if err != nil {
 				return err
 			}
@@ -92,7 +90,7 @@ var cmdAnalyticCollectCount = &cobra.Command{
 				date.Format(timeutil.LayoutISODate),
 				fmt.Sprintf("%04d-W%02d", year, week),
 			)
-			updatedCount, err := countCollector.CollectWeekly(date)
+			updatedCount, err := countCollector.CollectWeekly(cmd.Context(), date)
 			if err != nil {
 				return err
 			}
@@ -102,7 +100,7 @@ var cmdAnalyticCollectCount = &cobra.Command{
 				"Start collecting monthly analytic count",
 				date.Format("2006-01"),
 			)
-			updatedCount, err := countCollector.CollectMonthly(date)
+			updatedCount, err := countCollector.CollectMonthly(cmd.Context(), date)
 			if err != nil {
 				return err
 			}

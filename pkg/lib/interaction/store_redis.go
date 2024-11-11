@@ -18,22 +18,21 @@ type StoreRedis struct {
 	AppID config.AppID
 }
 
-func (s *StoreRedis) CreateGraph(graph *Graph) error {
-	return s.create(graph, true)
+func (s *StoreRedis) CreateGraph(ctx context.Context, graph *Graph) error {
+	return s.create(ctx, graph, true)
 }
 
-func (s *StoreRedis) CreateGraphInstance(graph *Graph) error {
-	return s.create(graph, false)
+func (s *StoreRedis) CreateGraphInstance(ctx context.Context, graph *Graph) error {
+	return s.create(ctx, graph, false)
 }
 
-func (s *StoreRedis) create(graph *Graph, ifNotExists bool) error {
-	ctx := context.Background()
+func (s *StoreRedis) create(ctx context.Context, graph *Graph, ifNotExists bool) error {
 	bytes, err := json.Marshal(graph)
 	if err != nil {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		graphKey := redisGraphKey(s.AppID, graph.GraphID)
 		instanceKey := redisInstanceKey(s.AppID, graph.InstanceID)
 		ttl := GraphLifetime
@@ -61,11 +60,10 @@ func (s *StoreRedis) create(graph *Graph, ifNotExists bool) error {
 	})
 }
 
-func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
-	ctx := context.Background()
+func (s *StoreRedis) GetGraphInstance(ctx context.Context, instanceID string) (*Graph, error) {
 	instanceKey := redisInstanceKey(s.AppID, instanceID)
 	var graph Graph
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, instanceKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrGraphNotFound
@@ -91,9 +89,8 @@ func (s *StoreRedis) GetGraphInstance(instanceID string) (*Graph, error) {
 	return &graph, err
 }
 
-func (s *StoreRedis) DeleteGraph(graph *Graph) error {
-	ctx := context.Background()
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+func (s *StoreRedis) DeleteGraph(ctx context.Context, graph *Graph) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		graphKey := redisGraphKey(s.AppID, graph.GraphID)
 		_, err := conn.Del(ctx, graphKey).Result()
 		if err != nil {

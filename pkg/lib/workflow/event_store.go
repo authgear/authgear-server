@@ -1,6 +1,7 @@
 package workflow
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,8 +36,8 @@ func NewEventStore(appID config.AppID, handle *appredis.Handle, store Store) *Ev
 	return s
 }
 
-func (s *EventStoreImpl) Publish(workflowID string, e Event) error {
-	channelName, err := s.ChannelName(workflowID)
+func (s *EventStoreImpl) Publish(ctx context.Context, workflowID string, e Event) error {
+	channelName, err := s.ChannelName(ctx, workflowID)
 	if errors.Is(err, ErrWorkflowNotFound) {
 		// Treat events to an non-existent (e.g. expired) workflow as noop.
 		return nil
@@ -49,7 +50,7 @@ func (s *EventStoreImpl) Publish(workflowID string, e Event) error {
 		return err
 	}
 
-	err = s.publisher.Publish(channelName, b)
+	err = s.publisher.Publish(ctx, channelName, b)
 	if err != nil {
 		return err
 	}
@@ -57,9 +58,9 @@ func (s *EventStoreImpl) Publish(workflowID string, e Event) error {
 	return nil
 }
 
-func (s *EventStoreImpl) ChannelName(workflowID string) (string, error) {
+func (s *EventStoreImpl) ChannelName(ctx context.Context, workflowID string) (string, error) {
 	// Ignore events for workflows without session.
-	_, err := s.Store.GetSession(workflowID)
+	_, err := s.Store.GetSession(ctx, workflowID)
 	if err != nil {
 		return "", err
 	}

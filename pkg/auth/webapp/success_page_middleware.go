@@ -38,6 +38,7 @@ func (m *SuccessPageMiddleware) Pop(r *http.Request, rw http.ResponseWriter) str
 // the cookie should be set right before redirecting to the success page
 func (m *SuccessPageMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		// We want to allow POST in success page.
 		// For example, POST in delete account success page to finish settings action.
 		if r.Method == "GET" {
@@ -47,7 +48,7 @@ func (m *SuccessPageMiddleware) Handle(next http.Handler) http.Handler {
 				// Show invalid session error when the path cookie doesn't match
 				// the current path
 				apierror := apierrors.AsAPIError(ErrInvalidSession)
-				errorCookie, err := m.ErrorService.SetRecoverableError(r, apierror)
+				errorCookie, err := m.ErrorService.SetRecoverableError(ctx, r, apierror)
 				if err != nil {
 					panic(err)
 				}

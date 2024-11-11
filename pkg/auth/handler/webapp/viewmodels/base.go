@@ -1,6 +1,7 @@
 package viewmodels
 
 import (
+	"context"
 	"encoding/json"
 	htmltemplate "html/template"
 	"net/http"
@@ -32,8 +33,28 @@ func NewBaseLogger(lf *log.Factory) BaseLogger {
 }
 
 type TranslationService interface {
+	HasKey(ctx context.Context, key string) (bool, error)
+	RenderText(ctx context.Context, key string, args interface{}) (string, error)
+}
+
+type TranslationsCompat interface {
 	HasKey(key string) (bool, error)
 	RenderText(key string, args interface{}) (string, error)
+}
+
+type TranslationsCompatImpl struct {
+	Context            context.Context // This context is intentionally contained in a struct.
+	TranslationService TranslationService
+}
+
+var _ TranslationsCompat = &TranslationsCompatImpl{}
+
+func (t *TranslationsCompatImpl) HasKey(key string) (bool, error) {
+	return t.TranslationService.HasKey(t.Context, key)
+}
+
+func (t *TranslationsCompatImpl) RenderText(key string, args interface{}) (string, error) {
+	return t.TranslationService.RenderText(t.Context, key, args)
 }
 
 // BaseViewModel contains data that are common to all pages.
@@ -43,7 +64,7 @@ type BaseViewModel struct {
 	ColorScheme                 string
 	CSPNonce                    string
 	CSRFField                   htmltemplate.HTML
-	Translations                TranslationService
+	Translations                TranslationsCompat
 	HasAppSpecificAsset         func(id string) bool
 	StaticAssetURL              func(id string) (url string)
 	GeneratedStaticAssetURL     func(id string) (url string)
@@ -136,12 +157,12 @@ func (m *BaseViewModel) SetTutorial(name httputil.TutorialCookieName) {
 
 type StaticAssetResolver interface {
 	HasAppSpecificAsset(id string) bool
-	StaticAssetURL(id string) (url string, err error)
+	StaticAssetURL(ctx context.Context, id string) (url string, err error)
 	GeneratedStaticAssetURL(id string) (url string, err error)
 }
 
 type ErrorService interface {
-	PopError(w http.ResponseWriter, r *http.Request) (*webapp.ErrorState, bool)
+	PopError(ctx context.Context, w http.ResponseWriter, r *http.Request) (*webapp.ErrorState, bool)
 }
 
 type FlashMessage interface {
@@ -258,12 +279,15 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 
 	hasXStep := r.URL.Query().Has(webapp.AuthflowQueryKey)
 	model := BaseViewModel{
-		ColorScheme:  webapp.GetColorScheme(r.Context()),
-		RequestURI:   r.URL.RequestURI(),
-		HasXStep:     hasXStep,
-		CSPNonce:     cspNonce,
-		CSRFField:    csrf.TemplateField(r),
-		Translations: m.Translations,
+		ColorScheme: webapp.GetColorScheme(r.Context()),
+		RequestURI:  r.URL.RequestURI(),
+		HasXStep:    hasXStep,
+		CSPNonce:    cspNonce,
+		CSRFField:   csrf.TemplateField(r),
+		Translations: &TranslationsCompatImpl{
+			Context:            r.Context(),
+			TranslationService: m.Translations,
+		},
 		HasAppSpecificAsset: func(id string) bool {
 			return m.StaticAssets.HasAppSpecificAsset(id)
 		},
@@ -273,7 +297,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		// {{ $a, $b := call $.StaticAssetURL "foobar" }}
 		// is NOT supported at all.
 		StaticAssetURL: func(id string) (url string) {
-			url, _ = m.StaticAssets.StaticAssetURL(id)
+			url, _ = m.StaticAssets.StaticAssetURL(r.Context(), id)
 			return
 		},
 		GeneratedStaticAssetURL: func(id string) (url string) {
@@ -349,7 +373,7 @@ func (m *BaseViewModeler) ViewModel(r *http.Request, rw http.ResponseWriter) Bas
 		},
 	}
 
-	if errorState, ok := m.ErrorService.PopError(rw, r); ok {
+	if errorState, ok := m.ErrorService.PopError(r.Context(), rw, r); ok {
 		model.SetFormJSON(errorState.Form)
 		model.SetError(errorState.Error)
 	}

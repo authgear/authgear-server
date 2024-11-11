@@ -225,7 +225,6 @@ var cmdAuditDatabaseDump = &cobra.Command{
 		}
 
 		dumper := dbutil.NewDumper(
-			cmd.Context(),
 			dbURL,
 			dbSchema,
 			outputDir,
@@ -233,7 +232,7 @@ var cmdAuditDatabaseDump = &cobra.Command{
 			tableNames,
 		)
 
-		return dumper.Dump()
+		return dumper.Dump(cmd.Context())
 	},
 }
 
@@ -256,7 +255,6 @@ var cmdAuditDatabaseRestore = &cobra.Command{
 		}
 
 		restorer := dbutil.NewRestorer(
-			cmd.Context(),
 			dbURL,
 			dbSchema,
 			inputDir,
@@ -264,6 +262,6 @@ var cmdAuditDatabaseRestore = &cobra.Command{
 			tableNames,
 		)
 
-		return restorer.Restore()
+		return restorer.Restore(cmd.Context())
 	},
 }

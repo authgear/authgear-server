@@ -25,9 +25,7 @@ var cmdInternalE2EQuerySQLSelect = &cobra.Command{
 		appID := binder.GetString(cmd, ArgAppID)
 		rawSQL := binder.GetString(cmd, ArgRawSQL)
 
-		instance := e2e.End2End{
-			Context: cmd.Context(),
-		}
+		instance := e2e.End2End{}
 
 		dbRows, err := instance.QuerySQLSelect(appID, rawSQL)
 		if err != nil {

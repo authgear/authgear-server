@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -17,7 +19,7 @@ func init() {
 type EdgeDoCreateUser struct {
 }
 
-func (e *EdgeDoCreateUser) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoCreateUser) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	publicSignupDisabled := ctx.Config.Authentication.PublicSignupDisabled
 
 	bypassPublicSignupDisabled := false
@@ -50,18 +52,18 @@ type NodeDoCreateUser struct {
 	IsAdminAPI      bool   `json:"is_admin_api"`
 }
 
-func (n *NodeDoCreateUser) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoCreateUser) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoCreateUser) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			_, err := ctx.Users.Create(n.CreateUserID)
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			_, err := ctx.Users.Create(goCtx, n.CreateUserID)
 			return err
 		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			u, err := ctx.Users.GetRaw(n.CreateUserID)
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			u, err := ctx.Users.GetRaw(goCtx, n.CreateUserID)
 			if err != nil {
 				return err
 			}
@@ -85,7 +87,7 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 				// check the rate limit only before running the effects
 				bucket := interaction.SignupPerIPRateLimitBucketSpec(ctx.Config.Authentication, isAnonymous, ip)
 				var failedReservation *ratelimit.FailedReservation
-				reservation, failedReservation, err = ctx.RateLimiter.Reserve(bucket)
+				reservation, failedReservation, err = ctx.RateLimiter.Reserve(goCtx, bucket)
 				if err != nil {
 					return err
 				}
@@ -93,10 +95,10 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 					return err
 				}
 			}
-			defer ctx.RateLimiter.Cancel(reservation)
+			defer ctx.RateLimiter.Cancel(goCtx, reservation)
 
 			// run the effects
-			err = ctx.Users.AfterCreate(
+			err = ctx.Users.AfterCreate(goCtx,
 				u,
 				graph.GetUserNewIdentities(),
 				graph.GetUserNewAuthenticators(),
@@ -114,8 +116,8 @@ func (n *NodeDoCreateUser) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeDoCreateUser) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeDoCreateUser) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }
 
 func (n *NodeDoCreateUser) UserID() string {

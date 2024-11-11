@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -73,7 +75,7 @@ type AuthflowV2SettingsIdentityViewPhoneHandler struct {
 	AccountManagement   accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
@@ -82,16 +84,16 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(r *http.Request, rw
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	channel := h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 
-	phoneIdentity, err := h.Identities.LoginID.Get(*userID, identityID)
+	phoneIdentity, err := h.Identities.LoginID.Get(ctx, *userID, identityID)
 	if err != nil {
 		return nil, err
 	}
 
-	verified, err := h.AccountManagement.CheckIdentityVerified(phoneIdentity.ToInfo())
+	verified, err := h.AccountManagement.CheckIdentityVerified(ctx, phoneIdentity.ToInfo())
 	if err != nil {
 		return nil, err
 	}
@@ -103,7 +105,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) GetData(r *http.Request, rw
 		deleteDisabled = *loginIDConfig.DeleteDisabled
 	}
 
-	identities, err := h.Identities.ListByUser(*userID)
+	identities, err := h.Identities.ListByUser(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -137,10 +139,10 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			return err
 		})
 		if err != nil {
@@ -151,7 +153,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		err := AuthflowV2SettingsRemoveIdentityPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -159,7 +161,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 
 		removeID := r.Form.Get("x_identity_id")
 
-		_, err = h.AccountManagement.DeleteIdentityPhone(session.GetSession(r.Context()), &accountmanagement.DeleteIdentityPhoneInput{
+		_, err = h.AccountManagement.DeleteIdentityPhone(ctx, session.GetSession(ctx), &accountmanagement.DeleteIdentityPhoneInput{
 			IdentityID: removeID,
 		})
 		if err != nil {
@@ -181,7 +183,7 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 		return nil
 	})
 
-	ctrl.PostAction("verify", func() error {
+	ctrl.PostAction("verify", func(ctx context.Context) error {
 		loginIDKey := r.Form.Get("q_login_id_key")
 
 		err := AuthflowV2SettingsUpdateIdentityVerificationPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
@@ -193,8 +195,8 @@ func (h *AuthflowV2SettingsIdentityViewPhoneHandler) ServeHTTP(w http.ResponseWr
 		loginID := r.Form.Get("x_login_id")
 		identityID := r.Form.Get("x_identity_id")
 
-		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartUpdateIdentityPhone(s, &accountmanagement.StartUpdateIdentityPhoneInput{
+		s := session.GetSession(ctx)
+		output, err := h.AccountManagement.StartUpdateIdentityPhone(ctx, s, &accountmanagement.StartUpdateIdentityPhoneInput{
 			Channel:    channel,
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,

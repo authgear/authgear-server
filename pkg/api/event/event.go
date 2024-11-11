@@ -1,6 +1,8 @@
 package event
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 )
@@ -8,16 +10,16 @@ import (
 type Type string
 
 type StandardAttributesServiceNoEvent interface {
-	UpdateStandardAttributes(role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
+	UpdateStandardAttributes(ctx context.Context, role accesscontrol.Role, userID string, stdAttrs map[string]interface{}) error
 }
 
 type CustomAttributesServiceNoEvent interface {
-	UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
+	UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]interface{}) error
 }
 
 type RolesAndGroupsServiceNoEvent interface {
-	ResetUserRole(options *rolesgroups.ResetUserRoleOptions) error
-	ResetUserGroup(options *rolesgroups.ResetUserGroupOptions) error
+	ResetUserRole(ctx context.Context, options *rolesgroups.ResetUserRoleOptions) error
+	ResetUserGroup(ctx context.Context, options *rolesgroups.ResetUserGroupOptions) error
 }
 
 type MutationsEffectContext struct {
@@ -36,9 +38,9 @@ type BlockingPayload interface {
 	Payload
 	BlockingEventType() Type
 	// ApplyMutations applies mutations to itself.
-	ApplyMutations(mutations Mutations) bool
+	ApplyMutations(ctx context.Context, mutations Mutations) bool
 	// PerformEffects performs the side effects of the mutations.
-	PerformEffects(ctx MutationsEffectContext) error
+	PerformEffects(ctx context.Context, effectCtx MutationsEffectContext) error
 }
 
 type NonBlockingPayload interface {
@@ -59,9 +61,9 @@ type Event struct {
 	IsNonBlocking bool    `json:"-"`
 }
 
-func (e *Event) ApplyMutations(mutations Mutations) bool {
+func (e *Event) ApplyMutations(ctx context.Context, mutations Mutations) bool {
 	if blockingPayload, ok := e.Payload.(BlockingPayload); ok {
-		applied := blockingPayload.ApplyMutations(mutations)
+		applied := blockingPayload.ApplyMutations(ctx, mutations)
 		if applied {
 			e.Payload = blockingPayload
 			return true
@@ -71,9 +73,9 @@ func (e *Event) ApplyMutations(mutations Mutations) bool {
 	return false
 }
 
-func (e *Event) PerformEffects(ctx MutationsEffectContext) error {
+func (e *Event) PerformEffects(ctx context.Context, effectCtx MutationsEffectContext) error {
 	if blockingPayload, ok := e.Payload.(BlockingPayload); ok {
-		err := blockingPayload.PerformEffects(ctx)
+		err := blockingPayload.PerformEffects(ctx, effectCtx)
 		if err != nil {
 			return err
 		}

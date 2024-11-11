@@ -40,8 +40,10 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
+
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can delete collaborator")
 			}
@@ -49,9 +51,9 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 			collaboratorID := input["collaboratorID"].(string)
 
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
-			targetCollab, err := gqlCtx.CollaboratorService.GetCollaborator(collaboratorID)
+			targetCollab, err := gqlCtx.CollaboratorService.GetCollaborator(ctx, collaboratorID)
 			if err != nil {
 				return nil, err
 			}
@@ -59,12 +61,12 @@ var _ = registerMutationField(
 			appID := targetCollab.AppID
 
 			// Access Control: collaborator.
-			userID, err := gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			userID, err := gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			selfCollab, err := gqlCtx.CollaboratorService.GetCollaboratorByAppAndUser(appID, userID)
+			selfCollab, err := gqlCtx.CollaboratorService.GetCollaboratorByAppAndUser(ctx, appID, userID)
 			if err != nil {
 				return nil, err
 			}
@@ -72,17 +74,17 @@ var _ = registerMutationField(
 				return nil, AccessDenied.Errorf("insufficient permission to delete %s collaborators", targetCollab.Role)
 			}
 
-			err = gqlCtx.CollaboratorService.DeleteCollaborator(targetCollab)
+			err = gqlCtx.CollaboratorService.DeleteCollaborator(ctx, targetCollab)
 			if err != nil {
 				return nil, err
 			}
 
-			app, err := gqlCtx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorDeletedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectCollaboratorDeletedEventPayload{
 				CollaboratorID:     targetCollab.ID,
 				CollaboratorUserID: targetCollab.UserID,
 				CollaboratorRole:   string(targetCollab.Role),
@@ -92,7 +94,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": gqlCtx.Apps.Load(appID),
+				"app": gqlCtx.Apps.Load(ctx, appID),
 			}).Value, nil
 		},
 	},
@@ -126,8 +128,9 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can delete collaborator invitation")
 			}
@@ -135,30 +138,30 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 			collaboratorInvitationID := input["collaboratorInvitationID"].(string)
 
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
-			invitation, err := gqlCtx.CollaboratorService.GetInvitation(collaboratorInvitationID)
+			invitation, err := gqlCtx.CollaboratorService.GetInvitation(ctx, collaboratorInvitationID)
 			if err != nil {
 				return nil, err
 			}
 
 			// Access Control: collaborator.
-			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(invitation.AppID)
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(ctx, invitation.AppID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.CollaboratorService.DeleteInvitation(invitation)
+			err = gqlCtx.CollaboratorService.DeleteInvitation(ctx, invitation)
 			if err != nil {
 				return nil, err
 			}
 
-			app, err := gqlCtx.AppService.Get(invitation.AppID)
+			app, err := gqlCtx.AppService.Get(ctx, invitation.AppID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorInvitationDeletedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectCollaboratorInvitationDeletedEventPayload{
 				InviteeEmail: invitation.InviteeEmail,
 				InvitedBy:    invitation.InvitedBy,
 			})
@@ -167,7 +170,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": gqlCtx.Apps.Load(invitation.AppID),
+				"app": gqlCtx.Apps.Load(ctx, invitation.AppID),
 			}).Value, nil
 		},
 	},
@@ -220,10 +223,12 @@ var _ = registerMutationField(
 			},
 		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			ctx := p.Context
+
 			input := p.Args["input"].(map[string]interface{})
 
 			// Access Control: authenticated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can create collaborator invitation")
 			}
@@ -242,32 +247,32 @@ var _ = registerMutationField(
 			}
 			appID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			gqlCtx := GQLContext(ctx)
 
 			// Access Control: collaborator.
-			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(appID)
+			_, err = gqlCtx.AuthzService.CheckAccessOfViewer(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			invitation, err := gqlCtx.CollaboratorService.SendInvitation(appID, inviteeEmail)
+			invitation, err := gqlCtx.CollaboratorService.SendInvitation(ctx, appID, inviteeEmail)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.TutorialService.RecordProgresses(appID, []tutorial.Progress{tutorial.ProgressInvite})
+			err = gqlCtx.TutorialService.RecordProgresses(ctx, appID, []tutorial.Progress{tutorial.ProgressInvite})
 			if err != nil {
 				return nil, err
 			}
 
 			gqlCtx.CollaboratorInvitations.Prime(invitation.ID, invitation)
 
-			app, err := gqlCtx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorInvitationCreatedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectCollaboratorInvitationCreatedEventPayload{
 				InviteeEmail: invitation.InviteeEmail,
 				InvitedBy:    invitation.InvitedBy,
 			})
@@ -276,8 +281,8 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app":                    gqlCtx.Apps.Load(appID),
-				"collaboratorInvitation": gqlCtx.CollaboratorInvitations.Load(invitation.ID),
+				"app":                    gqlCtx.Apps.Load(ctx, appID),
+				"collaboratorInvitation": gqlCtx.CollaboratorInvitations.Load(ctx, invitation.ID),
 			}).Value, nil
 		},
 	},
@@ -314,27 +319,29 @@ var _ = registerMutationField(
 			input := p.Args["input"].(map[string]interface{})
 			code := input["code"].(string)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+
+			gqlCtx := GQLContext(ctx)
 
 			// Access Control: authenicated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can accept invitations")
 			}
 
-			collaborator, err := gqlCtx.CollaboratorService.AcceptInvitation(code)
+			collaborator, err := gqlCtx.CollaboratorService.AcceptInvitation(ctx, code)
 			if err != nil {
 				return nil, err
 			}
 
 			appID := collaborator.AppID
 
-			app, err := gqlCtx.AppService.Get(appID)
+			app, err := gqlCtx.AppService.Get(ctx, appID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.AuditService.Log(app, &nonblocking.ProjectCollaboratorInvitationAcceptedEventPayload{
+			err = gqlCtx.AuditService.Log(ctx, app, &nonblocking.ProjectCollaboratorInvitationAcceptedEventPayload{
 				CollaboratorUserID: collaborator.UserID,
 				CollaboratorRole:   string(collaborator.Role),
 			})
@@ -343,7 +350,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"app": gqlCtx.Apps.Load(collaborator.AppID),
+				"app": gqlCtx.Apps.Load(ctx, collaborator.AppID),
 			}).Value, nil
 		},
 	},

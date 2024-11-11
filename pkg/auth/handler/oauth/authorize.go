@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -24,7 +25,7 @@ func NewAuthorizeHandlerLogger(lf *log.Factory) AuthorizeHandlerLogger {
 }
 
 type ProtocolAuthorizeHandler interface {
-	Handle(r protocol.AuthorizationRequest) httputil.Result
+	Handle(ctx context.Context, r protocol.AuthorizationRequest) httputil.Result
 }
 
 var errAuthzInternalError = errors.New("internal error")
@@ -48,8 +49,8 @@ func (h *AuthorizeHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 
 	var result httputil.Result
-	err = h.Database.WithTx(func() error {
-		result = h.AuthzHandler.Handle(req)
+	err = h.Database.WithTx(r.Context(), func(ctx context.Context) error {
+		result = h.AuthzHandler.Handle(ctx, req)
 		if result.IsInternalError() {
 			return errAuthzInternalError
 		}

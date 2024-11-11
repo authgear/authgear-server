@@ -1,6 +1,7 @@
 package sms
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -45,7 +46,7 @@ type SendSMSPayload struct {
 	TemplateVariables *TemplateVariables `json:"template_variables"`
 }
 
-func (c *CustomClient) Send(opts SendOptions) error {
+func (c *CustomClient) Send(ctx context.Context, opts SendOptions) error {
 	if c.Config == nil {
 		return ErrMissingCustomSMSProviderConfiguration
 	}
@@ -63,7 +64,7 @@ func (c *CustomClient) Send(opts SendOptions) error {
 	}
 	switch {
 	case c.SMSDenoHook.SupportURL(u):
-		return c.SMSDenoHook.Call(u, payload)
+		return c.SMSDenoHook.Call(ctx, u, payload)
 	case c.SMSWebHook.SupportURL(u):
 		return c.SMSWebHook.Call(u, payload)
 	default:
@@ -89,6 +90,6 @@ type SMSDenoHook struct {
 	Client HookDenoClient
 }
 
-func (d *SMSDenoHook) Call(u *url.URL, payload SendSMSPayload) error {
-	return d.RunAsync(d.Client, u, payload)
+func (d *SMSDenoHook) Call(ctx context.Context, u *url.URL, payload SendSMSPayload) error {
+	return d.RunAsync(ctx, d.Client, u, payload)
 }

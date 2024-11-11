@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -49,7 +50,8 @@ func TestProviderListCandidates(t *testing.T) {
 		}
 
 		Convey("no candidates", func() {
-			actual, err := p.ListCandidates("")
+			ctx := context.Background()
+			actual, err := p.ListCandidates(ctx, "")
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeEmpty)
 		})
@@ -65,7 +67,8 @@ func TestProviderListCandidates(t *testing.T) {
 				},
 			}
 
-			actual, err := p.ListCandidates("")
+			ctx := context.Background()
+			actual, err := p.ListCandidates(ctx, "")
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
@@ -95,7 +98,8 @@ func TestProviderListCandidates(t *testing.T) {
 				},
 			}
 
-			actual, err := p.ListCandidates("")
+			ctx := context.Background()
+			actual, err := p.ListCandidates(ctx, "")
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
@@ -131,7 +135,8 @@ func TestProviderListCandidates(t *testing.T) {
 				},
 			}
 
-			actual, err := p.ListCandidates("")
+			ctx := context.Background()
+			actual, err := p.ListCandidates(ctx, "")
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeEmpty)
 		})
@@ -150,7 +155,8 @@ func TestProviderListCandidates(t *testing.T) {
 				},
 			}
 
-			loginIDProvider.EXPECT().List(userID).Return([]*identity.LoginID{
+			ctx := context.Background()
+			loginIDProvider.EXPECT().List(ctx, userID).Return([]*identity.LoginID{
 				{
 					LoginIDKey:      "email",
 					LoginID:         "john.doe@example.com",
@@ -160,10 +166,10 @@ func TestProviderListCandidates(t *testing.T) {
 					},
 				},
 			}, nil)
-			oauthProvider.EXPECT().List(userID).Return(nil, nil)
-			siweProvider.EXPECT().List(userID).Return(nil, nil)
+			oauthProvider.EXPECT().List(ctx, userID).Return(nil, nil)
+			siweProvider.EXPECT().List(ctx, userID).Return(nil, nil)
 
-			actual, err := p.ListCandidates(userID)
+			actual, err := p.ListCandidates(ctx, userID)
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
@@ -193,9 +199,11 @@ func TestProviderListCandidates(t *testing.T) {
 				},
 			}
 
-			loginIDProvider.EXPECT().List(userID).Return(nil, nil)
-			siweProvider.EXPECT().List(userID).Return(nil, nil)
-			oauthProvider.EXPECT().List(userID).Return([]*identity.OAuth{
+			ctx := context.Background()
+
+			loginIDProvider.EXPECT().List(ctx, userID).Return(nil, nil)
+			siweProvider.EXPECT().List(ctx, userID).Return(nil, nil)
+			oauthProvider.EXPECT().List(ctx, userID).Return([]*identity.OAuth{
 				{
 					ProviderID: oauthrelyingparty.ProviderID{
 						Type: google.Type,
@@ -208,7 +216,7 @@ func TestProviderListCandidates(t *testing.T) {
 				},
 			}, nil)
 
-			actual, err := p.ListCandidates(userID)
+			actual, err := p.ListCandidates(ctx, userID)
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
@@ -231,15 +239,17 @@ func TestProviderListCandidates(t *testing.T) {
 
 			p.Authentication.Identities = []model.IdentityType{model.IdentityTypeSIWE}
 
-			loginIDProvider.EXPECT().List(userID).Return(nil, nil)
-			oauthProvider.EXPECT().List(userID).Return(nil, nil)
-			siweProvider.EXPECT().List(userID).Return([]*identity.SIWE{
+			ctx := context.Background()
+
+			loginIDProvider.EXPECT().List(ctx, userID).Return(nil, nil)
+			oauthProvider.EXPECT().List(ctx, userID).Return(nil, nil)
+			siweProvider.EXPECT().List(ctx, userID).Return([]*identity.SIWE{
 				{
 					Address: "0x0",
 				},
 			}, nil)
 
-			actual, err := p.ListCandidates(userID)
+			actual, err := p.ListCandidates(ctx, userID)
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, []identity.Candidate{
 				{
@@ -332,12 +342,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 		Convey("brand new login ID", func() {
 			info := makeEmailLoginID("user0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(info.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(info)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			loginIDProvider.EXPECT().GetByUniqueKey(ctx, info.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, info)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -345,12 +357,13 @@ func TestProviderCheckDuplicated(t *testing.T) {
 		Convey("branch new oauth", func() {
 			info := makeOAuth("user0", "google0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(info.OAuth.ProviderID, info.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
-			ldapProvider.EXPECT().ListByClaim("email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			ctx := context.Background()
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().GetByProviderSubject(ctx, info.OAuth.ProviderID, info.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
 
-			actual, err := p.CheckDuplicated(info)
+			actual, err := p.CheckDuplicated(ctx, info)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -358,12 +371,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 		Convey("branch new ldap", func() {
 			info := makeLDAP("user0", "ldap-1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(info)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().GetByServerUserID(ctx, info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, info)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -371,12 +386,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 		Convey("login ID / login ID clash; same user", func() {
 			info := makeEmailLoginID("user0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", info.LoginID.Claims["email"]).AnyTimes().Return([]*identity.LoginID{info.LoginID}, nil)
-			oauthProvider.EXPECT().ListByClaim("email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(info.LoginID.UniqueKey).AnyTimes().Return(info.LoginID, nil)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(info)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", info.LoginID.Claims["email"]).AnyTimes().Return([]*identity.LoginID{info.LoginID}, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", info.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			loginIDProvider.EXPECT().GetByUniqueKey(ctx, info.LoginID.UniqueKey).AnyTimes().Return(info.LoginID, nil)
+
+			actual, err := p.CheckDuplicated(ctx, info)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -385,12 +402,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeEmailLoginID("user0", "johndoe@example.com")
 			existing := makeEmailLoginID("user1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(existing.LoginID, nil)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			loginIDProvider.EXPECT().GetByUniqueKey(ctx, incoming.LoginID.UniqueKey).AnyTimes().Return(existing.LoginID, nil)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
@@ -398,12 +417,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 		Convey("oauth / oauth clash; same user", func() {
 			info := makeOAuth("user0", "google0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", info.OAuth.Claims["email"]).AnyTimes().Return([]*identity.OAuth{info.OAuth}, nil)
-			ldapProvider.EXPECT().ListByClaim("email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(info.OAuth.ProviderID, info.OAuth.ProviderSubjectID).AnyTimes().Return(info.OAuth, nil)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(info)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", info.OAuth.Claims["email"]).AnyTimes().Return([]*identity.OAuth{info.OAuth}, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", info.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().GetByProviderSubject(ctx, info.OAuth.ProviderID, info.OAuth.ProviderSubjectID).AnyTimes().Return(info.OAuth, nil)
+
+			actual, err := p.CheckDuplicated(ctx, info)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -412,12 +433,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeOAuth("user0", "google0", "johndoe@example.com")
 			existing := makeOAuth("user1", "google0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(existing.OAuth, nil)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().GetByProviderSubject(ctx, incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(existing.OAuth, nil)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
@@ -425,12 +448,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 		Convey("ldap / ldap clash; same user", func() {
 			info := makeLDAP("user0", "ldap-1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", info.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LDAP{info.LDAP}, nil)
-			ldapProvider.EXPECT().GetByServerUserID(info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue).AnyTimes().Return(info.LDAP, nil)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(info)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", info.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", info.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LDAP{info.LDAP}, nil)
+			ldapProvider.EXPECT().GetByServerUserID(ctx, info.LDAP.ServerName, info.LDAP.UserIDAttributeName, info.LDAP.UserIDAttributeValue).AnyTimes().Return(info.LDAP, nil)
+
+			actual, err := p.CheckDuplicated(ctx, info)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -439,12 +464,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeLDAP("user0", "ldap-1", "johndoe@example.com")
 			existing := makeLDAP("user1", "ldap-1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(existing.LDAP, nil)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
+			ldapProvider.EXPECT().GetByServerUserID(ctx, incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(existing.LDAP, nil)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
@@ -453,12 +480,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeEmailLoginID("user0", "johndoe@example.com")
 			existing := makeOAuth("user0", "google0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			loginIDProvider.EXPECT().GetByUniqueKey(ctx, incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -467,12 +496,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeEmailLoginID("user0", "johndoe@example.com")
 			existing := makeOAuth("user1", "google0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			loginIDProvider.EXPECT().GetByUniqueKey(ctx, incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
@@ -481,12 +512,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeEmailLoginID("user0", "johndoe@example.com")
 			existing := makeLDAP("user0", "ldap-1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
+			loginIDProvider.EXPECT().GetByUniqueKey(ctx, incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -495,12 +528,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeEmailLoginID("user0", "johndoe@example.com")
 			existing := makeLDAP("user1", "ldap-1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
-			loginIDProvider.EXPECT().GetByUniqueKey(incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LoginID.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
+			loginIDProvider.EXPECT().GetByUniqueKey(ctx, incoming.LoginID.UniqueKey).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
@@ -509,12 +544,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeOAuth("user0", "google0", "johndoe@example.com")
 			existing := makeEmailLoginID("user0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().GetByProviderSubject(ctx, incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -523,12 +560,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeOAuth("user0", "google0", "johndoe@example.com")
 			existing := makeEmailLoginID("user1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().GetByProviderSubject(ctx, incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
@@ -537,12 +576,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeOAuth("user0", "google0", "johndoe@example.com")
 			existing := makeLDAP("user0", "ldap-1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
+			oauthProvider.EXPECT().GetByProviderSubject(ctx, incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -551,12 +592,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeOAuth("user0", "google0", "johndoe@example.com")
 			existing := makeLDAP("user1", "ldap-1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
-			oauthProvider.EXPECT().GetByProviderSubject(incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.OAuth.Claims["email"]).AnyTimes().Return([]*identity.LDAP{existing.LDAP}, nil)
+			oauthProvider.EXPECT().GetByProviderSubject(ctx, incoming.OAuth.ProviderID, incoming.OAuth.ProviderSubjectID).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
@@ -565,12 +608,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeLDAP("user0", "ldap-1", "johndoe@example.com")
 			existing := makeEmailLoginID("user0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().GetByServerUserID(ctx, incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -579,12 +624,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeLDAP("user0", "ldap-1", "johndoe@example.com")
 			existing := makeEmailLoginID("user1", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.LoginID{existing.LoginID}, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().GetByServerUserID(ctx, incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})
@@ -593,12 +640,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeLDAP("user0", "ldap-1", "johndoe@example.com")
 			existing := makeOAuth("user0", "google0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().GetByServerUserID(ctx, incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(err, ShouldBeNil)
 			So(actual, ShouldBeNil)
 		})
@@ -607,12 +656,14 @@ func TestProviderCheckDuplicated(t *testing.T) {
 			incoming := makeLDAP("user0", "ldap-1", "johndoe@example.com")
 			existing := makeOAuth("user1", "google0", "johndoe@example.com")
 
-			loginIDProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			oauthProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
-			ldapProvider.EXPECT().ListByClaim("email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
-			ldapProvider.EXPECT().GetByServerUserID(incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+			ctx := context.Background()
 
-			actual, err := p.CheckDuplicated(incoming)
+			loginIDProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			oauthProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return([]*identity.OAuth{existing.OAuth}, nil)
+			ldapProvider.EXPECT().ListByClaim(ctx, "email", incoming.LDAP.Claims["email"]).AnyTimes().Return(nil, nil)
+			ldapProvider.EXPECT().GetByServerUserID(ctx, incoming.LDAP.ServerName, incoming.LDAP.UserIDAttributeName, incoming.LDAP.UserIDAttributeValue).AnyTimes().Return(nil, api.ErrIdentityNotFound)
+
+			actual, err := p.CheckDuplicated(ctx, incoming)
 			So(identity.IsErrDuplicatedIdentity(err), ShouldBeTrue)
 			So(actual, ShouldResemble, existing)
 		})

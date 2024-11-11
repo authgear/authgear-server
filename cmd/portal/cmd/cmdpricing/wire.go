@@ -4,8 +4,6 @@
 package cmdpricing
 
 import (
-	"context"
-
 	"github.com/getsentry/sentry-go"
 	"github.com/google/wire"
 
@@ -15,7 +13,6 @@ import (
 )
 
 func NewStripeService(
-	ctx context.Context,
 	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 	stripeConfig *portalconfig.StripeConfig,

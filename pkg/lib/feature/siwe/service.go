@@ -1,6 +1,7 @@
 package siwe
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"errors"
 	"fmt"
@@ -34,15 +35,15 @@ const (
 )
 
 type NonceStore interface {
-	Create(nonce *Nonce) error
-	Get(nonce *Nonce) (*Nonce, error)
-	Delete(nonce *Nonce) error
+	Create(ctx context.Context, nonce *Nonce) error
+	Get(ctx context.Context, nonce *Nonce) (*Nonce, error)
+	Delete(ctx context.Context, nonce *Nonce) error
 }
 
 type RateLimiter interface {
-	Allow(spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
-	Reserve(spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
-	Cancel(r *ratelimit.Reservation)
+	Allow(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.FailedReservation, error)
+	Reserve(ctx context.Context, spec ratelimit.BucketSpec) (*ratelimit.Reservation, *ratelimit.FailedReservation, error)
+	Cancel(ctx context.Context, r *ratelimit.Reservation)
 }
 
 type Logger struct{ *log.Logger }
@@ -77,14 +78,14 @@ func (s *Service) rateLimitVerifyMessage() ratelimit.BucketSpec {
 	)
 }
 
-func (s *Service) CreateNewNonce() (*Nonce, error) {
+func (s *Service) CreateNewNonce(ctx context.Context) (*Nonce, error) {
 	nonce := rand.StringWithAlphabet(16, Alphabet, rand.SecureRand)
 	nonceModel := &Nonce{
 		Nonce:    nonce,
 		ExpireAt: s.Clock.NowUTC().Add(duration.Short),
 	}
 
-	failed, err := s.RateLimiter.Allow(s.rateLimitGenerateNonce())
+	failed, err := s.RateLimiter.Allow(ctx, s.rateLimitGenerateNonce())
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func (s *Service) CreateNewNonce() (*Nonce, error) {
 		return nil, err
 	}
 
-	err = s.NonceStore.Create(nonceModel)
+	err = s.NonceStore.Create(ctx, nonceModel)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +101,7 @@ func (s *Service) CreateNewNonce() (*Nonce, error) {
 	return nonceModel, nil
 }
 
-func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet, *ecdsa.PublicKey, error) {
+func (s *Service) VerifyMessage(ctx context.Context, msg string, signature string) (*model.SIWEWallet, *ecdsa.PublicKey, error) {
 	message, err := siwego.ParseMessage(msg)
 	if err != nil {
 		return nil, nil, err
@@ -127,17 +128,17 @@ func (s *Service) VerifyMessage(msg string, signature string) (*model.SIWEWallet
 		return nil, nil, InvalidNetwork.NewWithInfo("network does not match expected network", apierrors.Details{"expected_chain_id": fmt.Sprintf("_%s", expectedNetworkID.Network)})
 	}
 
-	reservation, failed, err := s.RateLimiter.Reserve(s.rateLimitVerifyMessage())
+	reservation, failed, err := s.RateLimiter.Reserve(ctx, s.rateLimitVerifyMessage())
 	if err != nil {
 		return nil, nil, err
 	}
 	if err := failed.Error(); err != nil {
 		return nil, nil, err
 	}
-	defer s.RateLimiter.Cancel(reservation)
+	defer s.RateLimiter.Cancel(ctx, reservation)
 
 	messageNonce := message.GetNonce()
-	existingNonce, err := s.NonceStore.Get(&Nonce{
+	existingNonce, err := s.NonceStore.Get(ctx, &Nonce{
 		Nonce: messageNonce,
 	})
 	if errors.Is(err, ErrNonceNotFound) {

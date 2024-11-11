@@ -14,8 +14,8 @@ import (
 
 const typeViewer = "Viewer"
 
-var viewerSubresolver = func(gqlCtx *Context, id string) (interface{}, error) {
-	userIface, err := gqlCtx.Users.Load(id).Value()
+var viewerSubresolver = func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+	userIface, err := gqlCtx.Users.Load(ctx, id).Value()
 	if err != nil {
 		return nil, err
 	}
@@ -59,8 +59,9 @@ var nodeViewer = node(
 				Type: graphql.Boolean,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 					user := p.Source.(*model.User)
-					gqlCtx := GQLContext(p.Context)
-					isCompleted, err := gqlCtx.OnboardService.CheckOnboardingSurveyCompletion(user.ID)
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
+					isCompleted, err := gqlCtx.OnboardService.CheckOnboardingSurveyCompletion(ctx, user.ID)
 					if err != nil {
 						return nil, err
 					}
@@ -82,6 +83,6 @@ var nodeViewer = node(
 			return nil, nil
 		}
 
-		return viewerSubresolver(gqlCtx, id)
+		return viewerSubresolver(ctx, gqlCtx, id)
 	},
 )

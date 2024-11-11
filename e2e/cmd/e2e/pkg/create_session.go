@@ -2,6 +2,7 @@ package e2e
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 )
 
 func (c *End2End) CreateSession(
+	ctx context.Context,
 	appID string,
 	selectUserIDSQL string,
 	sessionType session.Type,
@@ -91,7 +93,7 @@ func (c *End2End) CreateSession(
 		)
 		encodedToken := idpsession.E2EEncodeToken(sessionID, token)
 		tokenHash := idpsession.E2EHashToken(encodedToken)
-		err = idpSessionStore.Create(&idpsession.IDPSession{
+		err = idpSessionStore.Create(ctx, &idpsession.IDPSession{
 			ID:              sessionID,
 			AppID:           appID,
 			CreatedAt:       clk.NowUTC(),

@@ -45,7 +45,7 @@ func NewNodeDoUseAnonymousUser(ctx context.Context, deps *authflow.Dependencies)
 	switch {
 	case loginHint.PromotionCode != "":
 		promotionCode := loginHint.PromotionCode
-		codeObj, err := deps.AnonymousUserPromotionCodeStore.GetPromotionCode(anonymous.HashPromotionCode(promotionCode))
+		codeObj, err := deps.AnonymousUserPromotionCodeStore.GetPromotionCode(ctx, anonymous.HashPromotionCode(promotionCode))
 		if err != nil {
 			return nil, err
 		}
@@ -53,7 +53,7 @@ func NewNodeDoUseAnonymousUser(ctx context.Context, deps *authflow.Dependencies)
 		promoteUserID := codeObj.UserID
 		promoteIdentityID := codeObj.IdentityID
 
-		anonymousIdentity, err := deps.AnonymousIdentities.Get(promoteUserID, promoteIdentityID)
+		anonymousIdentity, err := deps.AnonymousIdentities.Get(ctx, promoteUserID, promoteIdentityID)
 		if err != nil {
 			return nil, err
 		}
@@ -72,12 +72,12 @@ func NewNodeDoUseAnonymousUser(ctx context.Context, deps *authflow.Dependencies)
 			return nil, api.ErrInvalidCredentials
 		}
 
-		chal, err := deps.Challenges.Get(request.Challenge)
+		chal, err := deps.Challenges.Get(ctx, request.Challenge)
 		if err != nil || chal.Purpose != challenge.PurposeAnonymousRequest {
 			return nil, api.ErrInvalidCredentials
 		}
 
-		anonymousIdentity, err := deps.AnonymousIdentities.GetByKeyID(request.KeyID)
+		anonymousIdentity, err := deps.AnonymousIdentities.GetByKeyID(ctx, request.KeyID)
 		if err != nil {
 			return nil, err
 		}
@@ -91,7 +91,7 @@ func NewNodeDoUseAnonymousUser(ctx context.Context, deps *authflow.Dependencies)
 						ID: userID,
 					},
 				}
-				err = deps.Events.DispatchEventOnCommit(&nonblocking.AuthenticationFailedIdentityEventPayload{
+				err = deps.Events.DispatchEventOnCommit(ctx, &nonblocking.AuthenticationFailedIdentityEventPayload{
 					UserRef:      userRef,
 					IdentityType: string(model.IdentityTypeAnonymous),
 				})
@@ -131,7 +131,7 @@ func (n *NodeDoUseAnonymousUser) GetEffects(ctx context.Context, deps *authflow.
 					return err
 				}
 
-				_, err = deps.Challenges.Consume(request.Challenge)
+				_, err = deps.Challenges.Consume(ctx, request.Challenge)
 				if err != nil {
 					return err
 				}
@@ -143,12 +143,12 @@ func (n *NodeDoUseAnonymousUser) GetEffects(ctx context.Context, deps *authflow.
 		}),
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
 			if n.PromotionCode != "" {
-				codeObj, err := deps.AnonymousUserPromotionCodeStore.GetPromotionCode(anonymous.HashPromotionCode(n.PromotionCode))
+				codeObj, err := deps.AnonymousUserPromotionCodeStore.GetPromotionCode(ctx, anonymous.HashPromotionCode(n.PromotionCode))
 				if err != nil {
 					return err
 				}
 
-				err = deps.AnonymousUserPromotionCodeStore.DeletePromotionCode(codeObj)
+				err = deps.AnonymousUserPromotionCodeStore.DeletePromotionCode(ctx, codeObj)
 				if err != nil {
 					return err
 				}

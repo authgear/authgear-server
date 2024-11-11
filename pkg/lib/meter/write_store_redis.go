@@ -27,14 +27,13 @@ func NewStoreRedisLogger(lf *log.Factory) StoreRedisLogger {
 }
 
 type WriteStoreRedis struct {
-	Context context.Context
-	Redis   *analyticredis.Handle
-	AppID   config.AppID
-	Clock   clock.Clock
-	Logger  StoreRedisLogger
+	Redis  *analyticredis.Handle
+	AppID  config.AppID
+	Clock  clock.Clock
+	Logger StoreRedisLogger
 }
 
-func (s *WriteStoreRedis) TrackActiveUser(userID string) (err error) {
+func (s *WriteStoreRedis) TrackActiveUser(ctx context.Context, userID string) (err error) {
 	if s.Redis == nil {
 		return nil
 	}
@@ -46,9 +45,9 @@ func (s *WriteStoreRedis) TrackActiveUser(userID string) (err error) {
 		weeklyActiveUserCount(s.AppID, year, week),
 		dailyActiveUserCount(s.AppID, &now),
 	}
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		for _, key := range keys {
-			_, err := conn.PFAdd(s.Context, key, userID).Result()
+			_, err := conn.PFAdd(ctx, key, userID).Result()
 			if err != nil {
 				err = fmt.Errorf("failed to track user active count: %w", err)
 				return err
@@ -59,21 +58,21 @@ func (s *WriteStoreRedis) TrackActiveUser(userID string) (err error) {
 	return
 }
 
-func (s *WriteStoreRedis) TrackPageView(visitorID string, pageType PageType) (err error) {
+func (s *WriteStoreRedis) TrackPageView(ctx context.Context, visitorID string, pageType PageType) (err error) {
 	if s.Redis == nil {
 		return nil
 	}
 	now := s.Clock.NowUTC()
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		uniquePageViewKey := dailyUniquePageView(s.AppID, pageType, &now)
-		_, err := conn.PFAdd(s.Context, uniquePageViewKey, visitorID).Result()
+		_, err := conn.PFAdd(ctx, uniquePageViewKey, visitorID).Result()
 		if err != nil {
 			err = fmt.Errorf("failed to track unique page view: %w", err)
 			return err
 		}
 
 		pageViewKey := dailyPageView(s.AppID, pageType, &now)
-		_, err = conn.Incr(s.Context, pageViewKey).Result()
+		_, err = conn.Incr(ctx, pageViewKey).Result()
 		if err != nil {
 			err = fmt.Errorf("failed to track page view: %w", err)
 			return err

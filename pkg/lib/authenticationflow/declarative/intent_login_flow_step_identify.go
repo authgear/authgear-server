@@ -87,7 +87,7 @@ func NewIntentLoginFlowStepIdentify(ctx context.Context, deps *authflow.Dependen
 			)
 			options = append(options, oauthOptions...)
 		case config.AuthenticationFlowIdentificationPasskey:
-			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptions()
+			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptions(ctx)
 			if err != nil {
 				return nil, err
 			}

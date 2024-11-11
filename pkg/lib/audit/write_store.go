@@ -1,6 +1,7 @@
 package audit
 
 import (
+	"context"
 	"encoding/json"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -11,7 +12,7 @@ type WriteStore struct {
 	SQLExecutor *auditdb.WriteSQLExecutor
 }
 
-func (s *WriteStore) PersistLog(logEntry *Log) (err error) {
+func (s *WriteStore) PersistLog(ctx context.Context, logEntry *Log) (err error) {
 	data, err := json.Marshal(logEntry.Data)
 	if err != nil {
 		return
@@ -40,7 +41,7 @@ func (s *WriteStore) PersistLog(logEntry *Log) (err error) {
 			data,
 		)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return
 	}

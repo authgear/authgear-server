@@ -5,6 +5,7 @@
 package authenticationflow
 
 import (
+	context "context"
 	reflect "reflect"
 
 	authenticationinfo "github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
@@ -36,103 +37,103 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // CreateFlow mocks base method.
-func (m *MockStore) CreateFlow(flow *Flow) error {
+func (m *MockStore) CreateFlow(ctx context.Context, flow *Flow) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateFlow", flow)
+	ret := m.ctrl.Call(m, "CreateFlow", ctx, flow)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateFlow indicates an expected call of CreateFlow.
-func (mr *MockStoreMockRecorder) CreateFlow(flow interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) CreateFlow(ctx, flow interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFlow", reflect.TypeOf((*MockStore)(nil).CreateFlow), flow)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateFlow", reflect.TypeOf((*MockStore)(nil).CreateFlow), ctx, flow)
 }
 
 // CreateSession mocks base method.
-func (m *MockStore) CreateSession(session *Session) error {
+func (m *MockStore) CreateSession(ctx context.Context, session *Session) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateSession", session)
+	ret := m.ctrl.Call(m, "CreateSession", ctx, session)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateSession indicates an expected call of CreateSession.
-func (mr *MockStoreMockRecorder) CreateSession(session interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) CreateSession(ctx, session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSession", reflect.TypeOf((*MockStore)(nil).CreateSession), session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSession", reflect.TypeOf((*MockStore)(nil).CreateSession), ctx, session)
 }
 
 // DeleteFlow mocks base method.
-func (m *MockStore) DeleteFlow(flow *Flow) error {
+func (m *MockStore) DeleteFlow(ctx context.Context, flow *Flow) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteFlow", flow)
+	ret := m.ctrl.Call(m, "DeleteFlow", ctx, flow)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteFlow indicates an expected call of DeleteFlow.
-func (mr *MockStoreMockRecorder) DeleteFlow(flow interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) DeleteFlow(ctx, flow interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFlow", reflect.TypeOf((*MockStore)(nil).DeleteFlow), flow)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteFlow", reflect.TypeOf((*MockStore)(nil).DeleteFlow), ctx, flow)
 }
 
 // DeleteSession mocks base method.
-func (m *MockStore) DeleteSession(session *Session) error {
+func (m *MockStore) DeleteSession(ctx context.Context, session *Session) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteSession", session)
+	ret := m.ctrl.Call(m, "DeleteSession", ctx, session)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeleteSession indicates an expected call of DeleteSession.
-func (mr *MockStoreMockRecorder) DeleteSession(session interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) DeleteSession(ctx, session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSession", reflect.TypeOf((*MockStore)(nil).DeleteSession), session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteSession", reflect.TypeOf((*MockStore)(nil).DeleteSession), ctx, session)
 }
 
 // GetFlowByStateToken mocks base method.
-func (m *MockStore) GetFlowByStateToken(stateToken string) (*Flow, error) {
+func (m *MockStore) GetFlowByStateToken(ctx context.Context, stateToken string) (*Flow, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetFlowByStateToken", stateToken)
+	ret := m.ctrl.Call(m, "GetFlowByStateToken", ctx, stateToken)
 	ret0, _ := ret[0].(*Flow)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetFlowByStateToken indicates an expected call of GetFlowByStateToken.
-func (mr *MockStoreMockRecorder) GetFlowByStateToken(stateToken interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) GetFlowByStateToken(ctx, stateToken interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlowByStateToken", reflect.TypeOf((*MockStore)(nil).GetFlowByStateToken), stateToken)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFlowByStateToken", reflect.TypeOf((*MockStore)(nil).GetFlowByStateToken), ctx, stateToken)
 }
 
 // GetSession mocks base method.
-func (m *MockStore) GetSession(flowID string) (*Session, error) {
+func (m *MockStore) GetSession(ctx context.Context, flowID string) (*Session, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSession", flowID)
+	ret := m.ctrl.Call(m, "GetSession", ctx, flowID)
 	ret0, _ := ret[0].(*Session)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSession indicates an expected call of GetSession.
-func (mr *MockStoreMockRecorder) GetSession(flowID interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) GetSession(ctx, flowID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockStore)(nil).GetSession), flowID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSession", reflect.TypeOf((*MockStore)(nil).GetSession), ctx, flowID)
 }
 
 // UpdateSession mocks base method.
-func (m *MockStore) UpdateSession(session *Session) error {
+func (m *MockStore) UpdateSession(ctx context.Context, session *Session) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateSession", session)
+	ret := m.ctrl.Call(m, "UpdateSession", ctx, session)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateSession indicates an expected call of UpdateSession.
-func (mr *MockStoreMockRecorder) UpdateSession(session interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) UpdateSession(ctx, session interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSession", reflect.TypeOf((*MockStore)(nil).UpdateSession), session)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSession", reflect.TypeOf((*MockStore)(nil).UpdateSession), ctx, session)
 }
 
 // MockServiceDatabase is a mock of ServiceDatabase interface.
@@ -159,31 +160,31 @@ func (m *MockServiceDatabase) EXPECT() *MockServiceDatabaseMockRecorder {
 }
 
 // ReadOnly mocks base method.
-func (m *MockServiceDatabase) ReadOnly(do func() error) error {
+func (m *MockServiceDatabase) ReadOnly(ctx context.Context, do func(context.Context) error) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ReadOnly", do)
+	ret := m.ctrl.Call(m, "ReadOnly", ctx, do)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // ReadOnly indicates an expected call of ReadOnly.
-func (mr *MockServiceDatabaseMockRecorder) ReadOnly(do interface{}) *gomock.Call {
+func (mr *MockServiceDatabaseMockRecorder) ReadOnly(ctx, do interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOnly", reflect.TypeOf((*MockServiceDatabase)(nil).ReadOnly), do)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ReadOnly", reflect.TypeOf((*MockServiceDatabase)(nil).ReadOnly), ctx, do)
 }
 
 // WithTx mocks base method.
-func (m *MockServiceDatabase) WithTx(do func() error) error {
+func (m *MockServiceDatabase) WithTx(ctx context.Context, do func(context.Context) error) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "WithTx", do)
+	ret := m.ctrl.Call(m, "WithTx", ctx, do)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // WithTx indicates an expected call of WithTx.
-func (mr *MockServiceDatabaseMockRecorder) WithTx(do interface{}) *gomock.Call {
+func (mr *MockServiceDatabaseMockRecorder) WithTx(ctx, do interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockServiceDatabase)(nil).WithTx), do)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WithTx", reflect.TypeOf((*MockServiceDatabase)(nil).WithTx), ctx, do)
 }
 
 // MockServiceUIInfoResolver is a mock of ServiceUIInfoResolver interface.

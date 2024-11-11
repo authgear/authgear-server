@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -39,7 +40,7 @@ func ConfigureResetPasswordRoute(route httproute.Route) httproute.Route {
 }
 
 type ResetPasswordService interface {
-	VerifyCode(code string) (state *otp.State, err error)
+	VerifyCode(ctx context.Context, code string) (state *otp.State, err error)
 }
 
 type ResetPasswordHandler struct {
@@ -50,7 +51,7 @@ type ResetPasswordHandler struct {
 	ResetPassword     ResetPasswordService
 }
 
-func (h *ResetPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *ResetPasswordHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	passwordPolicyViewModel := viewmodels.NewPasswordPolicyViewModel(
@@ -60,7 +61,7 @@ func (h *ResetPasswordHandler) GetData(r *http.Request, rw http.ResponseWriter) 
 		viewmodels.GetDefaultPasswordPolicyViewModelOptions(),
 	)
 
-	_, err := h.ResetPassword.VerifyCode(r.Form.Get("code"))
+	_, err := h.ResetPassword.VerifyCode(ctx, r.Form.Get("code"))
 	if apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
 		baseViewModel.SetError(err)
 	} else if err != nil {
@@ -87,8 +88,8 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 	}
 	intent := intents.NewIntentResetPassword()
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+	ctrl.Get(func(ctx context.Context) error {
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
@@ -97,7 +98,7 @@ func (h *ResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			err = ResetPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {

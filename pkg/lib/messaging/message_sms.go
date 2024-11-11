@@ -1,6 +1,8 @@
 package messaging
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
@@ -19,8 +21,8 @@ type SMSMessage struct {
 	IsNotCounted bool
 }
 
-func (m *SMSMessage) Send() error {
-	err := m.events.DispatchEventImmediately(&nonblocking.SMSSentEventPayload{
+func (m *SMSMessage) Send(ctx context.Context) error {
+	err := m.events.DispatchEventImmediately(ctx, &nonblocking.SMSSentEventPayload{
 		Sender:              m.Sender,
 		Recipient:           m.To,
 		Type:                string(m.Type),

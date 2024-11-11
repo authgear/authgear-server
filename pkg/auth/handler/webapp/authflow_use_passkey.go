@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -68,7 +69,7 @@ func (h *AuthflowUsePasskeyHandler) GetData(w http.ResponseWriter, r *http.Reque
 
 func (h *AuthflowUsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -77,7 +78,7 @@ func (h *AuthflowUsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowUsePasskeyHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		assertionResponseStr := r.Form.Get("x_assertion_response")
 
 		var assertionResponseJSON interface{}
@@ -96,7 +97,7 @@ func (h *AuthflowUsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			"assertion_response": assertionResponseJSON,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -104,5 +105,5 @@ func (h *AuthflowUsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

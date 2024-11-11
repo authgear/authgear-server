@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -41,15 +42,15 @@ type AuthflowV2SettingsIdentityListUsernameHandler struct {
 	Renderer          handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SettingsIdentityListUsernameHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityListUsernameHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	loginIDKey := r.Form.Get("q_login_id_key")
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
-	identities, err := h.Identities.LoginID.List(*userID)
+	identities, err := h.Identities.LoginID.List(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,10 +87,10 @@ func (h *AuthflowV2SettingsIdentityListUsernameHandler) ServeHTTP(w http.Respons
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(w, r)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, w, r)
 			return err
 		})
 		if err != nil {

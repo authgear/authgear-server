@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"time"
@@ -15,6 +16,7 @@ type AuditDBReadStore struct {
 }
 
 func (s *AuditDBReadStore) GetAnalyticCountByType(
+	ctx context.Context,
 	appID string,
 	typ string,
 	date *time.Time,
@@ -22,7 +24,7 @@ func (s *AuditDBReadStore) GetAnalyticCountByType(
 	builder := s.selectAnalyticCountQuery(appID).
 		Where("type = ?", typ).
 		Where("date = ?", date)
-	row, err := s.SQLExecutor.QueryRowWith(builder)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +41,7 @@ func (s *AuditDBReadStore) GetAnalyticCountByType(
 // GetAnalyticCountsByType get counts by type and date range
 // the provided rangeFrom and rangeTo are inclusive
 func (s *AuditDBReadStore) GetAnalyticCountsByType(
+	ctx context.Context,
 	appID string,
 	typ string,
 	rangeFrom *time.Time,
@@ -49,7 +52,7 @@ func (s *AuditDBReadStore) GetAnalyticCountsByType(
 		Where("date >= ?", rangeFrom).
 		Where("date <= ?", rangeTo)
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +71,7 @@ func (s *AuditDBReadStore) GetAnalyticCountsByType(
 }
 
 func (s *AuditDBReadStore) GetSumOfAnalyticCountsByType(
+	ctx context.Context,
 	appID string,
 	typ string,
 	rangeFrom *time.Time,
@@ -82,7 +86,7 @@ func (s *AuditDBReadStore) GetSumOfAnalyticCountsByType(
 		Where("date >= ?", rangeFrom).
 		Where("date <= ?", rangeTo)
 
-	row, err := s.SQLExecutor.QueryRowWith(builder)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return 0, err
 	}

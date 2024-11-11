@@ -1,6 +1,7 @@
 package interaction
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -331,22 +332,22 @@ func (g *Graph) FillDetails(err error) error {
 }
 
 // Apply applies the effect the the graph nodes into the context.
-func (g *Graph) Apply(ctx *Context) error {
+func (g *Graph) Apply(goCtx context.Context, ctx *Context) error {
 	for i, node := range g.Nodes {
 		// Prepare the node with sliced graph.
 		slicedGraph := *g
 		slicedGraph.Nodes = slicedGraph.Nodes[:i+1]
-		if err := node.Prepare(ctx, &slicedGraph); err != nil {
+		if err := node.Prepare(goCtx, ctx, &slicedGraph); err != nil {
 			return g.FillDetails(err)
 		}
 
-		effs, err := node.GetEffects()
+		effs, err := node.GetEffects(goCtx)
 		if err != nil {
 			return g.FillDetails(err)
 		}
 		for _, eff := range effs {
 			// Apply the effect with unsliced graph.
-			err = eff.apply(ctx, g, i)
+			err = eff.apply(goCtx, ctx, g, i)
 			if err != nil {
 				return err
 			}
@@ -356,11 +357,11 @@ func (g *Graph) Apply(ctx *Context) error {
 }
 
 // Accept run the graph to the deepest node using the input
-func (g *Graph) accept(ctx *Context, input interface{}) (*Graph, []Edge, error) {
+func (g *Graph) accept(goCtx context.Context, ctx *Context, input interface{}) (*Graph, []Edge, error) {
 	graph := g
 	for {
 		node := graph.CurrentNode()
-		edges, err := node.DeriveEdges(graph)
+		edges, err := node.DeriveEdges(goCtx, graph)
 		if err != nil {
 			return nil, nil, graph.FillDetails(err)
 		}
@@ -372,7 +373,7 @@ func (g *Graph) accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 
 		var nextNode Node
 		for _, edge := range edges {
-			nextNode, err = edge.Instantiate(ctx, graph, input)
+			nextNode, err = edge.Instantiate(goCtx, ctx, graph, input)
 			if errors.Is(err, ErrIncompatibleInput) {
 				// Continue to check next edges
 				continue
@@ -395,16 +396,16 @@ func (g *Graph) accept(ctx *Context, input interface{}) (*Graph, []Edge, error) 
 
 		// Follow the edge to nextNode
 		graph = graph.appendingNode(nextNode)
-		err = nextNode.Prepare(ctx, graph)
+		err = nextNode.Prepare(goCtx, ctx, graph)
 		if err != nil {
 			return nil, nil, err
 		}
-		effs, err := nextNode.GetEffects()
+		effs, err := nextNode.GetEffects(goCtx)
 		if err != nil {
 			return nil, nil, err
 		}
 		for _, eff := range effs {
-			err = eff.apply(ctx, graph, len(graph.Nodes)-1)
+			err = eff.apply(goCtx, ctx, graph, len(graph.Nodes)-1)
 			if err != nil {
 				return nil, nil, err
 			}

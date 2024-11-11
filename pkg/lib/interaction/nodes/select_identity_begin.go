@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -15,7 +17,7 @@ type EdgeSelectIdentityBegin struct {
 	IsAuthentication bool
 }
 
-func (e *EdgeSelectIdentityBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeSelectIdentityBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeSelectIdentityBegin{
 		IsAuthentication: e.IsAuthentication,
 	}, nil
@@ -28,18 +30,18 @@ type NodeSelectIdentityBegin struct {
 	IdentityFeatureConfig *config.IdentityFeatureConfig `json:"-"`
 }
 
-func (n *NodeSelectIdentityBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeSelectIdentityBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	n.IdentityTypes = ctx.Config.Authentication.Identities
 	n.IdentityConfig = ctx.Config.Identity
 	n.IdentityFeatureConfig = ctx.FeatureConfig.Identity
 	return nil
 }
 
-func (n *NodeSelectIdentityBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeSelectIdentityBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeSelectIdentityBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeSelectIdentityBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return n.deriveEdges(), nil
 }
 

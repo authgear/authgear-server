@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -37,7 +39,7 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) AuthenticatorType() model.Aut
 	return model.AuthenticatorTypeOOBEmail
 }
 
-func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var target string
 	if e.Stage == authn.AuthenticationStagePrimary {
 		var input InputCreateAuthenticatorLoginLinkOTPSetupSelect
@@ -84,7 +86,7 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.
 
 	spec.OOBOTP.Email = target
 
-	info, err := ctx.Authenticators.NewWithAuthenticatorID(e.NewAuthenticatorID, spec)
+	info, err := ctx.Authenticators.NewWithAuthenticatorID(goCtx, e.NewAuthenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +98,7 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.
 		return &NodeCreateAuthenticatorLoginLinkOTP{Stage: e.Stage, Authenticator: info}, nil
 	}
 
-	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(info)
+	aStatus, err := ctx.Verification.GetAuthenticatorVerificationStatus(goCtx, info)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +114,7 @@ func (e *EdgeCreateAuthenticatorLoginLinkOTPSetup) Instantiate(ctx *interaction.
 		AuthenticatorInfo:    info,
 		IgnoreRatelimitError: true,
 		OTPForm:              otp.FormLink,
-	}).Do()
+	}).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -154,15 +156,15 @@ func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) GetLoginLinkOTPOOBType() inte
 	}
 }
 
-func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeCreateAuthenticatorLoginLinkOTPSetup) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeOOBResendCode{
 			Stage:            n.Stage,

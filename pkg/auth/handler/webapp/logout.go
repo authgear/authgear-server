@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -28,16 +29,17 @@ func ConfigureLogoutRoute(route httproute.Route) httproute.Route {
 }
 
 type LogoutSessionManager interface {
-	Logout(session.SessionBase, http.ResponseWriter) ([]session.ListableSession, error)
+	Logout(ctx context.Context, s session.SessionBase, w http.ResponseWriter) ([]session.ListableSession, error)
 }
 
 type SAMLSLOSessionService interface {
-	Get(sessionID string) (entry *samlslosession.SAMLSLOSession, err error)
-	Save(session *samlslosession.SAMLSLOSession) (err error)
+	Get(ctx context.Context, sessionID string) (entry *samlslosession.SAMLSLOSession, err error)
+	Save(ctx context.Context, session *samlslosession.SAMLSLOSession) (err error)
 }
 
 type SAMLSLOService interface {
 	SendSLORequest(
+		ctx context.Context,
 		rw http.ResponseWriter,
 		r *http.Request,
 		sloSession *samlslosession.SAMLSLOSession,
@@ -68,7 +70,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		baseViewModel := h.BaseViewModel.ViewModel(r, w)
 
 		data := map[string]interface{}{}
@@ -79,14 +81,14 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("logout", func() error {
-		sess := session.GetSession(r.Context())
-		invalidatedSessions, err := h.SessionManager.Logout(sess, w)
+	ctrl.PostAction("logout", func(ctx context.Context) error {
+		sess := session.GetSession(ctx)
+		invalidatedSessions, err := h.SessionManager.Logout(ctx, sess, w)
 		if err != nil {
 			return err
 		}
 
-		uiParam := uiparam.GetUIParam(r.Context())
+		uiParam := uiparam.GetUIParam(ctx)
 		clientID := uiParam.ClientID
 		client := h.OAuthClientResolver.ResolveClient(clientID)
 		postLogoutRedirectURI := webapp.ResolvePostLogoutRedirectURI(client, r.FormValue("post_logout_redirect_uri"), h.UIConfig)
@@ -104,7 +106,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				PostLogoutRedirectURI:           redirectURI,
 			}
 			sloSession := samlslosession.NewSAMLSLOSession(sloSessionEntry)
-			err := h.SAMLSLOSessionService.Save(sloSession)
+			err := h.SAMLSLOSessionService.Save(ctx, sloSession)
 			if err != nil {
 				return err
 			}
@@ -112,7 +114,7 @@ func (h *LogoutHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			for _, spID := range pendingLogoutServiceProviderIDs.Keys() {
 				sp, ok := h.SAMLConfig.ResolveProvider(spID)
 				if ok && sp.SLOEnabled {
-					return h.SAMLSLOService.SendSLORequest(w, r, sloSession, sp)
+					return h.SAMLSLOService.SendSLORequest(ctx, w, r, sloSession, sp)
 				}
 			}
 		}

@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -46,7 +48,7 @@ func (e *EdgeAuthenticationLoginLinkTrigger) IsDefaultAuthenticator() bool {
 	return len(filtered) > 0
 }
 
-func (e *EdgeAuthenticationLoginLinkTrigger) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationLoginLinkTrigger) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputAuthenticationLoginLinkTrigger
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -64,7 +66,7 @@ func (e *EdgeAuthenticationLoginLinkTrigger) Instantiate(ctx *interaction.Contex
 		AuthenticatorInfo:    targetInfo,
 		IgnoreRatelimitError: true,
 		OTPForm:              otp.FormLink,
-	}).Do()
+	}).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -115,15 +117,15 @@ func (n *NodeAuthenticationLoginLinkTrigger) GetAuthenticatorIndex() int {
 	return n.AuthenticatorIndex
 }
 
-func (n *NodeAuthenticationLoginLinkTrigger) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeAuthenticationLoginLinkTrigger) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationLoginLinkTrigger) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeAuthenticationLoginLinkTrigger) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeAuthenticationLoginLinkTrigger) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeAuthenticationLoginLinkTrigger) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeOOBResendCode{
 			Stage:            n.Stage,

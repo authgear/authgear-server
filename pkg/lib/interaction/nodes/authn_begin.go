@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -20,7 +21,7 @@ type EdgeAuthenticationBegin struct {
 	Stage authn.AuthenticationStage
 }
 
-func (e *EdgeAuthenticationBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	return &NodeAuthenticationBegin{
 		Stage: e.Stage,
 	}, nil
@@ -35,8 +36,8 @@ type NodeAuthenticationBegin struct {
 	Authenticators       []*authenticator.Info        `json:"-"`
 }
 
-func (n *NodeAuthenticationBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
-	ais, err := ctx.Authenticators.List(graph.MustGetUserID())
+func (n *NodeAuthenticationBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
+	ais, err := ctx.Authenticators.List(goCtx, graph.MustGetUserID())
 	if err != nil {
 		return err
 	}
@@ -51,11 +52,11 @@ func (n *NodeAuthenticationBegin) Prepare(ctx *interaction.Context, graph *inter
 	return nil
 }
 
-func (n *NodeAuthenticationBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeAuthenticationBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeAuthenticationBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeAuthenticationBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return n.GetAuthenticationEdges()
 }
 

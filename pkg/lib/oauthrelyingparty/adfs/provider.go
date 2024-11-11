@@ -67,7 +67,7 @@ func (ADFS) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*oauthr
 	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
 }
 
-func (p ADFS) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p ADFS) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	c, err := p.getOpenIDConfiguration(deps)
 	if err != nil {
 		return "", err
@@ -84,7 +84,7 @@ func (p ADFS) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oau
 	}), nil
 }
 
-func (p ADFS) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (p ADFS) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	c, err := p.getOpenIDConfiguration(deps)
 	if err != nil {
 		return

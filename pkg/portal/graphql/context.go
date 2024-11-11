@@ -45,57 +45,58 @@ type CollaboratorInvitationLoader interface {
 }
 
 type AppService interface {
-	Get(id string) (*model.App, error)
-	GetAppList(userID string) ([]*model.AppListItem, error)
-	Create(userID string, id string) (*model.App, error)
-	UpdateResources(app *model.App, updates []appresource.Update) error
-	UpdateResources0(app *model.App, updates []appresource.Update) error
-	GetProjectQuota(userID string) (int, error)
 	LoadRawAppConfig(app *model.App) (*config.AppConfig, string, error)
-	LoadAppSecretConfig(app *model.App, sessionInfo *apimodel.SessionInfo, token string) (*model.SecretConfig, string, error)
-	GenerateSecretVisitToken(
+	RenderSAMLEntityID(appID string) string
+
+	Get(ctx context.Context, id string) (*model.App, error)
+	GetAppList(ctx context.Context, userID string) ([]*model.AppListItem, error)
+	Create(ctx context.Context, userID string, id string) (*model.App, error)
+	UpdateResources(ctx context.Context, app *model.App, updates []appresource.Update) error
+	UpdateResources0(ctx context.Context, app *model.App, updates []appresource.Update) error
+	GetProjectQuota(ctx context.Context, userID string) (int, error)
+	LoadAppSecretConfig(ctx context.Context, app *model.App, sessionInfo *apimodel.SessionInfo, token string) (*model.SecretConfig, string, error)
+	GenerateSecretVisitToken(ctx context.Context,
 		app *model.App,
 		sessionInfo *apimodel.SessionInfo,
 		visitingSecrets []config.SecretKey,
 	) (*appsecret.AppSecretVisitToken, error)
-	GenerateTesterToken(
+	GenerateTesterToken(ctx context.Context,
 		app *model.App,
 		returnURI string,
 	) (*tester.TesterToken, error)
-	RenderSAMLEntityID(appID string) string
 }
 
 type DomainService interface {
-	ListDomains(appID string) ([]*apimodel.Domain, error)
-	CreateCustomDomain(appID string, domain string) (*apimodel.Domain, error)
-	DeleteDomain(appID string, id string) error
-	VerifyDomain(appID string, id string) (*apimodel.Domain, error)
+	ListDomains(ctx context.Context, appID string) ([]*apimodel.Domain, error)
+	CreateCustomDomain(ctx context.Context, appID string, domain string) (*apimodel.Domain, error)
+	DeleteDomain(ctx context.Context, appID string, id string) error
+	VerifyDomain(ctx context.Context, appID string, id string) (*apimodel.Domain, error)
 }
 
 type CollaboratorService interface {
-	GetCollaborator(id string) (*model.Collaborator, error)
-	GetCollaboratorByAppAndUser(appID string, userID string) (*model.Collaborator, error)
-	ListCollaborators(appID string) ([]*model.Collaborator, error)
-	ListCollaboratorsByUser(userID string) ([]*model.Collaborator, error)
-	DeleteCollaborator(c *model.Collaborator) error
+	GetCollaborator(ctx context.Context, id string) (*model.Collaborator, error)
+	GetCollaboratorByAppAndUser(ctx context.Context, appID string, userID string) (*model.Collaborator, error)
+	ListCollaborators(ctx context.Context, appID string) ([]*model.Collaborator, error)
+	ListCollaboratorsByUser(ctx context.Context, userID string) ([]*model.Collaborator, error)
+	DeleteCollaborator(ctx context.Context, c *model.Collaborator) error
 
-	GetProjectOwnerCount(userID string) (int, error)
+	GetProjectOwnerCount(ctx context.Context, userID string) (int, error)
 
-	GetInvitation(id string) (*model.CollaboratorInvitation, error)
-	GetInvitationWithCode(id string) (*model.CollaboratorInvitation, error)
-	ListInvitations(appID string) ([]*model.CollaboratorInvitation, error)
-	DeleteInvitation(i *model.CollaboratorInvitation) error
-	SendInvitation(appID string, inviteeEmail string) (*model.CollaboratorInvitation, error)
-	AcceptInvitation(code string) (*model.Collaborator, error)
-	CheckInviteeEmail(i *model.CollaboratorInvitation, actorID string) error
+	GetInvitation(ctx context.Context, id string) (*model.CollaboratorInvitation, error)
+	GetInvitationWithCode(ctx context.Context, id string) (*model.CollaboratorInvitation, error)
+	ListInvitations(ctx context.Context, appID string) ([]*model.CollaboratorInvitation, error)
+	DeleteInvitation(ctx context.Context, i *model.CollaboratorInvitation) error
+	SendInvitation(ctx context.Context, appID string, inviteeEmail string) (*model.CollaboratorInvitation, error)
+	AcceptInvitation(ctx context.Context, code string) (*model.Collaborator, error)
+	CheckInviteeEmail(ctx context.Context, i *model.CollaboratorInvitation, actorID string) error
 }
 
 type AuthzService interface {
-	CheckAccessOfViewer(appID string) (userID string, err error)
+	CheckAccessOfViewer(ctx context.Context, appID string) (userID string, err error)
 }
 
 type SMTPService interface {
-	SendTestEmail(app *model.App, options smtp.SendTestEmailOptions) (err error)
+	SendTestEmail(ctx context.Context, app *model.App, options smtp.SendTestEmailOptions) (err error)
 }
 
 type AppResourceManagerFactory interface {
@@ -103,51 +104,52 @@ type AppResourceManagerFactory interface {
 }
 
 type TutorialService interface {
-	Get(appID string) (*tutorial.Entry, error)
-	RecordProgresses(appID string, ps []tutorial.Progress) (err error)
-	Skip(appID string) (err error)
+	Get(ctx context.Context, appID string) (*tutorial.Entry, error)
+	RecordProgresses(ctx context.Context, appID string, ps []tutorial.Progress) (err error)
+	Skip(ctx context.Context, appID string) (err error)
 }
 
 type OnboardService interface {
-	SubmitOnboardEntry(entry model.OnboardEntry, actorID string) error
-	CheckOnboardingSurveyCompletion(actorID string) (bool, error)
+	SubmitOnboardEntry(ctx context.Context, entry model.OnboardEntry, actorID string) error
+	CheckOnboardingSurveyCompletion(ctx context.Context, actorID string) (bool, error)
 }
 
 type AnalyticChartService interface {
-	GetActiveUserChart(appID string, periodical string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
-	GetTotalUserCountChart(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
-	GetSignupConversionRate(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.SignupConversionRateData, error)
-	GetSignupByMethodsChart(appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
+	GetActiveUserChart(ctx context.Context, appID string, periodical string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
+	GetTotalUserCountChart(ctx context.Context, appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
+	GetSignupConversionRate(ctx context.Context, appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.SignupConversionRateData, error)
+	GetSignupByMethodsChart(ctx context.Context, appID string, rangeFrom time.Time, rangeTo time.Time) (*analytic.Chart, error)
 }
 
 type StripeService interface {
-	FetchSubscriptionPlans() ([]*model.SubscriptionPlan, error)
-	CreateCheckoutSession(appID string, customerEmail string, subscriptionPlan *model.SubscriptionPlan) (*libstripe.CheckoutSession, error)
-	FetchCheckoutSession(checkoutSessionID string) (*libstripe.CheckoutSession, error)
-	GetSubscriptionPlan(planName string) (*model.SubscriptionPlan, error)
 	GenerateCustomerPortalSession(appID string, customerID string) (*stripe.BillingPortalSession, error)
-	UpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) error
-	PreviewUpdateSubscription(stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (*model.SubscriptionUpdatePreview, error)
 	SetSubscriptionCancelAtPeriodEnd(stripeSubscriptionID string, cancelAtPeriodEnd bool) (*time.Time, error)
-	GetLastPaymentError(stripeCustomerID string) (*stripe.Error, error)
-	GetSubscription(stripeCustomerID string) (*stripe.Subscription, error)
-	CancelSubscriptionImmediately(subscriptionID string) error
+
+	FetchSubscriptionPlans(ctx context.Context) ([]*model.SubscriptionPlan, error)
+	CreateCheckoutSession(ctx context.Context, appID string, customerEmail string, subscriptionPlan *model.SubscriptionPlan) (*libstripe.CheckoutSession, error)
+	FetchCheckoutSession(ctx context.Context, checkoutSessionID string) (*libstripe.CheckoutSession, error)
+	GetSubscriptionPlan(ctx context.Context, planName string) (*model.SubscriptionPlan, error)
+	UpdateSubscription(ctx context.Context, stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) error
+	PreviewUpdateSubscription(ctx context.Context, stripeSubscriptionID string, subscriptionPlan *model.SubscriptionPlan) (*model.SubscriptionUpdatePreview, error)
+	GetLastPaymentError(ctx context.Context, stripeCustomerID string) (*stripe.Error, error)
+	GetSubscription(ctx context.Context, stripeCustomerID string) (*stripe.Subscription, error)
+	CancelSubscriptionImmediately(ctx context.Context, subscriptionID string) error
 }
 
 type SubscriptionService interface {
-	GetSubscription(appID string) (*model.Subscription, error)
-	CreateSubscriptionCheckout(stripeCheckoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error)
-	MarkCheckoutCompleted(appID string, stripCheckoutSessionID string, customerID string) error
-	GetSubscriptionUsage(
+	GetSubscription(ctx context.Context, appID string) (*model.Subscription, error)
+	CreateSubscriptionCheckout(ctx context.Context, stripeCheckoutSession *libstripe.CheckoutSession) (*model.SubscriptionCheckout, error)
+	MarkCheckoutCompleted(ctx context.Context, appID string, stripCheckoutSessionID string, customerID string) error
+	GetSubscriptionUsage(ctx context.Context,
 		appID string,
 		planName string,
 		date time.Time,
 		subscriptionPlans []*model.SubscriptionPlan,
 	) (*model.SubscriptionUsage, error)
-	UpdateAppPlan(appID string, planName string) error
-	SetSubscriptionCancelledStatus(id string, cancelled bool, endedAt *time.Time) error
-	GetLastProcessingCustomerID(appID string) (*string, error)
-	MarkCheckoutExpired(appID string, customerID string) error
+	UpdateAppPlan(ctx context.Context, appID string, planName string) error
+	SetSubscriptionCancelledStatus(ctx context.Context, id string, cancelled bool, endedAt *time.Time) error
+	GetLastProcessingCustomerID(ctx context.Context, appID string) (*string, error)
+	MarkCheckoutExpired(ctx context.Context, appID string, customerID string) error
 }
 
 type NFTService interface {
@@ -160,7 +162,7 @@ type DenoService interface {
 }
 
 type AuditService interface {
-	Log(app *model.App, payload event.NonBlockingPayload) error
+	Log(ctx context.Context, app *model.App, payload event.NonBlockingPayload) error
 }
 
 type Logger struct{ *log.Logger }

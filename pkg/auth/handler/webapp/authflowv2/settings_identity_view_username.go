@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -57,14 +59,14 @@ type AuthflowV2SettingsIdentityViewUsernameHandler struct {
 	Renderer          handlerwebapp.Renderer
 }
 
-func (h *AuthflowV2SettingsIdentityViewUsernameHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityViewUsernameHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 	loginID := r.Form.Get("q_login_id")
-	usernameIdentity, err := h.Identities.LoginID.Get(*userID, loginID)
+	usernameIdentity, err := h.Identities.LoginID.Get(ctx, *userID, loginID)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +78,7 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) GetData(w http.ResponseW
 		deleteDisabled = *loginIDConfig.DeleteDisabled
 	}
 
-	identities, err := h.Identities.ListByUser(*userID)
+	identities, err := h.Identities.ListByUser(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -108,10 +110,10 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) ServeHTTP(w http.Respons
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(w, r)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, w, r)
 			return err
 		})
 		if err != nil {
@@ -121,7 +123,7 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) ServeHTTP(w http.Respons
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		err := AuthflowV2SettingsIdentityDeleteUsernameSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -129,8 +131,8 @@ func (h *AuthflowV2SettingsIdentityViewUsernameHandler) ServeHTTP(w http.Respons
 		identityID := r.Form.Get("x_identity_id")
 		loginIDKey := r.Form.Get("x_login_key")
 
-		resolvedSession := session.GetSession(r.Context())
-		_, err = h.AccountManagement.DeleteIdentityUsername(resolvedSession, &accountmanagement.DeleteIdentityUsernameInput{
+		resolvedSession := session.GetSession(ctx)
+		_, err = h.AccountManagement.DeleteIdentityUsername(ctx, resolvedSession, &accountmanagement.DeleteIdentityUsernameInput{
 			IdentityID: identityID,
 		})
 		if err != nil {

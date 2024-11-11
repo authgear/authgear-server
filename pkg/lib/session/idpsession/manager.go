@@ -1,6 +1,7 @@
 package idpsession
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -28,8 +29,8 @@ func (m *Manager) ClearCookie() []*http.Cookie {
 	}
 }
 
-func (m *Manager) Get(id string) (session.ListableSession, error) {
-	s, err := m.Store.Get(id)
+func (m *Manager) Get(ctx context.Context, id string) (session.ListableSession, error) {
+	s, err := m.Store.Get(ctx, id)
 	if errors.Is(err, ErrSessionNotFound) {
 		return nil, session.ErrSessionNotFound
 	} else if err != nil {
@@ -38,16 +39,16 @@ func (m *Manager) Get(id string) (session.ListableSession, error) {
 	return s, nil
 }
 
-func (m *Manager) Delete(session session.ListableSession) error {
-	err := m.Store.Delete(session.(*IDPSession))
+func (m *Manager) Delete(ctx context.Context, session session.ListableSession) error {
+	err := m.Store.Delete(ctx, session.(*IDPSession))
 	if err != nil {
 		return fmt.Errorf("failed to invalidate session: %w", err)
 	}
 	return nil
 }
 
-func (m *Manager) List(userID string) ([]session.ListableSession, error) {
-	storedSessions, err := m.Store.List(userID)
+func (m *Manager) List(ctx context.Context, userID string) ([]session.ListableSession, error) {
+	storedSessions, err := m.Store.List(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list sessions: %w", err)
 	}
@@ -59,8 +60,8 @@ func (m *Manager) List(userID string) ([]session.ListableSession, error) {
 	return sessions, nil
 }
 
-func (m *Manager) TerminateAllExcept(userID string, currentSession session.ResolvedSession) ([]session.ListableSession, error) {
-	sessions, err := m.Store.List(userID)
+func (m *Manager) TerminateAllExcept(ctx context.Context, userID string, currentSession session.ResolvedSession) ([]session.ListableSession, error) {
+	sessions, err := m.Store.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (m *Manager) TerminateAllExcept(userID string, currentSession session.Resol
 			continue
 		}
 
-		if err := m.Delete(ss); err != nil {
+		if err := m.Delete(ctx, ss); err != nil {
 			return nil, err
 		}
 		deletedSessions = append(deletedSessions, ss)
@@ -80,6 +81,6 @@ func (m *Manager) TerminateAllExcept(userID string, currentSession session.Resol
 	return deletedSessions, nil
 }
 
-func (m *Manager) CleanUpForDeletingUserID(userID string) error {
-	return m.Store.CleanUpForDeletingUserID(userID)
+func (m *Manager) CleanUpForDeletingUserID(ctx context.Context, userID string) error {
+	return m.Store.CleanUpForDeletingUserID(ctx, userID)
 }

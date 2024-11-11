@@ -68,27 +68,25 @@ type WriteSQLExecutor struct {
 	db.SQLExecutor
 }
 
-func NewReadSQLExecutor(c context.Context, handle *ReadHandle) *ReadSQLExecutor {
+func NewReadSQLExecutor(handle *ReadHandle) *ReadSQLExecutor {
 	if handle == nil {
 		return nil
 	}
 
 	return &ReadSQLExecutor{
 		db.SQLExecutor{
-			Context:  c,
 			Database: handle,
 		},
 	}
 }
 
-func NewWriteSQLExecutor(c context.Context, handle *WriteHandle) *WriteSQLExecutor {
+func NewWriteSQLExecutor(handle *WriteHandle) *WriteSQLExecutor {
 	if handle == nil {
 		return nil
 	}
 
 	return &WriteSQLExecutor{
 		db.SQLExecutor{
-			Context:  c,
 			Database: handle,
 		},
 	}
@@ -99,7 +97,6 @@ type ReadHandle struct {
 }
 
 func NewReadHandle(
-	ctx context.Context,
 	pool *db.Pool,
 	cfg *config.DatabaseEnvironmentConfig,
 	credentials *config.AuditDatabaseCredentials,
@@ -118,12 +115,12 @@ func NewReadHandle(
 		UsePreparedStatements: cfg.UsePreparedStatements,
 	}
 	return &ReadHandle{
-		db.NewHookHandle(ctx, pool, opts, lf),
+		db.NewHookHandle(pool, opts, lf),
 	}
 }
 
-func (h *ReadHandle) ReadOnly(do func() error) (err error) {
-	return h.HookHandle.ReadOnly(do)
+func (h *ReadHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error) {
+	return h.HookHandle.ReadOnly(ctx, do)
 }
 
 type WriteHandle struct {
@@ -131,7 +128,6 @@ type WriteHandle struct {
 }
 
 func NewWriteHandle(
-	ctx context.Context,
 	pool *db.Pool,
 	cfg *config.DatabaseEnvironmentConfig,
 	credentials *config.AuditDatabaseCredentials,
@@ -149,10 +145,10 @@ func NewWriteHandle(
 		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
 	}
 	return &WriteHandle{
-		db.NewHookHandle(ctx, pool, opts, lf),
+		db.NewHookHandle(pool, opts, lf),
 	}
 }
 
-func (h *WriteHandle) WithTx(do func() error) (err error) {
-	return h.HookHandle.WithTx(do)
+func (h *WriteHandle) WithTx(ctx context.Context, do func(ctx context.Context) error) (err error) {
+	return h.HookHandle.WithTx(ctx, do)
 }

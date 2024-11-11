@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -30,7 +31,7 @@ type AuthflowV2SettingsPasskeyViewModel struct {
 }
 
 type PasskeyCreationOptionsService interface {
-	MakeCreationOptions(userID string) (*model.WebAuthnCreationOptions, error)
+	MakeCreationOptions(ctx context.Context, userID string) (*model.WebAuthnCreationOptions, error)
 }
 
 type AuthflowV2SettingsChangePasskeyHandler struct {
@@ -44,16 +45,16 @@ type AuthflowV2SettingsChangePasskeyHandler struct {
 	Passkey           PasskeyCreationOptionsService
 }
 
-func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel
-	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +63,7 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(r *http.Request, rw htt
 	// PasskeyViewModel
 	var passkeyIdentities []*identity.Info
 	var creationOptionsJSON string
-	identities, err := h.Identities.Passkey.List(*userID)
+	identities, err := h.Identities.Passkey.List(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +71,7 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) GetData(r *http.Request, rw htt
 		passkeyIdentities = append(passkeyIdentities, i.ToInfo())
 	}
 
-	creationOptions, err := h.Passkey.MakeCreationOptions(*userID)
+	creationOptions, err := h.Passkey.MakeCreationOptions(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -97,10 +98,10 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			if err != nil {
 				return err
 			}
@@ -115,7 +116,7 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 		return nil
 	})
 
-	ctrl.PostAction("add", func() error {
+	ctrl.PostAction("add", func(ctx context.Context) error {
 		attestationResponseStr := r.Form.Get("x_attestation_response")
 
 		var creationResponse protocol.CredentialCreationResponse
@@ -124,13 +125,13 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 			return err
 		}
 
-		s := session.GetSession(r.Context())
+		s := session.GetSession(ctx)
 
 		input := &accountmanagement.AddPasskeyInput{
 			CreationResponse: &creationResponse,
 		}
 
-		_, err = h.AccountManagement.AddPasskey(s, input)
+		_, err = h.AccountManagement.AddPasskey(ctx, s, input)
 		if err != nil {
 			return err
 		}
@@ -143,16 +144,16 @@ func (h *AuthflowV2SettingsChangePasskeyHandler) ServeHTTP(w http.ResponseWriter
 
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		identityID := r.Form.Get("x_identity_id")
 
-		s := session.GetSession(r.Context())
+		s := session.GetSession(ctx)
 
 		input := &accountmanagement.DeletePasskeyInput{
 			IdentityID: identityID,
 		}
 
-		_, err = h.AccountManagement.DeletePasskey(s, input)
+		_, err = h.AccountManagement.DeletePasskey(ctx, s, input)
 		if err != nil {
 			return err
 		}

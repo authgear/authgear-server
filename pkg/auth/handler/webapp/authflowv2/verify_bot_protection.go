@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -37,7 +38,7 @@ func (h *AuthflowV2VerifyBotProtectionHandler) GetData(w http.ResponseWriter, r 
 
 func (h *AuthflowV2VerifyBotProtectionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, screen)
 		if err != nil {
 			return err
@@ -47,7 +48,7 @@ func (h *AuthflowV2VerifyBotProtectionHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := handlerwebapp.ValidateBotProtectionInput(r.Form)
 		if err != nil {
 			return err
@@ -71,7 +72,7 @@ func (h *AuthflowV2VerifyBotProtectionHandler) ServeHTTP(w http.ResponseWriter, 
 		handlerwebapp.InsertBotProtection(r.Form, input)
 
 		// advance with previous screen inherit
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, &handlerwebapp.AdvanceOptions{
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, &handlerwebapp.AdvanceOptions{
 			InheritTakenBranchState: true,
 		})
 		if err != nil {
@@ -81,5 +82,5 @@ func (h *AuthflowV2VerifyBotProtectionHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

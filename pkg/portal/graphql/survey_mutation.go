@@ -30,10 +30,12 @@ var _ = registerMutationField(
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			input := p.Args["input"].(map[string]interface{})
 			surveyJSON := input["surveyJSON"].(string)
-			gqlCtx := GQLContext(p.Context)
+
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			// Access Control: authenicated user.
-			sessionInfo := session.GetValidSessionInfo(p.Context)
+			sessionInfo := session.GetValidSessionInfo(ctx)
 			if sessionInfo == nil {
 				return nil, Unauthenticated.New("only authenticated users can fill onboarding survey")
 			}
@@ -43,6 +45,7 @@ var _ = registerMutationField(
 				SurveyJSON: surveyJSON,
 			}
 			err := gqlCtx.OnboardService.SubmitOnboardEntry(
+				ctx,
 				entry,
 				actorID,
 			)

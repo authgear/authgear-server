@@ -57,7 +57,7 @@ func (i *IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Depende
 
 		// TODO: account enumeration? although need OTP to proceed, login/signup is indicated in workflow data.
 
-		exactMatch, _, err := deps.Identities.SearchBySpec(spec)
+		exactMatch, _, err := deps.Identities.SearchBySpec(ctx, spec)
 		if err != nil {
 			return nil, err
 		}

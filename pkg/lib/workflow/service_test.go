@@ -28,7 +28,7 @@ func TestService(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		ctx := context.TODO()
+		ctx := context.Background()
 		deps := &Dependencies{}
 		logger := ServiceLogger{log.Null}
 		database := &db.MockHandle{}
@@ -36,12 +36,11 @@ func TestService(t *testing.T) {
 		uiInfoResolver := NewMockServiceUIInfoResolver(ctrl)
 
 		service := &Service{
-			ContextDoNotUseDirectly: ctx,
-			Deps:                    deps,
-			Logger:                  logger,
-			Store:                   store,
-			Database:                database,
-			UIInfoResolver:          uiInfoResolver,
+			Deps:           deps,
+			Logger:         logger,
+			Store:          store,
+			Database:       database,
+			UIInfoResolver: uiInfoResolver,
 		}
 
 		Convey("CreateNewWorkflow with intent expecting non-nil input at the beginning", func() {
@@ -52,11 +51,11 @@ func TestService(t *testing.T) {
 			}
 
 			gomock.InOrder(
-				store.EXPECT().CreateSession(gomock.Any()).Return(nil),
-				store.EXPECT().CreateWorkflow(gomock.Any()).Return(nil),
+				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Return(nil),
+				store.EXPECT().CreateWorkflow(gomock.Any(), gomock.Any()).Return(nil),
 			)
 
-			output, err := service.CreateNewWorkflow(intent, &SessionOptions{})
+			output, err := service.CreateNewWorkflow(ctx, intent, &SessionOptions{})
 			So(err, ShouldBeNil)
 			So(output, ShouldResemble, &ServiceOutput{
 				Action: &WorkflowAction{
@@ -90,16 +89,16 @@ func TestService(t *testing.T) {
 			intent := &intentNilInput{}
 
 			gomock.InOrder(
-				store.EXPECT().CreateSession(gomock.Any()).Return(nil),
-				store.EXPECT().CreateWorkflow(gomock.Any()).Return(nil),
+				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Return(nil),
+				store.EXPECT().CreateWorkflow(gomock.Any(), gomock.Any()).Return(nil),
 
 				uiInfoResolver.EXPECT().SetAuthenticationInfoInQuery(gomock.Any(), gomock.Any()).Return(""),
 
-				store.EXPECT().DeleteSession(gomock.Any()).Return(nil),
-				store.EXPECT().DeleteWorkflow(gomock.Any()).Return(nil),
+				store.EXPECT().DeleteSession(gomock.Any(), gomock.Any()).Return(nil),
+				store.EXPECT().DeleteWorkflow(gomock.Any(), gomock.Any()).Return(nil),
 			)
 
-			output, err := service.CreateNewWorkflow(intent, &SessionOptions{})
+			output, err := service.CreateNewWorkflow(ctx, intent, &SessionOptions{})
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
 				Action: &WorkflowAction{
@@ -158,13 +157,13 @@ func TestService(t *testing.T) {
 			}
 
 			gomock.InOrder(
-				store.EXPECT().GetWorkflowByInstanceID(workflow.InstanceID).Times(1).Return(workflow, nil),
-				store.EXPECT().GetSession(workflow.WorkflowID).Return(session, nil),
-				store.EXPECT().GetWorkflowByInstanceID(workflow.InstanceID).Times(1).Return(workflow, nil),
-				store.EXPECT().CreateWorkflow(gomock.Any()).Return(nil),
+				store.EXPECT().GetWorkflowByInstanceID(gomock.Any(), workflow.InstanceID).Times(1).Return(workflow, nil),
+				store.EXPECT().GetSession(gomock.Any(), workflow.WorkflowID).Return(session, nil),
+				store.EXPECT().GetWorkflowByInstanceID(gomock.Any(), workflow.InstanceID).Times(1).Return(workflow, nil),
+				store.EXPECT().CreateWorkflow(gomock.Any(), gomock.Any()).Return(nil),
 			)
 
-			output, err := service.FeedInput(workflow.WorkflowID, workflow.InstanceID, "", &inputLoginID{
+			output, err := service.FeedInput(ctx, workflow.WorkflowID, workflow.InstanceID, "", &inputLoginID{
 				LoginID: "user@example.com",
 			})
 			So(err, ShouldBeNil)
@@ -418,7 +417,7 @@ func TestServiceContext(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		ctx := context.TODO()
+		ctx := context.Background()
 		deps := &Dependencies{}
 		logger := ServiceLogger{log.Null}
 		database := &db.MockHandle{}
@@ -426,12 +425,11 @@ func TestServiceContext(t *testing.T) {
 		uiInfoResolver := NewMockServiceUIInfoResolver(ctrl)
 
 		service := &Service{
-			ContextDoNotUseDirectly: ctx,
-			Deps:                    deps,
-			Logger:                  logger,
-			Store:                   store,
-			Database:                database,
-			UIInfoResolver:          uiInfoResolver,
+			Deps:           deps,
+			Logger:         logger,
+			Store:          store,
+			Database:       database,
+			UIInfoResolver: uiInfoResolver,
 		}
 
 		Convey("Populate context", func() {
@@ -439,20 +437,21 @@ func TestServiceContext(t *testing.T) {
 
 			intent := &intentServiceContext{}
 
-			store.EXPECT().CreateSession(gomock.Any()).Return(nil)
-			store.EXPECT().CreateWorkflow(gomock.Any()).AnyTimes().Return(nil)
-			store.EXPECT().DeleteSession(gomock.Any()).Return(nil)
-			store.EXPECT().DeleteWorkflow(gomock.Any()).Return(nil)
+			store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Return(nil)
+			store.EXPECT().CreateWorkflow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+			store.EXPECT().DeleteSession(gomock.Any(), gomock.Any()).Return(nil)
+			store.EXPECT().DeleteWorkflow(gomock.Any(), gomock.Any()).Return(nil)
 
-			output, err := service.CreateNewWorkflow(intent, &SessionOptions{
+			output, err := service.CreateNewWorkflow(ctx, intent, &SessionOptions{
 				ClientID: "client-id",
 			})
 			So(err, ShouldBeNil)
 
-			store.EXPECT().GetSession(output.Workflow.WorkflowID).Return(output.Session, nil)
-			store.EXPECT().GetWorkflowByInstanceID(output.Workflow.InstanceID).Times(2).Return(output.Workflow, nil)
+			store.EXPECT().GetSession(gomock.Any(), output.Workflow.WorkflowID).Return(output.Session, nil)
+			store.EXPECT().GetWorkflowByInstanceID(gomock.Any(), output.Workflow.InstanceID).Times(2).Return(output.Workflow, nil)
 
 			output, err = service.FeedInput(
+				ctx,
 				output.Session.WorkflowID,
 				output.Workflow.InstanceID,
 				"",

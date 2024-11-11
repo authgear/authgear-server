@@ -1,9 +1,11 @@
 package authflowv2
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -104,7 +106,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		RedirectURI: h.Controller.RedirectURI(r),
 	}
 
-	oauthPostAction := func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, providerAlias string) error {
+	oauthPostAction := func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse, providerAlias string) error {
 		callbackURL := h.Endpoints.SSOCallbackURL(providerAlias).String()
 		input := map[string]interface{}{
 			"identification": "oauth",
@@ -118,7 +120,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			return err
 		}
 
-		result, err := h.Controller.ReplaceScreen(r, s, authflow.FlowTypeSignupLogin, input)
+		result, err := h.Controller.ReplaceScreen(ctx, r, s, authflow.FlowTypeSignupLogin, input)
 		if err != nil {
 			return err
 		}
@@ -128,7 +130,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	}
 
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		oauthProviderAlias := s.OAuthProviderAlias
 		allowLoginOnly := s.UserIDHint != ""
 
@@ -138,18 +140,18 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			return fmt.Errorf("webapp: missing visitor id")
 		}
 
-		err := h.MeterService.TrackPageView(visitorID, meter.PageTypeLogin)
+		err := h.MeterService.TrackPageView(ctx, visitorID, meter.PageTypeLogin)
 		if err != nil {
 			return err
 		}
 
-		hasErr := h.ErrorService.HasError(r)
+		hasErr := h.ErrorService.HasError(ctx, r)
 		// If x_oauth_provider_alias is provided via authz endpoint
 		// redirect the user to the oauth provider
 		// If there is error in the ErrorCookie, the user will stay in the login
 		// page to see the error message and the redirection won't be performed
 		if !hasErr && oauthProviderAlias != "" {
-			return oauthPostAction(s, screen, oauthProviderAlias)
+			return oauthPostAction(ctx, s, screen, oauthProviderAlias)
 		}
 
 		data, err := h.GetData(w, r, s, screen, allowLoginOnly)
@@ -161,12 +163,12 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	handlers.PostAction("oauth", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("oauth", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		return oauthPostAction(s, screen, providerAlias)
+		return oauthPostAction(ctx, s, screen, providerAlias)
 	})
 
-	handlers.PostAction("login_id", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("login_id", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowLoginLoginIDSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -185,7 +187,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -194,7 +196,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	handlers.PostAction("ldap", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("ldap", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		serverName := r.FormValue("x_server_name")
 		q := url.Values{}
 		q.Set("q_server_name", serverName)
@@ -205,7 +207,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	handlers.PostAction("passkey", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("passkey", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		assertionResponseStr := r.Form.Get("x_assertion_response")
 
 		var assertionResponseJSON interface{}
@@ -224,7 +226,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -233,7 +235,7 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+	handlers.InlinePreview(func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 		data, err := h.GetInlinePreviewData(w, r)
 		if err != nil {
 			return err
@@ -242,5 +244,5 @@ func (h *AuthflowV2LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	h.Controller.HandleStartOfFlow(w, r, opts, authflow.FlowTypeLogin, &handlers, nil)
+	h.Controller.HandleStartOfFlow(r.Context(), w, r, opts, authflow.FlowTypeLogin, &handlers, nil)
 }

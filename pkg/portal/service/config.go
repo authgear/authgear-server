@@ -44,7 +44,6 @@ type CreateAppOptions struct {
 }
 
 type ConfigService struct {
-	Context              context.Context
 	Logger               ConfigServiceLogger
 	AppConfig            *portalconfig.AppConfig
 	Controller           *configsource.Controller
@@ -54,8 +53,8 @@ type ConfigService struct {
 }
 
 // ResolveContext calls other services that acquires connection themselves.
-func (s *ConfigService) ResolveContext(appID string) (*config.AppContext, error) {
-	return s.ConfigSource.ContextResolver.ResolveContext(appID)
+func (s *ConfigService) ResolveContext(ctx context.Context, appID string) (*config.AppContext, error) {
+	return s.ConfigSource.ContextResolver.ResolveContext(ctx, appID)
 }
 
 // GetStaticAppIDs does not need connection.
@@ -71,10 +70,10 @@ func (s *ConfigService) GetStaticAppIDs() ([]string, error) {
 }
 
 // Create assumes acquired connection.
-func (s *ConfigService) Create(opts *CreateAppOptions) error {
+func (s *ConfigService) Create(ctx context.Context, opts *CreateAppOptions) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Database:
-		err := s.createDatabase(src, opts)
+		err := s.createDatabase(ctx, src, opts)
 		if err != nil {
 			return err
 		}
@@ -88,10 +87,10 @@ func (s *ConfigService) Create(opts *CreateAppOptions) error {
 }
 
 // UpdateResources assumes acquired connection.
-func (s *ConfigService) UpdateResources(appID string, files []*resource.ResourceFile) error {
+func (s *ConfigService) UpdateResources(ctx context.Context, appID string, files []*resource.ResourceFile) error {
 	switch src := s.Controller.Handle.(type) {
 	case *configsource.Database:
-		err := s.updateDatabase(src, appID, files)
+		err := s.updateDatabase(ctx, src, appID, files)
 		if err != nil {
 			return err
 		}
@@ -110,9 +109,9 @@ func (s *ConfigService) UpdateResources(appID string, files []*resource.Resource
 }
 
 // CreateDomain does not need connection.
-func (s *ConfigService) CreateDomain(appID string, domainID string, domain string, isCustom bool) error {
+func (s *ConfigService) CreateDomain(ctx context.Context, appID string, domainID string, domain string, isCustom bool) error {
 	if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
-		err := s.Kubernetes.CreateResourcesForDomain(appID, domainID, domain, isCustom)
+		err := s.Kubernetes.CreateResourcesForDomain(ctx, appID, domainID, domain, isCustom)
 		if err != nil {
 			return fmt.Errorf("failed to create domain k8s resources: %w", err)
 		}
@@ -121,9 +120,9 @@ func (s *ConfigService) CreateDomain(appID string, domainID string, domain strin
 }
 
 // DeleteDomain does not need connection.
-func (s *ConfigService) DeleteDomain(domain *apimodel.Domain) error {
+func (s *ConfigService) DeleteDomain(ctx context.Context, domain *apimodel.Domain) error {
 	if s.DomainImplementation == portalconfig.DomainImplementationTypeKubernetes {
-		err := s.Kubernetes.DeleteResourcesForDomain(domain.ID)
+		err := s.Kubernetes.DeleteResourcesForDomain(ctx, domain.ID)
 		if err != nil {
 			return fmt.Errorf("failed to delete domain k8s resources: %w", err)
 		}
@@ -155,12 +154,12 @@ func (s *ConfigService) updateLocalFS(l *configsource.LocalFS, appID string, upd
 	return nil
 }
 
-func (s *ConfigService) updateDatabase(d *configsource.Database, appID string, updates []*resource.ResourceFile) error {
-	return d.UpdateDatabaseSource(appID, updates)
+func (s *ConfigService) updateDatabase(ctx context.Context, d *configsource.Database, appID string, updates []*resource.ResourceFile) error {
+	return d.UpdateDatabaseSource(ctx, appID, updates)
 }
 
-func (s *ConfigService) createDatabase(d *configsource.Database, opts *CreateAppOptions) error {
-	err := d.CreateDatabaseSource(opts.AppID, opts.Resources, opts.PlanName)
+func (s *ConfigService) createDatabase(ctx context.Context, d *configsource.Database, opts *CreateAppOptions) error {
+	err := d.CreateDatabaseSource(ctx, opts.AppID, opts.Resources, opts.PlanName)
 	if err != nil {
 		if errors.Is(err, configsource.ErrDuplicatedAppID) {
 			return ErrDuplicatedAppID

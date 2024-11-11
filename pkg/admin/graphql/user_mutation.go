@@ -73,14 +73,15 @@ var _ = registerMutationField(
 			sendPassword, _ := input["sendPassword"].(bool)
 			setPasswordExpired, _ := input["setPasswordExpired"].(bool)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			userID, err := gqlCtx.UserFacade.Create(identityDef, password, generatePassword, sendPassword, setPasswordExpired)
+			userID, err := gqlCtx.UserFacade.Create(ctx, identityDef, password, generatePassword, sendPassword, setPasswordExpired)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationCreateUserExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationCreateUserExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -92,7 +93,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -154,14 +155,15 @@ var _ = registerMutationField(
 			sendPassword, _ := input["sendPassword"].(bool)
 			setPasswordExpired, _ := input["setPasswordExpired"].(bool)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.ResetPassword(userID, password, generatePassword, sendPassword, setPasswordExpired)
+			err := gqlCtx.UserFacade.ResetPassword(ctx, userID, password, generatePassword, sendPassword, setPasswordExpired)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationResetPasswordExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationResetPasswordExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -173,7 +175,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -224,14 +226,15 @@ var _ = registerMutationField(
 
 			isExpired, _ := input["expired"].(bool)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.SetPasswordExpired(userID, isExpired)
+			err := gqlCtx.UserFacade.SetPasswordExpired(ctx, userID, isExpired)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationSetPasswordExpiredExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationSetPasswordExpiredExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -244,7 +247,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -295,15 +298,16 @@ var _ = registerMutationField(
 
 			endAt := input["endAt"].(time.Time)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.SetMFAGracePeriod(userID, &endAt)
+			err := gqlCtx.UserFacade.SetMFAGracePeriod(ctx, userID, &endAt)
 			if err != nil {
 				return nil, err
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -348,15 +352,16 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.SetMFAGracePeriod(userID, nil)
+			err := gqlCtx.UserFacade.SetMFAGracePeriod(ctx, userID, nil)
 			if err != nil {
 				return nil, err
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -387,16 +392,17 @@ var _ = registerMutationField(
 
 			loginID := input["loginID"].(string)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.ForgotPassword.SendCode(loginID, &forgotpassword.CodeOptions{
+			err := gqlCtx.ForgotPassword.SendCode(ctx, loginID, &forgotpassword.CodeOptions{
 				IsAdminAPIResetPassword: true,
 			})
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationSendResetPasswordMessageExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationSendResetPasswordMessageExecutedEventPayload{
 				LoginID: loginID,
 			})
 			if err != nil {
@@ -469,7 +475,8 @@ var _ = registerMutationField(
 				purpose = OTPPurpose(p)
 			}
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			var channel apimodel.AuthenticatorOOBChannel
 			if err := phone.Require_IsPossibleNumber_IsValidNumber_UserInputInE164(target); err == nil {
@@ -489,6 +496,7 @@ var _ = registerMutationField(
 			}
 
 			code, err := gqlCtx.OTPCode.GenerateOTP(
+				ctx,
 				kind,
 				target,
 				otp.FormCode,
@@ -498,7 +506,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationGenerateOOBOTPCodeExecutedEventPayload{
 				Target:  target,
 				Purpose: string(purpose),
 			})
@@ -568,14 +576,15 @@ var _ = registerMutationField(
 			claimValue, _ := input["claimValue"].(string)
 			isVerified, _ := input["isVerified"].(bool)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.VerificationFacade.SetVerified(userID, claimName, claimValue, isVerified)
+			err := gqlCtx.VerificationFacade.SetVerified(ctx, userID, claimName, claimValue, isVerified)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationSetVerifiedStatusExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationSetVerifiedStatusExecutedEventPayload{
 				ClaimName:  claimName,
 				ClaimValue: claimValue,
 				IsVerified: isVerified,
@@ -585,7 +594,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -644,14 +653,15 @@ var _ = registerMutationField(
 				reason = &r
 			}
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.SetDisabled(userID, isDisabled, reason)
+			err := gqlCtx.UserFacade.SetDisabled(ctx, userID, isDisabled, reason)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationSetDisabledStatusExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationSetDisabledStatusExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -664,7 +674,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -709,14 +719,15 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.ScheduleDeletion(userID)
+			err := gqlCtx.UserFacade.ScheduleDeletion(ctx, userID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationScheduleAccountDeletionExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationScheduleAccountDeletionExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -728,7 +739,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -773,14 +784,15 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.UnscheduleDeletion(userID)
+			err := gqlCtx.UserFacade.UnscheduleDeletion(ctx, userID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationUnscheduleAccountDeletionExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationUnscheduleAccountDeletionExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -792,7 +804,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -845,12 +857,14 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			stdAttrs, _ := input["standardAttributes"].(map[string]interface{})
 			customAttrs, _ := input["customAttributes"].(map[string]interface{})
 
 			err := gqlCtx.UserProfileFacade.UpdateUserProfile(
+				ctx,
 				accesscontrol.RoleGreatest,
 				userID,
 				stdAttrs,
@@ -860,7 +874,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationUpdateUserExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationUpdateUserExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,
@@ -872,7 +886,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -917,9 +931,10 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			userModelVal, err := gqlCtx.Users.Load(userID).Value()
+			userModelVal, err := gqlCtx.Users.Load(ctx, userID).Value()
 			// This is a footgun.
 			// https://yourbasic.org/golang/gotcha-why-nil-error-not-equal-nil/
 			if userModelVal == (*apimodel.User)(nil) {
@@ -931,12 +946,12 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			err = gqlCtx.UserFacade.Delete(userModel.ID)
+			err = gqlCtx.UserFacade.Delete(ctx, userModel.ID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationDeleteUserExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationDeleteUserExecutedEventPayload{
 				UserModel: *userModel,
 			})
 			if err != nil {
@@ -989,14 +1004,16 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.ScheduleAnonymization(userID)
+			err := gqlCtx.UserFacade.ScheduleAnonymization(ctx, userID)
 			if err != nil {
 				return nil, err
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(
+				ctx,
 				&nonblocking.AdminAPIMutationScheduleAccountAnonymizationExecutedEventPayload{
 					UserRef: apimodel.UserRef{
 						Meta: apimodel.Meta{
@@ -1009,7 +1026,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -1054,14 +1071,16 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.UnscheduleAnonymization(userID)
+			err := gqlCtx.UserFacade.UnscheduleAnonymization(ctx, userID)
 			if err != nil {
 				return nil, err
 			}
 
 			err = gqlCtx.Events.DispatchEventOnCommit(
+				ctx,
 				&nonblocking.AdminAPIMutationUnscheduleAccountAnonymizationExecutedEventPayload{
 					UserRef: apimodel.UserRef{
 						Meta: apimodel.Meta{
@@ -1074,7 +1093,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},
@@ -1119,14 +1138,15 @@ var _ = registerMutationField(
 			}
 			userID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			err := gqlCtx.UserFacade.Anonymize(userID)
+			err := gqlCtx.UserFacade.Anonymize(ctx, userID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAnonymizeUserExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationAnonymizeUserExecutedEventPayload{
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
 						ID: userID,

@@ -1,8 +1,10 @@
 package webapp
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -123,7 +125,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -143,7 +145,7 @@ func (h *SetupOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			err = GetValidationSchema(oobAuthenticatorType).Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {

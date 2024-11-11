@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -71,9 +73,9 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			data, err = h.GetData(w, r)
 			return err
 		})
@@ -84,15 +86,15 @@ func (h *AuthflowV2SettingsIdentityNewUsernameHandler) ServeHTTP(w http.Response
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		err := AuthflowV2SettingsIdentityNewUsernameSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 		loginIDKey := r.Form.Get("x_login_id_key")
 		loginID := r.Form.Get("x_login_id")
-		resolvedSession := session.GetSession(r.Context())
-		_, err = h.AccountManagement.AddIdentityUsername(resolvedSession, &accountmanagement.AddIdentityUsernameInput{
+		resolvedSession := session.GetSession(ctx)
+		_, err = h.AccountManagement.AddIdentityUsername(ctx, resolvedSession, &accountmanagement.AddIdentityUsernameInput{
 			LoginIDKey: loginIDKey,
 			LoginID:    loginID,
 		})

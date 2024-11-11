@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -36,17 +37,17 @@ func NewConsentHandlerLogger(lf *log.Factory) ConsentHandlerLogger {
 }
 
 type ProtocolConsentHandler interface {
-	HandleConsentWithoutUserConsent(req *http.Request) (httputil.Result, *oauthhandler.ConsentRequired)
-	HandleConsentWithUserConsent(req *http.Request) httputil.Result
-	HandleConsentWithUserCancel(req *http.Request) httputil.Result
+	HandleConsentWithoutUserConsent(ctx context.Context, req *http.Request) (httputil.Result, *oauthhandler.ConsentRequired)
+	HandleConsentWithUserConsent(ctx context.Context, req *http.Request) httputil.Result
+	HandleConsentWithUserCancel(ctx context.Context, req *http.Request) httputil.Result
 }
 
 type ProtocolIdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type ConsentUserService interface {
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
+	Get(ctx context.Context, userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type ConsentViewModel struct {
@@ -81,10 +82,10 @@ func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		var consentRequired *oauthhandler.ConsentRequired
-		err = h.Database.WithTx(func() error {
-			result, consentRequired = h.Handler.HandleConsentWithoutUserConsent(r)
+		err = h.Database.WithTx(r.Context(), func(ctx context.Context) error {
+			result, consentRequired = h.Handler.HandleConsentWithoutUserConsent(ctx, r)
 			if consentRequired != nil {
-				err = h.renderConsentPage(rw, r, consentRequired)
+				err = h.renderConsentPage(ctx, rw, r, consentRequired)
 				if err != nil {
 					return err
 				}
@@ -101,8 +102,8 @@ func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		}
 	case http.MethodPost:
 		if r.Form.Get("x_action") == "consent" {
-			err = h.Database.WithTx(func() error {
-				result = h.Handler.HandleConsentWithUserConsent(r)
+			err = h.Database.WithTx(r.Context(), func(ctx context.Context) error {
+				result = h.Handler.HandleConsentWithUserConsent(ctx, r)
 				if result.IsInternalError() {
 					return errAuthzInternalError
 				}
@@ -110,8 +111,8 @@ func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 			})
 			break
 		} else if r.Form.Get("x_action") == "cancel" {
-			err = h.Database.WithTx(func() error {
-				result = h.Handler.HandleConsentWithUserCancel(r)
+			err = h.Database.WithTx(r.Context(), func(ctx context.Context) error {
+				result = h.Handler.HandleConsentWithUserCancel(ctx, r)
 				if result.IsInternalError() {
 					return errAuthzInternalError
 				}
@@ -131,16 +132,16 @@ func (h *ConsentHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *ConsentHandler) renderConsentPage(rw http.ResponseWriter, r *http.Request, consentRequired *oauthhandler.ConsentRequired) error {
+func (h *ConsentHandler) renderConsentPage(ctx context.Context, rw http.ResponseWriter, r *http.Request, consentRequired *oauthhandler.ConsentRequired) error {
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	data := map[string]interface{}{}
 	viewmodels.Embed(data, baseViewModel)
 
-	identities, err := h.Identities.ListByUser(consentRequired.UserID)
+	identities, err := h.Identities.ListByUser(ctx, consentRequired.UserID)
 	if err != nil {
 		return err
 	}
-	user, err := h.Users.Get(consentRequired.UserID, accesscontrol.RoleGreatest)
+	user, err := h.Users.Get(ctx, consentRequired.UserID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return err
 	}

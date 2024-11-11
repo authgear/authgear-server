@@ -1,6 +1,8 @@
 package facade
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/admin/model"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -11,7 +13,7 @@ import (
 )
 
 type InteractionService interface {
-	Perform(intent interaction.Intent, input interface{}) (*interaction.Graph, error)
+	Perform(ctx context.Context, intent interaction.Intent, input interface{}) (*interaction.Graph, error)
 }
 
 // adminAPIOp represents common characteristics applicable to Admin API operations.

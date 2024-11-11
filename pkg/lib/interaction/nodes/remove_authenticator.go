@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -18,7 +20,7 @@ type InputRemoveAuthenticator interface {
 
 type EdgeRemoveAuthenticator struct{}
 
-func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeRemoveAuthenticator) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputRemoveAuthenticator
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -31,7 +33,7 @@ func (e *EdgeRemoveAuthenticator) Instantiate(ctx *interaction.Context, graph *i
 		bypassMFARequirement = bypassInput.BypassMFARequirement()
 	}
 
-	info, err := ctx.Authenticators.Get(authenticatorID)
+	info, err := ctx.Authenticators.Get(goCtx, authenticatorID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,14 +57,14 @@ type NodeRemoveAuthenticator struct {
 	BypassMFARequirement bool                `json:"bypass_mfa_requirement"`
 }
 
-func (n *NodeRemoveAuthenticator) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeRemoveAuthenticator) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeRemoveAuthenticator) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeRemoveAuthenticator) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeRemoveAuthenticator) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeRemoveAuthenticator) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }

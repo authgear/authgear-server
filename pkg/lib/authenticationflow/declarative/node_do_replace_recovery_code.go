@@ -32,7 +32,7 @@ func (n *NodeDoReplaceRecoveryCode) MilestoneDoReplaceRecoveryCodeUpdateUserID(n
 func (n *NodeDoReplaceRecoveryCode) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (effs []authflow.Effect, err error) {
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			_, err := deps.MFA.ReplaceRecoveryCodes(n.UserID, n.RecoveryCodes)
+			_, err := deps.MFA.ReplaceRecoveryCodes(ctx, n.UserID, n.RecoveryCodes)
 			return err
 		}),
 	}, nil

@@ -1,6 +1,8 @@
 package blocking
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
@@ -33,7 +35,7 @@ func (e *UserPreCreateBlockingEventPayload) GetTriggeredBy() event.TriggeredByTy
 
 func (e *UserPreCreateBlockingEventPayload) FillContext(ctx *event.Context) {}
 
-func (e *UserPreCreateBlockingEventPayload) ApplyMutations(mutations event.Mutations) bool {
+func (e *UserPreCreateBlockingEventPayload) ApplyMutations(ctx context.Context, mutations event.Mutations) bool {
 	user, mutated := ApplyUserMutations(e.UserModel, mutations.User)
 	if mutated {
 		e.UserModel = user
@@ -43,10 +45,10 @@ func (e *UserPreCreateBlockingEventPayload) ApplyMutations(mutations event.Mutat
 	return false
 }
 
-func (e *UserPreCreateBlockingEventPayload) PerformEffects(ctx event.MutationsEffectContext) error {
+func (e *UserPreCreateBlockingEventPayload) PerformEffects(ctx context.Context, effectCtx event.MutationsEffectContext) error {
 	userID := e.UserID()
 	userMutations := MakeUserMutations(e.UserModel)
-	return PerformEffectsOnUser(ctx, userID, userMutations)
+	return PerformEffectsOnUser(ctx, effectCtx, userID, userMutations)
 }
 
 var _ event.BlockingPayload = &UserPreCreateBlockingEventPayload{}

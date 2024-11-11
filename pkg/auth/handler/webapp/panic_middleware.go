@@ -3,6 +3,7 @@ package webapp
 import (
 	"fmt"
 	"net/http"
+
 	"net/url"
 
 	"github.com/felixge/httpsnoop"
@@ -64,7 +65,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				m.Logger.WithError(err).Error("panic occurred")
 
 				apiError := apierrors.AsAPIError(err)
-				cookie, cookieErr := m.ErrorService.SetRecoverableError(r, apiError)
+				cookie, cookieErr := m.ErrorService.SetRecoverableError(r.Context(), r, apiError)
 				if cookieErr != nil {
 					panic(cookieErr)
 				}

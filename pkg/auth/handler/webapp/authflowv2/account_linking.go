@@ -1,8 +1,10 @@
 package authflowv2
 
 import (
+	"context"
 	"fmt"
 	"net/http"
+
 	"strconv"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -91,7 +93,7 @@ func (h *AuthflowV2AccountLinkingHandler) GetData(w http.ResponseWriter, r *http
 
 func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -100,7 +102,7 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowV2AccountLinkingHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowV2AccountLinkingIdentifySchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -137,7 +139,7 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 			panic(fmt.Errorf("unsupported identifcation option %v", option.Identifcation))
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -146,5 +148,5 @@ func (h *AuthflowV2AccountLinkingHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return nil
 	})
 
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

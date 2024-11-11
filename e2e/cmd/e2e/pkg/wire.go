@@ -4,8 +4,6 @@
 package e2e
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
@@ -17,7 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
 )
 
-func newConfigSourceController(p *deps.RootProvider, c context.Context) *configsource.Controller {
+func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	panic(wire.Build(
 		configsource.NewResolveAppIDTypeDomain,
 		deps.RootDependencySet,
@@ -40,14 +38,14 @@ func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queu
 	))
 }
 
-func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImportService {
+func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	panic(wire.Build(
 		End2EndDependencySet,
 		deps.CommonDependencySet,
 	))
 }
 
-func newLoginIDSerivce(p *deps.AppProvider, c context.Context) *loginid.Provider {
+func newLoginIDSerivce(p *deps.AppProvider) *loginid.Provider {
 	panic(wire.Build(
 		End2EndDependencySet,
 		deps.CommonDependencySet,

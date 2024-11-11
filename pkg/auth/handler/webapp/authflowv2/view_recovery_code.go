@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -50,7 +51,7 @@ func (h *AuthflowV2ViewRecoveryCodeHandler) GetData(w http.ResponseWriter, r *ht
 
 func (h *AuthflowV2ViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -59,7 +60,7 @@ func (h *AuthflowV2ViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowViewRecoveryCodeHTML, data)
 		return nil
 	})
-	handlers.PostAction("download", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("download", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -69,12 +70,12 @@ func (h *AuthflowV2ViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *
 		h.Renderer.Render(w, r, handlerwebapp.TemplateWebDownloadRecoveryCodeTXT, data)
 		return nil
 	})
-	handlers.PostAction("proceed", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("proceed", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"confirm_recovery_code": true,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -82,5 +83,5 @@ func (h *AuthflowV2ViewRecoveryCodeHandler) ServeHTTP(w http.ResponseWriter, r *
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

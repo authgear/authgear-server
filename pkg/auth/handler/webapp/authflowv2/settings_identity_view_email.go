@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -71,7 +73,7 @@ type AuthflowV2SettingsIdentityViewEmailHandler struct {
 	AccountManagement accountmanagement.Service
 }
 
-func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
@@ -80,14 +82,14 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(r *http.Request, rw
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
-	emailIdentity, err := h.Identities.LoginID.Get(*userID, identityID)
+	emailIdentity, err := h.Identities.LoginID.Get(ctx, *userID, identityID)
 	if err != nil {
 		return nil, err
 	}
 
-	verified, err := h.AccountManagement.CheckIdentityVerified(emailIdentity.ToInfo())
+	verified, err := h.AccountManagement.CheckIdentityVerified(ctx, emailIdentity.ToInfo())
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +101,7 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) GetData(r *http.Request, rw
 		deleteDisabled = *loginIDConfig.DeleteDisabled
 	}
 
-	identities, err := h.Identities.ListByUser(*userID)
+	identities, err := h.Identities.ListByUser(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -132,10 +134,10 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			return err
 		})
 		if err != nil {
@@ -146,14 +148,14 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		err := AuthflowV2SettingsRemoveIdentityEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
 		if err != nil {
 			return err
 		}
 
 		IdentityID := r.Form.Get("x_identity_id")
-		_, err = h.AccountManagement.DeleteIdentityEmail(session.GetSession(r.Context()), &accountmanagement.DeleteIdentityEmailInput{
+		_, err = h.AccountManagement.DeleteIdentityEmail(ctx, session.GetSession(ctx), &accountmanagement.DeleteIdentityEmailInput{
 			IdentityID: IdentityID,
 		})
 		if err != nil {
@@ -175,7 +177,7 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 		return nil
 	})
 
-	ctrl.PostAction("verify", func() error {
+	ctrl.PostAction("verify", func(ctx context.Context) error {
 		loginIDKey := r.Form.Get("q_login_id_key")
 
 		err := AuthflowV2SettingsIdentityUpdateVerificationEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
@@ -186,8 +188,8 @@ func (h *AuthflowV2SettingsIdentityViewEmailHandler) ServeHTTP(w http.ResponseWr
 		loginID := r.Form.Get("x_login_id")
 		identityID := r.Form.Get("x_identity_id")
 
-		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartUpdateIdentityEmail(s, &accountmanagement.StartUpdateIdentityEmailInput{
+		s := session.GetSession(ctx)
+		output, err := h.AccountManagement.StartUpdateIdentityEmail(ctx, s, &accountmanagement.StartUpdateIdentityEmailInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
 			IdentityID: identityID,

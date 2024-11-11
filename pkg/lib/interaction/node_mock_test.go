@@ -5,6 +5,7 @@
 package interaction
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,47 +35,47 @@ func (m *MockNode) EXPECT() *MockNodeMockRecorder {
 }
 
 // DeriveEdges mocks base method.
-func (m *MockNode) DeriveEdges(graph *Graph) ([]Edge, error) {
+func (m *MockNode) DeriveEdges(goCtx context.Context, graph *Graph) ([]Edge, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeriveEdges", graph)
+	ret := m.ctrl.Call(m, "DeriveEdges", goCtx, graph)
 	ret0, _ := ret[0].([]Edge)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeriveEdges indicates an expected call of DeriveEdges.
-func (mr *MockNodeMockRecorder) DeriveEdges(graph interface{}) *gomock.Call {
+func (mr *MockNodeMockRecorder) DeriveEdges(goCtx, graph interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeriveEdges", reflect.TypeOf((*MockNode)(nil).DeriveEdges), graph)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeriveEdges", reflect.TypeOf((*MockNode)(nil).DeriveEdges), goCtx, graph)
 }
 
 // GetEffects mocks base method.
-func (m *MockNode) GetEffects() ([]Effect, error) {
+func (m *MockNode) GetEffects(goCtx context.Context) ([]Effect, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetEffects")
+	ret := m.ctrl.Call(m, "GetEffects", goCtx)
 	ret0, _ := ret[0].([]Effect)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetEffects indicates an expected call of GetEffects.
-func (mr *MockNodeMockRecorder) GetEffects() *gomock.Call {
+func (mr *MockNodeMockRecorder) GetEffects(goCtx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEffects", reflect.TypeOf((*MockNode)(nil).GetEffects))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetEffects", reflect.TypeOf((*MockNode)(nil).GetEffects), goCtx)
 }
 
 // Prepare mocks base method.
-func (m *MockNode) Prepare(ctx *Context, graph *Graph) error {
+func (m *MockNode) Prepare(goCtx context.Context, ctx *Context, graph *Graph) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Prepare", ctx, graph)
+	ret := m.ctrl.Call(m, "Prepare", goCtx, ctx, graph)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Prepare indicates an expected call of Prepare.
-func (mr *MockNodeMockRecorder) Prepare(ctx, graph interface{}) *gomock.Call {
+func (mr *MockNodeMockRecorder) Prepare(goCtx, ctx, graph interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prepare", reflect.TypeOf((*MockNode)(nil).Prepare), ctx, graph)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Prepare", reflect.TypeOf((*MockNode)(nil).Prepare), goCtx, ctx, graph)
 }
 
 // MockEdge is a mock of Edge interface.
@@ -101,16 +102,16 @@ func (m *MockEdge) EXPECT() *MockEdgeMockRecorder {
 }
 
 // Instantiate mocks base method.
-func (m *MockEdge) Instantiate(ctx *Context, graph *Graph, input interface{}) (Node, error) {
+func (m *MockEdge) Instantiate(goCtx context.Context, ctx *Context, graph *Graph, input interface{}) (Node, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Instantiate", ctx, graph, input)
+	ret := m.ctrl.Call(m, "Instantiate", goCtx, ctx, graph, input)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Instantiate indicates an expected call of Instantiate.
-func (mr *MockEdgeMockRecorder) Instantiate(ctx, graph, input interface{}) *gomock.Call {
+func (mr *MockEdgeMockRecorder) Instantiate(goCtx, ctx, graph, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Instantiate", reflect.TypeOf((*MockEdge)(nil).Instantiate), ctx, graph, input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Instantiate", reflect.TypeOf((*MockEdge)(nil).Instantiate), goCtx, ctx, graph, input)
 }

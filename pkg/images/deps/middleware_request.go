@@ -23,7 +23,7 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 			"request.header.x-forwarded-host": r.Header.Get("X-Forwarded-Host"),
 			"request.header.x-original-host":  r.Header.Get("X-Original-Host"),
 		}).Debug("serving request")
-		appCtx, err := m.ConfigSource.ProvideContext(r)
+		appCtx, err := m.ConfigSource.ProvideContext(r.Context(), r)
 		if err != nil {
 			if errors.Is(err, configsource.ErrAppNotFound) {
 				http.Error(w, configsource.ErrAppNotFound.Error(), http.StatusNotFound)

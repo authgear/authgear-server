@@ -1,6 +1,8 @@
 package messaging
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 )
@@ -15,18 +17,18 @@ type message struct {
 	isSent bool
 }
 
-func (m *message) Close() {
+func (m *message) Close(ctx context.Context) {
 	if m.isSent {
 		return
 	}
 
 	for _, r := range m.rateLimits {
-		m.rateLimiter.Cancel(r)
+		m.rateLimiter.Cancel(ctx, r)
 	}
 	m.rateLimits = nil
 
 	if m.usageLimit != nil {
-		m.usageLimiter.Cancel(m.usageLimit)
+		m.usageLimiter.Cancel(ctx, m.usageLimit)
 	}
 	m.usageLimit = nil
 }

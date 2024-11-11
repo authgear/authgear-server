@@ -49,19 +49,20 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid authenticator ID")
 			}
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			info, err := gqlCtx.AuthenticatorFacade.Get(resolvedNodeID.ID)
+			info, err := gqlCtx.AuthenticatorFacade.Get(ctx, resolvedNodeID.ID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.AuthenticatorFacade.Remove(info)
+			err = gqlCtx.AuthenticatorFacade.Remove(ctx, info)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationDeleteAuthenticatorExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationDeleteAuthenticatorExecutedEventPayload{
 				Authenticator: info.ToModel(),
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
@@ -74,7 +75,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(info.UserID),
+				"user": gqlCtx.Users.Load(ctx, info.UserID),
 			}).Value, nil
 		},
 	},
@@ -127,7 +128,8 @@ var _ = registerMutationField(
 			kind := definition["kind"].(string)
 			authnType := definition["type"].(string)
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			spec := &authenticator.Spec{
 				UserID: userID,
@@ -166,12 +168,12 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("unsupported authenticator type")
 			}
 
-			info, err := gqlCtx.AuthenticatorFacade.CreateBySpec(spec)
+			info, err := gqlCtx.AuthenticatorFacade.CreateBySpec(ctx, spec)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationCreateAuthenticatorExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationCreateAuthenticatorExecutedEventPayload{
 				Authenticator: info.ToModel(),
 				UserRef: apimodel.UserRef{
 					Meta: apimodel.Meta{
@@ -184,7 +186,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"authenticator": gqlCtx.Authenticators.Load(info.ID),
+				"authenticator": gqlCtx.Authenticators.Load(ctx, info.ID),
 			}).Value, nil
 		},
 	},

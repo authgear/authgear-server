@@ -23,9 +23,7 @@ var cmdInternalE2EExecuteSQLInsertUpdate = &cobra.Command{
 		appID := binder.GetString(cmd, ArgAppID)
 		customSQL := binder.GetString(cmd, ArgCustomSQL)
 
-		instance := e2e.End2End{
-			Context: cmd.Context(),
-		}
+		instance := e2e.End2End{}
 
 		err := instance.ExecuteSQLInsertUpdate(appID, customSQL)
 		if err != nil {

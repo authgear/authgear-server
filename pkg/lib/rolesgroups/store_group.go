@@ -1,6 +1,7 @@
 package rolesgroups
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -23,7 +24,7 @@ func (s *Store) NewGroup(options *NewGroupOptions) *Group {
 	}
 }
 
-func (s *Store) CreateGroup(r *Group) error {
+func (s *Store) CreateGroup(ctx context.Context, r *Group) error {
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_group")).
 		Columns(
@@ -43,7 +44,7 @@ func (s *Store) CreateGroup(r *Group) error {
 			r.Description,
 		)
 
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		var pqError *pq.Error
 		if errors.As(err, &pqError) {
@@ -59,7 +60,7 @@ func (s *Store) CreateGroup(r *Group) error {
 	return nil
 }
 
-func (s *Store) UpdateGroup(options *UpdateGroupOptions) error {
+func (s *Store) UpdateGroup(ctx context.Context, options *UpdateGroupOptions) error {
 	now := s.Clock.NowUTC()
 
 	q := s.SQLBuilder.Update(s.SQLBuilder.TableName("_auth_group")).
@@ -86,7 +87,7 @@ func (s *Store) UpdateGroup(options *UpdateGroupOptions) error {
 		}
 	}
 
-	result, err := s.SQLExecutor.ExecWith(q)
+	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		var pqError *pq.Error
 		if errors.As(err, &pqError) {
@@ -111,11 +112,11 @@ func (s *Store) UpdateGroup(options *UpdateGroupOptions) error {
 	return nil
 }
 
-func (s *Store) DeleteGroup(id string) error {
+func (s *Store) DeleteGroup(ctx context.Context, id string) error {
 	q := s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_group_role")).
 		Where("group_id = ?", id)
 
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -123,7 +124,7 @@ func (s *Store) DeleteGroup(id string) error {
 	q = s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_user_group")).
 		Where("group_id = ?", id)
 
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -131,7 +132,7 @@ func (s *Store) DeleteGroup(id string) error {
 	q = s.SQLBuilder.Delete(s.SQLBuilder.TableName("_auth_group")).
 		Where("id = ?", id)
 
-	result, err := s.SQLExecutor.ExecWith(q)
+	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -148,10 +149,10 @@ func (s *Store) DeleteGroup(id string) error {
 	return nil
 }
 
-func (s *Store) GetGroupByID(id string) (*Group, error) {
+func (s *Store) GetGroupByID(ctx context.Context, id string) (*Group, error) {
 	q := s.selectGroupQuery().Where("id = ?", id)
 
-	row, err := s.SQLExecutor.QueryRowWith(q)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -167,10 +168,10 @@ func (s *Store) GetGroupByID(id string) (*Group, error) {
 	return r, nil
 }
 
-func (s *Store) GetGroupByKey(key string) (*Group, error) {
+func (s *Store) GetGroupByKey(ctx context.Context, key string) (*Group, error) {
 	q := s.selectGroupQuery().Where("key = ?", key)
 
-	row, err := s.SQLExecutor.QueryRowWith(q)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -186,11 +187,11 @@ func (s *Store) GetGroupByKey(key string) (*Group, error) {
 	return r, nil
 }
 
-func (s *Store) CountGroups() (uint64, error) {
+func (s *Store) CountGroups(ctx context.Context) (uint64, error) {
 	builder := s.SQLBuilder.
 		Select("count(*)").
 		From(s.SQLBuilder.TableName("_auth_group"))
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return 0, err
 	}
@@ -203,7 +204,7 @@ func (s *Store) CountGroups() (uint64, error) {
 	return count, nil
 }
 
-func (s *Store) ListGroups(options *ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]*Group, uint64, error) {
+func (s *Store) ListGroups(ctx context.Context, options *ListGroupsOptions, pageArgs graphqlutil.PageArgs) ([]*Group, uint64, error) {
 	q := s.selectGroupQuery().
 		// Sort by key to ensure we have a stable order.
 		OrderBy("key ASC")
@@ -221,7 +222,7 @@ func (s *Store) ListGroups(options *ListGroupsOptions, pageArgs graphqlutil.Page
 		return nil, 0, err
 	}
 
-	groups, err := s.queryGroups(q)
+	groups, err := s.queryGroups(ctx, q)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -280,18 +281,18 @@ func (s *Store) scanGroupWithUserID(scanner db.Scanner) (string, *Group, error) 
 	return u, g, nil
 }
 
-func (s *Store) GetManyGroups(ids []string) ([]*Group, error) {
+func (s *Store) GetManyGroups(ctx context.Context, ids []string) ([]*Group, error) {
 	q := s.selectGroupQuery().Where("id = ANY (?)", pq.Array(ids))
-	return s.queryGroups(q)
+	return s.queryGroups(ctx, q)
 }
 
-func (s *Store) GetManyGroupsByKeys(keys []string) ([]*Group, error) {
+func (s *Store) GetManyGroupsByKeys(ctx context.Context, keys []string) ([]*Group, error) {
 	q := s.selectGroupQuery().Where("key = ANY (?)", pq.Array(keys))
-	return s.queryGroups(q)
+	return s.queryGroups(ctx, q)
 }
 
-func (s *Store) queryGroups(q db.SelectBuilder) ([]*Group, error) {
-	rows, err := s.SQLExecutor.QueryWith(q)
+func (s *Store) queryGroups(ctx context.Context, q db.SelectBuilder) ([]*Group, error) {
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -309,8 +310,8 @@ func (s *Store) queryGroups(q db.SelectBuilder) ([]*Group, error) {
 	return groups, nil
 }
 
-func (s *Store) queryGroupsWithUserID(q db.SelectBuilder) (map[string][]*Group, error) {
-	rows, err := s.SQLExecutor.QueryWith(q)
+func (s *Store) queryGroupsWithUserID(ctx context.Context, q db.SelectBuilder) (map[string][]*Group, error) {
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}

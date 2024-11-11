@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -23,7 +24,7 @@ func NewEndSessionHandlerLogger(lf *log.Factory) EndSessionHandlerLogger {
 }
 
 type ProtocolEndSessionHandler interface {
-	Handle(session.ResolvedSession, protocol.EndSessionRequest, *http.Request, http.ResponseWriter) error
+	Handle(ctx context.Context, s session.ResolvedSession, endSessionRequest protocol.EndSessionRequest, r *http.Request, w http.ResponseWriter) error
 }
 
 type EndSessionHandler struct {
@@ -44,9 +45,9 @@ func (h *EndSessionHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		req[name] = values[0]
 	}
 
-	err = h.Database.WithTx(func() error {
-		sess := session.GetSession(r.Context())
-		return h.EndSessionHandler.Handle(sess, req, r, rw)
+	err = h.Database.WithTx(r.Context(), func(ctx context.Context) error {
+		sess := session.GetSession(ctx)
+		return h.EndSessionHandler.Handle(ctx, sess, req, r, rw)
 	})
 
 	if err != nil {

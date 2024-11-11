@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/google/wire"
@@ -315,7 +316,7 @@ func ProvideCookieManager(r *http.Request, trustProxy config.TrustProxy) *httput
 
 type NoopErrorService struct{}
 
-func (*NoopErrorService) PopError(w http.ResponseWriter, r *http.Request) (*webapp.ErrorState, bool) {
+func (*NoopErrorService) PopError(ctx context.Context, w http.ResponseWriter, r *http.Request) (*webapp.ErrorState, bool) {
 	return nil, false
 }
 
@@ -341,7 +342,6 @@ var RequestMiddlewareDependencySet = wire.NewSet(
 
 	ProvideCookieManager,
 
-	deps.ProvideRequestContext,
 	deps.ProvideRemoteIP,
 	deps.ProvideUserAgentString,
 	deps.ProvideHTTPHost,

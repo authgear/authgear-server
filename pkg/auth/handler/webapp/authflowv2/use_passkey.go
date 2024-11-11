@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -96,7 +97,7 @@ func (h *AuthflowV2UsePasskeyHandler) GetInlinePreviewData(w http.ResponseWriter
 
 func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -105,7 +106,7 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowUsePasskeyHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		assertionResponseStr := r.Form.Get("x_assertion_response")
 
 		var assertionResponseJSON interface{}
@@ -129,7 +130,7 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -137,7 +138,7 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+	handlers.InlinePreview(func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 		data, err := h.GetInlinePreviewData(w, r)
 		if err != nil {
 			return err
@@ -146,5 +147,5 @@ func (h *AuthflowV2UsePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.R
 		return nil
 	})
 
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

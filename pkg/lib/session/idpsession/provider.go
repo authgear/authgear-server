@@ -28,18 +28,17 @@ const (
 )
 
 type AccessEventProvider interface {
-	InitStream(sessionID string, expiry time.Time, event *access.Event) error
-	RecordAccess(sessionID string, expiry time.Time, event *access.Event) error
+	InitStream(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error
+	RecordAccess(ctx context.Context, sessionID string, expiry time.Time, event *access.Event) error
 }
 
 type ProviderMeterService interface {
-	TrackActiveUser(userID string) error
+	TrackActiveUser(ctx context.Context, userID string) error
 }
 
 type Rand *rand.Rand
 
 type Provider struct {
-	Context         context.Context
 	RemoteIP        httputil.RemoteIP
 	UserAgentString httputil.UserAgentString
 	AppID           config.AppID
@@ -72,18 +71,18 @@ func (p *Provider) MakeSession(attrs *session.Attrs) (*IDPSession, string) {
 	return session, token
 }
 
-func (p *Provider) Reauthenticate(id string, amr []string) (err error) {
+func (p *Provider) Reauthenticate(ctx context.Context, id string, amr []string) (err error) {
 	mutexName := sessionMutexName(p.AppID, id)
 	mutex := p.Redis.NewMutex(mutexName)
-	err = mutex.LockContext(p.Context)
+	err = mutex.LockContext(ctx)
 	if err != nil {
 		return
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(p.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	s, err := p.Get(id)
+	s, err := p.Get(ctx, id)
 	if err != nil {
 		return
 	}
@@ -93,7 +92,7 @@ func (p *Provider) Reauthenticate(id string, amr []string) (err error) {
 	s.Attrs.SetAMR(amr)
 
 	setSessionExpireAtForResolvedSession(s, p.Config)
-	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
+	err = p.Store.Update(ctx, s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
 		return err
@@ -102,14 +101,14 @@ func (p *Provider) Reauthenticate(id string, amr []string) (err error) {
 	return nil
 }
 
-func (p *Provider) Create(session *IDPSession) error {
+func (p *Provider) Create(ctx context.Context, session *IDPSession) error {
 	setSessionExpireAtForResolvedSession(session, p.Config)
-	err := p.Store.Create(session, session.ExpireAtForResolvedSession)
+	err := p.Store.Create(ctx, session, session.ExpireAtForResolvedSession)
 	if err != nil {
 		return fmt.Errorf("failed to create session: %w", err)
 	}
 
-	err = p.AccessEvents.InitStream(session.ID, session.ExpireAtForResolvedSession, &session.AccessInfo.InitialAccess)
+	err = p.AccessEvents.InitStream(ctx, session.ID, session.ExpireAtForResolvedSession, &session.AccessInfo.InitialAccess)
 	if err != nil {
 		return fmt.Errorf("failed to access session: %w", err)
 	}
@@ -117,13 +116,13 @@ func (p *Provider) Create(session *IDPSession) error {
 	return nil
 }
 
-func (p *Provider) GetByToken(token string) (*IDPSession, error) {
+func (p *Provider) GetByToken(ctx context.Context, token string) (*IDPSession, error) {
 	id, ok := decodeTokenSessionID(token)
 	if !ok {
 		return nil, ErrSessionNotFound
 	}
 
-	s, err := p.Get(id)
+	s, err := p.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +142,8 @@ func (p *Provider) GetByToken(token string) (*IDPSession, error) {
 	return s, nil
 }
 
-func (p *Provider) Get(id string) (*IDPSession, error) {
-	session, err := p.Store.Get(id)
+func (p *Provider) Get(ctx context.Context, id string) (*IDPSession, error) {
+	session, err := p.Store.Get(ctx, id)
 	if err != nil {
 		if !errors.Is(err, ErrSessionNotFound) {
 			err = fmt.Errorf("failed to get session: %w", err)
@@ -156,45 +155,45 @@ func (p *Provider) Get(id string) (*IDPSession, error) {
 	return session, nil
 }
 
-func (p *Provider) AccessWithToken(token string, accessEvent access.Event) (*IDPSession, error) {
-	s, err := p.GetByToken(token)
+func (p *Provider) AccessWithToken(ctx context.Context, token string, accessEvent access.Event) (*IDPSession, error) {
+	s, err := p.GetByToken(ctx, token)
 	if err != nil {
 		return nil, err
 	}
 
-	ss, err := p.accessWithID(s.ID, accessEvent)
+	ss, err := p.accessWithID(ctx, s.ID, accessEvent)
 
 	return ss, err
 }
 
-func (p *Provider) AccessWithID(id string, accessEvent access.Event) (*IDPSession, error) {
-	return p.accessWithID(id, accessEvent)
+func (p *Provider) AccessWithID(ctx context.Context, id string, accessEvent access.Event) (*IDPSession, error) {
+	return p.accessWithID(ctx, id, accessEvent)
 }
 
-func (p *Provider) accessWithID(id string, accessEvent access.Event) (s *IDPSession, err error) {
+func (p *Provider) accessWithID(ctx context.Context, id string, accessEvent access.Event) (s *IDPSession, err error) {
 	mutexName := sessionMutexName(p.AppID, id)
 	mutex := p.Redis.NewMutex(mutexName)
-	err = mutex.LockContext(p.Context)
+	err = mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(p.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	s, err = p.Get(id)
+	s, err = p.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
 	s.AccessInfo.LastAccess = accessEvent
 	defer func() {
-		err = p.accessSideEffects(s, accessEvent)
+		err = p.accessSideEffects(ctx, s, accessEvent)
 	}()
 
 	setSessionExpireAtForResolvedSession(s, p.Config)
 
-	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
+	err = p.Store.Update(ctx, s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
 		return nil, err
@@ -203,14 +202,14 @@ func (p *Provider) accessWithID(id string, accessEvent access.Event) (s *IDPSess
 	return s, nil
 }
 
-func (p *Provider) accessSideEffects(session *IDPSession, accessEvent access.Event) error {
+func (p *Provider) accessSideEffects(ctx context.Context, session *IDPSession, accessEvent access.Event) error {
 
-	err := p.AccessEvents.RecordAccess(session.SessionID(), session.GetExpireAt(), &accessEvent)
+	err := p.AccessEvents.RecordAccess(ctx, session.SessionID(), session.GetExpireAt(), &accessEvent)
 	if err != nil {
 		return err
 	}
 
-	err = p.MeterService.TrackActiveUser(session.GetAuthenticationInfo().UserID)
+	err = p.MeterService.TrackActiveUser(ctx, session.GetAuthenticationInfo().UserID)
 	if err != nil {
 		return err
 	}
@@ -218,25 +217,25 @@ func (p *Provider) accessSideEffects(session *IDPSession, accessEvent access.Eve
 	return nil
 }
 
-func (p *Provider) AddSAMLServiceProviderParticipant(session *IDPSession, serviceProviderID string) (*IDPSession, error) {
+func (p *Provider) AddSAMLServiceProviderParticipant(ctx context.Context, session *IDPSession, serviceProviderID string) (*IDPSession, error) {
 	mutexName := sessionMutexName(p.AppID, session.ID)
 	mutex := p.Redis.NewMutex(mutexName)
-	err := mutex.LockContext(p.Context)
+	err := mutex.LockContext(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer func() {
-		_, _ = mutex.UnlockContext(p.Context)
+		_, _ = mutex.UnlockContext(ctx)
 	}()
 
-	s, err := p.Get(session.ID)
+	s, err := p.Get(ctx, session.ID)
 	if err != nil {
 		return nil, err
 	}
 	newParticipatedSAMLServiceProviderIDs := s.GetParticipatedSAMLServiceProviderIDsSet()
 	newParticipatedSAMLServiceProviderIDs.Add(serviceProviderID)
 	s.ParticipatedSAMLServiceProviderIDs = newParticipatedSAMLServiceProviderIDs.Keys()
-	err = p.Store.Update(s, s.ExpireAtForResolvedSession)
+	err = p.Store.Update(ctx, s, s.ExpireAtForResolvedSession)
 	if err != nil {
 		err = fmt.Errorf("failed to update session: %w", err)
 		return nil, err

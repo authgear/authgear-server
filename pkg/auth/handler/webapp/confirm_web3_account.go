@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -110,7 +111,7 @@ func (h *ConnectWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		SuppressIDPSessionCookie: suppressIDPSessionCookie,
 	}
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		graph, err := ctrl.EntryPointGet(opts, intent)
 		if err != nil {
 			return err
@@ -125,7 +126,7 @@ func (h *ConnectWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		return nil
 	})
 
-	ctrl.PostAction("submit", func() error {
+	ctrl.PostAction("submit", func(ctx context.Context) error {
 		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
 			err = Web3AccountConfirmationSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {

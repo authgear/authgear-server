@@ -94,7 +94,7 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 				return err
 			}
 
-			err = deps.Authenticators.ClearLockoutAttempts(userID, usedMethods)
+			err = deps.Authenticators.ClearLockoutAttempts(ctx, userID, usedMethods)
 			if err != nil {
 				return err
 			}
@@ -121,7 +121,7 @@ func (i *IntentLoginFlow) GetEffects(ctx context.Context, deps *authflow.Depende
 				return nil
 			}
 
-			err = deps.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
+			err = deps.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
 				UserRef: model.UserRef{
 					Meta: model.Meta{
 						ID: userID,

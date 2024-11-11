@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"context"
 	"sort"
 
 	"github.com/authgear/authgear-server/pkg/admin/model"
@@ -12,9 +13,9 @@ import (
 )
 
 type IdentityService interface {
-	Get(id string) (*identity.Info, error)
-	ListRefsByUsers(userIDs []string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error)
-	CreateByAdmin(userID string, spec *identity.Spec, password string) (*identity.Info, error)
+	Get(ctx context.Context, id string) (*identity.Info, error)
+	ListRefsByUsers(ctx context.Context, userIDs []string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error)
+	CreateByAdmin(ctx context.Context, userID string, spec *identity.Spec, password string) (*identity.Info, error)
 }
 
 type IdentityFacade struct {
@@ -23,12 +24,12 @@ type IdentityFacade struct {
 	Interaction   InteractionService
 }
 
-func (f *IdentityFacade) Get(id string) (*identity.Info, error) {
-	return f.Identities.Get(id)
+func (f *IdentityFacade) Get(ctx context.Context, id string) (*identity.Info, error) {
+	return f.Identities.Get(ctx, id)
 }
 
-func (f *IdentityFacade) List(userID string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error) {
-	refs, err := f.Identities.ListRefsByUsers([]string{userID}, identityType)
+func (f *IdentityFacade) List(ctx context.Context, userID string, identityType *apimodel.IdentityType) ([]*apimodel.IdentityRef, error) {
+	refs, err := f.Identities.ListRefsByUsers(ctx, []string{userID}, identityType)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +44,9 @@ func (f *IdentityFacade) List(userID string, identityType *apimodel.IdentityType
 	return refs, nil
 }
 
-func (f *IdentityFacade) Remove(identityInfo *identity.Info) error {
+func (f *IdentityFacade) Remove(ctx context.Context, identityInfo *identity.Info) error {
 	_, err := f.Interaction.Perform(
+		ctx,
 		interactionintents.NewIntentRemoveIdentity(identityInfo.UserID),
 		&removeIdentityInput{identityInfo: identityInfo},
 	)
@@ -54,7 +56,7 @@ func (f *IdentityFacade) Remove(identityInfo *identity.Info) error {
 	return nil
 }
 
-func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error) {
+func (f *IdentityFacade) Create(ctx context.Context, userID string, identityDef model.IdentityDef, password string) (*apimodel.IdentityRef, error) {
 	// NOTE: identityDef is assumed to be a login ID since portal only supports login ID
 	loginIDInput := identityDef.(*model.IdentityDefLoginID)
 	loginIDKeyCofig, ok := f.LoginIDConfig.GetKeyConfig(loginIDInput.Key)
@@ -72,6 +74,7 @@ func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, pa
 	}
 
 	iden, err := f.Identities.CreateByAdmin(
+		ctx,
 		userID,
 		identitySpec,
 		password,
@@ -83,10 +86,11 @@ func (f *IdentityFacade) Create(userID string, identityDef model.IdentityDef, pa
 	return iden.ToRef(), nil
 }
 
-func (f *IdentityFacade) Update(identityID string, userID string, identityDef model.IdentityDef) (*apimodel.IdentityRef, error) {
+func (f *IdentityFacade) Update(ctx context.Context, identityID string, userID string, identityDef model.IdentityDef) (*apimodel.IdentityRef, error) {
 	var input interface{} = &updateIdentityInput{identityDef: identityDef}
 
 	_, err := f.Interaction.Perform(
+		ctx,
 		interactionintents.NewIntentUpdateIdentity(userID, identityID),
 		input,
 	)
@@ -95,7 +99,7 @@ func (f *IdentityFacade) Update(identityID string, userID string, identityDef mo
 		return nil, err
 	}
 
-	identity, err := f.Identities.Get(identityID)
+	identity, err := f.Identities.Get(ctx, identityID)
 
 	if err != nil {
 		return nil, err

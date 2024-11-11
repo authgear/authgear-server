@@ -42,7 +42,7 @@ func (n *NodeDoCreateIdentity) GetEffects(ctx context.Context, deps *authflow.De
 	}
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			err := deps.Identities.Create(n.Identity)
+			err := deps.Identities.Create(ctx, n.Identity)
 			if err != nil {
 				return err
 			}

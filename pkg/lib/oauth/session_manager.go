@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -18,9 +19,9 @@ func (m *SessionManager) ClearCookie() []*http.Cookie {
 	return []*http.Cookie{}
 }
 
-func (m *SessionManager) Get(id string) (session.ListableSession, error) {
+func (m *SessionManager) Get(ctx context.Context, id string) (session.ListableSession, error) {
 	// It is intentionally not to use Service.GetOfflineGrant here.
-	grant, err := m.Store.GetOfflineGrantWithoutExpireAt(id)
+	grant, err := m.Store.GetOfflineGrantWithoutExpireAt(ctx, id)
 	if errors.Is(err, ErrGrantNotFound) {
 		return nil, session.ErrSessionNotFound
 	} else if err != nil {
@@ -29,16 +30,16 @@ func (m *SessionManager) Get(id string) (session.ListableSession, error) {
 	return grant, nil
 }
 
-func (m *SessionManager) Delete(session session.ListableSession) error {
-	err := m.Store.DeleteOfflineGrant(session.(*OfflineGrant))
+func (m *SessionManager) Delete(ctx context.Context, session session.ListableSession) error {
+	err := m.Store.DeleteOfflineGrant(ctx, session.(*OfflineGrant))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *SessionManager) List(userID string) ([]session.ListableSession, error) {
-	grants, err := m.Store.ListOfflineGrants(userID)
+func (m *SessionManager) List(ctx context.Context, userID string) ([]session.ListableSession, error) {
+	grants, err := m.Store.ListOfflineGrants(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -50,8 +51,8 @@ func (m *SessionManager) List(userID string) ([]session.ListableSession, error) 
 	return sessions, nil
 }
 
-func (m *SessionManager) TerminateAllExcept(userID string, currentSession session.ResolvedSession) ([]session.ListableSession, error) {
-	sessions, err := m.Store.ListOfflineGrants(userID)
+func (m *SessionManager) TerminateAllExcept(ctx context.Context, userID string, currentSession session.ResolvedSession) ([]session.ListableSession, error) {
+	sessions, err := m.Store.ListOfflineGrants(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +75,7 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 		// third party refresh token should be deleted through deleting authorization
 		tokenHashes, shouldRemoveOfflineGrant := ss.GetAllRemovableTokenHashesExcludeClientIDs(thirdPartyClientIDs)
 		if shouldRemoveOfflineGrant {
-			if err := m.Delete(ss); err != nil {
+			if err := m.Delete(ctx, ss); err != nil {
 				return nil, err
 			}
 			deletedSessions = append(deletedSessions, ss)
@@ -87,7 +88,7 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 			if err != nil {
 				return nil, err
 			}
-			_, err = m.Store.RemoveOfflineGrantRefreshTokens(ss.ID, tokenHashes, expiry)
+			_, err = m.Store.RemoveOfflineGrantRefreshTokens(ctx, ss.ID, tokenHashes, expiry)
 			if err != nil {
 				return nil, err
 			}
@@ -98,6 +99,6 @@ func (m *SessionManager) TerminateAllExcept(userID string, currentSession sessio
 	return deletedSessions, nil
 }
 
-func (m *SessionManager) CleanUpForDeletingUserID(userID string) error {
-	return m.Store.CleanUpForDeletingUserID(userID)
+func (m *SessionManager) CleanUpForDeletingUserID(ctx context.Context, userID string) error {
+	return m.Store.CleanUpForDeletingUserID(ctx, userID)
 }

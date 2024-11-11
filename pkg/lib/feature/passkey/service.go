@@ -2,6 +2,7 @@ package passkey
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 
 	"github.com/go-webauthn/webauthn/protocol"
@@ -15,7 +16,7 @@ type Service struct {
 	ConfigService *ConfigService
 }
 
-func (s *Service) PeekAttestationResponse(attestationResponse []byte) (creationOptions *model.WebAuthnCreationOptions, credentialID string, signCount int64, err error) {
+func (s *Service) PeekAttestationResponse(ctx context.Context, attestationResponse []byte) (creationOptions *model.WebAuthnCreationOptions, credentialID string, signCount int64, err error) {
 	parsed, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(attestationResponse))
 	if err != nil {
 		return
@@ -27,7 +28,7 @@ func (s *Service) PeekAttestationResponse(attestationResponse []byte) (creationO
 		return
 	}
 
-	session, err := s.Store.PeekSession(challenge)
+	session, err := s.Store.PeekSession(ctx, challenge)
 	if err != nil {
 		return
 	}
@@ -38,7 +39,7 @@ func (s *Service) PeekAttestationResponse(attestationResponse []byte) (creationO
 	return
 }
 
-func (s *Service) ConsumeAttestationResponse(attestationResponse []byte) (err error) {
+func (s *Service) ConsumeAttestationResponse(ctx context.Context, attestationResponse []byte) (err error) {
 	parsed, err := protocol.ParseCredentialCreationResponseBody(bytes.NewReader(attestationResponse))
 	if err != nil {
 		return
@@ -50,7 +51,7 @@ func (s *Service) ConsumeAttestationResponse(attestationResponse []byte) (err er
 		return
 	}
 
-	_, err = s.Store.ConsumeSession(challenge)
+	_, err = s.Store.ConsumeSession(ctx, challenge)
 	if err != nil {
 		return
 	}
@@ -58,7 +59,7 @@ func (s *Service) ConsumeAttestationResponse(attestationResponse []byte) (err er
 	return
 }
 
-func (s *Service) GetCredentialIDFromAssertionResponse(assertionResponse []byte) (credentialID string, err error) {
+func (s *Service) GetCredentialIDFromAssertionResponse(ctx context.Context, assertionResponse []byte) (credentialID string, err error) {
 	parsed, err := protocol.ParseCredentialRequestResponseBody(bytes.NewReader(assertionResponse))
 	if err != nil {
 		return
@@ -70,7 +71,7 @@ func (s *Service) GetCredentialIDFromAssertionResponse(assertionResponse []byte)
 		return
 	}
 
-	_, err = s.Store.PeekSession(challenge)
+	_, err = s.Store.PeekSession(ctx, challenge)
 	if err != nil {
 		return
 	}
@@ -79,8 +80,8 @@ func (s *Service) GetCredentialIDFromAssertionResponse(assertionResponse []byte)
 	return
 }
 
-func (s *Service) PeekAssertionResponse(assertionResponse []byte, attestationResponse []byte) (signCount int64, err error) {
-	config, err := s.ConfigService.MakeConfig()
+func (s *Service) PeekAssertionResponse(ctx context.Context, assertionResponse []byte, attestationResponse []byte) (signCount int64, err error) {
+	config, err := s.ConfigService.MakeConfig(ctx)
 	if err != nil {
 		return
 	}
@@ -96,7 +97,7 @@ func (s *Service) PeekAssertionResponse(assertionResponse []byte, attestationRes
 		return
 	}
 
-	_, err = s.Store.PeekSession(challenge)
+	_, err = s.Store.PeekSession(ctx, challenge)
 	if err != nil {
 		return
 	}
@@ -127,7 +128,7 @@ func (s *Service) PeekAssertionResponse(assertionResponse []byte, attestationRes
 	return
 }
 
-func (s *Service) ConsumeAssertionResponse(assertionResponse []byte) (err error) {
+func (s *Service) ConsumeAssertionResponse(ctx context.Context, assertionResponse []byte) (err error) {
 	parsed, err := protocol.ParseCredentialRequestResponseBody(bytes.NewReader(assertionResponse))
 	if err != nil {
 		return
@@ -139,7 +140,7 @@ func (s *Service) ConsumeAssertionResponse(assertionResponse []byte) (err error)
 		return
 	}
 
-	_, err = s.Store.ConsumeSession(challenge)
+	_, err = s.Store.ConsumeSession(ctx, challenge)
 	if err != nil {
 		return
 	}

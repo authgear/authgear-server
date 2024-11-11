@@ -32,7 +32,7 @@ func TestService(t *testing.T) {
 		defer ctrl.Finish()
 
 		httpReq, _ := http.NewRequest("POST", "", nil)
-		ctx := context.TODO()
+		ctx := context.Background()
 		deps := &Dependencies{
 			HTTPRequest: httpReq,
 		}
@@ -42,12 +42,11 @@ func TestService(t *testing.T) {
 		uiInfoResolver := NewMockServiceUIInfoResolver(ctrl)
 
 		service := &Service{
-			ContextDoNotUseDirectly: ctx,
-			Deps:                    deps,
-			Logger:                  logger,
-			Store:                   store,
-			Database:                database,
-			UIInfoResolver:          uiInfoResolver,
+			Deps:           deps,
+			Logger:         logger,
+			Store:          store,
+			Database:       database,
+			UIInfoResolver: uiInfoResolver,
 		}
 
 		Convey("CreateNewFlow with intent expecting non-nil input at the beginning", func() {
@@ -58,11 +57,11 @@ func TestService(t *testing.T) {
 			}
 
 			gomock.InOrder(
-				store.EXPECT().CreateSession(gomock.Any()).Return(nil),
-				store.EXPECT().CreateFlow(gomock.Any()).Return(nil),
+				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Return(nil),
+				store.EXPECT().CreateFlow(gomock.Any(), gomock.Any()).Return(nil),
 			)
 
-			output, err := service.CreateNewFlow(intent, &SessionOptions{})
+			output, err := service.CreateNewFlow(ctx, intent, &SessionOptions{})
 			So(err, ShouldBeNil)
 
 			So(output, ShouldResemble, &ServiceOutput{
@@ -87,16 +86,16 @@ func TestService(t *testing.T) {
 			intent := &intentNilInput{}
 
 			gomock.InOrder(
-				store.EXPECT().CreateSession(gomock.Any()).Return(nil),
-				store.EXPECT().CreateFlow(gomock.Any()).Return(nil),
+				store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Return(nil),
+				store.EXPECT().CreateFlow(gomock.Any(), gomock.Any()).Return(nil),
 
 				uiInfoResolver.EXPECT().SetAuthenticationInfoInQuery(gomock.Any(), gomock.Any()).Return(""),
 
-				store.EXPECT().DeleteSession(gomock.Any()).Return(nil),
-				store.EXPECT().DeleteFlow(gomock.Any()).Return(nil),
+				store.EXPECT().DeleteSession(gomock.Any(), gomock.Any()).Return(nil),
+				store.EXPECT().DeleteFlow(gomock.Any(), gomock.Any()).Return(nil),
 			)
 
-			output, err := service.CreateNewFlow(intent, &SessionOptions{})
+			output, err := service.CreateNewFlow(ctx, intent, &SessionOptions{})
 			So(errors.Is(err, ErrEOF), ShouldBeTrue)
 			So(output, ShouldResemble, &ServiceOutput{
 				Flow: &Flow{
@@ -139,13 +138,13 @@ func TestService(t *testing.T) {
 			}
 
 			gomock.InOrder(
-				store.EXPECT().GetFlowByStateToken(flow.StateToken).Times(1).Return(flow, nil),
-				store.EXPECT().GetSession(flow.FlowID).Return(session, nil),
-				store.EXPECT().GetFlowByStateToken(flow.StateToken).Times(1).Return(flow, nil),
-				store.EXPECT().CreateFlow(gomock.Any()).Return(nil),
+				store.EXPECT().GetFlowByStateToken(gomock.Any(), flow.StateToken).Times(1).Return(flow, nil),
+				store.EXPECT().GetSession(gomock.Any(), flow.FlowID).Return(session, nil),
+				store.EXPECT().GetFlowByStateToken(gomock.Any(), flow.StateToken).Times(1).Return(flow, nil),
+				store.EXPECT().CreateFlow(gomock.Any(), gomock.Any()).Return(nil),
 			)
 
-			output, err := service.FeedInput(flow.StateToken, json.RawMessage(`{
+			output, err := service.FeedInput(ctx, flow.StateToken, json.RawMessage(`{
 				"login_id": "user@example.com"
 			}`))
 			So(err, ShouldBeNil)
@@ -366,7 +365,7 @@ func TestServiceContext(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		ctx := context.TODO()
+		ctx := context.Background()
 		httpReq, _ := http.NewRequest("POST", "", nil)
 		deps := &Dependencies{
 			HTTPRequest: httpReq,
@@ -379,14 +378,13 @@ func TestServiceContext(t *testing.T) {
 		oauthClientResolver := NewMockOAuthClientResolver(ctrl)
 
 		service := &Service{
-			ContextDoNotUseDirectly: ctx,
-			Deps:                    deps,
-			Logger:                  logger,
-			Store:                   store,
-			Database:                database,
-			UIConfig:                uiConfig,
-			UIInfoResolver:          uiInfoResolver,
-			OAuthClientResolver:     oauthClientResolver,
+			Deps:                deps,
+			Logger:              logger,
+			Store:               store,
+			Database:            database,
+			UIConfig:            uiConfig,
+			UIInfoResolver:      uiInfoResolver,
+			OAuthClientResolver: oauthClientResolver,
 		}
 
 		Convey("Populate context", func() {
@@ -394,22 +392,23 @@ func TestServiceContext(t *testing.T) {
 
 			intent := &intentServiceContext{}
 
-			store.EXPECT().CreateSession(gomock.Any()).Return(nil)
-			store.EXPECT().CreateFlow(gomock.Any()).AnyTimes().Return(nil)
-			store.EXPECT().DeleteSession(gomock.Any()).Return(nil)
-			store.EXPECT().DeleteFlow(gomock.Any()).Return(nil)
+			store.EXPECT().CreateSession(gomock.Any(), gomock.Any()).Return(nil)
+			store.EXPECT().CreateFlow(gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+			store.EXPECT().DeleteSession(gomock.Any(), gomock.Any()).Return(nil)
+			store.EXPECT().DeleteFlow(gomock.Any(), gomock.Any()).Return(nil)
 
 			oauthClientResolver.EXPECT().ResolveClient("client-id").Return(&config.OAuthClientConfig{})
 
-			output, err := service.CreateNewFlow(intent, &SessionOptions{
+			output, err := service.CreateNewFlow(ctx, intent, &SessionOptions{
 				ClientID: "client-id",
 			})
 			So(err, ShouldBeNil)
 
-			store.EXPECT().GetSession(output.Flow.FlowID).Return(output.Session, nil)
-			store.EXPECT().GetFlowByStateToken(output.Flow.StateToken).Times(2).Return(output.Flow, nil)
+			store.EXPECT().GetSession(gomock.Any(), output.Flow.FlowID).Return(output.Session, nil)
+			store.EXPECT().GetFlowByStateToken(gomock.Any(), output.Flow.StateToken).Times(2).Return(output.Flow, nil)
 
 			output, err = service.FeedInput(
+				ctx,
 				output.Flow.StateToken,
 				json.RawMessage(`{}`),
 			)

@@ -19,22 +19,22 @@ type AttemptTrackerRedis struct {
 	Clock clock.Clock
 }
 
-func (s *AttemptTrackerRedis) ResetFailedAttempts(kind Kind, target string) error {
-	ctx := context.Background()
+var _ AttemptTracker = &AttemptTrackerRedis{}
+
+func (s *AttemptTrackerRedis) ResetFailedAttempts(ctx context.Context, kind Kind, target string) error {
 	purpose := kind.Purpose()
 
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, redisFailedAttemptsKey(s.AppID, purpose, target)).Result()
 		return err
 	})
 }
 
-func (s *AttemptTrackerRedis) GetFailedAttempts(kind Kind, target string) (int, error) {
-	ctx := context.Background()
+func (s *AttemptTrackerRedis) GetFailedAttempts(ctx context.Context, kind Kind, target string) (int, error) {
 	purpose := kind.Purpose()
 
 	var failedAttempts int
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) (err error) {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) (err error) {
 		failedAttempts, err = conn.Get(ctx, redisFailedAttemptsKey(s.AppID, purpose, target)).Int()
 		if errors.Is(err, goredis.Nil) {
 			failedAttempts = 0
@@ -48,8 +48,7 @@ func (s *AttemptTrackerRedis) GetFailedAttempts(kind Kind, target string) (int, 
 	return failedAttempts, err
 }
 
-func (s *AttemptTrackerRedis) IncrementFailedAttempts(kind Kind, target string) (int, error) {
-	ctx := context.Background()
+func (s *AttemptTrackerRedis) IncrementFailedAttempts(ctx context.Context, kind Kind, target string) (int, error) {
 
 	purpose := kind.Purpose()
 	key := redisFailedAttemptsKey(s.AppID, purpose, target)
@@ -59,7 +58,7 @@ func (s *AttemptTrackerRedis) IncrementFailedAttempts(kind Kind, target string) 
 	expiration := kind.ValidPeriod()
 
 	var failedAttempts int64
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) (err error) {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) (err error) {
 		failedAttempts, err = conn.Incr(ctx, key).Result()
 		if err != nil {
 			return err

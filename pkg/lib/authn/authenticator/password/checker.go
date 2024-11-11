@@ -1,6 +1,7 @@
 package password
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"strings"
@@ -116,7 +117,7 @@ func checkPasswordGuessableLevel(password string, minLevel int) (int, bool) {
 }
 
 type CheckerHistoryStore interface {
-	GetPasswordHistory(userID string, historySize int, historyDays config.DurationDays) ([]History, error)
+	GetPasswordHistory(ctx context.Context, userID string, historySize int, historyDays config.DurationDays) ([]History, error)
 }
 
 type Checker struct {
@@ -228,10 +229,11 @@ func (pc *Checker) policyPasswordHistory() Policy {
 	}
 }
 
-func (pc *Checker) checkPasswordHistory(password, authID string) (*Policy, error) {
+func (pc *Checker) checkPasswordHistory(ctx context.Context, password, authID string) (*Policy, error) {
 	v := pc.policyPasswordHistory()
 	if pc.shouldCheckPasswordHistory() && authID != "" {
 		history, err := pc.PasswordHistoryStore.GetPasswordHistory(
+			ctx,
 			authID,
 			pc.PwHistorySize,
 			pc.PwHistoryDays,
@@ -269,12 +271,12 @@ func (pc *Checker) checkCommonPolicies(plainPassword string) []apierrors.Cause {
 }
 
 // ValidateNewPassword should be used when the user changes their password.
-func (pc *Checker) ValidateNewPassword(userID string, plainPassword string) error {
+func (pc *Checker) ValidateNewPassword(ctx context.Context, userID string, plainPassword string) error {
 	var violations []apierrors.Cause
 
 	violations = pc.checkCommonPolicies(plainPassword)
 
-	p, err := pc.checkPasswordHistory(plainPassword, userID)
+	p, err := pc.checkPasswordHistory(ctx, plainPassword, userID)
 	if err != nil {
 		return err
 	}

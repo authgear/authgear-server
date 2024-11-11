@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -10,7 +11,7 @@ import (
 )
 
 type SettingsSubRoutesMiddlewareIdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 // SettingsSubRoutesMiddleware redirect all settings sub routes to /settings
@@ -22,7 +23,8 @@ type SettingsSubRoutesMiddleware struct {
 
 func (m SettingsSubRoutesMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userID := session.GetUserID(r.Context())
+		ctx := r.Context()
+		userID := session.GetUserID(ctx)
 		// userID is nil should be blocked by RequireAuthenticatedMiddleware
 		if userID == nil {
 			next.ServeHTTP(w, r)
@@ -30,8 +32,8 @@ func (m SettingsSubRoutesMiddleware) Handle(next http.Handler) http.Handler {
 		}
 
 		isAnonymous := false
-		err := m.Database.ReadOnly(func() (err error) {
-			identities, err := m.Identities.ListByUser(*userID)
+		err := m.Database.ReadOnly(ctx, func(ctx context.Context) (err error) {
+			identities, err := m.Identities.ListByUser(ctx, *userID)
 			if err != nil {
 				return err
 			}

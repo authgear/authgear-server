@@ -17,21 +17,20 @@ import (
 )
 
 type Store struct {
-	Context context.Context
-	Redis   *appredis.Handle
-	AppID   config.AppID
+	Redis *appredis.Handle
+	AppID config.AppID
 }
 
-func (s *Store) CreateSession(session *Session) error {
+func (s *Store) CreateSession(ctx context.Context, session *Session) error {
 	encodedChallenge := base64.RawURLEncoding.EncodeToString(session.Challenge)
 	bytes, err := json.Marshal(session)
 	if err != nil {
 		return err
 	}
 	key := redisSessionKey(s.AppID, encodedChallenge)
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		ttl := duration.PerHour
-		_, err = conn.SetNX(s.Context, key, bytes, ttl).Result()
+		_, err = conn.SetNX(ctx, key, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
@@ -39,14 +38,14 @@ func (s *Store) CreateSession(session *Session) error {
 	})
 }
 
-func (s *Store) ConsumeSession(challenge protocol.URLEncodedBase64) (*Session, error) {
+func (s *Store) ConsumeSession(ctx context.Context, challenge protocol.URLEncodedBase64) (*Session, error) {
 	encodedChallenge := base64.RawURLEncoding.EncodeToString(challenge)
 	key := redisSessionKey(s.AppID, encodedChallenge)
 
 	var bytes []byte
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		var err error
-		bytes, err = conn.Get(s.Context, key).Bytes()
+		bytes, err = conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrSessionNotFound
 		}
@@ -54,7 +53,7 @@ func (s *Store) ConsumeSession(challenge protocol.URLEncodedBase64) (*Session, e
 			return err
 		}
 
-		_, err = conn.Del(s.Context, key).Result()
+		_, err = conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
 		}
@@ -74,14 +73,14 @@ func (s *Store) ConsumeSession(challenge protocol.URLEncodedBase64) (*Session, e
 	return &session, nil
 }
 
-func (s *Store) PeekSession(challenge protocol.URLEncodedBase64) (*Session, error) {
+func (s *Store) PeekSession(ctx context.Context, challenge protocol.URLEncodedBase64) (*Session, error) {
 	encodedChallenge := base64.RawURLEncoding.EncodeToString(challenge)
 	key := redisSessionKey(s.AppID, encodedChallenge)
 
 	var bytes []byte
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		var err error
-		bytes, err = conn.Get(s.Context, key).Bytes()
+		bytes, err = conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrSessionNotFound
 		}

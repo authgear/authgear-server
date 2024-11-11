@@ -103,7 +103,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		return nil, err
 	}
 	if flowUserID != conflictedUserID {
-		return i.rewriteFlowIntoUserIDOfConflictedIdentity(deps, flows, milestone)
+		return i.rewriteFlowIntoUserIDOfConflictedIdentity(ctx, deps, flows, milestone)
 	}
 
 	switch len(flows.Nearest.Nodes) {
@@ -138,7 +138,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 		}
 		return authflow.NewSubFlow(&loginIntent), nil
 	case 2:
-		info, err := newIdentityInfo(deps, conflictedIdentity.UserID, i.IncomingIdentitySpec)
+		info, err := newIdentityInfo(ctx, deps, conflictedIdentity.UserID, i.IncomingIdentitySpec)
 		if err != nil {
 			return nil, err
 		}
@@ -151,6 +151,7 @@ func (i *IntentAccountLinking) ReactTo(ctx context.Context, deps *authflow.Depen
 }
 
 func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
+	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
 	milestone MilestoneUseAccountLinkingIdentification) (*authflow.Node, error) {
@@ -161,7 +162,7 @@ func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
 		NodeSimple: func(nodeSimple authflow.NodeSimple, w *authflow.Flow) error {
 			milestone, ok := nodeSimple.(MilestoneSwitchToExistingUser)
 			if ok {
-				err := milestone.MilestoneSwitchToExistingUser(deps, flows.Replace(w), conflictedUserID)
+				err := milestone.MilestoneSwitchToExistingUser(ctx, deps, flows.Replace(w), conflictedUserID)
 				if err != nil {
 					return err
 				}
@@ -171,7 +172,7 @@ func (i *IntentAccountLinking) rewriteFlowIntoUserIDOfConflictedIdentity(
 		Intent: func(intent authflow.Intent, w *authflow.Flow) error {
 			milestone, ok := intent.(MilestoneSwitchToExistingUser)
 			if ok {
-				err := milestone.MilestoneSwitchToExistingUser(deps, flows.Replace(w), conflictedUserID)
+				err := milestone.MilestoneSwitchToExistingUser(ctx, deps, flows.Replace(w), conflictedUserID)
 				if err != nil {
 					return err
 				}

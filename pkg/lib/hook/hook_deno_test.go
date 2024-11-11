@@ -37,12 +37,11 @@ func TestDenoHook(t *testing.T) {
 		ctrl := gomock.NewController(t)
 		defer ctrl.Finish()
 
-		ctx := context.Background()
 		syncDenoClient := NewMockSyncDenoClient(ctrl)
 		asyncDenoClient := NewMockAsyncDenoClient(ctrl)
 		resourceManager := NewMockResourceManager(ctrl)
 		denohook := &EventDenoHookImpl{
-			DenoHook:        DenoHook{Context: ctx, ResourceManager: resourceManager},
+			DenoHook:        DenoHook{ResourceManager: resourceManager},
 			AsyncDenoClient: asyncDenoClient,
 			SyncDenoClient:  syncDenoClient,
 		}
@@ -57,11 +56,12 @@ func TestDenoHook(t *testing.T) {
 			resourceManager.EXPECT().Read(DenoFile, resource.AppFile{
 				Path: "deno/a.ts",
 			}).Times(1).Return([]byte("script"), nil)
-			syncDenoClient.EXPECT().Run(ctx, "script", e).Times(1).Return(map[string]interface{}{
+			syncDenoClient.EXPECT().Run(gomock.Any(), "script", e).Times(1).Return(map[string]interface{}{
 				"is_allowed": true,
 			}, nil)
 
-			actual, err := denohook.DeliverBlockingEvent(u, e)
+			ctx := context.Background()
+			actual, err := denohook.DeliverBlockingEvent(ctx, u, e)
 			So(err, ShouldBeNil)
 			So(actual, ShouldResemble, resp)
 		})
@@ -75,7 +75,8 @@ func TestDenoHook(t *testing.T) {
 			}).Times(1).Return([]byte("script"), nil)
 			asyncDenoClient.EXPECT().Run(withoutCancelMatcher{}, "script", e).Times(1).Return(nil, nil)
 
-			err := denohook.DeliverNonBlockingEvent(u, e)
+			ctx := context.Background()
+			err := denohook.DeliverNonBlockingEvent(ctx, u, e)
 			runtime.Gosched()
 			time.Sleep(500 * time.Millisecond)
 			So(err, ShouldBeNil)

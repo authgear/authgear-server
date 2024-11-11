@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -66,7 +67,7 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -86,7 +87,7 @@ func (h *EnterTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			err = EnterTOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {

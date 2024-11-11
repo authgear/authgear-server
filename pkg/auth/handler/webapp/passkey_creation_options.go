@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -20,7 +21,7 @@ func ConfigurePasskeyCreationOptionsRoute(route httproute.Route) httproute.Route
 }
 
 type PasskeyCreationOptionsService interface {
-	MakeCreationOptions(userID string) (*model.WebAuthnCreationOptions, error)
+	MakeCreationOptions(ctx context.Context, userID string) (*model.WebAuthnCreationOptions, error)
 }
 
 type PasskeyCreationOptionsHandler struct {
@@ -39,13 +40,13 @@ func (h *PasskeyCreationOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http
 	}()
 
 	var creationOptions *model.WebAuthnCreationOptions
-	err = h.Database.ReadOnly(func() error {
-		webSession := webapp.GetSession(r.Context())
+	err = h.Database.ReadOnly(r.Context(), func(ctx context.Context) error {
+		webSession := webapp.GetSession(ctx)
 		if webSession != nil {
-			err := h.Page.PeekUncommittedChanges(webSession, func(graph *interaction.Graph) error {
+			err := h.Page.PeekUncommittedChanges(ctx, webSession, func(graph *interaction.Graph) error {
 				userID := graph.MustGetUserID()
 				var err error
-				creationOptions, err = h.Passkey.MakeCreationOptions(userID)
+				creationOptions, err = h.Passkey.MakeCreationOptions(ctx, userID)
 				if err != nil {
 					return err
 				}
@@ -56,13 +57,13 @@ func (h *PasskeyCreationOptionsHandler) ServeHTTP(w http.ResponseWriter, r *http
 				return err
 			}
 		} else {
-			userID := session.GetUserID(r.Context())
+			userID := session.GetUserID(ctx)
 			if userID == nil {
 				return apierrors.NewBadRequest("session not found")
 			}
 
 			var err error
-			creationOptions, err = h.Passkey.MakeCreationOptions(*userID)
+			creationOptions, err = h.Passkey.MakeCreationOptions(ctx, *userID)
 			if err != nil {
 				return err
 			}

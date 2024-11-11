@@ -79,7 +79,6 @@ var RequestDependencySet = wire.NewSet(
 		"AppProvider",
 		"Request",
 	),
-	deps.ProvideRequestContext,
 	deps.ProvideRemoteIP,
 	deps.ProvideUserAgentString,
 	deps.ProvideHTTPHost,

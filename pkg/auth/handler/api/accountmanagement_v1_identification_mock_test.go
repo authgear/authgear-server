@@ -5,6 +5,7 @@
 package api
 
 import (
+	context "context"
 	reflect "reflect"
 
 	accountmanagement "github.com/authgear/authgear-server/pkg/lib/accountmanagement"
@@ -35,16 +36,16 @@ func (m *MockAccountManagementV1IdentificationHandlerService) EXPECT() *MockAcco
 }
 
 // StartAdding mocks base method.
-func (m *MockAccountManagementV1IdentificationHandlerService) StartAdding(input *accountmanagement.StartAddingInput) (*accountmanagement.StartAddingOutput, error) {
+func (m *MockAccountManagementV1IdentificationHandlerService) StartAdding(ctx context.Context, input *accountmanagement.StartAddingInput) (*accountmanagement.StartAddingOutput, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "StartAdding", input)
+	ret := m.ctrl.Call(m, "StartAdding", ctx, input)
 	ret0, _ := ret[0].(*accountmanagement.StartAddingOutput)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // StartAdding indicates an expected call of StartAdding.
-func (mr *MockAccountManagementV1IdentificationHandlerServiceMockRecorder) StartAdding(input interface{}) *gomock.Call {
+func (mr *MockAccountManagementV1IdentificationHandlerServiceMockRecorder) StartAdding(ctx, input interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartAdding", reflect.TypeOf((*MockAccountManagementV1IdentificationHandlerService)(nil).StartAdding), input)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "StartAdding", reflect.TypeOf((*MockAccountManagementV1IdentificationHandlerService)(nil).StartAdding), ctx, input)
 }

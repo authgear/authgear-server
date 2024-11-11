@@ -7,7 +7,6 @@
 package elasticsearch
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -22,13 +21,13 @@ import (
 
 // Injectors from wire.go:
 
-func NewAppLister(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *AppLister {
+func NewAppLister(pool *db.Pool, databaseCredentials *config.DatabaseCredentials) *AppLister {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &configsource.Store{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -40,13 +39,13 @@ func NewAppLister(ctx context.Context, pool *db.Pool, databaseCredentials *confi
 	return appLister
 }
 
-func NewReindexer(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
+func NewReindexer(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, appID config.AppID) *Reindexer {
 	clock := _wireSystemClockValue
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := NewLoggerFactory()
-	handle := appdb.NewHandle(ctx, pool, databaseEnvironmentConfig, databaseCredentials, factory)
+	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, databaseCredentials, factory)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,

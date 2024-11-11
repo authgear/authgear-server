@@ -87,12 +87,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	rootProvider := p.RootProvider
 	logFactory := rootProvider.LoggerFactory
 	logger := graphql.NewLogger(logFactory)
-	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
 	environmentConfig := rootProvider.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	trustProxy := environmentConfig.TrustProxy
 	authgearConfig := rootProvider.AuthgearConfig
 	adminAPIConfig := rootProvider.AdminAPIConfig
@@ -114,7 +113,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           kubernetesLogger,
 	}
 	configService := &service.ConfigService{
-		Context:              context,
 		Logger:               configServiceLogger,
 		AppConfig:            appConfig,
 		Controller:           controller,
@@ -123,9 +121,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Kubernetes:           kubernetes,
 	}
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	domainService := &service.DomainService{
-		Context:        context,
 		Clock:          clock,
 		DomainConfig:   configService,
 		SQLBuilder:     sqlBuilder,
@@ -192,7 +189,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Resolver: resolver,
 	}
 	collaboratorService := &service.CollaboratorService{
-		Context:        context,
 		Clock:          clock,
 		SQLBuilder:     sqlBuilder,
 		SQLExecutor:    sqlExecutor,
@@ -205,7 +201,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppConfigs:     configService,
 	}
 	authzService := &service.AuthzService{
-		Context:       context,
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
@@ -224,7 +219,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	denoClientImpl := ProvideDenoClient(denoEndpoint, hookLogger)
 	managerFactory := &factory.ManagerFactory{
 		Logger:            managerFactoryLogger,
-		Context:           context,
 		AppBaseResources:  appBaseResources,
 		Tutorials:         tutorialService,
 		DenoClient:        denoClientImpl,
@@ -244,12 +238,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	globalredisHandle := rootProvider.GlobalRedisHandle
 	appSecretVisitTokenStoreImpl := &appsecret.AppSecretVisitTokenStoreImpl{
-		Context: context,
-		Redis:   globalredisHandle,
+		Redis: globalredisHandle,
 	}
 	testerStore := &tester.TesterStore{
-		Context: context,
-		Redis:   globalredisHandle,
+		Redis: globalredisHandle,
 	}
 	samlEnvironmentConfig := environmentConfig.SAML
 	appService := &service.AppService{
@@ -274,13 +266,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
 	collaboratorLoader := loader.NewCollaboratorLoader(collaboratorService, authzService)
 	collaboratorInvitationLoader := loader.NewCollaboratorInvitationLoader(collaboratorService, authzService)
-	smtpService := &smtp.Service{
-		Context: context,
-	}
+	smtpService := &smtp.Service{}
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
-	readHandle := auditdb.NewReadHandle(context, pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
-	readSQLExecutor := auditdb.NewReadSQLExecutor(context, readHandle)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
 	auditDBReadStore := &analytic.AuditDBReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,
@@ -299,7 +289,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	libstripeService := &libstripe.Service{
 		ClientAPI:         api,
 		Logger:            libstripeLogger,
-		Context:           context,
 		Plans:             planService,
 		GlobalRedisHandle: globalredisHandle,
 		Cache:             stripeCache,
@@ -331,9 +320,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
-	writeHandle := auditdb.NewWriteHandle(context, pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
+	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
 	auditService := &service.AuditService{
-		Context:           context,
 		RemoteIP:          remoteIP,
 		UserAgentString:   userAgentString,
 		Request:           request,
@@ -351,7 +339,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AuthgearConfig: authgearConfig,
 		AdminAPI:       adminAPIService,
 	}
-	graphqlContext := &graphql.Context{
+	context := &graphql.Context{
 		Request:                 request,
 		GQLLogger:               logger,
 		GlobalDatabase:          handle,
@@ -377,7 +365,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		OnboardService:          onboardService,
 	}
 	graphQLHandler := &transport.GraphQLHandler{
-		GraphQLContext: graphqlContext,
+		GraphQLContext: context,
 	}
 	return graphQLHandler
 }
@@ -424,15 +412,13 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 }
 
 func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
 	rootProvider := p.RootProvider
 	pool := rootProvider.Database
 	environmentConfig := rootProvider.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	logFactory := rootProvider.LoggerFactory
-	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	configServiceLogger := service.NewConfigServiceLogger(logFactory)
 	appConfig := rootProvider.AppConfig
 	controller := rootProvider.ConfigSourceController
@@ -446,7 +432,6 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Logger:           kubernetesLogger,
 	}
 	configService := &service.ConfigService{
-		Context:              context,
 		Logger:               configServiceLogger,
 		AppConfig:            appConfig,
 		Controller:           controller,
@@ -456,7 +441,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	}
 	clockClock := _wireSystemClockValue
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
 	logger := mail.NewLogger(logFactory)
@@ -483,6 +468,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	inProcessQueue := &task.InProcessQueue{
 		Executor: inProcessExecutor,
 	}
+	request := p.Request
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
@@ -511,7 +497,6 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	}
 	appHostSuffixes := environmentConfig.AppHostSuffixes
 	domainService := &service.DomainService{
-		Context:        context,
 		Clock:          clockClock,
 		DomainConfig:   configService,
 		SQLBuilder:     sqlBuilder,
@@ -531,7 +516,6 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		DefaultDomains: defaultDomainService,
 	}
 	collaboratorService := &service.CollaboratorService{
-		Context:        context,
 		Clock:          clockClock,
 		SQLBuilder:     sqlBuilder,
 		SQLExecutor:    sqlExecutor,
@@ -544,7 +528,6 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		AppConfigs:     configService,
 	}
 	authzService := &service.AuthzService{
-		Context:       context,
 		Configs:       configService,
 		Collaborators: collaboratorService,
 	}
@@ -573,16 +556,14 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 	logFactory := rootProvider.LoggerFactory
 	logger := libstripe.NewLogger(logFactory)
 	api := libstripe.NewClientAPI(stripeConfig, logger)
-	request := p.Request
-	context := deps.ProvideRequestContext(request)
 	pool := rootProvider.Database
 	environmentConfig := rootProvider.EnvironmentConfig
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	handle := globaldb.NewHandle(context, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, logFactory)
 	clockClock := _wireSystemClockValue
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	sqlExecutor := globaldb.NewSQLExecutor(context, handle)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	store := &plan.Store{
 		Clock:       clockClock,
 		SQLBuilder:  sqlBuilder,
@@ -596,6 +577,7 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 	}
 	globalredisHandle := rootProvider.GlobalRedisHandle
 	stripeCache := libstripe.NewStripeCache()
+	request := p.Request
 	trustProxy := environmentConfig.TrustProxy
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
@@ -609,7 +591,6 @@ func newStripeWebhookHandler(p *deps.RequestProvider) http.Handler {
 	libstripeService := &libstripe.Service{
 		ClientAPI:         api,
 		Logger:            logger,
-		Context:           context,
 		Plans:             planService,
 		GlobalRedisHandle: globalredisHandle,
 		Cache:             stripeCache,

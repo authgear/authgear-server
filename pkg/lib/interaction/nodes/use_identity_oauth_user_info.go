@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"crypto/subtle"
 	"fmt"
 
@@ -30,7 +31,7 @@ type EdgeUseIdentityOAuthUserInfo struct {
 	ErrorRedirectURI string
 }
 
-func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputUseIdentityOAuthUserInfo
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -62,7 +63,7 @@ func (e *EdgeUseIdentityOAuthUserInfo) Instantiate(ctx *interaction.Context, gra
 		return nil, err
 	}
 
-	userInfo, err := ctx.OAuthProviderFactory.GetUserProfile(
+	userInfo, err := ctx.OAuthProviderFactory.GetUserProfile(goCtx,
 		alias,
 		oauthrelyingparty.GetUserProfileOptions{
 			Query:       query,
@@ -98,15 +99,15 @@ type NodeUseIdentityOAuthUserInfo struct {
 	IdentitySpec     *identity.Spec `json:"identity_spec"`
 }
 
-func (n *NodeUseIdentityOAuthUserInfo) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeUseIdentityOAuthUserInfo) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeUseIdentityOAuthUserInfo) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeUseIdentityOAuthUserInfo) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeUseIdentityOAuthUserInfo) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeUseIdentityOAuthUserInfo) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	if n.IsCreating {
 		return []interaction.Edge{&EdgeCreateIdentityEnd{IdentitySpec: n.IdentitySpec}}, nil
 	}

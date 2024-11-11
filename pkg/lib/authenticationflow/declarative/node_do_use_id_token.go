@@ -28,7 +28,7 @@ func NewNodeDoUseIDToken(ctx context.Context, deps *authflow.Dependencies, flows
 	}
 
 	userID := token.Subject()
-	_, err = deps.Users.GetRaw(userID)
+	_, err = deps.Users.GetRaw(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

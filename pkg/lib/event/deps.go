@@ -1,8 +1,6 @@
 package event
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/audit"
@@ -23,7 +21,6 @@ var DependencySet = wire.NewSet(
 )
 
 func NewService(
-	ctx context.Context,
 	appID config.AppID,
 	remoteIP httputil.RemoteIP,
 	userAgentString httputil.UserAgentString,
@@ -38,7 +35,6 @@ func NewService(
 	elasticSearchSink *elasticsearch.Sink,
 ) *Service {
 	return &Service{
-		Context:         ctx,
 		AppID:           appID,
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,

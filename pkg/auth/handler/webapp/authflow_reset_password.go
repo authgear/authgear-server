@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -74,7 +75,7 @@ func (h *AuthflowResetPasswordHandler) GetErrorData(w http.ResponseWriter, r *ht
 
 func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 
 		data, err := h.GetData(w, r, screen)
 		if err != nil {
@@ -84,7 +85,7 @@ func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowResetPasswordHTML, data)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowResetPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -97,7 +98,7 @@ func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 			return err
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, map[string]interface{}{
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, map[string]interface{}{
 			"new_password": newPassword,
 		}, nil)
 
@@ -109,7 +110,7 @@ func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return nil
 	})
 
-	errorHandler := AuthflowControllerErrorHandler(func(w http.ResponseWriter, r *http.Request, err error) error {
+	errorHandler := AuthflowControllerErrorHandler(func(ctx context.Context, w http.ResponseWriter, r *http.Request, err error) error {
 		if !apierrors.IsKind(err, forgotpassword.PasswordResetFailed) {
 			return err
 		}
@@ -124,10 +125,10 @@ func (h *AuthflowResetPasswordHandler) ServeHTTP(w http.ResponseWriter, r *http.
 
 	code := r.URL.Query().Get("code")
 	if code != "" {
-		h.Controller.HandleResumeOfFlow(w, r, webapp.SessionOptions{}, &handlers, map[string]interface{}{
+		h.Controller.HandleResumeOfFlow(r.Context(), w, r, webapp.SessionOptions{}, &handlers, map[string]interface{}{
 			"account_recovery_code": code,
 		}, &errorHandler)
 	} else {
-		h.Controller.HandleStep(w, r, &handlers)
+		h.Controller.HandleStep(r.Context(), w, r, &handlers)
 	}
 }

@@ -25,7 +25,7 @@ func (*NodeDoUpdateAuthenticator) Kind() string {
 func (n *NodeDoUpdateAuthenticator) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
 	return []authflow.Effect{
 		authflow.RunEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.Authenticators.Update(n.Authenticator)
+			return deps.Authenticators.Update(ctx, n.Authenticator)
 		}),
 	}, nil
 }

@@ -51,7 +51,7 @@ var _ authflow.Milestone = &IntentSignupFlowStepIdentify{}
 var _ MilestoneSwitchToExistingUser = &IntentSignupFlowStepIdentify{}
 
 func (*IntentSignupFlowStepIdentify) Milestone() {}
-func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
+func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.IsUpdatingExistingUser = true
 	i.UserID = newUserID
 
@@ -61,7 +61,7 @@ func (i *IntentSignupFlowStepIdentify) MilestoneSwitchToExistingUser(deps *authf
 		if ok {
 			iden := milestoneDoCreateIdentity.MilestoneDoCreateIdentity()
 			idenSpec := iden.ToSpec()
-			idenWithSameType, err := i.findIdentityOfSameType(deps, &idenSpec)
+			idenWithSameType, err := i.findIdentityOfSameType(ctx, deps, &idenSpec)
 			if err != nil {
 				return err
 			}
@@ -401,9 +401,9 @@ func (i *IntentSignupFlowStepIdentify) currentFlowObject(deps *authflow.Dependen
 	return current, nil
 }
 
-func (i *IntentSignupFlowStepIdentify) findIdentityOfSameType(deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {
+func (i *IntentSignupFlowStepIdentify) findIdentityOfSameType(ctx context.Context, deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {
 
-	userIdens, err := deps.Identities.ListByUser(i.UserID)
+	userIdens, err := deps.Identities.ListByUser(ctx, i.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -461,7 +461,7 @@ func (i *IntentSignupFlowStepIdentify) reactToExistingIdentity(ctx context.Conte
 }
 
 func (i *IntentSignupFlowStepIdentify) findSkippableOption(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) (option *IdentificationOption, idx int, info *identity.Info, err error) {
-	userIdens, err := deps.Identities.ListByUser(i.UserID)
+	userIdens, err := deps.Identities.ListByUser(ctx, i.UserID)
 	if err != nil {
 		return nil, -1, nil, err
 	}

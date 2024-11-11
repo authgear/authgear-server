@@ -22,7 +22,7 @@ func (n *NodeDoUpdateAuthenticator) Kind() string {
 func (n *NodeDoUpdateAuthenticator) GetEffects(ctx context.Context, deps *workflow.Dependencies, workflows workflow.Workflows) (effs []workflow.Effect, err error) {
 	return []workflow.Effect{
 		workflow.RunEffect(func(ctx context.Context, deps *workflow.Dependencies) error {
-			return deps.Authenticators.Update(n.Authenticator)
+			return deps.Authenticators.Update(ctx, n.Authenticator)
 		}),
 	}, nil
 }

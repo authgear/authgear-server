@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -32,8 +33,8 @@ type ErrorService struct {
 	Cookies     CookieManager
 }
 
-func (c *ErrorService) HasError(r *http.Request) bool {
-	_, ok := c.GetRecoverableError(r)
+func (c *ErrorService) HasError(ctx context.Context, r *http.Request) bool {
+	_, ok := c.GetRecoverableError(ctx, r)
 	if ok {
 		return true
 	}
@@ -46,8 +47,8 @@ func (c *ErrorService) HasError(r *http.Request) bool {
 	return false
 }
 
-func (c *ErrorService) PopError(w http.ResponseWriter, r *http.Request) (*ErrorState, bool) {
-	errorState, ok := c.GetDelRecoverableError(w, r)
+func (c *ErrorService) PopError(ctx context.Context, w http.ResponseWriter, r *http.Request) (*ErrorState, bool) {
+	errorState, ok := c.GetDelRecoverableError(ctx, w, r)
 	if ok {
 		return errorState, true
 	}
@@ -60,7 +61,7 @@ func (c *ErrorService) PopError(w http.ResponseWriter, r *http.Request) (*ErrorS
 	return nil, false
 }
 
-func (c *ErrorService) GetRecoverableError(r *http.Request) (*ErrorState, bool) {
+func (c *ErrorService) GetRecoverableError(ctx context.Context, r *http.Request) (*ErrorState, bool) {
 	cookie, cookieErr := c.Cookies.GetCookie(r, c.Cookie.Def)
 	if cookieErr != nil {
 		return nil, false
@@ -75,8 +76,8 @@ func (c *ErrorService) GetRecoverableError(r *http.Request) (*ErrorState, bool) 
 
 	var redisValue string
 	var err error
-	err = c.RedisHandle.WithConnContext(r.Context(), func(conn redis.Redis_6_0_Cmdable) error {
-		redisValue, err = conn.Get(r.Context(), redisKey).Result()
+	err = c.RedisHandle.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		redisValue, err = conn.Get(ctx, redisKey).Result()
 		return err
 	})
 	if err != nil {
@@ -93,7 +94,7 @@ func (c *ErrorService) GetRecoverableError(r *http.Request) (*ErrorState, bool) 
 	return &errorState, true
 }
 
-func (c *ErrorService) GetDelRecoverableError(w http.ResponseWriter, r *http.Request) (*ErrorState, bool) {
+func (c *ErrorService) GetDelRecoverableError(ctx context.Context, w http.ResponseWriter, r *http.Request) (*ErrorState, bool) {
 	cookie, cookieErr := c.Cookies.GetCookie(r, c.Cookie.Def)
 	if cookieErr != nil {
 		return nil, false
@@ -108,13 +109,13 @@ func (c *ErrorService) GetDelRecoverableError(w http.ResponseWriter, r *http.Req
 
 	var redisValue string
 	var err error
-	err = c.RedisHandle.WithConnContext(r.Context(), func(conn redis.Redis_6_0_Cmdable) error {
-		redisValue, err = conn.Get(r.Context(), redisKey).Result()
+	err = c.RedisHandle.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		redisValue, err = conn.Get(ctx, redisKey).Result()
 		if err != nil {
 			return err
 		}
 
-		_, err = conn.Del(r.Context(), redisKey).Result()
+		_, err = conn.Del(ctx, redisKey).Result()
 		if err != nil {
 			return err
 		}
@@ -159,7 +160,7 @@ func (c *ErrorService) GetNonRecoverableError(r *http.Request) (*ErrorState, boo
 }
 
 // SetRecoverableError stores the error in cookie and retains the form.
-func (c *ErrorService) SetRecoverableError(r *http.Request, value *apierrors.APIError) (*http.Cookie, error) {
+func (c *ErrorService) SetRecoverableError(ctx context.Context, r *http.Request, value *apierrors.APIError) (*http.Cookie, error) {
 	token, tokenHash := newErrorToken()
 
 	redisKey := redisKeyWebError(c.AppID, tokenHash)
@@ -173,8 +174,8 @@ func (c *ErrorService) SetRecoverableError(r *http.Request, value *apierrors.API
 	}
 
 	redisValue := string(dataBytes)
-	err = c.RedisHandle.WithConnContext(r.Context(), func(conn redis.Redis_6_0_Cmdable) error {
-		_, err := conn.Set(r.Context(), redisKey, redisValue, duration.WebError).Result()
+	err = c.RedisHandle.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err := conn.Set(ctx, redisKey, redisValue, duration.WebError).Result()
 		return err
 	})
 	if err != nil {

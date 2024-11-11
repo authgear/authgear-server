@@ -23,11 +23,11 @@ type MailSender interface {
 }
 
 type SMSClient interface {
-	Send(opts sms.SendOptions) error
+	Send(ctx context.Context, opts sms.SendOptions) error
 }
 
 type WhatsappSender interface {
-	SendTemplate(opts *whatsapp.SendTemplateOptions) error
+	SendTemplate(ctx context.Context, opts *whatsapp.SendTemplateOptions) error
 }
 
 type SendMessagesLogger struct{ *log.Logger }
@@ -56,7 +56,7 @@ func (t *SendMessagesTask) Run(ctx context.Context, param task.Param) (err error
 	}
 
 	for _, smsMessage := range taskParam.SMSMessages {
-		err := t.SMSClient.Send(smsMessage)
+		err := t.SMSClient.Send(ctx, smsMessage)
 		if err != nil {
 			t.Logger.WithError(err).WithFields(logrus.Fields{
 				"phone": phone.Mask(smsMessage.To),
@@ -66,7 +66,7 @@ func (t *SendMessagesTask) Run(ctx context.Context, param task.Param) (err error
 
 	for _, whatsappMessage := range taskParam.WhatsappMessages {
 		m := whatsappMessage
-		err := t.WhatsappSender.SendTemplate(&m)
+		err := t.WhatsappSender.SendTemplate(ctx, &m)
 		if err != nil {
 			t.Logger.WithError(err).WithFields(logrus.Fields{
 				"phone": phone.Mask(m.To),

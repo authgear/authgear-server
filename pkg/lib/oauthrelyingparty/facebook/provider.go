@@ -1,6 +1,7 @@
 package facebook
 
 import (
+	"context"
 	"net/url"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -70,7 +71,7 @@ func (Facebook) scope() []string {
 	return []string{"email", "public_profile"}
 }
 
-func (p Facebook) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
+func (p Facebook) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
 	return oauthrelyingpartyutil.MakeAuthorizationURL(facebookAuthorizationURL, oauthrelyingpartyutil.AuthorizationURLParams{
 		ClientID:     deps.ProviderConfig.ClientID(),
 		RedirectURI:  param.RedirectURI,
@@ -86,7 +87,7 @@ func (p Facebook) GetAuthorizationURL(deps oauthrelyingparty.Dependencies, param
 	}.Query()), nil
 }
 
-func (Facebook) GetUserProfile(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
+func (Facebook) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
 	authInfo = oauthrelyingparty.UserProfile{}
 
 	code, err := oauthrelyingpartyutil.GetCode(param.Query)

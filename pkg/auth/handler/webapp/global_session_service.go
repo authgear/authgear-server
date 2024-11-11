@@ -1,6 +1,8 @@
 package webapp
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -8,8 +10,8 @@ import (
 )
 
 type SessionStore interface {
-	Get(id string) (session *webapp.Session, err error)
-	Update(session *webapp.Session) (err error)
+	Get(ctx context.Context, id string) (session *webapp.Session, err error)
+	Update(ctx context.Context, session *webapp.Session) (err error)
 }
 
 type GlobalSessionServiceFactory struct {
@@ -27,14 +29,14 @@ type GlobalSessionService struct {
 	Clock        clock.Clock
 }
 
-func (s *GlobalSessionService) GetSession(sessionID string) (session *webapp.Session, err error) {
-	return s.SessionStore.Get(sessionID)
+func (s *GlobalSessionService) GetSession(ctx context.Context, sessionID string) (session *webapp.Session, err error) {
+	return s.SessionStore.Get(ctx, sessionID)
 }
 
-func (s *GlobalSessionService) UpdateSession(session *webapp.Session) error {
+func (s *GlobalSessionService) UpdateSession(ctx context.Context, session *webapp.Session) error {
 	now := s.Clock.NowUTC()
 	session.UpdatedAt = now
-	err := s.SessionStore.Update(session)
+	err := s.SessionStore.Update(ctx, session)
 	if err != nil {
 		return err
 	}
@@ -43,7 +45,7 @@ func (s *GlobalSessionService) UpdateSession(session *webapp.Session) error {
 		Kind: WebsocketMessageKindRefresh,
 	}
 
-	err = s.Publisher.Publish(session, msg)
+	err = s.Publisher.Publish(ctx, session, msg)
 	if err != nil {
 		return err
 	}

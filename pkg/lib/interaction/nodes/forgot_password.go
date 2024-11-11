@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -23,7 +24,7 @@ type EdgeForgotPasswordBegin struct {
 	IdentityInfo *identity.Info `json:"identity_info"`
 }
 
-func (e *EdgeForgotPasswordBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeForgotPasswordBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	return &NodeForgotPasswordBegin{
 		IdentityInfo: e.IdentityInfo,
 	}, nil
@@ -34,16 +35,16 @@ type NodeForgotPasswordBegin struct {
 	IdentityInfo *identity.Info            `json:"identity_info"`
 }
 
-func (n *NodeForgotPasswordBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeForgotPasswordBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	n.LoginIDKeys = ctx.Config.Identity.LoginID.Keys
 	return nil
 }
 
-func (n *NodeForgotPasswordBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeForgotPasswordBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeForgotPasswordBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeForgotPasswordBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{n.edge()}, nil
 }
 
@@ -74,14 +75,14 @@ func (e *EdgeForgotPasswordSelectLoginID) GetIdentityCandidates() []identity.Can
 	return candidates
 }
 
-func (e *EdgeForgotPasswordSelectLoginID) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeForgotPasswordSelectLoginID) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	if e.IdentityInfo == nil {
 		return nil, forgotpasswordFillDetails(api.ErrUserNotFound)
 	}
 
 	loginID := e.IdentityInfo.LoginID.LoginID
 
-	err := ctx.ForgotPassword.SendCode(loginID, nil)
+	err := ctx.ForgotPassword.SendCode(goCtx, loginID, nil)
 	if errors.Is(err, forgotpassword.ErrUserNotFound) {
 		return nil, forgotpasswordFillDetails(api.ErrUserNotFound)
 	} else if apierrors.IsKind(err, ratelimit.RateLimited) {
@@ -115,14 +116,14 @@ func (n *NodeForgotPasswordEnd) GetLoginID() string {
 	return n.LoginID
 }
 
-func (n *NodeForgotPasswordEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeForgotPasswordEnd) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeForgotPasswordEnd) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeForgotPasswordEnd) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeForgotPasswordEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeForgotPasswordEnd) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return nil, nil
 }

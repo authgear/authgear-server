@@ -7,7 +7,6 @@
 package e2e
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
@@ -71,7 +70,7 @@ import (
 
 // Injectors from wire.go:
 
-func newConfigSourceController(p *deps.RootProvider, c context.Context) *configsource.Controller {
+func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 	config := p.ConfigSourceConfig
 	factory := p.LoggerFactory
 	localFSLogger := configsource.NewLocalFSLogger(factory)
@@ -87,10 +86,10 @@ func newConfigSourceController(p *deps.RootProvider, c context.Context) *configs
 	clock := _wireSystemClockValue
 	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	storeFactory := configsource.NewStoreFactory(c, sqlBuilder)
+	storeFactory := configsource.NewStoreFactory(sqlBuilder)
 	pool := p.DatabasePool
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	databaseHandleFactory := configsource.NewDatabaseHandleFactory(c, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	databaseHandleFactory := configsource.NewDatabaseHandleFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	resolveAppIDType := configsource.NewResolveAppIDTypeDomain()
 	database := &configsource.Database{
 		Logger:                databaseLogger,
@@ -125,7 +124,7 @@ func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queu
 	return inProcessQueue
 }
 
-func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImportService {
+func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	handle := p.AppDatabase
 	appContext := p.AppContext
 	config := appContext.Config
@@ -142,7 +141,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	sqlExecutor := appdb.NewSQLExecutor(c, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &user.Store{
@@ -218,9 +217,8 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	}
 	appredisHandle := p.Redis
 	store2 := &passkey2.Store{
-		Context: c,
-		Redis:   appredisHandle,
-		AppID:   appID,
+		Redis: appredisHandle,
+		AppID: appID,
 	}
 	request := ProvideEnd2EndHTTPRequest()
 	rootProvider := p.RootProvider
@@ -242,7 +240,6 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           c,
 		Localization:      localizationConfig,
 		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
@@ -251,7 +248,6 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
-		Context:        c,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -275,10 +271,9 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	}
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
-		Context: c,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
@@ -529,7 +524,6 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	}
 	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
-		Context:         c,
 		ResourceManager: manager,
 		Logger:          denoHookLogger,
 	}
@@ -558,7 +552,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	writeHandle := p.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(c, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
@@ -576,7 +570,6 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := elasticsearch.Service{
 		Clock:           clockClock,
-		Context:         c,
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
@@ -593,7 +586,7 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(c, appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, logger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -651,7 +644,6 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	whatsappService := &whatsapp.Service{
-		Context:                           c,
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
@@ -659,7 +651,6 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 		WhatsappConfig:                    whatsappConfig,
 		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
-		TokenStore:                        tokenStore,
 	}
 	sender := &messaging.Sender{
 		Limits:                 limits,
@@ -720,7 +711,6 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     c,
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -739,18 +729,16 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	analyticredisHandle := p.AnalyticRedis
 	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: c,
-		Redis:   analyticredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
-		Logger:  meterStoreRedisLogger,
+		Redis:  analyticredisHandle,
+		AppID:  appID,
+		Clock:  clockClock,
+		Logger: meterStoreRedisLogger,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:         c,
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
 		AppID:           appID,
@@ -833,7 +821,6 @@ func newUserImport(p *deps.AppProvider, c context.Context) *userimport.UserImpor
 	}
 	service4 := &elasticsearch.Service{
 		Clock:           clockClock,
-		Context:         c,
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
@@ -868,7 +855,7 @@ var (
 	_wireMaxTrialsValue = password.DefaultMaxTrials
 )
 
-func newLoginIDSerivce(p *deps.AppProvider, c context.Context) *loginid.Provider {
+func newLoginIDSerivce(p *deps.AppProvider) *loginid.Provider {
 	appContext := p.AppContext
 	config := appContext.Config
 	secretConfig := config.SecretConfig
@@ -877,7 +864,7 @@ func newLoginIDSerivce(p *deps.AppProvider, c context.Context) *loginid.Provider
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	handle := p.AppDatabase
-	sqlExecutor := appdb.NewSQLExecutor(c, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	store := &loginid.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,

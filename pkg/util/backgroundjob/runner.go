@@ -11,10 +11,10 @@ import (
 const DefaultAfterDuration = 5 * time.Minute
 
 type Runnable interface {
-	Run() error
+	Run(ctx context.Context) error
 }
 
-type RunnableFactory func(ctx context.Context) Runnable
+type RunnableFactory func() Runnable
 
 type Runner struct {
 	logger          *log.Logger
@@ -89,7 +89,7 @@ func (r *Runner) runRunnable() {
 		}
 	}()
 
-	err := r.runnableFactory(r.shutdownCtx).Run()
+	err := r.runnableFactory().Run(r.shutdownCtx)
 	if err != nil {
 		r.logger.WithError(err).Errorf("runnable ended with error")
 	}

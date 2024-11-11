@@ -12,7 +12,6 @@ import (
 )
 
 type HookHandle struct {
-	Context           context.Context
 	Pool              *Pool
 	ConnectionOptions ConnectionOptions
 	Logger            *log.Logger
@@ -21,9 +20,8 @@ type HookHandle struct {
 	hooks []TransactionHook
 }
 
-func NewHookHandle(ctx context.Context, pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHandle {
+func NewHookHandle(pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHandle {
 	return &HookHandle{
-		Context:           ctx,
 		Pool:              pool,
 		ConnectionOptions: opts,
 		Logger:            lf.New("db-handle"),
@@ -43,7 +41,7 @@ func (h *HookHandle) UseHook(hook TransactionHook) {
 }
 
 // WithTx commits if do finishes without error and rolls back otherwise.
-func (h *HookHandle) WithTx(do func() error) (err error) {
+func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
 	db, err := h.openDB()
@@ -51,14 +49,14 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 		return
 	}
 
-	conn, err := db.db.Conn(h.Context)
+	conn, err := db.db.Conn(ctx)
 	if err != nil {
 		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
 		return
 	}
 	logger.Debug("acquire connection")
 
-	tx, err := h.beginTx(logger, conn)
+	tx, err := h.beginTx(ctx, logger, conn)
 	if err != nil {
 		return
 	}
@@ -84,7 +82,7 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 				// before running the DidCommitTx hook
 				// so new tx can be opened inside the DidCommitTx hook
 				for _, hook := range h.hooks {
-					hook.DidCommitTx()
+					hook.DidCommitTx(ctx)
 				}
 			}
 		}()
@@ -105,19 +103,19 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 		} else if err != nil {
 			_ = rollbackTx(tx)
 		} else {
-			err = commitTx(tx, h.hooks)
+			err = commitTx(ctx, tx, h.hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
 		}
 	}()
 
-	err = do()
+	err = do(ctx)
 	return
 }
 
 // ReadOnly runs do in a transaction and rolls back always.
-func (h *HookHandle) ReadOnly(do func() error) (err error) {
+func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
 	db, err := h.openDB()
@@ -125,14 +123,14 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 		return
 	}
 
-	conn, err := db.db.Conn(h.Context)
+	conn, err := db.db.Conn(ctx)
 	if err != nil {
 		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
 		return
 	}
 	logger.Debug("acquire connection")
 
-	tx, err := h.beginTx(logger, conn)
+	tx, err := h.beginTx(ctx, logger, conn)
 	if err != nil {
 		return
 	}
@@ -157,7 +155,7 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 				// before running the DidCommitTx hook
 				// so new tx can be opened inside the DidCommitTx hook
 				for _, hook := range h.hooks {
-					hook.DidCommitTx()
+					hook.DidCommitTx(ctx)
 				}
 			}
 		}()
@@ -185,14 +183,14 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 		}
 	}()
 
-	err = do()
+	err = do(ctx)
 	return
 }
 
-func (h *HookHandle) beginTx(logger *log.Logger, conn *sql.Conn) (*txConn, error) {
+func (h *HookHandle) beginTx(ctx context.Context, logger *log.Logger, conn *sql.Conn) (*txConn, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
-	tx, err := conn.BeginTx(h.Context, txOptions)
+	tx, err := conn.BeginTx(ctx, txOptions)
 	if err != nil {
 		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
@@ -207,9 +205,9 @@ func (h *HookHandle) beginTx(logger *log.Logger, conn *sql.Conn) (*txConn, error
 	}, nil
 }
 
-func commitTx(conn *txConn, hooks []TransactionHook) error {
+func commitTx(ctx context.Context, conn *txConn, hooks []TransactionHook) error {
 	for _, hook := range hooks {
-		err := hook.WillCommitTx()
+		err := hook.WillCommitTx(ctx)
 		if err != nil {
 			if rbErr := conn.tx.Rollback(); rbErr != nil {
 				err = errorutil.WithSecondaryError(err, rbErr)

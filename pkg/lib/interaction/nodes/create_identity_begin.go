@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -13,7 +15,7 @@ func init() {
 
 type EdgeCreateIdentityBegin struct{}
 
-func (e *EdgeCreateIdentityBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeCreateIdentityBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	return &NodeCreateIdentityBegin{}, nil
 }
 
@@ -23,18 +25,18 @@ type NodeCreateIdentityBegin struct {
 	IdentityFeatureConfig *config.IdentityFeatureConfig `json:"-"`
 }
 
-func (n *NodeCreateIdentityBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeCreateIdentityBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	n.IdentityTypes = ctx.Config.Authentication.Identities
 	n.IdentityConfig = ctx.Config.Identity
 	n.IdentityFeatureConfig = ctx.FeatureConfig.Identity
 	return nil
 }
 
-func (n *NodeCreateIdentityBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeCreateIdentityBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeCreateIdentityBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeCreateIdentityBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return n.deriveEdges(), nil
 }
 

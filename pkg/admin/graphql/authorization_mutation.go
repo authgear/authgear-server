@@ -47,20 +47,21 @@ var _ = registerMutationField(
 				return nil, apierrors.NewInvalid("invalid authorization ID")
 			}
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			authz, err := gqlCtx.AuthorizationFacade.Get(resolvedNodeID.ID)
+			authz, err := gqlCtx.AuthorizationFacade.Get(ctx, resolvedNodeID.ID)
 			if err != nil {
 				return nil, err
 			}
 			userID := authz.UserID
 
-			err = gqlCtx.AuthorizationFacade.Delete(authz)
+			err = gqlCtx.AuthorizationFacade.Delete(ctx, authz)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationDeleteAuthorizationExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationDeleteAuthorizationExecutedEventPayload{
 				Authorization: *authz.ToAPIModel(),
 			})
 			if err != nil {
@@ -68,7 +69,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 		},
 	},

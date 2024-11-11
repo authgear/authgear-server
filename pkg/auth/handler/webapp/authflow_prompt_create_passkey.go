@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -55,7 +56,7 @@ func (h *AuthflowPromptCreatePasskeyHandler) GetData(w http.ResponseWriter, r *h
 
 func (h *AuthflowPromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -64,12 +65,12 @@ func (h *AuthflowPromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r 
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowPromptCreatePasskeyHTML, data)
 		return nil
 	})
-	handlers.PostAction("skip", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("skip", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"skip": true,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -77,7 +78,7 @@ func (h *AuthflowPromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r 
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		attestationResponseStr := r.Form.Get("x_attestation_response")
 
 		var creationResponseJSON interface{}
@@ -90,7 +91,7 @@ func (h *AuthflowPromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r 
 			"creation_response": creationResponseJSON,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -98,5 +99,5 @@ func (h *AuthflowPromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r 
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

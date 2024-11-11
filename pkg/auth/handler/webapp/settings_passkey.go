@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -37,12 +38,12 @@ type SettingsPasskeyHandler struct {
 	Identities        SettingsIdentityService
 }
 
-func (h *SettingsPasskeyHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *SettingsPasskeyHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
-	identities, err := h.Identities.ListByUser(*userID)
+	identities, err := h.Identities.ListByUser(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +76,8 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 	redirectURI := httputil.HostRelative(r.URL).String()
 	userID := ctrl.RequireUserID()
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+	ctrl.Get(func(ctx context.Context) error {
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
@@ -85,7 +86,7 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}
@@ -106,7 +107,7 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		return nil
 	})
 
-	ctrl.PostAction("add", func() error {
+	ctrl.PostAction("add", func(ctx context.Context) error {
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -28,7 +29,7 @@ type SettingsDeleteAccountSuccessUIInfoResolver interface {
 }
 
 type SettingsDeleteAccountSuccessAuthenticationInfoService interface {
-	Get(entryID string) (entry *authenticationinfo.Entry, err error)
+	Get(ctx context.Context, entryID string) (entry *authenticationinfo.Entry, err error)
 }
 
 type SettingsDeleteAccountSuccessHandler struct {
@@ -67,7 +68,7 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 
 	webSession := webapp.GetSession(r.Context())
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -77,14 +78,14 @@ func (h *SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.ResponseWriter, r
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		redirectURI := "/login"
 		if webSession != nil && webSession.RedirectURI != "" {
 			// delete account triggered by sdk via settings action
 			// redirect to oauth callback
 			redirectURI = webSession.RedirectURI
 			if authInfoID, ok := webSession.Extra["authentication_info_id"].(string); ok {
-				authInfo, err := h.AuthenticationInfoService.Get(authInfoID)
+				authInfo, err := h.AuthenticationInfoService.Get(ctx, authInfoID)
 				if err != nil {
 					return err
 				}

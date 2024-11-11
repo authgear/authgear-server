@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -34,16 +35,16 @@ func (h *AuthflowV2SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
-		userID := session.GetUserID(r.Context())
+	ctrl.Get(func(ctx context.Context) error {
+		userID := session.GetUserID(ctx)
 
 		data := map[string]interface{}{}
 
-		err := h.Database.WithTx(func() error {
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
 			baseViewModel := h.BaseViewModel.ViewModel(r, w)
 			viewmodels.Embed(data, baseViewModel)
 
-			viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+			viewModelPtr, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 			if err != nil {
 				return err
 			}
@@ -59,9 +60,9 @@ func (h *AuthflowV2SettingsMFAHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		return nil
 	})
 
-	ctrl.PostAction("revoke_device", func() error {
-		userID := session.GetUserID(r.Context())
-		err := h.MFA.InvalidateAllDeviceTokens(*userID)
+	ctrl.PostAction("revoke_device", func(ctx context.Context) error {
+		userID := session.GetUserID(ctx)
+		err := h.MFA.InvalidateAllDeviceTokens(ctx, *userID)
 		if err != nil {
 			return err
 		}

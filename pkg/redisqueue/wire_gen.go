@@ -85,7 +85,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	secretConfig := config.SecretConfig
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	store := &user.Store{
@@ -161,9 +161,8 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	appredisHandle := p.Redis
 	store2 := &passkey2.Store{
-		Context: ctx,
-		Redis:   appredisHandle,
-		AppID:   appID,
+		Redis: appredisHandle,
+		AppID: appID,
 	}
 	request := deps.ProvideRedisQueueHTTPRequest()
 	rootProvider := p.RootProvider
@@ -185,7 +184,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           ctx,
 		Localization:      localizationConfig,
 		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
@@ -194,7 +192,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
-		Context:        ctx,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -218,10 +215,9 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
-		Context: ctx,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clock,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clock,
 	}
 	ratelimitLogger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
@@ -472,7 +468,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	denoHookLogger := hook.NewDenoHookLogger(factory)
 	denoHook := hook.DenoHook{
-		Context:         ctx,
 		ResourceManager: manager,
 		Logger:          denoHookLogger,
 	}
@@ -501,7 +496,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	writeHandle := p.AuditWriteDatabase
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(secretConfig)
 	auditdbSQLBuilderApp := auditdb.NewSQLBuilderApp(auditDatabaseCredentials, appID)
-	writeSQLExecutor := auditdb.NewWriteSQLExecutor(ctx, writeHandle)
+	writeSQLExecutor := auditdb.NewWriteSQLExecutor(writeHandle)
 	writeStore := &audit.WriteStore{
 		SQLBuilder:  auditdbSQLBuilderApp,
 		SQLExecutor: writeSQLExecutor,
@@ -519,7 +514,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
 	elasticsearchService := elasticsearch.Service{
 		Clock:           clock,
-		Context:         ctx,
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
@@ -536,7 +530,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Service:  elasticsearchService,
 		Database: handle,
 	}
-	eventService := event.NewService(ctx, appID, remoteIP, userAgentString, logger, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, logger, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -594,7 +588,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
 	whatsappService := &whatsapp.Service{
-		Context:                           ctx,
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
@@ -602,7 +595,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		WhatsappConfig:                    whatsappConfig,
 		LocalizationConfig:                localizationConfig,
 		OnPremisesClient:                  onPremisesClient,
-		TokenStore:                        tokenStore,
 	}
 	sender := &messaging.Sender{
 		Limits:                 limits,
@@ -663,7 +655,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	redisLogger := redis.NewLogger(factory)
 	redisStore := &redis.Store{
-		Context:     ctx,
 		Redis:       appredisHandle,
 		AppID:       appID,
 		Logger:      redisLogger,
@@ -682,18 +673,16 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	analyticredisHandle := p.AnalyticRedis
 	meterStoreRedisLogger := meter.NewStoreRedisLogger(factory)
 	writeStoreRedis := &meter.WriteStoreRedis{
-		Context: ctx,
-		Redis:   analyticredisHandle,
-		AppID:   appID,
-		Clock:   clock,
-		Logger:  meterStoreRedisLogger,
+		Redis:  analyticredisHandle,
+		AppID:  appID,
+		Clock:  clock,
+		Logger: meterStoreRedisLogger,
 	}
 	meterService := &meter.Service{
 		Counter: writeStoreRedis,
 	}
 	rand := _wireRandValue
 	idpsessionProvider := &idpsession.Provider{
-		Context:         ctx,
 		RemoteIP:        remoteIP,
 		UserAgentString: userAgentString,
 		AppID:           appID,
@@ -776,7 +765,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	}
 	service4 := &elasticsearch.Service{
 		Clock:           clock,
-		Context:         ctx,
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,
@@ -822,7 +810,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	appID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	clockClock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -899,9 +887,8 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	}
 	appredisHandle := p.Redis
 	store2 := &passkey2.Store{
-		Context: ctx,
-		Redis:   appredisHandle,
-		AppID:   appID,
+		Redis: appredisHandle,
+		AppID: appID,
 	}
 	request := deps.ProvideRedisQueueHTTPRequest()
 	rootProvider := p.RootProvider
@@ -924,7 +911,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           ctx,
 		Localization:      localizationConfig,
 		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
@@ -933,7 +919,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
-		Context:        ctx,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -958,10 +943,9 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	remoteIP := deps.ProvideRedisQueueRemoteIP()
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
-		Context: ctx,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	factory := p.LoggerFactory
 	logger := ratelimit.NewLogger(factory)
@@ -1221,7 +1205,7 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	client := elasticsearch.NewClient(elasticsearchCredentials)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
-	sqlExecutor := appdb.NewSQLExecutor(ctx, handle)
+	sqlExecutor := appdb.NewSQLExecutor(handle)
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1297,9 +1281,8 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	}
 	appredisHandle := p.Redis
 	store2 := &passkey2.Store{
-		Context: ctx,
-		Redis:   appredisHandle,
-		AppID:   appID,
+		Redis: appredisHandle,
+		AppID: appID,
 	}
 	request := deps.ProvideRedisQueueHTTPRequest()
 	rootProvider := p.RootProvider
@@ -1322,7 +1305,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	webAppCDNHost := environmentConfig.WebAppCDNHost
 	globalEmbeddedResourceManager := rootProvider.EmbeddedResources
 	staticAssetResolver := &web.StaticAssetResolver{
-		Context:           ctx,
 		Localization:      localizationConfig,
 		HTTPOrigin:        httpOrigin,
 		HTTPProto:         httpProto,
@@ -1331,7 +1313,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		EmbeddedResources: globalEmbeddedResourceManager,
 	}
 	translationService := &translation.Service{
-		Context:        ctx,
 		TemplateEngine: engine,
 		StaticAssets:   staticAssetResolver,
 	}
@@ -1356,10 +1337,9 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	remoteIP := deps.ProvideRedisQueueRemoteIP()
 	web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
-		Context: ctx,
-		Redis:   appredisHandle,
-		AppID:   appID,
-		Clock:   clockClock,
+		Redis: appredisHandle,
+		AppID: appID,
+		Clock: clockClock,
 	}
 	logger := ratelimit.NewLogger(factory)
 	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
@@ -1594,7 +1574,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
-		Context:         ctx,
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
 		AppID:           appID,

@@ -40,12 +40,12 @@ func (n *NodeDoUpdateUserProfile) GetEffects(ctx context.Context, deps *authflow
 				return nil
 			}
 			// FIXME(authflow): support other role?
-			err := deps.StdAttrsService.UpdateStandardAttributesWithList(config.RoleEndUser, n.UserID, n.StandardAttributes)
+			err := deps.StdAttrsService.UpdateStandardAttributesWithList(ctx, config.RoleEndUser, n.UserID, n.StandardAttributes)
 			if err != nil {
 				return err
 			}
 			// FIXME(authflow): support other role?
-			err = deps.CustomAttrsService.UpdateCustomAttributesWithList(config.RoleEndUser, n.UserID, n.CustomAttributes)
+			err = deps.CustomAttrsService.UpdateCustomAttributesWithList(ctx, config.RoleEndUser, n.UserID, n.CustomAttributes)
 			if err != nil {
 				return err
 			}

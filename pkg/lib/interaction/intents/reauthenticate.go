@@ -1,6 +1,7 @@
 package intents
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
@@ -17,12 +18,12 @@ type IntentReauthenticate struct {
 	SuppressIDPSessionCookie bool   `json:"suppress_idp_session_cookie"`
 }
 
-func (i *IntentReauthenticate) InstantiateRootNode(ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
+func (i *IntentReauthenticate) InstantiateRootNode(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) (interaction.Node, error) {
 	edge := nodes.EdgeDoUseUser{UseUserID: i.UserIDHint}
-	return edge.Instantiate(ctx, graph, i)
+	return edge.Instantiate(goCtx, ctx, graph, i)
 }
 
-func (i *IntentReauthenticate) DeriveEdgesForNode(graph *interaction.Graph, node interaction.Node) ([]interaction.Edge, error) {
+func (i *IntentReauthenticate) DeriveEdgesForNode(goCtx context.Context, graph *interaction.Graph, node interaction.Node) ([]interaction.Edge, error) {
 	switch node := node.(type) {
 	case *nodes.NodeDoUseUser:
 		return []interaction.Edge{

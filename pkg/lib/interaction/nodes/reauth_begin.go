@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -18,8 +19,8 @@ func init() {
 
 type EdgeReauthenticationBegin struct{}
 
-func (e *EdgeReauthenticationBegin) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
-	stage, _, err := e.getAuthenticators(ctx, graph)
+func (e *EdgeReauthenticationBegin) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+	stage, _, err := e.getAuthenticators(goCtx, ctx, graph)
 	if err != nil {
 		// This is must be reported with panic.
 		// If we return it as pain error,
@@ -35,8 +36,8 @@ func (e *EdgeReauthenticationBegin) Instantiate(ctx *interaction.Context, graph 
 	}, nil
 }
 
-func (e *EdgeReauthenticationBegin) getAuthenticators(ctx *interaction.Context, graph *interaction.Graph) (stage authn.AuthenticationStage, authenticators []*authenticator.Info, err error) {
-	ais, err := ctx.Authenticators.List(graph.MustGetUserID())
+func (e *EdgeReauthenticationBegin) getAuthenticators(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) (stage authn.AuthenticationStage, authenticators []*authenticator.Info, err error) {
+	ais, err := ctx.Authenticators.List(goCtx, graph.MustGetUserID())
 	if err != nil {
 		return
 	}
@@ -124,9 +125,9 @@ type NodeReauthenticationBegin struct {
 	AuthenticatorConfig *config.AuthenticatorConfig `json:"-"`
 }
 
-func (n *NodeReauthenticationBegin) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeReauthenticationBegin) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	edge := &EdgeReauthenticationBegin{}
-	stage, authenticators, err := edge.getAuthenticators(ctx, graph)
+	stage, authenticators, err := edge.getAuthenticators(goCtx, ctx, graph)
 	if err != nil {
 		return err
 	}
@@ -140,11 +141,11 @@ func (n *NodeReauthenticationBegin) Prepare(ctx *interaction.Context, graph *int
 	return nil
 }
 
-func (n *NodeReauthenticationBegin) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeReauthenticationBegin) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeReauthenticationBegin) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeReauthenticationBegin) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return n.GetAuthenticationEdges()
 }
 

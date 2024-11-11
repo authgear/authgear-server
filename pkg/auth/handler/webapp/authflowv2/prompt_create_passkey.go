@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 
@@ -70,7 +71,7 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) GetInlinePreviewData(w http.Respo
 
 func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers handlerwebapp.AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -79,12 +80,12 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowPromptCreatePasskeyHTML, data)
 		return nil
 	})
-	handlers.PostAction("skip", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("skip", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"skip": true,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -92,7 +93,7 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.PostAction("", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		attestationResponseStr := r.Form.Get("x_attestation_response")
 
 		var creationResponseJSON interface{}
@@ -105,7 +106,7 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 			"creation_response": creationResponseJSON,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -113,7 +114,7 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.InlinePreview(func(w http.ResponseWriter, r *http.Request) error {
+	handlers.InlinePreview(func(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 		data, err := h.GetInlinePreviewData(w, r)
 		if err != nil {
 			return err
@@ -122,5 +123,5 @@ func (h *AuthflowV2PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, 
 		return nil
 	})
 
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

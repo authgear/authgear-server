@@ -18,9 +18,8 @@ import (
 )
 
 type Store struct {
-	Context context.Context
-	Redis   *appredis.Handle
-	AppID   config.AppID
+	Redis *appredis.Handle
+	AppID config.AppID
 }
 
 func NewStateToken() (stateToken string, stateTokenHash string) {
@@ -31,7 +30,7 @@ func NewStateToken() (stateToken string, stateTokenHash string) {
 	return
 }
 
-func (s *Store) GenerateState(state *WebappOAuthState) (stateToken string, err error) {
+func (s *Store) GenerateState(ctx context.Context, state *WebappOAuthState) (stateToken string, err error) {
 	data, err := json.Marshal(state)
 	if err != nil {
 		return
@@ -42,8 +41,8 @@ func (s *Store) GenerateState(state *WebappOAuthState) (stateToken string, err e
 	stateToken, stateTokenHash := NewStateToken()
 	key := stateKey(string(s.AppID), stateTokenHash)
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		_, err := conn.SetNX(s.Context, key, data, ttl).Result()
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		_, err := conn.SetNX(ctx, key, data, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			err = fmt.Errorf("state string already exist: %w", err)
 			return err
@@ -59,14 +58,14 @@ func (s *Store) GenerateState(state *WebappOAuthState) (stateToken string, err e
 	return
 }
 
-func (s *Store) PopAndRecoverState(stateToken string) (state *WebappOAuthState, err error) {
+func (s *Store) PopAndRecoverState(ctx context.Context, stateToken string) (state *WebappOAuthState, err error) {
 	stateTokenHash := crypto.SHA256String(stateToken)
 	key := stateKey(string(s.AppID), stateTokenHash)
 
 	var data []byte
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		var err error
-		data, err = conn.Get(s.Context, key).Bytes()
+		data, err = conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			err = ErrOAuthStateInvalid
 			return err
@@ -74,7 +73,7 @@ func (s *Store) PopAndRecoverState(stateToken string) (state *WebappOAuthState, 
 			return err
 		}
 
-		_, err = conn.Del(s.Context, key).Result()
+		_, err = conn.Del(ctx, key).Result()
 		if err != nil {
 			return err
 		}

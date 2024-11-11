@@ -46,7 +46,7 @@ func (i *IntentAuthenticateEmailLoginLink) ReactTo(ctx context.Context, deps *wo
 			IsAuthenticating:  true,
 			AuthenticatorInfo: authenticator,
 			OTPForm:           otp.FormLink,
-		}).Do()
+		}).Do(ctx)
 		if err != nil {
 			return nil, err
 		}

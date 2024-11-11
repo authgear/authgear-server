@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -54,7 +55,7 @@ func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.Respons
 
 	webSession := webapp.GetSession(r.Context())
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return nil
@@ -63,14 +64,14 @@ func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.Respons
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		redirectURI := "/login"
 		if webSession != nil && webSession.RedirectURI != "" {
 			// delete account triggered by sdk via settings action
 			// redirect to oauth callback
 			redirectURI = webSession.RedirectURI
 			if authInfoID, ok := webSession.Extra["authentication_info_id"].(string); ok {
-				authInfo, err := h.AuthenticationInfoService.Get(authInfoID)
+				authInfo, err := h.AuthenticationInfoService.Get(ctx, authInfoID)
 				if err != nil {
 					return err
 				}

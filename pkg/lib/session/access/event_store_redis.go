@@ -22,7 +22,7 @@ type EventStoreRedis struct {
 	AppID config.AppID
 }
 
-func (s *EventStoreRedis) AppendEvent(sessionID string, expiry time.Time, event *Event) error {
+func (s *EventStoreRedis) AppendEvent(ctx context.Context, sessionID string, expiry time.Time, event *Event) error {
 	data, err := json.Marshal(event)
 	if err != nil {
 		return err
@@ -41,8 +41,7 @@ func (s *EventStoreRedis) AppendEvent(sessionID string, expiry time.Time, event 
 		args.Approx = true
 	}
 
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		ctx := context.Background()
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.XAdd(ctx, args).Result()
 		if err != nil {
 			return err
@@ -57,11 +56,10 @@ func (s *EventStoreRedis) AppendEvent(sessionID string, expiry time.Time, event 
 	})
 }
 
-func (s *EventStoreRedis) ResetEventStream(sessionID string) error {
+func (s *EventStoreRedis) ResetEventStream(ctx context.Context, sessionID string) error {
 	streamKey := accessEventStreamKey(s.AppID, sessionID)
 
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		ctx := context.Background()
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err := conn.Del(ctx, streamKey).Result()
 		if err != nil {
 			return err

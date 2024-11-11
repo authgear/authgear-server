@@ -1,6 +1,8 @@
 package messaging
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
@@ -18,7 +20,7 @@ func NewLogger(lf *log.Factory) Logger {
 }
 
 type EventService interface {
-	DispatchEventImmediately(payload event.NonBlockingPayload) error
+	DispatchEventImmediately(ctx context.Context, payload event.NonBlockingPayload) error
 }
 
 type Sender struct {
@@ -29,8 +31,8 @@ type Sender struct {
 	MessagingFeatureConfig *config.MessagingFeatureConfig
 }
 
-func (s *Sender) PrepareEmail(email string, msgType translation.MessageType) (*EmailMessage, error) {
-	msg, err := s.Limits.checkEmail(email)
+func (s *Sender) PrepareEmail(ctx context.Context, email string, msgType translation.MessageType) (*EmailMessage, error) {
+	msg, err := s.Limits.checkEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
@@ -44,8 +46,8 @@ func (s *Sender) PrepareEmail(email string, msgType translation.MessageType) (*E
 	}, nil
 }
 
-func (s *Sender) PrepareSMS(phoneNumber string, msgType translation.MessageType) (*SMSMessage, error) {
-	msg, err := s.Limits.checkSMS(phoneNumber)
+func (s *Sender) PrepareSMS(ctx context.Context, phoneNumber string, msgType translation.MessageType) (*SMSMessage, error) {
+	msg, err := s.Limits.checkSMS(ctx, phoneNumber)
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +62,8 @@ func (s *Sender) PrepareSMS(phoneNumber string, msgType translation.MessageType)
 	}, nil
 }
 
-func (s *Sender) PrepareWhatsapp(phoneNumber string, msgType translation.MessageType) (*WhatsappMessage, error) {
-	msg, err := s.Limits.checkWhatsapp(phoneNumber)
+func (s *Sender) PrepareWhatsapp(ctx context.Context, phoneNumber string, msgType translation.MessageType) (*WhatsappMessage, error) {
+	msg, err := s.Limits.checkWhatsapp(ctx, phoneNumber)
 	if err != nil {
 		return nil, err
 	}

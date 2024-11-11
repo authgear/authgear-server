@@ -1,6 +1,7 @@
 package usage
 
 import (
+	"context"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
@@ -13,7 +14,7 @@ type GlobalDBStore struct {
 	SQLExecutor *globaldb.SQLExecutor
 }
 
-func (s *GlobalDBStore) GetAppIDs() (appIDs []string, err error) {
+func (s *GlobalDBStore) GetAppIDs(ctx context.Context) (appIDs []string, err error) {
 	builder := s.SQLBuilder.
 		Select(
 			"app_id",
@@ -21,7 +22,7 @@ func (s *GlobalDBStore) GetAppIDs() (appIDs []string, err error) {
 		From(s.SQLBuilder.TableName("_portal_config_source")).
 		OrderBy("created_at ASC")
 
-	rows, e := s.SQLExecutor.QueryWith(builder)
+	rows, e := s.SQLExecutor.QueryWith(ctx, builder)
 	if e != nil {
 		err = e
 		return
@@ -41,7 +42,7 @@ func (s *GlobalDBStore) GetAppIDs() (appIDs []string, err error) {
 }
 
 // UpsertUsageRecords upsert usage record in batches
-func (s *GlobalDBStore) UpsertUsageRecords(usageRecords []*UsageRecord) error {
+func (s *GlobalDBStore) UpsertUsageRecords(ctx context.Context, usageRecords []*UsageRecord) error {
 	batchSize := 100
 	for i := 0; i < len(usageRecords); i += batchSize {
 		j := i + batchSize
@@ -50,7 +51,7 @@ func (s *GlobalDBStore) UpsertUsageRecords(usageRecords []*UsageRecord) error {
 		}
 		batch := usageRecords[i:j]
 
-		err := s.upsertUsageRecords(batch)
+		err := s.upsertUsageRecords(ctx, batch)
 		if err != nil {
 			return err
 		}
@@ -59,7 +60,7 @@ func (s *GlobalDBStore) UpsertUsageRecords(usageRecords []*UsageRecord) error {
 	return nil
 }
 
-func (s *GlobalDBStore) upsertUsageRecords(usageRecords []*UsageRecord) error {
+func (s *GlobalDBStore) upsertUsageRecords(ctx context.Context, usageRecords []*UsageRecord) error {
 	builder := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_portal_usage_record")).
 		Columns(
@@ -86,7 +87,7 @@ func (s *GlobalDBStore) upsertUsageRecords(usageRecords []*UsageRecord) error {
 
 	builder = builder.Suffix("ON CONFLICT (app_id, name, period, start_time) DO UPDATE SET count = excluded.count RETURNING id")
 	// TODO(usage): update id of usage record objects when conflict
-	_, err := s.SQLExecutor.ExecWith(builder)
+	_, err := s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -114,6 +115,7 @@ func (s *GlobalDBStore) scan(scanner db.Scanner) (*UsageRecord, error) {
 }
 
 func (s *GlobalDBStore) FetchUploadedUsageRecords(
+	ctx context.Context,
 	appID string,
 	recordName RecordName,
 	period periodical.Type,
@@ -140,7 +142,7 @@ func (s *GlobalDBStore) FetchUploadedUsageRecords(
 			stripeEnd,
 		)
 
-	rows, err := s.SQLExecutor.QueryWith(q)
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}
@@ -160,6 +162,7 @@ func (s *GlobalDBStore) FetchUploadedUsageRecords(
 }
 
 func (s *GlobalDBStore) FetchUsageRecords(
+	ctx context.Context,
 	appID string,
 	recordName RecordName,
 	period periodical.Type,
@@ -184,7 +187,7 @@ func (s *GlobalDBStore) FetchUsageRecords(
 			startTime,
 		)
 
-	rows, err := s.SQLExecutor.QueryWith(q)
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
 	if err != nil {
 		return nil, err
 	}

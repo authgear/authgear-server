@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -40,16 +41,16 @@ type AuthflowV2SettingsOOBOTPHandler struct {
 	Authenticators       authenticatorservice.Service
 }
 
-func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsOOBOTPHandler) GetData(ctx context.Context, w http.ResponseWriter, r *http.Request) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	// BaseViewModel
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel
-	settingsViewModel, err := h.SettingsViewModel.ViewModel(*userID)
+	settingsViewModel, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -62,6 +63,7 @@ func (h *AuthflowV2SettingsOOBOTPHandler) GetData(w http.ResponseWriter, r *http
 		return nil, err
 	}
 	authenticators, err := h.Authenticators.List(
+		ctx,
 		*userID,
 		authenticator.KeepKind(authenticator.KindSecondary),
 		authenticator.KeepType(t),
@@ -95,10 +97,10 @@ func (h *AuthflowV2SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *ht
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(w, r)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, w, r)
 			return err
 		})
 		if err != nil {
@@ -109,15 +111,15 @@ func (h *AuthflowV2SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *ht
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		authenticatorID := r.Form.Get("x_authenticator_id")
 
-		s := session.GetSession(r.Context())
+		s := session.GetSession(ctx)
 
 		input := &accountmanagement.DeleteOOBOTPAuthenticatorInput{
 			AuthenticatorID: authenticatorID,
 		}
-		_, err = h.AccountManagement.DeleteOOBOTPAuthenticator(s, input)
+		_, err = h.AccountManagement.DeleteOOBOTPAuthenticator(ctx, s, input)
 		if err != nil {
 			return err
 		}

@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -46,7 +48,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) IsDefaultAuthenticator() bool {
 	return len(filtered) > 0
 }
 
-func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputAuthenticationWhatsappTrigger
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -58,7 +60,7 @@ func (e *EdgeAuthenticationWhatsappTrigger) Instantiate(ctx *interaction.Context
 	}
 	targetInfo := e.Authenticators[idx]
 	phone := targetInfo.OOBOTP.Phone
-	result, err := NewSendWhatsappCode(ctx, otp.KindOOBOTPCode, phone, false).Do()
+	result, err := NewSendWhatsappCode(ctx, otp.KindOOBOTPCode, phone, false).Do(goCtx)
 	if err != nil {
 		return nil, err
 	}
@@ -107,15 +109,15 @@ func (n *NodeAuthenticationWhatsappTrigger) GetAuthenticatorIndex() int {
 	return n.AuthenticatorIndex
 }
 
-func (n *NodeAuthenticationWhatsappTrigger) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeAuthenticationWhatsappTrigger) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationWhatsappTrigger) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeAuthenticationWhatsappTrigger) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeAuthenticationWhatsappTrigger) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeAuthenticationWhatsappTrigger) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	edges := []interaction.Edge{
 		&EdgeWhatsappOTPResendCode{
 			Target:         n.Phone,

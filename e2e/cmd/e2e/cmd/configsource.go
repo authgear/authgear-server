@@ -25,9 +25,7 @@ var cmdInternalE2ECreateConfigSource = &cobra.Command{
 		configSource := binder.GetString(cmd, ArgConfigSource)
 		configOverride := binder.GetString(cmd, ArgConfigOverride)
 
-		instance := e2e.End2End{
-			Context: cmd.Context(),
-		}
+		instance := e2e.End2End{}
 
 		err := instance.CreateApp(appID, configSource, configOverride)
 		if err != nil {

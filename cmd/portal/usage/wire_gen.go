@@ -7,7 +7,6 @@
 package usage
 
 import (
-	"context"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -22,13 +21,13 @@ import (
 
 // Injectors from wire.go:
 
-func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials, hub *sentry.Hub) *usage.CountCollector {
+func NewCountCollector(pool *db.Pool, databaseCredentials *config.DatabaseCredentials, auditDatabaseCredentials *config.AuditDatabaseCredentials, redisPool *redis.Pool, credentials *config.AnalyticRedisCredentials, hub *sentry.Hub) *usage.CountCollector {
 	globalDatabaseCredentialsEnvironmentConfig := NewGlobalDatabaseCredentials(databaseCredentials)
 	databaseEnvironmentConfig := config.NewDefaultDatabaseEnvironmentConfig()
 	factory := cobrasentry.NewLoggerFactory(hub)
-	handle := globaldb.NewHandle(ctx, pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
+	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	sqlExecutor := globaldb.NewSQLExecutor(ctx, handle)
+	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	globalDBStore := &usage.GlobalDBStore{
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: sqlExecutor,
@@ -36,12 +35,11 @@ func NewCountCollector(ctx context.Context, pool *db.Pool, databaseCredentials *
 	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
 	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
 	readStoreRedis := &meter.ReadStoreRedis{
-		Context: ctx,
-		Redis:   analyticredisHandle,
+		Redis: analyticredisHandle,
 	}
-	readHandle := auditdb.NewReadHandle(ctx, pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
+	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, factory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
-	readSQLExecutor := auditdb.NewReadSQLExecutor(ctx, readHandle)
+	readSQLExecutor := auditdb.NewReadSQLExecutor(readHandle)
 	auditDBReadStore := &meter.AuditDBReadStore{
 		SQLBuilder:  auditdbSQLBuilder,
 		SQLExecutor: readSQLExecutor,

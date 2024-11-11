@@ -1,6 +1,7 @@
 package adfs
 
 import (
+	"context"
 	"net/http"
 	"testing"
 
@@ -36,7 +37,8 @@ func TestADFS(t *testing.T) {
 			`)
 		defer func() { gock.Flush() }()
 
-		u, err := g.GetAuthorizationURL(deps, oauthrelyingparty.GetAuthorizationURLOptions{
+		ctx := context.Background()
+		u, err := g.GetAuthorizationURL(ctx, deps, oauthrelyingparty.GetAuthorizationURLOptions{
 			RedirectURI:  "https://localhost/",
 			ResponseMode: oauthrelyingparty.ResponseModeFormPost,
 			Nonce:        "nonce",

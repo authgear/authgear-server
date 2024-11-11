@@ -1,6 +1,7 @@
 package idpsession
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
@@ -12,7 +13,7 @@ import (
 )
 
 type resolverProvider interface {
-	AccessWithToken(token string, accessEvent access.Event) (*IDPSession, error)
+	AccessWithToken(ctx context.Context, token string, accessEvent access.Event) (*IDPSession, error)
 }
 
 type ResolverCookieManager interface {
@@ -29,7 +30,7 @@ type Resolver struct {
 	Clock           clock.Clock
 }
 
-func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.ResolvedSession, error) {
+func (re *Resolver) Resolve(ctx context.Context, rw http.ResponseWriter, r *http.Request) (session.ResolvedSession, error) {
 	cookie, err := re.Cookies.GetCookie(r, re.CookieDef.Def)
 	if err != nil {
 		// No cookie. Simply proceed.
@@ -37,7 +38,7 @@ func (re *Resolver) Resolve(rw http.ResponseWriter, r *http.Request) (session.Re
 	}
 
 	accessEvent := access.NewEvent(re.Clock.NowUTC(), re.RemoteIP, re.UserAgentString)
-	s, err := re.Provider.AccessWithToken(cookie.Value, accessEvent)
+	s, err := re.Provider.AccessWithToken(ctx, cookie.Value, accessEvent)
 	if err != nil {
 		if errors.Is(err, ErrSessionNotFound) {
 			err = session.ErrInvalidSession

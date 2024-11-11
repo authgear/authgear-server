@@ -15,14 +15,14 @@ import (
 )
 
 type TesterStore struct {
-	Context context.Context
-	Redis   *globalredis.Handle
+	Redis *globalredis.Handle
 }
 
 const TokenLifetime = duration.Short
 const ResultLifetime = duration.UserInteraction
 
 func (s *TesterStore) CreateToken(
+	ctx context.Context,
 	appID config.AppID,
 	returnURI string,
 ) (*TesterToken, error) {
@@ -32,11 +32,11 @@ func (s *TesterStore) CreateToken(
 		return nil, err
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		key := redisTokenKey(appID, token.TokenID)
 		ttl := TokenLifetime
 
-		_, err := conn.SetEx(s.Context, key, bytes, ttl).Result()
+		_, err := conn.SetEx(ctx, key, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
@@ -51,14 +51,15 @@ func (s *TesterStore) CreateToken(
 }
 
 func (s *TesterStore) GetToken(
+	ctx context.Context,
 	appID config.AppID,
 	tokenID string,
 	consume bool,
 ) (*TesterToken, error) {
 	key := redisTokenKey(appID, tokenID)
 	var token TesterToken
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		bytes, err := conn.Get(s.Context, key).Bytes()
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		bytes, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrTokenNotFound
 		}
@@ -72,7 +73,7 @@ func (s *TesterStore) GetToken(
 		}
 
 		if consume {
-			_, err = conn.Del(s.Context, key).Result()
+			_, err = conn.Del(ctx, key).Result()
 			if err != nil {
 				return err
 			}
@@ -84,6 +85,7 @@ func (s *TesterStore) GetToken(
 }
 
 func (s *TesterStore) CreateResult(
+	ctx context.Context,
 	appID config.AppID,
 	result *TesterResult,
 ) (*TesterResult, error) {
@@ -92,11 +94,11 @@ func (s *TesterStore) CreateResult(
 		return nil, err
 	}
 
-	err = s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		key := redisResultKey(appID, result.ID)
 		ttl := ResultLifetime
 
-		_, err := conn.SetEx(s.Context, key, bytes, ttl).Result()
+		_, err := conn.SetEx(ctx, key, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
@@ -111,13 +113,14 @@ func (s *TesterStore) CreateResult(
 }
 
 func (s *TesterStore) GetResult(
+	ctx context.Context,
 	appID config.AppID,
 	resultID string,
 ) (*TesterResult, error) {
 	key := redisResultKey(appID, resultID)
 	var result TesterResult
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		bytes, err := conn.Get(s.Context, key).Bytes()
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		bytes, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrResultNotFound
 		}

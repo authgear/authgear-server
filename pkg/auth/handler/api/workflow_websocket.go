@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/iawaknahc/originmatcher"
@@ -18,7 +19,7 @@ func ConfigureWorkflowWebsocketRoute(route httproute.Route) httproute.Route {
 }
 
 type WorkflowWebsocketEventStore interface {
-	ChannelName(workflowID string) (string, error)
+	ChannelName(ctx context.Context, workflowID string) (string, error)
 }
 
 type WorkflowWebsocketOriginMatcher interface {
@@ -51,7 +52,8 @@ func (h *WorkflowWebsocketHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 
 func (h *WorkflowWebsocketHandler) Accept(r *http.Request) (string, error) {
 	workflowID := httproute.GetParam(r, "workflowid")
-	return h.Events.ChannelName(workflowID)
+	ctx := r.Context()
+	return h.Events.ChannelName(ctx, workflowID)
 }
 
 func (h *WorkflowWebsocketHandler) OnRedisSubscribe(r *http.Request) error {

@@ -1,6 +1,7 @@
 package nodes
 
 import (
+	"context"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -20,7 +21,7 @@ type InputConsumeRecoveryCode interface {
 
 type EdgeConsumeRecoveryCode struct{}
 
-func (e *EdgeConsumeRecoveryCode) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeConsumeRecoveryCode) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputConsumeRecoveryCode
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -29,7 +30,7 @@ func (e *EdgeConsumeRecoveryCode) Instantiate(ctx *interaction.Context, graph *i
 	userID := graph.MustGetUserID()
 	recoveryCode := input.GetRecoveryCode()
 
-	rc, err := ctx.MFA.VerifyRecoveryCode(userID, recoveryCode)
+	rc, err := ctx.MFA.VerifyRecoveryCode(goCtx, userID, recoveryCode)
 	if errors.Is(err, api.ErrInvalidCredentials) {
 		return &NodeAuthenticationEnd{
 			Stage:              authn.AuthenticationStageSecondary,
@@ -46,19 +47,19 @@ type NodeDoConsumeRecoveryCode struct {
 	RecoveryCode *mfa.RecoveryCode `json:"recovery_code"`
 }
 
-func (n *NodeDoConsumeRecoveryCode) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoConsumeRecoveryCode) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeDoConsumeRecoveryCode) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoConsumeRecoveryCode) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			return ctx.MFA.ConsumeRecoveryCode(n.RecoveryCode)
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			return ctx.MFA.ConsumeRecoveryCode(goCtx, n.RecoveryCode)
 		}),
 	}, nil
 }
 
-func (n *NodeDoConsumeRecoveryCode) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeDoConsumeRecoveryCode) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{&EdgeAuthenticationEnd{
 		Stage:              authn.AuthenticationStageSecondary,
 		AuthenticationType: authn.AuthenticationTypeRecoveryCode,

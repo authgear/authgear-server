@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -78,7 +80,7 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -88,7 +90,7 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		loginIDKey := r.Form.Get("q_login_id_key")
 
 		err := AuthflowV2SettingsIdentityAddPhoneSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
@@ -99,8 +101,8 @@ func (h *AuthflowV2SettingsIdentityAddPhoneHandler) ServeHTTP(w http.ResponseWri
 		channel := model.AuthenticatorOOBChannel(r.Form.Get("x_channel"))
 		loginID := r.Form.Get("x_login_id")
 
-		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartAddIdentityPhone(s, &accountmanagement.StartAddIdentityPhoneInput{
+		s := session.GetSession(ctx)
+		output, err := h.AccountManagement.StartAddIdentityPhone(ctx, s, &accountmanagement.StartAddIdentityPhoneInput{
 			Channel:    channel,
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,

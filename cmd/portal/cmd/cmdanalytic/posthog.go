@@ -1,8 +1,6 @@
 package cmdanalytic
 
 import (
-	"context"
-
 	"github.com/spf13/cobra"
 
 	"github.com/authgear/authgear-server/cmd/portal/analytic"
@@ -81,7 +79,6 @@ var cmdAnalyticPosthogGroup = &cobra.Command{
 		redisPool := redis.NewPool()
 
 		posthogIntegration := analytic.NewPosthogIntegration(
-			context.Background(),
 			dbPool,
 			dbCredentials,
 			auditDBCredentials,
@@ -90,7 +87,7 @@ var cmdAnalyticPosthogGroup = &cobra.Command{
 			posthogCredentials,
 		)
 
-		err = posthogIntegration.SetGroupProperties()
+		err = posthogIntegration.SetGroupProperties(cmd.Context())
 		if err != nil {
 			return err
 		}
@@ -167,7 +164,6 @@ var cmdAnalyticPosthogUser = &cobra.Command{
 		redisPool := redis.NewPool()
 
 		posthogIntegration := analytic.NewPosthogIntegration(
-			context.Background(),
 			dbPool,
 			dbCredentials,
 			auditDBCredentials,
@@ -176,7 +172,7 @@ var cmdAnalyticPosthogUser = &cobra.Command{
 			posthogCredentials,
 		)
 
-		err = posthogIntegration.SetUserProperties(portalAppID)
+		err = posthogIntegration.SetUserProperties(cmd.Context(), portalAppID)
 		if err != nil {
 			return err
 		}

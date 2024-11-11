@@ -1,6 +1,7 @@
 package interaction
 
 import (
+	"context"
 	"reflect"
 )
 
@@ -8,12 +9,12 @@ import (
 
 type Node interface {
 	// Prepare the node with data required by DeriveEdges.
-	Prepare(ctx *Context, graph *Graph) error
+	Prepare(goCtx context.Context, ctx *Context, graph *Graph) error
 	// GetEffects describe the effects of this node.
 	// The effects may be ran multiple times, due replaying the graph.
 	// So no external visible side effect is allowed.
-	GetEffects() (effs []Effect, err error)
-	DeriveEdges(graph *Graph) ([]Edge, error)
+	GetEffects(goCtx context.Context) (effs []Effect, err error)
+	DeriveEdges(goCtx context.Context, graph *Graph) ([]Edge, error)
 }
 
 type Edge interface {
@@ -23,7 +24,7 @@ type Edge interface {
 	// It may return ErrSameNode if the edge loops back to self.
 	// This is used to model side-effect only actions, such as sending
 	// OTP message.
-	Instantiate(ctx *Context, graph *Graph, input interface{}) (Node, error)
+	Instantiate(goCtx context.Context, ctx *Context, graph *Graph, input interface{}) (Node, error)
 }
 
 type NodeFactory func() Node

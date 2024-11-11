@@ -58,7 +58,7 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 	switch len(workflows.Nearest.Nodes) {
 	case 0:
 		// 1st step: authenticate oob otp phone
-		phoneAuthenticator, err := i.getAuthenticator(deps,
+		phoneAuthenticator, err := i.getAuthenticator(ctx, deps,
 			authenticator.KeepPrimaryAuthenticatorOfIdentity(i.Identity),
 			authenticator.KeepType(model.AuthenticatorTypeOOBSMS),
 		)
@@ -78,7 +78,7 @@ func (i *IntentLogin) ReactTo(ctx context.Context, deps *workflow.Dependencies, 
 			typ := inputSelectAuthenticatorType.GetAuthenticatorType()
 			switch typ {
 			case model.AuthenticatorTypeOOBEmail:
-				emailAuthenticator, err := i.getAuthenticator(deps,
+				emailAuthenticator, err := i.getAuthenticator(ctx, deps,
 					authenticator.KeepKind(authenticator.KindPrimary),
 					authenticator.KeepType(model.AuthenticatorTypeOOBEmail),
 				)
@@ -127,7 +127,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 					ID: i.userID(),
 				},
 			}
-			err := deps.Events.DispatchEventOnCommit(&nonblocking.UserAuthenticatedEventPayload{
+			err := deps.Events.DispatchEventOnCommit(ctx, &nonblocking.UserAuthenticatedEventPayload{
 				UserRef:  userRef,
 				Session:  *session.ToAPIModel(),
 				AdminAPI: false,
@@ -144,7 +144,7 @@ func (i *IntentLogin) GetEffects(ctx context.Context, deps *workflow.Dependencie
 			if err != nil {
 				return err
 			}
-			err = deps.Authenticators.ClearLockoutAttempts(userID, methods)
+			err = deps.Authenticators.ClearLockoutAttempts(ctx, userID, methods)
 			if err != nil {
 				return err
 			}
@@ -162,7 +162,7 @@ func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencie
 		return nil, nil
 	}
 	userID := i.userID()
-	identities, err := deps.Identities.ListByUser(userID)
+	identities, err := deps.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -180,8 +180,8 @@ func (i *IntentLogin) OutputData(ctx context.Context, deps *workflow.Dependencie
 	return output, nil
 }
 
-func (i *IntentLogin) getAuthenticator(deps *workflow.Dependencies, filters ...authenticator.Filter) (*authenticator.Info, error) {
-	ais, err := deps.Authenticators.List(i.Identity.UserID, filters...)
+func (i *IntentLogin) getAuthenticator(ctx context.Context, deps *workflow.Dependencies, filters ...authenticator.Filter) (*authenticator.Info, error) {
+	ais, err := deps.Authenticators.List(ctx, i.Identity.UserID, filters...)
 	if err != nil {
 		return nil, err
 	}

@@ -59,7 +59,7 @@ var _ authflow.Milestone = &IntentLoginFlowStepCreateAuthenticator{}
 var _ MilestoneSwitchToExistingUser = &IntentLoginFlowStepCreateAuthenticator{}
 
 func (*IntentLoginFlowStepCreateAuthenticator) Milestone() {}
-func (i *IntentLoginFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
+func (i *IntentLoginFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, newUserID string) error {
 	i.UserID = newUserID
 	i.IsUpdatingExistingUser = true
 
@@ -68,7 +68,7 @@ func (i *IntentLoginFlowStepCreateAuthenticator) MilestoneSwitchToExistingUser(d
 		milestone, _, ok := m1.MilestoneFlowCreateAuthenticator(m1Flows)
 		if ok {
 			authn := milestone.MilestoneDoCreateAuthenticator()
-			existing, err := i.findAuthenticatorOfSameType(deps, authn.Type)
+			existing, err := i.findAuthenticatorOfSameType(ctx, deps, authn.Type)
 			if err != nil {
 				return err
 			}
@@ -191,7 +191,7 @@ func (i *IntentLoginFlowStepCreateAuthenticator) ReactTo(ctx context.Context, de
 					Authentication: authentication,
 				}), nil
 			case config.AuthenticationFlowAuthenticationSecondaryTOTP:
-				intent, err := NewIntentCreateAuthenticatorTOTP(deps, &IntentCreateAuthenticatorTOTP{
+				intent, err := NewIntentCreateAuthenticatorTOTP(ctx, deps, &IntentCreateAuthenticatorTOTP{
 					JSONPointer:    authflow.JSONPointerForOneOf(i.JSONPointer, idx),
 					UserID:         i.UserID,
 					Authentication: authentication,
@@ -300,9 +300,9 @@ func (i *IntentLoginFlowStepCreateAuthenticator) currentFlowObject(deps *authflo
 	return current, nil
 }
 
-func (i *IntentLoginFlowStepCreateAuthenticator) findAuthenticatorOfSameType(deps *authflow.Dependencies, typ model.AuthenticatorType) (*authenticator.Info, error) {
+func (i *IntentLoginFlowStepCreateAuthenticator) findAuthenticatorOfSameType(ctx context.Context, deps *authflow.Dependencies, typ model.AuthenticatorType) (*authenticator.Info, error) {
 
-	userAuthns, err := deps.Authenticators.List(i.UserID)
+	userAuthns, err := deps.Authenticators.List(ctx, i.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -367,7 +367,7 @@ func (i *IntentLoginFlowStepCreateAuthenticator) findSkippableOption(
 	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows) (option *CreateAuthenticatorOptionInternal, idx int, info *authenticator.Info, err error) {
-	userAuthns, err := deps.Authenticators.List(i.UserID)
+	userAuthns, err := deps.Authenticators.List(ctx, i.UserID)
 	if err != nil {
 		return nil, -1, nil, err
 	}

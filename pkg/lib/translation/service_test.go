@@ -101,13 +101,12 @@ XState: {{ .XState }}`, lang, path))
 		engine := &template.Engine{Resolver: resolver}
 
 		service := translation.Service{
-			Context:        ctx,
 			TemplateEngine: engine,
 			StaticAssets:   NewMockStaticAssetResolver(ctl),
 		}
 
 		Convey("it should render otp messages correctly", func() {
-			emailMessageData, err := service.EmailMessageData(messageSpec, &translation.PartialTemplateVariables{
+			emailMessageData, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
 				Email:       "my-email@example.com",
 				Phone:       "+85298765432",
 				Code:        "123456",
@@ -151,7 +150,7 @@ UILocales: my ui locales
 URL: https://www.example.com/url
 XState: my x state`)
 
-			smsMessageData, err := service.SMSMessageData(messageSpec, &translation.PartialTemplateVariables{
+			smsMessageData, err := service.SMSMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
 				Email: "my-email@example.com",
 				Phone: "+85298765432",
 				Code:  "123456",
@@ -177,7 +176,7 @@ UILocales: my+ui+locales
 URL: https://www.example.com/url
 XState: my+x+state`)
 
-			whatsappMessageData, err := service.WhatsappMessageData("en", messageSpec, &translation.PartialTemplateVariables{
+			whatsappMessageData, err := service.WhatsappMessageData(ctx, "en", messageSpec, &translation.PartialTemplateVariables{
 				Email: "my-email@example.com",
 				Phone: "+85298765432",
 				Code:  "123456",
@@ -204,7 +203,7 @@ XState: my x state`)
 		})
 
 		Convey("it should render forgot password messages correctly", func() {
-			emailMessageData, err := service.EmailMessageData(messageSpec, &translation.PartialTemplateVariables{
+			emailMessageData, err := service.EmailMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
 				Email:    "email@example.com",
 				Password: "P@ssw0rd",
 			})
@@ -243,7 +242,7 @@ UILocales: my ui locales
 URL: 
 XState: my x state`)
 
-			smsMessageData, err := service.SMSMessageData(messageSpec, &translation.PartialTemplateVariables{
+			smsMessageData, err := service.SMSMessageData(ctx, messageSpec, &translation.PartialTemplateVariables{
 				Email:    "email@example.com",
 				Password: "P@ssw0rd",
 			})
@@ -265,7 +264,7 @@ UILocales: my+ui+locales
 URL: 
 XState: my+x+state`)
 
-			whatsappMessageData, err := service.WhatsappMessageData("en", messageSpec, &translation.PartialTemplateVariables{
+			whatsappMessageData, err := service.WhatsappMessageData(ctx, "en", messageSpec, &translation.PartialTemplateVariables{
 				Email:    "email@example.com",
 				Password: "P@ssw0rd",
 			})

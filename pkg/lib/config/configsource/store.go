@@ -1,6 +1,7 @@
 package configsource
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -55,7 +56,7 @@ func (s *Store) scanConfigSource(scn db.Scanner) (*DatabaseSource, error) {
 	return d, nil
 }
 
-func (s *Store) GetAppIDByDomain(domain string) (string, error) {
+func (s *Store) GetAppIDByDomain(ctx context.Context, domain string) (string, error) {
 	builder := s.SQLBuilder.
 		Select(
 			"app_id",
@@ -63,7 +64,7 @@ func (s *Store) GetAppIDByDomain(domain string) (string, error) {
 		From(s.SQLBuilder.TableName("_portal_domain")).
 		Where("domain = ?", domain)
 
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return "", err
 	}
@@ -79,7 +80,7 @@ func (s *Store) GetAppIDByDomain(domain string) (string, error) {
 	return appID, nil
 }
 
-func (s *Store) GetDomainsByAppID(appID string) (domains []string, err error) {
+func (s *Store) GetDomainsByAppID(ctx context.Context, appID string) (domains []string, err error) {
 	builder := s.SQLBuilder.
 		Select(
 			"domain",
@@ -87,7 +88,7 @@ func (s *Store) GetDomainsByAppID(appID string) (domains []string, err error) {
 		From(s.SQLBuilder.TableName("_portal_domain")).
 		Where("app_id = ?", appID)
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return
 	}
@@ -105,11 +106,11 @@ func (s *Store) GetDomainsByAppID(appID string) (domains []string, err error) {
 	return domains, nil
 }
 
-func (s *Store) GetDatabaseSourceByAppID(appID string) (*DatabaseSource, error) {
+func (s *Store) GetDatabaseSourceByAppID(ctx context.Context, appID string) (*DatabaseSource, error) {
 	builder := s.selectConfigSourceQuery()
 	builder = builder.Where("app_id = ?", appID)
 
-	scanner, err := s.SQLExecutor.QueryRowWith(builder)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +126,7 @@ func (s *Store) GetDatabaseSourceByAppID(appID string) (*DatabaseSource, error) 
 	return dbs, nil
 }
 
-func (s *Store) CreateDatabaseSource(dbs *DatabaseSource) error {
+func (s *Store) CreateDatabaseSource(ctx context.Context, dbs *DatabaseSource) error {
 	data, err := json.Marshal(dbs.Data)
 	if err != nil {
 		return err
@@ -150,7 +151,7 @@ func (s *Store) CreateDatabaseSource(dbs *DatabaseSource) error {
 			dbs.UpdatedAt,
 		)
 
-	_, err = s.SQLExecutor.ExecWith(builder)
+	_, err = s.SQLExecutor.ExecWith(ctx, builder)
 	if err != nil {
 		return err
 	}
@@ -158,7 +159,7 @@ func (s *Store) CreateDatabaseSource(dbs *DatabaseSource) error {
 	return nil
 }
 
-func (s *Store) UpdateDatabaseSource(dbs *DatabaseSource) error {
+func (s *Store) UpdateDatabaseSource(ctx context.Context, dbs *DatabaseSource) error {
 	data, err := json.Marshal(dbs.Data)
 	if err != nil {
 		return err
@@ -171,7 +172,7 @@ func (s *Store) UpdateDatabaseSource(dbs *DatabaseSource) error {
 		Set("plan_name", dbs.PlanName).
 		Where("id = ?", dbs.ID)
 
-	result, err := s.SQLExecutor.ExecWith(q)
+	result, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -191,10 +192,10 @@ func (s *Store) UpdateDatabaseSource(dbs *DatabaseSource) error {
 }
 
 // ListAll is introduced by the need of authgear internal elasticsearch reindex --all.
-func (s *Store) ListAll() ([]*DatabaseSource, error) {
+func (s *Store) ListAll(ctx context.Context) ([]*DatabaseSource, error) {
 	builder := s.selectConfigSourceQuery()
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -212,11 +213,11 @@ func (s *Store) ListAll() ([]*DatabaseSource, error) {
 	return items, nil
 }
 
-func (s *Store) ListByPlan(planName string) ([]*DatabaseSource, error) {
+func (s *Store) ListByPlan(ctx context.Context, planName string) ([]*DatabaseSource, error) {
 	builder := s.selectConfigSourceQuery().
 		Where("plan_name = ?", planName)
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}

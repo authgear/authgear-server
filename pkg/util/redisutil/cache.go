@@ -17,7 +17,7 @@ type SimpleCmdable interface {
 type Item struct {
 	Key        string
 	Expiration time.Duration
-	Do         func() ([]byte, error)
+	Do         func(ctx context.Context) ([]byte, error)
 }
 
 // Cache is a naive cache that does not prevent multiple clients from
@@ -34,7 +34,7 @@ func (c *Cache) Get(ctx context.Context, cmdable SimpleCmdable, item Item) ([]by
 		return nil, err
 	}
 
-	bytes, err = item.Do()
+	bytes, err = item.Do(ctx)
 	if err != nil {
 		return nil, err
 	}

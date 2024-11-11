@@ -1,6 +1,8 @@
 package blocking
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
@@ -38,9 +40,10 @@ func MakeUserMutations(user model.User) event.UserMutations {
 	}
 }
 
-func PerformEffectsOnUser(ctx event.MutationsEffectContext, userID string, userMutations event.UserMutations) error {
+func PerformEffectsOnUser(ctx context.Context, effectCtx event.MutationsEffectContext, userID string, userMutations event.UserMutations) error {
 	if userMutations.StandardAttributes != nil {
-		err := ctx.StandardAttributes.UpdateStandardAttributes(
+		err := effectCtx.StandardAttributes.UpdateStandardAttributes(
+			ctx,
 			accesscontrol.RoleGreatest,
 			userID,
 			userMutations.StandardAttributes,
@@ -50,7 +53,8 @@ func PerformEffectsOnUser(ctx event.MutationsEffectContext, userID string, userM
 		}
 	}
 	if userMutations.CustomAttributes != nil {
-		err := ctx.CustomAttributes.UpdateAllCustomAttributes(
+		err := effectCtx.CustomAttributes.UpdateAllCustomAttributes(
+			ctx,
 			accesscontrol.RoleGreatest,
 			userID,
 			userMutations.CustomAttributes,
@@ -60,7 +64,8 @@ func PerformEffectsOnUser(ctx event.MutationsEffectContext, userID string, userM
 		}
 	}
 	if userMutations.Roles != nil {
-		err := ctx.RolesAndGroups.ResetUserRole(
+		err := effectCtx.RolesAndGroups.ResetUserRole(
+			ctx,
 			&rolesgroups.ResetUserRoleOptions{
 				UserID:   userID,
 				RoleKeys: userMutations.Roles,
@@ -71,7 +76,8 @@ func PerformEffectsOnUser(ctx event.MutationsEffectContext, userID string, userM
 		}
 	}
 	if userMutations.Groups != nil {
-		err := ctx.RolesAndGroups.ResetUserGroup(
+		err := effectCtx.RolesAndGroups.ResetUserGroup(
+			ctx,
 			&rolesgroups.ResetUserGroupOptions{
 				UserID:    userID,
 				GroupKeys: userMutations.Groups,

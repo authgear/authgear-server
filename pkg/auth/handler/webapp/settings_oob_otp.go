@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -38,17 +39,17 @@ type SettingsOOBOTPHandler struct {
 	Authenticators    SettingsAuthenticatorService
 }
 
-func (h *SettingsOOBOTPHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *SettingsOOBOTPHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 	viewModel := SettingsOOBOTPViewModel{}
 	oc := httproute.GetParam(r, "channel")
 	t, err := model.Deprecated_GetOOBAuthenticatorType(model.AuthenticatorOOBChannel(oc))
 	if err != nil {
 		return nil, err
 	}
-	authenticators, err := h.Authenticators.List(*userID,
+	authenticators, err := h.Authenticators.List(ctx, *userID,
 		authenticator.KeepKind(authenticator.KindSecondary),
 		authenticator.KeepType(t),
 	)
@@ -82,8 +83,8 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	authenticatorID := r.Form.Get("x_authenticator_id")
 	userID := ctrl.RequireUserID()
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+	ctrl.Get(func(ctx context.Context) error {
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
@@ -92,7 +93,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return nil
 	})
 
-	ctrl.PostAction("remove", func() error {
+	ctrl.PostAction("remove", func(ctx context.Context) error {
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}
@@ -113,7 +114,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		return nil
 	})
 
-	ctrl.PostAction("add", func() error {
+	ctrl.PostAction("add", func(ctx context.Context) error {
 		opts := webapp.SessionOptions{
 			RedirectURI: redirectURI,
 		}

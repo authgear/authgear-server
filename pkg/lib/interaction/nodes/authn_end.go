@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
@@ -21,7 +23,7 @@ type EdgeAuthenticationEnd struct {
 	RecoveryCode          *mfa.RecoveryCode
 }
 
-func (e *EdgeAuthenticationEnd) Instantiate(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationEnd) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, input interface{}) (interaction.Node, error) {
 	node := &NodeAuthenticationEnd{
 		Stage:                 e.Stage,
 		AuthenticationType:    e.AuthenticationType,
@@ -39,28 +41,28 @@ type NodeAuthenticationEnd struct {
 	RecoveryCode          *mfa.RecoveryCode         `json:"recovery_code"`
 }
 
-func (n *NodeAuthenticationEnd) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeAuthenticationEnd) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationEnd) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeAuthenticationEnd) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.VerifiedAuthenticator == nil {
 				return nil
 			}
-			return ctx.Authenticators.MarkOOBIdentityVerified(n.VerifiedAuthenticator)
+			return ctx.Authenticators.MarkOOBIdentityVerified(goCtx, n.VerifiedAuthenticator)
 		}),
 	}, nil
 }
 
-func (n *NodeAuthenticationEnd) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeAuthenticationEnd) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	err := n.IsFailure()
 	if err != nil {
 		return nil, err
 	}
 
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }
 
 func (n *NodeAuthenticationEnd) FillDetails(err error) error {

@@ -56,7 +56,7 @@ func (i *IntentLoginFlowStepPromptCreatePasskey) ReactTo(ctx context.Context, de
 		return authflow.NewNodeSimple(&NodeSentinel{}), nil
 	}
 
-	ais, err := deps.Authenticators.List(
+	ais, err := deps.Authenticators.List(ctx,
 		i.UserID,
 		authenticator.KeepKind(authenticator.KindPrimary),
 		authenticator.KeepType(model.AuthenticatorTypePasskey),
@@ -71,7 +71,7 @@ func (i *IntentLoginFlowStepPromptCreatePasskey) ReactTo(ctx context.Context, de
 	}
 
 	// Otherwise it is OK to prompt.
-	n, err := NewNodePromptCreatePasskey(deps, &NodePromptCreatePasskey{
+	n, err := NewNodePromptCreatePasskey(ctx, deps, &NodePromptCreatePasskey{
 		JSONPointer: i.JSONPointer,
 		UserID:      i.UserID,
 	})

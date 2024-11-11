@@ -1,6 +1,7 @@
 package sso
 
 import (
+	"context"
 	"errors"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
@@ -57,22 +58,22 @@ func (p *OAuthProviderFactory) getProvider(alias string) (provider oauthrelyingp
 	return
 }
 
-func (p *OAuthProviderFactory) GetAuthorizationURL(alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error) {
+func (p *OAuthProviderFactory) GetAuthorizationURL(ctx context.Context, alias string, options oauthrelyingparty.GetAuthorizationURLOptions) (url string, err error) {
 	provider, deps, err := p.getProvider(alias)
 	if err != nil {
 		return
 	}
 
-	return provider.GetAuthorizationURL(*deps, options)
+	return provider.GetAuthorizationURL(ctx, *deps, options)
 }
 
-func (p *OAuthProviderFactory) GetUserProfile(alias string, options oauthrelyingparty.GetUserProfileOptions) (userProfile oauthrelyingparty.UserProfile, err error) {
+func (p *OAuthProviderFactory) GetUserProfile(ctx context.Context, alias string, options oauthrelyingparty.GetUserProfileOptions) (userProfile oauthrelyingparty.UserProfile, err error) {
 	provider, deps, err := p.getProvider(alias)
 	if err != nil {
 		return
 	}
 
-	userProfile, err = provider.GetUserProfile(*deps, options)
+	userProfile, err = provider.GetUserProfile(ctx, *deps, options)
 	if err != nil {
 		var oauthErrorResponse *oauthrelyingparty.ErrorResponse
 		if errors.As(err, &oauthErrorResponse) {

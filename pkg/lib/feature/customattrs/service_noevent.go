@@ -1,6 +1,7 @@
 package customattrs
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 
@@ -17,11 +18,11 @@ import (
 )
 
 type UserQueries interface {
-	GetRaw(userID string) (*user.User, error)
+	GetRaw(ctx context.Context, userID string) (*user.User, error)
 }
 
 type UserStore interface {
-	UpdateCustomAttributes(userID string, storageForm map[string]interface{}) error
+	UpdateCustomAttributes(ctx context.Context, userID string, storageForm map[string]interface{}) error
 }
 
 type ServiceNoEvent struct {
@@ -132,12 +133,12 @@ func (s *ServiceNoEvent) allPointers() (out []string) {
 	return
 }
 
-func (s *ServiceNoEvent) UpdateAllCustomAttributes(role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
+func (s *ServiceNoEvent) UpdateAllCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, reprForm map[string]interface{}) error {
 	pointers := s.allPointers()
-	return s.updateCustomAttributes(role, userID, pointers, reprForm)
+	return s.updateCustomAttributes(ctx, role, userID, pointers, reprForm)
 }
 
-func (s *ServiceNoEvent) UpdateCustomAttributesWithList(role accesscontrol.Role, userID string, l attrs.List) error {
+func (s *ServiceNoEvent) UpdateCustomAttributesWithList(ctx context.Context, role accesscontrol.Role, userID string, l attrs.List) error {
 	var pointers []string
 	reprForm := make(map[string]interface{})
 
@@ -164,10 +165,10 @@ func (s *ServiceNoEvent) UpdateCustomAttributesWithList(role accesscontrol.Role,
 		}
 	}
 
-	return s.updateCustomAttributes(role, userID, pointers, reprForm)
+	return s.updateCustomAttributes(ctx, role, userID, pointers, reprForm)
 }
 
-func (s *ServiceNoEvent) UpdateCustomAttributesWithForm(role accesscontrol.Role, userID string, form map[string]string) error {
+func (s *ServiceNoEvent) UpdateCustomAttributesWithForm(ctx context.Context, role accesscontrol.Role, userID string, form map[string]string) error {
 	var pointers []string
 	reprForm := make(map[string]interface{})
 
@@ -202,10 +203,10 @@ func (s *ServiceNoEvent) UpdateCustomAttributesWithForm(role accesscontrol.Role,
 		}
 	}
 
-	return s.updateCustomAttributes(role, userID, pointers, reprForm)
+	return s.updateCustomAttributes(ctx, role, userID, pointers, reprForm)
 }
 
-func (s *ServiceNoEvent) updateCustomAttributes(role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
+func (s *ServiceNoEvent) updateCustomAttributes(ctx context.Context, role accesscontrol.Role, userID string, pointers []string, reprForm map[string]interface{}) error {
 	incoming := customattrs.T(reprForm)
 
 	err := s.validate(pointers, incoming)
@@ -213,7 +214,7 @@ func (s *ServiceNoEvent) updateCustomAttributes(role accesscontrol.Role, userID 
 		return err
 	}
 
-	user, err := s.UserQueries.GetRaw(userID)
+	user, err := s.UserQueries.GetRaw(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -235,7 +236,7 @@ func (s *ServiceNoEvent) updateCustomAttributes(role accesscontrol.Role, userID 
 		return err
 	}
 
-	err = s.UserStore.UpdateCustomAttributes(userID, storageForm)
+	err = s.UserStore.UpdateCustomAttributes(ctx, userID, storageForm)
 	if err != nil {
 		return err
 	}
@@ -244,6 +245,7 @@ func (s *ServiceNoEvent) updateCustomAttributes(role accesscontrol.Role, userID 
 }
 
 func (s *ServiceNoEvent) ReadCustomAttributesInStorageForm(
+	ctx context.Context,
 	role accesscontrol.Role,
 	userID string,
 	storageForm map[string]interface{},
@@ -259,6 +261,7 @@ func (s *ServiceNoEvent) ReadCustomAttributesInStorageForm(
 
 // Batch ReadCustomAttributesInStorageForm
 func (s *ServiceNoEvent) ReadCustomAttributesInStorageFormForUsers(
+	ctx context.Context,
 	role accesscontrol.Role,
 	userIDs []string,
 	storageForms []map[string]interface{},
@@ -271,7 +274,7 @@ func (s *ServiceNoEvent) ReadCustomAttributesInStorageFormForUsers(
 
 	for idx, userID := range userIDs {
 		storageForm := storageForms[idx]
-		c, err := s.ReadCustomAttributesInStorageForm(role, userID, storageForm)
+		c, err := s.ReadCustomAttributesInStorageForm(ctx, role, userID, storageForm)
 		if err != nil {
 			return nil, err
 		}

@@ -35,7 +35,7 @@ func (*NodeDoConsumeRecoveryCode) MilestoneDidUseAuthenticationLockoutMethod() (
 func (n *NodeDoConsumeRecoveryCode) GetEffects(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows) ([]authflow.Effect, error) {
 	return []authflow.Effect{
 		authflow.OnCommitEffect(func(ctx context.Context, deps *authflow.Dependencies) error {
-			return deps.MFA.ConsumeRecoveryCode(n.RecoveryCode)
+			return deps.MFA.ConsumeRecoveryCode(ctx, n.RecoveryCode)
 		}),
 	}, nil
 }

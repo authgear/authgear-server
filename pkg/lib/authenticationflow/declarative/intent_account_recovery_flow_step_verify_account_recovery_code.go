@@ -98,7 +98,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 			dest.ForgotPasswordCodeChannel(),
 		)
 		// Ignore rate limit error on first entering the step.
-		err := nextNode.Send(deps, true)
+		err := nextNode.Send(ctx, deps, true)
 		if err != nil {
 			return nil, err
 		}
@@ -109,14 +109,14 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 		if authflow.AsInput(input, &inputStepAccountRecoveryVerifyCode) {
 			if inputStepAccountRecoveryVerifyCode.IsCode() {
 				code := inputStepAccountRecoveryVerifyCode.GetCode()
-				return i.verifyCode(deps, flows, code)
+				return i.verifyCode(ctx, deps, flows, code)
 			}
 
 			if inputStepAccountRecoveryVerifyCode.IsResend() {
 				prevNode := flows.Nearest.Nodes[0].Simple
 				switch prevNode.(type) {
 				case *NodeDoSendAccountRecoveryCode:
-					err := prevNode.(*NodeDoSendAccountRecoveryCode).Send(deps, false)
+					err := prevNode.(*NodeDoSendAccountRecoveryCode).Send(ctx, deps, false)
 					if err != nil {
 						return nil, err
 					}
@@ -133,6 +133,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) ReactTo(ctx con
 }
 
 func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) verifyCode(
+	ctx context.Context,
 	deps *authflow.Dependencies,
 	flows authflow.Flows,
 	code string,
@@ -140,7 +141,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) verifyCode(
 	milestone, ok := i.findDestination(flows)
 	if ok {
 		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
-		_, err := deps.ResetPassword.VerifyCodeWithTarget(
+		_, err := deps.ResetPassword.VerifyCodeWithTarget(ctx,
 			dest.TargetLoginID,
 			code,
 			dest.ForgotPasswordCodeChannel(),
@@ -151,7 +152,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) verifyCode(
 		}
 	} else {
 		// MilestoneDoUseAccountRecoveryDestination might not exist, because the flow is restored
-		_, err := deps.ResetPassword.VerifyCode(code)
+		_, err := deps.ResetPassword.VerifyCode(ctx, code)
 		if err != nil {
 			return nil, err
 		}
@@ -167,7 +168,7 @@ func (i *IntentAccountRecoveryFlowStepVerifyAccountRecoveryCode) OutputData(ctx 
 	milestone, ok := i.findDestination(flows)
 	if ok {
 		dest := milestone.MilestoneDoUseAccountRecoveryDestination()
-		state, err := deps.ForgotPassword.InspectState(
+		state, err := deps.ForgotPassword.InspectState(ctx,
 			dest.TargetLoginID,
 			dest.ForgotPasswordCodeChannel(),
 			dest.ForgotPasswordCodeKind(),

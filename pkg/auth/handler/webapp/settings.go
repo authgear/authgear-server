@@ -1,8 +1,10 @@
 package webapp
 
 import (
+	"context"
 	"errors"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -43,37 +45,37 @@ type SettingsEndpointsProvider interface {
 }
 
 type SettingsOAuthStateStore interface {
-	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
+	GenerateState(ctx context.Context, state *webappoauth.WebappOAuthState) (stateToken string, err error)
 }
 
 type SettingsAuthenticatorService interface {
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	List(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 }
 
 type SettingsIdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
-	ListCandidates(userID string) ([]identity.Candidate, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
+	ListCandidates(ctx context.Context, userID string) ([]identity.Candidate, error)
 }
 
 type SettingsVerificationService interface {
-	GetVerificationStatuses(is []*identity.Info) (map[string][]verification.ClaimStatus, error)
+	GetVerificationStatuses(ctx context.Context, is []*identity.Info) (map[string][]verification.ClaimStatus, error)
 }
 
 type SettingsSessionManager interface {
-	List(userID string) ([]session.ListableSession, error)
-	Get(id string) (session.ListableSession, error)
-	RevokeWithEvent(s session.SessionBase, isTermination bool, isAdminAPI bool) error
-	TerminateAllExcept(userID string, currentSession session.ResolvedSession, isAdminAPI bool) error
+	List(ctx context.Context, userID string) ([]session.ListableSession, error)
+	Get(ctx context.Context, id string) (session.ListableSession, error)
+	RevokeWithEvent(ctx context.Context, s session.SessionBase, isTermination bool, isAdminAPI bool) error
+	TerminateAllExcept(ctx context.Context, userID string, currentSession session.ResolvedSession, isAdminAPI bool) error
 }
 
 type SettingsAuthorizationService interface {
-	GetByID(id string) (*oauth.Authorization, error)
-	ListByUser(userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error)
-	Delete(a *oauth.Authorization) error
+	GetByID(ctx context.Context, id string) (*oauth.Authorization, error)
+	ListByUser(ctx context.Context, userID string, filters ...oauth.AuthorizationFilter) ([]*oauth.Authorization, error)
+	Delete(ctx context.Context, a *oauth.Authorization) error
 }
 
 type SettingsSessionListingService interface {
-	FilterForDisplay(sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*sessionlisting.Session, error)
+	FilterForDisplay(ctx context.Context, sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*sessionlisting.Session, error)
 }
 
 type SettingsHandler struct {
@@ -90,8 +92,8 @@ type SettingsHandler struct {
 	TutorialCookie           TutorialCookie
 }
 
-func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	userID := session.GetUserID(r.Context())
+func (h *SettingsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	userID := session.GetUserID(ctx)
 
 	data := map[string]interface{}{}
 
@@ -103,21 +105,21 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel
-	viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+	viewModelPtr, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 	viewmodels.Embed(data, *viewModelPtr)
 
 	// SettingsProfileViewModel
-	profileViewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
+	profileViewModelPtr, err := h.SettingsProfileViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 	viewmodels.Embed(data, *profileViewModelPtr)
 
 	// Identity - Part 1
-	candidates, err := h.Identities.ListCandidates(*userID)
+	candidates, err := h.Identities.ListCandidates(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -125,14 +127,14 @@ func (h *SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[
 	viewmodels.Embed(data, authenticationViewModel)
 
 	// Identity - Part 2
-	identities, err := h.Identities.ListByUser(*userID)
+	identities, err := h.Identities.ListByUser(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 	identityViewModel := SettingsIdentityViewModel{
 		AccountDeletionAllowed: h.AccountDeletion.ScheduledByEndUserEnabled,
 	}
-	identityViewModel.VerificationStatuses, err = h.Verification.GetVerificationStatuses(identities)
+	identityViewModel.VerificationStatuses, err = h.Verification.GetVerificationStatuses(ctx, identities)
 	if err != nil {
 		return nil, err
 	}
@@ -154,8 +156,8 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	userID := ctrl.RequireUserID()
 
 	// check if the user is anonymous user
-	getIsAnonymous := func() (bool, error) {
-		identities, err := h.Identities.ListByUser(userID)
+	getIsAnonymous := func(ctx context.Context) (bool, error) {
+		identities, err := h.Identities.ListByUser(ctx, userID)
 		if err != nil {
 			return false, err
 		}
@@ -167,12 +169,12 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return false, nil
 	}
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(r, w)
+	ctrl.Get(func(ctx context.Context) error {
+		data, err := h.GetData(ctx, r, w)
 		if err != nil {
 			return err
 		}
-		isAnonymous, err := getIsAnonymous()
+		isAnonymous, err := getIsAnonymous(ctx)
 		if err != nil {
 			return err
 		}
@@ -185,8 +187,8 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("unlink_oauth", func() error {
-		isAnonymous, err := getIsAnonymous()
+	ctrl.PostAction("unlink_oauth", func(ctx context.Context) error {
+		isAnonymous, err := getIsAnonymous(ctx)
 		if err != nil {
 			return err
 		}
@@ -213,8 +215,8 @@ func (h *SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("verify_login_id", func() error {
-		isAnonymous, err := getIsAnonymous()
+	ctrl.PostAction("verify_login_id", func(ctx context.Context) error {
+		isAnonymous, err := getIsAnonymous(ctx)
 		if err != nil {
 			return err
 		}

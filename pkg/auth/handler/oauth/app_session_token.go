@@ -66,8 +66,8 @@ type AppSessionTokenHandler struct {
 
 func (h *AppSessionTokenHandler) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var result *AppSessionTokenResponse
-	err := h.Database.WithTx(func() (err error) {
-		result, err = h.Handle(resp, req)
+	err := h.Database.WithTx(req.Context(), func(ctx context.Context) (err error) {
+		result, err = h.Handle(ctx, resp, req)
 		return err
 	})
 	if err == nil {
@@ -77,13 +77,13 @@ func (h *AppSessionTokenHandler) ServeHTTP(resp http.ResponseWriter, req *http.R
 	}
 }
 
-func (h *AppSessionTokenHandler) Handle(resp http.ResponseWriter, req *http.Request) (*AppSessionTokenResponse, error) {
+func (h *AppSessionTokenHandler) Handle(ctx context.Context, resp http.ResponseWriter, req *http.Request) (*AppSessionTokenResponse, error) {
 	var payload AppSessionTokenRequest
 	if err := httputil.BindJSONBody(req, resp, AppSessionTokenAPIRequestSchema.Validator(), &payload); err != nil {
 		return nil, err
 	}
 
-	token, sToken, err := h.AppSessionTokens.IssueAppSessionToken(req.Context(), payload.RefreshToken)
+	token, sToken, err := h.AppSessionTokens.IssueAppSessionToken(ctx, payload.RefreshToken)
 	var oauthError *protocol.OAuthProtocolError
 	if errors.Is(err, handler.ErrInvalidRefreshToken) {
 		return nil, InvalidGrant.New(err.Error())

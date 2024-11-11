@@ -20,8 +20,7 @@ type Provider struct {
 	Clock clock.Clock
 }
 
-func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
-	ctx := context.Background()
+func (p *Provider) Create(ctx context.Context, purpose Purpose) (*Challenge, error) {
 	now := p.Clock.NowUTC()
 	ttl := purpose.ValidityPeriod()
 	c := &Challenge{
@@ -37,7 +36,7 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 		return nil, err
 	}
 
-	err = p.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err = p.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		_, err = conn.SetNX(ctx, key, data, ttl).Result()
 		if errors.Is(err, goredis.Nil) {
 			return errors.New("fail to create new challenge")
@@ -54,13 +53,12 @@ func (p *Provider) Create(purpose Purpose) (*Challenge, error) {
 	return c, nil
 }
 
-func (p *Provider) Get(token string) (*Challenge, error) {
-	ctx := context.Background()
+func (p *Provider) Get(ctx context.Context, token string) (*Challenge, error) {
 	key := challengeKey(p.AppID, token)
 
 	c := &Challenge{}
 
-	err := p.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := p.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrInvalidChallenge
@@ -82,13 +80,12 @@ func (p *Provider) Get(token string) (*Challenge, error) {
 	return c, nil
 }
 
-func (p *Provider) Consume(token string) (*Purpose, error) {
-	ctx := context.Background()
+func (p *Provider) Consume(ctx context.Context, token string) (*Purpose, error) {
 	key := challengeKey(p.AppID, token)
 
 	c := &Challenge{}
 
-	err := p.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	err := p.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		data, err := conn.Get(ctx, key).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrInvalidChallenge

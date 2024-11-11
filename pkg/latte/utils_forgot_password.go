@@ -1,6 +1,7 @@
 package latte
 
 import (
+	"context"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -10,10 +11,11 @@ import (
 var ErrNoMatchingLoginIDForForgotPasswordChannel = errors.New("no matching login id for selected forgot password channel")
 
 func selectForgotPasswordLoginID(
+	ctx context.Context,
 	deps *workflow.Dependencies,
 	userID string,
 	channel ForgotPasswordChannel) (string, error) {
-	loginIDs, err := deps.Identities.ListByUser(userID)
+	loginIDs, err := deps.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return "", err
 	}

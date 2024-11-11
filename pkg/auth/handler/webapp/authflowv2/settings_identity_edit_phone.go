@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -59,20 +61,20 @@ type AuthflowV2SettingsIdentityEditPhoneHandler struct {
 	Identities          *identityservice.Service
 }
 
-func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityEditPhoneHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
 	identityID := r.Form.Get("q_identity_id")
 
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
 	channel := h.AuthenticatorConfig.OOB.SMS.PhoneOTPMode.GetDefaultChannel()
 
-	target, err := h.Identities.LoginID.Get(*userID, identityID)
+	target, err := h.Identities.LoginID.Get(ctx, *userID, identityID)
 	if err != nil {
 		return nil, err
 	}
@@ -96,10 +98,10 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err = h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err = h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			if err != nil {
 				return err
 			}
@@ -113,7 +115,7 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 
 		loginIDKey := r.Form.Get("q_login_id_key")
 
@@ -126,8 +128,8 @@ func (h *AuthflowV2SettingsIdentityEditPhoneHandler) ServeHTTP(w http.ResponseWr
 		loginID := r.Form.Get("x_login_id")
 		identityID := r.Form.Get("x_identity_id")
 
-		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartUpdateIdentityPhone(s, &accountmanagement.StartUpdateIdentityPhoneInput{
+		s := session.GetSession(ctx)
+		output, err := h.AccountManagement.StartUpdateIdentityPhone(ctx, s, &accountmanagement.StartUpdateIdentityPhoneInput{
 			Channel:    channel,
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,

@@ -17,28 +17,27 @@ import (
 const Lifetime = duration.UserInteraction
 
 type StoreImpl struct {
-	Redis   *appredis.Handle
-	AppID   config.AppID
-	Context context.Context
+	Redis *appredis.Handle
+	AppID config.AppID
 }
 
-func (s *StoreImpl) CreateWorkflow(workflow *Workflow) error {
+func (s *StoreImpl) CreateWorkflow(ctx context.Context, workflow *Workflow) error {
 	bytes, err := json.Marshal(workflow)
 	if err != nil {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		workflowKey := redisWorkflowKey(s.AppID, workflow.WorkflowID)
 		instanceKey := redisWorkflowInstanceKey(s.AppID, workflow.InstanceID)
 		ttl := Lifetime
 
-		_, err := conn.SetEx(s.Context, workflowKey, []byte(workflowKey), ttl).Result()
+		_, err := conn.SetEx(ctx, workflowKey, []byte(workflowKey), ttl).Result()
 		if err != nil {
 			return err
 		}
 
-		_, err = conn.SetEx(s.Context, instanceKey, bytes, ttl).Result()
+		_, err = conn.SetEx(ctx, instanceKey, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
@@ -47,11 +46,11 @@ func (s *StoreImpl) CreateWorkflow(workflow *Workflow) error {
 	})
 }
 
-func (s *StoreImpl) GetWorkflowByInstanceID(instanceID string) (*Workflow, error) {
+func (s *StoreImpl) GetWorkflowByInstanceID(ctx context.Context, instanceID string) (*Workflow, error) {
 	instanceKey := redisWorkflowInstanceKey(s.AppID, instanceID)
 	var workflow Workflow
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		bytes, err := conn.Get(s.Context, instanceKey).Bytes()
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		bytes, err := conn.Get(ctx, instanceKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrWorkflowNotFound
 		}
@@ -65,7 +64,7 @@ func (s *StoreImpl) GetWorkflowByInstanceID(instanceID string) (*Workflow, error
 		}
 
 		workflowKey := redisWorkflowKey(s.AppID, workflow.WorkflowID)
-		_, err = conn.Get(s.Context, workflowKey).Result()
+		_, err = conn.Get(ctx, workflowKey).Result()
 		if errors.Is(err, goredis.Nil) {
 			return ErrWorkflowNotFound
 		}
@@ -78,13 +77,13 @@ func (s *StoreImpl) GetWorkflowByInstanceID(instanceID string) (*Workflow, error
 	return &workflow, err
 }
 
-func (s *StoreImpl) DeleteWorkflow(workflow *Workflow) error {
+func (s *StoreImpl) DeleteWorkflow(ctx context.Context, workflow *Workflow) error {
 	// We do not delete the instances because there are many of them.
 	// Deleting the workflowID is enough to make GetWorkflowByInstanceID to return ErrWorkflowNotFound.
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		workflowKey := redisWorkflowKey(s.AppID, workflow.WorkflowID)
 
-		_, err := conn.Del(s.Context, workflowKey).Result()
+		_, err := conn.Del(ctx, workflowKey).Result()
 		if err != nil {
 			return err
 		}
@@ -93,17 +92,17 @@ func (s *StoreImpl) DeleteWorkflow(workflow *Workflow) error {
 	})
 }
 
-func (s *StoreImpl) CreateSession(session *Session) error {
+func (s *StoreImpl) CreateSession(ctx context.Context, session *Session) error {
 	bytes, err := json.Marshal(session)
 	if err != nil {
 		return err
 	}
 
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		sessionKey := redisWorkflowSessionKey(s.AppID, session.WorkflowID)
 		ttl := Lifetime
 
-		_, err := conn.SetEx(s.Context, sessionKey, bytes, ttl).Result()
+		_, err := conn.SetEx(ctx, sessionKey, bytes, ttl).Result()
 		if err != nil {
 			return err
 		}
@@ -112,11 +111,11 @@ func (s *StoreImpl) CreateSession(session *Session) error {
 	})
 }
 
-func (s *StoreImpl) GetSession(workflowID string) (*Session, error) {
+func (s *StoreImpl) GetSession(ctx context.Context, workflowID string) (*Session, error) {
 	sessionKey := redisWorkflowSessionKey(s.AppID, workflowID)
 	var session Session
-	err := s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
-		bytes, err := conn.Get(s.Context, sessionKey).Bytes()
+	err := s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
+		bytes, err := conn.Get(ctx, sessionKey).Bytes()
 		if errors.Is(err, goredis.Nil) {
 			return ErrWorkflowNotFound
 		}
@@ -134,11 +133,11 @@ func (s *StoreImpl) GetSession(workflowID string) (*Session, error) {
 	return &session, err
 }
 
-func (s *StoreImpl) DeleteSession(session *Session) error {
-	return s.Redis.WithConn(func(conn redis.Redis_6_0_Cmdable) error {
+func (s *StoreImpl) DeleteSession(ctx context.Context, session *Session) error {
+	return s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
 		sessionKey := redisWorkflowSessionKey(s.AppID, session.WorkflowID)
 
-		_, err := conn.Del(s.Context, sessionKey).Result()
+		_, err := conn.Del(ctx, sessionKey).Result()
 		if err != nil {
 			return err
 		}

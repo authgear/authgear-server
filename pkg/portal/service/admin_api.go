@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -44,8 +45,8 @@ type PortalAdminAPIAuthContext struct {
 	HTTPReferer string `json:"http_referer,omitempty"`
 }
 
-func (s *AdminAPIService) ResolveConfig(appID string) (*config.Config, error) {
-	appCtx, err := s.ConfigSource.ContextResolver.ResolveContext(appID)
+func (s *AdminAPIService) ResolveConfig(ctx context.Context, appID string) (*config.Config, error) {
+	appCtx, err := s.ConfigSource.ContextResolver.ResolveContext(ctx, appID)
 	if err != nil {
 		return nil, err
 	}
@@ -65,8 +66,8 @@ func (s *AdminAPIService) ResolveEndpoint(appID string) (*url.URL, error) {
 	}
 }
 
-func (s *AdminAPIService) Director(appID string, p string, actorUserID string, usage Usage) (director func(*http.Request), err error) {
-	cfg, err := s.ResolveConfig(appID)
+func (s *AdminAPIService) Director(ctx context.Context, appID string, p string, actorUserID string, usage Usage) (director func(*http.Request), err error) {
+	cfg, err := s.ResolveConfig(ctx, appID)
 	if err != nil {
 		return
 	}
@@ -114,6 +115,6 @@ func (s *AdminAPIService) Director(appID string, p string, actorUserID string, u
 	return
 }
 
-func (s *AdminAPIService) SelfDirector(actorUserID string, usage Usage) (director func(*http.Request), err error) {
-	return s.Director(s.AuthgearConfig.AppID, "/graphql", actorUserID, usage)
+func (s *AdminAPIService) SelfDirector(ctx context.Context, actorUserID string, usage Usage) (director func(*http.Request), err error) {
+	return s.Director(ctx, s.AuthgearConfig.AppID, "/graphql", actorUserID, usage)
 }

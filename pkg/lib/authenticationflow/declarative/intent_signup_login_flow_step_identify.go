@@ -60,7 +60,7 @@ func NewIntentSignupLoginFlowStepIdentify(ctx context.Context, deps *authflow.De
 			options = append(options, oauthOptions...)
 		case config.AuthenticationFlowIdentificationPasskey:
 			// Passkey is for login only.
-			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptions()
+			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptions(ctx)
 			if err != nil {
 				return nil, err
 			}

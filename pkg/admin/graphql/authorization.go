@@ -1,6 +1,8 @@
 package graphql
 
 import (
+	"context"
+
 	"github.com/graphql-go/graphql"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -29,8 +31,8 @@ var nodeAuthorization = node(
 		},
 	}),
 	&model.Authorization{},
-	func(ctx *Context, id string) (interface{}, error) {
-		authz, err := ctx.AuthorizationFacade.Get(id)
+	func(ctx context.Context, gqlCtx *Context, id string) (interface{}, error) {
+		authz, err := gqlCtx.AuthorizationFacade.Get(ctx, id)
 		if err != nil {
 			return nil, err
 		}

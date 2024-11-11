@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -70,7 +72,7 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(r, w)
 		if err != nil {
 			return err
@@ -80,7 +82,7 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		loginIDKey := r.Form.Get("q_login_id_key")
 
 		err := AuthflowV2SettingsIdentityAddEmailSchema.Validator().ValidateValue(handlerwebapp.FormToJSON(r.Form))
@@ -90,8 +92,8 @@ func (h *AuthflowV2SettingsIdentityAddEmailHandler) ServeHTTP(w http.ResponseWri
 
 		loginID := r.Form.Get("x_login_id")
 
-		s := session.GetSession(r.Context())
-		output, err := h.AccountManagement.StartAddIdentityEmail(s, &accountmanagement.StartAddIdentityEmailInput{
+		s := session.GetSession(ctx)
+		output, err := h.AccountManagement.StartAddIdentityEmail(ctx, s, &accountmanagement.StartAddIdentityEmailInput{
 			LoginID:    loginID,
 			LoginIDKey: loginIDKey,
 		})

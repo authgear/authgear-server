@@ -1,6 +1,7 @@
 package loginid
 
 import (
+	"context"
 	"errors"
 	"sort"
 
@@ -20,8 +21,8 @@ type Provider struct {
 	Clock             clock.Clock
 }
 
-func (p *Provider) List(userID string) ([]*identity.LoginID, error) {
-	is, err := p.Store.List(userID)
+func (p *Provider) List(ctx context.Context, userID string) ([]*identity.LoginID, error) {
+	is, err := p.Store.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -30,8 +31,8 @@ func (p *Provider) List(userID string) ([]*identity.LoginID, error) {
 	return is, nil
 }
 
-func (p *Provider) ListByClaim(name string, value string) ([]*identity.LoginID, error) {
-	is, err := p.Store.ListByClaim(name, value)
+func (p *Provider) ListByClaim(ctx context.Context, name string, value string) ([]*identity.LoginID, error) {
+	is, err := p.Store.ListByClaim(ctx, name, value)
 	if err != nil {
 		return nil, err
 	}
@@ -40,11 +41,11 @@ func (p *Provider) ListByClaim(name string, value string) ([]*identity.LoginID, 
 	return is, nil
 }
 
-func (p *Provider) Get(userID, id string) (*identity.LoginID, error) {
-	return p.Store.Get(userID, id)
+func (p *Provider) Get(ctx context.Context, userID, id string) (*identity.LoginID, error) {
+	return p.Store.Get(ctx, userID, id)
 }
 
-func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
+func (p *Provider) GetByValue(ctx context.Context, value string) ([]*identity.LoginID, error) {
 	im := map[string]*identity.LoginID{}
 	for _, config := range p.Config.Keys {
 		// Normalize expects loginID is in correct type so we have to validate it first.
@@ -68,7 +69,7 @@ func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
 			return nil, err
 		}
 
-		i, err := p.Store.GetByLoginID(config.Key, normalizedloginID)
+		i, err := p.Store.GetByLoginID(ctx, config.Key, normalizedloginID)
 		if errors.Is(err, api.ErrIdentityNotFound) {
 			continue
 		} else if err != nil {
@@ -85,7 +86,7 @@ func (p *Provider) GetByValue(value string) ([]*identity.LoginID, error) {
 	return is, nil
 }
 
-func (p *Provider) GetByKeyAndValue(key string, value string) (*identity.LoginID, error) {
+func (p *Provider) GetByKeyAndValue(ctx context.Context, key string, value string) (*identity.LoginID, error) {
 	cfg, ok := p.Config.GetKeyConfig(key)
 
 	if !ok {
@@ -98,7 +99,7 @@ func (p *Provider) GetByKeyAndValue(key string, value string) (*identity.LoginID
 		return nil, api.ErrGetUsersInvalidArgument.New("invalid Login ID value")
 	}
 
-	i, err := p.Store.GetByLoginID(key, normalizedloginID)
+	i, err := p.Store.GetByLoginID(ctx, key, normalizedloginID)
 
 	if err != nil {
 		return nil, err
@@ -107,8 +108,8 @@ func (p *Provider) GetByKeyAndValue(key string, value string) (*identity.LoginID
 	return i, nil
 }
 
-func (p *Provider) GetMany(ids []string) ([]*identity.LoginID, error) {
-	return p.Store.GetMany(ids)
+func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*identity.LoginID, error) {
+	return p.Store.GetMany(ctx, ids)
 }
 
 func (p *Provider) CheckAndNormalize(spec identity.LoginIDSpec) (normalized string, uniqueKey string, err error) {
@@ -214,25 +215,25 @@ func (p *Provider) WithValue(iden *identity.LoginID, value string, options Check
 	return &newIden, nil
 }
 
-func (p *Provider) GetByUniqueKey(uniqueKey string) (*identity.LoginID, error) {
-	return p.Store.GetByUniqueKey(uniqueKey)
+func (p *Provider) GetByUniqueKey(ctx context.Context, uniqueKey string) (*identity.LoginID, error) {
+	return p.Store.GetByUniqueKey(ctx, uniqueKey)
 }
 
-func (p *Provider) Create(i *identity.LoginID) error {
+func (p *Provider) Create(ctx context.Context, i *identity.LoginID) error {
 	now := p.Clock.NowUTC()
 	i.CreatedAt = now
 	i.UpdatedAt = now
-	return p.Store.Create(i)
+	return p.Store.Create(ctx, i)
 }
 
-func (p *Provider) Update(i *identity.LoginID) error {
+func (p *Provider) Update(ctx context.Context, i *identity.LoginID) error {
 	now := p.Clock.NowUTC()
 	i.UpdatedAt = now
-	return p.Store.Update(i)
+	return p.Store.Update(ctx, i)
 }
 
-func (p *Provider) Delete(i *identity.LoginID) error {
-	return p.Store.Delete(i)
+func (p *Provider) Delete(ctx context.Context, i *identity.LoginID) error {
+	return p.Store.Delete(ctx, i)
 }
 
 func sortIdentities(is []*identity.LoginID) {

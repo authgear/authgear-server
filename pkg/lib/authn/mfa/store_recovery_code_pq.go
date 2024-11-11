@@ -1,6 +1,7 @@
 package mfa
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 
@@ -14,7 +15,7 @@ type StoreRecoveryCodePQ struct {
 	SQLExecutor *appdb.SQLExecutor
 }
 
-func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {
+func (s *StoreRecoveryCodePQ) List(ctx context.Context, userID string) ([]*RecoveryCode, error) {
 	builder := s.SQLBuilder.
 		Select(
 			"rc.id",
@@ -27,7 +28,7 @@ func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {
 		From(s.SQLBuilder.TableName("_auth_recovery_code"), "rc").
 		Where("rc.user_id = ?", userID)
 
-	rows, err := s.SQLExecutor.QueryWith(builder)
+	rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +54,7 @@ func (s *StoreRecoveryCodePQ) List(userID string) ([]*RecoveryCode, error) {
 	return codes, nil
 }
 
-func (s *StoreRecoveryCodePQ) Get(userID string, code string) (*RecoveryCode, error) {
+func (s *StoreRecoveryCodePQ) Get(ctx context.Context, userID string, code string) (*RecoveryCode, error) {
 	builder := s.SQLBuilder.
 		Select(
 			"rc.id",
@@ -66,7 +67,7 @@ func (s *StoreRecoveryCodePQ) Get(userID string, code string) (*RecoveryCode, er
 		From(s.SQLBuilder.TableName("_auth_recovery_code"), "rc").
 		Where("rc.user_id = ? AND rc.code = ?", userID, code)
 
-	row, err := s.SQLExecutor.QueryRowWith(builder)
+	row, err := s.SQLExecutor.QueryRowWith(ctx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -90,14 +91,14 @@ func (s *StoreRecoveryCodePQ) Get(userID string, code string) (*RecoveryCode, er
 	return rc, nil
 }
 
-func (s *StoreRecoveryCodePQ) DeleteAll(userID string) error {
+func (s *StoreRecoveryCodePQ) DeleteAll(ctx context.Context, userID string) error {
 	ids, err := func() ([]string, error) {
 		builder := s.SQLBuilder.
 			Select("rc.id").
 			From(s.SQLBuilder.TableName("_auth_recovery_code"), "rc").
 			Where("rc.user_id = ?", userID)
 
-		rows, err := s.SQLExecutor.QueryWith(builder)
+		rows, err := s.SQLExecutor.QueryWith(ctx, builder)
 		if err != nil {
 			return nil, err
 		}
@@ -125,7 +126,7 @@ func (s *StoreRecoveryCodePQ) DeleteAll(userID string) error {
 	q := s.SQLBuilder.
 		Delete(s.SQLBuilder.TableName("_auth_recovery_code")).
 		Where("id = ANY (?)", pq.Array(ids))
-	_, err = s.SQLExecutor.ExecWith(q)
+	_, err = s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -133,7 +134,7 @@ func (s *StoreRecoveryCodePQ) DeleteAll(userID string) error {
 	return nil
 }
 
-func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
+func (s *StoreRecoveryCodePQ) CreateAll(ctx context.Context, codes []*RecoveryCode) error {
 	q := s.SQLBuilder.
 		Insert(s.SQLBuilder.TableName("_auth_recovery_code")).
 		Columns(
@@ -156,7 +157,7 @@ func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
 		)
 	}
 
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}
@@ -164,13 +165,13 @@ func (s *StoreRecoveryCodePQ) CreateAll(codes []*RecoveryCode) error {
 	return nil
 }
 
-func (s *StoreRecoveryCodePQ) UpdateConsumed(code *RecoveryCode) error {
+func (s *StoreRecoveryCodePQ) UpdateConsumed(ctx context.Context, code *RecoveryCode) error {
 	q := s.SQLBuilder.
 		Update(s.SQLBuilder.TableName("_auth_recovery_code")).
 		Where("id = ?", code.ID).
 		Set("consumed", code.Consumed).
 		Set("updated_at", code.UpdatedAt)
-	_, err := s.SQLExecutor.ExecWith(q)
+	_, err := s.SQLExecutor.ExecWith(ctx, q)
 	if err != nil {
 		return err
 	}

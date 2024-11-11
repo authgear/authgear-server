@@ -23,8 +23,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
-func authenticatorIsDefault(deps *authflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
-	ais, err := deps.Authenticators.List(
+func authenticatorIsDefault(ctx context.Context, deps *authflow.Dependencies, userID string, authenticatorKind model.AuthenticatorKind) (isDefault bool, err error) {
+	ais, err := deps.Authenticators.List(ctx,
 		userID,
 		authenticator.KeepKind(authenticatorKind),
 		authenticator.KeepDefault,
@@ -207,18 +207,18 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 ) {
 	options = []AuthenticateOption{}
 
-	identities, err := deps.Identities.ListByUser(userID)
+	identities, err := deps.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, false, err
 	}
 
-	authenticators, err := deps.Authenticators.List(userID)
+	authenticators, err := deps.Authenticators.List(ctx, userID)
 	if err != nil {
 		return nil, false, err
 	}
 
 	secondaryAuthenticators := authenticator.ApplyFilters(authenticators, authenticator.KeepKind(model.AuthenticatorKindSecondary))
-	userRecoveryCodes, err := deps.MFA.ListRecoveryCodes(userID)
+	userRecoveryCodes, err := deps.MFA.ListRecoveryCodes(ctx, userID)
 	if err != nil {
 		return nil, false, err
 	}
@@ -311,7 +311,7 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 	useAuthenticationOptionAddPasskey := func(options []AuthenticateOption, deps *authflow.Dependencies, userHasPasskey bool, userID string, botProtection *config.AuthenticationFlowBotProtection) ([]AuthenticateOption, error) {
 		// We only add passkey if user has one
 		if userHasPasskey {
-			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
+			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(ctx, userID)
 			if err != nil {
 				return nil, err
 			}
@@ -405,12 +405,12 @@ func getAuthenticationOptionsForLogin(ctx context.Context, deps *authflow.Depend
 func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, userID string, step *config.AuthenticationFlowReauthFlowStep) ([]AuthenticateOption, error) {
 	options := []AuthenticateOption{}
 
-	identities, err := deps.Identities.ListByUser(userID)
+	identities, err := deps.Identities.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	authenticators, err := deps.Authenticators.List(userID)
+	authenticators, err := deps.Authenticators.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -463,7 +463,7 @@ func getAuthenticationOptionsForReauth(ctx context.Context, deps *authflow.Depen
 			model.AuthenticatorKindPrimary,
 			model.AuthenticatorTypePasskey,
 		) {
-			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(userID)
+			requestOptions, err := deps.PasskeyRequestOptionsService.MakeModalRequestOptionsWithUser(ctx, userID)
 			if err != nil {
 				return nil, err
 			}
@@ -625,14 +625,14 @@ func getOTPForm(purpose otp.Purpose, claimName model.ClaimName, cfg *config.Auth
 	}
 }
 
-func newIdentityInfo(deps *authflow.Dependencies, newUserID string, spec *identity.Spec) (newIden *identity.Info, err error) {
+func newIdentityInfo(ctx context.Context, deps *authflow.Dependencies, newUserID string, spec *identity.Spec) (newIden *identity.Info, err error) {
 	// FIXME(authflow): allow bypassing email blocklist for Admin API.
-	info, err := deps.Identities.New(newUserID, spec, identity.NewIdentityOptions{})
+	info, err := deps.Identities.New(ctx, newUserID, spec, identity.NewIdentityOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = deps.Identities.CheckDuplicatedByUniqueKey(info)
+	_, err = deps.Identities.CheckDuplicatedByUniqueKey(ctx, info)
 	if err != nil {
 		return nil, err
 	}
@@ -640,22 +640,22 @@ func newIdentityInfo(deps *authflow.Dependencies, newUserID string, spec *identi
 	return info, nil
 }
 
-func findExactOneIdentityInfo(deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {
+func findExactOneIdentityInfo(ctx context.Context, deps *authflow.Dependencies, spec *identity.Spec) (*identity.Info, error) {
 	bucketSpec := AccountEnumerationPerIPRateLimitBucketSpec(
 		deps.Config.Authentication,
 		string(deps.RemoteIP),
 	)
 
-	reservation, failedReservation, err := deps.RateLimiter.Reserve(bucketSpec)
+	reservation, failedReservation, err := deps.RateLimiter.Reserve(ctx, bucketSpec)
 	if err != nil {
 		return nil, err
 	}
 	if err := failedReservation.Error(); err != nil {
 		return nil, err
 	}
-	defer deps.RateLimiter.Cancel(reservation)
+	defer deps.RateLimiter.Cancel(ctx, reservation)
 
-	exactMatch, otherMatches, err := deps.Identities.SearchBySpec(spec)
+	exactMatch, otherMatches, err := deps.Identities.SearchBySpec(ctx, spec)
 	if err != nil {
 		return nil, err
 	}
@@ -680,7 +680,7 @@ type HandleOAuthAuthorizationResponseOptions struct {
 	RedirectURI string
 }
 
-func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOAuthAuthorizationResponseOptions, inputOAuth inputTakeOAuthAuthorizationResponse) (*identity.Spec, error) {
+func handleOAuthAuthorizationResponse(ctx context.Context, deps *authflow.Dependencies, opts HandleOAuthAuthorizationResponseOptions, inputOAuth inputTakeOAuthAuthorizationResponse) (*identity.Spec, error) {
 	providerConfig, err := deps.OAuthProviderFactory.GetProviderConfig(opts.Alias)
 	if err != nil {
 		return nil, err
@@ -690,7 +690,7 @@ func handleOAuthAuthorizationResponse(deps *authflow.Dependencies, opts HandleOA
 	// Nonce in the current implementation is stored in cookies.
 	// In the Authentication Flow API, cookies are not sent in Safari in third-party context.
 	emptyNonce := ""
-	authInfo, err := deps.OAuthProviderFactory.GetUserProfile(
+	authInfo, err := deps.OAuthProviderFactory.GetUserProfile(ctx,
 		opts.Alias,
 		oauthrelyingparty.GetUserProfileOptions{
 			Query:       inputOAuth.GetQuery(),
@@ -736,7 +736,7 @@ func getOAuthData(ctx context.Context, deps *authflow.Dependencies, opts GetOAut
 		Prompt:       uiParam.Prompt,
 	}
 
-	authorizationURL, err := deps.OAuthProviderFactory.GetAuthorizationURL(opts.Alias, param)
+	authorizationURL, err := deps.OAuthProviderFactory.GetAuthorizationURL(ctx, opts.Alias, param)
 	if err != nil {
 		return
 	}
@@ -777,7 +777,7 @@ func getOOBAuthenticatorType(authentication config.AuthenticationFlowAuthenticat
 	}
 }
 
-func createAuthenticatorSpec(deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Spec, error) {
+func createAuthenticatorSpec(ctx context.Context, deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Spec, error) {
 	spec := &authenticator.Spec{
 		UserID: userID,
 		OOBOTP: &authenticator.OOBOTPSpec{},
@@ -806,7 +806,7 @@ func createAuthenticatorSpec(deps *authflow.Dependencies, userID string, authent
 		panic(fmt.Errorf("unexpected authentication method: %v", authentication))
 	}
 
-	isDefault, err := authenticatorIsDefault(deps, userID, spec.Kind)
+	isDefault, err := authenticatorIsDefault(ctx, deps, userID, spec.Kind)
 	if err != nil {
 		return nil, err
 	}
@@ -815,14 +815,14 @@ func createAuthenticatorSpec(deps *authflow.Dependencies, userID string, authent
 	return spec, nil
 }
 
-func createAuthenticator(deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Info, error) {
-	spec, err := createAuthenticatorSpec(deps, userID, authentication, target)
+func createAuthenticator(ctx context.Context, deps *authflow.Dependencies, userID string, authentication config.AuthenticationFlowAuthentication, target string) (*authenticator.Info, error) {
+	spec, err := createAuthenticatorSpec(ctx, deps, userID, authentication, target)
 	if err != nil {
 		return nil, err
 	}
 
 	authenticatorID := uuid.New()
-	info, err := deps.Authenticators.NewWithAuthenticatorID(authenticatorID, spec)
+	info, err := deps.Authenticators.NewWithAuthenticatorID(ctx, authenticatorID, spec)
 	if err != nil {
 		return nil, err
 	}

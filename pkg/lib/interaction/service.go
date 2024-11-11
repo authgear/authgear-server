@@ -1,6 +1,7 @@
 package interaction
 
 import (
+	"context"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -10,10 +11,10 @@ import (
 var ErrGraphNotFound = errors.New("invalid graph or graph not found")
 
 type Store interface {
-	CreateGraph(graph *Graph) error
-	CreateGraphInstance(graph *Graph) error
-	GetGraphInstance(instanceID string) (*Graph, error)
-	DeleteGraph(graph *Graph) error
+	CreateGraph(ctx context.Context, graph *Graph) error
+	CreateGraphInstance(ctx context.Context, graph *Graph) error
+	GetGraphInstance(ctx context.Context, instanceID string) (*Graph, error)
+	DeleteGraph(ctx context.Context, graph *Graph) error
 }
 
 type Logger struct{ *log.Logger }
@@ -26,7 +27,7 @@ type Service struct {
 	Store   Store
 }
 
-func (s *Service) create(graph *Graph) error {
+func (s *Service) create(ctx context.Context, graph *Graph) error {
 	if graph.InstanceID != "" {
 		panic("interaction: cannot re-create an existing graph instance")
 	}
@@ -34,29 +35,29 @@ func (s *Service) create(graph *Graph) error {
 
 	if graph.GraphID == "" {
 		graph.GraphID = newGraphID()
-		return s.Store.CreateGraph(graph)
+		return s.Store.CreateGraph(ctx, graph)
 	}
-	return s.Store.CreateGraphInstance(graph)
+	return s.Store.CreateGraphInstance(ctx, graph)
 }
 
-func (s *Service) NewGraph(ctx *Context, intent Intent) (*Graph, error) {
+func (s *Service) NewGraph(ctx context.Context, interactionCtx *Context, intent Intent) (*Graph, error) {
 	graph := newGraph(intent)
-	node, err := graph.Intent.InstantiateRootNode(ctx, graph)
+	node, err := graph.Intent.InstantiateRootNode(ctx, interactionCtx, graph)
 	if err != nil {
 		return nil, err
 	}
 
 	graph = graph.appendingNode(node)
-	err = node.Prepare(ctx, graph)
+	err = node.Prepare(ctx, interactionCtx, graph)
 	if err != nil {
 		return nil, err
 	}
-	effs, err := node.GetEffects()
+	effs, err := node.GetEffects(ctx)
 	if err != nil {
 		return nil, err
 	}
 	for _, eff := range effs {
-		err = eff.apply(ctx, graph, 0)
+		err = eff.apply(ctx, interactionCtx, graph, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -65,57 +66,57 @@ func (s *Service) NewGraph(ctx *Context, intent Intent) (*Graph, error) {
 	return graph, nil
 }
 
-func (s *Service) Get(instanceID string) (*Graph, error) {
-	return s.Store.GetGraphInstance(instanceID)
+func (s *Service) Get(ctx context.Context, instanceID string) (*Graph, error) {
+	return s.Store.GetGraphInstance(ctx, instanceID)
 }
 
-func (s *Service) DryRun(contextValues ContextValues, fn func(*Context) (*Graph, error)) (err error) {
-	ctx, err := s.Context.initialize()
+func (s *Service) DryRun(ctx context.Context, contextValues ContextValues, fn func(ctx context.Context, interactionCtx *Context) (*Graph, error)) (err error) {
+	interactionCtx, err := s.Context.initialize(ctx)
 	if err != nil {
 		return
 	}
 
 	defer func() {
-		rbErr := ctx.rollback()
+		rbErr := interactionCtx.rollback(ctx)
 		if rbErr != nil {
 			s.Logger.WithError(rbErr).Error("cannot rollback")
 			err = errorutil.WithSecondaryError(err, rbErr)
 		}
 	}()
 
-	ctx.IsCommitting = false
-	ctx.WebSessionID = contextValues.WebSessionID
-	ctx.OAuthSessionID = contextValues.OAuthSessionID
-	graph, err := fn(ctx)
+	interactionCtx.IsCommitting = false
+	interactionCtx.WebSessionID = contextValues.WebSessionID
+	interactionCtx.OAuthSessionID = contextValues.OAuthSessionID
+	graph, err := fn(ctx, interactionCtx)
 	if err != nil {
 		return
 	}
 
 	if graph != nil {
-		err = s.create(graph)
+		err = s.create(ctx, graph)
 		return
 	}
 
 	return
 }
 
-func (s *Service) Run(contextValues ContextValues, graph *Graph) (err error) {
-	ctx, err := s.Context.initialize()
+func (s *Service) Run(ctx context.Context, contextValues ContextValues, graph *Graph) (err error) {
+	interactionCtx, err := s.Context.initialize(ctx)
 	if err != nil {
 		return
 	}
 
 	defer func() {
 		if r := recover(); r != nil {
-			rbErr := ctx.rollback()
+			rbErr := interactionCtx.rollback(ctx)
 			if rbErr != nil {
 				s.Logger.WithError(rbErr).Error("cannot rollback")
 			}
 			panic(r)
 		} else if err == nil {
-			err = ctx.commit()
+			err = interactionCtx.commit(ctx)
 		} else {
-			rbErr := ctx.rollback()
+			rbErr := interactionCtx.rollback(ctx)
 			if rbErr != nil {
 				s.Logger.WithError(rbErr).Error("cannot rollback")
 				err = errorutil.WithSecondaryError(err, rbErr)
@@ -123,22 +124,22 @@ func (s *Service) Run(contextValues ContextValues, graph *Graph) (err error) {
 		}
 	}()
 
-	ctx.IsCommitting = false
-	ctx.WebSessionID = contextValues.WebSessionID
-	ctx.OAuthSessionID = contextValues.OAuthSessionID
-	err = graph.Apply(ctx)
+	interactionCtx.IsCommitting = false
+	interactionCtx.WebSessionID = contextValues.WebSessionID
+	interactionCtx.OAuthSessionID = contextValues.OAuthSessionID
+	err = graph.Apply(ctx, interactionCtx)
 	if err != nil {
 		return
 	}
 
-	ctx.IsCommitting = true
-	err = graph.Apply(ctx)
+	interactionCtx.IsCommitting = true
+	err = graph.Apply(ctx, interactionCtx)
 	if err != nil {
 		return
 	}
 
 	// TODO(interaction): Side effects is already committed, how to handle the subsequent errors?
-	err = s.Store.DeleteGraph(graph)
+	err = s.Store.DeleteGraph(ctx, graph)
 	if err != nil {
 		return
 	}
@@ -146,6 +147,6 @@ func (s *Service) Run(contextValues ContextValues, graph *Graph) (err error) {
 	return
 }
 
-func (s *Service) Accept(ctx *Context, graph *Graph, input interface{}) (*Graph, []Edge, error) {
-	return graph.accept(ctx, input)
+func (s *Service) Accept(goCtx context.Context, ctx *Context, graph *Graph, input interface{}) (*Graph, []Edge, error) {
+	return graph.accept(goCtx, ctx, input)
 }

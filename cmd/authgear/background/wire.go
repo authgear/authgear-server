@@ -4,8 +4,6 @@
 package background
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -16,7 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/backgroundjob"
 )
 
-func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *configsource.Controller {
+func newConfigSourceController(p *deps.BackgroundProvider) *configsource.Controller {
 	panic(wire.Build(
 		DependencySet,
 		configsource.NewResolveAppIDTypeDomain,
@@ -25,7 +23,7 @@ func newConfigSourceController(p *deps.BackgroundProvider, c context.Context) *c
 	))
 }
 
-func newAccountAnonymizationRunner(p *deps.BackgroundProvider, c context.Context, ctrl *configsource.Controller) *backgroundjob.Runner {
+func newAccountAnonymizationRunner(p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
 	panic(wire.Build(
 		DependencySet,
 		accountanonymization.DependencySet,
@@ -33,7 +31,7 @@ func newAccountAnonymizationRunner(p *deps.BackgroundProvider, c context.Context
 	))
 }
 
-func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctrl *configsource.Controller) *backgroundjob.Runner {
+func newAccountDeletionRunner(p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
 	panic(wire.Build(
 		DependencySet,
 		accountdeletion.DependencySet,
@@ -41,7 +39,7 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, c context.Context, ctr
 	))
 }
 
-func newUserService(ctx context.Context, p *deps.BackgroundProvider, appID string, appContext *config.AppContext) *UserService {
+func newUserService(p *deps.BackgroundProvider, appID string, appContext *config.AppContext) *UserService {
 	panic(wire.Build(
 		DependencySet,
 		wire.FieldsOf(new(*config.AppContext), "Config"),

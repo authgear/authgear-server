@@ -1,6 +1,8 @@
 package queue
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 )
@@ -31,11 +33,11 @@ func (s *InProcessQueue) Enqueue(param task.Param) {
 	}
 }
 
-func (s *InProcessQueue) WillCommitTx() error {
+func (s *InProcessQueue) WillCommitTx(ctx context.Context) error {
 	return nil
 }
 
-func (s *InProcessQueue) DidCommitTx() {
+func (s *InProcessQueue) DidCommitTx(ctx context.Context) {
 	// To avoid running the tasks multiple times
 	// reset s.pendingTasks when we start processing the tasks
 	pendingTasks := s.pendingTasks

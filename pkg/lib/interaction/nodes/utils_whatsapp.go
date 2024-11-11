@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
@@ -23,7 +25,7 @@ type SendWhatsappCode struct {
 	IsResend    bool
 }
 
-func (s *SendWhatsappCode) Do() (*SendWhatsappCodeResult, error) {
+func (s *SendWhatsappCode) Do(goCtx context.Context) (*SendWhatsappCodeResult, error) {
 	channel := model.AuthenticatorOOBChannelWhatsapp
 	form := otp.FormCode
 
@@ -34,16 +36,17 @@ func (s *SendWhatsappCode) Do() (*SendWhatsappCodeResult, error) {
 		Kind:       kind,
 	}
 
-	msg, err := s.Context.OTPSender.Prepare(channel, s.Target, form, translation.MessageTypeWhatsappCode)
+	msg, err := s.Context.OTPSender.Prepare(goCtx, channel, s.Target, form, translation.MessageTypeWhatsappCode)
 	if !s.IsResend && apierrors.IsKind(err, ratelimit.RateLimited) {
 		// Ignore the rate limit error and do NOT send the code.
 		return result, nil
 	} else if err != nil {
 		return nil, err
 	}
-	defer msg.Close()
+	defer msg.Close(goCtx)
 
 	code, err := s.Context.OTPCodeService.GenerateOTP(
+		goCtx,
 		kind,
 		s.Target,
 		form,
@@ -56,7 +59,7 @@ func (s *SendWhatsappCode) Do() (*SendWhatsappCodeResult, error) {
 		return nil, err
 	}
 
-	err = s.Context.OTPSender.Send(msg, otp.SendOptions{OTP: code})
+	err = s.Context.OTPSender.Send(goCtx, msg, otp.SendOptions{OTP: code})
 	if err != nil {
 		return nil, err
 	}

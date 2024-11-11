@@ -12,11 +12,10 @@ import (
 )
 
 type SQLExecutor struct {
-	Context  context.Context
 	Database Handle
 }
 
-func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
+func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Result, error) {
 	db, err := e.Database.conn()
 	if err != nil {
 		return nil, err
@@ -25,7 +24,7 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := db.ExecContext(e.Context, sql, args...)
+	result, err := db.ExecContext(ctx, sql, args...)
 	if err != nil {
 		if isWriteConflict(err) {
 			panic(ErrWriteConflict)
@@ -35,7 +34,7 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 	return result, nil
 }
 
-func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sql.Rows, error) {
+func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Rows, error) {
 	db, err := e.Database.conn()
 	if err != nil {
 		return nil, err
@@ -44,7 +43,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sql.Rows, error) {
 	if err != nil {
 		return nil, err
 	}
-	result, err := db.QueryxContext(e.Context, sql, args...)
+	result, err := db.QueryxContext(ctx, sql, args...)
 	if err != nil {
 		if isWriteConflict(err) {
 			panic(ErrWriteConflict)
@@ -54,7 +53,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sql.Rows, error) {
 	return result, nil
 }
 
-func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sql.Row, error) {
+func (e *SQLExecutor) QueryRowWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Row, error) {
 	db, err := e.Database.conn()
 	if err != nil {
 		return nil, err
@@ -66,7 +65,7 @@ func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sql.Row, error) {
 		}
 		return nil, errorutil.WithDetails(err, errorutil.Details{"sql": errorutil.SafeDetail.Value(sql)})
 	}
-	return db.QueryRowxContext(e.Context, sql, args...), nil
+	return db.QueryRowxContext(ctx, sql, args...), nil
 }
 
 func isWriteConflict(err error) bool {

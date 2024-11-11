@@ -1,6 +1,7 @@
 package audit
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -79,14 +80,14 @@ type ReadStore struct {
 	SQLExecutor *auditdb.ReadSQLExecutor
 }
 
-func (s *ReadStore) Count(opts QueryPageOptions) (uint64, error) {
+func (s *ReadStore) Count(ctx context.Context, opts QueryPageOptions) (uint64, error) {
 	query := s.SQLBuilder.
 		Select("count(*)").
 		From(s.SQLBuilder.TableName("_audit_log"))
 
 	query = opts.Apply(query)
 
-	scanner, err := s.SQLExecutor.QueryRowWith(query)
+	scanner, err := s.SQLExecutor.QueryRowWith(ctx, query)
 	if err != nil {
 		return 0, err
 	}
@@ -100,7 +101,7 @@ func (s *ReadStore) Count(opts QueryPageOptions) (uint64, error) {
 	return count, nil
 }
 
-func (s *ReadStore) QueryPage(opts QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*Log, uint64, error) {
+func (s *ReadStore) QueryPage(ctx context.Context, opts QueryPageOptions, pageArgs graphqlutil.PageArgs) ([]*Log, uint64, error) {
 	query := s.selectQuery()
 
 	query = opts.Apply(query)
@@ -117,7 +118,7 @@ func (s *ReadStore) QueryPage(opts QueryPageOptions, pageArgs graphqlutil.PageAr
 		return nil, 0, err
 	}
 
-	rows, err := s.SQLExecutor.QueryWith(query)
+	rows, err := s.SQLExecutor.QueryWith(ctx, query)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -135,10 +136,10 @@ func (s *ReadStore) QueryPage(opts QueryPageOptions, pageArgs graphqlutil.PageAr
 	return logs, offset, nil
 }
 
-func (s *ReadStore) GetByIDs(ids []string) ([]*Log, error) {
+func (s *ReadStore) GetByIDs(ctx context.Context, ids []string) ([]*Log, error) {
 	query := s.selectQuery().Where("id = ANY (?)", pq.Array(ids))
 
-	rows, err := s.SQLExecutor.QueryWith(query)
+	rows, err := s.SQLExecutor.QueryWith(ctx, query)
 	if err != nil {
 		return nil, err
 	}

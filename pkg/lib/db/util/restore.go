@@ -13,7 +13,6 @@ import (
 )
 
 type Restorer struct {
-	Context        context.Context
 	DatabaseURL    string
 	DatabaseSchema string
 	InputDir       string
@@ -27,7 +26,6 @@ type Restorer struct {
 }
 
 func NewRestorer(
-	context context.Context,
 	databaseURL string,
 	databaseSchema string,
 	inputDir string,
@@ -40,7 +38,6 @@ func NewRestorer(
 	logger := loggerFactory.New("restorer")
 	pool := db.NewPool()
 	handle := db.NewHookHandle(
-		context,
 		pool,
 		db.ConnectionOptions{
 			DatabaseURL:           databaseURL,
@@ -52,12 +49,10 @@ func NewRestorer(
 		loggerFactory,
 	)
 	sqlExecutor := &db.SQLExecutor{
-		Context:  context,
 		Database: handle,
 	}
 	sqlBuilder := db.NewSQLBuilder(databaseSchema)
 	return &Restorer{
-		Context:        context,
 		DatabaseURL:    databaseURL,
 		DatabaseSchema: databaseSchema,
 		InputDir:       inputDir,
@@ -71,14 +66,14 @@ func NewRestorer(
 	}
 }
 
-func (r *Restorer) Restore() error {
+func (r *Restorer) Restore(ctx context.Context) error {
 	inputPathAbs, err := filepath.Abs(r.InputDir)
 	if err != nil {
 		panic(err)
 	}
 	r.logger.Info(fmt.Sprintf("Restoring from %s", inputPathAbs))
 
-	return r.dbHandle.WithTx(func() error {
+	return r.dbHandle.WithTx(ctx, func(ctx context.Context) error {
 		for _, tableName := range r.TableNames {
 			inputFile := filepath.Join(inputPathAbs, fmt.Sprintf("%s.csv", tableName))
 			f, err := os.Open(inputFile)
@@ -104,7 +99,7 @@ func (r *Restorer) Restore() error {
 					Insert(r.sqlBuilder.TableName(tableName)).
 					Columns(columns...).
 					Values(row...)
-				_, err := r.sqlExecutor.ExecWith(q)
+				_, err := r.sqlExecutor.ExecWith(ctx, q)
 				if err != nil {
 					return err
 				}

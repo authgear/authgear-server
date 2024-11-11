@@ -90,9 +90,9 @@ type StripeService struct {
 	Logger      Logger
 }
 
-func (s *StripeService) ListAppIDs() (appIDs []string, err error) {
-	err = s.Handle.ReadOnly(func() error {
-		srcs, err := s.Store.ListAll()
+func (s *StripeService) ListAppIDs(ctx context.Context) (appIDs []string, err error) {
+	err = s.Handle.ReadOnly(ctx, func(ctx context.Context) error {
+		srcs, err := s.Store.ListAll(ctx)
 		if err != nil {
 			return err
 		}
@@ -109,15 +109,15 @@ func (s *StripeService) ListAppIDs() (appIDs []string, err error) {
 	return
 }
 
-func (s *StripeService) getStripeSubscriptionID(appID string) (stripeSubscriptionID string, err error) {
-	err = s.Handle.ReadOnly(func() error {
+func (s *StripeService) getStripeSubscriptionID(ctx context.Context, appID string) (stripeSubscriptionID string, err error) {
+	err = s.Handle.ReadOnly(ctx, func(ctx context.Context) error {
 		q := s.SQLBuilder.Select(
 			"stripe_subscription_id",
 		).
 			From(s.SQLBuilder.TableName("_portal_subscription")).
 			Where("app_id = ?", appID)
 
-		row, err := s.SQLExecutor.QueryRowWith(q)
+		row, err := s.SQLExecutor.QueryRowWith(ctx, q)
 		if err != nil {
 			return err
 		}
@@ -154,8 +154,8 @@ func (s *StripeService) scanUsageRecord(scanner db.Scanner) (*usage.UsageRecord,
 	return &r, nil
 }
 
-func (s *StripeService) getUsageRecords(f func(builder squirrel.SelectBuilder) squirrel.SelectBuilder) (out []*usage.UsageRecord, err error) {
-	err = s.Handle.ReadOnly(func() (err error) {
+func (s *StripeService) getUsageRecords(ctx context.Context, f func(builder squirrel.SelectBuilder) squirrel.SelectBuilder) (out []*usage.UsageRecord, err error) {
+	err = s.Handle.ReadOnly(ctx, func(ctx context.Context) (err error) {
 		q := f(s.SQLBuilder.Select(
 			"id",
 			"app_id",
@@ -166,7 +166,7 @@ func (s *StripeService) getUsageRecords(f func(builder squirrel.SelectBuilder) s
 			"count",
 			"stripe_timestamp",
 		).From(s.SQLBuilder.TableName("_portal_usage_record")))
-		rows, err := s.SQLExecutor.QueryWith(q)
+		rows, err := s.SQLExecutor.QueryWith(ctx, q)
 		if err != nil {
 			return
 		}
@@ -185,13 +185,14 @@ func (s *StripeService) getUsageRecords(f func(builder squirrel.SelectBuilder) s
 }
 
 func (s *StripeService) getDailyUsageRecordsForUpload(
+	ctx context.Context,
 	appID string,
 	recordName usage.RecordName,
 	subscriptionCreatedAt time.Time,
 	midnight time.Time,
 	stripeTimestamp time.Time,
 ) (out []*usage.UsageRecord, err error) {
-	return s.getUsageRecords(func(b squirrel.SelectBuilder) squirrel.SelectBuilder {
+	return s.getUsageRecords(ctx, func(b squirrel.SelectBuilder) squirrel.SelectBuilder {
 		// We have two conditions here.
 		// 1st condition is to retrieve usage records that have not been uploaded.
 		// 2nd condition is to retrieve usage records that have been uploaded the same day, so that if this command
@@ -208,8 +209,8 @@ func (s *StripeService) getDailyUsageRecordsForUpload(
 	})
 }
 
-func (s *StripeService) getMonthlyUsageRecordsForUpload(appID string, recordName usage.RecordName, currentPeriodEnd time.Time) (out []*usage.UsageRecord, err error) {
-	return s.getUsageRecords(func(b squirrel.SelectBuilder) squirrel.SelectBuilder {
+func (s *StripeService) getMonthlyUsageRecordsForUpload(ctx context.Context, appID string, recordName usage.RecordName, currentPeriodEnd time.Time) (out []*usage.UsageRecord, err error) {
+	return s.getUsageRecords(ctx, func(b squirrel.SelectBuilder) squirrel.SelectBuilder {
 		return b.Where(
 			"app_id = ? AND name = ? AND period = ? AND end_time = ?",
 			appID,
@@ -220,8 +221,8 @@ func (s *StripeService) getMonthlyUsageRecordsForUpload(appID string, recordName
 	})
 }
 
-func (s *StripeService) markStripeTimestamp(usageRecords []*usage.UsageRecord, stripeTimestamp time.Time) (err error) {
-	err = s.Handle.WithTx(func() (err error) {
+func (s *StripeService) markStripeTimestamp(ctx context.Context, usageRecords []*usage.UsageRecord, stripeTimestamp time.Time) (err error) {
+	err = s.Handle.WithTx(ctx, func(ctx context.Context) (err error) {
 		var ids []string
 		for _, record := range usageRecords {
 			ids = append(ids, record.ID)
@@ -233,7 +234,7 @@ func (s *StripeService) markStripeTimestamp(usageRecords []*usage.UsageRecord, s
 			Set("stripe_timestamp", stripeTimestamp).
 			Where("id = ANY (?)", pq.Array(ids))
 
-		result, err := s.SQLExecutor.ExecWith(q)
+		result, err := s.SQLExecutor.ExecWith(ctx, q)
 		if err != nil {
 			return
 		}
@@ -264,6 +265,7 @@ func (s *StripeService) uploadDailyUsageRecordToSubscriptionItem(
 	timestamp := midnight.Add(SafeOffset)
 	subscriptionCreatedAt := time.Unix(subscription.Created, 0).UTC()
 	records, err := s.getDailyUsageRecordsForUpload(
+		ctx,
 		appID,
 		recordName,
 		subscriptionCreatedAt,
@@ -294,7 +296,7 @@ func (s *StripeService) uploadDailyUsageRecordToSubscriptionItem(
 		return
 	}
 
-	err = s.markStripeTimestamp(records, timestamp)
+	err = s.markStripeTimestamp(ctx, records, timestamp)
 	if err != nil {
 		return
 	}
@@ -320,6 +322,7 @@ func (s *StripeService) uploadMonthlyUsageRecordToSubscriptionItem(
 	timestamp := currentPeriodStart.Add(SafeOffset)
 
 	records, err := s.getMonthlyUsageRecordsForUpload(
+		ctx,
 		appID,
 		recordName,
 		currentPeriodEnd,
@@ -377,7 +380,7 @@ func (s *StripeService) uploadMonthlyUsageRecordToSubscriptionItem(
 		return
 	}
 
-	err = s.markStripeTimestamp(records, timestamp)
+	err = s.markStripeTimestamp(ctx, records, timestamp)
 	if err != nil {
 		return
 	}
@@ -420,7 +423,7 @@ Loop:
 func (s *StripeService) uploadUsage(ctx context.Context, appID string) (err error) {
 	midnight := timeutil.TruncateToDate(s.Clock.NowUTC())
 
-	stripeSubscriptionID, err := s.getStripeSubscriptionID(appID)
+	stripeSubscriptionID, err := s.getStripeSubscriptionID(ctx, appID)
 	if errors.Is(err, sql.ErrNoRows) {
 		s.Logger.Infof("%v: skip upload usage due to no subscription", appID)
 		err = nil

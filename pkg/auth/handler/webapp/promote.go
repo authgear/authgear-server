@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -118,7 +119,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		SuppressIDPSessionCookie: suppressIDPSessionCookie,
 	}
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		graph, err := ctrl.EntryPointGet(opts, intent)
 		if err != nil {
 			return err
@@ -133,7 +134,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("oauth", func() error {
+	ctrl.PostAction("oauth", func(ctx context.Context) error {
 		tokenInput, err := h.AnonymousUserPromotionService.ConvertLoginHintToInput(loginHint)
 		if err != nil {
 			return err
@@ -159,7 +160,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("login_id", func() error {
+	ctrl.PostAction("login_id", func(ctx context.Context) error {
 		tokenInput, err := h.AnonymousUserPromotionService.ConvertLoginHintToInput(loginHint)
 		if err != nil {
 			return err

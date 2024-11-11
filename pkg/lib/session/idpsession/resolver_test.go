@@ -1,6 +1,7 @@
 package idpsession
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -17,7 +18,7 @@ type mockResolverProvider struct {
 	Sessions []IDPSession
 }
 
-func (r *mockResolverProvider) AccessWithToken(token string, accessEvent access.Event) (*IDPSession, error) {
+func (r *mockResolverProvider) AccessWithToken(ctx context.Context, token string, accessEvent access.Event) (*IDPSession, error) {
 	for i, s := range r.Sessions {
 		if s.TokenHash == token {
 			s.AccessInfo.LastAccess = accessEvent
@@ -60,7 +61,8 @@ func TestResolver(t *testing.T) {
 		Convey("resolve without session cookie", func() {
 			rw := httptest.NewRecorder()
 			r, _ := http.NewRequest("POST", "/", nil)
-			session, err := resolver.Resolve(rw, r)
+			ctx := context.Background()
+			session, err := resolver.Resolve(ctx, rw, r)
 
 			So(session, ShouldBeNil)
 			So(err, ShouldBeNil)
@@ -70,7 +72,8 @@ func TestResolver(t *testing.T) {
 			rw := httptest.NewRecorder()
 			r, _ := http.NewRequest("POST", "/", nil)
 			r.AddCookie(&http.Cookie{Name: "session", Value: "invalid"})
-			s, err := resolver.Resolve(rw, r)
+			ctx := context.Background()
+			s, err := resolver.Resolve(ctx, rw, r)
 
 			So(s, ShouldBeNil)
 			So(err, ShouldBeError, session.ErrInvalidSession)
@@ -80,7 +83,8 @@ func TestResolver(t *testing.T) {
 			rw := httptest.NewRecorder()
 			r, _ := http.NewRequest("POST", "/", nil)
 			r.AddCookie(&http.Cookie{Name: "session", Value: "token"})
-			session, err := resolver.Resolve(rw, r)
+			ctx := context.Background()
+			session, err := resolver.Resolve(ctx, rw, r)
 
 			So(session, ShouldNotBeNil)
 			So(session.SessionID(), ShouldEqual, "session-id")

@@ -52,10 +52,10 @@ var _ MilestoneFlowCreateAuthenticator = &IntentCreateAuthenticatorTOTP{}
 var _ authflow.InputReactor = &IntentCreateAuthenticatorTOTP{}
 var _ authflow.DataOutputer = &IntentCreateAuthenticatorTOTP{}
 
-func NewIntentCreateAuthenticatorTOTP(deps *authflow.Dependencies, n *IntentCreateAuthenticatorTOTP) (*IntentCreateAuthenticatorTOTP, error) {
+func NewIntentCreateAuthenticatorTOTP(ctx context.Context, deps *authflow.Dependencies, n *IntentCreateAuthenticatorTOTP) (*IntentCreateAuthenticatorTOTP, error) {
 	authenticatorKind := n.authenticatorKind()
 
-	isDefault, err := authenticatorIsDefault(deps, n.UserID, authenticatorKind)
+	isDefault, err := authenticatorIsDefault(ctx, deps, n.UserID, authenticatorKind)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func NewIntentCreateAuthenticatorTOTP(deps *authflow.Dependencies, n *IntentCrea
 	}
 
 	id := uuid.New()
-	info, err := deps.Authenticators.NewWithAuthenticatorID(id, spec)
+	info, err := deps.Authenticators.NewWithAuthenticatorID(ctx, id, spec)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (n *IntentCreateAuthenticatorTOTP) CanReactTo(ctx context.Context, deps *au
 func (n *IntentCreateAuthenticatorTOTP) ReactTo(ctx context.Context, deps *authflow.Dependencies, flows authflow.Flows, input authflow.Input) (*authflow.Node, error) {
 	var inputSetupTOTP inputSetupTOTP
 	if authflow.AsInput(input, &inputSetupTOTP) {
-		_, err := deps.Authenticators.VerifyWithSpec(n.Authenticator, &authenticator.Spec{
+		_, err := deps.Authenticators.VerifyWithSpec(ctx, n.Authenticator, &authenticator.Spec{
 			TOTP: &authenticator.TOTPSpec{
 				Code: inputSetupTOTP.GetCode(),
 			},
@@ -144,7 +144,7 @@ func (n *IntentCreateAuthenticatorTOTP) OutputData(ctx context.Context, deps *au
 	secret := n.Authenticator.TOTP.Secret
 
 	issuer := deps.HTTPOrigin
-	user, err := deps.Users.Get(n.UserID, accesscontrol.RoleGreatest)
+	user, err := deps.Users.Get(ctx, n.UserID, accesscontrol.RoleGreatest)
 	if err != nil {
 		return nil, err
 	}

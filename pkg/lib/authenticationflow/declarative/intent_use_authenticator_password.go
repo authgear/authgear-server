@@ -76,7 +76,7 @@ func (i *IntentUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *auth
 		if err != nil {
 			return nil, err
 		}
-		as, err := deps.Authenticators.List(
+		as, err := deps.Authenticators.List(ctx,
 			i.UserID,
 			authenticator.KeepKind(i.Authentication.AuthenticatorKind()),
 			authenticator.KeepType(model.AuthenticatorTypePassword),
@@ -92,7 +92,7 @@ func (i *IntentUseAuthenticatorPassword) ReactTo(ctx context.Context, deps *auth
 			},
 		}
 
-		info, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(
+		info, verifyResult, err := deps.Authenticators.VerifyOneWithSpec(ctx,
 			i.UserID,
 			model.AuthenticatorTypePassword,
 			as,

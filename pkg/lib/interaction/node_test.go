@@ -1,6 +1,7 @@
 package interaction_test
 
 import (
+	"context"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -12,15 +13,15 @@ type testNode struct {
 	_ int
 }
 
-func (t testNode) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (t testNode) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (t testNode) GetEffects() ([]interaction.Effect, error) {
+func (t testNode) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (t testNode) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (t testNode) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return nil, nil
 }
 

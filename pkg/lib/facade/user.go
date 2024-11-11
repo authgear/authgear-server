@@ -1,6 +1,7 @@
 package facade
 
 import (
+	"context"
 	"time"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
@@ -12,11 +13,12 @@ import (
 )
 
 type UserProvider interface {
-	Create(userID string) (*user.User, error)
-	GetRaw(id string) (*user.User, error)
-	Count() (uint64, error)
-	QueryPage(listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
+	Create(ctx context.Context, userID string) (*user.User, error)
+	GetRaw(ctx context.Context, id string) (*user.User, error)
+	Count(ctx context.Context) (uint64, error)
+	QueryPage(ctx context.Context, listOption user.ListOptions, pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error)
 	AfterCreate(
+		ctx context.Context,
 		user *user.User,
 		identities []*identity.Info,
 		authenticators []*authenticator.Info,
@@ -29,74 +31,74 @@ type UserFacade struct {
 	Coordinator *Coordinator
 }
 
-func (u UserFacade) CreateByAdmin(identitySpec *identity.Spec, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (*user.User, error) {
-	return u.Coordinator.UserCreatebyAdmin(identitySpec, password, generatePassword, sendPassword, setPasswordExpired)
+func (u UserFacade) CreateByAdmin(ctx context.Context, identitySpec *identity.Spec, password string, generatePassword bool, sendPassword bool, setPasswordExpired bool) (*user.User, error) {
+	return u.Coordinator.UserCreatebyAdmin(ctx, identitySpec, password, generatePassword, sendPassword, setPasswordExpired)
 }
 
-func (u UserFacade) Delete(userID string) error {
-	return u.Coordinator.UserDelete(userID, false)
+func (u UserFacade) Delete(ctx context.Context, userID string) error {
+	return u.Coordinator.UserDelete(ctx, userID, false)
 }
 
-func (u UserFacade) DeleteFromScheduledDeletion(userID string) error {
-	return u.Coordinator.UserDelete(userID, true)
+func (u UserFacade) DeleteFromScheduledDeletion(ctx context.Context, userID string) error {
+	return u.Coordinator.UserDelete(ctx, userID, true)
 }
 
-func (u UserFacade) Disable(userID string, reason *string) error {
-	return u.Coordinator.UserDisable(userID, reason)
+func (u UserFacade) Disable(ctx context.Context, userID string, reason *string) error {
+	return u.Coordinator.UserDisable(ctx, userID, reason)
 }
 
-func (u UserFacade) Reenable(userID string) error {
-	return u.Coordinator.UserReenable(userID)
+func (u UserFacade) Reenable(ctx context.Context, userID string) error {
+	return u.Coordinator.UserReenable(ctx, userID)
 }
 
-func (u UserFacade) ScheduleDeletionByAdmin(userID string) error {
-	return u.Coordinator.UserScheduleDeletionByAdmin(userID)
+func (u UserFacade) ScheduleDeletionByAdmin(ctx context.Context, userID string) error {
+	return u.Coordinator.UserScheduleDeletionByAdmin(ctx, userID)
 }
 
-func (u UserFacade) UnscheduleDeletionByAdmin(userID string) error {
-	return u.Coordinator.UserUnscheduleDeletionByAdmin(userID)
+func (u UserFacade) UnscheduleDeletionByAdmin(ctx context.Context, userID string) error {
+	return u.Coordinator.UserUnscheduleDeletionByAdmin(ctx, userID)
 }
 
-func (u UserFacade) ScheduleDeletionByEndUser(userID string) error {
-	return u.Coordinator.UserScheduleDeletionByEndUser(userID)
+func (u UserFacade) ScheduleDeletionByEndUser(ctx context.Context, userID string) error {
+	return u.Coordinator.UserScheduleDeletionByEndUser(ctx, userID)
 }
 
-func (u UserFacade) Anonymize(userID string) error {
-	return u.Coordinator.UserAnonymize(userID, false)
+func (u UserFacade) Anonymize(ctx context.Context, userID string) error {
+	return u.Coordinator.UserAnonymize(ctx, userID, false)
 }
 
-func (u UserFacade) AnonymizeFromScheduledAnonymization(userID string) error {
-	return u.Coordinator.UserAnonymize(userID, true)
+func (u UserFacade) AnonymizeFromScheduledAnonymization(ctx context.Context, userID string) error {
+	return u.Coordinator.UserAnonymize(ctx, userID, true)
 }
 
-func (u UserFacade) ScheduleAnonymizationByAdmin(userID string) error {
-	return u.Coordinator.UserScheduleAnonymizationByAdmin(userID)
+func (u UserFacade) ScheduleAnonymizationByAdmin(ctx context.Context, userID string) error {
+	return u.Coordinator.UserScheduleAnonymizationByAdmin(ctx, userID)
 }
 
-func (u UserFacade) UnscheduleAnonymizationByAdmin(userID string) error {
-	return u.Coordinator.UserUnscheduleAnonymizationByAdmin(userID)
+func (u UserFacade) UnscheduleAnonymizationByAdmin(ctx context.Context, userID string) error {
+	return u.Coordinator.UserUnscheduleAnonymizationByAdmin(ctx, userID)
 }
 
-func (u UserFacade) CheckUserAnonymized(userID string) error {
-	return u.Coordinator.UserCheckAnonymized(userID)
+func (u UserFacade) CheckUserAnonymized(ctx context.Context, userID string) error {
+	return u.Coordinator.UserCheckAnonymized(ctx, userID)
 }
 
-func (u UserFacade) UpdateMFAEnrollment(userID string, endAt *time.Time) error {
-	return u.Coordinator.UserUpdateMFAEnrollment(userID, endAt)
+func (u UserFacade) UpdateMFAEnrollment(ctx context.Context, userID string, endAt *time.Time) error {
+	return u.Coordinator.UserUpdateMFAEnrollment(ctx, userID, endAt)
 }
 
-func (u UserFacade) GetUsersByStandardAttribute(attributeKey string, attributeValue string) ([]string, error) {
-	return u.Coordinator.GetUsersByStandardAttribute(attributeKey, attributeValue)
+func (u UserFacade) GetUsersByStandardAttribute(ctx context.Context, attributeKey string, attributeValue string) ([]string, error) {
+	return u.Coordinator.GetUsersByStandardAttribute(ctx, attributeKey, attributeValue)
 }
 
-func (u UserFacade) GetUserByLoginID(loginIDKey string, loginIDValue string) (string, error) {
-	return u.Coordinator.GetUserByLoginID(loginIDKey, loginIDValue)
+func (u UserFacade) GetUserByLoginID(ctx context.Context, loginIDKey string, loginIDValue string) (string, error) {
+	return u.Coordinator.GetUserByLoginID(ctx, loginIDKey, loginIDValue)
 }
 
-func (u UserFacade) GetUserByOAuth(oauthProviderAlias string, oauthProviderUserID string) (string, error) {
-	return u.Coordinator.GetUserByOAuth(oauthProviderAlias, oauthProviderUserID)
+func (u UserFacade) GetUserByOAuth(ctx context.Context, oauthProviderAlias string, oauthProviderUserID string) (string, error) {
+	return u.Coordinator.GetUserByOAuth(ctx, oauthProviderAlias, oauthProviderUserID)
 }
 
-func (i UserFacade) GetUserIDsByLoginHint(hint *oauth.LoginHint) ([]string, error) {
-	return i.Coordinator.GetUserIDsByLoginHint(hint)
+func (u UserFacade) GetUserIDsByLoginHint(ctx context.Context, hint *oauth.LoginHint) ([]string, error) {
+	return u.Coordinator.GetUserIDsByLoginHint(ctx, hint)
 }

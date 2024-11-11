@@ -1,7 +1,9 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
+
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
@@ -52,7 +54,7 @@ type SettingsSessionsHandler struct {
 	SessionListing    SettingsSessionListingService
 }
 
-func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]interface{}, error) {
+func (h *SettingsSessionsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter, s session.ResolvedSession) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
@@ -60,11 +62,11 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 	userID := s.GetAuthenticationInfo().UserID
 	viewModel := SettingsSessionsViewModel{}
 
-	ss, err := h.Sessions.List(userID)
+	ss, err := h.Sessions.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	sessionModels, err := h.SessionListing.FilterForDisplay(ss, s)
+	sessionModels, err := h.SessionListing.FilterForDisplay(ctx, ss, s)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +78,7 @@ func (h *SettingsSessionsHandler) GetData(r *http.Request, rw http.ResponseWrite
 		clientNameMap[c.ClientID] = c.ClientName
 	}
 	filter := oauth.NewKeepThirdPartyAuthorizationFilter(h.OAuthConfig)
-	authorizations, err := h.Authorizations.ListByUser(userID, filter)
+	authorizations, err := h.Authorizations.ListByUser(ctx, userID, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -111,8 +113,8 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 	currentSession := session.GetSession(r.Context())
 	redirectURI := httputil.HostRelative(r.URL).String()
 
-	ctrl.Get(func() error {
-		data, err := h.GetData(r, w, currentSession)
+	ctrl.Get(func(ctx context.Context) error {
+		data, err := h.GetData(ctx, r, w, currentSession)
 		if err != nil {
 			return err
 		}
@@ -121,18 +123,18 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return nil
 	})
 
-	ctrl.PostAction("revoke", func() error {
+	ctrl.PostAction("revoke", func(ctx context.Context) error {
 		sessionID := r.Form.Get("x_session_id")
 		if sessionID == currentSession.SessionID() {
 			return apierrors.NewInvalid("cannot revoke current session")
 		}
 
-		s, err := h.Sessions.Get(sessionID)
+		s, err := h.Sessions.Get(ctx, sessionID)
 		if err != nil {
 			return err
 		}
 
-		err = h.Sessions.RevokeWithEvent(s, true, false)
+		err = h.Sessions.RevokeWithEvent(ctx, s, true, false)
 		if err != nil {
 			return err
 		}
@@ -142,9 +144,9 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return nil
 	})
 
-	ctrl.PostAction("revoke_all", func() error {
+	ctrl.PostAction("revoke_all", func(ctx context.Context) error {
 		userID := currentSession.GetAuthenticationInfo().UserID
-		err := h.Sessions.TerminateAllExcept(userID, currentSession, false)
+		err := h.Sessions.TerminateAllExcept(ctx, userID, currentSession, false)
 		if err != nil {
 			return err
 		}
@@ -154,9 +156,9 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 		return nil
 	})
 
-	ctrl.PostAction("remove_authorization", func() error {
+	ctrl.PostAction("remove_authorization", func(ctx context.Context) error {
 		authorizationID := r.Form.Get("x_authorization_id")
-		authz, err := h.Authorizations.GetByID(authorizationID)
+		authz, err := h.Authorizations.GetByID(ctx, authorizationID)
 		if err != nil {
 			return err
 		}
@@ -165,7 +167,7 @@ func (h *SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *http.Reque
 			return apierrors.NewForbidden("cannot remove authorization")
 		}
 
-		err = h.Authorizations.Delete(authz)
+		err = h.Authorizations.Delete(ctx, authz)
 		if err != nil {
 			return err
 		}

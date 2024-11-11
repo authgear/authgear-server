@@ -28,11 +28,9 @@ var cmdInternalE2EImportUser = &cobra.Command{
 			return nil
 		}
 
-		instance := e2e.End2End{
-			Context: cmd.Context(),
-		}
+		instance := e2e.End2End{}
 
-		err := instance.ImportUsers(appID, jsonPath)
+		err := instance.ImportUsers(cmd.Context(), appID, jsonPath)
 		if err != nil {
 			return err
 		}

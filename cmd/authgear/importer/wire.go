@@ -4,8 +4,6 @@
 package importer
 
 import (
-	"context"
-
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -13,7 +11,6 @@ import (
 )
 
 func NewImporter(
-	ctx context.Context,
 	pool *db.Pool,
 	databaseCredentials *config.DatabaseCredentials,
 	appID config.AppID,

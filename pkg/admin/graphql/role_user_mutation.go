@@ -62,18 +62,19 @@ var _ = registerMutationField(
 				}
 				userIDs[i] = resolvedNodeID.ID
 			}
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			options := &rolesgroups.AddRoleToUsersOptions{
 				RoleKey: roleKey,
 				UserIDs: userIDs,
 			}
-			roleID, err := gqlCtx.RolesGroupsFacade.AddRoleToUsers(options)
+			roleID, err := gqlCtx.RolesGroupsFacade.AddRoleToUsers(ctx, options)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddRoleToUsersExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationAddRoleToUsersExecutedEventPayload{
 				UserIDs: userIDs,
 				RoleKey: roleKey,
 			})
@@ -82,7 +83,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"role": gqlCtx.Roles.Load(roleID),
+				"role": gqlCtx.Roles.Load(ctx, roleID),
 			}).Value, nil
 
 		},
@@ -139,18 +140,19 @@ var _ = registerMutationField(
 				}
 				userIDs[i] = resolvedNodeID.ID
 			}
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
 			options := &rolesgroups.RemoveRoleFromUsersOptions{
 				RoleKey: roleKey,
 				UserIDs: userIDs,
 			}
-			roleID, err := gqlCtx.RolesGroupsFacade.RemoveRoleFromUsers(options)
+			roleID, err := gqlCtx.RolesGroupsFacade.RemoveRoleFromUsers(ctx, options)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveRoleFromUsersExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationRemoveRoleFromUsersExecutedEventPayload{
 				UserIDs: userIDs,
 				RoleKey: roleKey,
 			})
@@ -159,7 +161,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"role": gqlCtx.Roles.Load(roleID),
+				"role": gqlCtx.Roles.Load(ctx, roleID),
 			}).Value, nil
 
 		},
@@ -213,9 +215,10 @@ var _ = registerMutationField(
 			for i, v := range roleKeyIfaces {
 				roleKeys[i] = v.(string)
 			}
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			roles, err := gqlCtx.RolesGroupsFacade.ListAllRolesByKeys(roleKeys)
+			roles, err := gqlCtx.RolesGroupsFacade.ListAllRolesByKeys(ctx, roleKeys)
 			if err != nil {
 				return nil, err
 			}
@@ -224,12 +227,12 @@ var _ = registerMutationField(
 				UserID:   userID,
 				RoleKeys: roleKeys,
 			}
-			err = gqlCtx.RolesGroupsFacade.AddUserToRoles(options)
+			err = gqlCtx.RolesGroupsFacade.AddUserToRoles(ctx, options)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationAddUserToRolesExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationAddUserToRolesExecutedEventPayload{
 				UserID_: userID,
 				RoleIDs: slice.Map(roles, func(r *model.Role) string { return r.ID }),
 			})
@@ -238,7 +241,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 
 		},
@@ -292,9 +295,10 @@ var _ = registerMutationField(
 			for i, v := range roleKeyIfaces {
 				roleKeys[i] = v.(string)
 			}
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			roles, err := gqlCtx.RolesGroupsFacade.ListAllRolesByKeys(roleKeys)
+			roles, err := gqlCtx.RolesGroupsFacade.ListAllRolesByKeys(ctx, roleKeys)
 			if err != nil {
 				return nil, err
 			}
@@ -303,11 +307,11 @@ var _ = registerMutationField(
 				UserID:   userID,
 				RoleKeys: roleKeys,
 			}
-			err = gqlCtx.RolesGroupsFacade.RemoveUserFromRoles(options)
+			err = gqlCtx.RolesGroupsFacade.RemoveUserFromRoles(ctx, options)
 			if err != nil {
 				return nil, err
 			}
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationRemoveUserFromRolesExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationRemoveUserFromRolesExecutedEventPayload{
 				UserID_: userID,
 				RoleIDs: slice.Map(roles, func(r *model.Role) string { return r.ID }),
 			})
@@ -316,7 +320,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"user": gqlCtx.Users.Load(userID),
+				"user": gqlCtx.Users.Load(ctx, userID),
 			}).Value, nil
 
 		},

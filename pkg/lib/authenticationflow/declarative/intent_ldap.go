@@ -99,7 +99,7 @@ func (i *IntentLDAP) ReactTo(ctx context.Context, deps *authflow.Dependencies, f
 		}
 
 		// login
-		exactMatch, err := findExactOneIdentityInfo(deps, spec)
+		exactMatch, err := findExactOneIdentityInfo(ctx, deps, spec)
 		if err != nil {
 			return nil, err
 		}

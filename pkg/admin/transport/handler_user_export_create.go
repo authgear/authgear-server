@@ -38,7 +38,7 @@ const (
 )
 
 type UserExportUsageLimiter interface {
-	Reserve(name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
+	Reserve(ctx context.Context, name usage.LimitName, config *config.UsageLimitConfig) (*usage.Reservation, error)
 }
 
 type UserExportCreateHandler struct {
@@ -52,14 +52,15 @@ type UserExportCreateHandler struct {
 }
 
 func (h *UserExportCreateHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	err := h.handle(w, r)
+	ctx := r.Context()
+	err := h.handle(ctx, w, r)
 	if err != nil {
 		h.JSON.WriteResponse(w, &api.Response{Error: err})
 		return
 	}
 }
 
-func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request) error {
+func (h *UserExportCreateHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
 	if h.CloudStorage == nil {
 		return userexport.ErrUserExportDisabled
 	}
@@ -75,6 +76,7 @@ func (h *UserExportCreateHandler) handle(w http.ResponseWriter, r *http.Request)
 	}
 
 	_, err = h.UsageLimiter.Reserve(
+		ctx,
 		usageLimitUserExport,
 		h.AdminAPIFeatureConfig.UserExportUsage,
 	)

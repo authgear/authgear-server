@@ -71,18 +71,19 @@ var _ = registerMutationField(
 				Description: description,
 			}
 
-			gqlCtx := GQLContext(p.Context)
-			roleID, err := gqlCtx.RolesGroupsFacade.CreateRole(options)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
+			roleID, err := gqlCtx.RolesGroupsFacade.CreateRole(ctx, options)
 			if err != nil {
 				return nil, err
 			}
 
-			role, err := gqlCtx.RolesGroupsFacade.GetRole(roleID)
+			role, err := gqlCtx.RolesGroupsFacade.GetRole(ctx, roleID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationCreateRoleExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationCreateRoleExecutedEventPayload{
 				Role: *role,
 			})
 			if err != nil {
@@ -90,7 +91,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"role": gqlCtx.Roles.Load(roleID),
+				"role": gqlCtx.Roles.Load(ctx, roleID),
 			}).Value, nil
 		},
 	},
@@ -169,28 +170,29 @@ var _ = registerMutationField(
 				NewName:        newName,
 				NewDescription: newDescription,
 			}
-			gqlCtx := GQLContext(p.Context)
-			originalRole, err := gqlCtx.RolesGroupsFacade.GetRole(roleID)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
+			originalRole, err := gqlCtx.RolesGroupsFacade.GetRole(ctx, roleID)
 			if err != nil {
 				return nil, err
 			}
 
-			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByEffectiveRoleIDs([]string{roleID})
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByEffectiveRoleIDs(ctx, []string{roleID})
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.RolesGroupsFacade.UpdateRole(options)
+			err = gqlCtx.RolesGroupsFacade.UpdateRole(ctx, options)
 			if err != nil {
 				return nil, err
 			}
 
-			newRole, err := gqlCtx.RolesGroupsFacade.GetRole(roleID)
+			newRole, err := gqlCtx.RolesGroupsFacade.GetRole(ctx, roleID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationUpdateRoleExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationUpdateRoleExecutedEventPayload{
 				AffectedUserIDs: affectedUserIDs,
 				OriginalRole:    *originalRole,
 				NewRole:         *newRole,
@@ -200,7 +202,7 @@ var _ = registerMutationField(
 			}
 
 			return graphqlutil.NewLazyValue(map[string]interface{}{
-				"role": gqlCtx.Roles.Load(roleID),
+				"role": gqlCtx.Roles.Load(ctx, roleID),
 			}).Value, nil
 		},
 	},
@@ -246,34 +248,35 @@ var _ = registerMutationField(
 			}
 			roleID := resolvedNodeID.ID
 
-			gqlCtx := GQLContext(p.Context)
+			ctx := p.Context
+			gqlCtx := GQLContext(ctx)
 
-			role, err := gqlCtx.RolesGroupsFacade.GetRole(roleID)
+			role, err := gqlCtx.RolesGroupsFacade.GetRole(ctx, roleID)
 			if err != nil {
 				return nil, err
 			}
 
-			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByEffectiveRoleIDs([]string{roleID})
+			affectedUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByEffectiveRoleIDs(ctx, []string{roleID})
 			if err != nil {
 				return nil, err
 			}
 
-			roleUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByRoleIDs([]string{roleID})
+			roleUserIDs, err := gqlCtx.RolesGroupsFacade.ListAllUserIDsByRoleIDs(ctx, []string{roleID})
 			if err != nil {
 				return nil, err
 			}
 
-			roleGroups, err := gqlCtx.RolesGroupsFacade.ListGroupsByRoleID(roleID)
+			roleGroups, err := gqlCtx.RolesGroupsFacade.ListGroupsByRoleID(ctx, roleID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.RolesGroupsFacade.DeleteRole(roleID)
+			err = gqlCtx.RolesGroupsFacade.DeleteRole(ctx, roleID)
 			if err != nil {
 				return nil, err
 			}
 
-			err = gqlCtx.Events.DispatchEventOnCommit(&nonblocking.AdminAPIMutationDeleteRoleExecutedEventPayload{
+			err = gqlCtx.Events.DispatchEventOnCommit(ctx, &nonblocking.AdminAPIMutationDeleteRoleExecutedEventPayload{
 				AffectedUserIDs: affectedUserIDs,
 				Role:            *role,
 				RoleUserIDs:     roleUserIDs,

@@ -1,6 +1,7 @@
 package oauth
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -20,7 +21,7 @@ type AppSessionToken struct {
 }
 
 type AppSessionTokenServiceOfflineGrantService interface {
-	GetOfflineGrant(id string) (*OfflineGrant, error)
+	GetOfflineGrant(ctx context.Context, id string) (*OfflineGrant, error)
 }
 
 type AppSessionTokenServiceCookieManager interface {
@@ -40,8 +41,8 @@ type AppSessionTokenService struct {
 	Clock               clock.Clock
 }
 
-func (s *AppSessionTokenService) Handle(input AppSessionTokenInput) (httputil.Result, error) {
-	token, err := s.Exchange(input.AppSessionToken)
+func (s *AppSessionTokenService) Handle(ctx context.Context, input AppSessionTokenInput) (httputil.Result, error) {
+	token, err := s.Exchange(ctx, input.AppSessionToken)
 	if err != nil {
 		return nil, err
 	}
@@ -53,19 +54,19 @@ func (s *AppSessionTokenService) Handle(input AppSessionTokenInput) (httputil.Re
 	}, nil
 }
 
-func (s *AppSessionTokenService) Exchange(appSessionToken string) (string, error) {
-	sToken, err := s.AppSessionTokens.GetAppSessionToken(HashToken(appSessionToken))
+func (s *AppSessionTokenService) Exchange(ctx context.Context, appSessionToken string) (string, error) {
+	sToken, err := s.AppSessionTokens.GetAppSessionToken(ctx, HashToken(appSessionToken))
 	if err != nil {
 		return "", err
 	}
 	refreshTokenHash := sToken.RefreshTokenHash
 
-	offlineGrant, err := s.OfflineGrantService.GetOfflineGrant(sToken.OfflineGrantID)
+	offlineGrant, err := s.OfflineGrantService.GetOfflineGrant(ctx, sToken.OfflineGrantID)
 	if err != nil {
 		return "", err
 	}
 
-	err = s.AppSessionTokens.DeleteAppSessionToken(sToken)
+	err = s.AppSessionTokens.DeleteAppSessionToken(ctx, sToken)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +81,7 @@ func (s *AppSessionTokenService) Exchange(appSessionToken string) (string, error
 		TokenHash:        HashToken(token),
 		RefreshTokenHash: refreshTokenHash,
 	}
-	err = s.AppSessions.CreateAppSession(appSession)
+	err = s.AppSessions.CreateAppSession(ctx, appSession)
 	if err != nil {
 		return "", err
 	}

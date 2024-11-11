@@ -5,6 +5,7 @@
 package idpsession
 
 import (
+	context "context"
 	reflect "reflect"
 	time "time"
 
@@ -35,87 +36,87 @@ func (m *MockStore) EXPECT() *MockStoreMockRecorder {
 }
 
 // CleanUpForDeletingUserID mocks base method.
-func (m *MockStore) CleanUpForDeletingUserID(userID string) error {
+func (m *MockStore) CleanUpForDeletingUserID(ctx context.Context, userID string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CleanUpForDeletingUserID", userID)
+	ret := m.ctrl.Call(m, "CleanUpForDeletingUserID", ctx, userID)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CleanUpForDeletingUserID indicates an expected call of CleanUpForDeletingUserID.
-func (mr *MockStoreMockRecorder) CleanUpForDeletingUserID(userID interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) CleanUpForDeletingUserID(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanUpForDeletingUserID", reflect.TypeOf((*MockStore)(nil).CleanUpForDeletingUserID), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanUpForDeletingUserID", reflect.TypeOf((*MockStore)(nil).CleanUpForDeletingUserID), ctx, userID)
 }
 
 // Create mocks base method.
-func (m *MockStore) Create(s *IDPSession, expireAt time.Time) error {
+func (m *MockStore) Create(ctx context.Context, s *IDPSession, expireAt time.Time) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Create", s, expireAt)
+	ret := m.ctrl.Call(m, "Create", ctx, s, expireAt)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Create indicates an expected call of Create.
-func (mr *MockStoreMockRecorder) Create(s, expireAt interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Create(ctx, s, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockStore)(nil).Create), s, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockStore)(nil).Create), ctx, s, expireAt)
 }
 
 // Delete mocks base method.
-func (m *MockStore) Delete(arg0 *IDPSession) error {
+func (m *MockStore) Delete(ctx context.Context, s *IDPSession) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Delete", arg0)
+	ret := m.ctrl.Call(m, "Delete", ctx, s)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Delete indicates an expected call of Delete.
-func (mr *MockStoreMockRecorder) Delete(arg0 interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Delete(ctx, s interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStore)(nil).Delete), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockStore)(nil).Delete), ctx, s)
 }
 
 // Get mocks base method.
-func (m *MockStore) Get(id string) (*IDPSession, error) {
+func (m *MockStore) Get(ctx context.Context, id string) (*IDPSession, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", id)
+	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(*IDPSession)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockStoreMockRecorder) Get(id interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), id)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockStore)(nil).Get), ctx, id)
 }
 
 // List mocks base method.
-func (m *MockStore) List(userID string) ([]*IDPSession, error) {
+func (m *MockStore) List(ctx context.Context, userID string) ([]*IDPSession, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "List", userID)
+	ret := m.ctrl.Call(m, "List", ctx, userID)
 	ret0, _ := ret[0].([]*IDPSession)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List.
-func (mr *MockStoreMockRecorder) List(userID interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) List(ctx, userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockStore)(nil).List), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockStore)(nil).List), ctx, userID)
 }
 
 // Update mocks base method.
-func (m *MockStore) Update(s *IDPSession, expireAt time.Time) error {
+func (m *MockStore) Update(ctx context.Context, s *IDPSession, expireAt time.Time) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Update", s, expireAt)
+	ret := m.ctrl.Call(m, "Update", ctx, s, expireAt)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Update indicates an expected call of Update.
-func (mr *MockStoreMockRecorder) Update(s, expireAt interface{}) *gomock.Call {
+func (mr *MockStoreMockRecorder) Update(ctx, s, expireAt interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockStore)(nil).Update), s, expireAt)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockStore)(nil).Update), ctx, s, expireAt)
 }

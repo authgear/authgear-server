@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
 	"net/url"
 	"strings"
 
@@ -40,15 +41,18 @@ type TesterViewModel struct {
 
 type TesterService interface {
 	GetToken(
+		ctx context.Context,
 		appID config.AppID,
 		tokenID string,
 		consume bool,
 	) (*tester.TesterToken, error)
 	CreateResult(
+		ctx context.Context,
 		appID config.AppID,
 		result *tester.TesterResult,
 	) (*tester.TesterResult, error)
 	GetResult(
+		ctx context.Context,
 		appID config.AppID,
 		resultID string,
 	) (*tester.TesterResult, error)
@@ -64,7 +68,7 @@ type TesterAuthTokensIssuer interface {
 }
 
 type TesterAppSessionTokenService interface {
-	Exchange(appSessionToken string) (string, error)
+	Exchange(ctx context.Context, appSessionToken string) (string, error)
 }
 
 type TesterCookieManager interface {
@@ -72,11 +76,11 @@ type TesterCookieManager interface {
 }
 
 type TesterUserInfoProvider interface {
-	GetUserInfo(userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
+	GetUserInfo(ctx context.Context, userID string, clientLike *oauth.ClientLike) (map[string]interface{}, error)
 }
 
 type TesterOfflineGrantService interface {
-	GetOfflineGrant(id string) (*oauth.OfflineGrant, error)
+	GetOfflineGrant(ctx context.Context, id string) (*oauth.OfflineGrant, error)
 }
 
 type TesterHandler struct {
@@ -111,8 +115,8 @@ func (h *TesterHandler) notFound(w http.ResponseWriter, r *http.Request) {
 	)
 }
 
-func (h *TesterHandler) triggerAuth(token string, w http.ResponseWriter, r *http.Request) error {
-	testerToken, err := h.TesterService.GetToken(h.AppID, token, false)
+func (h *TesterHandler) triggerAuth(ctx context.Context, token string, w http.ResponseWriter, r *http.Request) error {
+	testerToken, err := h.TesterService.GetToken(ctx, h.AppID, token, false)
 	if errors.Is(err, tester.ErrTokenNotFound) {
 		h.notFound(w, r)
 		return nil
@@ -179,7 +183,7 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 		return err
 	}
 
-	testerToken, err := h.TesterService.GetToken(h.AppID, state.Token, true)
+	testerToken, err := h.TesterService.GetToken(ctx, h.AppID, state.Token, true)
 	if errors.Is(err, tester.ErrTokenNotFound) {
 		h.notFound(w, r)
 		return nil
@@ -210,13 +214,13 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 		return err
 	}
 
-	offlineGrant, err := h.OfflineGrants.GetOfflineGrant(s.OfflineGrantID)
+	offlineGrant, err := h.OfflineGrants.GetOfflineGrant(ctx, s.OfflineGrantID)
 	if err != nil {
 		return err
 	}
 	userID := offlineGrant.GetAuthenticationInfo().UserID
 
-	appSession, err := h.AppSessionTokenService.Exchange(appSessionToken)
+	appSession, err := h.AppSessionTokenService.Exchange(ctx, appSessionToken)
 	if err != nil {
 		return err
 	}
@@ -224,13 +228,13 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 	cookie := h.CookieManager.ValueCookie(session.AppSessionTokenCookieDef, appSession)
 	httputil.UpdateCookie(w, cookie)
 
-	userInfo, err := h.UserInfoProvider.GetUserInfo(userID, oauth.ClientClientLike(client, TesterScopes))
+	userInfo, err := h.UserInfoProvider.GetUserInfo(ctx, userID, oauth.ClientClientLike(client, TesterScopes))
 	if err != nil {
 		return err
 	}
 
 	result := tester.NewTesterResultFromToken(testerToken, userInfo)
-	_, err = h.TesterService.CreateResult(h.AppID, result)
+	_, err = h.TesterService.CreateResult(ctx, h.AppID, result)
 	if err != nil {
 		return err
 	}
@@ -245,8 +249,8 @@ func (h *TesterHandler) doCodeExchange(ctx context.Context, code string, stateb6
 	return nil
 }
 
-func (h *TesterHandler) renderResult(resultID string, w http.ResponseWriter, r *http.Request) error {
-	result, err := h.TesterService.GetResult(h.AppID, resultID)
+func (h *TesterHandler) renderResult(ctx context.Context, resultID string, w http.ResponseWriter, r *http.Request) error {
+	result, err := h.TesterService.GetResult(ctx, h.AppID, resultID)
 	if errors.Is(err, tester.ErrResultNotFound) {
 		h.notFound(w, r)
 		return nil
@@ -273,10 +277,10 @@ func (h *TesterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		token := r.URL.Query().Get("token")
 		if token != "" {
-			return h.triggerAuth(token, w, r)
+			return h.triggerAuth(ctx, token, w, r)
 		}
 
 		code := r.URL.Query().Get("code")
@@ -287,7 +291,7 @@ func (h *TesterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		resultID := r.URL.Query().Get("result")
 		if resultID != "" {
-			return h.renderResult(resultID, w, r)
+			return h.renderResult(ctx, resultID, w, r)
 		}
 
 		h.notFound(w, r)

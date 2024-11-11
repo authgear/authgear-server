@@ -1,6 +1,7 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
 
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
@@ -39,8 +40,8 @@ type AuthflowV2SettingsHandler struct {
 	AccountDeletion          *config.AccountDeletionConfig
 }
 
-func (h *AuthflowV2SettingsHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
-	userID := session.GetUserID(r.Context())
+func (h *AuthflowV2SettingsHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+	userID := session.GetUserID(ctx)
 
 	data := map[string]interface{}{}
 
@@ -49,21 +50,21 @@ func (h *AuthflowV2SettingsHandler) GetData(r *http.Request, rw http.ResponseWri
 	viewmodels.Embed(data, baseViewModel)
 
 	// SettingsViewModel
-	viewModelPtr, err := h.SettingsViewModel.ViewModel(*userID)
+	viewModelPtr, err := h.SettingsViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 	viewmodels.Embed(data, *viewModelPtr)
 
 	// SettingsProfileViewModel
-	profileViewModelPtr, err := h.SettingsProfileViewModel.ViewModel(*userID)
+	profileViewModelPtr, err := h.SettingsProfileViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 	viewmodels.Embed(data, *profileViewModelPtr)
 
 	// Identity - Part 1
-	candidates, err := h.Identities.ListCandidates(*userID)
+	candidates, err := h.Identities.ListCandidates(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -87,10 +88,10 @@ func (h *AuthflowV2SettingsHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			if err != nil {
 				return err
 			}

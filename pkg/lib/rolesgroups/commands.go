@@ -1,6 +1,8 @@
 package rolesgroups
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 )
 
@@ -8,14 +10,14 @@ type Commands struct {
 	Store *Store
 }
 
-func (c *Commands) CreateRole(options *NewRoleOptions) (*model.Role, error) {
+func (c *Commands) CreateRole(ctx context.Context, options *NewRoleOptions) (*model.Role, error) {
 	err := ValidateKey(options.Key)
 	if err != nil {
 		return nil, err
 	}
 
 	role := c.Store.NewRole(options)
-	err = c.Store.CreateRole(role)
+	err = c.Store.CreateRole(ctx, role)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +25,7 @@ func (c *Commands) CreateRole(options *NewRoleOptions) (*model.Role, error) {
 	return role.ToModel(), nil
 }
 
-func (c *Commands) UpdateRole(options *UpdateRoleOptions) (*model.Role, error) {
+func (c *Commands) UpdateRole(ctx context.Context, options *UpdateRoleOptions) (*model.Role, error) {
 	if options.RequireUpdate() {
 		if options.NewKey != nil {
 			err := ValidateKey(*options.NewKey)
@@ -32,13 +34,13 @@ func (c *Commands) UpdateRole(options *UpdateRoleOptions) (*model.Role, error) {
 			}
 		}
 
-		err := c.Store.UpdateRole(options)
+		err := c.Store.UpdateRole(ctx, options)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	r, err := c.Store.GetRoleByID(options.ID)
+	r, err := c.Store.GetRoleByID(ctx, options.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -46,18 +48,18 @@ func (c *Commands) UpdateRole(options *UpdateRoleOptions) (*model.Role, error) {
 	return r.ToModel(), nil
 }
 
-func (c *Commands) DeleteRole(id string) error {
-	return c.Store.DeleteRole(id)
+func (c *Commands) DeleteRole(ctx context.Context, id string) error {
+	return c.Store.DeleteRole(ctx, id)
 }
 
-func (c *Commands) CreateGroup(options *NewGroupOptions) (*model.Group, error) {
+func (c *Commands) CreateGroup(ctx context.Context, options *NewGroupOptions) (*model.Group, error) {
 	err := ValidateKey(options.Key)
 	if err != nil {
 		return nil, err
 	}
 
 	group := c.Store.NewGroup(options)
-	err = c.Store.CreateGroup(group)
+	err = c.Store.CreateGroup(ctx, group)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +67,7 @@ func (c *Commands) CreateGroup(options *NewGroupOptions) (*model.Group, error) {
 	return group.ToModel(), nil
 }
 
-func (c *Commands) UpdateGroup(options *UpdateGroupOptions) (*model.Group, error) {
+func (c *Commands) UpdateGroup(ctx context.Context, options *UpdateGroupOptions) (*model.Group, error) {
 	if options.RequireUpdate() {
 		if options.NewKey != nil {
 			err := ValidateKey(*options.NewKey)
@@ -74,13 +76,13 @@ func (c *Commands) UpdateGroup(options *UpdateGroupOptions) (*model.Group, error
 			}
 		}
 
-		err := c.Store.UpdateGroup(options)
+		err := c.Store.UpdateGroup(ctx, options)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	r, err := c.Store.GetGroupByID(options.ID)
+	r, err := c.Store.GetGroupByID(ctx, options.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,12 +90,12 @@ func (c *Commands) UpdateGroup(options *UpdateGroupOptions) (*model.Group, error
 	return r.ToModel(), nil
 }
 
-func (c *Commands) DeleteGroup(id string) error {
-	return c.Store.DeleteGroup(id)
+func (c *Commands) DeleteGroup(ctx context.Context, id string) error {
+	return c.Store.DeleteGroup(ctx, id)
 }
 
-func (c *Commands) AddRoleToGroups(options *AddRoleToGroupsOptions) (*model.Role, error) {
-	r, err := c.Store.AddRoleToGroups(options)
+func (c *Commands) AddRoleToGroups(ctx context.Context, options *AddRoleToGroupsOptions) (*model.Role, error) {
+	r, err := c.Store.AddRoleToGroups(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -101,8 +103,8 @@ func (c *Commands) AddRoleToGroups(options *AddRoleToGroupsOptions) (*model.Role
 	return r.ToModel(), nil
 }
 
-func (c *Commands) RemoveRoleFromGroups(options *RemoveRoleFromGroupsOptions) (*model.Role, error) {
-	r, err := c.Store.RemoveRoleFromGroups(options)
+func (c *Commands) RemoveRoleFromGroups(ctx context.Context, options *RemoveRoleFromGroupsOptions) (*model.Role, error) {
+	r, err := c.Store.RemoveRoleFromGroups(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -110,8 +112,8 @@ func (c *Commands) RemoveRoleFromGroups(options *RemoveRoleFromGroupsOptions) (*
 	return r.ToModel(), nil
 }
 
-func (c *Commands) AddRoleToUsers(options *AddRoleToUsersOptions) (*model.Role, error) {
-	r, err := c.Store.AddRoleToUsers(options)
+func (c *Commands) AddRoleToUsers(ctx context.Context, options *AddRoleToUsersOptions) (*model.Role, error) {
+	r, err := c.Store.AddRoleToUsers(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -119,8 +121,8 @@ func (c *Commands) AddRoleToUsers(options *AddRoleToUsersOptions) (*model.Role, 
 	return r.ToModel(), nil
 }
 
-func (c *Commands) RemoveRoleFromUsers(options *RemoveRoleFromUsersOptions) (*model.Role, error) {
-	r, err := c.Store.RemoveRoleFromUsers(options)
+func (c *Commands) RemoveRoleFromUsers(ctx context.Context, options *RemoveRoleFromUsersOptions) (*model.Role, error) {
+	r, err := c.Store.RemoveRoleFromUsers(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -128,8 +130,8 @@ func (c *Commands) RemoveRoleFromUsers(options *RemoveRoleFromUsersOptions) (*mo
 	return r.ToModel(), nil
 }
 
-func (c *Commands) AddGroupToUsers(options *AddGroupToUsersOptions) (*model.Group, error) {
-	r, err := c.Store.AddGroupToUsers(options)
+func (c *Commands) AddGroupToUsers(ctx context.Context, options *AddGroupToUsersOptions) (*model.Group, error) {
+	r, err := c.Store.AddGroupToUsers(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -137,8 +139,8 @@ func (c *Commands) AddGroupToUsers(options *AddGroupToUsersOptions) (*model.Grou
 	return r.ToModel(), nil
 }
 
-func (c *Commands) RemoveGroupFromUsers(options *RemoveGroupFromUsersOptions) (*model.Group, error) {
-	r, err := c.Store.RemoveGroupFromUsers(options)
+func (c *Commands) RemoveGroupFromUsers(ctx context.Context, options *RemoveGroupFromUsersOptions) (*model.Group, error) {
+	r, err := c.Store.RemoveGroupFromUsers(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -146,8 +148,8 @@ func (c *Commands) RemoveGroupFromUsers(options *RemoveGroupFromUsersOptions) (*
 	return r.ToModel(), nil
 }
 
-func (c *Commands) AddGroupToRoles(options *AddGroupToRolesOptions) (*model.Group, error) {
-	r, err := c.Store.AddGroupToRoles(options)
+func (c *Commands) AddGroupToRoles(ctx context.Context, options *AddGroupToRolesOptions) (*model.Group, error) {
+	r, err := c.Store.AddGroupToRoles(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -155,8 +157,8 @@ func (c *Commands) AddGroupToRoles(options *AddGroupToRolesOptions) (*model.Grou
 	return r.ToModel(), nil
 }
 
-func (c *Commands) RemoveGroupFromRoles(options *RemoveGroupFromRolesOptions) (*model.Group, error) {
-	r, err := c.Store.RemoveGroupFromRoles(options)
+func (c *Commands) RemoveGroupFromRoles(ctx context.Context, options *RemoveGroupFromRolesOptions) (*model.Group, error) {
+	r, err := c.Store.RemoveGroupFromRoles(ctx, options)
 	if err != nil {
 		return nil, err
 	}
@@ -164,8 +166,8 @@ func (c *Commands) RemoveGroupFromRoles(options *RemoveGroupFromRolesOptions) (*
 	return r.ToModel(), nil
 }
 
-func (c *Commands) AddUserToRoles(options *AddUserToRolesOptions) error {
-	err := c.Store.AddUserToRoles(options)
+func (c *Commands) AddUserToRoles(ctx context.Context, options *AddUserToRolesOptions) error {
+	err := c.Store.AddUserToRoles(ctx, options)
 	if err != nil {
 		return err
 	}
@@ -173,8 +175,8 @@ func (c *Commands) AddUserToRoles(options *AddUserToRolesOptions) error {
 	return nil
 }
 
-func (c *Commands) RemoveUserFromRoles(options *RemoveUserFromRolesOptions) error {
-	err := c.Store.RemoveUserFromRoles(options)
+func (c *Commands) RemoveUserFromRoles(ctx context.Context, options *RemoveUserFromRolesOptions) error {
+	err := c.Store.RemoveUserFromRoles(ctx, options)
 	if err != nil {
 		return err
 	}
@@ -182,8 +184,8 @@ func (c *Commands) RemoveUserFromRoles(options *RemoveUserFromRolesOptions) erro
 	return nil
 }
 
-func (c *Commands) AddUserToGroups(options *AddUserToGroupsOptions) error {
-	err := c.Store.AddUserToGroups(options)
+func (c *Commands) AddUserToGroups(ctx context.Context, options *AddUserToGroupsOptions) error {
+	err := c.Store.AddUserToGroups(ctx, options)
 	if err != nil {
 		return err
 	}
@@ -191,8 +193,8 @@ func (c *Commands) AddUserToGroups(options *AddUserToGroupsOptions) error {
 	return nil
 }
 
-func (c *Commands) RemoveUserFromGroups(options *RemoveUserFromGroupsOptions) error {
-	err := c.Store.RemoveUserFromGroups(options)
+func (c *Commands) RemoveUserFromGroups(ctx context.Context, options *RemoveUserFromGroupsOptions) error {
+	err := c.Store.RemoveUserFromGroups(ctx, options)
 	if err != nil {
 		return err
 	}
@@ -200,8 +202,8 @@ func (c *Commands) RemoveUserFromGroups(options *RemoveUserFromGroupsOptions) er
 	return nil
 }
 
-func (c *Commands) DeleteUserGroup(userID string) error {
-	err := c.Store.DeleteUserGroup(userID)
+func (c *Commands) DeleteUserGroup(ctx context.Context, userID string) error {
+	err := c.Store.DeleteUserGroup(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -209,8 +211,8 @@ func (c *Commands) DeleteUserGroup(userID string) error {
 	return nil
 }
 
-func (c *Commands) DeleteUserRole(userID string) error {
-	err := c.Store.DeleteUserRole(userID)
+func (c *Commands) DeleteUserRole(ctx context.Context, userID string) error {
+	err := c.Store.DeleteUserRole(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -218,8 +220,8 @@ func (c *Commands) DeleteUserRole(userID string) error {
 	return nil
 }
 
-func (c *Commands) ResetUserGroup(options *ResetUserGroupOptions) error {
-	err := c.Store.ResetUserGroup(options)
+func (c *Commands) ResetUserGroup(ctx context.Context, options *ResetUserGroupOptions) error {
+	err := c.Store.ResetUserGroup(ctx, options)
 	if err != nil {
 		return err
 	}
@@ -227,8 +229,8 @@ func (c *Commands) ResetUserGroup(options *ResetUserGroupOptions) error {
 	return nil
 }
 
-func (c *Commands) ResetUserRole(options *ResetUserRoleOptions) error {
-	err := c.Store.ResetUserRole(options)
+func (c *Commands) ResetUserRole(ctx context.Context, options *ResetUserRoleOptions) error {
+	err := c.Store.ResetUserRole(ctx, options)
 	if err != nil {
 		return err
 	}

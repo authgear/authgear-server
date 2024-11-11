@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -30,7 +32,7 @@ func (e *EdgeAuthenticationTOTP) IsDefaultAuthenticator() bool {
 	return len(filtered) > 0
 }
 
-func (e *EdgeAuthenticationTOTP) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeAuthenticationTOTP) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	var input InputAuthenticationTOTP
 	if !interaction.Input(rawInput, &input) {
 		return nil, interaction.ErrIncompatibleInput
@@ -42,7 +44,7 @@ func (e *EdgeAuthenticationTOTP) Instantiate(ctx *interaction.Context, graph *in
 		},
 	}
 
-	info, _, err := ctx.Authenticators.VerifyOneWithSpec(
+	info, _, err := ctx.Authenticators.VerifyOneWithSpec(goCtx,
 		graph.MustGetUserID(),
 		model.AuthenticatorTypeTOTP,
 		e.Authenticators,
@@ -67,15 +69,15 @@ type NodeAuthenticationTOTP struct {
 	Authenticator *authenticator.Info       `json:"authenticator"`
 }
 
-func (n *NodeAuthenticationTOTP) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeAuthenticationTOTP) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
-func (n *NodeAuthenticationTOTP) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeAuthenticationTOTP) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return nil, nil
 }
 
-func (n *NodeAuthenticationTOTP) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
+func (n *NodeAuthenticationTOTP) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
 	return []interaction.Edge{
 		&EdgeAuthenticationEnd{
 			Stage:                 n.Stage,

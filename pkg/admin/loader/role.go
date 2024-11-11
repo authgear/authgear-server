@@ -1,12 +1,14 @@
 package loader
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type RoleLoaderRoles interface {
-	GetManyRoles(ids []string) ([]*model.Role, error)
+	GetManyRoles(ctx context.Context, ids []string) ([]*model.Role, error)
 }
 
 type RoleLoader struct {
@@ -23,7 +25,7 @@ func NewRoleLoader(roles RoleLoaderRoles) *RoleLoader {
 	return l
 }
 
-func (l *RoleLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+func (l *RoleLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -31,7 +33,7 @@ func (l *RoleLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	}
 
 	// Get entities.
-	entities, err := l.Roles.GetManyRoles(ids)
+	entities, err := l.Roles.GetManyRoles(ctx, ids)
 	if err != nil {
 		return nil, err
 	}

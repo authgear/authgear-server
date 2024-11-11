@@ -5,6 +5,7 @@
 package configsource
 
 import (
+	context "context"
 	reflect "reflect"
 
 	model "github.com/authgear/authgear-server/pkg/api/model"
@@ -35,16 +36,16 @@ func (m *MockDomainService) EXPECT() *MockDomainServiceMockRecorder {
 }
 
 // ListDomains mocks base method.
-func (m *MockDomainService) ListDomains(appID string) ([]*model.Domain, error) {
+func (m *MockDomainService) ListDomains(ctx context.Context, appID string) ([]*model.Domain, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListDomains", appID)
+	ret := m.ctrl.Call(m, "ListDomains", ctx, appID)
 	ret0, _ := ret[0].([]*model.Domain)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListDomains indicates an expected call of ListDomains.
-func (mr *MockDomainServiceMockRecorder) ListDomains(appID interface{}) *gomock.Call {
+func (mr *MockDomainServiceMockRecorder) ListDomains(ctx, appID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDomains", reflect.TypeOf((*MockDomainService)(nil).ListDomains), appID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListDomains", reflect.TypeOf((*MockDomainService)(nil).ListDomains), ctx, appID)
 }

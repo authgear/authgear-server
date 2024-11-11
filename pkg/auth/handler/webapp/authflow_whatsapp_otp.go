@@ -1,7 +1,9 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
+
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -97,7 +99,7 @@ func (h *AuthflowWhatsappOTPHandler) GetData(w http.ResponseWriter, r *http.Requ
 
 func (h *AuthflowWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -106,12 +108,12 @@ func (h *AuthflowWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowWhatsappOTPHTML, data)
 		return nil
 	})
-	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("resend", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"resend": true,
 		}
 
-		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
+		result, err := h.Controller.UpdateWithInput(ctx, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -120,7 +122,7 @@ func (h *AuthflowWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.PostAction("submit", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("submit", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		err := AuthflowWhatsappOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 		if err != nil {
 			return err
@@ -134,7 +136,7 @@ func (h *AuthflowWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -142,5 +144,5 @@ func (h *AuthflowWhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

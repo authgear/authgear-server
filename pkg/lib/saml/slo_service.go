@@ -1,6 +1,7 @@
 package saml
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/beevik/etree"
@@ -30,6 +31,7 @@ type BindingHTTPRedirectWriter interface {
 
 type SAMLService interface {
 	IssueLogoutRequest(
+		ctx context.Context,
 		sp *config.SAMLServiceProviderConfig,
 		sloSession *samlslosession.SAMLSLOSession,
 	) (*samlprotocol.LogoutRequest, error)
@@ -42,12 +44,14 @@ type SLOService struct {
 }
 
 func (s *SLOService) SendSLORequest(
+	ctx context.Context,
 	rw http.ResponseWriter,
 	r *http.Request,
 	sloSession *samlslosession.SAMLSLOSession,
 	sp *config.SAMLServiceProviderConfig,
 ) error {
 	logoutRequest, err := s.SAMLService.IssueLogoutRequest(
+		ctx,
 		sp,
 		sloSession,
 	)

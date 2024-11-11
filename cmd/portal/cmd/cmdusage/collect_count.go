@@ -103,7 +103,6 @@ var cmdUsageCollectCount = &cobra.Command{
 		dbPool := db.NewPool()
 		redisPool := redis.NewPool()
 		countCollector := usage.NewCountCollector(
-			ctx,
 			dbPool,
 			dbCredentials,
 			auditDBCredentials,
@@ -112,7 +111,7 @@ var cmdUsageCollectCount = &cobra.Command{
 			hub,
 		)
 
-		type collectorFuncType func(date *time.Time) (updatedCount int, err error)
+		type collectorFuncType func(ctx context.Context, date *time.Time) (updatedCount int, err error)
 		collectorFuncMap := map[libusage.RecordType]map[periodical.Type]collectorFuncType{
 			libusage.RecordTypeActiveUser: {
 				periodical.Monthly: countCollector.CollectMonthlyActiveUser,
@@ -137,7 +136,7 @@ var cmdUsageCollectCount = &cobra.Command{
 
 		logger.Info("Start collecting usage records")
 
-		updatedCount, err := collectorFunc(date)
+		updatedCount, err := collectorFunc(ctx, date)
 		if err != nil {
 			return err
 		}

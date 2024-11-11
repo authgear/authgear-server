@@ -1,9 +1,11 @@
 package authflowv2
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api"
@@ -124,7 +126,7 @@ type AuthflowV2NavigatorEndpointsProvider interface {
 }
 
 type AuthflowV2NavigatorOAuthStateStore interface {
-	GenerateState(state *webappoauth.WebappOAuthState) (stateToken string, err error)
+	GenerateState(ctx context.Context, state *webappoauth.WebappOAuthState) (stateToken string, err error)
 }
 
 type AuthflowV2Navigator struct {
@@ -177,7 +179,7 @@ func (n *AuthflowV2Navigator) NavigateChangePasswordSuccessPage(s *webapp.Authfl
 	return navigate(AuthflowV2RouteChangePasswordSuccess, &url.Values{})
 }
 
-func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+func (n *AuthflowV2Navigator) Navigate(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	if s.HasBranchToTake() {
 		panic(fmt.Errorf("expected screen to have its branches taken"))
 	}
@@ -189,15 +191,15 @@ func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse,
 
 	switch s.StateTokenFlowResponse.Type {
 	case authflow.FlowTypeSignup:
-		n.navigateSignup(s, r, webSessionID, result)
+		n.navigateSignup(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypePromote:
-		n.navigatePromote(s, r, webSessionID, result)
+		n.navigatePromote(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypeLogin:
-		n.navigateLogin(s, r, webSessionID, result)
+		n.navigateLogin(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypeSignupLogin:
-		n.navigateSignupLogin(s, r, webSessionID, result)
+		n.navigateSignupLogin(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypeReauth:
-		n.navigateReauth(s, r, webSessionID, result)
+		n.navigateReauth(ctx, s, r, webSessionID, result)
 	case authflow.FlowTypeAccountRecovery:
 		n.navigateAccountRecovery(s, r, webSessionID, result)
 	default:
@@ -205,18 +207,18 @@ func (n *AuthflowV2Navigator) Navigate(s *webapp.AuthflowScreenWithFlowResponse,
 	}
 }
 
-func (n *AuthflowV2Navigator) navigateSignup(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
-	n.navigateSignupPromote(s, r, webSessionID, result, AuthflowV2RouteSignup)
+func (n *AuthflowV2Navigator) navigateSignup(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	n.navigateSignupPromote(ctx, s, r, webSessionID, result, AuthflowV2RouteSignup)
 }
 
-func (n *AuthflowV2Navigator) navigatePromote(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
-	n.navigateSignupPromote(s, r, webSessionID, result, AuthflowV2RoutePromote)
+func (n *AuthflowV2Navigator) navigatePromote(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+	n.navigateSignupPromote(ctx, s, r, webSessionID, result, AuthflowV2RoutePromote)
 }
 
-func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result, expectedPath string) {
+func (n *AuthflowV2Navigator) navigateSignupPromote(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result, expectedPath string) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, expectedPath)
+		n.navigateStepIdentify(ctx, s, r, webSessionID, result, expectedPath)
 	case config.AuthenticationFlowStepTypeCreateAuthenticator:
 		authentication := getTakenBranchCreateAuthenticatorAuthentication(s)
 		switch authentication {
@@ -303,7 +305,7 @@ func (n *AuthflowV2Navigator) navigateSignupPromote(s *webapp.AuthflowScreenWith
 	}
 }
 
-func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result, expectedPath string) {
+func (n *AuthflowV2Navigator) navigateStepIdentify(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result, expectedPath string) {
 	if _, ok := s.StateTokenFlowResponse.Action.Data.(declarative.AccountLinkingIdentifyData); ok {
 		s.Advance(AuthflowV2RouteAccountLinking, result)
 		return
@@ -354,7 +356,7 @@ func (n *AuthflowV2Navigator) navigateStepIdentify(s *webapp.AuthflowScreenWithF
 				XStep:            s.Screen.StateToken.XStep,
 				ErrorRedirectURI: errorRedirectURI.String(),
 			}
-			stateToken, err := n.OAuthStateStore.GenerateState(state)
+			stateToken, err := n.OAuthStateStore.GenerateState(ctx, state)
 			if err != nil {
 				panic(err)
 			}
@@ -448,14 +450,14 @@ func (n *AuthflowV2Navigator) navigateLoginStepAuthenticate(s *webapp.AuthflowSc
 	}
 }
 
-func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+func (n *AuthflowV2Navigator) navigateLogin(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	if s.Screen.IsBotProtectionRequired {
 		s.Advance(AuthflowV2RouteVerifyBotProtection, result)
 		return
 	}
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteLogin)
+		n.navigateStepIdentify(ctx, s, r, webSessionID, result, AuthflowV2RouteLogin)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		n.navigateLoginStepAuthenticate(s, r, webSessionID, result)
 	case config.AuthenticationFlowStepTypeCheckAccountStatus:
@@ -471,14 +473,14 @@ func (n *AuthflowV2Navigator) navigateLogin(s *webapp.AuthflowScreenWithFlowResp
 	}
 }
 
-func (n *AuthflowV2Navigator) navigateReauth(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+func (n *AuthflowV2Navigator) navigateReauth(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	if s.Screen.IsBotProtectionRequired {
 		s.Advance(AuthflowV2RouteVerifyBotProtection, result)
 		return
 	}
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteReauth)
+		n.navigateStepIdentify(ctx, s, r, webSessionID, result, AuthflowV2RouteReauth)
 	case config.AuthenticationFlowStepTypeAuthenticate:
 		options := s.BranchStateTokenFlowResponse.Action.Data.(declarative.StepAuthenticateData).Options
 		index := *s.Screen.TakenBranchIndex
@@ -528,10 +530,10 @@ func (n *AuthflowV2Navigator) navigateReauth(s *webapp.AuthflowScreenWithFlowRes
 	}
 }
 
-func (n *AuthflowV2Navigator) navigateSignupLogin(s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
+func (n *AuthflowV2Navigator) navigateSignupLogin(ctx context.Context, s *webapp.AuthflowScreenWithFlowResponse, r *http.Request, webSessionID string, result *webapp.Result) {
 	switch config.AuthenticationFlowStepType(s.StateTokenFlowResponse.Action.Type) {
 	case config.AuthenticationFlowStepTypeIdentify:
-		n.navigateStepIdentify(s, r, webSessionID, result, AuthflowV2RouteSignupLogin)
+		n.navigateStepIdentify(ctx, s, r, webSessionID, result, AuthflowV2RouteSignupLogin)
 	default:
 		panic(fmt.Errorf("unexpected action type: %v", s.StateTokenFlowResponse.Action.Type))
 	}

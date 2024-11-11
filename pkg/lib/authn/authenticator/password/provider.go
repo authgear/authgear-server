@@ -1,6 +1,7 @@
 package password
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -28,20 +29,20 @@ type Provider struct {
 	Housekeeper     *Housekeeper
 }
 
-func (p *Provider) Get(userID string, id string) (*authenticator.Password, error) {
-	return p.Store.Get(userID, id)
+func (p *Provider) Get(ctx context.Context, userID string, id string) (*authenticator.Password, error) {
+	return p.Store.Get(ctx, userID, id)
 }
 
-func (p *Provider) GetMany(ids []string) ([]*authenticator.Password, error) {
-	return p.Store.GetMany(ids)
+func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*authenticator.Password, error) {
+	return p.Store.GetMany(ctx, ids)
 }
 
-func (p *Provider) Delete(a *authenticator.Password) error {
-	return p.Store.Delete(a.ID)
+func (p *Provider) Delete(ctx context.Context, a *authenticator.Password) error {
+	return p.Store.Delete(ctx, a.ID)
 }
 
-func (p *Provider) List(userID string) ([]*authenticator.Password, error) {
-	authenticators, err := p.Store.List(userID)
+func (p *Provider) List(ctx context.Context, userID string) ([]*authenticator.Password, error) {
+	authenticators, err := p.Store.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +51,7 @@ func (p *Provider) List(userID string) ([]*authenticator.Password, error) {
 	return authenticators, nil
 }
 
-func (p *Provider) New(id string, userID string, passwordSpec *authenticator.PasswordSpec, isDefault bool, kind string) (*authenticator.Password, error) {
+func (p *Provider) New(ctx context.Context, id string, userID string, passwordSpec *authenticator.PasswordSpec, isDefault bool, kind string) (*authenticator.Password, error) {
 	if id == "" {
 		id = uuid.New()
 	}
@@ -65,7 +66,7 @@ func (p *Provider) New(id string, userID string, passwordSpec *authenticator.Pas
 	switch {
 	// The input password is plain password.
 	case passwordSpec.PlainPassword != "":
-		err := p.PasswordChecker.ValidateNewPassword(userID, passwordSpec.PlainPassword)
+		err := p.PasswordChecker.ValidateNewPassword(ctx, userID, passwordSpec.PlainPassword)
 		if err != nil {
 			return nil, err
 		}
@@ -94,12 +95,12 @@ type UpdatePasswordOptions struct {
 
 // UpdatePassword return new authenticator pointer if password or expireAfter is changed
 // Otherwise original authenticator will be returned
-func (p *Provider) UpdatePassword(a *authenticator.Password, options *UpdatePasswordOptions) (bool, *authenticator.Password, error) {
+func (p *Provider) UpdatePassword(ctx context.Context, a *authenticator.Password, options *UpdatePasswordOptions) (bool, *authenticator.Password, error) {
 	password := options.PlainPassword
 
 	newAuthen := a
 	if options.SetPassword {
-		err := p.PasswordChecker.ValidateNewPassword(a.UserID, password)
+		err := p.PasswordChecker.ValidateNewPassword(ctx, a.UserID, password)
 		if err != nil {
 			return false, nil, err
 		}
@@ -117,17 +118,17 @@ func (p *Provider) UpdatePassword(a *authenticator.Password, options *UpdatePass
 	return changed, newAuthen, nil
 }
 
-func (p *Provider) Create(a *authenticator.Password) error {
+func (p *Provider) Create(ctx context.Context, a *authenticator.Password) error {
 	now := p.Clock.NowUTC()
 	a.CreatedAt = now
 	a.UpdatedAt = now
 
-	err := p.Store.Create(a)
+	err := p.Store.Create(ctx, a)
 	if err != nil {
 		return err
 	}
 
-	err = p.PasswordHistory.CreatePasswordHistory(a.UserID, a.PasswordHash, p.Clock.NowUTC())
+	err = p.PasswordHistory.CreatePasswordHistory(ctx, a.UserID, a.PasswordHash, p.Clock.NowUTC())
 	if err != nil {
 		return err
 	}
@@ -135,7 +136,7 @@ func (p *Provider) Create(a *authenticator.Password) error {
 	return nil
 }
 
-func (p *Provider) Authenticate(a *authenticator.Password, password string) (verifyResult *VerifyResult, err error) {
+func (p *Provider) Authenticate(ctx context.Context, a *authenticator.Password, password string) (verifyResult *VerifyResult, err error) {
 	verifyResult = &VerifyResult{}
 	err = pwd.Compare([]byte(password), a.PasswordHash)
 	if err != nil {
@@ -150,7 +151,7 @@ func (p *Provider) Authenticate(a *authenticator.Password, password string) (ver
 	}
 
 	if migrated {
-		err = p.Store.UpdatePasswordHash(a)
+		err = p.Store.UpdatePasswordHash(ctx, a)
 		if err != nil {
 			p.Logger.WithError(err).WithField("authenticator_id", a.ID).
 				Warn("Failed to save migrated password")
@@ -171,21 +172,21 @@ func (p *Provider) Authenticate(a *authenticator.Password, password string) (ver
 	return
 }
 
-func (p *Provider) Update(a *authenticator.Password) error {
+func (p *Provider) Update(ctx context.Context, a *authenticator.Password) error {
 	now := p.Clock.NowUTC()
 	a.UpdatedAt = now
 
-	err := p.Store.UpdatePasswordHash(a)
+	err := p.Store.UpdatePasswordHash(ctx, a)
 	if err != nil {
 		return err
 	}
 
-	err = p.PasswordHistory.CreatePasswordHistory(a.UserID, a.PasswordHash, p.Clock.NowUTC())
+	err = p.PasswordHistory.CreatePasswordHistory(ctx, a.UserID, a.PasswordHash, p.Clock.NowUTC())
 	if err != nil {
 		return err
 	}
 
-	err = p.Housekeeper.Housekeep(a.UserID)
+	err = p.Housekeeper.Housekeep(ctx, a.UserID)
 	if err != nil {
 		return err
 	}

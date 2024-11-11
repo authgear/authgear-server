@@ -1,9 +1,11 @@
 package webapp
 
 import (
+	"context"
 	"fmt"
 	htmltemplate "html/template"
 	"net/http"
+
 	"net/url"
 	"time"
 
@@ -136,7 +138,7 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		session, err := ctrl.InteractionSession()
 		if err != nil {
 			return err
@@ -156,7 +158,7 @@ func (h *SetupTOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			err = SetupTOTPSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {

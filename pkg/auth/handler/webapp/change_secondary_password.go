@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -69,7 +70,7 @@ func (h *ForceChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r
 	}
 	defer ctrl.ServeWithDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		// Ensure there is an ongoing web session.
 		// If the user clicks back just after authentication, there is no ongoing web session.
 		// The user will see the normal web session not found error page.
@@ -87,7 +88,7 @@ func (h *ForceChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r
 		return nil
 	})
 
-	ctrl.PostAction("", func() error {
+	ctrl.PostAction("", func(ctx context.Context) error {
 		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
 			err = ForceChangeSecondaryPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {

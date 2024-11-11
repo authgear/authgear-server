@@ -1,6 +1,8 @@
 package nodes
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
@@ -20,7 +22,7 @@ type EdgeDoCreateIdentity struct {
 	IsAddition bool
 }
 
-func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
+func (e *EdgeDoCreateIdentity) Instantiate(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, rawInput interface{}) (interaction.Node, error) {
 	isAdminAPI := interaction.IsAdminAPI(rawInput)
 	createDisabled := e.Identity.CreateDisabled(ctx.Config.Identity)
 	if e.IsAddition && !isAdminAPI && createDisabled {
@@ -34,7 +36,7 @@ func (e *EdgeDoCreateIdentity) Instantiate(ctx *interaction.Context, graph *inte
 		// not user signup
 		// determine if the flow is user promotion by checking user's identities
 		// this node need to be run before removing the anonymous identity
-		iis, err := ctx.Identities.ListByUser(graph.MustGetUserID())
+		iis, err := ctx.Identities.ListByUser(goCtx, graph.MustGetUserID())
 		if err != nil {
 			return nil, err
 		}
@@ -61,15 +63,15 @@ type NodeDoCreateIdentity struct {
 	SkipCreateIdentityEvent bool           `json:"skip_create_identity_event"`
 }
 
-func (n *NodeDoCreateIdentity) Prepare(ctx *interaction.Context, graph *interaction.Graph) error {
+func (n *NodeDoCreateIdentity) Prepare(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph) error {
 	return nil
 }
 
 // nolint:gocognit
-func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
+func (n *NodeDoCreateIdentity) GetEffects(goCtx context.Context) ([]interaction.Effect, error) {
 	return []interaction.Effect{
-		interaction.EffectRun(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
-			user, err := ctx.Users.Get(n.Identity.UserID, accesscontrol.RoleGreatest)
+		interaction.EffectRun(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+			user, err := ctx.Users.Get(goCtx, n.Identity.UserID, accesscontrol.RoleGreatest)
 			if err != nil {
 				return err
 			}
@@ -82,15 +84,15 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 				)
 			}
 
-			if _, err := ctx.Identities.CheckDuplicated(n.Identity); err != nil {
+			if _, err := ctx.Identities.CheckDuplicated(goCtx, n.Identity); err != nil {
 				return err
 			}
-			if err := ctx.Identities.Create(n.Identity); err != nil {
+			if err := ctx.Identities.Create(goCtx, n.Identity); err != nil {
 				return err
 			}
 
 			if !n.IsAddition && ctx.Config.UserProfile.StandardAttributes.Population.Strategy == config.StandardAttributesPopulationStrategyOnSignup {
-				err := ctx.StdAttrsService.PopulateStandardAttributes(n.Identity.UserID, n.Identity)
+				err := ctx.StdAttrsService.PopulateStandardAttributes(goCtx, n.Identity.UserID, n.Identity)
 				if err != nil {
 					return err
 				}
@@ -98,7 +100,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 
 			return nil
 		}),
-		interaction.EffectOnCommit(func(ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
+		interaction.EffectOnCommit(func(goCtx context.Context, ctx *interaction.Context, graph *interaction.Graph, nodeIndex int) error {
 			if n.SkipCreateIdentityEvent {
 				return nil
 			}
@@ -142,7 +144,7 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 			}
 
 			if e != nil {
-				err := ctx.Events.DispatchEventOnCommit(e)
+				err := ctx.Events.DispatchEventOnCommit(goCtx, e)
 				if err != nil {
 					return err
 				}
@@ -153,8 +155,8 @@ func (n *NodeDoCreateIdentity) GetEffects() ([]interaction.Effect, error) {
 	}, nil
 }
 
-func (n *NodeDoCreateIdentity) DeriveEdges(graph *interaction.Graph) ([]interaction.Edge, error) {
-	return graph.Intent.DeriveEdgesForNode(graph, n)
+func (n *NodeDoCreateIdentity) DeriveEdges(goCtx context.Context, graph *interaction.Graph) ([]interaction.Edge, error) {
+	return graph.Intent.DeriveEdgesForNode(goCtx, graph, n)
 }
 
 func (n *NodeDoCreateIdentity) UserNewIdentity() *identity.Info {

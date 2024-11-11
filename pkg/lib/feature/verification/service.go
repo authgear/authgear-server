@@ -1,6 +1,7 @@
 package verification
 
 import (
+	"context"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -14,13 +15,13 @@ import (
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package verification
 
 type ClaimStore interface {
-	ListByUser(userID string) ([]*Claim, error)
-	ListByUserIDs(userIDs []string) ([]*Claim, error)
-	ListByClaimName(userID string, claimName string) ([]*Claim, error)
-	Get(userID string, claimName string, claimValue string) (*Claim, error)
-	Create(claim *Claim) error
-	Delete(id string) error
-	DeleteAll(userID string) error
+	ListByUser(ctx context.Context, userID string) ([]*Claim, error)
+	ListByUserIDs(ctx context.Context, userIDs []string) ([]*Claim, error)
+	ListByClaimName(ctx context.Context, userID string, claimName string) ([]*Claim, error)
+	Get(ctx context.Context, userID string, claimName string, claimValue string) (*Claim, error)
+	Create(ctx context.Context, claim *Claim) error
+	Delete(ctx context.Context, id string) error
+	DeleteAll(ctx context.Context, userID string) error
 }
 
 type Service struct {
@@ -66,8 +67,8 @@ func (s *Service) getVerificationStatus(i *identity.Info, verifiedClaims map[cla
 	return statuses
 }
 
-func (s *Service) GetIdentityVerificationStatus(i *identity.Info) ([]ClaimStatus, error) {
-	claims, err := s.ClaimStore.ListByUser(i.UserID)
+func (s *Service) GetIdentityVerificationStatus(ctx context.Context, i *identity.Info) ([]ClaimStatus, error) {
+	claims, err := s.ClaimStore.ListByUser(ctx, i.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +81,7 @@ func (s *Service) GetIdentityVerificationStatus(i *identity.Info) ([]ClaimStatus
 	return s.getVerificationStatus(i, verifiedClaims), nil
 }
 
-func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string][]ClaimStatus, error) {
+func (s *Service) GetVerificationStatuses(ctx context.Context, is []*identity.Info) (map[string][]ClaimStatus, error) {
 	if len(is) == 0 {
 		return nil, nil
 	}
@@ -96,7 +97,7 @@ func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string][]Cla
 		userIDs = append(userIDs, userID)
 	}
 
-	allClaims, err := s.ClaimStore.ListByUserIDs(userIDs)
+	allClaims, err := s.ClaimStore.ListByUserIDs(ctx, userIDs)
 	if err != nil {
 		return nil, err
 	}
@@ -131,7 +132,7 @@ func (s *Service) GetVerificationStatuses(is []*identity.Info) (map[string][]Cla
 	return statuses, nil
 }
 
-func (s *Service) GetAuthenticatorVerificationStatus(a *authenticator.Info) (AuthenticatorStatus, error) {
+func (s *Service) GetAuthenticatorVerificationStatus(ctx context.Context, a *authenticator.Info) (AuthenticatorStatus, error) {
 	if a.Type != model.AuthenticatorTypeOOBEmail && a.Type != model.AuthenticatorTypeOOBSMS {
 		panic("verification: incompatible authenticator type: " + a.Type)
 	}
@@ -148,7 +149,7 @@ func (s *Service) GetAuthenticatorVerificationStatus(a *authenticator.Info) (Aut
 		claimValue = aClaims[model.ClaimPhoneNumber]
 	}
 
-	_, err := s.ClaimStore.Get(a.UserID, claimName, claimValue)
+	_, err := s.ClaimStore.Get(ctx, a.UserID, claimName, claimValue)
 	if errors.Is(err, ErrClaimUnverified) {
 		return AuthenticatorStatusUnverified, nil
 	} else if err != nil {
@@ -158,12 +159,12 @@ func (s *Service) GetAuthenticatorVerificationStatus(a *authenticator.Info) (Aut
 	return AuthenticatorStatusVerified, nil
 }
 
-func (s *Service) GetClaims(userID string) ([]*Claim, error) {
-	return s.ClaimStore.ListByUser(userID)
+func (s *Service) GetClaims(ctx context.Context, userID string) ([]*Claim, error) {
+	return s.ClaimStore.ListByUser(ctx, userID)
 }
 
-func (s *Service) GetClaimStatus(userID string, claimName model.ClaimName, claimValue string) (*ClaimStatus, error) {
-	claims, err := s.ClaimStore.ListByUser(userID)
+func (s *Service) GetClaimStatus(ctx context.Context, userID string, claimName model.ClaimName, claimValue string) (*ClaimStatus, error) {
+	claims, err := s.ClaimStore.ListByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -189,13 +190,13 @@ func (s *Service) GetClaimStatus(userID string, claimName model.ClaimName, claim
 	}, nil
 }
 
-func (s *Service) AreUsersVerified(identitiesByUserIDs map[string][]*identity.Info) (map[string]bool, error) {
+func (s *Service) AreUsersVerified(ctx context.Context, identitiesByUserIDs map[string][]*identity.Info) (map[string]bool, error) {
 	allIdens := []*identity.Info{}
 	for _, arr := range identitiesByUserIDs {
 		allIdens = append(allIdens, arr...)
 	}
 
-	allStatuses, err := s.GetVerificationStatuses(allIdens)
+	allStatuses, err := s.GetVerificationStatuses(ctx, allIdens)
 	if err != nil {
 		return nil, err
 	}
@@ -234,12 +235,12 @@ func (s *Service) AreUsersVerified(identitiesByUserIDs map[string][]*identity.In
 	return results, nil
 }
 
-func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
+func (s *Service) IsUserVerified(ctx context.Context, identities []*identity.Info) (bool, error) {
 	if len(identities) < 1 {
 		return false, nil
 	}
 	userID := identities[0].UserID
-	verifieds, err := s.AreUsersVerified(map[string][]*identity.Info{userID: identities})
+	verifieds, err := s.AreUsersVerified(ctx, map[string][]*identity.Info{userID: identities})
 	if err != nil {
 		return false, err
 	}
@@ -249,7 +250,7 @@ func (s *Service) IsUserVerified(identities []*identity.Info) (bool, error) {
 	return verifieds[userID], nil
 }
 
-func (s *Service) NewVerifiedClaim(userID string, claimName string, claimValue string) *Claim {
+func (s *Service) NewVerifiedClaim(ctx context.Context, userID string, claimName string, claimValue string) *Claim {
 	return &Claim{
 		ID:     uuid.New(),
 		UserID: userID,
@@ -258,8 +259,8 @@ func (s *Service) NewVerifiedClaim(userID string, claimName string, claimValue s
 	}
 }
 
-func (s *Service) MarkClaimVerified(claim *Claim) error {
-	claims, err := s.GetClaims(claim.UserID)
+func (s *Service) MarkClaimVerified(ctx context.Context, claim *Claim) error {
+	claims, err := s.GetClaims(ctx, claim.UserID)
 	if err != nil {
 		return err
 	}
@@ -269,19 +270,19 @@ func (s *Service) MarkClaimVerified(claim *Claim) error {
 		}
 	}
 	claim.CreatedAt = s.Clock.NowUTC()
-	return s.ClaimStore.Create(claim)
+	return s.ClaimStore.Create(ctx, claim)
 }
 
-func (s *Service) DeleteClaim(claim *Claim) error {
-	return s.ClaimStore.Delete(claim.ID)
+func (s *Service) DeleteClaim(ctx context.Context, claim *Claim) error {
+	return s.ClaimStore.Delete(ctx, claim.ID)
 }
 
-func (s *Service) ResetVerificationStatus(userID string) error {
-	return s.ClaimStore.DeleteAll(userID)
+func (s *Service) ResetVerificationStatus(ctx context.Context, userID string) error {
+	return s.ClaimStore.DeleteAll(ctx, userID)
 }
 
-func (s *Service) RemoveOrphanedClaims(userID string, identities []*identity.Info, authenticators []*authenticator.Info) error {
-	claims, err := s.ClaimStore.ListByUser(userID)
+func (s *Service) RemoveOrphanedClaims(ctx context.Context, userID string, identities []*identity.Info, authenticators []*authenticator.Info) error {
+	claims, err := s.ClaimStore.ListByUser(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -310,7 +311,7 @@ func (s *Service) RemoveOrphanedClaims(userID string, identities []*identity.Inf
 	}
 
 	for _, claim := range orphans {
-		err = s.ClaimStore.Delete(claim.ID)
+		err = s.ClaimStore.Delete(ctx, claim.ID)
 		if err != nil {
 			return err
 		}

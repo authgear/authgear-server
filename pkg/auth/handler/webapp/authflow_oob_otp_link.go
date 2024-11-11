@@ -1,8 +1,10 @@
 package webapp
 
 import (
+	"context"
 	htmltemplate "html/template"
 	"net/http"
+
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -92,7 +94,7 @@ func (h *AuthflowOOBOTPLinkHandler) GetData(w http.ResponseWriter, r *http.Reque
 
 func (h *AuthflowOOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var handlers AuthflowControllerHandlers
-	handlers.Get(func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.Get(func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		data, err := h.GetData(w, r, s, screen)
 		if err != nil {
 			return err
@@ -101,12 +103,12 @@ func (h *AuthflowOOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		h.Renderer.RenderHTML(w, r, TemplateWebAuthflowOOBOTPLinkHTML, data)
 		return nil
 	})
-	handlers.PostAction("resend", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("resend", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		input := map[string]interface{}{
 			"resend": true,
 		}
 
-		result, err := h.Controller.UpdateWithInput(r, s, screen, input)
+		result, err := h.Controller.UpdateWithInput(ctx, r, s, screen, input)
 		if err != nil {
 			return err
 		}
@@ -115,7 +117,7 @@ func (h *AuthflowOOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		result.WriteResponse(w, r)
 		return nil
 	})
-	handlers.PostAction("check", func(s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
+	handlers.PostAction("check", func(ctx context.Context, s *webapp.Session, screen *webapp.AuthflowScreenWithFlowResponse) error {
 		requestDeviceToken := r.Form.Get("x_device_token") == "true"
 
 		input := map[string]interface{}{
@@ -123,7 +125,7 @@ func (h *AuthflowOOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 			"request_device_token": requestDeviceToken,
 		}
 
-		result, err := h.Controller.AdvanceWithInput(r, s, screen, input, nil)
+		result, err := h.Controller.AdvanceWithInput(ctx, r, s, screen, input, nil)
 		if err != nil {
 			return err
 		}
@@ -131,5 +133,5 @@ func (h *AuthflowOOBOTPLinkHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		result.WriteResponse(w, r)
 		return nil
 	})
-	h.Controller.HandleStep(w, r, &handlers)
+	h.Controller.HandleStep(r.Context(), w, r, &handlers)
 }

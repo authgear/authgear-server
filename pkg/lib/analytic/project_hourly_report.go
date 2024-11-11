@@ -1,6 +1,7 @@
 package analytic
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -19,10 +20,10 @@ type ProjectHourlyReport struct {
 	AppDBStore    *AppDBStore
 }
 
-func (r *ProjectHourlyReport) Run(options *ProjectHourlyReportOptions) (data *ReportData, err error) {
+func (r *ProjectHourlyReport) Run(ctx context.Context, options *ProjectHourlyReportOptions) (data *ReportData, err error) {
 	var appIDs []string
-	if err = r.GlobalHandle.ReadOnly(func() error {
-		appIDs, err = r.GlobalDBStore.GetAppIDs()
+	if err = r.GlobalHandle.ReadOnly(ctx, func(ctx context.Context) error {
+		appIDs, err = r.GlobalDBStore.GetAppIDs(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to fetch app ids: %w", err)
 		}
@@ -37,8 +38,8 @@ func (r *ProjectHourlyReport) Run(options *ProjectHourlyReportOptions) (data *Re
 	values := make([][]interface{}, len(appIDs))
 	for i, appID := range appIDs {
 		var count int
-		err = r.AppDBHandle.ReadOnly(func() error {
-			count, err = r.AppDBStore.GetUserCountBeforeTime(appID, options.Time)
+		err = r.AppDBHandle.ReadOnly(ctx, func(ctx context.Context) error {
+			count, err = r.AppDBStore.GetUserCountBeforeTime(ctx, appID, options.Time)
 			if err != nil {
 				return err
 			}

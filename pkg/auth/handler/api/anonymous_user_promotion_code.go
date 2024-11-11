@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -59,6 +60,7 @@ type AnonymousUserPromotionCodeResponse struct {
 
 type PromotionCodeIssuer interface {
 	IssuePromotionCode(
+		ctx context.Context,
 		req *http.Request,
 		sessionType oauthhandler.WebSessionType,
 		refreshToken string,
@@ -86,9 +88,11 @@ func (h *AnonymousUserPromotionCodeAPIHandler) ServeHTTP(resp http.ResponseWrite
 		return
 	}
 
+	ctx := req.Context()
 	result := &AnonymousUserPromotionCodeResponse{}
-	err = h.Database.WithTx(func() error {
+	err = h.Database.WithTx(ctx, func(ctx context.Context) error {
 		code, codeObj, err := h.PromotionCodes.IssuePromotionCode(
+			ctx,
 			req,
 			payload.SessionType,
 			payload.RefreshToken,

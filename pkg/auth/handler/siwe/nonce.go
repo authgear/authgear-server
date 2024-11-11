@@ -1,6 +1,7 @@
 package siwe
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -17,7 +18,7 @@ func ConfigureNonceRoute(route httproute.Route) httproute.Route {
 }
 
 type NonceHandlerSIWEService interface {
-	CreateNewNonce() (*featuresiwe.Nonce, error)
+	CreateNewNonce(ctx context.Context) (*featuresiwe.Nonce, error)
 }
 
 type NonceHandlerLogger struct{ *log.Logger }
@@ -42,7 +43,7 @@ type NonceHandler struct {
 }
 
 func (h *NonceHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	nonce, err := h.SIWE.CreateNewNonce()
+	nonce, err := h.SIWE.CreateNewNonce(r.Context())
 	if err != nil {
 		h.Logger.WithError(err).Error("failed to create siwe nonce")
 		http.Error(rw, "internal server error", 500)

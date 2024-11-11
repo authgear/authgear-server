@@ -1,12 +1,14 @@
 package loader
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type AppLoaderAppService interface {
-	GetMany(ids []string) ([]*model.App, error)
+	GetMany(ctx context.Context, ids []string) ([]*model.App, error)
 }
 type AppLoader struct {
 	*graphqlutil.DataLoader `wire:"-"`
@@ -23,7 +25,7 @@ func NewAppLoader(appService AppLoaderAppService, authz AuthzService) *AppLoader
 	return l
 }
 
-func (l *AppLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
+func (l *AppLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interface{}, error) {
 	// Prepare IDs.
 	ids := make([]string, len(keys))
 	for i, key := range keys {
@@ -31,7 +33,7 @@ func (l *AppLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	}
 
 	// Get entities.
-	apps, err := l.AppService.GetMany(ids)
+	apps, err := l.AppService.GetMany(ctx, ids)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +48,7 @@ func (l *AppLoader) LoadFunc(keys []interface{}) ([]interface{}, error) {
 	out := make([]interface{}, len(keys))
 	for i, id := range ids {
 		entity := entityMap[id]
-		_, err := l.Authz.CheckAccessOfViewer(entity.ID)
+		_, err := l.Authz.CheckAccessOfViewer(ctx, entity.ID)
 		if err != nil {
 			out[i] = nil
 		} else {

@@ -28,7 +28,7 @@ func (n *NodeDoResetPassword) GetEffects(ctx context.Context, deps *authflow.Dep
 			milestone, ok := n.findDestination(flows)
 			if ok {
 				dest := milestone.MilestoneDoUseAccountRecoveryDestination()
-				return deps.ResetPassword.ResetPasswordWithTarget(
+				return deps.ResetPassword.ResetPasswordWithTarget(ctx,
 					dest.TargetLoginID,
 					n.Code,
 					n.NewPassword,
@@ -37,7 +37,7 @@ func (n *NodeDoResetPassword) GetEffects(ctx context.Context, deps *authflow.Dep
 				)
 			} else {
 				// MilestoneDoUseAccountRecoveryDestination might not exist if the flow is restored
-				return deps.ResetPassword.ResetPasswordByEndUser(n.Code, n.NewPassword)
+				return deps.ResetPassword.ResetPasswordByEndUser(ctx, n.Code, n.NewPassword)
 			}
 		}),
 	}, nil

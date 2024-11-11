@@ -1,6 +1,7 @@
 package sessionlisting
 
 import (
+	"context"
 	"sort"
 	"time"
 
@@ -40,7 +41,7 @@ type SessionListingService struct {
 	OfflineGrants OfflineGrantService
 }
 
-func (s *SessionListingService) FilterForDisplay(sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*Session, error) {
+func (s *SessionListingService) FilterForDisplay(ctx context.Context, sessions []session.ListableSession, currentSession session.ResolvedSession) ([]*Session, error) {
 	sess := make([]session.ListableSession, len(sessions))
 	copy(sess, sessions)
 	sortSessions(sess)

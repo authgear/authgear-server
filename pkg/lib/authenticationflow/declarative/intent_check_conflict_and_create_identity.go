@@ -64,7 +64,7 @@ func (i *IntentCheckConflictAndCreateIdenity) ReactTo(ctx context.Context, deps 
 		}
 		spec := i.getIdenitySpec()
 		if len(conflicts) == 0 {
-			info, err := newIdentityInfo(deps, i.UserID, spec)
+			info, err := newIdentityInfo(ctx, deps, i.UserID, spec)
 			if err != nil {
 				return nil, err
 			}

@@ -1,6 +1,7 @@
 package webapp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -24,18 +25,18 @@ type UIInfoResolver interface {
 }
 
 type SessionStore interface {
-	Get(id string) (*Session, error)
-	Create(session *Session) (err error)
-	Update(session *Session) (err error)
-	Delete(id string) (err error)
+	Get(ctx context.Context, id string) (*Session, error)
+	Create(ctx context.Context, session *Session) (err error)
+	Update(ctx context.Context, session *Session) (err error)
+	Delete(ctx context.Context, id string) (err error)
 }
 
 type GraphService interface {
-	NewGraph(ctx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
-	Get(instanceID string) (*interaction.Graph, error)
-	DryRun(contextValues interaction.ContextValues, fn func(*interaction.Context) (*interaction.Graph, error)) error
-	Run(contextValues interaction.ContextValues, graph *interaction.Graph) error
-	Accept(ctx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
+	NewGraph(ctx context.Context, interactionCtx *interaction.Context, intent interaction.Intent) (*interaction.Graph, error)
+	Get(ctx context.Context, instanceID string) (*interaction.Graph, error)
+	DryRun(ctx context.Context, contextValues interaction.ContextValues, fn func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error)) error
+	Run(ctx context.Context, contextValues interaction.ContextValues, graph *interaction.Graph) error
+	Accept(ctx context.Context, interactionCtx *interaction.Context, graph *interaction.Graph, input interface{}) (*interaction.Graph, []interaction.Edge, error)
 }
 
 type CookiesGetter interface {
@@ -66,8 +67,8 @@ type Service2 struct {
 	Graph GraphService
 }
 
-func (s *Service2) CreateSession(session *Session, redirectURI string) (*Result, error) {
-	if err := s.Sessions.Create(session); err != nil {
+func (s *Service2) CreateSession(ctx context.Context, session *Session, redirectURI string) (*Result, error) {
+	if err := s.Sessions.Create(ctx, session); err != nil {
 		return nil, err
 	}
 	result := &Result{
@@ -77,31 +78,31 @@ func (s *Service2) CreateSession(session *Session, redirectURI string) (*Result,
 	return result, nil
 }
 
-func (s *Service2) GetSession(id string) (*Session, error) {
-	return s.Sessions.Get(id)
+func (s *Service2) GetSession(ctx context.Context, id string) (*Session, error) {
+	return s.Sessions.Get(ctx, id)
 }
 
-func (s *Service2) UpdateSession(session *Session) error {
-	return s.Sessions.Update(session)
+func (s *Service2) UpdateSession(ctx context.Context, session *Session) error {
+	return s.Sessions.Update(ctx, session)
 }
 
-func (s *Service2) DeleteSession(sessionID string) error {
-	return s.Sessions.Delete(sessionID)
+func (s *Service2) DeleteSession(ctx context.Context, sessionID string) error {
+	return s.Sessions.Delete(ctx, sessionID)
 }
 
 // PeekUncommittedChanges runs fn with the effects of the graph fully applied.
 // This is useful if fn needs the effects of the graph visible to it.
-func (s *Service2) PeekUncommittedChanges(session *Session, fn func(graph *interaction.Graph) error) error {
-	graph, err := s.Graph.Get(session.CurrentStep().GraphID)
+func (s *Service2) PeekUncommittedChanges(ctx context.Context, session *Session, fn func(graph *interaction.Graph) error) error {
+	graph, err := s.Graph.Get(ctx, session.CurrentStep().GraphID)
 	if err != nil {
 		return ErrInvalidSession
 	}
 
-	err = s.Graph.DryRun(interaction.ContextValues{
+	err = s.Graph.DryRun(ctx, interaction.ContextValues{
 		WebSessionID:   session.ID,
 		OAuthSessionID: session.OAuthSessionID,
-	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
-		err = graph.Apply(ctx)
+	}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
+		err = graph.Apply(ctx, interactionCtx)
 		if err != nil {
 			return nil, err
 		}
@@ -119,17 +120,17 @@ func (s *Service2) PeekUncommittedChanges(session *Session, fn func(graph *inter
 	return nil
 }
 
-func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
-	graph, err := s.Graph.Get(session.CurrentStep().GraphID)
+func (s *Service2) Get(ctx context.Context, session *Session) (*interaction.Graph, error) {
+	graph, err := s.Graph.Get(ctx, session.CurrentStep().GraphID)
 	if err != nil {
 		return nil, ErrInvalidSession
 	}
 
-	err = s.Graph.DryRun(interaction.ContextValues{
+	err = s.Graph.DryRun(ctx, interaction.ContextValues{
 		WebSessionID:   session.ID,
 		OAuthSessionID: session.OAuthSessionID,
-	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
-		err = graph.Apply(ctx)
+	}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
+		err = graph.Apply(ctx, interactionCtx)
 		if err != nil {
 			return nil, err
 		}
@@ -142,13 +143,13 @@ func (s *Service2) Get(session *Session) (*interaction.Graph, error) {
 	return graph, nil
 }
 
-func (s *Service2) GetWithIntent(session *Session, intent interaction.Intent) (*interaction.Graph, error) {
+func (s *Service2) GetWithIntent(ctx context.Context, session *Session, intent interaction.Intent) (*interaction.Graph, error) {
 	var graph *interaction.Graph
-	err := s.Graph.DryRun(interaction.ContextValues{
+	err := s.Graph.DryRun(ctx, interaction.ContextValues{
 		WebSessionID:   session.ID,
 		OAuthSessionID: session.OAuthSessionID,
-	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
-		g, err := s.Graph.NewGraph(ctx, intent)
+	}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
+		g, err := s.Graph.NewGraph(ctx, interactionCtx, intent)
 		if err != nil {
 			return nil, err
 		}
@@ -164,30 +165,33 @@ func (s *Service2) GetWithIntent(session *Session, intent interaction.Intent) (*
 }
 
 func (s *Service2) PostWithIntent(
+	ctx context.Context,
 	session *Session,
 	intent interaction.Intent,
 	inputFn func() (interface{}, error),
 ) (result *Result, err error) {
-	return s.doPost(session, inputFn, true, func(ctx *interaction.Context) (*interaction.Graph, error) {
-		return s.Graph.NewGraph(ctx, intent)
+	return s.doPost(ctx, session, inputFn, true, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
+		return s.Graph.NewGraph(ctx, interactionCtx, intent)
 	})
 }
 
 func (s *Service2) PostWithInput(
+	ctx context.Context,
 	session *Session,
 	inputFn func() (interface{}, error),
 ) (result *Result, err error) {
-	return s.doPost(session, inputFn, false, func(ctx *interaction.Context) (*interaction.Graph, error) {
-		return s.Graph.Get(session.CurrentStep().GraphID)
+	return s.doPost(ctx, session, inputFn, false, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
+		return s.Graph.Get(ctx, session.CurrentStep().GraphID)
 	})
 }
 
 // nolint: gocognit
 func (s *Service2) doPost(
+	ctx context.Context,
 	session *Session,
 	inputFn func() (interface{}, error),
 	isNewGraph bool,
-	graphFn func(ctx *interaction.Context) (*interaction.Graph, error),
+	graphFn func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error),
 ) (*Result, error) {
 	result := &Result{}
 	deviceTokenAttempted := false
@@ -197,7 +201,7 @@ func (s *Service2) doPost(
 	var err error
 	for {
 		var edges []interaction.Edge
-		graph, edges, err = s.runGraph(session, result, inputFn, graphFn)
+		graph, edges, err = s.runGraph(ctx, session, result, inputFn, graphFn)
 		isFinished = len(edges) == 0 && err == nil
 		if err != nil || isFinished {
 			break
@@ -361,12 +365,12 @@ func (s *Service2) doPost(
 		}
 
 		// Continue to feed new input.
-		graphFn = func(ctx *interaction.Context) (*interaction.Graph, error) {
+		graphFn = func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 			return graph, nil
 		}
 	}
 
-	err = s.afterPost(result, session, graph, err, isFinished, isNewGraph)
+	err = s.afterPost(ctx, result, session, graph, err, isFinished, isNewGraph)
 	if err != nil {
 		return nil, err
 	}
@@ -374,19 +378,20 @@ func (s *Service2) doPost(
 }
 
 func (s *Service2) runGraph(
+	ctx context.Context,
 	session *Session,
 	result *Result,
 	inputFn func() (interface{}, error),
-	graphFn func(ctx *interaction.Context) (*interaction.Graph, error),
+	graphFn func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error),
 ) (*interaction.Graph, []interaction.Edge, error) {
 	var graph *interaction.Graph
 	var edges []interaction.Edge
-	interactionErr := s.Graph.DryRun(interaction.ContextValues{
+	interactionErr := s.Graph.DryRun(ctx, interaction.ContextValues{
 		WebSessionID:   session.ID,
 		OAuthSessionID: session.OAuthSessionID,
-	}, func(ctx *interaction.Context) (*interaction.Graph, error) {
+	}, func(ctx context.Context, interactionCtx *interaction.Context) (*interaction.Graph, error) {
 		var err error
-		graph, err = graphFn(ctx)
+		graph, err = graphFn(ctx, interactionCtx)
 		if err != nil {
 			return nil, err
 		}
@@ -396,13 +401,13 @@ func (s *Service2) runGraph(
 			return nil, err
 		}
 
-		err = graph.Apply(ctx)
+		err = graph.Apply(ctx, interactionCtx)
 		if err != nil {
 			return nil, err
 		}
 
 		var newGraph *interaction.Graph
-		newGraph, edges, err = s.Graph.Accept(ctx, graph, input)
+		newGraph, edges, err = s.Graph.Accept(ctx, interactionCtx, graph, input)
 
 		var clearCookie *interaction.ErrClearCookie
 		var inputRequired *interaction.ErrInputRequired
@@ -425,6 +430,7 @@ func (s *Service2) runGraph(
 }
 
 func (s *Service2) afterPost(
+	ctx context.Context,
 	result *Result,
 	session *Session,
 	graph *interaction.Graph,
@@ -435,7 +441,7 @@ func (s *Service2) afterPost(
 	if isFinished {
 		// The graph finished. Apply its effect permanently.
 		s.Logger.Debugf("interaction: commit graph")
-		interactionErr = s.Graph.Run(interaction.ContextValues{
+		interactionErr = s.Graph.Run(ctx, interaction.ContextValues{
 			WebSessionID:   session.ID,
 			OAuthSessionID: session.OAuthSessionID,
 		}, graph)
@@ -449,7 +455,7 @@ func (s *Service2) afterPost(
 		if !apierrors.IsAPIError(interactionErr) {
 			s.Logger.WithError(interactionErr).Error("interaction error")
 		}
-		errCookie, err := s.ErrorService.SetRecoverableError(s.Request, apierrors.AsAPIError(interactionErr))
+		errCookie, err := s.ErrorService.SetRecoverableError(ctx, s.Request, apierrors.AsAPIError(interactionErr))
 		if err != nil {
 			return err
 		}
@@ -511,7 +517,7 @@ func (s *Service2) afterPost(
 
 	// Persist/discard session
 	if isFinished && !session.KeepAfterFinish {
-		err := s.Sessions.Delete(session.ID)
+		err := s.Sessions.Delete(ctx, session.ID)
 		if err != nil {
 			return err
 		}
@@ -520,13 +526,13 @@ func (s *Service2) afterPost(
 		// visit signup / login page again after signup should treat as a new visit
 		result.Cookies = append(result.Cookies, s.Cookies.ClearCookie(VisitorIDCookieDef))
 	} else if isNewGraph {
-		err := s.Sessions.Create(session)
+		err := s.Sessions.Create(ctx, session)
 		if err != nil {
 			return err
 		}
 		result.Cookies = append(result.Cookies, s.Cookies.ValueCookie(s.SessionCookie.Def, session.ID))
 	} else if interactionErr == nil {
-		err := s.Sessions.Update(session)
+		err := s.Sessions.Update(ctx, session)
 		if err != nil {
 			return err
 		}

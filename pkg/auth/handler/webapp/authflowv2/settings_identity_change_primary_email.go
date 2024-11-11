@@ -1,7 +1,9 @@
 package authflowv2
 
 import (
+	"context"
 	"net/http"
+
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
@@ -45,7 +47,7 @@ type AuthflowV2SettingsIdentityChangePrimaryEmailHandler struct {
 	Identities               *identityservice.Service
 }
 
-func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) GetData(r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
+func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) GetData(ctx context.Context, r *http.Request, rw http.ResponseWriter) (map[string]interface{}, error) {
 	data := map[string]interface{}{}
 
 	loginIDKey := r.Form.Get("q_login_id_key")
@@ -53,19 +55,19 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) GetData(r *http.Re
 	baseViewModel := h.BaseViewModel.ViewModel(r, rw)
 	viewmodels.Embed(data, baseViewModel)
 
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 
-	loginIDIdentities, err := h.Identities.LoginID.List(*userID)
+	loginIDIdentities, err := h.Identities.LoginID.List(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 
-	oauthIdentities, err := h.Identities.OAuth.List(*userID)
+	oauthIdentities, err := h.Identities.OAuth.List(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
 
-	settingsProfileViewModel, err := h.SettingsProfileViewModel.ViewModel(*userID)
+	settingsProfileViewModel, err := h.SettingsProfileViewModel.ViewModel(ctx, *userID)
 	if err != nil {
 		return nil, err
 	}
@@ -102,10 +104,10 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) ServeHTTP(w http.R
 	}
 	defer ctrl.ServeWithoutDBTx()
 
-	ctrl.Get(func() error {
+	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}
-		err := h.Database.WithTx(func() error {
-			data, err = h.GetData(r, w)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			data, err = h.GetData(ctx, r, w)
 			return err
 		})
 		if err != nil {
@@ -116,12 +118,12 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) ServeHTTP(w http.R
 		return nil
 	})
 
-	ctrl.PostAction("save", func() error {
-		userID := *session.GetUserID(r.Context())
+	ctrl.PostAction("save", func(ctx context.Context) error {
+		userID := *session.GetUserID(ctx)
 		m := handlerwebapp.JSONPointerFormToMap(r.Form)
 
-		err := h.Database.WithTx(func() error {
-			u, err := h.Users.GetRaw(userID)
+		err := h.Database.WithTx(ctx, func(ctx context.Context) error {
+			u, err := h.Users.GetRaw(ctx, userID)
 			if err != nil {
 				return err
 			}
@@ -131,7 +133,7 @@ func (h *AuthflowV2SettingsIdentityChangePrimaryEmailHandler) ServeHTTP(w http.R
 				return err
 			}
 
-			err = h.StdAttrs.UpdateStandardAttributes(config.RoleEndUser, userID, attrs)
+			err = h.StdAttrs.UpdateStandardAttributes(ctx, config.RoleEndUser, userID, attrs)
 			if err != nil {
 				return err
 			}

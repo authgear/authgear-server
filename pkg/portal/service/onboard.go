@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -13,7 +14,7 @@ import (
 )
 
 type OnboardServiceAdminAPIService interface {
-	SelfDirector(actorUserID string, usage Usage) (func(*http.Request), error)
+	SelfDirector(ctx context.Context, actorUserID string, usage Usage) (func(*http.Request), error)
 }
 
 type OnboardService struct {
@@ -21,13 +22,13 @@ type OnboardService struct {
 	AdminAPI       OnboardServiceAdminAPIService
 }
 
-func (s *OnboardService) graphqlDo(params graphqlutil.DoParams, actorID string) (*graphql.Result, error) {
+func (s *OnboardService) graphqlDo(ctx context.Context, params graphqlutil.DoParams, actorID string) (*graphql.Result, error) {
 	r, err := http.NewRequest("POST", "/graphql", nil)
 	if err != nil {
 		return nil, err
 	}
 
-	director, err := s.AdminAPI.SelfDirector(actorID, UsageInternal)
+	director, err := s.AdminAPI.SelfDirector(ctx, actorID, UsageInternal)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +45,7 @@ func (s *OnboardService) graphqlDo(params graphqlutil.DoParams, actorID string) 
 	return result, nil
 }
 
-func (s *OnboardService) SubmitOnboardEntry(entry model.OnboardEntry, actorID string) error {
+func (s *OnboardService) SubmitOnboardEntry(ctx context.Context, entry model.OnboardEntry, actorID string) error {
 	id := relay.ToGlobalID("User", actorID)
 	params := graphqlutil.DoParams{
 		OperationName: "submitOnboardEntry",
@@ -67,7 +68,7 @@ func (s *OnboardService) SubmitOnboardEntry(entry model.OnboardEntry, actorID st
 		},
 	}
 
-	_, err := s.graphqlDo(params, actorID)
+	_, err := s.graphqlDo(ctx, params, actorID)
 	if err != nil {
 		return err
 	}
@@ -89,7 +90,7 @@ func unwrap(thing interface{}, keys []string) (interface{}, bool) {
 	return unwrap(value, keys[1:])
 }
 
-func (s *OnboardService) CheckOnboardingSurveyCompletion(actorID string) (bool, error) {
+func (s *OnboardService) CheckOnboardingSurveyCompletion(ctx context.Context, actorID string) (bool, error) {
 	id := relay.ToGlobalID("User", actorID)
 	params := graphqlutil.DoParams{
 		OperationName: "checkOnboardEntry",
@@ -107,7 +108,7 @@ func (s *OnboardService) CheckOnboardingSurveyCompletion(actorID string) (bool, 
 		},
 	}
 
-	result, err := s.graphqlDo(params, actorID)
+	result, err := s.graphqlDo(ctx, params, actorID)
 	if err != nil {
 		return false, err
 	}

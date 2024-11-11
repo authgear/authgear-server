@@ -1,6 +1,7 @@
 package siwe
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"sort"
 
@@ -12,7 +13,7 @@ import (
 
 // nolint: golint
 type SIWEService interface {
-	VerifyMessage(msg string, signature string) (*model.SIWEWallet, *ecdsa.PublicKey, error)
+	VerifyMessage(ctx context.Context, msg string, signature string) (*model.SIWEWallet, *ecdsa.PublicKey, error)
 }
 
 type Provider struct {
@@ -21,8 +22,8 @@ type Provider struct {
 	SIWE  SIWEService
 }
 
-func (p *Provider) List(userID string) ([]*identity.SIWE, error) {
-	ss, err := p.Store.List(userID)
+func (p *Provider) List(ctx context.Context, userID string) ([]*identity.SIWE, error) {
+	ss, err := p.Store.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -31,29 +32,30 @@ func (p *Provider) List(userID string) ([]*identity.SIWE, error) {
 	return ss, nil
 }
 
-func (p *Provider) Get(userID, id string) (*identity.SIWE, error) {
-	return p.Store.Get(userID, id)
+func (p *Provider) Get(ctx context.Context, userID, id string) (*identity.SIWE, error) {
+	return p.Store.Get(ctx, userID, id)
 }
 
-func (p *Provider) GetByMessage(msg string, signature string) (*identity.SIWE, error) {
-	wallet, _, err := p.SIWE.VerifyMessage(msg, signature)
+func (p *Provider) GetByMessage(ctx context.Context, msg string, signature string) (*identity.SIWE, error) {
+	wallet, _, err := p.SIWE.VerifyMessage(ctx, msg, signature)
 	if err != nil {
 		return nil, err
 	}
 
-	return p.Store.GetByAddress(wallet.ChainID, wallet.Address)
+	return p.Store.GetByAddress(ctx, wallet.ChainID, wallet.Address)
 }
 
-func (p *Provider) GetMany(ids []string) ([]*identity.SIWE, error) {
-	return p.Store.GetMany(ids)
+func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*identity.SIWE, error) {
+	return p.Store.GetMany(ctx, ids)
 }
 
 func (p *Provider) New(
+	ctx context.Context,
 	userID string,
 	msg string,
 	signature string,
 ) (*identity.SIWE, error) {
-	wallet, pubKey, err := p.SIWE.VerifyMessage(msg, signature)
+	wallet, pubKey, err := p.SIWE.VerifyMessage(ctx, msg, signature)
 	if err != nil {
 		return nil, err
 	}
@@ -78,15 +80,15 @@ func (p *Provider) New(
 	return i, nil
 }
 
-func (p *Provider) Create(i *identity.SIWE) error {
+func (p *Provider) Create(ctx context.Context, i *identity.SIWE) error {
 	now := p.Clock.NowUTC()
 	i.CreatedAt = now
 	i.UpdatedAt = now
-	return p.Store.Create(i)
+	return p.Store.Create(ctx, i)
 }
 
-func (p *Provider) Delete(i *identity.SIWE) error {
-	return p.Store.Delete(i)
+func (p *Provider) Delete(ctx context.Context, i *identity.SIWE) error {
+	return p.Store.Delete(ctx, i)
 }
 
 func sortIdentities(is []*identity.SIWE) {

@@ -51,7 +51,7 @@ func (i *IntentMigrateAccount) ReactTo(ctx context.Context, deps *workflow.Depen
 		var inputTakeMigrationToken inputTakeMigrationToken
 		if workflow.AsInput(input, &inputTakeMigrationToken) {
 			token := inputTakeMigrationToken.GetMigrationToken()
-			resp, err := deps.AccountMigrations.Run(token)
+			resp, err := deps.AccountMigrations.Run(ctx, token)
 			if err != nil {
 				return nil, err
 			}

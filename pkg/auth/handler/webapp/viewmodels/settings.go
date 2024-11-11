@@ -1,6 +1,8 @@
 package viewmodels
 
 import (
+	"context"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
@@ -40,20 +42,20 @@ type SettingsViewModel struct {
 }
 
 type SettingsUserService interface {
-	Get(userID string, role accesscontrol.Role) (*model.User, error)
+	Get(ctx context.Context, userID string, role accesscontrol.Role) (*model.User, error)
 }
 
 type SettingsIdentityService interface {
-	ListByUser(userID string) ([]*identity.Info, error)
+	ListByUser(ctx context.Context, userID string) ([]*identity.Info, error)
 }
 
 type SettingsAuthenticatorService interface {
-	List(userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
+	List(ctx context.Context, userID string, filters ...authenticator.Filter) ([]*authenticator.Info, error)
 }
 
 type SettingsMFAService interface {
-	CountDeviceTokens(userID string) (int, error)
-	ListRecoveryCodes(userID string) ([]*mfa.RecoveryCode, error)
+	CountDeviceTokens(ctx context.Context, userID string) (int, error)
+	ListRecoveryCodes(ctx context.Context, userID string) ([]*mfa.RecoveryCode, error)
 }
 
 type SettingsViewModeler struct {
@@ -67,8 +69,8 @@ type SettingsViewModeler struct {
 }
 
 // nolint: gocognit
-func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, error) {
-	user, err := m.Users.Get(userID, config.RoleEndUser)
+func (m *SettingsViewModeler) ViewModel(ctx context.Context, userID string) (*SettingsViewModel, error) {
+	user, err := m.Users.Get(ctx, userID, config.RoleEndUser)
 	if err != nil {
 		return nil, err
 	}
@@ -81,12 +83,12 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 
 	zoneinfo := str(stdattrs.Zoneinfo)
 
-	recoveryCodes, err := m.MFA.ListRecoveryCodes(userID)
+	recoveryCodes, err := m.MFA.ListRecoveryCodes(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	authenticators, err := m.Authenticators.List(userID)
+	authenticators, err := m.Authenticators.List(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -96,7 +98,7 @@ func (m *SettingsViewModeler) ViewModel(userID string) (*SettingsViewModel, erro
 		authenticator.KeepPrimaryAuthenticatorCanHaveMFA,
 	)) > 0
 
-	numberOfDeviceTokens, err := m.MFA.CountDeviceTokens(userID)
+	numberOfDeviceTokens, err := m.MFA.CountDeviceTokens(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

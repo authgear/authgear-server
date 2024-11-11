@@ -202,7 +202,7 @@ func linkByIncomingOAuthSpec(
 			continue
 		}
 
-		idenConflicts, err := deps.Identities.ListByClaim(oauthConfig.UserProfile.MustGetFirstLevelReferenceTokenOrPanic(), valueStr)
+		idenConflicts, err := deps.Identities.ListByClaim(ctx, oauthConfig.UserProfile.MustGetFirstLevelReferenceTokenOrPanic(), valueStr)
 		if err != nil {
 			return nil, err
 		}
@@ -286,7 +286,7 @@ func linkByIncomingLoginIDSpec(
 
 	for _, loginIDConfig := range loginIDConfigs {
 
-		idenConflicts, err := deps.Identities.ListByClaim(
+		idenConflicts, err := deps.Identities.ListByClaim(ctx,
 			loginIDConfig.UserProfile.MustGetFirstLevelReferenceTokenOrPanic(),
 			normalizedValue,
 		)
@@ -373,7 +373,7 @@ func linkByIncomingLDAPSpec(
 			continue
 		}
 
-		idenConflicts, err := deps.Identities.ListByClaim(ldapConfig.UserProfile.MustGetFirstLevelReferenceTokenOrPanic(), valueStr)
+		idenConflicts, err := deps.Identities.ListByClaim(ctx, ldapConfig.UserProfile.MustGetFirstLevelReferenceTokenOrPanic(), valueStr)
 		if err != nil {
 			return nil, err
 		}

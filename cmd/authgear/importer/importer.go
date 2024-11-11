@@ -1,6 +1,7 @@
 package importer
 
 import (
+	"context"
 	"encoding/csv"
 	"encoding/json"
 	"errors"
@@ -28,7 +29,7 @@ type Importer struct {
 	EmailConfig   *config.LoginIDEmailConfig
 }
 
-func (i *Importer) ImportRecord(record []string, opts ImportOptions, now time.Time) error {
+func (i *Importer) ImportRecord(ctx context.Context, record []string, opts ImportOptions, now time.Time) error {
 	userID := record[0]
 	rawEmail := record[1]
 	name := record[2]
@@ -156,9 +157,9 @@ func (i *Importer) ImportRecord(record []string, opts ImportOptions, now time.Ti
 		).Suffix("ON CONFLICT (id) DO UPDATE SET value = EXCLUDED.value"))
 	}
 
-	err = i.Handle.WithTx(func() (err error) {
+	err = i.Handle.WithTx(ctx, func(ctx context.Context) (err error) {
 		for _, stmt := range insertStmts {
-			_, err = i.SQLExecutor.ExecWith(stmt)
+			_, err = i.SQLExecutor.ExecWith(ctx, stmt)
 			if err != nil {
 				return
 			}
@@ -172,7 +173,7 @@ func (i *Importer) ImportRecord(record []string, opts ImportOptions, now time.Ti
 	return nil
 }
 
-func (i *Importer) ImportFromCSV(csvPath string, opts ImportOptions) error {
+func (i *Importer) ImportFromCSV(ctx context.Context, csvPath string, opts ImportOptions) error {
 	now := time.Now().UTC()
 
 	f, err := os.Open(csvPath)
@@ -206,7 +207,7 @@ func (i *Importer) ImportFromCSV(csvPath string, opts ImportOptions) error {
 		}
 
 		numTotal++
-		err = i.ImportRecord(record, opts, now)
+		err = i.ImportRecord(ctx, record, opts, now)
 		if err != nil {
 			numBad++
 			fmt.Fprintf(os.Stderr, "%v:%v: %v\n", csvPath, numTotal, err)
