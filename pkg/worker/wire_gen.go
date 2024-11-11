@@ -133,7 +133,8 @@ func newSendMessagesTask(p *deps.TaskProvider) task.Task {
 		AppID: appID,
 		Clock: clock,
 	}
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
 	service := &whatsapp.Service{
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,

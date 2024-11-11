@@ -69,13 +69,15 @@ func newCORSMiddleware(p *deps.RequestProvider) httproute.Middleware {
 }
 
 func newGetHandler(p *deps.RequestProvider) http.Handler {
+	imagesCloudStorageServiceHTTPClient := service.NewImagesCloudStorageServiceHTTPClient()
 	appProvider := p.AppProvider
 	rootProvider := appProvider.RootProvider
 	objectStoreConfig := rootProvider.ObjectStoreConfig
 	clock := _wireSystemClockValue
 	imagesCloudStorageServiceStorage := deps.NewCloudStorage(objectStoreConfig, clock)
 	imagesCloudStorageService := &service.ImagesCloudStorageService{
-		Storage: imagesCloudStorageServiceStorage,
+		HTTPClient: imagesCloudStorageServiceHTTPClient,
+		Storage:    imagesCloudStorageServiceStorage,
 	}
 	factory := rootProvider.LoggerFactory
 	getHandlerLogger := handler.NewGetHandlerLogger(factory)
@@ -110,11 +112,13 @@ func newPostHandler(p *deps.RequestProvider) http.Handler {
 	jsonResponseWriter := &httputil.JSONResponseWriter{
 		Logger: jsonResponseWriterLogger,
 	}
+	imagesCloudStorageServiceHTTPClient := service.NewImagesCloudStorageServiceHTTPClient()
 	objectStoreConfig := rootProvider.ObjectStoreConfig
 	clockClock := _wireSystemClockValue
 	imagesCloudStorageServiceStorage := deps.NewCloudStorage(objectStoreConfig, clockClock)
 	imagesCloudStorageService := &service.ImagesCloudStorageService{
-		Storage: imagesCloudStorageServiceStorage,
+		HTTPClient: imagesCloudStorageServiceHTTPClient,
+		Storage:    imagesCloudStorageServiceStorage,
 	}
 	config := appProvider.Config
 	secretConfig := config.SecretConfig

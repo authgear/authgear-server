@@ -425,9 +425,11 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	httpClient := web3.NewHTTPClient()
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
+		HTTPClient:  httpClient,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -586,7 +588,8 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		AppID: appID,
 		Clock: clock,
 	}
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappHTTPClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, whatsappHTTPClient)
 	whatsappService := &whatsapp.Service{
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,
@@ -1153,9 +1156,11 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	httpClient := web3.NewHTTPClient()
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
+		HTTPClient:  httpClient,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1177,6 +1182,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		RolesAndGroups:     queries,
 	}
 	userexportLogger := userexport.NewLogger(factory)
+	userexportHTTPClient := userexport.NewHTTPClient()
 	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
 	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
 	userExportService := &userexport.UserExportService{
@@ -1185,6 +1191,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		UserQueries:  userQueries,
 		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
+		HTTPClient:   userexportHTTPClient,
 		CloudStorage: userExportCloudStorage,
 		Clock:        clockClock,
 	}
@@ -1547,9 +1554,11 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	httpClient := web3.NewHTTPClient()
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
+		HTTPClient:  httpClient,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
