@@ -99,7 +99,7 @@ func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
 		return err
 	}
 
-	err = p.Batch(endpoint, events)
+	err = p.Batch(ctx, endpoint, events)
 	if err != nil {
 		return err
 	}
@@ -132,7 +132,7 @@ func (p *PosthogIntegration) SetUserProperties(ctx context.Context, portalAppID 
 		return err
 	}
 
-	err = p.Batch(endpoint, events)
+	err = p.Batch(ctx, endpoint, events)
 	if err != nil {
 		return err
 	}
@@ -296,7 +296,7 @@ type PosthogBatchRequest struct {
 	Batch  []json.RawMessage `json:"batch,omitempty"`
 }
 
-func (p *PosthogIntegration) Batch(endpoint *url.URL, events []json.RawMessage) error {
+func (p *PosthogIntegration) Batch(ctx context.Context, endpoint *url.URL, events []json.RawMessage) error {
 	u := *endpoint
 	u.Path = "/batch"
 
@@ -332,7 +332,7 @@ func (p *PosthogIntegration) Batch(endpoint *url.URL, events []json.RawMessage) 
 			return err
 		}
 
-		r, err := http.NewRequest("POST", u.String(), bytes.NewReader(bodyBytes))
+		r, err := http.NewRequestWithContext(ctx, "POST", u.String(), bytes.NewReader(bodyBytes))
 		if err != nil {
 			return err
 		}
