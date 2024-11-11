@@ -19,7 +19,7 @@ type DoParams struct {
 }
 
 // HTTPDo is the HTTP version of graphql.Do.
-func HTTPDo(r *http.Request, params DoParams) (result *graphql.Result, err error) {
+func HTTPDo(client *http.Client, r *http.Request, params DoParams) (result *graphql.Result, err error) {
 	if params.Variables == nil {
 		params.Variables = make(map[string]interface{})
 	}
@@ -33,7 +33,7 @@ func HTTPDo(r *http.Request, params DoParams) (result *graphql.Result, err error
 	r.Header.Set("Content-Length", strconv.Itoa(len(requestBody)))
 	r.Body = ioutil.NopCloser(bytes.NewReader(requestBody))
 
-	resp, err := http.DefaultClient.Do(r)
+	resp, err := client.Do(r)
 	if err != nil {
 		return
 	}

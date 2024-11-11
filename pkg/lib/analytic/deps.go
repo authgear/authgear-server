@@ -17,5 +17,6 @@ var DependencySet = wire.NewSet(
 	wire.Struct(new(ChartService), "*"),
 	wire.Struct(new(Service), "*"),
 	wire.Struct(new(PosthogIntegration), "*"),
+	NewPosthogHTTPClient,
 	NewPosthogLogger,
 )

@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -17,7 +18,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
-	libhttputil "github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/secretcode"
 	"github.com/authgear/authgear-server/pkg/util/validation"
@@ -28,12 +28,23 @@ type UserQueries interface {
 	CountAll(ctx context.Context) (count uint64, err error)
 }
 
+type HTTPClient struct {
+	*http.Client
+}
+
+func NewHTTPClient() HTTPClient {
+	return HTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
+
 type UserExportService struct {
 	AppDatabase  *appdb.Handle
 	Config       *config.UserProfileConfig
 	UserQueries  UserQueries
 	Logger       Logger
-	HTTPOrigin   libhttputil.HTTPOrigin
+	HTTPOrigin   httputil.HTTPOrigin
+	HTTPClient   HTTPClient
 	CloudStorage UserExportCloudStorage
 	Clock        clock.Clock
 }
@@ -189,7 +200,7 @@ func (s *UserExportService) ExportRecords(ctx context.Context, request *Request,
 	}
 
 	key := url.QueryEscape(fmt.Sprintf("%s-%s-%s.%s", task.AppID, task.ID, s.Clock.NowUTC().Format("20060102150405Z"), request.Format))
-	_, err = s.UploadResult(key, resultFile, request.Format)
+	_, err = s.UploadResult(ctx, key, resultFile, request.Format)
 
 	if err != nil {
 		return "", err
@@ -345,7 +356,7 @@ func (s *UserExportService) ExportToCSV(ctx context.Context, tmpResult *os.File,
 	return nil
 }
 
-func (s *UserExportService) UploadResult(key string, resultFile *os.File, format string) (response *http.Response, err error) {
+func (s *UserExportService) UploadResult(ctx context.Context, key string, resultFile *os.File, format string) (response *http.Response, err error) {
 	file, err := os.Open(resultFile.Name())
 	if err != nil {
 		return nil, err
@@ -374,7 +385,7 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File, format
 	// From library doc,
 	// https://cs.opensource.google/go/go/+/refs/tags/go1.23.1:src/net/http/request.go;l=933
 	// file pointer does not set `ContentLength` automatically, so we need to explicit set it
-	uploadRequest, err := http.NewRequest(http.MethodPut, presignedRequest.URL.String(), file)
+	uploadRequest, err := http.NewRequestWithContext(ctx, http.MethodPut, presignedRequest.URL.String(), file)
 	uploadRequest.ContentLength = fileInfo.Size()
 	if err != nil {
 		return nil, err
@@ -385,9 +396,7 @@ func (s *UserExportService) UploadResult(key string, resultFile *os.File, format
 			uploadRequest.Header.Add(key, value)
 		}
 	}
-	client := &http.Client{}
-	response, err = client.Do(uploadRequest)
-
+	response, err = s.HTTPClient.Do(uploadRequest)
 	if err != nil {
 		return nil, err
 	}

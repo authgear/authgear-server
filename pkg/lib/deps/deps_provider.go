@@ -1,6 +1,7 @@
 package deps
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/google/wire"
@@ -131,7 +132,8 @@ func ProvideUserAgentString(r *http.Request) httputil.UserAgentString {
 }
 
 func ProvideRedisQueueHTTPRequest() *http.Request {
-	r, _ := http.NewRequest("GET", "", nil)
+	ctx := context.Background()
+	r, _ := http.NewRequestWithContext(ctx, "GET", "", nil)
 	return r
 }
 

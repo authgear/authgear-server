@@ -18,7 +18,6 @@ vendor:
 	go mod download
 	go install github.com/golang/mock/mockgen
 	go install github.com/google/wire/cmd/wire
-	go install github.com/authgear/go-vet-timeunixutc/cmd/govettimeunixutc@1e0ad32ff28a52d3c7aa949f9139b0a068f64090
 	go install golang.org/x/vuln/cmd/govulncheck@latest
 	go install golang.org/x/tools/cmd/goimports@latest
 	go install go.k6.io/xk6/cmd/xk6@latest
@@ -49,7 +48,7 @@ generate:
 .PHONY: test
 test:
 	$(MAKE) -C ./k6 go-test
-	go test ./cmd/... ./pkg/... -timeout 1m30s
+	go test ./devtools/goanalysis/... ./cmd/... ./pkg/... -timeout 1m30s
 
 .PHONY: lint-translation-keys
 lint-translation-keys:
@@ -59,7 +58,6 @@ lint-translation-keys:
 .PHONY: lint
 lint:
 	golangci-lint run ./cmd/... ./pkg/... --timeout 7m
-	govettimeunixutc ./cmd/... ./pkg/...
 	go run ./devtools/translationlinter
 	-go run ./devtools/importlinter api api >.make-lint-expect 2>&1
 	-go run ./devtools/importlinter lib api util >> .make-lint-expect 2>&1
@@ -74,6 +72,7 @@ lint:
 	git diff --exit-code .make-lint-expect > /dev/null 2>&1
 	go run ./devtools/gotemplatelinter --ignore-rule translation-key ./resources/authgear/templates/en/web/authflowv2
 	$(MAKE) lint-translation-keys
+	go run ./devtools/goanalysis ./cmd/... ./pkg/...
 
 .PHONY: sort-translations
 sort-translations:
@@ -82,7 +81,7 @@ sort-translations:
 .PHONY: fmt
 fmt:
 	# Ignore generated files, such as wire_gen.go and *_mock_test.go
-	find ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
+	find ./devtools ./pkg ./cmd ./e2e -name '*.go' -not -name 'wire_gen.go' -not -name '*_mock_test.go' | sort | xargs goimports -w -format-only -local github.com/authgear/authgear-server
 	$(MAKE) sort-translations
 
 .PHONY: govulncheck

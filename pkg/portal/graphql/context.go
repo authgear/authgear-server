@@ -153,8 +153,8 @@ type SubscriptionService interface {
 }
 
 type NFTService interface {
-	ProbeNFTCollection(contractID web3.ContractID) (*apimodel.ProbeCollectionResult, error)
-	GetContractMetadata(contracts []web3.ContractID) ([]apimodel.NFTCollection, error)
+	ProbeNFTCollection(ctx context.Context, contractID web3.ContractID) (*apimodel.ProbeCollectionResult, error)
+	GetContractMetadata(ctx context.Context, contracts []web3.ContractID) ([]apimodel.NFTCollection, error)
 }
 
 type DenoService interface {

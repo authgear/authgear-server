@@ -115,7 +115,7 @@ func TestSink(t *testing.T) {
 				ctx := context.Background()
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
-				webhook.EXPECT().DeliverBlockingEvent(mustURL(cfg.BlockingHandlers[0].URL), &e).Times(1).Return(&event.HookResponse{
+				webhook.EXPECT().DeliverBlockingEvent(gomock.Any(), mustURL(cfg.BlockingHandlers[0].URL), &e).Times(1).Return(&event.HookResponse{
 					IsAllowed: true,
 				}, nil)
 
@@ -167,6 +167,7 @@ func TestSink(t *testing.T) {
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(
+					gomock.Any(),
 					mustURL(cfg.BlockingHandlers[0].URL),
 					originalEvent,
 				).Times(1).Return(
@@ -178,6 +179,7 @@ func TestSink(t *testing.T) {
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[1].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(
+					gomock.Any(),
 					mustURL(cfg.BlockingHandlers[1].URL),
 					originalEvent,
 				).Times(1).Return(
@@ -199,6 +201,7 @@ func TestSink(t *testing.T) {
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[2].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(
+					gomock.Any(),
 					mustURL(cfg.BlockingHandlers[2].URL),
 					mutatedEvent,
 				).Times(1).Return(
@@ -247,6 +250,7 @@ func TestSink(t *testing.T) {
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(
+					gomock.Any(),
 					mustURL(cfg.BlockingHandlers[0].URL),
 					&e,
 				).Times(1).Return(
@@ -258,6 +262,7 @@ func TestSink(t *testing.T) {
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[1].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(
+					gomock.Any(),
 					mustURL(cfg.BlockingHandlers[1].URL),
 					&e,
 				).Times(1).Return(
@@ -297,9 +302,10 @@ func TestSink(t *testing.T) {
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.BlockingHandlers[0].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverBlockingEvent(
+					gomock.Any(),
 					mustURL(cfg.BlockingHandlers[0].URL),
 					&e,
-				).AnyTimes().DoAndReturn(func(_ *url.URL, _ *event.Event) (*event.HookResponse, error) {
+				).AnyTimes().DoAndReturn(func(_ context.Context, _ *url.URL, _ *event.Event) (*event.HookResponse, error) {
 					clock.AdvanceSeconds(5)
 					return &event.HookResponse{
 						IsAllowed: true,
@@ -333,6 +339,7 @@ func TestSink(t *testing.T) {
 
 				webhook.EXPECT().SupportURL(mustURL(cfg.NonBlockingHandlers[0].URL)).AnyTimes().Return(true)
 				webhook.EXPECT().DeliverNonBlockingEvent(
+					gomock.Any(),
 					mustURL(cfg.NonBlockingHandlers[0].URL),
 					&e,
 				).Times(1).Return(nil)

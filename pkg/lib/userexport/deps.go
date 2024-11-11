@@ -19,6 +19,7 @@ type UserExportCloudStorage interface {
 
 var DependencySet = wire.NewSet(
 	NewCloudStorage,
+	NewHTTPClient,
 	wire.Struct(new(UserExportService), "*"),
 	NewLogger,
 )

@@ -1,12 +1,14 @@
 package oauthrelyingpartyutil
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
 func FetchUserProfile(
+	ctx context.Context,
 	client *http.Client,
 	accessTokenResp AccessTokenResp,
 	userProfileURL string,
@@ -15,7 +17,7 @@ func FetchUserProfile(
 	accessTokenValue := accessTokenResp.AccessToken()
 	authorizationHeader := fmt.Sprintf("%s %s", tokenType, accessTokenValue)
 
-	req, err := http.NewRequest(http.MethodGet, userProfileURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, userProfileURL, nil)
 	if err != nil {
 		return
 	}

@@ -1,6 +1,7 @@
 package captcha
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -22,22 +23,22 @@ type Provider struct {
 	CloudflareClient *captcha.CloudflareClient
 }
 
-func (p *Provider) VerifyToken(token string) error {
+func (p *Provider) VerifyToken(ctx context.Context, token string) error {
 	if p.Config.Deprecated_Provider == nil {
 		return fmt.Errorf("captcha provider not configured")
 	}
 	switch *p.Config.Deprecated_Provider {
 	case config.Deprecated_CaptchaProviderCloudflare:
-		return p.verifyTokenByCloudflare(token)
+		return p.verifyTokenByCloudflare(ctx, token)
 	}
 	return fmt.Errorf("unknown captcha provider")
 }
 
-func (p *Provider) verifyTokenByCloudflare(token string) error {
+func (p *Provider) verifyTokenByCloudflare(ctx context.Context, token string) error {
 	if p.CloudflareClient == nil {
 		return fmt.Errorf("missing cloudflare credential")
 	}
-	result, err := p.CloudflareClient.Verify(token, string(p.RemoteIP))
+	result, err := p.CloudflareClient.Verify(ctx, token, string(p.RemoteIP))
 	if err != nil {
 		return err
 	}

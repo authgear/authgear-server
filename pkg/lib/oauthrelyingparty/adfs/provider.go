@@ -62,13 +62,13 @@ func (ADFS) scope() []string {
 	return []string{"openid", "profile", "email"}
 }
 
-func (ADFS) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*oauthrelyingpartyutil.OIDCDiscoveryDocument, error) {
+func (ADFS) getOpenIDConfiguration(ctx context.Context, deps oauthrelyingparty.Dependencies) (*oauthrelyingpartyutil.OIDCDiscoveryDocument, error) {
 	endpoint := ProviderConfig(deps.ProviderConfig).DiscoveryDocumentEndpoint()
-	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
+	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(ctx, deps.HTTPClient, endpoint)
 }
 
 func (p ADFS) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	c, err := p.getOpenIDConfiguration(deps)
+	c, err := p.getOpenIDConfiguration(ctx, deps)
 	if err != nil {
 		return "", err
 	}
@@ -85,13 +85,13 @@ func (p ADFS) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.De
 }
 
 func (p ADFS) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	c, err := p.getOpenIDConfiguration(deps)
+	c, err := p.getOpenIDConfiguration(ctx, deps)
 	if err != nil {
 		return
 	}
 
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := c.FetchJWKs(deps.HTTPClient)
+	keySet, err := c.FetchJWKs(ctx, deps.HTTPClient)
 	if err != nil {
 		return
 	}
@@ -103,6 +103,7 @@ func (p ADFS) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depende
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
+		ctx,
 		deps.HTTPClient,
 		deps.Clock,
 		code,

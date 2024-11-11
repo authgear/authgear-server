@@ -520,9 +520,11 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	httpClient := web3.NewHTTPClient()
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
+		HTTPClient:  httpClient,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -733,7 +735,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappHTTPClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, whatsappHTTPClient)
 	whatsappService := &whatsapp.Service{
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,
@@ -1684,9 +1687,11 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	httpClient := web3.NewHTTPClient()
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
+		HTTPClient:  httpClient,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1708,12 +1713,14 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		RolesAndGroups:     queries,
 	}
 	userexportLogger := userexport.NewLogger(factory)
+	userexportHTTPClient := userexport.NewHTTPClient()
 	userExportService := &userexport.UserExportService{
 		AppDatabase:  appdbHandle,
 		Config:       userProfileConfig,
 		UserQueries:  userQueries,
 		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
+		HTTPClient:   userexportHTTPClient,
 		CloudStorage: userExportCloudStorage,
 		Clock:        clockClock,
 	}

@@ -47,7 +47,7 @@ var _ = registerMutationField(
 				return nil, err
 			}
 
-			res, err := gqlCtx.NFTService.ProbeNFTCollection(*contractID)
+			res, err := gqlCtx.NFTService.ProbeNFTCollection(ctx, *contractID)
 			if err != nil {
 				return nil, err
 			}

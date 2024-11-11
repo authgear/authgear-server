@@ -2,14 +2,15 @@ package service
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"net/http"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
@@ -24,10 +25,11 @@ type GetContractMetadataResponse struct {
 }
 
 type NFTService struct {
+	HTTPClient  HTTPClient
 	APIEndpoint config.NFTIndexerAPIEndpoint
 }
 
-func (s *NFTService) ProbeNFTCollection(contractID web3.ContractID) (*apimodel.ProbeCollectionResult, error) {
+func (s *NFTService) ProbeNFTCollection(ctx context.Context, contractID web3.ContractID) (*apimodel.ProbeCollectionResult, error) {
 	endpoint, err := url.Parse(string(s.APIEndpoint))
 	if err != nil {
 		return nil, err
@@ -49,7 +51,7 @@ func (s *NFTService) ProbeNFTCollection(contractID web3.ContractID) (*apimodel.P
 		return nil, err
 	}
 
-	res, err := http.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
+	res, err := httputil.PostWithContext(ctx, s.HTTPClient.Client, endpoint.String(), "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +70,7 @@ func (s *NFTService) ProbeNFTCollection(contractID web3.ContractID) (*apimodel.P
 	return &response.Result, nil
 }
 
-func (s *NFTService) GetContractMetadata(contracts []web3.ContractID) ([]apimodel.NFTCollection, error) {
+func (s *NFTService) GetContractMetadata(ctx context.Context, contracts []web3.ContractID) ([]apimodel.NFTCollection, error) {
 	endpoint, err := url.Parse(string(s.APIEndpoint))
 	if err != nil {
 		return nil, err
@@ -94,7 +96,7 @@ func (s *NFTService) GetContractMetadata(contracts []web3.ContractID) ([]apimode
 		return nil, err
 	}
 
-	res, err := http.Post(endpoint.String(), "application/json", bytes.NewBuffer(data))
+	res, err := httputil.PostWithContext(ctx, s.HTTPClient.Client, endpoint.String(), "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}

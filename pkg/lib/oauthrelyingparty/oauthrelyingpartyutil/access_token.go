@@ -1,6 +1,7 @@
 package oauthrelyingpartyutil
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
@@ -8,6 +9,8 @@ import (
 	"strings"
 
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
+
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 type AccessTokenResp map[string]interface{}
@@ -80,6 +83,7 @@ func (r AccessTokenResp) TokenType() string {
 }
 
 func FetchAccessTokenResp(
+	ctx context.Context,
 	client *http.Client,
 	code string,
 	accessTokenURL string,
@@ -95,7 +99,7 @@ func FetchAccessTokenResp(
 	v.Add("client_secret", clientSecret)
 
 	// nolint: gosec
-	resp, err := client.PostForm(accessTokenURL, v)
+	resp, err := httputil.PostFormWithContext(ctx, client, accessTokenURL, v)
 	if resp != nil {
 		defer resp.Body.Close()
 	}

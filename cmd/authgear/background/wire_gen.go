@@ -509,9 +509,11 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		UserStore:   store,
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
+	httpClient := web3.NewHTTPClient()
 	web3Service := &web3.Service{
 		APIEndpoint: nftIndexerAPIEndpoint,
 		Web3Config:  web3Config,
+		HTTPClient:  httpClient,
 	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -685,7 +687,8 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		AppID: configAppID,
 		Clock: clockClock,
 	}
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore)
+	whatsappHTTPClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, whatsappHTTPClient)
 	whatsappService := &whatsapp.Service{
 		Logger:                            serviceLogger,
 		DevMode:                           devMode,

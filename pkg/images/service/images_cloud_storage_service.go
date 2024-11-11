@@ -1,12 +1,14 @@
 package service
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
 // PresignGetExpires is how long the presign GET request remains valid.
@@ -21,11 +23,22 @@ type ImagesCloudStorageServiceStorage interface {
 	MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request)
 }
 
-type ImagesCloudStorageService struct {
-	Storage ImagesCloudStorageServiceStorage
+type ImagesCloudStorageServiceHTTPClient struct {
+	*http.Client
 }
 
-func (p *ImagesCloudStorageService) PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error) {
+func NewImagesCloudStorageServiceHTTPClient() ImagesCloudStorageServiceHTTPClient {
+	return ImagesCloudStorageServiceHTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
+
+type ImagesCloudStorageService struct {
+	HTTPClient ImagesCloudStorageServiceHTTPClient
+	Storage    ImagesCloudStorageServiceStorage
+}
+
+func (p *ImagesCloudStorageService) PresignPutRequest(ctx context.Context, r *PresignUploadRequest) (*PresignUploadResponse, error) {
 	r.Sanitize()
 
 	contentLength := r.ContentLength()
@@ -35,7 +48,7 @@ func (p *ImagesCloudStorageService) PresignPutRequest(r *PresignUploadRequest) (
 
 	key := r.Key
 
-	err := p.checkDuplicate(key)
+	err := p.checkDuplicate(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -50,12 +63,12 @@ func (p *ImagesCloudStorageService) PresignPutRequest(r *PresignUploadRequest) (
 	return &resp, nil
 }
 
-func (p *ImagesCloudStorageService) checkDuplicate(key string) error {
+func (p *ImagesCloudStorageService) checkDuplicate(ctx context.Context, key string) error {
 	u, err := p.Storage.PresignHeadObject(key, PresignGetExpires)
 	if err != nil {
 		return err
 	}
-	resp, err := http.Head(u.String())
+	resp, err := httputil.HeadWithContext(ctx, p.HTTPClient.Client, u.String())
 	if err != nil {
 		return err
 	}

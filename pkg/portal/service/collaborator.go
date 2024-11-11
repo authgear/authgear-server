@@ -64,6 +64,7 @@ type CollaboratorService struct {
 	Clock       clock.Clock
 	SQLBuilder  *globaldb.SQLBuilder
 	SQLExecutor *globaldb.SQLExecutor
+	HTTPClient  HTTPClient
 
 	GlobalDatabase *globaldb.Handle
 
@@ -769,7 +770,7 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 		},
 	}
 
-	r, err := http.NewRequest("POST", "/graphql", nil)
+	r, err := http.NewRequestWithContext(ctx, "POST", "/graphql", nil)
 	if err != nil {
 		return err
 	}
@@ -781,7 +782,7 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 
 	director(r)
 
-	result, err := graphqlutil.HTTPDo(r, params)
+	result, err := graphqlutil.HTTPDo(s.HTTPClient.Client, r, params)
 	if err != nil {
 		return err
 	}

@@ -142,6 +142,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		DefaultDomains: defaultDomainService,
 	}
 	appServiceLogger := service.NewAppServiceLogger(logFactory)
+	httpClient := service.NewHTTPClient()
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
 	mailLogger := mail.NewLogger(logFactory)
@@ -192,6 +193,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clock,
 		SQLBuilder:     sqlBuilder,
 		SQLExecutor:    sqlExecutor,
+		HTTPClient:     httpClient,
 		GlobalDatabase: handle,
 		MailConfig:     mailConfig,
 		TaskQueue:      inProcessQueue,
@@ -261,7 +263,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppTesterTokenStore:      testerStore,
 		SAMLEnvironmentConfig:    samlEnvironmentConfig,
 	}
-	userLoader := loader.NewUserLoader(adminAPIService, appService, collaboratorService)
+	loaderHTTPClient := loader.NewHTTPClient()
+	userLoader := loader.NewUserLoader(adminAPIService, appService, collaboratorService, loaderHTTPClient)
 	appLoader := loader.NewAppLoader(appService, authzService)
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
 	collaboratorLoader := loader.NewCollaboratorLoader(collaboratorService, authzService)
@@ -316,6 +319,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
 	nftService := &service.NFTService{
+		HTTPClient:  httpClient,
 		APIEndpoint: nftIndexerAPIEndpoint,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
@@ -336,6 +340,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		LoggerFactory:     logFactory,
 	}
 	onboardService := &service.OnboardService{
+		HTTPClient:     httpClient,
 		AuthgearConfig: authgearConfig,
 		AdminAPI:       adminAPIService,
 	}
@@ -442,6 +447,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	clockClock := _wireSystemClockValue
 	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
+	httpClient := service.NewHTTPClient()
 	mailConfig := rootProvider.MailConfig
 	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
 	logger := mail.NewLogger(logFactory)
@@ -519,6 +525,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		Clock:          clockClock,
 		SQLBuilder:     sqlBuilder,
 		SQLExecutor:    sqlExecutor,
+		HTTPClient:     httpClient,
 		GlobalDatabase: handle,
 		MailConfig:     mailConfig,
 		TaskQueue:      inProcessQueue,

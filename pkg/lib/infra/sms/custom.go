@@ -66,7 +66,7 @@ func (c *CustomClient) Send(ctx context.Context, opts SendOptions) error {
 	case c.SMSDenoHook.SupportURL(u):
 		return c.SMSDenoHook.Call(ctx, u, payload)
 	case c.SMSWebHook.SupportURL(u):
-		return c.SMSWebHook.Call(u, payload)
+		return c.SMSWebHook.Call(ctx, u, payload)
 	default:
 		return fmt.Errorf("unsupported hook URL: %v", u)
 	}
@@ -77,8 +77,10 @@ type SMSWebHook struct {
 	Client HookHTTPClient
 }
 
-func (w *SMSWebHook) Call(u *url.URL, payload SendSMSPayload) error {
-	req, err := w.PrepareRequest(u, payload)
+func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendSMSPayload) error {
+	// Detach the deadline so that the context is not canceled along with the request.
+	ctx = context.WithoutCancel(ctx)
+	req, err := w.PrepareRequest(ctx, u, payload)
 	if err != nil {
 		return err
 	}

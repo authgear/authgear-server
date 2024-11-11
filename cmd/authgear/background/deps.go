@@ -37,7 +37,8 @@ func NewNoopTaskQueue() NoopTaskQueue {
 // This dummy HTTP request is only used for get/set cookie
 // which does not have any effect at all.
 func NewDummyHTTPRequest() *http.Request {
-	r, _ := http.NewRequest("", "", nil)
+	ctx := context.Background()
+	r, _ := http.NewRequestWithContext(ctx, "", "", nil)
 	return r
 }
 

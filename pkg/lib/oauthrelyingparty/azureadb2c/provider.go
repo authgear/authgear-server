@@ -80,7 +80,7 @@ func (AzureADB2C) scope() []string {
 	return []string{"openid"}
 }
 
-func (AzureADB2C) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*oauthrelyingpartyutil.OIDCDiscoveryDocument, error) {
+func (AzureADB2C) getOpenIDConfiguration(ctx context.Context, deps oauthrelyingparty.Dependencies) (*oauthrelyingpartyutil.OIDCDiscoveryDocument, error) {
 	azureadb2cConfig := ProviderConfig(deps.ProviderConfig)
 	tenant := azureadb2cConfig.Tenant()
 	policy := azureadb2cConfig.Policy()
@@ -92,11 +92,11 @@ func (AzureADB2C) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*
 		policy,
 	)
 
-	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
+	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(ctx, deps.HTTPClient, endpoint)
 }
 
 func (p AzureADB2C) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	c, err := p.getOpenIDConfiguration(deps)
+	c, err := p.getOpenIDConfiguration(ctx, deps)
 	if err != nil {
 		return "", err
 	}
@@ -113,12 +113,12 @@ func (p AzureADB2C) GetAuthorizationURL(ctx context.Context, deps oauthrelyingpa
 }
 
 func (p AzureADB2C) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	c, err := p.getOpenIDConfiguration(deps)
+	c, err := p.getOpenIDConfiguration(ctx, deps)
 	if err != nil {
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := c.FetchJWKs(deps.HTTPClient)
+	keySet, err := c.FetchJWKs(ctx, deps.HTTPClient)
 	if err != nil {
 		return
 	}
@@ -130,6 +130,7 @@ func (p AzureADB2C) GetUserProfile(ctx context.Context, deps oauthrelyingparty.D
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
+		ctx,
 		deps.HTTPClient,
 		deps.Clock,
 		code,

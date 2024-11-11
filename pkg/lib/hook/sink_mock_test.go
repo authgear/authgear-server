@@ -164,32 +164,32 @@ func (m *MockEventWebHook) EXPECT() *MockEventWebHookMockRecorder {
 }
 
 // DeliverBlockingEvent mocks base method.
-func (m *MockEventWebHook) DeliverBlockingEvent(u *url.URL, e *event.Event) (*event.HookResponse, error) {
+func (m *MockEventWebHook) DeliverBlockingEvent(ctx context.Context, u *url.URL, e *event.Event) (*event.HookResponse, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeliverBlockingEvent", u, e)
+	ret := m.ctrl.Call(m, "DeliverBlockingEvent", ctx, u, e)
 	ret0, _ := ret[0].(*event.HookResponse)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // DeliverBlockingEvent indicates an expected call of DeliverBlockingEvent.
-func (mr *MockEventWebHookMockRecorder) DeliverBlockingEvent(u, e interface{}) *gomock.Call {
+func (mr *MockEventWebHookMockRecorder) DeliverBlockingEvent(ctx, u, e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverBlockingEvent", reflect.TypeOf((*MockEventWebHook)(nil).DeliverBlockingEvent), u, e)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverBlockingEvent", reflect.TypeOf((*MockEventWebHook)(nil).DeliverBlockingEvent), ctx, u, e)
 }
 
 // DeliverNonBlockingEvent mocks base method.
-func (m *MockEventWebHook) DeliverNonBlockingEvent(u *url.URL, e *event.Event) error {
+func (m *MockEventWebHook) DeliverNonBlockingEvent(ctx context.Context, u *url.URL, e *event.Event) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeliverNonBlockingEvent", u, e)
+	ret := m.ctrl.Call(m, "DeliverNonBlockingEvent", ctx, u, e)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // DeliverNonBlockingEvent indicates an expected call of DeliverNonBlockingEvent.
-func (mr *MockEventWebHookMockRecorder) DeliverNonBlockingEvent(u, e interface{}) *gomock.Call {
+func (mr *MockEventWebHookMockRecorder) DeliverNonBlockingEvent(ctx, u, e interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBlockingEvent", reflect.TypeOf((*MockEventWebHook)(nil).DeliverNonBlockingEvent), u, e)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeliverNonBlockingEvent", reflect.TypeOf((*MockEventWebHook)(nil).DeliverNonBlockingEvent), ctx, u, e)
 }
 
 // SupportURL mocks base method.

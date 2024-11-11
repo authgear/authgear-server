@@ -25,7 +25,7 @@ type AccountMigrationWebHook struct {
 }
 
 func (h *AccountMigrationWebHook) Call(ctx context.Context, u *url.URL, hookReq *HookRequest) (*HookResponse, error) {
-	req, err := h.PrepareRequest(u, hookReq)
+	req, err := h.PrepareRequest(ctx, u, hookReq)
 	if err != nil {
 		return nil, err
 	}

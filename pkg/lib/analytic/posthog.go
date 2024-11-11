@@ -16,6 +16,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -30,6 +31,16 @@ func NewPosthogLogger(lf *log.Factory) PosthogLogger {
 	return PosthogLogger{lf.New("posthog-integration")}
 }
 
+type PosthogHTTPClient struct {
+	*http.Client
+}
+
+func NewPosthogHTTPClient() PosthogHTTPClient {
+	return PosthogHTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
+
 type PosthogIntegration struct {
 	PosthogCredentials *PosthogCredentials
 	Clock              clock.Clock
@@ -37,6 +48,7 @@ type PosthogIntegration struct {
 	GlobalDBStore      *GlobalDBStore
 	AppDBHandle        *appdb.Handle
 	AppDBStore         *AppDBStore
+	HTTPClient         PosthogHTTPClient
 	Logger             PosthogLogger
 	ReadCounterStore   ReadCounterStore
 }
@@ -87,7 +99,7 @@ func (p *PosthogIntegration) SetGroupProperties(ctx context.Context) error {
 		return err
 	}
 
-	err = p.Batch(endpoint, events)
+	err = p.Batch(ctx, endpoint, events)
 	if err != nil {
 		return err
 	}
@@ -120,7 +132,7 @@ func (p *PosthogIntegration) SetUserProperties(ctx context.Context, portalAppID 
 		return err
 	}
 
-	err = p.Batch(endpoint, events)
+	err = p.Batch(ctx, endpoint, events)
 	if err != nil {
 		return err
 	}
@@ -284,7 +296,7 @@ type PosthogBatchRequest struct {
 	Batch  []json.RawMessage `json:"batch,omitempty"`
 }
 
-func (p *PosthogIntegration) Batch(endpoint *url.URL, events []json.RawMessage) error {
+func (p *PosthogIntegration) Batch(ctx context.Context, endpoint *url.URL, events []json.RawMessage) error {
 	u := *endpoint
 	u.Path = "/batch"
 
@@ -320,14 +332,14 @@ func (p *PosthogIntegration) Batch(endpoint *url.URL, events []json.RawMessage) 
 			return err
 		}
 
-		r, err := http.NewRequest("POST", u.String(), bytes.NewReader(bodyBytes))
+		r, err := http.NewRequestWithContext(ctx, "POST", u.String(), bytes.NewReader(bodyBytes))
 		if err != nil {
 			return err
 		}
 
 		r.Header.Set("Content-Type", "application/json")
 
-		resp, err := http.DefaultClient.Do(r)
+		resp, err := p.HTTPClient.Do(r)
 		if err != nil {
 			return err
 		}

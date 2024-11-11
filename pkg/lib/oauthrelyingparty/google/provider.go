@@ -88,7 +88,7 @@ func (Google) scope() []string {
 }
 
 func (p Google) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
+	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(ctx, deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return "", err
 	}
@@ -110,18 +110,19 @@ func (Google) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depende
 		return
 	}
 
-	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
+	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(ctx, deps.HTTPClient, googleOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := d.FetchJWKs(deps.HTTPClient)
+	keySet, err := d.FetchJWKs(ctx, deps.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := d.ExchangeCode(
+		ctx,
 		deps.HTTPClient,
 		deps.Clock,
 		code,

@@ -41,9 +41,9 @@ func (p *Provider) Verify(ctx context.Context, token string) (err error) {
 
 	switch p.Config.Provider.Type {
 	case config.BotProtectionProviderTypeCloudflare:
-		err = p.verifyTokenByCloudflare(token)
+		err = p.verifyTokenByCloudflare(ctx, token)
 	case config.BotProtectionProviderTypeRecaptchaV2:
-		err = p.verifyTokenByRecaptchaV2(token)
+		err = p.verifyTokenByRecaptchaV2(ctx, token)
 	default:
 		panic(fmt.Errorf("unknown bot_protection provider"))
 	}
@@ -59,23 +59,23 @@ func (p *Provider) Verify(ctx context.Context, token string) (err error) {
 	return
 }
 
-func (p *Provider) verifyTokenByCloudflare(token string) error {
+func (p *Provider) verifyTokenByCloudflare(ctx context.Context, token string) error {
 	if p.CloudflareClient == nil {
 		return fmt.Errorf("missing cloudflare credential")
 	}
-	_, err := p.CloudflareClient.Verify(token, string(p.RemoteIP))
+	_, err := p.CloudflareClient.Verify(ctx, token, string(p.RemoteIP))
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *Provider) verifyTokenByRecaptchaV2(token string) error {
+func (p *Provider) verifyTokenByRecaptchaV2(ctx context.Context, token string) error {
 	if p.RecaptchaV2Client == nil {
 		return fmt.Errorf("missing recaptchaV2 credentials")
 	}
 
-	_, err := p.RecaptchaV2Client.Verify(token, string(p.RemoteIP))
+	_, err := p.RecaptchaV2Client.Verify(ctx, token, string(p.RemoteIP))
 	if err != nil {
 		return err
 	}

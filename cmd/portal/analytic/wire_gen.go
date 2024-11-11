@@ -233,6 +233,7 @@ func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCr
 		SQLBuilder:  appdbSQLBuilder,
 		SQLExecutor: appdbSQLExecutor,
 	}
+	posthogHTTPClient := analytic.NewPosthogHTTPClient()
 	posthogLogger := analytic.NewPosthogLogger(factory)
 	redisEnvironmentConfig := config.NewDefaultRedisEnvironmentConfig()
 	analyticredisHandle := analyticredis.NewHandle(redisPool, redisEnvironmentConfig, credentials, factory)
@@ -246,6 +247,7 @@ func NewPosthogIntegration(pool *db.Pool, databaseCredentials *config.DatabaseCr
 		GlobalDBStore:      globalDBStore,
 		AppDBHandle:        appdbHandle,
 		AppDBStore:         appDBStore,
+		HTTPClient:         posthogHTTPClient,
 		Logger:             posthogLogger,
 		ReadCounterStore:   readStoreRedis,
 	}

@@ -66,7 +66,7 @@ func (Linkedin) scope() []string {
 }
 
 func (p Linkedin) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, linkedinOIDCDiscoveryDocumentURL)
+	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(ctx, deps.HTTPClient, linkedinOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return "", err
 	}
@@ -91,18 +91,19 @@ func (Linkedin) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 		return
 	}
 
-	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, linkedinOIDCDiscoveryDocumentURL)
+	d, err := oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(ctx, deps.HTTPClient, linkedinOIDCDiscoveryDocumentURL)
 	if err != nil {
 		return
 	}
 
-	keySet, err := d.FetchJWKs(deps.HTTPClient)
+	keySet, err := d.FetchJWKs(ctx, deps.HTTPClient)
 	if err != nil {
 		return
 	}
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := d.ExchangeCode(
+		ctx,
 		deps.HTTPClient,
 		deps.Clock,
 		code,
@@ -138,7 +139,7 @@ func (Linkedin) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 		return
 	}
 
-	rawProfile, err := d.FetchUserInfo(deps.HTTPClient, tokenResp)
+	rawProfile, err := d.FetchUserInfo(ctx, deps.HTTPClient, tokenResp)
 	if err != nil {
 		return
 	}

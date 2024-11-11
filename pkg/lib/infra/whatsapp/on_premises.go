@@ -12,10 +12,21 @@ import (
 	"time"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
+type HTTPClient struct {
+	*http.Client
+}
+
+func NewHTTPClient() HTTPClient {
+	return HTTPClient{
+		httputil.NewExternalClient(5 * time.Second),
+	}
+}
+
 type OnPremisesClient struct {
-	HTTPClient  *http.Client
+	HTTPClient  HTTPClient
 	Endpoint    *url.URL
 	Credentials *config.WhatsappOnPremisesCredentials
 	TokenStore  *TokenStore
@@ -24,7 +35,9 @@ type OnPremisesClient struct {
 func NewWhatsappOnPremisesClient(
 	cfg *config.WhatsappConfig,
 	credentials *config.WhatsappOnPremisesCredentials,
-	tokenStore *TokenStore) *OnPremisesClient {
+	tokenStore *TokenStore,
+	httpClient HTTPClient,
+) *OnPremisesClient {
 	if cfg.APIType != config.WhatsappAPITypeOnPremises || credentials == nil {
 		return nil
 	}
@@ -33,7 +46,7 @@ func NewWhatsappOnPremisesClient(
 		panic(err)
 	}
 	return &OnPremisesClient{
-		HTTPClient:  http.DefaultClient,
+		HTTPClient:  httpClient,
 		Endpoint:    endpoint,
 		Credentials: credentials,
 		TokenStore:  tokenStore,
@@ -52,7 +65,7 @@ func (c *OnPremisesClient) SendTemplate(
 		return err
 	}
 	refreshToken := func() error {
-		token, err = c.login()
+		token, err = c.login(ctx)
 		if err != nil {
 			return err
 		}
@@ -66,7 +79,7 @@ func (c *OnPremisesClient) SendTemplate(
 	}
 	var send func(retryOnUnauthorized bool) error
 	send = func(retryOnUnauthorized bool) error {
-		err = c.sendTemplate(token.Token, to, templateName, templateLanguage, templateComponents, namespace)
+		err = c.sendTemplate(ctx, token.Token, to, templateName, templateLanguage, templateComponents, namespace)
 		if err != nil {
 			if retryOnUnauthorized && errors.Is(err, ErrUnauthorized) {
 				err := refreshToken()
@@ -88,6 +101,7 @@ func (c *OnPremisesClient) GetOTPTemplate() *config.WhatsappTemplateConfig {
 }
 
 func (c *OnPremisesClient) sendTemplate(
+	ctx context.Context,
 	authToken string,
 	to string,
 	templateName string,
@@ -115,7 +129,7 @@ func (c *OnPremisesClient) sendTemplate(
 		return err
 	}
 
-	req, err := http.NewRequest("POST", url.String(), bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequestWithContext(ctx, "POST", url.String(), bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -156,9 +170,9 @@ func (c *OnPremisesClient) parseBadRequestError(resp *http.Response) error {
 	return ErrBadRequest
 }
 
-func (c *OnPremisesClient) login() (*UserToken, error) {
+func (c *OnPremisesClient) login(ctx context.Context) (*UserToken, error) {
 	url := c.Endpoint.JoinPath("/v1/users/login")
-	req, err := http.NewRequest("POST", url.String(), bytes.NewBuffer([]byte{}))
+	req, err := http.NewRequestWithContext(ctx, "POST", url.String(), bytes.NewBuffer([]byte{}))
 	if err != nil {
 		return nil, err
 	}

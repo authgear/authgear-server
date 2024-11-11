@@ -291,7 +291,7 @@ var query = graphql.NewObject(graphql.ObjectConfig{
 					return nil, err
 				}
 
-				metadata, err := gqlCtx.NFTService.GetContractMetadata([]web3.ContractID{*contractID})
+				metadata, err := gqlCtx.NFTService.GetContractMetadata(ctx, []web3.ContractID{*contractID})
 				if err != nil {
 					return nil, err
 				}

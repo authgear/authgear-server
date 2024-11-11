@@ -1,6 +1,7 @@
 package oauthrelyingpartyutil
 
 import (
+	"context"
 	"crypto/subtle"
 	"encoding/json"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 	"github.com/authgear/oauthrelyingparty/pkg/api/oauthrelyingparty"
 
 	"github.com/authgear/authgear-server/pkg/util/duration"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/jwsutil"
 )
 
@@ -33,8 +35,8 @@ type OIDCDiscoveryDocument struct {
 	JWKSUri               string `json:"jwks_uri"`
 }
 
-func FetchOIDCDiscoveryDocument(client *http.Client, endpoint string) (*OIDCDiscoveryDocument, error) {
-	resp, err := client.Get(endpoint)
+func FetchOIDCDiscoveryDocument(ctx context.Context, client *http.Client, endpoint string) (*OIDCDiscoveryDocument, error) {
+	resp, err := httputil.GetWithContext(ctx, client, endpoint)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -62,8 +64,8 @@ func (d *OIDCDiscoveryDocument) MakeOAuthURL(params AuthorizationURLParams) stri
 	return MakeAuthorizationURL(d.AuthorizationEndpoint, params.Query())
 }
 
-func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (jwk.Set, error) {
-	resp, err := client.Get(d.JWKSUri)
+func (d *OIDCDiscoveryDocument) FetchJWKs(ctx context.Context, client *http.Client) (jwk.Set, error) {
+	resp, err := httputil.GetWithContext(ctx, client, d.JWKSUri)
 	if resp != nil {
 		defer resp.Body.Close()
 	}
@@ -77,6 +79,7 @@ func (d *OIDCDiscoveryDocument) FetchJWKs(client *http.Client) (jwk.Set, error) 
 }
 
 func (d *OIDCDiscoveryDocument) ExchangeCode(
+	ctx context.Context,
 	client *http.Client,
 	clock oauthrelyingparty.Clock,
 	code string,
@@ -94,7 +97,7 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	body.Set("redirect_uri", redirectURI)
 	body.Set("client_secret", clientSecret)
 
-	resp, err := client.PostForm(d.TokenEndpoint, body)
+	resp, err := httputil.PostFormWithContext(ctx, client, d.TokenEndpoint, body)
 	if err != nil {
 		return nil, err
 	}
@@ -152,6 +155,6 @@ func (d *OIDCDiscoveryDocument) ExchangeCode(
 	return payload, nil
 }
 
-func (d *OIDCDiscoveryDocument) FetchUserInfo(client *http.Client, accessTokenResp AccessTokenResp) (userInfo map[string]interface{}, err error) {
-	return FetchUserProfile(client, accessTokenResp, d.UserInfoEndpoint)
+func (d *OIDCDiscoveryDocument) FetchUserInfo(ctx context.Context, client *http.Client, accessTokenResp AccessTokenResp) (userInfo map[string]interface{}, err error) {
+	return FetchUserProfile(ctx, client, accessTokenResp, d.UserInfoEndpoint)
 }

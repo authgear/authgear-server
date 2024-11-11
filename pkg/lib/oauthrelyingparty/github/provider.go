@@ -84,12 +84,12 @@ func (p Github) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.
 }
 
 func (p Github) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	accessTokenResp, err := p.exchangeCode(deps, param)
+	accessTokenResp, err := p.exchangeCode(ctx, deps, param)
 	if err != nil {
 		return
 	}
 
-	userProfile, err := p.fetchUserInfo(deps, accessTokenResp)
+	userProfile, err := p.fetchUserInfo(ctx, deps, accessTokenResp)
 	if err != nil {
 		return
 	}
@@ -125,7 +125,7 @@ func (p Github) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 	return
 }
 
-func (Github) exchangeCode(deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
+func (Github) exchangeCode(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (accessTokenResp oauthrelyingpartyutil.AccessTokenResp, err error) {
 	code, err := oauthrelyingpartyutil.GetCode(param.Query)
 	if err != nil {
 		return
@@ -138,7 +138,7 @@ func (Github) exchangeCode(deps oauthrelyingparty.Dependencies, param oauthrelyi
 	q.Set("redirect_uri", param.RedirectURI)
 
 	body := strings.NewReader(q.Encode())
-	req, _ := http.NewRequest("POST", githubTokenURL, body)
+	req, _ := http.NewRequestWithContext(ctx, "POST", githubTokenURL, body)
 	// https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -167,12 +167,12 @@ func (Github) exchangeCode(deps oauthrelyingparty.Dependencies, param oauthrelyi
 	return
 }
 
-func (Github) fetchUserInfo(deps oauthrelyingparty.Dependencies, accessTokenResp oauthrelyingpartyutil.AccessTokenResp) (userProfile map[string]interface{}, err error) {
+func (Github) fetchUserInfo(ctx context.Context, deps oauthrelyingparty.Dependencies, accessTokenResp oauthrelyingpartyutil.AccessTokenResp) (userProfile map[string]interface{}, err error) {
 	tokenType := accessTokenResp.TokenType()
 	accessTokenValue := accessTokenResp.AccessToken()
 	authorizationHeader := fmt.Sprintf("%s %s", tokenType, accessTokenValue)
 
-	req, err := http.NewRequest(http.MethodGet, githubUserInfoURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, githubUserInfoURL, nil)
 	if err != nil {
 		return
 	}

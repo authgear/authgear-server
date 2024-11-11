@@ -75,7 +75,7 @@ func (AzureADv2) scope() []string {
 	return []string{"openid", "profile", "email"}
 }
 
-func (AzureADv2) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*oauthrelyingpartyutil.OIDCDiscoveryDocument, error) {
+func (AzureADv2) getOpenIDConfiguration(ctx context.Context, deps oauthrelyingparty.Dependencies) (*oauthrelyingpartyutil.OIDCDiscoveryDocument, error) {
 	// OPTIMIZE(sso): Cache OpenID configuration
 
 	tenant := ProviderConfig(deps.ProviderConfig).Tenant()
@@ -120,11 +120,11 @@ func (AzureADv2) getOpenIDConfiguration(deps oauthrelyingparty.Dependencies) (*o
 		endpoint = fmt.Sprintf("https://login.microsoftonline.com/%s/v2.0/.well-known/openid-configuration", tenant)
 	}
 
-	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(deps.HTTPClient, endpoint)
+	return oauthrelyingpartyutil.FetchOIDCDiscoveryDocument(ctx, deps.HTTPClient, endpoint)
 }
 
 func (p AzureADv2) GetAuthorizationURL(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetAuthorizationURLOptions) (string, error) {
-	c, err := p.getOpenIDConfiguration(deps)
+	c, err := p.getOpenIDConfiguration(ctx, deps)
 	if err != nil {
 		return "", err
 	}
@@ -141,12 +141,12 @@ func (p AzureADv2) GetAuthorizationURL(ctx context.Context, deps oauthrelyingpar
 }
 
 func (p AzureADv2) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Dependencies, param oauthrelyingparty.GetUserProfileOptions) (authInfo oauthrelyingparty.UserProfile, err error) {
-	c, err := p.getOpenIDConfiguration(deps)
+	c, err := p.getOpenIDConfiguration(ctx, deps)
 	if err != nil {
 		return
 	}
 	// OPTIMIZE(sso): Cache JWKs
-	keySet, err := c.FetchJWKs(deps.HTTPClient)
+	keySet, err := c.FetchJWKs(ctx, deps.HTTPClient)
 	if err != nil {
 		return
 	}
@@ -158,6 +158,7 @@ func (p AzureADv2) GetUserProfile(ctx context.Context, deps oauthrelyingparty.De
 
 	var tokenResp oauthrelyingpartyutil.AccessTokenResp
 	jwtToken, err := c.ExchangeCode(
+		ctx,
 		deps.HTTPClient,
 		deps.Clock,
 		code,
