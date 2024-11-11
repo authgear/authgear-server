@@ -7,12 +7,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
 
 type Service struct {
 	SearchConfig         *config.SearchConfig
 	ElasticsearchService *elasticsearch.Service
+	PGSearchService      *pgsearch.Service
 }
 
 func (s *Service) QueryUser(
@@ -26,9 +28,14 @@ func (s *Service) QueryUser(
 		if err != nil {
 			return nil, nil, err
 		}
-		return result, StatsFromElasticsearch(stats), err
+		return result, StatsFromElasticsearch(stats), nil
 	case config.SearchImplementationPostgresql:
-		return nil, nil, fmt.Errorf("not implemented")
+		// TODO(tung): Support filter options
+		result, err := s.PGSearchService.QueryUser(searchKeyword, sortOption, pageArgs)
+		if err != nil {
+			return nil, nil, err
+		}
+		return result, &Stats{}, nil
 	}
 	return nil, nil, fmt.Errorf("unknown search implementation: %s", s.SearchConfig.GetImplementation())
 }

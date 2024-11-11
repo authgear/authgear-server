@@ -57,6 +57,7 @@ import (
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
@@ -99,6 +100,7 @@ var CommonDependencySet = wire.NewSet(
 
 	appdb.DependencySet,
 	auditdb.DependencySet,
+	searchdb.DependencySet,
 	template.DependencySet,
 
 	healthz.DependencySet,
@@ -141,7 +143,8 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		search.DependencySet,
-		libes.DependencySet,
+
+		// FIXME(tung): Replace with new search service
 		wire.Bind(new(userimport.ElasticsearchService), new(*libes.Service)),
 	),
 

@@ -78,6 +78,7 @@ var AppRootDeps = wire.NewSet(
 		"RootProvider",
 		"LoggerFactory",
 		"AppDatabase",
+		"SearchDatabase",
 		"AuditReadDatabase",
 		"AuditWriteDatabase",
 		"Redis",
