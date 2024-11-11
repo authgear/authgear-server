@@ -16,6 +16,7 @@ var ConfigDeps = wire.NewSet(
 		"UI",
 		"Localization",
 		"Messaging",
+		"Search",
 		"Authentication",
 		"Session",
 		"OAuth",

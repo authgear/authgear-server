@@ -74,6 +74,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -566,6 +567,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:    readStore,
 	}
 	auditLogLoader := loader.NewAuditLogLoader(query, readHandle)
+	searchConfig := appConfig.Search
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -581,6 +583,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
 		Producer:        userReindexProducer,
+	}
+	searchService := &search.Service{
+		SearchConfig:         searchConfig,
+		ElasticsearchService: elasticsearchService,
 	}
 	rawCommands := &user.RawCommands{
 		Store: store,
@@ -1094,7 +1100,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	facadeUserFacade := &facade2.UserFacade{
 		Clock:              clockClock,
-		UserSearchService:  elasticsearchService,
+		UserSearchService:  searchService,
 		Users:              userFacade,
 		LoginIDConfig:      loginIDConfig,
 		Authenticators:     service4,

@@ -12,8 +12,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 )
@@ -39,10 +39,11 @@ type UserService interface {
 }
 
 type UserSearchService interface {
-	QueryUser(searchKeyword string,
+	QueryUser(
+		searchKeyword string,
 		filterOptions user.FilterOptions,
 		sortOption user.SortOption,
-		pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *libes.Stats, error)
+		pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *search.Stats, error)
 }
 
 type UserFacade struct {
