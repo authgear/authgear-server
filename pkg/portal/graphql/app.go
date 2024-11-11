@@ -608,7 +608,7 @@ var nodeApp = node(
 						contractIDs = append(contractIDs, *contractID)
 					}
 
-					collections, err := gqlCtx.NFTService.GetContractMetadata(contractIDs)
+					collections, err := gqlCtx.NFTService.GetContractMetadata(ctx, contractIDs)
 					if err != nil {
 						return nil, err
 					}

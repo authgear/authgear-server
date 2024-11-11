@@ -770,7 +770,7 @@ func (s *CollaboratorService) CheckInviteeEmail(ctx context.Context, i *model.Co
 		},
 	}
 
-	r, err := http.NewRequest("POST", "/graphql", nil)
+	r, err := http.NewRequestWithContext(ctx, "POST", "/graphql", nil)
 	if err != nil {
 		return err
 	}
