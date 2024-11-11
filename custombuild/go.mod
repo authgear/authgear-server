@@ -6,7 +6,7 @@ replace github.com/authgear/authgear-server v0.0.0 => ../
 
 require (
 	github.com/authgear/authgear-server v0.0.0
-	github.com/authgear/iamsmart v0.0.0-20240527095947-f47aa4fc0702
+	github.com/authgear/iamsmart v0.0.0-20241101122333-a35f5efd0acd
 	github.com/joho/godotenv v1.5.1
 	go.uber.org/automaxprocs v1.6.0
 	k8s.io/client-go v0.30.6
