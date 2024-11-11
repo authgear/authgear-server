@@ -71,7 +71,7 @@ func (l *UserLoader) LoadFunc(ctx context.Context, keys []interface{}) ([]interf
 		},
 	}
 
-	r, err := http.NewRequest("POST", "/graphql", nil)
+	r, err := http.NewRequestWithContext(ctx, "POST", "/graphql", nil)
 	if err != nil {
 		return nil, err
 	}
