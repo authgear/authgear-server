@@ -48,7 +48,7 @@ func NewPostHandlerLogger(lf *log.Factory) PostHandlerLogger {
 }
 
 type PostHandlerCloudStorageService interface {
-	PresignPutRequest(r *imagesservice.PresignUploadRequest) (*imagesservice.PresignUploadResponse, error)
+	PresignPutRequest(ctx context.Context, r *imagesservice.PresignUploadRequest) (*imagesservice.PresignUploadResponse, error)
 }
 
 type PostHandler struct {
@@ -159,7 +159,7 @@ func (h *PostHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	presignUploadResponse, err := h.PostHandlerCloudStorageService.PresignPutRequest(&presignUploadRequest)
+	presignUploadResponse, err := h.PostHandlerCloudStorageService.PresignPutRequest(r.Context(), &presignUploadRequest)
 	if err != nil {
 		return
 	}

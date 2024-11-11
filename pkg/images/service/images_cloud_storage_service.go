@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"time"
@@ -37,7 +38,7 @@ type ImagesCloudStorageService struct {
 	Storage    ImagesCloudStorageServiceStorage
 }
 
-func (p *ImagesCloudStorageService) PresignPutRequest(r *PresignUploadRequest) (*PresignUploadResponse, error) {
+func (p *ImagesCloudStorageService) PresignPutRequest(ctx context.Context, r *PresignUploadRequest) (*PresignUploadResponse, error) {
 	r.Sanitize()
 
 	contentLength := r.ContentLength()
@@ -47,7 +48,7 @@ func (p *ImagesCloudStorageService) PresignPutRequest(r *PresignUploadRequest) (
 
 	key := r.Key
 
-	err := p.checkDuplicate(key)
+	err := p.checkDuplicate(ctx, key)
 	if err != nil {
 		return nil, err
 	}
@@ -62,12 +63,12 @@ func (p *ImagesCloudStorageService) PresignPutRequest(r *PresignUploadRequest) (
 	return &resp, nil
 }
 
-func (p *ImagesCloudStorageService) checkDuplicate(key string) error {
+func (p *ImagesCloudStorageService) checkDuplicate(ctx context.Context, key string) error {
 	u, err := p.Storage.PresignHeadObject(key, PresignGetExpires)
 	if err != nil {
 		return err
 	}
-	resp, err := p.HTTPClient.Head(u.String())
+	resp, err := httputil.HeadWithContext(ctx, p.HTTPClient.Client, u.String())
 	if err != nil {
 		return err
 	}
