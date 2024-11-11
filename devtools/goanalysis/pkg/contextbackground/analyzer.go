@@ -16,6 +16,8 @@ var vettedFilenames = []string{
 	"/pkg/lib/deps/contextbackground.go",
 	"/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go",
 	"/cmd/authgear/background/contextbackground.go",
+	"cmd/authgear/main.go",
+	"cmd/portal/main.go",
 }
 
 var Analyzer = &analysis.Analyzer{
