@@ -1,7 +1,6 @@
 package jwkutil
 
 import (
-	"context"
 	"errors"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -13,7 +12,7 @@ const (
 )
 
 func ExtractOctetKey(set jwk.Set, id string) ([]byte, error) {
-	for it := set.Keys(context.Background()); it.Next(context.Background()); {
+	for it := set.Keys(contextForTheUnusedContextArgumentInJWXV2API); it.Next(contextForTheUnusedContextArgumentInJWXV2API); {
 		pair := it.Pair()
 		key := pair.Value.(jwk.Key)
 
@@ -37,7 +36,7 @@ func ExtractOctetKey(set jwk.Set, id string) ([]byte, error) {
 
 func ExtractOctetKeys(set jwk.Set) ([][]byte, error) {
 	keys := [][]byte{}
-	for it := set.Keys(context.Background()); it.Next(context.Background()); {
+	for it := set.Keys(contextForTheUnusedContextArgumentInJWXV2API); it.Next(contextForTheUnusedContextArgumentInJWXV2API); {
 		pair := it.Pair()
 		key := pair.Value.(jwk.Key)
 		switch key.KeyType() {

@@ -10,7 +10,9 @@ import (
 	"golang.org/x/tools/go/ast/inspector"
 )
 
-var vettedFilenames = []string{}
+var vettedFilenames = []string{
+	"/pkg/util/jwkutil/contextbackground.go",
+}
 
 var Analyzer = &analysis.Analyzer{
 	Name: "contextbackground",
