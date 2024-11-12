@@ -377,7 +377,7 @@ func (s *UserExportService) UploadResult(ctx context.Context, key string, result
 		headers.Set("Content-Type", "application/x-ndjson")
 	}
 
-	presignedRequest, err := s.CloudStorage.PresignPutObject(key, headers)
+	presignedRequest, err := s.CloudStorage.PresignPutObject(ctx, key, headers)
 	if err != nil {
 		return
 	}

@@ -18,9 +18,9 @@ const PresignGetExpires time.Duration = 1 * duration.PerHour
 const MaxContentLength = 10 * 1024 * 1024
 
 type ImagesCloudStorageServiceStorage interface {
-	PresignPutObject(name string, header http.Header) (*http.Request, error)
-	PresignHeadObject(name string, expire time.Duration) (*url.URL, error)
-	MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request)
+	PresignPutObject(ctx context.Context, name string, header http.Header) (*http.Request, error)
+	PresignHeadObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error)
+	MakeDirector(ctx context.Context, extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request)
 }
 
 type ImagesCloudStorageServiceHTTPClient struct {
@@ -54,7 +54,7 @@ func (p *ImagesCloudStorageService) PresignPutRequest(ctx context.Context, r *Pr
 	}
 
 	httpHeader := r.HTTPHeader()
-	httpRequest, err := p.Storage.PresignPutObject(key, httpHeader)
+	httpRequest, err := p.Storage.PresignPutObject(ctx, key, httpHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (p *ImagesCloudStorageService) PresignPutRequest(ctx context.Context, r *Pr
 }
 
 func (p *ImagesCloudStorageService) checkDuplicate(ctx context.Context, key string) error {
-	u, err := p.Storage.PresignHeadObject(key, PresignGetExpires)
+	u, err := p.Storage.PresignHeadObject(ctx, key, PresignGetExpires)
 	if err != nil {
 		return err
 	}
@@ -79,6 +79,6 @@ func (p *ImagesCloudStorageService) checkDuplicate(ctx context.Context, key stri
 	return apierrors.AlreadyExists.WithReason("DuplicatedImage").Errorf("duplicated image")
 }
 
-func (p *ImagesCloudStorageService) MakeDirector(extractKey func(r *http.Request) string) func(r *http.Request) {
-	return p.Storage.MakeDirector(extractKey, PresignGetExpires)
+func (p *ImagesCloudStorageService) MakeDirector(ctx context.Context, extractKey func(r *http.Request) string) func(r *http.Request) {
+	return p.Storage.MakeDirector(ctx, extractKey, PresignGetExpires)
 }

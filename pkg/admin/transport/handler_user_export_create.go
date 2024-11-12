@@ -21,7 +21,7 @@ func ConfigureUserExportCreateRoute(route httproute.Route) httproute.Route {
 }
 
 type UserExportCreateHandlerCloudStorage interface {
-	PresignGetObject(name string, expire time.Duration) (*url.URL, error)
+	PresignGetObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error)
 }
 
 type UserExportCreateProducer interface {

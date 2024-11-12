@@ -1,6 +1,7 @@
 package userexport
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"time"
@@ -13,8 +14,8 @@ import (
 )
 
 type UserExportCloudStorage interface {
-	PresignPutObject(name string, header http.Header) (*http.Request, error)
-	PresignGetObject(name string, expire time.Duration) (*url.URL, error)
+	PresignPutObject(ctx context.Context, name string, header http.Header) (*http.Request, error)
+	PresignGetObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error)
 }
 
 var DependencySet = wire.NewSet(

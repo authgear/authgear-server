@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -62,7 +63,7 @@ func ParseImageVariant(s string) (ImageVariant, bool) {
 }
 
 type DirectorMaker interface {
-	MakeDirector(extractKey func(*http.Request) string) func(*http.Request)
+	MakeDirector(ctx context.Context, extractKey func(*http.Request) string) func(*http.Request)
 }
 
 type GetHandler struct {
@@ -91,7 +92,7 @@ func (h *GetHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	director := h.DirectorMaker.MakeDirector(ExtractKey)
+	director := h.DirectorMaker.MakeDirector(r.Context(), ExtractKey)
 
 	reverseProxy := httputil.ReverseProxy{
 		Director: director,

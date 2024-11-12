@@ -1,6 +1,7 @@
 package cloudstorage
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"time"
@@ -13,11 +14,11 @@ const PresignPutExpires time.Duration = 15 * duration.PerMinute
 
 type storage interface {
 	// PresignPutObject returns an HTTP request that is ready for use.
-	PresignPutObject(name string, header http.Header) (*http.Request, error)
+	PresignPutObject(ctx context.Context, name string, header http.Header) (*http.Request, error)
 	// PresignHeadObject returns an URL that is ready for use.
-	PresignHeadObject(name string, expire time.Duration) (*url.URL, error)
+	PresignHeadObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error)
 	// PresignGetObject returns an URL that is ready for use.
-	PresignGetObject(name string, expire time.Duration) (*url.URL, error)
+	PresignGetObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error)
 	// MakeDirector takes extractKey and returns a Director of httputil.ReverseProxy.
-	MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request)
+	MakeDirector(ctx context.Context, extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request)
 }

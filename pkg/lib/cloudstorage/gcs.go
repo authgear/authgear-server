@@ -55,7 +55,7 @@ func NewGCSStorage(
 	}, nil
 }
 
-func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Request, error) {
+func (s *GCSStorage) PresignPutObject(ctx context.Context, name string, header http.Header) (*http.Request, error) {
 	now := s.Clock.NowUTC()
 
 	// We must omit Content-type and Content-MD5 from header because they are special.
@@ -95,7 +95,7 @@ func (s *GCSStorage) PresignPutObject(name string, header http.Header) (*http.Re
 	return &req, nil
 }
 
-func (s *GCSStorage) PresignGetOrHeadObject(name string, method string, expire time.Duration) (*url.URL, error) {
+func (s *GCSStorage) PresignGetOrHeadObject(ctx context.Context, name string, method string, expire time.Duration) (*url.URL, error) {
 	now := s.Clock.NowUTC()
 	expires := now.Add(expire)
 
@@ -117,18 +117,18 @@ func (s *GCSStorage) PresignGetOrHeadObject(name string, method string, expire t
 	return u, nil
 }
 
-func (s *GCSStorage) PresignHeadObject(name string, expire time.Duration) (*url.URL, error) {
-	return s.PresignGetOrHeadObject(name, "HEAD", expire)
+func (s *GCSStorage) PresignHeadObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error) {
+	return s.PresignGetOrHeadObject(ctx, name, "HEAD", expire)
 }
 
-func (s *GCSStorage) PresignGetObject(name string, expire time.Duration) (*url.URL, error) {
-	return s.PresignGetOrHeadObject(name, "GET", expire)
+func (s *GCSStorage) PresignGetObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error) {
+	return s.PresignGetOrHeadObject(ctx, name, "GET", expire)
 }
 
-func (s *GCSStorage) MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
+func (s *GCSStorage) MakeDirector(ctx context.Context, extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
-		u, err := s.PresignGetOrHeadObject(key, "GET", expire)
+		u, err := s.PresignGetOrHeadObject(ctx, key, "GET", expire)
 		if err != nil {
 			panic(err)
 		}

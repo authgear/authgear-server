@@ -37,7 +37,7 @@ func TestGetHandler(t *testing.T) {
 			r, _ := http.NewRequest("GET", "http://localhost:3004/_images/app/image.jpg/profile", nil)
 			w := httptest.NewRecorder()
 
-			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
+			directorMaker.EXPECT().MakeDirector(gomock.Any(), gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 			gock.New("http://localhost:3004").Reply(404)
 
 			router.ServeHTTP(w, r)
@@ -50,7 +50,7 @@ func TestGetHandler(t *testing.T) {
 			r, _ := http.NewRequest("GET", "http://localhost:3004/_images/app/image.jpg/invalid", nil)
 			w := httptest.NewRecorder()
 
-			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
+			directorMaker.EXPECT().MakeDirector(gomock.Any(), gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 
 			router.ServeHTTP(w, r)
 			So(w.Result().StatusCode, ShouldEqual, 404)
@@ -62,7 +62,7 @@ func TestGetHandler(t *testing.T) {
 			r, _ := http.NewRequest("GET", "http://localhost:3004/_images/app/image.jpg/profile", nil)
 			w := httptest.NewRecorder()
 
-			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
+			directorMaker.EXPECT().MakeDirector(gomock.Any(), gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 			vipsDaemon.EXPECT().Process(gomock.Any()).Times(1).Return(&vipsutil.Output{
 				Data:          nil,
 				FileExtension: "",
@@ -81,7 +81,7 @@ func TestGetHandler(t *testing.T) {
 			r, _ := http.NewRequest("GET", "http://localhost:3004/_images/app/image.jpg/profile", nil)
 			w := httptest.NewRecorder()
 
-			directorMaker.EXPECT().MakeDirector(gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
+			directorMaker.EXPECT().MakeDirector(gomock.Any(), gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 			vipsDaemon.EXPECT().Process(gomock.Any()).Times(1).Return(&vipsutil.Output{
 				Data:          nil,
 				FileExtension: ".jpeg",
