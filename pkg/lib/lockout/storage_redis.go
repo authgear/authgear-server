@@ -19,7 +19,7 @@ var _ Storage = &StorageRedis{}
 
 func (s StorageRedis) Update(ctx context.Context, spec LockoutSpec, contributor string, delta int) (isSuccess bool, lockedUntil *time.Time, err error) {
 	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		r, err := makeAttempts(context.Background(), conn,
+		r, err := makeAttempts(ctx, conn,
 			redisRecordKey(s.AppID, spec),
 			spec.HistoryDuration,
 			spec.MaxAttempts,
@@ -42,7 +42,7 @@ func (s StorageRedis) Update(ctx context.Context, spec LockoutSpec, contributor 
 
 func (s StorageRedis) Clear(ctx context.Context, spec LockoutSpec, contributor string) (err error) {
 	err = s.Redis.WithConnContext(ctx, func(ctx context.Context, conn redis.Redis_6_0_Cmdable) error {
-		return clearAttempts(context.Background(), conn,
+		return clearAttempts(ctx, conn,
 			redisRecordKey(s.AppID, spec),
 			spec.HistoryDuration,
 			contributor,
