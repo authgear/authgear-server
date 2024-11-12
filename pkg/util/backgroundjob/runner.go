@@ -42,14 +42,14 @@ func (o afterDurationOption) apply(runner *Runner) {
 	runner.afterDuration = time.Duration(o)
 }
 
-func NewRunner(logger *log.Logger, runnableFactory RunnableFactory, opts ...RunnerOption) *Runner {
+func NewRunner(ctx context.Context, logger *log.Logger, runnableFactory RunnableFactory, opts ...RunnerOption) *Runner {
 	runner := &Runner{
 		logger:          logger,
 		runnableFactory: runnableFactory,
 		afterDuration:   DefaultAfterDuration,
 		shutdown:        make(chan struct{}),
 		shutdownDone:    make(chan struct{}),
-		shutdownCtx:     context.Background(),
+		shutdownCtx:     ctx,
 	}
 	for _, opt := range opts {
 		opt.apply(runner)

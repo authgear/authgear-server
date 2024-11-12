@@ -7,6 +7,7 @@
 package background
 
 import (
+	"context"
 	"github.com/authgear/authgear-server/pkg/lib/audit"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
 	passkey3 "github.com/authgear/authgear-server/pkg/lib/authn/authenticator/passkey"
@@ -114,7 +115,7 @@ var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
 
-func newAccountAnonymizationRunner(p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
+func newAccountAnonymizationRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
 	factory := p.LoggerFactory
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
@@ -125,11 +126,11 @@ func newAccountAnonymizationRunner(p *deps.BackgroundProvider, ctrl *configsourc
 		BackgroundProvider: p,
 	}
 	runnableFactory := accountanonymization.NewRunnableFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory, clockClock, ctrl, accountAnonymizationServiceFactory)
-	runner := accountanonymization.NewRunner(factory, runnableFactory)
+	runner := accountanonymization.NewRunner(ctx, factory, runnableFactory)
 	return runner
 }
 
-func newAccountDeletionRunner(p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
+func newAccountDeletionRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
 	factory := p.LoggerFactory
 	pool := p.DatabasePool
 	environmentConfig := p.EnvironmentConfig
@@ -140,7 +141,7 @@ func newAccountDeletionRunner(p *deps.BackgroundProvider, ctrl *configsource.Con
 		BackgroundProvider: p,
 	}
 	runnableFactory := accountdeletion.NewRunnableFactory(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory, clockClock, ctrl, accountDeletionServiceFactory)
-	runner := accountdeletion.NewRunner(factory, runnableFactory)
+	runner := accountdeletion.NewRunner(ctx, factory, runnableFactory)
 	return runner
 }
 

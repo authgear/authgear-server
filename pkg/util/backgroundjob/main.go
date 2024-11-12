@@ -13,8 +13,7 @@ import (
 
 // Main takes a list of runners and start them.
 // Upon receiving SIGINT or SIGTERM, stop them gracefully.
-func Main(logger *log.Logger, runners []*Runner) {
-	var ctx context.Context
+func Main(ctx context.Context, logger *log.Logger, runners []*Runner) {
 	var waitGroup sync.WaitGroup
 	shutdown := make(chan struct{})
 
@@ -37,7 +36,7 @@ func Main(logger *log.Logger, runners []*Runner) {
 	sig := <-sigChan
 	logger.Infof("received signal %s, shutting down...", sig.String())
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	close(shutdown)
 	waitGroup.Wait()

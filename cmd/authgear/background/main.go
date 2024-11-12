@@ -41,8 +41,8 @@ func (c *Controller) Start(ctx context.Context) {
 	defer configSrcController.Close()
 
 	runners := []*backgroundjob.Runner{
-		newAccountDeletionRunner(p, configSrcController),
-		newAccountAnonymizationRunner(p, configSrcController),
+		newAccountDeletionRunner(ctx, p, configSrcController),
+		newAccountAnonymizationRunner(ctx, p, configSrcController),
 	}
-	backgroundjob.Main(c.logger, runners)
+	backgroundjob.Main(ctx, c.logger, runners)
 }
