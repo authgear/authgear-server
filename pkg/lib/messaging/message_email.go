@@ -29,7 +29,7 @@ func (m *EmailMessage) Send(ctx context.Context) error {
 		return err
 	}
 
-	m.taskQueue.Enqueue(&tasks.SendMessagesParam{
+	m.taskQueue.Enqueue(ctx, &tasks.SendMessagesParam{
 		EmailMessages: []mail.SendOptions{m.SendOptions},
 	})
 	m.isSent = true

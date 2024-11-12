@@ -8,7 +8,7 @@ import (
 )
 
 type Executor interface {
-	Run(ctx *task.Context, param task.Param)
+	Run(ctx context.Context, taskCtx *task.Context, param task.Param)
 }
 
 type InProcessQueue struct {
@@ -20,7 +20,7 @@ type InProcessQueue struct {
 	hooked       bool         `wire:"-"`
 }
 
-func (s *InProcessQueue) Enqueue(param task.Param) {
+func (s *InProcessQueue) Enqueue(ctx context.Context, param task.Param) {
 	if s.Database != nil {
 		s.pendingTasks = append(s.pendingTasks, param)
 		if !s.hooked {
@@ -29,7 +29,7 @@ func (s *InProcessQueue) Enqueue(param task.Param) {
 		}
 	} else {
 		// No transaction context -> run immediately.
-		s.run(param)
+		s.run(ctx, param)
 	}
 }
 
@@ -44,10 +44,13 @@ func (s *InProcessQueue) DidCommitTx(ctx context.Context) {
 	s.pendingTasks = nil
 
 	for _, param := range pendingTasks {
-		s.run(param)
+		s.run(ctx, param)
 	}
 }
 
-func (s *InProcessQueue) run(param task.Param) {
-	s.Executor.Run(s.CaptureContext(), param)
+func (s *InProcessQueue) run(ctx context.Context, param task.Param) {
+	// Detach the deadline so that the context is not canceled along with the request.
+	ctx = context.WithoutCancel(ctx)
+	taskCtx := s.CaptureContext()
+	s.Executor.Run(ctx, taskCtx, param)
 }

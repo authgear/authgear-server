@@ -28,7 +28,7 @@ import (
 
 type NoopTaskQueue struct{}
 
-func (NoopTaskQueue) Enqueue(taskParam task.Param) {}
+func (NoopTaskQueue) Enqueue(ctx context.Context, taskParam task.Param) {}
 
 func NewNoopTaskQueue() NoopTaskQueue {
 	return NoopTaskQueue{}
