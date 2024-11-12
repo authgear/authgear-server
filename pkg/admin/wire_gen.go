@@ -586,11 +586,13 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		RolesGroups:     rolesgroupsStore,
 		Producer:        userReindexProducer,
 	}
+	configAppID := &appConfig.ID
 	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
 	sqlBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
 	searchdbHandle := appProvider.SearchDatabase
 	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
 	pgsearchService := &pgsearch.Service{
+		AppID:       configAppID,
 		SQLBuilder:  sqlBuilder,
 		SQLExecutor: searchdbSQLExecutor,
 	}
