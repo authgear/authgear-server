@@ -18,7 +18,7 @@ type Controller struct {
 	logger *log.Logger
 }
 
-func (c *Controller) Start() {
+func (c *Controller) Start(ctx context.Context) {
 	vipsutil.LibvipsInit()
 
 	cfg, err := LoadConfigFromEnv()
@@ -31,7 +31,6 @@ func (c *Controller) Start() {
 		golog.Fatalf("failed to setup server: %s", err)
 	}
 
-	ctx := context.Background()
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
