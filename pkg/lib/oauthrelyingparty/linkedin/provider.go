@@ -118,7 +118,7 @@ func (Linkedin) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depen
 		return
 	}
 
-	claims, err := jwtToken.AsMap(context.TODO())
+	claims, err := jwtToken.AsMap(oauthrelyingpartyutil.ContextForTheUnusedContextArgumentInJWXV2API)
 	if err != nil {
 		return
 	}

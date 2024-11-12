@@ -14,6 +14,7 @@ var vettedFilenames = []string{
 	"/pkg/util/jwkutil/contextbackground.go",
 	"/pkg/lib/config/contextbackground.go",
 	"/pkg/lib/deps/contextbackground.go",
+	"/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go",
 	"/cmd/authgear/background/contextbackground.go",
 }
 

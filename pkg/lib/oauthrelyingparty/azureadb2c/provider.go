@@ -145,7 +145,7 @@ func (p AzureADB2C) GetUserProfile(ctx context.Context, deps oauthrelyingparty.D
 		return
 	}
 
-	claims, err := jwtToken.AsMap(context.TODO())
+	claims, err := jwtToken.AsMap(oauthrelyingpartyutil.ContextForTheUnusedContextArgumentInJWXV2API)
 	if err != nil {
 		return
 	}
