@@ -18,9 +18,8 @@ type CreateDefaultDomainOptions struct {
 	DefaultDomainSuffix string
 }
 
-func CreateDefaultDomain(opts CreateDefaultDomainOptions) (err error) {
+func CreateDefaultDomain(ctx context.Context, opts CreateDefaultDomainOptions) (err error) {
 	db := openDB(opts.DatabaseURL, opts.DatabaseSchema)
-	ctx := context.Background()
 
 	tx, err := db.BeginTx(ctx, nil)
 	defer func() {

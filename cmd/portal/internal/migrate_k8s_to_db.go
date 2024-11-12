@@ -24,7 +24,7 @@ type MigrateK8SToDBOptions struct {
 	Namespace      string
 }
 
-func MigrateK8SToDB(opts *MigrateK8SToDBOptions) error {
+func MigrateK8SToDB(ctx context.Context, opts *MigrateK8SToDBOptions) error {
 	kubeConfig, err := kubeutil.MakeKubeConfig(opts.KubeConfigPath)
 	if err != nil {
 		return err
@@ -36,8 +36,6 @@ func MigrateK8SToDB(opts *MigrateK8SToDBOptions) error {
 	}
 
 	db := openDB(opts.DatabaseURL, opts.DatabaseSchema)
-
-	ctx := context.Background()
 
 	listOptions := metav1.ListOptions{
 		LabelSelector: service.LabelAppID,

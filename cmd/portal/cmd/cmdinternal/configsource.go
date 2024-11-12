@@ -29,7 +29,7 @@ var cmdInternalConfigSourceCreate = &cobra.Command{
 
 		resourceDir := args[0]
 
-		err = internal.Create(&internal.CreateOptions{
+		err = internal.Create(cmd.Context(), &internal.CreateOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 			ResourceDir:    resourceDir,
@@ -95,7 +95,7 @@ var cmdInternalConfigSourceCheckDatabase = &cobra.Command{
 			return err
 		}
 
-		err = internal.CheckConfigSources(&internal.CheckConfigSourcesOptions{
+		err = internal.CheckConfigSources(cmd.Context(), &internal.CheckConfigSourcesOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 			AppIDs:         args,

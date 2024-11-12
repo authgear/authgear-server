@@ -38,7 +38,7 @@ var cmdInternalBreakingChangeMigrateK8SToDB = &cobra.Command{
 			return err
 		}
 
-		err = internal.MigrateK8SToDB(&internal.MigrateK8SToDBOptions{
+		err = internal.MigrateK8SToDB(cmd.Context(), &internal.MigrateK8SToDBOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 			KubeConfigPath: kubeConfigPath,
