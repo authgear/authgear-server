@@ -45,7 +45,7 @@ var ErrCollaboratorInvitationInvalidEmail = apierrors.Invalid.WithReason("Collab
 var ErrCollaboratorQuotaExceeded = apierrors.Invalid.WithReason("CollaboratorQuotaExceeded").New("collaborator quota exceeded")
 
 type CollaboratorServiceTaskQueue interface {
-	Enqueue(param task.Param)
+	Enqueue(ctx context.Context, param task.Param)
 }
 
 type CollaboratorServiceEndpointsProvider interface {
@@ -544,7 +544,7 @@ func (s *CollaboratorService) SendInvitation(
 		return nil, err
 	}
 
-	s.TaskQueue.Enqueue(&tasks.SendMessagesParam{
+	s.TaskQueue.Enqueue(ctx, &tasks.SendMessagesParam{
 		EmailMessages: []mail.SendOptions{
 			{
 				// TODO(collaborator): We should reuse translation service.
