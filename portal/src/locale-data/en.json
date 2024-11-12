@@ -844,9 +844,9 @@
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
   "EditOAuthClientScreen.quick-start-screen.title": "All set! Here are the guides to help your integration.",
-  "EditOAuthClientScreen.quick-start-screen.question": "{applicationType, select, confidential{Configure your OpenID Connect compatible applications} third_party_app{Legacy. Please create a new OIDC Client Application instead.} other{What framework are you using for your {applicationType, select, spa{single page application} traditional_webapp{traditional web application} native{native app} other{application}}?}}",
+  "EditOAuthClientScreen.quick-start-screen.question": "{applicationType, select, confidential{Configure OpenID Connect or SAML 2.0 compatible applications} third_party_app{Legacy. Please create a new OIDC Client Application instead.} other{What framework are you using for your {applicationType, select, spa{single page application} traditional_webapp{traditional web application} native{native app} other{application}}?}}",
   "EditOAuthClientScreen.quick-start-widget.title": "Quickstart guide",
-  "EditOAuthClientScreen.quick-start-widget.question": "{applicationType, select, unspecified{Select the application type to see the guides} confidential{Configure your OpenID Connect compatible applications} third_party_app{Legacy. Please create a new OIDC Client Application instead.} other{What framework are you using?}}",
+  "EditOAuthClientScreen.quick-start-widget.question": "{applicationType, select, unspecified{Select the application type to see the guides} confidential{Configure OpenID Connect or SAML 2.0 compatible applications} third_party_app{Legacy. Please create a new OIDC Client Application instead.} other{What framework are you using?}}",
   "EditOAuthClientScreen.quick-start.open-tutorial.label": "Open tutorial",
 
   "EditOAuthClientScreen.quick-start.framework.react": "React",
@@ -860,6 +860,7 @@
   "EditOAuthClientScreen.quick-start.framework.flutter": "Flutter",
   "EditOAuthClientScreen.quick-start.framework.xamarin": "Xamarin",
   "EditOAuthClientScreen.quick-start.framework.oidc": "Setup OIDC Client",
+  "EditOAuthClientScreen.quick-start.framework.saml": "Setup SAML SP",
 
   "EditOAuthClientForm.basic-info.title": "Basic Info",
   "EditOAuthClientForm.name.label": "Name",
