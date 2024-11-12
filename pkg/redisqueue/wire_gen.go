@@ -55,6 +55,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -1262,18 +1263,17 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	return userExportService
 }
 
-func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elasticsearch.Service {
-	clockClock := _wireSystemClockValue
-	handle := p.AppDatabase
-	factory := p.LoggerFactory
-	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
+func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reindexer {
 	appContext := p.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	searchConfig := appConfig.Search
+	clockClock := _wireSystemClockValue
+	handle := p.AppDatabase
+	factory := p.LoggerFactory
+	reindexerLogger := reindex.NewReindexerLogger(factory)
 	secretConfig := config.SecretConfig
-	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
@@ -1643,6 +1643,9 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
+	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
@@ -1656,5 +1659,17 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		RolesGroups:     rolesgroupsStore,
 		Producer:        userReindexProducer,
 	}
-	return elasticsearchService
+	reindexer := &reindex.Reindexer{
+		AppID:                  appID,
+		SearchConfig:           searchConfig,
+		Clock:                  clockClock,
+		Database:               handle,
+		Logger:                 reindexerLogger,
+		Users:                  userQueries,
+		UserStore:              store,
+		IdentityService:        serviceService,
+		RolesGroups:            rolesgroupsStore,
+		ElasticsearchReindexer: elasticsearchService,
+	}
+	return reindexer
 }

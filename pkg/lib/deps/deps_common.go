@@ -52,6 +52,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
+	searchreindex "github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
@@ -144,6 +145,7 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		search.DependencySet,
 
+		wire.Bind(new(searchreindex.ElasticsearchReindexer), new(*libes.Service)),
 		// FIXME(tung): Replace with new search service
 		wire.Bind(new(userimport.ElasticsearchService), new(*libes.Service)),
 	),
@@ -364,6 +366,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
 		wire.Bind(new(userimport.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(userexport.UserQueries), new(*user.Queries)),
+		wire.Bind(new(searchreindex.UserQueries), new(*user.Queries)),
 	),
 
 	wire.NewSet(

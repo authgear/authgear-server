@@ -23,6 +23,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -142,7 +143,7 @@ func (q *Reindexer) QueryPage(ctx context.Context, after model.PageCursor, first
 		// To access standard attributes publicly, it should go through
 		// DeriveStandardAttributes func.
 		rawStandardAttributes := u.StandardAttributes
-		raw := &model.ElasticsearchUserRaw{
+		raw := &model.SearchUserRaw{
 			ID:                 u.ID,
 			AppID:              string(q.AppID),
 			CreatedAt:          u.CreatedAt,
@@ -247,8 +248,8 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 
 		// Process the items
 		for _, item := range items {
-			user := item.Value.(*model.ElasticsearchUserRaw)
-			source := libes.RawToSource(user)
+			user := item.Value.(*model.SearchUserRaw)
+			source := reindex.RawToSource(user)
 			allUserIDs[user.ID] = struct{}{}
 
 			var bodyBytes []byte

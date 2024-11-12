@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 
@@ -24,7 +23,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type UserQueries interface {
@@ -61,19 +59,11 @@ type queryUserResponse struct {
 			Value int `json:"value"`
 		} `json:"total"`
 		Hits []struct {
-			Source model.ElasticsearchUserSource `json:"_source"`
-			Sort   interface{}                   `json:"sort"`
+			Source model.SearchUserSource `json:"_source"`
+			Sort   interface{}            `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
-
-type action string
-
-const (
-	actionReindex action = "reindex"
-	actionDelete  action = "delete"
-	actionSkip    action = "skip"
-)
 
 func (s *Service) EnqueueReindexUserTask(ctx context.Context, userID string) error {
 	request := ReindexRequest{UserID: userID}
@@ -90,148 +80,6 @@ func (s *Service) EnqueueReindexUserTask(ctx context.Context, userID string) err
 	}
 
 	return nil
-}
-
-func (s *Service) getSource(ctx context.Context, userID string) (*model.ElasticsearchUserSource, action, error) {
-	rawUser, err := s.UserStore.Get(ctx, userID)
-	if errors.Is(err, libuser.ErrUserNotFound) {
-		return nil, actionDelete, nil
-	}
-	if rawUser.LastIndexedAt != nil && rawUser.RequireReindexAfter != nil && rawUser.LastIndexedAt.After(*rawUser.RequireReindexAfter) {
-		// Already latest state, skip the update
-		return nil, actionSkip, nil
-	}
-
-	u, err := s.Users.Get(ctx, userID, accesscontrol.RoleGreatest)
-	if errors.Is(err, libuser.ErrUserNotFound) {
-		return nil, actionDelete, nil
-	}
-	if err != nil {
-		return nil, "", err
-	}
-
-	effectiveRoles, err := s.RolesGroups.ListEffectiveRolesByUserID(ctx, u.ID)
-	if err != nil {
-		return nil, "", err
-	}
-
-	groups, err := s.RolesGroups.ListGroupsByUserID(ctx, u.ID)
-	if err != nil {
-		return nil, "", err
-	}
-
-	raw := &model.ElasticsearchUserRaw{
-		ID:                 u.ID,
-		AppID:              string(s.AppID),
-		CreatedAt:          u.CreatedAt,
-		UpdatedAt:          u.UpdatedAt,
-		LastLoginAt:        u.LastLoginAt,
-		IsDisabled:         u.IsDisabled,
-		StandardAttributes: u.StandardAttributes,
-		EffectiveRoles:     slice.Map(effectiveRoles, func(r *rolesgroups.Role) *model.Role { return r.ToModel() }),
-		Groups:             slice.Map(groups, func(g *rolesgroups.Group) *model.Group { return g.ToModel() }),
-	}
-
-	arrIdentityInfo, err := s.IdentityService.ListByUser(ctx, u.ID)
-	if err != nil {
-		return nil, "", err
-	}
-	for _, identityInfo := range arrIdentityInfo {
-		claims := identityInfo.IdentityAwareStandardClaims()
-		if email, ok := claims[model.ClaimEmail]; ok {
-			raw.Email = append(raw.Email, email)
-		}
-		if phoneNumber, ok := claims[model.ClaimPhoneNumber]; ok {
-			raw.PhoneNumber = append(raw.PhoneNumber, phoneNumber)
-		}
-		if preferredUsername, ok := claims[model.ClaimPreferredUsername]; ok {
-			raw.PreferredUsername = append(raw.PreferredUsername, preferredUsername)
-		}
-		switch identityInfo.Type {
-		case model.IdentityTypeOAuth:
-			raw.OAuthSubjectID = append(raw.OAuthSubjectID, identityInfo.OAuth.ProviderSubjectID)
-		case model.IdentityTypeLoginID:
-			// No additional fields
-		case model.IdentityTypeAnonymous:
-			// No additional fields
-		case model.IdentityTypeBiometric:
-			// No additional fields
-		case model.IdentityTypePasskey:
-			// No additional fields
-		case model.IdentityTypeSIWE:
-			// No additional fields
-		case model.IdentityTypeLDAP:
-			// No additional fields
-		default:
-			panic(fmt.Errorf("elasticsearch: unknown identity type %s", identityInfo.Type))
-		}
-	}
-
-	return RawToSource(raw), actionReindex, nil
-}
-
-func (s *Service) ExecReindexUser(ctx context.Context, request ReindexRequest) (result ReindexResult) {
-	failure := func(err error) ReindexResult {
-		s.Logger.WithFields(map[string]interface{}{"user_id": request.UserID}).
-			WithError(err).
-			Error("unknown error on reindexing user")
-		return ReindexResult{
-			UserID:       request.UserID,
-			IsSuccess:    false,
-			ErrorMessage: fmt.Sprintf("%v", err),
-		}
-	}
-
-	startedAt := s.Clock.NowUTC()
-	var source *model.ElasticsearchUserSource = nil
-	var actionToExec action
-	err := s.Database.ReadOnly(ctx, func(ctx context.Context) error {
-		s, a, err := s.getSource(ctx, request.UserID)
-		if err != nil {
-			return err
-		}
-		source = s
-		actionToExec = a
-		return nil
-	})
-
-	if err != nil {
-		return failure(err)
-	}
-
-	switch actionToExec {
-	case actionDelete:
-		err = s.deleteUser(request.UserID)
-		if err != nil {
-			return failure(err)
-		}
-
-	case actionReindex:
-		err = s.reindexUser(source)
-		if err != nil {
-			return failure(err)
-		}
-		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
-			return s.UserStore.UpdateLastIndexedAt(ctx, []string{request.UserID}, startedAt)
-		})
-		if err != nil {
-			return failure(err)
-		}
-
-	case actionSkip:
-		s.Logger.WithFields(logrus.Fields{
-			"app_id":  s.AppID,
-			"user_id": request.UserID,
-		}).Info("skipping reindexing user because it is already up to date")
-	default:
-		panic(fmt.Errorf("elasticsearch: unknown action %s", actionToExec))
-	}
-
-	return ReindexResult{
-		UserID:    request.UserID,
-		IsSuccess: true,
-	}
-
 }
 
 func (s *Service) QueryUser(
@@ -307,7 +155,7 @@ func (s *Service) QueryUser(
 	}, nil
 }
 
-func (s *Service) reindexUser(user *model.ElasticsearchUserSource) error {
+func (s *Service) ReindexUser(user *model.SearchUserSource) error {
 
 	documentID := fmt.Sprintf("%s:%s", user.AppID, user.ID)
 	s.Logger.WithFields(logrus.Fields{
@@ -343,7 +191,7 @@ func (s *Service) reindexUser(user *model.ElasticsearchUserSource) error {
 	return nil
 }
 
-func (s *Service) deleteUser(userID string) error {
+func (s *Service) DeleteUser(userID string) error {
 	appID := s.AppID
 	s.Logger.WithFields(logrus.Fields{
 		"app_id":  appID,
