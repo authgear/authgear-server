@@ -1,6 +1,7 @@
 package search
 
 import (
+	"context"
 	"fmt"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
@@ -18,6 +19,7 @@ type Service struct {
 }
 
 func (s *Service) QueryUser(
+	ctx context.Context,
 	searchKeyword string,
 	filterOptions user.FilterOptions,
 	sortOption user.SortOption,
@@ -31,7 +33,7 @@ func (s *Service) QueryUser(
 		return result, StatsFromElasticsearch(stats), nil
 	case config.SearchImplementationPostgresql:
 		// TODO(tung): Support filter options
-		result, err := s.PGSearchService.QueryUser(searchKeyword, sortOption, pageArgs)
+		result, err := s.PGSearchService.QueryUser(ctx, searchKeyword, sortOption, pageArgs)
 		if err != nil {
 			return nil, nil, err
 		}

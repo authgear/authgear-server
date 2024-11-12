@@ -40,6 +40,7 @@ type UserService interface {
 
 type UserSearchService interface {
 	QueryUser(
+		ctx context.Context,
 		searchKeyword string,
 		filterOptions user.FilterOptions,
 		sortOption user.SortOption,
@@ -73,7 +74,7 @@ func (f *UserFacade) SearchPage(
 	filterOptions user.FilterOptions,
 	sortOption user.SortOption,
 	pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, *graphqlutil.PageResult, error) {
-	refs, stats, err := f.UserSearchService.QueryUser(searchKeyword, filterOptions, sortOption, pageArgs)
+	refs, stats, err := f.UserSearchService.QueryUser(ctx, searchKeyword, filterOptions, sortOption, pageArgs)
 	if err != nil {
 		return nil, nil, err
 	}

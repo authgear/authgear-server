@@ -262,7 +262,7 @@ func (s *Store) Count(ctx context.Context) (uint64, error) {
 func (s *Store) QueryPage(ctx context.Context, listOption ListOptions, pageArgs graphqlutil.PageArgs) ([]*User, uint64, error) {
 	query := s.selectQuery("u")
 
-	query = listOption.SortOption.Apply(query)
+	query = listOption.SortOption.Apply(query, "")
 
 	query, offset, err := db.ApplyPageArgs(query, pageArgs)
 	if err != nil {

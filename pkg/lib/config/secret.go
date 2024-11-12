@@ -377,6 +377,7 @@ type secretKeyDef struct {
 var secretItemKeys = map[SecretKey]secretKeyDef{
 	DatabaseCredentialsKey:                     {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
 	AuditDatabaseCredentialsKey:                {"AuditDatabaseCredentials", func() SecretItemData { return &AuditDatabaseCredentials{} }},
+	SearchDatabaseCredentialsKey:               {"SearchDatabaseCredentials", func() SecretItemData { return &SearchDatabaseCredentials{} }},
 	ElasticsearchCredentialsKey:                {"ElasticsearchCredentials", func() SecretItemData { return &ElasticsearchCredentials{} }},
 	RedisCredentialsKey:                        {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
 	AnalyticRedisCredentialsKey:                {"AnalyticRedisCredentials", func() SecretItemData { return &AnalyticRedisCredentials{} }},
