@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"time"
 
@@ -20,11 +21,14 @@ type Spec struct {
 	server *http.Server
 }
 
-func NewSpec(spec *Spec) *Spec {
+func NewSpec(ctx context.Context, spec *Spec) *Spec {
 	spec.server = &http.Server{
 		Addr:              spec.ListenAddress,
 		Handler:           spec.Handler,
 		ReadHeaderTimeout: 5 * time.Second,
+		BaseContext: func(_ net.Listener) context.Context {
+			return ctx
+		},
 	}
 	return spec
 }
