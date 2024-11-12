@@ -112,7 +112,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		searchDatabaseCredentials = s.(*config.SearchDatabaseCredentials)
 	}
 	searchDatabase := searchdb.NewHandle(
-		ctx,
 		p.DatabasePool,
 		&p.EnvironmentConfig.DatabaseConfig,
 		searchDatabaseCredentials,
