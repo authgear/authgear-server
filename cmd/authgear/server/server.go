@@ -181,5 +181,5 @@ func (c *Controller) Start(ctx context.Context) {
 		))
 	}
 
-	signalutil.Start(c.logger, specs...)
+	signalutil.Start(ctx, c.logger, specs...)
 }

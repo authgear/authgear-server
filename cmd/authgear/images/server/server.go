@@ -54,5 +54,5 @@ func (c *Controller) Start() {
 		ListenAddress: cfg.InternalListenAddr,
 		Handler:       pprofutil.NewServeMux(),
 	}))
-	signalutil.Start(c.logger, specs...)
+	signalutil.Start(ctx, c.logger, specs...)
 }
