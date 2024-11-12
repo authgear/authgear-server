@@ -13,6 +13,7 @@ import (
 var vettedFilenames = []string{
 	"/pkg/util/jwkutil/contextbackground.go",
 	"/pkg/lib/config/contextbackground.go",
+	"/pkg/lib/deps/contextbackground.go",
 }
 
 var Analyzer = &analysis.Analyzer{
