@@ -26,7 +26,7 @@ func GetOAuth2Config(credentialsJSONFilePath string, scope ...string) (*oauth2.C
 	return config, nil
 }
 
-func GetTokenFromWeb(config *oauth2.Config) (*oauth2.Token, error) {
+func GetTokenFromWeb(ctx context.Context, config *oauth2.Config) (*oauth2.Token, error) {
 	authURL := config.AuthCodeURL("", oauth2.AccessTypeOffline)
 	fmt.Printf("Go to the following link in your browser then type the "+
 		"authorization code: \n%v\n", authURL)
@@ -36,7 +36,7 @@ func GetTokenFromWeb(config *oauth2.Config) (*oauth2.Token, error) {
 		return nil, fmt.Errorf("Unable to read authorization code: %v", err)
 	}
 
-	token, err := config.Exchange(context.TODO(), authCode)
+	token, err := config.Exchange(ctx, authCode)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to retrieve token from web: %v", err)
 	}
