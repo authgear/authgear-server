@@ -40,7 +40,7 @@ func TestGetHandler(t *testing.T) {
 			directorMaker.EXPECT().MakeDirector(gomock.Any(), gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 			gock.New("http://localhost:3004").Reply(404)
 
-			router.ServeHTTP(w, r)
+			router.HTTPHandler().ServeHTTP(w, r)
 			So(w.Result().StatusCode, ShouldEqual, 404)
 			So(w.Result().Header.Get("Cache-Control"), ShouldEqual, "")
 			So(gock.IsDone(), ShouldBeTrue)
@@ -52,7 +52,7 @@ func TestGetHandler(t *testing.T) {
 
 			directorMaker.EXPECT().MakeDirector(gomock.Any(), gomock.Any()).AnyTimes().Return(func(r *http.Request) {})
 
-			router.ServeHTTP(w, r)
+			router.HTTPHandler().ServeHTTP(w, r)
 			So(w.Result().StatusCode, ShouldEqual, 404)
 			So(w.Result().Header.Get("Cache-Control"), ShouldEqual, "")
 			So(gock.IsDone(), ShouldBeTrue)
@@ -71,7 +71,7 @@ func TestGetHandler(t *testing.T) {
 				Reply(200).
 				SetHeader("foobar", "42")
 
-			router.ServeHTTP(w, r)
+			router.HTTPHandler().ServeHTTP(w, r)
 			So(w.Result().StatusCode, ShouldEqual, 200)
 			So(w.Result().Header.Get("foobar"), ShouldBeEmpty)
 			So(gock.IsDone(), ShouldBeTrue)
@@ -89,7 +89,7 @@ func TestGetHandler(t *testing.T) {
 			gock.New("http://localhost:3004").
 				Reply(200)
 
-			router.ServeHTTP(w, r)
+			router.HTTPHandler().ServeHTTP(w, r)
 			So(w.Result().StatusCode, ShouldEqual, 200)
 			So(w.Result().Header.Get("Content-Length"), ShouldEqual, "0")
 			So(w.Result().Header.Get("Content-Type"), ShouldEqual, "image/jpeg")

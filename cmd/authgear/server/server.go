@@ -76,7 +76,7 @@ func (c *Controller) Start(ctx context.Context) {
 		}
 
 		spec := &server.Spec{
-			Name:          "Main Server",
+			Name:          "authgear-main",
 			ListenAddress: u.Host,
 			Handler: auth.NewRouter(
 				p,
@@ -90,15 +90,15 @@ func (c *Controller) Start(ctx context.Context) {
 			spec.KeyFilePath = cfg.TLSKeyFilePath
 		}
 
-		specs = append(specs, server.NewSpec(spec))
+		specs = append(specs, server.NewSpec(ctx, spec))
 
 		// Set up internal server.
 		u, err = server.ParseListenAddress(cfg.MainInteralListenAddr)
 		if err != nil {
 			c.logger.WithError(err).Fatal("failed to parse main server internal listen address")
 		}
-		specs = append(specs, server.NewSpec(&server.Spec{
-			Name:          "Main Internal Server",
+		specs = append(specs, server.NewSpec(ctx, &server.Spec{
+			Name:          "authgear-main-internal",
 			ListenAddress: u.Host,
 			Handler:       pprofutil.NewServeMux(),
 		}))
@@ -119,10 +119,13 @@ func (c *Controller) Start(ctx context.Context) {
 			c.logger.WithError(err).Fatal("failed to parse resolver server listen address")
 		}
 
-		specs = append(specs, server.NewSpec(&server.Spec{
-			Name:          "Resolver Server",
+		specs = append(specs, server.NewSpec(ctx, &server.Spec{
+			Name:          "authgear-resolver",
 			ListenAddress: u.Host,
-			Handler:       resolver.NewRouter(p, configSrcController.GetConfigSource()),
+			Handler: resolver.NewRouter(
+				p,
+				configSrcController.GetConfigSource(),
+			),
 		}))
 
 		// Set up internal server.
@@ -131,8 +134,8 @@ func (c *Controller) Start(ctx context.Context) {
 			c.logger.WithError(err).Fatal("failed to parse resolver internal server listen address")
 		}
 
-		specs = append(specs, server.NewSpec(&server.Spec{
-			Name:          "Resolver Internal Server",
+		specs = append(specs, server.NewSpec(ctx, &server.Spec{
+			Name:          "authgear-resolver-internal",
 			ListenAddress: u.Host,
 			Handler:       pprofutil.NewServeMux(),
 		}))
@@ -144,8 +147,8 @@ func (c *Controller) Start(ctx context.Context) {
 			c.logger.WithError(err).Fatal("failed to parse admin API server listen address")
 		}
 
-		specs = append(specs, server.NewSpec(&server.Spec{
-			Name:          "Admin API Server",
+		specs = append(specs, server.NewSpec(ctx, &server.Spec{
+			Name:          "authgear-admin",
 			ListenAddress: u.Host,
 			Handler: admin.NewRouter(
 				p,
@@ -159,8 +162,8 @@ func (c *Controller) Start(ctx context.Context) {
 			c.logger.WithError(err).Fatal("failed to parse admin API internal server listen address")
 		}
 
-		specs = append(specs, server.NewSpec(&server.Spec{
-			Name:          "Admin API Internal Server",
+		specs = append(specs, server.NewSpec(ctx, &server.Spec{
+			Name:          "authgear-admin-internal",
 			ListenAddress: u.Host,
 			Handler:       pprofutil.NewServeMux(),
 		}))

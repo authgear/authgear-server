@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"net/http"
+
 	apihandler "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	oauthhandler "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	samlhandler "github.com/authgear/authgear-server/pkg/auth/handler/saml"
@@ -13,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httproute/httprouteotel"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -32,13 +35,13 @@ func newAllSessionMiddleware(deps *deps.RequestProvider) httproute.Middleware {
 	return newSessionMiddleware(deps)
 }
 
-func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *httproute.Router {
+func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) http.Handler {
 
 	newSessionMiddleware := func() httproute.Middleware {
 		return p.Middleware(newAllSessionMiddleware)
 	}
 
-	router := httproute.NewRouter()
+	router := httprouteotel.NewOTelRouter(httproute.NewRouter())
 
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},
@@ -594,5 +597,5 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) *h
 		AuthflowV2:  p.Handler(newWebAppAuthflowV2NotFoundHandler),
 	})
 
-	return router
+	return router.HTTPHandler()
 }

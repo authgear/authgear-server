@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"net/http"
+
 	graphqlhandler "github.com/graphql-go/handler"
 
 	"github.com/authgear/authgear-server/pkg/admin/transport"
@@ -8,11 +10,12 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
+	"github.com/authgear/authgear-server/pkg/util/httproute/httprouteotel"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, auth config.AdminAPIAuth) *httproute.Router {
-	router := httproute.NewRouter()
+func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, auth config.AdminAPIAuth) http.Handler {
+	router := httprouteotel.NewOTelRouter(httproute.NewRouter())
 
 	router.Add(httproute.Route{
 		Methods:     []string{"GET"},
@@ -61,5 +64,5 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource, au
 	router.Add(transport.ConfigureUserExportCreateRoute(route), p.Handler(newUserExportCreateHandler))
 	router.Add(transport.ConfigureUserExportGetRoute(route), p.Handler(newUserExportGetHandler))
 
-	return router
+	return router.HTTPHandler()
 }

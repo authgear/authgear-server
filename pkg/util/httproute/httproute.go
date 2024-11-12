@@ -101,8 +101,8 @@ func (r *Router) NotFound(route Route, h http.Handler) {
 	r.router.NotFound = h
 }
 
-func (r *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	r.router.ServeHTTP(w, req)
+func (r *Router) HTTPHandler() http.Handler {
+	return r.router
 }
 
 func GetParam(r *http.Request, name string) string {

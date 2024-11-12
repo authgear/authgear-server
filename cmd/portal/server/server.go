@@ -69,13 +69,13 @@ func (c *Controller) Start(ctx context.Context) {
 	p.ConfigSourceController = configSrcController
 
 	var specs []signalutil.Daemon
-	specs = append(specs, server.NewSpec(&server.Spec{
-		Name:          "portal server",
+	specs = append(specs, server.NewSpec(ctx, &server.Spec{
+		Name:          "authgear-portal",
 		ListenAddress: cfg.PortalListenAddr,
 		Handler:       portal.NewRouter(p),
 	}))
-	specs = append(specs, server.NewSpec(&server.Spec{
-		Name:          "portal internal server",
+	specs = append(specs, server.NewSpec(ctx, &server.Spec{
+		Name:          "authgear-portal-internal",
 		ListenAddress: cfg.PortalInternalListenAddr,
 		Handler:       pprofutil.NewServeMux(),
 	}))

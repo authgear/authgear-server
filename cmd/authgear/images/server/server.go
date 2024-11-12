@@ -23,12 +23,12 @@ func (c *Controller) Start(ctx context.Context) {
 
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		golog.Fatalf("failed to load server config: %s", err)
+		golog.Fatalf("failed to load server config: %v", err)
 	}
 
 	p, err := deps.NewRootProvider(*cfg.EnvironmentConfig, cfg.ObjectStore)
 	if err != nil {
-		golog.Fatalf("failed to setup server: %s", err)
+		golog.Fatalf("failed to initialize dependencies: %v", err)
 	}
 
 	configSrcController := newConfigSourceController(p)
@@ -43,13 +43,13 @@ func (c *Controller) Start(ctx context.Context) {
 	c.logger.Infof("authgear (version %s)", version.Version)
 
 	var specs []signalutil.Daemon
-	specs = append(specs, server.NewSpec(&server.Spec{
-		Name:          "images server",
+	specs = append(specs, server.NewSpec(ctx, &server.Spec{
+		Name:          "authgear-images",
 		ListenAddress: cfg.ListenAddr,
 		Handler:       images.NewRouter(p, configSrcController.GetConfigSource()),
 	}))
-	specs = append(specs, server.NewSpec(&server.Spec{
-		Name:          "images internal server",
+	specs = append(specs, server.NewSpec(ctx, &server.Spec{
+		Name:          "authgear-images-internal",
 		ListenAddress: cfg.InternalListenAddr,
 		Handler:       pprofutil.NewServeMux(),
 	}))

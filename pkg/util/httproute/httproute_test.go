@@ -62,7 +62,7 @@ func TestRedirectTrailingSlash(t *testing.T) {
 		r, _ := http.NewRequest("GET", "/foo/", nil)
 		w := httptest.NewRecorder()
 
-		router.ServeHTTP(w, r)
+		router.HTTPHandler().ServeHTTP(w, r)
 
 		So(w.Result().StatusCode, ShouldEqual, 301)
 		So(w.Header().Get("Location"), ShouldEqual, "/foo")
@@ -82,7 +82,7 @@ func TestRedirectFixedPath(t *testing.T) {
 		r, _ := http.NewRequest("GET", "/./FOO", nil)
 		w := httptest.NewRecorder()
 
-		router.ServeHTTP(w, r)
+		router.HTTPHandler().ServeHTTP(w, r)
 
 		So(w.Result().StatusCode, ShouldEqual, 301)
 		So(w.Header().Get("Location"), ShouldEqual, "/foo")
@@ -102,7 +102,7 @@ func TestHandleMethodNotAllowed(t *testing.T) {
 		r, _ := http.NewRequest("POST", "/foo", nil)
 		w := httptest.NewRecorder()
 
-		router.ServeHTTP(w, r)
+		router.HTTPHandler().ServeHTTP(w, r)
 
 		So(w.Result().StatusCode, ShouldEqual, 405)
 	})
@@ -123,7 +123,7 @@ func TestHandleOptions(t *testing.T) {
 		r, _ := http.NewRequest("GET", "/foo", nil)
 		w := httptest.NewRecorder()
 
-		router.ServeHTTP(w, r)
+		router.HTTPHandler().ServeHTTP(w, r)
 
 		So(w.Body.String(), ShouldEqual, "handled by handler")
 	})
@@ -146,7 +146,7 @@ func TestGetParam(t *testing.T) {
 		r, _ := http.NewRequest("GET", "/foo", nil)
 		w := httptest.NewRecorder()
 
-		router.ServeHTTP(w, r)
+		router.HTTPHandler().ServeHTTP(w, r)
 
 		So(value, ShouldEqual, "")
 	})
@@ -167,7 +167,7 @@ func TestGetParam(t *testing.T) {
 		r, _ := http.NewRequest("GET", "/foo/johndoe", nil)
 		w := httptest.NewRecorder()
 
-		router.ServeHTTP(w, r)
+		router.HTTPHandler().ServeHTTP(w, r)
 
 		So(value, ShouldEqual, "johndoe")
 	})
@@ -202,7 +202,7 @@ func TestMiddleware(t *testing.T) {
 			r, _ := http.NewRequest("GET", "/foo", nil)
 			w := httptest.NewRecorder()
 
-			router.ServeHTTP(w, r)
+			router.HTTPHandler().ServeHTTP(w, r)
 
 			So(observedLabels, ShouldResemble, []string{"before m1", "handler", "after m1"})
 		})
@@ -218,7 +218,7 @@ func TestMiddleware(t *testing.T) {
 			r, _ := http.NewRequest("GET", "/foo", nil)
 			w := httptest.NewRecorder()
 
-			router.ServeHTTP(w, r)
+			router.HTTPHandler().ServeHTTP(w, r)
 
 			So(observedLabels, ShouldResemble, []string{"before m1", "before m2", "handler", "after m2", "after m1"})
 		})
@@ -234,7 +234,7 @@ func TestMiddleware(t *testing.T) {
 			r, _ := http.NewRequest("GET", "/foo", nil)
 			w := httptest.NewRecorder()
 
-			router.ServeHTTP(w, r)
+			router.HTTPHandler().ServeHTTP(w, r)
 
 			So(observedLabels, ShouldResemble, []string{
 				"before m1",
