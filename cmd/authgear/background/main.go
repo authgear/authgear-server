@@ -13,13 +13,14 @@ type Controller struct {
 	logger *log.Logger
 }
 
-func (c *Controller) Start() {
+func (c *Controller) Start(ctx context.Context) {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		golog.Fatalf("failed to load config: %v", err)
 	}
 
 	p, err := deps.NewBackgroundProvider(
+		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
 		cfg.BuiltinResourceDirectory,
@@ -32,7 +33,6 @@ func (c *Controller) Start() {
 	// From now, we should use c.logger to log.
 	c.logger = p.LoggerFactory.New("background")
 
-	ctx := context.Background()
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {

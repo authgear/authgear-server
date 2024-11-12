@@ -26,6 +26,7 @@ func (c *End2End) GetLinkOTPCode(ctx context.Context, appID string, claimName st
 	})
 
 	p, err := deps.NewRootProvider(
+		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
 		cfg.BuiltinResourceDirectory,

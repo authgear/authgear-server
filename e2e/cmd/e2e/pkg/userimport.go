@@ -34,6 +34,7 @@ func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string
 	})
 
 	p, err := deps.NewRootProvider(
+		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
 		cfg.BuiltinResourceDirectory,

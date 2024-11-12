@@ -38,6 +38,7 @@ type RootProvider struct {
 }
 
 func NewRootProvider(
+	ctx context.Context,
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
 	builtinResourceDirectory string,
@@ -65,7 +66,7 @@ func NewRootProvider(
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
-	redisHub := redis.NewHub(redisPool, loggerFactory)
+	redisHub := redis.NewHub(ctx, redisPool, loggerFactory)
 
 	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
 	if err != nil {
@@ -258,6 +259,7 @@ type BackgroundProvider struct {
 }
 
 func NewBackgroundProvider(
+	ctx context.Context,
 	cfg *config.EnvironmentConfig,
 	configSourceConfig *configsource.Config,
 	builtinResourceDirectory string,
@@ -284,7 +286,7 @@ func NewBackgroundProvider(
 
 	dbPool := db.NewPool()
 	redisPool := redis.NewPool()
-	redisHub := redis.NewHub(redisPool, loggerFactory)
+	redisHub := redis.NewHub(ctx, redisPool, loggerFactory)
 
 	embeddedResources, err := web.NewDefaultGlobalEmbeddedResourceManager()
 	if err != nil {

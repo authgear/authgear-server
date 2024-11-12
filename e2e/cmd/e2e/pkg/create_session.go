@@ -65,7 +65,7 @@ func (c *End2End) CreateSession(
 	lf := log.NewFactory(log.LevelInfo)
 
 	redisPool := infraredis.NewPool()
-	redisHub := infraredis.NewHub(redisPool, lf)
+	redisHub := infraredis.NewHub(ctx, redisPool, lf)
 	redis := appredis.NewHandle(
 		redisPool,
 		redisHub,
