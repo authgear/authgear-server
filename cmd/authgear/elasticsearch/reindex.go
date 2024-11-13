@@ -15,13 +15,10 @@ import (
 	"github.com/elastic/go-elasticsearch/v7/esutil"
 
 	"github.com/authgear/authgear-server/pkg/api/model"
-	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -88,9 +85,6 @@ type Reindexer struct {
 	Handle              *appdb.Handle
 	AppID               config.AppID
 	Users               *user.Store
-	OAuth               *identityoauth.Store
-	LoginID             *identityloginid.Store
-	RolesGroups         *rolesgroups.Store
 	ReindexedTimestamps *ReindexedTimestamps
 
 	SourceProvider *reindex.SourceProvider

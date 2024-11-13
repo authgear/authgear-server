@@ -38,7 +38,7 @@ func (s *Service) QueryUser(
 func (s *Service) ReindexUser(
 	ctx context.Context, user *apimodel.SearchUserSource) error {
 	err := s.withTx(ctx, func(ctx context.Context) error {
-		return s.Store.UpsertUser(ctx, user)
+		return s.Store.UpsertUsers(ctx, []*apimodel.SearchUserSource{user})
 	})
 	return err
 }

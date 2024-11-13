@@ -4,7 +4,7 @@
 //go:build !wireinject
 // +build !wireinject
 
-package elasticsearch
+package pgsearch
 
 import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/oob"
@@ -23,7 +23,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/otp"
 	"github.com/authgear/authgear-server/pkg/lib/authn/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
-	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
@@ -33,7 +32,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
@@ -47,27 +45,7 @@ import (
 
 // Injectors from wire.go:
 
-func NewAppLister(pool *db.Pool, databaseCredentials *CmdDBCredential) *AppLister {
-	environmentConfig := NewEnvConfig(databaseCredentials)
-	globalDatabaseCredentialsEnvironmentConfig := &environmentConfig.GlobalDatabase
-	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	factory := NewLoggerFactory()
-	handle := globaldb.NewHandle(pool, globalDatabaseCredentialsEnvironmentConfig, databaseEnvironmentConfig, factory)
-	sqlBuilder := globaldb.NewSQLBuilder(globalDatabaseCredentialsEnvironmentConfig)
-	sqlExecutor := globaldb.NewSQLExecutor(handle)
-	store := &configsource.Store{
-		SQLBuilder:  sqlBuilder,
-		SQLExecutor: sqlExecutor,
-	}
-	appLister := &AppLister{
-		Handle: handle,
-		Store:  store,
-	}
-	return appLister
-}
-
 func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID CmdAppID) *Reindexer {
-	clock := _wireSystemClockValue
 	environmentConfig := NewEnvConfig(databaseCredentials)
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	config := NewEmptyConfig(pool, databaseCredentials, appID)
@@ -79,13 +57,13 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(configDatabaseCredentials, configAppID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
+	clock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 		Clock:       clock,
 		AppID:       configAppID,
 	}
-	reindexedTimestamps := NewReindexedTimestamps()
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}
@@ -451,12 +429,9 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		RolesGroups:     rolesgroupsStore,
 	}
 	reindexer := &Reindexer{
-		Clock:               clock,
-		Handle:              handle,
-		AppID:               configAppID,
-		Users:               store,
-		ReindexedTimestamps: reindexedTimestamps,
-		SourceProvider:      sourceProvider,
+		Handle:         handle,
+		AppID:          configAppID,
+		SourceProvider: sourceProvider,
 	}
 	return reindexer
 }
