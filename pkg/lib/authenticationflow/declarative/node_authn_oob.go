@@ -238,17 +238,6 @@ func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dep
 	}
 	_, claimValue := n.Info.OOBOTP.ToClaimPair()
 
-	msg, err := deps.OTPSender.Prepare(ctx,
-		n.Channel,
-		claimValue,
-		n.Form,
-		typ,
-	)
-	if err != nil {
-		return err
-	}
-	defer msg.Close(ctx)
-
 	code, err := deps.OTPCodes.GenerateOTP(ctx,
 		n.otpKind(deps),
 		claimValue,
@@ -262,7 +251,16 @@ func (n *NodeAuthenticationOOB) SendCode(ctx context.Context, deps *authflow.Dep
 		return err
 	}
 
-	err = deps.OTPSender.Send(ctx, msg, otp.SendOptions{OTP: code})
+	err = deps.OTPSender.Send(
+		ctx,
+		otp.SendOptions{
+			Channel: n.Channel,
+			Target:  claimValue,
+			Form:    n.Form,
+			Type:    typ,
+			OTP:     code,
+		},
+	)
 	if err != nil {
 		return err
 	}

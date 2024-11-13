@@ -5,7 +5,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/config"
-	"github.com/authgear/authgear-server/pkg/lib/messaging"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
 
@@ -14,7 +14,7 @@ type TranslationService interface {
 }
 
 type SenderService interface {
-	PrepareEmail(ctx context.Context, email string, msgType translation.MessageType) (*messaging.EmailMessage, error)
+	SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error
 }
 
 type Sender struct {
@@ -22,18 +22,6 @@ type Sender struct {
 	Identities  IdentityService
 	Sender      SenderService
 	Translation TranslationService
-}
-
-type PreparedMessage struct {
-	email   *messaging.EmailMessage
-	spec    *translation.MessageSpec
-	msgType translation.MessageType
-}
-
-func (m *PreparedMessage) Close(ctx context.Context) {
-	if m.email != nil {
-		m.email.Close(ctx)
-	}
 }
 
 func (s *Sender) getEmailList(ctx context.Context, userID string) ([]string, error) {
@@ -58,30 +46,6 @@ func (s *Sender) getEmailList(ctx context.Context, userID string) ([]string, err
 	return emails, nil
 }
 
-func (s *Sender) prepareMessage(ctx context.Context, email string, msgType translation.MessageType) (*PreparedMessage, error) {
-	var spec *translation.MessageSpec
-
-	switch msgType {
-	case translation.MessageTypeSendPasswordToExistingUser:
-		spec = translation.MessageSendPasswordToExistingUser
-	case translation.MessageTypeSendPasswordToNewUser:
-		spec = translation.MessageSendPasswordToNewUser
-	default:
-		panic("forgotpassword: unknown message type: " + msgType)
-	}
-
-	msg, err := s.Sender.PrepareEmail(ctx, email, msgType)
-	if err != nil {
-		return nil, err
-	}
-
-	return &PreparedMessage{
-		email:   msg,
-		spec:    spec,
-		msgType: msgType,
-	}, nil
-}
-
 func (s *Sender) Send(ctx context.Context, userID string, password string, msgType translation.MessageType) error {
 	emails, err := s.getEmailList(ctx, userID)
 	if err != nil {
@@ -93,29 +57,36 @@ func (s *Sender) Send(ctx context.Context, userID string, password string, msgTy
 	}
 
 	for _, email := range emails {
-		msg, err := s.prepareMessage(ctx, email, msgType)
-		if err != nil {
-			return err
+		var spec *translation.MessageSpec
+		switch msgType {
+		case translation.MessageTypeSendPasswordToExistingUser:
+			spec = translation.MessageSendPasswordToExistingUser
+		case translation.MessageTypeSendPasswordToNewUser:
+			spec = translation.MessageSendPasswordToNewUser
+		default:
+			panic("forgotpassword: unknown message type: " + msgType)
 		}
-		defer msg.Close(ctx)
 
 		partialTemplateVariables := &translation.PartialTemplateVariables{
 			Email:    email,
 			Password: password,
 		}
 
-		data, err := s.Translation.EmailMessageData(ctx, msg.spec, partialTemplateVariables)
+		data, err := s.Translation.EmailMessageData(ctx, spec, partialTemplateVariables)
 		if err != nil {
 			return err
 		}
 
-		msg.email.Sender = data.Sender
-		msg.email.ReplyTo = data.ReplyTo
-		msg.email.Subject = data.Subject
-		msg.email.TextBody = data.TextBody.String
-		msg.email.HTMLBody = data.HTMLBody.String
+		mailSendOptions := &mail.SendOptions{
+			Sender:    data.Sender,
+			ReplyTo:   data.ReplyTo,
+			Subject:   data.Subject,
+			Recipient: email,
+			TextBody:  data.TextBody.String,
+			HTMLBody:  data.HTMLBody.String,
+		}
 
-		if err := msg.email.Send(ctx); err != nil {
+		if err := s.Sender.SendEmailInNewGoroutine(ctx, msgType, mailSendOptions); err != nil {
 			return err
 		}
 	}

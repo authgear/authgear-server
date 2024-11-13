@@ -31,49 +31,34 @@ type Sender struct {
 	MessagingFeatureConfig *config.MessagingFeatureConfig
 }
 
-func (s *Sender) PrepareEmail(ctx context.Context, email string, msgType translation.MessageType) (*EmailMessage, error) {
-	msg, err := s.Limits.checkEmail(ctx, email)
+func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error {
+	err := s.Limits.checkEmail(ctx, opts.Recipient)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &EmailMessage{
-		message:     *msg,
-		taskQueue:   s.TaskQueue,
-		events:      s.Events,
-		SendOptions: mail.SendOptions{Recipient: email},
-		Type:        msgType,
-	}, nil
+	// FIXME(messaging):send the email in a new goroutine.
+	return nil
 }
 
-func (s *Sender) PrepareSMS(ctx context.Context, phoneNumber string, msgType translation.MessageType) (*SMSMessage, error) {
-	msg, err := s.Limits.checkSMS(ctx, phoneNumber)
+func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error {
+	err := s.Limits.checkSMS(ctx, opts.To)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &SMSMessage{
-		message:      *msg,
-		taskQueue:    s.TaskQueue,
-		events:       s.Events,
-		SendOptions:  sms.SendOptions{To: phoneNumber},
-		Type:         msgType,
-		IsNotCounted: s.MessagingFeatureConfig.SMSUsageCountDisabled,
-	}, nil
+	// FIXME(messaging): respect s.MessagingFeatureConfig.SMSUsageCountDisabled
+	// FIXME(messaging): send the SMS in a new goroutine.
+	return nil
 }
 
-func (s *Sender) PrepareWhatsapp(ctx context.Context, phoneNumber string, msgType translation.MessageType) (*WhatsappMessage, error) {
-	msg, err := s.Limits.checkWhatsapp(ctx, phoneNumber)
+func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendTemplateOptions) error {
+	err := s.Limits.checkWhatsapp(ctx, opts.To)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return &WhatsappMessage{
-		message:      *msg,
-		taskQueue:    s.TaskQueue,
-		events:       s.Events,
-		Options:      whatsapp.SendTemplateOptions{To: phoneNumber},
-		Type:         msgType,
-		IsNotCounted: s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
-	}, nil
+	// FIXME(messaging): respect s.MessagingFeatureConfig.WhatsappUsageCountDisabled
+	// FIXME(messaging): send the Whatsapp immediately.
+	return nil
 }
