@@ -668,17 +668,22 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	sinkLogger := reindex.NewSinkLogger(factory)
 	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
+	sourceProvider := &reindex.SourceProvider{
+		AppID:           appID,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
 	reindexer := &reindex.Reindexer{
 		AppID:                  appID,
 		SearchConfig:           searchConfig,
 		Clock:                  clockClock,
 		Database:               handle,
 		Logger:                 reindexerLogger,
-		Users:                  userQueries,
 		UserStore:              store,
-		IdentityService:        serviceService,
-		RolesGroups:            rolesgroupsStore,
 		Producer:               userReindexProducer,
+		SourceProvider:         sourceProvider,
 		ElasticsearchReindexer: elasticsearchService,
 		PostgresqlReindexer:    pgsearchService,
 	}

@@ -21,7 +21,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
-var envConfigDeps = wire.NewSet(
+var EnvConfigDeps = wire.NewSet(
 	wire.FieldsOf(new(*config.EnvironmentConfig),
 		"TrustProxy",
 		"DevMode",
@@ -65,7 +65,7 @@ var rootDeps = wire.NewSet(
 		"EmbeddedResources",
 	),
 
-	envConfigDeps,
+	EnvConfigDeps,
 
 	clock.DependencySet,
 	globaldb.DependencySet,
@@ -184,7 +184,7 @@ var BackgroundDependencySet = wire.NewSet(
 		"EmbeddedResources",
 	),
 
-	envConfigDeps,
+	EnvConfigDeps,
 
 	clock.DependencySet,
 	globaldb.DependencySet,

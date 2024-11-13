@@ -652,6 +652,13 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	searchConfig := appConfig.Search
 	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(handle, clock)
+	sourceProvider := &reindex.SourceProvider{
+		AppID:           appID,
+		Users:           userQueries,
+		UserStore:       userStore,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -683,11 +690,9 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Clock:                  clock,
 		Database:               appdbHandle,
 		Logger:                 reindexerLogger,
-		Users:                  userQueries,
 		UserStore:              userStore,
-		IdentityService:        serviceService,
-		RolesGroups:            rolesgroupsStore,
 		Producer:               userReindexProducer,
+		SourceProvider:         sourceProvider,
 		ElasticsearchReindexer: elasticsearchService,
 		PostgresqlReindexer:    pgsearchService,
 	}

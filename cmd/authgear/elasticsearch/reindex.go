@@ -20,13 +20,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	libes "github.com/authgear/authgear-server/pkg/lib/elasticsearch"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/authgear/authgear-server/pkg/util/slice"
 )
 
 type queryUserResponse struct {
@@ -39,11 +36,6 @@ type queryUserResponse struct {
 			Sort interface{} `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
-}
-
-type Item struct {
-	Value  interface{}
-	Cursor model.PageCursor
 }
 
 type ReindexedTimestamp struct {
@@ -100,86 +92,8 @@ type Reindexer struct {
 	LoginID             *identityloginid.Store
 	RolesGroups         *rolesgroups.Store
 	ReindexedTimestamps *ReindexedTimestamps
-}
 
-func (q *Reindexer) QueryPage(ctx context.Context, after model.PageCursor, first uint64) ([]Item, error) {
-	users, offset, err := q.Users.QueryPage(ctx, user.ListOptions{}, graphqlutil.PageArgs{
-		First: &first,
-		After: graphqlutil.Cursor(after),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	models := make([]Item, len(users))
-	for i, u := range users {
-		pageKey := db.PageKey{Offset: offset + uint64(i)}
-		cursor, err := pageKey.ToPageCursor()
-		if err != nil {
-			return nil, err
-		}
-		oauthIdentities, err := q.OAuth.List(ctx, u.ID)
-		if err != nil {
-			return nil, err
-		}
-		loginIDIdentities, err := q.LoginID.List(ctx, u.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		effectiveRoles, err := q.RolesGroups.ListEffectiveRolesByUserID(ctx, u.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		groups, err := q.RolesGroups.ListGroupsByUserID(ctx, u.ID)
-		if err != nil {
-			return nil, err
-		}
-
-		// rawStandardAttributes is used in the re-index command
-		// Since the fields that we use for search won't need processing
-		// The re-index command should have greatest permission to access all fields.
-		// To access standard attributes publicly, it should go through
-		// DeriveStandardAttributes func.
-		rawStandardAttributes := u.StandardAttributes
-		raw := &model.SearchUserRaw{
-			ID:                 u.ID,
-			AppID:              string(q.AppID),
-			CreatedAt:          u.CreatedAt,
-			UpdatedAt:          u.UpdatedAt,
-			LastLoginAt:        u.MostRecentLoginAt,
-			IsDisabled:         u.IsDisabled,
-			StandardAttributes: rawStandardAttributes,
-			EffectiveRoles:     slice.Map(effectiveRoles, func(r *rolesgroups.Role) *model.Role { return r.ToModel() }),
-			Groups:             slice.Map(groups, func(g *rolesgroups.Group) *model.Group { return g.ToModel() }),
-		}
-
-		var arrClaims []map[string]interface{}
-		for _, oauthI := range oauthIdentities {
-			arrClaims = append(arrClaims, oauthI.Claims)
-			raw.OAuthSubjectID = append(raw.OAuthSubjectID, oauthI.ProviderSubjectID)
-		}
-		for _, loginIDI := range loginIDIdentities {
-			arrClaims = append(arrClaims, loginIDI.Claims)
-		}
-
-		for _, claims := range arrClaims {
-			if email, ok := claims["email"].(string); ok {
-				raw.Email = append(raw.Email, email)
-			}
-			if phoneNumber, ok := claims["phone_number"].(string); ok {
-				raw.PhoneNumber = append(raw.PhoneNumber, phoneNumber)
-			}
-			if preferredUsername, ok := claims["preferred_username"].(string); ok {
-				raw.PreferredUsername = append(raw.PreferredUsername, preferredUsername)
-			}
-		}
-
-		models[i] = Item{Value: raw, Cursor: cursor}
-	}
-
-	return models, nil
+	SourceProvider *reindex.SourceProvider
 }
 
 func (q *Reindexer) Reindex(ctx context.Context, es *elasticsearch.Client) (err error) {
@@ -223,12 +137,12 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 
 	var first uint64 = 50
 	var after model.PageCursor = ""
-	var items []Item
+	var items []reindex.ReindexItem
 	startAt := q.Clock.NowUTC()
 
 	for {
 		err = q.Handle.WithTx(ctx, func(ctx context.Context) (err error) {
-			items, err = q.QueryPage(ctx, after, first)
+			items, err = q.SourceProvider.QueryPage(ctx, after, first)
 			if err != nil {
 				return
 			}
@@ -248,9 +162,8 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 
 		// Process the items
 		for _, item := range items {
-			user := item.Value.(*model.SearchUserRaw)
-			source := reindex.RawToSource(user)
-			allUserIDs[user.ID] = struct{}{}
+			source := item.Value
+			allUserIDs[source.ID] = struct{}{}
 
 			var bodyBytes []byte
 			bodyBytes, err = json.Marshal(source)

@@ -603,6 +603,13 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	searchConfig := appConfig.Search
 	reindexerLogger := reindex.NewReindexerLogger(factory)
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
+	sourceProvider := &reindex.SourceProvider{
+		AppID:           configAppID,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
@@ -634,11 +641,9 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Clock:                  clockClock,
 		Database:               handle,
 		Logger:                 reindexerLogger,
-		Users:                  userQueries,
 		UserStore:              store,
-		IdentityService:        serviceService,
-		RolesGroups:            rolesgroupsStore,
 		Producer:               userReindexProducer,
+		SourceProvider:         sourceProvider,
 		ElasticsearchReindexer: elasticsearchService,
 		PostgresqlReindexer:    pgsearchService,
 	}
