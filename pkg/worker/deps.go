@@ -14,8 +14,6 @@ var DependencySet = wire.NewSet(
 	deps.TaskDependencySet,
 	deps.CommonDependencySet,
 
-	mail.DependencySet,
-
 	tasks.DependencySet,
 	wire.Bind(new(tasks.MailSender), new(*mail.Sender)),
 	wire.Bind(new(tasks.SMSClient), new(*sms.Client)),
