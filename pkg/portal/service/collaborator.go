@@ -23,7 +23,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/portal/session"
-	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -48,6 +47,10 @@ type CollaboratorServiceTaskQueue interface {
 	Enqueue(ctx context.Context, param task.Param)
 }
 
+type CollaboratorServiceSMTPService interface {
+	SendRealEmail(ctx context.Context, opts mail.SendOptions) error
+}
+
 type CollaboratorServiceEndpointsProvider interface {
 	AcceptCollaboratorInvitationEndpointURL() *url.URL
 }
@@ -69,6 +72,7 @@ type CollaboratorService struct {
 	GlobalDatabase *globaldb.Handle
 
 	MailConfig     *portalconfig.MailConfig
+	SMTPService    CollaboratorServiceSMTPService
 	TaskQueue      CollaboratorServiceTaskQueue
 	Endpoints      CollaboratorServiceEndpointsProvider
 	TemplateEngine *template.Engine
@@ -544,19 +548,18 @@ func (s *CollaboratorService) SendInvitation(
 		return nil, err
 	}
 
-	s.TaskQueue.Enqueue(ctx, &tasks.SendMessagesParam{
-		EmailMessages: []mail.SendOptions{
-			{
-				// TODO(collaborator): We should reuse translation service.
-				Sender:    s.MailConfig.Sender,
-				ReplyTo:   s.MailConfig.ReplyTo,
-				Subject:   "You are invited to collaborate on \"" + appID + "\" in Authgear",
-				Recipient: inviteeEmail,
-				TextBody:  textBody.String,
-				HTMLBody:  htmlBody.String,
-			},
-		},
+	err = s.SMTPService.SendRealEmail(ctx, mail.SendOptions{
+		// TODO(collaborator): We should reuse translation service.
+		Sender:    s.MailConfig.Sender,
+		ReplyTo:   s.MailConfig.ReplyTo,
+		Subject:   "You are invited to collaborate on \"" + appID + "\" in Authgear",
+		Recipient: inviteeEmail,
+		TextBody:  textBody.String,
+		HTMLBody:  htmlBody.String,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return i, nil
 }

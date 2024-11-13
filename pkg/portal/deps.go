@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/tutorial"
 	"github.com/authgear/authgear-server/pkg/lib/usage"
 	appresource "github.com/authgear/authgear-server/pkg/portal/appresource/factory"
@@ -65,6 +66,7 @@ var DependencySet = wire.NewSet(
 	endpoint.DependencySet,
 
 	smtp.DependencySet,
+	wire.Bind(new(smtp.MailSender), new(*mail.Sender)),
 
 	auditdb.NewReadHandle,
 	auditdb.NewWriteHandle,
@@ -77,6 +79,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(service.AuthzAdder), new(*adminauthz.Adder)),
 	wire.Bind(new(service.CollaboratorServiceTaskQueue), new(*task.InProcessQueue)),
 	wire.Bind(new(service.CollaboratorServiceEndpointsProvider), new(*endpoint.EndpointsProvider)),
+	wire.Bind(new(service.CollaboratorServiceSMTPService), new(*smtp.Service)),
 	wire.Bind(new(service.CollaboratorServiceAdminAPIService), new(*service.AdminAPIService)),
 	wire.Bind(new(service.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(service.AppPlanService), new(*plan.Service)),
