@@ -7,4 +7,6 @@ import (
 var DependencySet = wire.NewSet(
 	NewReindexerLogger,
 	wire.Struct(new(Reindexer), "*"),
+	NewSinkLogger,
+	wire.Struct(new(Sink), "*"),
 )

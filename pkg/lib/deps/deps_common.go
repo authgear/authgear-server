@@ -148,8 +148,8 @@ var CommonDependencySet = wire.NewSet(
 
 		wire.Bind(new(searchreindex.ElasticsearchReindexer), new(*libes.Service)),
 		wire.Bind(new(searchreindex.PostgresqlReindexer), new(*pgsearch.Service)),
-		// FIXME(tung): Replace with new search service
-		wire.Bind(new(userimport.ElasticsearchService), new(*libes.Service)),
+
+		wire.Bind(new(userimport.SearchReindexService), new(*searchreindex.Reindexer)),
 	),
 
 	wire.NewSet(
@@ -664,7 +664,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		redisqueue.ProducerDependencySet,
-		wire.Bind(new(libes.UserReindexCreateProducer), new(*redisqueue.UserReindexProducer)),
+		wire.Bind(new(searchreindex.UserReindexCreateProducer), new(*redisqueue.UserReindexProducer)),
 		wire.Bind(new(userimport.TaskProducer), new(*redisqueue.UserImportProducer)),
 	),
 

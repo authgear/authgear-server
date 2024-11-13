@@ -1,4 +1,4 @@
-package elasticsearch
+package reindex
 
 import (
 	"context"
@@ -8,14 +8,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-type Logger struct{ *log.Logger }
+type SinkLogger struct{ *log.Logger }
 
-func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("elasticsearch-sink")} }
+func NewSinkLogger(lf *log.Factory) SinkLogger { return SinkLogger{lf.New("search-reindex-sink")} }
 
 type Sink struct {
-	Logger   Logger
-	Service  Service
-	Database *appdb.Handle
+	Logger    SinkLogger
+	Reindexer *Reindexer
+	Database  *appdb.Handle
 }
 
 func (s *Sink) ReceiveBlockingEvent(ctx context.Context, e *event.Event) error {
@@ -29,14 +29,12 @@ func (s *Sink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) erro
 	reindexRequiredUserIDs = append(reindexRequiredUserIDs, payload.DeletedUserIDs()...)
 
 	if len(reindexRequiredUserIDs) > 0 {
-		err := s.Database.WithTx(ctx, func(ctx context.Context) error {
-			return s.Service.MarkUsersAsReindexRequired(ctx, reindexRequiredUserIDs)
-		})
+		err := s.Reindexer.MarkUsersAsReindexRequired(ctx, reindexRequiredUserIDs)
 		if err != nil {
 			return err
 		}
 		for _, userID := range reindexRequiredUserIDs {
-			err := s.Service.EnqueueReindexUserTask(ctx, userID)
+			err := s.Reindexer.EnqueueReindexUserTask(ctx, userID)
 			if err != nil {
 				s.Logger.WithError(err).Error("failed to enqueue reindex user task")
 				return err

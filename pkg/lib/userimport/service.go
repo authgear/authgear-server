@@ -81,7 +81,7 @@ type RolesGroupsCommands interface {
 	ResetUserRole(ctx context.Context, options *rolesgroups.ResetUserRoleOptions) error
 }
 
-type ElasticsearchService interface {
+type SearchReindexService interface {
 	MarkUsersAsReindexRequired(ctx context.Context, userIDs []string) error
 	EnqueueReindexUserTask(ctx context.Context, userID string) error
 }
@@ -97,7 +97,7 @@ type UserImportService struct {
 	StandardAttributes  StandardAttributesService
 	CustomAttributes    CustomAttributesService
 	RolesGroupsCommands RolesGroupsCommands
-	Elasticsearch       ElasticsearchService
+	Elasticsearch       SearchReindexService
 	Logger              Logger
 }
 

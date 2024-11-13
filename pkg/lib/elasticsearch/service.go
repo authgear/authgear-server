@@ -17,7 +17,6 @@ import (
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -35,11 +34,6 @@ func NewElasticsearchServiceLogger(lf *log.Factory) *ElasticsearchServiceLogger 
 	return &ElasticsearchServiceLogger{lf.New("elasticsearch-service")}
 }
 
-type UserReindexCreateProducer interface {
-	NewTask(appID string, input json.RawMessage, taskIDPrefix string) *redisqueue.Task
-	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
-}
-
 type Service struct {
 	Clock           clock.Clock
 	Database        *appdb.Handle
@@ -50,7 +44,6 @@ type Service struct {
 	UserStore       *user.Store
 	IdentityService *identityservice.Service
 	RolesGroups     *rolesgroups.Store
-	Producer        UserReindexCreateProducer
 }
 
 type queryUserResponse struct {
@@ -63,23 +56,6 @@ type queryUserResponse struct {
 			Sort   interface{}            `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
-}
-
-func (s *Service) EnqueueReindexUserTask(ctx context.Context, userID string) error {
-	request := ReindexRequest{UserID: userID}
-
-	rawMessage, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
-
-	task := s.Producer.NewTask(string(s.AppID), rawMessage, "task")
-	err = s.Producer.EnqueueTask(ctx, task)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (s *Service) QueryUser(
@@ -212,8 +188,4 @@ func (s *Service) DeleteUser(userID string) error {
 		return err
 	}
 	return nil
-}
-
-func (s *Service) MarkUsersAsReindexRequired(ctx context.Context, userIDs []string) error {
-	return s.UserStore.MarkAsReindexRequired(ctx, userIDs)
 }

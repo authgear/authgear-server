@@ -77,6 +77,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -573,7 +574,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
-	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
 		Database:        handle,
@@ -584,7 +584,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:       store,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
-		Producer:        userReindexProducer,
 	}
 	configAppID := &appConfig.ID
 	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
@@ -666,25 +665,29 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	elasticsearchLogger := elasticsearch.NewLogger(factory)
-	service5 := elasticsearch.Service{
-		Clock:           clockClock,
-		Database:        handle,
-		Logger:          elasticsearchServiceLogger,
-		AppID:           appID,
-		Client:          client,
-		Users:           userQueries,
-		UserStore:       store,
-		IdentityService: serviceService,
-		RolesGroups:     rolesgroupsStore,
-		Producer:        userReindexProducer,
+	sinkLogger := reindex.NewSinkLogger(factory)
+	reindexerLogger := reindex.NewReindexerLogger(factory)
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
+	reindexer := &reindex.Reindexer{
+		AppID:                  appID,
+		SearchConfig:           searchConfig,
+		Clock:                  clockClock,
+		Database:               handle,
+		Logger:                 reindexerLogger,
+		Users:                  userQueries,
+		UserStore:              store,
+		IdentityService:        serviceService,
+		RolesGroups:            rolesgroupsStore,
+		Producer:               userReindexProducer,
+		ElasticsearchReindexer: elasticsearchService,
+		PostgresqlReindexer:    pgsearchService,
 	}
-	elasticsearchSink := &elasticsearch.Sink{
-		Logger:   elasticsearchLogger,
-		Service:  service5,
-		Database: handle,
+	reindexSink := &reindex.Sink{
+		Logger:    sinkLogger,
+		Reindexer: reindexer,
+		Database:  handle,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,

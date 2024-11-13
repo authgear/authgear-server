@@ -2,6 +2,7 @@ package reindex
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -51,6 +53,11 @@ type PostgresqlReindexer interface {
 	DeleteUser(ctx context.Context, userID string) error
 }
 
+type UserReindexCreateProducer interface {
+	NewTask(appID string, input json.RawMessage, taskIDPrefix string) *redisqueue.Task
+	EnqueueTask(ctx context.Context, task *redisqueue.Task) error
+}
+
 type Reindexer struct {
 	AppID           config.AppID
 	SearchConfig    *config.SearchConfig
@@ -61,6 +68,7 @@ type Reindexer struct {
 	UserStore       *user.Store
 	IdentityService *identityservice.Service
 	RolesGroups     *rolesgroups.Store
+	Producer        UserReindexCreateProducer
 
 	ElasticsearchReindexer ElasticsearchReindexer
 	PostgresqlReindexer    PostgresqlReindexer
@@ -214,6 +222,29 @@ func (s *Reindexer) ExecReindexUser(ctx context.Context, request ReindexRequest)
 		IsSuccess: true,
 	}
 
+}
+
+func (s *Reindexer) MarkUsersAsReindexRequired(ctx context.Context, userIDs []string) error {
+	return s.Database.WithTx(ctx, func(ctx context.Context) error {
+		return s.UserStore.MarkAsReindexRequired(ctx, userIDs)
+	})
+}
+
+func (s *Reindexer) EnqueueReindexUserTask(ctx context.Context, userID string) error {
+	request := ReindexRequest{UserID: userID}
+
+	rawMessage, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	task := s.Producer.NewTask(string(s.AppID), rawMessage, "task")
+	err = s.Producer.EnqueueTask(ctx, task)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *Reindexer) reindexUser(ctx context.Context, source *model.SearchUserSource) error {
