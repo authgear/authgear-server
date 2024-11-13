@@ -20,8 +20,8 @@ var cmdSearchReindex = &cobra.Command{
 	Use:   "reindex { app-id }",
 	Short: "Reindex all documents of a given app into the search index",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if len(args) != 1 {
-			return fmt.Errorf("expected exactly 1 argument of app ID")
+		if len(args) < 1 {
+			return fmt.Errorf("expected at least 1 app ID")
 		}
 		return nil
 	},
@@ -84,10 +84,11 @@ var cmdSearchReindex = &cobra.Command{
 			return nil
 		}
 
-		appID := args[0]
-		err = reindexApp(appID)
-		if err != nil {
-			return err
+		for _, appID := range args {
+			err = reindexApp(appID)
+			if err != nil {
+				return err
+			}
 		}
 
 		log.Println("Done")
