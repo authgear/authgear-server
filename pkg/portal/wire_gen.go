@@ -29,8 +29,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
-	"github.com/authgear/authgear-server/pkg/portal/task"
-	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 	"github.com/authgear/authgear-server/pkg/portal/transport"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
@@ -144,30 +142,20 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	appServiceLogger := service.NewAppServiceLogger(logFactory)
 	httpClient := service.NewHTTPClient()
 	mailConfig := rootProvider.MailConfig
-	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
-	mailLogger := mail.NewLogger(logFactory)
+	smtpLogger := smtp.NewLogger(logFactory)
 	devMode := environmentConfig.DevMode
+	mailLogger := mail.NewLogger(logFactory)
 	smtpConfig := rootProvider.SMTPConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
-	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed()
-	testModeConfig := deps.ProvideEmptyTestModeConfig()
-	testModeEmailConfig := testModeConfig.Email
 	sender := &mail.Sender{
-		Logger:                         mailLogger,
-		DevMode:                        devMode,
-		GomailDialer:                   dialer,
-		FeatureTestModeEmailSuppressed: featureTestModeEmailSuppressed,
-		TestModeEmailConfig:            testModeEmailConfig,
+		Logger:       mailLogger,
+		GomailDialer: dialer,
 	}
-	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
-	sendMessagesTask := &tasks.SendMessagesTask{
-		EmailSender: sender,
-		Logger:      sendMessagesLogger,
-	}
-	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)
-	inProcessQueue := &task.InProcessQueue{
-		Executor: inProcessExecutor,
+	smtpService := &smtp.Service{
+		Logger:     smtpLogger,
+		DevMode:    devMode,
+		MailSender: sender,
 	}
 	httpHost := deps.ProvideHTTPHost(request, trustProxy)
 	httpProto := deps.ProvideHTTPProto(request, trustProxy)
@@ -196,7 +184,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		HTTPClient:     httpClient,
 		GlobalDatabase: handle,
 		MailConfig:     mailConfig,
-		TaskQueue:      inProcessQueue,
+		SMTPService:    smtpService,
 		Endpoints:      endpointsProvider,
 		TemplateEngine: engine,
 		AdminAPI:       adminAPIService,
@@ -269,7 +257,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	domainLoader := loader.NewDomainLoader(domainService, authzService)
 	collaboratorLoader := loader.NewCollaboratorLoader(collaboratorService, authzService)
 	collaboratorInvitationLoader := loader.NewCollaboratorInvitationLoader(collaboratorService, authzService)
-	smtpService := &smtp.Service{}
 	auditDatabaseCredentials := deps.ProvideAuditDatabaseCredentials(environmentConfig)
 	readHandle := auditdb.NewReadHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
 	auditdbSQLBuilder := auditdb.NewSQLBuilder(auditDatabaseCredentials)
@@ -449,30 +436,20 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 	sqlExecutor := globaldb.NewSQLExecutor(handle)
 	httpClient := service.NewHTTPClient()
 	mailConfig := rootProvider.MailConfig
-	inProcessExecutorLogger := task.NewInProcessExecutorLogger(logFactory)
-	logger := mail.NewLogger(logFactory)
+	logger := smtp.NewLogger(logFactory)
 	devMode := environmentConfig.DevMode
+	mailLogger := mail.NewLogger(logFactory)
 	smtpConfig := rootProvider.SMTPConfig
 	smtpServerCredentials := deps.ProvideSMTPServerCredentials(smtpConfig)
 	dialer := mail.NewGomailDialer(smtpServerCredentials)
-	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed()
-	testModeConfig := deps.ProvideEmptyTestModeConfig()
-	testModeEmailConfig := testModeConfig.Email
 	sender := &mail.Sender{
-		Logger:                         logger,
-		DevMode:                        devMode,
-		GomailDialer:                   dialer,
-		FeatureTestModeEmailSuppressed: featureTestModeEmailSuppressed,
-		TestModeEmailConfig:            testModeEmailConfig,
+		Logger:       mailLogger,
+		GomailDialer: dialer,
 	}
-	sendMessagesLogger := tasks.NewSendMessagesLogger(logFactory)
-	sendMessagesTask := &tasks.SendMessagesTask{
-		EmailSender: sender,
-		Logger:      sendMessagesLogger,
-	}
-	inProcessExecutor := task.NewExecutor(inProcessExecutorLogger, sendMessagesTask)
-	inProcessQueue := &task.InProcessQueue{
-		Executor: inProcessExecutor,
+	smtpService := &smtp.Service{
+		Logger:     logger,
+		DevMode:    devMode,
+		MailSender: sender,
 	}
 	request := p.Request
 	trustProxy := environmentConfig.TrustProxy
@@ -528,7 +505,7 @@ func newAdminAPIHandler(p *deps.RequestProvider) http.Handler {
 		HTTPClient:     httpClient,
 		GlobalDatabase: handle,
 		MailConfig:     mailConfig,
-		TaskQueue:      inProcessQueue,
+		SMTPService:    smtpService,
 		Endpoints:      endpointsProvider,
 		TemplateEngine: engine,
 		AdminAPI:       adminAPIService,

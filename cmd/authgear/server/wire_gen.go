@@ -10,8 +10,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task/executor"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task/queue"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
 
@@ -57,16 +55,3 @@ func newConfigSourceController(p *deps.RootProvider) *configsource.Controller {
 var (
 	_wireSystemClockValue = clock.NewSystemClock()
 )
-
-func newInProcessQueue(p *deps.AppProvider, e *executor.InProcessExecutor) *queue.InProcessQueue {
-	handle := p.AppDatabase
-	appContext := p.AppContext
-	config := appContext.Config
-	captureTaskContext := deps.ProvideCaptureTaskContext(config, appContext)
-	inProcessQueue := &queue.InProcessQueue{
-		Database:       handle,
-		CaptureContext: captureTaskContext,
-		Executor:       e,
-	}
-	return inProcessQueue
-}

@@ -7,7 +7,6 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"

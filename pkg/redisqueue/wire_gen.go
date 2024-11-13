@@ -41,7 +41,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/messaging"
@@ -512,7 +514,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
-	queue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
 	elasticsearchService := elasticsearch.Service{
 		Clock:           clock,
@@ -524,7 +525,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		UserStore:       store,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
-		TaskQueue:       queue,
 		Producer:        userReindexProducer,
 	}
 	elasticsearchSink := &elasticsearch.Sink{
@@ -577,10 +577,60 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		FeatureConfig: messagingFeatureConfig,
 		EnvConfig:     rateLimitsEnvironmentConfig,
 	}
+	mailLogger := mail.NewLogger(factory)
+	smtpServerCredentials := deps.ProvideSMTPServerCredentials(secretConfig)
+	dialer := mail.NewGomailDialer(smtpServerCredentials)
+	sender := &mail.Sender{
+		Logger:       mailLogger,
+		GomailDialer: dialer,
+	}
+	smsLogger := sms.NewLogger(factory)
+	smsProvider := messagingConfig.SMSProvider
+	smsGatewayConfig := messagingConfig.SMSGateway
+	nexmoCredentials := deps.ProvideNexmoCredentials(secretConfig)
+	twilioCredentials := deps.ProvideTwilioCredentials(secretConfig)
+	customSMSProviderConfig := deps.ProvideCustomSMSProviderConfig(secretConfig)
+	smsGatewayEnvironmentConfig := &environmentConfig.SMSGatewayConfig
+	smsGatewayEnvironmentDefaultConfig := &smsGatewayEnvironmentConfig.Default
+	smsGatewayEnvironmentDefaultProvider := smsGatewayEnvironmentDefaultConfig.Provider
+	smsGatewayEnvironmentDefaultUseConfigFrom := smsGatewayEnvironmentDefaultConfig.UseConfigFrom
+	smsGatewayEnvironmentNexmoCredentials := smsGatewayEnvironmentConfig.Nexmo
+	smsGatewayEnvironmentTwilioCredentials := smsGatewayEnvironmentConfig.Twilio
+	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
+	smsHookTimeout := sms.NewSMSHookTimeout(customSMSProviderConfig)
+	hookDenoClient := sms.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
+	smsDenoHook := sms.SMSDenoHook{
+		DenoHook: denoHook,
+		Client:   hookDenoClient,
+	}
+	hookWebHookImpl := &hook.WebHookImpl{
+		Logger: webHookLogger,
+		Secret: webhookKeyMaterials,
+	}
+	hookHTTPClient := sms.NewHookHTTPClient(smsHookTimeout)
+	smsWebHook := sms.SMSWebHook{
+		WebHook: hookWebHookImpl,
+		Client:  hookHTTPClient,
+	}
+	clientResolver := &sms.ClientResolver{
+		AuthgearYAMLSMSProvider:                    smsProvider,
+		AuthgearYAMLSMSGateway:                     smsGatewayConfig,
+		AuthgearSecretsYAMLNexmoCredentials:        nexmoCredentials,
+		AuthgearSecretsYAMLTwilioCredentials:       twilioCredentials,
+		AuthgearSecretsYAMLCustomSMSProviderConfig: customSMSProviderConfig,
+		EnvironmentDefaultProvider:                 smsGatewayEnvironmentDefaultProvider,
+		EnvironmentDefaultUseConfigFrom:            smsGatewayEnvironmentDefaultUseConfigFrom,
+		EnvironmentNexmoCredentials:                smsGatewayEnvironmentNexmoCredentials,
+		EnvironmentTwilioCredentials:               smsGatewayEnvironmentTwilioCredentials,
+		EnvironmentCustomSMSProviderConfig:         smsGatewayEnvironmentCustomSMSProviderConfig,
+		SMSDenoHook:                                smsDenoHook,
+		SMSWebHook:                                 smsWebHook,
+	}
+	smsClient := &sms.Client{
+		Logger:         smsLogger,
+		ClientResolver: clientResolver,
+	}
 	serviceLogger := whatsapp.NewServiceLogger(factory)
-	devMode := environmentConfig.DevMode
-	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
-	testModeWhatsappConfig := testModeConfig.Whatsapp
 	whatsappConfig := messagingConfig.Whatsapp
 	whatsappOnPremisesCredentials := deps.ProvideWhatsappOnPremisesCredentials(secretConfig)
 	tokenStore := &whatsapp.TokenStore{
@@ -591,25 +641,39 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	whatsappHTTPClient := whatsapp.NewHTTPClient()
 	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, whatsappHTTPClient)
 	whatsappService := &whatsapp.Service{
-		Logger:                            serviceLogger,
+		Logger:             serviceLogger,
+		WhatsappConfig:     whatsappConfig,
+		LocalizationConfig: localizationConfig,
+		OnPremisesClient:   onPremisesClient,
+	}
+	devMode := environmentConfig.DevMode
+	featureTestModeEmailSuppressed := deps.ProvideTestModeEmailSuppressed(testModeFeatureConfig)
+	testModeEmailConfig := testModeConfig.Email
+	featureTestModeSMSSuppressed := deps.ProvideTestModeSMSSuppressed(testModeFeatureConfig)
+	testModeSMSConfig := testModeConfig.SMS
+	featureTestModeWhatsappSuppressed := deps.ProvideTestModeWhatsappSuppressed(testModeFeatureConfig)
+	testModeWhatsappConfig := testModeConfig.Whatsapp
+	messagingSender := &messaging.Sender{
+		Logger:                            messagingLogger,
+		Limits:                            limits,
+		Events:                            eventService,
+		MailSender:                        sender,
+		SMSSender:                         smsClient,
+		WhatsappSender:                    whatsappService,
+		Database:                          handle,
 		DevMode:                           devMode,
+		MessagingFeatureConfig:            messagingFeatureConfig,
+		FeatureTestModeEmailSuppressed:    featureTestModeEmailSuppressed,
+		TestModeEmailConfig:               testModeEmailConfig,
+		FeatureTestModeSMSSuppressed:      featureTestModeSMSSuppressed,
+		TestModeSMSConfig:                 testModeSMSConfig,
 		FeatureTestModeWhatsappSuppressed: featureTestModeWhatsappSuppressed,
 		TestModeWhatsappConfig:            testModeWhatsappConfig,
-		WhatsappConfig:                    whatsappConfig,
-		LocalizationConfig:                localizationConfig,
-		OnPremisesClient:                  onPremisesClient,
-	}
-	sender := &messaging.Sender{
-		Limits:                 limits,
-		TaskQueue:              queue,
-		Events:                 eventService,
-		Whatsapp:               whatsappService,
-		MessagingFeatureConfig: messagingFeatureConfig,
 	}
 	forgotpasswordSender := &forgotpassword.Sender{
 		AppConfg:    appConfig,
 		Identities:  serviceService,
-		Sender:      sender,
+		Sender:      messagingSender,
 		Translation: translationService,
 	}
 	rawCommands := &user.RawCommands{
@@ -776,7 +840,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		UserStore:       store,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
-		TaskQueue:       queue,
 		Producer:        userReindexProducer,
 	}
 	userimportLogger := userimport.NewLogger(factory)
@@ -1579,7 +1642,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
-	queue := p.TaskQueue
 	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
@@ -1591,7 +1653,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		UserStore:       store,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
-		TaskQueue:       queue,
 		Producer:        userReindexProducer,
 	}
 	return elasticsearchService
