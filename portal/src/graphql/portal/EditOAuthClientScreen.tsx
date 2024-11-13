@@ -49,6 +49,7 @@ import {
   getDefaultOAuthClientSAMLFormState,
 } from "../../components/applications/OAuthClientSAMLForm";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
+import iconSaml from "../../images/saml-logo.png";
 
 interface LocationState {
   isClientSecretRevealed: boolean;
@@ -244,6 +245,16 @@ const QuickStartFrameworkList: React.VFC<QuickStartFrameworkListProps> =
                 "EditOAuthClientScreen.quick-start.framework.oidc"
               ),
               docLink: "https://docs.authgear.com/integrate/oidc-provider",
+            },
+            {
+              icon: (
+                <img className="w-6.5 h-6.5 object-contain" src={iconSaml} />
+              ),
+              name: renderToString(
+                "EditOAuthClientScreen.quick-start.framework.saml"
+              ),
+              docLink:
+                "https://docs.authgear.com/how-to-guide/single-sign-on/single-sign-on-with-saml",
             },
           ];
         case "third_party_app":
