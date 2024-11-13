@@ -46,6 +46,11 @@ type ElasticsearchReindexer interface {
 	DeleteUser(userID string) error
 }
 
+type PostgresqlReindexer interface {
+	ReindexUser(ctx context.Context, user *model.SearchUserSource) error
+	DeleteUser(ctx context.Context, userID string) error
+}
+
 type Reindexer struct {
 	AppID           config.AppID
 	SearchConfig    *config.SearchConfig
@@ -58,6 +63,7 @@ type Reindexer struct {
 	RolesGroups     *rolesgroups.Store
 
 	ElasticsearchReindexer ElasticsearchReindexer
+	PostgresqlReindexer    PostgresqlReindexer
 }
 
 type action string
@@ -177,13 +183,13 @@ func (s *Reindexer) ExecReindexUser(ctx context.Context, request ReindexRequest)
 
 	switch actionToExec {
 	case actionDelete:
-		err = s.deleteUser(request.UserID)
+		err = s.deleteUser(ctx, request.UserID)
 		if err != nil {
 			return failure(err)
 		}
 
 	case actionReindex:
-		err = s.reindexUser(source)
+		err = s.reindexUser(ctx, source)
 		if err != nil {
 			return failure(err)
 		}
@@ -210,23 +216,23 @@ func (s *Reindexer) ExecReindexUser(ctx context.Context, request ReindexRequest)
 
 }
 
-func (s *Reindexer) reindexUser(source *model.SearchUserSource) error {
+func (s *Reindexer) reindexUser(ctx context.Context, source *model.SearchUserSource) error {
 	switch s.SearchConfig.GetImplementation() {
 	case config.SearchImplementationElasticsearch:
 		return s.ElasticsearchReindexer.ReindexUser(source)
 	case config.SearchImplementationPostgresql:
-		// TODO
+		return s.PostgresqlReindexer.ReindexUser(ctx, source)
 	}
 
 	return fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation())
 }
 
-func (s *Reindexer) deleteUser(userID string) error {
+func (s *Reindexer) deleteUser(ctx context.Context, userID string) error {
 	switch s.SearchConfig.GetImplementation() {
 	case config.SearchImplementationElasticsearch:
 		return s.ElasticsearchReindexer.DeleteUser(userID)
 	case config.SearchImplementationPostgresql:
-		// TODO
+		return s.PostgresqlReindexer.DeleteUser(ctx, userID)
 	}
 
 	return fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation())

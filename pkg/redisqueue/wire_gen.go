@@ -42,6 +42,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/custom"
@@ -55,6 +56,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
@@ -1659,6 +1661,17 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		RolesGroups:     rolesgroupsStore,
 		Producer:        userReindexProducer,
 	}
+	configAppID := &appConfig.ID
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	sqlBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbHandle := p.SearchDatabase
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, sqlBuilder, searchdbSQLExecutor)
+	pgsearchService := &pgsearch.Service{
+		AppID:    configAppID,
+		Store:    pgsearchStore,
+		Database: searchdbHandle,
+	}
 	reindexer := &reindex.Reindexer{
 		AppID:                  appID,
 		SearchConfig:           searchConfig,
@@ -1670,6 +1683,7 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		IdentityService:        serviceService,
 		RolesGroups:            rolesgroupsStore,
 		ElasticsearchReindexer: elasticsearchService,
+		PostgresqlReindexer:    pgsearchService,
 	}
 	return reindexer
 }

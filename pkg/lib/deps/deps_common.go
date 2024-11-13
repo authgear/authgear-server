@@ -52,6 +52,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	searchreindex "github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 
@@ -146,6 +147,7 @@ var CommonDependencySet = wire.NewSet(
 		search.DependencySet,
 
 		wire.Bind(new(searchreindex.ElasticsearchReindexer), new(*libes.Service)),
+		wire.Bind(new(searchreindex.PostgresqlReindexer), new(*pgsearch.Service)),
 		// FIXME(tung): Replace with new search service
 		wire.Bind(new(userimport.ElasticsearchService), new(*libes.Service)),
 	),
