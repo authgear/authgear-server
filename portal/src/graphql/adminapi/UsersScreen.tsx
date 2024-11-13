@@ -184,8 +184,9 @@ const UsersScreen: React.VFC = function UsersScreen() {
     isSearch,
   } = useRemoteData({ filters, offset, sortBy, sortDirection });
 
+  // Count the length instead of totalCount, because totalCount is not available for pgsearch
   const isTotalExceededLimit =
-    (data?.users?.totalCount ?? 0) > searchResultSize;
+    (data?.users?.edges?.length ?? 0) >= searchResultSize;
 
   const messageBar = useMemo(() => {
     if (error != null) {
