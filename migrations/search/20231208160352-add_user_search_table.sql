@@ -24,7 +24,7 @@ CREATE TABLE _search_user
     country                       text[]                      NOT NULL DEFAULT '{}',
     details                       jsonb                       NOT NULL DEFAULT '{}'::jsonb,
     details_tsvector              tsvector
-      GENERATED ALWAYS AS (jsonb_to_tsvector('english', details, '["string", "numeric"]')) STORED
+      GENERATED ALWAYS AS (jsonb_to_tsvector('simple', details, '["string", "numeric"]')) STORED
 );
 CREATE INDEX _search_user_app_id ON _search_user (app_id);
 CREATE INDEX _search_user_app_id_created_at ON _search_user (app_id, created_at);

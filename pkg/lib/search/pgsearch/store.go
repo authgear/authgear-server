@@ -224,6 +224,7 @@ func (s *Store) UpsertUsers(ctx context.Context, users []*model.SearchUserSource
 
 func (s *Store) searchQuery(searchKeyword string) db.SelectBuilder {
 	appID := string(s.AppID)
+	unisegSearchKeyword := StringUnicodeSegmentation(searchKeyword)
 	searchKeywordArr := pq.Array([]string{searchKeyword})
 	q := s.SQLBuilder.WithAppID(appID).
 		Select(
@@ -248,7 +249,7 @@ func (s *Store) searchQuery(searchKeyword string) db.SelectBuilder {
 				sq.Expr("su.locale @> ?", searchKeywordArr),
 				sq.Expr("su.postal_code @> ?", searchKeywordArr),
 				sq.Expr("su.country @> ?", searchKeywordArr),
-				sq.Expr("su.details_tsvector @@ websearch_to_tsquery(?)", searchKeyword),
+				sq.Expr("su.details_tsvector @@ websearch_to_tsquery(?)", unisegSearchKeyword),
 			},
 		})
 	return q
