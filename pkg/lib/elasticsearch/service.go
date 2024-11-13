@@ -19,7 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -53,7 +52,6 @@ type Service struct {
 	UserStore       *user.Store
 	IdentityService *identityservice.Service
 	RolesGroups     *rolesgroups.Store
-	TaskQueue       task.Queue
 	Producer        UserReindexCreateProducer
 }
 

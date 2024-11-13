@@ -67,9 +67,6 @@ var rootDeps = wire.NewSet(
 
 	envConfigDeps,
 
-	ProvideCaptureTaskContext,
-	ProvideRestoreTaskContext,
-
 	clock.DependencySet,
 	globaldb.DependencySet,
 	configsource.DependencySet,
@@ -86,7 +83,6 @@ var AppRootDeps = wire.NewSet(
 		"Redis",
 		"GlobalRedis",
 		"AnalyticRedis",
-		"TaskQueue",
 		"AppContext",
 	),
 	wire.FieldsOf(new(*config.AppContext),
@@ -172,14 +168,6 @@ var RedisQueueDependencySet = wire.NewSet(
 	ProvideRedisQueueUserAgentString,
 	ProvideRedisQueueHTTPHost,
 	ProvideRedisQueueHTTPProto,
-)
-
-var TaskDependencySet = wire.NewSet(
-	AppRootDeps,
-	wire.FieldsOf(new(*TaskProvider),
-		"AppProvider",
-		"Context",
-	),
 )
 
 var BackgroundDependencySet = wire.NewSet(
