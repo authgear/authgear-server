@@ -18,7 +18,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/resource"
@@ -42,10 +41,6 @@ var ErrCollaboratorInvitationInvalidCode = apierrors.Invalid.WithReason("Collabo
 var ErrCollaboratorInvitationInvalidEmail = apierrors.Invalid.WithReason("CollaboratorInvitationInvalidEmail").New("the email with the actor does match the invitee email")
 
 var ErrCollaboratorQuotaExceeded = apierrors.Invalid.WithReason("CollaboratorQuotaExceeded").New("collaborator quota exceeded")
-
-type CollaboratorServiceTaskQueue interface {
-	Enqueue(ctx context.Context, param task.Param)
-}
 
 type CollaboratorServiceSMTPService interface {
 	SendRealEmail(ctx context.Context, opts mail.SendOptions) error
@@ -73,7 +68,6 @@ type CollaboratorService struct {
 
 	MailConfig     *portalconfig.MailConfig
 	SMTPService    CollaboratorServiceSMTPService
-	TaskQueue      CollaboratorServiceTaskQueue
 	Endpoints      CollaboratorServiceEndpointsProvider
 	TemplateEngine *template.Engine
 	AdminAPI       CollaboratorServiceAdminAPIService
