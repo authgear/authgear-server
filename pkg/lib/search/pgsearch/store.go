@@ -3,6 +3,7 @@ package pgsearch
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -226,6 +227,31 @@ func (s *Store) searchQuery(searchKeyword string) db.SelectBuilder {
 	appID := string(s.AppID)
 	unisegSearchKeyword := StringUnicodeSegmentation(searchKeyword)
 	searchKeywordArr := pq.Array([]string{searchKeyword})
+
+	ors := sq.Or{
+		sq.Expr("su.emails @> ?", searchKeywordArr),
+		sq.Expr("su.email_local_parts @> ?", searchKeywordArr),
+		sq.Expr("su.email_domains @> ?", searchKeywordArr),
+		sq.Expr("su.preferred_usernames @> ?", searchKeywordArr),
+		sq.Expr("su.phone_numbers @> ?", searchKeywordArr),
+		sq.Expr("su.phone_number_country_codes @> ?", searchKeywordArr),
+		sq.Expr("su.phone_number_national_numbers @> ?", searchKeywordArr),
+		sq.Expr("su.oauth_subject_ids @> ?", searchKeywordArr),
+		sq.Expr("su.gender @> ?", searchKeywordArr),
+		sq.Expr("su.zoneinfo @> ?", searchKeywordArr),
+		sq.Expr("su.locale @> ?", searchKeywordArr),
+		sq.Expr("su.postal_code @> ?", searchKeywordArr),
+		sq.Expr("su.country @> ?", searchKeywordArr),
+		sq.Expr("su.details_tsvector @@ websearch_to_tsquery(?)", unisegSearchKeyword),
+	}
+
+	if len(searchKeyword) >= 3 {
+		// Only add prefix search if >= 3 characters were inputted to avoid matching too many rows
+		prefixSearchQuery := fmt.Sprintf("'%s':*", strings.ReplaceAll(searchKeyword, "'", "''"))
+		ors = append(ors,
+			sq.Expr("su.details_tsvector @@ to_tsquery(?)", prefixSearchQuery))
+	}
+
 	q := s.SQLBuilder.WithAppID(appID).
 		Select(
 			"su.id",
@@ -235,22 +261,7 @@ func (s *Store) searchQuery(searchKeyword string) db.SelectBuilder {
 		From(s.SQLBuilder.TableName("_search_user"), "su").
 		Where(sq.And{
 			sq.Expr("su.app_ids @> ?", pq.Array([]string{appID})),
-			sq.Or{
-				sq.Expr("su.emails @> ?", searchKeywordArr),
-				sq.Expr("su.email_local_parts @> ?", searchKeywordArr),
-				sq.Expr("su.email_domains @> ?", searchKeywordArr),
-				sq.Expr("su.preferred_usernames @> ?", searchKeywordArr),
-				sq.Expr("su.phone_numbers @> ?", searchKeywordArr),
-				sq.Expr("su.phone_number_country_codes @> ?", searchKeywordArr),
-				sq.Expr("su.phone_number_national_numbers @> ?", searchKeywordArr),
-				sq.Expr("su.oauth_subject_ids @> ?", searchKeywordArr),
-				sq.Expr("su.gender @> ?", searchKeywordArr),
-				sq.Expr("su.zoneinfo @> ?", searchKeywordArr),
-				sq.Expr("su.locale @> ?", searchKeywordArr),
-				sq.Expr("su.postal_code @> ?", searchKeywordArr),
-				sq.Expr("su.country @> ?", searchKeywordArr),
-				sq.Expr("su.details_tsvector @@ websearch_to_tsquery(?)", unisegSearchKeyword),
-			},
+			ors,
 		})
 	return q
 }
