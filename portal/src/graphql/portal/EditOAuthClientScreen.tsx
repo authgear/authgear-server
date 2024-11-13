@@ -49,7 +49,7 @@ import {
   getDefaultOAuthClientSAMLFormState,
 } from "../../components/applications/OAuthClientSAMLForm";
 import { useAppAndSecretConfigQuery } from "./query/appAndSecretConfigQuery";
-import iconSaml from "../../images/saml-logo.png";
+import iconSaml from "../../images/saml-logo.svg";
 
 interface LocationState {
   isClientSecretRevealed: boolean;
