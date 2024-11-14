@@ -839,7 +839,7 @@
   "CreateOAuthClientScreen.application-type.description.spa": "Front-end frameworks that use access tokens to access APIs, e.g. React, Vue, Angular",
   "CreateOAuthClientScreen.application-type.description.traditional-webapp": "Websites that use cookie to authenticate requests, e.g. Express, PHP, Go",
   "CreateOAuthClientScreen.application-type.description.native": "Mobile and desktop apps, e.g. iOS, Android, Electron",
-  "CreateOAuthClientScreen.application-type.description.confidential": "Allow users to login with Authgear to access any other OIDC compatible applications. e.g. WordPress, Craftcms, Magento",
+  "CreateOAuthClientScreen.application-type.description.confidential": "Allow user to login with Authgear to access any other OIDC or SAML compatible application. e.g. Wordpress, Figma, Salesforce",
   "CreateOAuthClientScreen.application-type.description.third-party-app": "Legacy. Please create a new OIDC Client Application instead.",
 
   "EditOAuthClientScreen.client-not-found": "Client ID {clientID} is not found",
