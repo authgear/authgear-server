@@ -152,20 +152,16 @@ func (s *Reindexer) ExecReindexUser(ctx context.Context, request ReindexRequest)
 
 }
 
-func (s *Reindexer) MarkUsersAsReindexRequired(ctx context.Context, userIDs []string) error {
-	return s.Database.WithTx(ctx, func(ctx context.Context) error {
-		return s.UserStore.MarkAsReindexRequired(ctx, userIDs)
-	})
+func (s *Reindexer) MarkUsersAsReindexRequiredInTx(ctx context.Context, userIDs []string) error {
+	return s.UserStore.MarkAsReindexRequired(ctx, userIDs)
 }
 
 func (s *Reindexer) EnqueueReindexUserTask(ctx context.Context, userID string) error {
 	request := ReindexRequest{UserID: userID}
-
 	rawMessage, err := json.Marshal(request)
 	if err != nil {
 		return err
 	}
-
 	task := s.Producer.NewTask(string(s.AppID), rawMessage, "task")
 	err = s.Producer.EnqueueTask(ctx, task)
 	if err != nil {

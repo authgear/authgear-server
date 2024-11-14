@@ -16,7 +16,6 @@ func UserImport(ctx context.Context, appProvider *deps.AppProvider, task *redisq
 	if err != nil {
 		return
 	}
-
 	result := userImportService.ImportRecords(ctx, &request)
 	resultBytes, err := json.Marshal(result)
 	if err != nil {

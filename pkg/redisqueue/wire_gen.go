@@ -877,7 +877,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		StandardAttributes:  serviceNoEvent,
 		CustomAttributes:    customattrsServiceNoEvent,
 		RolesGroupsCommands: commands,
-		Elasticsearch:       reindexer,
+		SearchReindexService:       reindexer,
 		Logger:              userimportLogger,
 	}
 	return userImportService

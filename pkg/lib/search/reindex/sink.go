@@ -29,7 +29,9 @@ func (s *Sink) ReceiveNonBlockingEvent(ctx context.Context, e *event.Event) erro
 	reindexRequiredUserIDs = append(reindexRequiredUserIDs, payload.DeletedUserIDs()...)
 
 	if len(reindexRequiredUserIDs) > 0 {
-		err := s.Reindexer.MarkUsersAsReindexRequired(ctx, reindexRequiredUserIDs)
+		err := s.Database.WithTx(ctx, func(ctx context.Context) error {
+			return s.Reindexer.MarkUsersAsReindexRequiredInTx(ctx, reindexRequiredUserIDs)
+		})
 		if err != nil {
 			return err
 		}

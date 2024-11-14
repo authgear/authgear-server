@@ -82,23 +82,23 @@ type RolesGroupsCommands interface {
 }
 
 type SearchReindexService interface {
-	MarkUsersAsReindexRequired(ctx context.Context, userIDs []string) error
+	MarkUsersAsReindexRequiredInTx(ctx context.Context, userIDs []string) error
 	EnqueueReindexUserTask(ctx context.Context, userID string) error
 }
 
 type UserImportService struct {
-	AppDatabase         *appdb.Handle
-	LoginIDConfig       *config.LoginIDConfig
-	Identities          IdentityService
-	Authenticators      AuthenticatorService
-	UserCommands        UserCommands
-	UserQueries         UserQueries
-	VerifiedClaims      VerifiedClaimService
-	StandardAttributes  StandardAttributesService
-	CustomAttributes    CustomAttributesService
-	RolesGroupsCommands RolesGroupsCommands
-	Elasticsearch       SearchReindexService
-	Logger              Logger
+	AppDatabase          *appdb.Handle
+	LoginIDConfig        *config.LoginIDConfig
+	Identities           IdentityService
+	Authenticators       AuthenticatorService
+	UserCommands         UserCommands
+	UserQueries          UserQueries
+	VerifiedClaims       VerifiedClaimService
+	StandardAttributes   StandardAttributesService
+	CustomAttributes     CustomAttributesService
+	RolesGroupsCommands  RolesGroupsCommands
+	SearchReindexService SearchReindexService
+	Logger               Logger
 }
 
 type Logger struct{ *log.Logger }
@@ -161,7 +161,7 @@ func (s *UserImportService) importRecordInConn(
 			fallthrough
 		case OutcomeUpdated:
 			shouldReindexUser = true
-			err = s.Elasticsearch.MarkUsersAsReindexRequired(ctx, []string{detail.UserID})
+			err = s.SearchReindexService.MarkUsersAsReindexRequiredInTx(ctx, []string{detail.UserID})
 			if err != nil {
 				return err
 			}
@@ -201,7 +201,7 @@ func (s *UserImportService) importRecordInConn(
 
 	if shouldReindexUser {
 		// Do it after the transaction has committed to ensure the user can be queried
-		err = s.Elasticsearch.EnqueueReindexUserTask(ctx, detail.UserID)
+		err = s.SearchReindexService.EnqueueReindexUserTask(ctx, detail.UserID)
 		if err != nil {
 			s.Logger.WithError(err).Error("failed to enqueue reindex user task")
 		}
