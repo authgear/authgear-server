@@ -77,6 +77,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.6.0 // indirect
 	github.com/getsentry/sentry-go v0.29.1 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.5 // indirect
+	github.com/go-gsm/charset v1.0.0 // indirect
 	github.com/go-ldap/ldap/v3 v3.4.8 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -125,7 +126,6 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/njern/gonexmo v2.0.0+incompatible // indirect
 	github.com/nyaruka/phonenumbers v1.4.2 // indirect
 	github.com/onsi/gomega v1.18.1 // indirect
 	github.com/oschwald/geoip2-golang v1.11.0 // indirect
