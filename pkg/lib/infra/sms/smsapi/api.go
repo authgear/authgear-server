@@ -2,6 +2,7 @@ package smsapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/authgear/authgear-server/pkg/lib/translation"
@@ -56,4 +57,13 @@ type SendOptions struct {
 
 type Client interface {
 	Send(ctx context.Context, opts SendOptions) error
+}
+
+type SendError struct {
+	DumpedResponse []byte `json:"dumped_response,omitempty"`
+}
+
+func (e *SendError) Error() string {
+	jsonText, _ := json.Marshal(e)
+	return string(jsonText)
 }

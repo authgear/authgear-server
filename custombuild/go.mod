@@ -78,7 +78,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
@@ -159,7 +158,6 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tdewolff/parse/v2 v2.7.19 // indirect
 	github.com/trustelem/zxcvbn v1.0.1 // indirect
-	github.com/twilio/twilio-go v1.23.5 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20241012191800-bbb40edc15aa // indirect
 	github.com/vimeo/go-magic v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
