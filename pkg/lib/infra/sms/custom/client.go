@@ -2,8 +2,10 @@ package custom
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"time"
 
@@ -54,14 +56,30 @@ type SMSWebHook struct {
 	Client HookHTTPClient
 }
 
-func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendSMSPayload) error {
-	// Detach the deadline so that the context is not canceled along with the request.
-	ctx = context.WithoutCancel(ctx)
+func (w *SMSWebHook) Call(ctx context.Context, u *url.URL, payload SendOptions) ([]byte, error) {
 	req, err := w.PrepareRequest(ctx, u, payload)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return w.PerformNoResponse(w.Client.Client, req)
+
+	resp, err := w.Client.Client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	dumpedResponse, err := httputil.DumpResponse(resp, true)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+		return dumpedResponse, nil
+	}
+
+	return nil, &smsapi.SendError{
+		DumpedResponse: dumpedResponse,
+	}
 }
 
 type SMSDenoHook struct {
@@ -69,8 +87,18 @@ type SMSDenoHook struct {
 	Client HookDenoClient
 }
 
-func (d *SMSDenoHook) Call(ctx context.Context, u *url.URL, payload SendSMSPayload) error {
-	return d.RunAsync(ctx, d.Client, u, payload)
+func (d *SMSDenoHook) Call(ctx context.Context, u *url.URL, payload SendOptions) ([]byte, error) {
+	anything, err := d.RunSync(ctx, d.Client, u, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	jsonText, err := json.Marshal(anything)
+	if err != nil {
+		return nil, err
+	}
+
+	return jsonText, nil
 }
 
 type CustomClient struct {
@@ -108,9 +136,11 @@ func (c *CustomClient) Send(ctx context.Context, opts smsapi.SendOptions) error 
 	}
 	switch {
 	case c.SMSDenoHook.SupportURL(u):
-		return c.SMSDenoHook.Call(ctx, u, payload)
+		_, err = c.SMSDenoHook.Call(ctx, u, payload)
+		return err
 	case c.SMSWebHook.SupportURL(u):
-		return c.SMSWebHook.Call(ctx, u, payload)
+		_, err = c.SMSWebHook.Call(ctx, u, payload)
+		return err
 	default:
 		panic(fmt.Errorf("unsupported hook URL: %v", u))
 	}
