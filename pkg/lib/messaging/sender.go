@@ -2,7 +2,6 @@ package messaging
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/sirupsen/logrus"
 
@@ -37,7 +36,7 @@ type SMSSender interface {
 }
 
 type WhatsappSender interface {
-	SendTemplate(Ctx context.Context, opts *whatsapp.SendTemplateOptions) error
+	SendAuthenticationOTP(Ctx context.Context, opts *whatsapp.SendAuthenticationOTPOptions) error
 }
 
 type Sender struct {
@@ -208,7 +207,7 @@ func (s *Sender) devModeSendSMS(opts *sms.SendOptions) {
 		Warn("skip sending SMS in development mode")
 }
 
-func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendTemplateOptions) error {
+func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error {
 	err := s.Limits.checkWhatsapp(ctx, opts.To)
 	if err != nil {
 		return err
@@ -232,7 +231,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	}
 
 	// Send immediately.
-	err = s.WhatsappSender.SendTemplate(ctx, opts)
+	err = s.WhatsappSender.SendAuthenticationOTP(ctx, opts)
 	if err != nil {
 		return err
 	}
@@ -249,26 +248,16 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	return nil
 }
 
-func (s *Sender) testModeSendWhatsapp(opts *whatsapp.SendTemplateOptions) {
-	data, _ := json.MarshalIndent(opts.Components, "", "  ")
-
+func (s *Sender) testModeSendWhatsapp(opts *whatsapp.SendAuthenticationOTPOptions) {
 	s.Logger.
 		WithField("recipient", opts.To).
-		WithField("template_name", opts.TemplateName).
-		WithField("language", opts.Language).
-		WithField("components", string(data)).
-		WithField("namespace", opts.Namespace).
+		WithField("otp", opts.OTP).
 		Warn("sending whatsapp is suppressed in test mode")
 }
 
-func (s *Sender) devModeSendWhatsapp(opts *whatsapp.SendTemplateOptions) {
-	data, _ := json.MarshalIndent(opts.Components, "", "  ")
-
+func (s *Sender) devModeSendWhatsapp(opts *whatsapp.SendAuthenticationOTPOptions) {
 	s.Logger.
 		WithField("recipient", opts.To).
-		WithField("template_name", opts.TemplateName).
-		WithField("language", opts.Language).
-		WithField("components", string(data)).
-		WithField("namespace", opts.Namespace).
+		WithField("otp", opts.OTP).
 		Warn("skip sending whatsapp in development mode")
 }

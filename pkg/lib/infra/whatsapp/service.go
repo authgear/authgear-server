@@ -3,7 +3,6 @@ package whatsapp
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -42,19 +41,19 @@ func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguage
 	return supportedLanguageTags[idx]
 }
 
-func (s *Service) makeAuthenticationTemplateComponents(text string, code string) ([]TemplateComponent, error) {
+func (s *Service) makeAuthenticationTemplateComponents(code string) ([]TemplateComponent, error) {
+	// See https://developers.facebook.com/docs/whatsapp/api/messages/message-templates/authentication-message-templates
 
 	var component []TemplateComponent = []TemplateComponent{}
 
-	// The text cannot include any newline characters
-	text = strings.ReplaceAll(text, "\n", "")
-
 	body := NewTemplateComponent(TemplateComponentTypeBody)
-	bodyParam := NewTemplateComponentTextParameter(text)
+	// The body is just the code.
+	bodyParam := NewTemplateComponentTextParameter(code)
 	body.Parameters = append(body.Parameters, *bodyParam)
 	component = append(component, *body)
 
 	button := NewTemplateButtonComponent(TemplateComponentSubTypeURL, 0)
+	// The button copies the code.
 	buttonParam := NewTemplateComponentTextParameter(code)
 	button.Parameters = append(button.Parameters, *buttonParam)
 	component = append(component, *button)
@@ -62,68 +61,42 @@ func (s *Service) makeAuthenticationTemplateComponents(text string, code string)
 	return component, nil
 }
 
-func (s *Service) getOTPTemplate() (*config.WhatsappTemplateConfig, error) {
-	switch s.WhatsappConfig.APIType {
-	case config.WhatsappAPITypeOnPremises:
-		if s.OnPremisesClient == nil {
-			return nil, ErrNoAvailableClient
-		}
-		return s.OnPremisesClient.GetOTPTemplate(), nil
-	default:
-		return nil, fmt.Errorf("whatsapp: unknown api type")
-	}
-}
-
-func (s *Service) ResolveOTPTemplateLanguage(ctx context.Context) (lang string, err error) {
-	template, err := s.getOTPTemplate()
-	if err != nil {
-		return "", err
-	}
-	lang = s.resolveTemplateLanguage(ctx, template.Languages)
-	return
-}
-
-func (s *Service) PrepareOTPTemplate(language string, text string, code string) (*PreparedOTPTemplate, error) {
-	template, err := s.getOTPTemplate()
-	if err != nil {
-		return nil, err
-	}
-
-	var component []TemplateComponent = []TemplateComponent{}
-
+func (s *Service) prepareOTPComponents(template *config.WhatsappTemplateConfig, code string) ([]TemplateComponent, error) {
 	switch template.Type {
 	case config.WhatsappTemplateTypeAuthentication:
-		c, err := s.makeAuthenticationTemplateComponents(text, code)
+		c, err := s.makeAuthenticationTemplateComponents(code)
 		if err != nil {
 			return nil, err
 		}
-		component = c
+		return c, nil
 	default:
 		panic("whatsapp: unknown template type")
 	}
-
-	return &PreparedOTPTemplate{
-		TemplateName: template.Name,
-		TemplateType: string(template.Type),
-		Language:     language,
-		Components:   component,
-		Namespace:    template.Namespace,
-	}, nil
 }
 
-func (s *Service) SendTemplate(ctx context.Context, opts *SendTemplateOptions) error {
+func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *SendAuthenticationOTPOptions) error {
 	switch s.WhatsappConfig.APIType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
 			return ErrNoAvailableClient
 		}
+
+		otpTemplate := s.OnPremisesClient.GetOTPTemplate()
+
+		lang := s.resolveTemplateLanguage(ctx, otpTemplate.Languages)
+
+		components, err := s.prepareOTPComponents(otpTemplate, opts.OTP)
+		if err != nil {
+			return err
+		}
+
 		return s.OnPremisesClient.SendTemplate(
 			ctx,
 			opts.To,
-			opts.TemplateName,
-			opts.Language,
-			opts.Components,
-			opts.Namespace)
+			otpTemplate.Name,
+			lang,
+			components,
+			otpTemplate.Namespace)
 	default:
 		return fmt.Errorf("whatsapp: unknown api type")
 	}

@@ -43,21 +43,14 @@ type TranslationService interface {
 type Sender interface {
 	SendEmailInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *mail.SendOptions) error
 	SendSMSInNewGoroutine(ctx context.Context, msgType translation.MessageType, opts *sms.SendOptions) error
-	SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendTemplateOptions) error
-}
-
-type WhatsappService interface {
-	ResolveOTPTemplateLanguage(ctx context.Context) (string, error)
-	PrepareOTPTemplate(language string, text string, code string) (*whatsapp.PreparedOTPTemplate, error)
-	SendTemplate(ctx context.Context, opts *whatsapp.SendTemplateOptions) error
+	SendWhatsappImmediately(ctx context.Context, msgType translation.MessageType, opts *whatsapp.SendAuthenticationOTPOptions) error
 }
 
 type MessageSender struct {
-	AppID           config.AppID
-	Translation     TranslationService
-	Endpoints       EndpointsProvider
-	Sender          Sender
-	WhatsappService WhatsappService
+	AppID       config.AppID
+	Translation TranslationService
+	Endpoints   EndpointsProvider
+	Sender      Sender
 }
 
 var FromAdminAPIQueryKey = "x_from_admin_api"
@@ -240,36 +233,12 @@ func (s *MessageSender) sendWhatsapp(ctx context.Context, opts SendOptions) (err
 	spec := s.selectMessage(opts.Form, opts.Type)
 	msgType := spec.MessageType
 
-	variables, err := s.setupTemplateContext(msgType, opts)
-	if err != nil {
-		return err
+	whatsappSendAuthenticationOTPOptions := &whatsapp.SendAuthenticationOTPOptions{
+		To:  opts.Target,
+		OTP: opts.OTP,
 	}
 
-	language, err := s.WhatsappService.ResolveOTPTemplateLanguage(ctx)
-	if err != nil {
-		return
-	}
-
-	data, err := s.Translation.WhatsappMessageData(ctx, language, spec, variables)
-	if err != nil {
-		return
-	}
-
-	prepared, err := s.WhatsappService.PrepareOTPTemplate(language, data.Body.String, opts.OTP)
-	if err != nil {
-		return
-	}
-
-	whatsappSendTemplateOptions := &whatsapp.SendTemplateOptions{
-		TemplateName: prepared.TemplateName,
-		To:           opts.Target,
-		TemplateType: prepared.TemplateType,
-		Language:     prepared.Language,
-		Components:   prepared.Components,
-		Namespace:    prepared.Namespace,
-	}
-
-	err = s.Sender.SendWhatsappImmediately(ctx, msgType, whatsappSendTemplateOptions)
+	err = s.Sender.SendWhatsappImmediately(ctx, msgType, whatsappSendAuthenticationOTPOptions)
 	if err != nil {
 		return
 	}

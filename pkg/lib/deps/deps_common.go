@@ -491,7 +491,6 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		infrawhatsapp.DependencySet,
 		wire.Bind(new(messaging.WhatsappSender), new(*infrawhatsapp.Service)),
-		wire.Bind(new(otp.WhatsappService), new(*infrawhatsapp.Service)),
 	),
 
 	wire.NewSet(
