@@ -4,7 +4,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 )
 
-type SendSMSPayload struct {
+type SendOptions struct {
 	To                string                    `json:"to"`
 	Body              string                    `json:"body"`
 	AppID             string                    `json:"app_id"`

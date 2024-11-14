@@ -98,7 +98,7 @@ func (c *CustomClient) Send(ctx context.Context, opts smsapi.SendOptions) error 
 	if err != nil {
 		return err
 	}
-	payload := SendSMSPayload{
+	payload := SendOptions{
 		To:                opts.To,
 		Body:              opts.Body,
 		AppID:             opts.AppID,
