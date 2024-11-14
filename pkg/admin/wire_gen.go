@@ -57,6 +57,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/custom"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
@@ -743,9 +744,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	smsGatewayEnvironmentNexmoCredentials := smsGatewayEnvironmentConfig.Nexmo
 	smsGatewayEnvironmentTwilioCredentials := smsGatewayEnvironmentConfig.Twilio
 	smsGatewayEnvironmentCustomSMSProviderConfig := smsGatewayEnvironmentConfig.Custom
-	smsHookTimeout := sms.NewSMSHookTimeout(customSMSProviderConfig)
-	hookDenoClient := sms.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
-	smsDenoHook := sms.SMSDenoHook{
+	smsHookTimeout := custom.NewSMSHookTimeout(customSMSProviderConfig)
+	hookDenoClient := custom.NewHookDenoClient(denoEndpoint, hookLogger, smsHookTimeout)
+	smsDenoHook := custom.SMSDenoHook{
 		DenoHook: denoHook,
 		Client:   hookDenoClient,
 	}
@@ -753,8 +754,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Logger: webHookLogger,
 		Secret: webhookKeyMaterials,
 	}
-	hookHTTPClient := sms.NewHookHTTPClient(smsHookTimeout)
-	smsWebHook := sms.SMSWebHook{
+	hookHTTPClient := custom.NewHookHTTPClient(smsHookTimeout)
+	smsWebHook := custom.SMSWebHook{
 		WebHook: hookWebHookImpl,
 		Client:  hookHTTPClient,
 	}

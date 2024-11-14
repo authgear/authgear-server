@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/custom"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/nexmo"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms/twilio"
@@ -25,6 +26,13 @@ type NexmoClientCredentials struct {
 
 func (NexmoClientCredentials) smsClientCredentials() {}
 
+type CustomClientCredentials struct {
+	URL     string
+	Timeout *config.DurationSeconds
+}
+
+func (CustomClientCredentials) smsClientCredentials() {}
+
 type ClientResolver struct {
 	AuthgearYAMLSMSProvider config.SMSProvider
 	AuthgearYAMLSMSGateway  *config.SMSGatewayConfig
@@ -40,8 +48,8 @@ type ClientResolver struct {
 	EnvironmentTwilioCredentials       config.SMSGatewayEnvironmentTwilioCredentials
 	EnvironmentCustomSMSProviderConfig config.SMSGatewayEnvironmentCustomSMSProviderConfig
 
-	SMSDenoHook SMSDenoHook
-	SMSWebHook  SMSWebHook
+	SMSDenoHook custom.SMSDenoHook
+	SMSWebHook  custom.SMSWebHook
 }
 
 func (r *ClientResolver) ResolveClient() (smsapi.Client, SMSClientCredentials, error) {
@@ -177,7 +185,7 @@ func (r *ClientResolver) resolveProviderFromAuthgearYAMLAndAuthgearSecretsYAML()
 	}
 }
 
-func (r *ClientResolver) clientsFromAuthgearSecretsYAML() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *CustomClient, *CustomClientCredentials) {
+func (r *ClientResolver) clientsFromAuthgearSecretsYAML() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *custom.CustomClient, *CustomClientCredentials) {
 	var nexmoClientCredentials *NexmoClientCredentials
 	var twilioClientCredentials *TwilioClientCredentials
 	var customClientCredentials *CustomClientCredentials
@@ -204,10 +212,10 @@ func (r *ClientResolver) clientsFromAuthgearSecretsYAML() (*nexmo.NexmoClient, *
 		}
 	}
 
-	return nexmo.NewNexmoClient(r.AuthgearSecretsYAMLNexmoCredentials), nexmoClientCredentials, twilio.NewTwilioClient(r.AuthgearSecretsYAMLTwilioCredentials), twilioClientCredentials, NewCustomClient(r.AuthgearSecretsYAMLCustomSMSProviderConfig, r.SMSDenoHook, r.SMSWebHook), customClientCredentials
+	return nexmo.NewNexmoClient(r.AuthgearSecretsYAMLNexmoCredentials), nexmoClientCredentials, twilio.NewTwilioClient(r.AuthgearSecretsYAMLTwilioCredentials), twilioClientCredentials, custom.NewCustomClient(r.AuthgearSecretsYAMLCustomSMSProviderConfig, r.SMSDenoHook, r.SMSWebHook), customClientCredentials
 }
 
-func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *CustomClient, *CustomClientCredentials) {
+func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *custom.CustomClient, *CustomClientCredentials) {
 	var nexmoClientCredentials *NexmoClientCredentials
 	var twilioClientCredentials *TwilioClientCredentials
 	var customClientCredentials *CustomClientCredentials
@@ -239,10 +247,10 @@ func (r *ClientResolver) clientsFromEnv() (*nexmo.NexmoClient, *NexmoClientCrede
 		}
 	}
 
-	return nexmo.NewNexmoClient((*config.NexmoCredentials)(nexmoClientCredentials)), nexmoClientCredentials, twilio.NewTwilioClient((*config.TwilioCredentials)(twilioClientCredentials)), twilioClientCredentials, NewCustomClient((*config.CustomSMSProviderConfig)(customClientCredentials), r.SMSDenoHook, r.SMSWebHook), customClientCredentials
+	return nexmo.NewNexmoClient((*config.NexmoCredentials)(nexmoClientCredentials)), nexmoClientCredentials, twilio.NewTwilioClient((*config.TwilioCredentials)(twilioClientCredentials)), twilioClientCredentials, custom.NewCustomClient((*config.CustomSMSProviderConfig)(customClientCredentials), r.SMSDenoHook, r.SMSWebHook), customClientCredentials
 }
 
-func (r *ClientResolver) resolveRawClients() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *CustomClient, *CustomClientCredentials) {
+func (r *ClientResolver) resolveRawClients() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *custom.CustomClient, *CustomClientCredentials) {
 	if r.AuthgearYAMLSMSGateway != nil {
 		// Use sms gateway config. See Table 3
 		return r.resolveConfigFromAuthgearYAMLAndAuthgearSecretsYAML()
@@ -257,7 +265,7 @@ func (r *ClientResolver) resolveRawClients() (*nexmo.NexmoClient, *NexmoClientCr
 }
 
 // Table 2
-func (r *ClientResolver) resolveConfigFromEnv() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *CustomClient, *CustomClientCredentials) {
+func (r *ClientResolver) resolveConfigFromEnv() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *custom.CustomClient, *CustomClientCredentials) {
 	if r.EnvironmentDefaultUseConfigFrom == "" {
 		// `provider` will be determined from application logic. Read config from `sms.{provider}` from `authgear.secrets.yaml`
 		return r.clientsFromAuthgearSecretsYAML()
@@ -279,7 +287,7 @@ func (r *ClientResolver) resolveConfigFromEnv() (*nexmo.NexmoClient, *NexmoClien
 }
 
 // Table 3
-func (r *ClientResolver) resolveConfigFromAuthgearYAMLAndAuthgearSecretsYAML() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *CustomClient, *CustomClientCredentials) {
+func (r *ClientResolver) resolveConfigFromAuthgearYAMLAndAuthgearSecretsYAML() (*nexmo.NexmoClient, *NexmoClientCredentials, *twilio.TwilioClient, *TwilioClientCredentials, *custom.CustomClient, *CustomClientCredentials) {
 	switch r.AuthgearYAMLSMSGateway.UseConfigFrom {
 	case config.SMSGatewayUseConfigFromEnvironmentVariable:
 		if r.AuthgearYAMLSMSGateway.Provider == "" {
