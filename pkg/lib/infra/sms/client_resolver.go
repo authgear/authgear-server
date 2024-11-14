@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 )
 
 type ClientResolver struct {
@@ -26,43 +27,43 @@ type ClientResolver struct {
 	SMSWebHook  SMSWebHook
 }
 
-func (r *ClientResolver) ResolveClient() (RawClient, SMSClientCredentials, error) {
+func (r *ClientResolver) ResolveClient() (smsapi.Client, SMSClientCredentials, error) {
 	nexmoClient, nexmoClientCredentials, twilioClient, twilioClientCredentials, customClient, customClientCredentials := r.resolveRawClients()
 	provider := r.resolveProvider()
 
-	var client RawClient
+	var client smsapi.Client
 	var smsClientCredentials SMSClientCredentials
 	switch provider {
 	case config.SMSProviderNexmo:
 		if nexmoClient == nil {
-			return nil, nil, ErrNoAvailableClient
+			return nil, nil, smsapi.ErrNoAvailableClient
 		}
 		client = nexmoClient
 		smsClientCredentials = nexmoClientCredentials
 	case config.SMSProviderTwilio:
 		if twilioClient == nil {
-			return nil, nil, ErrNoAvailableClient
+			return nil, nil, smsapi.ErrNoAvailableClient
 		}
 		client = twilioClient
 		smsClientCredentials = twilioClientCredentials
 	case config.SMSProviderCustom:
 		if customClient == nil {
-			return nil, nil, ErrNoAvailableClient
+			return nil, nil, smsapi.ErrNoAvailableClient
 		}
 		client = customClient
 		smsClientCredentials = customClientCredentials
 	default:
 		var availableClients []struct {
-			RawClient            RawClient
+			RawClient            smsapi.Client
 			SMSClientCredentials SMSClientCredentials
 		} = []struct {
-			RawClient            RawClient
+			RawClient            smsapi.Client
 			SMSClientCredentials SMSClientCredentials
 		}{}
 
 		if nexmoClient != nil {
 			availableClients = append(availableClients, struct {
-				RawClient            RawClient
+				RawClient            smsapi.Client
 				SMSClientCredentials SMSClientCredentials
 			}{
 				RawClient:            nexmoClient,
@@ -71,7 +72,7 @@ func (r *ClientResolver) ResolveClient() (RawClient, SMSClientCredentials, error
 		}
 		if twilioClient != nil {
 			availableClients = append(availableClients, struct {
-				RawClient            RawClient
+				RawClient            smsapi.Client
 				SMSClientCredentials SMSClientCredentials
 			}{
 				RawClient:            twilioClient,
@@ -80,7 +81,7 @@ func (r *ClientResolver) ResolveClient() (RawClient, SMSClientCredentials, error
 		}
 		if customClient != nil {
 			availableClients = append(availableClients, struct {
-				RawClient            RawClient
+				RawClient            smsapi.Client
 				SMSClientCredentials SMSClientCredentials
 			}{
 				RawClient:            customClient,
@@ -88,10 +89,10 @@ func (r *ClientResolver) ResolveClient() (RawClient, SMSClientCredentials, error
 			})
 		}
 		if len(availableClients) == 0 {
-			return nil, nil, ErrNoAvailableClient
+			return nil, nil, smsapi.ErrNoAvailableClient
 		}
 		if len(availableClients) > 1 {
-			return nil, nil, ErrAmbiguousClient
+			return nil, nil, smsapi.ErrAmbiguousClient
 		}
 		client = availableClients[0].RawClient
 		smsClientCredentials = availableClients[0].SMSClientCredentials

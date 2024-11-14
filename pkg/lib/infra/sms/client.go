@@ -2,27 +2,10 @@ package sms
 
 import (
 	"context"
-	"errors"
 
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
-
-var ErrNoAvailableClient = errors.New("no available SMS client")
-var ErrAmbiguousClient = errors.New("ambiguous SMS client")
-
-type SendOptions struct {
-	Sender            string
-	To                string
-	Body              string
-	AppID             string
-	TemplateName      string
-	LanguageTag       string
-	TemplateVariables *TemplateVariables
-}
-
-type RawClient interface {
-	Send(ctx context.Context, opts SendOptions) error
-}
 
 type Logger struct{ *log.Logger }
 
@@ -33,7 +16,9 @@ type Client struct {
 	ClientResolver *ClientResolver
 }
 
-func (c *Client) Send(ctx context.Context, opts SendOptions) error {
+var _ smsapi.Client = (*Client)(nil)
+
+func (c *Client) Send(ctx context.Context, opts smsapi.SendOptions) error {
 	client, _, err := c.ClientResolver.ResolveClient()
 
 	if err != nil {

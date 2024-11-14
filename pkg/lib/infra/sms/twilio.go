@@ -9,6 +9,7 @@ import (
 	api "github.com/twilio/twilio-go/rest/api/v2010"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 )
 
 var ErrMissingTwilioConfiguration = errors.New("twilio: configuration is missing")
@@ -40,7 +41,7 @@ func NewTwilioClient(c *config.TwilioCredentials) *TwilioClient {
 	}
 }
 
-func (t *TwilioClient) Send(ctx context.Context, opts SendOptions) error {
+func (t *TwilioClient) Send(ctx context.Context, opts smsapi.SendOptions) error {
 	if t.TwilioClient == nil {
 		return ErrMissingTwilioConfiguration
 	}

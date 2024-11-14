@@ -8,6 +8,7 @@ import (
 	nexmo "github.com/njern/gonexmo"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 )
 
 var ErrMissingNexmoConfiguration = errors.New("nexmo: configuration is missing")
@@ -34,7 +35,7 @@ func NewNexmoClient(c *config.NexmoCredentials) *NexmoClient {
 	}
 }
 
-func (n *NexmoClient) Send(ctx context.Context, opts SendOptions) error {
+func (n *NexmoClient) Send(ctx context.Context, opts smsapi.SendOptions) error {
 	if n.NexmoClient == nil {
 		return ErrMissingNexmoConfiguration
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
+	"github.com/authgear/authgear-server/pkg/lib/infra/sms/smsapi"
 )
 
 var ErrMissingCustomSMSProviderConfiguration = errors.New("sms: custom provider configuration is missing")
@@ -25,6 +26,8 @@ type CustomClient struct {
 	SMSWebHook  SMSWebHook
 }
 
+var _ smsapi.Client = (*CustomClient)(nil)
+
 func NewCustomClient(c *config.CustomSMSProviderConfig, d SMSDenoHook, w SMSWebHook) *CustomClient {
 	if c == nil {
 		return nil
@@ -38,15 +41,15 @@ func NewCustomClient(c *config.CustomSMSProviderConfig, d SMSDenoHook, w SMSWebH
 }
 
 type SendSMSPayload struct {
-	To                string             `json:"to"`
-	Body              string             `json:"body"`
-	AppID             string             `json:"app_id"`
-	TemplateName      string             `json:"template_name"`
-	LanguageTag       string             `json:"language_tag"`
-	TemplateVariables *TemplateVariables `json:"template_variables"`
+	To                string                    `json:"to"`
+	Body              string                    `json:"body"`
+	AppID             string                    `json:"app_id"`
+	TemplateName      string                    `json:"template_name"`
+	LanguageTag       string                    `json:"language_tag"`
+	TemplateVariables *smsapi.TemplateVariables `json:"template_variables"`
 }
 
-func (c *CustomClient) Send(ctx context.Context, opts SendOptions) error {
+func (c *CustomClient) Send(ctx context.Context, opts smsapi.SendOptions) error {
 	if c.Config == nil {
 		return ErrMissingCustomSMSProviderConfiguration
 	}
