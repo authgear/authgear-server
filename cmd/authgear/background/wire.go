@@ -4,6 +4,8 @@
 package background
 
 import (
+	"context"
+
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -23,7 +25,7 @@ func newConfigSourceController(p *deps.BackgroundProvider) *configsource.Control
 	))
 }
 
-func newAccountAnonymizationRunner(p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
+func newAccountAnonymizationRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
 	panic(wire.Build(
 		DependencySet,
 		accountanonymization.DependencySet,
@@ -31,7 +33,7 @@ func newAccountAnonymizationRunner(p *deps.BackgroundProvider, ctrl *configsourc
 	))
 }
 
-func newAccountDeletionRunner(p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
+func newAccountDeletionRunner(ctx context.Context, p *deps.BackgroundProvider, ctrl *configsource.Controller) *backgroundjob.Runner {
 	panic(wire.Build(
 		DependencySet,
 		accountdeletion.DependencySet,

@@ -19,10 +19,9 @@ type MigrateResourcesOptions struct {
 }
 
 // nolint: gocognit
-func MigrateResources(opt *MigrateResourcesOptions) {
+func MigrateResources(ctx context.Context, opt *MigrateResourcesOptions) {
 	db := openDB(opt.DatabaseURL, opt.DatabaseSchema)
 
-	ctx := context.Background()
 	configSourceList, err := selectConfigSources(ctx, db, nil)
 	if err != nil {
 		log.Fatalf("failed to connect db: %s", err)

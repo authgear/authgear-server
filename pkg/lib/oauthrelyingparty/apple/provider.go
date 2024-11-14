@@ -176,7 +176,7 @@ func (p Apple) GetUserProfile(ctx context.Context, deps oauthrelyingparty.Depend
 		return
 	}
 
-	claims, err := jwtToken.AsMap(context.TODO())
+	claims, err := jwtToken.AsMap(oauthrelyingpartyutil.ContextForTheUnusedContextArgumentInJWXV2API)
 	if err != nil {
 		return
 	}

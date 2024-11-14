@@ -65,6 +65,25 @@ services:
     - "3100:3100"
     - "443:443"
 
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command:
+    # These 4 arguments are original found in the Dockerfile.
+    # See https://github.com/prometheus/prometheus/blob/v2.55.1/Dockerfile#L25
+    # Since we have to add extra arguments, we need to repeat them here.
+    # See https://prometheus.io/docs/prometheus/latest/installation/#setting-command-line-parameters
+    - "--config.file=/etc/prometheus/prometheus.yml"
+    - "--storage.tsdb.path=/prometheus"
+    - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+    - "--web.console.templates=/usr/share/prometheus/consoles"
+    # Enable OTLP
+    # Since 3.0.0-beta.1, the flag becomes --web.enable-otlp-receiver
+    # But we are using v2, so that flag is --enable-feature=otlp-write-receiver
+    # See https://github.com/prometheus/prometheus/blob/main/CHANGELOG.md#300-beta1--2024-10-09
+    - "--enable-feature=otlp-write-receiver"
+    ports:
+    - "9090:9090"
+
   ldap:
     profiles: ["ldap"]
     image: bitnami/openldap:2.6

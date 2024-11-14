@@ -17,10 +17,9 @@ type CheckConfigSourcesOptions struct {
 	AppIDs         []string
 }
 
-func CheckConfigSources(opts *CheckConfigSourcesOptions) error {
+func CheckConfigSources(ctx context.Context, opts *CheckConfigSourcesOptions) error {
 	db := openDB(opts.DatabaseURL, opts.DatabaseSchema)
 
-	ctx := context.Background()
 	configSources, err := selectConfigSources(ctx, db, opts.AppIDs)
 	if err != nil {
 		log.Fatalf("failed to connect db: %s", err)

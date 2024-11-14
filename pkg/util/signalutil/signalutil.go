@@ -20,8 +20,8 @@ type Daemon interface {
 	Stop(ctx context.Context, logger *log.Logger) error
 }
 
-func Start(logger *log.Logger, daemons ...Daemon) {
-	startCtx, cancel := context.WithCancel(context.Background())
+func Start(ctx context.Context, logger *log.Logger, daemons ...Daemon) {
+	startCtx, cancel := context.WithCancel(ctx)
 	var stopCtx context.Context
 	waitGroup := new(sync.WaitGroup)
 	shutdown := make(chan struct{})
@@ -54,7 +54,7 @@ func Start(logger *log.Logger, daemons ...Daemon) {
 	// This causes the daemon that respects context to stop blocking and proceed to shutdown.
 	cancel()
 
-	stopCtx, cancelTimeout := context.WithTimeout(context.Background(), 10*time.Second)
+	stopCtx, cancelTimeout := context.WithTimeout(ctx, 10*time.Second)
 	defer cancelTimeout()
 
 	close(shutdown)

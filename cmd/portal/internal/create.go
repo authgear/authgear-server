@@ -25,7 +25,7 @@ type CreateOptions struct {
 	ResourceDir    string
 }
 
-func Create(opt *CreateOptions) error {
+func Create(ctx context.Context, opt *CreateOptions) error {
 	// construct config source
 	data, err := constructConfigSourceData(opt.ResourceDir)
 	if err != nil {
@@ -45,7 +45,6 @@ func Create(opt *CreateOptions) error {
 	// start store domains and config source to db
 	db := openDB(opt.DatabaseURL, opt.DatabaseSchema)
 
-	ctx := context.Background()
 	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)

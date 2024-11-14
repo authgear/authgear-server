@@ -28,7 +28,7 @@ import (
 
 type NoopTaskQueue struct{}
 
-func (NoopTaskQueue) Enqueue(taskParam task.Param) {}
+func (NoopTaskQueue) Enqueue(ctx context.Context, taskParam task.Param) {}
 
 func NewNoopTaskQueue() NoopTaskQueue {
 	return NoopTaskQueue{}
@@ -37,7 +37,7 @@ func NewNoopTaskQueue() NoopTaskQueue {
 // This dummy HTTP request is only used for get/set cookie
 // which does not have any effect at all.
 func NewDummyHTTPRequest() *http.Request {
-	ctx := context.Background()
+	ctx := contextForDummyHTTPRequest
 	r, _ := http.NewRequestWithContext(ctx, "", "", nil)
 	return r
 }

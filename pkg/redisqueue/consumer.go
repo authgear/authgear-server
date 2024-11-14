@@ -58,7 +58,7 @@ type Consumer struct {
 
 var _ signalutil.Daemon = &Consumer{}
 
-func NewConsumer(queueName string, rateLimitConfig config.RateLimitsEnvironmentConfigEntry, rootProvider *deps.RootProvider, configSourceController *configsource.Controller, taskProcessor TaskProcessor) *Consumer {
+func NewConsumer(ctx context.Context, queueName string, rateLimitConfig config.RateLimitsEnvironmentConfigEntry, rootProvider *deps.RootProvider, configSourceController *configsource.Controller, taskProcessor TaskProcessor) *Consumer {
 	redis := globalredis.NewHandle(
 		rootProvider.RedisPool,
 		&rootProvider.EnvironmentConfig.RedisConfig,
@@ -85,7 +85,7 @@ func NewConsumer(queueName string, rateLimitConfig config.RateLimitsEnvironmentC
 		},
 		shutdown:     make(chan struct{}),
 		shutdownDone: make(chan struct{}),
-		shutdownCtx:  context.Background(),
+		shutdownCtx:  ctx,
 	}
 }
 

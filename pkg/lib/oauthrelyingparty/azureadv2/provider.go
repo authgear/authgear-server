@@ -173,7 +173,7 @@ func (p AzureADv2) GetUserProfile(ctx context.Context, deps oauthrelyingparty.De
 		return
 	}
 
-	claims, err := jwtToken.AsMap(context.TODO())
+	claims, err := jwtToken.AsMap(oauthrelyingpartyutil.ContextForTheUnusedContextArgumentInJWXV2API)
 	if err != nil {
 		return
 	}

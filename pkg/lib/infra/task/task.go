@@ -17,5 +17,5 @@ type Registry interface {
 }
 
 type Queue interface {
-	Enqueue(taskParam Param)
+	Enqueue(ctx context.Context, taskParam Param)
 }

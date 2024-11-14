@@ -15,7 +15,7 @@ var cmdImagesStart = &cobra.Command{
 	Short: "Start images server",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctrl := &server.Controller{}
-		ctrl.Start()
+		ctrl.Start(cmd.Context())
 	},
 }
 

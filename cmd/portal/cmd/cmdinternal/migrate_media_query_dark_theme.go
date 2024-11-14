@@ -28,7 +28,7 @@ var cmdInternalMigrateMediaQueryDarkTheme = &cobra.Command{
 			log.Fatalf(err.Error())
 		}
 
-		internal.MigrateResources(&internal.MigrateResourcesOptions{
+		internal.MigrateResources(cmd.Context(), &internal.MigrateResourcesOptions{
 			DatabaseURL:            dbURL,
 			DatabaseSchema:         dbSchema,
 			UpdateConfigSourceFunc: migrateMediaQueryDarkTheme,

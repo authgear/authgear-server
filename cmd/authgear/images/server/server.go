@@ -18,20 +18,19 @@ type Controller struct {
 	logger *log.Logger
 }
 
-func (c *Controller) Start() {
+func (c *Controller) Start(ctx context.Context) {
 	vipsutil.LibvipsInit()
 
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
-		golog.Fatalf("failed to load server config: %s", err)
+		golog.Fatalf("failed to load server config: %v", err)
 	}
 
 	p, err := deps.NewRootProvider(*cfg.EnvironmentConfig, cfg.ObjectStore)
 	if err != nil {
-		golog.Fatalf("failed to setup server: %s", err)
+		golog.Fatalf("failed to initialize dependencies: %v", err)
 	}
 
-	ctx := context.Background()
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
@@ -44,15 +43,15 @@ func (c *Controller) Start() {
 	c.logger.Infof("authgear (version %s)", version.Version)
 
 	var specs []signalutil.Daemon
-	specs = append(specs, server.NewSpec(&server.Spec{
-		Name:          "images server",
+	specs = append(specs, server.NewSpec(ctx, &server.Spec{
+		Name:          "authgear-images",
 		ListenAddress: cfg.ListenAddr,
 		Handler:       images.NewRouter(p, configSrcController.GetConfigSource()),
 	}))
-	specs = append(specs, server.NewSpec(&server.Spec{
-		Name:          "images internal server",
+	specs = append(specs, server.NewSpec(ctx, &server.Spec{
+		Name:          "authgear-images-internal",
 		ListenAddress: cfg.InternalListenAddr,
 		Handler:       pprofutil.NewServeMux(),
 	}))
-	signalutil.Start(c.logger, specs...)
+	signalutil.Start(ctx, c.logger, specs...)
 }

@@ -17,7 +17,7 @@ type Controller struct {
 	logger *log.Logger
 }
 
-func (c *Controller) Start() {
+func (c *Controller) Start(ctx context.Context) {
 	cfg, err := LoadConfigFromEnv()
 	if err != nil {
 		golog.Fatalf("failed to load server config: %s", err)
@@ -59,7 +59,6 @@ func (c *Controller) Start() {
 		c.logger.Warn("development mode is ON - do not use in production")
 	}
 
-	ctx := context.Background()
 	configSrcController := newConfigSourceController(p)
 	err = configSrcController.Open(ctx)
 	if err != nil {
@@ -70,15 +69,15 @@ func (c *Controller) Start() {
 	p.ConfigSourceController = configSrcController
 
 	var specs []signalutil.Daemon
-	specs = append(specs, server.NewSpec(&server.Spec{
-		Name:          "portal server",
+	specs = append(specs, server.NewSpec(ctx, &server.Spec{
+		Name:          "authgear-portal",
 		ListenAddress: cfg.PortalListenAddr,
 		Handler:       portal.NewRouter(p),
 	}))
-	specs = append(specs, server.NewSpec(&server.Spec{
-		Name:          "portal internal server",
+	specs = append(specs, server.NewSpec(ctx, &server.Spec{
+		Name:          "authgear-portal-internal",
 		ListenAddress: cfg.PortalInternalListenAddr,
 		Handler:       pprofutil.NewServeMux(),
 	}))
-	signalutil.Start(c.logger, specs...)
+	signalutil.Start(ctx, c.logger, specs...)
 }

@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"sync"
+
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 type PoolDB struct {
@@ -132,7 +134,7 @@ func (p *Pool) Close() (err error) {
 }
 
 func (p *Pool) openPostgresDB(opts ConnectionOptions) (*PoolDB, error) {
-	pgdb, err := sql.Open("postgres", opts.DatabaseURL)
+	pgdb, err := otelutil.OTelSQLOpenPostgres(opts.DatabaseURL)
 	if err != nil {
 		return nil, err
 	}

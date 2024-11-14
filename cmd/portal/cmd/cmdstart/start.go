@@ -15,7 +15,7 @@ var cmdStart = &cobra.Command{
 	Short: "Start server",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctrl := &server.Controller{}
-		ctrl.Start()
+		ctrl.Start(cmd.Context())
 	},
 }
 

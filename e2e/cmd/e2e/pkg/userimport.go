@@ -16,7 +16,7 @@ type End2End struct{}
 
 type NoopTaskQueue struct{}
 
-func (q NoopTaskQueue) Enqueue(param task.Param) {
+func (q NoopTaskQueue) Enqueue(ctx context.Context, param task.Param) {
 }
 
 func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string) error {
@@ -34,6 +34,7 @@ func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string
 	})
 
 	p, err := deps.NewRootProvider(
+		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
 		cfg.BuiltinResourceDirectory,

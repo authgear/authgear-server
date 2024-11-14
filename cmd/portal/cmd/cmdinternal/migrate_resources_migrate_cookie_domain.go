@@ -38,7 +38,7 @@ var cmdInternalMigrateCookieDomain = &cobra.Command{
 			return err
 		}
 
-		internal.MigrateResources(&internal.MigrateResourcesOptions{
+		internal.MigrateResources(cmd.Context(), &internal.MigrateResourcesOptions{
 			DatabaseURL:            dbURL,
 			DatabaseSchema:         dbSchema,
 			UpdateConfigSourceFunc: migrateCookieDomain,

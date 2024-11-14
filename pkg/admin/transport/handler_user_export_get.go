@@ -19,7 +19,7 @@ func ConfigureUserExportGetRoute(route httproute.Route) httproute.Route {
 }
 
 type UserExportGetHandlerCloudStorage interface {
-	PresignGetObject(name string, expire time.Duration) (*url.URL, error)
+	PresignGetObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error)
 }
 
 type UserExportGetProducer interface {
@@ -65,7 +65,7 @@ func (h *UserExportGetHandler) handle(ctx context.Context, w http.ResponseWriter
 
 	// Get presigned download url when the task completed successfully
 	if response.Status == "completed" && response.FailedAt == nil {
-		downloadUrl, err := h.CloudStorage.PresignGetObject(response.DownloadUrl, userexport.PresignGetExpiresForUserExport)
+		downloadUrl, err := h.CloudStorage.PresignGetObject(ctx, response.DownloadUrl, userexport.PresignGetExpiresForUserExport)
 		if err != nil {
 			return err
 		}

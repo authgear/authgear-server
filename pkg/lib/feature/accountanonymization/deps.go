@@ -1,6 +1,8 @@
 package accountanonymization
 
 import (
+	"context"
+
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -11,8 +13,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
-func NewRunner(loggerFactory *log.Factory, runnableFactory backgroundjob.RunnableFactory) *backgroundjob.Runner {
+func NewRunner(ctx context.Context, loggerFactory *log.Factory, runnableFactory backgroundjob.RunnableFactory) *backgroundjob.Runner {
 	return backgroundjob.NewRunner(
+		ctx,
 		loggerFactory.New("account-anonymization-runner"),
 		runnableFactory,
 	)

@@ -6,6 +6,8 @@ import (
 	"github.com/go-redsync/redsync/v4"
 	redsyncgoredis "github.com/go-redsync/redsync/v4/redis/goredis/v9"
 	"github.com/redis/go-redis/v9"
+
+	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 type redisInstance struct {
@@ -81,7 +83,13 @@ func (p *Pool) openInstance(connectionOptions *ConnectionOptions) *redisInstance
 	opts.PoolSize = *connectionOptions.MaxOpenConnection
 	opts.ConnMaxIdleTime = connectionOptions.IdleConnectionTimeout.Duration()
 	opts.ConnMaxLifetime = connectionOptions.MaxConnectionLifetime.Duration()
+
 	client := redis.NewClient(opts)
+	err = otelutil.OtelRedisInstrumentMetrics(client)
+	if err != nil {
+		panic(err)
+	}
+
 	redsyncPool := redsyncgoredis.NewPool(client)
 	redsyncInstance := redsync.New(redsyncPool)
 	return &redisInstance{

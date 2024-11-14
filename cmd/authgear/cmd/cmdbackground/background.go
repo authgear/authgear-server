@@ -12,7 +12,7 @@ var cmdBackground = &cobra.Command{
 	Short: "Start the background job runner",
 	Run: func(cmd *cobra.Command, args []string) {
 		ctrl := &background.Controller{}
-		ctrl.Start()
+		ctrl.Start(cmd.Context())
 	},
 }
 

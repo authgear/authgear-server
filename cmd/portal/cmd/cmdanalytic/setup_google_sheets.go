@@ -30,7 +30,7 @@ var cmdAnalyticSetupGoogleSheetsToken = &cobra.Command{
 			return err
 		}
 
-		token, err := googleutil.GetTokenFromWeb(oauth2Config)
+		token, err := googleutil.GetTokenFromWeb(cmd.Context(), oauth2Config)
 		if err != nil {
 			return err
 		}

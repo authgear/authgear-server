@@ -36,7 +36,7 @@ var cmdStart = &cobra.Command{
 			}
 		}
 
-		ctrl.Start()
+		ctrl.Start(cmd.Context())
 	},
 }
 

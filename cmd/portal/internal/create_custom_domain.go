@@ -20,9 +20,8 @@ type CreateCustomDomainOptions struct {
 	ApexDomain     string
 }
 
-func CreateCustomDomain(opts CreateCustomDomainOptions) (err error) {
+func CreateCustomDomain(ctx context.Context, opts CreateCustomDomainOptions) (err error) {
 	db := openDB(opts.DatabaseURL, opts.DatabaseSchema)
-	ctx := context.Background()
 
 	tx, err := db.BeginTx(ctx, nil)
 	defer func() {

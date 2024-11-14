@@ -32,7 +32,7 @@ func (m *SMSMessage) Send(ctx context.Context) error {
 		return err
 	}
 
-	m.taskQueue.Enqueue(&tasks.SendMessagesParam{
+	m.taskQueue.Enqueue(ctx, &tasks.SendMessagesParam{
 		SMSMessages: []sms.SendOptions{m.SendOptions},
 	})
 	m.isSent = true

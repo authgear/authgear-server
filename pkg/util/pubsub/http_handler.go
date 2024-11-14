@@ -48,7 +48,7 @@ type HTTPHandler struct {
 func (h *HTTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	logger := h.LoggerFactory.New("pubsub-http-handler")
 
-	rootCtx, cancel := context.WithCancel(context.Background())
+	rootCtx, cancel := context.WithCancel(r.Context())
 	doneChan := make(chan struct{}, 2)
 	errChan := make(chan error, 2)
 

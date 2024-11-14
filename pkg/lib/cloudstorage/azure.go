@@ -1,6 +1,7 @@
 package cloudstorage
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -45,7 +46,7 @@ func (s *AzureStorage) getServiceURL() (*url.URL, error) {
 	return u, nil
 }
 
-func (s *AzureStorage) PresignPutObject(name string, header http.Header) (*http.Request, error) {
+func (s *AzureStorage) PresignPutObject(ctx context.Context, name string, header http.Header) (*http.Request, error) {
 	now := s.Clock.NowUTC()
 	u, err := s.SignedURL(name, now, PresignPutExpires, azblob.BlobSASPermissions{
 		Create: true,
@@ -67,7 +68,7 @@ func (s *AzureStorage) PresignPutObject(name string, header http.Header) (*http.
 	return &req, nil
 }
 
-func (s *AzureStorage) PresignGetObject(name string, expire time.Duration) (*url.URL, error) {
+func (s *AzureStorage) PresignGetObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error) {
 	now := s.Clock.NowUTC()
 
 	return s.SignedURL(name, now, expire, azblob.BlobSASPermissions{
@@ -75,8 +76,8 @@ func (s *AzureStorage) PresignGetObject(name string, expire time.Duration) (*url
 	})
 }
 
-func (s *AzureStorage) PresignHeadObject(name string, expire time.Duration) (*url.URL, error) {
-	return s.PresignGetObject(name, expire)
+func (s *AzureStorage) PresignHeadObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error) {
+	return s.PresignGetObject(ctx, name, expire)
 }
 
 func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Duration, perm azblob.BlobSASPermissions) (*url.URL, error) {
@@ -121,10 +122,10 @@ func (s *AzureStorage) SignedURL(name string, now time.Time, duration time.Durat
 	return &u, nil
 }
 
-func (s *AzureStorage) MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
+func (s *AzureStorage) MakeDirector(ctx context.Context, extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
-		u, err := s.PresignGetObject(key, expire)
+		u, err := s.PresignGetObject(ctx, key, expire)
 		if err != nil {
 			panic(err)
 		}

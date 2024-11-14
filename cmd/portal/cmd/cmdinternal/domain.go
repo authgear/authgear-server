@@ -42,7 +42,7 @@ var cmdInternalDomainCreateDefault = &cobra.Command{
 			return fmt.Errorf("%s: %w", portalcmd.ArgDefaultDomainSuffix.ArgumentName, err)
 		}
 
-		return internal.CreateDefaultDomain(internal.CreateDefaultDomainOptions{
+		return internal.CreateDefaultDomain(cmd.Context(), internal.CreateDefaultDomainOptions{
 			DatabaseURL:         dbURL,
 			DatabaseSchema:      dbSchema,
 			DefaultDomainSuffix: suffix,
@@ -90,7 +90,7 @@ var cmdInternalDomainCreateCustom = &cobra.Command{
 		appID := args[0]
 
 		// FIXME(domain): Create the ingress resource?
-		return internal.CreateCustomDomain(internal.CreateCustomDomainOptions{
+		return internal.CreateCustomDomain(cmd.Context(), internal.CreateCustomDomainOptions{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 			AppID:          appID,
