@@ -908,18 +908,18 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
-		AppDatabase:         handle,
-		LoginIDConfig:       loginIDConfig,
-		Identities:          identityFacade,
-		Authenticators:      authenticatorFacade,
-		UserCommands:        rawCommands,
-		UserQueries:         rawQueries,
-		VerifiedClaims:      verificationService,
-		StandardAttributes:  serviceNoEvent,
-		CustomAttributes:    customattrsServiceNoEvent,
-		RolesGroupsCommands: commands,
-		Elasticsearch:       reindexer,
-		Logger:              userimportLogger,
+		AppDatabase:          handle,
+		LoginIDConfig:        loginIDConfig,
+		Identities:           identityFacade,
+		Authenticators:       authenticatorFacade,
+		UserCommands:         rawCommands,
+		UserQueries:          rawQueries,
+		VerifiedClaims:       verificationService,
+		StandardAttributes:   serviceNoEvent,
+		CustomAttributes:     customattrsServiceNoEvent,
+		RolesGroupsCommands:  commands,
+		SearchReindexService: reindexer,
+		Logger:               userimportLogger,
 	}
 	return userImportService
 }

@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
+
 	"github.com/authgear/authgear-server/pkg/api/model"
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -14,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
-	"github.com/lib/pq"
 )
 
 func NewStore(
