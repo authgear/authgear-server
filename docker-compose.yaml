@@ -32,6 +32,7 @@ services:
       POSTGRESQL_PASSWORD: "postgres"
       PGBOUNCER_DSN_0: "app=host=db port=5432 dbname=postgres"
       PGBOUNCER_DSN_1: "audit=host=db port=5432 dbname=postgres"
+      PGBOUNCER_DSN_2: "search=host=db port=5432 dbname=postgres"
       PGBOUNCER_LOG_CONNECTIONS: "1"
       PGBOUNCER_LOG_DISCONNECTIONS: "1"
 

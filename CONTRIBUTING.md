@@ -174,6 +174,9 @@ This project uses asdf, and there is a .tool-versions file at the project root.
    go run ./cmd/authgear audit database migrate up
    go run ./cmd/authgear images database migrate up
    go run ./cmd/portal database migrate up
+
+   # Run search database migration if you want to use postgresql search implementation
+   go run ./cmd/authgear search database migrate up
    ```
 
 ## Run

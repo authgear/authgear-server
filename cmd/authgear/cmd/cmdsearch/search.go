@@ -23,8 +23,8 @@ func init() {
 	cmdSearchDatabaseMigrate.AddCommand(cmdSearchDatabaseMigrateStatus)
 
 	for _, cmd := range []*cobra.Command{cmdSearchDatabaseMigrateUp, cmdSearchDatabaseMigrateDown, cmdSearchDatabaseMigrateStatus} {
-		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseURL)
-		binder.BindString(cmd.Flags(), authgearcmd.ArgDatabaseSchema)
+		binder.BindString(cmd.Flags(), authgearcmd.ArgSearchDatabaseURL)
+		binder.BindString(cmd.Flags(), authgearcmd.ArgSearchDatabaseSchema)
 	}
 
 	cmdSearch.AddCommand(cmdSearchReindex)
@@ -72,11 +72,11 @@ var cmdSearchDatabaseMigrateUp = &cobra.Command{
 	Short: "Migrate database schema to latest version",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		binder := authgearcmd.GetBinder()
-		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgSearchDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgSearchDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -98,11 +98,11 @@ var cmdSearchDatabaseMigrateDown = &cobra.Command{
 	Hidden: true,
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		binder := authgearcmd.GetBinder()
-		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgSearchDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgSearchDatabaseSchema)
 		if err != nil {
 			return
 		}
@@ -143,11 +143,11 @@ var cmdSearchDatabaseMigrateStatus = &cobra.Command{
 	Short: "Get database schema migration status",
 	RunE: func(cmd *cobra.Command, args []string) (err error) {
 		binder := authgearcmd.GetBinder()
-		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseURL)
+		dbURL, err := binder.GetRequiredString(cmd, authgearcmd.ArgSearchDatabaseURL)
 		if err != nil {
 			return
 		}
-		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgDatabaseSchema)
+		dbSchema, err := binder.GetRequiredString(cmd, authgearcmd.ArgSearchDatabaseSchema)
 		if err != nil {
 			return
 		}
