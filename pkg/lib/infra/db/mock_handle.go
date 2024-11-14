@@ -6,7 +6,9 @@ import (
 
 type MockHandle struct{}
 
-func (h *MockHandle) conn() (*txConn, error) {
+var _ Handle = (*MockHandle)(nil)
+
+func (h *MockHandle) txConn(ctx context.Context) *txConn {
 	panic("not mocked")
 }
 

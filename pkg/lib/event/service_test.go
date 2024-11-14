@@ -60,7 +60,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 			ctx := context.Background()
 
 			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
-			database.EXPECT().UseHook(service).Times(1)
+			database.EXPECT().UseHook(gomock.Any(), service).Times(1)
 			sink.EXPECT().ReceiveBlockingEvent(ctx, gomock.Any()).Times(2).Return(nil)
 
 			err := service.DispatchEventOnCommit(ctx, payload)
@@ -82,7 +82,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 			ctx := context.Background()
 
 			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
-			database.EXPECT().UseHook(service).AnyTimes()
+			database.EXPECT().UseHook(gomock.Any(), service).AnyTimes()
 			sink.EXPECT().ReceiveBlockingEvent(ctx, &event.Event{
 				ID:      "0000000000000000",
 				Type:    MockBlockingEventType1,
@@ -122,7 +122,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 			)
 
 			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
-			database.EXPECT().UseHook(service).AnyTimes()
+			database.EXPECT().UseHook(gomock.Any(), service).AnyTimes()
 			sink.EXPECT().ReceiveBlockingEvent(
 				ctx,
 				&event.Event{
@@ -156,7 +156,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 			ctx := context.Background()
 
 			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
-			database.EXPECT().UseHook(service).AnyTimes()
+			database.EXPECT().UseHook(gomock.Any(), service).AnyTimes()
 			sink.EXPECT().ReceiveBlockingEvent(ctx, gomock.Any()).Return(fmt.Errorf("e"))
 
 			err := service.DispatchEventOnCommit(ctx, payload)
@@ -175,7 +175,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 			ctx := context.Background()
 
 			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
-			database.EXPECT().UseHook(service).AnyTimes()
+			database.EXPECT().UseHook(gomock.Any(), service).AnyTimes()
 			err := service.DispatchEventOnCommit(ctx, payload)
 			So(err, ShouldBeNil)
 			So(service.NonBlockingPayloads, ShouldResemble, []event.NonBlockingPayload{
@@ -233,7 +233,7 @@ func TestServiceDispatchEvent(t *testing.T) {
 			ctx := context.Background()
 
 			store.EXPECT().NextSequenceNumber(ctx).AnyTimes().Return(seq0, nil)
-			database.EXPECT().UseHook(service).AnyTimes()
+			database.EXPECT().UseHook(gomock.Any(), service).AnyTimes()
 			sink.EXPECT().ReceiveBlockingEvent(ctx, &event.Event{
 				ID:      "0000000000000000",
 				Type:    MockBlockingEventType1,

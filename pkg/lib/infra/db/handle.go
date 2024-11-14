@@ -14,6 +14,6 @@ type Handle interface {
 	// The transaction is always rolled back.
 	ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error)
 
-	// conn allows internal access to the ongoing transaction.
-	conn() (*txConn, error)
+	// txConn allows internal access to the ongoing transaction.
+	txConn(ctx context.Context) *txConn
 }
