@@ -971,11 +971,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	messageSender := &otp.MessageSender{
-		AppID:           appID,
-		Translation:     translationService,
-		Endpoints:       endpointsEndpoints,
-		Sender:          messagingSender,
-		WhatsappService: whatsappService,
+		AppID:       appID,
+		Translation: translationService,
+		Endpoints:   endpointsEndpoints,
+		Sender:      messagingSender,
 	}
 	oAuthSSOProviderCredentials := deps.ProvideOAuthSSOProviderCredentials(secretConfig)
 	oAuthHTTPClient := sso.ProvideOAuthHTTPClient(environmentConfig)
