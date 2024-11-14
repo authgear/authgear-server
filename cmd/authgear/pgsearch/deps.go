@@ -36,10 +36,16 @@ func NewEmptyConfig(
 	appID CmdAppID,
 ) *config.Config {
 	dbCred := config.DatabaseCredentials(*databaseCredentials)
+	featureConfig := &config.FeatureConfig{}
+	config.PopulateFeatureConfigDefaultValues(featureConfig)
+
+	appConfig := &config.AppConfig{
+		ID: config.AppID(appID),
+	}
+	config.PopulateDefaultValues(appConfig)
+
 	return &config.Config{
-		AppConfig: &config.AppConfig{
-			ID: config.AppID(appID),
-		},
+		AppConfig: appConfig,
 		SecretConfig: &config.SecretConfig{
 			Secrets: []config.SecretItem{
 				{
@@ -48,6 +54,7 @@ func NewEmptyConfig(
 				},
 			},
 		},
+		FeatureConfig: featureConfig,
 	}
 }
 
