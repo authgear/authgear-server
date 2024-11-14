@@ -229,6 +229,7 @@ func (s *Store) searchQuery(searchKeyword string) db.SelectBuilder {
 	searchKeywordArr := pq.Array([]string{searchKeyword})
 
 	ors := sq.Or{
+		sq.Expr("su.id = ?", searchKeyword),
 		sq.Expr("su.emails @> ?", searchKeywordArr),
 		sq.Expr("su.email_local_parts @> ?", searchKeywordArr),
 		sq.Expr("su.email_domains @> ?", searchKeywordArr),
