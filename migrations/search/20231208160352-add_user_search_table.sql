@@ -46,6 +46,8 @@ CREATE INDEX _search_user_gin ON _search_user USING GIN (
   locale,
   postal_code,
   country,
+  role_keys,
+  group_keys,
   details_tsvector);
 
 -- +migrate Down
