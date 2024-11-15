@@ -62,7 +62,7 @@ var cmdSearchReindex = &cobra.Command{
 		loggerFactory := authgearlog.NewFactory(authgearlog.LevelInfo)
 
 		reindexApp := func(appID string) error {
-			ctx := context.Background()
+			ctx := cmd.Context()
 			log.Printf("App (%s): reindexing\n", appID)
 			searchdbHandle := searchdb.NewHandle(
 				dbPool,
