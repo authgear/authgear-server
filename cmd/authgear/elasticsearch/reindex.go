@@ -132,6 +132,7 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 	var first uint64 = 50
 	var after model.PageCursor = ""
 	var items []reindex.ReindexItem
+	var count = 0
 	startAt := q.Clock.NowUTC()
 
 	for {
@@ -164,6 +165,9 @@ func (q *Reindexer) reindex(ctx context.Context, bulkIndexer esutil.BulkIndexer)
 			if err != nil {
 				return
 			}
+
+			count += 1
+			log.Printf("App (%v): processing user %v;\n", q.AppID, count)
 
 			err = bulkIndexer.Add(
 				ctx,

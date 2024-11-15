@@ -45,6 +45,7 @@ func (q *Reindexer) reindex(ctx context.Context, store *pgsearch.Store) (allUser
 	var first uint64 = 500
 	var after model.PageCursor = ""
 	var items []reindex.ReindexItem
+	var count = 0
 
 	for {
 		err = q.Handle.WithTx(ctx, func(ctx context.Context) (err error) {
@@ -70,9 +71,12 @@ func (q *Reindexer) reindex(ctx context.Context, store *pgsearch.Store) (allUser
 
 		// Process the items
 		for _, item := range items {
+			count += 1
 			source := item.Value
 			sources = append(sources, source)
 			allUserIDs[source.ID] = struct{}{}
+
+			log.Printf("App (%v): processing user %v;\n", q.AppID, count)
 		}
 
 		err := store.UpsertUsers(ctx, sources)
