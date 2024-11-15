@@ -20,12 +20,13 @@ type Service struct {
 func (s *Service) QueryUser(
 	ctx context.Context,
 	searchKeyword string,
+	filters user.FilterOptions,
 	sortOption user.SortOption,
 	pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error) {
 	var refs []apimodel.PageItemRef
 	err := s.withReadOnlyTx(ctx, func(ctx context.Context) error {
 		var err error
-		refs, err = s.Store.QueryUser(ctx, searchKeyword, sortOption, pageArgs)
+		refs, err = s.Store.QueryUser(ctx, searchKeyword, filters, sortOption, pageArgs)
 		return err
 	})
 	if err != nil {

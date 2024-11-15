@@ -39,10 +39,11 @@ type Store struct {
 func (s *Store) QueryUser(
 	ctx context.Context,
 	searchKeyword string,
+	filters user.FilterOptions,
 	sortOption user.SortOption,
 	pageArgs graphqlutil.PageArgs) ([]apimodel.PageItemRef, error) {
 	var refs []apimodel.PageItemRef
-	q := s.searchQuery(searchKeyword)
+	q := s.searchQuery(searchKeyword, filters)
 	q = sortOption.Apply(q, string(pageArgs.After))
 
 	if pageArgs.First != nil {
@@ -232,34 +233,56 @@ func (s *Store) UpsertUsers(ctx context.Context, users []*model.SearchUserSource
 	return nil
 }
 
-func (s *Store) searchQuery(searchKeyword string) db.SelectBuilder {
+func (s *Store) searchQuery(searchKeyword string, filters user.FilterOptions) db.SelectBuilder {
 	appID := string(s.AppID)
 	unisegSearchKeyword := StringUnicodeSegmentation(searchKeyword)
 	searchKeywordArr := pq.Array([]string{searchKeyword})
 
-	ors := sq.Or{
-		sq.Expr("su.id = ?", searchKeyword),
-		sq.Expr("su.emails @> ?", searchKeywordArr),
-		sq.Expr("su.email_local_parts @> ?", searchKeywordArr),
-		sq.Expr("su.email_domains @> ?", searchKeywordArr),
-		sq.Expr("su.preferred_usernames @> ?", searchKeywordArr),
-		sq.Expr("su.phone_numbers @> ?", searchKeywordArr),
-		sq.Expr("su.phone_number_country_codes @> ?", searchKeywordArr),
-		sq.Expr("su.phone_number_national_numbers @> ?", searchKeywordArr),
-		sq.Expr("su.oauth_subject_ids @> ?", searchKeywordArr),
-		sq.Expr("su.gender @> ?", searchKeywordArr),
-		sq.Expr("su.zoneinfo @> ?", searchKeywordArr),
-		sq.Expr("su.locale @> ?", searchKeywordArr),
-		sq.Expr("su.postal_code @> ?", searchKeywordArr),
-		sq.Expr("su.country @> ?", searchKeywordArr),
-		sq.Expr("su.details_tsvector @@ websearch_to_tsquery(?)", unisegSearchKeyword),
+	ands := sq.And{
+		sq.Expr("su.app_ids @> ?", pq.Array([]string{appID})),
+	}
+
+	searchKeywordOrs := sq.Or{}
+	if searchKeyword != "" {
+		searchKeywordOrs = append(searchKeywordOrs,
+			sq.Expr("su.id = ?", searchKeyword),
+			sq.Expr("su.emails @> ?", searchKeywordArr),
+			sq.Expr("su.email_local_parts @> ?", searchKeywordArr),
+			sq.Expr("su.email_domains @> ?", searchKeywordArr),
+			sq.Expr("su.preferred_usernames @> ?", searchKeywordArr),
+			sq.Expr("su.phone_numbers @> ?", searchKeywordArr),
+			sq.Expr("su.phone_number_country_codes @> ?", searchKeywordArr),
+			sq.Expr("su.phone_number_national_numbers @> ?", searchKeywordArr),
+			sq.Expr("su.oauth_subject_ids @> ?", searchKeywordArr),
+			sq.Expr("su.gender @> ?", searchKeywordArr),
+			sq.Expr("su.zoneinfo @> ?", searchKeywordArr),
+			sq.Expr("su.locale @> ?", searchKeywordArr),
+			sq.Expr("su.postal_code @> ?", searchKeywordArr),
+			sq.Expr("su.country @> ?", searchKeywordArr),
+			sq.Expr("su.details_tsvector @@ websearch_to_tsquery(?)", unisegSearchKeyword),
+		)
 	}
 
 	if len(searchKeyword) >= 3 {
 		// Only add prefix search if >= 3 characters were inputted to avoid matching too many rows
 		prefixSearchQuery := fmt.Sprintf("'%s':*", strings.ReplaceAll(searchKeyword, "'", "''"))
-		ors = append(ors,
+		searchKeywordOrs = append(searchKeywordOrs,
 			sq.Expr("su.details_tsvector @@ to_tsquery(?)", prefixSearchQuery))
+	}
+
+	if len(searchKeywordOrs) > 0 {
+		ands = append(ands, searchKeywordOrs)
+	}
+
+	if filters.IsFilterEnabled() {
+		if len(filters.GroupKeys) > 0 {
+			ands = append(ands,
+				sq.Expr("su.group_keys @> ?", pq.Array(filters.GroupKeys)))
+		}
+		if len(filters.RoleKeys) > 0 {
+			ands = append(ands,
+				sq.Expr("su.role_keys @> ?", pq.Array(filters.RoleKeys)))
+		}
 	}
 
 	q := s.SQLBuilder.WithAppID(appID).
@@ -269,9 +292,6 @@ func (s *Store) searchQuery(searchKeyword string) db.SelectBuilder {
 			"su.last_login_at",
 		).
 		From(s.SQLBuilder.TableName("_search_user"), "su").
-		Where(sq.And{
-			sq.Expr("su.app_ids @> ?", pq.Array([]string{appID})),
-			ors,
-		})
+		Where(ands)
 	return q
 }

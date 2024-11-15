@@ -32,8 +32,7 @@ func (s *Service) QueryUser(
 		}
 		return result, StatsFromElasticsearch(stats), nil
 	case config.SearchImplementationPostgresql:
-		// TODO(tung): Support filter options
-		result, err := s.PGSearchService.QueryUser(ctx, searchKeyword, sortOption, pageArgs)
+		result, err := s.PGSearchService.QueryUser(ctx, searchKeyword, filterOptions, sortOption, pageArgs)
 		if err != nil {
 			return nil, nil, err
 		}
