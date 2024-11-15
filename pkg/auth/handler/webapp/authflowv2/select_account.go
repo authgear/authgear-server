@@ -119,15 +119,6 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	oauthProviderAlias := ""
 	var loginHint *oauth.LoginHint
 
-	// When x_suppress_idp_session_cookie is true, ignore IDP session cookie.
-	if suppressIDPSessionCookie {
-		session = nil
-	}
-	// Ignore any session that is not allow to be used here
-	if !oauth.ContainsAllScopes(oauth.SessionScopes(session), []string{oauth.PreAuthenticatedURLScope}) {
-		session = nil
-	}
-
 	var webSession *webapp.Session
 	ctrl.BeforeHandle(func(ctx context.Context) error {
 
@@ -145,6 +136,15 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		canUseIntentReauthenticate = webSession.CanUseIntentReauthenticate
 		suppressIDPSessionCookie = webSession.SuppressIDPSessionCookie
 		oauthProviderAlias = webSession.OAuthProviderAlias
+
+		// When x_suppress_idp_session_cookie is true, ignore IDP session cookie.
+		if suppressIDPSessionCookie {
+			session = nil
+		}
+		// Ignore any session that is not allow to be used here
+		if !oauth.ContainsAllScopes(oauth.SessionScopes(session), []string{oauth.PreAuthenticatedURLScope}) {
+			session = nil
+		}
 
 		// Ignore any session that does not match login_hint
 		if webSession.LoginHint != "" {
