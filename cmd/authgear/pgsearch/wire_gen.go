@@ -46,6 +46,7 @@ import (
 // Injectors from wire.go:
 
 func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID CmdAppID) *Reindexer {
+	clock := _wireSystemClockValue
 	environmentConfig := NewEnvConfig(databaseCredentials)
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
 	config := NewEmptyConfig(pool, databaseCredentials, appID)
@@ -57,7 +58,6 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(configDatabaseCredentials, configAppID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
-	clock := _wireSystemClockValue
 	store := &user.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -429,8 +429,10 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		RolesGroups:     rolesgroupsStore,
 	}
 	reindexer := &Reindexer{
+		Clock:          clock,
 		Handle:         handle,
 		AppID:          configAppID,
+		UserStore:      store,
 		SourceProvider: sourceProvider,
 	}
 	return reindexer
