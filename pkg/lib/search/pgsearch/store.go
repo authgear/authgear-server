@@ -128,6 +128,8 @@ func (s *Store) UpsertUsers(ctx context.Context, users []*model.SearchUserSource
 			"locale",
 			"postal_code",
 			"country",
+			"role_keys",
+			"group_keys",
 			"details",
 		)
 
@@ -166,6 +168,8 @@ func (s *Store) UpsertUsers(ctx context.Context, users []*model.SearchUserSource
 			"street_address":                    user.StreetAddress,
 			"locality":                          user.Locality,
 			"region":                            user.Region,
+			"group_names":                       strings.Join(user.GroupName, " "),
+			"role_names":                        strings.Join(user.RoleName, " "),
 		}
 
 		defailsBytes, err := json.Marshal(details)
@@ -194,6 +198,8 @@ func (s *Store) UpsertUsers(ctx context.Context, users []*model.SearchUserSource
 				pq.Array(toSingleElementArray(user.Locale)),
 				pq.Array(toSingleElementArray(user.PostalCode)),
 				pq.Array(toSingleElementArray(user.Country)),
+				pq.Array(nonNilArray(user.RoleKey)),
+				pq.Array(nonNilArray(user.GroupKey)),
 				defailsBytes,
 			)
 	}
@@ -215,6 +221,8 @@ func (s *Store) UpsertUsers(ctx context.Context, users []*model.SearchUserSource
 		locale = EXCLUDED.locale,
 		postal_code = EXCLUDED.postal_code,
 		country = EXCLUDED.country,
+		role_keys = EXCLUDED.role_keys,
+		group_keys = EXCLUDED.group_keys,
 		details = EXCLUDED.details
 	`)
 	_, err := s.SQLExecutor.ExecWith(ctx, q)

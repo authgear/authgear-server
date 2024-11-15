@@ -22,6 +22,8 @@ CREATE TABLE _search_user
     locale                        text[]                      NOT NULL DEFAULT '{}',
     postal_code                   text[]                      NOT NULL DEFAULT '{}',
     country                       text[]                      NOT NULL DEFAULT '{}',
+    role_keys                     text[]                      NOT NULL DEFAULT '{}',
+    group_keys                    text[]                      NOT NULL DEFAULT '{}',
     details                       jsonb                       NOT NULL DEFAULT '{}'::jsonb,
     details_tsvector              tsvector
       GENERATED ALWAYS AS (jsonb_to_tsvector('simple', details, '["string", "numeric"]')) STORED
