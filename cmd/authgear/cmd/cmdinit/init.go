@@ -33,13 +33,14 @@ var cmdInit = &cobra.Command{
 		}
 		phoneOTPMode := config.ReadPhoneOTPMode()
 		skipEmailVerification := config.ReadSkipEmailVerification()
+		searchImpl := config.ReadSearchImplementation()
 		var appSecretsOpts *libconfig.GenerateSecretConfigOptions
 		if forHelmChart, err := cmd.Flags().GetBool("for-helm-chart"); err == nil && forHelmChart {
 			// Skip all the db, redis, elasticsearch credentials
 			// Those are provided via the helm chart
 			appSecretsOpts = &libconfig.GenerateSecretConfigOptions{}
 		} else {
-			appSecretsOpts = config.ReadSecretConfigOptionsFromConsole()
+			appSecretsOpts = config.ReadSecretConfigOptionsFromConsole(searchImpl)
 		}
 
 		// generate app config
@@ -76,6 +77,11 @@ var cmdInit = &cobra.Command{
 					Required: &emailVerificationEnabled,
 				},
 			},
+		}
+
+		// Set search implementation
+		appConfig.Search = &libconfig.SearchConfig{
+			Implementation: searchImpl,
 		}
 
 		// generate secret config

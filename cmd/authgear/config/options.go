@@ -83,7 +83,23 @@ func ReadSkipEmailVerification() bool {
 	}.Prompt()
 }
 
-func ReadSecretConfigOptionsFromConsole() *config.GenerateSecretConfigOptions {
+func ReadSearchImplementation() config.SearchImplementation {
+	return config.SearchImplementation(promptString{
+		Title:        "Select a service for searching (elasticsearch, postgresql)",
+		DefaultValue: string(config.SearchImplementationElasticsearch),
+		Validate: func(value string) error {
+			validChoices := []string{string(config.SearchImplementationElasticsearch), string(config.SearchImplementationPostgresql)}
+			for _, choice := range validChoices {
+				if value == choice {
+					return nil
+				}
+			}
+			return errors.New("must enter 'elasticsearch', or 'postgresql'")
+		},
+	}.Prompt())
+}
+
+func ReadSecretConfigOptionsFromConsole(searchImpl config.SearchImplementation) *config.GenerateSecretConfigOptions {
 	opts := &config.GenerateSecretConfigOptions{}
 
 	opts.DatabaseURL = promptURL{
@@ -106,10 +122,24 @@ func ReadSecretConfigOptionsFromConsole() *config.GenerateSecretConfigOptions {
 		DefaultValue: "public",
 	}.Prompt()
 
-	opts.ElasticsearchURL = promptString{
-		Title:        "Elasticsearch URL",
-		DefaultValue: "http://localhost:9200",
-	}.Prompt()
+	switch searchImpl {
+	case config.SearchImplementationPostgresql:
+		opts.SearchDatabaseURL = promptString{
+			Title:        "Search Database URL",
+			DefaultValue: "postgres://postgres:postgres@127.0.0.1:5432/postgres?sslmode=disable",
+		}.Prompt()
+		opts.SearchDatabaseSchema = promptString{
+			Title:        "Search Database schema",
+			DefaultValue: "public",
+		}.Prompt()
+	case config.SearchImplementationElasticsearch:
+		fallthrough
+	default:
+		opts.ElasticsearchURL = promptString{
+			Title:        "Elasticsearch URL",
+			DefaultValue: "http://localhost:9200",
+		}.Prompt()
+	}
 
 	opts.RedisURL = promptURL{
 		Title:        "Redis URL",
