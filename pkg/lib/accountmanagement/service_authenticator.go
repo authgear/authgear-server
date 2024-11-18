@@ -2,10 +2,8 @@ package accountmanagement
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/api"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
@@ -485,32 +483,32 @@ func (s *Service) changePassword(ctx context.Context, resolvedSession session.Re
 			return nil, err
 		}
 
-		switch input.Kind {
-		case authenticator.KindPrimary:
-			err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.PasswordPrimaryChangedEventPayload{
-				UserRef: model.UserRef{
-					Meta: model.Meta{
-						ID: userID,
-					},
-				},
-			})
-			if err != nil {
-				return nil, err
-			}
-		case authenticator.KindSecondary:
-			err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.PasswordSecondaryChangedEventPayload{
-				UserRef: model.UserRef{
-					Meta: model.Meta{
-						ID: userID,
-					},
-				},
-			})
-			if err != nil {
-				return nil, err
-			}
-		default:
-			panic(fmt.Errorf("unexpected authenticator kind: %v", input.Kind))
-		}
+		// switch input.Kind {
+		// case authenticator.KindPrimary:
+		// 	err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.PasswordPrimaryChangedEventPayload{
+		// 		UserRef: model.UserRef{
+		// 			Meta: model.Meta{
+		// 				ID: userID,
+		// 			},
+		// 		},
+		// 	})
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// case authenticator.KindSecondary:
+		// 	err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.PasswordSecondaryChangedEventPayload{
+		// 		UserRef: model.UserRef{
+		// 			Meta: model.Meta{
+		// 				ID: userID,
+		// 			},
+		// 		},
+		// 	})
+		// 	if err != nil {
+		// 		return nil, err
+		// 	}
+		// default:
+		// 	panic(fmt.Errorf("unexpected authenticator kind: %v", input.Kind))
+		// }
 	}
 	return &changePasswordOutput{}, nil
 }

@@ -10,7 +10,6 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
-	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator"
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticator/service"
@@ -500,16 +499,16 @@ func (s *Service) resetPassword(ctx context.Context, target string, otpState *ot
 		return err
 	}
 
-	err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.PasswordPrimaryResetEventPayload{
-		UserRef: model.UserRef{
-			Meta: model.Meta{
-				ID: otpState.UserID,
-			},
-		},
-	})
-	if err != nil {
-		return err
-	}
+	// err = s.Events.DispatchEventOnCommit(ctx, &nonblocking.PasswordPrimaryResetEventPayload{
+	// 	UserRef: model.UserRef{
+	// 		Meta: model.Meta{
+	// 			ID: otpState.UserID,
+	// 		},
+	// 	},
+	// })
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
