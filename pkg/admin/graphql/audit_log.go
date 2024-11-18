@@ -140,21 +140,21 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"IDENTITY_BIOMETRIC_DISABLED": &graphql.EnumValueConfig{
 			Value: "identity.biometric.disabled",
 		},
-		"PASSWORD_PRIMARY_RESET": &graphql.EnumValueConfig{
-			Value: "password.primary.reset",
-		},
-		"PASSWORD_PRIMARY_CHANGED": &graphql.EnumValueConfig{
-			Value: "password.primary.changed",
-		},
-		"PASSWORD_SECONDARY_CHANGED": &graphql.EnumValueConfig{
-			Value: "password.secondary.changed",
-		},
-		"PASSWORD_PRIMARY_FORCE_CHANGED": &graphql.EnumValueConfig{
-			Value: "password.primary.force_changed",
-		},
-		"PASSWORD_SECONDARY_FORCE_CHANGED": &graphql.EnumValueConfig{
-			Value: "password.secondary.force_changed",
-		},
+		// "PASSWORD_PRIMARY_RESET": &graphql.EnumValueConfig{
+		// 	Value: "password.primary.reset",
+		// },
+		// "PASSWORD_PRIMARY_CHANGED": &graphql.EnumValueConfig{
+		// 	Value: "password.primary.changed",
+		// },
+		// "PASSWORD_SECONDARY_CHANGED": &graphql.EnumValueConfig{
+		// 	Value: "password.secondary.changed",
+		// },
+		// "PASSWORD_PRIMARY_FORCE_CHANGED": &graphql.EnumValueConfig{
+		// 	Value: "password.primary.force_changed",
+		// },
+		// "PASSWORD_SECONDARY_FORCE_CHANGED": &graphql.EnumValueConfig{
+		// 	Value: "password.secondary.force_changed",
+		// },
 		"EMAIL_SENT": &graphql.EnumValueConfig{
 			Value: "email.sent",
 		},
