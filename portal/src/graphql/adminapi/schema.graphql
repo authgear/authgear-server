@@ -292,6 +292,9 @@ enum AuditLogActivityType {
   EMAIL_SENT
 
   """"""
+  EMAIL_SUPPRESSED
+
+  """"""
   IDENTITY_BIOMETRIC_DISABLED
 
   """"""
@@ -385,6 +388,9 @@ enum AuditLogActivityType {
   SMS_SENT
 
   """"""
+  SMS_SUPPRESSED
+
+  """"""
   USER_ANONYMIZATION_SCHEDULED
 
   """"""
@@ -431,6 +437,9 @@ enum AuditLogActivityType {
 
   """"""
   WHATSAPP_SENT
+
+  """"""
+  WHATSAPP_SUPPRESSED
 }
 
 """A connection to a list of items."""

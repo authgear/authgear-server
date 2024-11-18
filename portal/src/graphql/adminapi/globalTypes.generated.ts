@@ -179,6 +179,7 @@ export enum AuditLogActivityType {
   AuthenticationSecondaryTotpFailed = 'AUTHENTICATION_SECONDARY_TOTP_FAILED',
   BotProtectionVerificationFailed = 'BOT_PROTECTION_VERIFICATION_FAILED',
   EmailSent = 'EMAIL_SENT',
+  EmailSuppressed = 'EMAIL_SUPPRESSED',
   IdentityBiometricDisabled = 'IDENTITY_BIOMETRIC_DISABLED',
   IdentityBiometricEnabled = 'IDENTITY_BIOMETRIC_ENABLED',
   IdentityEmailAdded = 'IDENTITY_EMAIL_ADDED',
@@ -210,6 +211,7 @@ export enum AuditLogActivityType {
   ProjectDomainDeleted = 'PROJECT_DOMAIN_DELETED',
   ProjectDomainVerified = 'PROJECT_DOMAIN_VERIFIED',
   SmsSent = 'SMS_SENT',
+  SmsSuppressed = 'SMS_SUPPRESSED',
   UserAnonymizationScheduled = 'USER_ANONYMIZATION_SCHEDULED',
   UserAnonymizationUnscheduled = 'USER_ANONYMIZATION_UNSCHEDULED',
   UserAnonymized = 'USER_ANONYMIZED',
@@ -225,7 +227,8 @@ export enum AuditLogActivityType {
   UserSessionTerminated = 'USER_SESSION_TERMINATED',
   UserSignedOut = 'USER_SIGNED_OUT',
   WhatsappOtpVerified = 'WHATSAPP_OTP_VERIFIED',
-  WhatsappSent = 'WHATSAPP_SENT'
+  WhatsappSent = 'WHATSAPP_SENT',
+  WhatsappSuppressed = 'WHATSAPP_SUPPRESSED'
 }
 
 /** A connection to a list of items. */
