@@ -2,10 +2,13 @@ package messaging
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
 	"github.com/authgear/authgear-server/pkg/api/event/nonblocking"
 	"github.com/authgear/authgear-server/pkg/lib/config"
@@ -92,6 +95,14 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			s.Logger.WithError(err).WithFields(logrus.Fields{
 				"email": mail.MaskAddress(opts.Recipient),
 			}).Error("failed to send email")
+			err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+				return s.Events.DispatchEventImmediately(ctx, &nonblocking.EmailErrorEventPayload{
+					Description: s.errorToDescription(err),
+				})
+			})
+			if err != nil {
+				s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.EmailError)
+			}
 			return
 		}
 
@@ -103,7 +114,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			})
 		})
 		if err != nil {
-			s.Logger.Error("failed to emit email.sent event")
+			s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.EmailSent)
 		}
 	}()
 
@@ -171,6 +182,14 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 			s.Logger.WithError(err).WithFields(logrus.Fields{
 				"phone": phone.Mask(opts.To),
 			}).Error("failed to send SMS")
+			err = s.Database.WithTx(ctx, func(ctx context.Context) error {
+				return s.Events.DispatchEventImmediately(ctx, &nonblocking.SMSErrorEventPayload{
+					Description: s.errorToDescription(err),
+				})
+			})
+			if err != nil {
+				s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSError)
+			}
 			return
 		}
 
@@ -183,7 +202,7 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 			})
 		})
 		if err != nil {
-			s.Logger.Error("failed to emit sms.sent event")
+			s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.SMSSent)
 		}
 	}()
 
@@ -249,6 +268,18 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	// Send immediately.
 	err = s.WhatsappSender.SendAuthenticationOTP(ctx, opts)
 	if err != nil {
+		s.Logger.WithError(err).WithFields(logrus.Fields{
+			"phone": phone.Mask(opts.To),
+		}).Error("failed to send Whatsapp")
+
+		logErr := s.Events.DispatchEventImmediately(ctx, &nonblocking.WhatsappErrorEventPayload{
+			Description: s.errorToDescription(err),
+		})
+		if logErr != nil {
+			s.Logger.WithError(logErr).Errorf("failed to emit %v event", nonblocking.WhatsappError)
+			err = errors.Join(err, logErr)
+		}
+
 		return err
 	}
 
@@ -258,6 +289,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 		IsNotCountedInUsage: s.MessagingFeatureConfig.WhatsappUsageCountDisabled,
 	})
 	if err != nil {
+		s.Logger.WithError(err).Errorf("failed to emit %v event", nonblocking.WhatsappSent)
 		return err
 	}
 
@@ -287,4 +319,19 @@ func (s *Sender) devModeSendWhatsapp(ctx context.Context, msgType translation.Me
 	return s.Events.DispatchEventImmediately(ctx, &nonblocking.WhatsappSuppressedEventPayload{
 		Description: desc,
 	})
+}
+
+func (s *Sender) errorToDescription(err error) string {
+	// APIError.Error() shows message only, but we want to show the full content of it.
+	// Modifying APIError.Error is another big change that I do not want to deal with here.
+	if apierrors.IsAPIError(err) {
+		apiError := apierrors.AsAPIError(err)
+		b, err := json.Marshal(apiError)
+		if err != nil {
+			panic(err)
+		}
+		return string(b)
+	}
+
+	return err.Error()
 }

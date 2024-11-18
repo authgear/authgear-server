@@ -289,6 +289,9 @@ enum AuditLogActivityType {
   BOT_PROTECTION_VERIFICATION_FAILED
 
   """"""
+  EMAIL_ERROR
+
+  """"""
   EMAIL_SENT
 
   """"""
@@ -385,6 +388,9 @@ enum AuditLogActivityType {
   PROJECT_DOMAIN_VERIFIED
 
   """"""
+  SMS_ERROR
+
+  """"""
   SMS_SENT
 
   """"""
@@ -431,6 +437,9 @@ enum AuditLogActivityType {
 
   """"""
   USER_SIGNED_OUT
+
+  """"""
+  WHATSAPP_ERROR
 
   """"""
   WHATSAPP_OTP_VERIFIED
