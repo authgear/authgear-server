@@ -9,6 +9,15 @@ type SendAuthenticationOTPOptions struct {
 	OTP string
 }
 
+type ResolvedSendAuthenticationOTPOptions struct {
+	To                 string
+	OTP                string
+	TemplateName       string
+	TemplateLanguage   string
+	TemplateNamespace  string
+	TemplateComponents []TemplateComponent
+}
+
 type SendTemplateRequest struct {
 	RecipientType string    `json:"recipient_type"`
 	To            string    `json:"to"`
