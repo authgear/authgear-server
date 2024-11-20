@@ -58,7 +58,7 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 	}
 	logger.Debug("acquire connection")
 
-	tx, err := h.beginTx(logger, conn)
+	tx, err := h.beginTx(logger, db, conn)
 	if err != nil {
 		return
 	}
@@ -132,7 +132,7 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	}
 	logger.Debug("acquire connection")
 
-	tx, err := h.beginTx(logger, conn)
+	tx, err := h.beginTx(logger, db, conn)
 	if err != nil {
 		return
 	}
@@ -189,7 +189,7 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 	return
 }
 
-func (h *HookHandle) beginTx(logger *log.Logger, conn *sql.Conn) (*txConn, error) {
+func (h *HookHandle) beginTx(logger *log.Logger, db *PoolDB, conn *sql.Conn) (*txConn, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
 	tx, err := conn.BeginTx(h.Context, txOptions)
@@ -200,6 +200,7 @@ func (h *HookHandle) beginTx(logger *log.Logger, conn *sql.Conn) (*txConn, error
 	logger.Debug("begin")
 
 	return &txConn{
+		db:        db,
 		conn:      conn,
 		tx:        tx,
 		logger:    logger,

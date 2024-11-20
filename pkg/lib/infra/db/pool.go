@@ -47,7 +47,7 @@ func (d *PoolDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, err
 	return d.db.BeginTx(ctx, opts)
 }
 
-func (d *PoolDB) Prepare(ctx context.Context, query string) (stmt *sql.Stmt, err error) {
+func (d *PoolDB) PrepareContext(ctx context.Context, conn *sql.Conn, query string) (stmt *sql.Stmt, err error) {
 	d.closeMutex.RLock()
 	defer d.closeMutex.RUnlock()
 
@@ -63,7 +63,7 @@ func (d *PoolDB) Prepare(ctx context.Context, query string) (stmt *sql.Stmt, err
 		d.stmtLock.Lock()
 		stmt, exists = d.stmts[query]
 		if !exists {
-			stmt, err = d.db.PrepareContext(ctx, query)
+			stmt, err = conn.PrepareContext(ctx, query)
 			if err == nil {
 				d.stmts[query] = stmt
 			}
