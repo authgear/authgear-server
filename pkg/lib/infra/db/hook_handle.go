@@ -109,28 +109,26 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		ConnLike: tx,
 	})
 
+	shouldRunDidCommitHooks := false
+
 	defer func() {
-		shouldRunDidCommitHooks := false
-
-		// This defer block is run second.
-		defer func() {
-			if shouldRunDidCommitHooks {
-				for _, hook := range h.getValue(ctx).Hooks {
-					hook.DidCommitTx(ctx)
-				}
+		if shouldRunDidCommitHooks {
+			for _, hook := range h.getValue(ctx).Hooks {
+				hook.DidCommitTx(ctx)
 			}
-		}()
+		}
+	}()
 
-		// This defer block is run first.
-		defer func() {
-			closeErr := conn.Close()
-			if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
-				logger.WithError(closeErr).Error("failed to close connection")
-			} else {
-				logger.Debug("close connection")
-			}
-		}()
+	defer func() {
+		closeErr := conn.Close()
+		if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
+			logger.WithError(closeErr).Error("failed to close connection")
+		} else {
+			logger.Debug("close connection")
+		}
+	}()
 
+	defer func() {
 		if r := recover(); r != nil {
 			_ = rollbackTx(logger, tx)
 			panic(r)
@@ -173,27 +171,26 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 		ConnLike: tx,
 	})
 
+	shouldRunDidCommitHooks := false
+
 	defer func() {
-		shouldRunDidCommitHooks := false
-
-		defer func() {
-			if shouldRunDidCommitHooks {
-				for _, hook := range h.getValue(ctx).Hooks {
-					hook.DidCommitTx(ctx)
-				}
+		if shouldRunDidCommitHooks {
+			for _, hook := range h.getValue(ctx).Hooks {
+				hook.DidCommitTx(ctx)
 			}
-		}()
+		}
+	}()
 
-		// This defer block is run first.
-		defer func() {
-			closeErr := conn.Close()
-			if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
-				logger.WithError(closeErr).Error("failed to close connection")
-			} else {
-				logger.Debug("close connection")
-			}
-		}()
+	defer func() {
+		closeErr := conn.Close()
+		if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
+			logger.WithError(closeErr).Error("failed to close connection")
+		} else {
+			logger.Debug("close connection")
+		}
+	}()
 
+	defer func() {
 		if r := recover(); r != nil {
 			_ = rollbackTx(logger, tx)
 			panic(r)
