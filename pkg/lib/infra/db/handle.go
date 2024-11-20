@@ -2,7 +2,14 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
+
+type ConnLike interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+}
 
 // Handle allows a function to be run within a transaction.
 type Handle interface {
@@ -14,6 +21,6 @@ type Handle interface {
 	// The transaction is always rolled back.
 	ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error)
 
-	// txConn allows internal access to the ongoing transaction.
-	txConn(ctx context.Context) *txConn
+	// connLike allows internal access to the ongoing transaction.
+	connLike(ctx context.Context) ConnLike
 }

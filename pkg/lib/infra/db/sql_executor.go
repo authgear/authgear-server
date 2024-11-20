@@ -16,12 +16,12 @@ type SQLExecutor struct {
 }
 
 func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Result, error) {
-	db := e.Database.txConn(ctx)
+	conn := e.Database.connLike(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		return nil, err
 	}
-	result, err := db.ExecContext(ctx, sql, args...)
+	result, err := conn.ExecContext(ctx, sql, args...)
 	if err != nil {
 		if isWriteConflict(err) {
 			panic(ErrWriteConflict)
@@ -32,12 +32,12 @@ func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Re
 }
 
 func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Rows, error) {
-	db := e.Database.txConn(ctx)
+	conn := e.Database.connLike(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		return nil, err
 	}
-	result, err := db.QueryxContext(ctx, sql, args...)
+	result, err := conn.QueryContext(ctx, sql, args...)
 	if err != nil {
 		if isWriteConflict(err) {
 			panic(ErrWriteConflict)
@@ -48,7 +48,7 @@ func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.
 }
 
 func (e *SQLExecutor) QueryRowWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Row, error) {
-	db := e.Database.txConn(ctx)
+	conn := e.Database.connLike(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		if isWriteConflict(err) {
@@ -56,7 +56,7 @@ func (e *SQLExecutor) QueryRowWith(ctx context.Context, sqlizeri sq.Sqlizer) (*s
 		}
 		return nil, errorutil.WithDetails(err, errorutil.Details{"sql": errorutil.SafeDetail.Value(sql)})
 	}
-	return db.QueryRowxContext(ctx, sql, args...), nil
+	return conn.QueryRowContext(ctx, sql, args...), nil
 }
 
 func isWriteConflict(err error) bool {

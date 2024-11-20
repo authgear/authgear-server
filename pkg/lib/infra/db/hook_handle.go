@@ -16,8 +16,8 @@ type hookHandleContextKeyType struct{}
 var hookHandleContextKey = hookHandleContextKeyType{}
 
 type hookHandleContextValue struct {
-	Tx    *txConn
-	Hooks []TransactionHook
+	ConnLike ConnLike
+	Hooks    []TransactionHook
 }
 
 type HookHandle struct {
@@ -48,9 +48,9 @@ func NewHookHandle(pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHan
 	}
 }
 
-func (h *HookHandle) txConn(ctx context.Context) *txConn {
+func (h *HookHandle) connLike(ctx context.Context) ConnLike {
 	v := h.getValue(ctx)
-	return v.Tx
+	return v.ConnLike
 }
 
 func (h *HookHandle) getValue(ctx context.Context) *hookHandleContextValue {
@@ -106,7 +106,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 	}
 
 	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
-		Tx: tx,
+		ConnLike: tx,
 	})
 
 	defer func() {
@@ -132,12 +132,12 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		}()
 
 		if r := recover(); r != nil {
-			_ = rollbackTx(tx)
+			_ = rollbackTx(logger, tx)
 			panic(r)
 		} else if err != nil {
-			_ = rollbackTx(tx)
+			_ = rollbackTx(logger, tx)
 		} else {
-			err = commitTx(ctx, tx, h.getValue(ctx).Hooks)
+			err = commitTx(ctx, logger, tx, h.getValue(ctx).Hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
@@ -170,7 +170,7 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 	}
 
 	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
-		Tx: tx,
+		ConnLike: tx,
 	})
 
 	defer func() {
@@ -195,12 +195,12 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 		}()
 
 		if r := recover(); r != nil {
-			_ = rollbackTx(tx)
+			_ = rollbackTx(logger, tx)
 			panic(r)
 		} else if err != nil {
-			_ = rollbackTx(tx)
+			_ = rollbackTx(logger, tx)
 		} else {
-			err = rollbackTx(tx)
+			err = rollbackTx(logger, tx)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
@@ -211,7 +211,7 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 	return
 }
 
-func (h *HookHandle) beginTx(ctx context.Context, logger *log.Logger, conn *sql.Conn) (*txConn, error) {
+func (h *HookHandle) beginTx(ctx context.Context, logger *log.Logger, conn *sql.Conn) (*sql.Tx, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
 	tx, err := conn.BeginTx(ctx, txOptions)
@@ -220,41 +220,34 @@ func (h *HookHandle) beginTx(ctx context.Context, logger *log.Logger, conn *sql.
 	}
 
 	logger.Debug("begin")
-
-	return &txConn{
-		conn:      conn,
-		tx:        tx,
-		logger:    logger,
-		doPrepare: h.ConnectionOptions.UsePreparedStatements,
-	}, nil
+	return tx, nil
 }
 
-func commitTx(ctx context.Context, conn *txConn, hooks []TransactionHook) error {
+func commitTx(ctx context.Context, logger *log.Logger, tx *sql.Tx, hooks []TransactionHook) error {
 	for _, hook := range hooks {
 		err := hook.WillCommitTx(ctx)
 		if err != nil {
-			if rbErr := conn.tx.Rollback(); rbErr != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
 				err = errorutil.WithSecondaryError(err, rbErr)
 			}
 			return err
 		}
 	}
 
-	err := conn.tx.Commit()
+	err := tx.Commit()
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to commit transaction: %w", err)
 	}
-	conn.logger.Debug("commit")
-
+	logger.Debug("commit")
 	return nil
 }
 
-func rollbackTx(conn *txConn) error {
-	err := conn.tx.Rollback()
+func rollbackTx(logger *log.Logger, tx *sql.Tx) error {
+	err := tx.Rollback()
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to rollback transaction: %w", err)
 	}
-	conn.logger.Debug("rollback")
+	logger.Debug("rollback")
 
 	return nil
 }
