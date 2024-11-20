@@ -4,28 +4,30 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
 type txConn struct {
 	doPrepare bool
 	logger    *log.Logger
-	tx        *sql.Tx
-	conn      *sql.Conn
+	tx        *sqlx.Tx
+	conn      *sqlx.Conn
 }
 
-func (t *txConn) prepare(ctx context.Context, query string) (*sql.Stmt, error) {
-	stmt, err := t.conn.PrepareContext(ctx, query)
+func (t *txConn) prepare(ctx context.Context, query string) (*sqlx.Stmt, error) {
+	stmt, err := t.conn.PreparexContext(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
-	return t.tx.Stmt(stmt), nil
+	return t.tx.Stmtx(stmt), nil
 }
 
-func (t *txConn) QueryContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+func (t *txConn) QueryContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error) {
 	if !t.doPrepare {
-		rows, err := t.tx.QueryContext(ctx, query, args...)
+		rows, err := t.tx.QueryxContext(ctx, query, args...)
 		if err != nil {
 			t.logger.WithError(err).Debug("failed to execute query")
 		}
@@ -35,19 +37,19 @@ func (t *txConn) QueryContext(ctx context.Context, query string, args ...interfa
 	stmt, err := t.prepare(ctx, query)
 	if err != nil {
 		t.logger.WithError(err).WithField("query", query).Error("failed to prepare statement")
-		return t.tx.QueryContext(ctx, query, args...)
+		return t.tx.QueryxContext(ctx, query, args...)
 	}
 
-	rows, err := stmt.QueryContext(ctx, args...)
+	rows, err := stmt.QueryxContext(ctx, args...)
 	if err != nil {
 		t.logger.WithError(err).Debug("failed to execute prepared statement")
 	}
 	return rows, err
 }
 
-func (t *txConn) QueryRowxContext(ctx context.Context, query string, args ...interface{}) *sql.Row {
+func (t *txConn) QueryRowxContext(ctx context.Context, query string, args ...interface{}) *sqlx.Row {
 	if !t.doPrepare {
-		row := t.tx.QueryRowContext(ctx, query, args...)
+		row := t.tx.QueryRowxContext(ctx, query, args...)
 		if err := row.Err(); err != nil {
 			t.logger.WithError(err).Debug("failed to execute query")
 		}
@@ -57,19 +59,19 @@ func (t *txConn) QueryRowxContext(ctx context.Context, query string, args ...int
 	stmt, err := t.prepare(ctx, query)
 	if err != nil {
 		t.logger.WithError(err).WithField("query", query).Error("failed to prepare statement")
-		return t.tx.QueryRowContext(ctx, query, args...)
+		return t.tx.QueryRowxContext(ctx, query, args...)
 	}
 
-	row := stmt.QueryRowContext(ctx, args...)
+	row := stmt.QueryRowxContext(ctx, args...)
 	if err := row.Err(); err != nil {
 		t.logger.WithError(err).Debug("failed to execute prepared statement")
 	}
 	return row
 }
 
-func (t *txConn) QueryxContext(ctx context.Context, query string, args ...interface{}) (*sql.Rows, error) {
+func (t *txConn) QueryxContext(ctx context.Context, query string, args ...interface{}) (*sqlx.Rows, error) {
 	if !t.doPrepare {
-		rows, err := t.tx.QueryContext(ctx, query, args...)
+		rows, err := t.tx.QueryxContext(ctx, query, args...)
 		if err != nil {
 			t.logger.WithError(err).Debug("failed to execute query")
 		}
@@ -79,10 +81,10 @@ func (t *txConn) QueryxContext(ctx context.Context, query string, args ...interf
 	stmt, err := t.prepare(ctx, query)
 	if err != nil {
 		t.logger.WithError(err).WithField("query", query).Error("failed to prepare statement")
-		return t.tx.QueryContext(ctx, query, args...)
+		return t.tx.QueryxContext(ctx, query, args...)
 	}
 
-	rows, err := stmt.QueryContext(ctx, args...)
+	rows, err := stmt.QueryxContext(ctx, args...)
 	if err != nil {
 		t.logger.WithError(err).Debug("failed to execute prepared statement")
 	}

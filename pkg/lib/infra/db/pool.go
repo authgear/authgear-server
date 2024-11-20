@@ -5,14 +5,16 @@ import (
 	"database/sql"
 	"errors"
 	"sync"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type PoolDB struct {
-	db *sql.DB
+	db *sqlx.DB
 
 	closeMutex sync.RWMutex
 	stmtLock   sync.RWMutex
-	stmts      map[string]*sql.Stmt
+	stmts      map[string]*sqlx.Stmt
 }
 
 func (d *PoolDB) Close() error {
@@ -36,7 +38,7 @@ func (d *PoolDB) Close() error {
 	return nil
 }
 
-func (d *PoolDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, error) {
+func (d *PoolDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sqlx.Tx, error) {
 	d.closeMutex.RLock()
 	defer d.closeMutex.RUnlock()
 
@@ -44,10 +46,10 @@ func (d *PoolDB) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, err
 		return nil, errors.New("db: db is closed")
 	}
 
-	return d.db.BeginTx(ctx, opts)
+	return d.db.BeginTxx(ctx, opts)
 }
 
-func (d *PoolDB) Prepare(ctx context.Context, query string) (stmt *sql.Stmt, err error) {
+func (d *PoolDB) Prepare(ctx context.Context, query string) (stmt *sqlx.Stmt, err error) {
 	d.closeMutex.RLock()
 	defer d.closeMutex.RUnlock()
 
@@ -63,7 +65,7 @@ func (d *PoolDB) Prepare(ctx context.Context, query string) (stmt *sql.Stmt, err
 		d.stmtLock.Lock()
 		stmt, exists = d.stmts[query]
 		if !exists {
-			stmt, err = d.db.PrepareContext(ctx, query)
+			stmt, err = d.db.PreparexContext(ctx, query)
 			if err == nil {
 				d.stmts[query] = stmt
 			}
@@ -132,7 +134,7 @@ func (p *Pool) Close() (err error) {
 }
 
 func (p *Pool) openPostgresDB(opts ConnectionOptions) (*PoolDB, error) {
-	pgdb, err := sql.Open("postgres", opts.DatabaseURL)
+	pgdb, err := sqlx.Open("postgres", opts.DatabaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -144,6 +146,6 @@ func (p *Pool) openPostgresDB(opts ConnectionOptions) (*PoolDB, error) {
 
 	return &PoolDB{
 		db:    pgdb,
-		stmts: make(map[string]*sql.Stmt),
+		stmts: make(map[string]*sqlx.Stmt),
 	}, nil
 }

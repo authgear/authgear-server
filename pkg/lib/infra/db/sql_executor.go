@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -35,7 +36,7 @@ func (e *SQLExecutor) ExecWith(sqlizeri sq.Sqlizer) (sql.Result, error) {
 	return result, nil
 }
 
-func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sql.Rows, error) {
+func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sqlx.Rows, error) {
 	db, err := e.Database.conn()
 	if err != nil {
 		return nil, err
@@ -54,7 +55,7 @@ func (e *SQLExecutor) QueryWith(sqlizeri sq.Sqlizer) (*sql.Rows, error) {
 	return result, nil
 }
 
-func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sql.Row, error) {
+func (e *SQLExecutor) QueryRowWith(sqlizeri sq.Sqlizer) (*sqlx.Row, error) {
 	db, err := e.Database.conn()
 	if err != nil {
 		return nil, err
