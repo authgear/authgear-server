@@ -5,6 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"sync"
+
+	"github.com/lib/pq"
+
+	"github.com/authgear/authgear-server/pkg/util/databasesqlutil"
 )
 
 type PoolDB struct {
@@ -132,7 +136,7 @@ func (p *Pool) Close() (err error) {
 }
 
 func (p *Pool) openPostgresDB(opts ConnectionOptions) (*PoolDB, error) {
-	pgdb, err := sql.Open("postgres", opts.DatabaseURL)
+	pgdb, err := sql.Open("agpostgres", opts.DatabaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -146,4 +150,8 @@ func (p *Pool) openPostgresDB(opts ConnectionOptions) (*PoolDB, error) {
 		db:    pgdb,
 		stmts: make(map[string]*sql.Stmt),
 	}, nil
+}
+
+func init() {
+	databasesqlutil.Register("agpostgres", pq.Driver{})
 }
