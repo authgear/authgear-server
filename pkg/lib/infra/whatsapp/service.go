@@ -2,11 +2,7 @@ package whatsapp
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"strings"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/intl"
@@ -20,25 +16,10 @@ func NewServiceLogger(lf *log.Factory) ServiceLogger {
 }
 
 type Service struct {
-	Logger                            ServiceLogger
-	DevMode                           config.DevMode
-	FeatureTestModeWhatsappSuppressed config.FeatureTestModeWhatsappSuppressed
-	TestModeWhatsappConfig            *config.TestModeWhatsappConfig
-	WhatsappConfig                    *config.WhatsappConfig
-	LocalizationConfig                *config.LocalizationConfig
-	OnPremisesClient                  *OnPremisesClient
-}
-
-func (c *Service) logMessage(
-	opts *SendTemplateOptions) *logrus.Entry {
-	data, _ := json.MarshalIndent(opts.Components, "", "  ")
-
-	return c.Logger.
-		WithField("recipient", opts.To).
-		WithField("template_name", opts.TemplateName).
-		WithField("language", opts.Language).
-		WithField("components", string(data)).
-		WithField("namespace", opts.Namespace)
+	Logger             ServiceLogger
+	WhatsappConfig     *config.WhatsappConfig
+	LocalizationConfig *config.LocalizationConfig
+	OnPremisesClient   *OnPremisesClient
 }
 
 func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguages []string) string {
@@ -60,124 +41,74 @@ func (s *Service) resolveTemplateLanguage(ctx context.Context, supportedLanguage
 	return supportedLanguageTags[idx]
 }
 
-func (s *Service) makeAuthenticationTemplateComponents(text string, code string) ([]TemplateComponent, error) {
+func (s *Service) makeAuthenticationTemplateComponents(code string) []TemplateComponent {
+	// See https://developers.facebook.com/docs/whatsapp/api/messages/message-templates/authentication-message-templates
 
 	var component []TemplateComponent = []TemplateComponent{}
 
-	// The text cannot include any newline characters
-	text = strings.ReplaceAll(text, "\n", "")
-
 	body := NewTemplateComponent(TemplateComponentTypeBody)
-	bodyParam := NewTemplateComponentTextParameter(text)
+	// The body is just the code.
+	bodyParam := NewTemplateComponentTextParameter(code)
 	body.Parameters = append(body.Parameters, *bodyParam)
 	component = append(component, *body)
 
 	button := NewTemplateButtonComponent(TemplateComponentSubTypeURL, 0)
+	// The button copies the code.
 	buttonParam := NewTemplateComponentTextParameter(code)
 	button.Parameters = append(button.Parameters, *buttonParam)
 	component = append(component, *button)
 
-	return component, nil
+	return component
 }
 
-func (s *Service) getOTPTemplate() (*config.WhatsappTemplateConfig, error) {
-	if s.DevMode {
-		return &config.WhatsappTemplateConfig{
-			Name: "otp",
-			Type: config.WhatsappTemplateTypeAuthentication,
-			Languages: []string{
-				"en",
-			},
-			Namespace: "default",
-		}, nil
+func (s *Service) prepareOTPComponents(template *config.WhatsappTemplateConfig, code string) []TemplateComponent {
+	switch template.Type {
+	case config.WhatsappTemplateTypeAuthentication:
+		return s.makeAuthenticationTemplateComponents(code)
+	default:
+		panic("whatsapp: unknown template type")
 	}
+}
 
+func (s *Service) ResolveSendAuthenticationOTPOptions(ctx context.Context, opts *SendAuthenticationOTPOptions) (*ResolvedSendAuthenticationOTPOptions, error) {
 	switch s.WhatsappConfig.APIType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
 			return nil, ErrNoAvailableClient
 		}
-		return s.OnPremisesClient.GetOTPTemplate(), nil
+
+		otpTemplate := s.OnPremisesClient.GetOTPTemplate()
+		lang := s.resolveTemplateLanguage(ctx, otpTemplate.Languages)
+		components := s.prepareOTPComponents(otpTemplate, opts.OTP)
+
+		return &ResolvedSendAuthenticationOTPOptions{
+			To:                 opts.To,
+			OTP:                opts.OTP,
+			TemplateName:       otpTemplate.Name,
+			TemplateLanguage:   lang,
+			TemplateNamespace:  otpTemplate.Namespace,
+			TemplateComponents: components,
+		}, nil
 	default:
-		return nil, fmt.Errorf("whatsapp: unknown api type")
+		panic(fmt.Errorf("whatsapp: unknown api type"))
 	}
 }
 
-func (s *Service) ResolveOTPTemplateLanguage(ctx context.Context) (lang string, err error) {
-	template, err := s.getOTPTemplate()
-	if err != nil {
-		return "", err
-	}
-	lang = s.resolveTemplateLanguage(ctx, template.Languages)
-	return
-}
-
-func (s *Service) PrepareOTPTemplate(language string, text string, code string) (*PreparedOTPTemplate, error) {
-	template, err := s.getOTPTemplate()
-	if err != nil {
-		return nil, err
-	}
-
-	var component []TemplateComponent = []TemplateComponent{}
-
-	switch template.Type {
-	case config.WhatsappTemplateTypeAuthentication:
-		c, err := s.makeAuthenticationTemplateComponents(text, code)
-		if err != nil {
-			return nil, err
-		}
-		component = c
-	default:
-		panic("whatsapp: unknown template type")
-	}
-
-	return &PreparedOTPTemplate{
-		TemplateName: template.Name,
-		TemplateType: string(template.Type),
-		Language:     language,
-		Components:   component,
-		Namespace:    template.Namespace,
-	}, nil
-}
-
-func (s *Service) SendTemplate(ctx context.Context, opts *SendTemplateOptions) error {
-
-	if s.FeatureTestModeWhatsappSuppressed {
-		s.testModeSendTemplate(opts)
-		return nil
-	}
-
-	if s.TestModeWhatsappConfig.Enabled {
-		if r, ok := s.TestModeWhatsappConfig.MatchTarget(opts.To); ok && r.Suppressed {
-			s.testModeSendTemplate(opts)
-			return nil
-		}
-	}
-
-	if s.DevMode {
-		s.logMessage(opts).
-			Warn("skip sending whatsapp in development mode")
-		return nil
-	}
-
+func (s *Service) SendAuthenticationOTP(ctx context.Context, opts *ResolvedSendAuthenticationOTPOptions) error {
 	switch s.WhatsappConfig.APIType {
 	case config.WhatsappAPITypeOnPremises:
 		if s.OnPremisesClient == nil {
 			return ErrNoAvailableClient
 		}
+
 		return s.OnPremisesClient.SendTemplate(
 			ctx,
 			opts.To,
 			opts.TemplateName,
-			opts.Language,
-			opts.Components,
-			opts.Namespace)
+			opts.TemplateLanguage,
+			opts.TemplateComponents,
+			opts.TemplateNamespace)
 	default:
-		return fmt.Errorf("whatsapp: unknown api type")
+		panic(fmt.Errorf("whatsapp: unknown api type"))
 	}
-}
-
-func (s *Service) testModeSendTemplate(opts *SendTemplateOptions) {
-	s.logMessage(opts).
-		Warn("sending whatsapp is suppressed in test mode")
 }

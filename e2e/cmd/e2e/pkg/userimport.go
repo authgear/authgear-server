@@ -8,16 +8,10 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
 )
 
 type End2End struct{}
-
-type NoopTaskQueue struct{}
-
-func (q NoopTaskQueue) Enqueue(ctx context.Context, param task.Param) {
-}
 
 func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string) error {
 	cfg, err := LoadConfigFromEnv()
@@ -29,17 +23,12 @@ func (c *End2End) ImportUsers(ctx context.Context, appID string, jsonPath string
 		Watch: false,
 	}
 
-	taskQueueFactory := deps.TaskQueueFactory(func(provider *deps.AppProvider) task.Queue {
-		return NoopTaskQueue{}
-	})
-
 	p, err := deps.NewRootProvider(
 		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
 		cfg.BuiltinResourceDirectory,
 		cfg.CustomResourceDirectory,
-		taskQueueFactory,
 	)
 	if err != nil {
 		return err

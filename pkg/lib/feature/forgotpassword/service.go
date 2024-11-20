@@ -57,8 +57,7 @@ type OTPCodeService interface {
 }
 
 type OTPSender interface {
-	Prepare(ctx context.Context, channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
-	Send(ctx context.Context, msg *otp.PreparedMessage, opts otp.SendOptions) error
+	Send(ctx context.Context, opts otp.SendOptions) error
 }
 
 type Service struct {
@@ -207,18 +206,6 @@ func (s *Service) sendEmail(ctx context.Context, email string, userID string, op
 
 	otpKind, otpForm := s.getForgotPasswordOTP(model.AuthenticatorOOBChannelEmail, options.Kind)
 
-	msg, err := s.OTPSender.Prepare(
-		ctx,
-		model.AuthenticatorOOBChannelEmail,
-		email,
-		otpForm,
-		translation.MessageTypeForgotPassword,
-	)
-	if err != nil {
-		return err
-	}
-	defer msg.Close(ctx)
-
 	code, err := s.OTPCodes.GenerateOTP(
 		ctx,
 		otpKind,
@@ -234,11 +221,18 @@ func (s *Service) sendEmail(ctx context.Context, email string, userID string, op
 		return err
 	}
 
-	err = s.OTPSender.Send(ctx, msg, otp.SendOptions{
-		OTP:                     code,
-		AdditionalContext:       &otpCtx,
-		IsAdminAPIResetPassword: options.IsAdminAPIResetPassword,
-	})
+	err = s.OTPSender.Send(
+		ctx,
+		otp.SendOptions{
+			Channel:                 model.AuthenticatorOOBChannelEmail,
+			Target:                  email,
+			Form:                    otpForm,
+			Type:                    translation.MessageTypeForgotPassword,
+			OTP:                     code,
+			AdditionalContext:       &otpCtx,
+			IsAdminAPIResetPassword: options.IsAdminAPIResetPassword,
+		},
+	)
 	if err != nil {
 		return err
 	}
@@ -271,18 +265,6 @@ func (s *Service) sendToPhone(ctx context.Context, phone string, userID string, 
 
 	otpKind, otpForm := s.getForgotPasswordOTP(otpChannel, options.Kind)
 
-	msg, err := s.OTPSender.Prepare(
-		ctx,
-		otpChannel,
-		phone,
-		otpForm,
-		msgType,
-	)
-	if err != nil {
-		return err
-	}
-	defer msg.Close(ctx)
-
 	code, err := s.OTPCodes.GenerateOTP(
 		ctx,
 		otpKind,
@@ -298,10 +280,17 @@ func (s *Service) sendToPhone(ctx context.Context, phone string, userID string, 
 		return err
 	}
 
-	err = s.OTPSender.Send(ctx, msg, otp.SendOptions{
-		OTP:               code,
-		AdditionalContext: &otpCtx,
-	})
+	err = s.OTPSender.Send(
+		ctx,
+		otp.SendOptions{
+			Channel:           otpChannel,
+			Target:            phone,
+			Form:              otpForm,
+			Type:              msgType,
+			OTP:               code,
+			AdditionalContext: &otpCtx,
+		},
+	)
 	if err != nil {
 		return err
 	}

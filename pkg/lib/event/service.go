@@ -19,7 +19,7 @@ import (
 //go:generate mockgen -source=service.go -destination=service_mock_test.go -package event
 
 type Database interface {
-	UseHook(hook db.TransactionHook)
+	UseHook(ctx context.Context, hook db.TransactionHook)
 }
 
 type Sink interface {
@@ -66,7 +66,7 @@ func (s *Service) DispatchEventOnCommit(ctx context.Context, payload event.Paylo
 	}()
 
 	if !s.DatabaseHooked {
-		s.Database.UseHook(s)
+		s.Database.UseHook(ctx, s)
 		s.DatabaseHooked = true
 	}
 

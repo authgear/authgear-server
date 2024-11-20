@@ -166,6 +166,24 @@ var auditLogActivityType = graphql.NewEnum(graphql.EnumConfig{
 		"WHATSAPP_SENT": &graphql.EnumValueConfig{
 			Value: "whatsapp.sent",
 		},
+		"EMAIL_SUPPRESSED": &graphql.EnumValueConfig{
+			Value: "email.suppressed",
+		},
+		"SMS_SUPPRESSED": &graphql.EnumValueConfig{
+			Value: "sms.suppressed",
+		},
+		"WHATSAPP_SUPPRESSED": &graphql.EnumValueConfig{
+			Value: "whatsapp.suppressed",
+		},
+		"EMAIL_ERROR": &graphql.EnumValueConfig{
+			Value: "email.error",
+		},
+		"SMS_ERROR": &graphql.EnumValueConfig{
+			Value: "sms.error",
+		},
+		"WHATSAPP_ERROR": &graphql.EnumValueConfig{
+			Value: "whatsapp.error",
+		},
 		"WHATSAPP_OTP_VERIFIED": &graphql.EnumValueConfig{
 			Value: "whatsapp.otp.verified",
 		},

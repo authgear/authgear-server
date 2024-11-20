@@ -8,7 +8,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/auth"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	infraredisqueue "github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/redisqueue"
 	"github.com/authgear/authgear-server/pkg/resolver"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -16,7 +15,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/server"
 	"github.com/authgear/authgear-server/pkg/util/signalutil"
 	"github.com/authgear/authgear-server/pkg/version"
-	"github.com/authgear/authgear-server/pkg/worker"
 )
 
 type Controller struct {
@@ -33,24 +31,16 @@ func (c *Controller) Start(ctx context.Context) {
 		golog.Fatalf("failed to load server config: %v", err)
 	}
 
-	var wrk *worker.Worker
-	taskQueueFactory := deps.TaskQueueFactory(func(provider *deps.AppProvider) task.Queue {
-		return newInProcessQueue(provider, wrk.Executor)
-	})
-
 	p, err := deps.NewRootProvider(
 		ctx,
 		cfg.EnvironmentConfig,
 		cfg.ConfigSource,
 		cfg.BuiltinResourceDirectory,
 		cfg.CustomResourceDirectory,
-		taskQueueFactory,
 	)
 	if err != nil {
 		golog.Fatalf("failed to setup server: %v", err)
 	}
-
-	wrk = worker.NewWorker(p)
 
 	// From now, we should use c.logger to log.
 	c.logger = p.LoggerFactory.New("server")

@@ -25,11 +25,8 @@ type Logger struct{ *log.Logger }
 func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("mail-sender")} }
 
 type Sender struct {
-	Logger                         Logger
-	DevMode                        config.DevMode
-	GomailDialer                   *gomail.Dialer
-	FeatureTestModeEmailSuppressed config.FeatureTestModeEmailSuppressed
-	TestModeEmailConfig            *config.TestModeEmailConfig
+	Logger       Logger
+	GomailDialer *gomail.Dialer
 }
 
 func NewGomailDialer(smtp *config.SMTPServerCredentials) *gomail.Dialer {
@@ -49,29 +46,6 @@ func NewGomailDialer(smtp *config.SMTPServerCredentials) *gomail.Dialer {
 type updateGomailMessageFunc func(opts *SendOptions, msg *gomail.Message) error
 
 func (s *Sender) Send(opts SendOptions) (err error) {
-	if s.FeatureTestModeEmailSuppressed {
-		s.testModeSend(opts)
-		return nil
-	}
-
-	if s.TestModeEmailConfig.Enabled {
-		if r, ok := s.TestModeEmailConfig.MatchTarget(opts.Recipient); ok && r.Suppressed {
-			s.testModeSend(opts)
-			return nil
-		}
-	}
-
-	if s.DevMode {
-		s.Logger.
-			WithField("recipient", opts.Recipient).
-			WithField("body", opts.TextBody).
-			WithField("sender", opts.Sender).
-			WithField("subject", opts.Subject).
-			WithField("reply_to", opts.ReplyTo).
-			Warn("skip sending email in development mode")
-		return nil
-	}
-
 	if s.GomailDialer == nil {
 		err = ErrMissingSMTPConfiguration
 		return
@@ -142,14 +116,4 @@ func applyHTMLBody(opts *SendOptions, message *gomail.Message) error {
 
 	message.AddAlternative("text/html", opts.HTMLBody)
 	return nil
-}
-
-func (s *Sender) testModeSend(opts SendOptions) {
-	s.Logger.
-		WithField("recipient", opts.Recipient).
-		WithField("body", opts.TextBody).
-		WithField("sender", opts.Sender).
-		WithField("subject", opts.Subject).
-		WithField("reply_to", opts.ReplyTo).
-		Warn("sending email is suppressed by test mode")
 }

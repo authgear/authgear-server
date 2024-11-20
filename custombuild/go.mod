@@ -65,6 +65,7 @@ require (
 	github.com/getsentry/sentry-go v0.29.1 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.5 // indirect
 	github.com/go-gorp/gorp/v3 v3.1.0 // indirect
+	github.com/go-gsm/charset v1.0.0 // indirect
 	github.com/go-ldap/ldap/v3 v3.4.8 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -78,7 +79,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/gnostic-models v0.6.8 // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
@@ -129,7 +129,6 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/njern/gonexmo v2.0.0+incompatible // indirect
 	github.com/nyaruka/phonenumbers v1.4.2 // indirect
 	github.com/oschwald/geoip2-golang v1.11.0 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.0 // indirect
@@ -159,7 +158,6 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tdewolff/parse/v2 v2.7.19 // indirect
 	github.com/trustelem/zxcvbn v1.0.1 // indirect
-	github.com/twilio/twilio-go v1.23.5 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20241012191800-bbb40edc15aa // indirect
 	github.com/vimeo/go-magic v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

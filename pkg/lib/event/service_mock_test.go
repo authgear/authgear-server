@@ -37,15 +37,15 @@ func (m *MockDatabase) EXPECT() *MockDatabaseMockRecorder {
 }
 
 // UseHook mocks base method.
-func (m *MockDatabase) UseHook(hook db.TransactionHook) {
+func (m *MockDatabase) UseHook(ctx context.Context, hook db.TransactionHook) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "UseHook", hook)
+	m.ctrl.Call(m, "UseHook", ctx, hook)
 }
 
 // UseHook indicates an expected call of UseHook.
-func (mr *MockDatabaseMockRecorder) UseHook(hook interface{}) *gomock.Call {
+func (mr *MockDatabaseMockRecorder) UseHook(ctx, hook interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseHook", reflect.TypeOf((*MockDatabase)(nil).UseHook), hook)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UseHook", reflect.TypeOf((*MockDatabase)(nil).UseHook), ctx, hook)
 }
 
 // MockSink is a mock of Sink interface.

@@ -30,7 +30,6 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.10.9
 	github.com/lithdew/quickjs v0.0.0-20200714182134-aaa42285c9d2
-	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/nyaruka/phonenumbers v1.4.2
 	github.com/oschwald/geoip2-golang v1.11.0
 	github.com/pquerna/otp v1.4.0
@@ -81,7 +80,6 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.1.2
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/spruceid/siwe-go v0.2.1
-	github.com/twilio/twilio-go v1.23.5
 	github.com/yudai/gojsondiff v1.0.0
 	go.uber.org/automaxprocs v1.6.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
@@ -92,6 +90,7 @@ require (
 	github.com/XSAM/otelsql v0.35.0
 	github.com/authgear/oauthrelyingparty v1.5.0
 	github.com/coder/websocket v1.8.12
+	github.com/go-gsm/charset v1.0.0
 	github.com/go-ldap/ldap/v3 v3.4.8
 	github.com/russellhaering/goxmldsig v1.4.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.57.0

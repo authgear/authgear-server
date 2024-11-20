@@ -16,7 +16,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/globalredis"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httproute"
 	"github.com/authgear/authgear-server/pkg/util/log"
@@ -32,7 +31,6 @@ type RootProvider struct {
 	DatabasePool       *db.Pool
 	RedisPool          *redis.Pool
 	RedisHub           *redis.Hub
-	TaskQueueFactory   TaskQueueFactory
 	BaseResources      *resource.Manager
 	EmbeddedResources  *web.GlobalEmbeddedResourceManager
 }
@@ -43,7 +41,6 @@ func NewRootProvider(
 	configSourceConfig *configsource.Config,
 	builtinResourceDirectory string,
 	customResourceDirectory string,
-	taskQueueFactory TaskQueueFactory,
 ) (*RootProvider, error) {
 	var p RootProvider
 
@@ -81,7 +78,6 @@ func NewRootProvider(
 		DatabasePool:       dbPool,
 		RedisPool:          redisPool,
 		RedisHub:           redisHub,
-		TaskQueueFactory:   taskQueueFactory,
 		BaseResources: resource.NewManagerWithDir(
 			resource.DefaultRegistry,
 			builtinResourceDirectory,
@@ -162,7 +158,6 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		AnalyticRedis:      analyticRedis,
 		AppContext:         appCtx,
 	}
-	provider.TaskQueue = p.TaskQueueFactory(provider)
 	return provider
 }
 
@@ -196,14 +191,6 @@ func (p *RootProvider) Middleware(factory func(*RequestProvider) httproute.Middl
 	})
 }
 
-func (p *RootProvider) Task(factory func(provider *TaskProvider) task.Task) task.Task {
-	return TaskFunc(func(ctx context.Context, param task.Param) error {
-		p := getTaskProvider(ctx)
-		task := factory(p)
-		return task.Run(ctx, param)
-	})
-}
-
 type AppProvider struct {
 	*RootProvider
 
@@ -213,7 +200,6 @@ type AppProvider struct {
 	AuditWriteDatabase *auditdb.WriteHandle
 	Redis              *appredis.Handle
 	AnalyticRedis      *analyticredis.Handle
-	TaskQueue          task.Queue
 	AppContext         *config.AppContext
 	GlobalRedis        *globalredis.Handle
 }
@@ -226,24 +212,11 @@ func (p *AppProvider) NewRequestProvider(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func (p *AppProvider) NewTaskProvider(ctx context.Context) *TaskProvider {
-	return &TaskProvider{
-		AppProvider: p,
-		Context:     ctx,
-	}
-}
-
 type RequestProvider struct {
 	*AppProvider
 
 	Request        *http.Request
 	ResponseWriter http.ResponseWriter
-}
-
-type TaskProvider struct {
-	*AppProvider
-
-	Context context.Context
 }
 
 type BackgroundProvider struct {

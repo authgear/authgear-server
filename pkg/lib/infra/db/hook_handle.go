@@ -11,14 +11,34 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
+type hookHandleContextKeyType struct{}
+
+var hookHandleContextKey = hookHandleContextKeyType{}
+
+type hookHandleContextValue struct {
+	Tx    *txConn
+	Hooks []TransactionHook
+}
+
 type HookHandle struct {
 	Pool              *Pool
 	ConnectionOptions ConnectionOptions
 	Logger            *log.Logger
-
-	tx    *txConn
-	hooks []TransactionHook
 }
+
+func hookHandleContextWithValue(ctx context.Context, value *hookHandleContextValue) context.Context {
+	return context.WithValue(ctx, hookHandleContextKey, value)
+}
+
+func hookHandleContextGetValue(ctx context.Context) (*hookHandleContextValue, bool) {
+	v, ok := ctx.Value(hookHandleContextKey).(*hookHandleContextValue)
+	if !ok {
+		return nil, false
+	}
+	return v, true
+}
+
+var _ Handle = (*HookHandle)(nil)
 
 func NewHookHandle(pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHandle {
 	return &HookHandle{
@@ -28,19 +48,43 @@ func NewHookHandle(pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHan
 	}
 }
 
-func (h *HookHandle) conn() (*txConn, error) {
-	tx := h.tx
-	if tx == nil {
-		panic("hook-handle: transaction not started")
-	}
-	return tx, nil
+func (h *HookHandle) txConn(ctx context.Context) *txConn {
+	v := h.getValue(ctx)
+	return v.Tx
 }
 
-func (h *HookHandle) UseHook(hook TransactionHook) {
-	h.hooks = append(h.hooks, hook)
+func (h *HookHandle) getValue(ctx context.Context) *hookHandleContextValue {
+	v, ok := hookHandleContextGetValue(ctx)
+	if !ok {
+		panic(fmt.Errorf("hook-handle: transaction not started"))
+	}
+	return v
+}
+
+func (h *HookHandle) UseHook(ctx context.Context, hook TransactionHook) {
+	v, ok := hookHandleContextGetValue(ctx)
+	if !ok {
+		panic(fmt.Errorf("hook-handle: transaction not started"))
+	}
+
+	v.Hooks = append(v.Hooks, hook)
 }
 
 // WithTx commits if do finishes without error and rolls back otherwise.
+// WithTx is reentrant, meaning that you can call WithTx even when a previous WithTx does not finish yet.
+// Normally you should not call WithTx within a WithTx, but there is a legit use case.
+//
+//	// Assume ctx is a http.Request context.
+//	h.WithTx(ctx, func(ctx context.Context) error {
+//		// ctx here is associated with a *sql.Tx (Tx1)
+//		go func() {
+//			// ctx is detached from the http.Request context.
+//			ctx = ctx.WithCancel(ctx)
+//			h.WithTx(ctx, func(ctx context.Context) error {
+//				// ctx is associated with a *sqlTx (Tx2)
+//			})
+//		}()
+//	})
 func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
@@ -61,27 +105,17 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		return
 	}
 
-	// The assignment of h.tx can only be happen inside this method.
-	// An invarant that must be held is that h.tx must be nil when this method terminates.
-	// HookHandle can be used in multiple places.
-	// Sometimes it is constructed per every request, and sometimes it is used throughout the entire lifetime of the process.
-	// It is very important to make sure h.tx is nil after every call of WithTx or ReadOnly.
-	// See https://github.com/authgear/authgear-server/issues/1612 for the bug of failing to enforcing the invariant.
-	h.tx = tx
+	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
+		Tx: tx,
+	})
+
 	defer func() {
 		shouldRunDidCommitHooks := false
 
 		// This defer block is run second.
 		defer func() {
-			// WillCommitTx of hook is allowed to access the database.
-			// So the assignment to nil should happen last.
-			h.tx = nil
-
 			if shouldRunDidCommitHooks {
-				// reset tx to complete the current transcation
-				// before running the DidCommitTx hook
-				// so new tx can be opened inside the DidCommitTx hook
-				for _, hook := range h.hooks {
+				for _, hook := range h.getValue(ctx).Hooks {
 					hook.DidCommitTx(ctx)
 				}
 			}
@@ -103,7 +137,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		} else if err != nil {
 			_ = rollbackTx(tx)
 		} else {
-			err = commitTx(ctx, tx, h.hooks)
+			err = commitTx(ctx, tx, h.getValue(ctx).Hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
@@ -114,7 +148,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 	return
 }
 
-// ReadOnly runs do in a transaction and rolls back always.
+// ReadOnly is like WithTx, except that it always rolls back.
 func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	id := uuid.New()
 	logger := h.Logger.WithField("debug_id", id)
@@ -135,26 +169,16 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 		return
 	}
 
-	// The assignment of h.tx can only be happen inside this method.
-	// An invarant that must be held is that h.tx must be nil when this method terminates.
-	// HookHandle can be used in multiple places.
-	// Sometimes it is constructed per every request, and sometimes it is used throughout the entire lifetime of the process.
-	// It is very important to make sure h.tx is nil after every call of WithTx or ReadOnly.
-	// See https://github.com/authgear/authgear-server/issues/1612 for the bug of failing to enforcing the invariant.
-	h.tx = tx
+	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
+		Tx: tx,
+	})
+
 	defer func() {
 		shouldRunDidCommitHooks := false
 
 		defer func() {
-			// WillCommitTx of hook is allowed to access the database.
-			// So the assignment to nil should happen last.
-			h.tx = nil
-
 			if shouldRunDidCommitHooks {
-				// reset tx to complete the current transcation
-				// before running the DidCommitTx hook
-				// so new tx can be opened inside the DidCommitTx hook
-				for _, hook := range h.hooks {
+				for _, hook := range h.getValue(ctx).Hooks {
 					hook.DidCommitTx(ctx)
 				}
 			}

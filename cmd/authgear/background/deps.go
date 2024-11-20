@@ -19,20 +19,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/resource"
 	"github.com/authgear/authgear-server/pkg/util/template"
 )
-
-type NoopTaskQueue struct{}
-
-func (NoopTaskQueue) Enqueue(ctx context.Context, taskParam task.Param) {}
-
-func NewNoopTaskQueue() NoopTaskQueue {
-	return NoopTaskQueue{}
-}
 
 // This dummy HTTP request is only used for get/set cookie
 // which does not have any effect at all.
@@ -106,7 +97,6 @@ var DependencySet = wire.NewSet(
 	analyticredis.NewHandle,
 	auditdb.NewReadHandle,
 	auditdb.NewWriteHandle,
-	NewNoopTaskQueue,
 	NewDummyHTTPRequest,
 	ProvideRemoteIP,
 	ProvideUserAgentString,
@@ -118,7 +108,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(UserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(accountdeletion.UserServiceFactory), new(*AccountDeletionServiceFactory)),
 	wire.Bind(new(accountanonymization.UserServiceFactory), new(*AccountAnonymizationServiceFactory)),
-	wire.Bind(new(task.Queue), new(NoopTaskQueue)),
 	wire.Bind(new(event.Database), new(*appdb.Handle)),
 	wire.Bind(new(template.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(loginid.ResourceManager), new(*resource.Manager)),

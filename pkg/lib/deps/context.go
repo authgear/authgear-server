@@ -24,9 +24,3 @@ func getRequestProvider(w http.ResponseWriter, r *http.Request) *RequestProvider
 	p := pCtx.p.NewRequestProvider(w, r)
 	return p
 }
-
-func getTaskProvider(ctx context.Context) *TaskProvider {
-	pCtx := ctx.Value(providerContextKey).(*providerContext)
-	p := pCtx.p.NewTaskProvider(ctx)
-	return p
-}

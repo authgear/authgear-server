@@ -1,8 +1,15 @@
-package sms
+package smsapi
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
+
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 )
+
+var ErrNoAvailableClient = errors.New("no available SMS client")
+var ErrAmbiguousClient = errors.New("ambiguous SMS client")
 
 type TemplateVariables struct {
 	AppName     string `json:"app_name,omitempty"`
@@ -36,4 +43,27 @@ func NewTemplateVariablesFromPreparedTemplateVariables(v *translation.PreparedTe
 		URL:         v.URL,
 		XState:      v.XState,
 	}
+}
+
+type SendOptions struct {
+	Sender            string
+	To                string
+	Body              string
+	AppID             string
+	TemplateName      string
+	LanguageTag       string
+	TemplateVariables *TemplateVariables
+}
+
+type Client interface {
+	Send(ctx context.Context, opts SendOptions) error
+}
+
+type SendError struct {
+	DumpedResponse []byte `json:"dumped_response,omitempty"`
+}
+
+func (e *SendError) Error() string {
+	jsonText, _ := json.Marshal(e)
+	return string(jsonText)
 }

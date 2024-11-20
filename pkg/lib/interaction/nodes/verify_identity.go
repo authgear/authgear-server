@@ -107,14 +107,13 @@ func (n *NodeVerifyIdentity) SendCode(goCtx context.Context, ctx *interaction.Co
 		CodeLength: otp.FormCode.CodeLength(),
 	}
 
-	msg, err := ctx.OTPSender.Prepare(goCtx, channel, target, otp.FormCode, translation.MessageTypeVerification)
-	if ignoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
-		// Ignore the rate limit error and do NOT send the code.
-		return result, nil
-	} else if err != nil {
-		return nil, err
+	// disallow sending sms verification code if phone identity is disabled
+	fc := ctx.FeatureConfig
+	if model.LoginIDKeyType(loginIDType) == model.LoginIDKeyTypePhone {
+		if fc.Identity.LoginID.Types.Phone.Disabled {
+			return nil, feature.ErrFeatureDisabledSendingSMS
+		}
 	}
-	defer msg.Close(goCtx)
 
 	code, err := ctx.OTPCodeService.GenerateOTP(goCtx,
 		otp.KindVerification(ctx.Config, channel),
@@ -129,16 +128,20 @@ func (n *NodeVerifyIdentity) SendCode(goCtx context.Context, ctx *interaction.Co
 		return nil, err
 	}
 
-	// disallow sending sms verification code if phone identity is disabled
-	fc := ctx.FeatureConfig
-	if model.LoginIDKeyType(loginIDType) == model.LoginIDKeyTypePhone {
-		if fc.Identity.LoginID.Types.Phone.Disabled {
-			return nil, feature.ErrFeatureDisabledSendingSMS
-		}
-	}
-
-	err = ctx.OTPSender.Send(goCtx, msg, otp.SendOptions{OTP: code})
-	if err != nil {
+	err = ctx.OTPSender.Send(
+		goCtx,
+		otp.SendOptions{
+			Channel: channel,
+			Target:  target,
+			Form:    otp.FormCode,
+			Type:    translation.MessageTypeVerification,
+			OTP:     code,
+		},
+	)
+	if ignoreRatelimitError && apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if err != nil {
 		return nil, err
 	}
 

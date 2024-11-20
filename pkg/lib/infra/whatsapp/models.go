@@ -4,21 +4,18 @@ import (
 	"time"
 )
 
-type PreparedOTPTemplate struct {
-	TemplateName string
-	TemplateType string
-	Language     string
-	Components   []TemplateComponent
-	Namespace    string
+type SendAuthenticationOTPOptions struct {
+	To  string
+	OTP string
 }
 
-type SendTemplateOptions struct {
-	TemplateName string
-	To           string
-	TemplateType string
-	Language     string
-	Components   []TemplateComponent
-	Namespace    string
+type ResolvedSendAuthenticationOTPOptions struct {
+	To                 string
+	OTP                string
+	TemplateName       string
+	TemplateLanguage   string
+	TemplateNamespace  string
+	TemplateComponents []TemplateComponent
 }
 
 type SendTemplateRequest struct {

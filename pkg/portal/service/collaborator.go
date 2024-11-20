@@ -18,12 +18,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
-	"github.com/authgear/authgear-server/pkg/lib/infra/task"
 	portalconfig "github.com/authgear/authgear-server/pkg/portal/config"
 	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/authgear/authgear-server/pkg/portal/resource"
 	"github.com/authgear/authgear-server/pkg/portal/session"
-	"github.com/authgear/authgear-server/pkg/portal/task/tasks"
 	"github.com/authgear/authgear-server/pkg/util/base32"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
@@ -44,8 +42,8 @@ var ErrCollaboratorInvitationInvalidEmail = apierrors.Invalid.WithReason("Collab
 
 var ErrCollaboratorQuotaExceeded = apierrors.Invalid.WithReason("CollaboratorQuotaExceeded").New("collaborator quota exceeded")
 
-type CollaboratorServiceTaskQueue interface {
-	Enqueue(ctx context.Context, param task.Param)
+type CollaboratorServiceSMTPService interface {
+	SendRealEmail(ctx context.Context, opts mail.SendOptions) error
 }
 
 type CollaboratorServiceEndpointsProvider interface {
@@ -69,7 +67,7 @@ type CollaboratorService struct {
 	GlobalDatabase *globaldb.Handle
 
 	MailConfig     *portalconfig.MailConfig
-	TaskQueue      CollaboratorServiceTaskQueue
+	SMTPService    CollaboratorServiceSMTPService
 	Endpoints      CollaboratorServiceEndpointsProvider
 	TemplateEngine *template.Engine
 	AdminAPI       CollaboratorServiceAdminAPIService
@@ -544,19 +542,18 @@ func (s *CollaboratorService) SendInvitation(
 		return nil, err
 	}
 
-	s.TaskQueue.Enqueue(ctx, &tasks.SendMessagesParam{
-		EmailMessages: []mail.SendOptions{
-			{
-				// TODO(collaborator): We should reuse translation service.
-				Sender:    s.MailConfig.Sender,
-				ReplyTo:   s.MailConfig.ReplyTo,
-				Subject:   "You are invited to collaborate on \"" + appID + "\" in Authgear",
-				Recipient: inviteeEmail,
-				TextBody:  textBody.String,
-				HTMLBody:  htmlBody.String,
-			},
-		},
+	err = s.SMTPService.SendRealEmail(ctx, mail.SendOptions{
+		// TODO(collaborator): We should reuse translation service.
+		Sender:    s.MailConfig.Sender,
+		ReplyTo:   s.MailConfig.ReplyTo,
+		Subject:   "You are invited to collaborate on \"" + appID + "\" in Authgear",
+		Recipient: inviteeEmail,
+		TextBody:  textBody.String,
+		HTMLBody:  htmlBody.String,
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	return i, nil
 }

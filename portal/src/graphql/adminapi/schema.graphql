@@ -289,7 +289,13 @@ enum AuditLogActivityType {
   BOT_PROTECTION_VERIFICATION_FAILED
 
   """"""
+  EMAIL_ERROR
+
+  """"""
   EMAIL_SENT
+
+  """"""
+  EMAIL_SUPPRESSED
 
   """"""
   IDENTITY_BIOMETRIC_DISABLED
@@ -382,7 +388,13 @@ enum AuditLogActivityType {
   PROJECT_DOMAIN_VERIFIED
 
   """"""
+  SMS_ERROR
+
+  """"""
   SMS_SENT
+
+  """"""
+  SMS_SUPPRESSED
 
   """"""
   USER_ANONYMIZATION_SCHEDULED
@@ -427,10 +439,16 @@ enum AuditLogActivityType {
   USER_SIGNED_OUT
 
   """"""
+  WHATSAPP_ERROR
+
+  """"""
   WHATSAPP_OTP_VERIFIED
 
   """"""
   WHATSAPP_SENT
+
+  """"""
+  WHATSAPP_SUPPRESSED
 }
 
 """A connection to a list of items."""

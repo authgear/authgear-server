@@ -16,10 +16,7 @@ type SQLExecutor struct {
 }
 
 func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Result, error) {
-	db, err := e.Database.conn()
-	if err != nil {
-		return nil, err
-	}
+	db := e.Database.txConn(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		return nil, err
@@ -35,10 +32,7 @@ func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Re
 }
 
 func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Rows, error) {
-	db, err := e.Database.conn()
-	if err != nil {
-		return nil, err
-	}
+	db := e.Database.txConn(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		return nil, err
@@ -54,10 +48,7 @@ func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.
 }
 
 func (e *SQLExecutor) QueryRowWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Row, error) {
-	db, err := e.Database.conn()
-	if err != nil {
-		return nil, err
-	}
+	db := e.Database.txConn(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		if isWriteConflict(err) {

@@ -31,7 +31,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
-	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
@@ -72,8 +71,7 @@ type OTPCodeService interface {
 }
 
 type OTPSender interface {
-	Prepare(ctx context.Context, channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
-	Send(ctx context.Context, msg *otp.PreparedMessage, opts otp.SendOptions) error
+	Send(ctx context.Context, opts otp.SendOptions) error
 }
 
 type AnonymousIdentityService interface {

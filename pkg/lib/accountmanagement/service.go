@@ -97,8 +97,7 @@ type UIInfoResolver interface {
 }
 
 type OTPSender interface {
-	Prepare(ctx context.Context, channel model.AuthenticatorOOBChannel, target string, form otp.Form, typ translation.MessageType) (*otp.PreparedMessage, error)
-	Send(ctx context.Context, msg *otp.PreparedMessage, opts otp.SendOptions) error
+	Send(ctx context.Context, opts otp.SendOptions) error
 }
 
 type OTPCodeService interface {
@@ -351,14 +350,6 @@ func (s *Service) sendOTPCode(ctx context.Context, userID string, channel model.
 		panic(fmt.Errorf("accountmanagement: unknown channel"))
 	}
 
-	msg, err := s.OTPSender.Prepare(ctx, channel, target, otp.FormCode, msgType)
-	if !isResend && apierrors.IsKind(err, ratelimit.RateLimited) {
-		return nil
-	} else if err != nil {
-		return err
-	}
-	defer msg.Close(ctx)
-
 	code, err := s.OTPCodeService.GenerateOTP(
 		ctx,
 		otp.KindVerification(s.Config, channel),
@@ -375,8 +366,19 @@ func (s *Service) sendOTPCode(ctx context.Context, userID string, channel model.
 		return err
 	}
 
-	err = s.OTPSender.Send(ctx, msg, otp.SendOptions{OTP: code})
-	if err != nil {
+	err = s.OTPSender.Send(
+		ctx,
+		otp.SendOptions{
+			Channel: channel,
+			Target:  target,
+			Form:    otp.FormCode,
+			Type:    msgType,
+			OTP:     code,
+		},
+	)
+	if !isResend && apierrors.IsKind(err, ratelimit.RateLimited) {
+		return nil
+	} else if err != nil {
 		return err
 	}
 

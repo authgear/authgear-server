@@ -36,15 +36,6 @@ func (s *SendWhatsappCode) Do(goCtx context.Context) (*SendWhatsappCodeResult, e
 		Kind:       kind,
 	}
 
-	msg, err := s.Context.OTPSender.Prepare(goCtx, channel, s.Target, form, translation.MessageTypeWhatsappCode)
-	if !s.IsResend && apierrors.IsKind(err, ratelimit.RateLimited) {
-		// Ignore the rate limit error and do NOT send the code.
-		return result, nil
-	} else if err != nil {
-		return nil, err
-	}
-	defer msg.Close(goCtx)
-
 	code, err := s.Context.OTPCodeService.GenerateOTP(
 		goCtx,
 		kind,
@@ -59,8 +50,20 @@ func (s *SendWhatsappCode) Do(goCtx context.Context) (*SendWhatsappCodeResult, e
 		return nil, err
 	}
 
-	err = s.Context.OTPSender.Send(goCtx, msg, otp.SendOptions{OTP: code})
-	if err != nil {
+	err = s.Context.OTPSender.Send(
+		goCtx,
+		otp.SendOptions{
+			Channel: channel,
+			Target:  s.Target,
+			Form:    form,
+			Type:    translation.MessageTypeWhatsappCode,
+			OTP:     code,
+		},
+	)
+	if !s.IsResend && apierrors.IsKind(err, ratelimit.RateLimited) {
+		// Ignore the rate limit error and do NOT send the code.
+		return result, nil
+	} else if err != nil {
 		return nil, err
 	}
 

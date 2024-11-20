@@ -77,6 +77,7 @@ require (
 	github.com/fxamacker/cbor/v2 v2.6.0 // indirect
 	github.com/getsentry/sentry-go v0.29.1 // indirect
 	github.com/go-asn1-ber/asn1-ber v1.5.5 // indirect
+	github.com/go-gsm/charset v1.0.0 // indirect
 	github.com/go-ldap/ldap/v3 v3.4.8 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -85,7 +86,6 @@ require (
 	github.com/go-webauthn/x v0.1.4 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/go-tpm v0.9.0 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/google/subcommands v1.0.1 // indirect
@@ -126,7 +126,6 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
-	github.com/njern/gonexmo v2.0.0+incompatible // indirect
 	github.com/nyaruka/phonenumbers v1.4.2 // indirect
 	github.com/onsi/gomega v1.18.1 // indirect
 	github.com/oschwald/geoip2-golang v1.11.0 // indirect
@@ -155,7 +154,6 @@ require (
 	github.com/spruceid/siwe-go v0.2.1 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/trustelem/zxcvbn v1.0.1 // indirect
-	github.com/twilio/twilio-go v1.23.5 // indirect
 	github.com/ua-parser/uap-go v0.0.0-20241012191800-bbb40edc15aa // indirect
 	github.com/vimeo/go-magic v1.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

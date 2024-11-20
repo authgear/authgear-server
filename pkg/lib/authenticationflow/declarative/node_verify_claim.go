@@ -203,17 +203,6 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 		typ = translation.MessageTypeWhatsappCode
 	}
 
-	msg, err := deps.OTPSender.Prepare(ctx,
-		n.Channel,
-		n.ClaimValue,
-		n.Form,
-		typ,
-	)
-	if err != nil {
-		return err
-	}
-	defer msg.Close(ctx)
-
 	code, err := deps.OTPCodes.GenerateOTP(ctx,
 		n.otpKind(deps),
 		n.ClaimValue,
@@ -227,7 +216,16 @@ func (n *NodeVerifyClaim) SendCode(ctx context.Context, deps *authflow.Dependenc
 		return err
 	}
 
-	err = deps.OTPSender.Send(ctx, msg, otp.SendOptions{OTP: code})
+	err = deps.OTPSender.Send(
+		ctx,
+		otp.SendOptions{
+			Channel: n.Channel,
+			Target:  n.ClaimValue,
+			Form:    n.Form,
+			Type:    typ,
+			OTP:     code,
+		},
+	)
 	if err != nil {
 		return err
 	}

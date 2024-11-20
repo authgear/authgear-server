@@ -70,13 +70,8 @@ func (p *SendOOBCode) Do(ctx context.Context) error {
 		}
 	}
 
-	msg, err := p.Deps.OTPSender.Prepare(ctx, channel, target, p.OTPForm, messageType)
-	if err != nil {
-		return err
-	}
-	defer msg.Close(ctx)
-
 	kind := otp.KindOOBOTPCode(p.Deps.Config, channel)
+
 	code, err := p.Deps.OTPCodes.GenerateOTP(
 		ctx,
 		kind,
@@ -93,7 +88,16 @@ func (p *SendOOBCode) Do(ctx context.Context) error {
 		return err
 	}
 
-	err = p.Deps.OTPSender.Send(ctx, msg, otp.SendOptions{OTP: code})
+	err = p.Deps.OTPSender.Send(
+		ctx,
+		otp.SendOptions{
+			Channel: channel,
+			Target:  target,
+			Form:    p.OTPForm,
+			Type:    messageType,
+			OTP:     code,
+		},
+	)
 	if err != nil {
 		return err
 	}

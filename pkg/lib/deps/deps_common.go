@@ -57,6 +57,7 @@ import (
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	infrawhatsapp "github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
@@ -489,7 +490,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		infrawhatsapp.DependencySet,
-		wire.Bind(new(otp.WhatsappService), new(*infrawhatsapp.Service)),
+		wire.Bind(new(messaging.WhatsappSender), new(*infrawhatsapp.Service)),
 	),
 
 	wire.NewSet(
@@ -556,6 +557,11 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		sms.DependencySet,
+		wire.Bind(new(messaging.SMSSender), new(*sms.Client)),
+	),
+	wire.NewSet(
+		mail.DependencySet,
+		wire.Bind(new(messaging.MailSender), new(*mail.Sender)),
 	),
 
 	wire.NewSet(
