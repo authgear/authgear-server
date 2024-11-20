@@ -8,10 +8,6 @@ type MockHandle struct{}
 
 var _ Handle = (*MockHandle)(nil)
 
-func (h *MockHandle) connLike(ctx context.Context) ConnLike {
-	panic("not mocked")
-}
-
 func (h *MockHandle) WithTx(ctx context.Context, do func(ctx context.Context) error) (err error) {
 	return do(ctx)
 }

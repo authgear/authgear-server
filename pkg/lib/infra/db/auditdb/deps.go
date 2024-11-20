@@ -74,9 +74,7 @@ func NewReadSQLExecutor(handle *ReadHandle) *ReadSQLExecutor {
 	}
 
 	return &ReadSQLExecutor{
-		db.SQLExecutor{
-			Database: handle,
-		},
+		db.SQLExecutor{},
 	}
 }
 
@@ -86,9 +84,7 @@ func NewWriteSQLExecutor(handle *WriteHandle) *WriteSQLExecutor {
 	}
 
 	return &WriteSQLExecutor{
-		db.SQLExecutor{
-			Database: handle,
-		},
+		db.SQLExecutor{},
 	}
 }
 

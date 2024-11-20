@@ -20,7 +20,4 @@ type Handle interface {
 	// ReadOnly runs do within a transaction.
 	// The transaction is always rolled back.
 	ReadOnly(ctx context.Context, do func(ctx context.Context) error) (err error)
-
-	// connLike allows internal access to the ongoing transaction.
-	connLike(ctx context.Context) ConnLike
 }

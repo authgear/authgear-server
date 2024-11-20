@@ -11,12 +11,10 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
 )
 
-type SQLExecutor struct {
-	Database Handle
-}
+type SQLExecutor struct{}
 
 func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Result, error) {
-	conn := e.Database.connLike(ctx)
+	conn := mustGetConnLike(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		return nil, err
@@ -32,7 +30,7 @@ func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Re
 }
 
 func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Rows, error) {
-	conn := e.Database.connLike(ctx)
+	conn := mustGetConnLike(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		return nil, err
@@ -48,7 +46,7 @@ func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.
 }
 
 func (e *SQLExecutor) QueryRowWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Row, error) {
-	conn := e.Database.connLike(ctx)
+	conn := mustGetConnLike(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		if isWriteConflict(err) {

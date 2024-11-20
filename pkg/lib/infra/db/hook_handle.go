@@ -38,6 +38,18 @@ func hookHandleContextGetValue(ctx context.Context) (*hookHandleContextValue, bo
 	return v, true
 }
 
+func mustHookHandleContextGetValue(ctx context.Context) *hookHandleContextValue {
+	v, ok := hookHandleContextGetValue(ctx)
+	if !ok {
+		panic(fmt.Errorf("hook-handle: transaction not started"))
+	}
+	return v
+}
+
+func mustGetConnLike(ctx context.Context) ConnLike {
+	return mustHookHandleContextGetValue(ctx).ConnLike
+}
+
 var _ Handle = (*HookHandle)(nil)
 
 func NewHookHandle(pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHandle {
@@ -46,19 +58,6 @@ func NewHookHandle(pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHan
 		ConnectionOptions: opts,
 		Logger:            lf.New("db-handle"),
 	}
-}
-
-func (h *HookHandle) connLike(ctx context.Context) ConnLike {
-	v := h.getValue(ctx)
-	return v.ConnLike
-}
-
-func (h *HookHandle) getValue(ctx context.Context) *hookHandleContextValue {
-	v, ok := hookHandleContextGetValue(ctx)
-	if !ok {
-		panic(fmt.Errorf("hook-handle: transaction not started"))
-	}
-	return v
 }
 
 func (h *HookHandle) UseHook(ctx context.Context, hook TransactionHook) {
@@ -113,7 +112,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 
 	defer func() {
 		if shouldRunDidCommitHooks {
-			for _, hook := range h.getValue(ctx).Hooks {
+			for _, hook := range mustHookHandleContextGetValue(ctx).Hooks {
 				hook.DidCommitTx(ctx)
 			}
 		}
@@ -135,7 +134,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		} else if err != nil {
 			_ = rollbackTx(logger, tx)
 		} else {
-			err = commitTx(ctx, logger, tx, h.getValue(ctx).Hooks)
+			err = commitTx(ctx, logger, tx, mustHookHandleContextGetValue(ctx).Hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
@@ -175,7 +174,7 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 
 	defer func() {
 		if shouldRunDidCommitHooks {
-			for _, hook := range h.getValue(ctx).Hooks {
+			for _, hook := range mustHookHandleContextGetValue(ctx).Hooks {
 				hook.DidCommitTx(ctx)
 			}
 		}
