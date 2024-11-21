@@ -99,7 +99,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 	}
 	logger.Debug("acquire connection")
 
-	tx, err := h.beginTx(ctx, logger, conn)
+	tx, err := beginTx(ctx, logger, conn)
 	if err != nil {
 		return
 	}
@@ -161,7 +161,7 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 	}
 	logger.Debug("acquire connection")
 
-	tx, err := h.beginTx(ctx, logger, conn)
+	tx, err := beginTx(ctx, logger, conn)
 	if err != nil {
 		return
 	}
@@ -207,7 +207,35 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 	return
 }
 
-func (h *HookHandle) beginTx(ctx context.Context, logger *log.Logger, conn *sql.Conn) (*sql.Tx, error) {
+func (h *HookHandle) WithPrepareStatementsHandle(ctx context.Context, do func(ctx context.Context, handle PreparedStatementsHandle) error) (err error) {
+	id := uuid.New()
+	logger := h.Logger.WithField("debug_id", id)
+	db, err := h.openDB()
+	if err != nil {
+		return
+	}
+
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
+		return
+	}
+	logger.Debug("acquire connection")
+
+	preparedStatementsHandle := &preparedStatementsHandle{
+		logger:           logger,
+		conn:             conn,
+		cachedStatements: make(map[string]*sql.Stmt),
+	}
+	defer preparedStatementsHandle.Close()
+
+	ctx = withPreparedStatementsHandle(ctx, preparedStatementsHandle)
+
+	err = do(ctx, preparedStatementsHandle)
+	return
+}
+
+func beginTx(ctx context.Context, logger *log.Logger, conn *sql.Conn) (*sql.Tx, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
 	tx, err := conn.BeginTx(ctx, txOptions)

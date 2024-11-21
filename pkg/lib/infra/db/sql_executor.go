@@ -14,12 +14,30 @@ import (
 type SQLExecutor struct{}
 
 func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Result, error) {
-	conn := mustGetConnLike(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		return nil, err
 	}
-	result, err := conn.ExecContext(ctx, sql, args...)
+
+	stmtPreparer, ok := getStmtPreparer(ctx)
+	if !ok {
+		conn := mustGetConnLike(ctx)
+		result, err := conn.ExecContext(ctx, sql, args...)
+		if err != nil {
+			if isWriteConflict(err) {
+				panic(ErrWriteConflict)
+			}
+			return nil, errorutil.WithDetails(err, errorutil.Details{"sql": errorutil.SafeDetail.Value(sql)})
+		}
+		return result, nil
+	}
+
+	stmt, err := stmtPreparer.PrepareContext(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := stmt.ExecContext(ctx, args...)
 	if err != nil {
 		if isWriteConflict(err) {
 			panic(ErrWriteConflict)
@@ -30,12 +48,30 @@ func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Re
 }
 
 func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Rows, error) {
-	conn := mustGetConnLike(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
 		return nil, err
 	}
-	result, err := conn.QueryContext(ctx, sql, args...)
+
+	stmtPreparer, ok := getStmtPreparer(ctx)
+	if !ok {
+		conn := mustGetConnLike(ctx)
+		result, err := conn.QueryContext(ctx, sql, args...)
+		if err != nil {
+			if isWriteConflict(err) {
+				panic(ErrWriteConflict)
+			}
+			return nil, errorutil.WithDetails(err, errorutil.Details{"sql": errorutil.SafeDetail.Value(sql)})
+		}
+		return result, nil
+	}
+
+	stmt, err := stmtPreparer.PrepareContext(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := stmt.QueryContext(ctx, args...)
 	if err != nil {
 		if isWriteConflict(err) {
 			panic(ErrWriteConflict)
@@ -46,15 +82,23 @@ func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.
 }
 
 func (e *SQLExecutor) QueryRowWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.Row, error) {
-	conn := mustGetConnLike(ctx)
 	sql, args, err := sqlizeri.ToSql()
 	if err != nil {
-		if isWriteConflict(err) {
-			panic(ErrWriteConflict)
-		}
-		return nil, errorutil.WithDetails(err, errorutil.Details{"sql": errorutil.SafeDetail.Value(sql)})
+		return nil, err
 	}
-	return conn.QueryRowContext(ctx, sql, args...), nil
+
+	stmtPreparer, ok := getStmtPreparer(ctx)
+	if !ok {
+		conn := mustGetConnLike(ctx)
+		return conn.QueryRowContext(ctx, sql, args...), nil
+	}
+
+	stmt, err := stmtPreparer.PrepareContext(ctx, sql)
+	if err != nil {
+		return nil, err
+	}
+
+	return stmt.QueryRowContext(ctx, args...), nil
 }
 
 func isWriteConflict(err error) bool {
