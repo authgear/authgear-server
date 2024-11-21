@@ -11,7 +11,7 @@ require (
 	github.com/authgear/graphql-go-relay v0.0.0-20240429082917-f56c3cce72ba
 	github.com/beevik/etree v1.4.1
 	github.com/go-jose/go-jose/v3 v3.0.3
-	github.com/golang-jwt/jwt/v5 v5.2.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/martian v2.1.0+incompatible
 	github.com/google/wire v0.5.0
 	github.com/gorilla/mux v1.8.1
@@ -76,7 +76,7 @@ require (
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.6.0 // indirect
 	github.com/getsentry/sentry-go v0.29.1 // indirect
-	github.com/go-asn1-ber/asn1-ber v1.5.5 // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.6 // indirect
 	github.com/go-gsm/charset v1.0.0 // indirect
 	github.com/go-ldap/ldap/v3 v3.4.8 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -107,7 +107,7 @@ require (
 	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5 // indirect
 	github.com/iawaknahc/jsonschema v0.0.0-20211026064614-d05c07b7760d // indirect
 	github.com/iawaknahc/originmatcher v0.0.0-20240717084358-ac10088d8800 // indirect
-	github.com/imdario/mergo v0.3.13 // indirect
+	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.1-0.20220621161143-b0104c826a24 // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
