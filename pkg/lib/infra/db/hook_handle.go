@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -92,14 +91,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		return
 	}
 
-	conn, err := db.Conn(ctx)
-	if err != nil {
-		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
-		return
-	}
-	logger.Debug("acquire connection")
-
-	tx, err := beginTx(ctx, logger, conn)
+	tx, err := beginTx(ctx, logger, db)
 	if err != nil {
 		return
 	}
@@ -115,15 +107,6 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 			for _, hook := range mustHookHandleContextGetValue(ctx).Hooks {
 				hook.DidCommitTx(ctx)
 			}
-		}
-	}()
-
-	defer func() {
-		closeErr := conn.Close()
-		if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
-			logger.WithError(closeErr).Error("failed to close connection")
-		} else {
-			logger.Debug("close connection")
 		}
 	}()
 
@@ -154,14 +137,7 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 		return
 	}
 
-	conn, err := db.Conn(ctx)
-	if err != nil {
-		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
-		return
-	}
-	logger.Debug("acquire connection")
-
-	tx, err := beginTx(ctx, logger, conn)
+	tx, err := beginTx(ctx, logger, db)
 	if err != nil {
 		return
 	}
@@ -177,15 +153,6 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 			for _, hook := range mustHookHandleContextGetValue(ctx).Hooks {
 				hook.DidCommitTx(ctx)
 			}
-		}
-	}()
-
-	defer func() {
-		closeErr := conn.Close()
-		if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
-			logger.WithError(closeErr).Error("failed to close connection")
-		} else {
-			logger.Debug("close connection")
 		}
 	}()
 
@@ -235,10 +202,10 @@ func (h *HookHandle) WithPrepareStatementsHandle(ctx context.Context, do func(ct
 	return
 }
 
-func beginTx(ctx context.Context, logger *log.Logger, conn *sql.Conn) (*sql.Tx, error) {
+func beginTx(ctx context.Context, logger *log.Logger, beginTxer beginTxer) (*sql.Tx, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
-	tx, err := conn.BeginTx(ctx, txOptions)
+	tx, err := beginTxer.BeginTx(ctx, txOptions)
 	if err != nil {
 		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
