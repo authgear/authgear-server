@@ -291,9 +291,9 @@ func (h *TokenHandler) doHandle(
 
 	switch r.GrantType() {
 	case AuthorizationCodeGrantType:
-		return h.handleAuthorizationCode(req.Context(), client, r)
+		return h.handleAuthorizationCode(ctx, client, r)
 	case RefreshTokenGrantType:
-		resp, err := h.handleRefreshToken(req.Context(), client, r)
+		resp, err := h.handleRefreshToken(ctx, client, r)
 		if err != nil {
 			return nil, err
 		}
@@ -1033,7 +1033,7 @@ func (h *TokenHandler) handleBiometricSetup(
 	client *config.OAuthClientConfig,
 	r protocol.TokenRequest,
 ) (httputil.Result, error) {
-	s := session.GetSession(req.Context())
+	s := session.GetSession(ctx)
 	if s == nil {
 		return nil, protocol.NewErrorStatusCode("invalid_grant", "biometric setup requires authenticated user", http.StatusUnauthorized)
 	}
@@ -1271,7 +1271,7 @@ func (h *TokenHandler) handleApp2AppRequest(
 		return nil, protocol.NewErrorWithErrorResponse(errResp)
 	}
 
-	_, originalOfflineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(req.Context(), r.RefreshToken())
+	_, originalOfflineGrant, refreshTokenHash, err := h.TokenService.ParseRefreshToken(ctx, r.RefreshToken())
 	if err != nil {
 		return nil, err
 	}
@@ -1380,7 +1380,7 @@ func (h *TokenHandler) handleIDToken(
 		)
 	}
 
-	s := session.GetSession(req.Context())
+	s := session.GetSession(ctx)
 	if s == nil {
 		return nil, protocol.NewErrorStatusCode("invalid_grant", "valid session is required", http.StatusUnauthorized)
 	}
@@ -1391,7 +1391,7 @@ func (h *TokenHandler) handleIDToken(
 	offlineGrantSession, ok := s.(*oauth.OfflineGrantSession)
 	if ok {
 		offlineGrant, _, err := h.rotateDeviceSecretIfDeviceSecretIsPresentAndValid(
-			req.Context(),
+			ctx,
 			r.DeviceSecret(),
 			offlineGrantSession.Scopes,
 			offlineGrantSession.OfflineGrant,
