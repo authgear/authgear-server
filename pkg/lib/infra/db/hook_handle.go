@@ -51,7 +51,7 @@ func (h *HookHandle) WithTx(do func() error) (err error) {
 		return
 	}
 
-	conn, err := db.db.Conn(h.Context)
+	conn, err := db.Conn(h.Context)
 	if err != nil {
 		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
 		return
@@ -125,7 +125,7 @@ func (h *HookHandle) ReadOnly(do func() error) (err error) {
 		return
 	}
 
-	conn, err := db.db.Conn(h.Context)
+	conn, err := db.Conn(h.Context)
 	if err != nil {
 		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
 		return
@@ -237,7 +237,7 @@ func rollbackTx(conn *txConn) error {
 	return nil
 }
 
-func (h *HookHandle) openDB() (*PoolDB, error) {
+func (h *HookHandle) openDB() (*sql.DB, error) {
 	h.Logger.WithFields(map[string]interface{}{
 		"max_open_conns":             h.ConnectionOptions.MaxOpenConnection,
 		"max_idle_conns":             h.ConnectionOptions.MaxIdleConnection,
