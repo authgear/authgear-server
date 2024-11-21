@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
 	"github.com/authgear/authgear-server/pkg/util/accesscontrol"
@@ -119,78 +120,95 @@ func (s *UserImportService) ImportRecords(ctx context.Context, request *Request)
 		Identifier: request.Identifier,
 	}
 
-	for idx, rawMessage := range request.Records {
-		detail := Detail{
-			Index: idx,
-			// Assume the outcome is failed.
-			Outcome: OutcomeFailed,
+	err := s.AppDatabase.WithPrepareStatementsHandle(ctx, func(ctx context.Context, h db.PreparedStatementsHandle) error {
+		for idx, rawMessage := range request.Records {
+			s.importRecordInConn(ctx, h, options, idx, rawMessage, total, result)
 		}
-
-		var record Record
-		shouldReindexUser := false
-		err := s.AppDatabase.WithTx(ctx, func(ctx context.Context) error {
-			var err error
-			record, err = s.ImportRecordInTxn(ctx, &detail, options, rawMessage)
-			if err != nil {
-				return err
-			}
-			switch detail.Outcome {
-			case OutcomeInserted:
-				fallthrough
-			case OutcomeUpdated:
-				shouldReindexUser = true
-				err = s.Elasticsearch.MarkUsersAsReindexRequired(ctx, []string{detail.UserID})
-				if err != nil {
-					return err
-				}
-			default:
-				// Reindex is not required for other cases
-			}
-			return nil
-		})
-		if record != nil {
-			record.Redact()
-			detail.Record = record
-		}
-
-		s.Logger.Infof("processed record (%v/%v): %v", idx+1, total, detail.Outcome)
-
-		if err != nil {
-			if !apierrors.IsAPIError(err) {
-				s.Logger.WithError(err).Error(err.Error())
-			}
-			detail.Errors = []*apierrors.APIError{apierrors.AsAPIError(err)}
-		}
-
-		result.Details = append(result.Details, detail)
-
-		switch detail.Outcome {
-		case OutcomeInserted:
-			result.Summary.Inserted += 1
-		case OutcomeUpdated:
-			result.Summary.Updated += 1
-		case OutcomeSkipped:
-			result.Summary.Skipped += 1
-		case OutcomeFailed:
-			result.Summary.Failed += 1
-		default:
-			result.Summary.Failed += 1
-		}
-
-		if shouldReindexUser {
-			// Do it after the transaction has committed to ensure the user can be queried
-			err = s.Elasticsearch.EnqueueReindexUserTask(ctx, detail.UserID)
-			if err != nil {
-				s.Logger.WithError(err).Error("failed to enqueue reindex user task")
-				return nil
-			}
-		}
+		return nil
+	})
+	if err != nil {
+		s.Logger.WithError(err).Error("encountered unexpected error in using prepared statement handle")
 	}
 
 	return result
 }
 
-func (s *UserImportService) ImportRecordInTxn(ctx context.Context, detail *Detail, options *Options, rawMessage json.RawMessage) (record Record, err error) {
+func (s *UserImportService) importRecordInConn(
+	ctx context.Context,
+	h db.PreparedStatementsHandle,
+	options *Options,
+	idx int,
+	rawMessage json.RawMessage,
+	total int,
+	result *Result,
+) {
+	detail := Detail{
+		Index: idx,
+		// Assume the outcome is failed.
+		Outcome: OutcomeFailed,
+	}
+
+	var record Record
+	shouldReindexUser := false
+	err := h.WithTx(ctx, func(ctx context.Context) error {
+		var err error
+		record, err = s.importRecordInTxn(ctx, &detail, options, rawMessage)
+		if err != nil {
+			return err
+		}
+		switch detail.Outcome {
+		case OutcomeInserted:
+			fallthrough
+		case OutcomeUpdated:
+			shouldReindexUser = true
+			err = s.Elasticsearch.MarkUsersAsReindexRequired(ctx, []string{detail.UserID})
+			if err != nil {
+				return err
+			}
+		default:
+			// Reindex is not required for other cases
+		}
+		return nil
+	})
+	if record != nil {
+		record.Redact()
+		detail.Record = record
+	}
+
+	s.Logger.Infof("processed record (%v/%v): %v", idx+1, total, detail.Outcome)
+
+	if err != nil {
+		if !apierrors.IsAPIError(err) {
+			s.Logger.WithError(err).Error(err.Error())
+		}
+		detail.Errors = []*apierrors.APIError{apierrors.AsAPIError(err)}
+	}
+
+	result.Details = append(result.Details, detail)
+
+	switch detail.Outcome {
+	case OutcomeInserted:
+		result.Summary.Inserted += 1
+	case OutcomeUpdated:
+		result.Summary.Updated += 1
+	case OutcomeSkipped:
+		result.Summary.Skipped += 1
+	case OutcomeFailed:
+		result.Summary.Failed += 1
+	default:
+		result.Summary.Failed += 1
+	}
+
+	if shouldReindexUser {
+		// Do it after the transaction has committed to ensure the user can be queried
+		err = s.Elasticsearch.EnqueueReindexUserTask(ctx, detail.UserID)
+		if err != nil {
+			s.Logger.WithError(err).Error("failed to enqueue reindex user task")
+		}
+	}
+}
+
+func (s *UserImportService) importRecordInTxn(ctx context.Context, detail *Detail, options *Options, rawMessage json.RawMessage) (record Record, err error) {
 	err = options.RecordSchema().Validator().ParseJSONRawMessage(rawMessage, &record)
 	if err != nil {
 		return
