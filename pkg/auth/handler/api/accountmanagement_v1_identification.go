@@ -71,7 +71,7 @@ func (h *AccountManagementV1IdentificationHandler) ServeHTTP(w http.ResponseWrit
 }
 
 func (h *AccountManagementV1IdentificationHandler) handle(ctx context.Context, w http.ResponseWriter, r *http.Request, request AccountManagementV1IdentificationRequest) {
-	userID := session.GetUserID(r.Context())
+	userID := session.GetUserID(ctx)
 	includeAndBindState := true
 	if request.ExcludeStateInAuthorizationURL != nil && *request.ExcludeStateInAuthorizationURL {
 		includeAndBindState = false

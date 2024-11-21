@@ -43,7 +43,7 @@ type WechatAuthHandler struct {
 	Renderer          Renderer
 }
 
-func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
+func (h *WechatAuthHandler) GetData(ctx context.Context, r *http.Request, w http.ResponseWriter, session *webapp.Session, graph *interaction.Graph) (map[string]interface{}, error) {
 	data := make(map[string]interface{})
 	baseViewModel := h.BaseViewModel.ViewModel(r, w)
 
@@ -69,7 +69,7 @@ func (h *WechatAuthHandler) GetData(r *http.Request, w http.ResponseWriter, sess
 		ImageURI: htmltemplate.URL(dataURI),
 	}
 
-	weChatRedirectURIFromCtx := wechat.GetWeChatRedirectURI(r.Context())
+	weChatRedirectURIFromCtx := wechat.GetWeChatRedirectURI(ctx)
 	if weChatRedirectURIFromCtx != "" {
 		u, err := url.Parse(weChatRedirectURIFromCtx)
 		if err != nil {
@@ -139,7 +139,7 @@ func (h *WechatAuthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		data, err := h.GetData(r, w, session, graph)
+		data, err := h.GetData(ctx, r, w, session, graph)
 		if err != nil {
 			return err
 		}

@@ -286,7 +286,7 @@ func (h *TesterHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		state := r.URL.Query().Get("state")
 		if code != "" && state != "" {
-			return h.doCodeExchange(r.Context(), code, state, w, r)
+			return h.doCodeExchange(ctx, code, state, w, r)
 		}
 
 		resultID := r.URL.Query().Get("result")

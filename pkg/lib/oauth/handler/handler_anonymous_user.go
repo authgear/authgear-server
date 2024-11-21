@@ -107,7 +107,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithCookieSessionType(
 	ctx context.Context,
 	req *http.Request,
 ) (*SignupAnonymousUserResult, error) {
-	s := session.GetSession(req.Context())
+	s := session.GetSession(ctx)
 	if s != nil && s.SessionType() == session.TypeIdentityProvider {
 		user, err := h.UserProvider.Get(ctx, s.GetAuthenticationInfo().UserID, accesscontrol.RoleGreatest)
 		if err != nil {
@@ -294,7 +294,7 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 			err = ErrUnauthenticated
 			return
 		}
-		authz, _, _, e := h.TokenService.ParseRefreshToken(req.Context(), refreshToken)
+		authz, _, _, e := h.TokenService.ParseRefreshToken(ctx, refreshToken)
 		var oauthError *protocol.OAuthProtocolError
 		if errors.As(e, &oauthError) {
 			err = apierrors.NewForbidden(oauthError.Error())
@@ -312,7 +312,7 @@ func (h *AnonymousUserHandler) IssuePromotionCode(
 		appID = authz.AppID
 		userID = authz.UserID
 	case WebSessionTypeCookie:
-		s := session.GetSession(req.Context())
+		s := session.GetSession(ctx)
 		if s != nil && s.SessionType() == session.TypeIdentityProvider {
 			appID = string(h.AppID)
 			userID = s.GetAuthenticationInfo().UserID

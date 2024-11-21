@@ -307,7 +307,7 @@ func (c *AuthflowController) HandleStep(ctx context.Context, w http.ResponseWrit
 		return
 	}
 
-	s, err := c.getWebSession(r)
+	s, err := c.getWebSession(ctx)
 	if err != nil {
 		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
@@ -339,7 +339,7 @@ func (c *AuthflowController) HandleWithoutFlow(ctx context.Context, w http.Respo
 	}
 
 	var session *webapp.Session
-	s, err := c.getWebSession(r)
+	s, err := c.getWebSession(ctx)
 	if err != nil {
 		if !apierrors.IsKind(err, webapp.WebUIInvalidSession) {
 			c.Logger.WithError(err).Errorf("failed to get web session")
@@ -363,8 +363,8 @@ func (c *AuthflowController) handleInlinePreviewIfNecessary(ctx context.Context,
 	return false
 }
 
-func (c *AuthflowController) getWebSession(r *http.Request) (*webapp.Session, error) {
-	s := webapp.GetSession(r.Context())
+func (c *AuthflowController) getWebSession(ctx context.Context) (*webapp.Session, error) {
+	s := webapp.GetSession(ctx)
 	if s == nil {
 		return nil, webapp.ErrSessionNotFound
 	}
@@ -373,7 +373,7 @@ func (c *AuthflowController) getWebSession(r *http.Request) (*webapp.Session, er
 
 func (c *AuthflowController) getOrCreateWebSession(ctx context.Context, w http.ResponseWriter, r *http.Request, opts webapp.SessionOptions) (*webapp.Session, error) {
 	now := c.Clock.NowUTC()
-	s := webapp.GetSession(r.Context())
+	s := webapp.GetSession(ctx)
 	if s != nil {
 		return s, nil
 	}

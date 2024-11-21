@@ -85,7 +85,7 @@ func (h *UserExportCreateHandler) handle(ctx context.Context, w http.ResponseWri
 	}
 
 	task := h.Producer.NewTask(string(h.AppID), rawMessage, "userexport")
-	err = h.Producer.EnqueueTask(r.Context(), task)
+	err = h.Producer.EnqueueTask(ctx, task)
 	if err != nil {
 		return err
 	}

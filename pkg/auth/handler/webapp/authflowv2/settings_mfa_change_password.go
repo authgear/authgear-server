@@ -102,7 +102,7 @@ func (h *AuthflowV2SettingsMFAChangePasswordHandler) ServeHTTP(w http.ResponseWr
 			return err
 		}
 
-		s := session.GetSession(r.Context())
+		s := session.GetSession(ctx)
 		input := &accountmanagement.ChangeSecondaryPasswordInput{
 			OldPassword: oldPassword,
 			NewPassword: newPassword,

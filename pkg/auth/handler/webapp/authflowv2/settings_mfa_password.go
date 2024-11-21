@@ -79,7 +79,7 @@ func (h *AuthflowV2SettingsMFAPasswordHandler) ServeHTTP(w http.ResponseWriter, 
 	})
 
 	ctrl.PostAction("remove", func(ctx context.Context) error {
-		s := session.GetSession(r.Context())
+		s := session.GetSession(ctx)
 
 		input := &accountmanagement.DeleteSecondaryPasswordInput{}
 		_, err = h.AccountManagement.DeleteSecondaryPassword(ctx, s, input)
