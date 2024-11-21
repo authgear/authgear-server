@@ -40,10 +40,16 @@ func (h *Handler) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) CheckHealth(ctx context.Context) (err error) {
 	err = h.GlobalDatabase.ReadOnly(ctx, func(ctx context.Context) error {
-		_, err := h.GlobalExecutor.QueryRowWith(ctx, sq.Select("42"))
+		var fortyTwo int
+		row, err := h.GlobalExecutor.QueryRowWith(ctx, sq.Select("42"))
 		if err != nil {
 			return err
 		}
+		err = row.Scan(&fortyTwo)
+		if err != nil {
+			return err
+		}
+
 		h.Logger.Debugf("global database connection healthz passed")
 		return nil
 	})

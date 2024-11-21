@@ -74,9 +74,7 @@ func NewReadSQLExecutor(handle *ReadHandle) *ReadSQLExecutor {
 	}
 
 	return &ReadSQLExecutor{
-		db.SQLExecutor{
-			Database: handle,
-		},
+		db.SQLExecutor{},
 	}
 }
 
@@ -86,9 +84,7 @@ func NewWriteSQLExecutor(handle *WriteHandle) *WriteSQLExecutor {
 	}
 
 	return &WriteSQLExecutor{
-		db.SQLExecutor{
-			Database: handle,
-		},
+		db.SQLExecutor{},
 	}
 }
 
@@ -112,7 +108,6 @@ func NewReadHandle(
 		MaxIdleConnection:     cfg.MaxIdleConn,
 		MaxConnectionLifetime: cfg.ConnMaxLifetimeSeconds.Duration(),
 		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
-		UsePreparedStatements: cfg.UsePreparedStatements,
 	}
 	return &ReadHandle{
 		db.NewHookHandle(pool, opts, lf),

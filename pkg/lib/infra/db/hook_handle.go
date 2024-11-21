@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	"github.com/authgear/authgear-server/pkg/util/errorutil"
@@ -16,8 +15,8 @@ type hookHandleContextKeyType struct{}
 var hookHandleContextKey = hookHandleContextKeyType{}
 
 type hookHandleContextValue struct {
-	Tx    *txConn
-	Hooks []TransactionHook
+	TxLike txLike
+	Hooks  []TransactionHook
 }
 
 type HookHandle struct {
@@ -38,6 +37,18 @@ func hookHandleContextGetValue(ctx context.Context) (*hookHandleContextValue, bo
 	return v, true
 }
 
+func mustHookHandleContextGetValue(ctx context.Context) *hookHandleContextValue {
+	v, ok := hookHandleContextGetValue(ctx)
+	if !ok {
+		panic(fmt.Errorf("hook-handle: transaction not started"))
+	}
+	return v
+}
+
+func mustGetTxLike(ctx context.Context) txLike {
+	return mustHookHandleContextGetValue(ctx).TxLike
+}
+
 var _ Handle = (*HookHandle)(nil)
 
 func NewHookHandle(pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHandle {
@@ -46,19 +57,6 @@ func NewHookHandle(pool *Pool, opts ConnectionOptions, lf *log.Factory) *HookHan
 		ConnectionOptions: opts,
 		Logger:            lf.New("db-handle"),
 	}
-}
-
-func (h *HookHandle) txConn(ctx context.Context) *txConn {
-	v := h.getValue(ctx)
-	return v.Tx
-}
-
-func (h *HookHandle) getValue(ctx context.Context) *hookHandleContextValue {
-	v, ok := hookHandleContextGetValue(ctx)
-	if !ok {
-		panic(fmt.Errorf("hook-handle: transaction not started"))
-	}
-	return v
 }
 
 func (h *HookHandle) UseHook(ctx context.Context, hook TransactionHook) {
@@ -93,51 +91,33 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 		return
 	}
 
-	conn, err := db.db.Conn(ctx)
-	if err != nil {
-		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
-		return
-	}
-	logger.Debug("acquire connection")
-
-	tx, err := h.beginTx(ctx, logger, conn)
+	tx, err := beginTx(ctx, logger, db)
 	if err != nil {
 		return
 	}
 
 	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
-		Tx: tx,
+		TxLike: tx,
 	})
 
+	shouldRunDidCommitHooks := false
+
 	defer func() {
-		shouldRunDidCommitHooks := false
-
-		// This defer block is run second.
-		defer func() {
-			if shouldRunDidCommitHooks {
-				for _, hook := range h.getValue(ctx).Hooks {
-					hook.DidCommitTx(ctx)
-				}
+		if shouldRunDidCommitHooks {
+			for _, hook := range mustHookHandleContextGetValue(ctx).Hooks {
+				hook.DidCommitTx(ctx)
 			}
-		}()
+		}
+	}()
 
-		// This defer block is run first.
-		defer func() {
-			closeErr := conn.Close()
-			if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
-				logger.WithError(closeErr).Error("failed to close connection")
-			} else {
-				logger.Debug("close connection")
-			}
-		}()
-
+	defer func() {
 		if r := recover(); r != nil {
-			_ = rollbackTx(tx)
+			_ = rollbackTx(logger, tx)
 			panic(r)
 		} else if err != nil {
-			_ = rollbackTx(tx)
+			_ = rollbackTx(logger, tx)
 		} else {
-			err = commitTx(ctx, tx, h.getValue(ctx).Hooks)
+			err = commitTx(ctx, logger, tx, mustHookHandleContextGetValue(ctx).Hooks)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
@@ -157,50 +137,33 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 		return
 	}
 
-	conn, err := db.db.Conn(ctx)
-	if err != nil {
-		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
-		return
-	}
-	logger.Debug("acquire connection")
-
-	tx, err := h.beginTx(ctx, logger, conn)
+	tx, err := beginTx(ctx, logger, db)
 	if err != nil {
 		return
 	}
 
 	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
-		Tx: tx,
+		TxLike: tx,
 	})
 
+	shouldRunDidCommitHooks := false
+
 	defer func() {
-		shouldRunDidCommitHooks := false
-
-		defer func() {
-			if shouldRunDidCommitHooks {
-				for _, hook := range h.getValue(ctx).Hooks {
-					hook.DidCommitTx(ctx)
-				}
+		if shouldRunDidCommitHooks {
+			for _, hook := range mustHookHandleContextGetValue(ctx).Hooks {
+				hook.DidCommitTx(ctx)
 			}
-		}()
+		}
+	}()
 
-		// This defer block is run first.
-		defer func() {
-			closeErr := conn.Close()
-			if closeErr != nil && !errors.Is(closeErr, sql.ErrConnDone) {
-				logger.WithError(closeErr).Error("failed to close connection")
-			} else {
-				logger.Debug("close connection")
-			}
-		}()
-
+	defer func() {
 		if r := recover(); r != nil {
-			_ = rollbackTx(tx)
+			_ = rollbackTx(logger, tx)
 			panic(r)
 		} else if err != nil {
-			_ = rollbackTx(tx)
+			_ = rollbackTx(logger, tx)
 		} else {
-			err = rollbackTx(tx)
+			err = rollbackTx(logger, tx)
 			if err == nil {
 				shouldRunDidCommitHooks = true
 			}
@@ -211,55 +174,76 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 	return
 }
 
-func (h *HookHandle) beginTx(ctx context.Context, logger *log.Logger, conn *sql.Conn) (*txConn, error) {
+func (h *HookHandle) WithPrepareStatementsHandle(ctx context.Context, do func(ctx context.Context, handle PreparedStatementsHandle) error) (err error) {
+	id := uuid.New()
+	logger := h.Logger.WithField("debug_id", id)
+	db, err := h.openDB()
+	if err != nil {
+		return
+	}
+
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		err = fmt.Errorf("hook-handle: failed to acquire connection: %w", err)
+		return
+	}
+	logger.Debug("acquire connection")
+
+	preparedStatementsHandle := &preparedStatementsHandle{
+		logger:           logger,
+		conn:             conn,
+		cachedStatements: make(map[string]*sql.Stmt),
+	}
+	defer preparedStatementsHandle.Close()
+
+	ctx = withPreparedStatementsHandle(ctx, preparedStatementsHandle)
+
+	err = do(ctx, preparedStatementsHandle)
+	return
+}
+
+func beginTx(ctx context.Context, logger *log.Logger, beginTxer beginTxer) (*sql.Tx, error) {
 	// Pass a nil TxOptions to use default isolation level.
 	var txOptions *sql.TxOptions
-	tx, err := conn.BeginTx(ctx, txOptions)
+	tx, err := beginTxer.BeginTx(ctx, txOptions)
 	if err != nil {
 		return nil, fmt.Errorf("hook-handle: failed to begin transaction: %w", err)
 	}
 
 	logger.Debug("begin")
-
-	return &txConn{
-		conn:      conn,
-		tx:        tx,
-		logger:    logger,
-		doPrepare: h.ConnectionOptions.UsePreparedStatements,
-	}, nil
+	return tx, nil
 }
 
-func commitTx(ctx context.Context, conn *txConn, hooks []TransactionHook) error {
+func commitTx(ctx context.Context, logger *log.Logger, tx *sql.Tx, hooks []TransactionHook) error {
 	for _, hook := range hooks {
 		err := hook.WillCommitTx(ctx)
 		if err != nil {
-			if rbErr := conn.tx.Rollback(); rbErr != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
 				err = errorutil.WithSecondaryError(err, rbErr)
 			}
 			return err
 		}
 	}
 
-	err := conn.tx.Commit()
+	err := tx.Commit()
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to commit transaction: %w", err)
 	}
-	conn.logger.Debug("commit")
-
+	logger.Debug("commit")
 	return nil
 }
 
-func rollbackTx(conn *txConn) error {
-	err := conn.tx.Rollback()
+func rollbackTx(logger *log.Logger, tx *sql.Tx) error {
+	err := tx.Rollback()
 	if err != nil {
 		return fmt.Errorf("hook-handle: failed to rollback transaction: %w", err)
 	}
-	conn.logger.Debug("rollback")
+	logger.Debug("rollback")
 
 	return nil
 }
 
-func (h *HookHandle) openDB() (*PoolDB, error) {
+func (h *HookHandle) openDB() (*sql.DB, error) {
 	h.Logger.WithFields(map[string]interface{}{
 		"max_open_conns":             h.ConnectionOptions.MaxOpenConnection,
 		"max_idle_conns":             h.ConnectionOptions.MaxIdleConnection,

@@ -51,9 +51,7 @@ func NewDumper(
 		},
 		loggerFactory,
 	)
-	sqlExecutor := &db.SQLExecutor{
-		Database: handle,
-	}
+	sqlExecutor := &db.SQLExecutor{}
 	sqlBuilder := db.NewSQLBuilder(databaseSchema)
 	return &Dumper{
 		DatabaseURL:    databaseURL,

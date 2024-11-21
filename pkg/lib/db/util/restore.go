@@ -48,9 +48,7 @@ func NewRestorer(
 		},
 		loggerFactory,
 	)
-	sqlExecutor := &db.SQLExecutor{
-		Database: handle,
-	}
+	sqlExecutor := &db.SQLExecutor{}
 	sqlBuilder := db.NewSQLBuilder(databaseSchema)
 	return &Restorer{
 		DatabaseURL:    databaseURL,

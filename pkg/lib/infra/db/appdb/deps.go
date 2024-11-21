@@ -59,9 +59,7 @@ type SQLExecutor struct {
 
 func NewSQLExecutor(handle *Handle) *SQLExecutor {
 	return &SQLExecutor{
-		db.SQLExecutor{
-			Database: handle,
-		},
+		db.SQLExecutor{},
 	}
 }
 
@@ -81,7 +79,6 @@ func NewHandle(
 		MaxIdleConnection:     cfg.MaxIdleConn,
 		MaxConnectionLifetime: cfg.ConnMaxLifetimeSeconds.Duration(),
 		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
-		UsePreparedStatements: cfg.UsePreparedStatements,
 	}
 	return &Handle{
 		db.NewHookHandle(pool, opts, lf),

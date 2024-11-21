@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -21,7 +22,7 @@ func TestContext(t *testing.T) {
 	var contextKey = contextKeyType{}
 
 	type contextValues struct {
-		tx    *txConn
+		tx    *sql.Tx
 		hooks []TransactionHook
 	}
 
@@ -41,7 +42,7 @@ func TestContext(t *testing.T) {
 		base := context.Background()
 
 		level1 := withValue(base, &contextValues{
-			tx: &txConn{},
+			tx: &sql.Tx{},
 		})
 
 		// Able to retrieve the value.
@@ -61,7 +62,7 @@ func TestContext(t *testing.T) {
 
 		// Support nesting.
 		level2 := withValue(level1, &contextValues{
-			tx: &txConn{},
+			tx: &sql.Tx{},
 		})
 		level2Value, ok := getValue(level2)
 		So(ok, ShouldBeTrue)
