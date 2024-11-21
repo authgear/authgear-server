@@ -79,7 +79,6 @@ func NewHandle(
 		MaxIdleConnection:     cfg.MaxIdleConn,
 		MaxConnectionLifetime: cfg.ConnMaxLifetimeSeconds.Duration(),
 		IdleConnectionTimeout: cfg.ConnMaxIdleTimeSeconds.Duration(),
-		UsePreparedStatements: cfg.UsePreparedStatements,
 	}
 	return &Handle{
 		db.NewHookHandle(pool, opts, lf),

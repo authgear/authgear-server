@@ -10,6 +10,4 @@ type ConnectionOptions struct {
 	MaxIdleConnection     int
 	MaxConnectionLifetime time.Duration
 	IdleConnectionTimeout time.Duration
-
-	UsePreparedStatements bool
 }
