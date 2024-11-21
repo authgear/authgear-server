@@ -21,8 +21,8 @@ func (e *SQLExecutor) ExecWith(ctx context.Context, sqlizeri sq.Sqlizer) (sql.Re
 
 	stmtPreparer, ok := getStmtPreparer(ctx)
 	if !ok {
-		conn := mustGetConnLike(ctx)
-		result, err := conn.ExecContext(ctx, sql, args...)
+		tx := mustGetTxLike(ctx)
+		result, err := tx.ExecContext(ctx, sql, args...)
 		if err != nil {
 			if isWriteConflict(err) {
 				panic(ErrWriteConflict)
@@ -55,8 +55,8 @@ func (e *SQLExecutor) QueryWith(ctx context.Context, sqlizeri sq.Sqlizer) (*sql.
 
 	stmtPreparer, ok := getStmtPreparer(ctx)
 	if !ok {
-		conn := mustGetConnLike(ctx)
-		result, err := conn.QueryContext(ctx, sql, args...)
+		tx := mustGetTxLike(ctx)
+		result, err := tx.QueryContext(ctx, sql, args...)
 		if err != nil {
 			if isWriteConflict(err) {
 				panic(ErrWriteConflict)
@@ -89,8 +89,8 @@ func (e *SQLExecutor) QueryRowWith(ctx context.Context, sqlizeri sq.Sqlizer) (*s
 
 	stmtPreparer, ok := getStmtPreparer(ctx)
 	if !ok {
-		conn := mustGetConnLike(ctx)
-		return conn.QueryRowContext(ctx, sql, args...), nil
+		tx := mustGetTxLike(ctx)
+		return tx.QueryRowContext(ctx, sql, args...), nil
 	}
 
 	stmt, err := stmtPreparer.PrepareContext(ctx, sql)

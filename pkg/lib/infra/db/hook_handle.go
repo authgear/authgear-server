@@ -16,8 +16,8 @@ type hookHandleContextKeyType struct{}
 var hookHandleContextKey = hookHandleContextKeyType{}
 
 type hookHandleContextValue struct {
-	ConnLike ConnLike
-	Hooks    []TransactionHook
+	TxLike txLike
+	Hooks  []TransactionHook
 }
 
 type HookHandle struct {
@@ -46,8 +46,8 @@ func mustHookHandleContextGetValue(ctx context.Context) *hookHandleContextValue 
 	return v
 }
 
-func mustGetConnLike(ctx context.Context) ConnLike {
-	return mustHookHandleContextGetValue(ctx).ConnLike
+func mustGetTxLike(ctx context.Context) txLike {
+	return mustHookHandleContextGetValue(ctx).TxLike
 }
 
 var _ Handle = (*HookHandle)(nil)
@@ -105,7 +105,7 @@ func (h *HookHandle) WithTx(ctx context.Context, do func(ctx context.Context) er
 	}
 
 	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
-		ConnLike: tx,
+		TxLike: tx,
 	})
 
 	shouldRunDidCommitHooks := false
@@ -167,7 +167,7 @@ func (h *HookHandle) ReadOnly(ctx context.Context, do func(ctx context.Context) 
 	}
 
 	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
-		ConnLike: tx,
+		TxLike: tx,
 	})
 
 	shouldRunDidCommitHooks := false

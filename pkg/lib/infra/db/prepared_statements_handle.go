@@ -31,7 +31,7 @@ func getPreparedStatementsHandle(ctx context.Context) (*preparedStatementsHandle
 	return v, true
 }
 
-func getStmtPreparer(ctx context.Context) (StmtPreparer, bool) {
+func getStmtPreparer(ctx context.Context) (stmtPreparer, bool) {
 	h, ok := getPreparedStatementsHandle(ctx)
 	if !ok {
 		return nil, false
@@ -91,7 +91,7 @@ func (h *preparedStatementsHandle) WithTx(ctx context.Context, do func(ctx conte
 	}
 
 	ctx = hookHandleContextWithValue(ctx, &hookHandleContextValue{
-		ConnLike: tx,
+		TxLike: tx,
 	})
 
 	shouldRunDidCommitHooks := false
