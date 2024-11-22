@@ -6,7 +6,12 @@ import {
   FormattedMessage,
 } from "@oursky/react-messageformat";
 import PrimaryButton from "../../PrimaryButton";
-import { comparePlan, getCTAVariant, isPlan } from "../../util/plan";
+import {
+  CTAVariant,
+  comparePlan,
+  getCTAVariant,
+  isPlan,
+} from "../../util/plan";
 import Tooltip from "../../Tooltip";
 
 interface PlanCardSMSPricingFixed {
@@ -29,9 +34,18 @@ interface PlanFeatures {
 }
 
 interface PlanAddOns {
+  additionalMAU?: {
+    price: number;
+    unit: number;
+  };
   perEnvironment?: number;
   perApplication?: number;
   perProjectMember?: number;
+}
+
+interface AdditionalFeature {
+  iconName: string;
+  message: string;
 }
 
 interface BasePlanCardProps {
@@ -41,6 +55,7 @@ interface BasePlanCardProps {
   subscribeButtonMessage: string;
   subscribeButtonDisabled: boolean;
   features: PlanFeatures;
+  additionalFeatures?: AdditionalFeature[];
   addons?: PlanAddOns;
 }
 
@@ -51,6 +66,7 @@ function BasePlanCard({
   subscribeButtonMessage,
   subscribeButtonDisabled,
   features,
+  additionalFeatures,
   addons,
 }: BasePlanCardProps): React.ReactElement {
   return (
@@ -68,6 +84,12 @@ function BasePlanCard({
         disabled={subscribeButtonDisabled}
       />
       <FeatureList {...features} />
+      {additionalFeatures != null ? (
+        <>
+          <div className="h-px w-full bg-separator" />
+          <AdditionalFeatureList features={additionalFeatures} />
+        </>
+      ) : null}
       {addons != null ? (
         <>
           <div className="h-px w-full bg-separator" />
@@ -157,12 +179,14 @@ function FeatureListItem({
   iconName,
   message,
 }: {
-  iconName: string;
+  iconName?: string;
   message: React.ReactNode;
 }) {
   return (
     <li className="flex items-center gap-2">
-      <Icon iconName={iconName} className="text-sm text-theme-primary" />
+      {iconName != null ? (
+        <Icon iconName={iconName} className="text-sm text-theme-primary" />
+      ) : null}
       <Text variant="medium" className="font-semibold">
         {message}
       </Text>
@@ -233,6 +257,26 @@ function FeatureList({
   );
 }
 
+function AdditionalFeatureList({
+  features,
+}: {
+  features: AdditionalFeature[];
+}) {
+  return (
+    <ul className={styles.featureList}>
+      {features.map((feature, idx) => {
+        return (
+          <FeatureListItem
+            key={idx}
+            iconName={feature.iconName}
+            message={feature.message}
+          />
+        );
+      })}
+    </ul>
+  );
+}
+
 function AddonListItem({
   iconName,
   message,
@@ -251,6 +295,7 @@ function AddonListItem({
 }
 
 function AddOnsList({
+  additionalMAU,
   perApplication,
   perEnvironment,
   perProjectMember,
@@ -266,6 +311,17 @@ function AddOnsList({
           className="text-sm"
         />
       </li>
+      {additionalMAU != null ? (
+        <AddonListItem
+          iconName="Picture"
+          message={
+            <FormattedMessage
+              id="PlanCard.plan.addons.additionalMAU"
+              values={{ price: additionalMAU.price, unit: additionalMAU.unit }}
+            />
+          }
+        />
+      ) : null}
       {perEnvironment != null ? (
         <AddonListItem
           iconName="Picture"
@@ -342,20 +398,8 @@ export function PlanCardFree({
   );
 }
 
-export function PlanCardDevelopers({
-  currentPlan,
-  subscriptionCancelled,
-}: PlanCardProps): React.ReactElement {
+function useSubscriptablePlanCTAButton(cta: CTAVariant, planName: string) {
   const { renderToString } = useContext(MessageContext);
-  const cta = getCTAVariant({
-    cardPlanName: "developers",
-    currentPlanName: currentPlan,
-    subscriptionCancelled,
-  });
-
-  const planNameTranslated = useMemo(() => {
-    return renderToString("PlanCard.plan.developers");
-  }, [renderToString]);
 
   const isButtonActive = (() => {
     switch (cta) {
@@ -376,26 +420,52 @@ export function PlanCardDevelopers({
         return renderToString("PlanCard.action.contact-us");
       case "downgrade":
         return renderToString("PlanCard.action.downgrade", {
-          plan: planNameTranslated,
+          plan: planName,
         });
       case "reactivate":
         return renderToString("PlanCard.action.reactivate");
       case "subscribe":
         return renderToString("PlanCard.action.subscribe", {
-          plan: planNameTranslated,
+          plan: planName,
         });
       case "upgrade":
         return renderToString("PlanCard.action.upgrade", {
-          plan: planNameTranslated,
+          plan: planName,
         });
       case "current":
         return renderToString("PlanCard.action.current", {
-          plan: planNameTranslated,
+          plan: planName,
         });
       case "non-applicable":
         return renderToString("PlanCard.action.non-applicable");
     }
-  }, [cta, planNameTranslated, renderToString]);
+  }, [cta, planName, renderToString]);
+
+  return {
+    buttonText,
+    isButtonActive,
+  };
+}
+
+export function PlanCardDevelopers({
+  currentPlan,
+  subscriptionCancelled,
+}: PlanCardProps): React.ReactElement {
+  const { renderToString } = useContext(MessageContext);
+  const cta = getCTAVariant({
+    cardPlanName: "developers",
+    currentPlanName: currentPlan,
+    subscriptionCancelled,
+  });
+
+  const planNameTranslated = useMemo(() => {
+    return renderToString("PlanCard.plan.developers");
+  }, [renderToString]);
+
+  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton(
+    cta,
+    planNameTranslated
+  );
 
   return (
     <BasePlanCard
@@ -416,6 +486,71 @@ export function PlanCardDevelopers({
         support: renderToString("PlanCard.plan.features.support.email"),
       }}
       addons={{
+        perEnvironment: 100,
+        perApplication: 100,
+        perProjectMember: 50,
+      }}
+    />
+  );
+}
+
+export function PlanCardBusiness({
+  currentPlan,
+  subscriptionCancelled,
+}: PlanCardProps): React.ReactElement {
+  const { renderToString } = useContext(MessageContext);
+  const cta = getCTAVariant({
+    cardPlanName: "business",
+    currentPlanName: currentPlan,
+    subscriptionCancelled,
+  });
+
+  const planNameTranslated = useMemo(() => {
+    return renderToString("PlanCard.plan.business");
+  }, [renderToString]);
+
+  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton(
+    cta,
+    planNameTranslated
+  );
+
+  return (
+    <BasePlanCard
+      planTitle={planNameTranslated}
+      pricePerMonth={500}
+      smsPricing={{
+        type: "metered",
+        northAmericaPrice: 0.02,
+        otherRegionPrice: 0.1,
+      }}
+      subscribeButtonMessage={buttonText}
+      subscribeButtonDisabled={!isButtonActive}
+      features={{
+        mau: 25000,
+        applications: 5,
+        projectMembers: 5,
+        logRetentionDays: 60,
+        support: renderToString("PlanCard.plan.features.support.slack"),
+      }}
+      additionalFeatures={[
+        {
+          iconName: "CheckMark",
+          message: renderToString(
+            "PlanCard.plan.additionalFeature.removeAuthgearBranding"
+          ),
+        },
+        {
+          iconName: "CheckMark",
+          message: renderToString(
+            "PlanCard.plan.additionalFeature.projectMemberRoles"
+          ),
+        },
+      ]}
+      addons={{
+        additionalMAU: {
+          price: 50,
+          unit: 5000,
+        },
         perEnvironment: 100,
         perApplication: 100,
         perProjectMember: 50,
