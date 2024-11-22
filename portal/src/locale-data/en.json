@@ -2097,6 +2097,17 @@
   "UnauthenticatedDialog.description": "Your session is expired due to inactivity. Please login again.",
   "UnauthenticatedDialog.button": "Login again",
 
+  "PlanCard.plan.free": "Starter",
+  "PlanCard.price.free": "Free",
+  "PlanCard.smsPrice.fixed": "Up to {limit} SMS/WhatsApp Messages per month",
+  "PlanCard.plan.free.active": "You are on Starter",
+  "PlanCard.plan.free.downgrade": "Switch back to Starter",
+  "PlanCard.plan.features.mau": "{limit, select, unlimited{Unlimited} custom{Custom} other{{limit}} } Monthly Active Users",
+  "PlanCard.plan.features.applications": "{limit} Applications",
+  "PlanCard.plan.features.projectMembers": "{limit} Project Member",
+  "PlanCard.plan.features.logRetentionDays": "{limit}-Day Log Retention",
+  "PlanCard.plan.features.support.discord": "Discord Community",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",
