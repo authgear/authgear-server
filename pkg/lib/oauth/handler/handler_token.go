@@ -32,6 +32,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -598,6 +599,11 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 	if err != nil {
 		h.Logger.WithError(err).Error("failed to invalidate code grant")
 	}
+
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterOAuthAuthorizationCodeConsumptionCount,
+	)
 
 	return resp, nil
 }

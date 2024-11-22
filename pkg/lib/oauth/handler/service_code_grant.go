@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/util/clock"
 )
@@ -53,5 +54,10 @@ func (s *CodeGrantService) CreateCodeGrant(ctx context.Context, opts *CreateCode
 	if err != nil {
 		return "", nil, err
 	}
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterOAuthAuthorizationCodeCreationCount,
+	)
+
 	return code, codeGrant, nil
 }
