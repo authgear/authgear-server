@@ -459,7 +459,7 @@ type Summary struct {
 
 type Detail struct {
 	Index    int                   `json:"index"`
-	Record   Record                `json:"record,omitempty"`
+	Record   interface{}           `json:"record,omitempty"`
 	Outcome  Outcome               `json:"outcome,omitempty"`
 	UserID   string                `json:"user_id,omitempty"`
 	Warnings []Warning             `json:"warnings,omitempty"`

@@ -173,6 +173,9 @@ func (s *UserImportService) importRecordInConn(
 	if record != nil {
 		record.Redact()
 		detail.Record = record
+	} else {
+		// record is nil means parsing is failed, return the raw input
+		detail.Record = rawMessage
 	}
 
 	s.Logger.Infof("processed record (%v/%v): %v", idx+1, total, detail.Outcome)
