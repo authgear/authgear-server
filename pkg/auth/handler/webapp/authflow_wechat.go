@@ -89,7 +89,7 @@ func (h *AuthflowWechatHandler) GetData(ctx context.Context, w http.ResponseWrit
 		// nolint: gosec
 		ImageURI: htmltemplate.URL(dataURI),
 	}
-	wechatRedirectURI := wechat.GetWeChatRedirectURI(r.Context())
+	wechatRedirectURI := wechat.GetWeChatRedirectURI(ctx)
 	if wechatRedirectURI != "" {
 		u, err := url.Parse(wechatRedirectURI)
 		if err != nil {

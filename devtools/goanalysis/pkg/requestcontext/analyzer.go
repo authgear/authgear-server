@@ -1,4 +1,4 @@
-package contextbackground
+package requestcontext
 
 import (
 	"go/ast"
@@ -24,15 +24,10 @@ func NewAnalyzer(pos *vettedposutil.VettedPositions) *analysis.Analyzer {
 						if f, ok := selObj.(*types.Func); ok {
 							fullName := f.FullName()
 							switch fullName {
-							case "context.Background":
+							case "(*net/http.Request).Context":
 								isVetted := isVettedPos(pass, n, pos)
 								if !isVetted {
-									pass.Reportf(n.Pos(), "Unvetted usage of context.Background is forbidden.")
-								}
-							case "context.TODO":
-								isVetted := isVettedPos(pass, n, pos)
-								if !isVetted {
-									pass.Reportf(n.Pos(), "Unvetted usage of context.TODO is forbidden.")
+									pass.Reportf(n.Pos(), "Unvetted usage of request.Context is forbidden.")
 								}
 							default:
 								break
@@ -48,8 +43,8 @@ func NewAnalyzer(pos *vettedposutil.VettedPositions) *analysis.Analyzer {
 	}
 
 	return &analysis.Analyzer{
-		Name: "contextbackground",
-		Doc:  "contextbackground forbids context.Background or context.TODO, except those locations explicitly hard-coded in this analyzer.",
+		Name: "requestcontext",
+		Doc:  "requestcontext forbids (*net/http.Request).Context, except those locations explicitly hard-coded in this analyzer.",
 		Run:  run,
 		// See https://pkg.go.dev/golang.org/x/tools/go/analysis/passes/inspect
 		Requires: []*analysis.Analyzer{inspect.Analyzer},

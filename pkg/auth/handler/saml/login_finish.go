@@ -75,7 +75,7 @@ func (h *LoginFinishHandler) ServeHTTP(rw http.ResponseWriter, r *http.Request) 
 	}()
 
 	response, err := h.LoginResultHandler.handleLoginResult(
-		r.Context(),
+		ctx,
 		&authInfo.T,
 		samlSession.Entry,
 	)

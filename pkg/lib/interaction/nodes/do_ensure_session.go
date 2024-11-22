@@ -50,7 +50,7 @@ func (e *EdgeDoEnsureSession) Instantiate(goCtx context.Context, ctx *interactio
 	var updateSessionID string
 	var updateSessionAMR []string
 	if mode == EnsureSessionModeUpdateOrCreate {
-		s := session.GetSession(ctx.Request.Context())
+		s := session.GetSession(goCtx)
 		if idp, ok := s.(*idpsession.IDPSession); ok && idp.GetUserID() == userID {
 			updateSessionID = idp.ID
 			updateSessionAMR = amr
@@ -213,7 +213,7 @@ func (n *NodeDoEnsureSession) GetEffects(goCtx context.Context) ([]interaction.E
 				}
 
 				// Clean up unreachable IdP Session.
-				s := session.GetSession(ctx.Request.Context())
+				s := session.GetSession(goCtx)
 				if s != nil && s.SessionType() == session.TypeIdentityProvider {
 					err = ctx.SessionManager.RevokeWithoutEvent(goCtx, s)
 					if err != nil {

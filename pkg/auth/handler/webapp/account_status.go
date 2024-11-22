@@ -58,7 +58,7 @@ func (h *AccountStatusHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 			return err
 		}
 
-		webSession := webapp.GetSession(r.Context())
+		webSession := webapp.GetSession(ctx)
 		if webSession != nil {
 			// complete the interaction when user login with account
 			// which has been disabled / deactivated / scheduled deletion
