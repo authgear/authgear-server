@@ -3,6 +3,7 @@ package workflow
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 )
@@ -98,6 +99,13 @@ func (s *Session) ToOutput() *SessionOutput {
 
 func (s *Session) Context(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
+
+	if s.ClientID != "" {
+		key := otelauthgear.AttributeKeyClientID
+		val := key.String(s.ClientID)
+		ctx = context.WithValue(ctx, key, val)
+	}
+
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
 		ClientID:  s.ClientID,
 		UILocales: s.UILocales,

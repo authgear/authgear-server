@@ -3,6 +3,7 @@ package authenticationflow
 import (
 	"context"
 
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/intl"
 )
@@ -122,6 +123,12 @@ func (s *Session) ToOutput() *SessionOutput {
 func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) (context.Context, error) {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
 	ctx = context.WithValue(ctx, contextKeySAMLSessionID, s.SAMLSessionID)
+
+	if s.ClientID != "" {
+		key := otelauthgear.AttributeKeyClientID
+		val := key.String(s.ClientID)
+		ctx = context.WithValue(ctx, key, val)
+	}
 
 	ctx = uiparam.WithUIParam(ctx, &uiparam.T{
 		ClientID:  s.ClientID,
