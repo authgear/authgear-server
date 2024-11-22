@@ -648,6 +648,11 @@ func (h *TokenHandler) handleRefreshToken(
 		return nil, err
 	}
 
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterOAuthAccessTokenRefreshCount,
+	)
+
 	return resp, nil
 }
 
