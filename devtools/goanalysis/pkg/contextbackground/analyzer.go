@@ -3,6 +3,7 @@ package contextbackground
 import (
 	"go/ast"
 	"go/types"
+	"slices"
 	"strings"
 
 	"golang.org/x/tools/go/analysis"
@@ -10,14 +11,14 @@ import (
 	"golang.org/x/tools/go/ast/inspector"
 )
 
-var vettedFilenames = []string{
-	"/pkg/util/jwkutil/contextbackground.go",
-	"/pkg/lib/config/contextbackground.go",
-	"/pkg/lib/deps/contextbackground.go",
-	"/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go",
-	"/cmd/authgear/background/contextbackground.go",
-	"cmd/authgear/main.go",
-	"cmd/portal/main.go",
+var vettedPositions = []string{
+	"/pkg/util/jwkutil/contextbackground.go:11:52",
+	"/pkg/lib/config/contextbackground.go:11:52",
+	"/pkg/lib/deps/contextbackground.go:10:28",
+	"/pkg/lib/oauthrelyingparty/oauthrelyingpartyutil/contextbackground.go:11:52",
+	"/cmd/authgear/background/contextbackground.go:8:34",
+	"/cmd/authgear/main.go:46:9",
+	"/cmd/portal/main.go:41:9",
 }
 
 var Analyzer = &analysis.Analyzer{
@@ -40,15 +41,16 @@ func isATestFile(pass *analysis.Pass, n ast.Node) bool {
 	return false
 }
 
-func isVettedFile(pass *analysis.Pass, n ast.Node) bool {
+func isVettedPos(pass *analysis.Pass, n ast.Node) bool {
 	position := pass.Fset.Position(n.Pos())
 	// position is valid if Line > 0
 	// See https://pkg.go.dev/go/token#Position
 	if position.Line > 0 {
-		for _, suffix := range vettedFilenames {
-			if strings.HasSuffix(position.Filename, suffix) {
-				return true
-			}
+		b := slices.ContainsFunc(vettedPositions, func(s string) bool {
+			return strings.HasSuffix(position.String(), s)
+		})
+		if b {
+			return true
 		}
 	}
 	return false
@@ -58,18 +60,23 @@ func run(pass *analysis.Pass) (interface{}, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 	traverse := func(n ast.Node) {
 		isTestFile := isATestFile(pass, n)
-		isVettedFile := isVettedFile(pass, n)
 
-		if !isTestFile && !isVettedFile {
+		if !isTestFile {
 			if n, ok := n.(*ast.SelectorExpr); ok {
 				if selObj := pass.TypesInfo.ObjectOf(n.Sel); selObj != nil {
 					if f, ok := selObj.(*types.Func); ok {
 						fullName := f.FullName()
 						switch fullName {
 						case "context.Background":
-							pass.Reportf(n.Pos(), "Unvetted usage of context.Background is forbidden.")
+							isVetted := isVettedPos(pass, n)
+							if !isVetted {
+								pass.Reportf(n.Pos(), "Unvetted usage of context.Background is forbidden.")
+							}
 						case "context.TODO":
-							pass.Reportf(n.Pos(), "Unvetted usage of context.TODO is forbidden.")
+							isVetted := isVettedPos(pass, n)
+							if !isVetted {
+								pass.Reportf(n.Pos(), "Unvetted usage of context.TODO is forbidden.")
+							}
 						default:
 							break
 						}
