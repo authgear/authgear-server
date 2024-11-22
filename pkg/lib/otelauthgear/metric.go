@@ -29,6 +29,79 @@ var AttributeStatusOK = AttributeKeyStatus.String("ok")
 // AttributeStatusError is "status=error".
 var AttributeStatusError = AttributeKeyStatus.String("error")
 
+var CounterOAuthSessionCreationCount = mustInt64Counter(
+	"authgear.oauth_session.creation.count",
+	metric.WithDescription("The number of creation of OAuth session"),
+	metric.WithUnit("{session}"),
+)
+
+var CounterSAMLSessionCreationCount = mustInt64Counter(
+	"authgear.saml_session.creation.count",
+	metric.WithDescription("The number of creation of SAML session"),
+	metric.WithUnit("{session}"),
+)
+
+var CounterAuthflowSessionCreationCount = mustInt64Counter(
+	"authgear.authflow_session.creation.count",
+	metric.WithDescription("The number of creation of Authflow session"),
+	metric.WithUnit("{session}"),
+)
+
+var CounterWebSessionCreationCount = mustInt64Counter(
+	"authgear.web_session.creation.count",
+	metric.WithDescription("The number of creation of Web session"),
+	metric.WithUnit("{session}"),
+)
+
+var CounterOAuthAuthorizationCodeCreationCount = mustInt64Counter(
+	"authgear.oauth_authorization_code.creation.count",
+	metric.WithDescription("The number of creation of OAuth authorization code"),
+	metric.WithUnit("{code}"),
+)
+var CounterOAuthAuthorizationCodeConsumptionCount = mustInt64Counter(
+	"authgear.oauth_authorization_code.consumption.count",
+	metric.WithDescription("The number of consumption of OAuth authorization code"),
+	metric.WithUnit("{code}"),
+)
+
+var CounterOAuthAccessTokenRefreshCount = mustInt64Counter(
+	"authgear.oauth_access_token.refresh.count",
+	metric.WithDescription("The number of access token obtained via a refresh token"),
+	metric.WithUnit("{token}"),
+)
+
+// CounterEmailRequestCount has the following labels:
+// - AttributeKeyStatus
+var CounterEmailRequestCount = mustInt64Counter(
+	"authgear.email.request.count",
+	metric.WithDescription("The number of email request"),
+	metric.WithUnit("{request}"),
+)
+
+// CounterSMSRequestCount has the following labels:
+// - AttributeKeyStatus
+var CounterSMSRequestCount = mustInt64Counter(
+	"authgear.sms.request.count",
+	metric.WithDescription("The number of SMS request"),
+	metric.WithUnit("{request}"),
+)
+
+// CounterWhatsappRequestCount has the following labels:
+// - AttributeKeyStatus
+var CounterWhatsappRequestCount = mustInt64Counter(
+	"authgear.whatsapp.request.count",
+	metric.WithDescription("The number of Whatsapp request"),
+	metric.WithUnit("{request}"),
+)
+
+// CounterCSRFRequestCount has the following labels:
+// - AttributeKeyStatus
+var CounterCSRFRequestCount = mustInt64Counter(
+	"authgear.csrf.request.count",
+	metric.WithDescription("The number of HTTP request with CSRF protection"),
+	metric.WithUnit("{request}"),
+)
+
 func mustInt64Counter(name string, options ...metric.Int64CounterOption) metric.Int64Counter {
 	counter, err := meter.Int64Counter(name, options...)
 	if err != nil {
