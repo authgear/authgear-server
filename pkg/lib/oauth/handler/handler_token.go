@@ -240,7 +240,7 @@ type TokenHandler struct {
 }
 
 func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
-	client := resolveClient(h.ClientResolver, r)
+	client := resolveClient(h.ClientResolver, r.ClientID())
 	if client == nil {
 		return tokenResultError{
 			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),

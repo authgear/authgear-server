@@ -143,7 +143,7 @@ func (h *AnonymousUserHandler) signupAnonymousUserWithRefreshTokenSessionType(
 	clientID string,
 	refreshToken string,
 ) (*SignupAnonymousUserResult, error) {
-	client := h.OAuthClientResolver.ResolveClient(clientID)
+	client := resolveClient(h.OAuthClientResolver, clientID)
 	if client == nil {
 		// "invalid_client"
 		return nil, apierrors.NewInvalid("invalid client ID")

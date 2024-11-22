@@ -142,7 +142,7 @@ type AuthorizationHandler struct {
 }
 
 func (h *AuthorizationHandler) Handle(ctx context.Context, r protocol.AuthorizationRequest) httputil.Result {
-	client := resolveClient(h.ClientResolver, r)
+	client := resolveClient(h.ClientResolver, r.ClientID())
 	if client == nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -366,7 +366,7 @@ func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *h
 
 	r := entry.T.AuthorizationRequest
 
-	client := resolveClient(h.ClientResolver, r)
+	client := resolveClient(h.ClientResolver, r.ClientID())
 	if client == nil {
 		err = protocol.NewError("unauthorized_client", "invalid client ID")
 		return nil, err
@@ -833,7 +833,7 @@ func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(req *http.R
 		resultErr.Response.State(state)
 	}
 
-	client := h.ClientResolver.ResolveClient(req.URL.Query().Get("client_id"))
+	client := resolveClient(h.ClientResolver, req.URL.Query().Get("client_id"))
 
 	// Only redirect if oauth session is expired / not found
 	// It mostly happens when user refresh the page or go back to the page after authenication

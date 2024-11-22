@@ -19,8 +19,8 @@ type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
-func resolveClient(resolver OAuthClientResolver, r oauthRequest) *config.OAuthClientConfig {
-	return resolver.ResolveClient(r.ClientID())
+func resolveClient(resolver OAuthClientResolver, clientID string) *config.OAuthClientConfig {
+	return resolver.ResolveClient(clientID)
 }
 
 func parseRedirectURI(
