@@ -27,8 +27,8 @@ interface PlanCardSMSPricingMetered {
 
 interface PlanFeatures {
   mau: number | "unlimited" | "custom";
-  applications: number;
-  projectMembers: number;
+  applications: number | "unlimited";
+  projectMembers: number | "unlimited";
   logRetentionDays: number;
   support: string;
 }
@@ -44,7 +44,7 @@ interface PlanAddOns {
 }
 
 interface AdditionalFeature {
-  iconName: string;
+  iconName?: string;
   message: string;
 }
 
@@ -114,7 +114,7 @@ function PlanPrice({
       );
     case "custom":
       return (
-        <Text>
+        <Text variant="large" className="font-semibold leading-9">
           <FormattedMessage id="PlanCard.price.custom" />
         </Text>
       );
@@ -225,7 +225,12 @@ function FeatureList({
           <FormattedMessage
             id="PlanCard.plan.features.applications"
             values={{
-              limit: applications.toFixed(0),
+              limit:
+                typeof applications === "number"
+                  ? // Number formatting {n, number, integer} in message does not work
+                    // So format manually
+                    Intl.NumberFormat().format(applications)
+                  : applications,
             }}
           />
         }
@@ -236,7 +241,12 @@ function FeatureList({
           <FormattedMessage
             id="PlanCard.plan.features.projectMembers"
             values={{
-              limit: projectMembers.toFixed(0),
+              limit:
+                typeof projectMembers === "number"
+                  ? // Number formatting {n, number, integer} in message does not work
+                    // So format manually
+                    Intl.NumberFormat().format(projectMembers)
+                  : projectMembers,
             }}
           />
         }
@@ -313,7 +323,7 @@ function AddOnsList({
       </li>
       {additionalMAU != null ? (
         <AddonListItem
-          iconName="Picture"
+          iconName="Contact"
           message={
             <FormattedMessage
               id="PlanCard.plan.addons.additionalMAU"
@@ -554,6 +564,76 @@ export function PlanCardBusiness({
         perEnvironment: 100,
         perApplication: 100,
         perProjectMember: 50,
+      }}
+    />
+  );
+}
+
+export function PlanCardEnterprise({
+  currentPlan,
+  subscriptionCancelled,
+}: PlanCardProps): React.ReactElement {
+  const { renderToString } = useContext(MessageContext);
+  const cta = getCTAVariant({
+    cardPlanName: "enterprise",
+    currentPlanName: currentPlan,
+    subscriptionCancelled,
+  });
+
+  const planNameTranslated = useMemo(() => {
+    return renderToString("PlanCard.plan.enterprise");
+  }, [renderToString]);
+
+  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton(
+    cta,
+    planNameTranslated
+  );
+
+  return (
+    <BasePlanCard
+      planTitle={planNameTranslated}
+      pricePerMonth="custom"
+      smsPricing={{
+        type: "metered",
+        northAmericaPrice: 0.02,
+        otherRegionPrice: 0.1,
+      }}
+      subscribeButtonMessage={buttonText}
+      subscribeButtonDisabled={!isButtonActive}
+      features={{
+        mau: "custom",
+        applications: "unlimited",
+        projectMembers: "unlimited",
+        logRetentionDays: 180,
+        support: renderToString(
+          "PlanCard.plan.features.support.dedicatedAccountManager"
+        ),
+      }}
+      additionalFeatures={[
+        {
+          message: renderToString(
+            "PlanCard.plan.additionalFeature.allFeaturesInBusiness"
+          ),
+        },
+        {
+          iconName: "CheckMark",
+          message: renderToString(
+            "PlanCard.plan.additionalFeature.customSMSGateway"
+          ),
+        },
+        {
+          iconName: "CheckMark",
+          message: renderToString("PlanCard.plan.additionalFeature.customSMTP"),
+        },
+        {
+          iconName: "CheckMark",
+          message: renderToString(
+            "PlanCard.plan.additionalFeature.tailoredSLA"
+          ),
+        },
+      ]}
+      addons={{
+        perEnvironment: 100,
       }}
     />
   );

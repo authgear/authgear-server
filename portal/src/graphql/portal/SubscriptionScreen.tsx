@@ -84,6 +84,7 @@ import {
 import {
   PlanCardBusiness,
   PlanCardDevelopers,
+  PlanCardEnterprise,
   PlanCardFree,
 } from "../../components/billing/PlanCard";
 
@@ -792,6 +793,10 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             subscriptionCancelled={subscriptionCancelled}
           />
           <PlanCardBusiness
+            currentPlan={planName}
+            subscriptionCancelled={subscriptionCancelled}
+          />
+          <PlanCardEnterprise
             currentPlan={planName}
             subscriptionCancelled={subscriptionCancelled}
           />
