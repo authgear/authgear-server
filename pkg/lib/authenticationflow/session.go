@@ -120,7 +120,7 @@ func (s *Session) ToOutput() *SessionOutput {
 	}
 }
 
-func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) (context.Context, error) {
+func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) context.Context {
 	ctx = context.WithValue(ctx, contextKeyOAuthSessionID, s.OAuthSessionID)
 	ctx = context.WithValue(ctx, contextKeySAMLSessionID, s.SAMLSessionID)
 
@@ -155,7 +155,7 @@ func (s *Session) MakeContext(ctx context.Context, deps *Dependencies) (context.
 
 	ctx = context.WithValue(ctx, contextKeyFlowID, s.FlowID)
 
-	return ctx, nil
+	return ctx
 }
 
 func (s *Session) SetBotProtectionVerificationResult(result *BotProtectionVerificationResult) {
