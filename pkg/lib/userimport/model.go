@@ -514,7 +514,7 @@ func NewResponseFromTask(task *redisqueue.Task) (*Response, error) {
 	return response, nil
 }
 
-func (r *Response) AggregateTaskResult(task *redisqueue.Task) error {
+func (r *Response) AggregateTaskResult(taskOffset int, task *redisqueue.Task) error {
 	if task.CompletedAt == nil {
 		// Any task not yet complete => Job not yet complete
 		r.CompletedAt = nil
@@ -549,7 +549,12 @@ func (r *Response) AggregateTaskResult(task *redisqueue.Task) error {
 			r.Summary.Failed += result.Summary.Failed
 		}
 		if r.CompletedAt != nil {
-			r.Details = append(r.Details, result.Details...)
+			for _, detail := range result.Details {
+				adjustedDetail := detail
+				adjustedDetail.Index = adjustedDetail.Index + taskOffset
+
+				r.Details = append(r.Details, adjustedDetail)
+			}
 		}
 	}
 

@@ -114,7 +114,7 @@ func (m *JobManager) GetJob(ctx context.Context, jobID string) (*Response, error
 	}
 
 	resp := NewResponseFromJob(job)
-	for _, taskID := range job.TaskIDs {
+	for idx, taskID := range job.TaskIDs {
 		queueItem := &redisqueue.QueueItem{
 			AppID:  string(m.AppID),
 			TaskID: taskID,
@@ -124,7 +124,7 @@ func (m *JobManager) GetJob(ctx context.Context, jobID string) (*Response, error
 		if err != nil {
 			return nil, err
 		}
-		if err = resp.AggregateTaskResult(task); err != nil {
+		if err = resp.AggregateTaskResult(idx*recordsPerTask, task); err != nil {
 			return nil, err
 		}
 	}
