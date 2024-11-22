@@ -1,5 +1,5 @@
 .card {
-  @apply grid grid-cols-1 gap-8 justify-items-center;
+  @apply grid grid-cols-1 gap-8 justify-items-center content-start;
   @apply py-8 px-4;
   @apply border border-solid border-border-primary rounded-xl;
 }
@@ -9,7 +9,18 @@
 }
 
 .featureList {
+  @apply w-full;
   @apply grid grid-cols-1 gap-4;
   @apply list-none;
   @apply justify-self-start;
+}
+
+.addonList {
+  @apply w-full;
+  @apply grid grid-cols-1 gap-4;
+  @apply list-none;
+  @apply justify-self-start;
+  @apply p-4;
+  @apply rounded-xl;
+  @apply bg-brand-50;
 }

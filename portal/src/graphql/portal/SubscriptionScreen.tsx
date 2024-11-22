@@ -81,7 +81,10 @@ import {
   // isPlan,
   // Plan,
 } from "../../util/plan";
-import { PlanCardFree } from "../../components/billing/PlanCard";
+import {
+  PlanCardDevelopers,
+  PlanCardFree,
+} from "../../components/billing/PlanCard";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -778,8 +781,15 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             />
           ) : null}
         </SubscriptionCurrentPlanSummary>
-        <div className="grid grid-flow-col grid-rows-1">
-          <PlanCardFree currentPlan={planName} />
+        <div className="grid grid-flow-col grid-rows-1 auto-cols-[1fr] gap-4">
+          <PlanCardFree
+            currentPlan={planName}
+            subscriptionCancelled={subscriptionCancelled}
+          />
+          <PlanCardDevelopers
+            currentPlan={planName}
+            subscriptionCancelled={subscriptionCancelled}
+          />
         </div>
         <SubscriptionScreenFooter
           className={styles.section}

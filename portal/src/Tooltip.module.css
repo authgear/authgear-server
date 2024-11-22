@@ -3,6 +3,11 @@
   cursor: pointer;
 }
 
+.host {
+  display: flex;
+  align-items: center;
+}
+
 .tooltip {
   max-width: 300px;
   padding: 10px 15px 15px;

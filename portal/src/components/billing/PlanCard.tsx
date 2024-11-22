@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import { Icon, Text } from "@fluentui/react";
 import styles from "./PlanCard.module.css";
 import {
@@ -6,7 +6,8 @@ import {
   FormattedMessage,
 } from "@oursky/react-messageformat";
 import PrimaryButton from "../../PrimaryButton";
-import { comparePlan, isPlan } from "../../util/plan";
+import { comparePlan, getCTAVariant, isPlan } from "../../util/plan";
+import Tooltip from "../../Tooltip";
 
 interface PlanCardSMSPricingFixed {
   type: "fixed";
@@ -27,6 +28,12 @@ interface PlanFeatures {
   support: string;
 }
 
+interface PlanAddOns {
+  perEnvironment?: number;
+  perApplication?: number;
+  perProjectMember?: number;
+}
+
 interface BasePlanCardProps {
   planTitle: string;
   pricePerMonth: number | "free" | "custom";
@@ -34,6 +41,7 @@ interface BasePlanCardProps {
   subscribeButtonMessage: string;
   subscribeButtonDisabled: boolean;
   features: PlanFeatures;
+  addons?: PlanAddOns;
 }
 
 function BasePlanCard({
@@ -43,6 +51,7 @@ function BasePlanCard({
   subscribeButtonMessage,
   subscribeButtonDisabled,
   features,
+  addons,
 }: BasePlanCardProps): React.ReactElement {
   return (
     <div className={styles.card}>
@@ -59,6 +68,12 @@ function BasePlanCard({
         disabled={subscribeButtonDisabled}
       />
       <FeatureList {...features} />
+      {addons != null ? (
+        <>
+          <div className="h-px w-full bg-separator" />
+          <AddOnsList {...addons} />
+        </>
+      ) : null}
     </div>
   );
 }
@@ -83,14 +98,19 @@ function PlanPrice({
       );
     default:
       return (
-        <div className="flex">
-          <Text>
+        <div className="flex items-end">
+          <Text variant="xxLarge">
             <FormattedMessage
               id="PlanCard.price.monthly.value"
-              values={{ price: pricePerMonth }}
+              values={{
+                price:
+                  // Number formatting {n, number, integer} in message does not work
+                  // So format manually
+                  Intl.NumberFormat().format(pricePerMonth),
+              }}
             />
           </Text>
-          <Text className="ml-2">
+          <Text className="ml-2 font-semibold" variant="large">
             <FormattedMessage id="PlanCard.price.monthly.unit" />
           </Text>
         </div>
@@ -106,7 +126,7 @@ function PlanSMSPrice({
   switch (smsPricing.type) {
     case "fixed":
       return (
-        <Text variant="medium" className="font-semibold">
+        <Text variant="medium" className="font-semibold text-center">
           <FormattedMessage
             id="PlanCard.smsPrice.fixed"
             values={{ limit: smsPricing.limit }}
@@ -114,8 +134,22 @@ function PlanSMSPrice({
         </Text>
       );
     case "metered":
-      // TODO
-      return <div></div>;
+      return (
+        <div className="text-center">
+          <Text variant="medium" className="font-semibold" block={true}>
+            <FormattedMessage id="PlanCard.smsPrice.metered.title" />
+          </Text>
+          <Text variant="medium" className="text-text-secondary" block={true}>
+            <FormattedMessage
+              id="PlanCard.smsPrice.metered.price"
+              values={{
+                northAmericaPrice: smsPricing.northAmericaPrice,
+                otherRegionPrice: smsPricing.otherRegionPrice,
+              }}
+            />
+          </Text>
+        </div>
+      );
   }
 }
 
@@ -199,8 +233,79 @@ function FeatureList({
   );
 }
 
+function AddonListItem({
+  iconName,
+  message,
+}: {
+  iconName: string;
+  message: React.ReactNode;
+}) {
+  return (
+    <li className="flex items-center gap-2">
+      <Icon iconName={iconName} className="text-sm text-theme-primary" />
+      <Text variant="medium" className="font-semibold">
+        {message}
+      </Text>
+    </li>
+  );
+}
+
+function AddOnsList({
+  perApplication,
+  perEnvironment,
+  perProjectMember,
+}: PlanAddOns) {
+  return (
+    <ul className={styles.addonList}>
+      <li className="flex items-center">
+        <Text variant="medium" className="font-semibold">
+          <FormattedMessage id="PlanCard.plan.addons.title" />
+        </Text>
+        <Tooltip
+          tooltipMessageId="PlanCard.plan.addons.hint"
+          className="text-sm"
+        />
+      </li>
+      {perEnvironment != null ? (
+        <AddonListItem
+          iconName="Picture"
+          message={
+            <FormattedMessage
+              id="PlanCard.plan.addons.environment"
+              values={{ price: perEnvironment }}
+            />
+          }
+        />
+      ) : null}
+      {perApplication != null ? (
+        <AddonListItem
+          iconName="OEM"
+          message={
+            <FormattedMessage
+              id="PlanCard.plan.addons.application"
+              values={{ price: perApplication }}
+            />
+          }
+        />
+      ) : null}
+      {perProjectMember != null ? (
+        <AddonListItem
+          iconName="People"
+          message={
+            <FormattedMessage
+              id="PlanCard.plan.addons.projectMember"
+              values={{ price: perProjectMember }}
+            />
+          }
+        />
+      ) : null}
+    </ul>
+  );
+}
+
 export interface PlanCardProps {
   currentPlan: string;
+  subscriptionCancelled: boolean;
 }
 
 export function PlanCardFree({
@@ -232,6 +337,88 @@ export function PlanCardFree({
         projectMembers: 2,
         logRetentionDays: 1,
         support: renderToString("PlanCard.plan.features.support.discord"),
+      }}
+    />
+  );
+}
+
+export function PlanCardDevelopers({
+  currentPlan,
+  subscriptionCancelled,
+}: PlanCardProps): React.ReactElement {
+  const { renderToString } = useContext(MessageContext);
+  const cta = getCTAVariant({
+    cardPlanName: "developers",
+    currentPlanName: currentPlan,
+    subscriptionCancelled,
+  });
+
+  const planNameTranslated = useMemo(() => {
+    return renderToString("PlanCard.plan.developers");
+  }, [renderToString]);
+
+  const isButtonActive = (() => {
+    switch (cta) {
+      case "contact-us":
+      case "downgrade":
+      case "reactivate":
+      case "subscribe":
+      case "upgrade":
+        return true;
+      default:
+        return false;
+    }
+  })();
+
+  const buttonText = useMemo(() => {
+    switch (cta) {
+      case "contact-us":
+        return renderToString("PlanCard.action.contact-us");
+      case "downgrade":
+        return renderToString("PlanCard.action.downgrade", {
+          plan: planNameTranslated,
+        });
+      case "reactivate":
+        return renderToString("PlanCard.action.reactivate");
+      case "subscribe":
+        return renderToString("PlanCard.action.subscribe", {
+          plan: planNameTranslated,
+        });
+      case "upgrade":
+        return renderToString("PlanCard.action.upgrade", {
+          plan: planNameTranslated,
+        });
+      case "current":
+        return renderToString("PlanCard.action.current", {
+          plan: planNameTranslated,
+        });
+      case "non-applicable":
+        return renderToString("PlanCard.action.non-applicable");
+    }
+  }, [cta, planNameTranslated, renderToString]);
+
+  return (
+    <BasePlanCard
+      planTitle={planNameTranslated}
+      pricePerMonth={50}
+      smsPricing={{
+        type: "metered",
+        northAmericaPrice: 0.02,
+        otherRegionPrice: 0.1,
+      }}
+      subscribeButtonMessage={buttonText}
+      subscribeButtonDisabled={!isButtonActive}
+      features={{
+        mau: "unlimited",
+        applications: 2,
+        projectMembers: 2,
+        logRetentionDays: 1,
+        support: renderToString("PlanCard.plan.features.support.email"),
+      }}
+      addons={{
+        perEnvironment: 100,
+        perApplication: 100,
+        perProjectMember: 50,
       }}
     />
   );
