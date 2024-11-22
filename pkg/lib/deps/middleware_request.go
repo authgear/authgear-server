@@ -1,11 +1,13 @@
 package deps
 
 import (
+	"context"
 	"errors"
 	"net/http"
 
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/template"
@@ -53,6 +55,13 @@ func (m *RequestMiddleware) Handle(next http.Handler) http.Handler {
 
 		ap := m.RootProvider.NewAppProvider(r.Context(), appCtx)
 		r = r.WithContext(withProvider(r.Context(), ap))
+
+		{
+			key := otelauthgear.AttributeKeyProjectID
+			val := key.String(string(appCtx.Config.AppConfig.ID))
+			r = r.WithContext(context.WithValue(r.Context(), key, val))
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }
