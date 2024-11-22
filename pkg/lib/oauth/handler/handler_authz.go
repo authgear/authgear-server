@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -422,6 +423,10 @@ func (h *AuthorizationHandler) doHandle(
 	if err != nil {
 		return nil, err
 	}
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterOAuthSessionCreationCount,
+	)
 
 	if r.ResponseType().Equal(SettingsActonResponseType) {
 		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry)

@@ -10,6 +10,7 @@ import (
 
 	"github.com/authgear/authgear-server/pkg/lib/authn/authenticationinfo"
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/log"
 )
 
@@ -87,6 +88,10 @@ func (s *Service) CreateNewFlow(ctx context.Context, publicFlow PublicFlow, sess
 	if err != nil {
 		return
 	}
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterAuthflowSessionCreationCount,
+	)
 
 	return s.createNewFlowWithSession(ctx, publicFlow, session)
 }

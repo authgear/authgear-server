@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/interaction"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 )
 
 const SessionExpiryDuration = interaction.GraphLifetime
@@ -39,6 +40,15 @@ func (s *SessionStoreRedis) Create(ctx context.Context, session *Session) (err e
 		}
 		return nil
 	})
+	if err != nil {
+		return
+	}
+
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterWebSessionCreationCount,
+	)
+
 	return
 }
 
