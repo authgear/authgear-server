@@ -1569,27 +1569,11 @@
   "SubscriptionCurrentPlanSummary.additional-mau.title": "Additional MAU",
   "SubscriptionCurrentPlanSummary.additional-mau.tooltip": "{count} Additional MAU added",
 
-  "SubscriptionPlanCard.label.upgrade": "Upgrade",
-  "SubscriptionPlanCard.label.downgrade": "Downgrade",
   "SubscriptionPlanCard.label.current": "Current",
   "SubscriptionPlanCard.label.subscribe": "Subscribe",
   "SubscriptionPlanCard.label.non-applicable": "Disabled",
   "SubscriptionPlanCard.label.reactivate": "Reactivate",
   "SubscriptionPlanCard.label.contact-us": "Contact Us",
-  "SubscriptionPlanCard.upgrade.title": "Upgrade Your Plan",
-  "SubscriptionPlanCard.upgrade.description": "When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) and any further additional SMS and MAU will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
-  "SubscriptionPlanCard.downgrade.title": "Downgrade Your Plan",
-  "SubscriptionPlanCard.downgrade.description": "{strong, react, children{Warning:}} Your apps may stop working if you downgrade to less features. To avoid this, make sure your project configuration fit the plan you are downgrading to.{br, react}{br, react}When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) and any further additional SMS and MAU will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
-
-  "SubscriptionPlanCard.cancel.title": "Cancel Subscription",
-  "SubscriptionPlanCard.cancel.confirmation": "We are sad to see you go. Are you sure to cancel the subscription? The subscription will expire at the end of the billing period. If you change your mind, you can reactivate it anytime.",
-  "SubscriptionPlanCard.cancel.confirmation.customPlan": "Please send us an email for cancelling the plan.",
-  "SubscriptionPlanCard.cancel.confirmation.customPlan.button": "Contact Us",
-  "SubscriptionPlanCard.cancel.error": "Failed to cancel plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to cancel.",
-
-  "SubscriptionPlanCard.reactivate.title": "Reactivate Subscription",
-  "SubscriptionPlanCard.reactivate.confirmation": "Are you sure to reactivate the subscription?",
-  "SubscriptionPlanCard.reactivate.error": "Failed to reactivate plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to reactivate.",
 
   "SubscriptionPlanCard.plan.features.title": "Everything in {previousPlan}, plus:",
 
@@ -1652,6 +1636,23 @@
   "SubscriptionScreen.unknown-error.description": "Failed to process payment. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account.",
   "SubscriptionScreen.cancel-transaction-error.description": "Failed to cancel transaction. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account.",
   "SubscriptionScreen.contact-us.label": "Contact us at hello@authgear.com",
+
+  "SubscriptionScreen.label.upgrade": "Upgrade",
+  "SubscriptionScreen.label.downgrade": "Downgrade",
+  "SubscriptionScreen.upgrade.title": "Upgrade Your Plan",
+  "SubscriptionScreen.upgrade.description": "When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) and any further additional SMS and MAU will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
+  "SubscriptionScreen.downgrade.title": "Downgrade Your Plan",
+  "SubscriptionScreen.downgrade.description": "{strong, react, children{Warning:}} Your apps may stop working if you downgrade to less features. To avoid this, make sure your project configuration fit the plan you are downgrading to.{br, react}{br, react}When you change your plan, the prorated charges will be reflected in the next invoice. ${amount} (estimated) and any further additional SMS and MAU will be charged on {date}.{br, react}{br, react}Do you want to change your plan?",
+
+  "SubscriptionScreen.cancel.title": "Cancel Subscription",
+  "SubscriptionScreen.cancel.confirmation": "We are sad to see you go. Are you sure to cancel the subscription? The subscription will expire at the end of the billing period. If you change your mind, you can reactivate it anytime.",
+  "SubscriptionScreen.cancel.confirmation.customPlan": "Please send us an email for cancelling the plan.",
+  "SubscriptionScreen.cancel.confirmation.customPlan.button": "Contact Us",
+  "SubscriptionScreen.cancel.error": "Failed to cancel plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to cancel.",
+
+  "SubscriptionScreen.reactivate.title": "Reactivate Subscription",
+  "SubscriptionScreen.reactivate.confirmation": "Are you sure to reactivate the subscription?",
+  "SubscriptionScreen.reactivate.error": "Failed to reactivate plan. Please send an email to {ExternalLink, react, children{hello@authgear.com} href{mailto:hello@authgear.com}} from the email address associated with your Authgear account and the plan you would like to reactivate.",
 
   "SMTPConfigurationScreen.title": "Custom Email Provider",
   "SMTPConfigurationScreen.description": "Optimize for email deliverability by using your own SMTP server to send Authgear Emails (such as password reset code, verification) in your own domains",

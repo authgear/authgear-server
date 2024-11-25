@@ -316,13 +316,13 @@ function PlansSection({
   const upgradeDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionPlanCard.upgrade.title" />,
+      title: <FormattedMessage id="SubscriptionScreen.upgrade.title" />,
       subText:
         amountDue == null ? (
           <FormattedMessage id="loading" />
         ) : (
           <FormattedMessage
-            id="SubscriptionPlanCard.upgrade.description"
+            id="SubscriptionScreen.upgrade.description"
             values={{
               amount: amountDue,
               date: formattedDate ?? "",
@@ -336,13 +336,13 @@ function PlansSection({
   const downgradeDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionPlanCard.downgrade.title" />,
+      title: <FormattedMessage id="SubscriptionScreen.downgrade.title" />,
       subText:
         amountDue == null ? (
           <FormattedMessage id="loading" />
         ) : (
           <FormattedMessage
-            id="SubscriptionPlanCard.downgrade.description"
+            id="SubscriptionScreen.downgrade.description"
             values={{
               amount: amountDue,
               date: formattedDate ?? "",
@@ -356,9 +356,9 @@ function PlansSection({
   const reactivateDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
       type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionPlanCard.reactivate.title" />,
+      title: <FormattedMessage id="SubscriptionScreen.reactivate.title" />,
       subText: (
-        <FormattedMessage id="SubscriptionPlanCard.reactivate.confirmation" />
+        <FormattedMessage id="SubscriptionScreen.reactivate.confirmation" />
       ),
     };
   }, []);
@@ -408,7 +408,7 @@ function PlansSection({
       <ErrorDialog
         error={reactivateSubscriptionError}
         rules={[]}
-        fallbackErrorMessageID="SubscriptionPlanCard.reactivate.error"
+        fallbackErrorMessageID="SubscriptionScreen.reactivate.error"
       />
       <Dialog
         hidden={upgradeToPlan == null}
@@ -419,7 +419,7 @@ function PlansSection({
           <PrimaryButton
             onClick={onConfirmUpgrade}
             disabled={isLoading}
-            text={<FormattedMessage id="SubscriptionPlanCard.label.upgrade" />}
+            text={<FormattedMessage id="SubscriptionScreen.label.upgrade" />}
           />
           <DefaultButton
             onClick={onDismissUpgradeDialog}
@@ -437,9 +437,7 @@ function PlansSection({
             onClick={onConfirmDowngrade}
             theme={destructive}
             disabled={isLoading}
-            text={
-              <FormattedMessage id="SubscriptionPlanCard.label.downgrade" />
-            }
+            text={<FormattedMessage id="SubscriptionScreen.label.downgrade" />}
           />
           <DefaultButton
             onClick={onDismissDowngradeDialog}
@@ -733,19 +731,19 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     if (!subscription) {
       return {
         type: DialogType.normal,
-        title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
+        title: <FormattedMessage id="SubscriptionScreen.cancel.title" />,
         // @ts-expect-error
         subText: (
-          <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation.customPlan" />
+          <FormattedMessage id="SubscriptionScreen.cancel.confirmation.customPlan" />
         ) as IDialogContentProps["subText"],
       };
     }
     return {
       type: DialogType.normal,
-      title: <FormattedMessage id="SubscriptionPlanCard.cancel.title" />,
+      title: <FormattedMessage id="SubscriptionScreen.cancel.title" />,
       // @ts-expect-error
       subText: (
-        <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation" />
+        <FormattedMessage id="SubscriptionScreen.cancel.confirmation" />
       ) as IDialogContentProps["subText"],
     };
   }, [subscription]);
@@ -840,7 +838,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
               onClick={onDismiss}
               disabled={cancelDialogHidden}
               text={
-                <FormattedMessage id="SubscriptionPlanCard.cancel.confirmation.customPlan.button" />
+                <FormattedMessage id="SubscriptionScreen.cancel.confirmation.customPlan.button" />
               }
             />
           )}
@@ -854,7 +852,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       <ErrorDialog
         error={cancelSubscriptionError}
         rules={[]}
-        fallbackErrorMessageID="SubscriptionPlanCard.cancel.error"
+        fallbackErrorMessageID="SubscriptionScreen.cancel.error"
       />
       <Dialog
         hidden={enterpriseDialogHidden}
