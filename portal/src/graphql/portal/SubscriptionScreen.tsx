@@ -133,6 +133,8 @@ function PlansSection({
   const { locale } = useContext(Context);
   const [upgradeToPlan, setUpgradeToPlan] = useState<string | null>(null);
   const [downgradeToPlan, setDowngradeToPlan] = useState<string | null>(null);
+  const [isReactiveDialogHidden, setIsReactiveDialogHidden] =
+    useState<boolean>(true);
   const { appID } = useParams() as { appID: string };
   const { createCheckoutSession, loading: createCheckoutSessionLoading } =
     useCreateCheckoutSessionMutation();
@@ -220,8 +222,16 @@ function PlansSection({
     [appID, previewUpdateSubscription]
   );
 
-  const onClickReactivate = useCallback(async () => {
-    await setSubscriptionCancelledStatus(false);
+  const onClickReactivate = useCallback(() => {
+    setIsReactiveDialogHidden(false);
+  }, []);
+
+  const onClickConfirmReactivate = useCallback(async () => {
+    try {
+      await setSubscriptionCancelledStatus(false);
+    } finally {
+      setIsReactiveDialogHidden(true);
+    }
   }, [setSubscriptionCancelledStatus]);
 
   const onPlanAction = useMemo(() => {
@@ -332,6 +342,17 @@ function PlansSection({
     };
   }, [amountDue, formattedDate]);
 
+  // @ts-expect-error
+  const reactivateDialogContentProps: IDialogContentProps = useMemo(() => {
+    return {
+      type: DialogType.normal,
+      title: <FormattedMessage id="SubscriptionPlanCard.reactivate.title" />,
+      subText: (
+        <FormattedMessage id="SubscriptionPlanCard.reactivate.confirmation" />
+      ),
+    };
+  }, []);
+
   const isLoading = useIsLoading();
 
   const onDismissUpgradeDialog = useCallback(() => {
@@ -340,6 +361,10 @@ function PlansSection({
 
   const onDismissDowngradeDialog = useCallback(() => {
     setDowngradeToPlan(null);
+  }, []);
+
+  const onDismissReactiveDialog = useCallback(() => {
+    setIsReactiveDialogHidden(true);
   }, []);
 
   return (
@@ -404,6 +429,25 @@ function PlansSection({
           />
           <DefaultButton
             onClick={onDismissDowngradeDialog}
+            text={<FormattedMessage id="cancel" />}
+          />
+        </DialogFooter>
+      </Dialog>
+      <Dialog
+        hidden={isReactiveDialogHidden}
+        onDismiss={onDismissReactiveDialog}
+        dialogContentProps={reactivateDialogContentProps}
+      >
+        <DialogFooter>
+          <ButtonWithLoading
+            loading={reactivateSubscriptionLoading}
+            onClick={onClickConfirmReactivate}
+            disabled={isReactiveDialogHidden}
+            labelId="confirm"
+          />
+          <DefaultButton
+            onClick={onDismissReactiveDialog}
+            disabled={isReactiveDialogHidden || reactivateSubscriptionLoading}
             text={<FormattedMessage id="cancel" />}
           />
         </DialogFooter>
