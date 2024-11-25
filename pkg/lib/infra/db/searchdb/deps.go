@@ -67,9 +67,7 @@ func NewSQLExecutor(handle *Handle) *SQLExecutor {
 	}
 
 	return &SQLExecutor{
-		db.SQLExecutor{
-			Database: handle,
-		},
+		db.SQLExecutor{},
 	}
 }
 
