@@ -38,7 +38,7 @@ func (s *Service) QueryUser(
 		}
 		return result, &Stats{}, nil
 	case config.SearchImplementationNone:
-		return nil, nil, fmt.Errorf("search implementation is none")
+		return nil, nil, ErrSearchDisabled
 	}
 	panic(fmt.Errorf("unknown search implementation: %s", s.SearchConfig.GetImplementation()))
 }
