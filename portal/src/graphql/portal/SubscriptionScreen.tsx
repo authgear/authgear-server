@@ -118,12 +118,14 @@ function PlansSection({
   currentPlanName,
   subscriptionCancelled,
   nextBillingDate,
+  subscriptionPlans,
   onClickContactUs,
   onClickCancelSubscription,
 }: {
   currentPlanName: string;
   subscriptionCancelled: boolean;
   nextBillingDate: Date | undefined;
+  subscriptionPlans: SubscriptionPlan[];
   onClickContactUs: () => void;
   onClickCancelSubscription: () => void;
 }) {
@@ -235,7 +237,14 @@ function PlansSection({
   }, [setSubscriptionCancelledStatus]);
 
   const onPlanAction = useMemo(() => {
-    const plans: Plan[] = ["developers", "business", "enterprise"];
+    const plans: Plan[] = ["enterprise"];
+    if (subscriptionPlans.findIndex((p) => p.name === "developers") !== -1) {
+      plans.push("developers");
+    }
+    if (subscriptionPlans.findIndex((p) => p.name === "business") !== -1) {
+      plans.push("business");
+    }
+    plans.push("enterprise");
 
     return plans.reduce<Partial<Record<Plan, (action: CTAVariant) => void>>>(
       (callbacks, plan) => {
@@ -276,6 +285,7 @@ function PlansSection({
     onClickReactivate,
     onClickSubscribe,
     onClickUpgrade,
+    subscriptionPlans,
   ]);
 
   const onFreePlanAction = useCallback(
@@ -375,16 +385,20 @@ function PlansSection({
           subscriptionCancelled={subscriptionCancelled}
           onAction={onFreePlanAction}
         />
-        <PlanCardDevelopers
-          currentPlan={currentPlanName}
-          subscriptionCancelled={subscriptionCancelled}
-          onAction={onPlanAction.developers!}
-        />
-        <PlanCardBusiness
-          currentPlan={currentPlanName}
-          subscriptionCancelled={subscriptionCancelled}
-          onAction={onPlanAction.business!}
-        />
+        {onPlanAction.developers != null ? (
+          <PlanCardDevelopers
+            currentPlan={currentPlanName}
+            subscriptionCancelled={subscriptionCancelled}
+            onAction={onPlanAction.developers}
+          />
+        ) : null}
+        {onPlanAction.business != null ? (
+          <PlanCardBusiness
+            currentPlan={currentPlanName}
+            subscriptionCancelled={subscriptionCancelled}
+            onAction={onPlanAction.business}
+          />
+        ) : null}
         <PlanCardEnterprise
           currentPlan={currentPlanName}
           subscriptionCancelled={subscriptionCancelled}
@@ -605,7 +619,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     appID,
     planName,
     subscription,
-    // subscriptionPlans,
+    subscriptionPlans,
     thisMonthUsage,
     previousMonthUsage,
     effectiveAppConfig,
@@ -950,6 +964,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           currentPlanName={planName}
           subscriptionCancelled={subscriptionCancelled}
           nextBillingDate={nextBillingDate}
+          subscriptionPlans={subscriptionPlans}
           onClickContactUs={onClickContactUs}
           onClickCancelSubscription={onClickCancel}
         />
