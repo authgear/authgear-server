@@ -178,6 +178,9 @@ func (s *Reindexer) reindexUser(ctx context.Context, source *model.SearchUserSou
 		return s.ElasticsearchReindexer.ReindexUser(source)
 	case config.SearchImplementationPostgresql:
 		return s.PostgresqlReindexer.ReindexUser(ctx, source)
+	case config.SearchImplementationNone:
+		// Do nothing
+		return nil
 	}
 
 	panic(fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation()))
@@ -189,6 +192,9 @@ func (s *Reindexer) deleteUser(ctx context.Context, userID string) error {
 		return s.ElasticsearchReindexer.DeleteUser(userID)
 	case config.SearchImplementationPostgresql:
 		return s.PostgresqlReindexer.DeleteUser(ctx, userID)
+	case config.SearchImplementationNone:
+		// Do nothing
+		return nil
 	}
 
 	panic(fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation()))

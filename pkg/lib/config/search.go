@@ -7,7 +7,7 @@ var _ = Schema.Add("SearchConfig", `
 	"properties": {
 		"implementation": {
 			"type": "string",
-			"enum": ["elasticsearch", "postgresql"]
+			"enum": ["elasticsearch", "postgresql", "none"]
 		}
 	}
 }
@@ -19,6 +19,7 @@ const (
 	SearchImplementationDefault       SearchImplementation = ""
 	SearchImplementationElasticsearch SearchImplementation = "elasticsearch"
 	SearchImplementationPostgresql    SearchImplementation = "postgresql"
+	SearchImplementationNone          SearchImplementation = "none"
 )
 
 type SearchConfig struct {
@@ -28,6 +29,8 @@ type SearchConfig struct {
 func (c *SearchConfig) GetImplementation() SearchImplementation {
 	switch c.Implementation {
 	case SearchImplementationElasticsearch:
+		fallthrough
+	case SearchImplementationNone:
 		fallthrough
 	case SearchImplementationPostgresql:
 		return c.Implementation

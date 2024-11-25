@@ -85,16 +85,20 @@ func ReadSkipEmailVerification() bool {
 
 func ReadSearchImplementation() config.SearchImplementation {
 	return config.SearchImplementation(promptString{
-		Title:        "Select a service for searching (elasticsearch, postgresql)",
+		Title:        "Select a service for searching (elasticsearch, postgresql, none)",
 		DefaultValue: string(config.SearchImplementationElasticsearch),
 		Validate: func(value string) error {
-			validChoices := []string{string(config.SearchImplementationElasticsearch), string(config.SearchImplementationPostgresql)}
+			validChoices := []string{
+				string(config.SearchImplementationElasticsearch),
+				string(config.SearchImplementationPostgresql),
+				string(config.SearchImplementationNone),
+			}
 			for _, choice := range validChoices {
 				if value == choice {
 					return nil
 				}
 			}
-			return errors.New("must enter 'elasticsearch', or 'postgresql'")
+			return errors.New("must enter 'elasticsearch', 'postgresql' or 'none'")
 		},
 	}.Prompt())
 }
@@ -123,6 +127,8 @@ func ReadSecretConfigOptionsFromConsole(searchImpl config.SearchImplementation) 
 	}.Prompt()
 
 	switch searchImpl {
+	case config.SearchImplementationNone:
+		break
 	case config.SearchImplementationPostgresql:
 		opts.SearchDatabaseURL = promptString{
 			Title:        "Search Database URL",
