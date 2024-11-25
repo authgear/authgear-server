@@ -180,7 +180,7 @@ func (s *Reindexer) reindexUser(ctx context.Context, source *model.SearchUserSou
 		return s.PostgresqlReindexer.ReindexUser(ctx, source)
 	}
 
-	return fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation())
+	panic(fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation()))
 }
 
 func (s *Reindexer) deleteUser(ctx context.Context, userID string) error {
@@ -191,5 +191,5 @@ func (s *Reindexer) deleteUser(ctx context.Context, userID string) error {
 		return s.PostgresqlReindexer.DeleteUser(ctx, userID)
 	}
 
-	return fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation())
+	panic(fmt.Errorf("unknown search implementation %s", s.SearchConfig.GetImplementation()))
 }
