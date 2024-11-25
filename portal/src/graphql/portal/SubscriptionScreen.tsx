@@ -379,31 +379,33 @@ function PlansSection({
 
   return (
     <>
-      <div className="grid grid-flow-col grid-rows-1 auto-cols-[1fr] gap-4">
-        <PlanCardFree
-          currentPlan={currentPlanName}
-          subscriptionCancelled={subscriptionCancelled}
-          onAction={onFreePlanAction}
-        />
-        {onPlanAction.developers != null ? (
-          <PlanCardDevelopers
+      <div className="overflow-x-auto w-full">
+        <div className="grid grid-flow-col grid-rows-1 auto-cols-[1fr] gap-4">
+          <PlanCardFree
             currentPlan={currentPlanName}
             subscriptionCancelled={subscriptionCancelled}
-            onAction={onPlanAction.developers}
+            onAction={onFreePlanAction}
           />
-        ) : null}
-        {onPlanAction.business != null ? (
-          <PlanCardBusiness
+          {onPlanAction.developers != null ? (
+            <PlanCardDevelopers
+              currentPlan={currentPlanName}
+              subscriptionCancelled={subscriptionCancelled}
+              onAction={onPlanAction.developers}
+            />
+          ) : null}
+          {onPlanAction.business != null ? (
+            <PlanCardBusiness
+              currentPlan={currentPlanName}
+              subscriptionCancelled={subscriptionCancelled}
+              onAction={onPlanAction.business}
+            />
+          ) : null}
+          <PlanCardEnterprise
             currentPlan={currentPlanName}
             subscriptionCancelled={subscriptionCancelled}
-            onAction={onPlanAction.business}
+            onAction={onPlanAction.enterprise!}
           />
-        ) : null}
-        <PlanCardEnterprise
-          currentPlan={currentPlanName}
-          subscriptionCancelled={subscriptionCancelled}
-          onAction={onPlanAction.enterprise!}
-        />
+        </div>
       </div>
       <ErrorDialog
         error={reactivateSubscriptionError}
