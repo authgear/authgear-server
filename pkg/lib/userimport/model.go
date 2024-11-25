@@ -170,6 +170,21 @@ func mapGetNonNull[M ~map[string]interface{}, T constraints.Ordered | ~bool](m M
 	return v, true
 }
 
+func mapGetNullableMap[M ~map[string]interface{}, T ~map[string]interface{}](m M, key string) (value T, exist bool, ok bool) {
+	iface, ok := m[key]
+	if !ok {
+		return nil, false, false
+	}
+	if iface == nil {
+		return nil, false, false
+	}
+	v, ok := iface.(T)
+	if !ok {
+		return nil, true, false
+	}
+	return v, true, true
+}
+
 func mapGetNonNullMap[M ~map[string]interface{}, T ~map[string]interface{}](m M, key string) (T, bool) {
 	iface, ok := m[key]
 	if !ok {
@@ -261,11 +276,15 @@ func (m TOTP) Secret() string {
 type MFA map[string]interface{}
 
 func (m MFA) Redact() {
-	if password, ok := m.Password(); ok {
+	if password, exist, ok := m.MaybePassword(); ok {
 		Password(password).Redact()
+	} else if exist {
+		m["password"] = RedactPlaceholder
 	}
-	if totp, ok := m.TOTP(); ok {
+	if totp, exist, ok := m.MaybeTOTP(); ok {
 		TOTP(totp).Redact()
+	} else if exist {
+		m["totp"] = RedactPlaceholder
 	}
 }
 
@@ -281,18 +300,30 @@ func (m MFA) Password() (map[string]interface{}, bool) {
 	return mapGetNonNullMap[MFA, map[string]interface{}](m, "password")
 }
 
+func (m MFA) MaybePassword() (value map[string]interface{}, exist bool, ok bool) {
+	return mapGetNullableMap[MFA, map[string]interface{}](m, "password")
+}
+
 func (m MFA) TOTP() (map[string]interface{}, bool) {
 	return mapGetNonNullMap[MFA, map[string]interface{}](m, "totp")
+}
+
+func (m MFA) MaybeTOTP() (value map[string]interface{}, exist bool, ok bool) {
+	return mapGetNullableMap[MFA, map[string]interface{}](m, "totp")
 }
 
 type Record map[string]interface{}
 
 func (m Record) Redact() {
-	if password, ok := m.Password(); ok {
+	if password, exist, ok := m.MaybePassword(); ok {
 		Password(password).Redact()
+	} else if exist {
+		m["password"] = RedactPlaceholder
 	}
-	if mfa, ok := m.MFA(); ok {
+	if mfa, exist, ok := m.MaybeMFA(); ok {
 		MFA(mfa).Redact()
+	} else if exist {
+		m["mfa"] = RedactPlaceholder
 	}
 }
 
@@ -383,8 +414,16 @@ func (m Record) Password() (map[string]interface{}, bool) {
 	return mapGetNonNullMap[Record, map[string]interface{}](m, "password")
 }
 
+func (m Record) MaybePassword() (value map[string]interface{}, exist bool, ok bool) {
+	return mapGetNullableMap[Record, map[string]interface{}](m, "password")
+}
+
 func (m Record) MFA() (map[string]interface{}, bool) {
 	return mapGetNonNullMap[Record, map[string]interface{}](m, "mfa")
+}
+
+func (m Record) MaybeMFA() (value map[string]interface{}, exist bool, ok bool) {
+	return mapGetNullableMap[Record, map[string]interface{}](m, "mfa")
 }
 
 type Request struct {
@@ -459,7 +498,7 @@ type Summary struct {
 
 type Detail struct {
 	Index    int                   `json:"index"`
-	Record   interface{}           `json:"record,omitempty"`
+	Record   Record                `json:"record,omitempty"`
 	Outcome  Outcome               `json:"outcome,omitempty"`
 	UserID   string                `json:"user_id,omitempty"`
 	Warnings []Warning             `json:"warnings,omitempty"`
