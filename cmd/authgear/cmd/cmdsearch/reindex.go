@@ -1,7 +1,6 @@
 package cmdsearch
 
 import (
-	"context"
 	"fmt"
 	"log"
 
@@ -9,11 +8,7 @@ import (
 
 	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
 	cmdpgsearch "github.com/authgear/authgear-server/cmd/authgear/pgsearch"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
-	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
-	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
-	authgearlog "github.com/authgear/authgear-server/pkg/util/log"
 )
 
 var cmdSearchReindex = &cobra.Command{
@@ -53,30 +48,18 @@ var cmdSearchReindex = &cobra.Command{
 			DatabaseSchema: dbSchema,
 		}
 
-		searchDatabaseCredentials := &config.SearchDatabaseCredentials{
+		searchDatabaseCredentials := &cmdpgsearch.CmdSearchDBCredential{
 			DatabaseURL:    searchDBURL,
 			DatabaseSchema: searchDBSchema,
 		}
 
 		dbPool := db.NewPool()
-		loggerFactory := authgearlog.NewFactory(authgearlog.LevelInfo)
 
 		reindexApp := func(appID string) error {
 			ctx := cmd.Context()
 			log.Printf("App (%s): reindexing\n", appID)
-			searchdbHandle := searchdb.NewHandle(
-				dbPool,
-				config.NewDefaultDatabaseEnvironmentConfig(),
-				searchDatabaseCredentials,
-				loggerFactory)
-			searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
-			searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
-			store := pgsearch.NewStore(config.AppID(appID), searchdbSQLBuilder, searchdbSQLExecutor)
-
-			reindexer := cmdpgsearch.NewReindexer(dbPool, dbCredentials, cmdpgsearch.CmdAppID(appID))
-			err = searchdbHandle.WithTx(ctx, func(ctx context.Context) error {
-				return reindexer.Reindex(ctx, store)
-			})
+			reindexer := cmdpgsearch.NewReindexer(dbPool, dbCredentials, searchDatabaseCredentials, cmdpgsearch.CmdAppID(appID))
+			err := reindexer.Reindex(ctx)
 			if err != nil {
 				return err
 			}

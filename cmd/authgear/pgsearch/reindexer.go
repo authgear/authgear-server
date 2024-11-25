@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -15,22 +16,24 @@ import (
 )
 
 type Reindexer struct {
-	Clock     clock.Clock
-	Handle    *appdb.Handle
-	AppID     config.AppID
-	UserStore *user.Store
+	Clock          clock.Clock
+	AppDBHandle    *appdb.Handle
+	SearchDBHandle *searchdb.Handle
+	AppID          config.AppID
+	UserStore      *user.Store
+	PGSearchStore  *pgsearch.Store
 
 	SourceProvider *reindex.SourceProvider
 }
 
-func (q *Reindexer) Reindex(ctx context.Context, store *pgsearch.Store) (err error) {
+func (q *Reindexer) Reindex(ctx context.Context) (err error) {
 
-	allUserIDs, err := q.reindex(ctx, store)
+	allUserIDs, err := q.reindex(ctx)
 	if err != nil {
 		return
 	}
 
-	deletedCount, err := q.cleanupDeletedUsers(ctx, store, allUserIDs)
+	deletedCount, err := q.cleanupDeletedUsers(ctx, allUserIDs)
 	if err != nil {
 		return err
 	}
@@ -39,7 +42,7 @@ func (q *Reindexer) Reindex(ctx context.Context, store *pgsearch.Store) (err err
 	return nil
 }
 
-func (q *Reindexer) reindex(ctx context.Context, store *pgsearch.Store) (allUserIDs map[string]struct{}, err error) {
+func (q *Reindexer) reindex(ctx context.Context) (allUserIDs map[string]struct{}, err error) {
 	allUserIDs = make(map[string]struct{})
 
 	var first uint64 = 500
@@ -48,7 +51,7 @@ func (q *Reindexer) reindex(ctx context.Context, store *pgsearch.Store) (allUser
 	var count = 0
 
 	for {
-		err = q.Handle.WithTx(ctx, func(ctx context.Context) (err error) {
+		err = q.AppDBHandle.WithTx(ctx, func(ctx context.Context) (err error) {
 			items, err = q.SourceProvider.QueryPage(ctx, after, first)
 			if err != nil {
 				return
@@ -79,14 +82,13 @@ func (q *Reindexer) reindex(ctx context.Context, store *pgsearch.Store) (allUser
 			log.Printf("App (%v): processing user %v;\n", q.AppID, count)
 		}
 
-		err := store.UpsertUsers(ctx, sources)
-		if err != nil {
-			return nil, err
-		}
+		err := q.SearchDBHandle.WithTx(ctx, func(ctx context.Context) error {
+			return q.PGSearchStore.UpsertUsers(ctx, sources)
+		})
 
 		userIDs := slice.Map(sources, func(source *model.SearchUserSource) string { return source.ID })
 
-		err = q.Handle.WithTx(ctx, func(ctx context.Context) error {
+		err = q.AppDBHandle.WithTx(ctx, func(ctx context.Context) error {
 			return q.UserStore.UpdateLastIndexedAt(ctx, userIDs, q.Clock.NowUTC())
 		})
 		if err != nil {
@@ -97,11 +99,15 @@ func (q *Reindexer) reindex(ctx context.Context, store *pgsearch.Store) (allUser
 	return allUserIDs, nil
 }
 
-func (q *Reindexer) cleanupDeletedUsers(ctx context.Context, store *pgsearch.Store, allUserIDs map[string]struct{}) (int64, error) {
+func (q *Reindexer) cleanupDeletedUsers(ctx context.Context, allUserIDs map[string]struct{}) (deletedCount int64, err error) {
 	allUserIDsSlice := []string{}
 	for id := range allUserIDs {
 		allUserIDsSlice = append(allUserIDsSlice, id)
 	}
-	return store.CleanupUsers(ctx, string(q.AppID), allUserIDsSlice)
 
+	err = q.SearchDBHandle.WithTx(ctx, func(ctx context.Context) error {
+		deletedCount, err = q.PGSearchStore.CleanupUsers(ctx, string(q.AppID), allUserIDsSlice)
+		return err
+	})
+	return deletedCount, err
 }

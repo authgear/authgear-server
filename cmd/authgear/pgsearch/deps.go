@@ -14,6 +14,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
 	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -25,6 +26,7 @@ import (
 
 type CmdAppID string
 type CmdDBCredential config.DatabaseCredentials
+type CmdSearchDBCredential config.SearchDatabaseCredentials
 
 func NewLoggerFactory() *log.Factory {
 	return log.NewFactory(log.LevelInfo)
@@ -33,9 +35,11 @@ func NewLoggerFactory() *log.Factory {
 func NewEmptyConfig(
 	pool *db.Pool,
 	databaseCredentials *CmdDBCredential,
+	searchDatabaseCredentials *CmdSearchDBCredential,
 	appID CmdAppID,
 ) *config.Config {
 	dbCred := config.DatabaseCredentials(*databaseCredentials)
+	searchDBCred := config.SearchDatabaseCredentials(*searchDatabaseCredentials)
 	featureConfig := &config.FeatureConfig{}
 	config.PopulateFeatureConfigDefaultValues(featureConfig)
 
@@ -51,6 +55,10 @@ func NewEmptyConfig(
 				{
 					Key:  config.DatabaseCredentialsKey,
 					Data: &dbCred,
+				},
+				{
+					Key:  config.SearchDatabaseCredentialsKey,
+					Data: &searchDBCred,
 				},
 			},
 		},
@@ -115,6 +123,7 @@ var DependencySet = wire.NewSet(
 	NewEmptyConfig,
 	globaldb.DependencySet,
 	appdb.NewHandle,
+	searchdb.NewHandle,
 	clock.DependencySet,
 	deps.EnvConfigDeps,
 	deps.CommonDependencySet,

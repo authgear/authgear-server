@@ -12,6 +12,7 @@ import (
 func NewReindexer(
 	pool *db.Pool,
 	databaseCredentials *CmdDBCredential,
+	searchDatabaseCredentials *CmdSearchDBCredential,
 	appID CmdAppID,
 ) *Reindexer {
 	panic(wire.Build(DependencySet))

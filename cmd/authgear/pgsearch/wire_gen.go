@@ -32,9 +32,11 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/lockout"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
 	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/lib/web"
@@ -45,15 +47,17 @@ import (
 
 // Injectors from wire.go:
 
-func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID CmdAppID) *Reindexer {
+func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDatabaseCredentials *CmdSearchDBCredential, appID CmdAppID) *Reindexer {
 	clock := _wireSystemClockValue
 	environmentConfig := NewEnvConfig(databaseCredentials)
 	databaseEnvironmentConfig := &environmentConfig.DatabaseConfig
-	config := NewEmptyConfig(pool, databaseCredentials, appID)
+	config := NewEmptyConfig(pool, databaseCredentials, searchDatabaseCredentials, appID)
 	secretConfig := config.SecretConfig
 	configDatabaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	factory := NewLoggerFactory()
 	handle := appdb.NewHandle(pool, databaseEnvironmentConfig, configDatabaseCredentials, factory)
+	configSearchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbHandle := searchdb.NewHandle(pool, databaseEnvironmentConfig, configSearchDatabaseCredentials, factory)
 	appConfig := config.AppConfig
 	configAppID := appConfig.ID
 	sqlBuilderApp := appdb.NewSQLBuilderApp(configDatabaseCredentials, configAppID)
@@ -64,6 +68,9 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 		Clock:       clock,
 		AppID:       configAppID,
 	}
+	sqlBuilder := searchdb.NewSQLBuilder(configSearchDatabaseCredentials)
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(configAppID, sqlBuilder, searchdbSQLExecutor)
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}
@@ -430,9 +437,11 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, appID Cmd
 	}
 	reindexer := &Reindexer{
 		Clock:          clock,
-		Handle:         handle,
+		AppDBHandle:    handle,
+		SearchDBHandle: searchdbHandle,
 		AppID:          configAppID,
 		UserStore:      store,
+		PGSearchStore:  pgsearchStore,
 		SourceProvider: sourceProvider,
 	}
 	return reindexer
