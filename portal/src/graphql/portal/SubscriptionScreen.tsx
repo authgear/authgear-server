@@ -39,24 +39,11 @@ import { PortalAPIAppConfig } from "../../types";
 import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
 import { useSubscriptionScreenQueryQuery } from "./query/subscriptionScreenQuery";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
-// import { useUpdateSubscriptionMutation } from "./mutations/updateSubscriptionMutation";
 import styles from "./SubscriptionScreen.module.css";
 import SubscriptionCurrentPlanSummary, {
   CostItem,
   CostItemSeparator,
 } from "./SubscriptionCurrentPlanSummary";
-// import SubscriptionPlanCard, {
-//   CardTag,
-//   CardTitle,
-//   CardTagline,
-//   BasePriceTag,
-//   MAURestriction,
-//   UsagePriceTag,
-//   CTA,
-//   PlanDetailsTitle,
-//   PlanDetailsLine,
-// } from "./SubscriptionPlanCard";
-// import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
 import { useLoading, useIsLoading } from "./../../hook/loading";
 import ButtonWithLoading from "../../ButtonWithLoading";
 import { useSetSubscriptionCancelledStatusMutation } from "./mutations/setSubscriptionCancelledStatusMutation";
@@ -73,13 +60,9 @@ import {
   isStripePlan,
   isFreePlan,
   isLimitedFreePlan,
-  // getPreviousPlan,
-  // getCTAVariant,
   getMAULimit,
-  // shouldShowRecommendedTag,
-  // SUBSCRIPTABLE_PLANS,
-  // isPlan,
-  // Plan,
+  Plan,
+  CTAVariant,
 } from "../../util/plan";
 import {
   PlanCardBusiness,
@@ -87,6 +70,8 @@ import {
   PlanCardEnterprise,
   PlanCardFree,
 } from "../../components/billing/PlanCard";
+import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSessionMutation";
+import { useUpdateSubscriptionMutation } from "./mutations/updateSubscriptionMutation";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -127,171 +112,166 @@ function shouldShowFreePlanWarning(
   return loginIDEnabled && phoneEnabled && oobOTPSMSEnabled;
 }
 
-// interface PlanDetailsLinesProps {
-//   planName: string;
-// }
+function PlansSection({
+  currentPlanName,
+  subscriptionCancelled,
+  onClickContactUs,
+  onClickCancelSubscription,
+}: {
+  currentPlanName: string;
+  subscriptionCancelled: boolean;
+  onClickContactUs: () => void;
+  onClickCancelSubscription: () => void;
+}) {
+  const { appID } = useParams() as { appID: string };
+  const { createCheckoutSession, loading: createCheckoutSessionLoading } =
+    useCreateCheckoutSessionMutation();
+  useLoading(createCheckoutSessionLoading);
+  const [updateSubscription, { loading: updateSubscriptionLoading }] =
+    useUpdateSubscriptionMutation();
+  useLoading(updateSubscriptionLoading);
+  const {
+    setSubscriptionCancelledStatus,
+    loading: reactivateSubscriptionLoading,
+    error: reactivateSubscriptionError,
+  } = useSetSubscriptionCancelledStatusMutation(appID);
+  useLoading(reactivateSubscriptionLoading);
 
-// function PlanDetailsLines(props: PlanDetailsLinesProps) {
-//   const { planName } = props;
-//   let length: number;
-//   switch (planName) {
-//     case "startups":
-//       length = 4;
-//       break;
-//     case "business":
-//       length = 6;
-//       break;
-//     default:
-//       length = 0;
-//       break;
-//   }
-//   const children = [];
-//   for (let i = 0; i < length; i++) {
-//     children.push(
-//       <PlanDetailsLine key={i}>
-//         <FormattedMessage
-//           id={`SubscriptionPlanCard.plan.features.line.${i}.${planName}`}
-//         />
-//       </PlanDetailsLine>
-//     );
-//   }
-//   return <>{children}</>;
-// }
+  const onClickSubscribe = useCallback(
+    (planName: string) => {
+      createCheckoutSession(appID, planName)
+        .then((url) => {
+          if (url) {
+            window.location.href = url;
+          }
+        })
+        .finally(() => {});
+    },
+    [appID, createCheckoutSession]
+  );
 
-// interface SubscriptionPlanCardRenderProps {
-//   planName: string;
-//   currentPlanName: string;
-//   subscriptionCancelled: boolean;
-//   subscriptionPlan: SubscriptionPlan;
-//   nextBillingDate?: Date;
-// }
+  const onClickUpgrade = useCallback(
+    (planName: string) => {
+      updateSubscription({
+        variables: {
+          appID,
+          planName,
+        },
+      }).finally(() => {});
+    },
+    [appID, updateSubscription]
+  );
 
-// function SubscriptionPlanCardRenderer(props: SubscriptionPlanCardRenderProps) {
-//   const { planName, currentPlanName, subscriptionCancelled } = props;
-//   const { appID } = useParams() as { appID: string };
-//   const { createCheckoutSession, loading: createCheckoutSessionLoading } =
-//     useCreateCheckoutSessionMutation();
-//   useLoading(createCheckoutSessionLoading);
-//   const [updateSubscription, { loading: updateSubscriptionLoading }] =
-//     useUpdateSubscriptionMutation();
-//   useLoading(updateSubscriptionLoading);
-//   const {
-//     setSubscriptionCancelledStatus,
-//     loading: reactivateSubscriptionLoading,
-//     error: reactivateSubscriptionError,
-//   } = useSetSubscriptionCancelledStatusMutation(appID);
-//   useLoading(reactivateSubscriptionLoading);
+  const onClickDowngrade = useCallback(
+    (planName: string) => {
+      updateSubscription({
+        variables: {
+          appID,
+          planName,
+        },
+      }).finally(() => {});
+    },
+    [appID, updateSubscription]
+  );
 
-//   const isLoading = useIsLoading();
+  const onClickReactivate = useCallback(async () => {
+    await setSubscriptionCancelledStatus(false);
+  }, [setSubscriptionCancelledStatus]);
 
-//   const ctaVariant = useMemo(
-//     () =>
-//       getCTAVariant({
-//         cardPlanName: planName,
-//         currentPlanName,
-//         subscriptionCancelled,
-//       }),
-//     [planName, currentPlanName, subscriptionCancelled]
-//   );
+  const onPlanAction = useMemo(() => {
+    const plans: Plan[] = ["developers", "business", "enterprise"];
 
-// const onClickSubscribe = useCallback(
-//   (planName: string) => {
-//     createCheckoutSession(appID, planName)
-//       .then((url) => {
-//         if (url) {
-//           window.location.href = url;
-//         }
-//       })
-//       .finally(() => {});
-//   },
-//   [appID, createCheckoutSession]
-// );
+    return plans.reduce<Partial<Record<Plan, (action: CTAVariant) => void>>>(
+      (callbacks, plan) => {
+        const fn = (action: CTAVariant) => {
+          switch (action) {
+            case "subscribe":
+              onClickSubscribe(plan);
+              break;
+            case "upgrade":
+              onClickUpgrade(plan);
+              break;
+            case "downgrade":
+              onClickDowngrade(plan);
+              break;
+            case "reactivate":
+              onClickReactivate();
+              break;
+            case "contact-us":
+              onClickContactUs();
+              break;
+            case "current":
+            case "non-applicable":
+            default:
+              console.error(
+                `action button clicked but action:${action} should not be clickable. plan: ${plan}`
+              );
+              break;
+          }
+        };
+        callbacks[plan] = fn;
+        return callbacks;
+      },
+      {}
+    );
+  }, [
+    onClickContactUs,
+    onClickDowngrade,
+    onClickReactivate,
+    onClickSubscribe,
+    onClickUpgrade,
+  ]);
 
-// const onClickUpgrade = useCallback(
-//   (planName: string) => {
-//     updateSubscription({
-//       variables: {
-//         appID,
-//         planName,
-//       },
-//     }).finally(() => {});
-//   },
-//   [appID, updateSubscription]
-// );
+  const onFreePlanAction = useCallback(
+    (action: CTAVariant) => {
+      switch (action) {
+        case "downgrade":
+          // Downgrade to free plan means cancel subcription
+          onClickCancelSubscription();
+          break;
+        // All other cases should not happen
+        default:
+          console.error(
+            `action button clicked but action:${action} should not be clickable. plan: free`
+          );
+          break;
+      }
+    },
+    [onClickCancelSubscription]
+  );
 
-// const onClickDowngrade = useCallback(
-//   (planName: string) => {
-//     updateSubscription({
-//       variables: {
-//         appID,
-//         planName,
-//       },
-//     }).finally(() => {});
-//   },
-//   [appID, updateSubscription]
-// );
-
-// const onClickReactivate = useCallback(async () => {
-//   await setSubscriptionCancelledStatus(false);
-// }, [setSubscriptionCancelledStatus]);
-
-// const { name } = subscriptionPlan;
-
-// const basePrice = subscriptionPlan.prices.find(
-//   (price) => price.type === SubscriptionItemPriceType.Fixed
-// );
-// const northAmericaSMSPrice = subscriptionPlan.prices.find(
-//   (price) =>
-//     price.type === SubscriptionItemPriceType.Usage &&
-//     price.usageType === SubscriptionItemPriceUsageType.Sms &&
-//     price.smsRegion === SubscriptionItemPriceSmsRegion.NorthAmerica
-// );
-// const otherRegionsSMSPrice = subscriptionPlan.prices.find(
-//   (price) =>
-//     price.type === SubscriptionItemPriceType.Usage &&
-//     price.usageType === SubscriptionItemPriceUsageType.Sms &&
-//     price.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions
-// );
-// const northAmericaWhatsappPrice = subscriptionPlan.prices.find(
-//   (price) =>
-//     price.type === SubscriptionItemPriceType.Usage &&
-//     price.usageType === SubscriptionItemPriceUsageType.Whatsapp &&
-//     price.whatsappRegion === SubscriptionItemPriceWhatsappRegion.NorthAmerica
-// );
-// const otherRegionsWhatsappPrice = subscriptionPlan.prices.find(
-//   (price) =>
-//     price.type === SubscriptionItemPriceType.Usage &&
-//     price.usageType === SubscriptionItemPriceUsageType.Whatsapp &&
-//     price.whatsappRegion === SubscriptionItemPriceWhatsappRegion.OtherRegions
-// );
-// const mauPrice = subscriptionPlan.prices.find(
-//   (price) =>
-//     price.type === SubscriptionItemPriceType.Usage &&
-//     price.usageType === SubscriptionItemPriceUsageType.Mau
-// );
-
-// const previousPlanName = getPreviousPlan(name);
-// const cardTag = shouldShowRecommendedTag(name, currentPlanName) ? (
-//   <CardTag>
-//     <FormattedMessage id="SubscriptionScreen.recommended" />
-//   </CardTag>
-// ) : null;
-
-//   if (!isPlan(planName)) {
-//     console.warn("unknown plan:", planName);
-//     return <></>;
-//   }
-
-//   switch (planName) {
-//     case "free":
-//     case "free-approved":
-//       return <PlanCardFree currentPlan={currentPlanName} />;
-
-//     default:
-//       console.warn("unknown plan:", planName);
-//       return <></>;
-//   }
-// }
+  return (
+    <>
+      <div className="grid grid-flow-col grid-rows-1 auto-cols-[1fr] gap-4">
+        <PlanCardFree
+          currentPlan={currentPlanName}
+          subscriptionCancelled={subscriptionCancelled}
+          onAction={onFreePlanAction}
+        />
+        <PlanCardDevelopers
+          currentPlan={currentPlanName}
+          subscriptionCancelled={subscriptionCancelled}
+          onAction={onPlanAction.developers!}
+        />
+        <PlanCardBusiness
+          currentPlan={currentPlanName}
+          subscriptionCancelled={subscriptionCancelled}
+          onAction={onPlanAction.business!}
+        />
+        <PlanCardEnterprise
+          currentPlan={currentPlanName}
+          subscriptionCancelled={subscriptionCancelled}
+          onAction={onPlanAction.enterprise!}
+        />
+      </div>
+      <ErrorDialog
+        error={reactivateSubscriptionError}
+        rules={[]}
+        fallbackErrorMessageID="SubscriptionPlanCard.reactivate.error"
+      />
+    </>
+  );
+}
 
 interface SubscriptionScreenContentProps {
   appID: string;
@@ -579,13 +559,13 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     setEnterpriseDialogHidden(false);
   }, []);
 
-  // const onClickEnterprisePlanContactUs = useCallback(() => {
-  //   setEnterpriseDialogHidden(false);
-  // }, []);
+  const onClickContactUs = useCallback(() => {
+    setEnterpriseDialogHidden(false);
+  }, []);
 
-  const onClickCancel = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const onClickCancel = useCallback((e?: React.MouseEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     setCancelDialogHidden(false);
   }, []);
 
@@ -783,24 +763,12 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             />
           ) : null}
         </SubscriptionCurrentPlanSummary>
-        <div className="grid grid-flow-col grid-rows-1 auto-cols-[1fr] gap-4">
-          <PlanCardFree
-            currentPlan={planName}
-            subscriptionCancelled={subscriptionCancelled}
-          />
-          <PlanCardDevelopers
-            currentPlan={planName}
-            subscriptionCancelled={subscriptionCancelled}
-          />
-          <PlanCardBusiness
-            currentPlan={planName}
-            subscriptionCancelled={subscriptionCancelled}
-          />
-          <PlanCardEnterprise
-            currentPlan={planName}
-            subscriptionCancelled={subscriptionCancelled}
-          />
-        </div>
+        <PlansSection
+          currentPlanName={planName}
+          subscriptionCancelled={subscriptionCancelled}
+          onClickContactUs={onClickContactUs}
+          onClickCancelSubscription={onClickCancel}
+        />
         <SubscriptionScreenFooter
           className={styles.section}
           onClickEnterprisePlan={onClickEnterprisePlan}

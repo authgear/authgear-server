@@ -6,12 +6,7 @@ import {
   FormattedMessage,
 } from "@oursky/react-messageformat";
 import PrimaryButton from "../../PrimaryButton";
-import {
-  CTAVariant,
-  comparePlan,
-  getCTAVariant,
-  isPlan,
-} from "../../util/plan";
+import { CTAVariant, getCTAVariant } from "../../util/plan";
 import Tooltip from "../../Tooltip";
 
 interface PlanCardSMSPricingFixed {
@@ -52,8 +47,8 @@ interface BasePlanCardProps {
   planTitle: string;
   pricePerMonth: number | "free" | "custom";
   smsPricing: PlanCardSMSPricingFixed | PlanCardSMSPricingMetered;
-  subscribeButtonMessage: string;
-  subscribeButtonDisabled: boolean;
+  actionButtonMessage: string;
+  actionButtonDisabled: boolean;
   features: PlanFeatures;
   additionalFeatures?: AdditionalFeature[];
   addons?: PlanAddOns;
@@ -63,8 +58,8 @@ function BasePlanCard({
   planTitle,
   pricePerMonth,
   smsPricing,
-  subscribeButtonMessage,
-  subscribeButtonDisabled,
+  actionButtonMessage,
+  actionButtonDisabled,
   features,
   additionalFeatures,
   addons,
@@ -80,8 +75,8 @@ function BasePlanCard({
       <PlanSMSPrice smsPricing={smsPricing} />
       <PrimaryButton
         className="w-full"
-        text={subscribeButtonMessage}
-        disabled={subscribeButtonDisabled}
+        text={actionButtonMessage}
+        disabled={actionButtonDisabled}
       />
       <FeatureList {...features} />
       {additionalFeatures != null ? (
@@ -369,45 +364,6 @@ function AddOnsList({
   );
 }
 
-export interface PlanCardProps {
-  currentPlan: string;
-  subscriptionCancelled: boolean;
-}
-
-export function PlanCardFree({
-  currentPlan,
-}: PlanCardProps): React.ReactElement {
-  const { renderToString } = useContext(MessageContext);
-
-  const isActive = isPlan(currentPlan)
-    ? comparePlan(currentPlan, "free") === 0
-    : false;
-
-  return (
-    <BasePlanCard
-      planTitle={renderToString("PlanCard.plan.free")}
-      pricePerMonth="free"
-      smsPricing={{
-        type: "fixed",
-        limit: 100,
-      }}
-      subscribeButtonMessage={
-        isActive
-          ? renderToString("PlanCard.plan.free.active")
-          : renderToString("PlanCard.plan.free.downgrade")
-      }
-      subscribeButtonDisabled={isActive}
-      features={{
-        mau: "unlimited",
-        applications: 2,
-        projectMembers: 2,
-        logRetentionDays: 1,
-        support: renderToString("PlanCard.plan.features.support.discord"),
-      }}
-    />
-  );
-}
-
 function useSubscriptablePlanCTAButton(cta: CTAVariant, planName: string) {
   const { renderToString } = useContext(MessageContext);
 
@@ -457,6 +413,53 @@ function useSubscriptablePlanCTAButton(cta: CTAVariant, planName: string) {
   };
 }
 
+export interface PlanCardProps {
+  currentPlan: string;
+  subscriptionCancelled: boolean;
+  onAction: (action: CTAVariant) => void;
+}
+
+export function PlanCardFree({
+  currentPlan,
+  subscriptionCancelled,
+}: PlanCardProps): React.ReactElement {
+  const { renderToString } = useContext(MessageContext);
+  const cta = getCTAVariant({
+    cardPlanName: "free",
+    currentPlanName: currentPlan,
+    subscriptionCancelled,
+  });
+
+  const planNameTranslated = useMemo(() => {
+    return renderToString("PlanCard.plan.free");
+  }, [renderToString]);
+
+  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton(
+    cta,
+    planNameTranslated
+  );
+
+  return (
+    <BasePlanCard
+      planTitle={renderToString("PlanCard.plan.free")}
+      pricePerMonth="free"
+      smsPricing={{
+        type: "fixed",
+        limit: 100,
+      }}
+      actionButtonMessage={buttonText}
+      actionButtonDisabled={!isButtonActive}
+      features={{
+        mau: "unlimited",
+        applications: 2,
+        projectMembers: 2,
+        logRetentionDays: 1,
+        support: renderToString("PlanCard.plan.features.support.discord"),
+      }}
+    />
+  );
+}
+
 export function PlanCardDevelopers({
   currentPlan,
   subscriptionCancelled,
@@ -486,8 +489,8 @@ export function PlanCardDevelopers({
         northAmericaPrice: 0.02,
         otherRegionPrice: 0.1,
       }}
-      subscribeButtonMessage={buttonText}
-      subscribeButtonDisabled={!isButtonActive}
+      actionButtonMessage={buttonText}
+      actionButtonDisabled={!isButtonActive}
       features={{
         mau: "unlimited",
         applications: 2,
@@ -533,8 +536,8 @@ export function PlanCardBusiness({
         northAmericaPrice: 0.02,
         otherRegionPrice: 0.1,
       }}
-      subscribeButtonMessage={buttonText}
-      subscribeButtonDisabled={!isButtonActive}
+      actionButtonMessage={buttonText}
+      actionButtonDisabled={!isButtonActive}
       features={{
         mau: 25000,
         applications: 5,
@@ -598,8 +601,8 @@ export function PlanCardEnterprise({
         northAmericaPrice: 0.02,
         otherRegionPrice: 0.1,
       }}
-      subscribeButtonMessage={buttonText}
-      subscribeButtonDisabled={!isButtonActive}
+      actionButtonMessage={buttonText}
+      actionButtonDisabled={!isButtonActive}
       features={{
         mau: "custom",
         applications: "unlimited",
