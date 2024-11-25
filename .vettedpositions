@@ -1,5 +1,5 @@
 /cmd/authgear/background/contextbackground.go:8:34: contextbackground
-/cmd/authgear/main.go:46:9: contextbackground
+/cmd/authgear/main.go:47:9: contextbackground
 /cmd/portal/main.go:41:9: contextbackground
 /pkg/admin/transport/handler_graphql.go:47:9: requestcontext
 /pkg/admin/transport/handler_user_export_create.go:55:9: requestcontext
@@ -193,7 +193,7 @@
 /pkg/lib/deps/middleware_request.go:56:39: requestcontext
 /pkg/lib/deps/middleware_request.go:57:34: requestcontext
 /pkg/lib/deps/middleware_request.go:62:40: requestcontext
-/pkg/lib/deps/providers.go:166:25: requestcontext
+/pkg/lib/deps/providers.go:178:25: requestcontext
 /pkg/lib/dpop/middleware.go:45:35: requestcontext
 /pkg/lib/healthz/healthz.go:27:23: requestcontext
 /pkg/lib/infra/middleware/sentry.go:21:47: requestcontext
