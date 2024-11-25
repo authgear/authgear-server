@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import { Icon, Text } from "@fluentui/react";
 import styles from "./PlanCard.module.css";
 import {
@@ -49,6 +49,7 @@ interface BasePlanCardProps {
   smsPricing: PlanCardSMSPricingFixed | PlanCardSMSPricingMetered;
   actionButtonMessage: string;
   actionButtonDisabled: boolean;
+  onClickActionButton?: () => void;
   features: PlanFeatures;
   additionalFeatures?: AdditionalFeature[];
   addons?: PlanAddOns;
@@ -60,6 +61,7 @@ function BasePlanCard({
   smsPricing,
   actionButtonMessage,
   actionButtonDisabled,
+  onClickActionButton,
   features,
   additionalFeatures,
   addons,
@@ -77,6 +79,7 @@ function BasePlanCard({
         className="w-full"
         text={actionButtonMessage}
         disabled={actionButtonDisabled}
+        onClick={onClickActionButton}
       />
       <FeatureList {...features} />
       {additionalFeatures != null ? (
@@ -422,6 +425,7 @@ export interface PlanCardProps {
 export function PlanCardFree({
   currentPlan,
   subscriptionCancelled,
+  onAction,
 }: PlanCardProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
   const cta = getCTAVariant({
@@ -439,6 +443,10 @@ export function PlanCardFree({
     planNameTranslated
   );
 
+  const onClickActionButton = useCallback(() => {
+    onAction(cta);
+  }, [cta, onAction]);
+
   return (
     <BasePlanCard
       planTitle={renderToString("PlanCard.plan.free")}
@@ -449,6 +457,7 @@ export function PlanCardFree({
       }}
       actionButtonMessage={buttonText}
       actionButtonDisabled={!isButtonActive}
+      onClickActionButton={onClickActionButton}
       features={{
         mau: "unlimited",
         applications: 2,
@@ -463,6 +472,7 @@ export function PlanCardFree({
 export function PlanCardDevelopers({
   currentPlan,
   subscriptionCancelled,
+  onAction,
 }: PlanCardProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
   const cta = getCTAVariant({
@@ -480,6 +490,10 @@ export function PlanCardDevelopers({
     planNameTranslated
   );
 
+  const onClickActionButton = useCallback(() => {
+    onAction(cta);
+  }, [cta, onAction]);
+
   return (
     <BasePlanCard
       planTitle={planNameTranslated}
@@ -491,6 +505,7 @@ export function PlanCardDevelopers({
       }}
       actionButtonMessage={buttonText}
       actionButtonDisabled={!isButtonActive}
+      onClickActionButton={onClickActionButton}
       features={{
         mau: "unlimited",
         applications: 2,
@@ -510,6 +525,7 @@ export function PlanCardDevelopers({
 export function PlanCardBusiness({
   currentPlan,
   subscriptionCancelled,
+  onAction,
 }: PlanCardProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
   const cta = getCTAVariant({
@@ -527,6 +543,10 @@ export function PlanCardBusiness({
     planNameTranslated
   );
 
+  const onClickActionButton = useCallback(() => {
+    onAction(cta);
+  }, [cta, onAction]);
+
   return (
     <BasePlanCard
       planTitle={planNameTranslated}
@@ -538,6 +558,7 @@ export function PlanCardBusiness({
       }}
       actionButtonMessage={buttonText}
       actionButtonDisabled={!isButtonActive}
+      onClickActionButton={onClickActionButton}
       features={{
         mau: 25000,
         applications: 5,
@@ -575,6 +596,7 @@ export function PlanCardBusiness({
 export function PlanCardEnterprise({
   currentPlan,
   subscriptionCancelled,
+  onAction,
 }: PlanCardProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
   const cta = getCTAVariant({
@@ -592,6 +614,10 @@ export function PlanCardEnterprise({
     planNameTranslated
   );
 
+  const onClickActionButton = useCallback(() => {
+    onAction(cta);
+  }, [cta, onAction]);
+
   return (
     <BasePlanCard
       planTitle={planNameTranslated}
@@ -603,6 +629,7 @@ export function PlanCardEnterprise({
       }}
       actionButtonMessage={buttonText}
       actionButtonDisabled={!isButtonActive}
+      onClickActionButton={onClickActionButton}
       features={{
         mau: "custom",
         applications: "unlimited",
