@@ -2,7 +2,6 @@ package pgsearch
 
 import (
 	"context"
-	"fmt"
 
 	apimodel "github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/user"
@@ -54,7 +53,7 @@ func (s *Service) DeleteUser(
 
 func (s *Service) withTx(ctx context.Context, do func(ctx context.Context) error) error {
 	if s.Database == nil {
-		return fmt.Errorf("search database credential is not provided")
+		return ErrMissingCredential
 	}
 	return s.Database.WithTx(ctx, func(ctx context.Context) error {
 		return do(ctx)
@@ -63,7 +62,7 @@ func (s *Service) withTx(ctx context.Context, do func(ctx context.Context) error
 
 func (s *Service) withReadOnlyTx(ctx context.Context, do func(ctx context.Context) error) error {
 	if s.Database == nil {
-		return fmt.Errorf("search database credential is not provided")
+		return ErrMissingCredential
 	}
 	return s.Database.ReadOnly(ctx, func(ctx context.Context) error {
 		return do(ctx)

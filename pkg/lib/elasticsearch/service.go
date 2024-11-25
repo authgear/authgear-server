@@ -65,7 +65,7 @@ func (s *Service) QueryUser(
 	pageArgs graphqlutil.PageArgs,
 ) ([]model.PageItemRef, *Stats, error) {
 	if s.Client == nil {
-		return nil, &Stats{TotalCount: 0}, nil
+		return nil, nil, ErrMissingCredential
 	}
 
 	// Prepare body
