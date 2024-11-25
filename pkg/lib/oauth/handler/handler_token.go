@@ -32,6 +32,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -239,7 +240,7 @@ type TokenHandler struct {
 }
 
 func (h *TokenHandler) Handle(ctx context.Context, rw http.ResponseWriter, req *http.Request, r protocol.TokenRequest) httputil.Result {
-	client := resolveClient(h.ClientResolver, r)
+	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
 	if client == nil {
 		return tokenResultError{
 			Response: protocol.NewErrorResponse("invalid_client", "invalid client ID"),
@@ -599,6 +600,11 @@ func (h *TokenHandler) IssueTokensForAuthorizationCode(
 		h.Logger.WithError(err).Error("failed to invalidate code grant")
 	}
 
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterOAuthAuthorizationCodeConsumptionCount,
+	)
+
 	return resp, nil
 }
 
@@ -641,6 +647,11 @@ func (h *TokenHandler) handleRefreshToken(
 	if err != nil {
 		return nil, err
 	}
+
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterOAuthAccessTokenRefreshCount,
+	)
 
 	return resp, nil
 }

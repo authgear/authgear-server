@@ -68,12 +68,11 @@ type Service struct {
 
 func (s *Service) CreateNewWorkflow(ctx context.Context, intent Intent, sessionOptions *SessionOptions) (output *ServiceOutput, err error) {
 	session := NewSession(sessionOptions)
+	ctx = session.Context(ctx)
 	err = s.Store.CreateSession(ctx, session)
 	if err != nil {
 		return
 	}
-
-	ctx = session.Context(ctx)
 
 	var workflow *Workflow
 	var workflowOutput *WorkflowOutput
@@ -241,13 +240,12 @@ func (s *Service) FeedInput(ctx context.Context, workflowID string, instanceID s
 	if err != nil {
 		return
 	}
+	ctx = session.Context(ctx)
 
 	if session.UserAgentID != "" && session.UserAgentID != userAgentID {
 		err = ErrUserAgentUnmatched
 		return
 	}
-
-	ctx = session.Context(ctx)
 
 	var workflowOutput *WorkflowOutput
 	var action *WorkflowAction

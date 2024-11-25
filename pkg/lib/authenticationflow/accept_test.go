@@ -12,9 +12,6 @@ import (
 
 func TestAccept(t *testing.T) {
 	ctx := context.Background()
-	makeCtx := func(ctx context.Context) (context.Context, error) {
-		return ctx, nil
-	}
 
 	deps := &Dependencies{}
 
@@ -25,7 +22,7 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		_, err := Accept(ctx, makeCtx, deps, NewFlows(w), nil)
+		_, err := Accept(ctx, deps, NewFlows(w), nil)
 		So(errors.Is(err, ErrNoChange), ShouldBeTrue)
 	})
 
@@ -36,7 +33,7 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		_, err := Accept(ctx, makeCtx, deps, NewFlows(w), json.RawMessage(`{
+		_, err := Accept(ctx, deps, NewFlows(w), json.RawMessage(`{
 			"login_id": "user@example.com"
 		}`))
 
@@ -154,7 +151,7 @@ func TestAccept(t *testing.T) {
 }
 		`
 
-		_, err := Accept(ctx, makeCtx, deps, NewFlows(w), json.RawMessage(`{
+		_, err := Accept(ctx, deps, NewFlows(w), json.RawMessage(`{
 			"login_id": "user@example.com"
 		}`))
 		So(err, ShouldBeNil)
@@ -163,7 +160,7 @@ func TestAccept(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(string(bytes), ShouldEqualJSON, jsonStr)
 
-		_, err = Accept(ctx, makeCtx, deps, NewFlows(w), json.RawMessage(`{
+		_, err = Accept(ctx, deps, NewFlows(w), json.RawMessage(`{
 			"otp": "nonsense"
 		}`))
 		So(errors.Is(err, ErrInvalidOTP), ShouldBeTrue)
@@ -179,12 +176,12 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		_, err := Accept(ctx, makeCtx, deps, NewFlows(w), json.RawMessage(`{
+		_, err := Accept(ctx, deps, NewFlows(w), json.RawMessage(`{
 			"login_id": "user@example.com"
 		}`))
 		So(err, ShouldBeNil)
 
-		_, err = Accept(ctx, makeCtx, deps, NewFlows(w), json.RawMessage(`{
+		_, err = Accept(ctx, deps, NewFlows(w), json.RawMessage(`{
 			"resend": true
 		}`))
 		So(err, ShouldBeNil)
@@ -251,22 +248,22 @@ func TestAccept(t *testing.T) {
 			PretendLoginIDExists: false,
 		})
 
-		_, err := Accept(ctx, makeCtx, deps, NewFlows(w), json.RawMessage(`{
+		_, err := Accept(ctx, deps, NewFlows(w), json.RawMessage(`{
 			"login_id": "user@example.com"
 		}`))
 		So(err, ShouldBeNil)
 
-		_, err = Accept(ctx, makeCtx, deps, NewFlows(w), json.RawMessage(`{
+		_, err = Accept(ctx, deps, NewFlows(w), json.RawMessage(`{
 			"otp": "123456"
 		}`))
 		So(err, ShouldBeNil)
 
-		_, err = Accept(ctx, makeCtx, deps, NewFlows(w), json.RawMessage(`{
+		_, err = Accept(ctx, deps, NewFlows(w), json.RawMessage(`{
 			"create_password": true
 		}`))
 		So(err, ShouldBeNil)
 
-		_, err = Accept(ctx, makeCtx, deps, NewFlows(w), json.RawMessage(`{
+		_, err = Accept(ctx, deps, NewFlows(w), json.RawMessage(`{
 			"new_password": "password"
 		}`))
 		So(errors.Is(err, ErrEOF), ShouldBeTrue)

@@ -8,6 +8,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
@@ -53,10 +54,11 @@ type SessionMiddleware struct {
 func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// The session is either created now, or read from cookie.
+		ctx := r.Context()
 
 		// Create the session now.
 		if oauthSessionID, ok := m.OAuthUIInfoResolver.GetOAuthSessionID(r, ""); ok {
-			result, session := m.createSessionFromOAuthSession(r.Context(), oauthSessionID)
+			ctx, result, session := m.createSessionFromOAuthSession(ctx, oauthSessionID)
 
 			for _, c := range result.Cookies {
 				httputil.UpdateCookie(w, c)
@@ -65,9 +67,9 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 			// Remove oauth session ID so that we do not create again.
 			m.OAuthUIInfoResolver.RemoveOAuthSessionID(w, r)
 
-			r = r.WithContext(WithSession(r.Context(), session))
+			r = r.WithContext(WithSession(ctx, session))
 		} else if samlSessionID, ok := m.SAMLUIInfoResolver.GetSAMLSessionID(r, ""); ok {
-			result, session := m.createSessionFromSAMLSession(r.Context(), samlSessionID)
+			ctx, result, session := m.createSessionFromSAMLSession(ctx, samlSessionID)
 
 			for _, c := range result.Cookies {
 				httputil.UpdateCookie(w, c)
@@ -76,10 +78,10 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 			// Remove saml session ID so that we do not create again.
 			m.SAMLUIInfoResolver.RemoveSAMLSessionID(w, r)
 
-			r = r.WithContext(WithSession(r.Context(), session))
+			r = r.WithContext(WithSession(ctx, session))
 		} else {
 			// Or read from cookie
-			session, err := m.loadSession(r.Context(), r)
+			ctx, session, err := m.loadSession(ctx, r)
 			if err != nil {
 				if errors.Is(err, ErrSessionNotFound) {
 					// fallthrough
@@ -92,7 +94,7 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 				}
 			}
 			if session != nil {
-				r = r.WithContext(WithSession(r.Context(), session))
+				r = r.WithContext(WithSession(ctx, session))
 			}
 		}
 
@@ -100,7 +102,7 @@ func (m *SessionMiddleware) Handle(next http.Handler) http.Handler {
 	})
 }
 
-func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, oauthSessionID string) (*Result, *Session) {
+func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, oauthSessionID string) (context.Context, *Result, *Session) {
 	// When oauth session is not found, we fall back gracefully
 	// with a zero value of SessionOptions
 	sessionOptions := SessionOptions{}
@@ -119,6 +121,7 @@ func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, o
 		}
 		sessionOptions = SessionOptions{
 			OAuthSessionID:             oauthSessionID,
+			ClientID:                   uiInfo.ClientID,
 			RedirectURI:                uiInfo.RedirectURI,
 			Prompt:                     uiInfo.Prompt,
 			UserIDHint:                 uiInfo.UserIDHint,
@@ -128,6 +131,10 @@ func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, o
 			OAuthProviderAlias:         uiInfo.OAuthProviderAlias,
 			LoginHint:                  uiInfo.LoginHint,
 		}
+
+		key := otelauthgear.AttributeKeyClientID
+		val := key.String(uiInfo.ClientID)
+		ctx = context.WithValue(ctx, key, val)
 	}
 
 	session := NewSession(sessionOptions)
@@ -139,10 +146,10 @@ func (m *SessionMiddleware) createSessionFromOAuthSession(ctx context.Context, o
 		panic(err)
 	}
 
-	return result, session
+	return ctx, result, session
 }
 
-func (m *SessionMiddleware) createSessionFromSAMLSession(ctx context.Context, samlSessionID string) (*Result, *Session) {
+func (m *SessionMiddleware) createSessionFromSAMLSession(ctx context.Context, samlSessionID string) (context.Context, *Result, *Session) {
 	// When saml session is not found, we fall back gracefully
 	// with a zero value of SessionOptions
 	sessionOptions := SessionOptions{}
@@ -157,10 +164,15 @@ func (m *SessionMiddleware) createSessionFromSAMLSession(ctx context.Context, sa
 		uiInfo := samlSession.UIInfo
 		sessionOptions = SessionOptions{
 			SAMLSessionID: samlSession.ID,
+			ClientID:      uiInfo.SAMLServiceProviderID,
 			RedirectURI:   uiInfo.RedirectURI,
 			Prompt:        uiInfo.Prompt,
 			LoginHint:     uiInfo.LoginHint,
 		}
+
+		key := otelauthgear.AttributeKeyClientID
+		val := key.String(uiInfo.SAMLServiceProviderID)
+		ctx = context.WithValue(ctx, key, val)
 	}
 
 	session := NewSession(sessionOptions)
@@ -172,19 +184,25 @@ func (m *SessionMiddleware) createSessionFromSAMLSession(ctx context.Context, sa
 		panic(err)
 	}
 
-	return result, session
+	return ctx, result, session
 }
 
-func (m *SessionMiddleware) loadSession(ctx context.Context, r *http.Request) (*Session, error) {
+func (m *SessionMiddleware) loadSession(ctx context.Context, r *http.Request) (context.Context, *Session, error) {
 	cookie, err := m.Cookies.GetCookie(r, m.CookieDef.Def)
 	if err != nil {
-		return nil, ErrSessionNotFound
+		return ctx, nil, ErrSessionNotFound
 	}
 
 	s, err := m.States.Get(ctx, cookie.Value)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
-	return s, nil
+	if s.ClientID != "" {
+		key := otelauthgear.AttributeKeyClientID
+		val := key.String(s.ClientID)
+		ctx = context.WithValue(ctx, key, val)
+	}
+
+	return ctx, s, nil
 }

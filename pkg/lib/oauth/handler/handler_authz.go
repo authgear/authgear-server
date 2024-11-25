@@ -15,6 +15,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oauthsession"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/oidc"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/uiparam"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -141,7 +142,7 @@ type AuthorizationHandler struct {
 }
 
 func (h *AuthorizationHandler) Handle(ctx context.Context, r protocol.AuthorizationRequest) httputil.Result {
-	client := resolveClient(h.ClientResolver, r)
+	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
 	if client == nil {
 		return authorizationResultError{
 			ResponseMode: r.ResponseMode(),
@@ -197,13 +198,13 @@ func (h *AuthorizationHandler) HandleConsentWithUserConsent(ctx context.Context,
 }
 
 func (h *AuthorizationHandler) HandleConsentWithUserCancel(ctx context.Context, req *http.Request) httputil.Result {
-	consentRequest, err := h.prepareConsentRequest(ctx, req)
+	ctx, consentRequest, err := h.prepareConsentRequest(ctx, req)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
 		var resultErr httputil.Result
 
 		if errors.As(err, &oauthError) {
-			resultErr = h.prepareConsentErrInvalidOAuthResponse(req, *oauthError)
+			resultErr = h.prepareConsentErrInvalidOAuthResponse(ctx, req, *oauthError)
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
 			resultErr = authorizationResultError{
@@ -252,13 +253,13 @@ type ConsentRequired struct {
 }
 
 func (h *AuthorizationHandler) doHandleConsent(ctx context.Context, req *http.Request, withUserConsent bool) (httputil.Result, *ConsentRequired) {
-	consentRequest, err := h.prepareConsentRequest(ctx, req)
+	ctx, consentRequest, err := h.prepareConsentRequest(ctx, req)
 	if err != nil {
 		var oauthError *protocol.OAuthProtocolError
 		var resultErr httputil.Result
 
 		if errors.As(err, &oauthError) {
-			resultErr = h.prepareConsentErrInvalidOAuthResponse(req, *oauthError)
+			resultErr = h.prepareConsentErrInvalidOAuthResponse(ctx, req, *oauthError)
 		} else {
 			h.Logger.WithError(err).Error("authz handler failed")
 			resultErr = authorizationResultError{
@@ -346,13 +347,13 @@ type consentRequest struct {
 	Client            *config.OAuthClientConfig
 }
 
-func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *http.Request) (*consentRequest, error) {
+func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *http.Request) (context.Context, *consentRequest, error) {
 	authInfoEntry, err := h.getAuthenticationInfoEntry(ctx, req)
 	if err != nil {
 		if errors.Is(err, authenticationinfo.ErrNotFound) {
 			err = protocol.NewError("invalid_request", "authentication expired")
 		}
-		return nil, err
+		return ctx, nil, err
 	}
 
 	entry, err := h.OAuthSessionService.Get(ctx, authInfoEntry.OAuthSessionID)
@@ -360,20 +361,20 @@ func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *h
 		if errors.Is(err, oauthsession.ErrNotFound) {
 			err = protocol.NewError("invalid_request", "oauth session expired")
 		}
-		return nil, err
+		return ctx, nil, err
 	}
 
 	r := entry.T.AuthorizationRequest
 
-	client := resolveClient(h.ClientResolver, r)
+	ctx, client := resolveClient(ctx, h.ClientResolver, r.ClientID())
 	if client == nil {
 		err = protocol.NewError("unauthorized_client", "invalid client ID")
-		return nil, err
+		return ctx, nil, err
 	}
 
 	uiInfo, _, err := h.UIInfoResolver.ResolveForAuthorizationEndpoint(ctx, client, r)
 	if err != nil {
-		return nil, err
+		return ctx, nil, err
 	}
 
 	uiParam := uiInfo.ToUIParam()
@@ -383,10 +384,10 @@ func (h *AuthorizationHandler) prepareConsentRequest(ctx context.Context, req *h
 	redirectURI, errResp := parseRedirectURI(client, h.HTTPProto, h.HTTPOrigin, h.AppDomains, []string{}, r)
 	if errResp != nil {
 		err = protocol.NewErrorWithErrorResponse(errResp)
-		return nil, err
+		return ctx, nil, err
 	}
 
-	return &consentRequest{
+	return ctx, &consentRequest{
 		OAuthSessionEntry: entry,
 		AuthInfoEntry:     authInfoEntry,
 		RedirectURI:       redirectURI,
@@ -422,6 +423,10 @@ func (h *AuthorizationHandler) doHandle(
 	if err != nil {
 		return nil, err
 	}
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterOAuthSessionCreationCount,
+	)
 
 	if r.ResponseType().Equal(SettingsActonResponseType) {
 		redirectURI, err = h.UIURLBuilder.BuildSettingsActionURL(client, r, oauthSessionEntry)
@@ -818,7 +823,7 @@ func (h *AuthorizationHandler) generateSettingsActionResponse(
 	return nil
 }
 
-func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(req *http.Request, oauthError protocol.OAuthProtocolError) httputil.Result {
+func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(ctx context.Context, req *http.Request, oauthError protocol.OAuthProtocolError) httputil.Result {
 	resultErr := authorizationResultError{
 		Response: oauthError.Response,
 	}
@@ -828,7 +833,7 @@ func (h *AuthorizationHandler) prepareConsentErrInvalidOAuthResponse(req *http.R
 		resultErr.Response.State(state)
 	}
 
-	client := h.ClientResolver.ResolveClient(req.URL.Query().Get("client_id"))
+	_, client := resolveClient(ctx, h.ClientResolver, req.URL.Query().Get("client_id"))
 
 	// Only redirect if oauth session is expired / not found
 	// It mostly happens when user refresh the page or go back to the page after authenication

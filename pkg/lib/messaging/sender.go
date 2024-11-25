@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -16,6 +17,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
 	"github.com/authgear/authgear-server/pkg/lib/infra/whatsapp"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/translation"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/phone"
@@ -93,6 +95,12 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 
 		err := s.MailSender.Send(*opts)
 		if err != nil {
+			otelauthgear.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterEmailRequestCount,
+				metric.WithAttributes(otelauthgear.AttributeStatusError),
+			)
+
 			s.Logger.WithError(err).WithFields(logrus.Fields{
 				"email": mail.MaskAddress(opts.Recipient),
 			}).Error("failed to send email")
@@ -106,6 +114,12 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			}
 			return
 		}
+
+		otelauthgear.IntCounterAddOne(
+			ctx,
+			otelauthgear.CounterEmailRequestCount,
+			metric.WithAttributes(otelauthgear.AttributeStatusOK),
+		)
 
 		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
 			return s.Events.DispatchEventImmediately(ctx, &nonblocking.EmailSentEventPayload{
@@ -180,6 +194,12 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 
 		err := s.SMSSender.Send(ctx, *opts)
 		if err != nil {
+			otelauthgear.IntCounterAddOne(
+				ctx,
+				otelauthgear.CounterSMSRequestCount,
+				metric.WithAttributes(otelauthgear.AttributeStatusError),
+			)
+
 			s.Logger.WithError(err).WithFields(logrus.Fields{
 				"phone": phone.Mask(opts.To),
 			}).Error("failed to send SMS")
@@ -193,6 +213,12 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 			}
 			return
 		}
+
+		otelauthgear.IntCounterAddOne(
+			ctx,
+			otelauthgear.CounterSMSRequestCount,
+			metric.WithAttributes(otelauthgear.AttributeStatusOK),
+		)
 
 		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
 			return s.Events.DispatchEventImmediately(ctx, &nonblocking.SMSSentEventPayload{
@@ -272,6 +298,12 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	// Send immediately.
 	err = s.sendWhatsapp(ctx, opts)
 	if err != nil {
+		otelauthgear.IntCounterAddOne(
+			ctx,
+			otelauthgear.CounterWhatsappRequestCount,
+			metric.WithAttributes(otelauthgear.AttributeStatusError),
+		)
+
 		s.Logger.WithError(err).WithFields(logrus.Fields{
 			"phone": phone.Mask(opts.To),
 		}).Error("failed to send Whatsapp")
@@ -286,6 +318,12 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 
 		return err
 	}
+
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterWhatsappRequestCount,
+		metric.WithAttributes(otelauthgear.AttributeStatusOK),
+	)
 
 	err = s.Events.DispatchEventImmediately(ctx, &nonblocking.WhatsappSentEventPayload{
 		Recipient:           opts.To,

@@ -9,6 +9,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/oauth"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/lib/saml"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlprotocol"
@@ -424,6 +425,10 @@ func (h *LoginHandler) startSSOFlow(
 	if err != nil {
 		return nil, err
 	}
+	otelauthgear.IntCounterAddOne(
+		ctx,
+		otelauthgear.CounterSAMLSessionCreationCount,
+	)
 
 	endpoint, err := h.SAMLUIService.BuildAuthenticationURL(samlSession)
 	if err != nil {

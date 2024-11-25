@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/oauth/protocol"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
@@ -19,8 +21,14 @@ type OAuthClientResolver interface {
 	ResolveClient(clientID string) *config.OAuthClientConfig
 }
 
-func resolveClient(resolver OAuthClientResolver, r oauthRequest) *config.OAuthClientConfig {
-	return resolver.ResolveClient(r.ClientID())
+func resolveClient(ctx context.Context, resolver OAuthClientResolver, clientID string) (context.Context, *config.OAuthClientConfig) {
+	client := resolver.ResolveClient(clientID)
+	if client != nil {
+		key := otelauthgear.AttributeKeyClientID
+		val := key.String(clientID)
+		ctx = context.WithValue(ctx, key, val)
+	}
+	return ctx, client
 }
 
 func parseRedirectURI(

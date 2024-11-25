@@ -10,8 +10,10 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/securecookie"
 	"github.com/sirupsen/logrus"
+	"go.opentelemetry.io/otel/metric"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
+	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
 	"github.com/authgear/authgear-server/pkg/util/jwkutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
 
@@ -63,12 +65,26 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			panic("webapp: CSRF key not found")
 		}
 		gorillaCSRF := csrf.Protect(key, options...)
-		h := gorillaCSRF(next)
+		h := gorillaCSRF(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// When we reach here, the CSRF protection is successful.
+			otelauthgear.IntCounterAddOne(
+				r.Context(),
+				otelauthgear.CounterCSRFRequestCount,
+				metric.WithAttributes(otelauthgear.AttributeStatusOK),
+			)
+			next.ServeHTTP(w, r)
+		}))
 		h.ServeHTTP(w, r)
 	})
 }
 
 func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Request) {
+	otelauthgear.IntCounterAddOne(
+		r.Context(),
+		otelauthgear.CounterCSRFRequestCount,
+		metric.WithAttributes(otelauthgear.AttributeStatusError),
+	)
+
 	// Check debug cookies and inject info for reporting
 	omitCookie, err := m.Cookies.GetCookie(r, webapp.CSRFDebugCookieSameSiteOmitDef)
 	hasOmitCookie := (err == nil && omitCookie.Value == "exists")
