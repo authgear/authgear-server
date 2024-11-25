@@ -85,6 +85,9 @@ func (q *Reindexer) reindex(ctx context.Context) (allUserIDs map[string]struct{}
 		err := q.SearchDBHandle.WithTx(ctx, func(ctx context.Context) error {
 			return q.PGSearchStore.UpsertUsers(ctx, sources)
 		})
+		if err != nil {
+			return nil, err
+		}
 
 		userIDs := slice.Map(sources, func(source *model.SearchUserSource) string { return source.ID })
 
