@@ -2086,6 +2086,7 @@
   "PlanCard.plan.additionalFeature.customSMSGateway": "Custom SMS/WhatsApp Gateway",
   "PlanCard.plan.additionalFeature.customSMTP": "Custom SMTP",
   "PlanCard.plan.additionalFeature.tailoredSLA": "Tailored SLA",
+  "PlanCard.plan.additionalFeature.privateCloudOption": "Private Cloud Option",
   "PlanCard.plan.addons.title": "Add-on",
   "PlanCard.plan.addons.additionalMAU": "${price}/{unit} additional MAU",
   "PlanCard.plan.addons.hint": "If you require additional units beyond those included in your plan, you will be charged at the following per-unit rates.",

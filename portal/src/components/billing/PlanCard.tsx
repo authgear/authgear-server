@@ -661,6 +661,12 @@ export function PlanCardEnterprise({
             "PlanCard.plan.additionalFeature.tailoredSLA"
           ),
         },
+        {
+          iconName: "CheckMark",
+          message: renderToString(
+            "PlanCard.plan.additionalFeature.privateCloudOption"
+          ),
+        },
       ]}
       addons={{
         perEnvironment: 100,
