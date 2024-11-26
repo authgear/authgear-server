@@ -14,10 +14,16 @@ type StorageRedis struct {
 }
 
 func NewAppStorageRedis(redis *appredis.Handle) *StorageRedis {
+	if redis == nil {
+		return nil
+	}
 	return &StorageRedis{Redis: redis.Handle}
 }
 
 func NewGlobalStorageRedis(redis *globalredis.Handle) *StorageRedis {
+	if redis == nil {
+		return nil
+	}
 	return &StorageRedis{Redis: redis.Handle}
 }
 

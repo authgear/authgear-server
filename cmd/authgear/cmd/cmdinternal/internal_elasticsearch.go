@@ -8,7 +8,6 @@ import (
 
 	authgearcmd "github.com/authgear/authgear-server/cmd/authgear/cmd"
 	cmdes "github.com/authgear/authgear-server/cmd/authgear/elasticsearch"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 )
 
@@ -145,7 +144,7 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 			return err
 		}
 
-		dbCredentials := &config.DatabaseCredentials{
+		dbCredentials := &cmdes.CmdDBCredential{
 			DatabaseURL:    dbURL,
 			DatabaseSchema: dbSchema,
 		}
@@ -154,7 +153,7 @@ var cmdInternalElasticsearchReindex = &cobra.Command{
 
 		reindexApp := func(appID string) error {
 			log.Printf("App (%s): reindexing\n", appID)
-			reindexer := cmdes.NewReindexer(dbPool, dbCredentials, config.AppID(appID))
+			reindexer := cmdes.NewReindexer(dbPool, dbCredentials, cmdes.CmdAppID(appID))
 			err = reindexer.Reindex(cmd.Context(), client)
 			if err != nil {
 				return err

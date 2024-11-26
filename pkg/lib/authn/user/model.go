@@ -37,18 +37,43 @@ type SortOption struct {
 	SortDirection model.SortDirection
 }
 
-func (o SortOption) Apply(builder db.SelectBuilder) db.SelectBuilder {
-	sortBy := o.SortBy
-	if sortBy == SortByDefault {
-		sortBy = SortByCreatedAt
+func (o SortOption) GetSortBy() SortBy {
+	switch o.SortBy {
+	case SortByCreatedAt:
+		fallthrough
+	case SortByLastLoginAt:
+		return o.SortBy
+	}
+	return SortByCreatedAt
+}
+
+func (o SortOption) GetSortDirection() model.SortDirection {
+	switch o.SortDirection {
+	case model.SortDirectionAsc:
+		fallthrough
+	case model.SortDirectionDesc:
+		return o.SortDirection
+	}
+	return model.SortDirectionDesc
+}
+
+func (o SortOption) Apply(builder db.SelectBuilder, after string) db.SelectBuilder {
+	sortBy := o.GetSortBy()
+
+	sortDirection := o.GetSortDirection()
+
+	q := builder.OrderBy(fmt.Sprintf("%s %s NULLS LAST", sortBy, sortDirection))
+
+	if after != "" {
+		switch sortDirection {
+		case model.SortDirectionDesc:
+			q = q.Where(fmt.Sprintf("%s < ?", sortBy), after)
+		case model.SortDirectionAsc:
+			q = q.Where(fmt.Sprintf("%s > ?", sortBy), after)
+		}
 	}
 
-	sortDirection := o.SortDirection
-	if sortDirection == model.SortDirectionDefault {
-		sortDirection = model.SortDirectionDesc
-	}
-
-	return builder.OrderBy(fmt.Sprintf("%s %s NULLS LAST", sortBy, sortDirection))
+	return q
 }
 
 var InvalidAccountStatusTransition = apierrors.Invalid.WithReason("InvalidAccountStatusTransition")

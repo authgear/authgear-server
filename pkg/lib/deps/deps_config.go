@@ -16,6 +16,7 @@ var ConfigDeps = wire.NewSet(
 		"UI",
 		"Localization",
 		"Messaging",
+		"Search",
 		"Authentication",
 		"Session",
 		"OAuth",
@@ -109,6 +110,7 @@ var secretDeps = wire.NewSet(
 	ProvideDatabaseCredentials,
 	ProvideAuditDatabaseCredentials,
 	ProvideElasticsearchCredentials,
+	ProvideSearchDatabaseCredentials,
 	ProvideRedisCredentials,
 	ProvideAnalyticRedisCredentials,
 	ProvideAdminAPIAuthKeyMaterials,
@@ -143,6 +145,11 @@ func ProvideAuditDatabaseCredentials(c *config.SecretConfig) *config.AuditDataba
 
 func ProvideElasticsearchCredentials(c *config.SecretConfig) *config.ElasticsearchCredentials {
 	s, _ := c.LookupData(config.ElasticsearchCredentialsKey).(*config.ElasticsearchCredentials)
+	return s
+}
+
+func ProvideSearchDatabaseCredentials(c *config.SecretConfig) *config.SearchDatabaseCredentials {
+	s, _ := c.LookupData(config.SearchDatabaseCredentialsKey).(*config.SearchDatabaseCredentials)
 	return s
 }
 

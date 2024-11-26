@@ -86,6 +86,27 @@ func (c *ElasticsearchCredentials) SensitiveStrings() []string {
 	return []string{c.ElasticsearchURL}
 }
 
+var _ = SecretConfigSchema.Add("SearchDatabaseCredentials", `
+{
+	"type": "object",
+	"additionalProperties": false,
+	"properties": {
+		"database_url": { "type": "string" },
+		"database_schema": { "type": "string" }
+	},
+	"required": ["database_url"]
+}
+`)
+
+type SearchDatabaseCredentials struct {
+	DatabaseURL    string `json:"database_url,omitempty"`
+	DatabaseSchema string `json:"database_schema,omitempty"`
+}
+
+func (c *SearchDatabaseCredentials) SensitiveStrings() []string {
+	return []string{c.DatabaseURL}
+}
+
 var _ = SecretConfigSchema.Add("RedisCredentials", `
 {
 	"type": "object",

@@ -322,10 +322,11 @@ func (c *SecretConfig) GetCustomSMSProviderConfig() *CustomSMSProviderConfig {
 type SecretKey string
 
 const (
-	DatabaseCredentialsKey      SecretKey = "db"
-	AuditDatabaseCredentialsKey SecretKey = "audit.db"
-	ElasticsearchCredentialsKey SecretKey = "elasticsearch"
-	RedisCredentialsKey         SecretKey = "redis"
+	DatabaseCredentialsKey       SecretKey = "db"
+	AuditDatabaseCredentialsKey  SecretKey = "audit.db"
+	ElasticsearchCredentialsKey  SecretKey = "elasticsearch"
+	SearchDatabaseCredentialsKey SecretKey = "search.db"
+	RedisCredentialsKey          SecretKey = "redis"
 	// nolint: gosec
 	AnalyticRedisCredentialsKey SecretKey = "analytic.redis"
 	AdminAPIAuthKeyKey          SecretKey = "admin-api.auth"
@@ -376,6 +377,7 @@ type secretKeyDef struct {
 var secretItemKeys = map[SecretKey]secretKeyDef{
 	DatabaseCredentialsKey:                     {"DatabaseCredentials", func() SecretItemData { return &DatabaseCredentials{} }},
 	AuditDatabaseCredentialsKey:                {"AuditDatabaseCredentials", func() SecretItemData { return &AuditDatabaseCredentials{} }},
+	SearchDatabaseCredentialsKey:               {"SearchDatabaseCredentials", func() SecretItemData { return &SearchDatabaseCredentials{} }},
 	ElasticsearchCredentialsKey:                {"ElasticsearchCredentials", func() SecretItemData { return &ElasticsearchCredentials{} }},
 	RedisCredentialsKey:                        {"RedisCredentials", func() SecretItemData { return &RedisCredentials{} }},
 	AnalyticRedisCredentialsKey:                {"AnalyticRedisCredentials", func() SecretItemData { return &AnalyticRedisCredentials{} }},

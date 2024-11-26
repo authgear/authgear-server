@@ -9,7 +9,7 @@ import (
 	"github.com/google/wire"
 
 	"github.com/authgear/authgear-server/pkg/lib/deps"
-	"github.com/authgear/authgear-server/pkg/lib/elasticsearch"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 	"github.com/authgear/authgear-server/pkg/lib/userimport"
 )
@@ -28,7 +28,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	))
 }
 
-func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elasticsearch.Service {
+func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reindexer {
 	panic(wire.Build(
 		deps.RedisQueueDependencySet,
 		deps.CommonDependencySet,

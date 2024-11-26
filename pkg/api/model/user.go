@@ -30,7 +30,7 @@ type UserRef struct {
 	Meta
 }
 
-type ElasticsearchUserRaw struct {
+type SearchUserRaw struct {
 	ID                 string
 	AppID              string
 	CreatedAt          time.Time
@@ -47,7 +47,7 @@ type ElasticsearchUserRaw struct {
 	EffectiveRoles []*Role
 }
 
-type ElasticsearchUserSource struct {
+type SearchUserSource struct {
 	ID          string     `json:"id,omitempty"`
 	AppID       string     `json:"app_id,omitempty"`
 	CreatedAt   time.Time  `json:"created_at,omitempty"`

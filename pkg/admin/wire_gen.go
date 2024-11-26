@@ -53,6 +53,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/middleware"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
@@ -74,6 +75,9 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/lib/search"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -566,10 +570,10 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Store:    readStore,
 	}
 	auditLogLoader := loader.NewAuditLogLoader(query, readHandle)
+	searchConfig := appConfig.Search
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
-	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
 		Database:        handle,
@@ -580,7 +584,22 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserStore:       store,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
-		Producer:        userReindexProducer,
+	}
+	configAppID := &appConfig.ID
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	sqlBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbHandle := appProvider.SearchDatabase
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, sqlBuilder, searchdbSQLExecutor)
+	pgsearchService := &pgsearch.Service{
+		AppID:    configAppID,
+		Store:    pgsearchStore,
+		Database: searchdbHandle,
+	}
+	searchService := &search.Service{
+		SearchConfig:         searchConfig,
+		ElasticsearchService: elasticsearchService,
+		PGSearchService:      pgsearchService,
 	}
 	rawCommands := &user.RawCommands{
 		Store: store,
@@ -588,8 +607,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	userAgentString := deps.ProvideUserAgentString(request)
 	eventLogger := event.NewLogger(factory)
-	sqlBuilder := appdb.NewSQLBuilder(databaseCredentials)
-	storeImpl := event.NewStoreImpl(sqlBuilder, sqlExecutor)
+	appdbSQLBuilder := appdb.NewSQLBuilder(databaseCredentials)
+	storeImpl := event.NewStoreImpl(appdbSQLBuilder, sqlExecutor)
 	resolverImpl := &event.ResolverImpl{
 		Users: userQueries,
 	}
@@ -646,25 +665,34 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	elasticsearchLogger := elasticsearch.NewLogger(factory)
-	service5 := elasticsearch.Service{
-		Clock:           clockClock,
-		Database:        handle,
-		Logger:          elasticsearchServiceLogger,
+	sinkLogger := reindex.NewSinkLogger(factory)
+	reindexerLogger := reindex.NewReindexerLogger(factory)
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
+	sourceProvider := &reindex.SourceProvider{
 		AppID:           appID,
-		Client:          client,
 		Users:           userQueries,
 		UserStore:       store,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
-		Producer:        userReindexProducer,
 	}
-	elasticsearchSink := &elasticsearch.Sink{
-		Logger:   elasticsearchLogger,
-		Service:  service5,
-		Database: handle,
+	reindexer := &reindex.Reindexer{
+		AppID:                  appID,
+		SearchConfig:           searchConfig,
+		Clock:                  clockClock,
+		Database:               handle,
+		Logger:                 reindexerLogger,
+		UserStore:              store,
+		Producer:               userReindexProducer,
+		SourceProvider:         sourceProvider,
+		ElasticsearchReindexer: elasticsearchService,
+		PostgresqlReindexer:    pgsearchService,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	reindexSink := &reindex.Sink{
+		Logger:    sinkLogger,
+		Reindexer: reindexer,
+		Database:  handle,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, eventLogger, handle, clockClock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink)
 	userCommands := &user.Commands{
 		RawCommands:        rawCommands,
 		RawQueries:         rawQueries,
@@ -1094,7 +1122,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	facadeUserFacade := &facade2.UserFacade{
 		Clock:              clockClock,
-		UserSearchService:  elasticsearchService,
+		UserSearchService:  searchService,
 		Users:              userFacade,
 		LoginIDConfig:      loginIDConfig,
 		Authenticators:     service4,

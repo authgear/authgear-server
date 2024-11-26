@@ -52,11 +52,14 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlbinding"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlsession"
 	"github.com/authgear/authgear-server/pkg/lib/saml/samlslosession"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
+	searchreindex "github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/userexport"
 
 	deprecated_infracaptcha "github.com/authgear/authgear-server/pkg/lib/infra/captcha"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
@@ -77,6 +80,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/presign"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/lib/search"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -98,6 +102,7 @@ var CommonDependencySet = wire.NewSet(
 
 	appdb.DependencySet,
 	auditdb.DependencySet,
+	searchdb.DependencySet,
 	template.DependencySet,
 
 	healthz.DependencySet,
@@ -139,8 +144,12 @@ var CommonDependencySet = wire.NewSet(
 	),
 
 	wire.NewSet(
-		libes.DependencySet,
-		wire.Bind(new(userimport.ElasticsearchService), new(*libes.Service)),
+		search.DependencySet,
+
+		wire.Bind(new(searchreindex.ElasticsearchReindexer), new(*libes.Service)),
+		wire.Bind(new(searchreindex.PostgresqlReindexer), new(*pgsearch.Service)),
+
+		wire.Bind(new(userimport.SearchReindexService), new(*searchreindex.Reindexer)),
 	),
 
 	wire.NewSet(
@@ -359,6 +368,7 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(userimport.UserCommands), new(*user.RawCommands)),
 		wire.Bind(new(userimport.UserQueries), new(*user.RawQueries)),
 		wire.Bind(new(userexport.UserQueries), new(*user.Queries)),
+		wire.Bind(new(searchreindex.UserQueries), new(*user.Queries)),
 	),
 
 	wire.NewSet(
@@ -654,7 +664,7 @@ var CommonDependencySet = wire.NewSet(
 
 	wire.NewSet(
 		redisqueue.ProducerDependencySet,
-		wire.Bind(new(libes.UserReindexCreateProducer), new(*redisqueue.UserReindexProducer)),
+		wire.Bind(new(searchreindex.UserReindexCreateProducer), new(*redisqueue.UserReindexProducer)),
 		wire.Bind(new(userimport.TaskProducer), new(*redisqueue.UserImportProducer)),
 	),
 

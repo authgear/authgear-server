@@ -1,52 +1,131 @@
 package elasticsearch
 
 import (
-	"github.com/google/wire"
+	"fmt"
+	"net/http"
 
-	identityloginid "github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
-	identityoauth "github.com/authgear/authgear-server/pkg/lib/authn/identity/oauth"
-	"github.com/authgear/authgear-server/pkg/lib/authn/user"
+	"github.com/google/wire"
+	"github.com/kelseyhightower/envconfig"
+
+	"github.com/authgear/authgear-server/pkg/lib/authn/identity/loginid"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/config/configsource"
+	"github.com/authgear/authgear-server/pkg/lib/deps"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/globaldb"
-	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
+	"github.com/authgear/authgear-server/pkg/lib/web"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
+	"github.com/authgear/authgear-server/pkg/util/resource"
+	"github.com/authgear/authgear-server/pkg/util/template"
 )
+
+type CmdAppID string
+type CmdDBCredential config.DatabaseCredentials
 
 func NewLoggerFactory() *log.Factory {
 	return log.NewFactory(log.LevelInfo)
 }
 
-func NewGlobalDatabaseCredentials(dbCredentials *config.DatabaseCredentials) *config.GlobalDatabaseCredentialsEnvironmentConfig {
-	return &config.GlobalDatabaseCredentialsEnvironmentConfig{
+func NewEmptyConfig(
+	pool *db.Pool,
+	databaseCredentials *CmdDBCredential,
+	appID CmdAppID,
+) *config.Config {
+	dbCred := config.DatabaseCredentials(*databaseCredentials)
+	featureConfig := &config.FeatureConfig{}
+	config.PopulateFeatureConfigDefaultValues(featureConfig)
+
+	appConfig := &config.AppConfig{
+		ID: config.AppID(appID),
+	}
+	config.PopulateDefaultValues(appConfig)
+
+	return &config.Config{
+		AppConfig: appConfig,
+		SecretConfig: &config.SecretConfig{
+			Secrets: []config.SecretItem{
+				{
+					Key:  config.DatabaseCredentialsKey,
+					Data: &dbCred,
+				},
+			},
+		},
+		FeatureConfig: featureConfig,
+	}
+}
+
+func NewEnvConfig(dbCredentials *CmdDBCredential) *config.EnvironmentConfig {
+	cfg := &config.EnvironmentConfig{}
+
+	err := envconfig.Process("", cfg)
+	if err != nil {
+		panic(fmt.Errorf("cannot load server config: %w", err))
+	}
+
+	cfg.GlobalDatabase = config.GlobalDatabaseCredentialsEnvironmentConfig{
 		DatabaseURL:    dbCredentials.DatabaseURL,
 		DatabaseSchema: dbCredentials.DatabaseSchema,
 	}
+	cfg.DatabaseConfig = *config.NewDefaultDatabaseEnvironmentConfig()
+
+	return cfg
 }
 
-func NewEmptyIdentityConfig() *config.IdentityConfig {
-	return &config.IdentityConfig{
-		OAuth: &config.OAuthSSOConfig{},
-	}
+type NilResourceManager interface {
+	Read(desc resource.Descriptor, view resource.View) (interface{}, error)
+	AssetName(key string) (name string, err error)
+}
+
+func NewNilResourceManager() NilResourceManager {
+	return nil
+}
+
+func NewNilRedis() *appredis.Handle {
+	return nil
+}
+
+func NewNilRequest() *http.Request {
+	return nil
+}
+
+func ProvideRemoteIP() httputil.RemoteIP {
+	return "127.0.0.1"
+}
+
+func ProvideHTTPHost() httputil.HTTPHost {
+	return ""
+}
+
+func ProvideHTTPProto() httputil.HTTPProto {
+	return "http"
 }
 
 var DependencySet = wire.NewSet(
+	ProvideRemoteIP,
+	ProvideHTTPHost,
+	ProvideHTTPProto,
+	NewNilRedis,
+	NewEnvConfig,
+	NewNilRequest,
 	NewLoggerFactory,
-	config.NewDefaultDatabaseEnvironmentConfig,
-	NewGlobalDatabaseCredentials,
-	NewEmptyIdentityConfig,
+	NewEmptyConfig,
 	NewReindexedTimestamps,
 	globaldb.DependencySet,
 	appdb.NewHandle,
-	appdb.DependencySet,
 	clock.DependencySet,
-	wire.Struct(new(user.Store), "*"),
-	wire.Struct(new(identityoauth.Store), "*"),
-	wire.Struct(new(identityloginid.Store), "*"),
-	wire.Struct(new(rolesgroups.Store), "*"),
+	deps.EnvConfigDeps,
+	deps.CommonDependencySet,
 	wire.Struct(new(configsource.Store), "*"),
 	wire.Struct(new(AppLister), "*"),
 	wire.Struct(new(Reindexer), "*"),
+
+	NewNilResourceManager,
+	wire.Bind(new(loginid.ResourceManager), new(NilResourceManager)),
+	wire.Bind(new(template.ResourceManager), new(NilResourceManager)),
+	wire.Bind(new(web.ResourceManager), new(NilResourceManager)),
+	wire.Bind(new(web.EmbeddedResourceManager), new(NilResourceManager)),
 )

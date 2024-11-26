@@ -1,7 +1,6 @@
 package elasticsearch
 
 import (
-	"github.com/authgear/authgear-server/pkg/api/model"
 	libuser "github.com/authgear/authgear-server/pkg/lib/authn/user"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/slice"
@@ -381,15 +380,9 @@ func MakeSearchBody(
 
 	// To order to use search_after, "sort" must appear in the response.
 	// To make "sort" appear in the response, we MUST NOT sort by _score.
-	sortBy := sortOption.SortBy
-	if sortBy == libuser.SortByDefault {
-		sortBy = libuser.SortByCreatedAt
-	}
+	sortBy := sortOption.GetSortBy()
 
-	dir := sortOption.SortDirection
-	if dir == model.SortDirectionDefault {
-		dir = model.SortDirectionDesc
-	}
+	dir := sortOption.GetSortDirection()
 
 	var sort []interface{}
 	sort = append(sort, map[string]interface{}{

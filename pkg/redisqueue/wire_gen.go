@@ -41,6 +41,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/mail"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redisqueue"
 	"github.com/authgear/authgear-server/pkg/lib/infra/sms"
@@ -55,6 +56,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/oauthclient"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/lib/rolesgroups"
+	"github.com/authgear/authgear-server/pkg/lib/search/pgsearch"
+	"github.com/authgear/authgear-server/pkg/lib/search/reindex"
 	"github.com/authgear/authgear-server/pkg/lib/session"
 	"github.com/authgear/authgear-server/pkg/lib/session/access"
 	"github.com/authgear/authgear-server/pkg/lib/session/idpsession"
@@ -511,12 +514,21 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Database: writeHandle,
 		Store:    writeStore,
 	}
-	elasticsearchLogger := elasticsearch.NewLogger(factory)
+	sinkLogger := reindex.NewSinkLogger(factory)
+	searchConfig := appConfig.Search
+	reindexerLogger := reindex.NewReindexerLogger(factory)
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
+	sourceProvider := &reindex.SourceProvider{
+		AppID:           appID,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
 	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
 	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
 	client := elasticsearch.NewClient(elasticsearchCredentials)
-	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clock)
-	elasticsearchService := elasticsearch.Service{
+	elasticsearchService := &elasticsearch.Service{
 		Clock:           clock,
 		Database:        handle,
 		Logger:          elasticsearchServiceLogger,
@@ -526,14 +538,36 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		UserStore:       store,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
-		Producer:        userReindexProducer,
 	}
-	elasticsearchSink := &elasticsearch.Sink{
-		Logger:   elasticsearchLogger,
-		Service:  elasticsearchService,
-		Database: handle,
+	configAppID := &appConfig.ID
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	searchdbSQLBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbHandle := p.SearchDatabase
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, searchdbSQLBuilder, searchdbSQLExecutor)
+	pgsearchService := &pgsearch.Service{
+		AppID:    configAppID,
+		Store:    pgsearchStore,
+		Database: searchdbHandle,
 	}
-	eventService := event.NewService(appID, remoteIP, userAgentString, logger, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, elasticsearchSink)
+	reindexer := &reindex.Reindexer{
+		AppID:                  appID,
+		SearchConfig:           searchConfig,
+		Clock:                  clock,
+		Database:               handle,
+		Logger:                 reindexerLogger,
+		UserStore:              store,
+		Producer:               userReindexProducer,
+		SourceProvider:         sourceProvider,
+		ElasticsearchReindexer: elasticsearchService,
+		PostgresqlReindexer:    pgsearchService,
+	}
+	reindexSink := &reindex.Sink{
+		Logger:    sinkLogger,
+		Reindexer: reindexer,
+		Database:  handle,
+	}
+	eventService := event.NewService(appID, remoteIP, userAgentString, logger, handle, clock, localizationConfig, storeImpl, resolverImpl, sink, auditSink, reindexSink)
 	storeDeviceTokenRedis := &mfa.StoreDeviceTokenRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -831,32 +865,20 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	authenticatorFacade := &facade.AuthenticatorFacade{
 		Coordinator: coordinator,
 	}
-	service4 := &elasticsearch.Service{
-		Clock:           clock,
-		Database:        handle,
-		Logger:          elasticsearchServiceLogger,
-		AppID:           appID,
-		Client:          client,
-		Users:           userQueries,
-		UserStore:       store,
-		IdentityService: serviceService,
-		RolesGroups:     rolesgroupsStore,
-		Producer:        userReindexProducer,
-	}
 	userimportLogger := userimport.NewLogger(factory)
 	userImportService := &userimport.UserImportService{
-		AppDatabase:         handle,
-		LoginIDConfig:       loginIDConfig,
-		Identities:          identityFacade,
-		Authenticators:      authenticatorFacade,
-		UserCommands:        rawCommands,
-		UserQueries:         rawQueries,
-		VerifiedClaims:      verificationService,
-		StandardAttributes:  serviceNoEvent,
-		CustomAttributes:    customattrsServiceNoEvent,
-		RolesGroupsCommands: commands,
-		Elasticsearch:       service4,
-		Logger:              userimportLogger,
+		AppDatabase:          handle,
+		LoginIDConfig:        loginIDConfig,
+		Identities:           identityFacade,
+		Authenticators:       authenticatorFacade,
+		UserCommands:         rawCommands,
+		UserQueries:          rawQueries,
+		VerifiedClaims:       verificationService,
+		StandardAttributes:   serviceNoEvent,
+		CustomAttributes:     customattrsServiceNoEvent,
+		RolesGroupsCommands:  commands,
+		SearchReindexService: reindexer,
+		Logger:               userimportLogger,
 	}
 	return userImportService
 }
@@ -1262,18 +1284,17 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	return userExportService
 }
 
-func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elasticsearch.Service {
-	clockClock := _wireSystemClockValue
-	handle := p.AppDatabase
-	factory := p.LoggerFactory
-	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
+func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reindexer {
 	appContext := p.AppContext
 	config := appContext.Config
 	appConfig := config.AppConfig
 	appID := appConfig.ID
+	searchConfig := appConfig.Search
+	clockClock := _wireSystemClockValue
+	handle := p.AppDatabase
+	factory := p.LoggerFactory
+	reindexerLogger := reindex.NewReindexerLogger(factory)
 	secretConfig := config.SecretConfig
-	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
-	client := elasticsearch.NewClient(elasticsearchCredentials)
 	databaseCredentials := deps.ProvideDatabaseCredentials(secretConfig)
 	sqlBuilderApp := appdb.NewSQLBuilderApp(databaseCredentials, appID)
 	sqlExecutor := appdb.NewSQLExecutor(handle)
@@ -1283,6 +1304,8 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		Clock:       clockClock,
 		AppID:       appID,
 	}
+	appredisHandle := p.Redis
+	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
 	rawQueries := &user.RawQueries{
 		Store: store,
 	}
@@ -1350,7 +1373,6 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	appredisHandle := p.Redis
 	store2 := &passkey2.Store{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1643,7 +1665,16 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
-	userReindexProducer := redisqueue.NewUserReindexProducer(appredisHandle, clockClock)
+	sourceProvider := &reindex.SourceProvider{
+		AppID:           appID,
+		Users:           userQueries,
+		UserStore:       store,
+		IdentityService: serviceService,
+		RolesGroups:     rolesgroupsStore,
+	}
+	elasticsearchServiceLogger := elasticsearch.NewElasticsearchServiceLogger(factory)
+	elasticsearchCredentials := deps.ProvideElasticsearchCredentials(secretConfig)
+	client := elasticsearch.NewClient(elasticsearchCredentials)
 	elasticsearchService := &elasticsearch.Service{
 		Clock:           clockClock,
 		Database:        handle,
@@ -1654,7 +1685,29 @@ func newElasticsearchService(ctx context.Context, p *deps.AppProvider) *elastics
 		UserStore:       store,
 		IdentityService: serviceService,
 		RolesGroups:     rolesgroupsStore,
-		Producer:        userReindexProducer,
 	}
-	return elasticsearchService
+	configAppID := &appConfig.ID
+	searchDatabaseCredentials := deps.ProvideSearchDatabaseCredentials(secretConfig)
+	sqlBuilder := searchdb.NewSQLBuilder(searchDatabaseCredentials)
+	searchdbHandle := p.SearchDatabase
+	searchdbSQLExecutor := searchdb.NewSQLExecutor(searchdbHandle)
+	pgsearchStore := pgsearch.NewStore(appID, sqlBuilder, searchdbSQLExecutor)
+	pgsearchService := &pgsearch.Service{
+		AppID:    configAppID,
+		Store:    pgsearchStore,
+		Database: searchdbHandle,
+	}
+	reindexer := &reindex.Reindexer{
+		AppID:                  appID,
+		SearchConfig:           searchConfig,
+		Clock:                  clockClock,
+		Database:               handle,
+		Logger:                 reindexerLogger,
+		UserStore:              store,
+		Producer:               userReindexProducer,
+		SourceProvider:         sourceProvider,
+		ElasticsearchReindexer: elasticsearchService,
+		PostgresqlReindexer:    pgsearchService,
+	}
+	return reindexer
 }

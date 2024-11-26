@@ -92,6 +92,7 @@ require (
 	github.com/coder/websocket v1.8.12
 	github.com/go-gsm/charset v1.0.0
 	github.com/go-ldap/ldap/v3 v3.4.8
+	github.com/rivo/uniseg v0.4.7
 	github.com/russellhaering/goxmldsig v1.4.0
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.57.0
 	go.opentelemetry.io/otel v1.32.0

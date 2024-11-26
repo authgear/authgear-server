@@ -12,6 +12,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/infra/db"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
+	"github.com/authgear/authgear-server/pkg/lib/infra/db/searchdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/analyticredis"
 	"github.com/authgear/authgear-server/pkg/lib/infra/redis/appredis"
@@ -106,6 +107,16 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		cfg.SecretConfig.LookupData(config.DatabaseCredentialsKey).(*config.DatabaseCredentials),
 		loggerFactory,
 	)
+	var searchDatabaseCredentials *config.SearchDatabaseCredentials
+	if s := cfg.SecretConfig.LookupData(config.SearchDatabaseCredentialsKey); s != nil {
+		searchDatabaseCredentials = s.(*config.SearchDatabaseCredentials)
+	}
+	searchDatabase := searchdb.NewHandle(
+		p.DatabasePool,
+		&p.EnvironmentConfig.DatabaseConfig,
+		searchDatabaseCredentials,
+		loggerFactory,
+	)
 	var auditDatabaseCredentials *config.AuditDatabaseCredentials
 	if a := cfg.SecretConfig.LookupData(config.AuditDatabaseCredentialsKey); a != nil {
 		auditDatabaseCredentials = a.(*config.AuditDatabaseCredentials)
@@ -151,6 +162,7 @@ func (p *RootProvider) NewAppProvider(ctx context.Context, appCtx *config.AppCon
 		RootProvider:       p,
 		LoggerFactory:      loggerFactory,
 		AppDatabase:        appDatabase,
+		SearchDatabase:     searchDatabase,
 		AuditReadDatabase:  auditReadDatabase,
 		AuditWriteDatabase: auditWriteDatabase,
 		Redis:              redis,
@@ -196,6 +208,7 @@ type AppProvider struct {
 
 	LoggerFactory      *log.Factory
 	AppDatabase        *appdb.Handle
+	SearchDatabase     *searchdb.Handle
 	AuditReadDatabase  *auditdb.ReadHandle
 	AuditWriteDatabase *auditdb.WriteHandle
 	Redis              *appredis.Handle
