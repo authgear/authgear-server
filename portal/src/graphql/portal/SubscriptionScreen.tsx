@@ -20,6 +20,8 @@ import {
   PartialTheme,
   Spinner,
   SpinnerSize,
+  Pivot,
+  PivotItem,
 } from "@fluentui/react";
 import { useConst } from "@fluentui/react-hooks";
 import { Context, FormattedMessage } from "@oursky/react-messageformat";
@@ -57,6 +59,7 @@ import { useUpdateSubscriptionMutation } from "./mutations/updateSubscriptionMut
 import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateSubscriptionMutation";
 import { formatDateOnly } from "../../util/formatDateOnly";
 import { FeatureBanner } from "../../components/billing/FeatureBanner";
+import ScreenDescription from "../../ScreenDescription";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -436,10 +439,16 @@ interface SubscriptionScreenContentProps {
   effectiveAppConfig?: PortalAPIAppConfig;
 }
 
+enum Tab {
+  Subscription = "Subscription",
+  PlanDetail = "PlanDetail",
+}
+
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const { appID, planName, subscription, subscriptionPlans, thisMonthUsage } =
     props;
   const { themes } = useSystemConfig();
+  const { renderToString } = useContext(Context);
 
   const subscriptionCancelled = useMemo(() => {
     return !!subscription?.endedAt;
@@ -459,6 +468,15 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 
   const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
   const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
+
+  const [selectedTab, setSelectedTab] = useState<Tab>(Tab.Subscription);
+  const onTabChange = useCallback((item?: PivotItem) => {
+    if (item == null) {
+      return;
+    }
+    const { itemKey } = item.props;
+    setSelectedTab(itemKey as Tab);
+  }, []);
 
   const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
@@ -581,23 +599,48 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       </Dialog>
 
       <div className={styles.root}>
-        <ScreenTitle className={styles.section}>
-          <FormattedMessage id="SubscriptionScreen.title" />
-        </ScreenTitle>
-        <FeatureBanner />
-        <PlansSection
-          currentPlanName={planName}
-          subscriptionCancelled={subscriptionCancelled}
-          nextBillingDate={nextBillingDate}
-          subscriptionPlans={subscriptionPlans}
-          onClickContactUs={onClickContactUs}
-          onClickCancelSubscription={onClickCancel}
-        />
-        <footer className={styles.section}>
-          <Text block={true}>
-            <FormattedMessage id="SubscriptionScreen.footer.tax" />
-          </Text>
-        </footer>
+        <div className={cn(styles.section, "grid gap-4 grid-flow-row")}>
+          <ScreenTitle>
+            <FormattedMessage id="SubscriptionScreen.title" />
+          </ScreenTitle>
+          <ScreenDescription>
+            <FormattedMessage id="SubscriptionScreen.description" />
+          </ScreenDescription>
+        </div>
+        <Pivot
+          className="mb-6"
+          onLinkClick={onTabChange}
+          selectedKey={selectedTab}
+        >
+          <PivotItem
+            itemKey={Tab.Subscription}
+            headerText={renderToString("SubscriptionScreen.tabs.subscription")}
+          />
+          <PivotItem
+            itemKey={Tab.PlanDetail}
+            headerText={renderToString("SubscriptionScreen.tabs.planDetails")}
+          />
+        </Pivot>
+        {selectedTab === Tab.Subscription ? (
+          <>
+            <FeatureBanner />
+            <PlansSection
+              currentPlanName={planName}
+              subscriptionCancelled={subscriptionCancelled}
+              nextBillingDate={nextBillingDate}
+              subscriptionPlans={subscriptionPlans}
+              onClickContactUs={onClickContactUs}
+              onClickCancelSubscription={onClickCancel}
+            />
+            <footer className={styles.section}>
+              <Text block={true}>
+                <FormattedMessage id="SubscriptionScreen.footer.tax" />
+              </Text>
+            </footer>
+          </>
+        ) : (
+          <></>
+        )}
       </div>
     </>
   );

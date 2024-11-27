@@ -1572,7 +1572,11 @@
   "SubscriptionScreen.footer.tax": "All prices are shown in USD, local VAT and taxes may apply.",
 
   "SubscriptionScreen.title": "Billing",
+  "SubscriptionScreen.description": "View and manage the features and resources to boost performance",
   "SubscriptionScreen.recommended": "Recommended",
+
+  "SubscriptionScreen.tabs.subscription": "Subscription",
+  "SubscriptionScreen.tabs.planDetails": "Plan details",
 
   "SubscriptionScreen.cards.title": "Upgrade Your Plan",
   "SubscriptionScreen.enterprise.title": "Upgrade to Enterprise",
