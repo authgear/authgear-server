@@ -59,7 +59,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	stateToken := r.Form.Get("state")
 	code := r.Form.Get("code")
@@ -76,7 +76,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		case config.UIImplementationAuthflow:
 			fallthrough
 		case config.UIImplementationAuthflowV2:
-			session, err := ctrl.GetSession(state.WebSessionID)
+			session, err := ctrl.GetSession(ctx, state.WebSessionID)
 			if err != nil {
 				return err
 			}
@@ -93,7 +93,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				ErrorDescription: errorDescription,
 			}
 
-			err = ctrl.UpdateSession(session)
+			err = ctrl.UpdateSession(ctx, session)
 			if err != nil {
 				return err
 			}
@@ -101,7 +101,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			return nil
 		case config.UIImplementationInteraction:
 			webSessionID := state.WebSessionID
-			session, err := ctrl.GetSession(webSessionID)
+			session, err := ctrl.GetSession(ctx, webSessionID)
 			if err != nil {
 				return err
 			}
@@ -113,7 +113,7 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			step.FormData["x_error_description"] = errorDescription
 			session.Steps[len(session.Steps)-1] = step
 
-			err = ctrl.UpdateSession(session)
+			err = ctrl.UpdateSession(ctx, session)
 			if err != nil {
 				return err
 			}

@@ -126,15 +126,15 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.InteractionSession()
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
 
-		graph, err := ctrl.InteractionGet()
+		graph, err := ctrl.InteractionGet(ctx)
 		if err != nil {
 			return err
 		}
@@ -151,7 +151,7 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctrl.PostAction("submit", func(ctx context.Context) error {
 		deviceToken := r.Form.Get("x_device_token") == "true"
 		otp := r.Form.Get("x_whatsapp_code")
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 			input = &InputVerifyWhatsappOTP{
 				DeviceToken: deviceToken,
 				WhatsappOTP: otp,
@@ -167,7 +167,7 @@ func (h *WhatsappOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctrl.PostAction("resend", func(ctx context.Context) error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 			input = &InputResendCode{}
 			return
 		})

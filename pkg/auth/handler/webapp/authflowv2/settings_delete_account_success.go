@@ -51,7 +51,7 @@ func (h *AuthflowV2SettingsDeleteAccountSuccessHandler) ServeHTTP(w http.Respons
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithoutDBTx()
+	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	webSession := webapp.GetSession(r.Context())
 

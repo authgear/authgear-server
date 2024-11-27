@@ -126,7 +126,7 @@ func (h *AuthflowV2ResetPasswordHandler) serveHTTPNonAuthflow(w http.ResponseWri
 		return
 	}
 
-	defer ctrl.ServeWithoutDBTx()
+	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
 		var data map[string]interface{}

@@ -100,7 +100,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	h.FormPrefiller.Prefill(r.Form)
 
@@ -126,8 +126,8 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	allowLoginOnly := intent.UserIDHint != ""
 
-	oauthPostAction := func(providerAlias string) error {
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+	oauthPostAction := func(ctx context.Context, providerAlias string) error {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			input = &InputUseOAuth{
 				ProviderAlias:    providerAlias,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
@@ -161,10 +161,10 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// If there is error in the ErrorCookie, the user will stay in the login
 		// page to see the error message and the redirection won't be performed
 		if !hasErr && oauthProviderAlias != "" {
-			return oauthPostAction(oauthProviderAlias)
+			return oauthPostAction(ctx, oauthProviderAlias)
 		}
 
-		graph, err := ctrl.EntryPointGet(opts, intent)
+		graph, err := ctrl.EntryPointGet(ctx, opts, intent)
 		if err != nil {
 			return err
 		}
@@ -180,11 +180,11 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("oauth", func(ctx context.Context) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		return oauthPostAction(providerAlias)
+		return oauthPostAction(ctx, providerAlias)
 	})
 
 	ctrl.PostAction("login_id", func(ctx context.Context) error {
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			err = LoginWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
@@ -206,7 +206,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctrl.PostAction("passkey", func(ctx context.Context) error {
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			err = PasskeyAutofillSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return

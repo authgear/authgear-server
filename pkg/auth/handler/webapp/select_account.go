@@ -164,7 +164,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 		// Complete the web session and redirect to web session's RedirectURI
 		if webSession != nil {
 			redirectURI = webSession.RedirectURI
-			if err := ctrl.DeleteSession(webSession.ID); err != nil {
+			if err := ctrl.DeleteSession(ctx, webSession.ID); err != nil {
 				return err
 			}
 		}
@@ -227,7 +227,7 @@ func (h *SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 
 	// ctrl.ServeWithDBTx() always write response.
 	// So we have to put http.Redirect before it.
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
 		// When promote anonymous user, the end-user should not see this page.

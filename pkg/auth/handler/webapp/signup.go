@@ -87,7 +87,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	h.FormPrefiller.Prefill(r.Form)
 
@@ -121,7 +121,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		graph, err := ctrl.EntryPointGet(opts, intent)
+		graph, err := ctrl.EntryPointGet(ctx, opts, intent)
 		if err != nil {
 			return err
 		}
@@ -137,7 +137,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	ctrl.PostAction("oauth", func(ctx context.Context) error {
 		providerAlias := r.Form.Get("x_provider_alias")
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			input = &InputUseOAuth{
 				ProviderAlias:    providerAlias,
 				ErrorRedirectURI: httputil.HostRelative(r.URL).String(),
@@ -154,7 +154,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	})
 
 	ctrl.PostAction("login_id", func(ctx context.Context) error {
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			err = SignupWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return

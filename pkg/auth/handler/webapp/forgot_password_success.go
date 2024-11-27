@@ -54,10 +54,10 @@ func (h *ForgotPasswordSuccessHandler) ServeHTTP(w http.ResponseWriter, r *http.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.InteractionSession()
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}

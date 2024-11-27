@@ -77,11 +77,11 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	redirectURI := httputil.HostRelative(r.URL).String()
 	authenticatorID := r.Form.Get("x_authenticator_id")
-	userID := ctrl.RequireUserID()
+	userID := ctrl.RequireUserID(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(ctx, r, w)
@@ -99,7 +99,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		}
 		intent := intents.NewIntentRemoveAuthenticator(userID)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			input = &InputRemoveAuthenticator{
 				Type: oobAuthenticatorType,
 				ID:   authenticatorID,
@@ -124,7 +124,7 @@ func (h *SettingsOOBOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 			oobAuthenticatorType,
 		)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			input = &InputCreateAuthenticator{}
 			return
 		})

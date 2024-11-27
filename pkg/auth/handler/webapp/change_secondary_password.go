@@ -68,13 +68,13 @@ func (h *ForceChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
 		// Ensure there is an ongoing web session.
 		// If the user clicks back just after authentication, there is no ongoing web session.
 		// The user will see the normal web session not found error page.
-		graph, err := ctrl.InteractionGet()
+		graph, err := ctrl.InteractionGet(ctx)
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func (h *ForceChangeSecondaryPasswordHandler) ServeHTTP(w http.ResponseWriter, r
 	})
 
 	ctrl.PostAction("", func(ctx context.Context) error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 			err = ForceChangeSecondaryPasswordSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return

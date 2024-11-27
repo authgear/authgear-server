@@ -64,15 +64,15 @@ func (h *SetupLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.InteractionSession()
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
 
-		graph, err := ctrl.InteractionGet()
+		graph, err := ctrl.InteractionGet(ctx)
 		if err != nil {
 			return err
 		}
@@ -87,7 +87,7 @@ func (h *SetupLoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 	})
 
 	ctrl.PostAction("", func(ctx context.Context) error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 			err = SetupLoginLinkOTPEmailSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return

@@ -123,7 +123,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 	ctrl.BeforeHandle(func(ctx context.Context) error {
 
 		// Ensure webapp session exist
-		ws, err := ctrl.InteractionSession()
+		ws, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
@@ -174,7 +174,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 		// Complete the web session and redirect to web session's RedirectURI
 		if webSession != nil {
 			redirectURI = webSession.RedirectURI
-			if err := ctrl.DeleteSession(webSession.ID); err != nil {
+			if err := ctrl.DeleteSession(ctx, webSession.ID); err != nil {
 				return err
 			}
 		}
@@ -243,7 +243,7 @@ func (h *AuthflowV2SelectAccountHandler) ServeHTTP(w http.ResponseWriter, r *htt
 
 	// ctrl.ServeWithDBTx() always write response.
 	// So we have to put http.Redirect before it.
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
 		// When promote anonymous user, the end-user should not see this page.

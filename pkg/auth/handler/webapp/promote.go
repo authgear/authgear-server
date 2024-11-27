@@ -95,7 +95,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	h.FormPrefiller.Prefill(r.Form)
 
@@ -120,7 +120,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctrl.Get(func(ctx context.Context) error {
-		graph, err := ctrl.EntryPointGet(opts, intent)
+		graph, err := ctrl.EntryPointGet(ctx, opts, intent)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		providerAlias := r.Form.Get("x_provider_alias")
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			input = &PromoteInputOAuth{
 				tokenInput,
 				&InputUseOAuth{
@@ -166,7 +166,7 @@ func (h *PromoteHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return err
 		}
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			err = PromoteWithLoginIDSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return
