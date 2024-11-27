@@ -54,7 +54,6 @@ import PrimaryButton from "../../PrimaryButton";
 import DefaultButton from "../../DefaultButton";
 import { useCancelFailedSubscriptionMutation } from "./mutations/cancelFailedSubscriptionMutation";
 import ExternalLink from "../../ExternalLink";
-import { SubscriptionScreenFooter } from "./SubscriptionScreenFooter";
 import {
   isCustomPlan,
   isStripePlan,
@@ -751,12 +750,6 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     };
   }, [subscription]);
 
-  const onClickEnterprisePlan = useCallback((e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setEnterpriseDialogHidden(false);
-  }, []);
-
   const onClickContactUs = useCallback(() => {
     setEnterpriseDialogHidden(false);
   }, []);
@@ -970,14 +963,11 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           onClickContactUs={onClickContactUs}
           onClickCancelSubscription={onClickCancel}
         />
-        <SubscriptionScreenFooter
-          className={styles.section}
-          onClickEnterprisePlan={onClickEnterprisePlan}
-          onClickCancel={onClickCancel}
-          subscriptionCancelled={subscriptionCancelled}
-          isStripePlan={isStripePlan(planName)}
-          subscriptionEndedAt={subscription?.endedAt ?? undefined}
-        />
+        <footer className={styles.section}>
+          <Text block={true}>
+            <FormattedMessage id="SubscriptionScreen.footer.tax" />
+          </Text>
+        </footer>
       </div>
     </>
   );

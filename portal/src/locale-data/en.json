@@ -1569,12 +1569,7 @@
   "SubscriptionCurrentPlanSummary.additional-mau.title": "Additional MAU",
   "SubscriptionCurrentPlanSummary.additional-mau.tooltip": "{count} Additional MAU added",
 
-  "SubscriptionScreen.footer.tax": "* Local VAT and taxes may apply.",
-  "SubscriptionScreen.footer.usage-delay-disclaimer": "Reporting is not realtime. The MAU and SMS numbers are delayed up to 24 hours.",
-  "SubscriptionScreen.footer.cancel": "Switch back to Free plan",
-  "SubscriptionScreen.footer.expire": "Your subscription will expire on {date}",
-  "SubscriptionScreen.footer.enterprise-plan": "Get enterprise support, advanced requirements, private deployment with our {ExternalLink, react, onClick{{onClick}} children{Enterprise Plan}}",
-  "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
+  "SubscriptionScreen.footer.tax": "All prices are shown in USD, local VAT and taxes may apply.",
 
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.recommended": "Recommended",
