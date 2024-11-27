@@ -117,7 +117,7 @@ func (h *AuthflowV2SettingsSessionsHandler) ServeHTTP(w http.ResponseWriter, r *
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithoutDBTx()
+	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	currentSession := session.GetSession(r.Context())
 	redirectURI := httputil.HostRelative(r.URL).String()

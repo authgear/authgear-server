@@ -44,15 +44,15 @@ func (h *PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.InteractionSession()
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
 
-		graph, err := ctrl.InteractionGet()
+		graph, err := ctrl.InteractionGet(ctx)
 		if err != nil {
 			return err
 		}
@@ -67,7 +67,7 @@ func (h *PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	})
 
 	ctrl.PostAction("skip", func(ctx context.Context) error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 
 			input = &InputPromptCreatePasskeyAttestationResponse{
 				Skipped: true,
@@ -83,7 +83,7 @@ func (h *PromptCreatePasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Re
 	})
 
 	ctrl.PostAction("", func(ctx context.Context) error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 			attestationResponseStr := r.Form.Get("x_attestation_response")
 			attestationResponse := []byte(attestationResponseStr)
 

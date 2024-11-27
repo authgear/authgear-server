@@ -75,7 +75,7 @@ func (h *AuthflowV2SettingsDeleteAccountHandler) ServeHTTP(w http.ResponseWriter
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithoutDBTx()
+	defer ctrl.ServeWithoutDBTx(r.Context())
 
 	currentSession := session.GetSession(r.Context())
 	redirectURI := "/settings/delete_account/success"

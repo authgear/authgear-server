@@ -28,7 +28,7 @@ type CreateAuthenticatorPhoneOTPNode interface {
 // nolint: gocognit
 func handleAlternativeSteps(ctrl *Controller) {
 	ctrl.PostAction("choose_step", func(ctx context.Context) (err error) {
-		session, err := ctrl.InteractionSession()
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
@@ -51,7 +51,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 
 		case webapp.SessionStepSetupOOBOTPEmail,
 			webapp.SessionStepSetupOOBOTPSMS:
-			graph, err := ctrl.InteractionGet()
+			graph, err := ctrl.InteractionGet(ctx)
 			if err != nil {
 				return err
 			}
@@ -93,7 +93,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 			}
 
 		case webapp.SessionStepSetupLoginLinkOTP:
-			graph, err := ctrl.InteractionGet()
+			graph, err := ctrl.InteractionGet(ctx)
 			if err != nil {
 				return err
 			}
@@ -114,7 +114,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 				panic(fmt.Sprintf("webapp: unexpected authentication stage: %s", node.GetCreateAuthenticatorStage()))
 			}
 		case webapp.SessionStepSetupWhatsappOTP:
-			graph, err := ctrl.InteractionGet()
+			graph, err := ctrl.InteractionGet(ctx)
 			if err != nil {
 				return err
 			}
@@ -279,7 +279,7 @@ func handleAlternativeSteps(ctrl *Controller) {
 				NavigationAction: "replace",
 			}
 		} else {
-			result, err = ctrl.InteractionPost(inputFn)
+			result, err = ctrl.InteractionPost(ctx, inputFn)
 			if err != nil {
 				return err
 			}

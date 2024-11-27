@@ -26,7 +26,7 @@ func (h *ReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	webSession := webapp.GetSession(r.Context())
 	userIDHint := ""
@@ -44,7 +44,7 @@ func (h *ReauthHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			UserIDHint:               userIDHint,
 			SuppressIDPSessionCookie: suppressIDPSessionCookie,
 		}
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			return nil, nil
 		})
 		if err != nil {

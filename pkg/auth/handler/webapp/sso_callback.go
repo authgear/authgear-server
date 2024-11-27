@@ -82,7 +82,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		defer ctrl.ServeWithDBTx()
+		defer ctrl.ServeWithDBTx(r.Context())
 
 		data := InputOAuthCallback{
 			ProviderAlias: httproute.GetParam(r, "alias"),
@@ -90,7 +90,7 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		handler := func(ctx context.Context) error {
-			result, err := ctrl.InteractionOAuthCallback(data, state)
+			result, err := ctrl.InteractionOAuthCallback(ctx, data, state)
 			if err != nil {
 				return err
 			}

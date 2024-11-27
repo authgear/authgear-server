@@ -158,7 +158,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	inputFn := func() (input interface{}, err error) {
 		err = VerifyIdentitySchema.Validator().ValidateValue(FormToJSON(r.Form))
@@ -176,12 +176,12 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 
 	ctrl.Get(func(ctx context.Context) error {
 		// This page should be opened by the original user agent.
-		session, err := ctrl.InteractionSession()
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
 
-		graph, err := ctrl.InteractionGet()
+		graph, err := ctrl.InteractionGet(ctx)
 		if err != nil {
 			return err
 		}
@@ -196,7 +196,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	})
 
 	ctrl.PostAction("resend", func(ctx context.Context) error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 			input = &InputResendCode{}
 			return
 		})
@@ -212,7 +212,7 @@ func (h *VerifyIdentityHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 	})
 
 	ctrl.PostAction(VerifyIdentityActionSubmit, func(ctx context.Context) error {
-		result, err := ctrl.InteractionPost(inputFn)
+		result, err := ctrl.InteractionPost(ctx, inputFn)
 		if err != nil {
 			return err
 		}

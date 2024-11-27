@@ -63,15 +63,15 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.InteractionSession()
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
 
-		graph, err := ctrl.InteractionGet()
+		graph, err := ctrl.InteractionGet(ctx)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 			return err
 		}
 
-		session, err := ctrl.InteractionSession()
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
@@ -116,7 +116,7 @@ func (h *ConfirmTerminateOtherSessionsHandler) ServeHTTP(w http.ResponseWriter, 
 			return nil
 		}
 
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 			input = &InputConfirmTerminateOtherSessions{
 				IsConfirm: isConfirmed,
 			}

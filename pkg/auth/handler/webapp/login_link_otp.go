@@ -118,15 +118,15 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
-		session, err := ctrl.InteractionSession()
+		session, err := ctrl.InteractionSession(ctx)
 		if err != nil {
 			return err
 		}
 
-		graph, err := ctrl.InteractionGet()
+		graph, err := ctrl.InteractionGet(ctx)
 		if err != nil {
 			return err
 		}
@@ -141,7 +141,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	})
 
 	ctrl.PostAction("resend", func(ctx context.Context) error {
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 			input = &InputResendCode{}
 			return
 		})
@@ -156,8 +156,8 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return nil
 	})
 
-	getEmailFromGraph := func() (string, error) {
-		graph, err := ctrl.InteractionGet()
+	getEmailFromGraph := func(ctx context.Context) (string, error) {
+		graph, err := ctrl.InteractionGet(ctx)
 		if err != nil {
 			return "", err
 		}
@@ -175,7 +175,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 	ctrl.PostAction("dryrun_verify", func(ctx context.Context) error {
 		var state LoginLinkOTPPageQueryState
 
-		email, err := getEmailFromGraph()
+		email, err := getEmailFromGraph(ctx)
 		if err != nil {
 			return err
 		}
@@ -207,7 +207,7 @@ func (h *LoginLinkOTPHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	ctrl.PostAction("next", func(ctx context.Context) error {
 		deviceToken := r.Form.Get("x_device_token") == "true"
-		result, err := ctrl.InteractionPost(func() (input interface{}, err error) {
+		result, err := ctrl.InteractionPost(ctx, func() (input interface{}, err error) {
 			input = &InputVerifyLoginLinkOTP{
 				DeviceToken: deviceToken,
 			}
