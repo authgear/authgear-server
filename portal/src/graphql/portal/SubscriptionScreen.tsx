@@ -74,6 +74,7 @@ import { useCreateCheckoutSessionMutation } from "./mutations/createCheckoutSess
 import { useUpdateSubscriptionMutation } from "./mutations/updateSubscriptionMutation";
 import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateSubscriptionMutation";
 import { formatDateOnly } from "../../util/formatDateOnly";
+import { FeatureBanner } from "../../components/billing/FeatureBanner";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -960,6 +961,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             />
           ) : null}
         </SubscriptionCurrentPlanSummary>
+        <FeatureBanner />
         <PlansSection
           currentPlanName={planName}
           subscriptionCancelled={subscriptionCancelled}
