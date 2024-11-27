@@ -93,7 +93,7 @@ func (h *ConnectWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 		http.Redirect(w, r, "/", http.StatusFound)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	opts := webapp.SessionOptions{
 		RedirectURI: ctrl.RedirectURI(),
@@ -112,7 +112,7 @@ func (h *ConnectWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	}
 
 	ctrl.Get(func(ctx context.Context) error {
-		graph, err := ctrl.EntryPointGet(opts, intent)
+		graph, err := ctrl.EntryPointGet(ctx, opts, intent)
 		if err != nil {
 			return err
 		}
@@ -127,7 +127,7 @@ func (h *ConnectWeb3AccountHandler) ServeHTTP(w http.ResponseWriter, r *http.Req
 	})
 
 	ctrl.PostAction("submit", func(ctx context.Context) error {
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			err = Web3AccountConfirmationSchema.Validator().ValidateValue(FormToJSON(r.Form))
 			if err != nil {
 				return

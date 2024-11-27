@@ -94,8 +94,8 @@ type Controller struct {
 	skipRewind bool
 }
 
-func (c *Controller) RequireUserID() string {
-	userID := session.GetUserID(c.request.Context())
+func (c *Controller) RequireUserID(ctx context.Context) string {
+	userID := session.GetUserID(ctx)
 	if userID == nil {
 		// This should not happen; should have a middleware to redirect user to
 		// login page if unauthenticated.
@@ -126,14 +126,14 @@ func (c *Controller) PostAction(action string, fn func(ctx context.Context) erro
 	c.postHandlers[action] = fn
 }
 
-func (c *Controller) GetSession(id string) (*webapp.Session, error) {
-	return c.Page.GetSession(c.request.Context(), id)
+func (c *Controller) GetSession(ctx context.Context, id string) (*webapp.Session, error) {
+	return c.Page.GetSession(ctx, id)
 }
 
-func (c *Controller) UpdateSession(s *webapp.Session) error {
+func (c *Controller) UpdateSession(ctx context.Context, s *webapp.Session) error {
 	now := c.Clock.NowUTC()
 	s.UpdatedAt = now
-	err := c.Page.UpdateSession(c.request.Context(), s)
+	err := c.Page.UpdateSession(ctx, s)
 	if err != nil {
 		return err
 	}
@@ -142,7 +142,7 @@ func (c *Controller) UpdateSession(s *webapp.Session) error {
 		Kind: WebsocketMessageKindRefresh,
 	}
 
-	err = c.Publisher.Publish(c.request.Context(), s, msg)
+	err = c.Publisher.Publish(ctx, s, msg)
 	if err != nil {
 		return err
 	}
@@ -150,18 +150,18 @@ func (c *Controller) UpdateSession(s *webapp.Session) error {
 	return nil
 }
 
-func (c *Controller) DeleteSession(id string) error {
-	return c.Page.DeleteSession(c.request.Context(), id)
+func (c *Controller) DeleteSession(ctx context.Context, id string) error {
+	return c.Page.DeleteSession(ctx, id)
 }
 
-func (c *Controller) ServeWithoutDBTx() {
-	c.serve(serveOption{
+func (c *Controller) ServeWithoutDBTx(ctx context.Context) {
+	c.serve(ctx, serveOption{
 		withDBTx: false,
 	})
 }
 
-func (c *Controller) ServeWithDBTx() {
-	c.serve(serveOption{
+func (c *Controller) ServeWithDBTx(ctx context.Context) {
+	c.serve(ctx, serveOption{
 		withDBTx: true,
 	})
 }
@@ -170,7 +170,7 @@ type serveOption struct {
 	withDBTx bool
 }
 
-func (c *Controller) serve(option serveOption) {
+func (c *Controller) serve(ctx context.Context, option serveOption) {
 	var err error
 	fns := [](func(ctx context.Context) error){
 		func(ctx context.Context) error {
@@ -206,14 +206,14 @@ func (c *Controller) serve(option serveOption) {
 	}
 
 	if option.withDBTx {
-		err = c.Database.WithTx(c.request.Context(), handleFunc)
+		err = c.Database.WithTx(ctx, handleFunc)
 	} else {
-		err = handleFunc(c.request.Context())
+		err = handleFunc(ctx)
 	}
 
 	if err != nil {
 		if apierrors.IsAPIError(err) {
-			c.renderError(c.request.Context(), err)
+			c.renderError(ctx, err)
 		} else {
 			panic(err)
 		}
@@ -224,8 +224,8 @@ func (c *Controller) renderError(ctx context.Context, err error) {
 	c.ErrorRenderer.RenderError(ctx, c.response, c.request, err)
 }
 
-func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Session {
-	s := webapp.GetSession(c.request.Context())
+func (c *Controller) EntryPointSession(ctx context.Context, opts webapp.SessionOptions) *webapp.Session {
+	s := webapp.GetSession(ctx)
 	now := c.Clock.NowUTC()
 	o := opts
 	if s != nil {
@@ -241,18 +241,20 @@ func (c *Controller) EntryPointSession(opts webapp.SessionOptions) *webapp.Sessi
 }
 
 func (c *Controller) EntryPointGet(
+	ctx context.Context,
 	opts webapp.SessionOptions,
 	intent interaction.Intent,
 ) (*interaction.Graph, error) {
-	return c.Page.GetWithIntent(c.request.Context(), c.EntryPointSession(opts), intent)
+	return c.Page.GetWithIntent(ctx, c.EntryPointSession(ctx, opts), intent)
 }
 
 func (c *Controller) EntryPointPost(
+	ctx context.Context,
 	opts webapp.SessionOptions,
 	intent interaction.Intent,
 	inputFn func() (interface{}, error),
 ) (*webapp.Result, error) {
-	return c.Page.PostWithIntent(c.request.Context(), c.EntryPointSession(opts), intent, inputFn)
+	return c.Page.PostWithIntent(ctx, c.EntryPointSession(ctx, opts), intent, inputFn)
 }
 
 func (c *Controller) rewindSessionHistory(session *webapp.Session) error {
@@ -283,16 +285,16 @@ func (c *Controller) rewindSessionHistory(session *webapp.Session) error {
 	return nil
 }
 
-func (c *Controller) InteractionSession() (*webapp.Session, error) {
-	s := webapp.GetSession(c.request.Context())
+func (c *Controller) InteractionSession(ctx context.Context) (*webapp.Session, error) {
+	s := webapp.GetSession(ctx)
 	if s == nil {
 		return nil, webapp.ErrSessionNotFound
 	}
 	return s, nil
 }
 
-func (c *Controller) InteractionGet() (*interaction.Graph, error) {
-	s, err := c.InteractionSession()
+func (c *Controller) InteractionGet(ctx context.Context) (*interaction.Graph, error) {
+	s, err := c.InteractionSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -301,19 +303,19 @@ func (c *Controller) InteractionGet() (*interaction.Graph, error) {
 		return nil, err
 	}
 
-	return c.Page.Get(c.request.Context(), s)
+	return c.Page.Get(ctx, s)
 }
 
-func (c *Controller) InteractionGetWithSession(s *webapp.Session) (*interaction.Graph, error) {
+func (c *Controller) InteractionGetWithSession(ctx context.Context, s *webapp.Session) (*interaction.Graph, error) {
 	if err := c.rewindSessionHistory(s); err != nil {
 		return nil, err
 	}
 
-	return c.Page.Get(c.request.Context(), s)
+	return c.Page.Get(ctx, s)
 }
 
-func (c *Controller) InteractionPost(inputFn func() (interface{}, error)) (*webapp.Result, error) {
-	s, err := c.InteractionSession()
+func (c *Controller) InteractionPost(ctx context.Context, inputFn func() (interface{}, error)) (*webapp.Result, error) {
+	s, err := c.InteractionSession(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -322,10 +324,10 @@ func (c *Controller) InteractionPost(inputFn func() (interface{}, error)) (*weba
 		return nil, err
 	}
 
-	return c.Page.PostWithInput(c.request.Context(), s, inputFn)
+	return c.Page.PostWithInput(ctx, s, inputFn)
 }
 
-func (c *Controller) InteractionOAuthCallback(oauthInput InputOAuthCallback, oauthState *webappoauth.WebappOAuthState) (*webapp.Result, error) {
+func (c *Controller) InteractionOAuthCallback(ctx context.Context, oauthInput InputOAuthCallback, oauthState *webappoauth.WebappOAuthState) (*webapp.Result, error) {
 	inputFn := func() (input interface{}, err error) {
 		input = &oauthInput
 		return
@@ -333,7 +335,7 @@ func (c *Controller) InteractionOAuthCallback(oauthInput InputOAuthCallback, oau
 	// OAuth callback could be triggered by form post from another site (e.g. google)
 	// Therefore cookies might not be sent in this case
 	// Use the state as web session id
-	s, err := c.Page.GetSession(c.request.Context(), oauthState.WebSessionID)
+	s, err := c.Page.GetSession(ctx, oauthState.WebSessionID)
 	if err != nil {
 		return nil, err
 	}
@@ -342,5 +344,5 @@ func (c *Controller) InteractionOAuthCallback(oauthInput InputOAuthCallback, oau
 		return nil, err
 	}
 
-	return c.Page.PostWithInput(c.request.Context(), s, inputFn)
+	return c.Page.PostWithInput(ctx, s, inputFn)
 }

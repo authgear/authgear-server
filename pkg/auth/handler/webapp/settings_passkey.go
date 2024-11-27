@@ -71,10 +71,10 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer ctrl.ServeWithDBTx()
+	defer ctrl.ServeWithDBTx(r.Context())
 
 	redirectURI := httputil.HostRelative(r.URL).String()
-	userID := ctrl.RequireUserID()
+	userID := ctrl.RequireUserID(r.Context())
 
 	ctrl.Get(func(ctx context.Context) error {
 		data, err := h.GetData(ctx, r, w)
@@ -92,7 +92,7 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 		}
 		identityID := r.Form.Get("q_identity_id")
 		intent := intents.NewIntentRemoveIdentity(userID)
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			input = &InputRemoveIdentity{
 				Type: model.IdentityTypePasskey,
 				ID:   identityID,
@@ -117,7 +117,7 @@ func (h *SettingsPasskeyHandler) ServeHTTP(w http.ResponseWriter, r *http.Reques
 			model.AuthenticatorTypePasskey,
 		)
 
-		result, err := ctrl.EntryPointPost(opts, intent, func() (input interface{}, err error) {
+		result, err := ctrl.EntryPointPost(ctx, opts, intent, func() (input interface{}, err error) {
 			attestationResponseStr := r.Form.Get("x_attestation_response")
 			attestationResponse := []byte(attestationResponseStr)
 
