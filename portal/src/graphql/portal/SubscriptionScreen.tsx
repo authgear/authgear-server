@@ -60,6 +60,7 @@ import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateS
 import { formatDateOnly } from "../../util/formatDateOnly";
 import { FeatureBanner } from "../../components/billing/FeatureBanner";
 import ScreenDescription from "../../ScreenDescription";
+import { CurrentPlanCard } from "../../components/billing/CurrentPlanCard";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -607,11 +608,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage id="SubscriptionScreen.description" />
           </ScreenDescription>
         </div>
-        <Pivot
-          className="mb-6"
-          onLinkClick={onTabChange}
-          selectedKey={selectedTab}
-        >
+        <Pivot onLinkClick={onTabChange} selectedKey={selectedTab}>
           <PivotItem
             itemKey={Tab.Subscription}
             headerText={renderToString("SubscriptionScreen.tabs.subscription")}
@@ -622,7 +619,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           />
         </Pivot>
         {selectedTab === Tab.Subscription ? (
-          <>
+          <div className="py-6 grid grid-flow-row gap-4">
             <FeatureBanner />
             <PlansSection
               currentPlanName={planName}
@@ -637,12 +634,45 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                 <FormattedMessage id="SubscriptionScreen.footer.tax" />
               </Text>
             </footer>
-          </>
+          </div>
         ) : (
-          <></>
+          <PlanDetailsTab nextBillingDate={nextBillingDate} />
         )}
       </div>
     </>
+  );
+}
+
+interface PlanDetailsTabProps {
+  nextBillingDate: Date | undefined;
+}
+
+function PlanDetailsTab({ nextBillingDate }: PlanDetailsTabProps) {
+  const { locale } = useContext(Context);
+  const formattedBillingDate = useMemo(
+    () => formatDateOnly(locale, nextBillingDate ?? null),
+    [locale, nextBillingDate]
+  );
+  return (
+    <div className="py-6 grid grid-flow-row gap-4">
+      <div className="space-y-2">
+        <Text variant="xLarge" block={true}>
+          <FormattedMessage id="SubscriptionScreen.planDetails.title" />
+        </Text>
+        {formattedBillingDate ? (
+          <Text variant="medium" className="text-text-secondary" block={true}>
+            <FormattedMessage
+              id="SubscriptionScreen.planDetails.nextBillingDate"
+              values={{ date: formattedBillingDate }}
+            />
+          </Text>
+        ) : null}
+        <Text variant="medium" className="text-text-secondary" block={true}>
+          <FormattedMessage id="SubscriptionScreen.planDetails.reminder" />
+        </Text>
+      </div>
+      <CurrentPlanCard />
+    </div>
   );
 }
 

@@ -1578,6 +1578,10 @@
   "SubscriptionScreen.tabs.subscription": "Subscription",
   "SubscriptionScreen.tabs.planDetails": "Plan details",
 
+  "SubscriptionScreen.planDetails.title": "Current Billing & Usage",
+  "SubscriptionScreen.planDetails.nextBillingDate": "Next billing date: {date}",
+  "SubscriptionScreen.planDetails.reminder": "Reporting is not realtime. The MAU and SMS numbers are delayed up to 24 hours.",
+
   "SubscriptionScreen.cards.title": "Upgrade Your Plan",
   "SubscriptionScreen.enterprise.title": "Upgrade to Enterprise",
   "SubscriptionScreen.enterprise.instructions": "Managing 10,000+ MAU? In need of customization services? Send an email to {ExternalLink, react, href{mailto:hello@authgear.com} children{hello@authgear.com}} from the email address associated with your Authgear account and we will take care of the rest.",
@@ -2115,6 +2119,27 @@
   "FeatureBanner.highlightedFeatures.fullAccessToAllFeatures": "Full Access to All Features",
   "FeatureBanner.highlightedFeatures.startBuildingForFree": "Start Building for Free",
   "FeatureBanner.highlightedFeatures.flexibleUsageBasedAddOns": "Flexible Usage-based Add-ons",
+
+  "CurrentPlanCard.subscriptionFee.title": "Subscription Fee",
+  "CurrentPlanCard.subscriptionFee.value": "${price}",
+  "CurrentPlanCard.subscriptionFee.unit": "/mo",
+  "CurrentPlanCard.subscriptionFee.include": "Include:",
+  "CurrentPlanCard.subscriptionFee.plan": "{plan} Plan",
+  "CurrentPlanCard.subscriptionFee.planPrice": "${price}",
+
+  "CurrentPlanCard.whatsappSMSFee.title": "SMS/Whatsapp Cost (Estimated)",
+  "CurrentPlanCard.whatsappSMSFee.value": "${price}",
+  "CurrentPlanCard.whatsappSMSFee.unit": "/mo",
+  "CurrentPlanCard.whatsappSMSFee.sms.northAmerica": "SMS (US/Canada)",
+  "CurrentPlanCard.whatsappSMSFee.sms.other": "SMS (Other)",
+  "CurrentPlanCard.whatsappSMSFee.whatsapp.northAmerica": "Whatsapp (US/Canada)",
+  "CurrentPlanCard.whatsappSMSFee.whatsapp.other": "Whatsapp (Other)",
+  "CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice": "${unitPrice} * ${quantity} = ${total}",
+  "CurrentPlanCard.mau.title": "Monthly Active User",
+  "CurrentPlanCard.mau.approachingLimit": "Upgrade to increase limit",
+  "CurrentPlanCard.mau.limitReached": "Upgrade to avoid account deactivation",
+  "CurrentPlanCard.mau.previous": " (Last month: {count})",
+  "CurrentPlanCard.mau.tooltip": "MAU usage is updated on a daily basis{br, react}Usage calculated by the end of the billing cycle would be most accurate",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
