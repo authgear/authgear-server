@@ -1,0 +1,31 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        # The default is localhost:4318
+        # But in docker compose, that does not bind to the docker network interface.
+        # So we have to use 0.0.0.0 here.
+        endpoint: 0.0.0.0:4318
+
+processors:
+  attributes:
+    actions:
+    # Set deployment.environment.name so applications do not have to set it themselves with OTEL_RESOURCE_ATTRIBUTES.
+    - key: deployment.environment.name
+      value: local
+      action: upsert
+
+exporters:
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/v1/write
+    tls:
+      insecure: true
+    resource_to_telemetry_conversion:
+      enabled: true
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [attributes]
+      exporters: [prometheusremotewrite]
