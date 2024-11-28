@@ -1,3 +1,11 @@
+import {
+  SubscriptionItemPriceSmsRegion,
+  SubscriptionItemPriceType,
+  SubscriptionItemPriceUsageType,
+  SubscriptionItemPriceWhatsappRegion,
+  SubscriptionUsage,
+} from "../graphql/portal/globalTypes.generated";
+
 export type Plan =
   | "free"
   | "free-approved"
@@ -181,4 +189,112 @@ export function getCTAVariant(opts: {
 
   // Now we know cardPlanName is equal to currentPlanName.
   return "current";
+}
+
+function centToDollar(cents: number) {
+  return cents / 100;
+}
+
+export interface SMSCost {
+  totalCost: number;
+  northAmericaUnitCost: number;
+  northAmericaCount: number;
+  northAmericaTotalCost: number;
+  otherRegionsCount: number;
+  otherRegionsUnitCost: number;
+  otherRegionsTotalCost: number;
+}
+
+export function getSMSCost(
+  planName: string,
+  subscriptionUsage: SubscriptionUsage
+): SMSCost | undefined {
+  if (!isStripePlan(planName)) {
+    return undefined;
+  }
+
+  const cost = {
+    totalCost: 0,
+    northAmericaUnitCost: 0,
+    northAmericaCount: 0,
+    northAmericaTotalCost: 0,
+    otherRegionsCount: 0,
+    otherRegionsUnitCost: 0,
+    otherRegionsTotalCost: 0,
+  } satisfies SMSCost;
+
+  for (const item of subscriptionUsage.items) {
+    if (
+      item.type === SubscriptionItemPriceType.Usage &&
+      item.usageType === SubscriptionItemPriceUsageType.Sms
+    ) {
+      cost.totalCost += centToDollar(item.totalAmount ?? 0);
+      if (item.smsRegion === SubscriptionItemPriceSmsRegion.NorthAmerica) {
+        cost.northAmericaCount = item.quantity;
+        cost.northAmericaUnitCost = centToDollar(item.unitAmount ?? 0);
+        cost.northAmericaTotalCost = centToDollar(item.totalAmount ?? 0);
+      }
+      if (item.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions) {
+        cost.otherRegionsCount = item.quantity;
+        cost.otherRegionsUnitCost = centToDollar(item.unitAmount ?? 0);
+        cost.otherRegionsTotalCost = centToDollar(item.totalAmount ?? 0);
+      }
+    }
+  }
+
+  return cost;
+}
+
+export interface WhatsappCost {
+  totalCost: number;
+  northAmericaUnitCost: number;
+  northAmericaCount: number;
+  northAmericaTotalCost: number;
+  otherRegionsCount: number;
+  otherRegionsUnitCost: number;
+  otherRegionsTotalCost: number;
+}
+
+export function getWhatsappCost(
+  planName: string,
+  subscriptionUsage: SubscriptionUsage
+): WhatsappCost | undefined {
+  if (!isStripePlan(planName)) {
+    return undefined;
+  }
+
+  const cost = {
+    totalCost: 0,
+    northAmericaUnitCost: 0,
+    northAmericaCount: 0,
+    northAmericaTotalCost: 0,
+    otherRegionsCount: 0,
+    otherRegionsUnitCost: 0,
+    otherRegionsTotalCost: 0,
+  } satisfies WhatsappCost;
+
+  for (const item of subscriptionUsage.items) {
+    if (
+      item.type === SubscriptionItemPriceType.Usage &&
+      item.usageType === SubscriptionItemPriceUsageType.Whatsapp
+    ) {
+      cost.totalCost += centToDollar(item.totalAmount ?? 0);
+      if (
+        item.whatsappRegion === SubscriptionItemPriceWhatsappRegion.NorthAmerica
+      ) {
+        cost.northAmericaCount = item.quantity;
+        cost.northAmericaUnitCost = centToDollar(item.unitAmount ?? 0);
+        cost.northAmericaTotalCost = centToDollar(item.totalAmount ?? 0);
+      }
+      if (
+        item.whatsappRegion === SubscriptionItemPriceWhatsappRegion.OtherRegions
+      ) {
+        cost.otherRegionsCount = item.quantity;
+        cost.otherRegionsUnitCost = centToDollar(item.unitAmount ?? 0);
+        cost.otherRegionsTotalCost = centToDollar(item.totalAmount ?? 0);
+      }
+    }
+  }
+
+  return cost;
 }

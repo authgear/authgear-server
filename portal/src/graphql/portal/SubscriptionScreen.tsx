@@ -447,8 +447,14 @@ enum Tab {
 }
 
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
-  const { appID, planName, subscription, subscriptionPlans, thisMonthUsage } =
-    props;
+  const {
+    appID,
+    planName,
+    subscription,
+    subscriptionPlans,
+    thisMonthUsage,
+    previousMonthUsage,
+  } = props;
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
@@ -633,7 +639,12 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             </footer>
           </div>
         ) : (
-          <PlanDetailsTab nextBillingDate={nextBillingDate} />
+          <PlanDetailsTab
+            planName={planName}
+            nextBillingDate={nextBillingDate}
+            thisMonthUsage={thisMonthUsage}
+            previousMonthUsage={previousMonthUsage}
+          />
         )}
       </div>
     </>
@@ -641,15 +652,24 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 }
 
 interface PlanDetailsTabProps {
+  planName: string;
   nextBillingDate: Date | undefined;
+  thisMonthUsage: SubscriptionUsage | undefined;
+  previousMonthUsage: SubscriptionUsage | undefined;
 }
 
-function PlanDetailsTab({ nextBillingDate }: PlanDetailsTabProps) {
+function PlanDetailsTab({
+  planName,
+  nextBillingDate,
+  thisMonthUsage,
+  previousMonthUsage,
+}: PlanDetailsTabProps) {
   const { locale } = useContext(Context);
   const formattedBillingDate = useMemo(
     () => formatDateOnly(locale, nextBillingDate ?? null),
     [locale, nextBillingDate]
   );
+
   return (
     <div className="py-6 grid grid-flow-row gap-4">
       <div className="space-y-2">
@@ -668,7 +688,11 @@ function PlanDetailsTab({ nextBillingDate }: PlanDetailsTabProps) {
           <FormattedMessage id="SubscriptionScreen.planDetails.reminder" />
         </Text>
       </div>
-      <CurrentPlanCard />
+      <CurrentPlanCard
+        planName={planName}
+        thisMonthUsage={thisMonthUsage}
+        previousMonthUsage={previousMonthUsage}
+      />
     </div>
   );
 }

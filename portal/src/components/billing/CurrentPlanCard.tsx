@@ -13,15 +13,89 @@ import styles from "./CurrentPlanCard.module.css";
 import { FormattedMessage } from "@oursky/react-messageformat";
 import { useId } from "@fluentui/react-hooks";
 import LinkButton from "../../LinkButton";
+import {
+  SMSCost,
+  WhatsappCost,
+  getMAULimit,
+  getSMSCost,
+  getWhatsappCost,
+  isStripePlan,
+} from "../../util/plan";
+import {
+  SubscriptionItemPriceType,
+  SubscriptionItemPriceUsageType,
+  SubscriptionUsage,
+} from "../../graphql/portal/globalTypes.generated";
 
-interface CurrentPlanCardProps {}
+interface CurrentPlanCardProps {
+  planName: string;
+  thisMonthUsage: SubscriptionUsage | undefined;
+  previousMonthUsage: SubscriptionUsage | undefined;
+}
 
-export function CurrentPlanCard({}: CurrentPlanCardProps): React.ReactElement {
+export function CurrentPlanCard({
+  planName,
+  thisMonthUsage,
+  previousMonthUsage,
+}: CurrentPlanCardProps): React.ReactElement {
+  const baseAmount = useMemo(() => {
+    if (!isStripePlan(planName)) {
+      return undefined;
+    }
+
+    const amountCent =
+      thisMonthUsage?.items.find(
+        (a) => a.type === SubscriptionItemPriceType.Fixed
+      )?.unitAmount ?? undefined;
+    if (amountCent == null) {
+      return undefined;
+    }
+    return amountCent / 100;
+  }, [planName, thisMonthUsage]);
+
+  const smsCost = useMemo(() => {
+    if (thisMonthUsage == null) {
+      return undefined;
+    }
+    return getSMSCost(planName, thisMonthUsage);
+  }, [planName, thisMonthUsage]);
+
+  const whatsappCost = useMemo(() => {
+    if (thisMonthUsage == null) {
+      return undefined;
+    }
+    return getWhatsappCost(planName, thisMonthUsage);
+  }, [planName, thisMonthUsage]);
+
+  const mauCurrent = useMemo(() => {
+    return thisMonthUsage?.items.find(
+      (a) =>
+        a.type === SubscriptionItemPriceType.Usage &&
+        a.usageType === SubscriptionItemPriceUsageType.Mau
+    )?.quantity;
+  }, [thisMonthUsage]);
+
+  const mauLimit = useMemo(() => {
+    return getMAULimit(planName);
+  }, [planName]);
+
+  const mauPrevious = useMemo(() => {
+    return previousMonthUsage?.items.find(
+      (a) =>
+        a.type === SubscriptionItemPriceType.Usage &&
+        a.usageType === SubscriptionItemPriceUsageType.Mau
+    )?.quantity;
+  }, [previousMonthUsage]);
+
   return (
     <div className={styles.cardContainer}>
-      <FixedCostSection />
-      <MeteredCostSection />
-      <MAUUsageSection />
+      <FixedCostSection planName={planName} baseAmount={baseAmount} />
+      <MeteredCostSection smsCost={smsCost} whatsappCost={whatsappCost} />
+      <MAUUsageSection
+        mauCurrent={mauCurrent}
+        mauLimit={mauLimit}
+        mauPrevious={mauPrevious}
+      />
     </div>
   );
 }
@@ -43,24 +117,34 @@ function CostItemRow({
   );
 }
 
-function FixedCostSection() {
+function FixedCostSection({
+  planName,
+  baseAmount,
+}: {
+  planName: string;
+  baseAmount: number | undefined;
+}) {
   return (
     <section className={styles.card}>
       <div className="space-y-2">
         <Text block={true} variant="mediumPlus" className="font-semibold">
           <FormattedMessage id="CurrentPlanCard.subscriptionFee.title" />
         </Text>
-        <div className="flex items-end">
-          <Text variant="xxLarge">
-            <FormattedMessage
-              id="CurrentPlanCard.subscriptionFee.value"
-              values={{ price: 50 }} // FIXME
-            />
-          </Text>
-          <Text variant="large" className="ml-2 font-semibold">
-            <FormattedMessage id="CurrentPlanCard.subscriptionFee.unit" />
-          </Text>
-        </div>
+        {baseAmount != null ? (
+          <div className="flex items-end">
+            <Text variant="xxLarge">
+              <FormattedMessage
+                id="CurrentPlanCard.subscriptionFee.value"
+                values={{ price: baseAmount }}
+              />
+            </Text>
+            <Text variant="large" className="ml-2 font-semibold">
+              <FormattedMessage id="CurrentPlanCard.subscriptionFee.unit" />
+            </Text>
+          </div>
+        ) : (
+          <Text variant="xxLarge">-</Text>
+        )}
       </div>
       <div className="space-y-2">
         <Text block={true} variant="medium" className="font-semibold">
@@ -70,14 +154,18 @@ function FixedCostSection() {
           label={
             <FormattedMessage
               id="CurrentPlanCard.subscriptionFee.plan"
-              values={{ plan: "Developers" }} // FIXME
+              values={{ plan: planName }}
             />
           }
           value={
-            <FormattedMessage
-              id="CurrentPlanCard.subscriptionFee.planPrice"
-              values={{ price: 50 }} // FIXME
-            />
+            baseAmount != null ? (
+              <FormattedMessage
+                id="CurrentPlanCard.subscriptionFee.planPrice"
+                values={{ price: baseAmount }}
+              />
+            ) : (
+              "-"
+            )
           }
         />
       </div>
@@ -85,7 +173,17 @@ function FixedCostSection() {
   );
 }
 
-function MeteredCostSection() {
+function MeteredCostSection({
+  smsCost,
+  whatsappCost,
+}: {
+  smsCost: SMSCost | undefined;
+  whatsappCost: WhatsappCost | undefined;
+}) {
+  const totalCost = useMemo(() => {
+    return (smsCost?.totalCost ?? 0) + (whatsappCost?.totalCost ?? 0);
+  }, [smsCost, whatsappCost]);
+
   return (
     <section className={styles.card}>
       <div className="space-y-2">
@@ -96,7 +194,7 @@ function MeteredCostSection() {
           <Text variant="xxLarge">
             <FormattedMessage
               id="CurrentPlanCard.whatsappSMSFee.value"
-              values={{ price: 11 }} // FIXME
+              values={{ price: totalCost }}
             />
           </Text>
           <Text variant="large" className="ml-2 font-semibold">
@@ -105,63 +203,95 @@ function MeteredCostSection() {
         </div>
       </div>
       <div className="space-y-2">
-        <CostItemRow
-          label={
-            <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.sms.northAmerica" />
-          }
-          value={
-            <FormattedMessage
-              id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-              values={{ unitPrice: 0.01, quantity: 10, total: 1000 }} // FIXME
-            />
-          }
-        />
-        <CostItemRow
-          label={
-            <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.sms.other" />
-          }
-          value={
-            <FormattedMessage
-              id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-              values={{ unitPrice: 0.01, quantity: 10, total: 1000 }} // FIXME
-            />
-          }
-        />
-        <CostItemRow
-          label={
-            <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.whatsapp.northAmerica" />
-          }
-          value={
-            <FormattedMessage
-              id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-              values={{ unitPrice: 0.01, quantity: 10, total: 1000 }} // FIXME
-            />
-          }
-        />
-        <CostItemRow
-          label={
-            <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.whatsapp.other" />
-          }
-          value={
-            <FormattedMessage
-              id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-              values={{ unitPrice: 0.01, quantity: 10, total: 1000 }} // FIXME
-            />
-          }
-        />
+        {smsCost ? (
+          <CostItemRow
+            label={
+              <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.sms.northAmerica" />
+            }
+            value={
+              <FormattedMessage
+                id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
+                values={{
+                  unitPrice: smsCost.northAmericaUnitCost,
+                  quantity: smsCost.northAmericaCount,
+                  total: smsCost.northAmericaTotalCost,
+                }}
+              />
+            }
+          />
+        ) : null}
+        {smsCost ? (
+          <CostItemRow
+            label={
+              <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.sms.other" />
+            }
+            value={
+              <FormattedMessage
+                id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
+                values={{
+                  unitPrice: smsCost.otherRegionsUnitCost,
+                  quantity: smsCost.otherRegionsCount,
+                  total: smsCost.otherRegionsTotalCost,
+                }}
+              />
+            }
+          />
+        ) : null}
+        {whatsappCost ? (
+          <CostItemRow
+            label={
+              <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.whatsapp.northAmerica" />
+            }
+            value={
+              <FormattedMessage
+                id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
+                values={{
+                  unitPrice: whatsappCost.northAmericaUnitCost,
+                  quantity: whatsappCost.northAmericaCount,
+                  total: whatsappCost.northAmericaTotalCost,
+                }}
+              />
+            }
+          />
+        ) : null}
+        {whatsappCost ? (
+          <CostItemRow
+            label={
+              <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.whatsapp.other" />
+            }
+            value={
+              <FormattedMessage
+                id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
+                values={{
+                  unitPrice: whatsappCost.otherRegionsUnitCost,
+                  quantity: whatsappCost.otherRegionsCount,
+                  total: whatsappCost.otherRegionsTotalCost,
+                }}
+              />
+            }
+          />
+        ) : null}
       </div>
     </section>
   );
 }
 
-function MAUUsageSection() {
+function MAUUsageSection({
+  mauCurrent,
+  mauLimit,
+  mauPrevious,
+}: {
+  mauCurrent: number | undefined;
+  mauLimit: number | undefined;
+  mauPrevious: number | undefined;
+}) {
   return (
     <section className={styles.card}>
       <UsageMeter
         title={<FormattedMessage id="CurrentPlanCard.mau.title" />}
-        current={523}
-        limit={5000}
-        previous={46}
+        current={mauCurrent}
+        limit={mauLimit}
+        previous={mauPrevious}
         warnPercentage={0.8}
         tooltip={<FormattedMessage id="CurrentPlanCard.mau.tooltip" />}
       />
