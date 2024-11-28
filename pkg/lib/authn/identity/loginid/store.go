@@ -142,16 +142,6 @@ func (s *Store) Get(ctx context.Context, userID, id string) (*identity.LoginID, 
 	return s.scan(rows)
 }
 
-func (s *Store) GetByLoginID(ctx context.Context, loginIDKey string, loginID string) (*identity.LoginID, error) {
-	q := s.selectQuery().Where(`l.login_id = ? AND l.login_id_key = ?`, loginID, loginIDKey)
-	rows, err := s.SQLExecutor.QueryRowWith(ctx, q)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.scan(rows)
-}
-
 func (s *Store) GetByUniqueKey(ctx context.Context, uniqueKey string) (*identity.LoginID, error) {
 	q := s.selectQuery().Where(`l.unique_key = ?`, uniqueKey)
 	rows, err := s.SQLExecutor.QueryRowWith(ctx, q)

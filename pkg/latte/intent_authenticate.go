@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -51,7 +52,7 @@ func (i *IntentAuthenticate) ReactTo(ctx context.Context, deps *workflow.Depende
 		spec := &identity.Spec{
 			Type: model.IdentityTypeLoginID,
 			LoginID: &identity.LoginIDSpec{
-				Value: loginID,
+				Value: stringutil.NewUserInputString(loginID),
 			},
 		}
 

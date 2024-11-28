@@ -6,6 +6,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
 func init() {
@@ -42,7 +43,7 @@ func (n *NodeChangeEmail) ReactTo(ctx context.Context, deps *workflow.Dependenci
 			LoginID: &identity.LoginIDSpec{
 				Type:  model.LoginIDKeyTypeEmail,
 				Key:   string(model.LoginIDKeyTypeEmail),
-				Value: loginID,
+				Value: stringutil.NewUserInputString(loginID),
 			},
 		}
 

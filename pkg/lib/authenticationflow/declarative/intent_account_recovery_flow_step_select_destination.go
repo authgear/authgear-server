@@ -201,11 +201,11 @@ func deriveAllowedAccountRecoveryDestinationOptions(
 		return []*AccountRecoveryDestinationOptionInternal{
 			{
 				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
-					MaskedDisplayName: mail.MaskAddress(iden.IdentitySpec.LoginID.Value),
+					MaskedDisplayName: mail.MaskAddress(iden.IdentitySpec.LoginID.Value.TrimSpace()),
 					Channel:           AccountRecoveryChannelEmail,
 					OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
 				},
-				TargetLoginID: iden.IdentitySpec.LoginID.Value,
+				TargetLoginID: iden.IdentitySpec.LoginID.Value.TrimSpace(),
 			},
 		}
 	case config.AccountRecoveryCodeChannelSMS:
@@ -215,11 +215,11 @@ func deriveAllowedAccountRecoveryDestinationOptions(
 		return []*AccountRecoveryDestinationOptionInternal{
 			{
 				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
-					MaskedDisplayName: phone.Mask(iden.IdentitySpec.LoginID.Value),
+					MaskedDisplayName: phone.Mask(iden.IdentitySpec.LoginID.Value.TrimSpace()),
 					Channel:           AccountRecoveryChannelSMS,
 					OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
 				},
-				TargetLoginID: iden.IdentitySpec.LoginID.Value,
+				TargetLoginID: iden.IdentitySpec.LoginID.Value.TrimSpace(),
 			},
 		}
 	case config.AccountRecoveryCodeChannelWhatsapp:
@@ -229,11 +229,11 @@ func deriveAllowedAccountRecoveryDestinationOptions(
 		return []*AccountRecoveryDestinationOptionInternal{
 			{
 				AccountRecoveryDestinationOption: AccountRecoveryDestinationOption{
-					MaskedDisplayName: phone.Mask(iden.IdentitySpec.LoginID.Value),
+					MaskedDisplayName: phone.Mask(iden.IdentitySpec.LoginID.Value.TrimSpace()),
 					Channel:           AccountRecoveryChannelWhatsapp,
 					OTPForm:           AccountRecoveryOTPForm(allowedChannel.OTPForm),
 				},
-				TargetLoginID: iden.IdentitySpec.LoginID.Value,
+				TargetLoginID: iden.IdentitySpec.LoginID.Value.TrimSpace(),
 			},
 		}
 	}

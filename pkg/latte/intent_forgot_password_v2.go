@@ -7,6 +7,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/workflow"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
@@ -56,7 +57,7 @@ func (i *IntentForgotPasswordV2) ReactTo(ctx context.Context, deps *workflow.Dep
 			spec := &identity.Spec{
 				Type: model.IdentityTypeLoginID,
 				LoginID: &identity.LoginIDSpec{
-					Value: loginID,
+					Value: stringutil.NewUserInputString(loginID),
 				},
 			}
 

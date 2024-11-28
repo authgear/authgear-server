@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	interactionintents "github.com/authgear/authgear-server/pkg/lib/interaction/intents"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 )
 
 type IdentityService interface {
@@ -69,7 +70,7 @@ func (f *IdentityFacade) Create(ctx context.Context, userID string, identityDef 
 		LoginID: &identity.LoginIDSpec{
 			Key:   loginIDInput.Key,
 			Type:  loginIDKeyCofig.Type,
-			Value: loginIDInput.Value,
+			Value: stringutil.NewUserInputString(loginIDInput.Value),
 		},
 	}
 

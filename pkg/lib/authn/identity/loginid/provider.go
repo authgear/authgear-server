@@ -10,6 +10,7 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/clock"
+	"github.com/authgear/authgear-server/pkg/util/stringutil"
 	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
 
@@ -49,11 +50,12 @@ func (p *Provider) GetByValue(ctx context.Context, value string) ([]*identity.Lo
 	im := map[string]*identity.LoginID{}
 	for _, config := range p.Config.Keys {
 		// Normalize expects loginID is in correct type so we have to validate it first.
-		invalid := p.Checker.ValidateOne(identity.LoginIDSpec{
+		spec := identity.LoginIDSpec{
 			Key:   config.Key,
 			Type:  config.Type,
-			Value: value,
-		}, CheckerOptions{
+			Value: stringutil.NewUserInputString(value),
+		}
+		invalid := p.Checker.ValidateOne(spec, CheckerOptions{
 			// Admin can create email login id which bypass domains blocklist allowlist
 			// it should not affect getting identity
 			// skip the checking when getting identity
@@ -64,12 +66,16 @@ func (p *Provider) GetByValue(ctx context.Context, value string) ([]*identity.Lo
 		}
 
 		normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(config.Type)
-		normalizedloginID, err := normalizer.Normalize(value)
+		normalizedloginID, err := normalizer.Normalize(spec.Value.TrimSpace())
+		if err != nil {
+			return nil, err
+		}
+		uniqueKey, err := normalizer.ComputeUniqueKey(normalizedloginID)
 		if err != nil {
 			return nil, err
 		}
 
-		i, err := p.Store.GetByLoginID(ctx, config.Key, normalizedloginID)
+		i, err := p.Store.GetByUniqueKey(ctx, uniqueKey)
 		if errors.Is(err, api.ErrIdentityNotFound) {
 			continue
 		} else if err != nil {
@@ -98,8 +104,12 @@ func (p *Provider) GetByKeyAndValue(ctx context.Context, key string, value strin
 	if err != nil {
 		return nil, api.ErrGetUsersInvalidArgument.New("invalid Login ID value")
 	}
+	uniqueKey, err := normalizer.ComputeUniqueKey(normalizedloginID)
+	if err != nil {
+		return nil, err
+	}
 
-	i, err := p.Store.GetByLoginID(ctx, key, normalizedloginID)
+	i, err := p.Store.GetByUniqueKey(ctx, uniqueKey)
 
 	if err != nil {
 		return nil, err
@@ -122,7 +132,7 @@ func (p *Provider) CheckAndNormalize(spec identity.LoginIDSpec) (normalized stri
 	}
 
 	normalizer := p.NormalizerFactory.NormalizerWithLoginIDType(spec.Type)
-	normalized, err = normalizer.Normalize(spec.Value)
+	normalized, err = normalizer.Normalize(spec.Value.TrimSpace())
 	if err != nil {
 		return
 	}
@@ -160,7 +170,7 @@ func (p *Provider) New(userID string, spec identity.LoginIDSpec, options Checker
 		return nil, err
 	}
 
-	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
+	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value.TrimSpace())
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +187,7 @@ func (p *Provider) New(userID string, spec identity.LoginIDSpec, options Checker
 		LoginIDType:     spec.Type,
 		LoginID:         normalized,
 		UniqueKey:       uniqueKey,
-		OriginalLoginID: spec.Value,
+		OriginalLoginID: spec.Value.TrimSpace(),
 		Claims:          claims,
 	}
 
@@ -188,7 +198,7 @@ func (p *Provider) WithValue(iden *identity.LoginID, value string, options Check
 	spec := identity.LoginIDSpec{
 		Key:   iden.LoginIDKey,
 		Type:  iden.LoginIDType,
-		Value: value,
+		Value: stringutil.NewUserInputString(value),
 	}
 
 	err := p.ValidateOne(spec, options)
@@ -196,7 +206,7 @@ func (p *Provider) WithValue(iden *identity.LoginID, value string, options Check
 		return nil, err
 	}
 
-	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value)
+	normalized, uniqueKey, err := p.Normalize(spec.Type, spec.Value.TrimSpace())
 	if err != nil {
 		return nil, err
 	}
