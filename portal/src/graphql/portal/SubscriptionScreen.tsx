@@ -61,6 +61,7 @@ import { formatDateOnly } from "../../util/formatDateOnly";
 import { FeatureBanner } from "../../components/billing/FeatureBanner";
 import ScreenDescription from "../../ScreenDescription";
 import { CurrentPlanCard } from "../../components/billing/CurrentPlanCard";
+import { usePivotNavigation } from "../../hook/usePivot";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -470,14 +471,10 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
   const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
 
-  const [selectedTab, setSelectedTab] = useState<Tab>(Tab.Subscription);
-  const onTabChange = useCallback((item?: PivotItem) => {
-    if (item == null) {
-      return;
-    }
-    const { itemKey } = item.props;
-    setSelectedTab(itemKey as Tab);
-  }, []);
+  const { selectedKey: selectedTab, onLinkClick } = usePivotNavigation<Tab>([
+    Tab.Subscription,
+    Tab.PlanDetail,
+  ]);
 
   const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
@@ -608,7 +605,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage id="SubscriptionScreen.description" />
           </ScreenDescription>
         </div>
-        <Pivot onLinkClick={onTabChange} selectedKey={selectedTab}>
+        <Pivot onLinkClick={onLinkClick} selectedKey={selectedTab}>
           <PivotItem
             itemKey={Tab.Subscription}
             headerText={renderToString("SubscriptionScreen.tabs.subscription")}
