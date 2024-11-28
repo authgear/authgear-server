@@ -70,8 +70,12 @@ func (p *Provider) GetByValue(ctx context.Context, value string) ([]*identity.Lo
 		if err != nil {
 			return nil, err
 		}
+		uniqueKey, err := normalizer.ComputeUniqueKey(normalizedloginID)
+		if err != nil {
+			return nil, err
+		}
 
-		i, err := p.Store.GetByLoginID(ctx, config.Key, normalizedloginID)
+		i, err := p.Store.GetByUniqueKey(ctx, uniqueKey)
 		if errors.Is(err, api.ErrIdentityNotFound) {
 			continue
 		} else if err != nil {
@@ -100,8 +104,12 @@ func (p *Provider) GetByKeyAndValue(ctx context.Context, key string, value strin
 	if err != nil {
 		return nil, api.ErrGetUsersInvalidArgument.New("invalid Login ID value")
 	}
+	uniqueKey, err := normalizer.ComputeUniqueKey(normalizedloginID)
+	if err != nil {
+		return nil, err
+	}
 
-	i, err := p.Store.GetByLoginID(ctx, key, normalizedloginID)
+	i, err := p.Store.GetByUniqueKey(ctx, uniqueKey)
 
 	if err != nil {
 		return nil, err
