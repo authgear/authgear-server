@@ -62,6 +62,8 @@ import { FeatureBanner } from "../../components/billing/FeatureBanner";
 import ScreenDescription from "../../ScreenDescription";
 import { CurrentPlanCard } from "../../components/billing/CurrentPlanCard";
 import { usePivotNavigation } from "../../hook/usePivot";
+import LinkButton from "../../LinkButton";
+import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -640,6 +642,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           </div>
         ) : (
           <PlanDetailsTab
+            appID={appID}
             planName={planName}
             nextBillingDate={nextBillingDate}
             thisMonthUsage={thisMonthUsage}
@@ -652,6 +655,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 }
 
 interface PlanDetailsTabProps {
+  appID: string;
   planName: string;
   nextBillingDate: Date | undefined;
   thisMonthUsage: SubscriptionUsage | undefined;
@@ -659,6 +663,7 @@ interface PlanDetailsTabProps {
 }
 
 function PlanDetailsTab({
+  appID,
   planName,
   nextBillingDate,
   thisMonthUsage,
@@ -668,6 +673,32 @@ function PlanDetailsTab({
   const formattedBillingDate = useMemo(
     () => formatDateOnly(locale, nextBillingDate ?? null),
     [locale, nextBillingDate]
+  );
+  const isLoading = useIsLoading();
+
+  const [generateCustomPortalSession, { loading: manageSubscriptionLoading }] =
+    useGenerateStripeCustomerPortalSessionMutationMutation({
+      variables: {
+        appID,
+      },
+    });
+  useLoading(manageSubscriptionLoading);
+
+  const onClickManageSubscription = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      generateCustomPortalSession().then(
+        (r) => {
+          const url = r.data?.generateStripeCustomerPortalSession.url;
+          if (url != null) {
+            window.location.href = url;
+          }
+        },
+        () => {}
+      );
+    },
+    [generateCustomPortalSession]
   );
 
   return (
@@ -693,6 +724,20 @@ function PlanDetailsTab({
         thisMonthUsage={thisMonthUsage}
         previousMonthUsage={previousMonthUsage}
       />
+      <LinkButton
+        className="text-sm relative justify-self-start"
+        onClick={onClickManageSubscription}
+        disabled={isLoading}
+      >
+        <span className={cn(manageSubscriptionLoading ? "invisible" : null)}>
+          <FormattedMessage id="SubscriptionScreen.footer.manageSubscription" />
+        </span>
+        {manageSubscriptionLoading === true ? (
+          <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
+            <Spinner size={SpinnerSize.xSmall} />
+          </div>
+        ) : null}
+      </LinkButton>
     </div>
   );
 }

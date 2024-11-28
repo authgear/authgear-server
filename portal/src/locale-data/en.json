@@ -1570,6 +1570,7 @@
   "SubscriptionCurrentPlanSummary.additional-mau.tooltip": "{count} Additional MAU added",
 
   "SubscriptionScreen.footer.tax": "All prices are shown in USD, local VAT and taxes may apply.",
+  "SubscriptionScreen.footer.manageSubscription": "View invoices or change billing methods",
 
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.description": "View and manage the features and resources to boost performance",
