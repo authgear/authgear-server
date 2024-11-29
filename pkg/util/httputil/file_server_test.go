@@ -9,6 +9,26 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+func TestExt(t *testing.T) {
+	Convey("Ext", t, func() {
+		test := func(p string, expected string) {
+			Convey(fmt.Sprintf("%v", p), func() {
+				actual := Ext(p)
+				So(actual, ShouldEqual, expected)
+			})
+		}
+
+		test("", "")
+		test(".vimrc", "")
+		test(".vimrc.vim", ".vim")
+		test("oauth-redirect", "")
+		test("script.js", ".js")
+		test("main-deadbeef.css", ".css")
+		test("appListQuery.generated-DQp0G87L.js", ".js")
+		test("appListQuery.generated-DQp0G87L.js.map", ".map")
+	})
+}
+
 func TestIsLikeRollupDefaultAssetName(t *testing.T) {
 	Convey("IsLikeRollupDefaultAssetName", t, func() {
 		test := func(p string, expected bool) {
@@ -35,6 +55,18 @@ func TestIsLikeRollupDefaultAssetName(t *testing.T) {
 
 		test("/a-0123456.js", false)
 		test("/a-0123456.js.map", false)
+
+		test("/oauth-redirect", false)
+
+		test("/a--0123456.js", true)
+		test("/a-_0123456.js", true)
+		test("/a---------.js", true)
+		test("/a-________.js", true)
+
+		test("/a--0123456", false)
+		test("/a-_0123456", false)
+		test("/a---------", false)
+		test("/a-________", false)
 	})
 }
 
@@ -104,6 +136,13 @@ func TestFileServer(t *testing.T) {
 			So(w.Result().Header.Get("cache-control"), ShouldEqual, "no-cache")
 
 			r, _ = http.NewRequest("GET", "/index.html", nil)
+			w = httptest.NewRecorder()
+			h.ServeHTTP(w, r)
+			So(w.Code, ShouldEqual, 200)
+			So(w.Result().Header.Get("content-type"), ShouldEqual, "text/html; charset=utf-8")
+			So(w.Result().Header.Get("cache-control"), ShouldEqual, "no-cache")
+
+			r, _ = http.NewRequest("GET", "/oauth-redirect?code=1234", nil)
 			w = httptest.NewRecorder()
 			h.ServeHTTP(w, r)
 			So(w.Code, ShouldEqual, 200)
