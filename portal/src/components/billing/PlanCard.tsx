@@ -450,7 +450,7 @@ export function PlanCardFree({
   return (
     <BasePlanCard
       planTitle={renderToString("PlanCard.plan.free")}
-      pricePerMonth="free"
+      pricePerMonth={0}
       smsPricing={{
         type: "fixed",
         limit: 100,
