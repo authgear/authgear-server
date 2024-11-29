@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/metric"
 
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/api/event"
@@ -98,7 +97,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 			otelauthgear.IntCounterAddOne(
 				ctx,
 				otelauthgear.CounterEmailRequestCount,
-				metric.WithAttributes(otelauthgear.AttributeStatusError),
+				otelauthgear.WithStatusError(),
 			)
 
 			s.Logger.WithError(err).WithFields(logrus.Fields{
@@ -118,7 +117,7 @@ func (s *Sender) SendEmailInNewGoroutine(ctx context.Context, msgType translatio
 		otelauthgear.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterEmailRequestCount,
-			metric.WithAttributes(otelauthgear.AttributeStatusOK),
+			otelauthgear.WithStatusOk(),
 		)
 
 		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
@@ -197,7 +196,7 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 			otelauthgear.IntCounterAddOne(
 				ctx,
 				otelauthgear.CounterSMSRequestCount,
-				metric.WithAttributes(otelauthgear.AttributeStatusError),
+				otelauthgear.WithStatusError(),
 			)
 
 			s.Logger.WithError(err).WithFields(logrus.Fields{
@@ -217,7 +216,7 @@ func (s *Sender) SendSMSInNewGoroutine(ctx context.Context, msgType translation.
 		otelauthgear.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterSMSRequestCount,
-			metric.WithAttributes(otelauthgear.AttributeStatusOK),
+			otelauthgear.WithStatusOk(),
 		)
 
 		err = s.Database.WithTx(ctx, func(ctx context.Context) error {
@@ -301,7 +300,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 		otelauthgear.IntCounterAddOne(
 			ctx,
 			otelauthgear.CounterWhatsappRequestCount,
-			metric.WithAttributes(otelauthgear.AttributeStatusError),
+			otelauthgear.WithStatusError(),
 		)
 
 		s.Logger.WithError(err).WithFields(logrus.Fields{
@@ -322,7 +321,7 @@ func (s *Sender) SendWhatsappImmediately(ctx context.Context, msgType translatio
 	otelauthgear.IntCounterAddOne(
 		ctx,
 		otelauthgear.CounterWhatsappRequestCount,
-		metric.WithAttributes(otelauthgear.AttributeStatusOK),
+		otelauthgear.WithStatusOk(),
 	)
 
 	err = s.Events.DispatchEventImmediately(ctx, &nonblocking.WhatsappSentEventPayload{

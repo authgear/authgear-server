@@ -162,8 +162,32 @@ type IntCounter interface {
 	Add(ctx context.Context, incr int64, options ...metric.AddOption)
 }
 
+type MetricOption interface {
+	toOtelMetricOption() metric.AddOption
+}
+
+type metricOptionAttributeKeyValue struct {
+	attribute.KeyValue
+}
+
+func (o metricOptionAttributeKeyValue) toOtelMetricOption() metric.AddOption {
+	return metric.WithAttributes(o.KeyValue)
+}
+
+func WithStatusOk() MetricOption {
+	return metricOptionAttributeKeyValue{AttributeStatusOK}
+}
+
+func WithStatusError() MetricOption {
+	return metricOptionAttributeKeyValue{AttributeStatusError}
+}
+
 // IntCounterAddOne prepares necessary attributes and calls Add with incr=1.
-func IntCounterAddOne(ctx context.Context, counter IntCounter, inOptions ...metric.AddOption) {
+// It is intentionally that this does not accept metric.AddOption.
+// If this accepts metric.AddOption, then you can pass in arbitrary metric.WithAttributes.
+// Those attributes MAY NOT be the attributes defined in this package, and could contain
+// unexpected end user data.
+func IntCounterAddOne(ctx context.Context, counter IntCounter, inOptions ...MetricOption) {
 	var finalOptions []metric.AddOption
 
 	if kv, ok := ctx.Value(AttributeKeyProjectID).(attribute.KeyValue); ok {
@@ -174,7 +198,9 @@ func IntCounterAddOne(ctx context.Context, counter IntCounter, inOptions ...metr
 		finalOptions = append(finalOptions, metric.WithAttributes(kv))
 	}
 
-	finalOptions = append(finalOptions, inOptions...)
+	for _, o := range inOptions {
+		finalOptions = append(finalOptions, o.toOtelMetricOption())
+	}
 
 	counter.Add(ctx, 1, finalOptions...)
 }
