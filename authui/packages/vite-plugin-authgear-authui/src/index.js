@@ -24,9 +24,33 @@ function removeLeadingSlash(s) {
  * @return {string}
  */
 function nameWithoutHash(filePath) {
-  // The hash is placed between the base name and the extension
-  // e.g. abc.[hash].js or abc.def.[hash].css
-  return filePath.replace(/\.[0-9a-z]{8}\./, ".");
+  const originalFilePath = filePath;
+
+  const exts = [];
+
+  while (true) {
+    const ext = path.extname(filePath);
+    if (ext === "") {
+      break;
+    }
+
+    filePath = filePath.slice(0, -ext.length);
+    exts.push(ext);
+  }
+  // [.map, .js] => [.js, .map]
+  exts.reverse();
+
+  // filePath is now ended with the hash, or it is not an asset at all.
+  // If it is not an asset, for example, index.html, just return the originalFilePath.
+  const match = /-[-_A-Za-z0-9]{8}$/.exec(filePath);
+  if (match == null) {
+    return originalFilePath;
+  }
+
+  const withoutHash = filePath.slice(0, match.index);
+  const ext = exts.join("");
+
+  return withoutHash + ext;
 }
 
 /**
@@ -342,11 +366,6 @@ function buildPlugin({ input }) {
                 }
                 return null;
               },
-              hashCharacters: "hex",
-              assetFileNames: () => "[name].[hash][extname]",
-              chunkFileNames: () => "[name].[hash].js",
-              entryFileNames: () => "[name].[hash].js",
-              sourcemapFileNames: () => "[name].[chunkhash].map.js",
             },
           },
         },
