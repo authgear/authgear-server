@@ -312,7 +312,7 @@
 /pkg/util/httproute/httproute.go:109:38: requestcontext
 /pkg/util/httputil/csp.go:158:42: requestcontext
 /pkg/util/httputil/csp.go:164:42: requestcontext
-/pkg/util/httputil/file_server.go:139:11: requestcontext
+/pkg/util/httputil/file_server.go:157:11: requestcontext
 /pkg/util/jwkutil/contextbackground.go:11:52: contextbackground
 /pkg/util/pubsub/http_handler.go:51:40: requestcontext
 /pkg/util/sentry/request.go:25:9: requestcontext
