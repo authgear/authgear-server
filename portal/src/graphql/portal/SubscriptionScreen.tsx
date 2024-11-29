@@ -64,6 +64,7 @@ import { CurrentPlanCard } from "../../components/billing/CurrentPlanCard";
 import { usePivotNavigation } from "../../hook/usePivot";
 import LinkButton from "../../LinkButton";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
+import { CancelSubscriptionReminder } from "../../components/billing/CancelSubscriptionReminder";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -644,6 +645,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           <PlanDetailsTab
             appID={appID}
             planName={planName}
+            subscriptionCancelled={subscriptionCancelled}
             nextBillingDate={nextBillingDate}
             thisMonthUsage={thisMonthUsage}
             previousMonthUsage={previousMonthUsage}
@@ -657,6 +659,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 interface PlanDetailsTabProps {
   appID: string;
   planName: string;
+  subscriptionCancelled: boolean;
   nextBillingDate: Date | undefined;
   thisMonthUsage: SubscriptionUsage | undefined;
   previousMonthUsage: SubscriptionUsage | undefined;
@@ -665,6 +668,7 @@ interface PlanDetailsTabProps {
 function PlanDetailsTab({
   appID,
   planName,
+  subscriptionCancelled,
   nextBillingDate,
   thisMonthUsage,
   previousMonthUsage,
@@ -702,11 +706,16 @@ function PlanDetailsTab({
   );
 
   return (
-    <div className="py-6 grid grid-flow-row gap-4">
+    <div className="py-6 grid grid-flow-row gap-4 max-w-[720px]">
       <div className="space-y-2">
         <Text variant="xLarge" block={true}>
           <FormattedMessage id="SubscriptionScreen.planDetails.title" />
         </Text>
+        {subscriptionCancelled && formattedBillingDate != null ? (
+          <CancelSubscriptionReminder
+            formattedBillingDate={formattedBillingDate}
+          />
+        ) : null}
         {formattedBillingDate ? (
           <Text variant="medium" className="text-text-secondary" block={true}>
             <FormattedMessage

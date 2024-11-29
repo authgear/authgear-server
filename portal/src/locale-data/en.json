@@ -2142,6 +2142,9 @@
   "CurrentPlanCard.mau.previous": " (Last month: {count})",
   "CurrentPlanCard.mau.tooltip": "MAU usage is updated on a daily basis{br, react}Usage calculated by the end of the billing cycle would be most accurate",
 
+  "DowngradeReminder.title": "Downgrading to Free",
+  "DowngradeReminder.description": "Your project is downgrading to “Free” on {date}. The prorated subscription fee and additional SMS/WhatsApp cost for this billing cycle will be charged on that date.",
+
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",
   "Locales.ar": "Arabic",

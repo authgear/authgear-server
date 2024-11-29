@@ -6,5 +6,4 @@
   @apply grid grid-cols-2 gap-8;
   @apply rounded-xl border border-solid border-border-primary;
   @apply p-8;
-  @apply max-w-[720px];
 }
