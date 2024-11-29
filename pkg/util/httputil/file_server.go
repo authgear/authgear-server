@@ -18,6 +18,17 @@ var FileServerIndexHTMLtemplateDataKey = FileServerIndexHTMLTemplateDataKeyType{
 
 var hashRegexp = regexp.MustCompile(`-[-_A-Za-z0-9]{8}`)
 
+func Ext(basename string) string {
+	stdlibPathExt := path.Ext(basename)
+	// Handle cases like .vimrc
+	// .vimrc is not considered as a file extension
+	if stdlibPathExt == basename {
+		return ""
+	}
+
+	return stdlibPathExt
+}
+
 // IsLikeRollupDefaultAssetName returns whether p looks like the default asset name
 // documented in https://rollupjs.org/configuration-options/#output-assetfilenames
 // That is, [name]-[hash][extname]
@@ -30,14 +41,21 @@ var hashRegexp = regexp.MustCompile(`-[-_A-Za-z0-9]{8}`)
 // See https://github.com/rollup/rollup/blob/v4.27.4/src/utils/hashPlaceholders.ts#L12
 //
 // After observing the examples, we know that splitting on dot does not always work, when the original file contains more than 1 dot.
-// So a simpler heuristic is to check whether the filename has the pattern -[-_A-Za-z0-9]{8}
+// So a simpler heuristic is to check whether the filename has the pattern -[-_A-Za-z0-9]{8} and it has a file extension.
 func IsLikeRollupDefaultAssetName(p string) bool {
-	base := path.Base(p)
-	result := hashRegexp.FindStringSubmatch(base)
-	if len(result) > 0 {
-		return true
+	basename := path.Base(p)
+	result := hashRegexp.FindStringSubmatch(basename)
+
+	if len(result) == 0 {
+		return false
 	}
-	return false
+
+	ext := Ext(basename)
+	if ext == "" {
+		return false
+	}
+
+	return true
 }
 
 // FileServer is a specialized version of http.FileServer
