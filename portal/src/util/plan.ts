@@ -4,6 +4,7 @@ import {
   UsageType,
   UsageWhatsappRegion,
   SubscriptionUsage,
+  Usage,
 } from "../graphql/portal/globalTypes.generated";
 
 export type Plan =
@@ -293,4 +294,54 @@ export function getWhatsappCost(
   }
 
   return cost;
+}
+
+export interface SMSUsage {
+  northAmericaCount: number;
+  otherRegionsCount: number;
+}
+
+export function getSMSUsage(usage: Usage): SMSUsage | undefined {
+  const result = {
+    northAmericaCount: 0,
+    otherRegionsCount: 0,
+  } satisfies SMSUsage;
+
+  for (const item of usage.items) {
+    if (item.usageType === UsageType.Sms) {
+      if (item.smsRegion === UsageSmsRegion.NorthAmerica) {
+        result.northAmericaCount = item.quantity;
+      }
+      if (item.smsRegion === UsageSmsRegion.OtherRegions) {
+        result.otherRegionsCount = item.quantity;
+      }
+    }
+  }
+
+  return result;
+}
+
+export interface WhatsappUsage {
+  northAmericaCount: number;
+  otherRegionsCount: number;
+}
+
+export function getWhatsappUsage(usage: Usage): WhatsappUsage | undefined {
+  const result = {
+    northAmericaCount: 0,
+    otherRegionsCount: 0,
+  } satisfies WhatsappUsage;
+
+  for (const item of usage.items) {
+    if (item.usageType === UsageType.Whatsapp) {
+      if (item.whatsappRegion === UsageWhatsappRegion.NorthAmerica) {
+        result.northAmericaCount = item.quantity;
+      }
+      if (item.whatsappRegion === UsageWhatsappRegion.OtherRegions) {
+        result.otherRegionsCount = item.quantity;
+      }
+    }
+  }
+
+  return result;
 }
