@@ -69,10 +69,10 @@ var usageItem = graphql.NewObject(graphql.ObjectConfig{
 			Type: graphql.NewNonNull(usageType),
 		},
 		"smsRegion": &graphql.Field{
-			Type: smsRegion,
+			Type: graphql.NewNonNull(smsRegion),
 		},
 		"whatsappRegion": &graphql.Field{
-			Type: whatsappRegion,
+			Type: graphql.NewNonNull(whatsappRegion),
 		},
 		"quantity": &graphql.Field{
 			Type: graphql.NewNonNull(graphql.Int),

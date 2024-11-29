@@ -205,3 +205,50 @@ func (s *GlobalDBStore) FetchUsageRecords(
 
 	return out, nil
 }
+
+func (s *GlobalDBStore) FetchUsageRecordsInRange(
+	ctx context.Context,
+	appID string,
+	recordName RecordName,
+	period periodical.Type,
+	fromStartTime time.Time,
+	toEndTime time.Time,
+) ([]*UsageRecord, error) {
+	q := s.SQLBuilder.Select(
+		"id",
+		"app_id",
+		"name",
+		"period",
+		"start_time",
+		"end_time",
+		"count",
+		"stripe_timestamp",
+	).
+		From(s.SQLBuilder.TableName("_portal_usage_record")).
+		Where(
+			"app_id = ? AND name = ? AND period = ? AND start_time >= ? AND end_time <= ?",
+			appID,
+			string(recordName),
+			string(period),
+			fromStartTime,
+			toEndTime,
+		)
+
+	rows, err := s.SQLExecutor.QueryWith(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []*UsageRecord
+	for rows.Next() {
+		r, err := s.scan(rows)
+		if err != nil {
+			return nil, err
+		}
+
+		out = append(out, r)
+	}
+
+	return out, nil
+}

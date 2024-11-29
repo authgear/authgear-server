@@ -5,8 +5,8 @@ type Usage struct {
 }
 
 type UsageItem struct {
-	UsageType      UsageType       `json:"usageType"`
-	SMSRegion      *SMSRegion      `json:"smsRegion"`
-	WhatsappRegion *WhatsappRegion `json:"whatsappRegion"`
-	Quantity       int             `json:"quantity"`
+	UsageType      UsageType      `json:"usageType"`
+	SMSRegion      SMSRegion      `json:"smsRegion"`
+	WhatsappRegion WhatsappRegion `json:"whatsappRegion"`
+	Quantity       int            `json:"quantity"`
 }
