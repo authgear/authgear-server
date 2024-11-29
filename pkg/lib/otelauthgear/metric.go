@@ -6,8 +6,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
-
-	"github.com/authgear/authgear-server/pkg/util/otelutil"
 )
 
 // Suppose you have a task to add a new metric, what should you do?
@@ -166,11 +164,7 @@ type IntCounter interface {
 
 // IntCounterAddOne prepares necessary attributes and calls Add with incr=1.
 func IntCounterAddOne(ctx context.Context, counter IntCounter, inOptions ...metric.AddOption) {
-	res := otelutil.GetResource(ctx)
-	resAttrs := otelutil.ExtractAttributesFromResource(res)
-	resAttrsOption := metric.WithAttributes(resAttrs...)
-
-	finalOptions := []metric.AddOption{resAttrsOption}
+	var finalOptions []metric.AddOption
 
 	if kv, ok := ctx.Value(AttributeKeyProjectID).(attribute.KeyValue); ok {
 		finalOptions = append(finalOptions, metric.WithAttributes(kv))

@@ -55,8 +55,6 @@ func SetupOTelSDKGlobally(ctx context.Context) (outCtx context.Context, shutdown
 	if err != nil {
 		return
 	}
-	ctx = WithResource(ctx, res)
-	ctx = SetupOTelHTTPLabeler(ctx)
 	outCtx = ctx
 
 	// Set up propagator.
