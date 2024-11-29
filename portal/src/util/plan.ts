@@ -1,8 +1,8 @@
 import {
-  SubscriptionItemPriceSmsRegion,
+  UsageSmsRegion,
   SubscriptionItemPriceType,
-  SubscriptionItemPriceUsageType,
-  SubscriptionItemPriceWhatsappRegion,
+  UsageType,
+  UsageWhatsappRegion,
   SubscriptionUsage,
 } from "../graphql/portal/globalTypes.generated";
 
@@ -226,15 +226,15 @@ export function getSMSCost(
   for (const item of subscriptionUsage.items) {
     if (
       item.type === SubscriptionItemPriceType.Usage &&
-      item.usageType === SubscriptionItemPriceUsageType.Sms
+      item.usageType === UsageType.Sms
     ) {
       cost.totalCost += centToDollar(item.totalAmount ?? 0);
-      if (item.smsRegion === SubscriptionItemPriceSmsRegion.NorthAmerica) {
+      if (item.smsRegion === UsageSmsRegion.NorthAmerica) {
         cost.northAmericaCount = item.quantity;
         cost.northAmericaUnitCost = centToDollar(item.unitAmount ?? 0);
         cost.northAmericaTotalCost = centToDollar(item.totalAmount ?? 0);
       }
-      if (item.smsRegion === SubscriptionItemPriceSmsRegion.OtherRegions) {
+      if (item.smsRegion === UsageSmsRegion.OtherRegions) {
         cost.otherRegionsCount = item.quantity;
         cost.otherRegionsUnitCost = centToDollar(item.unitAmount ?? 0);
         cost.otherRegionsTotalCost = centToDollar(item.totalAmount ?? 0);
@@ -276,19 +276,15 @@ export function getWhatsappCost(
   for (const item of subscriptionUsage.items) {
     if (
       item.type === SubscriptionItemPriceType.Usage &&
-      item.usageType === SubscriptionItemPriceUsageType.Whatsapp
+      item.usageType === UsageType.Whatsapp
     ) {
       cost.totalCost += centToDollar(item.totalAmount ?? 0);
-      if (
-        item.whatsappRegion === SubscriptionItemPriceWhatsappRegion.NorthAmerica
-      ) {
+      if (item.whatsappRegion === UsageWhatsappRegion.NorthAmerica) {
         cost.northAmericaCount = item.quantity;
         cost.northAmericaUnitCost = centToDollar(item.unitAmount ?? 0);
         cost.northAmericaTotalCost = centToDollar(item.totalAmount ?? 0);
       }
-      if (
-        item.whatsappRegion === SubscriptionItemPriceWhatsappRegion.OtherRegions
-      ) {
+      if (item.whatsappRegion === UsageWhatsappRegion.OtherRegions) {
         cost.otherRegionsCount = item.quantity;
         cost.otherRegionsUnitCost = centToDollar(item.unitAmount ?? 0);
         cost.otherRegionsTotalCost = centToDollar(item.totalAmount ?? 0);

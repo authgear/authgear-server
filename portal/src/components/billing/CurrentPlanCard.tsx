@@ -23,7 +23,7 @@ import {
 } from "../../util/plan";
 import {
   SubscriptionItemPriceType,
-  SubscriptionItemPriceUsageType,
+  UsageType,
   SubscriptionUsage,
 } from "../../graphql/portal/globalTypes.generated";
 
@@ -71,7 +71,7 @@ export function CurrentPlanCard({
     return thisMonthUsage?.items.find(
       (a) =>
         a.type === SubscriptionItemPriceType.Usage &&
-        a.usageType === SubscriptionItemPriceUsageType.Mau
+        a.usageType === UsageType.Mau
     )?.quantity;
   }, [thisMonthUsage]);
 
@@ -83,7 +83,7 @@ export function CurrentPlanCard({
     return previousMonthUsage?.items.find(
       (a) =>
         a.type === SubscriptionItemPriceType.Usage &&
-        a.usageType === SubscriptionItemPriceUsageType.Mau
+        a.usageType === UsageType.Mau
     )?.quantity;
   }, [previousMonthUsage]);
 
