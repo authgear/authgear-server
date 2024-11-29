@@ -396,6 +396,27 @@ var nodeApp = node(
 					return p.Source.(*model.App).Context.Config.FeatureConfig, nil
 				},
 			},
+			"usage": &graphql.Field{
+				Type: usage,
+				Args: graphql.FieldConfigArgument{
+					"date": &graphql.ArgumentConfig{
+						Type: graphql.NewNonNull(graphql.DateTime),
+					},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					ctx := p.Context
+					gqlCtx := GQLContext(ctx)
+					appID := p.Source.(*model.App).ID
+					date := p.Args["date"].(time.Time)
+
+					usage, err := gqlCtx.UsageService.GetUsage(ctx, appID, date)
+					if err != nil {
+						return nil, err
+					}
+
+					return usage, nil
+				},
+			},
 			"planName": &graphql.Field{
 				Type: graphql.NewNonNull(graphql.String),
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
