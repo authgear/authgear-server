@@ -9,11 +9,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestIsNameHashed(t *testing.T) {
-	Convey("IsNameHashed", t, func() {
+func TestIsLikeRollupDefaultAssetName(t *testing.T) {
+	Convey("IsLikeRollupDefaultAssetName", t, func() {
 		test := func(p string, expected bool) {
 			Convey(fmt.Sprintf("%v", p), func() {
-				actual := IsNameHashed(p)
+				actual := IsLikeRollupDefaultAssetName(p)
 				So(actual, ShouldEqual, expected)
 			})
 		}
@@ -24,17 +24,17 @@ func TestIsNameHashed(t *testing.T) {
 		test("/a.js", false)
 		test("/a.js.map", false)
 
-		test("/a.deadbeef.js", true)
-		test("/a.deadbeef.js.map", true)
+		test("/a-deadbeef.js", true)
+		test("/a-deadbeef.js.map", true)
 
 		test("/.deadbeef.js", false)
 		test("/.deadbeef.js.map", false)
 
-		test("/nested/a.deadbeef.js", true)
-		test("/nested/a.deadbeef.js.map", true)
+		test("/nested/a-deadbeef.js", true)
+		test("/nested/a-deadbeef.js.map", true)
 
-		test("/a.0123456.js", false)
-		test("/a.0123456.js.map", false)
+		test("/a-0123456.js", false)
+		test("/a-0123456.js.map", false)
 	})
 }
 
@@ -48,7 +48,7 @@ func TestFileServer(t *testing.T) {
 				FallbackToIndexHTML: false,
 			}
 
-			r, _ := http.NewRequest("GET", "/a.deadbeef.js", nil)
+			r, _ := http.NewRequest("GET", "/a-deadbeef.js", nil)
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
 			So(w.Code, ShouldEqual, 200)
@@ -73,7 +73,7 @@ func TestFileServer(t *testing.T) {
 				FallbackToIndexHTML: true,
 			}
 
-			r, _ := http.NewRequest("GET", "/a.deadbeef.js", nil)
+			r, _ := http.NewRequest("GET", "/a-deadbeef.js", nil)
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
 			So(w.Code, ShouldEqual, 200)
@@ -81,7 +81,7 @@ func TestFileServer(t *testing.T) {
 			So(w.Result().Header.Get("content-type"), ShouldContainSubstring, "javascript")
 			So(w.Result().Header.Get("cache-control"), ShouldEqual, "public, max-age=604800")
 
-			r, _ = http.NewRequest("GET", "/b.deadbeef.js", nil)
+			r, _ = http.NewRequest("GET", "/b-deadbeef.js", nil)
 			w = httptest.NewRecorder()
 			h.ServeHTTP(w, r)
 			So(w.Code, ShouldEqual, 404)
