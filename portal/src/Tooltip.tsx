@@ -79,6 +79,7 @@ const Tooltip: React.VFC<TooltipProps> = function Tooltip(props: TooltipProps) {
   return (
     <div className={cn(className, styles.root)}>
       <TooltipHost
+        hostClassName={styles.host}
         tooltipProps={tooltipProps}
         directionalHint={DirectionalHint.bottomCenter}
       >

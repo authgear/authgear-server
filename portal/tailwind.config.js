@@ -18,6 +18,10 @@ module.exports = {
       colors: {
         text: {
           disabled: "#C8C8C8",
+          secondary: "#595959",
+        },
+        brand: {
+          50: "#F5F9FE",
         },
         grey: {
           500: "#D0D0D0",

@@ -117,7 +117,7 @@ function planToNumber(planName: Plan): number {
   }
 }
 
-function comparePlan(a: Plan, b: Plan): -1 | 0 | 1 {
+export function comparePlan(a: Plan, b: Plan): -1 | 0 | 1 {
   const numberA = planToNumber(a);
   const numberB = planToNumber(b);
   if (numberA > numberB) {
