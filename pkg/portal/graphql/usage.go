@@ -1,8 +1,9 @@
 package graphql
 
 import (
-	"github.com/authgear/authgear-server/pkg/portal/model"
 	"github.com/graphql-go/graphql"
+
+	"github.com/authgear/authgear-server/pkg/portal/model"
 )
 
 var usage = graphql.NewObject(graphql.ObjectConfig{
