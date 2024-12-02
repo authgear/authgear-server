@@ -12,6 +12,7 @@ import (
 const (
 	MetadataKeyAppID          = "app_id"
 	MetadataKeyPlanName       = "plan_name"
+	MetadataKeyVersion        = "version"
 	MetadataKeyPriceType      = "price_type"
 	MetadataKeyUsageType      = "usage_type"
 	MetadatakeySMSRegion      = "sms_region"
@@ -136,4 +137,9 @@ func NewCheckoutSession(checkoutSession *stripe.CheckoutSession) *CheckoutSessio
 	}
 
 	return cs
+}
+
+type planWithVersion struct {
+	PlanName string
+	Version  string
 }

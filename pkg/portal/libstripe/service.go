@@ -291,8 +291,8 @@ func (s *Service) fetchSubscriptionPlans(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 
-	knownPlanNames := s.intersectPlanNames(plans, products)
-	subscriptionPlans, err := s.convertToSubscriptionPlans(knownPlanNames, products)
+	knownPlansWithVersion := s.intersectPlanNames(plans, products)
+	subscriptionPlans, err := s.convertToSubscriptionPlans(knownPlansWithVersion, products)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +329,7 @@ func (s *Service) fetchProducts(ctx context.Context) ([]*stripe.Product, error) 
 	return products, nil
 }
 
-func (s *Service) intersectPlanNames(plans []*model.Plan, products []*stripe.Product) map[string]struct{} {
+func (s *Service) intersectPlanNames(plans []*model.Plan, products []*stripe.Product) []planWithVersion {
 	// plans can contain free plan that is not a paid plan.
 	// products do not contain non-paid plan.
 	// Therefore, we perform an intersection between the two.
@@ -338,30 +338,43 @@ func (s *Service) intersectPlanNames(plans []*model.Plan, products []*stripe.Pro
 		setA[plan.Name] = struct{}{}
 	}
 
-	setB := make(map[string]struct{})
+	productPlanSet := make(map[string]planWithVersion)
 	for _, product := range products {
-		planName, ok := product.Metadata[MetadataKeyPlanName]
-		if ok && planName != "" {
-			setB[planName] = struct{}{}
+		planName, planNameOk := product.Metadata[MetadataKeyPlanName]
+		version := product.Metadata[MetadataKeyVersion]
+		if planNameOk && planName != "" {
+			planWithVersion := planWithVersion{
+				PlanName: planName,
+				Version:  version,
+			}
+			productPlanSet[planName] = planWithVersion
 		}
 	}
 
-	intersection := make(map[string]struct{})
+	intersection := setutil.Set[string]{}
 
 	for a := range setA {
-		_, ok := setB[a]
+		_, ok := productPlanSet[a]
 		if ok {
 			intersection[a] = struct{}{}
 		}
 	}
 
-	return intersection
+	intersactedProductPlanWithVersions := []planWithVersion{}
+	for _, planName := range intersection.Keys() {
+		planWithVersion := productPlanSet[planName]
+		intersactedProductPlanWithVersions = append(intersactedProductPlanWithVersions,
+			planWithVersion,
+		)
+	}
+
+	return intersactedProductPlanWithVersions
 }
 
-func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{}, products []*stripe.Product) ([]*model.SubscriptionPlan, error) {
+func (s *Service) convertToSubscriptionPlans(knownPlansWithVersion []planWithVersion, products []*stripe.Product) ([]*model.SubscriptionPlan, error) {
 	m := make(map[string]*model.SubscriptionPlan)
-	for planName := range knownPlanNames {
-		m[planName] = model.NewSubscriptionPlan(planName)
+	for _, it := range knownPlansWithVersion {
+		m[it.PlanName] = model.NewSubscriptionPlan(it.PlanName, it.Version)
 	}
 
 	for _, product := range products {
@@ -372,8 +385,9 @@ func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{},
 		}
 
 		// If Product has plan name, then the product only applies to that plan.
-		// Otherwise the product applies to every plan.
+		// Otherwise the product applies to every plan in the same version.
 		planName := product.Metadata[MetadataKeyPlanName]
+		version := product.Metadata[MetadataKeyVersion]
 		if planName != "" {
 			subscriptionPlan, ok := m[planName]
 			// Tolerate product with unknown plan names.
@@ -382,6 +396,9 @@ func (s *Service) convertToSubscriptionPlans(knownPlanNames map[string]struct{},
 			}
 		} else {
 			for _, subscriptionPlan := range m {
+				if subscriptionPlan.Version != version {
+					continue
+				}
 				subscriptionPlan.Prices = append(subscriptionPlan.Prices, price)
 			}
 		}
