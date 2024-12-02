@@ -187,7 +187,7 @@ function FixedCostSection({
             <Text variant="xxLarge">
               <FormattedMessage
                 id="CurrentPlanCard.subscriptionFee.value"
-                values={{ price: baseAmount }}
+                values={{ price: baseAmount.toLocaleString() }}
               />
             </Text>
             <Text variant="large" className="ml-2 font-semibold">
@@ -213,7 +213,7 @@ function FixedCostSection({
             baseAmount != null ? (
               <FormattedMessage
                 id="CurrentPlanCard.subscriptionFee.planPrice"
-                values={{ price: baseAmount }}
+                values={{ price: baseAmount.toLocaleString() }}
               />
             ) : (
               "-"
@@ -255,7 +255,7 @@ function MeteredCostSection({
               <Text variant="xxLarge">
                 <FormattedMessage
                   id="CurrentPlanCard.whatsappSMSFee.value"
-                  values={{ price: totalCost }}
+                  values={{ price: totalCost.toLocaleString() }}
                 />
               </Text>
               <Text variant="large" className="ml-2 font-semibold">
@@ -280,9 +280,9 @@ function MeteredCostSection({
                 <FormattedMessage
                   id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
                   values={{
-                    unitPrice: smsCost.northAmericaUnitCost,
+                    unitPrice: smsCost.northAmericaUnitCost.toLocaleString(),
                     quantity: smsCost.northAmericaCount,
-                    total: smsCost.northAmericaTotalCost,
+                    total: smsCost.northAmericaTotalCost.toLocaleString(),
                   }}
                 />
               ) : (
@@ -306,9 +306,9 @@ function MeteredCostSection({
                 <FormattedMessage
                   id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
                   values={{
-                    unitPrice: smsCost.otherRegionsUnitCost,
+                    unitPrice: smsCost.otherRegionsUnitCost.toLocaleString(),
                     quantity: smsCost.otherRegionsCount,
-                    total: smsCost.otherRegionsTotalCost,
+                    total: smsCost.otherRegionsTotalCost.toLocaleString(),
                   }}
                 />
               ) : (
@@ -332,9 +332,10 @@ function MeteredCostSection({
                 <FormattedMessage
                   id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
                   values={{
-                    unitPrice: whatsappCost.northAmericaUnitCost,
+                    unitPrice:
+                      whatsappCost.northAmericaUnitCost.toLocaleString(),
                     quantity: whatsappCost.northAmericaCount,
-                    total: whatsappCost.northAmericaTotalCost,
+                    total: whatsappCost.northAmericaTotalCost.toLocaleString(),
                   }}
                 />
               ) : (
@@ -358,9 +359,10 @@ function MeteredCostSection({
                 <FormattedMessage
                   id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
                   values={{
-                    unitPrice: whatsappCost.otherRegionsUnitCost,
+                    unitPrice:
+                      whatsappCost.otherRegionsUnitCost.toLocaleString(),
                     quantity: whatsappCost.otherRegionsCount,
-                    total: whatsappCost.otherRegionsTotalCost,
+                    total: whatsappCost.otherRegionsTotalCost.toLocaleString(),
                   }}
                 />
               ) : (
