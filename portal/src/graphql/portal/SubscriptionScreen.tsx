@@ -204,11 +204,13 @@ function PlansSection({
 
   const onPlanAction = useMemo(() => {
     const plans: Plan[] = ["enterprise"];
-    if (subscriptionPlans.findIndex((p) => p.name === "developers") !== -1) {
-      plans.push("developers");
+    if (
+      subscriptionPlans.findIndex((p) => p.name === "developers2025") !== -1
+    ) {
+      plans.push("developers2025");
     }
-    if (subscriptionPlans.findIndex((p) => p.name === "business") !== -1) {
-      plans.push("business");
+    if (subscriptionPlans.findIndex((p) => p.name === "business2025") !== -1) {
+      plans.push("business2025");
     }
     plans.push("enterprise");
 
@@ -352,18 +354,18 @@ function PlansSection({
             subscriptionCancelled={subscriptionCancelled}
             onAction={onFreePlanAction}
           />
-          {onPlanAction.developers != null ? (
+          {onPlanAction.developers2025 != null ? (
             <PlanCardDevelopers
               currentPlan={currentPlanName}
               subscriptionCancelled={subscriptionCancelled}
-              onAction={onPlanAction.developers}
+              onAction={onPlanAction.developers2025}
             />
           ) : null}
-          {onPlanAction.business != null ? (
+          {onPlanAction.business2025 != null ? (
             <PlanCardBusiness
               currentPlan={currentPlanName}
               subscriptionCancelled={subscriptionCancelled}
-              onAction={onPlanAction.business}
+              onAction={onPlanAction.business2025}
             />
           ) : null}
           <PlanCardEnterprise

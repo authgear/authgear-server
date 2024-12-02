@@ -182,7 +182,8 @@ type Price struct {
 }
 
 func (p *Price) ShouldClearUsage() bool {
-	return p.Type == PriceTypeUsage && p.UsageType == UsageTypeMAU
+	// We need to clear usage of the meters before removing the price in subscription
+	return p.Type == PriceTypeUsage
 }
 
 func (i *SubscriptionUsageItem) Match(p *Price) bool {

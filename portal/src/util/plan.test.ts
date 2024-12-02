@@ -1,9 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import {
-  getPreviousPlan,
-  shouldShowRecommendedTag,
-  getCTAVariant,
-} from "./plan";
+import { getPreviousPlan, getCTAVariant } from "./plan";
 
 describe("getPreviousPlan", () => {
   it("should work", () => {
@@ -16,17 +12,6 @@ describe("getPreviousPlan", () => {
     expect(getPreviousPlan("enterprise")).toEqual("business");
 
     expect(getPreviousPlan("foobar")).toEqual(null);
-  });
-});
-
-describe("shouldShowRecommendedTag", () => {
-  it("should work", () => {
-    expect(shouldShowRecommendedTag("startups", "free")).toEqual(true);
-    expect(shouldShowRecommendedTag("startups", "free-approved")).toEqual(true);
-
-    expect(shouldShowRecommendedTag("startups", "business")).toEqual(false);
-    expect(shouldShowRecommendedTag("startups", "enterprise")).toEqual(false);
-    expect(shouldShowRecommendedTag("startups", "foobar")).toEqual(false);
   });
 });
 

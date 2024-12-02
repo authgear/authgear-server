@@ -483,7 +483,7 @@ export function PlanCardDevelopers({
 }: PlanCardProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
   const cta = getCTAVariant({
-    cardPlanName: "developers",
+    cardPlanName: "developers2025",
     currentPlanName: currentPlan,
     subscriptionCancelled,
   });
@@ -536,7 +536,7 @@ export function PlanCardBusiness({
 }: PlanCardProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
   const cta = getCTAVariant({
-    cardPlanName: "business",
+    cardPlanName: "business2025",
     currentPlanName: currentPlan,
     subscriptionCancelled,
   });
