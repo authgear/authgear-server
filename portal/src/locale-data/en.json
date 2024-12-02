@@ -1570,6 +1570,7 @@
   "SubscriptionCurrentPlanSummary.additional-mau.tooltip": "{count} Additional MAU added",
 
   "SubscriptionScreen.footer.tax": "All prices are shown in USD, local VAT and taxes may apply.",
+  "SubscriptionScreen.footer.manageSubscription": "View invoices or change billing methods",
 
   "SubscriptionScreen.title": "Billing",
   "SubscriptionScreen.description": "View and manage the features and resources to boost performance",
@@ -1577,6 +1578,10 @@
 
   "SubscriptionScreen.tabs.subscription": "Subscription",
   "SubscriptionScreen.tabs.planDetails": "Plan details",
+
+  "SubscriptionScreen.planDetails.title": "Current Billing & Usage",
+  "SubscriptionScreen.planDetails.nextBillingDate": "Next billing date: {date}",
+  "SubscriptionScreen.planDetails.reminder": "Reporting is not realtime. The MAU and SMS numbers are delayed up to 24 hours.",
 
   "SubscriptionScreen.cards.title": "Upgrade Your Plan",
   "SubscriptionScreen.enterprise.title": "Upgrade to Enterprise",
@@ -2058,7 +2063,7 @@
   "UnauthenticatedDialog.description": "Your session is expired due to inactivity. Please login again.",
   "UnauthenticatedDialog.button": "Login again",
 
-  "PlanCard.plan.free": "Starter",
+  "PlanCard.plan.free": "Free",
   "PlanCard.plan.developers": "Developers",
   "PlanCard.plan.business": "Business",
   "PlanCard.plan.enterprise": "Enterprise",
@@ -2069,8 +2074,8 @@
   "PlanCard.smsPrice.fixed": "Up to {limit} SMS/WhatsApp Messages per month",
   "PlanCard.smsPrice.metered.title": "Metered SMS/WhatsApp messaging",
   "PlanCard.smsPrice.metered.price": "US/Canada: ${northAmericaPrice}, Others: ${otherRegionPrice}",
-  "PlanCard.plan.free.active": "You are on Starter",
-  "PlanCard.plan.free.downgrade": "Switch back to Starter",
+  "PlanCard.plan.free.active": "You are on Free",
+  "PlanCard.plan.free.downgrade": "Switch back to Free",
   "PlanCard.plan.features.mau": "{limit, select, unlimited{Unlimited} custom{Custom} other{{limit}} } Monthly Active Users",
   "PlanCard.plan.features.applications": "{limit, select, unlimited{Unlimited} other{{limit}} } Applications",
   "PlanCard.plan.features.projectMembers": "{limit, select, unlimited{Unlimited} other{{limit}} } Project Member",
@@ -2115,6 +2120,30 @@
   "FeatureBanner.highlightedFeatures.fullAccessToAllFeatures": "Full Access to All Features",
   "FeatureBanner.highlightedFeatures.startBuildingForFree": "Start Building for Free",
   "FeatureBanner.highlightedFeatures.flexibleUsageBasedAddOns": "Flexible Usage-based Add-ons",
+
+  "CurrentPlanCard.subscriptionFee.title": "Subscription Fee",
+  "CurrentPlanCard.subscriptionFee.value": "${price}",
+  "CurrentPlanCard.subscriptionFee.unit": "/mo",
+  "CurrentPlanCard.subscriptionFee.include": "Include:",
+  "CurrentPlanCard.subscriptionFee.plan": "{plan} Plan",
+  "CurrentPlanCard.subscriptionFee.planPrice": "${price}",
+
+  "CurrentPlanCard.whatsappSMSFee.title": "SMS/Whatsapp Cost (Estimated)",
+  "CurrentPlanCard.whatsappSMSFee.value": "${price}",
+  "CurrentPlanCard.whatsappSMSFee.unit": "/mo",
+  "CurrentPlanCard.whatsappSMSFee.sms.northAmerica": "SMS (US/Canada)",
+  "CurrentPlanCard.whatsappSMSFee.sms.other": "SMS (Other)",
+  "CurrentPlanCard.whatsappSMSFee.whatsapp.northAmerica": "Whatsapp (US/Canada)",
+  "CurrentPlanCard.whatsappSMSFee.whatsapp.other": "Whatsapp (Other)",
+  "CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice": "${unitPrice} * ${quantity} = ${total}",
+  "CurrentPlanCard.mau.title": "Monthly Active User",
+  "CurrentPlanCard.mau.approachingLimit": "Upgrade to increase limit",
+  "CurrentPlanCard.mau.limitReached": "Upgrade to avoid account deactivation",
+  "CurrentPlanCard.mau.previous": " (Last month: {count})",
+  "CurrentPlanCard.mau.tooltip": "MAU usage is updated on a daily basis{br, react}Usage calculated by the end of the billing cycle would be most accurate",
+
+  "DowngradeReminder.title": "Downgrading to Free",
+  "DowngradeReminder.description": "Your project is downgrading to “Free” on {date}. The prorated subscription fee and additional SMS/WhatsApp cost for this billing cycle will be charged on that date.",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

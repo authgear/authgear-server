@@ -60,6 +60,11 @@ import { usePreviewUpdateSubscriptionMutation } from "./mutations/previewUpdateS
 import { formatDateOnly } from "../../util/formatDateOnly";
 import { FeatureBanner } from "../../components/billing/FeatureBanner";
 import ScreenDescription from "../../ScreenDescription";
+import { CurrentPlanCard } from "../../components/billing/CurrentPlanCard";
+import { usePivotNavigation } from "../../hook/usePivot";
+import LinkButton from "../../LinkButton";
+import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
+import { CancelSubscriptionReminder } from "../../components/billing/CancelSubscriptionReminder";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -445,8 +450,14 @@ enum Tab {
 }
 
 function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
-  const { appID, planName, subscription, subscriptionPlans, thisMonthUsage } =
-    props;
+  const {
+    appID,
+    planName,
+    subscription,
+    subscriptionPlans,
+    thisMonthUsage,
+    previousMonthUsage,
+  } = props;
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
 
@@ -469,14 +480,10 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
   const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
 
-  const [selectedTab, setSelectedTab] = useState<Tab>(Tab.Subscription);
-  const onTabChange = useCallback((item?: PivotItem) => {
-    if (item == null) {
-      return;
-    }
-    const { itemKey } = item.props;
-    setSelectedTab(itemKey as Tab);
-  }, []);
+  const { selectedKey: selectedTab, onLinkClick } = usePivotNavigation<Tab>([
+    Tab.Subscription,
+    Tab.PlanDetail,
+  ]);
 
   const enterpriseDialogContentProps: IDialogContentProps = useMemo(() => {
     return {
@@ -607,11 +614,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             <FormattedMessage id="SubscriptionScreen.description" />
           </ScreenDescription>
         </div>
-        <Pivot
-          className="mb-6"
-          onLinkClick={onTabChange}
-          selectedKey={selectedTab}
-        >
+        <Pivot onLinkClick={onLinkClick} selectedKey={selectedTab}>
           <PivotItem
             itemKey={Tab.Subscription}
             headerText={renderToString("SubscriptionScreen.tabs.subscription")}
@@ -622,7 +625,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           />
         </Pivot>
         {selectedTab === Tab.Subscription ? (
-          <>
+          <div className="py-6 grid grid-flow-row gap-4">
             <FeatureBanner />
             <PlansSection
               currentPlanName={planName}
@@ -637,12 +640,114 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
                 <FormattedMessage id="SubscriptionScreen.footer.tax" />
               </Text>
             </footer>
-          </>
+          </div>
         ) : (
-          <></>
+          <PlanDetailsTab
+            appID={appID}
+            planName={planName}
+            subscriptionCancelled={subscriptionCancelled}
+            nextBillingDate={nextBillingDate}
+            thisMonthUsage={thisMonthUsage}
+            previousMonthUsage={previousMonthUsage}
+          />
         )}
       </div>
     </>
+  );
+}
+
+interface PlanDetailsTabProps {
+  appID: string;
+  planName: string;
+  subscriptionCancelled: boolean;
+  nextBillingDate: Date | undefined;
+  thisMonthUsage: SubscriptionUsage | undefined;
+  previousMonthUsage: SubscriptionUsage | undefined;
+}
+
+function PlanDetailsTab({
+  appID,
+  planName,
+  subscriptionCancelled,
+  nextBillingDate,
+  thisMonthUsage,
+  previousMonthUsage,
+}: PlanDetailsTabProps) {
+  const { locale } = useContext(Context);
+  const formattedBillingDate = useMemo(
+    () => formatDateOnly(locale, nextBillingDate ?? null),
+    [locale, nextBillingDate]
+  );
+  const isLoading = useIsLoading();
+
+  const [generateCustomPortalSession, { loading: manageSubscriptionLoading }] =
+    useGenerateStripeCustomerPortalSessionMutationMutation({
+      variables: {
+        appID,
+      },
+    });
+  useLoading(manageSubscriptionLoading);
+
+  const onClickManageSubscription = useCallback(
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      generateCustomPortalSession().then(
+        (r) => {
+          const url = r.data?.generateStripeCustomerPortalSession.url;
+          if (url != null) {
+            window.location.href = url;
+          }
+        },
+        () => {}
+      );
+    },
+    [generateCustomPortalSession]
+  );
+
+  return (
+    <div className="py-6 grid grid-flow-row gap-4 max-w-[720px]">
+      <div className="space-y-2">
+        <Text variant="xLarge" block={true}>
+          <FormattedMessage id="SubscriptionScreen.planDetails.title" />
+        </Text>
+        {subscriptionCancelled && formattedBillingDate != null ? (
+          <CancelSubscriptionReminder
+            formattedBillingDate={formattedBillingDate}
+          />
+        ) : null}
+        {formattedBillingDate ? (
+          <Text variant="medium" className="text-text-secondary" block={true}>
+            <FormattedMessage
+              id="SubscriptionScreen.planDetails.nextBillingDate"
+              values={{ date: formattedBillingDate }}
+            />
+          </Text>
+        ) : null}
+        <Text variant="medium" className="text-text-secondary" block={true}>
+          <FormattedMessage id="SubscriptionScreen.planDetails.reminder" />
+        </Text>
+      </div>
+      <CurrentPlanCard
+        planName={planName}
+        thisMonthUsage={thisMonthUsage}
+        previousMonthUsage={previousMonthUsage}
+      />
+      <LinkButton
+        className="text-sm relative justify-self-start"
+        onClick={onClickManageSubscription}
+        disabled={isLoading}
+      >
+        <span className={cn(manageSubscriptionLoading ? "invisible" : null)}>
+          <FormattedMessage id="SubscriptionScreen.footer.manageSubscription" />
+        </span>
+        {manageSubscriptionLoading === true ? (
+          <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center">
+            <Spinner size={SpinnerSize.xSmall} />
+          </div>
+        ) : null}
+      </LinkButton>
+    </div>
   );
 }
 
