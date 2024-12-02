@@ -20,6 +20,7 @@ type StaticAssetsHandler struct {
 func (h *StaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	server := &httputil.FileServer{
 		FileSystem:          h,
+		AssetsDir:           "shared-assets",
 		FallbackToIndexHTML: true,
 	}
 	server.ServeHTTP(w, r)

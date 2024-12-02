@@ -13,13 +13,6 @@ const templateNameByAssetName = {
 const devServerBase = "/_vite";
 
 /**
- * @param {string} s
- */
-function removeLeadingSlash(s) {
-  return s.replace(/^\/+/, "");
-}
-
-/**
  * @param {string} filePath
  * @return {string}
  */
@@ -280,8 +273,8 @@ function buildPlugin({ input }) {
 
           for (const node of head.childNodes) {
             if (node.tagName === "LINK") {
-              const hashedName = removeLeadingSlash(node.getAttribute("href"));
-              const key = nameWithoutHash(hashedName);
+              const href = node.getAttribute("href");
+              const key = nameWithoutHash(path.basename(href));
               if (node.getAttribute("rel") === "stylesheet") {
                 elements.push({
                   type: "css",
@@ -296,7 +289,8 @@ function buildPlugin({ input }) {
               }
             }
             if (node.tagName === "SCRIPT") {
-              let hashedName = removeLeadingSlash(node.getAttribute("src"));
+              const src = node.getAttribute("src");
+              let hashedName = path.basename(src);
               // When we want to keep the type of script to "classic" instead of "module",
               // Vite will not modify the script tag line and keep using the ".ts" for the "src" attribute.
               // ref https://github.com/vitejs/vite/blob/7d24b5f56697f6ec6e6facbe8601d3f993b764c8/packages/vite/src/node/plugins/html.ts#L450
@@ -324,7 +318,18 @@ function buildPlugin({ input }) {
             `📄 Wrote bundle HTML to: ${targetHTMLTemplatePath}`
           );
         }
-        manifest[assetBaseName] = bundleName;
+
+        // Exclude territories.js from manifest.json
+        // It is because territories.json is not unique just based on basename.
+        // If we include it, then manifest.json will become unstable, causing
+        // the reproducible build checking to fail.
+        let shouldIncludeInManifest = true;
+        if (/territories-[-_A-Za-z0-9]+\.js(\.map)?$/.test(bundleName)) {
+          shouldIncludeInManifest = false;
+        }
+        if (shouldIncludeInManifest) {
+          manifest[assetBaseName] = bundleName;
+        }
       }
 
       // Generate manifest file
@@ -347,7 +352,7 @@ function buildPlugin({ input }) {
           cssCodeSplit: true,
           // Avoid image assets being inlined into css files
           assetsInlineLimit: 0,
-          assetsDir: "",
+          assetsDir: "shared-assets",
           rollupOptions: {
             // Workaround for building bundles with non-deterministic filenames
             // Active issue: https://github.com/vitejs/vite/issues/13672
@@ -357,13 +362,21 @@ function buildPlugin({ input }) {
             output: {
               format: "module",
               manualChunks: (id) => {
+                // Keep cldr data separate.
+                if (id.includes("node_modules/cldr-localenames-full/")) {
+                  return null;
+                }
+
+                // Other node_modules assets should be packed into vendor.js
                 if (id.includes("node_modules")) {
                   return "vendor";
                 }
+
                 // To avoid css files being bundled in 1 file
                 if (id.endsWith(".css")) {
                   return path.basename(id);
                 }
+
                 return null;
               },
             },

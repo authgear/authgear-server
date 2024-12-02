@@ -8,55 +8,13 @@ import (
 	"io/fs"
 	"net/http"
 	"path"
-	"regexp"
+	"strings"
 	"time"
 )
 
 type FileServerIndexHTMLTemplateDataKeyType struct{}
 
 var FileServerIndexHTMLtemplateDataKey = FileServerIndexHTMLTemplateDataKeyType{}
-
-var hashRegexp = regexp.MustCompile(`-[-_A-Za-z0-9]{8}`)
-
-func Ext(basename string) string {
-	stdlibPathExt := path.Ext(basename)
-	// Handle cases like .vimrc
-	// .vimrc is not considered as a file extension
-	if stdlibPathExt == basename {
-		return ""
-	}
-
-	return stdlibPathExt
-}
-
-// IsLikeRollupDefaultAssetName returns whether p looks like the default asset name
-// documented in https://rollupjs.org/configuration-options/#output-assetfilenames
-// That is, [name]-[hash][extname]
-//
-// Here are some examples
-// appListQuery.js           -> appListQuery-nhRGQ3z4.js and appListQuery-nhRGQ3z4.js.map
-// appListQuery.generated.js -> appListQuery.generated-DQp0G87L.js and appListQuery.generated-DQp0G87L.js.map
-//
-// The default length of hash is 8.
-// See https://github.com/rollup/rollup/blob/v4.27.4/src/utils/hashPlaceholders.ts#L12
-//
-// After observing the examples, we know that splitting on dot does not always work, when the original file contains more than 1 dot.
-// So a simpler heuristic is to check whether the filename has the pattern -[-_A-Za-z0-9]{8} and it has a file extension.
-func IsLikeRollupDefaultAssetName(p string) bool {
-	basename := path.Base(p)
-	result := hashRegexp.FindStringSubmatch(basename)
-
-	if len(result) == 0 {
-		return false
-	}
-
-	ext := Ext(basename)
-	if ext == "" {
-		return false
-	}
-
-	return true
-}
 
 // FileServer is a specialized version of http.FileServer
 // that assumes files rooted at FileSystem are name-hashed.
@@ -65,6 +23,7 @@ func IsLikeRollupDefaultAssetName(p string) bool {
 // FileServer will use the context value FileServerIndexHTMLTemplateDataKey to render.
 type FileServer struct {
 	FileSystem          http.FileSystem
+	AssetsDir           string
 	FallbackToIndexHTML bool
 }
 
@@ -103,7 +62,7 @@ func (s *FileServer) open(name string) (http.File, fs.FileInfo, error) {
 	return file, stat, nil
 }
 
-func (s *FileServer) serveNameHashed(w http.ResponseWriter, r *http.Request) {
+func (s *FileServer) serveAsset(w http.ResponseWriter, r *http.Request) {
 	file, stat, err := s.open(r.URL.Path)
 	if err != nil {
 		s.writeError(w, err)
@@ -190,8 +149,8 @@ func (s *FileServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//
 	// If the request fetches a non-name-hashed file,
 	// we fallback to index.html for not found.
-	if IsLikeRollupDefaultAssetName(r.URL.Path) {
-		s.serveNameHashed(w, r)
+	if strings.HasPrefix(r.URL.Path, "/"+s.AssetsDir) {
+		s.serveAsset(w, r)
 	} else {
 		s.serveOther(w, r)
 	}
