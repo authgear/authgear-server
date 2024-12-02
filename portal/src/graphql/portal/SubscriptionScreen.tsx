@@ -66,6 +66,7 @@ import { usePivotNavigation } from "../../hook/usePivot";
 import LinkButton from "../../LinkButton";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
 import { CancelSubscriptionReminder } from "../../components/billing/CancelSubscriptionReminder";
+import { extractRawID } from "../../util/graphql";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -536,7 +537,9 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, []);
 
   const {
-    setSubscriptionCancelledStatus,
+    // This is not used now,
+    // because we want the user to fill in a cancel survey before actually cancelling the subscription.
+    // setSubscriptionCancelledStatus,
     loading: cancelSubscriptionLoading,
     error: cancelSubscriptionError,
   } = useSetSubscriptionCancelledStatusMutation(appID);
@@ -546,14 +549,16 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setSubscriptionCancelledStatus(true)
-        .catch(() => {})
-        .finally(() => {
-          onDismiss();
-        });
-      setCancelDialogHidden(false);
+      const projectID = extractRawID(appID);
+      const cancelSurveyURL = `https://oursky.typeform.com/authgear-cancel#project_id=${projectID}`;
+      const anchor = document.createElement("A") as HTMLAnchorElement;
+      anchor.href = cancelSurveyURL;
+      anchor.target = "_blank";
+      anchor.click();
+      anchor.remove();
+      setCancelDialogHidden(true);
     },
-    [setSubscriptionCancelledStatus, onDismiss, setCancelDialogHidden]
+    [appID]
   );
 
   return (
