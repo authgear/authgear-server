@@ -2127,6 +2127,11 @@
   "CurrentPlanCard.subscriptionFee.include": "Include:",
   "CurrentPlanCard.subscriptionFee.plan": "{plan} Plan",
   "CurrentPlanCard.subscriptionFee.planPrice": "${price}",
+  "CurrentPlanCard.plan.free": "Free",
+  "CurrentPlanCard.plan.developers": "Developers",
+  "CurrentPlanCard.plan.business": "Business",
+  "CurrentPlanCard.plan.startups": "Startups",
+  "CurrentPlanCard.plan.enterprise": "Enterprise",
 
   "CurrentPlanCard.whatsappSMSFee.title": "SMS/Whatsapp Cost (Estimated)",
   "CurrentPlanCard.whatsappSMSFee.value": "${price}",

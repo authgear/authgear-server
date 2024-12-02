@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useContext, useMemo } from "react";
 import {
   IButtonProps,
   ITooltipHostProps,
@@ -10,7 +10,10 @@ import {
   useTheme,
 } from "@fluentui/react";
 import styles from "./CurrentPlanCard.module.css";
-import { FormattedMessage } from "@oursky/react-messageformat";
+import {
+  Context as MessageContext,
+  FormattedMessage,
+} from "@oursky/react-messageformat";
 import { useId } from "@fluentui/react-hooks";
 import LinkButton from "../../LinkButton";
 import {
@@ -23,6 +26,7 @@ import {
   getSMSUsage,
   getWhatsappCost,
   getWhatsappUsage,
+  isPlan,
   isStripePlan,
 } from "../../util/plan";
 import {
@@ -150,6 +154,28 @@ function FixedCostSection({
   planName: string;
   baseAmount: number | undefined;
 }) {
+  const { renderToString } = useContext(MessageContext);
+  const displayedPlanName = useMemo(() => {
+    if (!isPlan(planName)) {
+      return planName;
+    }
+    switch (planName) {
+      case "free":
+      case "free-approved":
+        return renderToString("CurrentPlanCard.plan.free");
+      case "developers":
+      case "developers2025":
+        return renderToString("CurrentPlanCard.plan.developers");
+      case "business":
+      case "business2025":
+        return renderToString("CurrentPlanCard.plan.business");
+      case "startups":
+        return renderToString("CurrentPlanCard.plan.startups");
+      case "enterprise":
+        return renderToString("CurrentPlanCard.plan.enterprise");
+    }
+  }, [planName, renderToString]);
+
   return (
     <section className={styles.card}>
       <div className="space-y-2">
@@ -180,7 +206,7 @@ function FixedCostSection({
           label={
             <FormattedMessage
               id="CurrentPlanCard.subscriptionFee.plan"
-              values={{ plan: planName }}
+              values={{ plan: displayedPlanName }}
             />
           }
           value={
