@@ -109,7 +109,7 @@ func (r *StaticAssetResolver) GeneratedStaticAssetURL(key string) (string, error
 		origin = fmt.Sprintf("%s://%s", r.HTTPProto, r.WebAppCDNHost)
 	}
 
-	return staticAssetURL(origin, GeneratedAssetsURLDirname, name)
+	return staticAssetURL(origin, "", name)
 }
 
 func staticAssetURL(origin string, prefix string, assetPath string) (string, error) {

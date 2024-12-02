@@ -12,12 +12,13 @@ export default defineConfig(() => ({
   },
   build: {
     outDir: "../dist",
+    emptyOutDir: true,
     sourcemap: true,
     cssCodeSplit: true,
     manifest: true,
     // Avoid image assets being inlined into css files
     assetsInlineLimit: 0,
-    assetsDir: "",
+    assetsDir: "shared-assets",
     rollupOptions: {
       // Workaround for building bundles with non-deterministic filenames
       // Active issue: https://github.com/vitejs/vite/issues/13672

@@ -23,9 +23,10 @@ type GeneratedStaticAssetsHandler struct {
 }
 
 func (h *GeneratedStaticAssetsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	fileServer := http.StripPrefix("/"+web.GeneratedAssetsURLDirname+"/", &httputil.FileServer{
+	fileServer := &httputil.FileServer{
 		FileSystem:          h.EmbeddedResources,
+		AssetsDir:           web.GeneratedAssetsURLDirname,
 		FallbackToIndexHTML: false,
-	})
+	}
 	fileServer.ServeHTTP(w, r)
 }

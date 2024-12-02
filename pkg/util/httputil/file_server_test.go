@@ -1,74 +1,12 @@
 package httputil
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-func TestExt(t *testing.T) {
-	Convey("Ext", t, func() {
-		test := func(p string, expected string) {
-			Convey(fmt.Sprintf("%v", p), func() {
-				actual := Ext(p)
-				So(actual, ShouldEqual, expected)
-			})
-		}
-
-		test("", "")
-		test(".vimrc", "")
-		test(".vimrc.vim", ".vim")
-		test("oauth-redirect", "")
-		test("script.js", ".js")
-		test("main-deadbeef.css", ".css")
-		test("appListQuery.generated-DQp0G87L.js", ".js")
-		test("appListQuery.generated-DQp0G87L.js.map", ".map")
-	})
-}
-
-func TestIsLikeRollupDefaultAssetName(t *testing.T) {
-	Convey("IsLikeRollupDefaultAssetName", t, func() {
-		test := func(p string, expected bool) {
-			Convey(fmt.Sprintf("%v", p), func() {
-				actual := IsLikeRollupDefaultAssetName(p)
-				So(actual, ShouldEqual, expected)
-			})
-		}
-
-		test("", false)
-		test("/", false)
-		test("/a", false)
-		test("/a.js", false)
-		test("/a.js.map", false)
-
-		test("/a-deadbeef.js", true)
-		test("/a-deadbeef.js.map", true)
-
-		test("/.deadbeef.js", false)
-		test("/.deadbeef.js.map", false)
-
-		test("/nested/a-deadbeef.js", true)
-		test("/nested/a-deadbeef.js.map", true)
-
-		test("/a-0123456.js", false)
-		test("/a-0123456.js.map", false)
-
-		test("/oauth-redirect", false)
-
-		test("/a--0123456.js", true)
-		test("/a-_0123456.js", true)
-		test("/a---------.js", true)
-		test("/a-________.js", true)
-
-		test("/a--0123456", false)
-		test("/a-_0123456", false)
-		test("/a---------", false)
-		test("/a-________", false)
-	})
-}
 
 func TestFileServer(t *testing.T) {
 	Convey("FileServer", t, func() {
@@ -102,10 +40,11 @@ func TestFileServer(t *testing.T) {
 
 			h := &FileServer{
 				FileSystem:          dir,
+				AssetsDir:           "shared-assets",
 				FallbackToIndexHTML: true,
 			}
 
-			r, _ := http.NewRequest("GET", "/a-deadbeef.js", nil)
+			r, _ := http.NewRequest("GET", "/shared-assets/a-deadbeef.js", nil)
 			w := httptest.NewRecorder()
 			h.ServeHTTP(w, r)
 			So(w.Code, ShouldEqual, 200)
@@ -113,7 +52,7 @@ func TestFileServer(t *testing.T) {
 			So(w.Result().Header.Get("content-type"), ShouldContainSubstring, "javascript")
 			So(w.Result().Header.Get("cache-control"), ShouldEqual, "public, max-age=604800")
 
-			r, _ = http.NewRequest("GET", "/b-deadbeef.js", nil)
+			r, _ = http.NewRequest("GET", "/shared-assets/b-deadbeef.js", nil)
 			w = httptest.NewRecorder()
 			h.ServeHTTP(w, r)
 			So(w.Code, ShouldEqual, 404)
