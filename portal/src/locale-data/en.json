@@ -1569,15 +1569,14 @@
   "SubscriptionCurrentPlanSummary.additional-mau.title": "Additional MAU",
   "SubscriptionCurrentPlanSummary.additional-mau.tooltip": "{count} Additional MAU added",
 
-  "SubscriptionScreen.footer.tax": "* Local VAT and taxes may apply.",
-  "SubscriptionScreen.footer.usage-delay-disclaimer": "Reporting is not realtime. The MAU and SMS numbers are delayed up to 24 hours.",
-  "SubscriptionScreen.footer.cancel": "Switch back to Free plan",
-  "SubscriptionScreen.footer.expire": "Your subscription will expire on {date}",
-  "SubscriptionScreen.footer.enterprise-plan": "Get enterprise support, advanced requirements, private deployment with our {ExternalLink, react, onClick{{onClick}} children{Enterprise Plan}}",
-  "SubscriptionScreen.footer.pricing-details": "Check out more details and compare plan features on our {ExternalLink, react, href{https://www.authgear.com/pricing} children{pricing page}}",
+  "SubscriptionScreen.footer.tax": "All prices are shown in USD, local VAT and taxes may apply.",
 
   "SubscriptionScreen.title": "Billing",
+  "SubscriptionScreen.description": "View and manage the features and resources to boost performance",
   "SubscriptionScreen.recommended": "Recommended",
+
+  "SubscriptionScreen.tabs.subscription": "Subscription",
+  "SubscriptionScreen.tabs.planDetails": "Plan details",
 
   "SubscriptionScreen.cards.title": "Upgrade Your Plan",
   "SubscriptionScreen.enterprise.title": "Upgrade to Enterprise",
@@ -2100,6 +2099,22 @@
   "PlanCard.action.non-applicable": "Disabled",
   "PlanCard.action.reactivate": "Reactivate",
   "PlanCard.action.contact-us": "Contact Us",
+
+  "FeatureBanner.title": "Simple pricing with no gotchas!",
+  "FeatureBanner.subtitle": "There are no feature gate between plans",
+  "FeatureBanner.features.customizeSignInPage": "Customize Sign-in/Sign-up Page",
+  "FeatureBanner.features.unlimitedSocialLogin": "Unlimited Social/Enterprise Login",
+  "FeatureBanner.features.unlimitedMFA": "Unlimited MFA",
+  "FeatureBanner.features.rbac": "Role-based Access Controls (RBAC)",
+  "FeatureBanner.features.customDomain": "Custom Domain",
+  "FeatureBanner.features.loginWithSMSWhatsappOTP": "Login with SMS/WhatsApp OTP",
+  "FeatureBanner.features.unlimitedHooks": "Unlimited Webhooks & TypeScript Hooks",
+  "FeatureBanner.features.twoEnvironments": "2 Environments",
+  "FeatureBanner.features.botProtection": "Bot Protection",
+  "FeatureBanner.features.iso27001AndSoc2Compliance": "ISO 27001 & SOC 2 Compliance",
+  "FeatureBanner.highlightedFeatures.fullAccessToAllFeatures": "Full Access to All Features",
+  "FeatureBanner.highlightedFeatures.startBuildingForFree": "Start Building for Free",
+  "FeatureBanner.highlightedFeatures.flexibleUsageBasedAddOns": "Flexible Usage-based Add-ons",
 
   "Locales.af": "Afrikaans",
   "Locales.am": "Amharic",

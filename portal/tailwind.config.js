@@ -22,6 +22,7 @@ module.exports = {
         },
         brand: {
           50: "#F5F9FE",
+          100: "#D8E6FD",
         },
         grey: {
           500: "#D0D0D0",
