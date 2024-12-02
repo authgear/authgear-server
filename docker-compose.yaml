@@ -79,13 +79,17 @@ services:
     - "--storage.tsdb.path=/prometheus"
     - "--web.console.libraries=/usr/share/prometheus/console_libraries"
     - "--web.console.templates=/usr/share/prometheus/consoles"
-    # Enable OTLP
-    # Since 3.0.0-beta.1, the flag becomes --web.enable-otlp-receiver
-    # But we are using v2, so that flag is --enable-feature=otlp-write-receiver
-    # See https://github.com/prometheus/prometheus/blob/main/CHANGELOG.md#300-beta1--2024-10-09
-    - "--enable-feature=otlp-write-receiver"
+    # Enable remote write
+    - "--web.enable-remote-write-receiver"
     ports:
     - "9090:9090"
+
+  otelcol:
+    image: otel/opentelemetry-collector-contrib:0.114.0
+    volumes:
+    - ./otelcol-config.yaml:/etc/otelcol-contrib/config.yaml
+    ports:
+    - "4318:4318"
 
   ldap:
     profiles: ["ldap"]

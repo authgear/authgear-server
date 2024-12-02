@@ -10,7 +10,6 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/securecookie"
 	"github.com/sirupsen/logrus"
-	"go.opentelemetry.io/otel/metric"
 
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/otelauthgear"
@@ -70,7 +69,7 @@ func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
 			otelauthgear.IntCounterAddOne(
 				r.Context(),
 				otelauthgear.CounterCSRFRequestCount,
-				metric.WithAttributes(otelauthgear.AttributeStatusOK),
+				otelauthgear.WithStatusOk(),
 			)
 			next.ServeHTTP(w, r)
 		}))
@@ -82,7 +81,7 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 	otelauthgear.IntCounterAddOne(
 		r.Context(),
 		otelauthgear.CounterCSRFRequestCount,
-		metric.WithAttributes(otelauthgear.AttributeStatusError),
+		otelauthgear.WithStatusError(),
 	)
 
 	// Check debug cookies and inject info for reporting

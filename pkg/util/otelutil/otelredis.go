@@ -87,38 +87,30 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 			options := client.Options()
 			stats := client.PoolStats()
 
-			extraAttrs := otelRedisAttrsGetter(ctx)
-
 			{
 				labels := append([]attribute.KeyValue(nil), baseAttrs...)
-				labels = append(labels, extraAttrs...)
 				o.ObserveInt64(idleMax, int64(options.MaxIdleConns), metric.WithAttributes(labels...))
 			}
 			{
 				labels := append([]attribute.KeyValue(nil), baseAttrs...)
-				labels = append(labels, extraAttrs...)
 				o.ObserveInt64(idleMin, int64(options.MinIdleConns), metric.WithAttributes(labels...))
 			}
 			{
 				labels := append([]attribute.KeyValue(nil), baseAttrs...)
-				labels = append(labels, extraAttrs...)
 				o.ObserveInt64(connsMax, int64(options.PoolSize), metric.WithAttributes(labels...))
 			}
 			{
 				labels := append([]attribute.KeyValue(nil), baseAttrs...)
 				labels = append(labels, attribute.String("state", "idle"))
-				labels = append(labels, extraAttrs...)
 				o.ObserveInt64(usage, int64(stats.IdleConns), metric.WithAttributes(labels...))
 			}
 			{
 				labels := append([]attribute.KeyValue(nil), baseAttrs...)
 				labels = append(labels, attribute.String("state", "used"))
-				labels = append(labels, extraAttrs...)
 				o.ObserveInt64(usage, int64(stats.TotalConns-stats.IdleConns), metric.WithAttributes(labels...))
 			}
 			{
 				labels := append([]attribute.KeyValue(nil), baseAttrs...)
-				labels = append(labels, extraAttrs...)
 				o.ObserveInt64(timeouts, int64(stats.Timeouts), metric.WithAttributes(labels...))
 			}
 			return nil
@@ -160,12 +152,6 @@ func OtelRedisInstrumentMetrics(client *redis.Client) error {
 	return nil
 }
 
-func otelRedisAttrsGetter(ctx context.Context) []attribute.KeyValue {
-	res := GetResource(ctx)
-	attrs := ExtractAttributesFromResource(res)
-	return attrs
-}
-
 type otelRedisMetricsHook struct {
 	createTime metric.Float64Histogram
 	useTime    metric.Float64Histogram
@@ -177,12 +163,10 @@ var _ redis.Hook = (*otelRedisMetricsHook)(nil)
 func (h *otelRedisMetricsHook) DialHook(hook redis.DialHook) redis.DialHook {
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
 		start := time.Now()
-		extraAttrs := otelRedisAttrsGetter(ctx)
 		conn, err := hook(ctx, network, addr)
 		dur := time.Since(start)
 
 		attrs := append([]attribute.KeyValue(nil), h.baseAttrs...)
-		attrs = append(attrs, extraAttrs...)
 		attrs = append(attrs, statusAttr(err))
 
 		h.createTime.Record(ctx, seconds(dur), metric.WithAttributes(attrs...))
@@ -193,12 +177,10 @@ func (h *otelRedisMetricsHook) DialHook(hook redis.DialHook) redis.DialHook {
 func (h *otelRedisMetricsHook) ProcessHook(hook redis.ProcessHook) redis.ProcessHook {
 	return func(ctx context.Context, cmd redis.Cmder) error {
 		start := time.Now()
-		extraAttrs := otelRedisAttrsGetter(ctx)
 		err := hook(ctx, cmd)
 		dur := time.Since(start)
 
 		attrs := append([]attribute.KeyValue(nil), h.baseAttrs...)
-		attrs = append(attrs, extraAttrs...)
 		attrs = append(attrs, attribute.String("type", "command"))
 		attrs = append(attrs, semconv.DBOperationName(cmd.FullName()))
 		attrs = append(attrs, statusAttr(err))
@@ -213,12 +195,10 @@ func (h *otelRedisMetricsHook) ProcessPipelineHook(
 ) redis.ProcessPipelineHook {
 	return func(ctx context.Context, cmds []redis.Cmder) error {
 		start := time.Now()
-		extraAttrs := otelRedisAttrsGetter(ctx)
 		err := hook(ctx, cmds)
 		dur := time.Since(start)
 
 		attrs := append([]attribute.KeyValue(nil), h.baseAttrs...)
-		attrs = append(attrs, extraAttrs...)
 		attrs = append(attrs, attribute.String("type", "pipeline"))
 		attrs = append(attrs, statusAttr(err))
 
