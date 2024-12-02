@@ -5,7 +5,11 @@ import {
   AsYouType,
   default as parsePhoneNumber,
 } from "libphonenumber-js";
-import defaultTerritories from "cldr-localenames-full/main/en/territories.json";
+import CLDR_TERRITORIES_JSON_EN from "cldr-localenames-full/main/en/territories.json";
+// @ts-expect-error import.meta.glob is a Vite-specific feature.
+const CLDR_TERRITORIES_JSON = import.meta.glob(
+  "../../node_modules/cldr-localenames-full/main/*/territories.json"
+);
 import { getEmojiFlag } from "./getEmojiFlag";
 import { CustomSelectController } from "./customSelect";
 import metadata from "libphonenumber-js/metadata.min.json";
@@ -53,7 +57,7 @@ interface PhoneInputCountry {
 }
 
 type Territories =
-  typeof defaultTerritories.main.en.localeDisplayNames.territories;
+  typeof CLDR_TERRITORIES_JSON_EN.main.en.localeDisplayNames.territories;
 
 function getOnlyCountryCodes(): CountryCode[] {
   const onlyCountries: CountryCode[] =
@@ -77,7 +81,7 @@ function getPreferredCountryCodes(): CountryCode[] {
 
 async function compileDefaultCountryList() {
   return compileCountryList(
-    defaultTerritories.main.en.localeDisplayNames.territories
+    CLDR_TERRITORIES_JSON_EN.main.en.localeDisplayNames.territories
   );
 }
 
@@ -89,11 +93,9 @@ async function compileLocalizedCountryList() {
       "") ||
     document.documentElement.lang ||
     "en";
-  const localizedTerritories = await fetch(
-    `/shared-assets/cldr-localenames-full/${lang}/territories.json`
-  )
-    .then(async (r) => r.json())
-    .catch(() => null);
+  const localizedTerritories = await CLDR_TERRITORIES_JSON[
+    `../../node_modules/cldr-localenames-full/main/${lang}/territories.json`
+  ]().catch(() => null);
   const territories =
     localizedTerritories?.main[lang].localeDisplayNames.territories;
 
@@ -112,7 +114,9 @@ async function compileCountryList(
 
   function countryCodeToCountry(countryCode: CountryCode): PhoneInputCountry {
     const countryName =
-      defaultTerritories.main.en.localeDisplayNames.territories[countryCode];
+      CLDR_TERRITORIES_JSON_EN.main.en.localeDisplayNames.territories[
+        countryCode
+      ];
     const countryLocalizedName = territories[countryCode] || countryName;
     const countryFlag = getEmojiFlag(countryCode);
     const countryCallingCode = getCountryCallingCode(countryCode);

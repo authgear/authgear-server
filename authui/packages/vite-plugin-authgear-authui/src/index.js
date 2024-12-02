@@ -324,7 +324,18 @@ function buildPlugin({ input }) {
             `📄 Wrote bundle HTML to: ${targetHTMLTemplatePath}`
           );
         }
-        manifest[assetBaseName] = bundleName;
+
+        // Exclude territories.js from manifest.json
+        // It is because territories.json is not unique just based on basename.
+        // If we include it, then manifest.json will become unstable, causing
+        // the reproducible build checking to fail.
+        let shouldIncludeInManifest = true;
+        if (/territories-[-_A-Za-z0-9]+\.js(\.map)?$/.test(bundleName)) {
+          shouldIncludeInManifest = false;
+        }
+        if (shouldIncludeInManifest) {
+          manifest[assetBaseName] = bundleName;
+        }
       }
 
       // Generate manifest file
@@ -357,13 +368,21 @@ function buildPlugin({ input }) {
             output: {
               format: "module",
               manualChunks: (id) => {
+                // Keep cldr data separate.
+                if (id.includes("node_modules/cldr-localenames-full/")) {
+                  return null;
+                }
+
+                // Other node_modules assets should be packed into vendor.js
                 if (id.includes("node_modules")) {
                   return "vendor";
                 }
+
                 // To avoid css files being bundled in 1 file
                 if (id.endsWith(".css")) {
                   return path.basename(id);
                 }
+
                 return null;
               },
             },
