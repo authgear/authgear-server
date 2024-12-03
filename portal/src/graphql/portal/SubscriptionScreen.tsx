@@ -539,18 +539,17 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, []);
 
   const {
-    // This is not used now,
-    // because we want the user to fill in a cancel survey before actually cancelling the subscription.
-    // setSubscriptionCancelledStatus,
+    setSubscriptionCancelledStatus,
     loading: cancelSubscriptionLoading,
     error: cancelSubscriptionError,
   } = useSetSubscriptionCancelledStatusMutation(appID);
   useLoading(cancelSubscriptionLoading);
 
   const onClickCancelSubscriptionConfirm = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
       e.stopPropagation();
+      await setSubscriptionCancelledStatus(true);
       const projectID = extractRawID(appID);
       const cancelSurveyURL = `https://oursky.typeform.com/authgear-cancel#project_id=${projectID}`;
       const anchor = document.createElement("A") as HTMLAnchorElement;
@@ -560,7 +559,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       anchor.remove();
       setCancelDialogHidden(true);
     },
-    [appID]
+    [appID, setSubscriptionCancelledStatus]
   );
 
   return (
