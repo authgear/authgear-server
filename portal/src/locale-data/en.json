@@ -2140,7 +2140,7 @@
   "CurrentPlanCard.whatsappSMSFee.sms.other": "SMS (Other)",
   "CurrentPlanCard.whatsappSMSFee.whatsapp.northAmerica": "Whatsapp (US/Canada)",
   "CurrentPlanCard.whatsappSMSFee.whatsapp.other": "Whatsapp (Other)",
-  "CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice": "${unitPrice} * ${quantity} = ${total}",
+  "CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice": "${unitPrice} * {quantity} = ${total}",
   "CurrentPlanCard.whatsappSMSFee.whatsappSMSCount": "{quantity} messages",
   "CurrentPlanCard.mau.title": "Monthly Active User",
   "CurrentPlanCard.mau.approachingLimit": "Upgrade to increase limit",
