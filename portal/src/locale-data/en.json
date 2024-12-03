@@ -1585,7 +1585,7 @@
 
   "SubscriptionScreen.cards.title": "Upgrade Your Plan",
   "SubscriptionScreen.enterprise.title": "Upgrade to Enterprise",
-  "SubscriptionScreen.enterprise.instructions": "Managing 10,000+ MAU? In need of customization services? Send an email to {ExternalLink, react, href{mailto:hello@authgear.com} children{hello@authgear.com}} from the email address associated with your Authgear account and we will take care of the rest.",
+  "SubscriptionScreen.enterprise.instructions": "In need of customized services? Send an email to {ExternalLink, react, href{mailto:hello@authgear.com} children{hello@authgear.com}} from the email address associated with your Authgear account and you will be contacted by our sales team.",
   "SubscriptionScreen.enterprise.cta": "Go Enterprise",
 
   "SubscriptionScreen.plan-name.free": "Free",
