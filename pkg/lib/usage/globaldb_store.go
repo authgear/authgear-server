@@ -226,7 +226,7 @@ func (s *GlobalDBStore) FetchUsageRecordsInRange(
 	).
 		From(s.SQLBuilder.TableName("_portal_usage_record")).
 		Where(
-			"app_id = ? AND name = ? AND period = ? AND start_time >= ? AND end_time <= ?",
+			"app_id = ? AND name = ? AND period = ? AND start_time >= ? AND start_time < ?",
 			appID,
 			string(recordName),
 			string(period),
