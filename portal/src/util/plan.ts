@@ -98,10 +98,6 @@ export function getPreviousPlan(planName: string): Plan | null {
 
 export function getMAULimit(planName: string): number | undefined {
   switch (planName) {
-    case "free":
-      return 5000;
-    case "free-approved":
-      return 5000;
     case "startups":
       return 5000;
     case "business":
