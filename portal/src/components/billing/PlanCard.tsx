@@ -153,7 +153,10 @@ function PlanSMSPrice({
   switch (smsPricing.type) {
     case "fixed":
       return (
-        <Text variant="medium" className="font-semibold text-center">
+        <Text
+          variant="medium"
+          className="font-semibold text-center whitespace-pre"
+        >
           <FormattedMessage
             id="PlanCard.smsPrice.fixed"
             values={{ limit: smsPricing.limit }}

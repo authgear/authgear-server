@@ -2071,7 +2071,7 @@
   "PlanCard.price.monthly.value": "${price}",
   "PlanCard.price.monthly.unit": "/mo",
   "PlanCard.price.custom": "Custom Pricing",
-  "PlanCard.smsPrice.fixed": "Up to {limit} SMS/WhatsApp Messages per month",
+  "PlanCard.smsPrice.fixed": "Up to {limit} SMS/WhatsApp\nMessages per month",
   "PlanCard.smsPrice.metered.title": "Metered SMS/WhatsApp messaging",
   "PlanCard.smsPrice.metered.price": "US/Canada: ${northAmericaPrice}, Others: ${otherRegionPrice}",
   "PlanCard.plan.free.active": "You are on Free",
