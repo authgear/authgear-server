@@ -32,6 +32,7 @@ import {
   Subscription,
   SubscriptionPlan,
   SubscriptionUsage,
+  Usage,
 } from "./globalTypes.generated";
 import { PortalAPIAppConfig } from "../../types";
 import { AppFragmentFragment } from "./query/subscriptionScreenQuery.generated";
@@ -65,6 +66,7 @@ import { usePivotNavigation } from "../../hook/usePivot";
 import LinkButton from "../../LinkButton";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
 import { CancelSubscriptionReminder } from "../../components/billing/CancelSubscriptionReminder";
+import { extractRawID } from "../../util/graphql";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -439,8 +441,9 @@ interface SubscriptionScreenContentProps {
   planName: string;
   subscription?: Subscription;
   subscriptionPlans: SubscriptionPlan[];
-  thisMonthUsage?: SubscriptionUsage;
-  previousMonthUsage?: SubscriptionUsage;
+  thisMonthUsage?: Usage;
+  thisMonthSubscriptionUsage?: SubscriptionUsage;
+  previousMonthSubscriptionUsage?: SubscriptionUsage;
   effectiveAppConfig?: PortalAPIAppConfig;
 }
 
@@ -456,7 +459,8 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     subscription,
     subscriptionPlans,
     thisMonthUsage,
-    previousMonthUsage,
+    thisMonthSubscriptionUsage,
+    previousMonthSubscriptionUsage,
   } = props;
   const { themes } = useSystemConfig();
   const { renderToString } = useContext(Context);
@@ -470,12 +474,12 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       return undefined;
     }
 
-    const nextBillingDate = thisMonthUsage?.nextBillingDate;
+    const nextBillingDate = thisMonthSubscriptionUsage?.nextBillingDate;
     if (nextBillingDate != null) {
       return new Date(nextBillingDate);
     }
     return undefined;
-  }, [planName, thisMonthUsage]);
+  }, [planName, thisMonthSubscriptionUsage]);
 
   const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
   const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
@@ -533,7 +537,9 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, []);
 
   const {
-    setSubscriptionCancelledStatus,
+    // This is not used now,
+    // because we want the user to fill in a cancel survey before actually cancelling the subscription.
+    // setSubscriptionCancelledStatus,
     loading: cancelSubscriptionLoading,
     error: cancelSubscriptionError,
   } = useSetSubscriptionCancelledStatusMutation(appID);
@@ -543,14 +549,16 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
     (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setSubscriptionCancelledStatus(true)
-        .catch(() => {})
-        .finally(() => {
-          onDismiss();
-        });
-      setCancelDialogHidden(false);
+      const projectID = extractRawID(appID);
+      const cancelSurveyURL = `https://oursky.typeform.com/authgear-cancel#project_id=${projectID}`;
+      const anchor = document.createElement("A") as HTMLAnchorElement;
+      anchor.href = cancelSurveyURL;
+      anchor.target = "_blank";
+      anchor.click();
+      anchor.remove();
+      setCancelDialogHidden(true);
     },
-    [setSubscriptionCancelledStatus, onDismiss, setCancelDialogHidden]
+    [appID]
   );
 
   return (
@@ -648,7 +656,8 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
             subscriptionCancelled={subscriptionCancelled}
             nextBillingDate={nextBillingDate}
             thisMonthUsage={thisMonthUsage}
-            previousMonthUsage={previousMonthUsage}
+            thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
+            previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
           />
         )}
       </div>
@@ -661,8 +670,9 @@ interface PlanDetailsTabProps {
   planName: string;
   subscriptionCancelled: boolean;
   nextBillingDate: Date | undefined;
-  thisMonthUsage: SubscriptionUsage | undefined;
-  previousMonthUsage: SubscriptionUsage | undefined;
+  thisMonthUsage: Usage | undefined;
+  thisMonthSubscriptionUsage: SubscriptionUsage | undefined;
+  previousMonthSubscriptionUsage: SubscriptionUsage | undefined;
 }
 
 function PlanDetailsTab({
@@ -671,7 +681,8 @@ function PlanDetailsTab({
   subscriptionCancelled,
   nextBillingDate,
   thisMonthUsage,
-  previousMonthUsage,
+  thisMonthSubscriptionUsage,
+  previousMonthSubscriptionUsage,
 }: PlanDetailsTabProps) {
   const { locale } = useContext(Context);
   const formattedBillingDate = useMemo(
@@ -731,7 +742,8 @@ function PlanDetailsTab({
       <CurrentPlanCard
         planName={planName}
         thisMonthUsage={thisMonthUsage}
-        previousMonthUsage={previousMonthUsage}
+        thisMonthSubscriptionUsage={thisMonthSubscriptionUsage}
+        previousMonthSubscriptionUsage={previousMonthSubscriptionUsage}
       />
       <LinkButton
         className="text-sm relative justify-self-start"
@@ -938,12 +950,15 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
   ).subscription;
   const subscriptionPlans =
     subscriptionScreenQuery.data?.subscriptionPlans ?? [];
+  const thisMonthSubscriptionUsage = (
+    subscriptionScreenQuery.data?.node as AppFragmentFragment
+  ).thisMonthSubscriptionUsage;
+  const previousMonthSubscriptionUsage = (
+    subscriptionScreenQuery.data?.node as AppFragmentFragment
+  ).previousMonthSubscriptionUsage;
   const thisMonthUsage = (
     subscriptionScreenQuery.data?.node as AppFragmentFragment
-  ).thisMonth;
-  const previousMonthUsage = (
-    subscriptionScreenQuery.data?.node as AppFragmentFragment
-  ).previousMonth;
+  ).thisMonthUsage;
 
   const effectiveAppConfig = (
     subscriptionScreenQuery.data?.node as AppFragmentFragment
@@ -957,7 +972,10 @@ const SubscriptionScreen: React.VFC = function SubscriptionScreen() {
         subscription={subscription ?? undefined}
         subscriptionPlans={subscriptionPlans}
         thisMonthUsage={thisMonthUsage ?? undefined}
-        previousMonthUsage={previousMonthUsage ?? undefined}
+        thisMonthSubscriptionUsage={thisMonthSubscriptionUsage ?? undefined}
+        previousMonthSubscriptionUsage={
+          previousMonthSubscriptionUsage ?? undefined
+        }
         effectiveAppConfig={effectiveAppConfig ?? undefined}
       />
     </ScreenLayoutScrollView>

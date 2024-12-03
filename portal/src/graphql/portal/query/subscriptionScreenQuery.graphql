@@ -5,7 +5,7 @@ fragment AppFragment on App {
   isProcessingSubscription
   lastStripeError
   planName
-  previousMonth: subscriptionUsage(date: $previousMonth) {
+  previousMonthSubscriptionUsage: subscriptionUsage(date: $previousMonth) {
     nextBillingDate
     items {
       type
@@ -21,7 +21,7 @@ fragment AppFragment on App {
       transformQuantityRound
     }
   }
-  thisMonth: subscriptionUsage(date: $thisMonth) {
+  thisMonthSubscriptionUsage: subscriptionUsage(date: $thisMonth) {
     nextBillingDate
     items {
       type
@@ -35,6 +35,14 @@ fragment AppFragment on App {
       freeQuantity
       transformQuantityDivideBy
       transformQuantityRound
+    }
+  }
+  thisMonthUsage: usage(date: $thisMonth) {
+    items {
+      usageType
+      smsRegion
+      whatsappRegion
+      quantity
     }
   }
   subscription {

@@ -84,7 +84,8 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(service.AppResourceManagerFactory), new(*appresource.ManagerFactory)),
 	wire.Bind(new(service.SubscriptionConfigSourceStore), new(*configsource.Store)),
 	wire.Bind(new(service.SubscriptionPlanStore), new(*plan.Store)),
-	wire.Bind(new(service.UsageStore), new(*usage.GlobalDBStore)),
+	wire.Bind(new(service.SubscriptionUsageStore), new(*usage.GlobalDBStore)),
+	wire.Bind(new(service.UsageUsageStore), new(*usage.GlobalDBStore)),
 	wire.Bind(new(service.OnboardServiceAdminAPIService), new(*service.AdminAPIService)),
 
 	loader.DependencySet,
@@ -112,6 +113,7 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(graphql.TutorialService), new(*tutorial.Service)),
 	wire.Bind(new(graphql.StripeService), new(*libstripe.Service)),
 	wire.Bind(new(graphql.SubscriptionService), new(*service.SubscriptionService)),
+	wire.Bind(new(graphql.UsageService), new(*service.UsageService)),
 	wire.Bind(new(graphql.NFTService), new(*service.NFTService)),
 	wire.Bind(new(graphql.DenoService), new(*hook.DenoClientImpl)),
 	wire.Bind(new(graphql.AuditService), new(*service.AuditService)),

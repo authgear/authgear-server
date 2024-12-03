@@ -74,13 +74,20 @@ function BasePlanCard({
         </Text>
         <PlanPrice pricePerMonth={pricePerMonth} />
       </div>
-      <PlanSMSPrice smsPricing={smsPricing} />
-      <PrimaryButton
-        className="w-full"
-        text={actionButtonMessage}
-        disabled={actionButtonDisabled}
-        onClick={onClickActionButton}
-      />
+      {/* 32px(gap) + 40px(height of sms price) = 72 */}
+      {/* This is to prevent layout bouncing caused by text wrapping */}
+      <div className="pt-[72px] relative justify-self-stretch">
+        {/* Use absolute to ensure height change of this block doesn't affect layout */}
+        <div className="absolute top-0 left-0 right-0 text-center">
+          <PlanSMSPrice smsPricing={smsPricing} />
+        </div>
+        <PrimaryButton
+          className="w-full"
+          text={actionButtonMessage}
+          disabled={actionButtonDisabled}
+          onClick={onClickActionButton}
+        />
+      </div>
       <FeatureList {...features} />
       {additionalFeatures != null ? (
         <>

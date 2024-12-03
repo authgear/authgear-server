@@ -3,6 +3,7 @@
   @apply flex flex-row flex-wrap;
   @apply gap-x-16 gap-y-4;
   @apply whitespace-nowrap;
+  @apply overflow-x-auto;
 }
 
 .featureList {

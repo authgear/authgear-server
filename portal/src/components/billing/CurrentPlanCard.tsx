@@ -15,28 +15,35 @@ import { useId } from "@fluentui/react-hooks";
 import LinkButton from "../../LinkButton";
 import {
   SMSCost,
+  SMSUsage,
   WhatsappCost,
+  WhatsappUsage,
   getMAULimit,
   getSMSCost,
+  getSMSUsage,
   getWhatsappCost,
+  getWhatsappUsage,
   isStripePlan,
 } from "../../util/plan";
 import {
   SubscriptionItemPriceType,
-  SubscriptionItemPriceUsageType,
+  UsageType,
   SubscriptionUsage,
+  Usage,
 } from "../../graphql/portal/globalTypes.generated";
 
 interface CurrentPlanCardProps {
   planName: string;
-  thisMonthUsage: SubscriptionUsage | undefined;
-  previousMonthUsage: SubscriptionUsage | undefined;
+  thisMonthUsage: Usage | undefined;
+  thisMonthSubscriptionUsage: SubscriptionUsage | undefined;
+  previousMonthSubscriptionUsage: SubscriptionUsage | undefined;
 }
 
 export function CurrentPlanCard({
   planName,
   thisMonthUsage,
-  previousMonthUsage,
+  thisMonthSubscriptionUsage,
+  previousMonthSubscriptionUsage,
 }: CurrentPlanCardProps): React.ReactElement {
   const baseAmount = useMemo(() => {
     if (!isStripePlan(planName)) {
@@ -44,53 +51,72 @@ export function CurrentPlanCard({
     }
 
     const amountCent =
-      thisMonthUsage?.items.find(
+      thisMonthSubscriptionUsage?.items.find(
         (a) => a.type === SubscriptionItemPriceType.Fixed
       )?.unitAmount ?? undefined;
     if (amountCent == null) {
       return undefined;
     }
     return amountCent / 100;
-  }, [planName, thisMonthUsage]);
+  }, [planName, thisMonthSubscriptionUsage]);
 
   const smsCost = useMemo(() => {
+    if (thisMonthSubscriptionUsage == null) {
+      return undefined;
+    }
+    return getSMSCost(planName, thisMonthSubscriptionUsage);
+  }, [planName, thisMonthSubscriptionUsage]);
+
+  const smsUsage = useMemo(() => {
     if (thisMonthUsage == null) {
       return undefined;
     }
-    return getSMSCost(planName, thisMonthUsage);
-  }, [planName, thisMonthUsage]);
+    return getSMSUsage(thisMonthUsage);
+  }, [thisMonthUsage]);
 
   const whatsappCost = useMemo(() => {
+    if (thisMonthSubscriptionUsage == null) {
+      return undefined;
+    }
+    return getWhatsappCost(planName, thisMonthSubscriptionUsage);
+  }, [planName, thisMonthSubscriptionUsage]);
+
+  const whatsappUsage = useMemo(() => {
     if (thisMonthUsage == null) {
       return undefined;
     }
-    return getWhatsappCost(planName, thisMonthUsage);
-  }, [planName, thisMonthUsage]);
+    return getWhatsappUsage(thisMonthUsage);
+  }, [thisMonthUsage]);
 
   const mauCurrent = useMemo(() => {
-    return thisMonthUsage?.items.find(
+    return thisMonthSubscriptionUsage?.items.find(
       (a) =>
         a.type === SubscriptionItemPriceType.Usage &&
-        a.usageType === SubscriptionItemPriceUsageType.Mau
+        a.usageType === UsageType.Mau
     )?.quantity;
-  }, [thisMonthUsage]);
+  }, [thisMonthSubscriptionUsage]);
 
   const mauLimit = useMemo(() => {
     return getMAULimit(planName);
   }, [planName]);
 
   const mauPrevious = useMemo(() => {
-    return previousMonthUsage?.items.find(
+    return previousMonthSubscriptionUsage?.items.find(
       (a) =>
         a.type === SubscriptionItemPriceType.Usage &&
-        a.usageType === SubscriptionItemPriceUsageType.Mau
+        a.usageType === UsageType.Mau
     )?.quantity;
-  }, [previousMonthUsage]);
+  }, [previousMonthSubscriptionUsage]);
 
   return (
     <div className={styles.cardContainer}>
       <FixedCostSection planName={planName} baseAmount={baseAmount} />
-      <MeteredCostSection smsCost={smsCost} whatsappCost={whatsappCost} />
+      <MeteredCostSection
+        smsCost={smsCost}
+        smsUsage={smsUsage}
+        whatsappCost={whatsappCost}
+        whatsappUsage={whatsappUsage}
+      />
       <MAUUsageSection
         mauCurrent={mauCurrent}
         mauLimit={mauLimit}
@@ -175,13 +201,20 @@ function FixedCostSection({
 
 function MeteredCostSection({
   smsCost,
+  smsUsage,
   whatsappCost,
+  whatsappUsage,
 }: {
   smsCost: SMSCost | undefined;
+  smsUsage: SMSUsage | undefined;
   whatsappCost: WhatsappCost | undefined;
+  whatsappUsage: WhatsappUsage | undefined;
 }) {
   const totalCost = useMemo(() => {
-    return (smsCost?.totalCost ?? 0) + (whatsappCost?.totalCost ?? 0);
+    if (smsCost == null || whatsappCost == null) {
+      return undefined;
+    }
+    return smsCost.totalCost + whatsappCost.totalCost;
   }, [smsCost, whatsappCost]);
 
   return (
@@ -191,83 +224,127 @@ function MeteredCostSection({
           <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.title" />
         </Text>
         <div className="flex items-end">
-          <Text variant="xxLarge">
-            <FormattedMessage
-              id="CurrentPlanCard.whatsappSMSFee.value"
-              values={{ price: totalCost }}
-            />
-          </Text>
-          <Text variant="large" className="ml-2 font-semibold">
-            <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.unit" />
-          </Text>
+          {totalCost != null ? (
+            <>
+              <Text variant="xxLarge">
+                <FormattedMessage
+                  id="CurrentPlanCard.whatsappSMSFee.value"
+                  values={{ price: totalCost }}
+                />
+              </Text>
+              <Text variant="large" className="ml-2 font-semibold">
+                <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.unit" />
+              </Text>
+            </>
+          ) : (
+            <Text variant="large" className="ml-2 font-semibold">
+              -
+            </Text>
+          )}
         </div>
       </div>
       <div className="space-y-2">
-        {smsCost ? (
+        {smsCost != null || smsUsage != null ? (
           <CostItemRow
             label={
               <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.sms.northAmerica" />
             }
             value={
-              <FormattedMessage
-                id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-                values={{
-                  unitPrice: smsCost.northAmericaUnitCost,
-                  quantity: smsCost.northAmericaCount,
-                  total: smsCost.northAmericaTotalCost,
-                }}
-              />
+              smsCost != null ? (
+                <FormattedMessage
+                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
+                  values={{
+                    unitPrice: smsCost.northAmericaUnitCost,
+                    quantity: smsCost.northAmericaCount,
+                    total: smsCost.northAmericaTotalCost,
+                  }}
+                />
+              ) : (
+                <FormattedMessage
+                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSCount"
+                  values={{
+                    quantity: smsUsage!.northAmericaCount,
+                  }}
+                />
+              )
             }
           />
         ) : null}
-        {smsCost ? (
+        {smsCost != null || smsUsage != null ? (
           <CostItemRow
             label={
               <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.sms.other" />
             }
             value={
-              <FormattedMessage
-                id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-                values={{
-                  unitPrice: smsCost.otherRegionsUnitCost,
-                  quantity: smsCost.otherRegionsCount,
-                  total: smsCost.otherRegionsTotalCost,
-                }}
-              />
+              smsCost != null ? (
+                <FormattedMessage
+                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
+                  values={{
+                    unitPrice: smsCost.otherRegionsUnitCost,
+                    quantity: smsCost.otherRegionsCount,
+                    total: smsCost.otherRegionsTotalCost,
+                  }}
+                />
+              ) : (
+                <FormattedMessage
+                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSCount"
+                  values={{
+                    quantity: smsUsage!.otherRegionsCount,
+                  }}
+                />
+              )
             }
           />
         ) : null}
-        {whatsappCost ? (
+        {whatsappCost != null || whatsappUsage != null ? (
           <CostItemRow
             label={
               <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.whatsapp.northAmerica" />
             }
             value={
-              <FormattedMessage
-                id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-                values={{
-                  unitPrice: whatsappCost.northAmericaUnitCost,
-                  quantity: whatsappCost.northAmericaCount,
-                  total: whatsappCost.northAmericaTotalCost,
-                }}
-              />
+              whatsappCost != null ? (
+                <FormattedMessage
+                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
+                  values={{
+                    unitPrice: whatsappCost.northAmericaUnitCost,
+                    quantity: whatsappCost.northAmericaCount,
+                    total: whatsappCost.northAmericaTotalCost,
+                  }}
+                />
+              ) : (
+                <FormattedMessage
+                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSCount"
+                  values={{
+                    quantity: whatsappUsage!.northAmericaCount,
+                  }}
+                />
+              )
             }
           />
         ) : null}
-        {whatsappCost ? (
+        {whatsappCost != null || whatsappUsage != null ? (
           <CostItemRow
             label={
               <FormattedMessage id="CurrentPlanCard.whatsappSMSFee.whatsapp.other" />
             }
             value={
-              <FormattedMessage
-                id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
-                values={{
-                  unitPrice: whatsappCost.otherRegionsUnitCost,
-                  quantity: whatsappCost.otherRegionsCount,
-                  total: whatsappCost.otherRegionsTotalCost,
-                }}
-              />
+              whatsappCost != null ? (
+                <FormattedMessage
+                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice"
+                  values={{
+                    unitPrice: whatsappCost.otherRegionsUnitCost,
+                    quantity: whatsappCost.otherRegionsCount,
+                    total: whatsappCost.otherRegionsTotalCost,
+                  }}
+                />
+              ) : (
+                <FormattedMessage
+                  id="CurrentPlanCard.whatsappSMSFee.whatsappSMSCount"
+                  values={{
+                    quantity: whatsappUsage!.otherRegionsCount,
+                  }}
+                />
+              )
             }
           />
         ) : null}
