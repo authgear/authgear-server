@@ -2102,6 +2102,9 @@
   "PlanCard.action.current": "You are on {plan}",
   "PlanCard.action.subscribe": "Upgrade to {plan}",
   "PlanCard.action.non-applicable": "Disabled",
+  "PlanCard.action.downgrading": "Downgrading on {date}",
+  "PlanCard.action.reactivate-to-upgrade": "Reactivate to upgrade",
+  "PlanCard.action.reactivate-to-downgrade": "Reactivate to downgrade",
   "PlanCard.action.reactivate": "Reactivate",
   "PlanCard.action.contact-us": "Contact Us",
 

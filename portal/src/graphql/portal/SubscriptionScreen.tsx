@@ -352,6 +352,7 @@ function PlansSection({
           <PlanCardFree
             currentPlan={currentPlanName}
             subscriptionCancelled={subscriptionCancelled}
+            nextBillingDate={nextBillingDate}
             onAction={onFreePlanAction}
           />
           {onPlanAction.developers2025 != null ? (

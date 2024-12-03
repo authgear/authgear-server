@@ -142,6 +142,9 @@ function comparePlan(a: Plan, b: Plan): -1 | 0 | 1 {
 
 export type CTAVariant =
   | "non-applicable"
+  | "reactivate-to-upgrade"
+  | "reactivate-to-downgrade"
+  | "downgrading"
   | "subscribe"
   | "downgrade"
   | "upgrade"
@@ -175,12 +178,17 @@ export function getCTAVariant(opts: {
 
   const compareResult = comparePlan(currentPlanName, cardPlanName);
 
-  // If the current plan is cancelled, the only sensible CTA is reactivate.
   if (subscriptionCancelled) {
-    if (compareResult === 0) {
-      return "reactivate";
+    const isFreeCard = comparePlan(cardPlanName, "free");
+
+    switch (compareResult) {
+      case 0:
+        return "reactivate";
+      case -1:
+        return "reactivate-to-upgrade";
+      case 1:
+        return isFreeCard === 0 ? "downgrading" : "reactivate-to-downgrade";
     }
-    return "non-applicable";
   }
 
   if (compareResult === 1) {
