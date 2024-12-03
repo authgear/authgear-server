@@ -44,10 +44,12 @@ describe("getCTAVariant", () => {
     expect(f("enterprise", "enterprise", false)).toEqual("current");
   });
 
-  it("returns reactivate or non-applicable if the plan is cancelled", () => {
-    expect(f("free", "free-approved", true)).toEqual("reactivate");
-    expect(f("free", "developers", true)).toEqual("non-applicable");
-    expect(f("developers", "startups", true)).toEqual("non-applicable");
+  it("returns reactivate, downgrading, reactivate-to-upgrade or reactivate-to-downgrade if the plan is cancelled", () => {
+    expect(f("developers", "free-approved", true)).toEqual("downgrading");
+    expect(f("free", "developers", true)).toEqual("reactivate-to-upgrade");
+    expect(f("business", "developers", true)).toEqual(
+      "reactivate-to-downgrade"
+    );
     expect(f("developers", "developers", true)).toEqual("reactivate");
   });
 
