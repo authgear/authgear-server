@@ -461,7 +461,7 @@ function UsageMeter(props: UsageMeterProps): React.ReactElement {
     onClickUpgrade,
   } = props;
   const percentComplete =
-    current != null && limit != null ? current / limit : 0;
+    current != null && limit != null ? current / limit : null;
   const id = useId("usage-meter");
   const calloutProps = useMemo(() => {
     return {
@@ -495,14 +495,18 @@ function UsageMeter(props: UsageMeterProps): React.ReactElement {
           {title}
         </Text>
         <ThemeProvider theme={theme}>
-          <ProgressIndicator
-            className="w-full"
-            percentComplete={percentComplete}
-          />
+          {percentComplete != null ? (
+            <ProgressIndicator
+              className="w-full"
+              percentComplete={percentComplete}
+            />
+          ) : null}
           <Text block={true} styles={usageStyles} variant="medium">
-            {current != null ? `${current}` : "-"}
-            {" / "}
-            {limit != null ? `${limit}` : "-"}
+            {limit != null && current != null
+              ? `${current} / ${limit}`
+              : limit == null && current != null
+              ? `${current}`
+              : null}
             {previous != null ? (
               <FormattedMessage
                 id="CurrentPlanCard.mau.previous"
@@ -516,7 +520,7 @@ function UsageMeter(props: UsageMeterProps): React.ReactElement {
             <LinkButton onClick={onClickUpgrade}>
               <FormattedMessage id="CurrentPlanCard.mau.limitReached" />
             </LinkButton>
-          ) : percentComplete >= warnPercentage ? (
+          ) : percentComplete != null && percentComplete >= warnPercentage ? (
             <LinkButton onClick={onClickUpgrade}>
               <FormattedMessage id="CurrentPlanCard.mau.approachingLimit" />
             </LinkButton>
