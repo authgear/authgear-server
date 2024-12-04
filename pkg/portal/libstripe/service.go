@@ -362,7 +362,10 @@ func (s *Service) intersectPlanNames(plans []*model.Plan, products []*stripe.Pro
 
 	intersactedProductPlanWithVersions := []planWithVersion{}
 	for _, planName := range intersection.Keys() {
-		planWithVersion := productPlanSet[planName]
+		planWithVersion, ok := productPlanSet[planName]
+		if !ok {
+			panic(fmt.Errorf("unexpected: product of plan %v does not exist", planName))
+		}
 		intersactedProductPlanWithVersions = append(intersactedProductPlanWithVersions,
 			planWithVersion,
 		)
