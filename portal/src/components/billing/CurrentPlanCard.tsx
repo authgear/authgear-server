@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo } from "react";
 import {
   IButtonProps,
   ITooltipHostProps,
@@ -35,6 +35,7 @@ import {
   SubscriptionUsage,
   Usage,
 } from "../../graphql/portal/globalTypes.generated";
+import { useNavigate } from "react-router-dom";
 
 interface CurrentPlanCardProps {
   planName: string;
@@ -420,6 +421,11 @@ function MAUUsageSection({
   mauLimit: number | undefined;
   mauPrevious: number | undefined;
 }) {
+  const navigate = useNavigate();
+  const onUpgrade = useCallback(() => {
+    navigate({ hash: "Subscription" });
+  }, [navigate]);
+
   return (
     <section className={styles.card}>
       <UsageMeter
@@ -429,6 +435,7 @@ function MAUUsageSection({
         previous={mauPrevious}
         warnPercentage={0.8}
         tooltip={<FormattedMessage id="CurrentPlanCard.mau.tooltip" />}
+        onClickUpgrade={onUpgrade}
       />
     </section>
   );
