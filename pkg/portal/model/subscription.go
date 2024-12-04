@@ -182,7 +182,8 @@ type Price struct {
 }
 
 func (p *Price) ShouldClearUsage() bool {
-	return p.Type == PriceTypeUsage && p.UsageType == UsageTypeMAU
+	// We need to clear usage of the meters before removing the price in subscription
+	return p.Type == PriceTypeUsage
 }
 
 func (i *SubscriptionUsageItem) Match(p *Price) bool {
@@ -226,13 +227,15 @@ func (i *SubscriptionUsageItem) FillFrom(p *Price) *SubscriptionUsageItem {
 }
 
 type SubscriptionPlan struct {
-	Name   string   `json:"name"`
-	Prices []*Price `json:"prices,omitempty"`
+	Name    string   `json:"name"`
+	Version string   `json:"version"`
+	Prices  []*Price `json:"prices,omitempty"`
 }
 
-func NewSubscriptionPlan(planName string) *SubscriptionPlan {
+func NewSubscriptionPlan(planName string, version string) *SubscriptionPlan {
 	return &SubscriptionPlan{
-		Name: planName,
+		Name:    planName,
+		Version: version,
 	}
 }
 

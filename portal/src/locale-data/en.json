@@ -1585,7 +1585,7 @@
 
   "SubscriptionScreen.cards.title": "Upgrade Your Plan",
   "SubscriptionScreen.enterprise.title": "Upgrade to Enterprise",
-  "SubscriptionScreen.enterprise.instructions": "Managing 10,000+ MAU? In need of customization services? Send an email to {ExternalLink, react, href{mailto:hello@authgear.com} children{hello@authgear.com}} from the email address associated with your Authgear account and we will take care of the rest.",
+  "SubscriptionScreen.enterprise.instructions": "In need of customized services? Send an email to {ExternalLink, react, href{mailto:hello@authgear.com} children{hello@authgear.com}} from the email address associated with your Authgear account and you will be contacted by our sales team.",
   "SubscriptionScreen.enterprise.cta": "Go Enterprise",
 
   "SubscriptionScreen.plan-name.free": "Free",
@@ -2071,7 +2071,7 @@
   "PlanCard.price.monthly.value": "${price}",
   "PlanCard.price.monthly.unit": "/mo",
   "PlanCard.price.custom": "Custom Pricing",
-  "PlanCard.smsPrice.fixed": "Up to {limit} SMS/WhatsApp Messages per month",
+  "PlanCard.smsPrice.fixed": "Up to {limit} SMS/WhatsApp{br, react}Messages per month",
   "PlanCard.smsPrice.metered.title": "Metered SMS/WhatsApp messaging",
   "PlanCard.smsPrice.metered.price": "US/Canada: ${northAmericaPrice}, Others: ${otherRegionPrice}",
   "PlanCard.plan.free.active": "You are on Free",
@@ -2102,6 +2102,9 @@
   "PlanCard.action.current": "You are on {plan}",
   "PlanCard.action.subscribe": "Upgrade to {plan}",
   "PlanCard.action.non-applicable": "Disabled",
+  "PlanCard.action.downgrading": "Downgrading on {date}",
+  "PlanCard.action.reactivate-to-upgrade": "Reactivate to upgrade",
+  "PlanCard.action.reactivate-to-downgrade": "Reactivate to downgrade",
   "PlanCard.action.reactivate": "Reactivate",
   "PlanCard.action.contact-us": "Contact Us",
 
@@ -2127,6 +2130,11 @@
   "CurrentPlanCard.subscriptionFee.include": "Include:",
   "CurrentPlanCard.subscriptionFee.plan": "{plan} Plan",
   "CurrentPlanCard.subscriptionFee.planPrice": "${price}",
+  "CurrentPlanCard.plan.free": "Free",
+  "CurrentPlanCard.plan.developers": "Developers",
+  "CurrentPlanCard.plan.business": "Business",
+  "CurrentPlanCard.plan.startups": "Startups",
+  "CurrentPlanCard.plan.enterprise": "Enterprise",
 
   "CurrentPlanCard.whatsappSMSFee.title": "SMS/Whatsapp Cost (Estimated)",
   "CurrentPlanCard.whatsappSMSFee.value": "${price}",
@@ -2135,7 +2143,7 @@
   "CurrentPlanCard.whatsappSMSFee.sms.other": "SMS (Other)",
   "CurrentPlanCard.whatsappSMSFee.whatsapp.northAmerica": "Whatsapp (US/Canada)",
   "CurrentPlanCard.whatsappSMSFee.whatsapp.other": "Whatsapp (Other)",
-  "CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice": "${unitPrice} * ${quantity} = ${total}",
+  "CurrentPlanCard.whatsappSMSFee.whatsappSMSPrice": "${unitPrice} * {quantity} = ${total}",
   "CurrentPlanCard.whatsappSMSFee.whatsappSMSCount": "{quantity} messages",
   "CurrentPlanCard.mau.title": "Monthly Active User",
   "CurrentPlanCard.mau.approachingLimit": "Upgrade to increase limit",

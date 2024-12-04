@@ -204,11 +204,13 @@ function PlansSection({
 
   const onPlanAction = useMemo(() => {
     const plans: Plan[] = ["enterprise"];
-    if (subscriptionPlans.findIndex((p) => p.name === "developers") !== -1) {
-      plans.push("developers");
+    if (
+      subscriptionPlans.findIndex((p) => p.name === "developers2025") !== -1
+    ) {
+      plans.push("developers2025");
     }
-    if (subscriptionPlans.findIndex((p) => p.name === "business") !== -1) {
-      plans.push("business");
+    if (subscriptionPlans.findIndex((p) => p.name === "business2025") !== -1) {
+      plans.push("business2025");
     }
     plans.push("enterprise");
 
@@ -350,20 +352,21 @@ function PlansSection({
           <PlanCardFree
             currentPlan={currentPlanName}
             subscriptionCancelled={subscriptionCancelled}
+            nextBillingDate={nextBillingDate}
             onAction={onFreePlanAction}
           />
-          {onPlanAction.developers != null ? (
+          {onPlanAction.developers2025 != null ? (
             <PlanCardDevelopers
               currentPlan={currentPlanName}
               subscriptionCancelled={subscriptionCancelled}
-              onAction={onPlanAction.developers}
+              onAction={onPlanAction.developers2025}
             />
           ) : null}
-          {onPlanAction.business != null ? (
+          {onPlanAction.business2025 != null ? (
             <PlanCardBusiness
               currentPlan={currentPlanName}
               subscriptionCancelled={subscriptionCancelled}
-              onAction={onPlanAction.business}
+              onAction={onPlanAction.business2025}
             />
           ) : null}
           <PlanCardEnterprise
@@ -537,18 +540,17 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
   }, []);
 
   const {
-    // This is not used now,
-    // because we want the user to fill in a cancel survey before actually cancelling the subscription.
-    // setSubscriptionCancelledStatus,
+    setSubscriptionCancelledStatus,
     loading: cancelSubscriptionLoading,
     error: cancelSubscriptionError,
   } = useSetSubscriptionCancelledStatusMutation(appID);
   useLoading(cancelSubscriptionLoading);
 
   const onClickCancelSubscriptionConfirm = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
       e.stopPropagation();
+      await setSubscriptionCancelledStatus(true);
       const projectID = extractRawID(appID);
       const cancelSurveyURL = `https://oursky.typeform.com/authgear-cancel#project_id=${projectID}`;
       const anchor = document.createElement("A") as HTMLAnchorElement;
@@ -558,7 +560,7 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       anchor.remove();
       setCancelDialogHidden(true);
     },
-    [appID]
+    [appID, setSubscriptionCancelledStatus]
   );
 
   return (

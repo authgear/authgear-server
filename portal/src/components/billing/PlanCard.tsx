@@ -8,6 +8,7 @@ import {
 import PrimaryButton from "../../PrimaryButton";
 import { CTAVariant, getCTAVariant } from "../../util/plan";
 import Tooltip from "../../Tooltip";
+import { formatDateOnly } from "../../util/formatDateOnly";
 
 interface PlanCardSMSPricingFixed {
   type: "fixed";
@@ -110,6 +111,8 @@ function PlanPrice({
 }: {
   pricePerMonth: number | "free" | "custom";
 }) {
+  const { locale } = useContext(MessageContext);
+
   switch (pricePerMonth) {
     case "free":
       return (
@@ -133,7 +136,7 @@ function PlanPrice({
                 price:
                   // Number formatting {n, number, integer} in message does not work
                   // So format manually
-                  Intl.NumberFormat().format(pricePerMonth),
+                  pricePerMonth.toLocaleString(locale),
               }}
             />
           </Text>
@@ -206,6 +209,7 @@ function FeatureList({
   logRetentionDays,
   support,
 }: PlanFeatures) {
+  const { locale } = useContext(MessageContext);
   return (
     <ul className={styles.featureList}>
       <FeatureListItem
@@ -218,7 +222,7 @@ function FeatureList({
                 typeof mau === "number"
                   ? // Number formatting {n, number, integer} in message does not work
                     // So format manually
-                    Intl.NumberFormat().format(mau)
+                    mau.toLocaleString(locale)
                   : mau,
             }}
           />
@@ -234,7 +238,7 @@ function FeatureList({
                 typeof applications === "number"
                   ? // Number formatting {n, number, integer} in message does not work
                     // So format manually
-                    Intl.NumberFormat().format(applications)
+                    applications.toLocaleString(locale)
                   : applications,
             }}
           />
@@ -250,7 +254,7 @@ function FeatureList({
                 typeof projectMembers === "number"
                   ? // Number formatting {n, number, integer} in message does not work
                     // So format manually
-                    Intl.NumberFormat().format(projectMembers)
+                    projectMembers.toLocaleString(locale)
                   : projectMembers,
             }}
           />
@@ -374,8 +378,21 @@ function AddOnsList({
   );
 }
 
-function useSubscriptablePlanCTAButton(cta: CTAVariant, planName: string) {
-  const { renderToString } = useContext(MessageContext);
+function useSubscriptablePlanCTAButton({
+  cta,
+  translatedPlanName,
+  nextBillingDate,
+}: {
+  cta: CTAVariant;
+  translatedPlanName: string;
+  nextBillingDate?: Date;
+}) {
+  const { renderToString, locale } = useContext(MessageContext);
+
+  const formattedBillingDate = useMemo(
+    () => formatDateOnly(locale, nextBillingDate ?? null),
+    [locale, nextBillingDate]
+  );
 
   const isButtonActive = (() => {
     switch (cta) {
@@ -396,26 +413,35 @@ function useSubscriptablePlanCTAButton(cta: CTAVariant, planName: string) {
         return renderToString("PlanCard.action.contact-us");
       case "downgrade":
         return renderToString("PlanCard.action.downgrade", {
-          plan: planName,
+          plan: translatedPlanName,
         });
       case "reactivate":
         return renderToString("PlanCard.action.reactivate");
       case "subscribe":
         return renderToString("PlanCard.action.subscribe", {
-          plan: planName,
+          plan: translatedPlanName,
         });
       case "upgrade":
         return renderToString("PlanCard.action.upgrade", {
-          plan: planName,
+          plan: translatedPlanName,
         });
       case "current":
         return renderToString("PlanCard.action.current", {
-          plan: planName,
+          plan: translatedPlanName,
+        });
+      case "reactivate-to-downgrade":
+        return renderToString("PlanCard.action.reactivate-to-downgrade");
+      case "reactivate-to-upgrade":
+        return renderToString("PlanCard.action.reactivate-to-upgrade");
+      case "downgrading":
+        return renderToString("PlanCard.action.downgrading", {
+          plan: translatedPlanName,
+          date: formattedBillingDate ?? "",
         });
       case "non-applicable":
         return renderToString("PlanCard.action.non-applicable");
     }
-  }, [cta, planName, renderToString]);
+  }, [cta, renderToString, translatedPlanName, formattedBillingDate]);
 
   return {
     buttonText,
@@ -429,11 +455,16 @@ export interface PlanCardProps {
   onAction: (action: CTAVariant) => void;
 }
 
+export interface FreePlanCardProps extends PlanCardProps {
+  nextBillingDate: Date | undefined;
+}
+
 export function PlanCardFree({
   currentPlan,
   subscriptionCancelled,
+  nextBillingDate,
   onAction,
-}: PlanCardProps): React.ReactElement {
+}: FreePlanCardProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
   const cta = getCTAVariant({
     cardPlanName: "free",
@@ -445,10 +476,11 @@ export function PlanCardFree({
     return renderToString("PlanCard.plan.free");
   }, [renderToString]);
 
-  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton(
+  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton({
     cta,
-    planNameTranslated
-  );
+    translatedPlanName: planNameTranslated,
+    nextBillingDate,
+  });
 
   const onClickActionButton = useCallback(() => {
     onAction(cta);
@@ -483,7 +515,7 @@ export function PlanCardDevelopers({
 }: PlanCardProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
   const cta = getCTAVariant({
-    cardPlanName: "developers",
+    cardPlanName: "developers2025",
     currentPlanName: currentPlan,
     subscriptionCancelled,
   });
@@ -492,10 +524,10 @@ export function PlanCardDevelopers({
     return renderToString("PlanCard.plan.developers");
   }, [renderToString]);
 
-  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton(
+  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton({
     cta,
-    planNameTranslated
-  );
+    translatedPlanName: planNameTranslated,
+  });
 
   const onClickActionButton = useCallback(() => {
     onAction(cta);
@@ -536,7 +568,7 @@ export function PlanCardBusiness({
 }: PlanCardProps): React.ReactElement {
   const { renderToString } = useContext(MessageContext);
   const cta = getCTAVariant({
-    cardPlanName: "business",
+    cardPlanName: "business2025",
     currentPlanName: currentPlan,
     subscriptionCancelled,
   });
@@ -545,10 +577,10 @@ export function PlanCardBusiness({
     return renderToString("PlanCard.plan.business");
   }, [renderToString]);
 
-  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton(
+  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton({
     cta,
-    planNameTranslated
-  );
+    translatedPlanName: planNameTranslated,
+  });
 
   const onClickActionButton = useCallback(() => {
     onAction(cta);
@@ -616,10 +648,10 @@ export function PlanCardEnterprise({
     return renderToString("PlanCard.plan.enterprise");
   }, [renderToString]);
 
-  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton(
+  const { buttonText, isButtonActive } = useSubscriptablePlanCTAButton({
     cta,
-    planNameTranslated
-  );
+    translatedPlanName: planNameTranslated,
+  });
 
   const onClickActionButton = useCallback(() => {
     onAction(cta);

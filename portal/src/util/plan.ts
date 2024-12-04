@@ -11,8 +11,10 @@ export type Plan =
   | "free"
   | "free-approved"
   | "developers"
+  | "developers2025"
   | "startups"
   | "business"
+  | "business2025"
   | "enterprise";
 
 export const SUBSCRIPTABLE_PLANS: Plan[] = ["startups", "business"];
@@ -27,9 +29,13 @@ export function isPlan(planName: string): planName is Plan {
       return true;
     case "developers":
       return true;
+    case "developers2025":
+      return true;
     case "startups":
       return true;
     case "business":
+      return true;
+    case "business2025":
       return true;
     case "enterprise":
       return true;
@@ -53,9 +59,13 @@ export function isStripePlan(planName: string): planName is Plan {
   switch (planName) {
     case "developers":
       return true;
+    case "developers2025":
+      return true;
     case "startups":
       return true;
     case "business":
+      return true;
+    case "business2025":
       return true;
   }
   return false;
@@ -73,38 +83,27 @@ export function getPreviousPlan(planName: string): Plan | null {
       return null;
     case "developers":
       return null;
+    case "developers2025":
+      return null;
     case "startups":
       return "free";
     case "business":
       return "startups";
+    case "business2025":
+      return "developers2025";
     case "enterprise":
       return "business";
   }
 }
 
-function isRecommendedPlan(planName: string): planName is Plan {
-  return planName === "startups";
-}
-
-export function shouldShowRecommendedTag(
-  planName: string,
-  currentPlanName: string
-): boolean {
-  const thePlanIsRecommended = isRecommendedPlan(planName);
-  const currentPlanIsFree = isFreePlan(currentPlanName);
-  return thePlanIsRecommended && currentPlanIsFree;
-}
-
 export function getMAULimit(planName: string): number | undefined {
   switch (planName) {
-    case "free":
-      return 5000;
-    case "free-approved":
-      return 5000;
     case "startups":
       return 5000;
     case "business":
       return 10000;
+    case "business2025":
+      return 25000;
   }
   return undefined;
 }
@@ -117,16 +116,20 @@ function planToNumber(planName: Plan): number {
       return 0;
     case "developers":
       return 1;
+    case "developers2025":
+      return 1;
     case "startups":
       return 2;
     case "business":
+      return 3;
+    case "business2025":
       return 3;
     case "enterprise":
       return 4;
   }
 }
 
-export function comparePlan(a: Plan, b: Plan): -1 | 0 | 1 {
+function comparePlan(a: Plan, b: Plan): -1 | 0 | 1 {
   const numberA = planToNumber(a);
   const numberB = planToNumber(b);
   if (numberA > numberB) {
@@ -139,6 +142,9 @@ export function comparePlan(a: Plan, b: Plan): -1 | 0 | 1 {
 
 export type CTAVariant =
   | "non-applicable"
+  | "reactivate-to-upgrade"
+  | "reactivate-to-downgrade"
+  | "downgrading"
   | "subscribe"
   | "downgrade"
   | "upgrade"
@@ -172,12 +178,17 @@ export function getCTAVariant(opts: {
 
   const compareResult = comparePlan(currentPlanName, cardPlanName);
 
-  // If the current plan is cancelled, the only sensible CTA is reactivate.
   if (subscriptionCancelled) {
-    if (compareResult === 0) {
-      return "reactivate";
+    const isFreeCard = comparePlan(cardPlanName, "free");
+
+    switch (compareResult) {
+      case 0:
+        return "reactivate";
+      case -1:
+        return "reactivate-to-upgrade";
+      case 1:
+        return isFreeCard === 0 ? "downgrading" : "reactivate-to-downgrade";
     }
-    return "non-applicable";
   }
 
   if (compareResult === 1) {
