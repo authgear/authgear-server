@@ -67,6 +67,7 @@ import LinkButton from "../../LinkButton";
 import { useGenerateStripeCustomerPortalSessionMutationMutation } from "./mutations/generateStripeCustomerPortalSessionMutation";
 import { CancelSubscriptionReminder } from "../../components/billing/CancelSubscriptionReminder";
 import { extractRawID } from "../../util/graphql";
+import { CancelSubscriptionSurveyDialog } from "../../components/billing/CancelSubscriptionSurveyDialog";
 
 const CHECK_IS_PROCESSING_SUBSCRIPTION_INTERVAL = 5000;
 
@@ -486,6 +487,8 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
 
   const [enterpriseDialogHidden, setEnterpriseDialogHidden] = useState(true);
   const [cancelDialogHidden, setCancelDialogHidden] = useState(true);
+  const [cancelSurveyDialogHidden, setCancelSurveyDialogHidden] =
+    useState(true);
 
   const { selectedKey: selectedTab, onLinkClick } = usePivotNavigation<Tab>([
     Tab.Subscription,
@@ -551,17 +554,22 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
       e.preventDefault();
       e.stopPropagation();
       await setSubscriptionCancelledStatus(true);
-      const projectID = extractRawID(appID);
-      const cancelSurveyURL = `https://oursky.typeform.com/authgear-cancel#project_id=${projectID}`;
-      const anchor = document.createElement("A") as HTMLAnchorElement;
-      anchor.href = cancelSurveyURL;
-      anchor.target = "_blank";
-      anchor.click();
-      anchor.remove();
       setCancelDialogHidden(true);
+      setCancelSurveyDialogHidden(false);
     },
-    [appID, setSubscriptionCancelledStatus]
+    [setSubscriptionCancelledStatus]
   );
+
+  const onConfirmCancelSurveyDialog = useCallback(() => {
+    const projectID = extractRawID(appID);
+    const cancelSurveyURL = `https://oursky.typeform.com/authgear-cancel#project_id=${projectID}`;
+    const anchor = document.createElement("A") as HTMLAnchorElement;
+    anchor.href = cancelSurveyURL;
+    anchor.target = "_blank";
+    anchor.click();
+    anchor.remove();
+    setCancelSurveyDialogHidden(true);
+  }, [appID]);
 
   return (
     <>
@@ -596,6 +604,16 @@ function SubscriptionScreenContent(props: SubscriptionScreenContentProps) {
           />
         </DialogFooter>
       </Dialog>
+      <CancelSubscriptionSurveyDialog
+        isHidden={cancelSurveyDialogHidden}
+        onDismiss={useCallback(() => {
+          setCancelSurveyDialogHidden(true);
+        }, [])}
+        onConfirm={onConfirmCancelSurveyDialog}
+        onCancel={useCallback(() => {
+          setCancelSurveyDialogHidden(true);
+        }, [])}
+      />
       <ErrorDialog
         error={cancelSubscriptionError}
         rules={[]}
