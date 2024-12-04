@@ -23,6 +23,7 @@ import ScreenContent from "../../ScreenContent";
 import NavBreadcrumb, { BreadcrumbItem } from "../../NavBreadcrumb";
 import FeatureDisabledMessageBar from "./FeatureDisabledMessageBar";
 import PrimaryButton from "../../PrimaryButton";
+import { getNextPlan } from "../../util/plan";
 
 const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
   const { renderToString } = useContext(Context);
@@ -31,6 +32,7 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
 
   const {
     effectiveFeatureConfig,
+    planName,
     loading: featureConfigLoading,
     error: featureConfigError,
     refetch: featureConfigRefetch,
@@ -172,11 +174,29 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
     [deleteCollaboratorInvitation]
   );
 
+  const displayedCollaboratorMaximum = useMemo<number | undefined>(() => {
+    return (
+      effectiveFeatureConfig?.collaborator?.soft_maximum ??
+      effectiveFeatureConfig?.collaborator?.maximum
+    );
+  }, [effectiveFeatureConfig]);
+
   const navBreadcrumbItems: BreadcrumbItem[] = useMemo(() => {
     return [
       { to: ".", label: <FormattedMessage id="PortalAdminSettings.title" /> },
     ];
   }, []);
+
+  const canUpgradePlan = useMemo(() => {
+    return getNextPlan(planName ?? "") != null;
+  }, [planName]);
+
+  const displayMaximumWarning = useMemo(() => {
+    if (collaborators == null || displayedCollaboratorMaximum == null) {
+      return false;
+    }
+    return collaborators.length >= displayedCollaboratorMaximum;
+  }, [collaborators, displayedCollaboratorMaximum]);
 
   if (loadingCollaboratorsAndInvitations || featureConfigLoading) {
     return <ShowLoading />;
@@ -199,12 +219,16 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
             />
             <PrimaryButton {...inviteButtonProps} />
           </div>
-          {effectiveFeatureConfig?.collaborator.maximum != null ? (
+          {displayMaximumWarning ? (
             <FeatureDisabledMessageBar
               className={styles.messageBar}
-              messageID="FeatureConfig.collaborator"
+              messageID={
+                canUpgradePlan
+                  ? "FeatureConfig.collaborator.upgrade"
+                  : "FeatureConfig.collaborator.contact-us"
+              }
               messageValues={{
-                maximum: effectiveFeatureConfig?.collaborator.maximum,
+                maximum: displayedCollaboratorMaximum!,
               }}
             />
           ) : null}
