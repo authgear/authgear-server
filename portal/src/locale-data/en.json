@@ -2110,6 +2110,11 @@
   "PlanCard.action.reactivate": "Reactivate",
   "PlanCard.action.contact-us": "Contact Us",
 
+  "CancelSubscriptionSurveyDialog.title": "Sorry to see you go",
+  "CancelSubscriptionSurveyDialog.body": "Do you have 1 minute to tell us why you are cancelling?{br, react}Your feedback helps us improve.",
+  "CancelSubscriptionSurveyDialog.button.yes": "Yes",
+  "CancelSubscriptionSurveyDialog.button.no": "No",
+
   "FeatureBanner.title": "Simple pricing with no gotchas!",
   "FeatureBanner.subtitle": "There are no feature gate between plans",
   "FeatureBanner.features.customizeSignInPage": "Customize Sign-in/Sign-up Page",
