@@ -192,11 +192,18 @@ const PortalAdminsSettings: React.VFC = function PortalAdminsSettings() {
   }, [planName]);
 
   const displayMaximumWarning = useMemo(() => {
-    if (collaborators == null || displayedCollaboratorMaximum == null) {
+    if (
+      collaborators == null ||
+      collaboratorInvitations == null ||
+      displayedCollaboratorMaximum == null
+    ) {
       return false;
     }
-    return collaborators.length >= displayedCollaboratorMaximum;
-  }, [collaborators, displayedCollaboratorMaximum]);
+    return (
+      collaborators.length + collaboratorInvitations.length >=
+      displayedCollaboratorMaximum
+    );
+  }, [collaborators, collaboratorInvitations, displayedCollaboratorMaximum]);
 
   if (loadingCollaboratorsAndInvitations || featureConfigLoading) {
     return <ShowLoading />;
