@@ -17,6 +17,8 @@ const FeatureDisabledMessageBar: React.VFC<FeatureDisabledMessageBarProps> =
     const values = useMemo(() => {
       return {
         planPagePath: `/project/${appID}/billing`,
+        contactUsHref:
+          "https://www.authgear.com/schedule-demo?utm_source=portal&utm_medium=link&utm_campaign=additional_order",
         ...messageValues,
       };
     }, [appID, messageValues]);

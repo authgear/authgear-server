@@ -71,28 +71,20 @@ export function isStripePlan(planName: string): planName is Plan {
   return false;
 }
 
-export function getPreviousPlan(planName: string): Plan | null {
+export function getNextPlan(planName: string): Plan | null {
   const planNameIsPlan = isPlan(planName);
   if (!planNameIsPlan) {
     return null;
   }
   switch (planName) {
     case "free":
-      return null;
-    case "free-approved":
-      return null;
-    case "developers":
-      return null;
-    case "developers2025":
-      return null;
-    case "startups":
-      return "free";
-    case "business":
-      return "startups";
-    case "business2025":
       return "developers2025";
-    case "enterprise":
-      return "business";
+    case "free-approved":
+      return "developers2025";
+    case "developers2025":
+      return "business2025";
+    default:
+      return null;
   }
 }
 
@@ -129,7 +121,7 @@ function planToNumber(planName: Plan): number {
   }
 }
 
-function comparePlan(a: Plan, b: Plan): -1 | 0 | 1 {
+export function comparePlan(a: Plan, b: Plan): -1 | 0 | 1 {
   const numberA = planToNumber(a);
   const numberB = planToNumber(b);
   if (numberA > numberB) {

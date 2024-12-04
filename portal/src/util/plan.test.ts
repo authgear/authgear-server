@@ -1,17 +1,17 @@
 import { describe, it, expect } from "@jest/globals";
-import { getPreviousPlan, getCTAVariant } from "./plan";
+import { getNextPlan, getCTAVariant } from "./plan";
 
-describe("getPreviousPlan", () => {
+describe("getNextPlan", () => {
   it("should work", () => {
-    expect(getPreviousPlan("free")).toEqual(null);
-    expect(getPreviousPlan("free-approved")).toEqual(null);
-    expect(getPreviousPlan("developers")).toEqual(null);
+    expect(getNextPlan("free")).toEqual("developers2025");
+    expect(getNextPlan("free-approved")).toEqual("developers2025");
+    expect(getNextPlan("developers2025")).toEqual("business2025");
 
-    expect(getPreviousPlan("startups")).toEqual("free");
-    expect(getPreviousPlan("business")).toEqual("startups");
-    expect(getPreviousPlan("enterprise")).toEqual("business");
+    expect(getNextPlan("startups")).toEqual(null);
+    expect(getNextPlan("business")).toEqual(null);
+    expect(getNextPlan("enterprise")).toEqual(null);
 
-    expect(getPreviousPlan("foobar")).toEqual(null);
+    expect(getNextPlan("foobar")).toEqual(null);
   });
 });
 

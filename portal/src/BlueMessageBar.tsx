@@ -42,6 +42,11 @@ export default function BlueMessageBar(
           fontWeight: 600,
           whiteSpace: "nowrap",
         },
+        span: {
+          "a:last-child": {
+            padding: 0,
+          },
+        },
       },
       icon: {
         lineHeight: "20px",
