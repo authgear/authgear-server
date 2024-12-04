@@ -111,6 +111,8 @@ function PlanPrice({
 }: {
   pricePerMonth: number | "free" | "custom";
 }) {
+  const { locale } = useContext(MessageContext);
+
   switch (pricePerMonth) {
     case "free":
       return (
@@ -134,7 +136,7 @@ function PlanPrice({
                 price:
                   // Number formatting {n, number, integer} in message does not work
                   // So format manually
-                  Intl.NumberFormat().format(pricePerMonth),
+                  pricePerMonth.toLocaleString(locale),
               }}
             />
           </Text>
@@ -210,6 +212,7 @@ function FeatureList({
   logRetentionDays,
   support,
 }: PlanFeatures) {
+  const { locale } = useContext(MessageContext);
   return (
     <ul className={styles.featureList}>
       <FeatureListItem
@@ -222,7 +225,7 @@ function FeatureList({
                 typeof mau === "number"
                   ? // Number formatting {n, number, integer} in message does not work
                     // So format manually
-                    Intl.NumberFormat().format(mau)
+                    mau.toLocaleString(locale)
                   : mau,
             }}
           />
@@ -238,7 +241,7 @@ function FeatureList({
                 typeof applications === "number"
                   ? // Number formatting {n, number, integer} in message does not work
                     // So format manually
-                    Intl.NumberFormat().format(applications)
+                    applications.toLocaleString(locale)
                   : applications,
             }}
           />
@@ -254,7 +257,7 @@ function FeatureList({
                 typeof projectMembers === "number"
                   ? // Number formatting {n, number, integer} in message does not work
                     // So format manually
-                    Intl.NumberFormat().format(projectMembers)
+                    projectMembers.toLocaleString(locale)
                   : projectMembers,
             }}
           />
