@@ -308,11 +308,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GlobalDatabase: handle,
 		UsageStore:     globalDBStore,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftService := &service.NFTService{
-		HTTPClient:  httpClient,
-		APIEndpoint: nftIndexerAPIEndpoint,
-	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
@@ -356,7 +351,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StripeService:           libstripeService,
 		SubscriptionService:     subscriptionService,
 		UsageService:            usageService,
-		NFTService:              nftService,
 		DenoService:             denoClientImpl,
 		AuditService:            auditService,
 		OnboardService:          onboardService,

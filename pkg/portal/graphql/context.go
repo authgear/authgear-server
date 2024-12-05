@@ -21,7 +21,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/smtp"
 	"github.com/authgear/authgear-server/pkg/util/graphqlutil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 type UserLoader interface {
@@ -159,11 +158,6 @@ type UsageService interface {
 	) (*model.Usage, error)
 }
 
-type NFTService interface {
-	ProbeNFTCollection(ctx context.Context, contractID web3.ContractID) (*apimodel.ProbeCollectionResult, error)
-	GetContractMetadata(ctx context.Context, contracts []web3.ContractID) ([]apimodel.NFTCollection, error)
-}
-
 type DenoService interface {
 	Check(ctx context.Context, snippet string) error
 }
@@ -200,7 +194,6 @@ type Context struct {
 	StripeService        StripeService
 	SubscriptionService  SubscriptionService
 	UsageService         UsageService
-	NFTService           NFTService
 	DenoService          DenoService
 	AuditService         AuditService
 	OnboardService       OnboardService
