@@ -14,7 +14,6 @@ type SystemConfig struct {
 	Themes                   interface{}    `json:"themes,omitempty"`
 	Translations             interface{}    `json:"translations,omitempty"`
 	SearchEnabled            bool           `json:"searchEnabled"`
-	Web3Enabled              bool           `json:"web3Enabled"`
 	AuditLogEnabled          bool           `json:"auditLogEnabled"`
 	AnalyticEnabled          bool           `json:"analyticEnabled"`
 	AnalyticEpoch            *timeutil.Date `json:"analyticEpoch,omitempty"`

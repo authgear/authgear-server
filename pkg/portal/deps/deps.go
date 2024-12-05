@@ -55,7 +55,6 @@ var DependencySet = wire.NewSet(
 		"KubernetesConfig",
 		"DomainImplementation",
 		"SearchConfig",
-		"Web3Config",
 		"AuditLogConfig",
 		"AnalyticConfig",
 		"StripeConfig",
