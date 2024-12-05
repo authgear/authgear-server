@@ -1,5 +1,0 @@
-mutation probeNFTCollectionMutation($contractID: String!) {
-  probeNFTCollection(input: { contractID: $contractID }) {
-    isLargeCollection
-  }
-}
