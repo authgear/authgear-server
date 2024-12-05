@@ -41,7 +41,6 @@ import (
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
-	featuresiwe "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
@@ -525,7 +524,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(otp.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(messaging.RateLimiter), new(*ratelimit.Limiter)),
 		wire.Bind(new(mfa.RateLimiter), new(*ratelimit.Limiter)),
-		wire.Bind(new(featuresiwe.RateLimiter), new(*ratelimit.Limiter)),
 	),
 
 	wire.NewSet(
@@ -592,11 +590,6 @@ var CommonDependencySet = wire.NewSet(
 		wire.Bind(new(authenticationflow.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 		wire.Bind(new(authenticationflow.PasskeyService), new(*featurepasskey.Service)),
 		wire.Bind(new(accountmanagement.PasskeyService), new(*featurepasskey.Service)),
-	),
-
-	wire.NewSet(
-		featuresiwe.DependencySet,
-		wire.Bind(new(identitysiwe.SIWEService), new(*featuresiwe.Service)),
 	),
 
 	wire.NewSet(
