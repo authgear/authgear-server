@@ -25,10 +25,7 @@
     "process": false
   },
   "overrides": {
-    "caniuse-lite": "1.0.30001653",
-    "ethers": {
-      "ws": "^7.5.10"
-    }
+    "caniuse-lite": "1.0.30001653"
   },
   "devDependencies": {
     "@jest/globals": "29.7.0",
@@ -57,18 +54,14 @@
     "@floating-ui/dom": "1.5.4",
     "@hotwired/stimulus": "3.2.2",
     "@hotwired/turbo": "7.3.0",
-    "@metamask/detect-provider": "2.0.0",
-    "@metamask/jazzicon": "file:tarballs/jazzicon-4fe23bbbe5088e128cb24082972e28d87e76d156.tar.gz",
     "@sentry/browser": "^8.33.1",
     "@tabler/icons": "1.107.0",
     "axios": "1.7.4",
     "cldr-localenames-full": "44.1.0",
     "cropperjs": "1.6.1",
-    "ethers": "6.13.2",
     "intl-tel-input": "18.5.3",
     "libphonenumber-js": "1.10.53",
     "luxon": "3.4.4",
-    "siwe": "2.3.2",
     "zxcvbn": "4.4.2"
   }
 }
