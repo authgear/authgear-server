@@ -106,26 +106,6 @@
   flex-direction: row;
 }
 
-.NFTListCell {
-  display: flex;
-  flex-direction: column;
-  margin: 4px 0;
-}
-
-.NFTListCellBtn {
-  margin-top: 8px;
-}
-
-.NFTListCellBtnLabel {
-  color: inherit;
-}
-
-.NFTListHeader {
-  display: flex;
-  margin-top: 12px;
-  font-weight: 600;
-}
-
 .buttonGroup {
   grid-area: button-group;
   display: grid;

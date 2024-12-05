@@ -7,8 +7,6 @@ import { Context, FormattedMessage } from "@oursky/react-messageformat";
 import { formatDatetime } from "../../util/formatDatetime";
 
 import styles from "./UserDetailSummary.module.css";
-import { explorerAddress, parseEIP681 } from "../../util/eip681";
-import ExternalLink from "../../ExternalLink";
 
 const warnBadgeStyle: IStyle = {
   padding: 4,
@@ -16,16 +14,6 @@ const warnBadgeStyle: IStyle = {
   color: "#ffffff",
   backgroundColor: "#e23d3d",
 };
-
-function shouldRenderExplorerURL(addressURL: string): boolean {
-  try {
-    parseEIP681(addressURL);
-  } catch {
-    return false;
-  }
-
-  return true;
-}
 
 interface UserDetailSummaryProps {
   className?: string;
@@ -108,16 +96,7 @@ const UserDetailSummary: React.VFC<UserDetailSummaryProps> =
             </Text>
           ) : null}
           <Text variant="medium">{rawUserID}</Text>
-          {endUserAccountIdentifier &&
-          shouldRenderExplorerURL(endUserAccountIdentifier) ? (
-            <ExternalLink href={explorerAddress(endUserAccountIdentifier)}>
-              <Text className={styles.explorerURL} variant="medium">
-                {endUserAccountIdentifier}
-              </Text>
-            </ExternalLink>
-          ) : (
-            <Text variant="medium">{endUserAccountIdentifier ?? ""}</Text>
-          )}
+          <Text variant="medium">{endUserAccountIdentifier ?? ""}</Text>
           <Text className={styles.formattedName} variant="medium">
             {formattedName ? formattedName : ""}
           </Text>
