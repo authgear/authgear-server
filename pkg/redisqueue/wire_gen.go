@@ -218,7 +218,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	web3Config := appConfig.Web3
+	deprecated_Web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -237,7 +237,7 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
 		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
+		Web3Config:           deprecated_Web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clock,
 		NonceStore:           storeRedis,
@@ -1020,7 +1020,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := deps.ProvideRedisQueueRemoteIP()
-	web3Config := appConfig.Web3
+	deprecated_Web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1040,7 +1040,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
 		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
+		Web3Config:           deprecated_Web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
 		NonceStore:           storeRedis,
@@ -1410,7 +1410,7 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := deps.ProvideRedisQueueRemoteIP()
-	web3Config := appConfig.Web3
+	deprecated_Web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1429,7 +1429,7 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
 		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
+		Web3Config:           deprecated_Web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
 		NonceStore:           storeRedis,

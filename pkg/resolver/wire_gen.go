@@ -342,7 +342,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	web3Config := appConfig.Web3
+	deprecated_Web3Config := appConfig.Web3
 	siweStoreRedis := &siwe2.StoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -361,7 +361,7 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
 		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
+		Web3Config:           deprecated_Web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clock,
 		NonceStore:           siweStoreRedis,
@@ -1100,7 +1100,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	web3Config := appConfig.Web3
+	deprecated_Web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -1120,7 +1120,7 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
 		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
+		Web3Config:           deprecated_Web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
 		NonceStore:           storeRedis,

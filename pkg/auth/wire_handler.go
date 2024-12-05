@@ -758,13 +758,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.MissingWeb3WalletHandler)),
-	))
-}
-
 func newWebAppFeatureDisabledHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,

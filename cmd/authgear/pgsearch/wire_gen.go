@@ -190,7 +190,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := ProvideRemoteIP()
-	web3Config := appConfig.Web3
+	deprecated_Web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Redis: appredisHandle,
 		AppID: configAppID,
@@ -209,7 +209,7 @@ func NewReindexer(pool *db.Pool, databaseCredentials *CmdDBCredential, searchDat
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
 		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
+		Web3Config:           deprecated_Web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clock,
 		NonceStore:           storeRedis,

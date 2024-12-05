@@ -303,7 +303,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	web3Config := appConfig.Web3
+	deprecated_Web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Redis: appredisHandle,
 		AppID: configAppID,
@@ -322,7 +322,7 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
 		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
+		Web3Config:           deprecated_Web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
 		NonceStore:           storeRedis,

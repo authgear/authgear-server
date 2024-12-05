@@ -172,7 +172,6 @@
 /pkg/auth/handler/webapp/login.go:115:28: requestcontext
 /pkg/auth/handler/webapp/login_link_otp.go:121:27: requestcontext
 /pkg/auth/handler/webapp/logout.go:71:27: requestcontext
-/pkg/auth/handler/webapp/missing_web3_wallet.go:78:27: requestcontext
 /pkg/auth/handler/webapp/panic_middleware.go:68:61: requestcontext
 /pkg/auth/handler/webapp/passkey_creation_options.go:43:28: requestcontext
 /pkg/auth/handler/webapp/passkey_request_options.go:52:28: requestcontext

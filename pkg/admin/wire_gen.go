@@ -314,7 +314,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	web3Config := appConfig.Web3
+	deprecated_Web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -333,7 +333,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
 		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
+		Web3Config:           deprecated_Web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
 		NonceStore:           storeRedis,
@@ -1557,7 +1557,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	web3Config := appConfig.Web3
+	deprecated_Web3Config := appConfig.Web3
 	storeRedis := &siwe2.StoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -1576,7 +1576,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	siweService := &siwe2.Service{
 		RemoteIP:             remoteIP,
 		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
+		Web3Config:           deprecated_Web3Config,
 		AuthenticationConfig: authenticationConfig,
 		Clock:                clockClock,
 		NonceStore:           storeRedis,
