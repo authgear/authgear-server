@@ -19,10 +19,15 @@ type OTelRouter struct {
 	router Router
 }
 
-func NewOTelRouter(router Router) *OTelRouter {
-	return &OTelRouter{
-		router: router,
-	}
+func NewOTelRouter(router Router) Router {
+	// It is observed that otelhttp >=v0.56 <=v0.57 has memory leak that
+	// causing memory usage increase over time.
+	// See https://github.com/open-telemetry/opentelemetry-go-contrib/issues/6315
+	// So let's stop using it.
+	// return &OTelRouter{
+	// 	router: router,
+	// }
+	return router
 }
 
 func (r *OTelRouter) wrapHandler(route httproute.Route, h http.Handler) http.Handler {
