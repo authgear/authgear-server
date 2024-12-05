@@ -35,7 +35,6 @@ var EnvConfigDeps = wire.NewSet(
 		"CORSAllowedOrigins",
 		"AllowedFrameAncestors",
 		"RedisConfig",
-		"NFTIndexerAPIEndpoint",
 		"DenoEndpoint",
 		"RateLimits",
 		"SAML",

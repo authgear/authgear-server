@@ -37,7 +37,6 @@ import (
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -554,13 +553,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserQueries: rawQueries,
 		UserStore:   userStore,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -577,7 +569,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	idTokenIssuer := &oidc.IDTokenIssuer{
@@ -807,8 +798,8 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		AppID: appID,
 		Clock: clock,
 	}
-	whatsappHTTPClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, whatsappHTTPClient)
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappService := &whatsapp.Service{
 		Logger:             serviceLogger,
 		WhatsappConfig:     whatsappConfig,
@@ -857,7 +848,6 @@ func newSessionMiddleware(p *deps.RequestProvider) httproute.Middleware {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs2.Service{
@@ -1332,13 +1322,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		UserQueries: rawQueries,
 		UserStore:   userStore,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1355,7 +1338,6 @@ func newSessionResolveHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	resolveHandler := &handler.ResolveHandler{

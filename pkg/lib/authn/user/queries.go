@@ -44,10 +44,6 @@ type CustomAttributesService interface {
 	) (map[string]map[string]interface{}, error)
 }
 
-type Web3Service interface {
-	GetWeb3Info(ctx context.Context, identities []*identity.Info) (*model.UserWeb3Info, error)
-}
-
 type RolesAndGroupsService interface {
 	ListRolesByUserID(ctx context.Context, userID string) ([]*model.Role, error)
 	ListGroupsByUserID(ctx context.Context, userID string) ([]*model.Group, error)
@@ -63,7 +59,6 @@ type Queries struct {
 	Verification       VerificationService
 	StandardAttributes StandardAttributesService
 	CustomAttributes   CustomAttributesService
-	Web3               Web3Service
 	RolesAndGroups     RolesAndGroupsService
 }
 
@@ -153,10 +148,6 @@ func (p *Queries) GetMany(ctx context.Context, ids []string, role accesscontrol.
 			isVerified := isVerifiedByUserID[rawUser.ID]
 			stdAttrs := stdAttrsByUserID[rawUser.ID]
 			customAttrs := customAttrsByUserID[rawUser.ID]
-			web3Info, web3err := p.Web3.GetWeb3Info(ctx, identities)
-			if web3err != nil {
-				return nil, web3err
-			}
 			roles := rolesByUserID[rawUser.ID]
 			roleKeys := make([]string, len(roles))
 			for i, v := range roles {
@@ -175,7 +166,6 @@ func (p *Queries) GetMany(ctx context.Context, ids []string, role accesscontrol.
 				isVerified,
 				stdAttrs,
 				customAttrs,
-				web3Info,
 				roleKeys,
 				groupKeys,
 			)
@@ -260,10 +250,6 @@ func (p *Queries) GetPageForExport(ctx context.Context, offset uint64, limit uin
 			isVerified := isVerifiedByUserID[rawUser.ID]
 			stdAttrs := stdAttrsByUserID[rawUser.ID]
 			customAttrs := customAttrsByUserID[rawUser.ID]
-			web3Info, web3err := p.Web3.GetWeb3Info(ctx, identities)
-			if web3err != nil {
-				return nil, web3err
-			}
 			roles := rolesByUserID[rawUser.ID]
 			roleKeys := make([]string, len(roles))
 			for i, v := range roles {
@@ -282,7 +268,6 @@ func (p *Queries) GetPageForExport(ctx context.Context, offset uint64, limit uin
 				isVerified,
 				stdAttrs,
 				customAttrs,
-				web3Info,
 				roleKeys,
 				groupKeys,
 			)

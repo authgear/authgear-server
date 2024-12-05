@@ -76,7 +76,6 @@ var DependencySet = wire.NewSet(
 		"SentryDSN",
 		"GlobalDatabase",
 		"DatabaseConfig",
-		"NFTIndexerAPIEndpoint",
 		"DenoEndpoint",
 		"AppHostSuffixes",
 		"UIImplementation",

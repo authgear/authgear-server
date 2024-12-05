@@ -160,32 +160,32 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 	// }).EndUserAccountID(), ShouldEqual, "user@example.com")
 	// })
 	Convey("ComputeUserEndUserActionID", t, func() {
-		So(computeEndUserAccountID(map[string]interface{}{}, nil, nil), ShouldEqual, "")
+		So(computeEndUserAccountID(map[string]interface{}{}, nil), ShouldEqual, "")
 
 		So(computeEndUserAccountID(
 			map[string]interface{}{
 				"email": "user@example.com",
 			},
-			nil, nil), ShouldEqual, "user@example.com")
+			nil), ShouldEqual, "user@example.com")
 
 		So(computeEndUserAccountID(
 			map[string]interface{}{
 				"preferred_username": "user",
 			},
-			nil, nil), ShouldEqual, "user")
+			nil), ShouldEqual, "user")
 
 		So(computeEndUserAccountID(
 			map[string]interface{}{
 				"phone_number": "+85298765432",
 			},
-			nil, nil), ShouldEqual, "+85298765432")
+			nil), ShouldEqual, "+85298765432")
 
 		So(computeEndUserAccountID(
 			map[string]interface{}{
 				"preferred_username": "user",
 				"phone_number":       "+85298765432",
 			},
-			nil, nil), ShouldEqual, "user")
+			nil), ShouldEqual, "user")
 
 		So(computeEndUserAccountID(
 			map[string]interface{}{
@@ -193,7 +193,7 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 				"preferred_username": "user",
 				"phone_number":       "+85298765432",
 			},
-			nil, nil), ShouldEqual, "user@example.com")
+			nil), ShouldEqual, "user@example.com")
 
 		So(computeEndUserAccountID(
 			map[string]interface{}{
@@ -210,19 +210,6 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 						},
 					},
 				},
-			},
-			&model.UserWeb3Info{
-				Accounts: []model.NFTOwnership{
-					{
-						AccountIdentifier: model.AccountIdentifier{
-							Address: "0x0",
-						},
-						NetworkIdentifier: model.NetworkIdentifier{
-							Blockchain: "ethereum",
-							Network:    "10",
-						},
-					},
-				},
 			}), ShouldEqual, "user@example.com")
 
 		So(computeEndUserAccountID(map[string]interface{}{}, []*identity.Info{
@@ -231,18 +218,6 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 				LDAP: &identity.LDAP{
 					RawEntryJSON: map[string]interface{}{
 						"dn": "cn=user,dc=example,dc=org",
-					},
-				},
-			},
-		}, &model.UserWeb3Info{
-			Accounts: []model.NFTOwnership{
-				{
-					AccountIdentifier: model.AccountIdentifier{
-						Address: "0x0",
-					},
-					NetworkIdentifier: model.NetworkIdentifier{
-						Blockchain: "ethereum",
-						Network:    "10",
 					},
 				},
 			},
@@ -256,20 +231,6 @@ func TestComputeUserEndUserActionID(t *testing.T) {
 					UserIDAttributeValue: []byte("example-user"),
 				},
 			},
-		}, nil), ShouldEqual, "uid=example-user")
-
-		So(computeEndUserAccountID(map[string]interface{}{}, nil, &model.UserWeb3Info{
-			Accounts: []model.NFTOwnership{
-				{
-					AccountIdentifier: model.AccountIdentifier{
-						Address: "0x0",
-					},
-					NetworkIdentifier: model.NetworkIdentifier{
-						Blockchain: "ethereum",
-						Network:    "10",
-					},
-				},
-			},
-		}), ShouldEqual, "ethereum:0x0@10")
+		}), ShouldEqual, "uid=example-user")
 	})
 }

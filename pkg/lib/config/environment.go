@@ -18,7 +18,7 @@ type WebAppCDNHost string
 
 type CORSAllowedOrigins string
 
-type NFTIndexerAPIEndpoint string
+type Deprecated_NFTIndexerAPIEndpoint string
 
 type DenoEndpoint string
 
@@ -83,7 +83,8 @@ type EnvironmentConfig struct {
 
 	AllowedFrameAncestors AllowedFrameAncestors `envconfig:"ALLOWED_FRAME_ANCESTORS"`
 
-	NFTIndexerAPIEndpoint NFTIndexerAPIEndpoint `envconfig:"NFT_INDEXER_API_ENDPOINT"`
+	// NFT_INDEXER_API_ENDPOINT is deprecated. It is ignored.
+	// Deprecated_NFTIndexerAPIEndpoint NFTIndexerAPIEndpoint `envconfig:"NFT_INDEXER_API_ENDPOINT"`
 
 	DenoEndpoint DenoEndpoint `envconfig:"DENO_ENDPOINT"`
 

@@ -44,7 +44,6 @@ import (
 	featuresiwe "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	featureweb3 "github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/ldap"
@@ -598,11 +597,6 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		featuresiwe.DependencySet,
 		wire.Bind(new(identitysiwe.SIWEService), new(*featuresiwe.Service)),
-	),
-
-	wire.NewSet(
-		featureweb3.DependencySet,
-		wire.Bind(new(user.Web3Service), new(*featureweb3.Service)),
 	),
 
 	wire.NewSet(

@@ -47,7 +47,6 @@ import (
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -526,13 +525,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -549,7 +541,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	userLoader := loader.NewUserLoader(userQueries)
@@ -701,7 +692,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
@@ -813,8 +803,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	whatsappHTTPClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, whatsappHTTPClient)
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappService := &whatsapp.Service{
 		Logger:             serviceLogger,
 		WhatsappConfig:     whatsappConfig,
@@ -1777,13 +1767,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1800,18 +1783,17 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	userexportLogger := userexport.NewLogger(factory)
-	userexportHTTPClient := userexport.NewHTTPClient()
+	httpClient := userexport.NewHTTPClient()
 	userExportService := &userexport.UserExportService{
 		AppDatabase:  appdbHandle,
 		Config:       userProfileConfig,
 		UserQueries:  userQueries,
 		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
-		HTTPClient:   userexportHTTPClient,
+		HTTPClient:   httpClient,
 		CloudStorage: userExportCloudStorage,
 		Clock:        clockClock,
 	}

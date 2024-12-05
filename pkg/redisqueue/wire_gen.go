@@ -37,7 +37,6 @@ import (
 	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -430,13 +429,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -453,7 +445,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -673,8 +664,8 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		AppID: appID,
 		Clock: clock,
 	}
-	whatsappHTTPClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, whatsappHTTPClient)
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappService := &whatsapp.Service{
 		Logger:             serviceLogger,
 		WhatsappConfig:     whatsappConfig,
@@ -723,7 +714,6 @@ func newUserImportService(ctx context.Context, p *deps.AppProvider) *userimport.
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs2.Service{
@@ -1241,13 +1231,6 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1264,11 +1247,10 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	userexportLogger := userexport.NewLogger(factory)
-	userexportHTTPClient := userexport.NewHTTPClient()
+	httpClient := userexport.NewHTTPClient()
 	userExportObjectStoreConfig := environmentConfig.UserExportObjectStore
 	userExportCloudStorage := userexport.NewCloudStorage(userExportObjectStoreConfig, clockClock)
 	userExportService := &userexport.UserExportService{
@@ -1277,7 +1259,7 @@ func newUserExportService(ctx context.Context, p *deps.AppProvider) *userexport.
 		UserQueries:  userQueries,
 		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
-		HTTPClient:   userexportHTTPClient,
+		HTTPClient:   httpClient,
 		CloudStorage: userExportCloudStorage,
 		Clock:        clockClock,
 	}
@@ -1639,13 +1621,6 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1662,7 +1637,6 @@ func newSearchReindexer(ctx context.Context, p *deps.AppProvider) *reindex.Reind
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	sourceProvider := &reindex.SourceProvider{
