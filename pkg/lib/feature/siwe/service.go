@@ -53,7 +53,7 @@ func NewLogger(lf *log.Factory) Logger { return Logger{lf.New("siwe")} }
 type Service struct {
 	RemoteIP             httputil.RemoteIP
 	HTTPOrigin           httputil.HTTPOrigin
-	Web3Config           *config.Web3Config
+	Web3Config           *config.Deprecated_Web3Config
 	AuthenticationConfig *config.AuthenticationConfig
 
 	Clock       clock.Clock

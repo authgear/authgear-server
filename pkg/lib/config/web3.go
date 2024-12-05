@@ -18,7 +18,7 @@ var _ = Schema.Add("NFTConfig", `
 }
 `)
 
-type NFTConfig struct {
+type Deprecated_NFTConfig struct {
 	Collections []string `json:"collections,omitempty"`
 }
 
@@ -40,7 +40,7 @@ var _ = Schema.Add("SIWEConfig", `
 }
 `)
 
-type SIWEConfig struct {
+type Deprecated_SIWEConfig struct {
 	Networks []string `json:"networks,omitempty"`
 }
 
@@ -55,7 +55,7 @@ var _ = Schema.Add("Web3Config", `
 }
 `)
 
-type Web3Config struct {
-	SIWE *SIWEConfig `json:"siwe,omitempty"`
-	NFT  *NFTConfig  `json:"nft,omitempty"`
+type Deprecated_Web3Config struct {
+	SIWE *Deprecated_SIWEConfig `json:"siwe,omitempty"`
+	NFT  *Deprecated_NFTConfig  `json:"nft,omitempty"`
 }
