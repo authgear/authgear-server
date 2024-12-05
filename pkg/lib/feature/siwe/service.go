@@ -16,10 +16,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/ratelimit"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/duration"
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 	"github.com/authgear/authgear-server/pkg/util/log"
-	"github.com/authgear/authgear-server/pkg/util/rand"
 	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
@@ -76,29 +74,6 @@ func (s *Service) rateLimitVerifyMessage() ratelimit.BucketSpec {
 		s.AuthenticationConfig.RateLimits.SIWE.PerIP, SIWEVerifyPerIP,
 		string(s.RemoteIP),
 	)
-}
-
-func (s *Service) CreateNewNonce(ctx context.Context) (*Nonce, error) {
-	nonce := rand.StringWithAlphabet(16, Alphabet, rand.SecureRand)
-	nonceModel := &Nonce{
-		Nonce:    nonce,
-		ExpireAt: s.Clock.NowUTC().Add(duration.Short),
-	}
-
-	failed, err := s.RateLimiter.Allow(ctx, s.rateLimitGenerateNonce())
-	if err != nil {
-		return nil, err
-	}
-	if err := failed.Error(); err != nil {
-		return nil, err
-	}
-
-	err = s.NonceStore.Create(ctx, nonceModel)
-	if err != nil {
-		return nil, err
-	}
-
-	return nonceModel, nil
 }
 
 func (s *Service) VerifyMessage(ctx context.Context, msg string, signature string) (*model.SIWEWallet, *ecdsa.PublicKey, error) {

@@ -36,7 +36,6 @@
 /pkg/auth/handler/saml/login.go:296:3: requestcontext
 /pkg/auth/handler/saml/login_finish.go:41:9: requestcontext
 /pkg/auth/handler/saml/logout.go:86:9: requestcontext
-/pkg/auth/handler/siwe/nonce.go:46:38: requestcontext
 /pkg/auth/handler/webapp/account_status.go:48:27: requestcontext
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:31:31: requestcontext
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:32:35: requestcontext
