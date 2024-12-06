@@ -883,17 +883,9 @@ func newUserService(p *deps.BackgroundProvider, appID string, appContext *config
 		Clock:           clockClock,
 		Random:          rand,
 	}
-	globalUIImplementation := environmentConfig.UIImplementation
-	globalUISettingsImplementation := environmentConfig.UISettingsImplementation
-	uiImplementationService := &web.UIImplementationService{
-		UIConfig:                       uiConfig,
-		GlobalUIImplementation:         globalUIImplementation,
-		GlobalUISettingsImplementation: globalUISettingsImplementation,
-	}
 	endpointsEndpoints := &endpoints.Endpoints{
-		HTTPHost:                httpHost,
-		HTTPProto:               httpProto,
-		UIImplementationService: uiImplementationService,
+		HTTPHost:  httpHost,
+		HTTPProto: httpProto,
 	}
 	oauthclientResolver := &oauthclient.Resolver{
 		OAuthConfig:     oAuthConfig,

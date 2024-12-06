@@ -67,6 +67,8 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch state.UIImplementation {
+	case config.UIImplementationInteraction:
+		fallthrough
 	case config.UIImplementationAuthflow:
 		fallthrough
 	case config.UIImplementationAuthflowV2:
@@ -75,30 +77,6 @@ func (h *SSOCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Query: r.Form.Encode(),
 			State: state,
 		})
-	case config.UIImplementationInteraction:
-		// interaction
-		ctrl, err := h.ControllerFactory.New(r, w)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		defer ctrl.ServeWithDBTx(r.Context())
-
-		data := InputOAuthCallback{
-			ProviderAlias: httproute.GetParam(r, "alias"),
-			Query:         r.Form.Encode(),
-		}
-
-		handler := func(ctx context.Context) error {
-			result, err := ctrl.InteractionOAuthCallback(ctx, data, state)
-			if err != nil {
-				return err
-			}
-			result.WriteResponse(w, r)
-			return nil
-		}
-		ctrl.Get(handler)
-		ctrl.PostAction("", handler)
 	default:
 		panic(fmt.Errorf("expected ui implementation to be set in state"))
 	}

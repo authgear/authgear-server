@@ -513,7 +513,6 @@ var CommonDependencySet = wire.NewSet(
 	wire.NewSet(
 		web.DependencySet,
 		wire.Bind(new(translation.StaticAssetResolver), new(*web.StaticAssetResolver)),
-		wire.Bind(new(endpoints.EndpointsUIImplementationService), new(*web.UIImplementationService)),
 	),
 
 	wire.NewSet(

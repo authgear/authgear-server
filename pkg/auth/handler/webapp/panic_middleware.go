@@ -1,7 +1,6 @@
 package webapp
 
 import (
-	"fmt"
 	"net/http"
 
 	"net/url"
@@ -11,10 +10,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/api/apierrors"
 	"github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
 	"github.com/authgear/authgear-server/pkg/auth/webapp"
-	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/util/log"
 	"github.com/authgear/authgear-server/pkg/util/panicutil"
-	"github.com/authgear/authgear-server/pkg/util/template"
 )
 
 type PanicMiddlewareLogger struct{ *log.Logger }
@@ -27,17 +24,12 @@ type PanicMiddlewareEndpointsProvider interface {
 	ErrorEndpointURL() *url.URL
 }
 
-type PanicMiddlewareUIImplementationService interface {
-	GetUIImplementation() config.UIImplementation
-}
-
 type PanicMiddleware struct {
-	ErrorService            *webapp.ErrorService
-	Logger                  PanicMiddlewareLogger
-	BaseViewModel           *viewmodels.BaseViewModeler
-	Renderer                Renderer
-	Endpoints               PanicMiddlewareEndpointsProvider
-	UIImplementationService PanicMiddlewareUIImplementationService
+	ErrorService  *webapp.ErrorService
+	Logger        PanicMiddlewareLogger
+	BaseViewModel *viewmodels.BaseViewModeler
+	Renderer      Renderer
+	Endpoints     PanicMiddlewareEndpointsProvider
 }
 
 func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
@@ -69,7 +61,6 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 				if cookieErr != nil {
 					panic(cookieErr)
 				}
-				uiImpl := m.UIImplementationService.GetUIImplementation()
 				r.AddCookie(cookie)
 
 				if !written {
@@ -84,18 +75,7 @@ func (m *PanicMiddleware) Handle(next http.Handler) http.Handler {
 						data := make(map[string]interface{})
 						baseViewModel := m.BaseViewModel.ViewModel(r, w)
 						viewmodels.Embed(data, baseViewModel)
-						var errorHTML *template.HTML
-						switch uiImpl {
-						case config.UIImplementationAuthflowV2:
-							errorHTML = TemplateV2WebFatalErrorHTML
-						case config.UIImplementationInteraction:
-							fallthrough
-						case config.UIImplementationAuthflow:
-							errorHTML = TemplateWebFatalErrorHTML
-						default:
-							panic(fmt.Errorf("unexpected ui implementation %s", uiImpl))
-						}
-
+						errorHTML := TemplateV2WebFatalErrorHTML
 						m.Renderer.RenderHTML(w, r, errorHTML, data)
 					default:
 						r.URL.Path = m.Endpoints.ErrorEndpointURL().Path

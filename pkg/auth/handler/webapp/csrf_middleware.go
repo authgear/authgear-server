@@ -2,7 +2,6 @@ package webapp
 
 import (
 	"encoding/base64"
-	"fmt"
 	"net/http"
 
 	"strings"
@@ -26,19 +25,14 @@ func NewCSRFMiddlewareLogger(lf *log.Factory) CSRFMiddlewareLogger {
 	return CSRFMiddlewareLogger{lf.New("webapp-csrf-middleware")}
 }
 
-type CSRFMiddlewareUIImplementationService interface {
-	GetUIImplementation() config.UIImplementation
-}
-
 type CSRFMiddleware struct {
-	Secret                  *config.CSRFKeyMaterials
-	TrustProxy              config.TrustProxy
-	Cookies                 CookieManager
-	Logger                  CSRFMiddlewareLogger
-	BaseViewModel           *viewmodels.BaseViewModeler
-	Renderer                Renderer
-	UIImplementationService CSRFMiddlewareUIImplementationService
-	EnvironmentConfig       *config.EnvironmentConfig
+	Secret            *config.CSRFKeyMaterials
+	TrustProxy        config.TrustProxy
+	Cookies           CookieManager
+	Logger            CSRFMiddlewareLogger
+	BaseViewModel     *viewmodels.BaseViewModeler
+	Renderer          Renderer
+	EnvironmentConfig *config.EnvironmentConfig
 }
 
 func (m *CSRFMiddleware) Handle(next http.Handler) http.Handler {
@@ -153,26 +147,11 @@ func (m *CSRFMiddleware) unauthorizedHandler(w http.ResponseWriter, r *http.Requ
 		"csrfFailureReason":       csrfFailureReason,
 	}).Errorf("CSRF Forbidden: %v", csrfFailureReason)
 
-	uiImpl := m.UIImplementationService.GetUIImplementation()
-
 	data := make(map[string]interface{})
 	baseViewModel := m.BaseViewModel.ViewModelForAuthFlow(r, w)
 	viewmodels.Embed(data, baseViewModel)
 
-	switch uiImpl {
-	case config.UIImplementationAuthflowV2:
-		m.Renderer.RenderHTML(w, r, TemplateCSRFErrorHTML, data)
-	case config.UIImplementationAuthflow:
-		fallthrough
-	case config.UIImplementationDefault:
-		fallthrough
-	case config.UIImplementationInteraction:
-		fallthrough
-	default:
-		http.Error(w, fmt.Sprintf("%v - %v handler/auth/webapp",
-			http.StatusText(http.StatusForbidden), csrfFailureReason),
-			http.StatusForbidden)
-	}
+	m.Renderer.RenderHTML(w, r, TemplateCSRFErrorHTML, data)
 }
 
 func (m *CSRFMiddleware) getSecretKey() ([]byte, error) {

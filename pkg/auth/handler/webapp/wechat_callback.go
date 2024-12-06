@@ -73,6 +73,8 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 		}
 
 		switch state.UIImplementation {
+		case config.UIImplementationInteraction:
+			fallthrough
 		case config.UIImplementationAuthflow:
 			fallthrough
 		case config.UIImplementationAuthflowV2:
@@ -92,26 +94,6 @@ func (h *WechatCallbackHandler) ServeHTTP(w http.ResponseWriter, r *http.Request
 				Error:            error_,
 				ErrorDescription: errorDescription,
 			}
-
-			err = ctrl.UpdateSession(ctx, session)
-			if err != nil {
-				return err
-			}
-
-			return nil
-		case config.UIImplementationInteraction:
-			webSessionID := state.WebSessionID
-			session, err := ctrl.GetSession(ctx, webSessionID)
-			if err != nil {
-				return err
-			}
-
-			step := session.CurrentStep()
-			step.FormData["x_action"] = WechatActionCallback
-			step.FormData["x_code"] = code
-			step.FormData["x_error"] = error_
-			step.FormData["x_error_description"] = errorDescription
-			session.Steps[len(session.Steps)-1] = step
 
 			err = ctrl.UpdateSession(ctx, session)
 			if err != nil {

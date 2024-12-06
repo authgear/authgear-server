@@ -154,8 +154,8 @@
 /pkg/auth/handler/webapp/create_passkey.go:53:27: requestcontext
 /pkg/auth/handler/webapp/create_password.go:107:27: requestcontext
 /pkg/auth/handler/webapp/csrf_error_instruction.go:49:33: requestcontext
-/pkg/auth/handler/webapp/csrf_middleware.go:70:5: requestcontext
-/pkg/auth/handler/webapp/csrf_middleware.go:82:3: requestcontext
+/pkg/auth/handler/webapp/csrf_middleware.go:64:5: requestcontext
+/pkg/auth/handler/webapp/csrf_middleware.go:76:3: requestcontext
 /pkg/auth/handler/webapp/enter_login_id.go:144:27: requestcontext
 /pkg/auth/handler/webapp/enter_login_id.go:146:31: requestcontext
 /pkg/auth/handler/webapp/enter_oob_otp.go:161:27: requestcontext
@@ -166,14 +166,12 @@
 /pkg/auth/handler/webapp/error_feature_disabled.go:43:27: requestcontext
 /pkg/auth/handler/webapp/forgot_password.go:76:27: requestcontext
 /pkg/auth/handler/webapp/forgot_password_success.go:57:27: requestcontext
-/pkg/auth/handler/webapp/implementation_switcher.go:50:42: requestcontext
-/pkg/auth/handler/webapp/implementation_switcher.go:62:30: requestcontext
 /pkg/auth/handler/webapp/login.go:103:27: requestcontext
 /pkg/auth/handler/webapp/login.go:115:28: requestcontext
 /pkg/auth/handler/webapp/login_link_otp.go:121:27: requestcontext
 /pkg/auth/handler/webapp/logout.go:71:27: requestcontext
 /pkg/auth/handler/webapp/missing_web3_wallet.go:78:27: requestcontext
-/pkg/auth/handler/webapp/panic_middleware.go:68:61: requestcontext
+/pkg/auth/handler/webapp/panic_middleware.go:60:61: requestcontext
 /pkg/auth/handler/webapp/passkey_creation_options.go:43:28: requestcontext
 /pkg/auth/handler/webapp/passkey_request_options.go:52:28: requestcontext
 /pkg/auth/handler/webapp/promote.go:110:28: requestcontext
@@ -187,8 +185,6 @@
 /pkg/auth/handler/webapp/select_account.go:110:32: requestcontext
 /pkg/auth/handler/webapp/select_account.go:111:34: requestcontext
 /pkg/auth/handler/webapp/select_account.go:230:27: requestcontext
-/pkg/auth/handler/webapp/setting_implementation_switcher.go:50:50: requestcontext
-/pkg/auth/handler/webapp/setting_implementation_switcher.go:61:38: requestcontext
 /pkg/auth/handler/webapp/settings.go:152:27: requestcontext
 /pkg/auth/handler/webapp/settings.go:156:31: requestcontext
 /pkg/auth/handler/webapp/settings_biometric.go:86:27: requestcontext
@@ -228,8 +224,7 @@
 /pkg/auth/handler/webapp/sso_callback.go:48:26: requestcontext
 /pkg/auth/handler/webapp/sso_callback.go:56:58: requestcontext
 /pkg/auth/handler/webapp/sso_callback.go:61:44: requestcontext
-/pkg/auth/handler/webapp/sso_callback.go:74:44: requestcontext
-/pkg/auth/handler/webapp/sso_callback.go:85:28: requestcontext
+/pkg/auth/handler/webapp/sso_callback.go:76:44: requestcontext
 /pkg/auth/handler/webapp/tester.go:278:27: requestcontext
 /pkg/auth/handler/webapp/use_passkey.go:53:27: requestcontext
 /pkg/auth/handler/webapp/verify_identity.go:161:27: requestcontext
