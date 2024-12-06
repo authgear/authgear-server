@@ -905,6 +905,7 @@ func (c *AuthflowController) makeSessionOptionsFromSAML(ctx context.Context, sam
 	sessionOptions := &authflow.SessionOptions{
 		SAMLSessionID: samlSessionID,
 
+		ClientID:    uiInfo.SAMLServiceProviderID,
 		RedirectURI: uiInfo.RedirectURI,
 		Prompt:      uiInfo.Prompt,
 		LoginHint:   uiInfo.LoginHint,

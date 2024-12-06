@@ -16,7 +16,7 @@ const (
 )
 
 type SAMLUIInfo struct {
-	// SAMLServiceProviderID is id of the service provider
+	// SAMLServiceProviderID is id of the service provider, and also the corresponding client_id
 	SAMLServiceProviderID string
 	// RedirectURI is the redirect_uri the UI should redirect to.
 	// The redirect_uri in the URL has lower precedence.
