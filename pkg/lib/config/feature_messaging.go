@@ -11,7 +11,8 @@ var _ = FeatureConfigSchema.Add("MessagingFeatureConfig", `
 		"whatsapp_usage": { "$ref": "#/$defs/UsageLimitConfig" },
 		"sms_usage_count_disabled": { "type": "boolean" },
 		"whatsapp_usage_count_disabled": { "type": "boolean" },
-		"template_customization_disabled": { "type": "boolean" }
+		"template_customization_disabled": { "type": "boolean" },
+		"custom_smtp_disabled": { "type": "boolean" }
 	}
 }
 `)
@@ -27,6 +28,8 @@ type MessagingFeatureConfig struct {
 	WhatsappUsageCountDisabled bool `json:"whatsapp_usage_count_disabled,omitempty"`
 
 	TemplateCustomizationDisabled bool `json:"template_customization_disabled,omitempty"`
+
+	CustomSMTPDisabled bool `json:"custom_smtp_disabled,omitempty"`
 }
 
 func (c *MessagingFeatureConfig) SetDefaults() {
