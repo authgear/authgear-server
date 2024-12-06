@@ -55,6 +55,9 @@ func init() {
 	binder.BindString(cmdPricingAppUpdate.Flags(), portalcmd.ArgFeatureConfigFilePath)
 	binder.BindString(cmdPricingAppUpdate.Flags(), portalcmd.ArgPlanNameForAppUpdate)
 
+	cmdPricing.AddCommand(cmdPricingCreateStripePlans2025)
+	binder.BindString(cmdPricingCreateStripePlans2025.Flags(), portalcmd.ArgStripeSecretKey)
+
 	portalcmd.Root.AddCommand(cmdPricing)
 }
 
