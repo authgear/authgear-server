@@ -18,8 +18,6 @@ type WebAppCDNHost string
 
 type CORSAllowedOrigins string
 
-type Deprecated_NFTIndexerAPIEndpoint string
-
 type DenoEndpoint string
 
 type AppHostSuffixes []string
