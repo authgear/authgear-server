@@ -156,27 +156,6 @@ func newWebAppRootHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppLoginHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.LoginHandler)),
-	))
-}
-
-func newWebAppSignupHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SignupHandler)),
-	))
-}
-
-func newWebAppPromoteHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.PromoteHandler)),
-	))
-}
-
 func newWebAppSelectAccountHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
@@ -195,20 +174,6 @@ func newWebAppAuthflowV2SelectAccountHandler(p *deps.RequestProvider) http.Handl
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SelectAccountHandler)),
-	))
-}
-
-func newWebAppSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SSOCallbackHandler)),
-	))
-}
-
-func newWebAppAuthflowSSOCallbackHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SSOCallbackHandler)),
 	))
 }
 
@@ -408,31 +373,10 @@ func newWebAppResetPasswordSuccessHandler(p *deps.RequestProvider) http.Handler 
 	))
 }
 
-func newWebAppSettingsHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsHandler)),
-	))
-}
-
 func newWebAppAuthflowV2SettingsHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsHandler)),
-	))
-}
-
-func newWebAppSettingsProfileHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsProfileHandler)),
-	))
-}
-
-func newWebAppSettingsProfileEditHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsProfileEditHandler)),
 	))
 }
 
@@ -450,24 +394,10 @@ func newWebAppSettingsIdentityHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppSettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsBiometricHandler)),
-	))
-}
-
 func newWebAppAuthflowV2SettingsBiometricHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsBiometricHandler)),
-	))
-}
-
-func newWebAppSettingsMFAHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsMFAHandler)),
 	))
 }
 
@@ -503,13 +433,6 @@ func newWebAppAuthflowV2SettingsMFAChangePasswordHandler(p *deps.RequestProvider
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsMFAChangePasswordHandler)),
-	))
-}
-
-func newWebAppSettingsTOTPHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsTOTPHandler)),
 	))
 }
 
@@ -555,13 +478,6 @@ func newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler(p *deps.RequestProvider) h
 	))
 }
 
-func newWebAppSettingsPasskeyHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsPasskeyHandler)),
-	))
-}
-
 func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
@@ -569,24 +485,10 @@ func newWebAppAuthflowV2SettingsChangePasskeyHandler(p *deps.RequestProvider) ht
 	))
 }
 
-func newWebAppSettingsOOBOTPHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsOOBOTPHandler)),
-	))
-}
-
 func newWebAppSettingsRecoveryCodeHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsRecoveryCodeHandler)),
-	))
-}
-
-func newWebAppSettingsSessionsHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsSessionsHandler)),
 	))
 }
 
@@ -601,13 +503,6 @@ func newWebAppForceChangePasswordHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.ForceChangePasswordHandler)),
-	))
-}
-
-func newWebAppSettingsChangePasswordHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsChangePasswordHandler)),
 	))
 }
 
@@ -632,24 +527,10 @@ func newWebAppSettingsChangeSecondaryPasswordHandler(p *deps.RequestProvider) ht
 	))
 }
 
-func newWebAppSettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsDeleteAccountHandler)),
-	))
-}
-
 func newWebAppAuthflowV2SettingsDeleteAccountHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SettingsDeleteAccountHandler)),
-	))
-}
-
-func newWebAppSettingsDeleteAccountSuccessHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.SettingsDeleteAccountSuccessHandler)),
 	))
 }
 
@@ -713,13 +594,6 @@ func newWebAppCSRFErrorInstructionHandler(p *deps.RequestProvider) http.Handler 
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.CSRFErrorInstructionHandler)),
-	))
-}
-
-func newWebAppNotFoundHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.NotFoundHandler)),
 	))
 }
 
@@ -856,13 +730,6 @@ func newAPIAccountManagementV1IdentificationOAuthHandler(p *deps.RequestProvider
 	))
 }
 
-func newWebAppAuthflowLoginHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowLoginHandler)),
-	))
-}
-
 func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
@@ -870,24 +737,10 @@ func newWebAppAuthflowV2LoginHandler(p *deps.RequestProvider) http.Handler {
 	))
 }
 
-func newWebAppAuthflowSignupHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowSignupHandler)),
-	))
-}
-
 func newWebAppAuthflowV2SignupHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2SignupHandler)),
-	))
-}
-
-func newWebAppAuthflowPromoteHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowPromoteHandler)),
 	))
 }
 
@@ -1140,20 +993,6 @@ func newWebAppAuthflowV2ForgotPasswordLinkSentHandler(p *deps.RequestProvider) h
 	panic(wire.Build(
 		AuthflowV2UIHandlerDependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebappauthflowv2.AuthflowV2ForgotPasswordLinkSentHandler)),
-	))
-}
-
-func newWebAppReauthHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.ReauthHandler)),
-	))
-}
-
-func newWebAppAuthflowReauthHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		AuthflowUIHandlerDependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.AuthflowReauthHandler)),
 	))
 }
 

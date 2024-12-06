@@ -322,29 +322,19 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandler.ConfigureRootRoute(webappAuthEntrypointRoute), p.Handler(newWebAppRootHandler))
 	router.Add(webapphandler.ConfigureOAuthEntrypointRoute(webappAuthEntrypointRoute), p.Handler(newWebAppOAuthEntrypointHandler))
 	router.Add(webapphandler.ConfigureAuthflowLoginRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppLoginHandler),
-		Authflow:    p.Handler(newWebAppAuthflowLoginHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2LoginHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2LoginHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowSignupRoute(webappRequireAuthEnabledAuthEntrypointRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppSignupHandler),
-		Authflow:    p.Handler(newWebAppAuthflowSignupHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2SignupHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2SignupHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowPromoteRoute(webappPromoteRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppPromoteHandler),
-		Authflow:    p.Handler(newWebAppAuthflowPromoteHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2PromoteHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2PromoteHandler),
 	})
 	router.Add(webapphandler.ConfigureAuthflowReauthRoute(webappReauthRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppReauthHandler),
-		Authflow:    p.Handler(newWebAppAuthflowReauthHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2ReauthHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2ReauthHandler),
 	})
 	router.Add(webapphandler.ConfigureSSOCallbackRoute(webappSSOCallbackRoute), &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppSSOCallbackHandler),
-		Authflow:    p.Handler(newWebAppAuthflowSSOCallbackHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2SSOCallbackHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2SSOCallbackHandler),
 	})
 	router.Add(webapphandler.ConfigureWechatCallbackRoute(webappSSOCallbackRoute), p.Handler(newWechatCallbackHandler))
 
@@ -449,23 +439,19 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandler.ConfigureForgotPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppForgotPasswordSuccessHandler))
 	router.Add(webapphandler.ConfigureResetPasswordSuccessRoute(webappSuccessPageRoute), p.Handler(newWebAppResetPasswordSuccessHandler))
 	router.Add(webapphandler.ConfigureSettingsDeleteAccountSuccessRoute(webappSuccessPageRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsDeleteAccountSuccessHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsDeleteAccountSuccessHandler),
 	})
 
 	router.Add(webapphandler.ConfigureLogoutRoute(webappAuthenticatedRoute), p.Handler(newWebAppLogoutHandler))
 	router.Add(webapphandler.ConfigureEnterLoginIDRoute(webappAuthenticatedRoute), p.Handler(newWebAppEnterLoginIDHandler))
 	router.Add(webapphandler.ConfigureSettingsRoute(webappSettingsRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsHandler),
 	})
 
 	router.Add(webapphandler.ConfigureSettingsProfileRoute(webappSettingsRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsProfileHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsProfile),
 	})
 	router.Add(webapphandler.ConfigureSettingsProfileEditRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsProfileEditHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsProfileEditHandler),
 	})
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityChangePrimaryEmailRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityChangePrimaryEmailHandler))
@@ -487,11 +473,9 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsIdentityListOAuthRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsIdentityListOAuthHandler))
 	router.Add(webapphandler.ConfigureSettingsIdentityRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsIdentityHandler))
 	router.Add(webapphandler.ConfigureSettingsBiometricRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsBiometricHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsBiometricHandler),
 	})
 	router.Add(webapphandler.ConfigureSettingsMFARoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsMFAHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsMFAHandler),
 	})
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAViewRecoveryCodeRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAViewRecoveryCodeHandler))
@@ -499,34 +483,28 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAChangePassword(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAChangePasswordHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAPassword(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAPasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsTOTPRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsTOTPHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsTOTPHandler),
 	})
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFACreateTOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFACreateTOTPHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAEnterTOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAEnterTOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsPasskeyRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsPasskeyHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsChangePasskeyHandler),
 	})
 	router.Add(webapphandler.ConfigureSettingsOOBOTPRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsOOBOTPHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsOOBOTPHandler),
 	})
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFACreateOOBOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFACreateOOBOTPHandler))
 	router.Add(webapphandlerauthflowv2.ConfigureAuthflowV2SettingsMFAEnterOOBOTPRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppAuthflowV2SettingsMFAEnterOOBOTPHandler))
 	router.Add(webapphandler.ConfigureSettingsRecoveryCodeRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsRecoveryCodeHandler))
 	router.Add(webapphandler.ConfigureSettingsSessionsRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsSessionsHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsSessionsHandler),
 	})
 	router.Add(webapphandler.ConfigureSettingsChangePasswordRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsChangePasswordHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsChangePasswordHandler),
 	})
 
 	router.Add(webapphandler.ConfigureSettingsChangeSecondaryPasswordRoute(webappSettingsSubRoutesRoute), p.Handler(newWebAppSettingsChangeSecondaryPasswordHandler))
 	router.Add(webapphandler.ConfigureSettingsDeleteAccountRoute(webappSettingsSubRoutesRoute), &webapphandler.SettingsImplementationSwitcherHandler{
-		SettingV1: p.Handler(newWebAppSettingsDeleteAccountHandler),
 		SettingV2: p.Handler(newWebAppAuthflowV2SettingsDeleteAccountHandler),
 	})
 
@@ -590,9 +568,7 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 	router.Add(apihandler.ConfigureAccountManagementV1IdentificationOAuthRoute(accountManagementRoute), p.Handler(newAPIAccountManagementV1IdentificationOAuthHandler))
 
 	router.NotFound(webappNotFoundRoute, &webapphandler.ImplementationSwitcherHandler{
-		Interaction: p.Handler(newWebAppNotFoundHandler),
-		Authflow:    p.Handler(newWebAppNotFoundHandler),
-		AuthflowV2:  p.Handler(newWebAppAuthflowV2NotFoundHandler),
+		AuthflowV2: p.Handler(newWebAppAuthflowV2NotFoundHandler),
 	})
 
 	return router.HTTPHandler()

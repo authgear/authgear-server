@@ -5,9 +5,7 @@ import (
 )
 
 type ImplementationSwitcherHandler struct {
-	Interaction http.Handler
-	Authflow    http.Handler
-	AuthflowV2  http.Handler
+	AuthflowV2 http.Handler
 }
 
 func (h *ImplementationSwitcherHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

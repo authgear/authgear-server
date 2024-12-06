@@ -5,7 +5,6 @@ import (
 )
 
 type SettingsImplementationSwitcherHandler struct {
-	SettingV1 http.Handler
 	SettingV2 http.Handler
 }
 
