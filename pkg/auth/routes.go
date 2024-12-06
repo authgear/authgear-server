@@ -19,10 +19,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/httputil"
 )
 
-func newSIWEDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
-	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(false))
-}
-
 func newWebPageDynamicCSPMiddleware(deps *deps.RequestProvider) httproute.Middleware {
 	return newDynamicCSPMiddleware(deps, webapp.AllowFrameAncestorsFromEnv(true), webapp.AllowFrameAncestorsFromCustomUI(false))
 }
