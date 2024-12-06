@@ -361,18 +361,6 @@ func (d AuthgearYAMLDescriptor) validateBasedOnFeatureConfig(appConfig *config.A
 		)
 	}
 
-	if len(appConfig.Deprecated_Web3.NFT.Collections) > *fc.Deprecated_Web3.Deprecated_NFT.Maximum {
-		validationCtx.Child(
-			"web3",
-			"nft",
-		).EmitErrorMessage(
-			fmt.Sprintf("exceed the maximum number of nft collections, actual: %d, expected: %d",
-				len(appConfig.Deprecated_Web3.NFT.Collections),
-				*fc.Deprecated_Web3.Deprecated_NFT.Maximum,
-			),
-		)
-	}
-
 	for _, identity := range appConfig.Authentication.Identities {
 		if identity == model.IdentityTypeBiometric && *fc.Identity.Biometric.Disabled {
 			validationCtx.Child(
