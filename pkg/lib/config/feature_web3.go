@@ -11,7 +11,7 @@ var _ = FeatureConfigSchema.Add("Web3FeatureConfig", `
 `)
 
 type Deprecated_Web3FeatureConfig struct {
-	NFT *Deprecated_Web3NFTFeatureConfig `json:"nft,omitempty"`
+	Deprecated_NFT *Deprecated_Web3NFTFeatureConfig `json:"nft,omitempty"`
 }
 
 var _ = FeatureConfigSchema.Add("Web3NFTFeatureConfig", `

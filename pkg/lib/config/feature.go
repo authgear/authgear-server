@@ -44,7 +44,7 @@ type FeatureConfig struct {
 	RateLimits       *RateLimitsFeatureConfig       `json:"rate_limits,omitempty"`
 	Messaging        *MessagingFeatureConfig        `json:"messaging,omitempty"`
 	Collaborator     *CollaboratorFeatureConfig     `json:"collaborator,omitempty"`
-	Web3             *Deprecated_Web3FeatureConfig  `json:"web3,omitempty"`
+	Deprecated_Web3  *Deprecated_Web3FeatureConfig  `json:"web3,omitempty"`
 	AdminAPI         *AdminAPIFeatureConfig         `json:"admin_api,omitempty"`
 	TestMode         *TestModeFeatureConfig         `json:"test_mode,omitempty"`
 }
