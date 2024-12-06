@@ -31,7 +31,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/endpoints"
 	"github.com/authgear/authgear-server/pkg/lib/facade"
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
-	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
 	featuresiwe "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
@@ -108,14 +107,10 @@ var DependencySet = wire.NewSet(
 
 	wire.Bind(new(webapp.UIInfoResolver), new(*authenticationinfo.UIService)),
 	wire.Bind(new(handlerwebapp.SettingsDeleteAccountSuccessUIInfoResolver), new(*authenticationinfo.UIService)),
-	wire.Bind(new(handlerwebapp.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebapp.SettingsDeleteAccountSuccessAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
 	wire.Bind(new(handlerwebapp.SettingsDeleteAccountAuthenticationInfoService), new(*authenticationinfo.StoreRedis)),
-	wire.Bind(new(handlerwebapp.SetupTOTPEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.OAuthEntrypointEndpointsProvider), new(*endpoints.Endpoints)),
-	wire.Bind(new(handlerwebapp.ConfirmTerminateOtherSessionsEndpointsProvider), new(*endpoints.Endpoints)),
-	wire.Bind(new(handlerwebapp.AuthflowLoginEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.PanicMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(webapp.AuthflowNavigatorEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(webapp.SuccessPageMiddlewareEndpointsProvider), new(*endpoints.Endpoints)),
@@ -123,13 +118,11 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2NavigatorEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2PromoteEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(handlerwebapp.AuthflowSignupEndpointsProvider), new(*endpoints.Endpoints)),
-	wire.Bind(new(handlerwebapp.AuthflowPromoteEndpointsProvider), new(*endpoints.Endpoints)),
 	wire.Bind(new(oidchandler.WebAppURLsProvider), new(*endpoints.Endpoints)),
 
 	wire.Bind(new(handlerwebappauthflowv2.ResetPasswordHandlerDatabase), new(*appdb.Handle)),
 
 	webapp.DependencySet,
-	wire.Bind(new(handlerwebapp.AnonymousUserPromotionService), new(*webapp.AnonymousUserPromotionService)),
 
 	wire.Bind(new(webapp.AnonymousIdentityProvider), new(*identityanonymous.Provider)),
 
@@ -192,7 +185,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.AuthflowControllerOAuthClientResolver), new(*oauthclient.Resolver)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerSessionStore), new(*webapp.SessionStoreRedis)),
 	wire.Bind(new(handlerwebapp.SettingsDeleteAccountSessionStore), new(*webapp.SessionStoreRedis)),
-	wire.Bind(new(handlerwebapp.SettingsAuthenticatorService), new(*authenticatorservice.Service)),
 	wire.Bind(new(handlerwebapp.SettingsMFAService), new(*mfa.Service)),
 	wire.Bind(new(handlerwebapp.SettingsIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.SettingsVerificationService), new(*verification.Service)),
@@ -206,29 +198,22 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.SettingsOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebapp.SettingsAuthorizationService), new(*oauth.AuthorizationService)),
 	wire.Bind(new(handlerwebapp.SettingsSessionListingService), new(*sessionlisting.SessionListingService)),
-	wire.Bind(new(handlerwebapp.EnterLoginIDService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebapp.PasswordPolicy), new(*password.Checker)),
 	wire.Bind(new(handlerwebappauthflowv2.ResetPasswordHandlerPasswordPolicy), new(*password.Checker)),
-	wire.Bind(new(handlerwebapp.ResetPasswordService), new(*forgotpassword.Service)),
 	wire.Bind(new(handlerwebapp.LogoutSessionManager), new(*session.Manager)),
 	wire.Bind(new(handlerwebapp.PageService), new(*webapp.Service2)),
 	wire.Bind(new(handlerwebapp.ResourceManager), new(*resource.Manager)),
 	wire.Bind(new(handlerwebapp.GlobalEmbeddedResourceManager), new(*web.GlobalEmbeddedResourceManager)),
 	wire.Bind(new(handlerwebapp.JSONResponseWriter), new(*httputil.JSONResponseWriter)),
 	wire.Bind(new(handlerwebapp.FlashMessage), new(*httputil.FlashMessage)),
-	wire.Bind(new(handlerwebapp.SelectAccountIdentityService), new(*identityservice.Service)),
-	wire.Bind(new(handlerwebapp.SelectAccountUserService), new(*user.Queries)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountIdentityService), new(*identityservice.Service)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountUserService), new(*user.Queries)),
 	wire.Bind(new(handlerwebappauthflowv2.SelectAccountUserFacade), new(*facade.UserFacade)),
-	wire.Bind(new(handlerwebapp.SelectAccountUserFacade), new(*facade.UserFacade)),
 	wire.Bind(new(handlerwebapp.MeterService), new(*meter.Service)),
 	wire.Bind(new(handlerwebapp.ErrorService), new(*webapp.ErrorService)),
 	wire.Bind(new(handlerwebapp.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 	wire.Bind(new(handlerwebappauthflowv2.PasskeyCreationOptionsService), new(*featurepasskey.CreationOptionsService)),
 	wire.Bind(new(handlerwebapp.PasskeyRequestOptionsService), new(*featurepasskey.RequestOptionsService)),
-	wire.Bind(new(handlerwebapp.WorkflowWebsocketEventStore), new(*workflow.EventStoreImpl)),
-	wire.Bind(new(handlerwebapp.AuthenticationFlowWebsocketEventStore), new(*authenticationflow.WebsocketEventStore)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthenticationFlowWebsocketEventStore), new(*authenticationflow.WebsocketEventStore)),
 	wire.Bind(new(handlerwebapp.TesterAuthTokensIssuer), new(*oauthhandler.TokenHandler)),
 	wire.Bind(new(handlerwebapp.TesterCookieManager), new(*httputil.CookieManager)),
@@ -236,7 +221,6 @@ var DependencySet = wire.NewSet(
 	wire.Bind(new(handlerwebapp.TesterUserInfoProvider), new(*oidc.IDTokenIssuer)),
 	wire.Bind(new(handlerwebapp.TesterOfflineGrantService), new(*oauth.OfflineGrantService)),
 	wire.Bind(new(handlerwebapp.AuthflowControllerAuthflowService), new(*authenticationflow.Service)),
-	wire.Bind(new(handlerwebapp.AuthflowWechatHandlerOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebapp.WechatCallbackHandlerOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebapp.SSOCallbackHandlerOAuthStateStore), new(*webappoauth.Store)),
 	wire.Bind(new(handlerwebappauthflowv2.AuthflowV2WechatHandlerOAuthStateStore), new(*webappoauth.Store)),
