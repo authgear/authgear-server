@@ -177,8 +177,6 @@ func NewRouter(p *deps.RootProvider, configSource *configsource.ConfigSource) ht
 			p.Middleware(newWebAppColorSchemeMiddleware),
 			p.Middleware(newWebAppWeChatRedirectURIMiddleware),
 			p.Middleware(newTutorialMiddleware),
-			p.Middleware(newImplementationSwitcherMiddleware),
-			p.Middleware(newSettingImplementationSwitcherMiddleware),
 		)
 	}
 	webappChain := newWebappChain()
