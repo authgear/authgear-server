@@ -220,6 +220,10 @@ func (d AuthgearYAMLDescriptor) validateFeatureConfig(validationCtx *validation.
 		if incomingFCError == nil || !ok {
 			return incomingFCError
 		}
+		// https://github.com/authgear/authgear-server/commit/888e57b4b6fa9de7cd5786111cdc5cc244a85ac0
+		// If the original config has some feature config error, we allow the user
+		// to save the config without correcting them. This is for the case that
+		// the app is downgraded from a higher plan.
 		originalFCError := d.validateBasedOnFeatureConfig(original, fc)
 		originalAggregatedError, ok := originalFCError.(*validation.AggregatedError)
 		if originalFCError == nil || !ok {
