@@ -6,6 +6,7 @@ import (
 	imagesconfig "github.com/authgear/authgear-server/pkg/images/config"
 	imagesservice "github.com/authgear/authgear-server/pkg/images/service"
 	"github.com/authgear/authgear-server/pkg/lib/cloudstorage"
+	"github.com/authgear/authgear-server/pkg/lib/config"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/util/clock"
@@ -13,7 +14,7 @@ import (
 
 func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.Clock) imagesservice.ImagesCloudStorageServiceStorage {
 	switch objectStoreConfig.Type {
-	case imagesconfig.ObjectStoreTypeAWSS3:
+	case config.ObjectStoreTypeAWSS3:
 		s, err := cloudstorage.NewS3Storage(
 			objectStoreConfig.AWSS3.AccessKeyID,
 			objectStoreConfig.AWSS3.SecretAccessKey,
@@ -24,7 +25,7 @@ func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.
 			panic(err)
 		}
 		return s
-	case imagesconfig.ObjectStoreTypeGCPGCS:
+	case config.ObjectStoreTypeGCPGCS:
 		s, err := cloudstorage.NewGCSStorage(
 			objectStoreConfig.GCPGCS.CredentialsJSON,
 			objectStoreConfig.GCPGCS.ServiceAccount,
@@ -35,7 +36,7 @@ func NewCloudStorage(objectStoreConfig *imagesconfig.ObjectStoreConfig, c clock.
 			panic(err)
 		}
 		return s
-	case imagesconfig.ObjectStoreTypeAzureBlobStorage:
+	case config.ObjectStoreTypeAzureBlobStorage:
 		return cloudstorage.NewAzureStorage(
 			objectStoreConfig.AzureBlobStorage.ServiceURL,
 			objectStoreConfig.AzureBlobStorage.StorageAccount,

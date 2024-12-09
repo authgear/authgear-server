@@ -8,14 +8,17 @@ import (
 	"github.com/authgear/authgear-server/pkg/util/validation"
 )
 
-type UserExportObjectStoreConfig struct {
+// AbstractObjectStoreConfig is a type to configure object store for a feature.
+// This type IS NOT intended to be used directly.
+// You should create a new type of this type.
+type AbstractObjectStoreConfig struct {
 	Type             ObjectStoreType                   `envconfig:"TYPE"`
 	AWSS3            AWSS3ObjectStoreConfig            `envconfig:"AWS_S3"`
 	GCPGCS           GCPGCSObjectStoreConfig           `envconfig:"GCP_GCS"`
 	AzureBlobStorage AzureBlobStorageObjectStoreConfig `envconfig:"AZURE_BLOB_STORAGE"`
 }
 
-func (c *UserExportObjectStoreConfig) Initialize(ctx *validation.Context) {
+func (c *AbstractObjectStoreConfig) Initialize(ctx *validation.Context) {
 	switch c.Type {
 	case "":
 		break
@@ -30,7 +33,7 @@ func (c *UserExportObjectStoreConfig) Initialize(ctx *validation.Context) {
 	}
 }
 
-func (c *UserExportObjectStoreConfig) Validate(ctx *validation.Context) {
+func (c *AbstractObjectStoreConfig) Validate(ctx *validation.Context) {
 	switch c.Type {
 	case "":
 		break
