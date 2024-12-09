@@ -6,8 +6,6 @@ pkg/api/apierrors/tags.go cannot import github.com/authgear/authgear-server/pkg/
 pkg/api/event/blocking/util.go cannot import github.com/authgear/authgear-server/pkg/util/accesscontrol
 pkg/api/event/event.go cannot import github.com/authgear/authgear-server/pkg/util/accesscontrol
 pkg/api/event/hook_response.go cannot import github.com/authgear/authgear-server/pkg/util/validation
-pkg/api/model/siwe.go cannot import github.com/authgear/authgear-server/pkg/util/web3
-pkg/api/model/web3.go cannot import github.com/authgear/authgear-server/pkg/util/web3
 
 exit status 1
 pkg/lib/deps/deps_common.go cannot import github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2

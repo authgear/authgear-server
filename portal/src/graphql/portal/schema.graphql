@@ -67,9 +67,6 @@ type App implements Node {
   lastStripeError: StripeError
 
   """"""
-  nftCollections: [NFTCollection!]!
-
-  """"""
   planName: String!
 
   """"""
@@ -508,9 +505,6 @@ type Mutation {
   """Preview update subscription"""
   previewUpdateSubscription(input: PreviewUpdateSubscriptionInput!): PreviewUpdateSubscriptionPayload!
 
-  """Probes a NFT Collection to see whether it is a large collection"""
-  probeNFTCollection(input: ProbeNFTCollectionInput!): ProbeNFTCollectionsPayload!
-
   """Reconcile the completed checkout session"""
   reconcileCheckoutSession(input: reconcileCheckoutSession!): reconcileCheckoutSessionPayload!
 
@@ -537,30 +531,6 @@ type Mutation {
 
   """Request verification of a domain of target app"""
   verifyDomain(input: VerifyDomainInput!): VerifyDomainPayload!
-}
-
-"""Web3 NFT Collection"""
-type NFTCollection {
-  """"""
-  blockchain: String!
-
-  """"""
-  contractAddress: String!
-
-  """"""
-  createdAt: DateTime!
-
-  """"""
-  name: String!
-
-  """"""
-  network: String!
-
-  """"""
-  tokenType: String!
-
-  """"""
-  totalSupply: String
 }
 
 """An object with an ID"""
@@ -651,18 +621,6 @@ type PreviewUpdateSubscriptionPayload {
 }
 
 """"""
-input ProbeNFTCollectionInput {
-  """"""
-  contractID: String!
-}
-
-""""""
-type ProbeNFTCollectionsPayload {
-  """"""
-  isLargeCollection: Boolean!
-}
-
-""""""
 type Query {
   """Active users chart dataset"""
   activeUserChart(
@@ -684,9 +642,6 @@ type Query {
 
   """Check whether the viewer can accept the collaboration invitation"""
   checkCollaboratorInvitation(code: String!): CheckCollaboratorInvitationPayload
-
-  """Fetch NFT Contract Metadata"""
-  nftContractMetadata(contractID: String!): NFTCollection
 
   """Fetches an object given its ID"""
   node(

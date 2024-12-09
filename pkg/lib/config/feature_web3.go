@@ -10,8 +10,8 @@ var _ = FeatureConfigSchema.Add("Web3FeatureConfig", `
 }	
 `)
 
-type Web3FeatureConfig struct {
-	NFT *Web3NFTFeatureConfig `json:"nft,omitempty"`
+type Deprecated_Web3FeatureConfig struct {
+	Deprecated_NFT *Deprecated_Web3NFTFeatureConfig `json:"nft,omitempty"`
 }
 
 var _ = FeatureConfigSchema.Add("Web3NFTFeatureConfig", `
@@ -24,11 +24,11 @@ var _ = FeatureConfigSchema.Add("Web3NFTFeatureConfig", `
 }
 `)
 
-type Web3NFTFeatureConfig struct {
+type Deprecated_Web3NFTFeatureConfig struct {
 	Maximum *int `json:"maximum,omitempty"`
 }
 
-func (c *Web3NFTFeatureConfig) SetDefaults() {
+func (c *Deprecated_Web3NFTFeatureConfig) SetDefaults() {
 	if c.Maximum == nil {
 		c.Maximum = newInt(3)
 	}

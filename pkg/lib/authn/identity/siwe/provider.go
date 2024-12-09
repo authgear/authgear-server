@@ -2,24 +2,16 @@ package siwe
 
 import (
 	"context"
-	"crypto/ecdsa"
+	"fmt"
 	"sort"
 
-	"github.com/authgear/authgear-server/pkg/api/model"
 	"github.com/authgear/authgear-server/pkg/lib/authn/identity"
 	"github.com/authgear/authgear-server/pkg/util/clock"
-	"github.com/authgear/authgear-server/pkg/util/uuid"
 )
-
-// nolint: golint
-type SIWEService interface {
-	VerifyMessage(ctx context.Context, msg string, signature string) (*model.SIWEWallet, *ecdsa.PublicKey, error)
-}
 
 type Provider struct {
 	Store *Store
 	Clock clock.Clock
-	SIWE  SIWEService
 }
 
 func (p *Provider) List(ctx context.Context, userID string) ([]*identity.SIWE, error) {
@@ -37,12 +29,7 @@ func (p *Provider) Get(ctx context.Context, userID, id string) (*identity.SIWE, 
 }
 
 func (p *Provider) GetByMessage(ctx context.Context, msg string, signature string) (*identity.SIWE, error) {
-	wallet, _, err := p.SIWE.VerifyMessage(ctx, msg, signature)
-	if err != nil {
-		return nil, err
-	}
-
-	return p.Store.GetByAddress(ctx, wallet.ChainID, wallet.Address)
+	panic(fmt.Errorf("siwe: SIWE is deprecated"))
 }
 
 func (p *Provider) GetMany(ctx context.Context, ids []string) ([]*identity.SIWE, error) {
@@ -55,29 +42,7 @@ func (p *Provider) New(
 	msg string,
 	signature string,
 ) (*identity.SIWE, error) {
-	wallet, pubKey, err := p.SIWE.VerifyMessage(ctx, msg, signature)
-	if err != nil {
-		return nil, err
-	}
-
-	encodedPublicKey, err := model.NewSIWEPublicKey(pubKey)
-	if err != nil {
-		return nil, err
-	}
-
-	i := &identity.SIWE{
-		ID:      uuid.New(),
-		UserID:  userID,
-		Address: wallet.Address,
-		ChainID: wallet.ChainID,
-
-		Data: &model.SIWEVerifiedData{
-			Message:          msg,
-			Signature:        signature,
-			EncodedPublicKey: encodedPublicKey,
-		},
-	}
-	return i, nil
+	panic(fmt.Errorf("siwe: SIWE is deprecated"))
 }
 
 func (p *Provider) Create(ctx context.Context, i *identity.SIWE) error {

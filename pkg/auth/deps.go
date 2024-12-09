@@ -10,7 +10,6 @@ import (
 	handlerapi "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlersaml "github.com/authgear/authgear-server/pkg/auth/handler/saml"
-	handlersiwe "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
 	viewmodelswebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp/viewmodels"
@@ -33,7 +32,6 @@ import (
 	featurecustomattrs "github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	featurepasskey "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
-	featuresiwe "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	featurestdattrs "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -244,10 +242,6 @@ var DependencySet = wire.NewSet(
 
 	handlerwebappauthflowv2.DependencySet,
 	wire.Bind(new(handlerwebapp.ErrorRendererAuthflowV2Navigator), new(*handlerwebappauthflowv2.AuthflowV2Navigator)),
-
-	handlersiwe.DependencySet,
-	wire.Bind(new(handlersiwe.NonceHandlerJSONResponseWriter), new(*httputil.JSONResponseWriter)),
-	wire.Bind(new(handlersiwe.NonceHandlerSIWEService), new(*featuresiwe.Service)),
 
 	api.DependencySet,
 	wire.Bind(new(api.JSONResponseWriter), new(*httputil.JSONResponseWriter)),

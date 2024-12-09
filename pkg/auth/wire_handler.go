@@ -12,7 +12,6 @@ import (
 	handlerapi "github.com/authgear/authgear-server/pkg/auth/handler/api"
 	handleroauth "github.com/authgear/authgear-server/pkg/auth/handler/oauth"
 	handlersaml "github.com/authgear/authgear-server/pkg/auth/handler/saml"
-	handlersiwe "github.com/authgear/authgear-server/pkg/auth/handler/siwe"
 	handlerwebapp "github.com/authgear/authgear-server/pkg/auth/handler/webapp"
 	handlerwebappauthflowv2 "github.com/authgear/authgear-server/pkg/auth/handler/webapp/authflowv2"
 	"github.com/authgear/authgear-server/pkg/lib/deps"
@@ -111,13 +110,6 @@ func newOAuthProxyRedirectHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handleroauth.ProxyRedirectHandler)),
-	))
-}
-
-func newSIWENonceHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlersiwe.NonceHandler)),
 	))
 }
 
@@ -755,13 +747,6 @@ func newWebAppConnectWeb3AccountHandler(p *deps.RequestProvider) http.Handler {
 	panic(wire.Build(
 		DependencySet,
 		wire.Bind(new(http.Handler), new(*handlerwebapp.ConnectWeb3AccountHandler)),
-	))
-}
-
-func newWebAppMissingWeb3WalletHandler(p *deps.RequestProvider) http.Handler {
-	panic(wire.Build(
-		DependencySet,
-		wire.Bind(new(http.Handler), new(*handlerwebapp.MissingWeb3WalletHandler)),
 	))
 }
 

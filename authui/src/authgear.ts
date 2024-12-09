@@ -41,7 +41,6 @@ import {
   PasskeyAutofillController,
   AuthflowPasskeyErrorController,
 } from "./passkey";
-import { WalletConfirmationController, WalletIconController } from "./web3";
 import { init as SentryInit, browserTracingIntegration } from "@sentry/browser";
 import { LockoutController } from "./lockout";
 import { MirrorButtonController } from "./mirrorbutton";
@@ -117,9 +116,6 @@ Stimulus.register(
   AuthflowPasskeyCreationController
 );
 Stimulus.register("authflow-passkey-error", AuthflowPasskeyErrorController);
-
-Stimulus.register("web3-wallet-confirmation", WalletConfirmationController);
-Stimulus.register("web3-wallet-icon", WalletIconController);
 
 Stimulus.register("lockout", LockoutController);
 

@@ -46,18 +46,6 @@ $display_error = true }} {{ if eq .Error.reason "PasswordPolicyViolated" }}
     <li id="error-message-passkey-duplicate" class="hidden">
       {{ template "error-passkey-duplicate" }}
     </li>
-    <li id="error-message-metamask-unauthorized" class="hidden">
-      {{ template "error-metamask-unauthorized" }}
-    </li>
-    <li id="error-message-metamask-unsupported-method" class="hidden">
-      {{ template "error-metamask-unsupported-method" }}
-    </li>
-    <li id="error-message-metamask-disconnected" class="hidden">
-      {{ template "error-metamask-disconnected" }}
-    </li>
-    <li id="error-message-failed-to-connect-wallet" class="hidden">
-      {{ template "error-failed-to-connect-wallet" }}
-    </li>
 
     {{ if $display_error }} {{ $info := .Error.info }} {{ if eq .Error.reason
     "ValidationFailed" }} {{ range .Error.info.causes }} {{ if (eq .kind

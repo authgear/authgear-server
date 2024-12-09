@@ -13,20 +13,14 @@
 
   <div
     class="twc-container-vertical"
-    data-controller="web3-wallet-confirmation web3-wallet-icon"
-    data-web3-wallet-confirmation-provider-value="{{ $.Provider }}"
-    data-web3-wallet-icon-size-value="20"
-    data-action="web3-wallet-confirmation:addressUpdate->web3-wallet-icon#onAddressUpdate"
   >
     <div class="flex flex-col space-y-5 items-center">
       <div class="flex flex-row space-x-2 items-center">
         <div
           class="w-5 h-5 rounded-full"
-          data-web3-wallet-icon-target="iconContainer"
         ></div>
         <span
           class="text-xl leading-6 font-semibold primary-txt"
-          data-web3-wallet-confirmation-target="displayed"
           >-</span
         >
       </div>
@@ -36,24 +30,20 @@
           class="hidden"
           name="x_siwe_message"
           type="hidden"
-          data-web3-wallet-confirmation-target="message"
         />
         <input
           class="hidden"
           name="x_siwe_signature"
-          data-web3-wallet-confirmation-target="signature"
         />
         <button
           class="hidden"
           type="submit"
           name="x_action"
           value="submit"
-          data-web3-wallet-confirmation-target="submit"
         ></button>
         <button
           class="w-full btn primary-btn px-5 py-1.5 text-center"
           type="button"
-          data-action="click->web3-wallet-confirmation#performSIWE"
         >
           {{ template "connect-web3-account-page-next" }}
         </button>

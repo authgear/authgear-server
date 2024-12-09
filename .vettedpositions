@@ -36,7 +36,6 @@
 /pkg/auth/handler/saml/login.go:296:3: requestcontext
 /pkg/auth/handler/saml/login_finish.go:41:9: requestcontext
 /pkg/auth/handler/saml/logout.go:86:9: requestcontext
-/pkg/auth/handler/siwe/nonce.go:46:38: requestcontext
 /pkg/auth/handler/webapp/account_status.go:48:27: requestcontext
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:31:31: requestcontext
 /pkg/auth/handler/webapp/auth_entry_point_middleware.go:32:35: requestcontext
@@ -172,7 +171,6 @@
 /pkg/auth/handler/webapp/login.go:115:28: requestcontext
 /pkg/auth/handler/webapp/login_link_otp.go:121:27: requestcontext
 /pkg/auth/handler/webapp/logout.go:71:27: requestcontext
-/pkg/auth/handler/webapp/missing_web3_wallet.go:78:27: requestcontext
 /pkg/auth/handler/webapp/panic_middleware.go:68:61: requestcontext
 /pkg/auth/handler/webapp/passkey_creation_options.go:43:28: requestcontext
 /pkg/auth/handler/webapp/passkey_request_options.go:52:28: requestcontext

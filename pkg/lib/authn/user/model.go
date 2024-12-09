@@ -293,7 +293,6 @@ func newUserModel(
 	isVerified bool,
 	derivedStandardAttributes map[string]interface{},
 	customAttributes map[string]interface{},
-	web3Info *model.UserWeb3Info,
 	roles []string,
 	groups []string,
 ) *model.User {
@@ -333,12 +332,11 @@ func newUserModel(
 		CanReauthenticate:    canReauthenticate,
 		StandardAttributes:   derivedStandardAttributes,
 		CustomAttributes:     customAttributes,
-		Web3:                 web3Info,
 		Roles:                roles,
 		Groups:               groups,
 		MFAGracePeriodtEndAt: user.MFAGracePeriodtEndAt,
 
-		EndUserAccountID: computeEndUserAccountID(derivedStandardAttributes, identities, web3Info),
+		EndUserAccountID: computeEndUserAccountID(derivedStandardAttributes, identities),
 	}
 }
 
@@ -349,7 +347,7 @@ type UserForExport struct {
 	Authenticators []*authenticator.Info
 }
 
-func computeEndUserAccountID(derivedStandardAttributes map[string]interface{}, identities []*identity.Info, web3Info *model.UserWeb3Info) string {
+func computeEndUserAccountID(derivedStandardAttributes map[string]interface{}, identities []*identity.Info) string {
 	var endUserAccountID string
 
 	var ldapDisplayID string
@@ -368,9 +366,6 @@ func computeEndUserAccountID(derivedStandardAttributes map[string]interface{}, i
 		endUserAccountID = s
 	} else if ldapDisplayID != "" {
 		endUserAccountID = ldapDisplayID
-	} else if web3Info != nil && len(web3Info.Accounts) > 0 {
-		first := web3Info.Accounts[0]
-		endUserAccountID = first.EndUserAccountID()
 	}
 
 	return endUserAccountID

@@ -34,10 +34,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
-	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/auditdb"
@@ -260,36 +258,9 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	web3Config := appConfig.Web3
-	storeRedis := &siwe2.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		AppID:   appID,
-		Config:  rateLimitsFeatureConfig,
-	}
-	siweLogger := siwe2.NewLogger(factory)
-	siweService := &siwe2.Service{
-		RemoteIP:             remoteIP,
-		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
-		AuthenticationConfig: authenticationConfig,
-		Clock:                clockClock,
-		NonceStore:           storeRedis,
-		RateLimiter:          limiter,
-		Logger:               siweLogger,
-	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
 		Clock: clockClock,
-		SIWE:  siweService,
 	}
 	ldapStore := &ldap.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -397,6 +368,15 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		AppID:   appID,
+		Config:  rateLimitsFeatureConfig,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -471,13 +451,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -494,7 +467,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	resolverImpl := &event.ResolverImpl{
@@ -714,8 +686,8 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	whatsappHTTPClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, whatsappHTTPClient)
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappService := &whatsapp.Service{
 		Logger:             serviceLogger,
 		WhatsappConfig:     whatsappConfig,
@@ -764,7 +736,6 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	stdattrsService := &stdattrs2.Service{
@@ -780,7 +751,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
+	storeRedis := &idpsession.StoreRedis{
 		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
@@ -791,7 +762,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
+		Store:     storeRedis,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -830,7 +801,7 @@ func newUserImport(p *deps.AppProvider) *userimport.UserImportService {
 		UserAgentString: userAgentString,
 		AppID:           appID,
 		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
+		Store:           storeRedis,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		TrustProxy:      trustProxy,

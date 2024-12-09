@@ -28,7 +28,7 @@ var ConfigDeps = wire.NewSet(
 		"Verification",
 		"AccountDeletion",
 		"AccountAnonymization",
-		"Web3",
+		"Deprecated_Web3",
 		"GoogleTagManager",
 		"AccountMigration",
 		"Captcha",

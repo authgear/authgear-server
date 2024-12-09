@@ -598,20 +598,6 @@ export interface UserProfileConfig {
   custom_attributes?: CustomAttributesConfig;
 }
 
-// Web3 Configs
-export interface SIWEConfig {
-  networks?: string[];
-}
-
-export interface NFTConfig {
-  collections?: string[];
-}
-
-export interface Web3Config {
-  nft?: NFTConfig;
-  siwe?: SIWEConfig;
-}
-
 // PortalAPIAppConfig
 export interface PortalAPIAppConfig {
   id: string;
@@ -627,7 +613,6 @@ export interface PortalAPIAppConfig {
   oauth?: OAuthConfig;
   session?: SessionConfig;
   hook?: HookConfig;
-  web3?: Web3Config;
   user_profile?: UserProfileConfig;
   account_deletion?: AccountDeletionConfig;
   account_anonymization?: AccountAnonymizationConfig;
@@ -815,7 +800,6 @@ export interface PortalAPIFeatureConfig {
   audit_log?: AuditLogFeatureConfig;
   google_tag_manager?: GoogleTagManagerFeatureConfig;
   collaborator?: CollaboratorFeatureConfig;
-  web3?: Web3FeatureConfig;
 }
 
 export interface AuthenticatorFeatureConfig {
@@ -854,14 +838,6 @@ export interface AuthenticatorsFeatureConfig {
 
 export interface AuthenticatorOOBOTBSMSFeatureConfig {
   disabled?: boolean;
-}
-
-export interface Web3NFTFeatureConfig {
-  maximum?: number;
-}
-
-export interface Web3FeatureConfig {
-  nft?: Web3NFTFeatureConfig;
 }
 
 export interface IdentityFeatureConfig {
@@ -1036,51 +1012,6 @@ export interface StandardAttributesAddress {
   region?: string;
   postal_code?: string;
   country?: string;
-}
-
-export interface NFTContract {
-  name: string;
-  address: string;
-  type: string;
-}
-
-export interface TransactionIdentifier {
-  hash: string;
-}
-
-export interface BlockIdentifier {
-  index: number;
-  timestamp: Date;
-}
-
-export interface NFTToken {
-  token_id: string;
-  transaction_identifier: TransactionIdentifier;
-  block_identifier: BlockIdentifier;
-  balance: string;
-}
-
-export interface NFT {
-  contract: NFTContract;
-  tokens: NFTToken[];
-}
-
-export interface AccountIdentifier {
-  address?: string;
-}
-
-export interface NetworkIdentifier {
-  blockchain?: string;
-  network?: string;
-}
-export interface Web3Account {
-  account_identifier?: AccountIdentifier;
-  network_identifier?: NetworkIdentifier;
-  nfts?: NFT[];
-}
-
-export interface Web3Claims {
-  accounts?: Web3Account[];
 }
 
 export interface Identity {

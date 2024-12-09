@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/authgear/authgear-server/pkg/util/hexstring"
 )
 
@@ -24,7 +22,7 @@ func NewEIP55(s string) (EIP55, error) {
 		return EIP55("0x0"), nil
 	}
 
-	address := common.HexToAddress(s)
+	address := HexToAddress(s)
 
 	return EIP55(address.Hex()), nil
 }

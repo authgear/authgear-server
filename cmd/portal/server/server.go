@@ -38,7 +38,6 @@ func (c *Controller) Start(ctx context.Context) {
 		&cfg.Kubernetes,
 		cfg.DomainImplementation,
 		&cfg.Search,
-		&cfg.Web3,
 		&cfg.AuditLog,
 		&cfg.Analytic,
 		&cfg.Stripe,

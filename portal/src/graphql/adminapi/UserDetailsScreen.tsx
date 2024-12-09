@@ -48,7 +48,6 @@ import { extractRawID } from "../../util/graphql";
 
 import styles from "./UserDetailsScreen.module.css";
 import { makeInvariantViolatedErrorParseRule } from "../../error/parse";
-import { IdentityType } from "./globalTypes.generated";
 import AnonymizeUserDialog from "./AnonymizeUserDialog";
 import UserDetailsScreenGroupListContainer from "../../components/roles-and-groups/list/UserDetailsScreenGroupListContainer";
 import UserDetailsScreenRoleListContainer from "../../components/roles-and-groups/list/UserDetailsScreenRoleListContainer";
@@ -302,8 +301,6 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     [setState]
   );
 
-  const web3Claims = data.web3;
-
   const verifiedClaims = data.verifiedClaims;
 
   const identities = useMemo(
@@ -333,11 +330,6 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
     const level = standardAttributeAccessControl[ptr];
     return level === "readwrite";
   }, [standardAttributeAccessControl]);
-
-  const isSIWEIdentity = useMemo(
-    () => identities.some((i) => i.type === IdentityType.Siwe),
-    [identities]
-  );
 
   const dataStatusBadgeTextId = React.useMemo(() => {
     let badgeTextId = null;
@@ -443,19 +435,13 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
           itemKey={ACCOUNT_SECURITY_PIVOT_KEY}
           headerText={renderToString("UserDetails.account-security.header")}
         >
-          {isSIWEIdentity ? (
-            <MessageBar className={styles.siweEnabledTabWarningMessageBar}>
-              <FormattedMessage id="UserDetailsScreen.user-account-security.siwe-enabled" />
-            </MessageBar>
-          ) : (
-            <UserDetailsAccountSecurity
-              userID={data.id}
-              authenticationConfig={appConfig.authentication}
-              authenticatorConfig={appConfig.authenticator}
-              identities={identities}
-              authenticators={authenticators}
-            />
-          )}
+          <UserDetailsAccountSecurity
+            userID={data.id}
+            authenticationConfig={appConfig.authentication}
+            authenticatorConfig={appConfig.authenticator}
+            identities={identities}
+            authenticators={authenticators}
+          />
         </PivotItem>
         <PivotItem
           itemKey={CONNECTED_IDENTITIES_PIVOT_KEY}
@@ -465,7 +451,6 @@ const UserDetails: React.VFC<UserDetailsProps> = function UserDetails(
             identities={identities}
             verifiedClaims={verifiedClaims}
             availableLoginIdIdentities={availableLoginIdIdentities}
-            web3Claims={web3Claims}
           />
         </PivotItem>
         <PivotItem

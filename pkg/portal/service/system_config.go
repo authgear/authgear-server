@@ -23,7 +23,6 @@ type SystemConfigProvider struct {
 	AuthgearConfig                 *config.AuthgearConfig
 	AppConfig                      *config.AppConfig
 	SearchConfig                   *config.SearchConfig
-	Web3Config                     *config.Web3Config
 	AuditLogConfig                 *config.AuditLogConfig
 	AnalyticConfig                 *configlib.AnalyticConfig
 	GTMConfig                      *config.GoogleTagManagerConfig
@@ -59,7 +58,6 @@ func (p *SystemConfigProvider) SystemConfig() (*model.SystemConfig, error) {
 		Themes:                   themes,
 		Translations:             translations,
 		SearchEnabled:            p.SearchConfig.Enabled,
-		Web3Enabled:              p.Web3Config.Enabled,
 		AuditLogEnabled:          p.AuditLogConfig.Enabled,
 		AnalyticEnabled:          p.AnalyticConfig.Enabled,
 		AnalyticEpoch:            analyticEpoch,

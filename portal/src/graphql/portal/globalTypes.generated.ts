@@ -66,7 +66,6 @@ export type App = Node & {
   id: Scalars['ID']['output'];
   isProcessingSubscription: Scalars['Boolean']['output'];
   lastStripeError?: Maybe<Scalars['StripeError']['output']>;
-  nftCollections: Array<NftCollection>;
   planName: Scalars['String']['output'];
   rawAppConfig: Scalars['AppConfig']['output'];
   rawAppConfigChecksum: Scalars['AppConfig']['output'];
@@ -365,8 +364,6 @@ export type Mutation = {
   generateTesterToken: GenerateTestTokenPayload;
   /** Preview update subscription */
   previewUpdateSubscription: PreviewUpdateSubscriptionPayload;
-  /** Probes a NFT Collection to see whether it is a large collection */
-  probeNFTCollection: ProbeNftCollectionsPayload;
   /** Reconcile the completed checkout session */
   reconcileCheckoutSession: ReconcileCheckoutSessionPayload;
   /** Updates the current user's custom attribute with 'survey' key */
@@ -458,11 +455,6 @@ export type MutationPreviewUpdateSubscriptionArgs = {
 };
 
 
-export type MutationProbeNftCollectionArgs = {
-  input: ProbeNftCollectionInput;
-};
-
-
 export type MutationReconcileCheckoutSessionArgs = {
   input: ReconcileCheckoutSession;
 };
@@ -505,18 +497,6 @@ export type MutationUpdateSubscriptionArgs = {
 
 export type MutationVerifyDomainArgs = {
   input: VerifyDomainInput;
-};
-
-/** Web3 NFT Collection */
-export type NftCollection = {
-  __typename?: 'NFTCollection';
-  blockchain: Scalars['String']['output'];
-  contractAddress: Scalars['String']['output'];
-  createdAt: Scalars['DateTime']['output'];
-  name: Scalars['String']['output'];
-  network: Scalars['String']['output'];
-  tokenType: Scalars['String']['output'];
-  totalSupply?: Maybe<Scalars['String']['output']>;
 };
 
 /** An object with an ID */
@@ -575,15 +555,6 @@ export type PreviewUpdateSubscriptionPayload = {
   currency: Scalars['String']['output'];
 };
 
-export type ProbeNftCollectionInput = {
-  contractID: Scalars['String']['input'];
-};
-
-export type ProbeNftCollectionsPayload = {
-  __typename?: 'ProbeNFTCollectionsPayload';
-  isLargeCollection: Scalars['Boolean']['output'];
-};
-
 export type Query = {
   __typename?: 'Query';
   /** Active users chart dataset */
@@ -592,8 +563,6 @@ export type Query = {
   appList?: Maybe<Array<AppListItem>>;
   /** Check whether the viewer can accept the collaboration invitation */
   checkCollaboratorInvitation?: Maybe<CheckCollaboratorInvitationPayload>;
-  /** Fetch NFT Contract Metadata */
-  nftContractMetadata?: Maybe<NftCollection>;
   /** Fetches an object given its ID */
   node?: Maybe<Node>;
   /** Lookup nodes by a list of IDs. */
@@ -621,11 +590,6 @@ export type QueryActiveUserChartArgs = {
 
 export type QueryCheckCollaboratorInvitationArgs = {
   code: Scalars['String']['input'];
-};
-
-
-export type QueryNftContractMetadataArgs = {
-  contractID: Scalars['String']['input'];
 };
 
 

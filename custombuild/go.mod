@@ -39,7 +39,6 @@ require (
 	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/beevik/etree v1.4.1 // indirect
 	github.com/boombuler/barcode v1.0.2 // indirect
-	github.com/btcsuite/btcd/btcec/v2 v2.3.4 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.4.1 // indirect
 	github.com/cert-manager/cert-manager v1.15.4 // indirect
@@ -50,7 +49,6 @@ require (
 	github.com/crewjam/saml v0.4.14 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/davidbyttow/govips/v2 v2.15.0 // indirect
-	github.com/dchest/uniuri v1.2.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/dlclark/regexp2 v1.7.0 // indirect
@@ -58,7 +56,6 @@ require (
 	github.com/emicklei/go-restful/v3 v3.12.0 // indirect
 	github.com/envoyproxy/go-control-plane v0.13.0 // indirect
 	github.com/envoyproxy/protoc-gen-validate v1.1.0 // indirect
-	github.com/ethereum/go-ethereum v1.14.11 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fxamacker/cbor/v2 v2.6.0 // indirect
@@ -97,7 +94,6 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-5 // indirect
-	github.com/holiman/uint256 v1.3.1 // indirect
 	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/iawaknahc/gomessageformat v0.0.0-20210428033148-c3f8592094b5 // indirect
 	github.com/iawaknahc/jsonschema v0.0.0-20211026064614-d05c07b7760d // indirect
@@ -138,7 +134,6 @@ require (
 	github.com/planetscale/vtprotobuf v0.6.1-0.20240319094008-0393e58bdf10 // indirect
 	github.com/pquerna/otp v1.4.0 // indirect
 	github.com/redis/go-redis/v9 v9.7.0 // indirect
-	github.com/relvacode/iso8601 v1.1.1-0.20210511065120-b30b151cc433 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rubenv/sql-migrate v1.7.0 // indirect
 	github.com/russellhaering/goxmldsig v1.4.0 // indirect
@@ -154,7 +149,6 @@ require (
 	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.19.0 // indirect
-	github.com/spruceid/siwe-go v0.2.1 // indirect
 	github.com/stripe/stripe-go/v72 v72.122.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tdewolff/parse/v2 v2.7.19 // indirect

@@ -6,10 +6,6 @@
   @apply flex flex-col;
 }
 
-.siweEnabledTabWarningMessageBar {
-  @apply mt-5;
-}
-
 .screenContent {
   @apply flex-1-0-auto;
 

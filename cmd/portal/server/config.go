@@ -60,8 +60,6 @@ type Config struct {
 
 	PortalFrontendSentry portalconfig.PortalFrontendSentryConfig `envconfig:"PORTAL_FRONTEND_SENTRY"`
 
-	Web3 portalconfig.Web3Config `envconfig:"WEB3"`
-
 	*config.EnvironmentConfig
 }
 

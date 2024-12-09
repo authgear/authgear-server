@@ -14,7 +14,6 @@ import (
 	"github.com/authgear/authgear-server/pkg/portal/service"
 	"github.com/authgear/authgear-server/pkg/portal/session"
 	"github.com/authgear/authgear-server/pkg/util/resource"
-	"github.com/authgear/authgear-server/pkg/util/web3"
 )
 
 var oauthSSOProviderClientSecret = graphql.NewObject(graphql.ObjectConfig{
@@ -599,42 +598,6 @@ var nodeApp = node(
 					}
 
 					return entry, nil
-				},
-			},
-			"nftCollections": &graphql.Field{
-				Type: graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(nftCollection))),
-				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-					ctx := p.Context
-					gqlCtx := GQLContext(ctx)
-					config := p.Source.(*model.App).Context.Config.AppConfig
-					if config.Web3 == nil {
-						return []interface{}{}, nil
-					}
-
-					if config.Web3.NFT == nil {
-						return []interface{}{}, nil
-					}
-
-					if len(config.Web3.NFT.Collections) == 0 {
-						return []interface{}{}, nil
-					}
-
-					contractIDs := make([]web3.ContractID, 0, len(config.Web3.NFT.Collections))
-					for _, url := range config.Web3.NFT.Collections {
-						contractID, err := web3.ParseContractID(url)
-						if err != nil {
-							return nil, err
-						}
-
-						contractIDs = append(contractIDs, *contractID)
-					}
-
-					collections, err := gqlCtx.NFTService.GetContractMetadata(ctx, contractIDs)
-					if err != nil {
-						return nil, err
-					}
-
-					return collections, nil
 				},
 			},
 			"samlIdpEntityID": &graphql.Field{

@@ -44,10 +44,8 @@ import (
 	"github.com/authgear/authgear-server/pkg/lib/feature/customattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/forgotpassword"
 	passkey2 "github.com/authgear/authgear-server/pkg/lib/feature/passkey"
-	siwe2 "github.com/authgear/authgear-server/pkg/lib/feature/siwe"
 	stdattrs2 "github.com/authgear/authgear-server/pkg/lib/feature/stdattrs"
 	"github.com/authgear/authgear-server/pkg/lib/feature/verification"
-	"github.com/authgear/authgear-server/pkg/lib/feature/web3"
 	"github.com/authgear/authgear-server/pkg/lib/healthz"
 	"github.com/authgear/authgear-server/pkg/lib/hook"
 	"github.com/authgear/authgear-server/pkg/lib/infra/db/appdb"
@@ -314,37 +312,9 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	web3Config := appConfig.Web3
-	storeRedis := &siwe2.StoreRedis{
-		Redis: appredisHandle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	limiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		AppID:   appID,
-		Config:  rateLimitsFeatureConfig,
-	}
-	siweLogger := siwe2.NewLogger(factory)
-	siweService := &siwe2.Service{
-		RemoteIP:             remoteIP,
-		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
-		AuthenticationConfig: authenticationConfig,
-		Clock:                clockClock,
-		NonceStore:           storeRedis,
-		RateLimiter:          limiter,
-		Logger:               siweLogger,
-	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
 		Clock: clockClock,
-		SIWE:  siweService,
 	}
 	ldapStore := &ldap.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -436,6 +406,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: appredisHandle,
 		AppID: appID,
@@ -452,6 +423,15 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := ratelimit.NewAppStorageRedis(appredisHandle)
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	limiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		AppID:   appID,
+		Config:  rateLimitsFeatureConfig,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -526,13 +506,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -549,7 +522,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	userLoader := loader.NewUserLoader(userQueries)
@@ -701,7 +673,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserProfileConfig:  userProfileConfig,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	userProvider := &user.Provider{
@@ -813,8 +784,8 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		AppID: appID,
 		Clock: clockClock,
 	}
-	whatsappHTTPClient := whatsapp.NewHTTPClient()
-	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, whatsappHTTPClient)
+	httpClient := whatsapp.NewHTTPClient()
+	onPremisesClient := whatsapp.NewWhatsappOnPremisesClient(whatsappConfig, whatsappOnPremisesCredentials, tokenStore, httpClient)
 	whatsappService := &whatsapp.Service{
 		Logger:             serviceLogger,
 		WhatsappConfig:     whatsappConfig,
@@ -864,7 +835,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		SQLExecutor: sqlExecutor,
 	}
 	storeRedisLogger := idpsession.NewStoreRedisLogger(factory)
-	idpsessionStoreRedis := &idpsession.StoreRedis{
+	storeRedis := &idpsession.StoreRedis{
 		Redis:  appredisHandle,
 		AppID:  appID,
 		Clock:  clockClock,
@@ -875,7 +846,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 	cookieManager := deps.NewCookieManager(request, trustProxy, httpConfig)
 	cookieDef := session.NewSessionCookieDef(sessionConfig)
 	idpsessionManager := &idpsession.Manager{
-		Store:     idpsessionStoreRedis,
+		Store:     storeRedis,
 		Config:    sessionConfig,
 		Cookies:   cookieManager,
 		CookieDef: cookieDef,
@@ -913,7 +884,7 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		UserAgentString: userAgentString,
 		AppID:           appID,
 		Redis:           appredisHandle,
-		Store:           idpsessionStoreRedis,
+		Store:           storeRedis,
 		AccessEvents:    eventProvider,
 		MeterService:    meterService,
 		TrustProxy:      trustProxy,
@@ -1566,37 +1537,9 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
 	}
-	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
-	web3Config := appConfig.Web3
-	storeRedis := &siwe2.StoreRedis{
-		Redis: handle,
-		AppID: appID,
-		Clock: clockClock,
-	}
-	ratelimitLogger := ratelimit.NewLogger(factory)
-	storageRedis := ratelimit.NewAppStorageRedis(handle)
-	rateLimitsFeatureConfig := featureConfig.RateLimits
-	ratelimitLimiter := &ratelimit.Limiter{
-		Logger:  ratelimitLogger,
-		Storage: storageRedis,
-		AppID:   appID,
-		Config:  rateLimitsFeatureConfig,
-	}
-	siweLogger := siwe2.NewLogger(factory)
-	siweService := &siwe2.Service{
-		RemoteIP:             remoteIP,
-		HTTPOrigin:           httpOrigin,
-		Web3Config:           web3Config,
-		AuthenticationConfig: authenticationConfig,
-		Clock:                clockClock,
-		NonceStore:           storeRedis,
-		RateLimiter:          ratelimitLimiter,
-		Logger:               siweLogger,
-	}
 	siweProvider := &siwe.Provider{
 		Store: siweStore,
 		Clock: clockClock,
-		SIWE:  siweService,
 	}
 	ldapStore := &ldap.Store{
 		SQLBuilder:  sqlBuilderApp,
@@ -1688,6 +1631,7 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 	}
 	testModeConfig := appConfig.TestMode
 	testModeFeatureConfig := featureConfig.TestMode
+	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	codeStoreRedis := &otp.CodeStoreRedis{
 		Redis: handle,
 		AppID: appID,
@@ -1704,6 +1648,15 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Clock: clockClock,
 	}
 	otpLogger := otp.NewLogger(factory)
+	ratelimitLogger := ratelimit.NewLogger(factory)
+	storageRedis := ratelimit.NewAppStorageRedis(handle)
+	rateLimitsFeatureConfig := featureConfig.RateLimits
+	ratelimitLimiter := &ratelimit.Limiter{
+		Logger:  ratelimitLogger,
+		Storage: storageRedis,
+		AppID:   appID,
+		Config:  rateLimitsFeatureConfig,
+	}
 	otpService := &otp.Service{
 		Clock:                 clockClock,
 		AppID:                 appID,
@@ -1777,13 +1730,6 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		UserQueries: rawQueries,
 		UserStore:   store,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	httpClient := web3.NewHTTPClient()
-	web3Service := &web3.Service{
-		APIEndpoint: nftIndexerAPIEndpoint,
-		Web3Config:  web3Config,
-		HTTPClient:  httpClient,
-	}
 	rolesgroupsStore := &rolesgroups.Store{
 		SQLBuilder:  sqlBuilderApp,
 		SQLExecutor: sqlExecutor,
@@ -1800,18 +1746,17 @@ func newUserExportCreateHandler(p *deps.RequestProvider) http.Handler {
 		Verification:       verificationService,
 		StandardAttributes: serviceNoEvent,
 		CustomAttributes:   customattrsServiceNoEvent,
-		Web3:               web3Service,
 		RolesAndGroups:     queries,
 	}
 	userexportLogger := userexport.NewLogger(factory)
-	userexportHTTPClient := userexport.NewHTTPClient()
+	httpClient := userexport.NewHTTPClient()
 	userExportService := &userexport.UserExportService{
 		AppDatabase:  appdbHandle,
 		Config:       userProfileConfig,
 		UserQueries:  userQueries,
 		Logger:       userexportLogger,
 		HTTPOrigin:   httpOrigin,
-		HTTPClient:   userexportHTTPClient,
+		HTTPClient:   httpClient,
 		CloudStorage: userExportCloudStorage,
 		Clock:        clockClock,
 	}

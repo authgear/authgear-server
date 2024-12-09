@@ -133,7 +133,7 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     false;
   const skippedTutorial = app?.tutorialStatus.data.skipped === true;
 
-  const { auditLogEnabled, analyticEnabled, web3Enabled } = useSystemConfig();
+  const { auditLogEnabled, analyticEnabled } = useSystemConfig();
 
   const app2appEnabled = useMemo(() => {
     if (effectiveFeatureConfig != null) {
@@ -220,15 +220,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
             textKey: "ScreenNav.mfa",
             url: `/project/${appID}/configuration/authentication/2fa`,
           },
-          ...(web3Enabled
-            ? [
-                {
-                  type: "link" as const,
-                  textKey: "ScreenNav.web3",
-                  url: `/project/${appID}/configuration/authentication/web3`,
-                },
-              ]
-            : []),
           {
             type: "link" as const,
             textKey: "ScreenNav.anonymous-users",
@@ -387,7 +378,6 @@ const ScreenNav: React.VFC<ScreenNavProps> = function ScreenNav(props) {
     skippedTutorial,
     appID,
     analyticEnabled,
-    web3Enabled,
     app2appEnabled,
     showIntegrations,
     auditLogEnabled,

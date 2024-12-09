@@ -308,11 +308,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		GlobalDatabase: handle,
 		UsageStore:     globalDBStore,
 	}
-	nftIndexerAPIEndpoint := environmentConfig.NFTIndexerAPIEndpoint
-	nftService := &service.NFTService{
-		HTTPClient:  httpClient,
-		APIEndpoint: nftIndexerAPIEndpoint,
-	}
 	remoteIP := deps.ProvideRemoteIP(request, trustProxy)
 	userAgentString := deps.ProvideUserAgentString(request)
 	writeHandle := auditdb.NewWriteHandle(pool, databaseEnvironmentConfig, auditDatabaseCredentials, logFactory)
@@ -356,7 +351,6 @@ func newGraphQLHandler(p *deps.RequestProvider) http.Handler {
 		StripeService:           libstripeService,
 		SubscriptionService:     subscriptionService,
 		UsageService:            usageService,
-		NFTService:              nftService,
 		DenoService:             denoClientImpl,
 		AuditService:            auditService,
 		OnboardService:          onboardService,
@@ -378,7 +372,6 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 	authgearConfig := rootProvider.AuthgearConfig
 	appConfig := rootProvider.AppConfig
 	searchConfig := rootProvider.SearchConfig
-	web3Config := rootProvider.Web3Config
 	auditLogConfig := rootProvider.AuditLogConfig
 	analyticConfig := rootProvider.AnalyticConfig
 	googleTagManagerConfig := rootProvider.GoogleTagManagerConfig
@@ -391,7 +384,6 @@ func newSystemConfigHandler(p *deps.RequestProvider) http.Handler {
 		AuthgearConfig:                 authgearConfig,
 		AppConfig:                      appConfig,
 		SearchConfig:                   searchConfig,
-		Web3Config:                     web3Config,
 		AuditLogConfig:                 auditLogConfig,
 		AnalyticConfig:                 analyticConfig,
 		GTMConfig:                      googleTagManagerConfig,

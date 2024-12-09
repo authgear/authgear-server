@@ -84,7 +84,7 @@ type AppConfig struct {
 	Verification              *VerificationConfig   `json:"verification,omitempty"`
 	Deprecated_OTP            *OTPLegacyConfig      `json:"otp,omitempty"`
 
-	Web3 *Web3Config `json:"web3,omitempty"`
+	Deprecated_Web3 *Deprecated_Web3Config `json:"web3,omitempty"`
 
 	GoogleTagManager *GoogleTagManagerConfig `json:"google_tag_manager,omitempty"`
 
