@@ -93,7 +93,7 @@ func (s *MinIOStorage) PresignGetObject(ctx context.Context, name string, expire
 	return u, nil
 }
 
-func (s *MinIOStorage) MakeDirector(ctx context.Context, extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
+func (s *MinIOStorage) MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
 		params := url.Values{}

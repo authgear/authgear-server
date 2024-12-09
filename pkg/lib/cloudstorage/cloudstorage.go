@@ -20,5 +20,5 @@ type storage interface {
 	// PresignGetObject returns an URL that is ready for use.
 	PresignGetObject(ctx context.Context, name string, expire time.Duration) (*url.URL, error)
 	// MakeDirector takes extractKey and returns a Director of httputil.ReverseProxy.
-	MakeDirector(ctx context.Context, extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request)
+	MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request)
 }

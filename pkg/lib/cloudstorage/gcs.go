@@ -133,10 +133,10 @@ func (s *GCSStorage) PresignGetObject(ctx context.Context, name string, expire t
 	return s.PresignGetOrHeadObject(ctx, name, "GET", expire)
 }
 
-func (s *GCSStorage) MakeDirector(ctx context.Context, extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
+func (s *GCSStorage) MakeDirector(extractKey func(r *http.Request) string, expire time.Duration) func(r *http.Request) {
 	return func(r *http.Request) {
 		key := extractKey(r)
-		u, err := s.PresignGetOrHeadObject(ctx, key, "GET", expire)
+		u, err := s.PresignGetOrHeadObject(r.Context(), key, "GET", expire)
 		if err != nil {
 			panic(err)
 		}
